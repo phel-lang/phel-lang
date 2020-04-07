@@ -1,0 +1,11 @@
+--PHEL--
+(def x (let [x 1 y 2] (php/+ x y)))
+--PHP--
+$GLOBALS["__phel"]["user"]["x"] = new \Phel\Lang\PhelVar(
+  (function() {
+    $x_1 = 1;
+    $y_2 = 2;
+    return ($x_1 + $y_2);
+  })(),
+  \Phel\Lang\Table::fromKVs()
+);

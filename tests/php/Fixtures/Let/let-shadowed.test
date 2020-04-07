@@ -1,0 +1,9 @@
+--PHEL--
+(fn [x] (do (let [x 1 y 2] (php/+ x y)) x))
+--PHP--
+function($x) {
+  $x_1 = 1;
+  $y_2 = 2;
+  ($x_1 + $y_2);
+  return $x;
+};

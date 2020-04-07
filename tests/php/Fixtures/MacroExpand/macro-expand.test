@@ -1,0 +1,6 @@
+--PHEL--
+(def x :macro (fn [x] '(php/+ 1 1)))
+
+(x 1)
+--PHP--
+(1 + 1);

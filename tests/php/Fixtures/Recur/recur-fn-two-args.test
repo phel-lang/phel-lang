@@ -1,0 +1,21 @@
+--PHEL--
+(fn [x y] 
+  (if (php/== x 0) 
+    x 
+    (recur (php/- x 1) (php/+ y 1))))
+--PHP--
+function($x, $y) {
+  while(true) {
+    if (\Phel\Lang\Truthy::isTruthy(($x == 0))) {
+      return $x;
+    } else {
+      $__phel_1 = ($x - 1);
+      $__phel_2 = ($y + 1);
+      $x = $__phel_1;
+      $y = $__phel_2;
+      continue;
+
+    }
+    break;
+  }
+};

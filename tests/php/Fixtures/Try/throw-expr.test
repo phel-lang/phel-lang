@@ -1,0 +1,12 @@
+--PHEL--
+(def x (fn [] (let [e (throw (php/new \Exception))] e)))
+--PHP--
+$GLOBALS["__phel"]["user"]["x"] = new \Phel\Lang\PhelVar(
+  function() {
+    $e_1 = (function() {
+      throw (new \Exception());
+    })();
+    return $e_1;
+  },
+  \Phel\Lang\Table::fromKVs()
+);

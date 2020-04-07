@@ -1,0 +1,7 @@
+--PHEL--
+(def x 1)
+--PHP--
+$GLOBALS["__phel"]["user"]["x"] = new \Phel\Lang\PhelVar(
+  1,
+  \Phel\Lang\Table::fromKVs()
+);

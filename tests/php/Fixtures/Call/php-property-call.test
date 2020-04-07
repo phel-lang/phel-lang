@@ -1,0 +1,7 @@
+--PHEL--
+(php/-> (php/new \DateInterval "PT30S") y)
+--PHP--
+(function() {
+  $target_1 = (new \DateInterval("PT30S"));
+  return $target_1->y;
+})();

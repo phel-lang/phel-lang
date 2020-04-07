@@ -1,0 +1,8 @@
+--PHEL--
+(try (php/+ 1 1) (finally (php/+ 1 1)))
+--PHP--
+try {
+  (1 + 1);
+} finally {
+  (1 + 1);
+}

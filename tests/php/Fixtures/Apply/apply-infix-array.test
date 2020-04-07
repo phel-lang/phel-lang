@@ -1,0 +1,4 @@
+--PHEL--
+(apply php/+ 1 2 (php/array 3))
+--PHP--
+array_reduce(array_merge([1, 2], [...array(3)]), function($a, $b) { return ($a + $b); });

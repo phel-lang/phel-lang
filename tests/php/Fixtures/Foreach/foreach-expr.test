@@ -1,0 +1,16 @@
+--PHEL--
+(def x (fn []
+  (foreach [v [1 2 3]]
+    (php/+ v v))))
+--PHP--
+$GLOBALS["__phel"]["user"]["x"] = new \Phel\Lang\PhelVar(
+  function() {
+    return (function() {
+      foreach (\Phel\Lang\Tuple::createBracket(1,2,3) as $v) {
+        return ($v + $v);
+      }
+      return null;
+    })();
+  },
+  \Phel\Lang\Table::fromKVs()
+);

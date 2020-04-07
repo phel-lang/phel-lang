@@ -1,0 +1,6 @@
+--PHEL--
+(fn [f] (f 1))
+--PHP--
+function($f) {
+  return ($f)(1);
+};

@@ -1,0 +1,19 @@
+--PHEL--
+(fn [[x y]] 1)
+--PHP--
+function($__phel_1) {
+  $__phel_2_5 = $__phel_1;
+  $__phel_3_6 = (function() use ($__phel_1, $__phel_2_5) {
+    $__phel_10 = $__phel_2_5;
+    $__phel_11 = 0;
+    return $__phel_10[$__phel_11] ?? null;
+  })();
+  $x_7 = $__phel_3_6;
+  $__phel_4_8 = (function() use ($__phel_1, $__phel_2_5, $__phel_3_6, $x_7) {
+    $__phel_12 = $__phel_2_5;
+    $__phel_13 = 1;
+    return $__phel_12[$__phel_13] ?? null;
+  })();
+  $y_9 = $__phel_4_8;
+  return 1;
+};

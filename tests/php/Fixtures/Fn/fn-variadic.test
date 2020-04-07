@@ -1,0 +1,6 @@
+--PHEL--
+(fn [& xs] 1)
+--PHP--
+function(...$xs) {
+  return 1;
+};

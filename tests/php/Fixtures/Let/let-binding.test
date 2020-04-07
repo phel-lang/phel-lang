@@ -1,0 +1,74 @@
+--PHEL--
+(let [a [1 2] 
+      [b c] [3 4]
+      [d e] [5 6 7]
+      [f g] [8]
+      [h & xs] [1 2 3 4]
+      [h & [i]] [1 2 3 4]] 
+  (php/+ b c d e f))
+--PHP--
+$a_18 = \Phel\Lang\Tuple::createBracket(1,2);
+$__phel_1_19 = \Phel\Lang\Tuple::createBracket(3,4);
+$__phel_2_20 = (function() use ($a_18, $__phel_1_19) {
+  $__phel_46 = $__phel_1_19;
+  $__phel_47 = 0;
+  return $__phel_46[$__phel_47] ?? null;
+})();
+$b_21 = $__phel_2_20;
+$__phel_3_22 = (function() use ($a_18, $__phel_1_19, $__phel_2_20, $b_21) {
+  $__phel_48 = $__phel_1_19;
+  $__phel_49 = 1;
+  return $__phel_48[$__phel_49] ?? null;
+})();
+$c_23 = $__phel_3_22;
+$__phel_4_24 = \Phel\Lang\Tuple::createBracket(5,6,7);
+$__phel_5_25 = (function() use ($a_18, $__phel_1_19, $__phel_2_20, $b_21, $__phel_3_22, $c_23, $__phel_4_24) {
+  $__phel_50 = $__phel_4_24;
+  $__phel_51 = 0;
+  return $__phel_50[$__phel_51] ?? null;
+})();
+$d_26 = $__phel_5_25;
+$__phel_6_27 = (function() use ($a_18, $__phel_1_19, $__phel_2_20, $b_21, $__phel_3_22, $c_23, $__phel_4_24, $__phel_5_25, $d_26) {
+  $__phel_52 = $__phel_4_24;
+  $__phel_53 = 1;
+  return $__phel_52[$__phel_53] ?? null;
+})();
+$e_28 = $__phel_6_27;
+$__phel_7_29 = \Phel\Lang\Tuple::createBracket(8);
+$__phel_8_30 = (function() use ($a_18, $__phel_1_19, $__phel_2_20, $b_21, $__phel_3_22, $c_23, $__phel_4_24, $__phel_5_25, $d_26, $__phel_6_27, $e_28, $__phel_7_29) {
+  $__phel_54 = $__phel_7_29;
+  $__phel_55 = 0;
+  return $__phel_54[$__phel_55] ?? null;
+})();
+$f_31 = $__phel_8_30;
+$__phel_9_32 = (function() use ($a_18, $__phel_1_19, $__phel_2_20, $b_21, $__phel_3_22, $c_23, $__phel_4_24, $__phel_5_25, $d_26, $__phel_6_27, $e_28, $__phel_7_29, $__phel_8_30, $f_31) {
+  $__phel_56 = $__phel_7_29;
+  $__phel_57 = 1;
+  return $__phel_56[$__phel_57] ?? null;
+})();
+$g_33 = $__phel_9_32;
+$__phel_10_34 = \Phel\Lang\Tuple::createBracket(1,2,3,4);
+$__phel_11_35 = (function() use ($a_18, $__phel_1_19, $__phel_2_20, $b_21, $__phel_3_22, $c_23, $__phel_4_24, $__phel_5_25, $d_26, $__phel_6_27, $e_28, $__phel_7_29, $__phel_8_30, $f_31, $__phel_9_32, $g_33, $__phel_10_34) {
+  $__phel_58 = $__phel_10_34;
+  $__phel_59 = 0;
+  return $__phel_58[$__phel_59] ?? null;
+})();
+$h_36 = $__phel_11_35;
+$__phel_12_37 = ($GLOBALS["__phel"]["phel\\core"]["drop-destructure"]->get())(1, $__phel_10_34);
+$xs_38 = $__phel_12_37;
+$__phel_13_39 = \Phel\Lang\Tuple::createBracket(1,2,3,4);
+$__phel_14_40 = (function() use ($a_18, $__phel_1_19, $__phel_2_20, $b_21, $__phel_3_22, $c_23, $__phel_4_24, $__phel_5_25, $d_26, $__phel_6_27, $e_28, $__phel_7_29, $__phel_8_30, $f_31, $__phel_9_32, $g_33, $__phel_10_34, $__phel_11_35, $h_36, $__phel_12_37, $xs_38, $__phel_13_39) {
+  $__phel_60 = $__phel_13_39;
+  $__phel_61 = 0;
+  return $__phel_60[$__phel_61] ?? null;
+})();
+$h_41 = $__phel_14_40;
+$__phel_15_42 = ($GLOBALS["__phel"]["phel\\core"]["drop-destructure"]->get())(1, $__phel_13_39);
+$__phel_16_43 = $__phel_15_42;
+$__phel_17_44 = (function() use ($a_18, $__phel_1_19, $__phel_2_20, $b_21, $__phel_3_22, $c_23, $__phel_4_24, $__phel_5_25, $d_26, $__phel_6_27, $e_28, $__phel_7_29, $__phel_8_30, $f_31, $__phel_9_32, $g_33, $__phel_10_34, $__phel_11_35, $h_41, $__phel_12_37, $xs_38, $__phel_13_39, $__phel_14_40, $__phel_15_42, $__phel_16_43) {
+  $__phel_62 = $__phel_16_43;
+  $__phel_63 = 0;
+  return $__phel_62[$__phel_63] ?? null;
+})();
+$i_45 = $__phel_17_44;
+($b_21 + $c_23 + $d_26 + $e_28 + $f_31);

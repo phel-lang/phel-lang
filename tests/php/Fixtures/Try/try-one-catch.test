@@ -1,0 +1,8 @@
+--PHEL--
+(try (php/+ 1 1) (catch \Exception e (throw e)))
+--PHP--
+try {
+  (1 + 1);
+} catch (\Exception $e) {
+  throw $e;
+}

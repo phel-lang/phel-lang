@@ -1,0 +1,155 @@
+(ns phel\core
+  (:use Phel\Lang\Phel)
+  (:use Phel\Lang\Tuple)
+  (:use Phel\Lang\IContactable)
+  (:use Phel\Lang\PhelArray)
+  (:use Phel\Lang\Nil)
+  (:use Phel\Lang\ICons)
+  (:use Phel\Lang\ISlice)
+  (:use Phel\Lang\ICdr)
+  (:use Phel\Lang\IRest)
+  (:use Phel\Lang\Symbol)
+  (:use Exception)
+  (:use InvalidArgumentException))
+
+(def phel-truthy? :private (fn [x]
+  (if (php/instanceof x Phel)
+    (php/-> x (isTrue))
+    (if (php/is_null x)
+      false
+      (php/!== x false)))))
+
+(def drop-destructure (fn [n x]
+  (if (php/is_array x)
+    (php/array_slice x n)
+    (if (php/instanceof x ISlice)
+      (php/-> x (slice n))
+      (throw (php/new InvalidArgumentException "this is not sliceable"))))))
+
+(def tuple (fn [& xs] (php/new Tuple xs)))
+
+(def concat (fn [arr & xs]
+  (do
+    (foreach [x xs]
+      (foreach [value x]
+        (php/apush arr value)))
+    arr)))
+
+(def array (fn [& xs] (php/new PhelArray xs)))
+
+# quasiquote can be used down here
+
+(def defn :macro 
+  (fn [name & more]
+    (let [[mods fnArgs] (loop [[x & xs] more
+                               modifiers []]
+                               (if x
+                                 (if (php/instanceof x Tuple)
+                                   [modifiers (concat [x] xs)]
+                                   (recur xs (concat modifiers [x])))))]
+      `(def ,name ,@mods (fn ,@fnArgs)))))
+
+(defn defmacro :macro
+  "Define a macro"
+  [name & more]
+  (apply defn name :macro more))
+
+(defn defmacro-
+  "Define a private macro that will not be exported"
+  [name & more]
+  (apply defn name :macro :private more))
+
+(defmacro defn-
+  "Define a private function that will not be exported"
+  [name & more]
+  (apply defn name :private more))
+
+(defn def-
+  "Define a private value that will not be exported"
+  [name & more]
+  `(def ,name :private ,@more))
+
+(defmacro comment 
+  "Ignores the body of the comment"
+  [&])
+
+(defn cons [x xs]
+  (if (php/is_array xs)
+    (do
+      (php/array_unshift xs x)
+      xs)
+    (if (php/instanceof x ICons)
+      (php/-> xs (cons x))
+      (throw (php/new InvalidArgumentException "can not do cons")))))
+
+(defn first [xs]
+  (php/aget xs 0))
+
+(defn second [xs]
+  (php/aget xs 1))
+
+(defn next [xs]
+  (if (php/instanceof xs ICdr)
+    (php/-> xs (cdr))
+    (if (php/is_array xs)
+      (let [sliced (php/array_slice xs 1)]
+        (if (php/empty sliced)
+          nil
+          sliced))
+      (throw (php/new InvalidArgumentException "can not do next")))))
+
+(defn rest [xs]
+  (if (php/instanceof xs IRest)
+    (php/-> xs (rest))
+    (if (php/is_array xs)
+      (php/array_slice xs 1)
+      (throw (php/new InvalidArgumentException "can not do rest")))))
+
+(defn reduce [f init xs]
+  (if xs
+    (recur f (f init (first xs)) (next xs))
+    init))
+
+(defn reduce2 [f [x xs]]
+  (reduce f x xs))
+
+(defmacro when 
+  "Evaluates test and if that is logical true, evaluates body"
+  [test & body]
+  `(if ,test (do ,@body)))
+
+(defmacro when-not
+  "Evaluates test and if that is logical true, evaluates body"
+  [test & body]
+  `(if ,test nil (do ,@body)))
+
+(defmacro cond [& clauses]
+  (when clauses
+    (tuple 'if
+           (first clauses)
+           (if (next clauses)
+             (second clauses)
+             (throw (php/new InvalidArgumentException "cond requires an even number of forms")))
+           (cons 'cond (next (next clauses))))))
+
+(defn gensym 
+  "generates a new unique symbol"
+  []
+  (php/:: Symbol (gen)))
+
+(defmacro or
+  [& args]
+  (if args
+    nil
+    (let [v (gensym)]
+      `(let [,v ,(first args)]
+        (if ,v ,v (or ,@(next (next args))))))))
+
+(defmacro and
+  [& args]
+  (reduce (fn [es] (cons 'if es)) true args))
+
+
+(defn str
+  [& args]
+  (apply php/. args))

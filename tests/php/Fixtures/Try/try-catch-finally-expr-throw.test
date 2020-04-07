@@ -1,0 +1,18 @@
+--PHEL--
+(def x 
+  (try (php/+ 1 1) 
+    (catch \Exception e (throw e))
+    (finally (php/+ 3 3))))
+--PHP--
+$GLOBALS["__phel"]["user"]["x"] = new \Phel\Lang\PhelVar(
+  (function() {
+    try {
+      return (1 + 1);
+    } catch (\Exception $e) {
+      throw $e;
+    } finally {
+      (3 + 3);
+    }
+  })(),
+  \Phel\Lang\Table::fromKVs()
+);

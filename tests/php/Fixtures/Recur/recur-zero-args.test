@@ -1,0 +1,9 @@
+--PHEL--
+(fn [] (recur))
+--PHP--
+function() {
+  while(true) {
+    continue;
+    break;
+  }
+};

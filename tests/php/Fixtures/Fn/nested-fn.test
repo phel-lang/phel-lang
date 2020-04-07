@@ -1,0 +1,8 @@
+--PHEL--
+(fn [x] (fn [y] 1))
+--PHP--
+function($x) {
+  return function($y) use ($x) {
+    return 1;
+  };
+};

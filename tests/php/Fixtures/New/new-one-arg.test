@@ -1,0 +1,4 @@
+--PHEL--
+(php/new \DateTimeImmutable "2020-03-22")
+--PHP--
+(new \DateTimeImmutable("2020-03-22"));

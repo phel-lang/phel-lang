@@ -1,0 +1,6 @@
+--PHEL--
+(fn [] (do))
+--PHP--
+function() {
+  return null;
+};

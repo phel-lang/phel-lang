@@ -1,0 +1,9 @@
+--PHEL--
+(ns my\namespace)
+
+(def x 1)
+--PHP--
+$GLOBALS["__phel"]["my\\namespace"]["x"] = new \Phel\Lang\PhelVar(
+  1,
+  \Phel\Lang\Table::fromKVs()
+);

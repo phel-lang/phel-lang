@@ -1,0 +1,7 @@
+--PHEL--
+(php/-> (php/new \DateTimeImmutable) (getTimestamp))
+--PHP--
+(function() {
+  $target_1 = (new \DateTimeImmutable());
+  return $target_1->getTimestamp();
+})();

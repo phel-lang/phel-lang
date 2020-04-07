@@ -1,0 +1,30 @@
+{
+    "name": "phel/phel",
+    "authors": [
+        {
+            "name": "Jens Haase",
+            "email": "je.haase@gmail.com"
+        }
+    ],
+    "require": {
+        "php": ">=7.4"
+    },
+    "require-dev": {
+        "phpunit/phpunit": "^9"
+    },
+    "autoload": {
+        "psr-4": {
+            "Phel\\": "src/php/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Phel\\": "tests/php"
+        }
+    },
+    "scripts": {
+        "phpunit": "vendor/bin/phpunit",
+        "phpunit:coverage": "vendor/bin/phpunit --coverage-html data/coverage-report",
+        "test-phel": "php tests/phel/test-runner.php"
+    }
+}

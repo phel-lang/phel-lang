@@ -1,0 +1,12 @@
+--PHEL--
+(def reduce (fn [f xs] (apply f xs)))
+
+(reduce php/array [1 2 3])
+--PHP--
+$GLOBALS["__phel"]["user"]["reduce"] = new \Phel\Lang\PhelVar(
+  function($f, $xs) {
+    return ($f)(...$xs);
+  },
+  \Phel\Lang\Table::fromKVs()
+);
+($GLOBALS["__phel"]["user"]["reduce"]->get())((function(...$args) { return array(...$args);}), \Phel\Lang\Tuple::createBracket(1,2,3));

@@ -1,0 +1,12 @@
+--PHEL--
+(def x (fn [x] 1))
+
+(x 1)
+--PHP--
+$GLOBALS["__phel"]["user"]["x"] = new \Phel\Lang\PhelVar(
+  function($x) {
+    return 1;
+  },
+  \Phel\Lang\Table::fromKVs()
+);
+($GLOBALS["__phel"]["user"]["x"]->get())(1);

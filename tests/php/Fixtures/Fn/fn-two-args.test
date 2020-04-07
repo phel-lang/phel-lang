@@ -1,0 +1,6 @@
+--PHEL--
+(fn [x y] 1)
+--PHP--
+function($x, $y) {
+  return 1;
+};

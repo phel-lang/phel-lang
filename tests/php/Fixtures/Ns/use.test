@@ -1,0 +1,9 @@
+--PHEL--
+(ns test
+  (:use DateTimeImmutable)
+  (:use DateTime :as D))
+
+(php/new DateTimeImmutable)
+(php/new D)
+--PHP--
+(new DateTimeImmutable());(new DateTime());

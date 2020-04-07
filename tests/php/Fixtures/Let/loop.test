@@ -1,0 +1,20 @@
+--PHEL--
+(loop [n 10
+       sum 0] 
+  (if (php/<= n 0) sum (recur (php/- n 1) (php/+ sum n))))
+--PHP--
+$n_1 = 10;
+$sum_2 = 0;
+while(true) {
+  if (\Phel\Lang\Truthy::isTruthy(($n_1 <= 0))) {
+    $sum_2;
+  } else {
+    $__phel_3 = ($n_1 - 1);
+    $__phel_4 = ($sum_2 + $n_1);
+    $n_1 = $__phel_3;
+    $sum_2 = $__phel_4;
+    continue;
+
+  }
+  break;
+}

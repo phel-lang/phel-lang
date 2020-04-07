@@ -1,0 +1,16 @@
+(ns phel\test\core)
+
+(defn assert [a b]
+  (when-not (php/== a b)
+    (throw (php/new Exception (str a " != " b)))))
+
+(assert true (and))
+# (assert true (and true))
+# (assert true (and true true))
+# (assert false (and false))
+# (assert false (and true false))
+# (assert false (and true false true))
+
+# (assert "" (str))
+# (assert "ab" (str "a" "b"))
+# (assert "abc" (str "a" "b" "c"))
