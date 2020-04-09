@@ -9,15 +9,9 @@
   (:use Phel\Lang\ICdr)
   (:use Phel\Lang\IRest)
   (:use Phel\Lang\Symbol)
+  (:use Countable)
   (:use Exception)
   (:use InvalidArgumentException))
-
-(def phel-truthy? :private (fn [x]
-  (if (php/instanceof x Phel)
-    (php/-> x (isTrue))
-    (if (php/is_null x)
-      false
-      (php/!== x false)))))
 
 (def drop-destructure (fn [n x]
   (if (php/is_array x)
@@ -26,7 +20,7 @@
       (php/-> x (slice n))
       (throw (php/new InvalidArgumentException "this is not sliceable"))))))
 
-(def tuple (fn [& xs] (php/new Tuple xs)))
+(def tuple (fn [& xs] (php/new Tuple (php/-> xs (toPhpArray)))))
 
 (def concat (fn [arr & xs]
   (do
@@ -35,7 +29,7 @@
         (php/apush arr value)))
     arr)))
 
-(def array (fn [& xs] (php/new PhelArray xs)))
+(def array (fn [& xs] xs))
 
 # quasiquote can be used down here
 
@@ -73,14 +67,18 @@
   "Ignores the body of the comment"
   [&])
 
+(defn str
+  [& args]
+  (apply php/. args))
+
 (defn cons [x xs]
   (if (php/is_array xs)
     (do
       (php/array_unshift xs x)
       xs)
-    (if (php/instanceof x ICons)
+    (if (php/instanceof xs ICons)
       (php/-> xs (cons x))
-      (throw (php/new InvalidArgumentException "can not do cons")))))
+      (throw (php/new InvalidArgumentException (str "can not do cons " (php/print_r x true)))))))
 
 (defn first [xs]
   (php/aget xs 0))
@@ -105,12 +103,21 @@
       (php/array_slice xs 1)
       (throw (php/new InvalidArgumentException "can not do rest")))))
 
-(defn reduce [f init xs]
-  (if xs
-    (recur f (f init (first xs)) (next xs))
-    init))
+(defn count [xs]
+  (if (php/instanceof xs Countable)
+    (php/-> xs (count))
+    (if (php/is_array xs)
+      (php/count xs)
+      (if (php/== xs nil)
+        0
+        (throw (php/new InvalidArgumentException "object is not countable"))))))
 
-(defn reduce2 [f [x xs]]
+(defn reduce [f init xs]
+  (if (first xs)
+      (recur f (f init (first xs)) (next xs))
+      init))
+
+(defn reduce2 [f [x & xs]]
   (reduce f x xs))
 
 (defmacro when 
@@ -124,13 +131,15 @@
   `(if ,test nil (do ,@body)))
 
 (defmacro cond [& clauses]
-  (when clauses
-    (tuple 'if
-           (first clauses)
-           (if (next clauses)
-             (second clauses)
-             (throw (php/new InvalidArgumentException "cond requires an even number of forms")))
-           (cons 'cond (next (next clauses))))))
+  (let [cnt (count clauses)]
+    (if (php/== cnt 0)
+      nil
+      (if (php/== cnt 1)
+        (first clauses)
+        (tuple 'if
+               (first clauses)
+               (second clauses)
+               (cons 'cond (apply tuple (next (next clauses)))))))))
 
 (defn gensym 
   "generates a new unique symbol"
@@ -139,17 +148,20 @@
 
 (defmacro or
   [& args]
-  (if args
-    nil
-    (let [v (gensym)]
-      `(let [,v ,(first args)]
-        (if ,v ,v (or ,@(next (next args))))))))
+  (let [cnt (count args)]
+    (cond
+      (php/== cnt 0) 'nil
+      (php/== cnt 1) (first args)
+                     (let [v (gensym)]
+                       `(let [,v ,(first args)]
+                         (if ,v ,v (or ,@(next args))))))))
 
 (defmacro and
   [& args]
-  (reduce (fn [es] (cons 'if es)) true args))
-
-
-(defn str
-  [& args]
-  (apply php/. args))
+  (let [cnt (count args)]
+    (cond 
+      (php/== cnt 0) 'true
+      (php/== cnt 1) (first args)
+                     (let [v (gensym)]
+                       `(let [,v ,(first args)]
+                         (if ,v (and ,@(next args)) ,v))))))

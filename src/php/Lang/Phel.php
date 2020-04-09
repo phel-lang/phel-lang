@@ -2,11 +2,13 @@
 
 namespace Phel\Lang;
 
-interface Phel {
+abstract class Phel {
 
-    public function isTruthy(): bool;
+    use SourceLocationTrait;
 
-    public function hash();
+    public abstract function isTruthy(): bool;
 
-    public function equals($other): bool;
+    public abstract function hash();
+
+    public abstract function equals($other): bool;
 }

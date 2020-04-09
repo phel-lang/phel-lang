@@ -2,7 +2,9 @@
 
 namespace Phel\Lang;
 
-class Keyword implements Phel {
+class Keyword extends Phel {
+
+    use SourceLocationTrait;
 
     /**
      * @var string
@@ -27,5 +29,10 @@ class Keyword implements Phel {
 
     public function isTruthy(): bool {
         return true;
+    }
+
+    public function __toString()
+    {
+        return ':' . $this->name;
     }
 }

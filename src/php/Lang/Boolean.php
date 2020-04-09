@@ -2,7 +2,7 @@
 
 namespace Phel\Lang;
 
-class Boolean implements Phel {
+class Boolean extends Phel {
 
     /**
      * @var bool
@@ -27,5 +27,10 @@ class Boolean implements Phel {
 
     public function isTruthy(): bool {
         return $this->value;
+    }
+
+    public function __toString()
+    {
+        return $this->value ? 'true' : 'false';
     }
 }

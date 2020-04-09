@@ -67,49 +67,45 @@ class Reader {
 
         switch ($c->getChar()) {
             case '(':
-                $startLocation = $c->getLocation();
-                $tuple = $this->rdlist($stream, ')');
-                $endLocation = $this->lastLocation;
-
-                // TODO: Changes equality
-                // $tuple->setStartLocation($startLocation);
-                // $tuple->setEndLocation($endLocation);
-
-                return $tuple;
+                return $this->withSourceLocation($c, fn() => $this->rdlist($stream, ')'));
             case '[':
-                return $this->rdlist($stream, ']');
+                return $this->withSourceLocation($c, fn() => $this->rdlist($stream, ']'));
             case ')':
             case ']':
                 throw new ReaderException('unexpected terminator', $this->startLocation, $this->lastLocation, $this->readChars);
 
             case '\'':
-                return $this->rdwrap($stream, "quote");
+                return $this->withSourceLocation($c, fn() => $this->rdwrap($stream, "quote"));
             case '`':
-                $e = $this->hardRdex($stream, "missing expression");
-                $q = new Quasiquote();
-                return $q->quasiquote($e);
+                return $this->withSourceLocation($c, fn() => $this->rdquasiquote($stream));
             case ',':
-                if ($stream->peek()->getChar() == "@") {
-                    $this->readStream($stream);
-                    return $this->rdwrap($stream, "unquote-splicing");
-                } else {
-                    return $this->rdwrap($stream, "unquote");
-                }
-            // case '|':
+                return $this->withSourceLocation($c, function() use ($stream) {
+                    if ($stream->peek()->getChar() == "@") {
+                        $this->readStream($stream);
+                        return $this->rdwrap($stream, "unquote-splicing");
+                    } else {
+                        return $this->rdwrap($stream, "unquote");
+                    }
+                });
 
             case '"':
-                return new PhelString($this->rddelim($stream, '"'));
-            // case '#':
+                return $this->withSourceLocation($c, fn() => new PhelString($this->rddelim($stream, '"')));
                 
             case '@':
                 if ($stream->peek()->getChar() == "[") {
                     $this->readStream($stream);
-                    return PhelArray::create(...$this->rdlist($stream, ']'));
+                    return $this->withSourceLocation($c, fn() => PhelArray::create(...$this->rdlist($stream, ']')));
                 } else if ($stream->peek()->getChar() == "{") {
                     $this->readStream($stream);
                     $xs = $this->rdlist($stream, "}");
                     if ($xs instanceof Tuple && count($xs) % 2 === 0) {
-                        return Table::fromKVs(...$this->rdlist($stream, "}"));
+                        $table = Table::fromKVs(...$this->rdlist($stream, "}"));
+                        $endLocation = $this->lastLocation;
+
+                        $table->setStartLocation($c->getLocation());
+                        $table->setEndLocation($endLocation);
+
+                        return $table;
                     } else {
                         throw new ReaderException("Tables must have an even number of parameters", $this->startLocation, $this->lastLocation, $this->readChars);
                     }
@@ -117,25 +113,44 @@ class Reader {
                 } else {
                     throw new ReaderException("unexpected symbol. expected [ oder {", $this->startLocation, $this->lastLocation, $this->readChars);
                 }
-            // case '`': Long string (ignore for now)
-
-            
                 
             default:
-                return $this->rdword($stream, $c);
+                return $this->withSourceLocation($c, fn() => $this->rdword($stream, $c->getChar()));
         }
     }
 
-    private function rdword($stream, CharData $charData) {
-        $startLocation = $charData->getLocation();
-        $c = $charData->getChar();
-        $word = $c . $this->charstil($stream, function($c) { return $this->breakc($c); });
-        $endLocation = $this->lastLocation;
-
-        return $this->parseword($word, $startLocation, $endLocation);
+    private function rdquasiquote($stream) {
+        $e = $this->hardRdex($stream, "missing expression");
+        $q = new Quasiquote();
+        return $q->quasiquote($e);
     }
 
-    private function sym($name, $startLocation, $endLocation) {
+    private function withSourceLocation(CharData $c, callable $f) {
+        $startLocation = $c->getLocation();
+        $result = $f();
+        $endLocation = $this->lastLocation;
+
+        $result->setStartLocation($startLocation);
+        $result->setEndLocation($endLocation);
+
+        return $result;
+    }
+
+    private function rdword($stream, string $c) {
+        return $this->parseword(
+            $c . $this->charstil($stream, function($c) { return $this->breakc($c); })
+        );
+    }
+
+    private function parseword(string $word) {
+        if (is_numeric($word)) {
+            return new Number($word + 0);
+        } else {
+            return $this->sym($word);
+        }
+    }
+
+    private function sym($name) {
         switch ($name) {
             case 'true':
                 return new Boolean(true);
@@ -147,21 +162,8 @@ class Reader {
                 if ($name[0] == ':') {
                     return new Keyword(substr($name, 1));
                 } else {
-                    $sym = new Symbol($name);
-
-                    /*$sym->setStartLocation($startLocation);
-                    $sym->setEndLocation($endLocation);*/
-
-                    return $sym;
+                    return new Symbol($name);
                 }
-        }
-    }
-
-    private function parseword(string $word, $startLocation, $endLocation) {
-        if (is_numeric($word)) {
-            return new Number($word + 0);
-        } else {
-            return $this->sym($word, $startLocation, $endLocation);
         }
     }
 

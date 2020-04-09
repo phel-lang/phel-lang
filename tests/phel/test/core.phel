@@ -2,15 +2,69 @@
 
 (defn assert [a b]
   (when-not (php/== a b)
-    (throw (php/new Exception (str a " != " b)))))
+    (throw (php/new Exception (str (php/var_export a true) " != " (php/var_export b true))))))
+
+(assert '(1 2 3) (tuple '1 '2 '3))
+(assert @[1 2 3] (array 1 2 3))
+ 
+(assert @[1 2] (concat @[1 2]))
+(assert @[1 2 3 4] (concat @[1] @[2 3] @[4]))
+ 
+(assert (php/array 1 2) (cons 1 (php/array 2)))
+(assert [1 2] (cons 1 [2]))
+ 
+(assert 1 (first [1]))
+(assert nil (first []))
+ 
+(assert 2 (second [1 2]))
+(assert nil (second []))
+
+# TODO: next
+# (assert nil (next []))
+# (assert nil (next [1]))
+(assert [2] (next [1 2]))
+
+(assert [2] (rest [1 2]))
+(assert [] (rest [1]))
+(assert [] (rest []))
+
+(assert 0 (count []))
+(assert 0 (count nil))
+(assert 0 (count @[]))
+(assert 0 (count (php/array)))
+(assert 1 (count ["a"]))
+(assert 1 (count @["a"]))
+(assert 1 (count (php/array "a")))
+
+(assert "abc" (reduce str "" ["a" "b" "c"]))
+(assert "x" (reduce str "x" []))
+(assert "abc" (reduce2 str ["a" "b" "c"]))
+(assert "a" (reduce2 str ["a"]))
+(assert "" (reduce2 str []))
+
+# TODO: when
+# TODO: when-not
+# TODO: cond
+
+(assert nil (or))
+(assert true (or true))
+(assert false (or false))
+(assert true (or true false))
+(assert true (or false true))
+(assert false (or false false))
+(assert 10 (or false 10))
+(assert 10 (or 10))
 
 (assert true (and))
-# (assert true (and true))
-# (assert true (and true true))
-# (assert false (and false))
-# (assert false (and true false))
-# (assert false (and true false true))
+(assert true (and true))
+(assert true (and true true))
+(assert false (and false))
+(assert false (and true false))
+(assert false (and true false true))
+(assert 10 (and true 10))
+(assert false (and false 10))
+(assert 10 (and 10))
 
-# (assert "" (str))
-# (assert "ab" (str "a" "b"))
-# (assert "abc" (str "a" "b" "c"))
+(assert "" (str))
+(assert "ab" (str "a" "b"))
+(assert "abc" (str "a" "b" "c"))

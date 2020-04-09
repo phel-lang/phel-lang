@@ -1,4 +1,4 @@
 --PHEL--
 (apply php/+ 1 2 [3])
 --PHP--
-array_reduce(array_merge([1, 2], [...\Phel\Lang\Tuple::createBracket(3)]), function($a, $b) { return ($a + $b); });
+array_reduce(array_merge([1, 2], [...(\Phel\Lang\Tuple::createBracket(3) ?? [])]), function($a, $b) { return ($a + $b); });

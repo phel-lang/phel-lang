@@ -17,9 +17,9 @@ class AnalyzerException extends Exception {
      */
     private $endLocation;
 
-    public function __construct($message, $startLocation = null, $endLocation = null)
+    public function __construct($message, $startLocation = null, $endLocation = null, $nestedException = null)
     {
-        parent::__construct($message);
+        parent::__construct($message, 0, $nestedException);
         $this->startLocation = $startLocation;
         $this->endLocation = $endLocation;
     }

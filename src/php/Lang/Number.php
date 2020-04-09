@@ -2,7 +2,7 @@
 
 namespace Phel\Lang;
 
-class Number implements Phel {
+class Number extends Phel {
 
     /**
      * @var float|int
@@ -27,5 +27,10 @@ class Number implements Phel {
 
     public function isTruthy(): bool {
         return true;
+    }
+
+    public function __toString()
+    {
+        return (string) $this->value;
     }
 }

@@ -2,7 +2,7 @@
 
 namespace Phel\Lang;
 
-class PhelString implements Phel {
+class PhelString extends Phel {
 
     /**
      * @var string
@@ -27,5 +27,9 @@ class PhelString implements Phel {
 
     public function isTruthy(): bool {
         return strlen($this->value) > 0;
+    }
+
+    public function __toString() {
+        return '"' . addslashes($this->value) . '"';
     }
 }

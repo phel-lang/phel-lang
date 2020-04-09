@@ -1,0 +1,4 @@
+--PHEL--
+(apply php/array nil)
+--PHP--
+array(...(null ?? []));

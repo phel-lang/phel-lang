@@ -1,4 +1,4 @@
 --PHEL--
 (apply php/array [3])
 --PHP--
-array(...\Phel\Lang\Tuple::createBracket(3));
+array(...(\Phel\Lang\Tuple::createBracket(3) ?? []));

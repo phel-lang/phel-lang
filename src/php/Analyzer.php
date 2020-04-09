@@ -65,54 +65,58 @@ class Analyzer {
             $nodeEnvironment = NodeEnvironment::empty();
         }
 
-        if ($x instanceof PhelString || $x instanceof Number || $x instanceof Nil || $x instanceof Boolean || $x instanceof Keyword) {
+        if ($x instanceof PhelString || $x instanceof Number || $x instanceof Nil || $x instanceof Boolean || $x instanceof Keyword || $x instanceof PhelArray || $x instanceof Table) {
             return $this->analyzeLiteral($x, $nodeEnvironment);
         } else if ($x instanceof Symbol) {
             return $this->analyzeVar($x, $nodeEnvironment);
         } else if ($x instanceof Tuple && $x->isUsingBracket()) {
             return $this->analyzeBracketTuple($x, $nodeEnvironment);
         } else if ($x instanceof Tuple) {
-            switch ($x[0]) {
-                case new Symbol('def'):
-                    return $this->analyzeDef($x, $nodeEnvironment);
-                case new Symbol('ns'):
-                    return $this->analyzeNs($x, $nodeEnvironment);
-                case new Symbol('fn'):
-                    return $this->analyzeFn($x, $nodeEnvironment);
-                case new Symbol('quote'):
-                    return $this->analyzeQuote($x, $nodeEnvironment);
-                case new Symbol('do'):
-                    return $this->analyzeDo($x, $nodeEnvironment);
-                case new Symbol('if'):
-                    return $this->analyzeIf($x, $nodeEnvironment);
-                case new Symbol('apply'):
-                    return $this->analyzeApply($x, $nodeEnvironment);
-                case new Symbol('let'):
-                    return $this->analyzeLet($x, $nodeEnvironment);
-                case new Symbol('php/new'):
-                    return $this->analyzePhpNew($x, $nodeEnvironment);
-                case new Symbol('php/->'):
-                    return $this->analyzePhpObjectCall($x, $nodeEnvironment, false);
-                case new Symbol('php/::'):
-                    return $this->analyzePhpObjectCall($x, $nodeEnvironment, true);
-                case new Symbol('php/aget'):
-                    return $this->analyzePhpAGet($x, $nodeEnvironment);
-                case new Symbol('php/aset'):
-                    return $this->analyzePhpASet($x, $nodeEnvironment);
-                case new Symbol('php/apush'):
-                    return $this->analyzePhpAPush($x, $nodeEnvironment);
-                case new Symbol('recur'):
-                    return $this->analyzeRecur($x, $nodeEnvironment);
-                case new Symbol('try'):
-                    return $this->analyzeTry($x, $nodeEnvironment);
-                case new Symbol('throw'):
-                    return $this->analyzeThrow($x, $nodeEnvironment);
-                case new Symbol('loop'):
-                    return $this->analyzeLoop($x, $nodeEnvironment);
-                case new Symbol('foreach'):
-                    return $this->analyzeForeach($x, $nodeEnvironment);
-                default:
-                    return $this->analyzeInvoke($x, $nodeEnvironment);
+            if ($x[0] instanceof Symbol) {
+                switch ($x[0]->getName()) {
+                    case 'def':
+                        return $this->analyzeDef($x, $nodeEnvironment);
+                    case 'ns':
+                        return $this->analyzeNs($x, $nodeEnvironment);
+                    case 'fn':
+                        return $this->analyzeFn($x, $nodeEnvironment);
+                    case 'quote':
+                        return $this->analyzeQuote($x, $nodeEnvironment);
+                    case 'do':
+                        return $this->analyzeDo($x, $nodeEnvironment);
+                    case 'if':
+                        return $this->analyzeIf($x, $nodeEnvironment);
+                    case 'apply':
+                        return $this->analyzeApply($x, $nodeEnvironment);
+                    case 'let':
+                        return $this->analyzeLet($x, $nodeEnvironment);
+                    case 'php/new':
+                        return $this->analyzePhpNew($x, $nodeEnvironment);
+                    case 'php/->':
+                        return $this->analyzePhpObjectCall($x, $nodeEnvironment, false);
+                    case 'php/::':
+                        return $this->analyzePhpObjectCall($x, $nodeEnvironment, true);
+                    case 'php/aget':
+                        return $this->analyzePhpAGet($x, $nodeEnvironment);
+                    case 'php/aset':
+                        return $this->analyzePhpASet($x, $nodeEnvironment);
+                    case 'php/apush':
+                        return $this->analyzePhpAPush($x, $nodeEnvironment);
+                    case 'recur':
+                        return $this->analyzeRecur($x, $nodeEnvironment);
+                    case 'try':
+                        return $this->analyzeTry($x, $nodeEnvironment);
+                    case 'throw':
+                        return $this->analyzeThrow($x, $nodeEnvironment);
+                    case 'loop':
+                        return $this->analyzeLoop($x, $nodeEnvironment);
+                    case 'foreach':
+                        return $this->analyzeForeach($x, $nodeEnvironment);
+                    default:
+                        return $this->analyzeInvoke($x, $nodeEnvironment);
+                }
+            } else {
+                return $this->analyzeInvoke($x, $nodeEnvironment);
             }
         } else {
             throw new AnalyzerException('Unhandled type: ' . print_r($x, true));
@@ -271,10 +275,10 @@ class Analyzer {
 
             switch ($state) {
                 case 'start':
-                    if ($form[0] == new Symbol('catch')) {
+                    if ($this->isSymWithName($form[0], 'catch')) {
                         $state = 'catches';
                         $catches[] = $form;
-                    } else if ($form[0] == new Symbol('finally')) {
+                    } else if ($this->isSymWithName($form[0], 'finally')) {
                         $state = 'done';
                         $finally = $form;
                     } else {
@@ -283,9 +287,9 @@ class Analyzer {
                     break;
 
                 case 'catches':
-                    if ($form[0] == new Symbol('catch')) {
+                    if ($this->isSymWithName($form[0], 'catch')) {
                         $catches[] = $form;
-                    } else if ($form[0] == new Symbol('finally')) {
+                    } else if ($this->isSymWithName($form[0], 'finally')) {
                         $state = 'done';
                         $finally = $form;
                     } else {
@@ -451,7 +455,7 @@ class Analyzer {
     protected function analyzeVar(Symbol $x, NodeEnvironment $env) {
         if (substr($x->getName(),0,4) == 'php/') {
             return new PhpVarNode($env, substr($x->getName(), 4));
-        } else if (in_array($x, $env->getLocals())) {
+        } else if ($env->hasLocal($x)) {
             if ($env->isShadowed($x)) {
                 return new LocalVarNode($env, $env->getShadowed($x));
             } else {
@@ -462,7 +466,7 @@ class Analyzer {
             if ($globalResolve) {
                 return $globalResolve;
             } else {
-                throw new AnalyzerException('Can not resolve symbol ' . $x, $x->getStartLocation(), $x->getEndLocation());
+                throw new AnalyzerException('Can not resolve symbol ' . $x->getName(), $x->getStartLocation(), $x->getEndLocation());
             }
         }
     }
@@ -626,7 +630,6 @@ class Analyzer {
 
     protected function analyzeFn(Tuple $x, NodeEnvironment $env) {
         assert(count($x) >= 2 && count($x) <= 3, "A fn tuple must have two or three arguments");
-        assert($x[0] == new Symbol('fn'), "The tuple must start with 'ns'");
         assert($x[1] instanceof Tuple, "Second argument must be a list of arguments");
 
         $params = [];
@@ -639,10 +642,10 @@ class Analyzer {
             switch ($state) {
                 case 'start':
                     if ($param instanceof Symbol) {
-                        if ($param == new Symbol('&')) {
+                        if ($this->isSymWithName($param, '&')) {
                             $isVariadic = true;
                             $state = 'rest';
-                        } else if ($param == new Symbol('_')) {
+                        } else if ($param->getName() == '_') {
                             $params[] = Symbol::gen(); // Add dummy variadic symbol
                         } else {
                             $params[] = $param;
@@ -657,7 +660,7 @@ class Analyzer {
                 case 'rest':
                     $state = 'done';
                     $hasVariadicForm = true;
-                    if ($param == new Symbol('_')) {
+                    if ($this->isSymWithName($param, '_')) {
                         $params[] = Symbol::gen(); // Add dummy variadic symbol
                     } else if ($param instanceof Symbol) {
                         $params[] = $param;
@@ -736,13 +739,20 @@ class Analyzer {
             try {
                 return $fn(...$arguments);
             } catch (Throwable $e) {
-                echo $e->getMessage() . "\n";
-                echo $e->getTraceAsString() . "\n";
-                throw new AnalyzerException('Error in expanding macro "' . $node->getNamespace() . '\\'. $node->getName()->getName() . '": ' . $e->getMessage(), 0, $e);
+                throw new AnalyzerException(
+                    'Error in expanding macro "' . $node->getNamespace() . '\\'. $node->getName()->getName() . '": ' . $e->getMessage(),
+                    $x->getStartLocation(),
+                    $x->getEndLocation(),
+                    $e
+                );
             }
             
         } else {
-            throw new AnalyzerException('This is not macro expandable: ' . $node);
+            throw new AnalyzerException(
+                'This is not macro expandable: ' . $node,
+                $x->getStartLocation(),
+                $x->getEndLocation()
+            );
         }
     }
 
@@ -751,7 +761,6 @@ class Analyzer {
     }
 
     protected function analyzeNs(Tuple $x, NodeEnvironment $env) {
-        assert($x[0] == new Symbol('ns'), "The tuple must start with 'ns'");
         assert($x[1] instanceof Symbol, "Namespace must be of type Symbol");
 
         $this->globalEnvironment->setNs($x[1]->getName());
@@ -761,24 +770,24 @@ class Analyzer {
             $import = $x[$i];
             assert($import instanceof Tuple);
 
-            if ($import[0] == new Keyword('use')) {
+            if ($this->isKeywordWithName($import[0], 'use')) {
                 assert($import[1] instanceof Symbol, 'First arugment in :use must be a symbol');
 
                 if (count($import) == 2) {
                     $parts = explode('\\', $import[1]->getName());
                     $alias = new Symbol($parts[count($parts) - 1]);
-                } else if (count($import) == 4 && $import[2] == new Keyword('as')) {
+                } else if (count($import) == 4 && $this->isKeywordWithName($import[2], 'as')) {
                     $alias = $import[3];
                 }
 
                 $this->globalEnvironment->addUseAlias($alias, $import[1]);
-            } else if ($import[0] == new Keyword('require')) {
+            } else if ($this->isKeywordWithName($import[0], 'require')) {
                 $requireNs[] = $import[1];
 
                 if (count($import) == 2) {
                     $parts = explode('\\', $import[1]->getName());
                     $alias = new Symbol($parts[count($parts) - 1]);
-                } else if (count($import) == 4 && $import[2] == new Keyword('as')) {
+                } else if (count($import) == 4 && $this->isKeywordWithName($import[2], 'as')) {
                     $alias = $import[3];
                 }
 
@@ -790,7 +799,6 @@ class Analyzer {
     }
 
     protected function analyzeDef(Tuple $x, NodeEnvironment $nodeEnvironment): DefNode {
-        assert($x[0] == new Symbol('def'), "The tuple must start with 'def'");
         assert($x[1] instanceof Symbol, "Name of Def must be of type Symbol, got: " . print_r($x, true));
         assert($x[count($x)-1] instanceof Phel, "Last attribute must be a Phel Type");
         assert(count($x) >= 3, "Def must have at least two arguments");
@@ -820,5 +828,13 @@ class Analyzer {
             $meta,
             $this->analyze($init, $nodeEnvironment->withContext(NodeEnvironment::CTX_EXPR)->withDisallowRecurFrame())
         );
+    }
+
+    private function isSymWithName(Phel $x, $name) {
+        return $x instanceof Symbol && $x->getName() == $name;
+    }
+
+    private function isKeywordWithName(Phel $x, $name) {
+        return $x instanceof Keyword && $x->getName() == $name;
     }
 }

@@ -2,5 +2,6 @@
 (fn [&] 1)
 --PHP--
 function(...$__phel_1) {
+  $__phel_1 = new \Phel\Lang\PhelArray($__phel_1);
   return 1;
 };

@@ -78,7 +78,6 @@ class GlobalEnvironment {
                 $this->useAliases[$strName]
             );
         } else {
-            $strName = $name->getName();
             $pos = strpos($strName, '/');
             
             if ($pos !== false) {

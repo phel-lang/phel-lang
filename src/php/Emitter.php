@@ -368,16 +368,16 @@ class Emitter {
             if ($fnNode->isInfix()) {
                 return $this->wrap(
                     'array_reduce('
-                    . 'array_merge([' . implode(', ', $args) . '], [...' . $lastArg . ']), ' 
+                    . 'array_merge([' . implode(', ', $args) . '], [...(' . $lastArg . ' ?? [])]), ' 
                     . 'function($a, $b) { return ($a ' . $fnNode->getName() . ' $b); }'
                     . ')',
                     $node->getEnv()
                 );
             } else {
                 if (count($args) > 0) {
-                    $argString = implode(', ', $args) . ', ...' . $lastArg;
+                    $argString = implode(', ', $args) . ', ...(' . $lastArg . ' ?? [])';
                 } else {
-                    $argString = '...' . $lastArg;
+                    $argString = '...(' . $lastArg . ' ?? [])';
                 }
                 
                 return $this->wrap(
@@ -387,9 +387,9 @@ class Emitter {
             }
         } else {
             if (count($args) > 0) {
-                $argString = implode(', ', $args) . ', ...' . $lastArg;
+                $argString = implode(', ', $args) . ', ...(' . $lastArg. ' ?? [])';
             } else {
-                $argString = '...' . $lastArg;
+                $argString = '...(' . $lastArg . ' ?? [])';
             }
 
             return $this->wrap(
@@ -507,9 +507,11 @@ class Emitter {
 
     protected function emitFn(FnNode $node): string {
         $params = [];
+        $variadicWrapString = '';
         foreach ($node->getParams() as $i => $p) {
             if ($i == count($node->getParams()) - 1 && $node->isVariadic()) {
                 $params[] = '...$' . $p->getName();
+                $variadicWrapString = '$' . $p->getName() . ' = new \Phel\Lang\PhelArray($' . $p->getName() . ');' . "\n";
             } else {
                 $params[] = '$' . $p->getName();
             }
@@ -533,6 +535,7 @@ class Emitter {
 
         return $this->wrap(
             'function(' . $paramString .')' . $useString . " {\n"
+            . ($variadicWrapString ? $this->indent($variadicWrapString, 1) : '')
             . $this->indent($body, 1)
             . "\n"
             . '}',
@@ -600,7 +603,7 @@ class Emitter {
             } else {
                 $valuesStr = implode(",", $values);
             }
-            return '\Phel\Lang\PhelArray::createFromKVs('.$valuesStr.')';
+            return '\Phel\Lang\PhelArray::create('.$valuesStr.')';
         } else if ($x instanceof Table) {
             $values = [];
             /** @var Phel $key */

@@ -2,9 +2,7 @@
 
 namespace Phel\Lang;
 
-class Symbol implements Phel {
-
-    use SourceLocationTrait;
+class Symbol extends Phel {
 
     private static $symGenCounter = 1;
 

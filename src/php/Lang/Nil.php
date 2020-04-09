@@ -6,7 +6,7 @@ use ArrayAccess;
 use Countable;
 use Iterator;
 
-class Nil implements Phel, ArrayAccess, Countable, Iterator, ICons, ISlice, ICdr, IRest {
+class Nil extends Phel implements ArrayAccess, Countable, Iterator, ICons, ISlice, ICdr, IRest {
 
     private static $instance = null;
 
@@ -85,5 +85,9 @@ class Nil implements Phel, ArrayAccess, Countable, Iterator, ICons, ISlice, ICdr
 
     public function rest(): IRest {
         return $this;
+    }
+
+    public function __toString() {
+        return 'nil';
     }
 }

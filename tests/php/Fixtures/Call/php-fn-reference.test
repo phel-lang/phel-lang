@@ -5,7 +5,7 @@
 --PHP--
 $GLOBALS["__phel"]["user"]["reduce"] = new \Phel\Lang\PhelVar(
   function($f, $xs) {
-    return ($f)(...$xs);
+    return ($f)(...($xs ?? []));
   },
   \Phel\Lang\Table::fromKVs()
 );

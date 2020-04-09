@@ -49,6 +49,10 @@ class NodeEnvironment {
         return $this->locals;
     }
 
+    public function hasLocal(Symbol $x) {
+        return in_array(new Symbol($x->getName()), $this->locals);
+    }
+
     /**
      * Checks if a local variable is shadowed
      * 
@@ -80,7 +84,7 @@ class NodeEnvironment {
     }
 
     public function withMergedLocals(array $locals): NodeEnvironment {
-        $finalLocals = array_unique(array_merge($this->locals, $locals));
+        $finalLocals = array_unique(array_merge($this->locals, array_map(fn($s) => new Symbol($s->getName()), $locals)));
         return new NodeEnvironment($finalLocals, $this->context, $this->shadowed, $this->recurFrames);
     }
 

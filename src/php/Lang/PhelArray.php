@@ -6,7 +6,7 @@ use ArrayAccess;
 use Countable;
 use Iterator;
 
-class PhelArray implements Phel, ArrayAccess, Countable, Iterator, ICons, ISlice, ICdr, IRest {
+class PhelArray extends Phel implements ArrayAccess, Countable, Iterator, ICons, ISlice, ICdr, IRest {
 
     /**
      * @var Phel[]
@@ -86,6 +86,10 @@ class PhelArray implements Phel, ArrayAccess, Countable, Iterator, ICons, ISlice
         return new PhelArray([$x, ...$this->data]);
     }
 
+    public function toPhpArray() {
+        return $this->data;
+    }
+
     public function cdr() {
         if (count($this->data) - 1 > 0) {
             return new PhelArray(array_slice($this->data, 1));
@@ -96,5 +100,9 @@ class PhelArray implements Phel, ArrayAccess, Countable, Iterator, ICons, ISlice
 
     public function rest(): IRest {
         return new PhelArray(array_slice($this->data, 1));
+    }
+
+    public function __toString() {
+        return '@[' . implode(" ", array_map(fn($x) => $x->__toString(), $this->data)) . ']';
     }
 }

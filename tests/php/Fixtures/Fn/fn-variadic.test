@@ -2,5 +2,6 @@
 (fn [& xs] 1)
 --PHP--
 function(...$xs) {
+  $xs = new \Phel\Lang\PhelArray($xs);
   return 1;
 };

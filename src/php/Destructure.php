@@ -45,9 +45,9 @@ class Destructure {
             $current = $b[$i];
             switch ($state) {
                 case 'start':
-                    if ($current == new Symbol('&')) {
+                    if ($current instanceof Symbol && $current->getName() == '&') {
                         $state = 'rest';
-                    } else if ($current != new Symbol('_')) {
+                    } else if (!($current instanceof Symbol && $current->getName() == '_')) {
                         $accessSym = Symbol::gen();
                         $accessValue = Tuple::create(new Symbol('php/aget'), $arrSymbol, new Number($i));
                         $bindings[] = [$accessSym, $accessValue];
@@ -57,7 +57,7 @@ class Destructure {
                     break;
                 case 'rest':
                     $state = 'done';
-                    if ($current != new Symbol('_')) {
+                    if (!($current instanceof Symbol && $current->getName() == '_')) {
                         $accessSym = Symbol::gen();
                         $accessValue = Tuple::create(new Symbol('drop-destructure'), new Number($i - 1), $arrSymbol);
                         $bindings[] = [$accessSym, $accessValue];

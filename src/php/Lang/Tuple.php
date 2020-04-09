@@ -6,9 +6,7 @@ use ArrayAccess;
 use Countable;
 use Iterator;
 
-class Tuple implements Phel, ArrayAccess, Countable, Iterator, ISlice, ICons, ICdr, IRest {
-
-    use SourceLocationTrait;
+class Tuple extends Phel implements ArrayAccess, Countable, Iterator, ISlice, ICons, ICdr, IRest {
 
     /**
      * @var Phel[]
@@ -115,5 +113,9 @@ class Tuple implements Phel, ArrayAccess, Countable, Iterator, ISlice, ICons, IC
 
     public function rest(): IRest {
         return new Tuple(array_slice($this->data, 1), $this->isUsingBracket());
+    }
+
+    public function __toString() {
+        return '(' . implode(" ", array_map(fn($x) => ((string) $x), $this->data)) . ')';
     }
 }

@@ -5,9 +5,8 @@ namespace Phel\Lang;
 use ArrayAccess;
 use Countable;
 use Iterator;
-use SplObjectStorage;
 
-class Table implements Phel, ArrayAccess, Countable, Iterator {
+class Table extends Phel implements ArrayAccess, Countable, Iterator {
 
     /**
      * @var array
