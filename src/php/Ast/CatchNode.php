@@ -2,7 +2,6 @@
 
 namespace Phel\Ast;
 
-use Phel\Lang\Phel;
 use Phel\Lang\Symbol;
 use Phel\NodeEnvironment;
 

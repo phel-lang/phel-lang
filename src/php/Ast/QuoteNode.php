@@ -13,11 +13,11 @@ class QuoteNode implements Node {
     protected $env;
 
     /**
-     * @var Phel
+     * @var mixed
      */
     protected $value;
 
-    public function __construct(NodeEnvironment $env, Phel $value)
+    public function __construct(NodeEnvironment $env, $value)
     {
         $this->env = $env;
         $this->value = $value;

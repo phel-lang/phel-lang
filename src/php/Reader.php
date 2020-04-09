@@ -7,6 +7,7 @@ use Phel\Lang\Boolean;
 use Phel\Lang\Keyword;
 use Phel\Lang\Nil;
 use Phel\Lang\Number;
+use Phel\Lang\Phel;
 use Phel\Lang\PhelArray;
 use Phel\Stream\CharStream;
 use Phel\Lang\PhelString;
@@ -89,7 +90,7 @@ class Reader {
                 });
 
             case '"':
-                return $this->withSourceLocation($c, fn() => new PhelString($this->rddelim($stream, '"')));
+                return $this->rddelim($stream, '"');
                 
             case '@':
                 if ($stream->peek()->getChar() == "[") {
@@ -115,7 +116,13 @@ class Reader {
                 }
                 
             default:
-                return $this->withSourceLocation($c, fn() => $this->rdword($stream, $c->getChar()));
+                $word = $this->rdword($stream, $c->getChar());
+                if ($word instanceof Phel) {
+                    return $this->withSourceLocation($c, fn() => $word);
+                } else {
+                    return $word;
+                }
+                
         }
     }
 
@@ -144,7 +151,7 @@ class Reader {
 
     private function parseword(string $word) {
         if (is_numeric($word)) {
-            return new Number($word + 0);
+            return $word + 0;
         } else {
             return $this->sym($word);
         }
@@ -153,11 +160,11 @@ class Reader {
     private function sym($name) {
         switch ($name) {
             case 'true':
-                return new Boolean(true);
+                return true;
             case 'false':
-                return new Boolean(false);
+                return false;
             case 'nil':
-                return Nil::getInstance();
+                return null;
             default:
                 if ($name[0] == ':') {
                     return new Keyword(substr($name, 1));

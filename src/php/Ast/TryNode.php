@@ -2,7 +2,6 @@
 
 namespace Phel\Ast;
 
-use Phel\Lang\Phel;
 use Phel\NodeEnvironment;
 
 class TryNode implements Node {

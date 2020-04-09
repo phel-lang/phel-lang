@@ -33,11 +33,7 @@ use Phel\Ast\TryNode;
 use Phel\Ast\TupleNode;
 use Phel\Lang\Boolean;
 use Phel\Lang\Keyword;
-use Phel\Lang\Nil;
-use Phel\Lang\Number;
-use Phel\Lang\Phel;
 use Phel\Lang\PhelArray;
-use Phel\Lang\PhelString;
 use Phel\Lang\Symbol;
 use Phel\Lang\Table;
 use Phel\Lang\Tuple;
@@ -56,7 +52,7 @@ class Emitter {
         }
         
         // Do not output macro code (just eval it)
-        if ($node instanceof DefNode && $node->getMeta()[new Keyword('macro')] == new Boolean(true)) {
+        if ($node instanceof DefNode && $node->getMeta()[new Keyword('macro')] == true) {
             return '';
         } else {
             return $code;
@@ -502,7 +498,7 @@ class Emitter {
     }
 
     protected function emitQuote(QuoteNode $node) {
-        return $this->wrap($this->emitPhel($node->getValue(), true), $node->getEnv());
+        return $this->wrap($this->emitPhel($node->getValue()), $node->getEnv());
     }
 
     protected function emitFn(FnNode $node): string {
@@ -564,82 +560,17 @@ class Emitter {
         }
     }
 
-    protected function emitPhel(Phel $x, $wrap = false): string {
-        if ($x instanceof Number) {
-            if ($wrap) {
-                return 'new \Phel\Lang\Number(' . $x->getValue() . ')';
-            } else {
-                return $x->getValue();
-            }
-        } else if ($x instanceof PhelString) {
-            if ($wrap) {
-                return 'new \Phel\Lang\PhelString("' . addslashes($x->getValue()) . '")';
-            } else {
-                return '"' . addslashes($x->getValue()) . '"';
-            }
-        } else if ($x instanceof Nil) {
-            if ($wrap) {
-                return '\Phel\Lang\Nil::getInstance()';
-            } else {
-                return 'null';
-            }
-        } else if ($x instanceof Boolean) {
-            if ($wrap) {
-                return 'new \Phel\Lang\Boolean(' . ($x->getValue() == true ? 'true' : 'false') . ')';;
-            } else {
-                return $x->getValue() == true ? 'true' : 'false';
-            }
+    protected function emitPhel($x): string {
+        if (is_int($x) || is_float($x)) {
+            return (string) $x;
+        } else if (is_string($x)) {
+            return '"' . addslashes($x) . '"';
+        } else if ($x === null) {
+            return 'null';
+        } else if (is_bool($x)) {
+            return $x == true ? 'true' : 'false';
         } else if ($x instanceof Keyword) {
             return 'new \Phel\Lang\Keyword("' . addslashes($x->getName()) . '")';
-        } else if ($x instanceof Symbol) {
-            return '(new \Phel\Lang\Symbol("' . addslashes($x->getName()) . '"))';
-        } else if ($x instanceof PhelArray) {
-            $values = [];
-            foreach ($x as $v) {
-                $values[] = $this->emitPhel($v, $wrap);
-            }
-            if (count($values) > 1) {
-                $valuesStr = "\n" . $this->indent(implode(",\n", $values), 1);
-            } else {
-                $valuesStr = implode(",", $values);
-            }
-            return '\Phel\Lang\PhelArray::create('.$valuesStr.')';
-        } else if ($x instanceof Table) {
-            $values = [];
-            /** @var Phel $key */
-            foreach ($x as $key => $value) {
-                $values[] = $this->emitPhel($key, $wrap) . ", " . $this->emitPhel($value, $wrap);
-            }
-            if (count($values) > 0) {
-                $valuesStr = "\n" . $this->indent(implode(",\n", $values), 1) . "\n";
-            } else {
-                $valuesStr = '';
-            }
-            return '\Phel\Lang\Table::fromKVs(' . $valuesStr . ')';
-        } else if ($x instanceof Tuple) {
-            $values = [];
-            foreach ($x as $v) {
-                $values[] = $this->emitPhel($v, $wrap);
-            }
-            if (count($values) > 1) {
-                $valuesStr = "\n" .  $this->indent(implode(",\n", $values), 1);
-            } else {
-                $valuesStr = implode(",", $values);
-            }
-
-            return '\Phel\Lang\Tuple::create(' . $valuesStr . ')';
-        } else {
-            throw new \Exception('literal not supported: ' . gettype($x));
-        }
-
-        /*if ($x instanceof Number) {
-            return '(new \Phel\Lang\Number(' . $x->getValue() . '))';
-        } else if ($x instanceof Boolean) {
-            return '(new \Phel\Lang\Boolean(' . ($x->getValue() ? 'true' : 'false') . '))';
-        } else if ($x instanceof Nil) {
-            return '\Phel\Lang\Nil::getInstance()';
-        } else if ($x instanceof Keyword) {
-            return '(new \Phel\Lang\Keyword("' . addslashes($x->getName()) . '"))';
         } else if ($x instanceof Symbol) {
             return '(new \Phel\Lang\Symbol("' . addslashes($x->getName()) . '"))';
         } else if ($x instanceof PhelArray) {
@@ -652,9 +583,7 @@ class Emitter {
             } else {
                 $valuesStr = implode(",", $values);
             }
-            return '\Phel\Lang\PhelArray::createFromKVs('.$valuesStr.')';
-        } else if ($x instanceof PhelString) {
-            return '(new \Phel\Lang\PhelString("' . addslashes($x->getValue()) . '"))';
+            return '\Phel\Lang\PhelArray::create('.$valuesStr.')';
         } else if ($x instanceof Table) {
             $values = [];
             foreach ($x as $key => $value) {
@@ -679,8 +608,8 @@ class Emitter {
 
             return '\Phel\Lang\Tuple::create(' . $valuesStr . ')';
         } else {
-            throw new \Exception('Unhandled case' . $x);
-        }*/
+            throw new \Exception('literal not supported: ' . gettype($x));
+        }
     }
 
     private function emitGlobalBase($namespace, Symbol $name) {

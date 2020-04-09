@@ -18,8 +18,6 @@ class Table extends Phel implements ArrayAccess, Countable, Iterator {
      */
     protected $keys = [];
 
-    private $iteratorKey = null;
-
     public static function empty() {
         return new Table();
     }
@@ -54,7 +52,7 @@ class Table extends Phel implements ArrayAccess, Countable, Iterator {
     public function offsetGet($offset) {
         $hash = $this->offsetHash($offset);
 
-        return isset($this->data[$hash]) ? $this->data[$hash] : Nil::getInstance();
+        return isset($this->data[$hash]) ? $this->data[$hash] : null;
     }
 
     public function count(): int {

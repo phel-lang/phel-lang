@@ -20,7 +20,7 @@ class RuntimeMock extends Runtime {
     }
 }
 
-class ReaderTest extends TestCase {
+class RuntimeTest extends TestCase {
 
     /**
      * @var RuntimeMock

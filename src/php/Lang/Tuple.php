@@ -49,7 +49,7 @@ class Tuple extends Phel implements ArrayAccess, Countable, Iterator, ISlice, IC
     }
 
     public function offsetGet($offset) {
-        return isset($this->data[$offset]) ? $this->data[$offset] : Nil::getInstance();
+        return isset($this->data[$offset]) ? $this->data[$offset] : null;
     }
 
     public function count() {
@@ -107,7 +107,7 @@ class Tuple extends Phel implements ArrayAccess, Countable, Iterator, ISlice, IC
         if (count($this->data) - 1 > 0) {
             return new Tuple(array_slice($this->data, 1), $this->isUsingBracket());
         } else {
-            return Nil::getInstance();
+            return null;
         }
     }
 

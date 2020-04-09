@@ -2,7 +2,6 @@
 
 namespace Phel\Ast;
 
-use Phel\Lang\Boolean;
 use Phel\Lang\Keyword;
 use Phel\Lang\Symbol;
 use Phel\Lang\Table;
@@ -55,6 +54,6 @@ class GlobalVarNode implements Node {
     }
 
     public function isMacro() {
-        return $this->meta[new Keyword('macro')] == new Boolean(true);
+        return $this->meta[new Keyword('macro')] === true;
     }
 }

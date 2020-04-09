@@ -3,10 +3,7 @@
 namespace Phel\Reader;
 
 use Phel\Exceptions\ReaderException;
-use Phel\Lang\Boolean;
 use Phel\Lang\Keyword;
-use Phel\Lang\Nil;
-use Phel\Lang\Number;
 use Phel\Lang\Phel;
 use Phel\Lang\PhelArray;
 use Phel\Lang\PhelString;
@@ -25,10 +22,10 @@ ini_set('xdebug.var_display_max_data', '1024');
 class ReaderTest extends TestCase {
 
     public function testReadNumber() {
-        $this->assertEquals($this->loc(new Number(1), 1, 1, 1, 1), $this->read('1'));
-        $this->assertEquals($this->loc(new Number(10), 1, 1, 1, 2), $this->read('10'));
-        $this->assertEquals($this->loc(new Number(1.1), 1, 1, 1, 3), $this->read('1.1'));
-        $this->assertEquals($this->loc(new Number(10.11), 1, 1, 1, 5), $this->read('10.11'));
+        $this->assertEquals(1, $this->read('1'));
+        $this->assertEquals(10, $this->read('10'));
+        $this->assertEquals(1.1, $this->read('1.1'));
+        $this->assertEquals(10.11, $this->read('10.11'));
     }
 
     public function testReadKeyword() {
@@ -39,19 +36,12 @@ class ReaderTest extends TestCase {
     }
 
     public function testReadBoolean() {
-        $this->assertEquals(
-            $this->loc(new Boolean(true), 1, 1, 1, 4), 
-            $this->read('true')
-        );
-        $this->assertEquals(
-            $this->loc(new Boolean(false), 1, 1, 1, 5),
-            $this->read('false')
-        );
+        $this->assertEquals(true, $this->read('true'));
+        $this->assertEquals(false, $this->read('false'));
     }
 
     public function testReadNil() {
-        $this->assertEquals(
-            $this->loc(Nil::getInstance(), 1, 1, 1, 3), 
+        $this->assertNull(
             $this->read('nil')
         );
     }
@@ -184,12 +174,12 @@ class ReaderTest extends TestCase {
 
     public function testReadString() {
         $this->assertEquals(
-            $this->loc(new PhelString('abc'), 1, 1, 1, 5),
+            'abc',
             $this->read('"abc"')
         );
 
         $this->assertEquals(
-            $this->loc(new PhelString('ab"c'), 1, 1, 1, 7),
+            'ab"c',
             $this->read('"ab\"c"')
         );
     }
@@ -203,14 +193,14 @@ class ReaderTest extends TestCase {
 
     public function readArray1() {
         $this->assertEquals(
-            new PhelArray([new Number(1)]),
+            new PhelArray([1]),
             $this->read('@[1]')
         );
     }
 
     public function readArray2() {
         $this->assertEquals(
-            new PhelArray([new Number(1), new Number(2)]),
+            new PhelArray([1, 2]),
             $this->read('@[1 2]')
         );
     }
@@ -224,14 +214,14 @@ class ReaderTest extends TestCase {
 
     public function readTable1() {
         $this->assertEquals(
-            Table::fromKVs(new Keyword('a'), new Number(1)),
+            Table::fromKVs(new Keyword('a'), 1),
             $this->read('@{:a 1}')
         );
     }
 
     public function readTable2() {
         $this->assertEquals(
-            Table::fromKVs(new Keyword('a'), new Number(1), new Keyword('b'), new Number(2)),
+            Table::fromKVs(new Keyword('a'), 1, new Keyword('b'), 2),
             $this->read('@{:a 1 :b 2}')
         );
     }
@@ -260,9 +250,11 @@ class ReaderTest extends TestCase {
         return $x;
     }
 
-    private function removeLoc(Phel $x) {
-        $x->setStartLocation(new SourceLocation('string', 0, 0));
-        $x->setEndLocation(new SourceLocation('string', 0, 0));
+    private function removeLoc($x) {
+        if ($x instanceof Phel) {
+            $x->setStartLocation(new SourceLocation('string', 0, 0));
+            $x->setEndLocation(new SourceLocation('string', 0, 0));
+        }
 
         if ($x instanceof Tuple || $x instanceof PhelArray) {
             foreach ($x as $elem) {

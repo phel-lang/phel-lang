@@ -39,7 +39,7 @@ class PhelArray extends Phel implements ArrayAccess, Countable, Iterator, ICons,
     }
 
     public function offsetGet($offset) {
-        return isset($this->data[$offset]) ? $this->data[$offset] : Nil::getInstance();
+        return isset($this->data[$offset]) ? $this->data[$offset] : null;
     }
 
     public function count(): int {
@@ -94,7 +94,7 @@ class PhelArray extends Phel implements ArrayAccess, Countable, Iterator, ICons,
         if (count($this->data) - 1 > 0) {
             return new PhelArray(array_slice($this->data, 1));
         } else {
-            return Nil::getInstance();
+            return null;
         }
     }
 

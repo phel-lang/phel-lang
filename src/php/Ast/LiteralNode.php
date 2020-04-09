@@ -2,7 +2,6 @@
 
 namespace Phel\Ast;
 
-use Phel\Lang\Phel;
 use Phel\NodeEnvironment;
 
 class LiteralNode implements Node {
@@ -13,11 +12,11 @@ class LiteralNode implements Node {
     protected $env;
 
     /**
-     * @var Phel
+     * @var mixed
      */
     protected $value;
 
-    public function __construct(NodeEnvironment $env, Phel $value)
+    public function __construct(NodeEnvironment $env, $value)
     {
         $this->env = $env;
         $this->value = $value;

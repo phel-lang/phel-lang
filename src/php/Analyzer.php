@@ -32,13 +32,9 @@ use Phel\Ast\ThrowNode;
 use Phel\Ast\TryNode;
 use Phel\Ast\TupleNode;
 use Phel\Exceptions\AnalyzerException;
-use Phel\Lang\Boolean;
 use Phel\Lang\Keyword;
-use Phel\Lang\Nil;
-use Phel\Lang\Number;
 use Phel\Lang\Phel;
 use Phel\Lang\PhelArray;
-use Phel\Lang\PhelString;
 use Phel\Lang\Symbol;
 use Phel\Lang\Table;
 use Phel\Lang\Tuple;
@@ -60,12 +56,27 @@ class Analyzer {
         $this->globalEnvironment = $globalEnvironment;
     }
 
-    public function analyze(Phel $x, NodeEnvironment $nodeEnvironment = null): Node {
+    private function isLiteral($x) {
+        return is_string($x) 
+          || is_float($x)
+          || is_int($x)
+          || is_bool($x)
+          || $x === null
+          || $x instanceof Keyword
+          || $x instanceof PhelArray
+          || $x instanceof Table;
+    }
+
+    private function isValidPhelType($x) {
+        return $x instanceof Phel || $this->isLiteral($x);
+    }
+
+    public function analyze($x, NodeEnvironment $nodeEnvironment = null): Node {
         if (is_null($nodeEnvironment)) {
             $nodeEnvironment = NodeEnvironment::empty();
         }
 
-        if ($x instanceof PhelString || $x instanceof Number || $x instanceof Nil || $x instanceof Boolean || $x instanceof Keyword || $x instanceof PhelArray || $x instanceof Table) {
+        if ($this->isLiteral($x)) {
             return $this->analyzeLiteral($x, $nodeEnvironment);
         } else if ($x instanceof Symbol) {
             return $this->analyzeVar($x, $nodeEnvironment);
@@ -589,7 +600,7 @@ class Analyzer {
         } else if (count($x) == 2) {
             $ret = $this->analyze($x[count($x) - 1], $env);
         } else {
-            $ret = $this->analyze(Nil::getInstance(), $env);
+            $ret = $this->analyze(null, $env);
         }
 
         return new DoNode(
@@ -606,7 +617,7 @@ class Analyzer {
         $testExpr = $this->analyze($x[1], $env->withContext(NodeEnvironment::CTX_EXPR)->withDisallowRecurFrame());
         $thenExpr = $this->analyze($x[2], $env);
         if (count($x) == 3) {
-            $elseExpr = $this->analyze(Nil::getInstance(), $env);
+            $elseExpr = $this->analyze(null, $env);
         } else {
             $elseExpr = $this->analyze($x[3], $env);
         }
@@ -756,7 +767,7 @@ class Analyzer {
         }
     }
 
-    protected function analyzeLiteral(Phel $x, NodeEnvironment $env): LiteralNode {
+    protected function analyzeLiteral($x, NodeEnvironment $env): LiteralNode {
         return new LiteralNode($env, $x);
     }
 
@@ -800,7 +811,7 @@ class Analyzer {
 
     protected function analyzeDef(Tuple $x, NodeEnvironment $nodeEnvironment): DefNode {
         assert($x[1] instanceof Symbol, "Name of Def must be of type Symbol, got: " . print_r($x, true));
-        assert($x[count($x)-1] instanceof Phel, "Last attribute must be a Phel Type");
+        assert($this->isValidPhelType($x[count($x)-1]), "Last attribute must be a Phel Type");
         assert(count($x) >= 3, "Def must have at least two arguments");
         // TODO: Check that it is called in global scope
 
@@ -809,12 +820,12 @@ class Analyzer {
         $meta = new Table();
         for ($i = 2; $i <= count($x) - 2; $i++) {
             $metaAttribute = $x[$i];
-            assert($metaAttribute instanceof PhelString || $metaAttribute instanceof Keyword, "Meta Attribute must be either a String or Keyword");
+            assert(is_string($metaAttribute) || $metaAttribute instanceof Keyword, "Meta Attribute must be either a String or Keyword");
             
-            if ($metaAttribute instanceof PhelString) {
+            if (is_string($metaAttribute)) {
                 $meta[new Keyword('doc')] = $metaAttribute;
             } else {
-                $meta[$metaAttribute] = new Boolean(true);
+                $meta[$metaAttribute] = true;
             }
         }
         $init = $x[count($x)-1];
@@ -830,11 +841,11 @@ class Analyzer {
         );
     }
 
-    private function isSymWithName(Phel $x, $name) {
+    private function isSymWithName($x, $name) {
         return $x instanceof Symbol && $x->getName() == $name;
     }
 
-    private function isKeywordWithName(Phel $x, $name) {
+    private function isKeywordWithName($x, $name) {
         return $x instanceof Keyword && $x->getName() == $name;
     }
 }

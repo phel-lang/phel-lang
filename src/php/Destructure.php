@@ -2,13 +2,6 @@
 
 namespace Phel;
 
-use Phel\Ast\BindingNode;
-use Phel\Lang\Boolean;
-use Phel\Lang\Keyword;
-use Phel\Lang\Nil;
-use Phel\Lang\Number;
-use Phel\Lang\Phel;
-use Phel\Lang\PhelString;
 use Phel\Lang\Symbol;
 use Phel\Lang\Tuple;
 
@@ -24,7 +17,7 @@ class Destructure {
         return $bindings;
     }
 
-    private function destructure(array &$bindings, Phel $binding, Phel $value) {
+    private function destructure(array &$bindings, $binding, $value) {
         if ($binding instanceof Symbol) {
             $this->processSymbol($bindings, $binding, $value);
         } else if ($binding instanceof Tuple) {
@@ -32,7 +25,7 @@ class Destructure {
         }
     }
 
-    public function processSymbol(array &$bindings, Symbol $binding, Phel $value) {
+    public function processSymbol(array &$bindings, Symbol $binding, $value) {
         $bindings[] = [$binding, $value];
     }
 
@@ -49,7 +42,7 @@ class Destructure {
                         $state = 'rest';
                     } else if (!($current instanceof Symbol && $current->getName() == '_')) {
                         $accessSym = Symbol::gen();
-                        $accessValue = Tuple::create(new Symbol('php/aget'), $arrSymbol, new Number($i));
+                        $accessValue = Tuple::create(new Symbol('php/aget'), $arrSymbol, $i);
                         $bindings[] = [$accessSym, $accessValue];
         
                         $this->destructure($bindings, $current, $accessSym);
@@ -59,7 +52,7 @@ class Destructure {
                     $state = 'done';
                     if (!($current instanceof Symbol && $current->getName() == '_')) {
                         $accessSym = Symbol::gen();
-                        $accessValue = Tuple::create(new Symbol('drop-destructure'), new Number($i - 1), $arrSymbol);
+                        $accessValue = Tuple::create(new Symbol('drop-destructure'), $i - 1, $arrSymbol);
                         $bindings[] = [$accessSym, $accessValue];
 
                         $this->destructure($bindings, $current, $accessSym);

@@ -150,7 +150,7 @@
   [& args]
   (let [cnt (count args)]
     (cond
-      (php/== cnt 0) 'nil
+      (php/== cnt 0) nil
       (php/== cnt 1) (first args)
                      (let [v (gensym)]
                        `(let [,v ,(first args)]

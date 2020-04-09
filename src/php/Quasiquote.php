@@ -2,19 +2,26 @@
 
 namespace Phel;
 
-use Phel\Lang\Boolean;
 use Phel\Lang\Keyword;
-use Phel\Lang\Nil;
-use Phel\Lang\Number;
-use Phel\Lang\Phel;
-use Phel\Lang\PhelString;
+use Phel\Lang\PhelArray;
 use Phel\Lang\Symbol;
+use Phel\Lang\Table;
 use Phel\Lang\Tuple;
 
 class Quasiquote {
 
+    private function isLiteral($x) {
+        return is_string($x) 
+          || is_float($x)
+          || is_int($x)
+          || is_bool($x)
+          || $x === null
+          || $x instanceof Keyword
+          || $x instanceof PhelArray
+          || $x instanceof Table;
+    }
 
-    public function quasiquote(Phel $form) {
+    public function quasiquote($form) {
         if ($this->isUnquote($form)) {
             return $form[1];
         } else if ($this->isUnquoteSplicing($form)) {
@@ -23,7 +30,7 @@ class Quasiquote {
             return Tuple::create(new Symbol('apply'), new Symbol('tuple'), Tuple::create(new Symbol('concat'), ...$this->expandList($form)));
             // TODO: Handle Table
             // TODO: Handle Array
-        } else if ($form instanceof Keyword || $form instanceof Number || $form instanceof PhelString || $form instanceof Boolean || $form instanceof Nil) {
+        } else if ($this->isLiteral($form)) {
             return $form;
         } else {
             return Tuple::create(new Symbol('quote'), $form);
