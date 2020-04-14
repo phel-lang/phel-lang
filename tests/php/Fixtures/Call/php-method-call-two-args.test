@@ -1,0 +1,7 @@
+--PHEL--
+(php/-> (php/new \DateTimeImmutable) (setTime 1 1))
+--PHP--
+(function() {
+  $target_1 = (new \DateTimeImmutable());
+  return $target_1->setTime(1, 1);
+})();

@@ -4,7 +4,9 @@ namespace Phel\Lang;
 
 use ArrayAccess;
 use Countable;
+use InvalidArgumentException;
 use Iterator;
+use Phel\Printer;
 
 class Tuple extends Phel implements ArrayAccess, Countable, Iterator, ISlice, ICons, ICdr, IRest {
 
@@ -45,7 +47,7 @@ class Tuple extends Phel implements ArrayAccess, Countable, Iterator, ISlice, IC
     }
 
     public function offsetUnset($offset) {
-        unset($this->data[$offset]);
+        throw new \InvalidArgumentException('Calling offsetUnset is not supported on tuples, since they are immutable');
     }
 
     public function offsetGet($offset) {
@@ -116,6 +118,7 @@ class Tuple extends Phel implements ArrayAccess, Countable, Iterator, ISlice, IC
     }
 
     public function __toString() {
-        return '(' . implode(" ", array_map(fn($x) => ((string) $x), $this->data)) . ')';
+        $printer = new Printer();
+        return $printer->print($this, true);
     }
 }

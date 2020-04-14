@@ -22,6 +22,7 @@ use Phel\Ast\PhelArrayNode;
 use Phel\Ast\PhpArrayGetNode;
 use Phel\Ast\PhpArrayPushNode;
 use Phel\Ast\PhpArraySetNode;
+use Phel\Ast\PhpArrayUnsetNode;
 use Phel\Ast\PhpNewNode;
 use Phel\Ast\PhpObjectCallNode;
 use Phel\Ast\PhpVarNode;
@@ -113,6 +114,8 @@ class Analyzer {
                         return $this->analyzePhpASet($x, $nodeEnvironment);
                     case 'php/apush':
                         return $this->analyzePhpAPush($x, $nodeEnvironment);
+                    case 'php/aunset':
+                        return $this->analyzePhpAUnset($x, $nodeEnvironment);
                     case 'recur':
                         return $this->analyzeRecur($x, $nodeEnvironment);
                     case 'try':
@@ -130,7 +133,7 @@ class Analyzer {
                 return $this->analyzeInvoke($x, $nodeEnvironment);
             }
         } else {
-            throw new AnalyzerException('Unhandled type: ' . print_r($x, true));
+            throw new AnalyzerException('Unhandled type: ' . var_export($x, true));
         }
     }
 
@@ -193,6 +196,14 @@ class Analyzer {
             $listExpr,
             $valueSymbol,
             $keySymbol
+        );
+    }
+
+    protected function analyzePhpAUnset(Tuple $x, NodeEnvironment $env) {
+        return new PhpArrayUnsetNode(
+            $env,
+            $this->analyze($x[1], $env->withContext(NodeEnvironment::CTX_EXPR)),
+            $this->analyze($x[2], $env->withContext(NodeEnvironment::CTX_EXPR))
         );
     }
 

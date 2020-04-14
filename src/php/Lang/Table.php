@@ -5,6 +5,7 @@ namespace Phel\Lang;
 use ArrayAccess;
 use Countable;
 use Iterator;
+use Phel\Printer;
 
 class Table extends Phel implements ArrayAccess, Countable, Iterator {
 
@@ -30,10 +31,20 @@ class Table extends Phel implements ArrayAccess, Countable, Iterator {
         return $result;
     }
 
+    public static function fromKVArray(array $kvs) {
+        return self::fromKVs(...$kvs);
+    }
+
     public function offsetSet($offset, $value) {
         $hash = $this->offsetHash($offset);
-        $this->keys[$hash] = $offset;
-        $this->data[$hash] = $value;
+
+        if ($value === null) {
+            unset($this->keys[$hash]);
+            unset($this->data[$hash]);
+        } else {
+            $this->keys[$hash] = $offset;
+            $this->data[$hash] = $value;
+        }
     }
 
     public function offsetExists($offset) {
@@ -105,5 +116,11 @@ class Table extends Phel implements ArrayAccess, Countable, Iterator {
 
     public function isTruthy(): bool {
         return count($this->keys) > 0;
+    }
+
+    public function __toString()
+    {
+        $printer = new Printer();
+        return $printer->print($this, true);
     }
 }

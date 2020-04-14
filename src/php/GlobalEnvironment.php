@@ -80,7 +80,7 @@ class GlobalEnvironment {
         } else {
             $pos = strpos($strName, '/');
             
-            if ($pos !== false) {
+            if ($pos > 0) {
                 // If alias, try to resolve alias
                 $alias = substr($strName, 0, $pos);
 

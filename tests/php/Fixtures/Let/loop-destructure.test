@@ -11,11 +11,7 @@ $__phel_1_2 = \Phel\Lang\Tuple::createBracket(1,2,3,4);
 $sum_3 = 0;
 while(true) {
   $__phel_4_7 = $__phel_1_2;
-  $__phel_5_8 = (function() use ($__phel_1_2, $sum_3, $__phel_4_7) {
-    $__phel_12 = $__phel_4_7;
-    $__phel_13 = 0;
-    return $__phel_12[$__phel_13] ?? null;
-  })();
+  $__phel_5_8 = ($__phel_4_7)[(0)] ?? null;
   $x_9 = $__phel_5_8;
   $__phel_6_10 = ($GLOBALS["__phel"]["phel\\core"]["drop-destructure"]->get())(1, $__phel_4_7);
   $xs_11 = $__phel_6_10;
@@ -23,10 +19,10 @@ while(true) {
     if (\Phel\Lang\Truthy::isTruthy(($x_9 instanceof \Phel\Lang\Nil))) {
       $sum_3;
     } else {
-      $__phel_14 = $xs_11;
-      $__phel_15 = ($sum_3 + $x_9);
-      $__phel_1_2 = $__phel_14;
-      $sum_3 = $__phel_15;
+      $__phel_12 = $xs_11;
+      $__phel_13 = ($sum_3 + $x_9);
+      $__phel_1_2 = $__phel_12;
+      $sum_3 = $__phel_13;
       continue;
 
     }

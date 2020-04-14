@@ -2,6 +2,8 @@
 
 namespace Phel\Lang;
 
+use Phel\Printer;
+
 class Keyword extends Phel {
 
     use SourceLocationTrait;
@@ -33,6 +35,7 @@ class Keyword extends Phel {
 
     public function __toString()
     {
-        return ':' . $this->name;
+        $printer = new Printer();
+        return $printer->print($this, true);
     }
 }

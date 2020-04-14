@@ -59,7 +59,8 @@ class Compiler {
         echo "in " . ($e->getStartLocation() ? $e->getStartLocation()->getFile() : 'unknown-file') . ':' . $firstLine . "\n\n";
 
         $lines = explode("\n", $readerResult->getCode());
-        $padLength = strlen((string) $readerResult->getEndLocation()->getLine()) - strlen((string) $readerResult->getStartLocation()->getLine());
+        $endLineLength = strlen((string) $readerResult->getEndLocation()->getLine());
+        $padLength = $endLineLength - strlen((string) $readerResult->getStartLocation()->getLine());
         foreach ($lines as $index => $line) {
             echo str_pad($firstLine + $index, $padLength, ' ', STR_PAD_LEFT);
             echo "| ";
@@ -68,7 +69,7 @@ class Compiler {
 
             if ($e->getStartLocation() && $e->getEndLocation() && $e->getStartLocation()->getLine() == $e->getEndLocation()->getLine()) {
                 if ($e->getStartLocation()->getLine() == $index + $readerResult->getStartLocation()->getLine()) {
-                    echo str_repeat(' ', $padLength + 2 + $e->getStartLocation()->getColumn());
+                    echo str_repeat(' ', $endLineLength + 1 + $e->getStartLocation()->getColumn());
                     echo str_repeat('^', $e->getEndLocation()->getColumn() - $e->getStartLocation()->getColumn() + 1);
                     echo "\n";
                 }

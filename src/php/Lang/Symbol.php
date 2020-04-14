@@ -2,6 +2,8 @@
 
 namespace Phel\Lang;
 
+use Phel\Printer;
+
 class Symbol extends Phel {
 
     private static $symGenCounter = 1;
@@ -21,7 +23,8 @@ class Symbol extends Phel {
 
     public function __toString()
     {
-        return $this->name;
+        $printer = new Printer();
+        return $printer->print($this, true);
     }
 
     public static function gen($prefix = '__phel_') {

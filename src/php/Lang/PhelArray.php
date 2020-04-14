@@ -4,9 +4,11 @@ namespace Phel\Lang;
 
 use ArrayAccess;
 use Countable;
+use InvalidArgumentException;
 use Iterator;
+use Phel\Printer;
 
-class PhelArray extends Phel implements ArrayAccess, Countable, Iterator, ICons, ISlice, ICdr, IRest {
+class PhelArray extends Phel implements ArrayAccess, Countable, Iterator, ICons, ISlice, ICdr, IRest, IPop, IRemove, IPush {
 
     /**
      * @var Phel[]
@@ -23,10 +25,18 @@ class PhelArray extends Phel implements ArrayAccess, Countable, Iterator, ICons,
     }
 
     public function offsetSet($offset, $value) {
+        if ($offset < 0 || $offset > count($this->data)) {
+            throw new InvalidArgumentException('Index out of bounds: ' . $offset . ' [0,' . count($this->data) . ']');
+        }
         if (is_null($offset)) {
-            $this->data[] = $value;
+            unset($this->data[$offset]);
+            $this->data = array_values($this->data); // reindex
         } else {
-            $this->data[$offset] = $value;
+            if ($offset == count($this->data)) {
+                $this->data[] = $value;
+            } else {
+                $this->data[$offset] = $value;
+            }
         }
     }
 
@@ -83,7 +93,8 @@ class PhelArray extends Phel implements ArrayAccess, Countable, Iterator, ICons,
     }
 
     public function cons($x): ICons {
-        return new PhelArray([$x, ...$this->data]);
+        array_unshift($this->data, $x);
+        return $this;
     }
 
     public function toPhpArray() {
@@ -102,7 +113,24 @@ class PhelArray extends Phel implements ArrayAccess, Countable, Iterator, ICons,
         return new PhelArray(array_slice($this->data, 1));
     }
 
-    public function __toString() {
-        return '@[' . implode(" ", array_map(fn($x) => $x->__toString(), $this->data)) . ']';
+    public function pop() {
+        return array_pop($this->data);
+    }
+
+    public function remove($offset, $length = null): IRemove {
+        $length = $length ?? 1;
+
+        return new PhelArray(array_splice($this->data, $offset, $length));
+    }
+
+    public function push($x): IPush {
+        $this->data[] = $x;
+        return $this;
+    }
+
+    public function __toString()
+    {
+        $printer = new Printer();
+        return $printer->print($this, true);
     }
 }

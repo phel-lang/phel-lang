@@ -21,6 +21,7 @@ use Phel\Ast\NsNode;
 use Phel\Ast\PhpArrayGetNode;
 use Phel\Ast\PhpArrayPushNode;
 use Phel\Ast\PhpArraySetNode;
+use Phel\Ast\PhpArrayUnsetNode;
 use Phel\Ast\PhpClassNameNode;
 use Phel\Ast\PhpNewNode;
 use Phel\Ast\PhpObjectCallNode;
@@ -31,7 +32,6 @@ use Phel\Ast\RecurNode;
 use Phel\Ast\ThrowNode;
 use Phel\Ast\TryNode;
 use Phel\Ast\TupleNode;
-use Phel\Lang\Boolean;
 use Phel\Lang\Keyword;
 use Phel\Lang\PhelArray;
 use Phel\Lang\Symbol;
@@ -43,6 +43,7 @@ class Emitter {
 
     public function emitAndEval(Node $node) {
         $code = $this->emit($node);
+        // echo $code . "\n";
         $filename = tempnam(sys_get_temp_dir(), '__phel');
         file_put_contents($filename, "<?php \n" . $code);
         try {
@@ -104,6 +105,8 @@ class Emitter {
             return $this->emitPhpArrayGet($node);
         } else if ($node instanceof PhpArraySetNode) {
             return $this->emitPhpArraySet($node);
+        } else if ($node instanceof PhpArrayUnsetNode) {
+            return $this->emitPhpArrayUnset($node);
         } else if ($node instanceof PhpClassNameNode) {
             return $this->emitClassName($node);
         } else if ($node instanceof PhpArrayPushNode) {
@@ -141,41 +144,32 @@ class Emitter {
         return $node->getName()->getName();
     }
 
-    protected function emitPhpArrayGet(PhpArrayGetNode $node) {
-        $tempSym = Symbol::gen();
-        $tempSym2 = Symbol::gen();
-        return $this->wrap($this->wrapFn(
-            '$' . $tempSym->getName() . ' = ' . $this->emit($node->getArrayExpr()) . ';'
-            . "\n"
-            . '$' . $tempSym2->getName() . ' = ' . $this->emit($node->getAccessExpr()) . ';'
-            . "\n"
-            . 'return $' . $tempSym->getName() . '[$' . $tempSym2->getName() . '] ?? null;',
+    protected function emitPhpArrayUnset(PhpArrayUnsetNode $node) {
+        return $this->wrap(
+            'unset((' . $this->emit($node->getArrayExpr()) . ')[('.$this->emit($node->getAccessExpr()).')])',
             $node->getEnv()
-        ), $node->getEnv());
+        );
+    }
+
+    protected function emitPhpArrayGet(PhpArrayGetNode $node) {
+        return $this->wrap(
+            '(' . $this->emit($node->getArrayExpr()) . ')[('.$this->emit($node->getAccessExpr()).')] ?? null',
+            $node->getEnv()
+        );
     }
 
     protected function emitPhpArraySet(PhpArraySetNode $node) {
-        $tempSym = Symbol::gen();
-        return $this->wrap($this->wrapFn(
-            '$' . $tempSym->getName() . ' = ' . $this->emit($node->getArrayExpr()) . ';'
-            . "\n"
-            . '$' . $tempSym->getName() . '['  . $this->emit($node->getAccessExpr()) . '] = ' . $this->emit($node->getValueExpr()) . ';'
-            . "\n"
-            . 'return $' . $tempSym->getName() . ';',
+        return $this->wrap(
+            '(' . $this->emit($node->getArrayExpr()) . ')[('.$this->emit($node->getAccessExpr()).')] = ' . $this->emit($node->getValueExpr()),
             $node->getEnv()
-        ), $node->getEnv());
+        );
     }
 
     protected function emitPhpArrayPush(PhpArrayPushNode $node) {
-        $tempSym = Symbol::gen();
-        return $this->wrap($this->wrapFn(
-            '$' . $tempSym->getName() . ' = ' . $this->emit($node->getArrayExpr()) . ';'
-            . "\n"
-            . '$' . $tempSym->getName() . '[] = ' . $this->emit($node->getValueExpr()) . ';'
-            . "\n"
-            . 'return $' . $tempSym->getName() . ';',
+        return $this->wrap(
+            '(' . $this->emit($node->getArrayExpr()) . ')[] = ' . $this->emit($node->getValueExpr()),
             $node->getEnv()
-        ), $node->getEnv());
+        );
     }
 
     protected function emitTry(TryNode $node) {
@@ -516,6 +510,10 @@ class Emitter {
 
         $uses = [];
         foreach ($node->getUses() as $u) {
+            if ($node->getEnv()->isShadowed($u)) {
+                $u = $node->getEnv()->getShadowed($u);
+            }
+
             $uses[] = '$' . $u->getName();
         }
 
@@ -561,10 +559,13 @@ class Emitter {
     }
 
     protected function emitPhel($x): string {
-        if (is_int($x) || is_float($x)) {
+        if (is_float($x)) {
+            return $this->printFloat($x);
+        } else if (is_int($x)) {
             return (string) $x;
         } else if (is_string($x)) {
-            return '"' . addslashes($x) . '"';
+            $p = new Printer();
+            return $p->printString($x, true);
         } else if ($x === null) {
             return 'null';
         } else if (is_bool($x)) {
@@ -606,7 +607,11 @@ class Emitter {
                 $valuesStr = implode(",", $values);
             }
 
-            return '\Phel\Lang\Tuple::create(' . $valuesStr . ')';
+            if ($x->isUsingBracket()) {
+                return '\Phel\Lang\Tuple::createBracket(' . $valuesStr . ')';
+            } else {
+                return '\Phel\Lang\Tuple::create(' . $valuesStr . ')';
+            };
         } else {
             throw new \Exception('literal not supported: ' . gettype($x));
         }
@@ -666,5 +671,17 @@ class Emitter {
             . "\n"
             . "}"
         );
+    }
+
+    private function printFloat(float $x) {
+        $str = (string) $x;
+
+        if (is_int($str + 0)) {
+            // (string) 10.0 will return 10 and not 10.0
+            // so we just add a .0 at the end
+            return $str . '.0';
+        } else {
+            return $str;
+        }
     }
 }

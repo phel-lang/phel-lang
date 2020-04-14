@@ -6,7 +6,7 @@ use Phel\NodeEnvironment;
 
 class PhpVarNode implements Node {
 
-    const INFIX_OPERATORS = array("+", "-", "*", ".", "/", "%", "=", "=&", "<", ">", "<=", ">=", "===", "==", "!=", "!==", "instanceof", "|", "&");
+    const INFIX_OPERATORS = array("+", "-", "*", ".", "/", "%", "=", "=&", "<", ">", "<=", ">=", "===", "==", "!=", "!==", "instanceof", "|", "&", "**");
     const EXTRA_CALLABLE = array('array', 'echo', 'print');
 
     /**

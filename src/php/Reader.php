@@ -3,16 +3,10 @@
 namespace Phel;
 
 use Phel\Exceptions\ReaderException;
-use Phel\Lang\Boolean;
 use Phel\Lang\Keyword;
-use Phel\Lang\Nil;
-use Phel\Lang\Number;
 use Phel\Lang\Phel;
-use Phel\Lang\PhelArray;
 use Phel\Stream\CharStream;
-use Phel\Lang\PhelString;
 use Phel\Lang\Symbol;
-use Phel\Lang\Table;
 use Phel\Lang\Tuple;
 use Phel\Stream\CharData;
 use Phel\Stream\SourceLocation;
@@ -22,6 +16,18 @@ class Reader {
     private $syntax = [
         '(', ')', '[', ']', '{', '}', '\'', ',', ';', '~'
     ];
+
+    private $stringReplacements = [
+        '\\' => '\\',
+        '$'  =>  '$',
+        'n'  => "\n",
+        'r'  => "\r",
+        't'  => "\t",
+        'f'  => "\f",
+        'v'  => "\v",
+        'e'  => "\x1B",
+    ];
+
 
     /**
      * @var SourceLocation | null
@@ -90,17 +96,17 @@ class Reader {
                 });
 
             case '"':
-                return $this->rddelim($stream, '"');
+                return $this->parseEscapedString($this->rddelim($stream, '"'));
                 
             case '@':
                 if ($stream->peek()->getChar() == "[") {
                     $this->readStream($stream);
-                    return $this->withSourceLocation($c, fn() => PhelArray::create(...$this->rdlist($stream, ']')));
+                    return $this->withSourceLocation($c, fn() => Tuple::create(new Symbol('array'), ...$this->rdlist($stream, ']')));
                 } else if ($stream->peek()->getChar() == "{") {
                     $this->readStream($stream);
                     $xs = $this->rdlist($stream, "}");
                     if ($xs instanceof Tuple && count($xs) % 2 === 0) {
-                        $table = Table::fromKVs(...$this->rdlist($stream, "}"));
+                        $table = Tuple::create(new Symbol('table'), ...$xs);
                         $endLocation = $this->lastLocation;
 
                         $table->setStartLocation($c->getLocation());
@@ -184,7 +190,7 @@ class Reader {
             $this->readStream($stream);
             if ($term == ')') {
                 return new Tuple($acc, false);
-            } else if ($term == ']') {
+            } else if ($term == ']' || $term = '}') {
                 return new Tuple($acc, true);
             } else {
                 throw new ReaderException('unterminted list', $this->startLocation, $this->lastLocation, $this->readChars);
@@ -196,17 +202,23 @@ class Reader {
     }
 
     private function rddelim($stream, $delimiter, $esc = false) {
-        $cData = $this->readStream($stream);
-        if ($cData === false) {
-            throw new ReaderException('missing delimiter', $this->startLocation, $this->lastLocation, $this->readChars);
-        } else if ($esc) {
-            return $cData->getChar() . $this->rddelim($stream, $delimiter);
-        } else if ($cData->getChar() == "\\") {
-            return $this->rddelim($stream, $delimiter, true);
-        } else if ($cData->getChar() == $delimiter) {
-            return "";
-        } else {
-            return $cData->getChar() . $this->rddelim($stream, $delimiter);
+        $acc = "";
+        $esc = false;
+        while (true) {
+            $cData = $this->readStream($stream);
+            if ($cData === false) {
+                throw new ReaderException('missing delimiter', $this->startLocation, $this->lastLocation, $this->readChars);
+            } else if ($esc) {
+                $esc = false;
+                $acc .= $cData->getChar();
+            } else if ($cData->getChar() == "\\") {
+                $esc = true;
+                $acc .= $cData->getChar();
+            } else if ($cData->getChar() == $delimiter) {
+                return $acc;
+            } else {
+                $acc .= $cData->getChar();
+            }
         }
     }
 
@@ -272,4 +284,44 @@ class Reader {
 
         return $res;
     }
+
+    private function parseEscapedString($str) {
+        $str = str_replace('\\"', '"', $str);
+
+        return preg_replace_callback(
+            '~\\\\([\\\\$nrtfve]|[xX][0-9a-fA-F]{1,2}|[0-7]{1,3}|u\{([0-9a-fA-F]+)\})~',
+            function($matches) {
+                $str = $matches[1];
+
+                if (isset($this->stringReplacements[$str])) {
+                    return $this->stringReplacements[$str];
+                } elseif ('x' === $str[0] || 'X' === $str[0]) {
+                    return chr(hexdec(substr($str, 1)));
+                } elseif ('u' === $str[0]) {
+                    return self::codePointToUtf8(hexdec($matches[2]));
+                } else {
+                    return chr(octdec($str));
+                }
+            },
+            $str
+        );
+    }
+
+    private function codePointToUtf8(int $num) : string {
+        if ($num <= 0x7F) {
+            return chr($num);
+        }
+        if ($num <= 0x7FF) {
+            return chr(($num>>6) + 0xC0) . chr(($num&0x3F) + 0x80);
+        }
+        if ($num <= 0xFFFF) {
+            return chr(($num>>12) + 0xE0) . chr((($num>>6)&0x3F) + 0x80) . chr(($num&0x3F) + 0x80);
+        }
+        if ($num <= 0x1FFFFF) {
+            return chr(($num>>18) + 0xF0) . chr((($num>>12)&0x3F) + 0x80)
+                 . chr((($num>>6)&0x3F) + 0x80) . chr(($num&0x3F) + 0x80);
+        }
+        throw new ReaderException('Invalid UTF-8 codepoint escape sequence: Codepoint too large', $this->startLocation, $this->lastLocation, $this->readChars);
+    }
+
 }

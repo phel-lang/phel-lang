@@ -2,9 +2,6 @@
 
 namespace Phel;
 
-use Exception;
-use Phel\Stream\FileCharStream;
-
 class Runtime {
 
     /**

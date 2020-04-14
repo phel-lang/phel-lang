@@ -1,37 +1,76 @@
 (ns phel\core
   (:use Phel\Lang\Phel)
   (:use Phel\Lang\Tuple)
+  (:use Phel\Lang\Keyword)
   (:use Phel\Lang\IContactable)
   (:use Phel\Lang\PhelArray)
+  (:use Phel\Lang\Table)
   (:use Phel\Lang\Nil)
   (:use Phel\Lang\ICons)
   (:use Phel\Lang\ISlice)
   (:use Phel\Lang\ICdr)
+  (:use Phel\Lang\IPop)
+  (:use Phel\Lang\IPush)
   (:use Phel\Lang\IRest)
+  (:use Phel\Lang\IRemove)
   (:use Phel\Lang\Symbol)
+  (:use Phel\Printer)
   (:use Countable)
   (:use Exception)
   (:use InvalidArgumentException))
+
+# ------------------
+# Basic constructors
+# ------------------
+
+(def tuple 
+  "Creates a new Tuple. If no argument is provided, an empty Tuple is created."
+  (fn [& xs] (php/new Tuple (php/-> xs (toPhpArray)))))
+
+(def tuple-brackets 
+  "Creates a new Bracket-Tuple. If no argument is provided, an empty Braket-Tuple is created."
+  (fn [& xs] (php/new Tuple (php/-> xs (toPhpArray)) true)))
+
+(def array
+  "Creates a new Array. If no argument is provided, an empty Array is created."
+  (fn [& xs] xs))
+
+(def table 
+  "Creates a new Table. If no argument is provided, an empty Table is created. The number of parameters must be even."
+  (fn [& xs] (php/:: Table (fromKVArray (php/-> xs (toPhpArray))))))
+
+(def keyword
+  "Creates a new Keyword from a given string."
+  (fn [x] (php/new Keyword x)))
+
+# ----------------------------
+# Basic methods for quasiquote
+# ----------------------------
 
 (def drop-destructure (fn [n x]
   (if (php/is_array x)
     (php/array_slice x n)
     (if (php/instanceof x ISlice)
       (php/-> x (slice n))
-      (throw (php/new InvalidArgumentException "this is not sliceable"))))))
+      (if (php/== x nil)
+        (array)
+        (throw (php/new InvalidArgumentException "this is not sliceable")))))))
 
-(def tuple (fn [& xs] (php/new Tuple (php/-> xs (toPhpArray)))))
-
+# TODO: Tuple needs to be immutable
 (def concat (fn [arr & xs]
   (do
     (foreach [x xs]
       (foreach [value x]
-        (php/apush arr value)))
+        (if (php/instanceof arr IPush)
+          (php/-> arr (push value))
+          (php/apush arr value))))
     arr)))
 
-(def array (fn [& xs] xs))
-
 # quasiquote can be used down here
+
+# ------------
+# Basic macros
+# ------------
 
 (def defn :macro 
   (fn [name & more]
@@ -67,9 +106,21 @@
   "Ignores the body of the comment"
   [&])
 
+(defn gensym 
+  "Generates a new unique symbol."
+  []
+  (php/:: Symbol (gen)))
+
 (defn str
+  "Creates a string by concatenating values together. If no arguments are provide an empty string is returned. Nil and false are represented as empty string. True is represented as 1. Otherwise it tries to call __toString. This is PHP equalivalent to `$args[0] . $args[1] . $args[2] ...`"
   [& args]
-  (apply php/. args))
+  (if args
+    (apply php/. args)
+    ""))
+
+# -------------------------
+# Basic sequence operations
+# -------------------------
 
 (defn cons [x xs]
   (if (php/is_array xs)
@@ -78,15 +129,23 @@
       xs)
     (if (php/instanceof xs ICons)
       (php/-> xs (cons x))
-      (throw (php/new InvalidArgumentException (str "can not do cons " (php/print_r x true)))))))
+      (if (php/== xs nil)
+        @[x]
+        (throw (php/new InvalidArgumentException (php/. "can not do cons " (php/print_r x true))))))))
 
-(defn first [xs]
+(defn first
+  "Returns the first element of an indexed sequence or nil."
+  [xs]
   (php/aget xs 0))
 
-(defn second [xs]
+(defn second 
+  "Returns the second element of an indexed sequence or nil."
+  [xs]
   (php/aget xs 1))
 
-(defn next [xs]
+(defn next
+  "Returns the sequence of elements after the first element. If there are no elements, returns nil."
+  [xs]
   (if (php/instanceof xs ICdr)
     (php/-> xs (cdr))
     (if (php/is_array xs)
@@ -96,14 +155,18 @@
           sliced))
       (throw (php/new InvalidArgumentException "can not do next")))))
 
-(defn rest [xs]
+(defn rest 
+  "Returns the sequence of elements after the first element. If there are no elements, returns an empty sequence."
+  [xs]
   (if (php/instanceof xs IRest)
     (php/-> xs (rest))
     (if (php/is_array xs)
       (php/array_slice xs 1)
       (throw (php/new InvalidArgumentException "can not do rest")))))
 
-(defn count [xs]
+(defn count 
+  "Counts the number of elements in a sequence. Can be used on everything that implement the PHP Countable interface."
+  [xs]
   (if (php/instanceof xs Countable)
     (php/-> xs (count))
     (if (php/is_array xs)
@@ -112,13 +175,14 @@
         0
         (throw (php/new InvalidArgumentException "object is not countable"))))))
 
-(defn reduce [f init xs]
-  (if (first xs)
-      (recur f (f init (first xs)) (next xs))
-      init))
+# ------------------------
+# Control structure macros
+# ------------------------
 
-(defn reduce2 [f [x & xs]]
-  (reduce f x xs))
+(defmacro if-not
+  "Shorthand for (if (not condition) else then)."
+  [test then & [else]]
+  `(if ,test ,else ,then))
 
 (defmacro when 
   "Evaluates test and if that is logical true, evaluates body"
@@ -141,27 +205,409 @@
                (second clauses)
                (cons 'cond (apply tuple (next (next clauses)))))))))
 
-(defn gensym 
-  "generates a new unique symbol"
-  []
-  (php/:: Symbol (gen)))
+(defmacro case [expr & args]
+  (if (next args)
+    (let [v (gensym)]
+      `(let [,v ,expr]
+        (if (php/== ,v ',(first args))
+          ,(first (next args))
+          (case ,v ,@(next (next args))))))
+    (first args)))
+
+# ----------------
+# Boolen operation
+# ----------------
 
 (defmacro or
   [& args]
-  (let [cnt (count args)]
-    (cond
-      (php/== cnt 0) nil
-      (php/== cnt 1) (first args)
-                     (let [v (gensym)]
-                       `(let [,v ,(first args)]
-                         (if ,v ,v (or ,@(next args))))))))
+  (case (count args)
+    0 nil
+    1 (first args)
+      (let [v (gensym)]
+        `(let [,v ,(first args)]
+          (if ,v ,v (or ,@(next args)))))))
 
 (defmacro and
   [& args]
-  (let [cnt (count args)]
-    (cond 
-      (php/== cnt 0) 'true
-      (php/== cnt 1) (first args)
-                     (let [v (gensym)]
-                       `(let [,v ,(first args)]
-                         (if ,v (and ,@(next args)) ,v))))))
+  (case (count args)
+    0 'true
+    1 (first args)
+      (let [v (gensym)]
+        `(let [,v ,(first args)]
+          (if ,v (and ,@(next args)) ,v)))))
+
+(defn id 
+  "Checks if all values are identically. Same as a === b in PHP."
+  [a & more]
+  (case (count more)
+    0 true
+    1 (php/=== a (first more))
+      (if (php/=== a (first more))
+        (recur (first more) (next more))
+        false)))
+
+(defn = 
+  "Checks if all values are equal. Same as a == b in PHP."
+  [a & more]
+  (case (count more)
+    0 true
+    1 (php/== a (first more))
+      (if (php/== a (first more))
+        (recur (first more) (next more))
+        false)))
+
+(defn not [x]
+  (if x false true))
+
+(defn not= [a & more]
+  (case (count more)
+    0 false
+    1 (not (= a (first more)))
+      (not (apply = a more))))
+
+(defn < [a & more]
+  (case (count more)
+    0 true
+    1 (php/< a (first more))
+      (if (php/< a (first more))
+        (recur (first more) (next more))
+        false)))
+
+(defn <= [a & more]
+  (case (count more)
+    0 true
+    1 (php/<= a (first more))
+      (if (php/<= a (first more))
+        (recur (first more) (next more))
+        false)))
+
+(defn > [a & more]
+  (case (count more)
+    0 true
+    1 (php/> a (first more))
+      (if (php/> a (first more))
+        (recur (first more) (next more))
+        false)))
+
+(defn >= [a & more]
+  (case (count more)
+    0 true
+    1 (php/>= a (first more))
+      (if (php/>= a (first more))
+        (recur (first more) (next more))
+        false)))
+
+(defn all [pred xs]
+  (cond
+    (php/== (count xs) 0) true
+    (pred (first xs))     (recur pred (next xs))
+                          false))
+(defn some [pred xs]
+  (if xs
+    (or (pred (first xs)) (recur pred (next xs)))))
+
+(defn true?
+  "Checks if x is true. Same as x === true in PHP."
+  [x]
+  (id x true))
+
+(defn truthy?
+  "Checks if x is truthy. Same as x == true in PHP."
+  [x]
+  (= x true))
+
+(defn false? 
+  "Checks if x is false. Same as x === false in PHP."
+  [x]
+  (id x false))
+
+# --------------
+# Type operation
+# --------------
+
+(defn type 
+  [x]
+  (cond
+    (php/instanceof x Tuple)      :tuple
+    (php/instanceof x PhelArray)  :array
+    (php/instanceof x Table)      :table
+    (php/instanceof x Keyword)    :keyword
+    (php/instanceof x Symbol)     :symbol
+    (php/is_int x)                :int
+    (php/is_float x)              :float
+    (php/is_string x)             :string
+    (php/is_null x)               :nil
+    (php/is_bool x)               :boolean
+    (php/is_callable x)           :function
+    (php/is_array x)              :php/array
+    (php/is_resource x)           :php/resource
+    (php/is_object x)             :php/object
+                                  :unknown))
+
+(defn nil? [x]
+  (id x nil))
+
+(defn float? [x]
+  (= (type x) :float))
+
+(defn int? [x]
+  (= (type x) :int))
+
+(defn number? [x]
+  (or (= (type x) :int) (= (type x) :float)))
+
+(defn string? [x]
+  (= (type x) :string))
+
+(defn keyword? [x]
+  (= (type x) :keyword))
+
+(defn symbol? [x]
+  (= (type x) :symbol))
+
+(defn function? [x]
+  (= (type x) :function))
+
+(defn table? [x]
+  (= (type x) :table))
+
+(defn array? [x]
+  (= (type x) :array))
+
+(defn tuple? [x]
+  (= (type x) :tuple))
+
+(defn boolean? [x]
+  (= (type x) :boolean))
+
+(defn php-array? [x]
+  (= (type x) :php/array))
+
+(defn php-resource? [x]
+  (= (type x) :php/resource))
+
+(defn php-object? [x]
+  (= (type x) :php/object))
+
+(defn empty? [x]
+  (= 0 (count x)))
+
+(defn dict? [x]
+  (= (type x) :table))
+
+(defn indexed? [x]
+  (let [t (type x)]
+    (or (= t :array) (= t :tuple) (= t :php/array))))
+
+# ------------------
+# Sequence operation
+# ------------------
+
+(defn peek
+  "Returns the last element of an array. Does not modify the sequence."
+  [xs]
+  (php/aget xs (php/- (count xs) 1)))
+
+(defn push
+  "Inserts x at the end of the array xs. Modifies the array."
+  [xs x]
+  (cond
+    (php-array? xs) (throw (php/new InvalidArgumentException "Can not call push on pure PHP arrays because Phel does not have support for call-by-reference" ))
+    (php/instanceof xs IPush) (php/-> xs (push x))
+    (throw (php/new InvalidArgumentException (str "Can not push on type " (type xs))))))
+
+(defn pop
+  "Removes the the last element of the array. If the array is empty return nil. Modifiles the array."
+  [xs]
+  (cond
+    (php-array? xs) (throw (php/new InvalidArgumentException "Can not call pop on pure PHP arrays because Phel does not have support for call-by-reference" ))
+    (php/instanceof xs IPop) (php/-> xs (pop))
+    (throw (php/new InvalidArgumentException "Can not pop"))))
+
+(defn remove
+  "Removes up to n element from xs starting at index offset."
+  [xs offset & [length]]
+  (cond
+    (php-array? xs) (throw (php/new InvalidArgumentException "Can not call remove on pure PHP arrays because Phel does not have support for call-by-reference" ))
+    (php/instanceof xs IRemove) (php/-> xs (remove offset length))
+    (throw (php/new InvalidArgumentException "Can not remove"))))
+
+(defn get 
+  [ds k & [opt]]
+  (or (php/aget ds k) opt))
+
+(defn put
+  [ds key value]
+  (do
+    (when (php-array? ds)
+      (throw (php/new InvalidArgumentException "Can not call put on pure PHP arrays because Phel does not have support for call-by-reference" )))
+    (if (nil? value)
+      (php/aunset ds key)
+      (php/aset ds key value))
+    ds))
+
+(defn map [f & xs]
+  (case (count xs)
+    0 (throw (php/new InvalidArgumentException "expected at least one indexed collection in map"))
+    1 (loop [res (array)
+             seq (first xs)]
+        (if (nil? (first seq))
+          res
+          (do
+            (push res (f (first seq)))
+            (recur res (next seq)))))
+      (loop [res (array)
+             seq xs]
+        (if (some nil? seq)
+           res
+           (do 
+             (push res (apply f (map first seq)))
+             (recur res (map next seq)))))))
+
+(defn reduce [f init xs]
+  (if (nil? (first xs))
+    init
+    (recur f (f init (first xs)) (next xs))))
+
+(defn reduce2 [f [x & xs]]
+  (reduce f x xs))
+
+(defn slice
+  [xs & [offset & [length]]]
+  (cond
+    (php-array? xs) (php/array_slice xs offset length)
+    (php/instanceof xs ISlice) (php/-> xs (slice offset length))
+    (throw (php/new InvalidArgumentException "Can not slice"))))
+
+(defn get-in
+  [ds ks & [opt]]
+  (let [res (reduce get ds ks)]
+    (or res opt)))
+
+# TODO: accumulate, accumulate2, distinct, drop, drop-until, drop-while, every?, filter, find, find-index, flatten, flatten-into, frequencies, in, interleave, interpose, invert, keep, keys, kvs, last, mapcat, max, mean, merge, merge-into, min, pairs, put, put-in, range, sort, sorted, sum, take, take-until, take-while, update, update-in, values, walk, zipcoll, butlast, ffirst, group-by, keep-indexed, map-indexed, nfirst, nnext, not-any, not-every, partition, partition-all, partition-by, reduce-kv, repeat, replace, reverse, shuffle, split-at, split-with, to-php-array, to-php-iterator, rand, rand-int
+# TODO: Binary operations
+# TODO: compose, complement, identity, juxt, partial
+
+# --------------
+# Math operation
+# --------------
+
+(defn +
+  "Returns the sum of all elements in xs. All elements is xs must be numbers. If xs is empty, return 0."
+  [& xs] 
+  (if (empty? xs)
+    0
+    (apply php/+ xs)))
+
+(defn -
+  "Returns the difference of all elements in xs. If xs is empty, return 0. If xs has one element, return the negative value of that element."
+  [& xs]
+  (case (count xs)
+    0 0
+    1 (php/* -1 (first xs))
+    2 (php/- (first xs) (second xs))
+      (reduce2 (fn [a b] (php/- a b)) xs)))
+
+(defn *
+  "Returns the product of all elements in xs. All elements is xs must be numbers. If xs is empty, return 1."
+  [& xs] 
+  (case (count xs)
+    0 1
+    1 (first xs)
+    2 (php/* (first xs) (second xs))
+      (reduce2 (fn [a b] (php/* a b)) xs)))
+
+(defn /
+  "Returns the nominator divided by all of the denominators. If xs is empty, returns 1. If xs has one value, returns the reciprocal of x."
+  [& xs]
+  (case (count xs)
+    0 1
+    1 (php// 1 (first xs))
+    2 (php// (first xs) (second xs))
+      (reduce2 (fn [a b] (php// a b)) xs)))
+
+(defn % 
+  "Return the remainder of dividend / divisor."
+  [dividend divisor]
+  (php/% dividend divisor))
+
+(defn ** 
+  "Return a to the power of x."
+  [a x]
+  (php/** a x))
+
+(defn inc
+  "Increments x by one."
+  [x]
+  (+ x 1))
+
+(defn dec
+  "Decrements x by one."
+  [x]
+  (- x 1))
+
+(defn even?
+  "Checks if x is even."
+  [x]
+  (= 0 (% x 2)))
+
+(defn odd?
+  "Checks if x is odd."
+  [x]
+  (= 1 (% x 2)))
+
+(defn zero?
+  "Checks if x is zero."
+  [x] 
+  (= x 0))
+
+(defn one?
+  "Checks if x is one."
+  [x] 
+  (= x 1))
+
+(defn pos?
+  "Checks if x is greater than zero."
+  [x]
+  (> x 0))
+
+(defn neg?
+  "Checks if x is smaller than zero."
+  [x] 
+  (< x 0))
+
+# TODO: nan?
+
+# ----------------
+# Print operations
+# ----------------
+
+(defmacro with-output-buffer [& body]
+  (let [res (gensym)]
+    `(do
+      (php/ob_start)
+      ,@body
+      (let [,res (php/ob_get_contents)]
+        (php/ob_end_clean)
+        ,res))))
+
+(defn print-str [& xs]
+  (let [len (count xs)
+        printer (php/new Printer)
+        pp (fn [x] (php/-> printer (print x false)))]
+    (cond
+      (= len 0) ""
+      (= len 1) (php/-> printer (print (first xs) false))
+                (loop [res (php/-> printer (print (first xs) false))
+                       seq (next xs)]
+                  (if seq
+                    (recur (str res " " (php/-> printer (print (first seq) false))) (next seq))
+                    res)))))
+
+(defn print [& xs]
+  (php/print (apply print-str xs)))
+
+(defn println [& xs]
+  (do 
+    (apply print xs)
+    (php/print "\n")))

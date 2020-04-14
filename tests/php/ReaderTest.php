@@ -24,6 +24,7 @@ class ReaderTest extends TestCase {
     public function testReadNumber() {
         $this->assertEquals(1, $this->read('1'));
         $this->assertEquals(10, $this->read('10'));
+        $this->assertEquals(10.0, $this->read('10.0'));
         $this->assertEquals(1.1, $this->read('1.1'));
         $this->assertEquals(10.11, $this->read('10.11'));
     }
@@ -182,46 +183,56 @@ class ReaderTest extends TestCase {
             'ab"c',
             $this->read('"ab\"c"')
         );
+
+        $this->assertEquals(
+            "\\\r\n\t\f\v\e\$",
+            $this->read('"\\\\\r\n\t\f\v\e\$"')
+        );
+
+        $this->assertEquals(
+            "\u{1000}",
+            $this->read("\u{1000}")
+        );
     }
 
-    public function readEmptyArray() {
+    public function testReadEmptyArray() {
         $this->assertEquals(
-            new PhelArray([]),
+            $this->loc(Tuple::create(new Symbol('array')), 1, 1, 1, 3),
             $this->read('@[]')
         );
     }
 
-    public function readArray1() {
+    public function testReadArray1() {
         $this->assertEquals(
-            new PhelArray([1]),
+            $this->loc(Tuple::create(new Symbol('array'), 1), 1, 1, 1, 4),
             $this->read('@[1]')
         );
     }
 
-    public function readArray2() {
+    public function testReadArray2() {
         $this->assertEquals(
-            new PhelArray([1, 2]),
+            $this->loc(Tuple::create(new Symbol('array'), 1, 2), 1, 1, 1, 6),
             $this->read('@[1 2]')
         );
     }
 
-    public function readEmptyTable() {
+    public function testReadEmptyTable() {
         $this->assertEquals(
-            Table::fromKVs(),
+            $this->loc(Tuple::create(new Symbol('table')), 1, 1, 1, 3),
             $this->read('@{}')
         );
     }
 
-    public function readTable1() {
+    public function testReadTable1() {
         $this->assertEquals(
-            Table::fromKVs(new Keyword('a'), 1),
+            $this->loc(Tuple::create(new Symbol('table'), new Keyword('a'), 1), 1, 1, 1, 7),
             $this->read('@{:a 1}')
         );
     }
 
-    public function readTable2() {
+    public function testReadTable2() {
         $this->assertEquals(
-            Table::fromKVs(new Keyword('a'), 1, new Keyword('b'), 2),
+            $this->loc(Tuple::create(new Symbol('table'), new Keyword('a'), 1, new Keyword('b'), 2), 1, 1, 1, 12),
             $this->read('@{:a 1 :b 2}')
         );
     }

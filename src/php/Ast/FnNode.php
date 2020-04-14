@@ -2,6 +2,7 @@
 
 namespace Phel\Ast;
 
+use Phel\Lang\Symbol;
 use Phel\NodeEnvironment;
 
 class FnNode implements Node {
