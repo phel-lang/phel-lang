@@ -8,7 +8,7 @@ use InvalidArgumentException;
 use Iterator;
 use Phel\Printer;
 
-class Tuple extends Phel implements ArrayAccess, Countable, Iterator, ISlice, ICons, ICdr, IRest {
+class Tuple extends Phel implements ArrayAccess, Countable, Iterator, ISlice, ICons, ICdr, IRest, IPush, IConcat {
 
     /**
      * @var Phel[]
@@ -35,11 +35,7 @@ class Tuple extends Phel implements ArrayAccess, Countable, Iterator, ISlice, IC
     }
 
     public function offsetSet($offset, $value) {
-        if (is_null($offset)) {
-            $this->data[] = $value;
-        } else {
-            $this->data[$offset] = $value;
-        }
+        throw new \InvalidArgumentException('Calling offsetSet is not supported on Tuples since they are immutable');
     }
 
     public function offsetExists($offset) {
@@ -47,7 +43,7 @@ class Tuple extends Phel implements ArrayAccess, Countable, Iterator, ISlice, IC
     }
 
     public function offsetUnset($offset) {
-        throw new \InvalidArgumentException('Calling offsetUnset is not supported on tuples, since they are immutable');
+        throw new \InvalidArgumentException('Calling offsetUnset is not supported on Tuples since they are immutable');
     }
 
     public function offsetGet($offset) {
@@ -80,6 +76,34 @@ class Tuple extends Phel implements ArrayAccess, Countable, Iterator, ISlice, IC
 
     public function valid() {
         return key($this->data) !== null;
+    }
+
+    public function update($offset, $value) {
+        if ($offset < 0 || $offset > count($this->data)) {
+            throw new InvalidArgumentException('Index out of bounds: ' . $offset . ' [0,' . count($this->data) . ']');
+        }
+        if (is_null($offset)) {
+            unset($this->data[$offset]);
+            $res = new Tuple(array_values($this->data), $this->isUsingBracket()); // reindex
+        } else {
+            if ($offset == count($this->data)) {
+                $res = new Tuple([...$this->data, $value], $this->isUsingBracket());
+            } else {
+                $newData = $this->data;
+                $newData[$offset] = $value;
+                $res = new Tuple($newData, $this->isUsingBracket());
+            }
+        }
+
+        if ($this->getStartLocation()) {
+            $res->setStartLocation($this->getStartLocation());
+        }
+
+        if ($this->getEndLocation()) {
+            $res->getEndLocation($this->getEndLocation());
+        }
+
+        return $res;
     }
 
     public function slice($offset = 0, $length = null): ISlice {
@@ -115,6 +139,19 @@ class Tuple extends Phel implements ArrayAccess, Countable, Iterator, ISlice, IC
 
     public function rest(): IRest {
         return new Tuple(array_slice($this->data, 1), $this->isUsingBracket());
+    }
+
+    public function push($x): IPush {
+        return new Tuple([...$this->data, $x]);
+    }
+
+    public function concat($xs): IConcat {
+        $newData = $this->data;
+        foreach ($xs as $x) {
+            $newData[] = $x;
+        }
+
+        return new Tuple($newData, $this->isUsingBracket());
     }
 
     public function __toString() {

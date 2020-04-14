@@ -13,6 +13,7 @@
   (:use Phel\Lang\IPush)
   (:use Phel\Lang\IRest)
   (:use Phel\Lang\IRemove)
+  (:use Phel\Lang\IConcat)
   (:use Phel\Lang\Symbol)
   (:use Phel\Printer)
   (:use Countable)
@@ -56,15 +57,20 @@
         (array)
         (throw (php/new InvalidArgumentException "this is not sliceable")))))))
 
-# TODO: Tuple needs to be immutable
+(def concat1 (fn [xs ys]
+  (if (php/instanceof xs IConcat)
+    (php/-> xs (concat ys))
+    (do
+      (foreach [y ys]
+        (php/apush xs y))
+      xs))))
+
 (def concat (fn [arr & xs]
-  (do
-    (foreach [x xs]
-      (foreach [value x]
-        (if (php/instanceof arr IPush)
-          (php/-> arr (push value))
-          (php/apush arr value))))
-    arr)))
+  (loop [res arr
+         [y & ys] xs]
+    (if (php/== nil y)
+      res
+      (recur (concat1 res y) ys)))))
 
 # quasiquote can be used down here
 

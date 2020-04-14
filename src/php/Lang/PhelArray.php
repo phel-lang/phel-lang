@@ -8,7 +8,7 @@ use InvalidArgumentException;
 use Iterator;
 use Phel\Printer;
 
-class PhelArray extends Phel implements ArrayAccess, Countable, Iterator, ICons, ISlice, ICdr, IRest, IPop, IRemove, IPush {
+class PhelArray extends Phel implements ArrayAccess, Countable, Iterator, ICons, ISlice, ICdr, IRest, IPop, IRemove, IPush, IConcat {
 
     /**
      * @var Phel[]
@@ -125,6 +125,13 @@ class PhelArray extends Phel implements ArrayAccess, Countable, Iterator, ICons,
 
     public function push($x): IPush {
         $this->data[] = $x;
+        return $this;
+    }
+
+    public function concat($xs): IConcat {
+        foreach ($xs as $x) {
+            $this->data[] = $x;
+        }
         return $this;
     }
 

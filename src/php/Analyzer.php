@@ -328,7 +328,7 @@ class Analyzer {
         }
 
         if ($finally) {
-            $finally[0] = new Symbol('do');
+            $finally = $finally->update(0, new Symbol('do'));
             $finally = $this->analyze($finally, $env->withContext(NodeEnvironment::CTX_STMT)->withDisallowRecurFrame());
         }
 
@@ -506,9 +506,9 @@ class Analyzer {
             $bindingTupleData[] = $binding[1];
         }
 
-        $x[1] = new Tuple($bindingTupleData, true);
+        $newTuple = $x->update(1, new Tuple($bindingTupleData, true));
 
-        return $this->analyzeLetOrLoop($x, $env, false);
+        return $this->analyzeLetOrLoop($newTuple, $env, false);
     }
 
     protected function analyzeLetOrLoop(Tuple $x, NodeEnvironment $env, $isLoop = false) {
@@ -642,6 +642,7 @@ class Analyzer {
     }
 
     protected function analyzeQuote(Tuple $x, NodeEnvironment $env) {
+//        var_dump($x);
         assert(count($x) == 2, "A quote tuple must have exactly two arguments");
 
         return new QuoteNode(
