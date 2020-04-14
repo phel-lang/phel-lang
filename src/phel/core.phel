@@ -44,18 +44,23 @@
   "Creates a new Keyword from a given string."
   (fn [x] (php/new Keyword x)))
 
-# ----------------------------
-# Basic methods for quasiquote
-# ----------------------------
+# --------------------------------------------
+# Basic methods for quasiquote and destructure
+# --------------------------------------------
 
-(def drop-destructure (fn [n x]
-  (if (php/is_array x)
-    (php/array_slice x n)
-    (if (php/instanceof x ISlice)
-      (php/-> x (slice n))
-      (if (php/== x nil)
-        (array)
-        (throw (php/new InvalidArgumentException "this is not sliceable")))))))
+(def next
+  "Returns the sequence of elements after the first element. If there are no elements, returns nil."
+  (fn [xs]
+    (if (php/== xs nil)
+      nil
+      (if (php/instanceof xs ICdr)
+        (php/-> xs (cdr))
+        (if (php/is_array xs)
+          (let [sliced (php/array_slice xs 1)]
+            (if (php/empty sliced)
+              nil
+              sliced))
+          (throw (php/new InvalidArgumentException (php/. "can not do next" (php/gettype xs)))))))))
 
 (def concat1 (fn [xs ys]
   (if (php/instanceof xs IConcat)
@@ -93,7 +98,7 @@
   [name & more]
   (apply defn name :macro more))
 
-(defn defmacro-
+(defmacro defmacro-
   "Define a private macro that will not be exported"
   [name & more]
   (apply defn name :macro :private more))
@@ -148,18 +153,6 @@
   "Returns the second element of an indexed sequence or nil."
   [xs]
   (php/aget xs 1))
-
-(defn next
-  "Returns the sequence of elements after the first element. If there are no elements, returns nil."
-  [xs]
-  (if (php/instanceof xs ICdr)
-    (php/-> xs (cdr))
-    (if (php/is_array xs)
-      (let [sliced (php/array_slice xs 1)]
-        (if (php/empty sliced)
-          nil
-          sliced))
-      (throw (php/new InvalidArgumentException "can not do next")))))
 
 (defn rest 
   "Returns the sequence of elements after the first element. If there are no elements, returns an empty sequence."
@@ -489,6 +482,12 @@
   [ds ks & [opt]]
   (let [res (reduce get ds ks)]
     (or res opt)))
+
+(defn put-in
+  [ds [k & ks] v]
+  (if-not (nil? ks)
+    (put ds k (put-in (get ds k @{}) ks v))
+    (put ds k v)))
 
 # TODO: accumulate, accumulate2, distinct, drop, drop-until, drop-while, every?, filter, find, find-index, flatten, flatten-into, frequencies, in, interleave, interpose, invert, keep, keys, kvs, last, mapcat, max, mean, merge, merge-into, min, pairs, put, put-in, range, sort, sorted, sum, take, take-until, take-while, update, update-in, values, walk, zipcoll, butlast, ffirst, group-by, keep-indexed, map-indexed, nfirst, nnext, not-any, not-every, partition, partition-all, partition-by, reduce-kv, repeat, replace, reverse, shuffle, split-at, split-with, to-php-array, to-php-iterator, rand, rand-int
 # TODO: Binary operations

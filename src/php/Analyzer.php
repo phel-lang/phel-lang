@@ -642,7 +642,6 @@ class Analyzer {
     }
 
     protected function analyzeQuote(Tuple $x, NodeEnvironment $env) {
-//        var_dump($x);
         assert(count($x) == 2, "A quote tuple must have exactly two arguments");
 
         return new QuoteNode(

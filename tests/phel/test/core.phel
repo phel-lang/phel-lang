@@ -25,10 +25,9 @@
 # Basic methods for quasiquote
 # ----------------------------
 
-(assert (= [2] (drop-destructure 1 [1 2])) "drop-destructure one")
-(assert (= [] (drop-destructure 2 [1 2])) "drop-destructure two")
-(assert (= [] (drop-destructure 3 [1 2])) "drop-destructure three")
-(assert (= @[] (drop-destructure 1 nil)) "drop-destructure on nil")
+(assert (= nil (next [])) "next of empty tuple")
+(assert (= nil (next [1])) "next of one element tuple")
+(assert (= [2] (next [1 2])) "next of two element tuple")
 
 (assert (= @[1 2] (concat @[1 2])) "concat one argument")
 (assert (= @[1 2 3 4] (concat @[1] @[2 3] @[4])) "concat three arguments")
@@ -57,10 +56,6 @@
 (assert (= 2 (second (php/array 1 2))) "second of pgp array")
 (assert (= nil (second (php/array))) "second of empty php array")
 (assert (= nil (second nil)) "second of nil")
-
-(assert (= nil (next [])) "next of empty tuple")
-(assert (= nil (next [1])) "next of one element tuple")
-(assert (= [2] (next [1 2])) "next of two element tuple")
 
 (assert (= [2] (rest [1 2])) "rest of two element tuple")
 (assert (= [] (rest [1])) "rest of one element tuple")
@@ -364,6 +359,8 @@
 (assert (= @{:b 2} (put @{:a 1 :b 2} :a nil)) "put: remove entry from table")
 (assert (= @{:a 3 :b 2} (put @{:a 1 :b 2} :a 3)) "put: replace entry on table")
 (assert (= @{:a 1 :b 2 :c 3} (put @{:a 1 :b 2} :c 3)) "put: append entry on table")
+
+(assert (= @{:a @{:b @{:c 1}}} (put-in @{:a @{}} @[:a :b :c] 1)) "put-in: autocreate tables")
 
 # --------------
 # Math operation

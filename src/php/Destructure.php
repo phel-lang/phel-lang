@@ -32,6 +32,7 @@ class Destructure {
     private function processTuple(array &$bindings, $b, $value) {
         $arrSymbol = Symbol::gen();
         $bindings[] = [$arrSymbol, $value];
+        $lastListSym = $arrSymbol;
         $state = 'start';
 
         for ($i = 0; $i < count($b); $i++) {
@@ -42,8 +43,13 @@ class Destructure {
                         $state = 'rest';
                     } else if (!($current instanceof Symbol && $current->getName() == '_')) {
                         $accessSym = Symbol::gen();
-                        $accessValue = Tuple::create(new Symbol('php/aget'), $arrSymbol, $i);
+                        $accessValue = Tuple::create(new Symbol('php/aget'), $lastListSym, 0);
                         $bindings[] = [$accessSym, $accessValue];
+
+                        $nextSym = Symbol::gen();
+                        $nextValue = Tuple::create(new Symbol('next'), $lastListSym);
+                        $bindings[] = [$nextSym, $nextValue];
+                        $lastListSym = $nextSym;
         
                         $this->destructure($bindings, $current, $accessSym);
                     }
@@ -51,9 +57,7 @@ class Destructure {
                 case 'rest':
                     $state = 'done';
                     if (!($current instanceof Symbol && $current->getName() == '_')) {
-                        $accessSym = Symbol::gen();
-                        $accessValue = Tuple::create(new Symbol('drop-destructure'), $i - 1, $arrSymbol);
-                        $bindings[] = [$accessSym, $accessValue];
+                        $bindings[] = [$accessSym, $lastListSym];
 
                         $this->destructure($bindings, $current, $accessSym);
                     }
