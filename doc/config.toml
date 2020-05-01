@@ -1,0 +1,22 @@
+# The URL the site will be built for
+base_url = "https://phel-lang.org"
+
+# Whether to automatically compile all Sass files in the sass directory
+compile_sass = true
+
+# Whether to do syntax highlighting
+# Theme can be customised by setting the `highlight_theme` variable to a theme supported by Zola
+highlight_code = true
+
+# highlight_theme = "idle"
+highlight_theme = "Tomorrow"
+
+# Whether to build a search index to be used later on by a JavaScript library
+build_search_index = false
+
+extra_syntaxes = ["syntaxes"]
+
+[extra]
+# Put all your custom variables here
+
+

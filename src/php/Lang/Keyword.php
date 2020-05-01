@@ -4,7 +4,7 @@ namespace Phel\Lang;
 
 use Phel\Printer;
 
-class Keyword extends Phel {
+class Keyword extends Phel implements IIdentical {
 
     use SourceLocationTrait;
 
@@ -31,6 +31,10 @@ class Keyword extends Phel {
 
     public function isTruthy(): bool {
         return true;
+    }
+
+    public function identical($other): bool {
+        return $other instanceof Keyword && $this->name == $other->getName();
     }
 
     public function __toString()

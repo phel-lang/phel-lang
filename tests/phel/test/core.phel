@@ -1,15 +1,40 @@
 (ns phel\test\core
   (:use DateTime))
 
+(def stats @{
+  :total 0
+  :failed 0
+  :successful 0
+})
+
 (defn assert [test err]
   (do
+    (update-in stats [:total] inc)
     (if test
-      (print ".")
       (do
+        (update-in stats [:successful] inc)
+        (print ".")
+        (when (= (% (get stats :total) 80) 0)
+          (println)))
+      (do
+        (update-in stats [:failed] inc)
         (php/print "\n")
         (php/print "e ")
         (php/print err)
         (php/print "\n")))))
+
+(defn print-summary []
+  (do
+    (print "\n\n")
+    (print "Successful: ")
+    (print (get stats :successful))
+    (print "\n")
+    (print "Failed: ")
+    (print (get stats :failed))
+    (print "\n")
+    (print "Total: ")
+    (print (get stats :total))
+    (print "\n")))
 
 # ------------------
 # Basic constructors
@@ -125,6 +150,12 @@
 (assert (= false (id false true false)) "(id false true false)")
 (assert (= true (id 10 10)) "(id 10 10)")
 (assert (= false (id 10 10.0)) "(id 10 10.0)")
+(assert (= true (id :test :test)) "keywords are always identical")
+(assert (= true (id 'test 'test)) "symbol are always identical")
+(assert (= false (id [] [])) "two empty tuples are not identical")
+(assert (= false (id @[] @[])) "two empty arrays are not identical")
+(assert (= false (id @{} @{})) "two empty tables are not identical")
+
 
 (assert (= true (= false)) "(= false)")
 (assert (= true (= false false)) "(= false false)")
@@ -132,6 +163,11 @@
 (assert (= false (= false true false)) "(= false true false)")
 (assert (= true (= 10 10)) "(= 10 10)")
 (assert (= true (= 10 10.0)) "(= 10 10.0)")
+(assert (= true (= :test :test)) "keywords are always equal")
+(assert (= true (= 'test 'test)) "symbol are always equal")
+(assert (= true (= [] [])) "two empty tuples are equal")
+(assert (= true (= @[] @[])) "two empty arrays are equal")
+(assert (= true (= @{} @{})) "two empty tables are equal")
 
 (assert (= false (not true)) "(not true)")
 (assert (= true (not false)) "(not false)")
@@ -347,6 +383,7 @@
 (assert (= "x" (get nil 1 "x")) "get on nil with optional value")
 (assert (= "x" (get @["a" "b" "c"] 10 "x")) "get on undefined index with optional value")
 (assert (= "x" (get @{:a "a" :b "b"} :c "x")) "get on undefined key with optional value")
+(assert (id 0 (get @{:a 0} :a)) "gets zero from a table")
 
 (assert (= "a" (get-in @["a"] [0])) "get-in level 1")
 (assert (= "a" (get-in @{:a @["a"]} [:a 0])) "get-in level 2")
@@ -361,6 +398,110 @@
 (assert (= @{:a 1 :b 2 :c 3} (put @{:a 1 :b 2} :c 3)) "put: append entry on table")
 
 (assert (= @{:a @{:b @{:c 1}}} (put-in @{:a @{}} @[:a :b :c] 1)) "put-in: autocreate tables")
+(assert (= @{:a @{:b @{:c 2}}} (put-in @{:a @{:b @{:c 1}}} @[:a :b :c] 2)) "put-in: update value of table")
+(assert (= @{:a @{:b @[2]}} (put-in @{:a @{:b @[1]}} @[:a :b 0] 2)) "put-in: update value of array")
+
+(assert (= @{:a 2} (update-in @{:a 1} @[:a] inc)) "update-in: update value of table")
+(assert (= @{:a @{:b @{:c 1}}} (update-in @{:a @{}} @[:a :b :c] inc)) "update-in: autocreate tables")
+(assert (= @{:a @{:b @[2]}} (update-in @{:a @{:b @[1]}} @[:a :b 0] inc)) "update-in: update value of array")
+
+(assert (= @["a" "b" "c"] (drop 0 @["a" "b" "c"])) "drop two elements")
+(assert (= @["c"] (drop 2 @["a" "b" "c"])) "drop two elements")
+(assert (= @[] (drop 3 @["a" "b" "c"])) "drop three elements")
+(assert (= @[] (drop 4 @["a" "b" "c"])) "drop four elements")
+(assert (= @["a" "b" "c"] (drop -1 @["a" "b" "c"])) "drop with negative number")
+(assert (= ["c"] (drop 2 ["a" "b" "c"])) "drop on tuple")
+(assert (= (php/array "c") (drop 2 (php/array "a" "b" "c"))) "drop on php array")
+
+(assert (= @[1 2 3 4 -1 -2 -3] (drop-while neg? @[-1 -2 -3 1 2 3 4 -1 -2 -3])) "drop-while: first three element")
+(assert (= @[] (drop-while neg? @[-1 -2 -3])) "drop-while: everything")
+(assert (= @[] (drop-while neg? @[])) "drop-while: empty array")
+(assert (= @[1 2 3 4] (drop-while neg? @[1 2 3 4])) "drop-while: nothing")
+(assert (= [1 2 3 4 -1 -2 -3] (drop-while neg? [-1 -2 -3 1 2 3 4 -1 -2 -3])) "drop-while: tuple")
+(assert (= (php/array 1 2 3 4 -1 -2 -3) (drop-while neg? (php/array -1 -2 -3 1 2 3 4 -1 -2 -3))) "drop-while: php array")
+
+(assert (= @["a" "b"] (take 2 @["a" "b" "c"])) "take two elements")
+(assert (= @["a" "b" "c"] (take 3 @["a" "b" "c"])) "take three elements")
+(assert (= @["a" "b" "c"] (take 4 @["a" "b" "c"])) "take four elements")
+(assert (= @[] (take 0 @["a" "b" "c"])) "take zero elements")
+(assert (= @[] (take -1 @["a" "b" "c"])) "take with negative number")
+(assert (= ["a" "b"] (take 2 ["a" "b" "c"])) "take on tuple")
+(assert (= (php/array "a" "b") (take 2 (php/array "a" "b" "c"))) "take on php array")
+
+(assert (= @[-1 -2 -3] (take-while neg? @[-1 -2 -3 1 2 3 4 -4 -5 -6])) "take-while: first three element")
+(assert (= @[-1 -2 -3] (take-while neg? @[-1 -2 -3])) "take-while: everything")
+(assert (= @[] (take-while neg? @[1 2 3 4])) "take-while: nothing")
+(assert (= @[] (take-while neg? @[])) "take-while: empty array")
+(assert (= @[-1 -2 -3] (take-while neg? [-1 -2 -3 1 2 3 4 -4 -5 -6])) "take-while on tuple")
+(assert (= @[-1 -2 -3] (take-while neg? (php/array -1 -2 -3 1 2 3 4 -4 -5 -6))) "take-while on php array")
+
+(assert (= @[-1 -2 -3] (filter neg? @[-1 2 3 -2 -3 4 5])) "filter: neg?")
+(assert (= @[-1 -2 -3] (filter neg? [-1 2 3 -2 -3 4 5])) "filter on tuple")
+(assert (= @[-1 -2 -3] (filter neg? (php/array -1 2 3 -2 -3 4 5))) "filter on php array")
+
+(assert (= @[true false false true true false false] (keep neg? @[-1 2 3 -2 -3 4 5])) "keep: neg?")
+(assert (= @[-1 -2 -3] (keep (fn [x] (if (neg? x) x nil)) @[-1 2 3 -2 -3 4 5])) "keep: filter nil")
+
+(assert (= -1 (find neg? @[1 2 3 -1 2 3])) "find first neg number")
+(assert (= nil (find neg? @[1 2 3 2 3])) "find: nothing to find")
+(assert (= nil (find neg? @[])) "find on empty array")
+
+(assert (= 3 (find-index neg? @[1 2 3 -1 2 3])) "find-index first neg number")
+(assert (= nil (find-index neg? @[1 2 3 2 3])) "find-index: nothing to find")
+(assert (= nil (find-index neg? @[])) "find-index on empty array")
+
+# ------------------
+# Function operation
+# ------------------
+
+(assert (= "a" (identity "a")) "identity returns itself")
+
+(assert (= 1 ((comp) 1)) "compose zero arguments")
+(assert (= 2 ((comp inc) 1)) "compose one arguments")
+(assert (= 3 ((comp inc inc) 1)) "compose two arguments")
+
+(assert (= false ((complement and) true true)) "complement of and")
+
+(assert (= @[2 1] ((juxt second first) @[1 2])) "juxt")
+
+(assert (= 3 ((partial + 2) 1)) "partial of add")
+
+# -----------------
+# Bitwise operation
+# -----------------
+
+(assert (= 0b1000 (bit-and 0b1100 0b1001)) "bit-and of two number")
+(assert (= 0b1000 (bit-and 0b1111 0b1001 0b1000)) "bit-and of three numbers")
+
+(assert (= 0b1101 (bit-or 0b1100 0b1001)) "bit-or of two number")
+(assert (= 0b1011 (bit-or 0b0010 0b1001 0b1000)) "bit-or of three numbers")
+
+(assert (= 0b0101 (bit-xor 0b1100 0b1001)) "bit-xor of two number")
+(assert (= 0b0011 (bit-xor 0b0010 0b1001 0b1000)) "bit-xor of three numbers")
+
+(assert (= -8 (bit-not 0b0111)) "bit-not")
+
+(assert (= 0b1101 (bit-shift-left 0b1101 0)) "bit-shift-left 0")
+(assert (= 0b11010 (bit-shift-left 0b1101 1)) "bit-shift-left 1")
+(assert (= 0b110100 (bit-shift-left 0b1101 2)) "bit-shift-left 2")
+(assert (= 0b1101000 (bit-shift-left 0b1101 3)) "bit-shift-left 3")
+(assert (= 0b11010000 (bit-shift-left 0b1101 4)) "bit-shift-left 4")
+
+(assert (= 0b1101 (bit-shift-right 0b1101 0)) "bit-shift-right 0")
+(assert (= 0b0110 (bit-shift-right 0b1101 1)) "bit-shift-right 1")
+(assert (= 0b0011 (bit-shift-right 0b1101 2)) "bit-shift-right 2")
+(assert (= 0b0001 (bit-shift-right 0b1101 3)) "bit-shift-right 3")
+(assert (= 0b0000 (bit-shift-right 0b1101 4)) "bit-shift-right 4")
+
+(assert (= 0b1111 (bit-set 0b1011 2)) "bit-set at pos 2")
+(assert (= 0b1011 (bit-set 0b1011 0)) "bit-set at pos 0")
+
+(assert (= 0b0011 (bit-clear 0b1011 3)) "bit-clear")
+
+(assert (= 0b1111 (bit-flip 0b1011 2)) "bit-flip")
+
+(assert (= true (bit-test 0b1011 0)) "bit-test")
+(assert (= false (bit-test 0b1011 2)) "bit-test")
 
 # --------------
 # Math operation
@@ -426,6 +567,11 @@
 (assert (= true (neg? -0.1)) "(neg? -0.1)")
 (assert (= true (neg? -1)) "(neg? -1)")
 
+(assert (= true (nan? (php/acos 8))) "(nan? (php/acos 8)")
+(assert (= true (nan? php/NAN)) "(nan? (php/NAN))")
+(assert (= true (nan? NAN)) "(nan? NAN)")
+(assert (= false (nan? 9)) "(nan? 8)")
+
 # ----------------
 # Print operations
 # ----------------
@@ -462,4 +608,4 @@
 
 (assert (= "hello\nworld\n" (with-output-buffer (println "hello\nworld"))) "println hello\\nworld")
 
-(println)
+(print-summary)

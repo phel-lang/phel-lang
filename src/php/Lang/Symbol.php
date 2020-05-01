@@ -4,7 +4,7 @@ namespace Phel\Lang;
 
 use Phel\Printer;
 
-class Symbol extends Phel {
+class Symbol extends Phel implements IIdentical {
 
     private static $symGenCounter = 1;
 
@@ -40,6 +40,10 @@ class Symbol extends Phel {
     }
 
     public function equals($other): bool {
+        return $other instanceof Symbol && $this->name == $other->getName();
+    }
+
+    public function identical($other): bool {
         return $other instanceof Symbol && $this->name == $other->getName();
     }
 

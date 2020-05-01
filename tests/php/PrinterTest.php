@@ -2,6 +2,7 @@
 
 namespace Phel;
 
+use Phel\Stream\StringCharStream;
 use PHPUnit\Framework\TestCase;
 
 class PrinterTest extends TestCase {
@@ -20,6 +21,13 @@ class PrinterTest extends TestCase {
         );
     }
 
+    public function testPrintDollarSignEscapedStringChars() {
+        $this->assertEquals(
+            '"\$ \$abc"',
+            $this->print($this->read('"$ $abc"'))
+        );
+    }
+
     public function testPrintEscapedHexdecimalChars() {
         $this->assertEquals(
             '"\x07"',
@@ -34,8 +42,24 @@ class PrinterTest extends TestCase {
         );
     }
 
+    public function testPrintZero() {
+        $this->assertEquals(
+            '0',
+            $this->print(0)
+        );
+    }
+
     private function print($x) {
         $p = new Printer();
         return $p->print($x, true);
+    }
+
+    public function read($string) {
+        $reader = new Reader();
+        $stream = new StringCharStream($string);
+        
+        $result = $reader->read($stream)->getAst();
+
+        return $result;
     }
 }

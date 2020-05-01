@@ -6,7 +6,6 @@ use Phel\Exceptions\ReaderException;
 use Phel\Lang\Keyword;
 use Phel\Lang\Phel;
 use Phel\Lang\PhelArray;
-use Phel\Lang\PhelString;
 use Phel\Lang\Symbol;
 use Phel\Lang\Table;
 use Phel\Lang\Tuple;
@@ -27,6 +26,19 @@ class ReaderTest extends TestCase {
         $this->assertEquals(10.0, $this->read('10.0'));
         $this->assertEquals(1.1, $this->read('1.1'));
         $this->assertEquals(10.11, $this->read('10.11'));
+        $this->assertEquals(1337, $this->read('0x539'));
+        $this->assertEquals(1337, $this->read('0x5_3_9'));
+        $this->assertEquals(1337, $this->read('02471'));
+        $this->assertEquals(1337, $this->read('024_71'));
+        $this->assertEquals(1337, $this->read('0b10100111001'));
+        $this->assertEquals(1337, $this->read('0b0101_0011_1001'));
+        $this->assertEquals(1337, $this->read('1337e0'));
+        $this->assertEquals(-1337, $this->read('-1337'));
+        $this->assertEquals(-1337.0, $this->read('-1337.0'));
+        $this->assertEquals(1337, $this->read('+1337'));
+        $this->assertEquals(1337, $this->read('+1337.0'));
+        $this->assertEquals(1.2e3, $this->read('1.2e3'));
+        $this->assertEquals(7E-10, $this->read('7E-10'));
     }
 
     public function testReadKeyword() {
@@ -190,8 +202,18 @@ class ReaderTest extends TestCase {
         );
 
         $this->assertEquals(
+            "read \$abc sign",
+            $this->read('"read $abc sign"')
+        );
+
+        $this->assertEquals(
+            "\x41",
+            $this->read('"\x41"')
+        );
+
+        $this->assertEquals(
             "\u{1000}",
-            $this->read("\u{1000}")
+            $this->read('"\u{1000}"')
         );
     }
 

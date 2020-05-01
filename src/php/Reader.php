@@ -14,7 +14,7 @@ use Phel\Stream\SourceLocation;
 class Reader {
 
     private $syntax = [
-        '(', ')', '[', ']', '{', '}', '\'', ',', ';', '~'
+        '(', ')', '[', ']', '{', '}', '\'', ',', '`'
     ];
 
     private $stringReplacements = [
@@ -156,7 +156,19 @@ class Reader {
     }
 
     private function parseword(string $word) {
-        if (is_numeric($word)) {
+        if (preg_match("/([+-])?0[bB][01]+(_[01]+)*/", $word, $matches)) {
+            // binary numbers
+            $sign = (isset($matches[1]) && $matches[1] == '-') ? -1 : 1;
+            return $sign * bindec(str_replace('_', '', $word));
+        } else if (preg_match("/([+-])?0[xX][0-9a-fA-F]+(_[0-9a-fA-F]+)*/", $word, $matches)) {
+            $sign = (isset($matches[1]) && $matches[1] == '-') ? -1 : 1;
+            // hexdecimal numbers
+            return $sign = hexdec(str_replace('_', '', $word));
+        } else if (preg_match("/([+-])?0[0-7]+(_[0-7]+)*/", $word, $matches)) {
+            $sign = (isset($matches[1]) && $matches[1] == '-') ? -1 : 1;
+            // octal numbers
+            return $sign * octdec(str_replace('_', '', $word));
+        } else if (is_numeric($word)) {
             return $word + 0;
         } else {
             return $this->sym($word);
