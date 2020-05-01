@@ -29,6 +29,7 @@ class Runtime {
             $globalEnv = new GlobalEnvironment();
         }
         $this->globalEnv = $globalEnv;
+        $this->addPath('phel\\', [__DIR__ . '/../phel']);
     }
 
     public static function getInstance() {
