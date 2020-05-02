@@ -2,6 +2,10 @@
 
 namespace Phel;
 
+use Phel\Lang\Keyword;
+use Phel\Lang\Symbol;
+use Phel\Lang\Table;
+
 class Runtime {
 
     /**
@@ -20,15 +24,21 @@ class Runtime {
     private $paths = [];
 
     /**
+     * @var string|null
+     */
+    private $cacheDiretory;
+
+    /**
      * @var Runtime;
      */
     private static $instance;
 
-    public function __construct(GlobalEnvironment $globalEnv = null) {
+    public function __construct(GlobalEnvironment $globalEnv = null, $cacheDiretory = null) {
         if (is_null($globalEnv)) {
             $globalEnv = new GlobalEnvironment();
         }
         $this->globalEnv = $globalEnv;
+        $this->cacheDiretory = $cacheDiretory;
         $this->addPath('phel\\', [__DIR__ . '/../phel']);
     }
 
@@ -49,14 +59,40 @@ class Runtime {
 
     public function loadNs($ns) {
         if (!in_array($ns, $this->loadedNs)) {
+
             $file = $this->findFile($ns);
             if ($file) {
                 $this->loadedNs[] = $ns;
-                return $this->loadFile($file);
+
+                if ($this->isCached($file, $ns)) {
+                    return $this->loadCachedFile($file, $ns);
+                } else {    
+                    return $this->loadFile($file, $ns);
+                }
             }
         }
 
         return false;
+    }
+
+    protected function isCached($file, $ns) {
+        if ($this->cacheDiretory) {
+            return file_exists($this->getCachedFilePath($file, $ns));
+        } else {
+            return false;
+        }
+    }
+
+    protected function getCachedFilePath($file, $ns) {
+        if ($this->cacheDiretory) {
+            return $this->cacheDiretory 
+                . DIRECTORY_SEPARATOR
+                . str_replace('\\', '.', $ns) 
+                . '.' . md5_file($file)
+                . '.php';
+        } else {
+            return null;
+        }
     }
 
     protected function findFile($ns) {
@@ -81,10 +117,39 @@ class Runtime {
         return false;
     }
 
-    protected function loadFile($filename) {
+    protected function loadFile($filename, $ns) {
         $globalEnv = $this->globalEnv;
         $compiler = new Compiler();
-        $compiler->compileFile($filename, $globalEnv);
+        $code = $compiler->compileFile($filename, $globalEnv);
+
+        if ($this->cacheDiretory) {
+            file_put_contents(
+                $this->getCachedFilePath($filename, $ns), 
+                "<?php\n\n" . $code
+            );
+        }
+
+        return true;
+    }
+
+    protected function loadCachedFile($filename, $ns) {
+        // Require cache file
+        require $this->getCachedFilePath($filename, $ns);
+
+        // Update global environment
+        if (isset($GLOBALS['__phel'][$ns])) {
+            foreach (array_keys($GLOBALS['__phel'][$ns]) as $name) {
+                /** @var Table $meta */
+                $meta = $GLOBALS['__phel'][$ns][$name]->getMeta();
+                if ($meta[new Keyword('private')] !== true) {
+                    $this->globalEnv->addDefintion(
+                        $ns, 
+                        new Symbol($name),
+                        $GLOBALS['__phel'][$ns][$name]->getMeta()
+                    );
+                }
+            }
+        }
 
         return true;
     }

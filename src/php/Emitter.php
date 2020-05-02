@@ -52,12 +52,7 @@ class Emitter {
             throw $e;
         }
         
-        // Do not output macro code (just eval it)
-        if ($node instanceof DefNode && $node->getMeta()[new Keyword('macro')] == true) {
-            return '';
-        } else {
-            return $code;
-        }
+        return $code;
     }
 
     public function emit(Node $node) {

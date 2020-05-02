@@ -13,13 +13,14 @@ class Compiler {
     public function compileFile(string $filename, GlobalEnvironment $globalEnv) {
         $stream = new FileCharStream($filename);
 
-        $this->compileStream($stream, $globalEnv);
+        return $this->compileStream($stream, $globalEnv);
     }
 
     public function compileStream(CharStream $stream, GlobalEnvironment $globalEnv) {
         $reader = new Reader();
         $analzyer = new Analyzer($globalEnv);
         $emitter = new Emitter();
+        $code = '';
 
         while (true) {
             try {
@@ -41,7 +42,7 @@ class Compiler {
                     throw $e;
                 }
 
-                $emitter->emitAndEval($nodes);
+                $code .= $emitter->emitAndEval($nodes);
 
             } catch (ReaderException $e) {
                 $e->__toString();
@@ -50,6 +51,8 @@ class Compiler {
                 throw $e;
             }
         }
+
+        return $code;
     }
 
     private function printAnalyzeException(AnalyzerException $e, ReaderResult $readerResult) {
