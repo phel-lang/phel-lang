@@ -3,4 +3,15 @@
 
 (x 1)
 --PHP--
+$GLOBALS["__phel"]["user"]["x"] = new \Phel\Lang\PhelVar(
+  function($x) {
+    return \Phel\Lang\Tuple::create(
+      (new \Phel\Lang\Symbol("php/+")),
+      1,
+      1);
+  },
+  \Phel\Lang\Table::fromKVs(
+    new \Phel\Lang\Keyword("macro"), true
+  )
+);
 (1 + 1);

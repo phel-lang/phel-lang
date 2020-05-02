@@ -188,7 +188,7 @@ class Analyzer {
             $body = Tuple::create(new Symbol('do'), ...$bodys);
         }
 
-        $bodyExpr = $this->analyze($body, $bodyEnv);
+        $bodyExpr = $this->analyze($body, $bodyEnv->withContext(NodeEnvironment::CTX_STMT));
 
         return new ForeachNode(
             $env,

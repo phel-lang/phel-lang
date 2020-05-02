@@ -11,7 +11,7 @@ class RuntimeMock extends Runtime {
         $this->files = $files;
     }
 
-    protected function loadFile($filename) {
+    protected function loadFile($filename, $ns) {
         return $filename;
     }
 
