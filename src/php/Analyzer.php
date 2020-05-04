@@ -68,10 +68,6 @@ class Analyzer {
           || $x instanceof Table;
     }
 
-    private function isValidPhelType($x) {
-        return $x instanceof Phel || $this->isLiteral($x);
-    }
-
     public function analyze($x, NodeEnvironment $nodeEnvironment = null): Node {
         if (is_null($nodeEnvironment)) {
             $nodeEnvironment = NodeEnvironment::empty();
@@ -227,7 +223,7 @@ class Analyzer {
                 $x->getEndLocation()
             );
         }
-        
+
         return new PhpArrayUnsetNode(
             $env,
             $this->analyze($x[1], $env->withContext(NodeEnvironment::CTX_EXPR)),
@@ -858,6 +854,16 @@ class Analyzer {
             $params[] = Symbol::gen();
         }
 
+        foreach ($params as $param) {
+            if (!(preg_match("/^[a-zA-Z_\x80-\xff].*$/", $param->getName()))) {
+                throw new AnalyzerException(
+                    "Variable names must start with a letter or underscore: {$param->getName()}",
+                    $x->getStartLocation(),
+                    $x->getEndLocation()
+                );
+            }
+        }
+
         $recurFrame = new RecurFrame($params);
 
         $body = $x[2];
@@ -914,7 +920,9 @@ class Analyzer {
             }
 
             try {
-                return $fn(...$arguments);
+                $result = $fn(...$arguments);
+                $this->enrichLocation($result, $x);
+                return $result;
             } catch (Throwable $e) {
                 throw new AnalyzerException(
                     'Error in expanding macro "' . $node->getNamespace() . '\\'. $node->getName()->getName() . '": ' . $e->getMessage(),
@@ -930,6 +938,17 @@ class Analyzer {
                 $x->getStartLocation(),
                 $x->getEndLocation()
             );
+        }
+    }
+
+    private function enrichLocation($x, $parent) {
+        if ($x instanceof Tuple) {
+            foreach ($x as $item) {
+                $this->enrichLocation($item, $parent);
+            }
+
+            $x->setStartLocation($parent->getStartLocation());
+            $x->setEndLocation($parent->getEndLocation());
         }
     }
 

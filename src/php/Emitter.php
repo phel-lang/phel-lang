@@ -41,6 +41,34 @@ use Throwable;
 
 class Emitter {
 
+    protected $mungeMapping = [
+        '-' => '_',
+        '.' => '_DOT_',
+        ':' => '_COLON_',
+        '+' => '_PLUS_',
+        '>' => '_GT_',
+        '<' => '_LT_',
+        '=' => '_EQ_',
+        '~' => '_TILDE_',
+        '!' => '_BANG_',
+        '@' => '_CIRCA_',
+        '#' => "_SHARP_",
+        '\'' => "_SINGLEQUOTE_",
+        '"' => "_DOUBLEQUOTE_",
+        '%' => "_PERCENT_",
+        '^' => "_CARET_",
+        '&' => "_AMPERSAND_",
+        '*' => "_STAR_",
+        '|' => "_BAR_",
+        '{' => "_LBRACE_",
+        '}' => "_RBRACE_",
+        '[' => "_LBRACK_",
+        ']' => "_RBRACK_",
+        '/' => "_SLASH_",
+        '\\' => "_BSLASH_",
+        '?' => "_QMARK_"
+    ];
+
     public function emitAndEval(Node $node) {
         $code = $this->emit($node);
         // echo $code . "\n";
@@ -114,8 +142,8 @@ class Emitter {
     }
 
     protected function emitForeach(ForeachNode $node) {
-        $keyStr = $node->getKeySymbol() ? '$' . $node->getKeySymbol() . ' => ' : '';
-        $valueStr = '$' . $node->getValueSymbol();
+        $keyStr = $node->getKeySymbol() ? '$' . $this->munge($node->getKeySymbol()) . ' => ' : '';
+        $valueStr = '$' . $this->munge($node->getValueSymbol());
         $code = (
             'foreach (' . $this->emit($node->getListExpr()) . ' as ' . $keyStr . $valueStr . ') {'
             . "\n"
@@ -204,7 +232,7 @@ class Emitter {
 
     protected function emitCatch(CatchNode $node) {
         return (
-            ' catch (' . $node->getType()->getName() . ' $' . $node->getName()->getName() . ') {' . "\n"
+            ' catch (' . $node->getType()->getName() . ' $' . $this->munge($node->getName()->getName()) . ') {' . "\n"
             . $this->indent($this->emit($node->getBody()), 1)
             . "\n"
             . '}'
@@ -235,7 +263,7 @@ class Emitter {
                 $paramSym = $env->getShadowed($paramSym);
             }
             $tempCode[] = '$' . $tempSym->getName() . ' = ' . $this->emit($expr) . ';';
-            $setCode[] = '$' . $paramSym->getName() . ' = ' . '$' . $tempSym->getName() . ';';
+            $setCode[] = '$' . $this->munge($paramSym->getName()) . ' = ' . '$' . $tempSym->getName() . ';';
         }
 
         return (
@@ -436,7 +464,7 @@ class Emitter {
     }
 
     protected function emitLocalVar(LocalVarNode $node) {
-        return $this->wrap('$' . $node->getName()->getName(), $node->getEnv());
+        return $this->wrap('$' . $this->munge($node->getName()->getName()), $node->getEnv());
     }
 
     protected function emitGlobalVar(GlobalVarNode $node) {
@@ -447,7 +475,7 @@ class Emitter {
         $parts = [];
         foreach ($node->getBindings() as $binding) {
             $parts[] = (
-                '$' . $binding->getShadow()->getName()
+                '$' . $this->munge($binding->getShadow()->getName())
                 . ' = '
                 . $this->emit($binding->getInitExpr())
                 . ';'
@@ -495,10 +523,10 @@ class Emitter {
         $variadicWrapString = '';
         foreach ($node->getParams() as $i => $p) {
             if ($i == count($node->getParams()) - 1 && $node->isVariadic()) {
-                $params[] = '...$' . $p->getName();
-                $variadicWrapString = '$' . $p->getName() . ' = new \Phel\Lang\PhelArray($' . $p->getName() . ');' . "\n";
+                $params[] = '...$' . $this->munge($p->getName());
+                $variadicWrapString = '$' . $this->munge($p->getName()) . ' = new \Phel\Lang\PhelArray($' . $this->munge($p->getName()) . ');' . "\n";
             } else {
-                $params[] = '$' . $p->getName();
+                $params[] = '$' . $this->munge($p->getName());
             }
         }
         $paramString = implode(', ', $params);
@@ -509,7 +537,7 @@ class Emitter {
                 $u = $node->getEnv()->getShadowed($u);
             }
 
-            $uses[] = '$' . $u->getName();
+            $uses[] = '$' . $this->munge($u->getName());
         }
 
         $useString = count($uses) > 0
@@ -640,9 +668,9 @@ class Emitter {
         $uses = [];
         foreach ($env->getLocals() as $l) {
             if ($env->isShadowed($l)) {
-                $uses[] = '$' . $env->getShadowed($l)->getName();
+                $uses[] = '$' . $this->munge($env->getShadowed($l)->getName());
             } else {
-                $uses[] = '$' . $l->getName();
+                $uses[] = '$' . $this->munge($l->getName());
             }
         }
 
@@ -677,6 +705,18 @@ class Emitter {
             return $str . '.0';
         } else {
             return $str;
+        }
+    }
+
+    protected function munge(string $s) {
+        if ($s == 'this') {
+            return '__phel_this';
+        } else {
+            return str_replace(
+                array_keys($this->mungeMapping),
+                array_values($this->mungeMapping),
+                $s
+            );
         }
     }
 }
