@@ -220,6 +220,14 @@ class Analyzer {
     }
 
     protected function analyzePhpAUnset(Tuple $x, NodeEnvironment $env) {
+        if ($env->getContext() != NodeEnvironment::CTX_STMT) {
+            throw new AnalyzerException(
+                "'php/unset can only be called as Statement and not as Expression",
+                $x->getStartLocation(),
+                $x->getEndLocation()
+            );
+        }
+        
         return new PhpArrayUnsetNode(
             $env,
             $this->analyze($x[1], $env->withContext(NodeEnvironment::CTX_EXPR)),
