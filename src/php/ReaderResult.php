@@ -3,51 +3,31 @@
 namespace Phel;
 
 use Phel\Lang\Phel;
-use Phel\Stream\SourceLocation;
+use Phel\Stream\CodeSnippet;
 
 class ReaderResult {
 
     /**
-     * @var Phel | null
+     * @var Phel
      */
     private $ast;
 
     /**
-     * @var SourceLocation | null
+     * @var CodeSnippet
      */
-    private $startLocation;
+    private $codeSnippet;
 
-    /**
-     * @var SourceLocation | null
-     */
-    private $endLocation;
-
-    /**
-     * @var string
-     */
-    private $code;
-
-    public function __construct($ast, $startLocation, $endLocation, string $code)
+    public function __construct($ast, $codeSnippet)
     {
         $this->ast = $ast;
-        $this->startLocation = $startLocation;
-        $this->endLocation = $endLocation;
-        $this->code = $code;
+        $this->codeSnippet = $codeSnippet;
     }
 
     public function getAst() {
         return $this->ast;
     }
 
-    public function getStartLocation() {
-        return $this->startLocation;
-    }
-
-    public function getEndLocation() {
-        return $this->endLocation;
-    }
-
-    public function getCode() {
-        return $this->code;
+    public function getCodeSnippet() {
+        return $this->codeSnippet;
     }
 }

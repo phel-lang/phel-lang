@@ -133,15 +133,35 @@ class Analyzer {
                 return $this->analyzeInvoke($x, $nodeEnvironment);
             }
         } else {
-            throw new AnalyzerException('Unhandled type: ' . var_export($x, true));
+            // TODO: Needs to be another exception, because we have may not have start and end location
+            throw new AnalyzerException('Unhandled type: ' . var_export($x, true), null, null);
         }
     }
 
     protected function analyzeForeach(Tuple $x, NodeEnvironment $env) {
-        // (foreach [k? v xs] @body)
-        assert(count($x) > 2, "At least two arguments are required");
-        assert($x[1] instanceof Tuple, "First argument must be a tuple");
-        assert(count($x[1]) == 2 || count($x[1]) == 3, "Tuple of foreach must have two or three elements");
+        if (count($x) < 2) {
+            throw new AnalyzerException(
+                "At least two arguments are required for 'foreach", 
+                $x->getStartLocation(), 
+                $x->getEndLocation()
+            );
+        }
+
+        if (!($x[1] instanceof Tuple)) {
+            throw new AnalyzerException(
+                "First argument of 'foreach must be a tuple.", 
+                $x->getStartLocation(), 
+                $x->getEndLocation()
+            );
+        }
+
+        if (count($x[1]) != 2 && count($x[1]) != 3) {
+            throw new AnalyzerException(
+                "Tuple of 'foreach must have exactly two or three elements.", 
+                $x->getStartLocation(), 
+                $x->getEndLocation()
+            );
+        }
 
         $lets = [];
         if (count($x[1]) == 2) {
@@ -233,9 +253,29 @@ class Analyzer {
     }
 
     protected function analyzeLoop(Tuple $x, NodeEnvironment $env) {
-        assert(count($x) >= 2, "At least two arguments are required");
-        assert($x[1] instanceof Tuple, "Binding parameter must be a tuple");
-        assert(count($x[1]) % 2 == 0, "bindings must be a even number of parameters");
+        if (count($x) < 2) {
+            throw new AnalyzerException(
+                "At least two arguments are required for 'loop.",
+                $x->getStartLocation(),
+                $x->getEndLocation()
+            );
+        }
+
+        if (!($x[1] instanceof Tuple)) {
+            throw new AnalyzerException(
+                "Binding parameter must be a tuple.",
+                $x->getStartLocation(),
+                $x->getEndLocation()
+            );
+        }
+
+        if (!(count($x[1]) % 2 == 0)) {
+            throw new AnalyzerException(
+                "Bindings must be a even number of parameters",
+                $x->getStartLocation(),
+                $x->getEndLocation()
+            );
+        }
 
         $loopBindings = $x[1];
 
@@ -279,7 +319,14 @@ class Analyzer {
     }
 
     protected function analyzeThrow(Tuple $x, NodeEnvironment $env) {
-        assert(count($x) == 2, "Exact one argument is required in 'throw");
+        if (count($x) != 2) {
+            throw new AnalyzerException(
+                "Exact one argument is required for 'throw",
+                $x->getStartLocation(),
+                $x->getEndLocation()
+            );
+        }
+
         return new ThrowNode(
             $env,
             $this->analyze($x[1], $env->withContext(NodeEnvironment::CTX_EXPR)->withDisallowRecurFrame())
@@ -315,15 +362,15 @@ class Analyzer {
                         $state = 'done';
                         $finally = $form;
                     } else {
-                        throw new AnalyzerException('Invalid try form');
+                        throw new AnalyzerException("Invalid 'try form", $x->getStartLocation(), $x->getEndLocation());
                     }
                     break;
 
                 case 'done':
-                    throw new AnalyzerException('Unexpected form after finally');
+                    throw new AnalyzerException("Unexpected form after 'finally", $x->getStartLocation(), $x->getEndLocation());
 
                 default:
-                    throw new AnalyzerException('Unexpected parser state in try');
+                    throw new AnalyzerException("Unexpected parser state in 'try", $x->getStartLocation(), $x->getEndLocation());
             }
         }
 
@@ -338,8 +385,21 @@ class Analyzer {
             $type = $catch[1];
             $name = $catch[2];
 
-            assert($type instanceof Symbol, "First argument of catch must be a Symbol");
-            assert($name instanceof Symbol, "Second argument of catch must be a Symbol");
+            if (!($type instanceof Symbol)) {
+                throw new AnalyzerException(
+                    "First argument of 'catch must be a Symbol",
+                    $catch->getStartLocation(),
+                    $catch->getEndLocation()
+                );
+            }
+
+            if (!($name instanceof Symbol)) {
+                throw new AnalyzerException(
+                    "Second argument of 'catch must be a Symbol",
+                    $catch->getStartLocation(),
+                    $catch->getEndLocation()
+                );
+            }
 
             $exprs = [new Symbol('do')];
             for ($i = 3; $i < count($catch); $i++) {
@@ -378,30 +438,46 @@ class Analyzer {
     protected function analyzeRecur(Tuple $x, NodeEnvironment $env) {
         $frame = $env->getCurrentRecurFrame();
 
-        assert($frame, "Can't recur here");
-        assert(count($x) - 1 == count($frame->getParams()), "Recur argument count mismatch. Expected: " 
-            . count($frame->getParams()) . ' args, got: ' . (count($x) - 1));
-
-        if ($frame) {
-            $frame->setIsActive(true);
-
-            $exprs = [];
-            for($i = 1; $i < count($x); $i++) {
-                $exprs[] = $this->analyze($x[$i], $env->withContext(NodeEnvironment::CTX_EXPR)->withDisallowRecurFrame());
-            }
-
-            return new RecurNode(
-                $env,
-                $frame,
-                $exprs
+        if (!$frame) {
+            throw new AnalyzerException(
+                "Can't call 'recur here",
+                $x->getStartLocation(),
+                $x->getEndLocation()
             );
-        } else {
-            throw new AnalyzerException("Can't recur here");
         }
+
+        if (count($x) - 1 != count($frame->getParams())) {
+            throw new AnalyzerException(
+                "Wrong number of arugments for 'recur. Expected: "
+                    . count($frame->getParams()) . ' args, got: ' . (count($x) - 1),
+                $x->getStartLocation(),
+                $x->getEndLocation()
+            );
+        }
+
+        
+        $frame->setIsActive(true);
+
+        $exprs = [];
+        for($i = 1; $i < count($x); $i++) {
+            $exprs[] = $this->analyze($x[$i], $env->withContext(NodeEnvironment::CTX_EXPR)->withDisallowRecurFrame());
+        }
+
+        return new RecurNode(
+            $env,
+            $frame,
+            $exprs
+        );
     }
 
     protected function analyzePhpNew(Tuple $x, NodeEnvironment $env) {
-        assert(count($x) >= 2, "At least one arguments is required for 'php/new");
+        if (count($x) < 2) {
+            throw new AnalyzerException(
+                "At least one arguments is required for 'php/new",
+                $x->getStartLocation(),
+                $x->getEndLocation()
+            );
+        }
 
         $classExpr = $this->analyze($x[1], $env->withContext(NodeEnvironment::CTX_EXPR)->withDisallowRecurFrame());
         $args = [];
@@ -417,8 +493,22 @@ class Analyzer {
     }
 
     protected function analyzePhpObjectCall(Tuple $x, NodeEnvironment $env, $isStatic) {
-        assert(count($x) == 3, "Exactly two arguments are expected");
-        assert($x[2] instanceof Tuple || $x[2] instanceof Symbol, "Second argument must be a Tuple or a Symbol");
+        $fnName = $isStatic ? 'php/::' : 'php/->';
+        if (count($x) != 3) {
+            throw new AnalyzerException(
+                "Exactly two arguments are expected for '$fnName",
+                $x->getStartLocation(),
+                $x->getEndLocation()
+            );
+        }
+
+        if (!($x[2] instanceof Tuple || $x[2] instanceof Symbol)) {
+            throw new AnalyzerException(
+                "Second argument of '$fnName must be a Tuple or a Symbol",
+                $x->getStartLocation(),
+                $x->getEndLocation()
+            );
+        }
 
         $targetExpr = $this->analyze($x[1], $env->withContext(NodeEnvironment::CTX_EXPR)->withDisallowRecurFrame());
 
@@ -494,9 +584,29 @@ class Analyzer {
     }
 
     protected function analyzeLet(Tuple $x, NodeEnvironment $env) {
-        assert(count($x) >= 2, "At least two arguments are required");
-        assert($x[1] instanceof Tuple, "Binding parameter must be a tuple");
-        assert(count($x[1]) % 2 == 0, "bindings must be a even number of parameters");
+        if (count($x) < 2) {
+            throw new AnalyzerException(
+                "At least two arguments are required for 'let",
+                $x->getStartLocation(),
+                $x->getEndLocation()
+            );
+        }
+
+        if (!($x[1] instanceof Tuple)) {
+            throw new AnalyzerException(
+                "Binding parameter must be a tuple",
+                $x->getStartLocation(),
+                $x->getEndLocation()
+            );
+        }
+
+        if (!(count($x[1]) % 2 == 0)) {
+            throw new AnalyzerException(
+                "Bindings must be a even number of parameters",
+                $x->getStartLocation(),
+                $x->getEndLocation()
+            );
+        }
 
         $destructor = new Destructure();
         $bindings = $destructor->run($x[1]);
@@ -512,10 +622,6 @@ class Analyzer {
     }
 
     protected function analyzeLetOrLoop(Tuple $x, NodeEnvironment $env, $isLoop = false) {
-        assert(count($x) >= 2, "At least two arguments are required");
-        assert($x[1] instanceof Tuple, "Binding parameter must be a tuple");
-        assert(count($x[1]) % 2 == 0, "bindings must be a even number of parameters");
-
         $exprs = [];
         for ($i = 2; $i < count($x); $i++) {
             $exprs[] = $x[$i];
@@ -564,7 +670,14 @@ class Analyzer {
             $shadowSym = Symbol::gen($sym->getName() . '_');
             $init = $x[$i+1];
 
-            assert($sym instanceof Symbol, 'Binding name must be a symbol, got: ' . \gettype($sym));
+            if (!($sym instanceof Symbol)) {
+                throw new AnalyzerException(
+                    'Binding name must be a symbol, got: ' . \gettype($sym),
+                    $x->getStartLocation(),
+                    $x->getEndLocation()
+                );
+            }
+
             $expr = $this->analyze($init, $initEnv);
 
             $nodes[] = new BindingNode(
@@ -581,7 +694,13 @@ class Analyzer {
     }
 
     protected function analyzeApply(Tuple $x, NodeEnvironment $env) {
-        assert(count($x) >= 3, 'At least three arguments are required');
+        if (count($x) < 3) {
+            throw new AnalyzerException(
+                "At least three arguments are required for 'apply",
+                $x->getStartLocation(),
+                $x->getEndLocation()
+            );
+        }
 
         $fn = $this->analyze($x[1], $env->withContext(NodeEnvironment::CTX_EXPR)->withDisallowRecurFrame());
 
@@ -622,8 +741,13 @@ class Analyzer {
     }
 
     protected function analyzeIf(Tuple $x, NodeEnvironment $env) {
-        assert(!(count($x) < 3), "Too few arguments for if");
-        assert(!(count($x) > 4), "Too many arguments for if");
+        if (count($x) < 3 || count($x) > 4) {
+            throw new AnalyzerException(
+                "'if requires two or three arguments",
+                $x->getStartLocation(),
+                $x->getEndLocation()
+            );
+        }
 
         $testExpr = $this->analyze($x[1], $env->withContext(NodeEnvironment::CTX_EXPR)->withDisallowRecurFrame());
         $thenExpr = $this->analyze($x[2], $env);
@@ -642,7 +766,13 @@ class Analyzer {
     }
 
     protected function analyzeQuote(Tuple $x, NodeEnvironment $env) {
-        assert(count($x) == 2, "A quote tuple must have exactly two arguments");
+        if (count($x) != 2) {
+            throw new AnalyzerException(
+                "Exactly one arguments is required for 'quote",
+                $x->getStartLocation(),
+                $x->getEndLocation()
+            );
+        }
 
         return new QuoteNode(
             $env,
@@ -651,8 +781,21 @@ class Analyzer {
     }
 
     protected function analyzeFn(Tuple $x, NodeEnvironment $env) {
-        assert(count($x) >= 2 && count($x) <= 3, "A fn tuple must have two or three arguments");
-        assert($x[1] instanceof Tuple, "Second argument must be a list of arguments");
+        if (count($x) < 2 || count($x) > 3) {
+            throw new AnalyzerException(
+                "'fn requires one or two arguments",
+                $x->getStartLocation(),
+                $x->getEndLocation()
+            );
+        }
+
+        if (!($x[1] instanceof Tuple)) {
+            throw new AnalyzerException(
+                "Second argument of 'fn must be a Tuple",
+                $x->getStartLocation(),
+                $x->getEndLocation()
+            );
+        }
 
         $params = [];
         $lets = [];
@@ -694,7 +837,11 @@ class Analyzer {
                     }
                     break;
                 case 'done':
-                    throw new AnalyzerException('Unsupported parameter form, only one symbol can follow the & parameter');
+                    throw new AnalyzerException(
+                        'Unsupported parameter form, only one symbol can follow the & parameter', 
+                        $x->getStartLocation(), 
+                        $x->getEndLocation()
+                    );
             }
         }
 
@@ -783,17 +930,36 @@ class Analyzer {
     }
 
     protected function analyzeNs(Tuple $x, NodeEnvironment $env) {
-        assert($x[1] instanceof Symbol, "Namespace must be of type Symbol");
+        if (!($x[1] instanceof Symbol)) {
+            throw new AnalyzerException(
+                "First argument of 'ns must be a Symbol",
+                $x->getStartLocation(),
+                $x->getEndLocation()
+            );
+        }
 
         $this->globalEnvironment->setNs($x[1]->getName());
 
         $requireNs = [];
         for ($i = 2; $i < count($x); $i++) {
             $import = $x[$i];
-            assert($import instanceof Tuple);
+
+            if (!($import instanceof Tuple)) {
+                throw new AnalyzerException(
+                    "Import in 'ns must be Tuples.",
+                    $x->getStartLocation(),
+                    $x->getEndLocation()
+                );
+            }
 
             if ($this->isKeywordWithName($import[0], 'use')) {
-                assert($import[1] instanceof Symbol, 'First arugment in :use must be a symbol');
+                if (!($import[1] instanceof Symbol)) {
+                    throw new AnalyzerException(
+                        "First arugment in :use must be a symbol.",
+                        $import->getStartLocation(),
+                        $import->getEndLocation()
+                    );
+                }
 
                 if (count($import) == 2) {
                     $parts = explode('\\', $import[1]->getName());
@@ -821,17 +987,35 @@ class Analyzer {
     }
 
     protected function analyzeDef(Tuple $x, NodeEnvironment $nodeEnvironment): DefNode {
-        assert($x[1] instanceof Symbol, "Name of Def must be of type Symbol, got: " . print_r($x, true));
-        assert($this->isValidPhelType($x[count($x)-1]), "Last attribute must be a Phel Type");
-        assert(count($x) >= 3, "Def must have at least two arguments");
-        // TODO: Check that it is called in global scope
+        if(count($x) < 3) {
+            throw new AnalyzerException(
+                "At least two arugments are reqiured for 'def.",
+                $x->getStartLocation(),
+                $x->getEndLocation()
+            );
+        }
+
+        if (!($x[1] instanceof Symbol)) {
+            throw new AnalyzerException(
+                "First arugment of 'def must be a Symbol.",
+                $x->getStartLocation(),
+                $x->getEndLocation()
+            );
+        }
 
         $namespace = $this->globalEnvironment->getNs();
         $name = $x[1];
         $meta = new Table();
         for ($i = 2; $i <= count($x) - 2; $i++) {
             $metaAttribute = $x[$i];
-            assert(is_string($metaAttribute) || $metaAttribute instanceof Keyword, "Meta Attribute must be either a String or Keyword");
+
+            if (!(is_string($metaAttribute) || $metaAttribute instanceof Keyword)) {
+                throw new AnalyzerException(
+                    "Meta Attribute in 'def must be either a String or Keyword",
+                    $x->getStartLocation(),
+                    $x->getEndLocation()
+                );
+            }
             
             if (is_string($metaAttribute)) {
                 $meta[new Keyword('doc')] = $metaAttribute;

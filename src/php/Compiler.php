@@ -3,12 +3,29 @@
 namespace Phel;
 
 use Phel\Exceptions\AnalyzerException;
+use Phel\Exceptions\ExceptionPrinter;
+use Phel\Exceptions\HtmlExceptionPrinter;
 use Phel\Exceptions\ReaderException;
+use Phel\Exceptions\TextExceptionPrinter;
 use Phel\Stream\CharStream;
 use Phel\Stream\FileCharStream;
 use Throwable;
 
 class Compiler {
+
+    /**
+     * @var ExceptionPrinter
+     */
+    private $exceptionPrinter;
+
+    public function __construct()
+    {
+        if (php_sapi_name() == 'cli') {
+            $this->exceptionPrinter = new TextExceptionPrinter();
+        } else {
+            $this->exceptionPrinter = new HtmlExceptionPrinter();
+        }
+    }
 
     public function compileFile(string $filename, GlobalEnvironment $globalEnv) {
         $stream = new FileCharStream($filename);
@@ -34,10 +51,10 @@ class Compiler {
                 try {
                     $nodes = $analzyer->analyze($readerResult->getAst());
                 } catch (AnalyzerException $e) {
-                    $this->printAnalyzeException($e, $readerResult);
+                    $this->exceptionPrinter->printException($e, $readerResult->getCodeSnippet());
                     exit;
                 } catch (Throwable $e) {
-                    echo $readerResult->getCode();
+                    echo $readerResult->getCodeSnippet()->getCode();
                     //var_dump($e);
                     throw $e;
                 }
@@ -45,7 +62,7 @@ class Compiler {
                 $code .= $emitter->emitAndEval($nodes);
 
             } catch (ReaderException $e) {
-                $e->__toString();
+                $this->exceptionPrinter->printException($e, $e->getCodeSnippet());
                 exit;
             } catch (Throwable $e) {
                 throw $e;
@@ -53,36 +70,5 @@ class Compiler {
         }
 
         return $code;
-    }
-
-    private function printAnalyzeException(AnalyzerException $e, ReaderResult $readerResult) {
-        $firstLine = $e->getStartLocation() ? $e->getStartLocation()->getLine() : -1;
-
-        echo $e->getMessage() . "\n";
-        echo "in " . ($e->getStartLocation() ? $e->getStartLocation()->getFile() : 'unknown-file') . ':' . $firstLine . "\n\n";
-
-        $lines = explode("\n", $readerResult->getCode());
-        $endLineLength = strlen((string) $readerResult->getEndLocation()->getLine());
-        $padLength = $endLineLength - strlen((string) $readerResult->getStartLocation()->getLine());
-        foreach ($lines as $index => $line) {
-            echo str_pad($firstLine + $index, $padLength, ' ', STR_PAD_LEFT);
-            echo "| ";
-            echo $line;
-            echo "\n";
-
-            if ($e->getStartLocation() && $e->getEndLocation() && $e->getStartLocation()->getLine() == $e->getEndLocation()->getLine()) {
-                if ($e->getStartLocation()->getLine() == $index + $readerResult->getStartLocation()->getLine()) {
-                    echo str_repeat(' ', $endLineLength + 1 + $e->getStartLocation()->getColumn());
-                    echo str_repeat('^', $e->getEndLocation()->getColumn() - $e->getStartLocation()->getColumn() + 1);
-                    echo "\n";
-                }
-            }
-        }
-
-        if ($e->getPrevious()) {
-            echo "\n\nPhp Stack Trace:\n";
-            echo $e->getPrevious()->getTraceAsString();
-            echo "\n";
-        }
     }
 }

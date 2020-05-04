@@ -9,6 +9,7 @@ use Phel\Stream\CharStream;
 use Phel\Lang\Symbol;
 use Phel\Lang\Tuple;
 use Phel\Stream\CharData;
+use Phel\Stream\CodeSnippet;
 use Phel\Stream\SourceLocation;
 
 class Reader {
@@ -58,9 +59,11 @@ class Reader {
 
         return new ReaderResult(
             $ast,
-            $this->startLocation,
-            $this->lastLocation,
-            $this->readChars
+            new CodeSnippet(
+                $this->startLocation,
+                $this->lastLocation,
+                $this->readChars
+            )
         );
     }
 
@@ -79,7 +82,12 @@ class Reader {
                 return $this->withSourceLocation($c, fn() => $this->rdlist($stream, ']'));
             case ')':
             case ']':
-                throw new ReaderException('unexpected terminator', $this->startLocation, $this->lastLocation, $this->readChars);
+                throw new ReaderException(
+                    'unexpected terminator', 
+                    $this->startLocation, 
+                    $this->lastLocation, 
+                    new CodeSnippet($this->startLocation, $this->lastLocation, $this->readChars)
+                );
 
             case '\'':
                 return $this->withSourceLocation($c, fn() => $this->rdwrap($stream, "quote"));
@@ -114,11 +122,21 @@ class Reader {
 
                         return $table;
                     } else {
-                        throw new ReaderException("Tables must have an even number of parameters", $this->startLocation, $this->lastLocation, $this->readChars);
+                        throw new ReaderException(
+                            "Tables must have an even number of parameters", 
+                            $this->startLocation, 
+                            $this->lastLocation, 
+                            new CodeSnippet($this->startLocation, $this->lastLocation, $this->readChars)
+                        );
                     }
                     
                 } else {
-                    throw new ReaderException("unexpected symbol. expected [ oder {", $this->startLocation, $this->lastLocation, $this->readChars);
+                    throw new ReaderException(
+                        "unexpected symbol. expected [ oder {", 
+                        $this->startLocation,
+                        $this->lastLocation,
+                        new CodeSnippet($this->startLocation, $this->lastLocation, $this->readChars)
+                    );
                 }
                 
             default:
@@ -197,7 +215,12 @@ class Reader {
 
         $cData = $stream->peek();
         if ($cData === false) {
-            throw new ReaderException('unterminated list', $this->startLocation, $this->lastLocation, $this->readChars);
+            throw new ReaderException(
+                'unterminated list', 
+                $this->startLocation, 
+                $this->lastLocation, 
+                new CodeSnippet($this->startLocation, $this->lastLocation, $this->readChars)
+            );
         } else if ($cData->getChar() == $term) {
             $this->readStream($stream);
             if ($term == ')') {
@@ -205,7 +228,12 @@ class Reader {
             } else if ($term == ']' || $term = '}') {
                 return new Tuple($acc, true);
             } else {
-                throw new ReaderException('unterminted list', $this->startLocation, $this->lastLocation, $this->readChars);
+                throw new ReaderException(
+                    'unterminted list', 
+                    $this->startLocation, 
+                    $this->lastLocation, 
+                    new CodeSnippet($this->startLocation, $this->lastLocation, $this->readChars)
+                );
             }
         } else {
             $e = $this->rdex($stream);
@@ -219,7 +247,12 @@ class Reader {
         while (true) {
             $cData = $this->readStream($stream);
             if ($cData === false) {
-                throw new ReaderException('missing delimiter', $this->startLocation, $this->lastLocation, $this->readChars);
+                throw new ReaderException(
+                    'missing delimiter', 
+                    $this->startLocation, 
+                    $this->lastLocation, 
+                    new CodeSnippet($this->startLocation, $this->lastLocation, $this->readChars)
+                );
             } else if ($esc) {
                 $esc = false;
                 $acc .= $cData->getChar();
@@ -277,7 +310,12 @@ class Reader {
         $eof = null;
         $v = $this->rdex($stream, $eof);
         if ($v == $eof) {
-            throw new ReaderException($msg, $this->startLocation, $this->lastLocation, $this->readChars);
+            throw new ReaderException(
+                $msg, 
+                $this->startLocation, 
+                $this->lastLocation, 
+                new CodeSnippet($this->startLocation, $this->lastLocation, $this->readChars)
+            );
         } else {
             return $v;
         }
@@ -333,7 +371,12 @@ class Reader {
             return chr(($num>>18) + 0xF0) . chr((($num>>12)&0x3F) + 0x80)
                  . chr((($num>>6)&0x3F) + 0x80) . chr(($num&0x3F) + 0x80);
         }
-        throw new ReaderException('Invalid UTF-8 codepoint escape sequence: Codepoint too large', $this->startLocation, $this->lastLocation, $this->readChars);
+        throw new ReaderException(
+            'Invalid UTF-8 codepoint escape sequence: Codepoint too large', 
+            $this->startLocation, 
+            $this->lastLocation, 
+            new CodeSnippet($this->startLocation, $this->lastLocation, $this->readChars)
+        );
     }
 
 }

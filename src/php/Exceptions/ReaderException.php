@@ -2,61 +2,21 @@
 
 namespace Phel\Exceptions;
 
-use Exception;
-use Phel\Stream\SourceLocation;
+use Phel\Stream\CodeSnippet;
 
-class ReaderException extends Exception {
-
-    /**
-     * @var SourceLocation
-     */
-    private $startLocation;
+class ReaderException extends PhelCodeException {
 
     /**
-     * @var SourceLocation
+     * @var CodeSnippet
      */
-    private $endLocation;
+    private $codeSnippet;
 
-    /**
-     * @var string
-     */
-    private $phelCode;
-
-    public function __construct($message, $startLocation, $endLocation, $phelCode)
-    {
-        parent::__construct($message);
-        $this->startLocation = $startLocation;
-        $this->endLocation = $endLocation;
-        $this->phelCode = $phelCode;
+    public function __construct($message, $startLocation, $endLocation, $codeSnippet, $nestedException = null) {
+        parent::__construct($message, $startLocation, $endLocation, $nestedException);
+        $this->codeSnippet = $codeSnippet;
     }
 
-    public function getStartLocation() {
-        return $this->startLocation;
+    public function getCodeSnippet() {
+        return $this->codeSnippet;
     }
-
-    public function getEndLocation() {
-        return $this->endLocation;
-    }
-
-    public function getPhelCode() {
-        return $this->phelCode;
-    }
-
-    public function __toString()
-    {
-        $firstLine = $this->startLocation->getLine();
-
-        echo $this->getMessage() . "\n";
-        echo "in " . $this->getStartLocation()->getFile() . ':' . $firstLine . "\n\n";
-
-        $lines = explode("\n", $this->phelCode);
-        $padLength = strlen((string) $this->endLocation->getLine()) - strlen((string) $firstLine);
-        foreach ($lines as $index => $line) {
-            echo str_pad($firstLine + $index, $padLength, ' ', STR_PAD_LEFT);
-            echo "| ";
-            echo $line;
-            echo "\n";
-        }
-    }
-
 }
