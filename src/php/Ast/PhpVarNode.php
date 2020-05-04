@@ -6,8 +6,39 @@ use Phel\NodeEnvironment;
 
 class PhpVarNode implements Node {
 
-    const INFIX_OPERATORS = array("+", "-", "*", ".", "/", "%", "=", "=&", "<", ">", "<=", ">=", "===", "==", "!=", "!==", "instanceof", "|", "&", "**", "^", "<<", ">>");
-    const EXTRA_CALLABLE = array('array', 'echo', 'print');
+    const INFIX_OPERATORS = array(
+        "+", 
+        "-", 
+        "*", 
+        ".", 
+        "/", 
+        "%", 
+        "=", 
+        "=&", 
+        "<", 
+        ">", 
+        "<=", 
+        ">=", 
+        "===", 
+        "==", 
+        "!=", 
+        "!==", 
+        "instanceof", 
+        "|", 
+        "&", 
+        "**", 
+        "^", 
+        "<<", 
+        ">>"
+    );
+    const CALLABLE_KEYWORDS = array(
+        'array', 
+        'die',
+        'empty',
+        'echo', 
+        'print',
+        'isset'
+    );
 
     /**
      * @var NodeEnvironment
@@ -38,6 +69,6 @@ class PhpVarNode implements Node {
     }
 
     public function isCallable() {
-        return \is_callable($this->name) || in_array($this->name, self::EXTRA_CALLABLE);
+        return \is_callable($this->name) || in_array($this->name, self::CALLABLE_KEYWORDS);
     }
 }
