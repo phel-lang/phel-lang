@@ -56,9 +56,11 @@ class PrinterTest extends TestCase {
 
     public function read($string) {
         $reader = new Reader();
+        $lexer = new Lexer();
         $stream = new StringCharStream($string);
+        $tokenStream = $lexer->lex($stream);
         
-        $result = $reader->read($stream)->getAst();
+        $result = $reader->readNext($tokenStream)->getAst();
 
         return $result;
     }

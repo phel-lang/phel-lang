@@ -20,6 +20,8 @@ class FileCharStream implements CharStream {
 
     protected $lineNumber = 0;
 
+    private $currentCharData = null;
+
     public function __construct($filename)
     {
         $this->filename = realpath($filename);
@@ -30,6 +32,8 @@ class FileCharStream implements CharStream {
             $this->resource = fopen($this->filename, 'r');
             $this->isOpen = true;
             $this->readNextLine();
+
+            $this->currentCharData = $this->createCharData();
         }
     }
 
@@ -57,14 +61,7 @@ class FileCharStream implements CharStream {
         if ($this->isEof) {
             return false;
         } else {
-            return new CharData(
-                $this->chars[$this->currentIndex],
-                new SourceLocation(
-                    $this->filename,
-                    $this->lineNumber,
-                    $this->currentIndex + 1
-                )
-            );
+            return $this->currentCharData;
         }
     }
 
@@ -79,21 +76,29 @@ class FileCharStream implements CharStream {
         if ($this->isEof) {
             return false;
         } else {
-            $result = new CharData(
-                $this->chars[$this->currentIndex],
-                new SourceLocation(
-                    $this->filename,
-                    $this->lineNumber,
-                    $this->currentIndex + 1
-                )
-            );
+            $result = $this->currentCharData;
             $this->currentIndex++;
 
-            if ($this->currentIndex >= count($this->chars)) {
+            if ($this->currentIndex >= $this->totalLength) {
                 $this->readNextLine();
+            }
+
+            if (!$this->isEof) {
+                $this->currentCharData = $this->createCharData();
             }
 
             return $result;
         }
+    }
+
+    private function createCharData() {
+        return new CharData(
+            $this->chars[$this->currentIndex],
+            new SourceLocation(
+                $this->filename,
+                $this->lineNumber,
+                $this->currentIndex + 1
+            )
+        );
     }
 }

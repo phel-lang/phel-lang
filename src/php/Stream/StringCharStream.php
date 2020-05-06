@@ -8,16 +8,38 @@ class StringCharStream implements CharStream {
 
     protected $totalLength = 0;
 
-    protected $chars = [];
-
-    protected $lineNumber = 1;
-
-    protected $lineOffset = 1;
+    protected $charData = [];
 
     public function __construct(string $s)
     {
-        $this->chars = preg_split('//u', $s, null, PREG_SPLIT_NO_EMPTY);
-        $this->totalLength = count($this->chars);
+        $chars = preg_split('//u', $s, null, PREG_SPLIT_NO_EMPTY);
+        $this->charData = $this->buildCharData($chars);
+        $this->totalLength = count($chars);
+    }
+
+    private function buildCharData($chars) {
+        $charData = [];
+        $lineNumber = 1;
+        $lineOffset = 1;
+        foreach ($chars as $char) {
+            $charData[] = new CharData(
+                $char,
+                new SourceLocation(
+                    'string',
+                    $lineNumber,
+                    $lineOffset
+                )
+            );
+
+            if ($char == "\n") {
+                $lineNumber++;
+                $lineOffset = 1;
+            } else {
+                $lineOffset++;
+            }
+        }
+
+        return $charData;
     }
 
     /**
@@ -28,14 +50,7 @@ class StringCharStream implements CharStream {
      */
     public function peek() {
         if ($this->currentIndex < $this->totalLength) {
-            return new CharData(
-                $this->chars[$this->currentIndex],
-                new SourceLocation(
-                    'string',
-                    $this->lineNumber,
-                    $this->lineOffset
-                )
-            );
+            return $this->charData[$this->currentIndex];
         } else {
             return false;
         }
@@ -48,25 +63,9 @@ class StringCharStream implements CharStream {
      */
     public function read() {
         if ($this->currentIndex < $this->totalLength) {
-            $char = $this->chars[$this->currentIndex];
-            $result = new CharData(
-                $char,
-                new SourceLocation(
-                    'string',
-                    $this->lineNumber,
-                    $this->lineOffset
-                )
-            );
             $this->currentIndex++;
 
-            if ($char == "\n") {
-                $this->lineNumber++;
-                $this->lineOffset = 1;
-            } else {
-                $this->lineOffset++;
-            }
-
-            return $result;
+            return $this->charData[$this->currentIndex - 1];
         } else {
             return false;
         }
@@ -78,7 +77,7 @@ class StringCharStream implements CharStream {
      * @return int
      */
     public function getLineNumber() {
-        return $this->lineNumber;
+        return $this->charData[$this->currentIndex]->getLineNumber();
     }
 
     /**
@@ -87,6 +86,6 @@ class StringCharStream implements CharStream {
      * @return int
      */
     public function getOffset() {
-        return $this->currentIndex;
+        return $this->charData[$this->currentIndex]->getOffset();
     }
 }

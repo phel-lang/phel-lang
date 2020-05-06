@@ -9,6 +9,7 @@ use Phel\Lang\PhelArray;
 use Phel\Lang\Symbol;
 use Phel\Lang\Table;
 use Phel\Lang\Tuple;
+use Phel\Lexer;
 use Phel\Reader;
 use Phel\Stream\SourceLocation;
 use Phel\Stream\StringCharStream;
@@ -265,10 +266,12 @@ class ReaderTest extends TestCase {
     }
 
     public function read($string, $removeLoc = false) {
+        $lexer = new Lexer();
         $reader = new Reader();
         $stream = new StringCharStream($string);
+        $tokenStream = $lexer->lex($stream);
         
-        $result = $reader->read($stream)->getAst();
+        $result = $reader->readNext($tokenStream)->getAst();
 
         if ($removeLoc) {
             $this->removeLoc($result);

@@ -2,21 +2,22 @@
 
 namespace Phel;
 
+use Exception;
+use Generator;
 use Phel\Exceptions\ReaderException;
 use Phel\Lang\Keyword;
 use Phel\Lang\Phel;
-use Phel\Stream\CharStream;
 use Phel\Lang\Symbol;
 use Phel\Lang\Tuple;
-use Phel\Stream\CharData;
 use Phel\Stream\CodeSnippet;
-use Phel\Stream\SourceLocation;
+use Phel\Token\AtomToken;
+use Phel\Token\CommentToken;
+use Phel\Token\EOFToken;
+use Phel\Token\StringToken;
+use Phel\Token\SyntaxToken;
+use Phel\Token\WhitespaceToken;
 
 class Reader {
-
-    private $syntax = [
-        '(', ')', '[', ']', '{', '}', '\'', ',', '`'
-    ];
 
     private $stringReplacements = [
         '\\' => '\\',
@@ -29,164 +30,223 @@ class Reader {
         'e'  => "\x1B",
     ];
 
+    private $readTokens = [];
 
-    /**
-     * @var SourceLocation | null
-     */
-    private $startLocation = null;
-
-    /**
-     * @var SourceLocation | null
-     */
-    private $lastLocation = null;
-    
-    /**
-     * @var string
-     */
-    private $readChars = '';
-    
-    public function read(CharStream $stream, $eof = null) {
-        $this->eatwhite($stream);
-
-        $this->readChars = '';
-        $this->startLocation = null;
-        $this->lastLocation = null;
-
-        if ($stream->peek()) {
-            $this->startLocation = $stream->peek()->getLocation();
+    public function readNext(Generator $tokenStream) {
+        if (!$tokenStream->valid()) {
+            return false;
         }
-        $ast = $this->rdex($stream, $eof);
+
+        if ($tokenStream->current() instanceof EOFToken) {
+            return false;
+        }
+
+        $this->readTokens = [];
+        $ast = $this->readExpression($tokenStream);
+        $code = $this->getCode($this->readTokens);
 
         return new ReaderResult(
             $ast,
             new CodeSnippet(
-                $this->startLocation,
-                $this->lastLocation,
-                $this->readChars
+                $this->readTokens[0]->getStartLocation(),
+                $this->readTokens[count($this->readTokens) - 1]->getEndLocation(),
+                $code
             )
         );
     }
 
-    private function rdex(CharStream $stream, $eof = null) {
-        $this->eatwhite($stream);
-
-        $c = $this->readStream($stream);
-        if (!$c) {
-            return $eof;
+    private function getCode($readTokens) {
+        $code = '';
+        foreach ($readTokens as $token) {
+            return $code .= $token->getCode();
         }
-
-        switch ($c->getChar()) {
-            case '(':
-                return $this->withSourceLocation($c, fn() => $this->rdlist($stream, ')'));
-            case '[':
-                return $this->withSourceLocation($c, fn() => $this->rdlist($stream, ']'));
-            case ')':
-            case ']':
-                throw new ReaderException(
-                    'unexpected terminator', 
-                    $this->startLocation, 
-                    $this->lastLocation, 
-                    new CodeSnippet($this->startLocation, $this->lastLocation, $this->readChars)
-                );
-
-            case '\'':
-                return $this->withSourceLocation($c, fn() => $this->rdwrap($stream, "quote"));
-            case '`':
-                return $this->withSourceLocation($c, fn() => $this->rdquasiquote($stream));
-            case ',':
-                return $this->withSourceLocation($c, function() use ($stream) {
-                    if ($stream->peek()->getChar() == "@") {
-                        $this->readStream($stream);
-                        return $this->rdwrap($stream, "unquote-splicing");
-                    } else {
-                        return $this->rdwrap($stream, "unquote");
-                    }
-                });
-
-            case '"':
-                return $this->parseEscapedString($this->rddelim($stream, '"'));
-                
-            case '@':
-                if ($stream->peek()->getChar() == "[") {
-                    $this->readStream($stream);
-                    return $this->withSourceLocation($c, fn() => Tuple::create(new Symbol('array'), ...$this->rdlist($stream, ']')));
-                } else if ($stream->peek()->getChar() == "{") {
-                    $this->readStream($stream);
-                    $xs = $this->rdlist($stream, "}");
-                    if ($xs instanceof Tuple && count($xs) % 2 === 0) {
-                        $table = Tuple::create(new Symbol('table'), ...$xs);
-                        $endLocation = $this->lastLocation;
-
-                        $table->setStartLocation($c->getLocation());
-                        $table->setEndLocation($endLocation);
-
-                        return $table;
-                    } else {
-                        throw new ReaderException(
-                            "Tables must have an even number of parameters", 
-                            $this->startLocation, 
-                            $this->lastLocation, 
-                            new CodeSnippet($this->startLocation, $this->lastLocation, $this->readChars)
-                        );
-                    }
-                    
-                } else {
-                    throw new ReaderException(
-                        "unexpected symbol. expected [ oder {", 
-                        $this->startLocation,
-                        $this->lastLocation,
-                        new CodeSnippet($this->startLocation, $this->lastLocation, $this->readChars)
-                    );
-                }
-                
-            default:
-                $word = $this->rdword($stream, $c->getChar());
-                if ($word instanceof Phel) {
-                    return $this->withSourceLocation($c, fn() => $word);
-                } else {
-                    return $word;
-                }
-                
-        }
+        return $code;
     }
 
-    private function rdquasiquote($stream) {
-        $e = $this->hardRdex($stream, "missing expression");
+    public function readExpression(Generator $tokenStream) {
+        while ($tokenStream->valid()) {
+            $token = $tokenStream->current();
+            $this->readTokens[] = $token;
+
+            if ($token instanceof WhitespaceToken) {
+                $tokenStream->next();
+                continue;
+            }
+
+            if ($token instanceof CommentToken) {
+                $tokenStream->next();
+                continue;
+            }
+
+            if ($token instanceof AtomToken) {
+                $tokenStream->next();
+                $result = $this->parseAtom($token);
+
+                if ($result instanceof Phel) {
+                    $result->setStartLocation($token->getStartLocation());
+                    $result->setEndLocation($token->getEndLocation());
+                }
+                return $result;
+            }
+
+            if ($token instanceof StringToken) {
+                $tokenStream->next();
+                return $this->parseEscapedString($token->getTrimedContent());
+            }
+
+            if ($token instanceof SyntaxToken) {
+                switch ($token->getCode()) {
+                    case "(":
+                        return $this->readList($tokenStream, ")");
+                    case "[":
+                        return $this->readList($tokenStream, "]", [], true);
+                    case ')':
+                    case ']':
+                        throw $this->buildReaderException('Unterminated list');
+
+                    case '\'':
+                        return $this->readWrap($tokenStream, "quote");
+                    case ',':
+                        return $this->readWrap($tokenStream, "unquote");
+                    case ',@':
+                        return $this->readWrap($tokenStream, "unquote-splicing");
+                    case '`':
+                        return $this->readQuasiquote($tokenStream);
+
+                    case '@':
+                        return $this->readDatastructure($tokenStream);
+
+                    default:
+                        throw $this->buildReaderException("Unhandled syntax token: " . $token->getCode());
+                }
+            }
+
+            throw $this->buildReaderException("Unhandled token: " . print_r($token, true));
+        }
+
+        throw new Exception("EOF");
+    }
+
+    protected function readDatastructure($tokenStream) {
+        $token = $tokenStream->current();
+        $startLocation = $token->getStartLocation();
+        $tokenStream->next();
+        
+        if ($tokenStream->valid()) {
+            $nextToken = $tokenStream->current();
+            $this->readTokens[] = $nextToken;
+
+            if ($nextToken instanceof SyntaxToken) {
+                if ($nextToken->getCode() == "[") {
+                    $tuple = $this->readList($tokenStream, "]", [new Symbol("array")]);
+                    $tuple->setStartLocation($startLocation);
+                    return $tuple;
+                } else if ($nextToken->getCode() == "{") {
+                    $tuple = $this->readList($tokenStream, "}", [new Symbol("table")]);
+                    if (count($tuple) % 2 == 0) {
+                        throw $this->buildReaderException("Tables must have an even number of parameters");
+                    }
+                    $tuple->setStartLocation($startLocation);
+                    return $tuple;
+                }
+                
+                throw $this->buildReaderException("Expected [ or { after @");
+            }
+        }
+
+        throw $this->buildReaderException("Expected more chars after @");
+    }
+
+    protected function readQuasiquote($tokenStream) {
+        $startLocaltion = $tokenStream->current()->getStartLocation();
+        $tokenStream->next();
+
+        $expression = $this->readExpressionHard($tokenStream, "missing expression");
         $q = new Quasiquote();
-        return $q->quasiquote($e);
-    }
+        $result = $q->quasiquote($expression);
 
-    private function withSourceLocation(CharData $c, callable $f) {
-        $startLocation = $c->getLocation();
-        $result = $f();
-        $endLocation = $this->lastLocation;
-
-        $result->setStartLocation($startLocation);
+        $endLocation = $tokenStream->current()->getEndLocation();
+        $result->setStartLocation($startLocaltion);
         $result->setEndLocation($endLocation);
 
         return $result;
     }
 
-    private function rdword($stream, string $c) {
-        return $this->parseword(
-            $c . $this->charstil($stream, function($c) { return $this->breakc($c); })
-        );
+    protected function readWrap($tokenStream, $wrapFn) {
+        $startLocation = $tokenStream->current()->getStartLocation();
+        $tokenStream->next();
+
+        $expression = $this->readExpressionHard($tokenStream, "missing expression");
+
+        $endLocation = $tokenStream->current()->getEndLocation();
+        
+        $tuple = new Tuple([new Symbol($wrapFn), $expression]);
+        $tuple->setStartLocation($startLocation);
+        $tuple->setEndLocation($endLocation);
+
+        return $tuple;
     }
 
-    private function parseword(string $word) {
+    protected function readExpressionHard($tokenStream, $errorMessage) {
+        $result = $this->readExpression($tokenStream);
+        if (is_null($result)) {
+            throw $this->buildReaderException($errorMessage);
+        }
+
+        return $result;
+    }
+
+    protected function readList(Generator $tokenStream, $term, $acc = [], $isUsingBrackets = false) {
+        $startLocaltion = $tokenStream->current()->getStartLocation();
+        $tokenStream->next();
+
+        while ($tokenStream->valid()) {
+            $token = $tokenStream->current();
+            $this->readTokens[] = $token;
+
+            if ($token instanceof WhitespaceToken) {
+                $tokenStream->next();
+                continue;
+            }
+            if ($token instanceof CommentToken) {
+                $tokenStream->next();
+                continue;
+            }
+            
+
+            if ($token instanceof SyntaxToken && $token->getCode() === $term) {
+                $endLocation = $token->getEndLocation();
+                $tokenStream->next();
+                $tuple = new Tuple($acc, $isUsingBrackets);
+                $tuple->setStartLocation($startLocaltion);
+                $tuple->setEndLocation($endLocation);
+
+                return $tuple;
+            } else {
+                $acc[] = $this->readExpression($tokenStream);
+            }
+        }
+
+        throw $this->buildReaderException('Unterminated list');
+    }
+
+    protected function parseAtom(AtomToken $token) {
+        $word = $token->getCode();
+        
         if (preg_match("/([+-])?0[bB][01]+(_[01]+)*/", $word, $matches)) {
             // binary numbers
             $sign = (isset($matches[1]) && $matches[1] == '-') ? -1 : 1;
             return $sign * bindec(str_replace('_', '', $word));
         } else if (preg_match("/([+-])?0[xX][0-9a-fA-F]+(_[0-9a-fA-F]+)*/", $word, $matches)) {
-            $sign = (isset($matches[1]) && $matches[1] == '-') ? -1 : 1;
             // hexdecimal numbers
+            $sign = (isset($matches[1]) && $matches[1] == '-') ? -1 : 1;
             return $sign = hexdec(str_replace('_', '', $word));
         } else if (preg_match("/([+-])?0[0-7]+(_[0-7]+)*/", $word, $matches)) {
-            $sign = (isset($matches[1]) && $matches[1] == '-') ? -1 : 1;
             // octal numbers
+            $sign = (isset($matches[1]) && $matches[1] == '-') ? -1 : 1;
             return $sign * octdec(str_replace('_', '', $word));
         } else if (is_numeric($word)) {
+            // normal numbers
             return $word + 0;
         } else {
             return $this->sym($word);
@@ -202,7 +262,7 @@ class Reader {
             case 'nil':
                 return null;
             default:
-                if ($name[0] == ':') {
+                if ($name[0] === ':') {
                     return new Keyword(substr($name, 1));
                 } else {
                     return new Symbol($name);
@@ -210,132 +270,7 @@ class Reader {
         }
     }
 
-    private function rdlist($stream, $term, $acc = []) {
-        $this->eatwhite($stream);
-
-        $cData = $stream->peek();
-        if ($cData === false) {
-            throw new ReaderException(
-                'unterminated list', 
-                $this->startLocation, 
-                $this->lastLocation, 
-                new CodeSnippet($this->startLocation, $this->lastLocation, $this->readChars)
-            );
-        } else if ($cData->getChar() == $term) {
-            $this->readStream($stream);
-            if ($term == ')') {
-                return new Tuple($acc, false);
-            } else if ($term == ']' || $term = '}') {
-                return new Tuple($acc, true);
-            } else {
-                throw new ReaderException(
-                    'unterminted list', 
-                    $this->startLocation, 
-                    $this->lastLocation, 
-                    new CodeSnippet($this->startLocation, $this->lastLocation, $this->readChars)
-                );
-            }
-        } else {
-            $e = $this->rdex($stream);
-            return $this->rdlist($stream, $term, array_merge($acc, [$e]));
-        }
-    }
-
-    private function rddelim($stream, $delimiter, $esc = false) {
-        $acc = "";
-        $esc = false;
-        while (true) {
-            $cData = $this->readStream($stream);
-            if ($cData === false) {
-                throw new ReaderException(
-                    'missing delimiter', 
-                    $this->startLocation, 
-                    $this->lastLocation, 
-                    new CodeSnippet($this->startLocation, $this->lastLocation, $this->readChars)
-                );
-            } else if ($esc) {
-                $esc = false;
-                $acc .= $cData->getChar();
-            } else if ($cData->getChar() == "\\") {
-                $esc = true;
-                $acc .= $cData->getChar();
-            } else if ($cData->getChar() == $delimiter) {
-                return $acc;
-            } else {
-                $acc .= $cData->getChar();
-            }
-        }
-    }
-
-    private function whitec(string $char): bool {
-        return in_array($char, [" ", "\n", "\t", "\r"]);
-    }
-
-    private function breakc(string $char): bool {
-        return $char === False || $this->whitec($char) || $char == "#" || in_array($char, $this->syntax);
-    }
-
-    private function eatwhite(CharStream $stream) {
-        while (true) {
-            $cData = $stream->peek();
-            if ($cData === false) {
-                break;
-            } else if ($cData->getChar() == "#") {
-                $this->charstil($stream, function($char) { return $char == "\n"; });
-            } else if ($this->whitec($cData->getChar())) {
-                $this->readStream($stream);
-            } else {
-                break;
-            }
-        }
-    }
-
-    private function charstil(CharStream $stream, $testFn) {
-        $cData = $stream->peek();
-        $buf = "";
-        while (!($cData === FALSE || $testFn($cData->getChar()))) {
-            $buf .= $this->readStream($stream)->getChar();
-            $cData = $stream->peek();
-        }
-
-        return $buf;
-    }
-
-    private function rdwrap($stream, $token) {
-        $e = $this->hardRdex($stream, "missing expression");
-        return new Tuple([new Symbol($token), $e]);
-    }
-
-    private function hardRdex($stream, $msg) {
-        $eof = null;
-        $v = $this->rdex($stream, $eof);
-        if ($v == $eof) {
-            throw new ReaderException(
-                $msg, 
-                $this->startLocation, 
-                $this->lastLocation, 
-                new CodeSnippet($this->startLocation, $this->lastLocation, $this->readChars)
-            );
-        } else {
-            return $v;
-        }
-    }
-
-    private function readStream(CharStream $stream) {
-        if ($stream->peek()) {
-            $this->lastLocation = $stream->peek()->getLocation();
-        }
-
-        $res = $stream->read();
-
-        if ($res) {
-            $this->readChars .= $res->getChar();
-        }
-
-        return $res;
-    }
-
-    private function parseEscapedString($str) {
+    protected function parseEscapedString($str) {
         $str = str_replace('\\"', '"', $str);
 
         return preg_replace_callback(
@@ -357,7 +292,7 @@ class Reader {
         );
     }
 
-    private function codePointToUtf8(int $num) : string {
+    protected function codePointToUtf8(int $num) : string {
         if ($num <= 0x7F) {
             return chr($num);
         }
@@ -371,12 +306,19 @@ class Reader {
             return chr(($num>>18) + 0xF0) . chr((($num>>12)&0x3F) + 0x80)
                  . chr((($num>>6)&0x3F) + 0x80) . chr(($num&0x3F) + 0x80);
         }
-        throw new ReaderException(
-            'Invalid UTF-8 codepoint escape sequence: Codepoint too large', 
-            $this->startLocation, 
-            $this->lastLocation, 
-            new CodeSnippet($this->startLocation, $this->lastLocation, $this->readChars)
-        );
+        throw $this->buildReaderException('Invalid UTF-8 codepoint escape sequence: Codepoint too large');
     }
 
+    private function buildReaderException($message) {
+        $code = $this->getCode($this->readTokens);
+        $startLocation = $this->readTokens[0]->getStartLocation();
+        $endLocation = $this->readTokens[count($this->readTokens) - 1]->getEndLocation();
+
+        return new ReaderException(
+            $message, 
+            $startLocation, 
+            $endLocation, 
+            new CodeSnippet($startLocation, $endLocation, $code)
+        );
+    }
 }

@@ -9,6 +9,7 @@ use Phel\Exceptions\ReaderException;
 use Phel\Exceptions\TextExceptionPrinter;
 use Phel\Stream\CharStream;
 use Phel\Stream\FileCharStream;
+use Phel\Stream\StringCharStream;
 use Throwable;
 
 class Compiler {
@@ -34,17 +35,19 @@ class Compiler {
     }
 
     public function compileStream(CharStream $stream, GlobalEnvironment $globalEnv) {
+        $lexer = new Lexer();
         $reader = new Reader();
         $analzyer = new Analyzer($globalEnv);
         $emitter = new Emitter();
+        $tokenStream = $lexer->lex($stream);
         $code = '';
 
         while (true) {
             try {
-                $readerResult = $reader->read($stream);
+                $readerResult = $reader->readNext($tokenStream);
 
                 // If we reached the end exit this loop
-                if (!$readerResult->getAst()) {
+                if (!$readerResult) {
                     break;
                 }
 

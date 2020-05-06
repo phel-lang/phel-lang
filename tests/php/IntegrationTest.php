@@ -24,16 +24,18 @@ class IntegrationTest extends TestCase {
 
         $globalEnv->setNs('user');
         Symbol::resetGen();
+        $lexer = new Lexer();
         $reader = new Reader();
         $analzyer = new Analyzer($globalEnv);
         $emitter = new Emitter();
         $stream = new StringCharStream($phelCode);
+        $tokenStream = $lexer->lex($stream);
 
         $compiledCode = [];
         while (true) {
-            $readAst = $reader->read($stream);
+            $readAst = $reader->readNext($tokenStream);
 
-            if (!$readAst->getAst()) {
+            if (!$readAst) {
                 break;
             }
 
