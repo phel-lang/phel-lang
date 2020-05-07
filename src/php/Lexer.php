@@ -2,8 +2,11 @@
 
 namespace Phel;
 
+use Exception;
+use Phel\Exceptions\ReaderException;
 use Phel\Stream\CharData;
 use Phel\Stream\CharStream;
+use Phel\Stream\SourceLocation;
 use Phel\Token\AtomToken;
 use Phel\Token\CommentToken;
 use Phel\Token\EOFToken;
@@ -12,152 +15,89 @@ use Phel\Token\SyntaxToken;
 use Phel\Token\WhitespaceToken;
 
 class Lexer {
+    
+    private $code = "";
+    private $cursor = 0;
+    private $line = 1;
+    private $column = 1;
+    private $end = 0;
 
-    private $syntaxChars = [
-        '(', ')', '[', ']', '{', '}', '\'', ',', '`', '@'
+    private $regexps = [
+        "([\n \t\r]+)", // Whitespace
+        "(\#[^\n]*)", // Comment
+        "(,@)", // Two char symbol
+        "([\(\)\[\]\{\}',`@])", // Single char symbol
+        "((?:\"(?:\\\\\"|[^\"])*\"))", // String
+        "([^\(\)\[\]\{\}',`@ \n\r\t\#]+)" // Atom
     ];
 
-    private $whitespaceChars = [" ", "\n", "\t", "\r"];
-
-    private $breakChars;
-
-    private $lastLocation;
+    private $combinedRegex;
 
     public function __construct()
     {
-        $this->breakChars = array_merge($this->syntaxChars, $this->whitespaceChars, ['#']);
+        $this->combinedRegex = "/(?:" . implode("|", $this->regexps) . ")/A";
     }
 
-    public function lex(CharStream $stream) {
-        while ($charData = $this->readNext($stream)) {
-            $char = $charData->getChar();
+    public function lexString(string $code, $source = 'string') {
+        $this->code = $code;
+        $this->cursor = 0;
+        $this->line = 1;
+        $this->column = 0;
+        $this->end = strlen($code);
 
-            // Read whitespace
-            if (in_array($char, $this->whitespaceChars)) {
-                yield $this->readWhitespace($stream, $charData);
-                continue;
-            }
+        while ($this->cursor < $this->end) {
+            $startLocation = new SourceLocation($source, $this->line, $this->column);
 
-            // Read comment
-            if ($char === "#") {
-                yield $this->readComment($stream, $charData);
-                continue;
-            }
+            if (preg_match($this->combinedRegex, $this->code, $matches, 0, $this->cursor)) {
+                $this->moveCursor($matches[0]);
+                $endLocation = new SourceLocation($source, $this->line, $this->column);
 
-            // Read string
-            if ($char === "\"") {
-                yield $this->readString($stream, $charData);
-                continue;
-            }
+                switch (count($matches)) {
+                    case 2: // Whitespace
+                        yield new WhitespaceToken($matches[0], $startLocation, $endLocation);
+                        break;
 
-            // Read syntax token
-            if (in_array($char, $this->syntaxChars)) {
-                if ($char == ",") {
-                    $followingChar = $stream->peek();
-                    if ($followingChar && $followingChar->getChar() == '@') {
-                        $this->readNext($stream);
-                        yield new SyntaxToken(",@", $charData->getLocation(), $followingChar->getLocation());
-                    } else {
-                        yield new SyntaxToken($char, $charData->getLocation(), $charData->getLocation());
-                    }
-                } else {
-                    yield new SyntaxToken($char, $charData->getLocation(), $charData->getLocation());
+                    case 3: // Comment
+                        yield new CommentToken($matches[0], $startLocation, $endLocation);
+                        break;
+
+                    case 4: // Two char Symbol
+                        yield new SyntaxToken($matches[0], $startLocation, $endLocation);
+                        break;
+
+                    case 5: // Single char symbol
+                        yield new SyntaxToken($matches[0], $startLocation, $endLocation);
+                        break;
+
+                    case 6: // String
+                        yield new StringToken($matches[0], $startLocation, $endLocation);
+                        break;
+
+                    case 7: // Atom
+                        yield new AtomToken($matches[0], $startLocation, $endLocation);
+                        break;
+
+                    default:
+                        throw new Exception("Unexpected match state: " . count($matches) . " " . $matches[0]);
                 }
-                continue;
-            }
-
-            // Read atom
-            yield $this->readAtom($stream, $charData);
-        }
-
-        yield new EOFToken($this->lastLocation);
-    }
-
-    protected function readAtom(CharStream $stream, $charData) {
-        $buf = $charData->getChar();
-        $beginLocation = $charData->getLocation();
-        $endLocation = $charData->getLocation();
-
-        while (true) {
-            $followingChar = $stream->peek();
-            if (!$followingChar || in_array($followingChar->getChar(), $this->breakChars)) {
-                return new AtomToken($buf, $beginLocation, $endLocation);
-                break;
             } else {
-                $nextCharData = $this->readNext($stream);
-                $buf .= $nextCharData->getChar();
-                $endLocation = $nextCharData->getLocation();
+                throw new Exception("Unexpected state");
             }
         }
+
+        yield new EOFToken(new SourceLocation($source, $this->line, $this->column));
     }
 
-    protected function readWhitespace(CharStream $stream, CharData $charData) {
-        $buf = $charData->getChar();
-        $startLocation = $charData->getLocation();
-        $endLocation = $startLocation;
-        while (true) {
-            $followingChar = $stream->peek();
-            if (!$followingChar || !in_array($followingChar->getChar(), $this->whitespaceChars)) {
-                return new WhitespaceToken($buf, $startLocation, $endLocation);
-                break;
-            } else {
-                $next = $this->readNext($stream);
-                $buf .= $next->getChar();
-                $endLocation = $next->getLocation();
-            }
+    private function moveCursor($str) {
+        $len = strlen($str);
+        $this->cursor += $len;
+        $this->line += substr_count($str, "\n");
+        $lastNewLinePos = strrpos($str, "\n");
+
+        if ($lastNewLinePos !== false) {
+            $this->column = $len - $lastNewLinePos - 1;
+        } else {
+            $this->column += $len;
         }
-    }
-
-    protected function readComment(CharStream $stream, CharData $charData) {
-        $buf = "#";
-        $startLocation = $charData->getLocation();
-        $endLocation = $startLocation;
-        while (true) {
-            $followingChar = $stream->peek();
-            if (!$followingChar || $followingChar->getChar() == "\n") {
-                return new CommentToken($buf, $startLocation, $endLocation);
-            } else {
-                $next = $this->readNext($stream);
-                $buf .= $next->getChar();
-                $endLocation = $next->getLocation();
-            }
-        }
-    }
-
-    protected function readString(CharStream $stream, CharData $charData) {
-        $buf = "\"";
-        $startLocation = $charData->getLocation();
-        $endLocation = $startLocation;
-        $esc = false;
-
-        while (true) {
-            $followingCharData = $stream->peek();
-            if (!$followingCharData) {
-                throw new \Exception('missing delimiter');
-            } else {
-                $this->readNext($stream);
-                $followingChar = $followingCharData->getChar();
-                $endLocation = $followingCharData->getLocation();
-                $buf .= $followingChar;
-
-                if ($esc) {
-                    $esc = false;
-                } else if ($followingChar == "\\") {
-                    $esc = true;
-                } else if ($followingChar == "\"") {
-                    return new StringToken($buf, $startLocation, $endLocation);
-                }
-            }
-        }
-    }
-
-    private function readNext($stream) {
-        $result = $stream->read();
-
-        if ($result) {
-            $this->lastLocation = $result->getLocation();
-        }
-
-        return $result;
     }
 }

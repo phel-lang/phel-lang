@@ -28,8 +28,7 @@ class IntegrationTest extends TestCase {
         $reader = new Reader();
         $analzyer = new Analyzer($globalEnv);
         $emitter = new Emitter();
-        $stream = new StringCharStream($phelCode);
-        $tokenStream = $lexer->lex($stream);
+        $tokenStream = $lexer->lexString($phelCode);
 
         $compiledCode = [];
         while (true) {

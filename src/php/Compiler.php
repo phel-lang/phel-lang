@@ -29,17 +29,15 @@ class Compiler {
     }
 
     public function compileFile(string $filename, GlobalEnvironment $globalEnv) {
-        $stream = new FileCharStream($filename);
-
-        return $this->compileStream($stream, $globalEnv);
+        return $this->compileString(file_get_contents($filename), $globalEnv);
     }
 
-    public function compileStream(CharStream $stream, GlobalEnvironment $globalEnv) {
+    public function compileString(string $code, GlobalEnvironment $globalEnv) {
         $lexer = new Lexer();
         $reader = new Reader();
         $analzyer = new Analyzer($globalEnv);
         $emitter = new Emitter();
-        $tokenStream = $lexer->lex($stream);
+        $tokenStream = $lexer->lexString($code);
         $code = '';
 
         while (true) {

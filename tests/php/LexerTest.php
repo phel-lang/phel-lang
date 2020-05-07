@@ -14,10 +14,20 @@ use \PHPUnit\Framework\TestCase;
 
 class LexerTest extends TestCase {
 
+    public function testWhitespace() {
+        $this->assertEquals(
+            [
+                new WhitespaceToken(" \n\t\r\n", new SourceLocation("string", 1, 0), new SourceLocation("string", 3, 0)),
+                new EOFToken(new SourceLocation("string", 3, 0))
+            ],
+            $this->lex(" \n\t\r\n")
+        );
+    }
+
     public function testReadCommentWithoutText() {
         $this->assertEquals(
             [
-                new CommentToken("#", new SourceLocation("string", 1, 1), new SourceLocation("string", 1, 1)),
+                new CommentToken("#", new SourceLocation("string", 1, 0), new SourceLocation("string", 1, 1)),
                 new EOFToken(new SourceLocation("string", 1, 1))
             ],
             $this->lex("#")
@@ -27,7 +37,7 @@ class LexerTest extends TestCase {
     public function testReadCommentWithoutNewLine() {
         $this->assertEquals(
             [
-                new CommentToken("# Mein Kommentar", new SourceLocation("string", 1, 1), new SourceLocation("string", 1, 16)),
+                new CommentToken("# Mein Kommentar", new SourceLocation("string", 1, 0), new SourceLocation("string", 1, 16)),
                 new EOFToken(new SourceLocation("string", 1, 16))
             ],
             $this->lex("# Mein Kommentar")
@@ -37,9 +47,9 @@ class LexerTest extends TestCase {
     public function testReadCommentWithNewLine() {
         $this->assertEquals(
             [
-                new CommentToken("# Mein Kommentar", new SourceLocation("string", 1, 1), new SourceLocation("string", 1, 16)),
-                new WhitespaceToken("\n", new SourceLocation("string", 1, 17), new SourceLocation("string", 1, 17)),
-                new CommentToken("# Mein andere Kommentar", new SourceLocation("string", 2, 1), new SourceLocation("string", 2, 23)),
+                new CommentToken("# Mein Kommentar", new SourceLocation("string", 1, 0), new SourceLocation("string", 1, 16)),
+                new WhitespaceToken("\n", new SourceLocation("string", 1, 16), new SourceLocation("string", 2, 0)),
+                new CommentToken("# Mein andere Kommentar", new SourceLocation("string", 2, 0), new SourceLocation("string", 2, 23)),
                 new EOFToken(new SourceLocation("string", 2, 23))
             ],
             $this->lex("# Mein Kommentar\n# Mein andere Kommentar")
@@ -49,7 +59,7 @@ class LexerTest extends TestCase {
     public function testReadSingleSyntaxChar() {
         $this->assertEquals(
             [
-                new SyntaxToken("(", new SourceLocation("string", 1, 1), new SourceLocation("string", 1, 1)),
+                new SyntaxToken("(", new SourceLocation("string", 1, 0), new SourceLocation("string", 1, 1)),
                 new EOFToken(new SourceLocation("string", 1, 1))
             ],
             $this->lex("(")
@@ -59,8 +69,8 @@ class LexerTest extends TestCase {
     public function testReadEmptyTuple() {
         $this->assertEquals(
             [
-                new SyntaxToken("(", new SourceLocation("string", 1, 1), new SourceLocation("string", 1, 1)),
-                new SyntaxToken(")", new SourceLocation("string", 1, 2), new SourceLocation("string", 1, 2)),
+                new SyntaxToken("(", new SourceLocation("string", 1, 0), new SourceLocation("string", 1, 1)),
+                new SyntaxToken(")", new SourceLocation("string", 1, 1), new SourceLocation("string", 1, 2)),
                 new EOFToken(new SourceLocation("string", 1, 2))
             ],
             $this->lex("()")
@@ -70,7 +80,7 @@ class LexerTest extends TestCase {
     public function testReadWord() {
         $this->assertEquals(
             [
-                new AtomToken("true", new SourceLocation("string", 1, 1), new SourceLocation("string", 1, 4)),
+                new AtomToken("true", new SourceLocation("string", 1, 0), new SourceLocation("string", 1, 4)),
                 new EOFToken(new SourceLocation("string", 1, 4))
             ],
             $this->lex("true")
@@ -80,7 +90,7 @@ class LexerTest extends TestCase {
     public function testReadNumber() {
         $this->assertEquals(
             [
-                new AtomToken("1", new SourceLocation("string", 1, 1), new SourceLocation("string", 1, 1)),
+                new AtomToken("1", new SourceLocation("string", 1, 0), new SourceLocation("string", 1, 1)),
                 new EOFToken(new SourceLocation("string", 1, 1))
             ],
             $this->lex("1")
@@ -90,7 +100,7 @@ class LexerTest extends TestCase {
     public function testReadEmptyString() {
         $this->assertEquals(
             [
-                new StringToken('""', new SourceLocation("string", 1, 1), new SourceLocation("string", 1, 2)),
+                new StringToken('""', new SourceLocation("string", 1, 0), new SourceLocation("string", 1, 2)),
                 new EOFToken(new SourceLocation("string", 1, 2))
             ],
             $this->lex('""')
@@ -100,7 +110,7 @@ class LexerTest extends TestCase {
     public function testReadString() {
         $this->assertEquals(
             [
-                new StringToken('"test"', new SourceLocation("string", 1, 1), new SourceLocation("string", 1, 6)),
+                new StringToken('"test"', new SourceLocation("string", 1, 0), new SourceLocation("string", 1, 6)),
                 new EOFToken(new SourceLocation("string", 1, 6))
             ],
             $this->lex('"test"')
@@ -110,7 +120,7 @@ class LexerTest extends TestCase {
     public function testReadEscapedString() {
         $this->assertEquals(
             [
-                new StringToken('"te\\"st"', new SourceLocation("string", 1, 1), new SourceLocation("string", 1, 8)),
+                new StringToken('"te\\"st"', new SourceLocation("string", 1, 0), new SourceLocation("string", 1, 8)),
                 new EOFToken(new SourceLocation("string", 1, 8))
             ],
             $this->lex('"te\\"st"')
@@ -120,11 +130,11 @@ class LexerTest extends TestCase {
     public function testReadTuple() {
         $this->assertEquals(
             [
-                new SyntaxToken("[", new SourceLocation("string", 1, 1), new SourceLocation("string", 1, 1)),
-                new AtomToken("true", new SourceLocation("string", 1, 2), new SourceLocation("string", 1, 5)),
-                new WhitespaceToken(" ", new SourceLocation("string", 1, 6), new SourceLocation("string", 1, 6)),
-                new AtomToken("false", new SourceLocation("string", 1, 7), new SourceLocation("string", 1, 11)),
-                new SyntaxToken("]", new SourceLocation("string", 1, 12), new SourceLocation("string", 1, 12)),
+                new SyntaxToken("[", new SourceLocation("string", 1, 0), new SourceLocation("string", 1, 1)),
+                new AtomToken("true", new SourceLocation("string", 1, 1), new SourceLocation("string", 1, 5)),
+                new WhitespaceToken(" ", new SourceLocation("string", 1, 5), new SourceLocation("string", 1, 6)),
+                new AtomToken("false", new SourceLocation("string", 1, 6), new SourceLocation("string", 1, 11)),
+                new SyntaxToken("]", new SourceLocation("string", 1, 11), new SourceLocation("string", 1, 12)),
                 new EOFToken(new SourceLocation("string", 1, 12))
             ],
             $this->lex("[true false]")
@@ -133,6 +143,6 @@ class LexerTest extends TestCase {
 
     private function lex($string) {
         $lexer = new Lexer();
-        return iterator_to_array($lexer->lex(new StringCharStream($string)));
+        return iterator_to_array($lexer->lexString($string, 'string'));
     }
 }

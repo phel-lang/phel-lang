@@ -44,7 +44,7 @@ class ReaderTest extends TestCase {
 
     public function testReadKeyword() {
         $this->assertEquals(
-            $this->loc(new Keyword('test'), 1, 1, 1, 5),
+            $this->loc(new Keyword('test'), 1, 0, 1, 5),
             $this->read(':test')
         );
     }
@@ -62,84 +62,84 @@ class ReaderTest extends TestCase {
 
     public function testReadSymbol() {
         $this->assertEquals(
-            $this->loc(new Symbol('test'), 1, 1, 1, 4), 
+            $this->loc(new Symbol('test'), 1, 0, 1, 4), 
             $this->read('test')
         );
     }
 
     public function testRdlist() {
         $this->assertEquals(
-            $this->loc(new Tuple([], false), 1, 1, 1, 2),
+            $this->loc(new Tuple([], false), 1, 0, 1, 2),
             $this->read('()')
         );
         $this->assertEquals(
-            $this->loc(new Tuple([$this->loc(new Tuple([], false), 1, 2, 1, 3)], false), 1, 1, 1, 4),
+            $this->loc(new Tuple([$this->loc(new Tuple([], false), 1, 1, 1, 3)], false), 1, 0, 1, 4),
             $this->read('(())')
         );
 
         $this->assertEquals(
-            $this->loc(new Tuple([$this->loc(new Symbol('a'), 1, 2, 1, 2)], false), 1, 1, 1, 3),
+            $this->loc(new Tuple([$this->loc(new Symbol('a'), 1, 1, 1, 2)], false), 1, 0, 1, 3),
             $this->read('(a)')
         );
 
         $this->assertEquals(
-            $this->loc(new Tuple([$this->loc(new Symbol('a'), 1, 2, 1, 2), $this->loc(new Symbol('b'), 1, 4, 1, 4)], false), 1, 1, 1, 5),
+            $this->loc(new Tuple([$this->loc(new Symbol('a'), 1, 1, 1, 2), $this->loc(new Symbol('b'), 1, 3, 1, 4)], false), 1, 0, 1, 5),
             $this->read('(a b)')
         );
     }
 
     public function testRdlistBracket() {
         $this->assertEquals(
-            $this->loc(new Tuple([], true), 1, 1, 1, 2),
+            $this->loc(new Tuple([], true), 1, 0, 1, 2),
             $this->read('[]')
         );
         $this->assertEquals(
-            $this->loc(new Tuple([$this->loc(new Tuple([], true), 1, 2, 1, 3)], true), 1, 1, 1, 4),
+            $this->loc(new Tuple([$this->loc(new Tuple([], true), 1, 1, 1, 3)], true), 1, 0, 1, 4),
             $this->read('[[]]')
         );
 
         $this->assertEquals(
-            $this->loc(new Tuple([$this->loc(new Symbol('a'), 1, 2, 1, 2)], true), 1, 1, 1, 3),
+            $this->loc(new Tuple([$this->loc(new Symbol('a'), 1, 1, 1, 2)], true), 1, 0, 1, 3),
             $this->read('[a]')
         );
 
         $this->assertEquals(
-            $this->loc(new Tuple([$this->loc(new Symbol('a'), 1, 2, 1, 2), $this->loc(new Symbol('b'), 1, 4, 1, 4)], true), 1, 1, 1, 5),
+            $this->loc(new Tuple([$this->loc(new Symbol('a'), 1, 1, 1, 2), $this->loc(new Symbol('b'), 1, 3, 1, 4)], true), 1, 0, 1, 5),
             $this->read('[a b]')
         );
     }
 
     public function testQuote() {
         $this->assertEquals(
-            $this->loc(new Tuple([new Symbol('quote'), $this->loc(new Symbol('a'), 1, 2, 1, 2)]), 1, 1, 1, 2),
+            $this->loc(new Tuple([new Symbol('quote'), $this->loc(new Symbol('a'), 1, 1, 1, 2)]), 1, 0, 1, 2),
             $this->read('\'a')
         );
     }
 
     public function testUnquote() {
         $this->assertEquals(
-            $this->loc(new Tuple([new Symbol('unquote'), $this->loc(new Symbol('a'), 1, 2, 1, 2)]), 1, 1, 1, 2),
+            $this->loc(new Tuple([new Symbol('unquote'), $this->loc(new Symbol('a'), 1, 1, 1, 2)]), 1, 0, 1, 2),
             $this->read(',a')
         );
     }
 
     public function testUnquoteSplice() {
         $this->assertEquals(
-            $this->loc(new Tuple([new Symbol('unquote-splicing'), $this->loc(new Symbol('a'), 1, 3, 1, 3)]), 1, 1, 1, 3),
+            $this->loc(new Tuple([new Symbol('unquote-splicing'), $this->loc(new Symbol('a'), 1, 2, 1, 3)]), 1, 0, 1, 3),
             $this->read(',@a')
         );
     }
 
     public function testQuasiquote1() {
         $this->assertEquals(
-            $this->loc(new Tuple([new Symbol('quote'), $this->loc(new Symbol('unquote'), 1, 2, 1, 8)]), 1, 1, 1, 8),
+            $this->loc(new Tuple([new Symbol('quote'), $this->loc(new Symbol('unquote'), 1, 1, 1, 8)]), 1, 0, 1, 8),
             $this->read('`unquote')
         );
     }
 
     public function testQuasiquote2() {
         $this->assertEquals(
-            $this->loc(new Tuple([new Symbol('quote'), $this->loc(new Symbol('a'), 1, 2, 1, 2)]), 1, 1, 1, 2),
+            $this->loc(new Tuple([new Symbol('quote'), $this->loc(new Symbol('a'), 1, 1, 1, 2)]), 1, 0, 1, 2),
             $this->read('`a')
         );
     }
@@ -220,42 +220,42 @@ class ReaderTest extends TestCase {
 
     public function testReadEmptyArray() {
         $this->assertEquals(
-            $this->loc(Tuple::create(new Symbol('array')), 1, 1, 1, 3),
+            $this->loc(Tuple::create(new Symbol('array')), 1, 0, 1, 3),
             $this->read('@[]')
         );
     }
 
     public function testReadArray1() {
         $this->assertEquals(
-            $this->loc(Tuple::create(new Symbol('array'), 1), 1, 1, 1, 4),
+            $this->loc(Tuple::create(new Symbol('array'), 1), 1, 0, 1, 4),
             $this->read('@[1]')
         );
     }
 
     public function testReadArray2() {
         $this->assertEquals(
-            $this->loc(Tuple::create(new Symbol('array'), 1, 2), 1, 1, 1, 6),
+            $this->loc(Tuple::create(new Symbol('array'), 1, 2), 1, 0, 1, 6),
             $this->read('@[1 2]')
         );
     }
 
     public function testReadEmptyTable() {
         $this->assertEquals(
-            $this->loc(Tuple::create(new Symbol('table')), 1, 1, 1, 3),
+            $this->loc(Tuple::create(new Symbol('table')), 1, 0, 1, 3),
             $this->read('@{}')
         );
     }
 
     public function testReadTable1() {
         $this->assertEquals(
-            $this->loc(Tuple::create(new Symbol('table'), new Keyword('a'), 1), 1, 1, 1, 7),
+            $this->loc(Tuple::create(new Symbol('table'), new Keyword('a'), 1), 1, 0, 1, 7),
             $this->read('@{:a 1}')
         );
     }
 
     public function testReadTable2() {
         $this->assertEquals(
-            $this->loc(Tuple::create(new Symbol('table'), new Keyword('a'), 1, new Keyword('b'), 2), 1, 1, 1, 12),
+            $this->loc(Tuple::create(new Symbol('table'), new Keyword('a'), 1, new Keyword('b'), 2), 1, 0, 1, 12),
             $this->read('@{:a 1 :b 2}')
         );
     }
@@ -268,8 +268,7 @@ class ReaderTest extends TestCase {
     public function read($string, $removeLoc = false) {
         $lexer = new Lexer();
         $reader = new Reader();
-        $stream = new StringCharStream($string);
-        $tokenStream = $lexer->lex($stream);
+        $tokenStream = $lexer->lexString($string);
         
         $result = $reader->readNext($tokenStream)->getAst();
 

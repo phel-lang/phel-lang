@@ -233,7 +233,15 @@ class Reader {
     protected function parseAtom(AtomToken $token) {
         $word = $token->getCode();
         
-        if (preg_match("/([+-])?0[bB][01]+(_[01]+)*/", $word, $matches)) {
+        if ($word === 'true') {
+            return true;
+        } else if ($word === 'false') {
+            return false;
+        } else if ($word === 'nil') {
+            return null;
+        } else if ($word[0] === ':') {
+            return new Keyword(substr($word, 1));
+        } else if (preg_match("/([+-])?0[bB][01]+(_[01]+)*/", $word, $matches)) {
             // binary numbers
             $sign = (isset($matches[1]) && $matches[1] == '-') ? -1 : 1;
             return $sign * bindec(str_replace('_', '', $word));
@@ -249,24 +257,7 @@ class Reader {
             // normal numbers
             return $word + 0;
         } else {
-            return $this->sym($word);
-        }
-    }
-
-    private function sym($name) {
-        switch ($name) {
-            case 'true':
-                return true;
-            case 'false':
-                return false;
-            case 'nil':
-                return null;
-            default:
-                if ($name[0] === ':') {
-                    return new Keyword(substr($name, 1));
-                } else {
-                    return new Symbol($name);
-                }
+            return new Symbol($word);
         }
     }
 
