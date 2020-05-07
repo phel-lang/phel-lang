@@ -3,7 +3,6 @@
 namespace Phel;
 
 use Phel\Stream\SourceLocation;
-use Phel\Stream\StringCharStream;
 use Phel\Token\AtomToken;
 use Phel\Token\CommentToken;
 use Phel\Token\EOFToken;

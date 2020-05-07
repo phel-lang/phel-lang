@@ -7,9 +7,6 @@ use Phel\Exceptions\ExceptionPrinter;
 use Phel\Exceptions\HtmlExceptionPrinter;
 use Phel\Exceptions\ReaderException;
 use Phel\Exceptions\TextExceptionPrinter;
-use Phel\Stream\CharStream;
-use Phel\Stream\FileCharStream;
-use Phel\Stream\StringCharStream;
 use Throwable;
 
 class Compiler {

@@ -3,7 +3,6 @@
 namespace Phel;
 
 use Phel\Lang\Symbol;
-use Phel\Stream\StringCharStream;
 use PHPUnit\Framework\TestCase;
 
 class IntegrationTest extends TestCase {

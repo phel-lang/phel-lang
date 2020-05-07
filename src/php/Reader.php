@@ -43,24 +43,11 @@ class Reader {
 
         $this->readTokens = [];
         $ast = $this->readExpression($tokenStream);
-        $code = $this->getCode($this->readTokens);
 
         return new ReaderResult(
             $ast,
-            new CodeSnippet(
-                $this->readTokens[0]->getStartLocation(),
-                $this->readTokens[count($this->readTokens) - 1]->getEndLocation(),
-                $code
-            )
+            $this->getCodeSnippet($this->readTokens)
         );
-    }
-
-    private function getCode($readTokens) {
-        $code = '';
-        foreach ($readTokens as $token) {
-            return $code .= $token->getCode();
-        }
-        return $code;
     }
 
     public function readExpression(Generator $tokenStream) {
@@ -300,16 +287,33 @@ class Reader {
         throw $this->buildReaderException('Invalid UTF-8 codepoint escape sequence: Codepoint too large');
     }
 
+    private function getCodeSnippet($readTokens) {
+        // TODO: Remove leading whitespace
+        $code = $this->getCode($readTokens);
+
+        return new CodeSnippet(
+            $this->readTokens[0]->getStartLocation(),
+            $this->readTokens[count($this->readTokens) - 1]->getEndLocation(),
+            $code
+        );
+    }
+
+    private function getCode($readTokens) {
+        $code = '';
+        foreach ($readTokens as $token) {
+            return $code .= $token->getCode();
+        }
+        return $code;
+    }
+
     private function buildReaderException($message) {
-        $code = $this->getCode($this->readTokens);
-        $startLocation = $this->readTokens[0]->getStartLocation();
-        $endLocation = $this->readTokens[count($this->readTokens) - 1]->getEndLocation();
+        $codeSnippet = $this->getCodeSnippet($this->readTokens);
 
         return new ReaderException(
             $message, 
-            $startLocation, 
-            $endLocation, 
-            new CodeSnippet($startLocation, $endLocation, $code)
+            $codeSnippet->getStartLocation(),
+            $codeSnippet->getEndLocation(),
+            $codeSnippet
         );
     }
 }

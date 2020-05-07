@@ -3,9 +3,6 @@
 namespace Phel;
 
 use Exception;
-use Phel\Exceptions\ReaderException;
-use Phel\Stream\CharData;
-use Phel\Stream\CharStream;
 use Phel\Stream\SourceLocation;
 use Phel\Token\AtomToken;
 use Phel\Token\CommentToken;
