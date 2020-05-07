@@ -26,15 +26,15 @@ class Compiler {
     }
 
     public function compileFile(string $filename, GlobalEnvironment $globalEnv) {
-        return $this->compileString(file_get_contents($filename), $globalEnv);
+        return $this->compileString(file_get_contents($filename), $globalEnv, $filename);
     }
 
-    public function compileString(string $code, GlobalEnvironment $globalEnv) {
+    public function compileString(string $code, GlobalEnvironment $globalEnv, $source = 'string') {
         $lexer = new Lexer();
         $reader = new Reader();
         $analzyer = new Analyzer($globalEnv);
         $emitter = new Emitter();
-        $tokenStream = $lexer->lexString($code);
+        $tokenStream = $lexer->lexString($code, $source);
         $code = '';
 
         while (true) {

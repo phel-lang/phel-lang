@@ -2,7 +2,6 @@
 
 namespace Phel;
 
-use Exception;
 use Generator;
 use Phel\Exceptions\ReaderException;
 use Phel\Lang\Keyword;
@@ -108,10 +107,14 @@ class Reader {
                 }
             }
 
+            if ($token instanceof EOFToken) {
+                throw $this->buildReaderException("Unterimatend list");
+            }
+
             throw $this->buildReaderException("Unhandled token: " . print_r($token, true));
         }
 
-        throw new Exception("EOF");
+        throw $this->buildReaderException("Unterimatend list");
     }
 
     protected function readDatastructure($tokenStream) {
@@ -189,19 +192,20 @@ class Reader {
 
         while ($tokenStream->valid()) {
             $token = $tokenStream->current();
-            $this->readTokens[] = $token;
 
             if ($token instanceof WhitespaceToken) {
+                $this->readTokens[] = $token;
                 $tokenStream->next();
                 continue;
             }
             if ($token instanceof CommentToken) {
+                $this->readTokens[] = $token;
                 $tokenStream->next();
                 continue;
             }
             
-
             if ($token instanceof SyntaxToken && $token->getCode() === $term) {
+                $this->readTokens[] = $token;
                 $endLocation = $token->getEndLocation();
                 $tokenStream->next();
                 $tuple = new Tuple($acc, $isUsingBrackets);
@@ -288,12 +292,12 @@ class Reader {
     }
 
     private function getCodeSnippet($readTokens) {
-        // TODO: Remove leading whitespace
-        $code = $this->getCode($readTokens);
+        $tokens = $this->removeLeadingWhitespace($readTokens);
+        $code = $this->getCode($tokens);
 
         return new CodeSnippet(
-            $this->readTokens[0]->getStartLocation(),
-            $this->readTokens[count($this->readTokens) - 1]->getEndLocation(),
+            $tokens[0]->getStartLocation(),
+            $tokens[count($tokens) - 1]->getEndLocation(),
             $code
         );
     }
@@ -301,9 +305,22 @@ class Reader {
     private function getCode($readTokens) {
         $code = '';
         foreach ($readTokens as $token) {
-            return $code .= $token->getCode();
+            $code .= $token->getCode();
         }
         return $code;
+    }
+
+    private function removeLeadingWhitespace($readTokens) {
+        $result = [];
+        $leadingWhitespace = true;
+        foreach ($readTokens as $token) {
+            if (!($leadingWhitespace && ($token instanceof WhitespaceToken || $token instanceof CommentToken))) {
+                $leadingWhitespace = false;
+                $result[] = $token;
+            }
+        }
+
+        return $result;
     }
 
     private function buildReaderException($message) {

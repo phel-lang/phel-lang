@@ -24,8 +24,8 @@ class HtmlExceptionPrinter implements ExceptionPrinter {
 
             if ($e->getStartLocation()->getLine() == $e->getEndLocation()->getLine()) {
                 if ($e->getStartLocation()->getLine() == $index + $codeSnippet->getStartLocation()->getLine()) {
-                    echo str_repeat(' ', $endLineLength + 1 + $e->getStartLocation()->getColumn());
-                    echo str_repeat('^', $e->getEndLocation()->getColumn() - $e->getStartLocation()->getColumn() + 1);
+                    echo str_repeat(' ', $endLineLength + 2 + $e->getStartLocation()->getColumn());
+                    echo str_repeat('^', $e->getEndLocation()->getColumn() - $e->getStartLocation()->getColumn());
                     echo "\n";
                 }
             }
