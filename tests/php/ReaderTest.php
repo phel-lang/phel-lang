@@ -12,7 +12,6 @@ use Phel\Lang\Tuple;
 use Phel\Lexer;
 use Phel\Reader;
 use Phel\Stream\SourceLocation;
-use Phel\Stream\StringCharStream;
 use \PHPUnit\Framework\TestCase;
 
 ini_set('xdebug.var_display_max_depth', '10');

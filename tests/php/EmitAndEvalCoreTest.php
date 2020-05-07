@@ -3,7 +3,6 @@
 namespace Phel;
 
 use Phel\Lang\Symbol;
-use Phel\Stream\StringCharStream;
 use PHPUnit\Framework\TestCase;
 
 ini_set('xdebug.var_display_max_depth', '10');

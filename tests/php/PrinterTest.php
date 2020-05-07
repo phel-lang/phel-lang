@@ -2,7 +2,6 @@
 
 namespace Phel;
 
-use Phel\Stream\StringCharStream;
 use PHPUnit\Framework\TestCase;
 
 class PrinterTest extends TestCase {
