@@ -13,11 +13,9 @@ use Phel\Token\WhitespaceToken;
 
 class Lexer {
     
-    private $code = "";
     private $cursor = 0;
     private $line = 1;
     private $column = 1;
-    private $end = 0;
 
     private $regexps = [
         "([\n \t\r]+)", // Whitespace
@@ -32,20 +30,19 @@ class Lexer {
 
     public function __construct()
     {
-        $this->combinedRegex = "/(?:" . implode("|", $this->regexps) . ")/A";
+        $this->combinedRegex = "/(?:" . implode("|", $this->regexps) . ")/mA";
     }
 
     public function lexString(string $code, $source = 'string') {
-        $this->code = $code;
         $this->cursor = 0;
         $this->line = 1;
         $this->column = 0;
-        $this->end = strlen($code);
+        $end = strlen($code);
 
-        while ($this->cursor < $this->end) {
-            $startLocation = new SourceLocation($source, $this->line, $this->column);
-
-            if (preg_match($this->combinedRegex, $this->code, $matches, 0, $this->cursor)) {
+        $startLocation = new SourceLocation($source, $this->line, $this->column);
+        
+        while ($this->cursor < $end) {
+            if (preg_match($this->combinedRegex, $code, $matches, 0, $this->cursor)) {
                 $this->moveCursor($matches[0]);
                 $endLocation = new SourceLocation($source, $this->line, $this->column);
 
@@ -77,21 +74,23 @@ class Lexer {
                     default:
                         throw new Exception("Unexpected match state: " . count($matches) . " " . $matches[0]);
                 }
+
+                $startLocation = $endLocation;
             } else {
                 throw new Exception("Unexpected state");
             }
         }
 
-        yield new EOFToken(new SourceLocation($source, $this->line, $this->column));
+        yield new EOFToken($startLocation);
     }
 
     private function moveCursor($str) {
         $len = strlen($str);
         $this->cursor += $len;
-        $this->line += substr_count($str, "\n");
         $lastNewLinePos = strrpos($str, "\n");
 
         if ($lastNewLinePos !== false) {
+            $this->line += substr_count($str, "\n");
             $this->column = $len - $lastNewLinePos - 1;
         } else {
             $this->column += $len;
