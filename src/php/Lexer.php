@@ -4,12 +4,6 @@ namespace Phel;
 
 use Exception;
 use Phel\Stream\SourceLocation;
-use Phel\Token\AtomToken;
-use Phel\Token\CommentToken;
-use Phel\Token\EOFToken;
-use Phel\Token\StringToken;
-use Phel\Token\SyntaxToken;
-use Phel\Token\WhitespaceToken;
 
 class Lexer {
     
@@ -18,12 +12,22 @@ class Lexer {
     private $column = 1;
 
     private $regexps = [
-        "([\n \t\r]+)", // Whitespace
-        "(\#[^\n]*)", // Comment
-        "(,@)", // Two char symbol
-        "([\(\)\[\]\{\}',`@])", // Single char symbol
-        "((?:\"(?:\\\\\"|[^\"])*\"))", // String
-        "([^\(\)\[\]\{\}',`@ \n\r\t\#]+)" // Atom
+        "([\n \t\r]+)", // Whitespace (index: 2)
+        "(\#[^\n]*)", // Comment (index: 3)
+        "(,@)", // unquote-splicing (index: 4)
+        "(\()", // open parenthesis (index: 5)
+        "(\))", // close parenthesis (index: 6)
+        "(\[)", // open bracket (index: 7)
+        "(\])", // close bracket (index: 8)
+        "(\{)", // open brace (index: 9)
+        "(\})", // close brace (index: 10)
+        "(')", // quote (index: 11)
+        "(,)", // unquote (index: 12)
+        "(`)", // quasiquote (index: 13)
+        "(@\[)", // array (index: 14)
+        "(@\{)", // table (index: 15)
+        "((?:\"(?:\\\\\"|[^\"])*\"))", // String (index: 16)
+        "([^\(\)\[\]\{\}',`@ \n\r\t\#]+)" // Atom (index: 17)
     ];
 
     private $combinedRegex;
@@ -46,34 +50,7 @@ class Lexer {
                 $this->moveCursor($matches[0]);
                 $endLocation = new SourceLocation($source, $this->line, $this->column);
 
-                switch (count($matches)) {
-                    case 2: // Whitespace
-                        yield new WhitespaceToken($matches[0], $startLocation, $endLocation);
-                        break;
-
-                    case 3: // Comment
-                        yield new CommentToken($matches[0], $startLocation, $endLocation);
-                        break;
-
-                    case 4: // Two char Symbol
-                        yield new SyntaxToken($matches[0], $startLocation, $endLocation);
-                        break;
-
-                    case 5: // Single char symbol
-                        yield new SyntaxToken($matches[0], $startLocation, $endLocation);
-                        break;
-
-                    case 6: // String
-                        yield new StringToken($matches[0], $startLocation, $endLocation);
-                        break;
-
-                    case 7: // Atom
-                        yield new AtomToken($matches[0], $startLocation, $endLocation);
-                        break;
-
-                    default:
-                        throw new Exception("Unexpected match state: " . count($matches) . " " . $matches[0]);
-                }
+                yield new Token(count($matches), $matches[0], $startLocation, $endLocation);
 
                 $startLocation = $endLocation;
             } else {
@@ -81,7 +58,7 @@ class Lexer {
             }
         }
 
-        yield new EOFToken($startLocation);
+        yield new Token(Token::T_EOF, "", $startLocation, $startLocation);
     }
 
     private function moveCursor($str) {

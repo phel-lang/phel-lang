@@ -2,7 +2,6 @@
 
 namespace Phel\Stream;
 
-use Phel\Lang\Phel;
 use Phel\Stream\SourceLocation;
 
 class CodeSnippet {

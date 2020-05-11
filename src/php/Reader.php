@@ -9,12 +9,6 @@ use Phel\Lang\Phel;
 use Phel\Lang\Symbol;
 use Phel\Lang\Tuple;
 use Phel\Stream\CodeSnippet;
-use Phel\Token\AtomToken;
-use Phel\Token\CommentToken;
-use Phel\Token\EOFToken;
-use Phel\Token\StringToken;
-use Phel\Token\SyntaxToken;
-use Phel\Token\WhitespaceToken;
 
 class Reader {
 
@@ -36,7 +30,7 @@ class Reader {
             return false;
         }
 
-        if ($tokenStream->current() instanceof EOFToken) {
+        if ($tokenStream->current()->getType() == Token::T_EOF) {
             return false;
         }
 
@@ -54,97 +48,71 @@ class Reader {
             $token = $tokenStream->current();
             $this->readTokens[] = $token;
 
-            if ($token instanceof WhitespaceToken) {
-                $tokenStream->next();
-                continue;
-            }
+            switch ($token->getType()) {
+                case Token::T_WHITESPACE:
+                case Token::T_COMMENT:
+                    $tokenStream->next();
+                    break;
 
-            if ($token instanceof CommentToken) {
-                $tokenStream->next();
-                continue;
-            }
+                case Token::T_ATOM:
+                    $tokenStream->next();
+                    $result = $this->parseAtom($token);
 
-            if ($token instanceof AtomToken) {
-                $tokenStream->next();
-                $result = $this->parseAtom($token);
+                    if ($result instanceof Phel) {
+                        $result->setStartLocation($token->getStartLocation());
+                        $result->setEndLocation($token->getEndLocation());
+                    }
+                    return $result;
 
-                if ($result instanceof Phel) {
-                    $result->setStartLocation($token->getStartLocation());
-                    $result->setEndLocation($token->getEndLocation());
-                }
-                return $result;
-            }
+                case Token::T_STRING:
+                    $tokenStream->next();
+                    return $this->parseEscapedString(substr($token->getCode(), 1, -1));
 
-            if ($token instanceof StringToken) {
-                $tokenStream->next();
-                return $this->parseEscapedString($token->getTrimedContent());
-            }
+                case Token::T_OPEN_PARENTHESIS:
+                    return $this->readList($tokenStream, Token::T_CLOSE_PARENTHESIS);
 
-            if ($token instanceof SyntaxToken) {
-                switch ($token->getCode()) {
-                    case "(":
-                        return $this->readList($tokenStream, ")");
-                    case "[":
-                        return $this->readList($tokenStream, "]", [], true);
-                    case ')':
-                    case ']':
-                        throw $this->buildReaderException('Unterminated list');
+                case Token::T_OPEN_BRACKET:
+                    return $this->readList($tokenStream, Token::T_CLOSE_BRACKET, [], true);
 
-                    case '\'':
-                        return $this->readWrap($tokenStream, "quote");
-                    case ',':
-                        return $this->readWrap($tokenStream, "unquote");
-                    case ',@':
-                        return $this->readWrap($tokenStream, "unquote-splicing");
-                    case '`':
-                        return $this->readQuasiquote($tokenStream);
+                case Token::T_OPEN_BRACE:
+                    throw $this->buildReaderException('Expected token: {');
 
-                    case '@':
-                        return $this->readDatastructure($tokenStream);
+                case Token::T_CLOSE_PARENTHESIS:
+                case Token::T_CLOSE_BRACKET:
+                case Token::T_CLOSE_BRACE:
+                    throw $this->buildReaderException('Unterminated list');
 
-                    default:
-                        throw $this->buildReaderException("Unhandled syntax token: " . $token->getCode());
-                }
-            }
+                case Token::T_QUOTE:
+                    return $this->readWrap($tokenStream, "quote");
 
-            if ($token instanceof EOFToken) {
-                throw $this->buildReaderException("Unterimatend list");
-            }
+                case Token::T_UNQUOTE:
+                    return $this->readWrap($tokenStream, "unquote");
 
-            throw $this->buildReaderException("Unhandled token: " . print_r($token, true));
-        }
+                case Token::T_UNQUOTE_SPLICING:
+                    return $this->readWrap($tokenStream, "unquote-splicing");
 
-        throw $this->buildReaderException("Unterimatend list");
-    }
+                case Token::T_QUASIQUOTE:
+                    return $this->readQuasiquote($tokenStream);
 
-    protected function readDatastructure($tokenStream) {
-        $token = $tokenStream->current();
-        $startLocation = $token->getStartLocation();
-        $tokenStream->next();
-        
-        if ($tokenStream->valid()) {
-            $nextToken = $tokenStream->current();
-            $this->readTokens[] = $nextToken;
+                case Token::T_ARRAY:
+                    return $this->readList($tokenStream, Token::T_CLOSE_BRACKET, [new Symbol('array')]);
 
-            if ($nextToken instanceof SyntaxToken) {
-                if ($nextToken->getCode() == "[") {
-                    $tuple = $this->readList($tokenStream, "]", [new Symbol("array")]);
-                    $tuple->setStartLocation($startLocation);
-                    return $tuple;
-                } else if ($nextToken->getCode() == "{") {
-                    $tuple = $this->readList($tokenStream, "}", [new Symbol("table")]);
+                case Token::T_TABLE:
+                    $tuple = $this->readList($tokenStream, Token::T_CLOSE_BRACE, [new Symbol('table')]);
                     if (count($tuple) % 2 == 0) {
                         throw $this->buildReaderException("Tables must have an even number of parameters");
                     }
-                    $tuple->setStartLocation($startLocation);
                     return $tuple;
-                }
-                
-                throw $this->buildReaderException("Expected [ or { after @");
+
+                case Token::T_EOF:
+                    throw $this->buildReaderException("Unterminatend list");
+
+                default:
+                    throw $this->buildReaderException("Unhandled syntax token: " . $token->getCode());
             }
         }
 
-        throw $this->buildReaderException("Expected more chars after @");
+        throw $this->buildReaderException("Unterminatend list");
     }
 
     protected function readQuasiquote($tokenStream) {
@@ -187,41 +155,38 @@ class Reader {
     }
 
     protected function readList(Generator $tokenStream, $term, $acc = [], $isUsingBrackets = false) {
-        $startLocaltion = $tokenStream->current()->getStartLocation();
+        $startLocation = $tokenStream->current()->getStartLocation();
         $tokenStream->next();
 
         while ($tokenStream->valid()) {
             $token = $tokenStream->current();
 
-            if ($token instanceof WhitespaceToken) {
-                $this->readTokens[] = $token;
-                $tokenStream->next();
-                continue;
-            }
-            if ($token instanceof CommentToken) {
-                $this->readTokens[] = $token;
-                $tokenStream->next();
-                continue;
-            }
-            
-            if ($token instanceof SyntaxToken && $token->getCode() === $term) {
-                $this->readTokens[] = $token;
-                $endLocation = $token->getEndLocation();
-                $tokenStream->next();
-                $tuple = new Tuple($acc, $isUsingBrackets);
-                $tuple->setStartLocation($startLocaltion);
-                $tuple->setEndLocation($endLocation);
+            switch ($token->getType()) {
+                case Token::T_WHITESPACE:
+                case Token::T_COMMENT:
+                    $this->readTokens[] = $token;
+                    $tokenStream->next();
+                    break;
 
-                return $tuple;
-            } else {
-                $acc[] = $this->readExpression($tokenStream);
+                case $term:
+                    $this->readTokens[] = $token;
+                    $endLocation = $token->getEndLocation();
+                    $tokenStream->next();
+                    $tuple = new Tuple($acc, $isUsingBrackets);
+                    $tuple->setStartLocation($startLocation);
+                    $tuple->setEndLocation($endLocation);
+
+                    return $tuple;
+
+                default:
+                    $acc[] = $this->readExpression($tokenStream);
             }
         }
 
         throw $this->buildReaderException('Unterminated list');
     }
 
-    protected function parseAtom(AtomToken $token) {
+    protected function parseAtom(Token $token) {
         $word = $token->getCode();
         
         if ($word === 'true') {
@@ -252,7 +217,7 @@ class Reader {
         }
     }
 
-    protected function parseEscapedString($str) {
+    protected function parseEscapedString(string $str) {
         $str = str_replace('\\"', '"', $str);
 
         return preg_replace_callback(
@@ -314,7 +279,7 @@ class Reader {
         $result = [];
         $leadingWhitespace = true;
         foreach ($readTokens as $token) {
-            if (!($leadingWhitespace && ($token instanceof WhitespaceToken || $token instanceof CommentToken))) {
+            if (!($leadingWhitespace && ($token->getType() == Token::T_WHITESPACE || $token->getType() == Token::T_COMMENT))) {
                 $leadingWhitespace = false;
                 $result[] = $token;
             }
