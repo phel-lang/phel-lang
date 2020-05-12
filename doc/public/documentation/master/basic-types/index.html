@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <title>The Phel Language</title>
+  <link rel="stylesheet" href="http:&#x2F;&#x2F;127.0.0.1:1111&#x2F;site.css"/>
+</head>
+
+<body>
+  
+
+<div class="documentation">
+    <aside class="documentation__sidebar">
+        <div class="logo">
+            <svg class="phel-logo" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200.3 167.7"><path d="M6 66l95 96h36V93l-36-74H42L6 56v106h36l24-35"/><path d="M137 93l58-3-12-58-32-26h-34l-16 13-23 9-12 22 46 52z"/><path d="M195 90l-12 57h-13l-2-56M170 147l-13-11h12"/></svg>
+        </div>
+
+        <input type="checkbox" id="menu_checkbox">
+        <label for="menu_checkbox">
+            <svg viewBox="0 0 32 32">
+                <path d="M3,3 29,3 M3,16 29,16 M3,29 29,29"></path>
+            </svg>
+            Menu
+        </label>
+        <nav>
+            <ol>
+                
+                    <li class="">
+                        <a href="http:&#x2F;&#x2F;127.0.0.1:1111&#x2F;documentation&#x2F;master&#x2F;getting-started&#x2F;">Getting started</a>
+                    </li>
+                
+                    <li class="active">
+                        <a href="http:&#x2F;&#x2F;127.0.0.1:1111&#x2F;documentation&#x2F;master&#x2F;basic-types&#x2F;">Basic Types</a>
+                    </li>
+                
+                    <li class="">
+                        <a href="http:&#x2F;&#x2F;127.0.0.1:1111&#x2F;documentation&#x2F;master&#x2F;numbers-and-arithmetic&#x2F;">Numbers and Arithmetic</a>
+                    </li>
+                
+                    <li class="">
+                        <a href="http:&#x2F;&#x2F;127.0.0.1:1111&#x2F;documentation&#x2F;master&#x2F;truth-and-boolean-operations&#x2F;">Truth and Boolean operations</a>
+                    </li>
+                
+                    <li class="">
+                        <a href="http:&#x2F;&#x2F;127.0.0.1:1111&#x2F;documentation&#x2F;master&#x2F;control-flow&#x2F;">Control flow</a>
+                    </li>
+                
+                    <li class="">
+                        <a href="http:&#x2F;&#x2F;127.0.0.1:1111&#x2F;documentation&#x2F;master&#x2F;global-and-local-bindings&#x2F;">Global and local bindings</a>
+                    </li>
+                
+                    <li class="">
+                        <a href="http:&#x2F;&#x2F;127.0.0.1:1111&#x2F;documentation&#x2F;master&#x2F;functions-and-recursion&#x2F;">Functions and Recursion</a>
+                    </li>
+                
+                    <li class="">
+                        <a href="http:&#x2F;&#x2F;127.0.0.1:1111&#x2F;documentation&#x2F;master&#x2F;tuple&#x2F;">Tuple (TODO)</a>
+                    </li>
+                
+                    <li class="">
+                        <a href="http:&#x2F;&#x2F;127.0.0.1:1111&#x2F;documentation&#x2F;master&#x2F;array&#x2F;">Array (TODO)</a>
+                    </li>
+                
+                    <li class="">
+                        <a href="http:&#x2F;&#x2F;127.0.0.1:1111&#x2F;documentation&#x2F;master&#x2F;table&#x2F;">Table (TODO)</a>
+                    </li>
+                
+                    <li class="">
+                        <a href="http:&#x2F;&#x2F;127.0.0.1:1111&#x2F;documentation&#x2F;master&#x2F;destructuring&#x2F;">Destructuring</a>
+                    </li>
+                
+                    <li class="">
+                        <a href="http:&#x2F;&#x2F;127.0.0.1:1111&#x2F;documentation&#x2F;master&#x2F;macros&#x2F;">Macros (TODO)</a>
+                    </li>
+                
+                    <li class="">
+                        <a href="http:&#x2F;&#x2F;127.0.0.1:1111&#x2F;documentation&#x2F;master&#x2F;namespaces&#x2F;">Namespaces</a>
+                    </li>
+                
+                    <li class="">
+                        <a href="http:&#x2F;&#x2F;127.0.0.1:1111&#x2F;documentation&#x2F;master&#x2F;php-interop&#x2F;">PHP Interop</a>
+                    </li>
+                
+                    <li class="">
+                        <a href="http:&#x2F;&#x2F;127.0.0.1:1111&#x2F;documentation&#x2F;master&#x2F;special-forms&#x2F;">Special forms</a>
+                    </li>
+                
+            </ol>
+        </nav>
+    </aside>
+    <div class="documentation__content">
+        
+    <h1>Basic Types</h1>
+    <h2 id="nil-true-false">Nil, True, False</h2>
+<p>Nil, true and false are literal constants. In Phel <code>nil</code> is the same as <code>null</code> in PHP. Phel's <code>true</code> and <code>false</code> are the same as PHP's <code>true</code> and <code>false</code>.</p>
+<pre style="background-color:#ffffff;">
+<span style="color:#f5871f;">nil
+true
+false
+</span></pre><h2 id="symbol">Symbol</h2>
+<p>Symbols are used to name functions and variables in Phel.</p>
+<pre style="background-color:#ffffff;">
+<span style="color:#4d4d4c;">symbol
+snake_case_symbol
+my-module/my-function
+λ
+</span></pre><h2 id="keywords">Keywords</h2>
+<p>Keywords are like symbols that begin with a colon character. However, they are used as constants rather than a name for something.</p>
+<pre style="background-color:#ffffff;">
+<span style="color:#3e999f;">:keyword
+:range
+:0x0x0x
+:a-keyword
+::
+</span></pre><h2 id="numbers">Numbers</h2>
+<p>Numbers in Phel are equivalent to numbers in PHP. Next to decimal and
+float numbers the reader also supports binary, octal and hexadecimal number formats. Binary, octal and hexadecimal formats may contain underscores (<code>_</code>) between digits for better readability.</p>
+<pre style="background-color:#ffffff;">
+<span style="color:#f5871f;">1337 </span><span style="color:#999999;"># integer
+</span><span style="color:#f5871f;">+1337 </span><span style="color:#999999;"># positive integer
+</span><span style="color:#f5871f;">-1337 </span><span style="color:#999999;"># negative integer
+
+</span><span style="color:#f5871f;">1.234 </span><span style="color:#999999;"># float
+</span><span style="color:#f5871f;">+1.234 </span><span style="color:#999999;"># positive float
+</span><span style="color:#f5871f;">-1.234 </span><span style="color:#999999;"># negative float
+</span><span style="color:#f5871f;">1.2e3 </span><span style="color:#999999;"># float
+</span><span style="color:#f5871f;">7E-10 </span><span style="color:#999999;"># float
+
+</span><span style="color:#f5871f;">0b10100111001 </span><span style="color:#999999;"># binary number
+</span><span style="color:#f5871f;">-0b10100111001 </span><span style="color:#999999;"># negative binary number
+</span><span style="color:#f5871f;">0b101_0011_1001 </span><span style="color:#999999;"># binary number with underscores for better readability
+
+</span><span style="color:#f5871f;">0x539 </span><span style="color:#999999;"># hexadecimal number
+</span><span style="color:#f5871f;">-0x539 </span><span style="color:#999999;"># negative hexadecimal number
+</span><span style="color:#f5871f;">-0x5_39 </span><span style="color:#999999;"># hexadecimal number with underscores
+
+</span><span style="color:#f5871f;">02471 </span><span style="color:#999999;"># octal number
+</span><span style="color:#f5871f;">-02471 </span><span style="color:#999999;"># negativ octal number
+</span><span style="color:#f5871f;">024_71 </span><span style="color:#999999;"># octal number with underscores
+</span></pre><h2 id="strings">Strings</h2>
+<p>Strings are surrounded by double quotes. They almost work the same as PHP double qouted strings. One difference is that the dollar sign (<code>$</code>) must not be escaped. Internally Phel strings are represented by PHP strings. Therefore, every PHP string function can be used the operate on the string.</p>
+<p>String can be written in multiple lines. The line break character is then ignored by the reader.</p>
+<pre style="background-color:#ffffff;">
+<span style="color:#718c00;">&quot;hello world&quot;
+
+&quot;this is</span><span style="color:#f5871f;">\n</span><span style="color:#718c00;">a</span><span style="color:#f5871f;">\n</span><span style="color:#718c00;">string&quot;
+
+&quot;this
+is
+a
+string.&quot;
+
+&quot;use backslack to escape </span><span style="color:#f5871f;">\&quot;</span><span style="color:#718c00;"> string&quot;
+
+&quot;the dollar must not be escaped: $ or $abc just works&quot;
+
+&quot;Hexadecimal notation is supported: </span><span style="color:#f5871f;">\x41</span><span style="color:#718c00;">&quot;
+
+&quot;Unicodes can be encoded as in PHP: </span><span style="color:#f5871f;">\u{1000}</span><span style="color:#718c00;">&quot;
+</span></pre><h2 id="tuples">Tuples</h2>
+<p>Tuples are a sequence of white space separated values surrounded by either parentheses or brackets.</p>
+<pre style="background-color:#ffffff;">
+<span style="color:#4d4d4c;">(</span><span style="color:#8959a8;">do </span><span style="color:#f5871f;">1 2 3</span><span style="color:#4d4d4c;">)
+[</span><span style="color:#8959a8;">do </span><span style="color:#f5871f;">1 2 3</span><span style="color:#4d4d4c;">]
+</span></pre>
+<p>Squared brackets indicate that the tuple is a literal. Round parentheses on the other side will be interpreted as a function call, a macro call or special form by the compiler. Tuples are immutable.</p>
+<h2 id="arrays">Arrays</h2>
+<p>Arrays are similar to tuples but have a leading <code>@</code>.</p>
+<pre style="background-color:#ffffff;">
+<span style="color:#4d4d4c;">@[]
+@[</span><span style="color:#3e999f;">:a :b :c</span><span style="color:#4d4d4c;">]
+</span></pre>
+<p>An Array in Phel is a indexed datastructure. In contrast to PHP arrays, Phel arrays can not be used as Map, HashTable or Dictionary.</p>
+<h2 id="tables">Tables</h2>
+<p>Tables are represented by a sequence of white-space delimited key value pairs surrounded by curly braces and the prefix <code>@</code>. There must be an even number of items between curly braces or the parser will signal a parse error. The sequence is defined as key1, value1, key2, value2, etc.</p>
+<pre style="background-color:#ffffff;">
+<span style="color:#4d4d4c;">@{}
+@{</span><span style="color:#3e999f;">:key1 </span><span style="color:#718c00;">&quot;value1&quot; </span><span style="color:#3e999f;">:key2 </span><span style="color:#718c00;">&quot;value2&quot;</span><span style="color:#4d4d4c;">}
+@{(</span><span style="color:#f5871f;">1 2 3</span><span style="color:#4d4d4c;">) (</span><span style="color:#f5871f;">4 5 6</span><span style="color:#4d4d4c;">)}
+@{@[] @[]}
+@{</span><span style="color:#f5871f;">1 2 3 4 5 6</span><span style="color:#4d4d4c;">}
+</span></pre>
+<p>In contrast to PHP associative arrays, Phel tables can have any type of keys.</p>
+<h2 id="comments">Comments</h2>
+<p>Comments begin with a <code>#</code> character and continue until the end of the line. There are no multi-line comments.</p>
+<pre style="background-color:#ffffff;">
+<span style="color:#999999;"># This is a comment
+</span></pre>
+
+    </div>
+</div>
+
+<script src="/livereload.js?port=1024&amp;mindelay=10"></script></body>
+
+</html>

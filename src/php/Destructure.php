@@ -2,6 +2,9 @@
 
 namespace Phel;
 
+use Exception;
+use Phel\Exceptions\AnalyzerException;
+use Phel\Lang\Phel;
 use Phel\Lang\Symbol;
 use Phel\Lang\Tuple;
 
@@ -21,15 +24,71 @@ class Destructure {
         if ($binding instanceof Symbol) {
             $this->processSymbol($bindings, $binding, $value);
         } else if ($binding instanceof Tuple) {
-            $this->processTuple($bindings, $binding, $value);
+            if (count($binding) > 0 && $binding[0] == new Symbol('table')) {
+                $this->processTable($bindings, $binding, $value);
+            } else if (count($binding) > 0 && $binding[0] == new Symbol('array')) {
+                $this->processArray($bindings, $binding, $value);
+            } else {
+                $this->processTuple($bindings, $binding, $value);
+            }
+        } else {
+            $type = gettype($binding);
+            if ($type == 'object') {
+                $type = get_class($binding);
+            }
+
+            if ($binding instanceof Phel) {
+                throw new AnalyzerException(
+                    "Can not destructure " .  $type,
+                    $binding->getStartLocation(),
+                    $binding->getEndLocation()
+                );
+            } else {
+                // TODO: How can we get start and end location here?
+                throw new Exception("Can not destructure " .  $type);
+            }
         }
     }
 
-    public function processSymbol(array &$bindings, Symbol $binding, $value) {
-        $bindings[] = [$binding, $value];
+    private function processTable(array &$bindings, Tuple $b, $value) {
+        $tableSymbol = Symbol::gen();
+        $bindings[] = [$tableSymbol, $value];
+
+        for ($i = 1; $i < count($b); $i+=2) {
+            $key = $b[$i];
+            $bindTo = $b[$i+1];
+
+            $accessSym = Symbol::gen();
+            $accessValue = Tuple::create(new Symbol('php/aget'), $tableSymbol, $key);
+            $bindings[] = [$accessSym, $accessValue];
+
+            $this->destructure($bindings, $bindTo, $accessSym);
+        }
     }
 
-    private function processTuple(array &$bindings, $b, $value) {
+    private function processArray(array &$bindings, $b, $value) {
+        $arrSymbol = Symbol::gen();
+        $bindings[] = [$arrSymbol, $value];
+
+        for ($i = 1; $i < count($b); $i+=2) {
+            $index = $b[$i];
+            $bindTo = $b[$i+1];
+
+            $accessSym = Symbol::gen();
+            $accessValue = Tuple::create(new Symbol('php/aget'), $arrSymbol, $index);
+            $bindings[] = [$accessSym, $accessValue];
+
+            $this->destructure($bindings, $bindTo, $accessSym);
+        }
+    }
+
+    private function processSymbol(array &$bindings, Symbol $binding, $value) {
+        if ($binding->getName() !== "_") {
+            $bindings[] = [$binding, $value];
+        }
+    }
+
+    private function processTuple(array &$bindings, Tuple $b, $value) {
         $arrSymbol = Symbol::gen();
         $bindings[] = [$arrSymbol, $value];
         $lastListSym = $arrSymbol;
@@ -41,7 +100,7 @@ class Destructure {
                 case 'start':
                     if ($current instanceof Symbol && $current->getName() == '&') {
                         $state = 'rest';
-                    } else if (!($current instanceof Symbol && $current->getName() == '_')) {
+                    } else {
                         $accessSym = Symbol::gen();
                         $accessValue = Tuple::create(new Symbol('php/aget'), $lastListSym, 0);
                         $bindings[] = [$accessSym, $accessValue];
@@ -56,14 +115,15 @@ class Destructure {
                     break;
                 case 'rest':
                     $state = 'done';
-                    if (!($current instanceof Symbol && $current->getName() == '_')) {
-                        $bindings[] = [$accessSym, $lastListSym];
-
-                        $this->destructure($bindings, $current, $accessSym);
-                    }
+                    $bindings[] = [$accessSym, $lastListSym];
+                    $this->destructure($bindings, $current, $accessSym);
                     break;
                 case 'done':
-                    throw new \Exception('Unsupported binding form, only one symbol can follow the & parameter');
+                    throw new AnalyzerException(
+                        'Unsupported binding form, only one symbol can follow the & parameter',
+                        $b->getStartLocation(),
+                        $b->getEndLocation()
+                    );
             }
             
         }
