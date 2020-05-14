@@ -6,13 +6,15 @@ use \PHPUnit\Framework\TestCase;
 
 class RuntimeMock extends Runtime {
     public $files = array();
+    public $loadedFile = null;
 
     public function setFiles(array $files) {
         $this->files = $files;
     }
 
-    protected function loadFile($filename, $ns) {
-        return $filename;
+    protected function loadFile(string $filename, string $ns): bool {
+        $this->loadedFile = $filename;
+        return true;
     }
 
     protected function fileExists($filename): bool {
@@ -45,14 +47,16 @@ class RuntimeTest extends TestCase {
     }
 
     public function testExistingFile() {
+        $this->runtime->loadNs('Foo\Bar\Core');
         $this->assertEquals(
             '/vendor/foo.bar/src/Core.phel',
-            $this->runtime->loadNs('Foo\Bar\Core')
+            $this->runtime->loadedFile
         );
 
+        $this->runtime->loadNs('Foo\Bar\Test');
         $this->assertEquals(
             '/vendor/foo.bar/tests/Test.phel',
-            $this->runtime->loadNs('Foo\Bar\Test')
+            $this->runtime->loadedFile
         );
     }
 
@@ -61,21 +65,24 @@ class RuntimeTest extends TestCase {
     }
 
     public function testDeepFile() {
+        $this->runtime->loadNs('Foo\Bar\Baz\Dib\Zim\Gir\Core');
         $this->assertEquals(
             '/vendor/foo.bar.baz.dib.zim.gir/src/Core.phel',
-            $this->runtime->loadNs('Foo\Bar\Baz\Dib\Zim\Gir\Core')
+            $this->runtime->loadedFile
         );
     }
 
     public function testConfusion() {
+        $this->runtime->loadNs('Foo\Bar\Doom');
         $this->assertEquals(
             '/vendor/foo.bar/src/Doom.phel',
-            $this->runtime->loadNs('Foo\Bar\Doom')
+            $this->runtime->loadedFile
         );
 
+        $this->runtime->loadNs('Foo\BarDoom\Core');
         $this->assertEquals(
             '/vendor/foo.bardoom/src/Core.phel',
-            $this->runtime->loadNs('Foo\BarDoom\Core')
+            $this->runtime->loadedFile
         );
     }
 }

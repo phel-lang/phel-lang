@@ -29,10 +29,18 @@ class NodeEnvironment {
     protected $context;
 
     /**
-     * @var RecurFrame[]
+     * @var array
      */
     protected $recurFrames;
 
+    /**
+     * Constructor
+     * 
+     * @param Symbol[] $locals A list of local symbols
+     * @param string $context The current context (Expression, Statement or Return)
+     * @param Symbol[] $shadowed A list of shadowed variables
+     * @param array $recurFrames A list of RecurFrame
+     */
     public function __construct($locals, $context, $shadowed, $recurFrames)
     {
         $this->locals = $locals;
@@ -41,15 +49,18 @@ class NodeEnvironment {
         $this->recurFrames = $recurFrames;
     }
 
-    public static function empty() {
+    public static function empty(): NodeEnvironment {
         return new NodeEnvironment([], NodeEnvironment::CTX_STMT, [], []);
     }
 
+    /**
+     * @return Symbol[]
+     */
     public function getLocals() {
         return $this->locals;
     }
 
-    public function hasLocal(Symbol $x) {
+    public function hasLocal(Symbol $x): bool {
         return in_array(new Symbol($x->getName()), $this->locals);
     }
 
@@ -58,9 +69,9 @@ class NodeEnvironment {
      * 
      * @param Symbol $local The local variable
      * 
-     * @return boolean
+     * @return bool
      */
-    public function isShadowed(Symbol $local) {
+    public function isShadowed(Symbol $local): bool {
         return array_key_exists($local->getName(), $this->shadowed);
     }
 
@@ -71,7 +82,7 @@ class NodeEnvironment {
      * 
      * @return Symbol|null
      */
-    public function getShadowed(Symbol $local) {
+    public function getShadowed(Symbol $local): ?Symbol {
         if ($this->isShadowed($local)) {
             return $this->shadowed[$local->getName()];
         } else {
@@ -79,7 +90,7 @@ class NodeEnvironment {
         }
     }
 
-    public function getContext() {
+    public function getContext(): string {
         return $this->context;
     }
 
@@ -88,7 +99,7 @@ class NodeEnvironment {
         return new NodeEnvironment($finalLocals, $this->context, $this->shadowed, $this->recurFrames);
     }
 
-    public function withShadowedLocal(Symbol $local, Symbol $shadow) {
+    public function withShadowedLocal(Symbol $local, Symbol $shadow): NodeEnvironment {
         $finalShadowed = array_merge($this->shadowed, [$local->getName() => $shadow]);
         return new NodeEnvironment($this->locals, $this->context, $finalShadowed, $this->recurFrames);
     }
@@ -97,19 +108,19 @@ class NodeEnvironment {
         return new NodeEnvironment($locals, $this->context, $this->shadowed, $this->recurFrames);
     }
 
-    public function withContext($context): NodeEnvironment {
+    public function withContext(string $context): NodeEnvironment {
         return new NodeEnvironment($this->locals, $context, $this->shadowed, $this->recurFrames);
     }
 
-    public function withAddedRecurFrame(RecurFrame $frame) {
+    public function withAddedRecurFrame(RecurFrame $frame): NodeEnvironment {
         return new NodeEnvironment($this->locals, $this->context, $this->shadowed, array_merge($this->recurFrames, [$frame]));
     }
 
-    public function withDisallowRecurFrame() {
+    public function withDisallowRecurFrame(): NodeEnvironment {
         return new NodeEnvironment($this->locals, $this->context, $this->shadowed, array_merge($this->recurFrames, [null]));
     }
 
-    public function getCurrentRecurFrame() {
+    public function getCurrentRecurFrame(): ?RecurFrame {
         if (count($this->recurFrames) > 0) {
             return $this->recurFrames[count($this->recurFrames) - 1];
         } else {

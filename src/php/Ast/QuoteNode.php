@@ -17,12 +17,19 @@ class QuoteNode implements Node {
      */
     protected $value;
 
+    /**
+     * @param NodeEnvironment $env
+     * @param mixed $value
+     */
     public function __construct(NodeEnvironment $env, $value)
     {
         $this->env = $env;
         $this->value = $value;
     }
 
+    /**
+     * @return mixed
+     */
     public function getValue() {
         return $this->value;
     }

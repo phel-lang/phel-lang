@@ -4,6 +4,7 @@ namespace Phel\Lang;
 
 use ArrayAccess;
 use Countable;
+use Exception;
 use Iterator;
 use Phel\Printer;
 
@@ -19,11 +20,26 @@ class Table extends Phel implements ArrayAccess, Countable, Iterator {
      */
     protected $keys = [];
 
-    public static function empty() {
+    /**
+     * Creates a empty Table.
+     */
+    public static function empty(): Table {
         return new Table();
     }
 
-    public static function fromKVs(...$kvs) {
+    /**
+     * Create a Table from a list of key-value pairs.
+     * 
+     * @param mixed[] $kvs The key-value pairs.
+     * 
+     * @return Table
+     */
+    public static function fromKVs(...$kvs): Table {
+        if (count($kvs) % 2 != 0) {
+            // TODO: Better exception
+            throw new Exception("A even number of elements must be provided");
+        }
+
         $result = new Table();
         for ($i = 0; $i < count($kvs); $i += 2) {
             $result[$kvs[$i]] = $kvs[$i+1];
@@ -31,7 +47,7 @@ class Table extends Phel implements ArrayAccess, Countable, Iterator {
         return $result;
     }
 
-    public static function fromKVArray(array $kvs) {
+    public static function fromKVArray(array $kvs): Table {
         return self::fromKVs(...$kvs);
     }
 
@@ -60,6 +76,9 @@ class Table extends Phel implements ArrayAccess, Countable, Iterator {
         unset($this->data[$hash]);
     }
 
+    /**
+     * @return mixed|null
+     */
     public function offsetGet($offset) {
         $hash = $this->offsetHash($offset);
 
@@ -74,6 +93,9 @@ class Table extends Phel implements ArrayAccess, Countable, Iterator {
         return current($this->data);
     }
 
+    /**
+     * @return mixed|null
+     */
     public function key() {
         $key = key($this->data);
 
@@ -85,7 +107,7 @@ class Table extends Phel implements ArrayAccess, Countable, Iterator {
     }
 
     public function next() {
-        return next($this->data);
+        next($this->data);
     }
 
     public function rewind() {
@@ -96,7 +118,7 @@ class Table extends Phel implements ArrayAccess, Countable, Iterator {
         return key($this->data) !== null;
     }
 
-    public function hash() {
+    public function hash(): string {
         return spl_object_hash($this);
     }
 
@@ -104,13 +126,20 @@ class Table extends Phel implements ArrayAccess, Countable, Iterator {
         return $this === $other;
     }
 
-    private function offsetHash($offset) {
+    /**
+     * Creates a hash for the given key.
+     * 
+     * @param mixed $offset The access key of the Table.
+     * 
+     * @return string
+     */
+    private function offsetHash($offset): string {
         if ($offset instanceof Phel) {
             return $offset->hash();
-        } else if ($offset instanceof object) {
+        } else if (is_object($offset)) {
             return spl_object_hash($offset);
         } else {
-            return $offset;
+            return (string) $offset;
         }
     }
 

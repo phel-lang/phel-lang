@@ -2,7 +2,9 @@
 
 namespace Phel\Exceptions;
 
+use Exception;
 use Phel\Stream\CodeSnippet;
+use Phel\Stream\SourceLocation;
 
 class ReaderException extends PhelCodeException {
 
@@ -11,12 +13,18 @@ class ReaderException extends PhelCodeException {
      */
     private $codeSnippet;
 
-    public function __construct($message, $startLocation, $endLocation, $codeSnippet, $nestedException = null) {
+    public function __construct(
+        string $message, 
+        SourceLocation $startLocation, 
+        SourceLocation $endLocation, 
+        CodeSnippet $codeSnippet, 
+        ?Exception $nestedException = null
+    ) {
         parent::__construct($message, $startLocation, $endLocation, $nestedException);
         $this->codeSnippet = $codeSnippet;
     }
 
-    public function getCodeSnippet() {
+    public function getCodeSnippet(): CodeSnippet {
         return $this->codeSnippet;
     }
 }

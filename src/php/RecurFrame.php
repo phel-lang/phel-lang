@@ -6,6 +6,9 @@ use Phel\Lang\Symbol;
 
 class RecurFrame {
 
+    /**
+     * @var bool
+     */
     private $isActive = false;
 
     /**
@@ -18,15 +21,15 @@ class RecurFrame {
         $this->params = $params;
     }
 
-    public function setIsActive($isActive) {
+    public function setIsActive(bool $isActive): void {
         $this->isActive = $isActive;
     }
 
-    public function isActive() {
+    public function isActive(): bool {
         return $this->isActive;
     }
 
-    public function getParams() {
+    public function getParams(): array {
         return $this->params;
     }
 }

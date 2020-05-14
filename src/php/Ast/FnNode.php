@@ -23,7 +23,7 @@ class FnNode implements Node {
     protected $body;
 
     /**
-     * @var NodeEnvironment
+     * @var Symbol[]
      */
     protected $uses;
 
@@ -37,6 +37,14 @@ class FnNode implements Node {
      */
     protected $recurs;
 
+    /**
+     * @param NodeEnvironment $env
+     * @param Symbol[] $params
+     * @param Node $body
+     * @param Symbol[] $uses
+     * @param bool $isVariadic
+     * @param bool $recurs
+     */
     public function __construct(NodeEnvironment $env, array $params, Node $body, array $uses, bool $isVariadic, bool $recurs)
     {
         $this->env = $env;
@@ -47,14 +55,20 @@ class FnNode implements Node {
         $this->recurs = $recurs;
     }
 
+    /**
+     * @return Symbol[]
+     */
     public function getParams() {
         return $this->params;
     }
 
-    public function getBody() {
+    public function getBody(): Node {
         return $this->body;
     }
 
+    /**
+     * @return Symbol[]
+     */
     public function getUses() {
         return $this->uses;
     }
@@ -63,11 +77,11 @@ class FnNode implements Node {
         return $this->env;
     }
 
-    public function isVariadic() {
+    public function isVariadic(): bool {
         return $this->isVariadic;
     }
 
-    public function getRecurs() {
+    public function getRecurs(): bool {
         return $this->recurs;
     }
 }

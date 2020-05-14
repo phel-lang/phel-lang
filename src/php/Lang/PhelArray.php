@@ -11,16 +11,28 @@ use Phel\Printer;
 class PhelArray extends Phel implements ArrayAccess, Countable, Iterator, ICons, ISlice, ICdr, IRest, IPop, IRemove, IPush, IConcat {
 
     /**
-     * @var Phel[]
+     * @var mixed[]
      */
     protected $data = [];
 
+    /**
+     * Constructor
+     * 
+     * @param mixed[] $data A list of all values
+     */
     public function __construct(array $data)
     {
         $this->data = $data;
     }
 
-    public static function create(...$values) {
+    /**
+     * Create a new array.
+     * 
+     * @param mixed[] $values A list of all values
+     * 
+     * @return PhelArray
+     */
+    public static function create(...$values): PhelArray {
         return new PhelArray($values);
     }
 
@@ -28,7 +40,7 @@ class PhelArray extends Phel implements ArrayAccess, Countable, Iterator, ICons,
         if ($offset < 0 || $offset > count($this->data)) {
             throw new InvalidArgumentException('Index out of bounds: ' . $offset . ' [0,' . count($this->data) . ']');
         }
-        if (is_null($offset)) {
+        if (is_null($value)) {
             unset($this->data[$offset]);
             $this->data = array_values($this->data); // reindex
         } else {
@@ -48,6 +60,9 @@ class PhelArray extends Phel implements ArrayAccess, Countable, Iterator, ICons,
         unset($this->data[$offset]);
     }
 
+    /**
+     * @return mixed|null
+     */
     public function offsetGet($offset) {
         return isset($this->data[$offset]) ? $this->data[$offset] : null;
     }
@@ -65,7 +80,7 @@ class PhelArray extends Phel implements ArrayAccess, Countable, Iterator, ICons,
     }
 
     public function next() {
-        return next($this->data);
+        next($this->data);
     }
 
     public function rewind() {
@@ -76,7 +91,7 @@ class PhelArray extends Phel implements ArrayAccess, Countable, Iterator, ICons,
         return key($this->data) !== null;
     }
 
-    public function hash() {
+    public function hash(): string {
         return spl_object_hash($this);
     }
 
@@ -88,7 +103,7 @@ class PhelArray extends Phel implements ArrayAccess, Countable, Iterator, ICons,
         return true;
     }
 
-    public function slice($offset = 0, $length = null): ISlice {
+    public function slice(int $offset = 0, ?int $length = null): ISlice {
         return new PhelArray(array_slice($this->data, $offset, $length));
     }
 
@@ -97,11 +112,11 @@ class PhelArray extends Phel implements ArrayAccess, Countable, Iterator, ICons,
         return $this;
     }
 
-    public function toPhpArray() {
+    public function toPhpArray(): array {
         return $this->data;
     }
 
-    public function cdr() {
+    public function cdr(): ?ICdr {
         if (count($this->data) - 1 > 0) {
             return new PhelArray(array_slice($this->data, 1));
         } else {
@@ -117,7 +132,7 @@ class PhelArray extends Phel implements ArrayAccess, Countable, Iterator, ICons,
         return array_pop($this->data);
     }
 
-    public function remove($offset, $length = null): IRemove {
+    public function remove(int $offset, ?int $length = null): IRemove {
         $length = $length ?? 1;
 
         return new PhelArray(array_splice($this->data, $offset, $length));

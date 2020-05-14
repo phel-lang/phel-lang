@@ -21,6 +21,13 @@ class ApplyNode implements Node {
      */
     protected $arguments;
 
+    /**
+     * Construtor
+     * 
+     * @param NodeEnvironment $env
+     * @param Node $fn
+     * @param Node[] $arguments
+     */
     public function __construct(NodeEnvironment $env, Node $fn, array $arguments)
     {
         $this->env = $env;
@@ -28,10 +35,13 @@ class ApplyNode implements Node {
         $this->arguments = $arguments;
     }
 
-    public function getFn() {
+    public function getFn(): Node {
         return $this->fn;
     }
 
+    /**
+     * @return Node[]
+     */
     public function getArguments() {
         return $this->arguments;
     }

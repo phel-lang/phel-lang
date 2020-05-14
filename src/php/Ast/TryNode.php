@@ -22,11 +22,17 @@ class TryNode implements Node {
     protected $catches;
 
     /**
-     * @var Node|null
+     * @var ?Node
      */
     protected $finally;
 
-    public function __construct(NodeEnvironment $env, Node $body, array $catches, $finally = null)
+    /**
+     * @param NodeEnvironment $env
+     * @param Node $body
+     * @param CatchNode[] $catches
+     * @param ?Node $finally
+     */
+    public function __construct(NodeEnvironment $env, Node $body, array $catches, ?Node $finally = null)
     {
         $this->env = $env;
         $this->body = $body;
@@ -38,15 +44,18 @@ class TryNode implements Node {
         return $this->env;
     }
 
-    public function getBody() {
+    public function getBody(): Node {
         return $this->body;
     }
 
+    /**
+     * @return CatchNode[]
+     */
     public function getCatches() {
         return $this->catches;
     }
 
-    public function getFinally() {
+    public function getFinally(): ?Node {
         return $this->finally;
     }
 }

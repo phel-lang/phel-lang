@@ -28,11 +28,11 @@ class PhpArrayPushNode implements Node {
         $this->valueExpr = $valueExpr;
     }
 
-    public function getArrayExpr() {
+    public function getArrayExpr(): Node {
         return $this->arrayExpr;
     }
 
-    public function getValueExpr() {
+    public function getValueExpr(): Node {
         return $this->valueExpr;
     }
 

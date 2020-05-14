@@ -37,15 +37,15 @@ class GlobalVarNode implements Node {
         $this->meta = $meta;
     }
 
-    public function getNamespace() {
+    public function getNamespace(): string {
         return $this->namespace;
     }
 
-    public function getName() {
+    public function getName(): Symbol {
         return $this->name;
     }
 
-    public function getMeta() {
+    public function getMeta(): Table {
         return $this->meta;
     }
 
@@ -53,7 +53,7 @@ class GlobalVarNode implements Node {
         return $this->env;
     }
 
-    public function isMacro() {
+    public function isMacro(): bool {
         return $this->meta[new Keyword('macro')] === true;
     }
 }

@@ -35,15 +35,15 @@ class BindingNode implements Node {
         $this->initExpr = $initExpr;
     }
 
-    public function getSymbol() {
+    public function getSymbol(): Symbol {
         return $this->symbol;
     }
 
-    public function getInitExpr() {
+    public function getInitExpr(): Node {
         return $this->initExpr;
     }
 
-    public function getShadow() {
+    public function getShadow(): Symbol {
         return $this->shadow;
     }
 

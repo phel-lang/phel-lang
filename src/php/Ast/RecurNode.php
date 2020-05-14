@@ -22,6 +22,11 @@ class RecurNode implements Node {
      */
     protected $exprs;
 
+    /**
+     * @param NodeEnvironment $env
+     * @param RecurFrame $frame
+     * @param Node[] $exprs
+     */
     public function __construct(NodeEnvironment $env, RecurFrame $frame, array $exprs)
     {
         $this->env = $env;
@@ -29,10 +34,13 @@ class RecurNode implements Node {
         $this->exprs = $exprs;
     }
 
-    public function getFrame() {
+    public function getFrame(): RecurFrame {
         return $this->frame;
     }
 
+    /**
+     * @return Node[]
+     */
     public function getExprs() {
         return $this->exprs;
     }

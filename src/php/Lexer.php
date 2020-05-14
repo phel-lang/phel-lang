@@ -3,14 +3,29 @@
 namespace Phel;
 
 use Exception;
+use Generator;
 use Phel\Stream\SourceLocation;
 
 class Lexer {
     
+    /**
+     * @var int
+     */
     private $cursor = 0;
+
+    /**
+     * @var int
+     */
     private $line = 1;
+
+    /**
+     * @var int
+     */
     private $column = 1;
 
+    /**
+     * @var string[]
+     */
     private $regexps = [
         "([\n \t\r]+)", // Whitespace (index: 2)
         "(\#[^\n]*)", // Comment (index: 3)
@@ -30,6 +45,9 @@ class Lexer {
         "([^\(\)\[\]\{\}',`@ \n\r\t\#]+)" // Atom (index: 17)
     ];
 
+    /**
+     * @var string
+     */
     private $combinedRegex;
 
     public function __construct()
@@ -37,7 +55,7 @@ class Lexer {
         $this->combinedRegex = "/(?:" . implode("|", $this->regexps) . ")/mA";
     }
 
-    public function lexString(string $code, $source = 'string') {
+    public function lexString(string $code, string $source = 'string'): Generator {
         $this->cursor = 0;
         $this->line = 1;
         $this->column = 0;
@@ -61,7 +79,7 @@ class Lexer {
         yield new Token(Token::T_EOF, "", $startLocation, $startLocation);
     }
 
-    private function moveCursor($str) {
+    private function moveCursor(string $str): void {
         $len = strlen($str);
         $this->cursor += $len;
         $lastNewLinePos = strrpos($str, "\n");

@@ -23,7 +23,7 @@ class PropertyOrConstantAccessNode implements Node {
         $this->name = $name;
     }
 
-    public function getName() {
+    public function getName(): Symbol {
         return $this->name;
     }
 

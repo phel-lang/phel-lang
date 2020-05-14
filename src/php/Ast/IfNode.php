@@ -24,7 +24,7 @@ class IfNode implements Node {
     /**
      * @var Node
      */
-    protected $elseEpxr;
+    protected $elseExpr;
 
     public function __construct(NodeEnvironment $env, Node $testExpr, Node $thenExpr, Node $elseExpr)
     {
@@ -34,15 +34,15 @@ class IfNode implements Node {
         $this->elseExpr = $elseExpr;
     }
 
-    public function getTestExpr() {
+    public function getTestExpr(): Node {
         return $this->testExpr;
     }
 
-    public function getThenExpr() {
+    public function getThenExpr(): Node {
         return $this->thenExpr;
     }
 
-    public function getElseExpr() {
+    public function getElseExpr(): Node {
         return $this->elseExpr;
     }
 

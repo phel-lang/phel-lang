@@ -7,12 +7,12 @@ use Phel\Stream\SourceLocation;
 class CodeSnippet {
 
     /**
-     * @var SourceLocation | null
+     * @var SourceLocation
      */
     private $startLocation;
 
     /**
-     * @var SourceLocation | null
+     * @var SourceLocation
      */
     private $endLocation;
 
@@ -21,22 +21,22 @@ class CodeSnippet {
      */
     private $code;
 
-    public function __construct($startLocation, $endLocation, string $code)
+    public function __construct(SourceLocation $startLocation, SourceLocation $endLocation, string $code)
     {
         $this->startLocation = $startLocation;
         $this->endLocation = $endLocation;
         $this->code = $code;
     }
 
-    public function getStartLocation() {
+    public function getStartLocation(): SourceLocation {
         return $this->startLocation;
     }
 
-    public function getEndLocation() {
+    public function getEndLocation(): SourceLocation {
         return $this->endLocation;
     }
 
-    public function getCode() {
+    public function getCode(): string {
         return $this->code;
     }
 }

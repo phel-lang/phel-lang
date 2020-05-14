@@ -2,13 +2,9 @@
 
 namespace Phel;
 
-use Phel\Lang\SourceLocationTrait;
 use Phel\Stream\SourceLocation;
 
 class Token {
-
-    use SourceLocationTrait;
-
     
     public const T_WHITESPACE = 2;
     public const T_COMMENT = 3;
@@ -39,6 +35,16 @@ class Token {
      */
     private $type;
 
+    /**
+     * @var SourceLocation
+     */
+    private $startLocation;
+
+    /**
+     * @var SourceLocation
+     */
+    private $endLocation;
+
     public function __construct(int $type, string $code, SourceLocation $startLocation, SourceLocation $endLocation)
     {
         $this->type = $type;
@@ -53,5 +59,13 @@ class Token {
 
     public function getType(): int {
         return $this->type;
+    }
+
+    public function getStartLocation(): SourceLocation {
+        return $this->startLocation;
+    }
+
+    public function getEndLocation(): SourceLocation {
+        return $this->endLocation;
     }
 }

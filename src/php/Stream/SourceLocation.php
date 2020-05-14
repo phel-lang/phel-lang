@@ -26,27 +26,27 @@ class SourceLocation {
         $this->column = $column;
     }
 
-    public function setFile(string $file) {
+    public function setFile(string $file): void {
         $this->file = $file;
     }
 
-    public function getFile() {
+    public function getFile(): string {
         return $this->file;
     }
 
-    public function setLine(int $line) {
+    public function setLine(int $line): void {
         $this->line = $line;
     }
 
-    public function getLine() {
+    public function getLine(): int {
         return $this->line;
     }
 
-    public function setColumn(int $column) {
+    public function setColumn(int $column): void {
         $this->column = $column;
     }
 
-    public function getColumn() {
+    public function getColumn(): int {
         return $this->column;
     }
 }

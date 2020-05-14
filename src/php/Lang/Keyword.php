@@ -6,8 +6,6 @@ use Phel\Printer;
 
 class Keyword extends Phel implements IIdentical {
 
-    use SourceLocationTrait;
-
     /**
      * @var string
      */
@@ -17,11 +15,11 @@ class Keyword extends Phel implements IIdentical {
         $this->name = $name;
     }
 
-    public function getName() {
+    public function getName(): string {
         return $this->name;
     }
 
-    public function hash() {
+    public function hash(): string {
         return ':' . $this->getName();
     }
 

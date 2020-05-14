@@ -21,6 +21,11 @@ class PhpNewNode implements Node {
      */
     protected $args;
 
+    /**
+     * @param NodeEnvironment $env
+     * @param Node $classExpr
+     * @param Node[] $args
+     */
     public function __construct(NodeEnvironment $env, Node $classExpr, array $args)
     {
         $this->env = $env;
@@ -28,10 +33,13 @@ class PhpNewNode implements Node {
         $this->args = $args;
     }
 
-    public function getClassExpr() {
+    public function getClassExpr(): Node {
         return $this->classExpr;
     }
 
+    /**
+     * @return Node[]
+     */
     public function getArgs() {
         return $this->args;
     }

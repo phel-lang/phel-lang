@@ -3,5 +3,12 @@
 namespace Phel\Lang;
 
 interface ICdr {
-    public function cdr();
+
+    /**
+     * Return the sequence without the first element. If the sequence is empty 
+     * returns null.
+     * 
+     * @return ICdr
+     */
+    public function cdr(): ?ICdr;
 }

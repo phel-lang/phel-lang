@@ -10,20 +10,20 @@
 $__phel_1_2 = \Phel\Lang\Tuple::createBracket(1,2,3,4);
 $sum_3 = 0;
 while(true) {
-  $__phel_4_7 = $__phel_1_2;
-  $__phel_5_8 = ($__phel_4_7)[(0)] ?? null;
-  $__phel_6_9 = ($GLOBALS["__phel"]["phel\\core"]["next"]->get())($__phel_4_7);
-  $x_10 = $__phel_5_8;
-  $__phel_5_11 = $__phel_6_9;
-  $xs_12 = $__phel_5_11;
-  if (\Phel\Lang\Truthy::isTruthy($x_10)) {
-    if (\Phel\Lang\Truthy::isTruthy(($x_10 == null))) {
+  $__phel_4_8 = $__phel_1_2;
+  $__phel_5_9 = ($__phel_4_8)[(0)] ?? null;
+  $__phel_6_10 = ($GLOBALS["__phel"]["phel\\core"]["next"]->get())($__phel_4_8);
+  $x_11 = $__phel_5_9;
+  $__phel_7_12 = $__phel_6_10;
+  $xs_13 = $__phel_7_12;
+  if (\Phel\Lang\Truthy::isTruthy($x_11)) {
+    if (\Phel\Lang\Truthy::isTruthy(($x_11 == null))) {
       $sum_3;
     } else {
-      $__phel_13 = $xs_12;
-      $__phel_14 = ($sum_3 + $x_10);
-      $__phel_1_2 = $__phel_13;
-      $sum_3 = $__phel_14;
+      $__phel_14 = $xs_13;
+      $__phel_15 = ($sum_3 + $x_11);
+      $__phel_1_2 = $__phel_14;
+      $sum_3 = $__phel_15;
       continue;
 
     }

@@ -16,12 +16,19 @@ class PhelArrayNode implements Node {
      */
     protected $args;
 
+    /**
+     * @param NodeEnvironment $env
+     * @param Node[] $args
+     */
     public function __construct(NodeEnvironment $env, array $args)
     {
         $this->env = $env;
         $this->args = $args;
     }
 
+    /**
+     * @return Node[]
+     */
     public function getArgs() {
         return $this->args;
     }

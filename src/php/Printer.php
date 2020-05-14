@@ -2,7 +2,9 @@
 
 namespace Phel;
 
+use Exception;
 use Phel\Lang\Keyword;
+use Phel\Lang\Phel;
 use Phel\Lang\PhelArray;
 use Phel\Lang\Symbol;
 use Phel\Lang\Table;
@@ -10,31 +12,40 @@ use Phel\Lang\Tuple;
 
 class Printer {
 
-    public function print($x, $readable): string {
-        if ($x instanceof Tuple) {
-            return $this->printTuple($x, $readable);
-        } else if ($x instanceof Keyword) {
-            return ':' . $x->getName();
-        } else if ($x instanceof Symbol) {
-            return $x->getName();
-        } else if ($x instanceof PhelArray) {
-            return $this->printArray($x, $readable);
-        } else if ($x instanceof Table) {
-            return $this->printTable($x, $readable);
-        } else if (is_string($x)) {
-            return $this->printString($x, $readable);
-        } else if (is_int($x) || is_float($x)) {
-            return (string) $x;
-        } else if (is_bool($x)) {
-            return $x === true ? 'true' : 'false';
-        } else if ($x === null) {
+    /**
+     * Converts a form to a printable string
+     * 
+     * @param Phel|scalar|null $form The form to print.
+     * @param bool $readable Print in readable format or not.
+     * 
+     * @return string
+     */
+    public function print($form, bool $readable): string {
+        if ($form instanceof Tuple) {
+            return $this->printTuple($form, $readable);
+        } else if ($form instanceof Keyword) {
+            return ':' . $form->getName();
+        } else if ($form instanceof Symbol) {
+            return $form->getName();
+        } else if ($form instanceof PhelArray) {
+            return $this->printArray($form, $readable);
+        } else if ($form instanceof Table) {
+            return $this->printTable($form, $readable);
+        } else if (is_string($form)) {
+            return $this->printString($form, $readable);
+        } else if (is_int($form) || is_float($form)) {
+            return (string) $form;
+        } else if (is_bool($form)) {
+            return $form === true ? 'true' : 'false';
+        } else if ($form === null) {
             return 'nil';
         } else {
-            return (string) $x;
+            // TODO: Better exception
+            throw new Exception("can not print " . gettype($form));
         }
     }
 
-    public function printString(string $str, $readable) {
+    public function printString(string $str, bool $readable): string {
         if (!$readable) {
             return $str;
         } else {
@@ -84,7 +95,7 @@ class Printer {
         }
     }
 
-    public function utf8ToUnicodePoint($s)
+    public function utf8ToUnicodePoint(string $s): string
     {
         $a = ($s = unpack('C*', $s)) ? $s[1] : 0;
         if (0xF0 <= $a) {
@@ -97,40 +108,40 @@ class Printer {
             return dechex((($a - 0xC0) << 6) + $s[2] - 0x80);
         }
 
-        return $a;
+        return (string) $a;
     }
 
 
-    private function printTuple(Tuple $x, $readable) {
-        $prefix = $x->isUsingBracket() ? '[' : '(';
-        $suffix = $x->isUsingBracket() ? ']' : ')';
+    private function printTuple(Tuple $form, bool $readable): string {
+        $prefix = $form->isUsingBracket() ? '[' : '(';
+        $suffix = $form->isUsingBracket() ? ']' : ')';
 
         $args = [];
-        foreach ($x as $elem) {
+        foreach ($form as $elem) {
             $args[] = $this->print($elem, $readable);
         }
 
         return $prefix . implode(" ", $args) . $suffix;
     }
 
-    private function printArray(PhelArray $x, $readable) {
+    private function printArray(PhelArray $form, bool $readable): string {
         $prefix = '@[';
         $suffix = ']';
 
         $args = [];
-        foreach ($x as $elem) {
+        foreach ($form as $elem) {
             $args[] = $this->print($elem, $readable);
         }
 
         return $prefix . implode(" ", $args) . $suffix;
     }
 
-    private function printTable(Table $x, $readable) {
+    private function printTable(Table $form, bool $readable): string {
         $prefix = '@{';
         $suffix = '}';
 
         $args = [];
-        foreach ($x as $key => $value) {
+        foreach ($form as $key => $value) {
             $args[] = $this->print($key, $readable);
             $args[] = $this->print($value, $readable);
         }

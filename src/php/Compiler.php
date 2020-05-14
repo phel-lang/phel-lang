@@ -25,11 +25,11 @@ class Compiler {
         }
     }
 
-    public function compileFile(string $filename, GlobalEnvironment $globalEnv) {
+    public function compileFile(string $filename, GlobalEnvironment $globalEnv): string {
         return $this->compileString(file_get_contents($filename), $globalEnv, $filename);
     }
 
-    public function compileString(string $code, GlobalEnvironment $globalEnv, $source = 'string') {
+    public function compileString(string $code, GlobalEnvironment $globalEnv, string $source = 'string'): string {
         $lexer = new Lexer();
         $reader = new Reader();
         $analzyer = new Analyzer($globalEnv);

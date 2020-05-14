@@ -6,5 +6,5 @@ use Phel\Stream\CodeSnippet;
 
 interface ExceptionPrinter {
 
-    public function printException(PhelCodeException $e, CodeSnippet $codeSnippet);
+    public function printException(PhelCodeException $e, CodeSnippet $codeSnippet): void;
 };

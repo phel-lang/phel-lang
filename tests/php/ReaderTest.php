@@ -247,14 +247,14 @@ class ReaderTest extends TestCase {
 
     public function testReadTable1() {
         $this->assertEquals(
-            $this->loc(Tuple::create(new Symbol('table'), new Keyword('a'), 1), 1, 0, 1, 7),
+            $this->loc(Tuple::create(new Symbol('table'), $this->loc(new Keyword('a'), 1, 2, 1, 4), 1), 1, 0, 1, 7),
             $this->read('@{:a 1}')
         );
     }
 
     public function testReadTable2() {
         $this->assertEquals(
-            $this->loc(Tuple::create(new Symbol('table'), new Keyword('a'), 1, new Keyword('b'), 2), 1, 0, 1, 12),
+            $this->loc(Tuple::create(new Symbol('table'), $this->loc(new Keyword('a'), 1, 2, 1, 4), 1, $this->loc(new Keyword('b'), 1, 7, 1, 9), 2), 1, 0, 1, 12),
             $this->read('@{:a 1 :b 2}')
         );
     }

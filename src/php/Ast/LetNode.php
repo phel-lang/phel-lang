@@ -26,6 +26,12 @@ class LetNode implements Node {
      */
     protected $isLoop;
 
+    /**
+     * @param NodeEnvironment $env
+     * @param BindingNode[] $bindings
+     * @param Node $node
+     * @param bool $isLoop
+     */
     public function __construct(NodeEnvironment $env, array $bindings, Node $bodyExpr, bool $isLoop)
     {
         $this->env = $env;
@@ -34,15 +40,18 @@ class LetNode implements Node {
         $this->isLoop = $isLoop;
     }
 
+    /**
+     * @return BindingNode[]
+     */
     public function getBindings() {
         return $this->bindings;
     }
 
-    public function getBodyExpr() {
+    public function getBodyExpr(): Node {
         return $this->bodyExpr;
     }
 
-    public function isLoop() {
+    public function isLoop(): bool {
         return $this->isLoop;
     }
 

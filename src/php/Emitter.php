@@ -2,6 +2,7 @@
 
 namespace Phel;
 
+use Exception;
 use ParseError;
 use Phel\Ast\ApplyNode;
 use Phel\Ast\CallNode;
@@ -33,6 +34,7 @@ use Phel\Ast\ThrowNode;
 use Phel\Ast\TryNode;
 use Phel\Ast\TupleNode;
 use Phel\Lang\Keyword;
+use Phel\Lang\Phel;
 use Phel\Lang\PhelArray;
 use Phel\Lang\Symbol;
 use Phel\Lang\Table;
@@ -41,6 +43,9 @@ use Throwable;
 
 class Emitter {
 
+    /**
+     * @var array
+     */
     protected $mungeMapping = [
         '-' => '_',
         '.' => '_DOT_',
@@ -69,21 +74,27 @@ class Emitter {
         '?' => "_QMARK_"
     ];
 
-    public function emitAndEval(Node $node) {
+    public function emitAndEval(Node $node): string {
         $code = $this->emit($node);
         // echo $code . "\n";
         $filename = tempnam(sys_get_temp_dir(), '__phel');
-        file_put_contents($filename, "<?php \n" . $code);
-        try {
-            require $filename;
-        } catch (Throwable $e) {
-            throw $e;
+        if ($filename) {
+            file_put_contents($filename, "<?php \n" . $code);
+            try {
+                require $filename;
+            } catch (Throwable $e) {
+                throw $e;
+            }
+        } else {
+            // TODO: Improve exception.
+            throw new Exception("can not create temp file.");
         }
+        
         
         return $code;
     }
 
-    public function emit(Node $node) {
+    public function emit(Node $node): string {
         if ($node instanceof NsNode) {
             return $this->emitNs($node);
         } else if ($node instanceof DefNode) {
@@ -141,9 +152,9 @@ class Emitter {
         }
     }
 
-    protected function emitForeach(ForeachNode $node) {
-        $keyStr = $node->getKeySymbol() ? '$' . $this->munge($node->getKeySymbol()) . ' => ' : '';
-        $valueStr = '$' . $this->munge($node->getValueSymbol());
+    protected function emitForeach(ForeachNode $node): string {
+        $keyStr = $node->getKeySymbol() ? '$' . $this->munge($node->getKeySymbol()->getName()) . ' => ' : '';
+        $valueStr = '$' . $this->munge($node->getValueSymbol()->getName());
         $code = (
             'foreach (' . $this->emit($node->getListExpr()) . ' as ' . $keyStr . $valueStr . ') {'
             . "\n"
@@ -163,39 +174,39 @@ class Emitter {
         }
     }
 
-    protected function emitClassName(PhpClassNameNode $node) {
+    protected function emitClassName(PhpClassNameNode $node): string {
         return $node->getName()->getName();
     }
 
-    protected function emitPhpArrayUnset(PhpArrayUnsetNode $node) {
+    protected function emitPhpArrayUnset(PhpArrayUnsetNode $node): string {
         return $this->wrap(
             'unset((' . $this->emit($node->getArrayExpr()) . ')[('.$this->emit($node->getAccessExpr()).')])',
             $node->getEnv()
         );
     }
 
-    protected function emitPhpArrayGet(PhpArrayGetNode $node) {
+    protected function emitPhpArrayGet(PhpArrayGetNode $node): string {
         return $this->wrap(
             '(' . $this->emit($node->getArrayExpr()) . ')[('.$this->emit($node->getAccessExpr()).')] ?? null',
             $node->getEnv()
         );
     }
 
-    protected function emitPhpArraySet(PhpArraySetNode $node) {
+    protected function emitPhpArraySet(PhpArraySetNode $node): string {
         return $this->wrap(
             '(' . $this->emit($node->getArrayExpr()) . ')[('.$this->emit($node->getAccessExpr()).')] = ' . $this->emit($node->getValueExpr()),
             $node->getEnv()
         );
     }
 
-    protected function emitPhpArrayPush(PhpArrayPushNode $node) {
+    protected function emitPhpArrayPush(PhpArrayPushNode $node): string {
         return $this->wrap(
             '(' . $this->emit($node->getArrayExpr()) . ')[] = ' . $this->emit($node->getValueExpr()),
             $node->getEnv()
         );
     }
 
-    protected function emitTry(TryNode $node) {
+    protected function emitTry(TryNode $node): string {
         if ($node->getFinally() || count($node->getCatches()) > 0) {
             $bodyCode = (
                 'try {' . "\n" 
@@ -230,7 +241,7 @@ class Emitter {
         }
     }
 
-    protected function emitCatch(CatchNode $node) {
+    protected function emitCatch(CatchNode $node): string {
         return (
             ' catch (' . $node->getType()->getName() . ' $' . $this->munge($node->getName()->getName()) . ') {' . "\n"
             . $this->indent($this->emit($node->getBody()), 1)
@@ -239,7 +250,7 @@ class Emitter {
         );
     }
 
-    protected function emitThrow(ThrowNode $node) {
+    protected function emitThrow(ThrowNode $node): string {
         $code = "throw " . $this->emit($node->getExceptionExpr()) . ";";
 
         if ($node->getEnv()->getContext() == NodeEnvironment::CTX_EXPR) {
@@ -249,7 +260,7 @@ class Emitter {
         }
     }
 
-    protected function emitRecur(RecurNode $node) {
+    protected function emitRecur(RecurNode $node): string {
         $params = $node->getFrame()->getParams();
         $exprs = $node->getExprs();
         $env = $node->getEnv();
@@ -259,8 +270,9 @@ class Emitter {
         foreach ($exprs as $i => $expr) {
             $tempSym = Symbol::gen();
             $paramSym = $params[$i];
-            if ($env->isShadowed($paramSym)) {
-                $paramSym = $env->getShadowed($paramSym);
+            $shadowedSym = $env->getShadowed($paramSym);
+            if ($shadowedSym) {
+                $paramSym = $shadowedSym;
             }
             $tempCode[] = '$' . $tempSym->getName() . ' = ' . $this->emit($expr) . ';';
             $setCode[] = '$' . $this->munge($paramSym->getName()) . ' = ' . '$' . $tempSym->getName() . ';';
@@ -275,18 +287,18 @@ class Emitter {
         );
     }
 
-    protected function emitNs(NsNode $node) {
+    protected function emitNs(NsNode $node): string {
         $requireNs = $node->getRequireNs();
         if (count($requireNs) > 0) {
-            return implode("\n", array_map(function($ns) {
-                return '\Phel\Runtime::getInstance()->loadNs("' . \addslashes($ns) . '");';
+            return implode("\n", array_map(function(Symbol $ns): string {
+                return '\Phel\Runtime::getInstance()->loadNs("' . \addslashes($ns->getName()) . '");';
             }, $requireNs));
         } else {
             return '';
         }
     }
 
-    protected function emitObjectCall(PhpObjectCallNode $node) {
+    protected function emitObjectCall(PhpObjectCallNode $node): string {
         $fnCode = $node->isStatic() ? '::' : '->';
         $targetExpr = $node->getTargetExpr();
         $callExpr = $node->getCallExpr();
@@ -325,7 +337,7 @@ class Emitter {
         }
     }
 
-    protected function emitPhpVar(PhpVarNode $node) {
+    protected function emitPhpVar(PhpVarNode $node): string {
         if ($node->isCallable()) {
             return $this->wrap('(function(...$args) { return ' . $node->getName() . '(...$args);' . '})', $node->getEnv());
         } else {
@@ -333,7 +345,7 @@ class Emitter {
         }
     }
 
-    protected function emitPhpNew(PhpNewNode $node) {
+    protected function emitPhpNew(PhpNewNode $node): string {
         $args = [];
         foreach ($node->getArgs() as $arg) {
             $args[] = $this->emit($arg);
@@ -359,7 +371,7 @@ class Emitter {
         }
     }
 
-    protected function emitTuple(TupleNode $node) {
+    protected function emitTuple(TupleNode $node): string {
         $args = [];
         foreach ($node->getArgs() as $arg) {
             $args[] = $this->emit($arg);
@@ -368,7 +380,7 @@ class Emitter {
         return $this->wrap('\Phel\Lang\Tuple::createBracket(' . implode(',', $args) . ')', $node->getEnv());
     }
 
-    protected function emitApply(ApplyNode $node) {
+    protected function emitApply(ApplyNode $node): string {
         $args = [];
         foreach ($node->getArguments() as $arg) {
             $args[] = $this->emit($arg);
@@ -412,7 +424,7 @@ class Emitter {
         }
     }
 
-    protected function emitIf(IfNode $node) {
+    protected function emitIf(IfNode $node): string {
         if ($node->getEnv()->getContext() == NodeEnvironment::CTX_EXPR) {
             return (
                 '(\Phel\Lang\Truthy::isTruthy(' . $this->emit($node->getTestExpr()) . '))'  // TODO: Make sure test expr evals to true or false
@@ -432,7 +444,7 @@ class Emitter {
         }
     }
 
-    protected function emitCall(CallNode $node) {
+    protected function emitCall(CallNode $node): string {
         $args = [];
         foreach ($node->getArguments() as $arg) {
             $args[] = $this->emit($arg);
@@ -463,15 +475,15 @@ class Emitter {
         }
     }
 
-    protected function emitLocalVar(LocalVarNode $node) {
+    protected function emitLocalVar(LocalVarNode $node): string {
         return $this->wrap('$' . $this->munge($node->getName()->getName()), $node->getEnv());
     }
 
-    protected function emitGlobalVar(GlobalVarNode $node) {
+    protected function emitGlobalVar(GlobalVarNode $node): string {
         return $this->wrap($this->emitGlobalBase($node->getNamespace(), $node->getName()) . '->get()', $node->getEnv());
     }
 
-    protected function emitLet(LetNode $node) {
+    protected function emitLet(LetNode $node): string {
         $parts = [];
         foreach ($node->getBindings() as $binding) {
             $parts[] = (
@@ -497,7 +509,7 @@ class Emitter {
         }
     }
 
-    protected function emitDo(DoNode $node) {
+    protected function emitDo(DoNode $node): string {
         $parts = [];
 
         foreach ($node->getStmts() as $stmt) {
@@ -514,7 +526,7 @@ class Emitter {
         }
     }
 
-    protected function emitQuote(QuoteNode $node) {
+    protected function emitQuote(QuoteNode $node): string {
         return $this->wrap($this->emitPhel($node->getValue()), $node->getEnv());
     }
 
@@ -533,8 +545,9 @@ class Emitter {
 
         $uses = [];
         foreach ($node->getUses() as $u) {
-            if ($node->getEnv()->isShadowed($u)) {
-                $u = $node->getEnv()->getShadowed($u);
+            $shadowed = $node->getEnv()->getShadowed($u);
+            if ($shadowed) {
+                $u = $shadowed;
             }
 
             $uses[] = '$' . $this->munge($u->getName());
@@ -581,6 +594,13 @@ class Emitter {
         }
     }
 
+    /**
+     * Emits a Phel value.
+     * 
+     * @param Phel|scalar|null $x The value
+     * 
+     * @return string
+     */
     protected function emitPhel($x): string {
         if (is_float($x)) {
             return $this->printFloat($x);
@@ -640,23 +660,23 @@ class Emitter {
         }
     }
 
-    private function emitGlobalBase($namespace, Symbol $name) {
+    private function emitGlobalBase(string $namespace, Symbol $name): string {
         return '$GLOBALS["__phel"]["' . addslashes($namespace) . '"]["' . addslashes($name->getName()) . '"]';
     }
 
-    private function indent($text, $i) {
+    private function indent(string $text, int $i): string {
         if ($text == '' && strpos($text, "\n") === false) {
             return $text;
         } else {
             $lines = explode("\n", $text);
             $indentString = str_repeat('  ', $i);
-            $f = function($line) use($indentString) { return ($line == '') ? $line : $indentString . $line; };
+            $f = function(string $line) use($indentString): string { return ($line == '') ? $line : $indentString . $line; };
 
             return implode("\n", array_map($f, $lines));
         }
     }
 
-    private function wrap($code, NodeEnvironment $env) {
+    private function wrap(string $code, NodeEnvironment $env): string {
         return (
             ($env->getContext() == NodeEnvironment::CTX_RET ? 'return ' : '')
             . $code
@@ -664,11 +684,12 @@ class Emitter {
         );
     }
 
-    private function wrapFn($code, NodeEnvironment $env) {
+    private function wrapFn(string $code, NodeEnvironment $env): string {
         $uses = [];
         foreach ($env->getLocals() as $l) {
-            if ($env->isShadowed($l)) {
-                $uses[] = '$' . $this->munge($env->getShadowed($l)->getName());
+            $shadowed = $env->getShadowed($l);
+            if ($shadowed) {
+                $uses[] = '$' . $this->munge($shadowed->getName());
             } else {
                 $uses[] = '$' . $this->munge($l->getName());
             }
@@ -686,7 +707,7 @@ class Emitter {
         );
     }
 
-    private function wrapRecur($code) {
+    private function wrapRecur(string $code): string {
         return (
             'while(true) {' . "\n"
             . $this->indent($code, 1)
@@ -696,19 +717,17 @@ class Emitter {
         );
     }
 
-    private function printFloat(float $x) {
-        $str = (string) $x;
-
-        if (is_int($str + 0)) {
+    private function printFloat(float $x): string {
+        if (intval($x) == $x) {
             // (string) 10.0 will return 10 and not 10.0
             // so we just add a .0 at the end
-            return $str . '.0';
+            return ((string) $x) . '.0';
         } else {
-            return $str;
+            return ((string) $x);
         }
     }
 
-    protected function munge(string $s) {
+    protected function munge(string $s): string {
         if ($s == 'this') {
             return '__phel_this';
         } else {

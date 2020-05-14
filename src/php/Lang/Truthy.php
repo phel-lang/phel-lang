@@ -4,7 +4,14 @@ namespace Phel\Lang;
 
 class Truthy {
 
-    public static function isTruthy($value) {
+    /**
+     * Check if a value is truthy.
+     * 
+     * @param mixed $value The provided value
+     * 
+     * @return bool
+     */
+    public static function isTruthy($value): bool {
         if ($value instanceof Phel) {
             return $value->isTruthy();
         } else {

@@ -40,11 +40,11 @@ class PhpObjectCallNode implements Node {
         $this->methodCall = $isMethodCall;
     }
 
-    public function getTargetExpr() {
+    public function getTargetExpr(): Node {
         return $this->targetExpr;
     }
 
-    public function getCallExpr() {
+    public function getCallExpr(): Node {
         return $this->callExpr;
     }
 
@@ -52,11 +52,11 @@ class PhpObjectCallNode implements Node {
         return $this->env;
     }
 
-    public function isStatic() {
+    public function isStatic(): bool {
         return $this->static;
     }
     
-    public function isMethodCall() {
+    public function isMethodCall(): bool {
         return $this->methodCall;
     }
 }

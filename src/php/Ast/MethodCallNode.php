@@ -22,6 +22,11 @@ class MethodCallNode implements Node {
      */
     protected $args;
 
+    /**
+     * @param NodeEnvironment $env
+     * @param Symbol $fn
+     * @param Node[] $args
+     */
     public function __construct(NodeEnvironment $env, Symbol $fn, array $args)
     {
         $this->env = $env;
@@ -29,10 +34,13 @@ class MethodCallNode implements Node {
         $this->args = $args;
     }
 
-    public function getFn() {
+    public function getFn(): Symbol {
         return $this->fn;
     }
 
+    /**
+     * @return Node[]
+     */
     public function getArgs() {
         return $this->args;
     }

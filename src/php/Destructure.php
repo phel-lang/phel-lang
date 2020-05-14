@@ -10,7 +10,7 @@ use Phel\Lang\Tuple;
 
 class Destructure {
 
-    public function run(Tuple $x) {
+    public function run(Tuple $x): array {
         $bindings = [];
         
         for ($i = 0; $i < count($x); $i+=2) {
@@ -20,7 +20,12 @@ class Destructure {
         return $bindings;
     }
 
-    private function destructure(array &$bindings, $binding, $value) {
+    /**
+     * @param array $bindings
+     * @param Phel|scalar|null $binding
+     * @param mixed $value
+     */
+    private function destructure(array &$bindings, $binding, $value): void {
         if ($binding instanceof Symbol) {
             $this->processSymbol($bindings, $binding, $value);
         } else if ($binding instanceof Tuple) {
@@ -32,9 +37,10 @@ class Destructure {
                 $this->processTuple($bindings, $binding, $value);
             }
         } else {
-            $type = gettype($binding);
-            if ($type == 'object') {
+            if (is_object($binding)) {
                 $type = get_class($binding);
+            } else {
+                $type = gettype($binding);
             }
 
             if ($binding instanceof Phel) {
@@ -50,7 +56,12 @@ class Destructure {
         }
     }
 
-    private function processTable(array &$bindings, Tuple $b, $value) {
+    /**
+     * @param array $bindings
+     * @param Tuple $b
+     * @param mixed $value
+     */
+    private function processTable(array &$bindings, Tuple $b, $value): void {
         $tableSymbol = Symbol::gen();
         $bindings[] = [$tableSymbol, $value];
 
@@ -66,7 +77,12 @@ class Destructure {
         }
     }
 
-    private function processArray(array &$bindings, $b, $value) {
+    /**
+     * @param array $bindings
+     * @param Tuple $b
+     * @param mixed $value
+     */
+    private function processArray(array &$bindings, Tuple $b, $value): void {
         $arrSymbol = Symbol::gen();
         $bindings[] = [$arrSymbol, $value];
 
@@ -82,13 +98,23 @@ class Destructure {
         }
     }
 
-    private function processSymbol(array &$bindings, Symbol $binding, $value) {
+    /**
+     * @param array $bindings
+     * @param Symbol $b
+     * @param mixed $value
+     */
+    private function processSymbol(array &$bindings, Symbol $binding, $value): void {
         if ($binding->getName() !== "_") {
             $bindings[] = [$binding, $value];
         }
     }
 
-    private function processTuple(array &$bindings, Tuple $b, $value) {
+    /**
+     * @param array $bindings
+     * @param Tuple $b
+     * @param mixed $value
+     */
+    private function processTuple(array &$bindings, Tuple $b, $value): void {
         $arrSymbol = Symbol::gen();
         $bindings[] = [$arrSymbol, $value];
         $lastListSym = $arrSymbol;
@@ -115,6 +141,7 @@ class Destructure {
                     break;
                 case 'rest':
                     $state = 'done';
+                    $accessSym = Symbol::gen();
                     $bindings[] = [$accessSym, $lastListSym];
                     $this->destructure($bindings, $current, $accessSym);
                     break;

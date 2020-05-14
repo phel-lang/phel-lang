@@ -42,19 +42,19 @@ class DefNode implements Node {
         $this->init = $init;
     }
 
-    public function getNamespace() {
+    public function getNamespace(): string {
         return $this->namespace;
     }
 
-    public function getName() {
+    public function getName(): Symbol {
         return $this->name;
     }
 
-    public function getMeta() {
+    public function getMeta(): Table {
         return $this->meta;
     }
 
-    public function getInit() {
+    public function getInit(): Node {
         return $this->init;
     }
 

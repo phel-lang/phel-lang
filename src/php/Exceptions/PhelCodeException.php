@@ -8,27 +8,27 @@ use Phel\Stream\SourceLocation;
 class PhelCodeException extends Exception {
 
     /**
-     * @var SourceLocation
+     * @var ?SourceLocation
      */
     private $startLocation;
 
     /**
-     * @var SourceLocation
+     * @var ?SourceLocation
      */
     private $endLocation;
 
-    public function __construct($message, $startLocation, $endLocation, $nestedException = null)
+    public function __construct(string $message, ?SourceLocation $startLocation = null, ?SourceLocation $endLocation = null, ?Exception $nestedException = null)
     {
         parent::__construct($message, 0, $nestedException);
         $this->startLocation = $startLocation;
         $this->endLocation = $endLocation;
     }
 
-    public function getStartLocation() {
+    public function getStartLocation(): ?SourceLocation {
         return $this->startLocation;
     }
 
-    public function getEndLocation() {
+    public function getEndLocation(): ?SourceLocation {
         return $this->endLocation;
     }
 }

@@ -3,6 +3,7 @@
 namespace Phel;
 
 use Phel\Lang\Keyword;
+use Phel\Lang\Phel;
 use Phel\Lang\PhelArray;
 use Phel\Lang\Symbol;
 use Phel\Lang\Table;
@@ -10,7 +11,10 @@ use Phel\Lang\Tuple;
 
 class Quasiquote {
 
-    private function isLiteral($x) {
+    /**
+     * @param Phel|scalar|null $x The form to check.
+     */
+    private function isLiteral($x): bool {
         return is_string($x) 
           || is_float($x)
           || is_int($x)
@@ -21,8 +25,14 @@ class Quasiquote {
           || $x instanceof Table;
     }
 
+    /**
+     * @param Phel|scalar|null $form The form to quasiqoute
+     * 
+     * @return Phel|scalar|null
+     */
     public function quasiquote($form) {
         if ($this->isUnquote($form)) {
+            /** @var Tuple $form */
             return $form[1];
         } else if ($this->isUnquoteSplicing($form)) {
             throw new \Exception('splice not in list');
@@ -37,7 +47,7 @@ class Quasiquote {
         }
     }
 
-    private function expandList($seq) {
+    private function expandList(Tuple $seq): array {
         $xs = [];
         foreach ($seq as $item) {
             if ($this->isUnquote($item)) {
@@ -52,10 +62,20 @@ class Quasiquote {
         return $xs;
     }
 
+    /**
+     * @param Phel|scalar|null $form The form to quasiqoute
+     * 
+     * @return bool
+     */
     private function isUnquote($form) {
         return $form instanceof Tuple && $form[0] == 'unquote';
     }
 
+    /**
+     * @param Phel|scalar|null $form The form to quasiqoute
+     * 
+     * @return bool
+     */
     private function isUnquoteSplicing($form) {
         return $form instanceof Tuple && $form[0] == 'unquote-splicing';
     }

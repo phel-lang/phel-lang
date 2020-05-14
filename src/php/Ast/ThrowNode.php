@@ -22,7 +22,7 @@ class ThrowNode implements Node {
         $this->exceptionExpr = $exceptionExpr;
     }
 
-    public function getExceptionExpr() {
+    public function getExceptionExpr(): Node {
         return $this->exceptionExpr;
     }
 

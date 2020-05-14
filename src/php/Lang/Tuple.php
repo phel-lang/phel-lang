@@ -20,17 +20,37 @@ class Tuple extends Phel implements ArrayAccess, Countable, Iterator, ISlice, IC
      */
     protected $usingBracket;
 
-    public function __construct($data, $usingBracket = false)
+    /**
+     * Constructor
+     * 
+     * @param array $data A list of values
+     * @param bool $bool $usingBracket True if this is bracket tuple.
+     */
+    public function __construct(array $data, bool $usingBracket = false)
     {
         $this->data = $data;
         $this->usingBracket = $usingBracket;
     }
 
-    public static function create(...$values) {
+    /**
+     * Create a new Tuple.
+     * 
+     * @param Phel|scalar|null ...$values The values
+     * 
+     * @return Tuple
+     */
+    public static function create(...$values): Tuple {
         return new Tuple($values);
     }
 
-    public static function createBracket(...$values) {
+    /**
+     * Create a new bracket Tuple.
+     * 
+     * @param Phel|scalar|null ...$values The values
+     * 
+     * @return Tuple
+     */
+    public static function createBracket(...$values): Tuple {
         return new Tuple($values, true);
     }
 
@@ -46,6 +66,9 @@ class Tuple extends Phel implements ArrayAccess, Countable, Iterator, ISlice, IC
         throw new \InvalidArgumentException('Calling offsetUnset is not supported on Tuples since they are immutable');
     }
 
+    /**
+     * @return mixed|null
+     */
     public function offsetGet($offset) {
         return isset($this->data[$offset]) ? $this->data[$offset] : null;
     }
@@ -54,7 +77,7 @@ class Tuple extends Phel implements ArrayAccess, Countable, Iterator, ISlice, IC
         return count($this->data);
     }
 
-    public function isUsingBracket() {
+    public function isUsingBracket(): bool {
         return $this->usingBracket;
     }
 
@@ -67,7 +90,7 @@ class Tuple extends Phel implements ArrayAccess, Countable, Iterator, ISlice, IC
     }
 
     public function next() {
-        return next($this->data);
+        next($this->data);
     }
 
     public function rewind() {
@@ -78,11 +101,19 @@ class Tuple extends Phel implements ArrayAccess, Countable, Iterator, ISlice, IC
         return key($this->data) !== null;
     }
 
-    public function update($offset, $value) {
+    /**
+     * Update a tuple value. For internal use only.
+     * 
+     * @param int $index The index to update
+     * @param mixed $value The value to set on $index
+     * 
+     * @return Tuple A copy of the tuple with an update value
+     */
+    public function update(int $offset, $value): Tuple {
         if ($offset < 0 || $offset > count($this->data)) {
             throw new InvalidArgumentException('Index out of bounds: ' . $offset . ' [0,' . count($this->data) . ']');
         }
-        if (is_null($offset)) {
+        if (is_null($value)) {
             unset($this->data[$offset]);
             $res = new Tuple(array_values($this->data), $this->isUsingBracket()); // reindex
         } else {
@@ -95,18 +126,20 @@ class Tuple extends Phel implements ArrayAccess, Countable, Iterator, ISlice, IC
             }
         }
 
-        if ($this->getStartLocation()) {
-            $res->setStartLocation($this->getStartLocation());
+        $start = $this->getStartLocation();
+        if ($start) {
+            $res->setStartLocation($start);
         }
 
-        if ($this->getEndLocation()) {
-            $res->getEndLocation($this->getEndLocation());
+        $end = $this->getEndLocation();
+        if ($end) {
+            $res->setEndLocation($end);
         }
 
         return $res;
     }
 
-    public function slice($offset = 0, $length = null): ISlice {
+    public function slice(int $offset = 0, ?int $length = null): ISlice {
         return new Tuple(
             array_slice($this->data, $offset, $length), 
             $this->isUsingBracket()
@@ -117,7 +150,7 @@ class Tuple extends Phel implements ArrayAccess, Countable, Iterator, ISlice, IC
         return new Tuple([$x, ...$this->data], $this->isUsingBracket());
     }
 
-    public function hash() {
+    public function hash(): string {
         return spl_object_hash($this);
     }
 
@@ -129,7 +162,7 @@ class Tuple extends Phel implements ArrayAccess, Countable, Iterator, ISlice, IC
         return true;
     }
 
-    public function cdr() {
+    public function cdr(): ?ICdr {
         if (count($this->data) - 1 > 0) {
             return new Tuple(array_slice($this->data, 1), $this->isUsingBracket());
         } else {

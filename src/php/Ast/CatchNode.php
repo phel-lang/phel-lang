@@ -35,15 +35,15 @@ class CatchNode implements Node {
         $this->body = $body;
     }
 
-    public function getType() {
+    public function getType(): Symbol {
         return $this->type;
     }
 
-    public function getName() {
+    public function getName(): Symbol {
         return $this->name;
     }
 
-    public function getBody() {
+    public function getBody(): Node {
         return $this->body;
     }
 

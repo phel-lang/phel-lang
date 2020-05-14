@@ -21,6 +21,11 @@ class CallNode implements Node {
      */
     protected $arguments;
 
+    /**
+     * @param NodeEnvironment $env
+     * @param Node $fn
+     * @param Node[] $arguments
+     */
     public function __construct(NodeEnvironment $env, Node $fn, $arguments)
     {
         $this->env = $env;
@@ -28,10 +33,13 @@ class CallNode implements Node {
         $this->arguments = $arguments;
     }
 
-    public function getFn() {
+    public function getFn(): Node {
         return $this->fn;
     }
 
+    /**
+     * @return Node[]
+     */
     public function getArguments() {
         return $this->arguments;
     }

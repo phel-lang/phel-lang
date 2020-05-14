@@ -12,6 +12,9 @@ use Phel\Stream\CodeSnippet;
 
 class Reader {
 
+    /**
+     * @var array
+     */
     private $stringReplacements = [
         '\\' => '\\',
         '$'  =>  '$',
@@ -23,8 +26,20 @@ class Reader {
         'e'  => "\x1B",
     ];
 
+    /**
+     * @var Token[]
+     */
     private $readTokens = [];
 
+    /**
+     * Reads the next expression from the token stream.
+     * 
+     * If the token stream reaches the end, false is returned.
+     * 
+     * @param Generator $tokenStream The token stream to read.
+     * 
+     * @return ReaderResult|false
+     */
     public function readNext(Generator $tokenStream) {
         if (!$tokenStream->valid()) {
             return false;
@@ -43,6 +58,9 @@ class Reader {
         );
     }
 
+    /**
+     * @return Phel|null|scalar
+     */
     public function readExpression(Generator $tokenStream) {
         while ($tokenStream->valid()) {
             $token = $tokenStream->current();
@@ -115,7 +133,10 @@ class Reader {
         throw $this->buildReaderException("Unterminatend list");
     }
 
-    protected function readQuasiquote($tokenStream) {
+    /**
+     * @return Phel|scalar|null
+     */
+    protected function readQuasiquote(Generator $tokenStream) {
         $startLocaltion = $tokenStream->current()->getStartLocation();
         $tokenStream->next();
 
@@ -123,14 +144,16 @@ class Reader {
         $q = new Quasiquote();
         $result = $q->quasiquote($expression);
 
-        $endLocation = $tokenStream->current()->getEndLocation();
-        $result->setStartLocation($startLocaltion);
-        $result->setEndLocation($endLocation);
+        if ($result instanceof Phel) {
+            $endLocation = $tokenStream->current()->getEndLocation();
+            $result->setStartLocation($startLocaltion);
+            $result->setEndLocation($endLocation);
+        }
 
         return $result;
     }
 
-    protected function readWrap($tokenStream, $wrapFn) {
+    protected function readWrap(Generator $tokenStream, string $wrapFn): Tuple {
         $startLocation = $tokenStream->current()->getStartLocation();
         $tokenStream->next();
 
@@ -145,7 +168,10 @@ class Reader {
         return $tuple;
     }
 
-    protected function readExpressionHard($tokenStream, $errorMessage) {
+    /**
+     * @return string|null|boolean|float|int|Phel
+     */
+    protected function readExpressionHard(Generator $tokenStream, string $errorMessage) {
         $result = $this->readExpression($tokenStream);
         if (is_null($result)) {
             throw $this->buildReaderException($errorMessage);
@@ -154,7 +180,7 @@ class Reader {
         return $result;
     }
 
-    protected function readList(Generator $tokenStream, $term, $acc = [], $isUsingBrackets = false) {
+    protected function readList(Generator $tokenStream, int $endTokenType, array $acc = [], bool $isUsingBrackets = false): Tuple {
         $startLocation = $tokenStream->current()->getStartLocation();
         $tokenStream->next();
 
@@ -168,7 +194,7 @@ class Reader {
                     $tokenStream->next();
                     break;
 
-                case $term:
+                case $endTokenType:
                     $this->readTokens[] = $token;
                     $endLocation = $token->getEndLocation();
                     $tokenStream->next();
@@ -186,6 +212,13 @@ class Reader {
         throw $this->buildReaderException('Unterminated list');
     }
 
+    /**
+     * Parse a Atom.
+     * 
+     * @param Token $token The token that was identified as atom.
+     * 
+     * @return boolean|null|Keyword|Symbol|string|int|float
+     */
     protected function parseAtom(Token $token) {
         $word = $token->getCode();
         
@@ -217,12 +250,12 @@ class Reader {
         }
     }
 
-    protected function parseEscapedString(string $str) {
+    protected function parseEscapedString(string $str): string {
         $str = str_replace('\\"', '"', $str);
 
         return preg_replace_callback(
             '~\\\\([\\\\$nrtfve]|[xX][0-9a-fA-F]{1,2}|[0-7]{1,3}|u\{([0-9a-fA-F]+)\})~',
-            function($matches) {
+            function(array $matches): string {
                 $str = $matches[1];
 
                 if (isset($this->stringReplacements[$str])) {
@@ -232,7 +265,9 @@ class Reader {
                 } elseif ('u' === $str[0]) {
                     return self::codePointToUtf8(hexdec($matches[2]));
                 } else {
-                    return chr(octdec($str));
+                    /** @var int $n */
+                    $n = octdec($str);
+                    return chr($n);
                 }
             },
             $str
@@ -256,7 +291,14 @@ class Reader {
         throw $this->buildReaderException('Invalid UTF-8 codepoint escape sequence: Codepoint too large');
     }
 
-    private function getCodeSnippet($readTokens) {
+    /**
+     * Create a CodeSnippet from a list of Tokens.
+     * 
+     * @param Token[] $readTokens The tokens read so far.
+     * 
+     * @return CodeSnippet
+     */
+    private function getCodeSnippet($readTokens): CodeSnippet {
         $tokens = $this->removeLeadingWhitespace($readTokens);
         $code = $this->getCode($tokens);
 
@@ -267,7 +309,14 @@ class Reader {
         );
     }
 
-    private function getCode($readTokens) {
+    /**
+     * Concatinates all Token to a string.
+     * 
+     * @param Token[] $readTokens The tokens read so far.
+     * 
+     * @return string
+     */
+    private function getCode($readTokens): string {
         $code = '';
         foreach ($readTokens as $token) {
             $code .= $token->getCode();
@@ -275,6 +324,13 @@ class Reader {
         return $code;
     }
 
+    /**
+     * Removes all leading whitespace and comment tokens
+     * 
+     * @param Token[] $readTokens The tokens read so far
+     * 
+     * @return Token[]
+     */
     private function removeLeadingWhitespace($readTokens) {
         $result = [];
         $leadingWhitespace = true;
@@ -288,11 +344,11 @@ class Reader {
         return $result;
     }
 
-    private function buildReaderException($message) {
+    private function buildReaderException(string $message): ReaderException {
         $codeSnippet = $this->getCodeSnippet($this->readTokens);
 
         return new ReaderException(
-            $message, 
+            $message,
             $codeSnippet->getStartLocation(),
             $codeSnippet->getEndLocation(),
             $codeSnippet

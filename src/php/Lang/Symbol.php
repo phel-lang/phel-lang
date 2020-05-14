@@ -6,6 +6,9 @@ use Phel\Printer;
 
 class Symbol extends Phel implements IIdentical {
 
+    /**
+     * @var int
+     */
     private static $symGenCounter = 1;
 
     /**
@@ -17,7 +20,7 @@ class Symbol extends Phel implements IIdentical {
         $this->name = $name;
     }
 
-    public function getName() {
+    public function getName(): string {
         return $this->name;
     }
 
@@ -27,15 +30,15 @@ class Symbol extends Phel implements IIdentical {
         return $printer->print($this, true);
     }
 
-    public static function gen($prefix = '__phel_') {
+    public static function gen(string $prefix = '__phel_'): Symbol {
         return new Symbol($prefix . (self::$symGenCounter++));
     }
 
-    public static function resetGen() {
+    public static function resetGen(): void {
         self::$symGenCounter = 1;
     }
 
-    public function hash() {
+    public function hash(): string {
         return $this->getName();
     }
 

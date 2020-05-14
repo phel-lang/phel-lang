@@ -28,11 +28,11 @@ class PhpArrayUnsetNode implements Node {
         $this->accessExpr = $accessExpr;
     }
 
-    public function getArrayExpr() {
+    public function getArrayExpr(): Node {
         return $this->arrayExpr;
     }
 
-    public function getAccessExpr() {
+    public function getAccessExpr(): Node {
         return $this->accessExpr;
     }
 

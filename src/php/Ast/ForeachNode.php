@@ -28,11 +28,11 @@ class ForeachNode implements Node {
     protected $valueSymbol;
 
     /**
-     * @var Symbol|null
+     * @var ?Symbol
      */
     protected $keySymbol;
 
-    public function __construct(NodeEnvironment $env, Node $bodyExpr, Node $listExpr, Symbol $valueSymbol, $keySymbol = null)
+    public function __construct(NodeEnvironment $env, Node $bodyExpr, Node $listExpr, Symbol $valueSymbol, ?Symbol $keySymbol = null)
     {
         $this->env = $env;
         $this->bodyExpr = $bodyExpr;
@@ -41,19 +41,19 @@ class ForeachNode implements Node {
         $this->keySymbol = $keySymbol;
     }
 
-    public function getBodyExpr() {
+    public function getBodyExpr(): Node {
         return $this->bodyExpr;
     }
 
-    public function getListExpr() {
+    public function getListExpr(): Node {
         return $this->listExpr;
     }
 
-    public function getValueSymbol() {
+    public function getValueSymbol(): Symbol {
         return $this->valueSymbol;
     }
 
-    public function getKeySymbol() {
+    public function getKeySymbol(): ?Symbol {
         return $this->keySymbol;
     }
 

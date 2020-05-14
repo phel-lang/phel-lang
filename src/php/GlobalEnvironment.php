@@ -3,29 +3,42 @@
 namespace Phel;
 
 use Phel\Ast\GlobalVarNode;
+use Phel\Ast\Node;
 use Phel\Ast\PhpClassNameNode;
 use Phel\Lang\Symbol;
 use Phel\Lang\Table;
 
 class GlobalEnvironment {
 
+    /**
+     * @var string
+     */
     protected $ns = 'user';
 
+    /**
+     * @var array
+     */
     protected $definitions = array();
 
+    /**
+     * @var array
+     */
     protected $requireAliases = array();
 
+    /**
+     * @var array
+     */
     protected $useAliases = array();
 
-    public function getNs() {
+    public function getNs(): string {
         return $this->ns;
     }
 
-    public function setNs(string $ns) {
+    public function setNs(string $ns): void {
         $this->ns = $ns;
     }
 
-    public function addDefintion(string $namespace, Symbol $name, Table $meta) {
+    public function addDefintion(string $namespace, Symbol $name, Table $meta): void {
         if (!array_key_exists($namespace, $this->definitions)) {
             $this->definitions[$namespace] = [];
         }
@@ -33,14 +46,14 @@ class GlobalEnvironment {
         $this->definitions[$namespace][$name->getName()] = $meta;
     }
 
-    public function hasDefinition(string $namespace, Symbol $name) {
+    public function hasDefinition(string $namespace, Symbol $name): bool {
         return (
             isset($this->definitions[$namespace])
             && isset($this->definitions[$namespace][$name->getName()])
         );
     }
 
-    public function getDefinition(string $namespace, Symbol $name) {
+    public function getDefinition(string $namespace, Symbol $name): ?Table {
         if ($this->hasDefinition($namespace, $name)) {
             return $this->definitions[$namespace][$name->getName()];
         } else {
@@ -48,23 +61,23 @@ class GlobalEnvironment {
         }
     }
 
-    public function addRequireAlias(Symbol $name, Symbol $fullName) {
+    public function addRequireAlias(Symbol $name, Symbol $fullName): void {
         $this->requireAliases[$name->getName()] = $fullName;
     }
 
-    public function hasRequireAlias(Symbol $name) {
+    public function hasRequireAlias(Symbol $name): bool {
         return isset($this->requireAliases[$name->getName()]);
     }
     
-    public function addUseAlias(Symbol $alias, Symbol $fullName) {
+    public function addUseAlias(Symbol $alias, Symbol $fullName): void {
         $this->useAliases[$alias->getName()] = $fullName;
     }
 
-    public function hasUseAlias(Symbol $alias) {
+    public function hasUseAlias(Symbol $alias): bool {
         return isset($this->useAliases[$alias->getName()]);
     }
 
-    public function resolve(Symbol $name, NodeEnvironment $env) {
+    public function resolve(Symbol $name, NodeEnvironment $env): ?Node {
         $strName = $name->getName();
 
         if (substr($strName, 0, 1) == '\\') {
@@ -80,7 +93,7 @@ class GlobalEnvironment {
         } else {
             $pos = strpos($strName, '/');
             
-            if ($pos > 0) {
+            if ($pos !== FALSE && $pos > 0) {
                 // If alias, try to resolve alias
                 $alias = substr($strName, 0, $pos);
 
@@ -88,8 +101,9 @@ class GlobalEnvironment {
                     $namespace = $this->requireAlias[$alias];
                     $finalName = new Symbol(substr($strName, $pos+1));
 
-                    if ($this->hasDefinition($namespace, $finalName)) {
-                        return new GlobalVarNode($env, $namespace, $name, $this->getDefinition($namespace, $finalName));
+                    $def = $this->getDefinition($namespace, $finalName);
+                    if ($def) {
+                        return new GlobalVarNode($env, $namespace, $name, $def);
                     } else {
                         return null; // Can not be resolved
                     }
@@ -98,13 +112,15 @@ class GlobalEnvironment {
                 }
             } else {
                 // no alias, try to resolve in current namespace
-                if ($this->hasDefinition($this->getNs(), $name)) {
-                    return new GlobalVarNode($env, $this->getNs(), $name, $this->getDefinition($this->getNs(), $name));
+                $def = $this->getDefinition($this->getNs(), $name); 
+                if ($def) {
+                    return new GlobalVarNode($env, $this->getNs(), $name, $def);
                 } else {
                     // try to resolve in phel.core namespace
-                    $ns = new Symbol('phel\core');
-                    if ($this->hasDefinition($ns, $name)) {
-                        return new GlobalVarNode($env, $ns, $name, $this->getDefinition($ns, $name));
+                    $ns = 'phel\core';
+                    $def = $this->getDefinition($ns, $name);
+                    if ($def) {
+                        return new GlobalVarNode($env, $ns, $name, $def);
                     } else {
                         return null; // can not be resolved
                     }

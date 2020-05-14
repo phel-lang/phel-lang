@@ -21,6 +21,11 @@ class DoNode implements Node {
      */
     protected $ret;
 
+    /**
+     * @param NodeEnvironment $env
+     * @param Node[] $stmts
+     * @param Node $ret
+     */
     public function __construct(NodeEnvironment $env, array $stmts, Node $ret)
     {
         $this->env = $env;
@@ -28,11 +33,14 @@ class DoNode implements Node {
         $this->ret = $ret;
     }
 
+    /**
+     * @return Node[]
+     */
     public function getStmts() {
         return $this->stmts;
     }
 
-    public function getRet() {
+    public function getRet(): Node {
         return $this->ret;
     }
 
