@@ -89,6 +89,10 @@
 (assert (= 1 (first (php/array 1))) "first of php array")
 (assert (= nil (first (php/array))) "frist of empty php array")
 (assert (= nil (first nil)) "frist of nil")
+
+(assert (= 1 (ffirst [[1]])) "ffirst of nested tuple")
+(assert (= nil (ffirst [1])) "ffirst of tuple")
+(assert (= nil (ffirst nil)) "ffirst of nil")
  
 (assert (= 2 (second [1 2])) "second of tuple")
 (assert (= nil (second [])) "second of empty tuple")
@@ -101,6 +105,9 @@
 (assert (= [2] (rest [1 2])) "rest of two element tuple")
 (assert (= [] (rest [1])) "rest of one element tuple")
 (assert (= [] (rest [])) "rest of empty tuple")
+
+(assert (= [2] (nfirst [[1 2]])) "(nfirst [[1 2]])")
+(assert (= [3] (nnext [1 2 3])) "(nnext [1 2 3])")
 
 (assert (= 0 (count [])) "count of empty tuple")
 (assert (= 0 (count nil)) "count of nil")
@@ -229,14 +236,14 @@
 (assert (= false (>= 20 10 15)) "(>= 20 20 15)")
 (assert (= true (>= 20 20 10)) "(>= 20 20 10)")
 
-(assert (= true (all pos? @[1 2 3])) "all pos? in list")
-(assert (= true (all pos? @[])) "all pos? in empty list")
-(assert (= false (all pos? @[1 -1 3])) "all pos? in list")
+(assert (= true (all? pos? @[1 2 3])) "all pos? in list")
+(assert (= true (all? pos? @[])) "all pos? in empty list")
+(assert (= false (all? pos? @[1 -1 3])) "all pos? in list")
 
-(assert (= true (some pos? @[1 2 3])) "some pos? in list")
-(assert (= false (some pos? @[])) "some pos? in empty list")
-(assert (= true (some pos? @[1 -1 3])) "some pos? in list")
-(assert (= false (some pos? @[-1 -1 -3])) "some pos? in list")
+(assert (= true (some? pos? @[1 2 3])) "some pos? in list")
+(assert (= false (some? pos? @[])) "some pos? in empty list")
+(assert (= true (some? pos? @[1 -1 3])) "some pos? in list")
+(assert (= false (some? pos? @[-1 -1 -3])) "some pos? in list")
 
 (assert (= true (true? true)) "(true? true)")
 (assert (= false (true? [])) "(true? [])")
@@ -253,6 +260,10 @@
 (assert (= true (false? false)) "(false? false)")
 (assert (= false (false? nil)) "(false? nil)")
 (assert (= false (false? true)) "(false? true)")
+
+(assert (= -1 (compare 1 2)) "(compare 1 2)")
+(assert (= 1 (compare 2 1)) "(compare 2 1)")
+(assert (= 0 (compare 1 1)) "(compare 1 1)")
 
 # --------------
 # Type operation
@@ -333,11 +344,6 @@
 (assert (= false (empty? (php/array 1))) "empty? on one element php array")
 (assert (= false (empty? @{:a 1})) "empty? on one element table")
 
-(assert (= true (dict? @{})) "dict? on table")
-(assert (= false (dict? @[])) "dict? on array")
-(assert (= false (dict? [])) "dict? on tuple")
-(assert (= false (dict? (php/array))) "dict? on php array")
-
 (assert (= false (indexed? @{})) "indexed? on table")
 (assert (= true (indexed? @[])) "indexed? on array")
 (assert (= true (indexed? [])) "indexed? on tuple")
@@ -350,6 +356,8 @@
 (assert (= @["1" "2"] (map str [1 2])) "map1")
 (assert (= @["13" "24"] (map str [1 2] [3 4])) "map2")
 (assert (= @["13" "24"] (map str [1 2 10] [3 4])) "map2 unequal size")
+(assert (= @[[0 "a"] [1 "b"] [2 "c"]] (map-indexed tuple-brackets ["a" "b" "c"])) "map-indexed")
+(assert (= @[1 2 3 4 5 6] (mapcat reverse [[3 2 1] [6 5 4]])) "mapcat")
 
 (assert (= "abc" (reduce str "" ["a" "b" "c"])) "reduce three elements tuple")
 (assert (= "x" (reduce str "x" [])) "reduce empty tuple")
@@ -458,6 +466,8 @@
 (assert (= @[true false false true true false false] (keep neg? @[-1 2 3 -2 -3 4 5])) "keep: neg?")
 (assert (= @[-1 -2 -3] (keep (fn [x] (if (neg? x) x nil)) @[-1 2 3 -2 -3 4 5])) "keep: filter nil")
 
+(assert (= @[:b :d] (keep-indexed (fn [idx x] (if (odd? idx) x)) @[:a :b :c :d :e])) "keep-indexed")
+
 (assert (= -1 (find neg? @[1 2 3 -1 2 3])) "find first neg number")
 (assert (= nil (find neg? @[1 2 3 2 3])) "find: nothing to find")
 (assert (= nil (find neg? @[])) "find on empty array")
@@ -465,6 +475,81 @@
 (assert (= 3 (find-index neg? @[1 2 3 -1 2 3])) "find-index first neg number")
 (assert (= nil (find-index neg? @[1 2 3 2 3])) "find-index: nothing to find")
 (assert (= nil (find-index neg? @[])) "find-index on empty array")
+
+(assert (= @[1 2 3] (distinct @[1 1 2 3 2 2 3 1])) "distinct: array")
+(assert (= @[1 2 3] (distinct (php/array 1 1 2 3 2 2 3 1))) "distinct: php array")
+
+(assert (= @[3 2 1] (reverse [1 2 3])) "reverse: tuple")
+(assert (= @[3 2 1] (reverse @[1 2 3])) "reverse: array")
+(assert (= @[] (reverse nil)) "reverse: nil")
+
+
+(assert (= @[:a 1 :b 2 :c 3] (interleave [:a :b :c] [1 2 3])) "interleave equal size")
+(assert (= @[:a 1 :b 2] (interleave [:a :b :c] [1 2])) "interleave different size")
+
+(assert (= @["a" "," "b" "," "c"] (interpose "," ["a" "b" "c"])) "interpose")
+
+(assert (= @{1 2 2 3 3 2 4 1} (frequencies [1 1 2 3 2 2 3 4])) "frequencies")
+
+(assert (= @[:a :b :c] (keys @{:a 1 :b 2 :c 3})) "keys of tables")
+(assert (= @[0 1 2] (keys @[3 2 1])) "keys of array")
+(assert (= @[0 1 2] (keys [3 2 1])) "keys of tuple")
+
+(assert (= @[1 2 3] (values @{:a 1 :b 2 :c 3})) "values of tables")
+(assert (= @[3 2 1] (values @[3 2 1])) "values of array")
+(assert (= @[3 2 1] (values [3 2 1])) "values of tuple")
+
+(assert (= @[[:a 1] [:b 2] [:c 3]] (pairs @{:a 1 :b 2 :c 3})) "pairs of tables")
+(assert (= @[[0 3] [1 2] [2 1]] (pairs @[3 2 1])) "pairs of array")
+(assert (= @[[0 3] [1 2] [2 1]] (pairs [3 2 1])) "pairs of tuple")
+
+(assert (= @[:a 1 :b 2 :c 3] (kvs @{:a 1 :b 2 :c 3})) "kvs of tables")
+(assert (= @[0 3 1 2 2 1] (kvs @[3 2 1])) "kvs of array")
+(assert (= @[0 3 1 2 2 1] (kvs [3 2 1])) "kvs of tuple")
+
+(assert (= (php/array 3 2 1) (to-php-array @[3 2 1])) "to-php-array")
+
+(assert (= @[1 2 3] (sort @[3 2 1])) "sort")
+(assert (= @[3 3 2 2 1] (sort @[3 2 1 2 3] <)) "sort descending order")
+(assert (= @[1 2 3] (sort-by identity @[3 2 1])) "sort-by identity")
+(assert (= @[3 2 1] (sort-by - @[3 2 1])) "sort-by reversed")
+
+(assert (= @[0 1 2] (range 3)) "(range 3)")
+(assert (= @[1 2] (range 1 3)) "(range 1 3)")
+(assert (= @[0 2] (range 0 4 2)) "(range 0 4 2)")
+(assert (= @[0 2 4] (range 0 5 2)) "(range 0 5 2)")
+
+(assert (= @[:a :a :a] (repeat 3 :a)) "(repeat 3 :a)")
+(assert (= @[] (repeat 0 :a)) "(repeat 0 :a)")
+
+(assert (= @{1 @["a"] 2 @["as" "aa"] 3 @["asd"] 4 @["asdf" "qwer"]} 
+           (group-by php/strlen ["a" "as" "asd" "aa" "asdf" "qwer"])) "group-by")
+
+(assert (= @{:a 1 :b 2 :c 3} (zipcoll [:a :b :c] [1 2 3])) "zipcoll")
+
+(assert (= @{:a -1 :b 2 :c 3 :d 4} (merge @{:a 1 :b 2} @{:a -1 :c 3} @{:d 4})) "merge")
+
+(assert (= @{1 :a 2 :b} (invert @{:a 1 :b 2})) "invert")
+(assert (= @{1 :a 2 :c} (invert @{:a 1 :b 2 :c 2})) "invert duplicate values")
+
+(assert (= [[1 2] [3 4 5]] (split-at 2 [1 2 3 4 5])) "split-at")
+(assert (= [[1 2] []] (split-at 3 [1 2])) "split-at empty")
+
+(assert (= [@[1 2 3] @[4 5]] (split-with (partial >= 3) @[1 2 3 4 5])) "split-with")
+
+(assert (= @[
+  [[1 2 [3]] [4]]
+  [1 2 [3]]
+  1
+  2
+  [3]
+  3
+  [4]
+  4
+] (tree-seq indexed? identity [[1 2 [3]] [4]])) "tree-seq")
+
+(assert (= @[1 2 3 4 5 6 7] (flatten [1 [2 [3 4 [5]] 6 [7]]])) "flatten")
+(assert (= @[] (flatten nil)) "flatten nil")
 
 # ------------------
 # Function operation
@@ -587,6 +672,14 @@
 (assert (= true (nan? php/NAN)) "(nan? (php/NAN))")
 (assert (= true (nan? NAN)) "(nan? NAN)")
 (assert (= false (nan? 9)) "(nan? 8)")
+
+(assert (= 1 (min 1 2 3)) "(min 1 2 3)")
+(assert (= 3 (max 1 2 3)) "(max 1 2 3)")
+
+(assert (= 6 (sum [1 2 3])) "(sum [1 2 3])")
+(assert (= 0 (sum [])) "(sum [])")
+
+(assert (= 2 (mean [1 2 3])) "(mean [1 2 3])")
 
 # ----------------
 # Print operations

@@ -26,7 +26,7 @@ class TextExceptionPrinter implements ExceptionPrinter {
             if ($eStartLocation->getLine() == $eEndLocation->getLine()) {
                 if ($eStartLocation->getLine() == $index + $codeSnippet->getStartLocation()->getLine()) {
                     echo str_repeat(' ', $endLineLength + 2 + $eStartLocation->getColumn());
-                    echo str_repeat('^', $eEndLocation->getColumn() - $eEndLocation->getColumn());
+                    echo str_repeat('^', $eEndLocation->getColumn() - $eStartLocation->getColumn());
                     echo "\n";
                 }
             }

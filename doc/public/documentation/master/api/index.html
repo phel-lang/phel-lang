@@ -1,0 +1,1464 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <title>The Phel Language</title>
+  <link rel="stylesheet" href="http:&#x2F;&#x2F;127.0.0.1:1111&#x2F;site.css"/>
+</head>
+
+<body>
+  
+
+<div class="documentation">
+    <aside class="documentation__sidebar">
+        <div class="logo">
+            <svg class="phel-logo" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200.3 167.7"><path d="M6 66l95 96h36V93l-36-74H42L6 56v106h36l24-35"/><path d="M137 93l58-3-12-58-32-26h-34l-16 13-23 9-12 22 46 52z"/><path d="M195 90l-12 57h-13l-2-56M170 147l-13-11h12"/></svg>
+        </div>
+
+        <input type="checkbox" id="menu_checkbox">
+        <label for="menu_checkbox">
+            <svg viewBox="0 0 32 32">
+                <path d="M3,3 29,3 M3,16 29,16 M3,29 29,29"></path>
+            </svg>
+            Menu
+        </label>
+        <nav>
+            <ol>
+                
+                    <li class="">
+                        <a href="http:&#x2F;&#x2F;127.0.0.1:1111&#x2F;documentation&#x2F;master&#x2F;getting-started&#x2F;">Getting started</a>
+                    </li>
+                
+                    <li class="">
+                        <a href="http:&#x2F;&#x2F;127.0.0.1:1111&#x2F;documentation&#x2F;master&#x2F;basic-types&#x2F;">Basic Types</a>
+                    </li>
+                
+                    <li class="">
+                        <a href="http:&#x2F;&#x2F;127.0.0.1:1111&#x2F;documentation&#x2F;master&#x2F;numbers-and-arithmetic&#x2F;">Numbers and Arithmetic</a>
+                    </li>
+                
+                    <li class="">
+                        <a href="http:&#x2F;&#x2F;127.0.0.1:1111&#x2F;documentation&#x2F;master&#x2F;truth-and-boolean-operations&#x2F;">Truth and Boolean operations</a>
+                    </li>
+                
+                    <li class="">
+                        <a href="http:&#x2F;&#x2F;127.0.0.1:1111&#x2F;documentation&#x2F;master&#x2F;control-flow&#x2F;">Control flow</a>
+                    </li>
+                
+                    <li class="">
+                        <a href="http:&#x2F;&#x2F;127.0.0.1:1111&#x2F;documentation&#x2F;master&#x2F;global-and-local-bindings&#x2F;">Global and local bindings</a>
+                    </li>
+                
+                    <li class="">
+                        <a href="http:&#x2F;&#x2F;127.0.0.1:1111&#x2F;documentation&#x2F;master&#x2F;functions-and-recursion&#x2F;">Functions and Recursion</a>
+                    </li>
+                
+                    <li class="">
+                        <a href="http:&#x2F;&#x2F;127.0.0.1:1111&#x2F;documentation&#x2F;master&#x2F;tuple&#x2F;">Tuple</a>
+                    </li>
+                
+                    <li class="">
+                        <a href="http:&#x2F;&#x2F;127.0.0.1:1111&#x2F;documentation&#x2F;master&#x2F;array&#x2F;">Array (TODO)</a>
+                    </li>
+                
+                    <li class="">
+                        <a href="http:&#x2F;&#x2F;127.0.0.1:1111&#x2F;documentation&#x2F;master&#x2F;table&#x2F;">Table (TODO)</a>
+                    </li>
+                
+                    <li class="">
+                        <a href="http:&#x2F;&#x2F;127.0.0.1:1111&#x2F;documentation&#x2F;master&#x2F;destructuring&#x2F;">Destructuring</a>
+                    </li>
+                
+                    <li class="">
+                        <a href="http:&#x2F;&#x2F;127.0.0.1:1111&#x2F;documentation&#x2F;master&#x2F;macros&#x2F;">Macros (TODO)</a>
+                    </li>
+                
+                    <li class="">
+                        <a href="http:&#x2F;&#x2F;127.0.0.1:1111&#x2F;documentation&#x2F;master&#x2F;namespaces&#x2F;">Namespaces</a>
+                    </li>
+                
+                    <li class="">
+                        <a href="http:&#x2F;&#x2F;127.0.0.1:1111&#x2F;documentation&#x2F;master&#x2F;php-interop&#x2F;">PHP Interop</a>
+                    </li>
+                
+                    <li class="active">
+                        <a href="http:&#x2F;&#x2F;127.0.0.1:1111&#x2F;documentation&#x2F;master&#x2F;api&#x2F;">API</a>
+                    </li>
+                
+                    <li class="">
+                        <a href="http:&#x2F;&#x2F;127.0.0.1:1111&#x2F;documentation&#x2F;master&#x2F;special-forms&#x2F;">Special forms</a>
+                    </li>
+                
+            </ol>
+        </nav>
+    </aside>
+    <div class="documentation__content">
+        
+    <h1>API</h1>
+
+    <ul class="api-index">
+    
+        <li>
+            <a href="http://127.0.0.1:1111/documentation/master/api/#">%</a>
+        </li>
+    
+        <li>
+            <a href="http://127.0.0.1:1111/documentation/master/api/#-1">*</a>
+        </li>
+    
+        <li>
+            <a href="http://127.0.0.1:1111/documentation/master/api/#-2">**</a>
+        </li>
+    
+        <li>
+            <a href="http://127.0.0.1:1111/documentation/master/api/#-3">+</a>
+        </li>
+    
+        <li>
+            <a href="http://127.0.0.1:1111/documentation/master/api/#-4">-</a>
+        </li>
+    
+        <li>
+            <a href="http://127.0.0.1:1111/documentation/master/api/#-5">&#x2F;</a>
+        </li>
+    
+        <li>
+            <a href="http://127.0.0.1:1111/documentation/master/api/#-6">&lt;</a>
+        </li>
+    
+        <li>
+            <a href="http://127.0.0.1:1111/documentation/master/api/#-7">&lt;=</a>
+        </li>
+    
+        <li>
+            <a href="http://127.0.0.1:1111/documentation/master/api/#-8">=</a>
+        </li>
+    
+        <li>
+            <a href="http://127.0.0.1:1111/documentation/master/api/#-9">&gt;</a>
+        </li>
+    
+        <li>
+            <a href="http://127.0.0.1:1111/documentation/master/api/#-10">&gt;=</a>
+        </li>
+    
+        <li>
+            <a href="http://127.0.0.1:1111/documentation/master/api/#nan">NAN</a>
+        </li>
+    
+        <li>
+            <a href="http://127.0.0.1:1111/documentation/master/api/#all">all?</a>
+        </li>
+    
+        <li>
+            <a href="http://127.0.0.1:1111/documentation/master/api/#and">and</a>
+        </li>
+    
+        <li>
+            <a href="http://127.0.0.1:1111/documentation/master/api/#array">array</a>
+        </li>
+    
+        <li>
+            <a href="http://127.0.0.1:1111/documentation/master/api/#array-1">array?</a>
+        </li>
+    
+        <li>
+            <a href="http://127.0.0.1:1111/documentation/master/api/#bit-and">bit-and</a>
+        </li>
+    
+        <li>
+            <a href="http://127.0.0.1:1111/documentation/master/api/#bit-clear">bit-clear</a>
+        </li>
+    
+        <li>
+            <a href="http://127.0.0.1:1111/documentation/master/api/#bit-flip">bit-flip</a>
+        </li>
+    
+        <li>
+            <a href="http://127.0.0.1:1111/documentation/master/api/#bit-not">bit-not</a>
+        </li>
+    
+        <li>
+            <a href="http://127.0.0.1:1111/documentation/master/api/#bit-or">bit-or</a>
+        </li>
+    
+        <li>
+            <a href="http://127.0.0.1:1111/documentation/master/api/#bit-set">bit-set</a>
+        </li>
+    
+        <li>
+            <a href="http://127.0.0.1:1111/documentation/master/api/#bit-shift-left">bit-shift-left</a>
+        </li>
+    
+        <li>
+            <a href="http://127.0.0.1:1111/documentation/master/api/#bit-shift-right">bit-shift-right</a>
+        </li>
+    
+        <li>
+            <a href="http://127.0.0.1:1111/documentation/master/api/#bit-test">bit-test</a>
+        </li>
+    
+        <li>
+            <a href="http://127.0.0.1:1111/documentation/master/api/#bit-xor">bit-xor</a>
+        </li>
+    
+        <li>
+            <a href="http://127.0.0.1:1111/documentation/master/api/#boolean">boolean?</a>
+        </li>
+    
+        <li>
+            <a href="http://127.0.0.1:1111/documentation/master/api/#case">case</a>
+        </li>
+    
+        <li>
+            <a href="http://127.0.0.1:1111/documentation/master/api/#comment">comment</a>
+        </li>
+    
+        <li>
+            <a href="http://127.0.0.1:1111/documentation/master/api/#comp">comp</a>
+        </li>
+    
+        <li>
+            <a href="http://127.0.0.1:1111/documentation/master/api/#compare">compare</a>
+        </li>
+    
+        <li>
+            <a href="http://127.0.0.1:1111/documentation/master/api/#complement">complement</a>
+        </li>
+    
+        <li>
+            <a href="http://127.0.0.1:1111/documentation/master/api/#concat">concat</a>
+        </li>
+    
+        <li>
+            <a href="http://127.0.0.1:1111/documentation/master/api/#cond">cond</a>
+        </li>
+    
+        <li>
+            <a href="http://127.0.0.1:1111/documentation/master/api/#cons">cons</a>
+        </li>
+    
+        <li>
+            <a href="http://127.0.0.1:1111/documentation/master/api/#count">count</a>
+        </li>
+    
+        <li>
+            <a href="http://127.0.0.1:1111/documentation/master/api/#dec">dec</a>
+        </li>
+    
+        <li>
+            <a href="http://127.0.0.1:1111/documentation/master/api/#def">def-</a>
+        </li>
+    
+        <li>
+            <a href="http://127.0.0.1:1111/documentation/master/api/#defmacro">defmacro</a>
+        </li>
+    
+        <li>
+            <a href="http://127.0.0.1:1111/documentation/master/api/#defmacro-1">defmacro-</a>
+        </li>
+    
+        <li>
+            <a href="http://127.0.0.1:1111/documentation/master/api/#defn">defn</a>
+        </li>
+    
+        <li>
+            <a href="http://127.0.0.1:1111/documentation/master/api/#defn-1">defn-</a>
+        </li>
+    
+        <li>
+            <a href="http://127.0.0.1:1111/documentation/master/api/#distinct">distinct</a>
+        </li>
+    
+        <li>
+            <a href="http://127.0.0.1:1111/documentation/master/api/#drop">drop</a>
+        </li>
+    
+        <li>
+            <a href="http://127.0.0.1:1111/documentation/master/api/#drop-while">drop-while</a>
+        </li>
+    
+        <li>
+            <a href="http://127.0.0.1:1111/documentation/master/api/#empty">empty?</a>
+        </li>
+    
+        <li>
+            <a href="http://127.0.0.1:1111/documentation/master/api/#even">even?</a>
+        </li>
+    
+        <li>
+            <a href="http://127.0.0.1:1111/documentation/master/api/#extreme">extreme</a>
+        </li>
+    
+        <li>
+            <a href="http://127.0.0.1:1111/documentation/master/api/#false">false?</a>
+        </li>
+    
+        <li>
+            <a href="http://127.0.0.1:1111/documentation/master/api/#ffirst">ffirst</a>
+        </li>
+    
+        <li>
+            <a href="http://127.0.0.1:1111/documentation/master/api/#filter">filter</a>
+        </li>
+    
+        <li>
+            <a href="http://127.0.0.1:1111/documentation/master/api/#find">find</a>
+        </li>
+    
+        <li>
+            <a href="http://127.0.0.1:1111/documentation/master/api/#find-index">find-index</a>
+        </li>
+    
+        <li>
+            <a href="http://127.0.0.1:1111/documentation/master/api/#first">first</a>
+        </li>
+    
+        <li>
+            <a href="http://127.0.0.1:1111/documentation/master/api/#flatten">flatten</a>
+        </li>
+    
+        <li>
+            <a href="http://127.0.0.1:1111/documentation/master/api/#float">float?</a>
+        </li>
+    
+        <li>
+            <a href="http://127.0.0.1:1111/documentation/master/api/#frequencies">frequencies</a>
+        </li>
+    
+        <li>
+            <a href="http://127.0.0.1:1111/documentation/master/api/#function">function?</a>
+        </li>
+    
+        <li>
+            <a href="http://127.0.0.1:1111/documentation/master/api/#gensym">gensym</a>
+        </li>
+    
+        <li>
+            <a href="http://127.0.0.1:1111/documentation/master/api/#get">get</a>
+        </li>
+    
+        <li>
+            <a href="http://127.0.0.1:1111/documentation/master/api/#get-in">get-in</a>
+        </li>
+    
+        <li>
+            <a href="http://127.0.0.1:1111/documentation/master/api/#group-by">group-by</a>
+        </li>
+    
+        <li>
+            <a href="http://127.0.0.1:1111/documentation/master/api/#id">id</a>
+        </li>
+    
+        <li>
+            <a href="http://127.0.0.1:1111/documentation/master/api/#identity">identity</a>
+        </li>
+    
+        <li>
+            <a href="http://127.0.0.1:1111/documentation/master/api/#if-not">if-not</a>
+        </li>
+    
+        <li>
+            <a href="http://127.0.0.1:1111/documentation/master/api/#inc">inc</a>
+        </li>
+    
+        <li>
+            <a href="http://127.0.0.1:1111/documentation/master/api/#indexed">indexed?</a>
+        </li>
+    
+        <li>
+            <a href="http://127.0.0.1:1111/documentation/master/api/#int">int?</a>
+        </li>
+    
+        <li>
+            <a href="http://127.0.0.1:1111/documentation/master/api/#interleave">interleave</a>
+        </li>
+    
+        <li>
+            <a href="http://127.0.0.1:1111/documentation/master/api/#interpose">interpose</a>
+        </li>
+    
+        <li>
+            <a href="http://127.0.0.1:1111/documentation/master/api/#invert">invert</a>
+        </li>
+    
+        <li>
+            <a href="http://127.0.0.1:1111/documentation/master/api/#juxt">juxt</a>
+        </li>
+    
+        <li>
+            <a href="http://127.0.0.1:1111/documentation/master/api/#keep">keep</a>
+        </li>
+    
+        <li>
+            <a href="http://127.0.0.1:1111/documentation/master/api/#keep-indexed">keep-indexed</a>
+        </li>
+    
+        <li>
+            <a href="http://127.0.0.1:1111/documentation/master/api/#keys">keys</a>
+        </li>
+    
+        <li>
+            <a href="http://127.0.0.1:1111/documentation/master/api/#keyword">keyword</a>
+        </li>
+    
+        <li>
+            <a href="http://127.0.0.1:1111/documentation/master/api/#keyword-1">keyword?</a>
+        </li>
+    
+        <li>
+            <a href="http://127.0.0.1:1111/documentation/master/api/#kvs">kvs</a>
+        </li>
+    
+        <li>
+            <a href="http://127.0.0.1:1111/documentation/master/api/#map">map</a>
+        </li>
+    
+        <li>
+            <a href="http://127.0.0.1:1111/documentation/master/api/#map-indexed">map-indexed</a>
+        </li>
+    
+        <li>
+            <a href="http://127.0.0.1:1111/documentation/master/api/#mapcat">mapcat</a>
+        </li>
+    
+        <li>
+            <a href="http://127.0.0.1:1111/documentation/master/api/#max">max</a>
+        </li>
+    
+        <li>
+            <a href="http://127.0.0.1:1111/documentation/master/api/#mean">mean</a>
+        </li>
+    
+        <li>
+            <a href="http://127.0.0.1:1111/documentation/master/api/#merge">merge</a>
+        </li>
+    
+        <li>
+            <a href="http://127.0.0.1:1111/documentation/master/api/#merge-into">merge-into</a>
+        </li>
+    
+        <li>
+            <a href="http://127.0.0.1:1111/documentation/master/api/#min">min</a>
+        </li>
+    
+        <li>
+            <a href="http://127.0.0.1:1111/documentation/master/api/#nan-1">nan?</a>
+        </li>
+    
+        <li>
+            <a href="http://127.0.0.1:1111/documentation/master/api/#neg">neg?</a>
+        </li>
+    
+        <li>
+            <a href="http://127.0.0.1:1111/documentation/master/api/#next">next</a>
+        </li>
+    
+        <li>
+            <a href="http://127.0.0.1:1111/documentation/master/api/#nfirst">nfirst</a>
+        </li>
+    
+        <li>
+            <a href="http://127.0.0.1:1111/documentation/master/api/#nil">nil?</a>
+        </li>
+    
+        <li>
+            <a href="http://127.0.0.1:1111/documentation/master/api/#nnext">nnext</a>
+        </li>
+    
+        <li>
+            <a href="http://127.0.0.1:1111/documentation/master/api/#not">not</a>
+        </li>
+    
+        <li>
+            <a href="http://127.0.0.1:1111/documentation/master/api/#not-1">not=</a>
+        </li>
+    
+        <li>
+            <a href="http://127.0.0.1:1111/documentation/master/api/#number">number?</a>
+        </li>
+    
+        <li>
+            <a href="http://127.0.0.1:1111/documentation/master/api/#odd">odd?</a>
+        </li>
+    
+        <li>
+            <a href="http://127.0.0.1:1111/documentation/master/api/#one">one?</a>
+        </li>
+    
+        <li>
+            <a href="http://127.0.0.1:1111/documentation/master/api/#or">or</a>
+        </li>
+    
+        <li>
+            <a href="http://127.0.0.1:1111/documentation/master/api/#pairs">pairs</a>
+        </li>
+    
+        <li>
+            <a href="http://127.0.0.1:1111/documentation/master/api/#partial">partial</a>
+        </li>
+    
+        <li>
+            <a href="http://127.0.0.1:1111/documentation/master/api/#peek">peek</a>
+        </li>
+    
+        <li>
+            <a href="http://127.0.0.1:1111/documentation/master/api/#php-array">php-array?</a>
+        </li>
+    
+        <li>
+            <a href="http://127.0.0.1:1111/documentation/master/api/#php-object">php-object?</a>
+        </li>
+    
+        <li>
+            <a href="http://127.0.0.1:1111/documentation/master/api/#php-resource">php-resource?</a>
+        </li>
+    
+        <li>
+            <a href="http://127.0.0.1:1111/documentation/master/api/#pop">pop</a>
+        </li>
+    
+        <li>
+            <a href="http://127.0.0.1:1111/documentation/master/api/#pos">pos?</a>
+        </li>
+    
+        <li>
+            <a href="http://127.0.0.1:1111/documentation/master/api/#print">print</a>
+        </li>
+    
+        <li>
+            <a href="http://127.0.0.1:1111/documentation/master/api/#print-str">print-str</a>
+        </li>
+    
+        <li>
+            <a href="http://127.0.0.1:1111/documentation/master/api/#println">println</a>
+        </li>
+    
+        <li>
+            <a href="http://127.0.0.1:1111/documentation/master/api/#push">push</a>
+        </li>
+    
+        <li>
+            <a href="http://127.0.0.1:1111/documentation/master/api/#put">put</a>
+        </li>
+    
+        <li>
+            <a href="http://127.0.0.1:1111/documentation/master/api/#put-in">put-in</a>
+        </li>
+    
+        <li>
+            <a href="http://127.0.0.1:1111/documentation/master/api/#rand">rand</a>
+        </li>
+    
+        <li>
+            <a href="http://127.0.0.1:1111/documentation/master/api/#rand-int">rand-int</a>
+        </li>
+    
+        <li>
+            <a href="http://127.0.0.1:1111/documentation/master/api/#range">range</a>
+        </li>
+    
+        <li>
+            <a href="http://127.0.0.1:1111/documentation/master/api/#reduce">reduce</a>
+        </li>
+    
+        <li>
+            <a href="http://127.0.0.1:1111/documentation/master/api/#reduce2">reduce2</a>
+        </li>
+    
+        <li>
+            <a href="http://127.0.0.1:1111/documentation/master/api/#remove">remove</a>
+        </li>
+    
+        <li>
+            <a href="http://127.0.0.1:1111/documentation/master/api/#repeat">repeat</a>
+        </li>
+    
+        <li>
+            <a href="http://127.0.0.1:1111/documentation/master/api/#rest">rest</a>
+        </li>
+    
+        <li>
+            <a href="http://127.0.0.1:1111/documentation/master/api/#reverse">reverse</a>
+        </li>
+    
+        <li>
+            <a href="http://127.0.0.1:1111/documentation/master/api/#second">second</a>
+        </li>
+    
+        <li>
+            <a href="http://127.0.0.1:1111/documentation/master/api/#shuffle">shuffle</a>
+        </li>
+    
+        <li>
+            <a href="http://127.0.0.1:1111/documentation/master/api/#slice">slice</a>
+        </li>
+    
+        <li>
+            <a href="http://127.0.0.1:1111/documentation/master/api/#some">some?</a>
+        </li>
+    
+        <li>
+            <a href="http://127.0.0.1:1111/documentation/master/api/#sort">sort</a>
+        </li>
+    
+        <li>
+            <a href="http://127.0.0.1:1111/documentation/master/api/#sort-by">sort-by</a>
+        </li>
+    
+        <li>
+            <a href="http://127.0.0.1:1111/documentation/master/api/#split-at">split-at</a>
+        </li>
+    
+        <li>
+            <a href="http://127.0.0.1:1111/documentation/master/api/#split-with">split-with</a>
+        </li>
+    
+        <li>
+            <a href="http://127.0.0.1:1111/documentation/master/api/#str">str</a>
+        </li>
+    
+        <li>
+            <a href="http://127.0.0.1:1111/documentation/master/api/#string">string?</a>
+        </li>
+    
+        <li>
+            <a href="http://127.0.0.1:1111/documentation/master/api/#sum">sum</a>
+        </li>
+    
+        <li>
+            <a href="http://127.0.0.1:1111/documentation/master/api/#symbol">symbol?</a>
+        </li>
+    
+        <li>
+            <a href="http://127.0.0.1:1111/documentation/master/api/#table">table</a>
+        </li>
+    
+        <li>
+            <a href="http://127.0.0.1:1111/documentation/master/api/#table-1">table?</a>
+        </li>
+    
+        <li>
+            <a href="http://127.0.0.1:1111/documentation/master/api/#take">take</a>
+        </li>
+    
+        <li>
+            <a href="http://127.0.0.1:1111/documentation/master/api/#take-while">take-while</a>
+        </li>
+    
+        <li>
+            <a href="http://127.0.0.1:1111/documentation/master/api/#to-php-array">to-php-array</a>
+        </li>
+    
+        <li>
+            <a href="http://127.0.0.1:1111/documentation/master/api/#tree-seq">tree-seq</a>
+        </li>
+    
+        <li>
+            <a href="http://127.0.0.1:1111/documentation/master/api/#true">true?</a>
+        </li>
+    
+        <li>
+            <a href="http://127.0.0.1:1111/documentation/master/api/#truthy">truthy?</a>
+        </li>
+    
+        <li>
+            <a href="http://127.0.0.1:1111/documentation/master/api/#tuple">tuple</a>
+        </li>
+    
+        <li>
+            <a href="http://127.0.0.1:1111/documentation/master/api/#tuple-brackets">tuple-brackets</a>
+        </li>
+    
+        <li>
+            <a href="http://127.0.0.1:1111/documentation/master/api/#tuple-1">tuple?</a>
+        </li>
+    
+        <li>
+            <a href="http://127.0.0.1:1111/documentation/master/api/#type">type</a>
+        </li>
+    
+        <li>
+            <a href="http://127.0.0.1:1111/documentation/master/api/#update">update</a>
+        </li>
+    
+        <li>
+            <a href="http://127.0.0.1:1111/documentation/master/api/#update-in">update-in</a>
+        </li>
+    
+        <li>
+            <a href="http://127.0.0.1:1111/documentation/master/api/#values">values</a>
+        </li>
+    
+        <li>
+            <a href="http://127.0.0.1:1111/documentation/master/api/#when">when</a>
+        </li>
+    
+        <li>
+            <a href="http://127.0.0.1:1111/documentation/master/api/#when-not">when-not</a>
+        </li>
+    
+        <li>
+            <a href="http://127.0.0.1:1111/documentation/master/api/#with-output-buffer">with-output-buffer</a>
+        </li>
+    
+        <li>
+            <a href="http://127.0.0.1:1111/documentation/master/api/#zero">zero?</a>
+        </li>
+    
+        <li>
+            <a href="http://127.0.0.1:1111/documentation/master/api/#zipcoll">zipcoll</a>
+        </li>
+    
+    </ul>
+
+    <h2 id=""><code>%</code></h2>
+<pre style="background-color:#ffffff;">
+<span style="color:#4d4d4c;">(% dividend divisor)
+</span></pre>
+<p>Return the remainder of <code>dividend</code> / <code>divisor</code>.</p>
+<h2 id="-1"><code>*</code></h2>
+<pre style="background-color:#ffffff;">
+<span style="color:#4d4d4c;">(* &amp; xs)
+</span></pre>
+<p>Returns the product of all elements in <code>xs</code>. All elements in <code>xs</code> must be 
+numbers. If <code>xs</code> is empty, return 1.</p>
+<h2 id="-2"><code>**</code></h2>
+<pre style="background-color:#ffffff;">
+<span style="color:#4d4d4c;">(** a x)
+</span></pre>
+<p>Return a to the power of <code>x</code>.</p>
+<h2 id="-3"><code>+</code></h2>
+<pre style="background-color:#ffffff;">
+<span style="color:#4d4d4c;">(+ &amp; xs)
+</span></pre>
+<p>Returns the sum of all elements in <code>xs</code>. All elements is <code>xs</code> must be numbers.
+If <code>xs</code> is empty, return 0.</p>
+<h2 id="-4"><code>-</code></h2>
+<pre style="background-color:#ffffff;">
+<span style="color:#4d4d4c;">(- &amp; xs)
+</span></pre>
+<p>Returns the difference of all elements in <code>xs</code>. If <code>xs</code> is empty, return 0. If <code>xs</code>
+has one element, return the negative value of that element.</p>
+<h2 id="-5"><code>/</code></h2>
+<pre style="background-color:#ffffff;">
+<span style="color:#4d4d4c;">(/ &amp; xs)
+</span></pre>
+<p>Returns the nominator divided by all of the denominators. If <code>xs</code> is empty,
+returns 1. If <code>xs</code> has one value, returns the reciprocal of x.</p>
+<h2 id="-6"><code>&lt;</code></h2>
+<pre style="background-color:#ffffff;">
+<span style="color:#4d4d4c;">(&lt; a &amp; more)
+</span></pre>
+<p>Check if all given values are in ascending order. Returns a boolean.</p>
+<h2 id="-7"><code>&lt;=</code></h2>
+<pre style="background-color:#ffffff;">
+<span style="color:#4d4d4c;">(&lt;= a &amp; more)
+</span></pre>
+<p>Check if all given values are in a non-descending order. Returns a boolean.</p>
+<h2 id="-8"><code>=</code></h2>
+<pre style="background-color:#ffffff;">
+<span style="color:#4d4d4c;">(= a &amp; more)
+</span></pre>
+<p>Checks if all values are equal. Same as <code>a == b</code> in PHP.</p>
+<h2 id="-9"><code>&gt;</code></h2>
+<pre style="background-color:#ffffff;">
+<span style="color:#4d4d4c;">(&gt; a &amp; more)
+</span></pre>
+<p>Check if all given values are in descending order. Returns a boolean.</p>
+<h2 id="-10"><code>&gt;=</code></h2>
+<pre style="background-color:#ffffff;">
+<span style="color:#4d4d4c;">(&gt;= a &amp; more)
+</span></pre>
+<p>Check if all given values are in non-ascending order. Returns a boolean.</p>
+<h2 id="nan"><code>NAN</code></h2>
+<p>Not a Number (NAN) constant</p>
+<h2 id="all"><code>all?</code></h2>
+<pre style="background-color:#ffffff;">
+<span style="color:#4d4d4c;">(all? pred xs)
+</span></pre>
+<p>Returns true if <code>(pred x)</code> is logical true for every <code>x</code> in <code>xs</code>, else false.</p>
+<h2 id="and"><code>and</code></h2>
+<pre style="background-color:#ffffff;">
+<span style="color:#4d4d4c;">(and &amp; args)
+</span></pre>
+<p>Evaluates each expression one at a time, from left to right. If a form 
+returns logical false, and returns that value and doesn't evaluate any of the 
+other expressions, otherwise it returns the value of the last expression. 
+Calling the and function without arguments returns true.</p>
+<h2 id="array"><code>array</code></h2>
+<pre style="background-color:#ffffff;">
+<span style="color:#4d4d4c;">(array &amp; xs)
+</span></pre>
+<p>Creates a new Array. If no argument is provided, an empty Array is created.</p>
+<h2 id="array-1"><code>array?</code></h2>
+<pre style="background-color:#ffffff;">
+<span style="color:#4d4d4c;">(array? x)
+</span></pre>
+<p>Returns true if <code>x</code> is a array, false otherwise.</p>
+<h2 id="bit-and"><code>bit-and</code></h2>
+<pre style="background-color:#ffffff;">
+<span style="color:#4d4d4c;">(bit-and x y &amp; args)
+</span></pre><h2 id="bit-clear"><code>bit-clear</code></h2>
+<pre style="background-color:#ffffff;">
+<span style="color:#4d4d4c;">(bit-clear x n)
+</span></pre><h2 id="bit-flip"><code>bit-flip</code></h2>
+<pre style="background-color:#ffffff;">
+<span style="color:#4d4d4c;">(bit-flip x n)
+</span></pre><h2 id="bit-not"><code>bit-not</code></h2>
+<pre style="background-color:#ffffff;">
+<span style="color:#4d4d4c;">(bit-not x)
+</span></pre><h2 id="bit-or"><code>bit-or</code></h2>
+<pre style="background-color:#ffffff;">
+<span style="color:#4d4d4c;">(bit-or x y &amp; args)
+</span></pre><h2 id="bit-set"><code>bit-set</code></h2>
+<pre style="background-color:#ffffff;">
+<span style="color:#4d4d4c;">(bit-set x n)
+</span></pre><h2 id="bit-shift-left"><code>bit-shift-left</code></h2>
+<pre style="background-color:#ffffff;">
+<span style="color:#4d4d4c;">(bit-shift-left x n)
+</span></pre><h2 id="bit-shift-right"><code>bit-shift-right</code></h2>
+<pre style="background-color:#ffffff;">
+<span style="color:#4d4d4c;">(bit-shift-right x n)
+</span></pre><h2 id="bit-test"><code>bit-test</code></h2>
+<pre style="background-color:#ffffff;">
+<span style="color:#4d4d4c;">(bit-test x n)
+</span></pre><h2 id="bit-xor"><code>bit-xor</code></h2>
+<pre style="background-color:#ffffff;">
+<span style="color:#4d4d4c;">(bit-xor x y &amp; args)
+</span></pre><h2 id="boolean"><code>boolean?</code></h2>
+<pre style="background-color:#ffffff;">
+<span style="color:#4d4d4c;">(boolean? x)
+</span></pre>
+<p>Returns true if <code>x</code> is a boolean, false otherwise.</p>
+<h2 id="case"><code>case</code></h2>
+<pre style="background-color:#ffffff;">
+<span style="color:#4d4d4c;">(</span><span style="color:#8959a8;">case</span><span style="color:#4d4d4c;"> e &amp; pairs)
+</span></pre>
+<p>Takes an expression <code>e</code> and a set of test-content/expression pairs. First
+evaluates <code>e</code> and the then finds the first pair where the test-constant matches 
+the result of <code>e</code>. The associated expression is then evaluated and returned. 
+If no matches can be found a final last expression can be provided that is 
+than evaluated and return. Otherwise nil is returned.</p>
+<h2 id="comment"><code>comment</code></h2>
+<pre style="background-color:#ffffff;">
+<span style="color:#4d4d4c;">(comment &amp;)
+</span></pre>
+<p>Ignores the body of the comment</p>
+<h2 id="comp"><code>comp</code></h2>
+<pre style="background-color:#ffffff;">
+<span style="color:#4d4d4c;">(comp &amp; fs)
+</span></pre><h2 id="compare"><code>compare</code></h2>
+<pre style="background-color:#ffffff;">
+<span style="color:#4d4d4c;">(compare x y)
+</span></pre>
+<p>An integer less than, equal to, or greater than zero when <code>x</code> is less than, 
+equal to, or greater than <code>y</code>, respectively.</p>
+<h2 id="complement"><code>complement</code></h2>
+<pre style="background-color:#ffffff;">
+<span style="color:#4d4d4c;">(complement f)
+</span></pre><h2 id="concat"><code>concat</code></h2>
+<pre style="background-color:#ffffff;">
+<span style="color:#4d4d4c;">(concat arr &amp; xs)
+</span></pre>
+<p>Concatinates multiple sequential data structures.</p>
+<h2 id="cond"><code>cond</code></h2>
+<pre style="background-color:#ffffff;">
+<span style="color:#4d4d4c;">(</span><span style="color:#8959a8;">cond</span><span style="color:#4d4d4c;"> &amp; pairs)
+</span></pre>
+<p>Takes a set of test/expression pairs. Evaluates each test one at a time.
+If a test returns logically true, the expression is evaluated and return.
+If no test matches a final last expression can be provided that is than
+evaluated and return. Otherwise nil is returned.</p>
+<h2 id="cons"><code>cons</code></h2>
+<pre style="background-color:#ffffff;">
+<span style="color:#4d4d4c;">(cons x xs)
+</span></pre>
+<p>Prepends <code>x</code> to the beginning of <code>xs</code></p>
+<h2 id="count"><code>count</code></h2>
+<pre style="background-color:#ffffff;">
+<span style="color:#4d4d4c;">(count xs)
+</span></pre>
+<p>Counts the number of elements in a sequence. Can be used on everything that 
+implement the PHP Countable interface.</p>
+<h2 id="dec"><code>dec</code></h2>
+<pre style="background-color:#ffffff;">
+<span style="color:#4d4d4c;">(dec x)
+</span></pre>
+<p>Decrements <code>x</code> by one.</p>
+<h2 id="def"><code>def-</code></h2>
+<pre style="background-color:#ffffff;">
+<span style="color:#4d4d4c;">(</span><span style="color:#8959a8;">def-</span><span style="color:#4d4d4c;"> name &amp; more)
+</span></pre>
+<p>Define a private value that will not be exported</p>
+<h2 id="defmacro"><code>defmacro</code></h2>
+<pre style="background-color:#ffffff;">
+<span style="color:#4d4d4c;">(</span><span style="color:#8959a8;">defmacro</span><span style="color:#4d4d4c;"> name &amp; more)
+</span></pre>
+<p>Define a macro</p>
+<h2 id="defmacro-1"><code>defmacro-</code></h2>
+<pre style="background-color:#ffffff;">
+<span style="color:#4d4d4c;">(</span><span style="color:#8959a8;">defmacro-</span><span style="color:#4d4d4c;"> name &amp; more)
+</span></pre>
+<p>Define a private macro that will not be exported</p>
+<h2 id="defn"><code>defn</code></h2>
+<pre style="background-color:#ffffff;">
+<span style="color:#4d4d4c;">(</span><span style="color:#8959a8;">defn</span><span style="color:#4d4d4c;"> name &amp; more)
+</span></pre>
+<p>Define a new global function</p>
+<h2 id="defn-1"><code>defn-</code></h2>
+<pre style="background-color:#ffffff;">
+<span style="color:#4d4d4c;">(</span><span style="color:#8959a8;">defn-</span><span style="color:#4d4d4c;"> name &amp; more)
+</span></pre>
+<p>Define a private function that will not be exported</p>
+<h2 id="distinct"><code>distinct</code></h2>
+<pre style="background-color:#ffffff;">
+<span style="color:#4d4d4c;">(distinct xs)
+</span></pre>
+<p>Returns an array with duplicated values removed in <code>xs</code>.</p>
+<h2 id="drop"><code>drop</code></h2>
+<pre style="background-color:#ffffff;">
+<span style="color:#4d4d4c;">(drop n xs)
+</span></pre><h2 id="drop-while"><code>drop-while</code></h2>
+<pre style="background-color:#ffffff;">
+<span style="color:#4d4d4c;">(drop-while pred xs)
+</span></pre><h2 id="empty"><code>empty?</code></h2>
+<pre style="background-color:#ffffff;">
+<span style="color:#4d4d4c;">(empty? x)
+</span></pre>
+<p>Returns true if <code>(count x)</code> is zero, false otherwise.</p>
+<h2 id="even"><code>even?</code></h2>
+<pre style="background-color:#ffffff;">
+<span style="color:#4d4d4c;">(even? x)
+</span></pre>
+<p>Checks if <code>x</code> is even.</p>
+<h2 id="extreme"><code>extreme</code></h2>
+<pre style="background-color:#ffffff;">
+<span style="color:#4d4d4c;">(extreme order args)
+</span></pre>
+<p>Returns the most extreme value in <code>args</code> based on the binary <code>order</code> function.</p>
+<h2 id="false"><code>false?</code></h2>
+<pre style="background-color:#ffffff;">
+<span style="color:#4d4d4c;">(false? x)
+</span></pre>
+<p>Checks if <code>x</code> is false. Same as <code>x === false</code> in PHP.</p>
+<h2 id="ffirst"><code>ffirst</code></h2>
+<pre style="background-color:#ffffff;">
+<span style="color:#4d4d4c;">(ffirst xs)
+</span></pre>
+<p>Same as <code>(first (first xs))</code></p>
+<h2 id="filter"><code>filter</code></h2>
+<pre style="background-color:#ffffff;">
+<span style="color:#4d4d4c;">(filter pred xs)
+</span></pre><h2 id="find"><code>find</code></h2>
+<pre style="background-color:#ffffff;">
+<span style="color:#4d4d4c;">(find pred xs)
+</span></pre><h2 id="find-index"><code>find-index</code></h2>
+<pre style="background-color:#ffffff;">
+<span style="color:#4d4d4c;">(find-index pred xs)
+</span></pre><h2 id="first"><code>first</code></h2>
+<pre style="background-color:#ffffff;">
+<span style="color:#4d4d4c;">(first xs)
+</span></pre>
+<p>Returns the first element of an indexed sequence or nil.</p>
+<h2 id="flatten"><code>flatten</code></h2>
+<pre style="background-color:#ffffff;">
+<span style="color:#4d4d4c;">(flatten xs)
+</span></pre>
+<p>Takes a nested sequential data structure (tree), and returns their contents 
+as a single, flat array.</p>
+<h2 id="float"><code>float?</code></h2>
+<pre style="background-color:#ffffff;">
+<span style="color:#4d4d4c;">(float? x)
+</span></pre>
+<p>Returns true if <code>x</code> is float point number, false otherwise.</p>
+<h2 id="frequencies"><code>frequencies</code></h2>
+<pre style="background-color:#ffffff;">
+<span style="color:#4d4d4c;">(frequencies xs)
+</span></pre><h2 id="function"><code>function?</code></h2>
+<pre style="background-color:#ffffff;">
+<span style="color:#4d4d4c;">(function? x)
+</span></pre>
+<p>Returns true if <code>x</code> is a function, false otherwise.</p>
+<h2 id="gensym"><code>gensym</code></h2>
+<pre style="background-color:#ffffff;">
+<span style="color:#4d4d4c;">(gensym )
+</span></pre>
+<p>Generates a new unique symbol.</p>
+<h2 id="get"><code>get</code></h2>
+<pre style="background-color:#ffffff;">
+<span style="color:#4d4d4c;">(get ds k &amp; [opt])
+</span></pre><h2 id="get-in"><code>get-in</code></h2>
+<pre style="background-color:#ffffff;">
+<span style="color:#4d4d4c;">(get-in ds ks &amp; [opt])
+</span></pre><h2 id="group-by"><code>group-by</code></h2>
+<pre style="background-color:#ffffff;">
+<span style="color:#4d4d4c;">(group-by f xs)
+</span></pre>
+<p>Returns a table of the elements of xs keyed by the result of
+f on each element.</p>
+<h2 id="id"><code>id</code></h2>
+<pre style="background-color:#ffffff;">
+<span style="color:#4d4d4c;">(id a &amp; more)
+</span></pre>
+<p>Checks if all values are identically. Same as <code>a === b</code> in PHP.</p>
+<h2 id="identity"><code>identity</code></h2>
+<pre style="background-color:#ffffff;">
+<span style="color:#4d4d4c;">(identity x)
+</span></pre><h2 id="if-not"><code>if-not</code></h2>
+<pre style="background-color:#ffffff;">
+<span style="color:#4d4d4c;">(</span><span style="color:#8959a8;">if-not</span><span style="color:#4d4d4c;"> test then &amp; [else])
+</span></pre>
+<p>Shorthand for <code>(if (not condition) else then)</code>.</p>
+<h2 id="inc"><code>inc</code></h2>
+<pre style="background-color:#ffffff;">
+<span style="color:#4d4d4c;">(inc x)
+</span></pre>
+<p>Increments <code>x</code> by one.</p>
+<h2 id="indexed"><code>indexed?</code></h2>
+<pre style="background-color:#ffffff;">
+<span style="color:#4d4d4c;">(indexed? x)
+</span></pre>
+<p>Returns true if <code>x</code> is indexed sequence, false otherwise.</p>
+<h2 id="int"><code>int?</code></h2>
+<pre style="background-color:#ffffff;">
+<span style="color:#4d4d4c;">(int? x)
+</span></pre>
+<p>Returns true if <code>x</code> is a integer number, false otherwise.</p>
+<h2 id="interleave"><code>interleave</code></h2>
+<pre style="background-color:#ffffff;">
+<span style="color:#4d4d4c;">(interleave &amp; xs)
+</span></pre>
+<p>Returns a array with the first items of each col, than the second items etc.</p>
+<h2 id="interpose"><code>interpose</code></h2>
+<pre style="background-color:#ffffff;">
+<span style="color:#4d4d4c;">(interpose sep xs)
+</span></pre><h2 id="invert"><code>invert</code></h2>
+<pre style="background-color:#ffffff;">
+<span style="color:#4d4d4c;">(invert table)
+</span></pre>
+<p>Returns a new table where the keys and values are swapped. If table has
+duplicated values, some keys will be ignored.</p>
+<h2 id="juxt"><code>juxt</code></h2>
+<pre style="background-color:#ffffff;">
+<span style="color:#4d4d4c;">(juxt &amp; fs)
+</span></pre><h2 id="keep"><code>keep</code></h2>
+<pre style="background-color:#ffffff;">
+<span style="color:#4d4d4c;">(keep pred xs)
+</span></pre><h2 id="keep-indexed"><code>keep-indexed</code></h2>
+<pre style="background-color:#ffffff;">
+<span style="color:#4d4d4c;">(keep-indexed pred xs)
+</span></pre><h2 id="keys"><code>keys</code></h2>
+<pre style="background-color:#ffffff;">
+<span style="color:#4d4d4c;">(keys xs)
+</span></pre>
+<p>Gets the keys of an associative data structure</p>
+<h2 id="keyword"><code>keyword</code></h2>
+<pre style="background-color:#ffffff;">
+<span style="color:#4d4d4c;">(keyword x)
+</span></pre>
+<p>Creates a new Keyword from a given string.</p>
+<h2 id="keyword-1"><code>keyword?</code></h2>
+<pre style="background-color:#ffffff;">
+<span style="color:#4d4d4c;">(keyword? x)
+</span></pre>
+<p>Returns true if <code>x</code> is a string, false otherwise.</p>
+<h2 id="kvs"><code>kvs</code></h2>
+<pre style="background-color:#ffffff;">
+<span style="color:#4d4d4c;">(kvs xs)
+</span></pre>
+<p>Returns an array of key value pairs like @[k1 v1 k2 v2 k3 v3 ...].</p>
+<h2 id="map"><code>map</code></h2>
+<pre style="background-color:#ffffff;">
+<span style="color:#4d4d4c;">(map f &amp; xs)
+</span></pre><h2 id="map-indexed"><code>map-indexed</code></h2>
+<pre style="background-color:#ffffff;">
+<span style="color:#4d4d4c;">(map-indexed f xs)
+</span></pre>
+<p>Applies f to each element in xs. f is a two argument function. The first 
+argument is index of the element in the sequence and the second element is the
+element itself.</p>
+<h2 id="mapcat"><code>mapcat</code></h2>
+<pre style="background-color:#ffffff;">
+<span style="color:#4d4d4c;">(mapcat f &amp; xs)
+</span></pre>
+<p>Applies f on all xs and concatenate the result.</p>
+<h2 id="max"><code>max</code></h2>
+<pre style="background-color:#ffffff;">
+<span style="color:#4d4d4c;">(max &amp; numbers)
+</span></pre>
+<p>Returns the numeric maximum of all numbers.</p>
+<h2 id="mean"><code>mean</code></h2>
+<pre style="background-color:#ffffff;">
+<span style="color:#4d4d4c;">(mean xs)
+</span></pre>
+<p>Returns the mean of <code>xs</code>.</p>
+<h2 id="merge"><code>merge</code></h2>
+<pre style="background-color:#ffffff;">
+<span style="color:#4d4d4c;">(merge &amp; tables)
+</span></pre>
+<p>Merges multiple tables into one new table. If a key appears in more than one
+collection, then later values replace any previous ones.</p>
+<h2 id="merge-into"><code>merge-into</code></h2>
+<pre style="background-color:#ffffff;">
+<span style="color:#4d4d4c;">(merge-into tab &amp; tables)
+</span></pre>
+<p>Merges multiple tables into first table. If a key appears in more than one
+collection, then later values replace any previous ones.</p>
+<h2 id="min"><code>min</code></h2>
+<pre style="background-color:#ffffff;">
+<span style="color:#4d4d4c;">(min &amp; numbers)
+</span></pre>
+<p>Returns the numeric minimum of all numbers.</p>
+<h2 id="nan-1"><code>nan?</code></h2>
+<pre style="background-color:#ffffff;">
+<span style="color:#4d4d4c;">(nan? x)
+</span></pre>
+<p>Checks if <code>x</code> is not a number</p>
+<h2 id="neg"><code>neg?</code></h2>
+<pre style="background-color:#ffffff;">
+<span style="color:#4d4d4c;">(neg? x)
+</span></pre>
+<p>Checks if <code>x</code> is smaller than zero.</p>
+<h2 id="next"><code>next</code></h2>
+<pre style="background-color:#ffffff;">
+<span style="color:#4d4d4c;">(next xs)
+</span></pre>
+<p>Returns the sequence of elements after the first element. If there are no 
+elements, returns nil.</p>
+<h2 id="nfirst"><code>nfirst</code></h2>
+<pre style="background-color:#ffffff;">
+<span style="color:#4d4d4c;">(nfirst xs)
+</span></pre>
+<p>Same as <code>(next (first xs))</code></p>
+<h2 id="nil"><code>nil?</code></h2>
+<pre style="background-color:#ffffff;">
+<span style="color:#4d4d4c;">(nil? x)
+</span></pre>
+<p>Returns true if <code>x</code> is nil, false otherwise.</p>
+<h2 id="nnext"><code>nnext</code></h2>
+<pre style="background-color:#ffffff;">
+<span style="color:#4d4d4c;">(nnext xs)
+</span></pre>
+<p>Same as <code>(next (next xs))</code></p>
+<h2 id="not"><code>not</code></h2>
+<pre style="background-color:#ffffff;">
+<span style="color:#4d4d4c;">(not x)
+</span></pre>
+<p>The <code>not</code> function returns <code>true</code> if the given value is logical false and 
+<code>false</code> otherwise.</p>
+<h2 id="not-1"><code>not=</code></h2>
+<pre style="background-color:#ffffff;">
+<span style="color:#4d4d4c;">(not= a &amp; more)
+</span></pre>
+<p>Checks if all values are unequal. Same as <code>a != b</code> in PHP.</p>
+<h2 id="number"><code>number?</code></h2>
+<pre style="background-color:#ffffff;">
+<span style="color:#4d4d4c;">(number? x)
+</span></pre>
+<p>Returns true if <code>x</code> is a number, false otherwise.</p>
+<h2 id="odd"><code>odd?</code></h2>
+<pre style="background-color:#ffffff;">
+<span style="color:#4d4d4c;">(odd? x)
+</span></pre>
+<p>Checks if <code>x</code> is odd.</p>
+<h2 id="one"><code>one?</code></h2>
+<pre style="background-color:#ffffff;">
+<span style="color:#4d4d4c;">(one? x)
+</span></pre>
+<p>Checks if <code>x</code> is one.</p>
+<h2 id="or"><code>or</code></h2>
+<pre style="background-color:#ffffff;">
+<span style="color:#4d4d4c;">(or &amp; args)
+</span></pre>
+<p>Evaluates each expression one at a time, from left to right. If a form 
+returns a logical true value, or returns that value and doesn't evaluate any of 
+the other expressions, otherwise it returns the value of the last expression. 
+Calling or without arguments, returns nil.</p>
+<h2 id="pairs"><code>pairs</code></h2>
+<pre style="background-color:#ffffff;">
+<span style="color:#4d4d4c;">(pairs xs)
+</span></pre>
+<p>Gets the pairs of an associative data structure</p>
+<h2 id="partial"><code>partial</code></h2>
+<pre style="background-color:#ffffff;">
+<span style="color:#4d4d4c;">(partial f &amp; args)
+</span></pre><h2 id="peek"><code>peek</code></h2>
+<pre style="background-color:#ffffff;">
+<span style="color:#4d4d4c;">(peek xs)
+</span></pre>
+<p>Returns the last element of a sequence.</p>
+<h2 id="php-array"><code>php-array?</code></h2>
+<pre style="background-color:#ffffff;">
+<span style="color:#4d4d4c;">(php-array? x)
+</span></pre>
+<p>Returns true if <code>x</code> is a PHP Array, false otherwise.</p>
+<h2 id="php-object"><code>php-object?</code></h2>
+<pre style="background-color:#ffffff;">
+<span style="color:#4d4d4c;">(php-object? x)
+</span></pre>
+<p>Returns true if <code>x</code> is a PHP object, false otherwise.</p>
+<h2 id="php-resource"><code>php-resource?</code></h2>
+<pre style="background-color:#ffffff;">
+<span style="color:#4d4d4c;">(php-resource? x)
+</span></pre>
+<p>Returns true if <code>x</code> is a PHP resource, false otherwise.</p>
+<h2 id="pop"><code>pop</code></h2>
+<pre style="background-color:#ffffff;">
+<span style="color:#4d4d4c;">(pop xs)
+</span></pre>
+<p>Removes the the last element of the array <code>xs</code>. If the array is empty 
+returns nil.</p>
+<h2 id="pos"><code>pos?</code></h2>
+<pre style="background-color:#ffffff;">
+<span style="color:#4d4d4c;">(pos? x)
+</span></pre>
+<p>Checks if <code>x</code> is greater than zero.</p>
+<h2 id="print"><code>print</code></h2>
+<pre style="background-color:#ffffff;">
+<span style="color:#4d4d4c;">(print &amp; xs)
+</span></pre><h2 id="print-str"><code>print-str</code></h2>
+<pre style="background-color:#ffffff;">
+<span style="color:#4d4d4c;">(print-str &amp; xs)
+</span></pre><h2 id="println"><code>println</code></h2>
+<pre style="background-color:#ffffff;">
+<span style="color:#4d4d4c;">(println &amp; xs)
+</span></pre><h2 id="push"><code>push</code></h2>
+<pre style="background-color:#ffffff;">
+<span style="color:#4d4d4c;">(push xs x)
+</span></pre>
+<p>Inserts <code>x</code> at the end of the sequence <code>xs</code>.</p>
+<h2 id="put"><code>put</code></h2>
+<pre style="background-color:#ffffff;">
+<span style="color:#4d4d4c;">(put ds key value)
+</span></pre><h2 id="put-in"><code>put-in</code></h2>
+<pre style="background-color:#ffffff;">
+<span style="color:#4d4d4c;">(put-in ds [k &amp; ks] v)
+</span></pre><h2 id="rand"><code>rand</code></h2>
+<pre style="background-color:#ffffff;">
+<span style="color:#4d4d4c;">(rand )
+</span></pre>
+<p>Returns a random number between 0 and 1.</p>
+<h2 id="rand-int"><code>rand-int</code></h2>
+<pre style="background-color:#ffffff;">
+<span style="color:#4d4d4c;">(rand-int n)
+</span></pre>
+<p>Returns a random number between 0 and <code>n</code></p>
+<h2 id="range"><code>range</code></h2>
+<pre style="background-color:#ffffff;">
+<span style="color:#4d4d4c;">(range a &amp; rest)
+</span></pre>
+<p>Create an array of values [start, end). If the function has one argument the
+the range [0, end) is returned. With two arguments, returns [start, end).
+The third argument is an optional step width (default 1).</p>
+<h2 id="reduce"><code>reduce</code></h2>
+<pre style="background-color:#ffffff;">
+<span style="color:#4d4d4c;">(reduce f init xs)
+</span></pre><h2 id="reduce2"><code>reduce2</code></h2>
+<pre style="background-color:#ffffff;">
+<span style="color:#4d4d4c;">(reduce2 f [x &amp; xs])
+</span></pre><h2 id="remove"><code>remove</code></h2>
+<pre style="background-color:#ffffff;">
+<span style="color:#4d4d4c;">(remove xs offset &amp; [n])
+</span></pre>
+<p>Removes up to <code>n</code> element from array <code>xs</code> starting at index <code>offset</code>.</p>
+<h2 id="repeat"><code>repeat</code></h2>
+<pre style="background-color:#ffffff;">
+<span style="color:#4d4d4c;">(repeat n x)
+</span></pre>
+<p>Returns an array of length n where every element is x.</p>
+<h2 id="rest"><code>rest</code></h2>
+<pre style="background-color:#ffffff;">
+<span style="color:#4d4d4c;">(rest xs)
+</span></pre>
+<p>Returns the sequence of elements after the first element. If there are no 
+elements, returns an empty sequence.</p>
+<h2 id="reverse"><code>reverse</code></h2>
+<pre style="background-color:#ffffff;">
+<span style="color:#4d4d4c;">(reverse xs)
+</span></pre>
+<p>Reverses the order of the elements in the given sequence</p>
+<h2 id="second"><code>second</code></h2>
+<pre style="background-color:#ffffff;">
+<span style="color:#4d4d4c;">(second xs)
+</span></pre>
+<p>Returns the second element of an indexed sequence or nil.</p>
+<h2 id="shuffle"><code>shuffle</code></h2>
+<pre style="background-color:#ffffff;">
+<span style="color:#4d4d4c;">(shuffle xs)
+</span></pre>
+<p>Returns a random permutation of xs.</p>
+<h2 id="slice"><code>slice</code></h2>
+<pre style="background-color:#ffffff;">
+<span style="color:#4d4d4c;">(slice xs &amp; [offset &amp; [length]])
+</span></pre><h2 id="some"><code>some?</code></h2>
+<pre style="background-color:#ffffff;">
+<span style="color:#4d4d4c;">(some? pred xs)
+</span></pre>
+<p>Returns true if <code>(pred x)</code> is logical true for at least one <code>x</code> in <code>xs</code>, else false.</p>
+<h2 id="sort"><code>sort</code></h2>
+<pre style="background-color:#ffffff;">
+<span style="color:#4d4d4c;">(sort xs &amp; [comp])
+</span></pre>
+<p>Returns a sorted array. If no comperator is supplied compare is used.</p>
+<h2 id="sort-by"><code>sort-by</code></h2>
+<pre style="background-color:#ffffff;">
+<span style="color:#4d4d4c;">(sort-by keyfn xs &amp; [comp])
+</span></pre>
+<p>Returns a sorted array where the sort order is determined by comparing 
+(keyfn item). If no comperator is supplied compare is used.</p>
+<h2 id="split-at"><code>split-at</code></h2>
+<pre style="background-color:#ffffff;">
+<span style="color:#4d4d4c;">(split-at n xs)
+</span></pre>
+<p>Returns a tuple of [(take n coll) (drop n coll)]</p>
+<h2 id="split-with"><code>split-with</code></h2>
+<pre style="background-color:#ffffff;">
+<span style="color:#4d4d4c;">(split-with f xs)
+</span></pre>
+<p>Returns a tuple of [(take-while pred coll) (drop-while pred coll)]</p>
+<h2 id="str"><code>str</code></h2>
+<pre style="background-color:#ffffff;">
+<span style="color:#4d4d4c;">(str &amp; args)
+</span></pre>
+<p>Creates a string by concatenating values together. If no arguments are 
+provided an empty string is returned. Nil and false are represented as empty 
+string. True is represented as 1. Otherwise it tries to call <code>__toString</code>. 
+This is PHP equalivalent to <code>$args[0] . $args[1] . $args[2] ...</code></p>
+<h2 id="string"><code>string?</code></h2>
+<pre style="background-color:#ffffff;">
+<span style="color:#4d4d4c;">(string? x)
+</span></pre>
+<p>Returns true if <code>x</code> is a string, false otherwise.</p>
+<h2 id="sum"><code>sum</code></h2>
+<pre style="background-color:#ffffff;">
+<span style="color:#4d4d4c;">(sum xs)
+</span></pre>
+<p>Returns the sum of all elements is <code>xs</code>.</p>
+<h2 id="symbol"><code>symbol?</code></h2>
+<pre style="background-color:#ffffff;">
+<span style="color:#4d4d4c;">(symbol? x)
+</span></pre>
+<p>Returns true if <code>x</code> is a symbol, false otherwise.</p>
+<h2 id="table"><code>table</code></h2>
+<pre style="background-color:#ffffff;">
+<span style="color:#4d4d4c;">(table &amp; xs)
+</span></pre>
+<p>Creates a new Table. If no argument is provided, an empty Table is created. 
+The number of parameters must be even.</p>
+<h2 id="table-1"><code>table?</code></h2>
+<pre style="background-color:#ffffff;">
+<span style="color:#4d4d4c;">(table? x)
+</span></pre>
+<p>Returns true if <code>x</code> is a table, false otherwise.</p>
+<h2 id="take"><code>take</code></h2>
+<pre style="background-color:#ffffff;">
+<span style="color:#4d4d4c;">(take n xs)
+</span></pre><h2 id="take-while"><code>take-while</code></h2>
+<pre style="background-color:#ffffff;">
+<span style="color:#4d4d4c;">(take-while pred xs)
+</span></pre><h2 id="to-php-array"><code>to-php-array</code></h2>
+<pre style="background-color:#ffffff;">
+<span style="color:#4d4d4c;">(to-php-array xs)
+</span></pre>
+<p>Create a PHP Array from a sequential data structure</p>
+<h2 id="tree-seq"><code>tree-seq</code></h2>
+<pre style="background-color:#ffffff;">
+<span style="color:#4d4d4c;">(tree-seq branch? children root)
+</span></pre>
+<p>Returns an array of the nodes in the tree, via a depth first walk.
+branch? is a function with one argument that returns true if the given node 
+has children.
+children must be a function with one argument that returns the children of the node.
+root the the root node of the tree.</p>
+<h2 id="true"><code>true?</code></h2>
+<pre style="background-color:#ffffff;">
+<span style="color:#4d4d4c;">(true? x)
+</span></pre>
+<p>Checks if <code>x</code> is true. Same as <code>x === true</code> in PHP.</p>
+<h2 id="truthy"><code>truthy?</code></h2>
+<pre style="background-color:#ffffff;">
+<span style="color:#4d4d4c;">(truthy? x)
+</span></pre>
+<p>Checks if <code>x</code> is truthy. Same as <code>x == true</code> in PHP.</p>
+<h2 id="tuple"><code>tuple</code></h2>
+<pre style="background-color:#ffffff;">
+<span style="color:#4d4d4c;">(tuple &amp; xs)
+</span></pre>
+<p>Creates a new Tuple. If no argument is provided, an empty Tuple is created.</p>
+<h2 id="tuple-brackets"><code>tuple-brackets</code></h2>
+<pre style="background-color:#ffffff;">
+<span style="color:#4d4d4c;">(tuple-brackets &amp; xs)
+</span></pre>
+<p>Creates a new Bracket-Tuple. If no argument is provided, 
+an empty Braket-Tuple is created.</p>
+<h2 id="tuple-1"><code>tuple?</code></h2>
+<pre style="background-color:#ffffff;">
+<span style="color:#4d4d4c;">(tuple? x)
+</span></pre>
+<p>Returns true if <code>x</code> is a tuple, false otherwise.</p>
+<h2 id="type"><code>type</code></h2>
+<pre style="background-color:#ffffff;">
+<span style="color:#4d4d4c;">(type x)
+</span></pre>
+<p>Returns the type of <code>x</code>. Following types can be returned:</p>
+<ul>
+<li><code>:tuple</code></li>
+<li><code>:array</code> </li>
+<li><code>:table</code></li>
+<li><code>:keyword</code></li>
+<li><code>:symbol</code></li>
+<li><code>:int</code></li>
+<li><code>:float</code></li>
+<li><code>:string</code></li>
+<li><code>:nil</code></li>
+<li><code>:boolean</code></li>
+<li><code>:function</code></li>
+<li><code>:php/array</code></li>
+<li><code>:php/resource</code></li>
+<li><code>:php/object</code></li>
+<li><code>:unknown</code></li>
+</ul>
+<h2 id="update"><code>update</code></h2>
+<pre style="background-color:#ffffff;">
+<span style="color:#4d4d4c;">(update ds k f &amp; args)
+</span></pre><h2 id="update-in"><code>update-in</code></h2>
+<pre style="background-color:#ffffff;">
+<span style="color:#4d4d4c;">(update-in ds [k &amp; ks] f &amp; args)
+</span></pre><h2 id="values"><code>values</code></h2>
+<pre style="background-color:#ffffff;">
+<span style="color:#4d4d4c;">(values xs)
+</span></pre>
+<p>Gets the values of an associative data structure</p>
+<h2 id="when"><code>when</code></h2>
+<pre style="background-color:#ffffff;">
+<span style="color:#4d4d4c;">(</span><span style="color:#8959a8;">when</span><span style="color:#4d4d4c;"> test &amp; body)
+</span></pre>
+<p>Evaluates <code>test</code> and if that is logical true, evaluates <code>body</code></p>
+<h2 id="when-not"><code>when-not</code></h2>
+<pre style="background-color:#ffffff;">
+<span style="color:#4d4d4c;">(</span><span style="color:#8959a8;">when-not</span><span style="color:#4d4d4c;"> test &amp; body)
+</span></pre>
+<p>Evaluates <code>test</code> and if that is logical true, evaluates <code>body</code></p>
+<h2 id="with-output-buffer"><code>with-output-buffer</code></h2>
+<pre style="background-color:#ffffff;">
+<span style="color:#4d4d4c;">(with-output-buffer &amp; body)
+</span></pre><h2 id="zero"><code>zero?</code></h2>
+<pre style="background-color:#ffffff;">
+<span style="color:#4d4d4c;">(zero? x)
+</span></pre>
+<p>Checks if <code>x</code> is zero.</p>
+<h2 id="zipcoll"><code>zipcoll</code></h2>
+<pre style="background-color:#ffffff;">
+<span style="color:#4d4d4c;">(zipcoll a b)
+</span></pre>
+<p>Creates a table from two sequencial data structures. Return a new table.</p>
+
+
+    </div>
+</div>
+
+<script src="/livereload.js?port=1024&amp;mindelay=10"></script></body>
+
+</html>

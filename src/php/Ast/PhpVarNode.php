@@ -19,6 +19,7 @@ class PhpVarNode implements Node {
         ">", 
         "<=", 
         ">=", 
+        "<=>",
         "===", 
         "==", 
         "!=", 

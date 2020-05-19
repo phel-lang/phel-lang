@@ -17,6 +17,11 @@
         </url>
     
         <url>
+            <loc>http://127.0.0.1:1111/documentation/master/api/</loc>
+            
+        </url>
+    
+        <url>
             <loc>http://127.0.0.1:1111/documentation/master/array/</loc>
             
         </url>

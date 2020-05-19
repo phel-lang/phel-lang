@@ -457,8 +457,8 @@ class Analyzer {
         if (!$frame) {
             throw new AnalyzerException(
                 "Can't call 'recur here",
-                $x->getStartLocation(),
-                $x->getEndLocation()
+                $x[0]->getStartLocation(),
+                $x[0]->getEndLocation()
             );
         }
 
@@ -998,11 +998,19 @@ class Analyzer {
                 $this->enrichLocation($item, $parent);
             }
 
-            $x->setStartLocation($parent->getStartLocation());
-            $x->setEndLocation($parent->getEndLocation());
+            if (!$x->getStartLocation()) {
+                $x->setStartLocation($parent->getStartLocation());
+            }
+            if (!$x->getEndLocation()) {
+                $x->setEndLocation($parent->getEndLocation());
+            }
         } else if ($x instanceof Phel) {
-            $x->setStartLocation($parent->getStartLocation());
-            $x->setEndLocation($parent->getEndLocation());
+            if (!$x->getStartLocation()) {
+                $x->setStartLocation($parent->getStartLocation());
+            }
+            if (!$x->getEndLocation()) {
+                $x->setEndLocation($parent->getEndLocation());
+            }
         }
     }
 
