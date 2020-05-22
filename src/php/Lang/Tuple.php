@@ -108,6 +108,7 @@ class Tuple extends Phel implements ArrayAccess, Countable, Iterator, ISlice, IC
      * @param mixed $value The value to set on $index
      * 
      * @return Tuple A copy of the tuple with an update value
+     * @internal
      */
     public function update(int $offset, $value): Tuple {
         if ($offset < 0 || $offset > count($this->data)) {
@@ -185,6 +186,13 @@ class Tuple extends Phel implements ArrayAccess, Countable, Iterator, ISlice, IC
         }
 
         return new Tuple($newData, $this->isUsingBracket());
+    }
+
+    /**
+     * @internal
+     */
+    public function toArray() {
+        return $this->data;
     }
 
     public function __toString() {

@@ -4,6 +4,7 @@ namespace Phel;
 
 use Exception;
 use Phel\Ast\ApplyNode;
+use Phel\Ast\ArrayNode;
 use Phel\Ast\BindingNode;
 use Phel\Ast\CallNode;
 use Phel\Ast\CatchNode;
@@ -30,6 +31,7 @@ use Phel\Ast\PhpVarNode;
 use Phel\Ast\PropertyOrConstantAccessNode;
 use Phel\Ast\QuoteNode;
 use Phel\Ast\RecurNode;
+use Phel\Ast\TableNode;
 use Phel\Ast\ThrowNode;
 use Phel\Ast\TryNode;
 use Phel\Ast\TupleNode;
@@ -67,9 +69,7 @@ class Analyzer {
           || is_int($x)
           || is_bool($x)
           || $x === null
-          || $x instanceof Keyword
-          || $x instanceof PhelArray
-          || $x instanceof Table;
+          || $x instanceof Keyword;
     }
 
     /**
@@ -89,6 +89,10 @@ class Analyzer {
             return $this->analyzeVar($x, $nodeEnvironment);
         } else if ($x instanceof Tuple && $x->isUsingBracket()) {
             return $this->analyzeBracketTuple($x, $nodeEnvironment);
+        } else if ($x instanceof PhelArray) {
+            return $this->analyzeArray($x, $nodeEnvironment);
+        } else if ($x instanceof Table) {
+            return $this->analyzeTable($x, $nodeEnvironment);
         } else if ($x instanceof Tuple) {
             if ($x[0] instanceof Symbol) {
                 switch ($x[0]->getName()) {
@@ -142,6 +146,27 @@ class Analyzer {
             // TODO: Needs to be another exception, because we have may not have start and end location
             throw new AnalyzerException('Unhandled type: ' . var_export($x, true), null, null);
         }
+    }
+
+    protected function analyzeTable(Table $t, NodeEnvironment $env): TableNode {
+        $keyValues = [];
+        $kvEnv = $env->withContext(NodeEnvironment::CTX_EXPR);
+        foreach ($t as $key => $value) {
+            $keyValues[] = $this->analyze($key, $kvEnv);
+            $keyValues[] = $this->analyze($value, $kvEnv);
+        }
+
+        return new TableNode($env, $keyValues);
+    }
+
+    protected function analyzeArray(PhelArray $arr, NodeEnvironment $env): ArrayNode {
+        $values = [];
+        $valueEnv = $env->withContext(NodeEnvironment::CTX_EXPR);
+        foreach ($arr as $value) {
+            $values[] = $this->analyze($value, $valueEnv);
+        }
+
+        return new ArrayNode($env, $values);
     }
 
     protected function analyzeForeach(Tuple $x, NodeEnvironment $env): ForeachNode {
