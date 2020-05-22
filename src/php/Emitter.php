@@ -104,7 +104,7 @@ class Emitter {
         } else if ($node instanceof QuoteNode) {
             return $this->emitQuote($node);
         } else if ($node instanceof FnNode) {
-            return $this->emitFn($node);
+            return $this->emitFnAsClass($node);
         } else if ($node instanceof DoNode) {
             return $this->emitDo($node);
         } else if ($node instanceof LetNode) {
@@ -528,6 +528,84 @@ class Emitter {
 
     protected function emitQuote(QuoteNode $node): string {
         return $this->wrap($this->emitPhel($node->getValue()), $node->getEnv());
+    }
+
+    protected function emitFnAsClass(FnNode $node) {
+        $params = [];
+        $variadicWrapString = '';
+        foreach ($node->getParams() as $i => $p) {
+            if ($i == count($node->getParams()) - 1 && $node->isVariadic()) {
+                $params[] = '...$' . $this->munge($p->getName());
+                $variadicWrapString = '$' . $this->munge($p->getName()) . ' = new \Phel\Lang\PhelArray($' . $this->munge($p->getName()) . ');' . "\n";
+            } else {
+                $params[] = '$' . $this->munge($p->getName());
+            }
+        }
+        $paramString = implode(', ', $params);
+
+        $constructorParameter = [];
+        $constructorSetter = [];
+        $invokeGetter = [];
+        $properties = [];
+        foreach ($node->getUses() as $u) {
+            $shadowed = $node->getEnv()->getShadowed($u);
+            if ($shadowed) {
+                $u = $shadowed;
+            }
+
+            $varName = $this->munge($u->getName());
+
+            $constructorParameter[] = '$' . $varName;
+            $constructorSetter[] = '$this->' . $varName . ' = $' . $varName . ';';
+            $properties[] = 'private $' . $varName . ';';
+            $invokeGetter[] = '$' . $varName . ' = $this->' . $varName . ';';
+        }
+
+        $constructorParameterString = implode(', ', $constructorParameter);
+        $constructorSetterString = implode("\n", $constructorSetter);
+
+        $constructor = (
+            "public function __construct($constructorParameterString) {\n"
+            . $this->indent($constructorSetterString, 1)
+            . (empty($constructorParameter) ? '' : "\n")
+            . "}\n"
+        );
+
+        $invokeGetterString = implode("\n", $invokeGetter);
+
+        $body = $this->emit($node->getBody());
+
+        if ($node->getRecurs()) {
+            $body = $this->wrapRecur($body);
+        }
+
+        $invokeFn = (
+            "public function __invoke($paramString) {\n"
+            . $this->indent($invokeGetterString, 1)
+            . (empty($invokeGetter) ? '' : "\n")
+            . ($variadicWrapString ? $this->indent($variadicWrapString, 1) : '')
+            . $this->indent($body, 1)
+            . "}\n"
+        );
+
+        $constString = (
+            'public const BOUND_TO = "' . addslashes($node->getEnv()->getBoundTo()) . '";'
+        );
+        $propertiesString = implode("\n", $properties);
+
+        return $this->wrap(
+            "new class($constructorParameterString) implements \Phel\Lang\IFn {\n"
+            . $this->indent($constString, 1)
+            . "\n"
+            . $this->indent($propertiesString, 1)
+            . "\n"
+            . $this->indent($constructor, 1)
+            . "\n"
+            . $this->indent($invokeFn, 1)
+            . "\n"
+            . '}',
+            $node->getEnv()
+        );
     }
 
     protected function emitFn(FnNode $node): string {

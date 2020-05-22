@@ -65,7 +65,7 @@ elements, returns nil."
               nil
               sliced))
           (throw (php/new InvalidArgumentException 
-                    (php/. "can not do next" (php/gettype xs)))))))))
+                    (php/. "can not call 'next on " (php/gettype xs)))))))))
 
 (def concat1
   :private

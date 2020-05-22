@@ -714,7 +714,8 @@ class Analyzer {
             $shadowSym = Symbol::gen($sym->getName() . '_');
             $init = $x[$i+1];
 
-            $expr = $this->analyze($init, $initEnv);
+            $nextBoundTo = $initEnv->getBoundTo() . '.' . $sym->getName();
+            $expr = $this->analyze($init, $initEnv->withBoundTo($nextBoundTo));
 
             $nodes[] = new BindingNode(
                 $env,
@@ -1142,6 +1143,10 @@ class Analyzer {
             }
         }
         $init = $x[count($x)-1];
+        $initEnv = $nodeEnvironment
+            ->withBoundTo($namespace . '\\' . $name)
+            ->withContext(NodeEnvironment::CTX_EXPR)
+            ->withDisallowRecurFrame();
 
         $this->globalEnvironment->addDefintion($namespace, $name, $meta);
 
@@ -1150,7 +1155,7 @@ class Analyzer {
             $namespace,
             $name,
             $meta,
-            $this->analyze($init, $nodeEnvironment->withContext(NodeEnvironment::CTX_EXPR)->withDisallowRecurFrame())
+            $this->analyze($init, $initEnv)
         );
     }
 

@@ -2,6 +2,9 @@
 
 namespace Phel;
 
+use Exception;
+use Phel\Exceptions\HtmlExceptionPrinter;
+use Phel\Exceptions\TextExceptionPrinter;
 use Phel\Lang\Keyword;
 use Phel\Lang\Symbol;
 use Phel\Lang\Table;
@@ -34,12 +37,29 @@ class Runtime {
     private static $instance;
 
     public function __construct(GlobalEnvironment $globalEnv = null, string $cacheDiretory = null) {
+        set_exception_handler(array($this, 'exceptionHandler'));
+
         if (is_null($globalEnv)) {
             $globalEnv = new GlobalEnvironment();
         }
         $this->globalEnv = $globalEnv;
         $this->cacheDiretory = $cacheDiretory;
         $this->addPath('phel\\', [__DIR__ . '/../phel']);
+    }
+
+    /**
+     * @param Exception $exception
+     */
+    public function exceptionHandler($exception) {
+        if (php_sapi_name() == 'cli') {
+            $printer = new TextExceptionPrinter();
+        } else {
+            $printer = new HtmlExceptionPrinter();
+        }
+
+        echo $printer->printStackTrace($exception);
+        /*var_dump($exception->getTrace());*/
+        echo $exception->__toString();
     }
 
     public static function getInstance(): Runtime {
