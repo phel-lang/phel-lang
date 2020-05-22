@@ -2,4 +2,10 @@
 
 namespace Phel\Lang;
 
-interface IFn {}
+interface IFn {
+    // There is no general way to define a interface
+    // that must implement a invoke function in any way.
+    // Therefore we leave the next line commented out.
+
+    /* public function __invoke(...$args): mixed; */
+}

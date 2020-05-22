@@ -926,6 +926,10 @@ class Analyzer {
     protected function analyzeInvoke(Tuple $x, NodeEnvironment $nodeEnvironment): Node {
         $f = $this->analyze($x[0], $nodeEnvironment->withContext(NodeEnvironment::CTX_EXPR)->withDisallowRecurFrame());
 
+        if ($f instanceof GlobalVarNode) {
+            /*var_dump($f->getMeta());
+            var_dump($f->isMacro());*/
+        }
         if ($f instanceof GlobalVarNode && $f->isMacro()) {
             return $this->analyze($this->macroExpand($x, $nodeEnvironment), $nodeEnvironment);
         } else {
@@ -954,7 +958,7 @@ class Analyzer {
          */
         $node = $this->globalEnvironment->resolve($x[0], $env);
         if ($node && $node instanceof GlobalVarNode) {
-            $fn = $GLOBALS['__phel'][$node->getNamespace()][$node->getName()->getName()]->get();
+            $fn = $GLOBALS['__phel'][$node->getNamespace()][$node->getName()->getName()];
 
             $arguments = [];
             for ($i = 1; $i < count($x); $i++) {
@@ -1125,6 +1129,7 @@ class Analyzer {
         $namespace = $this->globalEnvironment->getNs();
         $name = $x[1];
         $meta = new Table();
+        //$metas = [];
         for ($i = 2; $i <= count($x) - 2; $i++) {
             $metaAttribute = $x[$i];
 
@@ -1137,9 +1142,13 @@ class Analyzer {
             }
             
             if (is_string($metaAttribute)) {
-                $meta[new Keyword('doc')] = $metaAttribute;
+                /*$metas[] = new Keyword('doc');
+                $metas[] = $metaAttribute;*/
+                //$meta[new Keyword('doc')] = $metaAttribute;
             } else {
-                $meta[$metaAttribute] = true;
+                /*$metas[] = $metaAttribute;
+                $metas[] = true;*/
+                //$meta[$metaAttribute] = true;
             }
         }
         $init = $x[count($x)-1];
@@ -1147,6 +1156,14 @@ class Analyzer {
             ->withBoundTo($namespace . '\\' . $name)
             ->withContext(NodeEnvironment::CTX_EXPR)
             ->withDisallowRecurFrame();
+
+        /*if (count($meta) > 0) {
+            $init = Tuple::create(
+                new Symbol('with-meta'), 
+                $init, 
+                $meta
+            );
+        }*/
 
         $this->globalEnvironment->addDefintion($namespace, $name, $meta);
 

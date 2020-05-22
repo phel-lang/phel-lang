@@ -76,7 +76,7 @@ class Emitter {
 
     public function emitAndEval(Node $node): string {
         $code = $this->emit($node);
-        // echo $code . "\n";
+        echo $code . "\n";
         $filename = tempnam(sys_get_temp_dir(), '__phel');
         if ($filename) {
             file_put_contents($filename, "<?php \n" . $code);
@@ -187,7 +187,7 @@ class Emitter {
 
     protected function emitPhpArrayGet(PhpArrayGetNode $node): string {
         return $this->wrap(
-            '(' . $this->emit($node->getArrayExpr()) . ')[('.$this->emit($node->getAccessExpr()).')] ?? null',
+            '((' . $this->emit($node->getArrayExpr()) . ')[('.$this->emit($node->getAccessExpr()).')] ?? null)',
             $node->getEnv()
         );
     }
@@ -480,7 +480,7 @@ class Emitter {
     }
 
     protected function emitGlobalVar(GlobalVarNode $node): string {
-        return $this->wrap($this->emitGlobalBase($node->getNamespace(), $node->getName()) . '->get()', $node->getEnv());
+        return $this->wrap($this->emitGlobalBase($node->getNamespace(), $node->getName()), $node->getEnv());
     }
 
     protected function emitLet(LetNode $node): string {
@@ -594,7 +594,7 @@ class Emitter {
         $propertiesString = implode("\n", $properties);
 
         return $this->wrap(
-            "new class($constructorParameterString) implements \Phel\Lang\IFn {\n"
+            "new class($constructorParameterString) extends \Phel\Lang\AFn {\n"
             . $this->indent($constString, 1)
             . "\n"
             . $this->indent($propertiesString, 1)
@@ -654,12 +654,9 @@ class Emitter {
     protected function emitDef(DefNode $node): string {
         return (
             $this->emitGlobalBase($node->getNamespace(), $node->getName())
-            . " = new \Phel\Lang\PhelVar(\n"
-            . $this->indent($this->emit($node->getInit()) . ",", 1)
-            . "\n"
-            . $this->indent($this->emitPhel($node->getMeta()), 1)
-            . "\n"
-            . ");\n"
+            . " = "
+            . $this->emit($node->getInit())
+            . ";\n"
         );
     }
 

@@ -2,35 +2,9 @@
 
 namespace Phel\Lang;
 
-use Phel\Stream\SourceLocation;
+abstract class Phel implements IMeta, ISourceLocation {
 
-abstract class Phel {
-
-    /**
-     * @var ?SourceLocation
-     */
-    private $startLocation;
-
-    /**
-     * @var ?SourceLocation
-     */
-    private $endLocation;
-
-    public function setStartLocation(?SourceLocation $startLocation): void {
-        $this->startLocation = $startLocation;
-    }
-
-    public function setEndLocation(?SourceLocation $endLocation): void {
-        $this->endLocation = $endLocation;
-    }
-
-    public function getStartLocation(): ?SourceLocation {
-        return $this->startLocation;
-    }
-
-    public function getEndLocation(): ?SourceLocation {
-        return $this->endLocation;
-    }
+    use TSourceLocation, TMeta;
 
     /**
      * Check if the value is thruthy

@@ -5,6 +5,7 @@ namespace Phel;
 use Phel\Ast\GlobalVarNode;
 use Phel\Ast\Node;
 use Phel\Ast\PhpClassNameNode;
+use Phel\Lang\IMeta;
 use Phel\Lang\Symbol;
 use Phel\Lang\Table;
 
@@ -103,7 +104,13 @@ class GlobalEnvironment {
 
                     $def = $this->getDefinition($namespace, $finalName);
                     if ($def) {
-                        return new GlobalVarNode($env, $namespace, $name, $def);
+                        $var = $GLOBALS['__phel'][$namespace][$name->getName()];
+                        if ($var && $var instanceof IMeta) {
+                            $meta = $var->getMeta();
+                        } else {
+                            $meta = new Table();
+                        }
+                        return new GlobalVarNode($env, $namespace, $name, $meta);
                     } else {
                         return null; // Can not be resolved
                     }
@@ -114,13 +121,25 @@ class GlobalEnvironment {
                 // no alias, try to resolve in current namespace
                 $def = $this->getDefinition($this->getNs(), $name); 
                 if ($def) {
-                    return new GlobalVarNode($env, $this->getNs(), $name, $def);
+                    $var = $GLOBALS['__phel'][$this->getNs()][$name->getName()];
+                    if ($var && $var instanceof IMeta) {
+                        $meta = $var->getMeta();
+                    } else {
+                        $meta = new Table();
+                    }
+                    return new GlobalVarNode($env, $this->getNs(), $name, $meta);
                 } else {
                     // try to resolve in phel.core namespace
                     $ns = 'phel\core';
                     $def = $this->getDefinition($ns, $name);
                     if ($def) {
-                        return new GlobalVarNode($env, $ns, $name, $def);
+                        $var = $GLOBALS['__phel'][$ns][$name->getName()];
+                        if ($var && $var instanceof IMeta) {
+                            $meta = $var->getMeta();
+                        } else {
+                            $meta = new Table();
+                        }
+                        return new GlobalVarNode($env, $ns, $name, $meta);
                     } else {
                         return null; // can not be resolved
                     }

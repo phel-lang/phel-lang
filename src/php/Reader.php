@@ -7,6 +7,7 @@ use Phel\Exceptions\ReaderException;
 use Phel\Lang\Keyword;
 use Phel\Lang\Phel;
 use Phel\Lang\Symbol;
+use Phel\Lang\Table;
 use Phel\Lang\Tuple;
 use Phel\Stream\CodeSnippet;
 
@@ -120,7 +121,7 @@ class Reader {
                     if (count($tuple) % 2 == 0) {
                         throw $this->buildReaderException("Tables must have an even number of parameters");
                     }
-                    return $tuple;
+                    return Table::fromKVArray($tuple->toArray());
 
                 case Token::T_EOF:
                     throw $this->buildReaderException("Unterminatend list");
