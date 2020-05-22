@@ -717,10 +717,4 @@
 
 (assert (= "hello\nworld\n" (with-output-buffer (println "hello\nworld"))) "println hello\\nworld")
 
-
-(defn x []
-  (next "a" "b"))
-
-(x)
-
 (print-summary)

@@ -58,8 +58,6 @@ class Runtime {
         }
 
         echo $printer->printStackTrace($exception);
-        /*var_dump($exception->getTrace());*/
-        echo $exception->__toString();
     }
 
     public static function getInstance(): Runtime {
