@@ -6,7 +6,9 @@ use Generator;
 use Phel\Exceptions\ReaderException;
 use Phel\Lang\Keyword;
 use Phel\Lang\Phel;
+use Phel\Lang\PhelArray;
 use Phel\Lang\Symbol;
+use Phel\Lang\Table;
 use Phel\Lang\Tuple;
 use Phel\Stream\CodeSnippet;
 
@@ -90,7 +92,7 @@ class Reader {
                     return $this->readList($tokenStream, Token::T_CLOSE_PARENTHESIS);
 
                 case Token::T_OPEN_BRACKET:
-                    return $this->readList($tokenStream, Token::T_CLOSE_BRACKET, [], true);
+                    return $this->readList($tokenStream, Token::T_CLOSE_BRACKET, true);
 
                 case Token::T_OPEN_BRACE:
                     throw $this->buildReaderException('Expected token: {');
@@ -113,14 +115,15 @@ class Reader {
                     return $this->readQuasiquote($tokenStream);
 
                 case Token::T_ARRAY:
-                    return $this->readList($tokenStream, Token::T_CLOSE_BRACKET, [new Symbol('array')]);
+                    $tuple = $this->readList($tokenStream, Token::T_CLOSE_BRACKET);
+                    return new PhelArray($tuple->toArray());
 
                 case Token::T_TABLE:
-                    $tuple = $this->readList($tokenStream, Token::T_CLOSE_BRACE, [new Symbol('table')]);
-                    if (count($tuple) % 2 == 0) {
+                    $tuple = $this->readList($tokenStream, Token::T_CLOSE_BRACE);
+                    if (count($tuple) % 2 == 1) {
                         throw $this->buildReaderException("Tables must have an even number of parameters");
                     }
-                    return $tuple;
+                    return Table::fromKVArray($tuple->toArray());
 
                 case Token::T_EOF:
                     throw $this->buildReaderException("Unterminatend list");
@@ -180,7 +183,8 @@ class Reader {
         return $result;
     }
 
-    protected function readList(Generator $tokenStream, int $endTokenType, array $acc = [], bool $isUsingBrackets = false): Tuple {
+    protected function readList(Generator $tokenStream, int $endTokenType, bool $isUsingBrackets = false): Tuple {
+        $acc = [];
         $startLocation = $tokenStream->current()->getStartLocation();
         $tokenStream->next();
 

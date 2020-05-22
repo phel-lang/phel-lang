@@ -5,6 +5,7 @@ namespace Phel;
 use Exception;
 use ParseError;
 use Phel\Ast\ApplyNode;
+use Phel\Ast\ArrayNode;
 use Phel\Ast\CallNode;
 use Phel\Ast\CatchNode;
 use Phel\Ast\Node;
@@ -30,6 +31,7 @@ use Phel\Ast\PhpVarNode;
 use Phel\Ast\PropertyOrConstantAccessNode;
 use Phel\Ast\QuoteNode;
 use Phel\Ast\RecurNode;
+use Phel\Ast\TableNode;
 use Phel\Ast\ThrowNode;
 use Phel\Ast\TryNode;
 use Phel\Ast\TupleNode;
@@ -147,6 +149,10 @@ class Emitter {
             return $this->emitPhpArrayPush($node);
         } else if ($node instanceof ForeachNode) {
             return $this->emitForeach($node);
+        } else if ($node instanceof ArrayNode) {
+            return $this->emitArray($node);
+        } else if ($node instanceof TableNode) {
+            return $this->emitTable($node);
         } else {
             throw new \Exception('Unexpected node: ' . get_class($node));
         }
@@ -670,6 +676,34 @@ class Emitter {
             $v = $node->getValue();
             return $this->wrap($this->emitPhel($v), $node->getEnv());
         }
+    }
+
+    protected function emitTable(TableNode $node): string {
+        $keyValues = [];
+        foreach ($node->getKeyValues() as $keyOrValue) {
+            $keyValues[] = $this->emit($keyOrValue);
+        }
+        
+        $valuesStr = implode(",", $keyValues);
+
+        return $this->wrap(
+            '\Phel\Lang\Table::fromKVs(' . $valuesStr . ')',
+            $node->getEnv()
+        );
+    }
+
+    protected function emitArray(ArrayNode $node): string {
+        $values = [];
+        foreach ($node->getValues() as $value) {
+            $values[] = $this->emit($value);
+        }
+        
+        $valuesStr = implode(",", $values);
+
+        return $this->wrap(
+            '\Phel\Lang\PhelArray::create(' . $valuesStr . ')',
+            $node->getEnv()
+        );
     }
 
     /**

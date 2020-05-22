@@ -5,7 +5,9 @@ namespace Phel;
 use Exception;
 use Phel\Exceptions\AnalyzerException;
 use Phel\Lang\Phel;
+use Phel\Lang\PhelArray;
 use Phel\Lang\Symbol;
+use Phel\Lang\Table;
 use Phel\Lang\Tuple;
 
 class Destructure {
@@ -29,13 +31,11 @@ class Destructure {
         if ($binding instanceof Symbol) {
             $this->processSymbol($bindings, $binding, $value);
         } else if ($binding instanceof Tuple) {
-            if (count($binding) > 0 && $binding[0] == new Symbol('table')) {
-                $this->processTable($bindings, $binding, $value);
-            } else if (count($binding) > 0 && $binding[0] == new Symbol('array')) {
-                $this->processArray($bindings, $binding, $value);
-            } else {
-                $this->processTuple($bindings, $binding, $value);
-            }
+            $this->processTuple($bindings, $binding, $value);
+        } else if ($binding instanceof Table) {
+            $this->processTable($bindings, $binding, $value);
+        } else if ($binding instanceof PhelArray) {
+            $this->processArray($bindings, $binding, $value);
         } else {
             if (is_object($binding)) {
                 $type = get_class($binding);
@@ -58,17 +58,14 @@ class Destructure {
 
     /**
      * @param array $bindings
-     * @param Tuple $b
+     * @param Table $b
      * @param mixed $value
      */
-    private function processTable(array &$bindings, Tuple $b, $value): void {
+    private function processTable(array &$bindings, Table $b, $value): void {
         $tableSymbol = Symbol::gen();
         $bindings[] = [$tableSymbol, $value];
 
-        for ($i = 1; $i < count($b); $i+=2) {
-            $key = $b[$i];
-            $bindTo = $b[$i+1];
-
+        foreach ($b as $key => $bindTo) {
             $accessSym = Symbol::gen();
             $accessValue = Tuple::create(new Symbol('php/aget'), $tableSymbol, $key);
             $bindings[] = [$accessSym, $accessValue];
@@ -79,14 +76,14 @@ class Destructure {
 
     /**
      * @param array $bindings
-     * @param Tuple $b
+     * @param PhelArray $b
      * @param mixed $value
      */
-    private function processArray(array &$bindings, Tuple $b, $value): void {
+    private function processArray(array &$bindings, PhelArray $b, $value): void {
         $arrSymbol = Symbol::gen();
         $bindings[] = [$arrSymbol, $value];
 
-        for ($i = 1; $i < count($b); $i+=2) {
+        for ($i = 0; $i < count($b); $i+=2) {
             $index = $b[$i];
             $bindTo = $b[$i+1];
 
