@@ -1082,7 +1082,7 @@ returns 1. If `xs` has one value, returns the reciprocal of x."
   (php/% dividend divisor))
 
 (defn ** 
-  "Return a to the power of `x`."
+  "Return `a` to the power of `x`."
   [a x]
   (php/** a x))
 
