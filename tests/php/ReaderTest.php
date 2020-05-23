@@ -341,7 +341,122 @@ class ReaderTest extends TestCase {
         );
     }
 
+    public function testReadShortFnZeroArgs() {
+        $this->assertEquals(
+            Tuple::create(
+                new Symbol('fn'),
+                Tuple::createBracket(),
+                $this->loc(
+                    Tuple::create(
+                        $this->loc(new Symbol('add'), 1, 2, 1, 5)
+                    ), 1, 0, 1, 6
+                )
+            ),
+            $this->read('|(add)')
+        );
+    }
+
+    public function testReadShortFnOneArg() {
+        $this->assertEquals(
+            Tuple::create(
+                new Symbol('fn'),
+                Tuple::createBracket(
+                    new Symbol('__short_fn_1_1')
+                ),
+                $this->loc(
+                    Tuple::create(
+                        $this->loc(new Symbol('add'), 1, 2, 1, 5),
+                        $this->loc(new Symbol('__short_fn_1_1'), 1, 6, 1, 7)
+                    ), 1, 0, 1, 8
+                )
+            ),
+            $this->read('|(add $)')
+        );
+    }
+
+    public function testReadShortFnOneArgTwoTimes() {
+        $this->assertEquals(
+            Tuple::create(
+                new Symbol('fn'),
+                Tuple::createBracket(
+                    new Symbol('__short_fn_1_1')
+                ),
+                $this->loc(
+                    Tuple::create(
+                        $this->loc(new Symbol('add'), 1, 2, 1, 5),
+                        $this->loc(new Symbol('__short_fn_1_1'), 1, 6, 1, 7),
+                        $this->loc(new Symbol('__short_fn_1_1'), 1, 8, 1, 9)
+                    ), 1, 0, 1, 10
+                )
+            ),
+            $this->read('|(add $ $)')
+        );
+    }
+
+    public function testReadShortFnTwoArguments() {
+        $this->assertEquals(
+            Tuple::create(
+                new Symbol('fn'),
+                Tuple::createBracket(
+                    new Symbol('__short_fn_1_1'),
+                    new Symbol('__short_fn_2_2')
+                ),
+                $this->loc(
+                    Tuple::create(
+                        $this->loc(new Symbol('add'), 1, 2, 1, 5),
+                        $this->loc(new Symbol('__short_fn_1_1'), 1, 6, 1, 8),
+                        $this->loc(new Symbol('__short_fn_2_2'), 1, 9, 1, 11)
+                    ), 1, 0, 1, 12
+                )
+            ),
+            $this->read('|(add $1 $2)')
+        );
+    }
+
+    public function testReadShortFnMissingArgument() {
+        $this->assertEquals(
+            Tuple::create(
+                new Symbol('fn'),
+                Tuple::createBracket(
+                    new Symbol('__short_fn_1_1'),
+                    new Symbol('__short_fn_undefined_3'),
+                    new Symbol('__short_fn_3_2')
+                ),
+                $this->loc(
+                    Tuple::create(
+                        $this->loc(new Symbol('add'), 1, 2, 1, 5),
+                        $this->loc(new Symbol('__short_fn_1_1'), 1, 6, 1, 8),
+                        $this->loc(new Symbol('__short_fn_3_2'), 1, 9, 1, 11)
+                    ), 1, 0, 1, 12
+                )
+            ),
+            $this->read('|(add $1 $3)')
+        );
+    }
+
+    public function testReadShortFnRestArguments() {
+        $this->assertEquals(
+            Tuple::create(
+                new Symbol('fn'),
+                Tuple::createBracket(
+                    new Symbol('__short_fn_1_1'),
+                    new Symbol('&'),
+                    new Symbol('__short_fn_rest_2')
+                ),
+                $this->loc(
+                    Tuple::create(
+                        $this->loc(new Symbol('add'), 1, 2, 1, 5),
+                        $this->loc(new Symbol('__short_fn_1_1'), 1, 6, 1, 8),
+                        $this->loc(new Symbol('__short_fn_rest_2'), 1, 9, 1, 11)
+                    ), 1, 0, 1, 12
+                )
+            ),
+            $this->read('|(add $1 $&)')
+        );
+    }
+
     public function read($string, $removeLoc = false) {
+        Symbol::resetGen();
         $lexer = new Lexer();
         $reader = new Reader();
         $tokenStream = $lexer->lexString($string);

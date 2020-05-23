@@ -762,7 +762,7 @@ collection in map"))
   [& xs]
   (loop [i 0
          res @[]]
-    (let [nths (map (fn [x] (get x i)) xs)]
+    (let [nths (map |(get $ i) xs)]
       (if (some? nil? nths)
         res
         (recur (php/+ i 1) (concat res nths))))))
@@ -835,7 +835,7 @@ collection in map"))
   [keyfn xs & [comp]]
   (let [php-array (to-php-array xs)
         cmp (or comp compare)]
-    (php/usort php-array (fn [x y] (cmp (keyfn x) (keyfn y))))
+    (php/usort php-array |(cmp (keyfn $1) (keyfn $2)))
     (apply array php-array)))
 
 (defn shuffle
@@ -935,21 +935,21 @@ collection in map"))
   (case (count fs)
     0 identity
     1 (first fs)
-    2 (fn [& args] ((first fs) (apply (second fs) args)))
+    2 |((first fs) (apply (second fs) $&))
       (reduce2 comp fs)))
 
 (defn complement [f]
-  (fn [& args] (not (apply f args))))
+  |(not (apply f $&)))
 
 (defn juxt [& fs]
   (fn [& args]
-    (reduce 
-      (fn [arr f] (push arr (apply f args))) 
+    (reduce
+      |(push $1 (apply $2 args))
       @[] 
       fs)))
 
 (defn partial [f & args]
-  (fn [& more] (apply f (concat @[] args more))))
+  |(apply f (concat @[] args $&)))
 
 
 # -----------------------
@@ -987,15 +987,15 @@ collection in map"))
 
 (defn bit-and [x y & args]
   (let [all (concat [x y] args)]
-    (reduce2 (fn [a b] (php/& a b)) all)))
+    (reduce2 |(php/& $1 $2) all)))
 
 (defn bit-or [x y & args]
   (let [all (concat [x y] args)]
-    (reduce2 (fn [a b] (php/| a b)) all)))
+    (reduce2 |(php/| $1 $2) all)))
 
 (defn bit-xor [x y & args]
   (let [all (concat [x y] args)]
-    (reduce2 (fn [a b] (php/^ a b)) all)))
+    (reduce2 |(php/^ $1 $2) all)))
 
 (defn bit-not [x]
   (php/~ x))
@@ -1042,7 +1042,7 @@ collection in map"))
     0 0
     1 (php/* -1 (first xs))
     2 (php/- (first xs) (second xs))
-      (reduce2 (fn [a b] (php/- a b)) xs)))
+      (reduce2 |(php/- $1 $2) xs)))
 
 (defn *
   "Returns the product of all elements in `xs`. All elements in `xs` must be 
@@ -1052,7 +1052,7 @@ numbers. If `xs` is empty, return 1."
     0 1
     1 (first xs)
     2 (php/* (first xs) (second xs))
-      (reduce2 (fn [a b] (php/* a b)) xs)))
+      (reduce2 |(php/* $1 $2) xs)))
 
 (defn /
   "Returns the nominator divided by all of the denominators. If `xs` is empty,
@@ -1062,7 +1062,7 @@ returns 1. If `xs` has one value, returns the reciprocal of x."
     0 1
     1 (php// 1 (first xs))
     2 (php// (first xs) (second xs))
-      (reduce2 (fn [a b] (php// a b)) xs)))
+      (reduce2 |(php// $1 $2) xs)))
 
 (defn % 
   "Return the remainder of `dividend` / `divisor`."
@@ -1132,7 +1132,7 @@ returns 1. If `xs` has one value, returns the reciprocal of x."
 (defn extreme
   "Returns the most extreme value in `args` based on the binary `order` function."
   [order args]
-  (reduce2 (fn [a b] (if (order a b) a b)) args))
+  (reduce2 |(if (order $1 $2) $1 $2) args))
 
 (defn min
   "Returns the numeric minimum of all numbers."
@@ -1170,7 +1170,7 @@ returns 1. If `xs` has one value, returns the reciprocal of x."
 (defn print-str [& xs]
   (let [len (count xs)
         printer (php/new Printer)
-        pp (fn [x] (php/-> printer (print x false)))]
+        pp |(php/-> printer (print $ false))]
     (cond
       (= len 0) ""
       (= len 1) (php/-> printer (print (first xs) false))

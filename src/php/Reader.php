@@ -35,6 +35,11 @@ class Reader {
     private $readTokens = [];
 
     /**
+     * @var array|null
+     */
+    private $fnArgs = null;
+
+    /**
      * Reads the next expression from the token stream.
      * 
      * If the token stream reaches the end, false is returned.
@@ -134,6 +139,32 @@ class Reader {
                     $table->setStartLocation($tuple->getStartLocation());
                     $table->setEndLocation($tuple->getEndLocation());
                     return $table;
+
+                case Token::T_FN:
+                    $this->fnArgs = [];
+                    $body = $this->readList($tokenStream, Token::T_CLOSE_PARENTHESIS);
+
+                    if (count($this->fnArgs) > 0) {
+                        $maxParams = max(array_keys($this->fnArgs));
+                        $params = [];
+                        for ($i = 1; $i <= $maxParams; $i++) {
+                            if (isset($this->fnArgs[$i])) {
+                                $params[] = new Symbol($this->fnArgs[$i]->getName());
+                            } else {
+                                $params[] = Symbol::gen("__short_fn_undefined_");
+                            }
+                        }
+
+                        if (isset($this->fnArgs[0])) {
+                            $params[] = new Symbol('&');
+                            $params[] = new Symbol($this->fnArgs[0]->getName());
+                        }
+                    } else {
+                        $params = [];
+                    }
+
+                    $this->fnArgs = null;
+                    return Tuple::create(new Symbol('fn'), new Tuple($params, true), $body);
 
                 case Token::T_EOF:
                     throw $this->buildReaderException("Unterminatend list");
@@ -285,6 +316,43 @@ class Reader {
         } else if (is_numeric($word)) {
             // normal numbers
             return $word + 0;
+        } else {
+            // Symbol
+            return $this->readSymbol($word);
+        }
+    }
+
+    protected function readSymbol($word) {
+        if (is_array($this->fnArgs)) {
+            // Special case: We read an anonymous function
+            if ($word == "$") {
+                if (isset($this->fnArgs[1])) {
+                    return new Symbol($this->fnArgs[1]->getName());
+                } else {
+                    $sym = Symbol::gen('__short_fn_1_');
+                    $this->fnArgs[1] = $sym;
+                    return $sym;
+                }
+            } else if ($word == "$&") {
+                if (isset($this->fnArgs[0])) {
+                    return new Symbol($this->fnArgs[0]->getName());
+                } else {
+                    $sym = Symbol::gen('__short_fn_rest_');
+                    $this->fnArgs[0] = $sym;
+                    return $sym;
+                }
+            } else if (preg_match('/\$([1-9][0-9]*)/', $word, $matches)) {
+                $number = (int) $matches[1];
+                if (isset($this->fnArgs[$number])) {
+                    return new Symbol($this->fnArgs[$number]->getName());
+                } else {
+                    $sym = Symbol::gen('__short_fn_' . $number . '_');
+                    $this->fnArgs[$number] = $sym;
+                    return $sym;
+                }
+            } else {
+                return new Symbol($word);
+            }
         } else {
             return new Symbol($word);
         }

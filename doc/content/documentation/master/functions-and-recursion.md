@@ -27,10 +27,24 @@ Function can also be defined as variadic function with an infite amount of argum
 (fn [a b c &]) # A variadic function with extra arguments ignored
 ```
 
-Phel functions are equivalent to PHP functions.
+There is shorter from to define an anonymous function. This omits the parameter list and names parameters based on their position.
+
+* `$` is used for a single parameter
+* `$1`, `$2`, `$3`, etc are used for multiple parameters
+* `$&` is used for the remaining variadic parameters
+
+```phel
+|(+ 6 $) # Same as (fn [x] (+ 6 x))
+|(+ $1 $2) # Same as (fn [a b] (+ a b))
+|(sum $&) # Same as (fn [& xs] (sum xs))
+```
 
 
 ## Global functions
+
+```phel
+(defn docstring? attributes? [params*] expr*)
+```
 
 Global funcitons can be defined using `defn`.
 
@@ -39,11 +53,17 @@ Global funcitons can be defined using `defn`.
   (+ a b))
 ```
 
-Each global function can take an optional doc comment.
+Each global function can take an optional doc comment and attribute map.
 
 ```phel
 (defn my-add-function 
   "adds value a and b"
+  [a b]
+  (+ a b))
+
+(defn my-private-add-function 
+  "adds value a and b"
+  @{:private true}
   [a b]
   (+ a b))
 ```
@@ -81,7 +101,7 @@ Calls the function with the given arguments. The last argument must be a list of
 
 Sometimes it is required that a variable should passed to a function by reference. This can be done by applied the `:reference` metadata to the symbol.
 
-```
+```phel
 (fn [^:reference my-arr]
   (php/apush my-arr 10))
 ```
