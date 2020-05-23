@@ -1,8 +1,8 @@
 <?php
 
-namespace Phel\Stream;
+namespace Phel;
 
-use Phel\Stream\SourceLocation;
+use Phel\Lang\SourceLocation;
 
 class CodeSnippet {
 

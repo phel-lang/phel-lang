@@ -2,8 +2,6 @@
 
 namespace Phel\Lang;
 
-use Phel\Stream\SourceLocation;
-
 trait TSourceLocation {
 
     /**

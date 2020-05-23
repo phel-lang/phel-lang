@@ -3,7 +3,7 @@
 namespace Phel;
 
 use Phel\Lang\Phel;
-use Phel\Stream\CodeSnippet;
+use Phel\CodeSnippet;
 
 class ReaderResult {
 

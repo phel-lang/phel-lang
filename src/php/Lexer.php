@@ -4,7 +4,7 @@ namespace Phel;
 
 use Exception;
 use Generator;
-use Phel\Stream\SourceLocation;
+use Phel\Lang\SourceLocation;
 
 class Lexer {
     

@@ -3,8 +3,8 @@
 namespace Phel\Exceptions;
 
 use Exception;
-use Phel\Stream\CodeSnippet;
-use Phel\Stream\SourceLocation;
+use Phel\CodeSnippet;
+use Phel\Lang\SourceLocation;
 
 class ReaderException extends PhelCodeException {
 

@@ -11,7 +11,7 @@ use Phel\Lang\PhelArray;
 use Phel\Lang\Symbol;
 use Phel\Lang\Table;
 use Phel\Lang\Tuple;
-use Phel\Stream\CodeSnippet;
+use Phel\CodeSnippet;
 
 class Reader {
 

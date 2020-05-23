@@ -2,7 +2,7 @@
 
 namespace Phel;
 
-use Phel\Stream\SourceLocation;
+use Phel\Lang\SourceLocation;
 
 class Token {
     

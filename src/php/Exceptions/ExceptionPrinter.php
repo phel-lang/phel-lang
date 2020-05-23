@@ -3,11 +3,12 @@
 namespace Phel\Exceptions;
 
 use Exception;
-use Phel\Stream\CodeSnippet;
+use Phel\CodeSnippet;
+use Throwable;
 
 interface ExceptionPrinter {
 
     public function printException(PhelCodeException $e, CodeSnippet $codeSnippet): void;
 
-    public function printStackTrace(Exception $e): void;
+    public function printStackTrace(Throwable $e): void;
 };

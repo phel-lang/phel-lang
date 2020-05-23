@@ -3,7 +3,7 @@
 namespace Phel\Exceptions;
 
 use Exception;
-use Phel\Stream\SourceLocation;
+use Phel\Lang\SourceLocation;
 
 class PhelCodeException extends Exception {
 

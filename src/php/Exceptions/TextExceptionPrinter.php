@@ -2,11 +2,11 @@
 
 namespace Phel\Exceptions;
 
-use Exception;
 use Phel\Lang\IFn;
 use Phel\Printer;
-use Phel\Stream\CodeSnippet;
+use Phel\CodeSnippet;
 use ReflectionClass;
+use Throwable;
 
 class TextExceptionPrinter implements ExceptionPrinter {
 
@@ -43,7 +43,7 @@ class TextExceptionPrinter implements ExceptionPrinter {
         }
     }
 
-    public function printStackTrace(Exception $e): void {
+    public function printStackTrace(Throwable $e): void {
         $printer = new Printer();
 
         $type = get_class($e);

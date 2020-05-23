@@ -12,7 +12,7 @@ use Phel\Lang\Table;
 use Phel\Lang\Tuple;
 use Phel\Lexer;
 use Phel\Reader;
-use Phel\Stream\SourceLocation;
+use Phel\Lang\SourceLocation;
 use \PHPUnit\Framework\TestCase;
 
 ini_set('xdebug.var_display_max_depth', '10');

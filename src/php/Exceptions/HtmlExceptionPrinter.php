@@ -5,13 +5,13 @@ namespace Phel\Exceptions;
 use Exception;
 use Phel\Lang\IFn;
 use Phel\Printer;
-use Phel\Stream\CodeSnippet;
+use Phel\CodeSnippet;
 use ReflectionClass;
 use Throwable;
 
 class HtmlExceptionPrinter implements ExceptionPrinter {
 
-    public function printException(PhelCodeException $e, CodeSnippet $codeSnippet): void {
+    public function printException(Throwable $e, CodeSnippet $codeSnippet): void {
         $eStartLocation = $e->getStartLocation() ?? $codeSnippet->getStartLocation();
         $eEndLocation = $e->getEndLocation() ?? $codeSnippet->getEndLocation();
         $firstLine = $eStartLocation->getLine();

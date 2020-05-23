@@ -1,6 +1,6 @@
 <?php
 
-namespace Phel\Stream;
+namespace Phel\Lang;
 
 class SourceLocation {
 
