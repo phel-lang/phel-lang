@@ -37,18 +37,18 @@ class PhelArray extends Phel implements ArrayAccess, Countable, Iterator, ICons,
     }
 
     public function offsetSet($offset, $value) {
-        if ($offset < 0 || $offset > count($this->data)) {
-            throw new InvalidArgumentException('Index out of bounds: ' . $offset . ' [0,' . count($this->data) . ']');
+        if ($offset < 0) {
+            throw new InvalidArgumentException('Offset must be bigger or equal zero. Given: ' . $offset);
         }
-        if (is_null($value)) {
-            unset($this->data[$offset]);
-            $this->data = array_values($this->data); // reindex
+
+        if ($offset < count($this->data)) {
+            $this->data[$offset] = $value;
         } else {
-            if ($offset == count($this->data)) {
-                $this->data[] = $value;
-            } else {
-                $this->data[$offset] = $value;
+            for ($i = count($this->data); $i < $offset; $i++) {
+                $this->data[$i] = null;
             }
+
+            $this->data[$offset] = $value;
         }
     }
 
@@ -57,7 +57,12 @@ class PhelArray extends Phel implements ArrayAccess, Countable, Iterator, ICons,
     }
 
     public function offsetUnset($offset) {
+        if ($offset < 0 || $offset >= count($this->data)) {
+            throw new InvalidArgumentException('Index out of bounds: ' . $offset . ' [0,' . count($this->data) . ')');
+        }
+
         unset($this->data[$offset]);
+        $this->data = array_values($this->data); // reindex
     }
 
     /**

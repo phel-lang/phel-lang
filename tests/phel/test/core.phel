@@ -433,12 +433,15 @@
 (assert (= "a" (get-in @{:a @[["b" "a"]]} [:a 0 1])) "get-in level 3")
 (assert (= "x" (get-in @{:a @[["b" "a"]]} [:b 0 1] "x")) "get-in level 3 with default")
 
-(assert (= @["a"] (put @["a" "b"] 1 nil)) "put: remove entry from array")
 (assert (= @["a" "c"] (put @["a" "b"] 1 "c")) "put: replace entry on array")
 (assert (= @["a" "b" "c"] (put @["a" "b"] 2 "c")) "put: append entry on array")
+(assert (= @[nil nil "a"] (put @[] 2 "a")) "put: extends array with nil values")
+(assert (= @["a" nil "c"] (put @["a" "b" "c"] 1 nil)) "put: set nil value")
 (assert (= @{:b 2} (put @{:a 1 :b 2} :a nil)) "put: remove entry from table")
 (assert (= @{:a 3 :b 2} (put @{:a 1 :b 2} :a 3)) "put: replace entry on table")
 (assert (= @{:a 1 :b 2 :c 3} (put @{:a 1 :b 2} :c 3)) "put: append entry on table")
+
+(assert (= @[:a :c :d] (unset @[:a :b :c :d] 1)) "unset: remove index from array")
 
 (assert (= @{:a @{:b @{:c 1}}} (put-in @{:a @{}} @[:a :b :c] 1)) "put-in: autocreate tables")
 (assert (= @{:a @{:b @{:c 2}}} (put-in @{:a @{:b @{:c 1}}} @[:a :b :c] 2)) "put-in: update value of table")
