@@ -3,6 +3,7 @@
 namespace Phel\Reader;
 
 use Phel\Exceptions\ReaderException;
+use Phel\Lang\IMeta;
 use Phel\Lang\Keyword;
 use Phel\Lang\Phel;
 use Phel\Lang\PhelArray;
@@ -219,42 +220,42 @@ class ReaderTest extends TestCase {
 
     public function testReadEmptyArray() {
         $this->assertEquals(
-            $this->loc(Tuple::create(new Symbol('array')), 1, 0, 1, 3),
+            $this->loc(PhelArray::create(), 1, 0, 1, 3),
             $this->read('@[]')
         );
     }
 
     public function testReadArray1() {
         $this->assertEquals(
-            $this->loc(Tuple::create(new Symbol('array'), 1), 1, 0, 1, 4),
+            $this->loc(PhelArray::create(1), 1, 0, 1, 4),
             $this->read('@[1]')
         );
     }
 
     public function testReadArray2() {
         $this->assertEquals(
-            $this->loc(Tuple::create(new Symbol('array'), 1, 2), 1, 0, 1, 6),
+            $this->loc(PhelArray::create(1, 2), 1, 0, 1, 6),
             $this->read('@[1 2]')
         );
     }
 
     public function testReadEmptyTable() {
         $this->assertEquals(
-            $this->loc(Tuple::create(new Symbol('table')), 1, 0, 1, 3),
+            $this->loc(Table::fromKVs(), 1, 0, 1, 3),
             $this->read('@{}')
         );
     }
 
     public function testReadTable1() {
         $this->assertEquals(
-            $this->loc(Tuple::create(new Symbol('table'), $this->loc(new Keyword('a'), 1, 2, 1, 4), 1), 1, 0, 1, 7),
+            $this->loc(Table::fromKVs($this->loc(new Keyword('a'), 1, 2, 1, 4), 1), 1, 0, 1, 7),
             $this->read('@{:a 1}')
         );
     }
 
     public function testReadTable2() {
         $this->assertEquals(
-            $this->loc(Tuple::create(new Symbol('table'), $this->loc(new Keyword('a'), 1, 2, 1, 4), 1, $this->loc(new Keyword('b'), 1, 7, 1, 9), 2), 1, 0, 1, 12),
+            $this->loc(Table::fromKVs($this->loc(new Keyword('a'), 1, 2, 1, 4), 1, $this->loc(new Keyword('b'), 1, 7, 1, 9), 2), 1, 0, 1, 12),
             $this->read('@{:a 1 :b 2}')
         );
     }
@@ -262,6 +263,82 @@ class ReaderTest extends TestCase {
     public function testTableUneven() {
         $this->expectException(ReaderException::class);
         $this->read('@{:a}');
+    }
+
+    public function testMetaKeyword() {
+        $this->assertEquals(
+            $this->loc(
+                $this->withMeta(
+                    new Symbol("test"), 
+                    Table::fromKVs(
+                        $this->loc(new Keyword("test"), 1, 1, 1, 6), true)
+                    ),
+                1, 7, 1, 11
+            ),
+            $this->read("^:test test")
+        );
+    }
+
+    public function testMetaString() {
+        $this->assertEquals(
+            $this->loc(
+                $this->withMeta(
+                    new Symbol("test"), 
+                    Table::fromKVs(
+                        new Keyword("tag"), "test"
+                    )
+                ),
+                1, 8, 1, 12
+            ),
+            $this->read('^"test" test')
+        );
+    }
+
+    public function testMetaSymbol() {
+        $this->assertEquals(
+            $this->loc(
+                $this->withMeta(
+                    new Symbol("test"), 
+                    Table::fromKVs(
+                        new Keyword("tag"), $this->loc(new Symbol("String"), 1, 1, 1, 7)
+                    )
+                ),
+                1, 8, 1, 12
+            ),
+            $this->read('^String test')
+        );
+    }
+
+    public function testMetaTable() {
+        $this->assertEquals(
+            $this->loc(
+                $this->withMeta(
+                    new Symbol("test"), 
+                    Table::fromKVs(
+                        $this->loc(new Keyword("a"), 1, 3, 1, 5), 1,
+                        $this->loc(new Keyword("b"), 1, 8, 1, 10), 2
+                    )
+                ),
+                1, 14, 1, 18
+            ),
+            $this->read('^@{:a 1 :b 2} test')
+        );
+    }
+
+    public function testConcatMeta() {
+        $this->assertEquals(
+            $this->loc(
+                $this->withMeta(
+                    new Symbol("test"), 
+                    Table::fromKVs(
+                        $this->loc(new Keyword("a"), 1, 1, 1, 3), true,
+                        $this->loc(new Keyword("b"), 1, 5, 1, 7), true
+                    )
+                ),
+                1, 8, 1, 12
+            ),
+            $this->read('^:a ^:b test')
+        );
     }
 
     public function read($string, $removeLoc = false) {
@@ -276,6 +353,11 @@ class ReaderTest extends TestCase {
         }
 
         return $result;
+    }
+
+    private function withMeta(IMeta $x, Table $t) {
+        $x->setMeta($t);
+        return $x;
     }
 
     private function loc(Phel $x, $beginLine, $beginColumn, $endLine, $endColumn) {

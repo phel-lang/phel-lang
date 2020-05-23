@@ -7,6 +7,7 @@ use Phel\Lang\IFn;
 use Phel\Printer;
 use Phel\Stream\CodeSnippet;
 use ReflectionClass;
+use Throwable;
 
 class HtmlExceptionPrinter implements ExceptionPrinter {
 
@@ -47,7 +48,7 @@ class HtmlExceptionPrinter implements ExceptionPrinter {
         }
     }
 
-    public function printStackTrace(Exception $e): void {
+    public function printStackTrace(Throwable $e): void {
         $printer = new Printer();
 
         $type = get_class($e);

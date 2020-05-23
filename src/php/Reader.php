@@ -4,6 +4,7 @@ namespace Phel;
 
 use Generator;
 use Phel\Exceptions\ReaderException;
+use Phel\Lang\IMeta;
 use Phel\Lang\Keyword;
 use Phel\Lang\Phel;
 use Phel\Lang\PhelArray;
@@ -114,16 +115,25 @@ class Reader {
                 case Token::T_QUASIQUOTE:
                     return $this->readQuasiquote($tokenStream);
 
+                case Token::T_CARET:
+                    return $this->readMeta($tokenStream);
+
                 case Token::T_ARRAY:
                     $tuple = $this->readList($tokenStream, Token::T_CLOSE_BRACKET);
-                    return new PhelArray($tuple->toArray());
+                    $arr = new PhelArray($tuple->toArray());
+                    $arr->setStartLocation($tuple->getStartLocation());
+                    $arr->setEndLocation($tuple->getEndLocation());
+                    return $arr;
 
                 case Token::T_TABLE:
                     $tuple = $this->readList($tokenStream, Token::T_CLOSE_BRACE);
                     if (count($tuple) % 2 == 1) {
                         throw $this->buildReaderException("Tables must have an even number of parameters");
                     }
-                    return Table::fromKVArray($tuple->toArray());
+                    $table = Table::fromKVArray($tuple->toArray());
+                    $table->setStartLocation($tuple->getStartLocation());
+                    $table->setEndLocation($tuple->getEndLocation());
+                    return $table;
 
                 case Token::T_EOF:
                     throw $this->buildReaderException("Unterminatend list");
@@ -154,6 +164,32 @@ class Reader {
         }
 
         return $result;
+    }
+
+    protected function readMeta(Generator $tokenStream) {
+        $tokenStream->next();
+
+        $meta = $this->readExpressionHard($tokenStream, "missing meta expression");
+        if (is_string($meta) || $meta instanceof Symbol) {
+            $meta = Table::fromKVs(new Keyword('tag'), $meta);
+        } else if ($meta instanceof Keyword) {
+            $meta = Table::fromKVs($meta, true);
+        } else if (!$meta instanceof Table) {
+            throw $this->buildReaderException('Metadata must be a Symbol, String, Keyword or Table');
+        }
+        $object = $this->readExpressionHard($tokenStream, "missing object expression for meta data");
+
+        if ($object instanceof IMeta) {
+            $objMeta = $object->getMeta();
+            foreach ($meta as $k => $v) {
+                $objMeta[$k] = $v;
+            }
+            $object->setMeta($objMeta);
+        } else {
+            throw $this->buildReaderException('Metadata can only applied to classes that implement IMeta');
+        }
+
+        return $object;
     }
 
     protected function readWrap(Generator $tokenStream, string $wrapFn): Tuple {

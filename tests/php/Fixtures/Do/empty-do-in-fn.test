@@ -1,6 +1,10 @@
 --PHEL--
 (fn [] (do))
 --PHP--
-function() {
-  return null;
+new class() extends \Phel\Lang\AFn {
+  public const BOUND_TO = "";
+
+  public function __invoke() {
+    return null;
+  }
 };

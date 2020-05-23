@@ -22,48 +22,17 @@
   (:use Exception)
   (:use InvalidArgumentException))
 
-# ------------------
-# Basic constructors
-# ------------------
-
-(def with-meta 
-  (fn [value meta] 
-    (if (php/instanceof value IMeta)
-      (do 
-        (php/-> value (setMeta meta))
-        value)
-      (throw (php/new InvalidArgumentException "Can not set meta")))))
-
-(def table
-  (fn [& xs] (php/:: Table (fromKVArray (php/-> xs (toPhpArray))))))
-
-(def tuple (with-meta 
-  (fn [& xs] (php/new Tuple (php/-> xs (toPhpArray))))
-  @{:doc "```phel\n(tuple & xs)\n```\nCreates a new Tuple. If no argument is provided, an empty Tuple is created."}))
-
-(def tuple-brackets (with-meta 
-  (fn [& xs] (php/new Tuple (php/-> xs (toPhpArray)) true))
-  @{:doc "```phel\n(tuple-brackets & xs)\n```\nCreates a new Bracket-Tuple. If no argument is provided, 
-an empty Braket-Tuple is created."}))
-
-(def array (with-meta 
-  (fn [& xs] xs)
-  @{:doc "```phel\n(array & xs)\n```\nCreates a new Array. If no argument is provided, an empty Array is created."}))
-
-(def table (with-meta
-  (fn [& xs] (php/:: Table (fromKVArray (php/-> xs (toPhpArray)))))
-  @{:doc "```phel\n(table & xs)\n```\nCreates a new Table. If no argument is provided, an empty Table is created. 
-The number of parameters must be even."}))
-
-(def keyword (with-meta
-  (fn [x] (php/new Keyword x))
-  @{:doc "```phel\n(keyword x)\n```\nCreates a new Keyword from a given string."}))
-
 # --------------------------------------------
 # Basic methods for quasiquote and destructure
 # --------------------------------------------
 
-(def next (with-meta
+(def tuple
+  "```phel\n(tuple & xs)\n```\nCreates a new Tuple. If no argument is provided, an empty Tuple is created."
+  (fn [& xs] (php/new Tuple (php/-> xs (toPhpArray)))))
+
+(def next
+  "```phel\n(next xs)\n```\nReturns the sequence of elements after the first element. If there are no 
+elements, returns nil."
   (fn [xs]
     (if (php/== xs nil)
       nil
@@ -75,29 +44,27 @@ The number of parameters must be even."}))
               nil
               sliced))
           (throw (php/new InvalidArgumentException 
-                    (php/. "can not call 'next on " (php/gettype xs))))))))
-  @{:doc "```phel\n(next xs)\n```\nReturns the sequence of elements after the first element. If there are no 
-elements, returns nil."}))
+                    (php/. "can not call 'next on " (php/gettype xs)))))))))
 
-(def concat1 (with-meta
+(def concat1 
+  @{:private true
+    :doc "Concatinates two sequential data structures."}
   (fn [xs ys]
     (if (php/instanceof xs IConcat)
       (php/-> xs (concat ys))
       (do
         (foreach [y ys]
           (php/apush xs y))
-        xs)))
-  @{:private true
-    :doc "Concatinates two sequential data structures."}))
+        xs))))
 
-(def concat (with-meta
+(def concat
+  "```phel\n(concat arr & xs)\n```\nConcatinates multiple sequential data structures."
   (fn [arr & xs]
     (loop [res arr
            [y & ys] xs]
       (if (php/== nil y)
         res
-        (recur (concat1 res y) ys))))
-  @{:doc "```phel\n(concat arr & xs)\n```\nConcatinates multiple sequential data structures."}))
+        (recur (concat1 res y) ys)))))
 
 # quasiquote can be used down here
 
@@ -105,184 +72,61 @@ elements, returns nil."}))
 # Basic macros
 # ------------
 
-(def defn-meta [meta fdecl]
-  (let [meta (if (php/is_string (php/aget fdecl 0))
-                 (do
-                   (php/aset meta :doc (php/aget fdecl 0))
-                   meta)
-                   meta)
-          fdecl (if (php/is_string (php/aget fdecl 0))
-                 (next fdecl)
-                 fdecl)
-          meta (if (php/instanceof (php/aget fdecl 0) Table)
-                 (do
-                   (php/var_dump (php/aget fdecl 0))
-                   (foreach [k v (php/aget fdecl 0)]
-                     (php/var_dump k v)
-                     (php/aset meta k v))
-                   meta)
-                 meta)
-          fdecl (if (php/instanceof (php/aget fdecl 0) Table)
-                  (next fdecl)
-                  fdecl)])
-
-(def defn-builder (with-meta
+(def defn-builder
+  @{:macro true
+    :private true}
   (fn [name meta & fdecl]
     (let [meta (if (php/is_string (php/aget fdecl 0))
                  (do
-                   (php/aset meta :doc (php/aget fdecl 0))
-                   meta)
-                   meta)
+                  (php/aset meta :doc (php/aget fdecl 0))
+                  meta)
+                 meta)
           fdecl (if (php/is_string (php/aget fdecl 0))
                  (next fdecl)
                  fdecl)
           meta (if (php/instanceof (php/aget fdecl 0) Table)
                  (do
-                   (php/var_dump (php/aget fdecl 0))
                    (foreach [k v (php/aget fdecl 0)]
-                     (php/var_dump k v)
                      (php/aset meta k v))
                    meta)
                  meta)
           fdecl (if (php/instanceof (php/aget fdecl 0) Table)
                   (next fdecl)
-                  fdecl)]
-        `(def ,name (with-meta (fn ,@fdecl) ,meta))))
-  @{:macro true
-    :private true}))
-
-(def defn :macro
-  "```phel\n(defn name & more)\n```\nDefine a new global function"
-  (fn [name & more]
-    (let [[mods fnArgs docstring] (loop [[x & xs] more
-                                         modifiers []
-                                         docstring ""]
-                                         (if x
-                                           (if (php/is_string x)
-                                             (recur xs modifiers x)
-                                             (if (php/instanceof x Tuple)
-                                               [modifiers (concat [x] xs) docstring]
-                                               (recur xs (concat modifiers [x]) docstring)))))
-          args (php/aget fnArgs 0)
+                  fdecl)
+          args (php/aget fdecl 0)
+          docstring (php/aget meta :doc)
           docstring (php/. "```phel\n(" name " " (php/implode " " (apply php/array args)) ")\n```\n" docstring)
-          mods (concat @[docstring] mods)]
-      `(def ,name ,@mods (fn ,@fnArgs)))))
+          _ (php/aset meta :doc docstring)]
+      `(def ,name ,meta (fn ,@fdecl)))))
 
-(def defn (with-meta 
-  (fn [name & fdecl] 
-    (do 
-      (php/var_dump fdecl)
-      (apply defn-builder name @{} fdecl)))
+(def defn 
   @{:macro true
-    :doc "```phel\n(defn name & more)\n```\nDefine a new global function"}))
+    :doc "```phel\n(defn name & fdecl)\n```\nDefine a new global function"}
+  (fn [name & fdecl] (apply defn-builder name @{} fdecl)))
 
-(defn test-sum
-  "My test function"
-  @{:private true}
-  [a b]
-  (php/+ a b))
+(defn def-
+  "Define a private value that will not be exported"
+  [name value]
+  `(def ,name :private ,value))
 
-(defn defmacro
-  "Define a macro"
-  @{:macro true}
+(def defmacro 
+  @{:macro true
+    :doc "```phel\n(defmacro name & fdecl)\n```\nDefine a macro"}
+  (fn [name & fdecl] (apply defn-builder name @{:macro true} fdecl)))
+
+(defmacro defn-
+  "Define a private function that will not be exported"
+  [name & fdecl]
+  (apply defn-builder name @{:private true} fdecl))
+
+(defmacro defmacro-
+  "Define a private macro that will not be exported"
   [name & fdecl] 
-  (apply defn-builder name @{:macro true} fdecl))
-
-(defn defn-
-  "Define a macro"
-  @{:macro true}
-  [name & fdecl] `(defn-builder ,name ,@{:private true} ,@fdecl))
-
-(defn defmacro-
-  "Define a macro"
-  @{:macro true}
-  [name & fdecl] (apply defn-builder name @{:macro true :private true} fdecl))
-
-#(def defn (with-meta
-#  (fn [name & fdecl]
-#    (let [m (if (php/is_string (php/aget fdecl 0))
-#             @{:doc (php/aget fdecl 0)}
-#              @{})
-#          fdecl (if (php/is_string (php/aget fdecl 0))
-#                 (next fdecl)
-#                 fdecl)
-#          m (if (php/instanceof (php/aget fdecl 0) Table)
-#              (do 
-#                (foreach [k v (php/aget fdecl 0)]
-#                  (php/aset m k v))
-#                m)
-#              m)
-#          fdecl (if (php/instanceof (php/aget fdecl 0) Table)
-#                  (next fdecl)
-#                  fdecl)]
-#        `(def ,name (with-meta (fn ,@fdecl) ,m))))
-#  @{:macro true
-#    :doc "```phel\n(defn name & more)\n```\nDefine a new global function"}))
-
-
-#    (let [[mods fnArgs docstring] (loop [[x & xs] more
-#                                         modifiers []
-#                                         docstring ""]
-#                                         (if x
-#                                           (if (php/is_string x)
-#                                             (recur xs modifiers x)
-#                                             (if (php/instanceof x Tuple)
-#                                               [modifiers (concat [x] xs) docstring]
-#                                               (recur xs (concat modifiers [x]) docstring)))))
-#          args (php/aget fnArgs 0)
-#          docstring (php/. "```phel\n(" name " " (php/implode " " (apply php/array args)) ")\n```\n" docstring)
-#          mods (concat @[docstring] mods)]
-#      `(def ,name ,@mods (fn ,@fnArgs))))
-#  @{:macro true
-#    :doc "```phel\n(defn name & more)\n```\nDefine a new global function"}))
-
-#(defn defmacro
-#  "Define a macro"
-#  @{:macro true}
-  #[name & fdecl]
-  #(let [m (if (php/is_string (php/aget fdecl 0))
-            #@{:doc (php/aget fdecl 0)
-              #:macro true}
-            #@{:macro true})
-        #fdecl (if (php/is_string (php/aget fdecl 0))
-                #(next fdecl)
-                #fdecl)
-        #m (if (php/instanceof (php/aget fdecl 0) Table)
-            #(do 
-              #(foreach [k v (php/aget fdecl 0)]
-                #(php/aset m k v))
-              #m)
-            #m)
-        #fdecl (if (php/instanceof (php/aget fdecl 0) Table)
-                #(next fdecl)
-                #fdecl)]
-      #(apply defn m fdecl)))
-
-#(defmacro defmacro-
-  #"Define a private macro that will not be exported"
-  #[name & more]
-  #(apply defn name @{:macro true :private true} more))
-
-#(defmacro defn-
-  #"Define a private function that will not be exported"
-  #[name & more]
-  #(apply defn name :private more))
-
-#(defn def-
-  #"Define a private value that will not be exported"
-  #[name & more]
-  #`(def ,name :private ,@more))
+  (apply defn-builder name @{:macro true :private true} fdecl))
 
 (defmacro comment 
   "Ignores the body of the comment"
   [&])
-
-(defn meta
-  "Returns the meta data of value"
-  [value]
-  (if (php/instanceof value IMeta)
-    (php/-> value (getMeta))
-    (throw (php/new InvalidArgumentException "Can not get meta"))))
 
 (defn gensym 
   "Generates a new unique symbol."
@@ -298,6 +142,32 @@ This is PHP equalivalent to `$args[0] . $args[1] . $args[2] ...`"
   (if args
     (apply php/. args)
     ""))
+
+# ------------------
+# Basic constructors
+# ------------------
+
+(defn tuple-brackets
+  "Creates a new Bracket-Tuple. If no argument is provided, 
+an empty Braket-Tuple is created."
+  [& xs]
+  (php/new Tuple (php/-> xs (toPhpArray)) true))
+
+(defn array
+  "Creates a new Array. If no argument is provided, an empty Array is created."
+  [& xs] 
+  xs)
+
+(defn table
+  "Creates a new Table. If no argument is provided, an empty Table is created. 
+The number of parameters must be even."
+  [& xs] 
+  (php/:: Table (fromKVArray (php/-> xs (toPhpArray)))))
+
+(defn keyword 
+  "Creates a new Keyword from a given string."
+  [x]
+  (php/new Keyword x))
 
 # -------------------------
 # Basic sequence operations
@@ -694,10 +564,9 @@ Calling the and function without arguments returns true."
 
 (defn push
   "Inserts `x` at the end of the sequence `xs`."
-  [xs x]
+  [^:reference xs x]
   (cond
-    (php-array? xs) (throw (php/new InvalidArgumentException "Can not call push
-on pure PHP arrays because Phel does not have support for call-by-reference"))
+    (php-array? xs) (do (php/apush xs x) xs)
     (php/instanceof xs IPush) (php/-> xs (push x))
     (throw (php/new InvalidArgumentException 
               (str "Can not push on type " (type xs))))))
@@ -705,20 +574,17 @@ on pure PHP arrays because Phel does not have support for call-by-reference"))
 (defn pop
   "Removes the the last element of the array `xs`. If the array is empty 
   returns nil."
-  [xs]
+  [^:reference xs]
   (cond
-    (php-array? xs) (throw (php/new InvalidArgumentException "Can not call pop
-on pure PHP arrays because Phel does not have support for call-by-reference" ))
+    (php-array? xs) (php/array_pop xs)
     (php/instanceof xs IPop) (php/-> xs (pop))
     (throw (php/new InvalidArgumentException "Can not pop"))))
 
 (defn remove
   "Removes up to `n` element from array `xs` starting at index `offset`."
-  [xs offset & [n]]
+  [^:reference xs offset & [n]]
   (cond
-    (php-array? xs) (throw (php/new InvalidArgumentException "Can not call
-remove on pure PHP arrays because Phel does not have support for
-call-by-reference"))
+    (php-array? xs) (if n (php/array_splice xs offset n) (php/array_splice xs offset))
     (php/instanceof xs IRemove) (php/-> xs (remove offset n))
     (throw (php/new InvalidArgumentException "Can not remove"))))
 
@@ -805,7 +671,8 @@ collection in map"))
   [ds [k & ks] f & args]
   (if ks
     (put ds k (apply update-in (get ds k @{}) ks f args))
-    (put ds k (apply f (get ds k) args))))
+    (let [current (get ds k)] # Extract value first for possible call-by-reference
+      (put ds k (apply f current args)))))
 
 (defn drop [n xs]
   (slice xs (if (php/< n 0) 0 n)))
@@ -1155,7 +1022,9 @@ collection in map"))
 # Math operation
 # --------------
 
-(def NAN php/NAN)
+(def NAN
+  "Constant for Not a Number (NAN) values."
+  php/NAN)
 
 (defn +
   "Returns the sum of all elements in `xs`. All elements is `xs` must be numbers.

@@ -1,11 +1,15 @@
 --PHEL--
 (fn [@{:a a :b b}] 1)
 --PHP--
-function($__phel_1) {
-  $__phel_2_5 = $__phel_1;
-  $__phel_3_6 = ($__phel_2_5)[(new \Phel\Lang\Keyword("a"))] ?? null;
-  $a_7 = $__phel_3_6;
-  $__phel_4_8 = ($__phel_2_5)[(new \Phel\Lang\Keyword("b"))] ?? null;
-  $b_9 = $__phel_4_8;
-  return 1;
+new class() extends \Phel\Lang\AFn {
+  public const BOUND_TO = "";
+
+  public function __invoke($__phel_1) {
+    $__phel_2_5 = $__phel_1;
+    $__phel_3_6 = (($__phel_2_5)[(new \Phel\Lang\Keyword("a"))] ?? null);
+    $a_7 = $__phel_3_6;
+    $__phel_4_8 = (($__phel_2_5)[(new \Phel\Lang\Keyword("b"))] ?? null);
+    $b_9 = $__phel_4_8;
+    return 1;
+  }
 };

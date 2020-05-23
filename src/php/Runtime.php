@@ -37,7 +37,7 @@ class Runtime {
     private static $instance;
 
     public function __construct(GlobalEnvironment $globalEnv = null, string $cacheDiretory = null) {
-        //set_exception_handler(array($this, 'exceptionHandler'));
+        set_exception_handler(array($this, 'exceptionHandler'));
 
         if (is_null($globalEnv)) {
             $globalEnv = new GlobalEnvironment();
@@ -164,7 +164,7 @@ class Runtime {
         if (isset($GLOBALS['__phel'][$ns])) {
             foreach (array_keys($GLOBALS['__phel'][$ns]) as $name) {
                 /** @var Table $meta */
-                $meta = $GLOBALS['__phel'][$ns][$name]->getMeta();
+                $meta = $GLOBALS['__phel_meta'][$ns][$name] ?? new Table();
                 if ($meta[new Keyword('private')] !== true) {
                     $this->globalEnv->addDefintion(
                         $ns, 

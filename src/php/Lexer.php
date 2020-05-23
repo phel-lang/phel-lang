@@ -39,10 +39,11 @@ class Lexer {
         "(')", // quote (index: 11)
         "(,)", // unquote (index: 12)
         "(`)", // quasiquote (index: 13)
-        "(@\[)", // array (index: 14)
-        "(@\{)", // table (index: 15)
-        "((?:\"(?:\\\\\"|[^\"])*\"))", // String (index: 16)
-        "([^\(\)\[\]\{\}',`@ \n\r\t\#]+)" // Atom (index: 17)
+        "(\^)", // caret (index: 14)
+        "(@\[)", // array (index: 15)
+        "(@\{)", // table (index: 16)
+        "((?:\"(?:\\\\\"|[^\"])*\"))", // String (index: 17)
+        "([^\(\)\[\]\{\}',`@ \n\r\t\#]+)" // Atom (index: 18)
     ];
 
     /**

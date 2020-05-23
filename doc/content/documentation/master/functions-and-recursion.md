@@ -76,3 +76,14 @@ Calls the function with the given arguments. The last argument must be a list of
 (apply + 1 2 [3]) # Evaluates to 6
 (apply + 1 2 3) # BAD! Last element must be a list
 ```
+
+## Passing by reference
+
+Sometimes it is required that a variable should passed to a function by reference. This can be done by applied the `:reference` metadata to the symbol.
+
+```
+(fn [^:reference my-arr]
+  (php/apush my-arr 10))
+```
+
+Support for references is very limited in Phel. Currently it only works for function arguments (except destructuring).

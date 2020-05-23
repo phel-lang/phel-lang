@@ -3,14 +3,15 @@
   (foreach [v [1 2 3]]
     (php/+ v v))))
 --PHP--
-$GLOBALS["__phel"]["user"]["x"] = new \Phel\Lang\PhelVar(
-  function() {
+$GLOBALS["__phel"]["user"]["x"] = new class() extends \Phel\Lang\AFn {
+  public const BOUND_TO = "user\\x";
+
+  public function __invoke() {
     return (function() {
       foreach (\Phel\Lang\Tuple::createBracket(1,2,3) as $v) {
         ($v + $v);
       }
       return null;
     })();
-  },
-  \Phel\Lang\Table::fromKVs()
-);
+  }
+};

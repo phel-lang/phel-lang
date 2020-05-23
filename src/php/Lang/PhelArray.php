@@ -133,7 +133,7 @@ class PhelArray extends Phel implements ArrayAccess, Countable, Iterator, ICons,
     }
 
     public function remove(int $offset, ?int $length = null): IRemove {
-        $length = $length ?? 1;
+        $length = $length ?? count($this);
 
         return new PhelArray(array_splice($this->data, $offset, $length));
     }

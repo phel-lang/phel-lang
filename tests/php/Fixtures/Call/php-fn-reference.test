@@ -3,10 +3,11 @@
 
 (reduce php/array [1 2 3])
 --PHP--
-$GLOBALS["__phel"]["user"]["reduce"] = new \Phel\Lang\PhelVar(
-  function($f, $xs) {
+$GLOBALS["__phel"]["user"]["reduce"] = new class() extends \Phel\Lang\AFn {
+  public const BOUND_TO = "user\\reduce";
+
+  public function __invoke($f, $xs) {
     return ($f)(...($xs ?? []));
-  },
-  \Phel\Lang\Table::fromKVs()
-);
-($GLOBALS["__phel"]["user"]["reduce"]->get())((function(...$args) { return array(...$args);}), \Phel\Lang\Tuple::createBracket(1,2,3));
+  }
+};
+($GLOBALS["__phel"]["user"]["reduce"])((function(...$args) { return array(...$args);}), \Phel\Lang\Tuple::createBracket(1,2,3));

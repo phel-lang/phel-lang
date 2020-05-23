@@ -1,13 +1,17 @@
 --PHEL--
 (fn [[x y]] 1)
 --PHP--
-function($__phel_1) {
-  $__phel_2_7 = $__phel_1;
-  $__phel_3_8 = ($__phel_2_7)[(0)] ?? null;
-  $__phel_4_9 = ($GLOBALS["__phel"]["phel\\core"]["next"]->get())($__phel_2_7);
-  $x_10 = $__phel_3_8;
-  $__phel_5_11 = ($__phel_4_9)[(0)] ?? null;
-  $__phel_6_12 = ($GLOBALS["__phel"]["phel\\core"]["next"]->get())($__phel_4_9);
-  $y_13 = $__phel_5_11;
-  return 1;
+new class() extends \Phel\Lang\AFn {
+  public const BOUND_TO = "";
+
+  public function __invoke($__phel_1) {
+    $__phel_2_7 = $__phel_1;
+    $__phel_3_8 = (($__phel_2_7)[(0)] ?? null);
+    $__phel_4_9 = ($GLOBALS["__phel"]["phel\\core"]["next"])($__phel_2_7);
+    $x_10 = $__phel_3_8;
+    $__phel_5_11 = (($__phel_4_9)[(0)] ?? null);
+    $__phel_6_12 = ($GLOBALS["__phel"]["phel\\core"]["next"])($__phel_4_9);
+    $y_13 = $__phel_5_11;
+    return 1;
+  }
 };

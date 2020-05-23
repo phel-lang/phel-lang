@@ -3,15 +3,17 @@
 
 (x 1)
 --PHP--
-$GLOBALS["__phel"]["user"]["x"] = new \Phel\Lang\PhelVar(
-  function($x) {
+$GLOBALS["__phel"]["user"]["x"] = new class() extends \Phel\Lang\AFn {
+  public const BOUND_TO = "user\\x";
+
+  public function __invoke($x) {
     return \Phel\Lang\Tuple::create(
       (new \Phel\Lang\Symbol("php/+")),
       1,
       1);
-  },
-  \Phel\Lang\Table::fromKVs(
-    new \Phel\Lang\Keyword("macro"), true
-  )
+  }
+};
+$GLOBALS["__phel_meta"]["user"]["x"] = \Phel\Lang\Table::fromKVs(
+  new \Phel\Lang\Keyword("macro"), true
 );
 (1 + 1);

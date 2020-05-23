@@ -101,7 +101,9 @@ class Destructure {
      * @param mixed $value
      */
     private function processSymbol(array &$bindings, Symbol $binding, $value): void {
-        if ($binding->getName() !== "_") {
+        if ($binding->getName() === "_") {
+            $bindings[] = [Symbol::gen(), $value];
+        } else {
             $bindings[] = [$binding, $value];
         }
     }

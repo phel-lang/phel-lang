@@ -951,10 +951,6 @@ class Analyzer {
     protected function analyzeInvoke(Tuple $x, NodeEnvironment $nodeEnvironment): Node {
         $f = $this->analyze($x[0], $nodeEnvironment->withContext(NodeEnvironment::CTX_EXPR)->withDisallowRecurFrame());
 
-        if ($f instanceof GlobalVarNode) {
-            /*var_dump($f->getMeta());
-            var_dump($f->isMacro());*/
-        }
         if ($f instanceof GlobalVarNode && $f->isMacro()) {
             return $this->analyze($this->macroExpand($x, $nodeEnvironment), $nodeEnvironment);
         } else {
@@ -1135,9 +1131,9 @@ class Analyzer {
     }
 
     protected function analyzeDef(Tuple $x, NodeEnvironment $nodeEnvironment): DefNode {
-        if(count($x) < 3) {
+        if(count($x) < 3 || count($x) > 4) {
             throw new AnalyzerException(
-                "At least two arugments are reqiured for 'def.",
+                "Two or three arguments are required for 'def. Got " . count($x),
                 $x->getStartLocation(),
                 $x->getEndLocation()
             );
@@ -1152,43 +1148,33 @@ class Analyzer {
         }
 
         $namespace = $this->globalEnvironment->getNs();
+        /** @var Symbol $name */
         $name = $x[1];
-        $meta = new Table();
-        //$metas = [];
-        for ($i = 2; $i <= count($x) - 2; $i++) {
-            $metaAttribute = $x[$i];
 
-            if (!(is_string($metaAttribute) || $metaAttribute instanceof Keyword)) {
-                throw new AnalyzerException(
-                    "Meta Attribute in 'def must be either a String or Keyword",
-                    $x->getStartLocation(),
-                    $x->getEndLocation()
-                );
-            }
-            
-            if (is_string($metaAttribute)) {
-                /*$metas[] = new Keyword('doc');
-                $metas[] = $metaAttribute;*/
-                //$meta[new Keyword('doc')] = $metaAttribute;
-            } else {
-                /*$metas[] = $metaAttribute;
-                $metas[] = true;*/
-                //$meta[$metaAttribute] = true;
-            }
-        }
-        $init = $x[count($x)-1];
         $initEnv = $nodeEnvironment
             ->withBoundTo($namespace . '\\' . $name)
             ->withContext(NodeEnvironment::CTX_EXPR)
             ->withDisallowRecurFrame();
 
-        /*if (count($meta) > 0) {
-            $init = Tuple::create(
-                new Symbol('with-meta'), 
-                $init, 
-                $meta
+        if (count($x) == 4) {
+            $meta = $x[2];
+            $init = $x[3];
+        } else {
+            $meta = new Table();
+            $init = $x[2];
+        }
+
+        if (is_string($meta)) {
+            $meta = Table::fromKVs(new Keyword('doc'), $meta);
+        } else if ($meta instanceof Keyword) {
+            $meta = Table::fromKVs($meta, true);
+        } else if (!$meta instanceof Table) {
+            throw new AnalyzerException(
+                "Metadata must be a Symbol, String, Keyword or Table",
+                $x->getStartLocation(),
+                $x->getEndLocation()
             );
-        }*/
+        }
 
         $this->globalEnvironment->addDefintion($namespace, $name, $meta);
 

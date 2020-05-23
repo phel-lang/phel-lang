@@ -87,7 +87,7 @@ Check if all given values are in non-ascending order. Returns a boolean.
 
 ## `NAN`
 
-Not a Number (NAN) constant
+Constant for Not a Number (NAN) values.
 
 ## `all?`
 
@@ -279,35 +279,35 @@ Decrements `x` by one.
 ## `def-`
 
 ```phel
-(def- name & more)
+(def- name value)
 ```
 Define a private value that will not be exported
 
 ## `defmacro`
 
 ```phel
-(defmacro name & more)
+(defmacro name & fdecl)
 ```
 Define a macro
 
 ## `defmacro-`
 
 ```phel
-(defmacro- name & more)
+(defmacro- name & fdecl)
 ```
 Define a private macro that will not be exported
 
 ## `defn`
 
 ```phel
-(defn name & more)
+(defn name & fdecl)
 ```
 Define a new global function
 
 ## `defn-`
 
 ```phel
-(defn- name & more)
+(defn- name & fdecl)
 ```
 Define a private function that will not be exported
 

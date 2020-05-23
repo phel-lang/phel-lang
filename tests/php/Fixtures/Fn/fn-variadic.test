@@ -1,7 +1,11 @@
 --PHEL--
 (fn [& xs] 1)
 --PHP--
-function(...$xs) {
-  $xs = new \Phel\Lang\PhelArray($xs);
-  return 1;
+new class() extends \Phel\Lang\AFn {
+  public const BOUND_TO = "";
+
+  public function __invoke(...$xs) {
+    $xs = new \Phel\Lang\PhelArray($xs);
+    return 1;
+  }
 };

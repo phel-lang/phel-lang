@@ -78,7 +78,7 @@ class Emitter {
 
     public function emitAndEval(Node $node): string {
         $code = $this->emit($node);
-        echo $code . "\n";
+        // echo $code . "\n";
         $filename = tempnam(sys_get_temp_dir(), '__phel');
         if ($filename) {
             file_put_contents($filename, "<?php \n" . $code);
@@ -544,7 +544,13 @@ class Emitter {
                 $params[] = '...$' . $this->munge($p->getName());
                 $variadicWrapString = '$' . $this->munge($p->getName()) . ' = new \Phel\Lang\PhelArray($' . $this->munge($p->getName()) . ');' . "\n";
             } else {
-                $params[] = '$' . $this->munge($p->getName());
+                $meta = $p->getMeta();
+                if ($meta[new Keyword("reference")]) {
+                    $prefix = '&';
+                } else {
+                    $prefix = '';
+                }
+                $params[] = $prefix . '$' . $this->munge($p->getName());
             }
         }
         $paramString = implode(', ', $params);
@@ -567,15 +573,20 @@ class Emitter {
             $invokeGetter[] = '$' . $varName . ' = $this->' . $varName . ';';
         }
 
-        $constructorParameterString = implode(', ', $constructorParameter);
-        $constructorSetterString = implode("\n", $constructorSetter);
+        if (count($constructorParameter) > 0) {
+            $constructorParameterString = implode(', ', $constructorParameter);
+            $constructorSetterString = implode("\n", $constructorSetter);
 
-        $constructor = (
-            "public function __construct($constructorParameterString) {\n"
-            . $this->indent($constructorSetterString, 1)
-            . (empty($constructorParameter) ? '' : "\n")
-            . "}\n"
-        );
+            $constructor = (
+                "public function __construct($constructorParameterString) {\n"
+                . $this->indent($constructorSetterString, 1)
+                . (empty($constructorParameter) ? '' : "\n")
+                . "}\n"
+            );
+        } else {
+            $constructorParameterString = '';
+            $constructor = '';
+        }
 
         $invokeGetterString = implode("\n", $invokeGetter);
 
@@ -591,13 +602,15 @@ class Emitter {
             . (empty($invokeGetter) ? '' : "\n")
             . ($variadicWrapString ? $this->indent($variadicWrapString, 1) : '')
             . $this->indent($body, 1)
-            . "}\n"
+            . "\n"
+            . "}"
         );
 
         $constString = (
             'public const BOUND_TO = "' . addslashes($node->getEnv()->getBoundTo()) . '";'
         );
         $propertiesString = implode("\n", $properties);
+        if (count($properties) > 0) { $propertiesString .= "\n"; }
 
         return $this->wrap(
             "new class($constructorParameterString) extends \Phel\Lang\AFn {\n"
@@ -606,7 +619,7 @@ class Emitter {
             . $this->indent($propertiesString, 1)
             . "\n"
             . $this->indent($constructor, 1)
-            . "\n"
+            . (($constructor) ? "\n" : '')
             . $this->indent($invokeFn, 1)
             . "\n"
             . '}',
@@ -658,12 +671,24 @@ class Emitter {
     }
 
     protected function emitDef(DefNode $node): string {
-        return (
+        $definition = (
             $this->emitGlobalBase($node->getNamespace(), $node->getName())
             . " = "
             . $this->emit($node->getInit())
             . ";\n"
         );
+
+        $metaDefinition = '';
+        if (count($node->getMeta()) > 0) {
+            $metaDefinition = (
+                $this->emitGlobalBaseMeta($node->getNamespace(), $node->getName())
+                . " = "
+                . $this->emitPhel($node->getMeta())
+                . ";\n"
+            );
+        }
+
+        return $definition . $metaDefinition;
     }
 
     protected function emitLiteral(LiteralNode $node): string {
@@ -771,6 +796,10 @@ class Emitter {
 
     private function emitGlobalBase(string $namespace, Symbol $name): string {
         return '$GLOBALS["__phel"]["' . addslashes($namespace) . '"]["' . addslashes($name->getName()) . '"]';
+    }
+
+    private function emitGlobalBaseMeta(string $namespace, Symbol $name): string {
+        return '$GLOBALS["__phel_meta"]["' . addslashes($namespace) . '"]["' . addslashes($name->getName()) . '"]';
     }
 
     private function indent(string $text, int $i): string {

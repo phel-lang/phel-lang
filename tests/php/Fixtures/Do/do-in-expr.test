@@ -1,10 +1,7 @@
 --PHEL--
 (def x (do (php/+ 1 2) (php/+ 3 4)))
 --PHP--
-$GLOBALS["__phel"]["user"]["x"] = new \Phel\Lang\PhelVar(
-  (function() {
-    (1 + 2);
-    return (3 + 4);
-  })(),
-  \Phel\Lang\Table::fromKVs()
-);
+$GLOBALS["__phel"]["user"]["x"] = (function() {
+  (1 + 2);
+  return (3 + 4);
+})();

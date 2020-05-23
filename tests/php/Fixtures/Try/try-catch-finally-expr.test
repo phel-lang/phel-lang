@@ -4,15 +4,12 @@
     (catch \Exception e (php/+ 2 2))
     (finally (php/+ 3 3))))
 --PHP--
-$GLOBALS["__phel"]["user"]["x"] = new \Phel\Lang\PhelVar(
-  (function() {
-    try {
-      return (1 + 1);
-    } catch (\Exception $e) {
-      return (2 + 2);
-    } finally {
-      (3 + 3);
-    }
-  })(),
-  \Phel\Lang\Table::fromKVs()
-);
+$GLOBALS["__phel"]["user"]["x"] = (function() {
+  try {
+    return (1 + 1);
+  } catch (\Exception $e) {
+    return (2 + 2);
+  } finally {
+    (3 + 3);
+  }
+})();

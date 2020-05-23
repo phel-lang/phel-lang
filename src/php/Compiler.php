@@ -53,7 +53,6 @@ class Compiler {
                     exit;
                 } catch (Throwable $e) {
                     echo $readerResult->getCodeSnippet()->getCode();
-                    //var_dump($e);
                     throw $e;
                 }
 

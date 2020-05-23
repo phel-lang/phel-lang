@@ -1,9 +1,13 @@
 --PHEL--
 (fn [] (recur))
 --PHP--
-function() {
-  while(true) {
-    continue;
-    break;
+new class() extends \Phel\Lang\AFn {
+  public const BOUND_TO = "";
+
+  public function __invoke() {
+    while(true) {
+      continue;
+      break;
+    }
   }
 };

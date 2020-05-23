@@ -3,6 +3,7 @@
 use Phel\GlobalEnvironment;
 use Phel\Lang\Keyword;
 use Phel\Lang\PhelVar;
+use Phel\Lang\Table;
 use Phel\Runtime;
 
 require __DIR__ .'/../vendor/autoload.php';
@@ -19,10 +20,10 @@ echo "template = \"page-api.html\"\n";
 echo "+++\n\n";
 
 /** @var PhelVar $fn */
-$ns = $GLOBALS['__phel']['phel\core'];
+$ns = $GLOBALS["__phel"]["phel\\core"];
 ksort($ns);
 foreach ($ns as $fnName => $fn) {
-    $meta = $fn->getMeta();
+    $meta = $GLOBALS["__phel_meta"]["phel\\core"][$fnName] ?? new Table();
     $doc = $meta[new Keyword('doc')] ?? "";
     $isPrivate = $meta[new Keyword("private")] ?? false;
 

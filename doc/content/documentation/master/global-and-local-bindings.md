@@ -6,7 +6,7 @@ weight = 6
 ## Definition (def)
 
 ```phel
-(def name meta+ value)
+(def name meta? value)
 ```
 This special form binds a value to a global symbol. A definition can not be redefined at a later point.
 
@@ -15,11 +15,12 @@ This special form binds a value to a global symbol. A definition can not be rede
 (def sum-of-three (+ 1 2 3))
 ```
 
-To each definition a list of metadata can be attached. Metadata is either a keyword or a string that is used as docstring.
+To each definition metadata can be attached. Metadata is either a Keyword, a String or a Table.
 
 ```phel
 (def my-private-variable :private 12)
 (def my-name "Stores the name of this language" "Phel")
+(def my-other-name @{:private true :doc "This is my doc"} "My value")
 ```
 
 ## Local bindings (let)

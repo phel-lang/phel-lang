@@ -1,6 +1,10 @@
 --PHEL--
 ((fn [x] (php/+ x x)) 1)
 --PHP--
-(function($x) {
-  return ($x + $x);
+(new class() extends \Phel\Lang\AFn {
+  public const BOUND_TO = "";
+
+  public function __invoke($x) {
+    return ($x + $x);
+  }
 })(1);

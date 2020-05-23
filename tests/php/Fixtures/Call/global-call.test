@@ -3,10 +3,11 @@
 
 (x 1)
 --PHP--
-$GLOBALS["__phel"]["user"]["x"] = new \Phel\Lang\PhelVar(
-  function($x) {
+$GLOBALS["__phel"]["user"]["x"] = new class() extends \Phel\Lang\AFn {
+  public const BOUND_TO = "user\\x";
+
+  public function __invoke($x) {
     return 1;
-  },
-  \Phel\Lang\Table::fromKVs()
-);
-($GLOBALS["__phel"]["user"]["x"]->get())(1);
+  }
+};
+($GLOBALS["__phel"]["user"]["x"])(1);

@@ -18,10 +18,12 @@ class Token {
     public const T_QUOTE = 11;
     public const T_UNQUOTE = 12;
     public const T_QUASIQUOTE = 13;
-    public const T_ARRAY = 14;
-    public const T_TABLE = 15;
-    public const T_STRING = 16;
-    public const T_ATOM = 17;
+    public const T_CARET = 14;
+    public const T_ARRAY = 15;
+    public const T_TABLE = 16;
+    public const T_STRING = 17;
+    public const T_ATOM = 18;
+    
 
     public const T_EOF = 100;
 

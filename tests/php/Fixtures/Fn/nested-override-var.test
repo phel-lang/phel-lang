@@ -1,8 +1,22 @@
 --PHEL--
 (fn [x y] (fn [y] 1))
 --PHP--
-function($x, $y) {
-  return function($y) use ($x) {
-    return 1;
-  };
+new class() extends \Phel\Lang\AFn {
+  public const BOUND_TO = "";
+
+  public function __invoke($x, $y) {
+    return new class($x) extends \Phel\Lang\AFn {
+      public const BOUND_TO = "";
+      private $x;
+
+      public function __construct($x) {
+        $this->x = $x;
+      }
+
+      public function __invoke($y) {
+        $x = $this->x;
+        return 1;
+      }
+    };
+  }
 };

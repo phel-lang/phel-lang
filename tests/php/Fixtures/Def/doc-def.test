@@ -1,9 +1,7 @@
 --PHEL--
 (def x "my number" 1)
 --PHP--
-$GLOBALS["__phel"]["user"]["x"] = new \Phel\Lang\PhelVar(
-  1,
-  \Phel\Lang\Table::fromKVs(
-    new \Phel\Lang\Keyword("doc"), "my number"
-  )
+$GLOBALS["__phel"]["user"]["x"] = 1;
+$GLOBALS["__phel_meta"]["user"]["x"] = \Phel\Lang\Table::fromKVs(
+  new \Phel\Lang\Keyword("doc"), "my number"
 );
