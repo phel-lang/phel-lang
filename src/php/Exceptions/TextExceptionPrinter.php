@@ -15,7 +15,7 @@ class TextExceptionPrinter implements ExceptionPrinter {
         $eEndLocation = $e->getEndLocation() ?? $codeSnippet->getEndLocation();
         $firstLine = $eStartLocation->getLine();
 
-        echo $e->getMessage() . "\n";
+        echo $this->color($e->getMessage(), 'blue') . "\n";
         echo "in " . $eStartLocation->getFile() . ':' . $firstLine . "\n\n";
 
         $lines = explode("\n", $codeSnippet->getCode());
@@ -30,7 +30,7 @@ class TextExceptionPrinter implements ExceptionPrinter {
             if ($eStartLocation->getLine() == $eEndLocation->getLine()) {
                 if ($eStartLocation->getLine() == $index + $codeSnippet->getStartLocation()->getLine()) {
                     echo str_repeat(' ', $endLineLength + 2 + $eStartLocation->getColumn());
-                    echo str_repeat('^', $eEndLocation->getColumn() - $eStartLocation->getColumn());
+                    echo $this->color(str_repeat('^', $eEndLocation->getColumn() - $eStartLocation->getColumn()), 'red');
                     echo "\n";
                 }
             }
@@ -124,5 +124,16 @@ class TextExceptionPrinter implements ExceptionPrinter {
         }
         
         return (string) $arg;
+    }
+
+    private function color($text = '', $color = null) {
+        $styles = array(
+            'green'  => "\033[0;32m%s\033[0m",
+            'red'    => "\033[31;31m%s\033[0m",
+            'yellow' => "\033[33;33m%s\033[0m",
+            'blue'   => "\033[33;34m%s\033[0m",
+        );
+
+        return sprintf(isset($styles[$color]) ? $styles[$color] : "%s", $text);
     }
 };

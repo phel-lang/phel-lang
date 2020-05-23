@@ -27,5 +27,8 @@
         "phpunit": "vendor/bin/phpunit",
         "phpunit:coverage": "vendor/bin/phpunit --coverage-html data/coverage-report",
         "test-phel": "php tests/phel/test-runner.php"
-    }
+    },
+    "bin": [
+        "phel"
+    ]
 }

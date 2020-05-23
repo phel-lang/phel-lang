@@ -2,3 +2,4 @@ vendor
 .phpunit.result.cache
 data
 doc/public
+.phel-repl-history
