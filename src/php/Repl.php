@@ -6,6 +6,7 @@ use Phel\Exceptions\AnalyzerException;
 use Phel\Exceptions\ReaderException;
 use Phel\Exceptions\TextExceptionPrinter;
 use Phel\Repl\Readline;
+use Throwable;
 
 class Repl {
 
@@ -75,6 +76,8 @@ class Repl {
                 }
             } catch (ReaderException $e) {
                 $exceptionPrinter->printException($e, $e->getCodeSnippet());
+            } catch (Throwable $e) {
+                $exceptionPrinter->printStackTrace($e);
             }
         }
     }

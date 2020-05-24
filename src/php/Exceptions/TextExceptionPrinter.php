@@ -51,7 +51,8 @@ class TextExceptionPrinter implements ExceptionPrinter {
         $file = $e->getFile();
         $line = $e->getLine();
 
-        echo "$type: $msg in $file:$line\n";
+        echo $this->color("$type: $msg\n", "blue");
+        echo "in $file:$line\n\n";
 
         foreach ($e->getTrace() as $i => $frame) {
             $class = isset($frame['class']) ? $frame['class'] : null;

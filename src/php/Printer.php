@@ -39,9 +39,18 @@ class Printer {
             return $form === true ? 'true' : 'false';
         } else if ($form === null) {
             return 'nil';
+        } else if (is_array($form) && !$readable) {
+            return "<PHP-Array>";
+        } else if (is_resource($form) && !$readable) {
+            return "<PHP Resource id #" . $form . '>';
+        } else if (is_object($form) && !$readable) {
+            return '<PHP-Object(' . get_class($form) . ')>';
         } else {
-            // TODO: Better exception
-            throw new Exception("can not print " . gettype($form));
+            $type = gettype($form);
+            if ($type == 'object') {
+                $type = get_class($form);
+            }
+            throw new Exception("Printer can not print this type: " . $type);
         }
     }
 
