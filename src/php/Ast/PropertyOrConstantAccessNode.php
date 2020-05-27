@@ -3,31 +3,23 @@
 namespace Phel\Ast;
 
 use Phel\Lang\Symbol;
+use Phel\Lang\SourceLocation;
 use Phel\NodeEnvironment;
 
-class PropertyOrConstantAccessNode implements Node {
-
-    /**
-     * @var NodeEnvironment
-     */
-    protected $env;
+class PropertyOrConstantAccessNode extends Node {
 
     /**
      * @var Symbol
      */
     protected $name;
 
-    public function __construct(NodeEnvironment $env, Symbol $name)
+    public function __construct(NodeEnvironment $env, Symbol $name, ?SourceLocation $sourceLocation = null)
     {
-        $this->env = $env;
+        parent::__construct($env, $sourceLocation);
         $this->name = $name;
     }
 
     public function getName(): Symbol {
         return $this->name;
-    }
-
-    public function getEnv(): NodeEnvironment {
-        return $this->env;
     }
 }

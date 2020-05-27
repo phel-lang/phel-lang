@@ -2,14 +2,10 @@
 
 namespace Phel\Ast;
 
+use Phel\Lang\SourceLocation;
 use Phel\NodeEnvironment;
 
-class ArrayNode implements Node {
-
-    /**
-     * @var NodeEnvironment
-     */
-    protected $env;
+class ArrayNode extends Node {
 
     /**
      * @var array
@@ -20,9 +16,9 @@ class ArrayNode implements Node {
      * @param NodeEnvironment $env
      * @param array $value
      */
-    public function __construct(NodeEnvironment $env, array $values)
+    public function __construct(NodeEnvironment $env, array $values, ?SourceLocation $sourceLocation = null)
     {
-        $this->env = $env;
+        parent::__construct($env, $sourceLocation);
         $this->values = $values;
     }
 
@@ -31,9 +27,5 @@ class ArrayNode implements Node {
      */
     public function getValues() {
         return $this->values;
-    }
-
-    public function getEnv(): NodeEnvironment {
-        return $this->env;
     }
 }

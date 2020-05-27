@@ -10,7 +10,8 @@ $GLOBALS["__phel"]["user"]["x"] = new class() extends \Phel\Lang\AFn {
     return \Phel\Lang\Tuple::create(
       (new \Phel\Lang\Symbol("php/+")),
       1,
-      1);
+      1
+    );
   }
 };
 $GLOBALS["__phel_meta"]["user"]["x"] = \Phel\Lang\Table::fromKVs(

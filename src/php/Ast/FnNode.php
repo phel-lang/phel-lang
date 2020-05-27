@@ -3,14 +3,10 @@
 namespace Phel\Ast;
 
 use Phel\Lang\Symbol;
+use Phel\Lang\SourceLocation;
 use Phel\NodeEnvironment;
 
-class FnNode implements Node {
-
-    /**
-     * @var NodeEnvironment
-     */
-    protected $env;
+class FnNode extends Node {
 
     /**
      * @var Symbol[]
@@ -45,9 +41,9 @@ class FnNode implements Node {
      * @param bool $isVariadic
      * @param bool $recurs
      */
-    public function __construct(NodeEnvironment $env, array $params, Node $body, array $uses, bool $isVariadic, bool $recurs)
+    public function __construct(NodeEnvironment $env, array $params, Node $body, array $uses, bool $isVariadic, bool $recurs, ?SourceLocation $sourceLocation = null)
     {
-        $this->env = $env;
+        parent::__construct($env, $sourceLocation);
         $this->params = $params;
         $this->body = $body;
         $this->uses = $uses;
@@ -71,10 +67,6 @@ class FnNode implements Node {
      */
     public function getUses() {
         return $this->uses;
-    }
-
-    public function getEnv(): NodeEnvironment {
-        return $this->env;
     }
 
     public function isVariadic(): bool {

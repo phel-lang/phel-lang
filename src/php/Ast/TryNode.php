@@ -2,14 +2,10 @@
 
 namespace Phel\Ast;
 
+use Phel\Lang\SourceLocation;
 use Phel\NodeEnvironment;
 
-class TryNode implements Node {
-
-    /**
-     * @var NodeEnvironment
-     */
-    protected $env;
+class TryNode extends Node {
 
     /**
      * @var Node
@@ -32,16 +28,12 @@ class TryNode implements Node {
      * @param CatchNode[] $catches
      * @param ?Node $finally
      */
-    public function __construct(NodeEnvironment $env, Node $body, array $catches, ?Node $finally = null)
+    public function __construct(NodeEnvironment $env, Node $body, array $catches, ?Node $finally = null, ?SourceLocation $sourceLocation = null)
     {
-        $this->env = $env;
+        parent::__construct($env, $sourceLocation);
         $this->body = $body;
         $this->catches = $catches;
         $this->finally = $finally;
-    }
-
-    public function getEnv(): NodeEnvironment {
-        return $this->env;
     }
 
     public function getBody(): Node {

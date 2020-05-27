@@ -5,7 +5,7 @@ new class() extends \Phel\Lang\AFn {
   public const BOUND_TO = "";
 
   public function __invoke() {
-    while(true) {
+    while (true) {
       continue;
       break;
     }

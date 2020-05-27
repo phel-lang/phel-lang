@@ -84,12 +84,14 @@ class GlobalEnvironment {
         if (substr($strName, 0, 1) == '\\') {
             return new PhpClassNameNode(
                 $env,
-                $name
+                $name,
+                $name->getStartLocation()
             );
         } else if ($this->hasUseAlias($name)) {
             return new PhpClassNameNode(
                 $env,
-                $this->useAliases[$strName]
+                $this->useAliases[$strName],
+                $name->getStartLocation()
             );
         } else {
             $pos = strpos($strName, '/');
@@ -104,7 +106,7 @@ class GlobalEnvironment {
 
                     $def = $this->getDefinition($namespace, $finalName);
                     if ($def) {
-                        return new GlobalVarNode($env, $namespace, $name, $def);
+                        return new GlobalVarNode($env, $namespace, $name, $def, $name->getStartLocation());
                     } else {
                         return null; // Can not be resolved
                     }
@@ -115,13 +117,13 @@ class GlobalEnvironment {
                 // no alias, try to resolve in current namespace
                 $def = $this->getDefinition($this->getNs(), $name); 
                 if ($def) {
-                    return new GlobalVarNode($env, $this->getNs(), $name, $def);
+                    return new GlobalVarNode($env, $this->getNs(), $name, $def, $name->getStartLocation());
                 } else {
                     // try to resolve in phel.core namespace
                     $ns = 'phel\core';
                     $def = $this->getDefinition($ns, $name);
                     if ($def) {
-                        return new GlobalVarNode($env, $ns, $name, $def);
+                        return new GlobalVarNode($env, $ns, $name, $def, $name->getStartLocation());
                     } else {
                         return null; // can not be resolved
                     }

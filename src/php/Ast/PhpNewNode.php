@@ -2,14 +2,10 @@
 
 namespace Phel\Ast;
 
+use Phel\Lang\SourceLocation;
 use Phel\NodeEnvironment;
 
-class PhpNewNode implements Node {
-
-    /**
-     * @var NodeEnvironment
-     */
-    protected $env;
+class PhpNewNode extends Node {
 
     /**
      * @var Node
@@ -26,9 +22,9 @@ class PhpNewNode implements Node {
      * @param Node $classExpr
      * @param Node[] $args
      */
-    public function __construct(NodeEnvironment $env, Node $classExpr, array $args)
+    public function __construct(NodeEnvironment $env, Node $classExpr, array $args, ?SourceLocation $sourceLocation = null)
     {
-        $this->env = $env;
+        parent::__construct($env, $sourceLocation);
         $this->classExpr = $classExpr;
         $this->args = $args;
     }
@@ -43,10 +39,5 @@ class PhpNewNode implements Node {
     public function getArgs() {
         return $this->args;
     }
-
-    public function getEnv(): NodeEnvironment {
-        return $this->env;
-    }
-
     
 }

@@ -4,15 +4,11 @@ namespace Phel\Ast;
 
 use Phel\Lang\Keyword;
 use Phel\Lang\Symbol;
+use Phel\Lang\SourceLocation;
 use Phel\Lang\Table;
 use Phel\NodeEnvironment;
 
-class GlobalVarNode implements Node {
-
-    /**
-     * @var NodeEnvironment
-     */
-    protected $env;
+class GlobalVarNode extends Node {
 
     /**
      * @var string
@@ -29,9 +25,9 @@ class GlobalVarNode implements Node {
      */
     protected $meta;
 
-    public function __construct(NodeEnvironment $env, string $namespace, Symbol $name, Table $meta)
+    public function __construct(NodeEnvironment $env, string $namespace, Symbol $name, Table $meta, ?SourceLocation $sourceLocation = null)
     {
-        $this->env = $env;
+        parent::__construct($env, $sourceLocation);
         $this->namespace = $namespace;
         $this->name = $name;
         $this->meta = $meta;
@@ -47,10 +43,6 @@ class GlobalVarNode implements Node {
 
     public function getMeta(): Table {
         return $this->meta;
-    }
-
-    public function getEnv(): NodeEnvironment {
-        return $this->env;
     }
 
     public function isMacro(): bool {

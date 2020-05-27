@@ -2,15 +2,11 @@
 
 namespace Phel\Ast;
 
+use Phel\Lang\SourceLocation;
 use Phel\Lang\Phel;
 use Phel\NodeEnvironment;
 
-class LiteralNode implements Node {
-
-    /**
-     * @var NodeEnvironment
-     */
-    protected $env;
+class LiteralNode extends Node {
 
     /**
      * @var Phel|scalar|null
@@ -21,9 +17,9 @@ class LiteralNode implements Node {
      * @param NodeEnvironment $env
      * @param Phel|scalar|null $value
      */
-    public function __construct(NodeEnvironment $env, $value)
+    public function __construct(NodeEnvironment $env, $value, ?SourceLocation $sourceLocation = null)
     {
-        $this->env = $env;
+        parent::__construct($env, $sourceLocation);
         $this->value = $value;
     }
 
@@ -32,9 +28,5 @@ class LiteralNode implements Node {
      */
     public function getValue() {
         return $this->value;
-    }
-
-    public function getEnv(): NodeEnvironment {
-        return $this->env;
     }
 }

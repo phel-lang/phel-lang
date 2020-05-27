@@ -2,14 +2,10 @@
 
 namespace Phel\Ast;
 
+use Phel\Lang\SourceLocation;
 use Phel\NodeEnvironment;
 
-class TupleNode implements Node {
-
-    /**
-     * @var NodeEnvironment
-     */
-    protected $env;
+class TupleNode extends Node {
 
     /**
      * @var Node[]
@@ -20,9 +16,9 @@ class TupleNode implements Node {
      * @param NodeEnvironment $env
      * @param Node[] $args
      */
-    public function __construct(NodeEnvironment $env, array $args)
+    public function __construct(NodeEnvironment $env, array $args, ?SourceLocation $sourceLocation = null)
     {
-        $this->env = $env;
+        parent::__construct($env, $sourceLocation);
         $this->args = $args;
     }
 
@@ -31,9 +27,5 @@ class TupleNode implements Node {
      */
     public function getArgs() {
         return $this->args;
-    }
-
-    public function getEnv(): NodeEnvironment {
-        return $this->env;
     }
 }

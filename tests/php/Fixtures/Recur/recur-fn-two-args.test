@@ -8,7 +8,7 @@ new class() extends \Phel\Lang\AFn {
   public const BOUND_TO = "";
 
   public function __invoke($x, $y) {
-    while(true) {
+    while (true) {
       if (\Phel\Lang\Truthy::isTruthy(($x == 0))) {
         return $x;
       } else {

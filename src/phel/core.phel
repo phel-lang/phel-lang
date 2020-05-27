@@ -124,9 +124,9 @@ elements, returns nil."
   [name & fdecl] 
   (apply defn-builder name @{:macro true :private true} fdecl))
 
-(defmacro comment 
-  "Ignores the body of the comment"
-  [&])
+#(defmacro comment 
+#  "Ignores the body of the comment"
+#  [&])
 
 (defn gensym 
   "Generates a new unique symbol."

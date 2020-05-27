@@ -2,14 +2,10 @@
 
 namespace Phel\Ast;
 
+use Phel\Lang\SourceLocation;
 use Phel\NodeEnvironment;
 
-class IfNode implements Node {
-
-    /**
-     * @var NodeEnvironment
-     */
-    protected $env;
+class IfNode extends Node {
 
     /**
      * @var Node
@@ -26,9 +22,9 @@ class IfNode implements Node {
      */
     protected $elseExpr;
 
-    public function __construct(NodeEnvironment $env, Node $testExpr, Node $thenExpr, Node $elseExpr)
+    public function __construct(NodeEnvironment $env, Node $testExpr, Node $thenExpr, Node $elseExpr, ?SourceLocation $sourceLocation = null)
     {
-        $this->env = $env;
+        parent::__construct($env, $sourceLocation);
         $this->testExpr = $testExpr;
         $this->thenExpr = $thenExpr;
         $this->elseExpr = $elseExpr;
@@ -44,9 +40,5 @@ class IfNode implements Node {
 
     public function getElseExpr(): Node {
         return $this->elseExpr;
-    }
-
-    public function getEnv(): NodeEnvironment {
-        return $this->env;
     }
 }

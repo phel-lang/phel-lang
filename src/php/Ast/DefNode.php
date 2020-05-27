@@ -3,15 +3,11 @@
 namespace Phel\Ast;
 
 use Phel\Lang\Symbol;
+use Phel\Lang\SourceLocation;
 use Phel\Lang\Table;
 use Phel\NodeEnvironment;
 
-class DefNode implements Node {
-
-    /**
-     * @var NodeEnvironment
-     */
-    protected $env;
+class DefNode extends Node {
 
     /**
      * @var string
@@ -33,9 +29,9 @@ class DefNode implements Node {
      */
     protected $init;
 
-    public function __construct(NodeEnvironment $env, string $namespace, Symbol $name, Table $meta, Node $init)
+    public function __construct(NodeEnvironment $env, string $namespace, Symbol $name, Table $meta, Node $init, ?SourceLocation $sourceLocation = null)
     {
-        $this->env = $env;
+        parent::__construct($env, $sourceLocation);
         $this->namespace = $namespace;
         $this->name = $name;
         $this->meta = $meta;
@@ -56,9 +52,5 @@ class DefNode implements Node {
 
     public function getInit(): Node {
         return $this->init;
-    }
-
-    public function getEnv(): NodeEnvironment {
-        return $this->env;
     }
 }

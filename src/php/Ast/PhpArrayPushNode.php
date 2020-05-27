@@ -2,14 +2,10 @@
 
 namespace Phel\Ast;
 
+use Phel\Lang\SourceLocation;
 use Phel\NodeEnvironment;
 
-class PhpArrayPushNode implements Node {
-
-    /**
-     * @var NodeEnvironment
-     */
-    protected $env;
+class PhpArrayPushNode extends Node {
 
     /**
      * @var Node
@@ -21,9 +17,9 @@ class PhpArrayPushNode implements Node {
      */
     protected $valueExpr;
 
-    public function __construct(NodeEnvironment $env, Node $arrayExpr, Node $valueExpr)
+    public function __construct(NodeEnvironment $env, Node $arrayExpr, Node $valueExpr, ?SourceLocation $sourceLocation = null)
     {
-        $this->env = $env;
+        parent::__construct($env, $sourceLocation);
         $this->arrayExpr = $arrayExpr;
         $this->valueExpr = $valueExpr;
     }
@@ -34,9 +30,5 @@ class PhpArrayPushNode implements Node {
 
     public function getValueExpr(): Node {
         return $this->valueExpr;
-    }
-
-    public function getEnv(): NodeEnvironment {
-        return $this->env;
     }
 }

@@ -2,14 +2,10 @@
 
 namespace Phel\Ast;
 
+use Phel\Lang\SourceLocation;
 use Phel\NodeEnvironment;
 
-class TableNode implements Node {
-
-    /**
-     * @var NodeEnvironment
-     */
-    protected $env;
+class TableNode extends Node {
 
     /**
      * @var array
@@ -20,9 +16,9 @@ class TableNode implements Node {
      * @param NodeEnvironment $env
      * @param array $value
      */
-    public function __construct(NodeEnvironment $env, array $keyValues)
+    public function __construct(NodeEnvironment $env, array $keyValues, ?SourceLocation $sourceLocation = null)
     {
-        $this->env = $env;
+        parent::__construct($env, $sourceLocation);
         $this->keyValues = $keyValues;
     }
 
@@ -31,9 +27,5 @@ class TableNode implements Node {
      */
     public function getKeyValues() {
         return $this->keyValues;
-    }
-
-    public function getEnv(): NodeEnvironment {
-        return $this->env;
     }
 }

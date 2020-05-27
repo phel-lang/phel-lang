@@ -37,9 +37,9 @@ class IntegrationTest extends TestCase {
                 break;
             }
 
-            $compiledCode[] = $emitter->emitAndEval($analzyer->analyze($readAst->getAst()));
+            $compiledCode[] = $emitter->emitAndEval($analzyer->analyze($readAst->getAst()))[0];
         }
-        $compiledCode = implode("", $compiledCode);
+        $compiledCode = trim(implode("", $compiledCode));
         $this->assertEquals($generatedCode, $compiledCode, "in " . $filename);
     }
 
@@ -56,7 +56,7 @@ class IntegrationTest extends TestCase {
             
             if (preg_match('/--PHEL--\s*(.*?)\s*--PHP--\s*(.*)/s', $test, $match)) {
                 $phelCode = $match[1];
-                $phpCode = $match[2];
+                $phpCode = trim($match[2]);
 
                 $tests[] = [str_replace($fixturesDir.'/', '', $file), $phelCode, $phpCode];
             }

@@ -3,14 +3,10 @@
 namespace Phel\Ast;
 
 use Phel\Lang\Phel;
+use Phel\Lang\SourceLocation;
 use Phel\NodeEnvironment;
 
-class QuoteNode implements Node {
-
-    /**
-     * @var NodeEnvironment
-     */
-    protected $env;
+class QuoteNode extends Node {
 
     /**
      * @var mixed
@@ -21,9 +17,9 @@ class QuoteNode implements Node {
      * @param NodeEnvironment $env
      * @param mixed $value
      */
-    public function __construct(NodeEnvironment $env, $value)
+    public function __construct(NodeEnvironment $env, $value, ?SourceLocation $sourceLocation = null)
     {
-        $this->env = $env;
+        parent::__construct($env, $sourceLocation);
         $this->value = $value;
     }
 
@@ -32,9 +28,5 @@ class QuoteNode implements Node {
      */
     public function getValue() {
         return $this->value;
-    }
-
-    public function getEnv(): NodeEnvironment {
-        return $this->env;
     }
 }

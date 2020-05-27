@@ -7,9 +7,9 @@
   (if x 
     (if (php/== x nil) sum (recur xs (php/+ sum x)))))
 --PHP--
-$__phel_1_2 = \Phel\Lang\Tuple::createBracket(1,2,3,4);
+$__phel_1_2 = \Phel\Lang\Tuple::createBracket(1, 2, 3, 4);
 $sum_3 = 0;
-while(true) {
+while (true) {
   $__phel_4_8 = $__phel_1_2;
   $__phel_5_9 = (($__phel_4_8)[(0)] ?? null);
   $__phel_6_10 = ($GLOBALS["__phel"]["phel\\core"]["next"])($__phel_4_8);

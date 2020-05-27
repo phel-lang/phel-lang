@@ -3,9 +3,10 @@
 namespace Phel\Ast;
 
 use Phel\Lang\Symbol;
+use Phel\Lang\SourceLocation;
 use Phel\NodeEnvironment;
 
-class NsNode implements Node {
+class NsNode extends Node {
 
     /**
      * @var Symbol[]
@@ -15,8 +16,9 @@ class NsNode implements Node {
     /**
      * @param Symbol[] $requireNs
      */
-    public function __construct(array $requireNs)
+    public function __construct(array $requireNs, ?SourceLocation $sourceLocation = null)
     {
+        parent::__construct(NodeEnvironment::empty());
         $this->requireNs = $requireNs;
     }
 
@@ -25,9 +27,5 @@ class NsNode implements Node {
      */
     public function getRequireNs() {
         return $this->requireNs;
-    }
-
-    public function getEnv(): NodeEnvironment {
-        return NodeEnvironment::empty();
     }
 }

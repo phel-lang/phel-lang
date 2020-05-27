@@ -3,14 +3,10 @@
 namespace Phel\Ast;
 
 use Phel\Lang\Symbol;
+use Phel\Lang\SourceLocation;
 use Phel\NodeEnvironment;
 
-class CatchNode implements Node {
-
-    /**
-     * @var NodeEnvironment
-     */
-    protected $env;
+class CatchNode extends Node {
 
     /**
      * @var Symbol
@@ -27,9 +23,9 @@ class CatchNode implements Node {
      */
     protected $body;
 
-    public function __construct(NodeEnvironment $env, Symbol $type, Symbol $name, Node $body)
+    public function __construct(NodeEnvironment $env, Symbol $type, Symbol $name, Node $body, ?SourceLocation $sourceLocation = null)
     {
-        $this->env = $env;
+        parent::__construct($env, $sourceLocation);
         $this->type = $type;
         $this->name = $name;
         $this->body = $body;
@@ -45,9 +41,5 @@ class CatchNode implements Node {
 
     public function getBody(): Node {
         return $this->body;
-    }
-
-    public function getEnv(): NodeEnvironment {
-        return $this->env;
     }
 }

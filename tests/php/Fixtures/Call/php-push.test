@@ -1,0 +1,6 @@
+--PHEL--
+(let [arr (php/array 1 2 3)]
+  (php/apush arr 4))
+--PHP--
+$arr_1 = array(1, 2, 3);
+($arr_1)[] = 4;

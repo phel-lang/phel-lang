@@ -2,14 +2,10 @@
 
 namespace Phel\Ast;
 
+use Phel\Lang\SourceLocation;
 use Phel\NodeEnvironment;
 
-class PhpObjectCallNode implements Node {
-
-    /**
-     * @var NodeEnvironment
-     */
-    protected $env;
+class PhpObjectCallNode extends Node {
 
     /**
      * @var Node
@@ -31,9 +27,9 @@ class PhpObjectCallNode implements Node {
      */
     protected $methodCall;
 
-    public function __construct(NodeEnvironment $env, Node $targetExpr, Node $callExpr, bool $isStatic, bool $isMethodCall)
+    public function __construct(NodeEnvironment $env, Node $targetExpr, Node $callExpr, bool $isStatic, bool $isMethodCall, ?SourceLocation $sourceLocation = null)
     {
-        $this->env = $env;
+        parent::__construct($env, $sourceLocation);
         $this->targetExpr = $targetExpr;
         $this->callExpr = $callExpr;
         $this->static = $isStatic;
@@ -46,10 +42,6 @@ class PhpObjectCallNode implements Node {
 
     public function getCallExpr(): Node {
         return $this->callExpr;
-    }
-
-    public function getEnv(): NodeEnvironment {
-        return $this->env;
     }
 
     public function isStatic(): bool {

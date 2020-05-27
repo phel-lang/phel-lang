@@ -3,14 +3,10 @@
 namespace Phel\Ast;
 
 use Phel\Lang\Symbol;
+use Phel\Lang\SourceLocation;
 use Phel\NodeEnvironment;
 
-class ForeachNode implements Node {
-
-    /**
-     * @var NodeEnvironment
-     */
-    protected $env;
+class ForeachNode extends Node {
 
     /**
      * @var Node
@@ -32,9 +28,9 @@ class ForeachNode implements Node {
      */
     protected $keySymbol;
 
-    public function __construct(NodeEnvironment $env, Node $bodyExpr, Node $listExpr, Symbol $valueSymbol, ?Symbol $keySymbol = null)
+    public function __construct(NodeEnvironment $env, Node $bodyExpr, Node $listExpr, Symbol $valueSymbol, ?Symbol $keySymbol = null, ?SourceLocation $sourceLocation = null)
     {
-        $this->env = $env;
+        parent::__construct($env, $sourceLocation);
         $this->bodyExpr = $bodyExpr;
         $this->listExpr = $listExpr;
         $this->valueSymbol = $valueSymbol;
@@ -55,9 +51,5 @@ class ForeachNode implements Node {
 
     public function getKeySymbol(): ?Symbol {
         return $this->keySymbol;
-    }
-
-    public function getEnv(): NodeEnvironment {
-        return $this->env;
     }
 }

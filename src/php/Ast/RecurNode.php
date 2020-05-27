@@ -2,15 +2,11 @@
 
 namespace Phel\Ast;
 
+use Phel\Lang\SourceLocation;
 use Phel\NodeEnvironment;
 use Phel\RecurFrame;
 
-class RecurNode implements Node {
-
-    /**
-     * @var NodeEnvironment
-     */
-    protected $env;
+class RecurNode extends Node {
 
     /**
      * @var RecurFrame
@@ -27,9 +23,9 @@ class RecurNode implements Node {
      * @param RecurFrame $frame
      * @param Node[] $exprs
      */
-    public function __construct(NodeEnvironment $env, RecurFrame $frame, array $exprs)
+    public function __construct(NodeEnvironment $env, RecurFrame $frame, array $exprs, ?SourceLocation $sourceLocation = null)
     {
-        $this->env = $env;
+        parent::__construct($env, $sourceLocation);
         $this->frame = $frame;
         $this->exprs = $exprs;
     }
@@ -43,9 +39,5 @@ class RecurNode implements Node {
      */
     public function getExprs() {
         return $this->exprs;
-    }
-
-    public function getEnv(): NodeEnvironment {
-        return $this->env;
     }
 }

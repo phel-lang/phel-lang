@@ -2,14 +2,10 @@
 
 namespace Phel\Ast;
 
+use Phel\Lang\SourceLocation;
 use Phel\NodeEnvironment;
 
-class LetNode implements Node {
-
-    /**
-     * @var NodeEnvironment
-     */
-    protected $env;
+class LetNode extends Node {
 
     /**
      * @var BindingNode[]
@@ -32,9 +28,9 @@ class LetNode implements Node {
      * @param Node $node
      * @param bool $isLoop
      */
-    public function __construct(NodeEnvironment $env, array $bindings, Node $bodyExpr, bool $isLoop)
+    public function __construct(NodeEnvironment $env, array $bindings, Node $bodyExpr, bool $isLoop, ?SourceLocation $sourceLocation = null)
     {
-        $this->env = $env;
+        parent::__construct($env, $sourceLocation);
         $this->bindings = $bindings;
         $this->bodyExpr = $bodyExpr;
         $this->isLoop = $isLoop;
@@ -53,9 +49,5 @@ class LetNode implements Node {
 
     public function isLoop(): bool {
         return $this->isLoop;
-    }
-
-    public function getEnv(): NodeEnvironment {
-        return $this->env;
     }
 }

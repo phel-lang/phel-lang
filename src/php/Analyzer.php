@@ -156,7 +156,7 @@ class Analyzer {
             $keyValues[] = $this->analyze($value, $kvEnv);
         }
 
-        return new TableNode($env, $keyValues);
+        return new TableNode($env, $keyValues, $t->getStartLocation());
     }
 
     protected function analyzeArray(PhelArray $arr, NodeEnvironment $env): ArrayNode {
@@ -166,7 +166,7 @@ class Analyzer {
             $values[] = $this->analyze($value, $valueEnv);
         }
 
-        return new ArrayNode($env, $values);
+        return new ArrayNode($env, $values, $arr->getStartLocation());
     }
 
     protected function analyzeForeach(Tuple $x, NodeEnvironment $env): ForeachNode {
@@ -246,7 +246,8 @@ class Analyzer {
             $bodyExpr,
             $listExpr,
             $valueSymbol,
-            $keySymbol
+            $keySymbol,
+            $x->getStartLocation()
         );
     }
 
@@ -262,7 +263,8 @@ class Analyzer {
         return new PhpArrayUnsetNode(
             $env,
             $this->analyze($x[1], $env->withContext(NodeEnvironment::CTX_EXPR)),
-            $this->analyze($x[2], $env->withContext(NodeEnvironment::CTX_EXPR))
+            $this->analyze($x[2], $env->withContext(NodeEnvironment::CTX_EXPR)),
+            $x->getStartLocation()
         );
     }
 
@@ -270,7 +272,8 @@ class Analyzer {
         return new PhpArrayGetNode(
             $env,
             $this->analyze($x[1], $env->withContext(NodeEnvironment::CTX_EXPR)),
-            $this->analyze($x[2], $env->withContext(NodeEnvironment::CTX_EXPR))
+            $this->analyze($x[2], $env->withContext(NodeEnvironment::CTX_EXPR)),
+            $x->getStartLocation()
         );
     }
 
@@ -278,7 +281,8 @@ class Analyzer {
         return new PhpArrayPushNode(
             $env,
             $this->analyze($x[1], $env->withContext(NodeEnvironment::CTX_EXPR)),
-            $this->analyze($x[2], $env->withContext(NodeEnvironment::CTX_EXPR))
+            $this->analyze($x[2], $env->withContext(NodeEnvironment::CTX_EXPR)),
+            $x->getStartLocation()
         );
     }
 
@@ -287,7 +291,8 @@ class Analyzer {
             $env,
             $this->analyze($x[1], $env->withContext(NodeEnvironment::CTX_EXPR)),
             $this->analyze($x[2], $env->withContext(NodeEnvironment::CTX_EXPR)),
-            $this->analyze($x[3], $env->withContext(NodeEnvironment::CTX_EXPR))
+            $this->analyze($x[3], $env->withContext(NodeEnvironment::CTX_EXPR)),
+            $x->getStartLocation()
         );
     }
 
@@ -296,7 +301,7 @@ class Analyzer {
             throw new AnalyzerException(
                 "At least two arguments are required for 'loop.",
                 $x->getStartLocation(),
-                $x->getEndLocation()
+                $x->getEndLocation(),
             );
         }
 
@@ -329,6 +334,9 @@ class Analyzer {
                 $preInits[] = $init;
             } else {
                 $tempSym = Symbol::gen();
+                $tempSym->setStartLocation($b->getStartLocation());
+                $tempSym->setEndLocation($b->getEndLocation());
+                
                 $preInits[] = $tempSym;
                 $preInits[] = $init;
                 $lets[] = $b;
@@ -341,15 +349,25 @@ class Analyzer {
             for ($i = 2; $i < count($x); $i++) {
                 $bodyExpr[] = $x[$i];
             }
-            $newExpr = Tuple::create(
-                new Symbol('loop'),
-                new Tuple($preInits, true),
-                Tuple::create(
-                    new Symbol('let'),
-                    new Tuple($lets, true),
-                    ...$bodyExpr
-                )
+            $letSym = new Symbol('let');
+            $letSym->setStartLocation($x[0]->getStartLocation());
+            $letSym->setEndLocation($x[0]->getEndLocation());
+
+            $letExpr = Tuple::create(
+                $letSym,
+                new Tuple($lets, true),
+                ...$bodyExpr
             );
+            $letExpr->setStartLocation($x->getStartLocation());
+            $letExpr->setEndLocation($x->getEndLocation());
+
+            $newExpr = Tuple::create(
+                $x[0],
+                new Tuple($preInits, true),
+                $letExpr
+            );
+            $newExpr->setStartLocation($x->getStartLocation());
+            $newExpr->setEndLocation($x->getEndLocation());
 
             return $this->analyzeLetOrLoop($newExpr, $env, true);
         } else {
@@ -368,7 +386,8 @@ class Analyzer {
 
         return new ThrowNode(
             $env,
-            $this->analyze($x[1], $env->withContext(NodeEnvironment::CTX_EXPR)->withDisallowRecurFrame())
+            $this->analyze($x[1], $env->withContext(NodeEnvironment::CTX_EXPR)->withDisallowRecurFrame()),
+            $x->getStartLocation()
         );
     }
 
@@ -458,7 +477,8 @@ class Analyzer {
                 $env,
                 $type,
                 $name,
-                $catchBody
+                $catchBody,
+                $catch->getStartLocation()
             );
         }
 
@@ -472,7 +492,8 @@ class Analyzer {
             $env,
             $body,
             $catchNodes,
-            $finally
+            $finally,
+            $x->getStartLocation()
         );
     }
 
@@ -507,7 +528,8 @@ class Analyzer {
         return new RecurNode(
             $env,
             $frame,
-            $exprs
+            $exprs,
+            $x->getStartLocation()
         );
     }
 
@@ -529,7 +551,8 @@ class Analyzer {
         return new PhpNewNode(
             $env,
             $classExpr,
-            $args
+            $args,
+            $x->getStartLocation()
         );
     }
 
@@ -579,7 +602,8 @@ class Analyzer {
             $callExpr = new MethodCallNode(
                 $env,
                 $tuple[0],
-                $args
+                $args,
+                $tuple->getStartLocation()
             );
         } else {
             // Property call
@@ -587,7 +611,8 @@ class Analyzer {
 
             $callExpr = new PropertyOrConstantAccessNode(
                 $env,
-                $x[2]
+                $x[2],
+                $x[2]->getStartLocation()
             );
         }
 
@@ -596,7 +621,8 @@ class Analyzer {
             $targetExpr,
             $callExpr,
             $isStatic,
-            $methodCall
+            $methodCall,
+            $x->getStartLocation()
         );
     }
 
@@ -606,7 +632,7 @@ class Analyzer {
             $args[] = $this->analyze($arg, $env->withContext(NodeEnvironment::CTX_EXPR)->withDisallowRecurFrame());
         }
 
-        return new TupleNode($env, $args);
+        return new TupleNode($env, $args, $x->getStartLocation());
     }
 
     protected function analyzePhelArray(PhelArray $x, NodeEnvironment $env): PhelArrayNode {
@@ -615,18 +641,20 @@ class Analyzer {
             $args[] = $this->analyze($arg, $env->withContext(NodeEnvironment::CTX_EXPR)->withDisallowRecurFrame());
         }
 
-        return new PhelArrayNode($env, $args);
+        return new PhelArrayNode($env, $args, $x->getStartLocation());
     }
 
     protected function analyzeVar(Symbol $x, NodeEnvironment $env): Node {
         if (substr($x->getName(),0,4) == 'php/') {
-            return new PhpVarNode($env, substr($x->getName(), 4));
+            return new PhpVarNode($env, substr($x->getName(), 4), $x->getStartLocation());
         } else if ($env->hasLocal($x)) {
             $shadowedVar = $env->getShadowed($x);
             if ($shadowedVar) {
-                return new LocalVarNode($env, $shadowedVar);
+                $shadowedVar->setStartLocation($x->getStartLocation());
+                $shadowedVar->setEndLocation($x->getEndLocation());
+                return new LocalVarNode($env, $shadowedVar, $x->getStartLocation());
             } else {
-                return new LocalVarNode($env, $x);
+                return new LocalVarNode($env, $x, $x->getStartLocation());
             }
         } else {
             $globalResolve = $this->globalEnvironment->resolve($x, $env);
@@ -716,7 +744,8 @@ class Analyzer {
             $env,
             $bindings,
             $bodyExpr,
-            $isLoop && $recurFrame->isActive()
+            $isLoop && $recurFrame->isActive(),
+            $x->getStartLocation()
         );
     }
 
@@ -737,6 +766,8 @@ class Analyzer {
             }
 
             $shadowSym = Symbol::gen($sym->getName() . '_');
+            $shadowSym->setStartLocation($sym->getStartLocation());
+            $shadowSym->getEndLocation($sym->getEndLocation());
             $init = $x[$i+1];
 
             $nextBoundTo = $initEnv->getBoundTo() . '.' . $sym->getName();
@@ -746,7 +777,8 @@ class Analyzer {
                 $env,
                 $sym,
                 $shadowSym,
-                $expr
+                $expr,
+                $x[$i]->getStartLocation()
             );
 
             $initEnv = $initEnv->withMergedLocals([$sym])->withShadowedLocal($sym, $shadowSym);
@@ -774,7 +806,8 @@ class Analyzer {
         return new ApplyNode(
             $env,
             $fn,
-            $args
+            $args,
+            $x->getStartLocation()
         );
     }
 
@@ -798,7 +831,8 @@ class Analyzer {
         return new DoNode(
             $env,
             $stmts,
-            $ret
+            $ret,
+            $x->getStartLocation()
         );
     }
 
@@ -823,7 +857,8 @@ class Analyzer {
             $env,
             $testExpr,
             $thenExpr,
-            $elseExpr
+            $elseExpr,
+            $x->getStartLocation()
         );
     }
 
@@ -838,7 +873,8 @@ class Analyzer {
 
         return new QuoteNode(
             $env,
-            $x[1]
+            $x[1],
+            $x->getStartLocation()
         );
     }
 
@@ -873,12 +909,12 @@ class Analyzer {
                             $isVariadic = true;
                             $state = 'rest';
                         } else if ($param->getName() == '_') {
-                            $params[] = Symbol::gen(); // Add dummy variadic symbol
+                            $params[] = Symbol::gen()->copyLocationFrom($param);
                         } else {
                             $params[] = $param;
                         }
                     } else {
-                        $tempSym = Symbol::gen();
+                        $tempSym = Symbol::gen()->copyLocationFrom($param);
                         $params[] = $tempSym;
                         $lets[] = $param;
                         $lets[] = $tempSym;
@@ -888,11 +924,11 @@ class Analyzer {
                     $state = 'done';
                     $hasVariadicForm = true;
                     if ($this->isSymWithName($param, '_')) {
-                        $params[] = Symbol::gen(); // Add dummy variadic symbol
+                        $params[] = Symbol::gen()->copyLocationFrom($param);
                     } else if ($param instanceof Symbol) {
                         $params[] = $param;
                     } else {
-                        $tempSym = Symbol::gen();
+                        $tempSym = Symbol::gen()->copyLocationFrom($x);
                         $params[] = $tempSym;
                         $lets[] = $param;
                         $lets[] = $tempSym;
@@ -926,7 +962,11 @@ class Analyzer {
 
         $body = $x[2];
         if (count($lets) > 0) {
-            $body = Tuple::create(new Symbol('let'), new Tuple($lets, true), $body);
+            $body = Tuple::create(
+                (new Symbol('let'))->copyLocationFrom($body), 
+                (new Tuple($lets, true))->copyLocationFrom($body),
+                $body
+            )->copyLocationFrom($body);
         }
 
         $bodyEnv = $env
@@ -944,7 +984,8 @@ class Analyzer {
             $body,
             $uses,
             $isVariadic,
-            $recurFrame->isActive()
+            $recurFrame->isActive(),
+            $x->getStartLocation()
         );
     }
 
@@ -962,7 +1003,8 @@ class Analyzer {
             return new CallNode(
                 $nodeEnvironment,
                 $f,
-                $arguments
+                $arguments,
+                $x->getStartLocation()
             );
         }
     }
@@ -1047,7 +1089,7 @@ class Analyzer {
      * @return LiteralNode
      */
     protected function analyzeLiteral($x, NodeEnvironment $env): LiteralNode {
-        return new LiteralNode($env, $x);
+        return new LiteralNode($env, $x, ($x instanceof Phel) ? $x->getStartLocation() : null);
     }
 
     protected function analyzeNs(Tuple $x, NodeEnvironment $env): NsNode {
@@ -1127,7 +1169,7 @@ class Analyzer {
             }
         }
 
-        return new NsNode($requireNs);
+        return new NsNode($requireNs, $x->getStartLocation());
     }
 
     protected function analyzeDef(Tuple $x, NodeEnvironment $nodeEnvironment): DefNode {
@@ -1165,9 +1207,17 @@ class Analyzer {
         }
 
         if (is_string($meta)) {
-            $meta = Table::fromKVs(new Keyword('doc'), $meta);
+            $kv = new Keyword('doc');
+            $kv->setStartLocation($x->getStartLocation());
+            $kv->setEndLocation($x->getEndLocation());
+
+            $meta = Table::fromKVs($kv, $meta);
+            $meta->setStartLocation($x->getStartLocation());
+            $meta->setEndLocation($x->getEndLocation());
         } else if ($meta instanceof Keyword) {
             $meta = Table::fromKVs($meta, true);
+            $meta->setStartLocation($meta->getStartLocation());
+            $meta->setEndLocation($meta->getEndLocation());
         } else if (!$meta instanceof Table) {
             throw new AnalyzerException(
                 "Metadata must be a Symbol, String, Keyword or Table",
@@ -1183,7 +1233,8 @@ class Analyzer {
             $namespace,
             $name,
             $meta,
-            $this->analyze($init, $initEnv)
+            $this->analyze($init, $initEnv),
+            $x->getStartLocation()
         );
     }
 

@@ -37,13 +37,23 @@ class Quasiquote {
         } else if ($this->isUnquoteSplicing($form)) {
             throw new \Exception('splice not in list');
         } else if ($form instanceof Tuple && count($form) > 0) {
-            return Tuple::create(new Symbol('apply'), new Symbol('tuple'), Tuple::create(new Symbol('concat'), ...$this->expandList($form)));
+            return Tuple::create(
+                (new Symbol('apply'))->copyLocationFrom($form), 
+                (new Symbol('tuple'))->copyLocationFrom($form),
+                 Tuple::create(
+                     (new Symbol('concat'))->copyLocationFrom($form), 
+                    ...$this->expandList($form)
+                )->copyLocationFrom($form)
+            )->copyLocationFrom($form);
             // TODO: Handle Table
             // TODO: Handle Array
         } else if ($this->isLiteral($form)) {
             return $form;
         } else {
-            return Tuple::create(new Symbol('quote'), $form);
+            return Tuple::create(
+                (new Symbol('quote'))->copyLocationFrom($form), 
+                $form
+            )->copyLocationFrom($form);
         }
     }
 
@@ -51,11 +61,17 @@ class Quasiquote {
         $xs = [];
         foreach ($seq as $item) {
             if ($this->isUnquote($item)) {
-                $xs[] = Tuple::create(new Symbol('tuple'), $item[1]);
+                $xs[] = Tuple::create(
+                    (new Symbol('tuple'))->copyLocationFrom($item),
+                    $item[1]
+                )->copyLocationFrom($item);
             } else if ($this->isUnquoteSplicing($item)) {
                 $xs[] = $item[1];
             } else {
-                $xs[] = Tuple::create(new Symbol('tuple'), $this->quasiquote($item));
+                $xs[] = Tuple::create(
+                    (new Symbol('tuple'))->copyLocationFrom($item), 
+                    $this->quasiquote($item)
+                )->copyLocationFrom($item);
             }
         }
 

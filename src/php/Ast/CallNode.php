@@ -2,14 +2,10 @@
 
 namespace Phel\Ast;
 
+use Phel\Lang\SourceLocation;
 use Phel\NodeEnvironment;
 
-class CallNode implements Node {
-
-    /**
-     * @var NodeEnvironment
-     */
-    protected $env;
+class CallNode extends Node {
 
     /**
      * @var Node
@@ -26,9 +22,9 @@ class CallNode implements Node {
      * @param Node $fn
      * @param Node[] $arguments
      */
-    public function __construct(NodeEnvironment $env, Node $fn, $arguments)
+    public function __construct(NodeEnvironment $env, Node $fn, $arguments, ?SourceLocation $sourceLocation = null)
     {
-        $this->env = $env;
+        parent::__construct($env, $sourceLocation);
         $this->fn = $fn;
         $this->arguments = $arguments;
     }
@@ -42,9 +38,5 @@ class CallNode implements Node {
      */
     public function getArguments() {
         return $this->arguments;
-    }
-
-    public function getEnv(): NodeEnvironment {
-        return $this->env;
     }
 }

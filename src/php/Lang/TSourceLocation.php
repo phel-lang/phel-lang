@@ -29,4 +29,13 @@ trait TSourceLocation {
     public function getEndLocation(): ?SourceLocation {
         return $this->endLocation;
     }
+
+    public function copyLocationFrom($other) {
+        if ($other && $other instanceof ISourceLocation) {
+            $this->setStartLocation($other->getStartLocation());
+            $this->setEndLocation($other->getEndLocation());
+        }
+
+        return $this;
+    }
 }

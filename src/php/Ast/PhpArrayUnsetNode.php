@@ -2,14 +2,10 @@
 
 namespace Phel\Ast;
 
+use Phel\Lang\SourceLocation;
 use Phel\NodeEnvironment;
 
-class PhpArrayUnsetNode implements Node {
-
-    /**
-     * @var NodeEnvironment
-     */
-    protected $env;
+class PhpArrayUnsetNode extends Node {
 
     /**
      * @var Node
@@ -21,9 +17,9 @@ class PhpArrayUnsetNode implements Node {
      */
     protected $accessExpr;
 
-    public function __construct(NodeEnvironment $env, Node $arrayExpr, Node $accessExpr)
+    public function __construct(NodeEnvironment $env, Node $arrayExpr, Node $accessExpr, ?SourceLocation $sourceLocation = null)
     {
-        $this->env = $env;
+        parent::__construct($env, $sourceLocation);
         $this->arrayExpr = $arrayExpr;
         $this->accessExpr = $accessExpr;
     }
@@ -34,9 +30,5 @@ class PhpArrayUnsetNode implements Node {
 
     public function getAccessExpr(): Node {
         return $this->accessExpr;
-    }
-
-    public function getEnv(): NodeEnvironment {
-        return $this->env;
     }
 }

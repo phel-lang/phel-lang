@@ -7,7 +7,7 @@ $GLOBALS["__phel"]["user"]["reduce"] = new class() extends \Phel\Lang\AFn {
   public const BOUND_TO = "user\\reduce";
 
   public function __invoke($f, $xs) {
-    return ($f)(...($xs ?? []));
+    return ($f)(...(($xs) ?? []));
   }
 };
-($GLOBALS["__phel"]["user"]["reduce"])((function(...$args) { return array(...$args);}), \Phel\Lang\Tuple::createBracket(1,2,3));
+($GLOBALS["__phel"]["user"]["reduce"])((function(...$args) { return array(...$args);}), \Phel\Lang\Tuple::createBracket(1, 2, 3));

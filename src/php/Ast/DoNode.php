@@ -2,14 +2,10 @@
 
 namespace Phel\Ast;
 
+use Phel\Lang\SourceLocation;
 use Phel\NodeEnvironment;
 
-class DoNode implements Node {
-
-    /**
-     * @var NodeEnvironment
-     */
-    protected $env;
+class DoNode extends Node {
 
     /**
      * @var Node[]
@@ -26,9 +22,9 @@ class DoNode implements Node {
      * @param Node[] $stmts
      * @param Node $ret
      */
-    public function __construct(NodeEnvironment $env, array $stmts, Node $ret)
+    public function __construct(NodeEnvironment $env, array $stmts, Node $ret, ?SourceLocation $sourceLocation = null)
     {
-        $this->env = $env;
+        parent::__construct($env, $sourceLocation);
         $this->stmts = $stmts;
         $this->ret = $ret;
     }
@@ -42,9 +38,5 @@ class DoNode implements Node {
 
     public function getRet(): Node {
         return $this->ret;
-    }
-
-    public function getEnv(): NodeEnvironment {
-        return $this->env;
     }
 }

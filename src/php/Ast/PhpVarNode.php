@@ -2,9 +2,10 @@
 
 namespace Phel\Ast;
 
+use Phel\Lang\SourceLocation;
 use Phel\NodeEnvironment;
 
-class PhpVarNode implements Node {
+class PhpVarNode extends Node {
 
     const INFIX_OPERATORS = array(
         "+", 
@@ -42,27 +43,18 @@ class PhpVarNode implements Node {
     );
 
     /**
-     * @var NodeEnvironment
-     */
-    protected $env;
-
-    /**
      * @var string
      */
     protected $name;
 
-    public function __construct(NodeEnvironment $env, string $name)
+    public function __construct(NodeEnvironment $env, string $name, ?SourceLocation $sourceLocation = null)
     {
-        $this->env = $env;
+        parent::__construct($env, $sourceLocation);
         $this->name = $name;
     }
 
     public function getName(): string {
         return $this->name;
-    }
-
-    public function getEnv(): NodeEnvironment {
-        return $this->env;
     }
 
     public function isInfix(): bool {
