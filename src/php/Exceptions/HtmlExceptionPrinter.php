@@ -11,7 +11,7 @@ use Throwable;
 
 class HtmlExceptionPrinter implements ExceptionPrinter {
 
-    public function printException(Throwable $e, CodeSnippet $codeSnippet): void {
+    public function printException(PhelCodeException $e, CodeSnippet $codeSnippet): void {
         $eStartLocation = $e->getStartLocation() ?? $codeSnippet->getStartLocation();
         $eEndLocation = $e->getEndLocation() ?? $codeSnippet->getEndLocation();
         $firstLine = $eStartLocation->getLine();
@@ -120,7 +120,7 @@ class HtmlExceptionPrinter implements ExceptionPrinter {
         }
         
         if (is_resource($arg)) {
-            return "Resource id #" . $arg;
+            return "Resource id #" . ((string) $arg);
         }
         
         if (is_array($arg)) {

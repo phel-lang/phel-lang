@@ -42,7 +42,7 @@ use Phel\Lang\SourceLocation;
 use Phel\Lang\Symbol;
 use Phel\Lang\Table;
 use Phel\Lang\Tuple;
-use Phel\SourceMap\SourceMap;
+use Phel\SourceMap\SourceMapGenerator;
 use Throwable;
 
 class Emitter {
@@ -78,12 +78,65 @@ class Emitter {
         '?' => "_QMARK_"
     ];
 
+    /**
+     * @var SourceMapGenerator
+     */
+    private $sourceMapGenerator;
+
+    /**
+     * @var bool
+     */
+    private $enableSourceMaps = true;
+
+    /**
+     * @var int
+     */
     private $indentLevel = 0;
+
+    /**
+     * @var int
+     */
     private $generatedLines = 0;
+
+    /**
+     * @var int
+     */
     private $generatedColumns = 0;
+
+    /**
+     * @var array
+     */
     private $sourceMap = [];
 
-    public function emitAndEval(Node $node): array {
+    public function __construct($enableSourceMaps = true)
+    {
+        $this->enableSourceMaps = $enableSourceMaps;
+        $this->sourceMapGenerator = new SourceMapGenerator();
+    }
+
+    public function emitAndEval(Node $node): string {
+        $this->generatedLines = 0;
+        $this->generatedColumns = 0;
+        $this->indentLevel = 0;
+        $this->sourceMap = [];
+
+        $code = $this->emitAsString($node);
+        $filename = tempnam(sys_get_temp_dir(), '__phel');
+        if ($filename) {
+            file_put_contents($filename, "<?php\n" . $code);
+            try {
+                require $filename;
+            } catch (Throwable $e) {
+                throw $e;
+            }
+        } else {
+            throw new Exception("can not create temp file.");
+        }
+        
+        return $code;
+    }
+
+    public function emitAsString(Node $node) {
         $this->generatedLines = 0;
         $this->generatedColumns = 0;
         $this->indentLevel = 0;
@@ -94,91 +147,89 @@ class Emitter {
         $code = ob_get_contents();
         ob_end_clean();
 
-        $sm = new SourceMap();
-        $sourceMap = $sm->encode($this->sourceMap);
+        if ($this->enableSourceMaps) {
+            $sourceMap = $this->sourceMapGenerator->encode($this->sourceMap);
 
-        $filename = tempnam(sys_get_temp_dir(), '__phel');
-        if ($filename) {
-            $fileContent = (
-                "<?php\n"
-                . '// ;;' . $sourceMap . "\n"
+            return (
+                '// ;' . $sourceMap . "\n"
                 . $code
             );
-
-            file_put_contents($filename, $fileContent);
-            try {
-                require $filename;
-            } catch (Throwable $e) {
-                throw $e;
-            }
         } else {
-            // TODO: Improve exception.
-            throw new Exception("can not create temp file.");
+            return $code;
         }
-        
-        return [$code, $sourceMap];
     }
 
-    public function emit(Node $node) {
-        if ($node instanceof NsNode) {
-            $this->emitNs($node);
-        } else if ($node instanceof DefNode) {
-            $this->emitDef($node);
-        } else if ($node instanceof LiteralNode) {
-            $this->emitLiteral($node);
-        } else if ($node instanceof QuoteNode) {
-            $this->emitQuote($node);
-        } else if ($node instanceof FnNode) {
-            $this->emitFnAsClass($node);
-        } else if ($node instanceof DoNode) {
-            $this->emitDo($node);
-        } else if ($node instanceof LetNode) {
-            $this->emitLet($node);
-        } else if ($node instanceof LocalVarNode) {
-            $this->emitLocalVar($node);
-        } else if ($node instanceof GlobalVarNode) {
-            $this->emitGlobalVar($node);
-        } else if ($node instanceof CallNode) {
-            $this->emitCall($node);
-        } else if ($node instanceof IfNode) {
-            $this->emitIf($node);
-        } else if ($node instanceof ApplyNode) {
-            $this->emitApply($node);
-        } else if ($node instanceof TupleNode) {
-            $this->emitTuple($node);
-        } else if ($node instanceof PhpNewNode) {
-            $this->emitPhpNew($node);
-        } else if ($node instanceof PhpVarNode) {
-            $this->emitPhpVar($node);
-        } else if ($node instanceof PhpObjectCallNode) {
-            $this->emitObjectCall($node);
-        } else if ($node instanceof RecurNode) {
-            $this->emitRecur($node);
-        } else if ($node instanceof ThrowNode) {
-            $this->emitThrow($node);
-        } else if ($node instanceof TryNode) {
-            $this->emitTry($node);
-        } else if ($node instanceof CatchNode) {
-            $this->emitCatch($node);
-        } else if ($node instanceof PhpArrayGetNode) {
-            $this->emitPhpArrayGet($node);
-        } else if ($node instanceof PhpArraySetNode) {
-            $this->emitPhpArraySet($node);
-        } else if ($node instanceof PhpArrayUnsetNode) {
-            $this->emitPhpArrayUnset($node);
-        } else if ($node instanceof PhpClassNameNode) {
-            $this->emitClassName($node);
-        } else if ($node instanceof PhpArrayPushNode) {
-            $this->emitPhpArrayPush($node);
-        } else if ($node instanceof ForeachNode) {
-            $this->emitForeach($node);
-        } else if ($node instanceof ArrayNode) {
-            $this->emitArray($node);
-        } else if ($node instanceof TableNode) {
-            $this->emitTable($node);
-        } else {
-            throw new \Exception('Unexpected node: ' . get_class($node));
+    protected function emit(Node $node) {
+        $nodeClass = get_class($node);
+        switch ($nodeClass) {
+            case NsNode::class: 
+                $this->emitNs($node); break;
+            case DefNode::class: 
+                $this->emitDef($node); break;
+            case LiteralNode::class: 
+                $this->emitLiteral($node); break;
+            case QuoteNode::class: 
+                $this->emitQuote($node); break;
+            case FnNode::class: 
+                $this->emitFnAsClass($node); break;
+            case DoNode::class: 
+                $this->emitDo($node); break;
+            case LetNode::class: 
+                $this->emitLet($node); break;
+            case LocalVarNode::class: 
+                $this->emitLocalVar($node); break;
+            case GlobalVarNode::class: 
+                $this->emitGlobalVar($node); break;
+            case CallNode::class: 
+                $this->emitCall($node); break;
+            case IfNode::class: 
+                $this->emitIf($node); break;
+            case ApplyNode::class: 
+                $this->emitApply($node); break;
+            case TupleNode::class: 
+                $this->emitTuple($node); break;
+            case PhpNewNode::class: 
+                $this->emitPhpNew($node); break;
+            case PhpVarNode::class: 
+                $this->emitPhpVar($node); break;
+            case PhpObjectCallNode::class: 
+                $this->emitObjectCall($node); break;
+            case RecurNode::class: 
+                $this->emitRecur($node); break;
+            case ThrowNode::class: 
+                $this->emitThrow($node); break;
+            case TryNode::class:
+                $this->emitTry($node); break;
+            case CatchNode::class: 
+                $this->emitCatch($node); break;
+            case PhpArrayGetNode::class: 
+                $this->emitPhpArrayGet($node); break;
+            case PhpArraySetNode::class: 
+                $this->emitPhpArraySet($node); break;
+            case PhpArrayUnsetNode::class: 
+                $this->emitPhpArrayUnset($node); break;
+            case PhpClassNameNode::class: 
+                $this->emitClassName($node); break;
+            case PhpArrayPushNode::class: 
+                $this->emitPhpArrayPush($node); break;
+            case ForeachNode::class: 
+                $this->emitForeach($node); break;
+            case ArrayNode::class: 
+                $this->emitArray($node); break;
+            case TableNode::class: 
+                $this->emitTable($node); break;
+            default:
+                throw new \Exception('Unexpected node: ' . get_class($node));
         }
+    }
+
+    protected function emitPhpVariable(Symbol $m, SourceLocation $loc = null, $asReference = false, $isVariadic = false) {
+        if (is_null($loc)) {
+            $loc = $m->getStartLocation();
+        }
+        $refPrefix = $asReference ? '&' : '';
+        $variadicPrefix = $isVariadic ? '...' : '';
+        $this->emitStr($variadicPrefix . $refPrefix . '$' . $this->munge($m->getName()), $loc);
     }
 
     protected function emitForeach(ForeachNode $node) {
@@ -191,10 +242,10 @@ class Emitter {
         $this->emit($node->getListExpr());
         $this->emitStr(' as ', $node->getStartSourceLocation());
         if ($node->getKeySymbol()) {
-            $this->emitStr('$' . $this->munge($node->getKeySymbol()->getName()), $node->getKeySymbol()->getStartLocation());
+            $this->emitPhpVariable($node->getKeySymbol());
             $this->emitStr(' => ', $node->getStartSourceLocation());
         }
-        $this->emitStr('$' . $this->munge($node->getValueSymbol()->getName()), $node->getValueSymbol()->getStartLocation());
+        $this->emitPhpVariable($node->getValueSymbol());
         $this->emitLine(') {', $node->getStartSourceLocation());
         $this->indentLevel++;
         $this->emit($node->getBodyExpr());
@@ -328,7 +379,8 @@ class Emitter {
             $tempSym = Symbol::gen();
             $tempSyms[] = $tempSym;
 
-            $this->emitStr('$' . $tempSym->getName() . ' = ', $node->getStartSourceLocation());
+            $this->emitPhpVariable($tempSym, $node->getStartSourceLocation());
+            $this->emitStr(' = ', $node->getStartSourceLocation());
             $this->emit($expr);
             $this->emitLine(';', $node->getStartSourceLocation());
         }
@@ -342,8 +394,10 @@ class Emitter {
                 $paramSym = $shadowedSym;
             }
 
-            $this->emitStr('$' . $this->munge($paramSym->getName()), $loc);
-            $this->emitLine(' = $' . $tempSym->getName() . ';', $node->getStartSourceLocation());
+            $this->emitPhpVariable($paramSym, $loc);
+            $this->emitStr(' = ', $node->getStartSourceLocation());
+            $this->emitPhpVariable($tempSym, $node->getStartSourceLocation());
+            $this->emitLine(';', $node->getStartSourceLocation());
         }
 
         $this->emitLine('continue;', $node->getStartSourceLocation());
@@ -373,12 +427,13 @@ class Emitter {
             $this->emitFnWrapPrefix($node->getEnv(), $node->getStartSourceLocation());
 
             $targetSym = Symbol::gen('target_');
-            $this->emitStr('$' . $targetSym->getName() . ' = ', $node->getStartSourceLocation());
+            $this->emitPhpVariable($targetSym, $node->getStartSourceLocation());
+            $this->emitStr(' = ', $node->getStartSourceLocation());
             $this->emit($targetExpr);
             $this->emitLine(';', $node->getStartSourceLocation());
 
             $this->emitStr('return ', $node->getStartSourceLocation());
-            $this->emitStr('$' . $targetSym->getName(), $node->getStartSourceLocation());
+            $this->emitPhpVariable($targetSym, $node->getStartSourceLocation());
             $this->emitStr($fnCode, $node->getStartSourceLocation());
         }
 
@@ -386,13 +441,7 @@ class Emitter {
         if ($callExpr instanceof MethodCallNode) {
             $this->emitStr($callExpr->getFn()->getName(), $callExpr->getFn()->getStartLocation());
             $this->emitStr('(', $node->getStartSourceLocation());
-            foreach ($callExpr->getArgs() as $i => $arg) {
-                $this->emit($arg);
-
-                if ($i < count($callExpr->getArgs()) - 1) {
-                    $this->emitStr(', ', $node->getStartSourceLocation());
-                }
-            }
+            $this->emitArgList($callExpr->getArgs(), $node->getStartSourceLocation());
             $this->emitStr(')', $node->getStartSourceLocation());
         } else if ($callExpr instanceof PropertyOrConstantAccessNode) {
             $this->emitStr($callExpr->getName()->getName(), $callExpr->getName()->getStartLocation());
@@ -436,7 +485,8 @@ class Emitter {
             $this->emitFnWrapPrefix($node->getEnv(), $node->getStartSourceLocation());
 
             $targetSym = Symbol::gen('target_');
-            $this->emitStr('$' . $targetSym->getName() . ' = ', $node->getStartSourceLocation());
+            $this->emitPhpVariable($targetSym, $node->getStartSourceLocation());
+            $this->emitStr(' = ', $node->getStartSourceLocation());
             $this->emit($classExpr);
             $this->emitLine(';', $node->getStartSourceLocation());
 
@@ -444,13 +494,7 @@ class Emitter {
         }
 
         // Args
-        foreach ($node->getArgs() as $i => $arg) {
-            $this->emit($arg);
-
-            if ($i < count($node->getArgs()) - 1) {
-                $this->emitStr(', ', $node->getStartSourceLocation());
-            }
-        }
+        $this->emitArgList($node->getArgs(), $node->getStartSourceLocation());
 
         if ($classExpr instanceof PhpClassNameNode) {
             $this->emitStr('))', $node->getStartSourceLocation());
@@ -465,15 +509,7 @@ class Emitter {
     protected function emitTuple(TupleNode $node) {
         $this->emitContextPrefix($node->getEnv(), $node->getStartSourceLocation());
         $this->emitStr('\Phel\Lang\Tuple::createBracket(', $node->getStartSourceLocation());
-
-        foreach ($node->getArgs() as $i => $value) {
-            $this->emit($value);
-
-            if ($i < count($node->getArgs()) - 1) {
-                $this->emitStr(', ', $node->getStartSourceLocation());
-            }
-        }
-
+        $this->emitArgList($node->getArgs(), $node->getStartSourceLocation());
         $this->emitStr(')', $node->getStartSourceLocation());
         $this->emitContextSuffix($node->getEnv(), $node->getStartSourceLocation());
     }
@@ -486,8 +522,9 @@ class Emitter {
         if ($fnNode instanceof PhpVarNode && $fnNode->isInfix()) {
             $this->emitStr('array_reduce([', $node->getStartSourceLocation());
             // Args
+            $argCount = count($node->getArguments());
             foreach ($node->getArguments() as $i => $arg) {
-                if ($i < count($node->getArguments()) - 1) {
+                if ($i < $argCount - 1) {
                     $this->emit($arg);
                     $this->emitStr(', ', $node->getStartSourceLocation());
                 } else {
@@ -510,8 +547,9 @@ class Emitter {
 
             // Args
             $this->emitStr('(', $node->getStartSourceLocation());
+            $argCount = count($node->getArguments());
             foreach ($node->getArguments() as $i => $arg) {
-                if ($i < count($node->getArguments()) - 1) {
+                if ($i < $argCount - 1) {
                     $this->emit($arg);
                     $this->emitStr(', ', $node->getStartSourceLocation());
                 } else {
@@ -556,17 +594,9 @@ class Emitter {
 
         $fnNode = $node->getFn();
         if ($fnNode instanceof PhpVarNode && $fnNode->isInfix()) {
-            $this->emitStr('(', $node->getStartSourceLocation());
-
             // Args
-            foreach ($node->getArguments() as $i => $arg) {
-                $this->emit($arg);
-
-                if ($i < count($node->getArguments()) - 1) {
-                    $this->emitStr(' ' . $fnNode->getName() . ' ', $fnNode->getStartSourceLocation());
-                }
-            }
-
+            $this->emitStr('(', $node->getStartSourceLocation());
+            $this->emitArgList($node->getArguments(), $node->getStartSourceLocation(), ' ' . $fnNode->getName() . ' ');
             $this->emitStr(')', $node->getStartSourceLocation());
         } else {
             if ($fnNode instanceof PhpVarNode) {
@@ -579,22 +609,27 @@ class Emitter {
 
             // Args
             $this->emitStr('(', $node->getStartSourceLocation());
-            foreach ($node->getArguments() as $i => $arg) {
-                $this->emit($arg);
-
-                if ($i < count($node->getArguments()) - 1) {
-                    $this->emitStr(', ', $node->getStartSourceLocation());
-                }
-            }
+            $this->emitArgList($node->getArguments(), $node->getStartSourceLocation());
             $this->emitStr(')', $node->getStartSourceLocation());
         }
 
         $this->emitContextSuffix($node->getEnv(), $node->getStartSourceLocation());
     }
 
+    protected function emitArgList(array $nodes, SourceLocation $sepLoc, string $sep = ', ') {
+        $nodesCount = count($nodes);
+        foreach ($nodes as $i => $arg) {
+            $this->emit($arg);
+
+            if ($i < $nodesCount - 1) {
+                $this->emitStr($sep, $sepLoc);
+            }
+        }
+    }
+
     protected function emitLocalVar(LocalVarNode $node) {
         $this->emitContextPrefix($node->getEnv(), $node->getStartSourceLocation());
-        $this->emitStr('$' . $this->munge($node->getName()->getName()),  $node->getName()->getStartLocation());
+        $this->emitPhpVariable($node->getName());
         $this->emitContextSuffix($node->getEnv(), $node->getStartSourceLocation());
     }
 
@@ -612,7 +647,7 @@ class Emitter {
         }
 
         foreach ($node->getBindings() as $binding) {
-            $this->emitStr('$' . $this->munge($binding->getShadow()->getName()), $binding->getStartSourceLocation());
+            $this->emitPhpVariable($binding->getShadow(), $binding->getStartSourceLocation());
             $this->emitStr(' = ', $node->getStartSourceLocation());
             $this->emit($binding->getInitExpr());
             $this->emitLine(';', $node->getStartSourceLocation());
@@ -664,6 +699,7 @@ class Emitter {
 
         $this->emitStr('new class(', $node->getStartSourceLocation());
 
+        $usesCount = count($node->getUses());
         foreach ($node->getUses() as $i => $u) {
             $loc = $u->getStartLocation();
             $shadowed = $node->getEnv()->getShadowed($u);
@@ -671,9 +707,9 @@ class Emitter {
                 $u = $shadowed;
             }
 
-            $this->emitStr('$'. $this->munge($u->getName()), $node->getStartSourceLocation());
+            $this->emitPhpVariable($u, $loc);
 
-            if ($i < count($node->getUses()) - 1) {
+            if ($i < $usesCount - 1) {
                 $this->emitStr(', ', $node->getStartSourceLocation());
             }
         }
@@ -694,7 +730,7 @@ class Emitter {
         }
 
         // Constructor
-        if (count($node->getUses())) {
+        if ($usesCount) {
             $this->emitLine();
             $this->emitStr('public function __construct(', $node->getStartSourceLocation());
             
@@ -705,9 +741,9 @@ class Emitter {
                     $u = $shadowed;
                 }
     
-                $this->emitStr('$'. $this->munge($u->getName()), $node->getStartSourceLocation());
+                $this->emitPhpVariable($u, $node->getStartSourceLocation());
     
-                if ($i < count($node->getUses()) - 1) {
+                if ($i < $usesCount - 1) {
                     $this->emitStr(', ', $node->getStartSourceLocation());
                 }
             }
@@ -735,21 +771,16 @@ class Emitter {
         $this->emitStr('public function __invoke(', $node->getStartSourceLocation());
 
         // Function Parameters
+        $paramsCount = count($node->getParams());
         foreach ($node->getParams() as $i => $p) {
-            if ($i == count($node->getParams()) - 1 && $node->isVariadic()) {
-                $this->emitStr('...$' . $this->munge($p->getName()), $p->getStartLocation());
+            if ($i == $paramsCount - 1 && $node->isVariadic()) {
+                $this->emitPhpVariable($p, null, false, true);
             } else {
                 $meta = $p->getMeta();
-                if ($meta[new Keyword("reference")]) {
-                    $prefix = '&';
-                } else {
-                    $prefix = '';
-                }
-
-                $this->emitStr($prefix . '$' . $this->munge($p->getName()), $p->getStartLocation());
+                $this->emitPhpVariable($p, null, $meta[new Keyword("reference")]);
             }
 
-            if ($i < count($node->getParams()) - 1) {
+            if ($i < $paramsCount - 1) {
                 $this->emitStr(', ', $node->getStartSourceLocation());
             }
         }
@@ -823,15 +854,7 @@ class Emitter {
     protected function emitTable(TableNode $node) {
         $this->emitContextPrefix($node->getEnv(), $node->getStartSourceLocation());
         $this->emitStr('\Phel\Lang\Table::fromKVs(', $node->getStartSourceLocation());
-
-        foreach ($node->getKeyValues() as $i => $keyOrValue) {
-            $this->emit($keyOrValue);
-
-            if ($i < count($node->getKeyValues()) - 1) {
-                $this->emitStr(', ', $node->getStartSourceLocation());
-            }
-        }
-
+        $this->emitArgList($node->getKeyValues(), $node->getStartSourceLocation());
         $this->emitStr(')', $node->getStartSourceLocation());
         $this->emitContextSuffix($node->getEnv(), $node->getStartSourceLocation());
     }
@@ -839,15 +862,7 @@ class Emitter {
     protected function emitArray(ArrayNode $node) {
         $this->emitContextPrefix($node->getEnv(), $node->getStartSourceLocation());
         $this->emitStr('\Phel\Lang\PhelArray::create(', $node->getStartSourceLocation());
-
-        foreach ($node->getValues() as $i => $value) {
-            $this->emit($value);
-
-            if ($i < count($node->getValues()) - 1) {
-                $this->emitStr(', ', $node->getStartSourceLocation());
-            }
-        }
-
+        $this->emitArgList($node->getValues(), $node->getStartSourceLocation());
         $this->emitStr(')', $node->getStartSourceLocation());
         $this->emitContextSuffix($node->getEnv(), $node->getStartSourceLocation());
     }
@@ -856,10 +871,8 @@ class Emitter {
      * Emits a Phel value.
      * 
      * @param Phel|scalar|null $x The value
-     * 
-     * @return string
      */
-    protected function emitPhel($x) {
+    protected function emitPhel($x): void {
         if (is_float($x)) {
             $this->emitStr($this->printFloat($x));
         } else if (is_int($x)) {
@@ -989,9 +1002,9 @@ class Emitter {
             foreach ($env->getLocals() as $i => $l) {
                 $shadowed = $env->getShadowed($l);
                 if ($shadowed) {
-                    $this->emitStr('$' . $this->munge($shadowed->getName()), $sl);
+                    $this->emitPhpVariable($shadowed, $sl);
                 } else {
-                    $this->emitStr('$' . $this->munge($l->getName()), $sl);
+                    $this->emitPhpVariable($l, $sl);
                 }
 
                 if ($i < count($env->getLocals()) - 1) {
@@ -1050,7 +1063,7 @@ class Emitter {
             echo str_repeat(' ', $this->indentLevel * 2);
         }
 
-        if ($sl) {
+        if ($this->enableSourceMaps && $sl) {
             $this->sourceMap[] = [
                 'source' => $sl->getFile(),
                 'original' => [

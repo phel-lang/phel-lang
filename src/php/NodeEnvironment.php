@@ -53,7 +53,9 @@ class NodeEnvironment {
         $this->context = $context;
         $this->shadowed = $shadowed;
         $this->recurFrames = $recurFrames;
-        $this->boundTo = $boundTo;
+        if ($boundTo) {
+            $this->boundTo = $boundTo;
+        }
     }
 
     public static function empty(): NodeEnvironment {

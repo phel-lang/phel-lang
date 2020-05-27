@@ -170,7 +170,8 @@ class Analyzer {
     }
 
     protected function analyzeForeach(Tuple $x, NodeEnvironment $env): ForeachNode {
-        if (count($x) < 2) {
+        $tupleCount = count($x);
+        if ($tupleCount < 2) {
             throw new AnalyzerException(
                 "At least two arguments are required for 'foreach", 
                 $x->getStartLocation(), 
@@ -229,7 +230,7 @@ class Analyzer {
         }
 
         $bodys = [];
-        for ($i = 2; $i < count($x); $i++) {
+        for ($i = 2; $i < $tupleCount; $i++) {
             $bodys[] = $x[$i];
         }
 
@@ -297,7 +298,8 @@ class Analyzer {
     }
 
     protected function analyzeLoop(Tuple $x, NodeEnvironment $env): LetNode {
-        if (count($x) < 2) {
+        $tupleCount = count($x);
+        if ($tupleCount < 2) {
             throw new AnalyzerException(
                 "At least two arguments are required for 'loop.",
                 $x->getStartLocation(),
@@ -322,10 +324,11 @@ class Analyzer {
         }
 
         $loopBindings = $x[1];
+        $loopBindingsCount = count($loopBindings);
 
         $preInits = [];
         $lets = [];
-        for ($i = 0; $i < count($loopBindings); $i+=2) {
+        for ($i = 0; $i < $loopBindingsCount; $i+=2) {
             $b = $loopBindings[$i];
             $init = $loopBindings[$i+1];
 
@@ -346,7 +349,7 @@ class Analyzer {
 
         if (count($lets) > 0) {
             $bodyExpr = [];
-            for ($i = 2; $i < count($x); $i++) {
+            for ($i = 2; $i < $tupleCount; $i++) {
                 $bodyExpr[] = $x[$i];
             }
             $letSym = new Symbol('let');
@@ -392,12 +395,13 @@ class Analyzer {
     }
 
     protected function analyzeTry(Tuple $x, NodeEnvironment $env): TryNode {
+        $tupleCount = count($x);
         $state = 'start';
         $body = [];
         $catches = [];
         /** @var Tuple|null $finally */
         $finally = null;
-        for ($i = 1; $i < count($x); $i++) {
+        for ($i = 1; $i < $tupleCount; $i++) {
             /** @var mixed $form */
             $form = $x[$i];
 
@@ -462,7 +466,8 @@ class Analyzer {
             }
 
             $exprs = [new Symbol('do')];
-            for ($i = 3; $i < count($catch); $i++) {
+            $catchCount = count($catch);
+            for ($i = 3; $i < $catchCount; $i++) {
                 $exprs[] = $catch[$i];
             }
 
@@ -498,6 +503,7 @@ class Analyzer {
     }
 
     protected function analyzeRecur(Tuple $x, NodeEnvironment $env): RecurNode {
+        $tupleCount = count($x);
         $frame = $env->getCurrentRecurFrame();
 
         if (!$frame) {
@@ -508,10 +514,10 @@ class Analyzer {
             );
         }
 
-        if (count($x) - 1 != count($frame->getParams())) {
+        if ($tupleCount - 1 != count($frame->getParams())) {
             throw new AnalyzerException(
                 "Wrong number of arugments for 'recur. Expected: "
-                    . count($frame->getParams()) . ' args, got: ' . (count($x) - 1),
+                    . count($frame->getParams()) . ' args, got: ' . ($tupleCount - 1),
                 $x->getStartLocation(),
                 $x->getEndLocation()
             );
@@ -521,7 +527,7 @@ class Analyzer {
         $frame->setIsActive(true);
 
         $exprs = [];
-        for($i = 1; $i < count($x); $i++) {
+        for($i = 1; $i < $tupleCount; $i++) {
             $exprs[] = $this->analyze($x[$i], $env->withContext(NodeEnvironment::CTX_EXPR)->withDisallowRecurFrame());
         }
 
@@ -534,7 +540,8 @@ class Analyzer {
     }
 
     protected function analyzePhpNew(Tuple $x, NodeEnvironment $env): PhpNewNode {
-        if (count($x) < 2) {
+        $tupleCount = count($x);
+        if ($tupleCount < 2) {
             throw new AnalyzerException(
                 "At least one arguments is required for 'php/new",
                 $x->getStartLocation(),
@@ -544,7 +551,7 @@ class Analyzer {
 
         $classExpr = $this->analyze($x[1], $env->withContext(NodeEnvironment::CTX_EXPR)->withDisallowRecurFrame());
         $args = [];
-        for ($i = 2; $i < count($x); $i++) {
+        for ($i = 2; $i < $tupleCount; $i++) {
             $args[] = $this->analyze($x[$i], $env->withContext(NodeEnvironment::CTX_EXPR)->withDisallowRecurFrame());
         }
 
@@ -582,6 +589,7 @@ class Analyzer {
 
             /** @var Tuple $tuple */
             $tuple = $x[2];
+            $tCount = count($tuple);
 
             if (count($x) < 1) {
                 throw new AnalyzerException(
@@ -592,7 +600,7 @@ class Analyzer {
             }
 
             $args = [];
-            for($i = 1; $i < count($tuple); $i++) {
+            for($i = 1; $i < $tCount; $i++) {
                 $args[] = $this->analyze($tuple[$i], $env->withContext(NodeEnvironment::CTX_EXPR)->withDisallowRecurFrame());
             }
 
@@ -705,8 +713,9 @@ class Analyzer {
     }
 
     protected function analyzeLetOrLoop(Tuple $x, NodeEnvironment $env, bool $isLoop = false): LetNode {
+        $tupleCount = count($x);
         $exprs = [];
-        for ($i = 2; $i < count($x); $i++) {
+        for ($i = 2; $i < $tupleCount; $i++) {
             $exprs[] = $x[$i];
         }
 
@@ -753,9 +762,10 @@ class Analyzer {
      * @return BindingNode[]
      */
     protected function analyzeBindings(Tuple $x, NodeEnvironment $env) {
+        $tupleCount = count($x);
         $initEnv = $env->withContext(NodeEnvironment::CTX_EXPR)->withDisallowRecurFrame();
         $nodes = [];
-        for ($i = 0; $i < count($x); $i+=2) {
+        for ($i = 0; $i < $tupleCount; $i+=2) {
             $sym = $x[$i];
             if (!($sym instanceof Symbol)) {
                 throw new AnalyzerException(
@@ -765,9 +775,8 @@ class Analyzer {
                 );
             }
 
-            $shadowSym = Symbol::gen($sym->getName() . '_');
-            $shadowSym->setStartLocation($sym->getStartLocation());
-            $shadowSym->getEndLocation($sym->getEndLocation());
+            $shadowSym = Symbol::gen($sym->getName() . '_')
+                ->copyLocationFrom($sym);
             $init = $x[$i+1];
 
             $nextBoundTo = $initEnv->getBoundTo() . '.' . $sym->getName();
@@ -788,7 +797,8 @@ class Analyzer {
     }
 
     protected function analyzeApply(Tuple $x, NodeEnvironment $env): ApplyNode {
-        if (count($x) < 3) {
+        $tupleCount = count($x);
+        if ($tupleCount < 3) {
             throw new AnalyzerException(
                 "At least three arguments are required for 'apply",
                 $x->getStartLocation(),
@@ -799,7 +809,7 @@ class Analyzer {
         $fn = $this->analyze($x[1], $env->withContext(NodeEnvironment::CTX_EXPR)->withDisallowRecurFrame());
 
         $args = [];
-        for ($i = 2; $i < count($x); $i++) {
+        for ($i = 2; $i < $tupleCount; $i++) {
             $args[] = $this->analyze($x[$i], $env->withContext(NodeEnvironment::CTX_EXPR)->withDisallowRecurFrame());
         }
 
@@ -812,18 +822,19 @@ class Analyzer {
     }
 
     protected function analyzeDo(Tuple $x, NodeEnvironment $env): DoNode {
+        $tupleCount = count($x);
         $stmts = [];
-        for ($i = 1; $i < count($x) - 1; $i++) {
+        for ($i = 1; $i < $tupleCount - 1; $i++) {
             $stmts[] = $this->analyze($x[$i], $env->withContext(NodeEnvironment::CTX_STMT)->withDisallowRecurFrame());
         }
 
-        if (count($x) > 2) {
+        if ($tupleCount > 2) {
             $retEnv = $env->getContext() == NodeEnvironment::CTX_STMT
                 ? $env->withContext(NodeEnvironment::CTX_STMT)
                 : $env->withContext(NodeEnvironment::CTX_RET);
-            $ret = $this->analyze($x[count($x) - 1], $retEnv);
-        } else if (count($x) == 2) {
-            $ret = $this->analyze($x[count($x) - 1], $env);
+            $ret = $this->analyze($x[$tupleCount - 1], $retEnv);
+        } else if ($tupleCount == 2) {
+            $ret = $this->analyze($x[$tupleCount - 1], $env);
         } else {
             $ret = $this->analyze(null, $env);
         }
@@ -837,7 +848,8 @@ class Analyzer {
     }
 
     protected function analyzeIf(Tuple $x, NodeEnvironment $env): IfNode {
-        if (count($x) < 3 || count($x) > 4) {
+        $tupleCount = count($x);
+        if ($tupleCount < 3 || $tupleCount > 4) {
             throw new AnalyzerException(
                 "'if requires two or three arguments",
                 $x->getStartLocation(),
@@ -847,7 +859,7 @@ class Analyzer {
 
         $testExpr = $this->analyze($x[1], $env->withContext(NodeEnvironment::CTX_EXPR)->withDisallowRecurFrame());
         $thenExpr = $this->analyze($x[2], $env);
-        if (count($x) == 3) {
+        if ($tupleCount == 3) {
             $elseExpr = $this->analyze(null, $env);
         } else {
             $elseExpr = $this->analyze($x[3], $env);
@@ -879,7 +891,8 @@ class Analyzer {
     }
 
     protected function analyzeFn(Tuple $x, NodeEnvironment $env): FnNode {
-        if (count($x) < 2 || count($x) > 3) {
+        $tupleCount = count($x);
+        if ($tupleCount < 2 || $tupleCount > 3) {
             throw new AnalyzerException(
                 "'fn requires one or two arguments",
                 $x->getStartLocation(),
@@ -990,13 +1003,14 @@ class Analyzer {
     }
 
     protected function analyzeInvoke(Tuple $x, NodeEnvironment $nodeEnvironment): Node {
+        $tupleCount = count($x);
         $f = $this->analyze($x[0], $nodeEnvironment->withContext(NodeEnvironment::CTX_EXPR)->withDisallowRecurFrame());
 
         if ($f instanceof GlobalVarNode && $f->isMacro()) {
             return $this->analyze($this->macroExpand($x, $nodeEnvironment), $nodeEnvironment);
         } else {
             $arguments = [];
-            for ($i = 1; $i < count($x); $i++) {
+            for ($i = 1; $i < $tupleCount; $i++) {
                 $arguments[] = $this->analyze($x[$i], $nodeEnvironment->withContext(NodeEnvironment::CTX_EXPR)->withDisallowRecurFrame());
             }
 
@@ -1016,6 +1030,7 @@ class Analyzer {
      * @return Phel|scalar|null
      */
     protected function macroExpand(Tuple $x, NodeEnvironment $env) {
+        $tupleCount = count($x);
         /**
          * @psalm-suppress PossiblyNullArgument
          */
@@ -1024,7 +1039,7 @@ class Analyzer {
             $fn = $GLOBALS['__phel'][$node->getNamespace()][$node->getName()->getName()];
 
             $arguments = [];
-            for ($i = 1; $i < count($x); $i++) {
+            for ($i = 1; $i < $tupleCount; $i++) {
                 $arguments[] = $x[$i];
             }
 
@@ -1093,6 +1108,7 @@ class Analyzer {
     }
 
     protected function analyzeNs(Tuple $x, NodeEnvironment $env): NsNode {
+        $tupleCount = count($x);
         if (!($x[1] instanceof Symbol)) {
             throw new AnalyzerException(
                 "First argument of 'ns must be a Symbol",
@@ -1104,7 +1120,7 @@ class Analyzer {
         $this->globalEnvironment->setNs($x[1]->getName());
 
         $requireNs = [];
-        for ($i = 2; $i < count($x); $i++) {
+        for ($i = 2; $i < $tupleCount; $i++) {
             $import = $x[$i];
 
             if (!($import instanceof Tuple)) {

@@ -35,7 +35,7 @@ class Reader {
     private $readTokens = [];
 
     /**
-     * @var array|null
+     * @var Symbol[]|null
      */
     private $fnArgs = null;
 

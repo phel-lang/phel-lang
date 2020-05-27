@@ -57,7 +57,7 @@ class Runtime {
             $printer = new HtmlExceptionPrinter();
         }
 
-        echo $printer->printStackTrace($exception);
+        $printer->printStackTrace($exception);
     }
 
     public static function getInstance(): Runtime {

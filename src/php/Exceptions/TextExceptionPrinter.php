@@ -113,7 +113,7 @@ class TextExceptionPrinter implements ExceptionPrinter {
         }
         
         if (is_resource($arg)) {
-            return "Resource id #" . $arg;
+            return "Resource id #" . ((string) $arg);
         }
         
         if (is_array($arg)) {

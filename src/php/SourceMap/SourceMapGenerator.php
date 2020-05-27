@@ -2,14 +2,23 @@
 
 namespace Phel\SourceMap;
 
-class SourceMap {
+class SourceMapGenerator {
+
+    /**
+     * @var VLQ;
+     */
+    private $vlq;
+
+    public function __construct()
+    {
+        $this->vlq = new VLQ();
+    }
 
     public function encode(array $mappings) {
         $previousGeneratedLine = 0;
         $previousGeneratedColumn = 0;
         $previousOriginalLine = 0;
         $previousOriginalColumn = 0;
-        $vlq = new VLQ();
         $result = '';
 
         $totalMappings = count($mappings);
@@ -31,7 +40,7 @@ class SourceMap {
                 $next .= ",";
             }
 
-            $next .= $vlq->encodeIntegers([
+            $next .= $this->vlq->encodeIntegers([
                 $mapping['generated']['column'] - $previousGeneratedColumn,
                 0,
                 $mapping['original']['line'] - $previousOriginalLine,
@@ -66,53 +75,4 @@ class SourceMap {
       
         return $mappingA['original']['column'] - $mappingB['original']['column'];
     }
-
-    /*public function encode(array $data) {
-        $sourceIndex = 0;
-        $lines = [];
-        foreach ($data as $line => $columns) {
-            foreach ($columns as $column => $infos) {
-                foreach ($infos as $info) {
-                    $phpLine = $info['phpLine'];
-                    $phpCol = $info['phpCol'];
-
-                    $segv = [$phpCol, $sourceIndex, $line, $column];
-                    $lc = count($lines);
-
-                    if ($phpLine > $lc - 1) {
-                        for ($i = 0; $i < $phpLine - $lc; $i++) {
-                            $lines[] = [];
-                        }
-                    }
-                    $lines[$phpLine][] = $segv;
-                }
-            }
-        }
-
-        $vlq = new VLQ();
-
-        $encodedLines = [];
-        foreach ($lines as $line) {
-            $encodedSegments = [];
-            $lastSeg = null;
-            foreach ($line as $i => $seg) {
-                if ($lastSeg) {
-                    $encodedSegments[] = $vlq->encodeIntegers([
-                        $seg[0] - $lastSeg[0],
-                        $seg[1] - $lastSeg[1],
-                        $seg[2] - $lastSeg[2],
-                        $seg[3] - $lastSeg[3]
-                    ]);
-                } else {
-                    $encodedSegments[] = $vlq->encodeIntegers($seg);
-                }
-
-                $lastSeg = $seg;
-            }
-
-            $encodedLines[] = implode(",", $encodedSegments);
-        }
-
-        return implode(";", $encodedLines);
-    }*/
 }

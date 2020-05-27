@@ -29,14 +29,13 @@ class Compiler {
         return $this->compileString(file_get_contents($filename), $globalEnv, $filename);
     }
 
-    public function compileString(string $code, GlobalEnvironment $globalEnv, string $source = 'string'): array {
+    public function compileString(string $code, GlobalEnvironment $globalEnv, string $source = 'string'): string {
         $lexer = new Lexer();
         $reader = new Reader();
         $analzyer = new Analyzer($globalEnv);
         $emitter = new Emitter();
         $tokenStream = $lexer->lexString($code, $source);
         $code = '';
-        $sourceMap = '';
 
         while (true) {
             try {
@@ -57,10 +56,7 @@ class Compiler {
                     throw $e;
                 }
 
-                list($c, $sm) = $emitter->emitAndEval($nodes);
-                $code .= $c;
-                $sourceMap .= $sm;
-
+                $code .= $emitter->emitAndEval($nodes);
             } catch (ReaderException $e) {
                 $this->exceptionPrinter->printException($e, $e->getCodeSnippet());
                 exit;
@@ -69,6 +65,6 @@ class Compiler {
             }
         }
 
-        return [$code, $sourceMap];
+        return $code;
     }
 }
