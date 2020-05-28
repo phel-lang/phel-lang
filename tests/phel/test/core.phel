@@ -437,11 +437,12 @@
 (assert (= @["a" "b" "c"] (put @["a" "b"] 2 "c")) "put: append entry on array")
 (assert (= @[nil nil "a"] (put @[] 2 "a")) "put: extends array with nil values")
 (assert (= @["a" nil "c"] (put @["a" "b" "c"] 1 nil)) "put: set nil value")
-(assert (= @{:b 2} (put @{:a 1 :b 2} :a nil)) "put: remove entry from table")
+(assert (= @{:a nil :b 2} (put @{:a 1 :b 2} :a nil)) "put: nil on table")
 (assert (= @{:a 3 :b 2} (put @{:a 1 :b 2} :a 3)) "put: replace entry on table")
 (assert (= @{:a 1 :b 2 :c 3} (put @{:a 1 :b 2} :c 3)) "put: append entry on table")
 
 (assert (= @[:a :c :d] (unset @[:a :b :c :d] 1)) "unset: remove index from array")
+(assert (= @{:b 2} (unset @{:a 1 :b 2} :a)) "unset: remove key from table")
 
 (assert (= @{:a @{:b @{:c 1}}} (put-in @{:a @{}} @[:a :b :c] 1)) "put-in: autocreate tables")
 (assert (= @{:a @{:b @{:c 2}}} (put-in @{:a @{:b @{:c 1}}} @[:a :b :c] 2)) "put-in: update value of table")
@@ -738,10 +739,5 @@
 (assert (= "hello\nworld" (with-output-buffer (print "hello\nworld"))) "print hello\\nworld")
 
 (assert (= "hello\nworld\n" (with-output-buffer (println "hello\nworld"))) "println hello\\nworld")
-
-(defn my-fn []
-  (next "a" "b"))
-
-(my-fn)
 
 (print-summary)

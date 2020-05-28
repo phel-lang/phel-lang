@@ -89,6 +89,10 @@ The final `composer.json` file should look like this:
 }
 ```
 
+## Launch the REPL
+
+You should now be able to run a REPL by executing the `./vendor/bin/phel repl` command.
+
 ## Start the Phel Runtime
 
 After setting up the project we can now write some code. First we create new directory `src` and add two files in this directory.

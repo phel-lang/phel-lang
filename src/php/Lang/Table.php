@@ -54,13 +54,8 @@ class Table extends Phel implements ArrayAccess, Countable, Iterator {
     public function offsetSet($offset, $value) {
         $hash = $this->offsetHash($offset);
 
-        if ($value === null) {
-            unset($this->keys[$hash]);
-            unset($this->data[$hash]);
-        } else {
-            $this->keys[$hash] = $offset;
-            $this->data[$hash] = $value;
-        }
+        $this->keys[$hash] = $offset;
+        $this->data[$hash] = $value;
     }
 
     public function offsetExists($offset) {
