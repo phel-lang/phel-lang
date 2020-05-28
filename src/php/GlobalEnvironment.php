@@ -88,9 +88,12 @@ class GlobalEnvironment {
                 $name->getStartLocation()
             );
         } else if ($this->hasUseAlias($name)) {
+            /** @var Symbol $alias */
+            $alias = $this->useAliases[$strName];
+            $alias->copyLocationFrom($name);
             return new PhpClassNameNode(
                 $env,
-                $this->useAliases[$strName],
+                $alias,
                 $name->getStartLocation()
             );
         } else {

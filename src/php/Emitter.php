@@ -151,7 +151,8 @@ class Emitter {
             $sourceMap = $this->sourceMapGenerator->encode($this->sourceMap);
 
             return (
-                '// ;' . $sourceMap . "\n"
+                '// ' . realpath($node->getStartSourceLocation()->getFile()) . "\n"
+                . '// ;;' . $sourceMap . "\n"
                 . $code
             );
         } else {

@@ -739,4 +739,9 @@
 
 (assert (= "hello\nworld\n" (with-output-buffer (println "hello\nworld"))) "println hello\\nworld")
 
+(defn my-fn []
+  (next "a" "b"))
+
+(my-fn)
+
 (print-summary)

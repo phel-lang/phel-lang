@@ -18,7 +18,7 @@ class NsNode extends Node {
      */
     public function __construct(array $requireNs, ?SourceLocation $sourceLocation = null)
     {
-        parent::__construct(NodeEnvironment::empty());
+        parent::__construct(NodeEnvironment::empty(), $sourceLocation);
         $this->requireNs = $requireNs;
     }
 

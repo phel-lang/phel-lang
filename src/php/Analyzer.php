@@ -143,7 +143,6 @@ class Analyzer {
                 return $this->analyzeInvoke($x, $nodeEnvironment);
             }
         } else {
-            // TODO: Needs to be another exception, because we have may not have start and end location
             throw new AnalyzerException('Unhandled type: ' . var_export($x, true), null, null);
         }
     }

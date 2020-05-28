@@ -7,6 +7,18 @@ use PHPUnit\Framework\TestCase;
 
 class IntegrationTest extends TestCase {
 
+    private static $globalEnv;
+
+    public static function setUpBeforeClass(): void
+    {
+        Symbol::resetGen();
+        $globalEnv = new GlobalEnvironment();
+        $rt = new Runtime($globalEnv);
+        $rt->addPath('phel\\', [__DIR__ . '/../../src/phel/']);
+        $rt->loadNs('phel\core');
+        self::$globalEnv = $globalEnv;
+    }
+
     /**
      * @dataProvider integrationDataProvider
      */
@@ -15,12 +27,7 @@ class IntegrationTest extends TestCase {
     }
 
     protected function doIntegrationTest($filename, $phelCode, $generatedCode) {
-        Symbol::resetGen();
-        $globalEnv = new GlobalEnvironment();
-        $rt = new Runtime($globalEnv);
-        $rt->addPath('phel\\', [__DIR__ . '/../../src/phel/']);
-        $rt->loadNs('phel\core');
-
+        $globalEnv = self::$globalEnv;
         $globalEnv->setNs('user');
         Symbol::resetGen();
         $lexer = new Lexer();

@@ -5,6 +5,7 @@ namespace Phel\Exceptions;
 use Phel\Lang\IFn;
 use Phel\Printer;
 use Phel\CodeSnippet;
+use Phel\SourceMap\SourceMapConsumer;
 use ReflectionClass;
 use Throwable;
 
@@ -48,16 +49,17 @@ class TextExceptionPrinter implements ExceptionPrinter {
 
         $type = get_class($e);
         $msg = $e->getMessage();
-        $file = $e->getFile();
-        $line = $e->getLine();
+        $generatedLine = $e->getFile();
+        $generetedColumn = $e->getLine();
+        list($file, $line) = $this->getOriginalFilePosition($generatedLine, $generetedColumn);
 
         echo $this->color("$type: $msg\n", "blue");
-        echo "in $file:$line\n\n";
+        echo "in $file:$line (gen: $generatedLine:$generetedColumn)\n\n";
 
         foreach ($e->getTrace() as $i => $frame) {
             $class = isset($frame['class']) ? $frame['class'] : null;
-            $file = $frame['file'];
-            $line = $frame['line'];
+            $generatedLine = $frame['file'];
+            $generetedColumn = $frame['line'];
 
             if ($class) {
                 $rf = new ReflectionClass($class);
@@ -72,7 +74,9 @@ class TextExceptionPrinter implements ExceptionPrinter {
                         $argString = " " . $argString;
                     }
 
-                    echo "#$i $file($line): ($fnName$argString)\n";
+                    list($file, $line) = $this->getOriginalFilePosition($generatedLine, $generetedColumn);
+
+                    echo "#$i $file:$line (gen: $generatedLine:$generetedColumn) : ($fnName$argString)\n";
 
                     continue;
                 }
@@ -84,6 +88,37 @@ class TextExceptionPrinter implements ExceptionPrinter {
             $argString = $this->buildPhpArgsString($frame['args']);
             echo "#$i $file($line): $class$type$fn($argString)\n";
         }
+    }
+
+    private function getOriginalFilePosition($filename, $line) {
+        $f = fopen($filename, 'r');
+        $phpPrefix = fgets($f);
+        $fileNameComment = fgets($f);
+        $sourceMapComment = fgets($f);
+
+        $originalFile = $filename;
+        $originalLine = $line;
+
+        if ($fileNameComment 
+            && $fileNameComment[0] == "/" 
+            && $fileNameComment[1] == "/"
+            && $fileNameComment[2] == " "
+        ) {
+            $originalFile = trim(substr($fileNameComment, 3));
+
+            if ($sourceMapComment 
+                && $sourceMapComment[0] == "/" 
+                && $sourceMapComment[1] == "/"
+                && $sourceMapComment[2] == " "
+            ) {
+                $mapping = trim(substr($sourceMapComment, 3));
+
+                $sourceMapConsumer = new SourceMapConsumer($mapping);
+                $originalLine = ($sourceMapConsumer->getOriginalLine($line - 1)) ?: $line;
+            }
+        }
+
+        return [$originalFile, $originalLine];
     }
 
     private function buildPhpArgsString($args) {
