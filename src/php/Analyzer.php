@@ -9,6 +9,7 @@ use Phel\Ast\BindingNode;
 use Phel\Ast\CallNode;
 use Phel\Ast\CatchNode;
 use Phel\Ast\DefNode;
+use Phel\Ast\DefStructNode;
 use Phel\Ast\DoNode;
 use Phel\Ast\NsNode;
 use Phel\Ast\FnNode;
@@ -50,6 +51,19 @@ class Analyzer {
      * @var GlobalEnvironment
      */
     protected $globalEnvironment;
+
+    protected $phpKeywords = [
+        '__halt_compiler', 'abstract', 'and', 'array', 'as', 'break', 
+        'callable', 'case', 'catch', 'class', 'clone', 'const', 'continue', 
+        'declare', 'default', 'die', 'do', 'echo', 'else', 'elseif', 'empty', 
+        'enddeclare', 'endfor', 'endforeach', 'endif', 'endswitch', 'endwhile', 
+        'eval', 'exit', 'extends', 'final', 'for', 'foreach', 'function',
+        'global', 'goto', 'if', 'implements', 'include', 'include_once', 
+        'instanceof', 'insteadof', 'interface', 'isset', 'list', 'namespace', 
+        'new', 'or', 'print', 'private', 'protected', 'public', 'require', 
+        'require_once', 'return', 'static', 'switch', 'throw', 'trait', 'try',
+        'unset', 'use', 'var', 'while', 'xor'
+    ];
 
     public function __construct(?GlobalEnvironment $globalEnvironment = null)
     {
@@ -136,6 +150,8 @@ class Analyzer {
                         return $this->analyzeLoop($x, $nodeEnvironment);
                     case 'foreach':
                         return $this->analyzeForeach($x, $nodeEnvironment);
+                    case 'defstruct*':
+                        return $this->analyzeDefStruct($x, $nodeEnvironment);
                     default:
                         return $this->analyzeInvoke($x, $nodeEnvironment);
                 }
@@ -145,6 +161,55 @@ class Analyzer {
         } else {
             throw new AnalyzerException('Unhandled type: ' . var_export($x, true), null, null);
         }
+    }
+
+    protected function analyzeDefStruct(Tuple $x, NodeEnvironment $env): DefStructNode {
+        if(count($x) !== 3) {
+            throw new AnalyzerException(
+                "Exactly two arguments are required for 'defstruct. Got " . count($x),
+                $x->getStartLocation(),
+                $x->getEndLocation()
+            );
+        }
+
+        if (!($x[1] instanceof Symbol)) {
+            throw new AnalyzerException(
+                "First arugment of 'defstruct must be a Symbol.",
+                $x->getStartLocation(),
+                $x->getEndLocation()
+            );
+        }
+
+        if (!($x[2] instanceof Tuple)) {
+            throw new AnalyzerException(
+                "Second arugment of 'defstruct must be a Tuple.",
+                $x->getStartLocation(),
+                $x->getEndLocation()
+            );
+        }
+
+        $params = [];
+        foreach ($x[2] as $element) {
+            if (!($element instanceof Symbol)) {
+                throw new AnalyzerException(
+                    "Defstruct field elements must by Symbols.",
+                    $element->getStartLocation(),
+                    $element->getEndLocation()
+                );
+            }
+
+            $params[] = $element;
+        }
+
+        $namespace = $this->globalEnvironment->getNs();
+
+        return new DefStructNode(
+            $env,
+            $namespace,
+            $x[1],
+            $params,
+            $x->getStartLocation()
+        );
     }
 
     protected function analyzeTable(Table $t, NodeEnvironment $env): TableNode {
@@ -1116,6 +1181,27 @@ class Analyzer {
             );
         }
 
+        $ns = $x[1]->getName();
+        if (!(preg_match("/^[a-zA-Z_\x7f-\xff][a-zA-Z0-9_\x7f-\xff\\\\]*[a-zA-Z0-9_\x7f-\xff]*$/", $ns))) {
+            throw new AnalyzerException(
+                "The namespace is not valid. A valid namespace name starts with a letter or underscore, 
+                followed by any number of letters, numbers, or underscores. Elements are splitted by a backslash.",
+                $x[1]->getStartLocation(),
+                $x[1]->getEndLocation()
+            );
+        }
+
+        $parts = explode("\\", $ns);
+        foreach ($parts as $part) {
+            if ($this->isPHPKeyword($part)) {
+                throw new AnalyzerException(
+                    "The namespace is not valid. The part '$part' can not be used because it is a reserved keyword.",
+                    $x[1]->getStartLocation(),
+                    $x[1]->getEndLocation()
+                );
+            }
+        }
+
         $this->globalEnvironment->setNs($x[1]->getName());
 
         $requireNs = [];
@@ -1184,7 +1270,7 @@ class Analyzer {
             }
         }
 
-        return new NsNode($requireNs, $x->getStartLocation());
+        return new NsNode($x[1]->getName(), $requireNs, $x->getStartLocation());
     }
 
     protected function analyzeDef(Tuple $x, NodeEnvironment $nodeEnvironment): DefNode {
@@ -1271,5 +1357,9 @@ class Analyzer {
      */
     private function isKeywordWithName($x, string $name): bool {
         return $x instanceof Keyword && $x->getName() == $name;
+    }
+
+    private function isPHPKeyword(string $w) {
+        return in_array($w, $this->phpKeywords);
     }
 }

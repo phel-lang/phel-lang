@@ -6,4 +6,5 @@
 (php/new DateTimeImmutable)
 (php/new D)
 --PHP--
+namespace test;
 (new DateTimeImmutable());(new DateTime());

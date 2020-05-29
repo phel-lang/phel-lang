@@ -6,6 +6,7 @@ use Exception;
 use Phel\Lang\Keyword;
 use Phel\Lang\Phel;
 use Phel\Lang\PhelArray;
+use Phel\Lang\Struct;
 use Phel\Lang\Symbol;
 use Phel\Lang\Table;
 use Phel\Lang\Tuple;
@@ -29,6 +30,8 @@ class Printer {
             return $form->getName();
         } else if ($form instanceof PhelArray) {
             return $this->printArray($form, $readable);
+        } else if ($form instanceof Struct) {
+            return $this->printStruct($form, $readable);
         } else if ($form instanceof Table) {
             return $this->printTable($form, $readable);
         } else if (is_string($form)) {
@@ -130,6 +133,17 @@ class Printer {
             $args[] = $this->print($elem, $readable);
         }
 
+        return $prefix . implode(" ", $args) . $suffix;
+    }
+
+    private function printStruct(Struct $form, bool $readable): string {
+        $prefix = '(' . get_class($form) . ' ';
+        $suffix = ')';
+        $args = [];
+        foreach ($form->getAllowedKeys() as $key) {
+            $args[] = $this->print($form[$key], $readable);
+        }
+        
         return $prefix . implode(" ", $args) . $suffix;
     }
 

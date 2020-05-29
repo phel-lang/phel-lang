@@ -1,7 +1,8 @@
 --PHEL--
-(ns test.new
+(ns test\abc
   (:use \DateTimeImmutable))
 
 (php/new DateTimeImmutable "2020-03-22")
 --PHP--
+namespace test\abc;
 (new \DateTimeImmutable("2020-03-22"));

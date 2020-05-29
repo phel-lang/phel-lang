@@ -740,4 +740,14 @@
 
 (assert (= "hello\nworld\n" (with-output-buffer (println "hello\nworld"))) "println hello\\nworld")
 
+(defstruct my-struct [a b c])
+(let [x (my-struct 1 2 3)]
+  (assert (= :struct (type x)) "struct: common type")
+  (assert (= true (struct? x)) "struct: common type test")
+  (assert (= false (table? x)) "struct is not a table")
+  (assert (= 1 (get x :a)) "struct: get value from struct")
+  (assert (= (my-struct 12 2 3) (put x :a 12)) "struct: put value on struct")
+  (assert (= true (my-struct? x)) "struct: correct type")
+  (assert (= false (my-struct? :a)) "struct: incorrect type"))
+
 (print-summary)

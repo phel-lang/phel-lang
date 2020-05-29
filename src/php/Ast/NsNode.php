@@ -14,12 +14,18 @@ class NsNode extends Node {
     protected $requireNs;
 
     /**
+     * @var string
+     */
+    protected $namespace;
+
+    /**
      * @param Symbol[] $requireNs
      */
-    public function __construct(array $requireNs, ?SourceLocation $sourceLocation = null)
+    public function __construct(string $namespace, array $requireNs, ?SourceLocation $sourceLocation = null)
     {
         parent::__construct(NodeEnvironment::empty(), $sourceLocation);
         $this->requireNs = $requireNs;
+        $this->namespace = $namespace;
     }
 
     /**
@@ -27,5 +33,9 @@ class NsNode extends Node {
      */
     public function getRequireNs() {
         return $this->requireNs;
+    }
+
+    public function getNamespace() {
+        return $this->namespace;
     }
 }

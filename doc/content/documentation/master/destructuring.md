@@ -1,6 +1,6 @@
 +++
 title = "Destructuring"
-weight = 11
+weight = 10
 +++
 
 Destructuring is a way to bind names to values inside a data structure. Destructuring works for function parameters, `let` and `loop` bindings.

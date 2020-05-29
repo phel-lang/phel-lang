@@ -1,0 +1,13 @@
+--PHEL--
+(defstruct* my-type [a b c])
+--PHP--
+class my_type extends \Phel\Lang\Struct {
+  public function __construct($a, $b, $c) {
+    $this->offsetSet(new \Phel\Lang\Keyword("a"), $a);
+    $this->offsetSet(new \Phel\Lang\Keyword("b"), $b);
+    $this->offsetSet(new \Phel\Lang\Keyword("c"), $c);
+  }
+  public function getAllowedKeys(): array {
+    return [new \Phel\Lang\Keyword("a"), new \Phel\Lang\Keyword("b"), new \Phel\Lang\Keyword("c")];
+  }
+}

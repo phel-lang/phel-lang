@@ -41,7 +41,7 @@
 			"patterns": [
 				{
 					"name": "keyword.control.phel",
-					"match": "(?<=\\(|\\{|\\[|\\s)(defmacro-|defmacro|defn-|defn|def-|def|recur|fn|try|catch|finally|loop|ns|quote|do|if-not|if|when-not|when|apply|let|foreach|case|cond)(?=(\\s|,|\\)\\}\\]))(?=\\s|\\)|\\]|\\})"
+					"match": "(?<=\\(|\\{|\\[|\\s)(defstruct|defmacro-|defmacro|defn-|defn|def-|def|recur|fn|try|catch|finally|loop|ns|quote|do|if-not|if|when-not|when|apply|let|foreach|case|cond)(?=(\\s|,|\\)\\}\\]))(?=\\s|\\)|\\]|\\})"
 				},
 				{
 					"name": "keyword.control.phel",

@@ -1,5 +1,5 @@
 +++
-title = "Array and Table"
+title = "Array, Table and Struct"
 weight = 9
 +++
 
@@ -105,4 +105,16 @@ An array can also be used as a stack. Therefore the `push`, `peek` and `pop` fun
   (push arr 1) # -> @[1]
   (peek arr) # Evaluates to 1, arr is unchanged
   (pop arr)) # Evaluates to 1, arr is not empty @[]
+```
+
+## Struct
+
+A struct is a special kind of table. It only supports a predefined number of keys and is associated to a global name. The struct not only defines itsself but also a predicate function.
+
+```phel
+(defstruct my-struct [a b c]) # Defines the struct
+(let [x (my_struct 1 2 3)] # Create a new struct
+  (my-struct? x) # Evaluates to truc
+  (get x :a) # Evaluates to 1
+  (put x :a 12) # Evaluates to (my-struct 12 2 3)
 ```

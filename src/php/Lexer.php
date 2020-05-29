@@ -43,7 +43,7 @@ class Lexer {
         "(@\[)", // array (index: 15)
         "(@\{)", // table (index: 16)
         "(\|\()", // short fn (index: 17)
-        "((?:\"(?:\\\\\"|[^\"])*\"))", // String (index: 18)
+        '("(?:[^"\\\\]++|\\\\.)*+")', // String (index: 18)
         "([^\(\)\[\]\{\}',`@ \n\r\t\#]+)" // Atom (index: 19)
     ];
 

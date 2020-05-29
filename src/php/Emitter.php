@@ -10,6 +10,7 @@ use Phel\Ast\CallNode;
 use Phel\Ast\CatchNode;
 use Phel\Ast\Node;
 use Phel\Ast\DefNode;
+use Phel\Ast\DefStructNode;
 use Phel\Ast\DoNode;
 use Phel\Ast\FnNode;
 use Phel\Ast\ForeachNode;
@@ -46,37 +47,6 @@ use Phel\SourceMap\SourceMapGenerator;
 use Throwable;
 
 class Emitter {
-
-    /**
-     * @var array
-     */
-    protected $mungeMapping = [
-        '-' => '_',
-        '.' => '_DOT_',
-        ':' => '_COLON_',
-        '+' => '_PLUS_',
-        '>' => '_GT_',
-        '<' => '_LT_',
-        '=' => '_EQ_',
-        '~' => '_TILDE_',
-        '!' => '_BANG_',
-        '@' => '_CIRCA_',
-        '#' => "_SHARP_",
-        '\'' => "_SINGLEQUOTE_",
-        '"' => "_DOUBLEQUOTE_",
-        '%' => "_PERCENT_",
-        '^' => "_CARET_",
-        '&' => "_AMPERSAND_",
-        '*' => "_STAR_",
-        '|' => "_BAR_",
-        '{' => "_LBRACE_",
-        '}' => "_RBRACE_",
-        '[' => "_LBRACK_",
-        ']' => "_RBRACK_",
-        '/' => "_SLASH_",
-        '\\' => "_BSLASH_",
-        '?' => "_QMARK_"
-    ];
 
     /**
      * @var SourceMapGenerator
@@ -219,9 +189,62 @@ class Emitter {
                 $this->emitArray($node); break;
             case TableNode::class: 
                 $this->emitTable($node); break;
+            case DefStructNode::class:
+                $this->emitDefStruct($node); break;
             default:
                 throw new \Exception('Unexpected node: ' . get_class($node));
         }
+    }
+
+    protected function emitDefStruct(DefStructNode $node) {
+        $paramCount = count($node->getParams());
+        $this->emitLine('namespace ' . $node->getNamespace() . ';', $node->getStartSourceLocation());
+        $this->emitLine('class ' . $this->munge($node->getName()->getName()) . ' extends \Phel\Lang\Struct {', $node->getStartSourceLocation());
+        $this->indentLevel++;
+
+        // Constructor
+        $this->emitStr('public function __construct(', $node->getStartSourceLocation());
+        foreach ($node->getParams() as $i => $param) {
+            $this->emitPhpVariable($param);
+
+            if ($i < $paramCount - 1) {
+                $this->emitStr(', ', $node->getStartSourceLocation());
+            }
+        }
+        $this->emitLine(') {', $node->getStartSourceLocation());
+        $this->indentLevel++;
+        foreach ($node->getParams() as $i => $param) {
+            $keyword = new Keyword($param->getName());
+            $keyword->setStartLocation($node->getStartSourceLocation());
+
+            $this->emitStr('$this->offsetSet(', $node->getStartSourceLocation());
+            $this->emitPhel($keyword);
+            $this->emitStr(', ', $node->getStartSourceLocation());
+            $this->emitPhpVariable($param);
+            $this->emitLine(');', $node->getStartSourceLocation());
+        }
+        $this->indentLevel--;
+        $this->emitLine('}', $node->getStartSourceLocation());
+
+        // Get Allowed Keys Function
+        $this->emitStr('public function getAllowedKeys(', $node->getStartSourceLocation());
+        $this->emitLine('): array {', $node->getStartSourceLocation());
+        $this->indentLevel++;
+        $this->emitStr('return [', $node->getStartSourceLocation());
+        foreach ($node->getParamsAsKeywords() as $i => $keyword) {
+            $this->emitPhel($keyword);
+
+            if ($i < $paramCount - 1) {
+                $this->emitStr(', ', $node->getStartSourceLocation());
+            }
+        }
+        $this->emitLine('];', $node->getStartSourceLocation());
+        $this->indentLevel--;
+        $this->emitLine('}', $node->getStartSourceLocation());
+
+        // End of class
+        $this->indentLevel--;
+        $this->emitLine('}', $node->getStartSourceLocation());
     }
 
     protected function emitPhpVariable(Symbol $m, SourceLocation $loc = null, $asReference = false, $isVariadic = false) {
@@ -405,6 +428,13 @@ class Emitter {
     }
 
     protected function emitNs(NsNode $node) {
+        $nsSym = new Symbol("*ns*");
+        $nsSym->setStartLocation($node->getStartSourceLocation());
+        $this->emitGlobalBase("phel\\core", $nsSym);
+        $this->emitStr(" = ", $node->getStartSourceLocation());
+        $this->emitPhel("\\" . $node->getNamespace());
+        $this->emitLine(";", $node->getStartSourceLocation());
+
         foreach ($node->getRequireNs() as $i => $ns) {
             $this->emitStr('\Phel\Runtime::getInstance()->loadNs("' . \addslashes($ns->getName()) . '");', $ns->getStartLocation());
             if ($i < count($node->getRequireNs()) - 1) {
@@ -491,7 +521,7 @@ class Emitter {
             $this->emit($classExpr);
             $this->emitLine(';', $node->getStartSourceLocation());
 
-            $this->emitStr('new $' . $targetSym->getName() . '(', $node->getStartSourceLocation());
+            $this->emitStr('return new $' . $targetSym->getName() . '(', $node->getStartSourceLocation());
         }
 
         // Args
@@ -1036,15 +1066,7 @@ class Emitter {
     }
 
     protected function munge(string $s): string {
-        if ($s == 'this') {
-            return '__phel_this';
-        } else {
-            return str_replace(
-                array_keys($this->mungeMapping),
-                array_values($this->mungeMapping),
-                $s
-            );
-        }
+        return Munge::encode($s);
     }
 
     protected function emitLine($str = '', ?SourceLocation $sl = null) {

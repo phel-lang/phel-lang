@@ -1,6 +1,7 @@
 (ns phel\core
   (:use Phel\Lang\Phel)
   (:use Phel\Lang\Tuple)
+  (:use Phel\Lang\Struct)
   (:use Phel\Lang\Keyword)
   (:use Phel\Lang\IContactable)
   (:use Phel\Lang\PhelArray)
@@ -17,10 +18,13 @@
   (:use Phel\Lang\IConcat)
   (:use Phel\Lang\IMeta)
   (:use Phel\Lang\Symbol)
+  (:use Phel\Munge)
   (:use Phel\Printer)
   (:use Countable)
   (:use Exception)
   (:use InvalidArgumentException))
+
+(def *ns* "\\phel\\core")
 
 # --------------------------------------------
 # Basic methods for quasiquote and destructure
@@ -124,9 +128,20 @@ elements, returns nil."
   [name & fdecl] 
   (apply defn-builder name @{:macro true :private true} fdecl))
 
-#(defmacro comment 
-#  "Ignores the body of the comment"
-#  [&])
+(defmacro defstruct
+  "Define a new struct"
+  [name keys]
+  (let [name-str (php/-> name (getName))
+        class-name-str (php/. *ns* "\\" (php/:: Munge (encode name-str)))
+        is-name (php/new Symbol (php/. name-str "?"))]
+    `(do
+      (defstruct* ,name ,keys)
+      (defn ,name ,keys (php/new ,class-name-str ,@keys))
+      (defn ,is-name [x] (php/is_a x ,class-name-str)))))
+
+(defmacro comment 
+  "Ignores the body of the comment"
+  [&])
 
 (defn gensym 
   "Generates a new unique symbol."
@@ -436,6 +451,7 @@ Calling the and function without arguments returns true."
 
 * `:tuple`
 * `:array` 
+* `:struct`
 * `:table`
 * `:keyword`
 * `:symbol`
@@ -453,6 +469,7 @@ Calling the and function without arguments returns true."
   (cond
     (php/instanceof x Tuple)      :tuple
     (php/instanceof x PhelArray)  :array
+    (php/instanceof x Struct)     :struct
     (php/instanceof x Table)      :table
     (php/instanceof x Keyword)    :keyword
     (php/instanceof x Symbol)     :symbol
@@ -506,6 +523,11 @@ Calling the and function without arguments returns true."
   "Returns true if `x` is a function, false otherwise."
   [x]
   (= (type x) :function))
+
+(defn struct?
+  "Returns true if `x` is a struct, false otherwise."
+  [x]
+  (= (type x) :struct))
 
 (defn table?
   "Returns true if `x` is a table, false otherwise."

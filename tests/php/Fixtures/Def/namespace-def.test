@@ -1,6 +1,7 @@
 --PHEL--
-(ns my\namespace)
+(ns my\ns)
 
 (def x 1)
 --PHP--
-$GLOBALS["__phel"]["my\\namespace"]["x"] = 1;
+namespace my\ns;
+$GLOBALS["__phel"]["my\\ns"]["x"] = 1;
