@@ -1,7 +1,7 @@
-{% extends "documentation.html" %}
+{% extends "base.html" %}
 
 {% block title %}{{ page.title }} | {{ super() }} {% endblock title %}
-{% block doc_content %}
+{% block content %}
     <h1>{{page.title}}</h1>
 
     <ul class="api-index">
@@ -13,4 +13,4 @@
     </ul>
 
     {{page.content | safe}}
-{% endblock doc_content %}
+{% endblock content %}

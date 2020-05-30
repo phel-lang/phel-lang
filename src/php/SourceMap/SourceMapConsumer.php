@@ -5,9 +5,14 @@ namespace Phel\SourceMap;
 class SourceMapConsumer {
 
     /**
-     * @var VLQ;
+     * @var VLQ
      */
     private $vlq;
+
+    /**
+     * @var array
+     */
+    private $lineMapping;
 
     public function __construct(string $mapping)
     {

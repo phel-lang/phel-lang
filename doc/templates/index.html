@@ -1,11 +1,7 @@
 {% extends "base.html" %}
 
+{% block title %}{{ section.title }} | {{ super() }} {% endblock title %}
 {% block content %}
-<h1>
-  The Phel Lang
-</h1>
-
-<ul>
-    <li><a href="{{ get_url(path="@/documentation/master/_index.md") }}">Documentation</a></li>
-</ul>
+    <h1>The Phel Language</h1>
+    {{section.content | safe}}
 {% endblock content %}

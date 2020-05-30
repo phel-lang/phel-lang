@@ -119,9 +119,12 @@ class Emitter {
 
         if ($this->enableSourceMaps) {
             $sourceMap = $this->sourceMapGenerator->encode($this->sourceMap);
+            $file = $node->getStartSourceLocation() 
+                ? $node->getStartSourceLocation()->getFile() 
+                : 'string';
 
             return (
-                '// ' . realpath($node->getStartSourceLocation()->getFile()) . "\n"
+                '// ' . $file . "\n"
                 . '// ;;' . $sourceMap . "\n"
                 . $code
             );
@@ -647,7 +650,7 @@ class Emitter {
         $this->emitContextSuffix($node->getEnv(), $node->getStartSourceLocation());
     }
 
-    protected function emitArgList(array $nodes, SourceLocation $sepLoc, string $sep = ', ') {
+    protected function emitArgList(array $nodes, ?SourceLocation $sepLoc, string $sep = ', ') {
         $nodesCount = count($nodes);
         foreach ($nodes as $i => $arg) {
             $this->emit($arg);

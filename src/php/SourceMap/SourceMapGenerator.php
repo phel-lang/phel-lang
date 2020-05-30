@@ -5,7 +5,7 @@ namespace Phel\SourceMap;
 class SourceMapGenerator {
 
     /**
-     * @var VLQ;
+     * @var VLQ
      */
     private $vlq;
 

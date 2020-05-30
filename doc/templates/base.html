@@ -3,12 +3,51 @@
 
 <head>
   <meta charset="utf-8">
-  <title>The Phel Language</title>
+  <title>{% block title %}{{ config.title }}{% endblock title %}</title>
   <link rel="stylesheet" href="{{ get_url(path="site.css") }}"/>
 </head>
 
 <body>
-  {% block content %} {% endblock %}
+  {% set section = get_section(path="_index.md") %}
+  <div class="documentation">
+      <aside class="documentation__sidebar">
+          <div class="logo">
+              {% include "logo.html" %}
+          </div>
+
+          <input type="checkbox" id="menu_checkbox">
+          <label for="menu_checkbox">
+              <svg viewBox="0 0 32 32">
+                  <path d="M3,3 29,3 M3,16 29,16 M3,29 29,29"></path>
+              </svg>
+              Menu
+          </label>
+          <nav>
+              <ol>
+                  <li class="{% if current_path == '/' %}active{% endif %}">
+                      <a href="/">About Phel</a>
+                  </li>
+                  {% for page in section.pages %}
+                      <li class="{% if current_path == page.path %}active{% endif %}">
+                          <a href="{{page.permalink}}">{{page.title}}</a>
+                      </li>
+                  {% endfor %}
+              </ol>
+
+              <ul>
+                  <li><a href="https://github.com/jenshaase/phel-lang">Source on Github</a></li>
+              </ul>
+          </nav>
+      </aside>
+      <div class="documentation__content">
+        {% block content %} {% endblock %}
+
+        <footer>
+          &copy; <time datetime="2020">2020</time> Jens Haase
+          <a href="{{ get_url(path="@/legal/disclosure.md") }}">Legal Disclosure</a> | <a href="{{ get_url(path="@/legal/data-protection.md") }}">Data protection</a>
+        </footer>
+      </div>
+  </div>  
 </body>
 
 </html>
