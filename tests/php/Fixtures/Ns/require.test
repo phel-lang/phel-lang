@@ -3,6 +3,6 @@
   (:require xzy\core)
   (:require xyz\foo :as f))
 --PHP--
-namespace test;
+$GLOBALS["__phel"]["phel\\core"]["*ns*"] = "\\test";
 \Phel\Runtime::getInstance()->loadNs("xzy\\core");
 \Phel\Runtime::getInstance()->loadNs("xyz\\foo");

@@ -3,5 +3,5 @@
 
 (def x 1)
 --PHP--
-namespace my\ns;
+$GLOBALS["__phel"]["phel\\core"]["*ns*"] = "\\my\\ns";
 $GLOBALS["__phel"]["my\\ns"]["x"] = 1;

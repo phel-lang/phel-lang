@@ -1,6 +1,7 @@
 --PHEL--
 (defstruct* my-type [a b c])
 --PHP--
+namespace user;
 class my_type extends \Phel\Lang\Struct {
   public function __construct($a, $b, $c) {
     $this->offsetSet(new \Phel\Lang\Keyword("a"), $a);

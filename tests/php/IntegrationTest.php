@@ -13,7 +13,7 @@ class IntegrationTest extends TestCase {
     {
         Symbol::resetGen();
         $globalEnv = new GlobalEnvironment();
-        $rt = new Runtime($globalEnv);
+        $rt = Runtime::initialize($globalEnv);
         $rt->addPath('phel\\', [__DIR__ . '/../../src/phel/']);
         $rt->loadNs('phel\core');
         self::$globalEnv = $globalEnv;

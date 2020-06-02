@@ -120,7 +120,7 @@ use Phel\Runtime;
 
 require __DIR__ .'/../vendor/autoload.php';
 
-$rt = new Runtime();
+$rt = Runtime::initialize();
 $rt->addPath('hello-world\\', [__DIR__]);
 
 $rt->loadNs('phel\core');

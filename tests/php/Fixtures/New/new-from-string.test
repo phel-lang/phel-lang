@@ -3,5 +3,5 @@
 --PHP--
 (function() {
   $target_1 = "\\DateTimeImmutable";
-  new $target_1();
+  return new $target_1();
 })();

@@ -1,5 +1,5 @@
 {
     "loader": {
-        "Phel\\": "src/phel/"
+        "phel\\": "src/phel/"
     }
 }

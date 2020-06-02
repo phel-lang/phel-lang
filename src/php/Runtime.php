@@ -36,7 +36,7 @@ class Runtime {
      */
     private static $instance;
 
-    public function __construct(GlobalEnvironment $globalEnv = null, string $cacheDiretory = null) {
+    private function __construct(GlobalEnvironment $globalEnv = null, string $cacheDiretory = null) {
         set_exception_handler(array($this, 'exceptionHandler'));
 
         if (is_null($globalEnv)) {
@@ -45,6 +45,22 @@ class Runtime {
         $this->globalEnv = $globalEnv;
         $this->cacheDiretory = $cacheDiretory;
         $this->addPath('phel\\', [__DIR__ . '/../phel']);
+    }
+
+    public static function initialize(GlobalEnvironment $globalEnv = null, string $cacheDiretory = null) {
+        if (self::$instance !== null) {
+            throw new Exception("Runtime is already initialized");
+        }
+
+        self::$instance = new Runtime($globalEnv, $cacheDiretory);
+        return self::$instance;
+    }
+
+    /**
+     * @interal
+     */
+    public static function newInstance(GlobalEnvironment $globalEnv = null, string $cacheDiretory = null) {
+        return new Runtime($globalEnv, $cacheDiretory);
     }
 
     /**
@@ -62,8 +78,9 @@ class Runtime {
 
     public static function getInstance(): Runtime {
         if (is_null(self::$instance)) {
-            self::$instance = new Runtime();
+            throw new Exception("Runtime must first be initialized. Call Runtime::initialize()");
         }
+
         return self::$instance;
     }
 

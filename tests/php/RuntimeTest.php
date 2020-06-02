@@ -8,6 +8,11 @@ class RuntimeMock extends Runtime {
     public $files = array();
     public $loadedFile = null;
 
+    public function __construct()
+    {
+        $this->globalEnv = new GlobalEnvironment();
+    }
+
     public function setFiles(array $files) {
         $this->files = $files;
     }
