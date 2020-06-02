@@ -135,3 +135,7 @@ php -S localhost:8000 ./src/index.php
 ```
 
 In the browser, the URL `http://localhost:8000` will now print "Hello World".
+
+## Editor support
+
+Phel comes with a basic editor support for VSCode. Please checkout the [plugin's README file](https://github.com/jenshaase/phel-lang/tree/master/editor-support/phel-lang) for more information.
