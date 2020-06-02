@@ -31,16 +31,25 @@ Why did I wrote yet another programming language? Basically I wanted:
 The following example gives a short impression on how Phel looks like:
 
 ```phel
+# Define a namespace
 (ns my\example)
 
+# Define a variable with name "my-name" and value "world"
 (def my-name "world")
 
+# Define a function with name "print-name" and one argument "your-name"
 (defn print-name [your-name]
   (print "hello" your-name))
 
+# Call the function
 (print-name my-name)
 ```
 
 ## Getting started
 
 Phel requires PHP 7.4 or higher and Composer. Read the [Getting Started Guide](/getting-started) to create your first Phel programm.
+
+
+## Status of Development
+
+Phel has not been released yet. For my purposes it is running quite ok now. But there are probably a few more edge cases that I want to address before the first offical release.
