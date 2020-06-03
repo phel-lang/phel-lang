@@ -97,19 +97,19 @@ class GlobalEnvironment {
                 $name->getStartLocation()
             );
         } else {
-            $pos = strpos($strName, '/');
+            $pos = strpos($strName, '\\');
             
             if ($pos !== FALSE && $pos > 0) {
                 // If alias, try to resolve alias
                 $alias = substr($strName, 0, $pos);
 
-                if (isset($this->requireAlias[$alias])) {
-                    $namespace = $this->requireAlias[$alias];
+                if (isset($this->requireAliases[$alias])) {
+                    $namespace = $this->requireAliases[$alias];
                     $finalName = new Symbol(substr($strName, $pos+1));
 
                     $def = $this->getDefinition($namespace, $finalName);
                     if ($def) {
-                        return new GlobalVarNode($env, $namespace, $name, $def, $name->getStartLocation());
+                        return new GlobalVarNode($env, $namespace, $finalName, $def, $name->getStartLocation());
                     } else {
                         return null; // Can not be resolved
                     }

@@ -89,7 +89,11 @@ class Runtime {
         if ('\\' !== $namespacePrefix[$length - 1]) {
             throw new \InvalidArgumentException("A non-empty prefix must end with a namespace separator.");
         }
-        $this->paths[$namespacePrefix] = $path;
+        if (isset($this->paths[$namespacePrefix])) {
+            $this->paths[$namespacePrefix] = [...$this->paths[$namespacePrefix], ...$path];
+        } else {
+            $this->paths[$namespacePrefix] = $path;
+        }
     }
 
     public function loadNs(string $ns): bool {
