@@ -51,13 +51,6 @@ Would you like to define your dev dependencies (require-dev) interactively [yes]
 Do you confirm generation [yes]? yes
 ```
 
-Since Phel isn't released yet the Github repository needs to be added
-
-```bash
-# Add repositiory
-composer config repositories.phel vcs https://github.com/jenshaase/phel-lang
-```
-
 Next we can require Phel as dependecy of our project.
 
 ```bash
@@ -79,12 +72,6 @@ The final `composer.json` file should look like this:
     ],
     "require": {
         "phel/phel": "dev-master"
-    },
-    "repositories": {
-        "phel": {
-            "type": "vcs",
-            "url": "git@github.com:jenshaase/phel-lang.git"
-        }
     }
 }
 ```

@@ -24,7 +24,7 @@ class Repl {
         $this->readline->readHistory();
 
         $globalEnv = new GlobalEnvironment();
-        $rt = new Runtime($globalEnv, null);
+        $rt = Runtime::initialize($globalEnv, null);
         $rt->loadNs("phel\core");
         
         $reader = new Reader();
