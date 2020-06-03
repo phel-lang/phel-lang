@@ -1,5 +1,10 @@
 {
     "name": "phel/phel",
+    "type": "library",
+    "description": "Phel is a function programming language that compiles to PHP",
+    "keywords": ["phel","lisp","functional","language"],
+    "homepage": "https://phel-lang.org/",
+    "license": "MIT",
     "authors": [
         {
             "name": "Jens Haase",

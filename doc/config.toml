@@ -18,6 +18,8 @@ build_search_index = false
 
 extra_syntaxes = ["syntaxes"]
 
+description = "The offical website of the Phel language. Phel is a function programming language that compiles to PHP."
+
 [extra]
 # Put all your custom variables here
 

@@ -4,7 +4,12 @@
 <head>
   <meta charset="utf-8">
   <title>{% block title %}{{ config.title }}{% endblock title %}</title>
+
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="{{ config.description }}">
+
   <link rel="stylesheet" href="{{ get_url(path="site.css") }}"/>
+  <link rel="alternate icon" type="image/png" href="/favicon-32.png">
 </head>
 
 <body>
