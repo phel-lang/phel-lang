@@ -94,7 +94,7 @@ class Printer {
                         // characters U-00010000 - U-001FFFFF, mask 11110XXX
                         $hex = $this->utf8ToUnicodePoint(substr($str, $i, 4));
                         $i += 3;
-                        $ret .= sprintf('\u{%04s}', bin2hex($hex));
+                        $ret .= sprintf('\u{%04s}', $hex);
                         break;
                     case $o < 31 || $o > 126: 
                         $ret .= '\x' . str_pad(dechex($o), 2, '0', STR_PAD_LEFT);

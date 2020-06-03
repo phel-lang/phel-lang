@@ -86,7 +86,7 @@ class TextExceptionPrinter implements ExceptionPrinter {
             $type = $frame['type'] ?? '';
             $fn = $frame['function'];
             $argString = $this->buildPhpArgsString($frame['args']);
-            echo "#$i $file($line): $class$type$fn($argString)\n";
+            echo "#$i $generatedLine($generetedColumn): $class$type$fn($argString)\n";
         }
     }
 

@@ -97,7 +97,7 @@ class GlobalEnvironment {
                 $name->getStartLocation()
             );
         } else {
-            $pos = strpos($strName, '\\');
+            $pos = strpos($strName, '/');
             
             if ($pos !== FALSE && $pos > 0) {
                 // If alias, try to resolve alias
