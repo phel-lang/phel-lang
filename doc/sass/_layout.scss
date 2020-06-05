@@ -83,6 +83,10 @@
                 display: block;
                 text-align: left;
                 margin-top: 0;
+
+                li.active {
+                    font-weight: bold;
+                }
             }
             
         }

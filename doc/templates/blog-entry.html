@@ -1,0 +1,20 @@
+{% extends "base.html" %}
+
+{% block title %}{{ page.title }} | {{ super() }} {% endblock title %}
+{% block body %}
+<div class="blog">
+    <div class="logo">
+        {% include "logo.html" %}
+    </div>
+    <div class="nav">
+        <a href="/">The Phel Language</a>
+    </div>
+
+    <div class="blog__content">
+        <h1>{{page.title}}</h1>
+        {{page.content | safe}}
+    </div>
+
+    {% include "footer.html" %}
+</div>
+{% endblock content %}

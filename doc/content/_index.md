@@ -1,7 +1,5 @@
 +++
 title="The Phel Language"
-weight=0
-sort_by = "weight"
 +++
 
 Phel is a function programming language that compiles to PHP. It is a dialect of Lisp inspired by [Clojure](https://clojure.org/) and [Janet](https://janet-lang.org/).
@@ -18,10 +16,10 @@ Phel is a function programming language that compiles to PHP. It is a dialect of
 
 ## Why Phel?
 
-Why did I wrote yet another programming language? Basically I wanted:
+Phel is a result of my [failed attempts to do functional programming in PHP](/blog/functional-programming-in-php). Basically I wanted:
 
-* A LISP
-* for functional programming
+* A LISP-inspired
+* functional programming language
 * that runs on cheap hosting providers
 * and is easy to write and debug
 
@@ -52,4 +50,4 @@ Phel requires PHP 7.4 or higher and Composer. Read the [Getting Started Guide](/
 
 ## Status of Development
 
-Phel has not been released yet. For my purposes it is running quite ok now. But there are probably a few more edge cases that I want to address before the first offical release.
+Phel has not been released yet, but it is fairly complete. In the next weeks or months I will probably find some more edge cases that I will fix before the first offical release. Maybe some of you are willing to test it out and give feedback.

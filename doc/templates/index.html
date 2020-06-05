@@ -1,7 +1,7 @@
-{% extends "base.html" %}
+{% extends "documentation.html" %}
 
 {% block title %}{{ section.title }}{% endblock title %}
 {% block content %}
     <h1>The Phel Language</h1>
-    {{section.content | safe}}
+    {{ section.content | safe }}
 {% endblock content %}

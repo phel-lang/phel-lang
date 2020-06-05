@@ -27,3 +27,23 @@ ul.api-index {
 
     text-align: center;
 }
+
+.blog {
+    margin: 0 auto;
+    max-width: 800px;
+    padding: 2em 2em;
+
+    .phel-logo {
+        max-height: 8em;
+    }
+
+    .nav {
+        background-color: $color-base-primary;
+        padding: .5em;
+        text-align: center;
+
+        a {
+            color: white;
+        }
+    }
+}

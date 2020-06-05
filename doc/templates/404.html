@@ -1,17 +1,6 @@
-<!DOCTYPE html>
-<html lang="en">
+{% extends "base.html" %}
 
-<head>
-  <meta charset="utf-8">
-  <title>{% block title %}{{ config.title }}{% endblock title %}</title>
-
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-
-  <link rel="stylesheet" href="{{ get_url(path="site.css") }}"/>
-  <link rel="alternate icon" type="image/png" href="/favicon-32.png">
-</head>
-
-<body>
+{% block body %}
     <div class="documentation">
         <div class="documentation__content">
             <div class="page-404">
@@ -24,12 +13,7 @@
                 <a href="/">Back to start page</a>
             </div>
     
-            <footer>
-                &copy; <time datetime="2020">2020</time> Jens Haase
-                <a href="{{ get_url(path="@/legal/disclosure.md") }}">Legal Disclosure</a> | <a href="{{ get_url(path="@/legal/data-protection.md") }}">Data protection</a>
-            </footer>
+            {% include "footer.html" %}
         </div>
     </div>
-</body>
-
-</html>
+{% endblock %}
