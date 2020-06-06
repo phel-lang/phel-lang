@@ -3,6 +3,15 @@ title = "PHP Interop"
 weight = 13
 +++
 
+### Calling PHP functions
+
+PHP comes with huge set of functions that can be called from Phel by just adding a `php/` prefix to the function name.
+
+```
+(php/strlen "test") # Calls PHP's strlen function and evaluates to 4
+(php/date "l") # Evaluates to something like "Monday"
+```
+
 ## PHP class instantiation
 
 ```phel
