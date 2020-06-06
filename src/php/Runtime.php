@@ -10,6 +10,7 @@ use Phel\Exceptions\TextExceptionPrinter;
 use Phel\Lang\Keyword;
 use Phel\Lang\Symbol;
 use Phel\Lang\Table;
+use Throwable;
 
 class Runtime {
 
@@ -51,7 +52,7 @@ class Runtime {
         return new Runtime($globalEnv, $cacheDirectory);
     }
 
-    public function exceptionHandler(Exception $exception): void {
+    public function exceptionHandler(Throwable $exception): void {
         if (php_sapi_name() === 'cli') {
             $printer = new TextExceptionPrinter();
         } else {
