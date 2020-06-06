@@ -29,38 +29,38 @@ class Runtime {
     /**
      * @var string|null
      */
-    private $cacheDiretory;
+    private $cacheDirectory;
 
     /**
      * @var Runtime|null
      */
     private static $instance;
 
-    private function __construct(GlobalEnvironment $globalEnv = null, string $cacheDiretory = null) {
+    private function __construct(GlobalEnvironment $globalEnv = null, string $cacheDirectory = null) {
         set_exception_handler(array($this, 'exceptionHandler'));
 
         if (is_null($globalEnv)) {
             $globalEnv = new GlobalEnvironment();
         }
         $this->globalEnv = $globalEnv;
-        $this->cacheDiretory = $cacheDiretory;
+        $this->cacheDirectory = $cacheDirectory;
         $this->addPath('phel\\', [__DIR__ . '/../phel']);
     }
 
-    public static function initialize(GlobalEnvironment $globalEnv = null, string $cacheDiretory = null) {
+    public static function initialize(GlobalEnvironment $globalEnv = null, string $cacheDirectory = null) {
         if (self::$instance !== null) {
             throw new Exception("Runtime is already initialized");
         }
 
-        self::$instance = new Runtime($globalEnv, $cacheDiretory);
+        self::$instance = new Runtime($globalEnv, $cacheDirectory);
         return self::$instance;
     }
 
     /**
      * @interal
      */
-    public static function newInstance(GlobalEnvironment $globalEnv = null, string $cacheDiretory = null) {
-        return new Runtime($globalEnv, $cacheDiretory);
+    public static function newInstance(GlobalEnvironment $globalEnv = null, string $cacheDirectory = null) {
+        return new Runtime($globalEnv, $cacheDirectory);
     }
 
     /**
@@ -121,8 +121,8 @@ class Runtime {
     }
 
     protected function getCachedFilePath(string $file, string $ns): ?string {
-        if ($this->cacheDiretory) {
-            return $this->cacheDiretory 
+        if ($this->cacheDirectory) {
+            return $this->cacheDirectory 
                 . DIRECTORY_SEPARATOR
                 . str_replace('\\', '.', $ns) 
                 . '.' . md5_file($file)
