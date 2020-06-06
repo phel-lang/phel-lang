@@ -27,7 +27,7 @@ Function can also be defined as variadic function with an infite amount of argum
 (fn [a b c &]) # A variadic function with extra arguments ignored
 ```
 
-There is shorter from to define an anonymous function. This omits the parameter list and names parameters based on their position.
+There is a shorter form to define an anonymous function. This omits the parameter list and names parameters based on their position.
 
 * `$` is used for a single parameter
 * `$1`, `$2`, `$3`, etc are used for multiple parameters
