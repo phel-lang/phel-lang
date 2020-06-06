@@ -8,8 +8,7 @@ use Phel\Runtime;
 
 require __DIR__ .'/../vendor/autoload.php';
 
-$globalEnv = new GlobalEnvironment();
-$rt = new Runtime($globalEnv);
+$rt = Runtime::initialize();
 $rt->addPath('phel\\', [__DIR__ . '/../src/phel']);
 $rt->loadNs('phel\core');
 

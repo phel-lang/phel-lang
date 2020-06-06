@@ -24,7 +24,11 @@ numbers. If `xs` is empty, return 1.
 ```phel
 (** a x)
 ```
-Return a to the power of `x`.
+Return `a` to the power of `x`.
+
+## `*ns*`
+
+
 
 ## `+`
 
@@ -276,6 +280,13 @@ implement the PHP Countable interface.
 ```
 Decrements `x` by one.
 
+## `declare`
+
+```phel
+(declare name)
+```
+Declare a global symbol before it is defined.
+
 ## `def-`
 
 ```phel
@@ -310,6 +321,13 @@ Define a new global function
 (defn- name & fdecl)
 ```
 Define a private function that will not be exported
+
+## `defstruct`
+
+```phel
+(defstruct name keys)
+```
+Define a new struct
 
 ## `distinct`
 
@@ -436,7 +454,8 @@ Generates a new unique symbol.
 ```phel
 (get ds k & [opt])
 ```
-
+Get the value mapped to `key` from the datastructure `ds`. 
+  Returns `opt` or nil if the value can not be found.
 
 ## `get-in`
 
@@ -805,7 +824,7 @@ Inserts `x` at the end of the sequence `xs`.
 ```phel
 (put ds key value)
 ```
-
+Puts `value` mapped to `key` on the datastructure `ds`. Returns `ds`.
 
 ## `put-in`
 
@@ -899,7 +918,7 @@ Returns a random permutation of xs.
 ```phel
 (slice xs & [offset & [length]])
 ```
-
+Extract a slice of `xs`.
 
 ## `some?`
 
@@ -953,6 +972,13 @@ This is PHP equalivalent to `$args[0] . $args[1] . $args[2] ...`
 (string? x)
 ```
 Returns true if `x` is a string, false otherwise.
+
+## `struct?`
+
+```phel
+(struct? x)
+```
+Returns true if `x` is a struct, false otherwise.
 
 ## `sum`
 
@@ -1060,6 +1086,7 @@ Returns the type of `x`. Following types can be returned:
 
 * `:tuple`
 * `:array` 
+* `:struct`
 * `:table`
 * `:keyword`
 * `:symbol`
@@ -1073,6 +1100,13 @@ Returns the type of `x`. Following types can be returned:
 * `:php/resource`
 * `:php/object`
 * `:unknown`
+
+## `unset`
+
+```phel
+(unset ds key)
+```
+Returns `ds` without `key`.
 
 ## `update`
 

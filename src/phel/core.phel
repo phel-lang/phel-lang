@@ -128,6 +128,11 @@ elements, returns nil."
   [name & fdecl] 
   (apply defn-builder name @{:macro true :private true} fdecl))
 
+(defmacro declare
+  "Declare a global symbol before it is defined."
+  [name]
+  `(def ,name nil))
+
 (defmacro defstruct
   "Define a new struct"
   [name keys]
