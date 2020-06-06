@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Phel;
 
 use Exception;
@@ -11,30 +13,16 @@ use Phel\Lang\Table;
 
 class Runtime {
 
-    /**
-     * @var GlobalEnvironment
-     */
-    private $globalEnv;
+    private GlobalEnvironment $globalEnv;
 
-    /**
-     * @var string[]
-     */
-    private $loadedNs = [];
+    /** @var string[] */
+    private array $loadedNs = [];
 
-    /**
-     * @var array
-     */
-    private $paths = [];
+    private array $paths = [];
 
-    /**
-     * @var string|null
-     */
-    private $cacheDirectory;
+    private ?string $cacheDirectory = null;
 
-    /**
-     * @var Runtime|null
-     */
-    private static $instance;
+    private static ?Runtime $instance = null;
 
     private function __construct(GlobalEnvironment $globalEnv = null, string $cacheDirectory = null) {
         set_exception_handler(array($this, 'exceptionHandler'));
@@ -59,15 +47,12 @@ class Runtime {
     /**
      * @interal
      */
-    public static function newInstance(GlobalEnvironment $globalEnv = null, string $cacheDirectory = null) {
+    public static function newInstance(GlobalEnvironment $globalEnv = null, string $cacheDirectory = null): self {
         return new Runtime($globalEnv, $cacheDirectory);
     }
 
-    /**
-     * @param Exception $exception
-     */
-    public function exceptionHandler($exception) {
-        if (php_sapi_name() == 'cli') {
+    public function exceptionHandler(Exception $exception): void {
+        if (php_sapi_name() === 'cli') {
             $printer = new TextExceptionPrinter();
         } else {
             $printer = new HtmlExceptionPrinter();
@@ -105,9 +90,9 @@ class Runtime {
 
                 if ($this->isCached($file, $ns)) {
                     return $this->loadCachedFile($file, $ns);
-                } else {    
-                    return $this->loadFile($file, $ns);
                 }
+
+                return $this->loadFile($file, $ns);
             }
         }
 
@@ -127,9 +112,9 @@ class Runtime {
                 . str_replace('\\', '.', $ns) 
                 . '.' . md5_file($file)
                 . '.php';
-        } else {
-            return null;
         }
+
+        return null;
     }
 
     /**
