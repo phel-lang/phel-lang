@@ -7,16 +7,6 @@ use \PHPUnit\Framework\TestCase;
 
 class LexerTest extends TestCase {
 
-    public function testWhitespace() {
-        $this->assertEquals(
-            [
-                new Token(Token::T_WHITESPACE, " \n\t\r\n", new SourceLocation("string", 1, 0), new SourceLocation("string", 3, 0)),
-                new Token(Token::T_EOF, "", new SourceLocation("string", 3, 0), new SourceLocation("string", 3, 0))
-            ],
-            $this->lex(" \n\t\r\n")
-        );
-    }
-
     public function testReadCommentWithoutText() {
         $this->assertEquals(
             [

@@ -8,7 +8,7 @@ $GLOBALS["__phel"]["user"]["x"] = new class() extends \Phel\Lang\AFn {
 
   public function __invoke() {
     return (function() {
-      foreach (\Phel\Lang\Tuple::createBracket(1, 2, 3) as $v) {
+      foreach ((\Phel\Lang\Tuple::createBracket(1, 2, 3) ?? []) as $v) {
         ($v + $v);
       }
       return null;
