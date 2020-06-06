@@ -61,6 +61,7 @@ class Lexer {
         $this->cursor = 0;
         $this->line = 1;
         $this->column = 0;
+        $code = rtrim($code);
         $end = strlen($code);
 
         $startLocation = new SourceLocation($source, $this->line, $this->column);
