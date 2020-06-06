@@ -250,7 +250,8 @@ class Emitter {
         $this->emitLine('}', $node->getStartSourceLocation());
     }
 
-    protected function emitPhpVariable(Symbol $m, SourceLocation $loc = null, $asReference = false, $isVariadic = false) {
+
+    protected function emitPhpVariable(Symbol $m, SourceLocation $loc = null, bool $asReference = false, bool $isVariadic = false) {
         if (is_null($loc)) {
             $loc = $m->getStartLocation();
         }
@@ -811,7 +812,8 @@ class Emitter {
                 $this->emitPhpVariable($p, null, false, true);
             } else {
                 $meta = $p->getMeta();
-                $this->emitPhpVariable($p, null, $meta[new Keyword("reference")]);
+                $asReference = $meta[new Keyword("reference")] ?? false;
+                $this->emitPhpVariable($p, null, $asReference);
             }
 
             if ($i < $paramsCount - 1) {
@@ -1072,7 +1074,7 @@ class Emitter {
         return Munge::encode($s);
     }
 
-    protected function emitLine($str = '', ?SourceLocation $sl = null) {
+    protected function emitLine(string $str = '', ?SourceLocation $sl = null) {
         if (strlen($str) > 0) {
             $this->emitStr($str, $sl);
         }
@@ -1083,7 +1085,7 @@ class Emitter {
         echo PHP_EOL;
     }
 
-    protected function emitStr($str, ?SourceLocation $sl = null) {
+    protected function emitStr(string $str, ?SourceLocation $sl = null) {
         if ($this->generatedColumns == 0) {
             $this->generatedColumns += $this->indentLevel * 2;
             echo str_repeat(' ', $this->indentLevel * 2);

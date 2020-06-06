@@ -66,14 +66,12 @@ class Tuple extends Phel implements ArrayAccess, Countable, Iterator, ISlice, IC
         throw new \InvalidArgumentException('Calling offsetUnset is not supported on Tuples since they are immutable');
     }
 
-    /**
-     * @return mixed|null
-     */
+    /** @return ?mixed */
     public function offsetGet($offset) {
-        return isset($this->data[$offset]) ? $this->data[$offset] : null;
+        return $this->data[$offset] ?? null;
     }
 
-    public function count() {
+    public function count(): int {
         return count($this->data);
     }
 
@@ -117,14 +115,12 @@ class Tuple extends Phel implements ArrayAccess, Countable, Iterator, ISlice, IC
         if (is_null($value)) {
             unset($this->data[$offset]);
             $res = new Tuple(array_values($this->data), $this->isUsingBracket()); // reindex
+        } elseif ($offset == count($this->data)) {
+            $res = new Tuple([...$this->data, $value], $this->isUsingBracket());
         } else {
-            if ($offset == count($this->data)) {
-                $res = new Tuple([...$this->data, $value], $this->isUsingBracket());
-            } else {
-                $newData = $this->data;
-                $newData[$offset] = $value;
-                $res = new Tuple($newData, $this->isUsingBracket());
-            }
+            $newData = $this->data;
+            $newData[$offset] = $value;
+            $res = new Tuple($newData, $this->isUsingBracket());
         }
 
         $start = $this->getStartLocation();

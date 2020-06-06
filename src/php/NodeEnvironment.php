@@ -137,7 +137,7 @@ class NodeEnvironment {
         }        
     }
 
-    public function withBoundTo($boundTo) {
+    public function withBoundTo(string $boundTo): NodeEnvironment {
         return new NodeEnvironment($this->locals, $this->context, $this->shadowed, $this->recurFrames, $boundTo);
     }
 

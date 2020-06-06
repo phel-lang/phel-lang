@@ -88,7 +88,7 @@ class VLQ {
         return $result;
     }
 
-    private function bitShiftRightWithZero($v, $n) {
+    private function bitShiftRightWithZero(int $v, int $n) {
         return ($v & 0xFFFFFFFF) >> ($n & 0x1F);
     }
 }

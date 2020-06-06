@@ -11,7 +11,6 @@ use Phel\Ast\CatchNode;
 use Phel\Ast\DefNode;
 use Phel\Ast\DefStructNode;
 use Phel\Ast\DoNode;
-use Phel\Ast\NsNode;
 use Phel\Ast\FnNode;
 use Phel\Ast\ForeachNode;
 use Phel\Ast\GlobalVarNode;
@@ -21,6 +20,7 @@ use Phel\Ast\LiteralNode;
 use Phel\Ast\LocalVarNode;
 use Phel\Ast\MethodCallNode;
 use Phel\Ast\Node;
+use Phel\Ast\NsNode;
 use Phel\Ast\PhelArrayNode;
 use Phel\Ast\PhpArrayGetNode;
 use Phel\Ast\PhpArrayPushNode;
@@ -37,20 +37,18 @@ use Phel\Ast\ThrowNode;
 use Phel\Ast\TryNode;
 use Phel\Ast\TupleNode;
 use Phel\Exceptions\AnalyzerException;
+use Phel\Lang\ISourceLocation;
 use Phel\Lang\Keyword;
 use Phel\Lang\Phel;
 use Phel\Lang\PhelArray;
 use Phel\Lang\Symbol;
 use Phel\Lang\Table;
 use Phel\Lang\Tuple;
-use Throwable;
+use Webmozart\Assert\Assert;
 
 class Analyzer {
 
-    /**
-     * @var GlobalEnvironment
-     */
-    protected $globalEnvironment;
+    protected GlobalEnvironment $globalEnvironment;
 
     protected $phpKeywords = [
         '__halt_compiler', 'abstract', 'and', 'array', 'as', 'break', 
@@ -87,10 +85,7 @@ class Analyzer {
     }
 
     /**
-     * @param Phel|scalar|null $x
-     * @param ?NodeEnvironment $nodeEnvironment
-     * 
-     * @return Node
+     * @param mixed $x
      */
     public function analyze($x, ?NodeEnvironment $nodeEnvironment = null): Node {
         if (is_null($nodeEnvironment)) {
@@ -99,15 +94,20 @@ class Analyzer {
 
         if ($this->isLiteral($x)) {
             return $this->analyzeLiteral($x, $nodeEnvironment);
-        } else if ($x instanceof Symbol) {
+        }
+        if ($x instanceof Symbol) {
             return $this->analyzeVar($x, $nodeEnvironment);
-        } else if ($x instanceof Tuple && $x->isUsingBracket()) {
+        }
+        if ($x instanceof Tuple && $x->isUsingBracket()) {
             return $this->analyzeBracketTuple($x, $nodeEnvironment);
-        } else if ($x instanceof PhelArray) {
+        }
+        if ($x instanceof PhelArray) {
             return $this->analyzeArray($x, $nodeEnvironment);
-        } else if ($x instanceof Table) {
+        }
+        if ($x instanceof Table) {
             return $this->analyzeTable($x, $nodeEnvironment);
-        } else if ($x instanceof Tuple) {
+        }
+        if ($x instanceof Tuple) {
             if ($x[0] instanceof Symbol) {
                 switch ($x[0]->getName()) {
                     case 'def':
@@ -155,12 +155,12 @@ class Analyzer {
                     default:
                         return $this->analyzeInvoke($x, $nodeEnvironment);
                 }
-            } else {
-                return $this->analyzeInvoke($x, $nodeEnvironment);
             }
-        } else {
-            throw new AnalyzerException('Unhandled type: ' . var_export($x, true), null, null);
+
+            return $this->analyzeInvoke($x, $nodeEnvironment);
         }
+
+        throw new AnalyzerException('Unhandled type: ' . var_export($x, true), null, null);
     }
 
     protected function analyzeDefStruct(Tuple $x, NodeEnvironment $env): DefStructNode {
@@ -394,6 +394,7 @@ class Analyzer {
         $lets = [];
         for ($i = 0; $i < $loopBindingsCount; $i+=2) {
             $b = $loopBindings[$i];
+            Assert::isInstanceOf($b, ISourceLocation::class);
             $init = $loopBindings[$i+1];
 
             if ($b instanceof Symbol) {
@@ -411,35 +412,38 @@ class Analyzer {
             }
         }
 
-        if (count($lets) > 0) {
-            $bodyExpr = [];
-            for ($i = 2; $i < $tupleCount; $i++) {
-                $bodyExpr[] = $x[$i];
-            }
-            $letSym = new Symbol('let');
-            $letSym->setStartLocation($x[0]->getStartLocation());
-            $letSym->setEndLocation($x[0]->getEndLocation());
-
-            $letExpr = Tuple::create(
-                $letSym,
-                new Tuple($lets, true),
-                ...$bodyExpr
-            );
-            $letExpr->setStartLocation($x->getStartLocation());
-            $letExpr->setEndLocation($x->getEndLocation());
-
-            $newExpr = Tuple::create(
-                $x[0],
-                new Tuple($preInits, true),
-                $letExpr
-            );
-            $newExpr->setStartLocation($x->getStartLocation());
-            $newExpr->setEndLocation($x->getEndLocation());
-
-            return $this->analyzeLetOrLoop($newExpr, $env, true);
-        } else {
+        if (count($lets) === 0) {
             return $this->analyzeLetOrLoop($x, $env, true);
         }
+
+        $bodyExpr = [];
+        for ($i = 2; $i < $tupleCount; $i++) {
+            $bodyExpr[] = $x[$i];
+        }
+        Assert::isInstanceOf($x[0], Phel::class);
+        $letSym = new Symbol('let');
+        $letSym->setStartLocation($x[0]->getStartLocation());
+        $letSym->setEndLocation($x[0]->getEndLocation());
+
+        $letExpr = Tuple::create(
+            $letSym,
+            new Tuple($lets, true),
+            ...$bodyExpr
+        );
+
+        Assert::isInstanceOf($x, ISourceLocation::class);
+        $letExpr->setStartLocation($x->getStartLocation());
+        $letExpr->setEndLocation($x->getEndLocation());
+
+        $newExpr = Tuple::create(
+            $x[0],
+            new Tuple($preInits, true),
+            $letExpr
+        );
+        $newExpr->setStartLocation($x->getStartLocation());
+        $newExpr->setEndLocation($x->getEndLocation());
+
+        return $this->analyzeLetOrLoop($newExpr, $env, true);
     }
 
     protected function analyzeThrow(Tuple $x, NodeEnvironment $env): ThrowNode {
@@ -571,6 +575,7 @@ class Analyzer {
         $frame = $env->getCurrentRecurFrame();
 
         if (!$frame) {
+            Assert::isInstanceOf($x[0], ISourceLocation::class);
             throw new AnalyzerException(
                 "Can't call 'recur here",
                 $x[0]->getStartLocation(),
@@ -592,6 +597,7 @@ class Analyzer {
 
         $exprs = [];
         for($i = 1; $i < $tupleCount; $i++) {
+            Assert::isInstanceOf($x[$i], Phel::class);
             $exprs[] = $this->analyze($x[$i], $env->withContext(NodeEnvironment::CTX_EXPR)->withDisallowRecurFrame());
         }
 
@@ -845,6 +851,7 @@ class Analyzer {
 
             $nextBoundTo = $initEnv->getBoundTo() . '.' . $sym->getName();
             $expr = $this->analyze($init, $initEnv->withBoundTo($nextBoundTo));
+            Assert::notNull($x[$i]);
 
             $nodes[] = new BindingNode(
                 $env,

@@ -29,7 +29,7 @@ class SourceMapConsumer {
             $segments = explode(",", $line);
 
             foreach ($segments as $j => $segment) {
-                if (strlen($segment) > 0) {
+                if ($segment !== '') {
                     $relMapping = $this->vlq->decode($segment);
 
                     $absMapping = [
@@ -49,11 +49,11 @@ class SourceMapConsumer {
         return $lineMapping;
     }
 
-    public function getOriginalLine($generatedLine) {
+    public function getOriginalLine(int $generatedLine): ?int {
         if (isset($this->lineMapping[$generatedLine])) {
             return min($this->lineMapping[$generatedLine]);
-        } else {
-            return null;
         }
+
+        return null;
     }
 }

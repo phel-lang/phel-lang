@@ -82,7 +82,7 @@ class Repl {
         }
     }
 
-    protected function color($text = '', $color = null) {
+    protected function color(string $text = '', ?string $color = null) {
         $styles = array(
             'green'  => "\033[0;32m%s\033[0m",
             'red'    => "\033[31;31m%s\033[0m",
@@ -90,14 +90,14 @@ class Repl {
             'blue'   => "\033[33;34m%s\033[0m",
         );
 
-        return sprintf(isset($styles[$color]) ? $styles[$color] : "%s", $text);
+        return sprintf($styles[$color] ?? "%s", $text);
     }
 
     protected function input() {
         return fgets(STDIN);
     }
 
-    protected function output($value) {
+    protected function output(string $value) {
         fputs(STDOUT, $value);
     }
 }

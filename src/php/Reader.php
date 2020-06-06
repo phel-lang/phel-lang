@@ -12,6 +12,7 @@ use Phel\Lang\Symbol;
 use Phel\Lang\Table;
 use Phel\Lang\Tuple;
 use Phel\CodeSnippet;
+use Webmozart\Assert\Assert;
 
 class Reader {
 
@@ -144,7 +145,7 @@ class Reader {
                     $this->fnArgs = [];
                     $body = $this->readList($tokenStream, Token::T_CLOSE_PARENTHESIS);
 
-                    if (count($this->fnArgs) > 0) {
+                    if (!empty($this->fnArgs)) {
                         $maxParams = max(array_keys($this->fnArgs));
                         $params = [];
                         for ($i = 1; $i <= $maxParams; $i++) {
@@ -210,15 +211,16 @@ class Reader {
         }
         $object = $this->readExpressionHard($tokenStream, "missing object expression for meta data");
 
-        if ($object instanceof IMeta) {
-            $objMeta = $object->getMeta();
-            foreach ($meta as $k => $v) {
-                $objMeta[$k] = $v;
-            }
-            $object->setMeta($objMeta);
-        } else {
+        if (!$object instanceof IMeta) {
             throw $this->buildReaderException('Metadata can only applied to classes that implement IMeta');
         }
+
+        $objMeta = $object->getMeta();
+        foreach ($meta as $k => $v) {
+            Assert::notNull($k);
+            $objMeta[$k] = $v;
+        }
+        $object->setMeta($objMeta);
 
         return $object;
     }
@@ -322,40 +324,43 @@ class Reader {
         }
     }
 
-    protected function readSymbol($word) {
+    protected function readSymbol(string $word) {
         if (is_array($this->fnArgs)) {
             // Special case: We read an anonymous function
-            if ($word == "$") {
+            if ($word === "$") {
                 if (isset($this->fnArgs[1])) {
                     return new Symbol($this->fnArgs[1]->getName());
-                } else {
-                    $sym = Symbol::gen('__short_fn_1_');
-                    $this->fnArgs[1] = $sym;
-                    return $sym;
                 }
-            } else if ($word == "$&") {
+                $sym = Symbol::gen('__short_fn_1_');
+                $this->fnArgs[1] = $sym;
+                return $sym;
+
+            }
+
+            if ($word === "$&") {
                 if (isset($this->fnArgs[0])) {
                     return new Symbol($this->fnArgs[0]->getName());
-                } else {
-                    $sym = Symbol::gen('__short_fn_rest_');
-                    $this->fnArgs[0] = $sym;
-                    return $sym;
                 }
-            } else if (preg_match('/\$([1-9][0-9]*)/', $word, $matches)) {
+
+                $sym = Symbol::gen('__short_fn_rest_');
+                $this->fnArgs[0] = $sym;
+
+                return $sym;
+            }
+
+            if (preg_match('/\$([1-9][0-9]*)/', $word, $matches)) {
                 $number = (int) $matches[1];
                 if (isset($this->fnArgs[$number])) {
                     return new Symbol($this->fnArgs[$number]->getName());
-                } else {
-                    $sym = Symbol::gen('__short_fn_' . $number . '_');
-                    $this->fnArgs[$number] = $sym;
-                    return $sym;
                 }
-            } else {
-                return new Symbol($word);
+                $sym = Symbol::gen('__short_fn_' . $number . '_');
+                $this->fnArgs[$number] = $sym;
+
+                return $sym;
             }
-        } else {
-            return new Symbol($word);
         }
+
+        return new Symbol($word);
     }
 
     protected function parseEscapedString(string $str): string {
@@ -365,18 +370,19 @@ class Reader {
             '~\\\\([\\\\$nrtfve]|[xX][0-9a-fA-F]{1,2}|[0-7]{1,3}|u\{([0-9a-fA-F]+)\})~',
             function(array $matches): string {
                 $str = $matches[1];
-
                 if (isset($this->stringReplacements[$str])) {
                     return $this->stringReplacements[$str];
-                } elseif ('x' === $str[0] || 'X' === $str[0]) {
-                    return chr(hexdec(substr($str, 1)));
-                } elseif ('u' === $str[0]) {
-                    return self::codePointToUtf8(hexdec($matches[2]));
-                } else {
-                    /** @var int $n */
-                    $n = octdec($str);
-                    return chr($n);
                 }
+                if ('x' === $str[0] || 'X' === $str[0]) {
+                    return chr(hexdec(substr($str, 1)));
+                }
+                if ('u' === $str[0]) {
+                    return self::codePointToUtf8(hexdec($matches[2]));
+                }
+                /** @var int $n */
+                $n = octdec($str);
+
+                return chr($n);
             },
             $str
         );
@@ -406,7 +412,7 @@ class Reader {
      * 
      * @return CodeSnippet
      */
-    private function getCodeSnippet($readTokens): CodeSnippet {
+    private function getCodeSnippet(array $readTokens): CodeSnippet {
         $tokens = $this->removeLeadingWhitespace($readTokens);
         $code = $this->getCode($tokens);
 
@@ -439,7 +445,7 @@ class Reader {
      * 
      * @return Token[]
      */
-    private function removeLeadingWhitespace($readTokens) {
+    private function removeLeadingWhitespace(array $readTokens) {
         $result = [];
         $leadingWhitespace = true;
         foreach ($readTokens as $token) {
