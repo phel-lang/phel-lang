@@ -300,7 +300,7 @@ implement the PHP Countable interface."
     (first pairs)))
 
 # ----------------
-# Boolen operation
+# Boolean operation
 # ----------------
 
 (defmacro or

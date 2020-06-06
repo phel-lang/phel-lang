@@ -145,7 +145,7 @@
 (assert (= 2 (case true true 2 1)) "case one successful test with default")
 
 # ----------------
-# Boolen operation
+# Boolean operation
 # ----------------
 
 (assert (= nil (or)) "or zero args")
