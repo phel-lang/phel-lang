@@ -3,7 +3,7 @@ title = "PHP Interop"
 weight = 13
 +++
 
-### Calling PHP functions
+## Calling PHP functions
 
 PHP comes with huge set of functions that can be called from Phel by just adding a `php/` prefix to the function name.
 
