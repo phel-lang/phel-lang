@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Phel;
 
 use Exception;
@@ -8,66 +10,50 @@ use Phel\Exceptions\TextExceptionPrinter;
 use Phel\Lang\Keyword;
 use Phel\Lang\Symbol;
 use Phel\Lang\Table;
+use Throwable;
 
 class Runtime {
 
-    /**
-     * @var GlobalEnvironment
-     */
-    private $globalEnv;
+    private GlobalEnvironment $globalEnv;
 
-    /**
-     * @var string[]
-     */
-    private $loadedNs = [];
+    /** @var string[] */
+    private array $loadedNs = [];
 
-    /**
-     * @var array
-     */
-    private $paths = [];
+    private array $paths = [];
 
-    /**
-     * @var string|null
-     */
-    private $cacheDiretory;
+    private ?string $cacheDirectory = null;
 
-    /**
-     * @var Runtime|null
-     */
-    private static $instance;
+    private static ?Runtime $instance = null;
 
-    private function __construct(GlobalEnvironment $globalEnv = null, string $cacheDiretory = null) {
+    private function __construct(GlobalEnvironment $globalEnv = null, string $cacheDirectory = null) {
         set_exception_handler(array($this, 'exceptionHandler'));
 
         if (is_null($globalEnv)) {
             $globalEnv = new GlobalEnvironment();
         }
         $this->globalEnv = $globalEnv;
-        $this->cacheDiretory = $cacheDiretory;
+        $this->cacheDirectory = $cacheDirectory;
         $this->addPath('phel\\', [__DIR__ . '/../phel']);
     }
 
-    public static function initialize(GlobalEnvironment $globalEnv = null, string $cacheDiretory = null) {
+    public static function initialize(GlobalEnvironment $globalEnv = null, string $cacheDirectory = null) {
         if (self::$instance !== null) {
             throw new Exception("Runtime is already initialized");
         }
 
-        self::$instance = new Runtime($globalEnv, $cacheDiretory);
+        self::$instance = new Runtime($globalEnv, $cacheDirectory);
         return self::$instance;
     }
 
     /**
      * @interal
      */
-    public static function newInstance(GlobalEnvironment $globalEnv = null, string $cacheDiretory = null) {
-        return new Runtime($globalEnv, $cacheDiretory);
+    public static function newInstance(GlobalEnvironment $globalEnv = null, string $cacheDirectory = null): self {
+        return new Runtime($globalEnv, $cacheDirectory);
     }
 
-    /**
-     * @param Exception $exception
-     */
-    public function exceptionHandler($exception) {
-        if (php_sapi_name() == 'cli') {
+    public function exceptionHandler(Throwable $exception): void {
+        if (php_sapi_name() === 'cli') {
             $printer = new TextExceptionPrinter();
         } else {
             $printer = new HtmlExceptionPrinter();
@@ -105,9 +91,9 @@ class Runtime {
 
                 if ($this->isCached($file, $ns)) {
                     return $this->loadCachedFile($file, $ns);
-                } else {    
-                    return $this->loadFile($file, $ns);
                 }
+
+                return $this->loadFile($file, $ns);
             }
         }
 
@@ -121,15 +107,15 @@ class Runtime {
     }
 
     protected function getCachedFilePath(string $file, string $ns): ?string {
-        if ($this->cacheDiretory) {
-            return $this->cacheDiretory 
+        if ($this->cacheDirectory) {
+            return $this->cacheDirectory 
                 . DIRECTORY_SEPARATOR
                 . str_replace('\\', '.', $ns) 
                 . '.' . md5_file($file)
                 . '.php';
-        } else {
-            return null;
         }
+
+        return null;
     }
 
     /**
