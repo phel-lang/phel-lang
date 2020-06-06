@@ -138,4 +138,4 @@ One last alternaitve is to use a language that is functional and compiles to PHP
 
 ## Introducing Phel
 
-Since I didn't found a good solution for this problem, I used my coronavirus spare time to solve it by myself. This is what turns out to be Phel. Phel is a function programming language that compiles to PHP. It is a dialect of Lisp inspired by [Clojure](https://clojure.org/) and [Janet](https://janet-lang.org/). While the status of Phel is currently alpha, it is fairly complete. If you want to try it, go ahead and read the [Getting started guide](https://phel-lang.org/getting-started/). I'm looking for your feedback.
+Since I didn't found a good solution for this problem, I used my coronavirus spare time to solve it by myself. This is what turns out to be Phel. Phel is a function programming language that compiles to PHP. It is a dialect of Lisp inspired by [Clojure](https://clojure.org/) and [Janet](https://janet-lang.org/). While the status of Phel is currently alpha, it is fairly complete. If you want to try it, go ahead and read the [Getting started guide](/documentation/getting-started/). I'm looking for your feedback.

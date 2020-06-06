@@ -55,7 +55,7 @@ Some operators support zero, one or mutiple arguments.
 
 (/) # Evaluates to 1
 (/ 2) # Evaluates to 0.5 (reciprocal of 2)
-(* 24 4 2) #Evaluates to 3
+(/ 24 4 2) #Evaluates to 3
 ```
 
 Further numeric operations are `%` to compute the remainder of two values and `**` to raise a number to the power. All numeric operations can be found in the API documentation.
