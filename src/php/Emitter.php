@@ -265,9 +265,9 @@ class Emitter {
             $this->emitFnWrapPrefix($node->getEnv(), $node->getStartSourceLocation());
         }
 
-        $this->emitStr('foreach (', $node->getStartSourceLocation());
+        $this->emitStr('foreach ((', $node->getStartSourceLocation());
         $this->emit($node->getListExpr());
-        $this->emitStr(' as ', $node->getStartSourceLocation());
+        $this->emitStr(' ?? []) as ', $node->getStartSourceLocation());
         if ($node->getKeySymbol()) {
             $this->emitPhpVariable($node->getKeySymbol());
             $this->emitStr(' => ', $node->getStartSourceLocation());
