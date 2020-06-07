@@ -358,6 +358,8 @@
 (assert (= @["13" "24"] (map str [1 2 10] [3 4])) "map2 unequal size")
 (assert (= @[[0 "a"] [1 "b"] [2 "c"]] (map-indexed tuple-brackets ["a" "b" "c"])) "map-indexed")
 (assert (= @[1 2 3 4 5 6] (mapcat reverse [[3 2 1] [6 5 4]])) "mapcat")
+(assert (= @[] (mapcat identity [])) "mapcat on empty tuple")
+(assert (= @[] (mapcat identity @[])) "mapcat on empty array")
 
 (assert (= "abc" (reduce str "" ["a" "b" "c"])) "reduce three elements tuple")
 (assert (= "x" (reduce str "x" [])) "reduce empty tuple")

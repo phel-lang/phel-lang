@@ -673,7 +673,7 @@ collection in map"))
 (defn mapcat
   "Applies f on all xs and concatenate the result."
   [f & xs]
-  (apply concat (apply map f xs)))
+  (apply concat @[] (apply map f xs)))
 
 (defn reduce [f init xs]
   (if (nil? (first xs))
