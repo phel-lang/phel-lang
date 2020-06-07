@@ -144,7 +144,7 @@ class Reader {
                     $this->fnArgs = [];
                     $body = $this->readList($tokenStream, Token::T_CLOSE_PARENTHESIS);
 
-                    if (count($this->fnArgs) > 0) {
+                    if (!empty($this->fnArgs)) {
                         $maxParams = max(array_keys($this->fnArgs));
                         $params = [];
                         for ($i = 1; $i <= $maxParams; $i++) {
