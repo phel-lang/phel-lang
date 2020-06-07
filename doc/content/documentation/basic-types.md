@@ -67,7 +67,7 @@ float numbers the reader also supports binary, octal and hexadecimal number form
 
 ## Strings
 
-Strings are surrounded by double quotes. They almost work the same as PHP double qouted strings. One difference is that the dollar sign (`$`) must not be escaped. Internally Phel strings are represented by PHP strings. Therefore, every PHP string function can be used the operate on the string.
+Strings are surrounded by double quotes. They almost work the same as PHP double quoted strings. One difference is that the dollar sign (`$`) must not be escaped. Internally Phel strings are represented by PHP strings. Therefore, every PHP string function can be used the operate on the string.
 
 String can be written in multiple lines. The line break character is then ignored by the reader.
 
