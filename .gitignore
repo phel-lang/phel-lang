@@ -3,3 +3,4 @@ vendor
 data
 doc/public
 .phel-repl-history
+.php_cs.cache
