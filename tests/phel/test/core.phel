@@ -751,3 +751,6 @@
   (assert (= false (my-struct? :a)) "struct: incorrect type"))
 
 (print-summary)
+
+(when (> (get stats :failed) 0)
+  (php/exit 1))
