@@ -51,13 +51,13 @@ class TextExceptionPrinter implements ExceptionPrinter {
         $msg = $e->getMessage();
         $generatedLine = $e->getFile();
         $generatedColumn = $e->getLine();
-        list($file, $line) = $this->getOriginalFilePosition($generatedLine, $generatedColumn);
+        [$file, $line] = $this->getOriginalFilePosition($generatedLine, $generatedColumn);
 
         echo $this->color("$type: $msg\n", "blue");
         echo "in $file:$line (gen: $generatedLine:$generatedColumn)\n\n";
 
         foreach ($e->getTrace() as $i => $frame) {
-            $class = isset($frame['class']) ? $frame['class'] : null;
+            $class = $frame['class'] ?? null;
             $generatedLine = $frame['file'];
             $generatedColumn = $frame['line'];
 
@@ -74,7 +74,7 @@ class TextExceptionPrinter implements ExceptionPrinter {
                         $argString = " " . $argString;
                     }
 
-                    list($file, $line) = $this->getOriginalFilePosition($generatedLine, $generatedColumn);
+                    [$file, $line] = $this->getOriginalFilePosition($generatedLine, $generatedColumn);
 
                     echo "#$i $file:$line (gen: $generatedLine:$generatedColumn) : ($fnName$argString)\n";
 
@@ -91,8 +91,6 @@ class TextExceptionPrinter implements ExceptionPrinter {
     }
 
     /**
-     * @return (int|mixed|string)[]
-     *
      * @psalm-return array{0: string, 1: int|mixed}
      */
     private function getOriginalFilePosition(string $filename, int $line): array {
@@ -104,17 +102,17 @@ class TextExceptionPrinter implements ExceptionPrinter {
         $originalFile = $filename;
         $originalLine = $line;
 
-        if ($fileNameComment 
-            && $fileNameComment[0] == "/"
-            && $fileNameComment[1] == "/"
-            && $fileNameComment[2] == " "
+        if ($fileNameComment
+            && $fileNameComment[0] === "/"
+            && $fileNameComment[1] === "/"
+            && $fileNameComment[2] === " "
         ) {
             $originalFile = trim(substr($fileNameComment, 3));
 
-            if ($sourceMapComment 
-                && $sourceMapComment[0] == "/"
-                && $sourceMapComment[1] == "/"
-                && $sourceMapComment[2] == " "
+            if ($sourceMapComment
+                && $sourceMapComment[0] === "/"
+                && $sourceMapComment[1] === "/"
+                && $sourceMapComment[2] === " "
             ) {
                 $mapping = trim(substr($sourceMapComment, 3));
 
@@ -175,6 +173,6 @@ class TextExceptionPrinter implements ExceptionPrinter {
             'blue'   => "\033[33;34m%s\033[0m",
         );
 
-        return sprintf(isset($styles[$color]) ? $styles[$color] : "%s", $text);
+        return sprintf($styles[$color] ?? "%s", $text);
     }
 }

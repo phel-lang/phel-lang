@@ -60,7 +60,7 @@ class HtmlExceptionPrinter implements ExceptionPrinter {
 
         echo "<ul>";
         foreach ($e->getTrace() as $i => $frame) {
-            $class = isset($frame['class']) ? $frame['class'] : null;
+            $class = $frame['class'] ?? null;
             $file = $frame['file'];
             $line = $frame['line'];
 
