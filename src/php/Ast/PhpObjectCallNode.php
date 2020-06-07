@@ -1,11 +1,13 @@
-<?php 
+<?php
+
 
 namespace Phel\Ast;
 
 use Phel\Lang\SourceLocation;
 use Phel\NodeEnvironment;
 
-class PhpObjectCallNode extends Node {
+class PhpObjectCallNode extends Node
+{
 
     /**
      * @var Node
@@ -36,19 +38,23 @@ class PhpObjectCallNode extends Node {
         $this->methodCall = $isMethodCall;
     }
 
-    public function getTargetExpr(): Node {
+    public function getTargetExpr(): Node
+    {
         return $this->targetExpr;
     }
 
-    public function getCallExpr(): Node {
+    public function getCallExpr(): Node
+    {
         return $this->callExpr;
     }
 
-    public function isStatic(): bool {
+    public function isStatic(): bool
+    {
         return $this->static;
     }
-    
-    public function isMethodCall(): bool {
+
+    public function isMethodCall(): bool
+    {
         return $this->methodCall;
     }
 }

@@ -1,43 +1,44 @@
-<?php 
+<?php
+
 
 namespace Phel\Ast;
 
 use Phel\Lang\SourceLocation;
 use Phel\NodeEnvironment;
 
-class PhpVarNode extends Node {
-
+class PhpVarNode extends Node
+{
     const INFIX_OPERATORS = array(
-        "+", 
-        "-", 
-        "*", 
-        ".", 
-        "/", 
-        "%", 
-        "=", 
-        "=&", 
-        "<", 
-        ">", 
-        "<=", 
-        ">=", 
+        "+",
+        "-",
+        "*",
+        ".",
+        "/",
+        "%",
+        "=",
+        "=&",
+        "<",
+        ">",
+        "<=",
+        ">=",
         "<=>",
-        "===", 
-        "==", 
-        "!=", 
-        "!==", 
-        "instanceof", 
-        "|", 
-        "&", 
-        "**", 
-        "^", 
-        "<<", 
+        "===",
+        "==",
+        "!=",
+        "!==",
+        "instanceof",
+        "|",
+        "&",
+        "**",
+        "^",
+        "<<",
         ">>"
     );
     const CALLABLE_KEYWORDS = array(
-        'array', 
+        'array',
         'die',
         'empty',
-        'echo', 
+        'echo',
         'print',
         'isset'
     );
@@ -53,15 +54,18 @@ class PhpVarNode extends Node {
         $this->name = $name;
     }
 
-    public function getName(): string {
+    public function getName(): string
+    {
         return $this->name;
     }
 
-    public function isInfix(): bool {
+    public function isInfix(): bool
+    {
         return in_array($this->name, self::INFIX_OPERATORS);
     }
 
-    public function isCallable(): bool {
+    public function isCallable(): bool
+    {
         return \is_callable($this->name) || in_array($this->name, self::CALLABLE_KEYWORDS);
     }
 }

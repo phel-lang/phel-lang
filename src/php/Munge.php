@@ -2,7 +2,8 @@
 
 namespace Phel;
 
-class Munge {
+class Munge
+{
 
     /**
      * @var array
@@ -35,7 +36,8 @@ class Munge {
         '?' => "_QMARK_"
     ];
 
-    public static function encode(string $s): string {
+    public static function encode(string $s): string
+    {
         if ($s == 'this') {
             return '__phel_this';
         } else {

@@ -2,7 +2,8 @@
 
 namespace Phel\SourceMap;
 
-class SourceMapGenerator {
+class SourceMapGenerator
+{
 
     /**
      * @var VLQ
@@ -14,7 +15,8 @@ class SourceMapGenerator {
         $this->vlq = new VLQ();
     }
 
-    public function encode(array $mappings) {
+    public function encode(array $mappings)
+    {
         $previousGeneratedLine = 0;
         $previousGeneratedColumn = 0;
         $previousOriginalLine = 0;
@@ -28,12 +30,12 @@ class SourceMapGenerator {
 
             if ($mapping['generated']['line'] !== $previousGeneratedLine) {
                 $previousGeneratedColumn = 0;
-    
+
                 while ($mapping['generated']['line'] !== $previousGeneratedLine) {
                     $next .= ';';
                     $previousGeneratedLine++;
                 }
-            } else if ($i > 0) {
+            } elseif ($i > 0) {
                 if (!$this->compareByGeneratedPositionsInflated($mapping, $mappings[$i - 1])) {
                     continue;
                 }
@@ -57,22 +59,23 @@ class SourceMapGenerator {
         return $result;
     }
 
-    private function compareByGeneratedPositionsInflated($mappingA, $mappingB) {
+    private function compareByGeneratedPositionsInflated($mappingA, $mappingB)
+    {
         $cmp = $mappingA['generated']['line'] - $mappingB['generated']['line'];
         if ($cmp !== 0) {
-          return $cmp;
+            return $cmp;
         }
-      
+
         $cmp = $mappingA['generated']['column'] - $mappingB['generated']['column'];
         if ($cmp !== 0) {
-          return $cmp;
+            return $cmp;
         }
-      
+
         $cmp = $mappingA['original']['line'] - $mappingB['original']['line'];
         if ($cmp !== 0) {
-          return $cmp;
+            return $cmp;
         }
-      
+
         return $mappingA['original']['column'] - $mappingB['original']['column'];
     }
 }

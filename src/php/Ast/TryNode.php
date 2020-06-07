@@ -1,11 +1,13 @@
-<?php 
+<?php
+
 
 namespace Phel\Ast;
 
 use Phel\Lang\SourceLocation;
 use Phel\NodeEnvironment;
 
-class TryNode extends Node {
+class TryNode extends Node
+{
 
     /**
      * @var Node
@@ -36,18 +38,21 @@ class TryNode extends Node {
         $this->finally = $finally;
     }
 
-    public function getBody(): Node {
+    public function getBody(): Node
+    {
         return $this->body;
     }
 
     /**
      * @return CatchNode[]
      */
-    public function getCatches() {
+    public function getCatches()
+    {
         return $this->catches;
     }
 
-    public function getFinally(): ?Node {
+    public function getFinally(): ?Node
+    {
         return $this->finally;
     }
 }

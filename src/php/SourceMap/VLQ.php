@@ -4,8 +4,8 @@ namespace Phel\SourceMap;
 
 use Exception;
 
-class VLQ {
-
+class VLQ
+{
     private $integerToChar = [];
     private $charToInteger = [];
 
@@ -20,7 +20,8 @@ class VLQ {
         }
     }
 
-    public function decode(string $string) {
+    public function decode(string $string)
+    {
         $result = [];
         $shift = 0;
         $value = 0;
@@ -57,7 +58,8 @@ class VLQ {
         return $result;
     }
 
-    public function encodeIntegers(array $numbers) {
+    public function encodeIntegers(array $numbers)
+    {
         $result = "";
         foreach ($numbers as $number) {
             $result .= $this->encodeInteger($number);
@@ -65,7 +67,8 @@ class VLQ {
         return $result;
     }
 
-    public function encodeInteger(int $num) {
+    public function encodeInteger(int $num)
+    {
         $result = "";
 
         if ($num < 0) {
@@ -88,7 +91,8 @@ class VLQ {
         return $result;
     }
 
-    private function bitShiftRightWithZero($v, $n) {
+    private function bitShiftRightWithZero($v, $n)
+    {
         return ($v & 0xFFFFFFFF) >> ($n & 0x1F);
     }
 }

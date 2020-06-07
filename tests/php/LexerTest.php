@@ -3,11 +3,12 @@
 namespace Phel;
 
 use Phel\Lang\SourceLocation;
-use \PHPUnit\Framework\TestCase;
+use PHPUnit\Framework\TestCase;
 
-class LexerTest extends TestCase {
-
-    public function testReadCommentWithoutText() {
+class LexerTest extends TestCase
+{
+    public function testReadCommentWithoutText()
+    {
         $this->assertEquals(
             [
                 new Token(Token::T_COMMENT, "#", new SourceLocation("string", 1, 0), new SourceLocation("string", 1, 1)),
@@ -17,7 +18,8 @@ class LexerTest extends TestCase {
         );
     }
 
-    public function testReadCommentWithoutNewLine() {
+    public function testReadCommentWithoutNewLine()
+    {
         $this->assertEquals(
             [
                 new Token(Token::T_COMMENT, "# Mein Kommentar", new SourceLocation("string", 1, 0), new SourceLocation("string", 1, 16)),
@@ -27,7 +29,8 @@ class LexerTest extends TestCase {
         );
     }
 
-    public function testReadCommentWithNewLine() {
+    public function testReadCommentWithNewLine()
+    {
         $this->assertEquals(
             [
                 new Token(Token::T_COMMENT, "# Mein Kommentar", new SourceLocation("string", 1, 0), new SourceLocation("string", 1, 16)),
@@ -39,7 +42,8 @@ class LexerTest extends TestCase {
         );
     }
 
-    public function testReadSingleSyntaxChar() {
+    public function testReadSingleSyntaxChar()
+    {
         $this->assertEquals(
             [
                 new Token(Token::T_OPEN_PARENTHESIS, '(', new SourceLocation("string", 1, 0), new SourceLocation("string", 1, 1)),
@@ -49,7 +53,8 @@ class LexerTest extends TestCase {
         );
     }
 
-    public function testReadEmptyTuple() {
+    public function testReadEmptyTuple()
+    {
         $this->assertEquals(
             [
                 new Token(Token::T_OPEN_PARENTHESIS, "(", new SourceLocation("string", 1, 0), new SourceLocation("string", 1, 1)),
@@ -60,7 +65,8 @@ class LexerTest extends TestCase {
         );
     }
 
-    public function testReadWord() {
+    public function testReadWord()
+    {
         $this->assertEquals(
             [
                 new Token(Token::T_ATOM, "true", new SourceLocation("string", 1, 0), new SourceLocation("string", 1, 4)),
@@ -70,7 +76,8 @@ class LexerTest extends TestCase {
         );
     }
 
-    public function testReadNumber() {
+    public function testReadNumber()
+    {
         $this->assertEquals(
             [
                 new Token(Token::T_ATOM, "1", new SourceLocation("string", 1, 0), new SourceLocation("string", 1, 1)),
@@ -80,7 +87,8 @@ class LexerTest extends TestCase {
         );
     }
 
-    public function testReadEmptyString() {
+    public function testReadEmptyString()
+    {
         $this->assertEquals(
             [
                 new Token(Token::T_STRING, '""', new SourceLocation("string", 1, 0), new SourceLocation("string", 1, 2)),
@@ -90,7 +98,8 @@ class LexerTest extends TestCase {
         );
     }
 
-    public function testReadString() {
+    public function testReadString()
+    {
         $this->assertEquals(
             [
                 new Token(Token::T_STRING, '"test"', new SourceLocation("string", 1, 0), new SourceLocation("string", 1, 6)),
@@ -100,7 +109,8 @@ class LexerTest extends TestCase {
         );
     }
 
-    public function testReadEscapedString() {
+    public function testReadEscapedString()
+    {
         $this->assertEquals(
             [
                 new Token(Token::T_STRING, '"te\\"st"', new SourceLocation("string", 1, 0), new SourceLocation("string", 1, 8)),
@@ -110,7 +120,8 @@ class LexerTest extends TestCase {
         );
     }
 
-    public function testReadTuple() {
+    public function testReadTuple()
+    {
         $this->assertEquals(
             [
                 new Token(Token::T_OPEN_BRACKET, "[", new SourceLocation("string", 1, 0), new SourceLocation("string", 1, 1)),
@@ -124,7 +135,8 @@ class LexerTest extends TestCase {
         );
     }
 
-    private function lex($string) {
+    private function lex($string)
+    {
         $lexer = new Lexer();
         return iterator_to_array($lexer->lexString($string, 'string'));
     }

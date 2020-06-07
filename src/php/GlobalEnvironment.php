@@ -9,7 +9,8 @@ use Phel\Lang\IMeta;
 use Phel\Lang\Symbol;
 use Phel\Lang\Table;
 
-class GlobalEnvironment {
+class GlobalEnvironment
+{
 
     /**
      * @var string
@@ -31,15 +32,18 @@ class GlobalEnvironment {
      */
     protected $useAliases = array();
 
-    public function getNs(): string {
+    public function getNs(): string
+    {
         return $this->ns;
     }
 
-    public function setNs(string $ns): void {
+    public function setNs(string $ns): void
+    {
         $this->ns = $ns;
     }
 
-    public function addDefintion(string $namespace, Symbol $name, Table $meta): void {
+    public function addDefintion(string $namespace, Symbol $name, Table $meta): void
+    {
         if (!array_key_exists($namespace, $this->definitions)) {
             $this->definitions[$namespace] = [];
         }
@@ -47,14 +51,16 @@ class GlobalEnvironment {
         $this->definitions[$namespace][$name->getName()] = $meta;
     }
 
-    public function hasDefinition(string $namespace, Symbol $name): bool {
+    public function hasDefinition(string $namespace, Symbol $name): bool
+    {
         return (
             isset($this->definitions[$namespace])
             && isset($this->definitions[$namespace][$name->getName()])
         );
     }
 
-    public function getDefinition(string $namespace, Symbol $name): ?Table {
+    public function getDefinition(string $namespace, Symbol $name): ?Table
+    {
         if ($this->hasDefinition($namespace, $name)) {
             return $this->definitions[$namespace][$name->getName()];
         } else {
@@ -62,23 +68,28 @@ class GlobalEnvironment {
         }
     }
 
-    public function addRequireAlias(Symbol $name, Symbol $fullName): void {
+    public function addRequireAlias(Symbol $name, Symbol $fullName): void
+    {
         $this->requireAliases[$name->getName()] = $fullName;
     }
 
-    public function hasRequireAlias(Symbol $name): bool {
+    public function hasRequireAlias(Symbol $name): bool
+    {
         return isset($this->requireAliases[$name->getName()]);
     }
-    
-    public function addUseAlias(Symbol $alias, Symbol $fullName): void {
+
+    public function addUseAlias(Symbol $alias, Symbol $fullName): void
+    {
         $this->useAliases[$alias->getName()] = $fullName;
     }
 
-    public function hasUseAlias(Symbol $alias): bool {
+    public function hasUseAlias(Symbol $alias): bool
+    {
         return isset($this->useAliases[$alias->getName()]);
     }
 
-    public function resolve(Symbol $name, NodeEnvironment $env): ?Node {
+    public function resolve(Symbol $name, NodeEnvironment $env): ?Node
+    {
         $strName = $name->getName();
 
         if (substr($strName, 0, 1) == '\\') {
@@ -87,7 +98,7 @@ class GlobalEnvironment {
                 $name,
                 $name->getStartLocation()
             );
-        } else if ($this->hasUseAlias($name)) {
+        } elseif ($this->hasUseAlias($name)) {
             /** @var Symbol $alias */
             $alias = $this->useAliases[$strName];
             $alias->copyLocationFrom($name);
@@ -98,8 +109,8 @@ class GlobalEnvironment {
             );
         } else {
             $pos = strpos($strName, '/');
-            
-            if ($pos !== FALSE && $pos > 0) {
+
+            if ($pos !== false && $pos > 0) {
                 // If alias, try to resolve alias
                 $alias = substr($strName, 0, $pos);
 
@@ -118,7 +129,7 @@ class GlobalEnvironment {
                 }
             } else {
                 // no alias, try to resolve in current namespace
-                $def = $this->getDefinition($this->getNs(), $name); 
+                $def = $this->getDefinition($this->getNs(), $name);
                 if ($def) {
                     return new GlobalVarNode($env, $this->getNs(), $name, $def, $name->getStartLocation());
                 } else {
@@ -132,6 +143,6 @@ class GlobalEnvironment {
                     }
                 }
             }
-        }        
+        }
     }
 }

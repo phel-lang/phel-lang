@@ -2,9 +2,10 @@
 
 namespace Phel;
 
-use \PHPUnit\Framework\TestCase;
+use PHPUnit\Framework\TestCase;
 
-class RuntimeMock extends Runtime {
+class RuntimeMock extends Runtime
+{
     public $files = array();
     public $loadedFile = null;
 
@@ -13,28 +14,33 @@ class RuntimeMock extends Runtime {
         $this->globalEnv = new GlobalEnvironment();
     }
 
-    public function setFiles(array $files) {
+    public function setFiles(array $files)
+    {
         $this->files = $files;
     }
 
-    protected function loadFile(string $filename, string $ns): bool {
+    protected function loadFile(string $filename, string $ns): bool
+    {
         $this->loadedFile = $filename;
         return true;
     }
 
-    protected function fileExists($filename): bool {
+    protected function fileExists($filename): bool
+    {
         return in_array($filename, $this->files);
     }
 }
 
-class RuntimeTest extends TestCase {
+class RuntimeTest extends TestCase
+{
 
     /**
      * @var RuntimeMock
      */
     protected $runtime;
 
-    public function setUp(): void {
+    public function setUp(): void
+    {
         $this->runtime = new RuntimeMock();
         $this->runtime->setFiles([
             '/vendor/foo.bar/src/Core.phel',
@@ -51,7 +57,8 @@ class RuntimeTest extends TestCase {
         $this->runtime->addPath('Foo\\Bar\\Baz\\Dib\\Zim\\Gir\\', ['/vendor/foo.bar.baz.dib.zim.gir/src']);
     }
 
-    public function testExistingFile() {
+    public function testExistingFile()
+    {
         $this->runtime->loadNs('Foo\Bar\Core');
         $this->assertEquals(
             '/vendor/foo.bar/src/Core.phel',
@@ -65,11 +72,13 @@ class RuntimeTest extends TestCase {
         );
     }
 
-    public function testMissing() {
+    public function testMissing()
+    {
         $this->assertFalse($this->runtime->loadNs('No_Vendor\No_Package\NoClass'));
     }
 
-    public function testDeepFile() {
+    public function testDeepFile()
+    {
         $this->runtime->loadNs('Foo\Bar\Baz\Dib\Zim\Gir\Core');
         $this->assertEquals(
             '/vendor/foo.bar.baz.dib.zim.gir/src/Core.phel',
@@ -77,7 +86,8 @@ class RuntimeTest extends TestCase {
         );
     }
 
-    public function testConfusion() {
+    public function testConfusion()
+    {
         $this->runtime->loadNs('Foo\Bar\Doom');
         $this->assertEquals(
             '/vendor/foo.bar/src/Doom.phel',

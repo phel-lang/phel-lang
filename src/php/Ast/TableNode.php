@@ -1,11 +1,13 @@
-<?php 
+<?php
+
 
 namespace Phel\Ast;
 
 use Phel\Lang\SourceLocation;
 use Phel\NodeEnvironment;
 
-class TableNode extends Node {
+class TableNode extends Node
+{
 
     /**
      * @var array
@@ -25,7 +27,8 @@ class TableNode extends Node {
     /**
      * @return array
      */
-    public function getKeyValues() {
+    public function getKeyValues()
+    {
         return $this->keyValues;
     }
 }

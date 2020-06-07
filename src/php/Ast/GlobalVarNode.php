@@ -1,4 +1,5 @@
-<?php 
+<?php
+
 
 namespace Phel\Ast;
 
@@ -8,7 +9,8 @@ use Phel\Lang\SourceLocation;
 use Phel\Lang\Table;
 use Phel\NodeEnvironment;
 
-class GlobalVarNode extends Node {
+class GlobalVarNode extends Node
+{
 
     /**
      * @var string
@@ -33,19 +35,23 @@ class GlobalVarNode extends Node {
         $this->meta = $meta;
     }
 
-    public function getNamespace(): string {
+    public function getNamespace(): string
+    {
         return $this->namespace;
     }
 
-    public function getName(): Symbol {
+    public function getName(): Symbol
+    {
         return $this->name;
     }
 
-    public function getMeta(): Table {
+    public function getMeta(): Table
+    {
         return $this->meta;
     }
 
-    public function isMacro(): bool {
+    public function isMacro(): bool
+    {
         return $this->meta[new Keyword('macro')] === true;
     }
 }

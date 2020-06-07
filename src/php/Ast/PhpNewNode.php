@@ -1,11 +1,13 @@
-<?php 
+<?php
+
 
 namespace Phel\Ast;
 
 use Phel\Lang\SourceLocation;
 use Phel\NodeEnvironment;
 
-class PhpNewNode extends Node {
+class PhpNewNode extends Node
+{
 
     /**
      * @var Node
@@ -29,15 +31,16 @@ class PhpNewNode extends Node {
         $this->args = $args;
     }
 
-    public function getClassExpr(): Node {
+    public function getClassExpr(): Node
+    {
         return $this->classExpr;
     }
 
     /**
      * @return Node[]
      */
-    public function getArgs() {
+    public function getArgs()
+    {
         return $this->args;
     }
-    
 }

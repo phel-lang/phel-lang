@@ -9,13 +9,15 @@ use Phel\Lang\Symbol;
 use Phel\Lang\Table;
 use Phel\Lang\Tuple;
 
-class Quasiquote {
+class Quasiquote
+{
 
     /**
      * @param Phel|scalar|null $x The form to check.
      */
-    private function isLiteral($x): bool {
-        return is_string($x) 
+    private function isLiteral($x): bool
+    {
+        return is_string($x)
           || is_float($x)
           || is_int($x)
           || is_bool($x)
@@ -27,37 +29,38 @@ class Quasiquote {
 
     /**
      * @param Phel|scalar|null $form The form to quasiqoute
-     * 
+     *
      * @return Phel|scalar|null
      */
-    public function quasiquote($form) {
+    public function quasiquote($form)
+    {
         if ($this->isUnquote($form)) {
             /** @var Tuple $form */
             return $form[1];
-        } else if ($this->isUnquoteSplicing($form)) {
+        } elseif ($this->isUnquoteSplicing($form)) {
             throw new \Exception('splice not in list');
-        } else if ($form instanceof Tuple && count($form) > 0) {
+        } elseif ($form instanceof Tuple && count($form) > 0) {
             return Tuple::create(
-                (new Symbol('apply'))->copyLocationFrom($form), 
+                (new Symbol('apply'))->copyLocationFrom($form),
                 (new Symbol('tuple'))->copyLocationFrom($form),
-                 Tuple::create(
-                     (new Symbol('concat'))->copyLocationFrom($form), 
+                Tuple::create(
+                    (new Symbol('concat'))->copyLocationFrom($form),
                     ...$this->expandList($form)
                 )->copyLocationFrom($form)
             )->copyLocationFrom($form);
-            // TODO: Handle Table
-            // TODO: Handle Array
-        } else if ($this->isLiteral($form)) {
+        // TODO: Handle Table and Array
+        } elseif ($this->isLiteral($form)) {
             return $form;
         } else {
             return Tuple::create(
-                (new Symbol('quote'))->copyLocationFrom($form), 
+                (new Symbol('quote'))->copyLocationFrom($form),
                 $form
             )->copyLocationFrom($form);
         }
     }
 
-    private function expandList(Tuple $seq): array {
+    private function expandList(Tuple $seq): array
+    {
         $xs = [];
         foreach ($seq as $item) {
             if ($this->isUnquote($item)) {
@@ -65,11 +68,11 @@ class Quasiquote {
                     (new Symbol('tuple'))->copyLocationFrom($item),
                     $item[1]
                 )->copyLocationFrom($item);
-            } else if ($this->isUnquoteSplicing($item)) {
+            } elseif ($this->isUnquoteSplicing($item)) {
                 $xs[] = $item[1];
             } else {
                 $xs[] = Tuple::create(
-                    (new Symbol('tuple'))->copyLocationFrom($item), 
+                    (new Symbol('tuple'))->copyLocationFrom($item),
                     $this->quasiquote($item)
                 )->copyLocationFrom($item);
             }
@@ -80,19 +83,21 @@ class Quasiquote {
 
     /**
      * @param Phel|scalar|null $form The form to quasiqoute
-     * 
+     *
      * @return bool
      */
-    private function isUnquote($form) {
+    private function isUnquote($form)
+    {
         return $form instanceof Tuple && $form[0] == 'unquote';
     }
 
     /**
      * @param Phel|scalar|null $form The form to quasiqoute
-     * 
+     *
      * @return bool
      */
-    private function isUnquoteSplicing($form) {
+    private function isUnquoteSplicing($form)
+    {
         return $form instanceof Tuple && $form[0] == 'unquote-splicing';
     }
 }

@@ -4,7 +4,8 @@ namespace Phel;
 
 use Phel\Lang\SourceLocation;
 
-class CodeSnippet {
+class CodeSnippet
+{
 
     /**
      * @var SourceLocation
@@ -28,15 +29,18 @@ class CodeSnippet {
         $this->code = $code;
     }
 
-    public function getStartLocation(): SourceLocation {
+    public function getStartLocation(): SourceLocation
+    {
         return $this->startLocation;
     }
 
-    public function getEndLocation(): SourceLocation {
+    public function getEndLocation(): SourceLocation
+    {
         return $this->endLocation;
     }
 
-    public function getCode(): string {
+    public function getCode(): string
+    {
         return $this->code;
     }
 }

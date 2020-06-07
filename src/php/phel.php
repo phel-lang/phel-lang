@@ -2,7 +2,8 @@
 
 use Phel\Repl;
 
-function getHelpText(): string {
+function getHelpText(): string
+{
     return <<<HELP
 Usage: phel [command]
 

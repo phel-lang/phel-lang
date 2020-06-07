@@ -1,4 +1,5 @@
-<?php 
+<?php
+
 
 namespace Phel\Ast;
 
@@ -6,7 +7,8 @@ use Phel\Lang\Symbol;
 use Phel\Lang\SourceLocation;
 use Phel\NodeEnvironment;
 
-class ForeachNode extends Node {
+class ForeachNode extends Node
+{
 
     /**
      * @var Node
@@ -37,19 +39,23 @@ class ForeachNode extends Node {
         $this->keySymbol = $keySymbol;
     }
 
-    public function getBodyExpr(): Node {
+    public function getBodyExpr(): Node
+    {
         return $this->bodyExpr;
     }
 
-    public function getListExpr(): Node {
+    public function getListExpr(): Node
+    {
         return $this->listExpr;
     }
 
-    public function getValueSymbol(): Symbol {
+    public function getValueSymbol(): Symbol
+    {
         return $this->valueSymbol;
     }
 
-    public function getKeySymbol(): ?Symbol {
+    public function getKeySymbol(): ?Symbol
+    {
         return $this->keySymbol;
     }
 }

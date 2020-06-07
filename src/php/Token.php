@@ -1,11 +1,12 @@
-<?php 
+<?php
+
 
 namespace Phel;
 
 use Phel\Lang\SourceLocation;
 
-class Token {
-    
+class Token
+{
     public const T_WHITESPACE = 2;
     public const T_COMMENT = 3;
     public const T_UNQUOTE_SPLICING = 4;
@@ -24,7 +25,7 @@ class Token {
     public const T_FN = 17;
     public const T_STRING = 18;
     public const T_ATOM = 19;
-    
+
 
     public const T_EOF = 100;
 
@@ -56,19 +57,23 @@ class Token {
         $this->endLocation = $endLocation;
     }
 
-    public function getCode(): string {
+    public function getCode(): string
+    {
         return $this->code;
     }
 
-    public function getType(): int {
+    public function getType(): int
+    {
         return $this->type;
     }
 
-    public function getStartLocation(): SourceLocation {
+    public function getStartLocation(): SourceLocation
+    {
         return $this->startLocation;
     }
 
-    public function getEndLocation(): SourceLocation {
+    public function getEndLocation(): SourceLocation
+    {
         return $this->endLocation;
     }
 }

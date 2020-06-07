@@ -1,11 +1,13 @@
-<?php 
+<?php
+
 
 namespace Phel\Ast;
 
 use Phel\Lang\SourceLocation;
 use Phel\NodeEnvironment;
 
-class ApplyNode extends Node {
+class ApplyNode extends Node
+{
 
     /**
      * @var Node
@@ -19,7 +21,7 @@ class ApplyNode extends Node {
 
     /**
      * Construtor
-     * 
+     *
      * @param NodeEnvironment $env
      * @param Node $fn
      * @param Node[] $arguments
@@ -31,14 +33,16 @@ class ApplyNode extends Node {
         $this->arguments = $arguments;
     }
 
-    public function getFn(): Node {
+    public function getFn(): Node
+    {
         return $this->fn;
     }
 
     /**
      * @return Node[]
      */
-    public function getArguments() {
+    public function getArguments()
+    {
         return $this->arguments;
     }
 }

@@ -1,11 +1,13 @@
-<?php 
+<?php
+
 
 namespace Phel\Ast;
 
 use Phel\Lang\SourceLocation;
 use Phel\NodeEnvironment;
 
-class TupleNode extends Node {
+class TupleNode extends Node
+{
 
     /**
      * @var Node[]
@@ -25,7 +27,8 @@ class TupleNode extends Node {
     /**
      * @return Node[]
      */
-    public function getArgs() {
+    public function getArgs()
+    {
         return $this->args;
     }
 }

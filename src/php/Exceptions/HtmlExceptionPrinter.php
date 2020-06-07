@@ -9,9 +9,10 @@ use Phel\CodeSnippet;
 use ReflectionClass;
 use Throwable;
 
-class HtmlExceptionPrinter implements ExceptionPrinter {
-
-    public function printException(PhelCodeException $e, CodeSnippet $codeSnippet): void {
+class HtmlExceptionPrinter implements ExceptionPrinter
+{
+    public function printException(PhelCodeException $e, CodeSnippet $codeSnippet): void
+    {
         $eStartLocation = $e->getStartLocation() ?? $codeSnippet->getStartLocation();
         $eEndLocation = $e->getEndLocation() ?? $codeSnippet->getEndLocation();
         $firstLine = $eStartLocation->getLine();
@@ -48,7 +49,8 @@ class HtmlExceptionPrinter implements ExceptionPrinter {
         }
     }
 
-    public function printStackTrace(Throwable $e): void {
+    public function printStackTrace(Throwable $e): void
+    {
         $printer = new Printer();
 
         $type = get_class($e);
@@ -93,7 +95,8 @@ class HtmlExceptionPrinter implements ExceptionPrinter {
         echo "</ul>";
     }
 
-    private function buildPhpArgsString($args) {
+    private function buildPhpArgsString($args)
+    {
         $result = [];
         foreach ($args as $arg) {
             $result[] = $this->buildPhpArg($arg);
@@ -102,11 +105,12 @@ class HtmlExceptionPrinter implements ExceptionPrinter {
         return implode(", ", $result);
     }
 
-    private function buildPhpArg($arg) {
+    private function buildPhpArg($arg)
+    {
         if (is_null($arg)) {
             return 'NULL';
-        } 
-        
+        }
+
         if (is_string($arg)) {
             $s = $arg;
             if (strlen($s) > 15) {
@@ -114,23 +118,23 @@ class HtmlExceptionPrinter implements ExceptionPrinter {
             }
             return "'" . $s . "'";
         }
-        
+
         if (is_bool($arg)) {
             return ($arg) ? "true" : "false";
         }
-        
+
         if (is_resource($arg)) {
             return "Resource id #" . ((string) $arg);
         }
-        
+
         if (is_array($arg)) {
             return "Array";
         }
-        
+
         if (is_object($arg)) {
             return 'Object(' . get_class($arg) . ')';
         }
-        
+
         return (string) $arg;
     }
-};
+}

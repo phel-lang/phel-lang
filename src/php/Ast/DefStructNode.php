@@ -1,4 +1,5 @@
-<?php 
+<?php
+
 
 namespace Phel\Ast;
 
@@ -8,7 +9,8 @@ use Phel\Lang\SourceLocation;
 use Phel\Lang\Table;
 use Phel\NodeEnvironment;
 
-class DefStructNode extends Node {
+class DefStructNode extends Node
+{
 
     /**
      * @var string
@@ -33,19 +35,23 @@ class DefStructNode extends Node {
         $this->params = $params;
     }
 
-    public function getNamespace(): string {
+    public function getNamespace(): string
+    {
         return $this->namespace;
     }
 
-    public function getName(): Symbol {
+    public function getName(): Symbol
+    {
         return $this->name;
     }
 
-    public function getParams(): array {
+    public function getParams(): array
+    {
         return $this->params;
     }
 
-    public function getParamsAsKeywords(): array {
+    public function getParamsAsKeywords(): array
+    {
         $result = [];
         foreach ($this->params as $param) {
             $keyword = new Keyword($param->getName());

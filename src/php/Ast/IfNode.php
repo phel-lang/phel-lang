@@ -1,11 +1,13 @@
-<?php 
+<?php
+
 
 namespace Phel\Ast;
 
 use Phel\Lang\SourceLocation;
 use Phel\NodeEnvironment;
 
-class IfNode extends Node {
+class IfNode extends Node
+{
 
     /**
      * @var Node
@@ -30,15 +32,18 @@ class IfNode extends Node {
         $this->elseExpr = $elseExpr;
     }
 
-    public function getTestExpr(): Node {
+    public function getTestExpr(): Node
+    {
         return $this->testExpr;
     }
 
-    public function getThenExpr(): Node {
+    public function getThenExpr(): Node
+    {
         return $this->thenExpr;
     }
 
-    public function getElseExpr(): Node {
+    public function getElseExpr(): Node
+    {
         return $this->elseExpr;
     }
 }

@@ -1,11 +1,13 @@
-<?php 
+<?php
+
 
 namespace Phel\Ast;
 
 use Phel\Lang\SourceLocation;
 use Phel\NodeEnvironment;
 
-class ThrowNode extends Node {
+class ThrowNode extends Node
+{
 
     /**
      * @var Node
@@ -18,7 +20,8 @@ class ThrowNode extends Node {
         $this->exceptionExpr = $exceptionExpr;
     }
 
-    public function getExceptionExpr(): Node {
+    public function getExceptionExpr(): Node
+    {
         return $this->exceptionExpr;
     }
 }

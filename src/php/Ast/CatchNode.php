@@ -1,4 +1,5 @@
-<?php 
+<?php
+
 
 namespace Phel\Ast;
 
@@ -6,7 +7,8 @@ use Phel\Lang\Symbol;
 use Phel\Lang\SourceLocation;
 use Phel\NodeEnvironment;
 
-class CatchNode extends Node {
+class CatchNode extends Node
+{
 
     /**
      * @var Symbol
@@ -31,15 +33,18 @@ class CatchNode extends Node {
         $this->body = $body;
     }
 
-    public function getType(): Symbol {
+    public function getType(): Symbol
+    {
         return $this->type;
     }
 
-    public function getName(): Symbol {
+    public function getName(): Symbol
+    {
         return $this->name;
     }
 
-    public function getBody(): Node {
+    public function getBody(): Node
+    {
         return $this->body;
     }
 }

@@ -1,4 +1,5 @@
-<?php 
+<?php
+
 
 namespace Phel\Ast;
 
@@ -6,7 +7,8 @@ use Phel\Lang\Symbol;
 use Phel\Lang\SourceLocation;
 use Phel\NodeEnvironment;
 
-class NsNode extends Node {
+class NsNode extends Node
+{
 
     /**
      * @var Symbol[]
@@ -31,11 +33,13 @@ class NsNode extends Node {
     /**
      * @return Symbol[]
      */
-    public function getRequireNs() {
+    public function getRequireNs()
+    {
         return $this->requireNs;
     }
 
-    public function getNamespace() {
+    public function getNamespace()
+    {
         return $this->namespace;
     }
 }

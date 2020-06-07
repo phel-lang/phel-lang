@@ -46,19 +46,19 @@ use Phel\Lang\Symbol;
 use Phel\Lang\Table;
 use Phel\Lang\Tuple;
 
-final class Analyzer {
-
+final class Analyzer
+{
     private GlobalEnvironment $globalEnvironment;
 
     private const PHP_KEYWORDS = [
-        '__halt_compiler', 'abstract', 'and', 'array', 'as', 'break', 
-        'callable', 'case', 'catch', 'class', 'clone', 'const', 'continue', 
-        'declare', 'default', 'die', 'do', 'echo', 'else', 'elseif', 'empty', 
-        'enddeclare', 'endfor', 'endforeach', 'endif', 'endswitch', 'endwhile', 
+        '__halt_compiler', 'abstract', 'and', 'array', 'as', 'break',
+        'callable', 'case', 'catch', 'class', 'clone', 'const', 'continue',
+        'declare', 'default', 'die', 'do', 'echo', 'else', 'elseif', 'empty',
+        'enddeclare', 'endfor', 'endforeach', 'endif', 'endswitch', 'endwhile',
         'eval', 'exit', 'extends', 'final', 'for', 'foreach', 'function',
-        'global', 'goto', 'if', 'implements', 'include', 'include_once', 
-        'instanceof', 'insteadof', 'interface', 'isset', 'list', 'namespace', 
-        'new', 'or', 'print', 'private', 'protected', 'public', 'require', 
+        'global', 'goto', 'if', 'implements', 'include', 'include_once',
+        'instanceof', 'insteadof', 'interface', 'isset', 'list', 'namespace',
+        'new', 'or', 'print', 'private', 'protected', 'public', 'require',
         'require_once', 'return', 'static', 'switch', 'throw', 'trait', 'try',
         'unset', 'use', 'var', 'while', 'xor'
     ];
@@ -75,8 +75,9 @@ final class Analyzer {
     /**
      * @param mixed $x
      */
-    private function isLiteral($x): bool {
-        return is_string($x) 
+    private function isLiteral($x): bool
+    {
+        return is_string($x)
           || is_float($x)
           || is_int($x)
           || is_bool($x)
@@ -87,10 +88,11 @@ final class Analyzer {
     /**
      * @param Phel|scalar|null $x
      * @param ?NodeEnvironment $nodeEnvironment
-     * 
+     *
      * @return Node
      */
-    public function analyze($x, ?NodeEnvironment $nodeEnvironment = null): Node {
+    public function analyze($x, ?NodeEnvironment $nodeEnvironment = null): Node
+    {
         if (is_null($nodeEnvironment)) {
             $nodeEnvironment = NodeEnvironment::empty();
         }
@@ -122,8 +124,9 @@ final class Analyzer {
         throw new AnalyzerException('Unhandled type: ' . var_export($x, true), null, null);
     }
 
-    private function analyzeDefStruct(Tuple $x, NodeEnvironment $env): DefStructNode {
-        if(count($x) !== 3) {
+    private function analyzeDefStruct(Tuple $x, NodeEnvironment $env): DefStructNode
+    {
+        if (count($x) !== 3) {
             throw new AnalyzerException(
                 "Exactly two arguments are required for 'defstruct. Got " . count($x),
                 $x->getStartLocation(),
@@ -171,7 +174,8 @@ final class Analyzer {
         );
     }
 
-    private function analyzeTable(Table $t, NodeEnvironment $env): TableNode {
+    private function analyzeTable(Table $t, NodeEnvironment $env): TableNode
+    {
         $keyValues = [];
         $kvEnv = $env->withContext(NodeEnvironment::CTX_EXPR);
         foreach ($t as $key => $value) {
@@ -182,7 +186,8 @@ final class Analyzer {
         return new TableNode($env, $keyValues, $t->getStartLocation());
     }
 
-    private function analyzeTuple(Tuple $x, NodeEnvironment $nodeEnvironment): Node {
+    private function analyzeTuple(Tuple $x, NodeEnvironment $nodeEnvironment): Node
+    {
         if (!$x[0] instanceof Symbol) {
             return $this->analyzeInvoke($x, $nodeEnvironment);
         }
@@ -235,7 +240,8 @@ final class Analyzer {
         }
     }
 
-    private function analyzeArray(PhelArray $arr, NodeEnvironment $env): ArrayNode {
+    private function analyzeArray(PhelArray $arr, NodeEnvironment $env): ArrayNode
+    {
         $values = [];
         $valueEnv = $env->withContext(NodeEnvironment::CTX_EXPR);
         foreach ($arr as $value) {
@@ -245,28 +251,29 @@ final class Analyzer {
         return new ArrayNode($env, $values, $arr->getStartLocation());
     }
 
-    private function analyzeForeach(Tuple $x, NodeEnvironment $env): ForeachNode {
+    private function analyzeForeach(Tuple $x, NodeEnvironment $env): ForeachNode
+    {
         $tupleCount = count($x);
         if ($tupleCount < 2) {
             throw new AnalyzerException(
-                "At least two arguments are required for 'foreach", 
-                $x->getStartLocation(), 
+                "At least two arguments are required for 'foreach",
+                $x->getStartLocation(),
                 $x->getEndLocation()
             );
         }
 
         if (!($x[1] instanceof Tuple)) {
             throw new AnalyzerException(
-                "First argument of 'foreach must be a tuple.", 
-                $x->getStartLocation(), 
+                "First argument of 'foreach must be a tuple.",
+                $x->getStartLocation(),
                 $x->getEndLocation()
             );
         }
 
         if (count($x[1]) !== 2 && count($x[1]) !== 3) {
             throw new AnalyzerException(
-                "Tuple of 'foreach must have exactly two or three elements.", 
-                $x->getStartLocation(), 
+                "Tuple of 'foreach must have exactly two or three elements.",
+                $x->getStartLocation(),
                 $x->getEndLocation()
             );
         }
@@ -328,7 +335,8 @@ final class Analyzer {
         );
     }
 
-    private function analyzePhpAUnset(Tuple $x, NodeEnvironment $env): PhpArrayUnsetNode {
+    private function analyzePhpAUnset(Tuple $x, NodeEnvironment $env): PhpArrayUnsetNode
+    {
         if ($env->getContext() !== NodeEnvironment::CTX_STMT) {
             throw new AnalyzerException(
                 "'php/unset can only be called as Statement and not as Expression",
@@ -345,7 +353,8 @@ final class Analyzer {
         );
     }
 
-    private function analyzePhpAGet(Tuple $x, NodeEnvironment $env): PhpArrayGetNode {
+    private function analyzePhpAGet(Tuple $x, NodeEnvironment $env): PhpArrayGetNode
+    {
         return new PhpArrayGetNode(
             $env,
             $this->analyze($x[1], $env->withContext(NodeEnvironment::CTX_EXPR)),
@@ -354,7 +363,8 @@ final class Analyzer {
         );
     }
 
-    private function analyzePhpAPush(Tuple $x, NodeEnvironment $env): PhpArrayPushNode {
+    private function analyzePhpAPush(Tuple $x, NodeEnvironment $env): PhpArrayPushNode
+    {
         return new PhpArrayPushNode(
             $env,
             $this->analyze($x[1], $env->withContext(NodeEnvironment::CTX_EXPR)),
@@ -363,7 +373,8 @@ final class Analyzer {
         );
     }
 
-    private function analyzePhpASet(Tuple $x, NodeEnvironment $env): PhpArraySetNode {
+    private function analyzePhpASet(Tuple $x, NodeEnvironment $env): PhpArraySetNode
+    {
         return new PhpArraySetNode(
             $env,
             $this->analyze($x[1], $env->withContext(NodeEnvironment::CTX_EXPR)),
@@ -373,7 +384,8 @@ final class Analyzer {
         );
     }
 
-    private function analyzeLoop(Tuple $x, NodeEnvironment $env): LetNode {
+    private function analyzeLoop(Tuple $x, NodeEnvironment $env): LetNode
+    {
         $tupleCount = count($x);
         if ($tupleCount < 2) {
             throw new AnalyzerException(
@@ -415,7 +427,7 @@ final class Analyzer {
                 $tempSym = Symbol::gen();
                 $tempSym->setStartLocation($b->getStartLocation());
                 $tempSym->setEndLocation($b->getEndLocation());
-                
+
                 $preInits[] = $tempSym;
                 $preInits[] = $init;
                 $lets[] = $b;
@@ -454,7 +466,8 @@ final class Analyzer {
         return $this->analyzeLetOrLoop($x, $env, true);
     }
 
-    private function analyzeThrow(Tuple $x, NodeEnvironment $env): ThrowNode {
+    private function analyzeThrow(Tuple $x, NodeEnvironment $env): ThrowNode
+    {
         if (count($x) !== 2) {
             throw new AnalyzerException(
                 "Exact one argument is required for 'throw",
@@ -470,7 +483,8 @@ final class Analyzer {
         );
     }
 
-    private function analyzeTry(Tuple $x, NodeEnvironment $env): TryNode {
+    private function analyzeTry(Tuple $x, NodeEnvironment $env): TryNode
+    {
         $tupleCount = count($x);
         $state = 'start';
         $body = [];
@@ -486,7 +500,7 @@ final class Analyzer {
                     if ($this->isSymWithName($form[0], 'catch')) {
                         $state = 'catches';
                         $catches[] = $form;
-                    } else if ($this->isSymWithName($form[0], 'finally')) {
+                    } elseif ($this->isSymWithName($form[0], 'finally')) {
                         $state = 'done';
                         $finally = $form;
                     } else {
@@ -497,7 +511,7 @@ final class Analyzer {
                 case 'catches':
                     if ($this->isSymWithName($form[0], 'catch')) {
                         $catches[] = $form;
-                    } else if ($this->isSymWithName($form[0], 'finally')) {
+                    } elseif ($this->isSymWithName($form[0], 'finally')) {
                         $state = 'done';
                         $finally = $form;
                     } else {
@@ -552,7 +566,7 @@ final class Analyzer {
                     ->withMergedLocals([$name])
                     ->withDisallowRecurFrame()
             );
-            
+
             $catchNodes[] = new CatchNode(
                 $env,
                 $type,
@@ -577,7 +591,8 @@ final class Analyzer {
         );
     }
 
-    private function analyzeRecur(Tuple $x, NodeEnvironment $env): RecurNode {
+    private function analyzeRecur(Tuple $x, NodeEnvironment $env): RecurNode
+    {
         $tupleCount = count($x);
         $frame = $env->getCurrentRecurFrame();
 
@@ -598,11 +613,11 @@ final class Analyzer {
             );
         }
 
-        
+
         $frame->setIsActive(true);
 
         $exprs = [];
-        for($i = 1; $i < $tupleCount; $i++) {
+        for ($i = 1; $i < $tupleCount; $i++) {
             $exprs[] = $this->analyze($x[$i], $env->withContext(NodeEnvironment::CTX_EXPR)->withDisallowRecurFrame());
         }
 
@@ -614,7 +629,8 @@ final class Analyzer {
         );
     }
 
-    private function analyzePhpNew(Tuple $x, NodeEnvironment $env): PhpNewNode {
+    private function analyzePhpNew(Tuple $x, NodeEnvironment $env): PhpNewNode
+    {
         $tupleCount = count($x);
         if ($tupleCount < 2) {
             throw new AnalyzerException(
@@ -638,7 +654,8 @@ final class Analyzer {
         );
     }
 
-    private function analyzePhpObjectCall(Tuple $x, NodeEnvironment $env, bool $isStatic): PhpObjectCallNode {
+    private function analyzePhpObjectCall(Tuple $x, NodeEnvironment $env, bool $isStatic): PhpObjectCallNode
+    {
         $fnName = $isStatic ? 'php/::' : 'php/->';
         if (count($x) !== 3) {
             throw new AnalyzerException(
@@ -675,7 +692,7 @@ final class Analyzer {
             }
 
             $args = [];
-            for($i = 1; $i < $tCount; $i++) {
+            for ($i = 1; $i < $tCount; $i++) {
                 $args[] = $this->analyze($tuple[$i], $env->withContext(NodeEnvironment::CTX_EXPR)->withDisallowRecurFrame());
             }
 
@@ -709,7 +726,8 @@ final class Analyzer {
         );
     }
 
-    private function analyzeBracketTuple(Tuple $x, NodeEnvironment $env): TupleNode {
+    private function analyzeBracketTuple(Tuple $x, NodeEnvironment $env): TupleNode
+    {
         $args = [];
         foreach ($x as $arg) {
             $args[] = $this->analyze($arg, $env->withContext(NodeEnvironment::CTX_EXPR)->withDisallowRecurFrame());
@@ -718,7 +736,8 @@ final class Analyzer {
         return new TupleNode($env, $args, $x->getStartLocation());
     }
 
-    private function analyzePhelArray(PhelArray $x, NodeEnvironment $env): PhelArrayNode {
+    private function analyzePhelArray(PhelArray $x, NodeEnvironment $env): PhelArrayNode
+    {
         $args = [];
         foreach ($x as $arg) {
             $args[] = $this->analyze($arg, $env->withContext(NodeEnvironment::CTX_EXPR)->withDisallowRecurFrame());
@@ -727,7 +746,8 @@ final class Analyzer {
         return new PhelArrayNode($env, $args, $x->getStartLocation());
     }
 
-    private function analyzeVar(Symbol $x, NodeEnvironment $env): Node {
+    private function analyzeVar(Symbol $x, NodeEnvironment $env): Node
+    {
         if (strpos($x->getName(), 'php/') === 0) {
             return new PhpVarNode($env, substr($x->getName(), 4), $x->getStartLocation());
         }
@@ -751,7 +771,8 @@ final class Analyzer {
         throw new AnalyzerException('Can not resolve symbol ' . $x->getName(), $x->getStartLocation(), $x->getEndLocation());
     }
 
-    private function analyzeLet(Tuple $x, NodeEnvironment $env): LetNode {
+    private function analyzeLet(Tuple $x, NodeEnvironment $env): LetNode
+    {
         if (count($x) < 2) {
             throw new AnalyzerException(
                 "At least two arguments are required for 'let",
@@ -789,7 +810,8 @@ final class Analyzer {
         return $this->analyzeLetOrLoop($newTuple, $env, false);
     }
 
-    private function analyzeLetOrLoop(Tuple $x, NodeEnvironment $env, bool $isLoop = false): LetNode {
+    private function analyzeLetOrLoop(Tuple $x, NodeEnvironment $env, bool $isLoop = false): LetNode
+    {
         $tupleCount = count($x);
         $exprs = [];
         for ($i = 2; $i < $tupleCount; $i++) {
@@ -838,7 +860,8 @@ final class Analyzer {
     /**
      * @return BindingNode[]
      */
-    private function analyzeBindings(Tuple $x, NodeEnvironment $env) {
+    private function analyzeBindings(Tuple $x, NodeEnvironment $env)
+    {
         $tupleCount = count($x);
         $initEnv = $env->withContext(NodeEnvironment::CTX_EXPR)->withDisallowRecurFrame();
         $nodes = [];
@@ -873,7 +896,8 @@ final class Analyzer {
         return $nodes;
     }
 
-    private function analyzeApply(Tuple $x, NodeEnvironment $env): ApplyNode {
+    private function analyzeApply(Tuple $x, NodeEnvironment $env): ApplyNode
+    {
         $tupleCount = count($x);
         if ($tupleCount < 3) {
             throw new AnalyzerException(
@@ -898,7 +922,8 @@ final class Analyzer {
         );
     }
 
-    private function analyzeDo(Tuple $x, NodeEnvironment $env): DoNode {
+    private function analyzeDo(Tuple $x, NodeEnvironment $env): DoNode
+    {
         $tupleCount = count($x);
         $stmts = [];
         for ($i = 1; $i < $tupleCount - 1; $i++) {
@@ -910,7 +935,7 @@ final class Analyzer {
                 ? $env->withContext(NodeEnvironment::CTX_STMT)
                 : $env->withContext(NodeEnvironment::CTX_RET);
             $ret = $this->analyze($x[$tupleCount - 1], $retEnv);
-        } else if ($tupleCount === 2) {
+        } elseif ($tupleCount === 2) {
             $ret = $this->analyze($x[$tupleCount - 1], $env);
         } else {
             $ret = $this->analyze(null, $env);
@@ -924,7 +949,8 @@ final class Analyzer {
         );
     }
 
-    private function analyzeIf(Tuple $x, NodeEnvironment $env): IfNode {
+    private function analyzeIf(Tuple $x, NodeEnvironment $env): IfNode
+    {
         $tupleCount = count($x);
         if ($tupleCount < 3 || $tupleCount > 4) {
             throw new AnalyzerException(
@@ -951,7 +977,8 @@ final class Analyzer {
         );
     }
 
-    private function analyzeQuote(Tuple $x, NodeEnvironment $env): QuoteNode {
+    private function analyzeQuote(Tuple $x, NodeEnvironment $env): QuoteNode
+    {
         if (count($x) !== 2) {
             throw new AnalyzerException(
                 "Exactly one arguments is required for 'quote",
@@ -967,7 +994,8 @@ final class Analyzer {
         );
     }
 
-    private function analyzeFn(Tuple $x, NodeEnvironment $env): FnNode {
+    private function analyzeFn(Tuple $x, NodeEnvironment $env): FnNode
+    {
         $tupleCount = count($x);
         if ($tupleCount < 2 || $tupleCount > 3) {
             throw new AnalyzerException(
@@ -998,7 +1026,7 @@ final class Analyzer {
                         if ($this->isSymWithName($param, '&')) {
                             $isVariadic = true;
                             $state = 'rest';
-                        } else if ($param->getName() === '_') {
+                        } elseif ($param->getName() === '_') {
                             $params[] = Symbol::gen()->copyLocationFrom($param);
                         } else {
                             $params[] = $param;
@@ -1015,7 +1043,7 @@ final class Analyzer {
                     $hasVariadicForm = true;
                     if ($this->isSymWithName($param, '_')) {
                         $params[] = Symbol::gen()->copyLocationFrom($param);
-                    } else if ($param instanceof Symbol) {
+                    } elseif ($param instanceof Symbol) {
                         $params[] = $param;
                     } else {
                         $tempSym = Symbol::gen()->copyLocationFrom($x);
@@ -1026,8 +1054,8 @@ final class Analyzer {
                     break;
                 case 'done':
                     throw new AnalyzerException(
-                        'Unsupported parameter form, only one symbol can follow the & parameter', 
-                        $x->getStartLocation(), 
+                        'Unsupported parameter form, only one symbol can follow the & parameter',
+                        $x->getStartLocation(),
                         $x->getEndLocation()
                     );
             }
@@ -1053,7 +1081,7 @@ final class Analyzer {
         $body = $x[2];
         if (count($lets) > 0) {
             $body = Tuple::create(
-                (new Symbol('let'))->copyLocationFrom($body), 
+                (new Symbol('let'))->copyLocationFrom($body),
                 (new Tuple($lets, true))->copyLocationFrom($body),
                 $body
             )->copyLocationFrom($body);
@@ -1079,7 +1107,8 @@ final class Analyzer {
         );
     }
 
-    private function analyzeInvoke(Tuple $x, NodeEnvironment $nodeEnvironment): Node {
+    private function analyzeInvoke(Tuple $x, NodeEnvironment $nodeEnvironment): Node
+    {
         $tupleCount = count($x);
         $f = $this->analyze($x[0], $nodeEnvironment->withContext(NodeEnvironment::CTX_EXPR)->withDisallowRecurFrame());
 
@@ -1103,10 +1132,11 @@ final class Analyzer {
     /**
      * @param Tuple $x
      * @param NodeEnvironment $env
-     * 
+     *
      * @return Phel|scalar|null
      */
-    private function macroExpand(Tuple $x, NodeEnvironment $env) {
+    private function macroExpand(Tuple $x, NodeEnvironment $env)
+    {
         $tupleCount = count($x);
         /**
          * @psalm-suppress PossiblyNullArgument
@@ -1126,13 +1156,12 @@ final class Analyzer {
                 return $result;
             } catch (Exception $e) {
                 throw new AnalyzerException(
-                    'Error in expanding macro "' . $node->getNamespace() . '\\'. $node->getName()->getName() . '": ' . $e->getMessage(),
+                    'Error in expanding macro "' . $node->getNamespace() . '\\' . $node->getName()->getName() . '": ' . $e->getMessage(),
                     $x->getStartLocation(),
                     $x->getEndLocation(),
                     $e
                 );
             }
-            
         }
 
         if (is_null($node)) {
@@ -1154,7 +1183,8 @@ final class Analyzer {
      * @param mixed $x
      * @param Phel $parent
      */
-    private function enrichLocation($x, Phel $parent): void {
+    private function enrichLocation($x, Phel $parent): void
+    {
         if ($x instanceof Tuple) {
             foreach ($x as $item) {
                 $this->enrichLocation($item, $parent);
@@ -1166,7 +1196,7 @@ final class Analyzer {
             if (!$x->getEndLocation()) {
                 $x->setEndLocation($parent->getEndLocation());
             }
-        } else if ($x instanceof Phel) {
+        } elseif ($x instanceof Phel) {
             if (!$x->getStartLocation()) {
                 $x->setStartLocation($parent->getStartLocation());
             }
@@ -1179,14 +1209,16 @@ final class Analyzer {
     /**
      * @param Phel|scalar|null $x
      * @param NodeEnvironment $env
-     * 
+     *
      * @return LiteralNode
      */
-    private function analyzeLiteral($x, NodeEnvironment $env): LiteralNode {
+    private function analyzeLiteral($x, NodeEnvironment $env): LiteralNode
+    {
         return new LiteralNode($env, $x, ($x instanceof Phel) ? $x->getStartLocation() : null);
     }
 
-    private function analyzeNs(Tuple $x, NodeEnvironment $env): NsNode {
+    private function analyzeNs(Tuple $x, NodeEnvironment $env): NsNode
+    {
         $tupleCount = count($x);
         if (!($x[1] instanceof Symbol)) {
             throw new AnalyzerException(
@@ -1256,7 +1288,7 @@ final class Analyzer {
                 }
 
                 $this->globalEnvironment->addUseAlias($alias, $import[1]);
-            } else if ($this->isKeywordWithName($import[0], 'require')) {
+            } elseif ($this->isKeywordWithName($import[0], 'require')) {
                 if (!($import[1] instanceof Symbol)) {
                     throw new AnalyzerException(
                         "First arugment in :require must be a symbol.",
@@ -1288,9 +1320,10 @@ final class Analyzer {
         return new NsNode($x[1]->getName(), $requireNs, $x->getStartLocation());
     }
 
-    private function analyzeDef(Tuple $x, NodeEnvironment $nodeEnvironment): DefNode {
+    private function analyzeDef(Tuple $x, NodeEnvironment $nodeEnvironment): DefNode
+    {
         $countX = count($x);
-        if($countX < 3 || $countX > 4) {
+        if ($countX < 3 || $countX > 4) {
             throw new AnalyzerException(
                 "Two or three arguments are required for 'def. Got " . count($x),
                 $x->getStartLocation(),
@@ -1331,11 +1364,11 @@ final class Analyzer {
             $meta = Table::fromKVs($kv, $meta);
             $meta->setStartLocation($x->getStartLocation());
             $meta->setEndLocation($x->getEndLocation());
-        } else if ($meta instanceof Keyword) {
+        } elseif ($meta instanceof Keyword) {
             $meta = Table::fromKVs($meta, true);
             $meta->setStartLocation($meta->getStartLocation());
             $meta->setEndLocation($meta->getEndLocation());
-        } else if (!$meta instanceof Table) {
+        } elseif (!$meta instanceof Table) {
             throw new AnalyzerException(
                 "Metadata must be a Symbol, String, Keyword or Table",
                 $x->getStartLocation(),
@@ -1358,24 +1391,27 @@ final class Analyzer {
     /**
      * @param mixed $x
      * @param string $name
-     * 
+     *
      * @return bool
      */
-    private function isSymWithName($x, string $name): bool {
+    private function isSymWithName($x, string $name): bool
+    {
         return $x instanceof Symbol && $x->getName() === $name;
     }
 
     /**
      * @param mixed $x
      * @param string $name
-     * 
+     *
      * @return bool
      */
-    private function isKeywordWithName($x, string $name): bool {
+    private function isKeywordWithName($x, string $name): bool
+    {
         return $x instanceof Keyword && $x->getName() === $name;
     }
 
-    private function isPHPKeyword(string $w) {
+    private function isPHPKeyword(string $w)
+    {
         return in_array($w, self::PHP_KEYWORDS);
     }
 }

@@ -1,4 +1,5 @@
-<?php 
+<?php
+
 
 namespace Phel\Ast;
 
@@ -6,7 +7,8 @@ use Phel\Lang\Phel;
 use Phel\Lang\SourceLocation;
 use Phel\NodeEnvironment;
 
-class QuoteNode extends Node {
+class QuoteNode extends Node
+{
 
     /**
      * @var mixed
@@ -26,7 +28,8 @@ class QuoteNode extends Node {
     /**
      * @return mixed
      */
-    public function getValue() {
+    public function getValue()
+    {
         return $this->value;
     }
 }

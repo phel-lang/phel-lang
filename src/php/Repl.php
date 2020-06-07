@@ -8,7 +8,8 @@ use Phel\Exceptions\TextExceptionPrinter;
 use Phel\Repl\Readline;
 use Throwable;
 
-class Repl {
+class Repl
+{
 
     /**
      * @var Readline
@@ -20,20 +21,21 @@ class Repl {
         $this->readline = new Readline($workingDir . '.phel-repl-history');
     }
 
-    public function run() {
+    public function run()
+    {
         $this->readline->readHistory();
 
         $globalEnv = new GlobalEnvironment();
         $rt = Runtime::initialize($globalEnv, null);
         $rt->loadNs("phel\core");
-        
+
         $reader = new Reader();
         $lexer = new Lexer();
         $analzyer = new Analyzer($globalEnv);
         $emitter = new Emitter();
         $printer = new Printer();
         $exceptionPrinter = new TextExceptionPrinter();
-        
+
         $this->output($this->color("Welcome to the Phel Repl\n", 'yellow'));
         $this->output('Type "quit" or press Ctrl-D to exit.' . "\n");
         while (true) {
@@ -56,7 +58,7 @@ class Repl {
             }
 
             $this->readline->addHistory($input);
-            
+
             try {
                 $tokenStream = $lexer->lexString($input);
                 $readerResult = $reader->readNext($tokenStream);
@@ -82,7 +84,8 @@ class Repl {
         }
     }
 
-    protected function color($text = '', $color = null) {
+    protected function color($text = '', $color = null)
+    {
         $styles = array(
             'green'  => "\033[0;32m%s\033[0m",
             'red'    => "\033[31;31m%s\033[0m",
@@ -93,11 +96,13 @@ class Repl {
         return sprintf(isset($styles[$color]) ? $styles[$color] : "%s", $text);
     }
 
-    protected function input() {
+    protected function input()
+    {
         return fgets(STDIN);
     }
 
-    protected function output($value) {
+    protected function output($value)
+    {
         fputs(STDOUT, $value);
     }
 }

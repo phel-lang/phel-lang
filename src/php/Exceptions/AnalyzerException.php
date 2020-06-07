@@ -2,4 +2,6 @@
 
 namespace Phel\Exceptions;
 
-class AnalyzerException extends PhelCodeException {}
+class AnalyzerException extends PhelCodeException
+{
+}

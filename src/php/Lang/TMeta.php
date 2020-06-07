@@ -2,14 +2,16 @@
 
 namespace Phel\Lang;
 
-trait TMeta {
+trait TMeta
+{
 
     /**
      * @var ?Table
      */
     private $meta;
 
-    public function getMeta(): Table {
+    public function getMeta(): Table
+    {
         if ($this->meta == null) {
             $this->meta = new Table();
         }
@@ -17,7 +19,8 @@ trait TMeta {
         return $this->meta;
     }
 
-    public function setMeta(Table $meta) {
+    public function setMeta(Table $meta)
+    {
         $this->meta = $meta;
     }
 }

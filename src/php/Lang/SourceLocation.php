@@ -2,7 +2,8 @@
 
 namespace Phel\Lang;
 
-class SourceLocation {
+class SourceLocation
+{
 
     /**
      * @var string
@@ -26,27 +27,33 @@ class SourceLocation {
         $this->column = $column;
     }
 
-    public function setFile(string $file): void {
+    public function setFile(string $file): void
+    {
         $this->file = $file;
     }
 
-    public function getFile(): string {
+    public function getFile(): string
+    {
         return $this->file;
     }
 
-    public function setLine(int $line): void {
+    public function setLine(int $line): void
+    {
         $this->line = $line;
     }
 
-    public function getLine(): int {
+    public function getLine(): int
+    {
         return $this->line;
     }
 
-    public function setColumn(int $column): void {
+    public function setColumn(int $column): void
+    {
         $this->column = $column;
     }
 
-    public function getColumn(): int {
+    public function getColumn(): int
+    {
         return $this->column;
     }
 }

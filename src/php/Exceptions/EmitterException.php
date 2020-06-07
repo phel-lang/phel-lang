@@ -4,4 +4,6 @@ namespace Phel\Exceptions;
 
 use Exception;
 
-class EmitterException extends Exception {}
+class EmitterException extends Exception
+{
+}

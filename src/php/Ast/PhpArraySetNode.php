@@ -1,11 +1,13 @@
-<?php 
+<?php
+
 
 namespace Phel\Ast;
 
 use Phel\Lang\SourceLocation;
 use Phel\NodeEnvironment;
 
-class PhpArraySetNode extends Node {
+class PhpArraySetNode extends Node
+{
 
     /**
      * @var Node
@@ -30,15 +32,18 @@ class PhpArraySetNode extends Node {
         $this->valueExpr = $valueExpr;
     }
 
-    public function getArrayExpr(): Node {
+    public function getArrayExpr(): Node
+    {
         return $this->arrayExpr;
     }
 
-    public function getAccessExpr(): Node {
+    public function getAccessExpr(): Node
+    {
         return $this->accessExpr;
     }
 
-    public function getValueExpr(): Node {
+    public function getValueExpr(): Node
+    {
         return $this->valueExpr;
     }
 }

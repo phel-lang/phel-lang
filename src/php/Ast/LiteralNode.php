@@ -1,4 +1,5 @@
-<?php 
+<?php
+
 
 namespace Phel\Ast;
 
@@ -6,7 +7,8 @@ use Phel\Lang\SourceLocation;
 use Phel\Lang\Phel;
 use Phel\NodeEnvironment;
 
-class LiteralNode extends Node {
+class LiteralNode extends Node
+{
 
     /**
      * @var Phel|scalar|null
@@ -26,7 +28,8 @@ class LiteralNode extends Node {
     /**
      * @return Phel|scalar|null
      */
-    public function getValue() {
+    public function getValue()
+    {
         return $this->value;
     }
 }

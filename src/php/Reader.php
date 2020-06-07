@@ -13,7 +13,8 @@ use Phel\Lang\Table;
 use Phel\Lang\Tuple;
 use Phel\CodeSnippet;
 
-class Reader {
+class Reader
+{
 
     /**
      * @var array
@@ -41,14 +42,15 @@ class Reader {
 
     /**
      * Reads the next expression from the token stream.
-     * 
+     *
      * If the token stream reaches the end, false is returned.
-     * 
+     *
      * @param Generator $tokenStream The token stream to read.
-     * 
+     *
      * @return ReaderResult|false
      */
-    public function readNext(Generator $tokenStream) {
+    public function readNext(Generator $tokenStream)
+    {
         if (!$tokenStream->valid()) {
             return false;
         }
@@ -69,7 +71,8 @@ class Reader {
     /**
      * @return Phel|null|scalar
      */
-    public function readExpression(Generator $tokenStream) {
+    public function readExpression(Generator $tokenStream)
+    {
         while ($tokenStream->valid()) {
             $token = $tokenStream->current();
             $this->readTokens[] = $token;
@@ -180,7 +183,8 @@ class Reader {
     /**
      * @return Phel|scalar|null
      */
-    protected function readQuasiquote(Generator $tokenStream) {
+    protected function readQuasiquote(Generator $tokenStream)
+    {
         $startLocaltion = $tokenStream->current()->getStartLocation();
         $tokenStream->next();
 
@@ -197,15 +201,16 @@ class Reader {
         return $result;
     }
 
-    protected function readMeta(Generator $tokenStream) {
+    protected function readMeta(Generator $tokenStream)
+    {
         $tokenStream->next();
 
         $meta = $this->readExpressionHard($tokenStream, "missing meta expression");
         if (is_string($meta) || $meta instanceof Symbol) {
             $meta = Table::fromKVs(new Keyword('tag'), $meta);
-        } else if ($meta instanceof Keyword) {
+        } elseif ($meta instanceof Keyword) {
             $meta = Table::fromKVs($meta, true);
-        } else if (!$meta instanceof Table) {
+        } elseif (!$meta instanceof Table) {
             throw $this->buildReaderException('Metadata must be a Symbol, String, Keyword or Table');
         }
         $object = $this->readExpressionHard($tokenStream, "missing object expression for meta data");
@@ -223,14 +228,15 @@ class Reader {
         return $object;
     }
 
-    protected function readWrap(Generator $tokenStream, string $wrapFn): Tuple {
+    protected function readWrap(Generator $tokenStream, string $wrapFn): Tuple
+    {
         $startLocation = $tokenStream->current()->getStartLocation();
         $tokenStream->next();
 
         $expression = $this->readExpressionHard($tokenStream, "missing expression");
 
         $endLocation = $tokenStream->current()->getEndLocation();
-        
+
         $tuple = new Tuple([new Symbol($wrapFn), $expression]);
         $tuple->setStartLocation($startLocation);
         $tuple->setEndLocation($endLocation);
@@ -241,7 +247,8 @@ class Reader {
     /**
      * @return string|null|boolean|float|int|Phel
      */
-    protected function readExpressionHard(Generator $tokenStream, string $errorMessage) {
+    protected function readExpressionHard(Generator $tokenStream, string $errorMessage)
+    {
         $result = $this->readExpression($tokenStream);
         if (is_null($result)) {
             throw $this->buildReaderException($errorMessage);
@@ -250,7 +257,8 @@ class Reader {
         return $result;
     }
 
-    protected function readList(Generator $tokenStream, int $endTokenType, bool $isUsingBrackets = false): Tuple {
+    protected function readList(Generator $tokenStream, int $endTokenType, bool $isUsingBrackets = false): Tuple
+    {
         $acc = [];
         $startLocation = $tokenStream->current()->getStartLocation();
         $tokenStream->next();
@@ -285,35 +293,36 @@ class Reader {
 
     /**
      * Parse a Atom.
-     * 
+     *
      * @param Token $token The token that was identified as atom.
-     * 
+     *
      * @return boolean|null|Keyword|Symbol|string|int|float
      */
-    protected function parseAtom(Token $token) {
+    protected function parseAtom(Token $token)
+    {
         $word = $token->getCode();
-        
+
         if ($word === 'true') {
             return true;
-        } else if ($word === 'false') {
+        } elseif ($word === 'false') {
             return false;
-        } else if ($word === 'nil') {
+        } elseif ($word === 'nil') {
             return null;
-        } else if ($word[0] === ':') {
+        } elseif ($word[0] === ':') {
             return new Keyword(substr($word, 1));
-        } else if (preg_match("/([+-])?0[bB][01]+(_[01]+)*/", $word, $matches)) {
+        } elseif (preg_match("/([+-])?0[bB][01]+(_[01]+)*/", $word, $matches)) {
             // binary numbers
             $sign = (isset($matches[1]) && $matches[1] == '-') ? -1 : 1;
             return $sign * bindec(str_replace('_', '', $word));
-        } else if (preg_match("/([+-])?0[xX][0-9a-fA-F]+(_[0-9a-fA-F]+)*/", $word, $matches)) {
+        } elseif (preg_match("/([+-])?0[xX][0-9a-fA-F]+(_[0-9a-fA-F]+)*/", $word, $matches)) {
             // hexdecimal numbers
             $sign = (isset($matches[1]) && $matches[1] == '-') ? -1 : 1;
             return $sign = hexdec(str_replace('_', '', $word));
-        } else if (preg_match("/([+-])?0[0-7]+(_[0-7]+)*/", $word, $matches)) {
+        } elseif (preg_match("/([+-])?0[0-7]+(_[0-7]+)*/", $word, $matches)) {
             // octal numbers
             $sign = (isset($matches[1]) && $matches[1] == '-') ? -1 : 1;
             return $sign * octdec(str_replace('_', '', $word));
-        } else if (is_numeric($word)) {
+        } elseif (is_numeric($word)) {
             // normal numbers
             return $word + 0;
         } else {
@@ -322,7 +331,8 @@ class Reader {
         }
     }
 
-    protected function readSymbol($word) {
+    protected function readSymbol($word)
+    {
         if (is_array($this->fnArgs)) {
             // Special case: We read an anonymous function
             if ($word == "$") {
@@ -333,7 +343,7 @@ class Reader {
                     $this->fnArgs[1] = $sym;
                     return $sym;
                 }
-            } else if ($word == "$&") {
+            } elseif ($word == "$&") {
                 if (isset($this->fnArgs[0])) {
                     return new Symbol($this->fnArgs[0]->getName());
                 } else {
@@ -341,7 +351,7 @@ class Reader {
                     $this->fnArgs[0] = $sym;
                     return $sym;
                 }
-            } else if (preg_match('/\$([1-9][0-9]*)/', $word, $matches)) {
+            } elseif (preg_match('/\$([1-9][0-9]*)/', $word, $matches)) {
                 $number = (int) $matches[1];
                 if (isset($this->fnArgs[$number])) {
                     return new Symbol($this->fnArgs[$number]->getName());
@@ -358,12 +368,13 @@ class Reader {
         }
     }
 
-    protected function parseEscapedString(string $str): string {
+    protected function parseEscapedString(string $str): string
+    {
         $str = str_replace('\\"', '"', $str);
 
         return preg_replace_callback(
             '~\\\\([\\\\$nrtfve]|[xX][0-9a-fA-F]{1,2}|[0-7]{1,3}|u\{([0-9a-fA-F]+)\})~',
-            function(array $matches): string {
+            function (array $matches): string {
                 $str = $matches[1];
 
                 if (isset($this->stringReplacements[$str])) {
@@ -382,7 +393,8 @@ class Reader {
         );
     }
 
-    protected function codePointToUtf8(int $num) : string {
+    protected function codePointToUtf8(int $num): string
+    {
         if ($num <= 0x7F) {
             return chr($num);
         }
@@ -401,12 +413,13 @@ class Reader {
 
     /**
      * Create a CodeSnippet from a list of Tokens.
-     * 
+     *
      * @param Token[] $readTokens The tokens read so far.
-     * 
+     *
      * @return CodeSnippet
      */
-    private function getCodeSnippet($readTokens): CodeSnippet {
+    private function getCodeSnippet($readTokens): CodeSnippet
+    {
         $tokens = $this->removeLeadingWhitespace($readTokens);
         $code = $this->getCode($tokens);
 
@@ -419,12 +432,13 @@ class Reader {
 
     /**
      * Concatinates all Token to a string.
-     * 
+     *
      * @param Token[] $readTokens The tokens read so far.
-     * 
+     *
      * @return string
      */
-    private function getCode($readTokens): string {
+    private function getCode($readTokens): string
+    {
         $code = '';
         foreach ($readTokens as $token) {
             $code .= $token->getCode();
@@ -434,12 +448,13 @@ class Reader {
 
     /**
      * Removes all leading whitespace and comment tokens
-     * 
+     *
      * @param Token[] $readTokens The tokens read so far
-     * 
+     *
      * @return Token[]
      */
-    private function removeLeadingWhitespace($readTokens) {
+    private function removeLeadingWhitespace($readTokens)
+    {
         $result = [];
         $leadingWhitespace = true;
         foreach ($readTokens as $token) {
@@ -452,7 +467,8 @@ class Reader {
         return $result;
     }
 
-    private function buildReaderException(string $message): ReaderException {
+    private function buildReaderException(string $message): ReaderException
+    {
         $codeSnippet = $this->getCodeSnippet($this->readTokens);
 
         return new ReaderException(

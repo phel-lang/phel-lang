@@ -1,4 +1,5 @@
-<?php 
+<?php
+
 
 namespace Phel\Ast;
 
@@ -6,7 +7,8 @@ use Phel\Lang\Symbol;
 use Phel\Lang\SourceLocation;
 use Phel\NodeEnvironment;
 
-class MethodCallNode extends Node {
+class MethodCallNode extends Node
+{
 
     /**
      * @var Symbol
@@ -30,14 +32,16 @@ class MethodCallNode extends Node {
         $this->args = $args;
     }
 
-    public function getFn(): Symbol {
+    public function getFn(): Symbol
+    {
         return $this->fn;
     }
 
     /**
      * @return Node[]
      */
-    public function getArgs() {
+    public function getArgs()
+    {
         return $this->args;
     }
 }

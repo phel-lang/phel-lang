@@ -1,4 +1,5 @@
-<?php 
+<?php
+
 
 namespace Phel\Ast;
 
@@ -6,7 +7,8 @@ use Phel\Lang\Symbol;
 use Phel\Lang\SourceLocation;
 use Phel\NodeEnvironment;
 
-class PhpClassNameNode extends Node {
+class PhpClassNameNode extends Node
+{
 
     /**
      * @var Symbol
@@ -19,8 +21,8 @@ class PhpClassNameNode extends Node {
         $this->name = $name;
     }
 
-    public function getName(): Symbol {
+    public function getName(): Symbol
+    {
         return $this->name;
     }
-
 }

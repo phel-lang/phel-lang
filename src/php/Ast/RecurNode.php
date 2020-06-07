@@ -1,4 +1,5 @@
-<?php 
+<?php
+
 
 namespace Phel\Ast;
 
@@ -6,7 +7,8 @@ use Phel\Lang\SourceLocation;
 use Phel\NodeEnvironment;
 use Phel\RecurFrame;
 
-class RecurNode extends Node {
+class RecurNode extends Node
+{
 
     /**
      * @var RecurFrame
@@ -30,14 +32,16 @@ class RecurNode extends Node {
         $this->exprs = $exprs;
     }
 
-    public function getFrame(): RecurFrame {
+    public function getFrame(): RecurFrame
+    {
         return $this->frame;
     }
 
     /**
      * @return Node[]
      */
-    public function getExprs() {
+    public function getExprs()
+    {
         return $this->exprs;
     }
 }

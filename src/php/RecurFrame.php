@@ -4,7 +4,8 @@ namespace Phel;
 
 use Phel\Lang\Symbol;
 
-class RecurFrame {
+class RecurFrame
+{
 
     /**
      * @var bool
@@ -21,15 +22,18 @@ class RecurFrame {
         $this->params = $params;
     }
 
-    public function setIsActive(bool $isActive): void {
+    public function setIsActive(bool $isActive): void
+    {
         $this->isActive = $isActive;
     }
 
-    public function isActive(): bool {
+    public function isActive(): bool
+    {
         return $this->isActive;
     }
 
-    public function getParams(): array {
+    public function getParams(): array
+    {
         return $this->params;
     }
 }

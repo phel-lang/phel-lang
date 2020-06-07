@@ -4,7 +4,8 @@ namespace Phel\Lang;
 
 use Phel\Printer;
 
-class Symbol extends Phel implements IIdentical {
+class Symbol extends Phel implements IIdentical
+{
 
     /**
      * @var int
@@ -16,11 +17,13 @@ class Symbol extends Phel implements IIdentical {
      */
     protected $name;
 
-    public function __construct(string $name) {
+    public function __construct(string $name)
+    {
         $this->name = $name;
     }
 
-    public function getName(): string {
+    public function getName(): string
+    {
         return $this->name;
     }
 
@@ -30,27 +33,33 @@ class Symbol extends Phel implements IIdentical {
         return $printer->print($this, true);
     }
 
-    public static function gen(string $prefix = '__phel_'): Symbol {
+    public static function gen(string $prefix = '__phel_'): Symbol
+    {
         return new Symbol($prefix . (self::$symGenCounter++));
     }
 
-    public static function resetGen(): void {
+    public static function resetGen(): void
+    {
         self::$symGenCounter = 1;
     }
 
-    public function hash(): string {
+    public function hash(): string
+    {
         return $this->getName();
     }
 
-    public function equals($other): bool {
+    public function equals($other): bool
+    {
         return $other instanceof Symbol && $this->name == $other->getName();
     }
 
-    public function identical($other): bool {
+    public function identical($other): bool
+    {
         return $other instanceof Symbol && $this->name == $other->getName();
     }
 
-    public function isTruthy(): bool {
+    public function isTruthy(): bool
+    {
         return true;
     }
 }

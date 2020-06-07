@@ -9,9 +9,10 @@ use Phel\SourceMap\SourceMapConsumer;
 use ReflectionClass;
 use Throwable;
 
-class TextExceptionPrinter implements ExceptionPrinter {
-
-    public function printException(PhelCodeException $e, CodeSnippet $codeSnippet): void {
+class TextExceptionPrinter implements ExceptionPrinter
+{
+    public function printException(PhelCodeException $e, CodeSnippet $codeSnippet): void
+    {
         $eStartLocation = $e->getStartLocation() ?? $codeSnippet->getStartLocation();
         $eEndLocation = $e->getEndLocation() ?? $codeSnippet->getEndLocation();
         $firstLine = $eStartLocation->getLine();
@@ -44,7 +45,8 @@ class TextExceptionPrinter implements ExceptionPrinter {
         }
     }
 
-    public function printStackTrace(Throwable $e): void {
+    public function printStackTrace(Throwable $e): void
+    {
         $printer = new Printer();
 
         $type = get_class($e);
@@ -90,7 +92,8 @@ class TextExceptionPrinter implements ExceptionPrinter {
         }
     }
 
-    private function getOriginalFilePosition($filename, $line) {
+    private function getOriginalFilePosition($filename, $line)
+    {
         $f = fopen($filename, 'r');
         $phpPrefix = fgets($f);
         $fileNameComment = fgets($f);
@@ -99,15 +102,15 @@ class TextExceptionPrinter implements ExceptionPrinter {
         $originalFile = $filename;
         $originalLine = $line;
 
-        if ($fileNameComment 
-            && $fileNameComment[0] == "/" 
+        if ($fileNameComment
+            && $fileNameComment[0] == "/"
             && $fileNameComment[1] == "/"
             && $fileNameComment[2] == " "
         ) {
             $originalFile = trim(substr($fileNameComment, 3));
 
-            if ($sourceMapComment 
-                && $sourceMapComment[0] == "/" 
+            if ($sourceMapComment
+                && $sourceMapComment[0] == "/"
                 && $sourceMapComment[1] == "/"
                 && $sourceMapComment[2] == " "
             ) {
@@ -121,7 +124,8 @@ class TextExceptionPrinter implements ExceptionPrinter {
         return [$originalFile, $originalLine];
     }
 
-    private function buildPhpArgsString($args) {
+    private function buildPhpArgsString($args)
+    {
         $result = [];
         foreach ($args as $arg) {
             $result[] = $this->buildPhpArg($arg);
@@ -130,11 +134,12 @@ class TextExceptionPrinter implements ExceptionPrinter {
         return implode(", ", $result);
     }
 
-    private function buildPhpArg($arg) {
+    private function buildPhpArg($arg)
+    {
         if (is_null($arg)) {
             return 'NULL';
-        } 
-        
+        }
+
         if (is_string($arg)) {
             $s = $arg;
             if (strlen($s) > 15) {
@@ -142,27 +147,28 @@ class TextExceptionPrinter implements ExceptionPrinter {
             }
             return "'" . $s . "'";
         }
-        
+
         if (is_bool($arg)) {
             return ($arg) ? "true" : "false";
         }
-        
+
         if (is_resource($arg)) {
             return "Resource id #" . ((string) $arg);
         }
-        
+
         if (is_array($arg)) {
             return "Array";
         }
-        
+
         if (is_object($arg)) {
             return 'Object(' . get_class($arg) . ')';
         }
-        
+
         return (string) $arg;
     }
 
-    private function color($text = '', $color = null) {
+    private function color($text = '', $color = null)
+    {
         $styles = array(
             'green'  => "\033[0;32m%s\033[0m",
             'red'    => "\033[31;31m%s\033[0m",
@@ -172,4 +178,4 @@ class TextExceptionPrinter implements ExceptionPrinter {
 
         return sprintf(isset($styles[$color]) ? $styles[$color] : "%s", $text);
     }
-};
+}

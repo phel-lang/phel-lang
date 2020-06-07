@@ -6,8 +6,9 @@ use Exception;
 use Generator;
 use Phel\Lang\SourceLocation;
 
-class Lexer {
-    
+class Lexer
+{
+
     /**
      * @var int
      */
@@ -57,7 +58,8 @@ class Lexer {
         $this->combinedRegex = "/(?:" . implode("|", $this->regexps) . ")/mA";
     }
 
-    public function lexString(string $code, string $source = 'string'): Generator {
+    public function lexString(string $code, string $source = 'string'): Generator
+    {
         $this->cursor = 0;
         $this->line = 1;
         $this->column = 0;
@@ -65,7 +67,7 @@ class Lexer {
         $end = strlen($code);
 
         $startLocation = new SourceLocation($source, $this->line, $this->column);
-        
+
         while ($this->cursor < $end) {
             if (preg_match($this->combinedRegex, $code, $matches, 0, $this->cursor)) {
                 $this->moveCursor($matches[0]);
@@ -82,7 +84,8 @@ class Lexer {
         yield new Token(Token::T_EOF, "", $startLocation, $startLocation);
     }
 
-    private function moveCursor(string $str): void {
+    private function moveCursor(string $str): void
+    {
         $len = strlen($str);
         $this->cursor += $len;
         $lastNewLinePos = strrpos($str, "\n");

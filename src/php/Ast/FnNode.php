@@ -1,4 +1,5 @@
-<?php 
+<?php
+
 
 namespace Phel\Ast;
 
@@ -6,7 +7,8 @@ use Phel\Lang\Symbol;
 use Phel\Lang\SourceLocation;
 use Phel\NodeEnvironment;
 
-class FnNode extends Node {
+class FnNode extends Node
+{
 
     /**
      * @var Symbol[]
@@ -54,26 +56,31 @@ class FnNode extends Node {
     /**
      * @return Symbol[]
      */
-    public function getParams() {
+    public function getParams()
+    {
         return $this->params;
     }
 
-    public function getBody(): Node {
+    public function getBody(): Node
+    {
         return $this->body;
     }
 
     /**
      * @return Symbol[]
      */
-    public function getUses() {
+    public function getUses()
+    {
         return $this->uses;
     }
 
-    public function isVariadic(): bool {
+    public function isVariadic(): bool
+    {
         return $this->isVariadic;
     }
 
-    public function getRecurs(): bool {
+    public function getRecurs(): bool
+    {
         return $this->recurs;
     }
 }

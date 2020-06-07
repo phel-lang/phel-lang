@@ -1,11 +1,13 @@
-<?php 
+<?php
+
 
 namespace Phel\Ast;
 
 use Phel\Lang\SourceLocation;
 use Phel\NodeEnvironment;
 
-class PhpArrayPushNode extends Node {
+class PhpArrayPushNode extends Node
+{
 
     /**
      * @var Node
@@ -24,11 +26,13 @@ class PhpArrayPushNode extends Node {
         $this->valueExpr = $valueExpr;
     }
 
-    public function getArrayExpr(): Node {
+    public function getArrayExpr(): Node
+    {
         return $this->arrayExpr;
     }
 
-    public function getValueExpr(): Node {
+    public function getValueExpr(): Node
+    {
         return $this->valueExpr;
     }
 }

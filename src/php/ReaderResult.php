@@ -5,7 +5,8 @@ namespace Phel;
 use Phel\Lang\Phel;
 use Phel\CodeSnippet;
 
-class ReaderResult {
+class ReaderResult
+{
 
     /**
      * @var Phel|scalar|null
@@ -19,7 +20,7 @@ class ReaderResult {
 
     /**
      * Constructor
-     * 
+     *
      * @param Phel|scalar|null $ast The form read by the reader
      * @param CodeSnippet $codeSnippet The Code that have been read for the form.
      */
@@ -32,11 +33,13 @@ class ReaderResult {
     /**
      * @return Phel|scalar|null
      */
-    public function getAst() {
+    public function getAst()
+    {
         return $this->ast;
     }
 
-    public function getCodeSnippet(): CodeSnippet {
+    public function getCodeSnippet(): CodeSnippet
+    {
         return $this->codeSnippet;
     }
 }

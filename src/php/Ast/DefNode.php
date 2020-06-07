@@ -1,4 +1,5 @@
-<?php 
+<?php
+
 
 namespace Phel\Ast;
 
@@ -7,7 +8,8 @@ use Phel\Lang\SourceLocation;
 use Phel\Lang\Table;
 use Phel\NodeEnvironment;
 
-class DefNode extends Node {
+class DefNode extends Node
+{
 
     /**
      * @var string
@@ -38,19 +40,23 @@ class DefNode extends Node {
         $this->init = $init;
     }
 
-    public function getNamespace(): string {
+    public function getNamespace(): string
+    {
         return $this->namespace;
     }
 
-    public function getName(): Symbol {
+    public function getName(): Symbol
+    {
         return $this->name;
     }
 
-    public function getMeta(): Table {
+    public function getMeta(): Table
+    {
         return $this->meta;
     }
 
-    public function getInit(): Node {
+    public function getInit(): Node
+    {
         return $this->init;
     }
 }

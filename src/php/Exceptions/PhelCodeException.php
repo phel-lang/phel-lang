@@ -5,7 +5,8 @@ namespace Phel\Exceptions;
 use Exception;
 use Phel\Lang\SourceLocation;
 
-class PhelCodeException extends Exception {
+class PhelCodeException extends Exception
+{
 
     /**
      * @var ?SourceLocation
@@ -24,11 +25,13 @@ class PhelCodeException extends Exception {
         $this->endLocation = $endLocation;
     }
 
-    public function getStartLocation(): ?SourceLocation {
+    public function getStartLocation(): ?SourceLocation
+    {
         return $this->startLocation;
     }
 
-    public function getEndLocation(): ?SourceLocation {
+    public function getEndLocation(): ?SourceLocation
+    {
         return $this->endLocation;
     }
 }

@@ -1,11 +1,13 @@
-<?php 
+<?php
+
 
 namespace Phel\Ast;
 
 use Phel\Lang\SourceLocation;
 use Phel\NodeEnvironment;
 
-class DoNode extends Node {
+class DoNode extends Node
+{
 
     /**
      * @var Node[]
@@ -32,11 +34,13 @@ class DoNode extends Node {
     /**
      * @return Node[]
      */
-    public function getStmts() {
+    public function getStmts()
+    {
         return $this->stmts;
     }
 
-    public function getRet(): Node {
+    public function getRet(): Node
+    {
         return $this->ret;
     }
 }

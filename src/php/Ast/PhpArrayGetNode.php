@@ -1,11 +1,13 @@
-<?php 
+<?php
+
 
 namespace Phel\Ast;
 
 use Phel\Lang\SourceLocation;
 use Phel\NodeEnvironment;
 
-class PhpArrayGetNode extends Node {
+class PhpArrayGetNode extends Node
+{
 
     /**
      * @var Node
@@ -24,11 +26,13 @@ class PhpArrayGetNode extends Node {
         $this->accessExpr = $accessExpr;
     }
 
-    public function getArrayExpr(): Node {
+    public function getArrayExpr(): Node
+    {
         return $this->arrayExpr;
     }
 
-    public function getAccessExpr(): Node {
+    public function getAccessExpr(): Node
+    {
         return $this->accessExpr;
     }
 }

@@ -2,8 +2,8 @@
 
 namespace Phel\Lang;
 
-interface IMeta {
-
+interface IMeta
+{
     public function getMeta(): Table;
 
     public function setMeta(Table $meta);

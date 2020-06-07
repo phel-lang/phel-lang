@@ -1,11 +1,13 @@
-<?php 
+<?php
+
 
 namespace Phel\Ast;
 
 use Phel\Lang\SourceLocation;
 use Phel\NodeEnvironment;
 
-class LetNode extends Node {
+class LetNode extends Node
+{
 
     /**
      * @var BindingNode[]
@@ -39,15 +41,18 @@ class LetNode extends Node {
     /**
      * @return BindingNode[]
      */
-    public function getBindings() {
+    public function getBindings()
+    {
         return $this->bindings;
     }
 
-    public function getBodyExpr(): Node {
+    public function getBodyExpr(): Node
+    {
         return $this->bodyExpr;
     }
 
-    public function isLoop(): bool {
+    public function isLoop(): bool
+    {
         return $this->isLoop;
     }
 }

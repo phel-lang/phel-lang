@@ -10,11 +10,12 @@ use Phel\Lang\Symbol;
 use Phel\Lang\Table;
 use Phel\Lang\Tuple;
 
-class Destructure {
-
-    public function run(Tuple $x): array {
+class Destructure
+{
+    public function run(Tuple $x): array
+    {
         $bindings = [];
-        
+
         for ($i = 0; $i < count($x); $i+=2) {
             $this->destructure($bindings, $x[$i], $x[$i+1]);
         }
@@ -27,14 +28,15 @@ class Destructure {
      * @param Phel|scalar|null $binding
      * @param mixed $value
      */
-    private function destructure(array &$bindings, $binding, $value): void {
+    private function destructure(array &$bindings, $binding, $value): void
+    {
         if ($binding instanceof Symbol) {
             $this->processSymbol($bindings, $binding, $value);
-        } else if ($binding instanceof Tuple) {
+        } elseif ($binding instanceof Tuple) {
             $this->processTuple($bindings, $binding, $value);
-        } else if ($binding instanceof Table) {
+        } elseif ($binding instanceof Table) {
             $this->processTable($bindings, $binding, $value);
-        } else if ($binding instanceof PhelArray) {
+        } elseif ($binding instanceof PhelArray) {
             $this->processArray($bindings, $binding, $value);
         } else {
             if (is_object($binding)) {
@@ -45,13 +47,13 @@ class Destructure {
 
             if ($binding instanceof Phel) {
                 throw new AnalyzerException(
-                    "Can not destructure " .  $type,
+                    "Can not destructure " . $type,
                     $binding->getStartLocation(),
                     $binding->getEndLocation()
                 );
             } else {
                 // TODO: How can we get start and end location here?
-                throw new Exception("Can not destructure " .  $type);
+                throw new Exception("Can not destructure " . $type);
             }
         }
     }
@@ -61,7 +63,8 @@ class Destructure {
      * @param Table $b
      * @param mixed $value
      */
-    private function processTable(array &$bindings, Table $b, $value): void {
+    private function processTable(array &$bindings, Table $b, $value): void
+    {
         $tableSymbol = Symbol::gen()->copyLocationFrom($b);
         $bindings[] = [$tableSymbol, $value];
 
@@ -69,7 +72,7 @@ class Destructure {
             $accessSym = Symbol::gen()->copyLocationFrom($b);
             $accessValue = Tuple::create(
                 (new Symbol('php/aget'))->copyLocationFrom($b),
-                $tableSymbol, 
+                $tableSymbol,
                 $key
             )->copyLocationFrom($b);
             $bindings[] = [$accessSym, $accessValue];
@@ -83,7 +86,8 @@ class Destructure {
      * @param PhelArray $b
      * @param mixed $value
      */
-    private function processArray(array &$bindings, PhelArray $b, $value): void {
+    private function processArray(array &$bindings, PhelArray $b, $value): void
+    {
         $arrSymbol = Symbol::gen()->copyLocationFrom($b);
         $bindings[] = [$arrSymbol, $value];
 
@@ -94,7 +98,7 @@ class Destructure {
             $accessSym = Symbol::gen()->copyLocationFrom($b);
             $accessValue = Tuple::create(
                 (new Symbol('php/aget'))->copyLocationFrom($b),
-                $arrSymbol, 
+                $arrSymbol,
                 $index
             )->copyLocationFrom($b);
             $bindings[] = [$accessSym, $accessValue];
@@ -108,7 +112,8 @@ class Destructure {
      * @param Symbol $b
      * @param mixed $value
      */
-    private function processSymbol(array &$bindings, Symbol $binding, $value): void {
+    private function processSymbol(array &$bindings, Symbol $binding, $value): void
+    {
         if ($binding->getName() === "_") {
             $s = Symbol::gen()->copyLocationFrom($binding);
             $bindings[] = [$s, $value];
@@ -122,7 +127,8 @@ class Destructure {
      * @param Tuple $b
      * @param mixed $value
      */
-    private function processTuple(array &$bindings, Tuple $b, $value): void {
+    private function processTuple(array &$bindings, Tuple $b, $value): void
+    {
         $arrSymbol = Symbol::gen()->copyLocationFrom($b);
 
         $bindings[] = [$arrSymbol, $value];
@@ -139,7 +145,7 @@ class Destructure {
                         $accessSym = Symbol::gen()->copyLocationFrom($current);
                         $accessValue = Tuple::create(
                             (new Symbol('php/aget'))->copyLocationFrom($current),
-                            $lastListSym, 
+                            $lastListSym,
                             0
                         )->copyLocationFrom($current);
                         $bindings[] = [$accessSym, $accessValue];
@@ -151,7 +157,7 @@ class Destructure {
                         )->copyLocationFrom($current);
                         $bindings[] = [$nextSym, $nextValue];
                         $lastListSym = $nextSym;
-        
+
                         $this->destructure($bindings, $current, $accessSym);
                     }
                     break;
@@ -168,7 +174,6 @@ class Destructure {
                         $b->getEndLocation()
                     );
             }
-            
         }
     }
 }

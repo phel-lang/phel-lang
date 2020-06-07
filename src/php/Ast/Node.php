@@ -5,7 +5,8 @@ namespace Phel\Ast;
 use Phel\Lang\SourceLocation;
 use Phel\NodeEnvironment;
 
-abstract class Node {
+abstract class Node
+{
 
     /**
      * @var NodeEnvironment
@@ -23,11 +24,13 @@ abstract class Node {
         $this->startSourceLocation = $startSourceLocation;
     }
 
-    public function getEnv(): NodeEnvironment {
+    public function getEnv(): NodeEnvironment
+    {
         return $this->env;
     }
 
-    public function getStartSourceLocation(): ?SourceLocation {
+    public function getStartSourceLocation(): ?SourceLocation
+    {
         return $this->startSourceLocation;
     }
 }

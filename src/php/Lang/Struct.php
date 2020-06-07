@@ -5,16 +5,18 @@ namespace Phel\Lang;
 use InvalidArgumentException;
 use Phel\Printer;
 
-abstract class Struct extends Table {
+abstract class Struct extends Table
+{
 
     /**
      * Returns the list of allowed keywords.
-     * 
+     *
      * @return Keyword[]
      */
-    public abstract function getAllowedKeys(): array;
+    abstract public function getAllowedKeys(): array;
 
-    protected function validateOffset($offset) {
+    protected function validateOffset($offset)
+    {
         if (!in_array($offset, $this->getAllowedKeys())) {
             $printer = new Printer();
             $keyName = $printer->print($offset, false);
@@ -25,17 +27,20 @@ abstract class Struct extends Table {
         }
     }
 
-    public function offsetSet($offset, $value) {
+    public function offsetSet($offset, $value)
+    {
         $this->validateOffset($offset);
         parent::offsetSet($offset, $value);
     }
 
-    public function offsetExists($offset) {
+    public function offsetExists($offset)
+    {
         $this->validateOffset($offset);
         return parent::offsetExists($offset);
     }
 
-    public function offsetUnset($offset) {
+    public function offsetUnset($offset)
+    {
         $this->validateOffset($offset);
         parent::offsetUnset($offset);
     }
@@ -43,7 +48,8 @@ abstract class Struct extends Table {
     /**
      * @return mixed|null
      */
-    public function offsetGet($offset) {
+    public function offsetGet($offset)
+    {
         $this->validateOffset($offset);
         return parent::offsetGet($offset);
     }

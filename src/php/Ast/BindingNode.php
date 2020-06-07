@@ -1,4 +1,5 @@
-<?php 
+<?php
+
 
 namespace Phel\Ast;
 
@@ -6,7 +7,8 @@ use Phel\Lang\Symbol;
 use Phel\Lang\SourceLocation;
 use Phel\NodeEnvironment;
 
-class BindingNode extends Node {
+class BindingNode extends Node
+{
 
     /**
      * @var Symbol
@@ -31,15 +33,18 @@ class BindingNode extends Node {
         $this->initExpr = $initExpr;
     }
 
-    public function getSymbol(): Symbol {
+    public function getSymbol(): Symbol
+    {
         return $this->symbol;
     }
 
-    public function getInitExpr(): Node {
+    public function getInitExpr(): Node
+    {
         return $this->initExpr;
     }
 
-    public function getShadow(): Symbol {
+    public function getShadow(): Symbol
+    {
         return $this->shadow;
     }
 }
