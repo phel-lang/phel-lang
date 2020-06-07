@@ -11,4 +11,4 @@ interface ExceptionPrinter {
     public function printException(PhelCodeException $e, CodeSnippet $codeSnippet): void;
 
     public function printStackTrace(Throwable $e): void;
-};
+}

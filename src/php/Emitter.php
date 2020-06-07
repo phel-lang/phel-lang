@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Phel;
 
 use Exception;
@@ -48,37 +50,19 @@ use Throwable;
 
 class Emitter {
 
-    /**
-     * @var SourceMapGenerator
-     */
-    private $sourceMapGenerator;
+    private SourceMapGenerator $sourceMapGenerator;
 
-    /**
-     * @var bool
-     */
-    private $enableSourceMaps = true;
+    private bool $enableSourceMaps;
 
-    /**
-     * @var int
-     */
-    private $indentLevel = 0;
+    private int $indentLevel = 0;
 
-    /**
-     * @var int
-     */
-    private $generatedLines = 0;
+    private int $generatedLines = 0;
 
-    /**
-     * @var int
-     */
-    private $generatedColumns = 0;
+    private int $generatedColumns = 0;
 
-    /**
-     * @var array
-     */
-    private $sourceMap = [];
+    private array $sourceMap = [];
 
-    public function __construct($enableSourceMaps = true)
+    public function __construct(bool $enableSourceMaps = true)
     {
         $this->enableSourceMaps = $enableSourceMaps;
         $this->sourceMapGenerator = new SourceMapGenerator();
@@ -106,7 +90,7 @@ class Emitter {
         return $code;
     }
 
-    public function emitAsString(Node $node) {
+    public function emitAsString(Node $node): string{
         $this->generatedLines = 0;
         $this->generatedColumns = 0;
         $this->indentLevel = 0;
@@ -128,9 +112,9 @@ class Emitter {
                 . '// ;;' . $sourceMap . "\n"
                 . $code
             );
-        } else {
-            return $code;
         }
+
+        return (string) $code;
     }
 
     protected function emit(Node $node) {
@@ -977,7 +961,7 @@ class Emitter {
                 $this->emitStr('\Phel\Lang\Tuple::createBracket(', $x->getStartLocation());
             } else {
                 $this->emitStr('\Phel\Lang\Tuple::create(', $x->getStartLocation());
-            };
+            }
 
             if (count($x) > 0) {
                 $this->indentLevel++;
@@ -1019,13 +1003,13 @@ class Emitter {
     }
 
     private function emitContextPrefix(NodeEnvironment $env, ?SourceLocation $sl = null) {
-        if ($env->getContext() == NodeEnvironment::CTX_RET) {
+        if ($env->getContext() === NodeEnvironment::CTX_RET) {
             $this->emitStr('return ', $sl);
         }
     }
 
     private function emitContextSuffix(NodeEnvironment $env, ?SourceLocation $sl = null) {
-        if ($env->getContext() != NodeEnvironment::CTX_EXPR) {
+        if ($env->getContext() !== NodeEnvironment::CTX_EXPR) {
             $this->emitStr(';', $sl);
         }
     }
@@ -1086,7 +1070,7 @@ class Emitter {
     }
 
     protected function emitStr(string $str, ?SourceLocation $sl = null) {
-        if ($this->generatedColumns == 0) {
+        if ($this->generatedColumns === 0) {
             $this->generatedColumns += $this->indentLevel * 2;
             echo str_repeat(' ', $this->indentLevel * 2);
         }

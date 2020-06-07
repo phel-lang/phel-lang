@@ -133,4 +133,4 @@ class HtmlExceptionPrinter implements ExceptionPrinter {
         
         return (string) $arg;
     }
-};
+}
