@@ -115,10 +115,14 @@ final class Analyzer {
             return $this->analyzeTable($x, $nodeEnvironment);
         }
 
-        if (!$x instanceof Tuple) {
-            throw new AnalyzerException('Unhandled type: ' . var_export($x, true), null, null);
+        if ($x instanceof Tuple) {
+            return $this->analyzeTuple($x, $nodeEnvironment);
         }
 
+        throw new AnalyzerException('Unhandled type: ' . var_export($x, true), null, null);
+    }
+
+    private function analyzeTuple(Tuple $x, NodeEnvironment $nodeEnvironment): Node {
         if (!$x[0] instanceof Symbol) {
             return $this->analyzeInvoke($x, $nodeEnvironment);
         }
