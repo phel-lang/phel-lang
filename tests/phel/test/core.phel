@@ -81,7 +81,7 @@
 (assert (= [1 2] (cons 1 [2])) "cons tuple")
 (assert (= @[1 2] (cons 1 @[2])) "cons array")
 (assert (= @[1] (cons 1 nil)) "cons nil")
- 
+
 (assert (= 1 (first [1])) "first of tuple")
 (assert (= nil (first [])) "frist of empty tuple")
 (assert (= 1 (first @[1])) "first of array")
@@ -93,7 +93,7 @@
 (assert (= 1 (ffirst [[1]])) "ffirst of nested tuple")
 (assert (= nil (ffirst [1])) "ffirst of tuple")
 (assert (= nil (ffirst nil)) "ffirst of nil")
- 
+
 (assert (= 2 (second [1 2])) "second of tuple")
 (assert (= nil (second [])) "second of empty tuple")
 (assert (= 2 (second @[1 2])) "second of array")
@@ -547,7 +547,7 @@
 (assert (= @[:a :a :a] (repeat 3 :a)) "(repeat 3 :a)")
 (assert (= @[] (repeat 0 :a)) "(repeat 0 :a)")
 
-(assert (= @{1 @["a"] 2 @["as" "aa"] 3 @["asd"] 4 @["asdf" "qwer"]} 
+(assert (= @{1 @["a"] 2 @["as" "aa"] 3 @["asd"] 4 @["asdf" "qwer"]}
            (group-by php/strlen ["a" "as" "asd" "aa" "asdf" "qwer"])) "group-by")
 
 (assert (= @{:a 1 :b 2 :c 3} (zipcoll [:a :b :c] [1 2 3])) "zipcoll")

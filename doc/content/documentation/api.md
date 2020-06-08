@@ -16,7 +16,7 @@ Return the remainder of `dividend` / `divisor`.
 ```phel
 (* & xs)
 ```
-Returns the product of all elements in `xs`. All elements in `xs` must be 
+Returns the product of all elements in `xs`. All elements in `xs` must be
 numbers. If `xs` is empty, return 1.
 
 ## `**`
@@ -105,9 +105,9 @@ Returns true if `(pred x)` is logical true for every `x` in `xs`, else false.
 ```phel
 (and & args)
 ```
-Evaluates each expression one at a time, from left to right. If a form 
-returns logical false, and returns that value and doesn't evaluate any of the 
-other expressions, otherwise it returns the value of the last expression. 
+Evaluates each expression one at a time, from left to right. If a form
+returns logical false, and returns that value and doesn't evaluate any of the
+other expressions, otherwise it returns the value of the last expression.
 Calling the and function without arguments returns true.
 
 ## `array`
@@ -207,9 +207,9 @@ Returns true if `x` is a boolean, false otherwise.
 (case e & pairs)
 ```
 Takes an expression `e` and a set of test-content/expression pairs. First
-  evaluates `e` and the then finds the first pair where the test-constant matches 
-  the result of `e`. The associated expression is then evaluated and returned. 
-  If no matches can be found a final last expression can be provided that is 
+  evaluates `e` and the then finds the first pair where the test-constant matches
+  the result of `e`. The associated expression is then evaluated and returned.
+  If no matches can be found a final last expression can be provided that is
   than evaluated and return. Otherwise nil is returned.
 
 ## `comment`
@@ -231,7 +231,7 @@ Ignores the body of the comment
 ```phel
 (compare x y)
 ```
-An integer less than, equal to, or greater than zero when `x` is less than, 
+An integer less than, equal to, or greater than zero when `x` is less than,
   equal to, or greater than `y`, respectively.
 
 ## `complement`
@@ -270,7 +270,7 @@ Prepends `x` to the beginning of `xs`
 ```phel
 (count xs)
 ```
-Counts the number of elements in a sequence. Can be used on everything that 
+Counts the number of elements in a sequence. Can be used on everything that
 implement the PHP Countable interface.
 
 ## `dec`
@@ -418,7 +418,7 @@ Returns the first element of an indexed sequence or nil.
 ```phel
 (flatten xs)
 ```
-Takes a nested sequential data structure (tree), and returns their contents 
+Takes a nested sequential data structure (tree), and returns their contents
   as a single, flat array.
 
 ## `float?`
@@ -454,7 +454,7 @@ Generates a new unique symbol.
 ```phel
 (get ds k & [opt])
 ```
-Get the value mapped to `key` from the datastructure `ds`. 
+Get the value mapped to `key` from the datastructure `ds`.
   Returns `opt` or nil if the value can not be found.
 
 ## `get-in`
@@ -597,7 +597,7 @@ Returns an array of key value pairs like @[k1 v1 k2 v2 k3 v3 ...].
 ```phel
 (map-indexed f xs)
 ```
-Applies f to each element in xs. f is a two argument function. The first 
+Applies f to each element in xs. f is a two argument function. The first
   argument is index of the element in the sequence and the second element is the
   element itself.
 
@@ -664,7 +664,7 @@ Checks if `x` is smaller than zero.
 ```phel
 (next xs)
 ```
-Returns the sequence of elements after the first element. If there are no 
+Returns the sequence of elements after the first element. If there are no
 elements, returns nil.
 
 ## `nfirst`
@@ -693,7 +693,7 @@ Same as `(next (next xs))`
 ```phel
 (not x)
 ```
-The `not` function returns `true` if the given value is logical false and 
+The `not` function returns `true` if the given value is logical false and
 `false` otherwise.
 
 ## `not=`
@@ -729,9 +729,9 @@ Checks if `x` is one.
 ```phel
 (or & args)
 ```
-Evaluates each expression one at a time, from left to right. If a form 
-returns a logical true value, or returns that value and doesn't evaluate any of 
-the other expressions, otherwise it returns the value of the last expression. 
+Evaluates each expression one at a time, from left to right. If a form
+returns a logical true value, or returns that value and doesn't evaluate any of
+the other expressions, otherwise it returns the value of the last expression.
 Calling or without arguments, returns nil.
 
 ## `pairs`
@@ -781,7 +781,7 @@ Returns true if `x` is a PHP resource, false otherwise.
 ```phel
 (pop xs)
 ```
-Removes the the last element of the array `xs`. If the array is empty 
+Removes the the last element of the array `xs`. If the array is empty
   returns nil.
 
 ## `pos?`
@@ -889,7 +889,7 @@ Returns an array of length n where every element is x.
 ```phel
 (rest xs)
 ```
-Returns the sequence of elements after the first element. If there are no 
+Returns the sequence of elements after the first element. If there are no
 elements, returns an empty sequence.
 
 ## `reverse`
@@ -939,7 +939,7 @@ Returns a sorted array. If no comperator is supplied compare is used.
 ```phel
 (sort-by keyfn xs & [comp])
 ```
-Returns a sorted array where the sort order is determined by comparing 
+Returns a sorted array where the sort order is determined by comparing
   (keyfn item). If no comperator is supplied compare is used.
 
 ## `split-at`
@@ -961,9 +961,9 @@ Returns a tuple of [(take-while pred coll) (drop-while pred coll)]
 ```phel
 (str & args)
 ```
-Creates a string by concatenating values together. If no arguments are 
-provided an empty string is returned. Nil and false are represented as empty 
-string. True is represented as 1. Otherwise it tries to call `__toString`. 
+Creates a string by concatenating values together. If no arguments are
+provided an empty string is returned. Nil and false are represented as empty
+string. True is represented as 1. Otherwise it tries to call `__toString`.
 This is PHP equalivalent to `$args[0] . $args[1] . $args[2] ...`
 
 ## `string?`
@@ -999,7 +999,7 @@ Returns true if `x` is a symbol, false otherwise.
 ```phel
 (table & xs)
 ```
-Creates a new Table. If no argument is provided, an empty Table is created. 
+Creates a new Table. If no argument is provided, an empty Table is created.
 The number of parameters must be even.
 
 ## `table?`
@@ -1036,7 +1036,7 @@ Create a PHP Array from a sequential data structure
 (tree-seq branch? children root)
 ```
 Returns an array of the nodes in the tree, via a depth first walk.
-  branch? is a function with one argument that returns true if the given node 
+  branch? is a function with one argument that returns true if the given node
   has children.
   children must be a function with one argument that returns the children of the node.
   root the the root node of the tree.
@@ -1067,7 +1067,7 @@ Creates a new Tuple. If no argument is provided, an empty Tuple is created.
 ```phel
 (tuple-brackets & xs)
 ```
-Creates a new Bracket-Tuple. If no argument is provided, 
+Creates a new Bracket-Tuple. If no argument is provided,
 an empty Braket-Tuple is created.
 
 ## `tuple?`
@@ -1085,7 +1085,7 @@ Returns true if `x` is a tuple, false otherwise.
 Returns the type of `x`. Following types can be returned:
 
 * `:tuple`
-* `:array` 
+* `:array`
 * `:struct`
 * `:table`
 * `:keyword`

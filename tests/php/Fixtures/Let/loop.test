@@ -1,6 +1,6 @@
 --PHEL--
 (loop [n 10
-       sum 0] 
+       sum 0]
   (if (php/<= n 0) sum (recur (php/- n 1) (php/+ sum n))))
 --PHP--
 $n_1 = 10;

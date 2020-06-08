@@ -1,7 +1,7 @@
 --PHEL--
-(fn [x y] 
-  (if (php/== x 0) 
-    x 
+(fn [x y]
+  (if (php/== x 0)
+    x
     (recur (php/- x 1) (php/+ y 1))))
 --PHP--
 new class() extends \Phel\Lang\AFn {
