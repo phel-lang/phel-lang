@@ -1229,10 +1229,10 @@ final class Analyzer
         }
 
         $ns = $x[1]->getName();
-        if (!(preg_match("/^[a-zA-Z_\x7f-\xff][a-zA-Z0-9_\x7f-\xff\\\\]*[a-zA-Z0-9_\x7f-\xff]*$/", $ns))) {
+        if (!(preg_match("/^[a-zA-Z\x7f-\xff][a-zA-Z0-9\-\x7f-\xff\\\\]*[a-zA-Z0-9\-\x7f-\xff]*$/", $ns))) {
             throw new AnalyzerException(
-                "The namespace is not valid. A valid namespace name starts with a letter or underscore,
-                followed by any number of letters, numbers, or underscores. Elements are splitted by a backslash.",
+                "The namespace is not valid. A valid namespace name starts with a letter,
+                followed by any number of letters, numbers, or dashes. Elements are splitted by a backslash.",
                 $x[1]->getStartLocation(),
                 $x[1]->getEndLocation()
             );

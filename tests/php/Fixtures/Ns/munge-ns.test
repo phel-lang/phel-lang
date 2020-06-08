@@ -1,0 +1,49 @@
+--PHEL--
+(ns hello-world
+  (:require my-namespace\core)
+  (:use my_other-name\test))
+
+(def x :private 10)
+
+(defstruct abc [a])
+--PHP--
+$GLOBALS["__phel"]["phel\\core"]["*ns*"] = "\\hello_world";
+\Phel\Runtime::getInstance()->loadNs("my_namespace\\core");
+$GLOBALS["__phel"]["hello_world"]["x"] = 10;
+$GLOBALS["__phel_meta"]["hello_world"]["x"] = \Phel\Lang\Table::fromKVs(
+  new \Phel\Lang\Keyword("private"), true
+);
+namespace hello_world;
+class abc extends \Phel\Lang\Struct {
+  public function __construct($a) {
+    $this->offsetSet(new \Phel\Lang\Keyword("a"), $a);
+  }
+  public function getAllowedKeys(): array {
+    return [new \Phel\Lang\Keyword("a")];
+  }
+}
+
+$GLOBALS["__phel"]["hello_world"]["abc"] = new class() extends \Phel\Lang\AFn {
+  public const BOUND_TO = "hello_world\\abc";
+
+  public function __invoke($a) {
+    return (function() use($a) {
+      $target_1 = "\\hello_world\\abc";
+      return new $target_1($a);
+    })();
+  }
+};
+$GLOBALS["__phel_meta"]["hello_world"]["abc"] = \Phel\Lang\Table::fromKVs(
+  new \Phel\Lang\Keyword("doc"), "```phel\n(abc a)\n```\n"
+);
+
+$GLOBALS["__phel"]["hello_world"]["abc?"] = new class() extends \Phel\Lang\AFn {
+  public const BOUND_TO = "hello_world\\abc?";
+
+  public function __invoke($x) {
+    return is_a($x, "\\hello_world\\abc");
+  }
+};
+$GLOBALS["__phel_meta"]["hello_world"]["abc?"] = \Phel\Lang\Table::fromKVs(
+  new \Phel\Lang\Keyword("doc"), "```phel\n(abc? x)\n```\n"
+);

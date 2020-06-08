@@ -206,7 +206,7 @@ class Emitter
     protected function emitDefStruct(DefStructNode $node)
     {
         $paramCount = count($node->getParams());
-        $this->emitLine('namespace ' . $node->getNamespace() . ';', $node->getStartSourceLocation());
+        $this->emitLine('namespace ' . Munge::encodeNs($node->getNamespace()) . ';', $node->getStartSourceLocation());
         $this->emitLine('class ' . $this->munge($node->getName()->getName()) . ' extends \Phel\Lang\Struct {', $node->getStartSourceLocation());
         $this->indentLevel++;
 
@@ -453,14 +453,11 @@ class Emitter
         $nsSym->setStartLocation($node->getStartSourceLocation());
         $this->emitGlobalBase("phel\\core", $nsSym);
         $this->emitStr(" = ", $node->getStartSourceLocation());
-        $this->emitPhel("\\" . $node->getNamespace());
+        $this->emitPhel("\\" . Munge::encodeNs($node->getNamespace()));
         $this->emitLine(";", $node->getStartSourceLocation());
 
         foreach ($node->getRequireNs() as $i => $ns) {
-            $this->emitStr('\Phel\Runtime::getInstance()->loadNs("' . \addslashes($ns->getName()) . '");', $ns->getStartLocation());
-            if ($i < count($node->getRequireNs()) - 1) {
-                $this->emitLine();
-            }
+            $this->emitLine('\Phel\Runtime::getInstance()->loadNs("' . \addslashes(Munge::encodeNs($ns->getName())) . '");', $ns->getStartLocation());
         }
     }
 
@@ -783,7 +780,7 @@ class Emitter
         $this->emitLine(') extends \Phel\Lang\AFn {', $node->getStartSourceLocation());
         $this->indentLevel++;
 
-        $this->emitLine('public const BOUND_TO = "' . addslashes($node->getEnv()->getBoundTo()) . '";', $node->getStartSourceLocation());
+        $this->emitLine('public const BOUND_TO = "' . addslashes(Munge::encodeNs($node->getEnv()->getBoundTo())) . '";', $node->getStartSourceLocation());
 
 
         foreach ($node->getUses() as $i => $u) {
@@ -1042,7 +1039,7 @@ class Emitter
     private function emitGlobalBase(string $namespace, Symbol $name)
     {
         $this->emitStr(
-            '$GLOBALS["__phel"]["' . addslashes($namespace) . '"]["' . addslashes($name->getName()) . '"]',
+            '$GLOBALS["__phel"]["' . addslashes(Munge::encodeNs($namespace)) . '"]["' . addslashes($name->getName()) . '"]',
             $name->getStartLocation()
         );
     }
@@ -1050,7 +1047,7 @@ class Emitter
     private function emitGlobalBaseMeta(string $namespace, Symbol $name)
     {
         $this->emitStr(
-            '$GLOBALS["__phel_meta"]["' . addslashes($namespace) . '"]["' . addslashes($name->getName()) . '"]',
+            '$GLOBALS["__phel_meta"]["' . addslashes(Munge::encodeNs($namespace)) . '"]["' . addslashes($name->getName()) . '"]',
             $name->getStartLocation()
         );
     }

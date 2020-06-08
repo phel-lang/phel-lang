@@ -4,6 +4,9 @@ namespace Phel;
 
 class Munge
 {
+    protected static $mungeNsMapping = [
+        '-' => '_',
+    ];
 
     /**
      * @var array
@@ -41,11 +44,26 @@ class Munge
         if ($s == 'this') {
             return '__phel_this';
         } else {
-            return str_replace(
-                array_keys(self::$mungeMapping),
-                array_values(self::$mungeMapping),
-                $s
-            );
+            return self::encodeWithMap($s, self::$mungeMapping);
         }
+    }
+
+    public static function encodeNs(string $s): string
+    {
+        return self::encodeWithMap($s, self::$mungeNsMapping);
+    }
+
+    public static function decodeNs(string $s): string
+    {
+        return self::encodeWithMap($s, array_flip(self::$mungeNsMapping));
+    }
+
+    private static function encodeWithMap(string $s, $mapping): string
+    {
+        return str_replace(
+            array_keys($mapping),
+            array_values($mapping),
+            $s
+        );
     }
 }

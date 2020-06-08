@@ -6,6 +6,7 @@ use Exception;
 use Phel\Lang\IFn;
 use Phel\Printer;
 use Phel\CodeSnippet;
+use Phel\Munge;
 use ReflectionClass;
 use Throwable;
 
@@ -69,7 +70,7 @@ class HtmlExceptionPrinter implements ExceptionPrinter
             if ($class) {
                 $rf = new ReflectionClass($class);
                 if ($rf->implementsInterface(IFn::class)) {
-                    $fnName = $rf->getConstant('BOUND_TO');
+                    $fnName = Munge::decodeNs($rf->getConstant('BOUND_TO'));
                     $argParts = [];
                     foreach ($frame['args'] as $arg) {
                         $argParts[] = $printer->print($arg, true);
