@@ -77,7 +77,7 @@ class Tuple extends Phel implements ArrayAccess, Countable, Iterator, ISlice, IC
      */
     public function offsetGet($offset)
     {
-        return isset($this->data[$offset]) ? $this->data[$offset] : null;
+        return $this->data[$offset] ?? null;
     }
 
     public function count()
