@@ -246,7 +246,7 @@ An integer less than, equal to, or greater than zero when `x` is less than,
 ```phel
 (concat arr & xs)
 ```
-Concatinates multiple sequential data structures.
+Concatenates multiple sequential data structures.
 
 ## `cond`
 

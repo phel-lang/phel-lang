@@ -43,7 +43,7 @@ To append a value at the beginning or at the end of a Tuple `cons` and `push` ca
 (push [1] 2) # Evaluates to [1 2]
 ```
 
-Similar the `concat` function can be used to concatinate two tuples.
+Similar the `concat` function can be used to concatenate two tuples.
 
 ```phel
 (concat [1 2] [3 4]) # Evaluates to [1 2 3 4]

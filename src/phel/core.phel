@@ -52,7 +52,7 @@ elements, returns nil."
 
 (def concat1 
   @{:private true
-    :doc "Concatinates two sequential data structures."}
+    :doc "Concatenates two sequential data structures."}
   (fn [xs ys]
     (if (php/instanceof xs IConcat)
       (php/-> xs (concat ys))
@@ -62,7 +62,7 @@ elements, returns nil."
         xs))))
 
 (def concat
-  "```phel\n(concat arr & xs)\n```\nConcatinates multiple sequential data structures."
+  "```phel\n(concat arr & xs)\n```\nConcatenates multiple sequential data structures."
   (fn [arr & xs]
     (loop [res arr
            [y & ys] xs]
