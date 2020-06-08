@@ -3,8 +3,8 @@
   (:use \Phel\Lang\Nil))
 
 (loop [[x & xs] [1 2 3 4]
-       sum 0] 
-  (if x 
+       sum 0]
+  (if x
     (if (php/== x nil) sum (recur xs (php/+ sum x)))))
 --PHP--
 $GLOBALS["__phel"]["phel\\core"]["*ns*"] = "\\test";

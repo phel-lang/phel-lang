@@ -65,7 +65,7 @@ Same as above, but for static calls on PHP classes.
 (php/:: DateTimeImmutable ATOM) # Evaluates to "Y-m-d\TH:i:sP"
 
 # Evaluates to a new instance of DateTimeImmutable
-(php/:: DateTimeImmutable (createFromFormat "Y-m-d" "2020-03-22")) 
+(php/:: DateTimeImmutable (createFromFormat "Y-m-d" "2020-03-22"))
 
 ```
 

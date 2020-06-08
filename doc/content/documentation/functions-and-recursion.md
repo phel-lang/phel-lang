@@ -56,12 +56,12 @@ Global funcitons can be defined using `defn`.
 Each global function can take an optional doc comment and attribute map.
 
 ```phel
-(defn my-add-function 
+(defn my-add-function
   "adds value a and b"
   [a b]
   (+ a b))
 
-(defn my-private-add-function 
+(defn my-private-add-function
   "adds value a and b"
   @{:private true}
   [a b]
@@ -74,13 +74,13 @@ Similar to `loop`, functions can be made recursive using `recur`.
 
 ```phel
 (fn [x]
-  (if (php/== x 0) 
-    x 
+  (if (php/== x 0)
+    x
     (recur (php/- x 1))))
 
 (defn my-recur-fn [x]
-  (if (php/== x 0) 
-    x 
+  (if (php/== x 0)
+    x
     (recur (php/- x 1))))
 ```
 

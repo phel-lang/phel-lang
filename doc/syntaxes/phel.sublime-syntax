@@ -88,7 +88,7 @@ contexts:
 
   literal:
     - match: "(true|false|nil)(?=\\s|\\)|\\]|\\})"
-      scope: constant.language.phel   
+      scope: constant.language.phel
 
   number:
     - match: '[-+]?\b(0[bB])[01]+(_[01]+)*\b'
@@ -116,7 +116,7 @@ contexts:
       scope: keyword.control.phel
     - match: "(?<=\\(|\\{|\\[|\\s)(php\\/[^\\s\\#\\(\\)\\{\\}\\[\\]\\'\\\"\\,\\`]+)(?=\\s|\\)|\\]|\\})"
       scope: keyword.other.phel
-    
+
   symbol:
     - match: "[^\\s\\#\\(\\)\\{\\}\\[\\]\\'\\\"\\,\\`]+"
       scope: meta.symbol.phel

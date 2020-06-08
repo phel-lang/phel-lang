@@ -125,16 +125,16 @@ All expressions are evaluated and if no exception is thrown the value of the las
 ```phel
 (try) # evaluates to nil
 
-(try 
-  (throw (php/new Exception)) 
+(try
+  (throw (php/new Exception))
   (catch Exception e "error")) # evaluates to "error"
 
-(try 
+(try
   (+ 1 1)
   (finally (print "test"))) # Evaluates to 2 and prints "test"
 
-(try 
-  (throw (php/new Exception)) 
+(try
+  (throw (php/new Exception))
   (catch Exception e "error")
   (finally (print "test"))) # evaluates to "error" and prints "test"
 ```

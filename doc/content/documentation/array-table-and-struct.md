@@ -43,7 +43,7 @@ Similar to tuples the functions `get`, `first`, `second`, `next` and `rest` can 
 The `get` function can also be use on tables.
 
 ```phel
-(get @{:a 1 :b 2} :a) # Evaluates to 1 
+(get @{:a 1 :b 2} :a) # Evaluates to 1
 (get @{:a 1 :b 2} :b) # Evaluates to 2
 (get @{:a 1 :b 2} :c) # Evaluates to nil
 ```
