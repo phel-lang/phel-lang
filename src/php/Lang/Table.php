@@ -85,7 +85,7 @@ class Table extends Phel implements ArrayAccess, Countable, Iterator
     {
         $hash = $this->offsetHash($offset);
 
-        return isset($this->data[$hash]) ? $this->data[$hash] : null;
+        return $this->data[$hash] ?? null;
     }
 
     public function count(): int

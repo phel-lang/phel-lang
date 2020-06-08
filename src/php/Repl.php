@@ -93,7 +93,7 @@ class Repl
             'blue'   => "\033[33;34m%s\033[0m",
         );
 
-        return sprintf(isset($styles[$color]) ? $styles[$color] : "%s", $text);
+        return sprintf($styles[$color] ?? "%s", $text);
     }
 
     protected function input()

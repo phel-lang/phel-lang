@@ -59,7 +59,7 @@ class TextExceptionPrinter implements ExceptionPrinter
         echo "in $file:$line (gen: $generatedLine:$generetedColumn)\n\n";
 
         foreach ($e->getTrace() as $i => $frame) {
-            $class = isset($frame['class']) ? $frame['class'] : null;
+            $class = $frame['class'] ?? null;
             $generatedLine = $frame['file'];
             $generetedColumn = $frame['line'];
 
@@ -176,6 +176,6 @@ class TextExceptionPrinter implements ExceptionPrinter
             'blue'   => "\033[33;34m%s\033[0m",
         );
 
-        return sprintf(isset($styles[$color]) ? $styles[$color] : "%s", $text);
+        return sprintf($styles[$color] ?? "%s", $text);
     }
 }

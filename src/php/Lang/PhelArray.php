@@ -75,7 +75,7 @@ class PhelArray extends Phel implements ArrayAccess, Countable, Iterator, ICons,
      */
     public function offsetGet($offset)
     {
-        return isset($this->data[$offset]) ? $this->data[$offset] : null;
+        return $this->data[$offset] ?? null;
     }
 
     public function count(): int
