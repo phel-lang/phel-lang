@@ -431,7 +431,7 @@ class Reader
     }
 
     /**
-     * Concatinates all Token to a string.
+     * Concatenates all Token to a string.
      *
      * @param Token[] $readTokens The tokens read so far.
      *
