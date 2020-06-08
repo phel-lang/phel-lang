@@ -3,29 +3,11 @@
 namespace Phel;
 
 use Phel\Exceptions\AnalyzerException;
-use Phel\Exceptions\ExceptionPrinter;
-use Phel\Exceptions\HtmlExceptionPrinter;
+use Phel\Exceptions\CompilerException;
 use Phel\Exceptions\ReaderException;
-use Phel\Exceptions\TextExceptionPrinter;
-use Throwable;
 
 class Compiler
 {
-
-    /**
-     * @var ExceptionPrinter
-     */
-    private $exceptionPrinter;
-
-    public function __construct()
-    {
-        if (php_sapi_name() == 'cli') {
-            $this->exceptionPrinter = new TextExceptionPrinter();
-        } else {
-            $this->exceptionPrinter = new HtmlExceptionPrinter();
-        }
-    }
-
     public function compileFile(string $filename, GlobalEnvironment $globalEnv)
     {
         return $this->compileString(file_get_contents($filename), $globalEnv, $filename);
@@ -52,19 +34,12 @@ class Compiler
                 try {
                     $nodes = $analzyer->analyze($readerResult->getAst());
                 } catch (AnalyzerException $e) {
-                    $this->exceptionPrinter->printException($e, $readerResult->getCodeSnippet());
-                    exit;
-                } catch (Throwable $e) {
-                    echo $readerResult->getCodeSnippet()->getCode();
-                    throw $e;
+                    throw new CompilerException($e, $readerResult->getCodeSnippet());
                 }
 
                 $code .= $emitter->emitAndEval($nodes);
             } catch (ReaderException $e) {
-                $this->exceptionPrinter->printException($e, $e->getCodeSnippet());
-                exit;
-            } catch (Throwable $e) {
-                throw $e;
+                throw new CompilerException($e, $e->getCodeSnippet());
             }
         }
 

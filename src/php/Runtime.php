@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace Phel;
 
 use Exception;
+use Phel\Exceptions\AnalyzerException;
+use Phel\Exceptions\CompilerException;
 use Phel\Exceptions\HtmlExceptionPrinter;
 use Phel\Exceptions\TextExceptionPrinter;
 use Phel\Lang\Keyword;
@@ -63,7 +65,11 @@ class Runtime
             $printer = new HtmlExceptionPrinter();
         }
 
-        $printer->printStackTrace($exception);
+        if ($exception instanceof CompilerException) {
+            $printer->printException($exception->getPrevious(), $exception->getCodeSnippet());
+        } else {
+            $printer->printStackTrace($exception);
+        }
     }
 
     public static function getInstance(): Runtime
