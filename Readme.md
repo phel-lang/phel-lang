@@ -6,6 +6,10 @@ Phel is a function programming language that compiles to PHP. It is a dialect of
 
 The rest of this Readme file documents on how to work with the compiler code.
 
+## Community
+
+Feel free to ask questions and join discussions on the [Phel Gitter channel](https://gitter.im/phel-lang/community).
+
 ## Build the documentation
 
 The documentation is build with [Zola](https://www.getzola.org/). To build and serve the documentation on a local machine, run:
