@@ -87,17 +87,19 @@ class Emitter
 
     public function emitAndEval(Node $node): string
     {
-        $this->generatedLines = 0;
-        $this->generatedColumns = 0;
-        $this->indentLevel = 0;
-        $this->sourceMap = [];
-
         $code = $this->emitAsString($node);
+        $this->eval($code);
+
+        return $code;
+    }
+
+    public function eval(string $code)
+    {
         $filename = tempnam(sys_get_temp_dir(), '__phel');
         if ($filename) {
             file_put_contents($filename, "<?php\n" . $code);
             try {
-                require $filename;
+                $result = require $filename;
             } catch (Throwable $e) {
                 throw $e;
             }
@@ -105,7 +107,7 @@ class Emitter
             throw new Exception("can not create temp file.");
         }
 
-        return $code;
+        return $result;
     }
 
     public function emitAsString(Node $node)
