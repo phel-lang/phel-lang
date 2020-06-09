@@ -1,14 +1,14 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Phel;
 
 use Exception;
-use ParseError;
 use Phel\Ast\ApplyNode;
 use Phel\Ast\ArrayNode;
 use Phel\Ast\CallNode;
 use Phel\Ast\CatchNode;
-use Phel\Ast\Node;
 use Phel\Ast\DefNode;
 use Phel\Ast\DefStructNode;
 use Phel\Ast\DoNode;
@@ -20,6 +20,7 @@ use Phel\Ast\LetNode;
 use Phel\Ast\LiteralNode;
 use Phel\Ast\LocalVarNode;
 use Phel\Ast\MethodCallNode;
+use Phel\Ast\Node;
 use Phel\Ast\NsNode;
 use Phel\Ast\PhpArrayGetNode;
 use Phel\Ast\PhpArrayPushNode;
@@ -46,38 +47,19 @@ use Phel\Lang\Tuple;
 use Phel\SourceMap\SourceMapGenerator;
 use Throwable;
 
-class Emitter
+final class Emitter
 {
+    private SourceMapGenerator $sourceMapGenerator;
 
-    /**
-     * @var SourceMapGenerator
-     */
-    private $sourceMapGenerator;
+    private bool $enableSourceMaps = true;
 
-    /**
-     * @var bool
-     */
-    private $enableSourceMaps = true;
+    private int $indentLevel = 0;
 
-    /**
-     * @var int
-     */
-    private $indentLevel = 0;
+    private int $generatedLines = 0;
 
-    /**
-     * @var int
-     */
-    private $generatedLines = 0;
+    private int $generatedColumns = 0;
 
-    /**
-     * @var int
-     */
-    private $generatedColumns = 0;
-
-    /**
-     * @var array
-     */
-    private $sourceMap = [];
+    private array $sourceMap = [];
 
     public function __construct($enableSourceMaps = true)
     {
@@ -96,21 +78,21 @@ class Emitter
     public function eval(string $code)
     {
         $filename = tempnam(sys_get_temp_dir(), '__phel');
-        if ($filename) {
-            file_put_contents($filename, "<?php\n" . $code);
-            try {
-                $result = require $filename;
-            } catch (Throwable $e) {
-                throw $e;
-            }
-        } else {
+        if (!$filename) {
             throw new Exception("can not create temp file.");
+        }
+
+        try {
+            file_put_contents($filename, "<?php\n" . $code);
+            $result = require $filename;
+        } catch (Throwable $e) {
+            throw $e;
         }
 
         return $result;
     }
 
-    public function emitAsString(Node $node)
+    public function emitAsString(Node $node): string
     {
         $this->generatedLines = 0;
         $this->generatedColumns = 0;
@@ -122,23 +104,23 @@ class Emitter
         $code = ob_get_contents();
         ob_end_clean();
 
-        if ($this->enableSourceMaps) {
-            $sourceMap = $this->sourceMapGenerator->encode($this->sourceMap);
-            $file = $node->getStartSourceLocation()
-                ? $node->getStartSourceLocation()->getFile()
-                : 'string';
-
-            return (
-                '// ' . $file . "\n"
-                . '// ;;' . $sourceMap . "\n"
-                . $code
-            );
-        } else {
+        if (!$this->enableSourceMaps) {
             return $code;
         }
+
+        $sourceMap = $this->sourceMapGenerator->encode($this->sourceMap);
+        $file = $node->getStartSourceLocation()
+            ? $node->getStartSourceLocation()->getFile()
+            : 'string';
+
+        return (
+            '// ' . $file . "\n"
+            . '// ;;' . $sourceMap . "\n"
+            . $code
+        );
     }
 
-    protected function emit(Node $node)
+    private function emit(Node $node): void
     {
         $nodeClass = get_class($node);
         switch ($nodeClass) {
@@ -205,7 +187,7 @@ class Emitter
         }
     }
 
-    protected function emitDefStruct(DefStructNode $node)
+    private function emitDefStruct(DefStructNode $node): void
     {
         $paramCount = count($node->getParams());
         $this->emitLine('namespace ' . Munge::encodeNs($node->getNamespace()) . ';', $node->getStartSourceLocation());
@@ -257,8 +239,12 @@ class Emitter
         $this->emitLine('}', $node->getStartSourceLocation());
     }
 
-    protected function emitPhpVariable(Symbol $m, SourceLocation $loc = null, $asReference = false, $isVariadic = false)
-    {
+    private function emitPhpVariable(
+        Symbol $m,
+        ?SourceLocation $loc = null,
+        bool $asReference = false,
+        bool $isVariadic = false
+    ): void {
         if (is_null($loc)) {
             $loc = $m->getStartLocation();
         }
@@ -267,7 +253,7 @@ class Emitter
         $this->emitStr($variadicPrefix . $refPrefix . '$' . $this->munge($m->getName()), $loc);
     }
 
-    protected function emitForeach(ForeachNode $node)
+    private function emitForeach(ForeachNode $node): void
     {
         if ($node->getEnv()->getContext() !== NodeEnvironment::CTX_STMT) {
             $this->emitContextPrefix($node->getEnv(), $node->getStartSourceLocation());
@@ -297,12 +283,12 @@ class Emitter
         }
     }
 
-    protected function emitClassName(PhpClassNameNode $node)
+    private function emitClassName(PhpClassNameNode $node): void
     {
         $this->emitStr($node->getName()->getName(), $node->getName()->getStartLocation());
     }
 
-    protected function emitPhpArrayUnset(PhpArrayUnsetNode $node)
+    private function emitPhpArrayUnset(PhpArrayUnsetNode $node): void
     {
         $this->emitContextPrefix($node->getEnv(), $node->getStartSourceLocation());
         $this->emitStr('unset((', $node->getStartSourceLocation());
@@ -313,7 +299,7 @@ class Emitter
         $this->emitContextSuffix($node->getEnv(), $node->getStartSourceLocation());
     }
 
-    protected function emitPhpArrayGet(PhpArrayGetNode $node)
+    private function emitPhpArrayGet(PhpArrayGetNode $node): void
     {
         $this->emitContextPrefix($node->getEnv(), $node->getStartSourceLocation());
         $this->emitStr('((', $node->getStartSourceLocation());
@@ -324,7 +310,7 @@ class Emitter
         $this->emitContextSuffix($node->getEnv(), $node->getStartSourceLocation());
     }
 
-    protected function emitPhpArraySet(PhpArraySetNode $node)
+    private function emitPhpArraySet(PhpArraySetNode $node): void
     {
         $this->emitContextPrefix($node->getEnv(), $node->getStartSourceLocation());
         $this->emitStr('(', $node->getStartSourceLocation());
@@ -336,7 +322,7 @@ class Emitter
         $this->emitContextSuffix($node->getEnv(), $node->getStartSourceLocation());
     }
 
-    protected function emitPhpArrayPush(PhpArrayPushNode $node)
+    private function emitPhpArrayPush(PhpArrayPushNode $node): void
     {
         $this->emitContextPrefix($node->getEnv(), $node->getStartSourceLocation());
         $this->emitStr('(', $node->getStartSourceLocation());
@@ -346,10 +332,10 @@ class Emitter
         $this->emitContextSuffix($node->getEnv(), $node->getStartSourceLocation());
     }
 
-    protected function emitTry(TryNode $node)
+    private function emitTry(TryNode $node): void
     {
         if ($node->getFinally() || count($node->getCatches()) > 0) {
-            if ($node->getEnv()->getContext() == NodeEnvironment::CTX_EXPR) {
+            if ($node->getEnv()->getContext() === NodeEnvironment::CTX_EXPR) {
                 $this->emitFnWrapPrefix($node->getEnv(), $node->getStartSourceLocation());
             }
 
@@ -368,7 +354,7 @@ class Emitter
                 $this->emitFinally($node->getFinally());
             }
 
-            if ($node->getEnv()->getContext() == NodeEnvironment::CTX_EXPR) {
+            if ($node->getEnv()->getContext() === NodeEnvironment::CTX_EXPR) {
                 $this->emitFnWrapSuffix($node->getEnv(), $node->getStartSourceLocation());
             }
         } else {
@@ -376,7 +362,7 @@ class Emitter
         }
     }
 
-    protected function emitCatch(CatchNode $node)
+    private function emitCatch(CatchNode $node): void
     {
         $this->emitStr(' catch (', $node->getStartSourceLocation());
         $this->emitStr($node->getType()->getName(), $node->getType()->getStartLocation());
@@ -389,7 +375,7 @@ class Emitter
         $this->emitStr('}', $node->getStartSourceLocation());
     }
 
-    protected function emitFinally(Node $node)
+    private function emitFinally(Node $node): void
     {
         $this->emitLine(' finally {', $node->getStartSourceLocation());
         $this->indentLevel++;
@@ -399,9 +385,9 @@ class Emitter
         $this->emitStr('}', $node->getStartSourceLocation());
     }
 
-    protected function emitThrow(ThrowNode $node)
+    private function emitThrow(ThrowNode $node): void
     {
-        if ($node->getEnv()->getContext() == NodeEnvironment::CTX_EXPR) {
+        if ($node->getEnv()->getContext() === NodeEnvironment::CTX_EXPR) {
             $this->emitFnWrapPrefix($node->getEnv(), $node->getStartSourceLocation());
         }
 
@@ -409,12 +395,12 @@ class Emitter
         $this->emit($node->getExceptionExpr());
         $this->emitStr(';', $node->getStartSourceLocation());
 
-        if ($node->getEnv()->getContext() == NodeEnvironment::CTX_EXPR) {
+        if ($node->getEnv()->getContext() === NodeEnvironment::CTX_EXPR) {
             $this->emitFnWrapSuffix($node->getEnv(), $node->getStartSourceLocation());
         }
     }
 
-    protected function emitRecur(RecurNode $node)
+    private function emitRecur(RecurNode $node): void
     {
         $params = $node->getFrame()->getParams();
         $exprs = $node->getExprs();
@@ -430,7 +416,6 @@ class Emitter
             $this->emit($expr);
             $this->emitLine(';', $node->getStartSourceLocation());
         }
-
 
         foreach ($tempSyms as $i => $tempSym) {
             $paramSym = $params[$i];
@@ -449,7 +434,7 @@ class Emitter
         $this->emitLine('continue;', $node->getStartSourceLocation());
     }
 
-    protected function emitNs(NsNode $node)
+    private function emitNs(NsNode $node): void
     {
         $nsSym = new Symbol("*ns*");
         $nsSym->setStartLocation($node->getStartSourceLocation());
@@ -463,7 +448,7 @@ class Emitter
         }
     }
 
-    protected function emitObjectCall(PhpObjectCallNode $node)
+    private function emitObjectCall(PhpObjectCallNode $node): void
     {
         $fnCode = $node->isStatic() ? '::' : '->';
         $targetExpr = $node->getTargetExpr();
@@ -512,7 +497,7 @@ class Emitter
         $this->emitContextSuffix($node->getEnv(), $node->getStartSourceLocation());
     }
 
-    protected function emitPhpVar(PhpVarNode $node)
+    private function emitPhpVar(PhpVarNode $node): void
     {
         $this->emitContextPrefix($node->getEnv(), $node->getStartSourceLocation());
 
@@ -525,7 +510,7 @@ class Emitter
         $this->emitContextSuffix($node->getEnv(), $node->getStartSourceLocation());
     }
 
-    protected function emitPhpNew(PhpNewNode $node)
+    private function emitPhpNew(PhpNewNode $node): void
     {
         $this->emitContextPrefix($node->getEnv(), $node->getStartSourceLocation());
 
@@ -560,7 +545,7 @@ class Emitter
         $this->emitContextSuffix($node->getEnv(), $node->getStartSourceLocation());
     }
 
-    protected function emitTuple(TupleNode $node)
+    private function emitTuple(TupleNode $node): void
     {
         $this->emitContextPrefix($node->getEnv(), $node->getStartSourceLocation());
         $this->emitStr('\Phel\Lang\Tuple::createBracket(', $node->getStartSourceLocation());
@@ -569,7 +554,7 @@ class Emitter
         $this->emitContextSuffix($node->getEnv(), $node->getStartSourceLocation());
     }
 
-    protected function emitApply(ApplyNode $node)
+    private function emitApply(ApplyNode $node): void
     {
         $this->emitContextPrefix($node->getEnv(), $node->getStartSourceLocation());
 
@@ -620,9 +605,9 @@ class Emitter
         $this->emitContextSuffix($node->getEnv(), $node->getStartSourceLocation());
     }
 
-    protected function emitIf(IfNode $node)
+    private function emitIf(IfNode $node): void
     {
-        if ($node->getEnv()->getContext() == NodeEnvironment::CTX_EXPR) {
+        if ($node->getEnv()->getContext() === NodeEnvironment::CTX_EXPR) {
             $this->emitStr('(\Phel\Lang\Truthy::isTruthy(', $node->getStartSourceLocation());
             $this->emit($node->getTestExpr());
             $this->emitStr(')) ? ', $node->getStartSourceLocation());
@@ -646,7 +631,7 @@ class Emitter
         }
     }
 
-    protected function emitCall(CallNode $node)
+    private function emitCall(CallNode $node): void
     {
         $this->emitContextPrefix($node->getEnv(), $node->getStartSourceLocation());
 
@@ -674,7 +659,7 @@ class Emitter
         $this->emitContextSuffix($node->getEnv(), $node->getStartSourceLocation());
     }
 
-    protected function emitArgList(array $nodes, ?SourceLocation $sepLoc, string $sep = ', ')
+    private function emitArgList(array $nodes, ?SourceLocation $sepLoc, string $sep = ', '): void
     {
         $nodesCount = count($nodes);
         foreach ($nodes as $i => $arg) {
@@ -686,23 +671,23 @@ class Emitter
         }
     }
 
-    protected function emitLocalVar(LocalVarNode $node)
+    private function emitLocalVar(LocalVarNode $node): void
     {
         $this->emitContextPrefix($node->getEnv(), $node->getStartSourceLocation());
         $this->emitPhpVariable($node->getName());
         $this->emitContextSuffix($node->getEnv(), $node->getStartSourceLocation());
     }
 
-    protected function emitGlobalVar(GlobalVarNode $node)
+    private function emitGlobalVar(GlobalVarNode $node): void
     {
         $this->emitContextPrefix($node->getEnv(), $node->getStartSourceLocation());
         $this->emitGlobalBase($node->getNamespace(), $node->getName());
         $this->emitContextSuffix($node->getEnv(), $node->getStartSourceLocation());
     }
 
-    protected function emitLet(LetNode $node)
+    private function emitLet(LetNode $node): void
     {
-        $wrapFn = $node->getEnv()->getContext() == NodeEnvironment::CTX_EXPR;
+        $wrapFn = $node->getEnv()->getContext() === NodeEnvironment::CTX_EXPR;
 
         if ($wrapFn) {
             $this->emitFnWrapPrefix($node->getEnv(), $node->getStartSourceLocation());
@@ -733,9 +718,9 @@ class Emitter
         }
     }
 
-    protected function emitDo(DoNode $node)
+    private function emitDo(DoNode $node): void
     {
-        $wrapFn = count($node->getStmts()) > 0 && $node->getEnv()->getContext() == NodeEnvironment::CTX_EXPR;
+        $wrapFn = count($node->getStmts()) > 0 && $node->getEnv()->getContext() === NodeEnvironment::CTX_EXPR;
         if ($wrapFn) {
             $this->emitFnWrapPrefix($node->getEnv(), $node->getStartSourceLocation());
         }
@@ -751,14 +736,14 @@ class Emitter
         }
     }
 
-    protected function emitQuote(QuoteNode $node)
+    private function emitQuote(QuoteNode $node): void
     {
         $this->emitContextPrefix($node->getEnv(), $node->getStartSourceLocation());
         $this->emitPhel($node->getValue());
         $this->emitContextSuffix($node->getEnv(), $node->getStartSourceLocation());
     }
 
-    protected function emitFnAsClass(FnNode $node)
+    private function emitFnAsClass(FnNode $node): void
     {
         $this->emitContextPrefix($node->getEnv(), $node->getStartSourceLocation());
 
@@ -838,11 +823,11 @@ class Emitter
         // Function Parameters
         $paramsCount = count($node->getParams());
         foreach ($node->getParams() as $i => $p) {
-            if ($i == $paramsCount - 1 && $node->isVariadic()) {
+            if ($i === $paramsCount - 1 && $node->isVariadic()) {
                 $this->emitPhpVariable($p, null, false, true);
             } else {
                 $meta = $p->getMeta();
-                $this->emitPhpVariable($p, null, $meta[new Keyword("reference")]);
+                $this->emitPhpVariable($p, null, $meta[new Keyword("reference")] ?? false);
             }
 
             if ($i < $paramsCount - 1) {
@@ -894,7 +879,7 @@ class Emitter
         $this->emitContextSuffix($node->getEnv(), $node->getStartSourceLocation());
     }
 
-    protected function emitDef(DefNode $node)
+    private function emitDef(DefNode $node): void
     {
         $this->emitGlobalBase($node->getNamespace(), $node->getName());
         $this->emitStr(" = ", $node->getStartSourceLocation());
@@ -909,16 +894,16 @@ class Emitter
         }
     }
 
-    protected function emitLiteral(LiteralNode $node)
+    private function emitLiteral(LiteralNode $node): void
     {
-        if (!($node->getEnv()->getContext() == NodeEnvironment::CTX_STMT)) {
+        if (!($node->getEnv()->getContext() === NodeEnvironment::CTX_STMT)) {
             $this->emitContextPrefix($node->getEnv(), $node->getStartSourceLocation());
             $this->emitPhel($node->getValue());
             $this->emitContextSuffix($node->getEnv(), $node->getStartSourceLocation());
         }
     }
 
-    protected function emitTable(TableNode $node)
+    private function emitTable(TableNode $node): void
     {
         $this->emitContextPrefix($node->getEnv(), $node->getStartSourceLocation());
         $this->emitStr('\Phel\Lang\Table::fromKVs(', $node->getStartSourceLocation());
@@ -927,7 +912,7 @@ class Emitter
         $this->emitContextSuffix($node->getEnv(), $node->getStartSourceLocation());
     }
 
-    protected function emitArray(ArrayNode $node)
+    private function emitArray(ArrayNode $node): void
     {
         $this->emitContextPrefix($node->getEnv(), $node->getStartSourceLocation());
         $this->emitStr('\Phel\Lang\PhelArray::create(', $node->getStartSourceLocation());
@@ -941,7 +926,7 @@ class Emitter
      *
      * @param Phel|scalar|null $x The value
      */
-    protected function emitPhel($x): void
+    private function emitPhel($x): void
     {
         if (is_float($x)) {
             $this->emitStr($this->printFloat($x));
@@ -960,7 +945,6 @@ class Emitter
             $this->emitStr('(new \Phel\Lang\Symbol("' . addslashes($x->getName()) . '"))', $x->getStartLocation());
         } elseif ($x instanceof PhelArray) {
             $this->emitStr('\Phel\Lang\PhelArray::create(', $x->getStartLocation());
-
             if (count($x) > 0) {
                 $this->indentLevel++;
                 $this->emitLine();
@@ -1038,7 +1022,7 @@ class Emitter
         }
     }
 
-    private function emitGlobalBase(string $namespace, Symbol $name)
+    private function emitGlobalBase(string $namespace, Symbol $name): void
     {
         $this->emitStr(
             '$GLOBALS["__phel"]["' . addslashes(Munge::encodeNs($namespace)) . '"]["' . addslashes($name->getName()) . '"]',
@@ -1046,7 +1030,7 @@ class Emitter
         );
     }
 
-    private function emitGlobalBaseMeta(string $namespace, Symbol $name)
+    private function emitGlobalBaseMeta(string $namespace, Symbol $name): void
     {
         $this->emitStr(
             '$GLOBALS["__phel_meta"]["' . addslashes(Munge::encodeNs($namespace)) . '"]["' . addslashes($name->getName()) . '"]',
@@ -1054,21 +1038,21 @@ class Emitter
         );
     }
 
-    private function emitContextPrefix(NodeEnvironment $env, ?SourceLocation $sl = null)
+    private function emitContextPrefix(NodeEnvironment $env, ?SourceLocation $sl = null): void
     {
-        if ($env->getContext() == NodeEnvironment::CTX_RET) {
+        if ($env->getContext() === NodeEnvironment::CTX_RET) {
             $this->emitStr('return ', $sl);
         }
     }
 
-    private function emitContextSuffix(NodeEnvironment $env, ?SourceLocation $sl = null)
+    private function emitContextSuffix(NodeEnvironment $env, ?SourceLocation $sl = null): void
     {
-        if ($env->getContext() != NodeEnvironment::CTX_EXPR) {
+        if ($env->getContext() !== NodeEnvironment::CTX_EXPR) {
             $this->emitStr(';', $sl);
         }
     }
 
-    private function emitFnWrapPrefix(NodeEnvironment $env, ?SourceLocation $sl = null)
+    private function emitFnWrapPrefix(NodeEnvironment $env, ?SourceLocation $sl = null): void
     {
         $this->emitStr('(function()', $sl);
         if (count($env->getLocals()) > 0) {
@@ -1093,7 +1077,7 @@ class Emitter
         $this->indentLevel++;
     }
 
-    private function emitFnWrapSuffix(NodeEnvironment $env, ?SourceLocation $sl = null)
+    private function emitFnWrapSuffix(NodeEnvironment $env, ?SourceLocation $sl = null): void
     {
         $this->indentLevel--;
         $this->emitLine();
@@ -1102,23 +1086,23 @@ class Emitter
 
     private function printFloat(float $x): string
     {
-        if (intval($x) == $x) {
+        if ((int)$x == $x) {
             // (string) 10.0 will return 10 and not 10.0
             // so we just add a .0 at the end
             return ((string) $x) . '.0';
-        } else {
-            return ((string) $x);
         }
+
+        return ((string) $x);
     }
 
-    protected function munge(string $s): string
+    private function munge(string $s): string
     {
         return Munge::encode($s);
     }
 
-    protected function emitLine($str = '', ?SourceLocation $sl = null)
+    private function emitLine(string $str = '', ?SourceLocation $sl = null): void
     {
-        if (strlen($str) > 0) {
+        if ('' !== $str) {
             $this->emitStr($str, $sl);
         }
 
@@ -1128,9 +1112,9 @@ class Emitter
         echo PHP_EOL;
     }
 
-    protected function emitStr($str, ?SourceLocation $sl = null)
+    private function emitStr(string $str, ?SourceLocation $sl = null): void
     {
-        if ($this->generatedColumns == 0) {
+        if ($this->generatedColumns === 0) {
             $this->generatedColumns += $this->indentLevel * 2;
             echo str_repeat(' ', $this->indentLevel * 2);
         }
