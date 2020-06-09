@@ -796,21 +796,22 @@ Checks if `x` is greater than zero.
 ```phel
 (print & xs)
 ```
-
+Prints the given values to the default output stream. Returns nil.
 
 ## `print-str`
 
 ```phel
 (print-str & xs)
 ```
-
+Same as print. But instead of writing it to a output stream,
+  The resulting string is returned.
 
 ## `println`
 
 ```phel
 (println & xs)
 ```
-
+Same as print followed by a newline
 
 ## `push`
 

@@ -68,9 +68,9 @@ class Repl
                         $readerResult->getAst(),
                         NodeEnvironment::empty()->withContext(NodeEnvironment::CTX_RET)
                     );
-                    $code = $emitter->emitAndEval($node);
+                    $code = $emitter->emitAsString($node);
+                    $result = $emitter->eval($code);
 
-                    $result = eval($code);
                     $this->output($printer->print($result, false));
                     $this->output(PHP_EOL);
                 } catch (AnalyzerException $e) {

@@ -1206,25 +1206,33 @@ returns 1. If `xs` has one value, returns the reciprocal of x."
         (php/ob_end_clean)
         ,res))))
 
-(defn print-str [& xs]
+(defn print-str
+  "Same as print. But instead of writing it to a output stream,
+  The resulting string is returned."
+  [& xs]
   (let [len (count xs)
         printer (php/new Printer)
         pp |(php/-> printer (print $ false))]
-    (cond
-      (= len 0) ""
-      (= len 1) (php/-> printer (print (first xs) false))
-                (loop [res (php/-> printer (print (first xs) false))
-                       seq (next xs)]
-                  (if seq
-                    (recur
-                      (str res " " (php/-> printer (print (first seq) false)))
-                      (next seq))
-                    res)))))
+    (case (count xs)
+      0 ""
+      1 (pp (first xs))
+        (loop [res (pp (first xs))
+               seq (next xs)]
+          (if seq
+            (recur (str res " " (pp (first seq))) (next seq))
+            res)))))
 
-(defn print [& xs]
-  (php/print (apply print-str xs)))
+(defn print
+  "Prints the given values to the default output stream. Returns nil."
+  [& xs]
+  (do
+    (php/print (apply print-str xs))
+    nil))
 
-(defn println [& xs]
+(defn println
+  "Same as print followed by a newline"
+  [& xs]
   (do
     (apply print xs)
-    (php/print "\n")))
+    (php/print "\n")
+    nil))
