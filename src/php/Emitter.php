@@ -84,12 +84,10 @@ final class Emitter
 
         try {
             file_put_contents($filename, "<?php\n" . $code);
-            $result = require $filename;
+            return require $filename;
         } catch (Throwable $e) {
             throw $e;
         }
-
-        return $result;
     }
 
     public function emitAsString(Node $node): string
