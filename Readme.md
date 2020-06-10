@@ -39,12 +39,14 @@ zola build
 
 ### Tests
 
-Phel has two test suites: `test-compiler` & `test-core`:
+Phel has two test suites. 
+The first test suite runs PHPUnit to test the compiler itself.
+The second test suite runs tests against Phel's core library.
 
 ```bash
-composer test-compiler # it runs a PHPUnit test suite to test the compiler itself.
-composer test-core     # it is a simple Phel script to test the core library.
-composer test-all      # (both: compiler & core)
+composer test-compiler # test the compiler.
+composer test-core # test core library
+composer test-all # runs both script after each other
 ```
 
 ### Run on PHP 8 with JIT
