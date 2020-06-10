@@ -10,7 +10,18 @@ The rest of this Readme file documents on how to work with the compiler code.
 
 Feel free to ask questions and join discussions on the [Phel Gitter channel](https://gitter.im/phel-lang/community).
 
-## Build the documentation
+
+## Development and contribution
+
+### Your first try!
+
+1. Clone/Fork the project and `cd` inside the repository
+2. `docker-compose up`
+3. `docker exec -ti -u dev phel_lang_php bash`
+4. `composer install`
+5. `composer test-all`
+
+### Build the documentation
 
 The documentation is build with [Zola](https://www.getzola.org/). To build and serve the documentation on a local machine, run:
 
@@ -26,16 +37,17 @@ cd doc
 zola build
 ```
 
-## Test
+### Tests
 
-Phel has two test suites. The first test suite runs a PHPUnit test to test the compiler itself. The second test suite is a simple Phel script to test the core library.
+Phel has two test suites: `test-compiler` & `test-core`:
 
+```bash
+composer test-compiler # it runs a PHPUnit test suite to test the compiler itself.
+composer test-core     # it is a simple Phel script to test the core library.
+composer test-all      # (both: compiler & core)
 ```
-composer phpunit
-composer test
-```
 
-## Run on PHP 8 with JIT
+### Run on PHP 8 with JIT
 
 The JIT compiler in PHP 8 provides more speed for the Phel compiler. To compare the runtime on PHP 7.4 vs PHP 8 the following command can be use.
 
