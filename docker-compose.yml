@@ -5,4 +5,3 @@ phel_lang_php:
   hostname: php
   volumes:
     - .:/srv/phel-lang:delegated
-    - ~/.ssh:/home/dev/.ssh
