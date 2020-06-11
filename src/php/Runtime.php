@@ -190,7 +190,7 @@ class Runtime
                 /** @var Table $meta */
                 $meta = $GLOBALS['__phel_meta'][$ns][$name] ?? new Table();
                 if ($meta[new Keyword('private')] !== true) {
-                    $this->globalEnv->addDefintion(
+                    $this->globalEnv->addDefinition(
                         $ns,
                         new Symbol($name),
                         $GLOBALS['__phel'][$ns][$name]->getMeta()

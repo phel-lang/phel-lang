@@ -1394,7 +1394,7 @@ final class Analyzer
             );
         }
 
-        $this->globalEnvironment->addDefintion($namespace, $name, $meta);
+        $this->globalEnvironment->addDefinition($namespace, $name, $meta);
 
         return new DefNode(
             $nodeEnvironment,
