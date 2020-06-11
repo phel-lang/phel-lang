@@ -175,7 +175,7 @@ class Tuple extends Phel implements ArrayAccess, Countable, Iterator, ISlice, IC
 
     public function equals($other): bool
     {
-        return $this === $other;
+        return $this == $other;
     }
 
     public function isTruthy(): bool

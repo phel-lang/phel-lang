@@ -34,6 +34,11 @@
   "```phel\n(tuple & xs)\n```\nCreates a new Tuple. If no argument is provided, an empty Tuple is created."
   (fn [& xs] (php/new Tuple (php/-> xs (toPhpArray)))))
 
+(def tuple-brackets
+  "Creates a new Bracket-Tuple. If no argument is provided,
+an empty Braket-Tuple is created."
+  (fn [& xs] (php/new Tuple (php/-> xs (toPhpArray)) true)))
+
 (def next
   "```phel\n(next xs)\n```\nReturns the sequence of elements after the first element. If there are no
 elements, returns nil."
@@ -167,12 +172,6 @@ This is PHP equalivalent to `$args[0] . $args[1] . $args[2] ...`"
 # Basic constructors
 # ------------------
 
-(defn tuple-brackets
-  "Creates a new Bracket-Tuple. If no argument is provided,
-an empty Braket-Tuple is created."
-  [& xs]
-  (php/new Tuple (php/-> xs (toPhpArray)) true))
-
 (defn array
   "Creates a new Array. If no argument is provided, an empty Array is created."
   [& xs]
@@ -192,6 +191,11 @@ The number of parameters must be even."
 # -------------------------
 # Basic sequence operations
 # -------------------------
+
+(defn- equals1 [a b]
+  (if (php/instanceof a Phel)
+    (php/-> a (equals b))
+    (php/== a b)))
 
 (defn cons
   "Prepends `x` to the beginning of `xs`"
@@ -252,7 +256,7 @@ implement the PHP Countable interface."
       (php/count xs)
       (if (php/== xs nil)
         0
-        (throw (php/new InvalidArgumentException "object is not countable"))))))
+        (throw (php/new InvalidArgumentException (str "object is not countable: " xs)))))))
 
 # ------------------------
 # Control structure macros
@@ -299,7 +303,7 @@ implement the PHP Countable interface."
   (if (next pairs)
     (let [v (gensym)]
       `(let [,v ,e]
-        (if (php/== ,v ',(first pairs))
+        (if (equals1 ,v ',(first pairs))
           ,(first (next pairs))
           (case ,v ,@(next (next pairs))))))
     (first pairs)))
@@ -354,8 +358,8 @@ Calling the and function without arguments returns true."
   [a & more]
   (case (count more)
     0 true
-    1 (php/== a (first more))
-      (if (php/== a (first more))
+    1 (equals1 a (first more))
+      (if (equals1 a (first more))
         (recur (first more) (next more))
         false)))
 
@@ -549,6 +553,14 @@ Calling the and function without arguments returns true."
   [x]
   (= (type x) :tuple))
 
+(defn tuple-brackets?
+  [x]
+  (and (tuple? x) (php/-> x (isUsingBracket))))
+
+(defn tuple-parens?
+  [x]
+  (and (tuple? x) (not (php/-> x (isUsingBracket)))))
+
 (defn boolean?
   "Returns true if `x` is a boolean, false otherwise."
   [x]
@@ -644,14 +656,103 @@ arrays. Use (php/aunset ds key)" )))
     (php/aunset x key)
     x))
 
+
+# --------
+# For loop
+# --------
+
+(defn range
+  "Create an array of values [start, end). If the function has one argument the
+  the range [0, end) is returned. With two arguments, returns [start, end).
+  The third argument is an optional step width (default 1)."
+  [a & rest]
+  (case (count rest)
+    0 (range 0 a 1)
+    1 (range a (get rest 0) 1)
+    2 (let [res @[]
+            begin a
+            end (get rest 0)
+            step (get rest 1)
+            cmp (if (< step 0) > <)]
+        (loop [i begin]
+          (if (cmp i end)
+            (do
+              (push res i)
+              (recur (php/+ i step)))
+          res)))
+      (throw (php/new InvalidArgumentException "Range function expects one, two or three arguments"))))
+
+(defn- for-builder [body head i]
+  (if (<= (count head) i)
+    # No more heads, return the body
+    body
+
+    # Handle heads
+    (let [@[i binding (php/+ i 1) verb] head]
+      (if (keyword? binding)
+        # Case 1: Modifiers
+        (let [rest (for-builder body head (php/+ i 2))]
+          (case binding
+            :while  `(if ,verb ,rest php/break)
+            :let    `(let ,verb ,rest)
+            :when   `(when ,verb ,rest)
+                    (throw (php/new InvalidArgumentException (str "This modifier is not supported in for loop: " verb)))))
+
+        # Case 2: Verbs
+        (let [@[(php/+ i 2) object] head
+              rest (for-builder body head (php/+ i 3))
+              value-sym (gensym)]
+          (case verb
+            :range  `(foreach [,binding (apply range ,object)] ,rest)
+            :in     `(foreach [,value-sym ,object] (let [,binding ,value-sym] ,rest))
+            :keys   (let [key-sym (gensym)]
+                      `(foreach [,key-sym ,value-sym ,object] (let [,binding ,key-sym] ,rest)))
+            :pairs  (let [key-sym (gensym)]
+                      `(foreach [,key-sym ,value-sym ,object]
+                        (let [,binding [,key-sym ,value-sym]] ,rest)))
+                    (throw (php/new InvalidArgumentException (str "This verb is not supported in for loop " verb)))))))))
+
+(defmacro for
+  "List comprehension. The head of the loop is a tuple that contains a
+  sequence of bindings and modifiers. A binding is a sequence of three
+  values `binding :verb expr`. Where `binding` is a binding as
+  in let and `:verb` is one of the following keywords:
+
+  * :range loop over a range by using the range function.
+  * :in loops over all values of a collection.
+  * :keys loops over all keys/indexes of a collection.
+  * :pairs loops over all key value pairs of a collections.
+
+  After each loop binding additional modifiers can be applied. Modifiers
+  have the form `:modifier argument`. The following modifiers are supported:
+
+  * :while breaks the loop if the expression is falsy
+  * :let defines additional bindings
+  * :when only evaluates the loop body if the condition is true.
+
+  The for loops returns a array with all evaluated elements of the body."
+  [head & body]
+  (let [res-sym (gensym "res__")
+        loop-body (for-builder `(push ,res-sym (do ,@body)) head 0)]
+    `(let [,res-sym @[]]
+      ,loop-body
+      ,res-sym)))
+
+(defmacro dofor
+  "Repeatedly executes body for side-effects with bindings and modifiers as
+  provided by for. Returns nil"
+  [head & body]
+  (for-builder `(do ,@body) head 0))
+
+# ------------------
+# Sequence functions
+# ------------------
+
 (defn map [f & xs]
   (case (count xs)
     0 (throw (php/new InvalidArgumentException "expected at least one indexed
 collection in map"))
-    1 (let [res @[]]
-        (foreach [x (first xs)]
-          (push res (f x)))
-        res)
+    1 (for [x :in (first xs)] (f x))
       (loop [res @[]
              seq xs]
         (if (some? nil? seq)
@@ -665,10 +766,7 @@ collection in map"))
   argument is index of the element in the sequence and the second element is the
   element itself."
   [f xs]
-  (let [res @[]]
-    (foreach [k v xs]
-      (push res (f k v)))
-    res))
+  (for [[k v] :pairs xs] (f k v)))
 
 (defn mapcat
   "Applies f on all xs and concatenate the result."
@@ -726,35 +824,21 @@ collection in map"))
   (slice xs 0 (if (php/< n 0) 0 n)))
 
 (defn take-while [pred xs]
-  (let [res @[]]
-    (loop [[y & ys] xs]
-      (if (and y (pred y))
-        (do
-          (push res y)
-          (recur ys))
-        res))))
+  (for [x :in xs :while (pred x)] x))
 
 (defn filter [pred xs]
-  (let [res @[]]
-    (foreach [x xs]
-      (when (pred x)
-        (push res x)))
-    res))
+  (for [x :in xs :when (pred x)] x))
 
 (defn keep [pred xs]
-  (let [res @[]]
-    (foreach [x xs]
-      (let [predRes (pred x)]
-        (when-not (nil? predRes)
-          (push res predRes))))
+  (for [x :in xs
+        :let [res (pred x)]
+        :when (not (nil? res))]
     res))
 
 (defn keep-indexed [pred xs]
-  (let [res @[]]
-    (foreach [k v xs]
-      (let [predRes (pred k v)]
-        (when-not (nil? predRes)
-          (push res predRes))))
+  (for [[k v] :pairs xs
+        :let [res (pred k v)]
+        :when (not (nil? res))]
     res))
 
 (defn find [pred xs]
@@ -776,25 +860,22 @@ collection in map"))
 
 (defn distinct
   "Returns an array with duplicated values removed in `xs`."
- [xs]
- (let [seen @{}
-       ret @[]]
-  (foreach [x xs]
-    (when-not (get seen x)
-      (put seen x true)
-      (push ret x)))
-  ret))
+  [xs]
+  (let [seen @{}
+        ret @[]]
+    (dofor [x :in xs]
+      (when-not (get seen x)
+        (put seen x true)
+        (push ret x)))
+    ret))
 
 (defn reverse
   "Reverses the order of the elements in the given sequence"
   [xs]
   (let [ret @[]]
-    (loop [i (php/- (count xs) 1)]
-      (if (>= i 0)
-        (do
-          (push ret (get xs i))
-          (recur (php/- i 1)))
-        ret))))
+    (dofor [i :range [(php/- (count xs) 1) -1 -1]]
+      (push ret (get xs i)))
+    ret))
 
 (defn interleave
   "Returns a array with the first items of each col, than the second items etc."
@@ -809,7 +890,7 @@ collection in map"))
 (defn interpose
   [sep xs]
   (let [res @[]]
-    (foreach [k v xs]
+    (dofor [[k v] :pairs xs]
       (when (> k 0)
         (push res sep))
       (push res v))
@@ -818,40 +899,30 @@ collection in map"))
 (defn frequencies
   [xs]
   (let [res @{}]
-    (foreach [x xs]
-      (let [n (get res x)]
-        (put res x (php/+ 1 (or n 0)))))
+    (dofor [x :in xs :let [n (get res x)]]
+      (put res x (php/+ 1 (or n 0))))
     res))
 
 (defn keys
   "Gets the keys of an associative data structure"
   [xs]
-  (let [res @[]]
-    (foreach [k v xs]
-      (push res k))
-    res))
+  (for [k :keys xs] k))
 
 (defn values
   "Gets the values of an associative data structure"
   [xs]
-  (let [res @[]]
-    (foreach [k v xs]
-      (push res v))
-    res))
+  (for [x :in xs] x))
 
 (defn pairs
   "Gets the pairs of an associative data structure"
   [xs]
-  (let [res @[]]
-    (foreach [k v xs]
-      (push res [k v]))
-    res))
+  (for [p :pairs xs] p))
 
 (defn kvs
   "Returns an array of key value pairs like @[k1 v1 k2 v2 k3 v3 ...]."
   [xs]
   (let [res @[]]
-    (foreach [k v xs]
+    (dofor [[k v] :pairs xs]
       (push res k)
       (push res v))
     res))
@@ -884,47 +955,20 @@ collection in map"))
     (php/shuffle php-array)
     (apply array php-array)))
 
-(defn range
-  "Create an array of values [start, end). If the function has one argument the
-  the range [0, end) is returned. With two arguments, returns [start, end).
-  The third argument is an optional step width (default 1)."
-  [a & rest]
-  (case (count rest)
-    0 (range 0 a 1)
-    1 (range a (get rest 0) 1)
-    2 (let [res @[]
-            begin a
-            end (get rest 0)
-            step (get rest 1)]
-        (loop [i begin]
-          (if (< i end)
-            (do
-              (push res i)
-              (recur (php/+ i step)))
-          res)))
-      (throw (php/new InvalidArgumentException "Range function expects one, two or three arguments"))))
-
 (defn repeat
   "Returns an array of length n where every element is x."
   [n x]
-  (let [res @[]]
-    (loop [i n]
-      (if (> i 0)
-        (do
-          (push res x)
-          (recur (php/- i 1)))
-        res))))
+  (for [i :range [n]] x))
 
 (defn group-by
   "Returns a table of the elements of xs keyed by the result of
   f on each element."
   [f xs]
   (let [res @{}]
-    (foreach [x xs]
-      (let [k (f x)]
-        (when-not (get res k)
+    (dofor [x :in xs :let [k (f x)]]
+      (when-not (get res k)
           (put res k @[]))
-        (update-in res [k] push x)))
+        (update-in res [k] push x))
     res))
 
 (defn zipcoll
@@ -963,6 +1007,17 @@ collection in map"))
   "Returns a tuple of [(take-while pred coll) (drop-while pred coll)]"
   [f xs]
   [(take-while f xs) (drop-while f xs)])
+
+(defn partition [n xs]
+  (if (< (count xs) n)
+    @[]
+    (let [res @[]]
+      (loop [xs xs]
+        (let [[a b] (split-at n xs)]
+          (push res a)
+          (if (>= (count b) n)
+            (recur b)
+            res))))))
 
 # ------------------
 # Function operation

@@ -106,6 +106,52 @@ The `foreach` special form can be used to iterate over all kind of PHP datastruc
   (print v)) # prints "a", 1, "b" and 2
 ```
 
+## For
+
+A more powerful loop functionality is provided by the `for` loop. The `for` loop is a elegant way to define and create arrays based on existing collections. It combines the functionality of `foreach`, `let` and `if` in one call.
+
+```phel
+(for head body+)
+```
+
+The `head` of the loop is a tuple that contains a
+sequence of bindings and modifiers. A binding is a sequence of three
+values `binding :verb expr`. Where `binding` is a binding as
+in `let` and `:verb` is one of the following keywords:
+
+* `:range` loop over a range, by using the range function.
+* `:in` loops over all values of a collection.
+* `:keys` loops over all keys/indexes of a collection.
+* `:pairs` loops over all key value pairs of a collections.
+
+After each loop binding additional modifiers can be applied. Modifiers
+have the form `:modifier argument`. The following modifiers are supported:
+
+* `:while` breaks the loop if the expression is falsy.
+* `:let` defines additional bindings.
+* `:when` only evaluates the loop body if the condition is true.
+
+```phel
+(for [x :range [0 3]] x) # Evaluates to @[1 2 3]
+(for [x :range [3 0 -1]] x) # Evaluates to @[3 2 1]
+
+(for [x :in [1 2 3]] (inc x)) # Evaluates to @[2 3 4]
+(for [x :in @{:a 1 :b 2 :c 3}] x) # Evaluates to @[1 2 3]
+
+(for [x :keys @[1 2 3]] x) # Evaluates to @[0 1 2]
+(for [x :keys @{:a 1 :b 2 :c 3}] x) # Evaluates to @[:a :b :c]
+
+(for [[k v] :pairs @{:a 1 :b 2 :c 3}] [v k]) # Evaluates to @[[1 :a] [2 :b] [3 :c]]
+(for [[k v] :pairs @[1 2 3]] [k v]) # Evaluates to @[[0 1] [1 2] [2 3]]
+
+(for [x :in [2 2 2 3 3 4 5 6 6] :while (even? x)] x) # Evalutes to @[2 2 2]
+(for [x :in [2 2 2 3 3 4 5 6 6] :when (even? x)] x) # Evalutaes to @[2 2 2 4 6 6]
+
+(for [x :in [1 2 3] :let [y (inc x)]] [x y]) # Evaluates to @[[1 2] [2 3] [3 4]]
+
+(for [x :range [0 4] y :range [0 x]] [x y]) # Evaluates to @[[1 0] [2 0] [2 1] [3 0] [3 1] [3 2]]
+```
+
 ## Exceptions
 
 ```phel

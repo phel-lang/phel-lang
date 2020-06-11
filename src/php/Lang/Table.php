@@ -134,7 +134,7 @@ class Table extends Phel implements ArrayAccess, Countable, Iterator
 
     public function equals($other): bool
     {
-        return $this === $other;
+        return $this == $other;
     }
 
     /**

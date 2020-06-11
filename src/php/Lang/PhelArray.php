@@ -115,7 +115,7 @@ class PhelArray extends Phel implements ArrayAccess, Countable, Iterator, ICons,
 
     public function equals($other): bool
     {
-        return $this === $other;
+        return $this == $other;
     }
 
     public function isTruthy(): bool

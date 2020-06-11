@@ -323,6 +323,8 @@
 (assert (= false (array? (php/array))) "array? on php array")
 
 (assert (= true (tuple? [])) "tuple?")
+(assert (= true (tuple-brackets? [])) "tuple-brackets?")
+(assert (= true (tuple-parens? '())) "tuple-parens?")
 
 (assert (= true (boolean? true)) "boolean? on true")
 (assert (= true (boolean? false)) "boolean? on false")
@@ -562,6 +564,13 @@
 
 (assert (= [@[1 2 3] @[4 5]] (split-with (partial >= 3) @[1 2 3 4 5])) "split-with")
 
+(assert (= @[] (partition 2 [])) "partition-2 empty")
+(assert (= @[] (partition 2 [1])) "partition-2 one element")
+(assert (= @[[1 2]] (partition 2 [1 2])) "partition-2 two elements")
+(assert (= @[[1 2]] (partition 2 [1 2 3])) "partition-2 three elements")
+(assert (= @[[1 2] [3 4]] (partition 2 [1 2 3 4])) "partition-2 four elements")
+(assert (= @[[1 2] [3 4]] (partition 2 [1 2 3 4 5])) "partition-2 five elements")
+
 (assert (= @[
   [[1 2 [3]] [4]]
   [1 2 [3]]
@@ -751,6 +760,21 @@
   (assert (= (my-struct 12 2 3) (put x :a 12)) "struct: put value on struct")
   (assert (= true (my-struct? x)) "struct: correct type")
   (assert (= false (my-struct? :a)) "struct: incorrect type"))
+
+
+# For loop
+(assert (= @[0 1 2] (for [x :range [0 3]] x)) "for loop (:range)")
+(assert (= @[3 2 1] (for [x :range [3 0 -1]] x)) "for loop dec (:range)")
+(assert (= @[2 3 4] (for [x :in [1 2 3]] (inc x))) "for loop (:in)")
+(assert (= @[1 2 3] (for [x :in @{:a 1 :b 2 :c 3}] x)) "for loop on table (:in)")
+(assert (= @[0 1 2] (for [x :keys @[1 2 3]] x)) "for loop on array (:keys)")
+(assert (= @[:a :b :c] (for [x :keys @{:a 1 :b 2 :c 3}] x)) "for loop on table (:keys)")
+(assert (= @[[1 :a] [2 :b] [3 :c]] (for [[k v] :pairs @{:a 1 :b 2 :c 3}] [v k])) "for loop on table (:pairs)")
+(assert (= @[[0 1] [1 2] [2 3]] (for [[k v] :pairs @[1 2 3]] [k v])) "for loop on array (:pairs)")
+(assert (= @[2 2 2] (for [x :in [2 2 2 3 3 4 5 6 6] :while (even? x)] x)) "for loop (:range :while)")
+(assert (= @[2 2 2 4 6 6] (for [x :in [2 2 2 3 3 4 5 6 6] :when (even? x)] x)) "for loop (:range :when)")
+(assert (= @[[1 2] [2 3] [3 4]] (for [x :in [1 2 3] :let [y (inc x)]] [x y])) "for loop (:range :let)")
+(assert (= @[[1 0] [2 0] [2 1] [3 0] [3 1] [3 2]] (for [x :range [0 4] y :range [0 x]] [x y])) "for loop nested")
 
 (print-summary)
 

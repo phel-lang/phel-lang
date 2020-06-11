@@ -51,6 +51,8 @@ class Reader
      */
     public function readNext(Generator $tokenStream)
     {
+        $this->readWhitespace($tokenStream);
+
         if (!$tokenStream->valid()) {
             return false;
         }
@@ -66,6 +68,23 @@ class Reader
             $ast,
             $this->getCodeSnippet($this->readTokens)
         );
+    }
+
+    private function readWhitespace(Generator $tokenStream): void
+    {
+        while ($tokenStream->valid()) {
+            $token = $tokenStream->current();
+            $this->readTokens[] = $token;
+
+            switch ($token->getType()) {
+                case Token::T_WHITESPACE:
+                case Token::T_COMMENT:
+                    $tokenStream->next();
+                    break;
+                default:
+                    return;
+            }
+        }
     }
 
     /**
@@ -310,15 +329,15 @@ class Reader
             return null;
         } elseif ($word[0] === ':') {
             return new Keyword(substr($word, 1));
-        } elseif (preg_match("/([+-])?0[bB][01]+(_[01]+)*/", $word, $matches)) {
+        } elseif (preg_match("/^([+-])?0[bB][01]+(_[01]+)*$/", $word, $matches)) {
             // binary numbers
             $sign = (isset($matches[1]) && $matches[1] == '-') ? -1 : 1;
             return $sign * bindec(str_replace('_', '', $word));
-        } elseif (preg_match("/([+-])?0[xX][0-9a-fA-F]+(_[0-9a-fA-F]+)*/", $word, $matches)) {
+        } elseif (preg_match("/^([+-])?0[xX][0-9a-fA-F]+(_[0-9a-fA-F]+)*$/", $word, $matches)) {
             // hexdecimal numbers
             $sign = (isset($matches[1]) && $matches[1] == '-') ? -1 : 1;
             return $sign = hexdec(str_replace('_', '', $word));
-        } elseif (preg_match("/([+-])?0[0-7]+(_[0-7]+)*/", $word, $matches)) {
+        } elseif (preg_match("/^([+-])?0[0-7]+(_[0-7]+)*$/", $word, $matches)) {
             // octal numbers
             $sign = (isset($matches[1]) && $matches[1] == '-') ? -1 : 1;
             return $sign * octdec(str_replace('_', '', $word));

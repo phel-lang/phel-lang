@@ -25,6 +25,7 @@ class ReaderTest extends TestCase
     {
         $this->assertEquals(1, $this->read('1'));
         $this->assertEquals(10, $this->read('10'));
+        $this->assertEquals(100, $this->read('100'));
         $this->assertEquals(10.0, $this->read('10.0'));
         $this->assertEquals(1.1, $this->read('1.1'));
         $this->assertEquals(10.11, $this->read('10.11'));

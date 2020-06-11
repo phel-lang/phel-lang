@@ -40,9 +40,10 @@ class Quasiquote
         } elseif ($this->isUnquoteSplicing($form)) {
             throw new \Exception('splice not in list');
         } elseif ($form instanceof Tuple && count($form) > 0) {
+            $tupleBuilder = $form->isUsingBracket() ? 'tuple-brackets' : 'tuple';
             return Tuple::create(
                 (new Symbol('apply'))->copyLocationFrom($form),
-                (new Symbol('tuple'))->copyLocationFrom($form),
+                (new Symbol($tupleBuilder))->copyLocationFrom($form),
                 Tuple::create(
                     (new Symbol('concat'))->copyLocationFrom($form),
                     ...$this->expandList($form)

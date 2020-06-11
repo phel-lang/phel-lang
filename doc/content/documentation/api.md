@@ -336,6 +336,14 @@ Define a new struct
 ```
 Returns an array with duplicated values removed in `xs`.
 
+## `dofor`
+
+```phel
+(dofor head & body)
+```
+Repeatedly executes body for side-effects with bindings and modifiers as
+  provided by for. Returns nil
+
 ## `drop`
 
 ```phel
@@ -427,6 +435,30 @@ Takes a nested sequential data structure (tree), and returns their contents
 (float? x)
 ```
 Returns true if `x` is float point number, false otherwise.
+
+## `for`
+
+```phel
+(for head & body)
+```
+List comprehension. The head of the loop is a tuple that contains a
+  sequence of bindings and modifiers. A binding is a sequence of three
+  values `binding :verb expr`. Where `binding` is a binding as
+  in let and `:verb` is one of the following keywords:
+
+  * :range loop over a range by using the range function.
+  * :in loops over all values of a collection.
+  * :keys loops over all keys/indexes of a collection.
+  * :pairs loops over all key value pairs of a collections.
+
+  After each loop binding additional modifiers can be applied. Modifiers
+  have the form `:modifier argument`. The following modifiers are supported:
+
+  * :while breaks the loop if the expression is falsy
+  * :let defines additional bindings
+  * :when only evaluates the loop body if the condition is true.
+
+  The for loops returns a array with all evaluated elements of the body.
 
 ## `frequencies`
 
@@ -748,6 +780,13 @@ Gets the pairs of an associative data structure
 ```
 
 
+## `partition`
+
+```phel
+(partition n xs)
+```
+
+
 ## `peek`
 
 ```phel
@@ -1065,11 +1104,22 @@ Creates a new Tuple. If no argument is provided, an empty Tuple is created.
 
 ## `tuple-brackets`
 
-```phel
-(tuple-brackets & xs)
-```
 Creates a new Bracket-Tuple. If no argument is provided,
 an empty Braket-Tuple is created.
+
+## `tuple-brackets?`
+
+```phel
+(tuple-brackets? x)
+```
+
+
+## `tuple-parens?`
+
+```phel
+(tuple-parens? x)
+```
+
 
 ## `tuple?`
 
