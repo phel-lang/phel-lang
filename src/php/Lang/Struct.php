@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Phel\Lang;
 
 use InvalidArgumentException;
@@ -27,19 +29,19 @@ abstract class Struct extends Table
         }
     }
 
-    public function offsetSet($offset, $value)
+    public function offsetSet($offset, $value): void
     {
         $this->validateOffset($offset);
         parent::offsetSet($offset, $value);
     }
 
-    public function offsetExists($offset)
+    public function offsetExists($offset): bool
     {
         $this->validateOffset($offset);
         return parent::offsetExists($offset);
     }
 
-    public function offsetUnset($offset)
+    public function offsetUnset($offset): void
     {
         $this->validateOffset($offset);
         parent::offsetUnset($offset);
