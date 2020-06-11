@@ -30,9 +30,12 @@
         }
     },
     "scripts": {
-        "phpunit": "vendor/bin/phpunit",
-        "phpunit:coverage": "vendor/bin/phpunit --coverage-html data/coverage-report",
-        "test": "php tests/phel/test-runner.php"
+        "test-compiler": "vendor/bin/phpunit",
+        "test-compiler:coverage": "vendor/bin/phpunit --coverage-html data/coverage-report",
+        "test-core": "php tests/phel/test-runner.php",
+        "psalm": "vendor/bin/psalm",
+        "test-all": "composer psalm && composer test-compiler && composer test-core",
+        "csfix": "vendor/bin/php-cs-fixer fix"
     },
     "bin": [
         "phel"

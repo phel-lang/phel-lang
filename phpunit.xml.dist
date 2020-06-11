@@ -1,4 +1,4 @@
-
+<?xml version="1.0" encoding="UTF-8"?>
 <phpunit bootstrap="vendor/autoload.php"
          backupGlobals="false"
          backupStaticAttributes="false"
@@ -8,15 +8,22 @@
          convertWarningsToExceptions="true"
          processIsolation="false"
          stopOnFailure="false"
-         verbose="true">
+         verbose="true"
+         testdox="true"
+>
+    <php>
+        <ini name="error_reporting" value="-1" />
+    </php>
+
     <testsuites>
-        <testsuite name="unit">
-            <directory suffix="Test.php">tests/</directory>
+        <testsuite name="Test Suite">
+            <directory suffix="Test.php">tests</directory>
         </testsuite>
     </testsuites>
+
     <filter>
-        <whitelist processUncoveredFilesFromWhitelist="true">
-            <directory suffix=".php">./src</directory>
+        <whitelist>
+            <directory>src</directory>
         </whitelist>
     </filter>
 </phpunit>
