@@ -237,7 +237,9 @@ class Reader
         if ($object instanceof IMeta) {
             $objMeta = $object->getMeta();
             foreach ($meta as $k => $v) {
-                $objMeta[$k] = $v;
+                if ($k) {
+                    $objMeta[$k] = $v;
+                }
             }
             $object->setMeta($objMeta);
         } else {

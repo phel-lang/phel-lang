@@ -66,7 +66,7 @@ class Runtime
         }
 
         if ($exception instanceof CompilerException) {
-            $printer->printException($exception->getPrevious(), $exception->getCodeSnippet());
+            $printer->printException($exception->getNestedException(), $exception->getCodeSnippet());
         } else {
             $printer->printStackTrace($exception);
         }

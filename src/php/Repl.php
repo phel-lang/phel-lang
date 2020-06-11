@@ -63,6 +63,11 @@ class Repl
                 $tokenStream = $lexer->lexString($input);
                 $readerResult = $reader->readNext($tokenStream);
 
+                if (!$readerResult) {
+                    $this->output("Nothing to evaluate.\n");
+                    continue;
+                }
+
                 try {
                     $node = $analzyer->analyze(
                         $readerResult->getAst(),

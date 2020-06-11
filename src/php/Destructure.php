@@ -24,12 +24,62 @@ class Destructure
     }
 
     /**
+     * Checks if a binding form is valid.
+     *
+     * @psalm-assert !null $form
+     *
+     * @param mixed $form The form to check
+     */
+    public static function isSupportedBinding($form): bool
+    {
+        return (
+            $form instanceof Symbol
+            || $form instanceof Tuple
+            || $form instanceof Table
+            || $form instanceof PhelArray
+        );
+    }
+
+    /**
+     * Checks if a binding form is valid. If this is not the case an
+     * AnalyzerException is thrown.
+     *
+     * @psalm-assert !null $form
+     *
+     * @param mixed $form The form to check
+     *
+     * @throws AnalyzerException
+     */
+    public static function assertSupportedBinding($form): void
+    {
+        if (!self::isSupportedBinding($form)) {
+            if (is_object($form)) {
+                $type = get_class($form);
+            } else {
+                $type = gettype($form);
+            }
+
+            if ($form instanceof Phel) {
+                throw new AnalyzerException(
+                    "Can not destructure " . $type,
+                    $form->getStartLocation(),
+                    $form->getEndLocation()
+                );
+            } else {
+                throw new AnalyzerException("Can not destructure " . $type);
+            }
+        }
+    }
+
+    /**
      * @param array $bindings
      * @param Phel|scalar|null $binding
      * @param mixed $value
      */
     private function destructure(array &$bindings, $binding, $value): void
     {
+        self::assertSupportedBinding($binding);
+
         if ($binding instanceof Symbol) {
             $this->processSymbol($bindings, $binding, $value);
         } elseif ($binding instanceof Tuple) {
@@ -38,23 +88,6 @@ class Destructure
             $this->processTable($bindings, $binding, $value);
         } elseif ($binding instanceof PhelArray) {
             $this->processArray($bindings, $binding, $value);
-        } else {
-            if (is_object($binding)) {
-                $type = get_class($binding);
-            } else {
-                $type = gettype($binding);
-            }
-
-            if ($binding instanceof Phel) {
-                throw new AnalyzerException(
-                    "Can not destructure " . $type,
-                    $binding->getStartLocation(),
-                    $binding->getEndLocation()
-                );
-            } else {
-                // TODO: How can we get start and end location here?
-                throw new Exception("Can not destructure " . $type);
-            }
         }
     }
 

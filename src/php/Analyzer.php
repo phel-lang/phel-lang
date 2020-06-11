@@ -387,6 +387,14 @@ final class Analyzer
     private function analyzeLoop(Tuple $x, NodeEnvironment $env): LetNode
     {
         $tupleCount = count($x);
+        if (!($x[0] instanceof Symbol && $x[0] == "loop")) {
+            throw new AnalyzerException(
+                "This is not a 'loop.",
+                $x->getStartLocation(),
+                $x->getEndLocation(),
+            );
+        }
+
         if ($tupleCount < 2) {
             throw new AnalyzerException(
                 "At least two arguments are required for 'loop.",
@@ -419,6 +427,8 @@ final class Analyzer
         for ($i = 0; $i < $loopBindingsCount; $i+=2) {
             $b = $loopBindings[$i];
             $init = $loopBindings[$i+1];
+
+            Destructure::assertSupportedBinding($b);
 
             if ($b instanceof Symbol) {
                 $preInits[] = $b;
@@ -595,6 +605,14 @@ final class Analyzer
     {
         $tupleCount = count($x);
         $frame = $env->getCurrentRecurFrame();
+
+        if (!($x[0] instanceof Symbol && $x[0] == "recur")) {
+            throw new AnalyzerException(
+                "This is not a 'recur.",
+                $x->getStartLocation(),
+                $x->getEndLocation(),
+            );
+        }
 
         if (!$frame) {
             throw new AnalyzerException(
@@ -887,7 +905,7 @@ final class Analyzer
                 $sym,
                 $shadowSym,
                 $expr,
-                $x[$i]->getStartLocation()
+                $sym->getStartLocation()
             );
 
             $initEnv = $initEnv->withMergedLocals([$sym])->withShadowedLocal($sym, $shadowSym);
