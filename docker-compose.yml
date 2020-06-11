@@ -1,6 +1,6 @@
 phel_lang_php:
   build: .
-  dockerfile: devops/dev/php.dockerfile
+  dockerfile: build/php.dockerfile
   container_name: phel_lang_php
   hostname: php
   volumes:
