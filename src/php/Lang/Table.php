@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Phel\Lang;
 
 use ArrayAccess;
@@ -10,23 +12,13 @@ use Phel\Printer;
 
 class Table extends Phel implements ArrayAccess, Countable, Iterator
 {
+    protected array $data = [];
 
-    /**
-     * @var array
-     */
-    protected $data = [];
+    protected array $keys = [];
 
-    /**
-     * @var array
-     */
-    protected $keys = [];
-
-    /**
-     * Creates a empty Table.
-     */
     public static function empty(): Table
     {
-        return new Table();
+        return new self();
     }
 
     /**
@@ -38,13 +30,13 @@ class Table extends Phel implements ArrayAccess, Countable, Iterator
      */
     public static function fromKVs(...$kvs): Table
     {
-        if (count($kvs) % 2 != 0) {
+        if (count($kvs) % 2 !== 0) {
             // TODO: Better exception
             throw new Exception("A even number of elements must be provided");
         }
 
         $result = new Table();
-        for ($i = 0; $i < count($kvs); $i += 2) {
+        for ($i = 0, $l = count($kvs); $i < $l; $i += 2) {
             $result[$kvs[$i]] = $kvs[$i+1];
         }
         return $result;
@@ -55,7 +47,7 @@ class Table extends Phel implements ArrayAccess, Countable, Iterator
         return self::fromKVs(...$kvs);
     }
 
-    public function offsetSet($offset, $value)
+    public function offsetSet($offset, $value): void
     {
         $hash = $this->offsetHash($offset);
 
@@ -63,19 +55,18 @@ class Table extends Phel implements ArrayAccess, Countable, Iterator
         $this->data[$hash] = $value;
     }
 
-    public function offsetExists($offset)
+    public function offsetExists($offset): bool
     {
         $hash = $this->offsetHash($offset);
 
         return isset($this->data[$hash]);
     }
 
-    public function offsetUnset($offset)
+    public function offsetUnset($offset): void
     {
         $hash = $this->offsetHash($offset);
 
-        unset($this->keys[$hash]);
-        unset($this->data[$hash]);
+        unset($this->keys[$hash], $this->data[$hash]);
     }
 
     /**
@@ -107,22 +98,22 @@ class Table extends Phel implements ArrayAccess, Countable, Iterator
 
         if ($key !== null) {
             return $this->keys[$key];
-        } else {
-            return null;
         }
+
+        return null;
     }
 
-    public function next()
+    public function next(): void
     {
         next($this->data);
     }
 
-    public function rewind()
+    public function rewind(): void
     {
         reset($this->data);
     }
 
-    public function valid()
+    public function valid(): bool
     {
         return key($this->data) !== null;
     }
@@ -148,11 +139,13 @@ class Table extends Phel implements ArrayAccess, Countable, Iterator
     {
         if ($offset instanceof Phel) {
             return $offset->hash();
-        } elseif (is_object($offset)) {
-            return spl_object_hash($offset);
-        } else {
-            return (string) $offset;
         }
+
+        if (is_object($offset)) {
+            return spl_object_hash($offset);
+        }
+
+        return (string) $offset;
     }
 
     public function isTruthy(): bool
@@ -160,9 +153,8 @@ class Table extends Phel implements ArrayAccess, Countable, Iterator
         return count($this->keys) > 0;
     }
 
-    public function __toString()
+    public function __toString(): string
     {
-        $printer = new Printer();
-        return $printer->print($this, true);
+        return (new Printer())->print($this, true);
     }
 }
