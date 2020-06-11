@@ -1,7 +1,7 @@
 FROM php:7.4-fpm
-RUN apt-get update -y
-RUN apt-get upgrade -y
-RUN apt-get install -y git zip
+RUN apt-get update && \
+    apt-get upgrade -y && \
+    apt-get install -y git zip
 RUN pecl install -o -f xdebug \
     && rm -rf /tmp/pear \
     && docker-php-ext-enable xdebug
