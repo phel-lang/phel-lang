@@ -4,8 +4,6 @@ declare(strict_types=1);
 
 namespace Phel;
 
-use Exception;
-use Phel\Exceptions\AnalyzerException;
 use Phel\Exceptions\CompilerException;
 use Phel\Exceptions\HtmlExceptionPrinter;
 use Phel\Exceptions\TextExceptionPrinter;
@@ -16,6 +14,8 @@ use Throwable;
 
 class Runtime
 {
+    private static ?Runtime $instance = null;
+
     private GlobalEnvironment $globalEnv;
 
     /** @var string[] */
@@ -24,8 +24,6 @@ class Runtime
     private array $paths = [];
 
     private ?string $cacheDirectory = null;
-
-    private static ?Runtime $instance = null;
 
     private function __construct(GlobalEnvironment $globalEnv = null, string $cacheDirectory = null)
     {
@@ -39,13 +37,28 @@ class Runtime
         $this->addPath('phel\\', [__DIR__ . '/../phel']);
     }
 
-    public static function initialize(GlobalEnvironment $globalEnv = null, string $cacheDirectory = null)
+    public function addPath(string $namespacePrefix, array $path): void
+    {
+        $length = strlen($namespacePrefix);
+        if ('\\' !== $namespacePrefix[$length - 1]) {
+            throw new \InvalidArgumentException('A non-empty prefix must end with a namespace separator.');
+        }
+
+        if (isset($this->paths[$namespacePrefix])) {
+            $this->paths[$namespacePrefix] = [...$this->paths[$namespacePrefix], ...$path];
+        } else {
+            $this->paths[$namespacePrefix] = $path;
+        }
+    }
+
+    public static function initialize(GlobalEnvironment $globalEnv = null, string $cacheDirectory = null): Runtime
     {
         if (self::$instance !== null) {
-            throw new Exception("Runtime is already initialized");
+            throw new \RuntimeException('Runtime is already initialized');
         }
 
         self::$instance = new Runtime($globalEnv, $cacheDirectory);
+
         return self::$instance;
     }
 
@@ -57,9 +70,18 @@ class Runtime
         return new Runtime($globalEnv, $cacheDirectory);
     }
 
+    public static function getInstance(): Runtime
+    {
+        if (is_null(self::$instance)) {
+            throw new \RuntimeException('Runtime must first be initialized. Call Runtime::initialize()');
+        }
+
+        return self::$instance;
+    }
+
     public function exceptionHandler(Throwable $exception): void
     {
-        if (php_sapi_name() === 'cli') {
+        if (PHP_SAPI === 'cli') {
             $printer = new TextExceptionPrinter();
         } else {
             $printer = new HtmlExceptionPrinter();
@@ -72,72 +94,30 @@ class Runtime
         }
     }
 
-    public static function getInstance(): Runtime
-    {
-        if (is_null(self::$instance)) {
-            throw new Exception("Runtime must first be initialized. Call Runtime::initialize()");
-        }
-
-        return self::$instance;
-    }
-
-    public function addPath(string $namespacePrefix, array $path): void
-    {
-        $length = strlen($namespacePrefix);
-        if ('\\' !== $namespacePrefix[$length - 1]) {
-            throw new \InvalidArgumentException("A non-empty prefix must end with a namespace separator.");
-        }
-        if (isset($this->paths[$namespacePrefix])) {
-            $this->paths[$namespacePrefix] = [...$this->paths[$namespacePrefix], ...$path];
-        } else {
-            $this->paths[$namespacePrefix] = $path;
-        }
-    }
-
     public function loadNs(string $ns): bool
     {
-        if (!in_array($ns, $this->loadedNs)) {
+        if (!in_array($ns, $this->loadedNs, true)) {
             $file = $this->findFile($ns);
-            if (is_string($file)) {
-                $this->loadedNs[] = $ns;
 
-                if ($this->isCached($file, $ns)) {
-                    return $this->loadCachedFile($file, $ns);
-                }
-
-                return $this->loadFile($file, $ns);
+            if (!$file) {
+                return false;
             }
+
+            $this->loadedNs[] = $ns;
+
+            if ($this->isCached($file, $ns)) {
+                return $this->loadCachedFile($file, $ns);
+            }
+
+            return $this->loadFile($file, $ns);
         }
 
         return false;
     }
 
-    protected function isCached(string $file, string $ns): bool
+    private function findFile(string $ns): ?string
     {
-        $filename = $this->getCachedFilePath($file, $ns);
-
-        return $filename && file_exists($filename);
-    }
-
-    protected function getCachedFilePath(string $file, string $ns): ?string
-    {
-        if ($this->cacheDirectory) {
-            return $this->cacheDirectory
-                . DIRECTORY_SEPARATOR
-                . str_replace('\\', '.', $ns)
-                . '.' . md5_file($file)
-                . '.php';
-        }
-
-        return null;
-    }
-
-    /**
-     * @return string|bool
-     */
-    protected function findFile(string $ns)
-    {
-        $nsPath = strtr($ns, '\\', DIRECTORY_SEPARATOR);
+        $nsPath = str_replace('\\', DIRECTORY_SEPARATOR, $ns);
 
         $subPath = $ns;
         while (false !== $lastPos = strrpos($subPath, '\\')) {
@@ -155,33 +135,41 @@ class Runtime
             }
         }
 
-        return false;
+        return null;
     }
 
-    protected function loadFile(string $filename, string $ns): bool
+    protected function fileExists(string $filename): bool
     {
-        $globalEnv = $this->globalEnv;
-        $compiler = new Compiler();
-        $code = $compiler->compileFile($filename, $globalEnv);
+        return file_exists($filename);
+    }
 
-        $cacheFilePath = $this->getCachedFilePath($filename, $ns);
-        if ($cacheFilePath) {
-            file_put_contents(
-                $cacheFilePath,
-                "<?php\n\n" . $code
-            );
+    private function isCached(string $file, string $ns): bool
+    {
+        $filename = $this->getCachedFilePath($file, $ns);
+
+        return $filename && file_exists($filename);
+    }
+
+    private function getCachedFilePath(string $file, string $ns): ?string
+    {
+        if ($this->cacheDirectory) {
+            return $this->cacheDirectory
+                . DIRECTORY_SEPARATOR
+                . str_replace('\\', '.', $ns)
+                . '.' . md5_file($file)
+                . '.php';
         }
 
-        return true;
+        return null;
     }
 
-    protected function loadCachedFile(string $filename, string $ns): bool
+    private function loadCachedFile(string $filename, string $ns): bool
     {
         // Require cache file
         $path = $this->getCachedFilePath($filename, $ns);
 
         if (!$path) {
-            throw new \InvalidArgumentException("Can not load cached file: " . $filename);
+            throw new \InvalidArgumentException("Can not load cached file: {$filename}");
         }
 
         // Update global environment
@@ -202,8 +190,20 @@ class Runtime
         return true;
     }
 
-    protected function fileExists(string $filename): bool
+    protected function loadFile(string $filename, string $ns): bool
     {
-        return file_exists($filename);
+        $globalEnv = $this->globalEnv;
+        $compiler = new Compiler();
+        $code = $compiler->compileFile($filename, $globalEnv);
+
+        $cacheFilePath = $this->getCachedFilePath($filename, $ns);
+        if ($cacheFilePath) {
+            file_put_contents(
+                $cacheFilePath,
+                "<?php\n\n" . $code
+            );
+        }
+
+        return true;
     }
 }
