@@ -7,7 +7,7 @@ namespace Phel;
 use Phel\Ast\GlobalVarNode;
 use Phel\Ast\Node;
 use Phel\Ast\PhpClassNameNode;
-use Phel\Lang\IMeta;
+use Phel\Lang\Keyword;
 use Phel\Lang\Symbol;
 use Phel\Lang\Table;
 
@@ -20,6 +20,8 @@ final class GlobalEnvironment
     private array $requireAliases = [];
 
     private array $useAliases = [];
+
+    private bool $allowPrivateAccess = false;
 
     public function getNs(): string
     {
@@ -110,7 +112,7 @@ final class GlobalEnvironment
         $finalName = new Symbol(substr($strName, $pos + 1));
 
         $def = $this->getDefinition($namespace->getName(), $finalName);
-        if ($def) {
+        if ($def && ($this->allowPrivateAccess || !$this->isDefinitionPrivate($def))) {
             return new GlobalVarNode($env, $namespace->getName(), $finalName, $def, $name->getStartLocation());
         }
 
@@ -128,10 +130,20 @@ final class GlobalEnvironment
         // Try to resolve in phel.core namespace
         $ns = 'phel\core';
         $def = $this->getDefinition($ns, $name);
-        if ($def) {
+        if ($def && ($this->allowPrivateAccess || !$this->isDefinitionPrivate($def))) {
             return new GlobalVarNode($env, $ns, $name, $def, $name->getStartLocation());
         }
 
         return null;
+    }
+
+    private function isDefinitionPrivate(Table $meta)
+    {
+        return $meta[new Keyword('private')] === true;
+    }
+
+    public function setAllowPrivateAccess(bool $allowPrivateAccess)
+    {
+        $this->allowPrivateAccess = $allowPrivateAccess;
     }
 }

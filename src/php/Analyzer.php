@@ -1131,7 +1131,11 @@ final class Analyzer
         $f = $this->analyze($x[0], $nodeEnvironment->withContext(NodeEnvironment::CTX_EXPR)->withDisallowRecurFrame());
 
         if ($f instanceof GlobalVarNode && $f->isMacro()) {
-            return $this->analyze($this->macroExpand($x, $nodeEnvironment), $nodeEnvironment);
+            $this->globalEnvironment->setAllowPrivateAccess(true);
+            $result = $this->analyze($this->macroExpand($x, $nodeEnvironment), $nodeEnvironment);
+            $this->globalEnvironment->setAllowPrivateAccess(false);
+
+            return $result;
         }
 
         $arguments = [];
