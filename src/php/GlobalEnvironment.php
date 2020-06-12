@@ -5,9 +5,11 @@ declare(strict_types=1);
 namespace Phel;
 
 use Phel\Ast\GlobalVarNode;
+use Phel\Ast\LiteralNode;
 use Phel\Ast\Node;
 use Phel\Ast\PhpClassNameNode;
 use Phel\Lang\Keyword;
+use Phel\Lang\SourceLocation;
 use Phel\Lang\Symbol;
 use Phel\Lang\Table;
 
@@ -80,6 +82,20 @@ final class GlobalEnvironment
     {
         $strName = $name->getName();
 
+        if ($strName === "__DIR__") {
+            return new LiteralNode(
+                $env,
+                $this->resolveMagicDir($name->getStartLocation())
+            );
+        }
+
+        if ($strName === "__FILE__") {
+            return new LiteralNode(
+                $env,
+                $this->resolveMagicFile($name->getStartLocation())
+            );
+        }
+
         if ($strName[0] === '\\') {
             return new PhpClassNameNode($env, $name, $name->getStartLocation());
         }
@@ -98,6 +114,32 @@ final class GlobalEnvironment
         }
 
         return $this->resolveWithoutAlias($name, $env);
+    }
+
+    private function resolveMagicFile(?SourceLocation $sl): ?string
+    {
+        if ($sl && $sl->getFile() === "string") {
+            return "string";
+        }
+
+        if ($sl) {
+            return realpath($sl->getFile());
+        }
+
+        return null;
+    }
+
+    private function resolveMagicDir(?SourceLocation $sl): ?string
+    {
+        if ($sl && $sl->getFile() === "string") {
+            return "string";
+        }
+
+        if ($sl) {
+            return realpath(dirname($sl->getFile()));
+        }
+
+        return null;
     }
 
     private function resolveWithAlias(string $strName, int $pos, NodeEnvironment $env, Symbol $name): ?GlobalVarNode

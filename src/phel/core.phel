@@ -158,6 +158,9 @@ elements, returns nil."
   []
   (php/:: Symbol (gen)))
 
+(defmacro __DIR__ []
+  php/__DIR__)
+
 (defn str
   "Creates a string by concatenating values together. If no arguments are
 provided an empty string is returned. Nil and false are represented as empty
