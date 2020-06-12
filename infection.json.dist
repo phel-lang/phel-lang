@@ -1,0 +1,30 @@
+{
+    "source": {
+        "directories": [
+            "src"
+        ],
+        "excludes": [
+            "phel"
+        ]
+    },
+    "timeout": 30,
+    "logs": {
+        "text": "data/infection.log",
+        "summary": "data/summary.log",
+        "perMutator": "data/per-mutator.md",
+        "badge": {
+            "branch": "master"
+        }
+    },
+    "tmpDir": "data",
+    "phpUnit": {
+        "configDir": "."
+    },
+    "mutators": {
+        "@default": true,
+        "@function_signature": false
+    },
+    "testFramework":"phpunit",
+    "bootstrap":"./vendor/autoload.php",
+    "testFrameworkOptions": "-vvv"
+}
