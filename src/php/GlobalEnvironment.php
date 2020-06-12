@@ -109,9 +109,9 @@ final class GlobalEnvironment
         $namespace = $this->requireAliases[$alias];
         $finalName = new Symbol(substr($strName, $pos + 1));
 
-        $def = $this->getDefinition($namespace, $finalName);
+        $def = $this->getDefinition($namespace->getName(), $finalName);
         if ($def) {
-            return new GlobalVarNode($env, $namespace, $finalName, $def, $name->getStartLocation());
+            return new GlobalVarNode($env, $namespace->getName(), $finalName, $def, $name->getStartLocation());
         }
 
         return null;

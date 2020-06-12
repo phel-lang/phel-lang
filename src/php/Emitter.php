@@ -442,7 +442,7 @@ final class Emitter
         $this->emitLine(";", $node->getStartSourceLocation());
 
         foreach ($node->getRequireNs() as $i => $ns) {
-            $this->emitLine('\Phel\Runtime::getInstance()->loadNs("' . \addslashes(Munge::encodeNs($ns->getName())) . '");', $ns->getStartLocation());
+            $this->emitLine('\Phel\Runtime::getInstance()->loadNs("' . \addslashes($ns->getName()) . '");', $ns->getStartLocation());
         }
     }
 
