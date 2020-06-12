@@ -6,7 +6,7 @@
          convertErrorsToExceptions="true"
          convertNoticesToExceptions="true"
          convertWarningsToExceptions="true"
-         executionOrder="default"
+         executionOrder="random"
          processIsolation="false"
          resolveDependencies="true"
          stopOnFailure="false"
