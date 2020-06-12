@@ -107,7 +107,7 @@ Equivalent to PHP's `arr[] = value`.
 
 Equivalent to PHP's `unset(arr[index])`.
 
-## __DIR__ and __FILE__
+## `__DIR__` and `__FILE__`
 
 In Phel you can also use PHP Magic Methods `__DIR__` and `__FILE__`. These resolve to the dirname or filename of the Phel file.
 
