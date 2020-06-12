@@ -113,10 +113,10 @@ elements, returns nil."
     :doc "```phel\n(defn name & fdecl)\n```\nDefine a new global function"}
   (fn [name & fdecl] (apply defn-builder name @{} fdecl)))
 
-(defn def-
-  "Define a private value that will not be exported"
-  [name value]
-  `(def ,name :private ,value))
+(def def-
+  @{:macro true
+    :doc "Define a private value that will not be exported"}
+  (fn [name value] `(def ,name @{:private true} ,value)))
 
 (def defmacro
   @{:macro true
