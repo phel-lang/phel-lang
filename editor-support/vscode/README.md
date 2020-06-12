@@ -10,14 +10,28 @@ This plugin is currently __not__ installable via the VS Code marketplace. To ins
 * macOS `~/.vscode/extensions`
 * Linux `~/.vscode/extensions`
 
-Exemplary installation on Linux:
+### Example installation on Linux:
 
 ```
-cd ~/
+cd ~
 git clone https://github.com/jenshaase/phel-lang.git
 cd ~/.vscode/extensions
 ln -s ~/phel-lang/editor-support/vscode phel-lang
-
-# Restart VS Code
 ```
+
+Restart VS Code.
+
+### Example installation on Windows using PowerShell:
+
+Open PowerShell as an administrator, then run the following:
+
+```
+cd ~
+git clone https://github.com/jenshaase/phel-lang.git
+cd ~/.vscode/extensions
+New-Item -ItemType SymbolicLink -Target "%USERPROFILE%\phel-lang\editor-support\vscode" -Path "phel-lang"
+```
+
+Restart VS Code.
+
 
