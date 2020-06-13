@@ -6,7 +6,7 @@ use PHPUnit\Framework\TestCase;
 
 class RuntimeMock extends Runtime
 {
-    public $files = array();
+    public $files = [];
     public $loadedFile = null;
 
     public function __construct()
