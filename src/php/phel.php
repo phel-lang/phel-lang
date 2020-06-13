@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 use Phel\Repl;
 
 function getHelpText(): string
@@ -31,9 +33,13 @@ if ($argc <= 1) {
     exit;
 }
 
-if ('repl' === $argv[1]) {
-    (new Repl($currentDir))->run();
-} else {
-    echo getHelpText();
-    exit;
+switch ($argv[1]) {
+    case "repl":
+        $repl = new Repl($currentDir);
+        $repl->run();
+        break;
+
+    default:
+        echo getHelpText();
+        exit;
 }

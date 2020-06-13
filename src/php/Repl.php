@@ -39,7 +39,7 @@ final class Repl
     {
         $this->readline->readHistory();
         $this->output($this->color("Welcome to the Phel Repl\n", 'yellow'));
-        $this->output('Type "quit" or press Ctrl-D to exit.' . "\n");
+        $this->output('Type "exit" or press Ctrl-D to exit.' . "\n");
 
         while (true) {
             $this->output("\e[?2004h"); // Enable bracketed paste
@@ -54,7 +54,7 @@ final class Repl
         fwrite(STDOUT, $value);
     }
 
-    private function color($text = '', $color = null): string
+    private function color(string $text, ?string $color = null): string
     {
         $styles = [
             'green' => "\033[0;32m%s\033[0m",
@@ -76,7 +76,7 @@ final class Repl
             exit;
         }
 
-        if ('quit' === $input) {
+        if ('exit' === $input) {
             $this->output($this->color("Bye!\n", 'yellow'));
             exit;
         }

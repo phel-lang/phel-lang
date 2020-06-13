@@ -12,10 +12,10 @@
         }
     ],
     "require": {
-        "php": ">=7.4",
-        "ext-readline": "*"
+        "php": ">=7.4"
     },
     "require-dev": {
+        "ext-readline": "*",
         "phpunit/phpunit": "^9",
         "vimeo/psalm": "^3.11",
         "friendsofphp/php-cs-fixer": "^2.16",
