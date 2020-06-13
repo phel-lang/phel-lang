@@ -1,24 +1,34 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Phel\Exceptions;
 
 use Phel\Lang\IFn;
 use Phel\Printer;
 use Phel\CodeSnippet;
 use Phel\Munge;
+use Phel\Repl\Color;
 use Phel\SourceMap\SourceMapConsumer;
 use ReflectionClass;
 use Throwable;
 
-class TextExceptionPrinter implements ExceptionPrinter
+final class TextExceptionPrinter implements ExceptionPrinter
 {
+    private Color $color;
+
+    public function __construct(Color $color)
+    {
+        $this->color = $color;
+    }
+
     public function printException(PhelCodeException $e, CodeSnippet $codeSnippet): void
     {
         $eStartLocation = $e->getStartLocation() ?? $codeSnippet->getStartLocation();
         $eEndLocation = $e->getEndLocation() ?? $codeSnippet->getEndLocation();
         $firstLine = $eStartLocation->getLine();
 
-        echo $this->color($e->getMessage(), 'blue') . "\n";
+        echo $this->color->prompt($e->getMessage(), 'blue') . "\n";
         echo "in " . $eStartLocation->getFile() . ':' . $firstLine . "\n\n";
 
         $lines = explode("\n", $codeSnippet->getCode());
@@ -30,10 +40,10 @@ class TextExceptionPrinter implements ExceptionPrinter
             echo $line;
             echo "\n";
 
-            if ($eStartLocation->getLine() == $eEndLocation->getLine()) {
-                if ($eStartLocation->getLine() == $index + $codeSnippet->getStartLocation()->getLine()) {
+            if ($eStartLocation->getLine() === $eEndLocation->getLine()) {
+                if ($eStartLocation->getLine() === $index + $codeSnippet->getStartLocation()->getLine()) {
                     echo str_repeat(' ', $endLineLength + 2 + $eStartLocation->getColumn());
-                    echo $this->color(str_repeat('^', $eEndLocation->getColumn() - $eStartLocation->getColumn()), 'red');
+                    echo $this->color->prompt(str_repeat('^', $eEndLocation->getColumn() - $eStartLocation->getColumn()), 'red');
                     echo "\n";
                 }
             }
@@ -53,16 +63,16 @@ class TextExceptionPrinter implements ExceptionPrinter
         $type = get_class($e);
         $msg = $e->getMessage();
         $generatedLine = $e->getFile();
-        $generetedColumn = $e->getLine();
-        list($file, $line) = $this->getOriginalFilePosition($generatedLine, $generetedColumn);
+        $generatedColumn = $e->getLine();
+        [$file, $line] = $this->getOriginalFilePosition($generatedLine, $generatedColumn);
 
-        echo $this->color("$type: $msg\n", "blue");
-        echo "in $file:$line (gen: $generatedLine:$generetedColumn)\n\n";
+        echo $this->color->prompt("$type: $msg\n", "blue");
+        echo "in $file:$line (gen: $generatedLine:$generatedColumn)\n\n";
 
         foreach ($e->getTrace() as $i => $frame) {
             $class = $frame['class'] ?? null;
             $generatedLine = $frame['file'];
-            $generetedColumn = $frame['line'];
+            $generatedColumn = $frame['line'];
 
             if ($class) {
                 $rf = new ReflectionClass($class);
@@ -77,9 +87,9 @@ class TextExceptionPrinter implements ExceptionPrinter
                         $argString = " " . $argString;
                     }
 
-                    list($file, $line) = $this->getOriginalFilePosition($generatedLine, $generetedColumn);
+                    [$file, $line] = $this->getOriginalFilePosition($generatedLine, $generatedColumn);
 
-                    echo "#$i $file:$line (gen: $generatedLine:$generetedColumn) : ($fnName$argString)\n";
+                    echo "#$i $file:$line (gen: $generatedLine:$generatedColumn) : ($fnName$argString)\n";
 
                     continue;
                 }
@@ -89,11 +99,14 @@ class TextExceptionPrinter implements ExceptionPrinter
             $type = $frame['type'] ?? '';
             $fn = $frame['function'];
             $argString = $this->buildPhpArgsString($frame['args']);
-            echo "#$i $generatedLine($generetedColumn): $class$type$fn($argString)\n";
+            echo "#$i $generatedLine($generatedColumn): $class$type$fn($argString)\n";
         }
     }
 
-    private function getOriginalFilePosition($filename, $line)
+    /**
+     * @psalm-return array{0:string, 1:int}
+     */
+    private function getOriginalFilePosition(string $filename, int $line): array
     {
         $f = fopen($filename, 'r');
         $phpPrefix = fgets($f);
@@ -104,16 +117,16 @@ class TextExceptionPrinter implements ExceptionPrinter
         $originalLine = $line;
 
         if ($fileNameComment
-            && $fileNameComment[0] == "/"
-            && $fileNameComment[1] == "/"
-            && $fileNameComment[2] == " "
+            && $fileNameComment[0] === "/"
+            && $fileNameComment[1] === "/"
+            && $fileNameComment[2] === " "
         ) {
             $originalFile = trim(substr($fileNameComment, 3));
 
             if ($sourceMapComment
-                && $sourceMapComment[0] == "/"
-                && $sourceMapComment[1] == "/"
-                && $sourceMapComment[2] == " "
+                && $sourceMapComment[0] === "/"
+                && $sourceMapComment[1] === "/"
+                && $sourceMapComment[2] === " "
             ) {
                 $mapping = trim(substr($sourceMapComment, 3));
 
@@ -122,10 +135,10 @@ class TextExceptionPrinter implements ExceptionPrinter
             }
         }
 
-        return [$originalFile, $originalLine];
+        return [$originalFile, (int)$originalLine];
     }
 
-    private function buildPhpArgsString($args)
+    private function buildPhpArgsString($args): string
     {
         $result = [];
         foreach ($args as $arg) {
@@ -135,7 +148,7 @@ class TextExceptionPrinter implements ExceptionPrinter
         return implode(", ", $result);
     }
 
-    private function buildPhpArg($arg)
+    private function buildPhpArg($arg): string
     {
         if (is_null($arg)) {
             return 'NULL';
@@ -166,17 +179,5 @@ class TextExceptionPrinter implements ExceptionPrinter
         }
 
         return (string) $arg;
-    }
-
-    private function color($text = '', $color = null)
-    {
-        $styles = [
-            'green'  => "\033[0;32m%s\033[0m",
-            'red'    => "\033[31;31m%s\033[0m",
-            'yellow' => "\033[33;33m%s\033[0m",
-            'blue'   => "\033[33;34m%s\033[0m",
-        ];
-
-        return sprintf($styles[$color] ?? "%s", $text);
     }
 }

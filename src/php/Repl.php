@@ -7,6 +7,7 @@ namespace Phel;
 use Phel\Exceptions\AnalyzerException;
 use Phel\Exceptions\ReaderException;
 use Phel\Exceptions\TextExceptionPrinter;
+use Phel\Repl\Color;
 use Phel\Repl\Readline;
 use Throwable;
 
@@ -18,6 +19,7 @@ final class Repl
     private Analyzer $analyzer;
     private Emitter $emitter;
     private Printer $printer;
+    private Color $color;
     private TextExceptionPrinter $exceptionPrinter;
 
     public function __construct($workingDir)
@@ -32,13 +34,14 @@ final class Repl
         $this->analyzer = new Analyzer($globalEnv);
         $this->emitter = new Emitter();
         $this->printer = new Printer();
-        $this->exceptionPrinter = new TextExceptionPrinter();
+        $this->color = Color::withDefaultStyles();
+        $this->exceptionPrinter = new TextExceptionPrinter(Color::withDefaultStyles());
     }
 
     public function run(): void
     {
         $this->readline->readHistory();
-        $this->output($this->color("Welcome to the Phel Repl\n", 'yellow'));
+        $this->output($this->color->prompt("Welcome to the Phel Repl\n", 'yellow'));
         $this->output('Type "exit" or press Ctrl-D to exit.' . "\n");
 
         while (true) {
@@ -54,30 +57,18 @@ final class Repl
         fwrite(STDOUT, $value);
     }
 
-    private function color(string $text, ?string $color = null): string
-    {
-        $styles = [
-            'green' => "\033[0;32m%s\033[0m",
-            'red' => "\033[31;31m%s\033[0m",
-            'yellow' => "\033[33;33m%s\033[0m",
-            'blue' => "\033[33;34m%s\033[0m",
-        ];
-
-        return sprintf($styles[$color] ?? "%s", $text);
-    }
-
     /**
      * @param false|string $input
      */
     private function readInput($input): void
     {
         if (false === $input) {
-            $this->output($this->color("Bye from Ctrl+D!\n", 'yellow'));
+            $this->output($this->color->prompt("Bye from Ctrl+D!\n", 'yellow'));
             exit;
         }
 
         if ('exit' === $input) {
-            $this->output($this->color("Bye!\n", 'yellow'));
+            $this->output($this->color->prompt("Bye!\n", 'yellow'));
             exit;
         }
 
