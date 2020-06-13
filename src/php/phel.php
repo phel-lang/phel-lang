@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 use Phel\Repl;
 
 function getHelpText(): string
@@ -16,13 +18,13 @@ Commands:
 HELP;
 }
 
-if (getcwd() === false) {
+if (!getcwd()) {
     fwrite(STDERR, 'Cannot get current working directory' . PHP_EOL);
     exit(1);
 }
 
 $vendorDir = 'vendor';
-$currentDir = (string)getcwd() . DIRECTORY_SEPARATOR;
+$currentDir = getcwd() . DIRECTORY_SEPARATOR;
 
 require $currentDir . $vendorDir . DIRECTORY_SEPARATOR . 'autoload.php';
 

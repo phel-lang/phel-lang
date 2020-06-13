@@ -8,7 +8,7 @@ use Phel\NodeEnvironment;
 
 class PhpVarNode extends Node
 {
-    const INFIX_OPERATORS = array(
+    const INFIX_OPERATORS = [
         "+",
         "-",
         "*",
@@ -33,15 +33,15 @@ class PhpVarNode extends Node
         "^",
         "<<",
         ">>"
-    );
-    const CALLABLE_KEYWORDS = array(
+    ];
+    const CALLABLE_KEYWORDS = [
         'array',
         'die',
         'empty',
         'echo',
         'print',
         'isset'
-    );
+    ];
 
     /**
      * @var string

@@ -1,17 +1,19 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Phel\Repl;
 
-class Readline
+final class Readline
 {
-    protected $historyFile;
+    private string $historyFile;
 
-    public function __construct($historyFile)
+    public function __construct(string $historyFile)
     {
         $this->historyFile = $historyFile;
     }
 
-    public function addHistory($line)
+    public function addHistory($line): bool
     {
         $res = readline_add_history($line);
 
@@ -22,7 +24,7 @@ class Readline
         return $res;
     }
 
-    public function clearHistory()
+    public function clearHistory(): bool
     {
         $res = readline_clear_history();
 
@@ -33,28 +35,31 @@ class Readline
         return $res;
     }
 
-    public function listHistory()
+    public function listHistory(): array
     {
         return readline_list_history();
     }
 
-    public function readHistory()
+    public function readHistory(): bool
     {
         readline_clear_history();
         return readline_read_history($this->historyFile);
     }
 
+    /**
+     * @return false|string
+     */
     public function readline(?string $prompt = null)
     {
         return readline($prompt);
     }
 
-    public function redisplay()
+    public function redisplay(): void
     {
         readline_redisplay();
     }
 
-    public function writeHistory()
+    public function writeHistory(): bool
     {
         return readline_write_history($this->historyFile);
     }
