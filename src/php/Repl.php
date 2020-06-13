@@ -25,8 +25,8 @@ final class Repl
         $this->readline = new Readline($workingDir . '.phel-repl-history');
 
         $globalEnv = new GlobalEnvironment();
-        $rt = Runtime::initialize($globalEnv);
-        $rt->loadNs("phel\core");
+        Runtime::initialize($globalEnv)->loadNs("phel\core");
+
         $this->reader = new Reader();
         $this->lexer = new Lexer();
         $this->analyzer = new Analyzer($globalEnv);
@@ -45,7 +45,7 @@ final class Repl
             $this->output("\e[?2004h"); // Enable bracketed paste
             $input = $this->readline->readline('>>> ');
             $this->output("\e[?2004l"); // Disable bracketed paste
-            $this->processInput($input);
+            $this->readInput($input);
         }
     }
 
@@ -57,10 +57,10 @@ final class Repl
     private function color($text = '', $color = null): string
     {
         $styles = [
-            'green'  => "\033[0;32m%s\033[0m",
-            'red'    => "\033[31;31m%s\033[0m",
+            'green' => "\033[0;32m%s\033[0m",
+            'red' => "\033[31;31m%s\033[0m",
             'yellow' => "\033[33;33m%s\033[0m",
-            'blue'   => "\033[33;34m%s\033[0m",
+            'blue' => "\033[33;34m%s\033[0m",
         ];
 
         return sprintf($styles[$color] ?? "%s", $text);
@@ -69,7 +69,7 @@ final class Repl
     /**
      * @param false|string $input
      */
-    private function processInput($input): void
+    private function readInput($input): void
     {
         if (false === $input) {
             $this->output($this->color("Bye from Ctrl+D!\n", 'yellow'));
@@ -88,31 +88,36 @@ final class Repl
         $this->readline->addHistory($input);
 
         try {
-            $tokenStream = $this->lexer->lexString($input);
-            $readerResult = $this->reader->readNext($tokenStream);
-
-            if (!$readerResult) {
-                $this->output("Nothing to evaluate.\n");
-                return;
-            }
-
-            try {
-                $node = $this->analyzer->analyze(
-                    $readerResult->getAst(),
-                    NodeEnvironment::empty()->withContext(NodeEnvironment::CTX_RET)
-                );
-                $code = $this->emitter->emitAsString($node);
-                $result = $this->emitter->eval($code);
-
-                $this->output($this->printer->print($result, false));
-                $this->output(PHP_EOL);
-            } catch (AnalyzerException $e) {
-                $this->exceptionPrinter->printException($e, $readerResult->getCodeSnippet());
-            }
+            $this->analyzeInput($input);
         } catch (ReaderException $e) {
             $this->exceptionPrinter->printException($e, $e->getCodeSnippet());
         } catch (Throwable $e) {
             $this->exceptionPrinter->printStackTrace($e);
+        }
+    }
+
+    private function analyzeInput(string $input): void
+    {
+        $tokenStream = $this->lexer->lexString($input);
+        $readerResult = $this->reader->readNext($tokenStream);
+
+        if (!$readerResult) {
+            $this->output("Nothing to evaluate.\n");
+            return;
+        }
+
+        try {
+            $node = $this->analyzer->analyze(
+                $readerResult->getAst(),
+                NodeEnvironment::empty()->withContext(NodeEnvironment::CTX_RET)
+            );
+            $code = $this->emitter->emitAsString($node);
+            $result = $this->emitter->eval($code);
+
+            $this->output($this->printer->print($result, false));
+            $this->output(PHP_EOL);
+        } catch (AnalyzerException $e) {
+            $this->exceptionPrinter->printException($e, $readerResult->getCodeSnippet());
         }
     }
 }
