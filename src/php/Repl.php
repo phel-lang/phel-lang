@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Phel;
 
 use Phel\Exceptions\AnalyzerException;
@@ -8,30 +10,26 @@ use Phel\Exceptions\TextExceptionPrinter;
 use Phel\Repl\Readline;
 use Throwable;
 
-class Repl
+final class Repl
 {
-
-    /**
-     * @var Readline
-     */
-    protected $readline;
+    private Readline $readline;
 
     public function __construct($workingDir)
     {
         $this->readline = new Readline($workingDir . '.phel-repl-history');
     }
 
-    public function run()
+    public function run(): void
     {
         $this->readline->readHistory();
 
         $globalEnv = new GlobalEnvironment();
-        $rt = Runtime::initialize($globalEnv, null);
+        $rt = Runtime::initialize($globalEnv);
         $rt->loadNs("phel\core");
 
         $reader = new Reader();
         $lexer = new Lexer();
-        $analzyer = new Analyzer($globalEnv);
+        $analyzer = new Analyzer($globalEnv);
         $emitter = new Emitter();
         $printer = new Printer();
         $exceptionPrinter = new TextExceptionPrinter();
@@ -48,12 +46,12 @@ class Repl
                 exit;
             }
 
-            if ($input == 'quit') {
+            if ($input === 'quit') {
                 $this->output($this->color("Bye!\n", 'yellow'));
                 exit;
             }
 
-            if ($input == '') {
+            if ($input === '') {
                 continue;
             }
 
@@ -69,7 +67,7 @@ class Repl
                 }
 
                 try {
-                    $node = $analzyer->analyze(
+                    $node = $analyzer->analyze(
                         $readerResult->getAst(),
                         NodeEnvironment::empty()->withContext(NodeEnvironment::CTX_RET)
                     );
@@ -89,7 +87,7 @@ class Repl
         }
     }
 
-    protected function color($text = '', $color = null)
+    private function color($text = '', $color = null): string
     {
         $styles = [
             'green'  => "\033[0;32m%s\033[0m",
@@ -101,13 +99,8 @@ class Repl
         return sprintf($styles[$color] ?? "%s", $text);
     }
 
-    protected function input()
+    private function output($value): void
     {
-        return fgets(STDIN);
-    }
-
-    protected function output($value)
-    {
-        fputs(STDOUT, $value);
+        fwrite(STDOUT, $value);
     }
 }
