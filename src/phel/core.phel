@@ -522,7 +522,7 @@ Calling the and function without arguments returns true."
   (= (type x) :string))
 
 (defn keyword?
-  "Returns true if `x` is a string, false otherwise."
+  "Returns true if `x` is a keyword, false otherwise."
   [x]
   (= (type x) :keyword))
 
