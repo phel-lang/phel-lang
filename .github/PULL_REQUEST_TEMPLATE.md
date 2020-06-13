@@ -1,15 +1,7 @@
 # Description
 
-Lorem ipsum dolor sit amet, consectetur adipiscing elit.
-
-Issue: #
+Replace this text by a short description of your feature/bugfix. 
 
 # Changes
 
-- [ ] Aliquam risus mauris
-- [ ] Cras eget ligula posuere
-
-# Checklist
-
-- [ ] Tests are passing
-- [ ] Code coverage is not decreased
+- List individual changes in more detail
