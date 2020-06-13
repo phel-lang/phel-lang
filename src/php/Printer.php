@@ -15,13 +15,6 @@ use Phel\Lang\Tuple;
 
 final class Printer
 {
-    public const STYLES = [
-        'green' => "\033[0;32m%s\033[0m",
-        'red' => "\033[31;31m%s\033[0m",
-        'yellow' => "\033[33;33m%s\033[0m",
-        'blue' => "\033[33;34m%s\033[0m",
-    ];
-
     private bool $readable;
 
     public static function readable(): self
@@ -34,7 +27,7 @@ final class Printer
         return new self(false);
     }
 
-    public function __construct(bool $readable = true)
+    private function __construct(bool $readable)
     {
         $this->readable = $readable;
     }
@@ -43,14 +36,8 @@ final class Printer
      * Converts a form to a printable string
      *
      * @param Phel|string|scalar|null $form The form to print.
-     * @param null|string $color define the color to be printed.
      */
-    public function print($form, ?string $color = null): string
-    {
-        return sprintf(self::STYLES[$color] ?? '%s', $this->printForm($form));
-    }
-
-    private function printForm($form): string
+    public function print($form): string
     {
         if ($form instanceof Tuple) {
             return $this->printTuple($form);

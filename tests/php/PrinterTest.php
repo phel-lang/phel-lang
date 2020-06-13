@@ -56,18 +56,6 @@ final class PrinterTest extends TestCase
         );
     }
 
-    public function testColors(): void
-    {
-        $x = 'any-text';
-
-        foreach (Printer::STYLES as $color => $format) {
-            $this->assertEquals(
-                sprintf($format, $x),
-                Printer::nonReadable()->print($x, $color)
-            );
-        }
-    }
-
     private function print($x): string
     {
         return Printer::readable()->print($x);

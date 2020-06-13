@@ -7,6 +7,7 @@ namespace Phel;
 use Phel\Exceptions\AnalyzerException;
 use Phel\Exceptions\ReaderException;
 use Phel\Exceptions\TextExceptionPrinter;
+use Phel\Repl\ColorStyle;
 use Phel\Repl\Readline;
 use Throwable;
 
@@ -17,6 +18,7 @@ final class Repl
     private Lexer $lexer;
     private Analyzer $analyzer;
     private Emitter $emitter;
+    private ColorStyle $colorStyle;
     private TextExceptionPrinter $exceptionPrinter;
 
     public function __construct($workingDir)
@@ -30,13 +32,14 @@ final class Repl
         $this->lexer = new Lexer();
         $this->analyzer = new Analyzer($globalEnv);
         $this->emitter = new Emitter();
-        $this->exceptionPrinter = new TextExceptionPrinter(Printer::readable());
+        $this->colorStyle = ColorStyle::withDefaultStyles();
+        $this->exceptionPrinter = TextExceptionPrinter::readableWithStyle();
     }
 
     public function run(): void
     {
         $this->readline->readHistory();
-        $this->output(Printer::readable()->print("Welcome to the Phel Repl\n", 'yellow'));
+        $this->output($this->colorStyle->color("Welcome to the Phel Repl\n", 'yellow'));
         $this->output('Type "exit" or press Ctrl-D to exit.' . "\n");
 
         while (true) {
@@ -58,12 +61,12 @@ final class Repl
     private function readInput($input): void
     {
         if (false === $input) {
-            $this->output(Printer::readable()->print("Bye from Ctrl+D!\n", 'yellow'));
+            $this->output($this->colorStyle->color("Bye from Ctrl+D!\n", 'yellow'));
             exit;
         }
 
         if ('exit' === $input) {
-            $this->output(Printer::readable()->print("Bye!\n", 'yellow'));
+            $this->output($this->colorStyle->color("Bye!\n", 'yellow'));
             exit;
         }
 
