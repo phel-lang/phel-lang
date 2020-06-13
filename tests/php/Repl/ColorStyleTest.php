@@ -8,16 +8,16 @@ use PHPUnit\Framework\TestCase;
 
 final class ColorStyleTest extends TestCase
 {
-    public function testColors(): void
+    public function testCustomColor(): void
     {
-        $colorStyle = ColorStyle::withDefaultStyles();
-        $any = 'any text';
+        $color = 'custom';
+        $format = 'begin %s end';
+        $style = ColorStyle::withStyles([$color => $format]);
+        $anyText = 'any text';
 
-        foreach (ColorStyle::DEFAULT_STYLES as $color => $format) {
-            $this->assertEquals(
-                sprintf($format, $any),
-                $colorStyle->color($any, $color)
-            );
-        }
+        $this->assertEquals(
+            sprintf($format, $anyText),
+            $style->color($anyText, $color)
+        );
     }
 }

@@ -18,7 +18,7 @@ final class Repl
     private Lexer $lexer;
     private Analyzer $analyzer;
     private Emitter $emitter;
-    private ColorStyle $colorStyle;
+    private ColorStyle $style;
     private TextExceptionPrinter $exceptionPrinter;
 
     public function __construct($workingDir)
@@ -32,14 +32,14 @@ final class Repl
         $this->lexer = new Lexer();
         $this->analyzer = new Analyzer($globalEnv);
         $this->emitter = new Emitter();
-        $this->colorStyle = ColorStyle::withDefaultStyles();
+        $this->style = ColorStyle::withStyles();
         $this->exceptionPrinter = TextExceptionPrinter::readableWithStyle();
     }
 
     public function run(): void
     {
         $this->readline->readHistory();
-        $this->output($this->colorStyle->color("Welcome to the Phel Repl\n", 'yellow'));
+        $this->output($this->style->yellow("Welcome to the Phel Repl\n"));
         $this->output('Type "exit" or press Ctrl-D to exit.' . "\n");
 
         while (true) {
@@ -61,12 +61,12 @@ final class Repl
     private function readInput($input): void
     {
         if (false === $input) {
-            $this->output($this->colorStyle->color("Bye from Ctrl+D!\n", 'yellow'));
+            $this->output($this->style->yellow("Bye from Ctrl+D!\n"));
             exit;
         }
 
         if ('exit' === $input) {
-            $this->output($this->colorStyle->color("Bye!\n", 'yellow'));
+            $this->output($this->style->yellow("Bye!\n"));
             exit;
         }
 

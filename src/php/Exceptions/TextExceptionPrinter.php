@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace Phel\Exceptions;
 
-use Phel\Lang\IFn;
-use Phel\Printer;
 use Phel\CodeSnippet;
+use Phel\Lang\IFn;
 use Phel\Munge;
+use Phel\Printer;
 use Phel\Repl\ColorStyle;
 use Phel\SourceMap\SourceMapConsumer;
 use ReflectionClass;
@@ -15,18 +15,18 @@ use Throwable;
 
 final class TextExceptionPrinter implements ExceptionPrinter
 {
-    private ColorStyle $colorStyle;
     private Printer $printer;
+    private ColorStyle $style;
 
     public static function readableWithStyle(): self
     {
-        return new self(ColorStyle::withDefaultStyles(), Printer::readable());
+        return new self(Printer::readable(), ColorStyle::withStyles());
     }
 
-    private function __construct(ColorStyle $color, Printer $printer)
+    private function __construct(Printer $printer, ColorStyle $style)
     {
-        $this->colorStyle = $color;
         $this->printer = $printer;
+        $this->style = $style;
     }
 
     public function printException(PhelCodeException $e, CodeSnippet $codeSnippet): void
@@ -35,7 +35,7 @@ final class TextExceptionPrinter implements ExceptionPrinter
         $eEndLocation = $e->getEndLocation() ?? $codeSnippet->getEndLocation();
         $firstLine = $eStartLocation->getLine();
 
-        echo $this->colorStyle->color($e->getMessage(), 'blue') . "\n";
+        echo $this->style->blue($e->getMessage()) . "\n";
         echo "in " . $eStartLocation->getFile() . ':' . $firstLine . "\n\n";
 
         $lines = explode("\n", $codeSnippet->getCode());
@@ -50,7 +50,7 @@ final class TextExceptionPrinter implements ExceptionPrinter
             if ($eStartLocation->getLine() === $eEndLocation->getLine()) {
                 if ($eStartLocation->getLine() === $index + $codeSnippet->getStartLocation()->getLine()) {
                     echo str_repeat(' ', $endLineLength + 2 + $eStartLocation->getColumn());
-                    echo $this->colorStyle->color(str_repeat('^', $eEndLocation->getColumn() - $eStartLocation->getColumn()), 'red');
+                    echo $this->style->red(str_repeat('^', $eEndLocation->getColumn() - $eStartLocation->getColumn()));
                     echo "\n";
                 }
             }
@@ -71,7 +71,7 @@ final class TextExceptionPrinter implements ExceptionPrinter
         $generatedColumn = $e->getLine();
         [$file, $line] = $this->getOriginalFilePosition($generatedLine, $generatedColumn);
 
-        echo $this->colorStyle->color("$type: $msg\n", "blue");
+        echo $this->style->blue("$type: $msg\n");
         echo "in $file:$line (gen: $generatedLine:$generatedColumn)\n\n";
 
         foreach ($e->getTrace() as $i => $frame) {
