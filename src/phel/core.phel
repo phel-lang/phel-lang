@@ -1269,8 +1269,8 @@ returns 1. If `xs` has one value, returns the reciprocal of x."
   The resulting string is returned."
   [& xs]
   (let [len (count xs)
-        printer (php/new Printer)
-        pp |(php/-> printer (print $ false))]
+        printer (php/new Printer false)
+        pp |(php/-> printer (print $))]
     (case (count xs)
       0 ""
       1 (pp (first xs))

@@ -1,12 +1,14 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Phel;
 
 use PHPUnit\Framework\TestCase;
 
-class PrinterTest extends TestCase
+final class PrinterTest extends TestCase
 {
-    public function testPrintString()
+    public function testPrintString(): void
     {
         $this->assertEquals(
             '"test"',
@@ -14,7 +16,7 @@ class PrinterTest extends TestCase
         );
     }
 
-    public function testPrintEscapedStringChars()
+    public function testPrintEscapedStringChars(): void
     {
         $this->assertEquals(
             '"\n\r\t\v\f\e\"\$\\\\"',
@@ -22,7 +24,7 @@ class PrinterTest extends TestCase
         );
     }
 
-    public function testPrintDollarSignEscapedStringChars()
+    public function testPrintDollarSignEscapedStringChars(): void
     {
         $this->assertEquals(
             '"\$ \$abc"',
@@ -30,7 +32,7 @@ class PrinterTest extends TestCase
         );
     }
 
-    public function testPrintEscapedHexdecimalChars()
+    public function testPrintEscapedHexdecimalChars(): void
     {
         $this->assertEquals(
             '"\x07"',
@@ -38,7 +40,7 @@ class PrinterTest extends TestCase
         );
     }
 
-    public function testPrintEscapedUnicodeChars()
+    public function testPrintEscapedUnicodeChars(): void
     {
         $this->assertEquals(
             '"\u{1000}"',
@@ -46,7 +48,7 @@ class PrinterTest extends TestCase
         );
     }
 
-    public function testPrintZero()
+    public function testPrintZero(): void
     {
         $this->assertEquals(
             '0',
@@ -54,20 +56,27 @@ class PrinterTest extends TestCase
         );
     }
 
-    private function print($x)
+    public function testColors(): void
     {
-        $p = new Printer();
-        return $p->print($x, true);
+        $x = 'any-text';
+
+        foreach (Printer::STYLES as $color => $format) {
+            $this->assertEquals(
+                sprintf($format, $x),
+                Printer::nonReadable()->print($x, $color)
+            );
+        }
     }
 
-    public function read($string)
+    private function print($x): string
     {
-        $reader = new Reader();
-        $lexer = new Lexer();
-        $tokenStream = $lexer->lexString($string);
+        return Printer::readable()->print($x);
+    }
 
-        $result = $reader->readNext($tokenStream)->getAst();
+    private function read(string $string): string
+    {
+        $tokenStream = (new Lexer())->lexString($string);
 
-        return $result;
+        return (string) (new Reader())->readNext($tokenStream)->getAst();
     }
 }

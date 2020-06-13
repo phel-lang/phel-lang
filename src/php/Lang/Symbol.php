@@ -27,10 +27,9 @@ class Symbol extends Phel implements IIdentical
         return $this->name;
     }
 
-    public function __toString()
+    public function __toString(): string
     {
-        $printer = new Printer();
-        return $printer->print($this, true);
+        return Printer::readable()->print($this);
     }
 
     public static function gen(string $prefix = '__phel_'): Symbol

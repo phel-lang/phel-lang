@@ -179,9 +179,8 @@ class PhelArray extends Phel implements ArrayAccess, Countable, Iterator, ICons,
         return $this;
     }
 
-    public function __toString()
+    public function __toString(): string
     {
-        $printer = new Printer();
-        return $printer->print($this, true);
+        return Printer::readable()->print($this);
     }
 }
