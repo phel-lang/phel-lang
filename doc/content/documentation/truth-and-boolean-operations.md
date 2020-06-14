@@ -63,9 +63,9 @@ To check if to two values are equal the equal function (`=`) can be used. Tuples
 
 The function `id` is equivalent to PHP's identity operator (`===`) with support for Phel types. Similar, the equality function `=` is equivalent to PHP's equal operator (`==`). To check if two values are unequal the `not=` function can be used.
 
-### Comparision operation
+### Comparison operation
 
-Further comparision function are:
+Further comparison function are:
 
 * `<=`: Check if all given values are in a non-descending order. Returns a boolean.
 * `<`: Check if all given values are in ascending order. Returns a boolean.
