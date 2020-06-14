@@ -3,7 +3,7 @@ title = "Tuple"
 weight = 8
 +++
 
-A Tuple is a immutable sequencial data structure. The two most common ways to create a tuple is using the literal form with bracket characters or calling the tuple function directly.
+A Tuple is an immutable sequential data structure. The two most common ways to create a tuple is using the literal form with bracket characters or calling the tuple function directly.
 
 ```phel
 [1 2 3]
@@ -12,7 +12,7 @@ A Tuple is a immutable sequencial data structure. The two most common ways to cr
 
 ## Getting values
 
-There are multiple ways to get a element from a Tuple. The most common one is the `get` function that takes as first element the Tuple and as second element the index of the value that should be returned. Based on `get` there are also `first` and `second`. The `first` function returns the first element of the Tuple and `second` returns the second element of the Tuple.
+There are multiple ways to get an element from a Tuple. The most common one is the `get` function that takes as first element the Tuple and as second element the index of the value that should be returned. Based on `get` there are also `first` and `second`. The `first` function returns the first element of the Tuple and `second` returns the second element of the Tuple.
 
 ```phel
 (get [1 2 3] 2) # Evaluates to 3
