@@ -37,7 +37,7 @@ Evaluates `expr` and creates a new PHP class using the arguments. The instance o
 (php/-> property)
 ```
 
-Calls a method or property on a PHP object. Both `methodname` and `property` must be symbols and can not be a evaluated value.
+Calls a method or property on a PHP object. Both `methodname` and `property` must be symbols and cannot be an evaluated value.
 
 ```phel
 (ns my\module
@@ -79,7 +79,7 @@ Equivalent to PHP's `arr[index] ?? null`.
 
 ```phel
 (php/aget ["a" "b" "c"] 0) # Evaluates to "a"
-(php/aget (php/array "a" "b" "c") 1) # Evaluates to "1"
+(php/aget (php/array "a" "b" "c") 1) # Evaluates to "b"
 (php/aget (php/array "a" "b" "c") 5) # Evaluates to nil
 ```
 
