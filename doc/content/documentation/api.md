@@ -682,7 +682,7 @@ Creates a new Keyword from a given string.
 ```phel
 (keyword? x)
 ```
-Returns true if `x` is a string, false otherwise.
+Returns true if `x` is a keyword, false otherwise.
 
 ## `kvs`
 

@@ -10,6 +10,7 @@ use Phel\Exceptions\TextExceptionPrinter;
 use Phel\Lang\Keyword;
 use Phel\Lang\Symbol;
 use Phel\Lang\Table;
+use Phel\Repl\ColorStyle;
 use Throwable;
 
 class Runtime
@@ -27,7 +28,7 @@ class Runtime
 
     private function __construct(GlobalEnvironment $globalEnv = null, string $cacheDirectory = null)
     {
-        set_exception_handler(array($this, 'exceptionHandler'));
+        set_exception_handler([$this, 'exceptionHandler']);
 
         if (is_null($globalEnv)) {
             $globalEnv = new GlobalEnvironment();
@@ -82,7 +83,7 @@ class Runtime
     public function exceptionHandler(Throwable $exception): void
     {
         if (PHP_SAPI === 'cli') {
-            $printer = new TextExceptionPrinter();
+            $printer = TextExceptionPrinter::readableWithStyle();
         } else {
             $printer = new HtmlExceptionPrinter();
         }

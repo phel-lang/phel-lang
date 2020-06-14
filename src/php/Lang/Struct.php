@@ -20,11 +20,10 @@ abstract class Struct extends Table
     protected function validateOffset($offset)
     {
         if (!in_array($offset, $this->getAllowedKeys())) {
-            $printer = new Printer();
-            $keyName = $printer->print($offset, false);
-            $structname = get_class($this);
+            $keyName = Printer::nonReadable()->print($offset);
+            $structName = get_class($this);
             throw new InvalidArgumentException(
-                "This key '$keyName' is not allowed for struct $structname"
+                "This key '$keyName' is not allowed for struct $structName"
             );
         }
     }

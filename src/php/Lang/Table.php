@@ -155,6 +155,6 @@ class Table extends Phel implements ArrayAccess, Countable, Iterator
 
     public function __toString(): string
     {
-        return (new Printer())->print($this, true);
+        return Printer::readable()->print($this);
     }
 }

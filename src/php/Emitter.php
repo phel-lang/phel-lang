@@ -932,12 +932,11 @@ final class Emitter
         } elseif (is_int($x)) {
             $this->emitStr((string) $x);
         } elseif (is_string($x)) {
-            $p = new Printer();
-            $this->emitStr($p->printString($x, true));
+            $this->emitStr(Printer::readable()->print($x));
         } elseif ($x === null) {
             $this->emitStr('null');
         } elseif (is_bool($x)) {
-            $this->emitStr($x == true ? 'true' : 'false');
+            $this->emitStr($x === true ? 'true' : 'false');
         } elseif ($x instanceof Keyword) {
             $this->emitStr('new \Phel\Lang\Keyword("' . addslashes($x->getName()) . '")', $x->getStartLocation());
         } elseif ($x instanceof Symbol) {
