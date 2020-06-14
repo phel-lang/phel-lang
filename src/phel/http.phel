@@ -1,0 +1,167 @@
+(ns phel\http)
+
+# ---
+# URI
+# ---
+
+(defstruct uri [scheme userinfo host port path query fragment])
+
+(def- uri-host-port-regex "/^(.+)\:(\d+)$/")
+
+(defn- host-and-port-from-globals
+  "Extract the host and port from the `$_SERVER` array"
+  [& [server]]
+  (let [server (or server php/$_SERVER)
+        http-host (get server "HTTP_HOST")
+        server-name (get server "SERVER_NAME")
+        server-port (get server "SERVER_PORT")
+        matches (php/array)
+        match-result (when-not (nil? http-host) (php/preg_match uri-host-port-regex http-host matches))]
+    (cond
+      (and (not (nil? http-host)) match-result)
+        [(get matches 1) (get matches 2)]
+      (not (nil? http-host))
+        [http-host server-port]
+      [server-name server-port])))
+
+(defn uri-from-globals
+  "Extracts the URI from the `$_SERVER` variable."
+  [& [server]]
+  (let [server (or server php/$_SERVER)
+        scheme (cond
+                 (get server "HTTP_X_FORWARDED_PROTO") (get server "HTTP_X_FORWARDED_PROTO")
+                 (get server "REQUEST_SCHEME") (get server "REQUEST_SCHEME")
+                 (get server "HTTPS") (if (= "on" (get server "HTTPS")) "https" "http"))
+        path   (when (get server "REQUEST_URI")
+                 (first (php/explode "?" (get server "REQUEST_URI"))))
+        query  (get server "QUERY_STRING")
+        [h p]  (host-and-port-from-globals server)]
+    (uri scheme nil h p path query nil)))
+
+# -----
+# Files
+# -----
+
+(defstruct uploaded-file [tmp-file size error-status client-filename client-media-type])
+
+(declare create-uploaded-file-from-spec)
+
+(defn- normalize-nested-file-spec [files]
+  (let [res @{}]
+    (dofor [k :keys (get files "tmp_name")
+            :let [spec (php-associative-array
+                         "tmp_name" (get-in files ["tmp_name" k])
+                         "size" (get-in files ["size" k])
+                         "error" (get-in files ["error" k])
+                         "name" (get-in files ["name" k])
+                         "type" (get-in files ["type" k]))]]
+      (put res k (create-uploaded-file-from-spec spec)))
+    res))
+
+(defn- create-uploaded-file-from-spec [value]
+  (if (php/is_array (get value "tmp_name"))
+    (normalize-nested-file-spec value)
+    (uploaded-file
+      (get value "tmp_name")
+      (get value "size")
+      (get value "error")
+      (get value "name")
+      (get value "type"))))
+
+(defn- normalize-files [files]
+  (let [res @{}]
+    (foreach [k v files]
+      (cond
+        (uploaded-file? v)
+          (put res k v)
+        (and (php/is_array v) (get v "tmp_name"))
+          (put res k (create-uploaded-file-from-spec v))
+        (indexed? v)
+          (put res k (normalize-files v))
+
+        (throw (php/new InvalidArgumentException "Invalid value in files specification"))))
+    res))
+
+(defn files-from-globals
+  "Extracts the files from `$_FILES` and normalizes them to a table of \"uploaded-file\""
+  [& [files]]
+  (normalize-files (or files php/$_FILES)))
+
+# -------
+# Headers
+# -------
+
+(defn headers-from-server
+  "Extracts all headers from the `$_SERVER` variable"
+  [& [server]]
+  (let [headers @{}
+        server (or server php/$_SERVER)]
+    (dofor [[k v] :pairs server
+            :let [redirected? (id 0 (php/strpos k "REDIRECT_"))
+                  redirected-key (when redirected? (php/substr k 9))
+                  k (if (and redirected? (not (php/array_key_exists redirected-key server)))
+                      redirected-key
+                      k)]]
+      (cond
+        (and v (id 0 (php/strpos k "HTTP_")))
+          (let [name (php/strtr (php/strtolower (php/substr k 5)) "_" "-")]
+            (put headers (keyword name) v))
+        (and v (id 0 (php/strpos k "CONTENT_")))
+          (let [name (str "content-" (php/strtolower (php/substr k 8)))]
+            (put headers (keyword name) v))))
+    headers))
+
+# -------
+# Request
+# -------
+
+(defstruct request [
+  method # HTTP Method ("GET", "POST", ...)
+  uri # URI
+  headers # Table with all headers
+  parsed-body # parsed body ($_POST)
+  query-params # Table with all query parameters ($_GET)
+  cookie-params # Table with all cookie parameters ($_COOKIE)
+  server-params # Table with alle server parameters ($_SERVER)
+  uploaded-files # Array of normalized uploaded files ($_FILES)
+  version # HTTP Version
+])
+
+
+(defn- get-method-from-globals
+  "Extracts the request method from `$_SERVER`"
+  [& [server]]
+  (let [method (get (or server php/$_SERVER) "REQUEST_METHOD")]
+    (if method
+      method
+      (throw (php/new InvalidArgumentException "can not determine HTTP Method")))))
+
+(defn- post-global-valid [method headers]
+  (let [content-type (get headers :conent-type)
+        types (php/strtolower (php/trim (first (php/explode ";" content-type 2))))]
+    (and
+      (= method "POST")
+      (php/in_array types (php/array "application/x-www-form-urlencoded" "multipart/form-data")))))
+
+
+(defn request-from-globals
+  "Extracts a request from `$_SERVER`"
+  [& [server]]
+  (let [server (or server php/$_SERVER)
+        method (get-method-from-globals server)
+        uri (uri-from-globals server)
+        headers (headers-from-server server)
+        server-protocol (get server "SERVER_PROTOCOL")
+        version (if (string? server-protocol)
+                  (php/str_replace "HTTP/" "" server-protocol)
+                  "1.1")]
+    (request
+      method
+      uri
+      headers
+      (when (post-global-valid method headers) (php-array-to-table php/$_POST))
+      (php-array-to-table php/$_GET)
+      (php-array-to-table php/$_COOKIE)
+      (php-array-to-table php/$_SERVER)
+      (normalize-files php/$_FILES)
+      version)))

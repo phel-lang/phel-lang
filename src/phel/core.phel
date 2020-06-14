@@ -146,8 +146,8 @@ elements, returns nil."
         is-name (php/new Symbol (php/. name-str "?"))]
     `(do
       (defstruct* ,name ,keys)
-      (defn ,name ,keys (php/new ,class-name-str ,@keys))
-      (defn ,is-name [x] (php/is_a x ,class-name-str)))))
+      (defn ,name ,(php/. "Creates a new " name " struct") ,keys (php/new ,class-name-str ,@keys))
+      (defn ,is-name ,(php/. "Checks if `x` is a instance of the " name " struct") [x] (php/is_a x ,class-name-str)))))
 
 (defmacro comment
   "Ignores the body of the comment"
@@ -190,6 +190,25 @@ The number of parameters must be even."
   "Creates a new Keyword from a given string."
   [x]
   (php/new Keyword x))
+
+(defn php-indexed-array
+  "Creates an PHP indexed array from the given values"
+  [& xs]
+  (apply php/array xs))
+
+(defn php-associative-array
+  "Creates a PHP associative array. An even number of parameters must be provided."
+  [& xs]
+  (let [cnt (php/count xs)
+        res (php/array)]
+    (if (php/=== 1 (php/% cnt 2))
+      (throw (php/new InvalidArgumentException "An even number of parameters must be provided for 'php-associative-array'")))
+    (loop [i 0]
+      (if (php/< i cnt)
+        (do
+          (php/aset res (php/aget xs i) (php/aget xs (php/+ i 1)))
+          (recur (php/+ i 2)))
+        res))))
 
 # -------------------------
 # Basic sequence operations
@@ -934,6 +953,14 @@ collection in map"))
   "Create a PHP Array from a sequential data structure"
   [xs]
   (apply php/array xs))
+
+(defn php-array-to-table
+  "Converts a PHP Array to a tables"
+  [arr]
+  (let [res @{}]
+    (foreach [k v arr]
+      (put res k v))
+    res))
 
 (defn sort
   "Returns a sorted array. If no comperator is supplied compare is used."

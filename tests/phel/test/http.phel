@@ -1,0 +1,302 @@
+(ns phel\test\http
+  (:require phel\http :as h)
+  (:use DateTime))
+
+(def stats @{
+  :total 0
+  :failed 0
+  :successful 0
+})
+
+(defn assert [test err]
+  (do
+    (update-in stats [:total] inc)
+    (if test
+      (do
+        (update-in stats [:successful] inc)
+        (print ".")
+        (when (= (% (get stats :total) 80) 0)
+          (println)))
+      (do
+        (update-in stats [:failed] inc)
+        (php/print "\n")
+        (php/print "e ")
+        (php/print err)
+        (php/print "\n")))))
+
+(defn print-summary []
+  (do
+    (print "\n\n")
+    (println "Summary of: " __FILE__)
+    (print "Successful: ")
+    (print (get stats :successful))
+    (print "\n")
+    (print "Failed: ")
+    (print (get stats :failed))
+    (print "\n")
+    (print "Total: ")
+    (print (get stats :total))
+    (print "\n")))
+
+# Tests adopted from nyholm/psr7-server
+
+# ---
+# URI
+# ---
+
+(def uri-server-default (php-associative-array
+  "SERVER_NAME" "phel-lang.org"
+  "QUERY_STRING" "id=10&user=foo"
+  "HTTP_HOST" "phel-lang.org"
+  "HTTPS" "1"
+  "SERVER_PORT" "80"
+  "REQUEST_URI" "/doc/article.php?id=10&user=foo"
+))
+
+(def uri-examples [
+  [
+    "normal request"
+    (h/uri "http" nil "phel-lang.org" 80 "/doc/article.php" "id=10&user=foo" nil)
+    uri-server-default
+  ]
+  [
+    "secure request"
+    (h/uri "https" nil "phel-lang.org" 443 "/doc/article.php" "id=10&user=foo" nil)
+    (php/array_merge uri-server-default (php-associative-array "HTTPS" "on" "SERVER_PORT" "443"))
+  ]
+  [
+    "secure request via proxy"
+    (h/uri "https" nil "phel-lang.org" 80 "/doc/article.php" "id=10&user=foo" nil)
+    (php/array_merge uri-server-default (php-associative-array "HTTP_X_FORWARDED_PROTO" "https" "SERVER_PORT" "80"))
+  ]
+  [
+    "http host missing"
+    (h/uri "http" nil "phel-lang.org" 80 "/doc/article.php" "id=10&user=foo" nil)
+    (php/array_merge uri-server-default (php-associative-array "HTTP_HOST" nil))
+  ]
+  [
+    "no query string"
+    (h/uri "http" nil "phel-lang.org" 80 "/doc/article.php" "" nil)
+    (php/array_merge uri-server-default (php-associative-array "REQUEST_URI" "/doc/article.php" "QUERY_STRING" ""))
+  ]
+  [
+    "different port"
+    (h/uri "http" nil "phel-lang.org" 8081 "/doc/article.php" "id=10&user=foo" nil)
+    (php/array_merge uri-server-default (php-associative-array "SERVER_PORT" "8081" "HTTP_HOST" "phel-lang.org:8081"))
+  ]
+  [
+    "IPv4"
+    (h/uri "http" nil "127.0.0.1" 80 "/doc/article.php" "id=10&user=foo" nil)
+    (php/array_merge uri-server-default (php-associative-array "SERVER_PORT" "80" "HTTP_HOST" "127.0.0.1"))
+  ]
+  [
+    "IPv4 with port"
+    (h/uri "http" nil "127.0.0.1" 8081 "/doc/article.php" "id=10&user=foo" nil)
+    (php/array_merge uri-server-default (php-associative-array "SERVER_PORT" "8081" "HTTP_HOST" "127.0.0.1:8081"))
+  ]
+  [
+    "IPv6 with port"
+    (h/uri "http" nil "::1" 8081 "/doc/article.php" "id=10&user=foo" nil)
+    (php/array_merge uri-server-default (php-associative-array "SERVER_PORT" "8081" "HTTP_HOST" "::1:8081"))
+  ]
+  [
+    "empty server variable"
+    (h/uri nil nil nil nil nil nil nil)
+    (php/array)
+  ]
+])
+
+(foreach [[name uri server] uri-examples]
+  (assert (= uri (h/uri-from-globals server)) name))
+
+
+# -----
+# FILES
+# -----
+
+(def file-examples [
+  [
+    "single file"
+    (php-associative-array "file" (php-associative-array
+      "name" "my-file.txt"
+      "type" "text/plain"
+      "tmp_name" "/tmp/my-file.txt"
+      "error" "0"
+      "size" "123"
+    ))
+    @{"file" (uploaded-file "/tmp/my-file.txt" 123 0 "my-file.txt" "text/plain")}
+  ]
+  [
+    "already converted"
+    (php-associative-array "file" (uploaded-file
+      "/tmp/my-file.txt"
+      123
+      0
+      "my-file.txt"
+      "text/plain"
+    ))
+    @{"file" (uploaded-file "/tmp/my-file.txt" 123 0 "my-file.txt" "text/plain")}
+  ]
+  [
+    "already converted array"
+    (php-associative-array "file" @[
+      (uploaded-file "/tmp/my-file1.txt" 123 0 "my-file1.txt" "text/plain")
+      (uploaded-file "/tmp/my-file2.txt" 321 0 "my-file2.txt" "text/plain")
+    ])
+    @{"file" @{
+      0 (uploaded-file "/tmp/my-file1.txt" 123 0 "my-file1.txt" "text/plain")
+      1 (uploaded-file "/tmp/my-file2.txt" 321 0 "my-file2.txt" "text/plain")
+    }}
+  ]
+  [
+    "multiple files"
+    (php-associative-array
+      "file-1" (php-associative-array
+                 "name" "my-file.txt"
+                 "type" "text/plain"
+                 "tmp_name" "/tmp/my-file.txt"
+                 "error" "0"
+                 "size" "123")
+      "file-2" (php-associative-array
+                 "name" ""
+                 "type" ""
+                 "tmp_name" "/tmp/my-file-2.txt"
+                 "error" "4"
+                 "size" "0")
+    )
+    @{"file-1" (uploaded-file "/tmp/my-file.txt" 123 0 "my-file.txt" "text/plain")
+      "file-2" (uploaded-file "/tmp/my-file-2.txt" 0 4 "" "")}
+  ]
+  [
+    "nested files"
+    (php-associative-array
+      "files" (php-associative-array
+                "name" (php/array "my-file.txt" "Image.png")
+                "type" (php/array "text/plain" "image/png")
+                "tmp_name" (php/array "/tmp/my-file.txt" "/tmp/my-image.png")
+                "error" (php/array "0" "1")
+                "size" (php/array "123" "4321"))
+      "nested" (php-associative-array
+                 "name" (php-associative-array
+                          "a" "a.txt"
+                          "b" (php/array "b.txt" ""))
+                 "type" (php-associative-array
+                          "a" "text/plain"
+                          "b" (php/array "text/plain" ""))
+                 "tmp_name" (php-associative-array
+                              "a" "/tmp/a.txt"
+                              "b" (php/array "/tmp/b1.txt" "/tmp/b2.txt"))
+                 "error" (php-associative-array
+                           "a" "0"
+                           "b" (php/array "0" "4"))
+                 "size" (php-associative-array
+                          "a" "421"
+                          "b" (php/array "32" "0"))
+               )
+    )
+    @{
+      "files" @{
+        0 (uploaded-file "/tmp/my-file.txt" 123 0 "my-file.txt" "text/plain")
+        1 (uploaded-file "/tmp/my-image.png" 4321 1 "Image.png" "image/png")
+      }
+      "nested" @{
+        "a" (uploaded-file "/tmp/a.txt" 421 0 "a.txt" "text/plain")
+        "b" @{
+          0 (uploaded-file "/tmp/b1.txt" 32 0 "b.txt" "text/plain")
+          1 (uploaded-file "/tmp/b2.txt" 0 4 "" "")
+        }
+      }
+    }
+  ]
+])
+
+(foreach [[name files result] file-examples]
+  (assert (= result (h/files-from-globals files)) name))
+
+# -------
+# Headers
+# -------
+
+(assert (=
+  @{
+    :0 "NumericHeaderZero"
+    :1234 "NumericHeader"
+    :cookie "COOKIE"
+    :authorization "token"
+    :content-type "application/json"
+    :accept "application/json"
+    :x-foo-bar "FOOBAR"
+    :content-md5 "CONTENT-MD5"
+    :content-length "UNSPECIFIED"
+  }
+  (h/headers-from-server (php-associative-array
+    "HTTP_0" "NumericHeaderZero"
+    "HTTP_1234" "NumericHeader"
+    "HTTP_COOKIE" "COOKIE"
+    "HTTP_AUTHORIZATION" "token"
+    "HTTP_CONTENT_TYPE" "application/json"
+    "HTTP_ACCEPT" "application/json"
+    "HTTP_X_FOO_BAR" "FOOBAR"
+    "CONTENT_MD5" "CONTENT-MD5"
+    "CONTENT_LENGTH" "UNSPECIFIED"
+  ))
+) "header from globals")
+
+(assert (=
+  @{
+    :x-foo-bar "nonprefixed"
+    :authorization "token"
+  }
+  (h/headers-from-server (php-associative-array
+    "HTTP_X_FOO_BAR" "nonprefixed"
+    "REDIRECT_HTTP_AUTHORIZATION" "token"
+    "REDIRECT_HTTP_X_FOO_BAR" "prefixed"
+  ))
+) "header from globals redirect normalization")
+
+# -------
+# Request
+# -------
+
+(assert
+  (=
+    "GET"
+    (get (h/request-from-globals (php-associative-array
+      "REQUEST_METHOD" "GET"
+    )) :method)
+  )
+  "request method get")
+
+(assert
+  (=
+    "POST"
+    (get (h/request-from-globals (php-associative-array
+      "REQUEST_METHOD" "POST"
+    )) :method)
+  )
+  "request method get")
+
+(assert
+  (=
+    "1.1"
+    (get (h/request-from-globals (php-associative-array
+      "SERVER_PROTOCOL" "HTTP/1.1"
+      "REQUEST_METHOD" "GET"
+    )) :version)
+  )
+  "server protocol 1.1")
+
+(assert
+  (=
+    "2.0"
+    (get (h/request-from-globals (php-associative-array
+      "SERVER_PROTOCOL" "HTTP/2.0"
+      "REQUEST_METHOD" "GET"
+    )) :version)
+  )
+  "server protocol 2.0")
+
+(print-summary)
+
+(when (> (get stats :failed) 0)
+  (php/exit 1))

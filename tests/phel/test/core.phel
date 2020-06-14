@@ -26,6 +26,7 @@
 (defn print-summary []
   (do
     (print "\n\n")
+    (println "Summary of: " __FILE__)
     (print "Successful: ")
     (print (get stats :successful))
     (print "\n")
@@ -60,6 +61,14 @@
 (assert (= @[1 2 3] (array 1 2 3)) "construct array")
 (assert (= :a (keyword "a")) "construct keyword")
 (assert (= @{:a 1 :b 2} (table :a 1 :b 2)) "construct table")
+
+(let [arr (php-indexed-array "a" "b")]
+  (assert (= "a" (php/aget arr 0)) "php-associative-array: first key")
+  (assert (= "b" (php/aget arr 1)) "php-associative-array: second key"))
+
+(let [arr (php-associative-array "a" 1 "b" 2)]
+  (assert (= 1 (php/aget arr "a")) "php-associative-array: first key")
+  (assert (= 2 (php/aget arr "b")) "php-associative-array: second key"))
 
 # ----------------------------
 # Basic methods for quasiquote

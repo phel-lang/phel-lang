@@ -93,6 +93,13 @@ Check if all given values are in non-ascending order. Returns a boolean.
 
 Constant for Not a Number (NAN) values.
 
+## `__DIR__`
+
+```phel
+(__DIR__ )
+```
+
+
 ## `all?`
 
 ```phel
@@ -289,9 +296,6 @@ Declare a global symbol before it is defined.
 
 ## `def-`
 
-```phel
-(def- name value)
-```
 Define a private value that will not be exported
 
 ## `defmacro`
@@ -503,6 +507,76 @@ Get the value mapped to `key` from the datastructure `ds`.
 ```
 Returns a table of the elements of xs keyed by the result of
   f on each element.
+
+## `http/files-from-globals`
+
+```phel
+(files-from-globals & [files])
+```
+Extracts the files from `$_FILES` and normalizes them to a table of "uploaded-file"
+
+## `http/headers-from-server`
+
+```phel
+(headers-from-server & [server])
+```
+Extracts all headers from the `$_SERVER` variable
+
+## `http/request`
+
+```phel
+(request method uri headers parsed-body query-params cookie-params server-params uploaded-files version)
+```
+Creates a new request struct
+
+## `http/request-from-globals`
+
+```phel
+(request-from-globals & [server])
+```
+Extracts a request from `$_SERVER`
+
+## `http/request?`
+
+```phel
+(request? x)
+```
+Checks if `x` is a instance of the request struct
+
+## `http/uploaded-file`
+
+```phel
+(uploaded-file tmp-file size error-status client-filename client-media-type)
+```
+Creates a new uploaded-file struct
+
+## `http/uploaded-file?`
+
+```phel
+(uploaded-file? x)
+```
+Checks if `x` is a instance of the uploaded-file struct
+
+## `http/uri`
+
+```phel
+(uri scheme userinfo host port path query fragment)
+```
+Creates a new uri struct
+
+## `http/uri-from-globals`
+
+```phel
+(uri-from-globals & [server])
+```
+Extracts the URI from the `$_SERVER` variable.
+
+## `http/uri?`
+
+```phel
+(uri? x)
+```
+Checks if `x` is a instance of the uri struct
 
 ## `id`
 
@@ -794,12 +868,33 @@ Gets the pairs of an associative data structure
 ```
 Returns the last element of a sequence.
 
+## `php-array-to-table`
+
+```phel
+(php-array-to-table arr)
+```
+Converts a PHP Array to a tables
+
 ## `php-array?`
 
 ```phel
 (php-array? x)
 ```
 Returns true if `x` is a PHP Array, false otherwise.
+
+## `php-associative-array`
+
+```phel
+(php-associative-array & xs)
+```
+Creates a PHP associative array. An even number of parameters must be provided.
+
+## `php-indexed-array`
+
+```phel
+(php-indexed-array & xs)
+```
+Creates an PHP indexed array from the given values
 
 ## `php-object?`
 

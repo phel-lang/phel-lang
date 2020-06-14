@@ -13,7 +13,7 @@ class CompilerException extends Exception
 
     public function __construct(PhelCodeException $nestedException, CodeSnippet $codeSnippet)
     {
-        parent::__construct("", 0, null);
+        parent::__construct($nestedException->getMessage(), 0, null);
         $this->nestedException = $nestedException;
         $this->codeSnippet = $codeSnippet;
     }

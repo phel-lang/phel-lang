@@ -606,12 +606,13 @@ final class Emitter
     private function emitIf(IfNode $node): void
     {
         if ($node->getEnv()->getContext() === NodeEnvironment::CTX_EXPR) {
-            $this->emitStr('(\Phel\Lang\Truthy::isTruthy(', $node->getStartSourceLocation());
+            $this->emitStr('((\Phel\Lang\Truthy::isTruthy(', $node->getStartSourceLocation());
             $this->emit($node->getTestExpr());
             $this->emitStr(')) ? ', $node->getStartSourceLocation());
             $this->emit($node->getThenExpr());
             $this->emitStr(' : ', $node->getStartSourceLocation());
             $this->emit($node->getElseExpr());
+            $this->emitStr(')');
         } else {
             $this->emitStr('if (\Phel\Lang\Truthy::isTruthy(', $node->getStartSourceLocation());
             $this->emit($node->getTestExpr());
@@ -1056,7 +1057,7 @@ final class Emitter
         if (count($env->getLocals()) > 0) {
             $this->emitStr(' use(', $sl);
 
-            foreach ($env->getLocals() as $i => $l) {
+            foreach (array_values($env->getLocals()) as $i => $l) {
                 $shadowed = $env->getShadowed($l);
                 if ($shadowed) {
                     $this->emitPhpVariable($shadowed, $sl);
