@@ -110,7 +110,7 @@ Arrays are similar to tuples but have a leading `@`.
 @[:a :b :c]
 ```
 
-An Array in Phel is a indexed datastructure. In contrast to PHP arrays, Phel arrays can not be used as Map, HashTable or Dictionary.
+An Array in Phel is an indexed datastructure. In contrast to PHP arrays, Phel arrays cannot be used as Map, HashTable or Dictionary.
 
 ## Tables
 
