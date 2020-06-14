@@ -10,6 +10,7 @@ use Phel\Exceptions\TextExceptionPrinter;
 use Phel\Lang\Keyword;
 use Phel\Lang\Symbol;
 use Phel\Lang\Table;
+use Phel\Repl\ColorStyle;
 use Throwable;
 
 class Runtime
@@ -82,7 +83,7 @@ class Runtime
     public function exceptionHandler(Throwable $exception): void
     {
         if (PHP_SAPI === 'cli') {
-            $printer = new TextExceptionPrinter();
+            $printer = TextExceptionPrinter::readableWithStyle();
         } else {
             $printer = new HtmlExceptionPrinter();
         }

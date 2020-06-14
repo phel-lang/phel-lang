@@ -52,8 +52,7 @@ class HtmlExceptionPrinter implements ExceptionPrinter
 
     public function printStackTrace(Throwable $e): void
     {
-        $printer = new Printer();
-
+        $printer = Printer::readable();
         $type = get_class($e);
         $msg = $e->getMessage();
         $file = $e->getFile();
@@ -73,7 +72,7 @@ class HtmlExceptionPrinter implements ExceptionPrinter
                     $fnName = Munge::decodeNs($rf->getConstant('BOUND_TO'));
                     $argParts = [];
                     foreach ($frame['args'] as $arg) {
-                        $argParts[] = $printer->print($arg, true);
+                        $argParts[] = $printer->print($arg);
                     }
                     $argString = implode(' ', $argParts);
                     if (count($argParts) > 0) {

@@ -220,9 +220,8 @@ class Tuple extends Phel implements ArrayAccess, Countable, Iterator, ISlice, IC
         return $this->data;
     }
 
-    public function __toString()
+    public function __toString(): string
     {
-        $printer = new Printer();
-        return $printer->print($this, true);
+        return Printer::readable()->print($this);
     }
 }

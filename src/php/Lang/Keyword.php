@@ -42,9 +42,8 @@ class Keyword extends Phel implements IIdentical
         return $other instanceof Keyword && $this->name == $other->getName();
     }
 
-    public function __toString()
+    public function __toString(): string
     {
-        $printer = new Printer();
-        return $printer->print($this, true);
+        return Printer::readable()->print($this);
     }
 }

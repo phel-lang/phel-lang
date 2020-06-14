@@ -7,6 +7,7 @@ namespace Phel;
 use Phel\Exceptions\AnalyzerException;
 use Phel\Exceptions\ReaderException;
 use Phel\Exceptions\TextExceptionPrinter;
+use Phel\Repl\ColorStyle;
 use Phel\Repl\Readline;
 use Throwable;
 
@@ -17,7 +18,7 @@ final class Repl
     private Lexer $lexer;
     private Analyzer $analyzer;
     private Emitter $emitter;
-    private Printer $printer;
+    private ColorStyle $style;
     private TextExceptionPrinter $exceptionPrinter;
 
     public function __construct($workingDir)
@@ -31,14 +32,14 @@ final class Repl
         $this->lexer = new Lexer();
         $this->analyzer = new Analyzer($globalEnv);
         $this->emitter = new Emitter();
-        $this->printer = new Printer();
-        $this->exceptionPrinter = new TextExceptionPrinter();
+        $this->style = ColorStyle::withStyles();
+        $this->exceptionPrinter = TextExceptionPrinter::readableWithStyle();
     }
 
     public function run(): void
     {
         $this->readline->readHistory();
-        $this->output($this->color("Welcome to the Phel Repl\n", 'yellow'));
+        $this->output($this->style->yellow("Welcome to the Phel Repl\n"));
         $this->output('Type "exit" or press Ctrl-D to exit.' . "\n");
 
         while (true) {
@@ -54,30 +55,18 @@ final class Repl
         fwrite(STDOUT, $value);
     }
 
-    private function color(string $text, ?string $color = null): string
-    {
-        $styles = [
-            'green' => "\033[0;32m%s\033[0m",
-            'red' => "\033[31;31m%s\033[0m",
-            'yellow' => "\033[33;33m%s\033[0m",
-            'blue' => "\033[33;34m%s\033[0m",
-        ];
-
-        return sprintf($styles[$color] ?? "%s", $text);
-    }
-
     /**
      * @param false|string $input
      */
     private function readInput($input): void
     {
         if (false === $input) {
-            $this->output($this->color("Bye from Ctrl+D!\n", 'yellow'));
+            $this->output($this->style->yellow("Bye from Ctrl+D!\n"));
             exit;
         }
 
         if ('exit' === $input) {
-            $this->output($this->color("Bye!\n", 'yellow'));
+            $this->output($this->style->yellow("Bye!\n"));
             exit;
         }
 
@@ -114,7 +103,7 @@ final class Repl
             $code = $this->emitter->emitAsString($node);
             $result = $this->emitter->eval($code);
 
-            $this->output($this->printer->print($result, false));
+            $this->output(Printer::nonReadable()->print($result));
             $this->output(PHP_EOL);
         } catch (AnalyzerException $e) {
             $this->exceptionPrinter->printException($e, $readerResult->getCodeSnippet());
