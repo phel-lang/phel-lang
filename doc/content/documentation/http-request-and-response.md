@@ -5,7 +5,7 @@ weight = 14
 
 ## HTTP Request
 
-Phel provides a easy method to access the current HTTP request. While in PHP the request is distrubute in different globals variables (`$_GET`, `$_POST`, `$_SERVER`, `$_COOKIES` and `$_FILES`) Phel normalizes them into a single struct. All functions and structs are defined in the `phel\http` module.
+Phel provides an easy method to access the current HTTP request. While in PHP the request is distribute in different globals variables (`$_GET`, `$_POST`, `$_SERVER`, `$_COOKIES` and `$_FILES`) Phel normalizes them into a single struct. All functions and structs are defined in the `phel\http` module.
 
 The request struct is defined like this:
 
@@ -64,7 +64,7 @@ The `phel\http` module also contains a response struct. This struct can be used 
 ])
 ```
 
-To make it easier to create responses. Phel has two helper methods to create a response.
+To make it easier to create responses. Phel has two helpers methods to create a response.
 
 ```phel
 (ns my-namepace
