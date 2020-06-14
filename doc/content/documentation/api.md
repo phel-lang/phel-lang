@@ -35,7 +35,7 @@ Return `a` to the power of `x`.
 ```phel
 (+ & xs)
 ```
-Returns the sum of all elements in `xs`. All elements is `xs` must be numbers.
+Returns the sum of all elements in `xs`. All elements `xs` must be numbers.
   If `xs` is empty, return 0.
 
 ## `-`
@@ -51,7 +51,7 @@ Returns the difference of all elements in `xs`. If `xs` is empty, return 0. If `
 ```phel
 (/ & xs)
 ```
-Returns the nominator divided by all of the denominators. If `xs` is empty,
+Returns the nominator divided by all the denominators. If `xs` is empty,
 returns 1. If `xs` has one value, returns the reciprocal of x.
 
 ## `<`
@@ -96,9 +96,8 @@ Constant for Not a Number (NAN) values.
 ## `__DIR__`
 
 ```phel
-(__DIR__ )
+(__DIR__)
 ```
-
 
 ## `all?`
 
@@ -217,7 +216,7 @@ Takes an expression `e` and a set of test-content/expression pairs. First
   evaluates `e` and the then finds the first pair where the test-constant matches
   the result of `e`. The associated expression is then evaluated and returned.
   If no matches can be found a final last expression can be provided that is
-  than evaluated and return. Otherwise nil is returned.
+  than evaluated and return. Otherwise, nil is returned.
 
 ## `comment`
 
@@ -263,7 +262,7 @@ Concatenates multiple sequential data structures.
 Takes a set of test/expression pairs. Evaluates each test one at a time.
   If a test returns logically true, the expression is evaluated and return.
   If no test matches a final last expression can be provided that is than
-  evaluated and return. Otherwise nil is returned.
+  evaluated and return. Otherwise, nil is returned.
 
 ## `cons`
 
@@ -453,7 +452,7 @@ List comprehension. The head of the loop is a tuple that contains a
   * :range loop over a range by using the range function.
   * :in loops over all values of a collection.
   * :keys loops over all keys/indexes of a collection.
-  * :pairs loops over all key value pairs of a collections.
+  * :pairs loops over all key value pairs of a collection.
 
   After each loop binding additional modifiers can be applied. Modifiers
   have the form `:modifier argument`. The following modifiers are supported:
@@ -491,7 +490,7 @@ Generates a new unique symbol.
 (get ds k & [opt])
 ```
 Get the value mapped to `key` from the datastructure `ds`.
-  Returns `opt` or nil if the value can not be found.
+  Returns `opt` or nil if the value cannot be found.
 
 ## `get-in`
 
@@ -581,7 +580,7 @@ Creates a new response struct
 ```phel
 (response? x)
 ```
-Checks if `x` is a instance of the response struct
+Checks if `x` is an instance of the response struct
 
 ## `http/uploaded-file`
 
@@ -955,7 +954,7 @@ Returns true if `x` is a PHP resource, false otherwise.
 ```phel
 (pop xs)
 ```
-Removes the the last element of the array `xs`. If the array is empty
+Removes the last element of the array `xs`. If the array is empty
   returns nil.
 
 ## `pos?`
@@ -1107,7 +1106,7 @@ Returns true if `(pred x)` is logical true for at least one `x` in `xs`, else fa
 ```phel
 (sort xs & [comp])
 ```
-Returns a sorted array. If no comperator is supplied compare is used.
+Returns a sorted array. If no comparator is supplied compare is used.
 
 ## `sort-by`
 
@@ -1115,7 +1114,7 @@ Returns a sorted array. If no comperator is supplied compare is used.
 (sort-by keyfn xs & [comp])
 ```
 Returns a sorted array where the sort order is determined by comparing
-  (keyfn item). If no comperator is supplied compare is used.
+  (keyfn item). If no comparator is supplied compare is used.
 
 ## `split-at`
 
@@ -1138,8 +1137,8 @@ Returns a tuple of [(take-while pred coll) (drop-while pred coll)]
 ```
 Creates a string by concatenating values together. If no arguments are
 provided an empty string is returned. Nil and false are represented as empty
-string. True is represented as 1. Otherwise it tries to call `__toString`.
-This is PHP equalivalent to `$args[0] . $args[1] . $args[2] ...`
+string. True is represented as 1. Otherwise, it tries to call `__toString`.
+This is PHP equivalent to `$args[0] . $args[1] . $args[2] ...`.
 
 ## `string?`
 
@@ -1214,7 +1213,7 @@ Returns an array of the nodes in the tree, via a depth first walk.
   branch? is a function with one argument that returns true if the given node
   has children.
   children must be a function with one argument that returns the children of the node.
-  root the the root node of the tree.
+  root the root node of the tree.
 
 ## `true?`
 
