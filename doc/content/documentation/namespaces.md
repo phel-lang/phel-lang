@@ -5,7 +5,7 @@ weight = 12
 
 ## Namespace (ns)
 
-Every Phel file is required to have a namespace. A valid namespace name starts with a letter, followed by any number of letters, numbers, or dashes. Individual parts of the namespace are seperated by the `\` character. The last part of the namespace has to match the name of the file.
+Every Phel file is required to have a namespace. A valid namespace name starts with a letter, followed by any number of letters, numbers, or dashes. Individual parts of the namespace are separated by the `\` character. The last part of the namespace has to match the name of the file.
 
 ```phel
 (ns name imports*)
@@ -15,7 +15,7 @@ Defines the namespace for the current file and adds imports to the environment. 
 
 ```phel
 (ns my\custom\module
-  (:use \Some\Php\Class)
+  (:use Some\Php\Class)
   (:require my\phel\module))
 ```
 
@@ -23,11 +23,9 @@ The call also sets the `*ns*` variable to the given namespace.
 
 ### Import a Phel module
 
-To use a Phel module, you first have to import it with the keyword `:require`. Once imported you can access the module by its name followed by a slash and the name of the public function or value.
+Before a Phel module can be used, it has to be imported with the keyword `:require`. Once imported, the module can be accessed by its name followed by a slash and the name of the public function or value.
 
-eg.
-
-Let's say that we have a module called `util` defined in the `hello-world` namespace:
+eg. A module named `util` is defined in the `hello-world` namespace.
 
 ```phel
 (ns hello-world\util)
@@ -38,7 +36,7 @@ Let's say that we have a module called `util` defined in the `hello-world` names
     (print (str "Hello, " name)))
 ```
 
-In the module where we want to use our `util` module we would call it like this:
+Module `boot` imports module `util` and uses its functions and values.
 
 ```phel
 (ns hello-world\boot
@@ -47,12 +45,47 @@ In the module where we want to use our `util` module we would call it like this:
 (util/greet util/my-name)
 ```
 
-If you want you can set an alias for a module like so: `(:require hello-world\util :as utilities)`.
+An alias for a module can be also be set:
 
-> To import a module from a different root namespace, you first have to add its path with `$rt->addPath('hello-mars\\', [__DIR__ . '/../mars']);` to `src/index.php`. **This is going to be changed in the future.**
+```phel
+(ns hello-world\boot
+  (:require hello-world\util :as utilities))
+```
+
+> Importing a module from a different root namespace requires adding its path to `src/index.php`:
+>
+> ```
+> $rt->addPath('hello-mars\\', [__DIR__ . '/../mars']);
+> ```
+>
+> **This is going to be changed in the future.**
 
 ### Import a PHP class
 
-Importing a PHP class is optional. You can use any PHP class just by typing its namespace with the class name eg. `(php/new \Some\Php\ClassName)`. Once imported you can reference it by the class name eg. `(php/new ClassName)`.
+Importing a PHP class is optional.
 
-If you want you can set an alias for a class like so: `(:use \Some\Php\ClassName :as BetterClassName)`.
+Any PHP class can be used just by typing its namespace with the class name:
+
+```phel
+(php/new Some\Php\ClassName)
+```
+
+PHP classes are imported with the keyword `:use`:
+
+```phel
+(ns my\custom\module
+  (:use Some\Php\ClassName)
+```
+
+Once imported, a class can be referenced by its name:
+
+```phel
+(php/new ClassName)
+```
+
+An alias for a class can be also be set:
+
+```phel
+(ns my\custom\module
+  (:use Some\Php\ClassName :as BetterClassName)
+```
