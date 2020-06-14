@@ -8,7 +8,7 @@ weight = 6
 ```phel
 (def name meta? value)
 ```
-This special form binds a value to a global symbol. A definition can not be redefined at a later point.
+This special form binds a value to a global symbol. A definition cannot be redefined at a later point.
 
 ```phel
 (def my-name "phel")
@@ -38,4 +38,4 @@ Creates a new lexical context with variables defined in bindings. Afterwards the
 (let [x 1
       y (+ x 2)]) # Evaluates to nil
 ```
-All variables defined in _bindings_ are immutable and can not be changed.
+All variables defined in _bindings_ are immutable and cannot be changed.
