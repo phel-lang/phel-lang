@@ -296,6 +296,60 @@
   )
   "server protocol 2.0")
 
+# --------
+# Response
+# --------
+
+# TODO: Headers can not be tested at this point
+# because the thes script already has send some output
+# and new headers can not be send anymore.
+
+(assert (=
+  (h/response 200 @{} "" "1.1" "OK")
+  (h/create-response-from-table @{})
+) "create-response-from-table empty")
+
+(assert (=
+  (h/response 201 @{} "" "1.1" "Created")
+  (h/create-response-from-table @{:status 201})
+) "create-response-from-table status")
+
+(assert (=
+  (h/response 200 @{:content-type "text/plain"} "" "1.1" "OK")
+  (h/create-response-from-table @{:headers @{:content-type "text/plain"}})
+) "create-response-from-table headers")
+
+(assert (=
+  (h/response 200 @{} "hello" "1.1" "OK")
+  (h/create-response-from-table @{:body "hello"})
+) "create-response-from-table body")
+
+(assert (=
+  (h/response 200 @{} "" "2.0" "OK")
+  (h/create-response-from-table @{:version "2.0"})
+) "create-response-from-table version")
+
+(assert (=
+  (h/response 200 @{} "" "1.1" "Yes!")
+  (h/create-response-from-table @{:reason "Yes!"})
+) "create-response-from-table reason")
+
+(assert (=
+  (h/response 200 @{} "test" "1.1" "OK")
+  (h/create-response-from-string "test")
+) "create-response-from-string")
+
+(def send-response-examples @[
+  [
+    "send body"
+    (response 200 @{:content-type "text/plain"} "Content!" nil nil)
+    "Content!"
+  ]
+])
+
+(foreach [[name response result] send-response-examples]
+  (assert (= result (with-output-buffer (h/emit-response response))) name))
+
 (print-summary)
 
 (when (> (get stats :failed) 0)

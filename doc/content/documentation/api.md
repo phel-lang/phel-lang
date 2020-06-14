@@ -508,6 +508,32 @@ Get the value mapped to `key` from the datastructure `ds`.
 Returns a table of the elements of xs keyed by the result of
   f on each element.
 
+## `http/create-response-from-string`
+
+```phel
+(create-response-from-string s)
+```
+Create a response from a string.
+
+## `http/create-response-from-table`
+
+```phel
+(create-response-from-table @{:status status :headers headers :body body :version version :reason reason})
+```
+Creates a response struct from a table. The table can have the following keys
+  * `:status` The HTTP Status (default 200)
+  * `:headers` A table of HTTP Headers (default: empty table)
+  * `:body` The body of the response (default: empty string)
+  * `:version` The HTTP Version (default: 1.1)
+  * `:reason` The HTTP status reason. If not provided a common status reason is taken.
+
+## `http/emit-response`
+
+```phel
+(emit-response response)
+```
+Emits the response.
+
 ## `http/files-from-globals`
 
 ```phel
@@ -542,6 +568,20 @@ Extracts a request from `$_SERVER`
 (request? x)
 ```
 Checks if `x` is a instance of the request struct
+
+## `http/response`
+
+```phel
+(response status headers body version reason)
+```
+Creates a new response struct
+
+## `http/response?`
+
+```phel
+(response? x)
+```
+Checks if `x` is a instance of the response struct
 
 ## `http/uploaded-file`
 

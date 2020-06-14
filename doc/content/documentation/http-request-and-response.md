@@ -1,7 +1,9 @@
 +++
-title = "HTTP Request"
+title = "Request and Response"
 weight = 14
 +++
+
+## HTTP Request
 
 Phel provides a easy method to access the current HTTP request. While in PHP the request is distrubute in different globals variables (`$_GET`, `$_POST`, `$_SERVER`, `$_COOKIES` and `$_FILES`) Phel normalizes them into a single struct. All functions and structs are defined in the `phel\http` module.
 
@@ -46,4 +48,44 @@ To create a request struct the `phel\http` module must be imported. Then the `re
   (:require phel\http))
 
 (http/request-from-globals) # Evaluates to a request struct
+```
+
+## HTTP Response
+
+The `phel\http` module also contains a response struct. This struct can be used to send HTTP responses to the client. The response struct takes the following values.
+
+```phel
+(defstruct response [
+  status    # The HTTP status code
+  headers   # A table of headers
+  body      # The body of the response (string)
+  version   # The HTTP protocol version
+  reason    # The HTTP status code reason text
+])
+```
+
+To make it easier to create responses. Phel has two helper methods to create a response.
+
+```phel
+(ns my-namepace
+  (:require phel\http))
+
+# Create response from table
+(http/create-response-from-table @{:status 200 :body "Test"})
+# Evaluates to (response 200 @{} "Test" "1.1" "OK")
+
+# Create response from string
+(http/create-response-from-string "Hello World")
+# Evaluates to (response 200 @{} "Hello World" "1.1" "OK")
+```
+
+To send the response to the client the `emit-response` function can be used.
+
+```phel
+(ns my-namepace
+  (:require phel\http))
+
+(let [rsp (http/create-response-from-table
+            @{:status 404 :body "Page not found"})]
+  (http/emit-response rsp))
 ```
