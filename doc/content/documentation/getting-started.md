@@ -9,7 +9,7 @@ Phel requires PHP 7.4 or higher and [Composer](https://getcomposer.org/).
 
 ## Initialize a new project using Composer
 
-The easiest way to get started is by setting up a new Composer project. First create a new directory and initialize a new Composer project
+The easiest way to get started is by setting up a new Composer project. First create a new directory and initialize a new Composer project.
 
 ```bash
 mkdir hello-world
@@ -51,7 +51,7 @@ Would you like to define your dev dependencies (require-dev) interactively [yes]
 Do you confirm generation [yes]? yes
 ```
 
-Next we can require Phel as dependecy of our project.
+Next we can require Phel as dependency of our project.
 
 ```bash
 # Require and install Phel
