@@ -3,7 +3,7 @@ title = "Array, Table and Struct"
 weight = 9
 +++
 
-Phel has two mutable datastructures. An array is an indexed sequential datastructure and a table is a associative datastructure. While PHP has one single datastructure to represents arrays and hash tables, Phel splits the in two individual datastructures.
+Phel has two mutable datastructures. An array is an indexed sequential datastructure and a table is an associative datastructure. While PHP has one single datastructure to represents arrays and hash tables, Phel splits them in two individual datastructures.
 
 An array can be created using the `@[` reader macro or the `array` function.
 
@@ -21,7 +21,7 @@ An array can be created using the `@[` reader macro or the `array` function.
 
 ## Getting values
 
-Similar to tuples the functions `get`, `first`, `second`, `next` and `rest` can be used to get values of an array.
+Similar to tuples, the functions `get`, `first`, `second`, `next` and `rest` can be used to get values of an array.
 
 ```phel
 (get @[1 2 3] 2) # Evaluates to 3
@@ -50,7 +50,7 @@ The `get` function can also be use on tables.
 
 ## Setting values
 
-To set a value on an array or a table, use the `put` function. If a given index on an array is past the end of the array, the array is first padded with `nil`.
+To set a value on an array or a table, use the `put` function. If the given index is greater than the length of the array, the array is padded with `nil`.
 
 ```phel
 (let [a @[]]
@@ -71,7 +71,7 @@ To remove a single value from an array or table the `unset` function can be used
 (unset @{:a 1 :b 2} :a) # @{:b 2}
 ```
 
-To remove multiple value from arrays, the `remove` and `slice` function can be used. The function `remove` removes the values from the data structures and returns the removed values. The `slice` function on the otherhand, returns a copy of the array with only the `sliced` elements. The original data structure is left untouched.
+To remove multiple values from arrays, the `remove` and `slice` functions can be used. The function `remove` removes the values from the data structures and returns the removed values. The `slice` function on the other hand, returns a copy of the array with only the `sliced` elements. The original data structure is left untouched.
 
 ```phel
 (let [xs @[1 2 3 4]]
@@ -98,23 +98,23 @@ To count the number of element of an array or table, the `count` function can be
 
 ## Array as a Stack
 
-An array can also be used as a stack. Therefore the `push`, `peek` and `pop` functions can be used. The `push` function add a new value to the stack. The `peek` function returns the last element on the stack but does not remove it. The `pop` function returns the last element on the stack and removes it.
+An array can also be used as a stack. Therefore, the `push`, `peek` and `pop` functions can be used. The `push` function add a new value to the stack. The `peek` function returns the last element on the stack but does not remove it. The `pop` function returns the last element on the stack and removes it.
 
 ```phel
 (let [arr @[]]
   (push arr 1) # -> @[1]
   (peek arr) # Evaluates to 1, arr is unchanged
-  (pop arr)) # Evaluates to 1, arr is not empty @[]
+  (pop arr)) # Evaluates to 1, arr is empty @[]
 ```
 
 ## Struct
 
-A struct is a special kind of table. It only supports a predefined number of keys and is associated to a global name. The struct not only defines itsself but also a predicate function.
+A struct is a special kind of table. It only supports a predefined number of keys and is associated to a global name. The struct not only defines itself but also a predicate function.
 
 ```phel
 (defstruct my-struct [a b c]) # Defines the struct
 (let [x (my_struct 1 2 3)] # Create a new struct
-  (my-struct? x) # Evaluates to truc
+  (my-struct? x) # Evaluates to true
   (get x :a) # Evaluates to 1
   (put x :a 12) # Evaluates to (my-struct 12 2 3)
 ```
