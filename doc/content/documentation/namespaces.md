@@ -5,7 +5,7 @@ weight = 12
 
 ## Namespace (ns)
 
-Every Phel file is required to have a namespace. A valid namespace name starts with a letter, followed by any number of letters, numbers, or dashes. Individual parts of the namespace are seperated by the `\` character. The last part of the namespace has to match the name of the file.
+Every Phel file is required to have a namespace. A valid namespace name starts with a letter, followed by any number of letters, numbers, or dashes. Individual parts of the namespace are separated by the `\` character. The last part of the namespace has to match the name of the file.
 
 ```phel
 (ns name imports*)
