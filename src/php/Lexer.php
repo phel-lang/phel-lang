@@ -1,33 +1,16 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Phel;
 
 use Exception;
 use Generator;
 use Phel\Lang\SourceLocation;
 
-class Lexer
+final class Lexer
 {
-
-    /**
-     * @var int
-     */
-    private $cursor = 0;
-
-    /**
-     * @var int
-     */
-    private $line = 1;
-
-    /**
-     * @var int
-     */
-    private $column = 1;
-
-    /**
-     * @var string[]
-     */
-    private $regexps = [
+    private const REGEXPS = [
         "([\n \t\r]+)", // Whitespace (index: 2)
         "(\#[^\n]*)", // Comment (index: 3)
         "(,@)", // unquote-splicing (index: 4)
@@ -48,14 +31,14 @@ class Lexer
         "([^\(\)\[\]\{\}',`@ \n\r\t\#]+)" // Atom (index: 19)
     ];
 
-    /**
-     * @var string
-     */
-    private $combinedRegex;
+    private int $cursor = 0;
+    private int $line = 1;
+    private int $column = 1;
+    private string $combinedRegex;
 
     public function __construct()
     {
-        $this->combinedRegex = "/(?:" . implode("|", $this->regexps) . ")/mA";
+        $this->combinedRegex = "/(?:" . implode("|", self::REGEXPS) . ")/mA";
     }
 
     public function lexString(string $code, string $source = 'string'): Generator

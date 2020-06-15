@@ -26,6 +26,7 @@ final class Token
     public const T_FN = 17;
     public const T_STRING = 18;
     public const T_ATOM = 19;
+    public const T_COMMA = 20;
     public const T_EOF = 100;
 
     private string $code;
