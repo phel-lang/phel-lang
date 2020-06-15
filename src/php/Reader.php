@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Phel;
 
 use Generator;
@@ -11,15 +13,10 @@ use Phel\Lang\PhelArray;
 use Phel\Lang\Symbol;
 use Phel\Lang\Table;
 use Phel\Lang\Tuple;
-use Phel\CodeSnippet;
 
-class Reader
+final class Reader
 {
-
-    /**
-     * @var array
-     */
-    private $stringReplacements = [
+    private const STRING_REPLACEMENTS = [
         '\\' => '\\',
         '$'  =>  '$',
         'n'  => "\n",
@@ -30,35 +27,29 @@ class Reader
         'e'  => "\x1B",
     ];
 
-    /**
-     * @var Token[]
-     */
-    private $readTokens = [];
+    /** @var Token[] */
+    private array $readTokens = [];
 
-    /**
-     * @var Symbol[]|null
-     */
-    private $fnArgs = null;
+    /** @var Symbol[]|null */
+    private ?array $fnArgs = null;
 
     /**
      * Reads the next expression from the token stream.
      *
-     * If the token stream reaches the end, false is returned.
+     * If the token stream reaches the end, null is returned.
      *
      * @param Generator $tokenStream The token stream to read.
-     *
-     * @return ReaderResult|false
      */
-    public function readNext(Generator $tokenStream)
+    public function readNext(Generator $tokenStream): ?ReaderResult
     {
         $this->readWhitespace($tokenStream);
 
         if (!$tokenStream->valid()) {
-            return false;
+            return null;
         }
 
-        if ($tokenStream->current()->getType() == Token::T_EOF) {
-            return false;
+        if ($tokenStream->current()->getType() === Token::T_EOF) {
+            return null;
         }
 
         $this->readTokens = [];
@@ -88,7 +79,7 @@ class Reader
     }
 
     /**
-     * @return Phel|null|scalar
+     * @return Phel|null|string|scalar
      */
     public function readExpression(Generator $tokenStream)
     {
@@ -204,7 +195,7 @@ class Reader
      */
     protected function readQuasiquote(Generator $tokenStream)
     {
-        $startLocaltion = $tokenStream->current()->getStartLocation();
+        $startLocation = $tokenStream->current()->getStartLocation();
         $tokenStream->next();
 
         $expression = $this->readExpressionHard($tokenStream, "missing expression");
@@ -213,7 +204,7 @@ class Reader
 
         if ($result instanceof Phel) {
             $endLocation = $tokenStream->current()->getEndLocation();
-            $result->setStartLocation($startLocaltion);
+            $result->setStartLocation($startLocation);
             $result->setEndLocation($endLocation);
         }
 
@@ -234,17 +225,17 @@ class Reader
         }
         $object = $this->readExpressionHard($tokenStream, "missing object expression for meta data");
 
-        if ($object instanceof IMeta) {
-            $objMeta = $object->getMeta();
-            foreach ($meta as $k => $v) {
-                if ($k) {
-                    $objMeta[$k] = $v;
-                }
-            }
-            $object->setMeta($objMeta);
-        } else {
+        if (!$object instanceof IMeta) {
             throw $this->buildReaderException('Metadata can only applied to classes that implement IMeta');
         }
+
+        $objMeta = $object->getMeta();
+        foreach ($meta as $k => $v) {
+            if ($k) {
+                $objMeta[$k] = $v;
+            }
+        }
+        $object->setMeta($objMeta);
 
         return $object;
     }
@@ -325,68 +316,79 @@ class Reader
 
         if ($word === 'true') {
             return true;
-        } elseif ($word === 'false') {
+        }
+
+        if ($word === 'false') {
             return false;
-        } elseif ($word === 'nil') {
+        }
+
+        if ($word === 'nil') {
             return null;
-        } elseif ($word[0] === ':') {
+        }
+
+        if (strpos($word, ':') === 0) {
             return new Keyword(substr($word, 1));
-        } elseif (preg_match("/^([+-])?0[bB][01]+(_[01]+)*$/", $word, $matches)) {
+        }
+
+        if (preg_match("/^([+-])?0[bB][01]+(_[01]+)*$/", $word, $matches)) {
             // binary numbers
             $sign = (isset($matches[1]) && $matches[1] == '-') ? -1 : 1;
             return $sign * bindec(str_replace('_', '', $word));
-        } elseif (preg_match("/^([+-])?0[xX][0-9a-fA-F]+(_[0-9a-fA-F]+)*$/", $word, $matches)) {
+        }
+
+        if (preg_match("/^([+-])?0[xX][0-9a-fA-F]+(_[0-9a-fA-F]+)*$/", $word, $matches)) {
             // hexdecimal numbers
-            $sign = (isset($matches[1]) && $matches[1] == '-') ? -1 : 1;
-            return $sign = hexdec(str_replace('_', '', $word));
-        } elseif (preg_match("/^([+-])?0[0-7]+(_[0-7]+)*$/", $word, $matches)) {
+            $sign = (isset($matches[1]) && $matches[1] === '-') ? -1 : 1;
+            return $sign * hexdec(str_replace('_', '', $word));
+        }
+
+        if (preg_match("/^([+-])?0[0-7]+(_[0-7]+)*$/", $word, $matches)) {
             // octal numbers
-            $sign = (isset($matches[1]) && $matches[1] == '-') ? -1 : 1;
+            $sign = (isset($matches[1]) && $matches[1] === '-') ? -1 : 1;
             return $sign * octdec(str_replace('_', '', $word));
-        } elseif (is_numeric($word)) {
+        }
+
+        if (is_numeric($word)) {
             // normal numbers
             return $word + 0;
-        } else {
-            // Symbol
-            return $this->readSymbol($word);
         }
+
+        // Symbol
+        return $this->readSymbol($word);
     }
 
     protected function readSymbol($word)
     {
         if (is_array($this->fnArgs)) {
             // Special case: We read an anonymous function
-            if ($word == "$") {
+            if ($word === '$') {
                 if (isset($this->fnArgs[1])) {
                     return new Symbol($this->fnArgs[1]->getName());
-                } else {
-                    $sym = Symbol::gen('__short_fn_1_');
-                    $this->fnArgs[1] = $sym;
-                    return $sym;
                 }
-            } elseif ($word == "$&") {
+                $sym = Symbol::gen('__short_fn_1_');
+                $this->fnArgs[1] = $sym;
+                return $sym;
+            }
+            if ($word === "$&") {
                 if (isset($this->fnArgs[0])) {
                     return new Symbol($this->fnArgs[0]->getName());
-                } else {
-                    $sym = Symbol::gen('__short_fn_rest_');
-                    $this->fnArgs[0] = $sym;
-                    return $sym;
                 }
-            } elseif (preg_match('/\$([1-9][0-9]*)/', $word, $matches)) {
+                $sym = Symbol::gen('__short_fn_rest_');
+                $this->fnArgs[0] = $sym;
+                return $sym;
+            }
+            if (preg_match('/\$([1-9][0-9]*)/', $word, $matches)) {
                 $number = (int) $matches[1];
                 if (isset($this->fnArgs[$number])) {
                     return new Symbol($this->fnArgs[$number]->getName());
-                } else {
-                    $sym = Symbol::gen('__short_fn_' . $number . '_');
-                    $this->fnArgs[$number] = $sym;
-                    return $sym;
                 }
-            } else {
-                return new Symbol($word);
+                $sym = Symbol::gen('__short_fn_' . $number . '_');
+                $this->fnArgs[$number] = $sym;
+                return $sym;
             }
-        } else {
             return new Symbol($word);
         }
+        return new Symbol($word);
     }
 
     protected function parseEscapedString(string $str): string
@@ -398,17 +400,21 @@ class Reader
             function (array $matches): string {
                 $str = $matches[1];
 
-                if (isset($this->stringReplacements[$str])) {
-                    return $this->stringReplacements[$str];
-                } elseif ('x' === $str[0] || 'X' === $str[0]) {
-                    return chr(hexdec(substr($str, 1)));
-                } elseif ('u' === $str[0]) {
-                    return self::codePointToUtf8(hexdec($matches[2]));
-                } else {
-                    /** @var int $n */
-                    $n = octdec($str);
-                    return chr($n);
+                if (isset(self::STRING_REPLACEMENTS[$str])) {
+                    return self::STRING_REPLACEMENTS[$str];
                 }
+
+                if ('x' === $str[0] || 'X' === $str[0]) {
+                    return chr(hexdec(substr($str, 1)));
+                }
+
+                if ('u' === $str[0]) {
+                    return self::codePointToUtf8(hexdec($matches[2]));
+                }
+
+                /** @var int $n */
+                $n = octdec($str);
+                return chr($n);
             },
             $str
         );
@@ -427,7 +433,7 @@ class Reader
         }
         if ($num <= 0x1FFFFF) {
             return chr(($num>>18) + 0xF0) . chr((($num>>12)&0x3F) + 0x80)
-                 . chr((($num>>6)&0x3F) + 0x80) . chr(($num&0x3F) + 0x80);
+                . chr((($num>>6)&0x3F) + 0x80) . chr(($num&0x3F) + 0x80);
         }
         throw $this->buildReaderException('Invalid UTF-8 codepoint escape sequence: Codepoint too large');
     }
@@ -474,12 +480,14 @@ class Reader
      *
      * @return Token[]
      */
-    private function removeLeadingWhitespace($readTokens)
+    private function removeLeadingWhitespace($readTokens): array
     {
         $result = [];
         $leadingWhitespace = true;
         foreach ($readTokens as $token) {
-            if (!($leadingWhitespace && ($token->getType() == Token::T_WHITESPACE || $token->getType() == Token::T_COMMENT))) {
+            if (!($leadingWhitespace
+                && in_array($token->getType(), [Token::T_WHITESPACE,Token::T_COMMENT], true))
+            ) {
                 $leadingWhitespace = false;
                 $result[] = $token;
             }

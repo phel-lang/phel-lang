@@ -194,8 +194,8 @@ class Runtime
     protected function loadFile(string $filename, string $ns): bool
     {
         $globalEnv = $this->globalEnv;
-        $compiler = new Compiler();
-        $code = $compiler->compileFile($filename, $globalEnv);
+        $compiler = new Compiler($globalEnv);
+        $code = $compiler->compileFile($filename);
 
         $cacheFilePath = $this->getCachedFilePath($filename, $ns);
         if ($cacheFilePath) {

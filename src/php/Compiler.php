@@ -1,43 +1,53 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Phel;
 
 use Phel\Exceptions\AnalyzerException;
 use Phel\Exceptions\CompilerException;
 use Phel\Exceptions\ReaderException;
 
-class Compiler
+final class Compiler
 {
-    public function compileFile(string $filename, GlobalEnvironment $globalEnv)
+    private Lexer $lexer;
+    private Reader $reader;
+    private Analyzer $analyzer;
+    private Emitter $emitter;
+
+    public function __construct(GlobalEnvironment $globalEnv)
     {
-        return $this->compileString(file_get_contents($filename), $globalEnv, $filename);
+        $this->lexer = new Lexer();
+        $this->reader = new Reader();
+        $this->analyzer = new Analyzer($globalEnv);
+        $this->emitter = new Emitter();
     }
 
-    public function compileString(string $code, GlobalEnvironment $globalEnv, string $source = 'string'): string
+    public function compileFile(string $filename): string
     {
-        $lexer = new Lexer();
-        $reader = new Reader();
-        $analzyer = new Analyzer($globalEnv);
-        $emitter = new Emitter();
-        $tokenStream = $lexer->lexString($code, $source);
+        return $this->compileString(file_get_contents($filename), $filename);
+    }
+
+    public function compileString(string $code, string $source = 'string'): string
+    {
+        $tokenStream = $this->lexer->lexString($code, $source);
         $code = '';
 
         while (true) {
             try {
-                $readerResult = $reader->readNext($tokenStream);
-
+                $readerResult = $this->reader->readNext($tokenStream);
                 // If we reached the end exit this loop
                 if (!$readerResult) {
                     break;
                 }
 
                 try {
-                    $nodes = $analzyer->analyze($readerResult->getAst());
+                    $nodes = $this->analyzer->analyze($readerResult->getAst());
                 } catch (AnalyzerException $e) {
                     throw new CompilerException($e, $readerResult->getCodeSnippet());
                 }
 
-                $code .= $emitter->emitAndEval($nodes);
+                $code .= $this->emitter->emitAndEval($nodes);
             } catch (ReaderException $e) {
                 throw new CompilerException($e, $e->getCodeSnippet());
             }
