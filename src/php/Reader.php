@@ -180,14 +180,14 @@ final class Reader
                     return Tuple::create(new Symbol('fn'), new Tuple($params, true), $body);
 
                 case Token::T_EOF:
-                    throw $this->buildReaderException("Unterminatend list");
+                    throw $this->buildReaderException("Unterminated list");
 
                 default:
                     throw $this->buildReaderException("Unhandled syntax token: " . $token->getCode());
             }
         }
 
-        throw $this->buildReaderException("Unterminatend list");
+        throw $this->buildReaderException("Unterminated list");
     }
 
     /**
@@ -199,8 +199,7 @@ final class Reader
         $tokenStream->next();
 
         $expression = $this->readExpressionHard($tokenStream, "missing expression");
-        $q = new Quasiquote();
-        $result = $q->quasiquote($expression);
+        $result = (new Quasiquote())->quasiquote($expression);
 
         if ($result instanceof Phel) {
             $endLocation = $tokenStream->current()->getEndLocation();
