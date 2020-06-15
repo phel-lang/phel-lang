@@ -25,7 +25,7 @@ The call also sets the `*ns*` variable to the given namespace.
 
 Before a Phel module can be used, it has to be imported with the keyword `:require`. Once imported, the module can be accessed by its name followed by a slash and the name of the public function or value.
 
-eg. A module named `util` is defined in the `hello-world` namespace.
+eg. Given, a module `util` is defined in the namespace `hello-world`.
 
 ```phel
 (ns hello-world\util)
@@ -45,47 +45,37 @@ Module `boot` imports module `util` and uses its functions and values.
 (util/greet util/my-name)
 ```
 
-An alias for a module can be also be set:
+To prevent name collision from other modules in different namespaces, aliases can be used.
 
 ```phel
 (ns hello-world\boot
   (:require hello-world\util :as utilities))
 ```
 
-> Importing a module from a different root namespace requires adding its path to `src/index.php`:
->
-> ```
-> $rt->addPath('hello-mars\\', [__DIR__ . '/../mars']);
-> ```
->
-> **This is going to be changed in the future.**
-
 ### Import a PHP class
 
-Importing a PHP class is optional.
-
-Any PHP class can be used just by typing its namespace with the class name:
-
-```phel
-(php/new Some\Php\ClassName)
-```
-
-PHP classes are imported with the keyword `:use`:
+PHP classes are imported with the keyword `:use`.
 
 ```phel
 (ns my\custom\module
   (:use Some\Php\ClassName)
 ```
 
-Once imported, a class can be referenced by its name:
+Once imported, a class can be referenced by its name.
 
 ```phel
 (php/new ClassName)
 ```
 
-An alias for a class can be also be set:
+To prevent name collision from other classes in different namespaces, aliases can be used.
 
 ```phel
 (ns my\custom\module
   (:use Some\Php\ClassName :as BetterClassName)
+```
+
+Importing PHP classes is considered a "better" coding style, but it is optional. Any PHP class can be used by typing its namespace with the class name.
+
+```phel
+(php/new Some\Php\ClassName)
 ```
