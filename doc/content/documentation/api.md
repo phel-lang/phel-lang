@@ -35,7 +35,7 @@ Return `a` to the power of `x`.
 ```phel
 (+ & xs)
 ```
-Returns the sum of all elements in `xs`. All elements is `xs` must be numbers.
+Returns the sum of all elements in `xs`. All elements `xs` must be numbers.
   If `xs` is empty, return 0.
 
 ## `-`
@@ -51,7 +51,7 @@ Returns the difference of all elements in `xs`. If `xs` is empty, return 0. If `
 ```phel
 (/ & xs)
 ```
-Returns the nominator divided by all of the denominators. If `xs` is empty,
+Returns the nominator divided by all the denominators. If `xs` is empty,
 returns 1. If `xs` has one value, returns the reciprocal of x.
 
 ## `<`
@@ -59,14 +59,14 @@ returns 1. If `xs` has one value, returns the reciprocal of x.
 ```phel
 (< a & more)
 ```
-Check if all given values are in ascending order. Returns a boolean.
+Checks if each argument is strictly less than the following argument. Returns a boolean.
 
 ## `<=`
 
 ```phel
 (<= a & more)
 ```
-Check if all given values are in a non-descending order. Returns a boolean.
+Checks if each argument is less than or equal to the following argument. Returns a boolean.
 
 ## `=`
 
@@ -80,14 +80,14 @@ Checks if all values are equal. Same as `a == b` in PHP.
 ```phel
 (> a & more)
 ```
-Check if all given values are in descending order. Returns a boolean.
+Checks if each argument is strictly greater than the following argument. Returns a boolean.
 
 ## `>=`
 
 ```phel
 (>= a & more)
 ```
-Check if all given values are in non-ascending order. Returns a boolean.
+Checks if each argument is greater than or equal to the following argument. Returns a boolean.
 
 ## `NAN`
 
@@ -96,9 +96,8 @@ Constant for Not a Number (NAN) values.
 ## `__DIR__`
 
 ```phel
-(__DIR__ )
+(__DIR__)
 ```
-
 
 ## `all?`
 
@@ -217,14 +216,14 @@ Takes an expression `e` and a set of test-content/expression pairs. First
   evaluates `e` and the then finds the first pair where the test-constant matches
   the result of `e`. The associated expression is then evaluated and returned.
   If no matches can be found a final last expression can be provided that is
-  than evaluated and return. Otherwise nil is returned.
+  than evaluated and return. Otherwise, nil is returned.
 
 ## `comment`
 
 ```phel
 (comment &)
 ```
-Ignores the body of the comment
+Ignores the body of the comment.
 
 ## `comp`
 
@@ -263,14 +262,14 @@ Concatenates multiple sequential data structures.
 Takes a set of test/expression pairs. Evaluates each test one at a time.
   If a test returns logically true, the expression is evaluated and return.
   If no test matches a final last expression can be provided that is than
-  evaluated and return. Otherwise nil is returned.
+  evaluated and return. Otherwise, nil is returned.
 
 ## `cons`
 
 ```phel
 (cons x xs)
 ```
-Prepends `x` to the beginning of `xs`
+Prepends `x` to the beginning of `xs`.
 
 ## `count`
 
@@ -296,42 +295,42 @@ Declare a global symbol before it is defined.
 
 ## `def-`
 
-Define a private value that will not be exported
+Define a private value that will not be exported.
 
 ## `defmacro`
 
 ```phel
 (defmacro name & fdecl)
 ```
-Define a macro
+Define a macro.
 
 ## `defmacro-`
 
 ```phel
 (defmacro- name & fdecl)
 ```
-Define a private macro that will not be exported
+Define a private macro that will not be exported.
 
 ## `defn`
 
 ```phel
 (defn name & fdecl)
 ```
-Define a new global function
+Define a new global function.
 
 ## `defn-`
 
 ```phel
 (defn- name & fdecl)
 ```
-Define a private function that will not be exported
+Define a private function that will not be exported.
 
 ## `defstruct`
 
 ```phel
 (defstruct name keys)
 ```
-Define a new struct
+Define a new struct.
 
 ## `distinct`
 
@@ -345,8 +344,8 @@ Returns an array with duplicated values removed in `xs`.
 ```phel
 (dofor head & body)
 ```
-Repeatedly executes body for side-effects with bindings and modifiers as
-  provided by for. Returns nil
+Repeatedly executes body for side effects with bindings and modifiers as
+  provided by for. Returns nil.
 
 ## `drop`
 
@@ -453,13 +452,13 @@ List comprehension. The head of the loop is a tuple that contains a
   * :range loop over a range by using the range function.
   * :in loops over all values of a collection.
   * :keys loops over all keys/indexes of a collection.
-  * :pairs loops over all key value pairs of a collections.
+  * :pairs loops over all key value pairs of a collection.
 
   After each loop binding additional modifiers can be applied. Modifiers
   have the form `:modifier argument`. The following modifiers are supported:
 
-  * :while breaks the loop if the expression is falsy
-  * :let defines additional bindings
+  * :while breaks the loop if the expression is falsy.
+  * :let defines additional bindings.
   * :when only evaluates the loop body if the condition is true.
 
   The for loops returns a array with all evaluated elements of the body.
@@ -491,7 +490,7 @@ Generates a new unique symbol.
 (get ds k & [opt])
 ```
 Get the value mapped to `key` from the datastructure `ds`.
-  Returns `opt` or nil if the value can not be found.
+  Returns `opt` or nil if the value cannot be found.
 
 ## `get-in`
 
@@ -520,11 +519,11 @@ Create a response from a string.
 ```phel
 (create-response-from-table @{:status status :headers headers :body body :version version :reason reason})
 ```
-Creates a response struct from a table. The table can have the following keys
-  * `:status` The HTTP Status (default 200)
-  * `:headers` A table of HTTP Headers (default: empty table)
-  * `:body` The body of the response (default: empty string)
-  * `:version` The HTTP Version (default: 1.1)
+Creates a response struct from a table. The table can have the following keys:
+  * `:status` The HTTP Status (default 200).
+  * `:headers` A table of HTTP Headers (default: empty table).
+  * `:body` The body of the response (default: empty string).
+  * `:version` The HTTP Version (default: 1.1).
   * `:reason` The HTTP status reason. If not provided a common status reason is taken.
 
 ## `http/emit-response`
@@ -539,70 +538,70 @@ Emits the response.
 ```phel
 (files-from-globals & [files])
 ```
-Extracts the files from `$_FILES` and normalizes them to a table of "uploaded-file"
+Extracts the files from `$_FILES` and normalizes them to a table of "uploaded-file".
 
 ## `http/headers-from-server`
 
 ```phel
 (headers-from-server & [server])
 ```
-Extracts all headers from the `$_SERVER` variable
+Extracts all headers from the `$_SERVER` variable.
 
 ## `http/request`
 
 ```phel
 (request method uri headers parsed-body query-params cookie-params server-params uploaded-files version)
 ```
-Creates a new request struct
+Creates a new request struct.
 
 ## `http/request-from-globals`
 
 ```phel
 (request-from-globals & [server])
 ```
-Extracts a request from `$_SERVER`
+Extracts a request from `$_SERVER`.
 
 ## `http/request?`
 
 ```phel
 (request? x)
 ```
-Checks if `x` is a instance of the request struct
+Checks if `x` is a instance of the request struct.
 
 ## `http/response`
 
 ```phel
 (response status headers body version reason)
 ```
-Creates a new response struct
+Creates a new response struct.
 
 ## `http/response?`
 
 ```phel
 (response? x)
 ```
-Checks if `x` is a instance of the response struct
+Checks if `x` is an instance of the response struct
 
 ## `http/uploaded-file`
 
 ```phel
 (uploaded-file tmp-file size error-status client-filename client-media-type)
 ```
-Creates a new uploaded-file struct
+Creates a new uploaded-file struct.
 
 ## `http/uploaded-file?`
 
 ```phel
 (uploaded-file? x)
 ```
-Checks if `x` is a instance of the uploaded-file struct
+Checks if `x` is a instance of the uploaded-file struct.
 
 ## `http/uri`
 
 ```phel
 (uri scheme userinfo host port path query fragment)
 ```
-Creates a new uri struct
+Creates a new uri struct.
 
 ## `http/uri-from-globals`
 
@@ -616,7 +615,7 @@ Extracts the URI from the `$_SERVER` variable.
 ```phel
 (uri? x)
 ```
-Checks if `x` is a instance of the uri struct
+Checks if `x` is a instance of the uri struct.
 
 ## `id`
 
@@ -708,7 +707,7 @@ Returns a new table where the keys and values are swapped. If table has
 ```phel
 (keys xs)
 ```
-Gets the keys of an associative data structure
+Gets the keys of an associative data structure.
 
 ## `keyword`
 
@@ -796,7 +795,7 @@ Returns the numeric minimum of all numbers.
 ```phel
 (nan? x)
 ```
-Checks if `x` is not a number
+Checks if `x` is not a number.
 
 ## `neg?`
 
@@ -818,7 +817,7 @@ elements, returns nil.
 ```phel
 (nfirst xs)
 ```
-Same as `(next (first xs))`
+Same as `(next (first xs))`.
 
 ## `nil?`
 
@@ -885,7 +884,7 @@ Calling or without arguments, returns nil.
 ```phel
 (pairs xs)
 ```
-Gets the pairs of an associative data structure
+Gets the pairs of an associative data structure.
 
 ## `partial`
 
@@ -913,7 +912,7 @@ Returns the last element of a sequence.
 ```phel
 (php-array-to-table arr)
 ```
-Converts a PHP Array to a tables
+Converts a PHP Array to a tables.
 
 ## `php-array?`
 
@@ -934,7 +933,7 @@ Creates a PHP associative array. An even number of parameters must be provided.
 ```phel
 (php-indexed-array & xs)
 ```
-Creates an PHP indexed array from the given values
+Creates an PHP indexed array from the given values.
 
 ## `php-object?`
 
@@ -955,7 +954,7 @@ Returns true if `x` is a PHP resource, false otherwise.
 ```phel
 (pop xs)
 ```
-Removes the the last element of the array `xs`. If the array is empty
+Removes the last element of the array `xs`. If the array is empty
   returns nil.
 
 ## `pos?`
@@ -985,7 +984,7 @@ Same as print. But instead of writing it to a output stream,
 ```phel
 (println & xs)
 ```
-Same as print followed by a newline
+Same as print followed by a newline.
 
 ## `push`
 
@@ -1020,7 +1019,7 @@ Returns a random number between 0 and 1.
 ```phel
 (rand-int n)
 ```
-Returns a random number between 0 and `n`
+Returns a random number between 0 and `n`.
 
 ## `range`
 
@@ -1072,7 +1071,7 @@ elements, returns an empty sequence.
 ```phel
 (reverse xs)
 ```
-Reverses the order of the elements in the given sequence
+Reverses the order of the elements in the given sequence.
 
 ## `second`
 
@@ -1107,7 +1106,7 @@ Returns true if `(pred x)` is logical true for at least one `x` in `xs`, else fa
 ```phel
 (sort xs & [comp])
 ```
-Returns a sorted array. If no comperator is supplied compare is used.
+Returns a sorted array. If no comparator is supplied compare is used.
 
 ## `sort-by`
 
@@ -1115,21 +1114,21 @@ Returns a sorted array. If no comperator is supplied compare is used.
 (sort-by keyfn xs & [comp])
 ```
 Returns a sorted array where the sort order is determined by comparing
-  (keyfn item). If no comperator is supplied compare is used.
+  (keyfn item). If no comparator is supplied compare is used.
 
 ## `split-at`
 
 ```phel
 (split-at n xs)
 ```
-Returns a tuple of [(take n coll) (drop n coll)]
+Returns a tuple of [(take n coll) (drop n coll)].
 
 ## `split-with`
 
 ```phel
 (split-with f xs)
 ```
-Returns a tuple of [(take-while pred coll) (drop-while pred coll)]
+Returns a tuple of [(take-while pred coll) (drop-while pred coll)].
 
 ## `str`
 
@@ -1138,8 +1137,8 @@ Returns a tuple of [(take-while pred coll) (drop-while pred coll)]
 ```
 Creates a string by concatenating values together. If no arguments are
 provided an empty string is returned. Nil and false are represented as empty
-string. True is represented as 1. Otherwise it tries to call `__toString`.
-This is PHP equalivalent to `$args[0] . $args[1] . $args[2] ...`
+string. True is represented as 1. Otherwise, it tries to call `__toString`.
+This is PHP equivalent to `$args[0] . $args[1] . $args[2] ...`.
 
 ## `string?`
 
@@ -1203,7 +1202,7 @@ Returns true if `x` is a table, false otherwise.
 ```phel
 (to-php-array xs)
 ```
-Create a PHP Array from a sequential data structure
+Create a PHP Array from a sequential data structure.
 
 ## `tree-seq`
 
@@ -1214,7 +1213,7 @@ Returns an array of the nodes in the tree, via a depth first walk.
   branch? is a function with one argument that returns true if the given node
   has children.
   children must be a function with one argument that returns the children of the node.
-  root the the root node of the tree.
+  root the root node of the tree.
 
 ## `true?`
 
@@ -1313,21 +1312,21 @@ Returns `ds` without `key`.
 ```phel
 (values xs)
 ```
-Gets the values of an associative data structure
+Gets the values of an associative data structure.
 
 ## `when`
 
 ```phel
 (when test & body)
 ```
-Evaluates `test` and if that is logical true, evaluates `body`
+Evaluates `test` and if that is logical true, evaluates `body`.
 
 ## `when-not`
 
 ```phel
 (when-not test & body)
 ```
-Evaluates `test` and if that is logical true, evaluates `body`
+Evaluates `test` and if that is logical true, evaluates `body`.
 
 ## `with-output-buffer`
 
@@ -1348,5 +1347,4 @@ Checks if `x` is zero.
 ```phel
 (zipcoll a b)
 ```
-Creates a table from two sequencial data structures. Return a new table.
-
+Creates a table from two sequential data structures. Return a new table.

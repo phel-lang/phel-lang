@@ -5,7 +5,7 @@ weight = 4
 
 For better compatibility with PHP, Phel has the same concept of truthiness and falsiness. The following values evaluate to `false`:
 
-* `false` itsself
+* `false` itself
 * `nil`
 * the numbers _0_, _-0_, _0.0_ and _-0.0_
 * the empty string
@@ -14,7 +14,7 @@ For better compatibility with PHP, Phel has the same concept of truthiness and f
 * a PHP array with zero elements
 * PHP SimpleXML objects created from empty tags
 
-Everythings else evaluates to `true`. The function `truthy?` can be used to check if a value is thruthy. To check for the values `true` and `false` the functions `true?` and `false?` can be used.
+Everything else evaluates to `true`. The function `truthy?` can be used to check if a value is truthy. To check for the values `true` and `false` the functions `true?` and `false?` can be used.
 
 ```phel
 (truthy? false) # Evaluates to false
@@ -35,7 +35,7 @@ Everythings else evaluates to `true`. The function `truthy?` can be used to chec
 
 ## Identity vs Equality
 
-The function `id` returns `true` if two values are identical. Identical is stricter than equality. It first checks if both types are identical and than compares their values. Phel Keywords and Symbol with the same name are always identical. Tuples, Arrays and Tables are only identical if they point to the same reference.
+The function `id` returns `true` if two values are identical. Identical is stricter than equality. It first checks if both types are identical and then compares their values. Phel Keywords and Symbol with the same name are always identical. Tuples, Arrays and Tables are only identical if they point to the same reference.
 
 ```phel
 (id true true) # Evaluates to true
@@ -67,10 +67,10 @@ The function `id` is equivalent to PHP's identity operator (`===`) with support 
 
 Further comparison function are:
 
-* `<=`: Check if all given values are in a non-descending order. Returns a boolean.
-* `<`: Check if all given values are in ascending order. Returns a boolean.
-* `>=`: Check if all given values are in non-ascending order. Returns a boolean.
-* `>`: Check if all given values are in descending order. Returns a boolean.
+* `<=`: Checks if each argument is less than or equal to the following argument. Returns a boolean.
+* `<`: Checks if each argument is strictly less than the following argument. Returns a boolean.
+* `>=`: Checks if each argument is greater than or equal to the following argument. Returns a boolean.
+* `>`: Checks if each argument is strictly greater than the following argument. Returns a boolean.
 
 ### Logical operation
 

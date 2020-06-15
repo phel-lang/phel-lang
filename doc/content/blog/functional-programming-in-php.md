@@ -3,7 +3,7 @@ title = "My attempt on functional programming in PHP"
 template = "blog-entry.html"
 +++
 
-PHP was one of my first languages I learned. Even so, this dates back over 10 years, I still use PHP every day at work. However, in the meantime I also learned a lot of other languages like Java, Clojure, Scala, Python, Javascript and Scheme. By learning all the languages and their concepts, the concept of functional programming always was my favorite and so I tried to make my PHP programming style more functional. In the following article you can read some of the approaches I tried.
+PHP was one of my first languages I learned. Even so, this dates back over 10 years, I still use PHP every day at work. However, in the meantime I also learned a lot of other languages like Java, Clojure, Scala, Python, Javascript and Scheme. By learning all the languages and their concepts, the concept of functional programming always was my favorite and so I tried to make my PHP programming style more functional. In the following article you can read some approaches I tried.
 
 ## Functions as arguments
 
@@ -70,7 +70,7 @@ class MyStaticModule {
 }
 ```
 
-This approach gives us all the flexibiliy in terms of modularity. However, the problem of passing functions as arguments for another function hasn't been solved.
+This approach gives us all the flexibility in terms of modularity. However, the problem of passing functions as arguments for another function hasn't been solved.
 
 ## Trait modules
 
@@ -130,11 +130,11 @@ class MyProgram {
 
 A big disadvantage of this approach is, that we have to resolve all conflicting function names ourself. Not only for public methods but also for private methods. This becomes next to impossible if the program grows.
 
-A combination of the class module approach and the trait module approach would be a good solution to get started with function programming in PHP. However, the trick with the magic method `_get` can not be used for the class module approach, since PHP has no magic method for static properties.
+A combination of the class module approach and the trait module approach would be a good solution to get started with function programming in PHP. However, the trick with the magic method `_get` cannot be used for the class module approach, since PHP has no magic method for static properties.
 
 ## Alternatives
 
-One last alternaitve is to use a language that is functional and compiles to PHP. In recent years, there have been a few attempts on this (e.g. [Haxe](https://haxe.org/) and [Pharen](http://www.pharen.org/)). While Pharen looked very promising, it hasn't seen any commits for a few years now and is still based on PHP 5.
+One last alternative is to use a language that is functional and compiles to PHP. In recent years, there have been a few attempts on this (e.g. [Haxe](https://haxe.org/) and [Pharen](http://www.pharen.org/)). While Pharen looked very promising, it hasn't seen any commits for a few years now and is still based on PHP 5.
 
 ## Introducing Phel
 

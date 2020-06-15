@@ -49,9 +49,9 @@ The following example gives a short impression on how Phel looks like:
 
 ## Getting started
 
-Phel requires PHP 7.4 or higher and Composer. Read the [Getting Started Guide](/documentation/getting-started) to create your first Phel programm.
+Phel requires PHP 7.4 or higher and Composer. Read the [Getting Started Guide](/documentation/getting-started) to create your first Phel program.
 
 
 ## Status of Development
 
-Phel has not been released yet, but it is fairly complete. In the next weeks or months I will probably find some more edge cases that I will fix before the first offical release. Maybe some of you are willing to test it out and give feedback.
+Phel has not been released yet, but it is fairly complete. In the next weeks or months I will probably find some more edge cases that I will fix before the first official release. Maybe some of you are willing to test it out and give feedback.

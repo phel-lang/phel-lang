@@ -53,7 +53,7 @@ elements, returns nil."
               nil
               sliced))
           (throw (php/new InvalidArgumentException
-                    (php/. "can not call 'next on " (php/gettype xs)))))))))
+                    (php/. "cannot call 'next on " (php/gettype xs)))))))))
 
 (def concat1
   @{:private true
@@ -110,26 +110,26 @@ elements, returns nil."
 
 (def defn
   @{:macro true
-    :doc "```phel\n(defn name & fdecl)\n```\nDefine a new global function"}
+    :doc "```phel\n(defn name & fdecl)\n```\nDefine a new global function."}
   (fn [name & fdecl] (apply defn-builder name @{} fdecl)))
 
 (def def-
   @{:macro true
-    :doc "Define a private value that will not be exported"}
+    :doc "Define a private value that will not be exported."}
   (fn [name value] `(def ,name @{:private true} ,value)))
 
 (def defmacro
   @{:macro true
-    :doc "```phel\n(defmacro name & fdecl)\n```\nDefine a macro"}
+    :doc "```phel\n(defmacro name & fdecl)\n```\nDefine a macro."}
   (fn [name & fdecl] (apply defn-builder name @{:macro true} fdecl)))
 
 (defmacro defn-
-  "Define a private function that will not be exported"
+  "Define a private function that will not be exported."
   [name & fdecl]
   (apply defn-builder name @{:private true} fdecl))
 
 (defmacro defmacro-
-  "Define a private macro that will not be exported"
+  "Define a private macro that will not be exported."
   [name & fdecl]
   (apply defn-builder name @{:macro true :private true} fdecl))
 
@@ -139,7 +139,7 @@ elements, returns nil."
   `(def ,name nil))
 
 (defmacro defstruct
-  "Define a new struct"
+  "Define a new struct."
   [name keys]
   (let [name-str (php/-> name (getName))
         class-name-str (php/. *ns* "\\" (php/:: Munge (encode name-str)))
@@ -147,10 +147,10 @@ elements, returns nil."
     `(do
       (defstruct* ,name ,keys)
       (defn ,name ,(php/. "Creates a new " name " struct") ,keys (php/new ,class-name-str ,@keys))
-      (defn ,is-name ,(php/. "Checks if `x` is a instance of the " name " struct") [x] (php/is_a x ,class-name-str)))))
+      (defn ,is-name ,(php/. "Checks if `x` is an instance of the " name " struct") [x] (php/is_a x ,class-name-str)))))
 
 (defmacro comment
-  "Ignores the body of the comment"
+  "Ignores the body of the comment."
   [&])
 
 (defn gensym
@@ -165,7 +165,7 @@ elements, returns nil."
   "Creates a string by concatenating values together. If no arguments are
 provided an empty string is returned. Nil and false are represented as empty
 string. True is represented as 1. Otherwise it tries to call `__toString`.
-This is PHP equalivalent to `$args[0] . $args[1] . $args[2] ...`"
+This is PHP equivalent to `$args[0] . $args[1] . $args[2] ...`"
   [& args]
   (if args
     (apply php/. args)
@@ -192,7 +192,7 @@ The number of parameters must be even."
   (php/new Keyword x))
 
 (defn php-indexed-array
-  "Creates an PHP indexed array from the given values"
+  "Creates an PHP indexed array from the given values."
   [& xs]
   (apply php/array xs))
 
@@ -220,7 +220,7 @@ The number of parameters must be even."
     (php/== a b)))
 
 (defn cons
-  "Prepends `x` to the beginning of `xs`"
+  "Prepends `x` to the beginning of `xs`."
   [x xs]
   (if (php/is_array xs)
     (do
@@ -231,7 +231,7 @@ The number of parameters must be even."
       (if (php/== xs nil)
         @[x]
         (throw (php/new InvalidArgumentException
-                  (php/. "can not do cons " (php/print_r x true))))))))
+                  (php/. "cannot do cons " (php/print_r x true))))))))
 
 (defn first
   "Returns the first element of an indexed sequence or nil."
@@ -256,10 +256,10 @@ elements, returns an empty sequence."
     (php/-> xs (rest))
     (if (php/is_array xs)
       (php/array_slice xs 1)
-      (throw (php/new InvalidArgumentException "can not do rest")))))
+      (throw (php/new InvalidArgumentException "cannot do rest")))))
 
 (defn nfirst
-  "Same as `(next (first xs))`"
+  "Same as `(next (first xs))`."
   [xs]
   (next (first xs)))
 
@@ -290,12 +290,12 @@ implement the PHP Countable interface."
   `(if ,test ,else ,then))
 
 (defmacro when
-  "Evaluates `test` and if that is logical true, evaluates `body`"
+  "Evaluates `test` and if that is logical true, evaluates `body`."
   [test & body]
   `(if ,test (do ,@body)))
 
 (defmacro when-not
-  "Evaluates `test` and if that is logical true, evaluates `body`"
+  "Evaluates `test` and if that is logical true, evaluates `body`."
   [test & body]
   `(if ,test nil (do ,@body)))
 
@@ -303,7 +303,7 @@ implement the PHP Countable interface."
   "Takes a set of test/expression pairs. Evaluates each test one at a time.
   If a test returns logically true, the expression is evaluated and return.
   If no test matches a final last expression can be provided that is than
-  evaluated and return. Otherwise nil is returned."
+  evaluated and return. Otherwise, nil is returned."
   [& pairs]
   (let [cnt (count pairs)]
     (if (php/== cnt 0)
@@ -320,7 +320,7 @@ implement the PHP Countable interface."
   evaluates `e` and the then finds the first pair where the test-constant matches
   the result of `e`. The associated expression is then evaluated and returned.
   If no matches can be found a final last expression can be provided that is
-  than evaluated and return. Otherwise nil is returned."
+  than evaluated and return. Otherwise, nil is returned."
   [e & pairs]
   (if (next pairs)
     (let [v (gensym)]
@@ -400,7 +400,7 @@ Calling the and function without arguments returns true."
       (not (apply = a more))))
 
 (defn <
-  "Check if all given values are in ascending order. Returns a boolean."
+  "Checks if each argument is strictly less than the following argument. Returns a boolean."
   [a & more]
   (case (count more)
     0 true
@@ -410,7 +410,7 @@ Calling the and function without arguments returns true."
         false)))
 
 (defn <=
-  "Check if all given values are in a non-descending order. Returns a boolean."
+  "Checks if each argument is less than or equal to the following argument. Returns a boolean."
   [a & more]
   (case (count more)
     0 true
@@ -420,7 +420,7 @@ Calling the and function without arguments returns true."
         false)))
 
 (defn >
-  "Check if all given values are in descending order. Returns a boolean."
+  "Checks if each argument is strictly greater than the following argument. Returns a boolean."
   [a & more]
   (case (count more)
     0 true
@@ -430,7 +430,7 @@ Calling the and function without arguments returns true."
         false)))
 
 (defn >=
-  "Check if all given values are in non-ascending order. Returns a boolean."
+  "Checks if each argument is greater than or equal to the following argument. Returns a boolean."
   [a & more]
   (case (count more)
     0 true
@@ -526,7 +526,7 @@ Calling the and function without arguments returns true."
   (= (type x) :float))
 
 (defn int?
-  "Returns true if `x` is a integer number, false otherwise."
+  "Returns true if `x` is an integer number, false otherwise."
   [x]
   (= (type x) :int))
 
@@ -633,7 +633,7 @@ Calling the and function without arguments returns true."
               (str "Can not push on type " (type xs))))))
 
 (defn pop
-  "Removes the the last element of the array `xs`. If the array is empty
+  "Removes the last element of the array `xs`. If the array is empty
   returns nil."
   [^:reference xs]
   (cond
@@ -651,7 +651,7 @@ Calling the and function without arguments returns true."
 
 (defn get
   "Get the value mapped to `key` from the datastructure `ds`.
-  Returns `opt` or nil if the value can not be found."
+  Returns `opt` or nil if the value cannot be found."
   [ds k & [opt]]
   (let [res (php/aget ds k)]
     (if (nil? res)
@@ -743,13 +743,13 @@ arrays. Use (php/aunset ds key)" )))
   * :range loop over a range by using the range function.
   * :in loops over all values of a collection.
   * :keys loops over all keys/indexes of a collection.
-  * :pairs loops over all key value pairs of a collections.
+  * :pairs loops over all key value pairs of a collection.
 
   After each loop binding additional modifiers can be applied. Modifiers
   have the form `:modifier argument`. The following modifiers are supported:
 
-  * :while breaks the loop if the expression is falsy
-  * :let defines additional bindings
+  * :while breaks the loop if the expression is falsy.
+  * :let defines additional bindings.
   * :when only evaluates the loop body if the condition is true.
 
   The for loops returns a array with all evaluated elements of the body."
@@ -761,8 +761,8 @@ arrays. Use (php/aunset ds key)" )))
       ,res-sym)))
 
 (defmacro dofor
-  "Repeatedly executes body for side-effects with bindings and modifiers as
-  provided by for. Returns nil"
+  "Repeatedly executes body for side effects with bindings and modifiers as
+  provided by for. Returns nil."
   [head & body]
   (for-builder `(do ,@body) head 0))
 
@@ -892,7 +892,7 @@ collection in map"))
     ret))
 
 (defn reverse
-  "Reverses the order of the elements in the given sequence"
+  "Reverses the order of the elements in the given sequence."
   [xs]
   (let [ret @[]]
     (dofor [i :range [(php/- (count xs) 1) -1 -1]]
@@ -926,17 +926,17 @@ collection in map"))
     res))
 
 (defn keys
-  "Gets the keys of an associative data structure"
+  "Gets the keys of an associative data structure."
   [xs]
   (for [k :keys xs] k))
 
 (defn values
-  "Gets the values of an associative data structure"
+  "Gets the values of an associative data structure."
   [xs]
   (for [x :in xs] x))
 
 (defn pairs
-  "Gets the pairs of an associative data structure"
+  "Gets the pairs of an associative data structure."
   [xs]
   (for [p :pairs xs] p))
 
@@ -950,12 +950,12 @@ collection in map"))
     res))
 
 (defn to-php-array
-  "Create a PHP Array from a sequential data structure"
+  "Create a PHP Array from a sequential data structure."
   [xs]
   (apply php/array xs))
 
 (defn php-array-to-table
-  "Converts a PHP Array to a tables"
+  "Converts a PHP Array to a tables."
   [arr]
   (let [res @{}]
     (foreach [k v arr]
@@ -963,7 +963,7 @@ collection in map"))
     res))
 
 (defn sort
-  "Returns a sorted array. If no comperator is supplied compare is used."
+  "Returns a sorted array. If no comparator is supplied compare is used."
   [xs & [comp]]
   (let [php-array (to-php-array xs)]
     (php/usort php-array (or comp compare))
@@ -971,7 +971,7 @@ collection in map"))
 
 (defn sort-by
   "Returns a sorted array where the sort order is determined by comparing
-  (keyfn item). If no comperator is supplied compare is used."
+  (keyfn item). If no comparator is supplied compare is used."
   [keyfn xs & [comp]]
   (let [php-array (to-php-array xs)
         cmp (or comp compare)]
@@ -1029,12 +1029,12 @@ collection in map"))
   (zipcoll (values table) (keys table)))
 
 (defn split-at
-  "Returns a tuple of [(take n coll) (drop n coll)]"
+  "Returns a tuple of [(take n coll) (drop n coll)]."
   [n xs]
   [(take n xs) (drop n xs)])
 
 (defn split-with
-  "Returns a tuple of [(take-while pred coll) (drop-while pred coll)]"
+  "Returns a tuple of [(take-while pred coll) (drop-while pred coll)]."
   [f xs]
   [(take-while f xs) (drop-while f xs)])
 
@@ -1085,7 +1085,7 @@ collection in map"))
   branch? is a function with one argument that returns true if the given node
   has children.
   children must be a function with one argument that returns the children of the node.
-  root the the root node of the tree."
+  root the root node of the tree."
   [branch? children root]
   (let [ret @[]]
     (loop [stack @[root]]
@@ -1151,7 +1151,7 @@ collection in map"))
   php/NAN)
 
 (defn +
-  "Returns the sum of all elements in `xs`. All elements is `xs` must be numbers.
+  "Returns the sum of all elements in `xs`. All elements `xs` must be numbers.
   If `xs` is empty, return 0."
   [& xs]
   (if (empty? xs)
@@ -1179,7 +1179,7 @@ numbers. If `xs` is empty, return 1."
       (reduce2 |(php/* $1 $2) xs)))
 
 (defn /
-  "Returns the nominator divided by all of the denominators. If `xs` is empty,
+  "Returns the nominator divided by all the denominators. If `xs` is empty,
 returns 1. If `xs` has one value, returns the reciprocal of x."
   [& xs]
   (case (count xs)
@@ -1239,7 +1239,7 @@ returns 1. If `xs` has one value, returns the reciprocal of x."
   (< x 0))
 
 (defn nan?
-  "Checks if `x` is not a number"
+  "Checks if `x` is not a number."
   [x]
   (php/is_nan x))
 
@@ -1249,7 +1249,7 @@ returns 1. If `xs` has one value, returns the reciprocal of x."
   (/ (php/random_int 0 php/PHP_INT_MAX) php/PHP_INT_MAX))
 
 (defn rand-int
-  "Returns a random number between 0 and `n`"
+  "Returns a random number between 0 and `n`."
   [n]
   (php/random_int 0 n))
 
@@ -1315,7 +1315,7 @@ returns 1. If `xs` has one value, returns the reciprocal of x."
     nil))
 
 (defn println
-  "Same as print followed by a newline"
+  "Same as print followed by a newline."
   [& xs]
   (do
     (apply print xs)

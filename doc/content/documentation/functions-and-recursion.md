@@ -14,8 +14,8 @@ Defines a function. A function consists of a list of parameters and a list of ex
 Function also introduce a new lexical scope that is not accessible outside of the function.
 
 ```phel
-(fn []) # Function with no arguments that returns nil.
-(fn [x] x) # The identitiy function
+(fn []) # Function with no arguments that returns nil
+(fn [x] x) # The identity function
 (fn [] 1 2 3) # A function that returns 3
 (fn [a b] (+ a b)) # A function that returns the sum of a and b
 ```
@@ -46,7 +46,7 @@ There is a shorter form to define an anonymous function. This omits the paramete
 (defn docstring? attributes? [params*] expr*)
 ```
 
-Global funcitons can be defined using `defn`.
+Global functions can be defined using `defn`.
 
 ```phel
 (defn my-add-function [a b]
@@ -89,7 +89,7 @@ Similar to `loop`, functions can be made recursive using `recur`.
 ```phel
 (apply f expr*)
 ```
-Calls the function with the given arguments. The last argument must be a list of values, which are passed as seperate arguments, rather than a single list. Apply returns the result of the calling function.
+Calls the function with the given arguments. The last argument must be a list of values, which are passed as separate arguments, rather than a single list. Apply returns the result of the calling function.
 
 ```phel
 (apply + [1 2 3]) # Evaluates to 6
@@ -99,11 +99,11 @@ Calls the function with the given arguments. The last argument must be a list of
 
 ## Passing by reference
 
-Sometimes it is required that a variable should passed to a function by reference. This can be done by applied the `:reference` metadata to the symbol.
+Sometimes it is required that a variable should pass to a function by reference. This can be done by applied the `:reference` metadata to the symbol.
 
 ```phel
 (fn [^:reference my-arr]
   (php/apush my-arr 10))
 ```
 
-Support for references is very limited in Phel. Currently it only works for function arguments (except destructuring).
+Support for references is very limited in Phel. Currently, it only works for function arguments (except destructuring).
