@@ -111,7 +111,7 @@ final class Reader
                     return $this->readList($tokenStream, Token::T_CLOSE_PARENTHESIS);
 
                 case Token::T_OPEN_BRACKET:
-                    return $this->readList($tokenStream, Token::T_CLOSE_BRACKET, true);
+                    return $this->readList($tokenStream, Token::T_CLOSE_BRACKET, $isUsingBrackets = true);
 
                 case Token::T_OPEN_BRACE:
                     throw $this->buildReaderException('Expected token: {');
@@ -193,7 +193,7 @@ final class Reader
     /**
      * @return Phel|scalar|null
      */
-    protected function readQuasiquote(Generator $tokenStream)
+    private function readQuasiquote(Generator $tokenStream)
     {
         $startLocation = $tokenStream->current()->getStartLocation();
         $tokenStream->next();
@@ -210,7 +210,7 @@ final class Reader
         return $result;
     }
 
-    protected function readMeta(Generator $tokenStream)
+    private function readMeta(Generator $tokenStream)
     {
         $tokenStream->next();
 
@@ -239,7 +239,7 @@ final class Reader
         return $object;
     }
 
-    protected function readWrap(Generator $tokenStream, string $wrapFn): Tuple
+    private function readWrap(Generator $tokenStream, string $wrapFn): Tuple
     {
         $startLocation = $tokenStream->current()->getStartLocation();
         $tokenStream->next();
@@ -258,7 +258,7 @@ final class Reader
     /**
      * @return string|null|boolean|float|int|Phel
      */
-    protected function readExpressionHard(Generator $tokenStream, string $errorMessage)
+    private function readExpressionHard(Generator $tokenStream, string $errorMessage)
     {
         $result = $this->readExpression($tokenStream);
         if (is_null($result)) {
@@ -268,7 +268,7 @@ final class Reader
         return $result;
     }
 
-    protected function readList(Generator $tokenStream, int $endTokenType, bool $isUsingBrackets = false): Tuple
+    private function readList(Generator $tokenStream, int $endTokenType, bool $isUsingBrackets = false): Tuple
     {
         $acc = [];
         $startLocation = $tokenStream->current()->getStartLocation();
@@ -309,7 +309,7 @@ final class Reader
      *
      * @return boolean|null|Keyword|Symbol|string|int|float
      */
-    protected function parseAtom(Token $token)
+    private function parseAtom(Token $token)
     {
         $word = $token->getCode();
 
@@ -356,7 +356,7 @@ final class Reader
         return $this->readSymbol($word);
     }
 
-    protected function readSymbol($word)
+    private function readSymbol($word)
     {
         if (is_array($this->fnArgs)) {
             // Special case: We read an anonymous function
@@ -390,7 +390,7 @@ final class Reader
         return new Symbol($word);
     }
 
-    protected function parseEscapedString(string $str): string
+    private function parseEscapedString(string $str): string
     {
         $str = str_replace('\\"', '"', $str);
 
@@ -419,7 +419,7 @@ final class Reader
         );
     }
 
-    protected function codePointToUtf8(int $num): string
+    private function codePointToUtf8(int $num): string
     {
         if ($num <= 0x7F) {
             return chr($num);
