@@ -59,14 +59,14 @@ returns 1. If `xs` has one value, returns the reciprocal of x.
 ```phel
 (< a & more)
 ```
-Check if all given values are in ascending order. Returns a boolean.
+Checks if each argument is is strictly less than the following argument. Returns a boolean.
 
 ## `<=`
 
 ```phel
 (<= a & more)
 ```
-Check if all given values are in a non-descending order. Returns a boolean.
+Checks if each argument is less than or equal to the following argument. Returns a boolean.
 
 ## `=`
 
@@ -80,14 +80,14 @@ Checks if all values are equal. Same as `a == b` in PHP.
 ```phel
 (> a & more)
 ```
-Check if all given values are in descending order. Returns a boolean.
+Checks if each argument is strictly greater than the following argument. Returns a boolean.
 
 ## `>=`
 
 ```phel
 (>= a & more)
 ```
-Check if all given values are in non-ascending order. Returns a boolean.
+Checks if each argument is greater than or equal to the following argument. Returns a boolean.
 
 ## `NAN`
 

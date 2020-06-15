@@ -400,7 +400,7 @@ Calling the and function without arguments returns true."
       (not (apply = a more))))
 
 (defn <
-  "Check if all given values are in ascending order. Returns a boolean."
+  "Checks if each argument is is strictly less than the following argument. Returns a boolean."
   [a & more]
   (case (count more)
     0 true
@@ -410,7 +410,7 @@ Calling the and function without arguments returns true."
         false)))
 
 (defn <=
-  "Check if all given values are in a non-descending order. Returns a boolean."
+  "Checks if each argument is less than or equal to the following argument. Returns a boolean."
   [a & more]
   (case (count more)
     0 true
@@ -420,7 +420,7 @@ Calling the and function without arguments returns true."
         false)))
 
 (defn >
-  "Check if all given values are in descending order. Returns a boolean."
+  "Checks if each argument is strictly greater than the following argument. Returns a boolean."
   [a & more]
   (case (count more)
     0 true
@@ -430,7 +430,7 @@ Calling the and function without arguments returns true."
         false)))
 
 (defn >=
-  "Check if all given values are in non-ascending order. Returns a boolean."
+  "Checks if each argument is greater than or equal to the following argument. Returns a boolean."
   [a & more]
   (case (count more)
     0 true
