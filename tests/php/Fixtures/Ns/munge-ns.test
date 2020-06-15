@@ -45,5 +45,5 @@ $GLOBALS["__phel"]["hello_world"]["abc?"] = new class() extends \Phel\Lang\AFn {
   }
 };
 $GLOBALS["__phel_meta"]["hello_world"]["abc?"] = \Phel\Lang\Table::fromKVs(
-  new \Phel\Lang\Keyword("doc"), "```phel\n(abc? x)\n```\nChecks if `x` is a instance of the abc struct"
+  new \Phel\Lang\Keyword("doc"), "```phel\n(abc? x)\n```\nChecks if `x` is an instance of the abc struct"
 );
