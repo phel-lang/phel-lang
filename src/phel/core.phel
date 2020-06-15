@@ -400,7 +400,7 @@ Calling the and function without arguments returns true."
       (not (apply = a more))))
 
 (defn <
-  "Checks if each argument is is strictly less than the following argument. Returns a boolean."
+  "Checks if each argument is strictly less than the following argument. Returns a boolean."
   [a & more]
   (case (count more)
     0 true

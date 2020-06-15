@@ -59,7 +59,7 @@ returns 1. If `xs` has one value, returns the reciprocal of x.
 ```phel
 (< a & more)
 ```
-Checks if each argument is is strictly less than the following argument. Returns a boolean.
+Checks if each argument is strictly less than the following argument. Returns a boolean.
 
 ## `<=`
 
