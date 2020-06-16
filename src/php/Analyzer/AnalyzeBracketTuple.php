@@ -6,6 +6,7 @@ namespace Phel\Analyzer;
 
 use Phel\Analyzer;
 use Phel\Ast\TupleNode;
+use Phel\Lang\Tuple;
 use Phel\NodeEnvironment;
 
 final class AnalyzeBracketTuple
@@ -17,14 +18,14 @@ final class AnalyzeBracketTuple
         $this->analyzer = $analyzer;
     }
 
-    public function __invoke($x, NodeEnvironment $env): TupleNode
+    public function __invoke(Tuple $tuple, NodeEnvironment $env): TupleNode
     {
         $args = [];
-        foreach ($x as $arg) {
+        foreach ($tuple as $arg) {
             $envDisallowRecur = $env->withContext(NodeEnvironment::CTX_EXPR)->withDisallowRecurFrame();
             $args[] = $this->analyzer->analyze($arg, $envDisallowRecur);
         }
 
-        return new TupleNode($env, $args, $x->getStartLocation());
+        return new TupleNode($env, $args, $tuple->getStartLocation());
     }
 }

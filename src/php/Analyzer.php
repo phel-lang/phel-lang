@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Phel;
 
 use Exception;
+use Phel\Analyzer\AnalyzeArray;
 use Phel\Analyzer\AnalyzeBracketTuple;
 use Phel\Analyzer\AnalyzeLiteral;
 use Phel\Analyzer\AnalyzeSymbol;
@@ -88,7 +89,7 @@ final class Analyzer
         }
 
         if ($x instanceof PhelArray) {
-            return $this->analyzeArray($x, $nodeEnvironment);
+            return (new AnalyzeArray($this))($x, $nodeEnvironment);
         }
 
         if ($x instanceof Table) {
@@ -227,17 +228,6 @@ final class Analyzer
             default:
                 return $this->analyzeInvoke($x, $nodeEnvironment);
         }
-    }
-
-    private function analyzeArray(PhelArray $arr, NodeEnvironment $env): ArrayNode
-    {
-        $values = [];
-        $valueEnv = $env->withContext(NodeEnvironment::CTX_EXPR);
-        foreach ($arr as $value) {
-            $values[] = $this->analyze($value, $valueEnv);
-        }
-
-        return new ArrayNode($env, $values, $arr->getStartLocation());
     }
 
     private function analyzeForeach(Tuple $x, NodeEnvironment $env): ForeachNode
