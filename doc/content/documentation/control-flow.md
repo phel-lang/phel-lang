@@ -95,7 +95,7 @@ Internally `recur` is implemented as a PHP while loop and therefore prevents the
 (foreach [value valueExpr] expr*)
 (foreach [key value valueExpr] expr*)
 ```
-The `foreach` special form can be used to iterate over all kind of PHP datastructures. The return value of `foreach` is always `nil`. The `loop` special form should be prefered of the `foreach` special form whenever possible.
+The `foreach` special form can be used to iterate over all kind of PHP datastructures. The return value of `foreach` is always `nil`. The `loop` special form should be preferred of the `foreach` special form whenever possible.
 
 ```
 (foreach [v [1 2 3]]
@@ -122,7 +122,7 @@ in `let` and `:verb` is one of the following keywords:
 * `:range` loop over a range, by using the range function.
 * `:in` loops over all values of a collection.
 * `:keys` loops over all keys/indexes of a collection.
-* `:pairs` loops over all key value pairs of a collections.
+* `:pairs` loops over all key value pairs of a collection.
 
 After each loop binding additional modifiers can be applied. Modifiers
 have the form `:modifier argument`. The following modifiers are supported:

@@ -3,9 +3,9 @@ title = "Macros"
 weight = 11
 +++
 
-Phel supports macros. Macros are function that take code as input and return transformed code as output. A macro is like a function that is executed at compile time. They are useful to extend the syntax of the language itself.
+Phel supports macros. Macros are functions that take code as input and return transformed code as output. A macro is like a function that is executed at compile time. They are useful to extend the syntax of the language itself.
 
-Phel's core library itself uses macro to define the language. For example `defn` is as marco
+Phel's core library itself uses macro to define the language. For example `defn` is as macro.
 
 ```phel
 (defn add [a b] (+ a b))
@@ -42,7 +42,7 @@ Quote make macros possible, since its helps to distinguish between code and data
 
 The `defmacro` function can be used to create a macro. It takes the same parameters as `defn`.
 
-Together with `quote` and `defmarco` it is now possible to define a custom `defn`, which is called `mydefn`:
+Together with `quote` and `defmarco`, it is now possible to define a custom `defn`, which is called `mydefn`:
 
 ```phel
 (defmacro mydefn [name args & body]
@@ -52,7 +52,7 @@ This macro is very simple at does not support all the feature of `defn`. But it 
 
 ## Quasiquote
 
-For better readability of marcos the `quasiquote` special form is defined. It turns the definion of macros around. Instead of quoting values that should not be evaluated, `quasiquote` marks values that should be evaluates. Every other value is not evaluated. A shorthand for `quasiquote` is the `` ` `` character. Values that should be evaluates are marked with the `unquote` function (shorthand `,`) or `unquote-splicing` function (shorthand `,@`). With quasiquote the `mydefn` macro can be expressed as
+For better readability of marcos the `quasiquote` special form is defined. It turns the definition of macros around. Instead of quoting values that should not be evaluated, `quasiquote` marks values that should be evaluated. Every other value is not evaluated. A shorthand for `quasiquote` is the `` ` `` character. Values that should be evaluated are marked with the `unquote` function (shorthand `,`) or `unquote-splicing` function (shorthand `,@`). With quasiquote the `mydefn` macro can be expressed as
 
 ```phel
 (defmacro mydefn [name args & body]

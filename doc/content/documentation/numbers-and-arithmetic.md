@@ -3,7 +3,7 @@ title = "Numbers and Arithmetic"
 weight = 3
 +++
 
-Phel support integer and floating point numbers. Both use the underlying PHP implementation. Integers can be specified in decimal (base 10), hexadecimal (base 16), octal (base 8) and binary (base 2) notation. Binary, octal and hexadecimal formats may contain underscores (`_`) between digits for better readability.
+Phel support integer and floating-point numbers. Both use the underlying PHP implementation. Integers can be specified in decimal (base 10), hexadecimal (base 16), octal (base 8) and binary (base 2) notation. Binary, octal and hexadecimal formats may contain underscores (`_`) between digits for better readability.
 
 ```phel
 1337 # integer
@@ -36,7 +36,7 @@ All arithmetic operators are entered in prefix notation.
 (+ 1 (* 2 2) (/ 10 5) 3 4 (- 5 6)) # Evaluates to 13
 ```
 
-Some operators support zero, one or mutiple arguments.
+Some operators support zero, one or multiple arguments.
 
 ```phel
 (+) # Evaluates to 0
@@ -60,7 +60,7 @@ Some operators support zero, one or mutiple arguments.
 
 Further numeric operations are `%` to compute the remainder of two values and `**` to raise a number to the power. All numeric operations can be found in the API documentation.
 
-Some numeric operations can result in an undefined or unpresentable value. These values are call _Not a Number_ (NaN). Phel represents this values by the constant `NAN`. You can check if a result is NaN by using the `nan?` function.
+Some numeric operations can result in an undefined or unrepresentable value. These values are call _Not a Number_ (NaN). Phel represents this values by the constant `NAN`. You can check if a result is NaN by using the `nan?` function.
 
 ```phel
 (nan? 1) # false
