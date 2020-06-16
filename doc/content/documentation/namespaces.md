@@ -25,7 +25,7 @@ The call also sets the `*ns*` variable to the given namespace.
 
 Before a Phel module can be used, it has to be imported with the keyword `:require`. Once imported, the module can be accessed by its name followed by a slash and the name of the public function or value.
 
-eg. Given, a module `util` is defined in the namespace `hello-world`.
+Given, a module `util` is defined in the namespace `hello-world`.
 
 ```phel
 (ns hello-world\util)
@@ -77,5 +77,5 @@ To prevent name collision from other classes in different namespaces, aliases ca
 Importing PHP classes is considered a "better" coding style, but it is optional. Any PHP class can be used by typing its namespace with the class name.
 
 ```phel
-(php/new Some\Php\ClassName)
+(php/new \Some\Php\ClassName)
 ```
