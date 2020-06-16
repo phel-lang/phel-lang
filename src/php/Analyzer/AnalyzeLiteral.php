@@ -10,6 +10,7 @@ use Phel\NodeEnvironment;
 
 final class AnalyzeLiteral
 {
+    /** @param Phel|scalar|null $x */
     public function __invoke($x, NodeEnvironment $env): LiteralNode
     {
         $sourceLocation = ($x instanceof Phel) ? $x->getStartLocation() : null;
