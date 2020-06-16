@@ -12,7 +12,8 @@
         }
     ],
     "require": {
-        "php": ">=7.4"
+        "php": ">=7.4",
+        "phel/phel-composer-plugin": "dev-master"
     },
     "require-dev": {
         "ext-readline": "*",
@@ -41,5 +42,15 @@
     },
     "bin": [
         "phel"
-    ]
+    ],
+    "extra": {
+        "phel": {
+            "loader": {
+                "phel\\": "src/phel/"
+            },
+            "loader-dev": {
+                "phel\\": "tests/phel/"
+            }
+        }
+    }
 }
