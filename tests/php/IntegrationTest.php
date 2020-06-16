@@ -34,7 +34,7 @@ class IntegrationTest extends TestCase
         Symbol::resetGen();
         $lexer = new Lexer();
         $reader = new Reader();
-        $analzyer = new Analyzer($globalEnv);
+        $analyzer = new Analyzer($globalEnv);
         $emitter = new Emitter(false);
         $tokenStream = $lexer->lexString($phelCode);
 
@@ -46,7 +46,7 @@ class IntegrationTest extends TestCase
                 break;
             }
 
-            $compiledCode[] = $emitter->emitAndEval($analzyer->analyze($readAst->getAst()));
+            $compiledCode[] = $emitter->emitAndEval($analyzer->analyze($readAst->getAst()));
         }
         $compiledCode = trim(implode("", $compiledCode));
         $this->assertEquals($generatedCode, $compiledCode, "in " . $filename);

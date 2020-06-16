@@ -23,12 +23,8 @@ final class Analyzer
 {
     private GlobalEnvironment $globalEnvironment;
 
-    public function __construct(?GlobalEnvironment $globalEnvironment = null)
+    public function __construct(GlobalEnvironment $globalEnvironment)
     {
-        if (is_null($globalEnvironment)) {
-            $globalEnvironment = new GlobalEnvironment();
-        }
-
         $this->globalEnvironment = $globalEnvironment;
     }
 
@@ -71,7 +67,6 @@ final class Analyzer
         throw new AnalyzerException('Unhandled type: ' . var_export($x, true));
     }
 
-    /** @param mixed $x */
     private function isLiteral($x): bool
     {
         return is_string($x)
