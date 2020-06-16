@@ -5,6 +5,9 @@ declare(strict_types=1);
 namespace Phel;
 
 use Exception;
+use Phel\Analyzer\AnalyzeLiteral;
+use Phel\Analyzer\AnalyzeSymbol;
+use Phel\Analyzer\PhpKeywords;
 use Phel\Ast\ApplyNode;
 use Phel\Ast\ArrayNode;
 use Phel\Ast\BindingNode;
@@ -50,19 +53,6 @@ final class Analyzer
 {
     private GlobalEnvironment $globalEnvironment;
 
-    private const PHP_KEYWORDS = [
-        '__halt_compiler', 'abstract', 'and', 'array', 'as', 'break',
-        'callable', 'case', 'catch', 'class', 'clone', 'const', 'continue',
-        'declare', 'default', 'die', 'do', 'echo', 'else', 'elseif', 'empty',
-        'enddeclare', 'endfor', 'endforeach', 'endif', 'endswitch', 'endwhile',
-        'eval', 'exit', 'extends', 'final', 'for', 'foreach', 'function',
-        'global', 'goto', 'if', 'implements', 'include', 'include_once',
-        'instanceof', 'insteadof', 'interface', 'isset', 'list', 'namespace',
-        'new', 'or', 'print', 'private', 'protected', 'public', 'require',
-        'require_once', 'return', 'static', 'switch', 'throw', 'trait', 'try',
-        'unset', 'use', 'var', 'while', 'xor'
-    ];
-
     public function __construct(?GlobalEnvironment $globalEnvironment = null)
     {
         if (is_null($globalEnvironment)) {
@@ -73,19 +63,6 @@ final class Analyzer
     }
 
     /**
-     * @param mixed $x
-     */
-    private function isLiteral($x): bool
-    {
-        return is_string($x)
-          || is_float($x)
-          || is_int($x)
-          || is_bool($x)
-          || $x === null
-          || $x instanceof Keyword;
-    }
-
-    /**
      * @param Phel|scalar|null $x
      * @param ?NodeEnvironment $nodeEnvironment
      *
@@ -93,16 +70,16 @@ final class Analyzer
      */
     public function analyze($x, ?NodeEnvironment $nodeEnvironment = null): Node
     {
-        if (is_null($nodeEnvironment)) {
+        if (null === $nodeEnvironment) {
             $nodeEnvironment = NodeEnvironment::empty();
         }
 
         if ($this->isLiteral($x)) {
-            return $this->analyzeLiteral($x, $nodeEnvironment);
+            return (new AnalyzeLiteral())($x, $nodeEnvironment);
         }
 
         if ($x instanceof Symbol) {
-            return $this->analyzeVar($x, $nodeEnvironment);
+            return (new AnalyzeSymbol($this->globalEnvironment))($x, $nodeEnvironment);
         }
 
         if ($x instanceof Tuple && $x->isUsingBracket()) {
@@ -122,6 +99,17 @@ final class Analyzer
         }
 
         throw new AnalyzerException('Unhandled type: ' . var_export($x, true), null, null);
+    }
+
+    /**  @param mixed $x */
+    private function isLiteral($x): bool
+    {
+        return is_string($x)
+            || is_float($x)
+            || is_int($x)
+            || is_bool($x)
+            || $x === null
+            || $x instanceof Keyword;
     }
 
     private function analyzeDefStruct(Tuple $x, NodeEnvironment $env): DefStructNode
@@ -764,31 +752,6 @@ final class Analyzer
         return new PhelArrayNode($env, $args, $x->getStartLocation());
     }
 
-    private function analyzeVar(Symbol $x, NodeEnvironment $env): Node
-    {
-        if (strpos($x->getName(), 'php/') === 0) {
-            return new PhpVarNode($env, substr($x->getName(), 4), $x->getStartLocation());
-        }
-
-        if ($env->hasLocal($x)) {
-            $shadowedVar = $env->getShadowed($x);
-            if ($shadowedVar) {
-                $shadowedVar->setStartLocation($x->getStartLocation());
-                $shadowedVar->setEndLocation($x->getEndLocation());
-                return new LocalVarNode($env, $shadowedVar, $x->getStartLocation());
-            }
-
-            return new LocalVarNode($env, $x, $x->getStartLocation());
-        }
-
-        $globalResolve = $this->globalEnvironment->resolve($x, $env);
-        if ($globalResolve) {
-            return $globalResolve;
-        }
-
-        throw new AnalyzerException('Can not resolve symbol ' . $x->getName(), $x->getStartLocation(), $x->getEndLocation());
-    }
-
     private function analyzeLet(Tuple $x, NodeEnvironment $env): LetNode
     {
         if (count($x) < 2) {
@@ -1228,17 +1191,6 @@ final class Analyzer
         }
     }
 
-    /**
-     * @param Phel|scalar|null $x
-     * @param NodeEnvironment $env
-     *
-     * @return LiteralNode
-     */
-    private function analyzeLiteral($x, NodeEnvironment $env): LiteralNode
-    {
-        return new LiteralNode($env, $x, ($x instanceof Phel) ? $x->getStartLocation() : null);
-    }
-
     private function analyzeNs(Tuple $x, NodeEnvironment $env): NsNode
     {
         $tupleCount = count($x);
@@ -1434,6 +1386,6 @@ final class Analyzer
 
     private function isPHPKeyword(string $w)
     {
-        return in_array($w, self::PHP_KEYWORDS);
+        return in_array($w, PhpKeywords::KEYWORDS);
     }
 }
