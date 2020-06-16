@@ -1,11 +1,12 @@
 <?php
 
+declare(strict_types=1);
 
 namespace Phel;
 
 use Phel\Lang\SourceLocation;
 
-class Token
+final class Token
 {
     public const T_WHITESPACE = 2;
     public const T_COMMENT = 3;
@@ -25,29 +26,13 @@ class Token
     public const T_FN = 17;
     public const T_STRING = 18;
     public const T_ATOM = 19;
-
-
+    public const T_COMMA = 20;
     public const T_EOF = 100;
 
-    /**
-     * @var string
-     */
-    private $code;
-
-    /**
-     * @var int
-     */
-    private $type;
-
-    /**
-     * @var SourceLocation
-     */
-    private $startLocation;
-
-    /**
-     * @var SourceLocation
-     */
-    private $endLocation;
+    private string $code;
+    private int $type;
+    private SourceLocation $startLocation;
+    private SourceLocation $endLocation;
 
     public function __construct(int $type, string $code, SourceLocation $startLocation, SourceLocation $endLocation)
     {

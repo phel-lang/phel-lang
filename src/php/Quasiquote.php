@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Phel;
 
 use Phel\Lang\Keyword;
@@ -9,24 +11,8 @@ use Phel\Lang\Symbol;
 use Phel\Lang\Table;
 use Phel\Lang\Tuple;
 
-class Quasiquote
+final class Quasiquote
 {
-
-    /**
-     * @param Phel|scalar|null $x The form to check.
-     */
-    private function isLiteral($x): bool
-    {
-        return is_string($x)
-          || is_float($x)
-          || is_int($x)
-          || is_bool($x)
-          || $x === null
-          || $x instanceof Keyword
-          || $x instanceof PhelArray
-          || $x instanceof Table;
-    }
-
     /**
      * @param Phel|scalar|null $form The form to quasiqoute
      *
@@ -37,10 +23,15 @@ class Quasiquote
         if ($this->isUnquote($form)) {
             /** @var Tuple $form */
             return $form[1];
-        } elseif ($this->isUnquoteSplicing($form)) {
+        }
+
+        if ($this->isUnquoteSplicing($form)) {
             throw new \Exception('splice not in list');
-        } elseif ($form instanceof Tuple && count($form) > 0) {
+        }
+
+        if ($form instanceof Tuple && count($form) > 0) {
             $tupleBuilder = $form->isUsingBracket() ? 'tuple-brackets' : 'tuple';
+
             return Tuple::create(
                 (new Symbol('apply'))->copyLocationFrom($form),
                 (new Symbol($tupleBuilder))->copyLocationFrom($form),
@@ -49,15 +40,33 @@ class Quasiquote
                     ...$this->expandList($form)
                 )->copyLocationFrom($form)
             )->copyLocationFrom($form);
-        // TODO: Handle Table and Array
-        } elseif ($this->isLiteral($form)) {
-            return $form;
-        } else {
-            return Tuple::create(
-                (new Symbol('quote'))->copyLocationFrom($form),
-                $form
-            )->copyLocationFrom($form);
+            // TODO: Handle Table and Array
         }
+
+        if ($this->isLiteral($form)) {
+            return $form;
+        }
+
+        return Tuple::create(
+            (new Symbol('quote'))->copyLocationFrom($form),
+            $form
+        )->copyLocationFrom($form);
+    }
+
+    /**
+     * @param Phel|scalar|null $form The form to quasiqoute
+     */
+    private function isUnquote($form): bool
+    {
+        return $form instanceof Tuple && $form[0] == 'unquote';
+    }
+
+    /**
+     * @param Phel|scalar|null $form The form to quasiqoute
+     */
+    private function isUnquoteSplicing($form): bool
+    {
+        return $form instanceof Tuple && $form[0] == 'unquote-splicing';
     }
 
     private function expandList(Tuple $seq): array
@@ -83,22 +92,17 @@ class Quasiquote
     }
 
     /**
-     * @param Phel|scalar|null $form The form to quasiqoute
-     *
-     * @return bool
+     * @param Phel|scalar|null $x The form to check.
      */
-    private function isUnquote($form)
+    private function isLiteral($x): bool
     {
-        return $form instanceof Tuple && $form[0] == 'unquote';
-    }
-
-    /**
-     * @param Phel|scalar|null $form The form to quasiqoute
-     *
-     * @return bool
-     */
-    private function isUnquoteSplicing($form)
-    {
-        return $form instanceof Tuple && $form[0] == 'unquote-splicing';
+        return is_string($x)
+            || is_float($x)
+            || is_int($x)
+            || is_bool($x)
+            || $x === null
+            || $x instanceof Keyword
+            || $x instanceof PhelArray
+            || $x instanceof Table;
     }
 }

@@ -1,13 +1,15 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Phel;
 
 use Phel\Lang\SourceLocation;
 use PHPUnit\Framework\TestCase;
 
-class LexerTest extends TestCase
+final class LexerTest extends TestCase
 {
-    public function testReadCommentWithoutText()
+    public function testReadCommentWithoutText(): void
     {
         $this->assertEquals(
             [
@@ -18,7 +20,7 @@ class LexerTest extends TestCase
         );
     }
 
-    public function testReadCommentWithoutNewLine()
+    public function testReadCommentWithoutNewLine(): void
     {
         $this->assertEquals(
             [
@@ -29,7 +31,7 @@ class LexerTest extends TestCase
         );
     }
 
-    public function testReadCommentWithNewLine()
+    public function testReadCommentWithNewLine(): void
     {
         $this->assertEquals(
             [
@@ -42,7 +44,7 @@ class LexerTest extends TestCase
         );
     }
 
-    public function testReadSingleSyntaxChar()
+    public function testReadSingleSyntaxChar(): void
     {
         $this->assertEquals(
             [
@@ -53,7 +55,7 @@ class LexerTest extends TestCase
         );
     }
 
-    public function testReadEmptyTuple()
+    public function testReadEmptyTuple(): void
     {
         $this->assertEquals(
             [
@@ -65,7 +67,7 @@ class LexerTest extends TestCase
         );
     }
 
-    public function testReadWord()
+    public function testReadWord(): void
     {
         $this->assertEquals(
             [
@@ -76,7 +78,7 @@ class LexerTest extends TestCase
         );
     }
 
-    public function testReadNumber()
+    public function testReadNumber(): void
     {
         $this->assertEquals(
             [
@@ -87,7 +89,7 @@ class LexerTest extends TestCase
         );
     }
 
-    public function testReadEmptyString()
+    public function testReadEmptyString(): void
     {
         $this->assertEquals(
             [
@@ -98,7 +100,7 @@ class LexerTest extends TestCase
         );
     }
 
-    public function testReadString()
+    public function testReadString(): void
     {
         $this->assertEquals(
             [
@@ -109,7 +111,7 @@ class LexerTest extends TestCase
         );
     }
 
-    public function testReadEscapedString()
+    public function testReadEscapedString(): void
     {
         $this->assertEquals(
             [
@@ -120,7 +122,7 @@ class LexerTest extends TestCase
         );
     }
 
-    public function testReadTuple()
+    public function testReadTuple(): void
     {
         $this->assertEquals(
             [
@@ -135,7 +137,7 @@ class LexerTest extends TestCase
         );
     }
 
-    private function lex($string)
+    private function lex(string $string): array
     {
         $lexer = new Lexer();
         return iterator_to_array($lexer->lexString($string, 'string'));
