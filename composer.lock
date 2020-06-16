@@ -9,10 +9,16 @@
         {
             "name": "phel/phel-composer-plugin",
             "version": "dev-master",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/jenshaase/phel-composer-plugin.git",
+                "reference": "42f4396bcbb25cbfaeb4602771a68f6e74efb607"
+            },
             "dist": {
-                "type": "path",
-                "url": "/home/jens/dev/php/phel-composer-plugin",
-                "reference": "eb6b7fda451b913a4ec96d63758bb6bd783b1327"
+                "type": "zip",
+                "url": "https://api.github.com/repos/jenshaase/phel-composer-plugin/zipball/42f4396bcbb25cbfaeb4602771a68f6e74efb607",
+                "reference": "42f4396bcbb25cbfaeb4602771a68f6e74efb607",
+                "shasum": ""
             },
             "require": {
                 "composer-plugin-api": "^1.1.0",
@@ -33,28 +39,7 @@
                     "Phel\\Composer\\": "src"
                 }
             },
-            "autoload-dev": {
-                "psr-4": {
-                    "Phel\\Composer\\": "tests"
-                }
-            },
-            "scripts": {
-                "test": [
-                    "vendor/bin/phpunit"
-                ],
-                "test:coverage": [
-                    "vendor/bin/phpunit --coverage-html data/coverage-report"
-                ],
-                "psalm": [
-                    "vendor/bin/psalm"
-                ],
-                "test-all": [
-                    "composer psalm && composer test"
-                ],
-                "csfix": [
-                    "vendor/bin/php-cs-fixer fix"
-                ]
-            },
+            "notification-url": "https://packagist.org/downloads/",
             "license": [
                 "MIT"
             ],
@@ -73,7 +58,8 @@
                 "lisp",
                 "phel",
                 "plugin"
-            ]
+            ],
+            "time": "2020-06-16T19:14:20+00:00"
         }
     ],
     "packages-dev": [
