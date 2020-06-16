@@ -79,7 +79,7 @@ final class Reader
     }
 
     /**
-     * @return Phel|null|string|scalar
+     * @return Phel|null|scalar
      */
     public function readExpression(Generator $tokenStream)
     {
