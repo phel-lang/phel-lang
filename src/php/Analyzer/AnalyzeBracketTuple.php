@@ -21,6 +21,7 @@ final class AnalyzeBracketTuple
     public function __invoke(Tuple $tuple, NodeEnvironment $env): TupleNode
     {
         $args = [];
+
         foreach ($tuple as $arg) {
             $envDisallowRecur = $env->withContext(NodeEnvironment::CTX_EXPR)->withDisallowRecurFrame();
             $args[] = $this->analyzer->analyze($arg, $envDisallowRecur);

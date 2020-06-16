@@ -651,9 +651,7 @@ final class AnalyzeTuple
             $exprs[] = $x[$i];
         }
 
-        /**
-         * @psalm-suppress PossiblyNullArgument
-         */
+        /** @psalm-suppress PossiblyNullArgument */
         $bindings = $this->analyzeBindings($x[1], $env->withDisallowRecurFrame());
 
         $locals = [];
@@ -690,10 +688,8 @@ final class AnalyzeTuple
         );
     }
 
-    /**
-     * @return BindingNode[]
-     */
-    private function analyzeBindings(Tuple $x, NodeEnvironment $env)
+    /** @return BindingNode[] */
+    private function analyzeBindings(Tuple $x, NodeEnvironment $env): array
     {
         $tupleCount = count($x);
         $initEnv = $env->withContext(NodeEnvironment::CTX_EXPR)->withDisallowRecurFrame();

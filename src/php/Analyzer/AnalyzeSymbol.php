@@ -4,21 +4,21 @@ declare(strict_types=1);
 
 namespace Phel\Analyzer;
 
+use Phel\Analyzer;
 use Phel\Ast\LocalVarNode;
 use Phel\Ast\Node;
 use Phel\Ast\PhpVarNode;
 use Phel\Exceptions\AnalyzerException;
-use Phel\GlobalEnvironment;
 use Phel\Lang\Symbol;
 use Phel\NodeEnvironment;
 
 final class AnalyzeSymbol
 {
-    private GlobalEnvironment $globalEnvironment;
+    private Analyzer $analyzer;
 
-    public function __construct($globalEnvironment)
+    public function __construct(Analyzer $analyzer)
     {
-        $this->globalEnvironment = $globalEnvironment;
+        $this->analyzer = $analyzer;
     }
 
     public function __invoke(Symbol $x, NodeEnvironment $env): Node
@@ -39,7 +39,7 @@ final class AnalyzeSymbol
             return new LocalVarNode($env, $x, $x->getStartLocation());
         }
 
-        $globalResolve = $this->globalEnvironment->resolve($x, $env);
+        $globalResolve = $this->analyzer->getGlobalEnvironment()->resolve($x, $env);
         if ($globalResolve) {
             return $globalResolve;
         }

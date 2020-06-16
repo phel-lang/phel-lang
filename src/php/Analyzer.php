@@ -10,8 +10,6 @@ use Phel\Analyzer\AnalyzeLiteral;
 use Phel\Analyzer\AnalyzeSymbol;
 use Phel\Analyzer\AnalyzeTable;
 use Phel\Analyzer\AnalyzeTuple;
-use Phel\Analyzer\PhpKeywords;
-use Phel\Ast\DefStructNode;
 use Phel\Ast\Node;
 use Phel\Exceptions\AnalyzerException;
 use Phel\Lang\Keyword;
@@ -39,46 +37,41 @@ final class Analyzer
         return $this->globalEnvironment;
     }
 
-    /**
-     * @param Phel|scalar|null $x
-     * @param ?NodeEnvironment $nodeEnvironment
-     *
-     * @return Node
-     */
-    public function analyze($x, ?NodeEnvironment $nodeEnvironment = null): Node
+    /** @param Phel|scalar|null $x */
+    public function analyze($x, ?NodeEnvironment $env = null): Node
     {
-        if (null === $nodeEnvironment) {
-            $nodeEnvironment = NodeEnvironment::empty();
+        if (null === $env) {
+            $env = NodeEnvironment::empty();
         }
 
         if ($this->isLiteral($x)) {
-            return (new AnalyzeLiteral())($x, $nodeEnvironment);
+            return (new AnalyzeLiteral())($x, $env);
         }
 
         if ($x instanceof Symbol) {
-            return (new AnalyzeSymbol($this->globalEnvironment))($x, $nodeEnvironment);
+            return (new AnalyzeSymbol($this))($x, $env);
         }
 
         if ($x instanceof Tuple && $x->isUsingBracket()) {
-            return (new AnalyzeBracketTuple($this))($x, $nodeEnvironment);
+            return (new AnalyzeBracketTuple($this))($x, $env);
         }
 
         if ($x instanceof PhelArray) {
-            return (new AnalyzeArray($this))($x, $nodeEnvironment);
+            return (new AnalyzeArray($this))($x, $env);
         }
 
         if ($x instanceof Table) {
-            return (new AnalyzeTable($this))($x, $nodeEnvironment);
+            return (new AnalyzeTable($this))($x, $env);
         }
 
         if ($x instanceof Tuple) {
-            return (new AnalyzeTuple($this))($x, $nodeEnvironment);
+            return (new AnalyzeTuple($this))($x, $env);
         }
 
-        throw new AnalyzerException('Unhandled type: ' . var_export($x, true), null, null);
+        throw new AnalyzerException('Unhandled type: ' . var_export($x, true));
     }
 
-    /**  @param mixed $x */
+    /** @param mixed $x */
     private function isLiteral($x): bool
     {
         return is_string($x)

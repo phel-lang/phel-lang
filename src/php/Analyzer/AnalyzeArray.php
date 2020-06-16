@@ -18,14 +18,15 @@ final class AnalyzeArray
         $this->analyzer = $analyzer;
     }
 
-    public function __invoke(PhelArray $phelArray, NodeEnvironment $env): ArrayNode
+    public function __invoke(PhelArray $array, NodeEnvironment $env): ArrayNode
     {
         $values = [];
         $valueEnv = $env->withContext(NodeEnvironment::CTX_EXPR);
-        foreach ($phelArray as $value) {
+
+        foreach ($array as $value) {
             $values[] = $this->analyzer->analyze($value, $valueEnv);
         }
 
-        return new ArrayNode($env, $values, $phelArray->getStartLocation());
+        return new ArrayNode($env, $values, $array->getStartLocation());
     }
 }
