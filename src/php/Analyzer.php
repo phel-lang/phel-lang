@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Phel;
 
 use Exception;
+use Phel\Analyzer\AnalyzeBracketTuple;
 use Phel\Analyzer\AnalyzeLiteral;
 use Phel\Analyzer\AnalyzeSymbol;
 use Phel\Analyzer\PhpKeywords;
@@ -83,7 +84,7 @@ final class Analyzer
         }
 
         if ($x instanceof Tuple && $x->isUsingBracket()) {
-            return $this->analyzeBracketTuple($x, $nodeEnvironment);
+            return (new AnalyzeBracketTuple($this))($x, $nodeEnvironment);
         }
 
         if ($x instanceof PhelArray) {
@@ -730,16 +731,6 @@ final class Analyzer
             $methodCall,
             $x->getStartLocation()
         );
-    }
-
-    private function analyzeBracketTuple(Tuple $x, NodeEnvironment $env): TupleNode
-    {
-        $args = [];
-        foreach ($x as $arg) {
-            $args[] = $this->analyze($arg, $env->withContext(NodeEnvironment::CTX_EXPR)->withDisallowRecurFrame());
-        }
-
-        return new TupleNode($env, $args, $x->getStartLocation());
     }
 
     private function analyzePhelArray(PhelArray $x, NodeEnvironment $env): PhelArrayNode
