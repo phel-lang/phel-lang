@@ -61,7 +61,7 @@ final class Emitter
 
     private array $sourceMap = [];
 
-    public function __construct($enableSourceMaps = true)
+    public function __construct(bool $enableSourceMaps = true)
     {
         $this->enableSourceMaps = $enableSourceMaps;
         $this->sourceMapGenerator = new SourceMapGenerator();

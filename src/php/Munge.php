@@ -58,6 +58,7 @@ class Munge
         return self::encodeWithMap($s, array_flip(self::$mungeNsMapping));
     }
 
+    /** @param (array-key|mixed)[] $mapping */
     private static function encodeWithMap(string $s, $mapping): string
     {
         return str_replace(

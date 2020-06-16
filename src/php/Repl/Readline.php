@@ -13,7 +13,7 @@ final class Readline
         $this->historyFile = $historyFile;
     }
 
-    public function addHistory($line): bool
+    public function addHistory(string $line): bool
     {
         $res = readline_add_history($line);
 
@@ -46,12 +46,16 @@ final class Readline
         return readline_read_history($this->historyFile);
     }
 
-    /**
-     * @return false|string
-     */
-    public function readline(?string $prompt = null)
+    public function readline(?string $prompt = null): ?string
     {
-        return readline($prompt);
+        /** @var false|string $line */
+        $line = readline($prompt);
+
+        if ($line === false) {
+            return null;
+        }
+
+        return $line;
     }
 
     public function redisplay(): void

@@ -4,16 +4,8 @@ namespace Phel\SourceMap;
 
 class SourceMapConsumer
 {
-
-    /**
-     * @var VLQ
-     */
-    private $vlq;
-
-    /**
-     * @var array
-     */
-    private $lineMapping;
+    private VLQ $vlq;
+    private array $lineMapping;
 
     public function __construct(string $mapping)
     {
@@ -21,7 +13,7 @@ class SourceMapConsumer
         $this->lineMapping = $this->decodeMapping($mapping);
     }
 
-    protected function decodeMapping(string $mapping)
+    protected function decodeMapping(string $mapping): array
     {
         $lines = explode(";", $mapping);
 
@@ -51,12 +43,12 @@ class SourceMapConsumer
         return $lineMapping;
     }
 
-    public function getOriginalLine($generatedLine)
+    public function getOriginalLine(int $generatedLine)
     {
         if (isset($this->lineMapping[$generatedLine])) {
             return min($this->lineMapping[$generatedLine]);
-        } else {
-            return null;
         }
+
+        return null;
     }
 }

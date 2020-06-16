@@ -1,33 +1,23 @@
 <?php
 
+declare(strict_types=1);
 
 namespace Phel\Ast;
 
 use Phel\Lang\SourceLocation;
 use Phel\NodeEnvironment;
 
-class TableNode extends Node
+final class TableNode extends Node
 {
+    private array $keyValues;
 
-    /**
-     * @var array
-     */
-    protected $keyValues;
-
-    /**
-     * @param NodeEnvironment $env
-     * @param array $value
-     */
     public function __construct(NodeEnvironment $env, array $keyValues, ?SourceLocation $sourceLocation = null)
     {
         parent::__construct($env, $sourceLocation);
         $this->keyValues = $keyValues;
     }
 
-    /**
-     * @return array
-     */
-    public function getKeyValues()
+    public function getKeyValues(): array
     {
         return $this->keyValues;
     }

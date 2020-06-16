@@ -1,46 +1,48 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Phel;
 
 use Phel\Lang\Symbol;
-use Phel\Lang\Table;
 
-class NodeEnvironment
+final class NodeEnvironment
 {
-    const CTX_EXPR = 'expr';
-    const CTX_STMT = 'stmt';
-    const CTX_RET = 'ret';
+    public const CTX_EXPR = 'expr';
+    public const CTX_STMT = 'stmt';
+    public const CTX_RET = 'ret';
 
     /**
+     * A list of local symbols
      * @var Symbol[]
      */
-    protected $locals;
+    private array $locals;
+
+    /**
+     * The current context (Expression, Statement or Return)
+     * @var string
+     */
+    private string $context;
 
     /**
      * A mapping of local variables to shadowed names
-     *
      * @var array
      */
-    protected $shadowed;
+    private array $shadowed;
 
     /**
-     * @var string
-     */
-    protected $context;
-
-    /**
+     * A list of RecurFrame
      * @var array
      */
-    protected $recurFrames;
+    private array $recurFrames;
 
     /**
+     * A variable this is bound to
      * @var string
      */
-    protected $boundTo = '';
+    private string $boundTo;
 
     /**
-     * Constructor
-     *
      * @param Symbol[] $locals A list of local symbols
      * @param string $context The current context (Expression, Statement or Return)
      * @param Symbol[] $shadowed A list of shadowed variables
@@ -53,27 +55,41 @@ class NodeEnvironment
         $this->context = $context;
         $this->shadowed = $shadowed;
         $this->recurFrames = $recurFrames;
-        if ($boundTo) {
-            $this->boundTo = $boundTo;
-        }
+        $this->boundTo = $boundTo ?? '';
     }
 
     public static function empty(): NodeEnvironment
     {
-        return new NodeEnvironment([], NodeEnvironment::CTX_STMT, [], []);
+        return new NodeEnvironment([], self::CTX_STMT, [], []);
     }
 
     /**
      * @return Symbol[]
      */
-    public function getLocals()
+    public function getLocals(): array
     {
         return $this->locals;
     }
 
     public function hasLocal(Symbol $x): bool
     {
-        return in_array(new Symbol($x->getName()), $this->locals);
+        return in_array(new Symbol($x->getName()), $this->locals, false);
+    }
+
+    /**
+     * Gets the shadowed name of a local variable
+     *
+     * @param Symbol $local The local variable
+     *
+     * @return Symbol|null
+     */
+    public function getShadowed(Symbol $local): ?Symbol
+    {
+        if ($this->isShadowed($local)) {
+            return $this->shadowed[$local->getName()];
+        }
+
+        return null;
     }
 
     /**
@@ -88,22 +104,6 @@ class NodeEnvironment
         return array_key_exists($local->getName(), $this->shadowed);
     }
 
-    /**
-     * Gets the shadowed name of a local variable
-     *
-     * @param Symbol $local The local variable
-     *
-     * @return Symbol|null
-     */
-    public function getShadowed(Symbol $local): ?Symbol
-    {
-        if ($this->isShadowed($local)) {
-            return $this->shadowed[$local->getName()];
-        } else {
-            return null;
-        }
-    }
-
     public function getContext(): string
     {
         return $this->context;
@@ -111,7 +111,9 @@ class NodeEnvironment
 
     public function withMergedLocals(array $locals): NodeEnvironment
     {
-        $finalLocals = array_unique(array_merge($this->locals, array_map(fn ($s) => new Symbol($s->getName()), $locals)));
+        $finalLocals = array_unique(
+            array_merge($this->locals, array_map(fn ($s) => new Symbol($s->getName()), $locals))
+        );
         return new NodeEnvironment($finalLocals, $this->context, $this->shadowed, $this->recurFrames, $this->boundTo);
     }
 
@@ -133,29 +135,41 @@ class NodeEnvironment
 
     public function withAddedRecurFrame(RecurFrame $frame): NodeEnvironment
     {
-        return new NodeEnvironment($this->locals, $this->context, $this->shadowed, array_merge($this->recurFrames, [$frame]), $this->boundTo);
+        return new NodeEnvironment(
+            $this->locals,
+            $this->context,
+            $this->shadowed,
+            array_merge($this->recurFrames, [$frame]),
+            $this->boundTo
+        );
     }
 
     public function withDisallowRecurFrame(): NodeEnvironment
     {
-        return new NodeEnvironment($this->locals, $this->context, $this->shadowed, array_merge($this->recurFrames, [null]), $this->boundTo);
+        return new NodeEnvironment(
+            $this->locals,
+            $this->context,
+            $this->shadowed,
+            array_merge($this->recurFrames, [null]),
+            $this->boundTo
+        );
     }
 
     public function getCurrentRecurFrame(): ?RecurFrame
     {
         if (count($this->recurFrames) > 0) {
             return $this->recurFrames[count($this->recurFrames) - 1];
-        } else {
-            return null;
         }
+
+        return null;
     }
 
-    public function withBoundTo($boundTo)
+    public function withBoundTo(string $boundTo): NodeEnvironment
     {
         return new NodeEnvironment($this->locals, $this->context, $this->shadowed, $this->recurFrames, $boundTo);
     }
 
-    public function getBoundTo()
+    public function getBoundTo(): string
     {
         return $this->boundTo;
     }

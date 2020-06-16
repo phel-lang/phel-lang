@@ -9,16 +9,15 @@ use Phel\NodeEnvironment;
 
 class NsNode extends Node
 {
-
     /**
      * @var Symbol[]
      */
-    protected $requireNs;
+    protected array $requireNs;
 
     /**
      * @var string
      */
-    protected $namespace;
+    protected string $namespace;
 
     /**
      * @param Symbol[] $requireNs
@@ -33,12 +32,12 @@ class NsNode extends Node
     /**
      * @return Symbol[]
      */
-    public function getRequireNs()
+    public function getRequireNs(): array
     {
         return $this->requireNs;
     }
 
-    public function getNamespace()
+    public function getNamespace(): string
     {
         return $this->namespace;
     }

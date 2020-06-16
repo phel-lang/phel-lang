@@ -356,37 +356,41 @@ final class Reader
         return $this->readSymbol($word);
     }
 
-    private function readSymbol($word)
+    private function readSymbol(string $word): Symbol
     {
-        if (is_array($this->fnArgs)) {
-            // Special case: We read an anonymous function
-            if ($word === '$') {
-                if (isset($this->fnArgs[1])) {
-                    return new Symbol($this->fnArgs[1]->getName());
-                }
-                $sym = Symbol::gen('__short_fn_1_');
-                $this->fnArgs[1] = $sym;
-                return $sym;
-            }
-            if ($word === "$&") {
-                if (isset($this->fnArgs[0])) {
-                    return new Symbol($this->fnArgs[0]->getName());
-                }
-                $sym = Symbol::gen('__short_fn_rest_');
-                $this->fnArgs[0] = $sym;
-                return $sym;
-            }
-            if (preg_match('/\$([1-9][0-9]*)/', $word, $matches)) {
-                $number = (int) $matches[1];
-                if (isset($this->fnArgs[$number])) {
-                    return new Symbol($this->fnArgs[$number]->getName());
-                }
-                $sym = Symbol::gen('__short_fn_' . $number . '_');
-                $this->fnArgs[$number] = $sym;
-                return $sym;
-            }
+        if (!is_array($this->fnArgs)) {
             return new Symbol($word);
         }
+
+        // Special case: We read an anonymous function
+        if ($word === '$') {
+            if (isset($this->fnArgs[1])) {
+                return new Symbol($this->fnArgs[1]->getName());
+            }
+            $sym = Symbol::gen('__short_fn_1_');
+            $this->fnArgs[1] = $sym;
+            return $sym;
+        }
+
+        if ($word === "$&") {
+            if (isset($this->fnArgs[0])) {
+                return new Symbol($this->fnArgs[0]->getName());
+            }
+            $sym = Symbol::gen('__short_fn_rest_');
+            $this->fnArgs[0] = $sym;
+            return $sym;
+        }
+
+        if (preg_match('/\$([1-9][0-9]*)/', $word, $matches)) {
+            $number = (int) $matches[1];
+            if (isset($this->fnArgs[$number])) {
+                return new Symbol($this->fnArgs[$number]->getName());
+            }
+            $sym = Symbol::gen('__short_fn_' . $number . '_');
+            $this->fnArgs[$number] = $sym;
+            return $sym;
+        }
+
         return new Symbol($word);
     }
 
