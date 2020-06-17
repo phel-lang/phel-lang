@@ -4,14 +4,14 @@ namespace Phel;
 
 class Munge
 {
-    protected static $mungeNsMapping = [
+    protected static array $mungeNsMapping = [
         '-' => '_',
     ];
 
     /**
      * @var array
      */
-    protected static $mungeMapping = [
+    protected static array $mungeMapping = [
         '-' => '_',
         '.' => '_DOT_',
         ':' => '_COLON_',
@@ -41,11 +41,11 @@ class Munge
 
     public static function encode(string $s): string
     {
-        if ($s == 'this') {
+        if ($s === 'this') {
             return '__phel_this';
-        } else {
-            return self::encodeWithMap($s, self::$mungeMapping);
         }
+
+        return self::encodeWithMap($s, self::$mungeMapping);
     }
 
     public static function encodeNs(string $s): string
@@ -58,8 +58,8 @@ class Munge
         return self::encodeWithMap($s, array_flip(self::$mungeNsMapping));
     }
 
-    /** @param (array-key|mixed)[] $mapping */
-    private static function encodeWithMap(string $s, $mapping): string
+    /** @param array<string, string> $mapping */
+    private static function encodeWithMap(string $s, array $mapping): string
     {
         return str_replace(
             array_keys($mapping),
