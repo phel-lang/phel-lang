@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Phel\Repl;
+namespace Phel\Commands\Repl;
 
 /** @psalm-immutable */
 final class ColorStyle

@@ -2,13 +2,21 @@
 
 declare(strict_types=1);
 
-namespace Phel;
+namespace Phel\Commands;
 
+use Phel\Analyzer;
+use Phel\Commands\Repl\ColorStyle;
+use Phel\Commands\Repl\Readline;
+use Phel\Emitter;
 use Phel\Exceptions\AnalyzerException;
 use Phel\Exceptions\ReaderException;
 use Phel\Exceptions\TextExceptionPrinter;
-use Phel\Repl\ColorStyle;
-use Phel\Repl\Readline;
+use Phel\GlobalEnvironment;
+use Phel\Lexer;
+use Phel\NodeEnvironment;
+use Phel\Printer;
+use Phel\Reader;
+use Phel\Runtime;
 use Throwable;
 
 final class Repl
