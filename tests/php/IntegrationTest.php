@@ -46,7 +46,9 @@ class IntegrationTest extends TestCase
                 break;
             }
 
-            $compiledCode[] = $emitter->emitAndEval($analyzer->analyze($readAst->getAst()));
+            $compiledCode[] = $emitter->emitAndEval(
+                $analyzer->analyze($readAst->getAst(), NodeEnvironment::empty()),
+            );
         }
         $compiledCode = trim(implode("", $compiledCode));
         $this->assertEquals($generatedCode, $compiledCode, "in " . $filename);
