@@ -47,7 +47,7 @@ class IntegrationTest extends TestCase
             }
 
             $compiledCode[] = $emitter->emitAndEval(
-                $analyzer->analyze($readAst->getAst(), NodeEnvironment::empty()),
+                $analyzer->analyzeInEmptyEnv($readAst->getAst())
             );
         }
         $compiledCode = trim(implode("", $compiledCode));

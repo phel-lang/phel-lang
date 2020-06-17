@@ -42,7 +42,7 @@ final class Compiler
                 }
 
                 try {
-                    $nodes = $this->analyzer->analyze($readerResult->getAst(), NodeEnvironment::empty());
+                    $nodes = $this->analyzer->analyzeInEmptyEnv($readerResult->getAst());
                 } catch (AnalyzerException $e) {
                     throw new CompilerException($e, $readerResult->getCodeSnippet());
                 }

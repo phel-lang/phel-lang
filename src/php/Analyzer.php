@@ -34,6 +34,12 @@ final class Analyzer
     }
 
     /** @param Phel|scalar|null $x */
+    public function analyzeInEmptyEnv($x): Node
+    {
+        return $this->analyze($x, NodeEnvironment::empty());
+    }
+
+    /** @param Phel|scalar|null $x */
     public function analyze($x, NodeEnvironment $env): Node
     {
         if ($this->isLiteral($x)) {
