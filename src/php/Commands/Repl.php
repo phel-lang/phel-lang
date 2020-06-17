@@ -58,17 +58,14 @@ final class Repl
         }
     }
 
-    private function output($value): void
+    private function output(string $value): void
     {
         fwrite(STDOUT, $value);
     }
 
-    /**
-     * @param false|string $input
-     */
-    private function readInput($input): void
+    private function readInput(?string $input): void
     {
-        if (false === $input) {
+        if (null === $input) {
             $this->output($this->style->yellow("Bye from Ctrl+D!\n"));
             exit;
         }

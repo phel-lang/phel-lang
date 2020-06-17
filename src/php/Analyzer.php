@@ -69,6 +69,7 @@ final class Analyzer
         throw new AnalyzerException('Unhandled type: ' . var_export($x, true));
     }
 
+    /** @param Phel|scalar|null $x */
     private function isLiteral($x): bool
     {
         return is_string($x)

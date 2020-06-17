@@ -23,7 +23,7 @@ class CompilerException extends Exception
         return $this->nestedException;
     }
 
-    public function getCodeSnippet()
+    public function getCodeSnippet(): CodeSnippet
     {
         return $this->codeSnippet;
     }

@@ -6,8 +6,8 @@ use Exception;
 
 class VLQ
 {
-    private $integerToChar = [];
-    private $charToInteger = [];
+    private array $integerToChar = [];
+    private array $charToInteger = [];
 
     public function __construct()
     {
@@ -20,7 +20,7 @@ class VLQ
         }
     }
 
-    public function decode(string $string)
+    public function decode(string $string): array
     {
         $result = [];
         $shift = 0;
@@ -58,7 +58,7 @@ class VLQ
         return $result;
     }
 
-    public function encodeIntegers(array $numbers)
+    public function encodeIntegers(array $numbers): string
     {
         $result = "";
         foreach ($numbers as $number) {
@@ -67,7 +67,7 @@ class VLQ
         return $result;
     }
 
-    public function encodeInteger(int $num)
+    public function encodeInteger(int $num): string
     {
         $result = "";
 
@@ -91,7 +91,7 @@ class VLQ
         return $result;
     }
 
-    private function bitShiftRightWithZero($v, $n)
+    private function bitShiftRightWithZero(int $v, int $n): int
     {
         return ($v & 0xFFFFFFFF) >> ($n & 0x1F);
     }

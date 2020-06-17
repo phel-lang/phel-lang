@@ -4,18 +4,14 @@ namespace Phel\SourceMap;
 
 class SourceMapGenerator
 {
-
-    /**
-     * @var VLQ
-     */
-    private $vlq;
+    private VLQ $vlq;
 
     public function __construct()
     {
         $this->vlq = new VLQ();
     }
 
-    public function encode(array $mappings)
+    public function encode(array $mappings): string
     {
         $previousGeneratedLine = 0;
         $previousGeneratedColumn = 0;

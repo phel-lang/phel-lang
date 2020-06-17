@@ -10,7 +10,6 @@ use Phel\Exceptions\TextExceptionPrinter;
 use Phel\Lang\Keyword;
 use Phel\Lang\Symbol;
 use Phel\Lang\Table;
-use Phel\Repl\ColorStyle;
 use Throwable;
 
 class Runtime
@@ -30,10 +29,7 @@ class Runtime
     {
         set_exception_handler([$this, 'exceptionHandler']);
 
-        if (is_null($globalEnv)) {
-            $globalEnv = new GlobalEnvironment();
-        }
-        $this->globalEnv = $globalEnv;
+        $this->globalEnv = $globalEnv ?? new GlobalEnvironment();
         $this->cacheDirectory = $cacheDirectory;
         $this->addPath('phel\\', [__DIR__ . '/../phel']);
     }
