@@ -2,7 +2,8 @@
 
 declare(strict_types=1);
 
-use Phel\Repl;
+use Phel\Commands\Repl;
+use Phel\Commands\Run;
 
 function getHelpText(): string
 {
@@ -11,9 +12,11 @@ Usage: phel [command]
 
 Commands:
     repl
-        Start a Repl
+        Start a Repl.
+    run <filename-or-namespace>
+        Runs a script.
     help
-        Show this help message
+        Show this help message.
 
 HELP;
 }
@@ -37,6 +40,16 @@ switch ($argv[1]) {
     case "repl":
         $repl = new Repl($currentDir);
         $repl->run();
+        break;
+
+    case "run":
+        if ($argc < 3) {
+            echo "Please provide a filename or namespace as argument!\n";
+            exit;
+        }
+
+        $runCmd = new Run();
+        $runCmd->run($currentDir, $argv[2]);
         break;
 
     default:

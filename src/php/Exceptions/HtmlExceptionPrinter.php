@@ -3,10 +3,10 @@
 namespace Phel\Exceptions;
 
 use Exception;
-use Phel\Lang\IFn;
-use Phel\Printer;
 use Phel\CodeSnippet;
+use Phel\Lang\IFn;
 use Phel\Munge;
+use Phel\Printer;
 use ReflectionClass;
 use Throwable;
 
