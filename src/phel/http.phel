@@ -1,4 +1,5 @@
-(ns phel\http)
+(ns phel\http
+  (:use InvalidArgumentException))
 
 # ---
 # URI

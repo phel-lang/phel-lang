@@ -434,16 +434,18 @@ final class Emitter
 
     private function emitNs(NsNode $node): void
     {
+        foreach ($node->getRequireNs() as $i => $ns) {
+            $this->emitLine('\Phel\Runtime::getInstance()->loadNs("' . \addslashes($ns->getName()) . '");', $ns->getStartLocation());
+        }
+
+        $this->emitLine('\Phel\Runtime::getInstance()->getEnv()->setNs("' . \addslashes($node->getNamespace()) . '");', $node->getStartSourceLocation());
+
         $nsSym = new Symbol('*ns*');
         $nsSym->setStartLocation($node->getStartSourceLocation());
         $this->emitGlobalBase('phel\\core', $nsSym);
         $this->emitStr(' = ', $node->getStartSourceLocation());
         $this->emitPhel('\\' . Munge::encodeNs($node->getNamespace()));
         $this->emitLine(';', $node->getStartSourceLocation());
-
-        foreach ($node->getRequireNs() as $i => $ns) {
-            $this->emitLine('\Phel\Runtime::getInstance()->loadNs("' . \addslashes($ns->getName()) . '");', $ns->getStartLocation());
-        }
     }
 
     private function emitObjectCall(PhpObjectCallNode $node): void

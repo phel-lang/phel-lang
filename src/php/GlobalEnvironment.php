@@ -58,24 +58,54 @@ final class GlobalEnvironment
         return null;
     }
 
-    public function addRequireAlias(Symbol $name, Symbol $fullName): void
+    /**
+     * Adds an require alias.
+     *
+     * @param string $inNamespace The namespace in which the alias exist
+     * @param Symbol The alias name
+     * @param Symbol The namespace that will be resolve.
+     */
+    public function addRequireAlias(string $inNamespace, Symbol $name, Symbol $fullName): void
     {
-        $this->requireAliases[$name->getName()] = $fullName;
+        $this->requireAliases[$inNamespace][$name->getName()] = $fullName;
     }
 
-    public function hasRequireAlias(Symbol $name): bool
+    /**
+     * Checks if an require alias exists.
+     *
+     * @param string $inNamespace The namespace in which the alias should exist
+     * @param Symbol The alias name
+     *
+     * @return boolean
+     */
+    public function hasRequireAlias(string $inNamespace, Symbol $name): bool
     {
-        return isset($this->requireAliases[$name->getName()]);
+        return isset($this->requireAliases[$inNamespace][$name->getName()]);
     }
 
-    public function addUseAlias(Symbol $alias, Symbol $fullName): void
+    /**
+     * Adds an use alias.
+     *
+     * @param string $inNamespace The namespace in which the alias exist
+     * @param Symbol The alias name
+     * @param Symbol The namespace that will be resolve.
+     */
+    public function addUseAlias(string $inNamespace, Symbol $alias, Symbol $fullName): void
     {
-        $this->useAliases[$alias->getName()] = $fullName;
+        $this->useAliases[$inNamespace][$alias->getName()] = $fullName;
     }
 
-    public function hasUseAlias(Symbol $alias): bool
+    /**
+     * Checks if an use alias exists.
+     *
+     * @param string $inNamespace The namespace in which the alias should exist
+     * @param Symbol The alias name
+     *
+     * @return boolean
+     */
+    public function hasUseAlias(string $inNamespace, Symbol $alias): bool
     {
-        return isset($this->useAliases[$alias->getName()]);
+        return isset($this->useAliases[$inNamespace][$alias->getName()]);
     }
 
     public function resolve(Symbol $name, NodeEnvironment $env): ?Node
@@ -100,9 +130,9 @@ final class GlobalEnvironment
             return new PhpClassNameNode($env, $name, $name->getStartLocation());
         }
 
-        if ($this->hasUseAlias($name)) {
+        if (isset($this->useAliases[$this->ns][$strName])) {
             /** @var Symbol $alias */
-            $alias = $this->useAliases[$strName];
+            $alias = $this->useAliases[$this->ns][$strName];
             $alias->copyLocationFrom($name);
             return new PhpClassNameNode($env, $alias, $name->getStartLocation());
         }
@@ -146,11 +176,11 @@ final class GlobalEnvironment
     {
         $alias = substr($strName, 0, $pos);
 
-        if (!isset($this->requireAliases[$alias])) {
+        if (!isset($this->requireAliases[$this->ns][$alias])) {
             return null;
         }
 
-        $namespace = $this->requireAliases[$alias];
+        $namespace = $this->requireAliases[$this->ns][$alias];
         $finalName = new Symbol(substr($strName, $pos + 1));
 
         $def = $this->getDefinition($namespace->getName(), $finalName);

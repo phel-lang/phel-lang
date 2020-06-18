@@ -7,8 +7,9 @@
 
 (defstruct abc [a])
 --PHP--
-$GLOBALS["__phel"]["phel\\core"]["*ns*"] = "\\hello_world";
 \Phel\Runtime::getInstance()->loadNs("my-namespace\\core");
+\Phel\Runtime::getInstance()->getEnv()->setNs("hello-world");
+$GLOBALS["__phel"]["phel\\core"]["*ns*"] = "\\hello_world";
 $GLOBALS["__phel"]["hello_world"]["x"] = 10;
 $GLOBALS["__phel_meta"]["hello_world"]["x"] = \Phel\Lang\Table::fromKVs(
   new \Phel\Lang\Keyword("private"), true

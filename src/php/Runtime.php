@@ -34,6 +34,11 @@ class Runtime
         $this->addPath('phel\\', [__DIR__ . '/../phel']);
     }
 
+    public function getEnv()
+    {
+        return $this->globalEnv;
+    }
+
     public function addPath(string $namespacePrefix, array $path): void
     {
         $length = strlen($namespacePrefix);

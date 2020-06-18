@@ -124,28 +124,28 @@
       "error" "0"
       "size" "123"
     ))
-    @{"file" (uploaded-file "/tmp/my-file.txt" 123 0 "my-file.txt" "text/plain")}
+    @{"file" (h/uploaded-file "/tmp/my-file.txt" 123 0 "my-file.txt" "text/plain")}
   ]
   [
     "already converted"
-    (php-associative-array "file" (uploaded-file
+    (php-associative-array "file" (h/uploaded-file
       "/tmp/my-file.txt"
       123
       0
       "my-file.txt"
       "text/plain"
     ))
-    @{"file" (uploaded-file "/tmp/my-file.txt" 123 0 "my-file.txt" "text/plain")}
+    @{"file" (h/uploaded-file "/tmp/my-file.txt" 123 0 "my-file.txt" "text/plain")}
   ]
   [
     "already converted array"
     (php-associative-array "file" @[
-      (uploaded-file "/tmp/my-file1.txt" 123 0 "my-file1.txt" "text/plain")
-      (uploaded-file "/tmp/my-file2.txt" 321 0 "my-file2.txt" "text/plain")
+      (h/uploaded-file "/tmp/my-file1.txt" 123 0 "my-file1.txt" "text/plain")
+      (h/uploaded-file "/tmp/my-file2.txt" 321 0 "my-file2.txt" "text/plain")
     ])
     @{"file" @{
-      0 (uploaded-file "/tmp/my-file1.txt" 123 0 "my-file1.txt" "text/plain")
-      1 (uploaded-file "/tmp/my-file2.txt" 321 0 "my-file2.txt" "text/plain")
+      0 (h/uploaded-file "/tmp/my-file1.txt" 123 0 "my-file1.txt" "text/plain")
+      1 (h/uploaded-file "/tmp/my-file2.txt" 321 0 "my-file2.txt" "text/plain")
     }}
   ]
   [
@@ -164,8 +164,8 @@
                  "error" "4"
                  "size" "0")
     )
-    @{"file-1" (uploaded-file "/tmp/my-file.txt" 123 0 "my-file.txt" "text/plain")
-      "file-2" (uploaded-file "/tmp/my-file-2.txt" 0 4 "" "")}
+    @{"file-1" (h/uploaded-file "/tmp/my-file.txt" 123 0 "my-file.txt" "text/plain")
+      "file-2" (h/uploaded-file "/tmp/my-file-2.txt" 0 4 "" "")}
   ]
   [
     "nested files"
@@ -196,14 +196,14 @@
     )
     @{
       "files" @{
-        0 (uploaded-file "/tmp/my-file.txt" 123 0 "my-file.txt" "text/plain")
-        1 (uploaded-file "/tmp/my-image.png" 4321 1 "Image.png" "image/png")
+        0 (h/uploaded-file "/tmp/my-file.txt" 123 0 "my-file.txt" "text/plain")
+        1 (h/uploaded-file "/tmp/my-image.png" 4321 1 "Image.png" "image/png")
       }
       "nested" @{
-        "a" (uploaded-file "/tmp/a.txt" 421 0 "a.txt" "text/plain")
+        "a" (h/uploaded-file "/tmp/a.txt" 421 0 "a.txt" "text/plain")
         "b" @{
-          0 (uploaded-file "/tmp/b1.txt" 32 0 "b.txt" "text/plain")
-          1 (uploaded-file "/tmp/b2.txt" 0 4 "" "")
+          0 (h/uploaded-file "/tmp/b1.txt" 32 0 "b.txt" "text/plain")
+          1 (h/uploaded-file "/tmp/b2.txt" 0 4 "" "")
         }
       }
     }
@@ -342,7 +342,7 @@
 (def send-response-examples @[
   [
     "send body"
-    (response 200 @{:content-type "text/plain"} "Content!" nil nil)
+    (h/response 200 @{:content-type "text/plain"} "Content!" nil nil)
     "Content!"
   ]
 ])

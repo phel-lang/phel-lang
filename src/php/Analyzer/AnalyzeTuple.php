@@ -305,7 +305,7 @@ final class AnalyzeTuple
             }
         }
 
-        $this->analyzer->getGlobalEnvironment()->setNs($x[1]->getName());
+        $this->analyzer->getGlobalEnvironment()->setNs($ns);
 
         $requireNs = [];
         for ($i = 2; $i < $tupleCount; $i++) {
@@ -343,7 +343,7 @@ final class AnalyzeTuple
                     $alias = new Symbol($parts[count($parts) - 1]);
                 }
 
-                $this->analyzer->getGlobalEnvironment()->addUseAlias($alias, $import[1]);
+                $this->analyzer->getGlobalEnvironment()->addUseAlias($ns, $alias, $import[1]);
             } elseif ($this->isKeywordWithName($import[0], 'require')) {
                 if (!($import[1] instanceof Symbol)) {
                     throw new AnalyzerException(
@@ -369,7 +369,7 @@ final class AnalyzeTuple
                     $alias = new Symbol($parts[count($parts) - 1]);
                 }
 
-                $this->analyzer->getGlobalEnvironment()->addRequireAlias($alias, $import[1]);
+                $this->analyzer->getGlobalEnvironment()->addRequireAlias($ns, $alias, $import[1]);
             }
         }
 
