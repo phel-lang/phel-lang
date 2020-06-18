@@ -72,7 +72,7 @@
 ])
 
 (foreach [[name uri server] uri-examples]
-  (test/assert (= uri (h/uri-from-globals server)) name))
+  (test/assert = uri (h/uri-from-globals server) name))
 
 
 # -----
@@ -176,13 +176,13 @@
 ])
 
 (foreach [[name files result] file-examples]
-  (test/assert (= result (h/files-from-globals files)) name))
+  (test/assert = result (h/files-from-globals files) name))
 
 # -------
 # Headers
 # -------
 
-(test/assert (=
+(test/assert =
   @{
     :0 "NumericHeaderZero"
     :1234 "NumericHeader"
@@ -205,9 +205,9 @@
     "CONTENT_MD5" "CONTENT-MD5"
     "CONTENT_LENGTH" "UNSPECIFIED"
   ))
-) "header from globals")
+"header from globals")
 
-(test/assert (=
+(test/assert =
   @{
     :x-foo-bar "nonprefixed"
     :authorization "token"
@@ -217,48 +217,44 @@
     "REDIRECT_HTTP_AUTHORIZATION" "token"
     "REDIRECT_HTTP_X_FOO_BAR" "prefixed"
   ))
-) "header from globals redirect normalization")
+"header from globals redirect normalization")
 
 # -------
 # Request
 # -------
 
 (test/assert
-  (=
-    "GET"
-    (get (h/request-from-globals (php-associative-array
-      "REQUEST_METHOD" "GET"
-    )) :method)
-  )
+  =
+  "GET"
+  (get (h/request-from-globals (php-associative-array
+    "REQUEST_METHOD" "GET"
+  )) :method)
   "request method get")
 
 (test/assert
-  (=
-    "POST"
-    (get (h/request-from-globals (php-associative-array
-      "REQUEST_METHOD" "POST"
-    )) :method)
-  )
+  =
+  "POST"
+  (get (h/request-from-globals (php-associative-array
+    "REQUEST_METHOD" "POST"
+  )) :method)
   "request method get")
 
 (test/assert
-  (=
-    "1.1"
-    (get (h/request-from-globals (php-associative-array
-      "SERVER_PROTOCOL" "HTTP/1.1"
-      "REQUEST_METHOD" "GET"
-    )) :version)
-  )
+  =
+  "1.1"
+  (get (h/request-from-globals (php-associative-array
+    "SERVER_PROTOCOL" "HTTP/1.1"
+    "REQUEST_METHOD" "GET"
+  )) :version)
   "server protocol 1.1")
 
 (test/assert
-  (=
-    "2.0"
-    (get (h/request-from-globals (php-associative-array
-      "SERVER_PROTOCOL" "HTTP/2.0"
-      "REQUEST_METHOD" "GET"
-    )) :version)
-  )
+  =
+  "2.0"
+  (get (h/request-from-globals (php-associative-array
+    "SERVER_PROTOCOL" "HTTP/2.0"
+    "REQUEST_METHOD" "GET"
+  )) :version)
   "server protocol 2.0")
 
 # --------
@@ -269,40 +265,40 @@
 # because the thes script already has send some output
 # and new headers can not be send anymore.
 
-(test/assert (=
+(test/assert =
   (h/response 200 @{} "" "1.1" "OK")
   (h/create-response-from-table @{})
-) "create-response-from-table empty")
+"create-response-from-table empty")
 
-(test/assert (=
+(test/assert =
   (h/response 201 @{} "" "1.1" "Created")
   (h/create-response-from-table @{:status 201})
-) "create-response-from-table status")
+"create-response-from-table status")
 
-(test/assert (=
+(test/assert =
   (h/response 200 @{:content-type "text/plain"} "" "1.1" "OK")
   (h/create-response-from-table @{:headers @{:content-type "text/plain"}})
-) "create-response-from-table headers")
+"create-response-from-table headers")
 
-(test/assert (=
+(test/assert =
   (h/response 200 @{} "hello" "1.1" "OK")
   (h/create-response-from-table @{:body "hello"})
-) "create-response-from-table body")
+"create-response-from-table body")
 
-(test/assert (=
+(test/assert =
   (h/response 200 @{} "" "2.0" "OK")
   (h/create-response-from-table @{:version "2.0"})
-) "create-response-from-table version")
+"create-response-from-table version")
 
-(test/assert (=
+(test/assert =
   (h/response 200 @{} "" "1.1" "Yes!")
   (h/create-response-from-table @{:reason "Yes!"})
-) "create-response-from-table reason")
+"create-response-from-table reason")
 
-(test/assert (=
+(test/assert =
   (h/response 200 @{} "test" "1.1" "OK")
   (h/create-response-from-string "test")
-) "create-response-from-string")
+"create-response-from-string")
 
 (def send-response-examples @[
   [
@@ -313,7 +309,7 @@
 ])
 
 (foreach [[name response result] send-response-examples]
-  (test/assert (= result (with-output-buffer (h/emit-response response))) name))
+  (test/assert = result (with-output-buffer (h/emit-response response)) name))
 
 (test/print-summary)
 

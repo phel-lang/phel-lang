@@ -6,10 +6,10 @@
   :successful 0
 })
 
-(defn assert [test err]
+(defn assert [test expected got label]
   (do
     (update-in stats [:total] inc)
-    (if test
+    (if (test expected got)
       (do
         (update-in stats [:successful] inc)
         (print ".")
@@ -18,8 +18,11 @@
       (do
         (update-in stats [:failed] inc)
         (php/print "\n")
-        (php/print "e ")
-        (php/print err)
+        (php/print label)
+        (php/print " - Expected: ")
+        (print expected)
+        (php/print ", Got: ")
+        (print got)
         (php/print "\n")))))
 
 (defn print-summary []
