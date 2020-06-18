@@ -189,7 +189,7 @@ This is PHP equivalent to `$args[0] . $args[1] . $args[2] ...`"
 (defn set
   "Creates a new Set. If no argument is provided, an empty Set is created."
   [& xs]
-  (php/new Set xs))
+  (php/new Set (php/-> xs (toPhpArray))))
 
 (defn keyword
   "Creates a new Keyword from a given string."

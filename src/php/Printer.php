@@ -218,6 +218,6 @@ final class Printer
             $args[] = $this->print($elem);
         }
 
-        return $prefix . implode(" ", $args) . $suffix;
+        return $prefix . implode(' ', $args) . $suffix;
     }
 }

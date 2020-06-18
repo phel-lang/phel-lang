@@ -8,22 +8,18 @@ use InvalidArgumentException;
 use Iterator;
 use Phel\Printer;
 
-class Set extends PhelArray implements ArrayAccess, Countable, Iterator, ICons, ISlice, ICdr, IRest, IPop, IRemove, IPush, IConcat {
-
-    /**
-     * @var mixed[]
-     */
-    protected $data = [];
+class Set extends PhelArray implements ArrayAccess, Countable, Iterator, ICons, ISlice, ICdr, IRest, IPop, IRemove, IPush, IConcat
+{
 
     /**
      * Constructor
      *
      * @param mixed[] $data A list of all values
      */
-    public function __construct(PhelArray $data)
+    public function __construct(array $data)
     {
         parent::__construct([]);
-        $this->setData($data->toPhpArray());
+        $this->setData($data);
     }
 
     /**
@@ -38,9 +34,11 @@ class Set extends PhelArray implements ArrayAccess, Countable, Iterator, ICons, 
         return new Set($values);
     }
 
-    public function push($x): IPush {
-        if (!in_array($x, $this->data))
+    public function push($x): IPush
+    {
+        if (!in_array($x, $this->data)) {
             $this->data[] = $x;
+        }
         return $this;
     }
 
@@ -52,19 +50,19 @@ class Set extends PhelArray implements ArrayAccess, Countable, Iterator, ICons, 
         return $this;
     }
 
-    public function union(Set $set): Set
+    public function union(Set $set): IConcat
     {
         return $this->concat($set->toPhpArray());
     }
 
-    public function intersection(Set $set): Set
+    public function intersection(Set $set): IConcat
     {
         return $this->applySet($set, 'array_intersect');
     }
 
-    public function difference(Set $set): Set
+    public function difference(Set $set): IConcat
     {
-        $rightDiff = new Set($set);
+        $rightDiff = new Set($set->toPhpArray());
         $rightDiff->applySet($this, 'array_diff');
         $this->applySet($set, 'array_diff');
         return $this->union($rightDiff);
