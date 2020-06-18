@@ -1,0 +1,9 @@
+(ns phel\test\index
+  (:require phel\test\lib :as test)
+  (:require phel\test\core)
+  (:require phel\test\http))
+
+(test/testsuites
+  core/test
+  #http/test
+)

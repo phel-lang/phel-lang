@@ -1,10 +1,6 @@
 (ns phel\test\lib)
 
-(def stats @{
-  :total 0
-  :failed 0
-  :successful 0
-})
+(def stats @{})
 
 (defn assert [test expected got label]
   (do
@@ -25,10 +21,10 @@
         (print got)
         (php/print "\n")))))
 
-(defn print-summary []
+(defn print-summary [title]
   (do
     (print "\n\n")
-    (println "Summary of: " __FILE__)
+    (println "Summary of: " title)
     (print "Successful: ")
     (print (get stats :successful))
     (print "\n")
@@ -38,3 +34,17 @@
     (print "Total: ")
     (print (get stats :total))
     (print "\n")))
+
+(defn testsuite [suite]
+  (do
+    (put stats :total 0)
+    (put stats :failed 0)
+    (put stats :successful 0)
+    (let [title (suite assert)]
+      (print-summary title))
+    (when (> (get stats :failed) 0)
+      (php/exit 1))))
+
+(defn testsuites [& suites]
+  (foreach [suite suites]
+    (testsuite suite)))
