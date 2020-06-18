@@ -30,7 +30,7 @@ class VLQ
         for ($i = 0; $i < $strlen; $i++) {
             $char = $string[$i];
             if (!isset($this->charToInteger[$char])) {
-                throw new Exception("Invalid character: " . $char);
+                throw new Exception('Invalid character: ' . $char);
             }
 
             $integer = $this->charToInteger[$char];
@@ -60,7 +60,7 @@ class VLQ
 
     public function encodeIntegers(array $numbers): string
     {
-        $result = "";
+        $result = '';
         foreach ($numbers as $number) {
             $result .= $this->encodeInteger($number);
         }
@@ -69,7 +69,7 @@ class VLQ
 
     public function encodeInteger(int $num): string
     {
-        $result = "";
+        $result = '';
 
         if ($num < 0) {
             $num = (-$num << 1) | 1;

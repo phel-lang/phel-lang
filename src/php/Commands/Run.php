@@ -33,7 +33,7 @@ class Run
         $result = $rt->loadNs($ns);
 
         if (!$result) {
-            throw new RuntimeException("Cannot load namespace: " . $ns);
+            throw new RuntimeException('Cannot load namespace: ' . $ns);
         }
     }
 
@@ -59,7 +59,7 @@ class Run
             $readerResult = $reader->readNext($tokenStream);
 
             if (!$readerResult) {
-                throw new RuntimeException("Cannot read file: " . $path);
+                throw new RuntimeException('Cannot read file: ' . $path);
             }
 
             $ast = $readerResult->getAst();
@@ -67,15 +67,15 @@ class Run
             if ($ast instanceof Tuple
                 && $ast[0]
                 && $ast[0] instanceof Symbol
-                && $ast[0]->getName() == "ns"
+                && $ast[0]->getName() == 'ns'
                 && $ast[1]
                 && $ast[1] instanceof Symbol) {
                 return $ast[1]->getName();
             }
 
-            throw new RuntimeException("Cannot extract namespace from file: " . $path);
+            throw new RuntimeException('Cannot extract namespace from file: ' . $path);
         } catch (\Phel\Exceptions\ReaderException $e) {
-            throw new RuntimeException("Cannot parse file: " . $path);
+            throw new RuntimeException('Cannot parse file: ' . $path);
         }
     }
 }

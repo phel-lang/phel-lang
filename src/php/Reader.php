@@ -122,13 +122,13 @@ final class Reader
                     throw $this->buildReaderException('Unterminated list');
 
                 case Token::T_QUOTE:
-                    return $this->readWrap($tokenStream, "quote");
+                    return $this->readWrap($tokenStream, 'quote');
 
                 case Token::T_UNQUOTE:
-                    return $this->readWrap($tokenStream, "unquote");
+                    return $this->readWrap($tokenStream, 'unquote');
 
                 case Token::T_UNQUOTE_SPLICING:
-                    return $this->readWrap($tokenStream, "unquote-splicing");
+                    return $this->readWrap($tokenStream, 'unquote-splicing');
 
                 case Token::T_QUASIQUOTE:
                     return $this->readQuasiquote($tokenStream);
@@ -146,7 +146,7 @@ final class Reader
                 case Token::T_TABLE:
                     $tuple = $this->readList($tokenStream, Token::T_CLOSE_BRACE);
                     if (count($tuple) % 2 == 1) {
-                        throw $this->buildReaderException("Tables must have an even number of parameters");
+                        throw $this->buildReaderException('Tables must have an even number of parameters');
                     }
                     $table = Table::fromKVArray($tuple->toArray());
                     $table->setStartLocation($tuple->getStartLocation());
@@ -164,7 +164,7 @@ final class Reader
                             if (isset($this->fnArgs[$i])) {
                                 $params[] = new Symbol($this->fnArgs[$i]->getName());
                             } else {
-                                $params[] = Symbol::gen("__short_fn_undefined_");
+                                $params[] = Symbol::gen('__short_fn_undefined_');
                             }
                         }
 
@@ -180,14 +180,14 @@ final class Reader
                     return Tuple::create(new Symbol('fn'), new Tuple($params, true), $body);
 
                 case Token::T_EOF:
-                    throw $this->buildReaderException("Unterminated list");
+                    throw $this->buildReaderException('Unterminated list');
 
                 default:
-                    throw $this->buildReaderException("Unhandled syntax token: " . $token->getCode());
+                    throw $this->buildReaderException('Unhandled syntax token: ' . $token->getCode());
             }
         }
 
-        throw $this->buildReaderException("Unterminated list");
+        throw $this->buildReaderException('Unterminated list');
     }
 
     /**
@@ -198,7 +198,7 @@ final class Reader
         $startLocation = $tokenStream->current()->getStartLocation();
         $tokenStream->next();
 
-        $expression = $this->readExpressionHard($tokenStream, "missing expression");
+        $expression = $this->readExpressionHard($tokenStream, 'missing expression');
         $result = (new Quasiquote())->quasiquote($expression);
 
         if ($result instanceof Phel) {
@@ -214,7 +214,7 @@ final class Reader
     {
         $tokenStream->next();
 
-        $meta = $this->readExpressionHard($tokenStream, "missing meta expression");
+        $meta = $this->readExpressionHard($tokenStream, 'missing meta expression');
         if (is_string($meta) || $meta instanceof Symbol) {
             $meta = Table::fromKVs(new Keyword('tag'), $meta);
         } elseif ($meta instanceof Keyword) {
@@ -222,7 +222,7 @@ final class Reader
         } elseif (!$meta instanceof Table) {
             throw $this->buildReaderException('Metadata must be a Symbol, String, Keyword or Table');
         }
-        $object = $this->readExpressionHard($tokenStream, "missing object expression for meta data");
+        $object = $this->readExpressionHard($tokenStream, 'missing object expression for meta data');
 
         if (!$object instanceof IMeta) {
             throw $this->buildReaderException('Metadata can only applied to classes that implement IMeta');
@@ -244,7 +244,7 @@ final class Reader
         $startLocation = $tokenStream->current()->getStartLocation();
         $tokenStream->next();
 
-        $expression = $this->readExpressionHard($tokenStream, "missing expression");
+        $expression = $this->readExpressionHard($tokenStream, 'missing expression');
 
         $endLocation = $tokenStream->current()->getEndLocation();
 
@@ -329,19 +329,19 @@ final class Reader
             return new Keyword(substr($word, 1));
         }
 
-        if (preg_match("/^([+-])?0[bB][01]+(_[01]+)*$/", $word, $matches)) {
+        if (preg_match('/^([+-])?0[bB][01]+(_[01]+)*$/', $word, $matches)) {
             // binary numbers
             $sign = (isset($matches[1]) && $matches[1] == '-') ? -1 : 1;
             return $sign * bindec(str_replace('_', '', $word));
         }
 
-        if (preg_match("/^([+-])?0[xX][0-9a-fA-F]+(_[0-9a-fA-F]+)*$/", $word, $matches)) {
+        if (preg_match('/^([+-])?0[xX][0-9a-fA-F]+(_[0-9a-fA-F]+)*$/', $word, $matches)) {
             // hexdecimal numbers
             $sign = (isset($matches[1]) && $matches[1] === '-') ? -1 : 1;
             return $sign * hexdec(str_replace('_', '', $word));
         }
 
-        if (preg_match("/^([+-])?0[0-7]+(_[0-7]+)*$/", $word, $matches)) {
+        if (preg_match('/^([+-])?0[0-7]+(_[0-7]+)*$/', $word, $matches)) {
             // octal numbers
             $sign = (isset($matches[1]) && $matches[1] === '-') ? -1 : 1;
             return $sign * octdec(str_replace('_', '', $word));
@@ -372,7 +372,7 @@ final class Reader
             return $sym;
         }
 
-        if ($word === "$&") {
+        if ($word === '$&') {
             if (isset($this->fnArgs[0])) {
                 return new Symbol($this->fnArgs[0]->getName());
             }

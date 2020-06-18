@@ -15,12 +15,12 @@ class SourceMapConsumer
 
     protected function decodeMapping(string $mapping): array
     {
-        $lines = explode(";", $mapping);
+        $lines = explode(';', $mapping);
 
         $lineMapping = [];
         $lastMapping = [0, 0, 0, 0];
         foreach ($lines as $i => $line) {
-            $segments = explode(",", $line);
+            $segments = explode(',', $line);
 
             foreach ($segments as $j => $segment) {
                 if (strlen($segment) > 0) {

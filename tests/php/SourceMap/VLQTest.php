@@ -8,22 +8,22 @@ class VLQTest extends TestCase
 {
     public function testEncode1()
     {
-        $this->assertEquals("AAAA", $this->encode([0,0,0,0]));
+        $this->assertEquals('AAAA', $this->encode([0,0,0,0]));
     }
 
     public function testEncode2()
     {
-        $this->assertEquals("AAgBC", $this->encode([0, 0, 16, 1]));
+        $this->assertEquals('AAgBC', $this->encode([0, 0, 16, 1]));
     }
 
     public function testEncode3()
     {
-        $this->assertEquals("D", $this->encode([-1]));
+        $this->assertEquals('D', $this->encode([-1]));
     }
 
     public function testEncode4()
     {
-        $this->assertEquals("B", $this->encode([-2147483648]));
+        $this->assertEquals('B', $this->encode([-2147483648]));
     }
 
     public function testEncode5()
@@ -33,22 +33,22 @@ class VLQTest extends TestCase
 
     public function testDecode1()
     {
-        $this->assertEquals([0,0,0,0], $this->decode("AAAA"));
+        $this->assertEquals([0,0,0,0], $this->decode('AAAA'));
     }
 
     public function testDecode2()
     {
-        $this->assertEquals([0, 0, 16, 1], $this->decode("AAgBC"));
+        $this->assertEquals([0, 0, 16, 1], $this->decode('AAgBC'));
     }
 
     public function testDecode3()
     {
-        $this->assertEquals([-1], $this->decode("D"));
+        $this->assertEquals([-1], $this->decode('D'));
     }
 
     public function testDecode4()
     {
-        $this->assertEquals([-2147483648], $this->decode("B"));
+        $this->assertEquals([-2147483648], $this->decode('B'));
     }
 
     public function testDecode5()

@@ -37,12 +37,12 @@ if ($argc <= 1) {
 }
 
 switch ($argv[1]) {
-    case "repl":
+    case 'repl':
         $repl = new Repl($currentDir);
         $repl->run();
         break;
 
-    case "run":
+    case 'run':
         if ($argc < 3) {
             echo "Please provide a filename or namespace as argument!\n";
             exit;

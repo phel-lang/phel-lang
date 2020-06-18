@@ -61,12 +61,12 @@ class Destructure
 
             if ($form instanceof Phel) {
                 throw new AnalyzerException(
-                    "Can not destructure " . $type,
+                    'Can not destructure ' . $type,
                     $form->getStartLocation(),
                     $form->getEndLocation()
                 );
             } else {
-                throw new AnalyzerException("Can not destructure " . $type);
+                throw new AnalyzerException('Can not destructure ' . $type);
             }
         }
     }
@@ -147,7 +147,7 @@ class Destructure
      */
     private function processSymbol(array &$bindings, Symbol $binding, $value): void
     {
-        if ($binding->getName() === "_") {
+        if ($binding->getName() === '_') {
             $s = Symbol::gen()->copyLocationFrom($binding);
             $bindings[] = [$s, $value];
         } else {

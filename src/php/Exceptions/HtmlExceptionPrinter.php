@@ -18,16 +18,16 @@ class HtmlExceptionPrinter implements ExceptionPrinter
         $eEndLocation = $e->getEndLocation() ?? $codeSnippet->getEndLocation();
         $firstLine = $eStartLocation->getLine();
 
-        echo '<p>' . $e->getMessage() . "<br/>";
-        echo "in <em>" . $eStartLocation->getFile() . ':' . $firstLine . "</em></p>";
+        echo '<p>' . $e->getMessage() . '<br/>';
+        echo 'in <em>' . $eStartLocation->getFile() . ':' . $firstLine . '</em></p>';
 
         $lines = explode("\n", $codeSnippet->getCode());
         $endLineLength = strlen((string) $codeSnippet->getEndLocation()->getLine());
         $padLength = $endLineLength - strlen((string) $codeSnippet->getStartLocation()->getLine());
-        echo "<pre><code>";
+        echo '<pre><code>';
         foreach ($lines as $index => $line) {
             echo str_pad((string) ($firstLine + $index), $padLength, ' ', STR_PAD_LEFT);
-            echo "| ";
+            echo '| ';
             echo htmlspecialchars($line);
             echo "\n";
 
@@ -40,13 +40,13 @@ class HtmlExceptionPrinter implements ExceptionPrinter
             }
         }
 
-        echo "</pre></code>";
+        echo '</pre></code>';
 
         if ($e->getPrevious()) {
-            echo "<p>Caused by:</p>";
-            echo "<pre><code>";
+            echo '<p>Caused by:</p>';
+            echo '<pre><code>';
             echo $e->getPrevious()->getTraceAsString();
-            echo "</code></pre>";
+            echo '</code></pre>';
         }
     }
 
@@ -60,7 +60,7 @@ class HtmlExceptionPrinter implements ExceptionPrinter
 
         echo "<div>$type: $msg in $file:$line</div>";
 
-        echo "<ul>";
+        echo '<ul>';
         foreach ($e->getTrace() as $i => $frame) {
             $class = $frame['class'] ?? null;
             $file = $frame['file'];
@@ -76,7 +76,7 @@ class HtmlExceptionPrinter implements ExceptionPrinter
                     }
                     $argString = implode(' ', $argParts);
                     if (count($argParts) > 0) {
-                        $argString = " " . $argString;
+                        $argString = ' ' . $argString;
                     }
 
                     echo "<li>#$i $file($line): ($fnName$argString)</li>";
@@ -92,7 +92,7 @@ class HtmlExceptionPrinter implements ExceptionPrinter
             echo "<li>#$i $file($line): $class$type$fn($argString)</li>";
         }
 
-        echo "</ul>";
+        echo '</ul>';
     }
 
     private function buildPhpArgsString($args)
@@ -102,7 +102,7 @@ class HtmlExceptionPrinter implements ExceptionPrinter
             $result[] = $this->buildPhpArg($arg);
         }
 
-        return implode(", ", $result);
+        return implode(', ', $result);
     }
 
     private function buildPhpArg($arg)
@@ -120,15 +120,15 @@ class HtmlExceptionPrinter implements ExceptionPrinter
         }
 
         if (is_bool($arg)) {
-            return ($arg) ? "true" : "false";
+            return ($arg) ? 'true' : 'false';
         }
 
         if (is_resource($arg)) {
-            return "Resource id #" . ((string) $arg);
+            return 'Resource id #' . ((string) $arg);
         }
 
         if (is_array($arg)) {
-            return "Array";
+            return 'Array';
         }
 
         if (is_object($arg)) {

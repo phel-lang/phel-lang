@@ -231,7 +231,7 @@ class ReaderTest extends TestCase
         );
 
         $this->assertEquals(
-            "read \$abc sign",
+            'read $abc sign',
             $this->read('"read $abc sign"')
         );
 
@@ -305,9 +305,9 @@ class ReaderTest extends TestCase
         $this->assertEquals(
             $this->loc(
                 $this->withMeta(
-                    new Symbol("test"),
+                    new Symbol('test'),
                     Table::fromKVs(
-                        $this->loc(new Keyword("test"), 1, 1, 1, 6),
+                        $this->loc(new Keyword('test'), 1, 1, 1, 6),
                         true
                     )
                 ),
@@ -316,7 +316,7 @@ class ReaderTest extends TestCase
                 1,
                 11
             ),
-            $this->read("^:test test")
+            $this->read('^:test test')
         );
     }
 
@@ -325,10 +325,10 @@ class ReaderTest extends TestCase
         $this->assertEquals(
             $this->loc(
                 $this->withMeta(
-                    new Symbol("test"),
+                    new Symbol('test'),
                     Table::fromKVs(
-                        new Keyword("tag"),
-                        "test"
+                        new Keyword('tag'),
+                        'test'
                     )
                 ),
                 1,
@@ -345,10 +345,10 @@ class ReaderTest extends TestCase
         $this->assertEquals(
             $this->loc(
                 $this->withMeta(
-                    new Symbol("test"),
+                    new Symbol('test'),
                     Table::fromKVs(
-                        new Keyword("tag"),
-                        $this->loc(new Symbol("String"), 1, 1, 1, 7)
+                        new Keyword('tag'),
+                        $this->loc(new Symbol('String'), 1, 1, 1, 7)
                     )
                 ),
                 1,
@@ -365,11 +365,11 @@ class ReaderTest extends TestCase
         $this->assertEquals(
             $this->loc(
                 $this->withMeta(
-                    new Symbol("test"),
+                    new Symbol('test'),
                     Table::fromKVs(
-                        $this->loc(new Keyword("a"), 1, 3, 1, 5),
+                        $this->loc(new Keyword('a'), 1, 3, 1, 5),
                         1,
-                        $this->loc(new Keyword("b"), 1, 8, 1, 10),
+                        $this->loc(new Keyword('b'), 1, 8, 1, 10),
                         2
                     )
                 ),
@@ -387,11 +387,11 @@ class ReaderTest extends TestCase
         $this->assertEquals(
             $this->loc(
                 $this->withMeta(
-                    new Symbol("test"),
+                    new Symbol('test'),
                     Table::fromKVs(
-                        $this->loc(new Keyword("a"), 1, 1, 1, 3),
+                        $this->loc(new Keyword('a'), 1, 1, 1, 3),
                         true,
-                        $this->loc(new Keyword("b"), 1, 5, 1, 7),
+                        $this->loc(new Keyword('b'), 1, 5, 1, 7),
                         true
                     )
                 ),

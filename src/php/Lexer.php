@@ -13,7 +13,7 @@ final class Lexer
     private const REGEXPS = [
         "([\n \t\r]+)", // Whitespace (index: 2)
         "(\#[^\n]*)", // Comment (index: 3)
-        "(,@)", // unquote-splicing (index: 4)
+        '(,@)', // unquote-splicing (index: 4)
         "(\()", // open parenthesis (index: 5)
         "(\))", // close parenthesis (index: 6)
         "(\[)", // open bracket (index: 7)
@@ -21,8 +21,8 @@ final class Lexer
         "(\{)", // open brace (index: 9)
         "(\})", // close brace (index: 10)
         "(')", // quote (index: 11)
-        "(,)", // unquote (index: 12)
-        "(`)", // quasiquote (index: 13)
+        '(,)', // unquote (index: 12)
+        '(`)', // quasiquote (index: 13)
         "(\^)", // caret (index: 14)
         "(@\[)", // array (index: 15)
         "(@\{)", // table (index: 16)
@@ -38,7 +38,7 @@ final class Lexer
 
     public function __construct()
     {
-        $this->combinedRegex = "/(?:" . implode("|", self::REGEXPS) . ")/mA";
+        $this->combinedRegex = '/(?:' . implode('|', self::REGEXPS) . ')/mA';
     }
 
     public function lexString(string $code, string $source = 'string'): Generator
@@ -60,11 +60,11 @@ final class Lexer
 
                 $startLocation = $endLocation;
             } else {
-                throw new Exception("Unexpected state");
+                throw new Exception('Unexpected state');
             }
         }
 
-        yield new Token(Token::T_EOF, "", $startLocation, $startLocation);
+        yield new Token(Token::T_EOF, '', $startLocation, $startLocation);
     }
 
     private function moveCursor(string $str): void
