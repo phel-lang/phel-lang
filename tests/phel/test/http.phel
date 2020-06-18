@@ -1,42 +1,7 @@
 (ns phel\test\http
+  (:require phel\test\lib :as test)
   (:require phel\http :as h)
   (:use DateTime))
-
-(def stats @{
-  :total 0
-  :failed 0
-  :successful 0
-})
-
-(defn assert [test err]
-  (do
-    (update-in stats [:total] inc)
-    (if test
-      (do
-        (update-in stats [:successful] inc)
-        (print ".")
-        (when (= (% (get stats :total) 80) 0)
-          (println)))
-      (do
-        (update-in stats [:failed] inc)
-        (php/print "\n")
-        (php/print "e ")
-        (php/print err)
-        (php/print "\n")))))
-
-(defn print-summary []
-  (do
-    (print "\n\n")
-    (println "Summary of: " __FILE__)
-    (print "Successful: ")
-    (print (get stats :successful))
-    (print "\n")
-    (print "Failed: ")
-    (print (get stats :failed))
-    (print "\n")
-    (print "Total: ")
-    (print (get stats :total))
-    (print "\n")))
 
 # Tests adopted from nyholm/psr7-server
 
@@ -107,7 +72,7 @@
 ])
 
 (foreach [[name uri server] uri-examples]
-  (assert (= uri (h/uri-from-globals server)) name))
+  (test/assert (= uri (h/uri-from-globals server)) name))
 
 
 # -----
@@ -211,13 +176,13 @@
 ])
 
 (foreach [[name files result] file-examples]
-  (assert (= result (h/files-from-globals files)) name))
+  (test/assert (= result (h/files-from-globals files)) name))
 
 # -------
 # Headers
 # -------
 
-(assert (=
+(test/assert (=
   @{
     :0 "NumericHeaderZero"
     :1234 "NumericHeader"
@@ -242,7 +207,7 @@
   ))
 ) "header from globals")
 
-(assert (=
+(test/assert (=
   @{
     :x-foo-bar "nonprefixed"
     :authorization "token"
@@ -258,7 +223,7 @@
 # Request
 # -------
 
-(assert
+(test/assert
   (=
     "GET"
     (get (h/request-from-globals (php-associative-array
@@ -267,7 +232,7 @@
   )
   "request method get")
 
-(assert
+(test/assert
   (=
     "POST"
     (get (h/request-from-globals (php-associative-array
@@ -276,7 +241,7 @@
   )
   "request method get")
 
-(assert
+(test/assert
   (=
     "1.1"
     (get (h/request-from-globals (php-associative-array
@@ -286,7 +251,7 @@
   )
   "server protocol 1.1")
 
-(assert
+(test/assert
   (=
     "2.0"
     (get (h/request-from-globals (php-associative-array
@@ -304,37 +269,37 @@
 # because the thes script already has send some output
 # and new headers can not be send anymore.
 
-(assert (=
+(test/assert (=
   (h/response 200 @{} "" "1.1" "OK")
   (h/create-response-from-table @{})
 ) "create-response-from-table empty")
 
-(assert (=
+(test/assert (=
   (h/response 201 @{} "" "1.1" "Created")
   (h/create-response-from-table @{:status 201})
 ) "create-response-from-table status")
 
-(assert (=
+(test/assert (=
   (h/response 200 @{:content-type "text/plain"} "" "1.1" "OK")
   (h/create-response-from-table @{:headers @{:content-type "text/plain"}})
 ) "create-response-from-table headers")
 
-(assert (=
+(test/assert (=
   (h/response 200 @{} "hello" "1.1" "OK")
   (h/create-response-from-table @{:body "hello"})
 ) "create-response-from-table body")
 
-(assert (=
+(test/assert (=
   (h/response 200 @{} "" "2.0" "OK")
   (h/create-response-from-table @{:version "2.0"})
 ) "create-response-from-table version")
 
-(assert (=
+(test/assert (=
   (h/response 200 @{} "" "1.1" "Yes!")
   (h/create-response-from-table @{:reason "Yes!"})
 ) "create-response-from-table reason")
 
-(assert (=
+(test/assert (=
   (h/response 200 @{} "test" "1.1" "OK")
   (h/create-response-from-string "test")
 ) "create-response-from-string")
@@ -348,9 +313,9 @@
 ])
 
 (foreach [[name response result] send-response-examples]
-  (assert (= result (with-output-buffer (h/emit-response response))) name))
+  (test/assert (= result (with-output-buffer (h/emit-response response))) name))
 
-(print-summary)
+(test/print-summary)
 
-(when (> (get stats :failed) 0)
+(when (> (get test/stats :failed) 0)
   (php/exit 1))

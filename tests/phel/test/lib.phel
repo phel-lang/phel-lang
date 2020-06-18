@@ -1,0 +1,37 @@
+(ns phel\test\lib)
+
+(def stats @{
+  :total 0
+  :failed 0
+  :successful 0
+})
+
+(defn assert [test err]
+  (do
+    (update-in stats [:total] inc)
+    (if test
+      (do
+        (update-in stats [:successful] inc)
+        (print ".")
+        (when (= (% (get stats :total) 80) 0)
+          (println)))
+      (do
+        (update-in stats [:failed] inc)
+        (php/print "\n")
+        (php/print "e ")
+        (php/print err)
+        (php/print "\n")))))
+
+(defn print-summary []
+  (do
+    (print "\n\n")
+    (println "Summary of: " __FILE__)
+    (print "Successful: ")
+    (print (get stats :successful))
+    (print "\n")
+    (print "Failed: ")
+    (print (get stats :failed))
+    (print "\n")
+    (print "Total: ")
+    (print (get stats :total))
+    (print "\n")))
