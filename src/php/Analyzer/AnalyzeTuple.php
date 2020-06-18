@@ -390,9 +390,9 @@ final class AnalyzeTuple
     private function analyzeFn(Tuple $x, NodeEnvironment $env): FnNode
     {
         $tupleCount = count($x);
-        if ($tupleCount < 2 || $tupleCount > 3) {
+        if ($tupleCount < 2) {
             throw new AnalyzerException(
-                "'fn requires one or two arguments",
+                "'fn requires at least one argument",
                 $x->getStartLocation(),
                 $x->getEndLocation()
             );
@@ -471,12 +471,17 @@ final class AnalyzeTuple
 
         $recurFrame = new RecurFrame($params);
 
-        $body = $x[2];
+        $body = array_slice($x->toArray(), 2);
         if (count($lets) > 0) {
             $body = Tuple::create(
                 (new Symbol('let'))->copyLocationFrom($body),
                 (new Tuple($lets, true))->copyLocationFrom($body),
-                $body
+                ...$body
+            )->copyLocationFrom($body);
+        } else {
+            $body = Tuple::create(
+                (new Symbol('do'))->copyLocationFrom($body),
+                ...$body
             )->copyLocationFrom($body);
         }
 

@@ -661,12 +661,11 @@ Calling the and function without arguments returns true."
 (defn put
   "Puts `value` mapped to `key` on the datastructure `ds`. Returns `ds`."
   [ds key value]
-  (do
-    (when (php-array? ds)
-      (throw (php/new InvalidArgumentException "Can not call put on pure PHP
+  (when (php-array? ds)
+    (throw (php/new InvalidArgumentException "Can not call put on pure PHP
 arrays. Use (php/aset ds key value)" )))
-    (php/aset ds key value)
-    ds))
+  (php/aset ds key value)
+  ds)
 
 (defn unset
   "Returns `ds` without `key`."
@@ -1010,11 +1009,10 @@ collection in map"))
   "Merges multiple tables into first table. If a key appears in more than one
   collection, then later values replace any previous ones."
   [tab & tables]
-  (do
-    (foreach [table tables]
-      (foreach [k v table]
-        (put tab k v)))
-    tab))
+  (foreach [table tables]
+    (foreach [k v table]
+      (put tab k v)))
+  tab)
 
 (defn merge
   "Merges multiple tables into one new table. If a key appears in more than one
@@ -1310,14 +1308,12 @@ returns 1. If `xs` has one value, returns the reciprocal of x."
 (defn print
   "Prints the given values to the default output stream. Returns nil."
   [& xs]
-  (do
-    (php/print (apply print-str xs))
-    nil))
+  (php/print (apply print-str xs))
+  nil)
 
 (defn println
   "Same as print followed by a newline."
   [& xs]
-  (do
-    (apply print xs)
-    (php/print "\n")
-    nil))
+  (apply print xs)
+  (php/print "\n")
+  nil)

@@ -273,11 +273,10 @@
         status))))
 
 (defn- normalize-header-name [name]
-  (do
-    (when-not (or (keyword? name) (string? name))
-      (throw (php/new InvalidArgumentException (str "Header must be a keyword or string. Given: " name))))
-    (let [name (if (keyword? name) (php/-> name (getHeader)) name)]
-      (php/ucword name "-"))))
+  (when-not (or (keyword? name) (string? name))
+    (throw (php/new InvalidArgumentException (str "Header must be a keyword or string. Given: " name))))
+  (let [name (if (keyword? name) (php/-> name (getHeader)) name)]
+    (php/ucword name "-")))
 
 (defn- emit-headers [@{:status status :headers headers}]
   (when-not (php/headers_sent)
@@ -295,8 +294,7 @@
 (defn emit-response
   "Emits the response."
   [response]
-  (do
-    (emit-status-line response)
-    (emit-headers response)
-    (php/echo (get response :body))
-    nil))
+  (emit-status-line response)
+  (emit-headers response)
+  (php/echo (get response :body))
+  nil)
