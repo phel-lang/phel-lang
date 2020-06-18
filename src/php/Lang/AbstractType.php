@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Phel\Lang;
 
 abstract class AbstractType implements IMeta, ISourceLocation
@@ -9,15 +11,11 @@ abstract class AbstractType implements IMeta, ISourceLocation
 
     /**
      * Check if the value is thruthy
-     *
-     * @return bool
      */
     abstract public function isTruthy(): bool;
 
     /**
      * Computes a hash of the object
-     *
-     * @return string
      */
     abstract public function hash(): string;
 
@@ -25,8 +23,6 @@ abstract class AbstractType implements IMeta, ISourceLocation
      * Check if $other is equals to $this.
      *
      * @param mixed $other The other value.
-     *
-     * @return bool
      */
     abstract public function equals($other): bool;
 }

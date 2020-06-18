@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Phel\Lang;
 
 use ArrayAccess;
@@ -10,22 +12,12 @@ use Phel\Printer;
 
 class Tuple extends AbstractType implements ArrayAccess, Countable, Iterator, ISlice, ICons, ICdr, IRest, IPush, IConcat
 {
+    private array $data;
+    private bool $usingBracket;
 
     /**
-     * @var AbstractType[]
-     */
-    protected $data;
-
-    /**
-     * @var bool
-     */
-    protected $usingBracket;
-
-    /**
-     * Constructor
-     *
      * @param array $data A list of values
-     * @param bool $bool $usingBracket True if this is bracket tuple.
+     * @param bool $usingBracket True if this is bracket tuple.
      */
     public function __construct(array $data, bool $usingBracket = false)
     {
@@ -37,8 +29,6 @@ class Tuple extends AbstractType implements ArrayAccess, Countable, Iterator, IS
      * Create a new Tuple.
      *
      * @param AbstractType|scalar|null ...$values The values
-     *
-     * @return Tuple
      */
     public static function create(...$values): Tuple
     {
@@ -49,8 +39,6 @@ class Tuple extends AbstractType implements ArrayAccess, Countable, Iterator, IS
      * Create a new bracket Tuple.
      *
      * @param AbstractType|scalar|null ...$values The values
-     *
-     * @return Tuple
      */
     public static function createBracket(...$values): Tuple
     {
@@ -129,28 +117,19 @@ class Tuple extends AbstractType implements ArrayAccess, Countable, Iterator, IS
         if ($offset < 0 || $offset > count($this->data)) {
             throw new InvalidArgumentException('Index out of bounds: ' . $offset . ' [0,' . count($this->data) . ']');
         }
+
         if (is_null($value)) {
             unset($this->data[$offset]);
             $res = new Tuple(array_values($this->data), $this->isUsingBracket()); // reindex
+        } elseif ($offset === count($this->data)) {
+            $res = new Tuple([...$this->data, $value], $this->isUsingBracket());
         } else {
-            if ($offset == count($this->data)) {
-                $res = new Tuple([...$this->data, $value], $this->isUsingBracket());
-            } else {
-                $newData = $this->data;
-                $newData[$offset] = $value;
-                $res = new Tuple($newData, $this->isUsingBracket());
-            }
+            $newData = $this->data;
+            $newData[$offset] = $value;
+            $res = new Tuple($newData, $this->isUsingBracket());
         }
 
-        $start = $this->getStartLocation();
-        if ($start) {
-            $res->setStartLocation($start);
-        }
-
-        $end = $this->getEndLocation();
-        if ($end) {
-            $res->setEndLocation($end);
-        }
+        $res->copyLocationFrom($this);
 
         return $res;
     }
@@ -187,9 +166,9 @@ class Tuple extends AbstractType implements ArrayAccess, Countable, Iterator, IS
     {
         if (count($this->data) - 1 > 0) {
             return new Tuple(array_slice($this->data, 1), $this->isUsingBracket());
-        } else {
-            return null;
         }
+
+        return null;
     }
 
     public function rest(): IRest
@@ -215,7 +194,7 @@ class Tuple extends AbstractType implements ArrayAccess, Countable, Iterator, IS
     /**
      * @internal
      */
-    public function toArray()
+    public function toArray(): array
     {
         return $this->data;
     }

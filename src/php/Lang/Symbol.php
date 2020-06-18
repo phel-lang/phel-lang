@@ -1,21 +1,16 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Phel\Lang;
 
 use Phel\Printer;
 
-class Symbol extends AbstractType implements IIdentical
+final class Symbol extends AbstractType implements IIdentical
 {
+    private static int $symGenCounter = 1;
 
-    /**
-     * @var int
-     */
-    private static $symGenCounter = 1;
-
-    /**
-     * @var string
-     */
-    protected $name;
+    private string $name;
 
     public function __construct(string $name)
     {

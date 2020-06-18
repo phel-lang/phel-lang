@@ -1,23 +1,16 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Phel\Lang;
 
-class Truthy
+final class Truthy
 {
-
-    /**
-     * Check if a value is truthy.
-     *
-     * @param mixed $value The provided value
-     *
-     * @return bool
-     */
     public static function isTruthy($value): bool
     {
         if ($value instanceof AbstractType) {
             return $value->isTruthy();
-        } else {
-            return $value != null && $value !== false;
         }
+        return $value != null && $value !== false;
     }
 }
