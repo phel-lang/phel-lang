@@ -61,6 +61,7 @@
 (assert (= @[1 2 3] (array 1 2 3)) "construct array")
 (assert (= :a (keyword "a")) "construct keyword")
 (assert (= @{:a 1 :b 2} (table :a 1 :b 2)) "construct table")
+(assert (= (set 1 2 3 :a :b :c) (set 1 2 3 :a :b :c :c 1 2 3)) "construct set")
 
 (let [arr (php-indexed-array "a" "b")]
   (assert (= "a" (php/aget arr 0)) "php-associative-array: first key")
@@ -281,6 +282,7 @@
 (assert (= :tuple (type [])) "type of bracket tuple")
 (assert (= :tuple (type '())) "type of tuple")
 (assert (= :table (type @{})) "type of table")
+(assert (= :set (type (set))) "type of set")
 (assert (= :keyword (type :test)) "type of keyword")
 (assert (= :symbol (type 'x)) "type of symbol")
 (assert (= :int (type 10)) "type of int")
@@ -593,6 +595,18 @@
 
 (assert (= @[1 2 3 4 5 6 7] (flatten [1 [2 [3 4 [5]] 6 [7]]])) "flatten")
 (assert (= @[] (flatten nil)) "flatten nil")
+
+(assert (= (set 1 2 3) (push (set 1 2) 3)) "set push")
+(assert (= (set 1 2) (push (set 1 2) 2)) "set push existing value")
+(assert (= (set 1 2 0 3) (concat (set 1 2) @[0 3])) "set concat array")
+(assert (= (set 1 2 0 3) (concat (set 1 2) @[0 1 2 3])) "set concat array with common values")
+(assert (= (set 1 2 0) (concat (set 1 2) (set 0 1))) "set concat")
+(assert (= (set 1 2 0 3) (union (set 1 2) (set 0 3))) "set union")
+(assert (= (set 1 2 0 3) (union (set 1 2) (set 0 1 2 3))) "set union with common values")
+(assert (= (set) (intersection (set 1 2) (set 0 3))) "set intersection")
+(assert (= (set 1 2) (intersection (set 1 2) (set 0 1 2 3))) "set intersection with common values")
+(assert (= (set 1 2 0 3) (difference (set 1 2) (set 0 3))) "set difference")
+(assert (= (set 0 3) (difference (set 1 2) (set 0 1 2 3))) "set difference with common values")
 
 # ------------------
 # Function operation
