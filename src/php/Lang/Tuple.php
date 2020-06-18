@@ -8,11 +8,11 @@ use InvalidArgumentException;
 use Iterator;
 use Phel\Printer;
 
-class Tuple extends Phel implements ArrayAccess, Countable, Iterator, ISlice, ICons, ICdr, IRest, IPush, IConcat
+class Tuple extends AbstractType implements ArrayAccess, Countable, Iterator, ISlice, ICons, ICdr, IRest, IPush, IConcat
 {
 
     /**
-     * @var Phel[]
+     * @var AbstractType[]
      */
     protected $data;
 
@@ -36,7 +36,7 @@ class Tuple extends Phel implements ArrayAccess, Countable, Iterator, ISlice, IC
     /**
      * Create a new Tuple.
      *
-     * @param Phel|scalar|null ...$values The values
+     * @param AbstractType|scalar|null ...$values The values
      *
      * @return Tuple
      */
@@ -48,7 +48,7 @@ class Tuple extends Phel implements ArrayAccess, Countable, Iterator, ISlice, IC
     /**
      * Create a new bracket Tuple.
      *
-     * @param Phel|scalar|null ...$values The values
+     * @param AbstractType|scalar|null ...$values The values
      *
      * @return Tuple
      */

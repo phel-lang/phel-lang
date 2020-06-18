@@ -1,5 +1,5 @@
 (ns phel\core
-  (:use Phel\Lang\Phel)
+  (:use Phel\Lang\AbstractType)
   (:use Phel\Lang\Tuple)
   (:use Phel\Lang\Struct)
   (:use Phel\Lang\Keyword)
@@ -215,7 +215,7 @@ The number of parameters must be even."
 # -------------------------
 
 (defn- equals1 [a b]
-  (if (php/instanceof a Phel)
+  (if (php/instanceof a AbstractType)
     (php/-> a (equals b))
     (php/== a b)))
 

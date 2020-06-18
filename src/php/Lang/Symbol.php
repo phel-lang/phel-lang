@@ -4,7 +4,7 @@ namespace Phel\Lang;
 
 use Phel\Printer;
 
-class Symbol extends Phel implements IIdentical
+class Symbol extends AbstractType implements IIdentical
 {
 
     /**

@@ -5,7 +5,7 @@ namespace Phel\Reader;
 use Phel\Exceptions\ReaderException;
 use Phel\Lang\IMeta;
 use Phel\Lang\Keyword;
-use Phel\Lang\Phel;
+use Phel\Lang\AbstractType;
 use Phel\Lang\PhelArray;
 use Phel\Lang\Symbol;
 use Phel\Lang\Table;
@@ -570,7 +570,7 @@ class ReaderTest extends TestCase
         return $x;
     }
 
-    private function loc(Phel $x, $beginLine, $beginColumn, $endLine, $endColumn)
+    private function loc(AbstractType $x, $beginLine, $beginColumn, $endLine, $endColumn)
     {
         $x->setStartLocation(new SourceLocation('string', $beginLine, $beginColumn));
         $x->setEndLocation(new SourceLocation('string', $endLine, $endColumn));
@@ -579,7 +579,7 @@ class ReaderTest extends TestCase
 
     private function removeLoc($x)
     {
-        if ($x instanceof Phel) {
+        if ($x instanceof AbstractType) {
             $x->setStartLocation(new SourceLocation('string', 0, 0));
             $x->setEndLocation(new SourceLocation('string', 0, 0));
         }

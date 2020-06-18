@@ -2,14 +2,14 @@
 
 namespace Phel;
 
-use Phel\Lang\Phel;
+use Phel\Lang\AbstractType;
 use Phel\CodeSnippet;
 
 class ReaderResult
 {
 
     /**
-     * @var Phel|scalar|null
+     * @var AbstractType|scalar|null
      */
     private $ast;
 
@@ -21,7 +21,7 @@ class ReaderResult
     /**
      * Constructor
      *
-     * @param Phel|scalar|null $ast The form read by the reader
+     * @param AbstractType|scalar|null $ast The form read by the reader
      * @param CodeSnippet $codeSnippet The Code that have been read for the form.
      */
     public function __construct($ast, CodeSnippet $codeSnippet)
@@ -31,7 +31,7 @@ class ReaderResult
     }
 
     /**
-     * @return Phel|scalar|null
+     * @return AbstractType|scalar|null
      */
     public function getAst()
     {

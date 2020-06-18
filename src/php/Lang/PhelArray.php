@@ -8,7 +8,7 @@ use InvalidArgumentException;
 use Iterator;
 use Phel\Printer;
 
-class PhelArray extends Phel implements ArrayAccess, Countable, Iterator, ICons, ISlice, ICdr, IRest, IPop, IRemove, IPush, IConcat
+class PhelArray extends AbstractType implements ArrayAccess, Countable, Iterator, ICons, ISlice, ICdr, IRest, IPop, IRemove, IPush, IConcat
 {
 
     /**

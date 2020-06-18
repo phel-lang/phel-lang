@@ -14,7 +14,7 @@ class Truthy
      */
     public static function isTruthy($value): bool
     {
-        if ($value instanceof Phel) {
+        if ($value instanceof AbstractType) {
             return $value->isTruthy();
         } else {
             return $value != null && $value !== false;

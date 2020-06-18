@@ -4,7 +4,7 @@ namespace Phel;
 
 use Exception;
 use Phel\Exceptions\AnalyzerException;
-use Phel\Lang\Phel;
+use Phel\Lang\AbstractType;
 use Phel\Lang\PhelArray;
 use Phel\Lang\Symbol;
 use Phel\Lang\Table;
@@ -59,7 +59,7 @@ class Destructure
                 $type = gettype($form);
             }
 
-            if ($form instanceof Phel) {
+            if ($form instanceof AbstractType) {
                 throw new AnalyzerException(
                     "Can not destructure " . $type,
                     $form->getStartLocation(),
@@ -73,7 +73,7 @@ class Destructure
 
     /**
      * @param array $bindings
-     * @param Phel|scalar|null $binding
+     * @param AbstractType|scalar|null $binding
      * @param mixed $value
      */
     private function destructure(array &$bindings, $binding, $value): void

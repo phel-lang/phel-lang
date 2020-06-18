@@ -3,7 +3,7 @@
 
 namespace Phel\Ast;
 
-use Phel\Lang\Phel;
+use Phel\Lang\AbstractType;
 use Phel\Lang\SourceLocation;
 use Phel\NodeEnvironment;
 

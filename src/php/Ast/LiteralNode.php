@@ -4,20 +4,20 @@
 namespace Phel\Ast;
 
 use Phel\Lang\SourceLocation;
-use Phel\Lang\Phel;
+use Phel\Lang\AbstractType;
 use Phel\NodeEnvironment;
 
 class LiteralNode extends Node
 {
 
     /**
-     * @var Phel|scalar|null
+     * @var AbstractType|scalar|null
      */
     protected $value;
 
     /**
      * @param NodeEnvironment $env
-     * @param Phel|scalar|null $value
+     * @param AbstractType|scalar|null $value
      */
     public function __construct(NodeEnvironment $env, $value, ?SourceLocation $sourceLocation = null)
     {
@@ -26,7 +26,7 @@ class LiteralNode extends Node
     }
 
     /**
-     * @return Phel|scalar|null
+     * @return AbstractType|scalar|null
      */
     public function getValue()
     {

@@ -2,7 +2,7 @@
 
 namespace Phel\Lang;
 
-abstract class Phel implements IMeta, ISourceLocation
+abstract class AbstractType implements IMeta, ISourceLocation
 {
     use TSourceLocation;
     use TMeta;
