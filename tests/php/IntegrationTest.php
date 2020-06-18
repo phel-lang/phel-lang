@@ -50,8 +50,8 @@ class IntegrationTest extends TestCase
                 $analyzer->analyzeInEmptyEnv($readAst->getAst())
             );
         }
-        $compiledCode = trim(implode("", $compiledCode));
-        $this->assertEquals($generatedCode, $compiledCode, "in " . $filename);
+        $compiledCode = trim(implode('', $compiledCode));
+        $this->assertEquals($generatedCode, $compiledCode, 'in ' . $filename);
     }
 
     public function integrationDataProvider()

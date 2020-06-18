@@ -32,7 +32,7 @@ class Table extends Phel implements ArrayAccess, Countable, Iterator
     {
         if (count($kvs) % 2 !== 0) {
             // TODO: Better exception
-            throw new Exception("A even number of elements must be provided");
+            throw new Exception('A even number of elements must be provided');
         }
 
         $result = new Table();

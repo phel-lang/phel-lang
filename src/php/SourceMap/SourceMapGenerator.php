@@ -22,7 +22,7 @@ class SourceMapGenerator
         $totalMappings = count($mappings);
         for ($i = 0; $i < $totalMappings; $i++) {
             $mapping = $mappings[$i];
-            $next = "";
+            $next = '';
 
             if ($mapping['generated']['line'] !== $previousGeneratedLine) {
                 $previousGeneratedColumn = 0;
@@ -35,7 +35,7 @@ class SourceMapGenerator
                 if (!$this->compareByGeneratedPositionsInflated($mapping, $mappings[$i - 1])) {
                     continue;
                 }
-                $next .= ",";
+                $next .= ',';
             }
 
             $next .= $this->vlq->encodeIntegers([

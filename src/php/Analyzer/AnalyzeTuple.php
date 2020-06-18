@@ -255,7 +255,7 @@ final class AnalyzeTuple
             $meta->setEndLocation($meta->getEndLocation());
         } elseif (!$meta instanceof Table) {
             throw new AnalyzerException(
-                "Metadata must be a Symbol, String, Keyword or Table",
+                'Metadata must be a Symbol, String, Keyword or Table',
                 $x->getStartLocation(),
                 $x->getEndLocation()
             );
@@ -287,14 +287,14 @@ final class AnalyzeTuple
         $ns = $x[1]->getName();
         if (!(preg_match("/^[a-zA-Z\x7f-\xff][a-zA-Z0-9\-\x7f-\xff\\\\]*[a-zA-Z0-9\-\x7f-\xff]*$/", $ns))) {
             throw new AnalyzerException(
-                "The namespace is not valid. A valid namespace name starts with a letter,
-                followed by any number of letters, numbers, or dashes. Elements are splitted by a backslash.",
+                'The namespace is not valid. A valid namespace name starts with a letter,
+                followed by any number of letters, numbers, or dashes. Elements are splitted by a backslash.',
                 $x[1]->getStartLocation(),
                 $x[1]->getEndLocation()
             );
         }
 
-        $parts = explode("\\", $ns);
+        $parts = explode('\\', $ns);
         foreach ($parts as $part) {
             if ($this->isPHPKeyword($part)) {
                 throw new AnalyzerException(
@@ -323,7 +323,7 @@ final class AnalyzeTuple
             if ($this->isKeywordWithName($import[0], 'use')) {
                 if (!($import[1] instanceof Symbol)) {
                     throw new AnalyzerException(
-                        "First arugment in :use must be a symbol.",
+                        'First arugment in :use must be a symbol.',
                         $import->getStartLocation(),
                         $import->getEndLocation()
                     );
@@ -333,7 +333,7 @@ final class AnalyzeTuple
                     $alias = $import[3];
                     if (!($alias instanceof Symbol)) {
                         throw new AnalyzerException(
-                            "Alias must be a Symbol",
+                            'Alias must be a Symbol',
                             $import->getStartLocation(),
                             $import->getEndLocation()
                         );
@@ -347,7 +347,7 @@ final class AnalyzeTuple
             } elseif ($this->isKeywordWithName($import[0], 'require')) {
                 if (!($import[1] instanceof Symbol)) {
                     throw new AnalyzerException(
-                        "First arugment in :require must be a symbol.",
+                        'First arugment in :require must be a symbol.',
                         $import->getStartLocation(),
                         $import->getEndLocation()
                     );
@@ -359,7 +359,7 @@ final class AnalyzeTuple
                     $alias = $import[3];
                     if (!($alias instanceof Symbol)) {
                         throw new AnalyzerException(
-                            "Alias must be a Symbol",
+                            'Alias must be a Symbol',
                             $import->getStartLocation(),
                             $import->getEndLocation()
                         );
@@ -616,7 +616,7 @@ final class AnalyzeTuple
 
         if (!($x[1] instanceof Tuple)) {
             throw new AnalyzerException(
-                "Binding parameter must be a tuple",
+                'Binding parameter must be a tuple',
                 $x->getStartLocation(),
                 $x->getEndLocation()
             );
@@ -624,7 +624,7 @@ final class AnalyzeTuple
 
         if (!(count($x[1]) % 2 === 0)) {
             throw new AnalyzerException(
-                "Bindings must be a even number of parameters",
+                'Bindings must be a even number of parameters',
                 $x->getStartLocation(),
                 $x->getEndLocation()
             );
@@ -781,7 +781,7 @@ final class AnalyzeTuple
 
             if (count($x) < 1) {
                 throw new AnalyzerException(
-                    "Function name is missing",
+                    'Function name is missing',
                     $x->getStartLocation(),
                     $x->getEndLocation()
                 );
@@ -876,7 +876,7 @@ final class AnalyzeTuple
         $tupleCount = count($x);
         $frame = $env->getCurrentRecurFrame();
 
-        if (!($x[0] instanceof Symbol && $x[0] == "recur")) {
+        if (!($x[0] instanceof Symbol && $x[0] == 'recur')) {
             throw new AnalyzerException(
                 "This is not a 'recur.",
                 $x->getStartLocation(),
@@ -1045,7 +1045,7 @@ final class AnalyzeTuple
     private function analyzeLoop(Tuple $x, NodeEnvironment $env): LetNode
     {
         $tupleCount = count($x);
-        if (!($x[0] instanceof Symbol && $x[0] == "loop")) {
+        if (!($x[0] instanceof Symbol && $x[0] == 'loop')) {
             throw new AnalyzerException(
                 "This is not a 'loop.",
                 $x->getStartLocation(),
@@ -1063,7 +1063,7 @@ final class AnalyzeTuple
 
         if (!($x[1] instanceof Tuple)) {
             throw new AnalyzerException(
-                "Binding parameter must be a tuple.",
+                'Binding parameter must be a tuple.',
                 $x->getStartLocation(),
                 $x->getEndLocation()
             );
@@ -1071,7 +1071,7 @@ final class AnalyzeTuple
 
         if (!(count($x[1]) % 2 === 0)) {
             throw new AnalyzerException(
-                "Bindings must be a even number of parameters",
+                'Bindings must be a even number of parameters',
                 $x->getStartLocation(),
                 $x->getEndLocation()
             );
@@ -1248,7 +1248,7 @@ final class AnalyzeTuple
         foreach ($x[2] as $element) {
             if (!($element instanceof Symbol)) {
                 throw new AnalyzerException(
-                    "Defstruct field elements must by Symbols.",
+                    'Defstruct field elements must by Symbols.',
                     $element->getStartLocation(),
                     $element->getEndLocation()
                 );

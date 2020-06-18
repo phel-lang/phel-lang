@@ -79,7 +79,7 @@ final class Emitter
     {
         $filename = tempnam(sys_get_temp_dir(), '__phel');
         if (!$filename) {
-            throw new Exception("can not create temp file.");
+            throw new Exception('can not create temp file.');
         }
 
         try {
@@ -434,12 +434,12 @@ final class Emitter
 
     private function emitNs(NsNode $node): void
     {
-        $nsSym = new Symbol("*ns*");
+        $nsSym = new Symbol('*ns*');
         $nsSym->setStartLocation($node->getStartSourceLocation());
-        $this->emitGlobalBase("phel\\core", $nsSym);
-        $this->emitStr(" = ", $node->getStartSourceLocation());
-        $this->emitPhel("\\" . Munge::encodeNs($node->getNamespace()));
-        $this->emitLine(";", $node->getStartSourceLocation());
+        $this->emitGlobalBase('phel\\core', $nsSym);
+        $this->emitStr(' = ', $node->getStartSourceLocation());
+        $this->emitPhel('\\' . Munge::encodeNs($node->getNamespace()));
+        $this->emitLine(';', $node->getStartSourceLocation());
 
         foreach ($node->getRequireNs() as $i => $ns) {
             $this->emitLine('\Phel\Runtime::getInstance()->loadNs("' . \addslashes($ns->getName()) . '");', $ns->getStartLocation());
@@ -826,7 +826,7 @@ final class Emitter
                 $this->emitPhpVariable($p, null, false, true);
             } else {
                 $meta = $p->getMeta();
-                $this->emitPhpVariable($p, null, $meta[new Keyword("reference")] ?? false);
+                $this->emitPhpVariable($p, null, $meta[new Keyword('reference')] ?? false);
             }
 
             if ($i < $paramsCount - 1) {
@@ -881,15 +881,15 @@ final class Emitter
     private function emitDef(DefNode $node): void
     {
         $this->emitGlobalBase($node->getNamespace(), $node->getName());
-        $this->emitStr(" = ", $node->getStartSourceLocation());
+        $this->emitStr(' = ', $node->getStartSourceLocation());
         $this->emit($node->getInit());
-        $this->emitLine(";", $node->getStartSourceLocation());
+        $this->emitLine(';', $node->getStartSourceLocation());
 
         if (count($node->getMeta()) > 0) {
             $this->emitGlobalBaseMeta($node->getNamespace(), $node->getName());
-            $this->emitStr(" = ", $node->getStartSourceLocation());
+            $this->emitStr(' = ', $node->getStartSourceLocation());
             $this->emitPhel($node->getMeta());
-            $this->emitLine(";", $node->getStartSourceLocation());
+            $this->emitLine(';', $node->getStartSourceLocation());
         }
     }
 
@@ -1079,7 +1079,7 @@ final class Emitter
     {
         $this->indentLevel--;
         $this->emitLine();
-        $this->emitStr("})()", $sl);
+        $this->emitStr('})()', $sl);
     }
 
     private function printFloat(float $x): string

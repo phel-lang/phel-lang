@@ -70,10 +70,10 @@ final class Printer
             return 'nil';
         }
         if (is_array($form) && !$this->readable) {
-            return "<PHP-Array>";
+            return '<PHP-Array>';
         }
         if (is_resource($form) && !$this->readable) {
-            return "<PHP Resource id #" . (string)$form . '>';
+            return '<PHP Resource id #' . (string)$form . '>';
         }
         if (is_object($form) && !$this->readable) {
             return '<PHP-Object(' . get_class($form) . ')>';
@@ -83,7 +83,7 @@ final class Printer
         if ($type === 'object') {
             $type = get_class($form);
         }
-        throw new Exception("Printer can not print this type: " . $type);
+        throw new Exception('Printer can not print this type: ' . $type);
     }
 
     private function printString(string $str): string
@@ -162,7 +162,7 @@ final class Printer
             $args[] = $this->print($elem);
         }
 
-        return $prefix . implode(" ", $args) . $suffix;
+        return $prefix . implode(' ', $args) . $suffix;
     }
 
     private function printStruct(Struct $form): string
@@ -174,7 +174,7 @@ final class Printer
             $args[] = $this->print($form[$key]);
         }
 
-        return $prefix . implode(" ", $args) . $suffix;
+        return $prefix . implode(' ', $args) . $suffix;
     }
 
     private function printArray(PhelArray $form): string
@@ -187,7 +187,7 @@ final class Printer
             $args[] = $this->print($elem);
         }
 
-        return $prefix . implode(" ", $args) . $suffix;
+        return $prefix . implode(' ', $args) . $suffix;
     }
 
     private function printTable(Table $form): string
@@ -201,6 +201,6 @@ final class Printer
             $args[] = $this->print($value);
         }
 
-        return $prefix . implode(" ", $args) . $suffix;
+        return $prefix . implode(' ', $args) . $suffix;
     }
 }

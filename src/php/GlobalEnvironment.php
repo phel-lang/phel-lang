@@ -82,14 +82,14 @@ final class GlobalEnvironment
     {
         $strName = $name->getName();
 
-        if ($strName === "__DIR__") {
+        if ($strName === '__DIR__') {
             return new LiteralNode(
                 $env,
                 $this->resolveMagicDir($name->getStartLocation())
             );
         }
 
-        if ($strName === "__FILE__") {
+        if ($strName === '__FILE__') {
             return new LiteralNode(
                 $env,
                 $this->resolveMagicFile($name->getStartLocation())
@@ -118,8 +118,8 @@ final class GlobalEnvironment
 
     private function resolveMagicFile(?SourceLocation $sl): ?string
     {
-        if ($sl && $sl->getFile() === "string") {
-            return "string";
+        if ($sl && $sl->getFile() === 'string') {
+            return 'string';
         }
 
         if ($sl) {
@@ -131,8 +131,8 @@ final class GlobalEnvironment
 
     private function resolveMagicDir(?SourceLocation $sl): ?string
     {
-        if ($sl && $sl->getFile() === "string") {
-            return "string";
+        if ($sl && $sl->getFile() === 'string') {
+            return 'string';
         }
 
         if ($sl) {

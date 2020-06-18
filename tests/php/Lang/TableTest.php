@@ -8,7 +8,7 @@ class TableTest extends TestCase
 {
     public function testNumberZeroAsValue()
     {
-        $t = Table::fromKVs("a", 0);
-        $this->assertEquals(0, $t["a"]);
+        $t = Table::fromKVs('a', 0);
+        $this->assertEquals(0, $t['a']);
     }
 }

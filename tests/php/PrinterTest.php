@@ -12,7 +12,7 @@ final class PrinterTest extends TestCase
     {
         $this->assertEquals(
             '"test"',
-            $this->print("test")
+            $this->print('test')
         );
     }
 

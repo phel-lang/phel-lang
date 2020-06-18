@@ -36,14 +36,14 @@ final class TextExceptionPrinter implements ExceptionPrinter
         $firstLine = $eStartLocation->getLine();
 
         echo $this->style->blue($e->getMessage()) . "\n";
-        echo "in " . $eStartLocation->getFile() . ':' . $firstLine . "\n\n";
+        echo 'in ' . $eStartLocation->getFile() . ':' . $firstLine . "\n\n";
 
         $lines = explode("\n", $codeSnippet->getCode());
         $endLineLength = strlen((string) $codeSnippet->getEndLocation()->getLine());
         $padLength = $endLineLength - strlen((string) $codeSnippet->getStartLocation()->getLine());
         foreach ($lines as $index => $line) {
             echo str_pad((string) ($firstLine + $index), $padLength, ' ', STR_PAD_LEFT);
-            echo "| ";
+            echo '| ';
             echo $line;
             echo "\n";
 
@@ -89,7 +89,7 @@ final class TextExceptionPrinter implements ExceptionPrinter
                     }
                     $argString = implode(' ', $argParts);
                     if (count($argParts) > 0) {
-                        $argString = " " . $argString;
+                        $argString = ' ' . $argString;
                     }
 
                     [$file, $line] = $this->getOriginalFilePosition($generatedLine, $generatedColumn);
@@ -122,16 +122,16 @@ final class TextExceptionPrinter implements ExceptionPrinter
         $originalLine = $line;
 
         if ($fileNameComment
-            && $fileNameComment[0] === "/"
-            && $fileNameComment[1] === "/"
-            && $fileNameComment[2] === " "
+            && $fileNameComment[0] === '/'
+            && $fileNameComment[1] === '/'
+            && $fileNameComment[2] === ' '
         ) {
             $originalFile = trim(substr($fileNameComment, 3));
 
             if ($sourceMapComment
-                && $sourceMapComment[0] === "/"
-                && $sourceMapComment[1] === "/"
-                && $sourceMapComment[2] === " "
+                && $sourceMapComment[0] === '/'
+                && $sourceMapComment[1] === '/'
+                && $sourceMapComment[2] === ' '
             ) {
                 $mapping = trim(substr($sourceMapComment, 3));
 
@@ -150,7 +150,7 @@ final class TextExceptionPrinter implements ExceptionPrinter
             $result[] = $this->buildPhpArg($arg);
         }
 
-        return implode(", ", $result);
+        return implode(', ', $result);
     }
 
     private function buildPhpArg($arg): string
@@ -168,15 +168,15 @@ final class TextExceptionPrinter implements ExceptionPrinter
         }
 
         if (is_bool($arg)) {
-            return ($arg) ? "true" : "false";
+            return ($arg) ? 'true' : 'false';
         }
 
         if (is_resource($arg)) {
-            return "Resource id #" . ((string) $arg);
+            return 'Resource id #' . ((string) $arg);
         }
 
         if (is_array($arg)) {
-            return "Array";
+            return 'Array';
         }
 
         if (is_object($arg)) {
