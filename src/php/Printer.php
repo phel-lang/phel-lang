@@ -12,6 +12,7 @@ use Phel\Lang\Struct;
 use Phel\Lang\Symbol;
 use Phel\Lang\Table;
 use Phel\Lang\Tuple;
+use Phel\Lang\Set;
 
 final class Printer
 {
@@ -47,6 +48,9 @@ final class Printer
         }
         if ($form instanceof Symbol) {
             return $form->getName();
+        }
+        if ($form instanceof Set) {
+            return $this->printSet($form);
         }
         if ($form instanceof PhelArray) {
             return $this->printArray($form);
@@ -202,5 +206,18 @@ final class Printer
         }
 
         return $prefix . implode(' ', $args) . $suffix;
+    }
+
+    private function printSet(Set $form): string
+    {
+        $prefix = '@(';
+        $suffix = ')';
+
+        $args = [];
+        foreach ($form as $elem) {
+            $args[] = $this->print($elem);
+        }
+
+        return $prefix . implode(" ", $args) . $suffix;
     }
 }

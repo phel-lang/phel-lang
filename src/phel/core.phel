@@ -6,6 +6,7 @@
   (:use Phel\Lang\IContactable)
   (:use Phel\Lang\PhelArray)
   (:use Phel\Lang\Table)
+  (:use Phel\Lang\Set)
   (:use Phel\Lang\Nil)
   (:use Phel\Lang\ICons)
   (:use Phel\Lang\ISlice)
@@ -184,6 +185,11 @@ This is PHP equivalent to `$args[0] . $args[1] . $args[2] ...`"
 # ------------------
 # Basic constructors
 # ------------------
+
+(defn set
+  "Creates a new Set. If no argument is provided, an empty Set is created."
+  [& xs]
+  (php/new Set xs))
 
 (defn keyword
   "Creates a new Keyword from a given string."
@@ -481,6 +487,7 @@ Calling the and function without arguments returns true."
   "Returns the type of `x`. Following types can be returned:
 
 * `:tuple`
+* `:set`
 * `:array`
 * `:struct`
 * `:table`
@@ -499,6 +506,7 @@ Calling the and function without arguments returns true."
   [x]
   (cond
     (php/instanceof x Tuple)      :tuple
+    (php/instanceof x Set)        :set
     (php/instanceof x PhelArray)  :array
     (php/instanceof x Struct)     :struct
     (php/instanceof x Table)      :table
@@ -614,6 +622,11 @@ Calling the and function without arguments returns true."
   (let [t (type x)]
     (or (= t :array) (= t :tuple) (= t :php/array))))
 
+(defn set?
+  "Returns true if `x` is a set, false otherwise."
+  [x]
+  (= (type x) :set))
+
 # ------------------
 # Sequence operation
 # ------------------
@@ -676,6 +689,32 @@ arrays. Use (php/aset ds key value)" )))
 arrays. Use (php/aunset ds key)" )))
     (php/aunset x key)
     x))
+
+(defn union
+  "Union multiple sets"
+  [& sets]
+  (apply concat sets))
+
+(defn intersection
+  "Intersect multiple sets into one"
+  [s & sets]
+  (do
+    (foreach [se sets]
+      (php/-> s (intersection se)))
+    s))
+
+(defn difference-into
+  "Difference between multiple sets into one"
+  [s & sets]
+  (do
+    (foreach [se sets]
+      (php/-> s (difference se)))
+    s))
+
+(defn difference
+  "Difference between multiple sets"
+  [& sets]
+  (apply difference-into (set) sets))
 
 
 # --------
