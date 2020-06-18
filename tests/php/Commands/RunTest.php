@@ -10,7 +10,7 @@ class RunTest extends TestCase
 {
     public function testRunByNamespace()
     {
-        $runtime = Runtime::newInstance();
+        $runtime = Runtime::initializeNew();
         $runtime->addPath('test\\', [__DIR__ . '/Fixtures']);
 
         $run = new Run($runtime);
@@ -21,7 +21,7 @@ class RunTest extends TestCase
 
     public function testRunByFilename()
     {
-        $runtime = Runtime::newInstance();
+        $runtime = Runtime::initializeNew();
         $runtime->addPath('test\\', [__DIR__ . '/Fixtures']);
 
         $run = new Run($runtime);

@@ -72,6 +72,16 @@ class Runtime
         return new Runtime($globalEnv, $cacheDirectory);
     }
 
+    /**
+     * @interal
+     */
+    public static function initializeNew(GlobalEnvironment $globalEnv = null, string $cacheDirectory = null): Runtime
+    {
+        self::$instance = new Runtime($globalEnv, $cacheDirectory);
+
+        return self::$instance;
+    }
+
     public static function getInstance(): Runtime
     {
         if (is_null(self::$instance)) {
