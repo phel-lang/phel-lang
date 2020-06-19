@@ -8,8 +8,13 @@ use InvalidArgumentException;
 use Iterator;
 use Phel\Printer;
 
-class Set extends PhelArray implements ArrayAccess, Countable, Iterator, ICons, ISlice, ICdr, IRest, IPop, IRemove, IPush, IConcat
+class Set extends Phel implements Countable, Iterator, ICons, IPush, IConcat
 {
+
+    /**
+     * @var mixed[]
+     */
+    protected $data = [];
 
     /**
      * Constructor
@@ -18,12 +23,11 @@ class Set extends PhelArray implements ArrayAccess, Countable, Iterator, ICons, 
      */
     public function __construct(array $data)
     {
-        parent::__construct([]);
         $this->setData($data);
     }
 
     /**
-     * Create a new array.
+     * Create a new set.
      *
      * @param mixed[] $values A list of all values
      *
@@ -34,11 +38,57 @@ class Set extends PhelArray implements ArrayAccess, Countable, Iterator, ICons, 
         return new Set($values);
     }
 
+    public function isTruthy(): bool
+    {
+        return true;
+    }
+
+    public function hash(): string
+    {
+        return spl_object_hash($this);
+    }
+
+    public function count(): int
+    {
+        return count($this->data);
+    }
+
+    public function current()
+    {
+        return current($this->data);
+    }
+
+    public function next()
+    {
+        next($this->data);
+    }
+
+    public function key()
+    {
+        return key($this->data);
+    }
+
+    public function valid()
+    {
+        return key($this->data) !== null;
+    }
+
+    public function rewind()
+    {
+        reset($this->data);
+    }
+
+    public function cons($x): ICons
+    {
+        array_unshift($this->data, $x);
+        return $this;
+    }
+
     public function push($x): IPush
     {
-        if (!in_array($x, $this->data)) {
-            $this->data[] = $x;
-        }
+        $hash = $this->offsetHash($x);
+        $this->data[$hash] = $x; // Don't need to check if $x is already there, just override.
+
         return $this;
     }
 
@@ -47,6 +97,7 @@ class Set extends PhelArray implements ArrayAccess, Countable, Iterator, ICons, 
         foreach ($xs as $x) {
             $this->push($x);
         }
+
         return $this;
     }
 
@@ -73,6 +124,11 @@ class Set extends PhelArray implements ArrayAccess, Countable, Iterator, ICons, 
         return $this->toPhpArray() == $other->toPhpArray();
     }
 
+    public function toPhpArray(): array
+    {
+        return $this->data;
+    }
+
     private function applySet(Set $set, callable $operation): Set
     {
         $this->setData($operation($this->data, $set->toPhpArray()));
@@ -81,6 +137,27 @@ class Set extends PhelArray implements ArrayAccess, Countable, Iterator, ICons, 
 
     private function setData(array $data)
     {
-        $this->data = array_values(array_unique($data));
+        $this->data = [];
+        $this->concat($data);
+    }
+
+    /**
+     * Creates a hash for the given key.
+     *
+     * @param mixed $offset The access key of the Set.
+     *
+     * @return string
+     */
+    private function offsetHash($offset): string
+    {
+        if ($offset instanceof Phel) {
+            return $offset->hash();
+        }
+
+        if (is_object($offset)) {
+            return spl_object_hash($offset);
+        }
+
+        return (string) $offset;
     }
 }
