@@ -4,19 +4,14 @@ declare(strict_types=1);
 
 namespace Phel\Analyzer\AnalyzeTuple;
 
-use Phel\Analyzer;
+use Phel\Analyzer\WithAnalyzer;
 use Phel\Ast\DoNode;
 use Phel\Lang\Tuple;
 use Phel\NodeEnvironment;
 
 final class AnalyzeDo
 {
-    private Analyzer $analyzer;
-
-    public function __construct(Analyzer $analyzer)
-    {
-        $this->analyzer = $analyzer;
-    }
+    use WithAnalyzer;
 
     public function __invoke(Tuple $x, NodeEnvironment $env): DoNode
     {

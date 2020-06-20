@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Phel\Analyzer\AnalyzeTuple;
 
 use Exception;
-use Phel\Analyzer;
+use Phel\Analyzer\WithAnalyzer;
 use Phel\Ast\CallNode;
 use Phel\Ast\GlobalVarNode;
 use Phel\Ast\Node;
@@ -16,12 +16,7 @@ use Phel\NodeEnvironment;
 
 final class AnalyzeInvoke
 {
-    private Analyzer $analyzer;
-
-    public function __construct(Analyzer $analyzer)
-    {
-        $this->analyzer = $analyzer;
-    }
+    use WithAnalyzer;
 
     public function __invoke(Tuple $x, NodeEnvironment $nodeEnvironment): Node
     {

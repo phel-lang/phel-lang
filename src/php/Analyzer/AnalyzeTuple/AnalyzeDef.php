@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Phel\Analyzer\AnalyzeTuple;
 
-use Phel\Analyzer;
+use Phel\Analyzer\WithAnalyzer;
 use Phel\Ast\DefNode;
 use Phel\Exceptions\AnalyzerException;
 use Phel\Lang\Keyword;
@@ -15,12 +15,8 @@ use Phel\NodeEnvironment;
 
 final class AnalyzeDef
 {
-    private Analyzer $analyzer;
+    use WithAnalyzer;
 
-    public function __construct(Analyzer $analyzer)
-    {
-        $this->analyzer = $analyzer;
-    }
     public function __invoke(Tuple $x, NodeEnvironment $nodeEnvironment): DefNode
     {
         $countX = count($x);

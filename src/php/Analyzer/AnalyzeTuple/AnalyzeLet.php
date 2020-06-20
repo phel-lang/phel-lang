@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Phel\Analyzer\AnalyzeTuple;
 
-use Phel\Analyzer;
+use Phel\Analyzer\WithAnalyzer;
 use Phel\Ast\BindingNode;
 use Phel\Ast\LetNode;
 use Phel\Destructure;
@@ -16,12 +16,7 @@ use Phel\RecurFrame;
 
 final class AnalyzeLet
 {
-    private Analyzer $analyzer;
-
-    public function __construct(Analyzer $analyzer)
-    {
-        $this->analyzer = $analyzer;
-    }
+    use WithAnalyzer;
 
     public function __invoke(Tuple $x, NodeEnvironment $env): LetNode
     {

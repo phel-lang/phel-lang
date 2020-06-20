@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace Phel\Analyzer;
 
-use Phel\Analyzer;
 use Phel\Analyzer\AnalyzeTuple\AnalyzeApply;
 use Phel\Analyzer\AnalyzeTuple\AnalyzeDef;
 use Phel\Analyzer\AnalyzeTuple\AnalyzeDefStruct;
@@ -33,12 +32,7 @@ use Phel\NodeEnvironment;
 
 final class AnalyzeTuple
 {
-    private Analyzer $analyzer;
-
-    public function __construct(Analyzer $analyzer)
-    {
-        $this->analyzer = $analyzer;
-    }
+    use WithAnalyzer;
 
     public function __invoke(Tuple $x, NodeEnvironment $env): Node
     {

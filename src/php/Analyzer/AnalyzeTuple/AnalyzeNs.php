@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace Phel\Analyzer\AnalyzeTuple;
 
-use Phel\Analyzer;
 use Phel\Analyzer\PhpKeywords;
+use Phel\Analyzer\WithAnalyzer;
 use Phel\Ast\NsNode;
 use Phel\Exceptions\AnalyzerException;
 use Phel\Lang\Keyword;
@@ -15,12 +15,7 @@ use Phel\NodeEnvironment;
 
 final class AnalyzeNs
 {
-    private Analyzer $analyzer;
-
-    public function __construct(Analyzer $analyzer)
-    {
-        $this->analyzer = $analyzer;
-    }
+    use WithAnalyzer;
 
     public function __invoke(Tuple $x, NodeEnvironment $env): NsNode
     {

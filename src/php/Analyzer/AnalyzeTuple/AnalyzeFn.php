@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Phel\Analyzer\AnalyzeTuple;
 
-use Phel\Analyzer;
+use Phel\Analyzer\WithAnalyzer;
 use Phel\Ast\FnNode;
 use Phel\Exceptions\AnalyzerException;
 use Phel\Lang\Symbol;
@@ -14,12 +14,7 @@ use Phel\RecurFrame;
 
 final class AnalyzeFn
 {
-    private Analyzer $analyzer;
-
-    public function __construct(Analyzer $analyzer)
-    {
-        $this->analyzer = $analyzer;
-    }
+    use WithAnalyzer;
 
     public function __invoke(Tuple $x, NodeEnvironment $env): FnNode
     {
