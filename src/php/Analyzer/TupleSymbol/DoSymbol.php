@@ -2,14 +2,14 @@
 
 declare(strict_types=1);
 
-namespace Phel\Analyzer\AnalyzeTuple;
+namespace Phel\Analyzer\TupleSymbol;
 
 use Phel\Analyzer\WithAnalyzer;
 use Phel\Ast\DoNode;
 use Phel\Lang\Tuple;
 use Phel\NodeEnvironment;
 
-final class AnalyzeDo
+final class DoSymbol
 {
     use WithAnalyzer;
 

@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Phel\Analyzer\AnalyzeTuple;
+namespace Phel\Analyzer\TupleSymbol;
 
 use Phel\Analyzer\WithAnalyzer;
 use Phel\Ast\DefNode;
@@ -13,7 +13,7 @@ use Phel\Lang\Table;
 use Phel\Lang\Tuple;
 use Phel\NodeEnvironment;
 
-final class AnalyzeDef
+final class DefSymbol
 {
     use WithAnalyzer;
 

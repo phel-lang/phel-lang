@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Phel\Analyzer\AnalyzeTuple;
+namespace Phel\Analyzer\TupleSymbol;
 
 use Phel\Analyzer\WithAnalyzer;
 use Phel\Ast\PhpArrayUnsetNode;
@@ -10,7 +10,7 @@ use Phel\Exceptions\AnalyzerException;
 use Phel\Lang\Tuple;
 use Phel\NodeEnvironment;
 
-final class AnalyzePhpAUnset
+final class PhpAUnsetSymbol
 {
     use WithAnalyzer;
 

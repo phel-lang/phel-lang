@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Phel\Analyzer\AnalyzeTuple;
+namespace Phel\Analyzer\TupleSymbol;
 
 use Exception;
 use Phel\Analyzer\WithAnalyzer;
@@ -14,7 +14,7 @@ use Phel\Lang\AbstractType;
 use Phel\Lang\Tuple;
 use Phel\NodeEnvironment;
 
-final class AnalyzeInvoke
+final class InvokeSymbol
 {
     use WithAnalyzer;
 

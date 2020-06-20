@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Phel\Analyzer\AnalyzeTuple;
+namespace Phel\Analyzer\TupleSymbol;
 
 use Phel\Analyzer\WithAnalyzer;
 use Phel\Ast\BindingNode;
@@ -14,7 +14,7 @@ use Phel\Lang\Tuple;
 use Phel\NodeEnvironment;
 use Phel\RecurFrame;
 
-final class AnalyzeLet
+final class LetSymbol
 {
     use WithAnalyzer;
 

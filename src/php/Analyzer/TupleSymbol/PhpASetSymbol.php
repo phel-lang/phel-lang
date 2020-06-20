@@ -2,14 +2,14 @@
 
 declare(strict_types=1);
 
-namespace Phel\Analyzer\AnalyzeTuple;
+namespace Phel\Analyzer\TupleSymbol;
 
 use Phel\Analyzer\WithAnalyzer;
 use Phel\Ast\PhpArraySetNode;
 use Phel\Lang\Tuple;
 use Phel\NodeEnvironment;
 
-final class AnalyzePhpASet
+final class PhpASetSymbol
 {
     use WithAnalyzer;
 

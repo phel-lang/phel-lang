@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Phel\Analyzer\AnalyzeTuple;
+namespace Phel\Analyzer\TupleSymbol;
 
 use Phel\Analyzer\WithAnalyzer;
 use Phel\Ast\ApplyNode;
@@ -10,7 +10,7 @@ use Phel\Exceptions\AnalyzerException;
 use Phel\Lang\Tuple;
 use Phel\NodeEnvironment;
 
-final class AnalyzeApply
+final class ApplySymbol
 {
     use WithAnalyzer;
 

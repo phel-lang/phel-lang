@@ -2,14 +2,14 @@
 
 declare(strict_types=1);
 
-namespace Phel\Analyzer\AnalyzeTuple;
+namespace Phel\Analyzer\TupleSymbol;
 
 use Phel\Ast\QuoteNode;
 use Phel\Exceptions\AnalyzerException;
 use Phel\Lang\Tuple;
 use Phel\NodeEnvironment;
 
-final class AnalyzeQuote
+final class QuoteSymbol
 {
     public function __invoke(Tuple $x, NodeEnvironment $env): QuoteNode
     {

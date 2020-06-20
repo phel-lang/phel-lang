@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Phel\Analyzer\AnalyzeTuple;
+namespace Phel\Analyzer\TupleSymbol;
 
 use Phel\Analyzer\WithAnalyzer;
 use Phel\Ast\DefStructNode;
@@ -11,7 +11,7 @@ use Phel\Lang\Symbol;
 use Phel\Lang\Tuple;
 use Phel\NodeEnvironment;
 
-final class AnalyzeDefStruct
+final class DefStructSymbol
 {
     use WithAnalyzer;
 
