@@ -7,6 +7,7 @@ namespace Phel\Analyzer;
 use Exception;
 use Phel\Analyzer;
 use Phel\Analyzer\AnalyzeTuple\AnalyzeDef;
+use Phel\Analyzer\AnalyzeTuple\AnalyzeDo;
 use Phel\Analyzer\AnalyzeTuple\AnalyzeFn;
 use Phel\Analyzer\AnalyzeTuple\AnalyzeNs;
 use Phel\Analyzer\AnalyzeTuple\AnalyzeQuote;
@@ -15,7 +16,6 @@ use Phel\Ast\BindingNode;
 use Phel\Ast\CallNode;
 use Phel\Ast\CatchNode;
 use Phel\Ast\DefStructNode;
-use Phel\Ast\DoNode;
 use Phel\Ast\ForeachNode;
 use Phel\Ast\GlobalVarNode;
 use Phel\Ast\IfNode;
@@ -30,7 +30,6 @@ use Phel\Ast\PhpArrayUnsetNode;
 use Phel\Ast\PhpNewNode;
 use Phel\Ast\PhpObjectCallNode;
 use Phel\Ast\PropertyOrConstantAccessNode;
-use Phel\Ast\QuoteNode;
 use Phel\Ast\RecurNode;
 use Phel\Ast\ThrowNode;
 use Phel\Ast\TryNode;
@@ -68,7 +67,7 @@ final class AnalyzeTuple
             case 'quote':
                 return (new AnalyzeQuote())($x, $env);
             case 'do':
-                return $this->analyzeDo($x, $env);
+                return (new AnalyzeDo($this->analyzer))($x, $env);
             case 'if':
                 return $this->analyzeIf($x, $env);
             case 'apply':
@@ -208,33 +207,6 @@ final class AnalyzeTuple
     private function isSymWithName($x, string $name): bool
     {
         return $x instanceof Symbol && $x->getName() === $name;
-    }
-
-    private function analyzeDo(Tuple $x, NodeEnvironment $env): DoNode
-    {
-        $tupleCount = count($x);
-        $stmts = [];
-        for ($i = 1; $i < $tupleCount - 1; $i++) {
-            $stmts[] = $this->analyzer->analyze($x[$i], $env->withContext(NodeEnvironment::CTX_STMT)->withDisallowRecurFrame());
-        }
-
-        if ($tupleCount > 2) {
-            $retEnv = $env->getContext() === NodeEnvironment::CTX_STMT
-                ? $env->withContext(NodeEnvironment::CTX_STMT)
-                : $env->withContext(NodeEnvironment::CTX_RET);
-            $ret = $this->analyzer->analyze($x[$tupleCount - 1], $retEnv);
-        } elseif ($tupleCount === 2) {
-            $ret = $this->analyzer->analyze($x[$tupleCount - 1], $env);
-        } else {
-            $ret = $this->analyzer->analyze(null, $env);
-        }
-
-        return new DoNode(
-            $env,
-            $stmts,
-            $ret,
-            $x->getStartLocation()
-        );
     }
 
     private function analyzeIf(Tuple $x, NodeEnvironment $env): IfNode
