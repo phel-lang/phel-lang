@@ -14,6 +14,7 @@ use Phel\Analyzer\AnalyzeTuple\AnalyzeIf;
 use Phel\Analyzer\AnalyzeTuple\AnalyzeLet;
 use Phel\Analyzer\AnalyzeTuple\AnalyzeNs;
 use Phel\Analyzer\AnalyzeTuple\AnalyzePhpAGet;
+use Phel\Analyzer\AnalyzeTuple\AnalyzePhpASet;
 use Phel\Analyzer\AnalyzeTuple\AnalyzePhpNew;
 use Phel\Analyzer\AnalyzeTuple\AnalyzePhpObjectCall;
 use Phel\Analyzer\AnalyzeTuple\AnalyzeQuote;
@@ -27,7 +28,6 @@ use Phel\Ast\LetNode;
 use Phel\Ast\Node;
 use Phel\Ast\PhelArrayNode;
 use Phel\Ast\PhpArrayPushNode;
-use Phel\Ast\PhpArraySetNode;
 use Phel\Ast\PhpArrayUnsetNode;
 use Phel\Ast\RecurNode;
 use Phel\Ast\ThrowNode;
@@ -82,7 +82,7 @@ final class AnalyzeTuple
             case 'php/aget':
                 return (new AnalyzePhpAGet($this->analyzer))($x, $env);
             case 'php/aset':
-                return $this->analyzePhpASet($x, $env);
+                return (new AnalyzePhpASet($this->analyzer))($x, $env);
             case 'php/apush':
                 return $this->analyzePhpAPush($x, $env);
             case 'php/aunset':
@@ -208,16 +208,6 @@ final class AnalyzeTuple
         return $x instanceof Symbol && $x->getName() === $name;
     }
 
-    private function analyzePhpASet(Tuple $x, NodeEnvironment $env): PhpArraySetNode
-    {
-        return new PhpArraySetNode(
-            $env,
-            $this->analyzer->analyze($x[1], $env->withContext(NodeEnvironment::CTX_EXPR)),
-            $this->analyzer->analyze($x[2], $env->withContext(NodeEnvironment::CTX_EXPR)),
-            $this->analyzer->analyze($x[3], $env->withContext(NodeEnvironment::CTX_EXPR)),
-            $x->getStartLocation()
-        );
-    }
 
     private function analyzePhpAPush(Tuple $x, NodeEnvironment $env): PhpArrayPushNode
     {
