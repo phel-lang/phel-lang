@@ -16,6 +16,7 @@ use Phel\Analyzer\AnalyzeTuple\AnalyzeNs;
 use Phel\Analyzer\AnalyzeTuple\AnalyzePhpAGet;
 use Phel\Analyzer\AnalyzeTuple\AnalyzePhpAPush;
 use Phel\Analyzer\AnalyzeTuple\AnalyzePhpASet;
+use Phel\Analyzer\AnalyzeTuple\AnalyzePhpAUnset;
 use Phel\Analyzer\AnalyzeTuple\AnalyzePhpNew;
 use Phel\Analyzer\AnalyzeTuple\AnalyzePhpObjectCall;
 use Phel\Analyzer\AnalyzeTuple\AnalyzeQuote;
@@ -28,7 +29,6 @@ use Phel\Ast\GlobalVarNode;
 use Phel\Ast\LetNode;
 use Phel\Ast\Node;
 use Phel\Ast\PhelArrayNode;
-use Phel\Ast\PhpArrayUnsetNode;
 use Phel\Ast\RecurNode;
 use Phel\Ast\ThrowNode;
 use Phel\Ast\TryNode;
@@ -86,7 +86,7 @@ final class AnalyzeTuple
             case 'php/apush':
                 return (new AnalyzePhpAPush($this->analyzer))($x, $env);
             case 'php/aunset':
-                return $this->analyzePhpAUnset($x, $env);
+                return (new AnalyzePhpAUnset($this->analyzer))($x, $env);
             case 'recur':
                 return $this->analyzeRecur($x, $env);
             case 'try':
@@ -206,26 +206,6 @@ final class AnalyzeTuple
     private function isSymWithName($x, string $name): bool
     {
         return $x instanceof Symbol && $x->getName() === $name;
-    }
-
-
-
-    private function analyzePhpAUnset(Tuple $x, NodeEnvironment $env): PhpArrayUnsetNode
-    {
-        if ($env->getContext() !== NodeEnvironment::CTX_STMT) {
-            throw new AnalyzerException(
-                "'php/unset can only be called as Statement and not as Expression",
-                $x->getStartLocation(),
-                $x->getEndLocation()
-            );
-        }
-
-        return new PhpArrayUnsetNode(
-            $env,
-            $this->analyzer->analyze($x[1], $env->withContext(NodeEnvironment::CTX_EXPR)),
-            $this->analyzer->analyze($x[2], $env->withContext(NodeEnvironment::CTX_EXPR)),
-            $x->getStartLocation()
-        );
     }
 
     private function analyzeRecur(Tuple $x, NodeEnvironment $env): RecurNode
