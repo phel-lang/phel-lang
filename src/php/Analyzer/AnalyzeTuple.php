@@ -14,6 +14,7 @@ use Phel\Analyzer\AnalyzeTuple\AnalyzeIf;
 use Phel\Analyzer\AnalyzeTuple\AnalyzeLet;
 use Phel\Analyzer\AnalyzeTuple\AnalyzeNs;
 use Phel\Analyzer\AnalyzeTuple\AnalyzePhpNew;
+use Phel\Analyzer\AnalyzeTuple\AnalyzePhpObjectCall;
 use Phel\Analyzer\AnalyzeTuple\AnalyzeQuote;
 use Phel\Ast\BindingNode;
 use Phel\Ast\CallNode;
@@ -22,15 +23,12 @@ use Phel\Ast\DefStructNode;
 use Phel\Ast\ForeachNode;
 use Phel\Ast\GlobalVarNode;
 use Phel\Ast\LetNode;
-use Phel\Ast\MethodCallNode;
 use Phel\Ast\Node;
 use Phel\Ast\PhelArrayNode;
 use Phel\Ast\PhpArrayGetNode;
 use Phel\Ast\PhpArrayPushNode;
 use Phel\Ast\PhpArraySetNode;
 use Phel\Ast\PhpArrayUnsetNode;
-use Phel\Ast\PhpObjectCallNode;
-use Phel\Ast\PropertyOrConstantAccessNode;
 use Phel\Ast\RecurNode;
 use Phel\Ast\ThrowNode;
 use Phel\Ast\TryNode;
@@ -78,9 +76,9 @@ final class AnalyzeTuple
             case 'php/new':
                 return (new AnalyzePhpNew($this->analyzer))($x, $env);
             case 'php/->':
-                return $this->analyzePhpObjectCall($x, $env, false);
+                return (new AnalyzePhpObjectCall($this->analyzer))($x, $env, false);
             case 'php/::':
-                return $this->analyzePhpObjectCall($x, $env, true);
+                return (new AnalyzePhpObjectCall($this->analyzer))($x, $env, true);
             case 'php/aget':
                 return $this->analyzePhpAGet($x, $env);
             case 'php/aset':
@@ -208,79 +206,6 @@ final class AnalyzeTuple
     private function isSymWithName($x, string $name): bool
     {
         return $x instanceof Symbol && $x->getName() === $name;
-    }
-
-
-    private function analyzePhpObjectCall(Tuple $x, NodeEnvironment $env, bool $isStatic): PhpObjectCallNode
-    {
-        $fnName = $isStatic ? 'php/::' : 'php/->';
-        if (count($x) !== 3) {
-            throw new AnalyzerException(
-                "Exactly two arguments are expected for '$fnName",
-                $x->getStartLocation(),
-                $x->getEndLocation()
-            );
-        }
-
-        if (!($x[2] instanceof Tuple || $x[2] instanceof Symbol)) {
-            throw new AnalyzerException(
-                "Second argument of '$fnName must be a Tuple or a Symbol",
-                $x->getStartLocation(),
-                $x->getEndLocation()
-            );
-        }
-
-        $targetExpr = $this->analyzer->analyze($x[1], $env->withContext(NodeEnvironment::CTX_EXPR)->withDisallowRecurFrame());
-
-        if ($x[2] instanceof Tuple) {
-            // Method call
-            $methodCall = true;
-
-            /** @var Tuple $tuple */
-            $tuple = $x[2];
-            $tCount = count($tuple);
-
-            if (count($x) < 1) {
-                throw new AnalyzerException(
-                    'Function name is missing',
-                    $x->getStartLocation(),
-                    $x->getEndLocation()
-                );
-            }
-
-            $args = [];
-            for ($i = 1; $i < $tCount; $i++) {
-                $args[] = $this->analyzer->analyze($tuple[$i], $env->withContext(NodeEnvironment::CTX_EXPR)->withDisallowRecurFrame());
-            }
-
-            /**
-             * @psalm-suppress PossiblyNullArgument
-             */
-            $callExpr = new MethodCallNode(
-                $env,
-                $tuple[0],
-                $args,
-                $tuple->getStartLocation()
-            );
-        } else {
-            // Property call
-            $methodCall = false;
-
-            $callExpr = new PropertyOrConstantAccessNode(
-                $env,
-                $x[2],
-                $x[2]->getStartLocation()
-            );
-        }
-
-        return new PhpObjectCallNode(
-            $env,
-            $targetExpr,
-            $callExpr,
-            $isStatic,
-            $methodCall,
-            $x->getStartLocation()
-        );
     }
 
     private function analyzePhpAGet(Tuple $x, NodeEnvironment $env): PhpArrayGetNode
