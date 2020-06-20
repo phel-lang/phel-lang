@@ -3,6 +3,7 @@
 namespace Phel\Reader;
 
 use Phel\Exceptions\ReaderException;
+use Phel\GlobalEnvironment;
 use Phel\Lang\IMeta;
 use Phel\Lang\Keyword;
 use Phel\Lang\AbstractType;
@@ -68,7 +69,7 @@ class ReaderTest extends TestCase
     public function testReadSymbol()
     {
         $this->assertEquals(
-            $this->loc(new Symbol('test'), 1, 0, 1, 4),
+            $this->loc(Symbol::create('test'), 1, 0, 1, 4),
             $this->read('test')
         );
     }
@@ -85,12 +86,12 @@ class ReaderTest extends TestCase
         );
 
         $this->assertEquals(
-            $this->loc(new Tuple([$this->loc(new Symbol('a'), 1, 1, 1, 2)], false), 1, 0, 1, 3),
+            $this->loc(new Tuple([$this->loc(Symbol::create('a'), 1, 1, 1, 2)], false), 1, 0, 1, 3),
             $this->read('(a)')
         );
 
         $this->assertEquals(
-            $this->loc(new Tuple([$this->loc(new Symbol('a'), 1, 1, 1, 2), $this->loc(new Symbol('b'), 1, 3, 1, 4)], false), 1, 0, 1, 5),
+            $this->loc(new Tuple([$this->loc(Symbol::create('a'), 1, 1, 1, 2), $this->loc(Symbol::create('b'), 1, 3, 1, 4)], false), 1, 0, 1, 5),
             $this->read('(a b)')
         );
     }
@@ -107,12 +108,12 @@ class ReaderTest extends TestCase
         );
 
         $this->assertEquals(
-            $this->loc(new Tuple([$this->loc(new Symbol('a'), 1, 1, 1, 2)], true), 1, 0, 1, 3),
+            $this->loc(new Tuple([$this->loc(Symbol::create('a'), 1, 1, 1, 2)], true), 1, 0, 1, 3),
             $this->read('[a]')
         );
 
         $this->assertEquals(
-            $this->loc(new Tuple([$this->loc(new Symbol('a'), 1, 1, 1, 2), $this->loc(new Symbol('b'), 1, 3, 1, 4)], true), 1, 0, 1, 5),
+            $this->loc(new Tuple([$this->loc(Symbol::create('a'), 1, 1, 1, 2), $this->loc(Symbol::create('b'), 1, 3, 1, 4)], true), 1, 0, 1, 5),
             $this->read('[a b]')
         );
     }
@@ -120,7 +121,7 @@ class ReaderTest extends TestCase
     public function testQuote()
     {
         $this->assertEquals(
-            $this->loc(new Tuple([new Symbol('quote'), $this->loc(new Symbol('a'), 1, 1, 1, 2)]), 1, 0, 1, 2),
+            $this->loc(new Tuple([Symbol::create('quote'), $this->loc(Symbol::create('a'), 1, 1, 1, 2)]), 1, 0, 1, 2),
             $this->read('\'a')
         );
     }
@@ -128,7 +129,7 @@ class ReaderTest extends TestCase
     public function testUnquote()
     {
         $this->assertEquals(
-            $this->loc(new Tuple([new Symbol('unquote'), $this->loc(new Symbol('a'), 1, 1, 1, 2)]), 1, 0, 1, 2),
+            $this->loc(new Tuple([Symbol::create('unquote'), $this->loc(Symbol::create('a'), 1, 1, 1, 2)]), 1, 0, 1, 2),
             $this->read(',a')
         );
     }
@@ -136,7 +137,7 @@ class ReaderTest extends TestCase
     public function testUnquoteSplice()
     {
         $this->assertEquals(
-            $this->loc(new Tuple([new Symbol('unquote-splicing'), $this->loc(new Symbol('a'), 1, 2, 1, 3)]), 1, 0, 1, 3),
+            $this->loc(new Tuple([Symbol::create('unquote-splicing'), $this->loc(Symbol::create('a'), 1, 2, 1, 3)]), 1, 0, 1, 3),
             $this->read(',@a')
         );
     }
@@ -146,8 +147,8 @@ class ReaderTest extends TestCase
         $this->assertEquals(
             $this->loc(new Tuple(
                 [
-                $this->loc(new Symbol('quote'), 1, 1, 1, 8),
-                $this->loc(new Symbol('unquote'), 1, 1, 1, 8)]
+                $this->loc(Symbol::create('quote'), 1, 1, 1, 8),
+                $this->loc(Symbol::create('unquote'), 1, 1, 1, 8)]
             ), 1, 0, 1, 8),
             $this->read('`unquote')
         );
@@ -158,8 +159,8 @@ class ReaderTest extends TestCase
         $this->assertEquals(
             $this->loc(new Tuple(
                 [
-                $this->loc(new Symbol('quote'), 1, 1, 1, 2),
-                $this->loc(new Symbol('a'), 1, 1, 1, 2)]
+                $this->loc(Symbol::create('quote'), 1, 1, 1, 2),
+                $this->loc(Symbol::create('a'), 1, 1, 1, 2)]
             ), 1, 0, 1, 2),
             $this->read('`a')
         );
@@ -305,7 +306,7 @@ class ReaderTest extends TestCase
         $this->assertEquals(
             $this->loc(
                 $this->withMeta(
-                    new Symbol('test'),
+                    Symbol::create('test'),
                     Table::fromKVs(
                         $this->loc(new Keyword('test'), 1, 1, 1, 6),
                         true
@@ -325,7 +326,7 @@ class ReaderTest extends TestCase
         $this->assertEquals(
             $this->loc(
                 $this->withMeta(
-                    new Symbol('test'),
+                    Symbol::create('test'),
                     Table::fromKVs(
                         new Keyword('tag'),
                         'test'
@@ -345,10 +346,10 @@ class ReaderTest extends TestCase
         $this->assertEquals(
             $this->loc(
                 $this->withMeta(
-                    new Symbol('test'),
+                    Symbol::create('test'),
                     Table::fromKVs(
                         new Keyword('tag'),
-                        $this->loc(new Symbol('String'), 1, 1, 1, 7)
+                        $this->loc(Symbol::create('String'), 1, 1, 1, 7)
                     )
                 ),
                 1,
@@ -365,7 +366,7 @@ class ReaderTest extends TestCase
         $this->assertEquals(
             $this->loc(
                 $this->withMeta(
-                    new Symbol('test'),
+                    Symbol::create('test'),
                     Table::fromKVs(
                         $this->loc(new Keyword('a'), 1, 3, 1, 5),
                         1,
@@ -387,7 +388,7 @@ class ReaderTest extends TestCase
         $this->assertEquals(
             $this->loc(
                 $this->withMeta(
-                    new Symbol('test'),
+                    Symbol::create('test'),
                     Table::fromKVs(
                         $this->loc(new Keyword('a'), 1, 1, 1, 3),
                         true,
@@ -408,11 +409,11 @@ class ReaderTest extends TestCase
     {
         $this->assertEquals(
             Tuple::create(
-                new Symbol('fn'),
+                Symbol::create('fn'),
                 Tuple::createBracket(),
                 $this->loc(
                     Tuple::create(
-                        $this->loc(new Symbol('add'), 1, 2, 1, 5)
+                        $this->loc(Symbol::create('add'), 1, 2, 1, 5)
                     ),
                     1,
                     0,
@@ -428,14 +429,14 @@ class ReaderTest extends TestCase
     {
         $this->assertEquals(
             Tuple::create(
-                new Symbol('fn'),
+                Symbol::create('fn'),
                 Tuple::createBracket(
-                    new Symbol('__short_fn_1_1')
+                    Symbol::create('__short_fn_1_1')
                 ),
                 $this->loc(
                     Tuple::create(
-                        $this->loc(new Symbol('add'), 1, 2, 1, 5),
-                        $this->loc(new Symbol('__short_fn_1_1'), 1, 6, 1, 7)
+                        $this->loc(Symbol::create('add'), 1, 2, 1, 5),
+                        $this->loc(Symbol::create('__short_fn_1_1'), 1, 6, 1, 7)
                     ),
                     1,
                     0,
@@ -451,15 +452,15 @@ class ReaderTest extends TestCase
     {
         $this->assertEquals(
             Tuple::create(
-                new Symbol('fn'),
+                Symbol::create('fn'),
                 Tuple::createBracket(
-                    new Symbol('__short_fn_1_1')
+                    Symbol::create('__short_fn_1_1')
                 ),
                 $this->loc(
                     Tuple::create(
-                        $this->loc(new Symbol('add'), 1, 2, 1, 5),
-                        $this->loc(new Symbol('__short_fn_1_1'), 1, 6, 1, 7),
-                        $this->loc(new Symbol('__short_fn_1_1'), 1, 8, 1, 9)
+                        $this->loc(Symbol::create('add'), 1, 2, 1, 5),
+                        $this->loc(Symbol::create('__short_fn_1_1'), 1, 6, 1, 7),
+                        $this->loc(Symbol::create('__short_fn_1_1'), 1, 8, 1, 9)
                     ),
                     1,
                     0,
@@ -475,16 +476,16 @@ class ReaderTest extends TestCase
     {
         $this->assertEquals(
             Tuple::create(
-                new Symbol('fn'),
+                Symbol::create('fn'),
                 Tuple::createBracket(
-                    new Symbol('__short_fn_1_1'),
-                    new Symbol('__short_fn_2_2')
+                    Symbol::create('__short_fn_1_1'),
+                    Symbol::create('__short_fn_2_2')
                 ),
                 $this->loc(
                     Tuple::create(
-                        $this->loc(new Symbol('add'), 1, 2, 1, 5),
-                        $this->loc(new Symbol('__short_fn_1_1'), 1, 6, 1, 8),
-                        $this->loc(new Symbol('__short_fn_2_2'), 1, 9, 1, 11)
+                        $this->loc(Symbol::create('add'), 1, 2, 1, 5),
+                        $this->loc(Symbol::create('__short_fn_1_1'), 1, 6, 1, 8),
+                        $this->loc(Symbol::create('__short_fn_2_2'), 1, 9, 1, 11)
                     ),
                     1,
                     0,
@@ -500,17 +501,17 @@ class ReaderTest extends TestCase
     {
         $this->assertEquals(
             Tuple::create(
-                new Symbol('fn'),
+                Symbol::create('fn'),
                 Tuple::createBracket(
-                    new Symbol('__short_fn_1_1'),
-                    new Symbol('__short_fn_undefined_3'),
-                    new Symbol('__short_fn_3_2')
+                    Symbol::create('__short_fn_1_1'),
+                    Symbol::create('__short_fn_undefined_3'),
+                    Symbol::create('__short_fn_3_2')
                 ),
                 $this->loc(
                     Tuple::create(
-                        $this->loc(new Symbol('add'), 1, 2, 1, 5),
-                        $this->loc(new Symbol('__short_fn_1_1'), 1, 6, 1, 8),
-                        $this->loc(new Symbol('__short_fn_3_2'), 1, 9, 1, 11)
+                        $this->loc(Symbol::create('add'), 1, 2, 1, 5),
+                        $this->loc(Symbol::create('__short_fn_1_1'), 1, 6, 1, 8),
+                        $this->loc(Symbol::create('__short_fn_3_2'), 1, 9, 1, 11)
                     ),
                     1,
                     0,
@@ -526,17 +527,17 @@ class ReaderTest extends TestCase
     {
         $this->assertEquals(
             Tuple::create(
-                new Symbol('fn'),
+                Symbol::create('fn'),
                 Tuple::createBracket(
-                    new Symbol('__short_fn_1_1'),
-                    new Symbol('&'),
-                    new Symbol('__short_fn_rest_2')
+                    Symbol::create('__short_fn_1_1'),
+                    Symbol::create('&'),
+                    Symbol::create('__short_fn_rest_2')
                 ),
                 $this->loc(
                     Tuple::create(
-                        $this->loc(new Symbol('add'), 1, 2, 1, 5),
-                        $this->loc(new Symbol('__short_fn_1_1'), 1, 6, 1, 8),
-                        $this->loc(new Symbol('__short_fn_rest_2'), 1, 9, 1, 11)
+                        $this->loc(Symbol::create('add'), 1, 2, 1, 5),
+                        $this->loc(Symbol::create('__short_fn_1_1'), 1, 6, 1, 8),
+                        $this->loc(Symbol::create('__short_fn_rest_2'), 1, 9, 1, 11)
                     ),
                     1,
                     0,
@@ -551,8 +552,9 @@ class ReaderTest extends TestCase
     public function read($string, $removeLoc = false)
     {
         Symbol::resetGen();
+        $globalEnv = new GlobalEnvironment();
         $lexer = new Lexer();
-        $reader = new Reader();
+        $reader = new Reader($globalEnv);
         $tokenStream = $lexer->lexString($string);
 
         $result = $reader->readNext($tokenStream)->getAst();

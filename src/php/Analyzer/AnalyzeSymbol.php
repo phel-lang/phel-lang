@@ -17,8 +17,8 @@ final class AnalyzeSymbol
 
     public function __invoke(Symbol $x, NodeEnvironment $env): Node
     {
-        if (strpos($x->getName(), 'php/') === 0) {
-            return new PhpVarNode($env, substr($x->getName(), 4), $x->getStartLocation());
+        if ($x->getNamespace() && $x->getNamespace() === 'php') {
+            return new PhpVarNode($env, $x->getName(), $x->getStartLocation());
         }
 
         if ($env->hasLocal($x)) {
@@ -38,6 +38,6 @@ final class AnalyzeSymbol
             return $globalResolve;
         }
 
-        throw new AnalyzerException('Can not resolve symbol ' . $x->getName(), $x->getStartLocation(), $x->getEndLocation());
+        throw new AnalyzerException('Can not resolve symbol ' . $x->getFullName(), $x->getStartLocation(), $x->getEndLocation());
     }
 }

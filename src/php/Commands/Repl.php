@@ -36,7 +36,7 @@ final class Repl
         $globalEnv = new GlobalEnvironment();
         Runtime::initialize($globalEnv)->loadNs("phel\core");
 
-        $this->reader = new Reader();
+        $this->reader = new Reader($globalEnv);
         $this->lexer = new Lexer();
         $this->analyzer = new Analyzer($globalEnv);
         $this->emitter = new Emitter();

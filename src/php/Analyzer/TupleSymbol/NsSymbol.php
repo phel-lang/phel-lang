@@ -84,7 +84,7 @@ final class NsSymbol
                     }
                 } else {
                     $parts = explode('\\', $import[1]->getName());
-                    $alias = new Symbol($parts[count($parts) - 1]);
+                    $alias = Symbol::create($parts[count($parts) - 1]);
                 }
 
                 $this->analyzer->getGlobalEnvironment()->addUseAlias($ns, $alias, $import[1]);
@@ -110,7 +110,7 @@ final class NsSymbol
                     }
                 } else {
                     $parts = explode('\\', $import[1]->getName());
-                    $alias = new Symbol($parts[count($parts) - 1]);
+                    $alias = Symbol::create($parts[count($parts) - 1]);
                 }
 
                 $this->analyzer->getGlobalEnvironment()->addRequireAlias($ns, $alias, $import[1]);

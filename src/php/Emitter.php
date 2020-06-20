@@ -440,7 +440,7 @@ final class Emitter
 
         $this->emitLine('\Phel\Runtime::getInstance()->getEnv()->setNs("' . \addslashes($node->getNamespace()) . '");', $node->getStartSourceLocation());
 
-        $nsSym = new Symbol('*ns*');
+        $nsSym = Symbol::create('*ns*');
         $nsSym->setStartLocation($node->getStartSourceLocation());
         $this->emitGlobalBase('phel\\core', $nsSym);
         $this->emitStr(' = ', $node->getStartSourceLocation());
@@ -942,7 +942,7 @@ final class Emitter
         } elseif ($x instanceof Keyword) {
             $this->emitStr('new \Phel\Lang\Keyword("' . addslashes($x->getName()) . '")', $x->getStartLocation());
         } elseif ($x instanceof Symbol) {
-            $this->emitStr('(new \Phel\Lang\Symbol("' . addslashes($x->getName()) . '"))', $x->getStartLocation());
+            $this->emitStr('(\Phel\Lang\Symbol::create("' . addslashes($x->getFullName()) . '"))', $x->getStartLocation());
         } elseif ($x instanceof PhelArray) {
             $this->emitStr('\Phel\Lang\PhelArray::create(', $x->getStartLocation());
             if (count($x) > 0) {

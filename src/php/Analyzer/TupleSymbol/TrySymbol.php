@@ -69,7 +69,7 @@ final class TrySymbol
         }
 
         if ($finally) {
-            $finally = $finally->update(0, new Symbol('do'));
+            $finally = $finally->update(0, Symbol::create('do'));
             $finally = $this->analyzer->analyze(
                 $finally,
                 $env->withContext(NodeEnvironment::CTX_STMT)->withDisallowRecurFrame()
@@ -98,7 +98,7 @@ final class TrySymbol
                 );
             }
 
-            $exprs = [new Symbol('do')];
+            $exprs = [Symbol::create('do')];
             $catchCount = count($catch);
             for ($i = 3; $i < $catchCount; $i++) {
                 $exprs[] = $catch[$i];
@@ -121,7 +121,7 @@ final class TrySymbol
         }
 
         $body = $this->analyzer->analyze(
-            new Tuple(array_merge([new Symbol('do')], $body)),
+            new Tuple(array_merge([Symbol::create('do')], $body)),
             $env->withContext(count($catchNodes) > 0 || $finally ? $catchCtx : $env->getContext())
                 ->withDisallowRecurFrame()
         );

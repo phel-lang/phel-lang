@@ -10,15 +10,48 @@ final class Symbol extends AbstractType implements IIdentical
 {
     private static int $symGenCounter = 1;
 
+    private ?string $namespace;
+
     private string $name;
 
-    public function __construct(string $name)
+    public function __construct(?string $namespace, string $name)
     {
+        $this->namespace = $namespace;
         $this->name = $name;
+    }
+
+    public static function create($name)
+    {
+        $pos = strpos($name, '/');
+
+        if ($pos === false || $name === '/') {
+            return new Symbol(null, $name);
+        }
+
+        return new Symbol(substr($name, 0, $pos), substr($name, $pos + 1));
+    }
+
+    public static function createForNamespace($namespace, $name)
+    {
+        return new Symbol($namespace, $name);
     }
 
     public function getName(): string
     {
+        return $this->name;
+    }
+
+    public function getNamespace(): ?string
+    {
+        return $this->namespace;
+    }
+
+    public function getFullName(): string
+    {
+        if ($this->namespace) {
+            return $this->namespace . '/' . $this->name;
+        }
+
         return $this->name;
     }
 
@@ -29,7 +62,7 @@ final class Symbol extends AbstractType implements IIdentical
 
     public static function gen(string $prefix = '__phel_'): Symbol
     {
-        return new Symbol($prefix . (self::$symGenCounter++));
+        return Symbol::create($prefix . (self::$symGenCounter++));
     }
 
     public static function resetGen(): void
@@ -44,11 +77,13 @@ final class Symbol extends AbstractType implements IIdentical
 
     public function equals($other): bool
     {
-        return $other instanceof Symbol && $this->name == $other->getName();
+        return $other instanceof Symbol
+            && $this->name === $other->getName()
+            && $this->namespace === $other->getNamespace();
     }
 
     public function identical($other): bool
     {
-        return $other instanceof Symbol && $this->name == $other->getName();
+        return $this->equals($other);
     }
 }

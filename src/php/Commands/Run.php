@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Phel\Commands;
 
+use Phel\GlobalEnvironment;
 use Phel\Lang\Symbol;
 use Phel\Lang\Tuple;
 use Phel\Lexer;
@@ -51,7 +52,7 @@ class Run
     protected function getNamespaceFromFile(string $path): string
     {
         $lexer = new Lexer();
-        $reader = new Reader();
+        $reader = new Reader(new GlobalEnvironment());
         $content = file_get_contents($path);
 
         try {

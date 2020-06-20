@@ -192,7 +192,7 @@ class Runtime
                 if ($meta[new Keyword('private')] !== true) {
                     $this->globalEnv->addDefinition(
                         $ns,
-                        new Symbol($name),
+                        Symbol::create($name),
                         $GLOBALS['__phel'][$ns][$name]->getMeta()
                     );
                 }

@@ -1,4 +1,4 @@
 --PHEL--
 `unquote
 --PHP--
-(new \Phel\Lang\Symbol("unquote"));
+(\Phel\Lang\Symbol::create("unquote"));

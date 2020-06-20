@@ -33,6 +33,13 @@ final class Reader
     /** @var Symbol[]|null */
     private ?array $fnArgs = null;
 
+    private GlobalEnvironment $env;
+
+    public function __construct(GlobalEnvironment $env)
+    {
+        $this->env = $env;
+    }
+
     /**
      * Reads the next expression from the token stream.
      *
@@ -162,22 +169,22 @@ final class Reader
                         $params = [];
                         for ($i = 1; $i <= $maxParams; $i++) {
                             if (isset($this->fnArgs[$i])) {
-                                $params[] = new Symbol($this->fnArgs[$i]->getName());
+                                $params[] = Symbol::create($this->fnArgs[$i]->getName());
                             } else {
                                 $params[] = Symbol::gen('__short_fn_undefined_');
                             }
                         }
 
                         if (isset($this->fnArgs[0])) {
-                            $params[] = new Symbol('&');
-                            $params[] = new Symbol($this->fnArgs[0]->getName());
+                            $params[] = Symbol::create('&');
+                            $params[] = Symbol::create($this->fnArgs[0]->getName());
                         }
                     } else {
                         $params = [];
                     }
 
                     $this->fnArgs = null;
-                    return Tuple::create(new Symbol('fn'), new Tuple($params, true), $body);
+                    return Tuple::create(Symbol::create('fn'), new Tuple($params, true), $body);
 
                 case Token::T_EOF:
                     throw $this->buildReaderException('Unterminated list');
@@ -199,7 +206,7 @@ final class Reader
         $tokenStream->next();
 
         $expression = $this->readExpressionHard($tokenStream, 'missing expression');
-        $result = (new Quasiquote())->quasiquote($expression);
+        $result = (new Quasiquote($this->env))->quasiquote($expression);
 
         if ($result instanceof AbstractType) {
             $endLocation = $tokenStream->current()->getEndLocation();
@@ -248,7 +255,7 @@ final class Reader
 
         $endLocation = $tokenStream->current()->getEndLocation();
 
-        $tuple = new Tuple([new Symbol($wrapFn), $expression]);
+        $tuple = new Tuple([Symbol::create($wrapFn), $expression]);
         $tuple->setStartLocation($startLocation);
         $tuple->setEndLocation($endLocation);
 
@@ -359,13 +366,13 @@ final class Reader
     private function readSymbol(string $word): Symbol
     {
         if (!is_array($this->fnArgs)) {
-            return new Symbol($word);
+            return Symbol::create($word);
         }
 
         // Special case: We read an anonymous function
         if ($word === '$') {
             if (isset($this->fnArgs[1])) {
-                return new Symbol($this->fnArgs[1]->getName());
+                return Symbol::create($this->fnArgs[1]->getName());
             }
             $sym = Symbol::gen('__short_fn_1_');
             $this->fnArgs[1] = $sym;
@@ -374,7 +381,7 @@ final class Reader
 
         if ($word === '$&') {
             if (isset($this->fnArgs[0])) {
-                return new Symbol($this->fnArgs[0]->getName());
+                return Symbol::create($this->fnArgs[0]->getName());
             }
             $sym = Symbol::gen('__short_fn_rest_');
             $this->fnArgs[0] = $sym;
@@ -384,14 +391,14 @@ final class Reader
         if (preg_match('/\$([1-9][0-9]*)/', $word, $matches)) {
             $number = (int) $matches[1];
             if (isset($this->fnArgs[$number])) {
-                return new Symbol($this->fnArgs[$number]->getName());
+                return Symbol::create($this->fnArgs[$number]->getName());
             }
             $sym = Symbol::gen('__short_fn_' . $number . '_');
             $this->fnArgs[$number] = $sym;
             return $sym;
         }
 
-        return new Symbol($word);
+        return Symbol::create($word);
     }
 
     private function parseEscapedString(string $str): string

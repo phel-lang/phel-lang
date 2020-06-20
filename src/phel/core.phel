@@ -153,7 +153,7 @@ elements, returns nil."
   [name keys]
   (let [name-str (php/-> name (getName))
         class-name-str (php/. *ns* "\\" (php/:: Munge (encode name-str)))
-        is-name (php/new Symbol (php/. name-str "?"))]
+        is-name (php/:: Symbol (create (php/. name-str "?")))]
     `(do
       (defstruct* ,name ,keys)
       (defn ,name ,(php/. "Creates a new " name " struct") ,keys (php/new ,class-name-str ,@keys))

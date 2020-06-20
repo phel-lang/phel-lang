@@ -18,7 +18,7 @@ final class Compiler
     public function __construct(GlobalEnvironment $globalEnv)
     {
         $this->lexer = new Lexer();
-        $this->reader = new Reader();
+        $this->reader = new Reader($globalEnv);
         $this->analyzer = new Analyzer($globalEnv);
         $this->emitter = new Emitter();
     }

@@ -104,7 +104,7 @@ class Destructure
         foreach ($b as $key => $bindTo) {
             $accessSym = Symbol::gen()->copyLocationFrom($b);
             $accessValue = Tuple::create(
-                (new Symbol('php/aget'))->copyLocationFrom($b),
+                (Symbol::create('php/aget'))->copyLocationFrom($b),
                 $tableSymbol,
                 $key
             )->copyLocationFrom($b);
@@ -130,7 +130,7 @@ class Destructure
 
             $accessSym = Symbol::gen()->copyLocationFrom($b);
             $accessValue = Tuple::create(
-                (new Symbol('php/aget'))->copyLocationFrom($b),
+                (Symbol::create('php/aget'))->copyLocationFrom($b),
                 $arrSymbol,
                 $index
             )->copyLocationFrom($b);
@@ -177,7 +177,7 @@ class Destructure
                     } else {
                         $accessSym = Symbol::gen()->copyLocationFrom($current);
                         $accessValue = Tuple::create(
-                            (new Symbol('php/aget'))->copyLocationFrom($current),
+                            (Symbol::create('php/aget'))->copyLocationFrom($current),
                             $lastListSym,
                             0
                         )->copyLocationFrom($current);
@@ -185,7 +185,7 @@ class Destructure
 
                         $nextSym = Symbol::gen()->copyLocationFrom($current);
                         $nextValue = Tuple::create(
-                            (new Symbol('next'))->copyLocationFrom($current),
+                            (Symbol::create('next'))->copyLocationFrom($current),
                             $lastListSym
                         )->copyLocationFrom($current);
                         $bindings[] = [$nextSym, $nextValue];

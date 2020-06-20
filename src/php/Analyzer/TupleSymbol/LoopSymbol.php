@@ -84,7 +84,7 @@ final class LoopSymbol
             for ($i = 2; $i < $tupleCount; $i++) {
                 $bodyExpr[] = $x[$i];
             }
-            $letSym = new Symbol('let');
+            $letSym = Symbol::create('let');
             $letSym->setStartLocation($x[0]->getStartLocation());
             $letSym->setEndLocation($x[0]->getEndLocation());
 
@@ -145,7 +145,7 @@ final class LoopSymbol
             $bodyEnv = $bodyEnv->withShadowedLocal($binding->getSymbol(), $binding->getShadow());
         }
 
-        $bodyExpr = $this->analyzer->analyze(Tuple::create(new Symbol('do'), ...$exprs), $bodyEnv);
+        $bodyExpr = $this->analyzer->analyze(Tuple::create(Symbol::create('do'), ...$exprs), $bodyEnv);
 
         return new LetNode(
             $env,

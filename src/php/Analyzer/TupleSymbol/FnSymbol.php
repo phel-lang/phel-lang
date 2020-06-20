@@ -103,13 +103,13 @@ final class FnSymbol
         $body = array_slice($x->toArray(), 2);
         if (count($lets) > 0) {
             $body = Tuple::create(
-                (new Symbol('let'))->copyLocationFrom($body),
+                (Symbol::create('let'))->copyLocationFrom($body),
                 (new Tuple($lets, true))->copyLocationFrom($body),
                 ...$body
             )->copyLocationFrom($body);
         } else {
             $body = Tuple::create(
-                (new Symbol('do'))->copyLocationFrom($body),
+                (Symbol::create('do'))->copyLocationFrom($body),
                 ...$body
             )->copyLocationFrom($body);
         }
