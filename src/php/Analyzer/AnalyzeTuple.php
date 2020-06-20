@@ -21,9 +21,9 @@ use Phel\Analyzer\AnalyzeTuple\AnalyzePhpNew;
 use Phel\Analyzer\AnalyzeTuple\AnalyzePhpObjectCall;
 use Phel\Analyzer\AnalyzeTuple\AnalyzeQuote;
 use Phel\Analyzer\AnalyzeTuple\AnalyzeRecur;
+use Phel\Analyzer\AnalyzeTuple\AnalyzeTry;
 use Phel\Ast\BindingNode;
 use Phel\Ast\CallNode;
-use Phel\Ast\CatchNode;
 use Phel\Ast\DefStructNode;
 use Phel\Ast\ForeachNode;
 use Phel\Ast\GlobalVarNode;
@@ -31,7 +31,6 @@ use Phel\Ast\LetNode;
 use Phel\Ast\Node;
 use Phel\Ast\PhelArrayNode;
 use Phel\Ast\ThrowNode;
-use Phel\Ast\TryNode;
 use Phel\Destructure;
 use Phel\Exceptions\AnalyzerException;
 use Phel\Lang\AbstractType;
@@ -90,7 +89,7 @@ final class AnalyzeTuple
             case 'recur':
                 return (new AnalyzeRecur($this->analyzer))($x, $env);
             case 'try':
-                return $this->analyzeTry($x, $env);
+                return (new AnalyzeTry($this->analyzer))($x, $env);
             case 'throw':
                 return $this->analyzeThrow($x, $env);
             case 'loop':
@@ -200,120 +199,6 @@ final class AnalyzeTuple
                 $x->setEndLocation($parent->getEndLocation());
             }
         }
-    }
-
-    /** @param mixed $x */
-    private function isSymWithName($x, string $name): bool
-    {
-        return $x instanceof Symbol && $x->getName() === $name;
-    }
-
-    private function analyzeTry(Tuple $x, NodeEnvironment $env): TryNode
-    {
-        $tupleCount = count($x);
-        $state = 'start';
-        $body = [];
-        $catches = [];
-        /** @var Tuple|null $finally */
-        $finally = null;
-        for ($i = 1; $i < $tupleCount; $i++) {
-            /** @var mixed $form */
-            $form = $x[$i];
-
-            switch ($state) {
-                case 'start':
-                    if ($this->isSymWithName($form[0], 'catch')) {
-                        $state = 'catches';
-                        $catches[] = $form;
-                    } elseif ($this->isSymWithName($form[0], 'finally')) {
-                        $state = 'done';
-                        $finally = $form;
-                    } else {
-                        $body[] = $form;
-                    }
-                    break;
-
-                case 'catches':
-                    if ($this->isSymWithName($form[0], 'catch')) {
-                        $catches[] = $form;
-                    } elseif ($this->isSymWithName($form[0], 'finally')) {
-                        $state = 'done';
-                        $finally = $form;
-                    } else {
-                        throw new AnalyzerException("Invalid 'try form", $x->getStartLocation(), $x->getEndLocation());
-                    }
-                    break;
-
-                case 'done':
-                    throw new AnalyzerException("Unexpected form after 'finally", $x->getStartLocation(), $x->getEndLocation());
-
-                default:
-                    throw new AnalyzerException("Unexpected parser state in 'try", $x->getStartLocation(), $x->getEndLocation());
-            }
-        }
-
-        if ($finally) {
-            $finally = $finally->update(0, new Symbol('do'));
-            $finally = $this->analyzer->analyze($finally, $env->withContext(NodeEnvironment::CTX_STMT)->withDisallowRecurFrame());
-        }
-
-        $catchCtx = $env->getContext() === NodeEnvironment::CTX_EXPR ? NodeEnvironment::CTX_RET : $env->getContext();
-        $catchNodes = [];
-        /** @var Tuple $catch */
-        foreach ($catches as $catch) {
-            [$_, $type, $name] = $catch;
-
-            if (!($type instanceof Symbol)) {
-                throw new AnalyzerException(
-                    "First argument of 'catch must be a Symbol",
-                    $catch->getStartLocation(),
-                    $catch->getEndLocation()
-                );
-            }
-
-            if (!($name instanceof Symbol)) {
-                throw new AnalyzerException(
-                    "Second argument of 'catch must be a Symbol",
-                    $catch->getStartLocation(),
-                    $catch->getEndLocation()
-                );
-            }
-
-            $exprs = [new Symbol('do')];
-            $catchCount = count($catch);
-            for ($i = 3; $i < $catchCount; $i++) {
-                $exprs[] = $catch[$i];
-            }
-
-            $catchBody = $this->analyzer->analyze(
-                new Tuple($exprs),
-                $env->withContext($catchCtx)
-                    ->withMergedLocals([$name])
-                    ->withDisallowRecurFrame()
-            );
-
-            $catchNodes[] = new CatchNode(
-                $env,
-                $type,
-                $name,
-                $catchBody,
-                $catch->getStartLocation()
-            );
-        }
-
-        $body = $this->analyzer->analyze(
-            new Tuple(array_merge([new Symbol('do')], $body)),
-            $env->withContext(count($catchNodes) > 0 || $finally ? $catchCtx : $env->getContext())
-                ->withDisallowRecurFrame()
-        );
-
-        return new TryNode(
-            $env,
-            $body,
-            $catchNodes,
-            $finally,
-            $x->getStartLocation()
-        );
     }
 
     private function analyzeThrow(Tuple $x, NodeEnvironment $env): ThrowNode
