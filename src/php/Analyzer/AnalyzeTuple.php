@@ -13,6 +13,7 @@ use Phel\Analyzer\AnalyzeTuple\AnalyzeFn;
 use Phel\Analyzer\AnalyzeTuple\AnalyzeIf;
 use Phel\Analyzer\AnalyzeTuple\AnalyzeLet;
 use Phel\Analyzer\AnalyzeTuple\AnalyzeNs;
+use Phel\Analyzer\AnalyzeTuple\AnalyzePhpAGet;
 use Phel\Analyzer\AnalyzeTuple\AnalyzePhpNew;
 use Phel\Analyzer\AnalyzeTuple\AnalyzePhpObjectCall;
 use Phel\Analyzer\AnalyzeTuple\AnalyzeQuote;
@@ -25,7 +26,6 @@ use Phel\Ast\GlobalVarNode;
 use Phel\Ast\LetNode;
 use Phel\Ast\Node;
 use Phel\Ast\PhelArrayNode;
-use Phel\Ast\PhpArrayGetNode;
 use Phel\Ast\PhpArrayPushNode;
 use Phel\Ast\PhpArraySetNode;
 use Phel\Ast\PhpArrayUnsetNode;
@@ -80,7 +80,7 @@ final class AnalyzeTuple
             case 'php/::':
                 return (new AnalyzePhpObjectCall($this->analyzer))($x, $env, true);
             case 'php/aget':
-                return $this->analyzePhpAGet($x, $env);
+                return (new AnalyzePhpAGet($this->analyzer))($x, $env);
             case 'php/aset':
                 return $this->analyzePhpASet($x, $env);
             case 'php/apush':
@@ -206,16 +206,6 @@ final class AnalyzeTuple
     private function isSymWithName($x, string $name): bool
     {
         return $x instanceof Symbol && $x->getName() === $name;
-    }
-
-    private function analyzePhpAGet(Tuple $x, NodeEnvironment $env): PhpArrayGetNode
-    {
-        return new PhpArrayGetNode(
-            $env,
-            $this->analyzer->analyze($x[1], $env->withContext(NodeEnvironment::CTX_EXPR)),
-            $this->analyzer->analyze($x[2], $env->withContext(NodeEnvironment::CTX_EXPR)),
-            $x->getStartLocation()
-        );
     }
 
     private function analyzePhpASet(Tuple $x, NodeEnvironment $env): PhpArraySetNode
