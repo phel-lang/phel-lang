@@ -40,7 +40,28 @@ final class Quasiquote
                     ...$this->expandList($form)
                 )->copyLocationFrom($form)
             )->copyLocationFrom($form);
-            // TODO: Handle Table and Array
+        }
+
+        if ($form instanceof Table && count($form) > 0) {
+            return Tuple::create(
+                (new Symbol('apply'))->copyLocationFrom($form),
+                (new Symbol('table'))->copyLocationFrom($form),
+                Tuple::create(
+                    (new Symbol('concat'))->copyLocationFrom($form),
+                    ...$this->expandList($form->toKeyValueList())
+                )->copyLocationFrom($form)
+            )->copyLocationFrom($form);
+        }
+
+        if ($form instanceof PhelArray && count($form) > 0) {
+            return Tuple::create(
+                (new Symbol('apply'))->copyLocationFrom($form),
+                (new Symbol('array'))->copyLocationFrom($form),
+                Tuple::create(
+                    (new Symbol('concat'))->copyLocationFrom($form),
+                    ...$this->expandList($form)
+                )->copyLocationFrom($form)
+            )->copyLocationFrom($form);
         }
 
         if ($this->isLiteral($form)) {
@@ -69,7 +90,7 @@ final class Quasiquote
         return $form instanceof Tuple && $form[0] == 'unquote-splicing';
     }
 
-    private function expandList(Tuple $seq): array
+    private function expandList(iterable $seq): array
     {
         $xs = [];
         foreach ($seq as $item) {

@@ -128,6 +128,17 @@ class Table extends AbstractType implements ArrayAccess, Countable, Iterator
         return $this == $other;
     }
 
+    public function toKeyValueList(): array
+    {
+        $result = [];
+        foreach ($this as $key => $value) {
+            $result[] = $key;
+            $result[] = $value;
+        }
+
+        return $result;
+    }
+
     /**
      * Creates a hash for the given key.
      *

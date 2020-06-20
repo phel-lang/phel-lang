@@ -36,9 +36,18 @@
   (fn [& xs] (php/new Tuple (php/-> xs (toPhpArray)))))
 
 (def tuple-brackets
-  "Creates a new Bracket-Tuple. If no argument is provided,
+  "```phel\n(tuple-brackets & xs)\n```\nCreates a new Bracket-Tuple. If no argument is provided,
 an empty Braket-Tuple is created."
   (fn [& xs] (php/new Tuple (php/-> xs (toPhpArray)) true)))
+
+(def array
+  "```phel\n(array & xs)\n```\nCreates a new Array. If no argument is provided, an empty Array is created."
+  (fn [& xs] xs))
+
+(def table
+  "```phel\n(table & xs)\n```\nCreates a new Table. If no argument is provided, an empty Table is created.
+The number of parameters must be even."
+  (fn [& xs] (php/:: Table (fromKVArray (php/-> xs (toPhpArray))))))
 
 (def next
   "```phel\n(next xs)\n```\nReturns the sequence of elements after the first element. If there are no
@@ -175,17 +184,6 @@ This is PHP equivalent to `$args[0] . $args[1] . $args[2] ...`"
 # ------------------
 # Basic constructors
 # ------------------
-
-(defn array
-  "Creates a new Array. If no argument is provided, an empty Array is created."
-  [& xs]
-  xs)
-
-(defn table
-  "Creates a new Table. If no argument is provided, an empty Table is created.
-The number of parameters must be even."
-  [& xs]
-  (php/:: Table (fromKVArray (php/-> xs (toPhpArray)))))
 
 (defn keyword
   "Creates a new Keyword from a given string."

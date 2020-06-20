@@ -81,7 +81,7 @@ final class InvokeSymbol
 
         if (is_null($node)) {
             throw new AnalyzerException(
-                'Can not resolive macro',
+                'Can not resolve macro',
                 $x->getStartLocation(),
                 $x->getEndLocation()
             );
