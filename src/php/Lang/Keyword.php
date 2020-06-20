@@ -32,11 +32,6 @@ class Keyword extends Phel implements IIdentical
         return $other instanceof Keyword && $this->name == $other->getName();
     }
 
-    public function isTruthy(): bool
-    {
-        return true;
-    }
-
     public function identical($other): bool
     {
         return $other instanceof Keyword && $this->name == $other->getName();

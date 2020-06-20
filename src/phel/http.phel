@@ -15,12 +15,12 @@
   (let [server (or server php/$_SERVER)
         http-host (get server "HTTP_HOST")
         server-name (get server "SERVER_NAME")
-        server-port (get server "SERVER_PORT")
+        server-port (php/intval (get server "SERVER_PORT"))
         matches (php/array)
         match-result (when-not (nil? http-host) (php/preg_match uri-host-port-regex http-host matches))]
     (cond
-      (and (not (nil? http-host)) match-result)
-        [(get matches 1) (get matches 2)]
+      (and (not (nil? http-host)) (one? match-result))
+        [(get matches 1) (php/intval (get matches 2))]
       (not (nil? http-host))
         [http-host server-port]
       [server-name server-port])))
@@ -64,8 +64,8 @@
     (normalize-nested-file-spec value)
     (uploaded-file
       (get value "tmp_name")
-      (get value "size")
-      (get value "error")
+      (php/intval (get value "size"))
+      (php/intval (get value "error"))
       (get value "name")
       (get value "type"))))
 

@@ -194,7 +194,7 @@
 (assert (= true (= false false false)) "(= false false false)")
 (assert (= false (= false true false)) "(= false true false)")
 (assert (= true (= 10 10)) "(= 10 10)")
-(assert (= true (= 10 10.0)) "(= 10 10.0)")
+(assert (= false (= 10 10.0)) "(= 10 10.0)")
 (assert (= true (= :test :test)) "keywords are always equal")
 (assert (= true (= 'test 'test)) "symbol are always equal")
 (assert (= true (= [] [])) "two empty tuples are equal")
@@ -211,7 +211,7 @@
 (assert (= false (not= false false false)) "(not= false false false)")
 (assert (= true (not= false true false)) "(not= false true false)")
 (assert (= false (not= 10 10)) "(not= 10 10)")
-(assert (= false (not= 10 10.0)) "(not= 10 10.0)")
+(assert (= true (not= 10 10.0)) "(not= 10 10.0)")
 
 (assert (= true (< 10)) "(< 10)")
 (assert (= true (< 10 20)) "(< 10 20)")
@@ -377,7 +377,7 @@
 
 (assert (= "abc" (reduce2 str ["a" "b" "c"])) "reduce2 three elements tuple")
 (assert (= "a" (reduce2 str ["a"])) "reduce2 one element tuple")
-(assert (= "" (reduce2 str [])) "reduce2 empty tuple")
+(assert (= nil (reduce2 str [])) "reduce2 empty tuple")
 
 (assert (= 3 (peek [1 2 3])) "peek on tuple")
 (assert (= nil (peek [])) "peek on empty tuple")
@@ -692,11 +692,13 @@
 
 (assert (= true (zero? 0)) "(zero? 0)")
 (assert (= true (zero? 0.0)) "(zero? 0.0)")
+(assert (= true (zero? 0.00)) "(zero? 0.00)")
 (assert (= false (zero? 0.1)) "(zero? 0.1)")
 (assert (= false (zero? -0.1)) "(zero? -0.1)")
 
 (assert (= true (one? 1)) "(one? 1)")
-(assert (= true (one? 1.0)) "(one? 1.1)")
+(assert (= true (one? 1.0)) "(one? 1.0)")
+(assert (= true (one? 1.0)) "(one? 1.00)")
 (assert (= false (one? 0)) "(one? 0)")
 
 (assert (= false (pos? 0)) "(pos? 1)")

@@ -56,9 +56,4 @@ class Symbol extends Phel implements IIdentical
     {
         return $other instanceof Symbol && $this->name == $other->getName();
     }
-
-    public function isTruthy(): bool
-    {
-        return true;
-    }
 }

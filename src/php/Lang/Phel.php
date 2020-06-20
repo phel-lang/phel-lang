@@ -8,13 +8,6 @@ abstract class Phel implements IMeta, ISourceLocation
     use TMeta;
 
     /**
-     * Check if the value is thruthy
-     *
-     * @return bool
-     */
-    abstract public function isTruthy(): bool;
-
-    /**
      * Computes a hash of the object
      *
      * @return string

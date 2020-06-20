@@ -3,23 +3,13 @@ title = "Truth and Boolean operations"
 weight = 4
 +++
 
-For better compatibility with PHP, Phel has the same concept of truthiness and falsiness. The following values evaluate to `false`:
-
-* `false` itself
-* `nil`
-* the numbers _0_, _-0_, _0.0_ and _-0.0_
-* the empty string
-* a Phel array with zero elements
-* a Phel Table with zero elements
-* a PHP array with zero elements
-* PHP SimpleXML objects created from empty tags
-
-Everything else evaluates to `true`. The function `truthy?` can be used to check if a value is truthy. To check for the values `true` and `false` the functions `true?` and `false?` can be used.
+Phel has a different concept of truthniss. In Phel only `false` and `nil` represent falsity. Everything else evaluates to true. The function `truthy?` can be used to check if a value is truthy. To check for the values `true` and `false` the functions `true?` and `false?` can be used.
 
 ```phel
 (truthy? false) # Evaluates to false
+(truthy? nil) # Evaluates to false
 (truthy? true) # Evaluates to true
-(truthy? 0) # Evaluates to false
+(truthy? 0) # Evaluates to true
 (truthy? -1) # Evaluates to true
 
 (true? true) # Evaluates to true
@@ -48,12 +38,14 @@ The function `id` returns `true` if two values are identical. Identical is stric
 (id @{} @{}) # Evaluates to false
 ```
 
-To check if to two values are equal the equal function (`=`) can be used. Tuples, Arrays and Tables are equal if they have same values but they must not point to the same reference.
+To check if to two values are equal the equal function (`=`) can be used. Two values are equal if they have the same type and value. Tuples, Arrays and Tables are equal if they have same values but they must not point to the same reference.
 
 ```phel
 (= true true) # Evaluates to true
 (= true false) # Evaluates to false
-(= 5 "5") # Evaluates to true
+(= 5 "5") # Evaluates to false
+(= 5 5) # Evaluates to true
+(= 5 5.0) # Evaluates to false
 (= :test :test) # Evaluates to true
 (= 'sym 'sym') # Evaluates to true
 (= [] []) # Evaluates to true
@@ -61,7 +53,7 @@ To check if to two values are equal the equal function (`=`) can be used. Tuples
 (= @{} @{}) # Evaluates to true
 ```
 
-The function `id` is equivalent to PHP's identity operator (`===`) with support for Phel types. Similar, the equality function `=` is equivalent to PHP's equal operator (`==`). To check if two values are unequal the `not=` function can be used.
+The function `id` is equivalent to PHP's identity operator (`===`) with support for Phel types. However, the equality function `=` is not equivalent to PHP's equal operator (`==`). If you want to test if two values are PHP equal, the function `php/==` can be used. To check if two values are unequal the `not=` function can be used.
 
 ### Comparison operation
 

@@ -18,6 +18,7 @@
   (:use Phel\Lang\IConcat)
   (:use Phel\Lang\IMeta)
   (:use Phel\Lang\Symbol)
+  (:use Phel\Lang\Truthy)
   (:use Phel\Munge)
   (:use Phel\Printer)
   (:use Countable)
@@ -43,7 +44,7 @@ an empty Braket-Tuple is created."
   "```phel\n(next xs)\n```\nReturns the sequence of elements after the first element. If there are no
 elements, returns nil."
   (fn [xs]
-    (if (php/== xs nil)
+    (if (php/=== xs nil)
       nil
       (if (php/instanceof xs ICdr)
         (php/-> xs (cdr))
@@ -71,7 +72,7 @@ elements, returns nil."
   (fn [arr & xs]
     (loop [res arr
            [y & ys] xs]
-      (if (php/== nil y)
+      (if (php/=== nil y)
         res
         (recur (concat1 res y) ys)))))
 
@@ -167,9 +168,9 @@ provided an empty string is returned. Nil and false are represented as empty
 string. True is represented as 1. Otherwise it tries to call `__toString`.
 This is PHP equivalent to `$args[0] . $args[1] . $args[2] ...`"
   [& args]
-  (if args
-    (apply php/. args)
-    ""))
+  (if (php/== (php/count args) 0)
+    ""
+    (apply php/. args)))
 
 # ------------------
 # Basic constructors
@@ -217,7 +218,7 @@ The number of parameters must be even."
 (defn- equals1 [a b]
   (if (php/instanceof a Phel)
     (php/-> a (equals b))
-    (php/== a b)))
+    (php/=== a b)))
 
 (defn cons
   "Prepends `x` to the beginning of `xs`."
@@ -228,7 +229,7 @@ The number of parameters must be even."
       xs)
     (if (php/instanceof xs ICons)
       (php/-> xs (cons x))
-      (if (php/== xs nil)
+      (if (php/=== xs nil)
         @[x]
         (throw (php/new InvalidArgumentException
                   (php/. "cannot do cons " (php/print_r x true))))))))
@@ -276,7 +277,7 @@ implement the PHP Countable interface."
     (php/-> xs (count))
     (if (php/is_array xs)
       (php/count xs)
-      (if (php/== xs nil)
+      (if (php/=== xs nil)
         0
         (throw (php/new InvalidArgumentException (str "object is not countable: " xs)))))))
 
@@ -306,9 +307,9 @@ implement the PHP Countable interface."
   evaluated and return. Otherwise, nil is returned."
   [& pairs]
   (let [cnt (count pairs)]
-    (if (php/== cnt 0)
+    (if (php/=== cnt 0)
       nil
-      (if (php/== cnt 1)
+      (if (php/=== cnt 1)
         (first pairs)
         (tuple 'if
                (first pairs)
@@ -443,14 +444,15 @@ Calling the and function without arguments returns true."
   "Returns true if `(pred x)` is logical true for every `x` in `xs`, else false."
   [pred xs]
   (cond
-    (php/== (count xs) 0) true
+    (php/=== (count xs) 0) true
     (pred (first xs))     (recur pred (next xs))
                           false))
 (defn some?
   "Returns true if `(pred x)` is logical true for at least one `x` in `xs`, else false."
   [pred xs]
   (if xs
-    (or (pred (first xs)) (recur pred (next xs)))))
+    (or (pred (first xs)) (recur pred (next xs)))
+    false))
 
 (defn true?
   "Checks if `x` is true. Same as `x === true` in PHP."
@@ -460,7 +462,7 @@ Calling the and function without arguments returns true."
 (defn truthy?
   "Checks if `x` is truthy. Same as `x == true` in PHP."
   [x]
-  (= x true))
+  (php/:: Truthy (isTruthy x)))
 
 (defn false?
   "Checks if `x` is false. Same as `x === false` in PHP."
@@ -1219,12 +1221,12 @@ returns 1. If `xs` has one value, returns the reciprocal of x."
 (defn zero?
   "Checks if `x` is zero."
   [x]
-  (= x 0))
+  (or (= x 0) (= x 0.0)))
 
 (defn one?
   "Checks if `x` is one."
   [x]
-  (= x 1))
+  (or (= x 1) (= x 1.0)))
 
 (defn pos?
   "Checks if `x` is greater than zero."

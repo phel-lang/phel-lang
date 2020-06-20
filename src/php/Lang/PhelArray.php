@@ -118,11 +118,6 @@ class PhelArray extends Phel implements ArrayAccess, Countable, Iterator, ICons,
         return $this == $other;
     }
 
-    public function isTruthy(): bool
-    {
-        return true;
-    }
-
     public function slice(int $offset = 0, ?int $length = null): ISlice
     {
         return new PhelArray(array_slice($this->data, $offset, $length));

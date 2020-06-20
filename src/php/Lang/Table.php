@@ -148,11 +148,6 @@ class Table extends Phel implements ArrayAccess, Countable, Iterator
         return (string) $offset;
     }
 
-    public function isTruthy(): bool
-    {
-        return count($this->keys) > 0;
-    }
-
     public function __toString(): string
     {
         return Printer::readable()->print($this);

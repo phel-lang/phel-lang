@@ -178,11 +178,6 @@ class Tuple extends Phel implements ArrayAccess, Countable, Iterator, ISlice, IC
         return $this == $other;
     }
 
-    public function isTruthy(): bool
-    {
-        return true;
-    }
-
     public function cdr(): ?ICdr
     {
         if (count($this->data) - 1 > 0) {

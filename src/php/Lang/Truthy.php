@@ -14,10 +14,6 @@ class Truthy
      */
     public static function isTruthy($value): bool
     {
-        if ($value instanceof Phel) {
-            return $value->isTruthy();
-        } else {
-            return $value != null && $value !== false;
-        }
+        return $value !== null && $value !== false;
     }
 }
