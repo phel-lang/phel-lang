@@ -192,5 +192,4 @@ final class LoopSymbol
 
         return $nodes;
     }
-
 }

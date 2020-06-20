@@ -25,12 +25,16 @@ final class PhpNewSymbol
             );
         }
 
-        $classExpr = $this->analyzer->analyze($x[1],
-            $env->withContext(NodeEnvironment::CTX_EXPR)->withDisallowRecurFrame());
+        $classExpr = $this->analyzer->analyze(
+            $x[1],
+            $env->withContext(NodeEnvironment::CTX_EXPR)->withDisallowRecurFrame()
+        );
         $args = [];
         for ($i = 2; $i < $tupleCount; $i++) {
-            $args[] = $this->analyzer->analyze($x[$i],
-                $env->withContext(NodeEnvironment::CTX_EXPR)->withDisallowRecurFrame());
+            $args[] = $this->analyzer->analyze(
+                $x[$i],
+                $env->withContext(NodeEnvironment::CTX_EXPR)->withDisallowRecurFrame()
+            );
         }
 
         return new PhpNewNode(
@@ -40,5 +44,4 @@ final class PhpNewSymbol
             $x->getStartLocation()
         );
     }
-
 }

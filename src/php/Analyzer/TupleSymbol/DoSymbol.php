@@ -39,5 +39,4 @@ final class DoSymbol
             $x->getStartLocation()
         );
     }
-
 }

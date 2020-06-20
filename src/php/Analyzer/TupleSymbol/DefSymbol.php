@@ -84,5 +84,4 @@ final class DefSymbol
             $x->getStartLocation()
         );
     }
-
 }
