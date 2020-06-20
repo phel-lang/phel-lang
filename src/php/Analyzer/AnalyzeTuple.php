@@ -8,6 +8,7 @@ use Exception;
 use Phel\Analyzer;
 use Phel\Analyzer\AnalyzeTuple\AnalyzeApply;
 use Phel\Analyzer\AnalyzeTuple\AnalyzeDef;
+use Phel\Analyzer\AnalyzeTuple\AnalyzeDefStruct;
 use Phel\Analyzer\AnalyzeTuple\AnalyzeDo;
 use Phel\Analyzer\AnalyzeTuple\AnalyzeFn;
 use Phel\Analyzer\AnalyzeTuple\AnalyzeForeach;
@@ -26,7 +27,6 @@ use Phel\Analyzer\AnalyzeTuple\AnalyzeRecur;
 use Phel\Analyzer\AnalyzeTuple\AnalyzeThrow;
 use Phel\Analyzer\AnalyzeTuple\AnalyzeTry;
 use Phel\Ast\CallNode;
-use Phel\Ast\DefStructNode;
 use Phel\Ast\GlobalVarNode;
 use Phel\Ast\Node;
 use Phel\Ast\PhelArrayNode;
@@ -94,7 +94,7 @@ final class AnalyzeTuple
             case 'foreach':
                 return (new AnalyzeForeach($this->analyzer))($x, $env);
             case 'defstruct*':
-                return $this->analyzeDefStruct($x, $env);
+                return (new AnalyzeDefStruct($this->analyzer))($x, $env);
             default:
                 return $this->analyzeInvoke($x, $env);
         }
@@ -103,7 +103,8 @@ final class AnalyzeTuple
     private function analyzeInvoke(Tuple $x, NodeEnvironment $nodeEnvironment): Node
     {
         $tupleCount = count($x);
-        $f = $this->analyzer->analyze($x[0], $nodeEnvironment->withContext(NodeEnvironment::CTX_EXPR)->withDisallowRecurFrame());
+        $f = $this->analyzer->analyze($x[0],
+            $nodeEnvironment->withContext(NodeEnvironment::CTX_EXPR)->withDisallowRecurFrame());
 
         if ($f instanceof GlobalVarNode && $f->isMacro()) {
             $this->analyzer->getGlobalEnvironment()->setAllowPrivateAccess(true);
@@ -115,7 +116,8 @@ final class AnalyzeTuple
 
         $arguments = [];
         for ($i = 1; $i < $tupleCount; $i++) {
-            $arguments[] = $this->analyzer->analyze($x[$i], $nodeEnvironment->withContext(NodeEnvironment::CTX_EXPR)->withDisallowRecurFrame());
+            $arguments[] = $this->analyzer->analyze($x[$i],
+                $nodeEnvironment->withContext(NodeEnvironment::CTX_EXPR)->withDisallowRecurFrame());
         }
 
         return new CallNode(
@@ -145,6 +147,7 @@ final class AnalyzeTuple
             try {
                 $result = $fn(...$arguments);
                 $this->enrichLocation($result, $x);
+
                 return $result;
             } catch (Exception $e) {
                 throw new AnalyzerException(
@@ -198,61 +201,12 @@ final class AnalyzeTuple
         }
     }
 
-    private function analyzeDefStruct(Tuple $x, NodeEnvironment $env): DefStructNode
-    {
-        if (count($x) !== 3) {
-            throw new AnalyzerException(
-                "Exactly two arguments are required for 'defstruct. Got " . count($x),
-                $x->getStartLocation(),
-                $x->getEndLocation()
-            );
-        }
-
-        if (!($x[1] instanceof Symbol)) {
-            throw new AnalyzerException(
-                "First arugment of 'defstruct must be a Symbol.",
-                $x->getStartLocation(),
-                $x->getEndLocation()
-            );
-        }
-
-        if (!($x[2] instanceof Tuple)) {
-            throw new AnalyzerException(
-                "Second arugment of 'defstruct must be a Tuple.",
-                $x->getStartLocation(),
-                $x->getEndLocation()
-            );
-        }
-
-        $params = [];
-        foreach ($x[2] as $element) {
-            if (!($element instanceof Symbol)) {
-                throw new AnalyzerException(
-                    'Defstruct field elements must by Symbols.',
-                    $element->getStartLocation(),
-                    $element->getEndLocation()
-                );
-            }
-
-            $params[] = $element;
-        }
-
-        $namespace = $this->analyzer->getGlobalEnvironment()->getNs();
-
-        return new DefStructNode(
-            $env,
-            $namespace,
-            $x[1],
-            $params,
-            $x->getStartLocation()
-        );
-    }
-
     private function analyzePhelArray(PhelArray $x, NodeEnvironment $env): PhelArrayNode
     {
         $args = [];
         foreach ($x as $arg) {
-            $args[] = $this->analyzer->analyze($arg, $env->withContext(NodeEnvironment::CTX_EXPR)->withDisallowRecurFrame());
+            $args[] = $this->analyzer->analyze($arg,
+                $env->withContext(NodeEnvironment::CTX_EXPR)->withDisallowRecurFrame());
         }
 
         return new PhelArrayNode($env, $args, $x->getStartLocation());
