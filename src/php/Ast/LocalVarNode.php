@@ -1,19 +1,16 @@
 <?php
 
+declare(strict_types=1);
 
 namespace Phel\Ast;
 
-use Phel\Lang\Symbol;
 use Phel\Lang\SourceLocation;
+use Phel\Lang\Symbol;
 use Phel\NodeEnvironment;
 
-class LocalVarNode extends Node
+final class LocalVarNode extends Node
 {
-
-    /**
-     * @var Symbol
-     */
-    protected $name;
+    private Symbol $name;
 
     public function __construct(NodeEnvironment $env, Symbol $name, ?SourceLocation $sourceLocation = null)
     {

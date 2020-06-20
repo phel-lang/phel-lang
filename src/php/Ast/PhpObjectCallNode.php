@@ -1,36 +1,27 @@
 <?php
 
+declare(strict_types=1);
 
 namespace Phel\Ast;
 
 use Phel\Lang\SourceLocation;
 use Phel\NodeEnvironment;
 
-class PhpObjectCallNode extends Node
+final class PhpObjectCallNode extends Node
 {
+    private Node $targetExpr;
+    private Node $callExpr;
+    private bool $static;
+    private bool $methodCall;
 
-    /**
-     * @var Node
-     */
-    protected $targetExpr;
-
-    /**
-     * @var Node
-     */
-    protected $callExpr;
-
-    /**
-     * @var boolean
-     */
-    protected $static;
-
-    /**
-     * @var boolean
-     */
-    protected $methodCall;
-
-    public function __construct(NodeEnvironment $env, Node $targetExpr, Node $callExpr, bool $isStatic, bool $isMethodCall, ?SourceLocation $sourceLocation = null)
-    {
+    public function __construct(
+        NodeEnvironment $env,
+        Node $targetExpr,
+        Node $callExpr,
+        bool $isStatic,
+        bool $isMethodCall,
+        ?SourceLocation $sourceLocation = null
+    ) {
         parent::__construct($env, $sourceLocation);
         $this->targetExpr = $targetExpr;
         $this->callExpr = $callExpr;

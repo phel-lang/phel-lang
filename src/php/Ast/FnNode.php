@@ -1,50 +1,40 @@
 <?php
 
+declare(strict_types=1);
 
 namespace Phel\Ast;
 
-use Phel\Lang\Symbol;
 use Phel\Lang\SourceLocation;
+use Phel\Lang\Symbol;
 use Phel\NodeEnvironment;
 
-class FnNode extends Node
+final class FnNode extends Node
 {
+    /** @var Symbol[] */
+    private array $params;
+
+    private Node $body;
+
+    /** @var Symbol[] */
+    private array $uses;
+
+    private bool $isVariadic;
+
+    private bool $recurs;
 
     /**
-     * @var Symbol[]
-     */
-    protected $params;
-
-    /**
-     * @var Node
-     */
-    protected $body;
-
-    /**
-     * @var Symbol[]
-     */
-    protected $uses;
-
-    /**
-     * @var bool
-     */
-    protected $isVariadic;
-
-    /**
-     * @var bool
-     */
-    protected $recurs;
-
-    /**
-     * @param NodeEnvironment $env
      * @param Symbol[] $params
-     * @param Node $body
      * @param Symbol[] $uses
-     * @param bool $isVariadic
-     * @param bool $recurs
      */
-    public function __construct(NodeEnvironment $env, array $params, Node $body, array $uses, bool $isVariadic, bool $recurs, ?SourceLocation $sourceLocation = null)
-    {
+    public function __construct(
+        NodeEnvironment $env,
+        array $params,
+        Node $body,
+        array $uses,
+        bool $isVariadic,
+        bool $recurs,
+        ?SourceLocation $sourceLocation = null
+    ) {
         parent::__construct($env, $sourceLocation);
         $this->params = $params;
         $this->body = $body;
@@ -56,7 +46,7 @@ class FnNode extends Node
     /**
      * @return Symbol[]
      */
-    public function getParams()
+    public function getParams(): array
     {
         return $this->params;
     }
@@ -69,7 +59,7 @@ class FnNode extends Node
     /**
      * @return Symbol[]
      */
-    public function getUses()
+    public function getUses(): array
     {
         return $this->uses;
     }

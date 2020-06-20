@@ -1,22 +1,19 @@
 <?php
 
+declare(strict_types=1);
 
 namespace Phel\Ast;
 
-use Phel\Lang\SourceLocation;
 use Phel\Lang\AbstractType;
+use Phel\Lang\SourceLocation;
 use Phel\NodeEnvironment;
 
-class LiteralNode extends Node
+final class LiteralNode extends Node
 {
+    /** @var AbstractType|scalar|null */
+    private $value;
 
     /**
-     * @var AbstractType|scalar|null
-     */
-    protected $value;
-
-    /**
-     * @param NodeEnvironment $env
      * @param AbstractType|scalar|null $value
      */
     public function __construct(NodeEnvironment $env, $value, ?SourceLocation $sourceLocation = null)

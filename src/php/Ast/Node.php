@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Phel\Ast;
 
 use Phel\Lang\SourceLocation;
@@ -7,16 +9,8 @@ use Phel\NodeEnvironment;
 
 abstract class Node
 {
-
-    /**
-     * @var NodeEnvironment
-     */
-    protected $env;
-
-    /**
-     * @var ?SourceLocation
-     */
-    protected $startSourceLocation;
+    private NodeEnvironment $env;
+    private ?SourceLocation $startSourceLocation;
 
     public function __construct(NodeEnvironment $env, ?SourceLocation $startSourceLocation = null)
     {

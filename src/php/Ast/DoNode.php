@@ -1,28 +1,21 @@
 <?php
 
+declare(strict_types=1);
 
 namespace Phel\Ast;
 
 use Phel\Lang\SourceLocation;
 use Phel\NodeEnvironment;
 
-class DoNode extends Node
+final class DoNode extends Node
 {
+    /** @var Node[] */
+    private array $stmts;
+
+    private Node $ret;
 
     /**
-     * @var Node[]
-     */
-    protected $stmts;
-
-    /**
-     * @var Node
-     */
-    protected $ret;
-
-    /**
-     * @param NodeEnvironment $env
      * @param Node[] $stmts
-     * @param Node $ret
      */
     public function __construct(NodeEnvironment $env, array $stmts, Node $ret, ?SourceLocation $sourceLocation = null)
     {
@@ -34,7 +27,7 @@ class DoNode extends Node
     /**
      * @return Node[]
      */
-    public function getStmts()
+    public function getStmts(): array
     {
         return $this->stmts;
     }

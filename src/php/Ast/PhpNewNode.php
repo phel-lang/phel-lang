@@ -1,31 +1,28 @@
 <?php
 
+declare(strict_types=1);
 
 namespace Phel\Ast;
 
 use Phel\Lang\SourceLocation;
 use Phel\NodeEnvironment;
 
-class PhpNewNode extends Node
+final class PhpNewNode extends Node
 {
+    private Node $classExpr;
+
+    /** @var Node[] */
+    private array $args;
 
     /**
-     * @var Node
-     */
-    protected $classExpr;
-
-    /**
-     * @var Node[]
-     */
-    protected $args;
-
-    /**
-     * @param NodeEnvironment $env
-     * @param Node $classExpr
      * @param Node[] $args
      */
-    public function __construct(NodeEnvironment $env, Node $classExpr, array $args, ?SourceLocation $sourceLocation = null)
-    {
+    public function __construct(
+        NodeEnvironment $env,
+        Node $classExpr,
+        array $args,
+        ?SourceLocation $sourceLocation = null
+    ) {
         parent::__construct($env, $sourceLocation);
         $this->classExpr = $classExpr;
         $this->args = $args;
@@ -39,7 +36,7 @@ class PhpNewNode extends Node
     /**
      * @return Node[]
      */
-    public function getArgs()
+    public function getArgs(): array
     {
         return $this->args;
     }

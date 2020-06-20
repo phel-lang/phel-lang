@@ -1,34 +1,28 @@
 <?php
 
+declare(strict_types=1);
 
 namespace Phel\Ast;
 
 use Phel\Lang\Keyword;
-use Phel\Lang\Symbol;
 use Phel\Lang\SourceLocation;
+use Phel\Lang\Symbol;
 use Phel\Lang\Table;
 use Phel\NodeEnvironment;
 
-class GlobalVarNode extends Node
+final class GlobalVarNode extends Node
 {
+    private string $namespace;
+    private Symbol $name;
+    private Table $meta;
 
-    /**
-     * @var string
-     */
-    protected $namespace;
-
-    /**
-     * @var Symbol
-     */
-    protected $name;
-
-    /**
-     * @var Table
-     */
-    protected $meta;
-
-    public function __construct(NodeEnvironment $env, string $namespace, Symbol $name, Table $meta, ?SourceLocation $sourceLocation = null)
-    {
+    public function __construct(
+        NodeEnvironment $env,
+        string $namespace,
+        Symbol $name,
+        Table $meta,
+        ?SourceLocation $sourceLocation = null
+    ) {
         parent::__construct($env, $sourceLocation);
         $this->namespace = $namespace;
         $this->name = $name;
