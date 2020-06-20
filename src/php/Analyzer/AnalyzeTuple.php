@@ -6,6 +6,7 @@ namespace Phel\Analyzer;
 
 use Exception;
 use Phel\Analyzer;
+use Phel\Analyzer\AnalyzeTuple\AnalyzeDef;
 use Phel\Ast\ApplyNode;
 use Phel\Ast\BindingNode;
 use Phel\Ast\CallNode;
@@ -61,7 +62,7 @@ final class AnalyzeTuple
 
         switch ($x[0]->getName()) {
             case 'def':
-                return $this->analyzeDef($x, $env);
+                return (new AnalyzeDef($this->analyzer))($x, $env);
             case 'ns':
                 return $this->analyzeNs($x, $env);
             case 'fn':
@@ -203,74 +204,6 @@ final class AnalyzeTuple
                 $x->setEndLocation($parent->getEndLocation());
             }
         }
-    }
-
-    private function analyzeDef(Tuple $x, NodeEnvironment $nodeEnvironment): DefNode
-    {
-        $countX = count($x);
-        if ($countX < 3 || $countX > 4) {
-            throw new AnalyzerException(
-                "Two or three arguments are required for 'def. Got " . count($x),
-                $x->getStartLocation(),
-                $x->getEndLocation()
-            );
-        }
-
-        if (!($x[1] instanceof Symbol)) {
-            throw new AnalyzerException(
-                "First arugment of 'def must be a Symbol.",
-                $x->getStartLocation(),
-                $x->getEndLocation()
-            );
-        }
-
-        $namespace = $this->analyzer->getGlobalEnvironment()->getNs();
-        /** @var Symbol $name */
-        $name = $x[1];
-
-        $initEnv = $nodeEnvironment
-            ->withBoundTo($namespace . '\\' . $name)
-            ->withContext(NodeEnvironment::CTX_EXPR)
-            ->withDisallowRecurFrame();
-
-        if ($countX === 4) {
-            $meta = $x[2];
-            $init = $x[3];
-        } else {
-            $meta = new Table();
-            $init = $x[2];
-        }
-
-        if (is_string($meta)) {
-            $kv = new Keyword('doc');
-            $kv->setStartLocation($x->getStartLocation());
-            $kv->setEndLocation($x->getEndLocation());
-
-            $meta = Table::fromKVs($kv, $meta);
-            $meta->setStartLocation($x->getStartLocation());
-            $meta->setEndLocation($x->getEndLocation());
-        } elseif ($meta instanceof Keyword) {
-            $meta = Table::fromKVs($meta, true);
-            $meta->setStartLocation($meta->getStartLocation());
-            $meta->setEndLocation($meta->getEndLocation());
-        } elseif (!$meta instanceof Table) {
-            throw new AnalyzerException(
-                'Metadata must be a Symbol, String, Keyword or Table',
-                $x->getStartLocation(),
-                $x->getEndLocation()
-            );
-        }
-
-        $this->analyzer->getGlobalEnvironment()->addDefinition($namespace, $name, $meta);
-
-        return new DefNode(
-            $nodeEnvironment,
-            $namespace,
-            $name,
-            $meta,
-            $this->analyzer->analyze($init, $initEnv),
-            $x->getStartLocation()
-        );
     }
 
     private function analyzeNs(Tuple $x, NodeEnvironment $env): NsNode
