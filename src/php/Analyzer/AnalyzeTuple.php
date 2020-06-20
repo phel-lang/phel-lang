@@ -9,6 +9,7 @@ use Phel\Analyzer;
 use Phel\Analyzer\AnalyzeTuple\AnalyzeDef;
 use Phel\Analyzer\AnalyzeTuple\AnalyzeDo;
 use Phel\Analyzer\AnalyzeTuple\AnalyzeFn;
+use Phel\Analyzer\AnalyzeTuple\AnalyzeIf;
 use Phel\Analyzer\AnalyzeTuple\AnalyzeNs;
 use Phel\Analyzer\AnalyzeTuple\AnalyzeQuote;
 use Phel\Ast\ApplyNode;
@@ -18,7 +19,6 @@ use Phel\Ast\CatchNode;
 use Phel\Ast\DefStructNode;
 use Phel\Ast\ForeachNode;
 use Phel\Ast\GlobalVarNode;
-use Phel\Ast\IfNode;
 use Phel\Ast\LetNode;
 use Phel\Ast\MethodCallNode;
 use Phel\Ast\Node;
@@ -69,7 +69,7 @@ final class AnalyzeTuple
             case 'do':
                 return (new AnalyzeDo($this->analyzer))($x, $env);
             case 'if':
-                return $this->analyzeIf($x, $env);
+                return (new AnalyzeIf($this->analyzer))($x, $env);
             case 'apply':
                 return $this->analyzeApply($x, $env);
             case 'let':
@@ -207,34 +207,6 @@ final class AnalyzeTuple
     private function isSymWithName($x, string $name): bool
     {
         return $x instanceof Symbol && $x->getName() === $name;
-    }
-
-    private function analyzeIf(Tuple $x, NodeEnvironment $env): IfNode
-    {
-        $tupleCount = count($x);
-        if ($tupleCount < 3 || $tupleCount > 4) {
-            throw new AnalyzerException(
-                "'if requires two or three arguments",
-                $x->getStartLocation(),
-                $x->getEndLocation()
-            );
-        }
-
-        $testExpr = $this->analyzer->analyze($x[1], $env->withContext(NodeEnvironment::CTX_EXPR)->withDisallowRecurFrame());
-        $thenExpr = $this->analyzer->analyze($x[2], $env);
-        if ($tupleCount === 3) {
-            $elseExpr = $this->analyzer->analyze(null, $env);
-        } else {
-            $elseExpr = $this->analyzer->analyze($x[3], $env);
-        }
-
-        return new IfNode(
-            $env,
-            $testExpr,
-            $thenExpr,
-            $elseExpr,
-            $x->getStartLocation()
-        );
     }
 
     private function analyzeApply(Tuple $x, NodeEnvironment $env): ApplyNode
