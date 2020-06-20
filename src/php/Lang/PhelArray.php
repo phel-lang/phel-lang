@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Phel\Lang;
 
 use ArrayAccess;
@@ -8,17 +10,11 @@ use InvalidArgumentException;
 use Iterator;
 use Phel\Printer;
 
-class PhelArray extends Phel implements ArrayAccess, Countable, Iterator, ICons, ISlice, ICdr, IRest, IPop, IRemove, IPush, IConcat
+final class PhelArray extends AbstractType implements ArrayAccess, Countable, Iterator, ICons, ISlice, ICdr, IRest, IPop, IRemove, IPush, IConcat
 {
+    private array $data;
 
     /**
-     * @var mixed[]
-     */
-    protected $data = [];
-
-    /**
-     * Constructor
-     *
      * @param mixed[] $data A list of all values
      */
     public function __construct(array $data)
@@ -26,13 +22,6 @@ class PhelArray extends Phel implements ArrayAccess, Countable, Iterator, ICons,
         $this->data = $data;
     }
 
-    /**
-     * Create a new array.
-     *
-     * @param mixed[] $values A list of all values
-     *
-     * @return PhelArray
-     */
     public static function create(...$values): PhelArray
     {
         return new PhelArray($values);
@@ -138,9 +127,9 @@ class PhelArray extends Phel implements ArrayAccess, Countable, Iterator, ICons,
     {
         if (count($this->data) - 1 > 0) {
             return new PhelArray(array_slice($this->data, 1));
-        } else {
-            return null;
         }
+
+        return null;
     }
 
     public function rest(): IRest

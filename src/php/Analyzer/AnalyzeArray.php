@@ -4,19 +4,13 @@ declare(strict_types=1);
 
 namespace Phel\Analyzer;
 
-use Phel\Analyzer;
 use Phel\Ast\ArrayNode;
 use Phel\Lang\PhelArray;
 use Phel\NodeEnvironment;
 
 final class AnalyzeArray
 {
-    private Analyzer $analyzer;
-
-    public function __construct(Analyzer $analyzer)
-    {
-        $this->analyzer = $analyzer;
-    }
+    use WithAnalyzer;
 
     public function __invoke(PhelArray $array, NodeEnvironment $env): ArrayNode
     {

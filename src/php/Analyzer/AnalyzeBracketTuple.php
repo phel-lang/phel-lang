@@ -4,19 +4,13 @@ declare(strict_types=1);
 
 namespace Phel\Analyzer;
 
-use Phel\Analyzer;
 use Phel\Ast\TupleNode;
 use Phel\Lang\Tuple;
 use Phel\NodeEnvironment;
 
 final class AnalyzeBracketTuple
 {
-    private Analyzer $analyzer;
-
-    public function __construct(Analyzer $analyzer)
-    {
-        $this->analyzer = $analyzer;
-    }
+    use WithAnalyzer;
 
     public function __invoke(Tuple $tuple, NodeEnvironment $env): TupleNode
     {

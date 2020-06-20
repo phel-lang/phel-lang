@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace Phel\Analyzer;
 
-use Phel\Analyzer;
 use Phel\Ast\LocalVarNode;
 use Phel\Ast\Node;
 use Phel\Ast\PhpVarNode;
@@ -14,12 +13,7 @@ use Phel\NodeEnvironment;
 
 final class AnalyzeSymbol
 {
-    private Analyzer $analyzer;
-
-    public function __construct(Analyzer $analyzer)
-    {
-        $this->analyzer = $analyzer;
-    }
+    use WithAnalyzer;
 
     public function __invoke(Symbol $x, NodeEnvironment $env): Node
     {

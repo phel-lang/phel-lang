@@ -13,7 +13,7 @@ use Phel\Analyzer\AnalyzeTuple;
 use Phel\Ast\Node;
 use Phel\Exceptions\AnalyzerException;
 use Phel\Lang\Keyword;
-use Phel\Lang\Phel;
+use Phel\Lang\AbstractType;
 use Phel\Lang\PhelArray;
 use Phel\Lang\Symbol;
 use Phel\Lang\Table;
@@ -33,13 +33,13 @@ final class Analyzer
         return $this->globalEnvironment;
     }
 
-    /** @param Phel|scalar|null $x */
+    /** @param AbstractType|scalar|null $x */
     public function analyzeInEmptyEnv($x): Node
     {
         return $this->analyze($x, NodeEnvironment::empty());
     }
 
-    /** @param Phel|scalar|null $x */
+    /** @param AbstractType|scalar|null $x */
     public function analyze($x, NodeEnvironment $env): Node
     {
         if ($this->isLiteral($x)) {
@@ -69,7 +69,7 @@ final class Analyzer
         throw new AnalyzerException('Unhandled type: ' . var_export($x, true));
     }
 
-    /** @param Phel|scalar|null $x */
+    /** @param AbstractType|scalar|null $x */
     private function isLiteral($x): bool
     {
         return is_string($x)

@@ -4,7 +4,7 @@ namespace Phel\Lang;
 
 use Phel\Printer;
 
-class Keyword extends Phel implements IIdentical
+class Keyword extends AbstractType implements IIdentical
 {
 
     /**

@@ -10,7 +10,7 @@ use Exception;
 use Iterator;
 use Phel\Printer;
 
-class Table extends Phel implements ArrayAccess, Countable, Iterator
+class Table extends AbstractType implements ArrayAccess, Countable, Iterator
 {
     protected array $data = [];
 
@@ -137,7 +137,7 @@ class Table extends Phel implements ArrayAccess, Countable, Iterator
      */
     private function offsetHash($offset): string
     {
-        if ($offset instanceof Phel) {
+        if ($offset instanceof AbstractType) {
             return $offset->hash();
         }
 

@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Phel;
 
 use Phel\Lang\Keyword;
-use Phel\Lang\Phel;
+use Phel\Lang\AbstractType;
 use Phel\Lang\PhelArray;
 use Phel\Lang\Symbol;
 use Phel\Lang\Table;
@@ -14,9 +14,9 @@ use Phel\Lang\Tuple;
 final class Quasiquote
 {
     /**
-     * @param Phel|scalar|null $form The form to quasiqoute
+     * @param AbstractType|scalar|null $form The form to quasiqoute
      *
-     * @return Phel|scalar|null
+     * @return AbstractType|scalar|null
      */
     public function quasiquote($form)
     {
@@ -54,7 +54,7 @@ final class Quasiquote
     }
 
     /**
-     * @param Phel|scalar|null $form The form to quasiqoute
+     * @param AbstractType|scalar|null $form The form to quasiqoute
      */
     private function isUnquote($form): bool
     {
@@ -62,7 +62,7 @@ final class Quasiquote
     }
 
     /**
-     * @param Phel|scalar|null $form The form to quasiqoute
+     * @param AbstractType|scalar|null $form The form to quasiqoute
      */
     private function isUnquoteSplicing($form): bool
     {
@@ -92,7 +92,7 @@ final class Quasiquote
     }
 
     /**
-     * @param Phel|scalar|null $x The form to check.
+     * @param AbstractType|scalar|null $x The form to check.
      */
     private function isLiteral($x): bool
     {
