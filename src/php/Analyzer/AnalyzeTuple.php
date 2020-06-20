@@ -9,6 +9,7 @@ use Phel\Analyzer;
 use Phel\Analyzer\AnalyzeTuple\AnalyzeDef;
 use Phel\Analyzer\AnalyzeTuple\AnalyzeFn;
 use Phel\Analyzer\AnalyzeTuple\AnalyzeNs;
+use Phel\Analyzer\AnalyzeTuple\AnalyzeQuote;
 use Phel\Ast\ApplyNode;
 use Phel\Ast\BindingNode;
 use Phel\Ast\CallNode;
@@ -65,7 +66,7 @@ final class AnalyzeTuple
             case 'fn':
                 return (new AnalyzeFn($this->analyzer))($x, $env);
             case 'quote':
-                return $this->analyzeQuote($x, $env);
+                return (new AnalyzeQuote())($x, $env);
             case 'do':
                 return $this->analyzeDo($x, $env);
             case 'if':
@@ -207,23 +208,6 @@ final class AnalyzeTuple
     private function isSymWithName($x, string $name): bool
     {
         return $x instanceof Symbol && $x->getName() === $name;
-    }
-
-    private function analyzeQuote(Tuple $x, NodeEnvironment $env): QuoteNode
-    {
-        if (count($x) !== 2) {
-            throw new AnalyzerException(
-                "Exactly one arguments is required for 'quote",
-                $x->getStartLocation(),
-                $x->getEndLocation()
-            );
-        }
-
-        return new QuoteNode(
-            $env,
-            $x[1],
-            $x->getStartLocation()
-        );
     }
 
     private function analyzeDo(Tuple $x, NodeEnvironment $env): DoNode
