@@ -6,13 +6,13 @@ namespace Phel\Analyzer;
 
 use Exception;
 use Phel\Analyzer;
+use Phel\Analyzer\AnalyzeTuple\AnalyzeApply;
 use Phel\Analyzer\AnalyzeTuple\AnalyzeDef;
 use Phel\Analyzer\AnalyzeTuple\AnalyzeDo;
 use Phel\Analyzer\AnalyzeTuple\AnalyzeFn;
 use Phel\Analyzer\AnalyzeTuple\AnalyzeIf;
 use Phel\Analyzer\AnalyzeTuple\AnalyzeNs;
 use Phel\Analyzer\AnalyzeTuple\AnalyzeQuote;
-use Phel\Ast\ApplyNode;
 use Phel\Ast\BindingNode;
 use Phel\Ast\CallNode;
 use Phel\Ast\CatchNode;
@@ -71,7 +71,7 @@ final class AnalyzeTuple
             case 'if':
                 return (new AnalyzeIf($this->analyzer))($x, $env);
             case 'apply':
-                return $this->analyzeApply($x, $env);
+                return (new AnalyzeApply($this->analyzer))($x, $env);
             case 'let':
                 return $this->analyzeLet($x, $env);
             case 'php/new':
@@ -207,32 +207,6 @@ final class AnalyzeTuple
     private function isSymWithName($x, string $name): bool
     {
         return $x instanceof Symbol && $x->getName() === $name;
-    }
-
-    private function analyzeApply(Tuple $x, NodeEnvironment $env): ApplyNode
-    {
-        $tupleCount = count($x);
-        if ($tupleCount < 3) {
-            throw new AnalyzerException(
-                "At least three arguments are required for 'apply",
-                $x->getStartLocation(),
-                $x->getEndLocation()
-            );
-        }
-
-        $fn = $this->analyzer->analyze($x[1], $env->withContext(NodeEnvironment::CTX_EXPR)->withDisallowRecurFrame());
-
-        $args = [];
-        for ($i = 2; $i < $tupleCount; $i++) {
-            $args[] = $this->analyzer->analyze($x[$i], $env->withContext(NodeEnvironment::CTX_EXPR)->withDisallowRecurFrame());
-        }
-
-        return new ApplyNode(
-            $env,
-            $fn,
-            $args,
-            $x->getStartLocation()
-        );
     }
 
     private function analyzeLet(Tuple $x, NodeEnvironment $env): LetNode
