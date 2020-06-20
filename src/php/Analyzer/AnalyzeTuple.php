@@ -27,8 +27,6 @@ use Phel\Analyzer\AnalyzeTuple\AnalyzeRecur;
 use Phel\Analyzer\AnalyzeTuple\AnalyzeThrow;
 use Phel\Analyzer\AnalyzeTuple\AnalyzeTry;
 use Phel\Ast\Node;
-use Phel\Ast\PhelArrayNode;
-use Phel\Lang\PhelArray;
 use Phel\Lang\Symbol;
 use Phel\Lang\Tuple;
 use Phel\NodeEnvironment;
@@ -94,16 +92,5 @@ final class AnalyzeTuple
             default:
                 return (new AnalyzeInvoke($this->analyzer))($x, $env);
         }
-    }
-
-    private function analyzePhelArray(PhelArray $x, NodeEnvironment $env): PhelArrayNode
-    {
-        $args = [];
-        foreach ($x as $arg) {
-            $args[] = $this->analyzer->analyze($arg,
-                $env->withContext(NodeEnvironment::CTX_EXPR)->withDisallowRecurFrame());
-        }
-
-        return new PhelArrayNode($env, $args, $x->getStartLocation());
     }
 }
