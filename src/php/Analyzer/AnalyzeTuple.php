@@ -21,6 +21,7 @@ use Phel\Analyzer\AnalyzeTuple\AnalyzePhpNew;
 use Phel\Analyzer\AnalyzeTuple\AnalyzePhpObjectCall;
 use Phel\Analyzer\AnalyzeTuple\AnalyzeQuote;
 use Phel\Analyzer\AnalyzeTuple\AnalyzeRecur;
+use Phel\Analyzer\AnalyzeTuple\AnalyzeThrow;
 use Phel\Analyzer\AnalyzeTuple\AnalyzeTry;
 use Phel\Ast\BindingNode;
 use Phel\Ast\CallNode;
@@ -30,7 +31,6 @@ use Phel\Ast\GlobalVarNode;
 use Phel\Ast\LetNode;
 use Phel\Ast\Node;
 use Phel\Ast\PhelArrayNode;
-use Phel\Ast\ThrowNode;
 use Phel\Destructure;
 use Phel\Exceptions\AnalyzerException;
 use Phel\Lang\AbstractType;
@@ -91,7 +91,7 @@ final class AnalyzeTuple
             case 'try':
                 return (new AnalyzeTry($this->analyzer))($x, $env);
             case 'throw':
-                return $this->analyzeThrow($x, $env);
+                return (new AnalyzeThrow($this->analyzer))($x, $env);
             case 'loop':
                 return $this->analyzeLoop($x, $env);
             case 'foreach':
@@ -201,22 +201,6 @@ final class AnalyzeTuple
         }
     }
 
-    private function analyzeThrow(Tuple $x, NodeEnvironment $env): ThrowNode
-    {
-        if (count($x) !== 2) {
-            throw new AnalyzerException(
-                "Exact one argument is required for 'throw",
-                $x->getStartLocation(),
-                $x->getEndLocation()
-            );
-        }
-
-        return new ThrowNode(
-            $env,
-            $this->analyzer->analyze($x[1], $env->withContext(NodeEnvironment::CTX_EXPR)->withDisallowRecurFrame()),
-            $x->getStartLocation()
-        );
-    }
 
     private function analyzeLoop(Tuple $x, NodeEnvironment $env): LetNode
     {
