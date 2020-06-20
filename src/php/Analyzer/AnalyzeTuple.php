@@ -20,6 +20,7 @@ use Phel\Analyzer\AnalyzeTuple\AnalyzePhpAUnset;
 use Phel\Analyzer\AnalyzeTuple\AnalyzePhpNew;
 use Phel\Analyzer\AnalyzeTuple\AnalyzePhpObjectCall;
 use Phel\Analyzer\AnalyzeTuple\AnalyzeQuote;
+use Phel\Analyzer\AnalyzeTuple\AnalyzeRecur;
 use Phel\Ast\BindingNode;
 use Phel\Ast\CallNode;
 use Phel\Ast\CatchNode;
@@ -29,7 +30,6 @@ use Phel\Ast\GlobalVarNode;
 use Phel\Ast\LetNode;
 use Phel\Ast\Node;
 use Phel\Ast\PhelArrayNode;
-use Phel\Ast\RecurNode;
 use Phel\Ast\ThrowNode;
 use Phel\Ast\TryNode;
 use Phel\Destructure;
@@ -88,7 +88,7 @@ final class AnalyzeTuple
             case 'php/aunset':
                 return (new AnalyzePhpAUnset($this->analyzer))($x, $env);
             case 'recur':
-                return $this->analyzeRecur($x, $env);
+                return (new AnalyzeRecur($this->analyzer))($x, $env);
             case 'try':
                 return $this->analyzeTry($x, $env);
             case 'throw':
@@ -206,52 +206,6 @@ final class AnalyzeTuple
     private function isSymWithName($x, string $name): bool
     {
         return $x instanceof Symbol && $x->getName() === $name;
-    }
-
-    private function analyzeRecur(Tuple $x, NodeEnvironment $env): RecurNode
-    {
-        $tupleCount = count($x);
-        $frame = $env->getCurrentRecurFrame();
-
-        if (!($x[0] instanceof Symbol && $x[0] == 'recur')) {
-            throw new AnalyzerException(
-                "This is not a 'recur.",
-                $x->getStartLocation(),
-                $x->getEndLocation(),
-            );
-        }
-
-        if (!$frame) {
-            throw new AnalyzerException(
-                "Can't call 'recur here",
-                $x[0]->getStartLocation(),
-                $x[0]->getEndLocation()
-            );
-        }
-
-        if ($tupleCount - 1 !== count($frame->getParams())) {
-            throw new AnalyzerException(
-                "Wrong number of arugments for 'recur. Expected: "
-                . count($frame->getParams()) . ' args, got: ' . ($tupleCount - 1),
-                $x->getStartLocation(),
-                $x->getEndLocation()
-            );
-        }
-
-
-        $frame->setIsActive(true);
-
-        $exprs = [];
-        for ($i = 1; $i < $tupleCount; $i++) {
-            $exprs[] = $this->analyzer->analyze($x[$i], $env->withContext(NodeEnvironment::CTX_EXPR)->withDisallowRecurFrame());
-        }
-
-        return new RecurNode(
-            $env,
-            $frame,
-            $exprs,
-            $x->getStartLocation()
-        );
     }
 
     private function analyzeTry(Tuple $x, NodeEnvironment $env): TryNode
