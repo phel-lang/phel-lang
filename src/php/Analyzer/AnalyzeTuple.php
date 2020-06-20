@@ -36,7 +36,7 @@ use Phel\Ast\TryNode;
 use Phel\Destructure;
 use Phel\Exceptions\AnalyzerException;
 use Phel\Lang\Keyword;
-use Phel\Lang\Phel;
+use Phel\Lang\AbstractType;
 use Phel\Lang\PhelArray;
 use Phel\Lang\Symbol;
 use Phel\Lang\Table;
@@ -133,7 +133,7 @@ final class AnalyzeTuple
         );
     }
 
-    /** @return Phel|scalar|null */
+    /** @return AbstractType|scalar|null */
     private function macroExpand(Tuple $x, NodeEnvironment $env)
     {
         $tupleCount = count($x);
@@ -180,9 +180,9 @@ final class AnalyzeTuple
 
     /**
      * @param mixed $x
-     * @param Phel $parent
+     * @param AbstractType $parent
      */
-    private function enrichLocation($x, Phel $parent): void
+    private function enrichLocation($x, AbstractType $parent): void
     {
         if ($x instanceof Tuple) {
             foreach ($x as $item) {
@@ -195,7 +195,7 @@ final class AnalyzeTuple
             if (!$x->getEndLocation()) {
                 $x->setEndLocation($parent->getEndLocation());
             }
-        } elseif ($x instanceof Phel) {
+        } elseif ($x instanceof AbstractType) {
             if (!$x->getStartLocation()) {
                 $x->setStartLocation($parent->getStartLocation());
             }

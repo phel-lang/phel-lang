@@ -1,19 +1,13 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Phel\Lang;
 
 trait TSourceLocation
 {
-
-    /**
-     * @var ?SourceLocation
-     */
-    private $startLocation;
-
-    /**
-     * @var ?SourceLocation
-     */
-    private $endLocation;
+    private ?SourceLocation $startLocation = null;
+    private ?SourceLocation$endLocation = null;
 
     public function setStartLocation(?SourceLocation $startLocation): void
     {

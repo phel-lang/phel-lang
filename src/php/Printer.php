@@ -6,7 +6,7 @@ namespace Phel;
 
 use Exception;
 use Phel\Lang\Keyword;
-use Phel\Lang\Phel;
+use Phel\Lang\AbstractType;
 use Phel\Lang\PhelArray;
 use Phel\Lang\Struct;
 use Phel\Lang\Symbol;
@@ -35,7 +35,7 @@ final class Printer
     /**
      * Converts a form to a printable string
      *
-     * @param Phel|string|scalar|null $form The form to print.
+     * @param AbstractType|string|scalar|null $form The form to print.
      */
     public function print($form): string
     {

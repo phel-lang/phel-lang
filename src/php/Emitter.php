@@ -38,7 +38,7 @@ use Phel\Ast\ThrowNode;
 use Phel\Ast\TryNode;
 use Phel\Ast\TupleNode;
 use Phel\Lang\Keyword;
-use Phel\Lang\Phel;
+use Phel\Lang\AbstractType;
 use Phel\Lang\PhelArray;
 use Phel\Lang\SourceLocation;
 use Phel\Lang\Symbol;
@@ -925,7 +925,7 @@ final class Emitter
     /**
      * Emits a Phel value.
      *
-     * @param Phel|scalar|null $x The value
+     * @param AbstractType|scalar|null $x The value
      */
     private function emitPhel($x): void
     {

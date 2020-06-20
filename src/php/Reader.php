@@ -8,7 +8,7 @@ use Generator;
 use Phel\Exceptions\ReaderException;
 use Phel\Lang\IMeta;
 use Phel\Lang\Keyword;
-use Phel\Lang\Phel;
+use Phel\Lang\AbstractType;
 use Phel\Lang\PhelArray;
 use Phel\Lang\Symbol;
 use Phel\Lang\Table;
@@ -79,7 +79,7 @@ final class Reader
     }
 
     /**
-     * @return Phel|null|scalar
+     * @return AbstractType|null|scalar
      */
     public function readExpression(Generator $tokenStream)
     {
@@ -97,7 +97,7 @@ final class Reader
                     $tokenStream->next();
                     $result = $this->parseAtom($token);
 
-                    if ($result instanceof Phel) {
+                    if ($result instanceof AbstractType) {
                         $result->setStartLocation($token->getStartLocation());
                         $result->setEndLocation($token->getEndLocation());
                     }
@@ -191,7 +191,7 @@ final class Reader
     }
 
     /**
-     * @return Phel|scalar|null
+     * @return AbstractType|scalar|null
      */
     private function readQuasiquote(Generator $tokenStream)
     {
@@ -201,7 +201,7 @@ final class Reader
         $expression = $this->readExpressionHard($tokenStream, 'missing expression');
         $result = (new Quasiquote())->quasiquote($expression);
 
-        if ($result instanceof Phel) {
+        if ($result instanceof AbstractType) {
             $endLocation = $tokenStream->current()->getEndLocation();
             $result->setStartLocation($startLocation);
             $result->setEndLocation($endLocation);
@@ -256,7 +256,7 @@ final class Reader
     }
 
     /**
-     * @return string|null|boolean|float|int|Phel
+     * @return string|null|boolean|float|int|AbstractType
      */
     private function readExpressionHard(Generator $tokenStream, string $errorMessage)
     {

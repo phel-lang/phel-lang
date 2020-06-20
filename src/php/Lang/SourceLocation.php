@@ -1,24 +1,14 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Phel\Lang;
 
-class SourceLocation
+final class SourceLocation
 {
-
-    /**
-     * @var string
-     */
-    protected $file;
-
-    /**
-     * @var int
-     */
-    protected $line;
-
-    /**
-     * @var int
-     */
-    protected $column;
+    private string $file;
+    private int $line;
+    private int $column;
 
     public function __construct(string $file, int $line, int $column)
     {
