@@ -13,6 +13,7 @@ use Phel\Analyzer\AnalyzeTuple\AnalyzeFn;
 use Phel\Analyzer\AnalyzeTuple\AnalyzeIf;
 use Phel\Analyzer\AnalyzeTuple\AnalyzeLet;
 use Phel\Analyzer\AnalyzeTuple\AnalyzeNs;
+use Phel\Analyzer\AnalyzeTuple\AnalyzePhpNew;
 use Phel\Analyzer\AnalyzeTuple\AnalyzeQuote;
 use Phel\Ast\BindingNode;
 use Phel\Ast\CallNode;
@@ -28,7 +29,6 @@ use Phel\Ast\PhpArrayGetNode;
 use Phel\Ast\PhpArrayPushNode;
 use Phel\Ast\PhpArraySetNode;
 use Phel\Ast\PhpArrayUnsetNode;
-use Phel\Ast\PhpNewNode;
 use Phel\Ast\PhpObjectCallNode;
 use Phel\Ast\PropertyOrConstantAccessNode;
 use Phel\Ast\RecurNode;
@@ -76,7 +76,7 @@ final class AnalyzeTuple
             case 'let':
                 return (new AnalyzeLet($this->analyzer))($x, $env);
             case 'php/new':
-                return $this->analyzePhpNew($x, $env);
+                return (new AnalyzePhpNew($this->analyzer))($x, $env);
             case 'php/->':
                 return $this->analyzePhpObjectCall($x, $env, false);
             case 'php/::':
@@ -210,31 +210,6 @@ final class AnalyzeTuple
         return $x instanceof Symbol && $x->getName() === $name;
     }
 
-
-    private function analyzePhpNew(Tuple $x, NodeEnvironment $env): PhpNewNode
-    {
-        $tupleCount = count($x);
-        if ($tupleCount < 2) {
-            throw new AnalyzerException(
-                "At least one arguments is required for 'php/new",
-                $x->getStartLocation(),
-                $x->getEndLocation()
-            );
-        }
-
-        $classExpr = $this->analyzer->analyze($x[1], $env->withContext(NodeEnvironment::CTX_EXPR)->withDisallowRecurFrame());
-        $args = [];
-        for ($i = 2; $i < $tupleCount; $i++) {
-            $args[] = $this->analyzer->analyze($x[$i], $env->withContext(NodeEnvironment::CTX_EXPR)->withDisallowRecurFrame());
-        }
-
-        return new PhpNewNode(
-            $env,
-            $classExpr,
-            $args,
-            $x->getStartLocation()
-        );
-    }
 
     private function analyzePhpObjectCall(Tuple $x, NodeEnvironment $env, bool $isStatic): PhpObjectCallNode
     {
