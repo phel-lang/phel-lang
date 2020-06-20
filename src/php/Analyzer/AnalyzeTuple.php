@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace Phel\Analyzer;
 
-use Exception;
 use Phel\Analyzer;
 use Phel\Analyzer\AnalyzeTuple\AnalyzeApply;
 use Phel\Analyzer\AnalyzeTuple\AnalyzeDef;
@@ -13,6 +12,7 @@ use Phel\Analyzer\AnalyzeTuple\AnalyzeDo;
 use Phel\Analyzer\AnalyzeTuple\AnalyzeFn;
 use Phel\Analyzer\AnalyzeTuple\AnalyzeForeach;
 use Phel\Analyzer\AnalyzeTuple\AnalyzeIf;
+use Phel\Analyzer\AnalyzeTuple\AnalyzeInvoke;
 use Phel\Analyzer\AnalyzeTuple\AnalyzeLet;
 use Phel\Analyzer\AnalyzeTuple\AnalyzeLoop;
 use Phel\Analyzer\AnalyzeTuple\AnalyzeNs;
@@ -26,12 +26,8 @@ use Phel\Analyzer\AnalyzeTuple\AnalyzeQuote;
 use Phel\Analyzer\AnalyzeTuple\AnalyzeRecur;
 use Phel\Analyzer\AnalyzeTuple\AnalyzeThrow;
 use Phel\Analyzer\AnalyzeTuple\AnalyzeTry;
-use Phel\Ast\CallNode;
-use Phel\Ast\GlobalVarNode;
 use Phel\Ast\Node;
 use Phel\Ast\PhelArrayNode;
-use Phel\Exceptions\AnalyzerException;
-use Phel\Lang\AbstractType;
 use Phel\Lang\PhelArray;
 use Phel\Lang\Symbol;
 use Phel\Lang\Tuple;
@@ -49,7 +45,7 @@ final class AnalyzeTuple
     public function __invoke(Tuple $x, NodeEnvironment $env): Node
     {
         if (!$x[0] instanceof Symbol) {
-            return $this->analyzeInvoke($x, $env);
+            return (new AnalyzeInvoke($this->analyzer))($x, $env);
         }
 
         switch ($x[0]->getName()) {
@@ -96,108 +92,7 @@ final class AnalyzeTuple
             case 'defstruct*':
                 return (new AnalyzeDefStruct($this->analyzer))($x, $env);
             default:
-                return $this->analyzeInvoke($x, $env);
-        }
-    }
-
-    private function analyzeInvoke(Tuple $x, NodeEnvironment $nodeEnvironment): Node
-    {
-        $tupleCount = count($x);
-        $f = $this->analyzer->analyze($x[0],
-            $nodeEnvironment->withContext(NodeEnvironment::CTX_EXPR)->withDisallowRecurFrame());
-
-        if ($f instanceof GlobalVarNode && $f->isMacro()) {
-            $this->analyzer->getGlobalEnvironment()->setAllowPrivateAccess(true);
-            $result = $this->analyzer->analyze($this->macroExpand($x, $nodeEnvironment), $nodeEnvironment);
-            $this->analyzer->getGlobalEnvironment()->setAllowPrivateAccess(false);
-
-            return $result;
-        }
-
-        $arguments = [];
-        for ($i = 1; $i < $tupleCount; $i++) {
-            $arguments[] = $this->analyzer->analyze($x[$i],
-                $nodeEnvironment->withContext(NodeEnvironment::CTX_EXPR)->withDisallowRecurFrame());
-        }
-
-        return new CallNode(
-            $nodeEnvironment,
-            $f,
-            $arguments,
-            $x->getStartLocation()
-        );
-    }
-
-    /** @return AbstractType|scalar|null */
-    private function macroExpand(Tuple $x, NodeEnvironment $env)
-    {
-        $tupleCount = count($x);
-        /**
-         * @psalm-suppress PossiblyNullArgument
-         */
-        $node = $this->analyzer->getGlobalEnvironment()->resolve($x[0], $env);
-        if ($node && $node instanceof GlobalVarNode) {
-            $fn = $GLOBALS['__phel'][$node->getNamespace()][$node->getName()->getName()];
-
-            $arguments = [];
-            for ($i = 1; $i < $tupleCount; $i++) {
-                $arguments[] = $x[$i];
-            }
-
-            try {
-                $result = $fn(...$arguments);
-                $this->enrichLocation($result, $x);
-
-                return $result;
-            } catch (Exception $e) {
-                throw new AnalyzerException(
-                    'Error in expanding macro "' . $node->getNamespace() . '\\' . $node->getName()->getName() . '": ' . $e->getMessage(),
-                    $x->getStartLocation(),
-                    $x->getEndLocation(),
-                    $e
-                );
-            }
-        }
-
-        if (is_null($node)) {
-            throw new AnalyzerException(
-                'Can not resolive macro',
-                $x->getStartLocation(),
-                $x->getEndLocation()
-            );
-        }
-
-        throw new AnalyzerException(
-            'This is not macro expandable: ' . get_class($node),
-            $x->getStartLocation(),
-            $x->getEndLocation()
-        );
-    }
-
-    /**
-     * @param mixed $x
-     * @param AbstractType $parent
-     */
-    private function enrichLocation($x, AbstractType $parent): void
-    {
-        if ($x instanceof Tuple) {
-            foreach ($x as $item) {
-                $this->enrichLocation($item, $parent);
-            }
-
-            if (!$x->getStartLocation()) {
-                $x->setStartLocation($parent->getStartLocation());
-            }
-            if (!$x->getEndLocation()) {
-                $x->setEndLocation($parent->getEndLocation());
-            }
-        } elseif ($x instanceof AbstractType) {
-            if (!$x->getStartLocation()) {
-                $x->setStartLocation($parent->getStartLocation());
-            }
-            if (!$x->getEndLocation()) {
-                $x->setEndLocation($parent->getEndLocation());
-            }
+                return (new AnalyzeInvoke($this->analyzer))($x, $env);
         }
     }
 
