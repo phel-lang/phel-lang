@@ -10,7 +10,7 @@ Phel requires PHP 7.4 or higher and [Composer](https://getcomposer.org/).
 
 ## Initialize a new project using Composer
 
-The easiest way to get started is by setting up a new Composer project. First create a new directory and initialize a new Composer project.
+The easiest way to get started is by setting up a new Composer project. First, create a new directory and initialize a new Composer project.
 
 ```bash
 mkdir hello-world
@@ -52,20 +52,20 @@ Would you like to define your dev dependencies (require-dev) interactively [yes]
 Do you confirm generation [yes]? yes
 ```
 
-Next we can require Phel as dependency of our project.
+Next, require Phel as a dependency.
 
 ```bash
 # Require and install Phel
 composer require phel/phel:dev-master
 ```
 
-After adding Phel as a dependency we can now write some code. First we create new directory `src` and add two files in this directory.
+Then, create a new directory `src` with a file `boot.phel` inside this directory.
 
 ```bash
 mkdir src
 ```
 
-The file `boot.phel` contains our actual code of the project. It just defines the namespace and prints "Hello, World!".
+The file `boot.phel` contains the actual code of the project. It defines the namespace and prints "Hello, World!".
 
 ```phel
 # in src/boot.phel
@@ -74,7 +74,7 @@ The file `boot.phel` contains our actual code of the project. It just defines th
 (println "Hello, World!")
 ```
 
-Before we can run the code, we need to add Phel specific configuration to `composer.json` file:
+In order for Phel to automatically resolve the project namespace and path, this code needs to be added to `composer.json` file.
 
 ```json
 "extra": {
@@ -87,7 +87,7 @@ Before we can run the code, we need to add Phel specific configuration to `compo
 "minimum-stability": "dev"
 ```
 
-> Read [Composer Configuration](/documentation/composer-configuration) to see all available composer options for Phel.
+> Read documentation for [Configuration](/documentation/configuration) to see all available configuration options for Phel.
 
 The final `composer.json` file should look like this:
 
@@ -142,7 +142,7 @@ Hello, World!
 
 ### With a PHP Server
 
-The file `index.php` will be executed by the PHP Server. It initializes the Phel Runtime and loads the namespace from `boot.phel` file, we described above to start the application.
+The file `index.php` will be executed by the PHP Server. It initializes the Phel Runtime and loads the namespace from `boot.phel` file, described above to start the application.
 
 ```php
 // src/index.php
