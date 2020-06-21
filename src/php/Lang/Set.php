@@ -8,7 +8,7 @@ use InvalidArgumentException;
 use Iterator;
 use Phel\Printer;
 
-class Set extends Phel implements Countable, Iterator, ICons, IPush, IConcat
+class Set extends AbstractType implements Countable, Iterator, ICons, IPush, IConcat
 {
 
     /**
@@ -80,7 +80,7 @@ class Set extends Phel implements Countable, Iterator, ICons, IPush, IConcat
 
     public function cons($x): ICons
     {
-        array_unshift($this->data, $x);
+        $this->push($x);
         return $this;
     }
 
@@ -101,22 +101,26 @@ class Set extends Phel implements Countable, Iterator, ICons, IPush, IConcat
         return $this;
     }
 
-    public function union(Set $set): IConcat
+    public function union(Set $set): Set
     {
-        return $this->concat($set->toPhpArray());
+        $this->concat($set->toPhpArray());
+        return $this;
     }
 
-    public function intersection(Set $set): IConcat
+    public function intersection(Set $set): Set
     {
-        return $this->applySet($set, 'array_intersect');
+        $this->data = array_intersect_key($this->data, $set->toPhpArray());
+        return $this;
     }
 
-    public function difference(Set $set): IConcat
+    public function difference(Set $set): Set
     {
-        $rightDiff = new Set($set->toPhpArray());
-        $rightDiff->applySet($this, 'array_diff');
-        $this->applySet($set, 'array_diff');
-        return $this->union($rightDiff);
+        $ldiff = array_diff_key($this->data, $set->toPhpArray());
+        $rdiff = array_diff_key($set->toPhpArray(), $this->data);
+        $this->data = [];
+        $this->concat($ldiff);
+        $this->concat($rdiff);
+        return $this;
     }
 
     public function equals($other): bool
@@ -127,12 +131,6 @@ class Set extends Phel implements Countable, Iterator, ICons, IPush, IConcat
     public function toPhpArray(): array
     {
         return $this->data;
-    }
-
-    private function applySet(Set $set, callable $operation): Set
-    {
-        $this->setData($operation($this->data, $set->toPhpArray()));
-        return $this;
     }
 
     private function setData(array $data)
@@ -150,7 +148,7 @@ class Set extends Phel implements Countable, Iterator, ICons, IPush, IConcat
      */
     private function offsetHash($offset): string
     {
-        if ($offset instanceof Phel) {
+        if ($offset instanceof AbstractType) {
             return $offset->hash();
         }
 
