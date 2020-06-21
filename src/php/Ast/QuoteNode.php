@@ -1,24 +1,17 @@
 <?php
 
+declare(strict_types=1);
 
 namespace Phel\Ast;
 
-use Phel\Lang\AbstractType;
 use Phel\Lang\SourceLocation;
 use Phel\NodeEnvironment;
 
-class QuoteNode extends Node
+final class QuoteNode extends Node
 {
+    /** @var mixed */
+    private $value;
 
-    /**
-     * @var mixed
-     */
-    protected $value;
-
-    /**
-     * @param NodeEnvironment $env
-     * @param mixed $value
-     */
     public function __construct(NodeEnvironment $env, $value, ?SourceLocation $sourceLocation = null)
     {
         parent::__construct($env, $sourceLocation);

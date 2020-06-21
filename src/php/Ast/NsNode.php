@@ -1,23 +1,19 @@
 <?php
 
+declare(strict_types=1);
 
 namespace Phel\Ast;
 
-use Phel\Lang\Symbol;
 use Phel\Lang\SourceLocation;
+use Phel\Lang\Symbol;
 use Phel\NodeEnvironment;
 
-class NsNode extends Node
+final class NsNode extends Node
 {
-    /**
-     * @var Symbol[]
-     */
-    protected array $requireNs;
+    /** @var Symbol[] */
+    private array $requireNs;
 
-    /**
-     * @var string
-     */
-    protected string $namespace;
+    private string $namespace;
 
     /**
      * @param Symbol[] $requireNs

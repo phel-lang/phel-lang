@@ -1,5 +1,6 @@
 <?php
 
+declare(strict_types=1);
 
 namespace Phel\Ast;
 
@@ -7,26 +8,22 @@ use Phel\Lang\SourceLocation;
 use Phel\NodeEnvironment;
 use Phel\RecurFrame;
 
-class RecurNode extends Node
+final class RecurNode extends Node
 {
+    private RecurFrame $frame;
+
+    /** @var Node[] */
+    private array $exprs;
 
     /**
-     * @var RecurFrame
-     */
-    protected $frame;
-
-    /**
-     * @var Node[]
-     */
-    protected $exprs;
-
-    /**
-     * @param NodeEnvironment $env
-     * @param RecurFrame $frame
      * @param Node[] $exprs
      */
-    public function __construct(NodeEnvironment $env, RecurFrame $frame, array $exprs, ?SourceLocation $sourceLocation = null)
-    {
+    public function __construct(
+        NodeEnvironment $env,
+        RecurFrame $frame,
+        array $exprs,
+        ?SourceLocation $sourceLocation = null
+    ) {
         parent::__construct($env, $sourceLocation);
         $this->frame = $frame;
         $this->exprs = $exprs;
@@ -40,7 +37,7 @@ class RecurNode extends Node
     /**
      * @return Node[]
      */
-    public function getExprs()
+    public function getExprs(): array
     {
         return $this->exprs;
     }

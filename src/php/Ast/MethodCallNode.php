@@ -1,28 +1,19 @@
 <?php
 
+declare(strict_types=1);
 
 namespace Phel\Ast;
 
-use Phel\Lang\Symbol;
 use Phel\Lang\SourceLocation;
+use Phel\Lang\Symbol;
 use Phel\NodeEnvironment;
 
-class MethodCallNode extends Node
+final class MethodCallNode extends Node
 {
+    private Symbol $fn;
+    private array $args;
 
     /**
-     * @var Symbol
-     */
-    protected $fn;
-
-    /**
-     * @var Node[]
-     */
-    protected $args;
-
-    /**
-     * @param NodeEnvironment $env
-     * @param Symbol $fn
      * @param Node[] $args
      */
     public function __construct(NodeEnvironment $env, Symbol $fn, array $args, ?SourceLocation $sourceLocation = null)
@@ -40,7 +31,7 @@ class MethodCallNode extends Node
     /**
      * @return Node[]
      */
-    public function getArgs()
+    public function getArgs(): array
     {
         return $this->args;
     }

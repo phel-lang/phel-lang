@@ -1,32 +1,26 @@
 <?php
 
+declare(strict_types=1);
 
 namespace Phel\Ast;
 
-use Phel\Lang\Symbol;
 use Phel\Lang\SourceLocation;
+use Phel\Lang\Symbol;
 use Phel\NodeEnvironment;
 
-class BindingNode extends Node
+final class BindingNode extends Node
 {
+    private Symbol $symbol;
+    private Symbol $shadow;
+    private Node $initExpr;
 
-    /**
-     * @var Symbol
-     */
-    protected $symbol;
-
-    /**
-     * @var Symbol
-     */
-    protected $shadow;
-
-    /**
-     * @var Node
-     */
-    protected $initExpr;
-
-    public function __construct(NodeEnvironment $env, Symbol $symbol, Symbol $shadow, Node $initExpr, ?SourceLocation $sourceLocation = null)
-    {
+    public function __construct(
+        NodeEnvironment $env,
+        Symbol $symbol,
+        Symbol $shadow,
+        Node $initExpr,
+        ?SourceLocation $sourceLocation = null
+    ) {
         parent::__construct($env, $sourceLocation);
         $this->symbol = $symbol;
         $this->shadow = $shadow;

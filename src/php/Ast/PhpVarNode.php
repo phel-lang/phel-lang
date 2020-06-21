@@ -1,14 +1,15 @@
 <?php
 
+declare(strict_types=1);
 
 namespace Phel\Ast;
 
 use Phel\Lang\SourceLocation;
 use Phel\NodeEnvironment;
 
-class PhpVarNode extends Node
+final class PhpVarNode extends Node
 {
-    const INFIX_OPERATORS = [
+    public const INFIX_OPERATORS = [
         '+',
         '-',
         '*',
@@ -34,7 +35,8 @@ class PhpVarNode extends Node
         '<<',
         '>>'
     ];
-    const CALLABLE_KEYWORDS = [
+
+    public const CALLABLE_KEYWORDS = [
         'array',
         'die',
         'empty',
@@ -43,10 +45,7 @@ class PhpVarNode extends Node
         'isset'
     ];
 
-    /**
-     * @var string
-     */
-    protected $name;
+    private string $name;
 
     public function __construct(NodeEnvironment $env, string $name, ?SourceLocation $sourceLocation = null)
     {

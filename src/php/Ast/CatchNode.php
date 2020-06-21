@@ -1,32 +1,26 @@
 <?php
 
+declare(strict_types=1);
 
 namespace Phel\Ast;
 
-use Phel\Lang\Symbol;
 use Phel\Lang\SourceLocation;
+use Phel\Lang\Symbol;
 use Phel\NodeEnvironment;
 
-class CatchNode extends Node
+final class CatchNode extends Node
 {
+    private Symbol $type;
+    private Symbol $name;
+    private Node $body;
 
-    /**
-     * @var Symbol
-     */
-    protected $type;
-
-    /**
-     * @var Symbol
-     */
-    protected $name;
-
-    /**
-     * @var Node
-     */
-    protected $body;
-
-    public function __construct(NodeEnvironment $env, Symbol $type, Symbol $name, Node $body, ?SourceLocation $sourceLocation = null)
-    {
+    public function __construct(
+        NodeEnvironment $env,
+        Symbol $type,
+        Symbol $name,
+        Node $body,
+        ?SourceLocation $sourceLocation = null
+    ) {
         parent::__construct($env, $sourceLocation);
         $this->type = $type;
         $this->name = $name;
