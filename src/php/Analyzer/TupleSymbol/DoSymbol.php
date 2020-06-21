@@ -13,21 +13,24 @@ final class DoSymbol
 {
     use WithAnalyzer;
 
-    public function __invoke(Tuple $x, NodeEnvironment $env): DoNode
+    public function __invoke(Tuple $tuple, NodeEnvironment $env): DoNode
     {
-        $tupleCount = count($x);
+        $tupleCount = count($tuple);
         $stmts = [];
         for ($i = 1; $i < $tupleCount - 1; $i++) {
-            $stmts[] = $this->analyzer->analyze($x[$i], $env->withContext(NodeEnvironment::CTX_STMT)->withDisallowRecurFrame());
+            $stmts[] = $this->analyzer->analyze(
+                $tuple[$i],
+                $env->withContext(NodeEnvironment::CTX_STMT)->withDisallowRecurFrame()
+            );
         }
 
         if ($tupleCount > 2) {
             $retEnv = $env->getContext() === NodeEnvironment::CTX_STMT
                 ? $env->withContext(NodeEnvironment::CTX_STMT)
                 : $env->withContext(NodeEnvironment::CTX_RET);
-            $ret = $this->analyzer->analyze($x[$tupleCount - 1], $retEnv);
+            $ret = $this->analyzer->analyze($tuple[$tupleCount - 1], $retEnv);
         } elseif ($tupleCount === 2) {
-            $ret = $this->analyzer->analyze($x[$tupleCount - 1], $env);
+            $ret = $this->analyzer->analyze($tuple[$tupleCount - 1], $env);
         } else {
             $ret = $this->analyzer->analyze(null, $env);
         }
@@ -36,7 +39,7 @@ final class DoSymbol
             $env,
             $stmts,
             $ret,
-            $x->getStartLocation()
+            $tuple->getStartLocation()
         );
     }
 }

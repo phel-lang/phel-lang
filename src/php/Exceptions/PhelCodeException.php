@@ -5,12 +5,22 @@ declare(strict_types=1);
 namespace Phel\Exceptions;
 
 use Exception;
+use Phel\Lang\AbstractType;
 use Phel\Lang\SourceLocation;
 
 class PhelCodeException extends Exception
 {
     private ?SourceLocation $startLocation;
     private ?SourceLocation $endLocation;
+
+    public static function withLocation(string $message, AbstractType $type): self
+    {
+        return new self(
+            $message,
+            $type->getStartLocation(),
+            $type->getEndLocation()
+        );
+    }
 
     public function __construct(
         string $message,
