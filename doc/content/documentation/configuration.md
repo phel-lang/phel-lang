@@ -3,7 +3,7 @@ title = "Configuration"
 weight = 15
 +++
 
-Phel comes with some configuration options. They are stored in the `composer.json` file under `extra`.
+Phel comes with some configuration options. They are stored in the `composer.json` file in the `extra` section.
 
 ## Structure
 
@@ -22,7 +22,7 @@ These are all Phel specific configuration options available.
 }
 ```
 
-Until Phel is officialy released, setting `minimum-stability` to `dev` in `composer.json` is required.
+Until Phel is officially released, setting `minimum-stability` to `dev` in `composer.json` is required.
 
 ```json
 "minimum-stability": "dev"
@@ -37,27 +37,25 @@ This chapter contains all configuration options explained in detail.
 
 Autoload mapping for a Phel autoloader.
 
-Under the `loader` key you define a mapping from namespaces to paths, relative to the package root. When autoloading a module like `hello-world\boot` a namespace prefix `hello-world` pointing to a directory `src/` means that the autoloader will look for a file named `src/boot.phel` and include it if present.
+The `loader` configuration defines a mapping from namespaces to paths. The paths are relative to the package root. When autoloading a module like `hello-world\boot` a namespace prefix `hello-world` pointing to a directory `src/` means that the autoloader will look for a file named `src/boot.phel` and include it if present.
 
-Namespace prefixes must end in `\\` to avoid conflicts between similar prefixes. For example `hello` would match modules in the `hello-world` namespace so the trailing backslashes solve the problem: `hello\\` and `hello-world\\` are distinct.
+Namespace prefixes must end with a backslash (`\\`) to avoid conflicts between similar prefixes. For example `hello` would match modules in the `hello-world` namespace so the trailing backslashes solve the problem: `hello\\` and `hello-world\\` are distinct.
 
-The `loader` references are all added, during install/update, to the Phel runtime which may be found in the generated file `vendor/PhelRuntime.php`.
+The `loader` references are all added, during install/update, to the Phel Runtime which can be found in the generated file `vendor/PhelRuntime.php`.
 
 
 ### `loader-dev`
 
-This section allows to define autoload rules for development purposes.
+This section allows us to define autoload rules for development purposes.
 
-Modules needed to run the test suite should not be included in the main autoload rules to avoid polluting the autoloader in production and when other people use your package as a dependency.
-
-Therefore, it is a good idea to rely on a dedicated path for your unit tests and to add it within the `loader-dev` section.
+Modules needed to run the test suite should not be included in the main autoload rules to avoid polluting the autoloader in production and when other people use the package as a dependency. Therefore, it is a good idea to rely on a dedicated path for your unit tests and to add it within the `loader-dev` section.
 
 
 ## Phel Composer Plugin
 
-Phel runtime is configured automatically by the plugin. On package install/update it generates a file `vendor/PhelRuntime.php` which initializes the Phel runtime and adds package namespaces defined in `loader` and `loader-dev`.
+Phel Runtime is configured automatically by the plugin. Whenever a package is updated or installed a file is generated in `vendor/PhelRuntime.php`. This file initializes the Phel Runtime according to the defined `loader` and `loader-dev` configuration options.
 
-Example on how to load the generated runtime.
+The generated Runtime can be loaded like this.
 
 ```php
 // src/index.php
@@ -68,12 +66,12 @@ $rt = require __DIR__ .'/../vendor/PhelRuntime.php';
 $rt->loadNs('hello-world\boot');
 ```
 
-View source code of the [Composer plugin for the Phel language](https://github.com/jenshaase/phel-composer-plugin).
+The source of [Phel's composer plugin](https://github.com/jenshaase/phel-composer-plugin) can be found in a separate repository.
 
 
-## Manually initializing and configuring the runtime
+## Manually initializing and configuring the Runtime
 
-It is possible to manually initialize and configure the runtime as shown in this example.
+It is possible to manually initialize and configure the Runtime as shown in this example.
 
 ```php
 // src/index.php

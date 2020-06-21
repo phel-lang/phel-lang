@@ -74,7 +74,7 @@ The file `boot.phel` contains the actual code of the project. It defines the nam
 (println "Hello, World!")
 ```
 
-In order for Phel to automatically resolve the project namespace and path, this code needs to be added to `composer.json` file.
+For Phel to automatically resolve the project namespace and path, this code needs to be added to `composer.json` file.
 
 ```json
 "extra": {
@@ -142,7 +142,7 @@ Hello, World!
 
 ### With a PHP Server
 
-The file `index.php` will be executed by the PHP Server. It initializes the Phel Runtime and loads the namespace from `boot.phel` file, described above to start the application.
+The file `index.php` will be executed by the PHP Server. It initializes the Phel Runtime and loads the namespace from the `boot.phel` file described above, to start the application.
 
 ```php
 // src/index.php
@@ -170,4 +170,4 @@ To try Phel you can run a REPL by executing the `./vendor/bin/phel repl` command
 
 ## Editor support
 
-Phel comes with a basic editor support for VSCode. Please checkout the [plugin's README file](https://github.com/jenshaase/phel-lang/tree/master/editor-support/vscode) for more information.
+Phel comes with basic editor support for VSCode. Please check out the [plugin's README file](https://github.com/jenshaase/phel-lang/tree/master/editor-support/vscode) for more information.
