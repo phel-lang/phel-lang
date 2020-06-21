@@ -41,7 +41,7 @@ The `loader` configuration defines a mapping from namespaces to paths. The paths
 
 Namespace prefixes must end with a backslash (`\\`) to avoid conflicts between similar prefixes. For example `hello` would match modules in the `hello-world` namespace so the trailing backslashes solve the problem: `hello\\` and `hello-world\\` are distinct.
 
-The `loader` references are all added, during install/update, to the Phel Runtime which can be found in the generated file `vendor/PhelRuntime.php`.
+The `loader` references are all added whenever a package is updated or installed, to the Phel Runtime which can be found in the generated file `vendor/PhelRuntime.php`.
 
 
 ### `loader-dev`
@@ -49,6 +49,8 @@ The `loader` references are all added, during install/update, to the Phel Runtim
 This section allows us to define autoload rules for development purposes.
 
 Modules needed to run the test suite should not be included in the main autoload rules to avoid polluting the autoloader in production and when other people use the package as a dependency. Therefore, it is a good idea to rely on a dedicated path for your unit tests and to add it within the `loader-dev` section.
+
+The `loader-dev` configuration section is equivalent to the `loader` configuration section. Namespaces and paths are defined in the same way.
 
 
 ## Phel Composer Plugin
