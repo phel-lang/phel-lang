@@ -13,12 +13,13 @@ class PhelCodeException extends Exception
     private ?SourceLocation $startLocation;
     private ?SourceLocation $endLocation;
 
-    public static function withLocation(string $message, AbstractType $type): self
+    public static function withLocation(string $message, AbstractType $type, ?Exception $nested = null): self
     {
         return new self(
             $message,
             $type->getStartLocation(),
-            $type->getEndLocation()
+            $type->getEndLocation(),
+            $nested
         );
     }
 

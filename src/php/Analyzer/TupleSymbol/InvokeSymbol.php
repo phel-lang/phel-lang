@@ -18,103 +18,109 @@ final class InvokeSymbol
 {
     use WithAnalyzer;
 
-    public function __invoke(Tuple $x, NodeEnvironment $nodeEnvironment): Node
+    public function __invoke(Tuple $tuple, NodeEnvironment $env): Node
     {
-        $tupleCount = count($x);
         $f = $this->analyzer->analyze(
-            $x[0],
-            $nodeEnvironment->withContext(NodeEnvironment::CTX_EXPR)->withDisallowRecurFrame()
+            $tuple[0],
+            $env->withContext(NodeEnvironment::CTX_EXPR)->withDisallowRecurFrame()
         );
 
         if ($f instanceof GlobalVarNode && $f->isMacro()) {
-            $this->analyzer->getGlobalEnvironment()->setAllowPrivateAccess(true);
-            $result = $this->analyzer->analyze($this->macroExpand($x, $nodeEnvironment), $nodeEnvironment);
-            $this->analyzer->getGlobalEnvironment()->setAllowPrivateAccess(false);
-
-            return $result;
-        }
-
-        $arguments = [];
-        for ($i = 1; $i < $tupleCount; $i++) {
-            $arguments[] = $this->analyzer->analyze(
-                $x[$i],
-                $nodeEnvironment->withContext(NodeEnvironment::CTX_EXPR)->withDisallowRecurFrame()
-            );
+            return $this->globalMacro($tuple, $env);
         }
 
         return new CallNode(
-            $nodeEnvironment,
+            $env,
             $f,
-            $arguments,
-            $x->getStartLocation()
+            $this->arguments($tuple, $env),
+            $tuple->getStartLocation()
         );
     }
 
-    /** @return AbstractType|scalar|null */
-    private function macroExpand(Tuple $x, NodeEnvironment $env)
+    private function globalMacro(Tuple $tuple, NodeEnvironment $env): Node
     {
-        $tupleCount = count($x);
+        $this->analyzer->getGlobalEnvironment()->setAllowPrivateAccess(true);
+        $result = $this->analyzer->analyze($this->macroExpand($tuple, $env), $env);
+        $this->analyzer->getGlobalEnvironment()->setAllowPrivateAccess(false);
+
+        return $result;
+    }
+
+    /** @return AbstractType|scalar|null */
+    private function macroExpand(Tuple $tuple, NodeEnvironment $env)
+    {
+        $tupleCount = count($tuple);
         /** @psalm-suppress PossiblyNullArgument */
-        $node = $this->analyzer->getGlobalEnvironment()->resolve($x[0], $env);
+        $node = $this->analyzer->getGlobalEnvironment()->resolve($tuple[0], $env);
         if ($node && $node instanceof GlobalVarNode) {
-            $fn = $GLOBALS['__phel'][$node->getNamespace()][$node->getName()->getName()];
+            $nodeName = $node->getName()->getName();
+            $fn = $GLOBALS['__phel'][$node->getNamespace()][$nodeName];
 
             $arguments = [];
             for ($i = 1; $i < $tupleCount; $i++) {
-                $arguments[] = $x[$i];
+                $arguments[] = $tuple[$i];
             }
 
             try {
                 $result = $fn(...$arguments);
-                $this->enrichLocation($result, $x);
+                $this->enrichLocation($result, $tuple);
 
                 return $result;
             } catch (Exception $e) {
-                throw new AnalyzerException(
-                    'Error in expanding macro "' . $node->getNamespace() . '\\' . $node->getName()->getName() . '": ' . $e->getMessage(),
-                    $x->getStartLocation(),
-                    $x->getEndLocation(),
+                throw AnalyzerException::withLocation(
+                    'Error in expanding macro "' . $node->getNamespace() . '\\' . $nodeName . '": ' . $e->getMessage(),
+                    $tuple,
                     $e
                 );
             }
         }
 
         if (is_null($node)) {
-            throw new AnalyzerException(
-                'Can not resolve macro',
-                $x->getStartLocation(),
-                $x->getEndLocation()
-            );
+            throw AnalyzerException::withLocation('Can not resolve macro', $tuple);
         }
 
-        throw new AnalyzerException(
-            'This is not macro expandable: ' . get_class($node),
-            $x->getStartLocation(),
-            $x->getEndLocation()
-        );
+        throw AnalyzerException::withLocation('This is not macro expandable: ' . get_class($node), $tuple);
     }
 
-    /** @param mixed $x */
+    /** @param Tuple|AbstractType $x */
     private function enrichLocation($x, AbstractType $parent): void
     {
         if ($x instanceof Tuple) {
-            foreach ($x as $item) {
-                $this->enrichLocation($item, $parent);
-            }
-
-            if (!$x->getStartLocation()) {
-                $x->setStartLocation($parent->getStartLocation());
-            }
-            if (!$x->getEndLocation()) {
-                $x->setEndLocation($parent->getEndLocation());
-            }
+            $this->enrichLocationForTuple($x, $parent);
         } elseif ($x instanceof AbstractType) {
-            if (!$x->getStartLocation()) {
-                $x->setStartLocation($parent->getStartLocation());
-            }
-            if (!$x->getEndLocation()) {
-                $x->setEndLocation($parent->getEndLocation());
-            }
+            $this->enrichLocationForAbstractType($x, $parent);
         }
+    }
+
+    private function enrichLocationForTuple(Tuple $tuple, AbstractType $parent): void
+    {
+        foreach ($tuple as $item) {
+            $this->enrichLocation($item, $parent);
+        }
+
+        $this->enrichLocationForAbstractType($tuple, $parent);
+    }
+
+    private function enrichLocationForAbstractType(AbstractType $type, AbstractType $parent): void
+    {
+        if (!$type->getStartLocation()) {
+            $type->setStartLocation($parent->getStartLocation());
+        }
+        if (!$type->getEndLocation()) {
+            $type->setEndLocation($parent->getEndLocation());
+        }
+    }
+
+    private function arguments(Tuple $tuple, $env): array
+    {
+        $arguments = [];
+        for ($i = 1, $iMax = count($tuple); $i < $iMax; $i++) {
+            $arguments[] = $this->analyzer->analyze(
+                $tuple[$i],
+                $env->withContext(NodeEnvironment::CTX_EXPR)->withDisallowRecurFrame()
+            );
+        }
+
+        return $arguments;
     }
 }

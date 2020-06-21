@@ -14,34 +14,35 @@ final class IfSymbol
 {
     use WithAnalyzer;
 
-    public function __invoke(Tuple $x, NodeEnvironment $env): IfNode
+    public function __invoke(Tuple $tuple, NodeEnvironment $env): IfNode
     {
-        $tupleCount = count($x);
+        $tupleCount = count($tuple);
         if ($tupleCount < 3 || $tupleCount > 4) {
-            throw new AnalyzerException(
-                "'if requires two or three arguments",
-                $x->getStartLocation(),
-                $x->getEndLocation()
-            );
+            throw AnalyzerException::withLocation("'if requires two or three arguments", $tuple);
         }
 
         $testExpr = $this->analyzer->analyze(
-            $x[1],
+            $tuple[1],
             $env->withContext(NodeEnvironment::CTX_EXPR)->withDisallowRecurFrame()
         );
-        $thenExpr = $this->analyzer->analyze($x[2], $env);
-        if ($tupleCount === 3) {
-            $elseExpr = $this->analyzer->analyze(null, $env);
-        } else {
-            $elseExpr = $this->analyzer->analyze($x[3], $env);
-        }
+        $thenExpr = $this->analyzer->analyze($tuple[2], $env);
+        $elseExpr = $this->elseExpr($tuple, $env);
 
         return new IfNode(
             $env,
             $testExpr,
             $thenExpr,
             $elseExpr,
-            $x->getStartLocation()
+            $tuple->getStartLocation()
         );
+    }
+
+    private function elseExpr(Tuple $tuple, NodeEnvironment $env)
+    {
+        if (count($tuple) === 3) {
+            return $this->analyzer->analyze(null, $env);
+        }
+
+        return $this->analyzer->analyze($tuple[3], $env);
     }
 }

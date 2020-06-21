@@ -19,24 +19,15 @@ final class ForeachSymbol
     {
         $tupleCount = count($tuple);
         if ($tupleCount < 2) {
-            throw AnalyzerException::withLocation(
-                "At least two arguments are required for 'foreach",
-                $tuple
-            );
+            throw AnalyzerException::withLocation("At least two arguments are required for 'foreach", $tuple);
         }
 
         if (!($tuple[1] instanceof Tuple)) {
-            throw AnalyzerException::withLocation(
-                "First argument of 'foreach must be a tuple.",
-                $tuple
-            );
+            throw AnalyzerException::withLocation("First argument of 'foreach must be a tuple.", $tuple);
         }
 
         if (count($tuple[1]) !== 2 && count($tuple[1]) !== 3) {
-            throw AnalyzerException::withLocation(
-                "Tuple of 'foreach must have exactly two or three elements.",
-                $tuple
-            );
+            throw AnalyzerException::withLocation("Tuple of 'foreach must have exactly two or three elements.", $tuple);
         }
 
         $lets = [];
