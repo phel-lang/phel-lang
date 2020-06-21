@@ -691,25 +691,24 @@ arrays. Use (php/aunset ds key)" )))
     x))
 
 (defn union
-  "Union multiple sets"
+  "Union multiple sets into a new set"
   [& sets]
-  (apply concat sets))
+  (let (s (set))
+    (apply concat s sets)))
 
 (defn intersection
   "Intersect multiple sets into one"
   [s & sets]
-  (do
-    (foreach [se sets]
-      (php/-> s (intersection se)))
-    s))
+  (foreach [se sets]
+    (php/-> s (intersection se)))
+  s)
 
 (defn difference-into
   "Difference between multiple sets into one"
   [s & sets]
-  (do
-    (foreach [se sets]
-      (php/-> s (difference se)))
-    s))
+  (foreach [se sets]
+    (php/-> s (difference se)))
+  s)
 
 (defn difference
   "Difference between multiple sets"
