@@ -23,13 +23,13 @@ final class ApplySymbol
 
         return new ApplyNode(
             $env,
-            $this->analyze($tuple[1], $env),
+            $this->fnExpr($tuple[1], $env),
             $this->arguments($tuple, $env),
             $tuple->getStartLocation()
         );
     }
 
-    private function analyze($x, NodeEnvironment $env): Node
+    private function fnExpr($x, NodeEnvironment $env): Node
     {
         return $this->analyzer->analyze(
             $x,
@@ -41,7 +41,7 @@ final class ApplySymbol
     {
         $args = [];
         for ($i = 2, $iMax = count($x); $i < $iMax; $i++) {
-            $args[] = $this->analyze($x[$i], $env);
+            $args[] = $this->fnExpr($x[$i], $env);
         }
 
         return $args;

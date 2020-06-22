@@ -82,7 +82,7 @@ final class InvokeSymbol
         throw AnalyzerException::withLocation('This is not macro expandable: ' . get_class($node), $tuple);
     }
 
-    /** @param Tuple|AbstractType $x */
+    /** @param AbstractType|scalar|null $x */
     private function enrichLocation($x, AbstractType $parent): void
     {
         if ($x instanceof Tuple) {
@@ -106,6 +106,7 @@ final class InvokeSymbol
         if (!$type->getStartLocation()) {
             $type->setStartLocation($parent->getStartLocation());
         }
+
         if (!$type->getEndLocation()) {
             $type->setEndLocation($parent->getEndLocation());
         }
