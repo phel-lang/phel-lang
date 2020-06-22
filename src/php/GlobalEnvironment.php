@@ -12,6 +12,7 @@ use Phel\Lang\Keyword;
 use Phel\Lang\SourceLocation;
 use Phel\Lang\Symbol;
 use Phel\Lang\Table;
+use RuntimeException;
 
 final class GlobalEnvironment
 {
@@ -137,10 +138,8 @@ final class GlobalEnvironment
             return new PhpClassNameNode($env, $alias, $name->getStartLocation());
         }
 
-        $pos = strpos($strName, '/');
-
-        if ($pos !== false && $pos > 0) {
-            return $this->resolveWithAlias($strName, $pos, $env, $name);
+        if ($name->getNamespace() !== null) {
+            return $this->resolveWithAlias($name, $env);
         }
 
         return $this->resolveWithoutAlias($name, $env);
@@ -172,20 +171,23 @@ final class GlobalEnvironment
         return null;
     }
 
-    private function resolveWithAlias(string $strName, int $pos, NodeEnvironment $env, Symbol $name): ?GlobalVarNode
+    private function resolveWithAlias(Symbol $name, NodeEnvironment $env): ?GlobalVarNode
     {
-        $alias = substr($strName, 0, $pos);
+        $alias = $name->getNamespace();
+        $finalName = Symbol::create($name->getName());
 
-        if (!isset($this->requireAliases[$this->ns][$alias])) {
-            return null;
+        if ($alias === null) {
+            throw new RuntimeException('resolveWithAlias called with a Symbol without namespace');
         }
 
-        $namespace = $this->requireAliases[$this->ns][$alias];
-        $finalName = new Symbol(substr($strName, $pos + 1));
+        $namespace = $alias;
+        if (isset($this->requireAliases[$this->ns][$alias])) {
+            $namespace = $this->requireAliases[$this->ns][$alias]->getName();
+        }
 
-        $def = $this->getDefinition($namespace->getName(), $finalName);
+        $def = $this->getDefinition($namespace, $finalName);
         if ($def && ($this->allowPrivateAccess || !$this->isDefinitionPrivate($def))) {
-            return new GlobalVarNode($env, $namespace->getName(), $finalName, $def, $name->getStartLocation());
+            return new GlobalVarNode($env, $namespace, $finalName, $def, $name->getStartLocation());
         }
 
         return null;

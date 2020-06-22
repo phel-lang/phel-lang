@@ -1,33 +1,28 @@
 <?php
 
+declare(strict_types=1);
 
 namespace Phel\Ast;
 
 use Phel\Lang\SourceLocation;
 use Phel\NodeEnvironment;
 
-class ApplyNode extends Node
+final class ApplyNode extends Node
 {
+    private Node $fn;
+
+    /** @var Node[] */
+    private array $arguments;
 
     /**
-     * @var Node
-     */
-    protected $fn;
-
-    /**
-     * @var Node[]
-     */
-    protected $arguments;
-
-    /**
-     * Construtor
-     *
-     * @param NodeEnvironment $env
-     * @param Node $fn
      * @param Node[] $arguments
      */
-    public function __construct(NodeEnvironment $env, Node $fn, array $arguments, ?SourceLocation $sourceLocation = null)
-    {
+    public function __construct(
+        NodeEnvironment $env,
+        Node $fn,
+        array $arguments,
+        ?SourceLocation $sourceLocation = null
+    ) {
         parent::__construct($env, $sourceLocation);
         $this->fn = $fn;
         $this->arguments = $arguments;
@@ -41,7 +36,7 @@ class ApplyNode extends Node
     /**
      * @return Node[]
      */
-    public function getArguments()
+    public function getArguments(): array
     {
         return $this->arguments;
     }

@@ -76,9 +76,9 @@ final class ForeachSymbol
         }
 
         if (count($lets)) {
-            $body = Tuple::create(new Symbol('let'), new Tuple($lets, true), ...$bodys);
+            $body = Tuple::create(Symbol::create('let'), new Tuple($lets, true), ...$bodys);
         } else {
-            $body = Tuple::create(new Symbol('do'), ...$bodys);
+            $body = Tuple::create(Symbol::create('do'), ...$bodys);
         }
 
         $bodyExpr = $this->analyzer->analyze(

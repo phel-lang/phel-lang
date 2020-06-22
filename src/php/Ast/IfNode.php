@@ -1,31 +1,25 @@
 <?php
 
+declare(strict_types=1);
 
 namespace Phel\Ast;
 
 use Phel\Lang\SourceLocation;
 use Phel\NodeEnvironment;
 
-class IfNode extends Node
+final class IfNode extends Node
 {
+    private Node $testExpr;
+    private Node $thenExpr;
+    private Node $elseExpr;
 
-    /**
-     * @var Node
-     */
-    protected $testExpr;
-
-    /**
-     * @var Node
-     */
-    protected $thenExpr;
-
-    /**
-     * @var Node
-     */
-    protected $elseExpr;
-
-    public function __construct(NodeEnvironment $env, Node $testExpr, Node $thenExpr, Node $elseExpr, ?SourceLocation $sourceLocation = null)
-    {
+    public function __construct(
+        NodeEnvironment $env,
+        Node $testExpr,
+        Node $thenExpr,
+        Node $elseExpr,
+        ?SourceLocation $sourceLocation = null
+    ) {
         parent::__construct($env, $sourceLocation);
         $this->testExpr = $testExpr;
         $this->thenExpr = $thenExpr;

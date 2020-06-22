@@ -1,37 +1,28 @@
 <?php
 
+declare(strict_types=1);
 
 namespace Phel\Ast;
 
-use Phel\Lang\Symbol;
 use Phel\Lang\SourceLocation;
+use Phel\Lang\Symbol;
 use Phel\NodeEnvironment;
 
-class ForeachNode extends Node
+final class ForeachNode extends Node
 {
+    private Node $bodyExpr;
+    private Node $listExpr;
+    private Symbol $valueSymbol;
+    private ?Symbol $keySymbol;
 
-    /**
-     * @var Node
-     */
-    protected $bodyExpr;
-
-    /**
-     * @var Node
-     */
-    protected $listExpr;
-
-    /**
-     * @var Symbol
-     */
-    protected $valueSymbol;
-
-    /**
-     * @var ?Symbol
-     */
-    protected $keySymbol;
-
-    public function __construct(NodeEnvironment $env, Node $bodyExpr, Node $listExpr, Symbol $valueSymbol, ?Symbol $keySymbol = null, ?SourceLocation $sourceLocation = null)
-    {
+    public function __construct(
+        NodeEnvironment $env,
+        Node $bodyExpr,
+        Node $listExpr,
+        Symbol $valueSymbol,
+        ?Symbol $keySymbol = null,
+        ?SourceLocation $sourceLocation = null
+    ) {
         parent::__construct($env, $sourceLocation);
         $this->bodyExpr = $bodyExpr;
         $this->listExpr = $listExpr;

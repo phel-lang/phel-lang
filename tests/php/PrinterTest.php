@@ -63,8 +63,9 @@ final class PrinterTest extends TestCase
 
     private function read(string $string): string
     {
+        $globalEnv = new GlobalEnvironment();
         $tokenStream = (new Lexer())->lexString($string);
 
-        return (string) (new Reader())->readNext($tokenStream)->getAst();
+        return (string) (new Reader($globalEnv))->readNext($tokenStream)->getAst();
     }
 }

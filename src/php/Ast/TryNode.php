@@ -1,37 +1,28 @@
 <?php
 
+declare(strict_types=1);
 
 namespace Phel\Ast;
 
 use Phel\Lang\SourceLocation;
 use Phel\NodeEnvironment;
 
-class TryNode extends Node
+final class TryNode extends Node
 {
+    private Node $body;
 
-    /**
-     * @var Node
-     */
-    protected $body;
+    /** @var CatchNode[] */
+    private array $catches;
 
-    /**
-     * @var CatchNode[]
-     */
-    protected $catches;
+    private ?Node $finally;
 
-    /**
-     * @var ?Node
-     */
-    protected $finally;
-
-    /**
-     * @param NodeEnvironment $env
-     * @param Node $body
-     * @param CatchNode[] $catches
-     * @param ?Node $finally
-     */
-    public function __construct(NodeEnvironment $env, Node $body, array $catches, ?Node $finally = null, ?SourceLocation $sourceLocation = null)
-    {
+    public function __construct(
+        NodeEnvironment $env,
+        Node $body,
+        array $catches,
+        ?Node $finally = null,
+        ?SourceLocation $sourceLocation = null
+    ) {
         parent::__construct($env, $sourceLocation);
         $this->body = $body;
         $this->catches = $catches;
@@ -46,7 +37,7 @@ class TryNode extends Node
     /**
      * @return CatchNode[]
      */
-    public function getCatches()
+    public function getCatches(): array
     {
         return $this->catches;
     }

@@ -42,7 +42,7 @@ final class AnalyzeTuple
             return (new InvokeSymbol($this->analyzer))($x, $env);
         }
 
-        switch ($x[0]->getName()) {
+        switch ($x[0]->getFullName()) {
             case 'def':
                 return (new DefSymbol($this->analyzer))($x, $env);
             case 'ns':

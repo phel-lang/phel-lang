@@ -73,7 +73,7 @@ final class NodeEnvironment
 
     public function hasLocal(Symbol $x): bool
     {
-        return in_array(new Symbol($x->getName()), $this->locals, false);
+        return in_array(Symbol::create($x->getName()), $this->locals, false);
     }
 
     /**
@@ -112,7 +112,7 @@ final class NodeEnvironment
     public function withMergedLocals(array $locals): NodeEnvironment
     {
         $finalLocals = array_unique(
-            array_merge($this->locals, array_map(fn ($s) => new Symbol($s->getName()), $locals))
+            array_merge($this->locals, array_map(fn ($s) => Symbol::create($s->getName()), $locals))
         );
         return new NodeEnvironment($finalLocals, $this->context, $this->shadowed, $this->recurFrames, $this->boundTo);
     }

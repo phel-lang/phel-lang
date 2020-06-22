@@ -1,37 +1,31 @@
 <?php
 
+declare(strict_types=1);
 
 namespace Phel\Ast;
 
 use Phel\Lang\SourceLocation;
 use Phel\NodeEnvironment;
 
-class LetNode extends Node
+final class LetNode extends Node
 {
+    /** @var BindingNode[] */
+    private array $bindings;
+
+    private Node $bodyExpr;
+
+    private bool $isLoop;
 
     /**
-     * @var BindingNode[]
-     */
-    protected $bindings;
-
-    /**
-     * @var Node
-     */
-    protected $bodyExpr;
-
-    /**
-     * @var bool
-     */
-    protected $isLoop;
-
-    /**
-     * @param NodeEnvironment $env
      * @param BindingNode[] $bindings
-     * @param Node $node
-     * @param bool $isLoop
      */
-    public function __construct(NodeEnvironment $env, array $bindings, Node $bodyExpr, bool $isLoop, ?SourceLocation $sourceLocation = null)
-    {
+    public function __construct(
+        NodeEnvironment $env,
+        array $bindings,
+        Node $bodyExpr,
+        bool $isLoop,
+        ?SourceLocation $sourceLocation = null
+    ) {
         parent::__construct($env, $sourceLocation);
         $this->bindings = $bindings;
         $this->bodyExpr = $bodyExpr;
@@ -41,7 +35,7 @@ class LetNode extends Node
     /**
      * @return BindingNode[]
      */
-    public function getBindings()
+    public function getBindings(): array
     {
         return $this->bindings;
     }

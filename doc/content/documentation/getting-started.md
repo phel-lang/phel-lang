@@ -7,9 +7,10 @@ weight = 1
 
 Phel requires PHP 7.4 or higher and [Composer](https://getcomposer.org/).
 
+
 ## Initialize a new project using Composer
 
-The easiest way to get started is by setting up a new Composer project. First create a new directory and initialize a new Composer project.
+The easiest way to get started is by setting up a new Composer project. First, create a new directory and initialize a new Composer project.
 
 ```bash
 mkdir hello-world
@@ -51,12 +52,42 @@ Would you like to define your dev dependencies (require-dev) interactively [yes]
 Do you confirm generation [yes]? yes
 ```
 
-Next we can require Phel as dependency of our project.
+Next, require Phel as a dependency.
 
 ```bash
 # Require and install Phel
 composer require phel/phel:dev-master
 ```
+
+Then, create a new directory `src` with a file `boot.phel` inside this directory.
+
+```bash
+mkdir src
+```
+
+The file `boot.phel` contains the actual code of the project. It defines the namespace and prints "Hello, World!".
+
+```phel
+# in src/boot.phel
+(ns hello-world\boot)
+
+(println "Hello, World!")
+```
+
+For Phel to automatically resolve the project namespace and path, this code needs to be added to `composer.json` file.
+
+```json
+"extra": {
+    "phel": {
+        "loader": {
+            "hello-world\\": "src/"
+        }
+    }
+},
+"minimum-stability": "dev"
+```
+
+> Read documentation for [Configuration](/documentation/configuration) to see all available configuration options for Phel.
 
 The final `composer.json` file should look like this:
 
@@ -72,45 +103,53 @@ The final `composer.json` file should look like this:
     ],
     "require": {
         "phel/phel": "dev-master"
-    }
+    },
+    "extra": {
+        "phel": {
+            "loader": {
+                "hello-world\\": "src/"
+            }
+        }
+    },
+    "minimum-stability": "dev"
 }
 ```
 
-## Launch the REPL
 
-You should now be able to run a REPL by executing the `./vendor/bin/phel repl` command.
+## Running the code
 
-## Start the Phel Runtime
+There are two ways to run the code: from the command line and with a PHP Server.
 
-After setting up the project we can now write some code. First we create new directory `src` and add two files in this directory.
+
+### From the Command line
+
+Code can be executed from the command line by calling the `vendor/bin/phel run` command, followed by the file path or namespace:
 
 ```bash
-mkdir src
+vendor/bin/phel run src/boot.phel
+# or
+vendor/bin/phel run hello-world\\boot
+# or
+vendor/bin/phel run "hello-world\boot"
 ```
 
-The file `boot.phel` contains our actual code of the project. It just defines the namespace and prints "Hello World".
+The output will be:
 
-```phel
-# in src/boot.phel
-(ns hello-world\boot)
-
-(print "<h1>Hello World</h1>")
+```
+Hello, World!
 ```
 
-The file `index.php` will be executed by the PHP Server. It initializes the Phel Runtime and loads Phel's core library and the `boot.phel` file, we described above.
+
+### With a PHP Server
+
+The file `index.php` will be executed by the PHP Server. It initializes the Phel Runtime and loads the namespace from the `boot.phel` file described above, to start the application.
 
 ```php
 // src/index.php
 <?php
 
-use Phel\Runtime;
+$rt = require __DIR__ .'/../vendor/PhelRuntime.php';
 
-require __DIR__ .'/../vendor/autoload.php';
-
-$rt = Runtime::initialize();
-$rt->addPath('hello-world\\', [__DIR__]);
-
-$rt->loadNs('phel\core');
 $rt->loadNs('hello-world\boot');
 ```
 
@@ -121,8 +160,14 @@ The PHP Server can now be started.
 php -S localhost:8000 ./src/index.php
 ```
 
-In the browser, the URL `http://localhost:8000` will now print "Hello World".
+In the browser, the URL `http://localhost:8000` will now print "Hello, World!".
+
+
+## Launch the REPL
+
+To try Phel you can run a REPL by executing the `./vendor/bin/phel repl` command.
+
 
 ## Editor support
 
-Phel comes with a basic editor support for VSCode. Please checkout the [plugin's README file](https://github.com/jenshaase/phel-lang/tree/master/editor-support/vscode) for more information.
+Phel comes with basic editor support for VSCode. Please check out the [plugin's README file](https://github.com/jenshaase/phel-lang/tree/master/editor-support/vscode) for more information.

@@ -33,7 +33,7 @@ class IntegrationTest extends TestCase
         $globalEnv->setNs('user');
         Symbol::resetGen();
         $lexer = new Lexer();
-        $reader = new Reader();
+        $reader = new Reader($globalEnv);
         $analyzer = new Analyzer($globalEnv);
         $emitter = new Emitter(false);
         $tokenStream = $lexer->lexString($phelCode);

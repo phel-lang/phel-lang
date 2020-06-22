@@ -1,21 +1,18 @@
 <?php
 
+declare(strict_types=1);
 
 namespace Phel\Ast;
 
 use Phel\Lang\SourceLocation;
 use Phel\NodeEnvironment;
 
-class PhelArrayNode extends Node
+final class PhelArrayNode extends Node
 {
+    /** @var Node[] */
+    private array $args;
 
     /**
-     * @var Node[]
-     */
-    protected $args;
-
-    /**
-     * @param NodeEnvironment $env
      * @param Node[] $args
      */
     public function __construct(NodeEnvironment $env, array $args, ?SourceLocation $sourceLocation = null)
@@ -27,7 +24,7 @@ class PhelArrayNode extends Node
     /**
      * @return Node[]
      */
-    public function getArgs()
+    public function getArgs(): array
     {
         return $this->args;
     }

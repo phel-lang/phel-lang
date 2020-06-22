@@ -72,7 +72,7 @@ final class LetSymbol
             $bodyEnv = $bodyEnv->withShadowedLocal($binding->getSymbol(), $binding->getShadow());
         }
 
-        $bodyExpr = $this->analyzer->analyze(Tuple::create(new Symbol('do'), ...$exprs), $bodyEnv);
+        $bodyExpr = $this->analyzer->analyze(Tuple::create(Symbol::create('do'), ...$exprs), $bodyEnv);
 
         return new LetNode(
             $env,

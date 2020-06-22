@@ -1,34 +1,30 @@
 <?php
 
+declare(strict_types=1);
 
 namespace Phel\Ast;
 
 use Phel\Lang\Keyword;
-use Phel\Lang\Symbol;
 use Phel\Lang\SourceLocation;
-use Phel\Lang\Table;
+use Phel\Lang\Symbol;
 use Phel\NodeEnvironment;
 
-class DefStructNode extends Node
+final class DefStructNode extends Node
 {
+    private string $namespace;
 
-    /**
-     * @var string
-     */
-    protected $namespace;
+    private Symbol $name;
 
-    /**
-     * @var Symbol
-     */
-    protected $name;
+    /** @var Symbol[] */
+    private array $params;
 
-    /**
-     * @var Symbol[]
-     */
-    protected $params;
-
-    public function __construct(NodeEnvironment $env, string $namespace, Symbol $name, array $params, ?SourceLocation $sourceLocation = null)
-    {
+    public function __construct(
+        NodeEnvironment $env,
+        string $namespace,
+        Symbol $name,
+        array $params,
+        ?SourceLocation $sourceLocation = null
+    ) {
         parent::__construct($env, $sourceLocation);
         $this->namespace = $namespace;
         $this->name = $name;

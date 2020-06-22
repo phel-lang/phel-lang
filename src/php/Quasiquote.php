@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Phel;
 
+use Phel\Ast\GlobalVarNode;
 use Phel\Lang\Keyword;
 use Phel\Lang\AbstractType;
 use Phel\Lang\PhelArray;
@@ -13,6 +14,13 @@ use Phel\Lang\Tuple;
 
 final class Quasiquote
 {
+    private GlobalEnvironment $env;
+
+    public function __construct(GlobalEnvironment $env)
+    {
+        $this->env = $env;
+    }
+
     /**
      * @param AbstractType|scalar|null $form The form to quasiqoute
      *
@@ -33,10 +41,10 @@ final class Quasiquote
             $tupleBuilder = $form->isUsingBracket() ? 'tuple-brackets' : 'tuple';
 
             return Tuple::create(
-                (new Symbol('apply'))->copyLocationFrom($form),
-                (new Symbol($tupleBuilder))->copyLocationFrom($form),
+                (Symbol::create('apply'))->copyLocationFrom($form),
+                (Symbol::create($tupleBuilder))->copyLocationFrom($form),
                 Tuple::create(
-                    (new Symbol('concat'))->copyLocationFrom($form),
+                    (Symbol::create('concat'))->copyLocationFrom($form),
                     ...$this->expandList($form)
                 )->copyLocationFrom($form)
             )->copyLocationFrom($form);
@@ -44,10 +52,10 @@ final class Quasiquote
 
         if ($form instanceof Table && count($form) > 0) {
             return Tuple::create(
-                (new Symbol('apply'))->copyLocationFrom($form),
-                (new Symbol('table'))->copyLocationFrom($form),
+                (Symbol::create('apply'))->copyLocationFrom($form),
+                (Symbol::create('table'))->copyLocationFrom($form),
                 Tuple::create(
-                    (new Symbol('concat'))->copyLocationFrom($form),
+                    (Symbol::create('concat'))->copyLocationFrom($form),
                     ...$this->expandList($form->toKeyValueList())
                 )->copyLocationFrom($form)
             )->copyLocationFrom($form);
@@ -55,10 +63,10 @@ final class Quasiquote
 
         if ($form instanceof PhelArray && count($form) > 0) {
             return Tuple::create(
-                (new Symbol('apply'))->copyLocationFrom($form),
-                (new Symbol('array'))->copyLocationFrom($form),
+                (Symbol::create('apply'))->copyLocationFrom($form),
+                (Symbol::create('array'))->copyLocationFrom($form),
                 Tuple::create(
-                    (new Symbol('concat'))->copyLocationFrom($form),
+                    (Symbol::create('concat'))->copyLocationFrom($form),
                     ...$this->expandList($form)
                 )->copyLocationFrom($form)
             )->copyLocationFrom($form);
@@ -68,8 +76,17 @@ final class Quasiquote
             return $form;
         }
 
+
+        if ($form instanceof Symbol) {
+            $node = $this->env->resolve($form, NodeEnvironment::empty());
+
+            if ($node instanceof GlobalVarNode) {
+                $form = Symbol::createForNamespace($node->getNamespace(), $form->getName())->copyLocationFrom($form);
+            }
+        }
+
         return Tuple::create(
-            (new Symbol('quote'))->copyLocationFrom($form),
+            (Symbol::create('quote'))->copyLocationFrom($form),
             $form
         )->copyLocationFrom($form);
     }
@@ -96,14 +113,14 @@ final class Quasiquote
         foreach ($seq as $item) {
             if ($this->isUnquote($item)) {
                 $xs[] = Tuple::create(
-                    (new Symbol('tuple'))->copyLocationFrom($item),
+                    (Symbol::create('tuple'))->copyLocationFrom($item),
                     $item[1]
                 )->copyLocationFrom($item);
             } elseif ($this->isUnquoteSplicing($item)) {
                 $xs[] = $item[1];
             } else {
                 $xs[] = Tuple::create(
-                    (new Symbol('tuple'))->copyLocationFrom($item),
+                    (Symbol::create('tuple'))->copyLocationFrom($item),
                     $this->quasiquote($item)
                 )->copyLocationFrom($item);
             }
@@ -122,8 +139,6 @@ final class Quasiquote
             || is_int($x)
             || is_bool($x)
             || $x === null
-            || $x instanceof Keyword
-            || $x instanceof PhelArray
-            || $x instanceof Table;
+            || $x instanceof Keyword;
     }
 }

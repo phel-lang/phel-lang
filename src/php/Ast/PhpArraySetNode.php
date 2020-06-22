@@ -1,31 +1,25 @@
 <?php
 
+declare(strict_types=1);
 
 namespace Phel\Ast;
 
 use Phel\Lang\SourceLocation;
 use Phel\NodeEnvironment;
 
-class PhpArraySetNode extends Node
+final class PhpArraySetNode extends Node
 {
+    private Node $arrayExpr;
+    private Node $accessExpr;
+    private Node $valueExpr;
 
-    /**
-     * @var Node
-     */
-    protected $arrayExpr;
-
-    /**
-     * @var Node
-     */
-    protected $accessExpr;
-
-    /**
-     * @var Node
-     */
-    protected $valueExpr;
-
-    public function __construct(NodeEnvironment $env, Node $arrayExpr, Node $accessExpr, Node $valueExpr, ?SourceLocation $sourceLocation = null)
-    {
+    public function __construct(
+        NodeEnvironment $env,
+        Node $arrayExpr,
+        Node $accessExpr,
+        Node $valueExpr,
+        ?SourceLocation $sourceLocation = null
+    ) {
         parent::__construct($env, $sourceLocation);
         $this->arrayExpr = $arrayExpr;
         $this->accessExpr = $accessExpr;
