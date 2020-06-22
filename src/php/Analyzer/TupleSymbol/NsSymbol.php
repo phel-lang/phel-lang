@@ -17,34 +17,28 @@ final class NsSymbol
 {
     use WithAnalyzer;
 
-    public function __invoke(Tuple $x, NodeEnvironment $env): NsNode
+    public function __invoke(Tuple $tuple, NodeEnvironment $env): NsNode
     {
-        $tupleCount = count($x);
-        if (!($x[1] instanceof Symbol)) {
-            throw new AnalyzerException(
-                "First argument of 'ns must be a Symbol",
-                $x->getStartLocation(),
-                $x->getEndLocation()
-            );
+        $tupleCount = count($tuple);
+        if (!($tuple[1] instanceof Symbol)) {
+            throw AnalyzerException::withLocation("First argument of 'ns must be a Symbol", $tuple);
         }
 
-        $ns = $x[1]->getName();
+        $ns = $tuple[1]->getName();
         if (!(preg_match("/^[a-zA-Z\x7f-\xff][a-zA-Z0-9\-\x7f-\xff\\\\]*[a-zA-Z0-9\-\x7f-\xff]*$/", $ns))) {
-            throw new AnalyzerException(
+            throw AnalyzerException::withLocation(
                 'The namespace is not valid. A valid namespace name starts with a letter,
                 followed by any number of letters, numbers, or dashes. Elements are splitted by a backslash.',
-                $x[1]->getStartLocation(),
-                $x[1]->getEndLocation()
+                $tuple[1]
             );
         }
 
         $parts = explode('\\', $ns);
         foreach ($parts as $part) {
             if ($this->isPHPKeyword($part)) {
-                throw new AnalyzerException(
-                    "The namespace is not valid. The part '$part' can not be used because it is a reserved keyword.",
-                    $x[1]->getStartLocation(),
-                    $x[1]->getEndLocation()
+                throw AnalyzerException::withLocation(
+                    "The namespace is not valid. The part '{$part}' can not be used because it is a reserved keyword.",
+                    $tuple
                 );
             }
         }
@@ -53,71 +47,26 @@ final class NsSymbol
 
         $requireNs = [];
         for ($i = 2; $i < $tupleCount; $i++) {
-            $import = $x[$i];
+            $import = $tuple[$i];
 
             if (!($import instanceof Tuple)) {
-                throw new AnalyzerException(
-                    "Import in 'ns must be Tuples.",
-                    $x->getStartLocation(),
-                    $x->getEndLocation()
-                );
+                throw AnalyzerException::withLocation("Import in 'ns must be Tuples.", $tuple);
             }
 
             /** @var Tuple $import */
             if ($this->isKeywordWithName($import[0], 'use')) {
-                if (!($import[1] instanceof Symbol)) {
-                    throw new AnalyzerException(
-                        'First arugment in :use must be a symbol.',
-                        $import->getStartLocation(),
-                        $import->getEndLocation()
-                    );
-                }
-
-                if (count($import) === 4 && $this->isKeywordWithName($import[2], 'as')) {
-                    $alias = $import[3];
-                    if (!($alias instanceof Symbol)) {
-                        throw new AnalyzerException(
-                            'Alias must be a Symbol',
-                            $import->getStartLocation(),
-                            $import->getEndLocation()
-                        );
-                    }
-                } else {
-                    $parts = explode('\\', $import[1]->getName());
-                    $alias = Symbol::create($parts[count($parts) - 1]);
-                }
-
-                $this->analyzer->getGlobalEnvironment()->addUseAlias($ns, $alias, $import[1]);
+                $this->analyzeUse($ns, $import);
             } elseif ($this->isKeywordWithName($import[0], 'require')) {
-                if (!($import[1] instanceof Symbol)) {
-                    throw new AnalyzerException(
-                        'First arugment in :require must be a symbol.',
-                        $import->getStartLocation(),
-                        $import->getEndLocation()
-                    );
-                }
-
-                $requireNs[] = $import[1];
-
-                if (count($import) === 4 && $this->isKeywordWithName($import[2], 'as')) {
-                    $alias = $import[3];
-                    if (!($alias instanceof Symbol)) {
-                        throw new AnalyzerException(
-                            'Alias must be a Symbol',
-                            $import->getStartLocation(),
-                            $import->getEndLocation()
-                        );
-                    }
-                } else {
-                    $parts = explode('\\', $import[1]->getName());
-                    $alias = Symbol::create($parts[count($parts) - 1]);
-                }
-
-                $this->analyzer->getGlobalEnvironment()->addRequireAlias($ns, $alias, $import[1]);
+                $requireNs[] = $this->analyzeRequire($ns, $import);
             }
         }
 
-        return new NsNode($x[1]->getName(), $requireNs, $x->getStartLocation());
+        return new NsNode($tuple[1]->getName(), $requireNs, $tuple->getStartLocation());
+    }
+
+    private function isPHPKeyword(string $w): bool
+    {
+        return in_array($w, PhpKeywords::KEYWORDS, true);
     }
 
     /** @param mixed $x */
@@ -125,8 +74,40 @@ final class NsSymbol
     {
         return $x instanceof Keyword && $x->getName() === $name;
     }
-    private function isPHPKeyword(string $w): bool
+
+    private function analyzeUse(string $ns, Tuple $import)
     {
-        return in_array($w, PhpKeywords::KEYWORDS, true);
+        if (!($import[1] instanceof Symbol)) {
+            throw AnalyzerException::withLocation('First argument in :use must be a symbol.', $import);
+        }
+
+        $alias = $this->extractAlias($import);
+        $this->analyzer->getGlobalEnvironment()->addUseAlias($ns, $alias, $import[1]);
+    }
+
+    private function extractAlias(Tuple $import): Symbol
+    {
+        if (count($import) === 4 && $this->isKeywordWithName($import[2], 'as')) {
+            $alias = $import[3];
+            if (!($alias instanceof Symbol)) {
+                throw AnalyzerException::withLocation('Alias must be a Symbol', $import);
+            }
+            return $alias;
+        }
+
+        /** @psalm-suppress PossiblyNullReference */
+        $parts = explode('\\', $import[1]->getName());
+        return Symbol::create($parts[count($parts) - 1]);
+    }
+
+    private function analyzeRequire(string $ns, Tuple $import): Symbol
+    {
+        if (!($import[1] instanceof Symbol)) {
+            throw AnalyzerException::withLocation('First argument in :require must be a symbol.', $import);
+        }
+
+        $alias = $this->extractAlias($import);
+        $this->analyzer->getGlobalEnvironment()->addRequireAlias($ns, $alias, $import[1]);
+        return $import[1];
     }
 }

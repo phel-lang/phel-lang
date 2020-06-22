@@ -13,13 +13,13 @@ final class PhpAGetSymbol
 {
     use WithAnalyzer;
 
-    public function __invoke(Tuple $x, NodeEnvironment $env): PhpArrayGetNode
+    public function __invoke(Tuple $tuple, NodeEnvironment $env): PhpArrayGetNode
     {
         return new PhpArrayGetNode(
             $env,
-            $this->analyzer->analyze($x[1], $env->withContext(NodeEnvironment::CTX_EXPR)),
-            $this->analyzer->analyze($x[2], $env->withContext(NodeEnvironment::CTX_EXPR)),
-            $x->getStartLocation()
+            $this->analyzer->analyze($tuple[1], $env->withContext(NodeEnvironment::CTX_EXPR)),
+            $this->analyzer->analyze($tuple[2], $env->withContext(NodeEnvironment::CTX_EXPR)),
+            $tuple->getStartLocation()
         );
     }
 }

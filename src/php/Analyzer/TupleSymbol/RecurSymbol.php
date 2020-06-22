@@ -15,33 +15,24 @@ final class RecurSymbol
 {
     use WithAnalyzer;
 
-    public function __invoke(Tuple $x, NodeEnvironment $env): RecurNode
+    public function __invoke(Tuple $tuple, NodeEnvironment $env): RecurNode
     {
-        $tupleCount = count($x);
+        $tupleCount = count($tuple);
         $frame = $env->getCurrentRecurFrame();
 
-        if (!($x[0] instanceof Symbol && $x[0] == 'recur')) {
-            throw new AnalyzerException(
-                "This is not a 'recur.",
-                $x->getStartLocation(),
-                $x->getEndLocation(),
-            );
+        if (!($tuple[0] instanceof Symbol && $tuple[0] == 'recur')) {
+            throw AnalyzerException::withLocation("This is not a 'recur.", $tuple);
         }
 
         if (!$frame) {
-            throw new AnalyzerException(
-                "Can't call 'recur here",
-                $x[0]->getStartLocation(),
-                $x[0]->getEndLocation()
-            );
+            throw AnalyzerException::withLocation("Can't call 'recur here", $tuple[0]);
         }
 
         if ($tupleCount - 1 !== count($frame->getParams())) {
-            throw new AnalyzerException(
+            throw AnalyzerException::withLocation(
                 "Wrong number of arugments for 'recur. Expected: "
                 . count($frame->getParams()) . ' args, got: ' . ($tupleCount - 1),
-                $x->getStartLocation(),
-                $x->getEndLocation()
+                $tuple
             );
         }
 
@@ -50,7 +41,7 @@ final class RecurSymbol
         $exprs = [];
         for ($i = 1; $i < $tupleCount; $i++) {
             $exprs[] = $this->analyzer->analyze(
-                $x[$i],
+                $tuple[$i],
                 $env->withContext(NodeEnvironment::CTX_EXPR)->withDisallowRecurFrame()
             );
         }
@@ -59,7 +50,7 @@ final class RecurSymbol
             $env,
             $frame,
             $exprs,
-            $x->getStartLocation()
+            $tuple->getStartLocation()
         );
     }
 }

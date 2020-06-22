@@ -14,21 +14,17 @@ final class PhpAUnsetSymbol
 {
     use WithAnalyzer;
 
-    public function __invoke(Tuple $x, NodeEnvironment $env): PhpArrayUnsetNode
+    public function __invoke(Tuple $tuple, NodeEnvironment $env): PhpArrayUnsetNode
     {
         if ($env->getContext() !== NodeEnvironment::CTX_STMT) {
-            throw new AnalyzerException(
-                "'php/unset can only be called as Statement and not as Expression",
-                $x->getStartLocation(),
-                $x->getEndLocation()
-            );
+            throw AnalyzerException::withLocation("'php/unset can only be called as Statement and not as Expression", $tuple);
         }
 
         return new PhpArrayUnsetNode(
             $env,
-            $this->analyzer->analyze($x[1], $env->withContext(NodeEnvironment::CTX_EXPR)),
-            $this->analyzer->analyze($x[2], $env->withContext(NodeEnvironment::CTX_EXPR)),
-            $x->getStartLocation()
+            $this->analyzer->analyze($tuple[1], $env->withContext(NodeEnvironment::CTX_EXPR)),
+            $this->analyzer->analyze($tuple[2], $env->withContext(NodeEnvironment::CTX_EXPR)),
+            $tuple->getStartLocation()
         );
     }
 }
