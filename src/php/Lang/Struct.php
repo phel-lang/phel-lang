@@ -20,7 +20,7 @@ abstract class Struct extends Table
     {
         if (!in_array($offset, $this->getAllowedKeys(), false)) {
             $keyName = Printer::nonReadable()->print($offset);
-            $structName = static::class;
+            $structName = get_class($this);
             throw new InvalidArgumentException(
                 "This key '$keyName' is not allowed for struct $structName"
             );
