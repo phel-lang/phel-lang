@@ -210,7 +210,7 @@ final class Printer
 
     private function printSet(Set $form): string
     {
-        $prefix = '(set ';
+        $prefix = '(set';
         $suffix = ')';
 
         $args = [];
@@ -218,6 +218,6 @@ final class Printer
             $args[] = $this->print($elem);
         }
 
-        return $prefix . implode(' ', $args) . $suffix;
+        return $prefix . (count($args) > 0 ? ' ' : '') . implode(' ', $args) . $suffix;
     }
 }

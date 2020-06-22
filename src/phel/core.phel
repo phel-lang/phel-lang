@@ -690,33 +690,27 @@ arrays. Use (php/aunset ds key)" )))
     (php/aunset x key)
     x))
 
+(declare reduce)
+
 (defn union
-  "Union multiple sets into a new set"
+  "Union multiple sets into a new one"
   [& sets]
-  (let (s (set))
-    (apply concat s sets)))
+  (reduce concat (set) sets))
 
 (defn intersection
-  "Intersect multiple sets into one"
-  [s & sets]
-  (foreach [se sets]
-    (php/-> s (intersection se)))
-  s)
-
-(defn difference-into
-  "Difference between multiple sets into one"
-  [s & sets]
-  (foreach [se sets]
-    (php/-> s (difference se)))
-  s)
+  "Intersect multiple sets into a new one"
+  [& sets]
+  (reduce (fn [acc s] (php/-> acc (intersection s))) (union (first sets)) (rest sets)))
 
 (defn difference
-  "Difference between multiple sets"
+  "Difference between multiple sets into a new one"
   [& sets]
-  (if (= (count sets) 0)
-    (set)
-    (apply difference-into (first sets) (rest sets))))
+  (reduce (fn [acc s] (php/-> acc (difference s))) (union (first sets)) (rest sets)))
 
+(defn symmetricDifference
+  "Symmetric difference between multiple sets into a new one"
+  [& sets]
+  (reduce (fn [acc s] (php/-> acc (symmetricDifference s))) (union (first sets)) (rest sets)))
 
 # --------
 # For loop
