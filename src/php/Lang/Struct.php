@@ -9,7 +9,6 @@ use Phel\Printer;
 
 abstract class Struct extends Table
 {
-
     /**
      * Returns the list of allowed keywords.
      *
@@ -19,9 +18,9 @@ abstract class Struct extends Table
 
     protected function validateOffset($offset)
     {
-        if (!in_array($offset, $this->getAllowedKeys())) {
+        if (!in_array($offset, $this->getAllowedKeys(), false)) {
             $keyName = Printer::nonReadable()->print($offset);
-            $structName = get_class($this);
+            $structName = self::class;
             throw new InvalidArgumentException(
                 "This key '$keyName' is not allowed for struct $structName"
             );

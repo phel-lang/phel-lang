@@ -1,9 +1,11 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Phel\Exceptions;
 
 use Exception;
 
-class EmitterException extends Exception
+final class EmitterException extends Exception
 {
 }

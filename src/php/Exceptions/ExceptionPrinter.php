@@ -1,8 +1,9 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Phel\Exceptions;
 
-use Exception;
 use Phel\CodeSnippet;
 use Throwable;
 

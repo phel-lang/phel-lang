@@ -1,8 +1,10 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Phel\SourceMap;
 
-class SourceMapConsumer
+final class SourceMapConsumer
 {
     private VLQ $vlq;
     private array $lineMapping;

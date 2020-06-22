@@ -35,7 +35,7 @@ class Table extends AbstractType implements ArrayAccess, Countable, Iterator
             throw new Exception('A even number of elements must be provided');
         }
 
-        $result = new Table();
+        $result = new self();
         for ($i = 0, $l = count($kvs); $i < $l; $i += 2) {
             $result[$kvs[$i]] = $kvs[$i+1];
         }

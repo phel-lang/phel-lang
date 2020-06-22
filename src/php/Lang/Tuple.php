@@ -10,7 +10,7 @@ use InvalidArgumentException;
 use Iterator;
 use Phel\Printer;
 
-class Tuple extends AbstractType implements ArrayAccess, Countable, Iterator, ISlice, ICons, ICdr, IRest, IPush, IConcat
+final class Tuple extends AbstractType implements ArrayAccess, Countable, Iterator, ISlice, ICons, ICdr, IRest, IPush, IConcat
 {
     private array $data;
     private bool $usingBracket;
