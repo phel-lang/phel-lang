@@ -18,63 +18,47 @@ final class LetSymbol
 {
     use WithAnalyzer;
 
-    public function __invoke(Tuple $x, NodeEnvironment $env): LetNode
+    public function __invoke(Tuple $tuple, NodeEnvironment $env): LetNode
     {
-        if (count($x) < 2) {
-            throw new AnalyzerException(
-                "At least two arguments are required for 'let",
-                $x->getStartLocation(),
-                $x->getEndLocation()
-            );
+        if (count($tuple) < 2) {
+            throw AnalyzerException::withLocation("At least two arguments are required for 'let", $tuple);
         }
 
-        if (!($x[1] instanceof Tuple)) {
-            throw new AnalyzerException(
-                'Binding parameter must be a tuple',
-                $x->getStartLocation(),
-                $x->getEndLocation()
-            );
+        if (!($tuple[1] instanceof Tuple)) {
+            throw AnalyzerException::withLocation('Binding parameter must be a tuple', $tuple);
         }
 
-        if (!(count($x[1]) % 2 === 0)) {
-            throw new AnalyzerException(
-                'Bindings must be a even number of parameters',
-                $x->getStartLocation(),
-                $x->getEndLocation()
-            );
+        if (!(count($tuple[1]) % 2 === 0)) {
+            throw AnalyzerException::withLocation('Bindings must be a even number of parameters', $tuple);
         }
 
         $destructor = new Destructure();
-        $bindings = $destructor->run($x[1]);
+        $bindings = $destructor->run($tuple[1]);
         $bindingTupleData = [];
         foreach ($bindings as $binding) {
             $bindingTupleData[] = $binding[0];
             $bindingTupleData[] = $binding[1];
         }
 
-        $newTuple = $x->update(1, new Tuple($bindingTupleData, true));
+        $newTuple = $tuple->update(1, new Tuple($bindingTupleData, true));
 
-        // TODO: Refactor: get rid of the bool param,because the scope is false always
-        return $this->analyzeLetOrLoop($newTuple, $env, false);
+        return $this->analyzeLetOrLoop($newTuple, $env);
     }
 
-    private function analyzeLetOrLoop(Tuple $x, NodeEnvironment $env, bool $isLoop = false): LetNode
+    private function analyzeLetOrLoop(Tuple $tuple, NodeEnvironment $env): LetNode
     {
-        $tupleCount = count($x);
         $exprs = [];
-        for ($i = 2; $i < $tupleCount; $i++) {
-            $exprs[] = $x[$i];
+        for ($i = 2, $iMax = count($tuple); $i < $iMax; $i++) {
+            $exprs[] = $tuple[$i];
         }
 
         /** @psalm-suppress PossiblyNullArgument */
-        $bindings = $this->analyzeBindings($x[1], $env->withDisallowRecurFrame());
+        $bindings = $this->analyzeBindings($tuple[1], $env->withDisallowRecurFrame());
 
         $locals = [];
         foreach ($bindings as $binding) {
             $locals[] = $binding->getSymbol();
         }
-
-        $recurFrame = new RecurFrame($locals);
 
         $bodyEnv = $env
             ->withMergedLocals($locals)
@@ -83,10 +67,6 @@ final class LetSymbol
                     ? NodeEnvironment::CTX_RET
                     : $env->getContext()
             );
-
-        if ($isLoop) {
-            $bodyEnv = $bodyEnv->withAddedRecurFrame($recurFrame);
-        }
 
         foreach ($bindings as $binding) {
             $bodyEnv = $bodyEnv->withShadowedLocal($binding->getSymbol(), $binding->getShadow());
@@ -98,30 +78,25 @@ final class LetSymbol
             $env,
             $bindings,
             $bodyExpr,
-            $isLoop && $recurFrame->isActive(),
-            $x->getStartLocation()
+            $isLoop = false,
+            $tuple->getStartLocation()
         );
     }
 
     /** @return BindingNode[] */
-    private function analyzeBindings(Tuple $x, NodeEnvironment $env): array
+    private function analyzeBindings(Tuple $tuple, NodeEnvironment $env): array
     {
-        $tupleCount = count($x);
+        $tupleCount = count($tuple);
         $initEnv = $env->withContext(NodeEnvironment::CTX_EXPR)->withDisallowRecurFrame();
         $nodes = [];
         for ($i = 0; $i < $tupleCount; $i += 2) {
-            $sym = $x[$i];
+            $sym = $tuple[$i];
             if (!($sym instanceof Symbol)) {
-                throw new AnalyzerException(
-                    'Binding name must be a symbol, got: ' . \gettype($sym),
-                    $x->getStartLocation(),
-                    $x->getEndLocation()
-                );
+                throw AnalyzerException::withLocation('Binding name must be a symbol, got: ' . \gettype($sym), $tuple);
             }
 
-            $shadowSym = Symbol::gen($sym->getName() . '_')
-                ->copyLocationFrom($sym);
-            $init = $x[$i + 1];
+            $shadowSym = Symbol::gen($sym->getName() . '_')->copyLocationFrom($sym);
+            $init = $tuple[$i + 1];
 
             $nextBoundTo = $initEnv->getBoundTo() . '.' . $sym->getName();
             $expr = $this->analyzer->analyze($init, $initEnv->withBoundTo($nextBoundTo));

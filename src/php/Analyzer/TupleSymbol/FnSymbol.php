@@ -16,23 +16,15 @@ final class FnSymbol
 {
     use WithAnalyzer;
 
-    public function __invoke(Tuple $x, NodeEnvironment $env): FnNode
+    public function __invoke(Tuple $tuple, NodeEnvironment $env): FnNode
     {
-        $tupleCount = count($x);
+        $tupleCount = count($tuple);
         if ($tupleCount < 2) {
-            throw new AnalyzerException(
-                "'fn requires at least one argument",
-                $x->getStartLocation(),
-                $x->getEndLocation()
-            );
+            throw AnalyzerException::withLocation("'fn requires at least one argument", $tuple);
         }
 
-        if (!($x[1] instanceof Tuple)) {
-            throw new AnalyzerException(
-                "Second argument of 'fn must be a Tuple",
-                $x->getStartLocation(),
-                $x->getEndLocation()
-            );
+        if (!($tuple[1] instanceof Tuple)) {
+            throw AnalyzerException::withLocation("Second argument of 'fn must be a Tuple", $tuple);
         }
 
         $params = [];
@@ -40,7 +32,7 @@ final class FnSymbol
         $isVariadic = false;
         $hasVariadicForm = false;
         $state = 'start';
-        $xs = $x[1];
+        $xs = $tuple[1];
         foreach ($xs as $param) {
             switch ($state) {
                 case 'start':
@@ -68,17 +60,16 @@ final class FnSymbol
                     } elseif ($param instanceof Symbol) {
                         $params[] = $param;
                     } else {
-                        $tempSym = Symbol::gen()->copyLocationFrom($x);
+                        $tempSym = Symbol::gen()->copyLocationFrom($tuple);
                         $params[] = $tempSym;
                         $lets[] = $param;
                         $lets[] = $tempSym;
                     }
                     break;
                 case 'done':
-                    throw new AnalyzerException(
+                    throw AnalyzerException::withLocation(
                         'Unsupported parameter form, only one symbol can follow the & parameter',
-                        $x->getStartLocation(),
-                        $x->getEndLocation()
+                        $tuple
                     );
             }
         }
@@ -90,17 +81,16 @@ final class FnSymbol
 
         foreach ($params as $param) {
             if (!(preg_match("/^[a-zA-Z_\x80-\xff].*$/", $param->getName()))) {
-                throw new AnalyzerException(
+                throw AnalyzerException::withLocation(
                     "Variable names must start with a letter or underscore: {$param->getName()}",
-                    $x->getStartLocation(),
-                    $x->getEndLocation()
+                    $tuple
                 );
             }
         }
 
         $recurFrame = new RecurFrame($params);
+        $body = array_slice($tuple->toArray(), 2);
 
-        $body = array_slice($x->toArray(), 2);
         if (count($lets) > 0) {
             $body = Tuple::create(
                 (Symbol::create('let'))->copyLocationFrom($body),
@@ -120,7 +110,6 @@ final class FnSymbol
             ->withAddedRecurFrame($recurFrame);
 
         $body = $this->analyzer->analyze($body, $bodyEnv);
-
         $uses = array_diff($env->getLocals(), $params);
 
         return new FnNode(
@@ -130,7 +119,7 @@ final class FnSymbol
             $uses,
             $isVariadic,
             $recurFrame->isActive(),
-            $x->getStartLocation()
+            $tuple->getStartLocation()
         );
     }
 

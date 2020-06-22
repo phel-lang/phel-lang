@@ -16,9 +16,9 @@ final class TrySymbol
 {
     use WithAnalyzer;
 
-    public function __invoke(Tuple $x, NodeEnvironment $env): TryNode
+    public function __invoke(Tuple $tuple, NodeEnvironment $env): TryNode
     {
-        $tupleCount = count($x);
+        $tupleCount = count($tuple);
         $state = 'start';
         $body = [];
         $catches = [];
@@ -26,7 +26,7 @@ final class TrySymbol
         $finally = null;
         for ($i = 1; $i < $tupleCount; $i++) {
             /** @var mixed $form */
-            $form = $x[$i];
+            $form = $tuple[$i];
 
             switch ($state) {
                 case 'start':
@@ -48,23 +48,15 @@ final class TrySymbol
                         $state = 'done';
                         $finally = $form;
                     } else {
-                        throw new AnalyzerException("Invalid 'try form", $x->getStartLocation(), $x->getEndLocation());
+                        throw AnalyzerException::withLocation("Invalid 'try form", $tuple);
                     }
                     break;
 
                 case 'done':
-                    throw new AnalyzerException(
-                        "Unexpected form after 'finally",
-                        $x->getStartLocation(),
-                        $x->getEndLocation()
-                    );
+                   throw AnalyzerException::withLocation("Unexpected form after 'finally", $tuple);
 
                 default:
-                    throw new AnalyzerException(
-                        "Unexpected parser state in 'try",
-                        $x->getStartLocation(),
-                        $x->getEndLocation()
-                    );
+                   throw AnalyzerException::withLocation("Unexpected parser state in 'try", $tuple);
             }
         }
 
@@ -83,19 +75,11 @@ final class TrySymbol
             [$_, $type, $name] = $catch;
 
             if (!($type instanceof Symbol)) {
-                throw new AnalyzerException(
-                    "First argument of 'catch must be a Symbol",
-                    $catch->getStartLocation(),
-                    $catch->getEndLocation()
-                );
+                throw AnalyzerException::withLocation("First argument of 'catch must be a Symbol", $catch);
             }
 
             if (!($name instanceof Symbol)) {
-                throw new AnalyzerException(
-                    "Second argument of 'catch must be a Symbol",
-                    $catch->getStartLocation(),
-                    $catch->getEndLocation()
-                );
+                throw AnalyzerException::withLocation("Second argument of 'catch must be a Symbol", $catch);
             }
 
             $exprs = [Symbol::create('do')];
@@ -131,7 +115,7 @@ final class TrySymbol
             $body,
             $catchNodes,
             $finally,
-            $x->getStartLocation()
+            $tuple->getStartLocation()
         );
     }
 

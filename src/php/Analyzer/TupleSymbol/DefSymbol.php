@@ -7,6 +7,7 @@ namespace Phel\Analyzer\TupleSymbol;
 use Phel\Analyzer\WithAnalyzer;
 use Phel\Ast\DefNode;
 use Phel\Exceptions\AnalyzerException;
+use Phel\Lang\AbstractType;
 use Phel\Lang\Keyword;
 use Phel\Lang\Symbol;
 use Phel\Lang\Table;
@@ -17,71 +18,74 @@ final class DefSymbol
 {
     use WithAnalyzer;
 
-    public function __invoke(Tuple $x, NodeEnvironment $nodeEnvironment): DefNode
+    public function __invoke(Tuple $tuple, NodeEnvironment $env): DefNode
     {
-        $countX = count($x);
+        $countX = count($tuple);
         if ($countX < 3 || $countX > 4) {
-            throw new AnalyzerException(
-                "Two or three arguments are required for 'def. Got " . count($x),
-                $x->getStartLocation(),
-                $x->getEndLocation()
+            throw AnalyzerException::withLocation(
+                "Two or three arguments are required for 'def. Got " . count($tuple),
+                $tuple
             );
         }
 
-        if (!($x[1] instanceof Symbol)) {
-            throw new AnalyzerException(
-                "First arugment of 'def must be a Symbol.",
-                $x->getStartLocation(),
-                $x->getEndLocation()
-            );
+        if (!($tuple[1] instanceof Symbol)) {
+            throw AnalyzerException::withLocation("First argument of 'def must be a Symbol.", $tuple);
         }
 
         $namespace = $this->analyzer->getGlobalEnvironment()->getNs();
         /** @var Symbol $name */
-        $name = $x[1];
+        $name = $tuple[1];
 
-        $initEnv = $nodeEnvironment
+        $initEnv = $env
             ->withBoundTo($namespace . '\\' . $name)
             ->withContext(NodeEnvironment::CTX_EXPR)
             ->withDisallowRecurFrame();
 
-        if ($countX === 4) {
-            $meta = $x[2];
-            $init = $x[3];
-        } else {
-            $meta = new Table();
-            $init = $x[2];
-        }
-
-        if (is_string($meta)) {
-            $kv = new Keyword('doc');
-            $kv->setStartLocation($x->getStartLocation());
-            $kv->setEndLocation($x->getEndLocation());
-
-            $meta = Table::fromKVs($kv, $meta);
-            $meta->setStartLocation($x->getStartLocation());
-            $meta->setEndLocation($x->getEndLocation());
-        } elseif ($meta instanceof Keyword) {
-            $meta = Table::fromKVs($meta, true);
-            $meta->setStartLocation($meta->getStartLocation());
-            $meta->setEndLocation($meta->getEndLocation());
-        } elseif (!$meta instanceof Table) {
-            throw new AnalyzerException(
-                'Metadata must be a Symbol, String, Keyword or Table',
-                $x->getStartLocation(),
-                $x->getEndLocation()
-            );
-        }
+        [$meta, $init] = $this->createMetaAndInit($tuple);
 
         $this->analyzer->getGlobalEnvironment()->addDefinition($namespace, $name, $meta);
 
         return new DefNode(
-            $nodeEnvironment,
+            $env,
             $namespace,
             $name,
             $meta,
             $this->analyzer->analyze($init, $initEnv),
-            $x->getStartLocation()
+            $tuple->getStartLocation()
         );
+    }
+
+    private function createMetaAndInit(Tuple $tuple): array
+    {
+        [$meta, $init] = $this->getInitialMetaAndInit($tuple);
+
+        if (!($init instanceof AbstractType) && !is_scalar($init) && $init !== null) {
+            throw AnalyzerException::withLocation('$init must be AbstractType|scalar|null', $tuple);
+        }
+
+        if (is_string($meta)) {
+            $key = (new Keyword('doc'))->copyLocationFrom($tuple);
+
+            return [Table::fromKVs($key, $meta)->copyLocationFrom($tuple), $init];
+        }
+
+        if ($meta instanceof Keyword) {
+            return [Table::fromKVs($meta, true)->copyLocationFrom($meta), $init];
+        }
+
+        if (!$meta instanceof Table) {
+            throw AnalyzerException::withLocation('Metadata must be a String, Keyword or Table', $tuple);
+        }
+
+        return [$meta, $init];
+    }
+
+    private function getInitialMetaAndInit(Tuple $tuple): array
+    {
+        if (count($tuple) === 3) {
+            return [new Table(), $tuple[2]];
+        }
+
+        return [$tuple[2], $tuple[3]];
     }
 }

@@ -15,38 +15,26 @@ final class ForeachSymbol
 {
     use WithAnalyzer;
 
-    public function __invoke(Tuple $x, NodeEnvironment $env): ForeachNode
+    public function __invoke(Tuple $tuple, NodeEnvironment $env): ForeachNode
     {
-        $tupleCount = count($x);
+        $tupleCount = count($tuple);
         if ($tupleCount < 2) {
-            throw new AnalyzerException(
-                "At least two arguments are required for 'foreach",
-                $x->getStartLocation(),
-                $x->getEndLocation()
-            );
+            throw AnalyzerException::withLocation("At least two arguments are required for 'foreach", $tuple);
         }
 
-        if (!($x[1] instanceof Tuple)) {
-            throw new AnalyzerException(
-                "First argument of 'foreach must be a tuple.",
-                $x->getStartLocation(),
-                $x->getEndLocation()
-            );
+        if (!($tuple[1] instanceof Tuple)) {
+            throw AnalyzerException::withLocation("First argument of 'foreach must be a tuple.", $tuple);
         }
 
-        if (count($x[1]) !== 2 && count($x[1]) !== 3) {
-            throw new AnalyzerException(
-                "Tuple of 'foreach must have exactly two or three elements.",
-                $x->getStartLocation(),
-                $x->getEndLocation()
-            );
+        if (count($tuple[1]) !== 2 && count($tuple[1]) !== 3) {
+            throw AnalyzerException::withLocation("Tuple of 'foreach must have exactly two or three elements.", $tuple);
         }
 
         $lets = [];
-        if (count($x[1]) === 2) {
+        if (count($tuple[1]) === 2) {
             $keySymbol = null;
 
-            $valueSymbol = $x[1][0];
+            $valueSymbol = $tuple[1][0];
             if (!($valueSymbol instanceof Symbol)) {
                 $tmpSym = Symbol::gen();
                 $lets[] = $valueSymbol;
@@ -54,9 +42,12 @@ final class ForeachSymbol
                 $valueSymbol = $tmpSym;
             }
             $bodyEnv = $env->withMergedLocals([$valueSymbol]);
-            $listExpr = $this->analyzer->analyze($x[1][1], $env->withContext(NodeEnvironment::CTX_EXPR));
+            $listExpr = $this->analyzer->analyze(
+                $tuple[1][1],
+                $env->withContext(NodeEnvironment::CTX_EXPR)
+            );
         } else {
-            $keySymbol = $x[1][0];
+            $keySymbol = $tuple[1][0];
             if (!($keySymbol instanceof Symbol)) {
                 $tmpSym = Symbol::gen();
                 $lets[] = $keySymbol;
@@ -64,7 +55,7 @@ final class ForeachSymbol
                 $keySymbol = $tmpSym;
             }
 
-            $valueSymbol = $x[1][1];
+            $valueSymbol = $tuple[1][1];
             if (!($valueSymbol instanceof Symbol)) {
                 $tmpSym = Symbol::gen();
                 $lets[] = $valueSymbol;
@@ -73,12 +64,15 @@ final class ForeachSymbol
             }
 
             $bodyEnv = $env->withMergedLocals([$valueSymbol, $keySymbol]);
-            $listExpr = $this->analyzer->analyze($x[1][2], $env->withContext(NodeEnvironment::CTX_EXPR));
+            $listExpr = $this->analyzer->analyze(
+                $tuple[1][2],
+                $env->withContext(NodeEnvironment::CTX_EXPR)
+            );
         }
 
         $bodys = [];
         for ($i = 2; $i < $tupleCount; $i++) {
-            $bodys[] = $x[$i];
+            $bodys[] = $tuple[$i];
         }
 
         if (count($lets)) {
@@ -87,7 +81,10 @@ final class ForeachSymbol
             $body = Tuple::create(Symbol::create('do'), ...$bodys);
         }
 
-        $bodyExpr = $this->analyzer->analyze($body, $bodyEnv->withContext(NodeEnvironment::CTX_STMT));
+        $bodyExpr = $this->analyzer->analyze(
+            $body,
+            $bodyEnv->withContext(NodeEnvironment::CTX_STMT)
+        );
 
         return new ForeachNode(
             $env,
@@ -95,7 +92,7 @@ final class ForeachSymbol
             $listExpr,
             $valueSymbol,
             $keySymbol,
-            $x->getStartLocation()
+            $tuple->getStartLocation()
         );
     }
 }
