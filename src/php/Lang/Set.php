@@ -110,16 +110,6 @@ class Set extends AbstractType implements Countable, Iterator, ICons, IPush, ICo
         return $this;
     }
 
-    public function symmetricDifference(Set $set): Set
-    {
-        $ldiff = array_diff_key($this->data, $set->toPhpArray());
-        $rdiff = array_diff_key($set->toPhpArray(), $this->data);
-        $this->data = [];
-        $this->concat($ldiff);
-        $this->concat($rdiff);
-        return $this;
-    }
-
     public function equals($other): bool
     {
         return $this->toPhpArray() == $other->toPhpArray();

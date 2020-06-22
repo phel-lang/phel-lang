@@ -710,7 +710,7 @@ arrays. Use (php/aunset ds key)" )))
 (defn symmetricDifference
   "Symmetric difference between multiple sets into a new one"
   [& sets]
-  (reduce (fn [acc s] (php/-> acc (symmetricDifference s))) (union (first sets)) (rest sets)))
+  (reduce (fn [acc s] (union (difference acc s) (difference s acc))) (union (first sets)) (rest sets)))
 
 # --------
 # For loop
