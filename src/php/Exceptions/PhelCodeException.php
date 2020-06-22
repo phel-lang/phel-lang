@@ -8,7 +8,7 @@ use Exception;
 use Phel\Lang\AbstractType;
 use Phel\Lang\SourceLocation;
 
-abstract class PhelCodeException extends Exception
+class PhelCodeException extends Exception
 {
     private ?SourceLocation $startLocation;
     private ?SourceLocation $endLocation;
