@@ -210,7 +210,7 @@ final class Printer
 
     private function printSet(Set $form): string
     {
-        $prefix = '@(';
+        $prefix = '(set ';
         $suffix = ')';
 
         $args = [];

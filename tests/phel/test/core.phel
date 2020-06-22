@@ -598,16 +598,21 @@
 
 (assert (= (set 1 2 3) (push (set 1 2) 3)) "set push")
 (assert (= (set 1 2) (push (set 1 2) 2)) "set push existing value")
+
 (assert (= (set 1 2 0 3) (concat (set 1 2) @[0 3])) "set concat array")
 (assert (= (set 1 2 0 3) (concat (set 1 2) @[0 1 2 3])) "set concat array with common values")
 (assert (= (set 1 2 0) (concat (set 1 2) (set 0 1))) "set concat")
+
 (assert (= (set) (union)) "set 0-ary union")
 (assert (= (set 1 2 0 3) (union (set 1 2) (set 0 3))) "set union")
 (assert (= (set 1 2 0 3) (union (set 1 2) (set 0 1 2 3))) "set union with common values")
+
 (assert (= (set) (intersection (set 1 2) (set 0 3))) "set intersection")
 (assert (= (set 1 2) (intersection (set 1 2) (set 0 1 2 3))) "set intersection with common values")
-(assert (= (set 1 2 0 3) (difference (set 1 2) (set 0 3))) "set difference")
-(assert (= (set 0 3) (difference (set 1 2) (set 0 1 2 3))) "set difference with common values")
+
+(assert (= (set 1 2) (difference (set 1 2) (set 0 3))) "set difference")
+(assert (= (set) (difference (set 1 2) (set 0 1 2 3))) "set difference")
+(assert (= (set 0 3) (difference (set 0 1 2 3) (set 1 2 ))) "set difference with common values")
 
 # ------------------
 # Function operation
@@ -752,6 +757,7 @@
 (assert (= "[\"a\" \"b\"]" (str ["a" "b"])) "str with tuple of strings")
 (assert (= "@[\"a\" \"b\"]" (str @["a" "b"])) "str with array of strings")
 (assert (= "@{\"a\" \"b\"}" (str @{"a" "b"})) "str on table")
+(assert (= "(set \"a\" \"b\")" (str (set "a" "b"))) "str on set")
 (assert (= "x" (str 'x)) "str on symbol")
 (assert (= ":test" (str :test)) "str on keyword")
 (assert (= "1" (str 1)) "str on number")
@@ -766,6 +772,7 @@
 (assert (= "[a b]" (print-str ["a" "b"])) "print-str with tuple of strings")
 (assert (= "@[a b]" (print-str @["a" "b"])) "print-str with array of strings")
 (assert (= "@{a b}" (print-str @{"a" "b"})) "print-str on table")
+(assert (= "(set a b)" (print-str (set "a" "b"))) "print-str on set")
 (assert (= "x" (print-str 'x)) "print-str on symbol")
 (assert (= ":test" (print-str :test)) "print-str on keyword")
 (assert (= "1" (print-str 1)) "print-str on number")

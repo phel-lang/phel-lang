@@ -23,19 +23,8 @@ class Set extends AbstractType implements Countable, Iterator, ICons, IPush, ICo
      */
     public function __construct(array $data)
     {
-        $this->setData($data);
-    }
-
-    /**
-     * Create a new set.
-     *
-     * @param mixed[] $values A list of all values
-     *
-     * @return Set
-     */
-    public static function create(...$values): Set
-    {
-        return new Set($values);
+        $this->data = [];
+        $this->concat($data);
     }
 
     public function isTruthy(): bool
@@ -115,6 +104,14 @@ class Set extends AbstractType implements Countable, Iterator, ICons, IPush, ICo
 
     public function difference(Set $set): Set
     {
+        $difference = array_diff_key($this->data, $set->toPhpArray());
+        $this->data = [];
+        $this->concat($difference);
+        return $this;
+    }
+
+    public function symmetricDifference(Set $set): Set
+    {
         $ldiff = array_diff_key($this->data, $set->toPhpArray());
         $rdiff = array_diff_key($set->toPhpArray(), $this->data);
         $this->data = [];
@@ -131,12 +128,6 @@ class Set extends AbstractType implements Countable, Iterator, ICons, IPush, ICo
     public function toPhpArray(): array
     {
         return $this->data;
-    }
-
-    private function setData(array $data)
-    {
-        $this->data = [];
-        $this->concat($data);
     }
 
     /**
@@ -157,5 +148,10 @@ class Set extends AbstractType implements Countable, Iterator, ICons, IPush, ICo
         }
 
         return (string) $offset;
+    }
+
+    public function __toString(): string
+    {
+        return Printer::readable()->print($this);
     }
 }

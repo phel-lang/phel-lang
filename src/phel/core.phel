@@ -713,7 +713,9 @@ arrays. Use (php/aunset ds key)" )))
 (defn difference
   "Difference between multiple sets"
   [& sets]
-  (apply difference-into (set) sets))
+  (if (= (count sets) 0)
+    (set)
+    (apply difference-into (first sets) (rest sets))))
 
 
 # --------
