@@ -14,25 +14,21 @@ final class PhpNewSymbol
 {
     use WithAnalyzer;
 
-    public function __invoke(Tuple $x, NodeEnvironment $env): PhpNewNode
+    public function __invoke(Tuple $tuple, NodeEnvironment $env): PhpNewNode
     {
-        $tupleCount = count($x);
+        $tupleCount = count($tuple);
         if ($tupleCount < 2) {
-            throw new AnalyzerException(
-                "At least one arguments is required for 'php/new",
-                $x->getStartLocation(),
-                $x->getEndLocation()
-            );
+            throw AnalyzerException::withLocation("At least one arguments is required for 'php/new", $tuple);
         }
 
         $classExpr = $this->analyzer->analyze(
-            $x[1],
+            $tuple[1],
             $env->withContext(NodeEnvironment::CTX_EXPR)->withDisallowRecurFrame()
         );
         $args = [];
         for ($i = 2; $i < $tupleCount; $i++) {
             $args[] = $this->analyzer->analyze(
-                $x[$i],
+                $tuple[$i],
                 $env->withContext(NodeEnvironment::CTX_EXPR)->withDisallowRecurFrame()
             );
         }
@@ -41,7 +37,7 @@ final class PhpNewSymbol
             $env,
             $classExpr,
             $args,
-            $x->getStartLocation()
+            $tuple->getStartLocation()
         );
     }
 }

@@ -11,20 +11,16 @@ use Phel\NodeEnvironment;
 
 final class QuoteSymbol
 {
-    public function __invoke(Tuple $x, NodeEnvironment $env): QuoteNode
+    public function __invoke(Tuple $tuple, NodeEnvironment $env): QuoteNode
     {
-        if (count($x) !== 2) {
-            throw new AnalyzerException(
-                "Exactly one arguments is required for 'quote",
-                $x->getStartLocation(),
-                $x->getEndLocation()
-            );
+        if (count($tuple) !== 2) {
+            throw AnalyzerException::withLocation("Exactly one arguments is required for 'quote", $tuple);
         }
 
         return new QuoteNode(
             $env,
-            $x[1],
-            $x->getStartLocation()
+            $tuple[1],
+            $tuple->getStartLocation()
         );
     }
 }

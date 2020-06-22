@@ -17,70 +17,28 @@ final class PhpObjectCallSymbol
 {
     use WithAnalyzer;
 
-    public function __invoke(Tuple $x, NodeEnvironment $env, bool $isStatic): PhpObjectCallNode
+    public function __invoke(Tuple $tuple, NodeEnvironment $env, bool $isStatic): PhpObjectCallNode
     {
         $fnName = $isStatic ? 'php/::' : 'php/->';
-        if (count($x) !== 3) {
-            throw new AnalyzerException(
-                "Exactly two arguments are expected for '$fnName",
-                $x->getStartLocation(),
-                $x->getEndLocation()
-            );
+        if (count($tuple) !== 3) {
+            throw AnalyzerException::withLocation("Exactly two arguments are expected for '$fnName", $tuple);
         }
 
-        if (!($x[2] instanceof Tuple || $x[2] instanceof Symbol)) {
-            throw new AnalyzerException(
-                "Second argument of '$fnName must be a Tuple or a Symbol",
-                $x->getStartLocation(),
-                $x->getEndLocation()
-            );
+        if (!($tuple[2] instanceof Tuple || $tuple[2] instanceof Symbol)) {
+            throw AnalyzerException::withLocation("Second argument of '$fnName must be a Tuple or a Symbol", $tuple);
         }
 
         $targetExpr = $this->analyzer->analyze(
-            $x[1],
+            $tuple[1],
             $env->withContext(NodeEnvironment::CTX_EXPR)->withDisallowRecurFrame()
         );
 
-        if ($x[2] instanceof Tuple) {
-            // Method call
+        if ($tuple[2] instanceof Tuple) {
             $methodCall = true;
-
-            /** @var Tuple $tuple */
-            $tuple = $x[2];
-            $tCount = count($tuple);
-
-            if (count($x) < 1) {
-                throw new AnalyzerException(
-                    'Function name is missing',
-                    $x->getStartLocation(),
-                    $x->getEndLocation()
-                );
-            }
-
-            $args = [];
-            for ($i = 1; $i < $tCount; $i++) {
-                $args[] = $this->analyzer->analyze(
-                    $tuple[$i],
-                    $env->withContext(NodeEnvironment::CTX_EXPR)->withDisallowRecurFrame()
-                );
-            }
-
-            /** @psalm-suppress PossiblyNullArgument */
-            $callExpr = new MethodCallNode(
-                $env,
-                $tuple[0],
-                $args,
-                $tuple->getStartLocation()
-            );
+            $callExpr = $this->callExprForMethodCall($env, $tuple);
         } else {
-            // Property call
             $methodCall = false;
-
-            $callExpr = new PropertyOrConstantAccessNode(
-                $env,
-                $x[2],
-                $x[2]->getStartLocation()
-            );
+            $callExpr = $this->callExprForPropertyCall($env, $tuple);
         }
 
         return new PhpObjectCallNode(
@@ -89,7 +47,41 @@ final class PhpObjectCallSymbol
             $callExpr,
             $isStatic,
             $methodCall,
-            $x->getStartLocation()
+            $tuple->getStartLocation()
         );
+    }
+
+    private function callExprForMethodCall(NodeEnvironment $env, Tuple $tuple): MethodCallNode
+    {
+        if (count($tuple) < 1) {
+            throw AnalyzerException::withLocation('Function name is missing', $tuple);
+        }
+
+        if (!$tuple[2] instanceof Tuple) {
+            throw AnalyzerException::withLocation('Second argument of must be a Tuple', $tuple);
+        }
+
+        /** @var Tuple $tuple2 */
+        $tuple2 = $tuple[2];
+        $tCount = count($tuple2);
+        $args = [];
+        for ($i = 1; $i < $tCount; $i++) {
+            $args[] = $this->analyzer->analyze(
+                $tuple2[$i],
+                $env->withContext(NodeEnvironment::CTX_EXPR)->withDisallowRecurFrame()
+            );
+        }
+
+        /** @psalm-suppress PossiblyNullArgument */
+        return new MethodCallNode($env, $tuple2[0], $args, $tuple2->getStartLocation());
+    }
+
+    private function callExprForPropertyCall(NodeEnvironment $env, Tuple $tuple): PropertyOrConstantAccessNode
+    {
+        if (!$tuple[2] instanceof Symbol) {
+            throw AnalyzerException::withLocation('Second argument of must be a Symbol', $tuple);
+        }
+
+        return new PropertyOrConstantAccessNode($env, $tuple[2], $tuple[2]->getStartLocation());
     }
 }

@@ -1,18 +1,16 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Phel\Exceptions;
 
 use Exception;
 use Phel\CodeSnippet;
 use Phel\Lang\SourceLocation;
 
-class ReaderException extends PhelCodeException
+final class ReaderException extends PhelCodeException
 {
-
-    /**
-     * @var CodeSnippet
-     */
-    private $codeSnippet;
+    private CodeSnippet $codeSnippet;
 
     public function __construct(
         string $message,

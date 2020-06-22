@@ -14,20 +14,16 @@ final class ThrowSymbol
 {
     use WithAnalyzer;
 
-    public function __invoke(Tuple $x, NodeEnvironment $env): ThrowNode
+    public function __invoke(Tuple $tuple, NodeEnvironment $env): ThrowNode
     {
-        if (count($x) !== 2) {
-            throw new AnalyzerException(
-                "Exact one argument is required for 'throw",
-                $x->getStartLocation(),
-                $x->getEndLocation()
-            );
+        if (count($tuple) !== 2) {
+            throw AnalyzerException::withLocation("Exact one argument is required for 'throw", $tuple);
         }
 
         return new ThrowNode(
             $env,
-            $this->analyzer->analyze($x[1], $env->withContext(NodeEnvironment::CTX_EXPR)->withDisallowRecurFrame()),
-            $x->getStartLocation()
+            $this->analyzer->analyze($tuple[1], $env->withContext(NodeEnvironment::CTX_EXPR)->withDisallowRecurFrame()),
+            $tuple->getStartLocation()
         );
     }
 }
