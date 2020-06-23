@@ -6,6 +6,7 @@
   (:use Phel\Lang\IContactable)
   (:use Phel\Lang\PhelArray)
   (:use Phel\Lang\Table)
+  (:use Phel\Lang\Set)
   (:use Phel\Lang\Nil)
   (:use Phel\Lang\ICons)
   (:use Phel\Lang\ISlice)
@@ -184,6 +185,11 @@ This is PHP equivalent to `$args[0] . $args[1] . $args[2] ...`"
 # ------------------
 # Basic constructors
 # ------------------
+
+(defn set
+  "Creates a new Set. If no argument is provided, an empty Set is created."
+  [& xs]
+  (php/new Set (php/-> xs (toPhpArray))))
 
 (defn keyword
   "Creates a new Keyword from a given string."
@@ -481,6 +487,7 @@ Calling the and function without arguments returns true."
   "Returns the type of `x`. Following types can be returned:
 
 * `:tuple`
+* `:set`
 * `:array`
 * `:struct`
 * `:table`
@@ -499,6 +506,7 @@ Calling the and function without arguments returns true."
   [x]
   (cond
     (php/instanceof x Tuple)      :tuple
+    (php/instanceof x Set)        :set
     (php/instanceof x PhelArray)  :array
     (php/instanceof x Struct)     :struct
     (php/instanceof x Table)      :table
@@ -614,6 +622,11 @@ Calling the and function without arguments returns true."
   (let [t (type x)]
     (or (= t :array) (= t :tuple) (= t :php/array))))
 
+(defn set?
+  "Returns true if `x` is a set, false otherwise."
+  [x]
+  (= (type x) :set))
+
 # ------------------
 # Sequence operation
 # ------------------
@@ -676,7 +689,6 @@ arrays. Use (php/aset ds key value)" )))
 arrays. Use (php/aunset ds key)" )))
     (php/aunset x key)
     x))
-
 
 # --------
 # For loop
@@ -1046,6 +1058,32 @@ collection in map"))
           (if (>= (count b) n)
             (recur b)
             res))))))
+
+
+# -------------
+# Set operation
+# -------------
+
+(defn union
+  "Union multiple sets into a new one"
+  [& sets]
+  (reduce concat (set) sets))
+
+(defn intersection
+  "Intersect multiple sets into a new one"
+  [set & sets]
+  (reduce |(php/-> $1 (intersection $2)) set sets))
+
+(defn difference
+  "Difference between multiple sets into a new one"
+  [set & sets]
+  (reduce |(php/-> $1 (difference $2)) set sets))
+
+(defn symmetric-difference
+  "Symmetric difference between multiple sets into a new one"
+  [set & sets]
+  (reduce |(union (difference $1 $2) (difference $2 $1)) set sets))
+
 
 # ------------------
 # Function operation
