@@ -8,11 +8,11 @@ use ArrayAccess;
 use Countable;
 use InvalidArgumentException;
 use Iterator;
-use Phel\Printer;
 
 class Tuple extends AbstractType implements ArrayAccess, Countable, Iterator, ISlice, ICons, ICdr, IRest, IPush, IConcat
 {
     use HashableTrait;
+    use PrintableTrait;
 
     private array $data;
     private bool $usingBracket;
@@ -189,10 +189,5 @@ class Tuple extends AbstractType implements ArrayAccess, Countable, Iterator, IS
     public function toArray(): array
     {
         return $this->data;
-    }
-
-    public function __toString(): string
-    {
-        return Printer::readable()->print($this);
     }
 }

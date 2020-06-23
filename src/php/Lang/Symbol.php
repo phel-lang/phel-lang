@@ -4,11 +4,10 @@ declare(strict_types=1);
 
 namespace Phel\Lang;
 
-use Phel\Printer;
-
 final class Symbol extends AbstractType implements IIdentical
 {
     use HashableTrait;
+    use PrintableTrait;
 
     private static int $symGenCounter = 1;
 
@@ -55,11 +54,6 @@ final class Symbol extends AbstractType implements IIdentical
         }
 
         return $this->name;
-    }
-
-    public function __toString(): string
-    {
-        return Printer::readable()->print($this);
     }
 
     public static function gen(string $prefix = '__phel_'): Symbol

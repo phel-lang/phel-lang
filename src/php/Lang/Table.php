@@ -8,11 +8,11 @@ use ArrayAccess;
 use Countable;
 use Exception;
 use Iterator;
-use Phel\Printer;
 
 class Table extends AbstractType implements ArrayAccess, Countable, Iterator
 {
     use HashableTrait;
+    use PrintableTrait;
 
     protected array $data = [];
 
@@ -154,10 +154,5 @@ class Table extends AbstractType implements ArrayAccess, Countable, Iterator
         }
 
         return (string) $offset;
-    }
-
-    public function __toString(): string
-    {
-        return Printer::readable()->print($this);
     }
 }

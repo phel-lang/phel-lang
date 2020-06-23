@@ -8,11 +8,11 @@ use ArrayAccess;
 use Countable;
 use InvalidArgumentException;
 use Iterator;
-use Phel\Printer;
 
 final class PhelArray extends AbstractType implements ArrayAccess, Countable, Iterator, ICons, ISlice, ICdr, IRest, IPop, IRemove, IPush, IConcat
 {
     use HashableTrait;
+    use PrintableTrait;
 
     private array $data;
 
@@ -158,10 +158,5 @@ final class PhelArray extends AbstractType implements ArrayAccess, Countable, It
             $this->data[] = $x;
         }
         return $this;
-    }
-
-    public function __toString(): string
-    {
-        return Printer::readable()->print($this);
     }
 }

@@ -6,6 +6,7 @@ use Phel\Printer;
 
 class Keyword extends AbstractType implements IIdentical
 {
+    use PrintableTrait;
 
     /**
      * @var string
@@ -35,10 +36,5 @@ class Keyword extends AbstractType implements IIdentical
     public function identical($other): bool
     {
         return $other instanceof Keyword && $this->name == $other->getName();
-    }
-
-    public function __toString(): string
-    {
-        return Printer::readable()->print($this);
     }
 }
