@@ -12,6 +12,8 @@ use Phel\Printer;
 
 class Table extends AbstractType implements ArrayAccess, Countable, Iterator
 {
+    use HashableTrait;
+
     protected array $data = [];
 
     protected array $keys = [];
@@ -116,11 +118,6 @@ class Table extends AbstractType implements ArrayAccess, Countable, Iterator
     public function valid(): bool
     {
         return key($this->data) !== null;
-    }
-
-    public function hash(): string
-    {
-        return spl_object_hash($this);
     }
 
     public function equals($other): bool

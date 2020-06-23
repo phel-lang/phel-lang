@@ -8,6 +8,8 @@ use Phel\Printer;
 
 final class Symbol extends AbstractType implements IIdentical
 {
+    use HashableTrait;
+
     private static int $symGenCounter = 1;
 
     private ?string $namespace;
@@ -68,11 +70,6 @@ final class Symbol extends AbstractType implements IIdentical
     public static function resetGen(): void
     {
         self::$symGenCounter = 1;
-    }
-
-    public function hash(): string
-    {
-        return $this->getName();
     }
 
     public function equals($other): bool

@@ -12,6 +12,8 @@ use Phel\Printer;
 
 final class PhelArray extends AbstractType implements ArrayAccess, Countable, Iterator, ICons, ISlice, ICdr, IRest, IPop, IRemove, IPush, IConcat
 {
+    use HashableTrait;
+
     private array $data;
 
     /**
@@ -95,11 +97,6 @@ final class PhelArray extends AbstractType implements ArrayAccess, Countable, It
     public function valid()
     {
         return key($this->data) !== null;
-    }
-
-    public function hash(): string
-    {
-        return spl_object_hash($this);
     }
 
     public function equals($other): bool

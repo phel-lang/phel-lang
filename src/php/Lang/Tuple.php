@@ -12,6 +12,8 @@ use Phel\Printer;
 
 class Tuple extends AbstractType implements ArrayAccess, Countable, Iterator, ISlice, ICons, ICdr, IRest, IPush, IConcat
 {
+    use HashableTrait;
+
     private array $data;
     private bool $usingBracket;
 
@@ -145,11 +147,6 @@ class Tuple extends AbstractType implements ArrayAccess, Countable, Iterator, IS
     public function cons($x): ICons
     {
         return new Tuple([$x, ...$this->data], $this->isUsingBracket());
-    }
-
-    public function hash(): string
-    {
-        return spl_object_hash($this);
     }
 
     public function equals($other): bool
