@@ -14,6 +14,7 @@ class Tuple extends AbstractType implements ArrayAccess, Countable, Iterator, IS
     use HashableTrait;
     use PrintableTrait;
     use CountableTrait;
+    use IterableTrait;
 
     private array $data;
 
@@ -75,31 +76,6 @@ class Tuple extends AbstractType implements ArrayAccess, Countable, Iterator, IS
     public function isUsingBracket(): bool
     {
         return $this->usingBracket;
-    }
-
-    public function current()
-    {
-        return current($this->data);
-    }
-
-    public function key()
-    {
-        return key($this->data);
-    }
-
-    public function next()
-    {
-        next($this->data);
-    }
-
-    public function rewind()
-    {
-        reset($this->data);
-    }
-
-    public function valid()
-    {
-        return key($this->data) !== null;
     }
 
     /**

@@ -14,6 +14,7 @@ class Table extends AbstractType implements ArrayAccess, Countable, Iterator
     use HashableTrait;
     use PrintableTrait;
     use CountableTrait;
+    use IterableTrait;
 
     protected array $data = [];
 
@@ -82,11 +83,6 @@ class Table extends AbstractType implements ArrayAccess, Countable, Iterator
         return $this->data[$hash] ?? null;
     }
 
-    public function current()
-    {
-        return current($this->data);
-    }
-
     /**
      * @return mixed|null
      */
@@ -99,21 +95,6 @@ class Table extends AbstractType implements ArrayAccess, Countable, Iterator
         }
 
         return null;
-    }
-
-    public function next(): void
-    {
-        next($this->data);
-    }
-
-    public function rewind(): void
-    {
-        reset($this->data);
-    }
-
-    public function valid(): bool
-    {
-        return key($this->data) !== null;
     }
 
     public function equals($other): bool
