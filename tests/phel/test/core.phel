@@ -607,18 +607,15 @@
 (assert (= (set 1 2 0 3) (union (set 1 2) (set 0 3))) "set union")
 (assert (= (set 1 2 0 3) (union (set 1 2) (set 0 1 2 3))) "set union with common values")
 
-(assert (= (set) (intersection)) "set 0-ary intersection")
 (assert (= (set) (intersection (set 1 2) (set 0 3))) "set intersection")
 (assert (= (set 1 2) (intersection (set 1 2) (set 0 1 2 3))) "set intersection with common values")
 
-(assert (= (set) (difference)) "set 0-ary difference")
 (assert (= (set 1 2) (difference (set 1 2) (set 0 3))) "set difference")
 (assert (= (set) (difference (set 1 2) (set 0 1 2 3))) "set difference")
 (assert (= (set 0 3) (difference (set 0 1 2 3) (set 1 2 ))) "set difference with common values")
 
-(assert (= (set) (symmetricDifference)) "set 0-ary symmetricDifference")
-(assert (= (set 1 2 0 3) (symmetricDifference (set 1 2) (set 0 3))) "set symmetricDifference")
-(assert (= (set 0 3) (symmetricDifference (set 1 2) (set 0 1 2 3))) "set symmetricDifference with common values")
+(assert (= (set 1 2 0 3) (symmetric-difference (set 1 2) (set 0 3))) "set symmetric-difference")
+(assert (= (set 0 3) (symmetric-difference (set 1 2) (set 0 1 2 3))) "set symmetric-difference with common values")
 
 # ------------------
 # Function operation

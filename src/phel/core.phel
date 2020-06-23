@@ -690,28 +690,6 @@ arrays. Use (php/aunset ds key)" )))
     (php/aunset x key)
     x))
 
-(declare reduce)
-
-(defn union
-  "Union multiple sets into a new one"
-  [& sets]
-  (reduce concat (set) sets))
-
-(defn intersection
-  "Intersect multiple sets into a new one"
-  [& sets]
-  (reduce (fn [acc s] (php/-> acc (intersection s))) (union (first sets)) (rest sets)))
-
-(defn difference
-  "Difference between multiple sets into a new one"
-  [& sets]
-  (reduce (fn [acc s] (php/-> acc (difference s))) (union (first sets)) (rest sets)))
-
-(defn symmetricDifference
-  "Symmetric difference between multiple sets into a new one"
-  [& sets]
-  (reduce (fn [acc s] (union (difference acc s) (difference s acc))) (union (first sets)) (rest sets)))
-
 # --------
 # For loop
 # --------
@@ -1080,6 +1058,32 @@ collection in map"))
           (if (>= (count b) n)
             (recur b)
             res))))))
+
+
+# -------------
+# Set operation
+# -------------
+
+(defn union
+  "Union multiple sets into a new one"
+  [& sets]
+  (reduce concat (set) sets))
+
+(defn intersection
+  "Intersect multiple sets into a new one"
+  [set & sets]
+  (reduce |(php/-> $1 (intersection $2)) set sets))
+
+(defn difference
+  "Difference between multiple sets into a new one"
+  [set & sets]
+  (reduce |(php/-> $1 (difference $2)) set sets))
+
+(defn symmetric-difference
+  "Symmetric difference between multiple sets into a new one"
+  [set & sets]
+  (reduce |(union (difference $1 $2) (difference $2 $1)) set sets))
+
 
 # ------------------
 # Function operation

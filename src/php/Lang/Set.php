@@ -98,16 +98,12 @@ class Set extends AbstractType implements Countable, Iterator, ICons, IPush, ICo
 
     public function intersection(Set $set): Set
     {
-        $this->data = array_intersect_key($this->data, $set->toPhpArray());
-        return $this;
+        return new Set(array_intersect_key($this->data, $set->toPhpArray()));
     }
 
     public function difference(Set $set): Set
     {
-        $difference = array_diff_key($this->data, $set->toPhpArray());
-        $this->data = [];
-        $this->concat($difference);
-        return $this;
+        return new Set(array_diff_key($this->data, $set->toPhpArray()));
     }
 
     public function equals($other): bool
