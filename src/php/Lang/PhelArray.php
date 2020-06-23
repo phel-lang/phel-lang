@@ -15,6 +15,7 @@ final class PhelArray extends AbstractType implements ArrayAccess, Countable, It
     use PrintableTrait;
     use CountableTrait;
     use IterableTrait;
+    use ComparableTrait;
 
     private array $data;
 
@@ -69,11 +70,6 @@ final class PhelArray extends AbstractType implements ArrayAccess, Countable, It
     public function offsetGet($offset)
     {
         return $this->data[$offset] ?? null;
-    }
-
-    public function equals($other): bool
-    {
-        return $this == $other;
     }
 
     public function slice(int $offset = 0, ?int $length = null): ISlice

@@ -15,6 +15,7 @@ class Table extends AbstractType implements ArrayAccess, Countable, Iterator
     use PrintableTrait;
     use CountableTrait;
     use IterableTrait;
+    use ComparableTrait;
 
     protected array $data = [];
 
@@ -95,11 +96,6 @@ class Table extends AbstractType implements ArrayAccess, Countable, Iterator
         }
 
         return null;
-    }
-
-    public function equals($other): bool
-    {
-        return $this == $other;
     }
 
     public function toKeyValueList(): array

@@ -15,6 +15,7 @@ class Tuple extends AbstractType implements ArrayAccess, Countable, Iterator, IS
     use PrintableTrait;
     use CountableTrait;
     use IterableTrait;
+    use ComparableTrait;
 
     private array $data;
 
@@ -120,11 +121,6 @@ class Tuple extends AbstractType implements ArrayAccess, Countable, Iterator, IS
     public function cons($x): ICons
     {
         return new Tuple([$x, ...$this->data], $this->isUsingBracket());
-    }
-
-    public function equals($other): bool
-    {
-        return $this == $other;
     }
 
     public function cdr(): ?ICdr
