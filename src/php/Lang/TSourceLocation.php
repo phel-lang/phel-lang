@@ -7,7 +7,7 @@ namespace Phel\Lang;
 trait TSourceLocation
 {
     private ?SourceLocation $startLocation = null;
-    private ?SourceLocation$endLocation = null;
+    private ?SourceLocation $endLocation = null;
 
     public function setStartLocation(?SourceLocation $startLocation): void
     {

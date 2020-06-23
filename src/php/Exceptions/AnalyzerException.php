@@ -1,7 +1,9 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Phel\Exceptions;
 
-class AnalyzerException extends PhelCodeException
+final class AnalyzerException extends PhelCodeException
 {
 }

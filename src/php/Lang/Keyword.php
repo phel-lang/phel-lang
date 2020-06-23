@@ -1,16 +1,14 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Phel\Lang;
 
 use Phel\Printer;
 
-class Keyword extends AbstractType implements IIdentical
+final class Keyword extends AbstractType implements IIdentical
 {
-
-    /**
-     * @var string
-     */
-    protected $name;
+    private string $name;
 
     public function __construct(string $name)
     {
@@ -29,12 +27,12 @@ class Keyword extends AbstractType implements IIdentical
 
     public function equals($other): bool
     {
-        return $other instanceof Keyword && $this->name == $other->getName();
+        return $other instanceof self && $this->name == $other->getName();
     }
 
     public function identical($other): bool
     {
-        return $other instanceof Keyword && $this->name == $other->getName();
+        return $other instanceof self && $this->name == $other->getName();
     }
 
     public function __toString(): string

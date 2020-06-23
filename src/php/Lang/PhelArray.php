@@ -82,17 +82,17 @@ final class PhelArray extends AbstractType implements ArrayAccess, Countable, It
         return key($this->data);
     }
 
-    public function next()
+    public function next(): void
     {
         next($this->data);
     }
 
-    public function rewind()
+    public function rewind(): void
     {
         reset($this->data);
     }
 
-    public function valid()
+    public function valid(): bool
     {
         return key($this->data) !== null;
     }

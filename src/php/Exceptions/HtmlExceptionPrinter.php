@@ -1,8 +1,9 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Phel\Exceptions;
 
-use Exception;
 use Phel\CodeSnippet;
 use Phel\Lang\IFn;
 use Phel\Munge;
@@ -10,7 +11,7 @@ use Phel\Printer;
 use ReflectionClass;
 use Throwable;
 
-class HtmlExceptionPrinter implements ExceptionPrinter
+final class HtmlExceptionPrinter implements ExceptionPrinter
 {
     public function printException(PhelCodeException $e, CodeSnippet $codeSnippet): void
     {

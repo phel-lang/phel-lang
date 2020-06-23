@@ -1,8 +1,10 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Phel\SourceMap;
 
-class SourceMapGenerator
+final class SourceMapGenerator
 {
     private VLQ $vlq;
 
@@ -55,8 +57,9 @@ class SourceMapGenerator
         return $result;
     }
 
-    private function compareByGeneratedPositionsInflated($mappingA, $mappingB)
+    private function compareByGeneratedPositionsInflated(array $mappingA, array $mappingB): int
     {
+        /** @var int $cmp */
         $cmp = $mappingA['generated']['line'] - $mappingB['generated']['line'];
         if ($cmp !== 0) {
             return $cmp;

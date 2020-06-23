@@ -1,11 +1,13 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Phel\Exceptions;
 
 use Exception;
 use Phel\CodeSnippet;
 
-class CompilerException extends Exception
+final class CompilerException extends Exception
 {
     private CodeSnippet $codeSnippet;
 

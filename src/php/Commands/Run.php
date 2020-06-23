@@ -29,7 +29,6 @@ class Run
             $ns = $this->getNamespaceFromFile($fileOrPath);
         }
 
-        /** @var Runtime $rt */
         $rt = $this->loadRuntime($currentDirectory);
         $result = $rt->loadNs($ns);
 
@@ -38,7 +37,7 @@ class Run
         }
     }
 
-    protected function loadRuntime($currentDirectory): Runtime
+    protected function loadRuntime(string $currentDirectory): Runtime
     {
         if ($this->runtime) {
             return $this->runtime;
