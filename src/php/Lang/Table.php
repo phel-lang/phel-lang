@@ -13,6 +13,7 @@ class Table extends AbstractType implements ArrayAccess, Countable, Iterator
 {
     use HashableTrait;
     use PrintableTrait;
+    use CountableTrait;
 
     protected array $data = [];
 
@@ -79,11 +80,6 @@ class Table extends AbstractType implements ArrayAccess, Countable, Iterator
         $hash = $this->offsetHash($offset);
 
         return $this->data[$hash] ?? null;
-    }
-
-    public function count(): int
-    {
-        return count($this->data);
     }
 
     public function current()

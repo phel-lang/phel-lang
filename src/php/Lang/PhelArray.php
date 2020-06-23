@@ -13,6 +13,7 @@ final class PhelArray extends AbstractType implements ArrayAccess, Countable, It
 {
     use HashableTrait;
     use PrintableTrait;
+    use CountableTrait;
 
     private array $data;
 
@@ -67,11 +68,6 @@ final class PhelArray extends AbstractType implements ArrayAccess, Countable, It
     public function offsetGet($offset)
     {
         return $this->data[$offset] ?? null;
-    }
-
-    public function count(): int
-    {
-        return count($this->data);
     }
 
     public function current()

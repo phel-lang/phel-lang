@@ -13,8 +13,10 @@ class Tuple extends AbstractType implements ArrayAccess, Countable, Iterator, IS
 {
     use HashableTrait;
     use PrintableTrait;
+    use CountableTrait;
 
     private array $data;
+
     private bool $usingBracket;
 
     /**
@@ -68,11 +70,6 @@ class Tuple extends AbstractType implements ArrayAccess, Countable, Iterator, IS
     public function offsetGet($offset)
     {
         return $this->data[$offset] ?? null;
-    }
-
-    public function count()
-    {
-        return count($this->data);
     }
 
     public function isUsingBracket(): bool
