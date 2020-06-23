@@ -90,12 +90,6 @@ class Set extends AbstractType implements Countable, Iterator, ICons, IPush, ICo
         return $this;
     }
 
-    public function union(Set $set): Set
-    {
-        $this->concat($set->toPhpArray());
-        return $this;
-    }
-
     public function intersection(Set $set): Set
     {
         return new Set(array_intersect_key($this->data, $set->toPhpArray()));
