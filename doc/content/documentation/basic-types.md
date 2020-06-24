@@ -126,6 +126,14 @@ Tables are represented by a sequence of white-space delimited key value pairs su
 
 In contrast to PHP associative arrays, Phel tables can have any type of keys.
 
+## Sets
+
+Sets are a sequence of white space separated values prefixed by the function `set` and the whole being surrounded by parentheses.
+
+```phel
+(set 1 2 3)
+```
+
 ## Comments
 
 Comments begin with a `#` character and continue until the end of the line. There are no multi-line comments.
