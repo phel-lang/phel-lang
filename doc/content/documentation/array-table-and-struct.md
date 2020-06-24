@@ -12,12 +12,12 @@ An array can be created using the `@[` reader macro or the `array` function.
 (array "a" "b" "c")
 ```
 
- A table can be created using the `@{` reader macro or the `table` function.
+A table can be created using the `@{` reader macro or the `table` function.
 
- ```phel
- @{:key1 "value1" :key2 "value2"}
- (table :key1 "value1" :key2 "value2")
- ```
+```phel
+@{:key1 "value1" :key2 "value2"}
+(table :key1 "value1" :key2 "value2")
+```
 
 ## Getting values
 
@@ -40,7 +40,7 @@ Similar to tuples, the functions `get`, `first`, `second`, `next` and `rest` can
 (next @[]) # Evaluates to nil
 ```
 
-The `get` function can also be use on tables.
+The `get` function can also be used on tables.
 
 ```phel
 (get @{:a 1 :b 2} :a) # Evaluates to 1
