@@ -6,7 +6,7 @@ namespace Phel\Commands\Repl;
 
 use PHPUnit\Framework\TestCase;
 
-class ReadlineTest extends TestCase
+final class ReadlineTest extends TestCase
 {
     public function testLineAddedToHistory(): void
     {
