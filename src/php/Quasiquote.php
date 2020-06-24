@@ -41,7 +41,7 @@ final class Quasiquote
             $tupleBuilder = $form->isUsingBracket() ? 'tuple-brackets' : 'tuple';
 
             return Tuple::create(
-                (Symbol::create('apply'))->copyLocationFrom($form),
+                (Symbol::create(Symbol::NAME_APPLY))->copyLocationFrom($form),
                 (Symbol::create($tupleBuilder))->copyLocationFrom($form),
                 Tuple::create(
                     (Symbol::create('concat'))->copyLocationFrom($form),
@@ -52,7 +52,7 @@ final class Quasiquote
 
         if ($form instanceof Table && count($form) > 0) {
             return Tuple::create(
-                (Symbol::create('apply'))->copyLocationFrom($form),
+                (Symbol::create(Symbol::NAME_APPLY))->copyLocationFrom($form),
                 (Symbol::create('table'))->copyLocationFrom($form),
                 Tuple::create(
                     (Symbol::create('concat'))->copyLocationFrom($form),
@@ -63,7 +63,7 @@ final class Quasiquote
 
         if ($form instanceof PhelArray && count($form) > 0) {
             return Tuple::create(
-                (Symbol::create('apply'))->copyLocationFrom($form),
+                (Symbol::create(Symbol::NAME_APPLY))->copyLocationFrom($form),
                 (Symbol::create('array'))->copyLocationFrom($form),
                 Tuple::create(
                     (Symbol::create('concat'))->copyLocationFrom($form),
@@ -81,12 +81,13 @@ final class Quasiquote
             $node = $this->env->resolve($form, NodeEnvironment::empty());
 
             if ($node instanceof GlobalVarNode) {
-                $form = Symbol::createForNamespace($node->getNamespace(), $form->getName())->copyLocationFrom($form);
+                $form = Symbol::createForNamespace($node->getNamespace(), $form->getName())
+                    ->copyLocationFrom($form);
             }
         }
 
         return Tuple::create(
-            (Symbol::create('quote'))->copyLocationFrom($form),
+            (Symbol::create(Symbol::NAME_QUOTE))->copyLocationFrom($form),
             $form
         )->copyLocationFrom($form);
     }

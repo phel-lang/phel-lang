@@ -93,13 +93,13 @@ final class FnSymbol
 
         if (count($lets) > 0) {
             $body = Tuple::create(
-                (Symbol::create('let'))->copyLocationFrom($body),
+                (Symbol::create(Symbol::NAME_LET))->copyLocationFrom($body),
                 (new Tuple($lets, true))->copyLocationFrom($body),
                 ...$body
             )->copyLocationFrom($body);
         } else {
             $body = Tuple::create(
-                (Symbol::create('do'))->copyLocationFrom($body),
+                (Symbol::create(Symbol::NAME_DO))->copyLocationFrom($body),
                 ...$body
             )->copyLocationFrom($body);
         }

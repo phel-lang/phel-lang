@@ -4,16 +4,16 @@ namespace Phel\Reader;
 
 use Phel\Exceptions\ReaderException;
 use Phel\GlobalEnvironment;
+use Phel\Lang\AbstractType;
 use Phel\Lang\IMeta;
 use Phel\Lang\Keyword;
-use Phel\Lang\AbstractType;
 use Phel\Lang\PhelArray;
+use Phel\Lang\SourceLocation;
 use Phel\Lang\Symbol;
 use Phel\Lang\Table;
 use Phel\Lang\Tuple;
 use Phel\Lexer;
 use Phel\Reader;
-use Phel\Lang\SourceLocation;
 use PHPUnit\Framework\TestCase;
 
 ini_set('xdebug.var_display_max_depth', '10');
@@ -121,7 +121,10 @@ class ReaderTest extends TestCase
     public function testQuote()
     {
         $this->assertEquals(
-            $this->loc(new Tuple([Symbol::create('quote'), $this->loc(Symbol::create('a'), 1, 1, 1, 2)]), 1, 0, 1, 2),
+            $this->loc(new Tuple([
+                Symbol::create(Symbol::NAME_QUOTE),
+                $this->loc(Symbol::create('a'), 1, 1, 1, 2),
+            ]), 1, 0, 1, 2),
             $this->read('\'a')
         );
     }
@@ -129,7 +132,10 @@ class ReaderTest extends TestCase
     public function testUnquote()
     {
         $this->assertEquals(
-            $this->loc(new Tuple([Symbol::create('unquote'), $this->loc(Symbol::create('a'), 1, 1, 1, 2)]), 1, 0, 1, 2),
+            $this->loc(new Tuple([
+                Symbol::create('unquote'),
+                $this->loc(Symbol::create('a'), 1, 1, 1, 2)
+            ]), 1, 0, 1, 2),
             $this->read(',a')
         );
     }
@@ -137,7 +143,10 @@ class ReaderTest extends TestCase
     public function testUnquoteSplice()
     {
         $this->assertEquals(
-            $this->loc(new Tuple([Symbol::create('unquote-splicing'), $this->loc(Symbol::create('a'), 1, 2, 1, 3)]), 1, 0, 1, 3),
+            $this->loc(new Tuple([
+                Symbol::create('unquote-splicing'),
+                $this->loc(Symbol::create('a'), 1, 2, 1, 3)
+            ]), 1, 0, 1, 3),
             $this->read(',@a')
         );
     }
@@ -147,7 +156,7 @@ class ReaderTest extends TestCase
         $this->assertEquals(
             $this->loc(new Tuple(
                 [
-                $this->loc(Symbol::create('quote'), 1, 1, 1, 8),
+                $this->loc(Symbol::create(Symbol::NAME_QUOTE), 1, 1, 1, 8),
                 $this->loc(Symbol::create('unquote'), 1, 1, 1, 8)]
             ), 1, 0, 1, 8),
             $this->read('`unquote')
@@ -157,9 +166,8 @@ class ReaderTest extends TestCase
     public function testQuasiquote2()
     {
         $this->assertEquals(
-            $this->loc(new Tuple(
-                [
-                $this->loc(Symbol::create('quote'), 1, 1, 1, 2),
+            $this->loc(new Tuple([
+                $this->loc(Symbol::create(Symbol::NAME_QUOTE), 1, 1, 1, 2),
                 $this->loc(Symbol::create('a'), 1, 1, 1, 2)]
             ), 1, 0, 1, 2),
             $this->read('`a')

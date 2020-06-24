@@ -61,7 +61,7 @@ final class TrySymbol
         }
 
         if ($finally) {
-            $finally = $finally->update(0, Symbol::create('do'));
+            $finally = $finally->update(0, Symbol::create(Symbol::NAME_DO));
             $finally = $this->analyzer->analyze(
                 $finally,
                 $env->withContext(NodeEnvironment::CTX_STMT)->withDisallowRecurFrame()
@@ -82,7 +82,7 @@ final class TrySymbol
                 throw AnalyzerException::withLocation("Second argument of 'catch must be a Symbol", $catch);
             }
 
-            $exprs = [Symbol::create('do')];
+            $exprs = [Symbol::create(Symbol::NAME_DO)];
             $catchCount = count($catch);
             for ($i = 3; $i < $catchCount; $i++) {
                 $exprs[] = $catch[$i];
@@ -105,7 +105,7 @@ final class TrySymbol
         }
 
         $body = $this->analyzer->analyze(
-            new Tuple(array_merge([Symbol::create('do')], $body)),
+            new Tuple(array_merge([Symbol::create(Symbol::NAME_DO)], $body)),
             $env->withContext(count($catchNodes) > 0 || $finally ? $catchCtx : $env->getContext())
                 ->withDisallowRecurFrame()
         );

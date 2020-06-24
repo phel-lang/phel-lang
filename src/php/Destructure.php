@@ -16,7 +16,7 @@ class Destructure
     {
         $bindings = [];
 
-        for ($i = 0; $i < count($x); $i+=2) {
+        for ($i = 0, $iMax = count($x); $i < $iMax; $i+=2) {
             $this->destructure($bindings, $x[$i], $x[$i+1]);
         }
 
@@ -65,9 +65,9 @@ class Destructure
                     $form->getStartLocation(),
                     $form->getEndLocation()
                 );
-            } else {
-                throw new AnalyzerException('Can not destructure ' . $type);
             }
+
+            throw new AnalyzerException('Can not destructure ' . $type);
         }
     }
 
@@ -104,7 +104,7 @@ class Destructure
         foreach ($b as $key => $bindTo) {
             $accessSym = Symbol::gen()->copyLocationFrom($b);
             $accessValue = Tuple::create(
-                (Symbol::create('php/aget'))->copyLocationFrom($b),
+                (Symbol::create(Symbol::NAME_PHP_ARRAY_GET))->copyLocationFrom($b),
                 $tableSymbol,
                 $key
             )->copyLocationFrom($b);
@@ -124,13 +124,13 @@ class Destructure
         $arrSymbol = Symbol::gen()->copyLocationFrom($b);
         $bindings[] = [$arrSymbol, $value];
 
-        for ($i = 0; $i < count($b); $i+=2) {
+        for ($i = 0, $iMax = count($b); $i < $iMax; $i+=2) {
             $index = $b[$i];
             $bindTo = $b[$i+1];
 
             $accessSym = Symbol::gen()->copyLocationFrom($b);
             $accessValue = Tuple::create(
-                (Symbol::create('php/aget'))->copyLocationFrom($b),
+                (Symbol::create(Symbol::NAME_PHP_ARRAY_GET))->copyLocationFrom($b),
                 $arrSymbol,
                 $index
             )->copyLocationFrom($b);
@@ -168,16 +168,16 @@ class Destructure
         $lastListSym = $arrSymbol;
         $state = 'start';
 
-        for ($i = 0; $i < count($b); $i++) {
-            $current = $b[$i];
+        foreach ($b as $bValue) {
+            $current = $bValue;
             switch ($state) {
                 case 'start':
-                    if ($current instanceof Symbol && $current->getName() == '&') {
+                    if ($current instanceof Symbol && $current->getName() === '&') {
                         $state = 'rest';
                     } else {
                         $accessSym = Symbol::gen()->copyLocationFrom($current);
                         $accessValue = Tuple::create(
-                            (Symbol::create('php/aget'))->copyLocationFrom($current),
+                            (Symbol::create(Symbol::NAME_PHP_ARRAY_GET))->copyLocationFrom($current),
                             $lastListSym,
                             0
                         )->copyLocationFrom($current);
@@ -201,10 +201,9 @@ class Destructure
                     $this->destructure($bindings, $current, $accessSym);
                     break;
                 case 'done':
-                    throw new AnalyzerException(
+                    throw AnalyzerException::withLocation(
                         'Unsupported binding form, only one symbol can follow the & parameter',
-                        $b->getStartLocation(),
-                        $b->getEndLocation()
+                        $b
                     );
             }
         }

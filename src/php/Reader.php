@@ -129,7 +129,7 @@ final class Reader
                     throw $this->buildReaderException('Unterminated list');
 
                 case Token::T_QUOTE:
-                    return $this->readWrap($tokenStream, 'quote');
+                    return $this->readWrap($tokenStream, Symbol::NAME_QUOTE);
 
                 case Token::T_UNQUOTE:
                     return $this->readWrap($tokenStream, 'unquote');
