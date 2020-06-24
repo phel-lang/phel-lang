@@ -37,7 +37,7 @@
   (is (= @{:a 1 :b 2} (table :a 1 :b 2)) "construct table"))
 
 (deftest create-set
-  (is (= (set 1 2 3 :a :b :c) (set 1 2 3 :a :b :c :c 1 2 3)) "construct set"))
+  (is (= (set 1 2 3 :a :b :c) (set :a 1 2 :b 3 :c :c 1 2 3)) "construct set"))
 
 (deftest create-php-indexed-array
   (let [arr (php-indexed-array "a" "b")]
@@ -693,14 +693,14 @@
   (is (= nil (second (set 1))) "set second element from 1-ary set"))
 
 (deftest test-set-concat
-  (is (= (set 1 2 0 3) (concat (set 1 2) @[0 3])) "set concat array")
-  (is (= (set 1 2 0 3) (concat (set 1 2) @[0 1 2 3])) "set concat array with common values")
-  (is (= (set 1 2 0) (concat (set 1 2) (set 0 1))) "set concat"))
+  (is (= (set 0 1 2 3) (concat (set 1 2) @[0 3])) "set concat array")
+  (is (= (set 0 1 2 3) (concat (set 1 2) @[0 1 2 3])) "set concat array with common values")
+  (is (= (set 0 1 2) (concat (set 1 2) (set 0 1))) "set concat"))
 
 (deftest test-set-union
   (is (= (set) (union)) "set 0-ary union")
-  (is (= (set 1 2 0 3) (union (set 1 2) (set 0 3))) "set union")
-  (is (= (set 1 2 0 3) (union (set 1 2) (set 0 1 2 3))) "set union with common values"))
+  (is (= (set 0 1 2 3) (union (set 1 2) (set 0 3))) "set union")
+  (is (= (set 0 1 2 3) (union (set 1 2) (set 0 1 2 3))) "set union with common values"))
 
 (deftest test-intersection
   (is (= (set) (intersection (set 1 2) (set 0 3))) "set intersection")
@@ -712,7 +712,7 @@
   (is (= (set 0 3) (difference (set 0 1 2 3) (set 1 2 ))) "set difference with common values"))
 
 (deftest test-symmetric-difference
-  (is (= (set 1 2 0 3) (symmetric-difference (set 1 2) (set 0 3))) "set symmetric-difference")
+  (is (= (set 0 1 2 3) (symmetric-difference (set 1 2) (set 0 3))) "set symmetric-difference")
   (is (= (set 0 3) (symmetric-difference (set 1 2) (set 0 1 2 3))) "set symmetric-difference with common values"))
 
 # ------------------
