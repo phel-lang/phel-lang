@@ -375,9 +375,11 @@
 (assert (= @[] (mapcat identity @[])) "mapcat on empty array")
 
 (assert (= "abc" (reduce str "" ["a" "b" "c"])) "reduce three elements tuple")
+(assert (= "abc" (reduce str "" [nil "a" "b" "c"])) "reduce tuple containing a nil value")
 (assert (= "x" (reduce str "x" [])) "reduce empty tuple")
 
 (assert (= "abc" (reduce2 str ["a" "b" "c"])) "reduce2 three elements tuple")
+(assert (= "abc" (reduce2 str [nil "a" "b" "c"])) "reduce2 tuple containing a nil value")
 (assert (= "a" (reduce2 str ["a"])) "reduce2 one element tuple")
 (assert (= nil (reduce2 str [])) "reduce2 empty tuple")
 
