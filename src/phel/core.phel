@@ -807,7 +807,7 @@ collection in map"))
   (apply concat @[] (apply map f xs)))
 
 (defn reduce [f init xs]
-  (if (nil? (first xs))
+  (if (= (count xs) 0)
     init
     (recur f (f init (first xs)) (next xs))))
 
