@@ -409,7 +409,7 @@ class ReaderTest extends TestCase
     {
         $this->assertEquals(
             Tuple::create(
-                Symbol::create('fn'),
+                Symbol::create(Symbol::NAME_FN),
                 Tuple::createBracket(),
                 $this->loc(
                     Tuple::create(
@@ -429,7 +429,7 @@ class ReaderTest extends TestCase
     {
         $this->assertEquals(
             Tuple::create(
-                Symbol::create('fn'),
+                Symbol::create(Symbol::NAME_FN),
                 Tuple::createBracket(
                     Symbol::create('__short_fn_1_1')
                 ),
@@ -452,7 +452,7 @@ class ReaderTest extends TestCase
     {
         $this->assertEquals(
             Tuple::create(
-                Symbol::create('fn'),
+                Symbol::create(Symbol::NAME_FN),
                 Tuple::createBracket(
                     Symbol::create('__short_fn_1_1')
                 ),
@@ -476,7 +476,7 @@ class ReaderTest extends TestCase
     {
         $this->assertEquals(
             Tuple::create(
-                Symbol::create('fn'),
+                Symbol::create(Symbol::NAME_FN),
                 Tuple::createBracket(
                     Symbol::create('__short_fn_1_1'),
                     Symbol::create('__short_fn_2_2')
@@ -501,7 +501,7 @@ class ReaderTest extends TestCase
     {
         $this->assertEquals(
             Tuple::create(
-                Symbol::create('fn'),
+                Symbol::create(Symbol::NAME_FN),
                 Tuple::createBracket(
                     Symbol::create('__short_fn_1_1'),
                     Symbol::create('__short_fn_undefined_3'),
@@ -527,7 +527,7 @@ class ReaderTest extends TestCase
     {
         $this->assertEquals(
             Tuple::create(
-                Symbol::create('fn'),
+                Symbol::create(Symbol::NAME_FN),
                 Tuple::createBracket(
                     Symbol::create('__short_fn_1_1'),
                     Symbol::create('&'),

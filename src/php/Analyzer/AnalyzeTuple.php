@@ -36,28 +36,6 @@ final class AnalyzeTuple
 {
     use WithAnalyzer;
 
-    public const NAME_DEF = 'def';
-    public const NAME_NS = 'ns';
-    public const NAME_FN = 'fn';
-    public const NAME_QUOTE = 'quote';
-    public const NAME_DO = 'do';
-    public const NAME_IF = 'if';
-    public const NAME_APPLY = 'apply';
-    public const NAME_LET = 'let';
-    public const NAME_PHP_NEW = 'php/new';
-    public const NAME_PHP_OBJECT_CALL = 'php/->';
-    public const NAME_PHP_OBJECT_STATIC_CALL = 'php/::';
-    public const NAME_PHP_ARRAY_GET = 'php/aget';
-    public const NAME_PHP_ARRAY_SET = 'php/aset';
-    public const NAME_PHP_ARRAY_PUSH = 'php/apush';
-    public const NAME_PHP_ARRAY_UNSET = 'php/aunset';
-    public const NAME_RECUR = 'recur';
-    public const NAME_TRY = 'try';
-    public const NAME_THROW = 'throw';
-    public const NAME_LOOP = 'loop';
-    public const NAME_FOREACH = 'foreach';
-    public const NAME_DEFSTRUCT = 'defstruct*';
-
     /** @throws AnalyzerException|PhelCodeException */
     public function __invoke(Tuple $x, NodeEnvironment $env): Node
     {
@@ -66,47 +44,47 @@ final class AnalyzeTuple
         }
 
         switch ($x[0]->getFullName()) {
-            case self::NAME_DEF:
+            case Symbol::NAME_DEF:
                 return (new DefSymbol($this->analyzer))($x, $env);
-            case self::NAME_NS:
+            case Symbol::NAME_NS:
                 return (new NsSymbol($this->analyzer))($x, $env);
-            case self::NAME_FN:
+            case Symbol::NAME_FN:
                 return (new FnSymbol($this->analyzer))($x, $env);
-            case self::NAME_QUOTE:
+            case Symbol::NAME_QUOTE:
                 return (new QuoteSymbol())($x, $env);
-            case self::NAME_DO:
+            case Symbol::NAME_DO:
                 return (new DoSymbol($this->analyzer))($x, $env);
-            case self::NAME_IF:
+            case Symbol::NAME_IF:
                 return (new IfSymbol($this->analyzer))($x, $env);
-            case self::NAME_APPLY:
+            case Symbol::NAME_APPLY:
                 return (new ApplySymbol($this->analyzer))($x, $env);
-            case self::NAME_LET:
+            case Symbol::NAME_LET:
                 return (new LetSymbol($this->analyzer))($x, $env);
-            case self::NAME_PHP_NEW:
+            case Symbol::NAME_PHP_NEW:
                 return (new PhpNewSymbol($this->analyzer))($x, $env);
-            case self::NAME_PHP_OBJECT_CALL:
+            case Symbol::NAME_PHP_OBJECT_CALL:
                 return (new PhpObjectCallSymbol($this->analyzer))($x, $env, false);
-            case self::NAME_PHP_OBJECT_STATIC_CALL:
+            case Symbol::NAME_PHP_OBJECT_STATIC_CALL:
                 return (new PhpObjectCallSymbol($this->analyzer))($x, $env, true);
-            case self::NAME_PHP_ARRAY_GET:
+            case Symbol::NAME_PHP_ARRAY_GET:
                 return (new PhpAGetSymbol($this->analyzer))($x, $env);
-            case self::NAME_PHP_ARRAY_SET:
+            case Symbol::NAME_PHP_ARRAY_SET:
                 return (new PhpASetSymbol($this->analyzer))($x, $env);
-            case self::NAME_PHP_ARRAY_PUSH:
+            case Symbol::NAME_PHP_ARRAY_PUSH:
                 return (new PhpAPushSymbol($this->analyzer))($x, $env);
-            case self::NAME_PHP_ARRAY_UNSET:
+            case Symbol::NAME_PHP_ARRAY_UNSET:
                 return (new PhpAUnsetSymbol($this->analyzer))($x, $env);
-            case self::NAME_RECUR:
+            case Symbol::NAME_RECUR:
                 return (new RecurSymbol($this->analyzer))($x, $env);
-            case self::NAME_TRY:
+            case Symbol::NAME_TRY:
                 return (new TrySymbol($this->analyzer))($x, $env);
-            case self::NAME_THROW:
+            case Symbol::NAME_THROW:
                 return (new ThrowSymbol($this->analyzer))($x, $env);
-            case self::NAME_LOOP:
+            case Symbol::NAME_LOOP:
                 return (new LoopSymbol($this->analyzer))($x, $env);
-            case self::NAME_FOREACH:
+            case Symbol::NAME_FOREACH:
                 return (new ForeachSymbol($this->analyzer))($x, $env);
-            case self::NAME_DEFSTRUCT:
+            case Symbol::NAME_DEFSTRUCT:
                 return (new DefStructSymbol($this->analyzer))($x, $env);
             default:
                 return (new InvokeSymbol($this->analyzer))($x, $env);
