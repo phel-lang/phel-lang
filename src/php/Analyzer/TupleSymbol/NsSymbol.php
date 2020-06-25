@@ -10,6 +10,7 @@ use Phel\Ast\NsNode;
 use Phel\Exceptions\AnalyzerException;
 use Phel\Lang\Keyword;
 use Phel\Lang\Symbol;
+use Phel\Lang\Table;
 use Phel\Lang\Tuple;
 use Phel\NodeEnvironment;
 
@@ -81,23 +82,57 @@ final class NsSymbol
             throw AnalyzerException::withLocation('First argument in :use must be a symbol.', $import);
         }
 
-        $alias = $this->extractAlias($import);
+        $useData = Table::fromKVArray($import->toArray());
+        $alias = $this->extractAlias($useData, $import, 'use');
         $this->analyzer->getGlobalEnvironment()->addUseAlias($ns, $alias, $import[1]);
     }
 
-    private function extractAlias(Tuple $import): Symbol
+    private function extractAlias(Table $requireData, Tuple $import, string $type): Symbol
     {
-        if (count($import) === 4 && $this->isKeywordWithName($import[2], 'as')) {
-            $alias = $import[3];
+        $alias = $requireData[new Keyword('as')];
+
+        if ($alias) {
             if (!($alias instanceof Symbol)) {
                 throw AnalyzerException::withLocation('Alias must be a Symbol', $import);
             }
             return $alias;
         }
 
-        /** @psalm-suppress PossiblyNullReference */
-        $parts = explode('\\', $import[1]->getName());
-        return Symbol::create($parts[count($parts) - 1]);
+        $alias = $requireData[new Keyword($type)];
+
+        if ($alias) {
+            if (!($alias instanceof Symbol)) {
+                throw AnalyzerException::withLocation("First argument in :$type must be a symbol.", $import);
+            }
+            $parts = explode('\\', $alias->getName());
+            return Symbol::create($parts[count($parts) - 1]);
+        }
+
+        throw AnalyzerException::withLocation('Can not extract alias', $import);
+    }
+
+    private function extractRefer(Table $requireData, Tuple $import): array
+    {
+        $refer = $requireData[new Keyword('refer')];
+
+        if ($refer === null) {
+            return [];
+        }
+
+        if (!$refer instanceof Tuple) {
+            throw AnalyzerException::withLocation('Refer must be a Tuple', $import);
+        }
+
+        $result = [];
+        foreach ($refer as $ref) {
+            if (!$ref instanceof Symbol) {
+                throw AnalyzerException::withLocation('Each refer element must be a Symbol', $import);
+            }
+
+            $result[] = $ref;
+        }
+
+        return $result;
     }
 
     private function analyzeRequire(string $ns, Tuple $import): Symbol
@@ -106,8 +141,14 @@ final class NsSymbol
             throw AnalyzerException::withLocation('First argument in :require must be a symbol.', $import);
         }
 
-        $alias = $this->extractAlias($import);
+        $requireData = Table::fromKVArray($import->toArray());
+        $alias = $this->extractAlias($requireData, $import, "require");
+        $refer = $this->extractRefer($requireData, $import);
+
         $this->analyzer->getGlobalEnvironment()->addRequireAlias($ns, $alias, $import[1]);
+        foreach ($refer as $ref) {
+            $this->analyzer->getGlobalEnvironment()->addRefer($ns, $ref, $import[1]);
+        }
         return $import[1];
     }
 }
