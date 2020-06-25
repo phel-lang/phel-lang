@@ -142,7 +142,7 @@ final class NsSymbol
         }
 
         $requireData = Table::fromKVArray($import->toArray());
-        $alias = $this->extractAlias($requireData, $import, "require");
+        $alias = $this->extractAlias($requireData, $import, 'require');
         $refer = $this->extractRefer($requireData, $import);
 
         $this->analyzer->getGlobalEnvironment()->addRequireAlias($ns, $alias, $import[1]);
