@@ -20,4 +20,15 @@ final class ColorStyleTest extends TestCase
             $style->color($anyText, $color)
         );
     }
+
+    public function testDefaultColors(): void
+    {
+        $style = ColorStyle::withStyles();
+        $anyText = 'any text';
+
+        self::assertSame('[0;32many text[0m', $style->green($anyText));
+        self::assertSame('[31;31many text[0m', $style->red($anyText));
+        self::assertSame('[33;33many text[0m', $style->yellow($anyText));
+        self::assertSame('[33;34many text[0m', $style->blue($anyText));
+    }
 }
