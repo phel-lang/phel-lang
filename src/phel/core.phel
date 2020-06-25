@@ -13,6 +13,7 @@
   (:use Phel\Lang\IIdentical)
   (:use Phel\Lang\ICdr)
   (:use Phel\Lang\IPop)
+  (:use Phel\Lang\IFirst)
   (:use Phel\Lang\IPush)
   (:use Phel\Lang\IRest)
   (:use Phel\Lang\IRemove)
@@ -65,6 +66,13 @@ elements, returns nil."
               sliced))
           (throw (php/new InvalidArgumentException
                     (php/. "cannot call 'next on " (php/gettype xs)))))))))
+
+(def first
+  "```phel\n(first xs)\n```\nReturns the first element of an indexed sequence or nil."
+  (fn [xs]
+    (if (php/instanceof xs IFirst)
+      (php/-> xs (first))
+      (php/aget xs 0))))
 
 (def concat1
   @{:private true
@@ -237,11 +245,6 @@ This is PHP equivalent to `$args[0] . $args[1] . $args[2] ...`"
         @[x]
         (throw (php/new InvalidArgumentException
                   (php/. "cannot do cons " (php/print_r x true))))))))
-
-(defn first
-  "Returns the first element of an indexed sequence or nil."
-  [xs]
-  (php/aget xs 0))
 
 (defn ffirst
   "Same as `(first (first xs))`"

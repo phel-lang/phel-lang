@@ -10,7 +10,7 @@ use Exception;
 use Iterator;
 use Phel\Printer;
 
-class Table extends AbstractType implements ArrayAccess, Countable, Iterator
+class Table extends AbstractType implements ArrayAccess, Countable, Iterator, ISeq
 {
     protected array $data = [];
 
@@ -116,6 +116,54 @@ class Table extends AbstractType implements ArrayAccess, Countable, Iterator
     public function valid(): bool
     {
         return key($this->data) !== null;
+    }
+
+    public function first()
+    {
+        $this->rewind();
+        $key = $this->key();
+        $value = $this->current();
+
+        return new Tuple([$key, $value], true);
+    }
+
+    public function cdr(): ?ICdr
+    {
+        if ($this->count() <= 1) {
+            return null;
+        }
+
+        $res = [];
+        while ($this->valid()) {
+            $key = $this->key();
+            $value = $this->current();
+            $res[] = new Tuple([$key, $value], true);
+
+            $this->next();
+        }
+
+        $this->rewind();
+
+        return new PhelArray($res);
+    }
+
+    public function rest(): IRest
+    {
+        $this->rewind();
+        $this->next();
+
+        $res = [];
+        while ($this->valid()) {
+            $key = $this->key();
+            $value = $this->current();
+            $res[] = new Tuple([$key, $value], true);
+
+            $this->next();
+        }
+
+        $this->rewind();
+
+        return new PhelArray($res);
     }
 
     public function hash(): string
