@@ -177,9 +177,8 @@ class Destructure
                     } else {
                         $accessSym = Symbol::gen()->copyLocationFrom($current);
                         $accessValue = Tuple::create(
-                            (Symbol::create(Symbol::NAME_PHP_ARRAY_GET))->copyLocationFrom($current),
-                            $lastListSym,
-                            0
+                            (Symbol::create('first'))->copyLocationFrom($current),
+                            $lastListSym
                         )->copyLocationFrom($current);
                         $bindings[] = [$accessSym, $accessValue];
 

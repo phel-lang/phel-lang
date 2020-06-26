@@ -10,7 +10,7 @@ use InvalidArgumentException;
 use Iterator;
 use Phel\Printer;
 
-final class Tuple extends AbstractType implements ArrayAccess, Countable, Iterator, ISlice, ICons, ICdr, IRest, IPush, IConcat
+final class Tuple extends AbstractType implements ArrayAccess, Countable, Iterator, ISlice, ICons, ISeq, IPush, IConcat
 {
     private array $data;
     private bool $usingBracket;
@@ -157,13 +157,22 @@ final class Tuple extends AbstractType implements ArrayAccess, Countable, Iterat
         return $this == $other;
     }
 
-    public function cdr(): ?ICdr
+    public function first()
     {
-        if (count($this->data) - 1 > 0) {
-            return new Tuple(array_slice($this->data, 1), $this->isUsingBracket());
+        if (count($this->data) > 0) {
+            return $this->data[0];
         }
 
         return null;
+    }
+
+    public function cdr(): ?ICdr
+    {
+        if ($this->count() <= 1) {
+            return null;
+        }
+
+        return new Tuple(array_slice($this->data, 1), $this->isUsingBracket());
     }
 
     public function rest(): IRest

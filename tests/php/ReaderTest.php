@@ -154,11 +154,10 @@ class ReaderTest extends TestCase
     public function testQuasiquote1()
     {
         $this->assertEquals(
-            $this->loc(new Tuple(
-                [
+            $this->loc(new Tuple([
                 $this->loc(Symbol::create(Symbol::NAME_QUOTE), 1, 1, 1, 8),
-                $this->loc(Symbol::create('unquote'), 1, 1, 1, 8)]
-            ), 1, 0, 1, 8),
+                $this->loc(Symbol::create('unquote'), 1, 1, 1, 8)
+            ]), 1, 0, 1, 8),
             $this->read('`unquote')
         );
     }
@@ -168,8 +167,8 @@ class ReaderTest extends TestCase
         $this->assertEquals(
             $this->loc(new Tuple([
                 $this->loc(Symbol::create(Symbol::NAME_QUOTE), 1, 1, 1, 2),
-                $this->loc(Symbol::create('a'), 1, 1, 1, 2)]
-            ), 1, 0, 1, 2),
+                $this->loc(Symbol::create('a'), 1, 1, 1, 2)
+            ]), 1, 0, 1, 2),
             $this->read('`a')
         );
     }

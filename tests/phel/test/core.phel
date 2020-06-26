@@ -377,11 +377,13 @@
 (assert (= "abc" (reduce str "" ["a" "b" "c"])) "reduce three elements tuple")
 (assert (= "abc" (reduce str "" [nil "a" "b" "c"])) "reduce tuple containing a nil value")
 (assert (= "x" (reduce str "x" [])) "reduce empty tuple")
+(assert (= 6 (reduce + 0 (set 1 2 3))) "reduce on set")
 
 (assert (= "abc" (reduce2 str ["a" "b" "c"])) "reduce2 three elements tuple")
 (assert (= "abc" (reduce2 str [nil "a" "b" "c"])) "reduce2 tuple containing a nil value")
 (assert (= "a" (reduce2 str ["a"])) "reduce2 one element tuple")
 (assert (= nil (reduce2 str [])) "reduce2 empty tuple")
+(assert (= 6 (reduce2 + (set 1 2 3))) "reduce2 on set tuple")
 
 (assert (= 3 (peek [1 2 3])) "peek on tuple")
 (assert (= nil (peek [])) "peek on empty tuple")
@@ -598,8 +600,12 @@
 (assert (= @[1 2 3 4 5 6 7] (flatten [1 [2 [3 4 [5]] 6 [7]]])) "flatten")
 (assert (= @[] (flatten nil)) "flatten nil")
 
-(assert (= (set 1 2 3) (push (set 1 2) 3)) "set push")
-(assert (= (set 1 2) (push (set 1 2) 2)) "set push existing value")
+(let [s1 (set 1 2)
+      s2 (push s1 3)]
+  (assert (= (set 1 2 3) s2) "set push"))
+(let [s1 (set 1 2)
+      s2 (push s1 2)]
+  (assert (= (set 1 2) s2) "set push existing value"))
 
 (assert (= (set 1 2 0 3) (concat (set 1 2) @[0 3])) "set concat array")
 (assert (= (set 1 2 0 3) (concat (set 1 2) @[0 1 2 3])) "set concat array with common values")

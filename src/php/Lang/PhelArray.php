@@ -10,7 +10,7 @@ use InvalidArgumentException;
 use Iterator;
 use Phel\Printer;
 
-final class PhelArray extends AbstractType implements ArrayAccess, Countable, Iterator, ICons, ISlice, ICdr, IRest, IPop, IRemove, IPush, IConcat
+final class PhelArray extends AbstractType implements ArrayAccess, Countable, Iterator, ICons, ISlice, ISeq, IPop, IRemove, IPush, IConcat
 {
     private array $data;
 
@@ -123,13 +123,22 @@ final class PhelArray extends AbstractType implements ArrayAccess, Countable, It
         return $this->data;
     }
 
-    public function cdr(): ?ICdr
+    public function first()
     {
-        if (count($this->data) - 1 > 0) {
-            return new PhelArray(array_slice($this->data, 1));
+        if (count($this->data) > 0) {
+            return $this->data[0];
         }
 
         return null;
+    }
+
+    public function cdr(): ?ICdr
+    {
+        if ($this->count() <= 1) {
+            return null;
+        }
+
+        return new PhelArray(array_slice($this->data, 1));
     }
 
     public function rest(): IRest

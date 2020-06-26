@@ -33,7 +33,7 @@ Given, a module `util` is defined in the namespace `hello-world`.
 (def my-name "Phel")
 
 (defn greet [name]
-    (print (str "Hello, " name)))
+  (print (str "Hello, " name)))
 ```
 
 Module `boot` imports module `util` and uses its functions and values.
@@ -51,6 +51,17 @@ To prevent name collision from other modules in different namespaces, aliases ca
 (ns hello-world\boot
   (:require hello-world\util :as utilities))
 ```
+
+Additionally, it is possible to refer symbols of other modules in the current namespace by using `:refer` keyword.
+
+```phel
+(ns hello-world\boot
+  (:require hello-world\util :refer [greet]))
+
+(greet util/my-name)
+```
+
+Both, `:refer` and `:as` can be combined in any order.
 
 ### Import a PHP class
 

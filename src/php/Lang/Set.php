@@ -2,13 +2,11 @@
 
 namespace Phel\Lang;
 
-use ArrayAccess;
 use Countable;
-use InvalidArgumentException;
 use Iterator;
 use Phel\Printer;
 
-class Set extends AbstractType implements Countable, Iterator, ICons, IPush, IConcat
+class Set extends AbstractType implements Countable, Iterator, ISeq, ICons, IPush, IConcat
 {
 
     /**
@@ -71,6 +69,29 @@ class Set extends AbstractType implements Countable, Iterator, ICons, IPush, ICo
     {
         $this->push($x);
         return $this;
+    }
+
+    public function first()
+    {
+        $this->rewind();
+        return $this->current();
+    }
+
+    public function cdr(): ?ICdr
+    {
+        if ($this->count() <= 1) {
+            return null;
+        }
+
+        return new PhelArray(array_slice($this->data, 1));
+    }
+
+    public function rest(): IRest
+    {
+        $this->rewind();
+        $this->next();
+
+        return new PhelArray(array_slice($this->data, 1));
     }
 
     public function push($x): IPush

@@ -26,6 +26,11 @@ final class ColorStyle
         $this->styles = $styles;
     }
 
+    public function green(string $str): string
+    {
+        return $this->color($str, 'green');
+    }
+
     public function yellow(string $str): string
     {
         return $this->color($str, 'yellow');

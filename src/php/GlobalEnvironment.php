@@ -20,6 +20,8 @@ final class GlobalEnvironment
 
     private array $definitions = [];
 
+    private array $refers = [];
+
     private array $requireAliases = [];
 
     private array $useAliases = [];
@@ -109,6 +111,11 @@ final class GlobalEnvironment
         return isset($this->useAliases[$inNamespace][$alias->getName()]);
     }
 
+    public function addRefer(string $inNamespace, Symbol $fnName, Symbol $ns): void
+    {
+        $this->refers[$inNamespace][$fnName->getName()] = $ns;
+    }
+
     public function resolve(Symbol $name, NodeEnvironment $env): ?Node
     {
         $strName = $name->getName();
@@ -195,10 +202,15 @@ final class GlobalEnvironment
 
     private function resolveWithoutAlias(Symbol $name, NodeEnvironment $env): ?GlobalVarNode
     {
+        $ns = $this->getNs();
+        if (isset($this->refers[$this->ns][$name->getName()])) {
+            $ns = $this->refers[$this->ns][$name->getName()]->getName();
+        }
+
         // Try to resolve in current namespace
-        $def = $this->getDefinition($this->getNs(), $name);
+        $def = $this->getDefinition($ns, $name);
         if ($def) {
-            return new GlobalVarNode($env, $this->getNs(), $name, $def, $name->getStartLocation());
+            return new GlobalVarNode($env, $ns, $name, $def, $name->getStartLocation());
         }
 
         // Try to resolve in phel.core namespace
