@@ -12,7 +12,6 @@ use Phel\Exceptions\AnalyzerException;
 use Phel\Lang\Symbol;
 use Phel\Lang\Tuple;
 use Phel\NodeEnvironment;
-use Phel\RecurFrame;
 
 final class LetSymbol
 {

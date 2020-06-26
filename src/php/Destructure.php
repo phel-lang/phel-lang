@@ -168,8 +168,7 @@ class Destructure
         $lastListSym = $arrSymbol;
         $state = 'start';
 
-        foreach ($b as $bValue) {
-            $current = $bValue;
+        foreach ($b as $current) {
             switch ($state) {
                 case 'start':
                     if ($current instanceof Symbol && $current->getName() === '&') {
