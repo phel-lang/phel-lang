@@ -65,11 +65,10 @@ class Run
             $ast = $readerResult->getAst();
 
             if ($ast instanceof Tuple
-                && $ast[0]
                 && $ast[0] instanceof Symbol
-                && $ast[0]->getName() == 'ns'
-                && $ast[1]
-                && $ast[1] instanceof Symbol) {
+                && $ast[1] instanceof Symbol
+                && $ast[0]->getName() === Symbol::NAME_NS
+            ) {
                 return $ast[1]->getName();
             }
 

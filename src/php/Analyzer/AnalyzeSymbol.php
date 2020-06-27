@@ -15,29 +15,40 @@ final class AnalyzeSymbol
 {
     use WithAnalyzer;
 
-    public function __invoke(Symbol $x, NodeEnvironment $env): Node
+    public function __invoke(Symbol $symbol, NodeEnvironment $env): Node
     {
-        if ($x->getNamespace() && $x->getNamespace() === 'php') {
-            return new PhpVarNode($env, $x->getName(), $x->getStartLocation());
+        if ($symbol->getNamespace() === 'php') {
+            return new PhpVarNode($env, $symbol->getName(), $symbol->getStartLocation());
         }
 
-        if ($env->hasLocal($x)) {
-            $shadowedVar = $env->getShadowed($x);
-            if ($shadowedVar) {
-                $shadowedVar->setStartLocation($x->getStartLocation());
-                $shadowedVar->setEndLocation($x->getEndLocation());
-
-                return new LocalVarNode($env, $shadowedVar, $x->getStartLocation());
-            }
-
-            return new LocalVarNode($env, $x, $x->getStartLocation());
+        if ($env->hasLocal($symbol)) {
+            return $this->createLocalVarNode($symbol, $env);
         }
 
-        $globalResolve = $this->analyzer->getGlobalEnvironment()->resolve($x, $env);
-        if ($globalResolve) {
-            return $globalResolve;
+        return $this->createGlobalResolve($symbol, $env);
+    }
+
+    private function createLocalVarNode(Symbol $symbol, NodeEnvironment $env): LocalVarNode
+    {
+        $shadowedVar = $env->getShadowed($symbol);
+
+        if ($shadowedVar) {
+            $shadowedVar->copyLocationFrom($symbol);
+
+            return new LocalVarNode($env, $shadowedVar, $symbol->getStartLocation());
         }
 
-        throw new AnalyzerException('Can not resolve symbol ' . $x->getFullName(), $x->getStartLocation(), $x->getEndLocation());
+        return new LocalVarNode($env, $symbol, $symbol->getStartLocation());
+    }
+
+    private function createGlobalResolve(Symbol $symbol, NodeEnvironment $env): Node
+    {
+        $globalResolve = $this->analyzer->getGlobalEnvironment()->resolve($symbol, $env);
+
+        if (!$globalResolve) {
+            throw AnalyzerException::withLocation('Can not resolve symbol ' . $symbol->getFullName(), $symbol);
+        }
+
+        return $globalResolve;
     }
 }

@@ -73,6 +73,10 @@ class Set extends AbstractType implements Countable, Iterator, ISeq, ICons, IPus
 
     public function first()
     {
+        if (count($this->data) == 0) {
+            return null;
+        }
+
         $this->rewind();
         return $this->current();
     }

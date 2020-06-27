@@ -721,6 +721,15 @@
         s2 (push s1 2)]
     (is (= (set 1 2) s2) "set push existing value")))
 
+(deftest test-set-first
+  (is (= 1 (first (set 1 2 3))) "set first element")
+  (is (= nil (first (set))) "set first element from empty set"))
+
+(deftest test-set-second
+  (is (= 2 (second (set 1 2 3))) "set second element")
+  (is (= nil (second (set))) "set second element from empty set")
+  (is (= nil (second (set 1))) "set second element from 1-ary set"))
+
 (deftest test-set-concat
   (is (= (set 1 2 0 3) (concat (set 1 2) @[0 3])) "set concat array")
   (is (= (set 1 2 0 3) (concat (set 1 2) @[0 1 2 3])) "set concat array with common values")
