@@ -6,6 +6,7 @@ namespace Phel\Analyzer\TupleSymbol;
 
 use Phel\Analyzer\WithAnalyzer;
 use Phel\Ast\DoNode;
+use Phel\Ast\Node;
 use Phel\Lang\Tuple;
 use Phel\NodeEnvironment;
 
@@ -32,7 +33,7 @@ final class DoSymbol
         );
     }
 
-    private function ret($tuple, $env)
+    private function ret(Tuple $tuple, NodeEnvironment $env): Node
     {
         $tupleCount = count($tuple);
 

@@ -21,7 +21,7 @@ final class LoopSymbol
     public function __invoke(Tuple $tuple, NodeEnvironment $env): LetNode
     {
         $tupleCount = count($tuple);
-        if (!($tuple[0] instanceof Symbol && $tuple[0] == Symbol::NAME_LOOP)) {
+        if (!($tuple[0] instanceof Symbol && $tuple[0]->getName() === Symbol::NAME_LOOP)) {
             throw AnalyzerException::withLocation("This is not a 'loop.", $tuple);
         }
 

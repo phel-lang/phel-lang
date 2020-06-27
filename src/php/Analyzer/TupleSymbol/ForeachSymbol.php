@@ -26,7 +26,8 @@ final class ForeachSymbol
             throw AnalyzerException::withLocation("First argument of 'foreach must be a tuple.", $tuple);
         }
 
-        if (count($tuple[1]) !== 2 && count($tuple[1]) !== 3) {
+        $firstArgCount = count($tuple[1]);
+        if ($firstArgCount !== 2 && $firstArgCount !== 3) {
             throw AnalyzerException::withLocation("Tuple of 'foreach must have exactly two or three elements.", $tuple);
         }
 

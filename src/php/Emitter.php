@@ -487,7 +487,7 @@ final class Emitter
         }
 
         // Close Expression
-        if ($node->isStatic() && $targetExpr instanceof PhpClassNameNode) {
+        if ($targetExpr instanceof PhpClassNameNode && $node->isStatic()) {
             $this->emitStr(')', $node->getStartSourceLocation());
         } else {
             $this->emitStr(';', $node->getStartSourceLocation());

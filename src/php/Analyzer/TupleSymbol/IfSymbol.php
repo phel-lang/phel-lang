@@ -6,6 +6,7 @@ namespace Phel\Analyzer\TupleSymbol;
 
 use Phel\Analyzer\WithAnalyzer;
 use Phel\Ast\IfNode;
+use Phel\Ast\Node;
 use Phel\Exceptions\AnalyzerException;
 use Phel\Lang\Tuple;
 use Phel\NodeEnvironment;
@@ -37,7 +38,7 @@ final class IfSymbol
         );
     }
 
-    private function elseExpr(Tuple $tuple, NodeEnvironment $env)
+    private function elseExpr(Tuple $tuple, NodeEnvironment $env): Node
     {
         if (count($tuple) === 3) {
             return $this->analyzer->analyze(null, $env);

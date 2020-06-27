@@ -338,7 +338,7 @@ final class Reader
 
         if (preg_match('/^([+-])?0[bB][01]+(_[01]+)*$/', $word, $matches)) {
             // binary numbers
-            $sign = (isset($matches[1]) && $matches[1] == '-') ? -1 : 1;
+            $sign = (isset($matches[1]) && $matches[1] === '-') ? -1 : 1;
             return $sign * bindec(str_replace('_', '', $word));
         }
 

@@ -12,7 +12,7 @@ class VLQ
     private const CHARS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/=';
 
     // Cache with precomputed values
-    private static $encoderCache = [
+    private static array $encoderCache = [
         -10 => 'V',
         -9 => 'T',
         -8 => 'R',

@@ -20,7 +20,7 @@ final class RecurSymbol
         $tupleCount = count($tuple);
         $frame = $env->getCurrentRecurFrame();
 
-        if (!($tuple[0] instanceof Symbol && $tuple[0] == Symbol::NAME_RECUR)) {
+        if (!($tuple[0] instanceof Symbol && $tuple[0]->getName() === Symbol::NAME_RECUR)) {
             throw AnalyzerException::withLocation("This is not a 'recur.", $tuple);
         }
 
