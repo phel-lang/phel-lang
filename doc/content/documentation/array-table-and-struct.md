@@ -3,7 +3,7 @@ title = "Array, Table, Struct and Set"
 weight = 9
 +++
 
-Phel has two mutable datastructures. An array is an indexed sequential datastructure and a table is an associative datastructure. While PHP has one single datastructure to represents arrays and hash tables, Phel splits them in two individual datastructures.
+Phel has three mutable datastructures. An array is an indexed sequential datastructure, a table is an associative datastructure and a set is a unsorted sequential data structure that cannot contain twice the same value. While PHP has one single datastructure to represents arrays and hash tables, Phel splits them in two individual datastructures.
 
 An array can be created using the `@[` reader macro or the `array` function.
 
@@ -19,7 +19,7 @@ A table can be created using the `@{` reader macro or the `table` function.
 (table :key1 "value1" :key2 "value2")
 ```
 
-A set is an unsorted sequential data structure that cannot contain twice the same value. It can be created using the `set` function.
+A set is can be created using the `set` function.
 
 ```phel
 (set 1 2 3)
@@ -118,7 +118,7 @@ To count the number of element of an array, a table or a set, the `count` functi
 (count (set)) # Evaluates to 0
 ```
 
-## Array as a Stack
+## Array/Set as a Stack
 
 An array can also be used as a stack. Therefore, the `push`, `peek` and `pop` functions can be used. The `push` function add a new value to the stack. The `peek` function returns the last element on the stack but does not remove it. The `pop` function returns the last element on the stack and removes it.
 
@@ -127,6 +127,12 @@ An array can also be used as a stack. Therefore, the `push`, `peek` and `pop` fu
   (push arr 1) # -> @[1]
   (peek arr) # Evaluates to 1, arr is unchanged
   (pop arr)) # Evaluates to 1, arr is empty @[]
+```
+
+A set can partially be used as a stack. Only the `push` function can be used.
+
+```phel
+(push (set 1 2) 3) # Evaluates to (set 1 2 3)
 ```
 
 ## Set operations
