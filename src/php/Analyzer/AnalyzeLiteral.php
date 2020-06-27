@@ -10,11 +10,11 @@ use Phel\NodeEnvironment;
 
 final class AnalyzeLiteral
 {
-    /** @param AbstractType|scalar|null $x */
-    public function __invoke($x, NodeEnvironment $env): LiteralNode
+    /** @param AbstractType|scalar|null $value */
+    public function __invoke($value, NodeEnvironment $env): LiteralNode
     {
-        $sourceLocation = ($x instanceof AbstractType) ? $x->getStartLocation() : null;
+        $sourceLocation = ($value instanceof AbstractType) ? $value->getStartLocation() : null;
 
-        return new LiteralNode($env, $x, $sourceLocation);
+        return new LiteralNode($env, $value, $sourceLocation);
     }
 }

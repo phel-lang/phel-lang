@@ -19,7 +19,10 @@ final class PhpObjectCallSymbol
 
     public function __invoke(Tuple $tuple, NodeEnvironment $env, bool $isStatic): PhpObjectCallNode
     {
-        $fnName = $isStatic ? 'php/::' : 'php/->';
+        $fnName = $isStatic
+            ? Symbol::NAME_PHP_OBJECT_STATIC_CALL
+            : Symbol::NAME_PHP_OBJECT_CALL;
+
         if (count($tuple) !== 3) {
             throw AnalyzerException::withLocation("Exactly two arguments are expected for '$fnName", $tuple);
         }

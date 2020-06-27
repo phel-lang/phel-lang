@@ -16,6 +16,7 @@ final class AnalyzeTable
     {
         $keyValues = [];
         $kvEnv = $env->withContext(NodeEnvironment::CTX_EXPR);
+
         foreach ($table as $key => $value) {
             $keyValues[] = $this->analyzer->analyze($key, $kvEnv);
             $keyValues[] = $this->analyzer->analyze($value, $kvEnv);

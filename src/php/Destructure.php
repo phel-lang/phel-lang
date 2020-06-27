@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Phel;
 
 use Exception;
@@ -10,14 +12,14 @@ use Phel\Lang\Symbol;
 use Phel\Lang\Table;
 use Phel\Lang\Tuple;
 
-class Destructure
+final class Destructure
 {
-    public function run(Tuple $x): array
+    public function run(Tuple $tuple): array
     {
         $bindings = [];
 
-        for ($i = 0; $i < count($x); $i+=2) {
-            $this->destructure($bindings, $x[$i], $x[$i+1]);
+        for ($i = 0, $iMax = count($tuple); $i < $iMax; $i += 2) {
+            $this->destructure($bindings, $tuple[$i], $tuple[$i + 1]);
         }
 
         return $bindings;
@@ -53,28 +55,18 @@ class Destructure
     public static function assertSupportedBinding($form): void
     {
         if (!self::isSupportedBinding($form)) {
-            if (is_object($form)) {
-                $type = get_class($form);
-            } else {
-                $type = gettype($form);
-            }
+            $type = is_object($form) ? get_class($form) : gettype($form);
 
             if ($form instanceof AbstractType) {
-                throw new AnalyzerException(
-                    'Can not destructure ' . $type,
-                    $form->getStartLocation(),
-                    $form->getEndLocation()
-                );
-            } else {
-                throw new AnalyzerException('Can not destructure ' . $type);
+                throw AnalyzerException::withLocation('Can not destructure ' . $type, $form);
             }
+
+            throw new AnalyzerException('Can not destructure ' . $type);
         }
     }
 
     /**
-     * @param array $bindings
      * @param AbstractType|scalar|null $binding
-     * @param mixed $value
      */
     private function destructure(array &$bindings, $binding, $value): void
     {
@@ -91,60 +83,45 @@ class Destructure
         }
     }
 
-    /**
-     * @param array $bindings
-     * @param Table $b
-     * @param mixed $value
-     */
-    private function processTable(array &$bindings, Table $b, $value): void
+    private function processTable(array &$bindings, Table $table, $value): void
     {
-        $tableSymbol = Symbol::gen()->copyLocationFrom($b);
+        $tableSymbol = Symbol::gen()->copyLocationFrom($table);
         $bindings[] = [$tableSymbol, $value];
 
-        foreach ($b as $key => $bindTo) {
-            $accessSym = Symbol::gen()->copyLocationFrom($b);
+        foreach ($table as $key => $bindTo) {
+            $accessSym = Symbol::gen()->copyLocationFrom($table);
             $accessValue = Tuple::create(
-                (Symbol::create('php/aget'))->copyLocationFrom($b),
+                (Symbol::create(Symbol::NAME_PHP_ARRAY_GET))->copyLocationFrom($table),
                 $tableSymbol,
                 $key
-            )->copyLocationFrom($b);
+            )->copyLocationFrom($table);
             $bindings[] = [$accessSym, $accessValue];
 
             $this->destructure($bindings, $bindTo, $accessSym);
         }
     }
 
-    /**
-     * @param array $bindings
-     * @param PhelArray $b
-     * @param mixed $value
-     */
-    private function processArray(array &$bindings, PhelArray $b, $value): void
+    private function processArray(array &$bindings, PhelArray $phelArray, $value): void
     {
-        $arrSymbol = Symbol::gen()->copyLocationFrom($b);
+        $arrSymbol = Symbol::gen()->copyLocationFrom($phelArray);
         $bindings[] = [$arrSymbol, $value];
 
-        for ($i = 0; $i < count($b); $i+=2) {
-            $index = $b[$i];
-            $bindTo = $b[$i+1];
+        for ($i = 0, $iMax = count($phelArray); $i < $iMax; $i += 2) {
+            $index = $phelArray[$i];
+            $bindTo = $phelArray[$i + 1];
 
-            $accessSym = Symbol::gen()->copyLocationFrom($b);
+            $accessSym = Symbol::gen()->copyLocationFrom($phelArray);
             $accessValue = Tuple::create(
-                (Symbol::create('php/aget'))->copyLocationFrom($b),
+                (Symbol::create(Symbol::NAME_PHP_ARRAY_GET))->copyLocationFrom($phelArray),
                 $arrSymbol,
                 $index
-            )->copyLocationFrom($b);
+            )->copyLocationFrom($phelArray);
             $bindings[] = [$accessSym, $accessValue];
 
             $this->destructure($bindings, $bindTo, $accessSym);
         }
     }
 
-    /**
-     * @param array $bindings
-     * @param Symbol $b
-     * @param mixed $value
-     */
     private function processSymbol(array &$bindings, Symbol $binding, $value): void
     {
         if ($binding->getName() === '_') {
@@ -155,24 +132,18 @@ class Destructure
         }
     }
 
-    /**
-     * @param array $bindings
-     * @param Tuple $b
-     * @param mixed $value
-     */
-    private function processTuple(array &$bindings, Tuple $b, $value): void
+    private function processTuple(array &$bindings, Tuple $tuple, $value): void
     {
-        $arrSymbol = Symbol::gen()->copyLocationFrom($b);
+        $arrSymbol = Symbol::gen()->copyLocationFrom($tuple);
 
         $bindings[] = [$arrSymbol, $value];
         $lastListSym = $arrSymbol;
         $state = 'start';
 
-        for ($i = 0; $i < count($b); $i++) {
-            $current = $b[$i];
+        foreach ($tuple as $current) {
             switch ($state) {
                 case 'start':
-                    if ($current instanceof Symbol && $current->getName() == '&') {
+                    if ($current instanceof Symbol && $current->getName() === '&') {
                         $state = 'rest';
                     } else {
                         $accessSym = Symbol::gen()->copyLocationFrom($current);
@@ -200,10 +171,9 @@ class Destructure
                     $this->destructure($bindings, $current, $accessSym);
                     break;
                 case 'done':
-                    throw new AnalyzerException(
+                    throw AnalyzerException::withLocation(
                         'Unsupported binding form, only one symbol can follow the & parameter',
-                        $b->getStartLocation(),
-                        $b->getEndLocation()
+                        $tuple
                     );
             }
         }

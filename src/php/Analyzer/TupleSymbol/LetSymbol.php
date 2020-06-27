@@ -12,7 +12,6 @@ use Phel\Exceptions\AnalyzerException;
 use Phel\Lang\Symbol;
 use Phel\Lang\Tuple;
 use Phel\NodeEnvironment;
-use Phel\RecurFrame;
 
 final class LetSymbol
 {
@@ -72,7 +71,7 @@ final class LetSymbol
             $bodyEnv = $bodyEnv->withShadowedLocal($binding->getSymbol(), $binding->getShadow());
         }
 
-        $bodyExpr = $this->analyzer->analyze(Tuple::create(Symbol::create('do'), ...$exprs), $bodyEnv);
+        $bodyExpr = $this->analyzer->analyze(Tuple::create(Symbol::create(Symbol::NAME_DO), ...$exprs), $bodyEnv);
 
         return new LetNode(
             $env,

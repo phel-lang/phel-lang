@@ -8,6 +8,35 @@ use Phel\Printer;
 
 final class Symbol extends AbstractType implements IIdentical
 {
+    public const NAME_APPLY = 'apply';
+    public const NAME_ARRAY = 'array';
+    public const NAME_CONCAT = 'concat';
+    public const NAME_DEF = 'def';
+    public const NAME_DEF_STRUCT = 'defstruct*';
+    public const NAME_DO = 'do';
+    public const NAME_FN = 'fn';
+    public const NAME_FOREACH = 'foreach';
+    public const NAME_IF = 'if';
+    public const NAME_LET = 'let';
+    public const NAME_LOOP = 'loop';
+    public const NAME_NS = 'ns';
+    public const NAME_PHP_ARRAY_GET = 'php/aget';
+    public const NAME_PHP_ARRAY_PUSH = 'php/apush';
+    public const NAME_PHP_ARRAY_SET = 'php/aset';
+    public const NAME_PHP_ARRAY_UNSET = 'php/aunset';
+    public const NAME_PHP_NEW = 'php/new';
+    public const NAME_PHP_OBJECT_CALL = 'php/->';
+    public const NAME_PHP_OBJECT_STATIC_CALL = 'php/::';
+    public const NAME_QUOTE = 'quote';
+    public const NAME_RECUR = 'recur';
+    public const NAME_UNQUOTE = 'unquote';
+    public const NAME_UNQUOTE_SPLICING = 'unquote-splicing';
+    public const NAME_TABLE = 'table';
+    public const NAME_THROW = 'throw';
+    public const NAME_TRY = 'try';
+    public const NAME_TUPLE = 'tuple';
+    public const NAME_TUPLE_BRACKETS = 'tuple-brackets';
+
     private static int $symGenCounter = 1;
 
     private ?string $namespace;
@@ -20,7 +49,7 @@ final class Symbol extends AbstractType implements IIdentical
         $this->name = $name;
     }
 
-    public static function create($name)
+    public static function create(string $name): Symbol
     {
         $pos = strpos($name, '/');
 
@@ -31,7 +60,7 @@ final class Symbol extends AbstractType implements IIdentical
         return new Symbol(substr($name, 0, $pos), substr($name, $pos + 1));
     }
 
-    public static function createForNamespace($namespace, $name)
+    public static function createForNamespace(?string $namespace, string $name): Symbol
     {
         return new Symbol($namespace, $name);
     }
