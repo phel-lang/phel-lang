@@ -1,0 +1,9 @@
+(ns phel\test\index
+  (:require phel\test :as test))
+
+(test/run-tests
+  'phel\test\core
+  'phel\test\http)
+
+(when (> (get-in test/stats [:counts :failed]) 0)
+  (php/exit 1))

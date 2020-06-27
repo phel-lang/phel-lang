@@ -12,6 +12,7 @@ $rt = Runtime::initialize();
 $rt->addPath('phel\\', [__DIR__ . '/../src/phel']);
 $rt->loadNs('phel\core');
 $rt->loadNs('phel\http');
+$rt->loadNs('phel\test');
 
 echo "+++\n";
 echo "title = \"API\"\n";

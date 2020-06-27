@@ -1,5 +1,6 @@
 (ns phel\test\core
-  (:use DateTime))
+  (:use DateTime)
+  (:require phel\test :refer [deftest is]))
 
 (def stats @{
   :total 0
@@ -8,20 +9,22 @@
 })
 
 (defn assert [test err]
-  (do
-    (update-in stats [:total] inc)
-    (if test
-      (do
-        (update-in stats [:successful] inc)
-        (print ".")
-        (when (= (% (get stats :total) 80) 0)
-          (println)))
-      (do
-        (update-in stats [:failed] inc)
-        (php/print "\n")
-        (php/print "e ")
-        (php/print err)
-        (php/print "\n")))))
+  #(do
+  #  (update-in stats [:total] inc)
+  #  (if test
+  #    (do
+  #      (update-in stats [:successful] inc)
+  #      (print ".")
+  #      (when (= (% (get stats :total) 80) 0)
+  #        (println)))
+  #    (do
+  #      (update-in stats [:failed] inc)
+  #      (php/print "\n")
+  #      (php/print "e ")
+  #      (php/print err)
+  #      (php/print "\n"))))
+
+        )
 
 (defn print-summary []
   (do
@@ -41,789 +44,949 @@
 # Destructuring
 # -------------
 
-(assert (= (let [[a b] @[1 2]] (+ a b)) 3) "destructure tuple")
-(assert (= (let [[a b] (php/array 1 2)] (+ a b)) 3) "destructure tuple on PHP arrays")
-(assert (= (let [[a [c d] b] @[1 (tuple 4 3) 2]] (+ a b c d)) 10) "nested destructured")
-(assert (= (let [[a _ b] @[1 2 3]] (+ a b)) 4) "destructure tuple, ignore values")
+(deftest destructure-tuple
+  (is (= 3 (let [[a b] @[1 2]] (+ a b))) "from array")
+  (is (= 3 (let [[a b] (php/array 1 2)] (+ a b))) "from php array")
+  (is (= 10 (let [[a [c d] b] @[1 (tuple 4 3) 2]] (+ a b c d))) "nested")
+  (is (= 4 (let [[a _ b] @[1 2 3]] (+ a b))) "ignore value"))
 
-(assert (= (let [@{:a a :b b} @{:a 1 :b 2}] (+ a b)) 3) "destructure table")
-(assert (= (let [@{:a [a1 a2] :b b} @{:a [1 3] :b 2}] (+ a1 a2 b)) 6) "nested destructure table")
-(assert (= (let [@[0 a 1 b] @[1 2]] (+ a b)) 3) "destructure array")
-(assert (= (let [@[0 a 1 b] (php/array 1 2)] (+ a b)) 3) "destructure array on PHP arrays")
-(assert (= (let [@[0 [a1 a2] 1 b] @[[1 3] 2]] (+ a1 a2 b)) 6) "nested destructure array")
+(deftest destructure-table
+  (is (= 3 (let [@{:a a :b b} @{:a 1 :b 2}] (+ a b))) "destructure table")
+  (is (= 6 (let [@{:a [a1 a2] :b b} @{:a [1 3] :b 2}] (+ a1 a2 b))) "nested destructure table")
+  (is (= 3 (let [@[0 a 1 b] @[1 2]] (+ a b))) "destructure array")
+  (is (= 3 (let [@[0 a 1 b] (php/array 1 2)] (+ a b))) "destructure array on PHP arrays")
+  (is (= 6 (let [@[0 [a1 a2] 1 b] @[[1 3] 2]] (+ a1 a2 b))) "nested destructure array"))
 
 # ------------------
 # Basic constructors
 # ------------------
 
-(assert (= '(1 2 3) (tuple '1 '2 '3)) "construct tuple")
-(assert (= '[1 2 3] (tuple-brackets '1 '2 '3)) "construct bracket tuple")
-(assert (= @[1 2 3] (array 1 2 3)) "construct array")
-(assert (= :a (keyword "a")) "construct keyword")
-(assert (= @{:a 1 :b 2} (table :a 1 :b 2)) "construct table")
-(assert (= (set 1 2 3 :a :b :c) (set 1 2 3 :a :b :c :c 1 2 3)) "construct set")
+(deftest create-tuple
+  (is (= '(1 2 3) (tuple '1 '2 '3)) "construct tuple")
+  (is (= '[1 2 3] (tuple-brackets '1 '2 '3)) "construct bracket tuple"))
 
-(let [arr (php-indexed-array "a" "b")]
-  (assert (= "a" (php/aget arr 0)) "php-associative-array: first key")
-  (assert (= "b" (php/aget arr 1)) "php-associative-array: second key"))
+(deftest create-array
+  (is (= @[1 2 3] (array 1 2 3)) "construct array"))
 
-(let [arr (php-associative-array "a" 1 "b" 2)]
-  (assert (= 1 (php/aget arr "a")) "php-associative-array: first key")
-  (assert (= 2 (php/aget arr "b")) "php-associative-array: second key"))
+(deftest create-keyword
+  (is (= :a (keyword "a")) "construct keyword"))
+
+(deftest create-table
+  (is (= @{:a 1 :b 2} (table :a 1 :b 2)) "construct table"))
+
+(deftest create-set
+  (is (= (set 1 2 3 :a :b :c) (set 1 2 3 :a :b :c :c 1 2 3)) "construct set"))
+
+(deftest create-php-indexed-array
+  (let [arr (php-indexed-array "a" "b")]
+    (is (= "a" (php/aget arr 0)) "php-indexed-array: first key")
+    (is (= "b" (php/aget arr 1)) "php-indexed-array: second key")))
+
+(deftest create-php-associative-array
+  (let [arr (php-associative-array "a" 1 "b" 2)]
+    (is (= 1 (php/aget arr "a")) "php-associative-array: first key")
+    (is (= 2 (php/aget arr "b")) "php-associative-array: second key")))
 
 # ----------------------------
 # Basic methods for quasiquote
 # ----------------------------
 
-(assert (= nil (next [])) "next of empty tuple")
-(assert (= nil (next [1])) "next of one element tuple")
-(assert (= [2] (next [1 2])) "next of two element tuple")
+(deftest test-next
+  (is (= nil (next [])) "next of empty tuple")
+  (is (= nil (next [1])) "next of one element tuple")
+  (is (= [2] (next [1 2])) "next of two element tuple"))
 
-(assert (= @[1 2] (concat @[1 2])) "concat one argument")
-(assert (= @[1 2 3 4] (concat @[1] @[2 3] @[4])) "concat three arguments")
-(assert (= [1 2 3 4] (concat [1 2] [3 4])) "concat tuples")
+(deftest test-concat
+  (is (= @[1 2] (concat @[1 2])) "concat one argument")
+  (is (= @[1 2 3 4] (concat @[1] @[2 3] @[4])) "concat three arguments")
+  (is (= [1 2 3 4] (concat [1 2] [3 4])) "concat tuples"))
 
 # -------------------------
 # Basic sequence operations
 # -------------------------
 
-(assert (= (php/array 1 2) (cons 1 (php/array 2))) "cons php array")
-(assert (= [1 2] (cons 1 [2])) "cons tuple")
-(assert (= @[1 2] (cons 1 @[2])) "cons array")
-(assert (= @[1] (cons 1 nil)) "cons nil")
+(deftest test-cons
+  (is (= (php/array 1 2) (cons 1 (php/array 2))) "cons php array")
+  (is (= [1 2] (cons 1 [2])) "cons tuple")
+  (is (= @[1 2] (cons 1 @[2])) "cons array")
+  (is (= @[1] (cons 1 nil)) "cons nil"))
 
-(assert (= 1 (first [1])) "first of tuple")
-(assert (= nil (first [])) "frist of empty tuple")
-(assert (= 1 (first @[1])) "first of array")
-(assert (= nil (first @[])) "frist of empty array")
-(assert (= 1 (first (php/array 1))) "first of php array")
-(assert (= nil (first (php/array))) "frist of empty php array")
-(assert (= nil (first nil)) "frist of nil")
+(deftest test-first
+  (is (= 1 (first [1])) "first of tuple")
+  (is (= nil (first [])) "frist of empty tuple")
+  (is (= 1 (first @[1])) "first of array")
+  (is (= nil (first @[])) "frist of empty array")
+  (is (= 1 (first (php/array 1))) "first of php array")
+  (is (= nil (first (php/array))) "frist of empty php array")
+  (is (= nil (first nil)) "frist of nil"))
 
-(assert (= 1 (ffirst [[1]])) "ffirst of nested tuple")
-(assert (= nil (ffirst [1])) "ffirst of tuple")
-(assert (= nil (ffirst nil)) "ffirst of nil")
+(deftest test-ffirst
+  (is (= 1 (ffirst [[1]])) "ffirst of nested tuple")
+  (is (= nil (ffirst [1])) "ffirst of tuple")
+  (is (= nil (ffirst nil)) "ffirst of nil"))
 
-(assert (= 2 (second [1 2])) "second of tuple")
-(assert (= nil (second [])) "second of empty tuple")
-(assert (= 2 (second @[1 2])) "second of array")
-(assert (= nil (second @[])) "second of empty array")
-(assert (= 2 (second (php/array 1 2))) "second of pgp array")
-(assert (= nil (second (php/array))) "second of empty php array")
-(assert (= nil (second nil)) "second of nil")
+(deftest test-second
+  (is (= 2 (second [1 2])) "second of tuple")
+  (is (= nil (second [])) "second of empty tuple")
+  (is (= 2 (second @[1 2])) "second of array")
+  (is (= nil (second @[])) "second of empty array")
+  (is (= 2 (second (php/array 1 2))) "second of pgp array")
+  (is (= nil (second (php/array))) "second of empty php array")
+  (is (= nil (second nil)) "second of nil"))
 
-(assert (= [2] (rest [1 2])) "rest of two element tuple")
-(assert (= [] (rest [1])) "rest of one element tuple")
-(assert (= [] (rest [])) "rest of empty tuple")
+(deftest test-rest
+  (is (= [2] (rest [1 2])) "rest of two element tuple")
+  (is (= [] (rest [1])) "rest of one element tuple")
+  (is (= [] (rest [])) "rest of empty tuple"))
 
-(assert (= [2] (nfirst [[1 2]])) "(nfirst [[1 2]])")
-(assert (= [3] (nnext [1 2 3])) "(nnext [1 2 3])")
+(deftest test-nfirst
+  (is (= [2] (nfirst [[1 2]])) "(nfirst [[1 2]])"))
 
-(assert (= 0 (count [])) "count of empty tuple")
-(assert (= 0 (count nil)) "count of nil")
-(assert (= 0 (count @[])) "count of empty array")
-(assert (= 0 (count (php/array))) "count of empty php array")
-(assert (= 0 (count @{})) "count of empty table")
-(assert (= 1 (count ["a"])) "count of one element tuple")
-(assert (= 1 (count @["a"])) "count of one element array")
-(assert (= 1 (count (php/array "a"))) "count of one element php array")
-(assert (= 1 (count @{:a 1})) "count of one element table")
+(deftest test-nnext
+  (is (= [3] (nnext [1 2 3])) "(nnext [1 2 3])"))
+
+(deftest test-count
+  (is (= 0 (count [])) "count of empty tuple")
+  (is (= 0 (count nil)) "count of nil")
+  (is (= 0 (count @[])) "count of empty array")
+  (is (= 0 (count (php/array))) "count of empty php array")
+  (is (= 0 (count @{})) "count of empty table")
+  (is (= 1 (count ["a"])) "count of one element tuple")
+  (is (= 1 (count @["a"])) "count of one element array")
+  (is (= 1 (count (php/array "a"))) "count of one element php array")
+  (is (= 1 (count @{:a 1})) "count of one element table"))
 
 # ------------------------
 # Control structure macros
 # ------------------------
 
-(assert (= 2 (if-not true 1 2)) "if-not true")
-(assert (= 1 (if-not false 1 2)) "if-not false")
+(deftest test-if-not
+  (is (= 2 (if-not true 1 2)) "if-not true")
+  (is (= 1 (if-not false 1 2)) "if-not false"))
 
-(assert (= 1 (when true 1)) "when true")
-(assert (= nil (when false 1)) "when false")
+(deftest test-when
+  (is (= 1 (when true 1)) "when true")
+  (is (= nil (when false 1)) "when false"))
 
-(assert (= nil (when-not true 1)) "when-not true")
-(assert (= 1 (when-not false 1)) "when-not false")
+(deftest test-when-not
+  (is (= nil (when-not true 1)) "when-not true")
+  (is (= 1 (when-not false 1)) "when-not false"))
 
-(assert (= nil (cond)) "cond zero args")
-(assert (= 1 (cond 1)) "cond one arg")
-(assert (= 1 (cond true 1 2)) "cond true")
-(assert (= 2 (cond false 1 2)) "cond false")
+(deftest test-cond
+  (is (= nil (cond)) "cond zero args")
+  (is (= 1 (cond 1)) "cond one arg")
+  (is (= 1 (cond true 1 2)) "cond true")
+  (is (= 2 (cond false 1 2)) "cond false"))
 
-(assert (= nil (case true)) "case zero args")
-(assert (= 1 (case true 1)) "case one arg")
-# (assert (= nil (case true false 2)) "case one test without default")
-(assert (= 1 (case true false 2 1)) "case one failed test with default")
-# (assert (= 2 (case true true 2)) "case one successful test without default")
-(assert (= 2 (case true true 2 1)) "case one successful test with default")
+(deftest test-case
+  (is (= nil (case true)) "case zero args")
+  (is (= 1 (case true 1)) "case one arg")
+  (is (= nil (case true false 2)) "case one test without default")
+  (is (= 1 (case true false 2 1)) "case one failed test with default")
+  (is (= 2 (case true true 2)) "case one successful test without default")
+  (is (= 2 (case true true 2 1)) "case one successful test with default"))
 
 # ----------------
 # Boolean operation
 # ----------------
 
-(assert (= nil (or)) "or zero args")
-(assert (= true (or true)) "(or true)")
-(assert (= false (or false)) "(or false")
-(assert (= true (or true false)) "(or true false)")
-(assert (= true (or false true)) "(or false true)")
-(assert (= false (or false false)) "(or false false)")
-(assert (= 10 (or false 10)) "(or false 10)")
-(assert (= 10 (or 10)) "(or 10)")
+(deftest test-or
+  (is (= nil (or)) "or zero args")
+  (is (= true (or true)) "(or true)")
+  (is (= false (or false)) "(or false")
+  (is (= true (or true false)) "(or true false)")
+  (is (= true (or false true)) "(or false true)")
+  (is (= false (or false false)) "(or false false)")
+  (is (= 10 (or false 10)) "(or false 10)")
+  (is (= 10 (or 10)) "(or 10)"))
 
-(assert (= true (and)) "(and)")
-(assert (= true (and true)) "(and true)")
-(assert (= true (and true true)) "(and true true)")
-(assert (= false (and false)) "(and false)")
-(assert (= false (and true false)) "(and true false)")
-(assert (= false (and true false true)) "(and true false true)")
-(assert (= 10 (and true 10)) "(and true 10)")
-(assert (= false (and false 10)) "(and false 10)")
-(assert (= 10 (and 10)) "(and 10)")
+(deftest test-and
+  (is (= true (and)) "(and)")
+  (is (= true (and true)) "(and true)")
+  (is (= true (and true true)) "(and true true)")
+  (is (= false (and false)) "(and false)")
+  (is (= false (and true false)) "(and true false)")
+  (is (= false (and true false true)) "(and true false true)")
+  (is (= 10 (and true 10)) "(and true 10)")
+  (is (= false (and false 10)) "(and false 10)")
+  (is (= 10 (and 10)) "(and 10)"))
 
-(assert (= true (id false)) "(id false)")
-(assert (= true (id false false)) "(id false false)")
-(assert (= true (id false false false)) "(id false false false)")
-(assert (= false (id false true false)) "(id false true false)")
-(assert (= true (id 10 10)) "(id 10 10)")
-(assert (= false (id 10 10.0)) "(id 10 10.0)")
-(assert (= true (id :test :test)) "keywords are always identical")
-(assert (= true (id 'test 'test)) "symbol are always identical")
-(assert (= false (id [] [])) "two empty tuples are not identical")
-(assert (= false (id @[] @[])) "two empty arrays are not identical")
-(assert (= false (id @{} @{})) "two empty tables are not identical")
+(deftest test-id
+  (is (= true (id false)) "(id false)")
+  (is (= true (id false false)) "(id false false)")
+  (is (= true (id false false false)) "(id false false false)")
+  (is (= false (id false true false)) "(id false true false)")
+  (is (= true (id 10 10)) "(id 10 10)")
+  (is (= false (id 10 10.0)) "(id 10 10.0)")
+  (is (= true (id :test :test)) "keywords are always identical")
+  (is (= true (id 'test 'test)) "symbol are always identical")
+  (is (= false (id [] [])) "two empty tuples are not identical")
+  (is (= false (id @[] @[])) "two empty arrays are not identical")
+  (is (= false (id @{} @{})) "two empty tables are not identical"))
 
+(deftest test-=
+  (is (= true (= false)) "(= false)")
+  (is (= true (= false false)) "(= false false)")
+  (is (= true (= false false false)) "(= false false false)")
+  (is (= false (= false true false)) "(= false true false)")
+  (is (= true (= 10 10)) "(= 10 10)")
+  (is (= false (= 10 10.0)) "(= 10 10.0)")
+  (is (= true (= :test :test)) "keywords are always equal")
+  (is (= true (= 'test 'test)) "symbol are always equal")
+  (is (= true (= [] [])) "two empty tuples are equal")
+  (is (= true (= @[] @[])) "two empty arrays are equal")
+  (is (= true (= @{} @{})) "two empty tables are equal"))
 
-(assert (= true (= false)) "(= false)")
-(assert (= true (= false false)) "(= false false)")
-(assert (= true (= false false false)) "(= false false false)")
-(assert (= false (= false true false)) "(= false true false)")
-(assert (= true (= 10 10)) "(= 10 10)")
-(assert (= false (= 10 10.0)) "(= 10 10.0)")
-(assert (= true (= :test :test)) "keywords are always equal")
-(assert (= true (= 'test 'test)) "symbol are always equal")
-(assert (= true (= [] [])) "two empty tuples are equal")
-(assert (= true (= @[] @[])) "two empty arrays are equal")
-(assert (= true (= @{} @{})) "two empty tables are equal")
+(deftest test-not
+  (is (= false (not true)) "(not true)")
+  (is (= true (not false)) "(not false)")
+  (is (= false (not 10)) "(not 10)")
+  (is (= false (not [])) "(not [])"))
 
-(assert (= false (not true)) "(not true)")
-(assert (= true (not false)) "(not false)")
-(assert (= false (not 10)) "(not 10)")
-(assert (= false (not [])) "(not [])")
+(deftest test-not=
+  (is (= false (not= false)) "(not= false)")
+  (is (= false (not= false false)) "(not= false false)")
+  (is (= false (not= false false false)) "(not= false false false)")
+  (is (= true (not= false true false)) "(not= false true false)")
+  (is (= false (not= 10 10)) "(not= 10 10)")
+  (is (= true (not= 10 10.0)) "(not= 10 10.0)"))
 
-(assert (= false (not= false)) "(not= false)")
-(assert (= false (not= false false)) "(not= false false)")
-(assert (= false (not= false false false)) "(not= false false false)")
-(assert (= true (not= false true false)) "(not= false true false)")
-(assert (= false (not= 10 10)) "(not= 10 10)")
-(assert (= true (not= 10 10.0)) "(not= 10 10.0)")
+(deftest test-<
+  (is (= true (< 10)) "(< 10)")
+  (is (= true (< 10 20)) "(< 10 20)")
+  (is (= true (< 10 20 30)) "(< 10 20 30)")
+  (is (= false (< 10 10)) "(< 10 10)")
+  (is (= false (< 10 9)) "(< 10 9)")
+  (is (= false (< 10 20 15)) "(< 10 20 15)")
+  (is (= false (< 10 20 20)) "(< 10 20 20)"))
 
-(assert (= true (< 10)) "(< 10)")
-(assert (= true (< 10 20)) "(< 10 20)")
-(assert (= true (< 10 20 30)) "(< 10 20 30)")
-(assert (= false (< 10 10)) "(< 10 10)")
-(assert (= false (< 10 9)) "(< 10 9)")
-(assert (= false (< 10 20 15)) "(< 10 20 15)")
-(assert (= false (< 10 20 20)) "(< 10 20 20)")
+(deftest test-<=
+  (is (= true (<= 10)) "(<= 10)")
+  (is (= true (<= 10 20)) "(<= 10 20)")
+  (is (= true (<= 10 20 30)) "(<= 10 20 30)")
+  (is (= true (<= 10 10)) "(<= 10 10)")
+  (is (= false (<= 10 9)) "(<= 10 9)")
+  (is (= false (<= 10 20 15)) "(<= 10 20 15)")
+  (is (= true (<= 10 20 20)) "(<= 10 20 20)"))
 
-(assert (= true (<= 10)) "(<= 10)")
-(assert (= true (<= 10 20)) "(<= 10 20)")
-(assert (= true (<= 10 20 30)) "(<= 10 20 30)")
-(assert (= true (<= 10 10)) "(<= 10 10)")
-(assert (= false (<= 10 9)) "(<= 10 9)")
-(assert (= false (<= 10 20 15)) "(<= 10 20 15)")
-(assert (= true (<= 10 20 20)) "(<= 10 20 20)")
+(deftest test->
+  (is (= true (> 10)) "(> 10)")
+  (is (= true (> 20 10)) "(> 20 10)")
+  (is (= true (> 30 20 10)) "(> 30 20 10)")
+  (is (= false (> 10 10)) "(> 10 10)")
+  (is (= false (> 9 10)) "(> 9 10)")
+  (is (= false (> 20 10 15)) "(> 20 20 15)")
+  (is (= false (> 20 20 10)) "(> 20 20 10)"))
 
-(assert (= true (> 10)) "(> 10)")
-(assert (= true (> 20 10)) "(> 20 10)")
-(assert (= true (> 30 20 10)) "(> 30 20 10)")
-(assert (= false (> 10 10)) "(> 10 10)")
-(assert (= false (> 9 10)) "(> 9 10)")
-(assert (= false (> 20 10 15)) "(> 20 20 15)")
-(assert (= false (> 20 20 10)) "(> 20 20 10)")
+(deftest test->=
+  (is (= true (>= 10)) "(>= 10)")
+  (is (= true (>= 20 10)) "(>= 20 10)")
+  (is (= true (>= 30 20 10)) "(>= 30 20 10)")
+  (is (= true (>= 10 10)) "(>= 10 10)")
+  (is (= false (>= 9 10)) "(>= 9 10)")
+  (is (= false (>= 20 10 15)) "(>= 20 20 15)")
+  (is (= true (>= 20 20 10)) "(>= 20 20 10)"))
 
-(assert (= true (>= 10)) "(>= 10)")
-(assert (= true (>= 20 10)) "(>= 20 10)")
-(assert (= true (>= 30 20 10)) "(>= 30 20 10)")
-(assert (= true (>= 10 10)) "(>= 10 10)")
-(assert (= false (>= 9 10)) "(>= 9 10)")
-(assert (= false (>= 20 10 15)) "(>= 20 20 15)")
-(assert (= true (>= 20 20 10)) "(>= 20 20 10)")
+(deftest test-all?
+  (is (= true (all? pos? @[1 2 3])) "all pos? in list")
+  (is (= true (all? pos? @[])) "all pos? in empty list")
+  (is (= false (all? pos? @[1 -1 3])) "all pos? in list"))
 
-(assert (= true (all? pos? @[1 2 3])) "all pos? in list")
-(assert (= true (all? pos? @[])) "all pos? in empty list")
-(assert (= false (all? pos? @[1 -1 3])) "all pos? in list")
+(deftest test-some?
+  (is (= true (some? pos? @[1 2 3])) "some pos? in list")
+  (is (= false (some? pos? @[])) "some pos? in empty list")
+  (is (= true (some? pos? @[1 -1 3])) "some pos? in list")
+  (is (= false (some? pos? @[-1 -1 -3])) "some pos? in list"))
 
-(assert (= true (some? pos? @[1 2 3])) "some pos? in list")
-(assert (= false (some? pos? @[])) "some pos? in empty list")
-(assert (= true (some? pos? @[1 -1 3])) "some pos? in list")
-(assert (= false (some? pos? @[-1 -1 -3])) "some pos? in list")
+(deftest test-true?
+  (is (= true (true? true)) "(true? true)")
+  (is (= false (true? [])) "(true? [])")
+  (is (= false (true? 10)) "(true? 10)")
+  (is (= false (true? nil)) "(true? nil)")
+  (is (= false (true? false)) "(true? false)"))
 
-(assert (= true (true? true)) "(true? true)")
-(assert (= false (true? [])) "(true? [])")
-(assert (= false (true? 10)) "(true? 10)")
-(assert (= false (true? nil)) "(true? nil)")
-(assert (= false (true? false)) "(true? false)")
+(deftest test-truthy?
+  (is (= true (truthy? true)) "(truthy? true)")
+  (is (= true (truthy? [])) "(truthy? [])")
+  (is (= true (truthy? 10)) "(truthy? 10)")
+  (is (= false (truthy? nil)) "(truthy? nil)")
+  (is (= false (truthy? false)) "(truthy? false)"))
 
-(assert (= true (truthy? true)) "(truthy? true)")
-(assert (= true (truthy? [])) "(truthy? [])")
-(assert (= true (truthy? 10)) "(truthy? 10)")
-(assert (= false (truthy? nil)) "(truthy? nil)")
-(assert (= false (truthy? false)) "(truthy? false)")
+(deftest test-false?
+  (is (= true (false? false)) "(false? false)")
+  (is (= false (false? nil)) "(false? nil)")
+  (is (= false (false? true)) "(false? true)"))
 
-(assert (= true (false? false)) "(false? false)")
-(assert (= false (false? nil)) "(false? nil)")
-(assert (= false (false? true)) "(false? true)")
-
-(assert (= -1 (compare 1 2)) "(compare 1 2)")
-(assert (= 1 (compare 2 1)) "(compare 2 1)")
-(assert (= 0 (compare 1 1)) "(compare 1 1)")
+(deftest test-compare
+  (is (= -1 (compare 1 2)) "(compare 1 2)")
+  (is (= 1 (compare 2 1)) "(compare 2 1)")
+  (is (= 0 (compare 1 1)) "(compare 1 1)"))
 
 # --------------
 # Type operation
 # --------------
 
-(assert (= :tuple (type [])) "type of bracket tuple")
-(assert (= :tuple (type '())) "type of tuple")
-(assert (= :table (type @{})) "type of table")
-(assert (= :set (type (set))) "type of set")
-(assert (= :keyword (type :test)) "type of keyword")
-(assert (= :symbol (type 'x)) "type of symbol")
-(assert (= :int (type 10)) "type of int")
-(assert (= :float (type 10.0)) "type of float")
-(assert (= :string (type "test")) "type of string")
-(assert (= :nil (type nil)) "type of nil")
-(assert (= :boolean (type true)) "type of boolean")
-(assert (= :boolean (type false)) "type of boolean")
-(assert (= :function (type concat)) "type of function")
-(assert (= :php/array (type (php/array))) "type of php array")
-(assert (= :php/resource (type (php/tmpfile))) "type of php resource")
-(assert (= :php/object (type (php/new DateTime))) "type of php object")
+(deftest test-type
+  (is (= :tuple (type [])) "type of bracket tuple")
+  (is (= :tuple (type '())) "type of tuple")
+  (is (= :table (type @{})) "type of table")
+  (is (= :set (type (set))) "type of set")
+  (is (= :keyword (type :test)) "type of keyword")
+  (is (= :symbol (type 'x)) "type of symbol")
+  (is (= :int (type 10)) "type of int")
+  (is (= :float (type 10.0)) "type of float")
+  (is (= :string (type "test")) "type of string")
+  (is (= :nil (type nil)) "type of nil")
+  (is (= :boolean (type true)) "type of boolean")
+  (is (= :boolean (type false)) "type of boolean")
+  (is (= :function (type concat)) "type of function")
+  (is (= :php/array (type (php/array))) "type of php array")
+  (is (= :php/resource (type (php/tmpfile))) "type of php resource")
+  (is (= :php/object (type (php/new DateTime))) "type of php object"))
 
-(assert (= true (nil? nil)) "nil? on nil")
-(assert (= false (nil? false)) "nil? on false")
-(assert (= false (nil? true)) "nil? on true")
+(deftest test-nil?
+  (is (= true (nil? nil)) "nil? on nil")
+  (is (= false (nil? false)) "nil? on false")
+  (is (= false (nil? true)) "nil? on true"))
 
-(assert (= true (float? 10.0)) "float? on 10.0")
-(assert (= true (float? 0.0)) "float? on 0.0")
-(assert (= false (float? 10)) "float? on 10")
-(assert (= false (float? 0)) "float? on 10")
+(deftest test-float?
+  (is (= true (float? 10.0)) "float? on 10.0")
+  (is (= true (float? 0.0)) "float? on 0.0")
+  (is (= false (float? 10)) "float? on 10")
+  (is (= false (float? 0)) "float? on 10"))
 
-(assert (= false (int? 10.0)) "int? on 10.0")
-(assert (= false (int? 0.0)) "int? on 0.0")
-(assert (= true (int? 10)) "int? on 10")
-(assert (= true (int? 0)) "int? on 10")
+(deftest test-int?
+  (is (= false (int? 10.0)) "int? on 10.0")
+  (is (= false (int? 0.0)) "int? on 0.0")
+  (is (= true (int? 10)) "int? on 10")
+  (is (= true (int? 0)) "int? on 10"))
 
-(assert (= true (number? 10.0)) "number? on 10.0")
-(assert (= true (number? 0.0)) "number? on 0.0")
-(assert (= true (number? 10)) "number? on 10")
-(assert (= true (number? 0)) "number? on 10")
-(assert (= false (number? "10")) "number? on '10'")
-(assert (= false (number? "0")) "number? on '0'")
+(deftest test-number?
+  (is (= true (number? 10.0)) "number? on 10.0")
+  (is (= true (number? 0.0)) "number? on 0.0")
+  (is (= true (number? 10)) "number? on 10")
+  (is (= true (number? 0)) "number? on 10")
+  (is (= false (number? "10")) "number? on '10'")
+  (is (= false (number? "0")) "number? on '0'"))
 
-(assert (= true (string? "test")) "string? on 'test'")
-(assert (= true (string? "")) "string? on empty string")
-(assert (= true (string? ":test")) "string? on ':test'")
+(deftest test-string?
+  (is (= true (string? "test")) "string? on 'test'")
+  (is (= true (string? "")) "string? on empty string")
+  (is (= true (string? ":test")) "string? on ':test'"))
 
-(assert (= true (keyword? :test)) "keyword? on :test")
-(assert (= false (keyword? ":test")) "keyword? on string")
+(deftest test-keyword?
+  (is (= true (keyword? :test)) "keyword? on :test")
+  (is (= false (keyword? ":test")) "keyword? on string"))
 
-(assert (= true (symbol? 'x)) "symbol? on 'x")
+(deftest test-symbol?
+  (is (= true (symbol? 'x)) "symbol? on 'x"))
 
-(assert (= true (function? concat)) "function? on concat")
+(deftest test-function?
+  (is (= true (function? concat)) "function? on concat"))
 
-(assert (= true (table? @{})) "table?")
+(deftest test-table?
+  (is (= true (table? @{})) "table?"))
 
-(assert (= true (array? @[])) "array? on phel array")
-(assert (= false (array? (php/array))) "array? on php array")
+(deftest test-array?
+  (is (= true (array? @[])) "array? on phel array")
+  (is (= false (array? (php/array))) "array? on php array"))
 
-(assert (= true (tuple? [])) "tuple?")
-(assert (= true (tuple-brackets? [])) "tuple-brackets?")
-(assert (= true (tuple-parens? '())) "tuple-parens?")
+(deftest test-tuple?
+  (is (= true (tuple? [])) "tuple?")
+  (is (= true (tuple-brackets? [])) "tuple-brackets?")
+  (is (= true (tuple-parens? '())) "tuple-parens?"))
 
-(assert (= true (boolean? true)) "boolean? on true")
-(assert (= true (boolean? false)) "boolean? on false")
-(assert (= false (boolean? nil)) "boolean? on nil")
+(deftest test-boolean?
+  (is (= true (boolean? true)) "boolean? on true")
+  (is (= true (boolean? false)) "boolean? on false")
+  (is (= false (boolean? nil)) "boolean? on nil"))
 
-(assert (= true (php-array? (php/array))) "php-array? on php array")
-(assert (= false (php-array? @[])) "php-array? on phel array")
+(deftest test-php-array?
+  (is (= true (php-array? (php/array))) "php-array? on php array")
+  (is (= false (php-array? @[])) "php-array? on phel array"))
 
-(assert (= true (php-resource? (php/tmpfile))) "php-resource?")
+(deftest test-php-resource?
+  (is (= true (php-resource? (php/tmpfile))) "php-resource?"))
 
-(assert (= true (php-object? (php/new DateTime))) "php-object?")
+(deftest test-php-object?
+  (is (= true (php-object? (php/new DateTime))) "php-object?"))
 
-(assert (= true (empty? @[])) "empty? on empty phel array")
-(assert (= true (empty? [])) "empty? on empty phel tuple")
-(assert (= true (empty? (php/array))) "empty? on empty php array")
-(assert (= true (empty? @{})) "empty? on empty table")
-(assert (= false (empty? @[1])) "empty? on one element array")
-(assert (= false (empty? [1])) "empty? on one element tuple")
-(assert (= false (empty? (php/array 1))) "empty? on one element php array")
-(assert (= false (empty? @{:a 1})) "empty? on one element table")
+(deftest test-empty?
+  (is (= true (empty? @[])) "empty? on empty phel array")
+  (is (= true (empty? [])) "empty? on empty phel tuple")
+  (is (= true (empty? (php/array))) "empty? on empty php array")
+  (is (= true (empty? @{})) "empty? on empty table")
+  (is (= false (empty? @[1])) "empty? on one element array")
+  (is (= false (empty? [1])) "empty? on one element tuple")
+  (is (= false (empty? (php/array 1))) "empty? on one element php array")
+  (is (= false (empty? @{:a 1})) "empty? on one element table"))
 
-(assert (= false (indexed? @{})) "indexed? on table")
-(assert (= true (indexed? @[])) "indexed? on array")
-(assert (= true (indexed? [])) "indexed? on tuple")
-(assert (= true (indexed? (php/array))) "indexed? on php array")
+(deftest test-indexed?
+  (is (= false (indexed? @{})) "indexed? on table")
+  (is (= true (indexed? @[])) "indexed? on array")
+  (is (= true (indexed? [])) "indexed? on tuple")
+  (is (= true (indexed? (php/array))) "indexed? on php array"))
 
 # ------------------
 # Sequence operation
 # ------------------
 
-(assert (= @["1" "2"] (map str [1 2])) "map1")
-(assert (= @["13" "24"] (map str [1 2] [3 4])) "map2")
-(assert (= @["13" "24"] (map str [1 2 10] [3 4])) "map2 unequal size")
-(assert (= @[[0 "a"] [1 "b"] [2 "c"]] (map-indexed tuple-brackets ["a" "b" "c"])) "map-indexed")
-(assert (= @[1 2 3 4 5 6] (mapcat reverse [[3 2 1] [6 5 4]])) "mapcat")
-(assert (= @[] (mapcat identity [])) "mapcat on empty tuple")
-(assert (= @[] (mapcat identity @[])) "mapcat on empty array")
+(deftest test-map
+  (is (= @["1" "2"] (map str [1 2])) "map1")
+  (is (= @["13" "24"] (map str [1 2] [3 4])) "map2")
+  (is (= @["13" "24"] (map str [1 2 10] [3 4])) "map2 unequal size"))
 
-(assert (= "abc" (reduce str "" ["a" "b" "c"])) "reduce three elements tuple")
-(assert (= "abc" (reduce str "" [nil "a" "b" "c"])) "reduce tuple containing a nil value")
-(assert (= "x" (reduce str "x" [])) "reduce empty tuple")
-(assert (= 6 (reduce + 0 (set 1 2 3))) "reduce on set")
+(deftest test-map-indexed
+  (is (= @[[0 "a"] [1 "b"] [2 "c"]] (map-indexed tuple-brackets ["a" "b" "c"])) "map-indexed"))
 
-(assert (= "abc" (reduce2 str ["a" "b" "c"])) "reduce2 three elements tuple")
-(assert (= "abc" (reduce2 str [nil "a" "b" "c"])) "reduce2 tuple containing a nil value")
-(assert (= "a" (reduce2 str ["a"])) "reduce2 one element tuple")
-(assert (= nil (reduce2 str [])) "reduce2 empty tuple")
-(assert (= 6 (reduce2 + (set 1 2 3))) "reduce2 on set tuple")
+(deftest test-mapcat
+  (is (= @[1 2 3 4 5 6] (mapcat reverse [[3 2 1] [6 5 4]])) "mapcat")
+  (is (= @[] (mapcat identity [])) "mapcat on empty tuple")
+  (is (= @[] (mapcat identity @[])) "mapcat on empty array"))
 
-(assert (= 3 (peek [1 2 3])) "peek on tuple")
-(assert (= nil (peek [])) "peek on empty tuple")
-(assert (= 3 (peek @[1 2 3])) "peek on array")
-(assert (= nil (peek @[])) "peek on empty array")
-(assert (= 3 (peek (php/array 1 2 3))) "peek on php array")
-(assert (= nil (peek (php/array))) "peek on empty php array")
+(deftest test-reduce
+  (is (= "abc" (reduce str "" ["a" "b" "c"])) "reduce three elements tuple")
+  (is (= "abc" (reduce str "" [nil "a" "b" "c"])) "reduce tuple containing a nil value")
+  (is (= "x" (reduce str "x" [])) "reduce empty tuple")
+  (is (= 6 (reduce + 0 (set 1 2 3))) "reduce on set"))
 
-(let [x @[]]
-  (push x 1)
-  (assert (= @[1] x) "push on array"))
+(deftest test-reduce2
+  (is (= "abc" (reduce2 str ["a" "b" "c"])) "reduce2 three elements tuple")
+  (is (= "abc" (reduce2 str [nil "a" "b" "c"])) "reduce2 tuple containing a nil value")
+  (is (= "a" (reduce2 str ["a"])) "reduce2 one element tuple")
+  (is (= nil (reduce2 str [])) "reduce2 empty tuple")
+  (is (= 6 (reduce2 + (set 1 2 3))) "reduce2 on set tuple"))
 
-(let [x (php/array)]
-  (push x 1)
-  (assert (= (php/array 1) x) "push on PHP array"))
+(deftest test-peek
+  (is (= 3 (peek [1 2 3])) "peek on tuple")
+  (is (= nil (peek [])) "peek on empty tuple")
+  (is (= 3 (peek @[1 2 3])) "peek on array")
+  (is (= nil (peek @[])) "peek on empty array")
+  (is (= 3 (peek (php/array 1 2 3))) "peek on php array")
+  (is (= nil (peek (php/array))) "peek on empty php array"))
 
-(let [x @[1 2]
-      y (pop x)]
-  (assert (= @[1] x) "pop: last element is removed")
-  (assert (= 2 y) "pop: last element is returned"))
+(deftest test-push
+  (let [x @[]]
+    (push x 1)
+    (is (= @[1] x) "push on array"))
 
-(let [x (php/array 1 2)
-      y (pop x)]
-  (assert (= (php/array 1) x) "pop on PHP array: last element is removed")
-  (assert (= 2 y) "pop on PHP array: last element is returned"))
+  (let [x (php/array)]
+    (push x 1)
+    (is (= (php/array 1) x) "push on PHP array")))
 
-(let [xs @[1 2 3 4]
-     removed (remove xs 2)]
-  (assert (= @[1 2] xs) "remove: elements are removed")
-  (assert (= @[3 4] removed) "remove: correct value is returned"))
+(deftest test-pop
+  (let [x @[1 2]
+        y (pop x)]
+    (is (= @[1] x) "pop: last element is removed")
+    (is (= 2 y) "pop: last element is returned"))
 
-(let [xs (php/array 1 2 3 4)
-     removed (remove xs 2)]
-  (assert (= (php/array 1 2) xs) "remove on PHP array: elements are removed")
-  (assert (= (php/array 3 4) removed) "remove on PHP array: correct value is returned"))
+  (let [x (php/array 1 2)
+        y (pop x)]
+    (is (= (php/array 1) x) "pop on PHP array: last element is removed")
+    (is (= 2 y) "pop on PHP array: last element is returned")))
 
-(let [xs @[1 2 3 4]
-     removed (remove xs 2 1)]
-  (assert (= @[1 2 4] xs) "remove with length: elements are removed")
-  (assert (= @[3] removed) "remove with length: correct value is returned"))
+(deftest test-remove
+  (let [xs @[1 2 3 4]
+      removed (remove xs 2)]
+    (is (= @[1 2] xs) "remove: elements are removed")
+    (is (= @[3 4] removed) "remove: correct value is returned"))
 
-(let [xs (php/array 1 2 3 4)
-     removed (remove xs 2 1)]
-  (assert (= (php/array 1 2 4) xs) "remove with length on PHP array: elements are removed")
-  (assert (= (php/array 3) removed) "remove with length on PHP array: correct value is returned"))
+  (let [xs (php/array 1 2 3 4)
+      removed (remove xs 2)]
+    (is (= (php/array 1 2) xs) "remove on PHP array: elements are removed")
+    (is (= (php/array 3 4) removed) "remove on PHP array: correct value is returned"))
 
-(assert (= @[3 4] (slice @[1 2 3 4] 2)) "slice on array")
-(assert (= @[3] (slice @[1 2 3 4] 2 1)) "slice with length on array")
-(assert (= [3 4] (slice [1 2 3 4] 2)) "slice on tuple")
-(assert (= [3] (slice [1 2 3 4] 2 1)) "slice with length on tuple")
+  (let [xs @[1 2 3 4]
+      removed (remove xs 2 1)]
+    (is (= @[1 2 4] xs) "remove with length: elements are removed")
+    (is (= @[3] removed) "remove with length: correct value is returned"))
 
-(assert (= "b" (get (php/array "a" "b" "c") 1)) "get on php array")
-(assert (= "b" (get @["a" "b" "c"] 1)) "get on array")
-(assert (= "b" (get ["a" "b" "c"] 1)) "get on tuple")
-(assert (= "a" (get @{:a "a" :b "b"} :a)) "get on table")
-(assert (= nil (get nil 1)) "get on nil")
-(assert (= nil (get @["a" "b" "c"] 10)) "get on undefined index")
-(assert (= nil (get @{:a "a" :b "b"} :c)) "get on undefined key")
-(assert (= "x" (get nil 1 "x")) "get on nil with optional value")
-(assert (= "x" (get @["a" "b" "c"] 10 "x")) "get on undefined index with optional value")
-(assert (= "x" (get @{:a "a" :b "b"} :c "x")) "get on undefined key with optional value")
-(assert (id 0 (get @{:a 0} :a)) "gets zero from a table")
+  (let [xs (php/array 1 2 3 4)
+      removed (remove xs 2 1)]
+    (is (= (php/array 1 2 4) xs) "remove with length on PHP array: elements are removed")
+    (is (= (php/array 3) removed) "remove with length on PHP array: correct value is returned")))
 
-(assert (= "a" (get-in @["a"] [0])) "get-in level 1")
-(assert (= "a" (get-in @{:a @["a"]} [:a 0])) "get-in level 2")
-(assert (= "a" (get-in @{:a @[["b" "a"]]} [:a 0 1])) "get-in level 3")
-(assert (= "x" (get-in @{:a @[["b" "a"]]} [:b 0 1] "x")) "get-in level 3 with default")
+(deftest test-slice
+  (is (= @[3 4] (slice @[1 2 3 4] 2)) "slice on array")
+  (is (= @[3] (slice @[1 2 3 4] 2 1)) "slice with length on array")
+  (is (= [3 4] (slice [1 2 3 4] 2)) "slice on tuple")
+  (is (= [3] (slice [1 2 3 4] 2 1)) "slice with length on tuple"))
 
-(assert (= @["a" "c"] (put @["a" "b"] 1 "c")) "put: replace entry on array")
-(assert (= @["a" "b" "c"] (put @["a" "b"] 2 "c")) "put: append entry on array")
-(assert (= @[nil nil "a"] (put @[] 2 "a")) "put: extends array with nil values")
-(assert (= @["a" nil "c"] (put @["a" "b" "c"] 1 nil)) "put: set nil value")
-(assert (= @{:a nil :b 2} (put @{:a 1 :b 2} :a nil)) "put: nil on table")
-(assert (= @{:a 3 :b 2} (put @{:a 1 :b 2} :a 3)) "put: replace entry on table")
-(assert (= @{:a 1 :b 2 :c 3} (put @{:a 1 :b 2} :c 3)) "put: append entry on table")
+(deftest test-get
+  (is (= "b" (get (php/array "a" "b" "c") 1)) "get on php array")
+  (is (= "b" (get @["a" "b" "c"] 1)) "get on array")
+  (is (= "b" (get ["a" "b" "c"] 1)) "get on tuple")
+  (is (= "a" (get @{:a "a" :b "b"} :a)) "get on table")
+  (is (= nil (get nil 1)) "get on nil")
+  (is (= nil (get @["a" "b" "c"] 10)) "get on undefined index")
+  (is (= nil (get @{:a "a" :b "b"} :c)) "get on undefined key")
+  (is (= "x" (get nil 1 "x")) "get on nil with optional value")
+  (is (= "x" (get @["a" "b" "c"] 10 "x")) "get on undefined index with optional value")
+  (is (= "x" (get @{:a "a" :b "b"} :c "x")) "get on undefined key with optional value")
+  (is (id 0 (get @{:a 0} :a)) "gets zero from a table"))
 
-(assert (= @[:a :c :d] (unset @[:a :b :c :d] 1)) "unset: remove index from array")
-(assert (= @{:b 2} (unset @{:a 1 :b 2} :a)) "unset: remove key from table")
+(deftest test-get-in
+  (is (= "a" (get-in @["a"] [0])) "get-in level 1")
+  (is (= "a" (get-in @{:a @["a"]} [:a 0])) "get-in level 2")
+  (is (= "a" (get-in @{:a @[["b" "a"]]} [:a 0 1])) "get-in level 3")
+  (is (= "x" (get-in @{:a @[["b" "a"]]} [:b 0 1] "x")) "get-in level 3 with default"))
 
-(assert (= @{:a @{:b @{:c 1}}} (put-in @{:a @{}} @[:a :b :c] 1)) "put-in: autocreate tables")
-(assert (= @{:a @{:b @{:c 2}}} (put-in @{:a @{:b @{:c 1}}} @[:a :b :c] 2)) "put-in: update value of table")
-(assert (= @{:a @{:b @[2]}} (put-in @{:a @{:b @[1]}} @[:a :b 0] 2)) "put-in: update value of array")
+(deftest test-put
+  (is (= @["a" "c"] (put @["a" "b"] 1 "c")) "put: replace entry on array")
+  (is (= @["a" "b" "c"] (put @["a" "b"] 2 "c")) "put: append entry on array")
+  (is (= @[nil nil "a"] (put @[] 2 "a")) "put: extends array with nil values")
+  (is (= @["a" nil "c"] (put @["a" "b" "c"] 1 nil)) "put: set nil value")
+  (is (= @{:a nil :b 2} (put @{:a 1 :b 2} :a nil)) "put: nil on table")
+  (is (= @{:a 3 :b 2} (put @{:a 1 :b 2} :a 3)) "put: replace entry on table")
+  (is (= @{:a 1 :b 2 :c 3} (put @{:a 1 :b 2} :c 3)) "put: append entry on table"))
 
-(assert (= @{:a 2} (update-in @{:a 1} @[:a] inc)) "update-in: update value of table")
-(assert (= @{:a @{:b @{:c 1}}} (update-in @{:a @{}} @[:a :b :c] inc)) "update-in: autocreate tables")
-(assert (= @{:a @{:b @[2]}} (update-in @{:a @{:b @[1]}} @[:a :b 0] inc)) "update-in: update value of array")
+(deftest test-unset
+  (is (= @[:a :c :d] (unset @[:a :b :c :d] 1)) "unset: remove index from array")
+  (is (= @{:b 2} (unset @{:a 1 :b 2} :a)) "unset: remove key from table"))
 
-(assert (= @["a" "b" "c"] (drop 0 @["a" "b" "c"])) "drop two elements")
-(assert (= @["c"] (drop 2 @["a" "b" "c"])) "drop two elements")
-(assert (= @[] (drop 3 @["a" "b" "c"])) "drop three elements")
-(assert (= @[] (drop 4 @["a" "b" "c"])) "drop four elements")
-(assert (= @["a" "b" "c"] (drop -1 @["a" "b" "c"])) "drop with negative number")
-(assert (= ["c"] (drop 2 ["a" "b" "c"])) "drop on tuple")
-(assert (= (php/array "c") (drop 2 (php/array "a" "b" "c"))) "drop on php array")
+(deftest test-put-in
+  (is (= @{:a @{:b @{:c 1}}} (put-in @{:a @{}} @[:a :b :c] 1)) "put-in: autocreate tables")
+  (is (= @{:a @{:b @{:c 2}}} (put-in @{:a @{:b @{:c 1}}} @[:a :b :c] 2)) "put-in: update value of table")
+  (is (= @{:a @{:b @[2]}} (put-in @{:a @{:b @[1]}} @[:a :b 0] 2)) "put-in: update value of array"))
 
-(assert (= @[1 2 3 4 -1 -2 -3] (drop-while neg? @[-1 -2 -3 1 2 3 4 -1 -2 -3])) "drop-while: first three element")
-(assert (= @[] (drop-while neg? @[-1 -2 -3])) "drop-while: everything")
-(assert (= @[] (drop-while neg? @[])) "drop-while: empty array")
-(assert (= @[1 2 3 4] (drop-while neg? @[1 2 3 4])) "drop-while: nothing")
-(assert (= [1 2 3 4 -1 -2 -3] (drop-while neg? [-1 -2 -3 1 2 3 4 -1 -2 -3])) "drop-while: tuple")
-(assert (= (php/array 1 2 3 4 -1 -2 -3) (drop-while neg? (php/array -1 -2 -3 1 2 3 4 -1 -2 -3))) "drop-while: php array")
+(deftest test-update-in
+  (is (= @{:a 2} (update-in @{:a 1} @[:a] inc)) "update-in: update value of table")
+  (is (= @{:a @{:b @{:c 1}}} (update-in @{:a @{}} @[:a :b :c] inc)) "update-in: autocreate tables")
+  (is (= @{:a @{:b @[2]}} (update-in @{:a @{:b @[1]}} @[:a :b 0] inc)) "update-in: update value of array"))
 
-(assert (= @["a" "b"] (take 2 @["a" "b" "c"])) "take two elements")
-(assert (= @["a" "b" "c"] (take 3 @["a" "b" "c"])) "take three elements")
-(assert (= @["a" "b" "c"] (take 4 @["a" "b" "c"])) "take four elements")
-(assert (= @[] (take 0 @["a" "b" "c"])) "take zero elements")
-(assert (= @[] (take -1 @["a" "b" "c"])) "take with negative number")
-(assert (= ["a" "b"] (take 2 ["a" "b" "c"])) "take on tuple")
-(assert (= (php/array "a" "b") (take 2 (php/array "a" "b" "c"))) "take on php array")
+(deftest test-drop
+  (is (= @["a" "b" "c"] (drop 0 @["a" "b" "c"])) "drop two elements")
+  (is (= @["c"] (drop 2 @["a" "b" "c"])) "drop two elements")
+  (is (= @[] (drop 3 @["a" "b" "c"])) "drop three elements")
+  (is (= @[] (drop 4 @["a" "b" "c"])) "drop four elements")
+  (is (= @["a" "b" "c"] (drop -1 @["a" "b" "c"])) "drop with negative number")
+  (is (= ["c"] (drop 2 ["a" "b" "c"])) "drop on tuple")
+  (is (= (php/array "c") (drop 2 (php/array "a" "b" "c"))) "drop on php array"))
 
-(assert (= @[-1 -2 -3] (take-while neg? @[-1 -2 -3 1 2 3 4 -4 -5 -6])) "take-while: first three element")
-(assert (= @[-1 -2 -3] (take-while neg? @[-1 -2 -3])) "take-while: everything")
-(assert (= @[] (take-while neg? @[1 2 3 4])) "take-while: nothing")
-(assert (= @[] (take-while neg? @[])) "take-while: empty array")
-(assert (= @[-1 -2 -3] (take-while neg? [-1 -2 -3 1 2 3 4 -4 -5 -6])) "take-while on tuple")
-(assert (= @[-1 -2 -3] (take-while neg? (php/array -1 -2 -3 1 2 3 4 -4 -5 -6))) "take-while on php array")
+(deftest test-drop-while
+  (is (= @[1 2 3 4 -1 -2 -3] (drop-while neg? @[-1 -2 -3 1 2 3 4 -1 -2 -3])) "drop-while: first three element")
+  (is (= @[] (drop-while neg? @[-1 -2 -3])) "drop-while: everything")
+  (is (= @[] (drop-while neg? @[])) "drop-while: empty array")
+  (is (= @[1 2 3 4] (drop-while neg? @[1 2 3 4])) "drop-while: nothing")
+  (is (= [1 2 3 4 -1 -2 -3] (drop-while neg? [-1 -2 -3 1 2 3 4 -1 -2 -3])) "drop-while: tuple")
+  (is (= (php/array 1 2 3 4 -1 -2 -3) (drop-while neg? (php/array -1 -2 -3 1 2 3 4 -1 -2 -3))) "drop-while: php array"))
 
-(assert (= @[-1 -2 -3] (filter neg? @[-1 2 3 -2 -3 4 5])) "filter: neg?")
-(assert (= @[-1 -2 -3] (filter neg? [-1 2 3 -2 -3 4 5])) "filter on tuple")
-(assert (= @[-1 -2 -3] (filter neg? (php/array -1 2 3 -2 -3 4 5))) "filter on php array")
+(deftest test-take
+  (is (= @["a" "b"] (take 2 @["a" "b" "c"])) "take two elements")
+  (is (= @["a" "b" "c"] (take 3 @["a" "b" "c"])) "take three elements")
+  (is (= @["a" "b" "c"] (take 4 @["a" "b" "c"])) "take four elements")
+  (is (= @[] (take 0 @["a" "b" "c"])) "take zero elements")
+  (is (= @[] (take -1 @["a" "b" "c"])) "take with negative number")
+  (is (= ["a" "b"] (take 2 ["a" "b" "c"])) "take on tuple")
+  (is (= (php/array "a" "b") (take 2 (php/array "a" "b" "c"))) "take on php array"))
 
-(assert (= @[true false false true true false false] (keep neg? @[-1 2 3 -2 -3 4 5])) "keep: neg?")
-(assert (= @[-1 -2 -3] (keep (fn [x] (if (neg? x) x nil)) @[-1 2 3 -2 -3 4 5])) "keep: filter nil")
+(deftest test-take-while
+  (is (= @[-1 -2 -3] (take-while neg? @[-1 -2 -3 1 2 3 4 -4 -5 -6])) "take-while: first three element")
+  (is (= @[-1 -2 -3] (take-while neg? @[-1 -2 -3])) "take-while: everything")
+  (is (= @[] (take-while neg? @[1 2 3 4])) "take-while: nothing")
+  (is (= @[] (take-while neg? @[])) "take-while: empty array")
+  (is (= @[-1 -2 -3] (take-while neg? [-1 -2 -3 1 2 3 4 -4 -5 -6])) "take-while on tuple")
+  (is (= @[-1 -2 -3] (take-while neg? (php/array -1 -2 -3 1 2 3 4 -4 -5 -6))) "take-while on php array"))
 
-(assert (= @[:b :d] (keep-indexed (fn [idx x] (if (odd? idx) x)) @[:a :b :c :d :e])) "keep-indexed")
+(deftest test-filter
+  (is (= @[-1 -2 -3] (filter neg? @[-1 2 3 -2 -3 4 5])) "filter: neg?")
+  (is (= @[-1 -2 -3] (filter neg? [-1 2 3 -2 -3 4 5])) "filter on tuple")
+  (is (= @[-1 -2 -3] (filter neg? (php/array -1 2 3 -2 -3 4 5))) "filter on php array"))
 
-(assert (= -1 (find neg? @[1 2 3 -1 2 3])) "find first neg number")
-(assert (= nil (find neg? @[1 2 3 2 3])) "find: nothing to find")
-(assert (= nil (find neg? @[])) "find on empty array")
+(deftest test-keep
+  (is (= @[true false false true true false false] (keep neg? @[-1 2 3 -2 -3 4 5])) "keep: neg?")
+  (is (= @[-1 -2 -3] (keep (fn [x] (if (neg? x) x nil)) @[-1 2 3 -2 -3 4 5])) "keep: filter nil"))
 
-(assert (= 3 (find-index neg? @[1 2 3 -1 2 3])) "find-index first neg number")
-(assert (= nil (find-index neg? @[1 2 3 2 3])) "find-index: nothing to find")
-(assert (= nil (find-index neg? @[])) "find-index on empty array")
+(deftest test-keep-indexed
+  (is (= @[:b :d] (keep-indexed (fn [idx x] (if (odd? idx) x)) @[:a :b :c :d :e])) "keep-indexed"))
 
-(assert (= @[1 2 3] (distinct @[1 1 2 3 2 2 3 1])) "distinct: array")
-(assert (= @[1 2 3] (distinct (php/array 1 1 2 3 2 2 3 1))) "distinct: php array")
+(deftest test-neg?
+  (is (= -1 (find neg? @[1 2 3 -1 2 3])) "find first neg number")
+  (is (= nil (find neg? @[1 2 3 2 3])) "find: nothing to find")
+  (is (= nil (find neg? @[])) "find on empty array"))
 
-(assert (= @[3 2 1] (reverse [1 2 3])) "reverse: tuple")
-(assert (= @[3 2 1] (reverse @[1 2 3])) "reverse: array")
-(assert (= @[] (reverse nil)) "reverse: nil")
+(deftest test-find-index?
+  (is (= 3 (find-index neg? @[1 2 3 -1 2 3])) "find-index first neg number")
+  (is (= nil (find-index neg? @[1 2 3 2 3])) "find-index: nothing to find")
+  (is (= nil (find-index neg? @[])) "find-index on empty array"))
 
+(deftest test-distinct
+  (is (= @[1 2 3] (distinct @[1 1 2 3 2 2 3 1])) "distinct: array")
+  (is (= @[1 2 3] (distinct (php/array 1 1 2 3 2 2 3 1))) "distinct: php array"))
 
-(assert (= @[:a 1 :b 2 :c 3] (interleave [:a :b :c] [1 2 3])) "interleave equal size")
-(assert (= @[:a 1 :b 2] (interleave [:a :b :c] [1 2])) "interleave different size")
+(deftest test-reverse
+  (is (= @[3 2 1] (reverse [1 2 3])) "reverse: tuple")
+  (is (= @[3 2 1] (reverse @[1 2 3])) "reverse: array")
+  (is (= @[] (reverse nil)) "reverse: nil"))
 
-(assert (= @["a" "," "b" "," "c"] (interpose "," ["a" "b" "c"])) "interpose")
+(deftest test-interleave
+  (is (= @[:a 1 :b 2 :c 3] (interleave [:a :b :c] [1 2 3])) "interleave equal size")
+  (is (= @[:a 1 :b 2] (interleave [:a :b :c] [1 2])) "interleave different size"))
 
-(assert (= @{1 2 2 3 3 2 4 1} (frequencies [1 1 2 3 2 2 3 4])) "frequencies")
+(deftest test-interpose
+  (is (= @["a" "," "b" "," "c"] (interpose "," ["a" "b" "c"])) "interpose"))
 
-(assert (= @[:a :b :c] (keys @{:a 1 :b 2 :c 3})) "keys of tables")
-(assert (= @[0 1 2] (keys @[3 2 1])) "keys of array")
-(assert (= @[0 1 2] (keys [3 2 1])) "keys of tuple")
+(deftest test-frequencies
+  (is (= @{1 2 2 3 3 2 4 1} (frequencies [1 1 2 3 2 2 3 4])) "frequencies"))
 
-(assert (= @[1 2 3] (values @{:a 1 :b 2 :c 3})) "values of tables")
-(assert (= @[3 2 1] (values @[3 2 1])) "values of array")
-(assert (= @[3 2 1] (values [3 2 1])) "values of tuple")
+(deftest test-keys
+  (is (= @[:a :b :c] (keys @{:a 1 :b 2 :c 3})) "keys of tables")
+  (is (= @[0 1 2] (keys @[3 2 1])) "keys of array")
+  (is (= @[0 1 2] (keys [3 2 1])) "keys of tuple"))
 
-(assert (= @[[:a 1] [:b 2] [:c 3]] (pairs @{:a 1 :b 2 :c 3})) "pairs of tables")
-(assert (= @[[0 3] [1 2] [2 1]] (pairs @[3 2 1])) "pairs of array")
-(assert (= @[[0 3] [1 2] [2 1]] (pairs [3 2 1])) "pairs of tuple")
+(deftest test-values
+  (is (= @[1 2 3] (values @{:a 1 :b 2 :c 3})) "values of tables")
+  (is (= @[3 2 1] (values @[3 2 1])) "values of array")
+  (is (= @[3 2 1] (values [3 2 1])) "values of tuple"))
 
-(assert (= @[:a 1 :b 2 :c 3] (kvs @{:a 1 :b 2 :c 3})) "kvs of tables")
-(assert (= @[0 3 1 2 2 1] (kvs @[3 2 1])) "kvs of array")
-(assert (= @[0 3 1 2 2 1] (kvs [3 2 1])) "kvs of tuple")
+(deftest test-pairs
+  (is (= @[[:a 1] [:b 2] [:c 3]] (pairs @{:a 1 :b 2 :c 3})) "pairs of tables")
+  (is (= @[[0 3] [1 2] [2 1]] (pairs @[3 2 1])) "pairs of array")
+  (is (= @[[0 3] [1 2] [2 1]] (pairs [3 2 1])) "pairs of tuple"))
 
-(assert (= (php/array 3 2 1) (to-php-array @[3 2 1])) "to-php-array")
+(deftest test-kvs
+  (is (= @[:a 1 :b 2 :c 3] (kvs @{:a 1 :b 2 :c 3})) "kvs of tables")
+  (is (= @[0 3 1 2 2 1] (kvs @[3 2 1])) "kvs of array")
+  (is (= @[0 3 1 2 2 1] (kvs [3 2 1])) "kvs of tuple"))
 
-(assert (= @[1 2 3] (sort @[3 2 1])) "sort")
-(assert (= @[3 3 2 2 1] (sort @[3 2 1 2 3] <)) "sort descending order")
-(assert (= @[1 2 3] (sort-by identity @[3 2 1])) "sort-by identity")
-(assert (= @[3 2 1] (sort-by - @[3 2 1])) "sort-by reversed")
+(deftest test-to-php-array
+  (is (= (php/array 3 2 1) (to-php-array @[3 2 1])) "to-php-array"))
 
-(assert (= @[0 1 2] (range 3)) "(range 3)")
-(assert (= @[1 2] (range 1 3)) "(range 1 3)")
-(assert (= @[0 2] (range 0 4 2)) "(range 0 4 2)")
-(assert (= @[0 2 4] (range 0 5 2)) "(range 0 5 2)")
+(deftest test-sort
+  (is (= @[1 2 3] (sort @[3 2 1])) "sort")
+  (is (= @[3 3 2 2 1] (sort @[3 2 1 2 3] <)) "sort descending order")
+  (is (= @[1 2 3] (sort-by identity @[3 2 1])) "sort-by identity")
+  (is (= @[3 2 1] (sort-by - @[3 2 1])) "sort-by reversed"))
 
-(assert (= @[:a :a :a] (repeat 3 :a)) "(repeat 3 :a)")
-(assert (= @[] (repeat 0 :a)) "(repeat 0 :a)")
+(deftest test-range
+  (is (= @[0 1 2] (range 3)) "(range 3)")
+  (is (= @[1 2] (range 1 3)) "(range 1 3)")
+  (is (= @[0 2] (range 0 4 2)) "(range 0 4 2)")
+  (is (= @[0 2 4] (range 0 5 2)) "(range 0 5 2)"))
 
-(assert (= @{1 @["a"] 2 @["as" "aa"] 3 @["asd"] 4 @["asdf" "qwer"]}
-           (group-by php/strlen ["a" "as" "asd" "aa" "asdf" "qwer"])) "group-by")
+(deftest test-repeat
+  (is (= @[:a :a :a] (repeat 3 :a)) "(repeat 3 :a)")
+  (is (= @[] (repeat 0 :a)) "(repeat 0 :a)"))
 
-(assert (= @{:a 1 :b 2 :c 3} (zipcoll [:a :b :c] [1 2 3])) "zipcoll")
+(deftest test-group-by
+  (is (= @{1 @["a"] 2 @["as" "aa"] 3 @["asd"] 4 @["asdf" "qwer"]}
+            (group-by php/strlen ["a" "as" "asd" "aa" "asdf" "qwer"])) "group-by"))
 
-(assert (= @{:a -1 :b 2 :c 3 :d 4} (merge @{:a 1 :b 2} @{:a -1 :c 3} @{:d 4})) "merge")
+(deftest test-zipcoll
+  (is (= @{:a 1 :b 2 :c 3} (zipcoll [:a :b :c] [1 2 3])) "zipcoll"))
 
-(assert (= @{1 :a 2 :b} (invert @{:a 1 :b 2})) "invert")
-(assert (= @{1 :a 2 :c} (invert @{:a 1 :b 2 :c 2})) "invert duplicate values")
+(deftest test-merge
+  (is (= @{:a -1 :b 2 :c 3 :d 4} (merge @{:a 1 :b 2} @{:a -1 :c 3} @{:d 4})) "merge"))
 
-(assert (= [[1 2] [3 4 5]] (split-at 2 [1 2 3 4 5])) "split-at")
-(assert (= [[1 2] []] (split-at 3 [1 2])) "split-at empty")
+(deftest test-invert
+  (is (= @{1 :a 2 :b} (invert @{:a 1 :b 2})) "invert")
+  (is (= @{1 :a 2 :c} (invert @{:a 1 :b 2 :c 2})) "invert duplicate values"))
 
-(assert (= [@[1 2 3] @[4 5]] (split-with (partial >= 3) @[1 2 3 4 5])) "split-with")
+(deftest test-split-at
+  (is (= [[1 2] [3 4 5]] (split-at 2 [1 2 3 4 5])) "split-at")
+  (is (= [[1 2] []] (split-at 3 [1 2])) "split-at empty"))
 
-(assert (= @[] (partition 2 [])) "partition-2 empty")
-(assert (= @[] (partition 2 [1])) "partition-2 one element")
-(assert (= @[[1 2]] (partition 2 [1 2])) "partition-2 two elements")
-(assert (= @[[1 2]] (partition 2 [1 2 3])) "partition-2 three elements")
-(assert (= @[[1 2] [3 4]] (partition 2 [1 2 3 4])) "partition-2 four elements")
-(assert (= @[[1 2] [3 4]] (partition 2 [1 2 3 4 5])) "partition-2 five elements")
+(deftest test-split-with
+  (is (= [@[1 2 3] @[4 5]] (split-with (partial >= 3) @[1 2 3 4 5])) "split-with"))
 
-(assert (= @[
-  [[1 2 [3]] [4]]
-  [1 2 [3]]
-  1
-  2
-  [3]
-  3
-  [4]
-  4
-] (tree-seq indexed? identity [[1 2 [3]] [4]])) "tree-seq")
+(deftest test-partition
+  (is (= @[] (partition 2 [])) "partition-2 empty")
+  (is (= @[] (partition 2 [1])) "partition-2 one element")
+  (is (= @[[1 2]] (partition 2 [1 2])) "partition-2 two elements")
+  (is (= @[[1 2]] (partition 2 [1 2 3])) "partition-2 three elements")
+  (is (= @[[1 2] [3 4]] (partition 2 [1 2 3 4])) "partition-2 four elements")
+  (is (= @[[1 2] [3 4]] (partition 2 [1 2 3 4 5])) "partition-2 five elements"))
 
-(assert (= @[1 2 3 4 5 6 7] (flatten [1 [2 [3 4 [5]] 6 [7]]])) "flatten")
-(assert (= @[] (flatten nil)) "flatten nil")
+(deftest test-tree-seq
+  (is (= @[
+    [[1 2 [3]] [4]]
+    [1 2 [3]]
+    1
+    2
+    [3]
+    3
+    [4]
+    4
+  ] (tree-seq indexed? identity [[1 2 [3]] [4]])) "tree-seq"))
 
-(let [s1 (set 1 2)
-      s2 (push s1 3)]
-  (assert (= (set 1 2 3) s2) "set push"))
-(let [s1 (set 1 2)
-      s2 (push s1 2)]
-  (assert (= (set 1 2) s2) "set push existing value"))
+(deftest test-flatten
+  (is (= @[1 2 3 4 5 6 7] (flatten [1 [2 [3 4 [5]] 6 [7]]])) "flatten")
+  (is (= @[] (flatten nil)) "flatten nil"))
 
-(assert (= (set 1 2 0 3) (concat (set 1 2) @[0 3])) "set concat array")
-(assert (= (set 1 2 0 3) (concat (set 1 2) @[0 1 2 3])) "set concat array with common values")
-(assert (= (set 1 2 0) (concat (set 1 2) (set 0 1))) "set concat")
+(deftest test-set-push
+  (let [s1 (set 1 2)
+        s2 (push s1 3)]
+    (is (= (set 1 2 3) s2) "set push"))
+  (let [s1 (set 1 2)
+        s2 (push s1 2)]
+    (is (= (set 1 2) s2) "set push existing value")))
 
-(assert (= (set) (union)) "set 0-ary union")
-(assert (= (set 1 2 0 3) (union (set 1 2) (set 0 3))) "set union")
-(assert (= (set 1 2 0 3) (union (set 1 2) (set 0 1 2 3))) "set union with common values")
+(deftest test-set-concat
+  (is (= (set 1 2 0 3) (concat (set 1 2) @[0 3])) "set concat array")
+  (is (= (set 1 2 0 3) (concat (set 1 2) @[0 1 2 3])) "set concat array with common values")
+  (is (= (set 1 2 0) (concat (set 1 2) (set 0 1))) "set concat"))
 
-(assert (= (set) (intersection (set 1 2) (set 0 3))) "set intersection")
-(assert (= (set 1 2) (intersection (set 1 2) (set 0 1 2 3))) "set intersection with common values")
+(deftest test-set-union
+  (is (= (set) (union)) "set 0-ary union")
+  (is (= (set 1 2 0 3) (union (set 1 2) (set 0 3))) "set union")
+  (is (= (set 1 2 0 3) (union (set 1 2) (set 0 1 2 3))) "set union with common values"))
 
-(assert (= (set 1 2) (difference (set 1 2) (set 0 3))) "set difference")
-(assert (= (set) (difference (set 1 2) (set 0 1 2 3))) "set difference")
-(assert (= (set 0 3) (difference (set 0 1 2 3) (set 1 2 ))) "set difference with common values")
+(deftest test-intersection
+  (is (= (set) (intersection (set 1 2) (set 0 3))) "set intersection")
+  (is (= (set 1 2) (intersection (set 1 2) (set 0 1 2 3))) "set intersection with common values"))
 
-(assert (= (set 1 2 0 3) (symmetric-difference (set 1 2) (set 0 3))) "set symmetric-difference")
-(assert (= (set 0 3) (symmetric-difference (set 1 2) (set 0 1 2 3))) "set symmetric-difference with common values")
+(deftest test-difference
+  (is (= (set 1 2) (difference (set 1 2) (set 0 3))) "set difference")
+  (is (= (set) (difference (set 1 2) (set 0 1 2 3))) "set difference")
+  (is (= (set 0 3) (difference (set 0 1 2 3) (set 1 2 ))) "set difference with common values"))
+
+(deftest test-symmetric-difference
+  (is (= (set 1 2 0 3) (symmetric-difference (set 1 2) (set 0 3))) "set symmetric-difference")
+  (is (= (set 0 3) (symmetric-difference (set 1 2) (set 0 1 2 3))) "set symmetric-difference with common values"))
 
 # ------------------
 # Function operation
 # ------------------
 
-(assert (= "a" (identity "a")) "identity returns itself")
+(deftest test-identity
+  (is (= "a" (identity "a")) "identity returns itself"))
 
-(assert (= 1 ((comp) 1)) "compose zero arguments")
-(assert (= 2 ((comp inc) 1)) "compose one arguments")
-(assert (= 3 ((comp inc inc) 1)) "compose two arguments")
+(deftest test-comp
+  (is (= 1 ((comp) 1)) "compose zero arguments")
+  (is (= 2 ((comp inc) 1)) "compose one arguments")
+  (is (= 3 ((comp inc inc) 1)) "compose two arguments"))
 
-(assert (= false ((complement and) true true)) "complement of and")
+(deftest test-complement
+  (is (= false ((complement and) true true)) "complement of and"))
 
-(assert (= @[2 1] ((juxt second first) @[1 2])) "juxt")
+(deftest test-juxt
+  (is (= @[2 1] ((juxt second first) @[1 2])) "juxt"))
 
-(assert (= 3 ((partial + 2) 1)) "partial of add")
+(deftest test-partial
+  (is (= 3 ((partial + 2) 1)) "partial of add"))
 
 # -----------------
 # Bitwise operation
 # -----------------
 
-(assert (= 0b1000 (bit-and 0b1100 0b1001)) "bit-and of two number")
-(assert (= 0b1000 (bit-and 0b1111 0b1001 0b1000)) "bit-and of three numbers")
+(deftest test-bit-and
+  (is (= 0b1000 (bit-and 0b1100 0b1001)) "bit-and of two number")
+  (is (= 0b1000 (bit-and 0b1111 0b1001 0b1000)) "bit-and of three numbers"))
 
-(assert (= 0b1101 (bit-or 0b1100 0b1001)) "bit-or of two number")
-(assert (= 0b1011 (bit-or 0b0010 0b1001 0b1000)) "bit-or of three numbers")
+(deftest test-bit-or
+  (is (= 0b1101 (bit-or 0b1100 0b1001)) "bit-or of two number")
+  (is (= 0b1011 (bit-or 0b0010 0b1001 0b1000)) "bit-or of three numbers"))
 
-(assert (= 0b0101 (bit-xor 0b1100 0b1001)) "bit-xor of two number")
-(assert (= 0b0011 (bit-xor 0b0010 0b1001 0b1000)) "bit-xor of three numbers")
+(deftest test-bit-xor
+  (is (= 0b0101 (bit-xor 0b1100 0b1001)) "bit-xor of two number")
+  (is (= 0b0011 (bit-xor 0b0010 0b1001 0b1000)) "bit-xor of three numbers"))
 
-(assert (= -8 (bit-not 0b0111)) "bit-not")
+(deftest test-bit-not
+  (is (= -8 (bit-not 0b0111)) "bit-not"))
 
-(assert (= 0b1101 (bit-shift-left 0b1101 0)) "bit-shift-left 0")
-(assert (= 0b11010 (bit-shift-left 0b1101 1)) "bit-shift-left 1")
-(assert (= 0b110100 (bit-shift-left 0b1101 2)) "bit-shift-left 2")
-(assert (= 0b1101000 (bit-shift-left 0b1101 3)) "bit-shift-left 3")
-(assert (= 0b11010000 (bit-shift-left 0b1101 4)) "bit-shift-left 4")
+(deftest test-bit-shift-left
+  (is (= 0b1101 (bit-shift-left 0b1101 0)) "bit-shift-left 0")
+  (is (= 0b11010 (bit-shift-left 0b1101 1)) "bit-shift-left 1")
+  (is (= 0b110100 (bit-shift-left 0b1101 2)) "bit-shift-left 2")
+  (is (= 0b1101000 (bit-shift-left 0b1101 3)) "bit-shift-left 3")
+  (is (= 0b11010000 (bit-shift-left 0b1101 4)) "bit-shift-left 4"))
 
-(assert (= 0b1101 (bit-shift-right 0b1101 0)) "bit-shift-right 0")
-(assert (= 0b0110 (bit-shift-right 0b1101 1)) "bit-shift-right 1")
-(assert (= 0b0011 (bit-shift-right 0b1101 2)) "bit-shift-right 2")
-(assert (= 0b0001 (bit-shift-right 0b1101 3)) "bit-shift-right 3")
-(assert (= 0b0000 (bit-shift-right 0b1101 4)) "bit-shift-right 4")
+(deftest test-bit-shift-right
+  (is (= 0b1101 (bit-shift-right 0b1101 0)) "bit-shift-right 0")
+  (is (= 0b0110 (bit-shift-right 0b1101 1)) "bit-shift-right 1")
+  (is (= 0b0011 (bit-shift-right 0b1101 2)) "bit-shift-right 2")
+  (is (= 0b0001 (bit-shift-right 0b1101 3)) "bit-shift-right 3")
+  (is (= 0b0000 (bit-shift-right 0b1101 4)) "bit-shift-right 4"))
 
-(assert (= 0b1111 (bit-set 0b1011 2)) "bit-set at pos 2")
-(assert (= 0b1011 (bit-set 0b1011 0)) "bit-set at pos 0")
+(deftest test-bit-set
+  (is (= 0b1111 (bit-set 0b1011 2)) "bit-set at pos 2")
+  (is (= 0b1011 (bit-set 0b1011 0)) "bit-set at pos 0"))
 
-(assert (= 0b0011 (bit-clear 0b1011 3)) "bit-clear")
+(deftest test-bit-clear
+  (is (= 0b0011 (bit-clear 0b1011 3)) "bit-clear"))
 
-(assert (= 0b1111 (bit-flip 0b1011 2)) "bit-flip")
+(deftest test-bit-flip
+  (is (= 0b1111 (bit-flip 0b1011 2)) "bit-flip"))
 
-(assert (= true (bit-test 0b1011 0)) "bit-test")
-(assert (= false (bit-test 0b1011 2)) "bit-test")
+(deftest test-bit-test
+  (is (= true (bit-test 0b1011 0)) "bit-test")
+  (is (= false (bit-test 0b1011 2)) "bit-test"))
 
 # --------------
 # Math operation
 # --------------
 
-(assert (= 0 (+)) "+ zero arguments")
-(assert (= 1 (+ 1)) "+ one arguments")
-(assert (= 3 (+ 1 2)) "+ two arguments")
+(deftest test-+
+  (is (= 0 (+)) "+ zero arguments")
+  (is (= 1 (+ 1)) "+ one arguments")
+  (is (= 3 (+ 1 2)) "+ two arguments"))
 
-(assert (= 0 (-)) "- zero arguments")
-(assert (= -1 (- 1)) "- one arguments")
-(assert (= 1 (- 2 1)) "- two arguments")
+(deftest test--
+  (is (= 0 (-)) "- zero arguments")
+  (is (= -1 (- 1)) "- one arguments")
+  (is (= 1 (- 2 1)) "- two arguments"))
 
-(assert (= 1 (*)) "* zero arguments")
-(assert (= 2 (* 2)) "* one arguments")
-(assert (= 6 (* 2 3)) "* two arguments")
-(assert (= 24 (* 2 3 4)) "* three arguments")
+(deftest test-*
+  (is (= 1 (*)) "* zero arguments")
+  (is (= 2 (* 2)) "* one arguments")
+  (is (= 6 (* 2 3)) "* two arguments")
+  (is (= 24 (* 2 3 4)) "* three arguments"))
 
-(assert (= 1 (/)) "/ zero arguments")
-(assert (= 0.5 (/ 2)) "/ one arguments")
-(assert (= 2 (/ 4 2)) "/ two arguments")
-(assert (= 2 (/ 16 4 2)) "/ three arguments")
+(deftest test-/
+  (is (= 1 (/)) "/ zero arguments")
+  (is (= 0.5 (/ 2)) "/ one arguments")
+  (is (= 2 (/ 4 2)) "/ two arguments")
+  (is (= 2 (/ 16 4 2)) "/ three arguments"))
 
-(assert (= 0 (% 10 2)) "10 % 2")
-(assert (= 1 (% 11 2)) "11 % 2")
+(deftest test-%
+  (is (= 0 (% 10 2)) "10 % 2")
+  (is (= 1 (% 11 2)) "11 % 2"))
 
-(assert (= 8 (** 2 3)) "2 ** 3")
+(deftest test-**
+  (is (= 8 (** 2 3)) "2 ** 3"))
 
-(assert (= 1 (inc 0)) "(inc 0)")
-(assert (= 0 (inc -1)) "(inc -1)")
-(assert (= 2 (inc 1)) "(inc 1)")
+(deftest test-inc
+  (is (= 1 (inc 0)) "(inc 0)")
+  (is (= 0 (inc -1)) "(inc -1)")
+  (is (= 2 (inc 1)) "(inc 1)"))
 
-(assert (= -1 (dec 0)) "(inc 0)")
-(assert (= -2 (dec -1)) "(inc -1)")
-(assert (= 0 (dec 1)) "(inc 1)")
+(deftest test-dec
+  (is (= -1 (dec 0)) "(dec 0)")
+  (is (= -2 (dec -1)) "(dec -1)")
+  (is (= 0 (dec 1)) "(dec 1)"))
 
-(assert (= true (even? 0)) "(even? 0)")
-(assert (= false (even? 1)) "(even? 1)")
-(assert (= true (even? 2)) "(even? 2)")
+(deftest test-even?
+  (is (= true (even? 0)) "(even? 0)")
+  (is (= false (even? 1)) "(even? 1)")
+  (is (= true (even? 2)) "(even? 2)"))
 
-(assert (= false (odd? 0)) "(odd? 0)")
-(assert (= true (odd? 1)) "(odd? 1)")
-(assert (= false (odd? 2)) "(odd? 2)")
+(deftest test-odd?
+  (is (= false (odd? 0)) "(odd? 0)")
+  (is (= true (odd? 1)) "(odd? 1)")
+  (is (= false (odd? 2)) "(odd? 2)"))
 
-(assert (= true (zero? 0)) "(zero? 0)")
-(assert (= true (zero? 0.0)) "(zero? 0.0)")
-(assert (= true (zero? 0.00)) "(zero? 0.00)")
-(assert (= false (zero? 0.1)) "(zero? 0.1)")
-(assert (= false (zero? -0.1)) "(zero? -0.1)")
+(deftest test-zero?
+  (is (= true (zero? 0)) "(zero? 0)")
+  (is (= true (zero? 0.0)) "(zero? 0.0)")
+  (is (= true (zero? 0.00)) "(zero? 0.00)")
+  (is (= false (zero? 0.1)) "(zero? 0.1)")
+  (is (= false (zero? -0.1)) "(zero? -0.1)"))
 
-(assert (= true (one? 1)) "(one? 1)")
-(assert (= true (one? 1.0)) "(one? 1.0)")
-(assert (= true (one? 1.0)) "(one? 1.00)")
-(assert (= false (one? 0)) "(one? 0)")
+(deftest test-one?
+  (is (= true (one? 1)) "(one? 1)")
+  (is (= true (one? 1.0)) "(one? 1.0)")
+  (is (= true (one? 1.0)) "(one? 1.00)")
+  (is (= false (one? 0)) "(one? 0)"))
 
-(assert (= false (pos? 0)) "(pos? 1)")
-(assert (= true (pos? 1)) "(pos? 1)")
-(assert (= true (pos? 0.1)) "(pos? 0.1)")
-(assert (= false (pos? -0.1)) "(pos? -0.1)")
-(assert (= false (pos? -1)) "(pos? -1)")
+(deftest test-pos?
+  (is (= false (pos? 0)) "(pos? 1)")
+  (is (= true (pos? 1)) "(pos? 1)")
+  (is (= true (pos? 0.1)) "(pos? 0.1)")
+  (is (= false (pos? -0.1)) "(pos? -0.1)")
+  (is (= false (pos? -1)) "(pos? -1)"))
 
-(assert (= false (neg? 0)) "(neg? 1)")
-(assert (= false (neg? 1)) "(neg? 1)")
-(assert (= false (neg? 0.1)) "(neg? 0.1)")
-(assert (= true (neg? -0.1)) "(neg? -0.1)")
-(assert (= true (neg? -1)) "(neg? -1)")
+(deftest test-neg?
+  (is (= false (neg? 0)) "(neg? 1)")
+  (is (= false (neg? 1)) "(neg? 1)")
+  (is (= false (neg? 0.1)) "(neg? 0.1)")
+  (is (= true (neg? -0.1)) "(neg? -0.1)")
+  (is (= true (neg? -1)) "(neg? -1)"))
 
-(assert (= true (nan? (php/acos 8))) "(nan? (php/acos 8)")
-(assert (= true (nan? php/NAN)) "(nan? (php/NAN))")
-(assert (= true (nan? NAN)) "(nan? NAN)")
-(assert (= false (nan? 9)) "(nan? 8)")
+(deftest test-nan?
+  (is (= true (nan? (php/acos 8))) "(nan? (php/acos 8)")
+  (is (= true (nan? php/NAN)) "(nan? (php/NAN))")
+  (is (= true (nan? NAN)) "(nan? NAN)")
+  (is (= false (nan? 9)) "(nan? 8)"))
 
-(assert (= 1 (min 1 2 3)) "(min 1 2 3)")
-(assert (= 3 (max 1 2 3)) "(max 1 2 3)")
+(deftest test-min
+  (is (= 1 (min 1 2 3)) "(min 1 2 3)"))
 
-(assert (= 6 (sum [1 2 3])) "(sum [1 2 3])")
-(assert (= 0 (sum [])) "(sum [])")
+(deftest test-max
+  (is (= 3 (max 1 2 3)) "(max 1 2 3)"))
 
-(assert (= 2 (mean [1 2 3])) "(mean [1 2 3])")
+(deftest test-sum
+  (is (= 6 (sum [1 2 3])) "(sum [1 2 3])")
+  (is (= 0 (sum [])) "(sum [])"))
+
+(deftest test-mean
+  (is (= 2 (mean [1 2 3])) "(mean [1 2 3])"))
 
 # ----------------
 # Print operations
 # ----------------
 
-(assert (= "" (str)) "str with no arg")
-(assert (= "hello\nworld" (str "hello\nworld")) "str with one arg")
-(assert (= "ab" (str "a" "b")) "str with two args")
-(assert (= "abc" (str "a" "b" "c")) "str with three args")
-(assert (= "[\"a\" \"b\"]" (str ["a" "b"])) "str with tuple of strings")
-(assert (= "@[\"a\" \"b\"]" (str @["a" "b"])) "str with array of strings")
-(assert (= "@{\"a\" \"b\"}" (str @{"a" "b"})) "str on table")
-(assert (= "(set \"a\" \"b\")" (str (set "a" "b"))) "str on set")
-(assert (= "x" (str 'x)) "str on symbol")
-(assert (= ":test" (str :test)) "str on keyword")
-(assert (= "1" (str 1)) "str on number")
-(assert (= "1" (str true)) "str on true")
-(assert (= "" (str false)) "str on false")
-(assert (= "" (str nil nil)) "str on nil")
+(deftest test-str
+  (is (= "" (str)) "str with no arg")
+  (is (= "hello\nworld" (str "hello\nworld")) "str with one arg")
+  (is (= "ab" (str "a" "b")) "str with two args")
+  (is (= "abc" (str "a" "b" "c")) "str with three args")
+  (is (= "[\"a\" \"b\"]" (str ["a" "b"])) "str with tuple of strings")
+  (is (= "@[\"a\" \"b\"]" (str @["a" "b"])) "str with array of strings")
+  (is (= "@{\"a\" \"b\"}" (str @{"a" "b"})) "str on table")
+  (is (= "(set \"a\" \"b\")" (str (set "a" "b"))) "str on set")
+  (is (= "x" (str 'x)) "str on symbol")
+  (is (= ":test" (str :test)) "str on keyword")
+  (is (= "1" (str 1)) "str on number")
+  (is (= "1" (str true)) "str on true")
+  (is (= "" (str false)) "str on false")
+  (is (= "" (str nil nil)) "str on nil"))
 
-(assert (= "" (print-str)) "print-str with no arg")
-(assert (= "hello\nworld" (print-str "hello\nworld")) "print-str with one arg")
-(assert (= "a b" (print-str "a" "b")) "print-str with two args")
-(assert (= "a b c" (print-str "a" "b" "c")) "print-str with three args")
-(assert (= "[a b]" (print-str ["a" "b"])) "print-str with tuple of strings")
-(assert (= "@[a b]" (print-str @["a" "b"])) "print-str with array of strings")
-(assert (= "@{a b}" (print-str @{"a" "b"})) "print-str on table")
-(assert (= "(set a b)" (print-str (set "a" "b"))) "print-str on set")
-(assert (= "x" (print-str 'x)) "print-str on symbol")
-(assert (= ":test" (print-str :test)) "print-str on keyword")
-(assert (= "1" (print-str 1)) "print-str on number")
-(assert (= "true" (print-str true)) "print-str on true")
-(assert (= "false" (print-str false)) "print-str on false")
-(assert (= "nil" (print-str nil)) "print-str on nil")
+(deftest test-print-str
+  (is (= "" (print-str)) "print-str with no arg")
+  (is (= "hello\nworld" (print-str "hello\nworld")) "print-str with one arg")
+  (is (= "a b" (print-str "a" "b")) "print-str with two args")
+  (is (= "a b c" (print-str "a" "b" "c")) "print-str with three args")
+  (is (= "[a b]" (print-str ["a" "b"])) "print-str with tuple of strings")
+  (is (= "@[a b]" (print-str @["a" "b"])) "print-str with array of strings")
+  (is (= "@{a b}" (print-str @{"a" "b"})) "print-str on table")
+  (is (= "(set a b)" (print-str (set "a" "b"))) "print-str on set")
+  (is (= "x" (print-str 'x)) "print-str on symbol")
+  (is (= ":test" (print-str :test)) "print-str on keyword")
+  (is (= "1" (print-str 1)) "print-str on number")
+  (is (= "true" (print-str true)) "print-str on true")
+  (is (= "false" (print-str false)) "print-str on false")
+  (is (= "nil" (print-str nil)) "print-str on nil"))
 
-(assert (= "hello\nworld" (with-output-buffer (print "hello\nworld"))) "print hello\\nworld")
+(deftest test-print
+  (is (output? "hello\nworld" (print "hello\nworld")) "print hello\\nworld"))
 
-(assert (= "hello\nworld\n" (with-output-buffer (println "hello\nworld"))) "println hello\\nworld")
+(deftest test-println
+  (is (output? "hello\nworld\n" (println "hello\nworld")) "println hello\\nworld"))
 
 (defstruct my-struct [a b c])
-(let [x (my-struct 1 2 3)]
-  (assert (= :struct (type x)) "struct: common type")
-  (assert (= true (struct? x)) "struct: common type test")
-  (assert (= false (table? x)) "struct is not a table")
-  (assert (= 1 (get x :a)) "struct: get value from struct")
-  (assert (= (my-struct 12 2 3) (put x :a 12)) "struct: put value on struct")
-  (assert (= true (my-struct? x)) "struct: correct type")
-  (assert (= false (my-struct? :a)) "struct: incorrect type"))
+
+(deftest test-struct
+  (let [x (my-struct 1 2 3)]
+    (is (= :struct (type x)) "struct: common type")
+    (is (= true (struct? x)) "struct: common type test")
+    (is (= false (table? x)) "struct is not a table")
+    (is (= 1 (get x :a)) "struct: get value from struct")
+    (is (= (my-struct 12 2 3) (put x :a 12)) "struct: put value on struct")
+    (is (= true (my-struct? x)) "struct: correct type")
+    (is (= false (my-struct? :a)) "struct: incorrect type")))
 
 
-# For loop
-(assert (= @[0 1 2] (for [x :range [0 3]] x)) "for loop (:range)")
-(assert (= @[3 2 1] (for [x :range [3 0 -1]] x)) "for loop dec (:range)")
-(assert (= @[2 3 4] (for [x :in [1 2 3]] (inc x))) "for loop (:in)")
-(assert (= @[1 2 3] (for [x :in @{:a 1 :b 2 :c 3}] x)) "for loop on table (:in)")
-(assert (= @[0 1 2] (for [x :keys @[1 2 3]] x)) "for loop on array (:keys)")
-(assert (= @[:a :b :c] (for [x :keys @{:a 1 :b 2 :c 3}] x)) "for loop on table (:keys)")
-(assert (= @[[1 :a] [2 :b] [3 :c]] (for [[k v] :pairs @{:a 1 :b 2 :c 3}] [v k])) "for loop on table (:pairs)")
-(assert (= @[[0 1] [1 2] [2 3]] (for [[k v] :pairs @[1 2 3]] [k v])) "for loop on array (:pairs)")
-(assert (= @[2 2 2] (for [x :in [2 2 2 3 3 4 5 6 6] :while (even? x)] x)) "for loop (:range :while)")
-(assert (= @[2 2 2 4 6 6] (for [x :in [2 2 2 3 3 4 5 6 6] :when (even? x)] x)) "for loop (:range :when)")
-(assert (= @[[1 2] [2 3] [3 4]] (for [x :in [1 2 3] :let [y (inc x)]] [x y])) "for loop (:range :let)")
-(assert (= @[[1 0] [2 0] [2 1] [3 0] [3 1] [3 2]] (for [x :range [0 4] y :range [0 x]] [x y])) "for loop nested")
+(deftest test-for-loop
+  (is (= @[0 1 2] (for [x :range [0 3]] x)) "for loop (:range)")
+  (is (= @[3 2 1] (for [x :range [3 0 -1]] x)) "for loop dec (:range)")
+  (is (= @[2 3 4] (for [x :in [1 2 3]] (inc x))) "for loop (:in)")
+  (is (= @[1 2 3] (for [x :in @{:a 1 :b 2 :c 3}] x)) "for loop on table (:in)")
+  (is (= @[0 1 2] (for [x :keys @[1 2 3]] x)) "for loop on array (:keys)")
+  (is (= @[:a :b :c] (for [x :keys @{:a 1 :b 2 :c 3}] x)) "for loop on table (:keys)")
+  (is (= @[[1 :a] [2 :b] [3 :c]] (for [[k v] :pairs @{:a 1 :b 2 :c 3}] [v k])) "for loop on table (:pairs)")
+  (is (= @[[0 1] [1 2] [2 3]] (for [[k v] :pairs @[1 2 3]] [k v])) "for loop on array (:pairs)")
+  (is (= @[2 2 2] (for [x :in [2 2 2 3 3 4 5 6 6] :while (even? x)] x)) "for loop (:range :while)")
+  (is (= @[2 2 2 4 6 6] (for [x :in [2 2 2 3 3 4 5 6 6] :when (even? x)] x)) "for loop (:range :when)")
+  (is (= @[[1 2] [2 3] [3 4]] (for [x :in [1 2 3] :let [y (inc x)]] [x y])) "for loop (:range :let)")
+  (is (= @[[1 0] [2 0] [2 1] [3 0] [3 1] [3 2]] (for [x :range [0 4] y :range [0 x]] [x y])) "for loop nested"))
 
-(assert (= true (>= (php/strpos __FILE__ "tests/phel/test/core.phel") 0)) "__FILE__")
-(assert (= true (and (false? (php/strpos __DIR__ "tests/phel/test/core.phel")) (>= (php/strpos __DIR__ "tests/phel/test") 0))) "__DIR__")
+(deftest test-__FILE__
+  (is (= true (>= (php/strpos __FILE__ "tests/phel/test/core.phel") 0)) "__FILE__"))
 
-(print-summary)
+(deftest test-__DIR__
+  (is (= true (and (false? (php/strpos __DIR__ "tests/phel/test/core.phel")) (>= (php/strpos __DIR__ "tests/phel/test") 0))) "__DIR__"))
 
-(when (> (get stats :failed) 0)
-  (php/exit 1))
+#(print-summary)
+
+#(when (> (get stats :failed) 0)
+#  (php/exit 1))
