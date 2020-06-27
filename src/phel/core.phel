@@ -254,7 +254,7 @@ This is PHP equivalent to `$args[0] . $args[1] . $args[2] ...`"
 (defn second
   "Returns the second element of an indexed sequence or nil."
   [xs]
-  (php/aget xs 1))
+  (first (next xs)))
 
 (defn rest
   "Returns the sequence of elements after the first element. If there are no

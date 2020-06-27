@@ -607,6 +607,12 @@
       s2 (push s1 2)]
   (assert (= (set 1 2) s2) "set push existing value"))
 
+(assert (= 1 (first (set 1 2 3))) "set first element")
+(assert (= nil (first (set))) "set first element from empty set")
+(assert (= 2 (second (set 1 2 3))) "set second element")
+(assert (= nil (second (set))) "set second element from empty set")
+(assert (= nil (second (set 1))) "set second element from 1-ary set")
+
 (assert (= (set 1 2 0 3) (concat (set 1 2) @[0 3])) "set concat array")
 (assert (= (set 1 2 0 3) (concat (set 1 2) @[0 1 2 3])) "set concat array with common values")
 (assert (= (set 1 2 0) (concat (set 1 2) (set 0 1))) "set concat")
