@@ -2,44 +2,6 @@
   (:use DateTime)
   (:require phel\test :refer [deftest is]))
 
-(def stats @{
-  :total 0
-  :failed 0
-  :successful 0
-})
-
-(defn assert [test err]
-  #(do
-  #  (update-in stats [:total] inc)
-  #  (if test
-  #    (do
-  #      (update-in stats [:successful] inc)
-  #      (print ".")
-  #      (when (= (% (get stats :total) 80) 0)
-  #        (println)))
-  #    (do
-  #      (update-in stats [:failed] inc)
-  #      (php/print "\n")
-  #      (php/print "e ")
-  #      (php/print err)
-  #      (php/print "\n"))))
-
-        )
-
-(defn print-summary []
-  (do
-    (print "\n\n")
-    (println "Summary of: " __FILE__)
-    (print "Successful: ")
-    (print (get stats :successful))
-    (print "\n")
-    (print "Failed: ")
-    (print (get stats :failed))
-    (print "\n")
-    (print "Total: ")
-    (print (get stats :total))
-    (print "\n")))
-
 # -------------
 # Destructuring
 # -------------
@@ -994,8 +956,3 @@
 
 (deftest test-__DIR__
   (is (= true (and (false? (php/strpos __DIR__ "tests/phel/test/core.phel")) (>= (php/strpos __DIR__ "tests/phel/test") 0))) "__DIR__"))
-
-#(print-summary)
-
-#(when (> (get stats :failed) 0)
-#  (php/exit 1))
