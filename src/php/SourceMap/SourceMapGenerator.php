@@ -24,23 +24,20 @@ final class SourceMapGenerator
         $totalMappings = count($mappings);
         for ($i = 0; $i < $totalMappings; $i++) {
             $mapping = $mappings[$i];
-            $next = '';
 
             if ($mapping['generated']['line'] !== $previousGeneratedLine) {
                 $previousGeneratedColumn = 0;
 
-                while ($mapping['generated']['line'] !== $previousGeneratedLine) {
-                    $next .= ';';
-                    $previousGeneratedLine++;
-                }
+                $result .= str_repeat(';', $mapping['generated']['line'] - $previousGeneratedLine);
+                $previousGeneratedLine = $mapping['generated']['line'];
             } elseif ($i > 0) {
                 if (!$this->compareByGeneratedPositionsInflated($mapping, $mappings[$i - 1])) {
                     continue;
                 }
-                $next .= ',';
+                $result .= ',';
             }
 
-            $next .= $this->vlq->encodeIntegers([
+            $result .= $this->vlq->encodeIntegers([
                 $mapping['generated']['column'] - $previousGeneratedColumn,
                 0,
                 $mapping['original']['line'] - $previousOriginalLine,
@@ -50,8 +47,6 @@ final class SourceMapGenerator
             $previousGeneratedColumn = $mapping['generated']['column'];
             $previousOriginalLine = $mapping['original']['line'];
             $previousOriginalColumn = $mapping['original']['column'];
-
-            $result .= $next;
         }
 
         return $result;
