@@ -9,6 +9,8 @@ use Phel\Printer;
 final class Symbol extends AbstractType implements IIdentical
 {
     public const NAME_APPLY = 'apply';
+    public const NAME_ARRAY = 'array';
+    public const NAME_CONCAT = 'concat';
     public const NAME_DEF = 'def';
     public const NAME_DEF_STRUCT = 'defstruct*';
     public const NAME_DO = 'do';
@@ -29,8 +31,11 @@ final class Symbol extends AbstractType implements IIdentical
     public const NAME_RECUR = 'recur';
     public const NAME_UNQUOTE = 'unquote';
     public const NAME_UNQUOTE_SPLICING = 'unquote-splicing';
+    public const NAME_TABLE = 'table';
     public const NAME_THROW = 'throw';
     public const NAME_TRY = 'try';
+    public const NAME_TUPLE = 'tuple';
+    public const NAME_TUPLE_BRACKETS = 'tuple-brackets';
 
     private static int $symGenCounter = 1;
 

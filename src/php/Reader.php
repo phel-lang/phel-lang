@@ -206,7 +206,7 @@ final class Reader
         $tokenStream->next();
 
         $expression = $this->readExpressionHard($tokenStream, 'missing expression');
-        $result = (new Quasiquote($this->env))->quasiquote($expression);
+        $result = (new Quasiquote($this->env))->transform($expression);
 
         if ($result instanceof AbstractType) {
             $endLocation = $tokenStream->current()->getEndLocation();
