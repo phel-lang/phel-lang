@@ -97,7 +97,7 @@ final class Quasiquote
      */
     private function isUnquote($form): bool
     {
-        return $form instanceof Tuple && $form[0] == 'unquote';
+        return $form instanceof Tuple && $form[0] == Symbol::NAME_UNQUOTE;
     }
 
     /**
@@ -105,7 +105,7 @@ final class Quasiquote
      */
     private function isUnquoteSplicing($form): bool
     {
-        return $form instanceof Tuple && $form[0] == 'unquote-splicing';
+        return $form instanceof Tuple && $form[0] == Symbol::NAME_UNQUOTE_SPLICING;
     }
 
     private function expandList(iterable $seq): array

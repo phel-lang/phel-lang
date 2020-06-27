@@ -84,7 +84,7 @@ final class AnalyzeTuple
                 return (new LoopSymbol($this->analyzer))($x, $env);
             case Symbol::NAME_FOREACH:
                 return (new ForeachSymbol($this->analyzer))($x, $env);
-            case Symbol::NAME_DEFSTRUCT:
+            case Symbol::NAME_DEF_STRUCT:
                 return (new DefStructSymbol($this->analyzer))($x, $env);
             default:
                 return (new InvokeSymbol($this->analyzer))($x, $env);

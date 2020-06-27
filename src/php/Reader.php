@@ -132,10 +132,10 @@ final class Reader
                     return $this->readWrap($tokenStream, Symbol::NAME_QUOTE);
 
                 case Token::T_UNQUOTE:
-                    return $this->readWrap($tokenStream, 'unquote');
+                    return $this->readWrap($tokenStream, Symbol::NAME_UNQUOTE);
 
                 case Token::T_UNQUOTE_SPLICING:
-                    return $this->readWrap($tokenStream, 'unquote-splicing');
+                    return $this->readWrap($tokenStream, Symbol::NAME_UNQUOTE_SPLICING);
 
                 case Token::T_QUASIQUOTE:
                     return $this->readQuasiquote($tokenStream);
@@ -152,7 +152,7 @@ final class Reader
 
                 case Token::T_TABLE:
                     $tuple = $this->readList($tokenStream, Token::T_CLOSE_BRACE);
-                    if (count($tuple) % 2 == 1) {
+                    if (count($tuple) % 2 === 1) {
                         throw $this->buildReaderException('Tables must have an even number of parameters');
                     }
                     $table = Table::fromKVArray($tuple->toArray());
@@ -184,7 +184,7 @@ final class Reader
                     }
 
                     $this->fnArgs = null;
-                    return Tuple::create(Symbol::create('fn'), new Tuple($params, true), $body);
+                    return Tuple::create(Symbol::create(Symbol::NAME_FN), new Tuple($params, true), $body);
 
                 case Token::T_EOF:
                     throw $this->buildReaderException('Unterminated list');
