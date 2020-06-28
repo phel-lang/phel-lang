@@ -12,34 +12,29 @@ use PHPUnit\Framework\TestCase;
 
 final class QuoteSymbolTest extends TestCase
 {
-    /** @test */
-    public function dataTupleDifferentThanTwo(): void
+    public function testQuoteWithAnySymbolAndAnyText(): void
     {
         $this->expectException(PhelCodeException::class);
-        $this->expectExceptionMessage("Exactly one arguments is required for 'quote");
+        $this->expectExceptionMessage("This is not a 'quote.");
 
-        $tuple = new Tuple(
-            [Symbol::NAME_QUOTE]
-        );
-
-        (new QuoteSymbol())(
-            $tuple,
-            NodeEnvironment::empty()
-        );
+        $tuple = new Tuple(['any symbol', 'any text']);
+        (new QuoteSymbol())($tuple, NodeEnvironment::empty());
     }
 
-    /** @test */
-    public function quoteSampleText(): void
+    public function testDataTupleDifferentThanTwo(): void
     {
-        $tuple = new Tuple(
-            [Symbol::NAME_QUOTE, 'dummy text']
-        );
+        $this->expectException(PhelCodeException::class);
+        $this->expectExceptionMessage("Exactly one argument is required for 'quote");
 
-        $symbol = (new QuoteSymbol())(
-            $tuple,
-            NodeEnvironment::empty()
-        );
+        $tuple = new Tuple([Symbol::create(Symbol::NAME_QUOTE)]);
+        (new QuoteSymbol())($tuple, NodeEnvironment::empty());
+    }
 
-        self::assertSame('dummy text', $symbol->getValue());
+    public function testQuoteWithAnyText(): void
+    {
+        $tuple = new Tuple([Symbol::create(Symbol::NAME_QUOTE), 'any text']);
+        $symbol = (new QuoteSymbol())($tuple, NodeEnvironment::empty());
+
+        self::assertSame('any text', $symbol->getValue());
     }
 }
