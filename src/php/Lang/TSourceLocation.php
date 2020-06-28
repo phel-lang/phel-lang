@@ -29,6 +29,13 @@ trait TSourceLocation
         return $this->endLocation;
     }
 
+    /**
+     * Copies the start and end location from $other.
+     *
+     * @param mixed $other The object to copy from
+     *
+     * @return static
+     */
     public function copyLocationFrom($other)
     {
         if ($other && $other instanceof ISourceLocation) {

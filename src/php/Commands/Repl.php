@@ -29,7 +29,7 @@ final class Repl
     private ColorStyle $style;
     private TextExceptionPrinter $exceptionPrinter;
 
-    public function __construct($workingDir)
+    public function __construct(string $workingDir)
     {
         $this->readline = new Readline($workingDir . '.phel-repl-history');
 

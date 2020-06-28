@@ -112,7 +112,7 @@ final class InvokeSymbol
         }
     }
 
-    private function arguments(Tuple $tuple, $env): array
+    private function arguments(Tuple $tuple, NodeEnvironment $env): array
     {
         $arguments = [];
         for ($i = 1, $iMax = count($tuple); $i < $iMax; $i++) {

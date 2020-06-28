@@ -76,7 +76,7 @@ final class NsSymbol
         return $x instanceof Keyword && $x->getName() === $name;
     }
 
-    private function analyzeUse(string $ns, Tuple $import)
+    private function analyzeUse(string $ns, Tuple $import): void
     {
         if (!($import[1] instanceof Symbol)) {
             throw AnalyzerException::withLocation('First argument in :use must be a symbol.', $import);

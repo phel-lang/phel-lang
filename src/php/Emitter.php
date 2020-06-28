@@ -75,6 +75,11 @@ final class Emitter
         return $code;
     }
 
+    /**
+     * Evaluates the code and returns the evaluated value.
+     *
+     * @return mixed
+     */
     public function eval(string $code)
     {
         $filename = tempnam(sys_get_temp_dir(), '__phel');
@@ -84,7 +89,11 @@ final class Emitter
 
         try {
             file_put_contents($filename, "<?php\n" . $code);
-            return require $filename;
+            if (file_exists($filename)) {
+                return require $filename;
+            }
+
+            throw new \RuntimeException('Can not require file: ' . $filename);
         } catch (Throwable $e) {
             throw $e;
         }

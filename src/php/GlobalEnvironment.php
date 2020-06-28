@@ -223,12 +223,12 @@ final class GlobalEnvironment
         return null;
     }
 
-    private function isDefinitionPrivate(Table $meta)
+    private function isDefinitionPrivate(Table $meta): bool
     {
         return $meta[new Keyword('private')] === true;
     }
 
-    public function setAllowPrivateAccess(bool $allowPrivateAccess)
+    public function setAllowPrivateAccess(bool $allowPrivateAccess): void
     {
         $this->allowPrivateAccess = $allowPrivateAccess;
     }

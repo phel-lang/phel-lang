@@ -6,5 +6,5 @@ interface IMeta
 {
     public function getMeta(): Table;
 
-    public function setMeta(Table $meta);
+    public function setMeta(Table $meta): void;
 }

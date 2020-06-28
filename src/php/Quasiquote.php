@@ -147,6 +147,11 @@ final class Quasiquote
             || $x instanceof Keyword;
     }
 
+    /**
+     * @param AbstractType|scalar|null $form The form
+     *
+     * @return Tuple
+     */
     private function createTupleOtherwise($form): Tuple
     {
         if ($form instanceof Symbol) {

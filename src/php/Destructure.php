@@ -66,7 +66,11 @@ final class Destructure
     }
 
     /**
-     * @param AbstractType|scalar|null $binding
+     * Destructure a $binding $value pair and add the result to $bindings.
+     *
+     * @param array $bindings A reference to already defined bindings
+     * @param AbstractType|scalar|null $binding The binding form
+     * @param AbstractType|scalar|null $value The value form
      */
     private function destructure(array &$bindings, $binding, $value): void
     {
@@ -83,6 +87,13 @@ final class Destructure
         }
     }
 
+    /**
+     * Destructure a table $binding and add the result to $bindings.
+     *
+     * @param array $bindings A reference to already defined bindings
+     * @param Table $binding The binding form
+     * @param AbstractType|scalar|null $value The value form
+     */
     private function processTable(array &$bindings, Table $table, $value): void
     {
         $tableSymbol = Symbol::gen()->copyLocationFrom($table);
@@ -101,6 +112,13 @@ final class Destructure
         }
     }
 
+    /**
+     * Destructure a array $binding and add the result to $bindings.
+     *
+     * @param array $bindings A reference to already defined bindings
+     * @param PhelArray $binding The binding form
+     * @param AbstractType|scalar|null $value The value form
+     */
     private function processArray(array &$bindings, PhelArray $phelArray, $value): void
     {
         $arrSymbol = Symbol::gen()->copyLocationFrom($phelArray);
@@ -122,6 +140,13 @@ final class Destructure
         }
     }
 
+    /**
+     * Destructure a symbol $binding and add the result to $bindings.
+     *
+     * @param array $bindings A reference to already defined bindings
+     * @param Symbol $binding The binding form
+     * @param AbstractType|scalar|null $value The value form
+     */
     private function processSymbol(array &$bindings, Symbol $binding, $value): void
     {
         if ($binding->getName() === '_') {
@@ -132,6 +157,13 @@ final class Destructure
         }
     }
 
+    /**
+     * Destructure a tuple $binding and add the result to $bindings.
+     *
+     * @param array $bindings A reference to already defined bindings
+     * @param Tuple $binding The binding form
+     * @param AbstractType|scalar|null $value The value form
+     */
     private function processTuple(array &$bindings, Tuple $tuple, $value): void
     {
         $arrSymbol = Symbol::gen()->copyLocationFrom($tuple);

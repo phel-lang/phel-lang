@@ -143,7 +143,7 @@ final class TextExceptionPrinter implements ExceptionPrinter
         return [$originalFile, (int)$originalLine];
     }
 
-    private function buildPhpArgsString($args): string
+    private function buildPhpArgsString(array $args): string
     {
         $result = [];
         foreach ($args as $arg) {
@@ -153,6 +153,13 @@ final class TextExceptionPrinter implements ExceptionPrinter
         return implode(', ', $result);
     }
 
+    /**
+     * Converts a PHP type to a string
+     *
+     * @param mixed $arg The argument
+     *
+     * @return string
+     */
     private function buildPhpArg($arg): string
     {
         if (is_null($arg)) {

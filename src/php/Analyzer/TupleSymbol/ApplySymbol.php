@@ -8,6 +8,7 @@ use Phel\Analyzer\WithAnalyzer;
 use Phel\Ast\ApplyNode;
 use Phel\Ast\Node;
 use Phel\Exceptions\AnalyzerException;
+use Phel\Lang\AbstractType;
 use Phel\Lang\Tuple;
 use Phel\NodeEnvironment;
 
@@ -29,6 +30,14 @@ final class ApplySymbol
         );
     }
 
+    /**
+     * Analyze the function expression of the apply special form.
+     *
+     * @param AbstractType|scalar|null $x
+     * @param NodeEnvironment $env
+     *
+     * @return Node
+     */
     private function fnExpr($x, NodeEnvironment $env): Node
     {
         return $this->analyzer->analyze(

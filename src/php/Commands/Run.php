@@ -43,9 +43,15 @@ class Run
             return $this->runtime;
         }
 
-        return require $currentDirectory
+        $runtimePath = $currentDirectory
             . DIRECTORY_SEPARATOR . 'vendor'
             . DIRECTORY_SEPARATOR . 'PhelRuntime.php';
+
+        if (file_exists($runtimePath)) {
+            return require $runtimePath;
+        }
+
+        throw new \RuntimeException('The Runtime could not be loaded from: ' . $runtimePath);
     }
 
     protected function getNamespaceFromFile(string $path): string

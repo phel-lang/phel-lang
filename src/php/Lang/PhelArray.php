@@ -22,6 +22,13 @@ final class PhelArray extends AbstractType implements ArrayAccess, Countable, It
         $this->data = $data;
     }
 
+    /**
+     * Create a new Phel array from a list of value
+     *
+     * @param mixed[] $values Thes values
+     *
+     * @return PhelArray
+     */
     public static function create(...$values): PhelArray
     {
         return new PhelArray($values);

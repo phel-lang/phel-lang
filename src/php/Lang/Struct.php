@@ -16,7 +16,15 @@ abstract class Struct extends Table
      */
     abstract public function getAllowedKeys(): array;
 
-    protected function validateOffset($offset)
+    /**
+     * Asserts if the offset is a valid value
+     *
+     * @param AbstractType|scalar|null $offset The offset value
+     *
+     * @return void
+     * @throws InvalidArgumentException
+     */
+    protected function validateOffset($offset): void
     {
         if (!in_array($offset, $this->getAllowedKeys(), false)) {
             $keyName = Printer::nonReadable()->print($offset);

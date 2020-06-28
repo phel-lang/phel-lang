@@ -28,8 +28,14 @@ if (!getcwd()) {
 
 $vendorDir = 'vendor';
 $currentDir = getcwd() . DIRECTORY_SEPARATOR;
+$autoloadPath = $currentDir . $vendorDir . DIRECTORY_SEPARATOR . 'autoload.php';
 
-require $currentDir . $vendorDir . DIRECTORY_SEPARATOR . 'autoload.php';
+
+if (!file_exists($autoloadPath)) {
+    throw new \RuntimeException("Can not load composer's autoload file: " . $autoloadPath);
+}
+
+require $autoloadPath;
 
 if ($argc <= 1) {
     echo getHelpText();

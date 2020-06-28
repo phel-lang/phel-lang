@@ -217,6 +217,9 @@ final class Reader
         return $result;
     }
 
+    /**
+     * @return AbstractType|scalar
+     */
     private function readMeta(Generator $tokenStream)
     {
         $tokenStream->next();
@@ -263,7 +266,7 @@ final class Reader
     }
 
     /**
-     * @return string|null|boolean|float|int|AbstractType
+     * @return AbstractType|scalar
      */
     private function readExpressionHard(Generator $tokenStream, string $errorMessage)
     {

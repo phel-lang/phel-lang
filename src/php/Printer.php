@@ -36,7 +36,7 @@ final class Printer
     /**
      * Converts a form to a printable string
      *
-     * @param AbstractType|string|scalar|null $form The form to print.
+     * @param mixed $form The form to print.
      */
     public function print($form): string
     {

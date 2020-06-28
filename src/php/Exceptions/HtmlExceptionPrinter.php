@@ -96,7 +96,7 @@ final class HtmlExceptionPrinter implements ExceptionPrinter
         echo '</ul>';
     }
 
-    private function buildPhpArgsString($args)
+    private function buildPhpArgsString(array $args): string
     {
         $result = [];
         foreach ($args as $arg) {
@@ -106,7 +106,14 @@ final class HtmlExceptionPrinter implements ExceptionPrinter
         return implode(', ', $result);
     }
 
-    private function buildPhpArg($arg)
+    /**
+     * Converts a PHP type to a string
+     *
+     * @param mixed $arg The argument
+     *
+     * @return string
+     */
+    private function buildPhpArg($arg): string
     {
         if (is_null($arg)) {
             return 'NULL';
