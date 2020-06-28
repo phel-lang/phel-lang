@@ -6,12 +6,23 @@ use Exception;
 
 class VLQ
 {
+    /**
+     * @var array<int, string>
+     */
     private array $integerToChar = [];
+
+    /**
+     * @var array<string, int>
+     */
     private array $charToInteger = [];
 
     private const CHARS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/=';
 
-    // Cache with precomputed values
+    /**
+     * Cache with precomputed values
+     *
+     * @var array<int, string>
+     */
     private static array $encoderCache = [
         -10 => 'V',
         -9 => 'T',
@@ -45,6 +56,13 @@ class VLQ
         }
     }
 
+    /**
+     * Decodes a VLQ-Based-64 encoded string and return an array of numbers.
+     *
+     * @param string $string The encoded string
+     *
+     * @return int[]
+     */
     public function decode(string $string): array
     {
         $result = [];
@@ -83,6 +101,13 @@ class VLQ
         return $result;
     }
 
+    /**
+     * Encodes a list of number to a VLQ-base64 encoded string.
+     *
+     * @param int[] $numbers A list of numbers to encode
+     *
+     * @return string
+     */
     public function encodeIntegers(array $numbers): string
     {
         $result = '';
@@ -92,6 +117,13 @@ class VLQ
         return $result;
     }
 
+    /**
+     * Encodes a number to a VLQ-base64 encoded string.
+     *
+     * @param int $num The number to encode
+     *
+     * @return string
+     */
     public function encodeInteger(int $num): string
     {
         $originalNum = $num;
