@@ -12,7 +12,7 @@ use PHPUnit\Framework\TestCase;
 
 final class QuoteSymbolTest extends TestCase
 {
-    public function testQuoteWithAnySymbolAndAnyText(): void
+    public function testTupleWithWrongSymbol(): void
     {
         $this->expectException(PhelCodeException::class);
         $this->expectExceptionMessage("This is not a 'quote.");
@@ -21,7 +21,7 @@ final class QuoteSymbolTest extends TestCase
         (new QuoteSymbol())($tuple, NodeEnvironment::empty());
     }
 
-    public function testDataTupleDifferentThanTwo(): void
+    public function testTupleWithoutArgument(): void
     {
         $this->expectException(PhelCodeException::class);
         $this->expectExceptionMessage("Exactly one argument is required for 'quote");
@@ -30,7 +30,7 @@ final class QuoteSymbolTest extends TestCase
         (new QuoteSymbol())($tuple, NodeEnvironment::empty());
     }
 
-    public function testQuoteWithAnyText(): void
+    public function testQuoteTupleWithAnyText(): void
     {
         $tuple = new Tuple([Symbol::create(Symbol::NAME_QUOTE), 'any text']);
         $symbol = (new QuoteSymbol())($tuple, NodeEnvironment::empty());

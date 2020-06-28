@@ -14,7 +14,7 @@ final class QuoteSymbol
 {
     public function __invoke(Tuple $tuple, NodeEnvironment $env): QuoteNode
     {
-        if (!($tuple[0] instanceof Symbol && (string) $tuple[0] === Symbol::NAME_QUOTE)) {
+        if (!($tuple[0] instanceof Symbol && $tuple[0]->getName() === Symbol::NAME_QUOTE)) {
             throw AnalyzerException::withLocation("This is not a 'quote.", $tuple);
         }
 
