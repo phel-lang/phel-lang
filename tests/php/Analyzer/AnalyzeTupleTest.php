@@ -46,7 +46,7 @@ final class AnalyzeTupleTest extends TestCase
         self::assertInstanceOf(DefNode::class, $this->tupleAnalyzer->__invoke($tuple, NodeEnvironment::empty()));
     }
 
-    public function testSymbolWithNameNS(): void
+    public function testSymbolWithNameNs(): void
     {
         $tuple = Tuple::create(Symbol::create(Symbol::NAME_NS), Symbol::create('def-ns'));
         self::assertInstanceOf(NsNode::class, $this->tupleAnalyzer->__invoke($tuple, NodeEnvironment::empty()));
