@@ -3,7 +3,8 @@
 
 (test/run-tests
   'phel\test\core
-  'phel\test\http)
+  'phel\test\http
+  'phel\test\html)
 
 (when (> (get-in test/stats [:counts :failed]) 0)
   (php/exit 1))

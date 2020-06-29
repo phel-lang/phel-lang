@@ -1,0 +1,152 @@
+(ns phel\html
+  (:use \InvalidArgumentException))
+
+(defstruct raw-string [s])
+
+(defn escape-html
+  "Escapes the string that may contain HTML"
+  [s]
+  (php/htmlspecialchars s (bit-or php/ENT_QUOTES php/ENT_SUBSTITUTE)))
+
+(defn- to-str [x]
+  (cond
+    (string? x)  x
+    (keyword? x) (php/-> x (getName))
+    (nil? x)     ""
+                 (str x)))
+
+(def- void-tags (set
+  "area" "base" "br" "col" "command" "embed"
+  "hr" "img" "input" "keygen" "link" "meta" "param"
+  "source" "track" "wbr"
+))
+
+(defn- contains? [s x]
+  (> (count (intersection s (set x))) 0))
+
+(defn- container-tag? [tag content]
+  (or content (not (contains? void-tags tag))))
+
+(defn- normalize-element [[tag & content]]
+  (do
+    (when-not (or (keyword? tag) (string? tag))
+      (throw (php/new InvalidArgumentException (str tag " is not a valid element name."))))
+    (let [tag (to-str tag)
+          elem (first content)
+          map-attrs (if (table? elem) elem @{})
+          content (if (table? elem) (next content) content)
+          content-arr (if (nil? content) nil (apply array content))]
+      [tag map-attrs content-arr])))
+
+#---------------
+# Render element
+#---------------
+
+(declare render-html)
+
+(defn- render-style-table [value]
+  (let [kvs (for [[k v] :pairs value] (str (escape-html (to-str k)) ":" (escape-html v) ";"))]
+    (apply str (sort kvs))))
+
+(defn- render-attr-table [value]
+  (escape-html (php/implode " " (to-php-array (for [[k v] :pairs value :when v] (to-str k))))))
+
+(defn- render-attribute-value [name value]
+  (cond
+    (and (= name "style") (table? value))
+      (render-style-table value)
+    (table? value)
+      (render-attr-table value)
+    (indexed? value)
+      (escape-html (php/implode " " (to-php-array (map to-str value))))
+    (escape-html (to-str value))))
+
+(defn- render-attribute [name value]
+  (let [name (to-str name)]
+    (cond
+      (true? value)
+        (str " " (escape-html name) "=\"" (render-attribute-value name name) "\"")
+      (not value)
+        ""
+        (str " " (escape-html name) "=\""  (render-attribute-value name value) "\""))))
+
+(defn- render-attrs [attrs]
+  (apply str (map-indexed render-attribute attrs)))
+
+(defn- render-element
+  "Renders a Element"
+  [element]
+  (let [[tag attrs content] (normalize-element element)]
+    (if (container-tag? tag content)
+      (str
+        "<" tag (render-attrs attrs) ">"
+        (render-html content)
+        "</" tag ">")
+      (str "<" tag (render-attrs attrs) " />"))))
+
+(defn- render-html [element]
+  (cond
+    (tuple-brackets? element) (render-element element)
+    (indexed? element)        (apply str (map render-html element))
+    (raw-string? element)     (get element :s)
+    (string? element)         (escape-html element)
+    (nil? element)            ""
+                              (escape-html (str element))))
+
+#----------------
+# Compile element
+#----------------
+
+(declare compile-seq)
+(declare compile-html)
+
+(defn- unevaluated?
+  "An expression is unevaluated if it is a symbol or it is not quoted."
+  [expr]
+  (or
+    (symbol? expr)
+    (and
+      (indexed? expr)
+      (not= (first expr) `quote))))
+
+(defn- compile-attrs [attrs]
+  (if (some? unevaluated? (kvs attrs))
+    `(render-attrs ,attrs)
+    (render-attrs attrs)))
+
+(defn- compile-element
+  "Compiles a element"
+  [element]
+  (let [[tag attrs content] (normalize-element element)]
+    (if (container-tag? tag content)
+      `(str
+        ,(str "<" tag) ,(compile-attrs attrs) ">"
+        ,@(compile-seq content)
+        ,(str "</" tag ">"))
+      `(str ,(str "<" tag) ,(compile-attrs attrs) " />"))))
+
+(defn- compile-form [form]
+  (let [form-name (if (and (tuple? form) (symbol? (first form)))
+                    (php/-> (first form) (getName)))]
+    (case form-name
+      "for" (let [[_ bindings body] form]
+              `(apply str (for ,bindings ,(compile-html body))))
+      "if"  (let [[_ condition & body] form]
+              `(if ,condition ,@(for [x :in body] (compile-html x))))
+            `(render-html ,form))))
+
+(defn- compile-seq [content]
+  (for [element :in content]
+    (cond
+      (tuple-brackets? element) (compile-element element)
+      (keyword? element)        (escape-html (php/-> element (getName)))
+      (raw-string? element)     (get element :s)
+      (string? element)         (escape-html element)
+      (indexed? element)        (compile-form element)
+                                `(render-html ,element))))
+
+(defn- compile-html [& content]
+  `(str ,@(compile-seq content)))
+
+(defmacro html [& content]
+  (apply compile-html content))
