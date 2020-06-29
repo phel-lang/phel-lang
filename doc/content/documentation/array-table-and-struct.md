@@ -79,7 +79,15 @@ To set a value on an array or a table, use the `put` function. If the given inde
 
 It is not possible to set values on a set.
 
-## Remove values
+## Adding values
+
+Values can be added to a set with the `push` function. This function can also be used on arrays but is described in section [Array as a Stack](#array-as-a-stack) with mode details.
+
+```phel
+(push (set 1 2) 3) # Evaluates to (set 1 2 3)
+```
+
+## Removing values
 
 To remove a single value from an array or table the `unset` function can be used.
 
@@ -118,7 +126,7 @@ To count the number of element of an array, a table or a set, the `count` functi
 (count (set)) # Evaluates to 0
 ```
 
-## Array/Set as a Stack
+## Array as a Stack
 
 An array can also be used as a stack. Therefore, the `push`, `peek` and `pop` functions can be used. The `push` function add a new value to the stack. The `peek` function returns the last element on the stack but does not remove it. The `pop` function returns the last element on the stack and removes it.
 
@@ -127,12 +135,6 @@ An array can also be used as a stack. Therefore, the `push`, `peek` and `pop` fu
   (push arr 1) # -> @[1]
   (peek arr) # Evaluates to 1, arr is unchanged
   (pop arr)) # Evaluates to 1, arr is empty @[]
-```
-
-A set can partially be used as a stack. Only the `push` function can be used.
-
-```phel
-(push (set 1 2) 3) # Evaluates to (set 1 2 3)
 ```
 
 ## Set operations
