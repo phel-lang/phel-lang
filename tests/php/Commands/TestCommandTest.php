@@ -49,7 +49,7 @@ class TestCommandTest extends TestCase
 
         $testCmd = new TestCommand($runtime);
 
-        $this->expectOutputRegex("/.*Failed\\: 1.*/");
+        $this->expectOutputRegex('/.*Failed\\: 1.*/');
         $this->assertFalse(
             $testCmd->run(__DIR__ . '/Fixtures/test-cmd-project-failure/', [])
         );
