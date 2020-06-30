@@ -1,0 +1,5 @@
+(ns test-cmd-project-failure\test1
+  (:require phel\test :refer [deftest is]))
+
+(deftest my-test
+  (is (false? true)))

@@ -310,3 +310,7 @@
           :let [s (php/-> n (getName))]]
     (run-test s))
   (print-summary))
+
+(defn successful? []
+  (let [@{:failed failed :error error} (get stats :counts)]
+    (zero? (+ failed error))))

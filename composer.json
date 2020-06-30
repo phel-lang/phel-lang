@@ -35,7 +35,7 @@
     "scripts": {
         "test-compiler": "vendor/bin/phpunit",
         "test-compiler:coverage": "vendor/bin/phpunit --coverage-html data/coverage-report",
-        "test-core": "php tests/phel/test-runner.php",
+        "test-core": "./phel test",
         "psalm": "vendor/bin/psalm",
         "test-all": "composer psalm && composer test-compiler && composer test-core",
         "csfix": "vendor/bin/php-cs-fixer fix"
@@ -50,7 +50,10 @@
             },
             "loader-dev": {
                 "phel\\": "tests/phel/"
-            }
+            },
+            "tests": [
+                "tests/phel/"
+            ]
         }
     }
 }

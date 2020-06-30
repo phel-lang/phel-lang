@@ -17,7 +17,10 @@ These are all Phel specific configuration options available.
         },
         "loader-dev": {
             "hello-world\\": "tests/"
-        }
+        },
+        "tests": [
+            "tests/"
+        ]
     }
 }
 ```
@@ -51,6 +54,10 @@ This section allows us to define autoload rules for development purposes.
 Modules needed to run the test suite should not be included in the main autoload rules to avoid polluting the autoloader in production and when other people use the package as a dependency. Therefore, it is a good idea to rely on a dedicated path for your unit tests and to add it within the `loader-dev` section.
 
 The `loader-dev` configuration section is equivalent to the `loader` configuration section. Namespaces and paths are defined in the same way.
+
+### `tests`
+
+This configuration entry defines a list of folders where the test files of a project can be found.
 
 
 ## Phel Composer Plugin

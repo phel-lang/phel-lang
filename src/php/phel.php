@@ -2,8 +2,9 @@
 
 declare(strict_types=1);
 
-use Phel\Commands\Repl;
-use Phel\Commands\Run;
+use Phel\Commands\ReplCommand;
+use Phel\Commands\RunCommand;
+use Phel\Commands\TestCommand;
 
 function getHelpText(): string
 {
@@ -13,8 +14,14 @@ Usage: phel [command]
 Commands:
     repl
         Start a Repl.
+
     run <filename-or-namespace>
         Runs a script.
+
+    test <filename> <filename> ...
+        Tests the given files. If no filenames are provided all tests in the
+        test directory are executed.
+
     help
         Show this help message.
 
@@ -44,7 +51,7 @@ if ($argc <= 1) {
 
 switch ($argv[1]) {
     case 'repl':
-        $repl = new Repl($currentDir);
+        $repl = new ReplCommand($currentDir);
         $repl->run();
         break;
 
@@ -54,8 +61,19 @@ switch ($argv[1]) {
             exit;
         }
 
-        $runCmd = new Run();
+        $runCmd = new RunCommand();
         $runCmd->run($currentDir, $argv[2]);
+        break;
+
+    case 'test':
+        $testCmd = new TestCommand();
+        $result = $testCmd->run($currentDir, array_slice($argv, 2));
+
+        if ($result) {
+            exit(0);
+        } else {
+            exit(1);
+        }
         break;
 
     default:

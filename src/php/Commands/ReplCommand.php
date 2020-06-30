@@ -4,28 +4,21 @@ declare(strict_types=1);
 
 namespace Phel\Commands;
 
-use Phel\Analyzer;
 use Phel\Commands\Repl\ColorStyle;
 use Phel\Commands\Repl\Readline;
-use Phel\Emitter;
-use Phel\Exceptions\AnalyzerException;
+use Phel\Compiler;
+use Phel\Exceptions\CompilerException;
 use Phel\Exceptions\ReaderException;
 use Phel\Exceptions\TextExceptionPrinter;
 use Phel\GlobalEnvironment;
-use Phel\Lexer;
-use Phel\NodeEnvironment;
 use Phel\Printer;
-use Phel\Reader;
 use Phel\Runtime;
 use Throwable;
 
-final class Repl
+final class ReplCommand
 {
     private Readline $readline;
-    private Reader $reader;
-    private Lexer $lexer;
-    private Analyzer $analyzer;
-    private Emitter $emitter;
+    private Compiler $compiler;
     private ColorStyle $style;
     private TextExceptionPrinter $exceptionPrinter;
 
@@ -36,10 +29,7 @@ final class Repl
         $globalEnv = new GlobalEnvironment();
         Runtime::initialize($globalEnv)->loadNs("phel\core");
 
-        $this->reader = new Reader($globalEnv);
-        $this->lexer = new Lexer();
-        $this->analyzer = new Analyzer($globalEnv);
-        $this->emitter = new Emitter();
+        $this->compiler = new Compiler($globalEnv);
         $this->style = ColorStyle::withStyles();
         $this->exceptionPrinter = TextExceptionPrinter::readableWithStyle();
     }
@@ -66,7 +56,7 @@ final class Repl
     private function readInput(?string $input): void
     {
         if (null === $input) {
-            $this->output($this->style->yellow("Bye from Ctrl+D!\n"));
+            $this->output($this->style->yellow("Bye from Ctrl-D!\n"));
             exit;
         }
 
@@ -92,26 +82,15 @@ final class Repl
 
     private function analyzeInput(string $input): void
     {
-        $tokenStream = $this->lexer->lexString($input);
-        $readerResult = $this->reader->readNext($tokenStream);
-
-        if (!$readerResult) {
-            $this->output("Nothing to evaluate.\n");
-            return;
-        }
-
         try {
-            $node = $this->analyzer->analyze(
-                $readerResult->getAst(),
-                NodeEnvironment::empty()->withContext(NodeEnvironment::CTX_RET)
-            );
-            $code = $this->emitter->emitAsString($node);
-            $result = $this->emitter->eval($code);
-
+            $result = $this->compiler->eval($input);
             $this->output(Printer::nonReadable()->print($result));
             $this->output(PHP_EOL);
-        } catch (AnalyzerException $e) {
-            $this->exceptionPrinter->printException($e, $readerResult->getCodeSnippet());
+        } catch (CompilerException $e) {
+            $this->exceptionPrinter->printException(
+                $e->getNestedException(),
+                $e->getCodeSnippet()
+            );
         }
     }
 }

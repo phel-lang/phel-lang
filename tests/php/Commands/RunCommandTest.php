@@ -6,14 +6,14 @@ use Phel\Runtime;
 use PHPUnit\Framework\TestCase;
 use RuntimeException;
 
-class RunTest extends TestCase
+class RunCommandTest extends TestCase
 {
     public function testRunByNamespace()
     {
         $runtime = Runtime::initializeNew();
         $runtime->addPath('test\\', [__DIR__ . '/Fixtures']);
 
-        $run = new Run($runtime);
+        $run = new RunCommand($runtime);
 
         $this->expectOutputString("hello world\n");
         $run->run(__DIR__, 'test\\test-script');
@@ -24,7 +24,7 @@ class RunTest extends TestCase
         $runtime = Runtime::initializeNew();
         $runtime->addPath('test\\', [__DIR__ . '/Fixtures']);
 
-        $run = new Run($runtime);
+        $run = new RunCommand($runtime);
 
         $this->expectOutputString("hello world\n");
         $run->run(__DIR__, __DIR__ . '/Fixtures/test-script.phel');
@@ -36,7 +36,7 @@ class RunTest extends TestCase
         $this->expectException(RuntimeException::class);
         $this->expectExceptionMessage('Cannot parse file: ' . $filename);
 
-        $run = new Run(Runtime::newInstance());
+        $run = new RunCommand(Runtime::newInstance());
         $run->run(__DIR__, $filename);
     }
 
@@ -46,7 +46,7 @@ class RunTest extends TestCase
         $this->expectException(RuntimeException::class);
         $this->expectExceptionMessage('Cannot load namespace: ' . $filename);
 
-        $run = new Run(Runtime::newInstance());
+        $run = new RunCommand(Runtime::newInstance());
         $run->run(__DIR__, $filename);
     }
 
@@ -56,7 +56,7 @@ class RunTest extends TestCase
         $this->expectException(RuntimeException::class);
         $this->expectExceptionMessage('Cannot extract namespace from file: ' . $filename);
 
-        $run = new Run(Runtime::newInstance());
+        $run = new RunCommand(Runtime::newInstance());
         $run->run(__DIR__, $filename);
     }
 }

@@ -55,4 +55,34 @@ final class Compiler
 
         return $code;
     }
+
+    /**
+     * Evaluates a provided Phel code
+     *
+     * @return mixed The result of the executed code.
+     */
+    public function eval(string $code)
+    {
+        try {
+            $tokenStream = $this->lexer->lexString($code);
+            $readerResult = $this->reader->readNext($tokenStream);
+
+            if (!$readerResult) {
+                return;
+            }
+
+            try {
+                $node = $this->analyzer->analyze(
+                    $readerResult->getAst(),
+                    NodeEnvironment::empty()->withContext(NodeEnvironment::CTX_RET)
+                );
+                $code = $this->emitter->emitAsString($node);
+                return $this->emitter->eval($code);
+            } catch (AnalyzerException $e) {
+                throw new CompilerException($e, $readerResult->getCodeSnippet());
+            }
+        } catch (ReaderException $e) {
+            throw new CompilerException($e, $e->getCodeSnippet());
+        }
+    }
 }

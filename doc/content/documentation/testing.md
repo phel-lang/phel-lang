@@ -73,7 +73,9 @@ Test can be defined by using the `deftest` macro. This macro is like a function 
 
 ## Running tests
 
-Tests can be executed using the `run-tests` function. As arguments it takes a list of namespaces that should be tested.
+Tests can be run using the `./vendor/bin/phel test` command. Therefore, the `test` configuration entry must be set (see [Configuration](/documentation/configuration/)).
+
+I can use want to run the test manually on your own, the `run-tests` function can be used.  As arguments it takes a list of namespaces that should be tested.
 
 ```phel
 (run-tests 'my\ns\a 'my\ns\b)
