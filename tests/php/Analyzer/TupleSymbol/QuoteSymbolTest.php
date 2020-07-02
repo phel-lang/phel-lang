@@ -2,8 +2,9 @@
 
 declare(strict_types=1);
 
-namespace Phel\Analyzer\TupleSymbol;
+namespace PhelTest\Analyzer\TupleSymbol;
 
+use Phel\Analyzer\TupleSymbol\QuoteSymbol;
 use Phel\Exceptions\PhelCodeException;
 use Phel\Lang\Symbol;
 use Phel\Lang\Tuple;

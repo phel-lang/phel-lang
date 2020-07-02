@@ -2,8 +2,9 @@
 
 declare(strict_types=1);
 
-namespace Phel\Commands\Repl;
+namespace PhelTest\Commands\Repl;
 
+use Phel\Commands\Repl\ColorStyle;
 use PHPUnit\Framework\TestCase;
 
 final class ColorStyleTest extends TestCase

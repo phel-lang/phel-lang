@@ -1,13 +1,16 @@
 <?php
 
-namespace Phel\Commands;
+declare(strict_types=1);
 
+namespace PhelTest\Commands;
+
+use Phel\Commands\TestCommand;
 use Phel\Runtime;
 use PHPUnit\Framework\TestCase;
 
-class TestCommandTest extends TestCase
+final class TestCommandTest extends TestCase
 {
-    public function testAllInProject()
+    public function testAllInProject(): void
     {
         $runtime = Runtime::initializeNew();
         $runtime->addPath('test-cmd-project-success\\', [__DIR__ . '/Fixtures/test-cmd-project-success/tests']);
@@ -22,7 +25,7 @@ class TestCommandTest extends TestCase
         );
     }
 
-    public function testOneFileInProject()
+    public function testOneFileInProject(): void
     {
         $runtime = Runtime::initializeNew();
         $runtime->addPath('test-cmd-project-success\\', [__DIR__ . '/Fixtures/test-cmd-project-success/tests']);
@@ -40,7 +43,7 @@ class TestCommandTest extends TestCase
         );
     }
 
-    public function testAllInFailedProject()
+    public function testAllInFailedProject(): void
     {
         $runtime = Runtime::initializeNew();
         $runtime->addPath('test-cmd-project-failure\\', [__DIR__ . '/Fixtures/test-cmd-project-failure/tests']);

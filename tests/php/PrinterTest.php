@@ -2,8 +2,12 @@
 
 declare(strict_types=1);
 
-namespace Phel;
+namespace PhelTest;
 
+use Phel\GlobalEnvironment;
+use Phel\Lexer;
+use Phel\Printer;
+use Phel\Reader;
 use PHPUnit\Framework\TestCase;
 
 final class PrinterTest extends TestCase
