@@ -64,7 +64,7 @@ This tests whether the execution of `body` prints the `expected` text to the out
 Test can be defined by using the `deftest` macro. This macro is like a function without arguments.
 
 ```phel
-(ns my-namespace
+(ns my-namespace\tests
   (:require phel\test :refer [deftest is]))
 
 (deftest my-test
