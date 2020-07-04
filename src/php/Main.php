@@ -31,25 +31,29 @@ Commands:
 HELP;
 
     private string $currentDir;
+    private string $commandName;
     private array $arguments;
 
-    public function __construct(string $currentDir, array $arguments = [])
+    public static function create(string $currentDir, string $commandName, array $arguments = []): Main
     {
         if (!getcwd()) {
             fwrite(STDERR, 'Cannot get current working directory' . PHP_EOL);
             exit(1);
         }
 
-        if (count($arguments) <= 1) {
-            $this->renderHelpAndExit();
-        }
+        static::requireAutoload($currentDir);
 
-        $this->requireAutoload($currentDir);
-        $this->currentDir = $currentDir;
-        $this->arguments = $arguments;
+        return new self($currentDir, $commandName, $arguments);
     }
 
-    private function requireAutoload(string $currentDir): void
+    public static function renderHelpAndExit(): void
+    {
+        echo self::HELP_TEXT;
+        exit;
+    }
+
+    /** @psalm-pure */
+    private static function requireAutoload(string $currentDir): void
     {
         $autoloadPath = $currentDir . self::VENDOR_DIR . DIRECTORY_SEPARATOR . 'autoload.php';
 
@@ -60,20 +64,27 @@ HELP;
         require $autoloadPath;
     }
 
+    private function __construct(string $currentDir, string $commandName, array $arguments)
+    {
+        $this->currentDir = $currentDir;
+        $this->commandName = $commandName;
+        $this->arguments = $arguments;
+    }
+
     public function run(): void
     {
-        switch ($this->arguments[1]) {
-            case 'repl':
+        switch ($this->commandName) {
+            case ReplCommand::NAME:
                 $this->executeReplCommand();
                 break;
-            case 'run':
+            case RunCommand::NAME:
                 $this->executeRunCommand();
                 break;
-            case 'test':
+            case TestCommand::NAME:
                 $this->executeTestCommand();
                 break;
             default:
-                $this->renderHelpAndExit();
+                static::renderHelpAndExit();
         }
     }
 
@@ -85,19 +96,19 @@ HELP;
 
     private function executeRunCommand(): void
     {
-        if (count($this->arguments) < 3) {
+        if (empty($this->arguments)) {
             echo "Please provide a filename or namespace as argument!\n";
             exit;
         }
 
         $runCommand = new RunCommand();
-        $runCommand->run($this->currentDir, $this->arguments[2]);
+        $runCommand->run($this->currentDir, $this->arguments[0]);
     }
 
     private function executeTestCommand(): void
     {
         $testCommand = new TestCommand();
-        $result = $testCommand->run($this->currentDir, array_slice($this->arguments, 2));
+        $result = $testCommand->run($this->currentDir, $this->arguments);
 
         if ($result) {
             exit(0);
@@ -105,14 +116,14 @@ HELP;
 
         exit(1);
     }
+}
 
-    private function renderHelpAndExit(): void
-    {
-        echo self::HELP_TEXT;
-        exit;
-    }
+if ($argc <= 1) {
+    Main::renderHelpAndExit();
 }
 
 $currentDir = getcwd() . DIRECTORY_SEPARATOR;
-$entryPoint = new Main($currentDir, $argv);
+$commandName = $argv[1];
+$arguments = array_slice($argv, 2);
+$entryPoint = Main::create($currentDir, $commandName, $arguments);
 $entryPoint->run();

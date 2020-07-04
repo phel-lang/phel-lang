@@ -9,6 +9,8 @@ use RuntimeException;
 
 class RunCommand
 {
+    public const NAME = 'run';
+
     private ?Runtime $runtime;
 
     public function __construct(?Runtime $runtime = null)
