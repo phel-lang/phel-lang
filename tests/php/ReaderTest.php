@@ -1,6 +1,8 @@
 <?php
 
-namespace Phel\Reader;
+declare(strict_types=1);
+
+namespace PhelTest;
 
 use Phel\Exceptions\ReaderException;
 use Phel\GlobalEnvironment;
@@ -20,9 +22,9 @@ ini_set('xdebug.var_display_max_depth', '10');
 ini_set('xdebug.var_display_max_children', '256');
 ini_set('xdebug.var_display_max_data', '1024');
 
-class ReaderTest extends TestCase
+final class ReaderTest extends TestCase
 {
-    public function testReadNumber()
+    public function testReadNumber(): void
     {
         $this->assertEquals(1, $this->read('1'));
         $this->assertEquals(10, $this->read('10'));
@@ -45,7 +47,7 @@ class ReaderTest extends TestCase
         $this->assertEquals(7E-10, $this->read('7E-10'));
     }
 
-    public function testReadKeyword()
+    public function testReadKeyword(): void
     {
         $this->assertEquals(
             $this->loc(new Keyword('test'), 1, 0, 1, 5),
@@ -53,20 +55,20 @@ class ReaderTest extends TestCase
         );
     }
 
-    public function testReadBoolean()
+    public function testReadBoolean(): void
     {
         $this->assertEquals(true, $this->read('true'));
         $this->assertEquals(false, $this->read('false'));
     }
 
-    public function testReadNil()
+    public function testReadNil(): void
     {
         $this->assertNull(
             $this->read('nil')
         );
     }
 
-    public function testReadSymbol()
+    public function testReadSymbol(): void
     {
         $this->assertEquals(
             $this->loc(Symbol::create('test'), 1, 0, 1, 4),
@@ -74,51 +76,65 @@ class ReaderTest extends TestCase
         );
     }
 
-    public function testRdlist()
+    public function testReadList(): void
     {
         $this->assertEquals(
             $this->loc(new Tuple([], false), 1, 0, 1, 2),
             $this->read('()')
         );
         $this->assertEquals(
-            $this->loc(new Tuple([$this->loc(new Tuple([], false), 1, 1, 1, 3)], false), 1, 0, 1, 4),
+            $this->loc(new Tuple([
+                $this->loc(new Tuple([], false), 1, 1, 1, 3)
+            ], false), 1, 0, 1, 4),
             $this->read('(())')
         );
 
         $this->assertEquals(
-            $this->loc(new Tuple([$this->loc(Symbol::create('a'), 1, 1, 1, 2)], false), 1, 0, 1, 3),
+            $this->loc(new Tuple([
+                $this->loc(Symbol::create('a'), 1, 1, 1, 2)
+            ], false), 1, 0, 1, 3),
             $this->read('(a)')
         );
 
         $this->assertEquals(
-            $this->loc(new Tuple([$this->loc(Symbol::create('a'), 1, 1, 1, 2), $this->loc(Symbol::create('b'), 1, 3, 1, 4)], false), 1, 0, 1, 5),
+            $this->loc(new Tuple([
+                $this->loc(Symbol::create('a'), 1, 1, 1, 2),
+                $this->loc(Symbol::create('b'), 1, 3, 1, 4)
+            ], false), 1, 0, 1, 5),
             $this->read('(a b)')
         );
     }
 
-    public function testRdlistBracket()
+    public function testRdlistBracket(): void
     {
         $this->assertEquals(
             $this->loc(new Tuple([], true), 1, 0, 1, 2),
             $this->read('[]')
         );
         $this->assertEquals(
-            $this->loc(new Tuple([$this->loc(new Tuple([], true), 1, 1, 1, 3)], true), 1, 0, 1, 4),
+            $this->loc(new Tuple([
+                $this->loc(new Tuple([], true), 1, 1, 1, 3)
+            ], true), 1, 0, 1, 4),
             $this->read('[[]]')
         );
 
         $this->assertEquals(
-            $this->loc(new Tuple([$this->loc(Symbol::create('a'), 1, 1, 1, 2)], true), 1, 0, 1, 3),
+            $this->loc(new Tuple([
+                $this->loc(Symbol::create('a'), 1, 1, 1, 2)
+            ], true), 1, 0, 1, 3),
             $this->read('[a]')
         );
 
         $this->assertEquals(
-            $this->loc(new Tuple([$this->loc(Symbol::create('a'), 1, 1, 1, 2), $this->loc(Symbol::create('b'), 1, 3, 1, 4)], true), 1, 0, 1, 5),
+            $this->loc(new Tuple([
+                $this->loc(Symbol::create('a'), 1, 1, 1, 2),
+                $this->loc(Symbol::create('b'), 1, 3, 1, 4)
+            ], true), 1, 0, 1, 5),
             $this->read('[a b]')
         );
     }
 
-    public function testQuote()
+    public function testQuote(): void
     {
         $this->assertEquals(
             $this->loc(new Tuple([
@@ -129,7 +145,7 @@ class ReaderTest extends TestCase
         );
     }
 
-    public function testUnquote()
+    public function testUnquote(): void
     {
         $this->assertEquals(
             $this->loc(new Tuple([
@@ -140,7 +156,7 @@ class ReaderTest extends TestCase
         );
     }
 
-    public function testUnquoteSplice()
+    public function testUnquoteSplice(): void
     {
         $this->assertEquals(
             $this->loc(new Tuple([
@@ -151,7 +167,7 @@ class ReaderTest extends TestCase
         );
     }
 
-    public function testQuasiquote1()
+    public function testQuasiquote1(): void
     {
         $this->assertEquals(
             $this->loc(new Tuple([
@@ -162,7 +178,7 @@ class ReaderTest extends TestCase
         );
     }
 
-    public function testQuasiquote2()
+    public function testQuasiquote2(): void
     {
         $this->assertEquals(
             $this->loc(new Tuple([
@@ -173,7 +189,7 @@ class ReaderTest extends TestCase
         );
     }
 
-    public function testQuasiquote3()
+    public function testQuasiquote3(): void
     {
         $this->assertEquals(
             $this->read('(apply tuple (concat (tuple (quote foo)) (tuple bar)))', true),
@@ -181,7 +197,7 @@ class ReaderTest extends TestCase
         );
     }
 
-    public function testQuasiquote4()
+    public function testQuasiquote4(): void
     {
         $this->assertEquals(
             $this->read('\'a', true),
@@ -189,7 +205,7 @@ class ReaderTest extends TestCase
         );
     }
 
-    public function testQuasiquote5()
+    public function testQuasiquote5(): void
     {
         $this->assertEquals(
             $this->read('(apply tuple (concat (tuple (quote foo)) bar))', true),
@@ -197,7 +213,7 @@ class ReaderTest extends TestCase
         );
     }
 
-    public function testQuasiquote6()
+    public function testQuasiquote6(): void
     {
         $this->assertEquals(
             $this->read('(apply tuple (concat (tuple foo) bar))', true),
@@ -205,7 +221,7 @@ class ReaderTest extends TestCase
         );
     }
 
-    public function testQuasiquote7()
+    public function testQuasiquote7(): void
     {
         $this->assertEquals(
             $this->read('(apply tuple (concat foo bar))', true),
@@ -213,7 +229,7 @@ class ReaderTest extends TestCase
         );
     }
 
-    public function testQuasiquote8()
+    public function testQuasiquote8(): void
     {
         $this->assertEquals(
             $this->read('(apply tuple (concat foo bar (tuple 1) (tuple "string") (tuple :keyword) (tuple true) (tuple nil)))', true),
@@ -221,7 +237,7 @@ class ReaderTest extends TestCase
         );
     }
 
-    public function testReadString()
+    public function testReadString(): void
     {
         $this->assertEquals(
             'abc',
@@ -254,7 +270,7 @@ class ReaderTest extends TestCase
         );
     }
 
-    public function testReadEmptyArray()
+    public function testReadEmptyArray(): void
     {
         $this->assertEquals(
             $this->loc(PhelArray::create(), 1, 0, 1, 3),
@@ -262,7 +278,7 @@ class ReaderTest extends TestCase
         );
     }
 
-    public function testReadArray1()
+    public function testReadArray1(): void
     {
         $this->assertEquals(
             $this->loc(PhelArray::create(1), 1, 0, 1, 4),
@@ -270,7 +286,7 @@ class ReaderTest extends TestCase
         );
     }
 
-    public function testReadArray2()
+    public function testReadArray2(): void
     {
         $this->assertEquals(
             $this->loc(PhelArray::create(1, 2), 1, 0, 1, 6),
@@ -278,7 +294,7 @@ class ReaderTest extends TestCase
         );
     }
 
-    public function testReadEmptyTable()
+    public function testReadEmptyTable(): void
     {
         $this->assertEquals(
             $this->loc(Table::fromKVs(), 1, 0, 1, 3),
@@ -286,7 +302,7 @@ class ReaderTest extends TestCase
         );
     }
 
-    public function testReadTable1()
+    public function testReadTable1(): void
     {
         $this->assertEquals(
             $this->loc(Table::fromKVs($this->loc(new Keyword('a'), 1, 2, 1, 4), 1), 1, 0, 1, 7),
@@ -294,21 +310,26 @@ class ReaderTest extends TestCase
         );
     }
 
-    public function testReadTable2()
+    public function testReadTable2(): void
     {
         $this->assertEquals(
-            $this->loc(Table::fromKVs($this->loc(new Keyword('a'), 1, 2, 1, 4), 1, $this->loc(new Keyword('b'), 1, 7, 1, 9), 2), 1, 0, 1, 12),
+            $this->loc(Table::fromKVs(
+                $this->loc(new Keyword('a'), 1, 2, 1, 4),
+                1,
+                $this->loc(new Keyword('b'), 1, 7, 1, 9),
+                2
+            ), 1, 0, 1, 12),
             $this->read('@{:a 1 :b 2}')
         );
     }
 
-    public function testTableUneven()
+    public function testTableUneven(): void
     {
         $this->expectException(ReaderException::class);
         $this->read('@{:a}');
     }
 
-    public function testMetaKeyword()
+    public function testMetaKeyword(): void
     {
         $this->assertEquals(
             $this->loc(
@@ -328,16 +349,13 @@ class ReaderTest extends TestCase
         );
     }
 
-    public function testMetaString()
+    public function testMetaString(): void
     {
         $this->assertEquals(
             $this->loc(
                 $this->withMeta(
                     Symbol::create('test'),
-                    Table::fromKVs(
-                        new Keyword('tag'),
-                        'test'
-                    )
+                    Table::fromKVs(new Keyword('tag'), 'test')
                 ),
                 1,
                 8,
@@ -348,7 +366,7 @@ class ReaderTest extends TestCase
         );
     }
 
-    public function testMetaSymbol()
+    public function testMetaSymbol(): void
     {
         $this->assertEquals(
             $this->loc(
@@ -368,7 +386,7 @@ class ReaderTest extends TestCase
         );
     }
 
-    public function testMetaTable()
+    public function testMetaTable(): void
     {
         $this->assertEquals(
             $this->loc(
@@ -390,7 +408,7 @@ class ReaderTest extends TestCase
         );
     }
 
-    public function testConcatMeta()
+    public function testConcatMeta(): void
     {
         $this->assertEquals(
             $this->loc(
@@ -412,7 +430,7 @@ class ReaderTest extends TestCase
         );
     }
 
-    public function testReadShortFnZeroArgs()
+    public function testReadShortFnZeroArgs(): void
     {
         $this->assertEquals(
             Tuple::create(
@@ -432,7 +450,7 @@ class ReaderTest extends TestCase
         );
     }
 
-    public function testReadShortFnOneArg()
+    public function testReadShortFnOneArg(): void
     {
         $this->assertEquals(
             Tuple::create(
@@ -455,7 +473,7 @@ class ReaderTest extends TestCase
         );
     }
 
-    public function testReadShortFnOneArgTwoTimes()
+    public function testReadShortFnOneArgTwoTimes(): void
     {
         $this->assertEquals(
             Tuple::create(
@@ -479,7 +497,7 @@ class ReaderTest extends TestCase
         );
     }
 
-    public function testReadShortFnTwoArguments()
+    public function testReadShortFnTwoArguments(): void
     {
         $this->assertEquals(
             Tuple::create(
@@ -504,7 +522,7 @@ class ReaderTest extends TestCase
         );
     }
 
-    public function testReadShortFnMissingArgument()
+    public function testReadShortFnMissingArgument(): void
     {
         $this->assertEquals(
             Tuple::create(
@@ -530,7 +548,7 @@ class ReaderTest extends TestCase
         );
     }
 
-    public function testReadShortFnRestArguments()
+    public function testReadShortFnRestArguments(): void
     {
         $this->assertEquals(
             Tuple::create(
@@ -556,7 +574,8 @@ class ReaderTest extends TestCase
         );
     }
 
-    public function read($string, $removeLoc = false)
+    /** @return AbstractType|scalar|null */
+    public function read($string, bool $removeLoc = false)
     {
         Symbol::resetGen();
         $globalEnv = new GlobalEnvironment();
@@ -573,19 +592,20 @@ class ReaderTest extends TestCase
         return $result;
     }
 
-    private function withMeta(IMeta $x, Table $t)
+    private function withMeta(IMeta $x, Table $t): IMeta
     {
         $x->setMeta($t);
         return $x;
     }
 
-    private function loc(AbstractType $x, $beginLine, $beginColumn, $endLine, $endColumn)
+    private function loc(AbstractType $x, $beginLine, $beginColumn, $endLine, $endColumn): AbstractType
     {
         $x->setStartLocation(new SourceLocation('string', $beginLine, $beginColumn));
         $x->setEndLocation(new SourceLocation('string', $endLine, $endColumn));
         return $x;
     }
 
+    /** @param AbstractType|scalar|null $x */
     private function removeLoc($x)
     {
         if ($x instanceof AbstractType) {

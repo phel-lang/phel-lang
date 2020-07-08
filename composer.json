@@ -29,7 +29,7 @@
     },
     "autoload-dev": {
         "psr-4": {
-            "Phel\\": "tests/php"
+            "PhelTest\\": "tests/php"
         }
     },
     "scripts": {

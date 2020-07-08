@@ -2,9 +2,10 @@
 
 declare(strict_types=1);
 
-namespace Phel\Analyzer;
+namespace PhelTest\Analyzer;
 
 use Phel\Analyzer;
+use Phel\Analyzer\AnalyzeTuple;
 use Phel\Ast\ApplyNode;
 use Phel\Ast\DefNode;
 use Phel\Ast\DefStructNode;

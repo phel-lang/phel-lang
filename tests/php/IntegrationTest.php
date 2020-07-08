@@ -1,11 +1,20 @@
 <?php
 
-namespace Phel;
+declare(strict_types=1);
 
+namespace PhelTest;
+
+use Generator;
+use Phel\Analyzer;
+use Phel\Emitter;
+use Phel\GlobalEnvironment;
 use Phel\Lang\Symbol;
+use Phel\Lexer;
+use Phel\Reader;
+use Phel\Runtime;
 use PHPUnit\Framework\TestCase;
 
-class IntegrationTest extends TestCase
+final class IntegrationTest extends TestCase
 {
     private static $globalEnv;
 
@@ -22,12 +31,12 @@ class IntegrationTest extends TestCase
     /**
      * @dataProvider integrationDataProvider
      */
-    public function testIntegration($filename, $phelCode, $generatedCode)
+    public function testIntegration(string $filename, string $phelCode, string $generatedCode): void
     {
         $this->doIntegrationTest($filename, $phelCode, $generatedCode);
     }
 
-    protected function doIntegrationTest($filename, $phelCode, $generatedCode)
+    protected function doIntegrationTest(string $filename, string $phelCode, string $generatedCode): void
     {
         $globalEnv = self::$globalEnv;
         $globalEnv->setNs('user');
@@ -54,26 +63,29 @@ class IntegrationTest extends TestCase
         $this->assertEquals($generatedCode, $compiledCode, 'in ' . $filename);
     }
 
-    public function integrationDataProvider()
+    public function integrationDataProvider(): Generator
     {
         $fixturesDir = realpath(__DIR__ . '/Fixtures');
-        $tests = [];
 
-        foreach (new \RecursiveIteratorIterator(new \RecursiveDirectoryIterator($fixturesDir), \RecursiveIteratorIterator::LEAVES_ONLY) as $file) {
-            if (!preg_match('/\.test$/', $file)) {
+        $iterator = new \RecursiveIteratorIterator(
+            new \RecursiveDirectoryIterator($fixturesDir),
+            \RecursiveIteratorIterator::LEAVES_ONLY
+        );
+
+        foreach ($iterator as $file) {
+            if (!preg_match('/\.test$/', (string) $file)) {
                 continue;
             }
 
             $test = file_get_contents($file->getRealpath());
 
             if (preg_match('/--PHEL--\s*(.*?)\s*--PHP--\s*(.*)/s', $test, $match)) {
+                $filename = str_replace($fixturesDir . '/', '', $file);
                 $phelCode = $match[1];
                 $phpCode = trim($match[2]);
 
-                $tests[] = [str_replace($fixturesDir . '/', '', $file), $phelCode, $phpCode];
+                yield [$filename, $phelCode, $phpCode];
             }
         }
-
-        return $tests;
     }
 }
