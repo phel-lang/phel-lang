@@ -17,6 +17,8 @@ use Throwable;
 
 final class ReplCommand
 {
+    public const NAME = 'repl';
+
     private Readline $readline;
     private Compiler $compiler;
     private ColorStyle $style;

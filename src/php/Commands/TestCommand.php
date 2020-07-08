@@ -13,6 +13,8 @@ use RegexIterator;
 
 class TestCommand
 {
+    public const NAME = 'test';
+
     private ?Runtime $runtime;
 
     public function __construct(?Runtime $runtime = null)
