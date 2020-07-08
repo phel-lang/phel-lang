@@ -16,7 +16,7 @@ These are all Phel specific configuration options available.
             "hello-world\\": "src/"
         },
         "loader-dev": {
-            "hello-world\\": "tests/"
+            "hello-world\\tests\\": "tests/"
         },
         "tests": [
             "tests/"
