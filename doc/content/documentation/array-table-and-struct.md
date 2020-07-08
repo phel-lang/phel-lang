@@ -1,9 +1,9 @@
 +++
-title = "Array, Table and Struct"
+title = "Array, Table, Struct and Set"
 weight = 9
 +++
 
-Phel has two mutable datastructures. An array is an indexed sequential datastructure and a table is an associative datastructure. While PHP has one single datastructure to represents arrays and hash tables, Phel splits them in two individual datastructures.
+Phel has three mutable datastructures. An array is an indexed sequential datastructure, a table is an associative datastructure and a set is a unsorted sequential data structure that cannot contain twice the same value. While PHP has one single datastructure to represents arrays and hash tables, Phel splits them in two individual datastructures.
 
 An array can be created using the `@[` reader macro or the `array` function.
 
@@ -12,12 +12,19 @@ An array can be created using the `@[` reader macro or the `array` function.
 (array "a" "b" "c")
 ```
 
- A table can be created using the `@{` reader macro or the `table` function.
+A table can be created using the `@{` reader macro or the `table` function.
 
- ```phel
- @{:key1 "value1" :key2 "value2"}
- (table :key1 "value1" :key2 "value2")
- ```
+```phel
+@{:key1 "value1" :key2 "value2"}
+(table :key1 "value1" :key2 "value2")
+```
+
+A set is can be created using the `set` function.
+
+```phel
+(set 1 2 3)
+(set 1 2 3 1 2 3) # Evaluates to (set 1 2 3)
+```
 
 ## Getting values
 
@@ -40,12 +47,20 @@ Similar to tuples, the functions `get`, `first`, `second`, `next` and `rest` can
 (next @[]) # Evaluates to nil
 ```
 
-The `get` function can also be use on tables.
+The `get` function can also be used on tables.
 
 ```phel
 (get @{:a 1 :b 2} :a) # Evaluates to 1
 (get @{:a 1 :b 2} :b) # Evaluates to 2
 (get @{:a 1 :b 2} :c) # Evaluates to nil
+```
+
+The `first`, `next` and `rest` function can also be used on sets. However, `next` and `rest` produce an array.
+
+```phel
+(first (set 1 2 3)) # Evaluates to 1
+(next (set 1 2 3)) # Evaluates to @[2 3]
+(rest (set 1 2 3)) # Evaluates to @[2 3]
 ```
 
 ## Setting values
@@ -62,7 +77,17 @@ To set a value on an array or a table, use the `put` function. If the given inde
   (put a :b "world")) # @{:a "hello" :b "world"}
 ```
 
-## Remove values
+It is not possible to set values on a set.
+
+## Adding values
+
+Values can be added to a set with the `push` function. This function can also be used on arrays but is described in section [Array as a Stack](#array-as-a-stack) with mode details.
+
+```phel
+(push (set 1 2) 3) # Evaluates to (set 1 2 3)
+```
+
+## Removing values
 
 To remove a single value from an array or table the `unset` function can be used.
 
@@ -84,9 +109,11 @@ To remove multiple values from arrays, the `remove` and `slice` functions can be
 (slice @[1 2 3 4] 2 1) # Evaluates to @[3]
 ```
 
+It is not possible to remove values from a set.
+
 ## Count elements
 
-To count the number of element of an array or table, the `count` function can be used.
+To count the number of element of an array, a table or a set, the `count` function can be used.
 
 ```phel
 (count @[1 2 3]) # Evaluates to 3
@@ -94,6 +121,9 @@ To count the number of element of an array or table, the `count` function can be
 
 (count @{:a 1 :b 2}) # Evaluates to 2
 (count @{}) # Evaluates to 0
+
+(count (set 1 2 3)) # Evaluates to 3
+(count (set)) # Evaluates to 0
 ```
 
 ## Array as a Stack
@@ -105,6 +135,48 @@ An array can also be used as a stack. Therefore, the `push`, `peek` and `pop` fu
   (push arr 1) # -> @[1]
   (peek arr) # Evaluates to 1, arr is unchanged
   (pop arr)) # Evaluates to 1, arr is empty @[]
+```
+
+## Set operations
+
+A set provides very specific functions that are described in set theory. These are `union`, `intersection`, `difference` and `symmetric-difference`.
+
+### Union
+
+The union of a collection of sets is the set of all elements in the collection.
+
+```phel
+(union) # Evaluates to (set)
+(union (set 1 2)) # Evaluates to (set 1 2)
+(union (set 1 2) (set 0 3)) # Evaluates to (set 0 1 2 3)
+```
+
+### Intersection
+
+The intersection of two sets or more is the set containing all elements shared between those sets.
+
+```phel
+(intersection (set 1 2) (set 0 3)) # Evaluates to (set)
+(intersection (set 1 2) (set 0 1 2 3)) # Evaluates to (set 1 2)
+```
+
+### Difference
+
+The difference of two sets or more is the set containing all elements in the first set that aren't in the other sets.
+
+```phel
+(difference (set 1 2) (set 0 3)) # Evaluates to (set 1 2)
+(difference (set 1 2) (set 0 1 2 3)) # Evaluates to (set)
+(difference (set 0 1 2 3) (set 1 2)) # Evaluates to (set 0 3)
+```
+
+### Symmetric difference
+
+The symmetric difference of two sets or more is the set of elements which are in either of the sets and not in their intersection.
+
+```phel
+(symmetric-difference (set 1 2) (set 0 3)) # Evaluates to (set 0 1 2 3)
+(symmetric-difference (set 1 2) (set 0 1 2 3)) # Evaluates to (set 0 3)
 ```
 
 ## Struct
