@@ -6,13 +6,25 @@ namespace Phel\Lang;
 
 use Phel\Printer;
 
-final class Keyword extends AbstractType implements IIdentical
+final class Keyword extends AbstractType implements IIdentical, IFn
 {
     private string $name;
 
     public function __construct(string $name)
     {
         $this->name = $name;
+    }
+
+    /**
+     * @param scalar|null|AbstractType $default
+     */
+    public function __invoke(Table $obj, $default = null)
+    {
+        if (isset($obj[$this])) {
+            return $obj[$this];
+        }
+
+        return $default;
     }
 
     public function getName(): string

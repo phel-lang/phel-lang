@@ -487,6 +487,11 @@
   (is (= "x" (get @{:a "a" :b "b"} :c "x")) "get on undefined key with optional value")
   (is (id 0 (get @{:a 0} :a)) "gets zero from a table"))
 
+(deftest test-get-keyword
+  (is (= 1 (:a @{:a 1 :b 2})))
+  (is (= nil (:c @{:a 1 :b 2})))
+  (is (= 3 (:c @{:a 1 :b 2} 3))))
+
 (deftest test-get-in
   (is (= "a" (get-in @["a"] [0])) "get-in level 1")
   (is (= "a" (get-in @{:a @["a"]} [:a 0])) "get-in level 2")

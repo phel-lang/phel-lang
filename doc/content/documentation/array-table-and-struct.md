@@ -3,7 +3,7 @@ title = "Array, Table, Struct and Set"
 weight = 9
 +++
 
-Phel has three mutable datastructures. An array is an indexed sequential datastructure, a table is an associative datastructure and a set is a unsorted sequential data structure that cannot contain twice the same value. While PHP has one single datastructure to represents arrays and hash tables, Phel splits them in two individual datastructures.
+Phel has three mutable datastructures. An array is an indexed sequential datastructure, a table is an associative datastructure and a set is a unsorted sequential data structure that cannot contain twice the same value. While PHP has one single datastructure to represents arrays and hash tables, Phel splits them into individual datastructures.
 
 An array can be created using the `@[` reader macro or the `array` function.
 
@@ -55,7 +55,15 @@ The `get` function can also be used on tables.
 (get @{:a 1 :b 2} :c) # Evaluates to nil
 ```
 
-The `first`, `next` and `rest` function can also be used on sets. However, `next` and `rest` produce an array.
+For the function calls above Phel provides a nice shorthand. The Keyword can be used as a function to access the data.
+
+```phel
+(:a @{:a 1 :b 2}) # Evaluates to 1
+(:b @{:a 1 :b 2}) # Evaluates to 2
+(:c @{:a 1 :b 2}) # Evaluates to nil
+```
+
+The function `first`, `next` and `rest` can be used on sets, too. However, `next` and `rest` return an array and not a set.
 
 ```phel
 (first (set 1 2 3)) # Evaluates to 1
