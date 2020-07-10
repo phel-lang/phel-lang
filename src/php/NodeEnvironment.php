@@ -111,48 +111,59 @@ final class NodeEnvironment
 
     public function withMergedLocals(array $locals): NodeEnvironment
     {
-        $finalLocals = array_unique(
-            array_merge($this->locals, array_map(fn ($s) => Symbol::create($s->getName()), $locals))
+        return $this->withLocals(
+            array_unique(
+                array_merge($this->locals, array_map(fn ($s) => Symbol::create($s->getName()), $locals))
+            )
         );
-        return new NodeEnvironment($finalLocals, $this->context, $this->shadowed, $this->recurFrames, $this->boundTo);
     }
 
     public function withShadowedLocal(Symbol $local, Symbol $shadow): NodeEnvironment
     {
-        $finalShadowed = array_merge($this->shadowed, [$local->getName() => $shadow]);
-        return new NodeEnvironment($this->locals, $this->context, $finalShadowed, $this->recurFrames, $this->boundTo);
+        $result = clone $this;
+        $result->shadowed = array_merge($this->shadowed, [$local->getName() => $shadow]);
+
+        return $result;
     }
 
     public function withLocals(array $locals): NodeEnvironment
     {
-        return new NodeEnvironment($locals, $this->context, $this->shadowed, $this->recurFrames, $this->boundTo);
+        $result = clone $this;
+        $result->locals = $locals;
+
+        return $result;
     }
 
     public function withContext(string $context): NodeEnvironment
     {
-        return new NodeEnvironment($this->locals, $context, $this->shadowed, $this->recurFrames, $this->boundTo);
+        $result = clone $this;
+        $result->context = $context;
+
+        return $result;
     }
 
     public function withAddedRecurFrame(RecurFrame $frame): NodeEnvironment
     {
-        return new NodeEnvironment(
-            $this->locals,
-            $this->context,
-            $this->shadowed,
-            array_merge($this->recurFrames, [$frame]),
-            $this->boundTo
-        );
+        $result = clone $this;
+        $result->recurFrames = array_merge($this->recurFrames, [$frame]);
+
+        return $result;
     }
 
     public function withDisallowRecurFrame(): NodeEnvironment
     {
-        return new NodeEnvironment(
-            $this->locals,
-            $this->context,
-            $this->shadowed,
-            array_merge($this->recurFrames, [null]),
-            $this->boundTo
-        );
+        $result = clone $this;
+        $result->recurFrames = array_merge($this->recurFrames, [null]);
+
+        return $result;
+    }
+
+    public function withBoundTo(string $boundTo): NodeEnvironment
+    {
+        $result = clone $this;
+        $result->boundTo = $boundTo;
+
+        return $result;
     }
 
     public function getCurrentRecurFrame(): ?RecurFrame
@@ -162,11 +173,6 @@ final class NodeEnvironment
         }
 
         return null;
-    }
-
-    public function withBoundTo(string $boundTo): NodeEnvironment
-    {
-        return new NodeEnvironment($this->locals, $this->context, $this->shadowed, $this->recurFrames, $boundTo);
     }
 
     public function getBoundTo(): string
