@@ -410,7 +410,7 @@ final class Emitter
     private function emitRecur(RecurNode $node): void
     {
         $params = $node->getFrame()->getParams();
-        $exprs = $node->getExprs();
+        $exprs = $node->getExpressions();
         $env = $node->getEnv();
 
         $tempSyms = [];

@@ -17,40 +17,52 @@ final class RecurSymbol
 
     public function __invoke(Tuple $tuple, NodeEnvironment $env): RecurNode
     {
-        $tupleCount = count($tuple);
-        $frame = $env->getCurrentRecurFrame();
-
-        if (!($tuple[0] instanceof Symbol && $tuple[0]->getName() === Symbol::NAME_RECUR)) {
+        if (!$this->isValidRecurTuple($tuple)) {
             throw AnalyzerException::withLocation("This is not a 'recur.", $tuple);
         }
 
-        if (!$frame) {
+        $currentFrame = $env->getCurrentRecurFrame();
+
+        if (!$currentFrame) {
+            /** @psalm-suppress PossiblyNullArgument */
             throw AnalyzerException::withLocation("Can't call 'recur here", $tuple[0]);
         }
 
-        if ($tupleCount - 1 !== count($frame->getParams())) {
+        if (count($tuple) - 1 !== count($currentFrame->getParams())) {
             throw AnalyzerException::withLocation(
-                "Wrong number of arugments for 'recur. Expected: "
-                . count($frame->getParams()) . ' args, got: ' . ($tupleCount - 1),
+                "Wrong number of arguments for 'recur. Expected: "
+                . count($currentFrame->getParams()) . ' args, got: ' . (count($tuple) - 1),
                 $tuple
             );
         }
 
-        $frame->setIsActive(true);
+        $currentFrame->setIsActive(true);
 
-        $exprs = [];
-        for ($i = 1; $i < $tupleCount; $i++) {
-            $exprs[] = $this->analyzer->analyze(
+        return new RecurNode(
+            $env,
+            $currentFrame,
+            $this->expressions($tuple, $env),
+            $tuple->getStartLocation()
+        );
+    }
+
+    private function isValidRecurTuple(Tuple $tuple): bool
+    {
+        return $tuple[0] instanceof Symbol
+            && $tuple[0]->getName() === Symbol::NAME_RECUR;
+    }
+
+    public function expressions(Tuple $tuple, NodeEnvironment $env): array
+    {
+        $expressions = [];
+
+        for ($i = 1, $tupleCount = count($tuple); $i < $tupleCount; $i++) {
+            $expressions[] = $this->analyzer->analyze(
                 $tuple[$i],
                 $env->withContext(NodeEnvironment::CTX_EXPR)->withDisallowRecurFrame()
             );
         }
 
-        return new RecurNode(
-            $env,
-            $frame,
-            $exprs,
-            $tuple->getStartLocation()
-        );
+        return $expressions;
     }
 }

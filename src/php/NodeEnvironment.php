@@ -20,25 +20,23 @@ final class NodeEnvironment
 
     /**
      * The current context (Expression, Statement or Return)
-     * @var string
      */
     private string $context;
 
     /**
      * A mapping of local variables to shadowed names
-     * @var array
+     * @var Symbol[]
      */
     private array $shadowed;
 
     /**
      * A list of RecurFrame
-     * @var array
+     * @var RecurFrame[]
      */
     private array $recurFrames;
 
     /**
      * A variable this is bound to
-     * @var string
      */
     private string $boundTo;
 
@@ -46,11 +44,16 @@ final class NodeEnvironment
      * @param Symbol[] $locals A list of local symbols
      * @param string $context The current context (Expression, Statement or Return)
      * @param Symbol[] $shadowed A list of shadowed variables
-     * @param array $recurFrames A list of RecurFrame
+     * @param RecurFrame[] $recurFrames A list of RecurFrame
      * @param string|null $boundTo A variable this is bound to
      */
-    public function __construct($locals, $context, $shadowed, $recurFrames, $boundTo = null)
-    {
+    public function __construct(
+        array $locals,
+        string $context,
+        array $shadowed,
+        array $recurFrames,
+        ?string $boundTo = null
+    ) {
         $this->locals = $locals;
         $this->context = $context;
         $this->shadowed = $shadowed;
@@ -92,13 +95,6 @@ final class NodeEnvironment
         return null;
     }
 
-    /**
-     * Checks if a local variable is shadowed
-     *
-     * @param Symbol $local The local variable
-     *
-     * @return bool
-     */
     public function isShadowed(Symbol $local): bool
     {
         return array_key_exists($local->getName(), $this->shadowed);
@@ -111,11 +107,15 @@ final class NodeEnvironment
 
     public function withMergedLocals(array $locals): NodeEnvironment
     {
-        return $this->withLocals(
-            array_unique(
-                array_merge($this->locals, array_map(fn ($s) => Symbol::create($s->getName()), $locals))
+        $allLocalSymbols = array_merge(
+            $this->locals,
+            array_map(
+                fn (Symbol $s) => Symbol::create($s->getName()),
+                $locals
             )
         );
+
+        return $this->withLocals(array_unique($allLocalSymbols));
     }
 
     public function withShadowedLocal(Symbol $local, Symbol $shadow): NodeEnvironment
@@ -153,7 +153,7 @@ final class NodeEnvironment
     public function withDisallowRecurFrame(): NodeEnvironment
     {
         $result = clone $this;
-        $result->recurFrames = array_merge($this->recurFrames, [null]);
+        $result->recurFrames = array_merge($this->recurFrames, [RecurFrame::withoutParams()]);
 
         return $result;
     }
@@ -168,11 +168,11 @@ final class NodeEnvironment
 
     public function getCurrentRecurFrame(): ?RecurFrame
     {
-        if (count($this->recurFrames) > 0) {
-            return $this->recurFrames[count($this->recurFrames) - 1];
+        if (empty($this->recurFrames)) {
+            return null;
         }
 
-        return null;
+        return $this->recurFrames[count($this->recurFrames) - 1];
     }
 
     public function getBoundTo(): string
