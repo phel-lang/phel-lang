@@ -73,6 +73,10 @@ final class PhpObjectCallSymbol
 
     private function callExprForPropertyCall(NodeEnvironment $env, Tuple $tuple): PropertyOrConstantAccessNode
     {
-        return new PropertyOrConstantAccessNode($env, $tuple[2], $tuple[2]->getStartLocation());
+        /** @var Symbol $tuple2 */
+        $tuple2 = $tuple[2];
+
+        /** @psalm-suppress PossiblyNullArgument */
+        return new PropertyOrConstantAccessNode($env, $tuple2, $tuple2->getStartLocation());
     }
 }
