@@ -56,14 +56,6 @@ final class PhpObjectCallSymbol
 
     private function callExprForMethodCall(NodeEnvironment $env, Tuple $tuple): MethodCallNode
     {
-        if (count($tuple) < 1) {
-            throw AnalyzerException::withLocation('Function name is missing', $tuple);
-        }
-
-        if (!$tuple[2] instanceof Tuple) {
-            throw AnalyzerException::withLocation('Second argument of must be a Tuple', $tuple);
-        }
-
         /** @var Tuple $tuple2 */
         $tuple2 = $tuple[2];
         $tCount = count($tuple2);
@@ -81,10 +73,10 @@ final class PhpObjectCallSymbol
 
     private function callExprForPropertyCall(NodeEnvironment $env, Tuple $tuple): PropertyOrConstantAccessNode
     {
-        if (!$tuple[2] instanceof Symbol) {
-            throw AnalyzerException::withLocation('Second argument of must be a Symbol', $tuple);
-        }
+        /** @var Symbol $tuple2 */
+        $tuple2 = $tuple[2];
 
-        return new PropertyOrConstantAccessNode($env, $tuple[2], $tuple[2]->getStartLocation());
+        /** @psalm-suppress PossiblyNullArgument */
+        return new PropertyOrConstantAccessNode($env, $tuple2, $tuple2->getStartLocation());
     }
 }
