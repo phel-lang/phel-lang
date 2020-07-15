@@ -13,11 +13,6 @@ final class RecurFrame
     /** @var Symbol[] */
     private array $params;
 
-    public static function withoutParams(): self
-    {
-        return new self([]);
-    }
-
     public function __construct(array $params)
     {
         $this->params = $params;

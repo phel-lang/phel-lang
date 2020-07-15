@@ -31,7 +31,7 @@ final class NodeEnvironment
 
     /**
      * A list of RecurFrame
-     * @var RecurFrame[]
+     * @var array<RecurFrame|null>
      */
     private array $recurFrames;
 
@@ -44,7 +44,7 @@ final class NodeEnvironment
      * @param Symbol[] $locals A list of local symbols
      * @param string $context The current context (Expression, Statement or Return)
      * @param Symbol[] $shadowed A list of shadowed variables
-     * @param RecurFrame[] $recurFrames A list of RecurFrame
+     * @param array<RecurFrame|null> $recurFrames A list of RecurFrame
      * @param string|null $boundTo A variable this is bound to
      */
     public function __construct(
@@ -153,7 +153,7 @@ final class NodeEnvironment
     public function withDisallowRecurFrame(): NodeEnvironment
     {
         $result = clone $this;
-        $result->recurFrames = array_merge($this->recurFrames, [RecurFrame::withoutParams()]);
+        $result->recurFrames = array_merge($this->recurFrames, [null]);
 
         return $result;
     }
