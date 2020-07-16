@@ -60,7 +60,7 @@ final class IntegrationTest extends TestCase
             );
         }
         $compiledCode = trim(implode('', $compiledCode));
-        $this->assertEquals($generatedCode, $compiledCode, 'in ' . $filename);
+        self::assertEquals($generatedCode, $compiledCode, 'in ' . $filename);
     }
 
     public function integrationDataProvider(): Generator
