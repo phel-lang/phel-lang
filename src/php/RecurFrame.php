@@ -1,21 +1,17 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Phel;
 
 use Phel\Lang\Symbol;
 
-class RecurFrame
+final class RecurFrame
 {
+    private bool $isActive = false;
 
-    /**
-     * @var bool
-     */
-    private $isActive = false;
-
-    /**
-     * @var Symbol[]
-     */
-    private $params;
+    /** @var Symbol[] */
+    private array $params;
 
     public function __construct(array $params)
     {

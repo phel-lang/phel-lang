@@ -13,20 +13,20 @@ final class RecurNode extends Node
     private RecurFrame $frame;
 
     /** @var Node[] */
-    private array $exprs;
+    private array $expressions;
 
     /**
-     * @param Node[] $exprs
+     * @param Node[] $expressions
      */
     public function __construct(
         NodeEnvironment $env,
         RecurFrame $frame,
-        array $exprs,
+        array $expressions,
         ?SourceLocation $sourceLocation = null
     ) {
         parent::__construct($env, $sourceLocation);
         $this->frame = $frame;
-        $this->exprs = $exprs;
+        $this->expressions = $expressions;
     }
 
     public function getFrame(): RecurFrame
@@ -37,8 +37,8 @@ final class RecurNode extends Node
     /**
      * @return Node[]
      */
-    public function getExprs(): array
+    public function getExpressions(): array
     {
-        return $this->exprs;
+        return $this->expressions;
     }
 }
