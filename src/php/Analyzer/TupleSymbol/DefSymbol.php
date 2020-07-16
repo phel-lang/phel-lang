@@ -8,6 +8,7 @@ use Phel\Analyzer\WithAnalyzer;
 use Phel\Ast\DefNode;
 use Phel\Ast\Node;
 use Phel\Exceptions\AnalyzerException;
+use Phel\Exceptions\PhelCodeException;
 use Phel\Lang\AbstractType;
 use Phel\Lang\Keyword;
 use Phel\Lang\Symbol;
@@ -21,24 +22,15 @@ final class DefSymbol
 
     private const POSSIBLE_TUPLE_SIZES = [3, 4];
 
+    /**
+     * @throws PhelCodeException
+     */
     public function __invoke(Tuple $tuple, NodeEnvironment $env): DefNode
     {
-        if (!$env->isDefAllowed()) {
-            throw AnalyzerException::withLocation("'def inside of a 'def is forbidden", $tuple);
-        }
-
-        $env->setDefAllowed(false);
-        $tupleSize = count($tuple);
-
-        if (!in_array($tupleSize, self::POSSIBLE_TUPLE_SIZES)) {
-            throw AnalyzerException::withLocation(
-                "Two or three arguments are required for 'def. Got " . count($tuple),
-                $tuple
-            );
-        }
+        $this->ensureDefIsAllowed($tuple, $env);
+        $this->verifySizeOfTuple($tuple);
 
         $nameSymbol = $tuple[1];
-
         if (!($nameSymbol instanceof Symbol)) {
             throw AnalyzerException::withLocation("First argument of 'def must be a Symbol.", $tuple);
         }
@@ -47,7 +39,7 @@ final class DefSymbol
             ->getGlobalEnvironment()
             ->getNs();
 
-        [$metaTable, $init] = $this->createMetaAndInit($tuple);
+        [$metaTable, $init] = $this->createMetaTableAndInit($tuple);
 
         $this->analyzer
             ->getGlobalEnvironment()
@@ -63,8 +55,31 @@ final class DefSymbol
         );
     }
 
-    /** @return array{0:Table, 1:mixed} */
-    private function createMetaAndInit(Tuple $tuple): array
+    private function ensureDefIsAllowed(Tuple $tuple, NodeEnvironment $env): void
+    {
+        if (!$env->isDefAllowed()) {
+            throw AnalyzerException::withLocation("'def inside of a 'def is forbidden", $tuple);
+        }
+
+        $env->setDefAllowed(false);
+    }
+
+    private function verifySizeOfTuple(Tuple $tuple): void
+    {
+        $tupleSize = count($tuple);
+
+        if (!in_array($tupleSize, self::POSSIBLE_TUPLE_SIZES)) {
+            throw AnalyzerException::withLocation(
+                "Two or three arguments are required for 'def. Got " . $tupleSize,
+                $tuple
+            );
+        }
+    }
+
+    /**
+     * @return array{0:Table, 1:mixed}
+     */
+    private function createMetaTableAndInit(Tuple $tuple): array
     {
         [$meta, $init] = $this->getInitialMetaAndInit($tuple);
 
@@ -101,7 +116,9 @@ final class DefSymbol
         return [$tuple[2], $tuple[3]];
     }
 
-    /** @param AbstractType|scalar|null $init */
+    /**
+     * @param AbstractType|scalar|null $init
+     */
     private function analyzeInit($init, NodeEnvironment $env, string $namespace, Symbol $nameSymbol): Node
     {
         $initEnv = $env
