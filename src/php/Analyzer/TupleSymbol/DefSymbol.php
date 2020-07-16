@@ -93,11 +93,17 @@ final class DefSymbol
         if (is_string($meta)) {
             $key = (new Keyword('doc'))->copyLocationFrom($tuple);
 
-            return [Table::fromKVs($key, $meta)->copyLocationFrom($tuple), $init];
+            return [
+                Table::fromKVs($key, $meta)->copyLocationFrom($tuple),
+                $init,
+            ];
         }
 
         if ($meta instanceof Keyword) {
-            return [Table::fromKVs($meta, true)->copyLocationFrom($meta), $init];
+            return [
+                Table::fromKVs($meta, true)->copyLocationFrom($meta),
+                $init,
+            ];
         }
 
         if (!$meta instanceof Table) {
