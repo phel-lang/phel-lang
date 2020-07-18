@@ -21,6 +21,7 @@ use Phel\Analyzer\TupleSymbol\PhpASetSymbol;
 use Phel\Analyzer\TupleSymbol\PhpAUnsetSymbol;
 use Phel\Analyzer\TupleSymbol\PhpNewSymbol;
 use Phel\Analyzer\TupleSymbol\PhpObjectCallSymbol;
+use Phel\Analyzer\TupleSymbol\PhpObjectStaticCallSymbol;
 use Phel\Analyzer\TupleSymbol\QuoteSymbol;
 use Phel\Analyzer\TupleSymbol\RecurSymbol;
 use Phel\Analyzer\TupleSymbol\ThrowSymbol;
@@ -63,9 +64,9 @@ final class AnalyzeTuple
             case Symbol::NAME_PHP_NEW:
                 return (new PhpNewSymbol($this->analyzer))->toNode($tuple, $env);
             case Symbol::NAME_PHP_OBJECT_CALL:
-                return (new PhpObjectCallSymbol($this->analyzer))->toNode($tuple, $env, $static = false);
+                return (new PhpObjectCallSymbol($this->analyzer, $isStatic = false))->toNode($tuple, $env);
             case Symbol::NAME_PHP_OBJECT_STATIC_CALL:
-                return (new PhpObjectCallSymbol($this->analyzer))->toNode($tuple, $env, $static = true);
+                return (new PhpObjectCallSymbol($this->analyzer, $isStatic = true))->toNode($tuple, $env);
             case Symbol::NAME_PHP_ARRAY_GET:
                 return (new PhpAGetSymbol($this->analyzer))->toNode($tuple, $env);
             case Symbol::NAME_PHP_ARRAY_SET:
