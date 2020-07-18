@@ -15,7 +15,7 @@ final class AnalyzeSymbol
 {
     use WithAnalyzer;
 
-    public function __invoke(Symbol $symbol, NodeEnvironment $env): Node
+    public function toNode(Symbol $symbol, NodeEnvironment $env): Node
     {
         if ($symbol->getNamespace() === 'php') {
             return new PhpVarNode($env, $symbol->getName(), $symbol->getStartLocation());

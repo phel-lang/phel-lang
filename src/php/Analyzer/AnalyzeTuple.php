@@ -37,7 +37,7 @@ final class AnalyzeTuple
     use WithAnalyzer;
 
     /** @throws AnalyzerException|PhelCodeException */
-    public function __invoke(Tuple $tuple, NodeEnvironment $env): Node
+    public function toNode(Tuple $tuple, NodeEnvironment $env): Node
     {
         if (!$tuple[0] instanceof Symbol) {
             return (new InvokeSymbol($this->analyzer))($tuple, $env);
