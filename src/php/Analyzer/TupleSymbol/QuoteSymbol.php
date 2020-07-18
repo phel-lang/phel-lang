@@ -12,7 +12,7 @@ use Phel\NodeEnvironment;
 
 final class QuoteSymbol
 {
-    public function __invoke(Tuple $tuple, NodeEnvironment $env): QuoteNode
+    public function toNode(Tuple $tuple, NodeEnvironment $env): QuoteNode
     {
         if (!($tuple[0] instanceof Symbol && $tuple[0]->getName() === Symbol::NAME_QUOTE)) {
             throw AnalyzerException::withLocation("This is not a 'quote.", $tuple);

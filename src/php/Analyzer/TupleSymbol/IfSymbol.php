@@ -15,7 +15,7 @@ final class IfSymbol
 {
     use WithAnalyzer;
 
-    public function __invoke(Tuple $tuple, NodeEnvironment $env): IfNode
+    public function toNode(Tuple $tuple, NodeEnvironment $env): IfNode
     {
         $tupleCount = count($tuple);
         if ($tupleCount < 3 || $tupleCount > 4) {

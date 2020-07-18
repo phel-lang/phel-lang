@@ -14,7 +14,7 @@ final class ThrowSymbol
 {
     use WithAnalyzer;
 
-    public function __invoke(Tuple $tuple, NodeEnvironment $env): ThrowNode
+    public function toNode(Tuple $tuple, NodeEnvironment $env): ThrowNode
     {
         if (count($tuple) !== 2) {
             throw AnalyzerException::withLocation("Exact one argument is required for 'throw", $tuple);

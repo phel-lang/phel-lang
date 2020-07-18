@@ -14,7 +14,7 @@ final class DoSymbol
 {
     use WithAnalyzer;
 
-    public function __invoke(Tuple $tuple, NodeEnvironment $env): DoNode
+    public function toNode(Tuple $tuple, NodeEnvironment $env): DoNode
     {
         $tupleCount = count($tuple);
         $stmts = [];

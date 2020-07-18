@@ -15,7 +15,7 @@ final class ForeachSymbol
 {
     use WithAnalyzer;
 
-    public function __invoke(Tuple $tuple, NodeEnvironment $env): ForeachNode
+    public function toNode(Tuple $tuple, NodeEnvironment $env): ForeachNode
     {
         $tupleCount = count($tuple);
         if ($tupleCount < 2) {

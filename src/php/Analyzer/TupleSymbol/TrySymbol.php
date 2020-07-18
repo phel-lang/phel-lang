@@ -16,7 +16,7 @@ final class TrySymbol
 {
     use WithAnalyzer;
 
-    public function __invoke(Tuple $tuple, NodeEnvironment $env): TryNode
+    public function toNode(Tuple $tuple, NodeEnvironment $env): TryNode
     {
         $tupleCount = count($tuple);
         $state = 'start';

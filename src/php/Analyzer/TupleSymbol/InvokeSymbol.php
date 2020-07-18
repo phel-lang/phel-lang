@@ -18,7 +18,7 @@ final class InvokeSymbol
 {
     use WithAnalyzer;
 
-    public function __invoke(Tuple $tuple, NodeEnvironment $env): Node
+    public function toNode(Tuple $tuple, NodeEnvironment $env): Node
     {
         $f = $this->analyzer->analyze(
             $tuple[0],

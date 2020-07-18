@@ -18,7 +18,7 @@ final class NsSymbol
 {
     use WithAnalyzer;
 
-    public function __invoke(Tuple $tuple, NodeEnvironment $env): NsNode
+    public function toNode(Tuple $tuple, NodeEnvironment $env): NsNode
     {
         $tupleCount = count($tuple);
         if (!($tuple[1] instanceof Symbol)) {

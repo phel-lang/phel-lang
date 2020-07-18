@@ -13,7 +13,7 @@ final class PhpAGetSymbol
 {
     use WithAnalyzer;
 
-    public function __invoke(Tuple $tuple, NodeEnvironment $env): PhpArrayGetNode
+    public function toNode(Tuple $tuple, NodeEnvironment $env): PhpArrayGetNode
     {
         return new PhpArrayGetNode(
             $env,

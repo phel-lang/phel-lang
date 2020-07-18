@@ -16,7 +16,7 @@ final class ApplySymbol
 {
     use WithAnalyzer;
 
-    public function __invoke(Tuple $tuple, NodeEnvironment $env): ApplyNode
+    public function toNode(Tuple $tuple, NodeEnvironment $env): ApplyNode
     {
         if (count($tuple) < 3) {
             throw AnalyzerException::withLocation("At least three arguments are required for 'apply", $tuple);

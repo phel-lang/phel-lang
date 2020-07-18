@@ -34,7 +34,9 @@ final class PhpObjectCallSymbolTest extends TestCase
             Symbol::create(Symbol::NAME_PHP_OBJECT_STATIC_CALL),
             Symbol::create('\\')
         );
-        (new PhpObjectCallSymbol($this->analyzer))($tuple, NodeEnvironment::empty(), $isStatic = true);
+
+        (new PhpObjectCallSymbol($this->analyzer))
+            ->toNode($tuple, NodeEnvironment::empty(), $isStatic = true);
     }
 
     public function testTupleWithWrongSymbol(): void
@@ -47,7 +49,8 @@ final class PhpObjectCallSymbolTest extends TestCase
             Symbol::create('\\'),
             ''
         );
-        (new PhpObjectCallSymbol($this->analyzer))($tuple, NodeEnvironment::empty(), $isStatic = false);
+        (new PhpObjectCallSymbol($this->analyzer))
+            ->toNode($tuple, NodeEnvironment::empty(), $isStatic = false);
     }
 
     public function testIsStatic(): void
@@ -57,7 +60,8 @@ final class PhpObjectCallSymbolTest extends TestCase
             Symbol::create('\\'),
             Symbol::create('')
         );
-        $objCallNode = (new PhpObjectCallSymbol($this->analyzer))($tuple, NodeEnvironment::empty(), $isStatic = true);
+        $objCallNode = (new PhpObjectCallSymbol($this->analyzer))
+            ->toNode($tuple, NodeEnvironment::empty(), $isStatic = true);
         self::assertSame($isStatic, $objCallNode->isStatic());
         self::assertInstanceOf(PhpClassNameNode::class, $objCallNode->getTargetExpr());
         self::assertInstanceOf(PropertyOrConstantAccessNode::class, $objCallNode->getCallExpr());
@@ -70,7 +74,10 @@ final class PhpObjectCallSymbolTest extends TestCase
             Symbol::create('\\'),
             Symbol::create('')
         );
-        $objCallNode = (new PhpObjectCallSymbol($this->analyzer))($tuple, NodeEnvironment::empty(), $isStatic = false);
+
+        $objCallNode = (new PhpObjectCallSymbol($this->analyzer))
+            ->toNode($tuple, NodeEnvironment::empty(), $isStatic = false);
+
         self::assertSame($isStatic, $objCallNode->isStatic());
         self::assertInstanceOf(PhpClassNameNode::class, $objCallNode->getTargetExpr());
         self::assertInstanceOf(PropertyOrConstantAccessNode::class, $objCallNode->getCallExpr());
@@ -83,7 +90,10 @@ final class PhpObjectCallSymbolTest extends TestCase
             Symbol::create('\\'),
             Tuple::create(Symbol::create(''), '', '')
         );
-        $objCallNode = (new PhpObjectCallSymbol($this->analyzer))($tuple, NodeEnvironment::empty(), $isStatic = true);
+
+        $objCallNode = (new PhpObjectCallSymbol($this->analyzer))
+            ->toNode($tuple, NodeEnvironment::empty(), $isStatic = true);
+
         self::assertTrue($objCallNode->isMethodCall());
         self::assertInstanceOf(PhpClassNameNode::class, $objCallNode->getTargetExpr());
         self::assertInstanceOf(MethodCallNode::class, $objCallNode->getCallExpr());
@@ -96,7 +106,10 @@ final class PhpObjectCallSymbolTest extends TestCase
             Symbol::create('\\'),
             Symbol::create('')
         );
-        $objCallNode = (new PhpObjectCallSymbol($this->analyzer))($tuple, NodeEnvironment::empty(), $isStatic = true);
+
+        $objCallNode = (new PhpObjectCallSymbol($this->analyzer))
+            ->toNode($tuple, NodeEnvironment::empty(), $isStatic = true);
+
         self::assertFalse($objCallNode->isMethodCall());
         self::assertInstanceOf(PhpClassNameNode::class, $objCallNode->getTargetExpr());
         self::assertInstanceOf(PropertyOrConstantAccessNode::class, $objCallNode->getCallExpr());

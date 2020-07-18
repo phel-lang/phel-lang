@@ -17,7 +17,7 @@ final class LetSymbol
 {
     use WithAnalyzer;
 
-    public function __invoke(Tuple $tuple, NodeEnvironment $env): LetNode
+    public function toNode(Tuple $tuple, NodeEnvironment $env): LetNode
     {
         if (count($tuple) < 2) {
             throw AnalyzerException::withLocation("At least two arguments are required for 'let", $tuple);

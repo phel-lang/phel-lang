@@ -13,7 +13,7 @@ final class PhpAPushSymbol
 {
     use WithAnalyzer;
 
-    public function __invoke(Tuple $tuple, NodeEnvironment $env): PhpArrayPushNode
+    public function toNode(Tuple $tuple, NodeEnvironment $env): PhpArrayPushNode
     {
         return new PhpArrayPushNode(
             $env,

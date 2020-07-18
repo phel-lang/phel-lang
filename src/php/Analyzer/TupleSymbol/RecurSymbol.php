@@ -15,7 +15,7 @@ final class RecurSymbol
 {
     use WithAnalyzer;
 
-    public function __invoke(Tuple $tuple, NodeEnvironment $env): RecurNode
+    public function toNode(Tuple $tuple, NodeEnvironment $env): RecurNode
     {
         if (!$this->isValidRecurTuple($tuple)) {
             throw AnalyzerException::withLocation("This is not a 'recur.", $tuple);

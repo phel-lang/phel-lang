@@ -18,7 +18,7 @@ final class LoopSymbol
 {
     use WithAnalyzer;
 
-    public function __invoke(Tuple $tuple, NodeEnvironment $env): LetNode
+    public function toNode(Tuple $tuple, NodeEnvironment $env): LetNode
     {
         $tupleCount = count($tuple);
         if (!($tuple[0] instanceof Symbol && $tuple[0]->getName() === Symbol::NAME_LOOP)) {

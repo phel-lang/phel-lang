@@ -30,7 +30,9 @@ final class DefStructSymbolTest extends TestCase
         $tuple = Tuple::create(
             Symbol::create(Symbol::NAME_DEF_STRUCT),
         );
-        (new DefStructSymbol($this->analyzer))($tuple, NodeEnvironment::empty());
+
+        (new DefStructSymbol($this->analyzer))
+            ->toNode($tuple, NodeEnvironment::empty());
     }
 
     public function testFirstArgIsNotSymbol(): void
@@ -43,7 +45,9 @@ final class DefStructSymbolTest extends TestCase
             '',
             Tuple::create()
         );
-        (new DefStructSymbol($this->analyzer))($tuple, NodeEnvironment::empty());
+
+        (new DefStructSymbol($this->analyzer))
+            ->toNode($tuple, NodeEnvironment::empty());
     }
 
     public function testSecondArgIsNotTuple(): void
@@ -56,7 +60,9 @@ final class DefStructSymbolTest extends TestCase
             Symbol::create('request'),
             ''
         );
-        (new DefStructSymbol($this->analyzer))($tuple, NodeEnvironment::empty());
+
+        (new DefStructSymbol($this->analyzer))
+            ->toNode($tuple, NodeEnvironment::empty());
     }
 
     public function testTupleElemsAreNotSymbols(): void
@@ -69,7 +75,9 @@ final class DefStructSymbolTest extends TestCase
             Symbol::create('request'),
             Tuple::create('method')
         );
-        (new DefStructSymbol($this->analyzer))($tuple, NodeEnvironment::empty());
+
+        (new DefStructSymbol($this->analyzer))
+            ->toNode($tuple, NodeEnvironment::empty());
     }
 
     public function testDefStructSymbol(): void
@@ -79,7 +87,9 @@ final class DefStructSymbolTest extends TestCase
             Symbol::create('request'),
             Tuple::create(Symbol::create('method'), Symbol::create('uri'))
         );
-        $defStructNode = (new DefStructSymbol($this->analyzer))($tuple, NodeEnvironment::empty());
+
+        $defStructNode = (new DefStructSymbol($this->analyzer))
+            ->toNode($tuple, NodeEnvironment::empty());
 
         self::assertSame('request', $defStructNode->getName()->getName());
         self::assertSame('user', $defStructNode->getNamespace());

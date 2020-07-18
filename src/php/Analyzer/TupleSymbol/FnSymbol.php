@@ -16,7 +16,7 @@ final class FnSymbol
 {
     use WithAnalyzer;
 
-    public function __invoke(Tuple $tuple, NodeEnvironment $env): FnNode
+    public function toNode(Tuple $tuple, NodeEnvironment $env): FnNode
     {
         $tupleCount = count($tuple);
         if ($tupleCount < 2) {

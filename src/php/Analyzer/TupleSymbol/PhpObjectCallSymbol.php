@@ -17,7 +17,7 @@ final class PhpObjectCallSymbol
 {
     use WithAnalyzer;
 
-    public function __invoke(Tuple $tuple, NodeEnvironment $env, bool $isStatic): PhpObjectCallNode
+    public function toNode(Tuple $tuple, NodeEnvironment $env, bool $isStatic): PhpObjectCallNode
     {
         $fnName = $isStatic
             ? Symbol::NAME_PHP_OBJECT_STATIC_CALL

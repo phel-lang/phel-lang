@@ -14,7 +14,7 @@ final class PhpAUnsetSymbol
 {
     use WithAnalyzer;
 
-    public function __invoke(Tuple $tuple, NodeEnvironment $env): PhpArrayUnsetNode
+    public function toNode(Tuple $tuple, NodeEnvironment $env): PhpArrayUnsetNode
     {
         if ($env->getContext() !== NodeEnvironment::CTX_STMT) {
             throw AnalyzerException::withLocation("'php/unset can only be called as Statement and not as Expression", $tuple);

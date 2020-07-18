@@ -15,7 +15,7 @@ final class DefStructSymbol
 {
     use WithAnalyzer;
 
-    public function __invoke(Tuple $tuple, NodeEnvironment $env): DefStructNode
+    public function toNode(Tuple $tuple, NodeEnvironment $env): DefStructNode
     {
         if (count($tuple) !== 3) {
             throw AnalyzerException::withLocation(

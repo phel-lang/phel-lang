@@ -18,7 +18,7 @@ final class DefSymbol
 {
     use WithAnalyzer;
 
-    public function __invoke(Tuple $tuple, NodeEnvironment $env): DefNode
+    public function toNode(Tuple $tuple, NodeEnvironment $env): DefNode
     {
         $countX = count($tuple);
         if ($countX < 3 || $countX > 4) {

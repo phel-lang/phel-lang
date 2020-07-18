@@ -14,7 +14,7 @@ final class PhpNewSymbol
 {
     use WithAnalyzer;
 
-    public function __invoke(Tuple $tuple, NodeEnvironment $env): PhpNewNode
+    public function toNode(Tuple $tuple, NodeEnvironment $env): PhpNewNode
     {
         $tupleCount = count($tuple);
         if ($tupleCount < 2) {
