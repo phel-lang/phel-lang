@@ -12,7 +12,7 @@ use Phel\Lang\Tuple;
 use Phel\NodeEnvironment;
 use Phel\RecurFrame;
 
-final class FnSymbol
+final class FnSymbol implements TupleToNode
 {
     use WithAnalyzer;
 

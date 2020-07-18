@@ -11,7 +11,7 @@ use Phel\Exceptions\AnalyzerException;
 use Phel\Lang\Tuple;
 use Phel\NodeEnvironment;
 
-final class IfSymbol
+final class IfSymbol implements TupleToNode
 {
     use WithAnalyzer;
 

@@ -9,7 +9,7 @@ use Phel\Ast\PhpArrayPushNode;
 use Phel\Lang\Tuple;
 use Phel\NodeEnvironment;
 
-final class PhpAPushSymbol
+final class PhpAPushSymbol implements TupleToNode
 {
     use WithAnalyzer;
 

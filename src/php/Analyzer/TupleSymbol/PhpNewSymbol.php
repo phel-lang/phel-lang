@@ -10,7 +10,7 @@ use Phel\Exceptions\AnalyzerException;
 use Phel\Lang\Tuple;
 use Phel\NodeEnvironment;
 
-final class PhpNewSymbol
+final class PhpNewSymbol implements TupleToNode
 {
     use WithAnalyzer;
 

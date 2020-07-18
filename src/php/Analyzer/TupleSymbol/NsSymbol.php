@@ -14,7 +14,7 @@ use Phel\Lang\Table;
 use Phel\Lang\Tuple;
 use Phel\NodeEnvironment;
 
-final class NsSymbol
+final class NsSymbol implements TupleToNode
 {
     use WithAnalyzer;
 

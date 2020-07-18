@@ -14,7 +14,7 @@ use Phel\Lang\AbstractType;
 use Phel\Lang\Tuple;
 use Phel\NodeEnvironment;
 
-final class InvokeSymbol
+final class InvokeSymbol implements TupleToNode
 {
     use WithAnalyzer;
 
