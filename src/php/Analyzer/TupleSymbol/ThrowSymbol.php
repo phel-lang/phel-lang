@@ -10,7 +10,7 @@ use Phel\Exceptions\AnalyzerException;
 use Phel\Lang\Tuple;
 use Phel\NodeEnvironment;
 
-final class ThrowSymbol implements TupleToNode
+final class ThrowSymbol implements TupleSymbolToNode
 {
     use WithAnalyzer;
 

@@ -10,7 +10,7 @@ use Phel\Lang\Symbol;
 use Phel\Lang\Tuple;
 use Phel\NodeEnvironment;
 
-final class QuoteSymbol implements TupleToNode
+final class QuoteSymbol implements TupleSymbolToNode
 {
     public function toNode(Tuple $tuple, NodeEnvironment $env): QuoteNode
     {

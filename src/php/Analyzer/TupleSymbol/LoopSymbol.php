@@ -14,7 +14,7 @@ use Phel\Lang\Tuple;
 use Phel\NodeEnvironment;
 use Phel\RecurFrame;
 
-final class LoopSymbol implements TupleToNode
+final class LoopSymbol implements TupleSymbolToNode
 {
     use WithAnalyzer;
 

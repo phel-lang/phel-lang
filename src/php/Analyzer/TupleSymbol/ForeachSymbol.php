@@ -11,7 +11,7 @@ use Phel\Lang\Symbol;
 use Phel\Lang\Tuple;
 use Phel\NodeEnvironment;
 
-final class ForeachSymbol implements TupleToNode
+final class ForeachSymbol implements TupleSymbolToNode
 {
     use WithAnalyzer;
 

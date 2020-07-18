@@ -14,7 +14,7 @@ use Phel\Lang\Table;
 use Phel\Lang\Tuple;
 use Phel\NodeEnvironment;
 
-final class DefSymbol implements TupleToNode
+final class DefSymbol implements TupleSymbolToNode
 {
     use WithAnalyzer;
 

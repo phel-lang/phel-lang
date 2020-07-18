@@ -10,7 +10,7 @@ use Phel\Ast\Node;
 use Phel\Lang\Tuple;
 use Phel\NodeEnvironment;
 
-final class DoSymbol implements TupleToNode
+final class DoSymbol implements TupleSymbolToNode
 {
     use WithAnalyzer;
 

@@ -13,7 +13,7 @@ use Phel\Lang\Symbol;
 use Phel\Lang\Tuple;
 use Phel\NodeEnvironment;
 
-final class LetSymbol implements TupleToNode
+final class LetSymbol implements TupleSymbolToNode
 {
     use WithAnalyzer;
 

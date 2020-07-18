@@ -12,7 +12,7 @@ use Phel\Lang\AbstractType;
 use Phel\Lang\Tuple;
 use Phel\NodeEnvironment;
 
-final class ApplySymbol implements TupleToNode
+final class ApplySymbol implements TupleSymbolToNode
 {
     use WithAnalyzer;
 

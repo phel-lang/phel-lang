@@ -13,7 +13,7 @@ use Phel\Lang\Symbol;
 use Phel\Lang\Tuple;
 use Phel\NodeEnvironment;
 
-final class PhpObjectCallSymbol implements TupleToNode
+final class PhpObjectCallSymbol implements TupleSymbolToNode
 {
     private Analyzer $analyzer;
 

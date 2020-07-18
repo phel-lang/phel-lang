@@ -8,7 +8,7 @@ use Phel\Ast\Node;
 use Phel\Lang\Tuple;
 use Phel\NodeEnvironment;
 
-interface TupleToNode
+interface TupleSymbolToNode
 {
     public function toNode(Tuple $tuple, NodeEnvironment $env): Node;
 }

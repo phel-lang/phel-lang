@@ -11,7 +11,7 @@ use Phel\Lang\Symbol;
 use Phel\Lang\Tuple;
 use Phel\NodeEnvironment;
 
-final class DefStructSymbol implements TupleToNode
+final class DefStructSymbol implements TupleSymbolToNode
 {
     use WithAnalyzer;
 
