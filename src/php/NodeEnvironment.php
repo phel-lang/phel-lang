@@ -71,6 +71,15 @@ final class NodeEnvironment
         return new NodeEnvironment([], self::CTX_STMT, [], []);
     }
 
+    public static function withDefNotAllowed(?NodeEnvironment $env = null): NodeEnvironment
+    {
+        if (null === $env) {
+            $env = static::empty();
+        }
+
+        return $env->withDefAllowed(false);
+    }
+
     /**
      * @return Symbol[]
      */

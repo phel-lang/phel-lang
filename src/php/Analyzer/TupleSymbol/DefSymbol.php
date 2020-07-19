@@ -61,7 +61,7 @@ final class DefSymbol
             throw AnalyzerException::withLocation("'def inside of a 'def is forbidden", $tuple);
         }
 
-        return $env->withDefAllowed(false);
+        return NodeEnvironment::withDefNotAllowed($env);
     }
 
     private function verifySizeOfTuple(Tuple $tuple): void
