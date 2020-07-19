@@ -29,7 +29,7 @@ final class DefSymbolTest extends TestCase
         $this->expectException(PhelCodeException::class);
         $this->expectExceptionMessage("'def inside of a 'def is forbidden");
 
-        $env = NodeEnvironment::empty()->setDefAllowed(false);
+        $env = NodeEnvironment::empty()->withDefAllowed(false);
         (new DefSymbol($this->analyzer))(Tuple::create(), $env);
     }
 

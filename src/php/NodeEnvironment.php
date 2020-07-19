@@ -171,6 +171,14 @@ final class NodeEnvironment
         return $result;
     }
 
+    public function withDefAllowed(bool $defAllowed): NodeEnvironment
+    {
+        $result = clone $this;
+        $result->defAllowed = $defAllowed;
+
+        return $result;
+    }
+
     public function getCurrentRecurFrame(): ?RecurFrame
     {
         if (empty($this->recurFrames)) {
@@ -188,12 +196,5 @@ final class NodeEnvironment
     public function isDefAllowed(): bool
     {
         return $this->defAllowed;
-    }
-
-    public function setDefAllowed(bool $defAllowed): self
-    {
-        $this->defAllowed = $defAllowed;
-
-        return $this;
     }
 }
