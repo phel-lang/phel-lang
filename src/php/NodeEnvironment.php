@@ -41,6 +41,11 @@ final class NodeEnvironment
     private string $boundTo;
 
     /**
+     * Def inside of def should not work. This flag help us to keep track of this.
+     */
+    private bool $defAllowed = true;
+
+    /**
      * @param Symbol[] $locals A list of local symbols
      * @param string $context The current context (Expression, Statement or Return)
      * @param Symbol[] $shadowed A list of shadowed variables
@@ -166,6 +171,14 @@ final class NodeEnvironment
         return $result;
     }
 
+    public function withDefAllowed(bool $defAllowed): NodeEnvironment
+    {
+        $result = clone $this;
+        $result->defAllowed = $defAllowed;
+
+        return $result;
+    }
+
     public function getCurrentRecurFrame(): ?RecurFrame
     {
         if (empty($this->recurFrames)) {
@@ -178,5 +191,10 @@ final class NodeEnvironment
     public function getBoundTo(): string
     {
         return $this->boundTo;
+    }
+
+    public function isDefAllowed(): bool
+    {
+        return $this->defAllowed;
     }
 }
