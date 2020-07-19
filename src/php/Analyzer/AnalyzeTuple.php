@@ -21,7 +21,6 @@ use Phel\Analyzer\TupleSymbol\PhpASetSymbol;
 use Phel\Analyzer\TupleSymbol\PhpAUnsetSymbol;
 use Phel\Analyzer\TupleSymbol\PhpNewSymbol;
 use Phel\Analyzer\TupleSymbol\PhpObjectCallSymbol;
-use Phel\Analyzer\TupleSymbol\PhpObjectStaticCallSymbol;
 use Phel\Analyzer\TupleSymbol\QuoteSymbol;
 use Phel\Analyzer\TupleSymbol\RecurSymbol;
 use Phel\Analyzer\TupleSymbol\ThrowSymbol;

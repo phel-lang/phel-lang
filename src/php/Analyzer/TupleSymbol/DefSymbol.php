@@ -6,7 +6,9 @@ namespace Phel\Analyzer\TupleSymbol;
 
 use Phel\Analyzer\WithAnalyzer;
 use Phel\Ast\DefNode;
+use Phel\Ast\Node;
 use Phel\Exceptions\AnalyzerException;
+use Phel\Exceptions\PhelCodeException;
 use Phel\Lang\AbstractType;
 use Phel\Lang\Keyword;
 use Phel\Lang\Symbol;
@@ -18,59 +20,88 @@ final class DefSymbol implements TupleSymbolToNode
 {
     use WithAnalyzer;
 
+    private const POSSIBLE_TUPLE_SIZES = [3, 4];
+
+    /**
+     * @throws PhelCodeException
+     */
     public function toNode(Tuple $tuple, NodeEnvironment $env): DefNode
     {
-        $countX = count($tuple);
-        if ($countX < 3 || $countX > 4) {
-            throw AnalyzerException::withLocation(
-                "Two or three arguments are required for 'def. Got " . count($tuple),
-                $tuple
-            );
-        }
+        $this->ensureDefIsAllowed($tuple, $env);
+        $this->verifySizeOfTuple($tuple);
 
-        if (!($tuple[1] instanceof Symbol)) {
+        $nameSymbol = $tuple[1];
+        if (!($nameSymbol instanceof Symbol)) {
             throw AnalyzerException::withLocation("First argument of 'def must be a Symbol.", $tuple);
         }
 
-        $namespace = $this->analyzer->getGlobalEnvironment()->getNs();
-        /** @var Symbol $name */
-        $name = $tuple[1];
+        $namespace = $this->analyzer
+            ->getGlobalEnvironment()
+            ->getNs();
 
-        $initEnv = $env
-            ->withBoundTo($namespace . '\\' . $name)
-            ->withContext(NodeEnvironment::CTX_EXPR)
-            ->withDisallowRecurFrame();
+        [$metaTable, $init] = $this->createMetaTableAndInit($tuple);
 
-        [$meta, $init] = $this->createMetaAndInit($tuple);
-
-        $this->analyzer->getGlobalEnvironment()->addDefinition($namespace, $name, $meta);
+        $this->analyzer
+            ->getGlobalEnvironment()
+            ->addDefinition($namespace, $nameSymbol, $metaTable);
 
         return new DefNode(
             $env,
             $namespace,
-            $name,
-            $meta,
-            $this->analyzer->analyze($init, $initEnv),
+            $nameSymbol,
+            $metaTable,
+            $this->analyzeInit($init, $env, $namespace, $nameSymbol),
             $tuple->getStartLocation()
         );
     }
 
-    private function createMetaAndInit(Tuple $tuple): array
+    private function ensureDefIsAllowed(Tuple $tuple, NodeEnvironment $env): void
+    {
+        if (!$env->isDefAllowed()) {
+            throw AnalyzerException::withLocation("'def inside of a 'def is forbidden", $tuple);
+        }
+    }
+
+    private function verifySizeOfTuple(Tuple $tuple): void
+    {
+        $tupleSize = count($tuple);
+
+        if (!in_array($tupleSize, self::POSSIBLE_TUPLE_SIZES)) {
+            throw AnalyzerException::withLocation(
+                "Two or three arguments are required for 'def. Got " . $tupleSize,
+                $tuple
+            );
+        }
+    }
+
+    /**
+     * @return array{0:Table, 1:mixed}
+     */
+    private function createMetaTableAndInit(Tuple $tuple): array
     {
         [$meta, $init] = $this->getInitialMetaAndInit($tuple);
 
-        if (!($init instanceof AbstractType) && !is_scalar($init) && $init !== null) {
+        if (!($init instanceof AbstractType)
+            && !is_scalar($init)
+            && $init !== null
+        ) {
             throw AnalyzerException::withLocation('$init must be AbstractType|scalar|null', $tuple);
         }
 
         if (is_string($meta)) {
             $key = (new Keyword('doc'))->copyLocationFrom($tuple);
 
-            return [Table::fromKVs($key, $meta)->copyLocationFrom($tuple), $init];
+            return [
+                Table::fromKVs($key, $meta)->copyLocationFrom($tuple),
+                $init,
+            ];
         }
 
         if ($meta instanceof Keyword) {
-            return [Table::fromKVs($meta, true)->copyLocationFrom($meta), $init];
+            return [
+                Table::fromKVs($meta, true)->copyLocationFrom($meta),
+                $init,
+            ];
         }
 
         if (!$meta instanceof Table) {
@@ -87,5 +118,19 @@ final class DefSymbol implements TupleSymbolToNode
         }
 
         return [$tuple[2], $tuple[3]];
+    }
+
+    /**
+     * @param AbstractType|scalar|null $init
+     */
+    private function analyzeInit($init, NodeEnvironment $env, string $namespace, Symbol $nameSymbol): Node
+    {
+        $initEnv = $env
+            ->withBoundTo($namespace . '\\' . $nameSymbol)
+            ->withContext(NodeEnvironment::CTX_EXPR)
+            ->withDisallowRecurFrame()
+            ->withDefAllowed(false);
+
+        return $this->analyzer->analyze($init, $initEnv);
     }
 }
