@@ -27,7 +27,7 @@ final class DefSymbol
      */
     public function __invoke(Tuple $tuple, NodeEnvironment $env): DefNode
     {
-        $env = $this->ensureDefIsAllowed($tuple, $env);
+        $this->ensureDefIsAllowed($tuple, $env);
         $this->verifySizeOfTuple($tuple);
 
         $nameSymbol = $tuple[1];
@@ -55,13 +55,11 @@ final class DefSymbol
         );
     }
 
-    private function ensureDefIsAllowed(Tuple $tuple, NodeEnvironment $env): NodeEnvironment
+    private function ensureDefIsAllowed(Tuple $tuple, NodeEnvironment $env): void
     {
         if (!$env->isDefAllowed()) {
             throw AnalyzerException::withLocation("'def inside of a 'def is forbidden", $tuple);
         }
-
-        return NodeEnvironment::withDefNotAllowed($env);
     }
 
     private function verifySizeOfTuple(Tuple $tuple): void
@@ -130,7 +128,8 @@ final class DefSymbol
         $initEnv = $env
             ->withBoundTo($namespace . '\\' . $nameSymbol)
             ->withContext(NodeEnvironment::CTX_EXPR)
-            ->withDisallowRecurFrame();
+            ->withDisallowRecurFrame()
+            ->withDefAllowed(false);
 
         return $this->analyzer->analyze($init, $initEnv);
     }

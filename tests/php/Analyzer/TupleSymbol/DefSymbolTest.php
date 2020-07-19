@@ -29,7 +29,7 @@ final class DefSymbolTest extends TestCase
         $this->expectException(PhelCodeException::class);
         $this->expectExceptionMessage("'def inside of a 'def is forbidden");
 
-        $env = NodeEnvironment::withDefNotAllowed();
+        $env = NodeEnvironment::empty()->withDefAllowed(false);
         (new DefSymbol($this->analyzer))(Tuple::create(), $env);
     }
 
@@ -41,7 +41,7 @@ final class DefSymbolTest extends TestCase
         $tuple = Tuple::create(Symbol::create(Symbol::NAME_DEF), Symbol::create('1'), 'any value');
         $env = NodeEnvironment::empty();
         $defNode = (new DefSymbol($this->analyzer))($tuple, $env);
-        (new DefSymbol($this->analyzer))($tuple, $defNode->getEnv());
+        (new DefSymbol($this->analyzer))($tuple, $defNode->getInit()->getEnv());
     }
 
     public function testWithWrongNumberOfArguments(): void
