@@ -13,11 +13,11 @@ use Phel\Lang\Symbol;
 use Phel\Lang\Tuple;
 use Phel\NodeEnvironment;
 
-final class LetSymbol implements TupleSymbolToNode
+final class LetSymbol implements TupleSymbolAnalyzer
 {
     use WithAnalyzer;
 
-    public function toNode(Tuple $tuple, NodeEnvironment $env): LetNode
+    public function analyze(Tuple $tuple, NodeEnvironment $env): LetNode
     {
         if (count($tuple) < 2) {
             throw AnalyzerException::withLocation("At least two arguments are required for 'let", $tuple);

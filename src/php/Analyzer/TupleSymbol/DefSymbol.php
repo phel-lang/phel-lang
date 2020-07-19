@@ -16,7 +16,7 @@ use Phel\Lang\Table;
 use Phel\Lang\Tuple;
 use Phel\NodeEnvironment;
 
-final class DefSymbol implements TupleSymbolToNode
+final class DefSymbol implements TupleSymbolAnalyzer
 {
     use WithAnalyzer;
 
@@ -25,7 +25,7 @@ final class DefSymbol implements TupleSymbolToNode
     /**
      * @throws PhelCodeException
      */
-    public function toNode(Tuple $tuple, NodeEnvironment $env): DefNode
+    public function analyze(Tuple $tuple, NodeEnvironment $env): DefNode
     {
         $this->ensureDefIsAllowed($tuple, $env);
         $this->verifySizeOfTuple($tuple);

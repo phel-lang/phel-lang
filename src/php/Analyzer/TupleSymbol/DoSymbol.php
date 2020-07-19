@@ -10,11 +10,11 @@ use Phel\Ast\Node;
 use Phel\Lang\Tuple;
 use Phel\NodeEnvironment;
 
-final class DoSymbol implements TupleSymbolToNode
+final class DoSymbol implements TupleSymbolAnalyzer
 {
     use WithAnalyzer;
 
-    public function toNode(Tuple $tuple, NodeEnvironment $env): DoNode
+    public function analyze(Tuple $tuple, NodeEnvironment $env): DoNode
     {
         $tupleCount = count($tuple);
         $stmts = [];

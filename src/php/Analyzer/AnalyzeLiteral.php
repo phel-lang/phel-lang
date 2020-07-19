@@ -11,7 +11,7 @@ use Phel\NodeEnvironment;
 final class AnalyzeLiteral
 {
     /** @param AbstractType|scalar|null $value */
-    public function toNode($value, NodeEnvironment $env): LiteralNode
+    public function analyze($value, NodeEnvironment $env): LiteralNode
     {
         $sourceLocation = ($value instanceof AbstractType)
             ? $value->getStartLocation()

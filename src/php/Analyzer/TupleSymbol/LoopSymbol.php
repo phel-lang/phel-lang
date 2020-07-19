@@ -14,11 +14,11 @@ use Phel\Lang\Tuple;
 use Phel\NodeEnvironment;
 use Phel\RecurFrame;
 
-final class LoopSymbol implements TupleSymbolToNode
+final class LoopSymbol implements TupleSymbolAnalyzer
 {
     use WithAnalyzer;
 
-    public function toNode(Tuple $tuple, NodeEnvironment $env): LetNode
+    public function analyze(Tuple $tuple, NodeEnvironment $env): LetNode
     {
         $tupleCount = count($tuple);
         if (!($tuple[0] instanceof Symbol && $tuple[0]->getName() === Symbol::NAME_LOOP)) {

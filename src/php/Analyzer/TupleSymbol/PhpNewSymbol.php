@@ -10,11 +10,11 @@ use Phel\Exceptions\AnalyzerException;
 use Phel\Lang\Tuple;
 use Phel\NodeEnvironment;
 
-final class PhpNewSymbol implements TupleSymbolToNode
+final class PhpNewSymbol implements TupleSymbolAnalyzer
 {
     use WithAnalyzer;
 
-    public function toNode(Tuple $tuple, NodeEnvironment $env): PhpNewNode
+    public function analyze(Tuple $tuple, NodeEnvironment $env): PhpNewNode
     {
         $tupleCount = count($tuple);
         if ($tupleCount < 2) {

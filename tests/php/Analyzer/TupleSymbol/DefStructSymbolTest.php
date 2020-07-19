@@ -32,7 +32,7 @@ final class DefStructSymbolTest extends TestCase
         );
 
         (new DefStructSymbol($this->analyzer))
-            ->toNode($tuple, NodeEnvironment::empty());
+            ->analyze($tuple, NodeEnvironment::empty());
     }
 
     public function testFirstArgIsNotSymbol(): void
@@ -47,7 +47,7 @@ final class DefStructSymbolTest extends TestCase
         );
 
         (new DefStructSymbol($this->analyzer))
-            ->toNode($tuple, NodeEnvironment::empty());
+            ->analyze($tuple, NodeEnvironment::empty());
     }
 
     public function testSecondArgIsNotTuple(): void
@@ -62,7 +62,7 @@ final class DefStructSymbolTest extends TestCase
         );
 
         (new DefStructSymbol($this->analyzer))
-            ->toNode($tuple, NodeEnvironment::empty());
+            ->analyze($tuple, NodeEnvironment::empty());
     }
 
     public function testTupleElemsAreNotSymbols(): void
@@ -77,7 +77,7 @@ final class DefStructSymbolTest extends TestCase
         );
 
         (new DefStructSymbol($this->analyzer))
-            ->toNode($tuple, NodeEnvironment::empty());
+            ->analyze($tuple, NodeEnvironment::empty());
     }
 
     public function testDefStructSymbol(): void
@@ -89,7 +89,7 @@ final class DefStructSymbolTest extends TestCase
         );
 
         $defStructNode = (new DefStructSymbol($this->analyzer))
-            ->toNode($tuple, NodeEnvironment::empty());
+            ->analyze($tuple, NodeEnvironment::empty());
 
         self::assertSame('request', $defStructNode->getName()->getName());
         self::assertSame('user', $defStructNode->getNamespace());

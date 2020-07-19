@@ -9,11 +9,11 @@ use Phel\Ast\PhpArrayPushNode;
 use Phel\Lang\Tuple;
 use Phel\NodeEnvironment;
 
-final class PhpAPushSymbol implements TupleSymbolToNode
+final class PhpAPushSymbol implements TupleSymbolAnalyzer
 {
     use WithAnalyzer;
 
-    public function toNode(Tuple $tuple, NodeEnvironment $env): PhpArrayPushNode
+    public function analyze(Tuple $tuple, NodeEnvironment $env): PhpArrayPushNode
     {
         return new PhpArrayPushNode(
             $env,

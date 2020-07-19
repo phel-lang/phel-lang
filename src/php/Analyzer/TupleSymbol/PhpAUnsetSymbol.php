@@ -10,11 +10,11 @@ use Phel\Exceptions\AnalyzerException;
 use Phel\Lang\Tuple;
 use Phel\NodeEnvironment;
 
-final class PhpAUnsetSymbol implements TupleSymbolToNode
+final class PhpAUnsetSymbol implements TupleSymbolAnalyzer
 {
     use WithAnalyzer;
 
-    public function toNode(Tuple $tuple, NodeEnvironment $env): PhpArrayUnsetNode
+    public function analyze(Tuple $tuple, NodeEnvironment $env): PhpArrayUnsetNode
     {
         if ($env->getContext() !== NodeEnvironment::CTX_STMT) {
             throw AnalyzerException::withLocation("'php/unset can only be called as Statement and not as Expression", $tuple);

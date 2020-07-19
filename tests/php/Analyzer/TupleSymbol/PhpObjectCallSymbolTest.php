@@ -36,7 +36,7 @@ final class PhpObjectCallSymbolTest extends TestCase
         );
 
         (new PhpObjectCallSymbol($this->analyzer, $isStatic = true))
-            ->toNode($tuple, NodeEnvironment::empty());
+            ->analyze($tuple, NodeEnvironment::empty());
     }
 
     public function testTupleWithWrongSymbol(): void
@@ -50,7 +50,7 @@ final class PhpObjectCallSymbolTest extends TestCase
             ''
         );
         (new PhpObjectCallSymbol($this->analyzer, $isStatic = false))
-            ->toNode($tuple, NodeEnvironment::empty());
+            ->analyze($tuple, NodeEnvironment::empty());
     }
 
     public function testIsStatic(): void
@@ -61,7 +61,7 @@ final class PhpObjectCallSymbolTest extends TestCase
             Symbol::create('')
         );
         $objCallNode = (new PhpObjectCallSymbol($this->analyzer, $isStatic = true))
-            ->toNode($tuple, NodeEnvironment::empty());
+            ->analyze($tuple, NodeEnvironment::empty());
         self::assertSame($isStatic, $objCallNode->isStatic());
         self::assertInstanceOf(PhpClassNameNode::class, $objCallNode->getTargetExpr());
         self::assertInstanceOf(PropertyOrConstantAccessNode::class, $objCallNode->getCallExpr());
@@ -76,7 +76,7 @@ final class PhpObjectCallSymbolTest extends TestCase
         );
 
         $objCallNode = (new PhpObjectCallSymbol($this->analyzer, $isStatic = false))
-            ->toNode($tuple, NodeEnvironment::empty());
+            ->analyze($tuple, NodeEnvironment::empty());
 
         self::assertSame($isStatic, $objCallNode->isStatic());
         self::assertInstanceOf(PhpClassNameNode::class, $objCallNode->getTargetExpr());
@@ -92,7 +92,7 @@ final class PhpObjectCallSymbolTest extends TestCase
         );
 
         $objCallNode = (new PhpObjectCallSymbol($this->analyzer, $isStatic = true))
-            ->toNode($tuple, NodeEnvironment::empty());
+            ->analyze($tuple, NodeEnvironment::empty());
 
         self::assertTrue($objCallNode->isMethodCall());
         self::assertInstanceOf(PhpClassNameNode::class, $objCallNode->getTargetExpr());
@@ -108,7 +108,7 @@ final class PhpObjectCallSymbolTest extends TestCase
         );
 
         $objCallNode = (new PhpObjectCallSymbol($this->analyzer, $isStatic = true))
-            ->toNode($tuple, NodeEnvironment::empty());
+            ->analyze($tuple, NodeEnvironment::empty());
 
         self::assertFalse($objCallNode->isMethodCall());
         self::assertInstanceOf(PhpClassNameNode::class, $objCallNode->getTargetExpr());

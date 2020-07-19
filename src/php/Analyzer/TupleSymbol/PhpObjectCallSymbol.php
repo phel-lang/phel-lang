@@ -13,7 +13,7 @@ use Phel\Lang\Symbol;
 use Phel\Lang\Tuple;
 use Phel\NodeEnvironment;
 
-final class PhpObjectCallSymbol implements TupleSymbolToNode
+final class PhpObjectCallSymbol implements TupleSymbolAnalyzer
 {
     private Analyzer $analyzer;
 
@@ -25,7 +25,7 @@ final class PhpObjectCallSymbol implements TupleSymbolToNode
         $this->isStatic = $isStatic;
     }
 
-    public function toNode(Tuple $tuple, NodeEnvironment $env): PhpObjectCallNode
+    public function analyze(Tuple $tuple, NodeEnvironment $env): PhpObjectCallNode
     {
         $fnName = $this->isStatic
             ? Symbol::NAME_PHP_OBJECT_STATIC_CALL

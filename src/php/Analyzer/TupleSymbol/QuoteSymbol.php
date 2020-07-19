@@ -10,9 +10,9 @@ use Phel\Lang\Symbol;
 use Phel\Lang\Tuple;
 use Phel\NodeEnvironment;
 
-final class QuoteSymbol implements TupleSymbolToNode
+final class QuoteSymbol implements TupleSymbolAnalyzer
 {
-    public function toNode(Tuple $tuple, NodeEnvironment $env): QuoteNode
+    public function analyze(Tuple $tuple, NodeEnvironment $env): QuoteNode
     {
         if (!($tuple[0] instanceof Symbol && $tuple[0]->getName() === Symbol::NAME_QUOTE)) {
             throw AnalyzerException::withLocation("This is not a 'quote.", $tuple);

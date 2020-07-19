@@ -25,7 +25,7 @@ use Phel\Analyzer\TupleSymbol\QuoteSymbol;
 use Phel\Analyzer\TupleSymbol\RecurSymbol;
 use Phel\Analyzer\TupleSymbol\ThrowSymbol;
 use Phel\Analyzer\TupleSymbol\TrySymbol;
-use Phel\Analyzer\TupleSymbol\TupleSymbolToNode;
+use Phel\Analyzer\TupleSymbol\TupleSymbolAnalyzer;
 use Phel\Ast\Node;
 use Phel\Exceptions\AnalyzerException;
 use Phel\Exceptions\PhelCodeException;
@@ -40,12 +40,12 @@ final class AnalyzeTuple
     private const EMPTY_SYMBOL_NAME = '';
 
     /** @throws AnalyzerException|PhelCodeException */
-    public function toNode(Tuple $tuple, NodeEnvironment $env): Node
+    public function analyze(Tuple $tuple, NodeEnvironment $env): Node
     {
         $symbolName = $this->getSymbolName($tuple);
-        $symbol = $this->createSymbolByName($symbolName);
+        $symbol = $this->createSymbolAnalyzerByName($symbolName);
 
-        return $symbol->toNode($tuple, $env);
+        return $symbol->analyze($tuple, $env);
     }
 
     private function getSymbolName(Tuple $tuple): string
@@ -55,7 +55,7 @@ final class AnalyzeTuple
             : self::EMPTY_SYMBOL_NAME;
     }
 
-    private function createSymbolByName(string $symbolName): TupleSymbolToNode
+    private function createSymbolAnalyzerByName(string $symbolName): TupleSymbolAnalyzer
     {
         switch ($symbolName) {
             case Symbol::NAME_DEF:

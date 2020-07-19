@@ -12,11 +12,11 @@ use Phel\Lang\AbstractType;
 use Phel\Lang\Tuple;
 use Phel\NodeEnvironment;
 
-final class ApplySymbol implements TupleSymbolToNode
+final class ApplySymbol implements TupleSymbolAnalyzer
 {
     use WithAnalyzer;
 
-    public function toNode(Tuple $tuple, NodeEnvironment $env): ApplyNode
+    public function analyze(Tuple $tuple, NodeEnvironment $env): ApplyNode
     {
         if (count($tuple) < 3) {
             throw AnalyzerException::withLocation("At least three arguments are required for 'apply", $tuple);

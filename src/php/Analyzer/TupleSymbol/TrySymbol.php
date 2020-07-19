@@ -12,11 +12,11 @@ use Phel\Lang\Symbol;
 use Phel\Lang\Tuple;
 use Phel\NodeEnvironment;
 
-final class TrySymbol implements TupleSymbolToNode
+final class TrySymbol implements TupleSymbolAnalyzer
 {
     use WithAnalyzer;
 
-    public function toNode(Tuple $tuple, NodeEnvironment $env): TryNode
+    public function analyze(Tuple $tuple, NodeEnvironment $env): TryNode
     {
         $tupleCount = count($tuple);
         $state = 'start';

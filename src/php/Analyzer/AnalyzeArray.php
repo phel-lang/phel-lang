@@ -12,7 +12,7 @@ final class AnalyzeArray
 {
     use WithAnalyzer;
 
-    public function toNode(PhelArray $array, NodeEnvironment $env): ArrayNode
+    public function analyze(PhelArray $array, NodeEnvironment $env): ArrayNode
     {
         $values = [];
         $valueEnv = $env->withContext(NodeEnvironment::CTX_EXPR);

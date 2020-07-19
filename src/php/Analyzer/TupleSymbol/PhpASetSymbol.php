@@ -9,11 +9,11 @@ use Phel\Ast\PhpArraySetNode;
 use Phel\Lang\Tuple;
 use Phel\NodeEnvironment;
 
-final class PhpASetSymbol implements TupleSymbolToNode
+final class PhpASetSymbol implements TupleSymbolAnalyzer
 {
     use WithAnalyzer;
 
-    public function toNode(Tuple $tuple, NodeEnvironment $env): PhpArraySetNode
+    public function analyze(Tuple $tuple, NodeEnvironment $env): PhpArraySetNode
     {
         return new PhpArraySetNode(
             $env,
