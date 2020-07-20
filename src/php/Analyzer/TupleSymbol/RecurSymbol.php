@@ -11,11 +11,11 @@ use Phel\Lang\Symbol;
 use Phel\Lang\Tuple;
 use Phel\NodeEnvironment;
 
-final class RecurSymbol
+final class RecurSymbol implements TupleSymbolAnalyzer
 {
     use WithAnalyzer;
 
-    public function __invoke(Tuple $tuple, NodeEnvironment $env): RecurNode
+    public function analyze(Tuple $tuple, NodeEnvironment $env): RecurNode
     {
         if (!$this->isValidRecurTuple($tuple)) {
             throw AnalyzerException::withLocation("This is not a 'recur.", $tuple);

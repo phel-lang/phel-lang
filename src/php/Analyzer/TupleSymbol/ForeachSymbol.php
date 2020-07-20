@@ -11,11 +11,11 @@ use Phel\Lang\Symbol;
 use Phel\Lang\Tuple;
 use Phel\NodeEnvironment;
 
-final class ForeachSymbol
+final class ForeachSymbol implements TupleSymbolAnalyzer
 {
     use WithAnalyzer;
 
-    public function __invoke(Tuple $tuple, NodeEnvironment $env): ForeachNode
+    public function analyze(Tuple $tuple, NodeEnvironment $env): ForeachNode
     {
         $tupleCount = count($tuple);
         if ($tupleCount < 2) {

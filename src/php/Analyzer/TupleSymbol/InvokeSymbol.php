@@ -14,11 +14,11 @@ use Phel\Lang\AbstractType;
 use Phel\Lang\Tuple;
 use Phel\NodeEnvironment;
 
-final class InvokeSymbol
+final class InvokeSymbol implements TupleSymbolAnalyzer
 {
     use WithAnalyzer;
 
-    public function __invoke(Tuple $tuple, NodeEnvironment $env): Node
+    public function analyze(Tuple $tuple, NodeEnvironment $env): Node
     {
         $f = $this->analyzer->analyze(
             $tuple[0],

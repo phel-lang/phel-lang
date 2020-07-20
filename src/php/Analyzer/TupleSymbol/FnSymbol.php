@@ -12,11 +12,11 @@ use Phel\Lang\Tuple;
 use Phel\NodeEnvironment;
 use Phel\RecurFrame;
 
-final class FnSymbol
+final class FnSymbol implements TupleSymbolAnalyzer
 {
     use WithAnalyzer;
 
-    public function __invoke(Tuple $tuple, NodeEnvironment $env): FnNode
+    public function analyze(Tuple $tuple, NodeEnvironment $env): FnNode
     {
         $tupleCount = count($tuple);
         if ($tupleCount < 2) {

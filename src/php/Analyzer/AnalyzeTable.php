@@ -12,7 +12,7 @@ final class AnalyzeTable
 {
     use WithAnalyzer;
 
-    public function __invoke(Table $table, NodeEnvironment $env): TableNode
+    public function analyze(Table $table, NodeEnvironment $env): TableNode
     {
         $keyValues = [];
         $kvEnv = $env->withContext(NodeEnvironment::CTX_EXPR);

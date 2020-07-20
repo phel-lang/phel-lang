@@ -12,7 +12,7 @@ final class AnalyzeBracketTuple
 {
     use WithAnalyzer;
 
-    public function __invoke(Tuple $tuple, NodeEnvironment $env): TupleNode
+    public function analyze(Tuple $tuple, NodeEnvironment $env): TupleNode
     {
         $args = [];
 

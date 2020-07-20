@@ -11,11 +11,11 @@ use Phel\Exceptions\AnalyzerException;
 use Phel\Lang\Tuple;
 use Phel\NodeEnvironment;
 
-final class IfSymbol
+final class IfSymbol implements TupleSymbolAnalyzer
 {
     use WithAnalyzer;
 
-    public function __invoke(Tuple $tuple, NodeEnvironment $env): IfNode
+    public function analyze(Tuple $tuple, NodeEnvironment $env): IfNode
     {
         $tupleCount = count($tuple);
         if ($tupleCount < 3 || $tupleCount > 4) {

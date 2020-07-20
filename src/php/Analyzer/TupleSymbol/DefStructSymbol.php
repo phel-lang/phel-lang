@@ -11,11 +11,11 @@ use Phel\Lang\Symbol;
 use Phel\Lang\Tuple;
 use Phel\NodeEnvironment;
 
-final class DefStructSymbol
+final class DefStructSymbol implements TupleSymbolAnalyzer
 {
     use WithAnalyzer;
 
-    public function __invoke(Tuple $tuple, NodeEnvironment $env): DefStructNode
+    public function analyze(Tuple $tuple, NodeEnvironment $env): DefStructNode
     {
         if (count($tuple) !== 3) {
             throw AnalyzerException::withLocation(

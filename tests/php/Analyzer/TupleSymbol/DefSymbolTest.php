@@ -30,7 +30,7 @@ final class DefSymbolTest extends TestCase
         $this->expectExceptionMessage("'def inside of a 'def is forbidden");
 
         $env = NodeEnvironment::empty()->withDefAllowed(false);
-        (new DefSymbol($this->analyzer))(Tuple::create(), $env);
+        (new DefSymbol($this->analyzer))->analyze(Tuple::create(), $env);
     }
 
     public function testEnsureDefIsNotAllowedInsideADefSymbol(): void
@@ -40,8 +40,8 @@ final class DefSymbolTest extends TestCase
 
         $tuple = Tuple::create(Symbol::create(Symbol::NAME_DEF), Symbol::create('1'), 'any value');
         $env = NodeEnvironment::empty();
-        $defNode = (new DefSymbol($this->analyzer))($tuple, $env);
-        (new DefSymbol($this->analyzer))($tuple, $defNode->getInit()->getEnv());
+        $defNode = (new DefSymbol($this->analyzer))->analyze($tuple, $env);
+        (new DefSymbol($this->analyzer))->analyze($tuple, $defNode->getInit()->getEnv());
     }
 
     public function testWithWrongNumberOfArguments(): void
@@ -50,7 +50,7 @@ final class DefSymbolTest extends TestCase
         $this->expectExceptionMessage("Two or three arguments are required for 'def. Got 2");
 
         $tuple = Tuple::create(Symbol::create(Symbol::NAME_DEF), Symbol::create('1'));
-        (new DefSymbol($this->analyzer))($tuple, NodeEnvironment::empty());
+        (new DefSymbol($this->analyzer))->analyze($tuple, NodeEnvironment::empty());
     }
 
     public function testFirstArgumentMustBeSymbol(): void
@@ -59,14 +59,14 @@ final class DefSymbolTest extends TestCase
         $this->expectExceptionMessage("First argument of 'def must be a Symbol.");
 
         $tuple = Tuple::create(Symbol::create(Symbol::NAME_DEF), 'not a symbol', '2');
-        (new DefSymbol($this->analyzer))($tuple, NodeEnvironment::empty());
+        (new DefSymbol($this->analyzer))->analyze($tuple, NodeEnvironment::empty());
     }
 
     public function testMetaAndInitValues(): void
     {
         $tuple = Tuple::create(Symbol::create(Symbol::NAME_DEF), Symbol::create('1'), 'any value');
         $env = NodeEnvironment::empty();
-        $defNode = (new DefSymbol($this->analyzer))($tuple, $env);
+        $defNode = (new DefSymbol($this->analyzer))->analyze($tuple, $env);
 
         self::assertEquals(Table::fromKVs(), $defNode->getMeta());
 
