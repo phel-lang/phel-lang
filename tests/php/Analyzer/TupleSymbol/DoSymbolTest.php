@@ -8,6 +8,7 @@ use Phel\Analyzer;
 use Phel\Analyzer\TupleSymbol\DoSymbol;
 use Phel\Ast\DoNode;
 use Phel\GlobalEnvironment;
+use Phel\Lang\Symbol;
 use Phel\Lang\Tuple;
 use Phel\NodeEnvironment;
 use PHPUnit\Framework\TestCase;
@@ -33,7 +34,27 @@ final class DoSymbolTest extends TestCase
             $tuple->getStartLocation()
         );
 
-        $doNode = (new DoSymbol($this->analyzer))->analyze($tuple, $env);
-        self::assertEquals($expected, $doNode);
+        $actual = (new DoSymbol($this->analyzer))->analyze($tuple, $env);
+        self::assertEquals($expected, $actual);
+    }
+
+    public function testTupleWithinAnotherTuple(): void
+    {
+        $env = NodeEnvironment::empty();
+
+        $tuple = Tuple::create(
+            Symbol::create(Symbol::NAME_DO),
+            Tuple::create()
+        );
+
+        $expected = new DoNode(
+            $env,
+            $stmts = [],
+            $this->analyzer->analyze($tuple[count($tuple)-1], $env),
+            $tuple->getStartLocation()
+        );
+
+        $actual = (new DoSymbol($this->analyzer))->analyze($tuple, $env);
+        self::assertEquals($expected, $actual);
     }
 }
