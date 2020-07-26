@@ -7,6 +7,7 @@ namespace PhelTest\Analyzer\TupleSymbol;
 use Phel\Analyzer;
 use Phel\Analyzer\TupleSymbol\DoSymbol;
 use Phel\Ast\DoNode;
+use Phel\Exceptions\PhelCodeException;
 use Phel\GlobalEnvironment;
 use Phel\Lang\Symbol;
 use Phel\Lang\Tuple;
@@ -22,11 +23,21 @@ final class DoSymbolTest extends TestCase
         $this->analyzer = new Analyzer(new GlobalEnvironment());
     }
 
+    public function testWrongSymbolName(): void
+    {
+        $this->expectException(PhelCodeException::class);
+        $this->expectExceptionMessage("This is not a 'do.");
+
+        $tuple = Tuple::create(Symbol::create('unknown'));
+        $env = NodeEnvironment::empty();
+        (new DoSymbol($this->analyzer))->analyze($tuple, $env);
+    }
+
     public function testEmptyTuple(): void
     {
         $env = NodeEnvironment::empty();
         $tuple = Tuple::create(
-            Symbol::create(Symbol::NAME_DO),
+            Symbol::create(Symbol::NAME_DO)
         );
 
         $expected = new DoNode(
@@ -52,7 +63,7 @@ final class DoSymbolTest extends TestCase
         $expected = new DoNode(
             $env,
             $stmts = [],
-            $this->analyzer->analyze($tuple[count($tuple)-1], $env),
+            $this->analyzer->analyze($tuple[count($tuple) - 1], $env),
             $tuple->getStartLocation()
         );
 
