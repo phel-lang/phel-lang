@@ -25,7 +25,9 @@ final class DoSymbolTest extends TestCase
     public function testEmptyTuple(): void
     {
         $env = NodeEnvironment::empty();
-        $tuple = Tuple::create();
+        $tuple = Tuple::create(
+            Symbol::create(Symbol::NAME_DO),
+        );
 
         $expected = new DoNode(
             $env,
@@ -44,7 +46,7 @@ final class DoSymbolTest extends TestCase
 
         $tuple = Tuple::create(
             Symbol::create(Symbol::NAME_DO),
-            Tuple::create()
+            Tuple::create(Symbol::create(Symbol::NAME_IF), true, true)
         );
 
         $expected = new DoNode(
