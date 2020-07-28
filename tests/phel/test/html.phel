@@ -1,5 +1,5 @@
 (ns phel\test\html
-  (:require phel\html :refer [html])
+  (:require phel\html :refer [html raw-string doctype])
   (:require phel\test :refer [deftest is]))
 
 (deftest basic-tags
@@ -52,6 +52,7 @@
   (is (= "<div></div>" (html [:div @{:id nil}])))
   (is (= "<div class=\"a\"></div>" (html [:div @{:class [:a]}])))
   (is (= "<div class=\"a b\"></div>" (html [:div @{:class [:a "b"]}])))
+  (is (= "<div class=\"a b\"></div>" (html [:div @{:class @[:a "b"]}])))
   (is (= "<div class=\"a\"></div>" (html [:div @{:class @{:a true :b false}}]))))
 
 (deftest css-styles
@@ -68,9 +69,16 @@
   (is (= "<span>2</span>" (html [:span (+ 1 1)])))
   (is (= "<span x=\"2\"></span>" (html [:span @{:x (+ 1 1)}])))
 
+  (is (= "<div><p>a</p><p>b</p></div>" (html [:div [:p "a"] (if true [:p "b"] [:p "c"])])))
+  (is (= "<div><p>a</p><p>c</p></div>" (html [:div [:p "a"] (if false [:p "b"] [:p "c"])])))
+
   (is (= "<ul><li>0</li><li>1</li><li>2</li></ul>" (html [:ul (for [i :range [0 3]] [:li i])])))
   (is (= "<span>0</span><span>1</span><span>2</span>" (html (for [i :range [0 3]] [:span i])))))
 
 (deftest escaping
   (is (= "<span>Bear &gt; Shark</span>" (html [:span "Bear > Shark"])))
+  (is (= "<span><a></a></span>" (html [:span (raw-string "<a></a>")])))
   (is (= "<span>&amp;quot; &quot;&#039;&lt;&gt;</span>" (html [:span "&quot; \"'<>"]))))
+
+(deftest doctypes
+  (is (= "<!DOCTYPE html>\n<div></div>" (html (doctype :html5) [:div]))))

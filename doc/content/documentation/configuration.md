@@ -1,6 +1,6 @@
 +++
 title = "Configuration"
-weight = 16
+weight = 17
 +++
 
 Phel comes with some configuration options. They are stored in the `composer.json` file in the `extra` section.
