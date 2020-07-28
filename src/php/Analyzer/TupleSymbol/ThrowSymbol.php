@@ -10,11 +10,11 @@ use Phel\Exceptions\AnalyzerException;
 use Phel\Lang\Tuple;
 use Phel\NodeEnvironment;
 
-final class ThrowSymbol
+final class ThrowSymbol implements TupleSymbolAnalyzer
 {
     use WithAnalyzer;
 
-    public function __invoke(Tuple $tuple, NodeEnvironment $env): ThrowNode
+    public function analyze(Tuple $tuple, NodeEnvironment $env): ThrowNode
     {
         if (count($tuple) !== 2) {
             throw AnalyzerException::withLocation("Exact one argument is required for 'throw", $tuple);

@@ -6,7 +6,6 @@ namespace Phel;
 
 use Exception;
 use Phel\Lang\Keyword;
-use Phel\Lang\AbstractType;
 use Phel\Lang\PhelArray;
 use Phel\Lang\Struct;
 use Phel\Lang\Symbol;

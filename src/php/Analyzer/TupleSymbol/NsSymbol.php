@@ -14,11 +14,11 @@ use Phel\Lang\Table;
 use Phel\Lang\Tuple;
 use Phel\NodeEnvironment;
 
-final class NsSymbol
+final class NsSymbol implements TupleSymbolAnalyzer
 {
     use WithAnalyzer;
 
-    public function __invoke(Tuple $tuple, NodeEnvironment $env): NsNode
+    public function analyze(Tuple $tuple, NodeEnvironment $env): NsNode
     {
         $tupleCount = count($tuple);
         if (!($tuple[1] instanceof Symbol)) {

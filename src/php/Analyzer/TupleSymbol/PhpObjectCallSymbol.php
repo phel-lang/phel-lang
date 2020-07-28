@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Phel\Analyzer\TupleSymbol;
 
-use Phel\Analyzer\WithAnalyzer;
+use Phel\Analyzer;
 use Phel\Ast\MethodCallNode;
 use Phel\Ast\PhpObjectCallNode;
 use Phel\Ast\PropertyOrConstantAccessNode;
@@ -13,13 +13,21 @@ use Phel\Lang\Symbol;
 use Phel\Lang\Tuple;
 use Phel\NodeEnvironment;
 
-final class PhpObjectCallSymbol
+final class PhpObjectCallSymbol implements TupleSymbolAnalyzer
 {
-    use WithAnalyzer;
+    private Analyzer $analyzer;
 
-    public function __invoke(Tuple $tuple, NodeEnvironment $env, bool $isStatic): PhpObjectCallNode
+    private bool $isStatic;
+
+    public function __construct(Analyzer $analyzer, bool $isStatic)
     {
-        $fnName = $isStatic
+        $this->analyzer = $analyzer;
+        $this->isStatic = $isStatic;
+    }
+
+    public function analyze(Tuple $tuple, NodeEnvironment $env): PhpObjectCallNode
+    {
+        $fnName = $this->isStatic
             ? Symbol::NAME_PHP_OBJECT_STATIC_CALL
             : Symbol::NAME_PHP_OBJECT_CALL;
 
@@ -48,7 +56,7 @@ final class PhpObjectCallSymbol
             $env,
             $targetExpr,
             $callExpr,
-            $isStatic,
+            $this->isStatic,
             $methodCall,
             $tuple->getStartLocation()
         );

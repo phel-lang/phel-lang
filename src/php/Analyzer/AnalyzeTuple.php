@@ -25,6 +25,7 @@ use Phel\Analyzer\TupleSymbol\QuoteSymbol;
 use Phel\Analyzer\TupleSymbol\RecurSymbol;
 use Phel\Analyzer\TupleSymbol\ThrowSymbol;
 use Phel\Analyzer\TupleSymbol\TrySymbol;
+use Phel\Analyzer\TupleSymbol\TupleSymbolAnalyzer;
 use Phel\Ast\Node;
 use Phel\Exceptions\AnalyzerException;
 use Phel\Exceptions\PhelCodeException;
@@ -36,58 +37,71 @@ final class AnalyzeTuple
 {
     use WithAnalyzer;
 
-    /** @throws AnalyzerException|PhelCodeException */
-    public function __invoke(Tuple $tuple, NodeEnvironment $env): Node
-    {
-        if (!$tuple[0] instanceof Symbol) {
-            return (new InvokeSymbol($this->analyzer))($tuple, $env);
-        }
+    private const EMPTY_SYMBOL_NAME = '';
 
-        switch ($tuple[0]->getFullName()) {
+    /** @throws AnalyzerException|PhelCodeException */
+    public function analyze(Tuple $tuple, NodeEnvironment $env): Node
+    {
+        $symbolName = $this->getSymbolName($tuple);
+        $symbol = $this->createSymbolAnalyzerByName($symbolName);
+
+        return $symbol->analyze($tuple, $env);
+    }
+
+    private function getSymbolName(Tuple $tuple): string
+    {
+        return isset($tuple[0]) && $tuple[0] instanceof Symbol
+            ? $tuple[0]->getFullName()
+            : self::EMPTY_SYMBOL_NAME;
+    }
+
+    private function createSymbolAnalyzerByName(string $symbolName): TupleSymbolAnalyzer
+    {
+        switch ($symbolName) {
             case Symbol::NAME_DEF:
-                return (new DefSymbol($this->analyzer))($tuple, $env);
+                return new DefSymbol($this->analyzer);
             case Symbol::NAME_NS:
-                return (new NsSymbol($this->analyzer))($tuple, $env);
+                return new NsSymbol($this->analyzer);
             case Symbol::NAME_FN:
-                return (new FnSymbol($this->analyzer))($tuple, $env);
+                return new FnSymbol($this->analyzer);
             case Symbol::NAME_QUOTE:
-                return (new QuoteSymbol())($tuple, $env);
+                return new QuoteSymbol();
             case Symbol::NAME_DO:
-                return (new DoSymbol($this->analyzer))($tuple, $env);
+                return new DoSymbol($this->analyzer);
             case Symbol::NAME_IF:
-                return (new IfSymbol($this->analyzer))($tuple, $env);
+                return new IfSymbol($this->analyzer);
             case Symbol::NAME_APPLY:
-                return (new ApplySymbol($this->analyzer))($tuple, $env);
+                return new ApplySymbol($this->analyzer);
             case Symbol::NAME_LET:
-                return (new LetSymbol($this->analyzer))($tuple, $env);
+                return new LetSymbol($this->analyzer);
             case Symbol::NAME_PHP_NEW:
-                return (new PhpNewSymbol($this->analyzer))($tuple, $env);
+                return new PhpNewSymbol($this->analyzer);
             case Symbol::NAME_PHP_OBJECT_CALL:
-                return (new PhpObjectCallSymbol($this->analyzer))($tuple, $env, false);
+                return new PhpObjectCallSymbol($this->analyzer, $isStatic = false);
             case Symbol::NAME_PHP_OBJECT_STATIC_CALL:
-                return (new PhpObjectCallSymbol($this->analyzer))($tuple, $env, true);
+                return new PhpObjectCallSymbol($this->analyzer, $isStatic = true);
             case Symbol::NAME_PHP_ARRAY_GET:
-                return (new PhpAGetSymbol($this->analyzer))($tuple, $env);
+                return new PhpAGetSymbol($this->analyzer);
             case Symbol::NAME_PHP_ARRAY_SET:
-                return (new PhpASetSymbol($this->analyzer))($tuple, $env);
+                return new PhpASetSymbol($this->analyzer);
             case Symbol::NAME_PHP_ARRAY_PUSH:
-                return (new PhpAPushSymbol($this->analyzer))($tuple, $env);
+                return new PhpAPushSymbol($this->analyzer);
             case Symbol::NAME_PHP_ARRAY_UNSET:
-                return (new PhpAUnsetSymbol($this->analyzer))($tuple, $env);
+                return new PhpAUnsetSymbol($this->analyzer);
             case Symbol::NAME_RECUR:
-                return (new RecurSymbol($this->analyzer))($tuple, $env);
+                return new RecurSymbol($this->analyzer);
             case Symbol::NAME_TRY:
-                return (new TrySymbol($this->analyzer))($tuple, $env);
+                return new TrySymbol($this->analyzer);
             case Symbol::NAME_THROW:
-                return (new ThrowSymbol($this->analyzer))($tuple, $env);
+                return new ThrowSymbol($this->analyzer);
             case Symbol::NAME_LOOP:
-                return (new LoopSymbol($this->analyzer))($tuple, $env);
+                return new LoopSymbol($this->analyzer);
             case Symbol::NAME_FOREACH:
-                return (new ForeachSymbol($this->analyzer))($tuple, $env);
+                return new ForeachSymbol($this->analyzer);
             case Symbol::NAME_DEF_STRUCT:
-                return (new DefStructSymbol($this->analyzer))($tuple, $env);
+                return new DefStructSymbol($this->analyzer);
             default:
-                return (new InvokeSymbol($this->analyzer))($tuple, $env);
+                return new InvokeSymbol($this->analyzer);
         }
     }
 }

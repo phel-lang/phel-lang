@@ -7,15 +7,21 @@ namespace Phel\Analyzer\TupleSymbol;
 use Phel\Analyzer\WithAnalyzer;
 use Phel\Ast\DoNode;
 use Phel\Ast\Node;
+use Phel\Exceptions\AnalyzerException;
+use Phel\Lang\Symbol;
 use Phel\Lang\Tuple;
 use Phel\NodeEnvironment;
 
-final class DoSymbol
+final class DoSymbol implements TupleSymbolAnalyzer
 {
     use WithAnalyzer;
 
-    public function __invoke(Tuple $tuple, NodeEnvironment $env): DoNode
+    public function analyze(Tuple $tuple, NodeEnvironment $env): DoNode
     {
+        if (!($tuple[0] instanceof Symbol && $tuple[0]->getName() === Symbol::NAME_DO)) {
+            throw AnalyzerException::withLocation("This is not a 'do.", $tuple);
+        }
+
         $tupleCount = count($tuple);
         $stmts = [];
         for ($i = 1; $i < $tupleCount - 1; $i++) {

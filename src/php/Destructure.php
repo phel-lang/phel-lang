@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace Phel;
 
-use Exception;
 use Phel\Exceptions\AnalyzerException;
 use Phel\Lang\AbstractType;
 use Phel\Lang\PhelArray;

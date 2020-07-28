@@ -43,27 +43,27 @@ final class Analyzer
     public function analyze($x, NodeEnvironment $env): Node
     {
         if ($this->isLiteral($x)) {
-            return (new AnalyzeLiteral())($x, $env);
+            return (new AnalyzeLiteral())->analyze($x, $env);
         }
 
         if ($x instanceof Symbol) {
-            return (new AnalyzeSymbol($this))($x, $env);
+            return (new AnalyzeSymbol($this))->analyze($x, $env);
         }
 
         if ($x instanceof Tuple && $x->isUsingBracket()) {
-            return (new AnalyzeBracketTuple($this))($x, $env);
+            return (new AnalyzeBracketTuple($this))->analyze($x, $env);
         }
 
         if ($x instanceof PhelArray) {
-            return (new AnalyzeArray($this))($x, $env);
+            return (new AnalyzeArray($this))->analyze($x, $env);
         }
 
         if ($x instanceof Table) {
-            return (new AnalyzeTable($this))($x, $env);
+            return (new AnalyzeTable($this))->analyze($x, $env);
         }
 
         if ($x instanceof Tuple) {
-            return (new AnalyzeTuple($this))($x, $env);
+            return (new AnalyzeTuple($this))->analyze($x, $env);
         }
 
         throw new AnalyzerException('Unhandled type: ' . var_export($x, true));
