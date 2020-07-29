@@ -151,8 +151,7 @@
 (defmacro html [& content]
   (apply compile-html content))
 
-(def doctypes
-  "Table of doctype strings."
+(def- doctypes
   @{:html4              (str "<!DOCTYPE html PUBLIC \"-//W3C//DTD HTML 4.01//EN\" "
                              "\"http://www.w3.org/TR/html4/strict.dtd\">\n")
     :xhtml-strict       (str "<!DOCTYPE html PUBLIC \"-//W3C//DTD XHTML 1.0 Strict//EN\" "
