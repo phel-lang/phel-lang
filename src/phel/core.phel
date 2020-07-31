@@ -853,8 +853,8 @@ collection in map"))
 (defn drop-while [pred xs]
   (loop [s xs]
     (if (and s (pred (first s)))
-      (recur (rest s))
-      s)))
+      (recur (next s))
+      (if s s @[]))))
 
 (defn take [n xs]
   (slice xs 0 (if (php/< n 0) 0 n)))
@@ -877,7 +877,9 @@ collection in map"))
         :when (not (nil? res))]
     res))
 
-(defn find [pred xs]
+(defn find
+  "Returns the first item in `xs` where `(pred item)` evaluates to true."
+  [pred xs]
   (loop [s xs]
     (if s
       (if (pred (first s))
@@ -1358,3 +1360,49 @@ returns 1. If `xs` has one value, returns the reciprocal of x."
   (apply print xs)
   (php/print "\n")
   nil)
+
+# ----------------
+# Threading macros
+# ----------------
+
+(defmacro ->
+  "Threads the expr through the forms. Inserts `x` as the second item
+  in the first from, making a tuple of it if it is not a tuple already.
+  If there are more froms, inserts the first form as the second item in
+  the second form, etc."
+  [x & forms]
+  (loop [x x
+         forms (if (empty? forms) nil forms)]
+    (if forms
+      (let [form (first forms)
+            threaded (if (tuple? form)
+                       `(,(first form) ,x ,@(next form))
+                       (tuple form x))]
+        (recur threaded (next forms)))
+      x)))
+
+(defmacro ->>
+  "Threads the expr through the forms. Inserts `x` as the
+  last item in the first form, making a tuple of it if it is not a
+  tuple already. If there are more forms, inserts the first form as the
+  last item in second form, etc."
+  [x & forms]
+  (loop [x x
+         forms (if (empty? forms) nil forms)]
+    (if forms
+      (let [form (first forms)
+            threaded (if (tuple? form)
+                       `(,(first form) ,@(next form) ,x)
+                       (tuple form x))]
+        (recur threaded (next forms)))
+      x)))
+
+(defmacro as->
+  "Binds `name` to `expr`, evaluates the first form in the lexical context
+  of that binding, then binds name to that result, repeating for each
+  successive form, returning the result of the last form."
+  [expr name & forms]
+  (let [x (gensym)]
+    `(let [,name ,expr
+           ,@(interleave (repeat (count forms) name) forms)]
+      ,name)))

@@ -182,7 +182,7 @@ final class Tuple extends AbstractType implements ArrayAccess, Countable, Iterat
 
     public function push($x): IPush
     {
-        return new Tuple([...$this->data, $x]);
+        return new Tuple([...$this->data, $x], $this->isUsingBracket());
     }
 
     public function concat($xs): IConcat
