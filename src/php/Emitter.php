@@ -37,8 +37,12 @@ use Phel\Ast\TableNode;
 use Phel\Ast\ThrowNode;
 use Phel\Ast\TryNode;
 use Phel\Ast\TupleNode;
-use Phel\Lang\Keyword;
+use Phel\Emitter\DefEmitter;
+use Phel\Emitter\LiteralEmitter;
+use Phel\Emitter\NodeEmitter;
+use Phel\Emitter\NsEmitter;
 use Phel\Lang\AbstractType;
+use Phel\Lang\Keyword;
 use Phel\Lang\PhelArray;
 use Phel\Lang\SourceLocation;
 use Phel\Lang\Symbol;
@@ -127,70 +131,102 @@ final class Emitter
         );
     }
 
-    private function emit(Node $node): void
+    public function emit(Node $node): void
     {
-        $nodeClass = get_class($node);
+        $nodeEmitter = $this->createNodeEmitter(get_class($node));
+        $nodeEmitter->emit($node);
+    }
+
+    private function createNodeEmitter(string $nodeClass): NodeEmitter
+    {
         switch ($nodeClass) {
             case NsNode::class:
-                $this->emitNs($node); break;
+                return new NsEmitter($this);
             case DefNode::class:
-                $this->emitDef($node); break;
+                return new DefEmitter($this);
             case LiteralNode::class:
-                $this->emitLiteral($node); break;
+                return new LiteralEmitter($this);
+// WIP
             case QuoteNode::class:
-                $this->emitQuote($node); break;
+                $this->emitQuote($node);
+                break;
             case FnNode::class:
-                $this->emitFnAsClass($node); break;
+                $this->emitFnAsClass($node);
+                break;
             case DoNode::class:
-                $this->emitDo($node); break;
+                $this->emitDo($node);
+                break;
             case LetNode::class:
-                $this->emitLet($node); break;
+                $this->emitLet($node);
+                break;
             case LocalVarNode::class:
-                $this->emitLocalVar($node); break;
+                $this->emitLocalVar($node);
+                break;
             case GlobalVarNode::class:
-                $this->emitGlobalVar($node); break;
+                $this->emitGlobalVar($node);
+                break;
             case CallNode::class:
-                $this->emitCall($node); break;
+                $this->emitCall($node);
+                break;
             case IfNode::class:
-                $this->emitIf($node); break;
+                $this->emitIf($node);
+                break;
             case ApplyNode::class:
-                $this->emitApply($node); break;
+                $this->emitApply($node);
+                break;
             case TupleNode::class:
-                $this->emitTuple($node); break;
+                $this->emitTuple($node);
+                break;
             case PhpNewNode::class:
-                $this->emitPhpNew($node); break;
+                $this->emitPhpNew($node);
+                break;
             case PhpVarNode::class:
-                $this->emitPhpVar($node); break;
+                $this->emitPhpVar($node);
+                break;
             case PhpObjectCallNode::class:
-                $this->emitObjectCall($node); break;
+                $this->emitObjectCall($node);
+                break;
             case RecurNode::class:
-                $this->emitRecur($node); break;
+                $this->emitRecur($node);
+                break;
             case ThrowNode::class:
-                $this->emitThrow($node); break;
+                $this->emitThrow($node);
+                break;
             case TryNode::class:
-                $this->emitTry($node); break;
+                $this->emitTry($node);
+                break;
             case CatchNode::class:
-                $this->emitCatch($node); break;
+                $this->emitCatch($node);
+                break;
             case PhpArrayGetNode::class:
-                $this->emitPhpArrayGet($node); break;
+                $this->emitPhpArrayGet($node);
+                break;
             case PhpArraySetNode::class:
-                $this->emitPhpArraySet($node); break;
+                $this->emitPhpArraySet($node);
+                break;
             case PhpArrayUnsetNode::class:
-                $this->emitPhpArrayUnset($node); break;
+                $this->emitPhpArrayUnset($node);
+                break;
             case PhpClassNameNode::class:
-                $this->emitClassName($node); break;
+                $this->emitClassName($node);
+                break;
             case PhpArrayPushNode::class:
-                $this->emitPhpArrayPush($node); break;
+                $this->emitPhpArrayPush($node);
+                break;
             case ForeachNode::class:
-                $this->emitForeach($node); break;
+                $this->emitForeach($node);
+                break;
             case ArrayNode::class:
-                $this->emitArray($node); break;
+                $this->emitArray($node);
+                break;
             case TableNode::class:
-                $this->emitTable($node); break;
+                $this->emitTable($node);
+                break;
             case DefStructNode::class:
-                $this->emitDefStruct($node); break;
+                $this->emitDefStruct($node);
+                break;
             default:
-                throw new \Exception('Unexpected node: ' . get_class($node));
+                throw new \Exception('Unexpected node: ' . $nodeClass);
         }
     }
 
@@ -198,7 +234,8 @@ final class Emitter
     {
         $paramCount = count($node->getParams());
         $this->emitLine('namespace ' . Munge::encodeNs($node->getNamespace()) . ';', $node->getStartSourceLocation());
-        $this->emitLine('class ' . $this->munge($node->getName()->getName()) . ' extends \Phel\Lang\Struct {', $node->getStartSourceLocation());
+        $this->emitLine('class ' . $this->munge($node->getName()->getName()) . ' extends \Phel\Lang\Struct {',
+            $node->getStartSourceLocation());
         $this->indentLevel++;
 
         // Constructor
@@ -441,22 +478,6 @@ final class Emitter
         $this->emitLine('continue;', $node->getStartSourceLocation());
     }
 
-    private function emitNs(NsNode $node): void
-    {
-        foreach ($node->getRequireNs() as $i => $ns) {
-            $this->emitLine('\Phel\Runtime::getInstance()->loadNs("' . \addslashes($ns->getName()) . '");', $ns->getStartLocation());
-        }
-
-        $this->emitLine('\Phel\Runtime::getInstance()->getEnv()->setNs("' . \addslashes($node->getNamespace()) . '");', $node->getStartSourceLocation());
-
-        $nsSym = Symbol::create('*ns*');
-        $nsSym->setStartLocation($node->getStartSourceLocation());
-        $this->emitGlobalBase('phel\\core', $nsSym);
-        $this->emitStr(' = ', $node->getStartSourceLocation());
-        $this->emitPhel('\\' . Munge::encodeNs($node->getNamespace()));
-        $this->emitLine(';', $node->getStartSourceLocation());
-    }
-
     private function emitObjectCall(PhpObjectCallNode $node): void
     {
         $fnCode = $node->isStatic() ? '::' : '->';
@@ -511,7 +532,8 @@ final class Emitter
         $this->emitContextPrefix($node->getEnv(), $node->getStartSourceLocation());
 
         if ($node->isCallable()) {
-            $this->emitStr('(function(...$args) { return ' . $node->getName() . '(...$args);' . '})', $node->getStartSourceLocation());
+            $this->emitStr('(function(...$args) { return ' . $node->getName() . '(...$args);' . '})',
+                $node->getStartSourceLocation());
         } else {
             $this->emitStr($node->getName(), $node->getStartSourceLocation());
         }
@@ -777,8 +799,8 @@ final class Emitter
         $this->emitLine(') extends \Phel\Lang\AFn {', $node->getStartSourceLocation());
         $this->indentLevel++;
 
-        $this->emitLine('public const BOUND_TO = "' . addslashes(Munge::encodeNs($node->getEnv()->getBoundTo())) . '";', $node->getStartSourceLocation());
-
+        $this->emitLine('public const BOUND_TO = "' . addslashes(Munge::encodeNs($node->getEnv()->getBoundTo())) . '";',
+            $node->getStartSourceLocation());
 
         foreach ($node->getUses() as $i => $u) {
             $shadowed = $node->getEnv()->getShadowed($u);
@@ -862,7 +884,8 @@ final class Emitter
         // Variadic Parameter
         if ($node->isVariadic()) {
             $p = $node->getParams()[count($node->getParams()) - 1];
-            $this->emitLine('$' . $this->munge($p->getName()) . ' = new \Phel\Lang\PhelArray($' . $this->munge($p->getName()) . ');', $node->getStartSourceLocation());
+            $this->emitLine('$' . $this->munge($p->getName()) . ' = new \Phel\Lang\PhelArray($' . $this->munge($p->getName()) . ');',
+                $node->getStartSourceLocation());
         }
 
         // Body
@@ -889,30 +912,6 @@ final class Emitter
         $this->emitContextSuffix($node->getEnv(), $node->getStartSourceLocation());
     }
 
-    private function emitDef(DefNode $node): void
-    {
-        $this->emitGlobalBase($node->getNamespace(), $node->getName());
-        $this->emitStr(' = ', $node->getStartSourceLocation());
-        $this->emit($node->getInit());
-        $this->emitLine(';', $node->getStartSourceLocation());
-
-        if (count($node->getMeta()) > 0) {
-            $this->emitGlobalBaseMeta($node->getNamespace(), $node->getName());
-            $this->emitStr(' = ', $node->getStartSourceLocation());
-            $this->emitPhel($node->getMeta());
-            $this->emitLine(';', $node->getStartSourceLocation());
-        }
-    }
-
-    private function emitLiteral(LiteralNode $node): void
-    {
-        if (!($node->getEnv()->getContext() === NodeEnvironment::CTX_STMT)) {
-            $this->emitContextPrefix($node->getEnv(), $node->getStartSourceLocation());
-            $this->emitPhel($node->getValue());
-            $this->emitContextSuffix($node->getEnv(), $node->getStartSourceLocation());
-        }
-    }
-
     private function emitTable(TableNode $node): void
     {
         $this->emitContextPrefix($node->getEnv(), $node->getStartSourceLocation());
@@ -936,12 +935,12 @@ final class Emitter
      *
      * @param AbstractType|scalar|null $x The value
      */
-    private function emitPhel($x): void
+    public function emitPhel($x): void
     {
         if (is_float($x)) {
             $this->emitStr($this->printFloat($x));
         } elseif (is_int($x)) {
-            $this->emitStr((string) $x);
+            $this->emitStr((string)$x);
         } elseif (is_string($x)) {
             $this->emitStr(Printer::readable()->print($x));
         } elseif ($x === null) {
@@ -951,7 +950,8 @@ final class Emitter
         } elseif ($x instanceof Keyword) {
             $this->emitStr('new \Phel\Lang\Keyword("' . addslashes($x->getName()) . '")', $x->getStartLocation());
         } elseif ($x instanceof Symbol) {
-            $this->emitStr('(\Phel\Lang\Symbol::create("' . addslashes($x->getFullName()) . '"))', $x->getStartLocation());
+            $this->emitStr('(\Phel\Lang\Symbol::create("' . addslashes($x->getFullName()) . '"))',
+                $x->getStartLocation());
         } elseif ($x instanceof PhelArray) {
             $this->emitStr('\Phel\Lang\PhelArray::create(', $x->getStartLocation());
             if (count($x) > 0) {
@@ -1031,7 +1031,7 @@ final class Emitter
         }
     }
 
-    private function emitGlobalBase(string $namespace, Symbol $name): void
+    public function emitGlobalBase(string $namespace, Symbol $name): void
     {
         $this->emitStr(
             '$GLOBALS["__phel"]["' . addslashes(Munge::encodeNs($namespace)) . '"]["' . addslashes($name->getName()) . '"]',
@@ -1039,7 +1039,7 @@ final class Emitter
         );
     }
 
-    private function emitGlobalBaseMeta(string $namespace, Symbol $name): void
+    public function emitGlobalBaseMeta(string $namespace, Symbol $name): void
     {
         $this->emitStr(
             '$GLOBALS["__phel_meta"]["' . addslashes(Munge::encodeNs($namespace)) . '"]["' . addslashes($name->getName()) . '"]',
@@ -1047,14 +1047,14 @@ final class Emitter
         );
     }
 
-    private function emitContextPrefix(NodeEnvironment $env, ?SourceLocation $sl = null): void
+    public function emitContextPrefix(NodeEnvironment $env, ?SourceLocation $sl = null): void
     {
         if ($env->getContext() === NodeEnvironment::CTX_RET) {
             $this->emitStr('return ', $sl);
         }
     }
 
-    private function emitContextSuffix(NodeEnvironment $env, ?SourceLocation $sl = null): void
+    public function emitContextSuffix(NodeEnvironment $env, ?SourceLocation $sl = null): void
     {
         if ($env->getContext() !== NodeEnvironment::CTX_EXPR) {
             $this->emitStr(';', $sl);
@@ -1098,10 +1098,10 @@ final class Emitter
         if ((int)$x == $x) {
             // (string) 10.0 will return 10 and not 10.0
             // so we just add a .0 at the end
-            return ((string) $x) . '.0';
+            return ((string)$x) . '.0';
         }
 
-        return ((string) $x);
+        return ((string)$x);
     }
 
     private function munge(string $s): string
@@ -1109,7 +1109,7 @@ final class Emitter
         return Munge::encode($s);
     }
 
-    private function emitLine(string $str = '', ?SourceLocation $sl = null): void
+    public function emitLine(string $str = '', ?SourceLocation $sl = null): void
     {
         if ('' !== $str) {
             $this->emitStr($str, $sl);
@@ -1121,7 +1121,7 @@ final class Emitter
         echo PHP_EOL;
     }
 
-    private function emitStr(string $str, ?SourceLocation $sl = null): void
+    public function emitStr(string $str, ?SourceLocation $sl = null): void
     {
         if ($this->generatedColumns === 0) {
             $this->generatedColumns += $this->indentLevel * 2;
@@ -1133,11 +1133,11 @@ final class Emitter
                 'source' => $sl->getFile(),
                 'original' => [
                     'line' => $sl->getLine() - 1,
-                    'column' => $sl->getColumn()
+                    'column' => $sl->getColumn(),
                 ],
                 'generated' => [
                     'line' => $this->generatedLines,
-                    'column' => $this->generatedColumns
+                    'column' => $this->generatedColumns,
                 ],
             ];
         }
