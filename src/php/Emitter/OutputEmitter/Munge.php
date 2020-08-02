@@ -6,11 +6,11 @@ namespace Phel\Emitter\OutputEmitter;
 
 final class Munge
 {
-    private const DEFAULT_MUNGE_NS_MAPPING = [
+    private const DEFAULT_NS_MAPPING = [
         '-' => '_',
     ];
 
-    private const DEFAULT_MUNGE_MAPPING = [
+    private const DEFAULT_MAPPING = [
         '-' => '_',
         '.' => '_DOT_',
         ':' => '_COLON_',
@@ -42,8 +42,8 @@ final class Munge
     private array $nsMapping;
 
     public function __construct(
-        array $mapping = self::DEFAULT_MUNGE_MAPPING,
-        array $nsMapping = self::DEFAULT_MUNGE_NS_MAPPING
+        array $mapping = self::DEFAULT_MAPPING,
+        array $nsMapping = self::DEFAULT_NS_MAPPING
     ) {
         $this->mapping = $mapping;
         $this->nsMapping = $nsMapping;
