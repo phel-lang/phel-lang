@@ -25,14 +25,11 @@ final class Emitter
     private int $generatedColumns = 0;
     private array $sourceMap = [];
 
-    public function __construct(
-        bool $enableSourceMaps = true,
-        ?NodeEmitterFactory $nodeEmitterFactory = null,
-        ?SourceMapGenerator $sourceMapGenerator = null
-    ) {
+    public function __construct(bool $enableSourceMaps = true)
+    {
         $this->enableSourceMaps = $enableSourceMaps;
-        $this->nodeEmitterFactory = $nodeEmitterFactory ?? new NodeEmitterFactory();
-        $this->sourceMapGenerator = $sourceMapGenerator ?? new SourceMapGenerator();
+        $this->nodeEmitterFactory = new NodeEmitterFactory($this);
+        $this->sourceMapGenerator = new SourceMapGenerator();
     }
 
     public function emitNodeAndEval(Node $node): string
@@ -73,7 +70,7 @@ final class Emitter
 
     public function emitNode(Node $node): void
     {
-        $nodeEmitter = $this->nodeEmitterFactory->createNodeEmitter($this, get_class($node));
+        $nodeEmitter = $this->nodeEmitterFactory->createNodeEmitter(get_class($node));
         $nodeEmitter->emit($node);
     }
 
