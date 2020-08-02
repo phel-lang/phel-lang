@@ -7,11 +7,14 @@ namespace PhelTest;
 use Generator;
 use Phel\Analyzer;
 use Phel\Emitter;
+use Phel\Emitter\EvalEmitter;
+use Phel\Emitter\OutputEmitter;
 use Phel\GlobalEnvironment;
 use Phel\Lang\Symbol;
 use Phel\Lexer;
 use Phel\Reader;
 use Phel\Runtime;
+use Phel\SourceMap\SourceMapGenerator;
 use PHPUnit\Framework\TestCase;
 
 final class IntegrationTest extends TestCase
@@ -44,7 +47,7 @@ final class IntegrationTest extends TestCase
         $lexer = new Lexer();
         $reader = new Reader($globalEnv);
         $analyzer = new Analyzer($globalEnv);
-        $emitter = new Emitter($enableSourceMaps = false);
+        $emitter = Emitter::createWithoutSourceMap();
         $tokenStream = $lexer->lexString($phelCode);
 
         $compiledCode = [];
@@ -73,7 +76,7 @@ final class IntegrationTest extends TestCase
         );
 
         foreach ($iterator as $file) {
-            if (!preg_match('/\.test$/', (string) $file)) {
+            if (!preg_match('/\.test$/', (string)$file)) {
                 continue;
             }
 

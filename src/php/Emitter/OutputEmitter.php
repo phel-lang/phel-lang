@@ -25,11 +25,12 @@ final class OutputEmitter
 
     public function __construct(
         bool $enableSourceMaps,
-        SourceMapGenerator $sourceMapGenerator
+        SourceMapGenerator $sourceMapGenerator,
+        NodeEmitterFactory $nodeEmitterFactory
     ) {
         $this->enableSourceMaps = $enableSourceMaps;
         $this->sourceMapGenerator = $sourceMapGenerator;
-        $this->nodeEmitterFactory = new NodeEmitterFactory($this);
+        $this->nodeEmitterFactory = $nodeEmitterFactory;
     }
 
     public function emitNodeAsString(Node $node): string
@@ -62,7 +63,7 @@ final class OutputEmitter
 
     public function emitNode(Node $node): void
     {
-        $nodeEmitter = $this->nodeEmitterFactory->createNodeEmitter(get_class($node));
+        $nodeEmitter = $this->nodeEmitterFactory->createNodeEmitter($this, get_class($node));
         $nodeEmitter->emit($node);
     }
 

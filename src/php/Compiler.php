@@ -22,7 +22,7 @@ final class Compiler
         $this->lexer = new Lexer();
         $this->reader = new Reader($globalEnv);
         $this->analyzer = new Analyzer($globalEnv);
-        $this->emitter = new Emitter($enableSourceMaps = true);
+        $this->emitter = Emitter::createWithSourceMap();
         $this->evalEmitter = new EvalEmitter();
     }
 

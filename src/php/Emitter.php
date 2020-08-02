@@ -5,8 +5,9 @@ declare(strict_types=1);
 namespace Phel;
 
 use Phel\Ast\Node;
-use Phel\Emitter\OutputEmitter;
 use Phel\Emitter\EvalEmitter;
+use Phel\Emitter\NodeEmitterFactory;
+use Phel\Emitter\OutputEmitter;
 use Phel\SourceMap\SourceMapGenerator;
 
 final class Emitter
@@ -15,14 +16,34 @@ final class Emitter
 
     private EvalEmitter $evalEmitter;
 
-    public function __construct(bool $enableSourceMaps = true)
+    public static function createWithoutSourceMap(): self
     {
-        $this->outputEmitter = new OutputEmitter(
-            $enableSourceMaps,
-            new SourceMapGenerator(),
+        return new self(
+            new OutputEmitter(
+                $enableSourceMaps = false,
+                new SourceMapGenerator(),
+                new NodeEmitterFactory()
+            ),
+            new EvalEmitter()
         );
+    }
 
-        $this->evalEmitter = new EvalEmitter();
+    public static function createWithSourceMap(): self
+    {
+        return new self(
+            new OutputEmitter(
+                $enableSourceMaps = true,
+                new SourceMapGenerator(),
+                new NodeEmitterFactory()
+            ),
+            new EvalEmitter()
+        );
+    }
+
+    private function __construct(OutputEmitter $outputEmitter, EvalEmitter $evalEmitter)
+    {
+        $this->outputEmitter = $outputEmitter;
+        $this->evalEmitter = $evalEmitter;
     }
 
     public function emitNodeAndEval(Node $node): string

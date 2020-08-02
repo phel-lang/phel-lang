@@ -5,74 +5,71 @@ declare(strict_types=1);
 namespace Phel\Emitter;
 
 use Phel\Ast;
-use Phel\Emitter\NodeEmitter\WithOutputEmitter;
 use RuntimeException;
 
 final class NodeEmitterFactory
 {
-    use WithOutputEmitter;
-
-    public function createNodeEmitter(string $astNodeClassName): NodeEmitter
+    public function createNodeEmitter(OutputEmitter $outputEmitter, string $astNodeClassName): NodeEmitter
     {
         switch ($astNodeClassName) {
             case Ast\NsNode::class:
-                return new NodeEmitter\NsEmitter($this->outputEmitter);
+                return new NodeEmitter\NsEmitter($outputEmitter);
             case Ast\DefNode::class:
-                return new NodeEmitter\DefEmitter($this->outputEmitter);
+                return new NodeEmitter\DefEmitter($outputEmitter);
             case Ast\LiteralNode::class:
-                return new NodeEmitter\LiteralEmitter($this->outputEmitter);
+                return new NodeEmitter\LiteralEmitter($outputEmitter);
             case Ast\QuoteNode::class:
-                return new NodeEmitter\QuoteEmitter($this->outputEmitter);
+                return new NodeEmitter\QuoteEmitter($outputEmitter);
             case Ast\FnNode::class:
-                return new NodeEmitter\FnAsClassEmitter($this->outputEmitter);
+                return new NodeEmitter\FnAsClassEmitter($outputEmitter);
             case Ast\DoNode::class:
-                return new NodeEmitter\DoEmitter($this->outputEmitter);
+                return new NodeEmitter\DoEmitter($outputEmitter);
             case Ast\LetNode::class:
-                return new NodeEmitter\LetEmitter($this->outputEmitter);
+                return new NodeEmitter\LetEmitter($outputEmitter);
             case Ast\LocalVarNode::class:
-                return new NodeEmitter\LocalVarEmitter($this->outputEmitter);
+                return new NodeEmitter\LocalVarEmitter($outputEmitter);
             case Ast\GlobalVarNode::class:
-                return new NodeEmitter\GlobalVarEmitter($this->outputEmitter);
+                return new NodeEmitter\GlobalVarEmitter($outputEmitter);
             case Ast\CallNode::class:
-                return new NodeEmitter\CallEmitter($this->outputEmitter);
+                return new NodeEmitter\CallEmitter($outputEmitter);
             case Ast\IfNode::class:
-                return new NodeEmitter\IfEmitter($this->outputEmitter);
+                return new NodeEmitter\IfEmitter($outputEmitter);
             case Ast\ApplyNode::class:
-                return new NodeEmitter\ApplyEmitter($this->outputEmitter);
+                return new NodeEmitter\ApplyEmitter($outputEmitter);
             case Ast\TupleNode::class:
-                return new NodeEmitter\TupleEmitter($this->outputEmitter);
+                return new NodeEmitter\TupleEmitter($outputEmitter);
             case Ast\PhpNewNode::class:
-                return new NodeEmitter\PhpNewEmitter($this->outputEmitter);
+                return new NodeEmitter\PhpNewEmitter($outputEmitter);
             case Ast\PhpVarNode::class:
-                return new NodeEmitter\PhpVarEmitter($this->outputEmitter);
+                return new NodeEmitter\PhpVarEmitter($outputEmitter);
             case Ast\PhpObjectCallNode::class:
-                return new NodeEmitter\PhpObjectCallEmitter($this->outputEmitter);
+                return new NodeEmitter\PhpObjectCallEmitter($outputEmitter);
             case Ast\RecurNode::class:
-                return new NodeEmitter\RecurEmitter($this->outputEmitter);
+                return new NodeEmitter\RecurEmitter($outputEmitter);
             case Ast\ThrowNode::class:
-                return new NodeEmitter\ThrowEmitter($this->outputEmitter);
+                return new NodeEmitter\ThrowEmitter($outputEmitter);
             case Ast\TryNode::class:
-                return new NodeEmitter\TryEmitter($this->outputEmitter);
+                return new NodeEmitter\TryEmitter($outputEmitter);
             case Ast\CatchNode::class:
-                return new NodeEmitter\CatchEmitter($this->outputEmitter);
+                return new NodeEmitter\CatchEmitter($outputEmitter);
             case Ast\PhpArrayGetNode::class:
-                return new NodeEmitter\PhpArrayGetEmitter($this->outputEmitter);
+                return new NodeEmitter\PhpArrayGetEmitter($outputEmitter);
             case Ast\PhpArraySetNode::class:
-                return new NodeEmitter\PhpArraySetEmitter($this->outputEmitter);
+                return new NodeEmitter\PhpArraySetEmitter($outputEmitter);
             case Ast\PhpArrayUnsetNode::class:
-                return new NodeEmitter\PhpArrayUnsetEmitter($this->outputEmitter);
+                return new NodeEmitter\PhpArrayUnsetEmitter($outputEmitter);
             case Ast\PhpClassNameNode::class:
-                return new NodeEmitter\PhpClassNameEmitter($this->outputEmitter);
+                return new NodeEmitter\PhpClassNameEmitter($outputEmitter);
             case Ast\PhpArrayPushNode::class:
-                return new NodeEmitter\PhpArrayPushEmitter($this->outputEmitter);
+                return new NodeEmitter\PhpArrayPushEmitter($outputEmitter);
             case Ast\ForeachNode::class:
-                return new NodeEmitter\ForeachEmitter($this->outputEmitter);
+                return new NodeEmitter\ForeachEmitter($outputEmitter);
             case Ast\ArrayNode::class:
-                return new NodeEmitter\ArrayEmitter($this->outputEmitter);
+                return new NodeEmitter\ArrayEmitter($outputEmitter);
             case Ast\TableNode::class:
-                return new NodeEmitter\TableEmitter($this->outputEmitter);
+                return new NodeEmitter\TableEmitter($outputEmitter);
             case Ast\DefStructNode::class:
-                return new NodeEmitter\DefStructEmitter($this->outputEmitter);
+                return new NodeEmitter\DefStructEmitter($outputEmitter);
             default:
                 throw new RuntimeException("Not supported AstClassName: '$astNodeClassName'");
         }
