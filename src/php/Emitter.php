@@ -6,26 +6,21 @@ namespace Phel;
 
 use Exception;
 use Phel\Ast\Node;
-use Phel\Emitter\NodeEmitterFactory;
 use Phel\Emitter\LiteralEmitter;
+use Phel\Emitter\NodeEmitterFactory;
 use Phel\Lang\AbstractType;
-use Phel\Lang\Keyword;
-use Phel\Lang\PhelArray;
 use Phel\Lang\SourceLocation;
 use Phel\Lang\Symbol;
-use Phel\Lang\Table;
-use Phel\Lang\Tuple;
 use Phel\SourceMap\SourceMapGenerator;
 use RuntimeException;
 use Throwable;
 
 final class Emitter
 {
-    public int $indentLevel = 0; // TODO: use a setter instead?
-
     private bool $enableSourceMaps;
     private SourceMapGenerator $sourceMapGenerator;
     private NodeEmitterFactory $nodeEmitterFactory;
+    private int $indentLevel = 0;
     private int $generatedLines = 0;
     private int $generatedColumns = 0;
     private array $sourceMap = [];
@@ -205,7 +200,7 @@ final class Emitter
             $this->emitStr(')', $sl);
         }
         $this->emitLine(' {', $sl);
-        $this->indentLevel++;
+        $this->increaseIndentLevel();
     }
 
     public function emitPhpVariable(
@@ -229,7 +224,7 @@ final class Emitter
 
     public function emitFnWrapSuffix(?SourceLocation $sl = null): void
     {
-        $this->indentLevel--;
+        $this->decreaseIndentLevel();
         $this->emitLine();
         $this->emitStr('})()', $sl);
     }
@@ -240,5 +235,15 @@ final class Emitter
     public function emitLiteral($x): void
     {
         (new LiteralEmitter($this))->emitLiteral($x);
+    }
+
+    public function increaseIndentLevel(): void
+    {
+        $this->indentLevel++;
+    }
+
+    public function decreaseIndentLevel(): void
+    {
+        $this->indentLevel--;
     }
 }

@@ -29,9 +29,9 @@ final class TryEmitter implements NodeEmitter
             }
 
             $this->emitter->emitLine('try {', $node->getStartSourceLocation());
-            $this->emitter->indentLevel++;
+            $this->emitter->increaseIndentLevel();
             $this->emitter->emitNode($node->getBody());
-            $this->emitter->indentLevel--;
+            $this->emitter->decreaseIndentLevel();
             $this->emitter->emitLine();
             $this->emitter->emitStr('}', $node->getStartSourceLocation());
 
@@ -54,9 +54,9 @@ final class TryEmitter implements NodeEmitter
     private function emitFinally(Node $node): void
     {
         $this->emitter->emitLine(' finally {', $node->getStartSourceLocation());
-        $this->emitter->indentLevel++;
+        $this->emitter->increaseIndentLevel();
         $this->emitter->emitNode($node);
-        $this->emitter->indentLevel--;
+        $this->emitter->decreaseIndentLevel();
         $this->emitter->emitLine();
         $this->emitter->emitStr('}', $node->getStartSourceLocation());
     }

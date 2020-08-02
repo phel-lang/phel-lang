@@ -43,7 +43,7 @@ final class FnAsClassEmitter implements NodeEmitter
         }
 
         $this->emitter->emitLine(') extends \Phel\Lang\AFn {', $node->getStartSourceLocation());
-        $this->emitter->indentLevel++;
+        $this->emitter->increaseIndentLevel();
 
         $this->emitter->emitLine(
             'public const BOUND_TO = "' . addslashes(Munge::encodeNs($node->getEnv()->getBoundTo())) . '";',
@@ -82,7 +82,7 @@ final class FnAsClassEmitter implements NodeEmitter
             }
 
             $this->emitter->emitLine(') {', $node->getStartSourceLocation());
-            $this->emitter->indentLevel++;
+            $this->emitter->increaseIndentLevel();
 
             // Constructor assignment
             foreach ($node->getUses() as $i => $u) {
@@ -98,7 +98,7 @@ final class FnAsClassEmitter implements NodeEmitter
                 );
             }
 
-            $this->emitter->indentLevel--;
+            $this->emitter->decreaseIndentLevel();
             $this->emitter->emitLine('}', $node->getStartSourceLocation());
         }
 
@@ -122,7 +122,7 @@ final class FnAsClassEmitter implements NodeEmitter
         }
 
         $this->emitter->emitLine(') {', $node->getStartSourceLocation());
-        $this->emitter->indentLevel++;
+        $this->emitter->increaseIndentLevel();
 
         // Use Parameter extraction
         foreach ($node->getUses() as $i => $u) {
@@ -148,22 +148,22 @@ final class FnAsClassEmitter implements NodeEmitter
         // Body
         if ($node->getRecurs()) {
             $this->emitter->emitLine('while (true) {', $node->getStartSourceLocation());
-            $this->emitter->indentLevel++;
+            $this->emitter->increaseIndentLevel();
         }
         $this->emitter->emitNode($node->getBody());
         if ($node->getRecurs()) {
             $this->emitter->emitLine('break;', $node->getStartSourceLocation());
-            $this->emitter->indentLevel--;
+            $this->emitter->decreaseIndentLevel();
             $this->emitter->emitStr('}', $node->getStartSourceLocation());
         }
 
         // End of __invoke
-        $this->emitter->indentLevel--;
+        $this->emitter->decreaseIndentLevel();
         $this->emitter->emitLine();
         $this->emitter->emitLine('}', $node->getStartSourceLocation());
 
         // End of class
-        $this->emitter->indentLevel--;
+        $this->emitter->decreaseIndentLevel();
         $this->emitter->emitStr('}', $node->getStartSourceLocation());
 
         $this->emitter->emitContextSuffix($node->getEnv(), $node->getStartSourceLocation());

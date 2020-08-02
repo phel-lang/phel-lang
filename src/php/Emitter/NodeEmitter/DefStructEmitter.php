@@ -33,7 +33,7 @@ final class DefStructEmitter implements NodeEmitter
             'class ' . $this->emitter->munge($node->getName()->getName()) . ' extends \Phel\Lang\Struct {',
             $node->getStartSourceLocation()
         );
-        $this->emitter->indentLevel++;
+        $this->emitter->increaseIndentLevel();
 
         // Constructor
         $this->emitter->emitStr('public function __construct(', $node->getStartSourceLocation());
@@ -45,7 +45,7 @@ final class DefStructEmitter implements NodeEmitter
             }
         }
         $this->emitter->emitLine(') {', $node->getStartSourceLocation());
-        $this->emitter->indentLevel++;
+        $this->emitter->increaseIndentLevel();
         foreach ($node->getParams() as $i => $param) {
             $keyword = new Keyword($param->getName());
             $keyword->setStartLocation($node->getStartSourceLocation());
@@ -56,13 +56,13 @@ final class DefStructEmitter implements NodeEmitter
             $this->emitter->emitPhpVariable($param);
             $this->emitter->emitLine(');', $node->getStartSourceLocation());
         }
-        $this->emitter->indentLevel--;
+        $this->emitter->decreaseIndentLevel();
         $this->emitter->emitLine('}', $node->getStartSourceLocation());
 
         // Get Allowed Keys Function
         $this->emitter->emitStr('public function getAllowedKeys(', $node->getStartSourceLocation());
         $this->emitter->emitLine('): array {', $node->getStartSourceLocation());
-        $this->emitter->indentLevel++;
+        $this->emitter->increaseIndentLevel();
         $this->emitter->emitStr('return [', $node->getStartSourceLocation());
         foreach ($node->getParamsAsKeywords() as $i => $keyword) {
             $this->emitter->emitLiteral($keyword);
@@ -72,11 +72,11 @@ final class DefStructEmitter implements NodeEmitter
             }
         }
         $this->emitter->emitLine('];', $node->getStartSourceLocation());
-        $this->emitter->indentLevel--;
+        $this->emitter->decreaseIndentLevel();
         $this->emitter->emitLine('}', $node->getStartSourceLocation());
 
         // End of class
-        $this->emitter->indentLevel--;
+        $this->emitter->decreaseIndentLevel();
         $this->emitter->emitLine('}', $node->getStartSourceLocation());
     }
 }

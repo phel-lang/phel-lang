@@ -37,14 +37,14 @@ final class LetEmitter implements NodeEmitter
 
         if ($node->isLoop()) {
             $this->emitter->emitLine('while (true) {', $node->getStartSourceLocation());
-            $this->emitter->indentLevel++;
+            $this->emitter->increaseIndentLevel();
         }
 
         $this->emitter->emitNode($node->getBodyExpr());
 
         if ($node->isLoop()) {
             $this->emitter->emitLine('break;', $node->getStartSourceLocation());
-            $this->emitter->indentLevel--;
+            $this->emitter->decreaseIndentLevel();
             $this->emitter->emitStr('}', $node->getStartSourceLocation());
         }
 

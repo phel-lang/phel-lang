@@ -29,9 +29,9 @@ final class CatchEmitter implements NodeEmitter
             $node->getName()->getStartLocation()
         );
         $this->emitter->emitLine(') {', $node->getStartSourceLocation());
-        $this->emitter->indentLevel++;
+        $this->emitter->increaseIndentLevel();
         $this->emitter->emitNode($node->getBody());
-        $this->emitter->indentLevel--;
+        $this->emitter->decreaseIndentLevel();
         $this->emitter->emitLine();
         $this->emitter->emitStr('}', $node->getStartSourceLocation());
     }

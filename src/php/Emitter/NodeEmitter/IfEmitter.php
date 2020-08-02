@@ -35,14 +35,14 @@ final class IfEmitter implements NodeEmitter
             $this->emitter->emitStr('if (\Phel\Lang\Truthy::isTruthy(', $node->getStartSourceLocation());
             $this->emitter->emitNode($node->getTestExpr());
             $this->emitter->emitLine(')) {', $node->getStartSourceLocation());
-            $this->emitter->indentLevel++;
+            $this->emitter->increaseIndentLevel();
             $this->emitter->emitNode($node->getThenExpr());
-            $this->emitter->indentLevel--;
+            $this->emitter->decreaseIndentLevel();
             $this->emitter->emitLine();
             $this->emitter->emitLine('} else {', $node->getStartSourceLocation());
-            $this->emitter->indentLevel++;
+            $this->emitter->increaseIndentLevel();
             $this->emitter->emitNode($node->getElseExpr());
-            $this->emitter->indentLevel--;
+            $this->emitter->decreaseIndentLevel();
             $this->emitter->emitLine();
             $this->emitter->emitLine('}', $node->getStartSourceLocation());
         }

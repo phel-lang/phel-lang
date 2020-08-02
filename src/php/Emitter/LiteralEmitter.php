@@ -57,7 +57,7 @@ final class LiteralEmitter
     {
         $this->emitter->emitStr('\Phel\Lang\PhelArray::create(', $x->getStartLocation());
         if (count($x) > 0) {
-            $this->emitter->indentLevel++;
+            $this->emitter->increaseIndentLevel();
             $this->emitter->emitLine();
         }
 
@@ -72,7 +72,7 @@ final class LiteralEmitter
         }
 
         if (count($x) > 0) {
-            $this->emitter->indentLevel--;
+            $this->emitter->decreaseIndentLevel();
         }
 
         $this->emitter->emitStr(')', $x->getStartLocation());
@@ -125,8 +125,9 @@ final class LiteralEmitter
     private function emitTable(Table $x): void
     {
         $this->emitter->emitStr('\Phel\Lang\Table::fromKVs(', $x->getStartLocation());
+
         if (count($x) > 0) {
-            $this->emitter->indentLevel++;
+            $this->emitter->increaseIndentLevel();
             $this->emitter->emitLine();
         }
 
@@ -145,7 +146,7 @@ final class LiteralEmitter
         }
 
         if (count($x) > 0) {
-            $this->emitter->indentLevel--;
+            $this->emitter->decreaseIndentLevel();
         }
         $this->emitter->emitStr(')', $x->getStartLocation());
     }
@@ -159,7 +160,7 @@ final class LiteralEmitter
         }
 
         if (count($x) > 0) {
-            $this->emitter->indentLevel++;
+            $this->emitter->increaseIndentLevel();
             $this->emitter->emitLine();
         }
 
@@ -174,7 +175,7 @@ final class LiteralEmitter
         }
 
         if (count($x) > 0) {
-            $this->emitter->indentLevel--;
+            $this->emitter->decreaseIndentLevel();
         }
 
         $this->emitter->emitStr(')', $x->getStartLocation());
