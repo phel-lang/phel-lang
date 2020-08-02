@@ -8,7 +8,6 @@ use Phel\Ast\FnNode;
 use Phel\Ast\Node;
 use Phel\Emitter\NodeEmitter;
 use Phel\Lang\Keyword;
-use Phel\Munge;
 
 final class FnAsClassEmitter implements NodeEmitter
 {
@@ -39,10 +38,8 @@ final class FnAsClassEmitter implements NodeEmitter
         $this->outputEmitter->emitLine(') extends \Phel\Lang\AFn {', $node->getStartSourceLocation());
         $this->outputEmitter->increaseIndentLevel();
 
-        $this->outputEmitter->emitLine(
-            'public const BOUND_TO = "' . addslashes(Munge::encodeNs($node->getEnv()->getBoundTo())) . '";',
-            $node->getStartSourceLocation()
-        );
+        $ns = addslashes($this->outputEmitter->mungeEncodeNs($node->getEnv()->getBoundTo()));
+        $this->outputEmitter->emitLine('public const BOUND_TO = "' . $ns . '";', $node->getStartSourceLocation());
 
         foreach ($node->getUses() as $i => $u) {
             $shadowed = $node->getEnv()->getShadowed($u);
@@ -51,7 +48,7 @@ final class FnAsClassEmitter implements NodeEmitter
             }
 
             $this->outputEmitter->emitLine(
-                'private $' . $this->outputEmitter->munge($u->getName()) . ';',
+                'private $' . $this->outputEmitter->mungeEncode($u->getName()) . ';',
                 $node->getStartSourceLocation()
             );
         }
@@ -85,7 +82,7 @@ final class FnAsClassEmitter implements NodeEmitter
                     $u = $shadowed;
                 }
 
-                $varName = $this->outputEmitter->munge($u->getName());
+                $varName = $this->outputEmitter->mungeEncode($u->getName());
                 $this->outputEmitter->emitLine(
                     '$this->' . $varName . ' = $' . $varName . ';',
                     $node->getStartSourceLocation()
@@ -125,7 +122,7 @@ final class FnAsClassEmitter implements NodeEmitter
                 $u = $shadowed;
             }
 
-            $varName = $this->outputEmitter->munge($u->getName());
+            $varName = $this->outputEmitter->mungeEncode($u->getName());
             $this->outputEmitter->emitLine('$' . $varName . ' = $this->' . $varName . ';', $node->getStartSourceLocation());
         }
 
@@ -133,8 +130,8 @@ final class FnAsClassEmitter implements NodeEmitter
         if ($node->isVariadic()) {
             $p = $node->getParams()[count($node->getParams()) - 1];
             $this->outputEmitter->emitLine(
-                '$' . $this->outputEmitter->munge($p->getName())
-                . ' = new \Phel\Lang\PhelArray($' . $this->outputEmitter->munge($p->getName()) . ');',
+                '$' . $this->outputEmitter->mungeEncode($p->getName())
+                . ' = new \Phel\Lang\PhelArray($' . $this->outputEmitter->mungeEncode($p->getName()) . ');',
                 $node->getStartSourceLocation()
             );
         }

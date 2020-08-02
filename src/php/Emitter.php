@@ -22,7 +22,8 @@ final class Emitter
             new OutputEmitter(
                 $enableSourceMaps = false,
                 new SourceMapGenerator(),
-                new NodeEmitterFactory()
+                new NodeEmitterFactory(),
+                new Munge()
             ),
             new EvalEmitter()
         );
@@ -34,7 +35,8 @@ final class Emitter
             new OutputEmitter(
                 $enableSourceMaps = true,
                 new SourceMapGenerator(),
-                new NodeEmitterFactory()
+                new NodeEmitterFactory(),
+                new Munge()
             ),
             new EvalEmitter()
         );
@@ -49,7 +51,7 @@ final class Emitter
     public function emitNodeAndEval(Node $node): string
     {
         $code = $this->emitNodeAsString($node);
-        $this->evalEmitter->eval($code);
+        $this->evalCode($code);
 
         return $code;
     }
@@ -57,5 +59,11 @@ final class Emitter
     public function emitNodeAsString(Node $node): string
     {
         return $this->outputEmitter->emitNodeAsString($node);
+    }
+
+    /** @return mixed */
+    public function evalCode(string $code)
+    {
+        return $this->evalEmitter->eval($code);
     }
 }

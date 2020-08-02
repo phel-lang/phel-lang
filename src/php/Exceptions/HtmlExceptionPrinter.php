@@ -13,6 +13,13 @@ use Throwable;
 
 final class HtmlExceptionPrinter implements ExceptionPrinter
 {
+    private Munge $munge;
+
+    public function __construct(Munge $munge)
+    {
+        $this->munge = $munge;
+    }
+
     public function printException(PhelCodeException $e, CodeSnippet $codeSnippet): void
     {
         $eStartLocation = $e->getStartLocation() ?? $codeSnippet->getStartLocation();
@@ -70,7 +77,7 @@ final class HtmlExceptionPrinter implements ExceptionPrinter
             if ($class) {
                 $rf = new ReflectionClass($class);
                 if ($rf->implementsInterface(IFn::class)) {
-                    $fnName = Munge::decodeNs($rf->getConstant('BOUND_TO'));
+                    $fnName = $this->munge->decodeNs($rf->getConstant('BOUND_TO'));
                     $argParts = [];
                     foreach ($frame['args'] as $arg) {
                         $argParts[] = $printer->print($arg);

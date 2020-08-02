@@ -17,6 +17,7 @@ final class OutputEmitter
     private bool $enableSourceMaps;
     private SourceMapGenerator $sourceMapGenerator;
     private NodeEmitterFactory $nodeEmitterFactory;
+    private Munge $munge;
 
     public int $indentLevel = 0;
     public int $generatedLines = 0;
@@ -26,11 +27,13 @@ final class OutputEmitter
     public function __construct(
         bool $enableSourceMaps,
         SourceMapGenerator $sourceMapGenerator,
-        NodeEmitterFactory $nodeEmitterFactory
+        NodeEmitterFactory $nodeEmitterFactory,
+        Munge $munge
     ) {
         $this->enableSourceMaps = $enableSourceMaps;
         $this->sourceMapGenerator = $sourceMapGenerator;
         $this->nodeEmitterFactory = $nodeEmitterFactory;
+        $this->munge = $munge;
     }
 
     public function emitNodeAsString(Node $node): string
@@ -120,7 +123,7 @@ final class OutputEmitter
     public function emitGlobalBase(string $namespace, Symbol $name): void
     {
         $this->emitStr(
-            '$GLOBALS["__phel"]["' . addslashes(Munge::encodeNs($namespace)) . '"]["' . addslashes($name->getName()) . '"]',
+            '$GLOBALS["__phel"]["' . addslashes($this->mungeEncodeNs($namespace)) . '"]["' . addslashes($name->getName()) . '"]',
             $name->getStartLocation()
         );
     }
@@ -128,7 +131,7 @@ final class OutputEmitter
     public function emitGlobalBaseMeta(string $namespace, Symbol $name): void
     {
         $this->emitStr(
-            '$GLOBALS["__phel_meta"]["' . addslashes(Munge::encodeNs($namespace)) . '"]["' . addslashes($name->getName()) . '"]',
+            '$GLOBALS["__phel_meta"]["' . addslashes($this->mungeEncodeNs($namespace)) . '"]["' . addslashes($name->getName()) . '"]',
             $name->getStartLocation()
         );
     }
@@ -183,12 +186,22 @@ final class OutputEmitter
         }
         $refPrefix = $asReference ? '&' : '';
         $variadicPrefix = $isVariadic ? '...' : '';
-        $this->emitStr($variadicPrefix . $refPrefix . '$' . $this->munge($m->getName()), $loc);
+        $this->emitStr($variadicPrefix . $refPrefix . '$' . $this->mungeEncode($m->getName()), $loc);
     }
 
-    public function munge(string $s): string
+    public function mungeEncode(string $s): string
     {
-        return Munge::encode($s);
+        return $this->munge->encode($s);
+    }
+
+    public function mungeEncodeNs(string $s): string
+    {
+        return $this->munge->encodeNs($s);
+    }
+
+    public function mungeDecodeNs(string $s): string
+    {
+        return $this->munge->decodeNs($s);
     }
 
     public function emitFnWrapSuffix(?SourceLocation $sl = null): void

@@ -161,7 +161,8 @@ elements, returns nil."
   "Define a new struct."
   [name keys]
   (let [name-str (php/-> name (getName))
-        class-name-str (php/. *ns* "\\" (php/:: Munge (encode name-str)))
+        munge (php/new Munge)
+        class-name-str (php/. *ns* "\\" (php/-> munge (encode name-str)))
         is-name (php/:: Symbol (create (php/. name-str "?")))]
     `(do
       (defstruct* ,name ,keys)

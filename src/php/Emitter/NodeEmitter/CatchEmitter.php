@@ -19,7 +19,7 @@ final class CatchEmitter implements NodeEmitter
         $this->outputEmitter->emitStr(' catch (', $node->getStartSourceLocation());
         $this->outputEmitter->emitStr($node->getType()->getName(), $node->getType()->getStartLocation());
         $this->outputEmitter->emitStr(
-            ' $' . $this->outputEmitter->munge($node->getName()->getName()),
+            ' $' . $this->outputEmitter->mungeEncode($node->getName()->getName()),
             $node->getName()->getStartLocation()
         );
         $this->outputEmitter->emitLine(') {', $node->getStartSourceLocation());

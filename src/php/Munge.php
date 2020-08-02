@@ -1,17 +1,16 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Phel;
 
-class Munge
+final class Munge
 {
-    protected static array $mungeNsMapping = [
+    private const DEFAULT_MUNGE_NS_MAPPING = [
         '-' => '_',
     ];
 
-    /**
-     * @var array
-     */
-    protected static array $mungeMapping = [
+    private const DEFAULT_MUNGE_MAPPING = [
         '-' => '_',
         '.' => '_DOT_',
         ':' => '_COLON_',
@@ -36,35 +35,46 @@ class Munge
         ']' => '_RBRACK_',
         '/' => '_SLASH_',
         '\\' => '_BSLASH_',
-        '?' => '_QMARK_'
+        '?' => '_QMARK_',
     ];
 
-    public static function encode(string $s): string
+    private array $mapping;
+    private array $nsMapping;
+
+    public function __construct(
+        array $mapping = self::DEFAULT_MUNGE_MAPPING,
+        array $nsMapping = self::DEFAULT_MUNGE_NS_MAPPING
+    ) {
+        $this->mapping = $mapping;
+        $this->nsMapping = $nsMapping;
+    }
+
+    public function encode(string $str): string
     {
-        if ($s === 'this') {
+        if ($str === 'this') {
             return '__phel_this';
         }
 
-        return self::encodeWithMap($s, self::$mungeMapping);
+        return $this->encodeWithMap($str, $this->mapping);
     }
 
-    public static function encodeNs(string $s): string
+    public function encodeNs(string $str): string
     {
-        return self::encodeWithMap($s, self::$mungeNsMapping);
+        return $this->encodeWithMap($str, $this->nsMapping);
     }
 
-    public static function decodeNs(string $s): string
+    public function decodeNs(string $str): string
     {
-        return self::encodeWithMap($s, array_flip(self::$mungeNsMapping));
+        return $this->encodeWithMap($str, array_flip($this->nsMapping));
     }
 
-    /** @param array<string, string> $mapping */
-    private static function encodeWithMap(string $s, array $mapping): string
+    /** @psalm-param array<string, string> $mapping */
+    private function encodeWithMap(string $str, array $mapping): string
     {
         return str_replace(
             array_keys($mapping),
             array_values($mapping),
-            $s
+            $str
         );
     }
 }

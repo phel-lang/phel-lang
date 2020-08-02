@@ -96,7 +96,7 @@ class Runtime
         if (PHP_SAPI === 'cli') {
             $printer = TextExceptionPrinter::readableWithStyle();
         } else {
-            $printer = new HtmlExceptionPrinter();
+            $printer = new HtmlExceptionPrinter(new Munge());
         }
 
         if ($exception instanceof CompilerException) {

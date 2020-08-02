@@ -8,7 +8,6 @@ use Phel\Ast\DefStructNode;
 use Phel\Ast\Node;
 use Phel\Emitter\NodeEmitter;
 use Phel\Lang\Keyword;
-use Phel\Munge;
 
 final class DefStructEmitter implements NodeEmitter
 {
@@ -20,11 +19,11 @@ final class DefStructEmitter implements NodeEmitter
 
         $paramCount = count($node->getParams());
         $this->outputEmitter->emitLine(
-            'namespace ' . Munge::encodeNs($node->getNamespace()) . ';',
+            'namespace ' . $this->outputEmitter->mungeEncodeNs($node->getNamespace()) . ';',
             $node->getStartSourceLocation()
         );
         $this->outputEmitter->emitLine(
-            'class ' . $this->outputEmitter->munge($node->getName()->getName()) . ' extends \Phel\Lang\Struct {',
+            'class ' . $this->outputEmitter->mungeEncode($node->getName()->getName()) . ' extends \Phel\Lang\Struct {',
             $node->getStartSourceLocation()
         );
         $this->outputEmitter->increaseIndentLevel();

@@ -15,7 +15,6 @@ final class Compiler
     private Reader $reader;
     private Analyzer $analyzer;
     private Emitter $emitter;
-    private EvalEmitter $evalEmitter;
 
     public function __construct(GlobalEnvironment $globalEnv)
     {
@@ -23,7 +22,6 @@ final class Compiler
         $this->reader = new Reader($globalEnv);
         $this->analyzer = new Analyzer($globalEnv);
         $this->emitter = Emitter::createWithSourceMap();
-        $this->evalEmitter = new EvalEmitter();
     }
 
     public function compileFile(string $filename): string
@@ -81,7 +79,7 @@ final class Compiler
                 );
                 $code = $this->emitter->emitNodeAsString($node);
 
-                return $this->evalEmitter->eval($code);
+                return $this->emitter->evalCode($code);
             } catch (AnalyzerException $e) {
                 throw new CompilerException($e, $readerResult->getCodeSnippet());
             }

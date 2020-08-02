@@ -8,7 +8,6 @@ use Phel\Ast\Node;
 use Phel\Ast\NsNode;
 use Phel\Emitter\NodeEmitter;
 use Phel\Lang\Symbol;
-use Phel\Munge;
 use function addslashes;
 
 final class NsEmitter implements NodeEmitter
@@ -35,7 +34,7 @@ final class NsEmitter implements NodeEmitter
         $nsSym->setStartLocation($node->getStartSourceLocation());
         $this->outputEmitter->emitGlobalBase('phel\\core', $nsSym);
         $this->outputEmitter->emitStr(' = ', $node->getStartSourceLocation());
-        $this->outputEmitter->emitLiteral('\\' . Munge::encodeNs($node->getNamespace()));
+        $this->outputEmitter->emitLiteral('\\' . $this->outputEmitter->mungeEncodeNs($node->getNamespace()));
         $this->outputEmitter->emitLine(';', $node->getStartSourceLocation());
     }
 }
