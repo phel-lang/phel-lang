@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace Phel;
 
-use Phel\Emitter\EvalEmitter;
 use Phel\Exceptions\AnalyzerException;
 use Phel\Exceptions\CompilerException;
 use Phel\Exceptions\ReaderException;

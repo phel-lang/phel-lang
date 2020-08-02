@@ -6,9 +6,10 @@ namespace Phel;
 
 use Phel\Ast\Node;
 use Phel\Emitter\EvalEmitter;
-use Phel\Emitter\NodeEmitterFactory;
 use Phel\Emitter\OutputEmitter;
-use Phel\SourceMap\SourceMapGenerator;
+use Phel\Emitter\OutputEmitter\Munge;
+use Phel\Emitter\OutputEmitter\NodeEmitterFactory;
+use Phel\Emitter\OutputEmitter\SourceMap\SourceMapGenerator;
 
 final class Emitter
 {

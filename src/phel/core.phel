@@ -21,7 +21,7 @@
   (:use Phel\Lang\IMeta)
   (:use Phel\Lang\Symbol)
   (:use Phel\Lang\Truthy)
-  (:use Phel\Munge)
+  (:use Phel\Emitter\OutputEmitter\Munge)
   (:use Phel\Printer)
   (:use Countable)
   (:use Exception)

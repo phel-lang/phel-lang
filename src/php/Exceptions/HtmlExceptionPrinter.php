@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace Phel\Exceptions;
 
 use Phel\CodeSnippet;
+use Phel\Emitter\OutputEmitter\Munge;
 use Phel\Lang\IFn;
-use Phel\Munge;
 use Phel\Printer;
 use ReflectionClass;
 use Throwable;
@@ -15,7 +15,12 @@ final class HtmlExceptionPrinter implements ExceptionPrinter
 {
     private Munge $munge;
 
-    public function __construct(Munge $munge)
+    public static function create(): self
+    {
+        return new self(new Munge());
+    }
+
+    private function __construct(Munge $munge)
     {
         $this->munge = $munge;
     }
@@ -30,11 +35,11 @@ final class HtmlExceptionPrinter implements ExceptionPrinter
         echo 'in <em>' . $eStartLocation->getFile() . ':' . $firstLine . '</em></p>';
 
         $lines = explode("\n", $codeSnippet->getCode());
-        $endLineLength = strlen((string) $codeSnippet->getEndLocation()->getLine());
-        $padLength = $endLineLength - strlen((string) $codeSnippet->getStartLocation()->getLine());
+        $endLineLength = strlen((string)$codeSnippet->getEndLocation()->getLine());
+        $padLength = $endLineLength - strlen((string)$codeSnippet->getStartLocation()->getLine());
         echo '<pre><code>';
         foreach ($lines as $index => $line) {
-            echo str_pad((string) ($firstLine + $index), $padLength, ' ', STR_PAD_LEFT);
+            echo str_pad((string)($firstLine + $index), $padLength, ' ', STR_PAD_LEFT);
             echo '| ';
             echo htmlspecialchars($line);
             echo "\n";
@@ -131,6 +136,7 @@ final class HtmlExceptionPrinter implements ExceptionPrinter
             if (strlen($s) > 15) {
                 $s = substr($s, 0, 15) . '...';
             }
+
             return "'" . $s . "'";
         }
 
@@ -139,7 +145,7 @@ final class HtmlExceptionPrinter implements ExceptionPrinter
         }
 
         if (is_resource($arg)) {
-            return 'Resource id #' . ((string) $arg);
+            return 'Resource id #' . ((string)$arg);
         }
 
         if (is_array($arg)) {
@@ -150,6 +156,6 @@ final class HtmlExceptionPrinter implements ExceptionPrinter
             return 'Object(' . get_class($arg) . ')';
         }
 
-        return (string) $arg;
+        return (string)$arg;
     }
 }

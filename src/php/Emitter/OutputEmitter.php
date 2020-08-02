@@ -5,24 +5,26 @@ declare(strict_types=1);
 namespace Phel\Emitter;
 
 use Phel\Ast\Node;
+use Phel\Emitter\OutputEmitter\LiteralEmitter;
+use Phel\Emitter\OutputEmitter\Munge;
+use Phel\Emitter\OutputEmitter\NodeEmitterFactory;
+use Phel\Emitter\OutputEmitter\SourceMap\SourceMapGenerator;
 use Phel\Lang\AbstractType;
 use Phel\Lang\SourceLocation;
 use Phel\Lang\Symbol;
-use Phel\Munge;
 use Phel\NodeEnvironment;
-use Phel\SourceMap\SourceMapGenerator;
 
 final class OutputEmitter
 {
-    private bool $enableSourceMaps;
-    private SourceMapGenerator $sourceMapGenerator;
-    private NodeEmitterFactory $nodeEmitterFactory;
-    private Munge $munge;
-
     public int $indentLevel = 0;
     public int $generatedLines = 0;
     public int $generatedColumns = 0;
     public array $sourceMap = [];
+
+    private bool $enableSourceMaps;
+    private SourceMapGenerator $sourceMapGenerator;
+    private NodeEmitterFactory $nodeEmitterFactory;
+    private Munge $munge;
 
     public function __construct(
         bool $enableSourceMaps,

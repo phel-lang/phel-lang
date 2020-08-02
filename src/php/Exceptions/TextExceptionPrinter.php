@@ -6,10 +6,10 @@ namespace Phel\Exceptions;
 
 use Phel\CodeSnippet;
 use Phel\Commands\Repl\ColorStyle;
+use Phel\Emitter\OutputEmitter\Munge;
+use Phel\Emitter\OutputEmitter\SourceMap\SourceMapConsumer;
 use Phel\Lang\IFn;
-use Phel\Munge;
 use Phel\Printer;
-use Phel\SourceMap\SourceMapConsumer;
 use ReflectionClass;
 use Throwable;
 
