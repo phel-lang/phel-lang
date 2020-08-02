@@ -14,7 +14,7 @@ use Phel\Lang\Tuple;
 use Phel\Printer;
 use RuntimeException;
 
-final class ScalarAndAbstractTypeEmitter
+final class LiteralEmitter
 {
     private Emitter $emitter;
 
@@ -26,14 +26,14 @@ final class ScalarAndAbstractTypeEmitter
     /**
      * @param AbstractType|scalar|null $x The value
      */
-    public function emit($x): void
+    public function emitLiteral($x): void
     {
         if (is_float($x)) {
             $this->emitFloat($x);
         } elseif (is_int($x)) {
             $this->emitInt($x);
         } elseif (is_string($x)) {
-            $this->emitter->emitStr(Printer::readable()->print($x));
+            $this->emitStr($x);
         } elseif ($x === null) {
             $this->emitNull();
         } elseif (is_bool($x)) {
@@ -62,7 +62,7 @@ final class ScalarAndAbstractTypeEmitter
         }
 
         foreach ($x as $i => $value) {
-            $this->emitter->emitScalarAndAbstractType($value);
+            $this->emitter->emitLiteral($value);
 
             if ($i < count($x) - 1) {
                 $this->emitter->emitStr(',', $x->getStartLocation());
@@ -132,9 +132,9 @@ final class ScalarAndAbstractTypeEmitter
 
         $i = 0;
         foreach ($x as $key => $value) {
-            $this->emitter->emitScalarAndAbstractType($key);
+            $this->emitter->emitLiteral($key);
             $this->emitter->emitStr(', ', $x->getStartLocation());
-            $this->emitter->emitScalarAndAbstractType($value);
+            $this->emitter->emitLiteral($value);
 
             if ($i < count($x) - 1) {
                 $this->emitter->emitStr(',', $x->getStartLocation());
@@ -164,7 +164,7 @@ final class ScalarAndAbstractTypeEmitter
         }
 
         foreach ($x as $i => $value) {
-            $this->emitter->emitScalarAndAbstractType($value);
+            $this->emitter->emitLiteral($value);
 
             if ($i < count($x) - 1) {
                 $this->emitter->emitStr(',', $x->getStartLocation());
@@ -178,5 +178,10 @@ final class ScalarAndAbstractTypeEmitter
         }
 
         $this->emitter->emitStr(')', $x->getStartLocation());
+    }
+
+    private function emitStr(string $x): void
+    {
+        $this->emitter->emitStr(Printer::readable()->print($x));
     }
 }

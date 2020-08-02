@@ -41,7 +41,7 @@ final class NsEmitter implements NodeEmitter
         $nsSym->setStartLocation($node->getStartSourceLocation());
         $this->emitter->emitGlobalBase('phel\\core', $nsSym);
         $this->emitter->emitStr(' = ', $node->getStartSourceLocation());
-        $this->emitter->emitScalarAndAbstractType('\\' . Munge::encodeNs($node->getNamespace()));
+        $this->emitter->emitLiteral('\\' . Munge::encodeNs($node->getNamespace()));
         $this->emitter->emitLine(';', $node->getStartSourceLocation());
     }
 }

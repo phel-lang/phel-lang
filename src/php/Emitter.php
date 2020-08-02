@@ -7,7 +7,7 @@ namespace Phel;
 use Exception;
 use Phel\Ast\Node;
 use Phel\Emitter\NodeEmitterFactory;
-use Phel\Emitter\ScalarAndAbstractTypeEmitter;
+use Phel\Emitter\LiteralEmitter;
 use Phel\Lang\AbstractType;
 use Phel\Lang\Keyword;
 use Phel\Lang\PhelArray;
@@ -237,9 +237,8 @@ final class Emitter
     /**
      * @param AbstractType|scalar|null $x The value
      */
-    public function emitScalarAndAbstractType($x): void
+    public function emitLiteral($x): void
     {
-        $typeEmitter = new ScalarAndAbstractTypeEmitter($this);
-        $typeEmitter->emit($x);
+        (new LiteralEmitter($this))->emitLiteral($x);
     }
 }

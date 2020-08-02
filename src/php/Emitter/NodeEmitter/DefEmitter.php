@@ -30,7 +30,7 @@ final class DefEmitter implements NodeEmitter
         if (count($node->getMeta()) > 0) {
             $this->emitter->emitGlobalBaseMeta($node->getNamespace(), $node->getName());
             $this->emitter->emitStr(' = ', $node->getStartSourceLocation());
-            $this->emitter->emitScalarAndAbstractType($node->getMeta());
+            $this->emitter->emitLiteral($node->getMeta());
             $this->emitter->emitLine(';', $node->getStartSourceLocation());
         }
     }
