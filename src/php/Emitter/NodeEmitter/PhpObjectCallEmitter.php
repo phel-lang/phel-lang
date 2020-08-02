@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Phel\Emitter;
+namespace Phel\Emitter\NodeEmitter;
 
 use Phel\Ast\MethodCallNode;
 use Phel\Ast\Node;
@@ -10,7 +10,9 @@ use Phel\Ast\PhpClassNameNode;
 use Phel\Ast\PhpObjectCallNode;
 use Phel\Ast\PropertyOrConstantAccessNode;
 use Phel\Emitter;
+use Phel\Emitter\NodeEmitter;
 use Phel\Lang\Symbol;
+use RuntimeException;
 
 final class PhpObjectCallEmitter implements NodeEmitter
 {
@@ -58,7 +60,7 @@ final class PhpObjectCallEmitter implements NodeEmitter
         } elseif ($callExpr instanceof PropertyOrConstantAccessNode) {
             $this->emitter->emitStr($callExpr->getName()->getName(), $callExpr->getName()->getStartLocation());
         } else {
-            throw new \RuntimeException('Not supported ' . get_class($callExpr));
+            throw new RuntimeException('Not supported ' . get_class($callExpr));
         }
 
         // Close Expression

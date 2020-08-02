@@ -2,11 +2,12 @@
 
 declare(strict_types=1);
 
-namespace Phel\Emitter;
+namespace Phel\Emitter\NodeEmitter;
 
 use Phel\Ast\FnNode;
 use Phel\Ast\Node;
 use Phel\Emitter;
+use Phel\Emitter\NodeEmitter;
 use Phel\Lang\Keyword;
 use Phel\Munge;
 
@@ -55,7 +56,10 @@ final class FnAsClassEmitter implements NodeEmitter
                 $u = $shadowed;
             }
 
-            $this->emitter->emitLine('private $' . $this->emitter->munge($u->getName()) . ';', $node->getStartSourceLocation());
+            $this->emitter->emitLine(
+                'private $' . $this->emitter->munge($u->getName()) . ';',
+                $node->getStartSourceLocation()
+            );
         }
 
         // Constructor
@@ -88,7 +92,10 @@ final class FnAsClassEmitter implements NodeEmitter
                 }
 
                 $varName = $this->emitter->munge($u->getName());
-                $this->emitter->emitLine('$this->' . $varName . ' = $' . $varName . ';', $node->getStartSourceLocation());
+                $this->emitter->emitLine(
+                    '$this->' . $varName . ' = $' . $varName . ';',
+                    $node->getStartSourceLocation()
+                );
             }
 
             $this->emitter->indentLevel--;

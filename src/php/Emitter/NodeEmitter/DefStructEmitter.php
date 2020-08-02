@@ -2,11 +2,12 @@
 
 declare(strict_types=1);
 
-namespace Phel\Emitter;
+namespace Phel\Emitter\NodeEmitter;
 
 use Phel\Ast\DefStructNode;
 use Phel\Ast\Node;
 use Phel\Emitter;
+use Phel\Emitter\NodeEmitter;
 use Phel\Lang\Keyword;
 use Phel\Munge;
 

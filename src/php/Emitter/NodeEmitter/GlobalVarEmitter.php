@@ -2,13 +2,14 @@
 
 declare(strict_types=1);
 
-namespace Phel\Emitter;
+namespace Phel\Emitter\NodeEmitter;
 
+use Phel\Ast\GlobalVarNode;
 use Phel\Ast\Node;
-use Phel\Ast\QuoteNode;
 use Phel\Emitter;
+use Phel\Emitter\NodeEmitter;
 
-final class QuoteEmitter implements NodeEmitter
+final class GlobalVarEmitter implements NodeEmitter
 {
     private Emitter $emitter;
 
@@ -19,10 +20,10 @@ final class QuoteEmitter implements NodeEmitter
 
     public function emit(Node $node): void
     {
-        assert($node instanceof QuoteNode);
+        assert($node instanceof GlobalVarNode);
 
         $this->emitter->emitContextPrefix($node->getEnv(), $node->getStartSourceLocation());
-        $this->emitter->emitPhel($node->getValue());
+        $this->emitter->emitGlobalBase($node->getNamespace(), $node->getName());
         $this->emitter->emitContextSuffix($node->getEnv(), $node->getStartSourceLocation());
     }
 }

@@ -5,66 +5,8 @@ declare(strict_types=1);
 namespace Phel;
 
 use Exception;
-use Phel\Ast\ApplyNode;
-use Phel\Ast\ArrayNode;
-use Phel\Ast\CallNode;
-use Phel\Ast\CatchNode;
-use Phel\Ast\DefNode;
-use Phel\Ast\DefStructNode;
-use Phel\Ast\DoNode;
-use Phel\Ast\FnNode;
-use Phel\Ast\ForeachNode;
-use Phel\Ast\GlobalVarNode;
-use Phel\Ast\IfNode;
-use Phel\Ast\LetNode;
-use Phel\Ast\LiteralNode;
-use Phel\Ast\LocalVarNode;
 use Phel\Ast\Node;
-use Phel\Ast\NsNode;
-use Phel\Ast\PhpArrayGetNode;
-use Phel\Ast\PhpArrayPushNode;
-use Phel\Ast\PhpArraySetNode;
-use Phel\Ast\PhpArrayUnsetNode;
-use Phel\Ast\PhpClassNameNode;
-use Phel\Ast\PhpNewNode;
-use Phel\Ast\PhpObjectCallNode;
-use Phel\Ast\PhpVarNode;
-use Phel\Ast\QuoteNode;
-use Phel\Ast\RecurNode;
-use Phel\Ast\TableNode;
-use Phel\Ast\ThrowNode;
-use Phel\Ast\TryNode;
-use Phel\Ast\TupleNode;
-use Phel\Emitter\ApplyEmitter;
-use Phel\Emitter\ArrayEmitter;
-use Phel\Emitter\CallEmitter;
-use Phel\Emitter\CatchEmitter;
-use Phel\Emitter\DefEmitter;
-use Phel\Emitter\DefStructEmitter;
-use Phel\Emitter\DoEmitter;
-use Phel\Emitter\FnAsClassEmitter;
-use Phel\Emitter\ForeachEmitter;
-use Phel\Emitter\GlobalVarEmitter;
-use Phel\Emitter\IfEmitter;
-use Phel\Emitter\LetEmitter;
-use Phel\Emitter\LiteralEmitter;
-use Phel\Emitter\LocalVarEmitter;
-use Phel\Emitter\NodeEmitter;
-use Phel\Emitter\NsEmitter;
-use Phel\Emitter\PhpArrayGetEmitter;
-use Phel\Emitter\PhpArrayPushEmitter;
-use Phel\Emitter\PhpArraySetEmitter;
-use Phel\Emitter\PhpArrayUnsetEmitter;
-use Phel\Emitter\PhpClassNameEmitter;
-use Phel\Emitter\PhpNewEmitter;
-use Phel\Emitter\PhpObjectCallEmitter;
-use Phel\Emitter\PhpVarEmitter;
-use Phel\Emitter\QuoteEmitter;
-use Phel\Emitter\RecurEmitter;
-use Phel\Emitter\TableEmitter;
-use Phel\Emitter\ThrowEmitter;
-use Phel\Emitter\TryEmitter;
-use Phel\Emitter\TupleEmitter;
+use Phel\Emitter\NodeEmitterFactory;
 use Phel\Lang\AbstractType;
 use Phel\Lang\Keyword;
 use Phel\Lang\PhelArray;
@@ -73,7 +15,6 @@ use Phel\Lang\Symbol;
 use Phel\Lang\Table;
 use Phel\Lang\Tuple;
 use Phel\SourceMap\SourceMapGenerator;
-use RuntimeException;
 use Throwable;
 
 final class Emitter
@@ -90,10 +31,13 @@ final class Emitter
 
     private array $sourceMap = [];
 
+    private NodeEmitterFactory $nodeEmitterFactory;
+
     public function __construct(bool $enableSourceMaps = true)
     {
         $this->enableSourceMaps = $enableSourceMaps;
         $this->sourceMapGenerator = new SourceMapGenerator();
+        $this->nodeEmitterFactory = new NodeEmitterFactory();
     }
 
     public function emitAndEval(Node $node): string
@@ -158,74 +102,8 @@ final class Emitter
 
     public function emit(Node $node): void
     {
-        $nodeEmitter = $this->createNodeEmitter(get_class($node));
+        $nodeEmitter = $this->nodeEmitterFactory->createNodeEmitter($this, get_class($node));
         $nodeEmitter->emit($node);
-    }
-
-    private function createNodeEmitter(string $nodeClass): NodeEmitter
-    {
-        switch ($nodeClass) {
-            case NsNode::class:
-                return new NsEmitter($this);
-            case DefNode::class:
-                return new DefEmitter($this);
-            case LiteralNode::class:
-                return new LiteralEmitter($this);
-            case QuoteNode::class:
-                return new QuoteEmitter($this);
-            case FnNode::class:
-                return new FnAsClassEmitter($this);
-            case DoNode::class:
-                return new DoEmitter($this);
-            case LetNode::class:
-                return new LetEmitter($this);
-            case LocalVarNode::class:
-                return new LocalVarEmitter($this);
-            case GlobalVarNode::class:
-                return new GlobalVarEmitter($this);
-            case CallNode::class:
-                return new CallEmitter($this);
-            case IfNode::class:
-                return new IfEmitter($this);
-            case ApplyNode::class:
-                return new ApplyEmitter($this);
-            case TupleNode::class:
-                return new TupleEmitter($this);
-            case PhpNewNode::class:
-                return new PhpNewEmitter($this);
-            case PhpVarNode::class:
-                return new PhpVarEmitter($this);
-            case PhpObjectCallNode::class:
-                return new PhpObjectCallEmitter($this);
-            case RecurNode::class:
-                return new RecurEmitter($this);
-            case ThrowNode::class:
-                return new ThrowEmitter($this);
-            case TryNode::class:
-                return new TryEmitter($this);
-            case CatchNode::class:
-                return new CatchEmitter($this);
-            case PhpArrayGetNode::class:
-                return new PhpArrayGetEmitter($this);
-            case PhpArraySetNode::class:
-                return new PhpArraySetEmitter($this);
-            case PhpArrayUnsetNode::class:
-                return new PhpArrayUnsetEmitter($this);
-            case PhpClassNameNode::class:
-                return new PhpClassNameEmitter($this);
-            case PhpArrayPushNode::class:
-                return new PhpArrayPushEmitter($this);
-            case ForeachNode::class:
-                return new ForeachEmitter($this);
-            case ArrayNode::class:
-                return new ArrayEmitter($this);
-            case TableNode::class:
-                return new TableEmitter($this);
-            case DefStructNode::class:
-                return new DefStructEmitter($this);
-            default:
-                throw new RuntimeException('Unexpected node: ' . $nodeClass);
-        }
     }
 
     public function emitPhpVariable(
@@ -466,16 +344,16 @@ final class Emitter
 
         if ($this->enableSourceMaps && $sl) {
             $this->sourceMap[] = [
-                'source' => $sl->getFile(),
-                'original' => [
-                    'line' => $sl->getLine() - 1,
-                    'column' => $sl->getColumn(),
-                ],
-                'generated' => [
-                    'line' => $this->generatedLines,
-                    'column' => $this->generatedColumns,
-                ],
-            ];
+            'source' => $sl->getFile(),
+            'original' => [
+                'line' => $sl->getLine() - 1,
+                'column' => $sl->getColumn(),
+            ],
+            'generated' => [
+                'line' => $this->generatedLines,
+                'column' => $this->generatedColumns,
+            ],
+        ];
         }
 
         $this->generatedColumns += strlen($str);

@@ -2,11 +2,12 @@
 
 declare(strict_types=1);
 
-namespace Phel\Emitter;
+namespace Phel\Emitter\NodeEmitter;
 
 use Phel\Ast\LetNode;
 use Phel\Ast\Node;
 use Phel\Emitter;
+use Phel\Emitter\NodeEmitter;
 use Phel\NodeEnvironment;
 
 final class LetEmitter implements NodeEmitter

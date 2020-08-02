@@ -2,13 +2,14 @@
 
 declare(strict_types=1);
 
-namespace Phel\Emitter;
+namespace Phel\Emitter\NodeEmitter;
 
-use Phel\Ast\GlobalVarNode;
+use Phel\Ast\ArrayNode;
 use Phel\Ast\Node;
 use Phel\Emitter;
+use Phel\Emitter\NodeEmitter;
 
-final class GlobalVarEmitter implements NodeEmitter
+final class ArrayEmitter implements NodeEmitter
 {
     private Emitter $emitter;
 
@@ -19,10 +20,12 @@ final class GlobalVarEmitter implements NodeEmitter
 
     public function emit(Node $node): void
     {
-        assert($node instanceof GlobalVarNode);
+        assert($node instanceof ArrayNode);
 
         $this->emitter->emitContextPrefix($node->getEnv(), $node->getStartSourceLocation());
-        $this->emitter->emitGlobalBase($node->getNamespace(), $node->getName());
+        $this->emitter->emitStr('\Phel\Lang\PhelArray::create(', $node->getStartSourceLocation());
+        $this->emitter->emitArgList($node->getValues(), $node->getStartSourceLocation());
+        $this->emitter->emitStr(')', $node->getStartSourceLocation());
         $this->emitter->emitContextSuffix($node->getEnv(), $node->getStartSourceLocation());
     }
 }

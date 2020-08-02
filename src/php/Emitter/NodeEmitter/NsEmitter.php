@@ -2,13 +2,15 @@
 
 declare(strict_types=1);
 
-namespace Phel\Emitter;
+namespace Phel\Emitter\NodeEmitter;
 
 use Phel\Ast\Node;
 use Phel\Ast\NsNode;
 use Phel\Emitter;
+use Phel\Emitter\NodeEmitter;
 use Phel\Lang\Symbol;
 use Phel\Munge;
+use function addslashes;
 
 final class NsEmitter implements NodeEmitter
 {
@@ -25,13 +27,13 @@ final class NsEmitter implements NodeEmitter
 
         foreach ($node->getRequireNs() as $i => $ns) {
             $this->emitter->emitLine(
-                '\Phel\Runtime::getInstance()->loadNs("' . \addslashes($ns->getName()) . '");',
+                '\Phel\Runtime::getInstance()->loadNs("' . addslashes($ns->getName()) . '");',
                 $ns->getStartLocation()
             );
         }
 
         $this->emitter->emitLine(
-            '\Phel\Runtime::getInstance()->getEnv()->setNs("' . \addslashes($node->getNamespace()) . '");',
+            '\Phel\Runtime::getInstance()->getEnv()->setNs("' . addslashes($node->getNamespace()) . '");',
             $node->getStartSourceLocation()
         );
 

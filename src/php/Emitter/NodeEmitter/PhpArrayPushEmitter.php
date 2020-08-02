@@ -2,13 +2,14 @@
 
 declare(strict_types=1);
 
-namespace Phel\Emitter;
+namespace Phel\Emitter\NodeEmitter;
 
 use Phel\Ast\Node;
-use Phel\Ast\PhpArrayUnsetNode;
+use Phel\Ast\PhpArrayPushNode;
 use Phel\Emitter;
+use Phel\Emitter\NodeEmitter;
 
-final class PhpArrayUnsetEmitter implements NodeEmitter
+final class PhpArrayPushEmitter implements NodeEmitter
 {
     private Emitter $emitter;
 
@@ -19,14 +20,13 @@ final class PhpArrayUnsetEmitter implements NodeEmitter
 
     public function emit(Node $node): void
     {
-        assert($node instanceof PhpArrayUnsetNode);
+        assert($node instanceof PhpArrayPushNode);
 
         $this->emitter->emitContextPrefix($node->getEnv(), $node->getStartSourceLocation());
-        $this->emitter->emitStr('unset((', $node->getStartSourceLocation());
+        $this->emitter->emitStr('(', $node->getStartSourceLocation());
         $this->emitter->emit($node->getArrayExpr());
-        $this->emitter->emitStr(')[(', $node->getStartSourceLocation());
-        $this->emitter->emit($node->getAccessExpr());
-        $this->emitter->emitStr(')])', $node->getStartSourceLocation());
+        $this->emitter->emitStr(')[] = ', $node->getStartSourceLocation());
+        $this->emitter->emit($node->getValueExpr());
         $this->emitter->emitContextSuffix($node->getEnv(), $node->getStartSourceLocation());
     }
 }

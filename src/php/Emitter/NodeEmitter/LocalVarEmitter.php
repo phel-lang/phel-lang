@@ -2,13 +2,14 @@
 
 declare(strict_types=1);
 
-namespace Phel\Emitter;
+namespace Phel\Emitter\NodeEmitter;
 
-use Phel\Ast\ArrayNode;
+use Phel\Ast\LocalVarNode;
 use Phel\Ast\Node;
 use Phel\Emitter;
+use Phel\Emitter\NodeEmitter;
 
-final class ArrayEmitter implements NodeEmitter
+final class LocalVarEmitter implements NodeEmitter
 {
     private Emitter $emitter;
 
@@ -19,12 +20,10 @@ final class ArrayEmitter implements NodeEmitter
 
     public function emit(Node $node): void
     {
-        assert($node instanceof ArrayNode);
+        assert($node instanceof LocalVarNode);
 
         $this->emitter->emitContextPrefix($node->getEnv(), $node->getStartSourceLocation());
-        $this->emitter->emitStr('\Phel\Lang\PhelArray::create(', $node->getStartSourceLocation());
-        $this->emitter->emitArgList($node->getValues(), $node->getStartSourceLocation());
-        $this->emitter->emitStr(')', $node->getStartSourceLocation());
+        $this->emitter->emitPhpVariable($node->getName());
         $this->emitter->emitContextSuffix($node->getEnv(), $node->getStartSourceLocation());
     }
 }
