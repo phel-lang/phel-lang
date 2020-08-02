@@ -16,15 +16,15 @@ use Phel\NodeEnvironment;
 
 final class OutputEmitter
 {
-    public int $indentLevel = 0;
-    public int $generatedLines = 0;
-    public int $generatedColumns = 0;
-    public array $sourceMap = [];
-
     private bool $enableSourceMaps;
     private SourceMapGenerator $sourceMapGenerator;
     private NodeEmitterFactory $nodeEmitterFactory;
     private Munge $munge;
+
+    private int $indentLevel = 0;
+    private int $generatedLines = 0;
+    private int $generatedColumns = 0;
+    private array $sourceMap = [];
 
     public function __construct(
         bool $enableSourceMaps,
@@ -178,32 +178,27 @@ final class OutputEmitter
     }
 
     public function emitPhpVariable(
-        Symbol $m,
+        Symbol $symbol,
         ?SourceLocation $loc = null,
         bool $asReference = false,
         bool $isVariadic = false
     ): void {
         if (is_null($loc)) {
-            $loc = $m->getStartLocation();
+            $loc = $symbol->getStartLocation();
         }
         $refPrefix = $asReference ? '&' : '';
         $variadicPrefix = $isVariadic ? '...' : '';
-        $this->emitStr($variadicPrefix . $refPrefix . '$' . $this->mungeEncode($m->getName()), $loc);
+        $this->emitStr($variadicPrefix . $refPrefix . '$' . $this->mungeEncode($symbol->getName()), $loc);
     }
 
-    public function mungeEncode(string $s): string
+    public function mungeEncode(string $str): string
     {
-        return $this->munge->encode($s);
+        return $this->munge->encode($str);
     }
 
-    public function mungeEncodeNs(string $s): string
+    public function mungeEncodeNs(string $str): string
     {
-        return $this->munge->encodeNs($s);
-    }
-
-    public function mungeDecodeNs(string $s): string
-    {
-        return $this->munge->decodeNs($s);
+        return $this->munge->encodeNs($str);
     }
 
     public function emitFnWrapSuffix(?SourceLocation $sl = null): void
