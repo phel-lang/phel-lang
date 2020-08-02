@@ -20,7 +20,7 @@ final class Compiler
         $this->lexer = new Lexer();
         $this->reader = new Reader($globalEnv);
         $this->analyzer = new Analyzer($globalEnv);
-        $this->emitter = new Emitter();
+        $this->emitter = new Emitter($enableSourceMaps = true);
     }
 
     public function compileFile(string $filename): string

@@ -24,10 +24,16 @@ final class NsEmitter implements NodeEmitter
         assert($node instanceof NsNode);
 
         foreach ($node->getRequireNs() as $i => $ns) {
-            $this->emitter->emitLine('\Phel\Runtime::getInstance()->loadNs("' . \addslashes($ns->getName()) . '");', $ns->getStartLocation());
+            $this->emitter->emitLine(
+                '\Phel\Runtime::getInstance()->loadNs("' . \addslashes($ns->getName()) . '");',
+                $ns->getStartLocation()
+            );
         }
 
-        $this->emitter->emitLine('\Phel\Runtime::getInstance()->getEnv()->setNs("' . \addslashes($node->getNamespace()) . '");', $node->getStartSourceLocation());
+        $this->emitter->emitLine(
+            '\Phel\Runtime::getInstance()->getEnv()->setNs("' . \addslashes($node->getNamespace()) . '");',
+            $node->getStartSourceLocation()
+        );
 
         $nsSym = Symbol::create('*ns*');
         $nsSym->setStartLocation($node->getStartSourceLocation());

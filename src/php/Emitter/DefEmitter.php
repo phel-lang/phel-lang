@@ -20,6 +20,7 @@ final class DefEmitter implements NodeEmitter
     public function emit(Node $node): void
     {
         assert($node instanceof DefNode);
+
         $this->emitter->emitGlobalBase($node->getNamespace(), $node->getName());
         $this->emitter->emitStr(' = ', $node->getStartSourceLocation());
         $this->emitter->emit($node->getInit());

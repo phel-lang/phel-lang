@@ -44,7 +44,7 @@ final class IntegrationTest extends TestCase
         $lexer = new Lexer();
         $reader = new Reader($globalEnv);
         $analyzer = new Analyzer($globalEnv);
-        $emitter = new Emitter(false);
+        $emitter = new Emitter($enableSourceMaps = false);
         $tokenStream = $lexer->lexString($phelCode);
 
         $compiledCode = [];
