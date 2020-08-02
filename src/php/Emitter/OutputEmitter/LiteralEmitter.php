@@ -55,18 +55,13 @@ final class LiteralEmitter
 
     private function emitFloat(float $x): void
     {
-        $this->outputEmitter->emitStr($this->printFloat($x));
-    }
-
-    private function printFloat(float $x): string
-    {
-        if ((int)$x == $x) {
+        $float = ((int)$x == $x)
             // (string) 10.0 will return 10 and not 10.0
             // so we just add a .0 at the end
-            return ((string)$x) . '.0';
-        }
+            ? ((string)$x) . '.0'
+            : ((string)$x);
 
-        return ((string)$x);
+        $this->outputEmitter->emitStr($float);
     }
 
     private function emitInt(int $x): void
@@ -91,7 +86,10 @@ final class LiteralEmitter
 
     private function emitKeyword(Keyword $x): void
     {
-        $this->outputEmitter->emitStr('new \Phel\Lang\Keyword("' . addslashes($x->getName()) . '")', $x->getStartLocation());
+        $this->outputEmitter->emitStr(
+            'new \Phel\Lang\Keyword("' . addslashes($x->getName()) . '")',
+            $x->getStartLocation()
+        );
     }
 
     private function emitSymbol(Symbol $x): void
@@ -112,25 +110,21 @@ final class LiteralEmitter
 
         foreach ($x as $i => $value) {
             $this->outputEmitter->emitLiteral($value);
-
             if ($i < count($x) - 1) {
                 $this->outputEmitter->emitStr(',', $x->getStartLocation());
             }
-
             $this->outputEmitter->emitLine();
         }
 
         if (count($x) > 0) {
             $this->outputEmitter->decreaseIndentLevel();
         }
-
         $this->outputEmitter->emitStr(')', $x->getStartLocation());
     }
 
     private function emitTable(Table $x): void
     {
         $this->outputEmitter->emitStr('\Phel\Lang\Table::fromKVs(', $x->getStartLocation());
-
         if (count($x) > 0) {
             $this->outputEmitter->increaseIndentLevel();
             $this->outputEmitter->emitLine();
@@ -141,12 +135,10 @@ final class LiteralEmitter
             $this->outputEmitter->emitLiteral($key);
             $this->outputEmitter->emitStr(', ', $x->getStartLocation());
             $this->outputEmitter->emitLiteral($value);
-
             if ($i < count($x) - 1) {
                 $this->outputEmitter->emitStr(',', $x->getStartLocation());
             }
             $this->outputEmitter->emitLine();
-
             $i++;
         }
 
@@ -171,18 +163,15 @@ final class LiteralEmitter
 
         foreach ($x as $i => $value) {
             $this->outputEmitter->emitLiteral($value);
-
             if ($i < count($x) - 1) {
                 $this->outputEmitter->emitStr(',', $x->getStartLocation());
             }
-
             $this->outputEmitter->emitLine();
         }
 
         if (count($x) > 0) {
             $this->outputEmitter->decreaseIndentLevel();
         }
-
         $this->outputEmitter->emitStr(')', $x->getStartLocation());
     }
 }
