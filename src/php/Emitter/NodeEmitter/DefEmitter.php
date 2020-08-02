@@ -10,22 +10,22 @@ use Phel\Emitter\NodeEmitter;
 
 final class DefEmitter implements NodeEmitter
 {
-    use WithEmitter;
+    use WithOutputEmitter;
 
     public function emit(Node $node): void
     {
         assert($node instanceof DefNode);
 
-        $this->emitter->emitGlobalBase($node->getNamespace(), $node->getName());
-        $this->emitter->emitStr(' = ', $node->getStartSourceLocation());
-        $this->emitter->emitNode($node->getInit());
-        $this->emitter->emitLine(';', $node->getStartSourceLocation());
+        $this->outputEmitter->emitGlobalBase($node->getNamespace(), $node->getName());
+        $this->outputEmitter->emitStr(' = ', $node->getStartSourceLocation());
+        $this->outputEmitter->emitNode($node->getInit());
+        $this->outputEmitter->emitLine(';', $node->getStartSourceLocation());
 
         if (count($node->getMeta()) > 0) {
-            $this->emitter->emitGlobalBaseMeta($node->getNamespace(), $node->getName());
-            $this->emitter->emitStr(' = ', $node->getStartSourceLocation());
-            $this->emitter->emitLiteral($node->getMeta());
-            $this->emitter->emitLine(';', $node->getStartSourceLocation());
+            $this->outputEmitter->emitGlobalBaseMeta($node->getNamespace(), $node->getName());
+            $this->outputEmitter->emitStr(' = ', $node->getStartSourceLocation());
+            $this->outputEmitter->emitLiteral($node->getMeta());
+            $this->outputEmitter->emitLine(';', $node->getStartSourceLocation());
         }
     }
 }

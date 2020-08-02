@@ -10,19 +10,19 @@ use Phel\Emitter\NodeEmitter;
 
 final class PhpArraySetEmitter implements NodeEmitter
 {
-    use WithEmitter;
+    use WithOutputEmitter;
 
     public function emit(Node $node): void
     {
         assert($node instanceof PhpArraySetNode);
 
-        $this->emitter->emitContextPrefix($node->getEnv(), $node->getStartSourceLocation());
-        $this->emitter->emitStr('(', $node->getStartSourceLocation());
-        $this->emitter->emitNode($node->getArrayExpr());
-        $this->emitter->emitStr(')[(', $node->getStartSourceLocation());
-        $this->emitter->emitNode($node->getAccessExpr());
-        $this->emitter->emitStr(')] = ', $node->getStartSourceLocation());
-        $this->emitter->emitNode($node->getValueExpr());
-        $this->emitter->emitContextSuffix($node->getEnv(), $node->getStartSourceLocation());
+        $this->outputEmitter->emitContextPrefix($node->getEnv(), $node->getStartSourceLocation());
+        $this->outputEmitter->emitStr('(', $node->getStartSourceLocation());
+        $this->outputEmitter->emitNode($node->getArrayExpr());
+        $this->outputEmitter->emitStr(')[(', $node->getStartSourceLocation());
+        $this->outputEmitter->emitNode($node->getAccessExpr());
+        $this->outputEmitter->emitStr(')] = ', $node->getStartSourceLocation());
+        $this->outputEmitter->emitNode($node->getValueExpr());
+        $this->outputEmitter->emitContextSuffix($node->getEnv(), $node->getStartSourceLocation());
     }
 }

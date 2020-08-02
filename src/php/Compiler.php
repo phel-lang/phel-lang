@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Phel;
 
+use Phel\Emitter\EvalEmitter;
 use Phel\Exceptions\AnalyzerException;
 use Phel\Exceptions\CompilerException;
 use Phel\Exceptions\ReaderException;
@@ -14,6 +15,7 @@ final class Compiler
     private Reader $reader;
     private Analyzer $analyzer;
     private Emitter $emitter;
+    private EvalEmitter $evalEmitter;
 
     public function __construct(GlobalEnvironment $globalEnv)
     {
@@ -21,6 +23,7 @@ final class Compiler
         $this->reader = new Reader($globalEnv);
         $this->analyzer = new Analyzer($globalEnv);
         $this->emitter = new Emitter($enableSourceMaps = true);
+        $this->evalEmitter = new EvalEmitter();
     }
 
     public function compileFile(string $filename): string
@@ -68,7 +71,7 @@ final class Compiler
             $readerResult = $this->reader->readNext($tokenStream);
 
             if (!$readerResult) {
-                return;
+                return null;
             }
 
             try {
@@ -77,7 +80,8 @@ final class Compiler
                     NodeEnvironment::empty()->withContext(NodeEnvironment::CTX_RET)
                 );
                 $code = $this->emitter->emitNodeAsString($node);
-                return $this->emitter->eval($code);
+
+                return $this->evalEmitter->eval($code);
             } catch (AnalyzerException $e) {
                 throw new CompilerException($e, $readerResult->getCodeSnippet());
             }

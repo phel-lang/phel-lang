@@ -15,7 +15,7 @@ use RuntimeException;
 
 final class PhpObjectCallEmitter implements NodeEmitter
 {
-    use WithEmitter;
+    use WithOutputEmitter;
 
     public function emit(Node $node): void
     {
@@ -25,46 +25,46 @@ final class PhpObjectCallEmitter implements NodeEmitter
         $targetExpr = $node->getTargetExpr();
         $callExpr = $node->getCallExpr();
 
-        $this->emitter->emitContextPrefix($node->getEnv(), $node->getStartSourceLocation());
+        $this->outputEmitter->emitContextPrefix($node->getEnv(), $node->getStartSourceLocation());
 
         if ($node->isStatic() && $targetExpr instanceof PhpClassNameNode) {
-            $this->emitter->emitStr('(', $node->getStartSourceLocation());
-            $this->emitter->emitNode($targetExpr);
-            $this->emitter->emitStr($fnCode, $node->getStartSourceLocation());
+            $this->outputEmitter->emitStr('(', $node->getStartSourceLocation());
+            $this->outputEmitter->emitNode($targetExpr);
+            $this->outputEmitter->emitStr($fnCode, $node->getStartSourceLocation());
         } else {
-            $this->emitter->emitFnWrapPrefix($node->getEnv(), $node->getStartSourceLocation());
+            $this->outputEmitter->emitFnWrapPrefix($node->getEnv(), $node->getStartSourceLocation());
 
             $targetSym = Symbol::gen('target_');
-            $this->emitter->emitPhpVariable($targetSym, $node->getStartSourceLocation());
-            $this->emitter->emitStr(' = ', $node->getStartSourceLocation());
-            $this->emitter->emitNode($targetExpr);
-            $this->emitter->emitLine(';', $node->getStartSourceLocation());
+            $this->outputEmitter->emitPhpVariable($targetSym, $node->getStartSourceLocation());
+            $this->outputEmitter->emitStr(' = ', $node->getStartSourceLocation());
+            $this->outputEmitter->emitNode($targetExpr);
+            $this->outputEmitter->emitLine(';', $node->getStartSourceLocation());
 
-            $this->emitter->emitStr('return ', $node->getStartSourceLocation());
-            $this->emitter->emitPhpVariable($targetSym, $node->getStartSourceLocation());
-            $this->emitter->emitStr($fnCode, $node->getStartSourceLocation());
+            $this->outputEmitter->emitStr('return ', $node->getStartSourceLocation());
+            $this->outputEmitter->emitPhpVariable($targetSym, $node->getStartSourceLocation());
+            $this->outputEmitter->emitStr($fnCode, $node->getStartSourceLocation());
         }
 
         // Method/Property and Arguments
         if ($callExpr instanceof MethodCallNode) {
-            $this->emitter->emitStr($callExpr->getFn()->getName(), $callExpr->getFn()->getStartLocation());
-            $this->emitter->emitStr('(', $node->getStartSourceLocation());
-            $this->emitter->emitArgList($callExpr->getArgs(), $node->getStartSourceLocation());
-            $this->emitter->emitStr(')', $node->getStartSourceLocation());
+            $this->outputEmitter->emitStr($callExpr->getFn()->getName(), $callExpr->getFn()->getStartLocation());
+            $this->outputEmitter->emitStr('(', $node->getStartSourceLocation());
+            $this->outputEmitter->emitArgList($callExpr->getArgs(), $node->getStartSourceLocation());
+            $this->outputEmitter->emitStr(')', $node->getStartSourceLocation());
         } elseif ($callExpr instanceof PropertyOrConstantAccessNode) {
-            $this->emitter->emitStr($callExpr->getName()->getName(), $callExpr->getName()->getStartLocation());
+            $this->outputEmitter->emitStr($callExpr->getName()->getName(), $callExpr->getName()->getStartLocation());
         } else {
             throw new RuntimeException('Not supported ' . get_class($callExpr));
         }
 
         // Close Expression
         if ($targetExpr instanceof PhpClassNameNode && $node->isStatic()) {
-            $this->emitter->emitStr(')', $node->getStartSourceLocation());
+            $this->outputEmitter->emitStr(')', $node->getStartSourceLocation());
         } else {
-            $this->emitter->emitStr(';', $node->getStartSourceLocation());
-            $this->emitter->emitFnWrapSuffix($node->getStartSourceLocation());
+            $this->outputEmitter->emitStr(';', $node->getStartSourceLocation());
+            $this->outputEmitter->emitFnWrapSuffix($node->getStartSourceLocation());
         }
 
-        $this->emitter->emitContextSuffix($node->getEnv(), $node->getStartSourceLocation());
+        $this->outputEmitter->emitContextSuffix($node->getEnv(), $node->getStartSourceLocation());
     }
 }

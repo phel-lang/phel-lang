@@ -11,7 +11,7 @@ use Phel\NodeEnvironment;
 
 final class LetEmitter implements NodeEmitter
 {
-    use WithEmitter;
+    use WithOutputEmitter;
 
     public function emit(Node $node): void
     {
@@ -19,31 +19,31 @@ final class LetEmitter implements NodeEmitter
 
         $wrapFn = $node->getEnv()->getContext() === NodeEnvironment::CTX_EXPR;
         if ($wrapFn) {
-            $this->emitter->emitFnWrapPrefix($node->getEnv(), $node->getStartSourceLocation());
+            $this->outputEmitter->emitFnWrapPrefix($node->getEnv(), $node->getStartSourceLocation());
         }
 
         foreach ($node->getBindings() as $binding) {
-            $this->emitter->emitPhpVariable($binding->getShadow(), $binding->getStartSourceLocation());
-            $this->emitter->emitStr(' = ', $node->getStartSourceLocation());
-            $this->emitter->emitNode($binding->getInitExpr());
-            $this->emitter->emitLine(';', $node->getStartSourceLocation());
+            $this->outputEmitter->emitPhpVariable($binding->getShadow(), $binding->getStartSourceLocation());
+            $this->outputEmitter->emitStr(' = ', $node->getStartSourceLocation());
+            $this->outputEmitter->emitNode($binding->getInitExpr());
+            $this->outputEmitter->emitLine(';', $node->getStartSourceLocation());
         }
 
         if ($node->isLoop()) {
-            $this->emitter->emitLine('while (true) {', $node->getStartSourceLocation());
-            $this->emitter->increaseIndentLevel();
+            $this->outputEmitter->emitLine('while (true) {', $node->getStartSourceLocation());
+            $this->outputEmitter->increaseIndentLevel();
         }
 
-        $this->emitter->emitNode($node->getBodyExpr());
+        $this->outputEmitter->emitNode($node->getBodyExpr());
 
         if ($node->isLoop()) {
-            $this->emitter->emitLine('break;', $node->getStartSourceLocation());
-            $this->emitter->decreaseIndentLevel();
-            $this->emitter->emitStr('}', $node->getStartSourceLocation());
+            $this->outputEmitter->emitLine('break;', $node->getStartSourceLocation());
+            $this->outputEmitter->decreaseIndentLevel();
+            $this->outputEmitter->emitStr('}', $node->getStartSourceLocation());
         }
 
         if ($wrapFn) {
-            $this->emitter->emitFnWrapSuffix($node->getStartSourceLocation());
+            $this->outputEmitter->emitFnWrapSuffix($node->getStartSourceLocation());
         }
     }
 }

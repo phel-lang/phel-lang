@@ -10,23 +10,23 @@ use Phel\Emitter\NodeEmitter;
 
 final class CatchEmitter implements NodeEmitter
 {
-    use WithEmitter;
+    use WithOutputEmitter;
 
     public function emit(Node $node): void
     {
         assert($node instanceof CatchNode);
 
-        $this->emitter->emitStr(' catch (', $node->getStartSourceLocation());
-        $this->emitter->emitStr($node->getType()->getName(), $node->getType()->getStartLocation());
-        $this->emitter->emitStr(
-            ' $' . $this->emitter->munge($node->getName()->getName()),
+        $this->outputEmitter->emitStr(' catch (', $node->getStartSourceLocation());
+        $this->outputEmitter->emitStr($node->getType()->getName(), $node->getType()->getStartLocation());
+        $this->outputEmitter->emitStr(
+            ' $' . $this->outputEmitter->munge($node->getName()->getName()),
             $node->getName()->getStartLocation()
         );
-        $this->emitter->emitLine(') {', $node->getStartSourceLocation());
-        $this->emitter->increaseIndentLevel();
-        $this->emitter->emitNode($node->getBody());
-        $this->emitter->decreaseIndentLevel();
-        $this->emitter->emitLine();
-        $this->emitter->emitStr('}', $node->getStartSourceLocation());
+        $this->outputEmitter->emitLine(') {', $node->getStartSourceLocation());
+        $this->outputEmitter->increaseIndentLevel();
+        $this->outputEmitter->emitNode($node->getBody());
+        $this->outputEmitter->decreaseIndentLevel();
+        $this->outputEmitter->emitLine();
+        $this->outputEmitter->emitStr('}', $node->getStartSourceLocation());
     }
 }

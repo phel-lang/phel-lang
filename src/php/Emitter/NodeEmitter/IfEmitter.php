@@ -11,34 +11,34 @@ use Phel\NodeEnvironment;
 
 final class IfEmitter implements NodeEmitter
 {
-    use WithEmitter;
+    use WithOutputEmitter;
 
     public function emit(Node $node): void
     {
         assert($node instanceof IfNode);
 
         if ($node->getEnv()->getContext() === NodeEnvironment::CTX_EXPR) {
-            $this->emitter->emitStr('((\Phel\Lang\Truthy::isTruthy(', $node->getStartSourceLocation());
-            $this->emitter->emitNode($node->getTestExpr());
-            $this->emitter->emitStr(')) ? ', $node->getStartSourceLocation());
-            $this->emitter->emitNode($node->getThenExpr());
-            $this->emitter->emitStr(' : ', $node->getStartSourceLocation());
-            $this->emitter->emitNode($node->getElseExpr());
-            $this->emitter->emitStr(')');
+            $this->outputEmitter->emitStr('((\Phel\Lang\Truthy::isTruthy(', $node->getStartSourceLocation());
+            $this->outputEmitter->emitNode($node->getTestExpr());
+            $this->outputEmitter->emitStr(')) ? ', $node->getStartSourceLocation());
+            $this->outputEmitter->emitNode($node->getThenExpr());
+            $this->outputEmitter->emitStr(' : ', $node->getStartSourceLocation());
+            $this->outputEmitter->emitNode($node->getElseExpr());
+            $this->outputEmitter->emitStr(')');
         } else {
-            $this->emitter->emitStr('if (\Phel\Lang\Truthy::isTruthy(', $node->getStartSourceLocation());
-            $this->emitter->emitNode($node->getTestExpr());
-            $this->emitter->emitLine(')) {', $node->getStartSourceLocation());
-            $this->emitter->increaseIndentLevel();
-            $this->emitter->emitNode($node->getThenExpr());
-            $this->emitter->decreaseIndentLevel();
-            $this->emitter->emitLine();
-            $this->emitter->emitLine('} else {', $node->getStartSourceLocation());
-            $this->emitter->increaseIndentLevel();
-            $this->emitter->emitNode($node->getElseExpr());
-            $this->emitter->decreaseIndentLevel();
-            $this->emitter->emitLine();
-            $this->emitter->emitLine('}', $node->getStartSourceLocation());
+            $this->outputEmitter->emitStr('if (\Phel\Lang\Truthy::isTruthy(', $node->getStartSourceLocation());
+            $this->outputEmitter->emitNode($node->getTestExpr());
+            $this->outputEmitter->emitLine(')) {', $node->getStartSourceLocation());
+            $this->outputEmitter->increaseIndentLevel();
+            $this->outputEmitter->emitNode($node->getThenExpr());
+            $this->outputEmitter->decreaseIndentLevel();
+            $this->outputEmitter->emitLine();
+            $this->outputEmitter->emitLine('} else {', $node->getStartSourceLocation());
+            $this->outputEmitter->increaseIndentLevel();
+            $this->outputEmitter->emitNode($node->getElseExpr());
+            $this->outputEmitter->decreaseIndentLevel();
+            $this->outputEmitter->emitLine();
+            $this->outputEmitter->emitLine('}', $node->getStartSourceLocation());
         }
     }
 }

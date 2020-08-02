@@ -11,7 +11,7 @@ use Phel\Lang\Symbol;
 
 final class RecurEmitter implements NodeEmitter
 {
-    use WithEmitter;
+    use WithOutputEmitter;
 
     public function emit(Node $node): void
     {
@@ -26,10 +26,10 @@ final class RecurEmitter implements NodeEmitter
             $tempSym = Symbol::gen();
             $tempSyms[] = $tempSym;
 
-            $this->emitter->emitPhpVariable($tempSym, $node->getStartSourceLocation());
-            $this->emitter->emitStr(' = ', $node->getStartSourceLocation());
-            $this->emitter->emitNode($expr);
-            $this->emitter->emitLine(';', $node->getStartSourceLocation());
+            $this->outputEmitter->emitPhpVariable($tempSym, $node->getStartSourceLocation());
+            $this->outputEmitter->emitStr(' = ', $node->getStartSourceLocation());
+            $this->outputEmitter->emitNode($expr);
+            $this->outputEmitter->emitLine(';', $node->getStartSourceLocation());
         }
 
         foreach ($tempSyms as $i => $tempSym) {
@@ -40,12 +40,12 @@ final class RecurEmitter implements NodeEmitter
                 $paramSym = $shadowedSym;
             }
 
-            $this->emitter->emitPhpVariable($paramSym, $loc);
-            $this->emitter->emitStr(' = ', $node->getStartSourceLocation());
-            $this->emitter->emitPhpVariable($tempSym, $node->getStartSourceLocation());
-            $this->emitter->emitLine(';', $node->getStartSourceLocation());
+            $this->outputEmitter->emitPhpVariable($paramSym, $loc);
+            $this->outputEmitter->emitStr(' = ', $node->getStartSourceLocation());
+            $this->outputEmitter->emitPhpVariable($tempSym, $node->getStartSourceLocation());
+            $this->outputEmitter->emitLine(';', $node->getStartSourceLocation());
         }
 
-        $this->emitter->emitLine('continue;', $node->getStartSourceLocation());
+        $this->outputEmitter->emitLine('continue;', $node->getStartSourceLocation());
     }
 }

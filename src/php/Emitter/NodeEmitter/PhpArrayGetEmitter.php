@@ -10,18 +10,18 @@ use Phel\Emitter\NodeEmitter;
 
 final class PhpArrayGetEmitter implements NodeEmitter
 {
-    use WithEmitter;
+    use WithOutputEmitter;
 
     public function emit(Node $node): void
     {
         assert($node instanceof PhpArrayGetNode);
 
-        $this->emitter->emitContextPrefix($node->getEnv(), $node->getStartSourceLocation());
-        $this->emitter->emitStr('((', $node->getStartSourceLocation());
-        $this->emitter->emitNode($node->getArrayExpr());
-        $this->emitter->emitStr(')[(', $node->getStartSourceLocation());
-        $this->emitter->emitNode($node->getAccessExpr());
-        $this->emitter->emitStr(')] ?? null)', $node->getStartSourceLocation());
-        $this->emitter->emitContextSuffix($node->getEnv(), $node->getStartSourceLocation());
+        $this->outputEmitter->emitContextPrefix($node->getEnv(), $node->getStartSourceLocation());
+        $this->outputEmitter->emitStr('((', $node->getStartSourceLocation());
+        $this->outputEmitter->emitNode($node->getArrayExpr());
+        $this->outputEmitter->emitStr(')[(', $node->getStartSourceLocation());
+        $this->outputEmitter->emitNode($node->getAccessExpr());
+        $this->outputEmitter->emitStr(')] ?? null)', $node->getStartSourceLocation());
+        $this->outputEmitter->emitContextSuffix($node->getEnv(), $node->getStartSourceLocation());
     }
 }

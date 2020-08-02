@@ -11,7 +11,7 @@ use Phel\NodeEnvironment;
 
 final class DoEmitter implements NodeEmitter
 {
-    use WithEmitter;
+    use WithOutputEmitter;
 
     public function emit(Node $node): void
     {
@@ -19,17 +19,17 @@ final class DoEmitter implements NodeEmitter
 
         $wrapFn = count($node->getStmts()) > 0 && $node->getEnv()->getContext() === NodeEnvironment::CTX_EXPR;
         if ($wrapFn) {
-            $this->emitter->emitFnWrapPrefix($node->getEnv(), $node->getStartSourceLocation());
+            $this->outputEmitter->emitFnWrapPrefix($node->getEnv(), $node->getStartSourceLocation());
         }
 
         foreach ($node->getStmts() as $i => $stmt) {
-            $this->emitter->emitNode($stmt);
-            $this->emitter->emitLine();
+            $this->outputEmitter->emitNode($stmt);
+            $this->outputEmitter->emitLine();
         }
-        $this->emitter->emitNode($node->getRet());
+        $this->outputEmitter->emitNode($node->getRet());
 
         if ($wrapFn) {
-            $this->emitter->emitFnWrapSuffix($node->getStartSourceLocation());
+            $this->outputEmitter->emitFnWrapSuffix($node->getStartSourceLocation());
         }
     }
 }

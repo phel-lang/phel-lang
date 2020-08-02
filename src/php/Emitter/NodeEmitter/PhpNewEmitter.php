@@ -12,41 +12,41 @@ use Phel\Lang\Symbol;
 
 final class PhpNewEmitter implements NodeEmitter
 {
-    use WithEmitter;
+    use WithOutputEmitter;
 
     public function emit(Node $node): void
     {
         assert($node instanceof PhpNewNode);
 
-        $this->emitter->emitContextPrefix($node->getEnv(), $node->getStartSourceLocation());
+        $this->outputEmitter->emitContextPrefix($node->getEnv(), $node->getStartSourceLocation());
         $classExpr = $node->getClassExpr();
 
         if ($classExpr instanceof PhpClassNameNode) {
-            $this->emitter->emitStr('(new ', $node->getStartSourceLocation());
-            $this->emitter->emitNode($classExpr);
-            $this->emitter->emitStr('(', $node->getStartSourceLocation());
+            $this->outputEmitter->emitStr('(new ', $node->getStartSourceLocation());
+            $this->outputEmitter->emitNode($classExpr);
+            $this->outputEmitter->emitStr('(', $node->getStartSourceLocation());
         } else {
-            $this->emitter->emitFnWrapPrefix($node->getEnv(), $node->getStartSourceLocation());
+            $this->outputEmitter->emitFnWrapPrefix($node->getEnv(), $node->getStartSourceLocation());
 
             $targetSym = Symbol::gen('target_');
-            $this->emitter->emitPhpVariable($targetSym, $node->getStartSourceLocation());
-            $this->emitter->emitStr(' = ', $node->getStartSourceLocation());
-            $this->emitter->emitNode($classExpr);
-            $this->emitter->emitLine(';', $node->getStartSourceLocation());
+            $this->outputEmitter->emitPhpVariable($targetSym, $node->getStartSourceLocation());
+            $this->outputEmitter->emitStr(' = ', $node->getStartSourceLocation());
+            $this->outputEmitter->emitNode($classExpr);
+            $this->outputEmitter->emitLine(';', $node->getStartSourceLocation());
 
-            $this->emitter->emitStr('return new $' . $targetSym->getName() . '(', $node->getStartSourceLocation());
+            $this->outputEmitter->emitStr('return new $' . $targetSym->getName() . '(', $node->getStartSourceLocation());
         }
 
         // Args
-        $this->emitter->emitArgList($node->getArgs(), $node->getStartSourceLocation());
+        $this->outputEmitter->emitArgList($node->getArgs(), $node->getStartSourceLocation());
 
         if ($classExpr instanceof PhpClassNameNode) {
-            $this->emitter->emitStr('))', $node->getStartSourceLocation());
+            $this->outputEmitter->emitStr('))', $node->getStartSourceLocation());
         } else {
-            $this->emitter->emitStr(');', $node->getStartSourceLocation());
-            $this->emitter->emitFnWrapSuffix($node->getStartSourceLocation());
+            $this->outputEmitter->emitStr(');', $node->getStartSourceLocation());
+            $this->outputEmitter->emitFnWrapSuffix($node->getStartSourceLocation());
         }
 
-        $this->emitter->emitContextSuffix($node->getEnv(), $node->getStartSourceLocation());
+        $this->outputEmitter->emitContextSuffix($node->getEnv(), $node->getStartSourceLocation());
     }
 }

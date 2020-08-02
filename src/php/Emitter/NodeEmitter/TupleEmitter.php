@@ -10,16 +10,16 @@ use Phel\Emitter\NodeEmitter;
 
 final class TupleEmitter implements NodeEmitter
 {
-    use WithEmitter;
+    use WithOutputEmitter;
 
     public function emit(Node $node): void
     {
         assert($node instanceof TupleNode);
 
-        $this->emitter->emitContextPrefix($node->getEnv(), $node->getStartSourceLocation());
-        $this->emitter->emitStr('\Phel\Lang\Tuple::createBracket(', $node->getStartSourceLocation());
-        $this->emitter->emitArgList($node->getArgs(), $node->getStartSourceLocation());
-        $this->emitter->emitStr(')', $node->getStartSourceLocation());
-        $this->emitter->emitContextSuffix($node->getEnv(), $node->getStartSourceLocation());
+        $this->outputEmitter->emitContextPrefix($node->getEnv(), $node->getStartSourceLocation());
+        $this->outputEmitter->emitStr('\Phel\Lang\Tuple::createBracket(', $node->getStartSourceLocation());
+        $this->outputEmitter->emitArgList($node->getArgs(), $node->getStartSourceLocation());
+        $this->outputEmitter->emitStr(')', $node->getStartSourceLocation());
+        $this->outputEmitter->emitContextSuffix($node->getEnv(), $node->getStartSourceLocation());
     }
 }

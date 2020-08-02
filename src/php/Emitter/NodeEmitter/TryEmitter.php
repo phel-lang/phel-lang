@@ -11,7 +11,7 @@ use Phel\NodeEnvironment;
 
 final class TryEmitter implements NodeEmitter
 {
-    use WithEmitter;
+    use WithOutputEmitter;
 
     public function emit(Node $node): void
     {
@@ -19,18 +19,18 @@ final class TryEmitter implements NodeEmitter
 
         if ($node->getFinally() || count($node->getCatches()) > 0) {
             if ($node->getEnv()->getContext() === NodeEnvironment::CTX_EXPR) {
-                $this->emitter->emitFnWrapPrefix($node->getEnv(), $node->getStartSourceLocation());
+                $this->outputEmitter->emitFnWrapPrefix($node->getEnv(), $node->getStartSourceLocation());
             }
 
-            $this->emitter->emitLine('try {', $node->getStartSourceLocation());
-            $this->emitter->increaseIndentLevel();
-            $this->emitter->emitNode($node->getBody());
-            $this->emitter->decreaseIndentLevel();
-            $this->emitter->emitLine();
-            $this->emitter->emitStr('}', $node->getStartSourceLocation());
+            $this->outputEmitter->emitLine('try {', $node->getStartSourceLocation());
+            $this->outputEmitter->increaseIndentLevel();
+            $this->outputEmitter->emitNode($node->getBody());
+            $this->outputEmitter->decreaseIndentLevel();
+            $this->outputEmitter->emitLine();
+            $this->outputEmitter->emitStr('}', $node->getStartSourceLocation());
 
             foreach ($node->getCatches() as $catchNode) {
-                $this->emitter->emitNode($catchNode);
+                $this->outputEmitter->emitNode($catchNode);
             }
 
             if ($node->getFinally()) {
@@ -38,20 +38,20 @@ final class TryEmitter implements NodeEmitter
             }
 
             if ($node->getEnv()->getContext() === NodeEnvironment::CTX_EXPR) {
-                $this->emitter->emitFnWrapSuffix($node->getStartSourceLocation());
+                $this->outputEmitter->emitFnWrapSuffix($node->getStartSourceLocation());
             }
         } else {
-            $this->emitter->emitNode($node->getBody());
+            $this->outputEmitter->emitNode($node->getBody());
         }
     }
 
     private function emitFinally(Node $node): void
     {
-        $this->emitter->emitLine(' finally {', $node->getStartSourceLocation());
-        $this->emitter->increaseIndentLevel();
-        $this->emitter->emitNode($node);
-        $this->emitter->decreaseIndentLevel();
-        $this->emitter->emitLine();
-        $this->emitter->emitStr('}', $node->getStartSourceLocation());
+        $this->outputEmitter->emitLine(' finally {', $node->getStartSourceLocation());
+        $this->outputEmitter->increaseIndentLevel();
+        $this->outputEmitter->emitNode($node);
+        $this->outputEmitter->decreaseIndentLevel();
+        $this->outputEmitter->emitLine();
+        $this->outputEmitter->emitStr('}', $node->getStartSourceLocation());
     }
 }

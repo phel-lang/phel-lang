@@ -10,23 +10,23 @@ use Phel\Emitter\NodeEmitter;
 
 final class PhpVarEmitter implements NodeEmitter
 {
-    use WithEmitter;
+    use WithOutputEmitter;
 
     public function emit(Node $node): void
     {
         assert($node instanceof PhpVarNode);
 
-        $this->emitter->emitContextPrefix($node->getEnv(), $node->getStartSourceLocation());
+        $this->outputEmitter->emitContextPrefix($node->getEnv(), $node->getStartSourceLocation());
 
         if ($node->isCallable()) {
-            $this->emitter->emitStr(
+            $this->outputEmitter->emitStr(
                 '(function(...$args) { return ' . $node->getName() . '(...$args);' . '})',
                 $node->getStartSourceLocation()
             );
         } else {
-            $this->emitter->emitStr($node->getName(), $node->getStartSourceLocation());
+            $this->outputEmitter->emitStr($node->getName(), $node->getStartSourceLocation());
         }
 
-        $this->emitter->emitContextSuffix($node->getEnv(), $node->getStartSourceLocation());
+        $this->outputEmitter->emitContextSuffix($node->getEnv(), $node->getStartSourceLocation());
     }
 }

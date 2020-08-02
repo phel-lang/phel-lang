@@ -12,65 +12,65 @@ use Phel\Munge;
 
 final class DefStructEmitter implements NodeEmitter
 {
-    use WithEmitter;
+    use WithOutputEmitter;
 
     public function emit(Node $node): void
     {
         assert($node instanceof DefStructNode);
 
         $paramCount = count($node->getParams());
-        $this->emitter->emitLine(
+        $this->outputEmitter->emitLine(
             'namespace ' . Munge::encodeNs($node->getNamespace()) . ';',
             $node->getStartSourceLocation()
         );
-        $this->emitter->emitLine(
-            'class ' . $this->emitter->munge($node->getName()->getName()) . ' extends \Phel\Lang\Struct {',
+        $this->outputEmitter->emitLine(
+            'class ' . $this->outputEmitter->munge($node->getName()->getName()) . ' extends \Phel\Lang\Struct {',
             $node->getStartSourceLocation()
         );
-        $this->emitter->increaseIndentLevel();
+        $this->outputEmitter->increaseIndentLevel();
 
         // Constructor
-        $this->emitter->emitStr('public function __construct(', $node->getStartSourceLocation());
+        $this->outputEmitter->emitStr('public function __construct(', $node->getStartSourceLocation());
         foreach ($node->getParams() as $i => $param) {
-            $this->emitter->emitPhpVariable($param);
+            $this->outputEmitter->emitPhpVariable($param);
 
             if ($i < $paramCount - 1) {
-                $this->emitter->emitStr(', ', $node->getStartSourceLocation());
+                $this->outputEmitter->emitStr(', ', $node->getStartSourceLocation());
             }
         }
-        $this->emitter->emitLine(') {', $node->getStartSourceLocation());
-        $this->emitter->increaseIndentLevel();
+        $this->outputEmitter->emitLine(') {', $node->getStartSourceLocation());
+        $this->outputEmitter->increaseIndentLevel();
         foreach ($node->getParams() as $i => $param) {
             $keyword = new Keyword($param->getName());
             $keyword->setStartLocation($node->getStartSourceLocation());
 
-            $this->emitter->emitStr('$this->offsetSet(', $node->getStartSourceLocation());
-            $this->emitter->emitLiteral($keyword);
-            $this->emitter->emitStr(', ', $node->getStartSourceLocation());
-            $this->emitter->emitPhpVariable($param);
-            $this->emitter->emitLine(');', $node->getStartSourceLocation());
+            $this->outputEmitter->emitStr('$this->offsetSet(', $node->getStartSourceLocation());
+            $this->outputEmitter->emitLiteral($keyword);
+            $this->outputEmitter->emitStr(', ', $node->getStartSourceLocation());
+            $this->outputEmitter->emitPhpVariable($param);
+            $this->outputEmitter->emitLine(');', $node->getStartSourceLocation());
         }
-        $this->emitter->decreaseIndentLevel();
-        $this->emitter->emitLine('}', $node->getStartSourceLocation());
+        $this->outputEmitter->decreaseIndentLevel();
+        $this->outputEmitter->emitLine('}', $node->getStartSourceLocation());
 
         // Get Allowed Keys Function
-        $this->emitter->emitStr('public function getAllowedKeys(', $node->getStartSourceLocation());
-        $this->emitter->emitLine('): array {', $node->getStartSourceLocation());
-        $this->emitter->increaseIndentLevel();
-        $this->emitter->emitStr('return [', $node->getStartSourceLocation());
+        $this->outputEmitter->emitStr('public function getAllowedKeys(', $node->getStartSourceLocation());
+        $this->outputEmitter->emitLine('): array {', $node->getStartSourceLocation());
+        $this->outputEmitter->increaseIndentLevel();
+        $this->outputEmitter->emitStr('return [', $node->getStartSourceLocation());
         foreach ($node->getParamsAsKeywords() as $i => $keyword) {
-            $this->emitter->emitLiteral($keyword);
+            $this->outputEmitter->emitLiteral($keyword);
 
             if ($i < $paramCount - 1) {
-                $this->emitter->emitStr(', ', $node->getStartSourceLocation());
+                $this->outputEmitter->emitStr(', ', $node->getStartSourceLocation());
             }
         }
-        $this->emitter->emitLine('];', $node->getStartSourceLocation());
-        $this->emitter->decreaseIndentLevel();
-        $this->emitter->emitLine('}', $node->getStartSourceLocation());
+        $this->outputEmitter->emitLine('];', $node->getStartSourceLocation());
+        $this->outputEmitter->decreaseIndentLevel();
+        $this->outputEmitter->emitLine('}', $node->getStartSourceLocation());
 
         // End of class
-        $this->emitter->decreaseIndentLevel();
-        $this->emitter->emitLine('}', $node->getStartSourceLocation());
+        $this->outputEmitter->decreaseIndentLevel();
+        $this->outputEmitter->emitLine('}', $node->getStartSourceLocation());
     }
 }

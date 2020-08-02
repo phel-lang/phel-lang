@@ -11,22 +11,22 @@ use Phel\NodeEnvironment;
 
 final class ThrowEmitter implements NodeEmitter
 {
-    use WithEmitter;
+    use WithOutputEmitter;
 
     public function emit(Node $node): void
     {
         assert($node instanceof ThrowNode);
 
         if ($node->getEnv()->getContext() === NodeEnvironment::CTX_EXPR) {
-            $this->emitter->emitFnWrapPrefix($node->getEnv(), $node->getStartSourceLocation());
+            $this->outputEmitter->emitFnWrapPrefix($node->getEnv(), $node->getStartSourceLocation());
         }
 
-        $this->emitter->emitStr('throw ', $node->getStartSourceLocation());
-        $this->emitter->emitNode($node->getExceptionExpr());
-        $this->emitter->emitStr(';', $node->getStartSourceLocation());
+        $this->outputEmitter->emitStr('throw ', $node->getStartSourceLocation());
+        $this->outputEmitter->emitNode($node->getExceptionExpr());
+        $this->outputEmitter->emitStr(';', $node->getStartSourceLocation());
 
         if ($node->getEnv()->getContext() === NodeEnvironment::CTX_EXPR) {
-            $this->emitter->emitFnWrapSuffix($node->getStartSourceLocation());
+            $this->outputEmitter->emitFnWrapSuffix($node->getStartSourceLocation());
         }
     }
 }

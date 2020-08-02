@@ -10,16 +10,16 @@ use Phel\Emitter\NodeEmitter;
 
 final class TableEmitter implements NodeEmitter
 {
-    use WithEmitter;
+    use WithOutputEmitter;
 
     public function emit(Node $node): void
     {
         assert($node instanceof TableNode);
 
-        $this->emitter->emitContextPrefix($node->getEnv(), $node->getStartSourceLocation());
-        $this->emitter->emitStr('\Phel\Lang\Table::fromKVs(', $node->getStartSourceLocation());
-        $this->emitter->emitArgList($node->getKeyValues(), $node->getStartSourceLocation());
-        $this->emitter->emitStr(')', $node->getStartSourceLocation());
-        $this->emitter->emitContextSuffix($node->getEnv(), $node->getStartSourceLocation());
+        $this->outputEmitter->emitContextPrefix($node->getEnv(), $node->getStartSourceLocation());
+        $this->outputEmitter->emitStr('\Phel\Lang\Table::fromKVs(', $node->getStartSourceLocation());
+        $this->outputEmitter->emitArgList($node->getKeyValues(), $node->getStartSourceLocation());
+        $this->outputEmitter->emitStr(')', $node->getStartSourceLocation());
+        $this->outputEmitter->emitContextSuffix($node->getEnv(), $node->getStartSourceLocation());
     }
 }

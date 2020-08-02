@@ -11,39 +11,39 @@ use Phel\Emitter\NodeEmitter;
 
 final class CallEmitter implements NodeEmitter
 {
-    use WithEmitter;
+    use WithOutputEmitter;
 
     public function emit(Node $node): void
     {
         assert($node instanceof CallNode);
 
-        $this->emitter->emitContextPrefix($node->getEnv(), $node->getStartSourceLocation());
+        $this->outputEmitter->emitContextPrefix($node->getEnv(), $node->getStartSourceLocation());
         $fnNode = $node->getFn();
 
         if ($fnNode instanceof PhpVarNode && $fnNode->isInfix()) {
             // Args
-            $this->emitter->emitStr('(', $node->getStartSourceLocation());
-            $this->emitter->emitArgList(
+            $this->outputEmitter->emitStr('(', $node->getStartSourceLocation());
+            $this->outputEmitter->emitArgList(
                 $node->getArguments(),
                 $node->getStartSourceLocation(),
                 ' ' . $fnNode->getName() . ' '
             );
-            $this->emitter->emitStr(')', $node->getStartSourceLocation());
+            $this->outputEmitter->emitStr(')', $node->getStartSourceLocation());
         } else {
             if ($fnNode instanceof PhpVarNode) {
-                $this->emitter->emitStr($fnNode->getName(), $fnNode->getStartSourceLocation());
+                $this->outputEmitter->emitStr($fnNode->getName(), $fnNode->getStartSourceLocation());
             } else {
-                $this->emitter->emitStr('(', $node->getStartSourceLocation());
-                $this->emitter->emitNode($node->getFn());
-                $this->emitter->emitStr(')', $node->getStartSourceLocation());
+                $this->outputEmitter->emitStr('(', $node->getStartSourceLocation());
+                $this->outputEmitter->emitNode($node->getFn());
+                $this->outputEmitter->emitStr(')', $node->getStartSourceLocation());
             }
 
             // Args
-            $this->emitter->emitStr('(', $node->getStartSourceLocation());
-            $this->emitter->emitArgList($node->getArguments(), $node->getStartSourceLocation());
-            $this->emitter->emitStr(')', $node->getStartSourceLocation());
+            $this->outputEmitter->emitStr('(', $node->getStartSourceLocation());
+            $this->outputEmitter->emitArgList($node->getArguments(), $node->getStartSourceLocation());
+            $this->outputEmitter->emitStr(')', $node->getStartSourceLocation());
         }
 
-        $this->emitter->emitContextSuffix($node->getEnv(), $node->getStartSourceLocation());
+        $this->outputEmitter->emitContextSuffix($node->getEnv(), $node->getStartSourceLocation());
     }
 }

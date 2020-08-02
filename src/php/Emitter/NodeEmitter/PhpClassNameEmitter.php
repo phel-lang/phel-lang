@@ -10,13 +10,13 @@ use Phel\Emitter\NodeEmitter;
 
 final class PhpClassNameEmitter implements NodeEmitter
 {
-    use WithEmitter;
+    use WithOutputEmitter;
 
     public function emit(Node $node): void
     {
         assert($node instanceof PhpClassNameNode);
 
-        $this->emitter->emitStr(
+        $this->outputEmitter->emitStr(
             $node->getName()->getName(),
             $node->getName()->getStartLocation()
         );

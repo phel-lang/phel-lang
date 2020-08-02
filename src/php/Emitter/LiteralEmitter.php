@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace Phel\Emitter;
 
-use Phel\Emitter;
 use Phel\Lang\AbstractType;
 use Phel\Lang\Keyword;
 use Phel\Lang\PhelArray;
@@ -16,11 +15,11 @@ use RuntimeException;
 
 final class LiteralEmitter
 {
-    private Emitter $emitter;
+    private OutputEmitter $outputEmitter;
 
-    public function __construct(Emitter $emitter)
+    public function __construct(OutputEmitter $emitter)
     {
-        $this->emitter = $emitter;
+        $this->outputEmitter = $emitter;
     }
 
     /**
@@ -55,7 +54,7 @@ final class LiteralEmitter
 
     private function emitFloat(float $x): void
     {
-        $this->emitter->emitStr($this->printFloat($x));
+        $this->outputEmitter->emitStr($this->printFloat($x));
     }
 
     private function printFloat(float $x): string
@@ -71,32 +70,32 @@ final class LiteralEmitter
 
     private function emitInt(int $x): void
     {
-        $this->emitter->emitStr((string)$x);
+        $this->outputEmitter->emitStr((string)$x);
     }
 
     private function emitStr(string $x): void
     {
-        $this->emitter->emitStr(Printer::readable()->print($x));
+        $this->outputEmitter->emitStr(Printer::readable()->print($x));
     }
 
     private function emitNull(): void
     {
-        $this->emitter->emitStr('null');
+        $this->outputEmitter->emitStr('null');
     }
 
     private function emitBool(bool $x): void
     {
-        $this->emitter->emitStr($x === true ? 'true' : 'false');
+        $this->outputEmitter->emitStr($x === true ? 'true' : 'false');
     }
 
     private function emitKeyword(Keyword $x): void
     {
-        $this->emitter->emitStr('new \Phel\Lang\Keyword("' . addslashes($x->getName()) . '")', $x->getStartLocation());
+        $this->outputEmitter->emitStr('new \Phel\Lang\Keyword("' . addslashes($x->getName()) . '")', $x->getStartLocation());
     }
 
     private function emitSymbol(Symbol $x): void
     {
-        $this->emitter->emitStr(
+        $this->outputEmitter->emitStr(
             '(\Phel\Lang\Symbol::create("' . addslashes($x->getFullName()) . '"))',
             $x->getStartLocation()
         );
@@ -104,85 +103,85 @@ final class LiteralEmitter
 
     private function emitPhelArray(PhelArray $x): void
     {
-        $this->emitter->emitStr('\Phel\Lang\PhelArray::create(', $x->getStartLocation());
+        $this->outputEmitter->emitStr('\Phel\Lang\PhelArray::create(', $x->getStartLocation());
         if (count($x) > 0) {
-            $this->emitter->increaseIndentLevel();
-            $this->emitter->emitLine();
+            $this->outputEmitter->increaseIndentLevel();
+            $this->outputEmitter->emitLine();
         }
 
         foreach ($x as $i => $value) {
-            $this->emitter->emitLiteral($value);
+            $this->outputEmitter->emitLiteral($value);
 
             if ($i < count($x) - 1) {
-                $this->emitter->emitStr(',', $x->getStartLocation());
+                $this->outputEmitter->emitStr(',', $x->getStartLocation());
             }
 
-            $this->emitter->emitLine();
+            $this->outputEmitter->emitLine();
         }
 
         if (count($x) > 0) {
-            $this->emitter->decreaseIndentLevel();
+            $this->outputEmitter->decreaseIndentLevel();
         }
 
-        $this->emitter->emitStr(')', $x->getStartLocation());
+        $this->outputEmitter->emitStr(')', $x->getStartLocation());
     }
 
     private function emitTable(Table $x): void
     {
-        $this->emitter->emitStr('\Phel\Lang\Table::fromKVs(', $x->getStartLocation());
+        $this->outputEmitter->emitStr('\Phel\Lang\Table::fromKVs(', $x->getStartLocation());
 
         if (count($x) > 0) {
-            $this->emitter->increaseIndentLevel();
-            $this->emitter->emitLine();
+            $this->outputEmitter->increaseIndentLevel();
+            $this->outputEmitter->emitLine();
         }
 
         $i = 0;
         foreach ($x as $key => $value) {
-            $this->emitter->emitLiteral($key);
-            $this->emitter->emitStr(', ', $x->getStartLocation());
-            $this->emitter->emitLiteral($value);
+            $this->outputEmitter->emitLiteral($key);
+            $this->outputEmitter->emitStr(', ', $x->getStartLocation());
+            $this->outputEmitter->emitLiteral($value);
 
             if ($i < count($x) - 1) {
-                $this->emitter->emitStr(',', $x->getStartLocation());
+                $this->outputEmitter->emitStr(',', $x->getStartLocation());
             }
-            $this->emitter->emitLine();
+            $this->outputEmitter->emitLine();
 
             $i++;
         }
 
         if (count($x) > 0) {
-            $this->emitter->decreaseIndentLevel();
+            $this->outputEmitter->decreaseIndentLevel();
         }
-        $this->emitter->emitStr(')', $x->getStartLocation());
+        $this->outputEmitter->emitStr(')', $x->getStartLocation());
     }
 
     private function emitTuple(Tuple $x): void
     {
         if ($x->isUsingBracket()) {
-            $this->emitter->emitStr('\Phel\Lang\Tuple::createBracket(', $x->getStartLocation());
+            $this->outputEmitter->emitStr('\Phel\Lang\Tuple::createBracket(', $x->getStartLocation());
         } else {
-            $this->emitter->emitStr('\Phel\Lang\Tuple::create(', $x->getStartLocation());
+            $this->outputEmitter->emitStr('\Phel\Lang\Tuple::create(', $x->getStartLocation());
         }
 
         if (count($x) > 0) {
-            $this->emitter->increaseIndentLevel();
-            $this->emitter->emitLine();
+            $this->outputEmitter->increaseIndentLevel();
+            $this->outputEmitter->emitLine();
         }
 
         foreach ($x as $i => $value) {
-            $this->emitter->emitLiteral($value);
+            $this->outputEmitter->emitLiteral($value);
 
             if ($i < count($x) - 1) {
-                $this->emitter->emitStr(',', $x->getStartLocation());
+                $this->outputEmitter->emitStr(',', $x->getStartLocation());
             }
 
-            $this->emitter->emitLine();
+            $this->outputEmitter->emitLine();
         }
 
         if (count($x) > 0) {
-            $this->emitter->decreaseIndentLevel();
+            $this->outputEmitter->decreaseIndentLevel();
         }
 
-        $this->emitter->emitStr(')', $x->getStartLocation());
+        $this->outputEmitter->emitStr(')', $x->getStartLocation());
     }
 }

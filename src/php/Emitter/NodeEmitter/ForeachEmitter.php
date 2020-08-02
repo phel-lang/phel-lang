@@ -11,37 +11,37 @@ use Phel\NodeEnvironment;
 
 final class ForeachEmitter implements NodeEmitter
 {
-    use WithEmitter;
+    use WithOutputEmitter;
 
     public function emit(Node $node): void
     {
         assert($node instanceof ForeachNode);
 
         if ($node->getEnv()->getContext() !== NodeEnvironment::CTX_STMT) {
-            $this->emitter->emitContextPrefix($node->getEnv(), $node->getStartSourceLocation());
-            $this->emitter->emitFnWrapPrefix($node->getEnv(), $node->getStartSourceLocation());
+            $this->outputEmitter->emitContextPrefix($node->getEnv(), $node->getStartSourceLocation());
+            $this->outputEmitter->emitFnWrapPrefix($node->getEnv(), $node->getStartSourceLocation());
         }
 
-        $this->emitter->emitStr('foreach ((', $node->getStartSourceLocation());
-        $this->emitter->emitNode($node->getListExpr());
-        $this->emitter->emitStr(' ?? []) as ', $node->getStartSourceLocation());
+        $this->outputEmitter->emitStr('foreach ((', $node->getStartSourceLocation());
+        $this->outputEmitter->emitNode($node->getListExpr());
+        $this->outputEmitter->emitStr(' ?? []) as ', $node->getStartSourceLocation());
         if ($node->getKeySymbol()) {
-            $this->emitter->emitPhpVariable($node->getKeySymbol());
-            $this->emitter->emitStr(' => ', $node->getStartSourceLocation());
+            $this->outputEmitter->emitPhpVariable($node->getKeySymbol());
+            $this->outputEmitter->emitStr(' => ', $node->getStartSourceLocation());
         }
-        $this->emitter->emitPhpVariable($node->getValueSymbol());
-        $this->emitter->emitLine(') {', $node->getStartSourceLocation());
-        $this->emitter->increaseIndentLevel();
-        $this->emitter->emitNode($node->getBodyExpr());
-        $this->emitter->decreaseIndentLevel();
-        $this->emitter->emitLine();
-        $this->emitter->emitStr('}', $node->getStartSourceLocation());
+        $this->outputEmitter->emitPhpVariable($node->getValueSymbol());
+        $this->outputEmitter->emitLine(') {', $node->getStartSourceLocation());
+        $this->outputEmitter->increaseIndentLevel();
+        $this->outputEmitter->emitNode($node->getBodyExpr());
+        $this->outputEmitter->decreaseIndentLevel();
+        $this->outputEmitter->emitLine();
+        $this->outputEmitter->emitStr('}', $node->getStartSourceLocation());
 
         if ($node->getEnv()->getContext() !== NodeEnvironment::CTX_STMT) {
-            $this->emitter->emitLine();
-            $this->emitter->emitStr('return null;', $node->getStartSourceLocation());
-            $this->emitter->emitFnWrapSuffix($node->getStartSourceLocation());
-            $this->emitter->emitContextSuffix($node->getEnv(), $node->getStartSourceLocation());
+            $this->outputEmitter->emitLine();
+            $this->outputEmitter->emitStr('return null;', $node->getStartSourceLocation());
+            $this->outputEmitter->emitFnWrapSuffix($node->getStartSourceLocation());
+            $this->outputEmitter->emitContextSuffix($node->getEnv(), $node->getStartSourceLocation());
         }
     }
 }
