@@ -29,7 +29,7 @@ final class PhpNewEmitter implements NodeEmitter
 
         if ($classExpr instanceof PhpClassNameNode) {
             $this->emitter->emitStr('(new ', $node->getStartSourceLocation());
-            $this->emitter->emit($classExpr);
+            $this->emitter->emitNode($classExpr);
             $this->emitter->emitStr('(', $node->getStartSourceLocation());
         } else {
             $this->emitter->emitFnWrapPrefix($node->getEnv(), $node->getStartSourceLocation());
@@ -37,7 +37,7 @@ final class PhpNewEmitter implements NodeEmitter
             $targetSym = Symbol::gen('target_');
             $this->emitter->emitPhpVariable($targetSym, $node->getStartSourceLocation());
             $this->emitter->emitStr(' = ', $node->getStartSourceLocation());
-            $this->emitter->emit($classExpr);
+            $this->emitter->emitNode($classExpr);
             $this->emitter->emitLine(';', $node->getStartSourceLocation());
 
             $this->emitter->emitStr('return new $' . $targetSym->getName() . '(', $node->getStartSourceLocation());
@@ -50,7 +50,7 @@ final class PhpNewEmitter implements NodeEmitter
             $this->emitter->emitStr('))', $node->getStartSourceLocation());
         } else {
             $this->emitter->emitStr(');', $node->getStartSourceLocation());
-            $this->emitter->emitFnWrapSuffix($node->getEnv(), $node->getStartSourceLocation());
+            $this->emitter->emitFnWrapSuffix($node->getStartSourceLocation());
         }
 
         $this->emitter->emitContextSuffix($node->getEnv(), $node->getStartSourceLocation());

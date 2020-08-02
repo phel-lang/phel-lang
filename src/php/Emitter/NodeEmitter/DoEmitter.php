@@ -29,13 +29,13 @@ final class DoEmitter implements NodeEmitter
         }
 
         foreach ($node->getStmts() as $i => $stmt) {
-            $this->emitter->emit($stmt);
+            $this->emitter->emitNode($stmt);
             $this->emitter->emitLine();
         }
-        $this->emitter->emit($node->getRet());
+        $this->emitter->emitNode($node->getRet());
 
         if ($wrapFn) {
-            $this->emitter->emitFnWrapSuffix($node->getEnv(), $node->getStartSourceLocation());
+            $this->emitter->emitFnWrapSuffix($node->getStartSourceLocation());
         }
     }
 }

@@ -25,23 +25,23 @@ final class IfEmitter implements NodeEmitter
 
         if ($node->getEnv()->getContext() === NodeEnvironment::CTX_EXPR) {
             $this->emitter->emitStr('((\Phel\Lang\Truthy::isTruthy(', $node->getStartSourceLocation());
-            $this->emitter->emit($node->getTestExpr());
+            $this->emitter->emitNode($node->getTestExpr());
             $this->emitter->emitStr(')) ? ', $node->getStartSourceLocation());
-            $this->emitter->emit($node->getThenExpr());
+            $this->emitter->emitNode($node->getThenExpr());
             $this->emitter->emitStr(' : ', $node->getStartSourceLocation());
-            $this->emitter->emit($node->getElseExpr());
+            $this->emitter->emitNode($node->getElseExpr());
             $this->emitter->emitStr(')');
         } else {
             $this->emitter->emitStr('if (\Phel\Lang\Truthy::isTruthy(', $node->getStartSourceLocation());
-            $this->emitter->emit($node->getTestExpr());
+            $this->emitter->emitNode($node->getTestExpr());
             $this->emitter->emitLine(')) {', $node->getStartSourceLocation());
             $this->emitter->indentLevel++;
-            $this->emitter->emit($node->getThenExpr());
+            $this->emitter->emitNode($node->getThenExpr());
             $this->emitter->indentLevel--;
             $this->emitter->emitLine();
             $this->emitter->emitLine('} else {', $node->getStartSourceLocation());
             $this->emitter->indentLevel++;
-            $this->emitter->emit($node->getElseExpr());
+            $this->emitter->emitNode($node->getElseExpr());
             $this->emitter->indentLevel--;
             $this->emitter->emitLine();
             $this->emitter->emitLine('}', $node->getStartSourceLocation());

@@ -40,7 +40,7 @@ final class CallEmitter implements NodeEmitter
                 $this->emitter->emitStr($fnNode->getName(), $fnNode->getStartSourceLocation());
             } else {
                 $this->emitter->emitStr('(', $node->getStartSourceLocation());
-                $this->emitter->emit($node->getFn());
+                $this->emitter->emitNode($node->getFn());
                 $this->emitter->emitStr(')', $node->getStartSourceLocation());
             }
 

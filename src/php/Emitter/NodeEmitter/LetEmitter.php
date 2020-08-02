@@ -31,7 +31,7 @@ final class LetEmitter implements NodeEmitter
         foreach ($node->getBindings() as $binding) {
             $this->emitter->emitPhpVariable($binding->getShadow(), $binding->getStartSourceLocation());
             $this->emitter->emitStr(' = ', $node->getStartSourceLocation());
-            $this->emitter->emit($binding->getInitExpr());
+            $this->emitter->emitNode($binding->getInitExpr());
             $this->emitter->emitLine(';', $node->getStartSourceLocation());
         }
 
@@ -40,7 +40,7 @@ final class LetEmitter implements NodeEmitter
             $this->emitter->indentLevel++;
         }
 
-        $this->emitter->emit($node->getBodyExpr());
+        $this->emitter->emitNode($node->getBodyExpr());
 
         if ($node->isLoop()) {
             $this->emitter->emitLine('break;', $node->getStartSourceLocation());
@@ -49,7 +49,7 @@ final class LetEmitter implements NodeEmitter
         }
 
         if ($wrapFn) {
-            $this->emitter->emitFnWrapSuffix($node->getEnv(), $node->getStartSourceLocation());
+            $this->emitter->emitFnWrapSuffix($node->getStartSourceLocation());
         }
     }
 }

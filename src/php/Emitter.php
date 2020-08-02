@@ -7,6 +7,7 @@ namespace Phel;
 use Exception;
 use Phel\Ast\Node;
 use Phel\Emitter\NodeEmitterFactory;
+use Phel\Emitter\ScalarAndAbstractTypeEmitter;
 use Phel\Lang\AbstractType;
 use Phel\Lang\Keyword;
 use Phel\Lang\PhelArray;
@@ -15,23 +16,19 @@ use Phel\Lang\Symbol;
 use Phel\Lang\Table;
 use Phel\Lang\Tuple;
 use Phel\SourceMap\SourceMapGenerator;
+use RuntimeException;
 use Throwable;
 
 final class Emitter
 {
-    private SourceMapGenerator $sourceMapGenerator;
+    public int $indentLevel = 0; // TODO: use a setter instead?
 
     private bool $enableSourceMaps;
-
-    public int $indentLevel = 0;
-
-    private int $generatedLines = 0;
-
-    private int $generatedColumns = 0;
-
-    private array $sourceMap = [];
-
+    private SourceMapGenerator $sourceMapGenerator;
     private NodeEmitterFactory $nodeEmitterFactory;
+    private int $generatedLines = 0;
+    private int $generatedColumns = 0;
+    private array $sourceMap = [];
 
     public function __construct(bool $enableSourceMaps = true)
     {
@@ -40,12 +37,46 @@ final class Emitter
         $this->nodeEmitterFactory = new NodeEmitterFactory();
     }
 
-    public function emitAndEval(Node $node): string
+    public function emitNodeAndEval(Node $node): string
     {
-        $code = $this->emitAsString($node);
+        $code = $this->emitNodeAsString($node);
         $this->eval($code);
 
         return $code;
+    }
+
+    public function emitNodeAsString(Node $node): string
+    {
+        $this->generatedLines = 0;
+        $this->generatedColumns = 0;
+        $this->indentLevel = 0;
+        $this->sourceMap = [];
+
+        ob_start();
+        $this->emitNode($node);
+        $code = ob_get_contents();
+        ob_end_clean();
+
+        if (!$this->enableSourceMaps) {
+            return $code;
+        }
+
+        $sourceMap = $this->sourceMapGenerator->encode($this->sourceMap);
+        $file = $node->getStartSourceLocation()
+            ? $node->getStartSourceLocation()->getFile()
+            : 'string';
+
+        return (
+            '// ' . $file . "\n"
+            . '// ;;' . $sourceMap . "\n"
+            . $code
+        );
+    }
+
+    public function emitNode(Node $node): void
+    {
+        $nodeEmitter = $this->nodeEmitterFactory->createNodeEmitter($this, get_class($node));
+        $nodeEmitter->emit($node);
     }
 
     /**
@@ -66,182 +97,59 @@ final class Emitter
                 return require $filename;
             }
 
-            throw new \RuntimeException('Can not require file: ' . $filename);
+            throw new RuntimeException('Can not require file: ' . $filename);
         } catch (Throwable $e) {
             throw $e;
         }
     }
 
-    public function emitAsString(Node $node): string
+    public function emitLine(string $str = '', ?SourceLocation $sl = null): void
     {
-        $this->generatedLines = 0;
+        if ('' !== $str) {
+            $this->emitStr($str, $sl);
+        }
+
+        $this->generatedLines++;
         $this->generatedColumns = 0;
-        $this->indentLevel = 0;
-        $this->sourceMap = [];
 
-        ob_start();
-        $this->emit($node);
-        $code = ob_get_contents();
-        ob_end_clean();
+        echo PHP_EOL;
+    }
 
-        if (!$this->enableSourceMaps) {
-            return $code;
+    public function emitStr(string $str, ?SourceLocation $sl = null): void
+    {
+        if ($this->generatedColumns === 0) {
+            $this->generatedColumns += $this->indentLevel * 2;
+            echo str_repeat(' ', $this->indentLevel * 2);
         }
 
-        $sourceMap = $this->sourceMapGenerator->encode($this->sourceMap);
-        $file = $node->getStartSourceLocation()
-            ? $node->getStartSourceLocation()->getFile()
-            : 'string';
-
-        return (
-            '// ' . $file . "\n"
-            . '// ;;' . $sourceMap . "\n"
-            . $code
-        );
-    }
-
-    public function emit(Node $node): void
-    {
-        $nodeEmitter = $this->nodeEmitterFactory->createNodeEmitter($this, get_class($node));
-        $nodeEmitter->emit($node);
-    }
-
-    public function emitPhpVariable(
-        Symbol $m,
-        ?SourceLocation $loc = null,
-        bool $asReference = false,
-        bool $isVariadic = false
-    ): void {
-        if (is_null($loc)) {
-            $loc = $m->getStartLocation();
+        if ($this->enableSourceMaps && $sl) {
+            $this->sourceMap[] = [
+                'source' => $sl->getFile(),
+                'original' => [
+                    'line' => $sl->getLine() - 1,
+                    'column' => $sl->getColumn(),
+                ],
+                'generated' => [
+                    'line' => $this->generatedLines,
+                    'column' => $this->generatedColumns,
+                ],
+            ];
         }
-        $refPrefix = $asReference ? '&' : '';
-        $variadicPrefix = $isVariadic ? '...' : '';
-        $this->emitStr($variadicPrefix . $refPrefix . '$' . $this->munge($m->getName()), $loc);
-    }
 
-    public function emitFinally(Node $node): void
-    {
-        $this->emitLine(' finally {', $node->getStartSourceLocation());
-        $this->indentLevel++;
-        $this->emit($node);
-        $this->indentLevel--;
-        $this->emitLine();
-        $this->emitStr('}', $node->getStartSourceLocation());
+        $this->generatedColumns += strlen($str);
+
+        echo $str;
     }
 
     public function emitArgList(array $nodes, ?SourceLocation $sepLoc, string $sep = ', '): void
     {
         $nodesCount = count($nodes);
         foreach ($nodes as $i => $arg) {
-            $this->emit($arg);
+            $this->emitNode($arg);
 
             if ($i < $nodesCount - 1) {
                 $this->emitStr($sep, $sepLoc);
             }
-        }
-    }
-
-    /**
-     * Emits a Phel value.
-     *
-     * @param AbstractType|scalar|null $x The value
-     */
-    public function emitPhel($x): void
-    {
-        if (is_float($x)) {
-            $this->emitStr($this->printFloat($x));
-        } elseif (is_int($x)) {
-            $this->emitStr((string)$x);
-        } elseif (is_string($x)) {
-            $this->emitStr(Printer::readable()->print($x));
-        } elseif ($x === null) {
-            $this->emitStr('null');
-        } elseif (is_bool($x)) {
-            $this->emitStr($x === true ? 'true' : 'false');
-        } elseif ($x instanceof Keyword) {
-            $this->emitStr('new \Phel\Lang\Keyword("' . addslashes($x->getName()) . '")', $x->getStartLocation());
-        } elseif ($x instanceof Symbol) {
-            $this->emitStr(
-                '(\Phel\Lang\Symbol::create("' . addslashes($x->getFullName()) . '"))',
-                $x->getStartLocation()
-            );
-        } elseif ($x instanceof PhelArray) {
-            $this->emitStr('\Phel\Lang\PhelArray::create(', $x->getStartLocation());
-            if (count($x) > 0) {
-                $this->indentLevel++;
-                $this->emitLine();
-            }
-
-            foreach ($x as $i => $value) {
-                $this->emitPhel($value);
-
-                if ($i < count($x) - 1) {
-                    $this->emitStr(',', $x->getStartLocation());
-                }
-
-                $this->emitLine();
-            }
-
-            if (count($x) > 0) {
-                $this->indentLevel--;
-            }
-
-            $this->emitStr(')', $x->getStartLocation());
-        } elseif ($x instanceof Table) {
-            $this->emitStr('\Phel\Lang\Table::fromKVs(', $x->getStartLocation());
-            if (count($x) > 0) {
-                $this->indentLevel++;
-                $this->emitLine();
-            }
-
-            $i = 0;
-            foreach ($x as $key => $value) {
-                $this->emitPhel($key);
-                $this->emitStr(', ', $x->getStartLocation());
-                $this->emitPhel($value);
-
-                if ($i < count($x) - 1) {
-                    $this->emitStr(',', $x->getStartLocation());
-                }
-                $this->emitLine();
-
-                $i++;
-            }
-
-            if (count($x) > 0) {
-                $this->indentLevel--;
-            }
-            $this->emitStr(')', $x->getStartLocation());
-        } elseif ($x instanceof Tuple) {
-            if ($x->isUsingBracket()) {
-                $this->emitStr('\Phel\Lang\Tuple::createBracket(', $x->getStartLocation());
-            } else {
-                $this->emitStr('\Phel\Lang\Tuple::create(', $x->getStartLocation());
-            }
-
-            if (count($x) > 0) {
-                $this->indentLevel++;
-                $this->emitLine();
-            }
-
-            foreach ($x as $i => $value) {
-                $this->emitPhel($value);
-
-                if ($i < count($x) - 1) {
-                    $this->emitStr(',', $x->getStartLocation());
-                }
-
-                $this->emitLine();
-            }
-
-            if (count($x) > 0) {
-                $this->indentLevel--;
-            }
-
-            $this->emitStr(')', $x->getStartLocation());
-        } else {
-            throw new \Exception('literal not supported: ' . gettype($x));
         }
     }
 
@@ -300,22 +208,18 @@ final class Emitter
         $this->indentLevel++;
     }
 
-    public function emitFnWrapSuffix(NodeEnvironment $env, ?SourceLocation $sl = null): void
-    {
-        $this->indentLevel--;
-        $this->emitLine();
-        $this->emitStr('})()', $sl);
-    }
-
-    private function printFloat(float $x): string
-    {
-        if ((int)$x == $x) {
-            // (string) 10.0 will return 10 and not 10.0
-            // so we just add a .0 at the end
-            return ((string)$x) . '.0';
+    public function emitPhpVariable(
+        Symbol $m,
+        ?SourceLocation $loc = null,
+        bool $asReference = false,
+        bool $isVariadic = false
+    ): void {
+        if (is_null($loc)) {
+            $loc = $m->getStartLocation();
         }
-
-        return ((string)$x);
+        $refPrefix = $asReference ? '&' : '';
+        $variadicPrefix = $isVariadic ? '...' : '';
+        $this->emitStr($variadicPrefix . $refPrefix . '$' . $this->munge($m->getName()), $loc);
     }
 
     public function munge(string $s): string
@@ -323,41 +227,19 @@ final class Emitter
         return Munge::encode($s);
     }
 
-    public function emitLine(string $str = '', ?SourceLocation $sl = null): void
+    public function emitFnWrapSuffix(?SourceLocation $sl = null): void
     {
-        if ('' !== $str) {
-            $this->emitStr($str, $sl);
-        }
-
-        $this->generatedLines++;
-        $this->generatedColumns = 0;
-
-        echo PHP_EOL;
+        $this->indentLevel--;
+        $this->emitLine();
+        $this->emitStr('})()', $sl);
     }
 
-    public function emitStr(string $str, ?SourceLocation $sl = null): void
+    /**
+     * @param AbstractType|scalar|null $x The value
+     */
+    public function emitScalarAndAbstractType($x): void
     {
-        if ($this->generatedColumns === 0) {
-            $this->generatedColumns += $this->indentLevel * 2;
-            echo str_repeat(' ', $this->indentLevel * 2);
-        }
-
-        if ($this->enableSourceMaps && $sl) {
-            $this->sourceMap[] = [
-            'source' => $sl->getFile(),
-            'original' => [
-                'line' => $sl->getLine() - 1,
-                'column' => $sl->getColumn(),
-            ],
-            'generated' => [
-                'line' => $this->generatedLines,
-                'column' => $this->generatedColumns,
-            ],
-        ];
-        }
-
-        $this->generatedColumns += strlen($str);
-
-        echo $str;
+        $typeEmitter = new ScalarAndAbstractTypeEmitter($this);
+        $typeEmitter->emit($x);
     }
 }

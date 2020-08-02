@@ -55,7 +55,7 @@ final class IntegrationTest extends TestCase
                 break;
             }
 
-            $compiledCode[] = $emitter->emitAndEval(
+            $compiledCode[] = $emitter->emitNodeAndEval(
                 $analyzer->analyzeInEmptyEnv($readAst->getAst())
             );
         }

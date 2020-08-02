@@ -24,9 +24,9 @@ final class PhpArrayUnsetEmitter implements NodeEmitter
 
         $this->emitter->emitContextPrefix($node->getEnv(), $node->getStartSourceLocation());
         $this->emitter->emitStr('unset((', $node->getStartSourceLocation());
-        $this->emitter->emit($node->getArrayExpr());
+        $this->emitter->emitNode($node->getArrayExpr());
         $this->emitter->emitStr(')[(', $node->getStartSourceLocation());
-        $this->emitter->emit($node->getAccessExpr());
+        $this->emitter->emitNode($node->getAccessExpr());
         $this->emitter->emitStr(')])', $node->getStartSourceLocation());
         $this->emitter->emitContextSuffix($node->getEnv(), $node->getStartSourceLocation());
     }

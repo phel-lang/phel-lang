@@ -25,7 +25,7 @@ final class LiteralEmitter implements NodeEmitter
 
         if (!($node->getEnv()->getContext() === NodeEnvironment::CTX_STMT)) {
             $this->emitter->emitContextPrefix($node->getEnv(), $node->getStartSourceLocation());
-            $this->emitter->emitPhel($node->getValue());
+            $this->emitter->emitScalarAndAbstractType($node->getValue());
             $this->emitter->emitContextSuffix($node->getEnv(), $node->getStartSourceLocation());
         }
     }

@@ -51,7 +51,7 @@ final class DefStructEmitter implements NodeEmitter
             $keyword->setStartLocation($node->getStartSourceLocation());
 
             $this->emitter->emitStr('$this->offsetSet(', $node->getStartSourceLocation());
-            $this->emitter->emitPhel($keyword);
+            $this->emitter->emitScalarAndAbstractType($keyword);
             $this->emitter->emitStr(', ', $node->getStartSourceLocation());
             $this->emitter->emitPhpVariable($param);
             $this->emitter->emitLine(');', $node->getStartSourceLocation());
@@ -65,7 +65,7 @@ final class DefStructEmitter implements NodeEmitter
         $this->emitter->indentLevel++;
         $this->emitter->emitStr('return [', $node->getStartSourceLocation());
         foreach ($node->getParamsAsKeywords() as $i => $keyword) {
-            $this->emitter->emitPhel($keyword);
+            $this->emitter->emitScalarAndAbstractType($keyword);
 
             if ($i < $paramCount - 1) {
                 $this->emitter->emitStr(', ', $node->getStartSourceLocation());

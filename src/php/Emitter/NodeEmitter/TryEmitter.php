@@ -30,24 +30,34 @@ final class TryEmitter implements NodeEmitter
 
             $this->emitter->emitLine('try {', $node->getStartSourceLocation());
             $this->emitter->indentLevel++;
-            $this->emitter->emit($node->getBody());
+            $this->emitter->emitNode($node->getBody());
             $this->emitter->indentLevel--;
             $this->emitter->emitLine();
             $this->emitter->emitStr('}', $node->getStartSourceLocation());
 
             foreach ($node->getCatches() as $catchNode) {
-                $this->emitter->emit($catchNode);
+                $this->emitter->emitNode($catchNode);
             }
 
             if ($node->getFinally()) {
-                $this->emitter->emitFinally($node->getFinally());
+                $this->emitFinally($node->getFinally());
             }
 
             if ($node->getEnv()->getContext() === NodeEnvironment::CTX_EXPR) {
-                $this->emitter->emitFnWrapSuffix($node->getEnv(), $node->getStartSourceLocation());
+                $this->emitter->emitFnWrapSuffix($node->getStartSourceLocation());
             }
         } else {
-            $this->emitter->emit($node->getBody());
+            $this->emitter->emitNode($node->getBody());
         }
+    }
+
+    private function emitFinally(Node $node): void
+    {
+        $this->emitter->emitLine(' finally {', $node->getStartSourceLocation());
+        $this->emitter->indentLevel++;
+        $this->emitter->emitNode($node);
+        $this->emitter->indentLevel--;
+        $this->emitter->emitLine();
+        $this->emitter->emitStr('}', $node->getStartSourceLocation());
     }
 }

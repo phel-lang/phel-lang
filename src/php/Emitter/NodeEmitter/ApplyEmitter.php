@@ -32,11 +32,11 @@ final class ApplyEmitter implements NodeEmitter
             $argCount = count($node->getArguments());
             foreach ($node->getArguments() as $i => $arg) {
                 if ($i < $argCount - 1) {
-                    $this->emitter->emit($arg);
+                    $this->emitter->emitNode($arg);
                     $this->emitter->emitStr(', ', $node->getStartSourceLocation());
                 } else {
                     $this->emitter->emitStr('...((', $node->getStartSourceLocation());
-                    $this->emitter->emit($arg);
+                    $this->emitter->emitNode($arg);
                     $this->emitter->emitStr(') ?? [])', $node->getStartSourceLocation());
                 }
             }
@@ -48,7 +48,7 @@ final class ApplyEmitter implements NodeEmitter
                 $this->emitter->emitStr($fnNode->getName(), $fnNode->getStartSourceLocation());
             } else {
                 $this->emitter->emitStr('(', $node->getStartSourceLocation());
-                $this->emitter->emit($node->getFn());
+                $this->emitter->emitNode($node->getFn());
                 $this->emitter->emitStr(')', $node->getStartSourceLocation());
             }
 
@@ -57,11 +57,11 @@ final class ApplyEmitter implements NodeEmitter
             $argCount = count($node->getArguments());
             foreach ($node->getArguments() as $i => $arg) {
                 if ($i < $argCount - 1) {
-                    $this->emitter->emit($arg);
+                    $this->emitter->emitNode($arg);
                     $this->emitter->emitStr(', ', $node->getStartSourceLocation());
                 } else {
                     $this->emitter->emitStr('...((', $node->getStartSourceLocation());
-                    $this->emitter->emit($arg);
+                    $this->emitter->emitNode($arg);
                     $this->emitter->emitStr(') ?? [])', $node->getStartSourceLocation());
                 }
             }

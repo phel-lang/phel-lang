@@ -34,7 +34,7 @@ final class RecurEmitter implements NodeEmitter
 
             $this->emitter->emitPhpVariable($tempSym, $node->getStartSourceLocation());
             $this->emitter->emitStr(' = ', $node->getStartSourceLocation());
-            $this->emitter->emit($expr);
+            $this->emitter->emitNode($expr);
             $this->emitter->emitLine(';', $node->getStartSourceLocation());
         }
 

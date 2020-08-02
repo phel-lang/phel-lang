@@ -28,11 +28,11 @@ final class ThrowEmitter implements NodeEmitter
         }
 
         $this->emitter->emitStr('throw ', $node->getStartSourceLocation());
-        $this->emitter->emit($node->getExceptionExpr());
+        $this->emitter->emitNode($node->getExceptionExpr());
         $this->emitter->emitStr(';', $node->getStartSourceLocation());
 
         if ($node->getEnv()->getContext() === NodeEnvironment::CTX_EXPR) {
-            $this->emitter->emitFnWrapSuffix($node->getEnv(), $node->getStartSourceLocation());
+            $this->emitter->emitFnWrapSuffix($node->getStartSourceLocation());
         }
     }
 }

@@ -150,7 +150,7 @@ final class FnAsClassEmitter implements NodeEmitter
             $this->emitter->emitLine('while (true) {', $node->getStartSourceLocation());
             $this->emitter->indentLevel++;
         }
-        $this->emitter->emit($node->getBody());
+        $this->emitter->emitNode($node->getBody());
         if ($node->getRecurs()) {
             $this->emitter->emitLine('break;', $node->getStartSourceLocation());
             $this->emitter->indentLevel--;

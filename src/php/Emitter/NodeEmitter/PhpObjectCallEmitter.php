@@ -35,7 +35,7 @@ final class PhpObjectCallEmitter implements NodeEmitter
 
         if ($node->isStatic() && $targetExpr instanceof PhpClassNameNode) {
             $this->emitter->emitStr('(', $node->getStartSourceLocation());
-            $this->emitter->emit($targetExpr);
+            $this->emitter->emitNode($targetExpr);
             $this->emitter->emitStr($fnCode, $node->getStartSourceLocation());
         } else {
             $this->emitter->emitFnWrapPrefix($node->getEnv(), $node->getStartSourceLocation());
@@ -43,7 +43,7 @@ final class PhpObjectCallEmitter implements NodeEmitter
             $targetSym = Symbol::gen('target_');
             $this->emitter->emitPhpVariable($targetSym, $node->getStartSourceLocation());
             $this->emitter->emitStr(' = ', $node->getStartSourceLocation());
-            $this->emitter->emit($targetExpr);
+            $this->emitter->emitNode($targetExpr);
             $this->emitter->emitLine(';', $node->getStartSourceLocation());
 
             $this->emitter->emitStr('return ', $node->getStartSourceLocation());
@@ -68,7 +68,7 @@ final class PhpObjectCallEmitter implements NodeEmitter
             $this->emitter->emitStr(')', $node->getStartSourceLocation());
         } else {
             $this->emitter->emitStr(';', $node->getStartSourceLocation());
-            $this->emitter->emitFnWrapSuffix($node->getEnv(), $node->getStartSourceLocation());
+            $this->emitter->emitFnWrapSuffix($node->getStartSourceLocation());
         }
 
         $this->emitter->emitContextSuffix($node->getEnv(), $node->getStartSourceLocation());

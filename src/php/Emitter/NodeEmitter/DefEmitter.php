@@ -24,13 +24,13 @@ final class DefEmitter implements NodeEmitter
 
         $this->emitter->emitGlobalBase($node->getNamespace(), $node->getName());
         $this->emitter->emitStr(' = ', $node->getStartSourceLocation());
-        $this->emitter->emit($node->getInit());
+        $this->emitter->emitNode($node->getInit());
         $this->emitter->emitLine(';', $node->getStartSourceLocation());
 
         if (count($node->getMeta()) > 0) {
             $this->emitter->emitGlobalBaseMeta($node->getNamespace(), $node->getName());
             $this->emitter->emitStr(' = ', $node->getStartSourceLocation());
-            $this->emitter->emitPhel($node->getMeta());
+            $this->emitter->emitScalarAndAbstractType($node->getMeta());
             $this->emitter->emitLine(';', $node->getStartSourceLocation());
         }
     }

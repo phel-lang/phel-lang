@@ -47,7 +47,7 @@ final class Compiler
                     throw new CompilerException($e, $readerResult->getCodeSnippet());
                 }
 
-                $code .= $this->emitter->emitAndEval($nodes);
+                $code .= $this->emitter->emitNodeAndEval($nodes);
             } catch (ReaderException $e) {
                 throw new CompilerException($e, $e->getCodeSnippet());
             }
@@ -76,7 +76,7 @@ final class Compiler
                     $readerResult->getAst(),
                     NodeEnvironment::empty()->withContext(NodeEnvironment::CTX_RET)
                 );
-                $code = $this->emitter->emitAsString($node);
+                $code = $this->emitter->emitNodeAsString($node);
                 return $this->emitter->eval($code);
             } catch (AnalyzerException $e) {
                 throw new CompilerException($e, $readerResult->getCodeSnippet());
