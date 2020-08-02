@@ -53,31 +53,6 @@ final class LiteralEmitter
         }
     }
 
-    private function emitPhelArray(PhelArray $x): void
-    {
-        $this->emitter->emitStr('\Phel\Lang\PhelArray::create(', $x->getStartLocation());
-        if (count($x) > 0) {
-            $this->emitter->increaseIndentLevel();
-            $this->emitter->emitLine();
-        }
-
-        foreach ($x as $i => $value) {
-            $this->emitter->emitLiteral($value);
-
-            if ($i < count($x) - 1) {
-                $this->emitter->emitStr(',', $x->getStartLocation());
-            }
-
-            $this->emitter->emitLine();
-        }
-
-        if (count($x) > 0) {
-            $this->emitter->decreaseIndentLevel();
-        }
-
-        $this->emitter->emitStr(')', $x->getStartLocation());
-    }
-
     private function emitFloat(float $x): void
     {
         $this->emitter->emitStr($this->printFloat($x));
@@ -97,6 +72,11 @@ final class LiteralEmitter
     private function emitInt(int $x): void
     {
         $this->emitter->emitStr((string)$x);
+    }
+
+    private function emitStr(string $x): void
+    {
+        $this->emitter->emitStr(Printer::readable()->print($x));
     }
 
     private function emitNull(): void
@@ -120,6 +100,31 @@ final class LiteralEmitter
             '(\Phel\Lang\Symbol::create("' . addslashes($x->getFullName()) . '"))',
             $x->getStartLocation()
         );
+    }
+
+    private function emitPhelArray(PhelArray $x): void
+    {
+        $this->emitter->emitStr('\Phel\Lang\PhelArray::create(', $x->getStartLocation());
+        if (count($x) > 0) {
+            $this->emitter->increaseIndentLevel();
+            $this->emitter->emitLine();
+        }
+
+        foreach ($x as $i => $value) {
+            $this->emitter->emitLiteral($value);
+
+            if ($i < count($x) - 1) {
+                $this->emitter->emitStr(',', $x->getStartLocation());
+            }
+
+            $this->emitter->emitLine();
+        }
+
+        if (count($x) > 0) {
+            $this->emitter->decreaseIndentLevel();
+        }
+
+        $this->emitter->emitStr(')', $x->getStartLocation());
     }
 
     private function emitTable(Table $x): void
@@ -179,10 +184,5 @@ final class LiteralEmitter
         }
 
         $this->emitter->emitStr(')', $x->getStartLocation());
-    }
-
-    private function emitStr(string $x): void
-    {
-        $this->emitter->emitStr(Printer::readable()->print($x));
     }
 }

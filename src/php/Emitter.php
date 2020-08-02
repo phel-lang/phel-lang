@@ -18,18 +18,21 @@ use Throwable;
 final class Emitter
 {
     private bool $enableSourceMaps;
-    private SourceMapGenerator $sourceMapGenerator;
     private NodeEmitterFactory $nodeEmitterFactory;
+    private SourceMapGenerator $sourceMapGenerator;
     private int $indentLevel = 0;
     private int $generatedLines = 0;
     private int $generatedColumns = 0;
     private array $sourceMap = [];
 
-    public function __construct(bool $enableSourceMaps = true)
-    {
+    public function __construct(
+        bool $enableSourceMaps = true,
+        ?NodeEmitterFactory $nodeEmitterFactory = null,
+        ?SourceMapGenerator $sourceMapGenerator = null
+    ) {
         $this->enableSourceMaps = $enableSourceMaps;
-        $this->sourceMapGenerator = new SourceMapGenerator();
-        $this->nodeEmitterFactory = new NodeEmitterFactory();
+        $this->nodeEmitterFactory = $nodeEmitterFactory ?? new NodeEmitterFactory();
+        $this->sourceMapGenerator = $sourceMapGenerator ?? new SourceMapGenerator();
     }
 
     public function emitNodeAndEval(Node $node): string

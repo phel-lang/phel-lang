@@ -6,18 +6,12 @@ namespace Phel\Emitter\NodeEmitter;
 
 use Phel\Ast\Node;
 use Phel\Ast\RecurNode;
-use Phel\Emitter;
 use Phel\Emitter\NodeEmitter;
 use Phel\Lang\Symbol;
 
 final class RecurEmitter implements NodeEmitter
 {
-    private Emitter $emitter;
-
-    public function __construct(Emitter $emitter)
-    {
-        $this->emitter = $emitter;
-    }
+    use WithEmitter;
 
     public function emit(Node $node): void
     {

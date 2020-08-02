@@ -6,17 +6,11 @@ namespace Phel\Emitter\NodeEmitter;
 
 use Phel\Ast\CatchNode;
 use Phel\Ast\Node;
-use Phel\Emitter;
 use Phel\Emitter\NodeEmitter;
 
 final class CatchEmitter implements NodeEmitter
 {
-    private Emitter $emitter;
-
-    public function __construct(Emitter $emitter)
-    {
-        $this->emitter = $emitter;
-    }
+    use WithEmitter;
 
     public function emit(Node $node): void
     {

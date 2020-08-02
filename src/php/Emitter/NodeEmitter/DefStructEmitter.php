@@ -6,19 +6,13 @@ namespace Phel\Emitter\NodeEmitter;
 
 use Phel\Ast\DefStructNode;
 use Phel\Ast\Node;
-use Phel\Emitter;
 use Phel\Emitter\NodeEmitter;
 use Phel\Lang\Keyword;
 use Phel\Munge;
 
 final class DefStructEmitter implements NodeEmitter
 {
-    private Emitter $emitter;
-
-    public function __construct(Emitter $emitter)
-    {
-        $this->emitter = $emitter;
-    }
+    use WithEmitter;
 
     public function emit(Node $node): void
     {

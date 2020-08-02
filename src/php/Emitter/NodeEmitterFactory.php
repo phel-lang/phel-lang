@@ -50,13 +50,13 @@ final class NodeEmitterFactory
         $this->mapper = $mapper;
     }
 
-    public function createNodeEmitter(Emitter $emitter, string $className): NodeEmitter
+    public function createNodeEmitter(Emitter $emitter, string $astNodeClassName): NodeEmitter
     {
-        if (!isset($this->mapper[$className])) {
-            throw new RuntimeException('Unexpected node: ' . $className);
+        if (!isset($this->mapper[$astNodeClassName])) {
+            throw new RuntimeException('Unexpected node: ' . $astNodeClassName);
         }
 
-        $nodeEmitter = new $this->mapper[$className]($emitter);
+        $nodeEmitter = new $this->mapper[$astNodeClassName]($emitter);
         assert($nodeEmitter instanceof NodeEmitter);
 
         return $nodeEmitter;

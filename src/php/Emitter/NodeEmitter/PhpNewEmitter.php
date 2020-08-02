@@ -7,18 +7,12 @@ namespace Phel\Emitter\NodeEmitter;
 use Phel\Ast\Node;
 use Phel\Ast\PhpClassNameNode;
 use Phel\Ast\PhpNewNode;
-use Phel\Emitter;
 use Phel\Emitter\NodeEmitter;
 use Phel\Lang\Symbol;
 
 final class PhpNewEmitter implements NodeEmitter
 {
-    private Emitter $emitter;
-
-    public function __construct(Emitter $emitter)
-    {
-        $this->emitter = $emitter;
-    }
+    use WithEmitter;
 
     public function emit(Node $node): void
     {

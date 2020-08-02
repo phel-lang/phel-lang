@@ -6,18 +6,12 @@ namespace Phel\Emitter\NodeEmitter;
 
 use Phel\Ast\LiteralNode;
 use Phel\Ast\Node;
-use Phel\Emitter;
 use Phel\Emitter\NodeEmitter;
 use Phel\NodeEnvironment;
 
 final class LiteralEmitter implements NodeEmitter
 {
-    private Emitter $emitter;
-
-    public function __construct(Emitter $emitter)
-    {
-        $this->emitter = $emitter;
-    }
+    use WithEmitter;
 
     public function emit(Node $node): void
     {

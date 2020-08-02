@@ -9,19 +9,13 @@ use Phel\Ast\Node;
 use Phel\Ast\PhpClassNameNode;
 use Phel\Ast\PhpObjectCallNode;
 use Phel\Ast\PropertyOrConstantAccessNode;
-use Phel\Emitter;
 use Phel\Emitter\NodeEmitter;
 use Phel\Lang\Symbol;
 use RuntimeException;
 
 final class PhpObjectCallEmitter implements NodeEmitter
 {
-    private Emitter $emitter;
-
-    public function __construct(Emitter $emitter)
-    {
-        $this->emitter = $emitter;
-    }
+    use WithEmitter;
 
     public function emit(Node $node): void
     {
