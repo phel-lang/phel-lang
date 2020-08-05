@@ -1,10 +1,12 @@
 <?php
 
-namespace Phel\SourceMap;
+declare(strict_types=1);
+
+namespace Phel\Emitter\OutputEmitter\SourceMap;
 
 use Exception;
 
-class VLQ
+final class VLQ
 {
     /**
      * @var array<int, string>

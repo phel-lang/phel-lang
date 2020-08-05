@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Phel\SourceMap;
+namespace Phel\Emitter\OutputEmitter\SourceMap;
 
 final class SourceMapGenerator
 {

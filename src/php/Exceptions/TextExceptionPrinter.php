@@ -6,10 +6,10 @@ namespace Phel\Exceptions;
 
 use Phel\CodeSnippet;
 use Phel\Commands\Repl\ColorStyle;
+use Phel\Emitter\OutputEmitter\Munge;
+use Phel\Emitter\OutputEmitter\SourceMap\SourceMapConsumer;
 use Phel\Lang\IFn;
-use Phel\Munge;
 use Phel\Printer;
-use Phel\SourceMap\SourceMapConsumer;
 use ReflectionClass;
 use Throwable;
 
@@ -17,16 +17,18 @@ final class TextExceptionPrinter implements ExceptionPrinter
 {
     private Printer $printer;
     private ColorStyle $style;
+    private Munge $munge;
 
     public static function readableWithStyle(): self
     {
-        return new self(Printer::readable(), ColorStyle::withStyles());
+        return new self(Printer::readable(), ColorStyle::withStyles(), new Munge());
     }
 
-    private function __construct(Printer $printer, ColorStyle $style)
+    private function __construct(Printer $printer, ColorStyle $style, Munge $munge)
     {
         $this->printer = $printer;
         $this->style = $style;
+        $this->munge = $munge;
     }
 
     public function printException(PhelCodeException $e, CodeSnippet $codeSnippet): void
@@ -82,7 +84,7 @@ final class TextExceptionPrinter implements ExceptionPrinter
             if ($class) {
                 $rf = new ReflectionClass($class);
                 if ($rf->implementsInterface(IFn::class)) {
-                    $fnName = Munge::decodeNs($rf->getConstant('BOUND_TO'));
+                    $fnName = $this->munge->decodeNs($rf->getConstant('BOUND_TO'));
                     $argParts = [];
                     foreach ($frame['args'] as $arg) {
                         $argParts[] = $this->printer->print($arg);

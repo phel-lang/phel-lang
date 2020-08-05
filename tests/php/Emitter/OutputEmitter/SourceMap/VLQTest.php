@@ -1,8 +1,10 @@
 <?php
 
-namespace PhelTest\SourceMap;
+declare(strict_types=1);
 
-use Phel\SourceMap\VLQ;
+namespace PhelTest\Emitter\OutputEmitter\SoxurceMap;
+
+use Phel\Emitter\OutputEmitter\SourceMap\VLQ;
 use PHPUnit\Framework\TestCase;
 
 final class VLQTest extends TestCase

@@ -2,17 +2,17 @@
 
 declare(strict_types=1);
 
-namespace Phel\SourceMap;
+namespace Phel\Emitter\OutputEmitter\SourceMap;
 
 final class SourceMapConsumer
 {
-    private VLQ $vlq;
     private array $lineMapping;
+    private VLQ $vlq;
 
     public function __construct(string $mapping)
     {
-        $this->vlq = new VLQ();
         $this->lineMapping = $this->decodeMapping($mapping);
+        $this->vlq = new VLQ();
     }
 
     protected function decodeMapping(string $mapping): array

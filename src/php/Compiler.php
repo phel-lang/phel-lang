@@ -20,7 +20,7 @@ final class Compiler
         $this->lexer = new Lexer();
         $this->reader = new Reader($globalEnv);
         $this->analyzer = new Analyzer($globalEnv);
-        $this->emitter = new Emitter();
+        $this->emitter = Emitter::createWithSourceMap();
     }
 
     public function compileFile(string $filename): string
@@ -47,7 +47,7 @@ final class Compiler
                     throw new CompilerException($e, $readerResult->getCodeSnippet());
                 }
 
-                $code .= $this->emitter->emitAndEval($nodes);
+                $code .= $this->emitter->emitNodeAndEval($nodes);
             } catch (ReaderException $e) {
                 throw new CompilerException($e, $e->getCodeSnippet());
             }
@@ -68,7 +68,7 @@ final class Compiler
             $readerResult = $this->reader->readNext($tokenStream);
 
             if (!$readerResult) {
-                return;
+                return null;
             }
 
             try {
@@ -76,8 +76,9 @@ final class Compiler
                     $readerResult->getAst(),
                     NodeEnvironment::empty()->withContext(NodeEnvironment::CTX_RET)
                 );
-                $code = $this->emitter->emitAsString($node);
-                return $this->emitter->eval($code);
+                $code = $this->emitter->emitNodeAsString($node);
+
+                return $this->emitter->evalCode($code);
             } catch (AnalyzerException $e) {
                 throw new CompilerException($e, $readerResult->getCodeSnippet());
             }

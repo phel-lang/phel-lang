@@ -41,10 +41,10 @@ final class IntegrationTest extends TestCase
         $globalEnv = self::$globalEnv;
         $globalEnv->setNs('user');
         Symbol::resetGen();
-        $lexer = new Lexer();
         $reader = new Reader($globalEnv);
         $analyzer = new Analyzer($globalEnv);
-        $emitter = new Emitter(false);
+        $emitter = Emitter::createWithoutSourceMap();
+        $lexer = new Lexer();
         $tokenStream = $lexer->lexString($phelCode);
 
         $compiledCode = [];
@@ -55,7 +55,7 @@ final class IntegrationTest extends TestCase
                 break;
             }
 
-            $compiledCode[] = $emitter->emitAndEval(
+            $compiledCode[] = $emitter->emitNodeAndEval(
                 $analyzer->analyzeInEmptyEnv($readAst->getAst())
             );
         }
@@ -73,7 +73,7 @@ final class IntegrationTest extends TestCase
         );
 
         foreach ($iterator as $file) {
-            if (!preg_match('/\.test$/', (string) $file)) {
+            if (!preg_match('/\.test$/', (string)$file)) {
                 continue;
             }
 

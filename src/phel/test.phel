@@ -1,7 +1,7 @@
 (ns phel\test
   (:use Phel\Lang\Symbol)
   (:use Phel\Runtime)
-  (:use Phel\Munge)
+  (:use Phel\Emitter\OutputEmitter\Munge)
   (:use Phel\Exceptions\TextExceptionPrinter)
   (:use Throwable))
 
@@ -291,7 +291,8 @@
 # -------------
 
 (defn- find-test-fns [ns]
-  (let [munge-ns (php/:: Munge (encodeNs ns))]
+  (let [munge (php/new Munge)
+        munge-ns (php/-> munge (encodeNs ns))]
     (for [fn-name :keys (get-in php/$GLOBALS ["__phel" munge-ns])
           :let [meta (get-in php/$GLOBALS ["__phel_meta" munge-ns fn-name])]
           :when (get meta :test)]
