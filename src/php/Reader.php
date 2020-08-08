@@ -6,9 +6,9 @@ namespace Phel;
 
 use Generator;
 use Phel\Exceptions\ReaderException;
+use Phel\Lang\AbstractType;
 use Phel\Lang\IMeta;
 use Phel\Lang\Keyword;
-use Phel\Lang\AbstractType;
 use Phel\Lang\PhelArray;
 use Phel\Lang\Symbol;
 use Phel\Lang\Table;

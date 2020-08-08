@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Phel;
 
+use Phel\Compiler\FileCompiler;
 use Phel\Exceptions\CompilerException;
 use Phel\Exceptions\HtmlExceptionPrinter;
 use Phel\Exceptions\TextExceptionPrinter;
@@ -25,8 +26,10 @@ class Runtime
 
     private ?string $cacheDirectory = null;
 
-    private function __construct(GlobalEnvironment $globalEnv = null, string $cacheDirectory = null)
-    {
+    private function __construct(
+        GlobalEnvironment $globalEnv = null,
+        string $cacheDirectory = null
+    ) {
         set_exception_handler([$this, 'exceptionHandler']);
 
         $this->globalEnv = $globalEnv ?? new GlobalEnvironment();
@@ -205,7 +208,7 @@ class Runtime
     protected function loadFile(string $filename, string $ns): bool
     {
         $globalEnv = $this->globalEnv;
-        $compiler = new Compiler($globalEnv);
+        $compiler = new FileCompiler($globalEnv);
         $code = $compiler->compileFile($filename);
 
         $cacheFilePath = $this->getCachedFilePath($filename, $ns);
