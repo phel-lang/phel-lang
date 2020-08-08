@@ -50,9 +50,7 @@ final class EvalCompiler
         }
     }
 
-    /**
-     * @return mixed The result of the executed code.
-     */
+    /** @return mixed */
     private function evalNode(ReaderResult $readerResult)
     {
         try {
@@ -60,6 +58,7 @@ final class EvalCompiler
                 $readerResult->getAst(),
                 NodeEnvironment::empty()->withContext(NodeEnvironment::CTX_RET)
             );
+
             $code = $this->emitter->emitNodeAsString($node);
 
             return $this->emitter->evalCode($code);

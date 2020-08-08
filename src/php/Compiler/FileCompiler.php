@@ -29,14 +29,10 @@ final class FileCompiler
         $this->emitter = Emitter::createWithSourceMap();
     }
 
-    public function compileFile(string $filename): string
+    public function compile(string $filename): string
     {
-        return $this->compile(file_get_contents($filename), $filename);
-    }
-
-    private function compile(string $code, string $source = 'string'): string
-    {
-        $tokenStream = $this->lexer->lexString($code, $source);
+        $code = file_get_contents($filename);
+        $tokenStream = $this->lexer->lexString($code, $filename);
         $code = '';
 
         while (true) {

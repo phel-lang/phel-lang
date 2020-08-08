@@ -111,23 +111,23 @@ class Runtime
 
     public function loadNs(string $ns): bool
     {
-        if (!in_array($ns, $this->loadedNs, true)) {
-            $file = $this->findFile($ns);
-
-            if (!$file) {
-                return false;
-            }
-
-            $this->loadedNs[] = $ns;
-
-            if ($this->isCached($file, $ns)) {
-                return $this->loadCachedFile($file, $ns);
-            }
-
-            return $this->loadFile($file, $ns);
+        if (in_array($ns, $this->loadedNs, true)) {
+            return false;
         }
 
-        return false;
+        $file = $this->findFile($ns);
+
+        if (!$file) {
+            return false;
+        }
+
+        $this->loadedNs[] = $ns;
+
+        if ($this->isCached($file, $ns)) {
+            return $this->loadCachedFile($file, $ns);
+        }
+
+        return $this->loadFile($file, $ns);
     }
 
     private function findFile(string $ns): ?string
@@ -209,7 +209,7 @@ class Runtime
     {
         $globalEnv = $this->globalEnv;
         $compiler = new FileCompiler($globalEnv);
-        $code = $compiler->compileFile($filename);
+        $code = $compiler->compile($filename);
 
         $cacheFilePath = $this->getCachedFilePath($filename, $ns);
         if ($cacheFilePath) {
