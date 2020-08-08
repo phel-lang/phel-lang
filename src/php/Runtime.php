@@ -15,9 +15,9 @@ use Throwable;
 
 class Runtime
 {
-    private static ?Runtime $instance = null;
+    protected GlobalEnvironment $globalEnv;
 
-    private GlobalEnvironment $globalEnv;
+    private static ?Runtime $instance = null;
 
     /** @var string[] */
     private array $loadedNs = [];
@@ -127,7 +127,9 @@ class Runtime
             return $this->loadCachedFile($file, $ns);
         }
 
-        return $this->loadFile($file, $ns);
+        $this->loadFile($file, $ns);
+
+        return true;
     }
 
     private function findFile(string $ns): ?string
@@ -205,7 +207,7 @@ class Runtime
         return true;
     }
 
-    protected function loadFile(string $filename, string $ns): bool
+    protected function loadFile(string $filename, string $ns): void
     {
         $globalEnv = $this->globalEnv;
         $compiler = new FileCompiler($globalEnv);
@@ -218,7 +220,5 @@ class Runtime
                 "<?php\n\n" . $code
             );
         }
-
-        return true;
     }
 }
