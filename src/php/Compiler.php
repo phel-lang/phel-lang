@@ -28,7 +28,7 @@ final class Compiler
         return $this->compileString(file_get_contents($filename), $filename);
     }
 
-    public function compileString(string $code, string $source = 'string'): string
+    private function compileString(string $code, string $source = 'string'): string
     {
         $tokenStream = $this->lexer->lexString($code, $source);
         $code = '';
@@ -41,19 +41,24 @@ final class Compiler
                     break;
                 }
 
-                try {
-                    $nodes = $this->analyzer->analyzeInEmptyEnv($readerResult->getAst());
-                } catch (AnalyzerException $e) {
-                    throw new CompilerException($e, $readerResult->getCodeSnippet());
-                }
-
-                $code .= $this->emitter->emitNodeAndEval($nodes);
+                $code .= $this->analyzeAndEvalNode($readerResult);
             } catch (ReaderException $e) {
                 throw new CompilerException($e, $e->getCodeSnippet());
             }
         }
 
         return $code;
+    }
+
+    private function analyzeAndEvalNode(ReaderResult $readerResult): string
+    {
+        try {
+            $node = $this->analyzer->analyzeInEmptyEnv($readerResult->getAst());
+        } catch (AnalyzerException $e) {
+            throw new CompilerException($e, $readerResult->getCodeSnippet());
+        }
+
+        return $this->emitter->emitNodeAndEval($node);
     }
 
     /**
@@ -66,24 +71,31 @@ final class Compiler
         try {
             $tokenStream = $this->lexer->lexString($code);
             $readerResult = $this->reader->readNext($tokenStream);
-
             if (!$readerResult) {
                 return null;
             }
 
-            try {
-                $node = $this->analyzer->analyze(
-                    $readerResult->getAst(),
-                    NodeEnvironment::empty()->withContext(NodeEnvironment::CTX_RET)
-                );
-                $code = $this->emitter->emitNodeAsString($node);
-
-                return $this->emitter->evalCode($code);
-            } catch (AnalyzerException $e) {
-                throw new CompilerException($e, $readerResult->getCodeSnippet());
-            }
+            return $this->evalNode($readerResult);
         } catch (ReaderException $e) {
             throw new CompilerException($e, $e->getCodeSnippet());
+        }
+    }
+
+    /**
+     * @return mixed The result of the executed code.
+     */
+    private function evalNode(ReaderResult $readerResult)
+    {
+        try {
+            $node = $this->analyzer->analyze(
+                $readerResult->getAst(),
+                NodeEnvironment::empty()->withContext(NodeEnvironment::CTX_RET)
+            );
+            $code = $this->emitter->emitNodeAsString($node);
+
+            return $this->emitter->evalCode($code);
+        } catch (AnalyzerException $e) {
+            throw new CompilerException($e, $readerResult->getCodeSnippet());
         }
     }
 }

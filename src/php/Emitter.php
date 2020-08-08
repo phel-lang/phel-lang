@@ -7,9 +7,6 @@ namespace Phel;
 use Phel\Ast\Node;
 use Phel\Emitter\EvalEmitter;
 use Phel\Emitter\OutputEmitter;
-use Phel\Emitter\OutputEmitter\Munge;
-use Phel\Emitter\OutputEmitter\NodeEmitterFactory;
-use Phel\Emitter\OutputEmitter\SourceMap\SourceMapGenerator;
 
 final class Emitter
 {
@@ -20,12 +17,7 @@ final class Emitter
     public static function createWithoutSourceMap(): self
     {
         return new self(
-            new OutputEmitter(
-                $enableSourceMaps = false,
-                new SourceMapGenerator(),
-                new NodeEmitterFactory(),
-                new Munge()
-            ),
+            OutputEmitter::createWithoutSourceMap(),
             new EvalEmitter()
         );
     }
@@ -33,18 +25,15 @@ final class Emitter
     public static function createWithSourceMap(): self
     {
         return new self(
-            new OutputEmitter(
-                $enableSourceMaps = true,
-                new SourceMapGenerator(),
-                new NodeEmitterFactory(),
-                new Munge()
-            ),
+            OutputEmitter::createWithSourceMap(),
             new EvalEmitter()
         );
     }
 
-    private function __construct(OutputEmitter $outputEmitter, EvalEmitter $evalEmitter)
-    {
+    private function __construct(
+        OutputEmitter $outputEmitter,
+        EvalEmitter $evalEmitter
+    ) {
         $this->outputEmitter = $outputEmitter;
         $this->evalEmitter = $evalEmitter;
     }
