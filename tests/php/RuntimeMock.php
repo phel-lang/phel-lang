@@ -22,11 +22,9 @@ final class RuntimeMock extends Runtime
         $this->files = $files;
     }
 
-    protected function loadFile(string $filename, string $ns): bool
+    protected function loadFile(string $filename, string $ns): void
     {
         $this->loadedFile = $filename;
-
-        return true;
     }
 
     protected function fileExists($filename): bool

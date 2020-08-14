@@ -7,11 +7,11 @@ namespace Phel;
 use Exception;
 use Phel\Lang\Keyword;
 use Phel\Lang\PhelArray;
+use Phel\Lang\Set;
 use Phel\Lang\Struct;
 use Phel\Lang\Symbol;
 use Phel\Lang\Table;
 use Phel\Lang\Tuple;
-use Phel\Lang\Set;
 
 final class Printer
 {

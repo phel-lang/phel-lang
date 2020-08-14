@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Phel\Commands;
 
-use Phel\Compiler;
+use Phel\Compiler\EvalCompiler;
 use Phel\Runtime;
 use RecursiveDirectoryIterator;
 use RecursiveIteratorIterator;
@@ -38,7 +38,7 @@ class TestCommand
         }
 
         $rt = $this->initializeRuntime($currentDirectory);
-        $compiler = new Compiler($rt->getEnv());
+        $compiler = new EvalCompiler($rt->getEnv());
 
         $nsString = implode(' ', array_map(fn (string $x) => "'" . $x, $namespaces));
         return $compiler->eval('(do (phel\test/run-tests ' . $nsString . ') (successful?))');

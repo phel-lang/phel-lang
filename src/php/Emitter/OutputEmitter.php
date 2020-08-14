@@ -26,7 +26,27 @@ final class OutputEmitter
     private int $generatedColumns = 0;
     private array $sourceMap = [];
 
-    public function __construct(
+    public static function createWithoutSourceMap(): self
+    {
+        return new self(
+            $enableSourceMaps = false,
+            new SourceMapGenerator(),
+            new NodeEmitterFactory(),
+            new Munge()
+        );
+    }
+
+    public static function createWithSourceMap(): self
+    {
+        return new self(
+            $enableSourceMaps = true,
+            new SourceMapGenerator(),
+            new NodeEmitterFactory(),
+            new Munge()
+        );
+    }
+
+    private function __construct(
         bool $enableSourceMaps,
         SourceMapGenerator $sourceMapGenerator,
         NodeEmitterFactory $nodeEmitterFactory,

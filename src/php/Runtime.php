@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Phel;
 
+use Phel\Compiler\FileCompiler;
 use Phel\Exceptions\CompilerException;
 use Phel\Exceptions\HtmlExceptionPrinter;
 use Phel\Exceptions\TextExceptionPrinter;
@@ -14,9 +15,9 @@ use Throwable;
 
 class Runtime
 {
-    private static ?Runtime $instance = null;
+    protected GlobalEnvironment $globalEnv;
 
-    private GlobalEnvironment $globalEnv;
+    private static ?Runtime $instance = null;
 
     /** @var string[] */
     private array $loadedNs = [];
@@ -25,8 +26,10 @@ class Runtime
 
     private ?string $cacheDirectory = null;
 
-    private function __construct(GlobalEnvironment $globalEnv = null, string $cacheDirectory = null)
-    {
+    private function __construct(
+        GlobalEnvironment $globalEnv = null,
+        string $cacheDirectory = null
+    ) {
         set_exception_handler([$this, 'exceptionHandler']);
 
         $this->globalEnv = $globalEnv ?? new GlobalEnvironment();
@@ -108,23 +111,25 @@ class Runtime
 
     public function loadNs(string $ns): bool
     {
-        if (!in_array($ns, $this->loadedNs, true)) {
-            $file = $this->findFile($ns);
-
-            if (!$file) {
-                return false;
-            }
-
-            $this->loadedNs[] = $ns;
-
-            if ($this->isCached($file, $ns)) {
-                return $this->loadCachedFile($file, $ns);
-            }
-
-            return $this->loadFile($file, $ns);
+        if (in_array($ns, $this->loadedNs, true)) {
+            return false;
         }
 
-        return false;
+        $file = $this->findFile($ns);
+
+        if (!$file) {
+            return false;
+        }
+
+        $this->loadedNs[] = $ns;
+
+        if ($this->isCached($file, $ns)) {
+            return $this->loadCachedFile($file, $ns);
+        }
+
+        $this->loadFile($file, $ns);
+
+        return true;
     }
 
     private function findFile(string $ns): ?string
@@ -202,11 +207,11 @@ class Runtime
         return true;
     }
 
-    protected function loadFile(string $filename, string $ns): bool
+    protected function loadFile(string $filename, string $ns): void
     {
         $globalEnv = $this->globalEnv;
-        $compiler = new Compiler($globalEnv);
-        $code = $compiler->compileFile($filename);
+        $compiler = new FileCompiler($globalEnv);
+        $code = $compiler->compile($filename);
 
         $cacheFilePath = $this->getCachedFilePath($filename, $ns);
         if ($cacheFilePath) {
@@ -215,7 +220,5 @@ class Runtime
                 "<?php\n\n" . $code
             );
         }
-
-        return true;
     }
 }

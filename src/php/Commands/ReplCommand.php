@@ -6,7 +6,7 @@ namespace Phel\Commands;
 
 use Phel\Commands\Repl\ColorStyle;
 use Phel\Commands\Repl\Readline;
-use Phel\Compiler;
+use Phel\Compiler\EvalCompiler;
 use Phel\Exceptions\CompilerException;
 use Phel\Exceptions\ReaderException;
 use Phel\Exceptions\TextExceptionPrinter;
@@ -20,7 +20,7 @@ final class ReplCommand
     public const NAME = 'repl';
 
     private Readline $readline;
-    private Compiler $compiler;
+    private EvalCompiler $evalCompiler;
     private ColorStyle $style;
     private TextExceptionPrinter $exceptionPrinter;
 
@@ -31,7 +31,7 @@ final class ReplCommand
         $globalEnv = new GlobalEnvironment();
         Runtime::initialize($globalEnv)->loadNs("phel\core");
 
-        $this->compiler = new Compiler($globalEnv);
+        $this->evalCompiler = new EvalCompiler($globalEnv);
         $this->style = ColorStyle::withStyles();
         $this->exceptionPrinter = TextExceptionPrinter::readableWithStyle();
     }
@@ -85,7 +85,7 @@ final class ReplCommand
     private function analyzeInput(string $input): void
     {
         try {
-            $result = $this->compiler->eval($input);
+            $result = $this->evalCompiler->eval($input);
             $this->output(Printer::nonReadable()->print($result));
             $this->output(PHP_EOL);
         } catch (CompilerException $e) {
