@@ -2,11 +2,12 @@
 
 declare(strict_types=1);
 
-namespace PhelTest\Analyzer\TupleSymbol\FnSymbol;
+namespace PhelTest\Analyzer\TupleSymbol;
 
 use Generator;
 use Phel\Analyzer;
 use Phel\Analyzer\TupleSymbol\FnSymbol;
+use Phel\Ast\FnNode;
 use Phel\Exceptions\PhelCodeException;
 use Phel\GlobalEnvironment;
 use Phel\Lang\Symbol;
@@ -38,22 +39,24 @@ final class FnSymbolTest extends TestCase
         $this->expectException(PhelCodeException::class);
         $this->expectExceptionMessage("Second argument of 'fn must be a Tuple");
 
+        // This is the same as: (anything anything)
         $tuple = Tuple::create(
-            Symbol::create('unknown'),
-            Symbol::create('unknown')
+            Symbol::create('anything'),
+            Symbol::create('anything')
         );
 
-        (new FnSymbol($this->analyzer))->analyze($tuple, NodeEnvironment::empty());
+        $this->analyze($tuple);
     }
 
     public function testIsVariadic(): void
     {
+        // This is the same as: (anything (anything))
         $tuple = Tuple::create(
-            Symbol::create('unknown'),
-            Tuple::create(Symbol::create('unknown'))
+            Symbol::create('anything'),
+            Tuple::create(Symbol::create('anything'))
         );
 
-        $fnNode = (new FnSymbol($this->analyzer))->analyze($tuple, NodeEnvironment::empty());
+        $fnNode = $this->analyze($tuple);
 
         self::assertFalse($fnNode->isVariadic());
     }
@@ -79,7 +82,7 @@ final class FnSymbolTest extends TestCase
             ),
         );
 
-        (new FnSymbol($this->analyzer))->analyze($tuple, NodeEnvironment::empty());
+        $this->analyze($tuple);
     }
 
     public function providerVarNamesMustStartWithLetterOrUnderscore(): Generator
@@ -115,7 +118,7 @@ final class FnSymbolTest extends TestCase
         $this->expectException(PhelCodeException::class);
         $this->expectExceptionMessage('Unsupported parameter form, only one symbol can follow the & parameter');
 
-        // This is the same as: (anything (fn [& & param-1]))
+        // This is the same as: (anything (fn [& param-1 param-2]))
         $tuple = Tuple::create(
             Symbol::create('anything'),
             Tuple::create(
@@ -126,6 +129,50 @@ final class FnSymbolTest extends TestCase
             ),
         );
 
-        (new FnSymbol($this->analyzer))->analyze($tuple, NodeEnvironment::empty());
+        $this->analyze($tuple);
+    }
+
+    /** @dataProvider providerGetParams */
+    public function testGetParams(Tuple $fnTuple, array $expectedParams): void
+    {
+        $tuple = Tuple::create(Symbol::create('anything'), $fnTuple);
+        $node = $this->analyze($tuple);
+
+        self::assertEquals($expectedParams, $node->getParams());
+    }
+
+    public function providerGetParams(): Generator
+    {
+        yield '(fn [& param-1])' => [
+            'fnTuple' => Tuple::create(
+                Symbol::create(Symbol::NAME_FN),
+                Symbol::create('&'),
+                Symbol::create('param-1'),
+            ),
+            'expectedParams' => [
+                Symbol::create('fn'),
+                Symbol::create('param-1'),
+            ],
+        ];
+
+        yield '(fn [param-1 param-2 param-3])' => [
+            'fnTuple' => Tuple::create(
+                Symbol::create(Symbol::NAME_FN),
+                Symbol::create('param-1'),
+                Symbol::create('param-2'),
+                Symbol::create('param-3'),
+            ),
+            'expectedParams' => [
+                Symbol::create('fn'),
+                Symbol::create('param-1'),
+                Symbol::create('param-2'),
+                Symbol::create('param-3'),
+            ],
+        ];
+    }
+
+    private function analyze(Tuple $tuple): FnNode
+    {
+        return (new FnSymbol($this->analyzer))->analyze($tuple, NodeEnvironment::empty());
     }
 }
