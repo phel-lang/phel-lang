@@ -56,4 +56,20 @@ final class FnSymbolTest extends TestCase
 
         self::assertFalse($fnNode->isVariadic());
     }
+
+    public function testVarNamesMustStartWithLetterOrUnderscore(): void
+    {
+        $this->expectException(PhelCodeException::class);
+        $this->expectExceptionMessageMatches('/(Variable names must start with a letter or underscore)*/i');
+
+        $tuple = Tuple::create(
+            Symbol::create('unknown'),
+            Tuple::create(  // (fn [param-1])
+                Symbol::create(Symbol::NAME_FN),
+                Tuple::createBracket(Symbol::create('param-1'))
+            ),
+        );
+
+        (new FnSymbol($this->analyzer))->analyze($tuple, NodeEnvironment::empty());
+    }
 }
