@@ -109,4 +109,23 @@ final class FnSymbolTest extends TestCase
             'error' => true,
         ];
     }
+
+    public function testOnlyOneSymbolCanFollowTheAmpersandParameter(): void
+    {
+        $this->expectException(PhelCodeException::class);
+        $this->expectExceptionMessage('Unsupported parameter form, only one symbol can follow the & parameter');
+
+        // This is the same as: (anything (fn [& & param-1]))
+        $tuple = Tuple::create(
+            Symbol::create('anything'),
+            Tuple::create(
+                Symbol::create(Symbol::NAME_FN),
+                Symbol::create('&'),
+                Symbol::create('param-1'),
+                Symbol::create('param-2'),
+            ),
+        );
+
+        (new FnSymbol($this->analyzer))->analyze($tuple, NodeEnvironment::empty());
+    }
 }
