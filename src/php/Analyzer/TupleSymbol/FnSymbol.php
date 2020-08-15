@@ -17,11 +17,15 @@ final class FnSymbol implements TupleSymbolAnalyzer
 {
     use WithAnalyzer;
 
+    private const STATE_START = 'start';
+    private const STATE_REST = 'rest';
+    private const STATE_DONE = 'done';
+
     private array $params = [];
     private array $lets = [];
     private bool $isVariadic = false;
     private bool $hasVariadicForm = false;
-    private string $state = 'start';
+    private string $state = self::STATE_START;
 
     public function analyze(Tuple $tuple, NodeEnvironment $env): FnNode
     {
@@ -56,49 +60,67 @@ final class FnSymbol implements TupleSymbolAnalyzer
 
     private function buildParams(Tuple $tuple): void
     {
-        /** @var Tuple $xs */
-        $xs = $tuple[1];
+        /** @var Tuple $params */
+        $params = $tuple[1];
 
-        foreach ($xs as $param) {
+        foreach ($params as $param) {
             switch ($this->state) {
-                case 'start':
-                    if ($param instanceof Symbol) {
-                        if ($this->isSymWithName($param, '&')) {
-                            $this->isVariadic = true;
-                            $this->state = 'rest';
-                        } elseif ($param->getName() === '_') {
-                            $this->params[] = Symbol::gen()->copyLocationFrom($param);
-                        } else {
-                            $this->params[] = $param;
-                        }
-                    } else {
-                        $tempSym = Symbol::gen()->copyLocationFrom($param);
-                        $this->params[] = $tempSym;
-                        $this->lets[] = $param;
-                        $this->lets[] = $tempSym;
-                    }
+                case self::STATE_START:
+                    $this->buildParamsStart($param);
                     break;
-                case 'rest':
-                    $this->state = 'done';
-                    $this->hasVariadicForm = true;
-                    if ($this->isSymWithName($param, '_')) {
-                        $this->params[] = Symbol::gen()->copyLocationFrom($param);
-                    } elseif ($param instanceof Symbol) {
-                        $this->params[] = $param;
-                    } else {
-                        $tempSym = Symbol::gen()->copyLocationFrom($tuple);
-                        $this->params[] = $tempSym;
-                        $this->lets[] = $param;
-                        $this->lets[] = $tempSym;
-                    }
+                case self::STATE_REST:
+                    $this->buildParamsRest($tuple, $param);
                     break;
-                case 'done':
-                    throw AnalyzerException::withLocation(
-                        'Unsupported parameter form, only one symbol can follow the & parameter',
-                        $tuple
-                    );
+                case self::STATE_DONE:
+                    $this->buildParamsDone($tuple);
             }
         }
+    }
+
+    /** @param mixed $param */
+    private function buildParamsStart($param): void
+    {
+        if ($param instanceof Symbol) {
+            if ($this->isSymWithName($param, '&')) {
+                $this->isVariadic = true;
+                $this->state = self::STATE_REST;
+            } elseif ($param->getName() === '_') {
+                $this->params[] = Symbol::gen()->copyLocationFrom($param);
+            } else {
+                $this->params[] = $param;
+            }
+        } else {
+            $tempSym = Symbol::gen()->copyLocationFrom($param);
+            $this->params[] = $tempSym;
+            $this->lets[] = $param;
+            $this->lets[] = $tempSym;
+        }
+    }
+
+    /** @param mixed $param */
+    private function buildParamsRest(Tuple $tuple, $param): void
+    {
+        $this->state = self::STATE_DONE;
+        $this->hasVariadicForm = true;
+
+        if ($this->isSymWithName($param, '_')) {
+            $this->params[] = Symbol::gen()->copyLocationFrom($param);
+        } elseif ($param instanceof Symbol) {
+            $this->params[] = $param;
+        } else {
+            $tempSym = Symbol::gen()->copyLocationFrom($tuple);
+            $this->params[] = $tempSym;
+            $this->lets[] = $param;
+            $this->lets[] = $tempSym;
+        }
+    }
+
+    private function buildParamsDone(Tuple $tuple): void
+    {
+        throw AnalyzerException::withLocation(
+            'Unsupported parameter form, only one symbol can follow the & parameter',
+            $tuple
+        );
     }
 
     /** @param mixed $x */
@@ -117,7 +139,7 @@ final class FnSymbol implements TupleSymbolAnalyzer
     private function checkAllVariablesStartWithALetterOrUnderscore(Tuple $tuple): void
     {
         foreach ($this->params as $param) {
-            if (!(preg_match("/^[a-zA-Z_\x80-\xff].*$/", $param->getName()))) {
+            if (!preg_match("/^[a-zA-Z_\x80-\xff].*$/", $param->getName())) {
                 throw AnalyzerException::withLocation(
                     "Variable names must start with a letter or underscore: {$param->getName()}",
                     $tuple

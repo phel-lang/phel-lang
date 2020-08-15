@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace PhelTest\Analyzer\TupleSymbol\FnSymbol;
 
+use Generator;
 use Phel\Analyzer;
 use Phel\Analyzer\TupleSymbol\FnSymbol;
 use Phel\Exceptions\PhelCodeException;
@@ -57,19 +58,55 @@ final class FnSymbolTest extends TestCase
         self::assertFalse($fnNode->isVariadic());
     }
 
-    public function testVarNamesMustStartWithLetterOrUnderscore(): void
+    /**
+     * @dataProvider providerVarNamesMustStartWithLetterOrUnderscore
+     */
+    public function testVarNamesMustStartWithLetterOrUnderscore(string $paramName, bool $error): void
     {
-        $this->expectException(PhelCodeException::class);
-        $this->expectExceptionMessageMatches('/(Variable names must start with a letter or underscore)*/i');
+        if ($error) {
+            $this->expectException(PhelCodeException::class);
+            $this->expectExceptionMessageMatches('/(Variable names must start with a letter or underscore)*/i');
+        } else {
+            self::assertTrue(true); // In order to have an assertion without an error
+        }
 
+        // This is the same as: (anything (fn [paramName]))
         $tuple = Tuple::create(
-            Symbol::create('unknown'),
-            Tuple::create(  // (fn [param-1])
+            Symbol::create('anything'),
+            Tuple::create(
                 Symbol::create(Symbol::NAME_FN),
-                Tuple::createBracket(Symbol::create('param-1'))
+                Symbol::create($paramName)
             ),
         );
 
         (new FnSymbol($this->analyzer))->analyze($tuple, NodeEnvironment::empty());
+    }
+
+    public function providerVarNamesMustStartWithLetterOrUnderscore(): Generator
+    {
+        yield 'Start with a letter' => [
+            'paramName' => 'param-1',
+            'error' => false,
+        ];
+
+        yield 'Start with an underscore' => [
+            'paramName' => '_param-2',
+            'error' => false,
+        ];
+
+        yield 'Start with a number' => [
+            'paramName' => '1-param-3',
+            'error' => true,
+        ];
+
+        yield 'Start with an ampersand' => [
+            'paramName' => '&-param-4',
+            'error' => true,
+        ];
+
+        yield 'Start with a space' => [
+            'paramName' => ' param-5',
+            'error' => true,
+        ];
     }
 }
