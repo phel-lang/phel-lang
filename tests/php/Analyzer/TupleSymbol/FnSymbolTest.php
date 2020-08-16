@@ -7,6 +7,7 @@ namespace PhelTest\Analyzer\TupleSymbol;
 use Generator;
 use Phel\Analyzer;
 use Phel\Analyzer\TupleSymbol\FnSymbol;
+use Phel\Ast\DoNode;
 use Phel\Ast\FnNode;
 use Phel\Exceptions\PhelCodeException;
 use Phel\GlobalEnvironment;
@@ -171,6 +172,28 @@ final class FnSymbolTest extends TestCase
                 Symbol::create('param-2'),
                 Symbol::create('param-3'),
             ],
+        ];
+    }
+
+    /** @dataProvider providerGetBody */
+    public function testGetBody(Tuple $tuple, string $expectedBodyInstanceOf): void
+    {
+        $node = $this->analyze($tuple);
+
+        self::assertInstanceOf($expectedBodyInstanceOf, $node->getBody());
+    }
+
+    public function providerGetBody(): Generator
+    {
+        yield 'DoNode body => (fn [x] x)' => [
+            'tuple' => Tuple::create(
+                Symbol::create(Symbol::NAME_FN),
+                Tuple::createBracket(
+                    Symbol::create('x'),
+                ),
+                Symbol::create('x'),
+            ),
+            'expectedBodyInstanceOf' => DoNode::class,
         ];
     }
 
