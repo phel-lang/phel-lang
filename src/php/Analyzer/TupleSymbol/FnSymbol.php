@@ -25,7 +25,7 @@ final class FnSymbol implements TupleSymbolAnalyzer
     private array $lets = [];
     private bool $isVariadic = false;
     private bool $hasVariadicForm = false;
-    private string $state = self::STATE_START;
+    private string $buildParamsState = self::STATE_START;
 
     public function analyze(Tuple $tuple, NodeEnvironment $env): FnNode
     {
@@ -60,11 +60,12 @@ final class FnSymbol implements TupleSymbolAnalyzer
 
     private function buildParams(Tuple $tuple): void
     {
+        $this->resetParamsAndLetsState();
         /** @var Tuple $params */
         $params = $tuple[1];
 
         foreach ($params as $param) {
-            switch ($this->state) {
+            switch ($this->buildParamsState) {
                 case self::STATE_START:
                     $this->buildParamsStart($param);
                     break;
@@ -77,13 +78,22 @@ final class FnSymbol implements TupleSymbolAnalyzer
         }
     }
 
+    private function resetParamsAndLetsState(): void
+    {
+        $this->params = [];
+        $this->lets = [];
+        $this->isVariadic = false;
+        $this->hasVariadicForm = false;
+        $this->buildParamsState = self::STATE_START;
+    }
+
     /** @param mixed $param */
     private function buildParamsStart($param): void
     {
         if ($param instanceof Symbol) {
             if ($this->isSymWithName($param, '&')) {
                 $this->isVariadic = true;
-                $this->state = self::STATE_REST;
+                $this->buildParamsState = self::STATE_REST;
             } elseif ($param->getName() === '_') {
                 $this->params[] = Symbol::gen()->copyLocationFrom($param);
             } else {
@@ -97,10 +107,16 @@ final class FnSymbol implements TupleSymbolAnalyzer
         }
     }
 
+    /** @param mixed $x */
+    private function isSymWithName($x, string $name): bool
+    {
+        return $x instanceof Symbol && $x->getName() === $name;
+    }
+
     /** @param mixed $param */
     private function buildParamsRest(Tuple $tuple, $param): void
     {
-        $this->state = self::STATE_DONE;
+        $this->buildParamsState = self::STATE_DONE;
         $this->hasVariadicForm = true;
 
         if ($this->isSymWithName($param, '_')) {
@@ -121,12 +137,6 @@ final class FnSymbol implements TupleSymbolAnalyzer
             'Unsupported parameter form, only one symbol can follow the & parameter',
             $tuple
         );
-    }
-
-    /** @param mixed $x */
-    private function isSymWithName($x, string $name): bool
-    {
-        return $x instanceof Symbol && $x->getName() === $name;
     }
 
     private function addDummyVariadicSymbol(): void
