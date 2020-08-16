@@ -29,7 +29,9 @@ final class FnSymbolTest extends TestCase
         $this->expectException(PhelCodeException::class);
         $this->expectExceptionMessage("'fn requires at least one argument");
 
-        $tuple = Tuple::create();
+        $tuple = Tuple::create(
+            Symbol::create(Symbol::NAME_FN)
+        );
 
         (new FnSymbol($this->analyzer))->analyze($tuple, NodeEnvironment::empty());
     }
@@ -39,21 +41,23 @@ final class FnSymbolTest extends TestCase
         $this->expectException(PhelCodeException::class);
         $this->expectExceptionMessage("Second argument of 'fn must be a Tuple");
 
-        // This is the same as: (anything anything)
+        // This is the same as: (fn anything)
         $tuple = Tuple::create(
-            Symbol::create('anything'),
+            Symbol::create(Symbol::NAME_FN),
             Symbol::create('anything')
         );
 
         $this->analyze($tuple);
     }
 
-    public function testIsVariadic(): void
+    public function testIsNotVariadic(): void
     {
-        // This is the same as: (anything (anything))
+        // This is the same as: (fn [anything])
         $tuple = Tuple::create(
-            Symbol::create('anything'),
-            Tuple::create(Symbol::create('anything'))
+            Symbol::create(Symbol::NAME_FN),
+            Tuple::createBracket(
+                Symbol::create('anything')
+            )
         );
 
         $fnNode = $this->analyze($tuple);
@@ -73,13 +77,12 @@ final class FnSymbolTest extends TestCase
             self::assertTrue(true); // In order to have an assertion without an error
         }
 
-        // This is the same as: (anything (fn [paramName]))
+        // This is the same as: (fn [paramName])
         $tuple = Tuple::create(
-            Symbol::create('anything'),
-            Tuple::create(
-                Symbol::create(Symbol::NAME_FN),
+            Symbol::create(Symbol::NAME_FN),
+            Tuple::createBracket(
                 Symbol::create($paramName)
-            ),
+            )
         );
 
         $this->analyze($tuple);
@@ -118,24 +121,22 @@ final class FnSymbolTest extends TestCase
         $this->expectException(PhelCodeException::class);
         $this->expectExceptionMessage('Unsupported parameter form, only one symbol can follow the & parameter');
 
-        // This is the same as: (anything (fn [& param-1 param-2]))
+        // This is the same as: (fn [& param-1 param-2])
         $tuple = Tuple::create(
-            Symbol::create('anything'),
-            Tuple::create(
-                Symbol::create(Symbol::NAME_FN),
+            Symbol::create(Symbol::NAME_FN),
+            Tuple::createBracket(
                 Symbol::create('&'),
                 Symbol::create('param-1'),
                 Symbol::create('param-2'),
-            ),
+            )
         );
 
         $this->analyze($tuple);
     }
 
     /** @dataProvider providerGetParams */
-    public function testGetParams(Tuple $fnTuple, array $expectedParams): void
+    public function testGetParams(Tuple $tuple, array $expectedParams): void
     {
-        $tuple = Tuple::create(Symbol::create('anything'), $fnTuple);
         $node = $this->analyze($tuple);
 
         self::assertEquals($expectedParams, $node->getParams());
@@ -144,26 +145,28 @@ final class FnSymbolTest extends TestCase
     public function providerGetParams(): Generator
     {
         yield '(fn [& param-1])' => [
-            'fnTuple' => Tuple::create(
+            'tuple' => Tuple::create(
                 Symbol::create(Symbol::NAME_FN),
-                Symbol::create('&'),
-                Symbol::create('param-1'),
+                Tuple::createBracket(
+                    Symbol::create('&'),
+                    Symbol::create('param-1'),
+                )
             ),
             'expectedParams' => [
-                Symbol::create('fn'),
                 Symbol::create('param-1'),
             ],
         ];
 
         yield '(fn [param-1 param-2 param-3])' => [
-            'fnTuple' => Tuple::create(
+            'tuple' => Tuple::create(
                 Symbol::create(Symbol::NAME_FN),
-                Symbol::create('param-1'),
-                Symbol::create('param-2'),
-                Symbol::create('param-3'),
+                Tuple::createBracket(
+                    Symbol::create('param-1'),
+                    Symbol::create('param-2'),
+                    Symbol::create('param-3'),
+                )
             ),
             'expectedParams' => [
-                Symbol::create('fn'),
                 Symbol::create('param-1'),
                 Symbol::create('param-2'),
                 Symbol::create('param-3'),
