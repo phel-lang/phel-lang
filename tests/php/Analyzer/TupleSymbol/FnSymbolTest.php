@@ -9,9 +9,11 @@ use Phel\Analyzer;
 use Phel\Analyzer\TupleSymbol\FnSymbol;
 use Phel\Ast\DoNode;
 use Phel\Ast\FnNode;
+use Phel\Ast\LetNode;
 use Phel\Exceptions\PhelCodeException;
 use Phel\GlobalEnvironment;
 use Phel\Lang\Symbol;
+use Phel\Lang\Table;
 use Phel\Lang\Tuple;
 use Phel\NodeEnvironment;
 use PHPUnit\Framework\TestCase;
@@ -22,7 +24,10 @@ final class FnSymbolTest extends TestCase
 
     public function setUp(): void
     {
-        $this->analyzer = new Analyzer(new GlobalEnvironment());
+        $env = new GlobalEnvironment();
+        $env->addDefinition('phel\\core', Symbol::create('first'), new Table());
+        $env->addDefinition('phel\\core', Symbol::create('next'), new Table());
+        $this->analyzer = new Analyzer($env);
     }
 
     public function testRequiresAtLeastOneArg(): void
@@ -189,11 +194,25 @@ final class FnSymbolTest extends TestCase
             'tuple' => Tuple::create(
                 Symbol::create(Symbol::NAME_FN),
                 Tuple::createBracket(
-                    Symbol::create('x'),
+                    Symbol::create('x')
                 ),
-                Symbol::create('x'),
+                Symbol::create('x')
             ),
             'expectedBodyInstanceOf' => DoNode::class,
+        ];
+
+        yield 'LetNode body => (fn [[x y]] x)' => [
+            'tuple' => Tuple::create(
+                Symbol::create(Symbol::NAME_FN),
+                Tuple::createBracket(
+                    Tuple::createBracket(
+                        Symbol::create('x'),
+                        Symbol::create('y')
+                    )
+                ),
+                Symbol::create('x')
+            ),
+            'expectedBodyInstanceOf' => LetNode::class,
         ];
     }
 
