@@ -32,7 +32,7 @@ final class SourceMapConsumer
                         $lastMapping[0] + $relMapping[0], // generated column
                         $lastMapping[1] + $relMapping[1], // source
                         $lastMapping[2] + $relMapping[2], // original line
-                        $lastMapping[3] + $relMapping[3]  // original column
+                        $lastMapping[3] + $relMapping[3],  // original column
                     ];
 
                     $lastMapping = $absMapping;

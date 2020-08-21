@@ -16,7 +16,7 @@ final class LexerTest extends TestCase
         $this->assertEquals(
             [
                 new Token(Token::T_COMMENT, '#', new SourceLocation('string', 1, 0), new SourceLocation('string', 1, 1)),
-                new Token(Token::T_EOF, '', new SourceLocation('string', 1, 1), new SourceLocation('string', 1, 1))
+                new Token(Token::T_EOF, '', new SourceLocation('string', 1, 1), new SourceLocation('string', 1, 1)),
             ],
             $this->lex('#')
         );
@@ -27,7 +27,7 @@ final class LexerTest extends TestCase
         $this->assertEquals(
             [
                 new Token(Token::T_COMMENT, '# Mein Kommentar', new SourceLocation('string', 1, 0), new SourceLocation('string', 1, 16)),
-                new Token(Token::T_EOF, '', new SourceLocation('string', 1, 16), new SourceLocation('string', 1, 16))
+                new Token(Token::T_EOF, '', new SourceLocation('string', 1, 16), new SourceLocation('string', 1, 16)),
             ],
             $this->lex('# Mein Kommentar')
         );
@@ -40,7 +40,7 @@ final class LexerTest extends TestCase
                 new Token(Token::T_COMMENT, '# Mein Kommentar', new SourceLocation('string', 1, 0), new SourceLocation('string', 1, 16)),
                 new Token(Token::T_WHITESPACE, "\n", new SourceLocation('string', 1, 16), new SourceLocation('string', 2, 0)),
                 new Token(Token::T_COMMENT, '# Mein andere Kommentar', new SourceLocation('string', 2, 0), new SourceLocation('string', 2, 23)),
-                new Token(Token::T_EOF, '', new SourceLocation('string', 2, 23), new SourceLocation('string', 2, 23))
+                new Token(Token::T_EOF, '', new SourceLocation('string', 2, 23), new SourceLocation('string', 2, 23)),
             ],
             $this->lex("# Mein Kommentar\n# Mein andere Kommentar")
         );
@@ -51,7 +51,7 @@ final class LexerTest extends TestCase
         $this->assertEquals(
             [
                 new Token(Token::T_OPEN_PARENTHESIS, '(', new SourceLocation('string', 1, 0), new SourceLocation('string', 1, 1)),
-                new Token(Token::T_EOF, '', new SourceLocation('string', 1, 1), new SourceLocation('string', 1, 1))
+                new Token(Token::T_EOF, '', new SourceLocation('string', 1, 1), new SourceLocation('string', 1, 1)),
             ],
             $this->lex('(')
         );
@@ -63,7 +63,7 @@ final class LexerTest extends TestCase
             [
                 new Token(Token::T_OPEN_PARENTHESIS, '(', new SourceLocation('string', 1, 0), new SourceLocation('string', 1, 1)),
                 new Token(Token::T_CLOSE_PARENTHESIS, ')', new SourceLocation('string', 1, 1), new SourceLocation('string', 1, 2)),
-                new Token(Token::T_EOF, '', new SourceLocation('string', 1, 2), new SourceLocation('string', 1, 2))
+                new Token(Token::T_EOF, '', new SourceLocation('string', 1, 2), new SourceLocation('string', 1, 2)),
             ],
             $this->lex('()')
         );
@@ -74,7 +74,7 @@ final class LexerTest extends TestCase
         $this->assertEquals(
             [
                 new Token(Token::T_ATOM, 'true', new SourceLocation('string', 1, 0), new SourceLocation('string', 1, 4)),
-                new Token(Token::T_EOF, '', new SourceLocation('string', 1, 4), new SourceLocation('string', 1, 4))
+                new Token(Token::T_EOF, '', new SourceLocation('string', 1, 4), new SourceLocation('string', 1, 4)),
             ],
             $this->lex('true')
         );
@@ -85,7 +85,7 @@ final class LexerTest extends TestCase
         $this->assertEquals(
             [
                 new Token(Token::T_ATOM, '1', new SourceLocation('string', 1, 0), new SourceLocation('string', 1, 1)),
-                new Token(Token::T_EOF, '', new SourceLocation('string', 1, 1), new SourceLocation('string', 1, 1))
+                new Token(Token::T_EOF, '', new SourceLocation('string', 1, 1), new SourceLocation('string', 1, 1)),
             ],
             $this->lex('1')
         );
@@ -96,7 +96,7 @@ final class LexerTest extends TestCase
         $this->assertEquals(
             [
                 new Token(Token::T_STRING, '""', new SourceLocation('string', 1, 0), new SourceLocation('string', 1, 2)),
-                new Token(Token::T_EOF, '', new SourceLocation('string', 1, 2), new SourceLocation('string', 1, 2))
+                new Token(Token::T_EOF, '', new SourceLocation('string', 1, 2), new SourceLocation('string', 1, 2)),
             ],
             $this->lex('""')
         );
@@ -107,7 +107,7 @@ final class LexerTest extends TestCase
         $this->assertEquals(
             [
                 new Token(Token::T_STRING, '"test"', new SourceLocation('string', 1, 0), new SourceLocation('string', 1, 6)),
-                new Token(Token::T_EOF, '', new SourceLocation('string', 1, 6), new SourceLocation('string', 1, 6))
+                new Token(Token::T_EOF, '', new SourceLocation('string', 1, 6), new SourceLocation('string', 1, 6)),
             ],
             $this->lex('"test"')
         );
@@ -118,7 +118,7 @@ final class LexerTest extends TestCase
         $this->assertEquals(
             [
                 new Token(Token::T_STRING, '"te\\"st"', new SourceLocation('string', 1, 0), new SourceLocation('string', 1, 8)),
-                new Token(Token::T_EOF, '', new SourceLocation('string', 1, 8), new SourceLocation('string', 1, 8))
+                new Token(Token::T_EOF, '', new SourceLocation('string', 1, 8), new SourceLocation('string', 1, 8)),
             ],
             $this->lex('"te\\"st"')
         );
@@ -133,7 +133,7 @@ final class LexerTest extends TestCase
                 new Token(Token::T_WHITESPACE, ' ', new SourceLocation('string', 1, 5), new SourceLocation('string', 1, 6)),
                 new Token(Token::T_ATOM, 'false', new SourceLocation('string', 1, 6), new SourceLocation('string', 1, 11)),
                 new Token(Token::T_CLOSE_BRACKET, ']', new SourceLocation('string', 1, 11), new SourceLocation('string', 1, 12)),
-                new Token(Token::T_EOF, '', new SourceLocation('string', 1, 12), new SourceLocation('string', 1, 12))
+                new Token(Token::T_EOF, '', new SourceLocation('string', 1, 12), new SourceLocation('string', 1, 12)),
             ],
             $this->lex('[true false]')
         );
