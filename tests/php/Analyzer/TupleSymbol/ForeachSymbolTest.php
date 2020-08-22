@@ -11,6 +11,7 @@ use Phel\Ast\ForeachNode;
 use Phel\Exceptions\PhelCodeException;
 use Phel\GlobalEnvironment;
 use Phel\Lang\Symbol;
+use Phel\Lang\Table;
 use Phel\Lang\Tuple;
 use Phel\NodeEnvironment;
 use PHPUnit\Framework\TestCase;
@@ -21,7 +22,10 @@ final class ForeachSymbolTest extends TestCase
 
     public function setUp(): void
     {
-        $this->analyzer = new Analyzer(new GlobalEnvironment());
+        $env = new GlobalEnvironment();
+        $env->addDefinition('phel\\core', Symbol::create('first'), new Table());
+        $env->addDefinition('phel\\core', Symbol::create('next'), new Table());
+        $this->analyzer = new Analyzer($env);
     }
 
     public function testRequiresAtLeastTwoArg(): void
@@ -100,6 +104,22 @@ final class ForeachSymbolTest extends TestCase
             ),
             'error' => true,
         ];
+    }
+
+    public function testValueSymbolFromTupleWith2Args(): void
+    {
+        // WIP: Failing test...
+        $mainTuple = Tuple::create(
+            Symbol::create(Symbol::NAME_FOREACH),
+            Tuple::create(
+                Symbol::create(''),
+                Tuple::create(Symbol::create('any'), '', '')
+            ),
+            Tuple::create()
+        );
+
+        $node = $this->analyze($mainTuple);
+        self::assertEquals(Symbol::create('any'), $node->getValueSymbol());
     }
 
     private function analyze(Tuple $tuple): ForeachNode
