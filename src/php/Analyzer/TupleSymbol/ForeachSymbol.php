@@ -18,21 +18,10 @@ final class ForeachSymbol implements TupleSymbolAnalyzer
 
     public function analyze(Tuple $tuple, NodeEnvironment $env): ForeachNode
     {
-        $tupleCount = count($tuple);
-        if ($tupleCount < 2) {
-            throw AnalyzerException::withLocation("At least two arguments are required for 'foreach", $tuple);
-        }
+        $this->verifyArguments($tuple);
 
+        /** @var Tuple $foreachTuple */
         $foreachTuple = $tuple[1];
-        if (!($foreachTuple instanceof Tuple)) {
-            throw AnalyzerException::withLocation("First argument of 'foreach must be a tuple.", $tuple);
-        }
-
-        $firstArgCount = count($foreachTuple);
-        if ($firstArgCount !== 2 && $firstArgCount !== 3) {
-            throw AnalyzerException::withLocation("Tuple of 'foreach must have exactly two or three elements.", $tuple);
-        }
-
         $foreachSymbolTuple = $this->buildForeachSymbolTuple($foreachTuple, $env);
 
         $bodyExpr = $this->analyzer->analyze(
@@ -48,6 +37,23 @@ final class ForeachSymbol implements TupleSymbolAnalyzer
             $foreachSymbolTuple->keySymbol(),
             $tuple->getStartLocation()
         );
+    }
+
+    private function verifyArguments(Tuple $tuple): void
+    {
+        if (count($tuple) < 2) {
+            throw AnalyzerException::withLocation("At least two arguments are required for 'foreach", $tuple);
+        }
+
+        $foreachTuple = $tuple[1];
+        if (!($foreachTuple instanceof Tuple)) {
+            throw AnalyzerException::withLocation("First argument of 'foreach must be a tuple.", $tuple);
+        }
+
+        $firstArgCount = count($foreachTuple);
+        if ($firstArgCount !== 2 && $firstArgCount !== 3) {
+            throw AnalyzerException::withLocation("Tuple of 'foreach must have exactly two or three elements.", $tuple);
+        }
     }
 
     private function buildForeachSymbolTuple(Tuple $foreachTuple, NodeEnvironment $env): ForeachSymbolTuple
