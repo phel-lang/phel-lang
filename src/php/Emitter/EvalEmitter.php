@@ -13,6 +13,8 @@ final class EvalEmitter
      * Evaluates the code and returns the evaluated value.
      *
      * @return mixed
+     *
+     * @throws RuntimeException|Throwable
      */
     public function eval(string $code)
     {
