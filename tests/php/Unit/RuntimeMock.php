@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace PhelTest;
+namespace PhelTest\Unit;
 
 use Phel\GlobalEnvironment;
 use Phel\Runtime;
