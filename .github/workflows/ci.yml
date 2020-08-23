@@ -70,7 +70,7 @@ jobs:
       - name: Run unit tests to the compiler itself
         run: vendor/bin/phpunit --testsuite unit
 
-      - name: Run integratino tests to the compiler itself
+      - name: Run integration tests to the compiler itself
         run: vendor/bin/phpunit --testsuite integration
 
       - name: Run tests to the core library
