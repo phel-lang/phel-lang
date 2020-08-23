@@ -65,10 +65,10 @@ final class ApplyEmitterTest extends TestCase
     {
         $fnNode = new FnNode(
             NodeEnvironment::empty(),
-            [Symbol::create('&'), Symbol::create('x')],
+            [Symbol::create('x')],
             new PhpVarNode(NodeEnvironment::empty(), 'x'),
             [],
-            false,
+            true,
             false
         );
 
@@ -84,7 +84,8 @@ final class ApplyEmitterTest extends TestCase
         $this->expectOutputString('(new class() extends \Phel\Lang\AFn {
   public const BOUND_TO = "";
 
-  public function __invoke($_AMPERSAND_, $x) {
+  public function __invoke(...$x) {
+    $x = new \Phel\Lang\PhelArray($x);
     x;
   }
 };)(...((\Phel\Lang\Tuple::createBracket();) ?? []));');
