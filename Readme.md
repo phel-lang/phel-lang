@@ -39,10 +39,23 @@ composer test-all
 
 Phel has two test suites. The first test suite runs PHPUnit to test the compiler itself. The second test suite runs tests against Phel's core library.
 
+These are the composer scripts that might help you to run the all test suites:
+
 ```bash
-composer test-compiler # test the compiler.
+composer psalm         # Run Psalm
+> vendor/bin/psalm
+
+composer test-compiler # test the compiler
+> vendor/bin/phpunit --testsuite unit
+> vendor/bin/phpunit --testsuite integration
+
 composer test-core     # test core library
-composer test-all      # runs both script after each other
+> ./phel test
+
+composer test-all      # psalm, compiler & core tests after each other
+> composer psalm
+> composer test-compiler
+> composer test-core
 ```
 
 ### Build the documentation
