@@ -5,14 +5,13 @@ declare(strict_types=1);
 namespace PhelTest\Emitter\OutputEmitter\NodeEmitter;
 
 use Phel\Ast\ApplyNode;
-use Phel\Ast\DefNode;
+use Phel\Ast\FnNode;
 use Phel\Ast\LiteralNode;
 use Phel\Ast\PhpVarNode;
 use Phel\Ast\TupleNode;
 use Phel\Emitter\OutputEmitter;
 use Phel\Emitter\OutputEmitter\NodeEmitter\ApplyEmitter;
 use Phel\Lang\Symbol;
-use Phel\Lang\Table;
 use Phel\NodeEnvironment;
 use PHPUnit\Framework\TestCase;
 
@@ -38,8 +37,8 @@ final class ApplyEmitterTest extends TestCase
             ]),
         ];
 
-        $arrayNode = new ApplyNode(NodeEnvironment::empty(), $node, $args);
-        $this->applyEmitter->emit($arrayNode);
+        $applyNode = new ApplyNode(NodeEnvironment::empty(), $node, $args);
+        $this->applyEmitter->emit($applyNode);
 
         $this->expectOutputString(
             'array_reduce([...((\Phel\Lang\Tuple::createBracket(, , );) ?? [])], function($a, $b) { return ($a + $b); });'
@@ -52,36 +51,42 @@ final class ApplyEmitterTest extends TestCase
         $args = [
             new LiteralNode(NodeEnvironment::empty(), 'abc'),
             new TupleNode(NodeEnvironment::empty(), [
-                new LiteralNode(NodeEnvironment::empty(), 'def')
+                new LiteralNode(NodeEnvironment::empty(), 'def'),
             ]),
         ];
 
-        $arrayNode = new ApplyNode(NodeEnvironment::empty(), $node, $args);
-        $this->applyEmitter->emit($arrayNode);
+        $applyNode = new ApplyNode(NodeEnvironment::empty(), $node, $args);
+        $this->applyEmitter->emit($applyNode);
 
         $this->expectOutputString('str(, ...((\Phel\Lang\Tuple::createBracket();) ?? []));');
     }
 
     public function testNoPhpVarNode(): void
     {
-        $defNode = new DefNode(
+        $fnNode = new FnNode(
             NodeEnvironment::empty(),
-            'user',
-            Symbol::create('foo'),
-            Table::empty(),
-            new PhpVarNode(NodeEnvironment::empty(), 'println')
+            [Symbol::create('&'), Symbol::create('x')],
+            new PhpVarNode(NodeEnvironment::empty(), 'x'),
+            [],
+            false,
+            false
         );
 
         $args = [
             new TupleNode(NodeEnvironment::empty(), [
-                new LiteralNode(NodeEnvironment::empty(), true),
+                new LiteralNode(NodeEnvironment::empty(), 1),
             ]),
         ];
 
-        $arrayNode = new ApplyNode(NodeEnvironment::empty(), $defNode, $args);
-        $this->applyEmitter->emit($arrayNode);
+        $applyNode = new ApplyNode(NodeEnvironment::empty(), $fnNode, $args);
+        $this->applyEmitter->emit($applyNode);
 
-        $this->expectOutputString('($GLOBALS["__phel"]["user"]["foo"] = println;;
-)(...((\Phel\Lang\Tuple::createBracket();) ?? []));');
+        $this->expectOutputString('(new class() extends \Phel\Lang\AFn {
+  public const BOUND_TO = "";
+
+  public function __invoke($_AMPERSAND_, $x) {
+    x;
+  }
+};)(...((\Phel\Lang\Tuple::createBracket();) ?? []));');
     }
 }
