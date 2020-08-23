@@ -59,13 +59,15 @@ final class ApplyEmitterTest extends TestCase
         $node = new PhpVarNode(NodeEnvironment::empty(), 'str');
         $args = [
             new LiteralNode(NodeEnvironment::empty(), 'abc'),
-            new LiteralNode(NodeEnvironment::empty(), 'def'),
+            new TupleNode(NodeEnvironment::empty(), [
+                new LiteralNode(NodeEnvironment::empty(), 'def')
+            ]),
         ];
 
         $arrayNode = new ApplyNode(NodeEnvironment::empty(), $node, $args);
         $this->applyEmitter->emit($arrayNode);
 
-        $this->expectOutputString('str(, ...(() ?? []));');
+        $this->expectOutputString('str(, ...((\Phel\Lang\Tuple::createBracket();) ?? []));');
     }
 
     public function testNoPhpVarNode(): void
