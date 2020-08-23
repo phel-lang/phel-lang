@@ -10,10 +10,7 @@ use Phel\Ast\LiteralNode;
 use Phel\Ast\PhpVarNode;
 use Phel\Ast\TupleNode;
 use Phel\Emitter\OutputEmitter;
-use Phel\Emitter\OutputEmitter\Munge;
 use Phel\Emitter\OutputEmitter\NodeEmitter\ApplyEmitter;
-use Phel\Emitter\OutputEmitter\NodeEmitterFactory;
-use Phel\Emitter\OutputEmitter\SourceMap\SourceMapGenerator;
 use Phel\Lang\Symbol;
 use Phel\Lang\Table;
 use Phel\NodeEnvironment;
@@ -26,12 +23,7 @@ final class ApplyEmitterTest extends TestCase
     public function setUp(): void
     {
         $this->applyEmitter = new ApplyEmitter(
-            new OutputEmitter(
-                $enableSourceMaps = true,
-                new SourceMapGenerator(),
-                new NodeEmitterFactory(),
-                new Munge()
-            )
+            OutputEmitter::createWithSourceMap()
         );
     }
 
