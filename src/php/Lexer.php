@@ -28,7 +28,7 @@ final class Lexer
         "(@\{)", // table (index: 16)
         "(\|\()", // short fn (index: 17)
         '("(?:[^"\\\\]++|\\\\.)*+")', // String (index: 18)
-        "([^\(\)\[\]\{\}',`@ \n\r\t\#]+)" // Atom (index: 19)
+        "([^\(\)\[\]\{\}',`@ \n\r\t\#]+)", // Atom (index: 19)
     ];
 
     private int $cursor = 0;

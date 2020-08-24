@@ -41,7 +41,7 @@ final class SourceMapGenerator
                 $mapping['generated']['column'] - $previousGeneratedColumn,
                 0,
                 $mapping['original']['line'] - $previousOriginalLine,
-                $mapping['original']['column'] - $previousOriginalColumn
+                $mapping['original']['column'] - $previousOriginalColumn,
             ]);
 
             $previousGeneratedColumn = $mapping['generated']['column'];

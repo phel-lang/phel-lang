@@ -84,14 +84,14 @@ final class ReaderTest extends TestCase
         );
         self::assertEquals(
             $this->loc(new Tuple([
-                $this->loc(new Tuple([], false), 1, 1, 1, 3)
+                $this->loc(new Tuple([], false), 1, 1, 1, 3),
             ], false), 1, 0, 1, 4),
             $this->read('(())')
         );
 
         self::assertEquals(
             $this->loc(new Tuple([
-                $this->loc(Symbol::create('a'), 1, 1, 1, 2)
+                $this->loc(Symbol::create('a'), 1, 1, 1, 2),
             ], false), 1, 0, 1, 3),
             $this->read('(a)')
         );
@@ -99,7 +99,7 @@ final class ReaderTest extends TestCase
         self::assertEquals(
             $this->loc(new Tuple([
                 $this->loc(Symbol::create('a'), 1, 1, 1, 2),
-                $this->loc(Symbol::create('b'), 1, 3, 1, 4)
+                $this->loc(Symbol::create('b'), 1, 3, 1, 4),
             ], false), 1, 0, 1, 5),
             $this->read('(a b)')
         );
@@ -113,14 +113,14 @@ final class ReaderTest extends TestCase
         );
         self::assertEquals(
             $this->loc(new Tuple([
-                $this->loc(new Tuple([], true), 1, 1, 1, 3)
+                $this->loc(new Tuple([], true), 1, 1, 1, 3),
             ], true), 1, 0, 1, 4),
             $this->read('[[]]')
         );
 
         self::assertEquals(
             $this->loc(new Tuple([
-                $this->loc(Symbol::create('a'), 1, 1, 1, 2)
+                $this->loc(Symbol::create('a'), 1, 1, 1, 2),
             ], true), 1, 0, 1, 3),
             $this->read('[a]')
         );
@@ -128,7 +128,7 @@ final class ReaderTest extends TestCase
         self::assertEquals(
             $this->loc(new Tuple([
                 $this->loc(Symbol::create('a'), 1, 1, 1, 2),
-                $this->loc(Symbol::create('b'), 1, 3, 1, 4)
+                $this->loc(Symbol::create('b'), 1, 3, 1, 4),
             ], true), 1, 0, 1, 5),
             $this->read('[a b]')
         );
@@ -150,7 +150,7 @@ final class ReaderTest extends TestCase
         self::assertEquals(
             $this->loc(new Tuple([
                 Symbol::create(Symbol::NAME_UNQUOTE),
-                $this->loc(Symbol::create('a'), 1, 1, 1, 2)
+                $this->loc(Symbol::create('a'), 1, 1, 1, 2),
             ]), 1, 0, 1, 2),
             $this->read(',a')
         );
@@ -161,7 +161,7 @@ final class ReaderTest extends TestCase
         self::assertEquals(
             $this->loc(new Tuple([
                 Symbol::create(Symbol::NAME_UNQUOTE_SPLICING),
-                $this->loc(Symbol::create('a'), 1, 2, 1, 3)
+                $this->loc(Symbol::create('a'), 1, 2, 1, 3),
             ]), 1, 0, 1, 3),
             $this->read(',@a')
         );
@@ -172,7 +172,7 @@ final class ReaderTest extends TestCase
         self::assertEquals(
             $this->loc(new Tuple([
                 $this->loc(Symbol::create(Symbol::NAME_QUOTE), 1, 1, 1, 8),
-                $this->loc(Symbol::create(Symbol::NAME_UNQUOTE), 1, 1, 1, 8)
+                $this->loc(Symbol::create(Symbol::NAME_UNQUOTE), 1, 1, 1, 8),
             ]), 1, 0, 1, 8),
             $this->read(sprintf('`%s', Symbol::NAME_UNQUOTE))
         );
@@ -183,7 +183,7 @@ final class ReaderTest extends TestCase
         self::assertEquals(
             $this->loc(new Tuple([
                 $this->loc(Symbol::create(Symbol::NAME_QUOTE), 1, 1, 1, 2),
-                $this->loc(Symbol::create('a'), 1, 1, 1, 2)
+                $this->loc(Symbol::create('a'), 1, 1, 1, 2),
             ]), 1, 0, 1, 2),
             $this->read('`a')
         );

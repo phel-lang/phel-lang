@@ -12,7 +12,7 @@ Sequential data structures can be extract using the tuple syntax.
   (+ a b)) # Evaluates to 3
 
 (let [[a [b c]] [1 [2 3]]]
-  (+ a b c)) # Evaluates to 4
+  (+ a b c)) # Evaluates to 6
 
 (let [[a _ b] [1 2 3]]
   (+ a b)) # Evaluates to 4

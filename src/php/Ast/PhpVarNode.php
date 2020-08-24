@@ -33,7 +33,7 @@ final class PhpVarNode extends Node
         '**',
         '^',
         '<<',
-        '>>'
+        '>>',
     ];
 
     public const CALLABLE_KEYWORDS = [
@@ -42,7 +42,7 @@ final class PhpVarNode extends Node
         'empty',
         'echo',
         'print',
-        'isset'
+        'isset',
     ];
 
     private string $name;
