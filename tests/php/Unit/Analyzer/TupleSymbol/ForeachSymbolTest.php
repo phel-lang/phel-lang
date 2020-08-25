@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace PhelTest\Analyzer\TupleSymbol;
+namespace PhelTest\Unit\Analyzer\TupleSymbol;
 
 use Generator;
 use Phel\Analyzer;
@@ -11,7 +11,6 @@ use Phel\Ast\ForeachNode;
 use Phel\Exceptions\PhelCodeException;
 use Phel\GlobalEnvironment;
 use Phel\Lang\Symbol;
-use Phel\Lang\Table;
 use Phel\Lang\Tuple;
 use Phel\NodeEnvironment;
 use PHPUnit\Framework\TestCase;
@@ -22,10 +21,7 @@ final class ForeachSymbolTest extends TestCase
 
     public function setUp(): void
     {
-        $env = new GlobalEnvironment();
-        $env->addDefinition('phel\\core', Symbol::create('first'), new Table());
-        $env->addDefinition('phel\\core', Symbol::create('next'), new Table());
-        $this->analyzer = new Analyzer($env);
+        $this->analyzer = new Analyzer(new GlobalEnvironment());
     }
 
     public function testRequiresAtLeastTwoArg(): void
@@ -80,11 +76,11 @@ final class ForeachSymbolTest extends TestCase
             'error' => true,
         ];
 
-        yield '(foreach (()))' => [
+        yield '(foreach [x []])' => [
             'mainTuple' => Tuple::create(
                 Symbol::create(Symbol::NAME_FOREACH),
-                Tuple::create(
-                    Symbol::create(''),
+                Tuple::createBracket(
+                    Symbol::create('x'),
                     Tuple::create()
                 ),
                 Tuple::create()
@@ -108,18 +104,35 @@ final class ForeachSymbolTest extends TestCase
 
     public function testValueSymbolFromTupleWith2Args(): void
     {
-        // WIP: Failing test...
+        // (foreach [x []])
         $mainTuple = Tuple::create(
             Symbol::create(Symbol::NAME_FOREACH),
-            Tuple::create(
-                Symbol::create(''),
-                Tuple::create(Symbol::create('any'), '', '')
+            Tuple::createBracket(
+                Symbol::create('x'),
+                Tuple::create()
             ),
             Tuple::create()
         );
 
         $node = $this->analyze($mainTuple);
-        self::assertEquals(Symbol::create('any'), $node->getValueSymbol());
+        self::assertEquals(Symbol::create('x'), $node->getValueSymbol());
+    }
+
+    public function testValueSymbolFromTupleWith3Args(): void
+    {
+        // (foreach [key value {}])
+        $mainTuple = Tuple::create(
+            Symbol::create(Symbol::NAME_FOREACH),
+            Tuple::createBracket(
+                Symbol::create('key'),
+                Symbol::create('value'),
+                Tuple::createBracket()
+            ),
+            Tuple::create()
+        );
+
+        $node = $this->analyze($mainTuple);
+        self::assertEquals(Symbol::create('value'), $node->getValueSymbol());
     }
 
     private function analyze(Tuple $tuple): ForeachNode
