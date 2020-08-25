@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace PhelTest\Commands;
+namespace PhelTest\Integration\Commands;
 
 use Phel\Commands\TestCommand;
 use Phel\Runtime;

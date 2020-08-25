@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace PhelTest\Commands\Repl;
+namespace PhelTest\Integration\Commands\Repl;
 
 use Phel\Commands\Repl\Readline;
 use PHPUnit\Framework\TestCase;

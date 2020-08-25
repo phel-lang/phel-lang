@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace PhelTest\Analyzer\TupleSymbol;
+namespace PhelTest\Unit\Analyzer\TupleSymbol;
 
 use Phel\Analyzer;
 use Phel\Analyzer\TupleSymbol\DoSymbol;
