@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace PhelTest;
+namespace PhelTest\Unit;
 
 use PHPUnit\Framework\TestCase;
 
@@ -31,13 +31,13 @@ final class RuntimeTest extends TestCase
     public function testExistingFile(): void
     {
         $this->runtime->loadNs('Foo\Bar\Core');
-        $this->assertEquals(
+        self::assertEquals(
             '/vendor/foo.bar/src/Core.phel',
             $this->runtime->loadedFile
         );
 
         $this->runtime->loadNs('Foo\Bar\Test');
-        $this->assertEquals(
+        self::assertEquals(
             '/vendor/foo.bar/tests/Test.phel',
             $this->runtime->loadedFile
         );
@@ -45,13 +45,13 @@ final class RuntimeTest extends TestCase
 
     public function testMissing(): void
     {
-        $this->assertFalse($this->runtime->loadNs('No_Vendor\No_Package\NoClass'));
+        self::assertFalse($this->runtime->loadNs('No_Vendor\No_Package\NoClass'));
     }
 
     public function testDeepFile(): void
     {
         $this->runtime->loadNs('Foo\Bar\Baz\Dib\Zim\Gir\Core');
-        $this->assertEquals(
+        self::assertEquals(
             '/vendor/foo.bar.baz.dib.zim.gir/src/Core.phel',
             $this->runtime->loadedFile
         );
@@ -60,13 +60,13 @@ final class RuntimeTest extends TestCase
     public function testConfusion(): void
     {
         $this->runtime->loadNs('Foo\Bar\Doom');
-        $this->assertEquals(
+        self::assertEquals(
             '/vendor/foo.bar/src/Doom.phel',
             $this->runtime->loadedFile
         );
 
         $this->runtime->loadNs('Foo\BarDoom\Core');
-        $this->assertEquals(
+        self::assertEquals(
             '/vendor/foo.bardoom/src/Core.phel',
             $this->runtime->loadedFile
         );

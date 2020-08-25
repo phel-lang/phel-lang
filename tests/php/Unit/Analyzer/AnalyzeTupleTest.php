@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace PhelTest\Analyzer;
+namespace PhelTest\Unit\Analyzer;
 
 use Phel\Analyzer;
 use Phel\Analyzer\AnalyzeTuple;

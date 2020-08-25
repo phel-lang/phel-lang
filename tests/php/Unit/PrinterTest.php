@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace PhelTest;
+namespace PhelTest\Unit;
 
 use Phel\GlobalEnvironment;
 use Phel\Lexer;
@@ -14,7 +14,7 @@ final class PrinterTest extends TestCase
 {
     public function testPrintString(): void
     {
-        $this->assertEquals(
+        self::assertEquals(
             '"test"',
             $this->print('test')
         );
@@ -22,7 +22,7 @@ final class PrinterTest extends TestCase
 
     public function testPrintEscapedStringChars(): void
     {
-        $this->assertEquals(
+        self::assertEquals(
             '"\n\r\t\v\f\e\"\$\\\\"',
             $this->print("\n\r\t\v\f\e\"\$\\")
         );
@@ -30,7 +30,7 @@ final class PrinterTest extends TestCase
 
     public function testPrintDollarSignEscapedStringChars(): void
     {
-        $this->assertEquals(
+        self::assertEquals(
             '"\$ \$abc"',
             $this->print($this->read('"$ $abc"'))
         );
@@ -38,7 +38,7 @@ final class PrinterTest extends TestCase
 
     public function testPrintEscapedHexdecimalChars(): void
     {
-        $this->assertEquals(
+        self::assertEquals(
             '"\x07"',
             $this->print("\x07")
         );
@@ -46,7 +46,7 @@ final class PrinterTest extends TestCase
 
     public function testPrintEscapedUnicodeChars(): void
     {
-        $this->assertEquals(
+        self::assertEquals(
             '"\u{1000}"',
             $this->print("\u{1000}")
         );
@@ -54,7 +54,7 @@ final class PrinterTest extends TestCase
 
     public function testPrintZero(): void
     {
-        $this->assertEquals(
+        self::assertEquals(
             '0',
             $this->print(0)
         );
