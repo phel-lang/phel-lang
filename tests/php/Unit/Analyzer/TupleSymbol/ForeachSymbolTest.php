@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace PhelTest\Unit\Analyzer\TupleSymbol;
 
-use Generator;
 use Phel\Analyzer;
 use Phel\Analyzer\TupleSymbol\ForeachSymbol;
 use Phel\Ast\ForeachNode;
@@ -17,13 +16,6 @@ use PHPUnit\Framework\TestCase;
 
 final class ForeachSymbolTest extends TestCase
 {
-    private Analyzer $analyzer;
-
-    public function setUp(): void
-    {
-        $this->analyzer = new Analyzer(new GlobalEnvironment());
-    }
-
     public function testRequiresAtLeastTwoArg(): void
     {
         $this->expectException(PhelCodeException::class);
@@ -42,64 +34,29 @@ final class ForeachSymbolTest extends TestCase
         $this->expectException(PhelCodeException::class);
         $this->expectExceptionMessage("First argument of 'foreach must be a tuple.");
 
-        // This is the same as: (foreach anything)
+        // This is the same as: (foreach x)
         $mainTuple = Tuple::create(
             Symbol::create(Symbol::NAME_FOREACH),
-            Symbol::create('anything')
+            Symbol::create('x')
         );
 
         $this->analyze($mainTuple);
     }
 
-    /** @dataProvider providerNumberOfTupleArgs */
-    public function testNumberOfTupleArgs(Tuple $mainTuple, bool $error): void
+    public function testArgForTupleCanNotBe1(): void
     {
-        if ($error) {
-            $this->expectException(PhelCodeException::class);
-            $this->expectExceptionMessage("Tuple of 'foreach must have exactly two or three elements.");
-        } else {
-            self::assertTrue(true); // In order to have an assertion without an error
-        }
+        $this->expectException(PhelCodeException::class);
+        $this->expectExceptionMessage("Tuple of 'foreach must have exactly two or three elements.");
+
+        // (foreach [x])
+        $mainTuple = Tuple::create(
+            Symbol::create(Symbol::NAME_FOREACH),
+            Tuple::createBracket(
+                Symbol::create('x')
+            )
+        );
 
         $this->analyze($mainTuple);
-    }
-
-    public function providerNumberOfTupleArgs(): Generator
-    {
-        yield '(foreach (x) x)' => [
-            'mainTuple' => Tuple::create(
-                Symbol::create(Symbol::NAME_FOREACH),
-                Tuple::create(
-                    Symbol::create('x')
-                )
-            ),
-            'error' => true,
-        ];
-
-        yield '(foreach [x []])' => [
-            'mainTuple' => Tuple::create(
-                Symbol::create(Symbol::NAME_FOREACH),
-                Tuple::createBracket(
-                    Symbol::create('x'),
-                    Tuple::create()
-                ),
-                Tuple::create()
-            ),
-            'error' => false,
-        ];
-
-        yield  '(foreach (w x y z))' => [
-            'mainTuple' => Tuple::create(
-                Symbol::create(Symbol::NAME_FOREACH),
-                Tuple::create(
-                    Symbol::create('w'),
-                    Symbol::create('x'),
-                    Symbol::create('y'),
-                    Symbol::create('z'),
-                )
-            ),
-            'error' => true,
-        ];
     }
 
     public function testValueSymbolFromTupleWith2Args(): void
@@ -109,7 +66,7 @@ final class ForeachSymbolTest extends TestCase
             Symbol::create(Symbol::NAME_FOREACH),
             Tuple::createBracket(
                 Symbol::create('x'),
-                Tuple::create()
+                Tuple::createBracket()
             ),
             Tuple::create()
         );
@@ -135,8 +92,29 @@ final class ForeachSymbolTest extends TestCase
         self::assertEquals(Symbol::create('value'), $node->getValueSymbol());
     }
 
+    public function testArgForTupleCanNotBe4(): void
+    {
+        $this->expectException(PhelCodeException::class);
+        $this->expectExceptionMessage("Tuple of 'foreach must have exactly two or three elements.");
+
+        // (foreach [x y z {}])
+        $mainTuple = Tuple::create(
+            Symbol::create(Symbol::NAME_FOREACH),
+            Tuple::create(
+                Symbol::create('x'),
+                Symbol::create('y'),
+                Symbol::create('z'),
+                Tuple::createBracket(),
+            )
+        );
+
+        $this->analyze($mainTuple);
+    }
+
     private function analyze(Tuple $tuple): ForeachNode
     {
-        return (new ForeachSymbol($this->analyzer))->analyze($tuple, NodeEnvironment::empty());
+        $analyzer = new Analyzer(new GlobalEnvironment());
+
+        return (new ForeachSymbol($analyzer))->analyze($tuple, NodeEnvironment::empty());
     }
 }
