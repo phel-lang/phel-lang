@@ -10,6 +10,7 @@ use Phel\Ast\ForeachNode;
 use Phel\Exceptions\PhelCodeException;
 use Phel\GlobalEnvironment;
 use Phel\Lang\Symbol;
+use Phel\Lang\Table;
 use Phel\Lang\Tuple;
 use Phel\NodeEnvironment;
 use PHPUnit\Framework\TestCase;
@@ -21,7 +22,7 @@ final class ForeachSymbolTest extends TestCase
         $this->expectException(PhelCodeException::class);
         $this->expectExceptionMessage("At least two arguments are required for 'foreach");
 
-        // This is the same as: (foreach)
+        // (foreach)
         $tuple = Tuple::create(
             Symbol::create(Symbol::NAME_FOREACH)
         );
@@ -34,7 +35,7 @@ final class ForeachSymbolTest extends TestCase
         $this->expectException(PhelCodeException::class);
         $this->expectExceptionMessage("First argument of 'foreach must be a tuple.");
 
-        // This is the same as: (foreach x)
+        // (foreach x)
         $mainTuple = Tuple::create(
             Symbol::create(Symbol::NAME_FOREACH),
             Symbol::create('x')
@@ -77,13 +78,13 @@ final class ForeachSymbolTest extends TestCase
 
     public function testValueSymbolFromTupleWith3Args(): void
     {
-        // (foreach [key value {}])
+        // (foreach [key value @{}])
         $mainTuple = Tuple::create(
             Symbol::create(Symbol::NAME_FOREACH),
             Tuple::createBracket(
                 Symbol::create('key'),
                 Symbol::create('value'),
-                Tuple::createBracket()
+                Table::empty()
             ),
             Tuple::create()
         );
@@ -97,14 +98,14 @@ final class ForeachSymbolTest extends TestCase
         $this->expectException(PhelCodeException::class);
         $this->expectExceptionMessage("Tuple of 'foreach must have exactly two or three elements.");
 
-        // (foreach [x y z {}])
+        // (foreach [x y z @{}])
         $mainTuple = Tuple::create(
             Symbol::create(Symbol::NAME_FOREACH),
             Tuple::create(
                 Symbol::create('x'),
                 Symbol::create('y'),
                 Symbol::create('z'),
-                Tuple::createBracket(),
+                Table::empty()
             )
         );
 
