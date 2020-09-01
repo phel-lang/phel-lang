@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace PhelTest;
+namespace PhelTest\Unit;
 
 use Phel\Exceptions\ReaderException;
 use Phel\GlobalEnvironment;
@@ -26,30 +26,30 @@ final class ReaderTest extends TestCase
 {
     public function testReadNumber(): void
     {
-        $this->assertEquals(1, $this->read('1'));
-        $this->assertEquals(10, $this->read('10'));
-        $this->assertEquals(100, $this->read('100'));
-        $this->assertEquals(10.0, $this->read('10.0'));
-        $this->assertEquals(1.1, $this->read('1.1'));
-        $this->assertEquals(10.11, $this->read('10.11'));
-        $this->assertEquals(1337, $this->read('0x539'));
-        $this->assertEquals(1337, $this->read('0x5_3_9'));
-        $this->assertEquals(1337, $this->read('02471'));
-        $this->assertEquals(1337, $this->read('024_71'));
-        $this->assertEquals(1337, $this->read('0b10100111001'));
-        $this->assertEquals(1337, $this->read('0b0101_0011_1001'));
-        $this->assertEquals(1337, $this->read('1337e0'));
-        $this->assertEquals(-1337, $this->read('-1337'));
-        $this->assertEquals(-1337.0, $this->read('-1337.0'));
-        $this->assertEquals(1337, $this->read('+1337'));
-        $this->assertEquals(1337, $this->read('+1337.0'));
-        $this->assertEquals(1.2e3, $this->read('1.2e3'));
-        $this->assertEquals(7E-10, $this->read('7E-10'));
+        self::assertEquals(1, $this->read('1'));
+        self::assertEquals(10, $this->read('10'));
+        self::assertEquals(100, $this->read('100'));
+        self::assertEquals(10.0, $this->read('10.0'));
+        self::assertEquals(1.1, $this->read('1.1'));
+        self::assertEquals(10.11, $this->read('10.11'));
+        self::assertEquals(1337, $this->read('0x539'));
+        self::assertEquals(1337, $this->read('0x5_3_9'));
+        self::assertEquals(1337, $this->read('02471'));
+        self::assertEquals(1337, $this->read('024_71'));
+        self::assertEquals(1337, $this->read('0b10100111001'));
+        self::assertEquals(1337, $this->read('0b0101_0011_1001'));
+        self::assertEquals(1337, $this->read('1337e0'));
+        self::assertEquals(-1337, $this->read('-1337'));
+        self::assertEquals(-1337.0, $this->read('-1337.0'));
+        self::assertEquals(1337, $this->read('+1337'));
+        self::assertEquals(1337, $this->read('+1337.0'));
+        self::assertEquals(1.2e3, $this->read('1.2e3'));
+        self::assertEquals(7E-10, $this->read('7E-10'));
     }
 
     public function testReadKeyword(): void
     {
-        $this->assertEquals(
+        self::assertEquals(
             $this->loc(new Keyword('test'), 1, 0, 1, 5),
             $this->read(':test')
         );
@@ -57,8 +57,8 @@ final class ReaderTest extends TestCase
 
     public function testReadBoolean(): void
     {
-        $this->assertEquals(true, $this->read('true'));
-        $this->assertEquals(false, $this->read('false'));
+        self::assertEquals(true, $this->read('true'));
+        self::assertEquals(false, $this->read('false'));
     }
 
     public function testReadNil(): void
@@ -70,7 +70,7 @@ final class ReaderTest extends TestCase
 
     public function testReadSymbol(): void
     {
-        $this->assertEquals(
+        self::assertEquals(
             $this->loc(Symbol::create('test'), 1, 0, 1, 4),
             $this->read('test')
         );
@@ -78,28 +78,28 @@ final class ReaderTest extends TestCase
 
     public function testReadList(): void
     {
-        $this->assertEquals(
+        self::assertEquals(
             $this->loc(new Tuple([], false), 1, 0, 1, 2),
             $this->read('()')
         );
-        $this->assertEquals(
+        self::assertEquals(
             $this->loc(new Tuple([
-                $this->loc(new Tuple([], false), 1, 1, 1, 3)
+                $this->loc(new Tuple([], false), 1, 1, 1, 3),
             ], false), 1, 0, 1, 4),
             $this->read('(())')
         );
 
-        $this->assertEquals(
+        self::assertEquals(
             $this->loc(new Tuple([
-                $this->loc(Symbol::create('a'), 1, 1, 1, 2)
+                $this->loc(Symbol::create('a'), 1, 1, 1, 2),
             ], false), 1, 0, 1, 3),
             $this->read('(a)')
         );
 
-        $this->assertEquals(
+        self::assertEquals(
             $this->loc(new Tuple([
                 $this->loc(Symbol::create('a'), 1, 1, 1, 2),
-                $this->loc(Symbol::create('b'), 1, 3, 1, 4)
+                $this->loc(Symbol::create('b'), 1, 3, 1, 4),
             ], false), 1, 0, 1, 5),
             $this->read('(a b)')
         );
@@ -107,28 +107,28 @@ final class ReaderTest extends TestCase
 
     public function testRdlistBracket(): void
     {
-        $this->assertEquals(
+        self::assertEquals(
             $this->loc(new Tuple([], true), 1, 0, 1, 2),
             $this->read('[]')
         );
-        $this->assertEquals(
+        self::assertEquals(
             $this->loc(new Tuple([
-                $this->loc(new Tuple([], true), 1, 1, 1, 3)
+                $this->loc(new Tuple([], true), 1, 1, 1, 3),
             ], true), 1, 0, 1, 4),
             $this->read('[[]]')
         );
 
-        $this->assertEquals(
+        self::assertEquals(
             $this->loc(new Tuple([
-                $this->loc(Symbol::create('a'), 1, 1, 1, 2)
+                $this->loc(Symbol::create('a'), 1, 1, 1, 2),
             ], true), 1, 0, 1, 3),
             $this->read('[a]')
         );
 
-        $this->assertEquals(
+        self::assertEquals(
             $this->loc(new Tuple([
                 $this->loc(Symbol::create('a'), 1, 1, 1, 2),
-                $this->loc(Symbol::create('b'), 1, 3, 1, 4)
+                $this->loc(Symbol::create('b'), 1, 3, 1, 4),
             ], true), 1, 0, 1, 5),
             $this->read('[a b]')
         );
@@ -136,7 +136,7 @@ final class ReaderTest extends TestCase
 
     public function testQuote(): void
     {
-        $this->assertEquals(
+        self::assertEquals(
             $this->loc(new Tuple([
                 Symbol::create(Symbol::NAME_QUOTE),
                 $this->loc(Symbol::create('a'), 1, 1, 1, 2),
@@ -147,10 +147,10 @@ final class ReaderTest extends TestCase
 
     public function testUnquote(): void
     {
-        $this->assertEquals(
+        self::assertEquals(
             $this->loc(new Tuple([
                 Symbol::create(Symbol::NAME_UNQUOTE),
-                $this->loc(Symbol::create('a'), 1, 1, 1, 2)
+                $this->loc(Symbol::create('a'), 1, 1, 1, 2),
             ]), 1, 0, 1, 2),
             $this->read(',a')
         );
@@ -158,10 +158,10 @@ final class ReaderTest extends TestCase
 
     public function testUnquoteSplice(): void
     {
-        $this->assertEquals(
+        self::assertEquals(
             $this->loc(new Tuple([
                 Symbol::create(Symbol::NAME_UNQUOTE_SPLICING),
-                $this->loc(Symbol::create('a'), 1, 2, 1, 3)
+                $this->loc(Symbol::create('a'), 1, 2, 1, 3),
             ]), 1, 0, 1, 3),
             $this->read(',@a')
         );
@@ -169,10 +169,10 @@ final class ReaderTest extends TestCase
 
     public function testQuasiquote1(): void
     {
-        $this->assertEquals(
+        self::assertEquals(
             $this->loc(new Tuple([
                 $this->loc(Symbol::create(Symbol::NAME_QUOTE), 1, 1, 1, 8),
-                $this->loc(Symbol::create(Symbol::NAME_UNQUOTE), 1, 1, 1, 8)
+                $this->loc(Symbol::create(Symbol::NAME_UNQUOTE), 1, 1, 1, 8),
             ]), 1, 0, 1, 8),
             $this->read(sprintf('`%s', Symbol::NAME_UNQUOTE))
         );
@@ -180,10 +180,10 @@ final class ReaderTest extends TestCase
 
     public function testQuasiquote2(): void
     {
-        $this->assertEquals(
+        self::assertEquals(
             $this->loc(new Tuple([
                 $this->loc(Symbol::create(Symbol::NAME_QUOTE), 1, 1, 1, 2),
-                $this->loc(Symbol::create('a'), 1, 1, 1, 2)
+                $this->loc(Symbol::create('a'), 1, 1, 1, 2),
             ]), 1, 0, 1, 2),
             $this->read('`a')
         );
@@ -191,7 +191,7 @@ final class ReaderTest extends TestCase
 
     public function testQuasiquote3(): void
     {
-        $this->assertEquals(
+        self::assertEquals(
             $this->read('(apply tuple (concat (tuple (quote foo)) (tuple bar)))', true),
             $this->read('`(foo ,bar)', true)
         );
@@ -199,7 +199,7 @@ final class ReaderTest extends TestCase
 
     public function testQuasiquote4(): void
     {
-        $this->assertEquals(
+        self::assertEquals(
             $this->read('\'a', true),
             $this->read('``,a', true)
         );
@@ -207,7 +207,7 @@ final class ReaderTest extends TestCase
 
     public function testQuasiquote5(): void
     {
-        $this->assertEquals(
+        self::assertEquals(
             $this->read('(apply tuple (concat (tuple (quote foo)) bar))', true),
             $this->read('`(foo ,@bar)', true)
         );
@@ -215,7 +215,7 @@ final class ReaderTest extends TestCase
 
     public function testQuasiquote6(): void
     {
-        $this->assertEquals(
+        self::assertEquals(
             $this->read('(apply tuple (concat (tuple foo) bar))', true),
             $this->read('`(,foo ,@bar)', true)
         );
@@ -223,7 +223,7 @@ final class ReaderTest extends TestCase
 
     public function testQuasiquote7(): void
     {
-        $this->assertEquals(
+        self::assertEquals(
             $this->read('(apply tuple (concat foo bar))', true),
             $this->read('`(,@foo ,@bar)', true)
         );
@@ -231,7 +231,7 @@ final class ReaderTest extends TestCase
 
     public function testQuasiquote8(): void
     {
-        $this->assertEquals(
+        self::assertEquals(
             $this->read('(apply tuple (concat foo bar (tuple 1) (tuple "string") (tuple :keyword) (tuple true) (tuple nil)))', true),
             $this->read('`(,@foo ,@bar 1 "string" :keyword true nil)', true)
         );
@@ -239,32 +239,32 @@ final class ReaderTest extends TestCase
 
     public function testReadString(): void
     {
-        $this->assertEquals(
+        self::assertEquals(
             'abc',
             $this->read('"abc"')
         );
 
-        $this->assertEquals(
+        self::assertEquals(
             'ab"c',
             $this->read('"ab\"c"')
         );
 
-        $this->assertEquals(
+        self::assertEquals(
             "\\\r\n\t\f\v\e\$",
             $this->read('"\\\\\r\n\t\f\v\e\$"')
         );
 
-        $this->assertEquals(
+        self::assertEquals(
             'read $abc sign',
             $this->read('"read $abc sign"')
         );
 
-        $this->assertEquals(
+        self::assertEquals(
             "\x41",
             $this->read('"\x41"')
         );
 
-        $this->assertEquals(
+        self::assertEquals(
             "\u{1000}",
             $this->read('"\u{1000}"')
         );
@@ -272,7 +272,7 @@ final class ReaderTest extends TestCase
 
     public function testReadEmptyArray(): void
     {
-        $this->assertEquals(
+        self::assertEquals(
             $this->loc(PhelArray::create(), 1, 0, 1, 3),
             $this->read('@[]')
         );
@@ -280,7 +280,7 @@ final class ReaderTest extends TestCase
 
     public function testReadArray1(): void
     {
-        $this->assertEquals(
+        self::assertEquals(
             $this->loc(PhelArray::create(1), 1, 0, 1, 4),
             $this->read('@[1]')
         );
@@ -288,7 +288,7 @@ final class ReaderTest extends TestCase
 
     public function testReadArray2(): void
     {
-        $this->assertEquals(
+        self::assertEquals(
             $this->loc(PhelArray::create(1, 2), 1, 0, 1, 6),
             $this->read('@[1 2]')
         );
@@ -296,7 +296,7 @@ final class ReaderTest extends TestCase
 
     public function testReadEmptyTable(): void
     {
-        $this->assertEquals(
+        self::assertEquals(
             $this->loc(Table::fromKVs(), 1, 0, 1, 3),
             $this->read('@{}')
         );
@@ -304,7 +304,7 @@ final class ReaderTest extends TestCase
 
     public function testReadTable1(): void
     {
-        $this->assertEquals(
+        self::assertEquals(
             $this->loc(Table::fromKVs($this->loc(new Keyword('a'), 1, 2, 1, 4), 1), 1, 0, 1, 7),
             $this->read('@{:a 1}')
         );
@@ -312,7 +312,7 @@ final class ReaderTest extends TestCase
 
     public function testReadTable2(): void
     {
-        $this->assertEquals(
+        self::assertEquals(
             $this->loc(Table::fromKVs(
                 $this->loc(new Keyword('a'), 1, 2, 1, 4),
                 1,
@@ -331,7 +331,7 @@ final class ReaderTest extends TestCase
 
     public function testMetaKeyword(): void
     {
-        $this->assertEquals(
+        self::assertEquals(
             $this->loc(
                 $this->withMeta(
                     Symbol::create('test'),
@@ -351,7 +351,7 @@ final class ReaderTest extends TestCase
 
     public function testMetaString(): void
     {
-        $this->assertEquals(
+        self::assertEquals(
             $this->loc(
                 $this->withMeta(
                     Symbol::create('test'),
@@ -368,7 +368,7 @@ final class ReaderTest extends TestCase
 
     public function testMetaSymbol(): void
     {
-        $this->assertEquals(
+        self::assertEquals(
             $this->loc(
                 $this->withMeta(
                     Symbol::create('test'),
@@ -388,7 +388,7 @@ final class ReaderTest extends TestCase
 
     public function testMetaTable(): void
     {
-        $this->assertEquals(
+        self::assertEquals(
             $this->loc(
                 $this->withMeta(
                     Symbol::create('test'),
@@ -410,7 +410,7 @@ final class ReaderTest extends TestCase
 
     public function testConcatMeta(): void
     {
-        $this->assertEquals(
+        self::assertEquals(
             $this->loc(
                 $this->withMeta(
                     Symbol::create('test'),
@@ -432,7 +432,7 @@ final class ReaderTest extends TestCase
 
     public function testReadShortFnZeroArgs(): void
     {
-        $this->assertEquals(
+        self::assertEquals(
             Tuple::create(
                 Symbol::create(Symbol::NAME_FN),
                 Tuple::createBracket(),
@@ -452,7 +452,7 @@ final class ReaderTest extends TestCase
 
     public function testReadShortFnOneArg(): void
     {
-        $this->assertEquals(
+        self::assertEquals(
             Tuple::create(
                 Symbol::create(Symbol::NAME_FN),
                 Tuple::createBracket(
@@ -475,7 +475,7 @@ final class ReaderTest extends TestCase
 
     public function testReadShortFnOneArgTwoTimes(): void
     {
-        $this->assertEquals(
+        self::assertEquals(
             Tuple::create(
                 Symbol::create(Symbol::NAME_FN),
                 Tuple::createBracket(
@@ -499,7 +499,7 @@ final class ReaderTest extends TestCase
 
     public function testReadShortFnTwoArguments(): void
     {
-        $this->assertEquals(
+        self::assertEquals(
             Tuple::create(
                 Symbol::create(Symbol::NAME_FN),
                 Tuple::createBracket(
@@ -524,7 +524,7 @@ final class ReaderTest extends TestCase
 
     public function testReadShortFnMissingArgument(): void
     {
-        $this->assertEquals(
+        self::assertEquals(
             Tuple::create(
                 Symbol::create(Symbol::NAME_FN),
                 Tuple::createBracket(
@@ -550,7 +550,7 @@ final class ReaderTest extends TestCase
 
     public function testReadShortFnRestArguments(): void
     {
-        $this->assertEquals(
+        self::assertEquals(
             Tuple::create(
                 Symbol::create(Symbol::NAME_FN),
                 Tuple::createBracket(
@@ -578,10 +578,8 @@ final class ReaderTest extends TestCase
     public function read($string, bool $removeLoc = false)
     {
         Symbol::resetGen();
-        $globalEnv = new GlobalEnvironment();
-        $lexer = new Lexer();
-        $reader = new Reader($globalEnv);
-        $tokenStream = $lexer->lexString($string);
+        $reader = new Reader(new GlobalEnvironment());
+        $tokenStream = (new Lexer())->lexString($string);
 
         $result = $reader->readNext($tokenStream)->getAst();
 
@@ -595,6 +593,7 @@ final class ReaderTest extends TestCase
     private function withMeta(IMeta $x, Table $t): IMeta
     {
         $x->setMeta($t);
+
         return $x;
     }
 
@@ -602,6 +601,7 @@ final class ReaderTest extends TestCase
     {
         $x->setStartLocation(new SourceLocation('string', $beginLine, $beginColumn));
         $x->setEndLocation(new SourceLocation('string', $endLine, $endColumn));
+
         return $x;
     }
 

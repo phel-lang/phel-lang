@@ -3,6 +3,7 @@
          backupGlobals="false"
          backupStaticAttributes="false"
          cacheTokens="true"
+         colors="true"
          convertErrorsToExceptions="true"
          convertNoticesToExceptions="true"
          convertWarningsToExceptions="true"
@@ -11,15 +12,18 @@
          resolveDependencies="true"
          stopOnFailure="false"
          verbose="true"
-         testdox="true"
 >
     <php>
         <ini name="error_reporting" value="-1" />
     </php>
 
     <testsuites>
-        <testsuite name="Test Suite">
-            <directory suffix="Test.php">tests</directory>
+        <testsuite name="integration">
+            <directory suffix="Test.php">tests/php/Integration</directory>
+        </testsuite>
+
+        <testsuite name="unit">
+            <directory suffix="Test.php">tests/php/Unit</directory>
         </testsuite>
     </testsuites>
 

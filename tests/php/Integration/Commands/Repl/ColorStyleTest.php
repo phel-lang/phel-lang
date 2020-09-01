@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace PhelTest\Commands\Repl;
+namespace PhelTest\Integration\Commands\Repl;
 
 use Phel\Commands\Repl\ColorStyle;
 use PHPUnit\Framework\TestCase;
@@ -16,7 +16,7 @@ final class ColorStyleTest extends TestCase
         $style = ColorStyle::withStyles([$color => $format]);
         $anyText = 'any text';
 
-        $this->assertEquals(
+        self::assertEquals(
             sprintf($format, $anyText),
             $style->color($anyText, $color)
         );
