@@ -30,10 +30,10 @@ final class ApplyEmitterTest extends TestCase
     {
         $node = new PhpVarNode(NodeEnvironment::empty(), '+');
         $args = [
-            new TupleNode(NodeEnvironment::empty(), [
-                new LiteralNode(NodeEnvironment::empty(), 2),
-                new LiteralNode(NodeEnvironment::empty(), 3),
-                new LiteralNode(NodeEnvironment::empty(), 4),
+            new TupleNode(NodeEnvironment::empty()->withContext(NodeEnvironment::CTX_EXPR), [
+                new LiteralNode(NodeEnvironment::empty()->withContext(NodeEnvironment::CTX_EXPR), 2),
+                new LiteralNode(NodeEnvironment::empty()->withContext(NodeEnvironment::CTX_EXPR), 3),
+                new LiteralNode(NodeEnvironment::empty()->withContext(NodeEnvironment::CTX_EXPR), 4),
             ]),
         ];
 
@@ -41,7 +41,7 @@ final class ApplyEmitterTest extends TestCase
         $this->applyEmitter->emit($applyNode);
 
         $this->expectOutputString(
-            'array_reduce([...((\Phel\Lang\Tuple::createBracket(, , );) ?? [])], function($a, $b) { return ($a + $b); });'
+            'array_reduce([...((\Phel\Lang\Tuple::createBracket(2, 3, 4)) ?? [])], function($a, $b) { return ($a + $b); });'
         );
     }
 
@@ -49,16 +49,16 @@ final class ApplyEmitterTest extends TestCase
     {
         $node = new PhpVarNode(NodeEnvironment::empty(), 'str');
         $args = [
-            new LiteralNode(NodeEnvironment::empty(), 'abc'),
-            new TupleNode(NodeEnvironment::empty(), [
-                new LiteralNode(NodeEnvironment::empty(), 'def'),
+            new LiteralNode(NodeEnvironment::empty()->withContext(NodeEnvironment::CTX_EXPR), 'abc'),
+            new TupleNode(NodeEnvironment::empty()->withContext(NodeEnvironment::CTX_EXPR), [
+                new LiteralNode(NodeEnvironment::empty()->withContext(NodeEnvironment::CTX_EXPR), 'def'),
             ]),
         ];
 
         $applyNode = new ApplyNode(NodeEnvironment::empty(), $node, $args);
         $this->applyEmitter->emit($applyNode);
 
-        $this->expectOutputString('str(, ...((\Phel\Lang\Tuple::createBracket();) ?? []));');
+        $this->expectOutputString('str("abc", ...((\Phel\Lang\Tuple::createBracket("def")) ?? []));');
     }
 
     public function testNoPhpVarNode(): void
@@ -66,15 +66,15 @@ final class ApplyEmitterTest extends TestCase
         $fnNode = new FnNode(
             NodeEnvironment::empty(),
             [Symbol::create('x')],
-            new PhpVarNode(NodeEnvironment::empty(), 'x'),
+            new PhpVarNode(NodeEnvironment::empty()->withContext(NodeEnvironment::CTX_RET), 'x'),
             [],
             $isVariadic = true,
             $recurs = false
         );
 
         $args = [
-            new TupleNode(NodeEnvironment::empty(), [
-                new LiteralNode(NodeEnvironment::empty(), 1),
+            new TupleNode(NodeEnvironment::empty()->withContext(NodeEnvironment::CTX_EXPR), [
+                new LiteralNode(NodeEnvironment::empty()->withContext(NodeEnvironment::CTX_EXPR), 1),
             ]),
         ];
 
@@ -86,8 +86,8 @@ final class ApplyEmitterTest extends TestCase
 
   public function __invoke(...$x) {
     $x = new \Phel\Lang\PhelArray($x);
-    x;
+    return x;
   }
-};)(...((\Phel\Lang\Tuple::createBracket();) ?? []));');
+};)(...((\Phel\Lang\Tuple::createBracket(1)) ?? []));');
     }
 }
