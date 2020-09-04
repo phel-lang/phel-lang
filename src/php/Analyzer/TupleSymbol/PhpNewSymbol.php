@@ -23,13 +23,13 @@ final class PhpNewSymbol implements TupleSymbolAnalyzer
 
         $classExpr = $this->analyzer->analyze(
             $tuple[1],
-            $env->withContext(NodeEnvironment::CTX_EXPR)->withDisallowRecurFrame()
+            $env->withContext(NodeEnvironment::CONTEXT_EXPRESSION)->withDisallowRecurFrame()
         );
         $args = [];
         for ($i = 2; $i < $tupleCount; $i++) {
             $args[] = $this->analyzer->analyze(
                 $tuple[$i],
-                $env->withContext(NodeEnvironment::CTX_EXPR)->withDisallowRecurFrame()
+                $env->withContext(NodeEnvironment::CONTEXT_EXPRESSION)->withDisallowRecurFrame()
             );
         }
 

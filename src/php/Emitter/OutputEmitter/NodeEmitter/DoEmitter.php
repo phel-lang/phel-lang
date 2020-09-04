@@ -17,7 +17,7 @@ final class DoEmitter implements NodeEmitter
     {
         assert($node instanceof DoNode);
 
-        $wrapFn = count($node->getStmts()) > 0 && $node->getEnv()->getContext() === NodeEnvironment::CTX_EXPR;
+        $wrapFn = count($node->getStmts()) > 0 && $node->getEnv()->getContext() === NodeEnvironment::CONTEXT_EXPRESSION;
         if ($wrapFn) {
             $this->outputEmitter->emitFnWrapPrefix($node->getEnv(), $node->getStartSourceLocation());
         }

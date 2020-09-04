@@ -17,7 +17,7 @@ final class LetEmitter implements NodeEmitter
     {
         assert($node instanceof LetNode);
 
-        $wrapFn = $node->getEnv()->getContext() === NodeEnvironment::CTX_EXPR;
+        $wrapFn = $node->getEnv()->getContext() === NodeEnvironment::CONTEXT_EXPRESSION;
         if ($wrapFn) {
             $this->outputEmitter->emitFnWrapPrefix($node->getEnv(), $node->getStartSourceLocation());
         }

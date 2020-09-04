@@ -22,7 +22,7 @@ final class ThrowSymbol implements TupleSymbolAnalyzer
 
         return new ThrowNode(
             $env,
-            $this->analyzer->analyze($tuple[1], $env->withContext(NodeEnvironment::CTX_EXPR)->withDisallowRecurFrame()),
+            $this->analyzer->analyze($tuple[1], $env->withContext(NodeEnvironment::CONTEXT_EXPRESSION)->withDisallowRecurFrame()),
             $tuple->getStartLocation()
         );
     }

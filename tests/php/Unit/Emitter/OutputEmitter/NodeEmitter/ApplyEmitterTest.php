@@ -30,10 +30,10 @@ final class ApplyEmitterTest extends TestCase
     {
         $node = new PhpVarNode(NodeEnvironment::empty(), '+');
         $args = [
-            new TupleNode(NodeEnvironment::empty()->withContext(NodeEnvironment::CTX_EXPR), [
-                new LiteralNode(NodeEnvironment::empty()->withContext(NodeEnvironment::CTX_EXPR), 2),
-                new LiteralNode(NodeEnvironment::empty()->withContext(NodeEnvironment::CTX_EXPR), 3),
-                new LiteralNode(NodeEnvironment::empty()->withContext(NodeEnvironment::CTX_EXPR), 4),
+            new TupleNode(NodeEnvironment::empty()->withContext(NodeEnvironment::CONTEXT_EXPRESSION), [
+                new LiteralNode(NodeEnvironment::empty()->withContext(NodeEnvironment::CONTEXT_EXPRESSION), 2),
+                new LiteralNode(NodeEnvironment::empty()->withContext(NodeEnvironment::CONTEXT_EXPRESSION), 3),
+                new LiteralNode(NodeEnvironment::empty()->withContext(NodeEnvironment::CONTEXT_EXPRESSION), 4),
             ]),
         ];
 
@@ -49,9 +49,9 @@ final class ApplyEmitterTest extends TestCase
     {
         $node = new PhpVarNode(NodeEnvironment::empty(), 'str');
         $args = [
-            new LiteralNode(NodeEnvironment::empty()->withContext(NodeEnvironment::CTX_EXPR), 'abc'),
-            new TupleNode(NodeEnvironment::empty()->withContext(NodeEnvironment::CTX_EXPR), [
-                new LiteralNode(NodeEnvironment::empty()->withContext(NodeEnvironment::CTX_EXPR), 'def'),
+            new LiteralNode(NodeEnvironment::empty()->withContext(NodeEnvironment::CONTEXT_EXPRESSION), 'abc'),
+            new TupleNode(NodeEnvironment::empty()->withContext(NodeEnvironment::CONTEXT_EXPRESSION), [
+                new LiteralNode(NodeEnvironment::empty()->withContext(NodeEnvironment::CONTEXT_EXPRESSION), 'def'),
             ]),
         ];
 
@@ -66,15 +66,15 @@ final class ApplyEmitterTest extends TestCase
         $fnNode = new FnNode(
             NodeEnvironment::empty(),
             [Symbol::create('x')],
-            new PhpVarNode(NodeEnvironment::empty()->withContext(NodeEnvironment::CTX_RET), 'x'),
+            new PhpVarNode(NodeEnvironment::empty()->withContext(NodeEnvironment::CONTEXT_RETURN), 'x'),
             [],
             $isVariadic = true,
             $recurs = false
         );
 
         $args = [
-            new TupleNode(NodeEnvironment::empty()->withContext(NodeEnvironment::CTX_EXPR), [
-                new LiteralNode(NodeEnvironment::empty()->withContext(NodeEnvironment::CTX_EXPR), 1),
+            new TupleNode(NodeEnvironment::empty()->withContext(NodeEnvironment::CONTEXT_EXPRESSION), [
+                new LiteralNode(NodeEnvironment::empty()->withContext(NodeEnvironment::CONTEXT_EXPRESSION), 1),
             ]),
         ];
 

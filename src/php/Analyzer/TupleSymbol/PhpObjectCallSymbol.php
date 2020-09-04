@@ -41,7 +41,7 @@ final class PhpObjectCallSymbol implements TupleSymbolAnalyzer
 
         $targetExpr = $this->analyzer->analyze(
             $tuple[1],
-            $env->withContext(NodeEnvironment::CTX_EXPR)->withDisallowRecurFrame()
+            $env->withContext(NodeEnvironment::CONTEXT_EXPRESSION)->withDisallowRecurFrame()
         );
 
         if ($tuple[2] instanceof Tuple) {
@@ -71,7 +71,7 @@ final class PhpObjectCallSymbol implements TupleSymbolAnalyzer
         for ($i = 1; $i < $tCount; $i++) {
             $args[] = $this->analyzer->analyze(
                 $tuple2[$i],
-                $env->withContext(NodeEnvironment::CTX_EXPR)->withDisallowRecurFrame()
+                $env->withContext(NodeEnvironment::CONTEXT_EXPRESSION)->withDisallowRecurFrame()
             );
         }
 

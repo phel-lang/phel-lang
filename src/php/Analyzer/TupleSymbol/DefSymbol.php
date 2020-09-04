@@ -127,7 +127,7 @@ final class DefSymbol implements TupleSymbolAnalyzer
     {
         $initEnv = $env
             ->withBoundTo($namespace . '\\' . $nameSymbol)
-            ->withContext(NodeEnvironment::CTX_EXPR)
+            ->withContext(NodeEnvironment::CONTEXT_EXPRESSION)
             ->withDisallowRecurFrame()
             ->withDefAllowed(false);
 

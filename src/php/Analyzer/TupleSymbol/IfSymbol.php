@@ -24,7 +24,7 @@ final class IfSymbol implements TupleSymbolAnalyzer
 
         $testExpr = $this->analyzer->analyze(
             $tuple[1],
-            $env->withContext(NodeEnvironment::CTX_EXPR)->withDisallowRecurFrame()
+            $env->withContext(NodeEnvironment::CONTEXT_EXPRESSION)->withDisallowRecurFrame()
         );
         $thenExpr = $this->analyzer->analyze($tuple[2], $env);
         $elseExpr = $this->elseExpr($tuple, $env);

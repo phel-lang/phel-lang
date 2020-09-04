@@ -168,7 +168,7 @@ final class FnSymbol implements TupleSymbolAnalyzer
 
         $bodyEnv = $env
             ->withMergedLocals($this->params)
-            ->withContext(NodeEnvironment::CTX_RET)
+            ->withContext(NodeEnvironment::CONTEXT_RETURN)
             ->withAddedRecurFrame($recurFrame);
 
         return $this->analyzer->analyze($body, $bodyEnv);

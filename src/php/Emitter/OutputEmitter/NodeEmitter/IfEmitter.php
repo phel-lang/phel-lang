@@ -17,7 +17,7 @@ final class IfEmitter implements NodeEmitter
     {
         assert($node instanceof IfNode);
 
-        if ($node->getEnv()->getContext() === NodeEnvironment::CTX_EXPR) {
+        if ($node->getEnv()->getContext() === NodeEnvironment::CONTEXT_EXPRESSION) {
             $this->outputEmitter->emitStr('((\Phel\Lang\Truthy::isTruthy(', $node->getStartSourceLocation());
             $this->outputEmitter->emitNode($node->getTestExpr());
             $this->outputEmitter->emitStr(')) ? ', $node->getStartSourceLocation());

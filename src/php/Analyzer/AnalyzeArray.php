@@ -15,7 +15,7 @@ final class AnalyzeArray
     public function analyze(PhelArray $array, NodeEnvironment $env): ArrayNode
     {
         $values = [];
-        $valueEnv = $env->withContext(NodeEnvironment::CTX_EXPR);
+        $valueEnv = $env->withContext(NodeEnvironment::CONTEXT_EXPRESSION);
 
         foreach ($array as $value) {
             $values[] = $this->analyzer->analyze($value, $valueEnv);

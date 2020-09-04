@@ -22,7 +22,7 @@ final class InvokeSymbol implements TupleSymbolAnalyzer
     {
         $f = $this->analyzer->analyze(
             $tuple[0],
-            $env->withContext(NodeEnvironment::CTX_EXPR)->withDisallowRecurFrame()
+            $env->withContext(NodeEnvironment::CONTEXT_EXPRESSION)->withDisallowRecurFrame()
         );
 
         if ($f instanceof GlobalVarNode && $f->isMacro()) {
@@ -118,7 +118,7 @@ final class InvokeSymbol implements TupleSymbolAnalyzer
         for ($i = 1, $iMax = count($tuple); $i < $iMax; $i++) {
             $arguments[] = $this->analyzer->analyze(
                 $tuple[$i],
-                $env->withContext(NodeEnvironment::CTX_EXPR)->withDisallowRecurFrame()
+                $env->withContext(NodeEnvironment::CONTEXT_EXPRESSION)->withDisallowRecurFrame()
             );
         }
 

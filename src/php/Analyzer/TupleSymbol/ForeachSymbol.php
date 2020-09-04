@@ -45,7 +45,7 @@ final class ForeachSymbol implements TupleSymbolAnalyzer
             $bodyEnv = $env->withMergedLocals([$valueSymbol]);
             $listExpr = $this->analyzer->analyze(
                 $tuple[1][1],
-                $env->withContext(NodeEnvironment::CTX_EXPR)
+                $env->withContext(NodeEnvironment::CONTEXT_EXPRESSION)
             );
         } else {
             $keySymbol = $tuple[1][0];
@@ -67,7 +67,7 @@ final class ForeachSymbol implements TupleSymbolAnalyzer
             $bodyEnv = $env->withMergedLocals([$valueSymbol, $keySymbol]);
             $listExpr = $this->analyzer->analyze(
                 $tuple[1][2],
-                $env->withContext(NodeEnvironment::CTX_EXPR)
+                $env->withContext(NodeEnvironment::CONTEXT_EXPRESSION)
             );
         }
 
@@ -84,7 +84,7 @@ final class ForeachSymbol implements TupleSymbolAnalyzer
 
         $bodyExpr = $this->analyzer->analyze(
             $body,
-            $bodyEnv->withContext(NodeEnvironment::CTX_STMT)
+            $bodyEnv->withContext(NodeEnvironment::CONTEXT_STATEMENT)
         );
 
         return new ForeachNode(

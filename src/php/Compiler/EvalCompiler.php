@@ -56,7 +56,7 @@ final class EvalCompiler
         try {
             $node = $this->analyzer->analyze(
                 $readerResult->getAst(),
-                NodeEnvironment::empty()->withContext(NodeEnvironment::CTX_RET)
+                NodeEnvironment::empty()->withContext(NodeEnvironment::CONTEXT_RETURN)
             );
 
             $code = $this->emitter->emitNodeAsString($node);

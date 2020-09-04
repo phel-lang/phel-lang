@@ -27,7 +27,7 @@ final class DoSymbol implements TupleSymbolAnalyzer
         for ($i = 1; $i < $tupleCount - 1; $i++) {
             $stmts[] = $this->analyzer->analyze(
                 $tuple[$i],
-                $env->withContext(NodeEnvironment::CTX_STMT)->withDisallowRecurFrame()
+                $env->withContext(NodeEnvironment::CONTEXT_STATEMENT)->withDisallowRecurFrame()
             );
         }
 
@@ -44,9 +44,9 @@ final class DoSymbol implements TupleSymbolAnalyzer
         $tupleCount = count($tuple);
 
         if ($tupleCount > 2) {
-            $retEnv = $env->getContext() === NodeEnvironment::CTX_STMT
-                ? $env->withContext(NodeEnvironment::CTX_STMT)
-                : $env->withContext(NodeEnvironment::CTX_RET);
+            $retEnv = $env->getContext() === NodeEnvironment::CONTEXT_STATEMENT
+                ? $env->withContext(NodeEnvironment::CONTEXT_STATEMENT)
+                : $env->withContext(NodeEnvironment::CONTEXT_RETURN);
 
             return $this->analyzer->analyze($tuple[$tupleCount - 1], $retEnv);
         }

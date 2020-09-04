@@ -42,7 +42,7 @@ final class ApplySymbol implements TupleSymbolAnalyzer
     {
         return $this->analyzer->analyze(
             $x,
-            $env->withContext(NodeEnvironment::CTX_EXPR)->withDisallowRecurFrame()
+            $env->withContext(NodeEnvironment::CONTEXT_EXPRESSION)->withDisallowRecurFrame()
         );
     }
 

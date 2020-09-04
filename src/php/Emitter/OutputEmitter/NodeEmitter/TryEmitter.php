@@ -18,7 +18,7 @@ final class TryEmitter implements NodeEmitter
         assert($node instanceof TryNode);
 
         if ($node->getFinally() || count($node->getCatches()) > 0) {
-            if ($node->getEnv()->getContext() === NodeEnvironment::CTX_EXPR) {
+            if ($node->getEnv()->getContext() === NodeEnvironment::CONTEXT_EXPRESSION) {
                 $this->outputEmitter->emitFnWrapPrefix($node->getEnv(), $node->getStartSourceLocation());
             }
 
@@ -37,7 +37,7 @@ final class TryEmitter implements NodeEmitter
                 $this->emitFinally($node->getFinally());
             }
 
-            if ($node->getEnv()->getContext() === NodeEnvironment::CTX_EXPR) {
+            if ($node->getEnv()->getContext() === NodeEnvironment::CONTEXT_EXPRESSION) {
                 $this->outputEmitter->emitFnWrapSuffix($node->getStartSourceLocation());
             }
         } else {

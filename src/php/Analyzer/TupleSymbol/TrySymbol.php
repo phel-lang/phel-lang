@@ -64,11 +64,11 @@ final class TrySymbol implements TupleSymbolAnalyzer
             $finally = $finally->update(0, Symbol::create(Symbol::NAME_DO));
             $finally = $this->analyzer->analyze(
                 $finally,
-                $env->withContext(NodeEnvironment::CTX_STMT)->withDisallowRecurFrame()
+                $env->withContext(NodeEnvironment::CONTEXT_STATEMENT)->withDisallowRecurFrame()
             );
         }
 
-        $catchCtx = $env->getContext() === NodeEnvironment::CTX_EXPR ? NodeEnvironment::CTX_RET : $env->getContext();
+        $catchCtx = $env->getContext() === NodeEnvironment::CONTEXT_EXPRESSION ? NodeEnvironment::CONTEXT_RETURN : $env->getContext();
         $catchNodes = [];
         /** @var Tuple $catch */
         foreach ($catches as $catch) {
