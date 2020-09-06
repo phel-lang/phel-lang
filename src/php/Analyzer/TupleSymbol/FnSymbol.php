@@ -22,7 +22,7 @@ final class FnSymbol implements TupleSymbolAnalyzer
     {
         $this->verifyArguments($tuple);
 
-        $fnSymbolTuple = $this->buildFnSymbolTuple($tuple);
+        $fnSymbolTuple = FnSymbolTuple::createWithTuple($tuple);
         $recurFrame = new RecurFrame($fnSymbolTuple->params());
 
         return new FnNode(
@@ -45,22 +45,6 @@ final class FnSymbol implements TupleSymbolAnalyzer
         if (!($tuple[1] instanceof Tuple)) {
             throw AnalyzerException::withLocation("Second argument of 'fn must be a Tuple", $tuple);
         }
-    }
-
-    private function buildFnSymbolTuple(Tuple $tuple): FnSymbolTuple
-    {
-        /** @var Tuple $params */
-        $params = $tuple[1];
-        $fnSymbolTuple = new FnSymbolTuple($tuple);
-
-        foreach ($params as $param) {
-            $fnSymbolTuple->buildParamsByState($param);
-        }
-
-        $fnSymbolTuple->addDummyVariadicSymbol();
-        $fnSymbolTuple->checkAllVariablesStartWithALetterOrUnderscore();
-
-        return $fnSymbolTuple;
     }
 
     private function analyzeBody(FnSymbolTuple $fnSymbolTuple, RecurFrame $recurFrame, NodeEnvironment $env): Node

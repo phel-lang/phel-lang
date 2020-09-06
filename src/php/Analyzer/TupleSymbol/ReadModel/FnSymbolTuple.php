@@ -15,15 +15,30 @@ final class FnSymbolTuple
     private const STATE_DONE = 'done';
     private const PARENT_TUPLE_BODY_OFFSET = 2;
 
-    public Tuple $parentTuple;
-
+    private Tuple $parentTuple;
     private array $params = [];
     private array $lets = [];
     private bool $isVariadic = false;
     private bool $hasVariadicForm = false;
     private string $buildParamsState = self::STATE_START;
 
-    public function __construct(Tuple $parentTuple)
+    public static function createWithTuple(Tuple $tuple): self
+    {
+        /** @var Tuple $params */
+        $params = $tuple[1];
+        $self = new self($tuple);
+
+        foreach ($params as $param) {
+            $self->buildParamsByState($param);
+        }
+
+        $self->addDummyVariadicSymbol();
+        $self->checkAllVariablesStartWithALetterOrUnderscore();
+
+        return $self;
+    }
+
+    private function __construct(Tuple $parentTuple)
     {
         $this->parentTuple = $parentTuple;
     }
@@ -51,14 +66,14 @@ final class FnSymbolTuple
         );
     }
 
-    public function addDummyVariadicSymbol(): void
+    private function addDummyVariadicSymbol(): void
     {
         if ($this->isVariadic && !$this->hasVariadicForm) {
             $this->params[] = Symbol::gen();
         }
     }
 
-    public function checkAllVariablesStartWithALetterOrUnderscore(): void
+    private function checkAllVariablesStartWithALetterOrUnderscore(): void
     {
         foreach ($this->params as $param) {
             if (!preg_match("/^[a-zA-Z_\x80-\xff].*$/", $param->getName())) {
@@ -71,7 +86,7 @@ final class FnSymbolTuple
     }
 
     /** @param mixed $param */
-    public function buildParamsByState($param): void
+    private function buildParamsByState($param): void
     {
         switch ($this->buildParamsState) {
             case self::STATE_START:
