@@ -18,26 +18,19 @@ final class FnSymbol implements TupleSymbolAnalyzer
 {
     use WithAnalyzer;
 
-    private const STATE_START = 'start';
-    private const STATE_REST = 'rest';
-    private const STATE_DONE = 'done';
-
     public function analyze(Tuple $tuple, NodeEnvironment $env): FnNode
     {
         $this->verifyArguments($tuple);
 
         $fnSymbolTuple = $this->buildFnSymbolTuple($tuple);
-        $fnSymbolTuple->addDummyVariadicSymbol();
-        $fnSymbolTuple->checkAllVariablesStartWithALetterOrUnderscore($tuple);
-
-        $recurFrame = new RecurFrame($fnSymbolTuple->params);
+        $recurFrame = new RecurFrame($fnSymbolTuple->params());
 
         return new FnNode(
             $env,
-            $fnSymbolTuple->params,
+            $fnSymbolTuple->params(),
             $this->analyzeBody($fnSymbolTuple, $recurFrame, $env),
             $this->buildUsesFromEnv($env, $fnSymbolTuple),
-            $fnSymbolTuple->isVariadic,
+            $fnSymbolTuple->isVariadic(),
             $recurFrame->isActive(),
             $tuple->getStartLocation()
         );
@@ -61,31 +54,25 @@ final class FnSymbol implements TupleSymbolAnalyzer
         $fnSymbolTuple = new FnSymbolTuple($tuple);
 
         foreach ($params as $param) {
-            switch ($fnSymbolTuple->buildParamsState) {
-                case self::STATE_START:
-                    $fnSymbolTuple->buildParamsStart($param);
-                    break;
-                case self::STATE_REST:
-                    $fnSymbolTuple->buildParamsRest($tuple, $param);
-                    break;
-                case self::STATE_DONE:
-                    $fnSymbolTuple->buildParamsDone($tuple);
-            }
+            $fnSymbolTuple->buildParamsByState($param);
         }
+
+        $fnSymbolTuple->addDummyVariadicSymbol();
+        $fnSymbolTuple->checkAllVariablesStartWithALetterOrUnderscore();
 
         return $fnSymbolTuple;
     }
 
     private function analyzeBody(FnSymbolTuple $fnSymbolTuple, RecurFrame $recurFrame, NodeEnvironment $env): Node
     {
-        $tupleBody = array_slice($fnSymbolTuple->parentTuple->toArray(), 2);
+        $tupleBody = $fnSymbolTuple->parentTupleBody();
 
-        $body = empty($fnSymbolTuple->lets)
+        $body = empty($fnSymbolTuple->lets())
             ? $this->createDoTupleWithBody($tupleBody)
             : $this->createLetTupleWithBody($fnSymbolTuple, $tupleBody);
 
         $bodyEnv = $env
-            ->withMergedLocals($fnSymbolTuple->params)
+            ->withMergedLocals($fnSymbolTuple->params())
             ->withContext(NodeEnvironment::CTX_RET)
             ->withAddedRecurFrame($recurFrame);
 
@@ -104,13 +91,13 @@ final class FnSymbol implements TupleSymbolAnalyzer
     {
         return Tuple::create(
             (Symbol::create(Symbol::NAME_LET))->copyLocationFrom($tupleBody),
-            (new Tuple($fnSymbolTuple->lets, true))->copyLocationFrom($tupleBody),
+            (new Tuple($fnSymbolTuple->lets(), true))->copyLocationFrom($tupleBody),
             ...$tupleBody
         )->copyLocationFrom($tupleBody);
     }
 
     private function buildUsesFromEnv(NodeEnvironment $env, FnSymbolTuple $fnSymbolTuple): array
     {
-        return array_diff($env->getLocals(), $fnSymbolTuple->params);
+        return array_diff($env->getLocals(), $fnSymbolTuple->params());
     }
 }
