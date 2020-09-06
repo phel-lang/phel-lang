@@ -10,7 +10,15 @@ use InvalidArgumentException;
 use Iterator;
 use Phel\Printer;
 
-final class Tuple extends AbstractType implements ArrayAccess, Countable, Iterator, ISlice, ICons, ISeq, IPush, IConcat
+final class Tuple extends AbstractType implements
+    ArrayAccess,
+    Countable,
+    Iterator,
+    ISlice,
+    ICons,
+    ISeq,
+    IPush,
+    IConcat
 {
     private array $data;
     private bool $usingBracket;
@@ -45,17 +53,17 @@ final class Tuple extends AbstractType implements ArrayAccess, Countable, Iterat
         return new Tuple($values, true);
     }
 
-    public function offsetSet($offset, $value)
+    public function offsetSet($offset, $value): void
     {
         throw new \InvalidArgumentException('Calling offsetSet is not supported on Tuples since they are immutable');
     }
 
-    public function offsetExists($offset)
+    public function offsetExists($offset): bool
     {
         return isset($this->data[$offset]);
     }
 
-    public function offsetUnset($offset)
+    public function offsetUnset($offset): void
     {
         throw new \InvalidArgumentException('Calling offsetUnset is not supported on Tuples since they are immutable');
     }
@@ -68,7 +76,7 @@ final class Tuple extends AbstractType implements ArrayAccess, Countable, Iterat
         return $this->data[$offset] ?? null;
     }
 
-    public function count()
+    public function count(): int
     {
         return count($this->data);
     }
@@ -88,17 +96,17 @@ final class Tuple extends AbstractType implements ArrayAccess, Countable, Iterat
         return key($this->data);
     }
 
-    public function next()
+    public function next(): void
     {
         next($this->data);
     }
 
-    public function rewind()
+    public function rewind(): void
     {
         reset($this->data);
     }
 
-    public function valid()
+    public function valid(): bool
     {
         return key($this->data) !== null;
     }
@@ -106,7 +114,7 @@ final class Tuple extends AbstractType implements ArrayAccess, Countable, Iterat
     /**
      * Update a tuple value. For internal use only.
      *
-     * @param int $index The index to update
+     * @param int $offset The index to update
      * @param mixed $value The value to set on $index
      *
      * @return Tuple A copy of the tuple with an update value

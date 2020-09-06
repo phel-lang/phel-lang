@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Phel\Lang;
 
 use Countable;
@@ -8,15 +10,10 @@ use Phel\Printer;
 
 class Set extends AbstractType implements Countable, Iterator, ISeq, ICons, IPush, IConcat
 {
+    /** @var mixed[] */
+    protected array $data = [];
 
     /**
-     * @var mixed[]
-     */
-    protected $data = [];
-
-    /**
-     * Constructor
-     *
      * @param mixed[] $data A list of all values
      */
     public function __construct(array $data)
@@ -45,7 +42,7 @@ class Set extends AbstractType implements Countable, Iterator, ISeq, ICons, IPus
         return current($this->data);
     }
 
-    public function next()
+    public function next(): void
     {
         next($this->data);
     }
@@ -55,12 +52,12 @@ class Set extends AbstractType implements Countable, Iterator, ISeq, ICons, IPus
         return key($this->data);
     }
 
-    public function valid()
+    public function valid(): bool
     {
         return key($this->data) !== null;
     }
 
-    public function rewind()
+    public function rewind(): void
     {
         reset($this->data);
     }
@@ -73,7 +70,7 @@ class Set extends AbstractType implements Countable, Iterator, ISeq, ICons, IPus
 
     public function first()
     {
-        if (count($this->data) == 0) {
+        if (empty($this->data)) {
             return null;
         }
 
@@ -138,9 +135,7 @@ class Set extends AbstractType implements Countable, Iterator, ISeq, ICons, IPus
     /**
      * Creates a hash for the given key.
      *
-     * @param mixed $offset The access key of the Set.
-     *
-     * @return string
+     * @param mixed $offset The access key of the Set
      */
     private function offsetHash($offset): string
     {

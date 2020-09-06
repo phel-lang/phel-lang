@@ -17,19 +17,14 @@ final class SourceLocation
         $this->column = $column;
     }
 
-    public function setFile(string $file): void
-    {
-        $this->file = $file;
-    }
-
     public function getFile(): string
     {
         return $this->file;
     }
 
-    public function setLine(int $line): void
+    public function setFile(string $file): void
     {
-        $this->line = $line;
+        $this->file = $file;
     }
 
     public function getLine(): int
@@ -37,13 +32,18 @@ final class SourceLocation
         return $this->line;
     }
 
-    public function setColumn(int $column): void
+    public function setLine(int $line): void
     {
-        $this->column = $column;
+        $this->line = $line;
     }
 
     public function getColumn(): int
     {
         return $this->column;
+    }
+
+    public function setColumn(int $column): void
+    {
+        $this->column = $column;
     }
 }

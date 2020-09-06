@@ -10,7 +10,17 @@ use InvalidArgumentException;
 use Iterator;
 use Phel\Printer;
 
-final class PhelArray extends AbstractType implements ArrayAccess, Countable, Iterator, ICons, ISlice, ISeq, IPop, IRemove, IPush, IConcat
+final class PhelArray extends AbstractType implements
+    ArrayAccess,
+    Countable,
+    Iterator,
+    ICons,
+    ISlice,
+    ISeq,
+    IPop,
+    IRemove,
+    IPush,
+    IConcat
 {
     private array $data;
 
@@ -23,18 +33,16 @@ final class PhelArray extends AbstractType implements ArrayAccess, Countable, It
     }
 
     /**
-     * Create a new Phel array from a list of value
+     * Create a new Phel array from a list of value.
      *
-     * @param mixed[] $values Thes values
-     *
-     * @return PhelArray
+     * @param mixed[] $values The values
      */
     public static function create(...$values): PhelArray
     {
         return new PhelArray($values);
     }
 
-    public function offsetSet($offset, $value)
+    public function offsetSet($offset, $value): void
     {
         if ($offset < 0) {
             throw new InvalidArgumentException('Offset must be bigger or equal zero. Given: ' . $offset);
@@ -51,12 +59,12 @@ final class PhelArray extends AbstractType implements ArrayAccess, Countable, It
         }
     }
 
-    public function offsetExists($offset)
+    public function offsetExists($offset): bool
     {
         return isset($this->data[$offset]);
     }
 
-    public function offsetUnset($offset)
+    public function offsetUnset($offset): void
     {
         if ($offset < 0 || $offset >= count($this->data)) {
             throw new InvalidArgumentException('Index out of bounds: ' . $offset . ' [0,' . count($this->data) . ')');
