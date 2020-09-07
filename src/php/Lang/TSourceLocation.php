@@ -36,7 +36,7 @@ trait TSourceLocation
      *
      * @return static
      */
-    public function copyLocationFrom($other)
+    public function copyLocationFrom($other): self
     {
         if ($other && $other instanceof ISourceLocation) {
             $this->setStartLocation($other->getStartLocation());
