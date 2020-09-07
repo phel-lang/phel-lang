@@ -17,7 +17,7 @@ final class ThrowEmitter implements NodeEmitter
     {
         assert($node instanceof ThrowNode);
 
-        if ($node->getEnv()->getContext() === NodeEnvironment::CTX_EXPR) {
+        if ($node->getEnv()->getContext() === NodeEnvironment::CONTEXT_EXPRESSION) {
             $this->outputEmitter->emitFnWrapPrefix($node->getEnv(), $node->getStartSourceLocation());
         }
 
@@ -25,7 +25,7 @@ final class ThrowEmitter implements NodeEmitter
         $this->outputEmitter->emitNode($node->getExceptionExpr());
         $this->outputEmitter->emitStr(';', $node->getStartSourceLocation());
 
-        if ($node->getEnv()->getContext() === NodeEnvironment::CTX_EXPR) {
+        if ($node->getEnv()->getContext() === NodeEnvironment::CONTEXT_EXPRESSION) {
             $this->outputEmitter->emitFnWrapSuffix($node->getStartSourceLocation());
         }
     }

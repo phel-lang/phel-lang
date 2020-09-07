@@ -160,14 +160,14 @@ final class OutputEmitter
 
     public function emitContextPrefix(NodeEnvironment $env, ?SourceLocation $sl = null): void
     {
-        if ($env->getContext() === NodeEnvironment::CTX_RET) {
+        if ($env->getContext() === NodeEnvironment::CONTEXT_RETURN) {
             $this->emitStr('return ', $sl);
         }
     }
 
     public function emitContextSuffix(NodeEnvironment $env, ?SourceLocation $sl = null): void
     {
-        if ($env->getContext() !== NodeEnvironment::CTX_EXPR) {
+        if ($env->getContext() !== NodeEnvironment::CONTEXT_EXPRESSION) {
             $this->emitStr(';', $sl);
         }
     }

@@ -15,7 +15,7 @@ final class AnalyzeTable
     public function analyze(Table $table, NodeEnvironment $env): TableNode
     {
         $keyValues = [];
-        $kvEnv = $env->withContext(NodeEnvironment::CTX_EXPR);
+        $kvEnv = $env->withContext(NodeEnvironment::CONTEXT_EXPRESSION);
 
         foreach ($table as $key => $value) {
             $keyValues[] = $this->analyzer->analyze($key, $kvEnv);

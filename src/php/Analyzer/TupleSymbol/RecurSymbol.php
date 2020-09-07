@@ -59,7 +59,7 @@ final class RecurSymbol implements TupleSymbolAnalyzer
         for ($i = 1, $tupleCount = count($tuple); $i < $tupleCount; $i++) {
             $expressions[] = $this->analyzer->analyze(
                 $tuple[$i],
-                $env->withContext(NodeEnvironment::CTX_EXPR)->withDisallowRecurFrame()
+                $env->withContext(NodeEnvironment::CONTEXT_EXPRESSION)->withDisallowRecurFrame()
             );
         }
 

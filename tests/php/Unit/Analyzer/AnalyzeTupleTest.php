@@ -153,7 +153,7 @@ final class AnalyzeTupleTest extends TestCase
     {
         $tuple = Tuple::create(Symbol::create(Symbol::NAME_RECUR), 1);
         $recurFrames = [new RecurFrame([Symbol::create(Symbol::NAME_FOREACH)])];
-        $nodeEnv = new NodeEnvironment([], NodeEnvironment::CTX_STMT, [], $recurFrames);
+        $nodeEnv = new NodeEnvironment([], NodeEnvironment::CONTEXT_STATEMENT, [], $recurFrames);
         self::assertInstanceOf(RecurNode::class, $this->tupleAnalyzer->analyze($tuple, $nodeEnv));
     }
 

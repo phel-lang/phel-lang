@@ -17,7 +17,7 @@ final class ForeachEmitter implements NodeEmitter
     {
         assert($node instanceof ForeachNode);
 
-        if ($node->getEnv()->getContext() !== NodeEnvironment::CTX_STMT) {
+        if ($node->getEnv()->getContext() !== NodeEnvironment::CONTEXT_STATEMENT) {
             $this->outputEmitter->emitContextPrefix($node->getEnv(), $node->getStartSourceLocation());
             $this->outputEmitter->emitFnWrapPrefix($node->getEnv(), $node->getStartSourceLocation());
         }
@@ -37,7 +37,7 @@ final class ForeachEmitter implements NodeEmitter
         $this->outputEmitter->emitLine();
         $this->outputEmitter->emitStr('}', $node->getStartSourceLocation());
 
-        if ($node->getEnv()->getContext() !== NodeEnvironment::CTX_STMT) {
+        if ($node->getEnv()->getContext() !== NodeEnvironment::CONTEXT_STATEMENT) {
             $this->outputEmitter->emitLine();
             $this->outputEmitter->emitStr('return null;', $node->getStartSourceLocation());
             $this->outputEmitter->emitFnWrapSuffix($node->getStartSourceLocation());

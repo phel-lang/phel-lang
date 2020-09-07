@@ -17,9 +17,9 @@ final class PhpASetSymbol implements TupleSymbolAnalyzer
     {
         return new PhpArraySetNode(
             $env,
-            $this->analyzer->analyze($tuple[1], $env->withContext(NodeEnvironment::CTX_EXPR)),
-            $this->analyzer->analyze($tuple[2], $env->withContext(NodeEnvironment::CTX_EXPR)),
-            $this->analyzer->analyze($tuple[3], $env->withContext(NodeEnvironment::CTX_EXPR)),
+            $this->analyzer->analyze($tuple[1], $env->withContext(NodeEnvironment::CONTEXT_EXPRESSION)),
+            $this->analyzer->analyze($tuple[2], $env->withContext(NodeEnvironment::CONTEXT_EXPRESSION)),
+            $this->analyzer->analyze($tuple[3], $env->withContext(NodeEnvironment::CONTEXT_EXPRESSION)),
             $tuple->getStartLocation()
         );
     }

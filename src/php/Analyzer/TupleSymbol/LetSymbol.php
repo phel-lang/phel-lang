@@ -62,8 +62,8 @@ final class LetSymbol implements TupleSymbolAnalyzer
         $bodyEnv = $env
             ->withMergedLocals($locals)
             ->withContext(
-                $env->getContext() === NodeEnvironment::CTX_EXPR
-                    ? NodeEnvironment::CTX_RET
+                $env->getContext() === NodeEnvironment::CONTEXT_EXPRESSION
+                    ? NodeEnvironment::CONTEXT_RETURN
                     : $env->getContext()
             );
 
@@ -86,7 +86,7 @@ final class LetSymbol implements TupleSymbolAnalyzer
     private function analyzeBindings(Tuple $tuple, NodeEnvironment $env): array
     {
         $tupleCount = count($tuple);
-        $initEnv = $env->withContext(NodeEnvironment::CTX_EXPR)->withDisallowRecurFrame();
+        $initEnv = $env->withContext(NodeEnvironment::CONTEXT_EXPRESSION)->withDisallowRecurFrame();
         $nodes = [];
         for ($i = 0; $i < $tupleCount; $i += 2) {
             $sym = $tuple[$i];

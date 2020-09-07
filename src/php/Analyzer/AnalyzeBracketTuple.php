@@ -17,7 +17,7 @@ final class AnalyzeBracketTuple
         $args = [];
 
         foreach ($tuple as $arg) {
-            $envDisallowRecur = $env->withContext(NodeEnvironment::CTX_EXPR)->withDisallowRecurFrame();
+            $envDisallowRecur = $env->withContext(NodeEnvironment::CONTEXT_EXPRESSION)->withDisallowRecurFrame();
             $args[] = $this->analyzer->analyze($arg, $envDisallowRecur);
         }
 

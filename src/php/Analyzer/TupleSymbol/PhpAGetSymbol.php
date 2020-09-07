@@ -17,8 +17,8 @@ final class PhpAGetSymbol implements TupleSymbolAnalyzer
     {
         return new PhpArrayGetNode(
             $env,
-            $this->analyzer->analyze($tuple[1], $env->withContext(NodeEnvironment::CTX_EXPR)),
-            $this->analyzer->analyze($tuple[2], $env->withContext(NodeEnvironment::CTX_EXPR)),
+            $this->analyzer->analyze($tuple[1], $env->withContext(NodeEnvironment::CONTEXT_EXPRESSION)),
+            $this->analyzer->analyze($tuple[2], $env->withContext(NodeEnvironment::CONTEXT_EXPRESSION)),
             $tuple->getStartLocation()
         );
     }
