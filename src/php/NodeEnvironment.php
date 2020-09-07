@@ -8,12 +8,13 @@ use Phel\Lang\Symbol;
 
 final class NodeEnvironment
 {
-    public const CONTEXT_EXPRESSION = 'expr';
-    public const CONTEXT_STATEMENT = 'stmt';
-    public const CONTEXT_RETURN = 'ret';
+    public const CONTEXT_EXPRESSION = 'expresssion';
+    public const CONTEXT_STATEMENT = 'statement';
+    public const CONTEXT_RETURN = 'return';
 
     /**
      * A list of local symbols
+     *
      * @var Symbol[]
      */
     private array $locals;
@@ -25,12 +26,14 @@ final class NodeEnvironment
 
     /**
      * A mapping of local variables to shadowed names
+     *
      * @var Symbol[]
      */
     private array $shadowed;
 
     /**
      * A list of RecurFrame
+     *
      * @var array<RecurFrame|null>
      */
     private array $recurFrames;
