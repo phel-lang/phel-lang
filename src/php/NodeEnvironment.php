@@ -8,7 +8,7 @@ use Phel\Lang\Symbol;
 
 final class NodeEnvironment
 {
-    public const CONTEXT_EXPRESSION = 'expresssion';
+    public const CONTEXT_EXPRESSION = 'expression';
     public const CONTEXT_STATEMENT = 'statement';
     public const CONTEXT_RETURN = 'return';
 
