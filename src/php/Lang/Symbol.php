@@ -91,7 +91,7 @@ final class Symbol extends AbstractType implements IIdentical
 
     public static function gen(string $prefix = '__phel_'): Symbol
     {
-        return Symbol::create($prefix . (self::$symGenCounter++));
+        return self::create($prefix . (self::$symGenCounter++));
     }
 
     public static function resetGen(): void
@@ -106,7 +106,7 @@ final class Symbol extends AbstractType implements IIdentical
 
     public function equals($other): bool
     {
-        return $other instanceof Symbol
+        return $other instanceof self
             && $this->name === $other->getName()
             && $this->namespace === $other->getNamespace();
     }

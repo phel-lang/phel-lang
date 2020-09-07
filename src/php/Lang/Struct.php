@@ -16,25 +16,6 @@ abstract class Struct extends Table
      */
     abstract public function getAllowedKeys(): array;
 
-    /**
-     * Asserts if the offset is a valid value
-     *
-     * @param AbstractType|scalar|null $offset The offset value
-     *
-     * @return void
-     * @throws InvalidArgumentException
-     */
-    protected function validateOffset($offset): void
-    {
-        if (!in_array($offset, $this->getAllowedKeys(), false)) {
-            $keyName = Printer::nonReadable()->print($offset);
-            $structName = static::class;
-            throw new InvalidArgumentException(
-                "This key '$keyName' is not allowed for struct $structName"
-            );
-        }
-    }
-
     public function offsetSet($offset, $value): void
     {
         $this->validateOffset($offset);
@@ -60,5 +41,23 @@ abstract class Struct extends Table
     {
         $this->validateOffset($offset);
         return parent::offsetGet($offset);
+    }
+
+    /**
+     * Asserts if the offset is a valid value.
+     *
+     * @param AbstractType|scalar|null $offset The offset value
+     *
+     * @throws InvalidArgumentException
+     */
+    protected function validateOffset($offset): void
+    {
+        if (!in_array($offset, $this->getAllowedKeys(), false)) {
+            $keyName = Printer::nonReadable()->print($offset);
+            $structName = static::class;
+            throw new InvalidArgumentException(
+                "This key '$keyName' is not allowed for struct $structName"
+            );
+        }
     }
 }

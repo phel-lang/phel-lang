@@ -17,7 +17,7 @@ abstract class AbstractType implements IMeta, ISourceLocation
     /**
      * Check if $other is equals to $this.
      *
-     * @param mixed $other The other value.
+     * @param mixed $other The other value
      */
     abstract public function equals($other): bool;
 }

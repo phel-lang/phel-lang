@@ -20,11 +20,7 @@ final class Keyword extends AbstractType implements IIdentical, IFn
      */
     public function __invoke(Table $obj, $default = null)
     {
-        if (isset($obj[$this])) {
-            return $obj[$this];
-        }
-
-        return $default;
+        return $obj[$this] ?? $default;
     }
 
     public function getName(): string

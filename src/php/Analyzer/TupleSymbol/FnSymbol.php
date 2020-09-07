@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Phel\Analyzer\TupleSymbol;
 
+use Phel\Analyzer\TupleSymbol\ReadModel\FnSymbolTuple;
 use Phel\Analyzer\WithAnalyzer;
 use Phel\Ast\FnNode;
 use Phel\Ast\Node;
@@ -17,31 +18,19 @@ final class FnSymbol implements TupleSymbolAnalyzer
 {
     use WithAnalyzer;
 
-    private const STATE_START = 'start';
-    private const STATE_REST = 'rest';
-    private const STATE_DONE = 'done';
-
-    private array $params = [];
-    private array $lets = [];
-    private bool $isVariadic = false;
-    private bool $hasVariadicForm = false;
-    private string $buildParamsState = self::STATE_START;
-
     public function analyze(Tuple $tuple, NodeEnvironment $env): FnNode
     {
         $this->verifyArguments($tuple);
-        $this->buildParams($tuple);
-        $this->addDummyVariadicSymbol();
-        $this->checkAllVariablesStartWithALetterOrUnderscore($tuple);
 
-        $recurFrame = new RecurFrame($this->params);
+        $fnSymbolTuple = FnSymbolTuple::createWithTuple($tuple);
+        $recurFrame = new RecurFrame($fnSymbolTuple->params());
 
         return new FnNode(
             $env,
-            $this->params,
-            $this->analyzeBody($tuple, $recurFrame, $env),
-            $this->buildUsesFromEnv($env),
-            $this->isVariadic,
+            $fnSymbolTuple->params(),
+            $this->analyzeBody($fnSymbolTuple, $recurFrame, $env),
+            $this->buildUsesFromEnv($env, $fnSymbolTuple),
+            $fnSymbolTuple->isVariadic(),
             $recurFrame->isActive(),
             $tuple->getStartLocation()
         );
@@ -58,116 +47,16 @@ final class FnSymbol implements TupleSymbolAnalyzer
         }
     }
 
-    private function buildParams(Tuple $tuple): void
+    private function analyzeBody(FnSymbolTuple $fnSymbolTuple, RecurFrame $recurFrame, NodeEnvironment $env): Node
     {
-        $this->resetParamsAndLetsState();
-        /** @var Tuple $params */
-        $params = $tuple[1];
+        $tupleBody = $fnSymbolTuple->parentTupleBody();
 
-        foreach ($params as $param) {
-            switch ($this->buildParamsState) {
-                case self::STATE_START:
-                    $this->buildParamsStart($param);
-                    break;
-                case self::STATE_REST:
-                    $this->buildParamsRest($tuple, $param);
-                    break;
-                case self::STATE_DONE:
-                    $this->buildParamsDone($tuple);
-            }
-        }
-    }
-
-    private function resetParamsAndLetsState(): void
-    {
-        $this->params = [];
-        $this->lets = [];
-        $this->isVariadic = false;
-        $this->hasVariadicForm = false;
-        $this->buildParamsState = self::STATE_START;
-    }
-
-    /** @param mixed $param */
-    private function buildParamsStart($param): void
-    {
-        if ($param instanceof Symbol) {
-            if ($this->isSymWithName($param, '&')) {
-                $this->isVariadic = true;
-                $this->buildParamsState = self::STATE_REST;
-            } elseif ($param->getName() === '_') {
-                $this->params[] = Symbol::gen()->copyLocationFrom($param);
-            } else {
-                $this->params[] = $param;
-            }
-        } else {
-            $tempSym = Symbol::gen()->copyLocationFrom($param);
-            $this->params[] = $tempSym;
-            $this->lets[] = $param;
-            $this->lets[] = $tempSym;
-        }
-    }
-
-    /** @param mixed $x */
-    private function isSymWithName($x, string $name): bool
-    {
-        return $x instanceof Symbol && $x->getName() === $name;
-    }
-
-    /** @param mixed $param */
-    private function buildParamsRest(Tuple $tuple, $param): void
-    {
-        $this->buildParamsState = self::STATE_DONE;
-        $this->hasVariadicForm = true;
-
-        if ($this->isSymWithName($param, '_')) {
-            $this->params[] = Symbol::gen()->copyLocationFrom($param);
-        } elseif ($param instanceof Symbol) {
-            $this->params[] = $param;
-        } else {
-            $tempSym = Symbol::gen()->copyLocationFrom($tuple);
-            $this->params[] = $tempSym;
-            $this->lets[] = $param;
-            $this->lets[] = $tempSym;
-        }
-    }
-
-    private function buildParamsDone(Tuple $tuple): void
-    {
-        throw AnalyzerException::withLocation(
-            'Unsupported parameter form, only one symbol can follow the & parameter',
-            $tuple
-        );
-    }
-
-    private function addDummyVariadicSymbol(): void
-    {
-        if ($this->isVariadic && !$this->hasVariadicForm) {
-            $this->params[] = Symbol::gen();
-        }
-    }
-
-    private function checkAllVariablesStartWithALetterOrUnderscore(Tuple $tuple): void
-    {
-        foreach ($this->params as $param) {
-            if (!preg_match("/^[a-zA-Z_\x80-\xff].*$/", $param->getName())) {
-                throw AnalyzerException::withLocation(
-                    "Variable names must start with a letter or underscore: {$param->getName()}",
-                    $tuple
-                );
-            }
-        }
-    }
-
-    private function analyzeBody(Tuple $tuple, RecurFrame $recurFrame, NodeEnvironment $env): Node
-    {
-        $tupleBody = array_slice($tuple->toArray(), 2);
-
-        $body = empty($this->lets)
+        $body = empty($fnSymbolTuple->lets())
             ? $this->createDoTupleWithBody($tupleBody)
-            : $this->createLetTupleWithBody($tupleBody);
+            : $this->createLetTupleWithBody($fnSymbolTuple, $tupleBody);
 
         $bodyEnv = $env
-            ->withMergedLocals($this->params)
+            ->withMergedLocals($fnSymbolTuple->params())
             ->withContext(NodeEnvironment::CONTEXT_RETURN)
             ->withAddedRecurFrame($recurFrame);
 
@@ -182,17 +71,17 @@ final class FnSymbol implements TupleSymbolAnalyzer
         )->copyLocationFrom($body);
     }
 
-    private function createLetTupleWithBody(array $tupleBody): Tuple
+    private function createLetTupleWithBody(FnSymbolTuple $fnSymbolTuple, array $tupleBody): Tuple
     {
         return Tuple::create(
             (Symbol::create(Symbol::NAME_LET))->copyLocationFrom($tupleBody),
-            (new Tuple($this->lets, true))->copyLocationFrom($tupleBody),
+            (new Tuple($fnSymbolTuple->lets(), true))->copyLocationFrom($tupleBody),
             ...$tupleBody
         )->copyLocationFrom($tupleBody);
     }
 
-    private function buildUsesFromEnv(NodeEnvironment $env): array
+    private function buildUsesFromEnv(NodeEnvironment $env, FnSymbolTuple $fnSymbolTuple): array
     {
-        return array_diff($env->getLocals(), $this->params);
+        return array_diff($env->getLocals(), $fnSymbolTuple->params());
     }
 }

@@ -24,9 +24,7 @@ class Table extends AbstractType implements ArrayAccess, Countable, Iterator, IS
     /**
      * Create a Table from a list of key-value pairs.
      *
-     * @param mixed[] $kvs The key-value pairs.
-     *
-     * @return Table
+     * @param mixed[] $kvs The key-value pairs
      */
     public static function fromKVs(...$kvs): Table
     {
@@ -190,9 +188,7 @@ class Table extends AbstractType implements ArrayAccess, Countable, Iterator, IS
     /**
      * Creates a hash for the given key.
      *
-     * @param mixed $offset The access key of the Table.
-     *
-     * @return string
+     * @param mixed $offset The access key of the Table
      */
     private function offsetHash($offset): string
     {
