@@ -25,7 +25,7 @@ final class PhelArray extends AbstractType implements
     private array $data;
 
     /**
-     * @param mixed[] $data A list of all values
+     * @param mixed[] $data
      */
     public function __construct(array $data)
     {
@@ -35,7 +35,7 @@ final class PhelArray extends AbstractType implements
     /**
      * Create a new Phel array from a list of value.
      *
-     * @param mixed[] $values The values
+     * @param mixed[] $values
      */
     public static function create(...$values): PhelArray
     {
@@ -75,6 +75,8 @@ final class PhelArray extends AbstractType implements
     }
 
     /**
+     * @param mixed $offset
+     *
      * @return mixed|null
      */
     public function offsetGet($offset)

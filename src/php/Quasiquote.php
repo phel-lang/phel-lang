@@ -135,7 +135,7 @@ final class Quasiquote
     }
 
     /**
-     * @param AbstractType|scalar|null $x The form to check.
+     * @param AbstractType|scalar|null $x The form to check
      */
     private function isLiteral($x): bool
     {
@@ -148,9 +148,7 @@ final class Quasiquote
     }
 
     /**
-     * @param AbstractType|scalar|null $form The form
-     *
-     * @return Tuple
+     * @param AbstractType|scalar|null $form
      */
     private function createTupleOtherwise($form): Tuple
     {

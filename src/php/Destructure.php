@@ -90,7 +90,7 @@ final class Destructure
      * Destructure a table $binding and add the result to $bindings.
      *
      * @param array $bindings A reference to already defined bindings
-     * @param Table $binding The binding form
+     * @param Table $table The binding form
      * @param AbstractType|scalar|null $value The value form
      */
     private function processTable(array &$bindings, Table $table, $value): void
@@ -115,7 +115,7 @@ final class Destructure
      * Destructure a array $binding and add the result to $bindings.
      *
      * @param array $bindings A reference to already defined bindings
-     * @param PhelArray $binding The binding form
+     * @param PhelArray $phelArray The binding form
      * @param AbstractType|scalar|null $value The value form
      */
     private function processArray(array &$bindings, PhelArray $phelArray, $value): void
@@ -160,7 +160,7 @@ final class Destructure
      * Destructure a tuple $binding and add the result to $bindings.
      *
      * @param array $bindings A reference to already defined bindings
-     * @param Tuple $binding The binding form
+     * @param Tuple $tuple The binding form
      * @param AbstractType|scalar|null $value The value form
      */
     private function processTuple(array &$bindings, Tuple $tuple, $value): void

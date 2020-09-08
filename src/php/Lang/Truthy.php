@@ -7,9 +7,9 @@ namespace Phel\Lang;
 final class Truthy
 {
     /**
-     * Check if the given value evaluates to true
+     * Check if the given value evaluates to true.
      *
-     * @param mixed $value The value
+     * @param mixed $value
      */
     public static function isTruthy($value): bool
     {

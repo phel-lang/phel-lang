@@ -45,7 +45,7 @@ final class Reader
      *
      * If the token stream reaches the end, null is returned.
      *
-     * @param Generator $tokenStream The token stream to read.
+     * @param Generator $tokenStream The token stream to read
      */
     public function readNext(Generator $tokenStream): ?ReaderResult
     {
@@ -313,11 +313,9 @@ final class Reader
     }
 
     /**
-     * Parse a Atom.
+     * @param Token $token The token that was identified as atom
      *
-     * @param Token $token The token that was identified as atom.
-     *
-     * @return boolean|null|Keyword|Symbol|string|int|float
+     * @return bool|null|Keyword|Symbol|string|int|float
      */
     private function parseAtom(Token $token)
     {
@@ -454,9 +452,7 @@ final class Reader
     /**
      * Create a CodeSnippet from a list of Tokens.
      *
-     * @param Token[] $readTokens The tokens read so far.
-     *
-     * @return CodeSnippet
+     * @param Token[] $readTokens The tokens read so far
      */
     private function getCodeSnippet($readTokens): CodeSnippet
     {
@@ -473,9 +469,7 @@ final class Reader
     /**
      * Concatenates all Token to a string.
      *
-     * @param Token[] $readTokens The tokens read so far.
-     *
-     * @return string
+     * @param Token[] $readTokens The tokens read so far
      */
     private function getCode($readTokens): string
     {
@@ -487,7 +481,7 @@ final class Reader
     }
 
     /**
-     * Removes all leading whitespace and comment tokens
+     * Removes all leading whitespace and comment tokens.
      *
      * @param Token[] $readTokens The tokens read so far
      *

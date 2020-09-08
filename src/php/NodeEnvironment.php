@@ -13,33 +13,33 @@ final class NodeEnvironment
     public const CONTEXT_RETURN = 'return';
 
     /**
-     * A list of local symbols
+     * A list of local symbols.
      *
      * @var Symbol[]
      */
     private array $locals;
 
     /**
-     * The current context (Expression, Statement or Return)
+     * The current context (Expression, Statement or Return).
      */
     private string $context;
 
     /**
-     * A mapping of local variables to shadowed names
+     * A mapping of local variables to shadowed names.
      *
      * @var Symbol[]
      */
     private array $shadowed;
 
     /**
-     * A list of RecurFrame
+     * A list of RecurFrame.
      *
      * @var array<RecurFrame|null>
      */
     private array $recurFrames;
 
     /**
-     * A variable this is bound to
+     * A variable this is bound to.
      */
     private string $boundTo;
 
@@ -88,11 +88,9 @@ final class NodeEnvironment
     }
 
     /**
-     * Gets the shadowed name of a local variable
+     * Gets the shadowed name of a local variable.
      *
      * @param Symbol $local The local variable
-     *
-     * @return Symbol|null
      */
     public function getShadowed(Symbol $local): ?Symbol
     {

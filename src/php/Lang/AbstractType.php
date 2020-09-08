@@ -10,7 +10,7 @@ abstract class AbstractType implements IMeta, ISourceLocation
     use TMeta;
 
     /**
-     * Computes a hash of the object
+     * Computes a hash of the object.
      */
     abstract public function hash(): string;
 
