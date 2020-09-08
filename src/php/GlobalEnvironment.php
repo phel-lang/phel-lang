@@ -78,8 +78,6 @@ final class GlobalEnvironment
      *
      * @param string $inNamespace The namespace in which the alias should exist
      * @param Symbol $name The alias name
-     *
-     * @return bool
      */
     public function hasRequireAlias(string $inNamespace, Symbol $name): bool
     {
