@@ -1,5 +1,14 @@
-# The Phel Language
+<p align="center">
+  <a href="https://phel-lang.org/" title="phel-lang.org"><img src="doc/static/favicon-512.png"  alt="phel logo"/></a>
+</p>
 
+<p align="center">
+  <a href="https://github.com/jenshaase/phel-lang/actions"><img src="https://github.com/jenshaase/phel-lang/workflows/CI/badge.svg" alt="GitHub Build Status"></a>
+  <a href="https://shepherd.dev/github/jenshaase/phel-lang"><img src="https://shepherd.dev/github/jenshaase/phel-lang/coverage.svg" alt="Psalm Type-coverage Status"></a>
+  <a href="https://gitter.im/phel-lang/community?utm_source=badge&amp;utm_medium=badge&amp;utm_campaign=pr-badge"><img src="https://badges.gitter.im/Join%20Chat.svg" alt="Gitter"></a>
+</p>
+
+#
 Phel is a function programming language that compiles to PHP. It is a dialect of Lisp inspired by [Clojure](https://clojure.org/) and [Janet](https://janet-lang.org/).
 
 ## Documentation
