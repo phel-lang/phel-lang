@@ -1,5 +1,5 @@
 <p align="center">
-  <a href="https://phel-lang.org/" title="phel-lang.org"><img src="logo.svg" width="200" height="200" alt="phel logo"/></a>
+  <a href="https://phel-lang.org/" title="Phel Lang"><img src="logo.svg" width="350" alt="Phel logo"/></a>
 </p>
 
 <p align="center">
