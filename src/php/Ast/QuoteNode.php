@@ -14,9 +14,7 @@ final class QuoteNode extends Node
     private $value;
 
     /**
-     * @param NodeEnvironment $env The node environment
-     * @param AbstractType|scalar|null $value The value
-     * @param ?SourceLocation $sourceLocation The source location
+     * @param AbstractType|scalar|null $value
      */
     public function __construct(NodeEnvironment $env, $value, ?SourceLocation $sourceLocation = null)
     {

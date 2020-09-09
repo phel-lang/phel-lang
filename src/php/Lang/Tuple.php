@@ -24,8 +24,7 @@ final class Tuple extends AbstractType implements
     private bool $usingBracket;
 
     /**
-     * @param array $data A list of values
-     * @param bool $usingBracket True if this is bracket tuple.
+     * @param bool $usingBracket true if this is bracket tuple
      */
     public function __construct(array $data, bool $usingBracket = false)
     {
@@ -36,7 +35,7 @@ final class Tuple extends AbstractType implements
     /**
      * Create a new Tuple.
      *
-     * @param AbstractType|scalar|null ...$values The values
+     * @param AbstractType|scalar|null ...$values
      */
     public static function create(...$values): Tuple
     {
@@ -46,7 +45,7 @@ final class Tuple extends AbstractType implements
     /**
      * Create a new bracket Tuple.
      *
-     * @param AbstractType|scalar|null ...$values The values
+     * @param AbstractType|scalar|null ...$values
      */
     public static function createBracket(...$values): Tuple
     {
@@ -69,6 +68,8 @@ final class Tuple extends AbstractType implements
     }
 
     /**
+     * @param mixed $offset
+     *
      * @return mixed|null
      */
     public function offsetGet($offset)

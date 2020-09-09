@@ -18,10 +18,8 @@ class ReaderResult
     private $codeSnippet;
 
     /**
-     * Constructor
-     *
      * @param AbstractType|scalar|null $ast The form read by the reader
-     * @param CodeSnippet $codeSnippet The Code that have been read for the form.
+     * @param CodeSnippet $codeSnippet The Code that have been read for the form
      */
     public function __construct($ast, CodeSnippet $codeSnippet)
     {

@@ -119,11 +119,9 @@ final class HtmlExceptionPrinter implements ExceptionPrinter
     }
 
     /**
-     * Converts a PHP type to a string
+     * Converts a PHP type to a string.
      *
      * @param mixed $arg The argument
-     *
-     * @return string
      */
     private function buildPhpArg($arg): string
     {

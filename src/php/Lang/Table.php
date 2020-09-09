@@ -68,6 +68,8 @@ class Table extends AbstractType implements ArrayAccess, Countable, Iterator, IS
     }
 
     /**
+     * @param mixed $offset
+     *
      * @return mixed|null
      */
     public function offsetGet($offset)

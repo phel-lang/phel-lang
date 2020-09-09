@@ -14,7 +14,7 @@ class Set extends AbstractType implements Countable, Iterator, ISeq, ICons, IPus
     protected array $data = [];
 
     /**
-     * @param mixed[] $data A list of all values
+     * @param mixed[] $data
      */
     public function __construct(array $data)
     {

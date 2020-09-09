@@ -35,6 +35,8 @@ abstract class Struct extends Table
     }
 
     /**
+     * @param mixed $offset
+     *
      * @return mixed|null
      */
     public function offsetGet($offset)
@@ -46,7 +48,7 @@ abstract class Struct extends Table
     /**
      * Asserts if the offset is a valid value.
      *
-     * @param AbstractType|scalar|null $offset The offset value
+     * @param AbstractType|scalar|null $offset
      *
      * @throws InvalidArgumentException
      */

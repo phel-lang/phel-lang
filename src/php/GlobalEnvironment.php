@@ -65,8 +65,8 @@ final class GlobalEnvironment
      * Adds an require alias.
      *
      * @param string $inNamespace The namespace in which the alias exist
-     * @param Symbol The alias name
-     * @param Symbol The namespace that will be resolve.
+     * @param Symbol $name The alias name
+     * @param Symbol $fullName The namespace that will be resolve
      */
     public function addRequireAlias(string $inNamespace, Symbol $name, Symbol $fullName): void
     {
@@ -77,9 +77,7 @@ final class GlobalEnvironment
      * Checks if an require alias exists.
      *
      * @param string $inNamespace The namespace in which the alias should exist
-     * @param Symbol The alias name
-     *
-     * @return boolean
+     * @param Symbol $name The alias name
      */
     public function hasRequireAlias(string $inNamespace, Symbol $name): bool
     {
@@ -90,8 +88,8 @@ final class GlobalEnvironment
      * Adds an use alias.
      *
      * @param string $inNamespace The namespace in which the alias exist
-     * @param Symbol The alias name
-     * @param Symbol The namespace that will be resolve.
+     * @param Symbol $alias The alias name
+     * @param Symbol $fullName The namespace that will be resolve
      */
     public function addUseAlias(string $inNamespace, Symbol $alias, Symbol $fullName): void
     {
@@ -102,9 +100,7 @@ final class GlobalEnvironment
      * Checks if an use alias exists.
      *
      * @param string $inNamespace The namespace in which the alias should exist
-     * @param Symbol The alias name
-     *
-     * @return boolean
+     * @param Symbol $alias The alias name
      */
     public function hasUseAlias(string $inNamespace, Symbol $alias): bool
     {

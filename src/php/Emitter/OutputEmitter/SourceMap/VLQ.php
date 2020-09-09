@@ -21,7 +21,7 @@ final class VLQ
     private const CHARS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/=';
 
     /**
-     * Cache with precomputed values
+     * Cache with precomputed values.
      *
      * @var array<int, string>
      */
@@ -107,8 +107,6 @@ final class VLQ
      * Encodes a list of number to a VLQ-base64 encoded string.
      *
      * @param int[] $numbers A list of numbers to encode
-     *
-     * @return string
      */
     public function encodeIntegers(array $numbers): string
     {
@@ -123,8 +121,6 @@ final class VLQ
      * Encodes a number to a VLQ-base64 encoded string.
      *
      * @param int $num The number to encode
-     *
-     * @return string
      */
     public function encodeInteger(int $num): string
     {

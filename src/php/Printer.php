@@ -33,9 +33,9 @@ final class Printer
     }
 
     /**
-     * Converts a form to a printable string
+     * Converts a form to a printable string.
      *
-     * @param mixed $form The form to print.
+     * @param mixed $form The form to print
      */
     public function print($form): string
     {
