@@ -85,7 +85,10 @@ zola build
 
 ### Run on PHP 8 with JIT
 
-The JIT compiler in PHP 8 provides more speed for the Phel compiler. To compare the runtime on PHP 7.4 vs PHP 8 the following commands can be use.
+<details><summary>Show / Hide</summary>
+<p>
+
+The JIT compiler in PHP 8 provides more speed for the Phel compiler. To compare the runtime on PHP 7.4 vs PHP 8 the following commands can be used.
 
 First, pull the docker image
 
@@ -110,3 +113,6 @@ sudo docker run --rm \
     keinos/php8-jit \
     php tests/phel/test-runner.php
 ```
+
+</p>
+</details>
