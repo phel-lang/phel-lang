@@ -1,5 +1,14 @@
-# The Phel Language
+<p align="center">
+  <a href="https://phel-lang.org/" title="Phel Lang"><img src="doc/static/logo.svg" width="350" alt="Phel logo"/></a>
+</p>
 
+<p align="center">
+  <a href="https://github.com/jenshaase/phel-lang/actions"><img src="https://github.com/jenshaase/phel-lang/workflows/CI/badge.svg" alt="GitHub Build Status"></a>
+  <a href="https://shepherd.dev/github/jenshaase/phel-lang"><img src="https://shepherd.dev/github/jenshaase/phel-lang/coverage.svg" alt="Psalm Type-coverage Status"></a>
+  <a href="https://gitter.im/phel-lang/community?utm_source=badge&amp;utm_medium=badge&amp;utm_campaign=pr-badge"><img src="https://badges.gitter.im/Join%20Chat.svg" alt="Gitter"></a>
+</p>
+
+#
 Phel is a function programming language that compiles to PHP. It is a dialect of Lisp inspired by [Clojure](https://clojure.org/) and [Janet](https://janet-lang.org/).
 
 ## Documentation
@@ -76,7 +85,11 @@ zola build
 
 ### Run on PHP 8 with JIT
 
-The JIT compiler in PHP 8 provides more speed for the Phel compiler. To compare the runtime on PHP 7.4 vs PHP 8 the following commands can be use.
+<details>
+<summary>Show / Hide</summary>
+<p>
+
+The JIT compiler in PHP 8 provides more speed for the Phel compiler. To compare the runtime on PHP 7.4 vs PHP 8 the following commands can be used.
 
 First, pull the docker image
 
@@ -101,3 +114,6 @@ sudo docker run --rm \
     keinos/php8-jit \
     php tests/phel/test-runner.php
 ```
+
+</p>
+</details>
