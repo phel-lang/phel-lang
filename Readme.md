@@ -1,5 +1,5 @@
 <p align="center">
-  <a href="https://phel-lang.org/" title="Phel Lang"><img src="logo.svg" width="350" alt="Phel logo"/></a>
+  <a href="https://phel-lang.org/" title="Phel Lang"><img src="doc/static/logo.svg" width="350" alt="Phel logo"/></a>
 </p>
 
 <p align="center">
@@ -85,7 +85,8 @@ zola build
 
 ### Run on PHP 8 with JIT
 
-<details><summary>Show / Hide</summary>
+<details>
+<summary>Show / Hide</summary>
 <p>
 
 The JIT compiler in PHP 8 provides more speed for the Phel compiler. To compare the runtime on PHP 7.4 vs PHP 8 the following commands can be used.
