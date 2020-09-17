@@ -24,14 +24,9 @@ final class TestCommand
 
     public function run(string $currentDirectory, array $paths): bool
     {
-        if (count($paths) === 0) {
-            $namespaces = $this->getNamespacesFromConfig($currentDirectory);
-        } else {
-            $namespaces = [];
-            foreach ($paths as $filename) {
-                $namespaces[] = CommandUtils::getNamespaceFromFile($filename);
-            }
-        }
+        $namespaces = count($paths) === 0
+            ? $this->getNamespacesFromConfig($currentDirectory)
+            : array_map(fn ($filename) => CommandUtils::getNamespaceFromFile($filename), $paths);
 
         if (empty($namespaces)) {
             throw new \RuntimeException('Can not find any tests');
@@ -39,8 +34,8 @@ final class TestCommand
 
         $rt = $this->initializeRuntime($currentDirectory);
         $compiler = new EvalCompiler($rt->getEnv());
-
         $nsString = implode(' ', array_map(fn (string $x) => "'" . $x, $namespaces));
+
         return $compiler->eval('(do (phel\test/run-tests ' . $nsString . ') (successful?))');
     }
 
@@ -60,11 +55,7 @@ final class TestCommand
 
     private function initializeRuntime(string $currentDirectory): Runtime
     {
-        if ($this->runtime === null) {
-            $rt = CommandUtils::loadRuntime($currentDirectory);
-        } else {
-            $rt = $this->runtime;
-        }
+        $rt = $this->runtime ?? CommandUtils::loadRuntime($currentDirectory);
         $rt->loadNs('phel\test');
 
         return $rt;
@@ -72,16 +63,12 @@ final class TestCommand
 
     private function findAllNs(string $directory): array
     {
-        $dirIterator = new RecursiveDirectoryIterator($directory);
-        $iterator = new RecursiveIteratorIterator($dirIterator);
+        $iterator = new RecursiveIteratorIterator(new RecursiveDirectoryIterator($directory));
         $phelIterator = new RegexIterator($iterator, '/^.+\.phel$/i', RecursiveRegexIterator::GET_MATCH);
 
-        $namespaces = [];
-        foreach ($phelIterator as $file) {
-            $file = $file[0];
-            $namespaces[] = CommandUtils::getNamespaceFromFile($file);
-        }
-
-        return $namespaces;
+        return array_map(
+            fn ($file) => CommandUtils::getNamespaceFromFile($file[0]),
+            iterator_to_array($phelIterator)
+        );
     }
 }
