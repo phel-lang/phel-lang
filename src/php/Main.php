@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Phel;
 
+use Exception;
 use Phel\Commands\ReplCommand;
 use Phel\Commands\RunCommand;
 use Phel\Commands\TestCommand;
@@ -36,8 +37,7 @@ HELP;
     public static function create(string $currentDir, string $commandName, array $arguments = []): self
     {
         if (!getcwd()) {
-            fwrite(STDERR, 'Cannot get current working directory' . PHP_EOL);
-            exit(1);
+            throw new Exception('Cannot get current working directory');
         }
 
         static::requireAutoload($currentDir);
@@ -95,8 +95,7 @@ HELP;
     private function executeRunCommand(): void
     {
         if (empty($this->arguments)) {
-            echo "Please provide a filename or namespace as argument!\n";
-            exit;
+            throw new Exception('Please provide a filename or namespace as argument!');
         }
 
         $runCommand = new RunCommand();
