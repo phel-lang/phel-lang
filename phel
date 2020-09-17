@@ -13,5 +13,5 @@ if ($argc <= 1) {
 $currentDir = getcwd() . DIRECTORY_SEPARATOR;
 $commandName = $argv[1];
 $arguments = array_slice($argv, 2);
-$entryPoint = Main::create($currentDir, $commandName, $arguments);
-$entryPoint->run();
+
+Main::create($currentDir, $commandName, $arguments)->run();

@@ -7,7 +7,7 @@ namespace Phel\Commands;
 use Phel\Runtime;
 use RuntimeException;
 
-class RunCommand
+final class RunCommand
 {
     public const NAME = 'run';
 
@@ -26,11 +26,7 @@ class RunCommand
             $ns = CommandUtils::getNamespaceFromFile($fileOrPath);
         }
 
-        if ($this->runtime === null) {
-            $rt = CommandUtils::loadRuntime($currentDirectory);
-        } else {
-            $rt = $this->runtime;
-        }
+        $rt = $this->runtime ?? CommandUtils::loadRuntime($currentDirectory);
 
         $result = $rt->loadNs($ns);
 
