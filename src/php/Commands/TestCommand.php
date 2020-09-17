@@ -11,7 +11,7 @@ use RecursiveIteratorIterator;
 use RecursiveRegexIterator;
 use RegexIterator;
 
-class TestCommand
+final class TestCommand
 {
     public const NAME = 'test';
 

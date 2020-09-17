@@ -12,7 +12,7 @@ use Phel\Reader;
 use Phel\Runtime;
 use RuntimeException;
 
-class CommandUtils
+final class CommandUtils
 {
     public static function getNamespaceFromFile(string $path): string
     {

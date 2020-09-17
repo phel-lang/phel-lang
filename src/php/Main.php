@@ -10,7 +10,6 @@ use Phel\Commands\TestCommand;
 
 final class Main
 {
-    private const VENDOR_DIR = 'vendor';
     private const HELP_TEXT = <<<HELP
 Usage: phel [command]
 
@@ -34,7 +33,7 @@ HELP;
     private string $commandName;
     private array $arguments;
 
-    public static function create(string $currentDir, string $commandName, array $arguments = []): Main
+    public static function create(string $currentDir, string $commandName, array $arguments = []): self
     {
         if (!getcwd()) {
             fwrite(STDERR, 'Cannot get current working directory' . PHP_EOL);
@@ -46,16 +45,15 @@ HELP;
         return new self($currentDir, $commandName, $arguments);
     }
 
-    public static function renderHelpAndExit(): void
+    public static function renderHelp(): void
     {
         echo self::HELP_TEXT;
-        exit;
     }
 
     /** @psalm-pure */
     private static function requireAutoload(string $currentDir): void
     {
-        $autoloadPath = $currentDir . self::VENDOR_DIR . DIRECTORY_SEPARATOR . 'autoload.php';
+        $autoloadPath = $currentDir . 'vendor' . DIRECTORY_SEPARATOR . 'autoload.php';
 
         if (!file_exists($autoloadPath)) {
             throw new \RuntimeException("Can not load composer's autoload file: " . $autoloadPath);
@@ -84,7 +82,7 @@ HELP;
                 $this->executeTestCommand();
                 break;
             default:
-                static::renderHelpAndExit();
+                static::renderHelp();
         }
     }
 
@@ -117,13 +115,3 @@ HELP;
         exit(1);
     }
 }
-
-if ($argc <= 1) {
-    Main::renderHelpAndExit();
-}
-
-$currentDir = getcwd() . DIRECTORY_SEPARATOR;
-$commandName = $argv[1];
-$arguments = array_slice($argv, 2);
-$entryPoint = Main::create($currentDir, $commandName, $arguments);
-$entryPoint->run();
