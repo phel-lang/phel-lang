@@ -46,10 +46,9 @@ HELP;
         return new self($currentDir, $commandName, $arguments);
     }
 
-    public static function renderHelpAndExit(): void
+    public static function renderHelp(): void
     {
         echo self::HELP_TEXT;
-        exit;
     }
 
     /** @psalm-pure */
@@ -84,7 +83,7 @@ HELP;
                 $this->executeTestCommand();
                 break;
             default:
-                static::renderHelpAndExit();
+                static::renderHelp();
         }
     }
 
@@ -117,13 +116,3 @@ HELP;
         exit(1);
     }
 }
-
-if ($argc <= 1) {
-    Main::renderHelpAndExit();
-}
-
-$currentDir = getcwd() . DIRECTORY_SEPARATOR;
-$commandName = $argv[1];
-$arguments = array_slice($argv, 2);
-$entryPoint = Main::create($currentDir, $commandName, $arguments);
-$entryPoint->run();

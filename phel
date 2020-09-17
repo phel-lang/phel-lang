@@ -1,5 +1,17 @@
 #!/usr/bin/env php
 <?php
 
-$slash = DIRECTORY_SEPARATOR;
-require_once __DIR__ . "{$slash}src{$slash}php{$slash}Main.php";
+require __DIR__ . '/vendor/autoload.php';
+
+use Phel\Main;
+
+if ($argc <= 1) {
+    Main::renderHelp();
+    exit;
+}
+
+$currentDir = getcwd() . DIRECTORY_SEPARATOR;
+$commandName = $argv[1];
+$arguments = array_slice($argv, 2);
+$entryPoint = Main::create($currentDir, $commandName, $arguments);
+$entryPoint->run();
