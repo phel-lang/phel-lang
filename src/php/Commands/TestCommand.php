@@ -24,7 +24,7 @@ final class TestCommand
 
     public function run(string $currentDirectory, array $paths): bool
     {
-        $namespaces = count($paths) === 0
+        $namespaces = empty($paths)
             ? $this->getNamespacesFromConfig($currentDirectory)
             : array_map(fn ($filename) => CommandUtils::getNamespaceFromFile($filename), $paths);
 
@@ -32,8 +32,8 @@ final class TestCommand
             throw new \RuntimeException('Can not find any tests');
         }
 
-        $rt = $this->initializeRuntime($currentDirectory);
-        $compiler = new EvalCompiler($rt->getEnv());
+        $runtime = $this->initializeRuntime($currentDirectory);
+        $compiler = new EvalCompiler($runtime->getEnv());
         $nsString = implode(' ', array_map(fn (string $x) => "'" . $x, $namespaces));
 
         return $compiler->eval('(do (phel\test/run-tests ' . $nsString . ') (successful?))');
@@ -44,10 +44,10 @@ final class TestCommand
         $config = CommandUtils::getPhelConfig($currentDirectory);
         $namespaces = [];
 
-        if (isset($config['tests'])) {
-            foreach ($config['tests'] as $testDir) {
-                $namespaces = array_merge($namespaces, $this->findAllNs($currentDirectory . $testDir));
-            }
+        $testDirectories = $config['tests'] ?? [];
+        foreach ($testDirectories as $testDir) {
+            $allNamespacesInDir = $this->findAllNs($currentDirectory . $testDir);
+            $namespaces = array_merge($namespaces, $allNamespacesInDir);
         }
 
         return $namespaces;
@@ -55,10 +55,10 @@ final class TestCommand
 
     private function initializeRuntime(string $currentDirectory): Runtime
     {
-        $rt = $this->runtime ?? CommandUtils::loadRuntime($currentDirectory);
-        $rt->loadNs('phel\test');
+        $runtime = $this->runtime ?? CommandUtils::loadRuntime($currentDirectory);
+        $runtime->loadNs('phel\test');
 
-        return $rt;
+        return $runtime;
     }
 
     private function findAllNs(string $directory): array
