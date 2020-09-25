@@ -14,4 +14,8 @@ $currentDir = getcwd() . DIRECTORY_SEPARATOR;
 $commandName = $argv[1];
 $arguments = array_slice($argv, 2);
 
-Main::create($currentDir, $commandName, $arguments)->run();
+try {
+    Main::create($currentDir, $commandName, $arguments)->run();
+} catch (Exception $e) {
+    print $e->getMessage() . PHP_EOL;
+}
