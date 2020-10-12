@@ -6,19 +6,12 @@ use Phel\Lang\AbstractType;
 
 class ReaderResult
 {
-
-    /**
-     * @var AbstractType|scalar|null
-     */
+    /** @var AbstractType|string|float|int|bool|null */
     private $ast;
+    private CodeSnippet $codeSnippet;
 
     /**
-     * @var CodeSnippet
-     */
-    private $codeSnippet;
-
-    /**
-     * @param AbstractType|scalar|null $ast The form read by the reader
+     * @param AbstractType|string|float|int|bool|null $ast The form read by the reader
      * @param CodeSnippet $codeSnippet The Code that have been read for the form
      */
     public function __construct($ast, CodeSnippet $codeSnippet)
@@ -28,7 +21,7 @@ class ReaderResult
     }
 
     /**
-     * @return AbstractType|scalar|null
+     * @return AbstractType|string|float|int|bool|null
      */
     public function getAst()
     {

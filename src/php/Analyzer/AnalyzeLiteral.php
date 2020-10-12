@@ -10,7 +10,7 @@ use Phel\NodeEnvironment;
 
 final class AnalyzeLiteral
 {
-    /** @param AbstractType|scalar|null $value */
+    /** @param AbstractType|string|float|int|bool|null $value */
     public function analyze($value, NodeEnvironment $env): LiteralNode
     {
         $sourceLocation = ($value instanceof AbstractType)

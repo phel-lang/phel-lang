@@ -68,8 +68,8 @@ final class Destructure
      * Destructure a $binding $value pair and add the result to $bindings.
      *
      * @param array $bindings A reference to already defined bindings
-     * @param AbstractType|scalar|null $binding The binding form
-     * @param AbstractType|scalar|null $value The value form
+     * @param AbstractType|string|float|int|bool|null $binding The binding form
+     * @param AbstractType|string|float|int|bool|null $value The value form
      */
     private function destructure(array &$bindings, $binding, $value): void
     {
@@ -91,7 +91,7 @@ final class Destructure
      *
      * @param array $bindings A reference to already defined bindings
      * @param Table $table The binding form
-     * @param AbstractType|scalar|null $value The value form
+     * @param AbstractType|string|float|int|bool|null $value The value form
      */
     private function processTable(array &$bindings, Table $table, $value): void
     {
@@ -116,7 +116,7 @@ final class Destructure
      *
      * @param array $bindings A reference to already defined bindings
      * @param PhelArray $phelArray The binding form
-     * @param AbstractType|scalar|null $value The value form
+     * @param AbstractType|string|float|int|bool|null $value The value form
      */
     private function processArray(array &$bindings, PhelArray $phelArray, $value): void
     {
@@ -144,7 +144,7 @@ final class Destructure
      *
      * @param array $bindings A reference to already defined bindings
      * @param Symbol $binding The binding form
-     * @param AbstractType|scalar|null $value The value form
+     * @param AbstractType|string|float|int|bool|null $value The value form
      */
     private function processSymbol(array &$bindings, Symbol $binding, $value): void
     {
@@ -161,7 +161,7 @@ final class Destructure
      *
      * @param array $bindings A reference to already defined bindings
      * @param Tuple $tuple The binding form
-     * @param AbstractType|scalar|null $value The value form
+     * @param AbstractType|string|float|int|bool|null $value The value form
      */
     private function processTuple(array &$bindings, Tuple $tuple, $value): void
     {

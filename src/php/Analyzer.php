@@ -33,13 +33,13 @@ final class Analyzer
         return $this->globalEnvironment;
     }
 
-    /** @param AbstractType|scalar|null $x */
+    /** @param AbstractType|string|float|int|bool|null $x */
     public function analyzeInEmptyEnv($x): Node
     {
         return $this->analyze($x, NodeEnvironment::empty());
     }
 
-    /** @param AbstractType|scalar|null $x */
+    /** @param AbstractType|string|float|int|bool|null $x */
     public function analyze($x, NodeEnvironment $env): Node
     {
         if ($this->isLiteral($x)) {
@@ -69,7 +69,7 @@ final class Analyzer
         throw new AnalyzerException('Unhandled type: ' . var_export($x, true));
     }
 
-    /** @param AbstractType|scalar|null $x */
+    /** @param AbstractType|string|float|int|bool|null $x */
     private function isLiteral($x): bool
     {
         return is_string($x)

@@ -574,7 +574,7 @@ final class ReaderTest extends TestCase
         );
     }
 
-    /** @return AbstractType|scalar|null */
+    /** @return AbstractType|string|float|int|bool|null */
     public function read($string, bool $removeLoc = false)
     {
         Symbol::resetGen();
@@ -605,7 +605,7 @@ final class ReaderTest extends TestCase
         return $x;
     }
 
-    /** @param AbstractType|scalar|null $x */
+    /** @param AbstractType|string|float|int|bool|null $x */
     private function removeLoc($x)
     {
         if ($x instanceof AbstractType) {

@@ -48,7 +48,7 @@ abstract class Struct extends Table
     /**
      * Asserts if the offset is a valid value.
      *
-     * @param AbstractType|scalar|null $offset
+     * @param AbstractType|string|float|int|bool|null $offset
      *
      * @throws InvalidArgumentException
      */

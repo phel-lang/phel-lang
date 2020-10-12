@@ -229,11 +229,11 @@ final class OutputEmitter
     }
 
     /**
-     * @param AbstractType|scalar|null $x The value
+     * @param AbstractType|string|float|int|bool|null $value
      */
-    public function emitLiteral($x): void
+    public function emitLiteral($value): void
     {
-        (new LiteralEmitter($this))->emitLiteral($x);
+        (new LiteralEmitter($this))->emitLiteral($value);
     }
 
     public function increaseIndentLevel(): void

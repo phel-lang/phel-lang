@@ -24,7 +24,7 @@ final class LiteralEmitter
     }
 
     /**
-     * @param AbstractType|scalar|null $x The value
+     * @param AbstractType|string|float|int|bool|null $x The value
      */
     public function emitLiteral($x): void
     {
