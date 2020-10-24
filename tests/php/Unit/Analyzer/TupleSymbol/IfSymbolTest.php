@@ -31,20 +31,20 @@ final class IfSymbolTest extends TestCase
     public function providerRequiresAtLeastTwoOrThreeArgs(): Generator
     {
         yield 'No arguments provided: (if)' => [
-            'wrongTuple' => Tuple::create(
+            'tuple' => Tuple::create(
                 Symbol::create(Symbol::NAME_IF)
             ),
         ];
 
         yield 'Only one argument provided: (if one)' => [
-            'wrongTuple' => Tuple::create(
+            'tuple' => Tuple::create(
                 Symbol::create(Symbol::NAME_IF),
                 Symbol::create('one'),
             ),
         ];
 
         yield 'Only one argument provided: (if one two three four)' => [
-            'wrongTuple' => Tuple::create(
+            'tuple' => Tuple::create(
                 Symbol::create(Symbol::NAME_IF),
                 Symbol::create('one'),
                 Symbol::create('two'),
@@ -52,6 +52,23 @@ final class IfSymbolTest extends TestCase
                 Symbol::create('four'),
             ),
         ];
+    }
+
+    public function testAnalyze(): void
+    {
+        $tuple = Tuple::create(
+            Symbol::create(Symbol::NAME_IF),
+            true,
+            'truthy',
+            'falsy',
+        );
+
+        $actual = $this->analyze($tuple);
+
+        self::assertTrue($actual->getTestExpr()->getValue());
+        self::assertSame('truthy', $actual->getThenExpr()->getValue());
+        self::assertSame('falsy', $actual->getElseExpr()->getValue());
+        self::assertEquals(NodeEnvironment::empty(), $actual->getEnv());
     }
 
     private function analyze(Tuple $tuple): IfNode
