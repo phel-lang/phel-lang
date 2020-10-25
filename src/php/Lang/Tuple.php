@@ -35,7 +35,7 @@ final class Tuple extends AbstractType implements
     /**
      * Create a new Tuple.
      *
-     * @param AbstractType|scalar|null ...$values
+     * @param AbstractType|string|float|int|bool|null ...$values
      */
     public static function create(...$values): Tuple
     {
@@ -45,7 +45,7 @@ final class Tuple extends AbstractType implements
     /**
      * Create a new bracket Tuple.
      *
-     * @param AbstractType|scalar|null ...$values
+     * @param AbstractType|string|float|int|bool|null ...$values
      */
     public static function createBracket(...$values): Tuple
     {
