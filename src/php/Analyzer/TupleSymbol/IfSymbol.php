@@ -12,8 +12,7 @@ use Phel\Lang\Tuple;
 use Phel\NodeEnvironment;
 
 /**
- * (if condition truthy).
- * (if condition truthy falsy).
+ * (if test then else?).
  */
 final class IfSymbol implements TupleSymbolAnalyzer
 {
@@ -25,9 +24,9 @@ final class IfSymbol implements TupleSymbolAnalyzer
 
         return new IfNode(
             $env,
-            $this->condition($tuple, $env),
-            $this->truthy($tuple, $env),
-            $this->falsy($tuple, $env),
+            $this->testExpression($tuple, $env),
+            $this->thenExpression($tuple, $env),
+            $this->elseExpression($tuple, $env),
             $tuple->getStartLocation()
         );
     }
@@ -41,7 +40,7 @@ final class IfSymbol implements TupleSymbolAnalyzer
         }
     }
 
-    private function condition(Tuple $tuple, NodeEnvironment $env): Node
+    private function testExpression(Tuple $tuple, NodeEnvironment $env): Node
     {
         $envWithDisallowRecurFrame = $env
             ->withContext(NodeEnvironment::CONTEXT_EXPRESSION)
@@ -50,12 +49,12 @@ final class IfSymbol implements TupleSymbolAnalyzer
         return $this->analyzer->analyze($tuple[1], $envWithDisallowRecurFrame);
     }
 
-    private function truthy(Tuple $tuple, NodeEnvironment $env): Node
+    private function thenExpression(Tuple $tuple, NodeEnvironment $env): Node
     {
         return $this->analyzer->analyze($tuple[2], $env);
     }
 
-    private function falsy(Tuple $tuple, NodeEnvironment $env): Node
+    private function elseExpression(Tuple $tuple, NodeEnvironment $env): Node
     {
         if (count($tuple) === 3) {
             return $this->analyzer->analyze(null, $env);

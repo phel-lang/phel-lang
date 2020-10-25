@@ -36,20 +36,20 @@ final class IfSymbolTest extends TestCase
             ),
         ];
 
-        yield 'Only one argument provided: (if one)' => [
+        yield 'Only one argument provided: (if "one")' => [
             'tuple' => Tuple::create(
                 Symbol::create(Symbol::NAME_IF),
-                Symbol::create('one'),
+                'one',
             ),
         ];
 
-        yield 'Only one argument provided: (if one two three four)' => [
+        yield 'Only one argument provided: (if "one" "two" "three" "four")' => [
             'tuple' => Tuple::create(
                 Symbol::create(Symbol::NAME_IF),
-                Symbol::create('one'),
-                Symbol::create('two'),
-                Symbol::create('three'),
-                Symbol::create('four'),
+                'one',
+                'two',
+                'three',
+                'four',
             ),
         ];
     }
@@ -59,15 +59,15 @@ final class IfSymbolTest extends TestCase
         $tuple = Tuple::create(
             Symbol::create(Symbol::NAME_IF),
             true,
-            'truthy',
-            'falsy',
+            'then-expression',
+            'else-expression',
         );
 
         $actual = $this->analyze($tuple);
 
         self::assertTrue($actual->getTestExpr()->getValue());
-        self::assertSame('truthy', $actual->getThenExpr()->getValue());
-        self::assertSame('falsy', $actual->getElseExpr()->getValue());
+        self::assertSame('then-expression', $actual->getThenExpr()->getValue());
+        self::assertSame('else-expression', $actual->getElseExpr()->getValue());
         self::assertEquals(NodeEnvironment::empty(), $actual->getEnv());
     }
 
