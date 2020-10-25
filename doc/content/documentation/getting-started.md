@@ -18,7 +18,7 @@ cd hello-world
 composer init
 ```
 
-Composer will ask a bunch of questions that can be answered as in the following example:
+Composer will ask a bunch of questions that can be answered as in the following example. Make sure to set *Minimum Stability* to **dev**:
 
 ```
 Welcome to the Composer config generator
@@ -28,7 +28,7 @@ This command will guide you through creating your composer.json config.
 Package name (<vendor>/<name>) [jens/phel]: phel/hello-world
 Description []:
 Author [Your Name <your.name@domain.com>, n to skip]:
-Minimum Stability []:
+Minimum Stability []: dev
 Package Type (e.g. library, project, metapackage, composer-plugin) []: project
 License []:
 
@@ -45,7 +45,8 @@ Would you like to define your dev dependencies (require-dev) interactively [yes]
             "name": "Your Name",
             "email": "your.name@domain.com"
         }
-    ],
+    ],,
+    "minimum-stability": "dev",
     "require": {}
 }
 
@@ -83,8 +84,7 @@ For Phel to automatically resolve the project namespace and path, this code need
             "hello-world\\": "src/"
         }
     }
-},
-"minimum-stability": "dev"
+}
 ```
 
 > Read documentation for [Configuration](/documentation/configuration) to see all available configuration options for Phel.
@@ -117,6 +117,12 @@ The final `composer.json` file should look like this:
 
 
 ## Running the code
+
+Before execute the code, make sure composer has created a autoload file. This can be done by executing following command
+
+```
+composer dump-autoload
+```
 
 There are two ways to run the code: from the command line and with a PHP Server.
 

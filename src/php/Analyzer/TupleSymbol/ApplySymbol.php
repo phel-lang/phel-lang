@@ -33,7 +33,7 @@ final class ApplySymbol implements TupleSymbolAnalyzer
     /**
      * Analyze the function expression of the apply special form.
      *
-     * @param AbstractType|scalar|null $x
+     * @param AbstractType|string|float|int|bool|null $x
      * @param NodeEnvironment $env
      *
      * @return Node

@@ -75,8 +75,9 @@ final class OutputEmitter
         }
 
         $sourceMap = $this->sourceMapGenerator->encode($this->sourceMap);
-        $file = $node->getStartSourceLocation()
-            ? $node->getStartSourceLocation()->getFile()
+        $sourceLocation = $node->getStartSourceLocation();
+        $file = $sourceLocation
+            ? $sourceLocation->getFile()
             : 'string';
 
         return (
@@ -229,11 +230,11 @@ final class OutputEmitter
     }
 
     /**
-     * @param AbstractType|scalar|null $x The value
+     * @param AbstractType|string|float|int|bool|null $value
      */
-    public function emitLiteral($x): void
+    public function emitLiteral($value): void
     {
-        (new LiteralEmitter($this))->emitLiteral($x);
+        (new LiteralEmitter($this))->emitLiteral($value);
     }
 
     public function increaseIndentLevel(): void

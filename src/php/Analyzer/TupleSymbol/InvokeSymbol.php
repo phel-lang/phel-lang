@@ -46,7 +46,7 @@ final class InvokeSymbol implements TupleSymbolAnalyzer
         return $result;
     }
 
-    /** @return AbstractType|scalar|null */
+    /** @return AbstractType|string|float|int|bool|null */
     private function macroExpand(Tuple $tuple, NodeEnvironment $env)
     {
         $tupleCount = count($tuple);
@@ -82,7 +82,7 @@ final class InvokeSymbol implements TupleSymbolAnalyzer
         throw AnalyzerException::withLocation('This is not macro expandable: ' . get_class($node), $tuple);
     }
 
-    /** @param AbstractType|scalar|null $x */
+    /** @param AbstractType|string|float|int|bool|null $x */
     private function enrichLocation($x, AbstractType $parent): void
     {
         if ($x instanceof Tuple) {

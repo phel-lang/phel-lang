@@ -85,7 +85,7 @@ final class DefSymbol implements TupleSymbolAnalyzer
             && !is_scalar($init)
             && $init !== null
         ) {
-            throw AnalyzerException::withLocation('$init must be AbstractType|scalar|null', $tuple);
+            throw AnalyzerException::withLocation('$init must be AbstractType|string|float|int|bool|null', $tuple);
         }
 
         if (is_string($meta)) {
@@ -121,7 +121,7 @@ final class DefSymbol implements TupleSymbolAnalyzer
     }
 
     /**
-     * @param AbstractType|scalar|null $init
+     * @param AbstractType|string|float|int|bool|null $init
      */
     private function analyzeInit($init, NodeEnvironment $env, string $namespace, Symbol $nameSymbol): Node
     {

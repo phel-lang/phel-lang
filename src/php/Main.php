@@ -50,7 +50,6 @@ HELP;
         echo self::HELP_TEXT;
     }
 
-    /** @psalm-pure */
     private static function requireAutoload(string $currentDir): void
     {
         $autoloadPath = $currentDir . 'vendor' . DIRECTORY_SEPARATOR . 'autoload.php';
