@@ -22,9 +22,9 @@ final class Quasiquote
     }
 
     /**
-     * @param AbstractType|scalar|null $form The form to quasiqoute
+     * @param AbstractType|string|float|int|bool|null $form The form to quasiqoute
      *
-     * @return AbstractType|scalar|null
+     * @return AbstractType|string|float|int|bool|null
      */
     public function transform($form)
     {
@@ -57,7 +57,7 @@ final class Quasiquote
     }
 
     /**
-     * @param AbstractType|scalar|null $form
+     * @param AbstractType|string|float|int|bool|null $form
      */
     private function isUnquote($form): bool
     {
@@ -65,7 +65,7 @@ final class Quasiquote
     }
 
     /**
-     * @param AbstractType|scalar|null $form
+     * @param AbstractType|string|float|int|bool|null $form
      */
     private function isUnquoteSplicing($form): bool
     {
@@ -135,7 +135,7 @@ final class Quasiquote
     }
 
     /**
-     * @param AbstractType|scalar|null $x The form to check
+     * @param AbstractType|string|float|int|bool|null $x The form to check
      */
     private function isLiteral($x): bool
     {
@@ -148,7 +148,7 @@ final class Quasiquote
     }
 
     /**
-     * @param AbstractType|scalar|null $form
+     * @param AbstractType|string|float|int|bool|null $form
      */
     private function createTupleOtherwise($form): Tuple
     {

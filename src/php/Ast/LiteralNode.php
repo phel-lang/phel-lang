@@ -10,11 +10,11 @@ use Phel\NodeEnvironment;
 
 final class LiteralNode extends Node
 {
-    /** @var AbstractType|scalar|null */
+    /** @var AbstractType|string|float|int|bool|null */
     private $value;
 
     /**
-     * @param AbstractType|scalar|null $value
+     * @param AbstractType|string|float|int|bool|null $value
      */
     public function __construct(NodeEnvironment $env, $value, ?SourceLocation $sourceLocation = null)
     {
@@ -23,7 +23,7 @@ final class LiteralNode extends Node
     }
 
     /**
-     * @return AbstractType|scalar|null
+     * @return AbstractType|string|float|int|bool|null
      */
     public function getValue()
     {

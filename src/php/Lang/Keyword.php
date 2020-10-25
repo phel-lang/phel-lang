@@ -16,7 +16,7 @@ final class Keyword extends AbstractType implements IIdentical, IFn
     }
 
     /**
-     * @param scalar|null|AbstractType $default
+     * @param AbstractType|string|float|int|bool|null $default
      */
     public function __invoke(Table $obj, $default = null)
     {

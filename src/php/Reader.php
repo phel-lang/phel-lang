@@ -86,7 +86,7 @@ final class Reader
     }
 
     /**
-     * @return AbstractType|null|scalar
+     * @return AbstractType|string|float|int|bool|null
      */
     public function readExpression(Generator $tokenStream)
     {
@@ -198,7 +198,7 @@ final class Reader
     }
 
     /**
-     * @return AbstractType|scalar|null
+     * @return AbstractType|string|float|int|bool|null
      */
     private function readQuasiquote(Generator $tokenStream)
     {
@@ -218,7 +218,7 @@ final class Reader
     }
 
     /**
-     * @return AbstractType|scalar
+     * @return AbstractType|string|float|int|bool
      */
     private function readMeta(Generator $tokenStream)
     {
@@ -266,7 +266,7 @@ final class Reader
     }
 
     /**
-     * @return AbstractType|scalar
+     * @return AbstractType|string|float|int|bool
      */
     private function readExpressionHard(Generator $tokenStream, string $errorMessage)
     {
