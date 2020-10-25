@@ -75,8 +75,9 @@ final class OutputEmitter
         }
 
         $sourceMap = $this->sourceMapGenerator->encode($this->sourceMap);
-        $file = $node->getStartSourceLocation()
-            ? $node->getStartSourceLocation()->getFile()
+        $sourceLocation = $node->getStartSourceLocation();
+        $file = $sourceLocation
+            ? $sourceLocation->getFile()
             : 'string';
 
         return (
