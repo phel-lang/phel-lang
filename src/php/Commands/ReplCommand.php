@@ -5,7 +5,8 @@ declare(strict_types=1);
 namespace Phel\Commands;
 
 use Phel\Commands\Repl\ColorStyle;
-use Phel\Commands\Repl\Readline;
+use Phel\Commands\Repl\PromptLineReader;
+use Phel\Commands\Repl\LineReaderInterface;
 use Phel\Compiler\EvalCompiler;
 use Phel\Exceptions\CompilerException;
 use Phel\Exceptions\ReaderException;
@@ -19,18 +20,18 @@ final class ReplCommand
 {
     public const NAME = 'repl';
 
-    private Readline $readline;
+    private LineReaderInterface $lineReader;
     private EvalCompiler $evalCompiler;
     private ColorStyle $style;
     private TextExceptionPrinter $exceptionPrinter;
 
-    public function __construct(string $workingDir)
-    {
-        $this->readline = new Readline($workingDir . '.phel-repl-history');
-
-        $globalEnv = new GlobalEnvironment();
+    public function __construct(
+        GlobalEnvironment $globalEnv,
+        LineReaderInterface $lineReader
+    ) {
         Runtime::initialize($globalEnv)->loadNs("phel\core");
 
+        $this->lineReader = $lineReader;
         $this->evalCompiler = new EvalCompiler($globalEnv);
         $this->style = ColorStyle::withStyles();
         $this->exceptionPrinter = TextExceptionPrinter::readableWithStyle();
@@ -38,13 +39,13 @@ final class ReplCommand
 
     public function run(): void
     {
-        $this->readline->readHistory();
+        $this->lineReader->readHistory();
         $this->output($this->style->yellow("Welcome to the Phel Repl\n"));
         $this->output('Type "exit" or press Ctrl-D to exit.' . "\n");
 
         while (true) {
             $this->output("\e[?2004h"); // Enable bracketed paste
-            $input = $this->readline->readline('>>> ');
+            $input = $this->lineReader->readline('>>> ');
             $this->output("\e[?2004l"); // Disable bracketed paste
             $this->readInput($input);
         }
@@ -71,7 +72,7 @@ final class ReplCommand
             return;
         }
 
-        $this->readline->addHistory($input);
+        $this->lineReader->addHistory($input);
 
         try {
             $this->analyzeInput($input);

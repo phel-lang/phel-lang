@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Phel;
 
 use Exception;
+use Phel\Commands\Repl\PromptLineReader;
 use Phel\Commands\ReplCommand;
 use Phel\Commands\RunCommand;
 use Phel\Commands\TestCommand;
@@ -87,7 +88,11 @@ HELP;
 
     private function executeReplCommand(): void
     {
-        $replCommand = new ReplCommand($this->currentDir);
+        $replCommand = new ReplCommand(
+            new GlobalEnvironment(),
+            new PromptLineReader($this->currentDir . '.phel-repl-history')
+        );
+
         $replCommand->run();
     }
 
