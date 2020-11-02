@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Phel;
 
 use Exception;
-use Phel\Commands\Repl\PromptLineReader;
+use Phel\Commands\Repl\SystemIO;
 use Phel\Commands\ReplCommand;
 use Phel\Commands\RunCommand;
 use Phel\Commands\TestCommand;
@@ -88,9 +88,9 @@ HELP;
 
     private function executeReplCommand(): void
     {
-        $replCommand = new ReplCommand(
+        $replCommand = ReplCommand::create(
             new GlobalEnvironment(),
-            new PromptLineReader($this->currentDir . '.phel-repl-history')
+            new SystemIO($this->currentDir . '.phel-repl-history')
         );
 
         $replCommand->run();

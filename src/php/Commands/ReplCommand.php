@@ -5,8 +5,7 @@ declare(strict_types=1);
 namespace Phel\Commands;
 
 use Phel\Commands\Repl\ColorStyle;
-use Phel\Commands\Repl\PromptLineReader;
-use Phel\Commands\Repl\LineReaderInterface;
+use Phel\Commands\Repl\SystemInterface;
 use Phel\Compiler\EvalCompiler;
 use Phel\Exceptions\CompilerException;
 use Phel\Exceptions\ReaderException;
@@ -20,51 +19,60 @@ final class ReplCommand
 {
     public const NAME = 'repl';
 
-    private LineReaderInterface $lineReader;
+    private SystemInterface $system;
     private EvalCompiler $evalCompiler;
     private ColorStyle $style;
     private TextExceptionPrinter $exceptionPrinter;
 
-    public function __construct(
+    public static function create(
         GlobalEnvironment $globalEnv,
-        LineReaderInterface $lineReader
-    ) {
+        SystemInterface $system
+    ): self {
         Runtime::initialize($globalEnv)->loadNs("phel\core");
 
-        $this->lineReader = $lineReader;
-        $this->evalCompiler = new EvalCompiler($globalEnv);
-        $this->style = ColorStyle::withStyles();
-        $this->exceptionPrinter = TextExceptionPrinter::readableWithStyle();
+        return new self(
+            $system,
+            new EvalCompiler($globalEnv),
+            ColorStyle::withStyles(),
+            TextExceptionPrinter::readableWithStyle()
+        );
+    }
+
+    private function __construct(
+        SystemInterface $system,
+        EvalCompiler $evalCompiler,
+        ColorStyle $style,
+        TextExceptionPrinter $exceptionPrinter
+    ) {
+        $this->system = $system;
+        $this->evalCompiler = $evalCompiler;
+        $this->style = $style;
+        $this->exceptionPrinter = $exceptionPrinter;
     }
 
     public function run(): void
     {
-        $this->lineReader->readHistory();
-        $this->output($this->style->yellow("Welcome to the Phel Repl\n"));
-        $this->output('Type "exit" or press Ctrl-D to exit.' . "\n");
+        $this->system->readHistory();
+        $this->system->output($this->style->yellow("Welcome to the Phel Repl\n"));
+        $this->system->output('Type "exit" or press Ctrl-D to exit.' . "\n");
 
         while (true) {
-            $this->output("\e[?2004h"); // Enable bracketed paste
-            $input = $this->lineReader->readline('>>> ');
-            $this->output("\e[?2004l"); // Disable bracketed paste
+            $this->system->output("\e[?2004h"); // Enable bracketed paste
+            $input = $this->system->readline('>>> ');
+            $this->system->output("\e[?2004l"); // Disable bracketed paste
             $this->readInput($input);
         }
-    }
-
-    private function output(string $value): void
-    {
-        fwrite(STDOUT, $value);
     }
 
     private function readInput(?string $input): void
     {
         if (null === $input) {
-            $this->output($this->style->yellow("Bye from Ctrl-D!\n"));
+            $this->system->output($this->style->yellow("Bye from Ctrl-D!\n"));
             exit;
         }
 
         if ('exit' === $input) {
-            $this->output($this->style->yellow("Bye!\n"));
+            $this->system->output($this->style->yellow("Bye!\n"));
             exit;
         }
 
@@ -72,7 +80,7 @@ final class ReplCommand
             return;
         }
 
-        $this->lineReader->addHistory($input);
+        $this->system->addHistory($input);
 
         try {
             $this->analyzeInput($input);
@@ -87,8 +95,8 @@ final class ReplCommand
     {
         try {
             $result = $this->evalCompiler->eval($input);
-            $this->output(Printer::nonReadable()->print($result));
-            $this->output(PHP_EOL);
+            $this->system->output(Printer::nonReadable()->print($result));
+            $this->system->output(PHP_EOL);
         } catch (CompilerException $e) {
             $this->exceptionPrinter->printException(
                 $e->getNestedException(),

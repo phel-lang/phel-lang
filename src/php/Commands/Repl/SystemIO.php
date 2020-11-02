@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Phel\Commands\Repl;
 
-final class PromptLineReader implements LineReaderInterface
+final class SystemIO implements SystemInterface
 {
     private string $historyFile;
 
@@ -37,8 +37,8 @@ final class PromptLineReader implements LineReaderInterface
         return $line;
     }
 
-    private function writeHistory(): bool
+    public function output(string $string): void
     {
-        return readline_write_history($this->historyFile);
+        fwrite(STDOUT, $string);
     }
 }
