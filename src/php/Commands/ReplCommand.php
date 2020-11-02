@@ -7,7 +7,9 @@ namespace Phel\Commands;
 use Phel\Commands\Repl\ColorStyle;
 use Phel\Commands\Repl\SystemInterface;
 use Phel\Compiler\EvalCompiler;
+use Phel\Compiler\EvalCompilerInterface;
 use Phel\Exceptions\CompilerException;
+use Phel\Exceptions\ExceptionPrinter;
 use Phel\Exceptions\ReaderException;
 use Phel\Exceptions\TextExceptionPrinter;
 use Phel\GlobalEnvironment;
@@ -20,9 +22,9 @@ final class ReplCommand
     public const NAME = 'repl';
 
     private SystemInterface $system;
-    private EvalCompiler $evalCompiler;
+    private EvalCompilerInterface $evalCompiler;
     private ColorStyle $style;
-    private TextExceptionPrinter $exceptionPrinter;
+    private ExceptionPrinter $exceptionPrinter;
 
     public static function create(
         GlobalEnvironment $globalEnv,
@@ -40,9 +42,9 @@ final class ReplCommand
 
     private function __construct(
         SystemInterface $system,
-        EvalCompiler $evalCompiler,
+        EvalCompilerInterface $evalCompiler,
         ColorStyle $style,
-        TextExceptionPrinter $exceptionPrinter
+        ExceptionPrinter $exceptionPrinter
     ) {
         $this->system = $system;
         $this->evalCompiler = $evalCompiler;

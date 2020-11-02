@@ -15,7 +15,7 @@ use Phel\NodeEnvironment;
 use Phel\Reader;
 use Phel\ReaderResult;
 
-final class EvalCompiler
+final class EvalCompiler implements EvalCompilerInterface
 {
     private Lexer $lexer;
     private Reader $reader;
@@ -34,6 +34,8 @@ final class EvalCompiler
      * Evaluates a provided Phel code.
      *
      * @return mixed The result of the executed code
+     *
+     * @throws CompilerException
      */
     public function eval(string $code)
     {
@@ -50,7 +52,11 @@ final class EvalCompiler
         }
     }
 
-    /** @return mixed */
+    /**
+     * @return mixed
+     *
+     * @throws CompilerException
+     */
     private function evalNode(ReaderResult $readerResult)
     {
         try {
