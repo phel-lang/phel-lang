@@ -6,15 +6,11 @@ namespace Phel\Commands;
 
 use Phel\Commands\Repl\ColorStyle;
 use Phel\Commands\Repl\SystemInterface;
-use Phel\Compiler\EvalCompiler;
 use Phel\Compiler\EvalCompilerInterface;
 use Phel\Exceptions\CompilerException;
 use Phel\Exceptions\ExceptionPrinter;
 use Phel\Exceptions\ReaderException;
-use Phel\Exceptions\TextExceptionPrinter;
-use Phel\GlobalEnvironment;
 use Phel\Printer;
-use Phel\Runtime;
 use Throwable;
 
 final class ReplCommand
@@ -23,33 +19,19 @@ final class ReplCommand
 
     private SystemInterface $system;
     private EvalCompilerInterface $evalCompiler;
-    private ColorStyle $style;
     private ExceptionPrinter $exceptionPrinter;
+    private ColorStyle $style;
 
-    public static function create(
-        GlobalEnvironment $globalEnv,
-        SystemInterface $system
-    ): self {
-        Runtime::initialize($globalEnv)->loadNs("phel\core");
-
-        return new self(
-            $system,
-            new EvalCompiler($globalEnv),
-            ColorStyle::withStyles(),
-            TextExceptionPrinter::readableWithStyle()
-        );
-    }
-
-    private function __construct(
+    public function __construct(
         SystemInterface $system,
         EvalCompilerInterface $evalCompiler,
-        ColorStyle $style,
-        ExceptionPrinter $exceptionPrinter
+        ExceptionPrinter $exceptionPrinter,
+        ColorStyle $colorStyle
     ) {
         $this->system = $system;
         $this->evalCompiler = $evalCompiler;
-        $this->style = $style;
         $this->exceptionPrinter = $exceptionPrinter;
+        $this->style = $colorStyle;
     }
 
     public function run(): void

@@ -5,10 +5,13 @@ declare(strict_types=1);
 namespace Phel;
 
 use Exception;
+use Phel\Commands\Repl\ColorStyle;
 use Phel\Commands\Repl\SystemIO;
 use Phel\Commands\ReplCommand;
 use Phel\Commands\RunCommand;
 use Phel\Commands\TestCommand;
+use Phel\Compiler\EvalCompiler;
+use Phel\Exceptions\TextExceptionPrinter;
 
 final class Main
 {
@@ -88,9 +91,14 @@ HELP;
 
     private function executeReplCommand(): void
     {
-        $replCommand = ReplCommand::create(
-            new GlobalEnvironment(),
-            new SystemIO($this->currentDir . '.phel-repl-history')
+        $globalEnv = new GlobalEnvironment();
+        Runtime::initialize($globalEnv)->loadNs("phel\core");
+
+        $replCommand = new ReplCommand(
+            new SystemIO($this->currentDir . '.phel-repl-history'),
+            new EvalCompiler($globalEnv),
+            TextExceptionPrinter::readableWithStyle(),
+            ColorStyle::withStyles()
         );
 
         $replCommand->run();
