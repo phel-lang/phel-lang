@@ -17,38 +17,46 @@ use Phel\Runtime;
 
 final class CommandFactory
 {
-    public static function createReplCommand(string $currentDir): ReplCommand
+    private string $currentDir;
+
+    public function __construct(string $currentDir)
+    {
+        $this->currentDir = $currentDir;
+    }
+
+    public function createReplCommand(): ReplCommand
     {
         $globalEnv = new GlobalEnvironment();
         Runtime::initialize($globalEnv)->loadNs("phel\core");
 
         return new ReplCommand(
-            new ReplCommandSystemIo($currentDir . '.phel-repl-history'),
+            new ReplCommandSystemIo($this->currentDir . '.phel-repl-history'),
             new EvalCompiler($globalEnv),
             TextExceptionPrinter::readableWithStyle(),
             ColorStyle::withStyles()
         );
     }
 
-    public static function createRunCommand(string $currentDir): RunCommand
+    public function createRunCommand(): RunCommand
     {
         return new RunCommand(
-            static::loadRuntime($currentDir),
-            static::createNamespaceExtractor()
+            $this->loadRuntime(),
+            NamespaceExtractor::create()
         );
     }
 
-    public static function createTestCommand(string $currentDir): TestCommand
+    public function createTestCommand(): TestCommand
     {
         return new TestCommand(
-            static::loadRuntime($currentDir),
-            static::createNamespaceExtractor()
+            $this->currentDir,
+            $this->loadRuntime(),
+            NamespaceExtractor::create()
         );
     }
 
-    private static function loadRuntime(string $currentDirectory): Runtime
+    private function loadRuntime(): Runtime
     {
-        $runtimePath = $currentDirectory
+        $runtimePath = $this->currentDir
             . DIRECTORY_SEPARATOR . 'vendor'
             . DIRECTORY_SEPARATOR . 'PhelRuntime.php';
 
@@ -59,7 +67,7 @@ final class CommandFactory
         throw new \RuntimeException('The Runtime could not be loaded from: ' . $runtimePath);
     }
 
-    private static function createNamespaceExtractor(): NamespaceExtractor
+    private function createNamespaceExtractor(): NamespaceExtractor
     {
         return new NamespaceExtractor(
             new Lexer(),

@@ -31,11 +31,9 @@ Commands:
 
 HELP;
 
-    private string $currentDir;
-    private string $commandName;
-    private array $arguments;
+    private CommandFactory $commandFactory;
 
-    public static function create(string $currentDir, string $commandName, array $arguments = []): self
+    public static function create(string $currentDir): self
     {
         if (!getcwd()) {
             throw new Exception('Cannot get current working directory');
@@ -43,7 +41,7 @@ HELP;
 
         static::requireAutoload($currentDir);
 
-        return new self($currentDir, $commandName, $arguments);
+        return new self(new CommandFactory($currentDir));
     }
 
     public static function renderHelp(): void
@@ -62,16 +60,14 @@ HELP;
         require $autoloadPath;
     }
 
-    private function __construct(string $currentDir, string $commandName, array $arguments)
+    private function __construct(CommandFactory $commandFactory)
     {
-        $this->currentDir = $currentDir;
-        $this->commandName = $commandName;
-        $this->arguments = $arguments;
+        $this->commandFactory = $commandFactory;
     }
 
-    public function run(): void
+    public function run(string $commandName, array $arguments = []): void
     {
-        switch ($this->commandName) {
+        switch ($commandName) {
             case ReplCommand::NAME:
                 $this->executeReplCommand();
                 break;
@@ -79,7 +75,7 @@ HELP;
                 $this->executeRunCommand();
                 break;
             case TestCommand::NAME:
-                $this->executeTestCommand();
+                $this->executeTestCommand($arguments);
                 break;
             default:
                 static::renderHelp();
@@ -88,7 +84,7 @@ HELP;
 
     private function executeReplCommand(): void
     {
-        $replCommand = CommandFactory::createReplCommand($this->currentDir);
+        $replCommand = $this->commandFactory->createReplCommand();
         $replCommand->run();
     }
 
@@ -98,14 +94,14 @@ HELP;
             throw new Exception('Please provide a filename or namespace as argument!');
         }
 
-        $runCommand = CommandFactory::createRunCommand($this->currentDir);
+        $runCommand = $this->commandFactory->createRunCommand();
         $runCommand->run($this->arguments[0]);
     }
 
-    private function executeTestCommand(): void
+    private function executeTestCommand(array $arguments): void
     {
-        $testCommand = CommandFactory::createTestCommand($this->currentDir);
-        $result = $testCommand->run($this->currentDir, $this->arguments);
+        $testCommand = $this->commandFactory->createTestCommand();
+        $result = $testCommand->run($arguments);
         ($result) ? exit(0) : exit(1);
     }
 }

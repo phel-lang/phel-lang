@@ -16,7 +16,8 @@ $commandName = $argv[1];
 $arguments = array_slice($argv, 2);
 
 try {
-    Main::create($currentDir, $commandName, $arguments)->run();
+    $main = Main::create($currentDir);
+    $main->run($commandName, $arguments);
 } catch (Exception $e) {
     print $e->getMessage() . PHP_EOL;
 }

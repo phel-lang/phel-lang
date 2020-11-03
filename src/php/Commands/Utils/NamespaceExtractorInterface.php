@@ -7,4 +7,6 @@ namespace Phel\Commands\Utils;
 interface NamespaceExtractorInterface
 {
     public function getNamespaceFromFile(string $path): string;
+
+    public function getNamespacesFromConfig(string $path): array;
 }
