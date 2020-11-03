@@ -9,6 +9,7 @@ use Phel\Commands\Repl\SystemInterface;
 use Phel\Compiler\EvalCompilerInterface;
 use Phel\Exceptions\CompilerException;
 use Phel\Exceptions\ExceptionPrinter;
+use Phel\Exceptions\ExitException;
 use Phel\Exceptions\ReaderException;
 use Phel\Printer;
 use Throwable;
@@ -40,24 +41,29 @@ final class ReplCommand
         $this->system->output($this->style->yellow("Welcome to the Phel Repl\n"));
         $this->system->output('Type "exit" or press Ctrl-D to exit.' . "\n");
 
-        while (true) {
-            $this->system->output("\e[?2004h"); // Enable bracketed paste
-            $input = $this->system->readline('>>> ');
-            $this->system->output("\e[?2004l"); // Disable bracketed paste
-            $this->readInput($input);
+        try {
+            while (true) {
+                $this->system->output("\e[?2004h"); // Enable bracketed paste
+                $input = $this->system->readline('>>> ');
+                $this->system->output("\e[?2004l"); // Disable bracketed paste
+                $this->readInput($input);
+            }
+        } catch (ExitException $e) {
+            $this->system->output($e->getMessage());
         }
     }
 
+    /**
+     * @throws ExitException
+     */
     private function readInput(?string $input): void
     {
         if (null === $input) {
-            $this->system->output($this->style->yellow("Bye from Ctrl-D!\n"));
-            exit;
+            throw new ExitException($this->style->yellow("Bye from Ctrl-D!\n"));
         }
 
         if ('exit' === $input) {
-            $this->system->output($this->style->yellow("Bye!\n"));
-            exit;
+            throw new ExitException($this->style->yellow("Bye!\n"));
         }
 
         if ('' === $input) {
