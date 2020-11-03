@@ -7,7 +7,7 @@ namespace Phel\Exceptions;
 use Phel\CodeSnippet;
 use Throwable;
 
-interface ExceptionPrinter
+interface ExceptionPrinterInterface
 {
     public function printException(PhelCodeException $e, CodeSnippet $codeSnippet): void;
 

@@ -13,7 +13,7 @@ use Phel\Printer;
 use ReflectionClass;
 use Throwable;
 
-final class TextExceptionPrinter implements ExceptionPrinter
+final class TextExceptionPrinter implements ExceptionPrinterInterface
 {
     private Printer $printer;
     private ColorStyle $style;

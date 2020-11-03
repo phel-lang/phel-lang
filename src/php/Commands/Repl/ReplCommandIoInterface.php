@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Phel\Commands\Repl;
 
-interface SystemInterface
+interface ReplCommandIoInterface
 {
     public function readHistory(): void;
 

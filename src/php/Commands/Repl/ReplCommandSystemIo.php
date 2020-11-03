@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Phel\Commands\Repl;
 
-final class SystemIO implements SystemInterface
+final class ReplCommandSystemIo implements ReplCommandIoInterface
 {
     private string $historyFile;
 

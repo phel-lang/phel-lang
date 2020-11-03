@@ -6,7 +6,7 @@ namespace Phel;
 
 use Exception;
 use Phel\Commands\Repl\ColorStyle;
-use Phel\Commands\Repl\SystemIO;
+use Phel\Commands\Repl\ReplCommandSystemIo;
 use Phel\Commands\ReplCommand;
 use Phel\Commands\RunCommand;
 use Phel\Commands\TestCommand;
@@ -95,7 +95,7 @@ HELP;
         Runtime::initialize($globalEnv)->loadNs("phel\core");
 
         $replCommand = new ReplCommand(
-            new SystemIO($this->currentDir . '.phel-repl-history'),
+            new ReplCommandSystemIo($this->currentDir . '.phel-repl-history'),
             new EvalCompiler($globalEnv),
             TextExceptionPrinter::readableWithStyle(),
             ColorStyle::withStyles()
