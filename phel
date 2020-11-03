@@ -7,7 +7,7 @@ require_once __DIR__ . "{$slash}src{$slash}php{$slash}Main.php";
 use Phel\Main;
 
 if ($argc <= 1) {
-    Main::renderHelp();
+    echo Main::HELP_TEXT;
     exit;
 }
 

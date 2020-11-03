@@ -12,7 +12,7 @@ use Phel\Commands\TestCommand;
 
 final class Main
 {
-    private const HELP_TEXT = <<<HELP
+    public const HELP_TEXT = <<<HELP
 Usage: phel [command]
 
 Commands:
@@ -44,11 +44,6 @@ HELP;
         return new self(new CommandFactory($currentDir));
     }
 
-    public static function renderHelp(): void
-    {
-        echo self::HELP_TEXT;
-    }
-
     private static function requireAutoload(string $currentDir): void
     {
         $autoloadPath = $currentDir . 'vendor' . DIRECTORY_SEPARATOR . 'autoload.php';
@@ -78,7 +73,7 @@ HELP;
                 $this->executeTestCommand($arguments);
                 break;
             default:
-                static::renderHelp();
+                echo self::HELP_TEXT;
         }
     }
 
