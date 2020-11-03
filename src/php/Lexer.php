@@ -8,7 +8,7 @@ use Exception;
 use Generator;
 use Phel\Lang\SourceLocation;
 
-final class Lexer
+final class Lexer implements LexerInterface
 {
     private const REGEXPS = [
         "([\n \t\r]+)", // Whitespace (index: 2)
@@ -41,7 +41,7 @@ final class Lexer
         $this->combinedRegex = '/(?:' . implode('|', self::REGEXPS) . ')/mA';
     }
 
-    public function lexString(string $code, string $source = 'string'): Generator
+    public function lexString(string $code, string $source = self::DEFAULT_SOURCE): Generator
     {
         $this->cursor = 0;
         $this->line = 1;

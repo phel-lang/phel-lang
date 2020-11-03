@@ -14,7 +14,7 @@ use Phel\Lang\Symbol;
 use Phel\Lang\Table;
 use Phel\Lang\Tuple;
 
-final class Reader
+final class Reader implements ReaderInterface
 {
     private const STRING_REPLACEMENTS = [
         '\\' => '\\',

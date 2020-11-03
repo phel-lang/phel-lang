@@ -19,7 +19,7 @@ final class RunCommandTest extends TestCase
         $run = new RunCommand($runtime);
 
         $this->expectOutputString("hello world\n");
-        $run->run(__DIR__, 'test\\test-script');
+        $run->run('test\\test-script');
     }
 
     public function testRunByFilename(): void
@@ -30,7 +30,7 @@ final class RunCommandTest extends TestCase
         $run = new RunCommand($runtime);
 
         $this->expectOutputString("hello world\n");
-        $run->run(__DIR__, __DIR__ . '/Fixtures/test-script.phel');
+        $run->run(__DIR__ . '/Fixtures/test-script.phel');
     }
 
     public function testCannotParseFile(): void
@@ -40,7 +40,7 @@ final class RunCommandTest extends TestCase
         $this->expectExceptionMessage('Cannot parse file: ' . $filename);
 
         $run = new RunCommand(Runtime::newInstance());
-        $run->run(__DIR__, $filename);
+        $run->run($filename);
     }
 
     public function testCannotReadFile(): void
@@ -50,7 +50,7 @@ final class RunCommandTest extends TestCase
         $this->expectExceptionMessage('Cannot load namespace: ' . $filename);
 
         $run = new RunCommand(Runtime::newInstance());
-        $run->run(__DIR__, $filename);
+        $run->run($filename);
     }
 
     public function testFileWithoutNs(): void
@@ -60,6 +60,6 @@ final class RunCommandTest extends TestCase
         $this->expectExceptionMessage('Cannot extract namespace from file: ' . $filename);
 
         $run = new RunCommand(Runtime::newInstance());
-        $run->run(__DIR__, $filename);
+        $run->run($filename);
     }
 }

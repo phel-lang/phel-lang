@@ -14,6 +14,9 @@ use RuntimeException;
 
 final class CommandUtils
 {
+    /**
+     * @deprecated Use NamespaceExtractor instead
+     */
     public static function getNamespaceFromFile(string $path): string
     {
         $lexer = new Lexer();

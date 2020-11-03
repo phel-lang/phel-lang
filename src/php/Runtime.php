@@ -13,7 +13,7 @@ use Phel\Lang\Symbol;
 use Phel\Lang\Table;
 use Throwable;
 
-class Runtime
+class Runtime implements RuntimeInterface
 {
     protected GlobalEnvironment $globalEnv;
 

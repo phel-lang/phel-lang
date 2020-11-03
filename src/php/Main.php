@@ -5,11 +5,14 @@ declare(strict_types=1);
 namespace Phel;
 
 use Exception;
+use Phel\Commands\CommandUtils;
 use Phel\Commands\Repl\ColorStyle;
 use Phel\Commands\Repl\ReplCommandSystemIo;
 use Phel\Commands\ReplCommand;
+use Phel\Commands\Run\RunCommandSystemIo;
 use Phel\Commands\RunCommand;
 use Phel\Commands\TestCommand;
+use Phel\Commands\Utils\NamespaceExtractor;
 use Phel\Compiler\EvalCompiler;
 use Phel\Exceptions\TextExceptionPrinter;
 
@@ -110,8 +113,16 @@ HELP;
             throw new Exception('Please provide a filename or namespace as argument!');
         }
 
-        $runCommand = new RunCommand();
-        $runCommand->run($this->currentDir, $this->arguments[0]);
+        $runCommand = new RunCommand(
+            CommandUtils::loadRuntime($this->currentDir),
+            new NamespaceExtractor(
+                new Lexer(),
+                new Reader(new GlobalEnvironment()),
+                new RunCommandSystemIo()
+            )
+        );
+
+        $runCommand->run($this->arguments[0]);
     }
 
     private function executeTestCommand(): void

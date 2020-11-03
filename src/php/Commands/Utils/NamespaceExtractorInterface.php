@@ -1,0 +1,10 @@
+<?php
+
+declare(strict_types=1);
+
+namespace Phel\Commands\Utils;
+
+interface NamespaceExtractorInterface
+{
+    public function getNamespaceFromFile(string $path): string;
+}
