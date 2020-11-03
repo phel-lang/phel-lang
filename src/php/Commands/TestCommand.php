@@ -4,8 +4,9 @@ declare(strict_types=1);
 
 namespace Phel\Commands;
 
+use Phel\Commands\Utils\NamespaceExtractorInterface;
 use Phel\Compiler\EvalCompiler;
-use Phel\Runtime;
+use Phel\RuntimeInterface;
 use RecursiveDirectoryIterator;
 use RecursiveIteratorIterator;
 use RecursiveRegexIterator;
@@ -15,25 +16,30 @@ final class TestCommand
 {
     public const NAME = 'test';
 
-    private ?Runtime $runtime;
+    private RuntimeInterface $runtime;
+    private NamespaceExtractorInterface $namespaceExtractor;
 
-    public function __construct(?Runtime $runtime = null)
-    {
+    public function __construct(
+        RuntimeInterface $runtime,
+        NamespaceExtractorInterface $namespaceExtractor
+    ) {
         $this->runtime = $runtime;
+        $this->namespaceExtractor = $namespaceExtractor;
     }
 
     public function run(string $currentDirectory, array $paths): bool
     {
         $namespaces = empty($paths)
             ? $this->getNamespacesFromConfig($currentDirectory)
-            : array_map(fn ($filename) => CommandUtils::getNamespaceFromFile($filename), $paths);
+            : array_map(fn ($filename) => $this->namespaceExtractor->getNamespaceFromFile($filename), $paths);
 
         if (empty($namespaces)) {
             throw new \RuntimeException('Can not find any tests');
         }
 
-        $runtime = $this->initializeRuntime($currentDirectory);
-        $compiler = new EvalCompiler($runtime->getEnv());
+        $this->runtime->loadNs('phel\test');
+
+        $compiler = new EvalCompiler($this->runtime->getEnv());
         $nsString = implode(' ', array_map(fn (string $x) => "'" . $x, $namespaces));
 
         return $compiler->eval('(do (phel\test/run-tests ' . $nsString . ') (successful?))');
@@ -41,7 +47,7 @@ final class TestCommand
 
     private function getNamespacesFromConfig(string $currentDirectory): array
     {
-        $config = CommandUtils::getPhelConfig($currentDirectory);
+        $config = static::getPhelConfig($currentDirectory);
         $namespaces = [];
 
         $testDirectories = $config['tests'] ?? [];
@@ -53,12 +59,23 @@ final class TestCommand
         return $namespaces;
     }
 
-    private function initializeRuntime(string $currentDirectory): Runtime
+    public static function getPhelConfig(string $currentDirectory): array
     {
-        $runtime = $this->runtime ?? CommandUtils::loadRuntime($currentDirectory);
-        $runtime->loadNs('phel\test');
+        $composerContent = file_get_contents($currentDirectory . 'composer.json');
+        if (!$composerContent) {
+            throw new \Exception('Can not read composer.json in: ' . $currentDirectory);
+        }
 
-        return $runtime;
+        $composerData = json_decode($composerContent, true);
+        if (!$composerData) {
+            throw new \Exception('Can not parse composer.json in: ' . $currentDirectory);
+        }
+
+        if (isset($composerData['extra']['phel'])) {
+            return $composerData['extra']['phel'];
+        }
+
+        throw new \Exception('No Phel configuration found in composer.json');
     }
 
     private function findAllNs(string $directory): array
@@ -67,7 +84,7 @@ final class TestCommand
         $phelIterator = new RegexIterator($iterator, '/^.+\.phel$/i', RecursiveRegexIterator::GET_MATCH);
 
         return array_map(
-            fn ($file) => CommandUtils::getNamespaceFromFile($file[0]),
+            fn ($file) => $this->namespaceExtractor->getNamespaceFromFile($file[0]),
             iterator_to_array($phelIterator)
         );
     }

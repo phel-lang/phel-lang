@@ -5,16 +5,10 @@ declare(strict_types=1);
 namespace Phel;
 
 use Exception;
-use Phel\Commands\CommandUtils;
-use Phel\Commands\Repl\ColorStyle;
-use Phel\Commands\Repl\ReplCommandSystemIo;
+use Phel\Commands\CommandFactory;
 use Phel\Commands\ReplCommand;
-use Phel\Commands\Run\RunCommandSystemIo;
 use Phel\Commands\RunCommand;
 use Phel\Commands\TestCommand;
-use Phel\Commands\Utils\NamespaceExtractor;
-use Phel\Compiler\EvalCompiler;
-use Phel\Exceptions\TextExceptionPrinter;
 
 final class Main
 {
@@ -94,16 +88,7 @@ HELP;
 
     private function executeReplCommand(): void
     {
-        $globalEnv = new GlobalEnvironment();
-        Runtime::initialize($globalEnv)->loadNs("phel\core");
-
-        $replCommand = new ReplCommand(
-            new ReplCommandSystemIo($this->currentDir . '.phel-repl-history'),
-            new EvalCompiler($globalEnv),
-            TextExceptionPrinter::readableWithStyle(),
-            ColorStyle::withStyles()
-        );
-
+        $replCommand = CommandFactory::createReplCommand($this->currentDir);
         $replCommand->run();
     }
 
@@ -113,27 +98,14 @@ HELP;
             throw new Exception('Please provide a filename or namespace as argument!');
         }
 
-        $runCommand = new RunCommand(
-            CommandUtils::loadRuntime($this->currentDir),
-            new NamespaceExtractor(
-                new Lexer(),
-                new Reader(new GlobalEnvironment()),
-                new RunCommandSystemIo()
-            )
-        );
-
+        $runCommand = CommandFactory::createRunCommand($this->currentDir);
         $runCommand->run($this->arguments[0]);
     }
 
     private function executeTestCommand(): void
     {
-        $testCommand = new TestCommand();
+        $testCommand = CommandFactory::createTestCommand($this->currentDir);
         $result = $testCommand->run($this->currentDir, $this->arguments);
-
-        if ($result) {
-            exit(0);
-        }
-
-        exit(1);
+        ($result) ? exit(0) : exit(1);
     }
 }

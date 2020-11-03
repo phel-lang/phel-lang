@@ -6,6 +6,8 @@ namespace Phel;
 
 interface RuntimeInterface
 {
+    public function getEnv(): GlobalEnvironment;
+
     public function addPath(string $namespacePrefix, array $path): void;
 
     /**
