@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Phel;
 
 use Exception;
+use InvalidArgumentException;
 use Phel\Commands\CommandFactory;
 use Phel\Commands\ReplCommand;
 use Phel\Commands\RunCommand;
@@ -67,13 +68,13 @@ HELP;
                 $this->executeReplCommand();
                 break;
             case RunCommand::NAME:
-                $this->executeRunCommand();
+                $this->executeRunCommand($arguments);
                 break;
             case TestCommand::NAME:
                 $this->executeTestCommand($arguments);
                 break;
             default:
-                echo self::HELP_TEXT;
+                $this->renderHelp();
         }
     }
 
@@ -83,14 +84,14 @@ HELP;
         $replCommand->run();
     }
 
-    private function executeRunCommand(): void
+    private function executeRunCommand(array $arguments): void
     {
-        if (empty($this->arguments)) {
-            throw new Exception('Please provide a filename or namespace as argument!');
+        if (empty($arguments)) {
+            throw new InvalidArgumentException('Please provide a filename or namespace as argument!');
         }
 
         $runCommand = $this->commandFactory->createRunCommand();
-        $runCommand->run($this->arguments[0]);
+        $runCommand->run($arguments[0]);
     }
 
     private function executeTestCommand(array $arguments): void
@@ -98,5 +99,10 @@ HELP;
         $testCommand = $this->commandFactory->createTestCommand();
         $result = $testCommand->run($arguments);
         ($result) ? exit(0) : exit(1);
+    }
+
+    private function renderHelp(): void
+    {
+        echo self::HELP_TEXT;
     }
 }

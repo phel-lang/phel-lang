@@ -6,6 +6,7 @@ namespace Phel\Commands\Utils;
 
 use Phel\Commands\Run\RunCommandIoInterface;
 use Phel\Commands\Run\RunCommandSystemIo;
+use Phel\Exceptions\ReaderException;
 use Phel\GlobalEnvironment;
 use Phel\Lang\Symbol;
 use Phel\Lang\Tuple;
@@ -67,19 +68,19 @@ final class NamespaceExtractor implements NamespaceExtractorInterface
             }
 
             throw new RuntimeException('Cannot extract namespace from file: ' . $path);
-        } catch (\Phel\Exceptions\ReaderException $e) {
+        } catch (ReaderException $e) {
             throw new RuntimeException('Cannot parse file: ' . $path);
         }
     }
 
-    public function getNamespacesFromConfig(string $currentDirectory): array
+    public function getNamespacesFromConfig(string $currentDir): array
     {
-        $config = $this->getPhelConfig($currentDirectory);
+        $config = $this->getPhelConfig($currentDir);
         $namespaces = [];
 
         $testDirectories = $config['tests'] ?? [];
         foreach ($testDirectories as $testDir) {
-            $allNamespacesInDir = $this->findAllNs($currentDirectory . $testDir);
+            $allNamespacesInDir = $this->findAllNs($currentDir . $testDir);
             $namespaces = array_merge($namespaces, $allNamespacesInDir);
         }
 

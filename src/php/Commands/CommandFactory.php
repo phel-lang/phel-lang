@@ -6,13 +6,10 @@ namespace Phel\Commands;
 
 use Phel\Commands\Repl\ColorStyle;
 use Phel\Commands\Repl\ReplCommandSystemIo;
-use Phel\Commands\Run\RunCommandSystemIo;
 use Phel\Commands\Utils\NamespaceExtractor;
 use Phel\Compiler\EvalCompiler;
 use Phel\Exceptions\TextExceptionPrinter;
 use Phel\GlobalEnvironment;
-use Phel\Lexer;
-use Phel\Reader;
 use Phel\Runtime;
 
 final class CommandFactory
@@ -65,14 +62,5 @@ final class CommandFactory
         }
 
         throw new \RuntimeException('The Runtime could not be loaded from: ' . $runtimePath);
-    }
-
-    private function createNamespaceExtractor(): NamespaceExtractor
-    {
-        return new NamespaceExtractor(
-            new Lexer(),
-            new Reader(new GlobalEnvironment()),
-            new RunCommandSystemIo()
-        );
     }
 }
