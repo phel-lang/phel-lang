@@ -42,12 +42,7 @@ final class ReplCommand
         $this->system->output('Type "exit" or press Ctrl-D to exit.' . "\n");
 
         try {
-            while (true) {
-                $this->system->output("\e[?2004h"); // Enable bracketed paste
-                $input = $this->system->readline('>>> ');
-                $this->system->output("\e[?2004l"); // Disable bracketed paste
-                $this->readInput($input);
-            }
+            $this->loopReadLineAndAnalyze();
         } catch (ExitException $e) {
             $this->system->output($e->getMessage());
         }
@@ -56,7 +51,20 @@ final class ReplCommand
     /**
      * @throws ExitException
      */
-    private function readInput(?string $input): void
+    private function loopReadLineAndAnalyze(): void
+    {
+        while (true) {
+            $this->system->output("\e[?2004h"); // Enable bracketed paste
+            $input = $this->system->readline('>>> ');
+            $this->system->output("\e[?2004l"); // Disable bracketed paste
+            $this->checkInputAndAnalyze($input);
+        }
+    }
+
+    /**
+     * @throws ExitException
+     */
+    private function checkInputAndAnalyze(?string $input): void
     {
         if (null === $input) {
             throw new ExitException($this->style->yellow("Bye from Ctrl-D!\n"));
@@ -81,6 +89,9 @@ final class ReplCommand
         }
     }
 
+    /**
+     * @throws ReaderException
+     */
     private function analyzeInput(string $input): void
     {
         try {

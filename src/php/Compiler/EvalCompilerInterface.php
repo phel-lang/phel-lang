@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Phel\Compiler;
 
 use Phel\Exceptions\CompilerException;
+use Phel\Exceptions\ReaderException;
 
 interface EvalCompilerInterface
 {
@@ -13,7 +14,7 @@ interface EvalCompilerInterface
      *
      * @return mixed The result of the executed code
      *
-     * @throws CompilerException
+     * @throws CompilerException|ReaderException
      */
     public function eval(string $code);
 }

@@ -35,7 +35,7 @@ final class EvalCompiler implements EvalCompilerInterface
      *
      * @return mixed The result of the executed code
      *
-     * @throws CompilerException
+     * @throws CompilerException|ReaderException
      */
     public function eval(string $code)
     {
