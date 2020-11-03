@@ -6,6 +6,7 @@ namespace PhelTest\Integration\Commands;
 
 use Phel\Commands\TestCommand;
 use Phel\Commands\Utils\NamespaceExtractor;
+use Phel\Compiler\EvalCompiler;
 use Phel\Runtime;
 use Phel\RuntimeInterface;
 use PHPUnit\Framework\TestCase;
@@ -60,7 +61,8 @@ final class TestCommandTest extends TestCase
         return new TestCommand(
             $currentDir,
             $runtime,
-            NamespaceExtractor::create()
+            NamespaceExtractor::create(),
+            new EvalCompiler($runtime->getEnv())
         );
     }
 }

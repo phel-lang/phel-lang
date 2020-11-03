@@ -44,10 +44,13 @@ final class CommandFactory
 
     public function createTestCommand(): TestCommand
     {
+        $runtime = $this->loadRuntime();
+
         return new TestCommand(
             $this->currentDir,
-            $this->loadRuntime(),
-            NamespaceExtractor::create()
+            $runtime,
+            NamespaceExtractor::create(),
+            new EvalCompiler($runtime->getEnv())
         );
     }
 

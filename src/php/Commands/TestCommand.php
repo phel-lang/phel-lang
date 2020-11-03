@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Phel\Commands;
 
 use Phel\Commands\Utils\NamespaceExtractorInterface;
-use Phel\Compiler\EvalCompiler;
+use Phel\Compiler\EvalCompilerInterface;
 use Phel\RuntimeInterface;
 use RuntimeException;
 
@@ -16,15 +16,18 @@ final class TestCommand
     private string $currentDir;
     private RuntimeInterface $runtime;
     private NamespaceExtractorInterface $nsExtractor;
+    private EvalCompilerInterface $evalCompiler;
 
     public function __construct(
         string $currentDir,
         RuntimeInterface $runtime,
-        NamespaceExtractorInterface $nsExtractor
+        NamespaceExtractorInterface $nsExtractor,
+        EvalCompilerInterface $evalCompiler
     ) {
         $this->currentDir = $currentDir;
         $this->runtime = $runtime;
         $this->nsExtractor = $nsExtractor;
+        $this->evalCompiler = $evalCompiler;
     }
 
     public function run(array $paths): bool
@@ -36,11 +39,9 @@ final class TestCommand
         }
 
         $this->runtime->loadNs('phel\test');
-
-        $compiler = new EvalCompiler($this->runtime->getEnv());
         $nsString = $this->namespacesAsString($namespaces);
 
-        return $compiler->eval('(do (phel\test/run-tests ' . $nsString . ') (successful?))');
+        return $this->evalCompiler->eval('(do (phel\test/run-tests ' . $nsString . ') (successful?))');
     }
 
     private function getNamespacesFromPaths(array $paths): array
