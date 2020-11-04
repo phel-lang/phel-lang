@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace PhelTest\Integration\Commands;
+namespace PhelTest\Integration\Command;
 
-use Phel\Commands\TestCommand;
-use Phel\Commands\Utils\NamespaceExtractor;
+use Phel\Command\TestCommand;
+use Phel\Command\Common\NamespaceExtractor;
 use Phel\Compiler\EvalCompiler;
 use Phel\Runtime;
 use Phel\RuntimeInterface;

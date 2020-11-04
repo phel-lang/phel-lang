@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Phel\Commands\Repl;
+namespace Phel\Command\Repl;
 
 interface ReplCommandIoInterface
 {

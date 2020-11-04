@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace Phel\Commands\Utils;
+namespace Phel\Command\Common;
 
-use Phel\Commands\Run\RunCommandIoInterface;
-use Phel\Commands\Run\RunCommandSystemIo;
+use Phel\Command\Run\RunCommandIoInterface;
+use Phel\Command\Run\RunCommandSystemIo;
 use Phel\Exceptions\ReaderException;
 use Phel\GlobalEnvironment;
 use Phel\Lang\Symbol;

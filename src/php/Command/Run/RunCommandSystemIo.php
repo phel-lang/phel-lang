@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Phel\Commands\Run;
+namespace Phel\Command\Run;
 
 final class RunCommandSystemIo implements RunCommandIoInterface
 {

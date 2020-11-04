@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace Phel\Commands;
+namespace Phel\Command;
 
-use Phel\Commands\Utils\NamespaceExtractorInterface;
+use Phel\Command\Common\NamespaceExtractorInterface;
 use Phel\RuntimeInterface;
 use RuntimeException;
 

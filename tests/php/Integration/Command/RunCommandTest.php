@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace PhelTest\Integration\Commands;
+namespace PhelTest\Integration\Command;
 
-use Phel\Commands\RunCommand;
-use Phel\Commands\Utils\NamespaceExtractor;
+use Phel\Command\RunCommand;
+use Phel\Command\Common\NamespaceExtractor;
 use Phel\Runtime;
 use Phel\RuntimeInterface;
 use PHPUnit\Framework\TestCase;

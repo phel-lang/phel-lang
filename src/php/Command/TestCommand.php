@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace Phel\Commands;
+namespace Phel\Command;
 
-use Phel\Commands\Utils\NamespaceExtractorInterface;
+use Phel\Command\Common\NamespaceExtractorInterface;
 use Phel\Compiler\EvalCompilerInterface;
 use Phel\RuntimeInterface;
 use RuntimeException;
@@ -35,7 +35,7 @@ final class TestCommand
         $namespaces = $this->getNamespacesFromPaths($paths);
 
         if (empty($namespaces)) {
-            throw new RuntimeException('Can not find any tests');
+            throw new RuntimeException('Cannot find any tests');
         }
 
         $this->runtime->loadNs('phel\test');

@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace Phel\Commands;
+namespace Phel\Command;
 
-use Phel\Commands\Repl\ColorStyle;
-use Phel\Commands\Repl\ReplCommandIoInterface;
+use Phel\Command\Repl\ColorStyle;
+use Phel\Command\Repl\ReplCommandIoInterface;
 use Phel\Compiler\EvalCompilerInterface;
 use Phel\Exceptions\CompilerException;
 use Phel\Exceptions\ExceptionPrinterInterface;

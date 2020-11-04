@@ -2,11 +2,11 @@
 
 declare(strict_types=1);
 
-namespace Phel\Commands;
+namespace Phel\Command;
 
-use Phel\Commands\Repl\ColorStyle;
-use Phel\Commands\Repl\ReplCommandSystemIo;
-use Phel\Commands\Utils\NamespaceExtractor;
+use Phel\Command\Common\NamespaceExtractor;
+use Phel\Command\Repl\ColorStyle;
+use Phel\Command\Repl\ReplCommandSystemIo;
 use Phel\Compiler\EvalCompiler;
 use Phel\Exceptions\TextExceptionPrinter;
 use Phel\GlobalEnvironment;
@@ -24,7 +24,7 @@ final class CommandFactory
     public function createReplCommand(): ReplCommand
     {
         $globalEnv = new GlobalEnvironment();
-        Runtime::initialize($globalEnv)->loadNs("phel\core");
+        Runtime::initialize($globalEnv)->loadNs('phel\core');
 
         return new ReplCommand(
             new ReplCommandSystemIo($this->currentDir . '.phel-repl-history'),
@@ -37,14 +37,14 @@ final class CommandFactory
     public function createRunCommand(): RunCommand
     {
         return new RunCommand(
-            $this->loadRuntime(),
+            $this->loadVendorPhelRuntime(),
             NamespaceExtractor::create()
         );
     }
 
     public function createTestCommand(): TestCommand
     {
-        $runtime = $this->loadRuntime();
+        $runtime = $this->loadVendorPhelRuntime();
 
         return new TestCommand(
             $this->currentDir,
@@ -54,7 +54,7 @@ final class CommandFactory
         );
     }
 
-    private function loadRuntime(): Runtime
+    private function loadVendorPhelRuntime(): Runtime
     {
         $runtimePath = $this->currentDir
             . DIRECTORY_SEPARATOR . 'vendor'

@@ -6,10 +6,10 @@ namespace Phel;
 
 use Exception;
 use InvalidArgumentException;
-use Phel\Commands\CommandFactory;
-use Phel\Commands\ReplCommand;
-use Phel\Commands\RunCommand;
-use Phel\Commands\TestCommand;
+use Phel\Command\CommandFactory;
+use Phel\Command\ReplCommand;
+use Phel\Command\RunCommand;
+use Phel\Command\TestCommand;
 
 final class Main
 {
