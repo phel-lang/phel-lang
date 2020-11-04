@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace PhelTest\Integration\Command;
 
+use Phel\Command\CommandFactory;
 use Phel\Command\RunCommand;
-use Phel\Command\Shared\NamespaceExtractor;
 use Phel\Runtime;
 use Phel\RuntimeInterface;
 use PHPUnit\Framework\TestCase;
@@ -13,6 +13,13 @@ use RuntimeException;
 
 final class RunCommandTest extends TestCase
 {
+    private CommandFactory $commandFactory;
+
+    public function setUp(): void
+    {
+        $this->commandFactory = new CommandFactory(__DIR__);
+    }
+
     public function testRunByNamespace(): void
     {
         $this->expectOutputString("hello world\n");
@@ -67,7 +74,7 @@ final class RunCommandTest extends TestCase
     {
         return new RunCommand(
             $runtime,
-            NamespaceExtractor::create()
+            $this->commandFactory->createNamespaceExtractor()
         );
     }
 }

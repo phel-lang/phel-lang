@@ -5,12 +5,9 @@ declare(strict_types=1);
 namespace Phel\Command\Shared;
 
 use Phel\Exceptions\ReaderException;
-use Phel\GlobalEnvironment;
 use Phel\Lang\Symbol;
 use Phel\Lang\Tuple;
-use Phel\Lexer;
 use Phel\LexerInterface;
-use Phel\Reader;
 use Phel\ReaderInterface;
 use RecursiveDirectoryIterator;
 use RecursiveIteratorIterator;
@@ -23,15 +20,6 @@ final class NamespaceExtractor implements NamespaceExtractorInterface
     private LexerInterface $lexer;
     private ReaderInterface $reader;
     private CommandIoInterface $io;
-
-    public static function create(): self
-    {
-        return new self(
-            new Lexer(),
-            new Reader(new GlobalEnvironment()),
-            new CommandSystemIo()
-        );
-    }
 
     public function __construct(
         LexerInterface $lexer,

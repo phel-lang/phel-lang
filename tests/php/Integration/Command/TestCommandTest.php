@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace PhelTest\Integration\Command;
 
+use Phel\Command\CommandFactory;
 use Phel\Command\TestCommand;
-use Phel\Command\Shared\NamespaceExtractor;
 use Phel\Compiler\EvalCompiler;
 use Phel\Runtime;
 use Phel\RuntimeInterface;
@@ -13,6 +13,13 @@ use PHPUnit\Framework\TestCase;
 
 final class TestCommandTest extends TestCase
 {
+    private CommandFactory $commandFactory;
+
+    public function setUp(): void
+    {
+        $this->commandFactory = new CommandFactory(__DIR__);
+    }
+
     public function testAllInProject(): void
     {
         $currentDir = __DIR__ . '/Fixtures/test-cmd-project-success/';
@@ -61,7 +68,7 @@ final class TestCommandTest extends TestCase
         return new TestCommand(
             $currentDir,
             $runtime,
-            NamespaceExtractor::create(),
+            $this->commandFactory->createNamespaceExtractor(),
             new EvalCompiler($runtime->getEnv())
         );
     }

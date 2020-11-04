@@ -4,12 +4,15 @@ declare(strict_types=1);
 
 namespace Phel\Command;
 
-use Phel\Command\Shared\NamespaceExtractor;
 use Phel\Command\Repl\ColorStyle;
 use Phel\Command\Repl\ReplCommandSystemIo;
+use Phel\Command\Shared\CommandSystemIo;
+use Phel\Command\Shared\NamespaceExtractor;
 use Phel\Compiler\EvalCompiler;
 use Phel\Exceptions\TextExceptionPrinter;
 use Phel\GlobalEnvironment;
+use Phel\Lexer;
+use Phel\Reader;
 use Phel\Runtime;
 
 final class CommandFactory
@@ -38,7 +41,7 @@ final class CommandFactory
     {
         return new RunCommand(
             $this->loadVendorPhelRuntime(),
-            NamespaceExtractor::create()
+            $this->createNamespaceExtractor()
         );
     }
 
@@ -49,8 +52,17 @@ final class CommandFactory
         return new TestCommand(
             $this->currentDir,
             $runtime,
-            NamespaceExtractor::create(),
+            $this->createNamespaceExtractor(),
             new EvalCompiler($runtime->getEnv())
+        );
+    }
+
+    public function createNamespaceExtractor(): NamespaceExtractor
+    {
+        return new NamespaceExtractor(
+            new Lexer(),
+            new Reader(new GlobalEnvironment()),
+            new CommandSystemIo()
         );
     }
 
