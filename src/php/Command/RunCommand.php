@@ -4,13 +4,13 @@ declare(strict_types=1);
 
 namespace Phel\Command;
 
-use Phel\Command\Common\NamespaceExtractorInterface;
+use Phel\Command\Shared\NamespaceExtractorInterface;
 use Phel\RuntimeInterface;
 use RuntimeException;
 
 final class RunCommand
 {
-    public const NAME = 'run';
+    public const COMMAND_NAME = 'run';
 
     private RuntimeInterface $runtime;
     private NamespaceExtractorInterface $namespaceExtractor;

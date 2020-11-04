@@ -2,10 +2,8 @@
 
 declare(strict_types=1);
 
-namespace Phel\Command\Common;
+namespace Phel\Command\Shared;
 
-use Phel\Command\Run\RunCommandIoInterface;
-use Phel\Command\Run\RunCommandSystemIo;
 use Phel\Exceptions\ReaderException;
 use Phel\GlobalEnvironment;
 use Phel\Lang\Symbol;
@@ -24,21 +22,21 @@ final class NamespaceExtractor implements NamespaceExtractorInterface
 {
     private LexerInterface $lexer;
     private ReaderInterface $reader;
-    private RunCommandIoInterface $io;
+    private CommandIoInterface $io;
 
     public static function create(): self
     {
         return new self(
             new Lexer(),
             new Reader(new GlobalEnvironment()),
-            new RunCommandSystemIo()
+            new CommandSystemIo()
         );
     }
 
     public function __construct(
         LexerInterface $lexer,
         ReaderInterface $reader,
-        RunCommandIoInterface $io
+        CommandIoInterface $io
     ) {
         $this->lexer = $lexer;
         $this->reader = $reader;

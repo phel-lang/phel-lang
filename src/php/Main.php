@@ -64,13 +64,13 @@ HELP;
     public function run(string $commandName, array $arguments = []): void
     {
         switch ($commandName) {
-            case ReplCommand::NAME:
+            case ReplCommand::COMMAND_NAME:
                 $this->executeReplCommand();
                 break;
-            case RunCommand::NAME:
+            case RunCommand::COMMAND_NAME:
                 $this->executeRunCommand($arguments);
                 break;
-            case TestCommand::NAME:
+            case TestCommand::COMMAND_NAME:
                 $this->executeTestCommand($arguments);
                 break;
             default:

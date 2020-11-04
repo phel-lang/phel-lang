@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Phel\Command\Common;
+namespace Phel\Command\Shared;
 
 interface NamespaceExtractorInterface
 {

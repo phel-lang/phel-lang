@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace Phel\Command\Run;
+namespace Phel\Command\Shared;
 
-final class RunCommandSystemIo implements RunCommandIoInterface
+final class CommandSystemIo implements CommandIoInterface
 {
     public function fileGetContents(string $string): string
     {

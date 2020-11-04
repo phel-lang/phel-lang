@@ -16,7 +16,7 @@ use Throwable;
 
 final class ReplCommand
 {
-    public const NAME = 'repl';
+    public const COMMAND_NAME = 'repl';
 
     private ReplCommandIoInterface $io;
     private EvalCompilerInterface $compiler;

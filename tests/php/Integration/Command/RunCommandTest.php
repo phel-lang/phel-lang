@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace PhelTest\Integration\Command;
 
 use Phel\Command\RunCommand;
-use Phel\Command\Common\NamespaceExtractor;
+use Phel\Command\Shared\NamespaceExtractor;
 use Phel\Runtime;
 use Phel\RuntimeInterface;
 use PHPUnit\Framework\TestCase;

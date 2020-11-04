@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace PhelTest\Integration\Command;
 
 use Phel\Command\TestCommand;
-use Phel\Command\Common\NamespaceExtractor;
+use Phel\Command\Shared\NamespaceExtractor;
 use Phel\Compiler\EvalCompiler;
 use Phel\Runtime;
 use Phel\RuntimeInterface;

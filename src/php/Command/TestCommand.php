@@ -4,14 +4,14 @@ declare(strict_types=1);
 
 namespace Phel\Command;
 
-use Phel\Command\Common\NamespaceExtractorInterface;
+use Phel\Command\Shared\NamespaceExtractorInterface;
 use Phel\Compiler\EvalCompilerInterface;
 use Phel\RuntimeInterface;
 use RuntimeException;
 
 final class TestCommand
 {
-    public const NAME = 'test';
+    public const COMMAND_NAME = 'test';
 
     private string $currentDir;
     private RuntimeInterface $runtime;

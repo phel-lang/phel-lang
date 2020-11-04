@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Phel\Command;
 
-use Phel\Command\Common\NamespaceExtractor;
+use Phel\Command\Shared\NamespaceExtractor;
 use Phel\Command\Repl\ColorStyle;
 use Phel\Command\Repl\ReplCommandSystemIo;
 use Phel\Compiler\EvalCompiler;
