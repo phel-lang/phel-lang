@@ -34,7 +34,7 @@ final class DefStructSymbol implements TupleSymbolAnalyzer
 
         return new DefStructNode(
             $env,
-            $this->analyzer->getGlobalEnvironment()->getNs(),
+            $this->analyzer->getNamespace(),
             $tuple[1],
             $this->params($tuple[2]),
             $tuple->getStartLocation()

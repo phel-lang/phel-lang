@@ -35,15 +35,11 @@ final class DefSymbol implements TupleSymbolAnalyzer
             throw AnalyzerException::withLocation("First argument of 'def must be a Symbol.", $tuple);
         }
 
-        $namespace = $this->analyzer
-            ->getGlobalEnvironment()
-            ->getNs();
+        $namespace = $this->analyzer->getNamespace();
 
         [$metaTable, $init] = $this->createMetaTableAndInit($tuple);
 
-        $this->analyzer
-            ->getGlobalEnvironment()
-            ->addDefinition($namespace, $nameSymbol, $metaTable);
+        $this->analyzer->addDefinition($namespace, $nameSymbol, $metaTable);
 
         return new DefNode(
             $env,

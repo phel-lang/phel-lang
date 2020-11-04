@@ -6,6 +6,7 @@ namespace PhelTest\Unit\Analyzer\TupleSymbol;
 
 use Phel\Analyzer;
 use Phel\Analyzer\TupleSymbol\DefSymbol;
+use Phel\AnalyzerInterface;
 use Phel\Ast\LiteralNode;
 use Phel\Exceptions\PhelCodeException;
 use Phel\GlobalEnvironment;
@@ -17,7 +18,7 @@ use PHPUnit\Framework\TestCase;
 
 final class DefSymbolTest extends TestCase
 {
-    private Analyzer $analyzer;
+    private AnalyzerInterface $analyzer;
 
     public function setUp(): void
     {

@@ -39,7 +39,9 @@ final class AnalyzeTuple
 
     private const EMPTY_SYMBOL_NAME = '';
 
-    /** @throws AnalyzerException|PhelCodeException */
+    /**
+     * @throws AnalyzerException|PhelCodeException
+     */
     public function analyze(Tuple $tuple, NodeEnvironment $env): Node
     {
         $symbolName = $this->getSymbolName($tuple);

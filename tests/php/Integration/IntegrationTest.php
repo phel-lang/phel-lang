@@ -10,6 +10,7 @@ use Phel\Emitter;
 use Phel\GlobalEnvironment;
 use Phel\Lang\Symbol;
 use Phel\Lexer;
+use Phel\NodeEnvironment;
 use Phel\Reader;
 use Phel\Runtime;
 use PHPUnit\Framework\TestCase;
@@ -56,7 +57,7 @@ final class IntegrationTest extends TestCase
             }
 
             $compiledCode[] = $emitter->emitNodeAndEval(
-                $analyzer->analyzeInEmptyEnv($readAst->getAst())
+                $analyzer->analyze($readAst->getAst(), NodeEnvironment::empty())
             );
         }
         $compiledCode = trim(implode('', $compiledCode));

@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Phel\Compiler;
 
 use Phel\Analyzer;
+use Phel\AnalyzerInterface;
 use Phel\Emitter;
 use Phel\Exceptions\AnalyzerException;
 use Phel\Exceptions\CompilerException;
@@ -19,7 +20,7 @@ final class EvalCompiler
 {
     private Lexer $lexer;
     private Reader $reader;
-    private Analyzer $analyzer;
+    private AnalyzerInterface $analyzer;
     private Emitter $emitter;
 
     public function __construct(GlobalEnvironment $globalEnv)
@@ -50,7 +51,9 @@ final class EvalCompiler
         }
     }
 
-    /** @return mixed */
+    /**
+     * @return mixed
+     */
     private function evalNode(ReaderResult $readerResult)
     {
         try {

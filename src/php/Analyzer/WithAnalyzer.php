@@ -4,13 +4,13 @@ declare(strict_types=1);
 
 namespace Phel\Analyzer;
 
-use Phel\Analyzer;
+use Phel\AnalyzerInterface;
 
 trait WithAnalyzer
 {
-    private Analyzer $analyzer;
+    private AnalyzerInterface $analyzer;
 
-    public function __construct(Analyzer $analyzer)
+    public function __construct(AnalyzerInterface $analyzer)
     {
         $this->analyzer = $analyzer;
     }

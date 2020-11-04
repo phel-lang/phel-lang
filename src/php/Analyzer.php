@@ -19,7 +19,7 @@ use Phel\Lang\Symbol;
 use Phel\Lang\Table;
 use Phel\Lang\Tuple;
 
-final class Analyzer
+final class Analyzer implements AnalyzerInterface
 {
     private GlobalEnvironment $globalEnvironment;
 
@@ -28,18 +28,61 @@ final class Analyzer
         $this->globalEnvironment = $globalEnvironment;
     }
 
-    public function getGlobalEnvironment(): GlobalEnvironment
+    public function resolve(Symbol $name, NodeEnvironment $env): ?Node
     {
-        return $this->globalEnvironment;
+        return $this->globalEnvironment->resolve($name, $env);
     }
 
-    /** @param AbstractType|string|float|int|bool|null $x */
-    public function analyzeInEmptyEnv($x): Node
+    public function getNamespace(): string
     {
-        return $this->analyze($x, NodeEnvironment::empty());
+        return $this->globalEnvironment->getNs();
     }
 
-    /** @param AbstractType|string|float|int|bool|null $x */
+    public function setNamespace(string $ns): void
+    {
+        $this->globalEnvironment->setNs($ns);
+    }
+
+    public function addUseAlias(string $ns, Symbol $alias, Symbol $nsSymbol): void
+    {
+        $this->globalEnvironment->addUseAlias($ns, $alias, $nsSymbol);
+    }
+
+    public function addRequireAlias(string $ns, Symbol $alias, Symbol $nsSymbol): void
+    {
+        $this->globalEnvironment->addRequireAlias($ns, $alias, $nsSymbol);
+    }
+
+    /**
+     * @param Symbol[] $referSymbols
+     */
+    public function addRefers(string $ns, array $referSymbols, Symbol $nsSymbol): void
+    {
+        foreach ($referSymbols as $referFnName) {
+            $this->globalEnvironment->addRefer($ns, $referFnName, $nsSymbol);
+        }
+    }
+
+    public function addDefinition(string $ns, Symbol $symbol, Table $meta): void
+    {
+        $this->globalEnvironment->addDefinition($ns, $symbol, $meta);
+    }
+
+    /**
+     * @param AbstractType|string|float|int|bool|null $x
+     */
+    public function analyzeMacro($x, NodeEnvironment $env): Node
+    {
+        $this->globalEnvironment->setAllowPrivateAccess(true);
+        $result = $this->analyze($x, $env);
+        $this->globalEnvironment->setAllowPrivateAccess(false);
+
+        return $result;
+    }
+
+    /**
+     * @param AbstractType|string|float|int|bool|null $x
+     */
     public function analyze($x, NodeEnvironment $env): Node
     {
         if ($this->isLiteral($x)) {
@@ -69,7 +112,9 @@ final class Analyzer
         throw new AnalyzerException('Unhandled type: ' . var_export($x, true));
     }
 
-    /** @param AbstractType|string|float|int|bool|null $x */
+    /**
+     * @param AbstractType|string|float|int|bool|null $x
+     */
     private function isLiteral($x): bool
     {
         return is_string($x)

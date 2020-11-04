@@ -5,12 +5,14 @@ declare(strict_types=1);
 namespace Phel\Compiler;
 
 use Phel\Analyzer;
+use Phel\AnalyzerInterface;
 use Phel\Emitter;
 use Phel\Exceptions\AnalyzerException;
 use Phel\Exceptions\CompilerException;
 use Phel\Exceptions\ReaderException;
 use Phel\GlobalEnvironment;
 use Phel\Lexer;
+use Phel\NodeEnvironment;
 use Phel\Reader;
 use Phel\ReaderResult;
 
@@ -18,7 +20,7 @@ final class FileCompiler
 {
     private Lexer $lexer;
     private Reader $reader;
-    private Analyzer $analyzer;
+    private AnalyzerInterface $analyzer;
     private Emitter $emitter;
 
     public function __construct(GlobalEnvironment $globalEnv)
@@ -55,7 +57,10 @@ final class FileCompiler
     private function analyzeAndEvalNode(ReaderResult $readerResult): string
     {
         try {
-            $node = $this->analyzer->analyzeInEmptyEnv($readerResult->getAst());
+            $node = $this->analyzer->analyze(
+                $readerResult->getAst(),
+                NodeEnvironment::empty()
+            );
         } catch (AnalyzerException $e) {
             throw new CompilerException($e, $readerResult->getCodeSnippet());
         }
