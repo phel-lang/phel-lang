@@ -5,13 +5,15 @@ declare(strict_types=1);
 namespace Phel;
 
 use Exception;
-use Phel\Commands\ReplCommand;
-use Phel\Commands\RunCommand;
-use Phel\Commands\TestCommand;
+use InvalidArgumentException;
+use Phel\Command\CommandFactory;
+use Phel\Command\ReplCommand;
+use Phel\Command\RunCommand;
+use Phel\Command\TestCommand;
 
 final class Main
 {
-    private const HELP_TEXT = <<<HELP
+    public const HELP_TEXT = <<<HELP
 Usage: phel [command]
 
 Commands:
@@ -30,11 +32,9 @@ Commands:
 
 HELP;
 
-    private string $currentDir;
-    private string $commandName;
-    private array $arguments;
+    private CommandFactory $commandFactory;
 
-    public static function create(string $currentDir, string $commandName, array $arguments = []): self
+    public static function create(string $currentDir): self
     {
         if (!getcwd()) {
             throw new Exception('Cannot get current working directory');
@@ -42,12 +42,7 @@ HELP;
 
         static::requireAutoload($currentDir);
 
-        return new self($currentDir, $commandName, $arguments);
-    }
-
-    public static function renderHelp(): void
-    {
-        echo self::HELP_TEXT;
+        return new self(new CommandFactory($currentDir));
     }
 
     private static function requireAutoload(string $currentDir): void
@@ -61,55 +56,53 @@ HELP;
         require $autoloadPath;
     }
 
-    private function __construct(string $currentDir, string $commandName, array $arguments)
+    private function __construct(CommandFactory $commandFactory)
     {
-        $this->currentDir = $currentDir;
-        $this->commandName = $commandName;
-        $this->arguments = $arguments;
+        $this->commandFactory = $commandFactory;
     }
 
-    public function run(): void
+    public function run(string $commandName, array $arguments = []): void
     {
-        switch ($this->commandName) {
-            case ReplCommand::NAME:
+        switch ($commandName) {
+            case ReplCommand::COMMAND_NAME:
                 $this->executeReplCommand();
                 break;
-            case RunCommand::NAME:
-                $this->executeRunCommand();
+            case RunCommand::COMMAND_NAME:
+                $this->executeRunCommand($arguments);
                 break;
-            case TestCommand::NAME:
-                $this->executeTestCommand();
+            case TestCommand::COMMAND_NAME:
+                $this->executeTestCommand($arguments);
                 break;
             default:
-                static::renderHelp();
+                $this->renderHelp();
         }
     }
 
     private function executeReplCommand(): void
     {
-        $replCommand = new ReplCommand($this->currentDir);
+        $replCommand = $this->commandFactory->createReplCommand();
         $replCommand->run();
     }
 
-    private function executeRunCommand(): void
+    private function executeRunCommand(array $arguments): void
     {
-        if (empty($this->arguments)) {
-            throw new Exception('Please provide a filename or namespace as argument!');
+        if (empty($arguments)) {
+            throw new InvalidArgumentException('Please provide a filename or namespace as argument!');
         }
 
-        $runCommand = new RunCommand();
-        $runCommand->run($this->currentDir, $this->arguments[0]);
+        $runCommand = $this->commandFactory->createRunCommand();
+        $runCommand->run($arguments[0]);
     }
 
-    private function executeTestCommand(): void
+    private function executeTestCommand(array $arguments): void
     {
-        $testCommand = new TestCommand();
-        $result = $testCommand->run($this->currentDir, $this->arguments);
+        $testCommand = $this->commandFactory->createTestCommand();
+        $result = $testCommand->run($arguments);
+        ($result) ? exit(0) : exit(1);
+    }
 
-        if ($result) {
-            exit(0);
-        }
-
-        exit(1);
+    private function renderHelp(): void
+    {
+        echo self::HELP_TEXT;
     }
 }

@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Phel\Exceptions;
 
 use Phel\CodeSnippet;
-use Phel\Commands\Repl\ColorStyle;
+use Phel\Command\Repl\ColorStyle;
 use Phel\Emitter\OutputEmitter\Munge;
 use Phel\Emitter\OutputEmitter\SourceMap\SourceMapConsumer;
 use Phel\Lang\IFn;
@@ -13,7 +13,7 @@ use Phel\Printer;
 use ReflectionClass;
 use Throwable;
 
-final class TextExceptionPrinter implements ExceptionPrinter
+final class TextExceptionPrinter implements ExceptionPrinterInterface
 {
     private Printer $printer;
     private ColorStyle $style;

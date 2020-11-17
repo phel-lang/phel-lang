@@ -14,7 +14,7 @@ use Phel\Lang\Symbol;
 use Phel\Lang\Table;
 use Phel\Lang\Tuple;
 
-final class Reader
+final class Reader implements ReaderInterface
 {
     private const STRING_REPLACEMENTS = [
         '\\' => '\\',
@@ -46,6 +46,8 @@ final class Reader
      * If the token stream reaches the end, null is returned.
      *
      * @param Generator $tokenStream The token stream to read
+     *
+     * @throws ReaderException
      */
     public function readNext(Generator $tokenStream): ?ReaderResult
     {
@@ -87,6 +89,8 @@ final class Reader
 
     /**
      * @return AbstractType|string|float|int|bool|null
+     *
+     * @throws ReaderException
      */
     public function readExpression(Generator $tokenStream)
     {
