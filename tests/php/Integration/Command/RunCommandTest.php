@@ -6,6 +6,7 @@ namespace PhelTest\Integration\Command;
 
 use Phel\Command\CommandFactory;
 use Phel\Command\RunCommand;
+use Phel\GlobalEnvironment;
 use Phel\Runtime;
 use Phel\RuntimeInterface;
 use PHPUnit\Framework\TestCase;
@@ -24,7 +25,7 @@ final class RunCommandTest extends TestCase
     {
         $this->expectOutputString("hello world\n");
 
-        $runtime = Runtime::initializeNew();
+        $runtime = $this->createRuntime();
         $runtime->addPath('test\\', [__DIR__ . '/Fixtures']);
         $runCommand = $this->createRunCommand($runtime);
         $runCommand->run('test\\test-script');
@@ -34,7 +35,7 @@ final class RunCommandTest extends TestCase
     {
         $this->expectOutputString("hello world\n");
 
-        $runtime = Runtime::initializeNew();
+        $runtime = $this->createRuntime();
         $runtime->addPath('test\\', [__DIR__ . '/Fixtures']);
         $runCommand = $this->createRunCommand($runtime);
         $runCommand->run(__DIR__ . '/Fixtures/test-script.phel');
@@ -46,7 +47,8 @@ final class RunCommandTest extends TestCase
         $this->expectException(RuntimeException::class);
         $this->expectExceptionMessage('Cannot parse file: ' . $filename);
 
-        $runCommand = $this->createRunCommand(Runtime::newInstance());
+        $runtime = $this->createRuntime();
+        $runCommand = $this->createRunCommand($runtime);
         $runCommand->run($filename);
     }
 
@@ -56,7 +58,8 @@ final class RunCommandTest extends TestCase
         $this->expectException(RuntimeException::class);
         $this->expectExceptionMessage('Cannot load namespace: ' . $filename);
 
-        $runCommand = $this->createRunCommand(Runtime::newInstance());
+        $runtime = $this->createRuntime();
+        $runCommand = $this->createRunCommand($runtime);
         $runCommand->run($filename);
     }
 
@@ -66,7 +69,8 @@ final class RunCommandTest extends TestCase
         $this->expectException(RuntimeException::class);
         $this->expectExceptionMessage('Cannot extract namespace from file: ' . $filename);
 
-        $runCommand = $this->createRunCommand(Runtime::newInstance());
+        $runtime = $this->createRuntime();
+        $runCommand = $this->createRunCommand($runtime);
         $runCommand->run($filename);
     }
 
@@ -76,5 +80,10 @@ final class RunCommandTest extends TestCase
             $runtime,
             $this->commandFactory->createNamespaceExtractor()
         );
+    }
+
+    private function createRuntime(): Runtime
+    {
+        return Runtime::initializeNew(new GlobalEnvironment());
     }
 }

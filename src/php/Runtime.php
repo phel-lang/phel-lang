@@ -11,13 +11,14 @@ use Phel\Exceptions\TextExceptionPrinter;
 use Phel\Lang\Keyword;
 use Phel\Lang\Symbol;
 use Phel\Lang\Table;
+use RuntimeException;
 use Throwable;
 
 class Runtime implements RuntimeInterface
 {
-    protected GlobalEnvironment $globalEnv;
+    protected GlobalEnvironmentInterface $globalEnv;
 
-    private static ?Runtime $instance = null;
+    private static ?RuntimeInterface $instance = null;
 
     /** @var string[] */
     private array $loadedNs = [];
@@ -27,17 +28,17 @@ class Runtime implements RuntimeInterface
     private ?string $cacheDirectory = null;
 
     private function __construct(
-        GlobalEnvironment $globalEnv = null,
-        string $cacheDirectory = null
+        GlobalEnvironmentInterface $globalEnv,
+        ?string $cacheDirectory = null
     ) {
         set_exception_handler([$this, 'exceptionHandler']);
 
-        $this->globalEnv = $globalEnv ?? new GlobalEnvironment();
+        $this->globalEnv = $globalEnv;
         $this->cacheDirectory = $cacheDirectory;
         $this->addPath('phel\\', [__DIR__ . '/../phel']);
     }
 
-    public function getEnv(): GlobalEnvironment
+    public function getEnv(): GlobalEnvironmentInterface
     {
         return $this->globalEnv;
     }
@@ -56,13 +57,18 @@ class Runtime implements RuntimeInterface
         }
     }
 
-    public static function initialize(GlobalEnvironment $globalEnv = null, string $cacheDirectory = null): Runtime
-    {
+    public static function initialize(
+        ?GlobalEnvironmentInterface $globalEnv = null,
+        ?string $cacheDirectory = null
+    ): self {
         if (self::$instance !== null) {
-            throw new \RuntimeException('Runtime is already initialized');
+            throw new RuntimeException('Runtime is already initialized');
         }
 
-        self::$instance = new Runtime($globalEnv, $cacheDirectory);
+        self::$instance = new self(
+            $globalEnv ?? new GlobalEnvironment(),
+            $cacheDirectory
+        );
 
         return self::$instance;
     }
@@ -70,25 +76,25 @@ class Runtime implements RuntimeInterface
     /**
      * @interal
      */
-    public static function newInstance(GlobalEnvironment $globalEnv = null, string $cacheDirectory = null): self
+    public static function newInstance(GlobalEnvironmentInterface $globalEnv, string $cacheDirectory = null): self
     {
-        return new Runtime($globalEnv, $cacheDirectory);
+        return new self($globalEnv, $cacheDirectory);
     }
 
     /**
      * @interal
      */
-    public static function initializeNew(GlobalEnvironment $globalEnv = null, string $cacheDirectory = null): Runtime
+    public static function initializeNew(GlobalEnvironmentInterface $globalEnv, string $cacheDirectory = null): self
     {
-        self::$instance = new Runtime($globalEnv, $cacheDirectory);
+        self::$instance = new self($globalEnv, $cacheDirectory);
 
         return self::$instance;
     }
 
-    public static function getInstance(): Runtime
+    public static function getInstance(): RuntimeInterface
     {
-        if (is_null(self::$instance)) {
-            throw new \RuntimeException('Runtime must first be initialized. Call Runtime::initialize()');
+        if (null === self::$instance) {
+            throw new RuntimeException('Runtime must first be initialized. Call Runtime::initialize()');
         }
 
         return self::$instance;

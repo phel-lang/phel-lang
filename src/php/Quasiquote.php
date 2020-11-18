@@ -11,12 +11,13 @@ use Phel\Lang\PhelArray;
 use Phel\Lang\Symbol;
 use Phel\Lang\Table;
 use Phel\Lang\Tuple;
+use RuntimeException;
 
 final class Quasiquote
 {
-    private GlobalEnvironment $env;
+    private GlobalEnvironmentInterface $env;
 
-    public function __construct(GlobalEnvironment $env)
+    public function __construct(GlobalEnvironmentInterface $env)
     {
         $this->env = $env;
     }
@@ -34,7 +35,7 @@ final class Quasiquote
         }
 
         if ($this->isUnquoteSplicing($form)) {
-            throw new \Exception('splice not in list');
+            throw new RuntimeException('splice not in list');
         }
 
         if ($form instanceof Tuple && count($form) > 0) {

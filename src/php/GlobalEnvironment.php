@@ -14,7 +14,7 @@ use Phel\Lang\Symbol;
 use Phel\Lang\Table;
 use RuntimeException;
 
-final class GlobalEnvironment
+final class GlobalEnvironment implements GlobalEnvironmentInterface
 {
     private string $ns = 'user';
 

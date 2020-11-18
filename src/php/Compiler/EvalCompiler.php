@@ -10,7 +10,7 @@ use Phel\Emitter;
 use Phel\Exceptions\AnalyzerException;
 use Phel\Exceptions\CompilerException;
 use Phel\Exceptions\ReaderException;
-use Phel\GlobalEnvironment;
+use Phel\GlobalEnvironmentInterface;
 use Phel\Lexer;
 use Phel\NodeEnvironment;
 use Phel\Reader;
@@ -23,7 +23,7 @@ final class EvalCompiler implements EvalCompilerInterface
     private AnalyzerInterface $analyzer;
     private Emitter $emitter;
 
-    public function __construct(GlobalEnvironment $globalEnv)
+    public function __construct(GlobalEnvironmentInterface $globalEnv)
     {
         $this->lexer = new Lexer();
         $this->reader = new Reader($globalEnv);

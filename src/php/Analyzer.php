@@ -21,9 +21,9 @@ use Phel\Lang\Tuple;
 
 final class Analyzer implements AnalyzerInterface
 {
-    private GlobalEnvironment $globalEnvironment;
+    private GlobalEnvironmentInterface $globalEnvironment;
 
-    public function __construct(GlobalEnvironment $globalEnvironment)
+    public function __construct(GlobalEnvironmentInterface $globalEnvironment)
     {
         $this->globalEnvironment = $globalEnvironment;
     }
