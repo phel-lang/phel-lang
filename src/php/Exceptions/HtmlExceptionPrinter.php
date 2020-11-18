@@ -11,7 +11,7 @@ use Phel\Printer;
 use ReflectionClass;
 use Throwable;
 
-final class HtmlExceptionPrinter implements ExceptionPrinter
+final class HtmlExceptionPrinter implements ExceptionPrinterInterface
 {
     private Munge $munge;
 

@@ -7,7 +7,7 @@ require_once __DIR__ . "{$slash}src{$slash}php{$slash}Main.php";
 use Phel\Main;
 
 if ($argc <= 1) {
-    Main::renderHelp();
+    echo Main::HELP_TEXT;
     exit;
 }
 
@@ -16,7 +16,8 @@ $commandName = $argv[1];
 $arguments = array_slice($argv, 2);
 
 try {
-    Main::create($currentDir, $commandName, $arguments)->run();
+    $main = Main::create($currentDir);
+    $main->run($commandName, $arguments);
 } catch (Exception $e) {
     print $e->getMessage() . PHP_EOL;
 }
