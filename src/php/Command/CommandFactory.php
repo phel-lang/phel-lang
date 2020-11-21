@@ -11,8 +11,8 @@ use Phel\Command\Shared\NamespaceExtractor;
 use Phel\Compiler\EvalCompiler;
 use Phel\Exceptions\TextExceptionPrinter;
 use Phel\GlobalEnvironment;
-use Phel\Lexer;
-use Phel\Reader;
+use Phel\Compiler\Lexer;
+use Phel\Compiler\Reader;
 use Phel\Runtime;
 
 final class CommandFactory

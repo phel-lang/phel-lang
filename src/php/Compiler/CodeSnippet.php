@@ -1,29 +1,22 @@
 <?php
 
-namespace Phel;
+declare(strict_types=1);
+
+namespace Phel\Compiler;
 
 use Phel\Lang\SourceLocation;
 
-class CodeSnippet
+final class CodeSnippet
 {
+    private SourceLocation $startLocation;
+    private SourceLocation $endLocation;
+    private string $code;
 
-    /**
-     * @var SourceLocation
-     */
-    private $startLocation;
-
-    /**
-     * @var SourceLocation
-     */
-    private $endLocation;
-
-    /**
-     * @var string
-     */
-    private $code;
-
-    public function __construct(SourceLocation $startLocation, SourceLocation $endLocation, string $code)
-    {
+    public function __construct(
+        SourceLocation $startLocation,
+        SourceLocation $endLocation,
+        string $code
+    ) {
         $this->startLocation = $startLocation;
         $this->endLocation = $endLocation;
         $this->code = $code;

@@ -5,9 +5,9 @@ declare(strict_types=1);
 namespace PhelTest\Unit;
 
 use Phel\GlobalEnvironment;
-use Phel\Lexer;
+use Phel\Compiler\Lexer;
 use Phel\Printer;
-use Phel\Reader;
+use Phel\Compiler\Reader;
 use PHPUnit\Framework\TestCase;
 
 final class PrinterTest extends TestCase

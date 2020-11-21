@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Phel\Exceptions;
 
 use Exception;
-use Phel\CodeSnippet;
+use Phel\Compiler\CodeSnippet;
 use Phel\Lang\SourceLocation;
 
 final class ReaderException extends PhelCodeException

@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Phel\Exceptions;
 
-use Phel\CodeSnippet;
+use Phel\Compiler\CodeSnippet;
 use Phel\Compiler\Emitter\OutputEmitter\Munge;
 use Phel\Lang\IFn;
 use Phel\Printer;

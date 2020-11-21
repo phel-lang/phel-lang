@@ -11,10 +11,10 @@ use Phel\Exceptions\AnalyzerException;
 use Phel\Exceptions\CompilerException;
 use Phel\Exceptions\ReaderException;
 use Phel\GlobalEnvironmentInterface;
-use Phel\Lexer;
+use Phel\Compiler\Lexer;
 use Phel\NodeEnvironment;
-use Phel\Reader;
-use Phel\ReaderResult;
+use Phel\Compiler\Reader;
+use Phel\Compiler\ReaderResult;
 
 final class FileCompiler
 {

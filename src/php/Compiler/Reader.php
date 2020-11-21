@@ -2,10 +2,11 @@
 
 declare(strict_types=1);
 
-namespace Phel;
+namespace Phel\Compiler;
 
 use Generator;
 use Phel\Exceptions\ReaderException;
+use Phel\GlobalEnvironmentInterface;
 use Phel\Lang\AbstractType;
 use Phel\Lang\IMeta;
 use Phel\Lang\Keyword;

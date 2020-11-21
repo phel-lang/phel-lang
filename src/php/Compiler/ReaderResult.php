@@ -1,10 +1,12 @@
 <?php
 
-namespace Phel;
+declare(strict_types=1);
+
+namespace Phel\Compiler;
 
 use Phel\Lang\AbstractType;
 
-class ReaderResult
+final class ReaderResult
 {
     /** @var AbstractType|string|float|int|bool|null */
     private $ast;

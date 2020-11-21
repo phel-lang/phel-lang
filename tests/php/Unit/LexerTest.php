@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace PhelTest\Unit;
 
 use Phel\Lang\SourceLocation;
-use Phel\Lexer;
-use Phel\Token;
+use Phel\Compiler\Lexer;
+use Phel\Compiler\Token;
 use PHPUnit\Framework\TestCase;
 
 final class LexerTest extends TestCase

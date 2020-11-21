@@ -9,9 +9,9 @@ use Phel\Analyzer;
 use Phel\Compiler\Emitter;
 use Phel\GlobalEnvironment;
 use Phel\Lang\Symbol;
-use Phel\Lexer;
+use Phel\Compiler\Lexer;
 use Phel\NodeEnvironment;
-use Phel\Reader;
+use Phel\Compiler\Reader;
 use Phel\Runtime;
 use PHPUnit\Framework\TestCase;
 

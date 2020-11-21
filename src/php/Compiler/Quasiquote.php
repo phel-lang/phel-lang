@@ -2,15 +2,17 @@
 
 declare(strict_types=1);
 
-namespace Phel;
+namespace Phel\Compiler;
 
 use Phel\Ast\GlobalVarNode;
+use Phel\GlobalEnvironmentInterface;
 use Phel\Lang\AbstractType;
 use Phel\Lang\Keyword;
 use Phel\Lang\PhelArray;
 use Phel\Lang\Symbol;
 use Phel\Lang\Table;
 use Phel\Lang\Tuple;
+use Phel\NodeEnvironment;
 use RuntimeException;
 
 final class Quasiquote
