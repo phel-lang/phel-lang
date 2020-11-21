@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace Phel;
 
 use Phel\Compiler\FileCompiler;
+use Phel\Compiler\GlobalEnvironment;
+use Phel\Compiler\GlobalEnvironmentInterface;
 use Phel\Exceptions\CompilerException;
 use Phel\Exceptions\HtmlExceptionPrinter;
 use Phel\Exceptions\TextExceptionPrinter;

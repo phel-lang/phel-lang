@@ -6,7 +6,7 @@ namespace PhelTest\Integration\Command;
 
 use Phel\Command\CommandFactory;
 use Phel\Command\RunCommand;
-use Phel\GlobalEnvironment;
+use Phel\Compiler\GlobalEnvironment;
 use Phel\Runtime;
 use Phel\RuntimeInterface;
 use PHPUnit\Framework\TestCase;

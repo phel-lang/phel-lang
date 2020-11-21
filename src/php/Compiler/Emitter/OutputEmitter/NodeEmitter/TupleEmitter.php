@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace Phel\Compiler\Emitter\OutputEmitter\NodeEmitter;
 
-use Phel\Ast\Node;
-use Phel\Ast\TupleNode;
+use Phel\Compiler\Ast\Node;
+use Phel\Compiler\Ast\TupleNode;
 use Phel\Compiler\Emitter\OutputEmitter\NodeEmitter;
 
 final class TupleEmitter implements NodeEmitter

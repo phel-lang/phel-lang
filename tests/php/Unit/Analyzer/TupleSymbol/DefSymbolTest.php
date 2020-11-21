@@ -4,16 +4,16 @@ declare(strict_types=1);
 
 namespace PhelTest\Unit\Analyzer\TupleSymbol;
 
-use Phel\Analyzer;
-use Phel\Analyzer\TupleSymbol\DefSymbol;
-use Phel\AnalyzerInterface;
-use Phel\Ast\LiteralNode;
+use Phel\Compiler\Analyzer;
+use Phel\Compiler\Analyzer\TupleSymbol\DefSymbol;
+use Phel\Compiler\AnalyzerInterface;
+use Phel\Compiler\Ast\LiteralNode;
 use Phel\Exceptions\PhelCodeException;
-use Phel\GlobalEnvironment;
+use Phel\Compiler\GlobalEnvironment;
 use Phel\Lang\Symbol;
 use Phel\Lang\Table;
 use Phel\Lang\Tuple;
-use Phel\NodeEnvironment;
+use Phel\Compiler\NodeEnvironment;
 use PHPUnit\Framework\TestCase;
 
 final class DefSymbolTest extends TestCase

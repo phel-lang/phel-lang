@@ -4,14 +4,14 @@ declare(strict_types=1);
 
 namespace PhelTest\Unit\Analyzer\TupleSymbol;
 
-use Phel\Analyzer;
-use Phel\Analyzer\TupleSymbol\DefStructSymbol;
-use Phel\AnalyzerInterface;
+use Phel\Compiler\Analyzer;
+use Phel\Compiler\Analyzer\TupleSymbol\DefStructSymbol;
+use Phel\Compiler\AnalyzerInterface;
 use Phel\Exceptions\PhelCodeException;
-use Phel\GlobalEnvironment;
+use Phel\Compiler\GlobalEnvironment;
 use Phel\Lang\Symbol;
 use Phel\Lang\Tuple;
-use Phel\NodeEnvironment;
+use Phel\Compiler\NodeEnvironment;
 use PHPUnit\Framework\TestCase;
 
 final class DefStructSymbolTest extends TestCase

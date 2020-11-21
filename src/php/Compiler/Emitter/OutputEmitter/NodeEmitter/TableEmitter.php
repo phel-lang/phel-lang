@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace Phel\Compiler\Emitter\OutputEmitter\NodeEmitter;
 
-use Phel\Ast\Node;
-use Phel\Ast\TableNode;
+use Phel\Compiler\Ast\Node;
+use Phel\Compiler\Ast\TableNode;
 use Phel\Compiler\Emitter\OutputEmitter\NodeEmitter;
 
 final class TableEmitter implements NodeEmitter

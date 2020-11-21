@@ -4,17 +4,9 @@ declare(strict_types=1);
 
 namespace Phel\Compiler;
 
-use Phel\Analyzer;
-use Phel\AnalyzerInterface;
-use Phel\Compiler\Emitter;
 use Phel\Exceptions\AnalyzerException;
 use Phel\Exceptions\CompilerException;
 use Phel\Exceptions\ReaderException;
-use Phel\GlobalEnvironmentInterface;
-use Phel\Compiler\Lexer;
-use Phel\NodeEnvironment;
-use Phel\Compiler\Reader;
-use Phel\Compiler\ReaderResult;
 
 final class FileCompiler
 {

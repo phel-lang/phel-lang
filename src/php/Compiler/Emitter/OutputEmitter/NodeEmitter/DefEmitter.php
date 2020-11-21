@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace Phel\Compiler\Emitter\OutputEmitter\NodeEmitter;
 
-use Phel\Ast\DefNode;
-use Phel\Ast\Node;
+use Phel\Compiler\Ast\DefNode;
+use Phel\Compiler\Ast\Node;
 use Phel\Compiler\Emitter\OutputEmitter\NodeEmitter;
 
 final class DefEmitter implements NodeEmitter

@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace PhelTest\Unit;
 
 use Phel\Exceptions\ReaderException;
-use Phel\GlobalEnvironment;
+use Phel\Compiler\GlobalEnvironment;
 use Phel\Lang\AbstractType;
 use Phel\Lang\IMeta;
 use Phel\Lang\Keyword;

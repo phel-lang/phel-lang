@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Phel\Compiler\Emitter\OutputEmitter;
 
-use Phel\Ast;
+use Phel\Compiler\Ast;
 use Phel\Compiler\Emitter\OutputEmitter;
 use RuntimeException;
 

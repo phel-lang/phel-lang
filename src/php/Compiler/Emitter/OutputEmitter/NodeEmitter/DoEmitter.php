@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace Phel\Compiler\Emitter\OutputEmitter\NodeEmitter;
 
-use Phel\Ast\DoNode;
-use Phel\Ast\Node;
+use Phel\Compiler\Ast\DoNode;
+use Phel\Compiler\Ast\Node;
 use Phel\Compiler\Emitter\OutputEmitter\NodeEmitter;
-use Phel\NodeEnvironment;
+use Phel\Compiler\NodeEnvironment;
 
 final class DoEmitter implements NodeEmitter
 {

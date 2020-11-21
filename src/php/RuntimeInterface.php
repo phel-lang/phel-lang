@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Phel;
 
+use Phel\Compiler\GlobalEnvironmentInterface;
+
 interface RuntimeInterface
 {
     public function getEnv(): GlobalEnvironmentInterface;

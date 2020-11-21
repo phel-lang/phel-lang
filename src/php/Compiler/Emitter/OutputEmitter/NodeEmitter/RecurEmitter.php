@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace Phel\Compiler\Emitter\OutputEmitter\NodeEmitter;
 
-use Phel\Ast\Node;
-use Phel\Ast\RecurNode;
+use Phel\Compiler\Ast\Node;
+use Phel\Compiler\Ast\RecurNode;
 use Phel\Compiler\Emitter\OutputEmitter\NodeEmitter;
 use Phel\Lang\Symbol;
 

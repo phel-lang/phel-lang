@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace Phel\Compiler\Emitter\OutputEmitter\NodeEmitter;
 
-use Phel\Ast\Node;
-use Phel\Ast\PhpClassNameNode;
-use Phel\Ast\PhpNewNode;
+use Phel\Compiler\Ast\Node;
+use Phel\Compiler\Ast\PhpClassNameNode;
+use Phel\Compiler\Ast\PhpNewNode;
 use Phel\Compiler\Emitter\OutputEmitter\NodeEmitter;
 use Phel\Lang\Symbol;
 

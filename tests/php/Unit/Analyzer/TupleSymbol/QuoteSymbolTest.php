@@ -4,11 +4,11 @@ declare(strict_types=1);
 
 namespace PhelTest\Unit\Analyzer\TupleSymbol;
 
-use Phel\Analyzer\TupleSymbol\QuoteSymbol;
+use Phel\Compiler\Analyzer\TupleSymbol\QuoteSymbol;
 use Phel\Exceptions\PhelCodeException;
 use Phel\Lang\Symbol;
 use Phel\Lang\Tuple;
-use Phel\NodeEnvironment;
+use Phel\Compiler\NodeEnvironment;
 use PHPUnit\Framework\TestCase;
 
 final class QuoteSymbolTest extends TestCase

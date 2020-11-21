@@ -5,18 +5,18 @@ declare(strict_types=1);
 namespace PhelTest\Unit\Analyzer\TupleSymbol;
 
 use Generator;
-use Phel\Analyzer;
-use Phel\Analyzer\TupleSymbol\FnSymbol;
-use Phel\AnalyzerInterface;
-use Phel\Ast\DoNode;
-use Phel\Ast\FnNode;
-use Phel\Ast\LetNode;
+use Phel\Compiler\Analyzer;
+use Phel\Compiler\Analyzer\TupleSymbol\FnSymbol;
+use Phel\Compiler\AnalyzerInterface;
+use Phel\Compiler\Ast\DoNode;
+use Phel\Compiler\Ast\FnNode;
+use Phel\Compiler\Ast\LetNode;
 use Phel\Exceptions\PhelCodeException;
-use Phel\GlobalEnvironment;
+use Phel\Compiler\GlobalEnvironment;
 use Phel\Lang\Symbol;
 use Phel\Lang\Table;
 use Phel\Lang\Tuple;
-use Phel\NodeEnvironment;
+use Phel\Compiler\NodeEnvironment;
 use PHPUnit\Framework\TestCase;
 
 final class FnSymbolTest extends TestCase

@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace Phel\Compiler\Emitter\OutputEmitter\NodeEmitter;
 
-use Phel\Ast\Node;
-use Phel\Ast\PhpArrayUnsetNode;
+use Phel\Compiler\Ast\Node;
+use Phel\Compiler\Ast\PhpArrayUnsetNode;
 use Phel\Compiler\Emitter\OutputEmitter\NodeEmitter;
 
 final class PhpArrayUnsetEmitter implements NodeEmitter

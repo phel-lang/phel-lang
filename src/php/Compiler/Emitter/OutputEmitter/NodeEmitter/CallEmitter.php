@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace Phel\Compiler\Emitter\OutputEmitter\NodeEmitter;
 
-use Phel\Ast\CallNode;
-use Phel\Ast\Node;
-use Phel\Ast\PhpVarNode;
+use Phel\Compiler\Ast\CallNode;
+use Phel\Compiler\Ast\Node;
+use Phel\Compiler\Ast\PhpVarNode;
 use Phel\Compiler\Emitter\OutputEmitter\NodeEmitter;
 
 final class CallEmitter implements NodeEmitter

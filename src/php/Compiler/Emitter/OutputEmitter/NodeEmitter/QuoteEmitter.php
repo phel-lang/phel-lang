@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace Phel\Compiler\Emitter\OutputEmitter\NodeEmitter;
 
-use Phel\Ast\Node;
-use Phel\Ast\QuoteNode;
+use Phel\Compiler\Ast\Node;
+use Phel\Compiler\Ast\QuoteNode;
 use Phel\Compiler\Emitter\OutputEmitter\NodeEmitter;
 
 final class QuoteEmitter implements NodeEmitter

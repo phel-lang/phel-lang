@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Phel\Compiler\Emitter;
 
-use Phel\Ast\Node;
+use Phel\Compiler\Ast\Node;
 use Phel\Compiler\Emitter\OutputEmitter\LiteralEmitter;
 use Phel\Compiler\Emitter\OutputEmitter\Munge;
 use Phel\Compiler\Emitter\OutputEmitter\NodeEmitterFactory;
@@ -12,7 +12,7 @@ use Phel\Compiler\Emitter\OutputEmitter\SourceMap\SourceMapGenerator;
 use Phel\Lang\AbstractType;
 use Phel\Lang\SourceLocation;
 use Phel\Lang\Symbol;
-use Phel\NodeEnvironment;
+use Phel\Compiler\NodeEnvironment;
 
 final class OutputEmitter
 {

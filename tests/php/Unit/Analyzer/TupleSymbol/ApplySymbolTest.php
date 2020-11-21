@@ -4,15 +4,15 @@ declare(strict_types=1);
 
 namespace PhelTest\Unit\Analyzer\TupleSymbol;
 
-use Phel\Analyzer;
-use Phel\Analyzer\TupleSymbol\ApplySymbol;
-use Phel\AnalyzerInterface;
-use Phel\Ast\CallNode;
+use Phel\Compiler\Analyzer;
+use Phel\Compiler\Analyzer\TupleSymbol\ApplySymbol;
+use Phel\Compiler\AnalyzerInterface;
+use Phel\Compiler\Ast\CallNode;
 use Phel\Exceptions\PhelCodeException;
-use Phel\GlobalEnvironment;
+use Phel\Compiler\GlobalEnvironment;
 use Phel\Lang\Symbol;
 use Phel\Lang\Tuple;
-use Phel\NodeEnvironment;
+use Phel\Compiler\NodeEnvironment;
 use PHPUnit\Framework\TestCase;
 
 final class ApplySymbolTest extends TestCase

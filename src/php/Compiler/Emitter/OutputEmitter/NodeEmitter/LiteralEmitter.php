@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace Phel\Compiler\Emitter\OutputEmitter\NodeEmitter;
 
-use Phel\Ast\LiteralNode;
-use Phel\Ast\Node;
+use Phel\Compiler\Ast\LiteralNode;
+use Phel\Compiler\Ast\Node;
 use Phel\Compiler\Emitter\OutputEmitter\NodeEmitter;
-use Phel\NodeEnvironment;
+use Phel\Compiler\NodeEnvironment;
 
 final class LiteralEmitter implements NodeEmitter
 {

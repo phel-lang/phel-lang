@@ -5,14 +5,14 @@ declare(strict_types=1);
 namespace PhelTest\Unit\Analyzer\TupleSymbol;
 
 use Generator;
-use Phel\Analyzer;
-use Phel\Analyzer\TupleSymbol\IfSymbol;
-use Phel\Ast\IfNode;
+use Phel\Compiler\Analyzer;
+use Phel\Compiler\Analyzer\TupleSymbol\IfSymbol;
+use Phel\Compiler\Ast\IfNode;
 use Phel\Exceptions\PhelCodeException;
-use Phel\GlobalEnvironment;
+use Phel\Compiler\GlobalEnvironment;
 use Phel\Lang\Symbol;
 use Phel\Lang\Tuple;
-use Phel\NodeEnvironment;
+use Phel\Compiler\NodeEnvironment;
 use PHPUnit\Framework\TestCase;
 
 final class IfSymbolTest extends TestCase

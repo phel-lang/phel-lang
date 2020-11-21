@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Phel\Compiler;
 
-use Phel\Ast\Node;
+use Phel\Compiler\Ast\Node;
 use Phel\Compiler\Emitter\EvalEmitter;
 use Phel\Compiler\Emitter\OutputEmitter;
 
