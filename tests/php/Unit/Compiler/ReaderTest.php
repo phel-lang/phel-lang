@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace PhelTest\Unit;
+namespace PhelTest\Unit\Compiler;
 
 use Phel\Exceptions\ReaderException;
 use Phel\Compiler\GlobalEnvironment;

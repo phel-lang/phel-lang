@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace PhelTest\Unit\Emitter\OutputEmitter\NodeEmitter;
+namespace PhelTest\Unit\Compiler\Emitter\OutputEmitter\NodeEmitter;
 
 use Phel\Compiler\Ast\ApplyNode;
 use Phel\Compiler\Ast\FnNode;

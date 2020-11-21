@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace PhelTest\Unit;
+namespace PhelTest\Unit\Compiler;
 
 use Phel\Lang\SourceLocation;
 use Phel\Compiler\Lexer;

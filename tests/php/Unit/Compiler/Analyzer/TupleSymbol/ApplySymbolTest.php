@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace PhelTest\Unit\Analyzer\TupleSymbol;
+namespace PhelTest\Unit\Compiler\Analyzer\TupleSymbol;
 
 use Phel\Compiler\Analyzer;
 use Phel\Compiler\Analyzer\TupleSymbol\ApplySymbol;
