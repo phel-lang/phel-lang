@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace PhelTest\Unit\Emitter\OutputEmitter\SourceMap;
 
-use Phel\Emitter\OutputEmitter\SourceMap\VLQ;
+use Phel\Compiler\Emitter\OutputEmitter\SourceMap\VLQ;
 use PHPUnit\Framework\TestCase;
 
 final class VLQTest extends TestCase

@@ -6,7 +6,7 @@ namespace PhelTest\Integration;
 
 use Generator;
 use Phel\Analyzer;
-use Phel\Emitter;
+use Phel\Compiler\Emitter;
 use Phel\GlobalEnvironment;
 use Phel\Lang\Symbol;
 use Phel\Lexer;
