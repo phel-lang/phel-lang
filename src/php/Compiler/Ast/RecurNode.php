@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace Phel\Compiler\Ast;
 
-use Phel\Lang\SourceLocation;
 use Phel\Compiler\NodeEnvironment;
-use  Phel\Compiler\RecurFrame;
+use Phel\Compiler\RecurFrame;
+use Phel\Lang\SourceLocation;
 
 final class RecurNode extends Node
 {

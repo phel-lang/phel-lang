@@ -7,7 +7,7 @@ namespace Phel\Compiler\Emitter;
 use RuntimeException;
 use Throwable;
 
-final class EvalEmitter
+final class EvalEmitter implements EvalEmitterInterface
 {
     /**
      * Evaluates the code and returns the evaluated value.

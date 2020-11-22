@@ -7,9 +7,9 @@ namespace Phel\Compiler\Analyzer\TupleSymbol;
 use Phel\Compiler\Analyzer\WithAnalyzer;
 use Phel\Compiler\Ast\IfNode;
 use Phel\Compiler\Ast\Node;
+use Phel\Compiler\NodeEnvironment;
 use Phel\Exceptions\AnalyzerException;
 use Phel\Lang\Tuple;
-use Phel\Compiler\NodeEnvironment;
 
 /**
  * (if test then else?).

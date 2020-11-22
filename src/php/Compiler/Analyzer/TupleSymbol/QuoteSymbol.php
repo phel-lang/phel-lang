@@ -5,10 +5,10 @@ declare(strict_types=1);
 namespace Phel\Compiler\Analyzer\TupleSymbol;
 
 use Phel\Compiler\Ast\QuoteNode;
+use Phel\Compiler\NodeEnvironment;
 use Phel\Exceptions\AnalyzerException;
 use Phel\Lang\Symbol;
 use Phel\Lang\Tuple;
-use Phel\Compiler\NodeEnvironment;
 
 final class QuoteSymbol implements TupleSymbolAnalyzer
 {

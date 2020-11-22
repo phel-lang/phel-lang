@@ -4,11 +4,11 @@ declare(strict_types=1);
 
 namespace Phel\Command\Shared;
 
+use Phel\Compiler\LexerInterface;
+use Phel\Compiler\ReaderInterface;
 use Phel\Exceptions\ReaderException;
 use Phel\Lang\Symbol;
 use Phel\Lang\Tuple;
-use Phel\Compiler\LexerInterface;
-use Phel\Compiler\ReaderInterface;
 use RecursiveDirectoryIterator;
 use RecursiveIteratorIterator;
 use RecursiveRegexIterator;

@@ -6,9 +6,9 @@ namespace Phel\Compiler\Analyzer\TupleSymbol;
 
 use Phel\Compiler\Analyzer\WithAnalyzer;
 use Phel\Compiler\Ast\ThrowNode;
+use Phel\Compiler\NodeEnvironment;
 use Phel\Exceptions\AnalyzerException;
 use Phel\Lang\Tuple;
-use Phel\Compiler\NodeEnvironment;
 
 final class ThrowSymbol implements TupleSymbolAnalyzer
 {

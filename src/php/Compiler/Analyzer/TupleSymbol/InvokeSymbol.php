@@ -9,10 +9,10 @@ use Phel\Compiler\Analyzer\WithAnalyzer;
 use Phel\Compiler\Ast\CallNode;
 use Phel\Compiler\Ast\GlobalVarNode;
 use Phel\Compiler\Ast\Node;
+use Phel\Compiler\NodeEnvironment;
 use Phel\Exceptions\AnalyzerException;
 use Phel\Lang\AbstractType;
 use Phel\Lang\Tuple;
-use Phel\Compiler\NodeEnvironment;
 
 final class InvokeSymbol implements TupleSymbolAnalyzer
 {

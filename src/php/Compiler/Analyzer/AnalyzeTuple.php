@@ -27,11 +27,11 @@ use Phel\Compiler\Analyzer\TupleSymbol\ThrowSymbol;
 use Phel\Compiler\Analyzer\TupleSymbol\TrySymbol;
 use Phel\Compiler\Analyzer\TupleSymbol\TupleSymbolAnalyzer;
 use Phel\Compiler\Ast\Node;
+use Phel\Compiler\NodeEnvironment;
 use Phel\Exceptions\AnalyzerException;
 use Phel\Exceptions\PhelCodeException;
 use Phel\Lang\Symbol;
 use Phel\Lang\Tuple;
-use Phel\Compiler\NodeEnvironment;
 
 final class AnalyzeTuple
 {

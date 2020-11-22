@@ -6,10 +6,10 @@ namespace Phel\Compiler\Analyzer\TupleSymbol;
 
 use Phel\Compiler\Analyzer\WithAnalyzer;
 use Phel\Compiler\Ast\DefStructNode;
+use Phel\Compiler\NodeEnvironment;
 use Phel\Exceptions\AnalyzerException;
 use Phel\Lang\Symbol;
 use Phel\Lang\Tuple;
-use Phel\Compiler\NodeEnvironment;
 
 final class DefStructSymbol implements TupleSymbolAnalyzer
 {

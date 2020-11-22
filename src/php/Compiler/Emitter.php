@@ -5,34 +5,17 @@ declare(strict_types=1);
 namespace Phel\Compiler;
 
 use Phel\Compiler\Ast\Node;
-use Phel\Compiler\Emitter\EvalEmitter;
-use Phel\Compiler\Emitter\OutputEmitter;
+use Phel\Compiler\Emitter\EvalEmitterInterface;
+use Phel\Compiler\Emitter\OutputEmitterInterface;
 
-final class Emitter
+final class Emitter implements EmitterInterface
 {
-    private OutputEmitter $outputEmitter;
+    private OutputEmitterInterface $outputEmitter;
+    private EvalEmitterInterface $evalEmitter;
 
-    private EvalEmitter $evalEmitter;
-
-    public static function createWithoutSourceMap(): self
-    {
-        return new self(
-            OutputEmitter::createWithoutSourceMap(),
-            new EvalEmitter()
-        );
-    }
-
-    public static function createWithSourceMap(): self
-    {
-        return new self(
-            OutputEmitter::createWithSourceMap(),
-            new EvalEmitter()
-        );
-    }
-
-    private function __construct(
-        OutputEmitter $outputEmitter,
-        EvalEmitter $evalEmitter
+    public function __construct(
+        OutputEmitterInterface $outputEmitter,
+        EvalEmitterInterface $evalEmitter
     ) {
         $this->outputEmitter = $outputEmitter;
         $this->evalEmitter = $evalEmitter;

@@ -6,9 +6,9 @@ namespace Phel\Compiler\Analyzer\TupleSymbol;
 
 use Phel\Compiler\Analyzer\WithAnalyzer;
 use Phel\Compiler\Ast\PhpArrayUnsetNode;
+use Phel\Compiler\NodeEnvironment;
 use Phel\Exceptions\AnalyzerException;
 use Phel\Lang\Tuple;
-use Phel\Compiler\NodeEnvironment;
 
 final class PhpAUnsetSymbol implements TupleSymbolAnalyzer
 {

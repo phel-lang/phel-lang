@@ -6,8 +6,8 @@ namespace Phel\Compiler\Analyzer\TupleSymbol;
 
 use Phel\Compiler\Analyzer\WithAnalyzer;
 use Phel\Compiler\Ast\PhpArrayGetNode;
-use Phel\Lang\Tuple;
 use Phel\Compiler\NodeEnvironment;
+use Phel\Lang\Tuple;
 
 final class PhpAGetSymbol implements TupleSymbolAnalyzer
 {

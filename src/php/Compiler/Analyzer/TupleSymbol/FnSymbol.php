@@ -8,11 +8,11 @@ use Phel\Compiler\Analyzer\TupleSymbol\ReadModel\FnSymbolTuple;
 use Phel\Compiler\Analyzer\WithAnalyzer;
 use Phel\Compiler\Ast\FnNode;
 use Phel\Compiler\Ast\Node;
+use Phel\Compiler\NodeEnvironment;
+use Phel\Compiler\RecurFrame;
 use Phel\Exceptions\AnalyzerException;
 use Phel\Lang\Symbol;
 use Phel\Lang\Tuple;
-use Phel\Compiler\NodeEnvironment;
-use  Phel\Compiler\RecurFrame;
 
 final class FnSymbol implements TupleSymbolAnalyzer
 {

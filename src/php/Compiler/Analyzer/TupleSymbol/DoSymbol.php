@@ -7,10 +7,10 @@ namespace Phel\Compiler\Analyzer\TupleSymbol;
 use Phel\Compiler\Analyzer\WithAnalyzer;
 use Phel\Compiler\Ast\DoNode;
 use Phel\Compiler\Ast\Node;
+use Phel\Compiler\NodeEnvironment;
 use Phel\Exceptions\AnalyzerException;
 use Phel\Lang\Symbol;
 use Phel\Lang\Tuple;
-use Phel\Compiler\NodeEnvironment;
 
 final class DoSymbol implements TupleSymbolAnalyzer
 {

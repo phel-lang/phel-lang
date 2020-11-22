@@ -4,13 +4,13 @@ declare(strict_types=1);
 
 namespace Phel\Compiler\Emitter\OutputEmitter\NodeEmitter;
 
-use Phel\Compiler\Emitter\OutputEmitter;
+use Phel\Compiler\Emitter\OutputEmitterInterface;
 
 trait WithOutputEmitter
 {
-    private OutputEmitter $outputEmitter;
+    private OutputEmitterInterface $outputEmitter;
 
-    public function __construct(OutputEmitter $emitter)
+    public function __construct(OutputEmitterInterface $emitter)
     {
         $this->outputEmitter = $emitter;
     }

@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace Phel\Compiler\Analyzer;
 
 use Phel\Compiler\Ast\TableNode;
-use Phel\Lang\Table;
 use Phel\Compiler\NodeEnvironment;
+use Phel\Lang\Table;
 
 final class AnalyzeTable
 {

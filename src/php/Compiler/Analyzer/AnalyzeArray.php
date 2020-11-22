@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace Phel\Compiler\Analyzer;
 
 use Phel\Compiler\Ast\ArrayNode;
-use Phel\Lang\PhelArray;
 use Phel\Compiler\NodeEnvironment;
+use Phel\Lang\PhelArray;
 
 final class AnalyzeArray
 {

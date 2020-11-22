@@ -7,12 +7,12 @@ namespace Phel\Compiler\Analyzer\TupleSymbol;
 use Phel\Compiler\Analyzer\WithAnalyzer;
 use Phel\Compiler\Ast\BindingNode;
 use Phel\Compiler\Ast\LetNode;
+use Phel\Compiler\NodeEnvironment;
+use Phel\Compiler\RecurFrame;
 use Phel\Destructure;
 use Phel\Exceptions\AnalyzerException;
 use Phel\Lang\Symbol;
 use Phel\Lang\Tuple;
-use Phel\Compiler\NodeEnvironment;
-use  Phel\Compiler\RecurFrame;
 
 final class LoopSymbol implements TupleSymbolAnalyzer
 {

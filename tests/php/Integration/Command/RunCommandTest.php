@@ -6,6 +6,7 @@ namespace PhelTest\Integration\Command;
 
 use Phel\Command\CommandFactory;
 use Phel\Command\RunCommand;
+use Phel\Compiler\CompilerFactory;
 use Phel\Compiler\GlobalEnvironment;
 use Phel\Runtime;
 use Phel\RuntimeInterface;
@@ -18,7 +19,8 @@ final class RunCommandTest extends TestCase
 
     public function setUp(): void
     {
-        $this->commandFactory = new CommandFactory(__DIR__);
+        $compilerFactory = new CompilerFactory();
+        $this->commandFactory = new CommandFactory(__DIR__, $compilerFactory);
     }
 
     public function testRunByNamespace(): void
@@ -78,7 +80,7 @@ final class RunCommandTest extends TestCase
     {
         return new RunCommand(
             $runtime,
-            $this->commandFactory->createNamespaceExtractor()
+            $this->commandFactory->createNamespaceExtractor($runtime->getEnv())
         );
     }
 

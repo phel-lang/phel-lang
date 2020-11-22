@@ -9,10 +9,10 @@ use Phel\Compiler\Ast\FnNode;
 use Phel\Compiler\Ast\LiteralNode;
 use Phel\Compiler\Ast\PhpVarNode;
 use Phel\Compiler\Ast\TupleNode;
-use Phel\Compiler\Emitter\OutputEmitter;
+use Phel\Compiler\CompilerFactory;
 use Phel\Compiler\Emitter\OutputEmitter\NodeEmitter\ApplyEmitter;
-use Phel\Lang\Symbol;
 use Phel\Compiler\NodeEnvironment;
+use Phel\Lang\Symbol;
 use PHPUnit\Framework\TestCase;
 
 final class ApplyEmitterTest extends TestCase
@@ -21,9 +21,10 @@ final class ApplyEmitterTest extends TestCase
 
     public function setUp(): void
     {
-        $this->applyEmitter = new ApplyEmitter(
-            OutputEmitter::createWithSourceMap()
-        );
+        $outputEmitter = (new CompilerFactory())
+            ->createOutputEmitter();
+
+        $this->applyEmitter = new ApplyEmitter($outputEmitter);
     }
 
     public function testPhpVarNodeAndFnNodeIsInfix(): void

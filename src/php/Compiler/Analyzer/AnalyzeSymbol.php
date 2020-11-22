@@ -7,9 +7,9 @@ namespace Phel\Compiler\Analyzer;
 use Phel\Compiler\Ast\LocalVarNode;
 use Phel\Compiler\Ast\Node;
 use Phel\Compiler\Ast\PhpVarNode;
+use Phel\Compiler\NodeEnvironment;
 use Phel\Exceptions\AnalyzerException;
 use Phel\Lang\Symbol;
-use Phel\Compiler\NodeEnvironment;
 
 final class AnalyzeSymbol
 {

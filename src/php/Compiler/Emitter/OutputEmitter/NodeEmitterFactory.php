@@ -5,13 +5,15 @@ declare(strict_types=1);
 namespace Phel\Compiler\Emitter\OutputEmitter;
 
 use Phel\Compiler\Ast;
-use Phel\Compiler\Emitter\OutputEmitter;
+use Phel\Compiler\Emitter\OutputEmitterInterface;
 use RuntimeException;
 
 final class NodeEmitterFactory
 {
-    public function createNodeEmitter(OutputEmitter $outputEmitter, string $astNodeClassName): NodeEmitter
-    {
+    public function createNodeEmitter(
+        OutputEmitterInterface $outputEmitter,
+        string $astNodeClassName
+    ): NodeEmitter {
         switch ($astNodeClassName) {
             case Ast\NsNode::class:
                 return new NodeEmitter\NsEmitter($outputEmitter);

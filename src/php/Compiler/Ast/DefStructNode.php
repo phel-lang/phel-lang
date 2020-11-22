@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace Phel\Compiler\Ast;
 
+use Phel\Compiler\NodeEnvironment;
 use Phel\Lang\Keyword;
 use Phel\Lang\SourceLocation;
 use Phel\Lang\Symbol;
-use Phel\Compiler\NodeEnvironment;
 
 final class DefStructNode extends Node
 {

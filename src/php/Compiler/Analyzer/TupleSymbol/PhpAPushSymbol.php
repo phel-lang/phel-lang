@@ -6,8 +6,8 @@ namespace Phel\Compiler\Analyzer\TupleSymbol;
 
 use Phel\Compiler\Analyzer\WithAnalyzer;
 use Phel\Compiler\Ast\PhpArrayPushNode;
-use Phel\Lang\Tuple;
 use Phel\Compiler\NodeEnvironment;
+use Phel\Lang\Tuple;
 
 final class PhpAPushSymbol implements TupleSymbolAnalyzer
 {

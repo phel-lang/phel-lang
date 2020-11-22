@@ -7,12 +7,12 @@ namespace Phel\Compiler\Analyzer\TupleSymbol;
 use Phel\Compiler\Analyzer\PhpKeywords;
 use Phel\Compiler\Analyzer\WithAnalyzer;
 use Phel\Compiler\Ast\NsNode;
+use Phel\Compiler\NodeEnvironment;
 use Phel\Exceptions\AnalyzerException;
 use Phel\Lang\Keyword;
 use Phel\Lang\Symbol;
 use Phel\Lang\Table;
 use Phel\Lang\Tuple;
-use Phel\Compiler\NodeEnvironment;
 
 final class NsSymbol implements TupleSymbolAnalyzer
 {

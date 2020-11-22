@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace PhelTest\Unit\Compiler;
 
+use Phel\Compiler\CompilerFactory;
 use Phel\Exceptions\ReaderException;
 use Phel\Compiler\GlobalEnvironment;
 use Phel\Lang\AbstractType;
@@ -15,7 +16,6 @@ use Phel\Lang\Symbol;
 use Phel\Lang\Table;
 use Phel\Lang\Tuple;
 use Phel\Compiler\Lexer;
-use Phel\Compiler\Reader;
 use PHPUnit\Framework\TestCase;
 
 ini_set('xdebug.var_display_max_depth', '10');
@@ -578,7 +578,7 @@ final class ReaderTest extends TestCase
     public function read($string, bool $removeLoc = false)
     {
         Symbol::resetGen();
-        $reader = new Reader(new GlobalEnvironment());
+        $reader = (new CompilerFactory())->createReader(new GlobalEnvironment());
         $tokenStream = (new Lexer())->lexString($string);
 
         $result = $reader->readNext($tokenStream)->getAst();

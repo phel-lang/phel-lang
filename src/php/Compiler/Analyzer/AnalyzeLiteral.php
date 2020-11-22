@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace Phel\Compiler\Analyzer;
 
 use Phel\Compiler\Ast\LiteralNode;
-use Phel\Lang\AbstractType;
 use Phel\Compiler\NodeEnvironment;
+use Phel\Lang\AbstractType;
 
 final class AnalyzeLiteral
 {

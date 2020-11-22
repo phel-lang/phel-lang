@@ -8,10 +8,10 @@ use Phel\Compiler\AnalyzerInterface;
 use Phel\Compiler\Ast\MethodCallNode;
 use Phel\Compiler\Ast\PhpObjectCallNode;
 use Phel\Compiler\Ast\PropertyOrConstantAccessNode;
+use Phel\Compiler\NodeEnvironment;
 use Phel\Exceptions\AnalyzerException;
 use Phel\Lang\Symbol;
 use Phel\Lang\Tuple;
-use Phel\Compiler\NodeEnvironment;
 
 final class PhpObjectCallSymbol implements TupleSymbolAnalyzer
 {

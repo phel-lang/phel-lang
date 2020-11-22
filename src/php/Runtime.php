@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Phel;
 
-use Phel\Compiler\FileCompiler;
+use Phel\Compiler\CompilerFactory;
 use Phel\Compiler\GlobalEnvironment;
 use Phel\Compiler\GlobalEnvironmentInterface;
 use Phel\Exceptions\CompilerException;
@@ -217,9 +217,9 @@ class Runtime implements RuntimeInterface
 
     protected function loadFile(string $filename, string $ns): void
     {
-        $globalEnv = $this->globalEnv;
-        $compiler = new FileCompiler($globalEnv);
-        $code = $compiler->compile($filename);
+        $code = (new CompilerFactory())
+            ->createFileCompiler($this->globalEnv)
+            ->compile($filename);
 
         $cacheFilePath = $this->getCachedFilePath($filename, $ns);
         if ($cacheFilePath) {

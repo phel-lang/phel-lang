@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace Phel\Exceptions;
 
-use Phel\Compiler\CodeSnippet;
 use Phel\Command\Repl\ColorStyle;
 use Phel\Compiler\Emitter\OutputEmitter\Munge;
 use Phel\Compiler\Emitter\OutputEmitter\SourceMap\SourceMapConsumer;
+use Phel\Compiler\ReadModel\CodeSnippet;
 use Phel\Lang\IFn;
 use Phel\Printer;
 use ReflectionClass;

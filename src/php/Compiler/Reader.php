@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace Phel\Compiler;
 
 use Generator;
+use Phel\Compiler\ReadModel\CodeSnippet;
+use Phel\Compiler\ReadModel\ReaderResult;
 use Phel\Exceptions\ReaderException;
 use Phel\Lang\AbstractType;
 use Phel\Lang\IMeta;
@@ -18,13 +20,13 @@ final class Reader implements ReaderInterface
 {
     private const STRING_REPLACEMENTS = [
         '\\' => '\\',
-        '$'  =>  '$',
-        'n'  => "\n",
-        'r'  => "\r",
-        't'  => "\t",
-        'f'  => "\f",
-        'v'  => "\v",
-        'e'  => "\x1B",
+        '$' => '$',
+        'n' => "\n",
+        'r' => "\r",
+        't' => "\t",
+        'f' => "\f",
+        'v' => "\v",
+        'e' => "\x1B",
     ];
 
     /** @var Token[] */
@@ -33,11 +35,11 @@ final class Reader implements ReaderInterface
     /** @var Symbol[]|null */
     private ?array $fnArgs = null;
 
-    private GlobalEnvironmentInterface $env;
+    private QuasiquoteTransformerInterface $quasiquoteTransformer;
 
-    public function __construct(GlobalEnvironmentInterface $env)
+    public function __construct(QuasiquoteTransformerInterface $quasiquoteTransformer)
     {
-        $this->env = $env;
+        $this->quasiquoteTransformer = $quasiquoteTransformer;
     }
 
     /**
@@ -210,7 +212,7 @@ final class Reader implements ReaderInterface
         $tokenStream->next();
 
         $expression = $this->readExpressionHard($tokenStream, 'missing expression');
-        $result = (new Quasiquote($this->env))->transform($expression);
+        $result = $this->quasiquoteTransformer->transform($expression);
 
         if ($result instanceof AbstractType) {
             $endLocation = $tokenStream->current()->getEndLocation();
@@ -394,7 +396,7 @@ final class Reader implements ReaderInterface
         }
 
         if (preg_match('/\$([1-9][0-9]*)/', $word, $matches)) {
-            $number = (int) $matches[1];
+            $number = (int)$matches[1];
             if (isset($this->fnArgs[$number])) {
                 return Symbol::create($this->fnArgs[$number]->getName());
             }
@@ -441,14 +443,14 @@ final class Reader implements ReaderInterface
             return chr($num);
         }
         if ($num <= 0x7FF) {
-            return chr(($num>>6) + 0xC0) . chr(($num&0x3F) + 0x80);
+            return chr(($num >> 6) + 0xC0) . chr(($num & 0x3F) + 0x80);
         }
         if ($num <= 0xFFFF) {
-            return chr(($num>>12) + 0xE0) . chr((($num>>6)&0x3F) + 0x80) . chr(($num&0x3F) + 0x80);
+            return chr(($num >> 12) + 0xE0) . chr((($num >> 6) & 0x3F) + 0x80) . chr(($num & 0x3F) + 0x80);
         }
         if ($num <= 0x1FFFFF) {
-            return chr(($num>>18) + 0xF0) . chr((($num>>12)&0x3F) + 0x80)
-                . chr((($num>>6)&0x3F) + 0x80) . chr(($num&0x3F) + 0x80);
+            return chr(($num >> 18) + 0xF0) . chr((($num >> 12) & 0x3F) + 0x80)
+                . chr((($num >> 6) & 0x3F) + 0x80) . chr(($num & 0x3F) + 0x80);
         }
         throw $this->buildReaderException('Invalid UTF-8 codepoint escape sequence: Codepoint too large');
     }
@@ -497,7 +499,7 @@ final class Reader implements ReaderInterface
         $leadingWhitespace = true;
         foreach ($readTokens as $token) {
             if (!($leadingWhitespace
-                && in_array($token->getType(), [Token::T_WHITESPACE,Token::T_COMMENT], true))
+                && in_array($token->getType(), [Token::T_WHITESPACE, Token::T_COMMENT], true))
             ) {
                 $leadingWhitespace = false;
                 $result[] = $token;

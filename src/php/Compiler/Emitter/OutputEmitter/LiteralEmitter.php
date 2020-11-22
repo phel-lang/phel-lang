@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Phel\Compiler\Emitter\OutputEmitter;
 
-use Phel\Compiler\Emitter\OutputEmitter;
+use Phel\Compiler\Emitter\OutputEmitterInterface;
 use Phel\Lang\AbstractType;
 use Phel\Lang\Keyword;
 use Phel\Lang\PhelArray;
@@ -16,11 +16,11 @@ use RuntimeException;
 
 final class LiteralEmitter
 {
-    private OutputEmitter $outputEmitter;
+    private OutputEmitterInterface $outputEmitter;
 
-    public function __construct(OutputEmitter $emitter)
+    public function __construct(OutputEmitterInterface $outputEmitter)
     {
-        $this->outputEmitter = $emitter;
+        $this->outputEmitter = $outputEmitter;
     }
 
     /**

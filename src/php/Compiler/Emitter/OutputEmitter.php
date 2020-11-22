@@ -9,12 +9,12 @@ use Phel\Compiler\Emitter\OutputEmitter\LiteralEmitter;
 use Phel\Compiler\Emitter\OutputEmitter\Munge;
 use Phel\Compiler\Emitter\OutputEmitter\NodeEmitterFactory;
 use Phel\Compiler\Emitter\OutputEmitter\SourceMap\SourceMapGenerator;
+use Phel\Compiler\NodeEnvironment;
 use Phel\Lang\AbstractType;
 use Phel\Lang\SourceLocation;
 use Phel\Lang\Symbol;
-use Phel\Compiler\NodeEnvironment;
 
-final class OutputEmitter
+final class OutputEmitter implements OutputEmitterInterface
 {
     private bool $enableSourceMaps;
     private SourceMapGenerator $sourceMapGenerator;
@@ -26,27 +26,7 @@ final class OutputEmitter
     private int $generatedColumns = 0;
     private array $sourceMap = [];
 
-    public static function createWithoutSourceMap(): self
-    {
-        return new self(
-            $enableSourceMaps = false,
-            new SourceMapGenerator(),
-            new NodeEmitterFactory(),
-            new Munge()
-        );
-    }
-
-    public static function createWithSourceMap(): self
-    {
-        return new self(
-            $enableSourceMaps = true,
-            new SourceMapGenerator(),
-            new NodeEmitterFactory(),
-            new Munge()
-        );
-    }
-
-    private function __construct(
+    public function __construct(
         bool $enableSourceMaps,
         SourceMapGenerator $sourceMapGenerator,
         NodeEmitterFactory $nodeEmitterFactory,

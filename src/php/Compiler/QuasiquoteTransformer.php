@@ -13,7 +13,7 @@ use Phel\Lang\Table;
 use Phel\Lang\Tuple;
 use RuntimeException;
 
-final class Quasiquote
+final class QuasiquoteTransformer implements QuasiquoteTransformerInterface
 {
     private GlobalEnvironmentInterface $env;
 

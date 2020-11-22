@@ -6,12 +6,11 @@ namespace PhelTest\Integration;
 
 use Generator;
 use Phel\Compiler\Analyzer;
-use Phel\Compiler\Emitter;
+use Phel\Compiler\CompilerFactory;
 use Phel\Compiler\GlobalEnvironment;
-use Phel\Lang\Symbol;
 use Phel\Compiler\Lexer;
 use Phel\Compiler\NodeEnvironment;
-use Phel\Compiler\Reader;
+use Phel\Lang\Symbol;
 use Phel\Runtime;
 use PHPUnit\Framework\TestCase;
 
@@ -37,9 +36,9 @@ final class IntegrationTest extends TestCase
         $globalEnv = static::$globalEnv;
         $globalEnv->setNs('user');
         Symbol::resetGen();
-        $reader = new Reader($globalEnv);
+        $reader = (new CompilerFactory())->createReader($globalEnv);
         $analyzer = new Analyzer($globalEnv);
-        $emitter = Emitter::createWithoutSourceMap();
+        $emitter = (new CompilerFactory())->createEmitter($enableSourceMaps = false);
         $lexer = new Lexer();
         $tokenStream = $lexer->lexString($phelCode);
 

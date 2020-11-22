@@ -7,6 +7,7 @@ namespace Phel\Compiler\Analyzer\TupleSymbol;
 use Phel\Compiler\Analyzer\WithAnalyzer;
 use Phel\Compiler\Ast\DefNode;
 use Phel\Compiler\Ast\Node;
+use Phel\Compiler\NodeEnvironment;
 use Phel\Exceptions\AnalyzerException;
 use Phel\Exceptions\PhelCodeException;
 use Phel\Lang\AbstractType;
@@ -14,7 +15,6 @@ use Phel\Lang\Keyword;
 use Phel\Lang\Symbol;
 use Phel\Lang\Table;
 use Phel\Lang\Tuple;
-use Phel\Compiler\NodeEnvironment;
 
 final class DefSymbol implements TupleSymbolAnalyzer
 {

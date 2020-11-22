@@ -6,7 +6,7 @@ namespace PhelTest\Integration\Command;
 
 use Phel\Command\CommandFactory;
 use Phel\Command\TestCommand;
-use Phel\Compiler\EvalCompiler;
+use Phel\Compiler\CompilerFactory;
 use Phel\Compiler\GlobalEnvironment;
 use Phel\Runtime;
 use Phel\RuntimeInterface;
@@ -14,11 +14,15 @@ use PHPUnit\Framework\TestCase;
 
 final class TestCommandTest extends TestCase
 {
+    private GlobalEnvironment $globalEnv;
+    private CompilerFactory $compilerFactory;
     private CommandFactory $commandFactory;
 
     public function setUp(): void
     {
-        $this->commandFactory = new CommandFactory(__DIR__);
+        $this->globalEnv = new GlobalEnvironment();
+        $this->compilerFactory = new CompilerFactory();
+        $this->commandFactory = new CommandFactory(__DIR__, $this->compilerFactory);
     }
 
     public function testAllInProject(): void
@@ -69,13 +73,13 @@ final class TestCommandTest extends TestCase
         return new TestCommand(
             $currentDir,
             $runtime,
-            $this->commandFactory->createNamespaceExtractor(),
-            new EvalCompiler($runtime->getEnv())
+            $this->commandFactory->createNamespaceExtractor($runtime->getEnv()),
+            $this->compilerFactory->createEvalCompiler($runtime->getEnv())
         );
     }
 
     private function createRuntime(): Runtime
     {
-        return Runtime::initializeNew(new GlobalEnvironment());
+        return Runtime::initializeNew($this->globalEnv);
     }
 }
