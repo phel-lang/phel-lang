@@ -33,9 +33,9 @@ final class Reader implements ReaderInterface
     /** @var Symbol[]|null */
     private ?array $fnArgs = null;
 
-    private GlobalEnvironment $env;
+    private GlobalEnvironmentInterface $env;
 
-    public function __construct(GlobalEnvironment $env)
+    public function __construct(GlobalEnvironmentInterface $env)
     {
         $this->env = $env;
     }

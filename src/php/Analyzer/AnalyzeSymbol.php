@@ -43,7 +43,7 @@ final class AnalyzeSymbol
 
     private function createGlobalResolve(Symbol $symbol, NodeEnvironment $env): Node
     {
-        $globalResolve = $this->analyzer->getGlobalEnvironment()->resolve($symbol, $env);
+        $globalResolve = $this->analyzer->resolve($symbol, $env);
 
         if (!$globalResolve) {
             throw AnalyzerException::withLocation("Can not resolve symbol '{$symbol->getFullName()}'", $symbol);

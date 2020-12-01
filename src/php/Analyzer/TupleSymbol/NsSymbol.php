@@ -44,7 +44,7 @@ final class NsSymbol implements TupleSymbolAnalyzer
             }
         }
 
-        $this->analyzer->getGlobalEnvironment()->setNs($ns);
+        $this->analyzer->setNamespace($ns);
 
         $requireNs = [];
         for ($i = 2; $i < $tupleCount; $i++) {
@@ -84,7 +84,7 @@ final class NsSymbol implements TupleSymbolAnalyzer
 
         $useData = Table::fromKVArray($import->toArray());
         $alias = $this->extractAlias($useData, $import, 'use');
-        $this->analyzer->getGlobalEnvironment()->addUseAlias($ns, $alias, $import[1]);
+        $this->analyzer->addUseAlias($ns, $alias, $import[1]);
     }
 
     private function extractAlias(Table $requireData, Tuple $import, string $type): Symbol
@@ -111,6 +111,9 @@ final class NsSymbol implements TupleSymbolAnalyzer
         throw AnalyzerException::withLocation('Can not extract alias', $import);
     }
 
+    /**
+     * @return Symbol[]
+     */
     private function extractRefer(Table $requireData, Tuple $import): array
     {
         $refer = $requireData[new Keyword('refer')];
@@ -143,12 +146,11 @@ final class NsSymbol implements TupleSymbolAnalyzer
 
         $requireData = Table::fromKVArray($import->toArray());
         $alias = $this->extractAlias($requireData, $import, 'require');
-        $refer = $this->extractRefer($requireData, $import);
+        $referSymbols = $this->extractRefer($requireData, $import);
 
-        $this->analyzer->getGlobalEnvironment()->addRequireAlias($ns, $alias, $import[1]);
-        foreach ($refer as $ref) {
-            $this->analyzer->getGlobalEnvironment()->addRefer($ns, $ref, $import[1]);
-        }
+        $this->analyzer->addRequireAlias($ns, $alias, $import[1]);
+        $this->analyzer->addRefers($ns, $referSymbols, $import[1]);
+
         return $import[1];
     }
 }

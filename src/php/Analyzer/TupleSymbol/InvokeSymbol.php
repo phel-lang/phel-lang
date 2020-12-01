@@ -39,19 +39,17 @@ final class InvokeSymbol implements TupleSymbolAnalyzer
 
     private function globalMacro(Tuple $tuple, NodeEnvironment $env): Node
     {
-        $this->analyzer->getGlobalEnvironment()->setAllowPrivateAccess(true);
-        $result = $this->analyzer->analyze($this->macroExpand($tuple, $env), $env);
-        $this->analyzer->getGlobalEnvironment()->setAllowPrivateAccess(false);
-
-        return $result;
+        return $this->analyzer->analyzeMacro($this->macroExpand($tuple, $env), $env);
     }
 
-    /** @return AbstractType|string|float|int|bool|null */
+    /**
+     * @return AbstractType|string|float|int|bool|null
+     */
     private function macroExpand(Tuple $tuple, NodeEnvironment $env)
     {
         $tupleCount = count($tuple);
         /** @psalm-suppress PossiblyNullArgument */
-        $node = $this->analyzer->getGlobalEnvironment()->resolve($tuple[0], $env);
+        $node = $this->analyzer->resolve($tuple[0], $env);
         if ($node && $node instanceof GlobalVarNode) {
             $nodeName = $node->getName()->getName();
             $fn = $GLOBALS['__phel'][$node->getNamespace()][$nodeName];

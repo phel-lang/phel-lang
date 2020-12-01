@@ -7,6 +7,7 @@ namespace PhelTest\Integration\Command;
 use Phel\Command\CommandFactory;
 use Phel\Command\TestCommand;
 use Phel\Compiler\EvalCompiler;
+use Phel\GlobalEnvironment;
 use Phel\Runtime;
 use Phel\RuntimeInterface;
 use PHPUnit\Framework\TestCase;
@@ -24,7 +25,7 @@ final class TestCommandTest extends TestCase
     {
         $currentDir = __DIR__ . '/Fixtures/test-cmd-project-success/';
 
-        $runtime = Runtime::initializeNew();
+        $runtime = $this->createRuntime();
         $runtime->addPath('test-cmd-project-success\\', [$currentDir . 'tests']);
         $runtime->addPath('phel\\', [__DIR__ . '/../../../src/phel']);
         $runtime->loadNs('phel\core');
@@ -39,7 +40,7 @@ final class TestCommandTest extends TestCase
     {
         $currentDir = __DIR__ . '/Fixtures/test-cmd-project-success/';
 
-        $runtime = Runtime::initializeNew();
+        $runtime = $this->createRuntime();
         $runtime->addPath('test-cmd-project-success\\', [$currentDir . 'tests']);
         $runtime->addPath('phel\\', [__DIR__ . '/../../../src/phel']);
         $runtime->loadNs('phel\core');
@@ -53,7 +54,7 @@ final class TestCommandTest extends TestCase
     {
         $currentDir = __DIR__ . '/Fixtures/test-cmd-project-failure/';
 
-        $runtime = Runtime::initializeNew();
+        $runtime = $this->createRuntime();
         $runtime->addPath('test-cmd-project-failure\\', [$currentDir . 'tests']);
         $runtime->addPath('phel\\', [__DIR__ . '/../../../src/phel']);
         $runtime->loadNs('phel\core');
@@ -71,5 +72,10 @@ final class TestCommandTest extends TestCase
             $this->commandFactory->createNamespaceExtractor(),
             new EvalCompiler($runtime->getEnv())
         );
+    }
+
+    private function createRuntime(): Runtime
+    {
+        return Runtime::initializeNew(new GlobalEnvironment());
     }
 }

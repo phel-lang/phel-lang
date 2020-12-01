@@ -7,6 +7,7 @@ namespace PhelTest\Unit\Analyzer\TupleSymbol;
 use Generator;
 use Phel\Analyzer;
 use Phel\Analyzer\TupleSymbol\FnSymbol;
+use Phel\AnalyzerInterface;
 use Phel\Ast\DoNode;
 use Phel\Ast\FnNode;
 use Phel\Ast\LetNode;
@@ -20,7 +21,7 @@ use PHPUnit\Framework\TestCase;
 
 final class FnSymbolTest extends TestCase
 {
-    private Analyzer $analyzer;
+    private AnalyzerInterface $analyzer;
 
     public function setUp(): void
     {

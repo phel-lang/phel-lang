@@ -6,6 +6,7 @@ namespace PhelTest\Unit\Analyzer\TupleSymbol;
 
 use Phel\Analyzer;
 use Phel\Analyzer\TupleSymbol\PhpObjectCallSymbol;
+use Phel\AnalyzerInterface;
 use Phel\Ast\MethodCallNode;
 use Phel\Ast\PhpClassNameNode;
 use Phel\Ast\PropertyOrConstantAccessNode;
@@ -18,7 +19,7 @@ use PHPUnit\Framework\TestCase;
 
 final class PhpObjectCallSymbolTest extends TestCase
 {
-    private Analyzer $analyzer;
+    private AnalyzerInterface $analyzer;
 
     public function setUp(): void
     {

@@ -4,7 +4,9 @@ declare(strict_types=1);
 
 namespace Phel\Analyzer;
 
-/** @psalm-immutable */
+/**
+ * @psalm-immutable
+ */
 final class PhpKeywords
 {
     public const KEYWORDS = [

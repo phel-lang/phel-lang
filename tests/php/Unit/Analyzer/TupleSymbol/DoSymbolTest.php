@@ -6,6 +6,7 @@ namespace PhelTest\Unit\Analyzer\TupleSymbol;
 
 use Phel\Analyzer;
 use Phel\Analyzer\TupleSymbol\DoSymbol;
+use Phel\AnalyzerInterface;
 use Phel\Ast\DoNode;
 use Phel\Exceptions\PhelCodeException;
 use Phel\GlobalEnvironment;
@@ -16,7 +17,7 @@ use PHPUnit\Framework\TestCase;
 
 final class DoSymbolTest extends TestCase
 {
-    private Analyzer $analyzer;
+    private AnalyzerInterface $analyzer;
 
     public function setUp(): void
     {

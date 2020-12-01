@@ -6,6 +6,7 @@ namespace PhelTest\Unit\Analyzer\TupleSymbol;
 
 use Phel\Analyzer;
 use Phel\Analyzer\TupleSymbol\DefStructSymbol;
+use Phel\AnalyzerInterface;
 use Phel\Exceptions\PhelCodeException;
 use Phel\GlobalEnvironment;
 use Phel\Lang\Symbol;
@@ -15,7 +16,7 @@ use PHPUnit\Framework\TestCase;
 
 final class DefStructSymbolTest extends TestCase
 {
-    private Analyzer $analyzer;
+    private AnalyzerInterface $analyzer;
 
     public function setUp(): void
     {

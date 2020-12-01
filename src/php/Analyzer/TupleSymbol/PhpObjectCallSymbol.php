@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Phel\Analyzer\TupleSymbol;
 
-use Phel\Analyzer;
+use Phel\AnalyzerInterface;
 use Phel\Ast\MethodCallNode;
 use Phel\Ast\PhpObjectCallNode;
 use Phel\Ast\PropertyOrConstantAccessNode;
@@ -15,11 +15,11 @@ use Phel\NodeEnvironment;
 
 final class PhpObjectCallSymbol implements TupleSymbolAnalyzer
 {
-    private Analyzer $analyzer;
+    private AnalyzerInterface $analyzer;
 
     private bool $isStatic;
 
-    public function __construct(Analyzer $analyzer, bool $isStatic)
+    public function __construct(AnalyzerInterface $analyzer, bool $isStatic)
     {
         $this->analyzer = $analyzer;
         $this->isStatic = $isStatic;
