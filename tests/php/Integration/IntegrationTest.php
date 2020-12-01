@@ -5,19 +5,18 @@ declare(strict_types=1);
 namespace PhelTest\Integration;
 
 use Generator;
-use Phel\Analyzer;
-use Phel\Emitter;
-use Phel\GlobalEnvironment;
+use Phel\Compiler\Analyzer;
+use Phel\Compiler\CompilerFactory;
+use Phel\Compiler\GlobalEnvironment;
+use Phel\Compiler\Lexer;
+use Phel\Compiler\NodeEnvironment;
 use Phel\Lang\Symbol;
-use Phel\Lexer;
-use Phel\NodeEnvironment;
-use Phel\Reader;
 use Phel\Runtime;
 use PHPUnit\Framework\TestCase;
 
 final class IntegrationTest extends TestCase
 {
-    private static $globalEnv;
+    private static GlobalEnvironment $globalEnv;
 
     public static function setUpBeforeClass(): void
     {
@@ -26,25 +25,20 @@ final class IntegrationTest extends TestCase
         $rt = Runtime::initializeNew($globalEnv);
         $rt->addPath('phel\\', [__DIR__ . '/../../src/phel/']);
         $rt->loadNs('phel\core');
-        self::$globalEnv = $globalEnv;
+        static::$globalEnv = $globalEnv;
     }
 
     /**
-     * @dataProvider integrationDataProvider
+     * @dataProvider providerIntegration
      */
     public function testIntegration(string $filename, string $phelCode, string $generatedCode): void
     {
-        $this->doIntegrationTest($filename, $phelCode, $generatedCode);
-    }
-
-    protected function doIntegrationTest(string $filename, string $phelCode, string $generatedCode): void
-    {
-        $globalEnv = self::$globalEnv;
+        $globalEnv = static::$globalEnv;
         $globalEnv->setNs('user');
         Symbol::resetGen();
-        $reader = new Reader($globalEnv);
+        $reader = (new CompilerFactory())->createReader($globalEnv);
         $analyzer = new Analyzer($globalEnv);
-        $emitter = Emitter::createWithoutSourceMap();
+        $emitter = (new CompilerFactory())->createEmitter($enableSourceMaps = false);
         $lexer = new Lexer();
         $tokenStream = $lexer->lexString($phelCode);
 
@@ -64,7 +58,7 @@ final class IntegrationTest extends TestCase
         self::assertEquals($generatedCode, $compiledCode, 'in ' . $filename);
     }
 
-    public function integrationDataProvider(): Generator
+    public function providerIntegration(): Generator
     {
         $fixturesDir = realpath(__DIR__ . '/Fixtures');
 

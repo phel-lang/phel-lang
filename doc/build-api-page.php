@@ -1,8 +1,8 @@
 <?php
 
-use Phel\GlobalEnvironment;
+declare(strict_types=1);
+
 use Phel\Lang\Keyword;
-use Phel\Lang\PhelVar;
 use Phel\Lang\Table;
 use Phel\Runtime;
 
@@ -20,11 +20,10 @@ echo "weight = 110\n";
 echo "template = \"page-api.html\"\n";
 echo "+++\n\n";
 
-/** @var PhelVar $fn */
 $normalizedData = [];
 foreach ($GLOBALS["__phel"] as $ns => $functions) {
     $noramlizedNs = str_replace("phel\\", "", $ns);
-    $moduleName = $noramlizedNs == "core" ? "" : $noramlizedNs . "/";
+    $moduleName = $noramlizedNs === "core" ? "" : $noramlizedNs . "/";
     foreach ($functions as $fnName => $fn) {
         $fullFnName = $moduleName . $fnName;
 

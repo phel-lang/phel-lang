@@ -10,6 +10,8 @@ use Phel\Command\CommandFactory;
 use Phel\Command\ReplCommand;
 use Phel\Command\RunCommand;
 use Phel\Command\TestCommand;
+use Phel\Compiler\CompilerFactory;
+use Phel\Compiler\GlobalEnvironment;
 
 final class Main
 {
@@ -32,6 +34,7 @@ Commands:
 
 HELP;
 
+    private string $currentDir;
     private CommandFactory $commandFactory;
 
     public static function create(string $currentDir): self
@@ -42,7 +45,12 @@ HELP;
 
         static::requireAutoload($currentDir);
 
-        return new self(new CommandFactory($currentDir));
+        $commandFactory = new CommandFactory(
+            $currentDir,
+            new CompilerFactory()
+        );
+
+        return new self($currentDir, $commandFactory);
     }
 
     private static function requireAutoload(string $currentDir): void
@@ -56,8 +64,9 @@ HELP;
         require $autoloadPath;
     }
 
-    private function __construct(CommandFactory $commandFactory)
+    private function __construct(string $currentDir, CommandFactory $commandFactory)
     {
+        $this->currentDir = $currentDir;
         $this->commandFactory = $commandFactory;
     }
 
@@ -80,7 +89,10 @@ HELP;
 
     private function executeReplCommand(): void
     {
-        $replCommand = $this->commandFactory->createReplCommand();
+        $globalEnv = new GlobalEnvironment();
+        Runtime::initialize($globalEnv)->loadNs('phel\core');
+
+        $replCommand = $this->commandFactory->createReplCommand($globalEnv);
         $replCommand->run();
     }
 
@@ -90,13 +102,15 @@ HELP;
             throw new InvalidArgumentException('Please provide a filename or namespace as argument!');
         }
 
-        $runCommand = $this->commandFactory->createRunCommand();
+        $runtime = $this->loadVendorPhelRuntime();
+        $runCommand = $this->commandFactory->createRunCommand($runtime);
         $runCommand->run($arguments[0]);
     }
 
     private function executeTestCommand(array $arguments): void
     {
-        $testCommand = $this->commandFactory->createTestCommand();
+        $runtime = $this->loadVendorPhelRuntime();
+        $testCommand = $this->commandFactory->createTestCommand($runtime);
         $result = $testCommand->run($arguments);
         ($result) ? exit(0) : exit(1);
     }
@@ -104,5 +118,18 @@ HELP;
     private function renderHelp(): void
     {
         echo self::HELP_TEXT;
+    }
+
+    private function loadVendorPhelRuntime(): Runtime
+    {
+        $runtimePath = $this->currentDir
+            . DIRECTORY_SEPARATOR . 'vendor'
+            . DIRECTORY_SEPARATOR . 'PhelRuntime.php';
+
+        if (file_exists($runtimePath)) {
+            return require $runtimePath;
+        }
+
+        throw new \RuntimeException('The Runtime could not be loaded from: ' . $runtimePath);
     }
 }

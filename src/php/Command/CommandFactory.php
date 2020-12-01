@@ -8,74 +8,57 @@ use Phel\Command\Repl\ColorStyle;
 use Phel\Command\Repl\ReplCommandSystemIo;
 use Phel\Command\Shared\CommandSystemIo;
 use Phel\Command\Shared\NamespaceExtractor;
-use Phel\Compiler\EvalCompiler;
+use Phel\Compiler\CompilerFactory;
+use Phel\Compiler\GlobalEnvironment;
+use Phel\Compiler\GlobalEnvironmentInterface;
 use Phel\Exceptions\TextExceptionPrinter;
-use Phel\GlobalEnvironment;
-use Phel\Lexer;
-use Phel\Reader;
-use Phel\Runtime;
+use Phel\RuntimeInterface;
 
 final class CommandFactory
 {
     private string $currentDir;
+    private CompilerFactory $compilerFactory;
 
-    public function __construct(string $currentDir)
+    public function __construct(string $currentDir, CompilerFactory $compilerFactory)
     {
         $this->currentDir = $currentDir;
+        $this->compilerFactory = $compilerFactory;
     }
 
-    public function createReplCommand(): ReplCommand
+    public function createReplCommand(GlobalEnvironment $globalEnv): ReplCommand
     {
-        $globalEnv = new GlobalEnvironment();
-        Runtime::initialize($globalEnv)->loadNs('phel\core');
-
         return new ReplCommand(
             new ReplCommandSystemIo($this->currentDir . '.phel-repl-history'),
-            new EvalCompiler($globalEnv),
+            $this->compilerFactory->createEvalCompiler($globalEnv),
             TextExceptionPrinter::readableWithStyle(),
             ColorStyle::withStyles()
         );
     }
 
-    public function createRunCommand(): RunCommand
+    public function createRunCommand(RuntimeInterface $runtime): RunCommand
     {
         return new RunCommand(
-            $this->loadVendorPhelRuntime(),
-            $this->createNamespaceExtractor()
+            $runtime,
+            $this->createNamespaceExtractor($runtime->getEnv())
         );
     }
 
-    public function createTestCommand(): TestCommand
+    public function createTestCommand(RuntimeInterface $runtime): TestCommand
     {
-        $runtime = $this->loadVendorPhelRuntime();
-
         return new TestCommand(
             $this->currentDir,
             $runtime,
-            $this->createNamespaceExtractor(),
-            new EvalCompiler($runtime->getEnv())
+            $this->createNamespaceExtractor($runtime->getEnv()),
+            $this->compilerFactory->createEvalCompiler($runtime->getEnv())
         );
     }
 
-    public function createNamespaceExtractor(): NamespaceExtractor
+    public function createNamespaceExtractor(GlobalEnvironmentInterface $globalEnv): NamespaceExtractor
     {
         return new NamespaceExtractor(
-            new Lexer(),
-            new Reader(new GlobalEnvironment()),
+            $this->compilerFactory->createLexer(),
+            $this->compilerFactory->createReader($globalEnv),
             new CommandSystemIo()
         );
-    }
-
-    private function loadVendorPhelRuntime(): Runtime
-    {
-        $runtimePath = $this->currentDir
-            . DIRECTORY_SEPARATOR . 'vendor'
-            . DIRECTORY_SEPARATOR . 'PhelRuntime.php';
-
-        if (file_exists($runtimePath)) {
-            return require $runtimePath;
-        }
-
-        throw new \RuntimeException('The Runtime could not be loaded from: ' . $runtimePath);
     }
 }

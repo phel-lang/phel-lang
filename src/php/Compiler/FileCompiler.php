@@ -4,31 +4,28 @@ declare(strict_types=1);
 
 namespace Phel\Compiler;
 
-use Phel\Analyzer;
-use Phel\AnalyzerInterface;
-use Phel\Emitter;
+use Phel\Compiler\ReadModel\ReaderResult;
 use Phel\Exceptions\AnalyzerException;
 use Phel\Exceptions\CompilerException;
 use Phel\Exceptions\ReaderException;
-use Phel\GlobalEnvironmentInterface;
-use Phel\Lexer;
-use Phel\NodeEnvironment;
-use Phel\Reader;
-use Phel\ReaderResult;
 
-final class FileCompiler
+final class FileCompiler implements FileCompilerInterface
 {
-    private Lexer $lexer;
-    private Reader $reader;
+    private LexerInterface $lexer;
+    private ReaderInterface $reader;
     private AnalyzerInterface $analyzer;
-    private Emitter $emitter;
+    private EmitterInterface $emitter;
 
-    public function __construct(GlobalEnvironmentInterface $globalEnv)
-    {
-        $this->lexer = new Lexer();
-        $this->reader = new Reader($globalEnv);
-        $this->analyzer = new Analyzer($globalEnv);
-        $this->emitter = Emitter::createWithSourceMap();
+    public function __construct(
+        LexerInterface $lexer,
+        ReaderInterface $reader,
+        AnalyzerInterface $analyzer,
+        EmitterInterface $emitter
+    ) {
+        $this->lexer = $lexer;
+        $this->reader = $reader;
+        $this->analyzer = $analyzer;
+        $this->emitter = $emitter;
     }
 
     public function compile(string $filename): string

@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace PhelTest\Unit;
 
-use Phel\GlobalEnvironment;
+use Phel\Compiler\GlobalEnvironment;
 use Phel\Runtime;
 
 final class RuntimeMock extends Runtime

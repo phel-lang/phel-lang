@@ -4,10 +4,9 @@ declare(strict_types=1);
 
 namespace PhelTest\Unit;
 
-use Phel\GlobalEnvironment;
-use Phel\Lexer;
+use Phel\Compiler\CompilerFactory;
+use Phel\Compiler\GlobalEnvironment;
 use Phel\Printer;
-use Phel\Reader;
 use PHPUnit\Framework\TestCase;
 
 final class PrinterTest extends TestCase
@@ -67,9 +66,10 @@ final class PrinterTest extends TestCase
 
     private function read(string $string): string
     {
-        $globalEnv = new GlobalEnvironment();
-        $tokenStream = (new Lexer())->lexString($string);
+        $compilerFactory = new CompilerFactory();
+        $reader = $compilerFactory->createReader(new GlobalEnvironment());
+        $tokenStream = $compilerFactory->createLexer()->lexString($string);
 
-        return (string) (new Reader($globalEnv))->readNext($tokenStream)->getAst();
+        return (string)$reader->readNext($tokenStream)->getAst();
     }
 }
