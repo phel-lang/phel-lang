@@ -4,14 +4,14 @@ declare(strict_types=1);
 
 namespace Phel;
 
-use Exception;
 use InvalidArgumentException;
-use Phel\Command\CommandFactory;
+use Phel\Command\CommandFactoryInterface;
 use Phel\Command\ReplCommand;
 use Phel\Command\RunCommand;
 use Phel\Command\TestCommand;
-use Phel\Compiler\CompilerFactory;
 use Phel\Compiler\GlobalEnvironment;
+use Phel\Exceptions\ExitException;
+use RuntimeException;
 
 final class Main
 {
@@ -33,39 +33,16 @@ Commands:
         Show this help message.
 
 HELP;
+    private const SUCCESS_CODE = 0;
+    private const FAILED_CODE = 1;
 
     private string $currentDir;
-    private CommandFactory $commandFactory;
+    private CommandFactoryInterface $commandFactory;
 
-    public static function create(string $currentDir): self
-    {
-        if (!getcwd()) {
-            throw new Exception('Cannot get current working directory');
-        }
-
-        static::requireAutoload($currentDir);
-
-        $commandFactory = new CommandFactory(
-            $currentDir,
-            new CompilerFactory()
-        );
-
-        return new self($currentDir, $commandFactory);
-    }
-
-    private static function requireAutoload(string $currentDir): void
-    {
-        $autoloadPath = $currentDir . 'vendor' . DIRECTORY_SEPARATOR . 'autoload.php';
-
-        if (!file_exists($autoloadPath)) {
-            throw new \RuntimeException("Can not load composer's autoload file: " . $autoloadPath);
-        }
-
-        require $autoloadPath;
-    }
-
-    private function __construct(string $currentDir, CommandFactory $commandFactory)
-    {
+    public function __construct(
+        string $currentDir,
+        CommandFactoryInterface $commandFactory
+    ) {
         $this->currentDir = $currentDir;
         $this->commandFactory = $commandFactory;
     }
@@ -83,7 +60,7 @@ HELP;
                 $this->executeTestCommand($arguments);
                 break;
             default:
-                $this->renderHelp();
+                throw new ExitException(self::HELP_TEXT);
         }
     }
 
@@ -92,8 +69,9 @@ HELP;
         $globalEnv = new GlobalEnvironment();
         Runtime::initialize($globalEnv)->loadNs('phel\core');
 
-        $replCommand = $this->commandFactory->createReplCommand($globalEnv);
-        $replCommand->run();
+        $this->commandFactory
+            ->createReplCommand($globalEnv)
+            ->run();
     }
 
     private function executeRunCommand(array $arguments): void
@@ -102,34 +80,32 @@ HELP;
             throw new InvalidArgumentException('Please provide a filename or namespace as argument!');
         }
 
-        $runtime = $this->loadVendorPhelRuntime();
-        $runCommand = $this->commandFactory->createRunCommand($runtime);
-        $runCommand->run($arguments[0]);
+        $this->commandFactory
+            ->createRunCommand($this->loadVendorPhelRuntime())
+            ->run($arguments[0]);
     }
 
     private function executeTestCommand(array $arguments): void
     {
-        $runtime = $this->loadVendorPhelRuntime();
-        $testCommand = $this->commandFactory->createTestCommand($runtime);
-        $result = $testCommand->run($arguments);
-        ($result) ? exit(0) : exit(1);
+        $result = $this->commandFactory
+            ->createTestCommand($this->loadVendorPhelRuntime())
+            ->run($arguments);
+
+        ($result)
+            ? exit(self::SUCCESS_CODE)
+            : exit(self::FAILED_CODE);
     }
 
-    private function renderHelp(): void
-    {
-        echo self::HELP_TEXT;
-    }
-
-    private function loadVendorPhelRuntime(): Runtime
+    private function loadVendorPhelRuntime(): RuntimeInterface
     {
         $runtimePath = $this->currentDir
             . DIRECTORY_SEPARATOR . 'vendor'
             . DIRECTORY_SEPARATOR . 'PhelRuntime.php';
 
-        if (file_exists($runtimePath)) {
-            return require $runtimePath;
+        if (!file_exists($runtimePath)) {
+            throw new RuntimeException('The Runtime could not be loaded from: ' . $runtimePath);
         }
 
-        throw new \RuntimeException('The Runtime could not be loaded from: ' . $runtimePath);
+        return require $runtimePath;
     }
 }

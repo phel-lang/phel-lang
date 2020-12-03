@@ -4,19 +4,32 @@
 $slash = DIRECTORY_SEPARATOR;
 require_once __DIR__ . "{$slash}src{$slash}php{$slash}Main.php";
 
+use Phel\Command\CommandFactory;
+use Phel\Compiler\CompilerFactory;
 use Phel\Main;
 
 if ($argc <= 1) {
-    echo Main::HELP_TEXT;
-    exit;
+    exit(Main::HELP_TEXT);
 }
 
-$currentDir = getcwd() . DIRECTORY_SEPARATOR;
-$commandName = $argv[1];
-$arguments = array_slice($argv, 2);
+$currentDir = __DIR__ . $slash;
+$autoloadPath = $currentDir . 'vendor' . $slash . 'autoload.php';
+
+if (!file_exists($autoloadPath)) {
+    exit("Cannot load composer's autoload file: " . $autoloadPath);
+}
+
+require $autoloadPath;
+
+$commandFactory = new CommandFactory(
+    $currentDir,
+    new CompilerFactory()
+);
 
 try {
-    $main = Main::create($currentDir);
+    $main = new Main($currentDir, $commandFactory);
+    $commandName = $argv[1];
+    $arguments = array_slice($argv, 2);
     $main->run($commandName, $arguments);
 } catch (Exception $e) {
     print $e->getMessage() . PHP_EOL;

@@ -78,14 +78,6 @@ class Runtime implements RuntimeInterface
     /**
      * @interal
      */
-    public static function newInstance(GlobalEnvironmentInterface $globalEnv, string $cacheDirectory = null): self
-    {
-        return new self($globalEnv, $cacheDirectory);
-    }
-
-    /**
-     * @interal
-     */
     public static function initializeNew(GlobalEnvironmentInterface $globalEnv, string $cacheDirectory = null): self
     {
         self::$instance = new self($globalEnv, $cacheDirectory);
