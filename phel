@@ -12,7 +12,7 @@ if ($argc <= 1) {
     exit(Main::HELP_TEXT);
 }
 
-$currentDir = __DIR__ . $slash;
+$currentDir = getcwd() . $slash;
 $autoloadPath = $currentDir . 'vendor' . $slash . 'autoload.php';
 
 if (!file_exists($autoloadPath)) {
