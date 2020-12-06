@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace PhelTest\Integration\Command;
 
 use Phel\Command\CommandFactory;
-use Phel\Command\RunCommand;
+use Phel\Command\CommandFactoryInterface;
 use Phel\Compiler\CompilerFactory;
 use Phel\Compiler\GlobalEnvironment;
 use Phel\Runtime;
@@ -15,22 +15,16 @@ use RuntimeException;
 
 final class RunCommandTest extends TestCase
 {
-    private CommandFactory $commandFactory;
-
-    public function setUp(): void
-    {
-        $compilerFactory = new CompilerFactory();
-        $this->commandFactory = new CommandFactory(__DIR__, $compilerFactory);
-    }
-
     public function testRunByNamespace(): void
     {
         $this->expectOutputString("hello world\n");
 
         $runtime = $this->createRuntime();
         $runtime->addPath('test\\', [__DIR__ . '/Fixtures']);
-        $runCommand = $this->createRunCommand($runtime);
-        $runCommand->run('test\\test-script');
+
+        $this->createCommandFactory()
+            ->createRunCommand($runtime)
+            ->run('test\\test-script');
     }
 
     public function testRunByFilename(): void
@@ -39,8 +33,10 @@ final class RunCommandTest extends TestCase
 
         $runtime = $this->createRuntime();
         $runtime->addPath('test\\', [__DIR__ . '/Fixtures']);
-        $runCommand = $this->createRunCommand($runtime);
-        $runCommand->run(__DIR__ . '/Fixtures/test-script.phel');
+
+        $this->createCommandFactory()
+            ->createRunCommand($runtime)
+            ->run(__DIR__ . '/Fixtures/test-script.phel');
     }
 
     public function testCannotParseFile(): void
@@ -49,9 +45,9 @@ final class RunCommandTest extends TestCase
         $this->expectException(RuntimeException::class);
         $this->expectExceptionMessage('Cannot parse file: ' . $filename);
 
-        $runtime = $this->createRuntime();
-        $runCommand = $this->createRunCommand($runtime);
-        $runCommand->run($filename);
+        $this->createCommandFactory()
+            ->createRunCommand($this->createRuntime())
+            ->run($filename);
     }
 
     public function testCannotReadFile(): void
@@ -60,9 +56,9 @@ final class RunCommandTest extends TestCase
         $this->expectException(RuntimeException::class);
         $this->expectExceptionMessage('Cannot load namespace: ' . $filename);
 
-        $runtime = $this->createRuntime();
-        $runCommand = $this->createRunCommand($runtime);
-        $runCommand->run($filename);
+        $this->createCommandFactory()
+            ->createRunCommand($this->createRuntime())
+            ->run($filename);
     }
 
     public function testFileWithoutNs(): void
@@ -71,21 +67,18 @@ final class RunCommandTest extends TestCase
         $this->expectException(RuntimeException::class);
         $this->expectExceptionMessage('Cannot extract namespace from file: ' . $filename);
 
-        $runtime = $this->createRuntime();
-        $runCommand = $this->createRunCommand($runtime);
-        $runCommand->run($filename);
+        $this->createCommandFactory()
+            ->createRunCommand($this->createRuntime())
+            ->run($filename);
     }
 
-    private function createRunCommand(RuntimeInterface $runtime): RunCommand
-    {
-        return new RunCommand(
-            $runtime,
-            $this->commandFactory->createNamespaceExtractor($runtime->getEnv())
-        );
-    }
-
-    private function createRuntime(): Runtime
+    private function createRuntime(): RuntimeInterface
     {
         return Runtime::initializeNew(new GlobalEnvironment());
+    }
+
+    private function createCommandFactory(): CommandFactoryInterface
+    {
+        return new CommandFactory(__DIR__, new CompilerFactory());
     }
 }

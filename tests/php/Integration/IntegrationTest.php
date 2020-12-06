@@ -5,14 +5,17 @@ declare(strict_types=1);
 namespace PhelTest\Integration;
 
 use Generator;
-use Phel\Compiler\Analyzer;
+use Phel\Compiler\AnalyzerInterface;
 use Phel\Compiler\CompilerFactory;
+use Phel\Compiler\EmitterInterface;
 use Phel\Compiler\GlobalEnvironment;
-use Phel\Compiler\Lexer;
 use Phel\Compiler\NodeEnvironment;
+use Phel\Compiler\ReaderInterface;
 use Phel\Lang\Symbol;
 use Phel\Runtime;
 use PHPUnit\Framework\TestCase;
+use RecursiveDirectoryIterator;
+use RecursiveIteratorIterator;
 
 final class IntegrationTest extends TestCase
 {
@@ -31,40 +34,31 @@ final class IntegrationTest extends TestCase
     /**
      * @dataProvider providerIntegration
      */
-    public function testIntegration(string $filename, string $phelCode, string $generatedCode): void
+    public function testIntegration(string $filename, string $phelCode, string $expectedGeneratedCode): void
     {
         $globalEnv = static::$globalEnv;
         $globalEnv->setNs('user');
         Symbol::resetGen();
-        $reader = (new CompilerFactory())->createReader($globalEnv);
-        $analyzer = new Analyzer($globalEnv);
-        $emitter = (new CompilerFactory())->createEmitter($enableSourceMaps = false);
-        $lexer = new Lexer();
-        $tokenStream = $lexer->lexString($phelCode);
 
-        $compiledCode = [];
-        while (true) {
-            $readAst = $reader->readNext($tokenStream);
+        $compilerFactory = new CompilerFactory();
 
-            if (!$readAst) {
-                break;
-            }
+        $compiledCode = $this->compilePhelCode(
+            $compilerFactory->createReader($globalEnv),
+            $compilerFactory->createAnalyzer($globalEnv),
+            $compilerFactory->createEmitter($enableSourceMaps = false),
+            $compilerFactory->createLexer()->lexString($phelCode)
+        );
 
-            $compiledCode[] = $emitter->emitNodeAndEval(
-                $analyzer->analyze($readAst->getAst(), NodeEnvironment::empty())
-            );
-        }
-        $compiledCode = trim(implode('', $compiledCode));
-        self::assertEquals($generatedCode, $compiledCode, 'in ' . $filename);
+        self::assertEquals($expectedGeneratedCode, $compiledCode, 'in ' . $filename);
     }
 
     public function providerIntegration(): Generator
     {
         $fixturesDir = realpath(__DIR__ . '/Fixtures');
 
-        $iterator = new \RecursiveIteratorIterator(
-            new \RecursiveDirectoryIterator($fixturesDir),
-            \RecursiveIteratorIterator::LEAVES_ONLY
+        $iterator = new RecursiveIteratorIterator(
+            new RecursiveDirectoryIterator($fixturesDir),
+            RecursiveIteratorIterator::LEAVES_ONLY
         );
 
         foreach ($iterator as $file) {
@@ -79,8 +73,29 @@ final class IntegrationTest extends TestCase
                 $phelCode = $match[1];
                 $phpCode = trim($match[2]);
 
-                yield [$filename, $phelCode, $phpCode];
+                yield $filename => [$filename, $phelCode, $phpCode];
             }
         }
+    }
+
+    private function compilePhelCode(
+        ReaderInterface $reader,
+        AnalyzerInterface $analyzer,
+        EmitterInterface $emitter,
+        Generator $tokenStream
+    ): string {
+        $compiledCode = [];
+
+        while (true) {
+            $readAst = $reader->readNext($tokenStream);
+            if (!$readAst) {
+                break;
+            }
+
+            $node = $analyzer->analyze($readAst->getAst(), NodeEnvironment::empty());
+            $compiledCode[] = $emitter->emitNodeAndEval($node);
+        }
+
+        return trim(implode('', $compiledCode));
     }
 }

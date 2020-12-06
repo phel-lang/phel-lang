@@ -12,7 +12,7 @@ use Phel\Compiler\Emitter\OutputEmitter\NodeEmitterFactory;
 use Phel\Compiler\Emitter\OutputEmitter\SourceMap\SourceMapGenerator;
 use Phel\Compiler\Emitter\OutputEmitterInterface;
 
-final class CompilerFactory
+final class CompilerFactory implements CompilerFactoryInterface
 {
     public function createEvalCompiler(GlobalEnvironmentInterface $globalEnv): EvalCompilerInterface
     {
@@ -46,7 +46,7 @@ final class CompilerFactory
         );
     }
 
-    private function createAnalyzer(GlobalEnvironmentInterface $globalEnv): AnalyzerInterface
+    public function createAnalyzer(GlobalEnvironmentInterface $globalEnv): AnalyzerInterface
     {
         return new Analyzer($globalEnv);
     }
