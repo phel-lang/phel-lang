@@ -68,6 +68,18 @@ composer test-all      # psalm, compiler & core tests after each other
 > composer test-core
 ```
 
+### Architecture Decision Record (ADR) 
+
+These helps us to bring more structure to our code. However, the most important thing with ADRs or RFCs is the process
+on how they are created, discussed, processed and so forth. Just adding ADR file will not make a difference. 
+Additionally, we need a way to track if all ADRs are full filled when new code is added or changed.
+
+#### Adding an ADR Process
+
+- An ADR or RFC can be proposed with an issue.
+- The issue is the place to discuss everything.
+- The result of the issue can be an ADR file (under the [adrs](./adrs) directory), but also just as CS Fixer rule to check then during CI.
+
 ### Build the documentation
 
 The documentation is build with [Zola](https://www.getzola.org/). To build and serve the documentation on a local machine, run:
