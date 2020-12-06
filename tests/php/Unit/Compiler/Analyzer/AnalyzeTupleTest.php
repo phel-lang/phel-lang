@@ -26,9 +26,10 @@ use Phel\Compiler\Ast\RecurNode;
 use Phel\Compiler\Ast\ThrowNode;
 use Phel\Compiler\Ast\TryNode;
 use Phel\Compiler\GlobalEnvironment;
+use Phel\Compiler\NodeEnvironment;
 use Phel\Lang\Symbol;
 use Phel\Lang\Tuple;
-use Phel\Compiler\NodeEnvironment;
+use Phel\Compiler\NodeEnvironmentInterface;
 use  Phel\Compiler\RecurFrame;
 use PHPUnit\Framework\TestCase;
 
@@ -153,7 +154,7 @@ final class AnalyzeTupleTest extends TestCase
     {
         $tuple = Tuple::create(Symbol::create(Symbol::NAME_RECUR), 1);
         $recurFrames = [new RecurFrame([Symbol::create(Symbol::NAME_FOREACH)])];
-        $nodeEnv = new NodeEnvironment([], NodeEnvironment::CONTEXT_STATEMENT, [], $recurFrames);
+        $nodeEnv = new NodeEnvironment([], NodeEnvironmentInterface::CONTEXT_STATEMENT, [], $recurFrames);
         self::assertInstanceOf(RecurNode::class, $this->tupleAnalyzer->analyze($tuple, $nodeEnv));
     }
 

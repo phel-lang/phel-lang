@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Phel\Compiler\Ast;
 
-use Phel\Compiler\NodeEnvironment;
+use Phel\Compiler\NodeEnvironmentInterface;
 use Phel\Compiler\RecurFrame;
 use Phel\Lang\SourceLocation;
 
@@ -19,7 +19,7 @@ final class RecurNode extends Node
      * @param Node[] $expressions
      */
     public function __construct(
-        NodeEnvironment $env,
+        NodeEnvironmentInterface $env,
         RecurFrame $frame,
         array $expressions,
         ?SourceLocation $sourceLocation = null

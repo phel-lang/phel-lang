@@ -7,7 +7,7 @@ namespace Phel\Compiler\Analyzer\TupleSymbol;
 use Phel\Compiler\Analyzer\WithAnalyzer;
 use Phel\Compiler\Ast\CatchNode;
 use Phel\Compiler\Ast\TryNode;
-use Phel\Compiler\NodeEnvironment;
+use Phel\Compiler\NodeEnvironmentInterface;
 use Phel\Exceptions\AnalyzerException;
 use Phel\Lang\Symbol;
 use Phel\Lang\Tuple;
@@ -16,7 +16,7 @@ final class TrySymbol implements TupleSymbolAnalyzer
 {
     use WithAnalyzer;
 
-    public function analyze(Tuple $tuple, NodeEnvironment $env): TryNode
+    public function analyze(Tuple $tuple, NodeEnvironmentInterface $env): TryNode
     {
         $tupleCount = count($tuple);
         $state = 'start';
@@ -64,11 +64,11 @@ final class TrySymbol implements TupleSymbolAnalyzer
             $finally = $finally->update(0, Symbol::create(Symbol::NAME_DO));
             $finally = $this->analyzer->analyze(
                 $finally,
-                $env->withContext(NodeEnvironment::CONTEXT_STATEMENT)->withDisallowRecurFrame()
+                $env->withContext(NodeEnvironmentInterface::CONTEXT_STATEMENT)->withDisallowRecurFrame()
             );
         }
 
-        $catchCtx = $env->getContext() === NodeEnvironment::CONTEXT_EXPRESSION ? NodeEnvironment::CONTEXT_RETURN : $env->getContext();
+        $catchCtx = $env->getContext() === NodeEnvironmentInterface::CONTEXT_EXPRESSION ? NodeEnvironmentInterface::CONTEXT_RETURN : $env->getContext();
         $catchNodes = [];
         /** @var Tuple $catch */
         foreach ($catches as $catch) {

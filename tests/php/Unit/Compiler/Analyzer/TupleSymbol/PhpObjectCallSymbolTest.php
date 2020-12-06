@@ -10,11 +10,11 @@ use Phel\Compiler\AnalyzerInterface;
 use Phel\Compiler\Ast\MethodCallNode;
 use Phel\Compiler\Ast\PhpClassNameNode;
 use Phel\Compiler\Ast\PropertyOrConstantAccessNode;
+use Phel\Compiler\NodeEnvironment;
 use Phel\Exceptions\PhelCodeException;
 use Phel\Compiler\GlobalEnvironment;
 use Phel\Lang\Symbol;
 use Phel\Lang\Tuple;
-use Phel\Compiler\NodeEnvironment;
 use PHPUnit\Framework\TestCase;
 
 final class PhpObjectCallSymbolTest extends TestCase

@@ -28,7 +28,7 @@ final class Analyzer implements AnalyzerInterface
         $this->globalEnvironment = $globalEnvironment;
     }
 
-    public function resolve(Symbol $name, NodeEnvironment $env): ?Node
+    public function resolve(Symbol $name, NodeEnvironmentInterface $env): ?Node
     {
         return $this->globalEnvironment->resolve($name, $env);
     }
@@ -71,7 +71,7 @@ final class Analyzer implements AnalyzerInterface
     /**
      * @param AbstractType|string|float|int|bool|null $x
      */
-    public function analyzeMacro($x, NodeEnvironment $env): Node
+    public function analyzeMacro($x, NodeEnvironmentInterface $env): Node
     {
         $this->globalEnvironment->setAllowPrivateAccess(true);
         $result = $this->analyze($x, $env);
@@ -83,7 +83,7 @@ final class Analyzer implements AnalyzerInterface
     /**
      * @param AbstractType|string|float|int|bool|null $x
      */
-    public function analyze($x, NodeEnvironment $env): Node
+    public function analyze($x, NodeEnvironmentInterface $env): Node
     {
         if ($this->isLiteral($x)) {
             return (new AnalyzeLiteral())->analyze($x, $env);

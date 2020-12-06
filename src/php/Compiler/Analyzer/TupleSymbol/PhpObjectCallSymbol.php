@@ -8,7 +8,7 @@ use Phel\Compiler\AnalyzerInterface;
 use Phel\Compiler\Ast\MethodCallNode;
 use Phel\Compiler\Ast\PhpObjectCallNode;
 use Phel\Compiler\Ast\PropertyOrConstantAccessNode;
-use Phel\Compiler\NodeEnvironment;
+use Phel\Compiler\NodeEnvironmentInterface;
 use Phel\Exceptions\AnalyzerException;
 use Phel\Lang\Symbol;
 use Phel\Lang\Tuple;
@@ -25,7 +25,7 @@ final class PhpObjectCallSymbol implements TupleSymbolAnalyzer
         $this->isStatic = $isStatic;
     }
 
-    public function analyze(Tuple $tuple, NodeEnvironment $env): PhpObjectCallNode
+    public function analyze(Tuple $tuple, NodeEnvironmentInterface $env): PhpObjectCallNode
     {
         $fnName = $this->isStatic
             ? Symbol::NAME_PHP_OBJECT_STATIC_CALL
@@ -41,7 +41,7 @@ final class PhpObjectCallSymbol implements TupleSymbolAnalyzer
 
         $targetExpr = $this->analyzer->analyze(
             $tuple[1],
-            $env->withContext(NodeEnvironment::CONTEXT_EXPRESSION)->withDisallowRecurFrame()
+            $env->withContext(NodeEnvironmentInterface::CONTEXT_EXPRESSION)->withDisallowRecurFrame()
         );
 
         if ($tuple[2] instanceof Tuple) {
@@ -62,7 +62,7 @@ final class PhpObjectCallSymbol implements TupleSymbolAnalyzer
         );
     }
 
-    private function callExprForMethodCall(NodeEnvironment $env, Tuple $tuple): MethodCallNode
+    private function callExprForMethodCall(NodeEnvironmentInterface $env, Tuple $tuple): MethodCallNode
     {
         /** @var Tuple $tuple2 */
         $tuple2 = $tuple[2];
@@ -71,7 +71,7 @@ final class PhpObjectCallSymbol implements TupleSymbolAnalyzer
         for ($i = 1; $i < $tCount; $i++) {
             $args[] = $this->analyzer->analyze(
                 $tuple2[$i],
-                $env->withContext(NodeEnvironment::CONTEXT_EXPRESSION)->withDisallowRecurFrame()
+                $env->withContext(NodeEnvironmentInterface::CONTEXT_EXPRESSION)->withDisallowRecurFrame()
             );
         }
 
@@ -79,7 +79,7 @@ final class PhpObjectCallSymbol implements TupleSymbolAnalyzer
         return new MethodCallNode($env, $tuple2[0], $args, $tuple2->getStartLocation());
     }
 
-    private function callExprForPropertyCall(NodeEnvironment $env, Tuple $tuple): PropertyOrConstantAccessNode
+    private function callExprForPropertyCall(NodeEnvironmentInterface $env, Tuple $tuple): PropertyOrConstantAccessNode
     {
         /** @var Symbol $tuple2 */
         $tuple2 = $tuple[2];

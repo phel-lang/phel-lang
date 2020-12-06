@@ -6,7 +6,7 @@ namespace Phel\Compiler\Analyzer\TupleSymbol;
 
 use Phel\Compiler\Analyzer\WithAnalyzer;
 use Phel\Compiler\Ast\RecurNode;
-use Phel\Compiler\NodeEnvironment;
+use Phel\Compiler\NodeEnvironmentInterface;
 use Phel\Exceptions\AnalyzerException;
 use Phel\Lang\Symbol;
 use Phel\Lang\Tuple;
@@ -15,7 +15,7 @@ final class RecurSymbol implements TupleSymbolAnalyzer
 {
     use WithAnalyzer;
 
-    public function analyze(Tuple $tuple, NodeEnvironment $env): RecurNode
+    public function analyze(Tuple $tuple, NodeEnvironmentInterface $env): RecurNode
     {
         if (!$this->isValidRecurTuple($tuple)) {
             throw AnalyzerException::withLocation("This is not a 'recur.", $tuple);
@@ -52,14 +52,14 @@ final class RecurSymbol implements TupleSymbolAnalyzer
             && $tuple[0]->getName() === Symbol::NAME_RECUR;
     }
 
-    public function expressions(Tuple $tuple, NodeEnvironment $env): array
+    public function expressions(Tuple $tuple, NodeEnvironmentInterface $env): array
     {
         $expressions = [];
 
         for ($i = 1, $tupleCount = count($tuple); $i < $tupleCount; $i++) {
             $expressions[] = $this->analyzer->analyze(
                 $tuple[$i],
-                $env->withContext(NodeEnvironment::CONTEXT_EXPRESSION)->withDisallowRecurFrame()
+                $env->withContext(NodeEnvironmentInterface::CONTEXT_EXPRESSION)->withDisallowRecurFrame()
             );
         }
 

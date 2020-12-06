@@ -8,7 +8,7 @@ use Phel\Compiler\Analyzer\TupleSymbol\ReadModel\FnSymbolTuple;
 use Phel\Compiler\Analyzer\WithAnalyzer;
 use Phel\Compiler\Ast\FnNode;
 use Phel\Compiler\Ast\Node;
-use Phel\Compiler\NodeEnvironment;
+use Phel\Compiler\NodeEnvironmentInterface;
 use Phel\Compiler\RecurFrame;
 use Phel\Exceptions\AnalyzerException;
 use Phel\Lang\Symbol;
@@ -18,7 +18,7 @@ final class FnSymbol implements TupleSymbolAnalyzer
 {
     use WithAnalyzer;
 
-    public function analyze(Tuple $tuple, NodeEnvironment $env): FnNode
+    public function analyze(Tuple $tuple, NodeEnvironmentInterface $env): FnNode
     {
         $this->verifyArguments($tuple);
 
@@ -47,7 +47,7 @@ final class FnSymbol implements TupleSymbolAnalyzer
         }
     }
 
-    private function analyzeBody(FnSymbolTuple $fnSymbolTuple, RecurFrame $recurFrame, NodeEnvironment $env): Node
+    private function analyzeBody(FnSymbolTuple $fnSymbolTuple, RecurFrame $recurFrame, NodeEnvironmentInterface $env): Node
     {
         $tupleBody = $fnSymbolTuple->parentTupleBody();
 
@@ -57,7 +57,7 @@ final class FnSymbol implements TupleSymbolAnalyzer
 
         $bodyEnv = $env
             ->withMergedLocals($fnSymbolTuple->params())
-            ->withContext(NodeEnvironment::CONTEXT_RETURN)
+            ->withContext(NodeEnvironmentInterface::CONTEXT_RETURN)
             ->withAddedRecurFrame($recurFrame);
 
         return $this->analyzer->analyze($body, $bodyEnv);
@@ -80,7 +80,7 @@ final class FnSymbol implements TupleSymbolAnalyzer
         )->copyLocationFrom($tupleBody);
     }
 
-    private function buildUsesFromEnv(NodeEnvironment $env, FnSymbolTuple $fnSymbolTuple): array
+    private function buildUsesFromEnv(NodeEnvironmentInterface $env, FnSymbolTuple $fnSymbolTuple): array
     {
         return array_diff($env->getLocals(), $fnSymbolTuple->params());
     }

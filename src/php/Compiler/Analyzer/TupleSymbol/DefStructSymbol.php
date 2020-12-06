@@ -6,7 +6,7 @@ namespace Phel\Compiler\Analyzer\TupleSymbol;
 
 use Phel\Compiler\Analyzer\WithAnalyzer;
 use Phel\Compiler\Ast\DefStructNode;
-use Phel\Compiler\NodeEnvironment;
+use Phel\Compiler\NodeEnvironmentInterface;
 use Phel\Exceptions\AnalyzerException;
 use Phel\Lang\Symbol;
 use Phel\Lang\Tuple;
@@ -15,7 +15,7 @@ final class DefStructSymbol implements TupleSymbolAnalyzer
 {
     use WithAnalyzer;
 
-    public function analyze(Tuple $tuple, NodeEnvironment $env): DefStructNode
+    public function analyze(Tuple $tuple, NodeEnvironmentInterface $env): DefStructNode
     {
         if (count($tuple) !== 3) {
             throw AnalyzerException::withLocation(

@@ -27,7 +27,7 @@ use Phel\Compiler\Analyzer\TupleSymbol\ThrowSymbol;
 use Phel\Compiler\Analyzer\TupleSymbol\TrySymbol;
 use Phel\Compiler\Analyzer\TupleSymbol\TupleSymbolAnalyzer;
 use Phel\Compiler\Ast\Node;
-use Phel\Compiler\NodeEnvironment;
+use Phel\Compiler\NodeEnvironmentInterface;
 use Phel\Exceptions\AnalyzerException;
 use Phel\Exceptions\PhelCodeException;
 use Phel\Lang\Symbol;
@@ -42,7 +42,7 @@ final class AnalyzeTuple
     /**
      * @throws AnalyzerException|PhelCodeException
      */
-    public function analyze(Tuple $tuple, NodeEnvironment $env): Node
+    public function analyze(Tuple $tuple, NodeEnvironmentInterface $env): Node
     {
         $symbolName = $this->getSymbolName($tuple);
         $symbol = $this->createSymbolAnalyzerByName($symbolName);

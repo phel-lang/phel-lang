@@ -14,14 +14,14 @@ interface AnalyzerInterface
     /**
      * @param AbstractType|string|float|int|bool|null $x
      */
-    public function analyze($x, NodeEnvironment $env): Node;
+    public function analyze($x, NodeEnvironmentInterface $env): Node;
 
     /**
      * @param AbstractType|string|float|int|bool|null $x
      */
-    public function analyzeMacro($x, NodeEnvironment $env): Node;
+    public function analyzeMacro($x, NodeEnvironmentInterface $env): Node;
 
-    public function resolve(Symbol $name, NodeEnvironment $env): ?Node;
+    public function resolve(Symbol $name, NodeEnvironmentInterface $env): ?Node;
 
     public function getNamespace(): string;
 
