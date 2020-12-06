@@ -68,7 +68,9 @@ final class Munge
         return $this->encodeWithMap($str, array_flip($this->nsMapping));
     }
 
-    /** @psalm-param array<string, string> $mapping */
+    /**
+     * @psalm-param array<string, string> $mapping
+     */
     private function encodeWithMap(string $str, array $mapping): string
     {
         return str_replace(

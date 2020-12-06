@@ -70,7 +70,9 @@ final class NsSymbol implements TupleSymbolAnalyzer
         return in_array($w, PhpKeywords::KEYWORDS, true);
     }
 
-    /** @param mixed $x */
+    /**
+     * @param mixed $x
+     */
     private function isKeywordWithName($x, string $name): bool
     {
         return $x instanceof Keyword && $x->getName() === $name;

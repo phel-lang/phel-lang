@@ -574,8 +574,10 @@ final class ReaderTest extends TestCase
         );
     }
 
-    /** @return AbstractType|string|float|int|bool|null */
-    public function read($string, bool $removeLoc = false)
+    /**
+     * @return AbstractType|string|float|int|bool|null
+     */
+    private function read(string $string, bool $removeLoc = false)
     {
         Symbol::resetGen();
         $reader = (new CompilerFactory())->createReader(new GlobalEnvironment());
@@ -605,7 +607,9 @@ final class ReaderTest extends TestCase
         return $x;
     }
 
-    /** @param AbstractType|string|float|int|bool|null $x */
+    /**
+     * @param AbstractType|string|float|int|bool|null $x
+     */
     private function removeLoc($x)
     {
         if ($x instanceof AbstractType) {

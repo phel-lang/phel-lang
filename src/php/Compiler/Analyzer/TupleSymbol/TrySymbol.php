@@ -119,7 +119,9 @@ final class TrySymbol implements TupleSymbolAnalyzer
         );
     }
 
-    /** @param mixed $x */
+    /**
+     * @param mixed $x
+     */
     private function isSymWithName($x, string $name): bool
     {
         return $x instanceof Symbol && $x->getName() === $name;

@@ -80,7 +80,9 @@ final class InvokeSymbol implements TupleSymbolAnalyzer
         throw AnalyzerException::withLocation('This is not macro expandable: ' . get_class($node), $tuple);
     }
 
-    /** @param AbstractType|string|float|int|bool|null $x */
+    /**
+     * @param AbstractType|string|float|int|bool|null $x
+     */
     private function enrichLocation($x, AbstractType $parent): void
     {
         if ($x instanceof Tuple) {
