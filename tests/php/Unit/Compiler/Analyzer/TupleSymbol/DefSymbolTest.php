@@ -8,12 +8,12 @@ use Phel\Compiler\Analyzer;
 use Phel\Compiler\Analyzer\TupleSymbol\DefSymbol;
 use Phel\Compiler\AnalyzerInterface;
 use Phel\Compiler\Ast\LiteralNode;
-use Phel\Exceptions\PhelCodeException;
 use Phel\Compiler\GlobalEnvironment;
+use Phel\Compiler\NodeEnvironment;
+use Phel\Exceptions\PhelCodeException;
 use Phel\Lang\Symbol;
 use Phel\Lang\Table;
 use Phel\Lang\Tuple;
-use Phel\Compiler\NodeEnvironment;
 use PHPUnit\Framework\TestCase;
 
 final class DefSymbolTest extends TestCase

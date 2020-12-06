@@ -7,7 +7,7 @@ namespace Phel\Compiler\Emitter\OutputEmitter\NodeEmitter;
 use Phel\Compiler\Ast\IfNode;
 use Phel\Compiler\Ast\Node;
 use Phel\Compiler\Emitter\OutputEmitter\NodeEmitter;
-use Phel\Compiler\NodeEnvironment;
+use Phel\Compiler\NodeEnvironmentInterface;
 
 final class IfEmitter implements NodeEmitter
 {
@@ -17,7 +17,7 @@ final class IfEmitter implements NodeEmitter
     {
         assert($node instanceof IfNode);
 
-        if ($node->getEnv()->getContext() === NodeEnvironment::CONTEXT_EXPRESSION) {
+        if ($node->getEnv()->getContext() === NodeEnvironmentInterface::CONTEXT_EXPRESSION) {
             $this->outputEmitter->emitStr('((\Phel\Lang\Truthy::isTruthy(', $node->getStartSourceLocation());
             $this->outputEmitter->emitNode($node->getTestExpr());
             $this->outputEmitter->emitStr(')) ? ', $node->getStartSourceLocation());

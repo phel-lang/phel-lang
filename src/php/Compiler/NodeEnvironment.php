@@ -6,12 +6,8 @@ namespace Phel\Compiler;
 
 use Phel\Lang\Symbol;
 
-final class NodeEnvironment
+final class NodeEnvironment implements NodeEnvironmentInterface
 {
-    public const CONTEXT_EXPRESSION = 'expression';
-    public const CONTEXT_STATEMENT = 'statement';
-    public const CONTEXT_RETURN = 'return';
-
     /**
      * A list of local symbols.
      *
@@ -63,7 +59,7 @@ final class NodeEnvironment
         $this->boundTo = $boundTo ?? '';
     }
 
-    public static function empty(): NodeEnvironment
+    public static function empty(): NodeEnvironmentInterface
     {
         return new NodeEnvironment([], self::CONTEXT_STATEMENT, [], []);
     }
@@ -105,7 +101,7 @@ final class NodeEnvironment
         return $this->context;
     }
 
-    public function withMergedLocals(array $locals): NodeEnvironment
+    public function withMergedLocals(array $locals): NodeEnvironmentInterface
     {
         $allLocalSymbols = array_merge(
             $this->locals,
@@ -118,7 +114,7 @@ final class NodeEnvironment
         return $this->withLocals(array_unique($allLocalSymbols));
     }
 
-    public function withShadowedLocal(Symbol $local, Symbol $shadow): NodeEnvironment
+    public function withShadowedLocal(Symbol $local, Symbol $shadow): NodeEnvironmentInterface
     {
         $result = clone $this;
         $result->shadowed = array_merge($this->shadowed, [$local->getName() => $shadow]);
@@ -126,7 +122,7 @@ final class NodeEnvironment
         return $result;
     }
 
-    public function withLocals(array $locals): NodeEnvironment
+    public function withLocals(array $locals): NodeEnvironmentInterface
     {
         $result = clone $this;
         $result->locals = $locals;
@@ -134,7 +130,7 @@ final class NodeEnvironment
         return $result;
     }
 
-    public function withContext(string $context): NodeEnvironment
+    public function withContext(string $context): NodeEnvironmentInterface
     {
         $result = clone $this;
         $result->context = $context;
@@ -142,7 +138,7 @@ final class NodeEnvironment
         return $result;
     }
 
-    public function withAddedRecurFrame(RecurFrame $frame): NodeEnvironment
+    public function withAddedRecurFrame(RecurFrame $frame): NodeEnvironmentInterface
     {
         $result = clone $this;
         $result->recurFrames = array_merge($this->recurFrames, [$frame]);
@@ -150,7 +146,7 @@ final class NodeEnvironment
         return $result;
     }
 
-    public function withDisallowRecurFrame(): NodeEnvironment
+    public function withDisallowRecurFrame(): NodeEnvironmentInterface
     {
         $result = clone $this;
         $result->recurFrames = array_merge($this->recurFrames, [null]);
@@ -158,7 +154,7 @@ final class NodeEnvironment
         return $result;
     }
 
-    public function withBoundTo(string $boundTo): NodeEnvironment
+    public function withBoundTo(string $boundTo): NodeEnvironmentInterface
     {
         $result = clone $this;
         $result->boundTo = $boundTo;
@@ -166,7 +162,7 @@ final class NodeEnvironment
         return $result;
     }
 
-    public function withDefAllowed(bool $defAllowed): NodeEnvironment
+    public function withDefAllowed(bool $defAllowed): NodeEnvironmentInterface
     {
         $result = clone $this;
         $result->defAllowed = $defAllowed;

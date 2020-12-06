@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Phel\Compiler\Ast;
 
-use Phel\Compiler\NodeEnvironment;
+use Phel\Compiler\NodeEnvironmentInterface;
 use Phel\Lang\SourceLocation;
 
 final class PhpObjectCallNode extends Node
@@ -15,7 +15,7 @@ final class PhpObjectCallNode extends Node
     private bool $methodCall;
 
     public function __construct(
-        NodeEnvironment $env,
+        NodeEnvironmentInterface $env,
         Node $targetExpr,
         Node $callExpr,
         bool $isStatic,

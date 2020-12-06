@@ -7,7 +7,7 @@ namespace Phel\Compiler\Analyzer\TupleSymbol;
 use Phel\Compiler\Analyzer\WithAnalyzer;
 use Phel\Compiler\Ast\BindingNode;
 use Phel\Compiler\Ast\LetNode;
-use Phel\Compiler\NodeEnvironment;
+use Phel\Compiler\NodeEnvironmentInterface;
 use Phel\Compiler\RecurFrame;
 use Phel\Destructure;
 use Phel\Exceptions\AnalyzerException;
@@ -18,7 +18,7 @@ final class LoopSymbol implements TupleSymbolAnalyzer
 {
     use WithAnalyzer;
 
-    public function analyze(Tuple $tuple, NodeEnvironment $env): LetNode
+    public function analyze(Tuple $tuple, NodeEnvironmentInterface $env): LetNode
     {
         $tupleCount = count($tuple);
         if (!($tuple[0] instanceof Symbol && $tuple[0]->getName() === Symbol::NAME_LOOP)) {
@@ -75,7 +75,7 @@ final class LoopSymbol implements TupleSymbolAnalyzer
         return $this->analyzeLetOrLoop($tuple, $env);
     }
 
-    private function analyzeLetOrLoop(Tuple $tuple, NodeEnvironment $env): LetNode
+    private function analyzeLetOrLoop(Tuple $tuple, NodeEnvironmentInterface $env): LetNode
     {
         $tupleCount = count($tuple);
         $exprs = [];
@@ -96,8 +96,8 @@ final class LoopSymbol implements TupleSymbolAnalyzer
         $bodyEnv = $env
             ->withMergedLocals($locals)
             ->withContext(
-                $env->getContext() === NodeEnvironment::CONTEXT_EXPRESSION
-                    ? NodeEnvironment::CONTEXT_RETURN
+                $env->getContext() === NodeEnvironmentInterface::CONTEXT_EXPRESSION
+                    ? NodeEnvironmentInterface::CONTEXT_RETURN
                     : $env->getContext()
             );
 
@@ -121,10 +121,10 @@ final class LoopSymbol implements TupleSymbolAnalyzer
     /**
      * @return BindingNode[]
      */
-    private function analyzeBindings(Tuple $tuple, NodeEnvironment $env): array
+    private function analyzeBindings(Tuple $tuple, NodeEnvironmentInterface $env): array
     {
         $tupleCount = count($tuple);
-        $initEnv = $env->withContext(NodeEnvironment::CONTEXT_EXPRESSION)->withDisallowRecurFrame();
+        $initEnv = $env->withContext(NodeEnvironmentInterface::CONTEXT_EXPRESSION)->withDisallowRecurFrame();
         $nodes = [];
         for ($i = 0; $i < $tupleCount; $i += 2) {
             $sym = $tuple[$i];

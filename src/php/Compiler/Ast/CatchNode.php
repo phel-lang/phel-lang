@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Phel\Compiler\Ast;
 
-use Phel\Compiler\NodeEnvironment;
+use Phel\Compiler\NodeEnvironmentInterface;
 use Phel\Lang\SourceLocation;
 use Phel\Lang\Symbol;
 
@@ -15,7 +15,7 @@ final class CatchNode extends Node
     private Node $body;
 
     public function __construct(
-        NodeEnvironment $env,
+        NodeEnvironmentInterface $env,
         Symbol $type,
         Symbol $name,
         Node $body,

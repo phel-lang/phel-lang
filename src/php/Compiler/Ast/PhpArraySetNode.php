@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Phel\Compiler\Ast;
 
-use Phel\Compiler\NodeEnvironment;
+use Phel\Compiler\NodeEnvironmentInterface;
 use Phel\Lang\SourceLocation;
 
 final class PhpArraySetNode extends Node
@@ -14,7 +14,7 @@ final class PhpArraySetNode extends Node
     private Node $valueExpr;
 
     public function __construct(
-        NodeEnvironment $env,
+        NodeEnvironmentInterface $env,
         Node $arrayExpr,
         Node $accessExpr,
         Node $valueExpr,

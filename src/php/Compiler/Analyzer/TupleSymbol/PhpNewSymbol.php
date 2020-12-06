@@ -6,7 +6,7 @@ namespace Phel\Compiler\Analyzer\TupleSymbol;
 
 use Phel\Compiler\Analyzer\WithAnalyzer;
 use Phel\Compiler\Ast\PhpNewNode;
-use Phel\Compiler\NodeEnvironment;
+use Phel\Compiler\NodeEnvironmentInterface;
 use Phel\Exceptions\AnalyzerException;
 use Phel\Lang\Tuple;
 
@@ -14,7 +14,7 @@ final class PhpNewSymbol implements TupleSymbolAnalyzer
 {
     use WithAnalyzer;
 
-    public function analyze(Tuple $tuple, NodeEnvironment $env): PhpNewNode
+    public function analyze(Tuple $tuple, NodeEnvironmentInterface $env): PhpNewNode
     {
         $tupleCount = count($tuple);
         if ($tupleCount < 2) {
@@ -23,13 +23,13 @@ final class PhpNewSymbol implements TupleSymbolAnalyzer
 
         $classExpr = $this->analyzer->analyze(
             $tuple[1],
-            $env->withContext(NodeEnvironment::CONTEXT_EXPRESSION)->withDisallowRecurFrame()
+            $env->withContext(NodeEnvironmentInterface::CONTEXT_EXPRESSION)->withDisallowRecurFrame()
         );
         $args = [];
         for ($i = 2; $i < $tupleCount; $i++) {
             $args[] = $this->analyzer->analyze(
                 $tuple[$i],
-                $env->withContext(NodeEnvironment::CONTEXT_EXPRESSION)->withDisallowRecurFrame()
+                $env->withContext(NodeEnvironmentInterface::CONTEXT_EXPRESSION)->withDisallowRecurFrame()
             );
         }
 

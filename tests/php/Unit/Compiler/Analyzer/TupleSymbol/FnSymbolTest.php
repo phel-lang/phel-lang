@@ -11,12 +11,12 @@ use Phel\Compiler\AnalyzerInterface;
 use Phel\Compiler\Ast\DoNode;
 use Phel\Compiler\Ast\FnNode;
 use Phel\Compiler\Ast\LetNode;
+use Phel\Compiler\NodeEnvironment;
 use Phel\Exceptions\PhelCodeException;
 use Phel\Compiler\GlobalEnvironment;
 use Phel\Lang\Symbol;
 use Phel\Lang\Table;
 use Phel\Lang\Tuple;
-use Phel\Compiler\NodeEnvironment;
 use PHPUnit\Framework\TestCase;
 
 final class FnSymbolTest extends TestCase

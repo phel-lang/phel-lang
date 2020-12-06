@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Phel\Compiler\Ast;
 
-use Phel\Compiler\NodeEnvironment;
+use Phel\Compiler\NodeEnvironmentInterface;
 use Phel\Lang\SourceLocation;
 
 final class PhpArrayUnsetNode extends Node
@@ -13,7 +13,7 @@ final class PhpArrayUnsetNode extends Node
     private Node $accessExpr;
 
     public function __construct(
-        NodeEnvironment $env,
+        NodeEnvironmentInterface $env,
         Node $arrayExpr,
         Node $accessExpr,
         ?SourceLocation $sourceLocation = null

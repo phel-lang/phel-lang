@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Phel\Compiler\Ast;
 
-use Phel\Compiler\NodeEnvironment;
+use Phel\Compiler\NodeEnvironmentInterface;
 use Phel\Lang\SourceLocation;
 
 final class PhpNewNode extends Node
@@ -18,7 +18,7 @@ final class PhpNewNode extends Node
      * @param Node[] $args
      */
     public function __construct(
-        NodeEnvironment $env,
+        NodeEnvironmentInterface $env,
         Node $classExpr,
         array $args,
         ?SourceLocation $sourceLocation = null

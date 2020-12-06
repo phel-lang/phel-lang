@@ -112,7 +112,7 @@ final class GlobalEnvironment implements GlobalEnvironmentInterface
         $this->refers[$inNamespace][$fnName->getName()] = $ns;
     }
 
-    public function resolve(Symbol $name, NodeEnvironment $env): ?Node
+    public function resolve(Symbol $name, NodeEnvironmentInterface $env): ?Node
     {
         $strName = $name->getName();
 
@@ -174,7 +174,7 @@ final class GlobalEnvironment implements GlobalEnvironmentInterface
         return null;
     }
 
-    private function resolveWithAlias(Symbol $name, NodeEnvironment $env): ?GlobalVarNode
+    private function resolveWithAlias(Symbol $name, NodeEnvironmentInterface $env): ?GlobalVarNode
     {
         $alias = $name->getNamespace();
         $finalName = Symbol::create($name->getName());
@@ -196,7 +196,7 @@ final class GlobalEnvironment implements GlobalEnvironmentInterface
         return null;
     }
 
-    private function resolveWithoutAlias(Symbol $name, NodeEnvironment $env): ?GlobalVarNode
+    private function resolveWithoutAlias(Symbol $name, NodeEnvironmentInterface $env): ?GlobalVarNode
     {
         $ns = $this->getNs();
         if (isset($this->refers[$this->ns][$name->getName()])) {

@@ -7,7 +7,7 @@ namespace Phel\Compiler\Analyzer\TupleSymbol;
 use Phel\Compiler\Analyzer\PhpKeywords;
 use Phel\Compiler\Analyzer\WithAnalyzer;
 use Phel\Compiler\Ast\NsNode;
-use Phel\Compiler\NodeEnvironment;
+use Phel\Compiler\NodeEnvironmentInterface;
 use Phel\Exceptions\AnalyzerException;
 use Phel\Lang\Keyword;
 use Phel\Lang\Symbol;
@@ -18,7 +18,7 @@ final class NsSymbol implements TupleSymbolAnalyzer
 {
     use WithAnalyzer;
 
-    public function analyze(Tuple $tuple, NodeEnvironment $env): NsNode
+    public function analyze(Tuple $tuple, NodeEnvironmentInterface $env): NsNode
     {
         $tupleCount = count($tuple);
         if (!($tuple[1] instanceof Symbol)) {

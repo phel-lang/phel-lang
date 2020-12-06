@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Phel\Compiler\Ast;
 
-use Phel\Compiler\NodeEnvironment;
+use Phel\Compiler\NodeEnvironmentInterface;
 use Phel\Lang\SourceLocation;
 use Phel\Lang\Symbol;
 
@@ -27,7 +27,7 @@ final class FnNode extends Node
      * @param Symbol[] $uses
      */
     public function __construct(
-        NodeEnvironment $env,
+        NodeEnvironmentInterface $env,
         array $params,
         Node $body,
         array $uses,

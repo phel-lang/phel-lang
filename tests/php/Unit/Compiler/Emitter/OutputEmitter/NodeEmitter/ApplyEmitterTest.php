@@ -12,6 +12,7 @@ use Phel\Compiler\Ast\TupleNode;
 use Phel\Compiler\CompilerFactory;
 use Phel\Compiler\Emitter\OutputEmitter\NodeEmitter\ApplyEmitter;
 use Phel\Compiler\NodeEnvironment;
+use Phel\Compiler\NodeEnvironmentInterface;
 use Phel\Lang\Symbol;
 use PHPUnit\Framework\TestCase;
 
@@ -31,10 +32,10 @@ final class ApplyEmitterTest extends TestCase
     {
         $node = new PhpVarNode(NodeEnvironment::empty(), '+');
         $args = [
-            new TupleNode(NodeEnvironment::empty()->withContext(NodeEnvironment::CONTEXT_EXPRESSION), [
-                new LiteralNode(NodeEnvironment::empty()->withContext(NodeEnvironment::CONTEXT_EXPRESSION), 2),
-                new LiteralNode(NodeEnvironment::empty()->withContext(NodeEnvironment::CONTEXT_EXPRESSION), 3),
-                new LiteralNode(NodeEnvironment::empty()->withContext(NodeEnvironment::CONTEXT_EXPRESSION), 4),
+            new TupleNode(NodeEnvironment::empty()->withContext(NodeEnvironmentInterface::CONTEXT_EXPRESSION), [
+                new LiteralNode(NodeEnvironment::empty()->withContext(NodeEnvironmentInterface::CONTEXT_EXPRESSION), 2),
+                new LiteralNode(NodeEnvironment::empty()->withContext(NodeEnvironmentInterface::CONTEXT_EXPRESSION), 3),
+                new LiteralNode(NodeEnvironment::empty()->withContext(NodeEnvironmentInterface::CONTEXT_EXPRESSION), 4),
             ]),
         ];
 
@@ -50,9 +51,9 @@ final class ApplyEmitterTest extends TestCase
     {
         $node = new PhpVarNode(NodeEnvironment::empty(), 'str');
         $args = [
-            new LiteralNode(NodeEnvironment::empty()->withContext(NodeEnvironment::CONTEXT_EXPRESSION), 'abc'),
-            new TupleNode(NodeEnvironment::empty()->withContext(NodeEnvironment::CONTEXT_EXPRESSION), [
-                new LiteralNode(NodeEnvironment::empty()->withContext(NodeEnvironment::CONTEXT_EXPRESSION), 'def'),
+            new LiteralNode(NodeEnvironment::empty()->withContext(NodeEnvironmentInterface::CONTEXT_EXPRESSION), 'abc'),
+            new TupleNode(NodeEnvironment::empty()->withContext(NodeEnvironmentInterface::CONTEXT_EXPRESSION), [
+                new LiteralNode(NodeEnvironment::empty()->withContext(NodeEnvironmentInterface::CONTEXT_EXPRESSION), 'def'),
             ]),
         ];
 
@@ -67,15 +68,15 @@ final class ApplyEmitterTest extends TestCase
         $fnNode = new FnNode(
             NodeEnvironment::empty(),
             [Symbol::create('x')],
-            new PhpVarNode(NodeEnvironment::empty()->withContext(NodeEnvironment::CONTEXT_RETURN), 'x'),
+            new PhpVarNode(NodeEnvironment::empty()->withContext(NodeEnvironmentInterface::CONTEXT_RETURN), 'x'),
             [],
             $isVariadic = true,
             $recurs = false
         );
 
         $args = [
-            new TupleNode(NodeEnvironment::empty()->withContext(NodeEnvironment::CONTEXT_EXPRESSION), [
-                new LiteralNode(NodeEnvironment::empty()->withContext(NodeEnvironment::CONTEXT_EXPRESSION), 1),
+            new TupleNode(NodeEnvironment::empty()->withContext(NodeEnvironmentInterface::CONTEXT_EXPRESSION), [
+                new LiteralNode(NodeEnvironment::empty()->withContext(NodeEnvironmentInterface::CONTEXT_EXPRESSION), 1),
             ]),
         ];
 

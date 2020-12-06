@@ -7,7 +7,7 @@ namespace Phel\Compiler\Analyzer\TupleSymbol;
 use Phel\Compiler\Analyzer\WithAnalyzer;
 use Phel\Compiler\Ast\DefNode;
 use Phel\Compiler\Ast\Node;
-use Phel\Compiler\NodeEnvironment;
+use Phel\Compiler\NodeEnvironmentInterface;
 use Phel\Exceptions\AnalyzerException;
 use Phel\Exceptions\PhelCodeException;
 use Phel\Lang\AbstractType;
@@ -25,7 +25,7 @@ final class DefSymbol implements TupleSymbolAnalyzer
     /**
      * @throws PhelCodeException
      */
-    public function analyze(Tuple $tuple, NodeEnvironment $env): DefNode
+    public function analyze(Tuple $tuple, NodeEnvironmentInterface $env): DefNode
     {
         $this->ensureDefIsAllowed($tuple, $env);
         $this->verifySizeOfTuple($tuple);
@@ -51,7 +51,7 @@ final class DefSymbol implements TupleSymbolAnalyzer
         );
     }
 
-    private function ensureDefIsAllowed(Tuple $tuple, NodeEnvironment $env): void
+    private function ensureDefIsAllowed(Tuple $tuple, NodeEnvironmentInterface $env): void
     {
         if (!$env->isDefAllowed()) {
             throw AnalyzerException::withLocation("'def inside of a 'def is forbidden", $tuple);
@@ -119,11 +119,11 @@ final class DefSymbol implements TupleSymbolAnalyzer
     /**
      * @param AbstractType|string|float|int|bool|null $init
      */
-    private function analyzeInit($init, NodeEnvironment $env, string $namespace, Symbol $nameSymbol): Node
+    private function analyzeInit($init, NodeEnvironmentInterface $env, string $namespace, Symbol $nameSymbol): Node
     {
         $initEnv = $env
             ->withBoundTo($namespace . '\\' . $nameSymbol)
-            ->withContext(NodeEnvironment::CONTEXT_EXPRESSION)
+            ->withContext(NodeEnvironmentInterface::CONTEXT_EXPRESSION)
             ->withDisallowRecurFrame()
             ->withDefAllowed(false);
 

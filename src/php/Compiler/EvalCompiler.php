@@ -60,7 +60,7 @@ final class EvalCompiler implements EvalCompilerInterface
         try {
             $node = $this->analyzer->analyze(
                 $readerResult->getAst(),
-                NodeEnvironment::empty()->withContext(NodeEnvironment::CONTEXT_RETURN)
+                NodeEnvironment::empty()->withContext(NodeEnvironmentInterface::CONTEXT_RETURN)
             );
 
             $code = $this->emitter->emitNodeAsString($node);

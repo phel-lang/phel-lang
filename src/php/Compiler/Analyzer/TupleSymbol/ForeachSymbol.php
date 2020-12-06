@@ -7,7 +7,7 @@ namespace Phel\Compiler\Analyzer\TupleSymbol;
 use Phel\Compiler\Analyzer\TupleSymbol\ReadModel\ForeachSymbolTuple;
 use Phel\Compiler\Analyzer\WithAnalyzer;
 use Phel\Compiler\Ast\ForeachNode;
-use Phel\Compiler\NodeEnvironment;
+use Phel\Compiler\NodeEnvironmentInterface;
 use Phel\Exceptions\AnalyzerException;
 use Phel\Lang\Symbol;
 use Phel\Lang\Tuple;
@@ -16,7 +16,7 @@ final class ForeachSymbol implements TupleSymbolAnalyzer
 {
     use WithAnalyzer;
 
-    public function analyze(Tuple $tuple, NodeEnvironment $env): ForeachNode
+    public function analyze(Tuple $tuple, NodeEnvironmentInterface $env): ForeachNode
     {
         $this->verifyArguments($tuple);
 
@@ -26,7 +26,7 @@ final class ForeachSymbol implements TupleSymbolAnalyzer
 
         $bodyExpr = $this->analyzer->analyze(
             $this->buildTupleBody($foreachSymbolTuple->lets(), $tuple),
-            $foreachSymbolTuple->bodyEnv()->withContext(NodeEnvironment::CONTEXT_STATEMENT)
+            $foreachSymbolTuple->bodyEnv()->withContext(NodeEnvironmentInterface::CONTEXT_STATEMENT)
         );
 
         return new ForeachNode(
@@ -56,7 +56,7 @@ final class ForeachSymbol implements TupleSymbolAnalyzer
         }
     }
 
-    private function buildForeachSymbolTuple(Tuple $foreachTuple, NodeEnvironment $env): ForeachSymbolTuple
+    private function buildForeachSymbolTuple(Tuple $foreachTuple, NodeEnvironmentInterface $env): ForeachSymbolTuple
     {
         if (count($foreachTuple) === 2) {
             return $this->buildForeachTupleWhen2Args($foreachTuple, $env);
@@ -65,7 +65,7 @@ final class ForeachSymbol implements TupleSymbolAnalyzer
         return $this->buildForeachTupleWhen3Args($foreachTuple, $env);
     }
 
-    private function buildForeachTupleWhen2Args(Tuple $foreachTuple, NodeEnvironment $env): ForeachSymbolTuple
+    private function buildForeachTupleWhen2Args(Tuple $foreachTuple, NodeEnvironmentInterface $env): ForeachSymbolTuple
     {
         $lets = [];
         $valueSymbol = $foreachTuple[0];
@@ -79,13 +79,13 @@ final class ForeachSymbol implements TupleSymbolAnalyzer
         $bodyEnv = $env->withMergedLocals([$valueSymbol]);
         $listExpr = $this->analyzer->analyze(
             $foreachTuple[1],
-            $env->withContext(NodeEnvironment::CONTEXT_EXPRESSION)
+            $env->withContext(NodeEnvironmentInterface::CONTEXT_EXPRESSION)
         );
 
         return new ForeachSymbolTuple($lets, $bodyEnv, $listExpr, $valueSymbol);
     }
 
-    private function buildForeachTupleWhen3Args(Tuple $foreachTuple, NodeEnvironment $env): ForeachSymbolTuple
+    private function buildForeachTupleWhen3Args(Tuple $foreachTuple, NodeEnvironmentInterface $env): ForeachSymbolTuple
     {
         $lets = [];
         [$keySymbol, $valueSymbol] = $foreachTuple;
@@ -107,7 +107,7 @@ final class ForeachSymbol implements TupleSymbolAnalyzer
         $bodyEnv = $env->withMergedLocals([$valueSymbol, $keySymbol]);
         $listExpr = $this->analyzer->analyze(
             $foreachTuple[2],
-            $env->withContext(NodeEnvironment::CONTEXT_EXPRESSION)
+            $env->withContext(NodeEnvironmentInterface::CONTEXT_EXPRESSION)
         );
 
         return new ForeachSymbolTuple($lets, $bodyEnv, $listExpr, $valueSymbol, $keySymbol);

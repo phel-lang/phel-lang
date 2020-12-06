@@ -4,21 +4,21 @@ declare(strict_types=1);
 
 namespace Phel\Compiler\Ast;
 
-use Phel\Compiler\NodeEnvironment;
+use Phel\Compiler\NodeEnvironmentInterface;
 use Phel\Lang\SourceLocation;
 
 abstract class Node
 {
-    private NodeEnvironment $env;
+    private NodeEnvironmentInterface $env;
     private ?SourceLocation $startSourceLocation;
 
-    public function __construct(NodeEnvironment $env, ?SourceLocation $startSourceLocation = null)
+    public function __construct(NodeEnvironmentInterface $env, ?SourceLocation $startSourceLocation = null)
     {
         $this->env = $env;
         $this->startSourceLocation = $startSourceLocation;
     }
 
-    public function getEnv(): NodeEnvironment
+    public function getEnv(): NodeEnvironmentInterface
     {
         return $this->env;
     }
