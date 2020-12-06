@@ -31,9 +31,9 @@ final class EvalCompiler implements EvalCompilerInterface
     /**
      * Evaluates a provided Phel code.
      *
-     * @return mixed The result of the executed code
-     *
      * @throws CompilerException|ReaderException
+     *
+     * @return mixed The result of the executed code
      */
     public function eval(string $code)
     {
@@ -51,9 +51,9 @@ final class EvalCompiler implements EvalCompilerInterface
     }
 
     /**
-     * @return mixed
-     *
      * @throws CompilerException
+     *
+     * @return mixed
      */
     private function evalNode(ReaderResult $readerResult)
     {

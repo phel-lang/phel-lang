@@ -118,7 +118,9 @@ final class LoopSymbol implements TupleSymbolAnalyzer
         );
     }
 
-    /** @return BindingNode[] */
+    /**
+     * @return BindingNode[]
+     */
     private function analyzeBindings(Tuple $tuple, NodeEnvironment $env): array
     {
         $tupleCount = count($tuple);

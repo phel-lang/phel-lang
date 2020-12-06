@@ -12,9 +12,9 @@ interface EvalCompilerInterface
     /**
      * Evaluates a provided Phel code.
      *
-     * @return mixed The result of the executed code
-     *
      * @throws CompilerException|ReaderException
+     *
+     * @return mixed The result of the executed code
      */
     public function eval(string $code);
 }

@@ -141,7 +141,9 @@ final class FnSymbolTest extends TestCase
         $this->analyze($tuple);
     }
 
-    /** @dataProvider providerGetParams */
+    /**
+     * @dataProvider providerGetParams
+     */
     public function testGetParams(Tuple $tuple, array $expectedParams): void
     {
         $node = $this->analyze($tuple);
@@ -181,7 +183,9 @@ final class FnSymbolTest extends TestCase
         ];
     }
 
-    /** @dataProvider providerGetBody */
+    /**
+     * @dataProvider providerGetBody
+     */
     public function testGetBody(Tuple $tuple, string $expectedBodyInstanceOf): void
     {
         $node = $this->analyze($tuple);

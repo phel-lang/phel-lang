@@ -19,9 +19,7 @@ final class NodeEnvironment
      */
     private array $locals;
 
-    /**
-     * The current context (Expression, Statement or Return).
-     */
+    /** The current context (Expression, Statement or Return). */
     private string $context;
 
     /**
@@ -38,14 +36,10 @@ final class NodeEnvironment
      */
     private array $recurFrames;
 
-    /**
-     * A variable this is bound to.
-     */
+    /** A variable this is bound to. */
     private string $boundTo;
 
-    /**
-     * Def inside of def should not work. This flag help us to keep track of this.
-     */
+    /** Def inside of def should not work. This flag help us to keep track of this. */
     private bool $defAllowed = true;
 
     /**

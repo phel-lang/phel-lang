@@ -90,9 +90,9 @@ final class Reader implements ReaderInterface
     }
 
     /**
-     * @return AbstractType|string|float|int|bool|null
-     *
      * @throws ReaderException
+     *
+     * @return AbstractType|string|float|int|bool|null
      */
     public function readExpression(Generator $tokenStream)
     {

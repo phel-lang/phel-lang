@@ -34,7 +34,9 @@ final class Emitter implements EmitterInterface
         return $this->outputEmitter->emitNodeAsString($node);
     }
 
-    /** @return mixed */
+    /**
+     * @return mixed
+     */
     public function evalCode(string $code)
     {
         return $this->evalEmitter->eval($code);

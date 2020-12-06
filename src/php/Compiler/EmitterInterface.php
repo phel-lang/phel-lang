@@ -12,6 +12,8 @@ interface EmitterInterface
 
     public function emitNodeAsString(Node $node): string;
 
-    /** @return mixed */
+    /**
+     * @return mixed
+     */
     public function evalCode(string $code);
 }

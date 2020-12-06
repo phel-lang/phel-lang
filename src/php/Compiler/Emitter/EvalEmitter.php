@@ -12,9 +12,9 @@ final class EvalEmitter implements EvalEmitterInterface
     /**
      * Evaluates the code and returns the evaluated value.
      *
-     * @return mixed
-     *
      * @throws RuntimeException|Throwable
+     *
+     * @return mixed
      */
     public function eval(string $code)
     {
