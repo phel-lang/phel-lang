@@ -8,14 +8,10 @@ use Exception;
 
 final class VLQ
 {
-    /**
-     * @var array<int, string>
-     */
+    /** @var array<int, string> */
     private array $integerToChar = [];
 
-    /**
-     * @var array<string, int>
-     */
+    /** @var array<string, int> */
     private array $charToInteger = [];
 
     private const CHARS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/=';
