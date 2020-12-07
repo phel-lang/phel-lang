@@ -1,10 +1,6 @@
 # TITLE (short present tense imperative phrase, like a git commit message.)
 
-## Status
-
-(proposed, accepted, rejected, deprecated, etc.)
-
-## Context
+## Motivation
 
 What is the issue that we're seeing that is motivating this decision or change.
 

@@ -30,6 +30,19 @@ You are more than welcome to contribute to Phel. You can do so by either:
 * contributing changes
 * enrich the documentation
 
+### Substantial changes
+
+Substantial changes are architecture decisions, documentation restructuring, breaking changes, etc.
+But not Bug Reports, Bug Fixes, Unit Tests, etc.
+
+#### How to contribute a substantial change
+
+In order to make a substantial change it is a good practice to discuss the idea before implementing it.
+
+- An ADR or RFC can be proposed with an issue.
+- The issue is the place to discuss everything.
+- The result of the issue can be an ADR file (under the [adrs](./adrs) directory), but also just as CS Fixer rule to check then during CI.
+
 ## Development
 
 ### Requirements
@@ -67,18 +80,6 @@ composer test-all      # psalm, compiler & core tests after each other
 > composer test-compiler
 > composer test-core
 ```
-
-### Architecture Decision Record (ADR) 
-
-These helps us to bring more structure to our code. However, the most important thing with ADRs or RFCs is the process
-on how they are created, discussed, processed and so forth. Just adding ADR file will not make a difference. 
-Additionally, we need a way to track if all ADRs are full filled when new code is added or changed.
-
-#### Adding an ADR Process
-
-- An ADR or RFC can be proposed with an issue.
-- The issue is the place to discuss everything.
-- The result of the issue can be an ADR file (under the [adrs](./adrs) directory), but also just as CS Fixer rule to check then during CI.
 
 ### Build the documentation
 
