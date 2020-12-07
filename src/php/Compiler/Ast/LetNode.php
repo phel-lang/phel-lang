@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Phel\Compiler\Ast;
 
-use Phel\Compiler\NodeEnvironment;
+use Phel\Compiler\NodeEnvironmentInterface;
 use Phel\Lang\SourceLocation;
 
 final class LetNode extends Node
@@ -20,7 +20,7 @@ final class LetNode extends Node
      * @param BindingNode[] $bindings
      */
     public function __construct(
-        NodeEnvironment $env,
+        NodeEnvironmentInterface $env,
         array $bindings,
         Node $bodyExpr,
         bool $isLoop,

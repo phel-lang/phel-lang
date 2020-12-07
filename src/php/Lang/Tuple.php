@@ -119,6 +119,7 @@ final class Tuple extends AbstractType implements
      * @param mixed $value The value to set on $index
      *
      * @return Tuple A copy of the tuple with an update value
+     *
      * @internal
      */
     public function update(int $offset, $value): Tuple

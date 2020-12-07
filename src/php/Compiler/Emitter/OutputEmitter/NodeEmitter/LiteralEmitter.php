@@ -7,7 +7,7 @@ namespace Phel\Compiler\Emitter\OutputEmitter\NodeEmitter;
 use Phel\Compiler\Ast\LiteralNode;
 use Phel\Compiler\Ast\Node;
 use Phel\Compiler\Emitter\OutputEmitter\NodeEmitter;
-use Phel\Compiler\NodeEnvironment;
+use Phel\Compiler\NodeEnvironmentInterface;
 
 final class LiteralEmitter implements NodeEmitter
 {
@@ -17,7 +17,7 @@ final class LiteralEmitter implements NodeEmitter
     {
         assert($node instanceof LiteralNode);
 
-        if (!($node->getEnv()->getContext() === NodeEnvironment::CONTEXT_STATEMENT)) {
+        if (!($node->getEnv()->getContext() === NodeEnvironmentInterface::CONTEXT_STATEMENT)) {
             $this->outputEmitter->emitContextPrefix($node->getEnv(), $node->getStartSourceLocation());
             $this->outputEmitter->emitLiteral($node->getValue());
             $this->outputEmitter->emitContextSuffix($node->getEnv(), $node->getStartSourceLocation());

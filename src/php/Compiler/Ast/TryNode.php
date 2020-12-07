@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Phel\Compiler\Ast;
 
-use Phel\Compiler\NodeEnvironment;
+use Phel\Compiler\NodeEnvironmentInterface;
 use Phel\Lang\SourceLocation;
 
 final class TryNode extends Node
@@ -17,7 +17,7 @@ final class TryNode extends Node
     private ?Node $finally;
 
     public function __construct(
-        NodeEnvironment $env,
+        NodeEnvironmentInterface $env,
         Node $body,
         array $catches,
         ?Node $finally = null,

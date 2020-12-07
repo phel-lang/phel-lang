@@ -9,7 +9,7 @@ use Phel\Compiler\Analyzer\WithAnalyzer;
 use Phel\Compiler\Ast\CallNode;
 use Phel\Compiler\Ast\GlobalVarNode;
 use Phel\Compiler\Ast\Node;
-use Phel\Compiler\NodeEnvironment;
+use Phel\Compiler\NodeEnvironmentInterface;
 use Phel\Exceptions\AnalyzerException;
 use Phel\Lang\AbstractType;
 use Phel\Lang\Tuple;
@@ -18,11 +18,11 @@ final class InvokeSymbol implements TupleSymbolAnalyzer
 {
     use WithAnalyzer;
 
-    public function analyze(Tuple $tuple, NodeEnvironment $env): Node
+    public function analyze(Tuple $tuple, NodeEnvironmentInterface $env): Node
     {
         $f = $this->analyzer->analyze(
             $tuple[0],
-            $env->withContext(NodeEnvironment::CONTEXT_EXPRESSION)->withDisallowRecurFrame()
+            $env->withContext(NodeEnvironmentInterface::CONTEXT_EXPRESSION)->withDisallowRecurFrame()
         );
 
         if ($f instanceof GlobalVarNode && $f->isMacro()) {
@@ -37,7 +37,7 @@ final class InvokeSymbol implements TupleSymbolAnalyzer
         );
     }
 
-    private function globalMacro(Tuple $tuple, NodeEnvironment $env): Node
+    private function globalMacro(Tuple $tuple, NodeEnvironmentInterface $env): Node
     {
         return $this->analyzer->analyzeMacro($this->macroExpand($tuple, $env), $env);
     }
@@ -45,7 +45,7 @@ final class InvokeSymbol implements TupleSymbolAnalyzer
     /**
      * @return AbstractType|string|float|int|bool|null
      */
-    private function macroExpand(Tuple $tuple, NodeEnvironment $env)
+    private function macroExpand(Tuple $tuple, NodeEnvironmentInterface $env)
     {
         $tupleCount = count($tuple);
         /** @psalm-suppress PossiblyNullArgument */
@@ -80,7 +80,9 @@ final class InvokeSymbol implements TupleSymbolAnalyzer
         throw AnalyzerException::withLocation('This is not macro expandable: ' . get_class($node), $tuple);
     }
 
-    /** @param AbstractType|string|float|int|bool|null $x */
+    /**
+     * @param AbstractType|string|float|int|bool|null $x
+     */
     private function enrichLocation($x, AbstractType $parent): void
     {
         if ($x instanceof Tuple) {
@@ -110,13 +112,13 @@ final class InvokeSymbol implements TupleSymbolAnalyzer
         }
     }
 
-    private function arguments(Tuple $tuple, NodeEnvironment $env): array
+    private function arguments(Tuple $tuple, NodeEnvironmentInterface $env): array
     {
         $arguments = [];
         for ($i = 1, $iMax = count($tuple); $i < $iMax; $i++) {
             $arguments[] = $this->analyzer->analyze(
                 $tuple[$i],
-                $env->withContext(NodeEnvironment::CONTEXT_EXPRESSION)->withDisallowRecurFrame()
+                $env->withContext(NodeEnvironmentInterface::CONTEXT_EXPRESSION)->withDisallowRecurFrame()
             );
         }
 

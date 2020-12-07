@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Phel\Compiler\Emitter;
 
 use Phel\Compiler\Ast\Node;
-use Phel\Compiler\NodeEnvironment;
+use Phel\Compiler\NodeEnvironmentInterface;
 use Phel\Lang\AbstractType;
 use Phel\Lang\SourceLocation;
 use Phel\Lang\Symbol;
@@ -26,11 +26,11 @@ interface OutputEmitterInterface
 
     public function emitGlobalBaseMeta(string $namespace, Symbol $name): void;
 
-    public function emitContextPrefix(NodeEnvironment $env, ?SourceLocation $sl = null): void;
+    public function emitContextPrefix(NodeEnvironmentInterface $env, ?SourceLocation $sl = null): void;
 
-    public function emitContextSuffix(NodeEnvironment $env, ?SourceLocation $sl = null): void;
+    public function emitContextSuffix(NodeEnvironmentInterface $env, ?SourceLocation $sl = null): void;
 
-    public function emitFnWrapPrefix(NodeEnvironment $env, ?SourceLocation $sl = null): void;
+    public function emitFnWrapPrefix(NodeEnvironmentInterface $env, ?SourceLocation $sl = null): void;
 
     public function emitPhpVariable(
         Symbol $symbol,

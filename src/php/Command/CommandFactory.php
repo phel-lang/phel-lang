@@ -8,24 +8,24 @@ use Phel\Command\Repl\ColorStyle;
 use Phel\Command\Repl\ReplCommandSystemIo;
 use Phel\Command\Shared\CommandSystemIo;
 use Phel\Command\Shared\NamespaceExtractor;
-use Phel\Compiler\CompilerFactory;
-use Phel\Compiler\GlobalEnvironment;
+use Phel\Command\Shared\NamespaceExtractorInterface;
+use Phel\Compiler\CompilerFactoryInterface;
 use Phel\Compiler\GlobalEnvironmentInterface;
 use Phel\Exceptions\TextExceptionPrinter;
 use Phel\RuntimeInterface;
 
-final class CommandFactory
+final class CommandFactory implements CommandFactoryInterface
 {
     private string $currentDir;
-    private CompilerFactory $compilerFactory;
+    private CompilerFactoryInterface $compilerFactory;
 
-    public function __construct(string $currentDir, CompilerFactory $compilerFactory)
+    public function __construct(string $currentDir, CompilerFactoryInterface $compilerFactory)
     {
         $this->currentDir = $currentDir;
         $this->compilerFactory = $compilerFactory;
     }
 
-    public function createReplCommand(GlobalEnvironment $globalEnv): ReplCommand
+    public function createReplCommand(GlobalEnvironmentInterface $globalEnv): ReplCommand
     {
         return new ReplCommand(
             new ReplCommandSystemIo($this->currentDir . '.phel-repl-history'),
@@ -53,7 +53,7 @@ final class CommandFactory
         );
     }
 
-    public function createNamespaceExtractor(GlobalEnvironmentInterface $globalEnv): NamespaceExtractor
+    private function createNamespaceExtractor(GlobalEnvironmentInterface $globalEnv): NamespaceExtractorInterface
     {
         return new NamespaceExtractor(
             $this->compilerFactory->createLexer(),

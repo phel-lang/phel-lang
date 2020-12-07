@@ -85,7 +85,9 @@ final class FnSymbolTuple
         }
     }
 
-    /** @param mixed $param */
+    /**
+     * @param mixed $param
+     */
     private function buildParamsByState($param): void
     {
         switch ($this->buildParamsState) {
@@ -100,7 +102,9 @@ final class FnSymbolTuple
         }
     }
 
-    /** @param mixed $param */
+    /**
+     * @param mixed $param
+     */
     private function buildParamsStart($param): void
     {
         if ($param instanceof Symbol) {
@@ -120,13 +124,17 @@ final class FnSymbolTuple
         }
     }
 
-    /** @param mixed $x */
+    /**
+     * @param mixed $x
+     */
     private function isSymWithName($x, string $name): bool
     {
         return $x instanceof Symbol && $x->getName() === $name;
     }
 
-    /** @param mixed $param */
+    /**
+     * @param mixed $param
+     */
     private function buildParamsRest($param): void
     {
         $this->buildParamsState = self::STATE_DONE;

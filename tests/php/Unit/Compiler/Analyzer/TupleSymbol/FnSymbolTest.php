@@ -11,12 +11,12 @@ use Phel\Compiler\AnalyzerInterface;
 use Phel\Compiler\Ast\DoNode;
 use Phel\Compiler\Ast\FnNode;
 use Phel\Compiler\Ast\LetNode;
+use Phel\Compiler\NodeEnvironment;
 use Phel\Exceptions\PhelCodeException;
 use Phel\Compiler\GlobalEnvironment;
 use Phel\Lang\Symbol;
 use Phel\Lang\Table;
 use Phel\Lang\Tuple;
-use Phel\Compiler\NodeEnvironment;
 use PHPUnit\Framework\TestCase;
 
 final class FnSymbolTest extends TestCase
@@ -141,7 +141,9 @@ final class FnSymbolTest extends TestCase
         $this->analyze($tuple);
     }
 
-    /** @dataProvider providerGetParams */
+    /**
+     * @dataProvider providerGetParams
+     */
     public function testGetParams(Tuple $tuple, array $expectedParams): void
     {
         $node = $this->analyze($tuple);
@@ -181,7 +183,9 @@ final class FnSymbolTest extends TestCase
         ];
     }
 
-    /** @dataProvider providerGetBody */
+    /**
+     * @dataProvider providerGetBody
+     */
     public function testGetBody(Tuple $tuple, string $expectedBodyInstanceOf): void
     {
         $node = $this->analyze($tuple);

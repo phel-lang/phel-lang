@@ -7,7 +7,7 @@ namespace Phel\Compiler\Emitter\OutputEmitter\NodeEmitter;
 use Phel\Compiler\Ast\DoNode;
 use Phel\Compiler\Ast\Node;
 use Phel\Compiler\Emitter\OutputEmitter\NodeEmitter;
-use Phel\Compiler\NodeEnvironment;
+use Phel\Compiler\NodeEnvironmentInterface;
 
 final class DoEmitter implements NodeEmitter
 {
@@ -17,7 +17,7 @@ final class DoEmitter implements NodeEmitter
     {
         assert($node instanceof DoNode);
 
-        $wrapFn = count($node->getStmts()) > 0 && $node->getEnv()->getContext() === NodeEnvironment::CONTEXT_EXPRESSION;
+        $wrapFn = count($node->getStmts()) > 0 && $node->getEnv()->getContext() === NodeEnvironmentInterface::CONTEXT_EXPRESSION;
         if ($wrapFn) {
             $this->outputEmitter->emitFnWrapPrefix($node->getEnv(), $node->getStartSourceLocation());
         }

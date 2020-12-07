@@ -8,11 +8,11 @@ use Generator;
 use Phel\Compiler\Analyzer;
 use Phel\Compiler\Analyzer\TupleSymbol\IfSymbol;
 use Phel\Compiler\Ast\IfNode;
+use Phel\Compiler\NodeEnvironment;
 use Phel\Exceptions\PhelCodeException;
 use Phel\Compiler\GlobalEnvironment;
 use Phel\Lang\Symbol;
 use Phel\Lang\Tuple;
-use Phel\Compiler\NodeEnvironment;
 use PHPUnit\Framework\TestCase;
 
 final class IfSymbolTest extends TestCase

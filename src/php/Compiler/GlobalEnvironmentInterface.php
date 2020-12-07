@@ -30,7 +30,7 @@ interface GlobalEnvironmentInterface
 
     public function addRefer(string $inNamespace, Symbol $fnName, Symbol $ns): void;
 
-    public function resolve(Symbol $name, NodeEnvironment $env): ?Node;
+    public function resolve(Symbol $name, NodeEnvironmentInterface $env): ?Node;
 
     public function setAllowPrivateAccess(bool $allowPrivateAccess): void;
 }

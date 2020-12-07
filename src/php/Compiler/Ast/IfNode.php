@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Phel\Compiler\Ast;
 
-use Phel\Compiler\NodeEnvironment;
+use Phel\Compiler\NodeEnvironmentInterface;
 use Phel\Lang\SourceLocation;
 
 final class IfNode extends Node
@@ -14,7 +14,7 @@ final class IfNode extends Node
     private Node $elseExpr;
 
     public function __construct(
-        NodeEnvironment $env,
+        NodeEnvironmentInterface $env,
         Node $testExpr,
         Node $thenExpr,
         Node $elseExpr,

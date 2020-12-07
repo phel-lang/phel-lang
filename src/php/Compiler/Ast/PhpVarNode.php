@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Phel\Compiler\Ast;
 
-use Phel\Compiler\NodeEnvironment;
+use Phel\Compiler\NodeEnvironmentInterface;
 use Phel\Lang\SourceLocation;
 
 final class PhpVarNode extends Node
@@ -47,7 +47,7 @@ final class PhpVarNode extends Node
 
     private string $name;
 
-    public function __construct(NodeEnvironment $env, string $name, ?SourceLocation $sourceLocation = null)
+    public function __construct(NodeEnvironmentInterface $env, string $name, ?SourceLocation $sourceLocation = null)
     {
         parent::__construct($env, $sourceLocation);
         $this->name = $name;

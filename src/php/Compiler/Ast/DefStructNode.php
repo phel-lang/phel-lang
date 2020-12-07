@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Phel\Compiler\Ast;
 
-use Phel\Compiler\NodeEnvironment;
+use Phel\Compiler\NodeEnvironmentInterface;
 use Phel\Lang\Keyword;
 use Phel\Lang\SourceLocation;
 use Phel\Lang\Symbol;
@@ -19,7 +19,7 @@ final class DefStructNode extends Node
     private array $params;
 
     public function __construct(
-        NodeEnvironment $env,
+        NodeEnvironmentInterface $env,
         string $namespace,
         Symbol $name,
         array $params,

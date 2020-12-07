@@ -9,7 +9,7 @@ use Phel\Compiler\Emitter\OutputEmitter\LiteralEmitter;
 use Phel\Compiler\Emitter\OutputEmitter\Munge;
 use Phel\Compiler\Emitter\OutputEmitter\NodeEmitterFactory;
 use Phel\Compiler\Emitter\OutputEmitter\SourceMap\SourceMapGenerator;
-use Phel\Compiler\NodeEnvironment;
+use Phel\Compiler\NodeEnvironmentInterface;
 use Phel\Lang\AbstractType;
 use Phel\Lang\SourceLocation;
 use Phel\Lang\Symbol;
@@ -139,21 +139,21 @@ final class OutputEmitter implements OutputEmitterInterface
         );
     }
 
-    public function emitContextPrefix(NodeEnvironment $env, ?SourceLocation $sl = null): void
+    public function emitContextPrefix(NodeEnvironmentInterface $env, ?SourceLocation $sl = null): void
     {
-        if ($env->getContext() === NodeEnvironment::CONTEXT_RETURN) {
+        if ($env->getContext() === NodeEnvironmentInterface::CONTEXT_RETURN) {
             $this->emitStr('return ', $sl);
         }
     }
 
-    public function emitContextSuffix(NodeEnvironment $env, ?SourceLocation $sl = null): void
+    public function emitContextSuffix(NodeEnvironmentInterface $env, ?SourceLocation $sl = null): void
     {
-        if ($env->getContext() !== NodeEnvironment::CONTEXT_EXPRESSION) {
+        if ($env->getContext() !== NodeEnvironmentInterface::CONTEXT_EXPRESSION) {
             $this->emitStr(';', $sl);
         }
     }
 
-    public function emitFnWrapPrefix(NodeEnvironment $env, ?SourceLocation $sl = null): void
+    public function emitFnWrapPrefix(NodeEnvironmentInterface $env, ?SourceLocation $sl = null): void
     {
         $this->emitStr('(function()', $sl);
         if (count($env->getLocals()) > 0) {
