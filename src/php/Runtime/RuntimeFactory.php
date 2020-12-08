@@ -17,6 +17,15 @@ final class RuntimeFactory
 {
     private static ?RuntimeInterface $instance = null;
 
+    public static function getInstance(): RuntimeInterface
+    {
+        if (null === self::$instance) {
+            throw new RuntimeException('Runtime must first be initialized. Call Runtime::initialize()');
+        }
+
+        return self::$instance;
+    }
+
     public static function initialize(
         ?GlobalEnvironmentInterface $globalEnv = null,
         ?string $cacheDirectory = null
@@ -64,14 +73,5 @@ final class RuntimeFactory
     private static function createCompilerFactory(): CompilerFactoryInterface
     {
         return new CompilerFactory();
-    }
-
-    public static function getInstance(): RuntimeInterface
-    {
-        if (null === self::$instance) {
-            throw new RuntimeException('Runtime must first be initialized. Call Runtime::initialize()');
-        }
-
-        return self::$instance;
     }
 }

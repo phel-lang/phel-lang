@@ -36,7 +36,7 @@ class Runtime implements RuntimeInterface
         ?string $cacheDirectory = null
     ) {
         set_exception_handler([$this, 'exceptionHandler']);
-        $this->addPath('phel\\', [__DIR__ . '/../phel']);
+        $this->addPath('phel\\', [__DIR__ . '/../../phel']);
 
         $this->globalEnv = $globalEnv;
         $this->exceptionPrinter = $exceptionPrinter;
