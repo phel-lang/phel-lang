@@ -3,6 +3,6 @@
 
 (def x 1)
 --PHP--
-\Phel\Runtime::getInstance()->getEnv()->setNs("my\\ns");
+\Phel\Runtime\RuntimeFactory::getInstance()->getEnv()->setNs("my\\ns");
 $GLOBALS["__phel"]["phel\\core"]["*ns*"] = "\\my\\ns";
 $GLOBALS["__phel"]["my\\ns"]["x"] = 1;

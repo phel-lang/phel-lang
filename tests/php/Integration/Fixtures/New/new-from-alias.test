@@ -4,6 +4,6 @@
 
 (php/new DateTimeImmutable "2020-03-22")
 --PHP--
-\Phel\Runtime::getInstance()->getEnv()->setNs("test\\abc");
+\Phel\Runtime\RuntimeFactory::getInstance()->getEnv()->setNs("test\\abc");
 $GLOBALS["__phel"]["phel\\core"]["*ns*"] = "\\test\\abc";
 (new \DateTimeImmutable("2020-03-22"));

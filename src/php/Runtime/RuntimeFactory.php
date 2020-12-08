@@ -35,20 +35,6 @@ final class RuntimeFactory
         return self::$instance;
     }
 
-    private static function createExceptionPrinter(): ExceptionPrinterInterface
-    {
-        if (PHP_SAPI === 'cli') {
-            return TextExceptionPrinter::readableWithStyle();
-        }
-
-        return HtmlExceptionPrinter::create();
-    }
-
-    private static function createCompilerFactory(): CompilerFactoryInterface
-    {
-        return new CompilerFactory();
-    }
-
     /**
      * @interal
      */
@@ -64,6 +50,20 @@ final class RuntimeFactory
         );
 
         return self::$instance;
+    }
+
+    private static function createExceptionPrinter(): ExceptionPrinterInterface
+    {
+        if (PHP_SAPI === 'cli') {
+            return TextExceptionPrinter::readableWithStyle();
+        }
+
+        return HtmlExceptionPrinter::create();
+    }
+
+    private static function createCompilerFactory(): CompilerFactoryInterface
+    {
+        return new CompilerFactory();
     }
 
     public static function getInstance(): RuntimeInterface

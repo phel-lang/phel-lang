@@ -4,20 +4,20 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "1c82228ed8952938e9d6d6763af08ff8",
+    "content-hash": "163f89c5620de8e8da75fc44ecbb37de",
     "packages": [
         {
             "name": "phel/phel-composer-plugin",
-            "version": "dev-master",
+            "version": "dev-using-runtime-factory",
             "source": {
                 "type": "git",
                 "url": "https://github.com/jenshaase/phel-composer-plugin.git",
-                "reference": "0f20e4e7e8052bfc9cdf662ae10282cc06396cf0"
+                "reference": "fe0d287ae9bce0a7e47fb01ec196a0734c463d02"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/jenshaase/phel-composer-plugin/zipball/0f20e4e7e8052bfc9cdf662ae10282cc06396cf0",
-                "reference": "0f20e4e7e8052bfc9cdf662ae10282cc06396cf0",
+                "url": "https://api.github.com/repos/jenshaase/phel-composer-plugin/zipball/fe0d287ae9bce0a7e47fb01ec196a0734c463d02",
+                "reference": "fe0d287ae9bce0a7e47fb01ec196a0734c463d02",
                 "shasum": ""
             },
             "require": {
@@ -30,7 +30,6 @@
                 "phpunit/phpunit": "^9",
                 "vimeo/psalm": "^3.11"
             },
-            "default-branch": true,
             "type": "composer-plugin",
             "extra": {
                 "class": "Phel\\Composer\\Plugin"
@@ -62,9 +61,9 @@
             ],
             "support": {
                 "issues": "https://github.com/jenshaase/phel-composer-plugin/issues",
-                "source": "https://github.com/jenshaase/phel-composer-plugin/tree/master"
+                "source": "https://github.com/jenshaase/phel-composer-plugin/tree/using-runtime-factory"
             },
-            "time": "2020-10-25T11:03:37+00:00"
+            "time": "2020-12-08T16:38:28+00:00"
         }
     ],
     "packages-dev": [
