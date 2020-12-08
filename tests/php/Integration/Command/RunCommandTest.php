@@ -8,8 +8,8 @@ use Phel\Command\CommandFactory;
 use Phel\Command\CommandFactoryInterface;
 use Phel\Compiler\CompilerFactory;
 use Phel\Compiler\GlobalEnvironment;
-use Phel\Runtime;
-use Phel\RuntimeInterface;
+use Phel\Runtime\RuntimeFactory;
+use Phel\Runtime\RuntimeInterface;
 use PHPUnit\Framework\TestCase;
 use RuntimeException;
 
@@ -74,7 +74,7 @@ final class RunCommandTest extends TestCase
 
     private function createRuntime(): RuntimeInterface
     {
-        return Runtime::initializeNew(new GlobalEnvironment());
+        return RuntimeFactory::initializeNew(new GlobalEnvironment());
     }
 
     private function createCommandFactory(): CommandFactoryInterface
