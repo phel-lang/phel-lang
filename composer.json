@@ -13,7 +13,7 @@
     ],
     "require": {
         "php": ">=7.4",
-        "phel/phel-composer-plugin": "dev-using-runtime-factory"
+        "phel/phel-composer-plugin": "dev-master"
     },
     "require-dev": {
         "ext-readline": "*",
