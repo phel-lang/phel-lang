@@ -20,13 +20,13 @@ final class NsEmitter implements NodeEmitter
 
         foreach ($node->getRequireNs() as $i => $ns) {
             $this->outputEmitter->emitLine(
-                '\Phel\Runtime::getInstance()->loadNs("' . addslashes($ns->getName()) . '");',
+                '\Phel\Runtime\RuntimeFactory::getInstance()->loadNs("' . addslashes($ns->getName()) . '");',
                 $ns->getStartLocation()
             );
         }
 
         $this->outputEmitter->emitLine(
-            '\Phel\Runtime::getInstance()->getEnv()->setNs("' . addslashes($node->getNamespace()) . '");',
+            '\Phel\Runtime\RuntimeFactory::getInstance()->getEnv()->setNs("' . addslashes($node->getNamespace()) . '");',
             $node->getStartSourceLocation()
         );
 

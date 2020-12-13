@@ -6,7 +6,7 @@ namespace Phel\Command;
 
 use Phel\Command\Shared\NamespaceExtractorInterface;
 use Phel\Compiler\EvalCompilerInterface;
-use Phel\RuntimeInterface;
+use Phel\Runtime\RuntimeInterface;
 use RuntimeException;
 
 final class TestCommand

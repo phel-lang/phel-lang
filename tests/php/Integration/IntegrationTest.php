@@ -12,7 +12,7 @@ use Phel\Compiler\GlobalEnvironment;
 use Phel\Compiler\NodeEnvironment;
 use Phel\Compiler\ReaderInterface;
 use Phel\Lang\Symbol;
-use Phel\Runtime;
+use Phel\Runtime\RuntimeFactory;
 use PHPUnit\Framework\TestCase;
 use RecursiveDirectoryIterator;
 use RecursiveIteratorIterator;
@@ -25,7 +25,7 @@ final class IntegrationTest extends TestCase
     {
         Symbol::resetGen();
         $globalEnv = new GlobalEnvironment();
-        $rt = Runtime::initializeNew($globalEnv);
+        $rt = RuntimeFactory::initializeNew($globalEnv);
         $rt->addPath('phel\\', [__DIR__ . '/../../src/phel/']);
         $rt->loadNs('phel\core');
         static::$globalEnv = $globalEnv;

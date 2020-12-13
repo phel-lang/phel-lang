@@ -86,11 +86,11 @@ It is possible to manually initialize and configure the Runtime as shown in this
 // src/index.php
 <?php
 
-use Phel\Runtime;
+use Phel\Runtime\RuntimeFactory;
 
 require __DIR__ .'/../vendor/autoload.php';
 
-$rt = Runtime::initialize();
+$rt = RuntimeFactory::initialize();
 $rt->addPath('hello-world\\', [__DIR__]);
 
 $rt->loadNs('phel\core');

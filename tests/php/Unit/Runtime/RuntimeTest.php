@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace PhelTest\Unit;
+namespace PhelTest\Unit\Runtime;
 
 use PHPUnit\Framework\TestCase;
 
