@@ -22,11 +22,6 @@ class Set extends AbstractType implements Countable, Iterator, ISeq, ICons, IPus
         $this->concat($data);
     }
 
-    public function isTruthy(): bool
-    {
-        return true;
-    }
-
     public function hash(): string
     {
         return spl_object_hash($this);
@@ -84,7 +79,7 @@ class Set extends AbstractType implements Countable, Iterator, ISeq, ICons, IPus
             return null;
         }
 
-        return new PhelArray(array_slice($this->data, 1));
+        return new PhelArray(array_values(array_slice($this->data, 1)));
     }
 
     public function rest(): IRest
@@ -92,7 +87,7 @@ class Set extends AbstractType implements Countable, Iterator, ISeq, ICons, IPus
         $this->rewind();
         $this->next();
 
-        return new PhelArray(array_slice($this->data, 1));
+        return new PhelArray(array_values(array_slice($this->data, 1)));
     }
 
     public function push($x): IPush
