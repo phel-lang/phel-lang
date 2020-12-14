@@ -18,7 +18,7 @@ class Table extends AbstractType implements ArrayAccess, Countable, Iterator, IS
 
     public static function empty(): Table
     {
-        return new self();
+        return new static();
     }
 
     /**
@@ -33,7 +33,7 @@ class Table extends AbstractType implements ArrayAccess, Countable, Iterator, IS
             throw new Exception('A even number of elements must be provided');
         }
 
-        $result = new self();
+        $result = new static();
         for ($i = 0, $l = count($kvs); $i < $l; $i += 2) {
             $result[$kvs[$i]] = $kvs[$i+1];
         }
