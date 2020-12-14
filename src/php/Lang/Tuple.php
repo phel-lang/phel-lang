@@ -129,8 +129,9 @@ final class Tuple extends AbstractType implements
         }
 
         if (is_null($value)) {
-            unset($this->data[$offset]);
-            $res = new Tuple(array_values($this->data), $this->isUsingBracket()); // reindex
+            $newData = $this->data;
+            unset($newData[$offset]);
+            $res = new Tuple(array_values($newData), $this->isUsingBracket()); // reindex
         } elseif ($offset === count($this->data)) {
             $res = new Tuple([...$this->data, $value], $this->isUsingBracket());
         } else {
