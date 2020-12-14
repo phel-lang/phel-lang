@@ -39,72 +39,72 @@ final class TableTest extends TestCase
 
     public function testOffsetSetExistingValue(): void
     {
-        $table = Table::fromKVs("a", 1);
-        $table["a"] = 2;
-        self::assertEquals(2, $table["a"]);
+        $table = Table::fromKVs('a', 1);
+        $table['a'] = 2;
+        self::assertEquals(2, $table['a']);
     }
 
     public function testOffsetSetNewValue(): void
     {
-        $table = Table::fromKVs("a", 1);
-        $table["b"] = 2;
-        self::assertEquals(1, $table["a"]);
-        self::assertEquals(2, $table["b"]);
+        $table = Table::fromKVs('a', 1);
+        $table['b'] = 2;
+        self::assertEquals(1, $table['a']);
+        self::assertEquals(2, $table['b']);
     }
 
     public function testOffsetExists(): void
     {
-        $table = Table::fromKVs("a", 1);
+        $table = Table::fromKVs('a', 1);
 
-        self::assertTrue(isset($table["a"]));
-        self::assertFalse(isset($table["b"]));
+        self::assertTrue(isset($table['a']));
+        self::assertFalse(isset($table['b']));
     }
 
     public function testOffestUnset(): void
     {
-        $table = Table::fromKVs("a", 1);
-        unset($table["a"]);
+        $table = Table::fromKVs('a', 1);
+        unset($table['a']);
 
         self::assertEquals(0, count($table));
-        self::assertNull($table["a"]);
+        self::assertNull($table['a']);
     }
 
     public function testOffsetGet(): void
     {
-        $table = Table::fromKVs("a", 1);
-        self::assertEquals(1, $table["a"]);
+        $table = Table::fromKVs('a', 1);
+        self::assertEquals(1, $table['a']);
     }
 
     public function testCount(): void
     {
-        $table = Table::fromKVs("a", 1);
+        $table = Table::fromKVs('a', 1);
         $this->assertEquals(1, count($table));
     }
 
     public function testForeach(): void
     {
-        $table = Table::fromKVs("a", 1, "b", 2);
+        $table = Table::fromKVs('a', 1, 'b', 2);
         $result = [];
         foreach ($table as $k => $v) {
             $result[$k] = $v;
         }
 
-        $this->assertEquals(["a" => 1, "b" => 2], $result);
+        $this->assertEquals(['a' => 1, 'b' => 2], $result);
     }
 
     public function testFirst(): void
     {
-        $table = Table::fromKVs("a", 1, "b", 2);
-        $this->assertEquals(new Tuple(["a", 1], true), $table->first());
+        $table = Table::fromKVs('a', 1, 'b', 2);
+        $this->assertEquals(new Tuple(['a', 1], true), $table->first());
     }
 
     public function testCdr(): void
     {
-        $table = Table::fromKVs("a", 1, "b", 2, "c", 3);
+        $table = Table::fromKVs('a', 1, 'b', 2, 'c', 3);
         $this->assertEquals(
             PhelArray::create(
-                new Tuple(["b", 2], true),
-                new Tuple(["c", 3], true)
+                new Tuple(['b', 2], true),
+                new Tuple(['c', 3], true)
             ),
             $table->cdr()
         );
@@ -118,11 +118,11 @@ final class TableTest extends TestCase
 
     public function testRest(): void
     {
-        $table = Table::fromKVs("a", 1, "b", 2, "c", 3);
+        $table = Table::fromKVs('a', 1, 'b', 2, 'c', 3);
         $this->assertEquals(
             PhelArray::create(
-                new Tuple(["b", 2], true),
-                new Tuple(["c", 3], true)
+                new Tuple(['b', 2], true),
+                new Tuple(['c', 3], true)
             ),
             $table->rest()
         );
@@ -136,15 +136,15 @@ final class TableTest extends TestCase
 
     public function testHash(): void
     {
-        $table = Table::fromKVs("a", 1);
+        $table = Table::fromKVs('a', 1);
         $this->assertEquals(spl_object_hash($table), $table->hash());
     }
 
     public function testEquals(): void
     {
-        $table1 = Table::fromKVs("a", 1, "b", 2);
-        $table2 = Table::fromKVs("a", 1, "b", 2);
-        $table3 = Table::fromKVs("a", 1, "b", 2, "c", 3);
+        $table1 = Table::fromKVs('a', 1, 'b', 2);
+        $table2 = Table::fromKVs('a', 1, 'b', 2);
+        $table3 = Table::fromKVs('a', 1, 'b', 2, 'c', 3);
 
         $this->assertTrue($table1->equals($table1));
         $this->assertTrue($table1->equals($table2));
@@ -155,16 +155,16 @@ final class TableTest extends TestCase
 
     public function testToKeyValueList(): void
     {
-        $table = Table::fromKVs("a", 1, "b", 2);
+        $table = Table::fromKVs('a', 1, 'b', 2);
         $this->assertEquals(
-            ["a", 1, "b", 2],
+            ['a', 1, 'b', 2],
             $table->toKeyValueList()
         );
     }
 
     public function testToString(): void
     {
-        $table = Table::fromKVs("a", 1, "b", 2);
+        $table = Table::fromKVs('a', 1, 'b', 2);
         $this->assertEquals(
             '@{"a" 1 "b" 2}',
             $table->__toString()
@@ -174,7 +174,7 @@ final class TableTest extends TestCase
     public function testObjectKey(): void
     {
         $date = new \DateTime();
-        $table = Table::fromKVs($date, 1, "b", 2);
+        $table = Table::fromKVs($date, 1, 'b', 2);
 
         $this->assertEquals(1, $table[$date]);
     }
