@@ -12,7 +12,7 @@ use Phel\Command\Shared\NamespaceExtractorInterface;
 use Phel\Compiler\CompilerFactoryInterface;
 use Phel\Compiler\GlobalEnvironmentInterface;
 use Phel\Exceptions\TextExceptionPrinter;
-use Phel\RuntimeInterface;
+use Phel\Runtime\RuntimeInterface;
 
 final class CommandFactory implements CommandFactoryInterface
 {

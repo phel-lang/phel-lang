@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Phel\Command;
 
 use Phel\Command\Shared\NamespaceExtractorInterface;
-use Phel\RuntimeInterface;
+use Phel\Runtime\RuntimeInterface;
 use RuntimeException;
 
 final class RunCommand

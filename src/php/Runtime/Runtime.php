@@ -2,42 +2,46 @@
 
 declare(strict_types=1);
 
-namespace Phel;
+namespace Phel\Runtime;
 
-use Phel\Compiler\CompilerFactory;
-use Phel\Compiler\GlobalEnvironment;
+use InvalidArgumentException;
+use Phel\Compiler\CompilerFactoryInterface;
 use Phel\Compiler\GlobalEnvironmentInterface;
 use Phel\Exceptions\CompilerException;
-use Phel\Exceptions\HtmlExceptionPrinter;
-use Phel\Exceptions\TextExceptionPrinter;
+use Phel\Exceptions\ExceptionPrinterInterface;
 use Phel\Lang\Keyword;
 use Phel\Lang\Symbol;
 use Phel\Lang\Table;
-use RuntimeException;
 use Throwable;
 
 class Runtime implements RuntimeInterface
 {
     protected GlobalEnvironmentInterface $globalEnv;
 
-    private static ?RuntimeInterface $instance = null;
+    private ExceptionPrinterInterface $exceptionPrinter;
+
+    private CompilerFactoryInterface $compilerFactory;
+
+    private ?string $cacheDirectory = null;
 
     /** @var string[] */
     private array $loadedNs = [];
 
     private array $paths = [];
 
-    private ?string $cacheDirectory = null;
-
-    private function __construct(
+    public function __construct(
         GlobalEnvironmentInterface $globalEnv,
+        ExceptionPrinterInterface $exceptionPrinter,
+        CompilerFactoryInterface $compilerFactory,
         ?string $cacheDirectory = null
     ) {
         set_exception_handler([$this, 'exceptionHandler']);
+        $this->addPath('phel\\', [__DIR__ . '/../../phel']);
 
         $this->globalEnv = $globalEnv;
+        $this->exceptionPrinter = $exceptionPrinter;
+        $this->compilerFactory = $compilerFactory;
         $this->cacheDirectory = $cacheDirectory;
-        $this->addPath('phel\\', [__DIR__ . '/../phel']);
     }
 
     public function getEnv(): GlobalEnvironmentInterface
@@ -49,7 +53,7 @@ class Runtime implements RuntimeInterface
     {
         $length = strlen($namespacePrefix);
         if ('\\' !== $namespacePrefix[$length - 1]) {
-            throw new \InvalidArgumentException('A non-empty prefix must end with a namespace separator.');
+            throw new InvalidArgumentException('A non-empty prefix must end with a namespace separator.');
         }
 
         if (isset($this->paths[$namespacePrefix])) {
@@ -59,53 +63,12 @@ class Runtime implements RuntimeInterface
         }
     }
 
-    public static function initialize(
-        ?GlobalEnvironmentInterface $globalEnv = null,
-        ?string $cacheDirectory = null
-    ): self {
-        if (self::$instance !== null) {
-            throw new RuntimeException('Runtime is already initialized');
-        }
-
-        self::$instance = new self(
-            $globalEnv ?? new GlobalEnvironment(),
-            $cacheDirectory
-        );
-
-        return self::$instance;
-    }
-
-    /**
-     * @interal
-     */
-    public static function initializeNew(GlobalEnvironmentInterface $globalEnv, string $cacheDirectory = null): self
-    {
-        self::$instance = new self($globalEnv, $cacheDirectory);
-
-        return self::$instance;
-    }
-
-    public static function getInstance(): RuntimeInterface
-    {
-        if (null === self::$instance) {
-            throw new RuntimeException('Runtime must first be initialized. Call Runtime::initialize()');
-        }
-
-        return self::$instance;
-    }
-
     public function exceptionHandler(Throwable $exception): void
     {
-        if (PHP_SAPI === 'cli') {
-            $printer = TextExceptionPrinter::readableWithStyle();
-        } else {
-            $printer = HtmlExceptionPrinter::create();
-        }
-
         if ($exception instanceof CompilerException) {
-            $printer->printException($exception->getNestedException(), $exception->getCodeSnippet());
+            $this->exceptionPrinter->printException($exception->getNestedException(), $exception->getCodeSnippet());
         } else {
-            $printer->printStackTrace($exception);
+            $this->exceptionPrinter->printStackTrace($exception);
         }
     }
 
@@ -186,7 +149,7 @@ class Runtime implements RuntimeInterface
         $path = $this->getCachedFilePath($filename, $ns);
 
         if (!$path) {
-            throw new \InvalidArgumentException("Can not load cached file: {$filename}");
+            throw new InvalidArgumentException("Can not load cached file: {$filename}");
         }
 
         // Update global environment
@@ -209,7 +172,7 @@ class Runtime implements RuntimeInterface
 
     protected function loadFile(string $filename, string $ns): void
     {
-        $code = (new CompilerFactory())
+        $code = $this->compilerFactory
             ->createFileCompiler($this->globalEnv)
             ->compile($filename);
 

@@ -8,7 +8,8 @@ use Phel\Command\CommandFactory;
 use Phel\Command\CommandFactoryInterface;
 use Phel\Compiler\CompilerFactory;
 use Phel\Compiler\GlobalEnvironment;
-use Phel\Runtime;
+use Phel\Runtime\RuntimeFactory;
+use Phel\Runtime\RuntimeInterface;
 use PHPUnit\Framework\TestCase;
 
 final class TestCommandTest extends TestCase
@@ -64,9 +65,9 @@ final class TestCommandTest extends TestCase
         self::assertFalse($testCommand->run([]));
     }
 
-    private function createRuntime(): Runtime
+    private function createRuntime(): RuntimeInterface
     {
-        return Runtime::initializeNew(new GlobalEnvironment());
+        return RuntimeFactory::initializeNew(new GlobalEnvironment());
     }
 
     private function createCommandFactory(string $currentDir): CommandFactoryInterface

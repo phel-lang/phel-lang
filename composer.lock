@@ -12,12 +12,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/jenshaase/phel-composer-plugin.git",
-                "reference": "0f20e4e7e8052bfc9cdf662ae10282cc06396cf0"
+                "reference": "752a223af4f2bf0d1ec3bcc68297db2cdae87585"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/jenshaase/phel-composer-plugin/zipball/0f20e4e7e8052bfc9cdf662ae10282cc06396cf0",
-                "reference": "0f20e4e7e8052bfc9cdf662ae10282cc06396cf0",
+                "url": "https://api.github.com/repos/jenshaase/phel-composer-plugin/zipball/752a223af4f2bf0d1ec3bcc68297db2cdae87585",
+                "reference": "752a223af4f2bf0d1ec3bcc68297db2cdae87585",
                 "shasum": ""
             },
             "require": {
@@ -64,7 +64,7 @@
                 "issues": "https://github.com/jenshaase/phel-composer-plugin/issues",
                 "source": "https://github.com/jenshaase/phel-composer-plugin/tree/master"
             },
-            "time": "2020-10-25T11:03:37+00:00"
+            "time": "2020-12-13T13:20:19+00:00"
         }
     ],
     "packages-dev": [

@@ -133,6 +133,9 @@ class Table extends AbstractType implements ArrayAccess, Countable, Iterator, IS
             return null;
         }
 
+        $this->rewind();
+        $this->next();
+
         $res = [];
         while ($this->valid()) {
             $key = $this->key();

@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Phel;
+namespace Phel\Runtime;
 
 use Phel\Compiler\GlobalEnvironmentInterface;
 

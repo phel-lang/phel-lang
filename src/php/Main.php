@@ -11,6 +11,8 @@ use Phel\Command\RunCommand;
 use Phel\Command\TestCommand;
 use Phel\Compiler\GlobalEnvironment;
 use Phel\Exceptions\ExitException;
+use Phel\Runtime\RuntimeFactory;
+use Phel\Runtime\RuntimeInterface;
 use RuntimeException;
 
 final class Main
@@ -67,7 +69,7 @@ HELP;
     private function executeReplCommand(): void
     {
         $globalEnv = new GlobalEnvironment();
-        Runtime::initialize($globalEnv)->loadNs('phel\core');
+        RuntimeFactory::initialize($globalEnv)->loadNs('phel\core');
 
         $this->commandFactory
             ->createReplCommand($globalEnv)
