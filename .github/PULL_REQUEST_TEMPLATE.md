@@ -1,7 +1,7 @@
-# Description
+## 📚 Description
 
 Replace this text by a short description of your feature/bugfix. 
 
-# Changes
+## 🔖 Changes
 
 - List individual changes in more detail
