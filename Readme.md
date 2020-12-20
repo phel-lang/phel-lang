@@ -30,6 +30,19 @@ You are more than welcome to contribute to Phel. You can do so by either:
 * contributing changes
 * enrich the documentation
 
+### Substantial changes
+
+Substantial changes are architecture decisions, documentation restructuring, breaking changes, etc.
+But not Bug Reports, Bug Fixes, Unit Tests, etc.
+
+#### How to contribute a substantial change
+
+In order to make a substantial change it is a good practice to discuss the idea before implementing it.
+
+- An Architecture Decision Record (ADR) or Request for Comments (RFC) can be proposed with an issue.
+- The issue is the place to discuss everything.
+- The result of the issue can be an ADR file (under the [adrs](./adrs) directory), but also just as CS Fixer rule to check then during CI.
+
 ## Development
 
 ### Requirements
