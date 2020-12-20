@@ -143,7 +143,7 @@ final class LexerTest extends TestCase
     {
         $this->expectException(\Exception::class);
 
-        $this->lex("@");
+        $this->lex('@');
     }
 
     private function lex(string $string): array
