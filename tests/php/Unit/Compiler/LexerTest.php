@@ -139,6 +139,13 @@ final class LexerTest extends TestCase
         );
     }
 
+    public function testUnexpectedState(): void
+    {
+        $this->expectException(\Exception::class);
+
+        $this->lex("@");
+    }
+
     private function lex(string $string): array
     {
         $lexer = new Lexer();
