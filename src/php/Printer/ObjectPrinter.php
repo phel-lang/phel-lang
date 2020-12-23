@@ -7,6 +7,8 @@ namespace Phel\Printer;
 final class ObjectPrinter implements PrinterInterface
 {
     /**
+     * @psalm-suppress MoreSpecificImplementedParamType
+     *
      * @param object $form
      */
     public function print($form): string

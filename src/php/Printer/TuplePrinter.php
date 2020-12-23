@@ -17,6 +17,8 @@ final class TuplePrinter implements PrinterInterface
     }
 
     /**
+     * @psalm-suppress MoreSpecificImplementedParamType
+     *
      * @param Tuple $form
      */
     public function print($form): string

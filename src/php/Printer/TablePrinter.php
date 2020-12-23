@@ -17,6 +17,8 @@ final class TablePrinter implements PrinterInterface
     }
 
     /**
+     * @psalm-suppress MoreSpecificImplementedParamType
+     *
      * @param Table $form
      */
     public function print($form): string

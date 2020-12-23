@@ -14,6 +14,8 @@ final class StringPrinter implements PrinterInterface
     }
 
     /**
+     * @psalm-suppress MoreSpecificImplementedParamType
+     *
      * @param string $str
      */
     public function print($str): string

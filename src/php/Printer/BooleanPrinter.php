@@ -7,6 +7,8 @@ namespace Phel\Printer;
 final class BooleanPrinter implements PrinterInterface
 {
     /**
+     * @psalm-suppress MoreSpecificImplementedParamType
+     *
      * @param bool $form
      */
     public function print($form): string

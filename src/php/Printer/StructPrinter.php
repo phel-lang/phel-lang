@@ -17,6 +17,8 @@ final class StructPrinter implements PrinterInterface
     }
 
     /**
+     * @psalm-suppress MoreSpecificImplementedParamType
+     *
      * @param Struct $form
      */
     public function print($form): string

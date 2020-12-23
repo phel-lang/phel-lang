@@ -7,6 +7,8 @@ namespace Phel\Printer;
 final class ResourcePrinter implements PrinterInterface
 {
     /**
+     * @psalm-suppress MoreSpecificImplementedParamType
+     *
      * @param resource $form
      */
     public function print($form): string

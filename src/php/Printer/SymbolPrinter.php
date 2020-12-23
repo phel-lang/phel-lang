@@ -9,6 +9,8 @@ use Phel\Lang\Symbol;
 final class SymbolPrinter implements PrinterInterface
 {
     /**
+     * @psalm-suppress MoreSpecificImplementedParamType
+     *
      * @param Symbol $form
      */
     public function print($form): string

@@ -7,7 +7,7 @@ namespace Phel\Printer;
 interface PrinterInterface
 {
     /**
-     * @psalm-suppress MissingParamType
+     * @param mixed $form
      */
     public function print($form): string;
 }

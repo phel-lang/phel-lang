@@ -17,6 +17,8 @@ final class PhelArrayPrinter implements PrinterInterface
     }
 
     /**
+     * @psalm-suppress MoreSpecificImplementedParamType
+     *
      * @param PhelArray $form
      */
     public function print($form): string

@@ -9,6 +9,8 @@ use Phel\Lang\Keyword;
 final class KeywordPrinter implements PrinterInterface
 {
     /**
+     * @psalm-suppress MoreSpecificImplementedParamType
+     *
      * @param Keyword $form
      */
     public function print($form): string

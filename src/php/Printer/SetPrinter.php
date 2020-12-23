@@ -17,6 +17,8 @@ final class SetPrinter implements PrinterInterface
     }
 
     /**
+     * @psalm-suppress MoreSpecificImplementedParamType
+     *
      * @param Set $form
      */
     public function print($form): string
