@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Phel\Printer;
 
-final class StringPrinter
+final class StringPrinter implements PrinterInterface
 {
     private bool $readable;
 
@@ -13,7 +13,10 @@ final class StringPrinter
         $this->readable = $readable;
     }
 
-    public function print(string $str): string
+    /**
+     * @param string $str
+     */
+    public function print($str): string
     {
         if (!$this->readable) {
             return $str;
@@ -63,17 +66,17 @@ final class StringPrinter
         return $ret . '"';
     }
 
-    private function utf8ToUnicodePoint(string $s): string
+    private function utf8ToUnicodePoint(string $str): string
     {
-        $a = ($s = unpack('C*', $s)) ? $s[1] : 0;
+        $a = ($str = unpack('C*', $str)) ? $str[1] : 0;
         if (0xF0 <= $a) {
-            return dechex((($a - 0xF0) << 18) + (($s[2] - 0x80) << 12) + (($s[3] - 0x80) << 6) + $s[4] - 0x80);
+            return dechex((($a - 0xF0) << 18) + (($str[2] - 0x80) << 12) + (($str[3] - 0x80) << 6) + $str[4] - 0x80);
         }
         if (0xE0 <= $a) {
-            return dechex((($a - 0xE0) << 12) + (($s[2] - 0x80) << 6) + $s[3] - 0x80);
+            return dechex((($a - 0xE0) << 12) + (($str[2] - 0x80) << 6) + $str[3] - 0x80);
         }
         if (0xC0 <= $a) {
-            return dechex((($a - 0xC0) << 6) + $s[2] - 0x80);
+            return dechex((($a - 0xC0) << 6) + $str[2] - 0x80);
         }
 
         return (string) $a;

@@ -6,9 +6,12 @@ namespace Phel\Printer;
 
 use Phel\Lang\Symbol;
 
-final class SymbolPrinter
+final class SymbolPrinter implements PrinterInterface
 {
-    public function print(Symbol $form): string
+    /**
+     * @param Symbol $form
+     */
+    public function print($form): string
     {
         return $form->getName();
     }

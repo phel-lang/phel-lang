@@ -18,6 +18,7 @@ use Phel\Printer\NullPrinter;
 use Phel\Printer\NumericalPrinter;
 use Phel\Printer\ObjectPrinter;
 use Phel\Printer\PhelArrayPrinter;
+use Phel\Printer\PrinterInterface;
 use Phel\Printer\ResourcePrinter;
 use Phel\Printer\SetPrinter;
 use Phel\Printer\StringPrinter;
@@ -52,53 +53,67 @@ final class Printer
      */
     public function print($form): string
     {
-        if ($form instanceof Tuple) {
-            return (new TuplePrinter($this))->print($form);
+        $printerName = $this->getPrinterName($form);
+        $printer = $this->createPrinterByName($printerName);
+
+        return $printer->print($form);
+    }
+
+    /**
+     * @param mixed $form
+     */
+    private function getPrinterName($form): string
+    {
+        return 'object' === gettype($form)
+            ? get_class($form)
+            : gettype($form);
+    }
+
+    private function createPrinterByName(string $printerName): PrinterInterface
+    {
+        if ($printerName === Tuple::class) {
+            return new TuplePrinter($this);
         }
-        if ($form instanceof Keyword) {
-            return (new KeywordPrinter())->print($form);
+        if ($printerName === Keyword::class) {
+            return new KeywordPrinter();
         }
-        if ($form instanceof Symbol) {
-            return (new SymbolPrinter())->print($form);
+        if ($printerName === Symbol::class) {
+            return new SymbolPrinter();
         }
-        if ($form instanceof Set) {
-            return (new SetPrinter($this))->print($form);
+        if ($printerName === Set::class) {
+            return new SetPrinter($this);
         }
-        if ($form instanceof PhelArray) {
-            return (new PhelArrayPrinter($this))->print($form);
+        if ($printerName === PhelArray::class) {
+            return new PhelArrayPrinter($this);
         }
-        if ($form instanceof Struct) {
-            return (new StructPrinter($this))->print($form);
+        if ($printerName === Struct::class) {
+            return new StructPrinter($this);
         }
-        if ($form instanceof Table) {
-            return (new TablePrinter($this))->print($form);
+        if ($printerName === Table::class) {
+            return new TablePrinter($this);
         }
-        if (is_string($form)) {
-            return (new StringPrinter($this->readable))->print($form);
+        if ('string' === $printerName) {
+            return new StringPrinter($this->readable);
         }
-        if (is_int($form) || is_float($form)) {
-            return (new NumericalPrinter())->print($form);
+        if ('integer' === $printerName || 'float' === $printerName) {
+            return new NumericalPrinter();
         }
-        if (is_bool($form)) {
-            return (new BooleanPrinter())->print($form);
+        if ('boolean' === $printerName) {
+            return new BooleanPrinter();
         }
-        if ($form === null) {
-            return (new NullPrinter())->print();
+        if ('NULL' === $printerName) {
+            return new NullPrinter();
         }
-        if (is_array($form) && !$this->readable) {
-            return (new ArrayPrinter())->print();
+        if ('array' === $printerName && !$this->readable) {
+            return new ArrayPrinter();
         }
-        if (is_resource($form) && !$this->readable) {
-            return (new ResourcePrinter())->print($form);
+        if ('resource' === $printerName && !$this->readable) {
+            return new ResourcePrinter();
         }
-        if (is_object($form) && !$this->readable) {
-            return (new ObjectPrinter())->print($form);
+        if (!$this->readable) {
+            return new ObjectPrinter();
         }
 
-        $type = gettype($form);
-        if ($type === 'object') {
-            $type = get_class($form);
-        }
-        throw new \RuntimeException('Printer can not print this type: ' . $type);
+        throw new \RuntimeException('Printer can not print this type: ' . $printerName);
     }
 }

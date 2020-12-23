@@ -4,9 +4,12 @@ declare(strict_types=1);
 
 namespace Phel\Printer;
 
-final class BooleanPrinter
+final class BooleanPrinter implements PrinterInterface
 {
-    public function print(bool $form): string
+    /**
+     * @param bool $form
+     */
+    public function print($form): string
     {
         return $form === true
             ? 'true'

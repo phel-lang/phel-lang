@@ -4,9 +4,12 @@ declare(strict_types=1);
 
 namespace Phel\Printer;
 
-final class ObjectPrinter
+final class ObjectPrinter implements PrinterInterface
 {
-    public function print(object $form): string
+    /**
+     * @param object $form
+     */
+    public function print($form): string
     {
         return '<PHP-Object(' . get_class($form) . ')>';
     }

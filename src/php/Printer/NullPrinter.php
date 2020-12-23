@@ -4,9 +4,12 @@ declare(strict_types=1);
 
 namespace Phel\Printer;
 
-final class NullPrinter
+final class NullPrinter implements PrinterInterface
 {
-    public function print(): string
+    /**
+     * @param mixed $form
+     */
+    public function print($form): string
     {
         return 'nil';
     }

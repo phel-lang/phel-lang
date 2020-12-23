@@ -7,7 +7,7 @@ namespace Phel\Printer;
 use Phel\Lang\PhelArray;
 use Phel\Printer;
 
-final class PhelArrayPrinter
+final class PhelArrayPrinter implements PrinterInterface
 {
     private Printer $printer;
 
@@ -16,7 +16,10 @@ final class PhelArrayPrinter
         $this->printer = $printer;
     }
 
-    public function print(PhelArray $form): string
+    /**
+     * @param PhelArray $form
+     */
+    public function print($form): string
     {
         $values = array_map(
             fn ($elem): string => $this->printer->print($elem),

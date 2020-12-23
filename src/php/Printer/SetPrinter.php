@@ -7,7 +7,7 @@ namespace Phel\Printer;
 use Phel\Lang\Set;
 use Phel\Printer;
 
-final class SetPrinter
+final class SetPrinter implements PrinterInterface
 {
     private Printer $printer;
 
@@ -16,7 +16,10 @@ final class SetPrinter
         $this->printer = $printer;
     }
 
-    public function print(Set $form): string
+    /**
+     * @param Set $form
+     */
+    public function print($form): string
     {
         $values = array_map(
             fn ($elem): string => $this->printer->print($elem),

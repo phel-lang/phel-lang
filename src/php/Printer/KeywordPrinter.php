@@ -6,9 +6,12 @@ namespace Phel\Printer;
 
 use Phel\Lang\Keyword;
 
-final class KeywordPrinter
+final class KeywordPrinter implements PrinterInterface
 {
-    public function print(Keyword $form): string
+    /**
+     * @param Keyword $form
+     */
+    public function print($form): string
     {
         return ':' . $form->getName();
     }

@@ -7,7 +7,7 @@ namespace Phel\Printer;
 use Phel\Lang\Tuple;
 use Phel\Printer;
 
-final class TuplePrinter
+final class TuplePrinter implements PrinterInterface
 {
     private Printer $printer;
 
@@ -16,7 +16,10 @@ final class TuplePrinter
         $this->printer = $printer;
     }
 
-    public function print(Tuple $form): string
+    /**
+     * @param Tuple $form
+     */
+    public function print($form): string
     {
         $prefix = $form->isUsingBracket() ? '[' : '(';
         $suffix = $form->isUsingBracket() ? ']' : ')';

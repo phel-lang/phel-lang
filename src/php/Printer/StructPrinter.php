@@ -7,7 +7,7 @@ namespace Phel\Printer;
 use Phel\Lang\Struct;
 use Phel\Printer;
 
-final class StructPrinter
+final class StructPrinter implements PrinterInterface
 {
     private Printer $printer;
 
@@ -16,7 +16,10 @@ final class StructPrinter
         $this->printer = $printer;
     }
 
-    public function print(Struct $form): string
+    /**
+     * @param Struct $form
+     */
+    public function print($form): string
     {
         $values = array_map(
             fn ($key): string => $this->printer->print($form[$key]),

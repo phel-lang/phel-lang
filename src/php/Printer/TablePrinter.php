@@ -7,7 +7,7 @@ namespace Phel\Printer;
 use Phel\Lang\Table;
 use Phel\Printer;
 
-final class TablePrinter
+final class TablePrinter implements PrinterInterface
 {
     private Printer $printer;
 
@@ -16,7 +16,10 @@ final class TablePrinter
         $this->printer = $printer;
     }
 
-    public function print(Table $form): string
+    /**
+     * @param Table $form
+     */
+    public function print($form): string
     {
         $args = [];
         foreach ($form as $key => $value) {
