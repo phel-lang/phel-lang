@@ -18,10 +18,6 @@ use Phel\Lang\Tuple;
 use Phel\Compiler\Lexer;
 use PHPUnit\Framework\TestCase;
 
-ini_set('xdebug.var_display_max_depth', '10');
-ini_set('xdebug.var_display_max_children', '256');
-ini_set('xdebug.var_display_max_data', '1024');
-
 final class ReaderTest extends TestCase
 {
     public function testReadNumber(): void
@@ -265,8 +261,28 @@ final class ReaderTest extends TestCase
         );
 
         self::assertEquals(
+            "\u{65}",
+            $this->read('"\u{65}"')
+        );
+
+        self::assertEquals(
+            "\u{129}",
+            $this->read('"\u{129}"')
+        );
+
+        self::assertEquals(
             "\u{1000}",
             $this->read('"\u{1000}"')
+        );
+
+        self::assertEquals(
+            "\u{10000}",
+            $this->read('"\u{10000}"')
+        );
+
+        self::assertEquals(
+            "\77",
+            $this->read('"\77"')
         );
     }
 
@@ -430,6 +446,20 @@ final class ReaderTest extends TestCase
         );
     }
 
+    public function testTupleMeta(): void
+    {
+        $this->expectException(ReaderException::class);
+        $this->expectExceptionMessage('Metadata must be a Symbol, String, Keyword or Table');
+        $this->read('^[:a] test');
+    }
+
+    public function testMetaOnString(): void
+    {
+        $this->expectException(ReaderException::class);
+        $this->expectExceptionMessage('Metadata can only applied to classes that implement IMeta');
+        $this->read('^a "test"');
+    }
+
     public function testReadShortFnZeroArgs(): void
     {
         self::assertEquals(
@@ -522,6 +552,30 @@ final class ReaderTest extends TestCase
         );
     }
 
+    public function testReadShortFnArgumentsTwice(): void
+    {
+        self::assertEquals(
+            Tuple::create(
+                Symbol::create(Symbol::NAME_FN),
+                Tuple::createBracket(
+                    Symbol::create('__short_fn_1_1')
+                ),
+                $this->loc(
+                    Tuple::create(
+                        $this->loc(Symbol::create('add'), 1, 2, 1, 5),
+                        $this->loc(Symbol::create('__short_fn_1_1'), 1, 6, 1, 8),
+                        $this->loc(Symbol::create('__short_fn_1_1'), 1, 9, 1, 11)
+                    ),
+                    1,
+                    0,
+                    1,
+                    12
+                )
+            ),
+            $this->read('|(add $1 $1)')
+        );
+    }
+
     public function testReadShortFnMissingArgument(): void
     {
         self::assertEquals(
@@ -572,6 +626,78 @@ final class ReaderTest extends TestCase
             ),
             $this->read('|(add $1 $&)')
         );
+    }
+
+    public function testShortFnRestArgumentMultipleTimes()
+    {
+        $this->assertEquals(
+            Tuple::create(
+                Symbol::create(Symbol::NAME_FN),
+                Tuple::createBracket(
+                    Symbol::create('&'),
+                    Symbol::create('__short_fn_rest_1')
+                ),
+                $this->loc(
+                    Tuple::create(
+                        $this->loc(Symbol::create('concat'), 1, 2, 1, 8),
+                        $this->loc(Symbol::create('__short_fn_rest_1'), 1, 9, 1, 11),
+                        $this->loc(Symbol::create('__short_fn_rest_1'), 1, 12, 1, 14)
+                    ),
+                    1,
+                    0,
+                    1,
+                    15
+                )
+            ),
+            $this->read('|(concat $& $&)')
+        );
+    }
+
+    public function testReadUnbalancedClosedParen()
+    {
+        $this->expectException(ReaderException::class);
+        $this->expectExceptionMessage('Unterminated list');
+        $this->read(')');
+    }
+
+    public function testReadUnbalancedOpenParen()
+    {
+        $this->expectException(ReaderException::class);
+        $this->expectExceptionMessage('Unterminated list');
+        $this->read('(');
+    }
+
+    public function testReadUnbalancedOpenBrace()
+    {
+        $this->expectException(ReaderException::class);
+        $this->expectExceptionMessage('Unexpected token: {');
+        $this->read('{');
+    }
+
+    public function testEOF()
+    {
+        $reader = (new CompilerFactory())->createReader(new GlobalEnvironment());
+        $tokenStream = (new Lexer())->lexString('');
+
+        $this->assertNull($reader->readNext($tokenStream));
+    }
+
+    public function testInvalidGenerator()
+    {
+        Symbol::resetGen();
+        $reader = (new CompilerFactory())->createReader(new GlobalEnvironment());
+        $tokenStream = (new Lexer())->lexString('');
+
+        $tokenStream->next();
+        $this->assertNull($reader->readNext($tokenStream));
+    }
+
+    public function testReadComment()
+    {
+        $reader = (new CompilerFactory())->createReader(new GlobalEnvironment());
+        $tokenStream = (new Lexer())->lexString('# Test');
+
+        $this->assertNull($reader->readNext($tokenStream));
     }
 
     /**

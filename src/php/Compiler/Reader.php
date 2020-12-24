@@ -127,7 +127,7 @@ final class Reader implements ReaderInterface
                     return $this->readList($tokenStream, Token::T_CLOSE_BRACKET, $isUsingBrackets = true);
 
                 case Token::T_OPEN_BRACE:
-                    throw $this->buildReaderException('Expected token: {');
+                    throw $this->buildReaderException('Unexpected token: {');
 
                 case Token::T_CLOSE_PARENTHESIS:
                 case Token::T_CLOSE_BRACKET:
