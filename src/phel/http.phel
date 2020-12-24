@@ -138,7 +138,7 @@
       (throw (php/new InvalidArgumentException "can not determine HTTP Method")))))
 
 (defn- post-global-valid [method headers]
-  (let [content-type (get headers :conent-type)
+  (let [content-type (get headers :content-type)
         types (php/strtolower (php/trim (first (php/explode ";" content-type 2))))]
     (and
       (= method "POST")
