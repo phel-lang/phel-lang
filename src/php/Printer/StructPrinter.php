@@ -7,6 +7,9 @@ namespace Phel\Printer;
 use Phel\Lang\Struct;
 use Phel\Printer;
 
+/**
+ * @implements PrinterInterface<Struct>
+ */
 final class StructPrinter implements PrinterInterface
 {
     private Printer $printer;
@@ -17,8 +20,6 @@ final class StructPrinter implements PrinterInterface
     }
 
     /**
-     * @psalm-suppress MoreSpecificImplementedParamType
-     *
      * @param Struct $form
      */
     public function print($form): string

@@ -71,25 +71,25 @@ final class Printer
 
     private function createPrinterByName(string $printerName): PrinterInterface
     {
-        if ($printerName === Tuple::class) {
+        if (Tuple::class === $printerName) {
             return new TuplePrinter($this);
         }
-        if ($printerName === Keyword::class) {
+        if (Keyword::class === $printerName) {
             return new KeywordPrinter();
         }
-        if ($printerName === Symbol::class) {
+        if (Symbol::class === $printerName) {
             return new SymbolPrinter();
         }
-        if ($printerName === Set::class) {
+        if (Set::class === $printerName) {
             return new SetPrinter($this);
         }
-        if ($printerName === PhelArray::class) {
+        if (PhelArray::class === $printerName) {
             return new PhelArrayPrinter($this);
         }
-        if ($printerName === Struct::class) {
+        if (Struct::class === $printerName) {
             return new StructPrinter($this);
         }
-        if ($printerName === Table::class) {
+        if (Table::class === $printerName) {
             return new TablePrinter($this);
         }
         if ('string' === $printerName) {

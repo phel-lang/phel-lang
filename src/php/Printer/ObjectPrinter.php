@@ -4,11 +4,12 @@ declare(strict_types=1);
 
 namespace Phel\Printer;
 
+/**
+ * @implements PrinterInterface<object>
+ */
 final class ObjectPrinter implements PrinterInterface
 {
     /**
-     * @psalm-suppress MoreSpecificImplementedParamType
-     *
      * @param object $form
      */
     public function print($form): string

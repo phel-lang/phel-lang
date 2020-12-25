@@ -7,6 +7,9 @@ namespace Phel\Printer;
 use Phel\Lang\Tuple;
 use Phel\Printer;
 
+/**
+ * @implements PrinterInterface<Tuple>
+ */
 final class TuplePrinter implements PrinterInterface
 {
     private Printer $printer;
@@ -17,8 +20,6 @@ final class TuplePrinter implements PrinterInterface
     }
 
     /**
-     * @psalm-suppress MoreSpecificImplementedParamType
-     *
      * @param Tuple $form
      */
     public function print($form): string

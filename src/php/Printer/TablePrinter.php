@@ -7,6 +7,9 @@ namespace Phel\Printer;
 use Phel\Lang\Table;
 use Phel\Printer;
 
+/**
+ * @implements PrinterInterface<Table>
+ */
 final class TablePrinter implements PrinterInterface
 {
     private Printer $printer;
@@ -17,8 +20,6 @@ final class TablePrinter implements PrinterInterface
     }
 
     /**
-     * @psalm-suppress MoreSpecificImplementedParamType
-     *
      * @param Table $form
      */
     public function print($form): string

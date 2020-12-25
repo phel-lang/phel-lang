@@ -4,6 +4,9 @@ declare(strict_types=1);
 
 namespace Phel\Printer;
 
+/**
+ * @implements PrinterInterface<string>
+ */
 final class StringPrinter implements PrinterInterface
 {
     private bool $readable;
@@ -14,8 +17,6 @@ final class StringPrinter implements PrinterInterface
     }
 
     /**
-     * @psalm-suppress MoreSpecificImplementedParamType
-     *
      * @param string $str
      */
     public function print($str): string

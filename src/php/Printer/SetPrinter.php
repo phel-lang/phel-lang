@@ -7,6 +7,9 @@ namespace Phel\Printer;
 use Phel\Lang\Set;
 use Phel\Printer;
 
+/**
+ * @implements PrinterInterface<Set>
+ */
 final class SetPrinter implements PrinterInterface
 {
     private Printer $printer;
@@ -17,8 +20,6 @@ final class SetPrinter implements PrinterInterface
     }
 
     /**
-     * @psalm-suppress MoreSpecificImplementedParamType
-     *
      * @param Set $form
      */
     public function print($form): string

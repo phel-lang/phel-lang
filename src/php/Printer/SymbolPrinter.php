@@ -6,11 +6,12 @@ namespace Phel\Printer;
 
 use Phel\Lang\Symbol;
 
+/**
+ * @implements PrinterInterface<Symbol>
+ */
 final class SymbolPrinter implements PrinterInterface
 {
     /**
-     * @psalm-suppress MoreSpecificImplementedParamType
-     *
      * @param Symbol $form
      */
     public function print($form): string

@@ -7,6 +7,9 @@ namespace Phel\Printer;
 use Phel\Lang\PhelArray;
 use Phel\Printer;
 
+/**
+ * @implements PrinterInterface<PhelArray>
+ */
 final class PhelArrayPrinter implements PrinterInterface
 {
     private Printer $printer;
@@ -17,8 +20,6 @@ final class PhelArrayPrinter implements PrinterInterface
     }
 
     /**
-     * @psalm-suppress MoreSpecificImplementedParamType
-     *
      * @param PhelArray $form
      */
     public function print($form): string

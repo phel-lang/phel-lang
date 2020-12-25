@@ -4,11 +4,12 @@ declare(strict_types=1);
 
 namespace Phel\Printer;
 
+/**
+ * @implements PrinterInterface<resource>
+ */
 final class ResourcePrinter implements PrinterInterface
 {
     /**
-     * @psalm-suppress MoreSpecificImplementedParamType
-     *
      * @param resource $form
      */
     public function print($form): string
