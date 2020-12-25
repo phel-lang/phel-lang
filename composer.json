@@ -33,12 +33,21 @@
         }
     },
     "scripts": {
-        "test-compiler": "vendor/bin/phpunit",
-        "test-compiler:coverage": "vendor/bin/phpunit --coverage-html data/coverage-report",
+        "test-all": [
+            "@test-quality",
+            "@test-compiler",
+            "@test-core"
+        ],
+        "test-quality": [
+            "@csrun",
+            "@psalm"
+        ],
+        "test-compiler": "./vendor/bin/phpunit",
+        "test-compiler:coverage": "./vendor/bin/phpunit --coverage-html data/coverage-report",
         "test-core": "./phel test",
-        "psalm": "vendor/bin/psalm",
-        "test-all": "composer psalm && composer test-compiler && composer test-core",
-        "csfix": "vendor/bin/php-cs-fixer fix"
+        "psalm": "./vendor/bin/psalm",
+        "csfix": "./vendor/bin/php-cs-fixer fix",
+        "csrun": "./vendor/bin/php-cs-fixer fix --dry-run"
     },
     "bin": [
         "phel"
