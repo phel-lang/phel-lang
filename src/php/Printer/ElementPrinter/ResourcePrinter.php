@@ -2,12 +2,12 @@
 
 declare(strict_types=1);
 
-namespace Phel\Printer;
+namespace Phel\Printer\ElementPrinter;
 
 /**
- * @implements PrinterInterface<resource>
+ * @implements ElementPrinterInterface<resource>
  */
-final class ResourcePrinter implements PrinterInterface
+final class ResourcePrinter implements ElementPrinterInterface
 {
     /**
      * @param resource $form

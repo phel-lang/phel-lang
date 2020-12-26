@@ -2,12 +2,12 @@
 
 declare(strict_types=1);
 
-namespace Phel\Printer;
+namespace Phel\Printer\ElementPrinter;
 
 /**
- * @implements PrinterInterface<bool>
+ * @implements ElementPrinterInterface<bool>
  */
-final class BooleanPrinter implements PrinterInterface
+final class BooleanPrinter implements ElementPrinterInterface
 {
     /**
      * @param bool $form

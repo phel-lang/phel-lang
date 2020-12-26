@@ -11,21 +11,21 @@ use Phel\Lang\Struct;
 use Phel\Lang\Symbol;
 use Phel\Lang\Table;
 use Phel\Lang\Tuple;
-use Phel\Printer\ArrayPrinter;
-use Phel\Printer\BooleanPrinter;
-use Phel\Printer\KeywordPrinter;
-use Phel\Printer\NullPrinter;
-use Phel\Printer\NumericalPrinter;
-use Phel\Printer\ObjectPrinter;
-use Phel\Printer\PhelArrayPrinter;
-use Phel\Printer\PrinterInterface;
-use Phel\Printer\ResourcePrinter;
-use Phel\Printer\SetPrinter;
-use Phel\Printer\StringPrinter;
-use Phel\Printer\StructPrinter;
-use Phel\Printer\SymbolPrinter;
-use Phel\Printer\TablePrinter;
-use Phel\Printer\TuplePrinter;
+use Phel\Printer\ElementPrinter\ArrayPrinter;
+use Phel\Printer\ElementPrinter\BooleanPrinter;
+use Phel\Printer\ElementPrinter\KeywordPrinter;
+use Phel\Printer\ElementPrinter\NullPrinter;
+use Phel\Printer\ElementPrinter\NumericalPrinter;
+use Phel\Printer\ElementPrinter\ObjectPrinter;
+use Phel\Printer\ElementPrinter\PhelArrayPrinter;
+use Phel\Printer\ElementPrinter\ElementPrinterInterface;
+use Phel\Printer\ElementPrinter\ResourcePrinter;
+use Phel\Printer\ElementPrinter\SetPrinter;
+use Phel\Printer\ElementPrinter\StringPrinter;
+use Phel\Printer\ElementPrinter\StructPrinter;
+use Phel\Printer\ElementPrinter\SymbolPrinter;
+use Phel\Printer\ElementPrinter\TablePrinter;
+use Phel\Printer\ElementPrinter\TuplePrinter;
 
 final class Printer
 {
@@ -53,8 +53,8 @@ final class Printer
      */
     public function print($form): string
     {
-        $printerName = $this->getPrinterName($form);
-        $printer = $this->createPrinterByName($printerName);
+        $printerName = $this->getElementPrinterName($form);
+        $printer = $this->createElementPrinterByName($printerName);
 
         return $printer->print($form);
     }
@@ -62,14 +62,14 @@ final class Printer
     /**
      * @param mixed $form
      */
-    private function getPrinterName($form): string
+    private function getElementPrinterName($form): string
     {
         return 'object' === gettype($form)
             ? get_class($form)
             : gettype($form);
     }
 
-    private function createPrinterByName(string $printerName): PrinterInterface
+    private function createElementPrinterByName(string $printerName): ElementPrinterInterface
     {
         if (Tuple::class === $printerName) {
             return new TuplePrinter($this);

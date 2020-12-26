@@ -2,15 +2,15 @@
 
 declare(strict_types=1);
 
-namespace Phel\Printer;
+namespace Phel\Printer\ElementPrinter;
 
 use Phel\Lang\Set;
 use Phel\Printer;
 
 /**
- * @implements PrinterInterface<Set>
+ * @implements ElementPrinterInterface<Set>
  */
-final class SetPrinter implements PrinterInterface
+final class SetPrinter implements ElementPrinterInterface
 {
     private Printer $printer;
 

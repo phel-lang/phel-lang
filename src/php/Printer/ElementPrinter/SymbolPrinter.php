@@ -2,14 +2,14 @@
 
 declare(strict_types=1);
 
-namespace Phel\Printer;
+namespace Phel\Printer\ElementPrinter;
 
 use Phel\Lang\Symbol;
 
 /**
- * @implements PrinterInterface<Symbol>
+ * @implements ElementPrinterInterface<Symbol>
  */
-final class SymbolPrinter implements PrinterInterface
+final class SymbolPrinter implements ElementPrinterInterface
 {
     /**
      * @param Symbol $form

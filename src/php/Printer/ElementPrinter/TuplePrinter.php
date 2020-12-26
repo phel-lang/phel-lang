@@ -2,15 +2,15 @@
 
 declare(strict_types=1);
 
-namespace Phel\Printer;
+namespace Phel\Printer\ElementPrinter;
 
 use Phel\Lang\Tuple;
 use Phel\Printer;
 
 /**
- * @implements PrinterInterface<Tuple>
+ * @implements ElementPrinterInterface<Tuple>
  */
-final class TuplePrinter implements PrinterInterface
+final class TuplePrinter implements ElementPrinterInterface
 {
     private Printer $printer;
 
