@@ -8,7 +8,7 @@ use ArrayAccess;
 use Countable;
 use Exception;
 use Iterator;
-use Phel\Printer;
+use Phel\Printer\Printer;
 
 class Table extends AbstractType implements ArrayAccess, Countable, Iterator, ISeq
 {

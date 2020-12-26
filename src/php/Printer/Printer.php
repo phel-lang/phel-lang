@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Phel;
+namespace Phel\Printer;
 
 use Phel\Lang\Keyword;
 use Phel\Lang\PhelArray;

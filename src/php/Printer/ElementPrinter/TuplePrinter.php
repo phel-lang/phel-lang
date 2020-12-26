@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Phel\Printer\ElementPrinter;
 
 use Phel\Lang\Tuple;
-use Phel\Printer;
+use Phel\Printer\Printer;
 
 /**
  * @implements ElementPrinterInterface<Tuple>

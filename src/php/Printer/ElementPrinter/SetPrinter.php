@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Phel\Printer\ElementPrinter;
 
 use Phel\Lang\Set;
-use Phel\Printer;
+use Phel\Printer\Printer;
 
 /**
  * @implements ElementPrinterInterface<Set>

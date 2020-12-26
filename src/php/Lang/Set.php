@@ -6,7 +6,7 @@ namespace Phel\Lang;
 
 use Countable;
 use Iterator;
-use Phel\Printer;
+use Phel\Printer\Printer;
 
 class Set extends AbstractType implements Countable, Iterator, ISeq, ICons, IPush, IConcat
 {

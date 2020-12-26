@@ -6,7 +6,7 @@ namespace PhelTest\Unit;
 
 use Phel\Compiler\CompilerFactory;
 use Phel\Compiler\GlobalEnvironment;
-use Phel\Printer;
+use Phel\Printer\Printer;
 use PHPUnit\Framework\TestCase;
 
 final class PrinterTest extends TestCase
