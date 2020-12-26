@@ -246,6 +246,21 @@
     )
     "request method post"))
 
+(deftest test-request-post-with-form-data
+  (is
+    (=
+      @{"name" "phel"  "type" "lang"}
+      (get
+        (h/request-from-globals
+          (php-associative-array
+            "REQUEST_METHOD" "POST"
+            "CONTENT_TYPE" "multipart/form-data")
+          (php-associative-array
+            "name" "phel"
+            "type" "lang"))
+        :parsed-body))
+    "request method post with form data"))
+
 (deftest test-request-server-protocol-1
   (is
     (=

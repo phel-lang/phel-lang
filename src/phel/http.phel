@@ -147,11 +147,12 @@
 
 (defn request-from-globals
   "Extracts a request from `$_SERVER`"
-  [& [server]]
+  [& [server post]]
   (let [server (or server php/$_SERVER)
         method (get-method-from-globals server)
         uri (uri-from-globals server)
         headers (headers-from-server server)
+        post (or post php/$_POST)
         server-protocol (get server "SERVER_PROTOCOL")
         version (if (string? server-protocol)
                   (php/str_replace "HTTP/" "" server-protocol)
@@ -160,7 +161,7 @@
       method
       uri
       headers
-      (when (post-global-valid method headers) (php-array-to-table php/$_POST))
+      (when (post-global-valid method headers) (php-array-to-table post))
       (php-array-to-table php/$_GET)
       (php-array-to-table php/$_COOKIE)
       (php-array-to-table php/$_SERVER)
