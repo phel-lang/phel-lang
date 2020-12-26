@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace PhelTest\Unit;
+namespace PhelTest\Unit\Printer;
 
 use Phel\Compiler\CompilerFactory;
 use Phel\Compiler\GlobalEnvironment;
