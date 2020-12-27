@@ -14,19 +14,31 @@ final class TablePrinterTest extends TestCase
     /**
      * @dataProvider printerDataProvider
      */
-    public function testPrint(string $expected, Table $actual): void
+    public function testPrint(string $expected, Table $table): void
     {
         self::assertSame(
             $expected,
-            (new TablePrinter(Printer::readable()))->print($actual)
+            (new TablePrinter(Printer::readable()))->print($table)
         );
     }
 
     public function printerDataProvider(): \Generator
     {
-        yield [$expected = '@{}', $actual = Table::empty()];
-        yield [$expected = '@{}', $actual = Table::fromKVArray([])];
-        yield [$expected = '@{"a" 1 "b" 2}', $actual = Table::fromKVArray(['a', 1, 'b', 2])];
-        yield [$expected = '@{"a" 1 "b" 2}', $actual = Table::fromKVs('a', 1, 'b', 2)];
+        yield [
+            'expected' => '@{}',
+            'table' => Table::empty()
+        ];
+        yield [
+            'expected' => '@{}',
+            'table' => Table::fromKVArray([])
+        ];
+        yield [
+            'expected' => '@{"a" 1 "b" 2}',
+            'table' => Table::fromKVArray(['a', 1, 'b', 2])
+        ];
+        yield [
+            'expected' => '@{"a" 1 "b" 2}',
+            'table' => Table::fromKVs('a', 1, 'b', 2)
+        ];
     }
 }

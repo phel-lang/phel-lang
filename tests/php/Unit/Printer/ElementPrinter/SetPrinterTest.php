@@ -14,18 +14,27 @@ final class SetPrinterTest extends TestCase
     /**
      * @dataProvider printerDataProvider
      */
-    public function testPrint(string $expected, Set $actual): void
+    public function testPrint(string $expected, Set $set): void
     {
         self::assertSame(
             $expected,
-            (new SetPrinter(Printer::readable()))->print($actual)
+            (new SetPrinter(Printer::readable()))->print($set)
         );
     }
 
     public function printerDataProvider(): \Generator
     {
-        yield [$expected = '(set)', $actual = new Set([])];
-        yield [$expected = '(set "name")', $actual = new Set(['name'])];
-        yield [$expected = '(set "key1" "key2")', $actual = new Set(['key1', 'key2'])];
+        yield [
+            'expected' => '(set)',
+            'set' => new Set([])
+        ];
+        yield [
+            'expected' => '(set "name")',
+            'set' => new Set(['name'])
+        ];
+        yield [
+            'expected' => '(set "key1" "key2")',
+            'set' => new Set(['key1', 'key2'])
+        ];
     }
 }

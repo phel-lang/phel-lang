@@ -12,17 +12,23 @@ final class BooleanPrinterTest extends TestCase
     /**
      * @dataProvider printerDataProvider
      */
-    public function testPrint(string $expected, bool $actual): void
+    public function testPrint(string $expected, bool $boolean): void
     {
         self::assertSame(
             $expected,
-            (new BooleanPrinter())->print($actual)
+            (new BooleanPrinter())->print($boolean)
         );
     }
 
     public function printerDataProvider(): \Generator
     {
-        yield [$expected = 'true', $actual = true];
-        yield [$expected = 'false', $actual = false];
+        yield [
+            'expected' => 'true',
+            'boolean' => true
+        ];
+        yield [
+            'expected' => 'false',
+            'boolean' => false
+        ];
     }
 }

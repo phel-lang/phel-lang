@@ -14,17 +14,23 @@ final class PhelArrayPrinterTest extends TestCase
     /**
      * @dataProvider printerDataProvider
      */
-    public function testPrint(string $expected, PhelArray $actual): void
+    public function testPrint(string $expected, PhelArray $phelArray): void
     {
         self::assertSame(
             $expected,
-            (new PhelArrayPrinter(Printer::readable()))->print($actual)
+            (new PhelArrayPrinter(Printer::readable()))->print($phelArray)
         );
     }
 
     public function printerDataProvider(): \Generator
     {
-        yield [$expected = '@["name"]', $actual = new PhelArray(['name'])];
-        yield [$expected = '@["\\\?#__\\\|\\\/"]', $actual = new PhelArray(['\\?#__\|\/'])];
+        yield [
+            'expected' => '@["name"]',
+            'phelArray' => new PhelArray(['name'])
+        ];
+        yield [
+            'expected' => '@["\\\?#__\\\|\\\/"]',
+            'phelArray' => new PhelArray(['\\?#__\|\/'])
+        ];
     }
 }

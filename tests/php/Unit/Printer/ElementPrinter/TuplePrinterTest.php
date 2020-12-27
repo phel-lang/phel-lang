@@ -14,19 +14,31 @@ final class TuplePrinterTest extends TestCase
     /**
      * @dataProvider printerDataProvider
      */
-    public function testPrint(string $expected, Tuple $actual): void
+    public function testPrint(string $expected, Tuple $tuple): void
     {
         self::assertSame(
             $expected,
-            (new TuplePrinter(Printer::readable()))->print($actual)
+            (new TuplePrinter(Printer::readable()))->print($tuple)
         );
     }
 
     public function printerDataProvider(): \Generator
     {
-        yield [$expected = '()', $actual = Tuple::create()];
-        yield [$expected = '("a" 1)', $actual = Tuple::create('a', 1)];
-        yield [$expected = '[]', $actual = Tuple::createBracket()];
-        yield [$expected = '["a" 1]', $actual = Tuple::createBracket('a', 1)];
+        yield [
+            'expected' => '()',
+            'tuple' => Tuple::create()
+        ];
+        yield [
+            'expected' => '("a" 1)',
+            'tuple' => Tuple::create('a', 1)
+        ];
+        yield [
+            'expected' => '[]',
+            'tuple' => Tuple::createBracket()
+        ];
+        yield [
+            'expected' => '["a" 1]',
+            'tuple' => Tuple::createBracket('a', 1)
+        ];
     }
 }

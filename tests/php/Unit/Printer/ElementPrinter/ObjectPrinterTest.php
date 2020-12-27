@@ -12,17 +12,23 @@ final class ObjectPrinterTest extends TestCase
     /**
      * @dataProvider printerDataProvider
      */
-    public function testPrint(string $expected, object $actual): void
+    public function testPrint(string $expected, object $object): void
     {
         self::assertSame(
             $expected,
-            (new ObjectPrinter())->print($actual)
+            (new ObjectPrinter())->print($object)
         );
     }
 
     public function printerDataProvider(): \Generator
     {
-        yield [$expected = '<PHP-Object(stdClass)>', $actual = new \stdClass()];
-        yield [$expected = '<PHP-Object(stdClass)>', $actual = (object)[]];
+        yield [
+            'expected' => '<PHP-Object(stdClass)>',
+            'object' => new \stdClass()
+        ];
+        yield [
+            'expected' => '<PHP-Object(stdClass)>',
+            'object' => (object)[]
+        ];
     }
 }

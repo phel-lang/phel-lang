@@ -12,19 +12,25 @@ final class NumericalPrinterTest extends TestCase
     /**
      * @dataProvider printerDataProvider
      *
-     * @param int|float $actual
+     * @param int|float $number
      */
-    public function testPrint(string $expected, $actual): void
+    public function testPrint(string $expected, $number): void
     {
         self::assertSame(
             $expected,
-            (new NumericalPrinter())->print($actual)
+            (new NumericalPrinter())->print($number)
         );
     }
 
     public function printerDataProvider(): \Generator
     {
-        yield [$expected = '1', $actual = 1];
-        yield [$expected = '1.02', $actual = 1.02];
+        yield [
+            'expected' => '1',
+            'number' => 1
+        ];
+        yield [
+            'expected' => '1.02',
+            'number' => 1.02
+        ];
     }
 }

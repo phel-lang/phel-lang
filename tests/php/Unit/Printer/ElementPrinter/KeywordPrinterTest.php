@@ -13,17 +13,23 @@ final class KeywordPrinterTest extends TestCase
     /**
      * @dataProvider printerDataProvider
      */
-    public function testPrint(string $expected, Keyword $actual): void
+    public function testPrint(string $expected, Keyword $keyword): void
     {
         self::assertSame(
             $expected,
-            (new KeywordPrinter())->print($actual)
+            (new KeywordPrinter())->print($keyword)
         );
     }
 
     public function printerDataProvider(): \Generator
     {
-        yield [$expected = ':name', $actual = new Keyword('name')];
-        yield [$expected = ':\\?#__\|\/', $actual = new Keyword('\\?#__\|\/')];
+        yield [
+            'expected' => ':name',
+            'keyboard' => new Keyword('name')
+        ];
+        yield [
+            'expected' => ':\\?#__\|\/',
+            'keyboard' => new Keyword('\\?#__\|\/')
+        ];
     }
 }
