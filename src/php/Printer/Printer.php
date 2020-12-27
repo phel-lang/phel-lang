@@ -11,21 +11,21 @@ use Phel\Lang\Struct;
 use Phel\Lang\Symbol;
 use Phel\Lang\Table;
 use Phel\Lang\Tuple;
-use Phel\Printer\ElementPrinter\ArrayPrinter;
-use Phel\Printer\ElementPrinter\BooleanPrinter;
-use Phel\Printer\ElementPrinter\KeywordPrinter;
-use Phel\Printer\ElementPrinter\NullPrinter;
-use Phel\Printer\ElementPrinter\NumericalPrinter;
-use Phel\Printer\ElementPrinter\ObjectPrinter;
-use Phel\Printer\ElementPrinter\PhelArrayPrinter;
-use Phel\Printer\ElementPrinter\ElementPrinterInterface;
-use Phel\Printer\ElementPrinter\ResourcePrinter;
-use Phel\Printer\ElementPrinter\SetPrinter;
-use Phel\Printer\ElementPrinter\StringPrinter;
-use Phel\Printer\ElementPrinter\StructPrinter;
-use Phel\Printer\ElementPrinter\SymbolPrinter;
-use Phel\Printer\ElementPrinter\TablePrinter;
-use Phel\Printer\ElementPrinter\TuplePrinter;
+use Phel\Printer\TypePrinter\ArrayPrinter;
+use Phel\Printer\TypePrinter\BooleanPrinter;
+use Phel\Printer\TypePrinter\KeywordPrinter;
+use Phel\Printer\TypePrinter\NullPrinter;
+use Phel\Printer\TypePrinter\NumericalPrinter;
+use Phel\Printer\TypePrinter\ObjectPrinter;
+use Phel\Printer\TypePrinter\PhelArrayPrinter;
+use Phel\Printer\TypePrinter\TypePrinterInterface;
+use Phel\Printer\TypePrinter\ResourcePrinter;
+use Phel\Printer\TypePrinter\SetPrinter;
+use Phel\Printer\TypePrinter\StringPrinter;
+use Phel\Printer\TypePrinter\StructPrinter;
+use Phel\Printer\TypePrinter\SymbolPrinter;
+use Phel\Printer\TypePrinter\TablePrinter;
+use Phel\Printer\TypePrinter\TuplePrinter;
 
 final class Printer
 {
@@ -69,7 +69,7 @@ final class Printer
             : gettype($form);
     }
 
-    private function createElementPrinterByName(string $printerName): ElementPrinterInterface
+    private function createElementPrinterByName(string $printerName): TypePrinterInterface
     {
         if (Tuple::class === $printerName) {
             return new TuplePrinter($this);
