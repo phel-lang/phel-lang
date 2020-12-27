@@ -6,7 +6,7 @@ namespace PhelTest\Unit\Lang;
 
 use Phel\Lang\Struct;
 
-final class StructTestTable extends Struct
+final class FakeStruct extends Struct
 {
     public static function fromKVs(...$kvs): Struct
     {
