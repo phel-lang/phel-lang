@@ -30,8 +30,5 @@
         <include>
             <directory suffix=".php">src</directory>
         </include>
-        <exclude>
-            <directory suffix="Interface.php">src</directory>
-        </exclude>
     </coverage>
 </phpunit>
