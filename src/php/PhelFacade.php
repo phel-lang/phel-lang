@@ -15,7 +15,7 @@ use Phel\Runtime\RuntimeFactory;
 use Phel\Runtime\RuntimeInterface;
 use RuntimeException;
 
-final class Main
+final class PhelFacade
 {
     public const HELP_TEXT = <<<HELP
 Usage: phel [command]
@@ -49,7 +49,10 @@ HELP;
         $this->commandFactory = $commandFactory;
     }
 
-    public function run(string $commandName, array $arguments = []): void
+    /**
+     * @throws ExitException
+     */
+    public function runCommand(string $commandName, array $arguments = []): void
     {
         switch ($commandName) {
             case ReplCommand::COMMAND_NAME:
