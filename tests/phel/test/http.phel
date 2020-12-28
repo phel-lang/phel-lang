@@ -230,7 +230,7 @@
   (is
     (=
       "GET"
-      (get (h/request-from-globals (php-associative-array
+      (get (h/request-from-globals-args (php-associative-array
         "REQUEST_METHOD" "GET"
       )) :method)
     )
@@ -240,7 +240,7 @@
   (is
     (=
       "POST"
-      (get (h/request-from-globals (php-associative-array
+      (get (h/request-from-globals-args (php-associative-array
         "REQUEST_METHOD" "POST"
       )) :method)
     )
@@ -251,10 +251,11 @@
     (=
       @{"name" "phel"  "type" "lang"}
       (get
-        (h/request-from-globals
+        (h/request-from-globals-args
           (php-associative-array
             "REQUEST_METHOD" "POST"
             "CONTENT_TYPE" "multipart/form-data")
+          (php/array)
           (php-associative-array
             "name" "phel"
             "type" "lang"))
@@ -265,7 +266,7 @@
   (is
     (=
       "1.1"
-      (get (h/request-from-globals (php-associative-array
+      (get (h/request-from-globals-args (php-associative-array
         "SERVER_PROTOCOL" "HTTP/1.1"
         "REQUEST_METHOD" "GET"
       )) :version)
@@ -276,7 +277,7 @@
   (is
     (=
       "2.0"
-      (get (h/request-from-globals (php-associative-array
+      (get (h/request-from-globals-args (php-associative-array
         "SERVER_PROTOCOL" "HTTP/2.0"
         "REQUEST_METHOD" "GET"
       )) :version)
