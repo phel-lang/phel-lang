@@ -11,6 +11,20 @@ use PHPUnit\Framework\TestCase;
 
 final class LexerTest extends TestCase
 {
+    public function testWhitespaceWithNewline(): void
+    {
+        self::assertEquals(
+            [
+                new Token(Token::T_WHITESPACE, " \t", new SourceLocation('string', 1, 0), new SourceLocation('string', 1, 2)),
+                new Token(Token::T_NEWLINE, "\r\n", new SourceLocation('string', 1, 2), new SourceLocation('string', 2, 0)),
+                new Token(Token::T_WHITESPACE, '  ', new SourceLocation('string', 2, 0), new SourceLocation('string', 2, 2)),
+                new Token(Token::T_NEWLINE, "\n", new SourceLocation('string', 2, 2), new SourceLocation('string', 3, 0)),
+                new Token(Token::T_EOF, '', new SourceLocation('string', 3, 0), new SourceLocation('string', 3, 0)),
+            ],
+            $this->lex(" \t\r\n  \n")
+        );
+    }
+
     public function testReadCommentWithoutText(): void
     {
         self::assertEquals(
@@ -37,8 +51,7 @@ final class LexerTest extends TestCase
     {
         self::assertEquals(
             [
-                new Token(Token::T_COMMENT, '# Mein Kommentar', new SourceLocation('string', 1, 0), new SourceLocation('string', 1, 16)),
-                new Token(Token::T_WHITESPACE, "\n", new SourceLocation('string', 1, 16), new SourceLocation('string', 2, 0)),
+                new Token(Token::T_COMMENT, "# Mein Kommentar\n", new SourceLocation('string', 1, 0), new SourceLocation('string', 2, 0)),
                 new Token(Token::T_COMMENT, '# Mein andere Kommentar', new SourceLocation('string', 2, 0), new SourceLocation('string', 2, 23)),
                 new Token(Token::T_EOF, '', new SourceLocation('string', 2, 23), new SourceLocation('string', 2, 23)),
             ],

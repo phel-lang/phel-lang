@@ -700,6 +700,14 @@ final class ReaderTest extends TestCase
         $this->assertNull($reader->readNext($tokenStream));
     }
 
+    public function testReadWhitespaceOnly()
+    {
+        $reader = (new CompilerFactory())->createReader(new GlobalEnvironment());
+        $tokenStream = (new Lexer())->lexString(" \t\n  ");
+
+        $this->assertNull($reader->readNext($tokenStream));
+    }
+
     /**
      * @return AbstractType|string|float|int|bool|null
      */

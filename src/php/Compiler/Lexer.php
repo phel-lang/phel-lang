@@ -11,24 +11,25 @@ use Phel\Lang\SourceLocation;
 final class Lexer implements LexerInterface
 {
     private const REGEXPS = [
-        "([\n \t\r]+)", // Whitespace (index: 2)
-        "(\#[^\n]*)", // Comment (index: 3)
-        '(,@)', // unquote-splicing (index: 4)
-        "(\()", // open parenthesis (index: 5)
-        "(\))", // close parenthesis (index: 6)
-        "(\[)", // open bracket (index: 7)
-        "(\])", // close bracket (index: 8)
-        "(\{)", // open brace (index: 9)
-        "(\})", // close brace (index: 10)
-        "(')", // quote (index: 11)
-        '(,)', // unquote (index: 12)
-        '(`)', // quasiquote (index: 13)
-        "(\^)", // caret (index: 14)
-        "(@\[)", // array (index: 15)
-        "(@\{)", // table (index: 16)
-        "(\|\()", // short fn (index: 17)
-        '("(?:[^"\\\\]++|\\\\.)*+")', // String (index: 18)
-        "([^\(\)\[\]\{\}',`@ \n\r\t\#]+)", // Atom (index: 19)
+        "([ \t]+)", // Whitespace (index: 2)
+        "(\r?\n)", // Newline (index: 3)
+        "(\#[^\n]*\n?)", // Comment (index: 4)
+        '(,@)', // unquote-splicing (index: 5)
+        "(\()", // open parenthesis (index: 6)
+        "(\))", // close parenthesis (index: 7)
+        "(\[)", // open bracket (index: 8)
+        "(\])", // close bracket (index: 9)
+        "(\{)", // open brace (index: 10)
+        "(\})", // close brace (index: 11)
+        "(')", // quote (index: 12)
+        '(,)', // unquote (index: 13)
+        '(`)', // quasiquote (index: 14)
+        "(\^)", // caret (index: 15)
+        "(@\[)", // array (index: 16)
+        "(@\{)", // table (index: 17)
+        "(\|\()", // short fn (index: 18)
+        '("(?:[^"\\\\]++|\\\\.)*+")', // String (index: 19)
+        "([^\(\)\[\]\{\}',`@ \n\r\t\#]+)", // Atom (index: 20)
     ];
 
     private int $cursor = 0;
@@ -46,7 +47,6 @@ final class Lexer implements LexerInterface
         $this->cursor = 0;
         $this->line = 1;
         $this->column = 0;
-        $code = rtrim($code);
         $end = strlen($code);
 
         $startLocation = new SourceLocation($source, $this->line, $this->column);

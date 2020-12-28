@@ -80,6 +80,7 @@ final class Reader implements ReaderInterface
 
             switch ($token->getType()) {
                 case Token::T_WHITESPACE:
+                case Token::T_NEWLINE:
                 case Token::T_COMMENT:
                     $tokenStream->next();
                     break;
@@ -102,6 +103,7 @@ final class Reader implements ReaderInterface
 
             switch ($token->getType()) {
                 case Token::T_WHITESPACE:
+                case Token::T_NEWLINE:
                 case Token::T_COMMENT:
                     $tokenStream->next();
                     break;
@@ -132,7 +134,7 @@ final class Reader implements ReaderInterface
                 case Token::T_CLOSE_PARENTHESIS:
                 case Token::T_CLOSE_BRACKET:
                 case Token::T_CLOSE_BRACE:
-                    throw $this->buildReaderException('Unterminated list');
+                    throw $this->buildReaderException('Unterminated list 1');
 
                 case Token::T_QUOTE:
                     return $this->readWrap($tokenStream, Symbol::NAME_QUOTE);
@@ -193,14 +195,14 @@ final class Reader implements ReaderInterface
                     return Tuple::create(Symbol::create(Symbol::NAME_FN), new Tuple($params, true), $body);
 
                 case Token::T_EOF:
-                    throw $this->buildReaderException('Unterminated list');
+                    throw $this->buildReaderException('Unterminated list 2');
 
                 default:
                     throw $this->buildReaderException('Unhandled syntax token: ' . $token->getCode());
             }
         }
 
-        throw $this->buildReaderException('Unterminated list');
+        throw $this->buildReaderException('Unterminated list 3');
     }
 
     /**
@@ -295,6 +297,7 @@ final class Reader implements ReaderInterface
 
             switch ($token->getType()) {
                 case Token::T_WHITESPACE:
+                case Token::T_NEWLINE:
                 case Token::T_COMMENT:
                     $this->readTokens[] = $token;
                     $tokenStream->next();
@@ -315,7 +318,7 @@ final class Reader implements ReaderInterface
             }
         }
 
-        throw $this->buildReaderException('Unterminated list');
+        throw $this->buildReaderException('Unterminated list 4');
     }
 
     /**
