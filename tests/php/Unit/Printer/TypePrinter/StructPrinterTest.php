@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace PhelTest\Unit\Printer\TypePrinter;
 
+use Generator;
 use Phel\Lang\Struct;
 use Phel\Printer\TypePrinter\StructPrinter;
 use Phel\Printer\Printer;
@@ -22,13 +23,14 @@ final class StructPrinterTest extends TestCase
         );
     }
 
-    public function printerDataProvider(): \Generator
+    public function printerDataProvider(): Generator
     {
-        yield [
+        yield 'empty struct' => [
             'actual' => '(PhelTest\Unit\Printer\TypePrinter\StubStruct )',
             'struct' => new StubStruct([]),
         ];
-        yield [
+
+        yield 'struct with multiple values' => [
             'actual' => '(PhelTest\Unit\Printer\TypePrinter\StubStruct nil nil)',
             'struct' => new StubStruct(['a', 'b']),
         ];

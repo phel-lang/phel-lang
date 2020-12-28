@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace PhelTest\Unit\Printer\TypePrinter;
 
+use Generator;
 use Phel\Lang\PhelArray;
 use Phel\Printer\TypePrinter\PhelArrayPrinter;
 use Phel\Printer\Printer;
@@ -22,13 +23,14 @@ final class PhelArrayPrinterTest extends TestCase
         );
     }
 
-    public function printerDataProvider(): \Generator
+    public function printerDataProvider(): Generator
     {
-        yield [
+        yield 'string name' => [
             'expected' => '@["name"]',
             'phelArray' => new PhelArray(['name']),
         ];
-        yield [
+
+        yield 'special chars string' => [
             'expected' => '@["\\\?#__\\\|\\\/"]',
             'phelArray' => new PhelArray(['\\?#__\|\/']),
         ];

@@ -15,7 +15,7 @@ use Phel\Printer\TypePrinter\ArrayPrinter;
 use Phel\Printer\TypePrinter\BooleanPrinter;
 use Phel\Printer\TypePrinter\KeywordPrinter;
 use Phel\Printer\TypePrinter\NullPrinter;
-use Phel\Printer\TypePrinter\NumericalPrinter;
+use Phel\Printer\TypePrinter\NumberPrinter;
 use Phel\Printer\TypePrinter\ObjectPrinter;
 use Phel\Printer\TypePrinter\PhelArrayPrinter;
 use Phel\Printer\TypePrinter\TypePrinterInterface;
@@ -53,8 +53,8 @@ final class Printer
      */
     public function print($form): string
     {
-        $printerName = $this->getElementPrinterName($form);
-        $printer = $this->createElementPrinterByName($printerName);
+        $printerName = $this->getTypePrinterName($form);
+        $printer = $this->createTypePrinterByName($printerName);
 
         return $printer->print($form);
     }
@@ -62,14 +62,14 @@ final class Printer
     /**
      * @param mixed $form
      */
-    private function getElementPrinterName($form): string
+    private function getTypePrinterName($form): string
     {
         return 'object' === gettype($form)
             ? get_class($form)
             : gettype($form);
     }
 
-    private function createElementPrinterByName(string $printerName): TypePrinterInterface
+    private function createTypePrinterByName(string $printerName): TypePrinterInterface
     {
         if (Tuple::class === $printerName) {
             return new TuplePrinter($this);
@@ -96,7 +96,7 @@ final class Printer
             return new StringPrinter($this->readable);
         }
         if ('integer' === $printerName || 'float' === $printerName) {
-            return new NumericalPrinter();
+            return new NumberPrinter();
         }
         if ('boolean' === $printerName) {
             return new BooleanPrinter();

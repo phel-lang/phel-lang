@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace PhelTest\Unit\Printer\TypePrinter;
 
+use Generator;
 use Phel\Printer\TypePrinter\BooleanPrinter;
 use PHPUnit\Framework\TestCase;
 
@@ -20,12 +21,13 @@ final class BooleanPrinterTest extends TestCase
         );
     }
 
-    public function printerDataProvider(): \Generator
+    public function printerDataProvider(): Generator
     {
         yield [
             'expected' => 'true',
             'boolean' => true,
         ];
+
         yield [
             'expected' => 'false',
             'boolean' => false,

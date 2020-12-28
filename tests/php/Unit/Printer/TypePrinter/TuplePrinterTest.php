@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace PhelTest\Unit\Printer\TypePrinter;
 
+use Generator;
 use Phel\Lang\Tuple;
 use Phel\Printer\TypePrinter\TuplePrinter;
 use Phel\Printer\Printer;
@@ -22,21 +23,24 @@ final class TuplePrinterTest extends TestCase
         );
     }
 
-    public function printerDataProvider(): \Generator
+    public function printerDataProvider(): Generator
     {
-        yield [
+        yield 'empty tuple without brackets' => [
             'expected' => '()',
             'tuple' => Tuple::create(),
         ];
-        yield [
+
+        yield 'tuple with values & without brackets' => [
             'expected' => '("a" 1)',
             'tuple' => Tuple::create('a', 1),
         ];
-        yield [
+
+        yield 'empty tuple with brackets' => [
             'expected' => '[]',
             'tuple' => Tuple::createBracket(),
         ];
-        yield [
+
+        yield 'tuple with values & brackets' => [
             'expected' => '["a" 1]',
             'tuple' => Tuple::createBracket('a', 1),
         ];

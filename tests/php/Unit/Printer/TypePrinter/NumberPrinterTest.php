@@ -4,10 +4,11 @@ declare(strict_types=1);
 
 namespace PhelTest\Unit\Printer\TypePrinter;
 
-use Phel\Printer\TypePrinter\NumericalPrinter;
+use Generator;
+use Phel\Printer\TypePrinter\NumberPrinter;
 use PHPUnit\Framework\TestCase;
 
-final class NumericalPrinterTest extends TestCase
+final class NumberPrinterTest extends TestCase
 {
     /**
      * @dataProvider printerDataProvider
@@ -18,17 +19,18 @@ final class NumericalPrinterTest extends TestCase
     {
         self::assertSame(
             $expected,
-            (new NumericalPrinter())->print($number)
+            (new NumberPrinter())->print($number)
         );
     }
 
-    public function printerDataProvider(): \Generator
+    public function printerDataProvider(): Generator
     {
-        yield [
+        yield 'integer' => [
             'expected' => '1',
             'number' => 1,
         ];
-        yield [
+
+        yield 'float' => [
             'expected' => '1.02',
             'number' => 1.02,
         ];

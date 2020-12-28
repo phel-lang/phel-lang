@@ -7,7 +7,7 @@ namespace Phel\Printer\TypePrinter;
 /**
  * @implements TypePrinterInterface<int|float>
  */
-final class NumericalPrinter implements TypePrinterInterface
+final class NumberPrinter implements TypePrinterInterface
 {
     /**
      * @param int|float $form

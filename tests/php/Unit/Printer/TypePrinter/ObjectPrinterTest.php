@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace PhelTest\Unit\Printer\TypePrinter;
 
+use Generator;
 use Phel\Printer\TypePrinter\ObjectPrinter;
 use PHPUnit\Framework\TestCase;
 
@@ -20,13 +21,14 @@ final class ObjectPrinterTest extends TestCase
         );
     }
 
-    public function printerDataProvider(): \Generator
+    public function printerDataProvider(): Generator
     {
-        yield [
+        yield 'stdClass' => [
             'expected' => '<PHP-Object(stdClass)>',
             'object' => new \stdClass(),
         ];
-        yield [
+
+        yield 'array to object cast' => [
             'expected' => '<PHP-Object(stdClass)>',
             'object' => (object)[],
         ];

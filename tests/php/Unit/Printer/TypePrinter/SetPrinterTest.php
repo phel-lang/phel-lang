@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace PhelTest\Unit\Printer\TypePrinter;
 
+use Generator;
 use Phel\Lang\Set;
 use Phel\Printer\TypePrinter\SetPrinter;
 use Phel\Printer\Printer;
@@ -22,17 +23,19 @@ final class SetPrinterTest extends TestCase
         );
     }
 
-    public function printerDataProvider(): \Generator
+    public function printerDataProvider(): Generator
     {
-        yield [
+        yield 'empty set' => [
             'expected' => '(set)',
             'set' => new Set([]),
         ];
-        yield [
+
+        yield 'set with one value' => [
             'expected' => '(set "name")',
             'set' => new Set(['name']),
         ];
-        yield [
+
+        yield 'set with multiple values' => [
             'expected' => '(set "key1" "key2")',
             'set' => new Set(['key1', 'key2']),
         ];

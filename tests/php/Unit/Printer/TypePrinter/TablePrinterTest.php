@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace PhelTest\Unit\Printer\TypePrinter;
 
+use Generator;
 use Phel\Lang\Table;
 use Phel\Printer\TypePrinter\TablePrinter;
 use Phel\Printer\Printer;
@@ -22,21 +23,24 @@ final class TablePrinterTest extends TestCase
         );
     }
 
-    public function printerDataProvider(): \Generator
+    public function printerDataProvider(): Generator
     {
-        yield [
+        yield 'empty table' => [
             'expected' => '@{}',
             'table' => Table::empty(),
         ];
-        yield [
+
+        yield 'empty table KVArray' => [
             'expected' => '@{}',
             'table' => Table::fromKVArray([]),
         ];
-        yield [
+
+        yield 'table from KVArray' => [
             'expected' => '@{"a" 1 "b" 2}',
             'table' => Table::fromKVArray(['a', 1, 'b', 2]),
         ];
-        yield [
+
+        yield 'table from KV values' => [
             'expected' => '@{"a" 1 "b" 2}',
             'table' => Table::fromKVs('a', 1, 'b', 2),
         ];

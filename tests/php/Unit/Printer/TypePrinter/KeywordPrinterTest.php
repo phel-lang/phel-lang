@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace PhelTest\Unit\Printer\TypePrinter;
 
+use Generator;
 use Phel\Lang\Keyword;
 use Phel\Printer\TypePrinter\KeywordPrinter;
 use PHPUnit\Framework\TestCase;
@@ -21,13 +22,14 @@ final class KeywordPrinterTest extends TestCase
         );
     }
 
-    public function printerDataProvider(): \Generator
+    public function printerDataProvider(): Generator
     {
-        yield [
+        yield 'string name' => [
             'expected' => ':name',
             'keyboard' => new Keyword('name'),
         ];
-        yield [
+
+        yield 'special chars string' => [
             'expected' => ':\\?#__\|\/',
             'keyboard' => new Keyword('\\?#__\|\/'),
         ];
