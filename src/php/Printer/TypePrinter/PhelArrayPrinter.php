@@ -2,15 +2,15 @@
 
 declare(strict_types=1);
 
-namespace Phel\Printer;
+namespace Phel\Printer\TypePrinter;
 
 use Phel\Lang\PhelArray;
-use Phel\Printer;
+use Phel\Printer\Printer;
 
 /**
- * @implements PrinterInterface<PhelArray>
+ * @implements TypePrinterInterface<PhelArray>
  */
-final class PhelArrayPrinter implements PrinterInterface
+final class PhelArrayPrinter implements TypePrinterInterface
 {
     private Printer $printer;
 

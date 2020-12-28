@@ -22,7 +22,7 @@
   (:use Phel\Lang\Symbol)
   (:use Phel\Lang\Truthy)
   (:use Phel\Compiler\Emitter\OutputEmitter\Munge)
-  (:use Phel\Printer)
+  (:use Phel\Printer\Printer)
   (:use Countable)
   (:use Exception)
   (:use InvalidArgumentException))

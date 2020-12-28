@@ -2,15 +2,15 @@
 
 declare(strict_types=1);
 
-namespace Phel\Printer;
+namespace Phel\Printer\TypePrinter;
 
 use Phel\Lang\Table;
-use Phel\Printer;
+use Phel\Printer\Printer;
 
 /**
- * @implements PrinterInterface<Table>
+ * @implements TypePrinterInterface<Table>
  */
-final class TablePrinter implements PrinterInterface
+final class TablePrinter implements TypePrinterInterface
 {
     private Printer $printer;
 

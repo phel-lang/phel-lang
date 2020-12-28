@@ -9,7 +9,7 @@ use Phel\Compiler\Emitter\OutputEmitter\Munge;
 use Phel\Compiler\Emitter\OutputEmitter\SourceMap\SourceMapConsumer;
 use Phel\Compiler\ReadModel\CodeSnippet;
 use Phel\Lang\IFn;
-use Phel\Printer;
+use Phel\Printer\Printer;
 use ReflectionClass;
 use Throwable;
 

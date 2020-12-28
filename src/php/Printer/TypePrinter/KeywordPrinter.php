@@ -2,14 +2,14 @@
 
 declare(strict_types=1);
 
-namespace Phel\Printer;
+namespace Phel\Printer\TypePrinter;
 
 use Phel\Lang\Keyword;
 
 /**
- * @implements PrinterInterface<Keyword>
+ * @implements TypePrinterInterface<Keyword>
  */
-final class KeywordPrinter implements PrinterInterface
+final class KeywordPrinter implements TypePrinterInterface
 {
     /**
      * @param Keyword $form

@@ -1,6 +1,7 @@
 vendor
-.phpunit.result.cache
+.phpunit.*
 data
+var
 doc/public
 .phel-repl-history
 .php_cs.cache

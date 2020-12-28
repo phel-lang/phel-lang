@@ -2,12 +2,12 @@
 
 declare(strict_types=1);
 
-namespace Phel\Printer;
+namespace Phel\Printer\TypePrinter;
 
 /**
  * @template T
  */
-interface PrinterInterface
+interface TypePrinterInterface
 {
     /**
      * @param T $form

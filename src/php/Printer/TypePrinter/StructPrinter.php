@@ -2,15 +2,15 @@
 
 declare(strict_types=1);
 
-namespace Phel\Printer;
+namespace Phel\Printer\TypePrinter;
 
 use Phel\Lang\Struct;
-use Phel\Printer;
+use Phel\Printer\Printer;
 
 /**
- * @implements PrinterInterface<Struct>
+ * @implements TypePrinterInterface<Struct>
  */
-final class StructPrinter implements PrinterInterface
+final class StructPrinter implements TypePrinterInterface
 {
     private Printer $printer;
 

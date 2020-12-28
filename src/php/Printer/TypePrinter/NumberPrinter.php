@@ -2,12 +2,12 @@
 
 declare(strict_types=1);
 
-namespace Phel\Printer;
+namespace Phel\Printer\TypePrinter;
 
 /**
- * @implements PrinterInterface<int|float>
+ * @implements TypePrinterInterface<int|float>
  */
-final class NumericalPrinter implements PrinterInterface
+final class NumberPrinter implements TypePrinterInterface
 {
     /**
      * @param int|float $form

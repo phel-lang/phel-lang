@@ -11,7 +11,7 @@ use Phel\Lang\PhelArray;
 use Phel\Lang\Symbol;
 use Phel\Lang\Table;
 use Phel\Lang\Tuple;
-use Phel\Printer;
+use Phel\Printer\Printer;
 use RuntimeException;
 
 final class LiteralEmitter

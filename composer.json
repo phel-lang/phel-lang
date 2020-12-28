@@ -17,7 +17,7 @@
     },
     "require-dev": {
         "ext-readline": "*",
-        "phpunit/phpunit": "^9",
+        "phpunit/phpunit": "^9.5",
         "vimeo/psalm": "^3.11",
         "friendsofphp/php-cs-fixer": "^2.16",
         "infection/infection": "^0.16.3"
@@ -43,7 +43,7 @@
             "@psalm"
         ],
         "test-compiler": "./vendor/bin/phpunit",
-        "test-compiler:coverage": "./vendor/bin/phpunit --coverage-html data/coverage-report",
+        "test-compiler:coverage": "XDEBUG_MODE=coverage ./vendor/bin/phpunit --coverage-html data/coverage-report",
         "test-core": "./phel test",
         "psalm": "./vendor/bin/psalm",
         "csfix": "./vendor/bin/php-cs-fixer fix",

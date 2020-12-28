@@ -2,12 +2,12 @@
 
 declare(strict_types=1);
 
-namespace Phel\Printer;
+namespace Phel\Printer\TypePrinter;
 
 /**
- * @implements PrinterInterface<string>
+ * @implements TypePrinterInterface<string>
  */
-final class StringPrinter implements PrinterInterface
+final class StringPrinter implements TypePrinterInterface
 {
     private bool $readable;
 
