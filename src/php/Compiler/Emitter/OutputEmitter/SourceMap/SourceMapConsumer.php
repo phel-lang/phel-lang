@@ -11,8 +11,8 @@ final class SourceMapConsumer
 
     public function __construct(string $mapping)
     {
-        $this->lineMapping = $this->decodeMapping($mapping);
         $this->vlq = new VLQ();
+        $this->lineMapping = $this->decodeMapping($mapping);
     }
 
     protected function decodeMapping(string $mapping): array
