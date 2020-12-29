@@ -48,8 +48,7 @@ final class ParseAndPrintTest extends TestCase
     {
         $code = '';
         /** @var NodeInterface $parseTree */
-        foreach ($parseTrees as $parseTree)
-        {
+        foreach ($parseTrees as $parseTree) {
             $code .= $parseTree->getCode();
         }
 
