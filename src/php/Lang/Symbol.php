@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Phel\Lang;
 
-use Phel\Printer;
+use Phel\Printer\Printer;
 
 final class Symbol extends AbstractType implements IIdentical
 {

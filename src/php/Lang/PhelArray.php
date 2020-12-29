@@ -8,7 +8,7 @@ use ArrayAccess;
 use Countable;
 use InvalidArgumentException;
 use Iterator;
-use Phel\Printer;
+use Phel\Printer\Printer;
 
 final class PhelArray extends AbstractType implements
     ArrayAccess,

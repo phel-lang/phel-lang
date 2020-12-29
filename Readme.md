@@ -75,7 +75,8 @@ composer test-compiler # test the compiler
 composer test-core     # test core library
 > ./phel test
 
-composer test-all      # psalm, compiler & core tests after each other
+composer test-all      # csrun, psalm, compiler & core tests after each other
+> composer csrun
 > composer psalm
 > composer test-compiler
 > composer test-core
@@ -83,16 +84,10 @@ composer test-all      # psalm, compiler & core tests after each other
 
 ### Build the documentation
 
-The documentation is build with [Zola](https://www.getzola.org/). To build and serve the documentation on a local machine, run:
+The documentation is build with [Zola](https://www.getzola.org/).
 
 ```bash
 cd doc
-zola serve
-```
-
-To build the documentation to publish it on the server, run:
-
-```bash
-cd doc
-zola build
+zola serve # build & serve
+zola build # build & publish
 ```

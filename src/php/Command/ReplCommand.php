@@ -11,7 +11,7 @@ use Phel\Exceptions\CompilerException;
 use Phel\Exceptions\ExceptionPrinterInterface;
 use Phel\Exceptions\ExitException;
 use Phel\Exceptions\ReaderException;
-use Phel\Printer;
+use Phel\Printer\Printer;
 use Throwable;
 
 final class ReplCommand

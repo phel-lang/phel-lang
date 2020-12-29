@@ -2,14 +2,14 @@
 <?php
 
 $slash = DIRECTORY_SEPARATOR;
-require_once __DIR__ . "{$slash}src{$slash}php{$slash}Main.php";
+require_once __DIR__ . "{$slash}src{$slash}php{$slash}PhelFacade.php";
 
 use Phel\Command\CommandFactory;
 use Phel\Compiler\CompilerFactory;
-use Phel\Main;
+use Phel\PhelFacade;
 
 if ($argc <= 1) {
-    exit(Main::HELP_TEXT);
+    exit(PhelFacade::HELP_TEXT);
 }
 
 $currentDir = getcwd() . $slash;
@@ -27,10 +27,8 @@ $commandFactory = new CommandFactory(
 );
 
 try {
-    $main = new Main($currentDir, $commandFactory);
-    $commandName = $argv[1];
-    $arguments = array_slice($argv, 2);
-    $main->run($commandName, $arguments);
+    $facade = new PhelFacade($currentDir, $commandFactory);
+    $facade->runCommand($argv[1], array_slice($argv, 2));
 } catch (Exception $e) {
     print $e->getMessage() . PHP_EOL;
 }

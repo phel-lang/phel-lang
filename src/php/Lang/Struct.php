@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Phel\Lang;
 
 use InvalidArgumentException;
-use Phel\Printer;
+use Phel\Printer\Printer;
 
 abstract class Struct extends Table
 {
