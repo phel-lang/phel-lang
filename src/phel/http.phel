@@ -146,11 +146,11 @@
 
 (defn request-from-globals-args
   "Extracts a request from args"
-  [& [_server _get _post _cookies _files]]
-  (let [method (get-method-from-globals _server)
-        uri (uri-from-globals _server)
-        headers (headers-from-server _server)
-        server-protocol (get _server "SERVER_PROTOCOL")
+  [server get-parameter post-parameter cookies files]
+  (let [method (get-method-from-globals server)
+        uri (uri-from-globals server)
+        headers (headers-from-server server)
+        server-protocol (get server "SERVER_PROTOCOL")
         version (if (string? server-protocol)
                   (php/str_replace "HTTP/" "" server-protocol)
                   "1.1")]
@@ -158,11 +158,11 @@
       method
       uri
       headers
-      (when (post-global-valid method headers) (php-array-to-table _post))
-      (php-array-to-table _get)
-      (php-array-to-table _cookies)
-      (php-array-to-table _server)
-      (normalize-files _files)
+      (when (post-global-valid method headers) (php-array-to-table post-parameter))
+      (php-array-to-table get-parameter)
+      (php-array-to-table cookies)
+      (php-array-to-table server)
+      (normalize-files files)
       version)))
 
 (defn request-from-globals
