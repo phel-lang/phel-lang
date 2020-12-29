@@ -144,12 +144,10 @@
       (= method "POST")
       (php/in_array types (php/array "application/x-www-form-urlencoded" "multipart/form-data")))))
 
-
-(defn request-from-globals
-  "Extracts a request from `$_SERVER`"
-  [& [server]]
-  (let [server (or server php/$_SERVER)
-        method (get-method-from-globals server)
+(defn request-from-globals-args
+  "Extracts a request from args"
+  [server get-parameter post-parameter cookies files]
+  (let [method (get-method-from-globals server)
         uri (uri-from-globals server)
         headers (headers-from-server server)
         server-protocol (get server "SERVER_PROTOCOL")
@@ -160,12 +158,17 @@
       method
       uri
       headers
-      (when (post-global-valid method headers) (php-array-to-table php/$_POST))
-      (php-array-to-table php/$_GET)
-      (php-array-to-table php/$_COOKIE)
-      (php-array-to-table php/$_SERVER)
-      (normalize-files php/$_FILES)
+      (when (post-global-valid method headers) (php-array-to-table post-parameter))
+      (php-array-to-table get-parameter)
+      (php-array-to-table cookies)
+      (php-array-to-table server)
+      (normalize-files files)
       version)))
+
+(defn request-from-globals
+  "Extracts a request from `$_SERVER`, `$_GET`, `$_POST`, `$_COOKIE` and `$_FILES`"
+  []
+  (request-from-globals-args php/$_SERVER php/$_GET php/$_POST php/$_COOKIE php/$_FILES))
 
 # --------
 # Response
