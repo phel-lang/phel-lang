@@ -27,11 +27,11 @@ final class LoopSymbol implements TupleSymbolAnalyzer
 
     public function analyze(Tuple $tuple, NodeEnvironmentInterface $env): LetNode
     {
-        $tupleCount = count($tuple);
         if (!($tuple[0] instanceof Symbol && $tuple[0]->getName() === Symbol::NAME_LOOP)) {
             throw AnalyzerException::withLocation("This is not a 'loop.", $tuple);
         }
 
+        $tupleCount = count($tuple);
         if ($tupleCount < 2) {
             throw AnalyzerException::withLocation("At least two arguments are required for 'loop.", $tuple);
         }

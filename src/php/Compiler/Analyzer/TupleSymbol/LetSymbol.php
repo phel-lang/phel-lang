@@ -26,6 +26,10 @@ final class LetSymbol implements TupleSymbolAnalyzer
 
     public function analyze(Tuple $tuple, NodeEnvironmentInterface $env): LetNode
     {
+        if (!($tuple[0] instanceof Symbol && $tuple[0]->getName() === Symbol::NAME_LET)) {
+            throw AnalyzerException::withLocation("This is not a 'let.", $tuple);
+        }
+
         if (count($tuple) < 2) {
             throw AnalyzerException::withLocation("At least two arguments are required for 'let", $tuple);
         }
