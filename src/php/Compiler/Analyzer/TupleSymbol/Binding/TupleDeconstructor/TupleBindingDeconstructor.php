@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace Phel\Compiler\Analyzer\TupleSymbol\Binding\Deconstructor;
+namespace Phel\Compiler\Analyzer\TupleSymbol\Binding\TupleDeconstructor;
 
-use Phel\Compiler\Analyzer\TupleSymbol\Binding\DeconstructorInterface;
+use Phel\Compiler\Analyzer\TupleSymbol\Binding\TupleDeconstructor;
 use Phel\Exceptions\AnalyzerException;
 use Phel\Lang\AbstractType;
 use Phel\Lang\Symbol;
@@ -15,11 +15,11 @@ use Phel\Lang\Tuple;
  */
 final class TupleBindingDeconstructor implements BindingDeconstructorInterface
 {
-    private DeconstructorInterface $deconstructor;
+    private TupleDeconstructor $tupleDeconstructor;
 
-    public function __construct(DeconstructorInterface $deconstructor)
+    public function __construct(TupleDeconstructor $deconstructor)
     {
-        $this->deconstructor = $deconstructor;
+        $this->tupleDeconstructor = $deconstructor;
     }
 
     /**
@@ -55,14 +55,14 @@ final class TupleBindingDeconstructor implements BindingDeconstructorInterface
                         $bindings[] = [$nextSym, $nextValue];
                         $lastListSym = $nextSym;
 
-                        $this->deconstructor->deconstruct($bindings, $current, $accessSym);
+                        $this->tupleDeconstructor->deconstructBindings($bindings, $current, $accessSym);
                     }
                     break;
                 case 'rest':
                     $state = 'done';
                     $accessSym = Symbol::gen()->copyLocationFrom($current);
                     $bindings[] = [$accessSym, $lastListSym];
-                    $this->deconstructor->deconstruct($bindings, $current, $accessSym);
+                    $this->tupleDeconstructor->deconstructBindings($bindings, $current, $accessSym);
                     break;
                 case 'done':
                     throw AnalyzerException::withLocation(

@@ -4,25 +4,17 @@ declare(strict_types=1);
 
 namespace Phel\Compiler\Analyzer\TupleSymbol\Binding;
 
-use Phel\Exceptions\AnalyzerException;
-use Phel\Lang\AbstractType;
-use Phel\Lang\Tuple;
-
+/**
+ * @psalm-template T
+ */
 interface DeconstructorInterface
 {
     /**
-     * Deconstruct the binding forms from the tuple.
-     */
-    public function deconstructTuple(Tuple $tuple): array;
-
-    /**
-     * Deconstruct a $binding $value pair and add the result to $bindings.
+     * Deconstruct the form's bindings.
      *
-     * @param array $bindings A reference to already defined bindings
-     * @param AbstractType|string|float|int|bool|null $binding The binding form
-     * @param AbstractType|string|float|int|bool|null $value The value form
+     * @param T $form
      *
-     * @throws AnalyzerException
+     * @return array<mixed,mixed>
      */
-    public function deconstruct(array &$bindings, $binding, $value): void;
+    public function deconstruct($form): array;
 }

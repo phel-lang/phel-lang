@@ -4,12 +4,12 @@ declare(strict_types=1);
 
 namespace Phel\Compiler\Analyzer\TupleSymbol\Binding;
 
-use Phel\Compiler\Analyzer\TupleSymbol\Binding\Deconstructor\BindingDeconstructorInterface;
-use Phel\Compiler\Analyzer\TupleSymbol\Binding\Deconstructor\NullBindingDeconstructor;
-use Phel\Compiler\Analyzer\TupleSymbol\Binding\Deconstructor\PhelArrayBindingDeconstructor;
-use Phel\Compiler\Analyzer\TupleSymbol\Binding\Deconstructor\SymbolBindingDeconstructor;
-use Phel\Compiler\Analyzer\TupleSymbol\Binding\Deconstructor\TableBindingDeconstructor;
-use Phel\Compiler\Analyzer\TupleSymbol\Binding\Deconstructor\TupleBindingDeconstructor;
+use Phel\Compiler\Analyzer\TupleSymbol\Binding\TupleDeconstructor\BindingDeconstructorInterface;
+use Phel\Compiler\Analyzer\TupleSymbol\Binding\TupleDeconstructor\NullBindingDeconstructor;
+use Phel\Compiler\Analyzer\TupleSymbol\Binding\TupleDeconstructor\PhelArrayBindingDeconstructor;
+use Phel\Compiler\Analyzer\TupleSymbol\Binding\TupleDeconstructor\SymbolBindingDeconstructor;
+use Phel\Compiler\Analyzer\TupleSymbol\Binding\TupleDeconstructor\TableBindingDeconstructor;
+use Phel\Compiler\Analyzer\TupleSymbol\Binding\TupleDeconstructor\TupleBindingDeconstructor;
 use Phel\Exceptions\AnalyzerException;
 use Phel\Lang\AbstractType;
 use Phel\Lang\PhelArray;
@@ -17,7 +17,10 @@ use Phel\Lang\Symbol;
 use Phel\Lang\Table;
 use Phel\Lang\Tuple;
 
-final class Deconstructor implements DeconstructorInterface
+/**
+ * @implements DeconstructorInterface<Tuple>
+ */
+final class TupleDeconstructor implements DeconstructorInterface
 {
     private BindingValidatorInterface $bindingValidator;
 
@@ -26,12 +29,15 @@ final class Deconstructor implements DeconstructorInterface
         $this->bindingValidator = $bindingChecker;
     }
 
-    public function deconstructTuple(Tuple $tuple): array
+    /**
+     * @param Tuple $form
+     */
+    public function deconstruct($form): array
     {
         $bindings = [];
 
-        for ($i = 0, $iMax = count($tuple); $i < $iMax; $i += 2) {
-            $this->deconstruct($bindings, $tuple[$i], $tuple[$i + 1]);
+        for ($i = 0, $iMax = count($form); $i < $iMax; $i += 2) {
+            $this->deconstructBindings($bindings, $form[$i], $form[$i + 1]);
         }
 
         return $bindings;
@@ -46,7 +52,7 @@ final class Deconstructor implements DeconstructorInterface
      *
      * @throws AnalyzerException
      */
-    public function deconstruct(array &$bindings, $binding, $value): void
+    public function deconstructBindings(array &$bindings, $binding, $value): void
     {
         $this->bindingValidator->assertSupportedBinding($binding);
 

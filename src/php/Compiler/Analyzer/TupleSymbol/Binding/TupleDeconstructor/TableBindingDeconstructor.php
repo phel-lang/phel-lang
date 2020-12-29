@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace Phel\Compiler\Analyzer\TupleSymbol\Binding\Deconstructor;
+namespace Phel\Compiler\Analyzer\TupleSymbol\Binding\TupleDeconstructor;
 
-use Phel\Compiler\Analyzer\TupleSymbol\Binding\DeconstructorInterface;
+use Phel\Compiler\Analyzer\TupleSymbol\Binding\TupleDeconstructor;
 use Phel\Lang\AbstractType;
 use Phel\Lang\Symbol;
 use Phel\Lang\Table;
@@ -15,13 +15,12 @@ use Phel\Lang\Tuple;
  */
 final class TableBindingDeconstructor implements BindingDeconstructorInterface
 {
-    private DeconstructorInterface $deconstructor;
+    private TupleDeconstructor $tupleDeconstructor;
 
-    public function __construct(DeconstructorInterface $deconstructor)
+    public function __construct(TupleDeconstructor $deconstructor)
     {
-        $this->deconstructor = $deconstructor;
+        $this->tupleDeconstructor = $deconstructor;
     }
-
     /**
      * @param Table $binding The binding form
      * @param AbstractType|string|float|int|bool|null $value The value form
@@ -40,7 +39,7 @@ final class TableBindingDeconstructor implements BindingDeconstructorInterface
             )->copyLocationFrom($binding);
             $bindings[] = [$accessSym, $accessValue];
 
-            $this->deconstructor->deconstruct($bindings, $bindTo, $accessSym);
+            $this->tupleDeconstructor->deconstructBindings($bindings, $bindTo, $accessSym);
         }
     }
 }

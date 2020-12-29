@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Phel\Compiler\Analyzer;
 
 use Phel\Compiler\Analyzer\TupleSymbol\ApplySymbol;
-use Phel\Compiler\Analyzer\TupleSymbol\Binding\Deconstructor;
+use Phel\Compiler\Analyzer\TupleSymbol\Binding\TupleDeconstructor;
 use Phel\Compiler\Analyzer\TupleSymbol\Binding\BindingValidator;
 use Phel\Compiler\Analyzer\TupleSymbol\DefStructSymbol;
 use Phel\Compiler\Analyzer\TupleSymbol\DefSymbol;
@@ -77,7 +77,7 @@ final class AnalyzeTuple
             case Symbol::NAME_APPLY:
                 return new ApplySymbol($this->analyzer);
             case Symbol::NAME_LET:
-                return new LetSymbol($this->analyzer, new Deconstructor(new BindingValidator()));
+                return new LetSymbol($this->analyzer, new TupleDeconstructor(new BindingValidator()));
             case Symbol::NAME_PHP_NEW:
                 return new PhpNewSymbol($this->analyzer);
             case Symbol::NAME_PHP_OBJECT_CALL:

@@ -38,7 +38,7 @@ final class LetSymbol implements TupleSymbolAnalyzer
             throw AnalyzerException::withLocation('Bindings must be a even number of parameters', $tuple);
         }
 
-        $bindings = $this->bindingDeconstructor->deconstructTuple($tuple[1]);
+        $bindings = $this->bindingDeconstructor->deconstruct($tuple[1]);
         $bindingTupleData = [];
         foreach ($bindings as $binding) {
             $bindingTupleData[] = $binding[0];

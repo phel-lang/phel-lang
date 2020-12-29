@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Phel\Compiler\Analyzer\TupleSymbol\Binding\Deconstructor;
+namespace Phel\Compiler\Analyzer\TupleSymbol\Binding\TupleDeconstructor;
 
 final class NullBindingDeconstructor implements BindingDeconstructorInterface
 {
