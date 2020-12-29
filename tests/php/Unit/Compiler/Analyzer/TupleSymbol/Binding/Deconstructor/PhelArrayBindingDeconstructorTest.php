@@ -25,7 +25,39 @@ final class PhelArrayBindingDeconstructorTest extends TestCase
         );
     }
 
-    public function testDeconstruct(): void
+    public function testDeconstructSymbol(): void
+    {
+        $bindings = [];
+        $index = 'test1';
+        $binding = PhelArray::create(
+            $index,
+            Symbol::create('the-symbol'),
+        );
+        $value = 'example value';
+
+        $this->deconstructor->deconstruct($bindings, $binding, $value);
+
+        self::assertEquals([
+            [
+                Symbol::create('__phel_1'),
+                $value,
+            ],
+            [
+                Symbol::create('__phel_2'),
+                Tuple::create(
+                    Symbol::create(Symbol::NAME_PHP_ARRAY_GET),
+                    Symbol::create('__phel_1'),
+                    $index
+                ),
+            ],
+            [
+                Symbol::create('the-symbol'),
+                Symbol::create('__phel_2'),
+            ],
+        ], $bindings);
+    }
+
+    public function testDeconstructTuple(): void
     {
         $bindings = [];
         $index = 'test1';
@@ -37,13 +69,6 @@ final class PhelArrayBindingDeconstructorTest extends TestCase
 
         $this->deconstructor->deconstruct($bindings, $binding, $value);
 
-        $accessValue = Tuple::create(
-            (Symbol::create(Symbol::NAME_PHP_ARRAY_GET))
-                ->copyLocationFrom($binding),
-            Symbol::create('__phel_1')->copyLocationFrom($binding),
-            $index
-        )->copyLocationFrom($binding);
-
         self::assertEquals([
             [
                 Symbol::create('__phel_1'),
@@ -51,7 +76,11 @@ final class PhelArrayBindingDeconstructorTest extends TestCase
             ],
             [
                 Symbol::create('__phel_2'),
-                $accessValue,
+                Tuple::create(
+                    Symbol::create(Symbol::NAME_PHP_ARRAY_GET),
+                    Symbol::create('__phel_1'),
+                    $index
+                ),
             ],
             [
                 Symbol::create('__phel_3'),
