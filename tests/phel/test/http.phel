@@ -230,42 +230,78 @@
   (is
     (=
       "GET"
-      (get (h/request-from-globals (php-associative-array
-        "REQUEST_METHOD" "GET"
-      )) :method)
-    )
+      (get
+        (h/request-from-globals-args
+          (php-associative-array "REQUEST_METHOD" "GET")
+          (php-associative-array)
+          (php-associative-array)
+          (php-associative-array)
+          (php-associative-array))
+        :method))
     "request method get"))
 
 (deftest test-request-post
   (is
     (=
       "POST"
-      (get (h/request-from-globals (php-associative-array
-        "REQUEST_METHOD" "POST"
-      )) :method)
-    )
+      (get
+        (h/request-from-globals-args
+          (php-associative-array "REQUEST_METHOD" "POST")
+          (php-associative-array)
+          (php-associative-array)
+          (php-associative-array)
+          (php-associative-array))
+        :method))
     "request method post"))
+
+(deftest test-request-post-with-form-data
+  (is
+    (=
+      @{"name" "phel"  "type" "lang"}
+      (get
+        (h/request-from-globals-args
+          (php-associative-array
+            "REQUEST_METHOD" "POST"
+            "CONTENT_TYPE" "multipart/form-data")
+          (php-associative-array)
+          (php-associative-array
+            "name" "phel"
+            "type" "lang")
+          (php-associative-array)
+          (php-associative-array))
+        :parsed-body))
+    "request method post with form data"))
 
 (deftest test-request-server-protocol-1
   (is
     (=
       "1.1"
-      (get (h/request-from-globals (php-associative-array
-        "SERVER_PROTOCOL" "HTTP/1.1"
-        "REQUEST_METHOD" "GET"
-      )) :version)
-    )
+      (get
+        (h/request-from-globals-args
+          (php-associative-array
+            "SERVER_PROTOCOL" "HTTP/1.1"
+            "REQUEST_METHOD" "GET")
+          (php-associative-array)
+          (php-associative-array)
+          (php-associative-array)
+          (php-associative-array))
+        :version))
     "server protocol 1.1"))
 
 (deftest test-request-server-protocol-2
   (is
     (=
       "2.0"
-      (get (h/request-from-globals (php-associative-array
-        "SERVER_PROTOCOL" "HTTP/2.0"
-        "REQUEST_METHOD" "GET"
-      )) :version)
-    )
+      (get
+        (h/request-from-globals-args
+          (php-associative-array
+            "SERVER_PROTOCOL" "HTTP/2.0"
+            "REQUEST_METHOD" "GET")
+          (php-associative-array)
+          (php-associative-array)
+          (php-associative-array)
+          (php-associative-array))
+        :version))
     "server protocol 2.0"))
 
 # --------
