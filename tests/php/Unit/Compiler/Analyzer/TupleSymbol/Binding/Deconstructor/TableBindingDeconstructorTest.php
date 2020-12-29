@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace PhelTest\Unit\Compiler\Analyzer\TupleSymbol\Binding\Deconstructor;
 
-use Phel\Compiler\Analyzer\TupleSymbol\Binding\BindingValidator;
+use Phel\Compiler\Analyzer\TupleSymbol\Binding\BindingValidatorInterface;
 use Phel\Compiler\Analyzer\TupleSymbol\Binding\Deconstructor\TableBindingDeconstructor;
 use Phel\Compiler\Analyzer\TupleSymbol\Binding\TupleDeconstructor;
 use Phel\Lang\Symbol;
@@ -21,11 +21,29 @@ final class TableBindingDeconstructorTest extends TestCase
         Symbol::resetGen();
 
         $this->deconstructor = new TableBindingDeconstructor(
-            new TupleDeconstructor(new BindingValidator())
+            new TupleDeconstructor(
+                $this->createMock(BindingValidatorInterface::class)
+            )
         );
     }
 
     public function testDeconstruct(): void
+    {
+        $bindings = [];
+        $binding = Table::fromKVs();
+        $value = 'example value';
+
+        $this->deconstructor->deconstruct($bindings, $binding, $value);
+
+        self::assertEquals([
+            [
+                Symbol::create('__phel_1'),
+                $value,
+            ],
+        ], $bindings);
+    }
+
+    public function testDeconstructTableWithTuple(): void
     {
         $bindings = [];
         $key = 'test1';

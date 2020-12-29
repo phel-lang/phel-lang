@@ -19,9 +19,9 @@ use Phel\Lang\Tuple;
 
 final class TupleDeconstructor implements TupleDeconstructorInterface
 {
-    private BindingValidator $bindingValidator;
+    private BindingValidatorInterface $bindingValidator;
 
-    public function __construct(BindingValidator $bindingChecker)
+    public function __construct(BindingValidatorInterface $bindingChecker)
     {
         $this->bindingValidator = $bindingChecker;
     }

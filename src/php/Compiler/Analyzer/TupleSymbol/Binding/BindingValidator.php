@@ -11,7 +11,7 @@ use Phel\Lang\Symbol;
 use Phel\Lang\Table;
 use Phel\Lang\Tuple;
 
-final class BindingValidator
+final class BindingValidator implements BindingValidatorInterface
 {
     /**
      * Checks if a binding form is valid. If this is not the case an
