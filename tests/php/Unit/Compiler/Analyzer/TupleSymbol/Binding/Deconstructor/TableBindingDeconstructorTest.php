@@ -14,9 +14,15 @@ use PHPUnit\Framework\TestCase;
 
 final class TableBindingDeconstructorTest extends TestCase
 {
-    protected function setUp(): void
+    private TableBindingDeconstructor $deconstructor;
+
+    public function setUp(): void
     {
         Symbol::resetGen();
+
+        $this->deconstructor = new TableBindingDeconstructor(
+            new TupleDeconstructor(new BindingValidator())
+        );
     }
 
     public function testDeconstruct(): void
@@ -26,8 +32,7 @@ final class TableBindingDeconstructorTest extends TestCase
         $binding = Table::fromKVs($key, Tuple::create());
         $value = 'example value';
 
-        $this->createDeconstructor()
-            ->deconstruct($bindings, $binding, $value);
+        $this->deconstructor->deconstruct($bindings, $binding, $value);
 
         $accessValue = Tuple::create(
             (Symbol::create(Symbol::NAME_PHP_ARRAY_GET))
@@ -50,12 +55,5 @@ final class TableBindingDeconstructorTest extends TestCase
                 Symbol::create('__phel_2'),
             ],
         ], $bindings);
-    }
-
-    private function createDeconstructor(): TableBindingDeconstructor
-    {
-        return new TableBindingDeconstructor(
-            new TupleDeconstructor(new BindingValidator())
-        );
     }
 }

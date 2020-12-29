@@ -10,23 +10,13 @@ use PHPUnit\Framework\TestCase;
 
 final class SymbolBindingDeconstructorTest extends TestCase
 {
-    protected function setUp(): void
+    private SymbolBindingDeconstructor $deconstructor;
+
+    public function setUp(): void
     {
         Symbol::resetGen();
-    }
 
-    public function testDeconstructUnderscoreSymbol(): void
-    {
-        $bindings = [];
-        $binding = Symbol::create('_');
-        $value = 'example value';
-
-        $this->createDeconstructor()
-            ->deconstruct($bindings, $binding, $value);
-
-        self::assertEquals([
-            [Symbol::create('__phel_1'), $value],
-        ], $bindings);
+        $this->deconstructor = new SymbolBindingDeconstructor();
     }
 
     public function testDeconstruct(): void
@@ -35,16 +25,23 @@ final class SymbolBindingDeconstructorTest extends TestCase
         $binding = Symbol::create('test');
         $value = 'example value';
 
-        $this->createDeconstructor()
-            ->deconstruct($bindings, $binding, $value);
+        $this->deconstructor->deconstruct($bindings, $binding, $value);
 
         self::assertEquals([
             [$binding, $value],
         ], $bindings);
     }
 
-    private function createDeconstructor(): SymbolBindingDeconstructor
+    public function testWithUnderscoreSymbol(): void
     {
-        return new SymbolBindingDeconstructor();
+        $bindings = [];
+        $binding = Symbol::create('_');
+        $value = 'example value';
+
+        $this->deconstructor->deconstruct($bindings, $binding, $value);
+
+        self::assertEquals([
+            [Symbol::create('__phel_1'), $value],
+        ], $bindings);
     }
 }

@@ -13,9 +13,15 @@ use PHPUnit\Framework\TestCase;
 
 final class TupleBindingDeconstructorTest extends TestCase
 {
-    protected function setUp(): void
+    private TupleBindingDeconstructor $deconstructor;
+
+    public function setUp(): void
     {
         Symbol::resetGen();
+
+        $this->deconstructor = new TupleBindingDeconstructor(
+            new TupleDeconstructor(new BindingValidator())
+        );
     }
 
     public function testDeconstruct(): void
@@ -24,8 +30,7 @@ final class TupleBindingDeconstructorTest extends TestCase
         $binding = Tuple::create();
         $value = 'example value';
 
-        $this->createDeconstructor()
-            ->deconstruct($bindings, $binding, $value);
+        $this->deconstructor->deconstruct($bindings, $binding, $value);
 
         self::assertEquals([
             [
@@ -33,12 +38,5 @@ final class TupleBindingDeconstructorTest extends TestCase
                 $value,
             ],
         ], $bindings);
-    }
-
-    private function createDeconstructor(): TupleBindingDeconstructor
-    {
-        return new TupleBindingDeconstructor(
-            new TupleDeconstructor(new BindingValidator())
-        );
     }
 }

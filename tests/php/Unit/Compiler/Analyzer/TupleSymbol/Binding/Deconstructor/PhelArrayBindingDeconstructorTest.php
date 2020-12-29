@@ -14,9 +14,15 @@ use PHPUnit\Framework\TestCase;
 
 final class PhelArrayBindingDeconstructorTest extends TestCase
 {
-    protected function setUp(): void
+    private PhelArrayBindingDeconstructor $deconstructor;
+
+    public function setUp(): void
     {
         Symbol::resetGen();
+
+        $this->deconstructor = new PhelArrayBindingDeconstructor(
+            new TupleDeconstructor(new BindingValidator())
+        );
     }
 
     public function testDeconstruct(): void
@@ -29,8 +35,7 @@ final class PhelArrayBindingDeconstructorTest extends TestCase
         );
         $value = 'example value';
 
-        $this->createDeconstructor()
-            ->deconstruct($bindings, $binding, $value);
+        $this->deconstructor->deconstruct($bindings, $binding, $value);
 
         $accessValue = Tuple::create(
             (Symbol::create(Symbol::NAME_PHP_ARRAY_GET))
@@ -53,12 +58,5 @@ final class PhelArrayBindingDeconstructorTest extends TestCase
                 Symbol::create('__phel_2'),
             ],
         ], $bindings);
-    }
-
-    private function createDeconstructor(): PhelArrayBindingDeconstructor
-    {
-        return new PhelArrayBindingDeconstructor(
-            new TupleDeconstructor(new BindingValidator())
-        );
     }
 }
