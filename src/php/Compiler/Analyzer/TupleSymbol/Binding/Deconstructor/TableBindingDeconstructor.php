@@ -21,6 +21,7 @@ final class TableBindingDeconstructor implements BindingDeconstructorInterface
     {
         $this->tupleDeconstructor = $deconstructor;
     }
+
     /**
      * @param Table $binding The binding form
      * @param AbstractType|string|float|int|bool|null $value The value form
@@ -32,14 +33,23 @@ final class TableBindingDeconstructor implements BindingDeconstructorInterface
 
         foreach ($binding as $key => $bindTo) {
             $accessSym = Symbol::gen()->copyLocationFrom($binding);
-            $accessValue = Tuple::create(
-                (Symbol::create(Symbol::NAME_PHP_ARRAY_GET))->copyLocationFrom($binding),
-                $tableSymbol,
-                $key
-            )->copyLocationFrom($binding);
+            $accessValue = $this->createAccessValue($binding, $tableSymbol, $key);
             $bindings[] = [$accessSym, $accessValue];
 
             $this->tupleDeconstructor->deconstructBindings($bindings, $bindTo, $accessSym);
         }
+    }
+
+    /**
+     * @param AbstractType|string|float|int|bool|null $key
+     */
+    private function createAccessValue(Table $binding, Symbol $tableSymbol, $key): Tuple
+    {
+        return Tuple::create(
+            (Symbol::create(Symbol::NAME_PHP_ARRAY_GET))
+                ->copyLocationFrom($binding),
+            $tableSymbol,
+            $key
+        )->copyLocationFrom($binding);
     }
 }

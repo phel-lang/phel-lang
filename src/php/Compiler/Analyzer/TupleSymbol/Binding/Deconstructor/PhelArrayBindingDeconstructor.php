@@ -37,7 +37,8 @@ final class PhelArrayBindingDeconstructor implements BindingDeconstructorInterfa
 
             $accessSym = Symbol::gen()->copyLocationFrom($binding);
             $accessValue = Tuple::create(
-                (Symbol::create(Symbol::NAME_PHP_ARRAY_GET))->copyLocationFrom($binding),
+                (Symbol::create(Symbol::NAME_PHP_ARRAY_GET))
+                    ->copyLocationFrom($binding),
                 $arrSymbol,
                 $index
             )->copyLocationFrom($binding);
