@@ -4,19 +4,26 @@ declare(strict_types=1);
 
 namespace Phel\Compiler\Analyzer\TupleSymbol;
 
-use Phel\Compiler\Analyzer\WithAnalyzer;
+use Phel\Compiler\Analyzer\TupleSymbol\Binding\BindingValidatorInterface;
+use Phel\Compiler\AnalyzerInterface;
 use Phel\Compiler\Ast\BindingNode;
 use Phel\Compiler\Ast\LetNode;
 use Phel\Compiler\NodeEnvironmentInterface;
 use Phel\Compiler\RecurFrame;
-use Phel\Destructure;
 use Phel\Exceptions\AnalyzerException;
 use Phel\Lang\Symbol;
 use Phel\Lang\Tuple;
 
 final class LoopSymbol implements TupleSymbolAnalyzer
 {
-    use WithAnalyzer;
+    private AnalyzerInterface $analyzer;
+    private BindingValidatorInterface $bindingValidator;
+
+    public function __construct(AnalyzerInterface $analyzer, BindingValidatorInterface $bindingValidator)
+    {
+        $this->analyzer = $analyzer;
+        $this->bindingValidator = $bindingValidator;
+    }
 
     public function analyze(Tuple $tuple, NodeEnvironmentInterface $env): LetNode
     {
@@ -46,7 +53,7 @@ final class LoopSymbol implements TupleSymbolAnalyzer
             $b = $loopBindings[$i];
             $init = $loopBindings[$i + 1];
 
-            Destructure::assertSupportedBinding($b);
+            $this->bindingValidator->assertSupportedBinding($b);
 
             if ($b instanceof Symbol) {
                 $preInits[] = $b;
