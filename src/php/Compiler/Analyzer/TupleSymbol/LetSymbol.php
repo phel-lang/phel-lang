@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Phel\Compiler\Analyzer\TupleSymbol;
 
-use Phel\Compiler\Analyzer\TupleSymbol\Binding\DeconstructorInterface;
+use Phel\Compiler\Analyzer\TupleSymbol\Binding\TupleDeconstructor;
 use Phel\Compiler\AnalyzerInterface;
 use Phel\Compiler\Ast\BindingNode;
 use Phel\Compiler\Ast\LetNode;
@@ -16,12 +16,12 @@ use Phel\Lang\Tuple;
 final class LetSymbol implements TupleSymbolAnalyzer
 {
     private AnalyzerInterface $analyzer;
-    private DeconstructorInterface $bindingDeconstructor;
+    private TupleDeconstructor $tupleDeconstructor;
 
-    public function __construct(AnalyzerInterface $analyzer, DeconstructorInterface $bindingDeconstructor)
+    public function __construct(AnalyzerInterface $analyzer, TupleDeconstructor $tupleDeconstructor)
     {
         $this->analyzer = $analyzer;
-        $this->bindingDeconstructor = $bindingDeconstructor;
+        $this->tupleDeconstructor = $tupleDeconstructor;
     }
 
     public function analyze(Tuple $tuple, NodeEnvironmentInterface $env): LetNode
@@ -42,7 +42,7 @@ final class LetSymbol implements TupleSymbolAnalyzer
             throw AnalyzerException::withLocation('Bindings must be a even number of parameters', $tuple);
         }
 
-        $bindings = $this->bindingDeconstructor->deconstruct($tuple[1]);
+        $bindings = $this->tupleDeconstructor->deconstruct($tuple[1]);
         $bindingTupleData = [];
         foreach ($bindings as $binding) {
             $bindingTupleData[] = $binding[0];

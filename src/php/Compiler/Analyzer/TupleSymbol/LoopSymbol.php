@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Phel\Compiler\Analyzer\TupleSymbol;
 
-use Phel\Compiler\Analyzer\TupleSymbol\Binding\BindingValidatorInterface;
+use Phel\Compiler\Analyzer\TupleSymbol\Binding\BindingValidator;
 use Phel\Compiler\AnalyzerInterface;
 use Phel\Compiler\Ast\BindingNode;
 use Phel\Compiler\Ast\LetNode;
@@ -17,9 +17,9 @@ use Phel\Lang\Tuple;
 final class LoopSymbol implements TupleSymbolAnalyzer
 {
     private AnalyzerInterface $analyzer;
-    private BindingValidatorInterface $bindingValidator;
+    private BindingValidator $bindingValidator;
 
-    public function __construct(AnalyzerInterface $analyzer, BindingValidatorInterface $bindingValidator)
+    public function __construct(AnalyzerInterface $analyzer, BindingValidator $bindingValidator)
     {
         $this->analyzer = $analyzer;
         $this->bindingValidator = $bindingValidator;

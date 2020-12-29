@@ -5,7 +5,8 @@ declare(strict_types=1);
 namespace PhelTest\Unit\Compiler\Analyzer\TupleSymbol;
 
 use Phel\Compiler\Analyzer;
-use Phel\Compiler\Analyzer\TupleSymbol\Binding\DeconstructorInterface;
+use Phel\Compiler\Analyzer\TupleSymbol\Binding\BindingValidator;
+use Phel\Compiler\Analyzer\TupleSymbol\Binding\TupleDeconstructor;
 use Phel\Compiler\Analyzer\TupleSymbol\LetSymbol;
 use Phel\Compiler\GlobalEnvironment;
 use Phel\Compiler\NodeEnvironment;
@@ -31,7 +32,9 @@ final class LetSymbolTest extends TestCase
     {
         return new LetSymbol(
             new Analyzer(new GlobalEnvironment()),
-            $this->createMock(DeconstructorInterface::class)
+            new TupleDeconstructor(
+                new BindingValidator()
+            )
         );
     }
 }

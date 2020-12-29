@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace PhelTest\Unit\Compiler\Analyzer\TupleSymbol;
 
 use Phel\Compiler\Analyzer;
-use Phel\Compiler\Analyzer\TupleSymbol\Binding\BindingValidatorInterface;
+use Phel\Compiler\Analyzer\TupleSymbol\Binding\BindingValidator;
 use Phel\Compiler\Analyzer\TupleSymbol\LoopSymbol;
 use Phel\Compiler\GlobalEnvironment;
 use Phel\Compiler\NodeEnvironment;
@@ -31,7 +31,7 @@ final class LoopSymbolTest extends TestCase
     {
         return new LoopSymbol(
             new Analyzer(new GlobalEnvironment()),
-            $this->createMock(BindingValidatorInterface::class)
+            new BindingValidator()
         );
     }
 }

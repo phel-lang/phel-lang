@@ -17,22 +17,16 @@ use Phel\Lang\Symbol;
 use Phel\Lang\Table;
 use Phel\Lang\Tuple;
 
-/**
- * @implements DeconstructorInterface<Tuple>
- */
-final class TupleDeconstructor implements DeconstructorInterface
+final class TupleDeconstructor
 {
-    private BindingValidatorInterface $bindingValidator;
+    private BindingValidator $bindingValidator;
 
-    public function __construct(BindingValidatorInterface $bindingChecker)
+    public function __construct(BindingValidator $bindingChecker)
     {
         $this->bindingValidator = $bindingChecker;
     }
 
-    /**
-     * @param Tuple $form
-     */
-    public function deconstruct($form): array
+    public function deconstruct(Tuple $form): array
     {
         $bindings = [];
 
