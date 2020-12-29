@@ -16,6 +16,7 @@ use Phel\Lang\Symbol;
 use Phel\Lang\Table;
 use Phel\Lang\Tuple;
 use Phel\Compiler\Lexer;
+use Phel\Compiler\Parser;
 use PHPUnit\Framework\TestCase;
 
 final class ReaderTest extends TestCase
@@ -653,71 +654,18 @@ final class ReaderTest extends TestCase
         );
     }
 
-    public function testReadUnbalancedClosedParen()
-    {
-        $this->expectException(ReaderException::class);
-        $this->expectExceptionMessage('Unterminated list');
-        $this->read(')');
-    }
-
-    public function testReadUnbalancedOpenParen()
-    {
-        $this->expectException(ReaderException::class);
-        $this->expectExceptionMessage('Unterminated list');
-        $this->read('(');
-    }
-
-    public function testReadUnbalancedOpenBrace()
-    {
-        $this->expectException(ReaderException::class);
-        $this->expectExceptionMessage('Unexpected token: {');
-        $this->read('{');
-    }
-
-    public function testEOF()
-    {
-        $reader = (new CompilerFactory())->createReader(new GlobalEnvironment());
-        $tokenStream = (new Lexer())->lexString('');
-
-        $this->assertNull($reader->readNext($tokenStream));
-    }
-
-    public function testInvalidGenerator()
-    {
-        Symbol::resetGen();
-        $reader = (new CompilerFactory())->createReader(new GlobalEnvironment());
-        $tokenStream = (new Lexer())->lexString('');
-
-        $tokenStream->next();
-        $this->assertNull($reader->readNext($tokenStream));
-    }
-
-    public function testReadComment()
-    {
-        $reader = (new CompilerFactory())->createReader(new GlobalEnvironment());
-        $tokenStream = (new Lexer())->lexString('# Test');
-
-        $this->assertNull($reader->readNext($tokenStream));
-    }
-
-    public function testReadWhitespaceOnly()
-    {
-        $reader = (new CompilerFactory())->createReader(new GlobalEnvironment());
-        $tokenStream = (new Lexer())->lexString(" \t\n  ");
-
-        $this->assertNull($reader->readNext($tokenStream));
-    }
-
     /**
      * @return AbstractType|string|float|int|bool|null
      */
     private function read(string $string, bool $removeLoc = false)
     {
         Symbol::resetGen();
+        $parser = new Parser();
         $reader = (new CompilerFactory())->createReader(new GlobalEnvironment());
         $tokenStream = (new Lexer())->lexString($string);
 
-        $result = $reader->readNext($tokenStream)->getAst();
+        $parseTree = $parser->parseNext($tokenStream);
+        $result = $reader->read($parseTree)->getAst();
 
         if ($removeLoc) {
             $this->removeLoc($result);

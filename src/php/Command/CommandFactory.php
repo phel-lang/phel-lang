@@ -57,6 +57,7 @@ final class CommandFactory implements CommandFactoryInterface
     {
         return new NamespaceExtractor(
             $this->compilerFactory->createLexer(),
+            $this->compilerFactory->createParser(),
             $this->compilerFactory->createReader($globalEnv),
             new CommandSystemIo()
         );

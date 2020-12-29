@@ -55,4 +55,14 @@ final class QuoteNode implements InnerNodeInterface
     {
         return $this->endLocation;
     }
+
+    public function getTokenType(): int
+    {
+        return $this->tokenType;
+    }
+
+    public function getExpression(): NodeInterface
+    {
+        return $this->expression;
+    }
 }

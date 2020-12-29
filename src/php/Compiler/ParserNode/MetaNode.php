@@ -43,4 +43,14 @@ final class MetaNode implements InnerNodeInterface
     {
         return $this->endLocation;
     }
+
+    public function getMetaNode(): NodeInterface
+    {
+        return $this->meta;
+    }
+
+    public function getObjectNode(): NodeInterface
+    {
+        return $this->children[count($this->children) - 1];
+    }
 }

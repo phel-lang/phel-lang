@@ -10,6 +10,8 @@ use Phel\Compiler\CompilerFactory;
 use Phel\Compiler\EmitterInterface;
 use Phel\Compiler\GlobalEnvironment;
 use Phel\Compiler\NodeEnvironment;
+use Phel\Compiler\ParserInterface;
+use Phel\Compiler\ParserNode\TriviaNodeInterface;
 use Phel\Compiler\ReaderInterface;
 use Phel\Lang\Symbol;
 use Phel\Runtime\RuntimeFactory;
@@ -43,6 +45,7 @@ final class IntegrationTest extends TestCase
         $compilerFactory = new CompilerFactory();
 
         $compiledCode = $this->compilePhelCode(
+            $compilerFactory->createParser(),
             $compilerFactory->createReader($globalEnv),
             $compilerFactory->createAnalyzer($globalEnv),
             $compilerFactory->createEmitter($enableSourceMaps = false),
@@ -79,6 +82,7 @@ final class IntegrationTest extends TestCase
     }
 
     private function compilePhelCode(
+        ParserInterface $parser,
         ReaderInterface $reader,
         AnalyzerInterface $analyzer,
         EmitterInterface $emitter,
@@ -87,13 +91,16 @@ final class IntegrationTest extends TestCase
         $compiledCode = [];
 
         while (true) {
-            $readAst = $reader->readNext($tokenStream);
-            if (!$readAst) {
+            $parseTree = $parser->parseNext($tokenStream);
+            if (!$parseTree) {
                 break;
             }
 
-            $node = $analyzer->analyze($readAst->getAst(), NodeEnvironment::empty());
-            $compiledCode[] = $emitter->emitNodeAndEval($node);
+            if (!$parseTree instanceof TriviaNodeInterface) {
+                $readAst = $reader->read($parseTree);
+                $node = $analyzer->analyze($readAst->getAst(), NodeEnvironment::empty());
+                $compiledCode[] = $emitter->emitNodeAndEval($node);
+            }
         }
 
         return trim(implode('', $compiledCode));

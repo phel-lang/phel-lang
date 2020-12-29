@@ -82,4 +82,9 @@ final class ListNode implements InnerNodeInterface
     {
         return $this->endLocation;
     }
+
+    public function getTokenType(): int
+    {
+        return $this->tokenType;
+    }
 }

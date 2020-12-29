@@ -21,7 +21,6 @@ use Phel\Compiler\ParserNode\SymbolNode;
 use Phel\Compiler\ParserNode\TriviaNodeInterface;
 use Phel\Compiler\ParserNode\WhitespaceNode;
 use Phel\Compiler\ReadModel\CodeSnippet;
-use Phel\Exceptions\ReaderException;
 use Phel\Lang\Keyword;
 use Phel\Lang\Symbol;
 use Phel\Exceptions\ParserException;
@@ -49,7 +48,7 @@ final class Parser implements ParserInterface
      *
      * @param Generator $tokenStream The token stream to read
      *
-     * @throws ReaderException
+     * @throws ParserException
      */
     public function parseNext(Generator $tokenStream): ?NodeInterface
     {
@@ -66,7 +65,7 @@ final class Parser implements ParserInterface
     }
 
     /**
-     * @throws ReaderException
+     * @throws ParserException
      *
      * @return NodeInterface
      */

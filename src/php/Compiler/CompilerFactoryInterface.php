@@ -14,6 +14,8 @@ interface CompilerFactoryInterface
 
     public function createLexer(): LexerInterface;
 
+    public function createParser(): ParserInterface;
+
     public function createReader(GlobalEnvironmentInterface $globalEnv): ReaderInterface;
 
     public function createEmitter(bool $enableSourceMaps = true): EmitterInterface;

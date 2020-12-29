@@ -4,25 +4,30 @@ declare(strict_types=1);
 
 namespace Phel\Compiler;
 
+use Phel\Compiler\ParserNode\TriviaNodeInterface;
 use Phel\Compiler\ReadModel\ReaderResult;
 use Phel\Exceptions\AnalyzerException;
 use Phel\Exceptions\CompilerException;
+use Phel\Exceptions\ParserException;
 use Phel\Exceptions\ReaderException;
 
 final class FileCompiler implements FileCompilerInterface
 {
     private LexerInterface $lexer;
+    private ParserInterface $parser;
     private ReaderInterface $reader;
     private AnalyzerInterface $analyzer;
     private EmitterInterface $emitter;
 
     public function __construct(
         LexerInterface $lexer,
+        ParserInterface $parser,
         ReaderInterface $reader,
         AnalyzerInterface $analyzer,
         EmitterInterface $emitter
     ) {
         $this->lexer = $lexer;
+        $this->parser = $parser;
         $this->reader = $reader;
         $this->analyzer = $analyzer;
         $this->emitter = $emitter;
@@ -36,13 +41,19 @@ final class FileCompiler implements FileCompilerInterface
 
         while (true) {
             try {
-                $readerResult = $this->reader->readNext($tokenStream);
+                $parseTree = $this->parser->parseNext($tokenStream);
+
                 // If we reached the end exit this loop
-                if (!$readerResult) {
+                if (!$parseTree) {
                     break;
                 }
 
-                $code .= $this->analyzeAndEvalNode($readerResult);
+                if (!$parseTree instanceof TriviaNodeInterface) {
+                    $readerResult = $this->reader->read($parseTree);
+                    $code .= $this->analyzeAndEvalNode($readerResult);
+                }
+            } catch (ParserException $e) {
+                throw new CompilerException($e, $e->getCodeSnippet());
             } catch (ReaderException $e) {
                 throw new CompilerException($e, $e->getCodeSnippet());
             }

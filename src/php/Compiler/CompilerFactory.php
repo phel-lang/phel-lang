@@ -18,6 +18,7 @@ final class CompilerFactory implements CompilerFactoryInterface
     {
         return new EvalCompiler(
             $this->createLexer(),
+            $this->createParser(),
             $this->createReader($globalEnv),
             $this->createAnalyzer($globalEnv),
             $this->createEmitter()
@@ -28,6 +29,7 @@ final class CompilerFactory implements CompilerFactoryInterface
     {
         return new FileCompiler(
             $this->createLexer(),
+            $this->createParser(),
             $this->createReader($globalEnv),
             $this->createAnalyzer($globalEnv),
             $this->createEmitter()
@@ -44,6 +46,11 @@ final class CompilerFactory implements CompilerFactoryInterface
         return new Reader(
             new QuasiquoteTransformer($globalEnv)
         );
+    }
+
+    public function createParser(): ParserInterface
+    {
+        return new Parser();
     }
 
     public function createAnalyzer(GlobalEnvironmentInterface $globalEnv): AnalyzerInterface

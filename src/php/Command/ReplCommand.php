@@ -10,6 +10,7 @@ use Phel\Compiler\EvalCompilerInterface;
 use Phel\Exceptions\CompilerException;
 use Phel\Exceptions\ExceptionPrinterInterface;
 use Phel\Exceptions\ExitException;
+use Phel\Exceptions\ParserException;
 use Phel\Exceptions\ReaderException;
 use Phel\Printer\Printer;
 use Throwable;
@@ -82,6 +83,8 @@ final class ReplCommand
 
         try {
             $this->analyzeInput($input);
+        } catch (ParserException $e) {
+            $this->exceptionPrinter->printException($e, $e->getCodeSnippet());
         } catch (ReaderException $e) {
             $this->exceptionPrinter->printException($e, $e->getCodeSnippet());
         } catch (Throwable $e) {

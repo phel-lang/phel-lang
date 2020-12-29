@@ -5,7 +5,10 @@ declare(strict_types=1);
 namespace Phel\Command\Shared;
 
 use Phel\Compiler\LexerInterface;
+use Phel\Compiler\ParserInterface;
+use Phel\Compiler\ParserNode\TriviaNodeInterface;
 use Phel\Compiler\ReaderInterface;
+use Phel\Exceptions\ParserException;
 use Phel\Exceptions\ReaderException;
 use Phel\Lang\Symbol;
 use Phel\Lang\Tuple;
@@ -18,15 +21,18 @@ use RuntimeException;
 final class NamespaceExtractor implements NamespaceExtractorInterface
 {
     private LexerInterface $lexer;
+    private ParserInterface $parser;
     private ReaderInterface $reader;
     private CommandIoInterface $io;
 
     public function __construct(
         LexerInterface $lexer,
+        ParserInterface $parser,
         ReaderInterface $reader,
         CommandIoInterface $io
     ) {
         $this->lexer = $lexer;
+        $this->parser = $parser;
         $this->reader = $reader;
         $this->io = $io;
     }
@@ -37,12 +43,15 @@ final class NamespaceExtractor implements NamespaceExtractorInterface
 
         try {
             $tokenStream = $this->lexer->lexString($content);
-            $readerResult = $this->reader->readNext($tokenStream);
+            do {
+                $parseTree = $this->parser->parseNext($tokenStream);
+            } while ($parseTree && $parseTree instanceof TriviaNodeInterface);
 
-            if (!$readerResult) {
+            if (!$parseTree) {
                 throw new RuntimeException('Cannot read file: ' . $path);
             }
 
+            $readerResult = $this->reader->read($parseTree);
             $ast = $readerResult->getAst();
 
             if ($ast instanceof Tuple
@@ -54,6 +63,8 @@ final class NamespaceExtractor implements NamespaceExtractorInterface
             }
 
             throw new RuntimeException('Cannot extract namespace from file: ' . $path);
+        } catch (ParserException $e) {
+            throw new RuntimeException('Cannot parse file: ' . $path);
         } catch (ReaderException $e) {
             throw new RuntimeException('Cannot parse file: ' . $path);
         }
