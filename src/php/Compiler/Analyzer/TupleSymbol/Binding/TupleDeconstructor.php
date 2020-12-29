@@ -4,12 +4,12 @@ declare(strict_types=1);
 
 namespace Phel\Compiler\Analyzer\TupleSymbol\Binding;
 
-use Phel\Compiler\Analyzer\TupleSymbol\Binding\TupleDeconstructor\BindingDeconstructorInterface;
-use Phel\Compiler\Analyzer\TupleSymbol\Binding\TupleDeconstructor\NullBindingDeconstructor;
-use Phel\Compiler\Analyzer\TupleSymbol\Binding\TupleDeconstructor\PhelArrayBindingDeconstructor;
-use Phel\Compiler\Analyzer\TupleSymbol\Binding\TupleDeconstructor\SymbolBindingDeconstructor;
-use Phel\Compiler\Analyzer\TupleSymbol\Binding\TupleDeconstructor\TableBindingDeconstructor;
-use Phel\Compiler\Analyzer\TupleSymbol\Binding\TupleDeconstructor\TupleBindingDeconstructor;
+use Phel\Compiler\Analyzer\TupleSymbol\Binding\Deconstructor\BindingDeconstructorInterface;
+use Phel\Compiler\Analyzer\TupleSymbol\Binding\Deconstructor\NullBindingDeconstructor;
+use Phel\Compiler\Analyzer\TupleSymbol\Binding\Deconstructor\PhelArrayBindingDeconstructor;
+use Phel\Compiler\Analyzer\TupleSymbol\Binding\Deconstructor\SymbolBindingDeconstructor;
+use Phel\Compiler\Analyzer\TupleSymbol\Binding\Deconstructor\TableBindingDeconstructor;
+use Phel\Compiler\Analyzer\TupleSymbol\Binding\Deconstructor\TupleBindingDeconstructor;
 use Phel\Exceptions\AnalyzerException;
 use Phel\Lang\AbstractType;
 use Phel\Lang\PhelArray;
@@ -17,7 +17,7 @@ use Phel\Lang\Symbol;
 use Phel\Lang\Table;
 use Phel\Lang\Tuple;
 
-final class TupleDeconstructor
+final class TupleDeconstructor implements TupleDeconstructorInterface
 {
     private BindingValidator $bindingValidator;
 

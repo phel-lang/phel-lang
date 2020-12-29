@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Phel\Compiler\Analyzer\TupleSymbol;
 
-use Phel\Compiler\Analyzer\TupleSymbol\Binding\TupleDeconstructor;
+use Phel\Compiler\Analyzer\TupleSymbol\Binding\TupleDeconstructorInterface;
 use Phel\Compiler\AnalyzerInterface;
 use Phel\Compiler\Ast\BindingNode;
 use Phel\Compiler\Ast\LetNode;
@@ -16,9 +16,9 @@ use Phel\Lang\Tuple;
 final class LetSymbol implements TupleSymbolAnalyzer
 {
     private AnalyzerInterface $analyzer;
-    private TupleDeconstructor $tupleDeconstructor;
+    private TupleDeconstructorInterface $tupleDeconstructor;
 
-    public function __construct(AnalyzerInterface $analyzer, TupleDeconstructor $tupleDeconstructor)
+    public function __construct(AnalyzerInterface $analyzer, TupleDeconstructorInterface $tupleDeconstructor)
     {
         $this->analyzer = $analyzer;
         $this->tupleDeconstructor = $tupleDeconstructor;

@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace Phel\Compiler\Analyzer;
 
 use Phel\Compiler\Analyzer\TupleSymbol\ApplySymbol;
-use Phel\Compiler\Analyzer\TupleSymbol\Binding\TupleDeconstructor;
 use Phel\Compiler\Analyzer\TupleSymbol\Binding\BindingValidator;
+use Phel\Compiler\Analyzer\TupleSymbol\Binding\TupleDeconstructor;
 use Phel\Compiler\Analyzer\TupleSymbol\DefStructSymbol;
 use Phel\Compiler\Analyzer\TupleSymbol\DefSymbol;
 use Phel\Compiler\Analyzer\TupleSymbol\DoSymbol;

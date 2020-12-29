@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Phel\Compiler\Analyzer\TupleSymbol\Binding\TupleDeconstructor;
+namespace Phel\Compiler\Analyzer\TupleSymbol\Binding\Deconstructor;
 
 use Phel\Lang\AbstractType;
 use Phel\Lang\Symbol;
