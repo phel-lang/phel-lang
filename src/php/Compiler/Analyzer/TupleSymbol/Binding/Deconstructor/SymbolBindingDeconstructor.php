@@ -18,11 +18,16 @@ final class SymbolBindingDeconstructor implements BindingDeconstructorInterface
      */
     public function deconstruct(array &$bindings, $binding, $value): void
     {
-        if ($binding->getName() === '_') {
-            $s = Symbol::gen()->copyLocationFrom($binding);
-            $bindings[] = [$s, $value];
+        if ($this->shouldCreateSymbolFromBinding($binding)) {
+            $symbol = Symbol::gen()->copyLocationFrom($binding);
+            $bindings[] = [$symbol, $value];
         } else {
             $bindings[] = [$binding, $value];
         }
+    }
+
+    private function shouldCreateSymbolFromBinding(Symbol $binding): bool
+    {
+        return $binding->getName() === '_';
     }
 }
