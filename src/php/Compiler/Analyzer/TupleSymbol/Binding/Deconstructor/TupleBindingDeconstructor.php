@@ -6,6 +6,7 @@ namespace Phel\Compiler\Analyzer\TupleSymbol\Binding\Deconstructor;
 
 use Phel\Compiler\Analyzer\TupleSymbol\Binding\TupleDeconstructor;
 use Phel\Exceptions\AnalyzerException;
+use Phel\Exceptions\PhelCodeException;
 use Phel\Lang\AbstractType;
 use Phel\Lang\Symbol;
 use Phel\Lang\Tuple;
@@ -33,6 +34,8 @@ final class TupleBindingDeconstructor implements BindingDeconstructorInterface
     /**
      * @param Tuple $binding The binding form
      * @param AbstractType|string|float|int|bool|null $value The value form
+     *
+     * @throws PhelCodeException
      */
     public function deconstruct(array &$bindings, $binding, $value): void
     {
@@ -64,11 +67,15 @@ final class TupleBindingDeconstructor implements BindingDeconstructorInterface
                     $state = self::STATE_DONE;
                     $accessSym = Symbol::gen()->copyLocationFrom($current);
                     $bindings[] = [$accessSym, $lastListSym];
+
                     $this->tupleDeconstructor->deconstructBindings($bindings, $current, $accessSym);
                     break;
                 case self::STATE_DONE:
                     throw AnalyzerException::withLocation(
-                        'Unsupported binding form, only one symbol can follow the & parameter',
+                        sprintf(
+                            'Unsupported binding form, only one symbol can follow the %s parameter',
+                            self::REST_SYMBOL_NAME
+                        ),
                         $binding
                     );
             }
