@@ -20,7 +20,8 @@
         "phpunit/phpunit": "^9.5",
         "vimeo/psalm": "^3.11",
         "friendsofphp/php-cs-fixer": "^2.16",
-        "infection/infection": "^0.16.3"
+        "infection/infection": "^0.16.3",
+        "symfony/var-dumper": "^5.2"
     },
     "autoload": {
         "psr-4": {
