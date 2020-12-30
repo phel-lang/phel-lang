@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Phel\Compiler;
 
-use Phel\Compiler\ParserNode\TriviaNodeInterface;
+use Phel\Compiler\Parser\ParserNode\TriviaNodeInterface;
 use Phel\Compiler\ReadModel\ReaderResult;
 use Phel\Exceptions\AnalyzerException;
 use Phel\Exceptions\CompilerException;
@@ -53,9 +53,7 @@ final class EvalCompiler implements EvalCompilerInterface
             $readerResult = $this->reader->read($parseTree);
 
             return $this->evalNode($readerResult);
-        } catch (ParserException $e) {
-            throw new CompilerException($e, $e->getCodeSnippet());
-        } catch (ReaderException $e) {
+        } catch (ParserException|ReaderException $e) {
             throw new CompilerException($e, $e->getCodeSnippet());
         }
     }

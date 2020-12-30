@@ -11,7 +11,7 @@ use Phel\Compiler\EmitterInterface;
 use Phel\Compiler\GlobalEnvironment;
 use Phel\Compiler\NodeEnvironment;
 use Phel\Compiler\ParserInterface;
-use Phel\Compiler\ParserNode\TriviaNodeInterface;
+use Phel\Compiler\Parser\ParserNode\TriviaNodeInterface;
 use Phel\Compiler\ReaderInterface;
 use Phel\Lang\Symbol;
 use Phel\Runtime\RuntimeFactory;

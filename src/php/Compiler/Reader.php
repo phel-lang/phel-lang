@@ -4,13 +4,13 @@ declare(strict_types=1);
 
 namespace Phel\Compiler;
 
-use Phel\Compiler\ParserNode\AtomNode;
-use Phel\Compiler\ParserNode\ListNode;
-use Phel\Compiler\ParserNode\MetaNode;
-use Phel\Compiler\ParserNode\NodeInterface;
-use Phel\Compiler\ParserNode\QuoteNode;
-use Phel\Compiler\ParserNode\SymbolNode;
-use Phel\Compiler\ParserNode\TriviaNodeInterface;
+use Phel\Compiler\Parser\ParserNode\AtomNode;
+use Phel\Compiler\Parser\ParserNode\ListNode;
+use Phel\Compiler\Parser\ParserNode\MetaNode;
+use Phel\Compiler\Parser\ParserNode\NodeInterface;
+use Phel\Compiler\Parser\ParserNode\QuoteNode;
+use Phel\Compiler\Parser\ParserNode\SymbolNode;
+use Phel\Compiler\Parser\ParserNode\TriviaNodeInterface;
 use Phel\Compiler\ReadModel\CodeSnippet;
 use Phel\Compiler\ReadModel\ReaderResult;
 use Phel\Exceptions\ReaderException;
@@ -24,20 +24,6 @@ use Phel\Lang\Tuple;
 
 final class Reader implements ReaderInterface
 {
-    private const STRING_REPLACEMENTS = [
-        '\\' => '\\',
-        '$' => '$',
-        'n' => "\n",
-        'r' => "\r",
-        't' => "\t",
-        'f' => "\f",
-        'v' => "\v",
-        'e' => "\x1B",
-    ];
-
-    /** @var Token[] */
-    private array $readTokens = [];
-
     /** @var Symbol[]|null */
     private ?array $fnArgs = null;
 

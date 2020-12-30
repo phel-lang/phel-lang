@@ -1,6 +1,6 @@
 <?php
 
-namespace Phel\Compiler\ParserNode;
+namespace Phel\Compiler\Parser\ParserNode;
 
 use Phel\Compiler\Token;
 use Phel\Lang\SourceLocation;

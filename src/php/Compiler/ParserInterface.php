@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Phel\Compiler;
 
 use Generator;
-use Phel\Compiler\ParserNode\NodeInterface;
+use Phel\Compiler\Parser\ParserNode\NodeInterface;
 
 interface ParserInterface
 {

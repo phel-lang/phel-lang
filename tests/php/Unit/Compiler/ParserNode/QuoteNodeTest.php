@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace PhelTest\Unit\Compiler;
 
 use Phel\Lang\SourceLocation;
-use Phel\Compiler\ParserNode\QuoteNode;
-use Phel\Compiler\ParserNode\SymbolNode;
+use Phel\Compiler\Parser\ParserNode\QuoteNode;
+use Phel\Compiler\Parser\ParserNode\SymbolNode;
 use Phel\Compiler\Token;
 use Phel\Lang\Symbol;
 use PHPUnit\Framework\TestCase;

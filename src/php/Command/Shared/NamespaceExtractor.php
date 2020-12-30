@@ -6,7 +6,7 @@ namespace Phel\Command\Shared;
 
 use Phel\Compiler\LexerInterface;
 use Phel\Compiler\ParserInterface;
-use Phel\Compiler\ParserNode\TriviaNodeInterface;
+use Phel\Compiler\Parser\ParserNode\TriviaNodeInterface;
 use Phel\Compiler\ReaderInterface;
 use Phel\Exceptions\ParserException;
 use Phel\Exceptions\ReaderException;

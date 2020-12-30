@@ -1,10 +1,10 @@
 <?php
 
-namespace Phel\Compiler\ParserNode;
+namespace Phel\Compiler\Parser\ParserNode;
 
 use Phel\Lang\SourceLocation;
 
-final class WhitespaceNode implements TriviaNodeInterface
+final class NewlineNode implements TriviaNodeInterface
 {
     private string $code;
     private SourceLocation $startLocation;

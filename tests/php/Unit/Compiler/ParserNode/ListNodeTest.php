@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace PhelTest\Unit\Compiler;
 
 use Phel\Lang\SourceLocation;
-use Phel\Compiler\ParserNode\ListNode;
-use Phel\Compiler\ParserNode\NumberNode;
+use Phel\Compiler\Parser\ParserNode\ListNode;
+use Phel\Compiler\Parser\ParserNode\NumberNode;
 use Phel\Compiler\Token;
 use PHPUnit\Framework\TestCase;
 use RuntimeException;

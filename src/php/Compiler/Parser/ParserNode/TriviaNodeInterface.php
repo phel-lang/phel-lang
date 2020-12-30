@@ -1,6 +1,6 @@
 <?php
 
-namespace Phel\Compiler\ParserNode;
+namespace Phel\Compiler\Parser\ParserNode;
 
 /**
  * This is just a interface to mark nodes as trivia.

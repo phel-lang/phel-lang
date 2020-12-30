@@ -1,6 +1,6 @@
 <?php
 
-namespace Phel\Compiler\ParserNode;
+namespace Phel\Compiler\Parser\ParserNode;
 
 /**
  * @extends AtomNode<\Phel\Lang\Symbol>
