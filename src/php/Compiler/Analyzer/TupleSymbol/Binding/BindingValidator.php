@@ -25,15 +25,17 @@ final class BindingValidator implements BindingValidatorInterface
      */
     public function assertSupportedBinding($form): void
     {
-        if (!$this->isSupportedBinding($form)) {
-            $type = is_object($form) ? get_class($form) : gettype($form);
-
-            if ($form instanceof AbstractType) {
-                throw AnalyzerException::withLocation('Can not destructure ' . $type, $form);
-            }
-
-            throw new AnalyzerException('Can not destructure ' . $type);
+        if ($this->isSupportedBinding($form)) {
+            return;
         }
+
+        $type = is_object($form) ? get_class($form) : gettype($form);
+
+        if ($form instanceof AbstractType) {
+            throw AnalyzerException::withLocation('Can not destructure ' . $type, $form);
+        }
+
+        throw new AnalyzerException('Can not destructure ' . $type);
     }
 
     /**

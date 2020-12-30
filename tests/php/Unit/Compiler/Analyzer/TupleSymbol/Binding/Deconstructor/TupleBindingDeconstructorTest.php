@@ -14,6 +14,15 @@ use PHPUnit\Framework\TestCase;
 
 final class TupleBindingDeconstructorTest extends TestCase
 {
+    private const EXAMPLE_VALUE = 'example value';
+    private const EXAMPLE_KEY_1 = 'example key 1';
+    private const EXAMPLE_KEY_2 = 'example key 2';
+    private const EXAMPLE_TAIL = 'example tail';
+
+    private const REST_SYMBOL = TupleBindingDeconstructor::REST_SYMBOL_NAME;
+    private const FIRST_SYMBOL = TupleBindingDeconstructor::FIRST_SYMBOL_NAME;
+    private const NEXT_SYMBOL = TupleBindingDeconstructor::NEXT_SYMBOL_NAME;
+
     private TupleBindingDeconstructor $deconstructor;
 
     public function setUp(): void
@@ -31,14 +40,13 @@ final class TupleBindingDeconstructorTest extends TestCase
     {
         $bindings = [];
         $binding = Tuple::create();
-        $value = 'example value';
 
-        $this->deconstructor->deconstruct($bindings, $binding, $value);
+        $this->deconstructor->deconstruct($bindings, $binding, self::EXAMPLE_VALUE);
 
         self::assertEquals([
             [
                 Symbol::create('__phel_1'),
-                $value,
+                self::EXAMPLE_VALUE,
             ],
         ], $bindings);
     }
@@ -46,34 +54,34 @@ final class TupleBindingDeconstructorTest extends TestCase
     public function testTupleWithOneSymbol(): void
     {
         $bindings = [];
-        $binding = Tuple::create(
-            Symbol::create('key-1'),
-        );
-        $value = 'example value';
 
-        $this->deconstructor->deconstruct($bindings, $binding, $value);
+        $binding = Tuple::create(
+            Symbol::create(self::EXAMPLE_KEY_1),
+        );
+
+        $this->deconstructor->deconstruct($bindings, $binding, self::EXAMPLE_VALUE);
 
         self::assertEquals([
             [
                 Symbol::create('__phel_1'),
-                Symbol::create($value),
+                Symbol::create(self::EXAMPLE_VALUE),
             ],
             [
                 Symbol::create('__phel_2'),
                 Tuple::create(
-                    Symbol::create('first'),
+                    Symbol::create(self::FIRST_SYMBOL),
                     Symbol::create('__phel_1'),
                 ),
             ],
             [
                 Symbol::create('__phel_3'),
                 Tuple::create(
-                    Symbol::create('next'),
+                    Symbol::create(self::NEXT_SYMBOL),
                     Symbol::create('__phel_1'),
                 ),
             ],
             [
-                Symbol::create('key-1'),
+                Symbol::create(self::EXAMPLE_KEY_1),
                 Symbol::create('__phel_2'),
             ],
         ], $bindings);
@@ -82,53 +90,53 @@ final class TupleBindingDeconstructorTest extends TestCase
     public function testTupleWithSymbols(): void
     {
         $bindings = [];
-        $binding = Tuple::create(
-            Symbol::create('key-1'),
-            Symbol::create('key-2'),
-        );
-        $value = 'example value';
 
-        $this->deconstructor->deconstruct($bindings, $binding, $value);
+        $binding = Tuple::create(
+            Symbol::create(self::EXAMPLE_KEY_1),
+            Symbol::create(self::EXAMPLE_KEY_2),
+        );
+
+        $this->deconstructor->deconstruct($bindings, $binding, self::EXAMPLE_VALUE);
 
         self::assertEquals([
             [
                 Symbol::create('__phel_1'),
-                Symbol::create($value),
+                Symbol::create(self::EXAMPLE_VALUE),
             ],
             [
                 Symbol::create('__phel_2'),
                 Tuple::create(
-                    Symbol::create('first'),
+                    Symbol::create(self::FIRST_SYMBOL),
                     Symbol::create('__phel_1'),
                 ),
             ],
             [
                 Symbol::create('__phel_3'),
                 Tuple::create(
-                    Symbol::create('next'),
+                    Symbol::create(self::NEXT_SYMBOL),
                     Symbol::create('__phel_1'),
                 ),
             ],
             [
-                Symbol::create('key-1'),
+                Symbol::create(self::EXAMPLE_KEY_1),
                 Symbol::create('__phel_2'),
             ],
             [
                 Symbol::create('__phel_4'),
                 Tuple::create(
-                    Symbol::create('first'),
+                    Symbol::create(self::FIRST_SYMBOL),
                     Symbol::create('__phel_3'),
                 ),
             ],
             [
                 Symbol::create('__phel_5'),
                 Tuple::create(
-                    Symbol::create('next'),
+                    Symbol::create(self::NEXT_SYMBOL),
                     Symbol::create('__phel_3'),
                 ),
             ],
             [
-                Symbol::create('key-2'),
+                Symbol::create(self::EXAMPLE_KEY_2),
                 Symbol::create('__phel_4'),
             ],
         ], $bindings);
@@ -138,35 +146,34 @@ final class TupleBindingDeconstructorTest extends TestCase
     {
         $bindings = [];
         $binding = Tuple::create(
-            Symbol::create('key-1'),
-            Symbol::create('&'),
-            Symbol::create('the-tail'),
+            Symbol::create(self::EXAMPLE_KEY_1),
+            Symbol::create(self::REST_SYMBOL),
+            Symbol::create(self::EXAMPLE_TAIL),
         );
-        $value = 'example value';
 
-        $this->deconstructor->deconstruct($bindings, $binding, $value);
+        $this->deconstructor->deconstruct($bindings, $binding, self::EXAMPLE_VALUE);
 
         self::assertEquals([
             [
                 Symbol::create('__phel_1'),
-                Symbol::create($value),
+                Symbol::create(self::EXAMPLE_VALUE),
             ],
             [
                 Symbol::create('__phel_2'),
                 Tuple::create(
-                    Symbol::create('first'),
+                    Symbol::create(self::FIRST_SYMBOL),
                     Symbol::create('__phel_1'),
                 ),
             ],
             [
                 Symbol::create('__phel_3'),
                 Tuple::create(
-                    Symbol::create('next'),
+                    Symbol::create(self::NEXT_SYMBOL),
                     Symbol::create('__phel_1'),
                 ),
             ],
             [
-                Symbol::create('key-1'),
+                Symbol::create(self::EXAMPLE_KEY_1),
                 Symbol::create('__phel_2'),
             ],
             [
@@ -174,7 +181,7 @@ final class TupleBindingDeconstructorTest extends TestCase
                 Symbol::create('__phel_3'),
             ],
             [
-                Symbol::create('the-tail'),
+                Symbol::create(self::EXAMPLE_TAIL),
                 Symbol::create('__phel_4'),
             ],
         ], $bindings);
@@ -183,16 +190,16 @@ final class TupleBindingDeconstructorTest extends TestCase
     public function testExceptionWhenMultipleRestSymbol(): void
     {
         $bindings = [];
+
         $binding = Tuple::create(
-            Symbol::create('key-1'),
-            Symbol::create('&'),
-            Symbol::create('&'),
-            Symbol::create('the-tail'),
+            Symbol::create(self::EXAMPLE_KEY_1),
+            Symbol::create(self::REST_SYMBOL),
+            Symbol::create(self::REST_SYMBOL),
+            Symbol::create(self::EXAMPLE_TAIL),
         );
-        $value = 'example value';
 
         $this->expectException(PhelCodeException::class);
         $this->expectExceptionMessage('only one symbol can follow the & parameter');
-        $this->deconstructor->deconstruct($bindings, $binding, $value);
+        $this->deconstructor->deconstruct($bindings, $binding, self::EXAMPLE_VALUE);
     }
 }

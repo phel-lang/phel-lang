@@ -13,33 +13,33 @@ use PHPUnit\Framework\TestCase;
 
 final class TupleDeconstructorTest extends TestCase
 {
+    private const EXAMPLE_KEY_1 = 'example key 1';
+    private const EXAMPLE_KEY_2 = 'example key 2';
+    private const EXAMPLE_KEY_3 = 'example key 3';
+
+    private TupleDeconstructor $deconstructor;
+
     public function setUp(): void
     {
         Symbol::resetGen();
+
+        $this->deconstructor = new TupleDeconstructor(
+            $this->createStub(BindingValidatorInterface::class)
+        );
     }
 
     public function testEmptyTuple(): void
     {
-        $bindings = $this->createDeconstructor()
-            ->deconstruct(Tuple::create());
+        $bindings = $this->deconstructor->deconstruct(Tuple::create());
 
         self::assertEquals([], $bindings);
-    }
-
-    private function createDeconstructor(): TupleDeconstructor
-    {
-        return new TupleDeconstructor(
-            $this->createStub(BindingValidatorInterface::class)
-        );
     }
 
     public function testTupleWithEmptyTuples(): void
     {
         $tuple = Tuple::create(Tuple::create(), 10, Tuple::create(), 20);
 
-        $bindings = $this
-            ->createDeconstructor()
-            ->deconstruct($tuple);
+        $bindings = $this->deconstructor->deconstruct($tuple);
 
         self::assertEquals([
             [
@@ -56,22 +56,20 @@ final class TupleDeconstructorTest extends TestCase
     public function testTupleWithSymbols(): void
     {
         $tuple = Tuple::create(
-            Symbol::create('key-1'),
-            Symbol::create('key-2'),
-            Symbol::create('key-3'),
+            Symbol::create(self::EXAMPLE_KEY_1),
+            Symbol::create(self::EXAMPLE_KEY_2),
+            Symbol::create(self::EXAMPLE_KEY_3),
         );
 
-        $bindings = $this
-            ->createDeconstructor()
-            ->deconstruct($tuple);
+        $bindings = $this->deconstructor->deconstruct($tuple);
 
         self::assertEquals([
             [
-                Symbol::create('key-1'),
-                Symbol::create('key-2'),
+                Symbol::create(self::EXAMPLE_KEY_1),
+                Symbol::create(self::EXAMPLE_KEY_2),
             ],
             [
-                Symbol::create('key-3'),
+                Symbol::create(self::EXAMPLE_KEY_3),
                 null,
             ],
         ], $bindings);
@@ -81,15 +79,13 @@ final class TupleDeconstructorTest extends TestCase
     {
         $tuple = Tuple::create(
             Tuple::create(
-                Symbol::create('one'),
-                Symbol::create('20')
+                Symbol::create(self::EXAMPLE_KEY_1),
+                Symbol::create(self::EXAMPLE_KEY_2)
             ),
             10
         );
 
-        $bindings = $this
-            ->createDeconstructor()
-            ->deconstruct($tuple);
+        $bindings = $this->deconstructor->deconstruct($tuple);
 
         self::assertEquals([
             [
@@ -111,7 +107,7 @@ final class TupleDeconstructorTest extends TestCase
                 ),
             ],
             [
-                Symbol::create('one'),
+                Symbol::create(self::EXAMPLE_KEY_1),
                 Symbol::create('__phel_2'),
             ],
             [
@@ -129,7 +125,7 @@ final class TupleDeconstructorTest extends TestCase
                 ),
             ],
             [
-                Symbol::create('20'),
+                Symbol::create(self::EXAMPLE_KEY_2),
                 Symbol::create('__phel_4'),
             ],
         ], $bindings);
@@ -139,17 +135,12 @@ final class TupleDeconstructorTest extends TestCase
     {
         $this->expectException(AnalyzerException::class);
 
-        $this->createDeconstructorWithException()
-            ->deconstruct(Tuple::create(Tuple::create()));
-    }
-
-    private function createDeconstructorWithException(): TupleDeconstructor
-    {
         $validator = $this->createStub(BindingValidatorInterface::class);
         $validator
             ->method('assertSupportedBinding')
             ->willThrowException(new AnalyzerException(''));
 
-        return new TupleDeconstructor($validator);
+        $deconstructor = new TupleDeconstructor($validator);
+        $deconstructor->deconstruct(Tuple::create(Tuple::create()));
     }
 }

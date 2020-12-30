@@ -14,6 +14,9 @@ use PHPUnit\Framework\TestCase;
 
 final class TableBindingDeconstructorTest extends TestCase
 {
+    private const EXAMPLE_KEY = 'example key';
+    private const EXAMPLE_VALUE = 'example value';
+
     private TableBindingDeconstructor $deconstructor;
 
     public function setUp(): void
@@ -31,14 +34,13 @@ final class TableBindingDeconstructorTest extends TestCase
     {
         $bindings = [];
         $binding = Table::fromKVs();
-        $value = 'example value';
 
-        $this->deconstructor->deconstruct($bindings, $binding, $value);
+        $this->deconstructor->deconstruct($bindings, $binding, self::EXAMPLE_VALUE);
 
         self::assertEquals([
             [
                 Symbol::create('__phel_1'),
-                $value,
+                self::EXAMPLE_VALUE,
             ],
         ], $bindings);
     }
@@ -46,27 +48,22 @@ final class TableBindingDeconstructorTest extends TestCase
     public function testDeconstructTableWithTuple(): void
     {
         $bindings = [];
-        $key = 'test1';
-        $binding = Table::fromKVs($key, Tuple::create());
-        $value = 'example value';
+        $binding = Table::fromKVs(self::EXAMPLE_KEY, Tuple::create());
 
-        $this->deconstructor->deconstruct($bindings, $binding, $value);
-
-        $accessValue = Tuple::create(
-            (Symbol::create(Symbol::NAME_PHP_ARRAY_GET))
-                ->copyLocationFrom($binding),
-            Symbol::create('__phel_1')->copyLocationFrom($binding),
-            $key
-        )->copyLocationFrom($binding);
+        $this->deconstructor->deconstruct($bindings, $binding, self::EXAMPLE_VALUE);
 
         self::assertEquals([
             [
                 Symbol::create('__phel_1'),
-                $value,
+                self::EXAMPLE_VALUE,
             ],
             [
                 Symbol::create('__phel_2'),
-                $accessValue,
+                Tuple::create(
+                    Symbol::create(Symbol::NAME_PHP_ARRAY_GET),
+                    Symbol::create('__phel_1'),
+                    self::EXAMPLE_KEY
+                ),
             ],
             [
                 Symbol::create('__phel_3'),

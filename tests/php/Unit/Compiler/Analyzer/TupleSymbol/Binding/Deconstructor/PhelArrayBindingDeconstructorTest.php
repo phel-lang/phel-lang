@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace PhelTest\Unit\Compiler\Analyzer\TupleSymbol\Binding\Deconstructor;
 
-use Phel\Compiler\Analyzer\TupleSymbol\Binding\BindingValidator;
+use Phel\Compiler\Analyzer\TupleSymbol\Binding\BindingValidatorInterface;
 use Phel\Compiler\Analyzer\TupleSymbol\Binding\Deconstructor\PhelArrayBindingDeconstructor;
 use Phel\Compiler\Analyzer\TupleSymbol\Binding\TupleDeconstructor;
 use Phel\Lang\PhelArray;
@@ -14,6 +14,9 @@ use PHPUnit\Framework\TestCase;
 
 final class PhelArrayBindingDeconstructorTest extends TestCase
 {
+    private const EXAMPLE_INDEX = 'index';
+    private const EXAMPLE_VALUE = 'example value';
+
     private PhelArrayBindingDeconstructor $deconstructor;
 
     public function setUp(): void
@@ -21,37 +24,38 @@ final class PhelArrayBindingDeconstructorTest extends TestCase
         Symbol::resetGen();
 
         $this->deconstructor = new PhelArrayBindingDeconstructor(
-            new TupleDeconstructor(new BindingValidator())
+            new TupleDeconstructor(
+                $this->createMock(BindingValidatorInterface::class)
+            )
         );
     }
 
     public function testDeconstructSymbol(): void
     {
         $bindings = [];
-        $index = 'test1';
-        $binding = PhelArray::create(
-            $index,
-            Symbol::create('the-symbol'),
-        );
-        $value = 'example value';
 
-        $this->deconstructor->deconstruct($bindings, $binding, $value);
+        $binding = PhelArray::create(
+            self::EXAMPLE_INDEX,
+            Symbol::create(self::EXAMPLE_VALUE),
+        );
+
+        $this->deconstructor->deconstruct($bindings, $binding, self::EXAMPLE_VALUE);
 
         self::assertEquals([
             [
                 Symbol::create('__phel_1'),
-                $value,
+                self::EXAMPLE_VALUE,
             ],
             [
                 Symbol::create('__phel_2'),
                 Tuple::create(
                     Symbol::create(Symbol::NAME_PHP_ARRAY_GET),
                     Symbol::create('__phel_1'),
-                    $index
+                    self::EXAMPLE_INDEX
                 ),
             ],
             [
-                Symbol::create('the-symbol'),
+                Symbol::create(self::EXAMPLE_VALUE),
                 Symbol::create('__phel_2'),
             ],
         ], $bindings);
@@ -60,26 +64,25 @@ final class PhelArrayBindingDeconstructorTest extends TestCase
     public function testDeconstructTuple(): void
     {
         $bindings = [];
-        $index = 'test1';
+
         $binding = PhelArray::create(
-            $index,
+            self::EXAMPLE_INDEX,
             Tuple::create(),
         );
-        $value = 'example value';
 
-        $this->deconstructor->deconstruct($bindings, $binding, $value);
+        $this->deconstructor->deconstruct($bindings, $binding, self::EXAMPLE_VALUE);
 
         self::assertEquals([
             [
                 Symbol::create('__phel_1'),
-                $value,
+                self::EXAMPLE_VALUE,
             ],
             [
                 Symbol::create('__phel_2'),
                 Tuple::create(
                     Symbol::create(Symbol::NAME_PHP_ARRAY_GET),
                     Symbol::create('__phel_1'),
-                    $index
+                    self::EXAMPLE_INDEX
                 ),
             ],
             [
