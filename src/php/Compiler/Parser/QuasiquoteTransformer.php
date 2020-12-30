@@ -2,9 +2,11 @@
 
 declare(strict_types=1);
 
-namespace Phel\Compiler;
+namespace Phel\Compiler\Parser;
 
 use Phel\Compiler\Ast\GlobalVarNode;
+use Phel\Compiler\GlobalEnvironmentInterface;
+use Phel\Compiler\NodeEnvironment;
 use Phel\Lang\AbstractType;
 use Phel\Lang\Keyword;
 use Phel\Lang\PhelArray;

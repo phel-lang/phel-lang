@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace PhelTest\Unit\Compiler;
 
 use Phel\Compiler\GlobalEnvironment;
-use Phel\Compiler\QuasiquoteTransformer;
+use Phel\Compiler\Parser\QuasiquoteTransformer;
 use Phel\Lang\Keyword;
 use Phel\Lang\PhelArray;
 use Phel\Lang\Symbol;
@@ -16,26 +16,26 @@ use RuntimeException;
 
 final class QuasiquoteTest extends TestCase
 {
-    public function testTransformUnquote()
+    public function testTransformUnquote(): void
     {
         $q = new QuasiquoteTransformer(new GlobalEnvironment());
-        $this->assertEquals(
+        self::assertEquals(
             1,
             $q->transform(Tuple::create(Symbol::create(Symbol::NAME_UNQUOTE), 1))
         );
     }
 
-    public function testTransformUnquoteSplicing()
+    public function testTransformUnquoteSplicing(): void
     {
         $this->expectException(RuntimeException::class);
         $q = new QuasiquoteTransformer(new GlobalEnvironment());
         $q->transform(Tuple::create(Symbol::create(Symbol::NAME_UNQUOTE_SPLICING), 1));
     }
 
-    public function testTransformCreateTuple()
+    public function testTransformCreateTuple(): void
     {
         $q = new QuasiquoteTransformer(new GlobalEnvironment());
-        $this->assertEquals(
+        self::assertEquals(
             Tuple::create(
                 Symbol::create(Symbol::NAME_APPLY),
                 Symbol::create(Symbol::NAME_TUPLE),
@@ -49,10 +49,10 @@ final class QuasiquoteTest extends TestCase
         );
     }
 
-    public function testTransformCreateTupleWithUnquoteSplicing()
+    public function testTransformCreateTupleWithUnquoteSplicing(): void
     {
         $q = new QuasiquoteTransformer(new GlobalEnvironment());
-        $this->assertEquals(
+        self::assertEquals(
             Tuple::create(
                 Symbol::create(Symbol::NAME_APPLY),
                 Symbol::create(Symbol::NAME_TUPLE),
@@ -66,10 +66,10 @@ final class QuasiquoteTest extends TestCase
         );
     }
 
-    public function testTransformCreateTupleWithUnquote()
+    public function testTransformCreateTupleWithUnquote(): void
     {
         $q = new QuasiquoteTransformer(new GlobalEnvironment());
-        $this->assertEquals(
+        self::assertEquals(
             Tuple::create(
                 Symbol::create(Symbol::NAME_APPLY),
                 Symbol::create(Symbol::NAME_TUPLE),
@@ -83,10 +83,10 @@ final class QuasiquoteTest extends TestCase
         );
     }
 
-    public function testTransformCreateTupleBrackets()
+    public function testTransformCreateTupleBrackets(): void
     {
         $q = new QuasiquoteTransformer(new GlobalEnvironment());
-        $this->assertEquals(
+        self::assertEquals(
             Tuple::create(
                 Symbol::create(Symbol::NAME_APPLY),
                 Symbol::create(Symbol::NAME_TUPLE_BRACKETS),
@@ -100,10 +100,10 @@ final class QuasiquoteTest extends TestCase
         );
     }
 
-    public function testTransformCreateTable()
+    public function testTransformCreateTable(): void
     {
         $q = new QuasiquoteTransformer(new GlobalEnvironment());
-        $this->assertEquals(
+        self::assertEquals(
             Tuple::create(
                 Symbol::create(Symbol::NAME_APPLY),
                 Symbol::create(Symbol::NAME_TABLE),
@@ -119,10 +119,10 @@ final class QuasiquoteTest extends TestCase
         );
     }
 
-    public function testTransformCreatePhelArray()
+    public function testTransformCreatePhelArray(): void
     {
         $q = new QuasiquoteTransformer(new GlobalEnvironment());
-        $this->assertEquals(
+        self::assertEquals(
             Tuple::create(
                 Symbol::create(Symbol::NAME_APPLY),
                 Symbol::create(Symbol::NAME_ARRAY),
@@ -136,64 +136,64 @@ final class QuasiquoteTest extends TestCase
         );
     }
 
-    public function testTransformInt()
+    public function testTransformInt(): void
     {
         $q = new QuasiquoteTransformer(new GlobalEnvironment());
-        $this->assertEquals(
+        self::assertEquals(
             1,
             $q->transform(1)
         );
     }
 
-    public function testTransformString()
+    public function testTransformString(): void
     {
         $q = new QuasiquoteTransformer(new GlobalEnvironment());
-        $this->assertEquals(
+        self::assertEquals(
             'a',
             $q->transform('a')
         );
     }
 
-    public function testTransformFloat()
+    public function testTransformFloat(): void
     {
         $q = new QuasiquoteTransformer(new GlobalEnvironment());
-        $this->assertEquals(
+        self::assertEquals(
             1.1,
             $q->transform(1.1)
         );
     }
 
-    public function testTransformBoolean()
+    public function testTransformBoolean(): void
     {
         $q = new QuasiquoteTransformer(new GlobalEnvironment());
-        $this->assertEquals(
+        self::assertEquals(
             true,
             $q->transform(true)
         );
     }
 
-    public function testTransformNull()
+    public function testTransformNull(): void
     {
         $q = new QuasiquoteTransformer(new GlobalEnvironment());
-        $this->assertEquals(
+        self::assertEquals(
             null,
             $q->transform(null)
         );
     }
 
-    public function testTransformKeyword()
+    public function testTransformKeyword(): void
     {
         $q = new QuasiquoteTransformer(new GlobalEnvironment());
-        $this->assertEquals(
+        self::assertEquals(
             new Keyword('test'),
             $q->transform(new Keyword('test'))
         );
     }
 
-    public function testTransformUnknownSymbol()
+    public function testTransformUnknownSymbol(): void
     {
         $q = new QuasiquoteTransformer(new GlobalEnvironment());
-        $this->assertEquals(
+        self::assertEquals(
             Tuple::create(
                 Symbol::create(Symbol::NAME_QUOTE),
                 Symbol::create('test')
@@ -202,13 +202,13 @@ final class QuasiquoteTest extends TestCase
         );
     }
 
-    public function testTransformGlobalSymbol()
+    public function testTransformGlobalSymbol(): void
     {
         $env = new GlobalEnvironment();
         $env->addDefinition('test', Symbol::create('abc'), Table::fromKVs());
 
         $q = new QuasiquoteTransformer($env);
-        $this->assertEquals(
+        self::assertEquals(
             Tuple::create(
                 Symbol::create(Symbol::NAME_QUOTE),
                 Symbol::createForNamespace('test', 'abc')

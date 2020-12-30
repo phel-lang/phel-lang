@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Phel\Compiler\Parser;
+namespace Phel\Compiler\Parser\ExpressionParser;
 
 use Phel\Compiler\Parser\ParserNode\AtomNode;
 use Phel\Compiler\Parser\ParserNode\BooleanNode;

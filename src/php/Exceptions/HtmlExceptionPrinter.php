@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Phel\Exceptions;
 
 use Phel\Compiler\Emitter\OutputEmitter\Munge;
-use Phel\Compiler\ReadModel\CodeSnippet;
+use Phel\Compiler\Parser\ReadModel\CodeSnippet;
 use Phel\Lang\IFn;
 use Phel\Printer\Printer;
 use ReflectionClass;

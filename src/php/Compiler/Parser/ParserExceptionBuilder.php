@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Phel\Compiler\Parser;
 
-use Phel\Compiler\ReadModel\CodeSnippet;
+use Phel\Compiler\Parser\ReadModel\CodeSnippet;
 use Phel\Compiler\Token;
 use Phel\Exceptions\ParserException;
 

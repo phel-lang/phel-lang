@@ -5,9 +5,11 @@ declare(strict_types=1);
 namespace Phel\Compiler;
 
 use Generator;
-use Phel\Compiler\Parser\AtomParser;
-use Phel\Compiler\Parser\ListParser;
-use Phel\Compiler\Parser\MetaParser;
+use Phel\Compiler\Parser\ExpressionParser\AtomParser;
+use Phel\Compiler\Parser\ExpressionParser\ListParser;
+use Phel\Compiler\Parser\ExpressionParser\MetaParser;
+use Phel\Compiler\Parser\ExpressionParser\QuoteParser;
+use Phel\Compiler\Parser\ExpressionParser\StringParser;
 use Phel\Compiler\Parser\ParserExceptionBuilder;
 use Phel\Compiler\Parser\ParserNode\AtomNode;
 use Phel\Compiler\Parser\ParserNode\CommentNode;
@@ -18,8 +20,6 @@ use Phel\Compiler\Parser\ParserNode\NodeInterface;
 use Phel\Compiler\Parser\ParserNode\QuoteNode;
 use Phel\Compiler\Parser\ParserNode\StringNode;
 use Phel\Compiler\Parser\ParserNode\WhitespaceNode;
-use Phel\Compiler\Parser\QuoteParser;
-use Phel\Compiler\Parser\StringParser;
 use Phel\Exceptions\ParserException;
 
 final class Parser implements ParserInterface

@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Phel\Compiler;
 
 use Phel\Compiler\Parser\ParserNode\NodeInterface;
-use Phel\Compiler\ReadModel\ReaderResult;
+use Phel\Compiler\Parser\ReadModel\ReaderResult;
 
 interface ReaderInterface
 {

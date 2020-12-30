@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Phel\Compiler\ReadModel;
+namespace Phel\Compiler\Parser\ReadModel;
 
 use Phel\Lang\SourceLocation;
 

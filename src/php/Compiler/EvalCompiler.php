@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Phel\Compiler;
 
 use Phel\Compiler\Parser\ParserNode\TriviaNodeInterface;
-use Phel\Compiler\ReadModel\ReaderResult;
+use Phel\Compiler\Parser\ReadModel\ReaderResult;
 use Phel\Exceptions\AnalyzerException;
 use Phel\Exceptions\CompilerException;
 use Phel\Exceptions\ParserException;
