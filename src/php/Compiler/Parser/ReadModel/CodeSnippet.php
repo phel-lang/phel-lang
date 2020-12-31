@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Phel\Compiler\Parser\ReadModel;
 
+use Phel\Compiler\Parser\ParserNode\NodeInterface;
 use Phel\Lang\SourceLocation;
 
 final class CodeSnippet
@@ -20,6 +21,15 @@ final class CodeSnippet
         $this->startLocation = $startLocation;
         $this->endLocation = $endLocation;
         $this->code = $code;
+    }
+
+    public static function fromNode(NodeInterface $node): self
+    {
+        return new self(
+            $node->getStartLocation(),
+            $node->getEndLocation(),
+            $node->getCode()
+        );
     }
 
     public function getStartLocation(): SourceLocation

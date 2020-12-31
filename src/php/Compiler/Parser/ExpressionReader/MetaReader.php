@@ -6,6 +6,7 @@ namespace Phel\Compiler\Parser\ExpressionReader;
 
 use Phel\Compiler\Parser\ParserNode\MetaNode;
 use Phel\Compiler\Reader;
+use Phel\Exceptions\ReaderException;
 use Phel\Lang\AbstractType;
 use Phel\Lang\IMeta;
 use Phel\Lang\Keyword;
@@ -35,12 +36,12 @@ final class MetaReader
         } elseif ($meta instanceof Keyword) {
             $meta = Table::fromKVs($meta, true);
         } elseif (!$meta instanceof Table) {
-            throw $this->reader->buildReaderException('Metadata must be a Symbol, String, Keyword or Table', $node);
+            throw ReaderException::forNode($node, 'Metadata must be a Symbol, String, Keyword or Table');
         }
         $object = $this->reader->readExpression($objectExpression);
 
         if (!$object instanceof IMeta) {
-            throw $this->reader->buildReaderException('Metadata can only applied to classes that implement IMeta', $node);
+            throw ReaderException::forNode($node, 'Metadata can only applied to classes that implement IMeta');
         }
 
         $objMeta = $object->getMeta();

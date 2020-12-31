@@ -5,8 +5,10 @@ declare(strict_types=1);
 namespace Phel\Compiler;
 
 use Phel\Compiler\Parser\ExpressionReader\AtomReader;
+use Phel\Compiler\Parser\ExpressionReader\ListArrayReader;
 use Phel\Compiler\Parser\ExpressionReader\ListFnReader;
 use Phel\Compiler\Parser\ExpressionReader\ListReader;
+use Phel\Compiler\Parser\ExpressionReader\ListTableReader;
 use Phel\Compiler\Parser\ExpressionReader\MetaReader;
 use Phel\Compiler\Parser\ExpressionReader\QuoasiquoteReader;
 use Phel\Compiler\Parser\ExpressionReader\SymbolReader;
@@ -27,6 +29,7 @@ use Phel\Lang\PhelArray;
 use Phel\Lang\Symbol;
 use Phel\Lang\Table;
 use Phel\Lang\Tuple;
+use RuntimeException;
 
 final class Reader implements ReaderInterface
 {
@@ -52,38 +55,12 @@ final class Reader implements ReaderInterface
     public function read(NodeInterface $parseTree): ReaderResult
     {
         if ($parseTree instanceof TriviaNodeInterface) {
-            throw $this->buildReaderException('Can not read from whitespace or comments', $parseTree);
+            throw ReaderException::forNode($parseTree, 'Can not read from whitespace or comments');
         }
 
         return new ReaderResult(
             $this->readExpression($parseTree),
-            $this->getCodeSnippet($parseTree)
-        );
-    }
-
-    public function buildReaderException(string $message, NodeInterface $node): ReaderException
-    {
-        $codeSnippet = $this->getCodeSnippet($node);
-
-        return new ReaderException(
-            $message,
-            $codeSnippet->getStartLocation(),
-            $codeSnippet->getEndLocation(),
-            $codeSnippet
-        );
-    }
-
-    /**
-     * Create a CodeSnippet from a list of Tokens.
-     *
-     * @param NodeInterface $node The current node
-     */
-    private function getCodeSnippet(NodeInterface $node): CodeSnippet
-    {
-        return new CodeSnippet(
-            $node->getStartLocation(),
-            $node->getEndLocation(),
-            $node->getCode()
+            CodeSnippet::fromNode($parseTree)
         );
     }
 
@@ -102,47 +79,19 @@ final class Reader implements ReaderInterface
             return $this->readAtom($node);
         }
 
-        if ($node instanceof ListNode && $node->getTokenType() === Token::T_OPEN_PARENTHESIS) {
-            return $this->readListOpenParenthesis($node);
+        if ($node instanceof ListNode) {
+            return $this->readListNode($node);
         }
 
-        if ($node instanceof ListNode && $node->getTokenType() === Token::T_OPEN_BRACKET) {
-            return $this->readListOpenBracket($node);
-        }
-
-        if ($node instanceof ListNode && $node->getTokenType() === Token::T_ARRAY) {
-            return $this->readListArray($node);
-        }
-
-        if ($node instanceof ListNode && $node->getTokenType() === Token::T_TABLE) {
-            return $this->readListTable($node);
-        }
-
-        if ($node instanceof ListNode && $node->getTokenType() === Token::T_FN) {
-            return $this->readListFn($node);
-        }
-
-        if ($node instanceof QuoteNode && $node->getTokenType() === Token::T_QUOTE) {
-            return $this->readQuote($node);
-        }
-
-        if ($node instanceof QuoteNode && $node->getTokenType() === Token::T_UNQUOTE) {
-            return $this->readUnquote($node);
-        }
-
-        if ($node instanceof QuoteNode && $node->getTokenType() === Token::T_UNQUOTE_SPLICING) {
-            return $this->readUnquoteSplicing($node);
-        }
-
-        if ($node instanceof QuoteNode && $node->getTokenType() === Token::T_QUASIQUOTE) {
-            return $this->readQuasiquote($node);
+        if ($node instanceof QuoteNode) {
+            return $this->readQuoteNode($node);
         }
 
         if ($node instanceof MetaNode) {
             return $this->readMeta($node);
         }
 
-        throw $this->buildReaderException('Unterminated list', $node);
+        throw ReaderException::forNode($node, 'Unterminated list');
     }
 
     private function readSymbol(SymbolNode $node): Symbol
@@ -158,62 +107,58 @@ final class Reader implements ReaderInterface
         return (new AtomReader())->read($node);
     }
 
-    private function readListOpenParenthesis(ListNode $node): Tuple
+    /**
+     * @return Tuple|PhelArray|Table
+     */
+    private function readListNode(ListNode $node)
     {
-        return (new ListReader($this))->read($node);
-    }
-
-    private function readListOpenBracket(ListNode $node): Tuple
-    {
-        return (new ListReader($this))->readUsingBrackets($node);
-    }
-
-    private function readListArray(ListNode $node): PhelArray
-    {
-        $tuple = (new ListReader($this))->read($node);
-
-        return PhelArray::fromTuple($tuple);
-    }
-
-    private function readListTable(ListNode $node): Table
-    {
-        $tuple = (new ListReader($this))->read($node);
-
-        if (!$tuple->hasEvenNumberOfParams()) {
-            throw $this->buildReaderException('Tables must have an even number of parameters', $node);
+        if ($node->getTokenType() === Token::T_OPEN_PARENTHESIS) {
+            return (new ListReader($this))->read($node);
         }
 
-        return Table::fromTuple($tuple);
-    }
+        if ($node->getTokenType() === Token::T_OPEN_BRACKET) {
+            return (new ListReader($this))->readUsingBrackets($node);
+        }
 
-    private function readListFn(ListNode $node): Tuple
-    {
-        $this->fnArgs = [];
+        if ($node->getTokenType() === Token::T_ARRAY) {
+            return (new ListArrayReader($this))->read($node);
+        }
 
-        return (new ListFnReader($this))->read($node, $this->fnArgs);
-    }
+        if ($node->getTokenType() === Token::T_TABLE) {
+            return (new ListTableReader($this))->read($node);
+        }
 
-    private function readQuote(QuoteNode $node): Tuple
-    {
-        return (new WrapReader($this))->read($node, Symbol::NAME_QUOTE);
-    }
+        if ($node->getTokenType() === Token::T_FN) {
+            $this->fnArgs = [];
 
-    private function readUnquote(QuoteNode $node): Tuple
-    {
-        return (new WrapReader($this))->read($node, Symbol::NAME_UNQUOTE);
-    }
+            return (new ListFnReader($this))->read($node, $this->fnArgs);
+        }
 
-    private function readUnquoteSplicing(QuoteNode $node): Tuple
-    {
-        return (new WrapReader($this))->read($node, Symbol::NAME_UNQUOTE_SPLICING);
+        throw new RuntimeException('Not a valid ListNode: ' . get_class($node));
     }
 
     /**
      * @return AbstractType|string|float|int|bool|null
      */
-    private function readQuasiquote(QuoteNode $node)
+    private function readQuoteNode(QuoteNode $node)
     {
-        return (new QuoasiquoteReader($this, $this->quasiquoteTransformer))->read($node);
+        if ($node->getTokenType() === Token::T_QUOTE) {
+            return (new WrapReader($this))->read($node, Symbol::NAME_QUOTE);
+        }
+
+        if ($node->getTokenType() === Token::T_UNQUOTE) {
+            return (new WrapReader($this))->read($node, Symbol::NAME_UNQUOTE);
+        }
+
+        if ($node->getTokenType() === Token::T_UNQUOTE_SPLICING) {
+            return (new WrapReader($this))->read($node, Symbol::NAME_UNQUOTE_SPLICING);
+        }
+
+        if ($node->getTokenType() === Token::T_QUASIQUOTE) {
+            return (new QuoasiquoteReader($this, $this->quasiquoteTransformer))->read($node);
+        }
+
+        throw new RuntimeException('Not a valid QuoteNode: ' . get_class($node));
     }
 
     /**
