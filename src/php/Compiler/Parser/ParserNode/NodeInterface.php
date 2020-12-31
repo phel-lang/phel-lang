@@ -6,7 +6,6 @@ use Phel\Lang\SourceLocation;
 
 interface NodeInterface
 {
-
     /**
      * Convert the node to a printable string.
      */

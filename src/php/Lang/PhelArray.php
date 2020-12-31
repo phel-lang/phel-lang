@@ -42,6 +42,14 @@ final class PhelArray extends AbstractType implements
         return new PhelArray($values);
     }
 
+    public static function fromTuple(Tuple $tuple): self
+    {
+        $arr = new PhelArray($tuple->toArray());
+        $arr->setStartLocation($tuple->getStartLocation());
+        $arr->setEndLocation($tuple->getEndLocation());
+        return $arr;
+    }
+
     public function offsetSet($offset, $value): void
     {
         if ($offset < 0) {
