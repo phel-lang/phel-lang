@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Phel\Compiler;
 
 use Phel\Compiler\Parser\ExpressionReader\AtomReader;
+use Phel\Compiler\Parser\ExpressionReader\ListFnReader;
 use Phel\Compiler\Parser\ExpressionReader\ListReader;
 use Phel\Compiler\Parser\ExpressionReader\MetaReader;
 use Phel\Compiler\Parser\ExpressionReader\QuoasiquoteReader;
@@ -57,6 +58,32 @@ final class Reader implements ReaderInterface
         return new ReaderResult(
             $this->readExpression($parseTree),
             $this->getCodeSnippet($parseTree)
+        );
+    }
+
+    public function buildReaderException(string $message, NodeInterface $node): ReaderException
+    {
+        $codeSnippet = $this->getCodeSnippet($node);
+
+        return new ReaderException(
+            $message,
+            $codeSnippet->getStartLocation(),
+            $codeSnippet->getEndLocation(),
+            $codeSnippet
+        );
+    }
+
+    /**
+     * Create a CodeSnippet from a list of Tokens.
+     *
+     * @param NodeInterface $node The current node
+     */
+    private function getCodeSnippet(NodeInterface $node): CodeSnippet
+    {
+        return new CodeSnippet(
+            $node->getStartLocation(),
+            $node->getEndLocation(),
+            $node->getCode()
         );
     }
 
@@ -118,32 +145,6 @@ final class Reader implements ReaderInterface
         throw $this->buildReaderException('Unterminated list', $node);
     }
 
-    public function buildReaderException(string $message, NodeInterface $node): ReaderException
-    {
-        $codeSnippet = $this->getCodeSnippet($node);
-
-        return new ReaderException(
-            $message,
-            $codeSnippet->getStartLocation(),
-            $codeSnippet->getEndLocation(),
-            $codeSnippet
-        );
-    }
-
-    /**
-     * Create a CodeSnippet from a list of Tokens.
-     *
-     * @param NodeInterface $node The current node
-     */
-    private function getCodeSnippet(NodeInterface $node): CodeSnippet
-    {
-        return new CodeSnippet(
-            $node->getStartLocation(),
-            $node->getEndLocation(),
-            $node->getCode()
-        );
-    }
-
     private function readSymbol(SymbolNode $node): Symbol
     {
         return (new SymbolReader())->read($node, $this->fnArgs);
@@ -188,34 +189,8 @@ final class Reader implements ReaderInterface
     private function readListFn(ListNode $node): Tuple
     {
         $this->fnArgs = [];
-        $body = (new ListReader($this))->read($node);
 
-        if (!empty($this->fnArgs)) {
-            $maxParams = max(array_keys($this->fnArgs));
-            $params = [];
-            for ($i = 1; $i <= $maxParams; $i++) {
-                if (isset($this->fnArgs[$i])) {
-                    $params[] = Symbol::create($this->fnArgs[$i]->getName());
-                } else {
-                    $params[] = Symbol::gen('__short_fn_undefined_');
-                }
-            }
-
-            if (isset($this->fnArgs[0])) {
-                $params[] = Symbol::create('&');
-                $params[] = Symbol::create($this->fnArgs[0]->getName());
-            }
-        } else {
-            $params = [];
-        }
-
-        $this->fnArgs = null;
-
-        return Tuple::create(
-            Symbol::create(Symbol::NAME_FN),
-            new Tuple($params, true),
-            $body
-        );
+        return (new ListFnReader($this))->read($node, $this->fnArgs);
     }
 
     private function readQuote(QuoteNode $node): Tuple

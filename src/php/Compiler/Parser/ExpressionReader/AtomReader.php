@@ -9,7 +9,6 @@ use Phel\Lang\AbstractType;
 
 final class AtomReader
 {
-
     /**
      * @return AbstractType|string|float|int|bool|null
      */

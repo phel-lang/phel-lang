@@ -47,6 +47,7 @@ final class PhelArray extends AbstractType implements
         $arr = new PhelArray($tuple->toArray());
         $arr->setStartLocation($tuple->getStartLocation());
         $arr->setEndLocation($tuple->getEndLocation());
+
         return $arr;
     }
 

@@ -50,6 +50,7 @@ class Table extends AbstractType implements ArrayAccess, Countable, Iterator, IS
         $table = self::fromKVArray($tuple->toArray());
         $table->setStartLocation($tuple->getStartLocation());
         $table->setEndLocation($tuple->getEndLocation());
+
         return $table;
     }
 
