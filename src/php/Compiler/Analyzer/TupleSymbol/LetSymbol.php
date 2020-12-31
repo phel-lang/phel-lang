@@ -4,21 +4,32 @@ declare(strict_types=1);
 
 namespace Phel\Compiler\Analyzer\TupleSymbol;
 
-use Phel\Compiler\Analyzer\WithAnalyzer;
+use Phel\Compiler\Analyzer\TupleSymbol\Binding\TupleDeconstructorInterface;
+use Phel\Compiler\AnalyzerInterface;
 use Phel\Compiler\Ast\BindingNode;
 use Phel\Compiler\Ast\LetNode;
 use Phel\Compiler\NodeEnvironmentInterface;
-use Phel\Destructure;
 use Phel\Exceptions\AnalyzerException;
 use Phel\Lang\Symbol;
 use Phel\Lang\Tuple;
 
 final class LetSymbol implements TupleSymbolAnalyzer
 {
-    use WithAnalyzer;
+    private AnalyzerInterface $analyzer;
+    private TupleDeconstructorInterface $tupleDeconstructor;
+
+    public function __construct(AnalyzerInterface $analyzer, TupleDeconstructorInterface $tupleDeconstructor)
+    {
+        $this->analyzer = $analyzer;
+        $this->tupleDeconstructor = $tupleDeconstructor;
+    }
 
     public function analyze(Tuple $tuple, NodeEnvironmentInterface $env): LetNode
     {
+        if (!($tuple[0] instanceof Symbol && $tuple[0]->getName() === Symbol::NAME_LET)) {
+            throw AnalyzerException::withLocation("This is not a 'let.", $tuple);
+        }
+
         if (count($tuple) < 2) {
             throw AnalyzerException::withLocation("At least two arguments are required for 'let", $tuple);
         }
@@ -31,8 +42,7 @@ final class LetSymbol implements TupleSymbolAnalyzer
             throw AnalyzerException::withLocation('Bindings must be a even number of parameters', $tuple);
         }
 
-        $destructor = new Destructure();
-        $bindings = $destructor->run($tuple[1]);
+        $bindings = $this->tupleDeconstructor->deconstruct($tuple[1]);
         $bindingTupleData = [];
         foreach ($bindings as $binding) {
             $bindingTupleData[] = $binding[0];
