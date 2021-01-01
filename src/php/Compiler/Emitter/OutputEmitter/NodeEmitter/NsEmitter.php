@@ -6,11 +6,11 @@ namespace Phel\Compiler\Emitter\OutputEmitter\NodeEmitter;
 
 use Phel\Compiler\Ast\AbstractNode;
 use Phel\Compiler\Ast\NsNode;
-use Phel\Compiler\Emitter\OutputEmitter\NodeEmitter;
+use Phel\Compiler\Emitter\OutputEmitter\NodeEmitterInterface;
 use Phel\Lang\Symbol;
 use function addslashes;
 
-final class NsEmitter implements NodeEmitter
+final class NsEmitter implements NodeEmitterInterface
 {
     use WithOutputEmitterTrait;
 

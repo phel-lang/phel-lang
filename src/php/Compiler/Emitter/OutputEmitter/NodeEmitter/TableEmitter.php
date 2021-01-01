@@ -6,9 +6,9 @@ namespace Phel\Compiler\Emitter\OutputEmitter\NodeEmitter;
 
 use Phel\Compiler\Ast\AbstractNode;
 use Phel\Compiler\Ast\TableNode;
-use Phel\Compiler\Emitter\OutputEmitter\NodeEmitter;
+use Phel\Compiler\Emitter\OutputEmitter\NodeEmitterInterface;
 
-final class TableEmitter implements NodeEmitter
+final class TableEmitter implements NodeEmitterInterface
 {
     use WithOutputEmitterTrait;
 

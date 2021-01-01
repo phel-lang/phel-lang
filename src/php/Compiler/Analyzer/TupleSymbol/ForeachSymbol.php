@@ -12,7 +12,7 @@ use Phel\Exceptions\AnalyzerException;
 use Phel\Lang\Symbol;
 use Phel\Lang\Tuple;
 
-final class ForeachSymbolInterface implements TupleSymbolAnalyzerInterface
+final class ForeachSymbol implements TupleSymbolAnalyzerInterface
 {
     use WithAnalyzerTrait;
 

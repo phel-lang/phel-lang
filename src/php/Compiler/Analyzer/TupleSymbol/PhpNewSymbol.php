@@ -10,7 +10,7 @@ use Phel\Compiler\NodeEnvironmentInterface;
 use Phel\Exceptions\AnalyzerException;
 use Phel\Lang\Tuple;
 
-final class PhpNewSymbolInterface implements TupleSymbolAnalyzerInterface
+final class PhpNewSymbol implements TupleSymbolAnalyzerInterface
 {
     use WithAnalyzerTrait;
 

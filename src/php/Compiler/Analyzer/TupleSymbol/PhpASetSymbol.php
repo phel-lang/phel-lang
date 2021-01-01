@@ -9,7 +9,7 @@ use Phel\Compiler\Ast\PhpArraySetNode;
 use Phel\Compiler\NodeEnvironmentInterface;
 use Phel\Lang\Tuple;
 
-final class PhpASetSymbolInterface implements TupleSymbolAnalyzerInterface
+final class PhpASetSymbol implements TupleSymbolAnalyzerInterface
 {
     use WithAnalyzerTrait;
 

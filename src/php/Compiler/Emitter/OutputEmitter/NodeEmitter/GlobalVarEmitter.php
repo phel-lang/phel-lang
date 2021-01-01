@@ -6,9 +6,9 @@ namespace Phel\Compiler\Emitter\OutputEmitter\NodeEmitter;
 
 use Phel\Compiler\Ast\GlobalVarNode;
 use Phel\Compiler\Ast\AbstractNode;
-use Phel\Compiler\Emitter\OutputEmitter\NodeEmitter;
+use Phel\Compiler\Emitter\OutputEmitter\NodeEmitterInterface;
 
-final class GlobalVarEmitter implements NodeEmitter
+final class GlobalVarEmitter implements NodeEmitterInterface
 {
     use WithOutputEmitterTrait;
 

@@ -4,89 +4,60 @@ declare(strict_types=1);
 
 namespace Phel\Compiler\Analyzer\TupleSymbol;
 
-use Phel\Compiler\Analyzer\TupleSymbol\Binding\BindingValidator;
+use Phel\Compiler\Analyzer\TupleSymbol\Binding\TupleDeconstructorInterface;
 use Phel\Compiler\AnalyzerInterface;
 use Phel\Compiler\Ast\BindingNode;
 use Phel\Compiler\Ast\LetNode;
 use Phel\Compiler\NodeEnvironmentInterface;
-use Phel\Compiler\RecurFrame;
 use Phel\Exceptions\AnalyzerException;
 use Phel\Lang\Symbol;
 use Phel\Lang\Tuple;
 
-final class LoopSymbolInterface implements TupleSymbolAnalyzerInterface
+final class LetSymbol implements TupleSymbolAnalyzerInterface
 {
     private AnalyzerInterface $analyzer;
-    private BindingValidator $bindingValidator;
+    private TupleDeconstructorInterface $tupleDeconstructor;
 
-    public function __construct(AnalyzerInterface $analyzer, BindingValidator $bindingValidator)
+    public function __construct(AnalyzerInterface $analyzer, TupleDeconstructorInterface $tupleDeconstructor)
     {
         $this->analyzer = $analyzer;
-        $this->bindingValidator = $bindingValidator;
+        $this->tupleDeconstructor = $tupleDeconstructor;
     }
 
     public function analyze(Tuple $tuple, NodeEnvironmentInterface $env): LetNode
     {
-        if (!($tuple[0] instanceof Symbol && $tuple[0]->getName() === Symbol::NAME_LOOP)) {
-            throw AnalyzerException::withLocation("This is not a 'loop.", $tuple);
+        if (!($tuple[0] instanceof Symbol && $tuple[0]->getName() === Symbol::NAME_LET)) {
+            throw AnalyzerException::withLocation("This is not a 'let.", $tuple);
         }
 
-        $tupleCount = count($tuple);
-        if ($tupleCount < 2) {
-            throw AnalyzerException::withLocation("At least two arguments are required for 'loop.", $tuple);
+        if (count($tuple) < 2) {
+            throw AnalyzerException::withLocation("At least two arguments are required for 'let", $tuple);
         }
 
         if (!($tuple[1] instanceof Tuple)) {
-            throw AnalyzerException::withLocation('Binding parameter must be a tuple.', $tuple);
+            throw AnalyzerException::withLocation('Binding parameter must be a tuple', $tuple);
         }
 
         if (!(count($tuple[1]) % 2 === 0)) {
             throw AnalyzerException::withLocation('Bindings must be a even number of parameters', $tuple);
         }
 
-        $loopBindings = $tuple[1];
-        $loopBindingsCount = count($loopBindings);
-
-        $preInits = [];
-        $lets = [];
-        for ($i = 0; $i < $loopBindingsCount; $i += 2) {
-            $b = $loopBindings[$i];
-            $init = $loopBindings[$i + 1];
-
-            $this->bindingValidator->assertSupportedBinding($b);
-
-            if ($b instanceof Symbol) {
-                $preInits[] = $b;
-                $preInits[] = $init;
-            } else {
-                $tempSym = Symbol::gen()->copyLocationFrom($b);
-                $preInits[] = $tempSym;
-                $preInits[] = $init;
-                $lets[] = $b;
-                $lets[] = $tempSym;
-            }
+        $bindings = $this->tupleDeconstructor->deconstruct($tuple[1]);
+        $bindingTupleData = [];
+        foreach ($bindings as $binding) {
+            $bindingTupleData[] = $binding[0];
+            $bindingTupleData[] = $binding[1];
         }
 
-        if (count($lets) > 0) {
-            $bodyExpr = [];
-            for ($i = 2; $i < $tupleCount; $i++) {
-                $bodyExpr[] = $tuple[$i];
-            }
-            $letSym = Symbol::create(Symbol::NAME_LET)->copyLocationFrom($tuple[0]);
-            $letExpr = (Tuple::create($letSym, new Tuple($lets, true), ...$bodyExpr))->copyLocationFrom($tuple);
-            $newExpr = (Tuple::create($tuple[0], new Tuple($preInits, true), $letExpr))->copyLocationFrom($tuple);
+        $newTuple = $tuple->update(1, new Tuple($bindingTupleData, true));
 
-            return $this->analyzeLetOrLoop($newExpr, $env);
-        }
-
-        return $this->analyzeLetOrLoop($tuple, $env);
+        return $this->analyzeLetOrLoop($newTuple, $env);
     }
 
     private function analyzeLetOrLoop(Tuple $tuple, NodeEnvironmentInterface $env): LetNode
     {
-        $tupleCount = count($tuple);
         $exprs = [];
-        for ($i = 2; $i < $tupleCount; $i++) {
+        for ($i = 2, $iMax = count($tuple); $i < $iMax; $i++) {
             $exprs[] = $tuple[$i];
         }
 
@@ -98,8 +69,6 @@ final class LoopSymbolInterface implements TupleSymbolAnalyzerInterface
             $locals[] = $binding->getSymbol();
         }
 
-        $recurFrame = new RecurFrame($locals);
-
         $bodyEnv = $env
             ->withMergedLocals($locals)
             ->withContext(
@@ -107,8 +76,6 @@ final class LoopSymbolInterface implements TupleSymbolAnalyzerInterface
                     ? NodeEnvironmentInterface::CONTEXT_RETURN
                     : $env->getContext()
             );
-
-        $bodyEnv = $bodyEnv->withAddedRecurFrame($recurFrame);
 
         foreach ($bindings as $binding) {
             $bodyEnv = $bodyEnv->withShadowedLocal($binding->getSymbol(), $binding->getShadow());
@@ -120,7 +87,7 @@ final class LoopSymbolInterface implements TupleSymbolAnalyzerInterface
             $env,
             $bindings,
             $bodyExpr,
-            $recurFrame->isActive(),
+            $isLoop = false,
             $tuple->getStartLocation()
         );
     }

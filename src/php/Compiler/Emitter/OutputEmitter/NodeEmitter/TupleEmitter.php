@@ -6,9 +6,9 @@ namespace Phel\Compiler\Emitter\OutputEmitter\NodeEmitter;
 
 use Phel\Compiler\Ast\AbstractNode;
 use Phel\Compiler\Ast\TupleNode;
-use Phel\Compiler\Emitter\OutputEmitter\NodeEmitter;
+use Phel\Compiler\Emitter\OutputEmitter\NodeEmitterInterface;
 
-final class TupleEmitter implements NodeEmitter
+final class TupleEmitter implements NodeEmitterInterface
 {
     use WithOutputEmitterTrait;
 

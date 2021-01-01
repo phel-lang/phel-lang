@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace PhelTest\Unit\Compiler\Analyzer\TupleSymbol;
 
 use Phel\Compiler\Analyzer;
-use Phel\Compiler\Analyzer\TupleSymbol\PhpObjectCallSymbolInterface;
+use Phel\Compiler\Analyzer\TupleSymbol\PhpObjectCallSymbol;
 use Phel\Compiler\AnalyzerInterface;
 use Phel\Compiler\Ast\MethodCallNode;
 use Phel\Compiler\Ast\PhpClassNameNode;
@@ -36,7 +36,7 @@ final class PhpObjectCallSymbolTest extends TestCase
             Symbol::create('\\')
         );
 
-        (new PhpObjectCallSymbolInterface($this->analyzer, $isStatic = true))
+        (new PhpObjectCallSymbol($this->analyzer, $isStatic = true))
             ->analyze($tuple, NodeEnvironment::empty());
     }
 
@@ -50,7 +50,7 @@ final class PhpObjectCallSymbolTest extends TestCase
             Symbol::create('\\'),
             ''
         );
-        (new PhpObjectCallSymbolInterface($this->analyzer, $isStatic = false))
+        (new PhpObjectCallSymbol($this->analyzer, $isStatic = false))
             ->analyze($tuple, NodeEnvironment::empty());
     }
 
@@ -61,7 +61,7 @@ final class PhpObjectCallSymbolTest extends TestCase
             Symbol::create('\\'),
             Symbol::create('')
         );
-        $objCallNode = (new PhpObjectCallSymbolInterface($this->analyzer, $isStatic = true))
+        $objCallNode = (new PhpObjectCallSymbol($this->analyzer, $isStatic = true))
             ->analyze($tuple, NodeEnvironment::empty());
         self::assertSame($isStatic, $objCallNode->isStatic());
         self::assertInstanceOf(PhpClassNameNode::class, $objCallNode->getTargetExpr());
@@ -76,7 +76,7 @@ final class PhpObjectCallSymbolTest extends TestCase
             Symbol::create('')
         );
 
-        $objCallNode = (new PhpObjectCallSymbolInterface($this->analyzer, $isStatic = false))
+        $objCallNode = (new PhpObjectCallSymbol($this->analyzer, $isStatic = false))
             ->analyze($tuple, NodeEnvironment::empty());
 
         self::assertSame($isStatic, $objCallNode->isStatic());
@@ -92,7 +92,7 @@ final class PhpObjectCallSymbolTest extends TestCase
             Tuple::create(Symbol::create(''), '', '')
         );
 
-        $objCallNode = (new PhpObjectCallSymbolInterface($this->analyzer, $isStatic = true))
+        $objCallNode = (new PhpObjectCallSymbol($this->analyzer, $isStatic = true))
             ->analyze($tuple, NodeEnvironment::empty());
 
         self::assertTrue($objCallNode->isMethodCall());
@@ -108,7 +108,7 @@ final class PhpObjectCallSymbolTest extends TestCase
             Symbol::create('')
         );
 
-        $objCallNode = (new PhpObjectCallSymbolInterface($this->analyzer, $isStatic = true))
+        $objCallNode = (new PhpObjectCallSymbol($this->analyzer, $isStatic = true))
             ->analyze($tuple, NodeEnvironment::empty());
 
         self::assertFalse($objCallNode->isMethodCall());

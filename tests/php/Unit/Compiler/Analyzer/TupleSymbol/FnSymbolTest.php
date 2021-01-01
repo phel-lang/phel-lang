@@ -6,7 +6,7 @@ namespace PhelTest\Unit\Compiler\Analyzer\TupleSymbol;
 
 use Generator;
 use Phel\Compiler\Analyzer;
-use Phel\Compiler\Analyzer\TupleSymbol\FnSymbolInterface;
+use Phel\Compiler\Analyzer\TupleSymbol\FnSymbol;
 use Phel\Compiler\AnalyzerInterface;
 use Phel\Compiler\Ast\DoNode;
 use Phel\Compiler\Ast\FnNode;
@@ -40,7 +40,7 @@ final class FnSymbolTest extends TestCase
             Symbol::create(Symbol::NAME_FN)
         );
 
-        (new FnSymbolInterface($this->analyzer))->analyze($tuple, NodeEnvironment::empty());
+        (new FnSymbol($this->analyzer))->analyze($tuple, NodeEnvironment::empty());
     }
 
     public function testSecondArgMustBeATuple(): void
@@ -223,6 +223,6 @@ final class FnSymbolTest extends TestCase
 
     private function analyze(Tuple $tuple): FnNode
     {
-        return (new FnSymbolInterface($this->analyzer))->analyze($tuple, NodeEnvironment::empty());
+        return (new FnSymbol($this->analyzer))->analyze($tuple, NodeEnvironment::empty());
     }
 }

@@ -6,7 +6,7 @@ namespace Phel\Compiler\Emitter\OutputEmitter;
 
 use Phel\Compiler\Ast\AbstractNode;
 
-interface NodeEmitter
+interface NodeEmitterInterface
 {
     public function emit(AbstractNode $node): void;
 }

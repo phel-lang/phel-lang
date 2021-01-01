@@ -14,7 +14,7 @@ use Phel\Lang\Symbol;
 use Phel\Lang\Table;
 use Phel\Lang\Tuple;
 
-final class NsSymbolInterface implements TupleSymbolAnalyzerInterface
+final class NsSymbol implements TupleSymbolAnalyzerInterface
 {
     use WithAnalyzerTrait;
 

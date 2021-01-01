@@ -14,7 +14,7 @@ use Phel\Exceptions\AnalyzerException;
 use Phel\Lang\AbstractType;
 use Phel\Lang\Tuple;
 
-final class InvokeSymbolInterface implements TupleSymbolAnalyzerInterface
+final class InvokeSymbol implements TupleSymbolAnalyzerInterface
 {
     use WithAnalyzerTrait;
 

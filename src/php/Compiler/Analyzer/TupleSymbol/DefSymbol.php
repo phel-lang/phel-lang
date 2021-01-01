@@ -16,7 +16,7 @@ use Phel\Lang\Symbol;
 use Phel\Lang\Table;
 use Phel\Lang\Tuple;
 
-final class DefSymbolInterface implements TupleSymbolAnalyzerInterface
+final class DefSymbol implements TupleSymbolAnalyzerInterface
 {
     use WithAnalyzerTrait;
 

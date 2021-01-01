@@ -6,10 +6,10 @@ namespace Phel\Compiler\Emitter\OutputEmitter\NodeEmitter;
 
 use Phel\Compiler\Ast\ForeachNode;
 use Phel\Compiler\Ast\AbstractNode;
-use Phel\Compiler\Emitter\OutputEmitter\NodeEmitter;
+use Phel\Compiler\Emitter\OutputEmitter\NodeEmitterInterface;
 use Phel\Compiler\NodeEnvironmentInterface;
 
-final class ForeachEmitter implements NodeEmitter
+final class ForeachEmitter implements NodeEmitterInterface
 {
     use WithOutputEmitterTrait;
 

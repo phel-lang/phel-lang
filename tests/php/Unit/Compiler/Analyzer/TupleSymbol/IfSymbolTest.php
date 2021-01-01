@@ -6,7 +6,7 @@ namespace PhelTest\Unit\Compiler\Analyzer\TupleSymbol;
 
 use Generator;
 use Phel\Compiler\Analyzer;
-use Phel\Compiler\Analyzer\TupleSymbol\IfSymbolInterface;
+use Phel\Compiler\Analyzer\TupleSymbol\IfSymbol;
 use Phel\Compiler\Ast\IfNode;
 use Phel\Compiler\NodeEnvironment;
 use Phel\Exceptions\PhelCodeException;
@@ -75,6 +75,6 @@ final class IfSymbolTest extends TestCase
     {
         $analyzer = new Analyzer(new GlobalEnvironment());
 
-        return (new IfSymbolInterface($analyzer))->analyze($tuple, NodeEnvironment::empty());
+        return (new IfSymbol($analyzer))->analyze($tuple, NodeEnvironment::empty());
     }
 }

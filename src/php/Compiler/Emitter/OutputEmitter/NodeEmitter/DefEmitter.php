@@ -6,9 +6,9 @@ namespace Phel\Compiler\Emitter\OutputEmitter\NodeEmitter;
 
 use Phel\Compiler\Ast\DefNode;
 use Phel\Compiler\Ast\AbstractNode;
-use Phel\Compiler\Emitter\OutputEmitter\NodeEmitter;
+use Phel\Compiler\Emitter\OutputEmitter\NodeEmitterInterface;
 
-final class DefEmitter implements NodeEmitter
+final class DefEmitter implements NodeEmitterInterface
 {
     use WithOutputEmitterTrait;
 

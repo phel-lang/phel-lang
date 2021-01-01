@@ -6,9 +6,9 @@ namespace Phel\Compiler\Emitter\OutputEmitter\NodeEmitter;
 
 use Phel\Compiler\Ast\LocalVarNode;
 use Phel\Compiler\Ast\AbstractNode;
-use Phel\Compiler\Emitter\OutputEmitter\NodeEmitter;
+use Phel\Compiler\Emitter\OutputEmitter\NodeEmitterInterface;
 
-final class LocalVarEmitter implements NodeEmitter
+final class LocalVarEmitter implements NodeEmitterInterface
 {
     use WithOutputEmitterTrait;
 

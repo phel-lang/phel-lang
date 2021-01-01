@@ -10,7 +10,7 @@ use Phel\Exceptions\AnalyzerException;
 use Phel\Lang\Symbol;
 use Phel\Lang\Tuple;
 
-final class QuoteSymbolInterface implements TupleSymbolAnalyzerInterface
+final class QuoteSymbol implements TupleSymbolAnalyzerInterface
 {
     public function analyze(Tuple $tuple, NodeEnvironmentInterface $env): QuoteNode
     {

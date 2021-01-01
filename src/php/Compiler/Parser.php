@@ -16,7 +16,7 @@ use Phel\Compiler\Parser\ParserNode\MetaNode;
 use Phel\Compiler\Parser\ParserNode\NewlineNode;
 use Phel\Compiler\Parser\ParserNode\NodeInterface;
 use Phel\Compiler\Parser\ParserNode\QuoteNode;
-use Phel\Compiler\Parser\ParserNode\StringNodeAbstract;
+use Phel\Compiler\Parser\ParserNode\StringNode;
 use Phel\Compiler\Parser\ParserNode\WhitespaceNode;
 use Phel\Exceptions\ParserException;
 use Phel\Exceptions\StringParserException;
@@ -138,7 +138,7 @@ final class Parser implements ParserInterface
         return (new AtomParser())->parse($token);
     }
 
-    private function createStringNode(Token $token, TokenStream $tokenStream): StringNodeAbstract
+    private function createStringNode(Token $token, TokenStream $tokenStream): StringNode
     {
         try {
             return (new StringParser($this))->parse($token);

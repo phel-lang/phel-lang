@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace PhelTest\Unit\Compiler\Analyzer\TupleSymbol;
 
 use Phel\Compiler\Analyzer;
-use Phel\Compiler\Analyzer\TupleSymbol\DefStructSymbolInterface;
+use Phel\Compiler\Analyzer\TupleSymbol\DefStructSymbol;
 use Phel\Compiler\AnalyzerInterface;
 use Phel\Compiler\NodeEnvironment;
 use Phel\Exceptions\PhelCodeException;
@@ -32,7 +32,7 @@ final class DefStructSymbolTest extends TestCase
             Symbol::create(Symbol::NAME_DEF_STRUCT),
         );
 
-        (new DefStructSymbolInterface($this->analyzer))
+        (new DefStructSymbol($this->analyzer))
             ->analyze($tuple, NodeEnvironment::empty());
     }
 
@@ -47,7 +47,7 @@ final class DefStructSymbolTest extends TestCase
             Tuple::create()
         );
 
-        (new DefStructSymbolInterface($this->analyzer))
+        (new DefStructSymbol($this->analyzer))
             ->analyze($tuple, NodeEnvironment::empty());
     }
 
@@ -62,7 +62,7 @@ final class DefStructSymbolTest extends TestCase
             ''
         );
 
-        (new DefStructSymbolInterface($this->analyzer))
+        (new DefStructSymbol($this->analyzer))
             ->analyze($tuple, NodeEnvironment::empty());
     }
 
@@ -77,7 +77,7 @@ final class DefStructSymbolTest extends TestCase
             Tuple::create('method')
         );
 
-        (new DefStructSymbolInterface($this->analyzer))
+        (new DefStructSymbol($this->analyzer))
             ->analyze($tuple, NodeEnvironment::empty());
     }
 
@@ -89,7 +89,7 @@ final class DefStructSymbolTest extends TestCase
             Tuple::create(Symbol::create('method'), Symbol::create('uri'))
         );
 
-        $defStructNode = (new DefStructSymbolInterface($this->analyzer))
+        $defStructNode = (new DefStructSymbol($this->analyzer))
             ->analyze($tuple, NodeEnvironment::empty());
 
         self::assertSame('request', $defStructNode->getName()->getName());

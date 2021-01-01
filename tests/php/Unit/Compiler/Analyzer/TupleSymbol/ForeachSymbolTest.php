@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace PhelTest\Unit\Compiler\Analyzer\TupleSymbol;
 
 use Phel\Compiler\Analyzer;
-use Phel\Compiler\Analyzer\TupleSymbol\ForeachSymbolInterface;
+use Phel\Compiler\Analyzer\TupleSymbol\ForeachSymbol;
 use Phel\Compiler\Ast\ForeachNode;
 use Phel\Compiler\NodeEnvironment;
 use Phel\Exceptions\PhelCodeException;
@@ -116,6 +116,6 @@ final class ForeachSymbolTest extends TestCase
     {
         $analyzer = new Analyzer(new GlobalEnvironment());
 
-        return (new ForeachSymbolInterface($analyzer))->analyze($tuple, NodeEnvironment::empty());
+        return (new ForeachSymbol($analyzer))->analyze($tuple, NodeEnvironment::empty());
     }
 }

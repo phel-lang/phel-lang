@@ -6,9 +6,9 @@ namespace Phel\Compiler\Emitter\OutputEmitter\NodeEmitter;
 
 use Phel\Compiler\Ast\AbstractNode;
 use Phel\Compiler\Ast\PhpArraySetNode;
-use Phel\Compiler\Emitter\OutputEmitter\NodeEmitter;
+use Phel\Compiler\Emitter\OutputEmitter\NodeEmitterInterface;
 
-final class PhpArraySetEmitter implements NodeEmitter
+final class PhpArraySetEmitter implements NodeEmitterInterface
 {
     use WithOutputEmitterTrait;
 

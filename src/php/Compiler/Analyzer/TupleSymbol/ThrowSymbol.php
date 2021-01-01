@@ -10,7 +10,7 @@ use Phel\Compiler\NodeEnvironmentInterface;
 use Phel\Exceptions\AnalyzerException;
 use Phel\Lang\Tuple;
 
-final class ThrowSymbolInterface implements TupleSymbolAnalyzerInterface
+final class ThrowSymbol implements TupleSymbolAnalyzerInterface
 {
     use WithAnalyzerTrait;
 

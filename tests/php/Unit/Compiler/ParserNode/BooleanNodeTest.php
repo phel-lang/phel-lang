@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace PhelTest\Unit\Compiler;
 
 use Phel\Lang\SourceLocation;
-use Phel\Compiler\Parser\ParserNode\BooleanNodeAbstract;
+use Phel\Compiler\Parser\ParserNode\BooleanNode;
 use PHPUnit\Framework\TestCase;
 
 final class BooleanNodeTest extends TestCase
@@ -14,7 +14,7 @@ final class BooleanNodeTest extends TestCase
     {
         self::assertEquals(
             'true',
-            (new BooleanNodeAbstract('true', $this->loc(1, 0), $this->loc(1, 4), true))->getCode()
+            (new BooleanNode('true', $this->loc(1, 0), $this->loc(1, 4), true))->getCode()
         );
     }
 
@@ -22,7 +22,7 @@ final class BooleanNodeTest extends TestCase
     {
         self::assertEquals(
             $this->loc(1, 0),
-            (new BooleanNodeAbstract('true', $this->loc(1, 0), $this->loc(1, 4), true))->getStartLocation()
+            (new BooleanNode('true', $this->loc(1, 0), $this->loc(1, 4), true))->getStartLocation()
         );
     }
 
@@ -30,14 +30,14 @@ final class BooleanNodeTest extends TestCase
     {
         self::assertEquals(
             $this->loc(1, 4),
-            (new BooleanNodeAbstract('true', $this->loc(1, 0), $this->loc(1, 4), true))->getEndLocation()
+            (new BooleanNode('true', $this->loc(1, 0), $this->loc(1, 4), true))->getEndLocation()
         );
     }
 
     public function testValue()
     {
         self::assertTrue(
-            (new BooleanNodeAbstract('true', $this->loc(1, 0), $this->loc(1, 4), true))->getValue()
+            (new BooleanNode('true', $this->loc(1, 0), $this->loc(1, 4), true))->getValue()
         );
     }
 

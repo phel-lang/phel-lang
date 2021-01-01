@@ -18,7 +18,7 @@ use Phel\Compiler\Parser\ParserNode\ListNode;
 use Phel\Compiler\Parser\ParserNode\MetaNode;
 use Phel\Compiler\Parser\ParserNode\NodeInterface;
 use Phel\Compiler\Parser\ParserNode\QuoteNode;
-use Phel\Compiler\Parser\ParserNode\SymbolNodeAbstract;
+use Phel\Compiler\Parser\ParserNode\SymbolNode;
 use Phel\Compiler\Parser\ParserNode\TriviaNodeInterface;
 use Phel\Compiler\Parser\QuasiquoteTransformerInterface;
 use Phel\Compiler\Parser\ReadModel\CodeSnippet;
@@ -71,12 +71,12 @@ final class Reader implements ReaderInterface
      */
     public function readExpression(NodeInterface $node)
     {
-        if ($node instanceof SymbolNodeAbstract) {
-            return $this->readSymbol($node);
+        if ($node instanceof SymbolNode) {
+            return $this->readSymbolNode($node);
         }
 
         if ($node instanceof AbstractAtomNode) {
-            return $this->readAtom($node);
+            return $this->readAtomNode($node);
         }
 
         if ($node instanceof ListNode) {
@@ -94,7 +94,7 @@ final class Reader implements ReaderInterface
         throw ReaderException::forNode($node, 'Unterminated list');
     }
 
-    private function readSymbol(SymbolNodeAbstract $node): Symbol
+    private function readSymbolNode(SymbolNode $node): Symbol
     {
         return (new SymbolReader())->read($node, $this->fnArgs);
     }
@@ -102,7 +102,7 @@ final class Reader implements ReaderInterface
     /**
      * @return AbstractType|string|float|int|bool|null
      */
-    private function readAtom(AbstractAtomNode $node)
+    private function readAtomNode(AbstractAtomNode $node)
     {
         return (new AtomReader())->read($node);
     }

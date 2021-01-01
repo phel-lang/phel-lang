@@ -14,7 +14,7 @@ use Phel\Exceptions\AnalyzerException;
 use Phel\Lang\Symbol;
 use Phel\Lang\Tuple;
 
-final class FnSymbolInterface implements TupleSymbolAnalyzerInterface
+final class FnSymbol implements TupleSymbolAnalyzerInterface
 {
     use WithAnalyzerTrait;
 

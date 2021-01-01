@@ -13,7 +13,7 @@ use Phel\Exceptions\AnalyzerException;
 use Phel\Lang\Symbol;
 use Phel\Lang\Tuple;
 
-final class PhpObjectCallSymbolInterface implements TupleSymbolAnalyzerInterface
+final class PhpObjectCallSymbol implements TupleSymbolAnalyzerInterface
 {
     private AnalyzerInterface $analyzer;
 

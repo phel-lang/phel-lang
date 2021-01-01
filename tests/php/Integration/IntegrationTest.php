@@ -31,15 +31,18 @@ final class IntegrationTest extends TestCase
         $rt = RuntimeFactory::initializeNew($globalEnv);
         $rt->addPath('phel\\', [__DIR__ . '/../../src/phel/']);
         $rt->loadNs('phel\core');
-        static::$globalEnv = $globalEnv;
+        self::$globalEnv = $globalEnv;
     }
 
     /**
      * @dataProvider providerIntegration
      */
-    public function testIntegration(string $filename, string $phelCode, string $expectedGeneratedCode): void
-    {
-        $globalEnv = static::$globalEnv;
+    public function testIntegration(
+        string $filename,
+        string $phelCode,
+        string $expectedGeneratedCode
+    ): void {
+        $globalEnv = self::$globalEnv;
         $globalEnv->setNs('user');
         Symbol::resetGen();
 

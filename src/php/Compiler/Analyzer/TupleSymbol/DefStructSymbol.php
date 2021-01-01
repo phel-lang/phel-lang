@@ -11,7 +11,7 @@ use Phel\Exceptions\AnalyzerException;
 use Phel\Lang\Symbol;
 use Phel\Lang\Tuple;
 
-final class DefStructSymbolInterface implements TupleSymbolAnalyzerInterface
+final class DefStructSymbol implements TupleSymbolAnalyzerInterface
 {
     use WithAnalyzerTrait;
 

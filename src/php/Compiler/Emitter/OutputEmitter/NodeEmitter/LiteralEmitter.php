@@ -6,10 +6,10 @@ namespace Phel\Compiler\Emitter\OutputEmitter\NodeEmitter;
 
 use Phel\Compiler\Ast\LiteralNode;
 use Phel\Compiler\Ast\AbstractNode;
-use Phel\Compiler\Emitter\OutputEmitter\NodeEmitter;
+use Phel\Compiler\Emitter\OutputEmitter\NodeEmitterInterface;
 use Phel\Compiler\NodeEnvironmentInterface;
 
-final class LiteralEmitter implements NodeEmitter
+final class LiteralEmitter implements NodeEmitterInterface
 {
     use WithOutputEmitterTrait;
 

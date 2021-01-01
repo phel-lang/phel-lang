@@ -14,7 +14,7 @@ use Phel\Lang\Tuple;
 /**
  * (if test then else?).
  */
-final class IfSymbolInterface implements TupleSymbolAnalyzerInterface
+final class IfSymbol implements TupleSymbolAnalyzerInterface
 {
     use WithAnalyzerTrait;
 

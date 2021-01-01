@@ -6,10 +6,10 @@ namespace Phel\Compiler\Emitter\OutputEmitter\NodeEmitter;
 
 use Phel\Compiler\Ast\AbstractNode;
 use Phel\Compiler\Ast\RecurNode;
-use Phel\Compiler\Emitter\OutputEmitter\NodeEmitter;
+use Phel\Compiler\Emitter\OutputEmitter\NodeEmitterInterface;
 use Phel\Lang\Symbol;
 
-final class RecurEmitter implements NodeEmitter
+final class RecurEmitter implements NodeEmitterInterface
 {
     use WithOutputEmitterTrait;
 

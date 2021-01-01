@@ -17,7 +17,6 @@ final class CommentNode implements TriviaNodeInterface
         $this->endLocation = $endLocation;
     }
 
-
     public function getCode(): string
     {
         return $this->code;

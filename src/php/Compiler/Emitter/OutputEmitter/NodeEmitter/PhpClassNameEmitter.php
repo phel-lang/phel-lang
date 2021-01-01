@@ -6,9 +6,9 @@ namespace Phel\Compiler\Emitter\OutputEmitter\NodeEmitter;
 
 use Phel\Compiler\Ast\AbstractNode;
 use Phel\Compiler\Ast\PhpClassNameNode;
-use Phel\Compiler\Emitter\OutputEmitter\NodeEmitter;
+use Phel\Compiler\Emitter\OutputEmitter\NodeEmitterInterface;
 
-final class PhpClassNameEmitter implements NodeEmitter
+final class PhpClassNameEmitter implements NodeEmitterInterface
 {
     use WithOutputEmitterTrait;
 
