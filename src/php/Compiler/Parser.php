@@ -184,6 +184,7 @@ final class Parser implements ParserInterface
             $token = $tokenStream->current();
 
             if ($token->getType() === $endTokenType) {
+                $this->readTokens[] = $token;
                 $endLocation = $token->getEndLocation();
                 $tokenStream->next();
 
