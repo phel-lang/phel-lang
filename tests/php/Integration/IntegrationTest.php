@@ -10,8 +10,8 @@ use Phel\Compiler\CompilerFactory;
 use Phel\Compiler\EmitterInterface;
 use Phel\Compiler\GlobalEnvironment;
 use Phel\Compiler\NodeEnvironment;
-use Phel\Compiler\ParserInterface;
 use Phel\Compiler\Parser\ParserNode\TriviaNodeInterface;
+use Phel\Compiler\ParserInterface;
 use Phel\Compiler\ReaderInterface;
 use Phel\Compiler\TokenStream;
 use Phel\Lang\Symbol;
@@ -23,6 +23,7 @@ use RecursiveIteratorIterator;
 final class IntegrationTest extends TestCase
 {
     private static GlobalEnvironment $globalEnv;
+    private CompilerFactory $compilerFactory;
 
     public static function setUpBeforeClass(): void
     {
@@ -34,6 +35,11 @@ final class IntegrationTest extends TestCase
         static::$globalEnv = $globalEnv;
     }
 
+    public function setUp(): void
+    {
+        $this->compilerFactory = new CompilerFactory();
+    }
+
     /**
      * @dataProvider providerIntegration
      */
@@ -43,14 +49,12 @@ final class IntegrationTest extends TestCase
         $globalEnv->setNs('user');
         Symbol::resetGen();
 
-        $compilerFactory = new CompilerFactory();
-
         $compiledCode = $this->compilePhelCode(
-            $compilerFactory->createParser(),
-            $compilerFactory->createReader($globalEnv),
-            $compilerFactory->createAnalyzer($globalEnv),
-            $compilerFactory->createEmitter($enableSourceMaps = false),
-            $compilerFactory->createLexer()->lexString($phelCode)
+            $this->compilerFactory->createParser(),
+            $this->compilerFactory->createReader($globalEnv),
+            $this->compilerFactory->createAnalyzer($globalEnv),
+            $this->compilerFactory->createEmitter($enableSourceMaps = false),
+            $this->compilerFactory->createLexer()->lexString($phelCode)
         );
 
         self::assertEquals($expectedGeneratedCode, $compiledCode, 'in ' . $filename);

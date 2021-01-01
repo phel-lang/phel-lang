@@ -5,13 +5,19 @@ declare(strict_types=1);
 namespace PhelTest\Unit\Compiler;
 
 use Phel\Compiler\CompilerFactory;
-use Phel\Compiler\Lexer;
 use Phel\Compiler\Parser\ParserNode\NodeInterface;
 use Phel\Lang\Symbol;
 use PHPUnit\Framework\TestCase;
 
 final class ParseAndPrintTest extends TestCase
 {
+    private CompilerFactory $compilerFactory;
+
+    public function setUp(): void
+    {
+        $this->compilerFactory = new CompilerFactory();
+    }
+
     public function testParseAndPrintCoreLib(): void
     {
         $coreLibCode = file_get_contents(__DIR__ . '/../../../../src/phel/core.phel');
@@ -25,8 +31,8 @@ final class ParseAndPrintTest extends TestCase
     private function parse(string $string): array
     {
         Symbol::resetGen();
-        $parser = (new CompilerFactory())->createParser();
-        $tokenStream = (new Lexer())->lexString($string);
+        $parser = $this->compilerFactory->createParser();
+        $tokenStream = $this->compilerFactory->createLexer()->lexString($string);
 
         $parseTrees = [];
         while (true) {
