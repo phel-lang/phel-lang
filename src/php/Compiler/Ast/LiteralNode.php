@@ -8,7 +8,7 @@ use Phel\Compiler\NodeEnvironmentInterface;
 use Phel\Lang\AbstractType;
 use Phel\Lang\SourceLocation;
 
-final class LiteralNode extends Node
+final class LiteralNode extends AbstractNode
 {
     /** @var AbstractType|string|float|int|bool|null */
     private $value;

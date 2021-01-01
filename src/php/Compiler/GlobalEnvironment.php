@@ -6,7 +6,7 @@ namespace Phel\Compiler;
 
 use Phel\Compiler\Ast\GlobalVarNode;
 use Phel\Compiler\Ast\LiteralNode;
-use Phel\Compiler\Ast\Node;
+use Phel\Compiler\Ast\AbstractNode;
 use Phel\Compiler\Ast\PhpClassNameNode;
 use Phel\Lang\Keyword;
 use Phel\Lang\SourceLocation;
@@ -112,7 +112,7 @@ final class GlobalEnvironment implements GlobalEnvironmentInterface
         $this->refers[$inNamespace][$fnName->getName()] = $ns;
     }
 
-    public function resolve(Symbol $name, NodeEnvironmentInterface $env): ?Node
+    public function resolve(Symbol $name, NodeEnvironmentInterface $env): ?AbstractNode
     {
         $strName = $name->getName();
 

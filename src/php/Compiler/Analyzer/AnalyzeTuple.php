@@ -4,31 +4,31 @@ declare(strict_types=1);
 
 namespace Phel\Compiler\Analyzer;
 
-use Phel\Compiler\Analyzer\TupleSymbol\ApplySymbol;
+use Phel\Compiler\Analyzer\TupleSymbol\ApplySymbolInterface;
 use Phel\Compiler\Analyzer\TupleSymbol\Binding\BindingValidator;
 use Phel\Compiler\Analyzer\TupleSymbol\Binding\TupleDeconstructor;
-use Phel\Compiler\Analyzer\TupleSymbol\DefStructSymbol;
-use Phel\Compiler\Analyzer\TupleSymbol\DefSymbol;
-use Phel\Compiler\Analyzer\TupleSymbol\DoSymbol;
-use Phel\Compiler\Analyzer\TupleSymbol\FnSymbol;
-use Phel\Compiler\Analyzer\TupleSymbol\ForeachSymbol;
-use Phel\Compiler\Analyzer\TupleSymbol\IfSymbol;
-use Phel\Compiler\Analyzer\TupleSymbol\InvokeSymbol;
-use Phel\Compiler\Analyzer\TupleSymbol\LetSymbol;
-use Phel\Compiler\Analyzer\TupleSymbol\LoopSymbol;
-use Phel\Compiler\Analyzer\TupleSymbol\NsSymbol;
-use Phel\Compiler\Analyzer\TupleSymbol\PhpAGetSymbol;
-use Phel\Compiler\Analyzer\TupleSymbol\PhpAPushSymbol;
-use Phel\Compiler\Analyzer\TupleSymbol\PhpASetSymbol;
-use Phel\Compiler\Analyzer\TupleSymbol\PhpAUnsetSymbol;
-use Phel\Compiler\Analyzer\TupleSymbol\PhpNewSymbol;
-use Phel\Compiler\Analyzer\TupleSymbol\PhpObjectCallSymbol;
-use Phel\Compiler\Analyzer\TupleSymbol\QuoteSymbol;
-use Phel\Compiler\Analyzer\TupleSymbol\RecurSymbol;
-use Phel\Compiler\Analyzer\TupleSymbol\ThrowSymbol;
-use Phel\Compiler\Analyzer\TupleSymbol\TrySymbol;
-use Phel\Compiler\Analyzer\TupleSymbol\TupleSymbolAnalyzer;
-use Phel\Compiler\Ast\Node;
+use Phel\Compiler\Analyzer\TupleSymbol\DefStructSymbolInterface;
+use Phel\Compiler\Analyzer\TupleSymbol\DefSymbolInterface;
+use Phel\Compiler\Analyzer\TupleSymbol\DoSymbolInterface;
+use Phel\Compiler\Analyzer\TupleSymbol\FnSymbolInterface;
+use Phel\Compiler\Analyzer\TupleSymbol\ForeachSymbolInterface;
+use Phel\Compiler\Analyzer\TupleSymbol\IfSymbolInterface;
+use Phel\Compiler\Analyzer\TupleSymbol\InvokeSymbolInterface;
+use Phel\Compiler\Analyzer\TupleSymbol\LetSymbolInterface;
+use Phel\Compiler\Analyzer\TupleSymbol\LoopSymbolInterface;
+use Phel\Compiler\Analyzer\TupleSymbol\NsSymbolInterface;
+use Phel\Compiler\Analyzer\TupleSymbol\PhpAGetSymbolInterface;
+use Phel\Compiler\Analyzer\TupleSymbol\PhpAPushSymbolInterface;
+use Phel\Compiler\Analyzer\TupleSymbol\PhpASetSymbolInterface;
+use Phel\Compiler\Analyzer\TupleSymbol\PhpAUnsetSymbolInterface;
+use Phel\Compiler\Analyzer\TupleSymbol\PhpNewSymbolInterface;
+use Phel\Compiler\Analyzer\TupleSymbol\PhpObjectCallSymbolInterface;
+use Phel\Compiler\Analyzer\TupleSymbol\QuoteSymbolInterface;
+use Phel\Compiler\Analyzer\TupleSymbol\RecurSymbolInterface;
+use Phel\Compiler\Analyzer\TupleSymbol\ThrowSymbolInterface;
+use Phel\Compiler\Analyzer\TupleSymbol\TrySymbolInterface;
+use Phel\Compiler\Analyzer\TupleSymbol\TupleSymbolAnalyzerInterface;
+use Phel\Compiler\Ast\AbstractNode;
 use Phel\Compiler\NodeEnvironmentInterface;
 use Phel\Exceptions\AnalyzerException;
 use Phel\Exceptions\PhelCodeException;
@@ -37,14 +37,14 @@ use Phel\Lang\Tuple;
 
 final class AnalyzeTuple
 {
-    use WithAnalyzer;
+    use WithAnalyzerTrait;
 
     private const EMPTY_SYMBOL_NAME = '';
 
     /**
      * @throws AnalyzerException|PhelCodeException
      */
-    public function analyze(Tuple $tuple, NodeEnvironmentInterface $env): Node
+    public function analyze(Tuple $tuple, NodeEnvironmentInterface $env): AbstractNode
     {
         $symbolName = $this->getSymbolName($tuple);
         $symbol = $this->createSymbolAnalyzerByName($symbolName);
@@ -59,53 +59,53 @@ final class AnalyzeTuple
             : self::EMPTY_SYMBOL_NAME;
     }
 
-    private function createSymbolAnalyzerByName(string $symbolName): TupleSymbolAnalyzer
+    private function createSymbolAnalyzerByName(string $symbolName): TupleSymbolAnalyzerInterface
     {
         switch ($symbolName) {
             case Symbol::NAME_DEF:
-                return new DefSymbol($this->analyzer);
+                return new DefSymbolInterface($this->analyzer);
             case Symbol::NAME_NS:
-                return new NsSymbol($this->analyzer);
+                return new NsSymbolInterface($this->analyzer);
             case Symbol::NAME_FN:
-                return new FnSymbol($this->analyzer);
+                return new FnSymbolInterface($this->analyzer);
             case Symbol::NAME_QUOTE:
-                return new QuoteSymbol();
+                return new QuoteSymbolInterface();
             case Symbol::NAME_DO:
-                return new DoSymbol($this->analyzer);
+                return new DoSymbolInterface($this->analyzer);
             case Symbol::NAME_IF:
-                return new IfSymbol($this->analyzer);
+                return new IfSymbolInterface($this->analyzer);
             case Symbol::NAME_APPLY:
-                return new ApplySymbol($this->analyzer);
+                return new ApplySymbolInterface($this->analyzer);
             case Symbol::NAME_LET:
-                return new LetSymbol($this->analyzer, new TupleDeconstructor(new BindingValidator()));
+                return new LetSymbolInterface($this->analyzer, new TupleDeconstructor(new BindingValidator()));
             case Symbol::NAME_PHP_NEW:
-                return new PhpNewSymbol($this->analyzer);
+                return new PhpNewSymbolInterface($this->analyzer);
             case Symbol::NAME_PHP_OBJECT_CALL:
-                return new PhpObjectCallSymbol($this->analyzer, $isStatic = false);
+                return new PhpObjectCallSymbolInterface($this->analyzer, $isStatic = false);
             case Symbol::NAME_PHP_OBJECT_STATIC_CALL:
-                return new PhpObjectCallSymbol($this->analyzer, $isStatic = true);
+                return new PhpObjectCallSymbolInterface($this->analyzer, $isStatic = true);
             case Symbol::NAME_PHP_ARRAY_GET:
-                return new PhpAGetSymbol($this->analyzer);
+                return new PhpAGetSymbolInterface($this->analyzer);
             case Symbol::NAME_PHP_ARRAY_SET:
-                return new PhpASetSymbol($this->analyzer);
+                return new PhpASetSymbolInterface($this->analyzer);
             case Symbol::NAME_PHP_ARRAY_PUSH:
-                return new PhpAPushSymbol($this->analyzer);
+                return new PhpAPushSymbolInterface($this->analyzer);
             case Symbol::NAME_PHP_ARRAY_UNSET:
-                return new PhpAUnsetSymbol($this->analyzer);
+                return new PhpAUnsetSymbolInterface($this->analyzer);
             case Symbol::NAME_RECUR:
-                return new RecurSymbol($this->analyzer);
+                return new RecurSymbolInterface($this->analyzer);
             case Symbol::NAME_TRY:
-                return new TrySymbol($this->analyzer);
+                return new TrySymbolInterface($this->analyzer);
             case Symbol::NAME_THROW:
-                return new ThrowSymbol($this->analyzer);
+                return new ThrowSymbolInterface($this->analyzer);
             case Symbol::NAME_LOOP:
-                return new LoopSymbol($this->analyzer, new BindingValidator());
+                return new LoopSymbolInterface($this->analyzer, new BindingValidator());
             case Symbol::NAME_FOREACH:
-                return new ForeachSymbol($this->analyzer);
+                return new ForeachSymbolInterface($this->analyzer);
             case Symbol::NAME_DEF_STRUCT:
-                return new DefStructSymbol($this->analyzer);
+                return new DefStructSymbolInterface($this->analyzer);
             default:
-                return new InvokeSymbol($this->analyzer);
+                return new InvokeSymbolInterface($this->analyzer);
         }
     }
 }

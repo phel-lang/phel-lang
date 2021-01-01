@@ -4,16 +4,16 @@ declare(strict_types=1);
 
 namespace Phel\Compiler\Emitter\OutputEmitter\NodeEmitter;
 
-use Phel\Compiler\Ast\Node;
+use Phel\Compiler\Ast\AbstractNode;
 use Phel\Compiler\Ast\RecurNode;
 use Phel\Compiler\Emitter\OutputEmitter\NodeEmitter;
 use Phel\Lang\Symbol;
 
 final class RecurEmitter implements NodeEmitter
 {
-    use WithOutputEmitter;
+    use WithOutputEmitterTrait;
 
-    public function emit(Node $node): void
+    public function emit(AbstractNode $node): void
     {
         assert($node instanceof RecurNode);
 

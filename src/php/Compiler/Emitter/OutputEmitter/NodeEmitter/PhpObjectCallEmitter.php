@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Phel\Compiler\Emitter\OutputEmitter\NodeEmitter;
 
 use Phel\Compiler\Ast\MethodCallNode;
-use Phel\Compiler\Ast\Node;
+use Phel\Compiler\Ast\AbstractNode;
 use Phel\Compiler\Ast\PhpClassNameNode;
 use Phel\Compiler\Ast\PhpObjectCallNode;
 use Phel\Compiler\Ast\PropertyOrConstantAccessNode;
@@ -15,9 +15,9 @@ use RuntimeException;
 
 final class PhpObjectCallEmitter implements NodeEmitter
 {
-    use WithOutputEmitter;
+    use WithOutputEmitterTrait;
 
-    public function emit(Node $node): void
+    public function emit(AbstractNode $node): void
     {
         assert($node instanceof PhpObjectCallNode);
 

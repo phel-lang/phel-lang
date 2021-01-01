@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace Phel\Compiler\Emitter\OutputEmitter;
 
-use Phel\Compiler\Ast\Node;
+use Phel\Compiler\Ast\AbstractNode;
 
 interface NodeEmitter
 {
-    public function emit(Node $node): void;
+    public function emit(AbstractNode $node): void;
 }

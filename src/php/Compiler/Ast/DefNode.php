@@ -9,19 +9,19 @@ use Phel\Lang\SourceLocation;
 use Phel\Lang\Symbol;
 use Phel\Lang\Table;
 
-final class DefNode extends Node
+final class DefNode extends AbstractNode
 {
     private string $namespace;
     private Symbol $name;
     private Table $meta;
-    private Node $init;
+    private AbstractNode $init;
 
     public function __construct(
         NodeEnvironmentInterface $env,
         string $namespace,
         Symbol $name,
         Table $meta,
-        Node $init,
+        AbstractNode $init,
         ?SourceLocation $sourceLocation = null
     ) {
         parent::__construct($env, $sourceLocation);
@@ -46,7 +46,7 @@ final class DefNode extends Node
         return $this->meta;
     }
 
-    public function getInit(): Node
+    public function getInit(): AbstractNode
     {
         return $this->init;
     }

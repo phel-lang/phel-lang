@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Phel\Compiler;
 
-use Phel\Compiler\Ast\Node;
+use Phel\Compiler\Ast\AbstractNode;
 use Phel\Compiler\Emitter\EvalEmitterInterface;
 use Phel\Compiler\Emitter\OutputEmitterInterface;
 
@@ -21,7 +21,7 @@ final class Emitter implements EmitterInterface
         $this->evalEmitter = $evalEmitter;
     }
 
-    public function emitNodeAndEval(Node $node): string
+    public function emitNodeAndEval(AbstractNode $node): string
     {
         $code = $this->emitNodeAsString($node);
         $this->evalCode($code);
@@ -29,7 +29,7 @@ final class Emitter implements EmitterInterface
         return $code;
     }
 
-    public function emitNodeAsString(Node $node): string
+    public function emitNodeAsString(AbstractNode $node): string
     {
         return $this->outputEmitter->emitNodeAsString($node);
     }

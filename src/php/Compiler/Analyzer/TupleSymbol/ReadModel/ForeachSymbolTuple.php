@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Phel\Compiler\Analyzer\TupleSymbol\ReadModel;
 
-use Phel\Compiler\Ast\Node;
+use Phel\Compiler\Ast\AbstractNode;
 use Phel\Compiler\NodeEnvironmentInterface;
 use Phel\Lang\Symbol;
 
@@ -12,14 +12,14 @@ final class ForeachSymbolTuple
 {
     private array $lets;
     private NodeEnvironmentInterface $bodyEnv;
-    private Node $listExpr;
+    private AbstractNode $listExpr;
     private Symbol $valueSymbol;
     private ?Symbol $keySymbol;
 
     public function __construct(
         array $lets,
         NodeEnvironmentInterface $bodyEnv,
-        Node $listExpr,
+        AbstractNode $listExpr,
         Symbol $valueSymbol,
         ?Symbol $keySymbol = null
     ) {
@@ -40,7 +40,7 @@ final class ForeachSymbolTuple
         return $this->bodyEnv;
     }
 
-    public function listExpr(): Node
+    public function listExpr(): AbstractNode
     {
         return $this->listExpr;
     }

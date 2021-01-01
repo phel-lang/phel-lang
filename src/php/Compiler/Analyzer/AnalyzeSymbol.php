@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Phel\Compiler\Analyzer;
 
 use Phel\Compiler\Ast\LocalVarNode;
-use Phel\Compiler\Ast\Node;
+use Phel\Compiler\Ast\AbstractNode;
 use Phel\Compiler\Ast\PhpVarNode;
 use Phel\Compiler\NodeEnvironmentInterface;
 use Phel\Exceptions\AnalyzerException;
@@ -13,9 +13,9 @@ use Phel\Lang\Symbol;
 
 final class AnalyzeSymbol
 {
-    use WithAnalyzer;
+    use WithAnalyzerTrait;
 
-    public function analyze(Symbol $symbol, NodeEnvironmentInterface $env): Node
+    public function analyze(Symbol $symbol, NodeEnvironmentInterface $env): AbstractNode
     {
         if ($symbol->getNamespace() === 'php') {
             return new PhpVarNode($env, $symbol->getName(), $symbol->getStartLocation());
@@ -41,7 +41,7 @@ final class AnalyzeSymbol
         return new LocalVarNode($env, $symbol, $symbol->getStartLocation());
     }
 
-    private function createGlobalResolve(Symbol $symbol, NodeEnvironmentInterface $env): Node
+    private function createGlobalResolve(Symbol $symbol, NodeEnvironmentInterface $env): AbstractNode
     {
         $globalResolve = $this->analyzer->resolve($symbol, $env);
 

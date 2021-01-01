@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Phel\Compiler\Parser\ExpressionParser;
 
 use Phel\Compiler\Parser;
-use Phel\Compiler\Parser\ParserNode\StringNode;
+use Phel\Compiler\Parser\ParserNode\StringNodeAbstract;
 use Phel\Compiler\Token;
 use Phel\Exceptions\StringParserException;
 
@@ -29,9 +29,9 @@ final class StringParser
         'e' => "\x1B",
     ];
 
-    public function parse(Token $token): StringNode
+    public function parse(Token $token): StringNodeAbstract
     {
-        return new StringNode(
+        return new StringNodeAbstract(
             $token->getCode(),
             $token->getStartLocation(),
             $token->getEndLocation(),

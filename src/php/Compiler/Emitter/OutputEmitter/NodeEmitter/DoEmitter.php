@@ -5,15 +5,15 @@ declare(strict_types=1);
 namespace Phel\Compiler\Emitter\OutputEmitter\NodeEmitter;
 
 use Phel\Compiler\Ast\DoNode;
-use Phel\Compiler\Ast\Node;
+use Phel\Compiler\Ast\AbstractNode;
 use Phel\Compiler\Emitter\OutputEmitter\NodeEmitter;
 use Phel\Compiler\NodeEnvironmentInterface;
 
 final class DoEmitter implements NodeEmitter
 {
-    use WithOutputEmitter;
+    use WithOutputEmitterTrait;
 
-    public function emit(Node $node): void
+    public function emit(AbstractNode $node): void
     {
         assert($node instanceof DoNode);
 

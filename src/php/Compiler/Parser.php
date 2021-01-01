@@ -9,14 +9,14 @@ use Phel\Compiler\Parser\ExpressionParser\ListParser;
 use Phel\Compiler\Parser\ExpressionParser\MetaParser;
 use Phel\Compiler\Parser\ExpressionParser\QuoteParser;
 use Phel\Compiler\Parser\ExpressionParser\StringParser;
-use Phel\Compiler\Parser\ParserNode\AtomNode;
+use Phel\Compiler\Parser\ParserNode\AbstractAtomNode;
 use Phel\Compiler\Parser\ParserNode\CommentNode;
 use Phel\Compiler\Parser\ParserNode\ListNode;
 use Phel\Compiler\Parser\ParserNode\MetaNode;
 use Phel\Compiler\Parser\ParserNode\NewlineNode;
 use Phel\Compiler\Parser\ParserNode\NodeInterface;
 use Phel\Compiler\Parser\ParserNode\QuoteNode;
-use Phel\Compiler\Parser\ParserNode\StringNode;
+use Phel\Compiler\Parser\ParserNode\StringNodeAbstract;
 use Phel\Compiler\Parser\ParserNode\WhitespaceNode;
 use Phel\Compiler\Parser\ReadModel\CodeSnippet;
 use Phel\Exceptions\ParserException;
@@ -132,12 +132,12 @@ final class Parser implements ParserInterface
         return new CommentNode($token->getCode(), $token->getStartLocation(), $token->getEndLocation());
     }
 
-    private function createAtomNode(Token $token): AtomNode
+    private function createAtomNode(Token $token): AbstractAtomNode
     {
         return (new AtomParser())->parse($token);
     }
 
-    private function createStringNode(Token $token, TokenStream $tokenStream): StringNode
+    private function createStringNode(Token $token, TokenStream $tokenStream): StringNodeAbstract
     {
         try {
             return (new StringParser($this))->parse($token);

@@ -10,7 +10,7 @@ use Phel\Lang\Tuple;
 
 final class AnalyzeBracketTuple
 {
-    use WithAnalyzer;
+    use WithAnalyzerTrait;
 
     public function analyze(Tuple $tuple, NodeEnvironmentInterface $env): TupleNode
     {

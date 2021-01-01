@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace PhelTest\Unit\Compiler\Analyzer\TupleSymbol;
 
 use Phel\Compiler\Analyzer;
-use Phel\Compiler\Analyzer\TupleSymbol\DoSymbol;
+use Phel\Compiler\Analyzer\TupleSymbol\DoSymbolInterface;
 use Phel\Compiler\AnalyzerInterface;
 use Phel\Compiler\Ast\DoNode;
 use Phel\Compiler\NodeEnvironment;
@@ -31,7 +31,7 @@ final class DoSymbolTest extends TestCase
 
         $tuple = Tuple::create(Symbol::create('unknown'));
         $env = NodeEnvironment::empty();
-        (new DoSymbol($this->analyzer))->analyze($tuple, $env);
+        (new DoSymbolInterface($this->analyzer))->analyze($tuple, $env);
     }
 
     public function testEmptyTuple(): void
@@ -48,7 +48,7 @@ final class DoSymbolTest extends TestCase
             $tuple->getStartLocation()
         );
 
-        $actual = (new DoSymbol($this->analyzer))->analyze($tuple, $env);
+        $actual = (new DoSymbolInterface($this->analyzer))->analyze($tuple, $env);
         self::assertEquals($expected, $actual);
     }
 
@@ -68,7 +68,7 @@ final class DoSymbolTest extends TestCase
             $tuple->getStartLocation()
         );
 
-        $actual = (new DoSymbol($this->analyzer))->analyze($tuple, $env);
+        $actual = (new DoSymbolInterface($this->analyzer))->analyze($tuple, $env);
         self::assertEquals($expected, $actual);
     }
 }

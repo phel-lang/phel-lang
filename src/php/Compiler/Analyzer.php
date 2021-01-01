@@ -10,7 +10,7 @@ use Phel\Compiler\Analyzer\AnalyzeLiteral;
 use Phel\Compiler\Analyzer\AnalyzeSymbol;
 use Phel\Compiler\Analyzer\AnalyzeTable;
 use Phel\Compiler\Analyzer\AnalyzeTuple;
-use Phel\Compiler\Ast\Node;
+use Phel\Compiler\Ast\AbstractNode;
 use Phel\Exceptions\AnalyzerException;
 use Phel\Lang\AbstractType;
 use Phel\Lang\Keyword;
@@ -28,7 +28,7 @@ final class Analyzer implements AnalyzerInterface
         $this->globalEnvironment = $globalEnvironment;
     }
 
-    public function resolve(Symbol $name, NodeEnvironmentInterface $env): ?Node
+    public function resolve(Symbol $name, NodeEnvironmentInterface $env): ?AbstractNode
     {
         return $this->globalEnvironment->resolve($name, $env);
     }
@@ -71,7 +71,7 @@ final class Analyzer implements AnalyzerInterface
     /**
      * @param AbstractType|string|float|int|bool|null $x
      */
-    public function analyzeMacro($x, NodeEnvironmentInterface $env): Node
+    public function analyzeMacro($x, NodeEnvironmentInterface $env): AbstractNode
     {
         $this->globalEnvironment->setAllowPrivateAccess(true);
         $result = $this->analyze($x, $env);
@@ -83,7 +83,7 @@ final class Analyzer implements AnalyzerInterface
     /**
      * @param AbstractType|string|float|int|bool|null $x
      */
-    public function analyze($x, NodeEnvironmentInterface $env): Node
+    public function analyze($x, NodeEnvironmentInterface $env): AbstractNode
     {
         if ($this->isLiteral($x)) {
             return (new AnalyzeLiteral())->analyze($x, $env);

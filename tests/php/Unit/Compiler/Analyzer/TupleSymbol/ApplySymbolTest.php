@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace PhelTest\Unit\Compiler\Analyzer\TupleSymbol;
 
 use Phel\Compiler\Analyzer;
-use Phel\Compiler\Analyzer\TupleSymbol\ApplySymbol;
+use Phel\Compiler\Analyzer\TupleSymbol\ApplySymbolInterface;
 use Phel\Compiler\AnalyzerInterface;
 use Phel\Compiler\Ast\CallNode;
 use Phel\Compiler\NodeEnvironment;
@@ -33,7 +33,7 @@ final class ApplySymbolTest extends TestCase
             Symbol::create(Symbol::NAME_APPLY),
             Symbol::create('\\')
         );
-        (new ApplySymbol($this->analyzer))->analyze($tuple, NodeEnvironment::empty());
+        (new ApplySymbolInterface($this->analyzer))->analyze($tuple, NodeEnvironment::empty());
     }
 
     public function testApplyNode(): void
@@ -43,7 +43,7 @@ final class ApplySymbolTest extends TestCase
             '+',
             Tuple::create('1', '2', '3')
         );
-        $applyNode = (new ApplySymbol($this->analyzer))->analyze($tuple, NodeEnvironment::empty());
+        $applyNode = (new ApplySymbolInterface($this->analyzer))->analyze($tuple, NodeEnvironment::empty());
 
         self::assertSame('+', ($applyNode->getFn())->getValue());
         self::assertInstanceOf(CallNode::class, $applyNode->getArguments()[0]);

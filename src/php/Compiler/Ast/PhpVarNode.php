@@ -7,7 +7,7 @@ namespace Phel\Compiler\Ast;
 use Phel\Compiler\NodeEnvironmentInterface;
 use Phel\Lang\SourceLocation;
 
-final class PhpVarNode extends Node
+final class PhpVarNode extends AbstractNode
 {
     public const INFIX_OPERATORS = [
         '+',

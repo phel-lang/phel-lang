@@ -6,7 +6,7 @@ namespace PhelTest\Unit\Compiler\Analyzer\TupleSymbol;
 
 use Phel\Compiler\Analyzer;
 use Phel\Compiler\Analyzer\TupleSymbol\Binding\BindingValidator;
-use Phel\Compiler\Analyzer\TupleSymbol\LoopSymbol;
+use Phel\Compiler\Analyzer\TupleSymbol\LoopSymbolInterface;
 use Phel\Compiler\GlobalEnvironment;
 use Phel\Compiler\NodeEnvironment;
 use Phel\Exceptions\PhelCodeException;
@@ -27,9 +27,9 @@ final class LoopSymbolTest extends TestCase
         $this->createLoopSymbol()->analyze($tuple, $env);
     }
 
-    private function createLoopSymbol(): LoopSymbol
+    private function createLoopSymbol(): LoopSymbolInterface
     {
-        return new LoopSymbol(
+        return new LoopSymbolInterface(
             new Analyzer(new GlobalEnvironment()),
             new BindingValidator()
         );

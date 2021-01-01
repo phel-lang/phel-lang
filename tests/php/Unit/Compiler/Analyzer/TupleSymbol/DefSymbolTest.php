@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace PhelTest\Unit\Compiler\Analyzer\TupleSymbol;
 
 use Phel\Compiler\Analyzer;
-use Phel\Compiler\Analyzer\TupleSymbol\DefSymbol;
+use Phel\Compiler\Analyzer\TupleSymbol\DefSymbolInterface;
 use Phel\Compiler\AnalyzerInterface;
 use Phel\Compiler\Ast\LiteralNode;
 use Phel\Compiler\GlobalEnvironment;
@@ -31,7 +31,7 @@ final class DefSymbolTest extends TestCase
         $this->expectExceptionMessage("'def inside of a 'def is forbidden");
 
         $env = NodeEnvironment::empty()->withDefAllowed(false);
-        (new DefSymbol($this->analyzer))->analyze(Tuple::create(), $env);
+        (new DefSymbolInterface($this->analyzer))->analyze(Tuple::create(), $env);
     }
 
     public function testEnsureDefIsNotAllowedInsideADefSymbol(): void
@@ -41,8 +41,8 @@ final class DefSymbolTest extends TestCase
 
         $tuple = Tuple::create(Symbol::create(Symbol::NAME_DEF), Symbol::create('1'), 'any value');
         $env = NodeEnvironment::empty();
-        $defNode = (new DefSymbol($this->analyzer))->analyze($tuple, $env);
-        (new DefSymbol($this->analyzer))->analyze($tuple, $defNode->getInit()->getEnv());
+        $defNode = (new DefSymbolInterface($this->analyzer))->analyze($tuple, $env);
+        (new DefSymbolInterface($this->analyzer))->analyze($tuple, $defNode->getInit()->getEnv());
     }
 
     public function testWithWrongNumberOfArguments(): void
@@ -51,7 +51,7 @@ final class DefSymbolTest extends TestCase
         $this->expectExceptionMessage("Two or three arguments are required for 'def. Got 2");
 
         $tuple = Tuple::create(Symbol::create(Symbol::NAME_DEF), Symbol::create('1'));
-        (new DefSymbol($this->analyzer))->analyze($tuple, NodeEnvironment::empty());
+        (new DefSymbolInterface($this->analyzer))->analyze($tuple, NodeEnvironment::empty());
     }
 
     public function testFirstArgumentMustBeSymbol(): void
@@ -60,14 +60,14 @@ final class DefSymbolTest extends TestCase
         $this->expectExceptionMessage("First argument of 'def must be a Symbol.");
 
         $tuple = Tuple::create(Symbol::create(Symbol::NAME_DEF), 'not a symbol', '2');
-        (new DefSymbol($this->analyzer))->analyze($tuple, NodeEnvironment::empty());
+        (new DefSymbolInterface($this->analyzer))->analyze($tuple, NodeEnvironment::empty());
     }
 
     public function testMetaAndInitValues(): void
     {
         $tuple = Tuple::create(Symbol::create(Symbol::NAME_DEF), Symbol::create('1'), 'any value');
         $env = NodeEnvironment::empty();
-        $defNode = (new DefSymbol($this->analyzer))->analyze($tuple, $env);
+        $defNode = (new DefSymbolInterface($this->analyzer))->analyze($tuple, $env);
 
         self::assertEquals(Table::fromKVs(), $defNode->getMeta());
 

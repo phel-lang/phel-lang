@@ -8,12 +8,12 @@ use Phel\Compiler\NodeEnvironmentInterface;
 use Phel\Lang\SourceLocation;
 use Phel\Lang\Symbol;
 
-final class FnNode extends Node
+final class FnNode extends AbstractNode
 {
     /** @var Symbol[] */
     private array $params;
 
-    private Node $body;
+    private AbstractNode $body;
 
     /** @var Symbol[] */
     private array $uses;
@@ -29,7 +29,7 @@ final class FnNode extends Node
     public function __construct(
         NodeEnvironmentInterface $env,
         array $params,
-        Node $body,
+        AbstractNode $body,
         array $uses,
         bool $isVariadic,
         bool $recurs,
@@ -51,7 +51,7 @@ final class FnNode extends Node
         return $this->params;
     }
 
-    public function getBody(): Node
+    public function getBody(): AbstractNode
     {
         return $this->body;
     }

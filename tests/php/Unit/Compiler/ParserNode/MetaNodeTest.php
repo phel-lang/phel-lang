@@ -5,9 +5,9 @@ declare(strict_types=1);
 namespace PhelTest\Unit\Compiler;
 
 use Phel\Lang\SourceLocation;
-use Phel\Compiler\Parser\ParserNode\KeywordNode;
+use Phel\Compiler\Parser\ParserNode\KeywordNodeAbstract;
 use Phel\Compiler\Parser\ParserNode\MetaNode;
-use Phel\Compiler\Parser\ParserNode\SymbolNode;
+use Phel\Compiler\Parser\ParserNode\SymbolNodeAbstract;
 use Phel\Compiler\Parser\ParserNode\WhitespaceNode;
 use Phel\Lang\Keyword;
 use Phel\Lang\Symbol;
@@ -20,12 +20,12 @@ final class MetaNodeTest extends TestCase
         self::assertEquals(
             '^:test test',
             (new MetaNode(
-                new KeywordNode(':test', $this->loc(1, 1), $this->loc(1, 6), new Keyword('test')),
+                new KeywordNodeAbstract(':test', $this->loc(1, 1), $this->loc(1, 6), new Keyword('test')),
                 $this->loc(1, 0),
                 $this->loc(1, 11),
                 [
                     new WhitespaceNode(' ', $this->loc(1, 6), $this->loc(1, 7)),
-                    new SymbolNode('test', $this->loc(1, 7), $this->loc(1, 11), Symbol::create('test')),
+                    new SymbolNodeAbstract('test', $this->loc(1, 7), $this->loc(1, 11), Symbol::create('test')),
                 ]
             ))->getCode()
         );
@@ -36,12 +36,12 @@ final class MetaNodeTest extends TestCase
         self::assertEquals(
             $this->loc(1, 0),
             (new MetaNode(
-                new KeywordNode(':test', $this->loc(1, 1), $this->loc(1, 6), new Keyword('test')),
+                new KeywordNodeAbstract(':test', $this->loc(1, 1), $this->loc(1, 6), new Keyword('test')),
                 $this->loc(1, 0),
                 $this->loc(1, 11),
                 [
                     new WhitespaceNode(' ', $this->loc(1, 6), $this->loc(1, 7)),
-                    new SymbolNode('test', $this->loc(1, 7), $this->loc(1, 11), Symbol::create('test')),
+                    new SymbolNodeAbstract('test', $this->loc(1, 7), $this->loc(1, 11), Symbol::create('test')),
                 ]
             ))->getStartLocation()
         );
@@ -52,12 +52,12 @@ final class MetaNodeTest extends TestCase
         self::assertEquals(
             $this->loc(1, 11),
             (new MetaNode(
-                new KeywordNode(':test', $this->loc(1, 1), $this->loc(1, 6), new Keyword('test')),
+                new KeywordNodeAbstract(':test', $this->loc(1, 1), $this->loc(1, 6), new Keyword('test')),
                 $this->loc(1, 0),
                 $this->loc(1, 11),
                 [
                     new WhitespaceNode(' ', $this->loc(1, 6), $this->loc(1, 7)),
-                    new SymbolNode('test', $this->loc(1, 7), $this->loc(1, 11), Symbol::create('test')),
+                    new SymbolNodeAbstract('test', $this->loc(1, 7), $this->loc(1, 11), Symbol::create('test')),
                 ]
             ))->getEndLocation()
         );
@@ -67,17 +67,17 @@ final class MetaNodeTest extends TestCase
     {
         self::assertEquals(
             [
-                new KeywordNode(':test', $this->loc(1, 1), $this->loc(1, 6), new Keyword('test')),
+                new KeywordNodeAbstract(':test', $this->loc(1, 1), $this->loc(1, 6), new Keyword('test')),
                 new WhitespaceNode(' ', $this->loc(1, 6), $this->loc(1, 7)),
-                new SymbolNode('test', $this->loc(1, 7), $this->loc(1, 11), Symbol::create('test')),
+                new SymbolNodeAbstract('test', $this->loc(1, 7), $this->loc(1, 11), Symbol::create('test')),
             ],
             (new MetaNode(
-                new KeywordNode(':test', $this->loc(1, 1), $this->loc(1, 6), new Keyword('test')),
+                new KeywordNodeAbstract(':test', $this->loc(1, 1), $this->loc(1, 6), new Keyword('test')),
                 $this->loc(1, 0),
                 $this->loc(1, 11),
                 [
                     new WhitespaceNode(' ', $this->loc(1, 6), $this->loc(1, 7)),
-                    new SymbolNode('test', $this->loc(1, 7), $this->loc(1, 11), Symbol::create('test')),
+                    new SymbolNodeAbstract('test', $this->loc(1, 7), $this->loc(1, 11), Symbol::create('test')),
                 ]
             ))->getChildren()
         );

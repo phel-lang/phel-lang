@@ -6,7 +6,7 @@ namespace PhelTest\Unit\Compiler\Analyzer\TupleSymbol;
 
 use Phel\Compiler\Analyzer;
 use Phel\Compiler\Analyzer\TupleSymbol\Binding\TupleDeconstructorInterface;
-use Phel\Compiler\Analyzer\TupleSymbol\LetSymbol;
+use Phel\Compiler\Analyzer\TupleSymbol\LetSymbolInterface;
 use Phel\Compiler\GlobalEnvironment;
 use Phel\Compiler\NodeEnvironment;
 use Phel\Exceptions\PhelCodeException;
@@ -27,9 +27,9 @@ final class LetSymbolTest extends TestCase
         $this->createLetSymbol()->analyze($tuple, $env);
     }
 
-    private function createLetSymbol(): LetSymbol
+    private function createLetSymbol(): LetSymbolInterface
     {
-        return new LetSymbol(
+        return new LetSymbolInterface(
             new Analyzer(new GlobalEnvironment()),
             $this->createMock(TupleDeconstructorInterface::class)
         );

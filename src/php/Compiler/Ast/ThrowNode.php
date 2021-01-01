@@ -7,17 +7,17 @@ namespace Phel\Compiler\Ast;
 use Phel\Compiler\NodeEnvironmentInterface;
 use Phel\Lang\SourceLocation;
 
-final class ThrowNode extends Node
+final class ThrowNode extends AbstractNode
 {
-    private Node $exceptionExpr;
+    private AbstractNode $exceptionExpr;
 
-    public function __construct(NodeEnvironmentInterface $env, Node $exceptionExpr, ?SourceLocation $sourceLocation = null)
+    public function __construct(NodeEnvironmentInterface $env, AbstractNode $exceptionExpr, ?SourceLocation $sourceLocation = null)
     {
         parent::__construct($env, $sourceLocation);
         $this->exceptionExpr = $exceptionExpr;
     }
 
-    public function getExceptionExpr(): Node
+    public function getExceptionExpr(): AbstractNode
     {
         return $this->exceptionExpr;
     }

@@ -9,7 +9,7 @@ use Phel\Lang\Keyword;
 use Phel\Lang\SourceLocation;
 use Phel\Lang\Symbol;
 
-final class DefStructNode extends Node
+final class DefStructNode extends AbstractNode
 {
     private string $namespace;
 

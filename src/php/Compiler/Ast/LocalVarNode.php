@@ -8,7 +8,7 @@ use Phel\Compiler\NodeEnvironmentInterface;
 use Phel\Lang\SourceLocation;
 use Phel\Lang\Symbol;
 
-final class LocalVarNode extends Node
+final class LocalVarNode extends AbstractNode
 {
     private Symbol $name;
 

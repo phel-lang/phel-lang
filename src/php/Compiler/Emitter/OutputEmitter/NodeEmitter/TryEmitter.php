@@ -4,16 +4,16 @@ declare(strict_types=1);
 
 namespace Phel\Compiler\Emitter\OutputEmitter\NodeEmitter;
 
-use Phel\Compiler\Ast\Node;
+use Phel\Compiler\Ast\AbstractNode;
 use Phel\Compiler\Ast\TryNode;
 use Phel\Compiler\Emitter\OutputEmitter\NodeEmitter;
 use Phel\Compiler\NodeEnvironmentInterface;
 
 final class TryEmitter implements NodeEmitter
 {
-    use WithOutputEmitter;
+    use WithOutputEmitterTrait;
 
-    public function emit(Node $node): void
+    public function emit(AbstractNode $node): void
     {
         assert($node instanceof TryNode);
 
@@ -45,7 +45,7 @@ final class TryEmitter implements NodeEmitter
         }
     }
 
-    private function emitFinally(Node $node): void
+    private function emitFinally(AbstractNode $node): void
     {
         $this->outputEmitter->emitLine(' finally {', $node->getStartSourceLocation());
         $this->outputEmitter->increaseIndentLevel();

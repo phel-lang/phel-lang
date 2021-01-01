@@ -7,19 +7,19 @@ namespace Phel\Compiler\Ast;
 use Phel\Compiler\NodeEnvironmentInterface;
 use Phel\Lang\SourceLocation;
 
-final class ApplyNode extends Node
+final class ApplyNode extends AbstractNode
 {
-    private Node $fn;
+    private AbstractNode $fn;
 
-    /** @var Node[] */
+    /** @var AbstractNode[] */
     private array $arguments;
 
     /**
-     * @param Node[] $arguments
+     * @param AbstractNode[] $arguments
      */
     public function __construct(
         NodeEnvironmentInterface $env,
-        Node $fn,
+        AbstractNode $fn,
         array $arguments,
         ?SourceLocation $sourceLocation = null
     ) {
@@ -28,13 +28,13 @@ final class ApplyNode extends Node
         $this->arguments = $arguments;
     }
 
-    public function getFn(): Node
+    public function getFn(): AbstractNode
     {
         return $this->fn;
     }
 
     /**
-     * @return Node[]
+     * @return AbstractNode[]
      */
     public function getArguments(): array
     {

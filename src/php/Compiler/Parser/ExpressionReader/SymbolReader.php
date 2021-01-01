@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Phel\Compiler\Parser\ExpressionReader;
 
-use Phel\Compiler\Parser\ParserNode\SymbolNode;
+use Phel\Compiler\Parser\ParserNode\SymbolNodeAbstract;
 use Phel\Lang\Symbol;
 
 final class SymbolReader
@@ -12,7 +12,7 @@ final class SymbolReader
     /**
      * @param Symbol[]|null &$fnArgs
      */
-    public function read(SymbolNode $node, ?array &$fnArgs): Symbol
+    public function read(SymbolNodeAbstract $node, ?array &$fnArgs): Symbol
     {
         $symbol = $this->createSymbol($node, $fnArgs);
 
@@ -25,7 +25,7 @@ final class SymbolReader
     /**
      * @param Symbol[]|null &$fnArgs
      */
-    private function createSymbol(SymbolNode $node, ?array &$fnArgs): Symbol
+    private function createSymbol(SymbolNodeAbstract $node, ?array &$fnArgs): Symbol
     {
         if (null === $fnArgs) {
             return $node->getValue();

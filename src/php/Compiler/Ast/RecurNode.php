@@ -8,15 +8,15 @@ use Phel\Compiler\NodeEnvironmentInterface;
 use Phel\Compiler\RecurFrame;
 use Phel\Lang\SourceLocation;
 
-final class RecurNode extends Node
+final class RecurNode extends AbstractNode
 {
     private RecurFrame $frame;
 
-    /** @var Node[] */
+    /** @var AbstractNode[] */
     private array $expressions;
 
     /**
-     * @param Node[] $expressions
+     * @param AbstractNode[] $expressions
      */
     public function __construct(
         NodeEnvironmentInterface $env,
@@ -35,7 +35,7 @@ final class RecurNode extends Node
     }
 
     /**
-     * @return Node[]
+     * @return AbstractNode[]
      */
     public function getExpressions(): array
     {

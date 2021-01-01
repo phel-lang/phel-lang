@@ -8,17 +8,17 @@ use Phel\Compiler\NodeEnvironmentInterface;
 use Phel\Lang\SourceLocation;
 use Phel\Lang\Symbol;
 
-final class BindingNode extends Node
+final class BindingNode extends AbstractNode
 {
     private Symbol $symbol;
     private Symbol $shadow;
-    private Node $initExpr;
+    private AbstractNode $initExpr;
 
     public function __construct(
         NodeEnvironmentInterface $env,
         Symbol $symbol,
         Symbol $shadow,
-        Node $initExpr,
+        AbstractNode $initExpr,
         ?SourceLocation $sourceLocation = null
     ) {
         parent::__construct($env, $sourceLocation);
@@ -32,7 +32,7 @@ final class BindingNode extends Node
         return $this->symbol;
     }
 
-    public function getInitExpr(): Node
+    public function getInitExpr(): AbstractNode
     {
         return $this->initExpr;
     }
