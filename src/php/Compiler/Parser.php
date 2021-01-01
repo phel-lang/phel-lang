@@ -43,6 +43,8 @@ final class Parser implements ParserInterface
             return null;
         }
 
+        $tokenStream->clearReadTokens();
+
         return $this->readExpression($tokenStream);
     }
 
