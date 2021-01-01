@@ -16,7 +16,6 @@ use Phel\Lang\Symbol;
 use Phel\Lang\Table;
 use Phel\Lang\Tuple;
 use Phel\Compiler\Lexer;
-use Phel\Compiler\Parser;
 use PHPUnit\Framework\TestCase;
 
 final class ReaderTest extends TestCase
@@ -660,8 +659,9 @@ final class ReaderTest extends TestCase
     private function read(string $string, bool $removeLoc = false)
     {
         Symbol::resetGen();
-        $parser = new Parser();
-        $reader = (new CompilerFactory())->createReader(new GlobalEnvironment());
+        $compilerFactory = new CompilerFactory();
+        $parser = $compilerFactory->createParser();
+        $reader = $compilerFactory->createReader(new GlobalEnvironment());
         $tokenStream = (new Lexer())->lexString($string);
 
         $parseTree = $parser->parseNext($tokenStream);

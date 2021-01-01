@@ -6,7 +6,6 @@ namespace PhelTest\Unit\Printer;
 
 use Phel\Compiler\CompilerFactory;
 use Phel\Compiler\GlobalEnvironment;
-use Phel\Compiler\Parser;
 use Phel\Printer\Printer;
 use PHPUnit\Framework\TestCase;
 
@@ -68,7 +67,7 @@ final class PrinterTest extends TestCase
     private function read(string $string): string
     {
         $compilerFactory = new CompilerFactory();
-        $parser = new Parser();
+        $parser = $compilerFactory->createParser();
         $reader = $compilerFactory->createReader(new GlobalEnvironment());
         $tokenStream = $compilerFactory->createLexer()->lexString($string);
 

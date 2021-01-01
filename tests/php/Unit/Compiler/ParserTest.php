@@ -4,12 +4,12 @@ declare(strict_types=1);
 
 namespace PhelTest\Unit\Compiler;
 
+use Phel\Compiler\CompilerFactory;
 use Phel\Compiler\Parser\ParserNode\NodeInterface;
 use Phel\Lang\Keyword;
 use Phel\Lang\SourceLocation;
 use Phel\Lang\Symbol;
 use Phel\Compiler\Lexer;
-use Phel\Compiler\Parser;
 use Phel\Compiler\Parser\ParserNode\BooleanNode;
 use Phel\Compiler\Parser\ParserNode\CommentNode;
 use Phel\Compiler\Parser\ParserNode\KeywordNode;
@@ -472,7 +472,7 @@ final class ParserTest extends TestCase
 
     public function testEOF(): void
     {
-        $parser = new Parser();
+        $parser = (new CompilerFactory())->createParser();
         $tokenStream = (new Lexer())->lexString('');
 
         self::assertNull($parser->parseNext($tokenStream));
@@ -481,7 +481,7 @@ final class ParserTest extends TestCase
     public function testInvalidGenerator(): void
     {
         Symbol::resetGen();
-        $parser = new Parser();
+        $parser = (new CompilerFactory())->createParser();
         $tokenStream = (new Lexer())->lexString('');
 
         $tokenStream->next();
@@ -515,7 +515,7 @@ final class ParserTest extends TestCase
     private function parse(string $string): NodeInterface
     {
         Symbol::resetGen();
-        $parser = new Parser();
+        $parser = (new CompilerFactory())->createParser();
         $tokenStream = (new Lexer())->lexString($string);
 
         return $parser->parseNext($tokenStream);

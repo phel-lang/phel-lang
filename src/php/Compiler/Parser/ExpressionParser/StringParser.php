@@ -29,6 +29,9 @@ final class StringParser
         'e' => "\x1B",
     ];
 
+    /**
+     * @throws StringParserException
+     */
     public function parse(Token $token): StringNode
     {
         return new StringNode(
@@ -68,6 +71,9 @@ final class StringParser
         );
     }
 
+    /**
+     * @throws StringParserException
+     */
     private function codePointToUtf8(int $num): string
     {
         if ($num <= 0x7F) {
