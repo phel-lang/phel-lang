@@ -14,9 +14,6 @@ use PHPUnit\Framework\TestCase;
 
 final class PhelArrayBindingDeconstructorTest extends TestCase
 {
-    private const EXAMPLE_INDEX = 'index';
-    private const EXAMPLE_VALUE = 'example value';
-
     private PhelArrayBindingDeconstructor $deconstructor;
 
     public function setUp(): void
@@ -32,62 +29,103 @@ final class PhelArrayBindingDeconstructorTest extends TestCase
 
     public function testDeconstructSymbol(): void
     {
+        // Test for binding like this (let [@[0 a] x])
+        // This will be destructured to this:
+        // (let [__phel_1 x
+        //       __phel 2 (get __phel 0)
+        //       a __phel_2])
+
+        $index = 0;
+        $bindTo = Symbol::create('a');
+        $binding = PhelArray::create($index, $bindTo); // @[0 a]
+        $value = Symbol::create('x');
+
         $bindings = [];
-
-        $binding = PhelArray::create(
-            self::EXAMPLE_INDEX,
-            Symbol::create(self::EXAMPLE_VALUE),
-        );
-
-        $this->deconstructor->deconstruct($bindings, $binding, self::EXAMPLE_VALUE);
+        $this->deconstructor->deconstruct($bindings, $binding, $value);
 
         self::assertEquals([
+            // __phel_1 x
             [
                 Symbol::create('__phel_1'),
-                self::EXAMPLE_VALUE,
+                $value,
             ],
+            // __phel_2 (get __phel_1 0)
             [
                 Symbol::create('__phel_2'),
                 Tuple::create(
                     Symbol::create(Symbol::NAME_PHP_ARRAY_GET),
                     Symbol::create('__phel_1'),
-                    self::EXAMPLE_INDEX
+                    $index
                 ),
             ],
+            // a __phel_2
             [
-                Symbol::create(self::EXAMPLE_VALUE),
+                $bindTo,
                 Symbol::create('__phel_2'),
             ],
         ], $bindings);
     }
 
-    public function testDeconstructTuple(): void
+    public function testDeconstructNestedTuple(): void
     {
+        // Test for binding like this (let [@[0 [a]] x])
+        // This will be destructured to this:
+        // (let [__phel_1 x
+        //       __phel 2 (get __phel 0)
+        //       __phel_3 __phel_2
+        //       __phel_4 (first __phel_3 0)
+        //       __phel_5 (next __phel_3 0)
+        //       a __phel_4])
+
+
+        $value = Symbol::create('x');
+        $bindTo = Symbol::create('a');
+        $index = 0;
+        $binding = PhelArray::create($index, Tuple::create($bindTo));
+
         $bindings = [];
-
-        $binding = PhelArray::create(
-            self::EXAMPLE_INDEX,
-            Tuple::create(),
-        );
-
-        $this->deconstructor->deconstruct($bindings, $binding, self::EXAMPLE_VALUE);
+        $this->deconstructor->deconstruct($bindings, $binding, $value);
 
         self::assertEquals([
+            // __phel_1 x
             [
                 Symbol::create('__phel_1'),
-                self::EXAMPLE_VALUE,
+                $value,
             ],
+            // __phel 2 (get __phel 0)
             [
                 Symbol::create('__phel_2'),
                 Tuple::create(
                     Symbol::create(Symbol::NAME_PHP_ARRAY_GET),
                     Symbol::create('__phel_1'),
-                    self::EXAMPLE_INDEX
+                    $index
                 ),
             ],
+            // __phel_3 __phel_2
             [
                 Symbol::create('__phel_3'),
                 Symbol::create('__phel_2'),
+            ],
+            // __phel_4 (first __phel_3)
+            [
+                Symbol::create('__phel_4'),
+                Tuple::create(
+                    Symbol::create('first'),
+                    Symbol::create('__phel_3'),
+                ),
+            ],
+            // __phel_5 (next __phel_3)
+            [
+                Symbol::create('__phel_5'),
+                Tuple::create(
+                    Symbol::create('next'),
+                    Symbol::create('__phel_3'),
+                ),
+            ],
+            // a __phel_4
+            [
+                $bindTo,
+                Symbol::create('__phel_4'),
             ],
         ], $bindings);
     }
