@@ -7,6 +7,7 @@ namespace Phel\Compiler\Parser\ExpressionParser;
 use Phel\Compiler\Parser;
 use Phel\Compiler\Parser\ParserNode\ListNode;
 use Phel\Compiler\TokenStream;
+use Phel\Exceptions\ParserException;
 
 final class ListParser
 {
@@ -36,6 +37,6 @@ final class ListParser
             $acc[] = $this->parser->readExpression($tokenStream);
         }
 
-        throw $this->parser->buildParserException('Unterminated list', $tokenStream->getCodeSnippet());
+        throw ParserException::forSnippet($tokenStream->getCodeSnippet(), 'Unterminated list');
     }
 }

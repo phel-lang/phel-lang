@@ -13,6 +13,18 @@ final class ReaderException extends PhelCodeException
 {
     private CodeSnippet $codeSnippet;
 
+    public static function forNode(NodeInterface $node, string $message): self
+    {
+        $codeSnippet = CodeSnippet::fromNode($node);
+
+        return new self(
+            $message,
+            $codeSnippet->getStartLocation(),
+            $codeSnippet->getEndLocation(),
+            $codeSnippet
+        );
+    }
+
     private function __construct(
         string $message,
         SourceLocation $startLocation,
@@ -22,18 +34,6 @@ final class ReaderException extends PhelCodeException
     ) {
         parent::__construct($message, $startLocation, $endLocation, $nestedException);
         $this->codeSnippet = $codeSnippet;
-    }
-
-    public static function forNode(NodeInterface $node, string $message): self
-    {
-        $codeSnippet = CodeSnippet::fromNode($node);
-
-        return new ReaderException(
-            $message,
-            $codeSnippet->getStartLocation(),
-            $codeSnippet->getEndLocation(),
-            $codeSnippet
-        );
     }
 
     public function getCodeSnippet(): CodeSnippet

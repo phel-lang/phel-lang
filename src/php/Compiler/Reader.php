@@ -88,7 +88,7 @@ final class Reader implements ReaderInterface
         }
 
         if ($node instanceof MetaNode) {
-            return $this->readMeta($node);
+            return $this->readMetaNode($node);
         }
 
         throw ReaderException::forNode($node, 'Unterminated list');
@@ -164,7 +164,7 @@ final class Reader implements ReaderInterface
     /**
      * @return AbstractType|string|float|int|bool
      */
-    private function readMeta(MetaNode $node)
+    private function readMetaNode(MetaNode $node)
     {
         return (new MetaReader($this))->read($node);
     }
