@@ -14,9 +14,7 @@ final class TokenStream implements Iterator
     /** @var Generator<Token> */
     private Generator $tokenGenerator;
 
-    /**
-     * @var Token[]
-     */
+    /** @var Token[] */
     private array $readTokens;
 
     public function __construct(Generator $tokenGenerator)
