@@ -60,7 +60,7 @@ final class ReaderTest extends TestCase
 
     public function testReadNil(): void
     {
-        $this->assertNull(
+        self::assertNull(
             $this->read('nil')
         );
     }

@@ -4,27 +4,34 @@ declare(strict_types=1);
 
 namespace Phel\Compiler\Analyzer\TupleSymbol;
 
-use Phel\Compiler\Analyzer\WithAnalyzer;
+use Phel\Compiler\Analyzer\TupleSymbol\Binding\BindingValidator;
+use Phel\Compiler\AnalyzerInterface;
 use Phel\Compiler\Ast\BindingNode;
 use Phel\Compiler\Ast\LetNode;
 use Phel\Compiler\NodeEnvironmentInterface;
 use Phel\Compiler\RecurFrame;
-use Phel\Destructure;
 use Phel\Exceptions\AnalyzerException;
 use Phel\Lang\Symbol;
 use Phel\Lang\Tuple;
 
 final class LoopSymbol implements TupleSymbolAnalyzer
 {
-    use WithAnalyzer;
+    private AnalyzerInterface $analyzer;
+    private BindingValidator $bindingValidator;
+
+    public function __construct(AnalyzerInterface $analyzer, BindingValidator $bindingValidator)
+    {
+        $this->analyzer = $analyzer;
+        $this->bindingValidator = $bindingValidator;
+    }
 
     public function analyze(Tuple $tuple, NodeEnvironmentInterface $env): LetNode
     {
-        $tupleCount = count($tuple);
         if (!($tuple[0] instanceof Symbol && $tuple[0]->getName() === Symbol::NAME_LOOP)) {
             throw AnalyzerException::withLocation("This is not a 'loop.", $tuple);
         }
 
+        $tupleCount = count($tuple);
         if ($tupleCount < 2) {
             throw AnalyzerException::withLocation("At least two arguments are required for 'loop.", $tuple);
         }
@@ -46,7 +53,7 @@ final class LoopSymbol implements TupleSymbolAnalyzer
             $b = $loopBindings[$i];
             $init = $loopBindings[$i + 1];
 
-            Destructure::assertSupportedBinding($b);
+            $this->bindingValidator->assertSupportedBinding($b);
 
             if ($b instanceof Symbol) {
                 $preInits[] = $b;

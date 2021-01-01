@@ -45,6 +45,15 @@ class Table extends AbstractType implements ArrayAccess, Countable, Iterator, Se
         return self::fromKVs(...$kvs);
     }
 
+    public static function fromTuple(Tuple $tuple): self
+    {
+        $table = self::fromKVArray($tuple->toArray());
+        $table->setStartLocation($tuple->getStartLocation());
+        $table->setEndLocation($tuple->getEndLocation());
+
+        return $table;
+    }
+
     public function offsetSet($offset, $value): void
     {
         $hash = $this->offsetHash($offset);

@@ -42,7 +42,15 @@ final class Lexer implements LexerInterface
         $this->combinedRegex = '/(?:' . implode('|', self::REGEXPS) . ')/mA';
     }
 
-    public function lexString(string $code, string $source = self::DEFAULT_SOURCE): Generator
+    public function lexString(string $code, string $source = self::DEFAULT_SOURCE): TokenStream
+    {
+        return new TokenStream($this->lexStringGenerator($code, $source));
+    }
+
+    /**
+     * @return Generator<Token>
+     */
+    private function lexStringGenerator(string $code, string $source = self::DEFAULT_SOURCE): Generator
     {
         $this->cursor = 0;
         $this->line = 1;

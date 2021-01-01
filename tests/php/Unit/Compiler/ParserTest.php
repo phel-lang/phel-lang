@@ -4,23 +4,24 @@ declare(strict_types=1);
 
 namespace PhelTest\Unit\Compiler;
 
+use Phel\Compiler\Parser\ParserNode\NodeInterface;
 use Phel\Lang\Keyword;
 use Phel\Lang\SourceLocation;
 use Phel\Lang\Symbol;
 use Phel\Compiler\Lexer;
 use Phel\Compiler\Parser;
-use Phel\Compiler\ParserNode\BooleanNode;
-use Phel\Compiler\ParserNode\CommentNode;
-use Phel\Compiler\ParserNode\KeywordNode;
-use Phel\Compiler\ParserNode\ListNode;
-use Phel\Compiler\ParserNode\MetaNode;
-use Phel\Compiler\ParserNode\NewlineNode;
-use Phel\Compiler\ParserNode\NilNode;
-use Phel\Compiler\ParserNode\NumberNode;
-use Phel\Compiler\ParserNode\QuoteNode;
-use Phel\Compiler\ParserNode\StringNode;
-use Phel\Compiler\ParserNode\SymbolNode;
-use Phel\Compiler\ParserNode\WhitespaceNode;
+use Phel\Compiler\Parser\ParserNode\BooleanNode;
+use Phel\Compiler\Parser\ParserNode\CommentNode;
+use Phel\Compiler\Parser\ParserNode\KeywordNode;
+use Phel\Compiler\Parser\ParserNode\ListNode;
+use Phel\Compiler\Parser\ParserNode\MetaNode;
+use Phel\Compiler\Parser\ParserNode\NewlineNode;
+use Phel\Compiler\Parser\ParserNode\NilNode;
+use Phel\Compiler\Parser\ParserNode\NumberNode;
+use Phel\Compiler\Parser\ParserNode\QuoteNode;
+use Phel\Compiler\Parser\ParserNode\StringNode;
+use Phel\Compiler\Parser\ParserNode\SymbolNode;
+use Phel\Compiler\Parser\ParserNode\WhitespaceNode;
 use Phel\Compiler\Token;
 use Phel\Exceptions\ParserException;
 use PHPUnit\Framework\TestCase;
@@ -72,7 +73,7 @@ final class ParserTest extends TestCase
 
     public function testReadNil(): void
     {
-        $this->assertEquals(
+        self::assertEquals(
             new NilNode('nil', $this->loc(1, 0), $this->loc(1, 3), null),
             $this->parse('nil')
         );
@@ -448,46 +449,46 @@ final class ParserTest extends TestCase
         );
     }
 
-    public function testReadUnbalancedClosedParen()
+    public function testReadUnbalancedClosedParen(): void
     {
         $this->expectException(ParserException::class);
         $this->expectExceptionMessage('Unterminated list');
         $this->parse(')');
     }
 
-    public function testReadUnbalancedOpenParen()
+    public function testReadUnbalancedOpenParen(): void
     {
         $this->expectException(ParserException::class);
         $this->expectExceptionMessage('Unterminated list');
         $this->parse('(');
     }
 
-    public function testReadUnbalancedOpenBrace()
+    public function testReadUnbalancedOpenBrace(): void
     {
         $this->expectException(ParserException::class);
         $this->expectExceptionMessage('Unexpected token: {');
         $this->parse('{');
     }
 
-    public function testEOF()
+    public function testEOF(): void
     {
         $parser = new Parser();
         $tokenStream = (new Lexer())->lexString('');
 
-        $this->assertNull($parser->parseNext($tokenStream));
+        self::assertNull($parser->parseNext($tokenStream));
     }
 
-    public function testInvalidGenerator()
+    public function testInvalidGenerator(): void
     {
         Symbol::resetGen();
         $parser = new Parser();
         $tokenStream = (new Lexer())->lexString('');
 
         $tokenStream->next();
-        $this->assertNull($parser->parseNext($tokenStream));
+        self::assertNull($parser->parseNext($tokenStream));
     }
 
-    public function testReadComment()
+    public function testReadComment(): void
     {
         self::assertEquals(
             new CommentNode('# Test', $this->loc(1, 0), $this->loc(1, 6)),
@@ -495,7 +496,7 @@ final class ParserTest extends TestCase
         );
     }
 
-    public function testReadWhitespaceOnly()
+    public function testReadWhitespaceOnly(): void
     {
         self::assertEquals(
             new WhitespaceNode(" \t", $this->loc(1, 0), $this->loc(1, 2)),
@@ -503,7 +504,7 @@ final class ParserTest extends TestCase
         );
     }
 
-    public function testReadNewline()
+    public function testReadNewline(): void
     {
         self::assertEquals(
             new NewlineNode("\n", $this->loc(1, 0), $this->loc(2, 0)),
@@ -511,10 +512,7 @@ final class ParserTest extends TestCase
         );
     }
 
-    /**
-     * @return NodeInterface
-     */
-    private function parse(string $string, bool $removeLoc = false)
+    private function parse(string $string): NodeInterface
     {
         Symbol::resetGen();
         $parser = new Parser();

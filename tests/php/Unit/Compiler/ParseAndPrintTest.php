@@ -6,7 +6,7 @@ namespace PhelTest\Unit\Compiler;
 
 use Phel\Compiler\Lexer;
 use Phel\Compiler\Parser;
-use Phel\Compiler\ParserNode\NodeInterface;
+use Phel\Compiler\Parser\ParserNode\NodeInterface;
 use Phel\Lang\Symbol;
 use PHPUnit\Framework\TestCase;
 

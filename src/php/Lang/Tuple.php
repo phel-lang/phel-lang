@@ -218,4 +218,9 @@ final class Tuple extends AbstractType implements
     {
         return Printer::readable()->print($this);
     }
+
+    public function hasEvenNumberOfParams(): bool
+    {
+        return $this->count() % 2 === 0;
+    }
 }
