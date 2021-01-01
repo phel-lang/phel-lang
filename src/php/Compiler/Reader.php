@@ -72,11 +72,11 @@ final class Reader implements ReaderInterface
     public function readExpression(NodeInterface $node)
     {
         if ($node instanceof SymbolNode) {
-            return $this->readSymbol($node);
+            return $this->readSymbolNode($node);
         }
 
         if ($node instanceof AtomNode) {
-            return $this->readAtom($node);
+            return $this->readAtomNode($node);
         }
 
         if ($node instanceof ListNode) {
@@ -88,13 +88,13 @@ final class Reader implements ReaderInterface
         }
 
         if ($node instanceof MetaNode) {
-            return $this->readMeta($node);
+            return $this->readMetaNode($node);
         }
 
         throw ReaderException::forNode($node, 'Unterminated list');
     }
 
-    private function readSymbol(SymbolNode $node): Symbol
+    private function readSymbolNode(SymbolNode $node): Symbol
     {
         return (new SymbolReader())->read($node, $this->fnArgs);
     }
@@ -102,7 +102,7 @@ final class Reader implements ReaderInterface
     /**
      * @return AbstractType|string|float|int|bool|null
      */
-    private function readAtom(AtomNode $node)
+    private function readAtomNode(AtomNode $node)
     {
         return (new AtomReader())->read($node);
     }
@@ -164,7 +164,7 @@ final class Reader implements ReaderInterface
     /**
      * @return AbstractType|string|float|int|bool
      */
-    private function readMeta(MetaNode $node)
+    private function readMetaNode(MetaNode $node)
     {
         return (new MetaReader($this))->read($node);
     }

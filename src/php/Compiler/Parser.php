@@ -18,13 +18,11 @@ use Phel\Compiler\Parser\ParserNode\NodeInterface;
 use Phel\Compiler\Parser\ParserNode\QuoteNode;
 use Phel\Compiler\Parser\ParserNode\StringNode;
 use Phel\Compiler\Parser\ParserNode\WhitespaceNode;
-use Phel\Compiler\Parser\ReadModel\CodeSnippet;
 use Phel\Exceptions\ParserException;
 use Phel\Exceptions\StringParserException;
 
 final class Parser implements ParserInterface
 {
-
     /**
      * Reads the next expression from the token stream.
      * If the token stream reaches the end, null is returned.
@@ -35,11 +33,7 @@ final class Parser implements ParserInterface
      */
     public function parseNext(TokenStream $tokenStream): ?NodeInterface
     {
-        if (!$tokenStream->valid()) {
-            return null;
-        }
-
-        if ($tokenStream->current()->getType() === Token::T_EOF) {
+        if (!$this->canParseToken($tokenStream)) {
             return null;
         }
 
@@ -90,12 +84,12 @@ final class Parser implements ParserInterface
                     return $this->createTableListNode($tokenStream, $token);
 
                 case Token::T_OPEN_BRACE:
-                    throw $this->buildParserException('Unexpected token: {', $tokenStream->getCodeSnippet());
+                    throw $this->createParserException($tokenStream, 'Unexpected token: {');
 
                 case Token::T_CLOSE_PARENTHESIS:
                 case Token::T_CLOSE_BRACKET:
                 case Token::T_CLOSE_BRACE:
-                    throw $this->buildParserException('Unterminated list', $tokenStream->getCodeSnippet());
+                    throw $this->createParserException($tokenStream, 'Unterminated list');
 
                 case Token::T_UNQUOTE_SPLICING:
                 case Token::T_UNQUOTE:
@@ -107,14 +101,21 @@ final class Parser implements ParserInterface
                     return $this->createMetaNode($tokenStream);
 
                 case Token::T_EOF:
-                    throw $this->buildParserException('Unterminated list', $tokenStream->getCodeSnippet());
+                    throw $this->createParserException($tokenStream, 'Unterminated list');
 
                 default:
-                    throw $this->buildParserException('Unhandled syntax token: ' . $token->getCode(), $tokenStream->getCodeSnippet());
+                    throw $this->createParserException($tokenStream, 'Unhandled syntax token: ' . $token->getCode());
             }
         }
 
-        throw $this->buildParserException('Unterminated list', $tokenStream->getCodeSnippet());
+        throw $this->createParserException($tokenStream, 'Unterminated list');
+    }
+
+
+    private function canParseToken(TokenStream $tokenStream): bool
+    {
+        return $tokenStream->valid()
+            && $tokenStream->current()->getType() !== Token::T_EOF;
     }
 
     private function createWhitespaceNode(Token $token): WhitespaceNode
@@ -142,7 +143,7 @@ final class Parser implements ParserInterface
         try {
             return (new StringParser($this))->parse($token);
         } catch (StringParserException $e) {
-            throw $this->buildParserException($e->getMessage(), $tokenStream->getCodeSnippet());
+            throw $this->createParserException($tokenStream, $e->getMessage());
         }
     }
 
@@ -171,8 +172,8 @@ final class Parser implements ParserInterface
         return (new MetaParser($this))->parse($tokenStream);
     }
 
-    public function buildParserException(string $message, CodeSnippet $snippet): ParserException
+    private function createParserException(TokenStream $tokenStream, string $message): ParserException
     {
-        return new ParserException($message, $snippet->getStartLocation(), $snippet->getEndLocation(), $snippet);
+        return ParserException::forSnippet($tokenStream->getCodeSnippet(), $message);
     }
 }
