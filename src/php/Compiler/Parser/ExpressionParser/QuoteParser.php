@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace Phel\Compiler\Parser\ExpressionParser;
 
-use Generator;
 use Phel\Compiler\Parser;
 use Phel\Compiler\Parser\ParserNode\QuoteNode;
+use Phel\Compiler\TokenStream;
 
 final class QuoteParser
 {
@@ -17,7 +17,7 @@ final class QuoteParser
         $this->parser = $parser;
     }
 
-    public function parse(Generator $tokenStream, int $tokenType): QuoteNode
+    public function parse(TokenStream $tokenStream, int $tokenType): QuoteNode
     {
         $startLocation = $tokenStream->current()->getStartLocation();
         $tokenStream->next();

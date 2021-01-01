@@ -7,6 +7,7 @@ namespace Phel\Compiler\Parser\ExpressionParser;
 use Phel\Compiler\Parser;
 use Phel\Compiler\Parser\ParserNode\StringNode;
 use Phel\Compiler\Token;
+use Phel\Exceptions\StringParserException;
 
 final class StringParser
 {
@@ -85,6 +86,6 @@ final class StringParser
             return chr(($num >> 18) + 0xF0) . chr((($num >> 12)&0x3F) + 0x80)
                 . chr((($num >> 6)&0x3F) + 0x80) . chr(($num&0x3F) + 0x80);
         }
-        throw $this->parser->buildParserException('Invalid UTF-8 codepoint escape sequence: Codepoint too large');
+        throw new StringParserException('Invalid UTF-8 codepoint escape sequence: Codepoint too large');
     }
 }

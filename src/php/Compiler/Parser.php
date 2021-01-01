@@ -4,13 +4,11 @@ declare(strict_types=1);
 
 namespace Phel\Compiler;
 
-use Generator;
 use Phel\Compiler\Parser\ExpressionParser\AtomParser;
 use Phel\Compiler\Parser\ExpressionParser\ListParser;
 use Phel\Compiler\Parser\ExpressionParser\MetaParser;
 use Phel\Compiler\Parser\ExpressionParser\QuoteParser;
 use Phel\Compiler\Parser\ExpressionParser\StringParser;
-use Phel\Compiler\Parser\ParserExceptionBuilder;
 use Phel\Compiler\Parser\ParserNode\AtomNode;
 use Phel\Compiler\Parser\ParserNode\CommentNode;
 use Phel\Compiler\Parser\ParserNode\ListNode;
@@ -20,22 +18,22 @@ use Phel\Compiler\Parser\ParserNode\NodeInterface;
 use Phel\Compiler\Parser\ParserNode\QuoteNode;
 use Phel\Compiler\Parser\ParserNode\StringNode;
 use Phel\Compiler\Parser\ParserNode\WhitespaceNode;
+use Phel\Compiler\Parser\ReadModel\CodeSnippet;
 use Phel\Exceptions\ParserException;
+use Phel\Exceptions\StringParserException;
 
 final class Parser implements ParserInterface
 {
-    /** @var Token[] */
-    private array $readTokens = [];
 
     /**
      * Reads the next expression from the token stream.
      * If the token stream reaches the end, null is returned.
      *
-     * @param Generator $tokenStream The token stream to read
+     * @param TokenStream $tokenStream The token stream to read
      *
      * @throws ParserException
      */
-    public function parseNext(Generator $tokenStream): ?NodeInterface
+    public function parseNext(TokenStream $tokenStream): ?NodeInterface
     {
         if (!$tokenStream->valid()) {
             return null;
@@ -45,20 +43,17 @@ final class Parser implements ParserInterface
             return null;
         }
 
-        $this->readTokens = [];
-
         return $this->readExpression($tokenStream);
     }
 
     /**
      * @throws ParserException
      */
-    public function readExpression(Generator $tokenStream): NodeInterface
+    public function readExpression(TokenStream $tokenStream): NodeInterface
     {
         while ($tokenStream->valid()) {
             /** @var Token $token */
             $token = $tokenStream->current();
-            $this->readTokens[] = $token;
 
             switch ($token->getType()) {
                 case Token::T_WHITESPACE:
@@ -79,7 +74,7 @@ final class Parser implements ParserInterface
 
                 case Token::T_STRING:
                     $tokenStream->next();
-                    return $this->createStringNode($token);
+                    return $this->createStringNode($token, $tokenStream);
 
                 case Token::T_FN:
                 case Token::T_OPEN_PARENTHESIS:
@@ -93,12 +88,12 @@ final class Parser implements ParserInterface
                     return $this->createTableListNode($tokenStream, $token);
 
                 case Token::T_OPEN_BRACE:
-                    throw $this->buildParserException('Unexpected token: {');
+                    throw $this->buildParserException('Unexpected token: {', $tokenStream->getCodeSnippet());
 
                 case Token::T_CLOSE_PARENTHESIS:
                 case Token::T_CLOSE_BRACKET:
                 case Token::T_CLOSE_BRACE:
-                    throw $this->buildParserException('Unterminated list');
+                    throw $this->buildParserException('Unterminated list', $tokenStream->getCodeSnippet());
 
                 case Token::T_UNQUOTE_SPLICING:
                 case Token::T_UNQUOTE:
@@ -110,14 +105,14 @@ final class Parser implements ParserInterface
                     return $this->createMetaNode($tokenStream);
 
                 case Token::T_EOF:
-                    throw $this->buildParserException('Unterminated list');
+                    throw $this->buildParserException('Unterminated list', $tokenStream->getCodeSnippet());
 
                 default:
-                    throw $this->buildParserException('Unhandled syntax token: ' . $token->getCode());
+                    throw $this->buildParserException('Unhandled syntax token: ' . $token->getCode(), $tokenStream->getCodeSnippet());
             }
         }
 
-        throw $this->buildParserException('Unterminated list');
+        throw $this->buildParserException('Unterminated list', $tokenStream->getCodeSnippet());
     }
 
     private function createWhitespaceNode(Token $token): WhitespaceNode
@@ -140,38 +135,42 @@ final class Parser implements ParserInterface
         return (new AtomParser())->parse($token);
     }
 
-    private function createStringNode(Token $token): StringNode
+    private function createStringNode(Token $token, TokenStream $tokenStream): StringNode
     {
-        return (new StringParser($this))->parse($token);
+        try {
+            return (new StringParser($this))->parse($token);
+        } catch (StringParserException $e) {
+            throw $this->buildParserException($e->getMessage(), $tokenStream->getCodeSnippet());
+        }
     }
 
-    private function createFnListNode(Generator $tokenStream, Token $token): ListNode
+    private function createFnListNode(TokenStream $tokenStream, Token $token): ListNode
     {
         return (new ListParser($this))->parse($tokenStream, Token::T_CLOSE_PARENTHESIS, $token->getType());
     }
 
-    private function createArrayListNode(Generator $tokenStream, Token $token): ListNode
+    private function createArrayListNode(TokenStream $tokenStream, Token $token): ListNode
     {
         return (new ListParser($this))->parse($tokenStream, Token::T_CLOSE_BRACKET, $token->getType());
     }
 
-    private function createTableListNode(Generator $tokenStream, Token $token): ListNode
+    private function createTableListNode(TokenStream $tokenStream, Token $token): ListNode
     {
         return (new ListParser($this))->parse($tokenStream, Token::T_CLOSE_BRACE, $token->getType());
     }
 
-    private function createQuoteNode(Generator $tokenStream, Token $token): QuoteNode
+    private function createQuoteNode(TokenStream $tokenStream, Token $token): QuoteNode
     {
         return (new QuoteParser($this))->parse($tokenStream, $token->getType());
     }
 
-    private function createMetaNode(Generator $tokenStream): MetaNode
+    private function createMetaNode(TokenStream $tokenStream): MetaNode
     {
         return (new MetaParser($this))->parse($tokenStream);
     }
 
-    public function buildParserException(string $message): ParserException
+    public function buildParserException(string $message, CodeSnippet $snippet): ParserException
     {
-        return ParserExceptionBuilder::withReadTokens($this->readTokens)->build($message);
+        return new ParserException($message, $snippet->getStartLocation(), $snippet->getEndLocation(), $snippet);
     }
 }

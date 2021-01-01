@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace Phel\Compiler\Parser\ExpressionParser;
 
-use Generator;
 use Phel\Compiler\Parser;
 use Phel\Compiler\Parser\ParserNode\MetaNode;
 use Phel\Compiler\Parser\ParserNode\TriviaNodeInterface;
+use Phel\Compiler\TokenStream;
 
 final class MetaParser
 {
@@ -18,7 +18,7 @@ final class MetaParser
         $this->parser = $parser;
     }
 
-    public function parse(Generator $tokenStream): MetaNode
+    public function parse(TokenStream $tokenStream): MetaNode
     {
         $startLocation = $tokenStream->current()->getStartLocation();
         $tokenStream->next();

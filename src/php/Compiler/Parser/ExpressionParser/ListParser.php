@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace Phel\Compiler\Parser\ExpressionParser;
 
-use Generator;
 use Phel\Compiler\Parser;
 use Phel\Compiler\Parser\ParserNode\ListNode;
+use Phel\Compiler\TokenStream;
 
 final class ListParser
 {
@@ -17,7 +17,7 @@ final class ListParser
         $this->parser = $parser;
     }
 
-    public function parse(Generator $tokenStream, int $endTokenType, int $tokenType): ListNode
+    public function parse(TokenStream $tokenStream, int $endTokenType, int $tokenType): ListNode
     {
         $acc = [];
         $startLocation = $tokenStream->current()->getStartLocation();
@@ -36,6 +36,6 @@ final class ListParser
             $acc[] = $this->parser->readExpression($tokenStream);
         }
 
-        throw $this->parser->buildParserException('Unterminated list');
+        throw $this->parser->buildParserException('Unterminated list', $tokenStream->getCodeSnippet());
     }
 }
