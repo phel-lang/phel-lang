@@ -4,15 +4,7 @@ declare(strict_types=1);
 
 namespace Phel\Compiler;
 
-use Phel\Compiler\Parser\ExpressionReader\AtomReader;
-use Phel\Compiler\Parser\ExpressionReader\ListArrayReader;
-use Phel\Compiler\Parser\ExpressionReader\ListFnReader;
-use Phel\Compiler\Parser\ExpressionReader\ListReader;
-use Phel\Compiler\Parser\ExpressionReader\ListTableReader;
-use Phel\Compiler\Parser\ExpressionReader\MetaReader;
-use Phel\Compiler\Parser\ExpressionReader\QuoasiquoteReader;
-use Phel\Compiler\Parser\ExpressionReader\SymbolReader;
-use Phel\Compiler\Parser\ExpressionReader\WrapReader;
+use Phel\Compiler\Parser\ExpressionReaderFactoryInterface;
 use Phel\Compiler\Parser\ParserNode\AtomNode;
 use Phel\Compiler\Parser\ParserNode\ListNode;
 use Phel\Compiler\Parser\ParserNode\MetaNode;
@@ -36,10 +28,14 @@ final class Reader implements ReaderInterface
     /** @var Symbol[]|null */
     private ?array $fnArgs = null;
 
+    private ExpressionReaderFactoryInterface $readerFactory;
     private QuasiquoteTransformerInterface $quasiquoteTransformer;
 
-    public function __construct(QuasiquoteTransformerInterface $quasiquoteTransformer)
-    {
+    public function __construct(
+        ExpressionReaderFactoryInterface $readerFactory,
+        QuasiquoteTransformerInterface $quasiquoteTransformer
+    ) {
+        $this->readerFactory = $readerFactory;
         $this->quasiquoteTransformer = $quasiquoteTransformer;
     }
 
@@ -96,7 +92,9 @@ final class Reader implements ReaderInterface
 
     private function readSymbolNode(SymbolNode $node): Symbol
     {
-        return (new SymbolReader())->read($node, $this->fnArgs);
+        return $this->readerFactory
+            ->createSymbolReader()
+            ->read($node, $this->fnArgs);
     }
 
     /**
@@ -104,7 +102,9 @@ final class Reader implements ReaderInterface
      */
     private function readAtomNode(AtomNode $node)
     {
-        return (new AtomReader())->read($node);
+        return $this->readerFactory
+            ->createAtomReader()
+            ->read($node);
     }
 
     /**
@@ -113,25 +113,35 @@ final class Reader implements ReaderInterface
     private function readListNode(ListNode $node)
     {
         if ($node->getTokenType() === Token::T_OPEN_PARENTHESIS) {
-            return (new ListReader($this))->read($node);
+            return $this->readerFactory
+                ->createListReader($this)
+                ->read($node);
         }
 
         if ($node->getTokenType() === Token::T_OPEN_BRACKET) {
-            return (new ListReader($this))->readUsingBrackets($node);
+            return $this->readerFactory
+                ->createListReader($this)
+                ->readUsingBrackets($node);
         }
 
         if ($node->getTokenType() === Token::T_ARRAY) {
-            return (new ListArrayReader($this))->read($node);
+            return $this->readerFactory
+                ->createListArrayReader($this)
+                ->read($node);
         }
 
         if ($node->getTokenType() === Token::T_TABLE) {
-            return (new ListTableReader($this))->read($node);
+            return $this->readerFactory
+                ->createListTableReader($this)
+                ->read($node);
         }
 
         if ($node->getTokenType() === Token::T_FN) {
             $this->fnArgs = [];
 
-            return (new ListFnReader($this))->read($node, $this->fnArgs);
+            return $this->readerFactory
+                ->createListFnReader($this)
+                ->read($node, $this->fnArgs);
         }
 
         throw new RuntimeException('Not a valid ListNode: ' . get_class($node));
@@ -143,19 +153,27 @@ final class Reader implements ReaderInterface
     private function readQuoteNode(QuoteNode $node)
     {
         if ($node->getTokenType() === Token::T_QUOTE) {
-            return (new WrapReader($this))->read($node, Symbol::NAME_QUOTE);
+            return $this->readerFactory
+                ->createWrapReader($this)
+                ->read($node, Symbol::NAME_QUOTE);
         }
 
         if ($node->getTokenType() === Token::T_UNQUOTE) {
-            return (new WrapReader($this))->read($node, Symbol::NAME_UNQUOTE);
+            return $this->readerFactory
+                ->createWrapReader($this)
+                ->read($node, Symbol::NAME_UNQUOTE);
         }
 
         if ($node->getTokenType() === Token::T_UNQUOTE_SPLICING) {
-            return (new WrapReader($this))->read($node, Symbol::NAME_UNQUOTE_SPLICING);
+            return $this->readerFactory
+                ->createWrapReader($this)
+                ->read($node, Symbol::NAME_UNQUOTE_SPLICING);
         }
 
         if ($node->getTokenType() === Token::T_QUASIQUOTE) {
-            return (new QuoasiquoteReader($this, $this->quasiquoteTransformer))->read($node);
+            return $this->readerFactory
+                ->createQuoasiquoteReader($this, $this->quasiquoteTransformer)
+                ->read($node);
         }
 
         throw new RuntimeException('Not a valid QuoteNode: ' . get_class($node));
@@ -166,6 +184,8 @@ final class Reader implements ReaderInterface
      */
     private function readMetaNode(MetaNode $node)
     {
-        return (new MetaReader($this))->read($node);
+        return $this->readerFactory
+            ->createMetaReader($this)
+            ->read($node);
     }
 }

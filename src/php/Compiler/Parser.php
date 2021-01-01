@@ -4,15 +4,24 @@ declare(strict_types=1);
 
 namespace Phel\Compiler;
 
-use Phel\Compiler\Parser\ParserFactory;
+use Phel\Compiler\Parser\ExpressionParserFactoryInterface;
+use Phel\Compiler\Parser\ParserNode\AtomNode;
+use Phel\Compiler\Parser\ParserNode\CommentNode;
+use Phel\Compiler\Parser\ParserNode\ListNode;
+use Phel\Compiler\Parser\ParserNode\MetaNode;
+use Phel\Compiler\Parser\ParserNode\NewlineNode;
 use Phel\Compiler\Parser\ParserNode\NodeInterface;
+use Phel\Compiler\Parser\ParserNode\QuoteNode;
+use Phel\Compiler\Parser\ParserNode\StringNode;
+use Phel\Compiler\Parser\ParserNode\WhitespaceNode;
 use Phel\Exceptions\ParserException;
+use Phel\Exceptions\StringParserException;
 
 final class Parser implements ParserInterface
 {
-    private ParserFactory $parserFactory;
+    private ExpressionParserFactoryInterface $parserFactory;
 
-    public function __construct(ParserFactory $parserFactory)
+    public function __construct(ExpressionParserFactoryInterface $parserFactory)
     {
         $this->parserFactory = $parserFactory;
     }
@@ -54,34 +63,34 @@ final class Parser implements ParserInterface
             switch ($token->getType()) {
                 case Token::T_WHITESPACE:
                     $tokenStream->next();
-                    return $this->parserFactory->createWhitespaceNode($token);
+                    return WhitespaceNode::createWithToken($token);
 
                 case Token::T_NEWLINE:
                     $tokenStream->next();
-                    return $this->parserFactory->createNewlineNode($token);
+                    return NewlineNode::createWithToken($token);
 
                 case Token::T_COMMENT:
                     $tokenStream->next();
-                    return $this->parserFactory->createCommentNode($token);
+                    return CommentNode::createWithToken($token);
 
                 case Token::T_ATOM:
                     $tokenStream->next();
-                    return $this->parserFactory->createAtomNode($token);
+                    return $this->parseAtomNode($token);
 
                 case Token::T_STRING:
                     $tokenStream->next();
-                    return $this->parserFactory->createStringNode($this, $token, $tokenStream);
+                    return $this->parseStringNode($token, $tokenStream);
 
                 case Token::T_FN:
                 case Token::T_OPEN_PARENTHESIS:
-                    return $this->parserFactory->createFnListNode($this, $token, $tokenStream);
+                    return $this->parseFnListNode($token, $tokenStream);
 
                 case Token::T_ARRAY:
                 case Token::T_OPEN_BRACKET:
-                    return $this->parserFactory->createArrayListNode($this, $token, $tokenStream);
+                    return $this->parseArrayListNode($token, $tokenStream);
 
                 case Token::T_TABLE:
-                    return $this->parserFactory->createTableListNode($this, $token, $tokenStream);
+                    return $this->parseTableListNode($token, $tokenStream);
 
                 case Token::T_OPEN_BRACE:
                     throw $this->createParserException($tokenStream, 'Unexpected token: {');
@@ -95,10 +104,10 @@ final class Parser implements ParserInterface
                 case Token::T_UNQUOTE:
                 case Token::T_QUASIQUOTE:
                 case Token::T_QUOTE:
-                    return $this->parserFactory->createQuoteNode($this, $token, $tokenStream);
+                    return $this->parseQuoteNode($token, $tokenStream);
 
                 case Token::T_CARET:
-                    return $this->parserFactory->createMetaNode($this, $tokenStream);
+                    return $this->parseMetaNode($tokenStream);
 
                 case Token::T_EOF:
                     throw $this->createParserException($tokenStream, 'Unterminated list');
@@ -111,8 +120,73 @@ final class Parser implements ParserInterface
         throw $this->createParserException($tokenStream, 'Unterminated list');
     }
 
+    private function parseAtomNode(Token $token): AtomNode
+    {
+        return $this->parserFactory
+            ->createAtomParser()
+            ->parse($token);
+    }
+
+    /**
+     * @throws ParserException
+     */
+    private function parseStringNode(Token $token, TokenStream $tokenStream): StringNode
+    {
+        try {
+            return $this->parserFactory
+                ->createStringParser()
+                ->parse($token);
+        } catch (StringParserException $e) {
+            throw $this->createParserException($tokenStream, $e->getMessage());
+        }
+    }
+
     private function createParserException(TokenStream $tokenStream, string $message): ParserException
     {
         return ParserException::forSnippet($tokenStream->getCodeSnippet(), $message);
+    }
+
+    /**
+     * @throws ParserException
+     */
+    private function parseFnListNode(Token $token, TokenStream $tokenStream): ListNode
+    {
+        return $this->parserFactory
+            ->createListParser($this)
+            ->parse($tokenStream, Token::T_CLOSE_PARENTHESIS, $token->getType());
+    }
+
+    /**
+     * @throws ParserException
+     */
+    private function parseArrayListNode(Token $token, TokenStream $tokenStream): ListNode
+    {
+        return $this->parserFactory
+            ->createListParser($this)
+            ->parse($tokenStream, Token::T_CLOSE_BRACKET, $token->getType());
+    }
+
+    /**
+     * @throws ParserException
+     */
+    private function parseTableListNode(Token $token, TokenStream $tokenStream): ListNode
+    {
+        return $this->parserFactory
+            ->createListParser($this)
+            ->parse($tokenStream, Token::T_CLOSE_BRACE, $token->getType());
+    }
+
+    private function parseQuoteNode(Token $token, TokenStream $tokenStream): QuoteNode
+    {
+        return $this->parserFactory
+            ->createQuoteParser($this)
+            ->parse($tokenStream, $token->getType());
+    }
+
+    private function parseMetaNode(TokenStream $tokenStream): MetaNode
+    {
+        return $this->parserFactory
+            ->createMetaParser($this)
+            ->parse($tokenStream);
     }
 }

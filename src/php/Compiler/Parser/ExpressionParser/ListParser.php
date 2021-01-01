@@ -18,6 +18,9 @@ final class ListParser
         $this->parser = $parser;
     }
 
+    /**
+     * @throws ParserException
+     */
     public function parse(TokenStream $tokenStream, int $endTokenType, int $tokenType): ListNode
     {
         $acc = [];
