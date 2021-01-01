@@ -7,7 +7,7 @@ namespace Phel\Printer;
 use Phel\Lang\Keyword;
 use Phel\Lang\PhelArray;
 use Phel\Lang\Set;
-use Phel\Lang\Struct;
+use Phel\Lang\AbstractStruct;
 use Phel\Lang\Symbol;
 use Phel\Lang\Table;
 use Phel\Lang\Tuple;
@@ -86,7 +86,7 @@ final class Printer
         if (PhelArray::class === $printerName) {
             return new PhelArrayPrinter($this);
         }
-        if (Struct::class === $printerName) {
+        if (AbstractStruct::class === $printerName) {
             return new StructPrinter($this);
         }
         if (Table::class === $printerName) {

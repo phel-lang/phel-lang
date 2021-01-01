@@ -35,7 +35,7 @@ final class FnAsClassEmitter implements NodeEmitter
             }
         }
 
-        $this->outputEmitter->emitLine(') extends \Phel\Lang\AFn {', $node->getStartSourceLocation());
+        $this->outputEmitter->emitLine(') extends \Phel\Lang\AbstractFn {', $node->getStartSourceLocation());
         $this->outputEmitter->increaseIndentLevel();
 
         $ns = addslashes($this->outputEmitter->mungeEncodeNs($node->getEnv()->getBoundTo()));

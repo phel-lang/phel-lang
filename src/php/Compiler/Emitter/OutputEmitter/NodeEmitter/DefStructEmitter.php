@@ -23,7 +23,7 @@ final class DefStructEmitter implements NodeEmitter
             $node->getStartSourceLocation()
         );
         $this->outputEmitter->emitLine(
-            'class ' . $this->outputEmitter->mungeEncode($node->getName()->getName()) . ' extends \Phel\Lang\Struct {',
+            'class ' . $this->outputEmitter->mungeEncode($node->getName()->getName()) . ' extends \Phel\Lang\AbstractStruct {',
             $node->getStartSourceLocation()
         );
         $this->outputEmitter->increaseIndentLevel();

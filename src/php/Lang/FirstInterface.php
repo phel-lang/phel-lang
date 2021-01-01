@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Phel\Lang;
 
-interface IFirst
+interface FirstInterface
 {
     /**
      * Returns the first value.

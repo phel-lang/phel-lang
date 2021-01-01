@@ -8,7 +8,7 @@ use Phel\Command\Repl\ColorStyle;
 use Phel\Compiler\Emitter\OutputEmitter\Munge;
 use Phel\Compiler\Emitter\OutputEmitter\SourceMap\SourceMapConsumer;
 use Phel\Compiler\ReadModel\CodeSnippet;
-use Phel\Lang\IFn;
+use Phel\Lang\FnInterface;
 use Phel\Printer\Printer;
 use ReflectionClass;
 use Throwable;
@@ -83,7 +83,7 @@ final class TextExceptionPrinter implements ExceptionPrinterInterface
 
             if ($class) {
                 $rf = new ReflectionClass($class);
-                if ($rf->implementsInterface(IFn::class)) {
+                if ($rf->implementsInterface(FnInterface::class)) {
                     $fnName = $this->munge->decodeNs($rf->getConstant('BOUND_TO'));
                     $argParts = [];
                     foreach ($frame['args'] as $arg) {

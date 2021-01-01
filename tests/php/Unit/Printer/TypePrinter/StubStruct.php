@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace PhelTest\Unit\Printer\TypePrinter;
 
-use Phel\Lang\Struct;
+use Phel\Lang\AbstractStruct;
 
-final class StubStruct extends Struct
+final class StubStruct extends AbstractStruct
 {
     private array $allowedKeys;
 

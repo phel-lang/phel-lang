@@ -8,7 +8,13 @@ use Countable;
 use Iterator;
 use Phel\Printer\Printer;
 
-class Set extends AbstractType implements Countable, Iterator, ISeq, ICons, IPush, IConcat
+class Set extends AbstractType implements
+    Countable,
+    Iterator,
+    SeqInterface,
+    ConsInterface,
+    PushInterface,
+    ConcatInterface
 {
     /** @var mixed[] */
     protected array $data = [];
@@ -57,7 +63,7 @@ class Set extends AbstractType implements Countable, Iterator, ISeq, ICons, IPus
         reset($this->data);
     }
 
-    public function cons($x): ICons
+    public function cons($x): ConsInterface
     {
         $this->push($x);
         return $this;
@@ -73,7 +79,7 @@ class Set extends AbstractType implements Countable, Iterator, ISeq, ICons, IPus
         return $this->current();
     }
 
-    public function cdr(): ?ICdr
+    public function cdr(): ?CdrInterface
     {
         if ($this->count() <= 1) {
             return null;
@@ -82,7 +88,7 @@ class Set extends AbstractType implements Countable, Iterator, ISeq, ICons, IPus
         return new PhelArray(array_values(array_slice($this->data, 1)));
     }
 
-    public function rest(): IRest
+    public function rest(): RestInterface
     {
         $this->rewind();
         $this->next();
@@ -90,7 +96,7 @@ class Set extends AbstractType implements Countable, Iterator, ISeq, ICons, IPus
         return new PhelArray(array_values(array_slice($this->data, 1)));
     }
 
-    public function push($x): IPush
+    public function push($x): PushInterface
     {
         $hash = $this->offsetHash($x);
         $this->data[$hash] = $x; // Don't need to check if $x is already there, just override.
@@ -98,7 +104,7 @@ class Set extends AbstractType implements Countable, Iterator, ISeq, ICons, IPus
         return $this;
     }
 
-    public function concat($xs): IConcat
+    public function concat($xs): ConcatInterface
     {
         foreach ($xs as $x) {
             $this->push($x);

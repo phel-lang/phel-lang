@@ -14,11 +14,11 @@ final class Tuple extends AbstractType implements
     ArrayAccess,
     Countable,
     Iterator,
-    ISlice,
-    ICons,
-    ISeq,
-    IPush,
-    IConcat
+    SliceInterface,
+    ConsInterface,
+    SeqInterface,
+    PushInterface,
+    ConcatInterface
 {
     private array $data;
     private bool $usingBracket;
@@ -145,7 +145,7 @@ final class Tuple extends AbstractType implements
         return $res;
     }
 
-    public function slice(int $offset = 0, ?int $length = null): ISlice
+    public function slice(int $offset = 0, ?int $length = null): SliceInterface
     {
         return new Tuple(
             array_slice($this->data, $offset, $length),
@@ -153,7 +153,7 @@ final class Tuple extends AbstractType implements
         );
     }
 
-    public function cons($x): ICons
+    public function cons($x): ConsInterface
     {
         return new Tuple([$x, ...$this->data], $this->isUsingBracket());
     }
@@ -177,7 +177,7 @@ final class Tuple extends AbstractType implements
         return null;
     }
 
-    public function cdr(): ?ICdr
+    public function cdr(): ?CdrInterface
     {
         if ($this->count() <= 1) {
             return null;
@@ -186,17 +186,17 @@ final class Tuple extends AbstractType implements
         return new Tuple(array_slice($this->data, 1), $this->isUsingBracket());
     }
 
-    public function rest(): IRest
+    public function rest(): RestInterface
     {
         return new Tuple(array_slice($this->data, 1), $this->isUsingBracket());
     }
 
-    public function push($x): IPush
+    public function push($x): PushInterface
     {
         return new Tuple([...$this->data, $x], $this->isUsingBracket());
     }
 
-    public function concat($xs): IConcat
+    public function concat($xs): ConcatInterface
     {
         $newData = $this->data;
         foreach ($xs as $x) {

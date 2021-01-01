@@ -15,7 +15,7 @@ use Phel\Compiler\ReadModel\CodeSnippet;
 use Phel\Compiler\ReadModel\ReaderResult;
 use Phel\Exceptions\ReaderException;
 use Phel\Lang\AbstractType;
-use Phel\Lang\IMeta;
+use Phel\Lang\MetaInterface;
 use Phel\Lang\Keyword;
 use Phel\Lang\PhelArray;
 use Phel\Lang\Symbol;
@@ -208,8 +208,8 @@ final class Reader implements ReaderInterface
         }
         $object = $this->readExpression($objectExpression);
 
-        if (!$object instanceof IMeta) {
-            throw $this->buildReaderException('Metadata can only applied to classes that implement IMeta', $node);
+        if (!$object instanceof MetaInterface) {
+            throw $this->buildReaderException('Metadata can only applied to classes that implement MetaInterface', $node);
         }
 
         $objMeta = $object->getMeta();

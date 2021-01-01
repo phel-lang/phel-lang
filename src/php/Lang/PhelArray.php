@@ -14,13 +14,13 @@ final class PhelArray extends AbstractType implements
     ArrayAccess,
     Countable,
     Iterator,
-    ICons,
-    ISlice,
-    ISeq,
-    IPop,
-    IRemove,
-    IPush,
-    IConcat
+    ConsInterface,
+    SliceInterface,
+    SeqInterface,
+    PopInterface,
+    RemoveInterface,
+    PushInterface,
+    ConcatInterface
 {
     private array $data;
 
@@ -124,12 +124,12 @@ final class PhelArray extends AbstractType implements
         return $this == $other;
     }
 
-    public function slice(int $offset = 0, ?int $length = null): ISlice
+    public function slice(int $offset = 0, ?int $length = null): SliceInterface
     {
         return new PhelArray(array_slice($this->data, $offset, $length));
     }
 
-    public function cons($x): ICons
+    public function cons($x): ConsInterface
     {
         array_unshift($this->data, $x);
         return $this;
@@ -149,7 +149,7 @@ final class PhelArray extends AbstractType implements
         return null;
     }
 
-    public function cdr(): ?ICdr
+    public function cdr(): ?CdrInterface
     {
         if ($this->count() <= 1) {
             return null;
@@ -158,7 +158,7 @@ final class PhelArray extends AbstractType implements
         return new PhelArray(array_slice($this->data, 1));
     }
 
-    public function rest(): IRest
+    public function rest(): RestInterface
     {
         return new PhelArray(array_slice($this->data, 1));
     }
@@ -168,20 +168,20 @@ final class PhelArray extends AbstractType implements
         return array_pop($this->data);
     }
 
-    public function remove(int $offset, ?int $length = null): IRemove
+    public function remove(int $offset, ?int $length = null): RemoveInterface
     {
         $length = $length ?? count($this);
 
         return new PhelArray(array_splice($this->data, $offset, $length));
     }
 
-    public function push($x): IPush
+    public function push($x): PushInterface
     {
         $this->data[] = $x;
         return $this;
     }
 
-    public function concat($xs): IConcat
+    public function concat($xs): ConcatInterface
     {
         foreach ($xs as $x) {
             $this->data[] = $x;

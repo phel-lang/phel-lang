@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Phel\Lang;
 
-trait TMeta
+trait MetaTrait
 {
     private ?Table $meta = null;
 

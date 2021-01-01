@@ -1,11 +1,11 @@
 --PHEL--
 (fn [x y] (fn [y] 1))
 --PHP--
-new class() extends \Phel\Lang\AFn {
+new class() extends \Phel\Lang\AbstractFn {
   public const BOUND_TO = "";
 
   public function __invoke($x, $y) {
-    return new class($x) extends \Phel\Lang\AFn {
+    return new class($x) extends \Phel\Lang\AbstractFn {
       public const BOUND_TO = "";
       private $x;
 

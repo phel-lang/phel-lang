@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Phel\Lang;
 
-trait TSourceLocation
+trait SourceLocationTrait
 {
     private ?SourceLocation $startLocation = null;
     private ?SourceLocation $endLocation = null;
@@ -38,7 +38,7 @@ trait TSourceLocation
      */
     public function copyLocationFrom($other): self
     {
-        if ($other && $other instanceof ISourceLocation) {
+        if ($other && $other instanceof SourceLocationInterface) {
             $this->setStartLocation($other->getStartLocation());
             $this->setEndLocation($other->getEndLocation());
         }

@@ -1,7 +1,7 @@
 --PHEL--
 (def x (fn [] (let [e (throw (php/new \Exception))] e)))
 --PHP--
-$GLOBALS["__phel"]["user"]["x"] = new class() extends \Phel\Lang\AFn {
+$GLOBALS["__phel"]["user"]["x"] = new class() extends \Phel\Lang\AbstractFn {
   public const BOUND_TO = "user\\x";
 
   public function __invoke() {
