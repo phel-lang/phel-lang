@@ -10,5 +10,5 @@ The purpose of this ADR is to standardize the naming convention through the proj
 - Suffix interfaces with `Interface`
 - Suffix traits with `Trait`
 - Suffix exceptions with `Exception`
-- Use `UpperCamelCase` for class names
+- Use `PascalCase` for class names
 - Use `camelCase` for PHP variables, function and method names, arguments
