@@ -75,8 +75,8 @@ final class TableBindingDeconstructorTest extends TestCase
         //       __phel 2 (get __phel_1 :key)
         //       __phel_3 __phel_2
         //       __phel_3 __phel_2
-        //       __phel_4 (first __phel_3 0)
-        //       __phel_5 (next __phel_3 0)
+        //       __phel_4 (first __phel_3)
+        //       __phel_5 (next __phel_3)
         //       a __phel_4])
 
         $key = new Keyword('key');

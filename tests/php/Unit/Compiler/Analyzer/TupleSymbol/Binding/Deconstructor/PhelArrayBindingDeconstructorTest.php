@@ -73,8 +73,8 @@ final class PhelArrayBindingDeconstructorTest extends TestCase
         // (let [__phel_1 x
         //       __phel 2 (get __phel_1 0)
         //       __phel_3 __phel_2
-        //       __phel_4 (first __phel_3 0)
-        //       __phel_5 (next __phel_3 0)
+        //       __phel_4 (first __phel_3)
+        //       __phel_5 (next __phel_3)
         //       a __phel_4])
 
 
