@@ -6,12 +6,18 @@ namespace PhelTest\Unit\Printer;
 
 use Phel\Compiler\CompilerFactory;
 use Phel\Compiler\GlobalEnvironment;
-use Phel\Compiler\Parser;
 use Phel\Printer\Printer;
 use PHPUnit\Framework\TestCase;
 
 final class PrinterTest extends TestCase
 {
+    private CompilerFactory $compilerFactory;
+
+    public function setUp(): void
+    {
+        $this->compilerFactory = new CompilerFactory();
+    }
+
     public function testPrintString(): void
     {
         self::assertEquals(
@@ -67,12 +73,11 @@ final class PrinterTest extends TestCase
 
     private function read(string $string): string
     {
-        $compilerFactory = new CompilerFactory();
-        $parser = new Parser();
-        $reader = $compilerFactory->createReader(new GlobalEnvironment());
-        $tokenStream = $compilerFactory->createLexer()->lexString($string);
-
+        $parser = $this->compilerFactory->createParser();
+        $reader = $this->compilerFactory->createReader(new GlobalEnvironment());
+        $tokenStream = $this->compilerFactory->createLexer()->lexString($string);
         $parseTree = $parser->parseNext($tokenStream);
+
         return (string)$reader->read($parseTree)->getAst();
     }
 }

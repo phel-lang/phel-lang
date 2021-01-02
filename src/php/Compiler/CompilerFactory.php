@@ -11,6 +11,8 @@ use Phel\Compiler\Emitter\OutputEmitter\Munge;
 use Phel\Compiler\Emitter\OutputEmitter\NodeEmitterFactory;
 use Phel\Compiler\Emitter\OutputEmitter\SourceMap\SourceMapGenerator;
 use Phel\Compiler\Emitter\OutputEmitterInterface;
+use Phel\Compiler\Parser\ExpressionParserFactory;
+use Phel\Compiler\Parser\ExpressionReaderFactory;
 use Phel\Compiler\Parser\QuasiquoteTransformer;
 
 final class CompilerFactory implements CompilerFactoryInterface
@@ -45,13 +47,16 @@ final class CompilerFactory implements CompilerFactoryInterface
     public function createReader(GlobalEnvironmentInterface $globalEnv): ReaderInterface
     {
         return new Reader(
+            new ExpressionReaderFactory(),
             new QuasiquoteTransformer($globalEnv)
         );
     }
 
     public function createParser(): ParserInterface
     {
-        return new Parser();
+        return new Parser(
+            new ExpressionParserFactory()
+        );
     }
 
     public function createAnalyzer(GlobalEnvironmentInterface $globalEnv): AnalyzerInterface

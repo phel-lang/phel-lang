@@ -15,12 +15,17 @@ use Phel\Lang\SourceLocation;
 use Phel\Lang\Symbol;
 use Phel\Lang\Table;
 use Phel\Lang\Tuple;
-use Phel\Compiler\Lexer;
-use Phel\Compiler\Parser;
 use PHPUnit\Framework\TestCase;
 
 final class ReaderTest extends TestCase
 {
+    private CompilerFactory $compilerFactory;
+
+    public function setUp(): void
+    {
+        $this->compilerFactory = new CompilerFactory();
+    }
+
     public function testReadNumber(): void
     {
         self::assertEquals(1, $this->read('1'));
@@ -660,9 +665,10 @@ final class ReaderTest extends TestCase
     private function read(string $string, bool $removeLoc = false)
     {
         Symbol::resetGen();
-        $parser = new Parser();
-        $reader = (new CompilerFactory())->createReader(new GlobalEnvironment());
-        $tokenStream = (new Lexer())->lexString($string);
+
+        $parser = $this->compilerFactory->createParser();
+        $reader = $this->compilerFactory->createReader(new GlobalEnvironment());
+        $tokenStream = $this->compilerFactory->createLexer()->lexString($string);
 
         $parseTree = $parser->parseNext($tokenStream);
         $result = $reader->read($parseTree)->getAst();

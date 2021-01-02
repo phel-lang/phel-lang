@@ -4,20 +4,12 @@ declare(strict_types=1);
 
 namespace Phel\Compiler\Parser\ExpressionParser;
 
-use Phel\Compiler\Parser;
 use Phel\Compiler\Parser\ParserNode\StringNode;
 use Phel\Compiler\Token;
 use Phel\Exceptions\StringParserException;
 
 final class StringParser
 {
-    private Parser $parser;
-
-    public function __construct(Parser $parser)
-    {
-        $this->parser = $parser;
-    }
-
     private const STRING_REPLACEMENTS = [
         '\\' => '\\',
         '$' => '$',
@@ -29,6 +21,9 @@ final class StringParser
         'e' => "\x1B",
     ];
 
+    /**
+     * @throws StringParserException
+     */
     public function parse(Token $token): StringNode
     {
         return new StringNode(
@@ -68,6 +63,9 @@ final class StringParser
         );
     }
 
+    /**
+     * @throws StringParserException
+     */
     private function codePointToUtf8(int $num): string
     {
         if ($num <= 0x7F) {
