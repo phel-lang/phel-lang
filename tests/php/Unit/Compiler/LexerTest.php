@@ -4,13 +4,20 @@ declare(strict_types=1);
 
 namespace PhelTest\Unit\Compiler;
 
+use Phel\Compiler\CompilerFactory;
 use Phel\Lang\SourceLocation;
-use Phel\Compiler\Lexer;
 use Phel\Compiler\Token;
 use PHPUnit\Framework\TestCase;
 
 final class LexerTest extends TestCase
 {
+    private CompilerFactory $compilerFactory;
+
+    public function setUp(): void
+    {
+        $this->compilerFactory = new CompilerFactory();
+    }
+
     public function testWhitespaceWithNewline(): void
     {
         self::assertEquals(
@@ -161,7 +168,8 @@ final class LexerTest extends TestCase
 
     private function lex(string $string): array
     {
-        $lexer = new Lexer();
+        $lexer = $this->compilerFactory->createLexer();
+
         return iterator_to_array($lexer->lexString($string, 'string'));
     }
 }

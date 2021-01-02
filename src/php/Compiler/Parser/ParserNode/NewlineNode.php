@@ -2,6 +2,7 @@
 
 namespace Phel\Compiler\Parser\ParserNode;
 
+use Phel\Compiler\Token;
 use Phel\Lang\SourceLocation;
 
 final class NewlineNode implements TriviaNodeInterface
@@ -10,13 +11,21 @@ final class NewlineNode implements TriviaNodeInterface
     private SourceLocation $startLocation;
     private SourceLocation $endLocation;
 
+    public static function createWithToken(Token $token): self
+    {
+        return new self(
+            $token->getCode(),
+            $token->getStartLocation(),
+            $token->getEndLocation()
+        );
+    }
+
     public function __construct(string $code, SourceLocation $startLocation, SourceLocation $endLocation)
     {
         $this->code = $code;
         $this->startLocation = $startLocation;
         $this->endLocation = $endLocation;
     }
-
 
     public function getCode(): string
     {

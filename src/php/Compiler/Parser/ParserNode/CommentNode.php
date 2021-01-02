@@ -2,6 +2,7 @@
 
 namespace Phel\Compiler\Parser\ParserNode;
 
+use Phel\Compiler\Token;
 use Phel\Lang\SourceLocation;
 
 final class CommentNode implements TriviaNodeInterface
@@ -9,6 +10,15 @@ final class CommentNode implements TriviaNodeInterface
     private string $code;
     private SourceLocation $startLocation;
     private SourceLocation $endLocation;
+
+    public static function createWithToken(Token $token): self
+    {
+        return new self(
+            $token->getCode(),
+            $token->getStartLocation(),
+            $token->getEndLocation()
+        );
+    }
 
     public function __construct(string $code, SourceLocation $startLocation, SourceLocation $endLocation)
     {

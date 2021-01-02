@@ -32,7 +32,7 @@ final class PhelArrayBindingDeconstructorTest extends TestCase
         // Test for binding like this (let [@[0 a] x])
         // This will be destructured to this:
         // (let [__phel_1 x
-        //       __phel 2 (get __phel 0)
+        //       __phel 2 (get __phel_1 0)
         //       a __phel_2])
 
         $index = 0;
@@ -71,10 +71,10 @@ final class PhelArrayBindingDeconstructorTest extends TestCase
         // Test for binding like this (let [@[0 [a]] x])
         // This will be destructured to this:
         // (let [__phel_1 x
-        //       __phel 2 (get __phel 0)
+        //       __phel 2 (get __phel_1 0)
         //       __phel_3 __phel_2
-        //       __phel_4 (first __phel_3 0)
-        //       __phel_5 (next __phel_3 0)
+        //       __phel_4 (first __phel_3)
+        //       __phel_5 (next __phel_3)
         //       a __phel_4])
 
 
