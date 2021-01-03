@@ -8,17 +8,17 @@ use Phel\Compiler\NodeEnvironmentInterface;
 use Phel\Lang\SourceLocation;
 use Phel\Lang\Symbol;
 
-final class CatchNode extends Node
+final class CatchNode extends AbstractNode
 {
     private Symbol $type;
     private Symbol $name;
-    private Node $body;
+    private AbstractNode $body;
 
     public function __construct(
         NodeEnvironmentInterface $env,
         Symbol $type,
         Symbol $name,
-        Node $body,
+        AbstractNode $body,
         ?SourceLocation $sourceLocation = null
     ) {
         parent::__construct($env, $sourceLocation);
@@ -37,7 +37,7 @@ final class CatchNode extends Node
         return $this->name;
     }
 
-    public function getBody(): Node
+    public function getBody(): AbstractNode
     {
         return $this->body;
     }

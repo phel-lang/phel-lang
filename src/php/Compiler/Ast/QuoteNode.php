@@ -8,7 +8,7 @@ use Phel\Compiler\NodeEnvironmentInterface;
 use Phel\Lang\AbstractType;
 use Phel\Lang\SourceLocation;
 
-final class QuoteNode extends Node
+final class QuoteNode extends AbstractNode
 {
     /** @var mixed */
     private $value;

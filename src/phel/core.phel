@@ -1,24 +1,23 @@
 (ns phel\core
   (:use Phel\Lang\AbstractType)
+  (:use Phel\Lang\AbstractStruct)
   (:use Phel\Lang\Tuple)
-  (:use Phel\Lang\Struct)
   (:use Phel\Lang\Keyword)
-  (:use Phel\Lang\IContactable)
   (:use Phel\Lang\PhelArray)
   (:use Phel\Lang\Table)
   (:use Phel\Lang\Set)
+  (:use Phel\Lang\SliceInterface)
+  (:use Phel\Lang\CdrInterface)
+  (:use Phel\Lang\ConcatInterface)
+  (:use Phel\Lang\FirstInterface)
+  (:use Phel\Lang\IdenticalInterface)
+  (:use Phel\Lang\ConsInterface)
+  (:use Phel\Lang\MetaInterface)
   (:use Phel\Lang\Nil)
-  (:use Phel\Lang\ICons)
-  (:use Phel\Lang\ISlice)
-  (:use Phel\Lang\IIdentical)
-  (:use Phel\Lang\ICdr)
-  (:use Phel\Lang\IPop)
-  (:use Phel\Lang\IFirst)
-  (:use Phel\Lang\IPush)
-  (:use Phel\Lang\IRest)
-  (:use Phel\Lang\IRemove)
-  (:use Phel\Lang\IConcat)
-  (:use Phel\Lang\IMeta)
+  (:use Phel\Lang\PopInterface)
+  (:use Phel\Lang\PushInterface)
+  (:use Phel\Lang\RestInterface)
+  (:use Phel\Lang\RemoveInterface)
   (:use Phel\Lang\Symbol)
   (:use Phel\Lang\Truthy)
   (:use Phel\Compiler\Emitter\OutputEmitter\Munge)
@@ -57,7 +56,7 @@ elements, returns nil."
   (fn [xs]
     (if (php/=== xs nil)
       nil
-      (if (php/instanceof xs ICdr)
+      (if (php/instanceof xs CdrInterface)
         (php/-> xs (cdr))
         (if (php/is_array xs)
           (let [sliced (php/array_slice xs 1)]
@@ -70,7 +69,7 @@ elements, returns nil."
 (def first
   "```phel\n(first xs)\n```\nReturns the first element of an indexed sequence or nil."
   (fn [xs]
-    (if (php/instanceof xs IFirst)
+    (if (php/instanceof xs FirstInterface)
       (php/-> xs (first))
       (php/aget xs 0))))
 
@@ -78,7 +77,7 @@ elements, returns nil."
   @{:private true
     :doc "Concatenates two sequential data structures."}
   (fn [xs ys]
-    (if (php/instanceof xs IConcat)
+    (if (php/instanceof xs ConcatInterface)
       (php/-> xs (concat ys))
       (do
         (foreach [y ys]
@@ -240,7 +239,7 @@ This is PHP equivalent to `$args[0] . $args[1] . $args[2] ...`"
     (do
       (php/array_unshift xs x)
       xs)
-    (if (php/instanceof xs ICons)
+    (if (php/instanceof xs ConsInterface)
       (php/-> xs (cons x))
       (if (php/=== xs nil)
         @[x]
@@ -261,7 +260,7 @@ This is PHP equivalent to `$args[0] . $args[1] . $args[2] ...`"
   "Returns the sequence of elements after the first element. If there are no
 elements, returns an empty sequence."
   [xs]
-  (if (php/instanceof xs IRest)
+  (if (php/instanceof xs RestInterface)
     (php/-> xs (rest))
     (if (php/is_array xs)
       (php/array_slice xs 1)
@@ -370,7 +369,7 @@ Calling the and function without arguments returns true."
           (if ,v (and ,@(next args)) ,v)))))
 
 (defn- id2 [a b]
-  (if (php/instanceof a IIdentical)
+  (if (php/instanceof a IdenticalInterface)
     (php/-> a (identical b))
     (php/=== a b)))
 
@@ -509,23 +508,23 @@ Calling the and function without arguments returns true."
 * `:unknown`"
   [x]
   (cond
-    (php/instanceof x Tuple)      :tuple
-    (php/instanceof x Set)        :set
-    (php/instanceof x PhelArray)  :array
-    (php/instanceof x Struct)     :struct
-    (php/instanceof x Table)      :table
-    (php/instanceof x Keyword)    :keyword
-    (php/instanceof x Symbol)     :symbol
-    (php/is_int x)                :int
-    (php/is_float x)              :float
-    (php/is_string x)             :string
-    (php/is_null x)               :nil
-    (php/is_bool x)               :boolean
-    (php/is_callable x)           :function
-    (php/is_array x)              :php/array
-    (php/is_resource x)           :php/resource
-    (php/is_object x)             :php/object
-                                  :unknown))
+    (php/instanceof x Tuple)          :tuple
+    (php/instanceof x Set)            :set
+    (php/instanceof x PhelArray)      :array
+    (php/instanceof x AbstractStruct) :struct
+    (php/instanceof x Table)          :table
+    (php/instanceof x Keyword)        :keyword
+    (php/instanceof x Symbol)         :symbol
+    (php/is_int x)                    :int
+    (php/is_float x)                  :float
+    (php/is_string x)                 :string
+    (php/is_null x)                   :nil
+    (php/is_bool x)                   :boolean
+    (php/is_callable x)               :function
+    (php/is_array x)                  :php/array
+    (php/is_resource x)               :php/resource
+    (php/is_object x)                 :php/object
+                                      :unknown))
 
 (defn nil?
   "Returns true if `x` is nil, false otherwise."
@@ -645,7 +644,7 @@ Calling the and function without arguments returns true."
   [^:reference xs x]
   (cond
     (php-array? xs) (do (php/apush xs x) xs)
-    (php/instanceof xs IPush) (php/-> xs (push x))
+    (php/instanceof xs PushInterface) (php/-> xs (push x))
     (throw (php/new InvalidArgumentException
               (str "Can not push on type " (type xs))))))
 
@@ -655,7 +654,7 @@ Calling the and function without arguments returns true."
   [^:reference xs]
   (cond
     (php-array? xs) (php/array_pop xs)
-    (php/instanceof xs IPop) (php/-> xs (pop))
+    (php/instanceof xs PopInterface) (php/-> xs (pop))
     (throw (php/new InvalidArgumentException "Can not pop"))))
 
 (defn remove
@@ -663,7 +662,7 @@ Calling the and function without arguments returns true."
   [^:reference xs offset & [n]]
   (cond
     (php-array? xs) (if n (php/array_splice xs offset n) (php/array_splice xs offset))
-    (php/instanceof xs IRemove) (php/-> xs (remove offset n))
+    (php/instanceof xs RemoveInterface) (php/-> xs (remove offset n))
     (throw (php/new InvalidArgumentException "Can not remove"))))
 
 (defn get
@@ -823,7 +822,7 @@ collection in map"))
   [xs & [offset & [length]]]
   (cond
     (php-array? xs) (php/array_slice xs offset length)
-    (php/instanceof xs ISlice) (php/-> xs (slice offset length))
+    (php/instanceof xs SliceInterface) (php/-> xs (slice offset length))
     (throw (php/new InvalidArgumentException "Can not slice"))))
 
 (defn get-in

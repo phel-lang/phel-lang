@@ -6,11 +6,11 @@ namespace Phel\Lang;
 
 use ArrayAccess;
 use Countable;
-use Exception;
 use Iterator;
 use Phel\Printer\Printer;
+use RuntimeException;
 
-class Table extends AbstractType implements ArrayAccess, Countable, Iterator, ISeq
+class Table extends AbstractType implements ArrayAccess, Countable, Iterator, SeqInterface
 {
     protected array $data = [];
 
@@ -30,7 +30,7 @@ class Table extends AbstractType implements ArrayAccess, Countable, Iterator, IS
     {
         if (count($kvs) % 2 !== 0) {
             // TODO: Better exception
-            throw new Exception('A even number of elements must be provided');
+            throw new RuntimeException('A even number of elements must be provided');
         }
 
         $result = new self();
@@ -136,7 +136,7 @@ class Table extends AbstractType implements ArrayAccess, Countable, Iterator, IS
         return new Tuple([$key, $value], true);
     }
 
-    public function cdr(): ?ICdr
+    public function cdr(): ?CdrInterface
     {
         if ($this->count() <= 1) {
             return null;
@@ -159,7 +159,7 @@ class Table extends AbstractType implements ArrayAccess, Countable, Iterator, IS
         return new PhelArray($res);
     }
 
-    public function rest(): IRest
+    public function rest(): RestInterface
     {
         $this->rewind();
         $this->next();

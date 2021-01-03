@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Phel\Compiler\Emitter;
 
-use Phel\Compiler\Ast\Node;
+use Phel\Compiler\Ast\AbstractNode;
 use Phel\Compiler\Emitter\OutputEmitter\LiteralEmitter;
 use Phel\Compiler\Emitter\OutputEmitter\Munge;
 use Phel\Compiler\Emitter\OutputEmitter\NodeEmitterFactory;
@@ -38,7 +38,7 @@ final class OutputEmitter implements OutputEmitterInterface
         $this->munge = $munge;
     }
 
-    public function emitNodeAsString(Node $node): string
+    public function emitNodeAsString(AbstractNode $node): string
     {
         $this->generatedLines = 0;
         $this->generatedColumns = 0;
@@ -67,7 +67,7 @@ final class OutputEmitter implements OutputEmitterInterface
         );
     }
 
-    public function emitNode(Node $node): void
+    public function emitNode(AbstractNode $node): void
     {
         $nodeEmitter = $this->nodeEmitterFactory->createNodeEmitter($this, get_class($node));
         $nodeEmitter->emit($node);

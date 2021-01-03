@@ -2,7 +2,7 @@
 (defstruct* my-type [a b c])
 --PHP--
 namespace user;
-class my_type extends \Phel\Lang\Struct {
+class my_type extends \Phel\Lang\AbstractStruct {
   public function __construct($a, $b, $c) {
     $this->offsetSet(new \Phel\Lang\Keyword("a"), $a);
     $this->offsetSet(new \Phel\Lang\Keyword("b"), $b);

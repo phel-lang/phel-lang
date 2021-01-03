@@ -7,7 +7,7 @@ namespace Phel\Lang;
 use InvalidArgumentException;
 use Phel\Printer\Printer;
 
-abstract class Struct extends Table
+abstract class AbstractStruct extends Table
 {
     /**
      * Returns the list of allowed keywords.

@@ -3,7 +3,7 @@
 
 (reduce php/array [1 2 3])
 --PHP--
-$GLOBALS["__phel"]["user"]["reduce"] = new class() extends \Phel\Lang\AFn {
+$GLOBALS["__phel"]["user"]["reduce"] = new class() extends \Phel\Lang\AbstractFn {
   public const BOUND_TO = "user\\reduce";
 
   public function __invoke($f, $xs) {

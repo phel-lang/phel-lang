@@ -4,14 +4,14 @@ declare(strict_types=1);
 
 namespace Phel\Compiler\Analyzer\TupleSymbol;
 
-use Phel\Compiler\Analyzer\WithAnalyzer;
+use Phel\Compiler\Analyzer\WithAnalyzerTrait;
 use Phel\Compiler\Ast\PhpArraySetNode;
 use Phel\Compiler\NodeEnvironmentInterface;
 use Phel\Lang\Tuple;
 
-final class PhpASetSymbol implements TupleSymbolAnalyzer
+final class PhpASetSymbol implements TupleSymbolAnalyzerInterface
 {
-    use WithAnalyzer;
+    use WithAnalyzerTrait;
 
     public function analyze(Tuple $tuple, NodeEnvironmentInterface $env): PhpArraySetNode
     {

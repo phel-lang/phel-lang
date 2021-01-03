@@ -4,13 +4,13 @@ declare(strict_types=1);
 
 namespace Phel\Compiler;
 
-use Phel\Compiler\Ast\Node;
+use Phel\Compiler\Ast\AbstractNode;
 
 interface EmitterInterface
 {
-    public function emitNodeAndEval(Node $node): string;
+    public function emitNodeAndEval(AbstractNode $node): string;
 
-    public function emitNodeAsString(Node $node): string;
+    public function emitNodeAsString(AbstractNode $node): string;
 
     /**
      * @return mixed

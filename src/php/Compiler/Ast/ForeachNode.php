@@ -8,17 +8,17 @@ use Phel\Compiler\NodeEnvironmentInterface;
 use Phel\Lang\SourceLocation;
 use Phel\Lang\Symbol;
 
-final class ForeachNode extends Node
+final class ForeachNode extends AbstractNode
 {
-    private Node $bodyExpr;
-    private Node $listExpr;
+    private AbstractNode $bodyExpr;
+    private AbstractNode $listExpr;
     private Symbol $valueSymbol;
     private ?Symbol $keySymbol;
 
     public function __construct(
         NodeEnvironmentInterface $env,
-        Node $bodyExpr,
-        Node $listExpr,
+        AbstractNode $bodyExpr,
+        AbstractNode $listExpr,
         Symbol $valueSymbol,
         ?Symbol $keySymbol = null,
         ?SourceLocation $sourceLocation = null
@@ -30,12 +30,12 @@ final class ForeachNode extends Node
         $this->keySymbol = $keySymbol;
     }
 
-    public function getBodyExpr(): Node
+    public function getBodyExpr(): AbstractNode
     {
         return $this->bodyExpr;
     }
 
-    public function getListExpr(): Node
+    public function getListExpr(): AbstractNode
     {
         return $this->listExpr;
     }

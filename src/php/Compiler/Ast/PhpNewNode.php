@@ -7,19 +7,19 @@ namespace Phel\Compiler\Ast;
 use Phel\Compiler\NodeEnvironmentInterface;
 use Phel\Lang\SourceLocation;
 
-final class PhpNewNode extends Node
+final class PhpNewNode extends AbstractNode
 {
-    private Node $classExpr;
+    private AbstractNode $classExpr;
 
-    /** @var Node[] */
+    /** @var AbstractNode[] */
     private array $args;
 
     /**
-     * @param Node[] $args
+     * @param AbstractNode[] $args
      */
     public function __construct(
         NodeEnvironmentInterface $env,
-        Node $classExpr,
+        AbstractNode $classExpr,
         array $args,
         ?SourceLocation $sourceLocation = null
     ) {
@@ -28,13 +28,13 @@ final class PhpNewNode extends Node
         $this->args = $args;
     }
 
-    public function getClassExpr(): Node
+    public function getClassExpr(): AbstractNode
     {
         return $this->classExpr;
     }
 
     /**
-     * @return Node[]
+     * @return AbstractNode[]
      */
     public function getArgs(): array
     {

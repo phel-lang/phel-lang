@@ -8,7 +8,7 @@ use Phel\Compiler\CompilerFactory;
 use Phel\Exceptions\ReaderException;
 use Phel\Compiler\GlobalEnvironment;
 use Phel\Lang\AbstractType;
-use Phel\Lang\IMeta;
+use Phel\Lang\MetaInterface;
 use Phel\Lang\Keyword;
 use Phel\Lang\PhelArray;
 use Phel\Lang\SourceLocation;
@@ -462,7 +462,7 @@ final class ReaderTest extends TestCase
     public function testMetaOnString(): void
     {
         $this->expectException(ReaderException::class);
-        $this->expectExceptionMessage('Metadata can only applied to classes that implement IMeta');
+        $this->expectExceptionMessage('Metadata can only applied to classes that implement MetaInterface');
         $this->read('^a "test"');
     }
 
@@ -680,7 +680,7 @@ final class ReaderTest extends TestCase
         return $result;
     }
 
-    private function withMeta(IMeta $x, Table $t): IMeta
+    private function withMeta(MetaInterface $x, Table $t): MetaInterface
     {
         $x->setMeta($t);
 

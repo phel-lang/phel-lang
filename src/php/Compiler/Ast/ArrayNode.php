@@ -7,7 +7,7 @@ namespace Phel\Compiler\Ast;
 use Phel\Compiler\NodeEnvironmentInterface;
 use Phel\Lang\SourceLocation;
 
-final class ArrayNode extends Node
+final class ArrayNode extends AbstractNode
 {
     private array $values;
 

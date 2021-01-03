@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Phel\Compiler\Parser\ExpressionReader;
 
-use Phel\Compiler\Parser\ParserNode\AtomNode;
+use Phel\Compiler\Parser\ParserNode\AbstractAtomNode;
 use Phel\Lang\AbstractType;
 
 final class AtomReader
@@ -12,7 +12,7 @@ final class AtomReader
     /**
      * @return AbstractType|string|float|int|bool|null
      */
-    public function read(AtomNode $node)
+    public function read(AbstractAtomNode $node)
     {
         $value = $node->getValue();
 

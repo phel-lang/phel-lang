@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace Phel\Lang;
 
-abstract class AbstractType implements IMeta, ISourceLocation
+abstract class AbstractType implements MetaInterface, SourceLocationInterface
 {
-    use TSourceLocation;
-    use TMeta;
+    use SourceLocationTrait;
+    use MetaTrait;
 
     /**
      * Computes a hash of the object.

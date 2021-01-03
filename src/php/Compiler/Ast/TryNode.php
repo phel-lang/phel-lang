@@ -7,20 +7,20 @@ namespace Phel\Compiler\Ast;
 use Phel\Compiler\NodeEnvironmentInterface;
 use Phel\Lang\SourceLocation;
 
-final class TryNode extends Node
+final class TryNode extends AbstractNode
 {
-    private Node $body;
+    private AbstractNode $body;
 
     /** @var CatchNode[] */
     private array $catches;
 
-    private ?Node $finally;
+    private ?AbstractNode $finally;
 
     public function __construct(
         NodeEnvironmentInterface $env,
-        Node $body,
+        AbstractNode $body,
         array $catches,
-        ?Node $finally = null,
+        ?AbstractNode $finally = null,
         ?SourceLocation $sourceLocation = null
     ) {
         parent::__construct($env, $sourceLocation);
@@ -29,7 +29,7 @@ final class TryNode extends Node
         $this->finally = $finally;
     }
 
-    public function getBody(): Node
+    public function getBody(): AbstractNode
     {
         return $this->body;
     }
@@ -42,7 +42,7 @@ final class TryNode extends Node
         return $this->catches;
     }
 
-    public function getFinally(): ?Node
+    public function getFinally(): ?AbstractNode
     {
         return $this->finally;
     }

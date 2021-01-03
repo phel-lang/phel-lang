@@ -6,7 +6,7 @@ namespace Phel\Compiler\Emitter\OutputEmitter\NodeEmitter;
 
 use Phel\Compiler\Emitter\OutputEmitterInterface;
 
-trait WithOutputEmitter
+trait WithOutputEmitterTrait
 {
     private OutputEmitterInterface $outputEmitter;
 

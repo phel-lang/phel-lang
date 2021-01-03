@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Phel\Lang;
 
-interface IIdentical
+interface IdenticalInterface
 {
     /**
      * Checks if $other is identical to $this.

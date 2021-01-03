@@ -7,13 +7,13 @@ namespace Phel\Compiler\Ast;
 use Phel\Compiler\NodeEnvironmentInterface;
 use Phel\Lang\SourceLocation;
 
-final class TupleNode extends Node
+final class TupleNode extends AbstractNode
 {
-    /** @var Node[] */
+    /** @var AbstractNode[] */
     private array $args;
 
     /**
-     * @param Node[] $args
+     * @param AbstractNode[] $args
      */
     public function __construct(NodeEnvironmentInterface $env, array $args, ?SourceLocation $sourceLocation = null)
     {
@@ -22,7 +22,7 @@ final class TupleNode extends Node
     }
 
     /**
-     * @return Node[]
+     * @return AbstractNode[]
      */
     public function getArgs(): array
     {

@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Phel\Lang;
 
-interface ISourceLocation
+interface SourceLocationInterface
 {
     public function setStartLocation(?SourceLocation $startLocation): void;
 

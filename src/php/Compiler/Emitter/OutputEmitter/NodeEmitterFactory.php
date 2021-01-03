@@ -13,7 +13,7 @@ final class NodeEmitterFactory
     public function createNodeEmitter(
         OutputEmitterInterface $outputEmitter,
         string $astNodeClassName
-    ): NodeEmitter {
+    ): NodeEmitterInterface {
         switch ($astNodeClassName) {
             case Ast\NsNode::class:
                 return new NodeEmitter\NsEmitter($outputEmitter);

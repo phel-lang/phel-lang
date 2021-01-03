@@ -3,7 +3,7 @@
   (foreach [v [1 2 3]]
     (php/+ v v))))
 --PHP--
-$GLOBALS["__phel"]["user"]["x"] = new class() extends \Phel\Lang\AFn {
+$GLOBALS["__phel"]["user"]["x"] = new class() extends \Phel\Lang\AbstractFn {
   public const BOUND_TO = "user\\x";
 
   public function __invoke() {

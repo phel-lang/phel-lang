@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Phel\Compiler;
 
 use Phel\Compiler\Parser\ExpressionReaderFactoryInterface;
-use Phel\Compiler\Parser\ParserNode\AtomNode;
+use Phel\Compiler\Parser\ParserNode\AbstractAtomNode;
 use Phel\Compiler\Parser\ParserNode\ListNode;
 use Phel\Compiler\Parser\ParserNode\MetaNode;
 use Phel\Compiler\Parser\ParserNode\NodeInterface;
@@ -71,7 +71,7 @@ final class Reader implements ReaderInterface
             return $this->readSymbolNode($node);
         }
 
-        if ($node instanceof AtomNode) {
+        if ($node instanceof AbstractAtomNode) {
             return $this->readAtomNode($node);
         }
 
@@ -100,7 +100,7 @@ final class Reader implements ReaderInterface
     /**
      * @return AbstractType|string|float|int|bool|null
      */
-    private function readAtomNode(AtomNode $node)
+    private function readAtomNode(AbstractAtomNode $node)
     {
         return $this->readerFactory
             ->createAtomReader()

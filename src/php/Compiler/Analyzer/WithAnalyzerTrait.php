@@ -6,7 +6,7 @@ namespace Phel\Compiler\Analyzer;
 
 use Phel\Compiler\AnalyzerInterface;
 
-trait WithAnalyzer
+trait WithAnalyzerTrait
 {
     private AnalyzerInterface $analyzer;
 

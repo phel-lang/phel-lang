@@ -8,7 +8,7 @@ use Phel\Compiler\NodeEnvironmentInterface;
 use Phel\Lang\SourceLocation;
 use Phel\Lang\Symbol;
 
-final class PhpClassNameNode extends Node
+final class PhpClassNameNode extends AbstractNode
 {
     private Symbol $name;
 

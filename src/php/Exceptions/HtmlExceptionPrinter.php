@@ -6,7 +6,7 @@ namespace Phel\Exceptions;
 
 use Phel\Compiler\Emitter\OutputEmitter\Munge;
 use Phel\Compiler\Parser\ReadModel\CodeSnippet;
-use Phel\Lang\IFn;
+use Phel\Lang\FnInterface;
 use Phel\Printer\Printer;
 use ReflectionClass;
 use Throwable;
@@ -81,7 +81,7 @@ final class HtmlExceptionPrinter implements ExceptionPrinterInterface
 
             if ($class) {
                 $rf = new ReflectionClass($class);
-                if ($rf->implementsInterface(IFn::class)) {
+                if ($rf->implementsInterface(FnInterface::class)) {
                     $fnName = $this->munge->decodeNs($rf->getConstant('BOUND_TO'));
                     $argParts = [];
                     foreach ($frame['args'] as $arg) {

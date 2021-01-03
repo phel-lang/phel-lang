@@ -6,7 +6,7 @@ namespace Phel\Lang;
 
 use Phel\Printer\Printer;
 
-final class Symbol extends AbstractType implements IIdentical
+final class Symbol extends AbstractType implements IdenticalInterface
 {
     public const NAME_APPLY = 'apply';
     public const NAME_ARRAY = 'array';

@@ -7,17 +7,17 @@ namespace Phel\Compiler\Ast;
 use Phel\Compiler\NodeEnvironmentInterface;
 use Phel\Lang\SourceLocation;
 
-final class DoNode extends Node
+final class DoNode extends AbstractNode
 {
-    /** @var Node[] */
+    /** @var AbstractNode[] */
     private array $stmts;
 
-    private Node $ret;
+    private AbstractNode $ret;
 
     /**
-     * @param Node[] $stmts
+     * @param AbstractNode[] $stmts
      */
-    public function __construct(NodeEnvironmentInterface $env, array $stmts, Node $ret, ?SourceLocation $sourceLocation = null)
+    public function __construct(NodeEnvironmentInterface $env, array $stmts, AbstractNode $ret, ?SourceLocation $sourceLocation = null)
     {
         parent::__construct($env, $sourceLocation);
         $this->stmts = $stmts;
@@ -25,14 +25,14 @@ final class DoNode extends Node
     }
 
     /**
-     * @return Node[]
+     * @return AbstractNode[]
      */
     public function getStmts(): array
     {
         return $this->stmts;
     }
 
-    public function getRet(): Node
+    public function getRet(): AbstractNode
     {
         return $this->ret;
     }

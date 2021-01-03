@@ -8,7 +8,7 @@ use Phel\Compiler\Parser\ParserNode\MetaNode;
 use Phel\Compiler\Reader;
 use Phel\Exceptions\ReaderException;
 use Phel\Lang\AbstractType;
-use Phel\Lang\IMeta;
+use Phel\Lang\MetaInterface;
 use Phel\Lang\Keyword;
 use Phel\Lang\Symbol;
 use Phel\Lang\Table;
@@ -40,8 +40,8 @@ final class MetaReader
         }
         $object = $this->reader->readExpression($objectExpression);
 
-        if (!$object instanceof IMeta) {
-            throw ReaderException::forNode($node, 'Metadata can only applied to classes that implement IMeta');
+        if (!$object instanceof MetaInterface) {
+            throw ReaderException::forNode($node, 'Metadata can only applied to classes that implement MetaInterface');
         }
 
         $objMeta = $object->getMeta();

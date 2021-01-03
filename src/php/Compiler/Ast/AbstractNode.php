@@ -7,7 +7,7 @@ namespace Phel\Compiler\Ast;
 use Phel\Compiler\NodeEnvironmentInterface;
 use Phel\Lang\SourceLocation;
 
-abstract class Node
+abstract class AbstractNode
 {
     private NodeEnvironmentInterface $env;
     private ?SourceLocation $startSourceLocation;

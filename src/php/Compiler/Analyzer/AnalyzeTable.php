@@ -10,7 +10,7 @@ use Phel\Lang\Table;
 
 final class AnalyzeTable
 {
-    use WithAnalyzer;
+    use WithAnalyzerTrait;
 
     public function analyze(Table $table, NodeEnvironmentInterface $env): TableNode
     {

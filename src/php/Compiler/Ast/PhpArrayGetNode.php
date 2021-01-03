@@ -7,15 +7,15 @@ namespace Phel\Compiler\Ast;
 use Phel\Compiler\NodeEnvironmentInterface;
 use Phel\Lang\SourceLocation;
 
-final class PhpArrayGetNode extends Node
+final class PhpArrayGetNode extends AbstractNode
 {
-    private Node $arrayExpr;
-    private Node $accessExpr;
+    private AbstractNode $arrayExpr;
+    private AbstractNode $accessExpr;
 
     public function __construct(
         NodeEnvironmentInterface $env,
-        Node $arrayExpr,
-        Node $accessExpr,
+        AbstractNode $arrayExpr,
+        AbstractNode $accessExpr,
         ?SourceLocation $sourceLocation = null
     ) {
         parent::__construct($env, $sourceLocation);
@@ -23,12 +23,12 @@ final class PhpArrayGetNode extends Node
         $this->accessExpr = $accessExpr;
     }
 
-    public function getArrayExpr(): Node
+    public function getArrayExpr(): AbstractNode
     {
         return $this->arrayExpr;
     }
 
-    public function getAccessExpr(): Node
+    public function getAccessExpr(): AbstractNode
     {
         return $this->accessExpr;
     }

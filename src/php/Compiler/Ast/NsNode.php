@@ -8,7 +8,7 @@ use Phel\Compiler\NodeEnvironment;
 use Phel\Lang\SourceLocation;
 use Phel\Lang\Symbol;
 
-final class NsNode extends Node
+final class NsNode extends AbstractNode
 {
     /** @var Symbol[] */
     private array $requireNs;

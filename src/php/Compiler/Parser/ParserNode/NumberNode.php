@@ -3,8 +3,8 @@
 namespace Phel\Compiler\Parser\ParserNode;
 
 /**
- * @extends AtomNode<int|float>
+ * @extends AbstractAtomNode<int|float>
  */
-final class NumberNode extends AtomNode
+final class NumberNode extends AbstractAtomNode
 {
 }
