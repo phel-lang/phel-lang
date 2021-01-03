@@ -4,12 +4,12 @@ declare(strict_types=1);
 
 namespace PhelTest\Unit\Compiler\Analyzer;
 
-use Phel\Compiler\Analyzer;
-use Phel\Compiler\Analyzer\AnalyzeArray;
+use Phel\Compiler\Analyzer\Analyzer;
+use Phel\Compiler\Analyzer\TypeAnalyzer\AnalyzeArray;
 use Phel\Compiler\Ast\ArrayNode;
 use Phel\Compiler\Ast\LiteralNode;
-use Phel\Compiler\GlobalEnvironment;
-use Phel\Compiler\NodeEnvironment;
+use Phel\Compiler\Environment\GlobalEnvironment;
+use Phel\Compiler\Environment\NodeEnvironment;
 use Phel\Lang\PhelArray;
 use PHPUnit\Framework\TestCase;
 

@@ -4,11 +4,11 @@ declare(strict_types=1);
 
 namespace PhelTest\Unit\Compiler\Analyzer;
 
-use Phel\Compiler\Analyzer;
-use Phel\Compiler\Analyzer\AnalyzeLiteral;
+use Phel\Compiler\Analyzer\Analyzer;
+use Phel\Compiler\Analyzer\TypeAnalyzer\AnalyzeLiteral;
 use Phel\Compiler\Ast\LiteralNode;
-use Phel\Compiler\GlobalEnvironment;
-use Phel\Compiler\NodeEnvironment;
+use Phel\Compiler\Environment\GlobalEnvironment;
+use Phel\Compiler\Environment\NodeEnvironment;
 use Phel\Lang\Symbol;
 use PHPUnit\Framework\TestCase;
 
