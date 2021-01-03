@@ -4,15 +4,15 @@ declare(strict_types=1);
 
 namespace PhelTest\Unit\Compiler\Emitter\OutputEmitter\NodeEmitter;
 
-use Phel\Compiler\Ast\ApplyNode;
-use Phel\Compiler\Ast\FnNode;
-use Phel\Compiler\Ast\LiteralNode;
-use Phel\Compiler\Ast\PhpVarNode;
-use Phel\Compiler\Ast\TupleNode;
+use Phel\Compiler\Analyzer\Ast\ApplyNode;
+use Phel\Compiler\Analyzer\Ast\FnNode;
+use Phel\Compiler\Analyzer\Ast\LiteralNode;
+use Phel\Compiler\Analyzer\Ast\PhpVarNode;
+use Phel\Compiler\Analyzer\Ast\TupleNode;
 use Phel\Compiler\CompilerFactory;
 use Phel\Compiler\Emitter\OutputEmitter\NodeEmitter\ApplyEmitter;
-use Phel\Compiler\Environment\NodeEnvironment;
-use Phel\Compiler\Environment\NodeEnvironmentInterface;
+use Phel\Compiler\Analyzer\Environment\NodeEnvironment;
+use Phel\Compiler\Analyzer\Environment\NodeEnvironmentInterface;
 use Phel\Lang\Symbol;
 use PHPUnit\Framework\TestCase;
 

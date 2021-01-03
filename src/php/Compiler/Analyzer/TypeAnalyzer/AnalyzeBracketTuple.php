@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace Phel\Compiler\Analyzer\TypeAnalyzer;
 
-use Phel\Compiler\Ast\TupleNode;
-use Phel\Compiler\Environment\NodeEnvironmentInterface;
+use Phel\Compiler\Analyzer\Ast\TupleNode;
+use Phel\Compiler\Analyzer\Environment\NodeEnvironmentInterface;
 use Phel\Lang\Tuple;
 
 final class AnalyzeBracketTuple

@@ -9,7 +9,7 @@ use Phel\Command\CommandFacadeInterface;
 use Phel\Command\ReplCommand;
 use Phel\Command\RunCommand;
 use Phel\Command\TestCommand;
-use Phel\Compiler\Environment\GlobalEnvironment;
+use Phel\Compiler\Analyzer\Environment\GlobalEnvironment;
 use Phel\Exceptions\ExitException;
 use Phel\Runtime\RuntimeFactory;
 

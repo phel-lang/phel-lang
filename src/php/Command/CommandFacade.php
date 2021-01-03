@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Phel\Command;
 
-use Phel\Compiler\Environment\GlobalEnvironmentInterface;
+use Phel\Compiler\Analyzer\Environment\GlobalEnvironmentInterface;
 use Phel\Runtime\RuntimeInterface;
 use RuntimeException;
 

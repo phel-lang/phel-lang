@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace Phel\Compiler\Analyzer\TypeAnalyzer;
 
-use Phel\Compiler\Ast\ArrayNode;
-use Phel\Compiler\Environment\NodeEnvironmentInterface;
+use Phel\Compiler\Analyzer\Ast\ArrayNode;
+use Phel\Compiler\Analyzer\Environment\NodeEnvironmentInterface;
 use Phel\Lang\PhelArray;
 
 final class AnalyzeArray

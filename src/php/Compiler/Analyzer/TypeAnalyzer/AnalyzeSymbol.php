@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace Phel\Compiler\Analyzer\TypeAnalyzer;
 
-use Phel\Compiler\Ast\LocalVarNode;
-use Phel\Compiler\Ast\AbstractNode;
-use Phel\Compiler\Ast\PhpVarNode;
-use Phel\Compiler\Environment\NodeEnvironmentInterface;
+use Phel\Compiler\Analyzer\Ast\LocalVarNode;
+use Phel\Compiler\Analyzer\Ast\AbstractNode;
+use Phel\Compiler\Analyzer\Ast\PhpVarNode;
+use Phel\Compiler\Analyzer\Environment\NodeEnvironmentInterface;
 use Phel\Exceptions\AnalyzerException;
 use Phel\Lang\Symbol;
 

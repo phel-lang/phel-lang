@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace Phel\Compiler\Emitter\OutputEmitter\NodeEmitter;
 
-use Phel\Compiler\Ast\ApplyNode;
-use Phel\Compiler\Ast\AbstractNode;
-use Phel\Compiler\Ast\PhpVarNode;
+use Phel\Compiler\Analyzer\Ast\ApplyNode;
+use Phel\Compiler\Analyzer\Ast\AbstractNode;
+use Phel\Compiler\Analyzer\Ast\PhpVarNode;
 use Phel\Compiler\Emitter\OutputEmitter\NodeEmitterInterface;
 
 final class ApplyEmitter implements NodeEmitterInterface

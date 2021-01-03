@@ -5,10 +5,10 @@ declare(strict_types=1);
 namespace Phel\Compiler\Analyzer\TypeAnalyzer\TupleSymbol;
 
 use Phel\Compiler\Analyzer\AnalyzerInterface;
-use Phel\Compiler\Ast\MethodCallNode;
-use Phel\Compiler\Ast\PhpObjectCallNode;
-use Phel\Compiler\Ast\PropertyOrConstantAccessNode;
-use Phel\Compiler\Environment\NodeEnvironmentInterface;
+use Phel\Compiler\Analyzer\Ast\MethodCallNode;
+use Phel\Compiler\Analyzer\Ast\PhpObjectCallNode;
+use Phel\Compiler\Analyzer\Ast\PropertyOrConstantAccessNode;
+use Phel\Compiler\Analyzer\Environment\NodeEnvironmentInterface;
 use Phel\Exceptions\AnalyzerException;
 use Phel\Lang\Symbol;
 use Phel\Lang\Tuple;

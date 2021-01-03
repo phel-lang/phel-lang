@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace PhelTest\Unit\Compiler\Analyzer\TupleSymbol;
 
 use Phel\Compiler\Analyzer\TypeAnalyzer\TupleSymbol\QuoteSymbol;
-use Phel\Compiler\Environment\NodeEnvironment;
+use Phel\Compiler\Analyzer\Environment\NodeEnvironment;
 use Phel\Exceptions\PhelCodeException;
 use Phel\Lang\Symbol;
 use Phel\Lang\Tuple;

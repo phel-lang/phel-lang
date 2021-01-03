@@ -6,7 +6,7 @@ namespace Phel\Runtime;
 
 use InvalidArgumentException;
 use Phel\Compiler\CompilerFactoryInterface;
-use Phel\Compiler\Environment\GlobalEnvironmentInterface;
+use Phel\Compiler\Analyzer\Environment\GlobalEnvironmentInterface;
 use Phel\Exceptions\CompilerException;
 use Phel\Exceptions\ExceptionPrinterInterface;
 use Phel\Lang\Keyword;

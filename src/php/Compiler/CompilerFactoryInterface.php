@@ -4,14 +4,12 @@ declare(strict_types=1);
 
 namespace Phel\Compiler;
 
-use Phel\Compiler\Compiler\EvalCompilerInterface;
-use Phel\Compiler\Compiler\FileCompilerInterface;
 use Phel\Compiler\Emitter\EmitterInterface;
 use Phel\Compiler\Emitter\OutputEmitterInterface;
-use Phel\Compiler\Environment\GlobalEnvironmentInterface;
+use Phel\Compiler\Analyzer\Environment\GlobalEnvironmentInterface;
 use Phel\Compiler\Lexer\LexerInterface;
 use Phel\Compiler\Parser\ParserInterface;
-use Phel\Compiler\Parser\ReaderInterface;
+use Phel\Compiler\Reader\ReaderInterface;
 
 interface CompilerFactoryInterface
 {

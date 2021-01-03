@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace Phel\Compiler\Emitter\OutputEmitter\NodeEmitter;
 
-use Phel\Compiler\Ast\CatchNode;
-use Phel\Compiler\Ast\AbstractNode;
+use Phel\Compiler\Analyzer\Ast\CatchNode;
+use Phel\Compiler\Analyzer\Ast\AbstractNode;
 use Phel\Compiler\Emitter\OutputEmitter\NodeEmitterInterface;
 
 final class CatchEmitter implements NodeEmitterInterface

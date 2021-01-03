@@ -6,7 +6,7 @@ namespace Phel\Command;
 
 use Phel\Command\Repl\ColorStyle;
 use Phel\Command\Repl\ReplCommandIoInterface;
-use Phel\Compiler\Compiler\EvalCompilerInterface;
+use Phel\Compiler\EvalCompilerInterface;
 use Phel\Exceptions\CompilerException;
 use Phel\Exceptions\ExceptionPrinterInterface;
 use Phel\Exceptions\ExitException;
@@ -83,9 +83,7 @@ final class ReplCommand
 
         try {
             $this->analyzeInput($input);
-        } catch (ParserException $e) {
-            $this->exceptionPrinter->printException($e, $e->getCodeSnippet());
-        } catch (ReaderException $e) {
+        } catch (ParserException|ReaderException $e) {
             $this->exceptionPrinter->printException($e, $e->getCodeSnippet());
         } catch (Throwable $e) {
             $this->exceptionPrinter->printStackTrace($e);

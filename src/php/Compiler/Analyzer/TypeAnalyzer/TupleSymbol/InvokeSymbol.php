@@ -6,10 +6,10 @@ namespace Phel\Compiler\Analyzer\TypeAnalyzer\TupleSymbol;
 
 use Exception;
 use Phel\Compiler\Analyzer\TypeAnalyzer\WithAnalyzerTrait;
-use Phel\Compiler\Ast\CallNode;
-use Phel\Compiler\Ast\GlobalVarNode;
-use Phel\Compiler\Ast\AbstractNode;
-use Phel\Compiler\Environment\NodeEnvironmentInterface;
+use Phel\Compiler\Analyzer\Ast\CallNode;
+use Phel\Compiler\Analyzer\Ast\GlobalVarNode;
+use Phel\Compiler\Analyzer\Ast\AbstractNode;
+use Phel\Compiler\Analyzer\Environment\NodeEnvironmentInterface;
 use Phel\Exceptions\AnalyzerException;
 use Phel\Lang\AbstractType;
 use Phel\Lang\Tuple;
