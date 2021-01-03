@@ -6,13 +6,10 @@ namespace PhelTest\Unit\Compiler\Analyzer;
 
 use Phel\Compiler\Analyzer;
 use Phel\Compiler\Analyzer\AnalyzeLiteral;
-use Phel\Compiler\Analyzer\AnalyzeTable;
 use Phel\Compiler\Ast\LiteralNode;
-use Phel\Compiler\Ast\TableNode;
 use Phel\Compiler\GlobalEnvironment;
 use Phel\Compiler\NodeEnvironment;
 use Phel\Lang\Symbol;
-use Phel\Lang\Table;
 use PHPUnit\Framework\TestCase;
 
 final class AnalyzeLiteralTest extends TestCase

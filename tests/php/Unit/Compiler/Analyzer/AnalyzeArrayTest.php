@@ -6,19 +6,11 @@ namespace PhelTest\Unit\Compiler\Analyzer;
 
 use Phel\Compiler\Analyzer;
 use Phel\Compiler\Analyzer\AnalyzeArray;
-use Phel\Compiler\Analyzer\AnalyzeBracketTuple;
-use Phel\Compiler\Analyzer\AnalyzeLiteral;
-use Phel\Compiler\Analyzer\AnalyzeTable;
 use Phel\Compiler\Ast\ArrayNode;
 use Phel\Compiler\Ast\LiteralNode;
-use Phel\Compiler\Ast\TableNode;
-use Phel\Compiler\Ast\TupleNode;
 use Phel\Compiler\GlobalEnvironment;
 use Phel\Compiler\NodeEnvironment;
 use Phel\Lang\PhelArray;
-use Phel\Lang\Symbol;
-use Phel\Lang\Table;
-use Phel\Lang\Tuple;
 use PHPUnit\Framework\TestCase;
 
 final class AnalyzeArrayTest extends TestCase
@@ -44,7 +36,7 @@ final class AnalyzeArrayTest extends TestCase
         $env = NodeEnvironment::empty();
         self::assertEquals(
             new ArrayNode($env, [
-                new LiteralNode($env->withContext(NodeEnvironment::CONTEXT_EXPRESSION), 1, null)
+                new LiteralNode($env->withContext(NodeEnvironment::CONTEXT_EXPRESSION), 1, null),
             ], null),
             $this->arrayAnalzyer->analyze(PhelArray::create(1), $env)
         );
