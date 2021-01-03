@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace PhelTest\Integration;
 
 use Generator;
-use Phel\Compiler\AnalyzerInterface;
+use Phel\Compiler\Analyzer\AnalyzerInterface;
 use Phel\Compiler\CompilerFactory;
 use Phel\Compiler\EmitterInterface;
 use Phel\Compiler\GlobalEnvironment;

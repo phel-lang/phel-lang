@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace PhelTest\Unit\Compiler\Analyzer;
 
-use Phel\Compiler\Analyzer;
-use Phel\Compiler\Analyzer\AnalyzeSymbol;
+use Phel\Compiler\Analyzer\Analyzer;
+use Phel\Compiler\Analyzer\TypeAnalyzer\AnalyzeSymbol;
 use Phel\Compiler\Ast\GlobalVarNode;
 use Phel\Compiler\Ast\LocalVarNode;
 use Phel\Compiler\Ast\PhpVarNode;

@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace PhelTest\Unit\Compiler\Analyzer\TupleSymbol;
 
-use Phel\Compiler\Analyzer;
-use Phel\Compiler\Analyzer\TupleSymbol\PhpObjectCallSymbol;
-use Phel\Compiler\AnalyzerInterface;
+use Phel\Compiler\Analyzer\Analyzer;
+use Phel\Compiler\Analyzer\TypeAnalyzer\TupleSymbol\PhpObjectCallSymbol;
+use Phel\Compiler\Analyzer\AnalyzerInterface;
 use Phel\Compiler\Ast\MethodCallNode;
 use Phel\Compiler\Ast\PhpClassNameNode;
 use Phel\Compiler\Ast\PropertyOrConstantAccessNode;

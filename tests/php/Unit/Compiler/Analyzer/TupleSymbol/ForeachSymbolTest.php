@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace PhelTest\Unit\Compiler\Analyzer\TupleSymbol;
 
-use Phel\Compiler\Analyzer;
-use Phel\Compiler\Analyzer\TupleSymbol\ForeachSymbol;
+use Phel\Compiler\Analyzer\Analyzer;
+use Phel\Compiler\Analyzer\TypeAnalyzer\TupleSymbol\ForeachSymbol;
 use Phel\Compiler\Ast\ForeachNode;
 use Phel\Compiler\NodeEnvironment;
 use Phel\Exceptions\PhelCodeException;

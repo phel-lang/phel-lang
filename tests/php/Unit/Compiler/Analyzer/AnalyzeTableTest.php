@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace PhelTest\Unit\Compiler\Analyzer;
 
-use Phel\Compiler\Analyzer;
-use Phel\Compiler\Analyzer\AnalyzeTable;
+use Phel\Compiler\Analyzer\Analyzer;
+use Phel\Compiler\Analyzer\TypeAnalyzer\AnalyzeTable;
 use Phel\Compiler\Ast\LiteralNode;
 use Phel\Compiler\Ast\TableNode;
 use Phel\Compiler\GlobalEnvironment;

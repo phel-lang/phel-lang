@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace PhelTest\Unit\Compiler\Analyzer\TupleSymbol;
 
-use Phel\Compiler\Analyzer;
-use Phel\Compiler\Analyzer\TupleSymbol\Binding\TupleDeconstructorInterface;
-use Phel\Compiler\Analyzer\TupleSymbol\LetSymbol;
+use Phel\Compiler\Analyzer\Analyzer;
+use Phel\Compiler\Analyzer\TypeAnalyzer\TupleSymbol\Binding\TupleDeconstructorInterface;
+use Phel\Compiler\Analyzer\TypeAnalyzer\TupleSymbol\LetSymbol;
 use Phel\Compiler\GlobalEnvironment;
 use Phel\Compiler\NodeEnvironment;
 use Phel\Exceptions\PhelCodeException;

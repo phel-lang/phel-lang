@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace PhelTest\Unit\Compiler\Analyzer;
 
-use Phel\Compiler\Analyzer;
-use Phel\Compiler\Analyzer\AnalyzeTuple;
+use Phel\Compiler\Analyzer\Analyzer;
+use Phel\Compiler\Analyzer\TypeAnalyzer\AnalyzeTuple;
 use Phel\Compiler\Ast\ApplyNode;
 use Phel\Compiler\Ast\DefNode;
 use Phel\Compiler\Ast\DefStructNode;

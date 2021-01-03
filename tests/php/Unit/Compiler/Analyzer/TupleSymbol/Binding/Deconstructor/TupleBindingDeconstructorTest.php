@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace PhelTest\Unit\Compiler\Analyzer\TupleSymbol\Binding\Deconstructor;
 
-use Phel\Compiler\Analyzer\TupleSymbol\Binding\BindingValidatorInterface;
-use Phel\Compiler\Analyzer\TupleSymbol\Binding\Deconstructor\TupleBindingDeconstructor;
-use Phel\Compiler\Analyzer\TupleSymbol\Binding\TupleDeconstructor;
+use Phel\Compiler\Analyzer\TypeAnalyzer\TupleSymbol\Binding\BindingValidatorInterface;
+use Phel\Compiler\Analyzer\TypeAnalyzer\TupleSymbol\Binding\Deconstructor\TupleBindingDeconstructor;
+use Phel\Compiler\Analyzer\TypeAnalyzer\TupleSymbol\Binding\TupleDeconstructor;
 use Phel\Exceptions\PhelCodeException;
 use Phel\Lang\Symbol;
 use Phel\Lang\Tuple;

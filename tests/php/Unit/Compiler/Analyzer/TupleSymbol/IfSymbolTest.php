@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace PhelTest\Unit\Compiler\Analyzer\TupleSymbol;
 
 use Generator;
-use Phel\Compiler\Analyzer;
-use Phel\Compiler\Analyzer\TupleSymbol\IfSymbol;
+use Phel\Compiler\Analyzer\Analyzer;
+use Phel\Compiler\Analyzer\TypeAnalyzer\TupleSymbol\IfSymbol;
 use Phel\Compiler\Ast\IfNode;
 use Phel\Compiler\NodeEnvironment;
 use Phel\Exceptions\PhelCodeException;

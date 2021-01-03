@@ -5,9 +5,9 @@ declare(strict_types=1);
 namespace PhelTest\Unit\Compiler\Analyzer\TupleSymbol;
 
 use Generator;
-use Phel\Compiler\Analyzer;
-use Phel\Compiler\Analyzer\TupleSymbol\FnSymbol;
-use Phel\Compiler\AnalyzerInterface;
+use Phel\Compiler\Analyzer\Analyzer;
+use Phel\Compiler\Analyzer\TypeAnalyzer\TupleSymbol\FnSymbol;
+use Phel\Compiler\Analyzer\AnalyzerInterface;
 use Phel\Compiler\Ast\DoNode;
 use Phel\Compiler\Ast\FnNode;
 use Phel\Compiler\Ast\LetNode;
