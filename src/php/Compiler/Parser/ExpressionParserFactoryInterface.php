@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace Phel\Compiler\Parser;
 
-use Phel\Compiler\Parser;
 use Phel\Compiler\Parser\ExpressionParser\AtomParser;
 use Phel\Compiler\Parser\ExpressionParser\ListParser;
 use Phel\Compiler\Parser\ExpressionParser\MetaParser;

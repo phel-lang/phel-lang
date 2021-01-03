@@ -6,8 +6,8 @@ namespace Phel\Runtime;
 
 use Phel\Compiler\CompilerFactory;
 use Phel\Compiler\CompilerFactoryInterface;
-use Phel\Compiler\GlobalEnvironment;
-use Phel\Compiler\GlobalEnvironmentInterface;
+use Phel\Compiler\Analyzer\Environment\GlobalEnvironment;
+use Phel\Compiler\Analyzer\Environment\GlobalEnvironmentInterface;
 use Phel\Exceptions\ExceptionPrinterInterface;
 use Phel\Exceptions\HtmlExceptionPrinter;
 use Phel\Exceptions\TextExceptionPrinter;

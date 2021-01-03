@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Phel\Compiler\Emitter\OutputEmitter;
 
-use Phel\Compiler\Ast\AbstractNode;
+use Phel\Compiler\Analyzer\Ast\AbstractNode;
 
 interface NodeEmitterInterface
 {

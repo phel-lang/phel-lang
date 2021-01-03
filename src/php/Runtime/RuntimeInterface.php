@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Phel\Runtime;
 
-use Phel\Compiler\GlobalEnvironmentInterface;
+use Phel\Compiler\Analyzer\Environment\GlobalEnvironmentInterface;
 
 interface RuntimeInterface
 {

@@ -83,9 +83,7 @@ final class ReplCommand
 
         try {
             $this->analyzeInput($input);
-        } catch (ParserException $e) {
-            $this->exceptionPrinter->printException($e, $e->getCodeSnippet());
-        } catch (ReaderException $e) {
+        } catch (ParserException|ReaderException $e) {
             $this->exceptionPrinter->printException($e, $e->getCodeSnippet());
         } catch (Throwable $e) {
             $this->exceptionPrinter->printStackTrace($e);

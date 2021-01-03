@@ -4,12 +4,12 @@ declare(strict_types=1);
 
 namespace PhelTest\Unit\Compiler\Analyzer;
 
-use Phel\Compiler\Analyzer;
-use Phel\Compiler\Analyzer\AnalyzeBracketTuple;
-use Phel\Compiler\Ast\LiteralNode;
-use Phel\Compiler\Ast\TupleNode;
-use Phel\Compiler\GlobalEnvironment;
-use Phel\Compiler\NodeEnvironment;
+use Phel\Compiler\Analyzer\Analyzer;
+use Phel\Compiler\Analyzer\TypeAnalyzer\AnalyzeBracketTuple;
+use Phel\Compiler\Analyzer\Ast\LiteralNode;
+use Phel\Compiler\Analyzer\Ast\TupleNode;
+use Phel\Compiler\Analyzer\Environment\GlobalEnvironment;
+use Phel\Compiler\Analyzer\Environment\NodeEnvironment;
 use Phel\Lang\Tuple;
 use PHPUnit\Framework\TestCase;
 

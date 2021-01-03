@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace Phel\Compiler\Parser\ExpressionParser;
 
+use Phel\Compiler\Lexer\Token;
 use Phel\Compiler\Parser\ParserNode\StringNode;
-use Phel\Compiler\Token;
 use Phel\Exceptions\StringParserException;
 
 final class StringParser

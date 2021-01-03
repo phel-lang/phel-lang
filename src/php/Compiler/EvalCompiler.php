@@ -4,8 +4,15 @@ declare(strict_types=1);
 
 namespace Phel\Compiler;
 
+use Phel\Compiler\Analyzer\AnalyzerInterface;
+use Phel\Compiler\Emitter\EmitterInterface;
+use Phel\Compiler\Analyzer\Environment\NodeEnvironment;
+use Phel\Compiler\Analyzer\Environment\NodeEnvironmentInterface;
+use Phel\Compiler\Lexer\LexerInterface;
 use Phel\Compiler\Parser\ParserNode\TriviaNodeInterface;
+use Phel\Compiler\Parser\ParserInterface;
 use Phel\Compiler\Parser\ReadModel\ReaderResult;
+use Phel\Compiler\Reader\ReaderInterface;
 use Phel\Exceptions\AnalyzerException;
 use Phel\Exceptions\CompilerException;
 use Phel\Exceptions\ParserException;

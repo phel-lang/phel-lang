@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace Phel\Compiler\Parser\ExpressionParser;
 
-use Phel\Compiler\Parser;
+use Phel\Compiler\Lexer\TokenStream;
+use Phel\Compiler\Parser\Parser;
 use Phel\Compiler\Parser\ParserNode\QuoteNode;
-use Phel\Compiler\TokenStream;
 
 final class QuoteParser
 {

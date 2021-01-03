@@ -4,13 +4,13 @@ declare(strict_types=1);
 
 namespace PhelTest\Unit\Compiler\Analyzer\TupleSymbol;
 
-use Phel\Compiler\Analyzer;
-use Phel\Compiler\Analyzer\TupleSymbol\ApplySymbol;
-use Phel\Compiler\AnalyzerInterface;
-use Phel\Compiler\Ast\CallNode;
-use Phel\Compiler\NodeEnvironment;
+use Phel\Compiler\Analyzer\Analyzer;
+use Phel\Compiler\Analyzer\TypeAnalyzer\TupleSymbol\ApplySymbol;
+use Phel\Compiler\Analyzer\AnalyzerInterface;
+use Phel\Compiler\Analyzer\Ast\CallNode;
+use Phel\Compiler\Analyzer\Environment\NodeEnvironment;
 use Phel\Exceptions\PhelCodeException;
-use Phel\Compiler\GlobalEnvironment;
+use Phel\Compiler\Analyzer\Environment\GlobalEnvironment;
 use Phel\Lang\Symbol;
 use Phel\Lang\Tuple;
 use PHPUnit\Framework\TestCase;

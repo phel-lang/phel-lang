@@ -4,11 +4,11 @@ declare(strict_types=1);
 
 namespace Phel\Compiler\Emitter\OutputEmitter\NodeEmitter;
 
-use Phel\Compiler\Ast\MethodCallNode;
-use Phel\Compiler\Ast\AbstractNode;
-use Phel\Compiler\Ast\PhpClassNameNode;
-use Phel\Compiler\Ast\PhpObjectCallNode;
-use Phel\Compiler\Ast\PropertyOrConstantAccessNode;
+use Phel\Compiler\Analyzer\Ast\MethodCallNode;
+use Phel\Compiler\Analyzer\Ast\AbstractNode;
+use Phel\Compiler\Analyzer\Ast\PhpClassNameNode;
+use Phel\Compiler\Analyzer\Ast\PhpObjectCallNode;
+use Phel\Compiler\Analyzer\Ast\PropertyOrConstantAccessNode;
 use Phel\Compiler\Emitter\OutputEmitter\NodeEmitterInterface;
 use Phel\Lang\Symbol;
 use RuntimeException;

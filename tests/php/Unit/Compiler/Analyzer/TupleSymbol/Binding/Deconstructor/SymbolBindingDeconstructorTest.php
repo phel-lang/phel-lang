@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace PhelTest\Unit\Compiler\Analyzer\TupleSymbol\Binding\Deconstructor;
 
-use Phel\Compiler\Analyzer\TupleSymbol\Binding\Deconstructor\SymbolBindingDeconstructor;
+use Phel\Compiler\Analyzer\TypeAnalyzer\TupleSymbol\Binding\Deconstructor\SymbolBindingDeconstructor;
 use Phel\Lang\Symbol;
 use PHPUnit\Framework\TestCase;
 
