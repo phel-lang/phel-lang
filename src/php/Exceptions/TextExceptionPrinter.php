@@ -142,7 +142,7 @@ final class TextExceptionPrinter implements ExceptionPrinterInterface
             }
         }
 
-        return [$originalFile, (int)$originalLine];
+        return [$originalFile, $originalLine];
     }
 
     private function buildPhpArgsString(array $args): string
