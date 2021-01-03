@@ -18,12 +18,16 @@ final class GlobalEnvironment implements GlobalEnvironmentInterface
 {
     private string $ns = 'user';
 
+    /** @var array<string, array<string, Table>> */
     private array $definitions = [];
 
+    /** @var array<string, array<string, Symbol>> */
     private array $refers = [];
 
+    /** @var array<string, array<string, Symbol>> */
     private array $requireAliases = [];
 
+    /** @var array<string, array<string, Symbol>> */
     private array $useAliases = [];
 
     private bool $allowPrivateAccess = false;

@@ -16,6 +16,9 @@ final class TryNode extends AbstractNode
 
     private ?AbstractNode $finally;
 
+    /**
+     * @param CatchNode[] $catches
+     */
     public function __construct(
         NodeEnvironmentInterface $env,
         AbstractNode $body,

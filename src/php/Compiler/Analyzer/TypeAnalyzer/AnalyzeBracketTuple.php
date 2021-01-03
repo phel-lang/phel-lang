@@ -6,6 +6,7 @@ namespace Phel\Compiler\Analyzer\TypeAnalyzer;
 
 use Phel\Compiler\Analyzer\Ast\TupleNode;
 use Phel\Compiler\Analyzer\Environment\NodeEnvironmentInterface;
+use Phel\Lang\AbstractType;
 use Phel\Lang\Tuple;
 
 final class AnalyzeBracketTuple
@@ -16,6 +17,7 @@ final class AnalyzeBracketTuple
     {
         $args = [];
 
+        /** @var AbstractType|string|float|int|bool|null $arg */
         foreach ($tuple as $arg) {
             $envDisallowRecur = $env->withContext(NodeEnvironmentInterface::CONTEXT_EXPRESSION)->withDisallowRecurFrame();
             $args[] = $this->analyzer->analyze($arg, $envDisallowRecur);

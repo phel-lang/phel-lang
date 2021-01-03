@@ -11,6 +11,7 @@ use Phel\Lang\Symbol;
 final class MethodCallNode extends AbstractNode
 {
     private Symbol $fn;
+    /** @var AbstractNode[] */
     private array $args;
 
     /**

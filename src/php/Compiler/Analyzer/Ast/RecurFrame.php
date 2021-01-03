@@ -13,6 +13,9 @@ final class RecurFrame
     /** @var Symbol[] */
     private array $params;
 
+    /**
+     * @param Symbol[] $params
+     */
     public function __construct(array $params)
     {
         $this->params = $params;
@@ -28,6 +31,9 @@ final class RecurFrame
         return $this->isActive;
     }
 
+    /**
+     * @return Symbol[]
+     */
     public function getParams(): array
     {
         return $this->params;
