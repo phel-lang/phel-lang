@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Phel\Compiler\Analyzer\TypeAnalyzer\TupleSymbol;
 
 use Phel\Compiler\Ast\AbstractNode;
-use Phel\Compiler\NodeEnvironmentInterface;
+use Phel\Compiler\Environment\NodeEnvironmentInterface;
 use Phel\Lang\Tuple;
 
 interface TupleSymbolAnalyzerInterface

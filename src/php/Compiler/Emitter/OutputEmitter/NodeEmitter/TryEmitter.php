@@ -7,7 +7,7 @@ namespace Phel\Compiler\Emitter\OutputEmitter\NodeEmitter;
 use Phel\Compiler\Ast\AbstractNode;
 use Phel\Compiler\Ast\TryNode;
 use Phel\Compiler\Emitter\OutputEmitter\NodeEmitterInterface;
-use Phel\Compiler\NodeEnvironmentInterface;
+use Phel\Compiler\Environment\NodeEnvironmentInterface;
 
 final class TryEmitter implements NodeEmitterInterface
 {

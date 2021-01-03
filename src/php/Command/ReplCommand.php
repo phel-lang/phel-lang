@@ -6,7 +6,7 @@ namespace Phel\Command;
 
 use Phel\Command\Repl\ColorStyle;
 use Phel\Command\Repl\ReplCommandIoInterface;
-use Phel\Compiler\EvalCompilerInterface;
+use Phel\Compiler\Compiler\EvalCompilerInterface;
 use Phel\Exceptions\CompilerException;
 use Phel\Exceptions\ExceptionPrinterInterface;
 use Phel\Exceptions\ExitException;

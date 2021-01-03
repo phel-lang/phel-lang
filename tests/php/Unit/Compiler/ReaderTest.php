@@ -6,7 +6,7 @@ namespace PhelTest\Unit\Compiler;
 
 use Phel\Compiler\CompilerFactory;
 use Phel\Exceptions\ReaderException;
-use Phel\Compiler\GlobalEnvironment;
+use Phel\Compiler\Environment\GlobalEnvironment;
 use Phel\Lang\AbstractType;
 use Phel\Lang\MetaInterface;
 use Phel\Lang\Keyword;

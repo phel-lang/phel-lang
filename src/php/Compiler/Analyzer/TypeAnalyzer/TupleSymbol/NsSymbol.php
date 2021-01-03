@@ -7,7 +7,7 @@ namespace Phel\Compiler\Analyzer\TypeAnalyzer\TupleSymbol;
 use Phel\Compiler\Analyzer\TypeAnalyzer\PhpKeywords;
 use Phel\Compiler\Analyzer\TypeAnalyzer\WithAnalyzerTrait;
 use Phel\Compiler\Ast\NsNode;
-use Phel\Compiler\NodeEnvironmentInterface;
+use Phel\Compiler\Environment\NodeEnvironmentInterface;
 use Phel\Exceptions\AnalyzerException;
 use Phel\Lang\Keyword;
 use Phel\Lang\Symbol;

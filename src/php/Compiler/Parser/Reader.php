@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Phel\Compiler\Parser;
 
+use Phel\Compiler\Lexer\Token;
 use Phel\Compiler\Parser\Parser\ParserNode\AbstractAtomNode;
 use Phel\Compiler\Parser\Parser\ParserNode\ListNode;
 use Phel\Compiler\Parser\Parser\ParserNode\MetaNode;
@@ -15,7 +16,6 @@ use Phel\Compiler\Parser\Reader\ExpressionReaderFactoryInterface;
 use Phel\Compiler\Parser\Reader\QuasiquoteTransformerInterface;
 use Phel\Compiler\Parser\ReadModel\CodeSnippet;
 use Phel\Compiler\Parser\ReadModel\ReaderResult;
-use Phel\Compiler\Token;
 use Phel\Exceptions\ReaderException;
 use Phel\Lang\AbstractType;
 use Phel\Lang\PhelArray;

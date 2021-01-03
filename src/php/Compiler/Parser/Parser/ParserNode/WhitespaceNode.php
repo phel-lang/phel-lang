@@ -2,7 +2,7 @@
 
 namespace Phel\Compiler\Parser\Parser\ParserNode;
 
-use Phel\Compiler\Token;
+use Phel\Compiler\Lexer\Token;
 use Phel\Lang\SourceLocation;
 
 final class WhitespaceNode implements TriviaNodeInterface

@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Phel\Compiler\Analyzer\TypeAnalyzer\TupleSymbol\ReadModel;
 
 use Phel\Compiler\Ast\AbstractNode;
-use Phel\Compiler\NodeEnvironmentInterface;
+use Phel\Compiler\Environment\NodeEnvironmentInterface;
 use Phel\Lang\Symbol;
 
 final class ForeachSymbolTuple

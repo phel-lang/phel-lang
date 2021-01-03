@@ -4,13 +4,13 @@ declare(strict_types=1);
 
 namespace Phel\Compiler\Parser\Parser\ExpressionParser;
 
+use Phel\Compiler\Lexer\Token;
 use Phel\Compiler\Parser\Parser\ParserNode\AbstractAtomNode;
 use Phel\Compiler\Parser\Parser\ParserNode\BooleanNode;
 use Phel\Compiler\Parser\Parser\ParserNode\KeywordNode;
 use Phel\Compiler\Parser\Parser\ParserNode\NilNode;
 use Phel\Compiler\Parser\Parser\ParserNode\NumberNode;
 use Phel\Compiler\Parser\Parser\ParserNode\SymbolNode;
-use Phel\Compiler\Token;
 use Phel\Lang\Keyword;
 use Phel\Lang\Symbol;
 

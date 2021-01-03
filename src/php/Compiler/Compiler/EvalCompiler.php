@@ -2,10 +2,13 @@
 
 declare(strict_types=1);
 
-namespace Phel\Compiler;
+namespace Phel\Compiler\Compiler;
 
 use Phel\Compiler\Analyzer\AnalyzerInterface;
 use Phel\Compiler\Emitter\EmitterInterface;
+use Phel\Compiler\Environment\NodeEnvironment;
+use Phel\Compiler\Environment\NodeEnvironmentInterface;
+use Phel\Compiler\Lexer\LexerInterface;
 use Phel\Compiler\Parser\Parser\ParserNode\TriviaNodeInterface;
 use Phel\Compiler\Parser\ParserInterface;
 use Phel\Compiler\Parser\ReadModel\ReaderResult;
@@ -15,7 +18,7 @@ use Phel\Exceptions\CompilerException;
 use Phel\Exceptions\ParserException;
 use Phel\Exceptions\ReaderException;
 
-final class FileCompiler implements FileCompilerInterface
+final class EvalCompiler implements EvalCompilerInterface
 {
     private LexerInterface $lexer;
     private ParserInterface $parser;
@@ -37,44 +40,49 @@ final class FileCompiler implements FileCompilerInterface
         $this->emitter = $emitter;
     }
 
-    public function compile(string $filename): string
+    /**
+     * Evaluates a provided Phel code.
+     *
+     * @throws CompilerException|ReaderException
+     *
+     * @return mixed The result of the executed code
+     */
+    public function eval(string $code)
     {
-        $code = file_get_contents($filename);
-        $tokenStream = $this->lexer->lexString($code, $filename);
-        $code = '';
+        try {
+            $tokenStream = $this->lexer->lexString($code);
+            $parseTree = $this->parser->parseNext($tokenStream);
 
-        while (true) {
-            try {
-                $parseTree = $this->parser->parseNext($tokenStream);
-
-                // If we reached the end exit this loop
-                if (!$parseTree) {
-                    break;
-                }
-
-                if (!$parseTree instanceof TriviaNodeInterface) {
-                    $readerResult = $this->reader->read($parseTree);
-                    $code .= $this->analyzeAndEvalNode($readerResult);
-                }
-            } catch (ParserException|ReaderException $e) {
-                throw new CompilerException($e, $e->getCodeSnippet());
+            if (!$parseTree || $parseTree instanceof TriviaNodeInterface) {
+                return null;
             }
-        }
 
-        return $code;
+            $readerResult = $this->reader->read($parseTree);
+
+            return $this->evalNode($readerResult);
+        } catch (ParserException|ReaderException $e) {
+            throw new CompilerException($e, $e->getCodeSnippet());
+        }
     }
 
-    private function analyzeAndEvalNode(ReaderResult $readerResult): string
+    /**
+     * @throws CompilerException
+     *
+     * @return mixed
+     */
+    private function evalNode(ReaderResult $readerResult)
     {
         try {
             $node = $this->analyzer->analyze(
                 $readerResult->getAst(),
-                NodeEnvironment::empty()
+                NodeEnvironment::empty()->withContext(NodeEnvironmentInterface::CONTEXT_RETURN)
             );
+
+            $code = $this->emitter->emitNodeAsString($node);
+
+            return $this->emitter->evalCode($code);
         } catch (AnalyzerException $e) {
             throw new CompilerException($e, $readerResult->getCodeSnippet());
         }
-
-        return $this->emitter->emitNodeAndEval($node);
     }
 }

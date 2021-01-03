@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Phel\Compiler\Parser;
 
+use Phel\Compiler\Lexer\Token;
+use Phel\Compiler\Lexer\TokenStream;
 use Phel\Compiler\Parser\Parser\ExpressionParserFactoryInterface;
 use Phel\Compiler\Parser\Parser\ParserNode\AbstractAtomNode;
 use Phel\Compiler\Parser\Parser\ParserNode\CommentNode;
@@ -14,8 +16,6 @@ use Phel\Compiler\Parser\Parser\ParserNode\NodeInterface;
 use Phel\Compiler\Parser\Parser\ParserNode\QuoteNode;
 use Phel\Compiler\Parser\Parser\ParserNode\StringNode;
 use Phel\Compiler\Parser\Parser\ParserNode\WhitespaceNode;
-use Phel\Compiler\Token;
-use Phel\Compiler\TokenStream;
 use Phel\Exceptions\ParserException;
 use Phel\Exceptions\StringParserException;
 

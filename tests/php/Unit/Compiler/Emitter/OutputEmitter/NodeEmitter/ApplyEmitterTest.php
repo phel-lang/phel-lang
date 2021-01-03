@@ -11,8 +11,8 @@ use Phel\Compiler\Ast\PhpVarNode;
 use Phel\Compiler\Ast\TupleNode;
 use Phel\Compiler\CompilerFactory;
 use Phel\Compiler\Emitter\OutputEmitter\NodeEmitter\ApplyEmitter;
-use Phel\Compiler\NodeEnvironment;
-use Phel\Compiler\NodeEnvironmentInterface;
+use Phel\Compiler\Environment\NodeEnvironment;
+use Phel\Compiler\Environment\NodeEnvironmentInterface;
 use Phel\Lang\Symbol;
 use PHPUnit\Framework\TestCase;
 

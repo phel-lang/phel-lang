@@ -5,11 +5,8 @@ declare(strict_types=1);
 namespace PhelTest\Unit\Compiler;
 
 use Phel\Compiler\CompilerFactory;
-use Phel\Compiler\Parser\Parser\ParserNode\NodeInterface;
-use Phel\Lang\Keyword;
-use Phel\Lang\SourceLocation;
-use Phel\Lang\Symbol;
-use Phel\Compiler\Lexer;
+use Phel\Compiler\Lexer\Lexer;
+use Phel\Compiler\Lexer\Token;
 use Phel\Compiler\Parser\Parser\ParserNode\BooleanNode;
 use Phel\Compiler\Parser\Parser\ParserNode\CommentNode;
 use Phel\Compiler\Parser\Parser\ParserNode\KeywordNode;
@@ -17,17 +14,27 @@ use Phel\Compiler\Parser\Parser\ParserNode\ListNode;
 use Phel\Compiler\Parser\Parser\ParserNode\MetaNode;
 use Phel\Compiler\Parser\Parser\ParserNode\NewlineNode;
 use Phel\Compiler\Parser\Parser\ParserNode\NilNode;
+use Phel\Compiler\Parser\Parser\ParserNode\NodeInterface;
 use Phel\Compiler\Parser\Parser\ParserNode\NumberNode;
 use Phel\Compiler\Parser\Parser\ParserNode\QuoteNode;
 use Phel\Compiler\Parser\Parser\ParserNode\StringNode;
 use Phel\Compiler\Parser\Parser\ParserNode\SymbolNode;
 use Phel\Compiler\Parser\Parser\ParserNode\WhitespaceNode;
-use Phel\Compiler\Token;
 use Phel\Exceptions\ParserException;
+use Phel\Lang\Keyword;
+use Phel\Lang\SourceLocation;
+use Phel\Lang\Symbol;
 use PHPUnit\Framework\TestCase;
 
 final class ParserTest extends TestCase
 {
+    private CompilerFactory $compilerFactory;
+
+    public function setUp(): void
+    {
+        $this->compilerFactory = new CompilerFactory();
+    }
+
     public function testReadNumber(): void
     {
         self::assertEquals(new NumberNode('1', $this->loc(1, 0), $this->loc(1, 1), 1), $this->parse('1'));
@@ -472,8 +479,8 @@ final class ParserTest extends TestCase
 
     public function testEOF(): void
     {
-        $parser = (new CompilerFactory())->createParser();
-        $tokenStream = (new Lexer())->lexString('');
+        $parser = $this->compilerFactory->createParser();
+        $tokenStream = $this->compilerFactory->createLexer()->lexString('');
 
         self::assertNull($parser->parseNext($tokenStream));
     }
@@ -481,8 +488,8 @@ final class ParserTest extends TestCase
     public function testInvalidGenerator(): void
     {
         Symbol::resetGen();
-        $parser = (new CompilerFactory())->createParser();
-        $tokenStream = (new Lexer())->lexString('');
+        $parser = $this->compilerFactory->createParser();
+        $tokenStream = $this->compilerFactory->createLexer()->lexString('');
 
         $tokenStream->next();
         self::assertNull($parser->parseNext($tokenStream));

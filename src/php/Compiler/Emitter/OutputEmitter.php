@@ -9,7 +9,7 @@ use Phel\Compiler\Emitter\OutputEmitter\LiteralEmitter;
 use Phel\Compiler\Emitter\OutputEmitter\Munge;
 use Phel\Compiler\Emitter\OutputEmitter\NodeEmitterFactory;
 use Phel\Compiler\Emitter\OutputEmitter\SourceMap\SourceMapGenerator;
-use Phel\Compiler\NodeEnvironmentInterface;
+use Phel\Compiler\Environment\NodeEnvironmentInterface;
 use Phel\Lang\AbstractType;
 use Phel\Lang\SourceLocation;
 use Phel\Lang\Symbol;

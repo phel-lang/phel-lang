@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace Phel\Compiler\Parser\Reader\ExpressionReader;
 
 use Phel\Compiler\Parser\Parser\ParserNode\QuoteNode;
-use Phel\Compiler\Parser\Reader\QuasiquoteTransformerInterface;
 use Phel\Compiler\Parser\Reader;
+use Phel\Compiler\Parser\Reader\QuasiquoteTransformerInterface;
 use Phel\Lang\AbstractType;
 
 final class QuoasiquoteReader

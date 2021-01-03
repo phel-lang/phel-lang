@@ -6,7 +6,7 @@ namespace Phel\Compiler\Analyzer\TypeAnalyzer\TupleSymbol;
 
 use Phel\Compiler\Analyzer\TypeAnalyzer\WithAnalyzerTrait;
 use Phel\Compiler\Ast\PhpArraySetNode;
-use Phel\Compiler\NodeEnvironmentInterface;
+use Phel\Compiler\Environment\NodeEnvironmentInterface;
 use Phel\Lang\Tuple;
 
 final class PhpASetSymbol implements TupleSymbolAnalyzerInterface

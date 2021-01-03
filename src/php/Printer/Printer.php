@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace Phel\Printer;
 
+use Phel\Lang\AbstractStruct;
 use Phel\Lang\Keyword;
 use Phel\Lang\PhelArray;
 use Phel\Lang\Set;
-use Phel\Lang\AbstractStruct;
 use Phel\Lang\Symbol;
 use Phel\Lang\Table;
 use Phel\Lang\Tuple;
@@ -18,7 +18,6 @@ use Phel\Printer\TypePrinter\NullPrinter;
 use Phel\Printer\TypePrinter\NumberPrinter;
 use Phel\Printer\TypePrinter\ObjectPrinter;
 use Phel\Printer\TypePrinter\PhelArrayPrinter;
-use Phel\Printer\TypePrinter\TypePrinterInterface;
 use Phel\Printer\TypePrinter\ResourcePrinter;
 use Phel\Printer\TypePrinter\SetPrinter;
 use Phel\Printer\TypePrinter\StringPrinter;
@@ -26,6 +25,7 @@ use Phel\Printer\TypePrinter\StructPrinter;
 use Phel\Printer\TypePrinter\SymbolPrinter;
 use Phel\Printer\TypePrinter\TablePrinter;
 use Phel\Printer\TypePrinter\TuplePrinter;
+use Phel\Printer\TypePrinter\TypePrinterInterface;
 
 final class Printer
 {

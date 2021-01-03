@@ -7,7 +7,7 @@ namespace Phel\Compiler\Emitter\OutputEmitter\NodeEmitter;
 use Phel\Compiler\Ast\LiteralNode;
 use Phel\Compiler\Ast\AbstractNode;
 use Phel\Compiler\Emitter\OutputEmitter\NodeEmitterInterface;
-use Phel\Compiler\NodeEnvironmentInterface;
+use Phel\Compiler\Environment\NodeEnvironmentInterface;
 
 final class LiteralEmitter implements NodeEmitterInterface
 {

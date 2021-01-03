@@ -8,8 +8,8 @@ use Phel\Compiler\Analyzer\Analyzer;
 use Phel\Compiler\Analyzer\TypeAnalyzer\AnalyzeTable;
 use Phel\Compiler\Ast\LiteralNode;
 use Phel\Compiler\Ast\TableNode;
-use Phel\Compiler\GlobalEnvironment;
-use Phel\Compiler\NodeEnvironment;
+use Phel\Compiler\Environment\GlobalEnvironment;
+use Phel\Compiler\Environment\NodeEnvironment;
 use Phel\Lang\Table;
 use PHPUnit\Framework\TestCase;
 

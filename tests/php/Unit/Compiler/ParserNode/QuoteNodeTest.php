@@ -7,7 +7,7 @@ namespace PhelTest\Unit\Compiler\ParserNode;
 use Phel\Compiler\Parser\Parser\ParserNode\QuoteNode;
 use Phel\Compiler\Parser\Parser\ParserNode\SymbolNode;
 use Phel\Lang\SourceLocation;
-use Phel\Compiler\Token;
+use Phel\Compiler\Lexer\Token;
 use Phel\Lang\Symbol;
 use PHPUnit\Framework\TestCase;
 use RuntimeException;

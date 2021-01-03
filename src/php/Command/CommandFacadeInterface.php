@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Phel\Command;
 
-use Phel\Compiler\GlobalEnvironmentInterface;
+use Phel\Compiler\Environment\GlobalEnvironmentInterface;
 
 interface CommandFacadeInterface
 {

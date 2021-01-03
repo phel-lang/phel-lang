@@ -29,7 +29,7 @@ use Phel\Compiler\Analyzer\TypeAnalyzer\TupleSymbol\ThrowSymbol;
 use Phel\Compiler\Analyzer\TypeAnalyzer\TupleSymbol\TrySymbol;
 use Phel\Compiler\Analyzer\TypeAnalyzer\TupleSymbol\TupleSymbolAnalyzerInterface;
 use Phel\Compiler\Ast\AbstractNode;
-use Phel\Compiler\NodeEnvironmentInterface;
+use Phel\Compiler\Environment\NodeEnvironmentInterface;
 use Phel\Exceptions\AnalyzerException;
 use Phel\Exceptions\PhelCodeException;
 use Phel\Lang\Symbol;

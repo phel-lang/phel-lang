@@ -7,7 +7,7 @@ namespace Phel\Compiler\Analyzer\TypeAnalyzer\TupleSymbol;
 use Phel\Compiler\Analyzer\TypeAnalyzer\TupleSymbol\ReadModel\ForeachSymbolTuple;
 use Phel\Compiler\Analyzer\TypeAnalyzer\WithAnalyzerTrait;
 use Phel\Compiler\Ast\ForeachNode;
-use Phel\Compiler\NodeEnvironmentInterface;
+use Phel\Compiler\Environment\NodeEnvironmentInterface;
 use Phel\Exceptions\AnalyzerException;
 use Phel\Lang\Symbol;
 use Phel\Lang\Tuple;

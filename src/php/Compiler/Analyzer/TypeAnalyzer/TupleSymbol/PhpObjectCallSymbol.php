@@ -8,7 +8,7 @@ use Phel\Compiler\Analyzer\AnalyzerInterface;
 use Phel\Compiler\Ast\MethodCallNode;
 use Phel\Compiler\Ast\PhpObjectCallNode;
 use Phel\Compiler\Ast\PropertyOrConstantAccessNode;
-use Phel\Compiler\NodeEnvironmentInterface;
+use Phel\Compiler\Environment\NodeEnvironmentInterface;
 use Phel\Exceptions\AnalyzerException;
 use Phel\Lang\Symbol;
 use Phel\Lang\Tuple;

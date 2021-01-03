@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Phel\Compiler;
+namespace Phel\Compiler\Environment;
 
 use Phel\Compiler\Ast\GlobalVarNode;
 use Phel\Compiler\Ast\LiteralNode;

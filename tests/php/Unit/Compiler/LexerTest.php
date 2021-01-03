@@ -6,7 +6,7 @@ namespace PhelTest\Unit\Compiler;
 
 use Phel\Compiler\CompilerFactory;
 use Phel\Lang\SourceLocation;
-use Phel\Compiler\Token;
+use Phel\Compiler\Lexer\Token;
 use PHPUnit\Framework\TestCase;
 
 final class LexerTest extends TestCase

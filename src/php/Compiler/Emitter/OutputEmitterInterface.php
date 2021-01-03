@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Phel\Compiler\Emitter;
 
 use Phel\Compiler\Ast\AbstractNode;
-use Phel\Compiler\NodeEnvironmentInterface;
+use Phel\Compiler\Environment\NodeEnvironmentInterface;
 use Phel\Lang\AbstractType;
 use Phel\Lang\SourceLocation;
 use Phel\Lang\Symbol;

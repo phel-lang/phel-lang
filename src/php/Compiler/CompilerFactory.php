@@ -4,24 +4,31 @@ declare(strict_types=1);
 
 namespace Phel\Compiler;
 
+use Phel\Compiler\Compiler\EvalCompiler;
+use Phel\Compiler\Compiler\EvalCompilerInterface;
+use Phel\Compiler\Compiler\FileCompiler;
+use Phel\Compiler\Compiler\FileCompilerInterface;
+use Phel\Compiler\Emitter\EmitterInterface;
+use Phel\Compiler\Emitter\OutputEmitterInterface;
+use Phel\Compiler\Environment\GlobalEnvironmentInterface;
+use Phel\Compiler\Lexer\LexerInterface;
+use Phel\Compiler\Parser\ParserInterface;
+use Phel\Compiler\Parser\ReaderInterface;
 use Phel\Compiler\Analyzer\Analyzer;
 use Phel\Compiler\Analyzer\AnalyzerInterface;
 use Phel\Compiler\Emitter\Emitter;
-use Phel\Compiler\Emitter\EmitterInterface;
 use Phel\Compiler\Emitter\EvalEmitter;
 use Phel\Compiler\Emitter\EvalEmitterInterface;
 use Phel\Compiler\Emitter\OutputEmitter;
 use Phel\Compiler\Emitter\OutputEmitter\Munge;
 use Phel\Compiler\Emitter\OutputEmitter\NodeEmitterFactory;
 use Phel\Compiler\Emitter\OutputEmitter\SourceMap\SourceMapGenerator;
-use Phel\Compiler\Emitter\OutputEmitterInterface;
+use Phel\Compiler\Lexer\Lexer;
 use Phel\Compiler\Parser\Parser;
 use Phel\Compiler\Parser\Parser\ExpressionParserFactory;
-use Phel\Compiler\Parser\ParserInterface;
 use Phel\Compiler\Parser\Reader;
 use Phel\Compiler\Parser\Reader\ExpressionReaderFactory;
 use Phel\Compiler\Parser\Reader\QuasiquoteTransformer;
-use Phel\Compiler\Parser\ReaderInterface;
 
 final class CompilerFactory implements CompilerFactoryInterface
 {

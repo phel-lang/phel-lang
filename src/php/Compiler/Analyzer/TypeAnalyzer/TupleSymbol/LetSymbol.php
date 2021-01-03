@@ -8,7 +8,7 @@ use Phel\Compiler\Analyzer\TypeAnalyzer\TupleSymbol\Binding\TupleDeconstructorIn
 use Phel\Compiler\Analyzer\AnalyzerInterface;
 use Phel\Compiler\Ast\BindingNode;
 use Phel\Compiler\Ast\LetNode;
-use Phel\Compiler\NodeEnvironmentInterface;
+use Phel\Compiler\Environment\NodeEnvironmentInterface;
 use Phel\Exceptions\AnalyzerException;
 use Phel\Lang\Symbol;
 use Phel\Lang\Tuple;

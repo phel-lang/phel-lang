@@ -10,7 +10,7 @@ use Phel\Command\Shared\CommandSystemIo;
 use Phel\Command\Shared\NamespaceExtractor;
 use Phel\Command\Shared\NamespaceExtractorInterface;
 use Phel\Compiler\CompilerFactoryInterface;
-use Phel\Compiler\GlobalEnvironmentInterface;
+use Phel\Compiler\Environment\GlobalEnvironmentInterface;
 use Phel\Exceptions\TextExceptionPrinter;
 use Phel\Runtime\RuntimeInterface;
 

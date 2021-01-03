@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Phel\Compiler\Ast;
 
-use Phel\Compiler\NodeEnvironment;
+use Phel\Compiler\Environment\NodeEnvironment;
 use Phel\Lang\SourceLocation;
 use Phel\Lang\Symbol;
 

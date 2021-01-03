@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace Phel\Compiler\Parser\Reader;
 
 use Phel\Compiler\Ast\GlobalVarNode;
-use Phel\Compiler\GlobalEnvironmentInterface;
-use Phel\Compiler\NodeEnvironment;
+use Phel\Compiler\Environment\GlobalEnvironmentInterface;
+use Phel\Compiler\Environment\NodeEnvironment;
 use Phel\Lang\AbstractType;
 use Phel\Lang\Keyword;
 use Phel\Lang\PhelArray;

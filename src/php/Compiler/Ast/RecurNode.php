@@ -4,8 +4,7 @@ declare(strict_types=1);
 
 namespace Phel\Compiler\Ast;
 
-use Phel\Compiler\NodeEnvironmentInterface;
-use Phel\Compiler\RecurFrame;
+use Phel\Compiler\Environment\NodeEnvironmentInterface;
 use Phel\Lang\SourceLocation;
 
 final class RecurNode extends AbstractNode

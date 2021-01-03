@@ -7,7 +7,7 @@ namespace Phel\Compiler\Analyzer\TypeAnalyzer;
 use Phel\Compiler\Ast\LocalVarNode;
 use Phel\Compiler\Ast\AbstractNode;
 use Phel\Compiler\Ast\PhpVarNode;
-use Phel\Compiler\NodeEnvironmentInterface;
+use Phel\Compiler\Environment\NodeEnvironmentInterface;
 use Phel\Exceptions\AnalyzerException;
 use Phel\Lang\Symbol;
 

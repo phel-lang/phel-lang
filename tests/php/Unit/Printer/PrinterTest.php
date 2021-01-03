@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace PhelTest\Unit\Printer;
 
 use Phel\Compiler\CompilerFactory;
-use Phel\Compiler\GlobalEnvironment;
+use Phel\Compiler\Environment\GlobalEnvironment;
 use Phel\Printer\Printer;
 use PHPUnit\Framework\TestCase;
 

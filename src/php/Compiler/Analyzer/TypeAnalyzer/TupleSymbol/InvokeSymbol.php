@@ -9,7 +9,7 @@ use Phel\Compiler\Analyzer\TypeAnalyzer\WithAnalyzerTrait;
 use Phel\Compiler\Ast\CallNode;
 use Phel\Compiler\Ast\GlobalVarNode;
 use Phel\Compiler\Ast\AbstractNode;
-use Phel\Compiler\NodeEnvironmentInterface;
+use Phel\Compiler\Environment\NodeEnvironmentInterface;
 use Phel\Exceptions\AnalyzerException;
 use Phel\Lang\AbstractType;
 use Phel\Lang\Tuple;

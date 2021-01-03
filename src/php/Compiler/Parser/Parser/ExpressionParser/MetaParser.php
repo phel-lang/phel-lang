@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace Phel\Compiler\Parser\Parser\ExpressionParser;
 
+use Phel\Compiler\Lexer\TokenStream;
 use Phel\Compiler\Parser\Parser;
 use Phel\Compiler\Parser\Parser\ParserNode\MetaNode;
 use Phel\Compiler\Parser\Parser\ParserNode\TriviaNodeInterface;
-use Phel\Compiler\TokenStream;
 
 final class MetaParser
 {

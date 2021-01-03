@@ -8,8 +8,8 @@ use Phel\Compiler\Parser\Parser\ParserNode\MetaNode;
 use Phel\Compiler\Parser\Reader;
 use Phel\Exceptions\ReaderException;
 use Phel\Lang\AbstractType;
-use Phel\Lang\MetaInterface;
 use Phel\Lang\Keyword;
+use Phel\Lang\MetaInterface;
 use Phel\Lang\Symbol;
 use Phel\Lang\Table;
 

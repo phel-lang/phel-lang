@@ -22,15 +22,15 @@ use Phel\Compiler\Ast\PhpArrayUnsetNode;
 use Phel\Compiler\Ast\PhpNewNode;
 use Phel\Compiler\Ast\PhpObjectCallNode;
 use Phel\Compiler\Ast\QuoteNode;
+use Phel\Compiler\Ast\RecurFrame;
 use Phel\Compiler\Ast\RecurNode;
 use Phel\Compiler\Ast\ThrowNode;
 use Phel\Compiler\Ast\TryNode;
-use Phel\Compiler\GlobalEnvironment;
-use Phel\Compiler\NodeEnvironment;
+use Phel\Compiler\Environment\GlobalEnvironment;
+use Phel\Compiler\Environment\NodeEnvironment;
 use Phel\Lang\Symbol;
 use Phel\Lang\Tuple;
-use Phel\Compiler\NodeEnvironmentInterface;
-use  Phel\Compiler\RecurFrame;
+use Phel\Compiler\Environment\NodeEnvironmentInterface;
 use PHPUnit\Framework\TestCase;
 
 final class AnalyzeTupleTest extends TestCase
