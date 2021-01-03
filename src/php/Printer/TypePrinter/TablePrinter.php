@@ -25,6 +25,7 @@ final class TablePrinter implements TypePrinterInterface
     public function print($form): string
     {
         $args = [];
+        /** @var mixed $value */
         foreach ($form as $key => $value) {
             $args[] = $this->printer->print($key);
             $args[] = $this->printer->print($value);

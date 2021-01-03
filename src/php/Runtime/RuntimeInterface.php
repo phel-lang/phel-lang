@@ -10,6 +10,10 @@ interface RuntimeInterface
 {
     public function getEnv(): GlobalEnvironmentInterface;
 
+    /**
+     * @param string $namespacePrefix
+     * @param string[] $path
+     */
     public function addPath(string $namespacePrefix, array $path): void;
 
     /**

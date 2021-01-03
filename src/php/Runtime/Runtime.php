@@ -10,6 +10,7 @@ use Phel\Compiler\Environment\GlobalEnvironmentInterface;
 use Phel\Exceptions\CompilerException;
 use Phel\Exceptions\ExceptionPrinterInterface;
 use Phel\Lang\Keyword;
+use Phel\Lang\MetaInterface;
 use Phel\Lang\Symbol;
 use Phel\Lang\Table;
 use Throwable;
@@ -27,6 +28,7 @@ class Runtime implements RuntimeInterface
     /** @var string[] */
     private array $loadedNs = [];
 
+    /** @var array<string, string[]> */
     private array $paths = [];
 
     public function __construct(
@@ -49,6 +51,10 @@ class Runtime implements RuntimeInterface
         return $this->globalEnv;
     }
 
+    /**
+     * @param string $namespacePrefix
+     * @param string[] $path
+     */
     public function addPath(string $namespacePrefix, array $path): void
     {
         $length = strlen($namespacePrefix);
@@ -154,14 +160,19 @@ class Runtime implements RuntimeInterface
 
         // Update global environment
         if (isset($GLOBALS['__phel'][$ns])) {
-            foreach (array_keys($GLOBALS['__phel'][$ns]) as $name) {
+            /** @var array<string, MetaInterface> $nsDefinitions */
+            $nsDefinitions = $GLOBALS['__phel'][$ns];
+            /** @var string $name */
+            foreach (array_keys($nsDefinitions) as $name) {
                 /** @var Table $meta */
                 $meta = $GLOBALS['__phel_meta'][$ns][$name] ?? new Table();
+                /** @var MetaInterface $def */
+                $def = $nsDefinitions[$name];
                 if ($meta[new Keyword('private')] !== true) {
                     $this->globalEnv->addDefinition(
                         $ns,
                         Symbol::create($name),
-                        $GLOBALS['__phel'][$ns][$name]->getMeta()
+                        $def->getMeta()
                     );
                 }
             }
