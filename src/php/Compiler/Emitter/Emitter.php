@@ -2,11 +2,9 @@
 
 declare(strict_types=1);
 
-namespace Phel\Compiler;
+namespace Phel\Compiler\Emitter;
 
 use Phel\Compiler\Ast\AbstractNode;
-use Phel\Compiler\Emitter\EvalEmitterInterface;
-use Phel\Compiler\Emitter\OutputEmitterInterface;
 
 final class Emitter implements EmitterInterface
 {

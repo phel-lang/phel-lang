@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Phel\Compiler;
 
 use Phel\Compiler\Analyzer\AnalyzerInterface;
+use Phel\Compiler\Emitter\EmitterInterface;
 use Phel\Compiler\Parser\ParserNode\TriviaNodeInterface;
 use Phel\Compiler\Parser\ReadModel\ReaderResult;
 use Phel\Exceptions\AnalyzerException;

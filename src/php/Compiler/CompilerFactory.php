@@ -6,6 +6,8 @@ namespace Phel\Compiler;
 
 use Phel\Compiler\Analyzer\Analyzer;
 use Phel\Compiler\Analyzer\AnalyzerInterface;
+use Phel\Compiler\Emitter\Emitter;
+use Phel\Compiler\Emitter\EmitterInterface;
 use Phel\Compiler\Emitter\EvalEmitter;
 use Phel\Compiler\Emitter\EvalEmitterInterface;
 use Phel\Compiler\Emitter\OutputEmitter;

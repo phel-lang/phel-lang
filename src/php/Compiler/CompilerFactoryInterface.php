@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Phel\Compiler;
 
+use Phel\Compiler\Emitter\EmitterInterface;
 use Phel\Compiler\Emitter\OutputEmitterInterface;
 
 interface CompilerFactoryInterface

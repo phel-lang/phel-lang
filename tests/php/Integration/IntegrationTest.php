@@ -7,7 +7,7 @@ namespace PhelTest\Integration;
 use Generator;
 use Phel\Compiler\Analyzer\AnalyzerInterface;
 use Phel\Compiler\CompilerFactory;
-use Phel\Compiler\EmitterInterface;
+use Phel\Compiler\Emitter\EmitterInterface;
 use Phel\Compiler\GlobalEnvironment;
 use Phel\Compiler\NodeEnvironment;
 use Phel\Compiler\Parser\ParserNode\TriviaNodeInterface;
