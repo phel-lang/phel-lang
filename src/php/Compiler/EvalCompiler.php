@@ -6,8 +6,10 @@ namespace Phel\Compiler;
 
 use Phel\Compiler\Analyzer\AnalyzerInterface;
 use Phel\Compiler\Emitter\EmitterInterface;
-use Phel\Compiler\Parser\ParserNode\TriviaNodeInterface;
+use Phel\Compiler\Parser\Parser\ParserNode\TriviaNodeInterface;
+use Phel\Compiler\Parser\ParserInterface;
 use Phel\Compiler\Parser\ReadModel\ReaderResult;
+use Phel\Compiler\Parser\ReaderInterface;
 use Phel\Exceptions\AnalyzerException;
 use Phel\Exceptions\CompilerException;
 use Phel\Exceptions\ParserException;

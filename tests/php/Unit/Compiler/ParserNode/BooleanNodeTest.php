@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace PhelTest\Unit\Compiler;
+namespace PhelTest\Unit\Compiler\ParserNode;
 
+use Phel\Compiler\Parser\Parser\ParserNode\BooleanNode;
 use Phel\Lang\SourceLocation;
-use Phel\Compiler\Parser\ParserNode\BooleanNode;
 use PHPUnit\Framework\TestCase;
 
 final class BooleanNodeTest extends TestCase

@@ -2,11 +2,11 @@
 
 declare(strict_types=1);
 
-namespace PhelTest\Unit\Compiler;
+namespace PhelTest\Unit\Compiler\ParserNode;
 
+use Phel\Compiler\Parser\Parser\ParserNode\QuoteNode;
+use Phel\Compiler\Parser\Parser\ParserNode\SymbolNode;
 use Phel\Lang\SourceLocation;
-use Phel\Compiler\Parser\ParserNode\QuoteNode;
-use Phel\Compiler\Parser\ParserNode\SymbolNode;
 use Phel\Compiler\Token;
 use Phel\Lang\Symbol;
 use PHPUnit\Framework\TestCase;

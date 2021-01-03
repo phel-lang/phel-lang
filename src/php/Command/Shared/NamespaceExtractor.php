@@ -5,9 +5,9 @@ declare(strict_types=1);
 namespace Phel\Command\Shared;
 
 use Phel\Compiler\LexerInterface;
-use Phel\Compiler\ParserInterface;
-use Phel\Compiler\Parser\ParserNode\TriviaNodeInterface;
-use Phel\Compiler\ReaderInterface;
+use Phel\Compiler\Parser\Parser\ParserNode\TriviaNodeInterface;
+use Phel\Compiler\Parser\ParserInterface;
+use Phel\Compiler\Parser\ReaderInterface;
 use Phel\Exceptions\ParserException;
 use Phel\Exceptions\ReaderException;
 use Phel\Lang\Symbol;

@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace PhelTest\Unit\Compiler;
+namespace PhelTest\Unit\Compiler\ParserNode;
 
+use Phel\Compiler\Parser\Parser\ParserNode\CommentNode;
 use Phel\Lang\SourceLocation;
-use Phel\Compiler\Parser\ParserNode\CommentNode;
 use PHPUnit\Framework\TestCase;
 
 final class CommentNodeTest extends TestCase

@@ -6,6 +6,8 @@ namespace Phel\Compiler;
 
 use Phel\Compiler\Emitter\EmitterInterface;
 use Phel\Compiler\Emitter\OutputEmitterInterface;
+use Phel\Compiler\Parser\ParserInterface;
+use Phel\Compiler\Parser\ReaderInterface;
 
 interface CompilerFactoryInterface
 {

@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Phel\Exceptions;
 
 use Exception;
-use Phel\Compiler\Parser\ParserNode\NodeInterface;
+use Phel\Compiler\Parser\Parser\ParserNode\NodeInterface;
 use Phel\Compiler\Parser\ReadModel\CodeSnippet;
 use Phel\Lang\SourceLocation;
 

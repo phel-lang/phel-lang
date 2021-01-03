@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace PhelTest\Unit\Compiler;
 
 use Phel\Compiler\GlobalEnvironment;
-use Phel\Compiler\Parser\QuasiquoteTransformer;
+use Phel\Compiler\Parser\Reader\QuasiquoteTransformer;
 use Phel\Lang\Keyword;
 use Phel\Lang\PhelArray;
 use Phel\Lang\Symbol;

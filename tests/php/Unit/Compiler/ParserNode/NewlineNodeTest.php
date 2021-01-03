@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace PhelTest\Unit\Compiler;
+namespace PhelTest\Unit\Compiler\ParserNode;
 
+use Phel\Compiler\Parser\Parser\ParserNode\NewlineNode;
 use Phel\Lang\SourceLocation;
-use Phel\Compiler\Parser\ParserNode\NewlineNode;
 use PHPUnit\Framework\TestCase;
 
 final class NewlineNodeTest extends TestCase

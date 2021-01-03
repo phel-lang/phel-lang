@@ -15,9 +15,13 @@ use Phel\Compiler\Emitter\OutputEmitter\Munge;
 use Phel\Compiler\Emitter\OutputEmitter\NodeEmitterFactory;
 use Phel\Compiler\Emitter\OutputEmitter\SourceMap\SourceMapGenerator;
 use Phel\Compiler\Emitter\OutputEmitterInterface;
-use Phel\Compiler\Parser\ExpressionParserFactory;
-use Phel\Compiler\Parser\ExpressionReaderFactory;
-use Phel\Compiler\Parser\QuasiquoteTransformer;
+use Phel\Compiler\Parser\Parser;
+use Phel\Compiler\Parser\Parser\ExpressionParserFactory;
+use Phel\Compiler\Parser\ParserInterface;
+use Phel\Compiler\Parser\Reader;
+use Phel\Compiler\Parser\Reader\ExpressionReaderFactory;
+use Phel\Compiler\Parser\Reader\QuasiquoteTransformer;
+use Phel\Compiler\Parser\ReaderInterface;
 
 final class CompilerFactory implements CompilerFactoryInterface
 {
