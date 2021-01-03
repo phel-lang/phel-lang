@@ -30,10 +30,16 @@ interface NodeEnvironmentInterface
 
     public function getContext(): string;
 
+    /**
+     * @param Symbol[] $locals
+     */
     public function withMergedLocals(array $locals): NodeEnvironmentInterface;
 
     public function withShadowedLocal(Symbol $local, Symbol $shadow): NodeEnvironmentInterface;
 
+    /**
+     * @param Symbol[] $locals
+     */
     public function withLocals(array $locals): NodeEnvironmentInterface;
 
     public function withContext(string $context): NodeEnvironmentInterface;
