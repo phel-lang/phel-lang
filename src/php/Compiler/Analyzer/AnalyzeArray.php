@@ -10,7 +10,7 @@ use Phel\Lang\PhelArray;
 
 final class AnalyzeArray
 {
-    use WithAnalyzer;
+    use WithAnalyzerTrait;
 
     public function analyze(PhelArray $array, NodeEnvironmentInterface $env): ArrayNode
     {

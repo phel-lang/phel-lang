@@ -5,18 +5,18 @@ declare(strict_types=1);
 namespace Phel\Compiler\Analyzer\TupleSymbol;
 
 use Phel\Compiler\Analyzer\TupleSymbol\ReadModel\FnSymbolTuple;
-use Phel\Compiler\Analyzer\WithAnalyzer;
+use Phel\Compiler\Analyzer\WithAnalyzerTrait;
 use Phel\Compiler\Ast\FnNode;
-use Phel\Compiler\Ast\Node;
+use Phel\Compiler\Ast\AbstractNode;
 use Phel\Compiler\NodeEnvironmentInterface;
 use Phel\Compiler\RecurFrame;
 use Phel\Exceptions\AnalyzerException;
 use Phel\Lang\Symbol;
 use Phel\Lang\Tuple;
 
-final class FnSymbol implements TupleSymbolAnalyzer
+final class FnSymbol implements TupleSymbolAnalyzerInterface
 {
-    use WithAnalyzer;
+    use WithAnalyzerTrait;
 
     public function analyze(Tuple $tuple, NodeEnvironmentInterface $env): FnNode
     {
@@ -47,7 +47,7 @@ final class FnSymbol implements TupleSymbolAnalyzer
         }
     }
 
-    private function analyzeBody(FnSymbolTuple $fnSymbolTuple, RecurFrame $recurFrame, NodeEnvironmentInterface $env): Node
+    private function analyzeBody(FnSymbolTuple $fnSymbolTuple, RecurFrame $recurFrame, NodeEnvironmentInterface $env): AbstractNode
     {
         $tupleBody = $fnSymbolTuple->parentTupleBody();
 

@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Phel\Compiler\Parser\ExpressionParser;
 
-use Phel\Compiler\Parser\ParserNode\AtomNode;
+use Phel\Compiler\Parser\ParserNode\AbstractAtomNode;
 use Phel\Compiler\Parser\ParserNode\BooleanNode;
 use Phel\Compiler\Parser\ParserNode\KeywordNode;
 use Phel\Compiler\Parser\ParserNode\NilNode;
@@ -16,7 +16,7 @@ use Phel\Lang\Symbol;
 
 final class AtomParser
 {
-    public function parse(Token $token): AtomNode
+    public function parse(Token $token): AbstractAtomNode
     {
         $word = $token->getCode();
 

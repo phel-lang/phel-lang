@@ -5,20 +5,20 @@ declare(strict_types=1);
 namespace Phel\Compiler\Analyzer\TupleSymbol;
 
 use Exception;
-use Phel\Compiler\Analyzer\WithAnalyzer;
+use Phel\Compiler\Analyzer\WithAnalyzerTrait;
 use Phel\Compiler\Ast\CallNode;
 use Phel\Compiler\Ast\GlobalVarNode;
-use Phel\Compiler\Ast\Node;
+use Phel\Compiler\Ast\AbstractNode;
 use Phel\Compiler\NodeEnvironmentInterface;
 use Phel\Exceptions\AnalyzerException;
 use Phel\Lang\AbstractType;
 use Phel\Lang\Tuple;
 
-final class InvokeSymbol implements TupleSymbolAnalyzer
+final class InvokeSymbol implements TupleSymbolAnalyzerInterface
 {
-    use WithAnalyzer;
+    use WithAnalyzerTrait;
 
-    public function analyze(Tuple $tuple, NodeEnvironmentInterface $env): Node
+    public function analyze(Tuple $tuple, NodeEnvironmentInterface $env): AbstractNode
     {
         $f = $this->analyzer->analyze(
             $tuple[0],
@@ -37,7 +37,7 @@ final class InvokeSymbol implements TupleSymbolAnalyzer
         );
     }
 
-    private function globalMacro(Tuple $tuple, NodeEnvironmentInterface $env): Node
+    private function globalMacro(Tuple $tuple, NodeEnvironmentInterface $env): AbstractNode
     {
         return $this->analyzer->analyzeMacro($this->macroExpand($tuple, $env), $env);
     }

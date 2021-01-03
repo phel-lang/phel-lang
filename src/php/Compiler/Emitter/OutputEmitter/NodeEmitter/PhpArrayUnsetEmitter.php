@@ -4,15 +4,15 @@ declare(strict_types=1);
 
 namespace Phel\Compiler\Emitter\OutputEmitter\NodeEmitter;
 
-use Phel\Compiler\Ast\Node;
+use Phel\Compiler\Ast\AbstractNode;
 use Phel\Compiler\Ast\PhpArrayUnsetNode;
-use Phel\Compiler\Emitter\OutputEmitter\NodeEmitter;
+use Phel\Compiler\Emitter\OutputEmitter\NodeEmitterInterface;
 
-final class PhpArrayUnsetEmitter implements NodeEmitter
+final class PhpArrayUnsetEmitter implements NodeEmitterInterface
 {
-    use WithOutputEmitter;
+    use WithOutputEmitterTrait;
 
-    public function emit(Node $node): void
+    public function emit(AbstractNode $node): void
     {
         assert($node instanceof PhpArrayUnsetNode);
 

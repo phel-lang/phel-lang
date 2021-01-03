@@ -4,15 +4,15 @@ declare(strict_types=1);
 
 namespace Phel\Compiler\Analyzer\TupleSymbol;
 
-use Phel\Compiler\Analyzer\WithAnalyzer;
+use Phel\Compiler\Analyzer\WithAnalyzerTrait;
 use Phel\Compiler\Ast\PhpNewNode;
 use Phel\Compiler\NodeEnvironmentInterface;
 use Phel\Exceptions\AnalyzerException;
 use Phel\Lang\Tuple;
 
-final class PhpNewSymbol implements TupleSymbolAnalyzer
+final class PhpNewSymbol implements TupleSymbolAnalyzerInterface
 {
-    use WithAnalyzer;
+    use WithAnalyzerTrait;
 
     public function analyze(Tuple $tuple, NodeEnvironmentInterface $env): PhpNewNode
     {

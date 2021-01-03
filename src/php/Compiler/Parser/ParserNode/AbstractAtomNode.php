@@ -7,7 +7,7 @@ use Phel\Lang\SourceLocation;
 /**
  * @template T
  */
-abstract class AtomNode implements NodeInterface
+abstract class AbstractAtomNode implements NodeInterface
 {
     private string $code;
     private SourceLocation $startLocation;

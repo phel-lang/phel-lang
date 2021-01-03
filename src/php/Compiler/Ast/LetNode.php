@@ -7,12 +7,12 @@ namespace Phel\Compiler\Ast;
 use Phel\Compiler\NodeEnvironmentInterface;
 use Phel\Lang\SourceLocation;
 
-final class LetNode extends Node
+final class LetNode extends AbstractNode
 {
     /** @var BindingNode[] */
     private array $bindings;
 
-    private Node $bodyExpr;
+    private AbstractNode $bodyExpr;
 
     private bool $isLoop;
 
@@ -22,7 +22,7 @@ final class LetNode extends Node
     public function __construct(
         NodeEnvironmentInterface $env,
         array $bindings,
-        Node $bodyExpr,
+        AbstractNode $bodyExpr,
         bool $isLoop,
         ?SourceLocation $sourceLocation = null
     ) {
@@ -40,7 +40,7 @@ final class LetNode extends Node
         return $this->bindings;
     }
 
-    public function getBodyExpr(): Node
+    public function getBodyExpr(): AbstractNode
     {
         return $this->bodyExpr;
     }

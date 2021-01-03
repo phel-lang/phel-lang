@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Phel\Compiler\Analyzer\TupleSymbol;
 
 use Phel\Compiler\Analyzer\PhpKeywords;
-use Phel\Compiler\Analyzer\WithAnalyzer;
+use Phel\Compiler\Analyzer\WithAnalyzerTrait;
 use Phel\Compiler\Ast\NsNode;
 use Phel\Compiler\NodeEnvironmentInterface;
 use Phel\Exceptions\AnalyzerException;
@@ -14,9 +14,9 @@ use Phel\Lang\Symbol;
 use Phel\Lang\Table;
 use Phel\Lang\Tuple;
 
-final class NsSymbol implements TupleSymbolAnalyzer
+final class NsSymbol implements TupleSymbolAnalyzerInterface
 {
-    use WithAnalyzer;
+    use WithAnalyzerTrait;
 
     public function analyze(Tuple $tuple, NodeEnvironmentInterface $env): NsNode
     {

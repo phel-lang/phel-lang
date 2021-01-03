@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace Phel\Compiler\Analyzer\TupleSymbol;
 
-use Phel\Compiler\Analyzer\WithAnalyzer;
+use Phel\Compiler\Analyzer\WithAnalyzerTrait;
 use Phel\Compiler\Ast\DefNode;
-use Phel\Compiler\Ast\Node;
+use Phel\Compiler\Ast\AbstractNode;
 use Phel\Compiler\NodeEnvironmentInterface;
 use Phel\Exceptions\AnalyzerException;
 use Phel\Exceptions\PhelCodeException;
@@ -16,9 +16,9 @@ use Phel\Lang\Symbol;
 use Phel\Lang\Table;
 use Phel\Lang\Tuple;
 
-final class DefSymbol implements TupleSymbolAnalyzer
+final class DefSymbol implements TupleSymbolAnalyzerInterface
 {
-    use WithAnalyzer;
+    use WithAnalyzerTrait;
 
     private const POSSIBLE_TUPLE_SIZES = [3, 4];
 
@@ -119,7 +119,7 @@ final class DefSymbol implements TupleSymbolAnalyzer
     /**
      * @param AbstractType|string|float|int|bool|null $init
      */
-    private function analyzeInit($init, NodeEnvironmentInterface $env, string $namespace, Symbol $nameSymbol): Node
+    private function analyzeInit($init, NodeEnvironmentInterface $env, string $namespace, Symbol $nameSymbol): AbstractNode
     {
         $initEnv = $env
             ->withBoundTo($namespace . '\\' . $nameSymbol)

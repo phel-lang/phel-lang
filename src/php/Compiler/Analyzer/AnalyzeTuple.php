@@ -27,8 +27,8 @@ use Phel\Compiler\Analyzer\TupleSymbol\QuoteSymbol;
 use Phel\Compiler\Analyzer\TupleSymbol\RecurSymbol;
 use Phel\Compiler\Analyzer\TupleSymbol\ThrowSymbol;
 use Phel\Compiler\Analyzer\TupleSymbol\TrySymbol;
-use Phel\Compiler\Analyzer\TupleSymbol\TupleSymbolAnalyzer;
-use Phel\Compiler\Ast\Node;
+use Phel\Compiler\Analyzer\TupleSymbol\TupleSymbolAnalyzerInterface;
+use Phel\Compiler\Ast\AbstractNode;
 use Phel\Compiler\NodeEnvironmentInterface;
 use Phel\Exceptions\AnalyzerException;
 use Phel\Exceptions\PhelCodeException;
@@ -37,14 +37,14 @@ use Phel\Lang\Tuple;
 
 final class AnalyzeTuple
 {
-    use WithAnalyzer;
+    use WithAnalyzerTrait;
 
     private const EMPTY_SYMBOL_NAME = '';
 
     /**
      * @throws AnalyzerException|PhelCodeException
      */
-    public function analyze(Tuple $tuple, NodeEnvironmentInterface $env): Node
+    public function analyze(Tuple $tuple, NodeEnvironmentInterface $env): AbstractNode
     {
         $symbolName = $this->getSymbolName($tuple);
         $symbol = $this->createSymbolAnalyzerByName($symbolName);
@@ -59,7 +59,7 @@ final class AnalyzeTuple
             : self::EMPTY_SYMBOL_NAME;
     }
 
-    private function createSymbolAnalyzerByName(string $symbolName): TupleSymbolAnalyzer
+    private function createSymbolAnalyzerByName(string $symbolName): TupleSymbolAnalyzerInterface
     {
         switch ($symbolName) {
             case Symbol::NAME_DEF:

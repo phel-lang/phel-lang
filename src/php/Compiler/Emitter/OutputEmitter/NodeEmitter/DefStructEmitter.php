@@ -5,15 +5,15 @@ declare(strict_types=1);
 namespace Phel\Compiler\Emitter\OutputEmitter\NodeEmitter;
 
 use Phel\Compiler\Ast\DefStructNode;
-use Phel\Compiler\Ast\Node;
-use Phel\Compiler\Emitter\OutputEmitter\NodeEmitter;
+use Phel\Compiler\Ast\AbstractNode;
+use Phel\Compiler\Emitter\OutputEmitter\NodeEmitterInterface;
 use Phel\Lang\Keyword;
 
-final class DefStructEmitter implements NodeEmitter
+final class DefStructEmitter implements NodeEmitterInterface
 {
-    use WithOutputEmitter;
+    use WithOutputEmitterTrait;
 
-    public function emit(Node $node): void
+    public function emit(AbstractNode $node): void
     {
         assert($node instanceof DefStructNode);
 
@@ -23,7 +23,7 @@ final class DefStructEmitter implements NodeEmitter
             $node->getStartSourceLocation()
         );
         $this->outputEmitter->emitLine(
-            'class ' . $this->outputEmitter->mungeEncode($node->getName()->getName()) . ' extends \Phel\Lang\Struct {',
+            'class ' . $this->outputEmitter->mungeEncode($node->getName()->getName()) . ' extends \Phel\Lang\AbstractStruct {',
             $node->getStartSourceLocation()
         );
         $this->outputEmitter->increaseIndentLevel();

@@ -6,7 +6,7 @@ namespace Phel\Lang;
 
 use Phel\Printer\Printer;
 
-final class Keyword extends AbstractType implements IIdentical, IFn
+final class Keyword extends AbstractType implements IdenticalInterface, FnInterface
 {
     private string $name;
 

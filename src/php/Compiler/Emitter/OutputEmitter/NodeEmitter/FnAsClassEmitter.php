@@ -5,15 +5,15 @@ declare(strict_types=1);
 namespace Phel\Compiler\Emitter\OutputEmitter\NodeEmitter;
 
 use Phel\Compiler\Ast\FnNode;
-use Phel\Compiler\Ast\Node;
-use Phel\Compiler\Emitter\OutputEmitter\NodeEmitter;
+use Phel\Compiler\Ast\AbstractNode;
+use Phel\Compiler\Emitter\OutputEmitter\NodeEmitterInterface;
 use Phel\Lang\Keyword;
 
-final class FnAsClassEmitter implements NodeEmitter
+final class FnAsClassEmitter implements NodeEmitterInterface
 {
-    use WithOutputEmitter;
+    use WithOutputEmitterTrait;
 
-    public function emit(Node $node): void
+    public function emit(AbstractNode $node): void
     {
         assert($node instanceof FnNode);
 
@@ -35,7 +35,7 @@ final class FnAsClassEmitter implements NodeEmitter
             }
         }
 
-        $this->outputEmitter->emitLine(') extends \Phel\Lang\AFn {', $node->getStartSourceLocation());
+        $this->outputEmitter->emitLine(') extends \Phel\Lang\AbstractFn {', $node->getStartSourceLocation());
         $this->outputEmitter->increaseIndentLevel();
 
         $ns = addslashes($this->outputEmitter->mungeEncodeNs($node->getEnv()->getBoundTo()));

@@ -10,7 +10,7 @@ use Phel\Lang\SourceLocation;
 use Phel\Lang\Symbol;
 use Phel\Lang\Table;
 
-final class GlobalVarNode extends Node
+final class GlobalVarNode extends AbstractNode
 {
     private string $namespace;
     private Symbol $name;

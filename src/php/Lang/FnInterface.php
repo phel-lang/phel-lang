@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Phel\Lang;
 
-interface IFn
+interface FnInterface
 {
     // There is no general way to define a interface
     // that must implement a invoke function in any way.

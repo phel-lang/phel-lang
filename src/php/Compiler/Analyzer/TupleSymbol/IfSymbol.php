@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace Phel\Compiler\Analyzer\TupleSymbol;
 
-use Phel\Compiler\Analyzer\WithAnalyzer;
+use Phel\Compiler\Analyzer\WithAnalyzerTrait;
 use Phel\Compiler\Ast\IfNode;
-use Phel\Compiler\Ast\Node;
+use Phel\Compiler\Ast\AbstractNode;
 use Phel\Compiler\NodeEnvironmentInterface;
 use Phel\Exceptions\AnalyzerException;
 use Phel\Lang\Tuple;
@@ -14,9 +14,9 @@ use Phel\Lang\Tuple;
 /**
  * (if test then else?).
  */
-final class IfSymbol implements TupleSymbolAnalyzer
+final class IfSymbol implements TupleSymbolAnalyzerInterface
 {
-    use WithAnalyzer;
+    use WithAnalyzerTrait;
 
     public function analyze(Tuple $tuple, NodeEnvironmentInterface $env): IfNode
     {
@@ -40,7 +40,7 @@ final class IfSymbol implements TupleSymbolAnalyzer
         }
     }
 
-    private function testExpression(Tuple $tuple, NodeEnvironmentInterface $env): Node
+    private function testExpression(Tuple $tuple, NodeEnvironmentInterface $env): AbstractNode
     {
         $envWithDisallowRecurFrame = $env
             ->withContext(NodeEnvironmentInterface::CONTEXT_EXPRESSION)
@@ -49,12 +49,12 @@ final class IfSymbol implements TupleSymbolAnalyzer
         return $this->analyzer->analyze($tuple[1], $envWithDisallowRecurFrame);
     }
 
-    private function thenExpression(Tuple $tuple, NodeEnvironmentInterface $env): Node
+    private function thenExpression(Tuple $tuple, NodeEnvironmentInterface $env): AbstractNode
     {
         return $this->analyzer->analyze($tuple[2], $env);
     }
 
-    private function elseExpression(Tuple $tuple, NodeEnvironmentInterface $env): Node
+    private function elseExpression(Tuple $tuple, NodeEnvironmentInterface $env): AbstractNode
     {
         if (count($tuple) === 3) {
             return $this->analyzer->analyze(null, $env);

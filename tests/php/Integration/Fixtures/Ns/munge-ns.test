@@ -15,7 +15,7 @@ $GLOBALS["__phel_meta"]["hello_world"]["x"] = \Phel\Lang\Table::fromKVs(
   new \Phel\Lang\Keyword("private"), true
 );
 namespace hello_world;
-class abc extends \Phel\Lang\Struct {
+class abc extends \Phel\Lang\AbstractStruct {
   public function __construct($a) {
     $this->offsetSet(new \Phel\Lang\Keyword("a"), $a);
   }
@@ -24,7 +24,7 @@ class abc extends \Phel\Lang\Struct {
   }
 }
 
-$GLOBALS["__phel"]["hello_world"]["abc"] = new class() extends \Phel\Lang\AFn {
+$GLOBALS["__phel"]["hello_world"]["abc"] = new class() extends \Phel\Lang\AbstractFn {
   public const BOUND_TO = "hello_world\\abc";
 
   public function __invoke($a) {
@@ -38,7 +38,7 @@ $GLOBALS["__phel_meta"]["hello_world"]["abc"] = \Phel\Lang\Table::fromKVs(
   new \Phel\Lang\Keyword("doc"), "```phel\n(abc a)\n```\nCreates a new abc struct"
 );
 
-$GLOBALS["__phel"]["hello_world"]["abc?"] = new class() extends \Phel\Lang\AFn {
+$GLOBALS["__phel"]["hello_world"]["abc?"] = new class() extends \Phel\Lang\AbstractFn {
   public const BOUND_TO = "hello_world\\abc?";
 
   public function __invoke($x) {

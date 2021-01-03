@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Phel\Compiler;
 
-use Phel\Compiler\Ast\Node;
+use Phel\Compiler\Ast\AbstractNode;
 use Phel\Lang\Symbol;
 use Phel\Lang\Table;
 
@@ -30,7 +30,7 @@ interface GlobalEnvironmentInterface
 
     public function addRefer(string $inNamespace, Symbol $fnName, Symbol $ns): void;
 
-    public function resolve(Symbol $name, NodeEnvironmentInterface $env): ?Node;
+    public function resolve(Symbol $name, NodeEnvironmentInterface $env): ?AbstractNode;
 
     public function setAllowPrivateAccess(bool $allowPrivateAccess): void;
 }

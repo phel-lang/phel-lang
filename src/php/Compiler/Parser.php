@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Phel\Compiler;
 
 use Phel\Compiler\Parser\ExpressionParserFactoryInterface;
-use Phel\Compiler\Parser\ParserNode\AtomNode;
+use Phel\Compiler\Parser\ParserNode\AbstractAtomNode;
 use Phel\Compiler\Parser\ParserNode\CommentNode;
 use Phel\Compiler\Parser\ParserNode\ListNode;
 use Phel\Compiler\Parser\ParserNode\MetaNode;
@@ -120,7 +120,7 @@ final class Parser implements ParserInterface
         throw $this->createParserException($tokenStream, 'Unterminated list');
     }
 
-    private function parseAtomNode(Token $token): AtomNode
+    private function parseAtomNode(Token $token): AbstractAtomNode
     {
         return $this->parserFactory
             ->createAtomParser()

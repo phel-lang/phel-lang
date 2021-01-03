@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Phel\Compiler\Emitter;
 
-use Phel\Compiler\Ast\Node;
+use Phel\Compiler\Ast\AbstractNode;
 use Phel\Compiler\NodeEnvironmentInterface;
 use Phel\Lang\AbstractType;
 use Phel\Lang\SourceLocation;
@@ -12,9 +12,9 @@ use Phel\Lang\Symbol;
 
 interface OutputEmitterInterface
 {
-    public function emitNodeAsString(Node $node): string;
+    public function emitNodeAsString(AbstractNode $node): string;
 
-    public function emitNode(Node $node): void;
+    public function emitNode(AbstractNode $node): void;
 
     public function emitLine(string $str = '', ?SourceLocation $sl = null): void;
 

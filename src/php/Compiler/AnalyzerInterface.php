@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Phel\Compiler;
 
-use Phel\Compiler\Ast\Node;
+use Phel\Compiler\Ast\AbstractNode;
 use Phel\Lang\AbstractType;
 use Phel\Lang\Symbol;
 use Phel\Lang\Table;
@@ -14,14 +14,14 @@ interface AnalyzerInterface
     /**
      * @param AbstractType|string|float|int|bool|null $x
      */
-    public function analyze($x, NodeEnvironmentInterface $env): Node;
+    public function analyze($x, NodeEnvironmentInterface $env): AbstractNode;
 
     /**
      * @param AbstractType|string|float|int|bool|null $x
      */
-    public function analyzeMacro($x, NodeEnvironmentInterface $env): Node;
+    public function analyzeMacro($x, NodeEnvironmentInterface $env): AbstractNode;
 
-    public function resolve(Symbol $name, NodeEnvironmentInterface $env): ?Node;
+    public function resolve(Symbol $name, NodeEnvironmentInterface $env): ?AbstractNode;
 
     public function getNamespace(): string;
 

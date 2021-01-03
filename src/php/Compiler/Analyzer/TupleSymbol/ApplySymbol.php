@@ -4,17 +4,17 @@ declare(strict_types=1);
 
 namespace Phel\Compiler\Analyzer\TupleSymbol;
 
-use Phel\Compiler\Analyzer\WithAnalyzer;
+use Phel\Compiler\Analyzer\WithAnalyzerTrait;
 use Phel\Compiler\Ast\ApplyNode;
-use Phel\Compiler\Ast\Node;
+use Phel\Compiler\Ast\AbstractNode;
 use Phel\Compiler\NodeEnvironmentInterface;
 use Phel\Exceptions\AnalyzerException;
 use Phel\Lang\AbstractType;
 use Phel\Lang\Tuple;
 
-final class ApplySymbol implements TupleSymbolAnalyzer
+final class ApplySymbol implements TupleSymbolAnalyzerInterface
 {
-    use WithAnalyzer;
+    use WithAnalyzerTrait;
 
     public function analyze(Tuple $tuple, NodeEnvironmentInterface $env): ApplyNode
     {
@@ -36,9 +36,9 @@ final class ApplySymbol implements TupleSymbolAnalyzer
      * @param AbstractType|string|float|int|bool|null $x
      * @param NodeEnvironmentInterface $env
      *
-     * @return Node
+     * @return AbstractNode
      */
-    private function fnExpr($x, NodeEnvironmentInterface $env): Node
+    private function fnExpr($x, NodeEnvironmentInterface $env): AbstractNode
     {
         return $this->analyzer->analyze(
             $x,

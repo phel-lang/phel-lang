@@ -5,14 +5,14 @@ declare(strict_types=1);
 namespace Phel\Compiler\Emitter\OutputEmitter\NodeEmitter;
 
 use Phel\Compiler\Ast\ArrayNode;
-use Phel\Compiler\Ast\Node;
-use Phel\Compiler\Emitter\OutputEmitter\NodeEmitter;
+use Phel\Compiler\Ast\AbstractNode;
+use Phel\Compiler\Emitter\OutputEmitter\NodeEmitterInterface;
 
-final class ArrayEmitter implements NodeEmitter
+final class ArrayEmitter implements NodeEmitterInterface
 {
-    use WithOutputEmitter;
+    use WithOutputEmitterTrait;
 
-    public function emit(Node $node): void
+    public function emit(AbstractNode $node): void
     {
         assert($node instanceof ArrayNode);
 

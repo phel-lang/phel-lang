@@ -3,8 +3,8 @@
 namespace Phel\Compiler\Parser\ParserNode;
 
 /**
- * @extends AtomNode<\Phel\Lang\Keyword>
+ * @extends AbstractAtomNode<\Phel\Lang\Keyword>
  */
-final class KeywordNode extends AtomNode
+final class KeywordNode extends AbstractAtomNode
 {
 }

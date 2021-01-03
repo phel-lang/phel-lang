@@ -4,7 +4,7 @@
     x
     (recur (php/- x 1))))
 --PHP--
-new class() extends \Phel\Lang\AFn {
+new class() extends \Phel\Lang\AbstractFn {
   public const BOUND_TO = "";
 
   public function __invoke($x) {

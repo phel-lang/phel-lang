@@ -8,13 +8,13 @@ use Phel\Compiler\NodeEnvironmentInterface;
 use Phel\Lang\SourceLocation;
 use Phel\Lang\Symbol;
 
-final class MethodCallNode extends Node
+final class MethodCallNode extends AbstractNode
 {
     private Symbol $fn;
     private array $args;
 
     /**
-     * @param Node[] $args
+     * @param AbstractNode[] $args
      */
     public function __construct(NodeEnvironmentInterface $env, Symbol $fn, array $args, ?SourceLocation $sourceLocation = null)
     {
@@ -29,7 +29,7 @@ final class MethodCallNode extends Node
     }
 
     /**
-     * @return Node[]
+     * @return AbstractNode[]
      */
     public function getArgs(): array
     {

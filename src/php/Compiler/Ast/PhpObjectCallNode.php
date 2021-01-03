@@ -7,17 +7,17 @@ namespace Phel\Compiler\Ast;
 use Phel\Compiler\NodeEnvironmentInterface;
 use Phel\Lang\SourceLocation;
 
-final class PhpObjectCallNode extends Node
+final class PhpObjectCallNode extends AbstractNode
 {
-    private Node $targetExpr;
-    private Node $callExpr;
+    private AbstractNode $targetExpr;
+    private AbstractNode $callExpr;
     private bool $static;
     private bool $methodCall;
 
     public function __construct(
         NodeEnvironmentInterface $env,
-        Node $targetExpr,
-        Node $callExpr,
+        AbstractNode $targetExpr,
+        AbstractNode $callExpr,
         bool $isStatic,
         bool $isMethodCall,
         ?SourceLocation $sourceLocation = null
@@ -29,12 +29,12 @@ final class PhpObjectCallNode extends Node
         $this->methodCall = $isMethodCall;
     }
 
-    public function getTargetExpr(): Node
+    public function getTargetExpr(): AbstractNode
     {
         return $this->targetExpr;
     }
 
-    public function getCallExpr(): Node
+    public function getCallExpr(): AbstractNode
     {
         return $this->callExpr;
     }

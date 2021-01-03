@@ -13,7 +13,7 @@ use Phel\Exceptions\AnalyzerException;
 use Phel\Lang\Symbol;
 use Phel\Lang\Tuple;
 
-final class LetSymbol implements TupleSymbolAnalyzer
+final class LetSymbol implements TupleSymbolAnalyzerInterface
 {
     private AnalyzerInterface $analyzer;
     private TupleDeconstructorInterface $tupleDeconstructor;

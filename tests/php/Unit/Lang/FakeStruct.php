@@ -4,11 +4,11 @@ declare(strict_types=1);
 
 namespace PhelTest\Unit\Lang;
 
-use Phel\Lang\Struct;
+use Phel\Lang\AbstractStruct;
 
-final class FakeStruct extends Struct
+final class FakeStruct extends AbstractStruct
 {
-    public static function fromKVs(...$kvs): Struct
+    public static function fromKVs(...$kvs): AbstractStruct
     {
         $result = new self();
         for ($i = 0, $l = count($kvs); $i < $l; $i += 2) {
