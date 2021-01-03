@@ -18,6 +18,9 @@ final class DefStructNode extends AbstractNode
     /** @var Symbol[] */
     private array $params;
 
+    /**
+     * @param Symbol[] $params
+     */
     public function __construct(
         NodeEnvironmentInterface $env,
         string $namespace,

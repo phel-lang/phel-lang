@@ -7,6 +7,7 @@ namespace PhelTest\Unit\Compiler\Analyzer\TupleSymbol;
 use Phel\Compiler\Analyzer\Analyzer;
 use Phel\Compiler\Analyzer\TypeAnalyzer\TupleSymbol\DefStructSymbol;
 use Phel\Compiler\Analyzer\AnalyzerInterface;
+use Phel\Compiler\Analyzer\Ast\DefStructNode;
 use Phel\Compiler\Analyzer\Environment\NodeEnvironment;
 use Phel\Exceptions\PhelCodeException;
 use Phel\Compiler\Analyzer\Environment\GlobalEnvironment;
@@ -92,15 +93,17 @@ final class DefStructSymbolTest extends TestCase
         $defStructNode = (new DefStructSymbol($this->analyzer))
             ->analyze($tuple, NodeEnvironment::empty());
 
-        self::assertSame('request', $defStructNode->getName()->getName());
-        self::assertSame('user', $defStructNode->getNamespace());
-        $symbols = $defStructNode->getParams();
-        self::assertCount(2, $symbols);
-        self::assertSame('method', $symbols[0]->getName());
-        self::assertSame('uri', $symbols[1]->getName());
-        $paramsAsKeywords = $defStructNode->getParamsAsKeywords();
-        self::assertCount(2, $paramsAsKeywords);
-        self::assertSame('method', $paramsAsKeywords[0]->getName());
-        self::assertSame('uri', $paramsAsKeywords[1]->getName());
+        self::assertEquals(
+            new DefStructNode(
+                NodeEnvironment::empty(),
+                'user',
+                Symbol::create('request'),
+                [
+                    Symbol::create('method'),
+                    Symbol::create('uri'),
+                ]
+            ),
+            $defStructNode
+        );
     }
 }

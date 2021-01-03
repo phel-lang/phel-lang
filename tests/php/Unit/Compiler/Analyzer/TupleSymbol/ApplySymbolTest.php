@@ -7,7 +7,10 @@ namespace PhelTest\Unit\Compiler\Analyzer\TupleSymbol;
 use Phel\Compiler\Analyzer\Analyzer;
 use Phel\Compiler\Analyzer\TypeAnalyzer\TupleSymbol\ApplySymbol;
 use Phel\Compiler\Analyzer\AnalyzerInterface;
-use Phel\Compiler\Analyzer\Ast\CallNode;
+use Phel\Compiler\Analyzer\Ast\ApplyNode;
+use Phel\Compiler\Analyzer\Ast\LiteralNode;
+use Phel\Compiler\Analyzer\Ast\PhpVarNode;
+use Phel\Compiler\Analyzer\Ast\TupleNode;
 use Phel\Compiler\Analyzer\Environment\NodeEnvironment;
 use Phel\Exceptions\PhelCodeException;
 use Phel\Compiler\Analyzer\Environment\GlobalEnvironment;
@@ -40,12 +43,30 @@ final class ApplySymbolTest extends TestCase
     {
         $tuple = Tuple::create(
             Symbol::create(Symbol::NAME_APPLY),
-            '+',
-            Tuple::create('1', '2', '3')
+            Symbol::createForNamespace('php', '+'),
+            Tuple::createBracket(1, 2, 3)
         );
         $applyNode = (new ApplySymbol($this->analyzer))->analyze($tuple, NodeEnvironment::empty());
 
-        self::assertSame('+', ($applyNode->getFn())->getValue());
-        self::assertInstanceOf(CallNode::class, $applyNode->getArguments()[0]);
+        $envLiteral = NodeEnvironment::empty()
+            ->withContext(NodeEnvironment::CONTEXT_EXPRESSION)
+            ->withDisallowRecurFrame()
+            ->withDisallowRecurFrame();
+
+        self::assertEquals(
+            new ApplyNode(
+                NodeEnvironment::empty(),
+                new PhpVarNode(NodeEnvironment::empty()->withContext(NodeEnvironment::CONTEXT_EXPRESSION)->withDisallowRecurFrame(), '+'),
+                [new TupleNode(
+                    NodeEnvironment::empty()->withContext(NodeEnvironment::CONTEXT_EXPRESSION)->withDisallowRecurFrame(),
+                    [
+                        new LiteralNode($envLiteral, 1),
+                        new LiteralNode($envLiteral, 2),
+                        new LiteralNode($envLiteral, 3),
+                    ]
+                )]
+            ),
+            $applyNode
+        );
     }
 }

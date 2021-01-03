@@ -52,19 +52,42 @@ final class DoSymbolTest extends TestCase
         self::assertEquals($expected, $actual);
     }
 
-    public function testTupleWithinAnotherTuple(): void
+    public function testWithOneScalarValue(): void
     {
         $env = NodeEnvironment::empty();
 
         $tuple = Tuple::create(
             Symbol::create(Symbol::NAME_DO),
-            Tuple::create(Symbol::create(Symbol::NAME_IF), true, true)
+            1
         );
 
         $expected = new DoNode(
             $env,
             $stmts = [],
-            $this->analyzer->analyze($tuple[count($tuple) - 1], $env),
+            $this->analyzer->analyze(1, $env),
+            $tuple->getStartLocation()
+        );
+
+        $actual = (new DoSymbol($this->analyzer))->analyze($tuple, $env);
+        self::assertEquals($expected, $actual);
+    }
+
+    public function testWithTwoScalarValue(): void
+    {
+        $env = NodeEnvironment::empty();
+
+        $tuple = Tuple::create(
+            Symbol::create(Symbol::NAME_DO),
+            1,
+            2
+        );
+
+        $expected = new DoNode(
+            $env,
+            $stmts = [
+                $this->analyzer->analyze(1, $env->withDisallowRecurFrame()),
+            ],
+            $this->analyzer->analyze(2, $env),
             $tuple->getStartLocation()
         );
 
