@@ -10,6 +10,10 @@ use InvalidArgumentException;
 use Iterator;
 use Phel\Printer\Printer;
 
+/**
+ * @template-implements ArrayAccess<int, mixed>
+ * @template-implements Iterator<int, mixed>
+ */
 final class Tuple extends AbstractType implements
     ArrayAccess,
     Countable,
@@ -20,10 +24,12 @@ final class Tuple extends AbstractType implements
     PushInterface,
     ConcatInterface
 {
+    /** @var array<int, mixed> */
     private array $data;
     private bool $usingBracket;
 
     /**
+     * @param array<int, mixed> $data
      * @param bool $usingBracket true if this is bracket tuple
      */
     public function __construct(array $data, bool $usingBracket = false)
@@ -35,7 +41,7 @@ final class Tuple extends AbstractType implements
     /**
      * Create a new Tuple.
      *
-     * @param AbstractType|string|float|int|bool|null ...$values
+     * @param mixed ...$values
      */
     public static function create(...$values): Tuple
     {
@@ -45,7 +51,7 @@ final class Tuple extends AbstractType implements
     /**
      * Create a new bracket Tuple.
      *
-     * @param AbstractType|string|float|int|bool|null ...$values
+     * @param mixed ...$values
      */
     public static function createBracket(...$values): Tuple
     {
@@ -68,7 +74,7 @@ final class Tuple extends AbstractType implements
     }
 
     /**
-     * @param mixed $offset
+     * @param int $offset
      *
      * @return mixed|null
      */
@@ -87,6 +93,9 @@ final class Tuple extends AbstractType implements
         return $this->usingBracket;
     }
 
+    /**
+     * @return mixed
+     */
     public function current()
     {
         return current($this->data);
@@ -94,7 +103,7 @@ final class Tuple extends AbstractType implements
 
     public function key()
     {
-        return key($this->data);
+        return (int) key($this->data);
     }
 
     public function next(): void
@@ -199,6 +208,7 @@ final class Tuple extends AbstractType implements
     public function concat($xs): ConcatInterface
     {
         $newData = $this->data;
+        /** @var mixed $x */
         foreach ($xs as $x) {
             $newData[] = $x;
         }

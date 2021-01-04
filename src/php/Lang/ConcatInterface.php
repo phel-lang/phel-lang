@@ -9,7 +9,7 @@ interface ConcatInterface
     /**
      * Concatenates a value to the data structure.
      *
-     * @param mixed $xs The value to concatenate
+     * @param mixed[] $xs The value to concatenate
      */
     public function concat($xs): ConcatInterface;
 }
