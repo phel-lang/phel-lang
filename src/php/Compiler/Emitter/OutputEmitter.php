@@ -5,11 +5,11 @@ declare(strict_types=1);
 namespace Phel\Compiler\Emitter;
 
 use Phel\Compiler\Analyzer\Ast\AbstractNode;
+use Phel\Compiler\Analyzer\Environment\NodeEnvironmentInterface;
 use Phel\Compiler\Emitter\OutputEmitter\LiteralEmitter;
 use Phel\Compiler\Emitter\OutputEmitter\Munge;
 use Phel\Compiler\Emitter\OutputEmitter\NodeEmitterFactory;
 use Phel\Compiler\Emitter\OutputEmitter\SourceMap\SourceMapGenerator;
-use Phel\Compiler\Analyzer\Environment\NodeEnvironmentInterface;
 use Phel\Lang\AbstractType;
 use Phel\Lang\SourceLocation;
 use Phel\Lang\Symbol;

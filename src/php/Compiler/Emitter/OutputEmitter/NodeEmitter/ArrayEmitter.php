@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace Phel\Compiler\Emitter\OutputEmitter\NodeEmitter;
 
-use Phel\Compiler\Analyzer\Ast\ArrayNode;
 use Phel\Compiler\Analyzer\Ast\AbstractNode;
+use Phel\Compiler\Analyzer\Ast\ArrayNode;
 use Phel\Compiler\Emitter\OutputEmitter\NodeEmitterInterface;
 
 final class ArrayEmitter implements NodeEmitterInterface

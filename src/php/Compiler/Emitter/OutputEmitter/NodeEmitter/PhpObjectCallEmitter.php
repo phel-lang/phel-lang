@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace Phel\Compiler\Emitter\OutputEmitter\NodeEmitter;
 
-use Phel\Compiler\Analyzer\Ast\MethodCallNode;
 use Phel\Compiler\Analyzer\Ast\AbstractNode;
+use Phel\Compiler\Analyzer\Ast\MethodCallNode;
 use Phel\Compiler\Analyzer\Ast\PhpClassNameNode;
 use Phel\Compiler\Analyzer\Ast\PhpObjectCallNode;
 use Phel\Compiler\Analyzer\Ast\PropertyOrConstantAccessNode;

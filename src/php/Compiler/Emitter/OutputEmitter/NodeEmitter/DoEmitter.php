@@ -6,8 +6,8 @@ namespace Phel\Compiler\Emitter\OutputEmitter\NodeEmitter;
 
 use Phel\Compiler\Analyzer\Ast\AbstractNode;
 use Phel\Compiler\Analyzer\Ast\DoNode;
-use Phel\Compiler\Emitter\OutputEmitter\NodeEmitterInterface;
 use Phel\Compiler\Analyzer\Environment\NodeEnvironmentInterface;
+use Phel\Compiler\Emitter\OutputEmitter\NodeEmitterInterface;
 
 final class DoEmitter implements NodeEmitterInterface
 {

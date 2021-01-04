@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace Phel\Runtime;
 
-use Phel\Compiler\CompilerFactory;
-use Phel\Compiler\CompilerFactoryInterface;
 use Phel\Compiler\Analyzer\Environment\GlobalEnvironment;
 use Phel\Compiler\Analyzer\Environment\GlobalEnvironmentInterface;
+use Phel\Compiler\CompilerFactory;
+use Phel\Compiler\CompilerFactoryInterface;
 use Phel\Exceptions\ExceptionPrinterInterface;
 use Phel\Exceptions\HtmlExceptionPrinter;
 use Phel\Exceptions\TextExceptionPrinter;

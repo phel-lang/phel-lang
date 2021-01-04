@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace Phel\Compiler\Emitter\OutputEmitter\NodeEmitter;
 
-use Phel\Compiler\Analyzer\Ast\ForeachNode;
 use Phel\Compiler\Analyzer\Ast\AbstractNode;
-use Phel\Compiler\Emitter\OutputEmitter\NodeEmitterInterface;
+use Phel\Compiler\Analyzer\Ast\ForeachNode;
 use Phel\Compiler\Analyzer\Environment\NodeEnvironmentInterface;
+use Phel\Compiler\Emitter\OutputEmitter\NodeEmitterInterface;
 
 final class ForeachEmitter implements NodeEmitterInterface
 {

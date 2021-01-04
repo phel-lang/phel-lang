@@ -9,8 +9,8 @@ use Phel\Command\Repl\ReplCommandSystemIo;
 use Phel\Command\Shared\CommandSystemIo;
 use Phel\Command\Shared\NamespaceExtractor;
 use Phel\Command\Shared\NamespaceExtractorInterface;
-use Phel\Compiler\CompilerFactoryInterface;
 use Phel\Compiler\Analyzer\Environment\GlobalEnvironmentInterface;
+use Phel\Compiler\CompilerFactoryInterface;
 use Phel\Exceptions\TextExceptionPrinter;
 use Phel\Runtime\RuntimeInterface;
 
