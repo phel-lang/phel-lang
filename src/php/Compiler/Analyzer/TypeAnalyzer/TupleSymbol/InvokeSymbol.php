@@ -39,13 +39,13 @@ final class InvokeSymbol implements TupleSymbolAnalyzerInterface
 
     private function globalMacro(Tuple $tuple, GlobalVarNode $f, NodeEnvironmentInterface $env): AbstractNode
     {
-        return $this->analyzer->analyzeMacro($this->macroExpand($tuple, $f, $env), $env);
+        return $this->analyzer->analyzeMacro($this->macroExpand($tuple, $f), $env);
     }
 
     /**
      * @return AbstractType|string|float|int|bool|null
      */
-    private function macroExpand(Tuple $tuple, GlobalVarNode $macroNode, NodeEnvironmentInterface $env)
+    private function macroExpand(Tuple $tuple, GlobalVarNode $macroNode)
     {
         $tupleCount = count($tuple);
         /** @psalm-suppress PossiblyNullArgument */
