@@ -26,7 +26,7 @@ final class InvokeSymbol implements TupleSymbolAnalyzerInterface
         );
 
         if ($f instanceof GlobalVarNode && $f->isMacro()) {
-            return $this->globalMacro($tuple, $env);
+            return $this->globalMacro($tuple, $f, $env);
         }
 
         return new CallNode(
@@ -37,47 +37,38 @@ final class InvokeSymbol implements TupleSymbolAnalyzerInterface
         );
     }
 
-    private function globalMacro(Tuple $tuple, NodeEnvironmentInterface $env): AbstractNode
+    private function globalMacro(Tuple $tuple, GlobalVarNode $f, NodeEnvironmentInterface $env): AbstractNode
     {
-        return $this->analyzer->analyzeMacro($this->macroExpand($tuple, $env), $env);
+        return $this->analyzer->analyzeMacro($this->macroExpand($tuple, $f, $env), $env);
     }
 
     /**
      * @return AbstractType|string|float|int|bool|null
      */
-    private function macroExpand(Tuple $tuple, NodeEnvironmentInterface $env)
+    private function macroExpand(Tuple $tuple, GlobalVarNode $macroNode, NodeEnvironmentInterface $env)
     {
         $tupleCount = count($tuple);
         /** @psalm-suppress PossiblyNullArgument */
-        $node = $this->analyzer->resolve($tuple[0], $env);
-        if ($node && $node instanceof GlobalVarNode) {
-            $nodeName = $node->getName()->getName();
-            $fn = $GLOBALS['__phel'][$node->getNamespace()][$nodeName];
+        $nodeName = $macroNode->getName()->getName();
+        $fn = $GLOBALS['__phel'][$macroNode->getNamespace()][$nodeName];
 
-            $arguments = [];
-            for ($i = 1; $i < $tupleCount; $i++) {
-                $arguments[] = $tuple[$i];
-            }
-
-            try {
-                $result = $fn(...$arguments);
-                $this->enrichLocation($result, $tuple);
-
-                return $result;
-            } catch (Exception $e) {
-                throw AnalyzerException::withLocation(
-                    'Error in expanding macro "' . $node->getNamespace() . '\\' . $nodeName . '": ' . $e->getMessage(),
-                    $tuple,
-                    $e
-                );
-            }
+        $arguments = [];
+        for ($i = 1; $i < $tupleCount; $i++) {
+            $arguments[] = $tuple[$i];
         }
 
-        if (is_null($node)) {
-            throw AnalyzerException::withLocation('Can not resolve macro', $tuple);
-        }
+        try {
+            $result = $fn(...$arguments);
+            $this->enrichLocation($result, $tuple);
 
-        throw AnalyzerException::withLocation('This is not macro expandable: ' . get_class($node), $tuple);
+            return $result;
+        } catch (Exception $e) {
+            throw AnalyzerException::withLocation(
+                'Error in expanding macro "' . $macroNode->getNamespace() . '\\' . $nodeName . '": ' . $e->getMessage(),
+                $tuple,
+                $e
+            );
+        }
     }
 
     /**
