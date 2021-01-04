@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace Phel\Compiler\Analyzer\TypeAnalyzer;
 
-use Phel\Compiler\Analyzer\Ast\LocalVarNode;
 use Phel\Compiler\Analyzer\Ast\AbstractNode;
+use Phel\Compiler\Analyzer\Ast\LocalVarNode;
 use Phel\Compiler\Analyzer\Ast\PhpVarNode;
 use Phel\Compiler\Analyzer\Environment\NodeEnvironmentInterface;
 use Phel\Exceptions\AnalyzerException;

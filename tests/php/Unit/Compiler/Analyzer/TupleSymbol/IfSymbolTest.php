@@ -6,11 +6,11 @@ namespace PhelTest\Unit\Compiler\Analyzer\TupleSymbol;
 
 use Generator;
 use Phel\Compiler\Analyzer\Analyzer;
-use Phel\Compiler\Analyzer\TypeAnalyzer\TupleSymbol\IfSymbol;
 use Phel\Compiler\Analyzer\Ast\IfNode;
-use Phel\Compiler\Analyzer\Environment\NodeEnvironment;
-use Phel\Exceptions\PhelCodeException;
 use Phel\Compiler\Analyzer\Environment\GlobalEnvironment;
+use Phel\Compiler\Analyzer\Environment\NodeEnvironment;
+use Phel\Compiler\Analyzer\TypeAnalyzer\TupleSymbol\IfSymbol;
+use Phel\Exceptions\PhelCodeException;
 use Phel\Lang\Symbol;
 use Phel\Lang\Tuple;
 use PHPUnit\Framework\TestCase;

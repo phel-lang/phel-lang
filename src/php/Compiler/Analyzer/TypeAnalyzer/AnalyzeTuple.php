@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Phel\Compiler\Analyzer\TypeAnalyzer;
 
+use Phel\Compiler\Analyzer\Ast\AbstractNode;
+use Phel\Compiler\Analyzer\Environment\NodeEnvironmentInterface;
 use Phel\Compiler\Analyzer\TypeAnalyzer\TupleSymbol\ApplySymbol;
 use Phel\Compiler\Analyzer\TypeAnalyzer\TupleSymbol\Binding\BindingValidator;
 use Phel\Compiler\Analyzer\TypeAnalyzer\TupleSymbol\Binding\TupleDeconstructor;
@@ -28,8 +30,6 @@ use Phel\Compiler\Analyzer\TypeAnalyzer\TupleSymbol\RecurSymbol;
 use Phel\Compiler\Analyzer\TypeAnalyzer\TupleSymbol\ThrowSymbol;
 use Phel\Compiler\Analyzer\TypeAnalyzer\TupleSymbol\TrySymbol;
 use Phel\Compiler\Analyzer\TypeAnalyzer\TupleSymbol\TupleSymbolAnalyzerInterface;
-use Phel\Compiler\Analyzer\Ast\AbstractNode;
-use Phel\Compiler\Analyzer\Environment\NodeEnvironmentInterface;
 use Phel\Exceptions\AnalyzerException;
 use Phel\Exceptions\PhelCodeException;
 use Phel\Lang\Symbol;

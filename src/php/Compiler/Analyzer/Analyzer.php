@@ -4,15 +4,15 @@ declare(strict_types=1);
 
 namespace Phel\Compiler\Analyzer;
 
+use Phel\Compiler\Analyzer\Ast\AbstractNode;
+use Phel\Compiler\Analyzer\Environment\GlobalEnvironmentInterface;
+use Phel\Compiler\Analyzer\Environment\NodeEnvironmentInterface;
 use Phel\Compiler\Analyzer\TypeAnalyzer\AnalyzeArray;
 use Phel\Compiler\Analyzer\TypeAnalyzer\AnalyzeBracketTuple;
 use Phel\Compiler\Analyzer\TypeAnalyzer\AnalyzeLiteral;
 use Phel\Compiler\Analyzer\TypeAnalyzer\AnalyzeSymbol;
 use Phel\Compiler\Analyzer\TypeAnalyzer\AnalyzeTable;
 use Phel\Compiler\Analyzer\TypeAnalyzer\AnalyzeTuple;
-use Phel\Compiler\Analyzer\Ast\AbstractNode;
-use Phel\Compiler\Analyzer\Environment\GlobalEnvironmentInterface;
-use Phel\Compiler\Analyzer\Environment\NodeEnvironmentInterface;
 use Phel\Exceptions\AnalyzerException;
 use Phel\Lang\AbstractType;
 use Phel\Lang\Keyword;

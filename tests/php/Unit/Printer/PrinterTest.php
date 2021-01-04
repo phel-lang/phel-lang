@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace PhelTest\Unit\Printer;
 
-use Phel\Compiler\CompilerFactory;
 use Phel\Compiler\Analyzer\Environment\GlobalEnvironment;
+use Phel\Compiler\CompilerFactory;
 use Phel\Printer\Printer;
 use PHPUnit\Framework\TestCase;
 

@@ -5,14 +5,14 @@ declare(strict_types=1);
 namespace PhelTest\Unit\Compiler\Analyzer\TupleSymbol;
 
 use Phel\Compiler\Analyzer\Analyzer;
-use Phel\Compiler\Analyzer\TypeAnalyzer\TupleSymbol\PhpObjectCallSymbol;
 use Phel\Compiler\Analyzer\AnalyzerInterface;
 use Phel\Compiler\Analyzer\Ast\MethodCallNode;
 use Phel\Compiler\Analyzer\Ast\PhpClassNameNode;
 use Phel\Compiler\Analyzer\Ast\PropertyOrConstantAccessNode;
-use Phel\Compiler\Analyzer\Environment\NodeEnvironment;
-use Phel\Exceptions\PhelCodeException;
 use Phel\Compiler\Analyzer\Environment\GlobalEnvironment;
+use Phel\Compiler\Analyzer\Environment\NodeEnvironment;
+use Phel\Compiler\Analyzer\TypeAnalyzer\TupleSymbol\PhpObjectCallSymbol;
+use Phel\Exceptions\PhelCodeException;
 use Phel\Lang\Symbol;
 use Phel\Lang\Tuple;
 use PHPUnit\Framework\TestCase;

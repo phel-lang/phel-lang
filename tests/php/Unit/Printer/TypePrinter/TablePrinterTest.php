@@ -6,8 +6,8 @@ namespace PhelTest\Unit\Printer\TypePrinter;
 
 use Generator;
 use Phel\Lang\Table;
-use Phel\Printer\TypePrinter\TablePrinter;
 use Phel\Printer\Printer;
+use Phel\Printer\TypePrinter\TablePrinter;
 use PHPUnit\Framework\TestCase;
 
 final class TablePrinterTest extends TestCase

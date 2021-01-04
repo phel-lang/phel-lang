@@ -6,15 +6,15 @@ namespace PhelTest\Unit\Compiler\Analyzer\TupleSymbol;
 
 use Phel\Compiler\Analyzer\Analyzer;
 use Phel\Compiler\Analyzer\Ast\DoNode;
-use Phel\Compiler\Analyzer\TypeAnalyzer\TupleSymbol\ForeachSymbol;
 use Phel\Compiler\Analyzer\Ast\ForeachNode;
 use Phel\Compiler\Analyzer\Ast\LetNode;
 use Phel\Compiler\Analyzer\Ast\LocalVarNode;
 use Phel\Compiler\Analyzer\Ast\TableNode;
 use Phel\Compiler\Analyzer\Ast\TupleNode;
-use Phel\Compiler\Analyzer\Environment\NodeEnvironment;
-use Phel\Exceptions\PhelCodeException;
 use Phel\Compiler\Analyzer\Environment\GlobalEnvironment;
+use Phel\Compiler\Analyzer\Environment\NodeEnvironment;
+use Phel\Compiler\Analyzer\TypeAnalyzer\TupleSymbol\ForeachSymbol;
+use Phel\Exceptions\PhelCodeException;
 use Phel\Lang\Symbol;
 use Phel\Lang\Table;
 use Phel\Lang\Tuple;

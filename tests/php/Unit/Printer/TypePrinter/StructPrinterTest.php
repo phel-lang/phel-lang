@@ -6,8 +6,8 @@ namespace PhelTest\Unit\Printer\TypePrinter;
 
 use Generator;
 use Phel\Lang\AbstractStruct;
-use Phel\Printer\TypePrinter\StructPrinter;
 use Phel\Printer\Printer;
+use Phel\Printer\TypePrinter\StructPrinter;
 use PHPUnit\Framework\TestCase;
 
 final class StructPrinterTest extends TestCase

@@ -6,14 +6,14 @@ namespace PhelTest\Unit\Compiler\Analyzer\TupleSymbol;
 
 use Generator;
 use Phel\Compiler\Analyzer\Analyzer;
-use Phel\Compiler\Analyzer\TypeAnalyzer\TupleSymbol\FnSymbol;
 use Phel\Compiler\Analyzer\AnalyzerInterface;
 use Phel\Compiler\Analyzer\Ast\DoNode;
 use Phel\Compiler\Analyzer\Ast\FnNode;
 use Phel\Compiler\Analyzer\Ast\LetNode;
-use Phel\Compiler\Analyzer\Environment\NodeEnvironment;
-use Phel\Exceptions\PhelCodeException;
 use Phel\Compiler\Analyzer\Environment\GlobalEnvironment;
+use Phel\Compiler\Analyzer\Environment\NodeEnvironment;
+use Phel\Compiler\Analyzer\TypeAnalyzer\TupleSymbol\FnSymbol;
+use Phel\Exceptions\PhelCodeException;
 use Phel\Lang\Symbol;
 use Phel\Lang\Table;
 use Phel\Lang\Tuple;

@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace Phel\Compiler\Analyzer\Environment;
 
+use Phel\Compiler\Analyzer\Ast\AbstractNode;
 use Phel\Compiler\Analyzer\Ast\GlobalVarNode;
 use Phel\Compiler\Analyzer\Ast\LiteralNode;
-use Phel\Compiler\Analyzer\Ast\AbstractNode;
 use Phel\Compiler\Analyzer\Ast\PhpClassNameNode;
 use Phel\Lang\Keyword;
 use Phel\Lang\SourceLocation;

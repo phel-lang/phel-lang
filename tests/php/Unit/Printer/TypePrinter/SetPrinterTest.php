@@ -6,8 +6,8 @@ namespace PhelTest\Unit\Printer\TypePrinter;
 
 use Generator;
 use Phel\Lang\Set;
-use Phel\Printer\TypePrinter\SetPrinter;
 use Phel\Printer\Printer;
+use Phel\Printer\TypePrinter\SetPrinter;
 use PHPUnit\Framework\TestCase;
 
 final class SetPrinterTest extends TestCase

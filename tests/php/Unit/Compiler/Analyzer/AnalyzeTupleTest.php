@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace PhelTest\Unit\Compiler\Analyzer;
 
 use Phel\Compiler\Analyzer\Analyzer;
-use Phel\Compiler\Analyzer\TypeAnalyzer\AnalyzeTuple;
 use Phel\Compiler\Analyzer\Ast\ApplyNode;
 use Phel\Compiler\Analyzer\Ast\DefNode;
 use Phel\Compiler\Analyzer\Ast\DefStructNode;
@@ -28,9 +27,10 @@ use Phel\Compiler\Analyzer\Ast\ThrowNode;
 use Phel\Compiler\Analyzer\Ast\TryNode;
 use Phel\Compiler\Analyzer\Environment\GlobalEnvironment;
 use Phel\Compiler\Analyzer\Environment\NodeEnvironment;
+use Phel\Compiler\Analyzer\Environment\NodeEnvironmentInterface;
+use Phel\Compiler\Analyzer\TypeAnalyzer\AnalyzeTuple;
 use Phel\Lang\Symbol;
 use Phel\Lang\Tuple;
-use Phel\Compiler\Analyzer\Environment\NodeEnvironmentInterface;
 use PHPUnit\Framework\TestCase;
 
 final class AnalyzeTupleTest extends TestCase

@@ -8,8 +8,8 @@ use Phel\Compiler\Parser\ParserNode\KeywordNode;
 use Phel\Compiler\Parser\ParserNode\MetaNode;
 use Phel\Compiler\Parser\ParserNode\SymbolNode;
 use Phel\Compiler\Parser\ParserNode\WhitespaceNode;
-use Phel\Lang\SourceLocation;
 use Phel\Lang\Keyword;
+use Phel\Lang\SourceLocation;
 use Phel\Lang\Symbol;
 use PHPUnit\Framework\TestCase;
 

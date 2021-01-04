@@ -4,12 +4,12 @@ declare(strict_types=1);
 
 namespace PhelTest\Unit\Compiler\Reader;
 
+use Phel\Compiler\Analyzer\Environment\GlobalEnvironment;
 use Phel\Compiler\CompilerFactory;
 use Phel\Exceptions\ReaderException;
-use Phel\Compiler\Analyzer\Environment\GlobalEnvironment;
 use Phel\Lang\AbstractType;
-use Phel\Lang\MetaInterface;
 use Phel\Lang\Keyword;
+use Phel\Lang\MetaInterface;
 use Phel\Lang\PhelArray;
 use Phel\Lang\SourceLocation;
 use Phel\Lang\Symbol;

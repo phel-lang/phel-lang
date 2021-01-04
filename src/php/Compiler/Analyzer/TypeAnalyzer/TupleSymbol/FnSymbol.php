@@ -4,12 +4,12 @@ declare(strict_types=1);
 
 namespace Phel\Compiler\Analyzer\TypeAnalyzer\TupleSymbol;
 
+use Phel\Compiler\Analyzer\Ast\AbstractNode;
+use Phel\Compiler\Analyzer\Ast\FnNode;
+use Phel\Compiler\Analyzer\Ast\RecurFrame;
+use Phel\Compiler\Analyzer\Environment\NodeEnvironmentInterface;
 use Phel\Compiler\Analyzer\TypeAnalyzer\TupleSymbol\ReadModel\FnSymbolTuple;
 use Phel\Compiler\Analyzer\TypeAnalyzer\WithAnalyzerTrait;
-use Phel\Compiler\Analyzer\Ast\FnNode;
-use Phel\Compiler\Analyzer\Ast\AbstractNode;
-use Phel\Compiler\Analyzer\Environment\NodeEnvironmentInterface;
-use Phel\Compiler\Analyzer\Ast\RecurFrame;
 use Phel\Exceptions\AnalyzerException;
 use Phel\Lang\Symbol;
 use Phel\Lang\Tuple;

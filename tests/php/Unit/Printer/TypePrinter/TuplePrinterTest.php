@@ -6,8 +6,8 @@ namespace PhelTest\Unit\Printer\TypePrinter;
 
 use Generator;
 use Phel\Lang\Tuple;
-use Phel\Printer\TypePrinter\TuplePrinter;
 use Phel\Printer\Printer;
+use Phel\Printer\TypePrinter\TuplePrinter;
 use PHPUnit\Framework\TestCase;
 
 final class TuplePrinterTest extends TestCase

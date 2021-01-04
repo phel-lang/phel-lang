@@ -5,11 +5,11 @@ declare(strict_types=1);
 namespace PhelTest\Unit\Compiler\Analyzer;
 
 use Phel\Compiler\Analyzer\Analyzer;
-use Phel\Compiler\Analyzer\TypeAnalyzer\AnalyzeTable;
 use Phel\Compiler\Analyzer\Ast\LiteralNode;
 use Phel\Compiler\Analyzer\Ast\TableNode;
 use Phel\Compiler\Analyzer\Environment\GlobalEnvironment;
 use Phel\Compiler\Analyzer\Environment\NodeEnvironment;
+use Phel\Compiler\Analyzer\TypeAnalyzer\AnalyzeTable;
 use Phel\Lang\Table;
 use PHPUnit\Framework\TestCase;
 

@@ -6,8 +6,8 @@ namespace PhelTest\Unit\Printer\TypePrinter;
 
 use Generator;
 use Phel\Lang\PhelArray;
-use Phel\Printer\TypePrinter\PhelArrayPrinter;
 use Phel\Printer\Printer;
+use Phel\Printer\TypePrinter\PhelArrayPrinter;
 use PHPUnit\Framework\TestCase;
 
 final class PhelArrayPrinterTest extends TestCase

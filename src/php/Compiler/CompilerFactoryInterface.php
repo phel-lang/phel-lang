@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace Phel\Compiler;
 
+use Phel\Compiler\Analyzer\Environment\GlobalEnvironmentInterface;
 use Phel\Compiler\Emitter\EmitterInterface;
 use Phel\Compiler\Emitter\OutputEmitterInterface;
-use Phel\Compiler\Analyzer\Environment\GlobalEnvironmentInterface;
 use Phel\Compiler\Lexer\LexerInterface;
 use Phel\Compiler\Parser\ParserInterface;
 use Phel\Compiler\Reader\ReaderInterface;
