@@ -11,7 +11,7 @@ The `html` function in the module `phel\http` is the main function to generate H
 
 ```phel
 (ns my-namespace
-  (:require phel\http :refer [html])
+  (:require phel\html :refer [html]))
 
 (html [:span @{:class "foo"} "bar"])
 # Evaluates to <span class="foo">bar</span>

@@ -45,7 +45,7 @@ Would you like to define your dev dependencies (require-dev) interactively [yes]
             "name": "Your Name",
             "email": "your.name@domain.com"
         }
-    ],,
+    ],
     "minimum-stability": "dev",
     "require": {}
 }
