@@ -83,7 +83,7 @@ Internally `recur` is implemented as a PHP while loop and therefore prevents the
     sum
     (recur (+ cnt sum) (dec cnt))))
 
-(fn [sum 0 cnt 10]
+(fn [sum cnt]
   (if (= cnt 0)
     sum
     (recur (+ cnt sum) (dec cnt))))
