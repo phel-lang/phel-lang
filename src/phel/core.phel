@@ -1018,7 +1018,7 @@ collection in map"))
     res))
 
 (defn zipcoll
-  "Creates a table from two sequencial data structures. Return a new table."
+  "Creates a table from two sequential data structures. Return a new table."
   [a b]
   (apply table (interleave a b)))
 
@@ -1070,22 +1070,22 @@ collection in map"))
 # -------------
 
 (defn union
-  "Union multiple sets into a new one"
+  "Union multiple sets into a new one."
   [& sets]
   (reduce concat (set) sets))
 
 (defn intersection
-  "Intersect multiple sets into a new one"
+  "Intersect multiple sets into a new one."
   [set & sets]
   (reduce |(php/-> $1 (intersection $2)) set sets))
 
 (defn difference
-  "Difference between multiple sets into a new one"
+  "Difference between multiple sets into a new one."
   [set & sets]
   (reduce |(php/-> $1 (difference $2)) set sets))
 
 (defn symmetric-difference
-  "Symmetric difference between multiple sets into a new one"
+  "Symmetric difference between multiple sets into a new one."
   [set & sets]
   (reduce |(union (difference $1 $2) (difference $2 $1)) set sets))
 

@@ -6,7 +6,7 @@ use Phel\Lang\Keyword;
 use Phel\Lang\Table;
 use Phel\Runtime\RuntimeFactory;
 
-require __DIR__ .'/../vendor/autoload.php';
+require __DIR__ . '/../vendor/autoload.php';
 
 $rt = RuntimeFactory::initialize();
 $rt->addPath('phel\\', [__DIR__ . '/../src/phel']);
@@ -21,20 +21,20 @@ echo "template = \"page-api.html\"\n";
 echo "+++\n\n";
 
 $normalizedData = [];
-foreach ($GLOBALS["__phel"] as $ns => $functions) {
-    $noramlizedNs = str_replace("phel\\", "", $ns);
-    $moduleName = $noramlizedNs === "core" ? "" : $noramlizedNs . "/";
+foreach ($GLOBALS['__phel'] as $ns => $functions) {
+    $normalizedNs = str_replace('phel\\', '', $ns);
+    $moduleName = $normalizedNs === 'core' ? '' : $normalizedNs . '/';
     foreach ($functions as $fnName => $fn) {
         $fullFnName = $moduleName . $fnName;
 
-        $normalizedData[$fullFnName] = $GLOBALS["__phel_meta"][$ns][$fnName] ?? new Table();
+        $normalizedData[$fullFnName] = $GLOBALS['__phel_meta'][$ns][$fnName] ?? new Table();
     }
 }
 
 ksort($normalizedData);
 foreach ($normalizedData as $fnName => $meta) {
-    $doc = $meta[new Keyword('doc')] ?? "";
-    $isPrivate = $meta[new Keyword("private")] ?? false;
+    $doc = $meta[new Keyword('doc')] ?? '';
+    $isPrivate = $meta[new Keyword('private')] ?? false;
 
     if (!$isPrivate) {
         echo "## `$fnName`\n\n";

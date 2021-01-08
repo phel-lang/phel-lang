@@ -10,7 +10,7 @@
 (def- uri-host-port-regex "/^(.+)\:(\d+)$/")
 
 (defn- host-and-port-from-globals
-  "Extract the host and port from the `$_SERVER` array"
+  "Extract the host and port from the `$_SERVER` array."
   [& [server]]
   (let [server (or server php/$_SERVER)
         http-host (get server "HTTP_HOST")
@@ -84,7 +84,7 @@
     res))
 
 (defn files-from-globals
-  "Extracts the files from `$_FILES` and normalizes them to a table of \"uploaded-file\""
+  "Extracts the files from `$_FILES` and normalizes them to a table of \"uploaded-file\"."
   [& [files]]
   (normalize-files (or files php/$_FILES)))
 
@@ -93,7 +93,7 @@
 # -------
 
 (defn headers-from-server
-  "Extracts all headers from the `$_SERVER` variable"
+  "Extracts all headers from the `$_SERVER` variable."
   [& [server]]
   (let [headers @{}
         server (or server php/$_SERVER)]
@@ -130,7 +130,7 @@
 
 
 (defn- get-method-from-globals
-  "Extracts the request method from `$_SERVER`"
+  "Extracts the request method from `$_SERVER`."
   [& [server]]
   (let [method (get (or server php/$_SERVER) "REQUEST_METHOD")]
     (if method
@@ -145,7 +145,7 @@
       (php/in_array types (php/array "application/x-www-form-urlencoded" "multipart/form-data")))))
 
 (defn request-from-globals-args
-  "Extracts a request from args"
+  "Extracts a request from args."
   [server get-parameter post-parameter cookies files]
   (let [method (get-method-from-globals server)
         uri (uri-from-globals server)
@@ -166,7 +166,7 @@
       version)))
 
 (defn request-from-globals
-  "Extracts a request from `$_SERVER`, `$_GET`, `$_POST`, `$_COOKIE` and `$_FILES`"
+  "Extracts a request from `$_SERVER`, `$_GET`, `$_POST`, `$_COOKIE` and `$_FILES`."
   []
   (request-from-globals-args php/$_SERVER php/$_GET php/$_POST php/$_COOKIE php/$_FILES))
 
@@ -242,12 +242,12 @@
 })
 
 (defn create-response-from-table
-  "Creates a response struct from a table. The table can have the following keys
+  "Creates a response struct from a table. The table can have the following keys:
   * `:status` The HTTP Status (default 200)
   * `:headers` A table of HTTP Headers (default: empty table)
   * `:body` The body of the response (default: empty string)
   * `:version` The HTTP Version (default: 1.1)
-  * `:reason` The HTTP status reason. If not provided a common status reason is taken."
+  * `:reason` The HTTP status reason. If not provided a common status reason is taken"
   [@{:status status :headers headers :body body :version version :reason reason}]
   (let [status (or status 200)
         headers (or headers @{})

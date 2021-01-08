@@ -46,6 +46,26 @@ Returns the sum of all elements in `xs`. All elements `xs` must be numbers.
 Returns the difference of all elements in `xs`. If `xs` is empty, return 0. If `xs`
   has one element, return the negative value of that element.
 
+## `->`
+
+```phel
+(-> x & forms)
+```
+Threads the expr through the forms. Inserts `x` as the second item
+  in the first from, making a tuple of it if it is not a tuple already.
+  If there are more froms, inserts the first form as the second item in
+  the second form, etc.
+
+## `->>`
+
+```phel
+(->> x & forms)
+```
+Threads the expr through the forms. Inserts `x` as the
+  last item in the first form, making a tuple of it if it is not a
+  tuple already. If there are more forms, inserts the first form as the
+  last item in second form, etc.
+
 ## `/`
 
 ```phel
@@ -96,8 +116,9 @@ Constant for Not a Number (NAN) values.
 ## `__DIR__`
 
 ```phel
-(__DIR__)
+(__DIR__ )
 ```
+
 
 ## `all?`
 
@@ -129,6 +150,15 @@ Creates a new Array. If no argument is provided, an empty Array is created.
 (array? x)
 ```
 Returns true if `x` is a array, false otherwise.
+
+## `as->`
+
+```phel
+(as-> expr name & forms)
+```
+Binds `name` to `expr`, evaluates the first form in the lexical context
+  of that binding, then binds name to that result, repeating for each
+  successive form, returning the result of the last form.
 
 ## `bit-and`
 
@@ -332,6 +362,13 @@ Define a private function that will not be exported.
 ```
 Define a new struct.
 
+## `difference`
+
+```phel
+(difference set & sets)
+```
+Difference between multiple sets into a new one.
+
 ## `distinct`
 
 ```phel
@@ -408,7 +445,7 @@ Same as `(first (first xs))`
 ```phel
 (find pred xs)
 ```
-
+Returns the first item in `xs` where `(pred item)` evaluates to true.
 
 ## `find-index`
 
@@ -520,11 +557,11 @@ Create a response from a string.
 (create-response-from-table @{:status status :headers headers :body body :version version :reason reason})
 ```
 Creates a response struct from a table. The table can have the following keys:
-  * `:status` The HTTP Status (default 200).
-  * `:headers` A table of HTTP Headers (default: empty table).
-  * `:body` The body of the response (default: empty string).
-  * `:version` The HTTP Version (default: 1.1).
-  * `:reason` The HTTP status reason. If not provided a common status reason is taken.
+  * `:status` The HTTP Status (default 200)
+  * `:headers` A table of HTTP Headers (default: empty table)
+  * `:body` The body of the response (default: empty string)
+  * `:version` The HTTP Version (default: 1.1)
+  * `:reason` The HTTP status reason. If not provided a common status reason is taken
 
 ## `http/emit-response`
 
@@ -552,28 +589,35 @@ Extracts all headers from the `$_SERVER` variable.
 ```phel
 (request method uri headers parsed-body query-params cookie-params server-params uploaded-files version)
 ```
-Creates a new request struct.
+Creates a new request struct
 
 ## `http/request-from-globals`
 
 ```phel
-(request-from-globals & [server])
+(request-from-globals )
 ```
-Extracts a request from `$_SERVER`.
+Extracts a request from `$_SERVER`, `$_GET`, `$_POST`, `$_COOKIE` and `$_FILES`.
+
+## `http/request-from-globals-args`
+
+```phel
+(request-from-globals-args server get-parameter post-parameter cookies files)
+```
+Extracts a request from args.
 
 ## `http/request?`
 
 ```phel
 (request? x)
 ```
-Checks if `x` is a instance of the request struct.
+Checks if `x` is an instance of the request struct
 
 ## `http/response`
 
 ```phel
 (response status headers body version reason)
 ```
-Creates a new response struct.
+Creates a new response struct
 
 ## `http/response?`
 
@@ -587,21 +631,21 @@ Checks if `x` is an instance of the response struct
 ```phel
 (uploaded-file tmp-file size error-status client-filename client-media-type)
 ```
-Creates a new uploaded-file struct.
+Creates a new uploaded-file struct
 
 ## `http/uploaded-file?`
 
 ```phel
 (uploaded-file? x)
 ```
-Checks if `x` is a instance of the uploaded-file struct.
+Checks if `x` is an instance of the uploaded-file struct
 
 ## `http/uri`
 
 ```phel
 (uri scheme userinfo host port path query fragment)
 ```
-Creates a new uri struct.
+Creates a new uri struct
 
 ## `http/uri-from-globals`
 
@@ -615,7 +659,7 @@ Extracts the URI from the `$_SERVER` variable.
 ```phel
 (uri? x)
 ```
-Checks if `x` is a instance of the uri struct.
+Checks if `x` is an instance of the uri struct
 
 ## `id`
 
@@ -657,7 +701,7 @@ Returns true if `x` is indexed sequence, false otherwise.
 ```phel
 (int? x)
 ```
-Returns true if `x` is a integer number, false otherwise.
+Returns true if `x` is an integer number, false otherwise.
 
 ## `interleave`
 
@@ -672,6 +716,13 @@ Returns a array with the first items of each col, than the second items etc.
 (interpose sep xs)
 ```
 
+
+## `intersection`
+
+```phel
+(intersection set & sets)
+```
+Intersect multiple sets into a new one.
 
 ## `invert`
 
@@ -1026,7 +1077,7 @@ Returns a random number between 0 and `n`.
 ```phel
 (rand-nth xs)
 ```
-Returns a random item from the list `xs`.
+Returns a random item from xs.
 
 ## `range`
 
@@ -1087,6 +1138,20 @@ Reverses the order of the elements in the given sequence.
 ```
 Returns the second element of an indexed sequence or nil.
 
+## `set`
+
+```phel
+(set & xs)
+```
+Creates a new Set. If no argument is provided, an empty Set is created.
+
+## `set?`
+
+```phel
+(set? x)
+```
+Returns true if `x` is a set, false otherwise.
+
 ## `shuffle`
 
 ```phel
@@ -1144,8 +1209,8 @@ Returns a tuple of [(take-while pred coll) (drop-while pred coll)].
 ```
 Creates a string by concatenating values together. If no arguments are
 provided an empty string is returned. Nil and false are represented as empty
-string. True is represented as 1. Otherwise, it tries to call `__toString`.
-This is PHP equivalent to `$args[0] . $args[1] . $args[2] ...`.
+string. True is represented as 1. Otherwise it tries to call `__toString`.
+This is PHP equivalent to `$args[0] . $args[1] . $args[2] ...`
 
 ## `string?`
 
@@ -1175,6 +1240,13 @@ Returns the sum of all elements is `xs`.
 ```
 Returns true if `x` is a symbol, false otherwise.
 
+## `symmetric-difference`
+
+```phel
+(symmetric-difference set & sets)
+```
+Symmetric difference between multiple sets into a new one.
+
 ## `table`
 
 ```phel
@@ -1201,6 +1273,52 @@ Returns true if `x` is a table, false otherwise.
 
 ```phel
 (take-while pred xs)
+```
+
+
+## `test/deftest`
+
+```phel
+(deftest name & body)
+```
+
+
+## `test/is`
+
+```phel
+(is form & [message])
+```
+
+
+## `test/print-summary`
+
+```phel
+(print-summary )
+```
+
+
+## `test/report`
+
+```phel
+(report data)
+```
+
+
+## `test/run-tests`
+
+```phel
+(run-tests & namespaces)
+```
+
+
+## `test/stats`
+
+
+
+## `test/successful?`
+
+```phel
+(successful? )
 ```
 
 
@@ -1245,6 +1363,9 @@ Creates a new Tuple. If no argument is provided, an empty Tuple is created.
 
 ## `tuple-brackets`
 
+```phel
+(tuple-brackets & xs)
+```
 Creates a new Bracket-Tuple. If no argument is provided,
 an empty Braket-Tuple is created.
 
@@ -1277,6 +1398,7 @@ Returns true if `x` is a tuple, false otherwise.
 Returns the type of `x`. Following types can be returned:
 
 * `:tuple`
+* `:set`
 * `:array`
 * `:struct`
 * `:table`
@@ -1292,6 +1414,13 @@ Returns the type of `x`. Following types can be returned:
 * `:php/resource`
 * `:php/object`
 * `:unknown`
+
+## `union`
+
+```phel
+(union & sets)
+```
+Union multiple sets into a new one.
 
 ## `unset`
 
@@ -1355,3 +1484,4 @@ Checks if `x` is zero.
 (zipcoll a b)
 ```
 Creates a table from two sequential data structures. Return a new table.
+
