@@ -10,7 +10,8 @@
   (is (= 3 (let [[a b] @[1 2]] (+ a b))) "from array")
   (is (= 3 (let [[a b] (php/array 1 2)] (+ a b))) "from php array")
   (is (= 10 (let [[a [c d] b] @[1 (tuple 4 3) 2]] (+ a b c d))) "nested")
-  (is (= 4 (let [[a _ b] @[1 2 3]] (+ a b))) "ignore value"))
+  (is (= 4 (let [[a _ b] @[1 2 3]] (+ a b))) "ignore value")
+  (is (= 6 (let [[_ _ a] @[1 2 3]] (+ a a))) "ignore multiple values"))
 
 (deftest destructure-table
   (is (= 3 (let [@{:a a :b b} @{:a 1 :b 2}] (+ a b))) "destructure table")
