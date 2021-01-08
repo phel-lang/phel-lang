@@ -1294,6 +1294,11 @@ returns 1. If `xs` has one value, returns the reciprocal of x."
   [n]
   (php/random_int 0 n))
 
+(defn rand-nth
+  "Returns a random item from xs."
+  [xs]
+  (get xs (rand-int (dec (count xs)))))
+
 (defn extreme
   "Returns the most extreme value in `args` based on the binary `order` function."
   [order args]
