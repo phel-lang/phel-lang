@@ -19,6 +19,7 @@ use Phel\Runtime\RuntimeFactory;
 use PHPUnit\Framework\TestCase;
 use RecursiveDirectoryIterator;
 use RecursiveIteratorIterator;
+use SplFileInfo;
 
 final class IntegrationTest extends TestCase
 {
@@ -72,15 +73,16 @@ final class IntegrationTest extends TestCase
             RecursiveIteratorIterator::LEAVES_ONLY
         );
 
+        /** @var SplFileInfo $file */
         foreach ($iterator as $file) {
-            if (!preg_match('/\.test$/', (string)$file)) {
+            if (!preg_match('/\.test$/', $file->getRealPath())) {
                 continue;
             }
 
             $test = file_get_contents($file->getRealpath());
 
             if (preg_match('/--PHEL--\s*(.*?)\s*--PHP--\s*(.*)/s', $test, $match)) {
-                $filename = str_replace($fixturesDir . '/', '', $file);
+                $filename = str_replace($fixturesDir . '/', '', $file->getRealPath());
                 $phelCode = $match[1];
                 $phpCode = trim($match[2]);
 

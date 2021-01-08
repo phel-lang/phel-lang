@@ -22,9 +22,10 @@ final class ResourcePrinterTest extends TestCase
      */
     private function getResource()
     {
-        $resource = curl_init('');
+        return tmpfile();
+        /*$resource = curl_init('');
         curl_close($resource);
 
-        return $resource;
+        return $resource;*/
     }
 }
