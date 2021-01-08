@@ -1021,6 +1021,13 @@ Returns a random number between 0 and 1.
 ```
 Returns a random number between 0 and `n`.
 
+## `rand-nth`
+
+```phel
+(rand-nth xs)
+```
+Returns a random item from the list `xs`.
+
 ## `range`
 
 ```phel
