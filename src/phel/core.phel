@@ -476,6 +476,11 @@ Calling the and function without arguments returns true."
   [x]
   (id x false))
 
+(defn str-contains?
+  "True if str contains s."
+  [str s]
+  (not (false? (php/strpos str s))))
+
 (defn compare
   "An integer less than, equal to, or greater than zero when `x` is less than,
   equal to, or greater than `y`, respectively."
