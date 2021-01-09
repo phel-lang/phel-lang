@@ -689,6 +689,13 @@ Shorthand for `(if (not condition) else then)`.
 ```
 Increments `x` by one.
 
+## `includes?`
+
+```phel
+(includes? s substr)
+```
+True if s includes substr.
+
 ## `indexed?`
 
 ```phel
