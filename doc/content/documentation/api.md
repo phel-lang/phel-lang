@@ -689,13 +689,6 @@ Shorthand for `(if (not condition) else then)`.
 ```
 Increments `x` by one.
 
-## `includes?`
-
-```phel
-(includes? s substr)
-```
-True if s includes substr.
-
 ## `indexed?`
 
 ```phel
@@ -1218,6 +1211,13 @@ Creates a string by concatenating values together. If no arguments are
 provided an empty string is returned. Nil and false are represented as empty
 string. True is represented as 1. Otherwise it tries to call `__toString`.
 This is PHP equivalent to `$args[0] . $args[1] . $args[2] ...`
+
+## `str-contains?`
+
+```phel
+(str-contains? str s)
+```
+True if str contains s.
 
 ## `string?`
 
