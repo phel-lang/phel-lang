@@ -137,6 +137,10 @@ returns logical false, and returns that value and doesn't evaluate any of the
 other expressions, otherwise it returns the value of the last expression.
 Calling the and function without arguments returns true.
 
+## `argv`
+
+Array of arguments passed to script.
+
 ## `array`
 
 ```phel
