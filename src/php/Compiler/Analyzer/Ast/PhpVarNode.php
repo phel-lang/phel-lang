@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Phel\Compiler\Analyzer\Ast;
 
+use Phel\Compiler\Analyzer\Environment\NodeEnvironment;
 use Phel\Compiler\Analyzer\Environment\NodeEnvironmentInterface;
 use Phel\Lang\SourceLocation;
 
@@ -46,6 +47,14 @@ final class PhpVarNode extends AbstractNode
     ];
 
     private string $name;
+
+    public static function withReturnContext(string $name, ?SourceLocation $sourceLocation = null): self
+    {
+        $returnNode = NodeEnvironment::empty()
+            ->withContext(NodeEnvironmentInterface::CONTEXT_RETURN);
+
+        return new self($returnNode, $name, $sourceLocation);
+    }
 
     public function __construct(NodeEnvironmentInterface $env, string $name, ?SourceLocation $sourceLocation = null)
     {
