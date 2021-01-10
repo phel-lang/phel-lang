@@ -6,3 +6,4 @@ doc/public
 .phel-repl-history
 .php_cs.cache
 .idea/
+src/phel/local.phel
