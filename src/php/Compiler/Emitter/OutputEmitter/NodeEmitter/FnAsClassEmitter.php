@@ -17,6 +17,18 @@ final class FnAsClassEmitter implements NodeEmitterInterface
     {
         assert($node instanceof FnNode);
 
+        $this->emitClassBegin($node);
+        $this->emitProperties($node);
+        $this->emitConstructor($node);
+        $this->emitInvokeFunctionBegin($node);
+        $this->emitInvokeFunctionParameters($node);
+        $this->emitInvokeFunctionBody($node);
+        $this->emitInvokeFunctionEnd($node);
+        $this->emitClassEnd($node);
+    }
+
+    private function emitClassBegin(FnNode $node): void
+    {
         $this->outputEmitter->emitContextPrefix($node->getEnv(), $node->getStartSourceLocation());
         $this->outputEmitter->emitStr('new class(', $node->getStartSourceLocation());
 
@@ -37,7 +49,10 @@ final class FnAsClassEmitter implements NodeEmitterInterface
 
         $this->outputEmitter->emitLine(') extends \Phel\Lang\AbstractFn {', $node->getStartSourceLocation());
         $this->outputEmitter->increaseIndentLevel();
+    }
 
+    private function emitProperties(FnNode $node): void
+    {
         $ns = addslashes($this->outputEmitter->mungeEncodeNs($node->getEnv()->getBoundTo()));
         $this->outputEmitter->emitLine('public const BOUND_TO = "' . $ns . '";', $node->getStartSourceLocation());
 
@@ -52,8 +67,12 @@ final class FnAsClassEmitter implements NodeEmitterInterface
                 $node->getStartSourceLocation()
             );
         }
+    }
 
-        // Constructor
+    private function emitConstructor(FnNode $node): void
+    {
+        $usesCount = count($node->getUses());
+
         if ($usesCount) {
             $this->outputEmitter->emitLine();
             $this->outputEmitter->emitStr('public function __construct(', $node->getStartSourceLocation());
@@ -92,13 +111,18 @@ final class FnAsClassEmitter implements NodeEmitterInterface
             $this->outputEmitter->decreaseIndentLevel();
             $this->outputEmitter->emitLine('}', $node->getStartSourceLocation());
         }
+    }
 
-        // __invoke Function
+    private function emitInvokeFunctionBegin(FnNode $node): void
+    {
         $this->outputEmitter->emitLine();
         $this->outputEmitter->emitStr('public function __invoke(', $node->getStartSourceLocation());
+    }
 
-        // Function Parameters
+    private function emitInvokeFunctionParameters(FnNode $node): void
+    {
         $paramsCount = count($node->getParams());
+
         foreach ($node->getParams() as $i => $p) {
             if ($i === $paramsCount - 1 && $node->isVariadic()) {
                 $this->outputEmitter->emitPhpVariable($p, null, false, true);
@@ -123,37 +147,50 @@ final class FnAsClassEmitter implements NodeEmitterInterface
             }
 
             $varName = $this->outputEmitter->mungeEncode($u->getName());
-            $this->outputEmitter->emitLine('$' . $varName . ' = $this->' . $varName . ';', $node->getStartSourceLocation());
+
+            $this->outputEmitter->emitLine(
+                '$' . $varName . ' = $this->' . $varName . ';',
+                $node->getStartSourceLocation()
+            );
         }
 
         // Variadic Parameter
         if ($node->isVariadic()) {
             $p = $node->getParams()[count($node->getParams()) - 1];
+
             $this->outputEmitter->emitLine(
                 '$' . $this->outputEmitter->mungeEncode($p->getName())
                 . ' = new \Phel\Lang\PhelArray($' . $this->outputEmitter->mungeEncode($p->getName()) . ');',
                 $node->getStartSourceLocation()
             );
         }
+    }
 
-        // Body
+    private function emitInvokeFunctionBody(FnNode $node): void
+    {
         if ($node->getRecurs()) {
             $this->outputEmitter->emitLine('while (true) {', $node->getStartSourceLocation());
             $this->outputEmitter->increaseIndentLevel();
         }
+
         $this->outputEmitter->emitNode($node->getBody());
+
         if ($node->getRecurs()) {
             $this->outputEmitter->emitLine('break;', $node->getStartSourceLocation());
             $this->outputEmitter->decreaseIndentLevel();
             $this->outputEmitter->emitStr('}', $node->getStartSourceLocation());
         }
+    }
 
-        // End of __invoke
+    private function emitInvokeFunctionEnd(FnNode $node): void
+    {
         $this->outputEmitter->decreaseIndentLevel();
         $this->outputEmitter->emitLine();
         $this->outputEmitter->emitLine('}', $node->getStartSourceLocation());
+    }
 
-        // End of class
+    private function emitClassEnd(FnNode $node): void
+    {
         $this->outputEmitter->decreaseIndentLevel();
         $this->outputEmitter->emitStr('}', $node->getStartSourceLocation());
 
