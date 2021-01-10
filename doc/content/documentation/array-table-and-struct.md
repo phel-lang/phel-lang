@@ -193,7 +193,7 @@ A struct is a special kind of table. It only supports a predefined number of key
 
 ```phel
 (defstruct my-struct [a b c]) # Defines the struct
-(let [x (my_struct 1 2 3)] # Create a new struct
+(let [x (my-struct 1 2 3)] # Create a new struct
   (my-struct? x) # Evaluates to true
   (get x :a) # Evaluates to 1
   (put x :a 12) # Evaluates to (my-struct 12 2 3)
