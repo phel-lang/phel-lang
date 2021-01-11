@@ -1,11 +1,22 @@
 <p align="center">
-  <a href="https://phel-lang.org/" title="Phel Lang"><img src="doc/static/logo.svg" width="350" alt="Phel logo"/></a>
+  <a href="https://phel-lang.org/" title="Phel Lang Website">
+    <img src="doc/static/logo.svg" width="350" alt="Phel logo"/>
+  </a>
 </p>
 
 <p align="center">
-  <a href="https://github.com/jenshaase/phel-lang/actions"><img src="https://github.com/jenshaase/phel-lang/workflows/CI/badge.svg" alt="GitHub Build Status"></a>
-  <a href="https://shepherd.dev/github/jenshaase/phel-lang"><img src="https://shepherd.dev/github/jenshaase/phel-lang/coverage.svg" alt="Psalm Type-coverage Status"></a>
-  <a href="https://gitter.im/phel-lang/community?utm_source=badge&amp;utm_medium=badge&amp;utm_campaign=pr-badge"><img src="https://badges.gitter.im/Join%20Chat.svg" alt="Gitter"></a>
+  <a href="https://github.com/jenshaase/phel-lang/actions">
+    <img src="https://github.com/jenshaase/phel-lang/workflows/CI/badge.svg" alt="GitHub Build Status">
+  </a>
+  <a href="https://scrutinizer-ci.com/g/jenshaase/phel-lang/?branch=master">
+    <img src="https://scrutinizer-ci.com/g/jenshaase/phel-lang/badges/quality-score.png?b=master" alt="Scrutinizer Code Quality">
+  </a>
+  <a href="https://shepherd.dev/github/jenshaase/phel-lang">
+    <img src="https://shepherd.dev/github/jenshaase/phel-lang/coverage.svg" alt="Psalm Type-coverage Status">
+  </a>
+  <a href="https://gitter.im/phel-lang/community?utm_source=badge&amp;utm_medium=badge&amp;utm_campaign=pr-badge">
+    <img src="https://badges.gitter.im/Join%20Chat.svg" alt="Gitter">
+  </a>
 </p>
 
 #
