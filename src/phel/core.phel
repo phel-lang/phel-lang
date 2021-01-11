@@ -28,6 +28,10 @@
 
 (def *ns* "\\phel\\core")
 
+(def argv
+  "Array of arguments passed to script."
+  (php/aget php/$GLOBALS "argv"))
+
 # --------------------------------------------
 # Basic methods for quasiquote and destructure
 # --------------------------------------------
