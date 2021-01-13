@@ -933,6 +933,24 @@
 (deftest test-println
   (is (output? "hello\nworld\n" (println "hello\nworld")) "println hello\\nworld"))
 
+(deftest test-format
+  (is (= "" (format "" "hello")) "format with empty fmt")
+  (is (= "hello\nworld" (format "%s" "hello\nworld")) "format one string")
+  (is (= "hello 1" (format "%s %d" "hello" 1)) "format with different types")
+  (is (= "[\"a\" \"b\"]" (format "%s" ["a" "b"])) "format with tuple of strings")
+  (is (= "@[\"a\" \"b\"]" (format "%s" @["a" "b"])) "format with array of strings")
+  (is (= "@{\"a\" \"b\"}" (format "%s" @{"a" "b"})) "format on table")
+  (is (= "(set \"a\" \"b\")" (format "%s" (set "a" "b"))) "format on set")
+  (is (= "x" (format "%s" 'x)) "format on symbol")
+  (is (= ":test" (format "%s" :test)) "format on keyword")
+  (is (= "1" (format "%d" 1)) "format on number")
+  (is (= "1" (format "%d" true)) "format on true")
+  (is (= "0" (format "%d" false)) "format on false")
+  (is (= "" (format "%s" nil)) "format on nil"))
+
+(deftest test-printf
+  (is (output? "hello\nworld" (printf "%s\n%s" "hello" "world")) "printf hello\\nworld"))
+
 (defstruct my-struct [a b c])
 
 (deftest test-struct
