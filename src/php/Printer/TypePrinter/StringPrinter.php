@@ -42,99 +42,99 @@ final class StringPrinter implements TypePrinterInterface
 
     private function readCharacters(string $str): string
     {
-        $ret = '';
-        for ($i = 0, $l = strlen($str); $i < $l; ++$i) {
-            $o = ord($str[$i]);
+        $return = '';
+        for ($index = 0, $length = strlen($str); $index < $length; ++$index) {
+            $asciiChar = ord($str[$index]);
 
-            if (isset(self::SPECIAL_CHARACTERS[$o])) {
-                $ret .= self::SPECIAL_CHARACTERS[$o];
+            if (isset(self::SPECIAL_CHARACTERS[$asciiChar])) {
+                $return .= self::SPECIAL_CHARACTERS[$asciiChar];
                 continue;
             }
 
-            if ($this->isAsciiCharacter($o)) {
-                $ret .= $str[$i];
+            if ($this->isAsciiCharacter($asciiChar)) {
+                $return .= $str[$index];
                 continue;
             }
 
-            if ($this->isMaskCharacter($o)) {
-                $maskIndex = $this->maskIndexValue($o);
-                $ret .= $this->readMask($o, $str, $i, $maskIndex);
-                $i += $maskIndex;
+            if ($this->isMaskCharacter($asciiChar)) {
+                $maskIndex = $this->maskIndexValue($asciiChar);
+                $return .= $this->readMask($asciiChar, $str, $index, $maskIndex);
+                $index += $maskIndex;
                 continue;
             }
 
-            if ($o < 31 || $o > 126) {
-                $ret .= '\x' . str_pad(dechex($o), 2, '0', STR_PAD_LEFT);
+            if ($asciiChar < 31 || $asciiChar > 126) {
+                $return .= '\x' . str_pad(dechex($asciiChar), 2, '0', STR_PAD_LEFT);
                 continue;
             }
 
-            $ret .= $str[$i];
+            $return .= $str[$index];
         }
 
-        return '"' . $ret . '"';
+        return '"' . $return . '"';
     }
 
     /**
      * Characters U-00000000 - U-0000007F (same as ASCII).
      */
-    private function isAsciiCharacter(int $character): bool
+    private function isAsciiCharacter(int $asciiChar): bool
     {
-        return $character >= 32 && $character <= 127;
+        return $asciiChar >= 32 && $asciiChar <= 127;
     }
 
-    private function isMaskCharacter(int $character): bool
+    private function isMaskCharacter(int $asciiChar): bool
     {
-        return $this->isMask110XXXXX($character)
-            || $this->isMask1110XXXX($character)
-            || $this->isMask11110XXX($character);
+        return $this->isMask110XXXXX($asciiChar)
+            || $this->isMask1110XXXX($asciiChar)
+            || $this->isMask11110XXX($asciiChar);
     }
 
     /**
      * Characters U-00000080 - U-000007FF, mask 110XXXXX.
      */
-    private function isMask110XXXXX(int $character): bool
+    private function isMask110XXXXX(int $asciiChar): bool
     {
-        return ($character & 0xE0) === 0xC0;
+        return ($asciiChar & 0xE0) === 0xC0;
     }
 
     /**
      * Characters U-00000800 - U-0000FFFF, mask 1110XXXX.
      */
-    private function isMask1110XXXX(int $character): bool
+    private function isMask1110XXXX(int $asciiChar): bool
     {
-        return ($character & 0xF0) === 0xE0;
+        return ($asciiChar & 0xF0) === 0xE0;
     }
 
     /**
      * Characters U-00010000 - U-001FFFFF, mask 11110XXX.
      */
-    private function isMask11110XXX(int $character): bool
+    private function isMask11110XXX(int $asciiChar): bool
     {
-        return ($character & 0xF8) === 0xF0;
+        return ($asciiChar & 0xF8) === 0xF0;
     }
 
-    private function maskIndexValue(int $character): int
+    private function maskIndexValue(int $asciiChar): int
     {
-        if ($this->isMask110XXXXX($character)) {
+        if ($this->isMask110XXXXX($asciiChar)) {
             return 1;
         }
 
-        if ($this->isMask1110XXXX($character)) {
+        if ($this->isMask1110XXXX($asciiChar)) {
             return 2;
         }
 
         return 3;
     }
 
-    private function readMask(int $character, string $str, int $i, int $maskIndex): string
+    private function readMask(int $asciiChar, string $str, int $index, int $maskIndex): string
     {
-        $hex = $this->utf8ToUnicodePoint(substr($str, $i, $maskIndex + 1));
+        $hex = $this->utf8ToUnicodePoint(substr($str, $index, $maskIndex + 1));
 
-        if ($this->isMask110XXXXX($character)) {
+        if ($this->isMask110XXXXX($asciiChar)) {
             return sprintf('\u{%04s}', $hex);
         }
 
-        if ($this->isMask1110XXXX($character)) {
+        if ($this->isMask1110XXXX($asciiChar)) {
             return sprintf('\u{%04s}', $hex);
         }
 
