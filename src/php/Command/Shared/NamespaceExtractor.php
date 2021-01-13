@@ -76,10 +76,10 @@ final class NamespaceExtractor implements NamespaceExtractorInterface
         $testDirectories = $config['tests'] ?? [];
         foreach ($testDirectories as $testDir) {
             $allNamespacesInDir = $this->findAllNs($currentDir . $testDir);
-            $namespaces = array_merge($namespaces, $allNamespacesInDir);
+            $namespaces[] = $allNamespacesInDir;
         }
 
-        return $namespaces;
+        return array_merge(...array_values($namespaces));
     }
 
     private function findAllNs(string $directory): array
@@ -97,12 +97,12 @@ final class NamespaceExtractor implements NamespaceExtractorInterface
     {
         $composerContent = file_get_contents($currentDirectory . 'composer.json');
         if (!$composerContent) {
-            throw new \Exception('Can not read composer.json in: ' . $currentDirectory);
+            throw new \Exception('Cannot read composer.json in: ' . $currentDirectory);
         }
 
         $composerData = json_decode($composerContent, true);
         if (!$composerData) {
-            throw new \Exception('Can not parse composer.json in: ' . $currentDirectory);
+            throw new \Exception('Cannot parse composer.json in: ' . $currentDirectory);
         }
 
         if (isset($composerData['extra']['phel'])) {
