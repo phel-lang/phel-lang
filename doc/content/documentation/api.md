@@ -1473,7 +1473,7 @@ Evaluates `test` and if that is logical true, evaluates `body`.
 ```phel
 (when-not test & body)
 ```
-Evaluates `test` and if that is logical true, evaluates `body`.
+Evaluates `test` and if that is logical false, evaluates `body`.
 
 ## `with-output-buffer`
 

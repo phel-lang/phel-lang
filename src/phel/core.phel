@@ -307,7 +307,7 @@ implement the PHP Countable interface."
   `(if ,test (do ,@body)))
 
 (defmacro when-not
-  "Evaluates `test` and if that is logical true, evaluates `body`."
+  "Evaluates `test` and if that is logical false, evaluates `body`."
   [test & body]
   `(if ,test nil (do ,@body)))
 
