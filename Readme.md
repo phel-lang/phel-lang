@@ -11,6 +11,9 @@
   <a href="https://scrutinizer-ci.com/g/jenshaase/phel-lang/?branch=master">
     <img src="https://scrutinizer-ci.com/g/jenshaase/phel-lang/badges/quality-score.png?b=master" alt="Scrutinizer Code Quality">
   </a>
+  <a href="https://scrutinizer-ci.com/g/jenshaase/phel-lang/?branch=master">
+    <img src="https://scrutinizer-ci.com/g/jenshaase/phel-lang/badges/coverage.png?b=master" alt="Scrutinizer Code Coverage">
+  </a>
   <a href="https://shepherd.dev/github/jenshaase/phel-lang">
     <img src="https://shepherd.dev/github/jenshaase/phel-lang/coverage.svg" alt="Psalm Type-coverage Status">
   </a>
