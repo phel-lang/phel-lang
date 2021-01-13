@@ -26,6 +26,7 @@ use Phel\Printer\TypePrinter\SymbolPrinter;
 use Phel\Printer\TypePrinter\TablePrinter;
 use Phel\Printer\TypePrinter\TuplePrinter;
 use Phel\Printer\TypePrinter\TypePrinterInterface;
+use RuntimeException;
 
 final class Printer
 {
@@ -53,49 +54,64 @@ final class Printer
      */
     public function print($form): string
     {
-        $printerName = $this->getTypePrinterName($form);
-        $printer = $this->createTypePrinterByName($printerName);
+        $printer = $this->createTypePrinter($form);
 
         return $printer->print($form);
     }
 
     /**
-     * @param mixed $form
+     * @param mixed $form The form to print
      */
-    private function getTypePrinterName($form): string
+    private function createTypePrinter($form): TypePrinterInterface
     {
-        return 'object' === gettype($form)
-            ? get_class($form)
-            : gettype($form);
+        if (is_object($form)) {
+            return $this->createObjectTypePrinter($form);
+        }
+
+        return $this->creatScalarTypePrinter($form);
     }
 
-    private function createTypePrinterByName(string $printerName): TypePrinterInterface
+    /**
+     * @param mixed $form The form to print
+     */
+    private function createObjectTypePrinter($form): TypePrinterInterface
     {
-        if (Tuple::class === $printerName) {
+        if ($form instanceof Tuple) {
             return new TuplePrinter($this);
         }
-        if (Keyword::class === $printerName) {
+        if ($form instanceof Keyword) {
             return new KeywordPrinter();
         }
-        if (Symbol::class === $printerName) {
+        if ($form instanceof Symbol) {
             return new SymbolPrinter();
         }
-        if (Set::class === $printerName) {
+        if ($form instanceof Set) {
             return new SetPrinter($this);
         }
-        if (PhelArray::class === $printerName) {
+        if ($form instanceof PhelArray) {
             return new PhelArrayPrinter($this);
         }
-        if (AbstractStruct::class === $printerName) {
-            return new StructPrinter($this);
-        }
-        if (Table::class === $printerName) {
+        if ($form instanceof Table) {
             return new TablePrinter($this);
         }
+        if ($form instanceof AbstractStruct) {
+            return new StructPrinter($this);
+        }
+
+        throw new RuntimeException('Printer can not print this type: ' . get_class($form));
+    }
+
+    /**
+     * @param mixed $form The form to print
+     */
+    private function creatScalarTypePrinter($form): TypePrinterInterface
+    {
+        $printerName = gettype($form);
+
         if ('string' === $printerName) {
             return new StringPrinter($this->readable);
         }
-        if ('integer' === $printerName || 'float' === $printerName) {
+        if ('integer' === $printerName || 'double' === $printerName) {
             return new NumberPrinter();
         }
         if ('boolean' === $printerName) {
@@ -114,6 +130,6 @@ final class Printer
             return new ObjectPrinter();
         }
 
-        throw new \RuntimeException('Printer can not print this type: ' . $printerName);
+        throw new RuntimeException('Printer can not print this type: ' . $printerName);
     }
 }
