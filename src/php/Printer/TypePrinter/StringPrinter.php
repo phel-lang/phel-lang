@@ -56,10 +56,24 @@ final class StringPrinter implements TypePrinterInterface
                 continue;
             }
 
-            if ($this->isMaskCharacter($asciiChar)) {
-                $maskIndex = $this->maskIndexValue($asciiChar);
-                $return .= $this->readMask($asciiChar, $str, $index, $maskIndex);
-                $index += $maskIndex;
+            if ($this->isMask110XXXXX($asciiChar)) {
+                $hex = $this->utf8ToUnicodePoint(substr($str, $index, 2));
+                $return .= sprintf('\u{%04s}', $hex);
+                $index++;
+                continue;
+            }
+
+            if ($this->isMask1110XXXX($asciiChar)) {
+                $hex = $this->utf8ToUnicodePoint(substr($str, $index, 3));
+                $return .= sprintf('\u{%04s}', $hex);
+                $index += 2;
+                continue;
+            }
+
+            if ($this->isMask11110XXX($asciiChar)) {
+                $hex = $this->utf8ToUnicodePoint(substr($str, $index, 4));
+                $return .= sprintf('\u{%04s}', $hex);
+                $index += 3;
                 continue;
             }
 
@@ -80,13 +94,6 @@ final class StringPrinter implements TypePrinterInterface
     private function isAsciiCharacter(int $asciiChar): bool
     {
         return $asciiChar >= 32 && $asciiChar <= 127;
-    }
-
-    private function isMaskCharacter(int $asciiChar): bool
-    {
-        return $this->isMask110XXXXX($asciiChar)
-            || $this->isMask1110XXXX($asciiChar)
-            || $this->isMask11110XXX($asciiChar);
     }
 
     /**
@@ -111,34 +118,6 @@ final class StringPrinter implements TypePrinterInterface
     private function isMask11110XXX(int $asciiChar): bool
     {
         return ($asciiChar & 0xF8) === 0xF0;
-    }
-
-    private function maskIndexValue(int $asciiChar): int
-    {
-        if ($this->isMask110XXXXX($asciiChar)) {
-            return 1;
-        }
-
-        if ($this->isMask1110XXXX($asciiChar)) {
-            return 2;
-        }
-
-        return 3;
-    }
-
-    private function readMask(int $asciiChar, string $str, int $index, int $maskIndex): string
-    {
-        $hex = $this->utf8ToUnicodePoint(substr($str, $index, $maskIndex + 1));
-
-        if ($this->isMask110XXXXX($asciiChar)) {
-            return sprintf('\u{%04s}', $hex);
-        }
-
-        if ($this->isMask1110XXXX($asciiChar)) {
-            return sprintf('\u{%04s}', $hex);
-        }
-
-        return sprintf('\u{%04s}', $hex);
     }
 
     private function utf8ToUnicodePoint(string $str): string
