@@ -1376,14 +1376,14 @@ returns 1. If `xs` has one value, returns the reciprocal of x."
   nil)
 
 (defn format
-  "Returns a string produced according to the formatting string fmt."
+  "Returns a formatted string. See PHP's [sprintf](https://www.php.net/manual/en/function.sprintf.php) for more information."
   [fmt & xs]
   (apply php/sprintf fmt xs))
 
 (defn printf
-  "Output a formatted string."
+  "Output a formatted string. See PHP's [printf](https://www.php.net/manual/en/function.printf.php) for more information."
   [fmt & xs]
-  (php/print (apply format fmt xs))
+  (apply php/printf fmt xs)
   nil)
 
 # ----------------

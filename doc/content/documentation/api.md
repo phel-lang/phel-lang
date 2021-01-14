@@ -509,7 +509,7 @@ List comprehension. The head of the loop is a tuple that contains a
 ```phel
 (format fmt & xs)
 ```
-Returns a string produced according to the formatting string fmt.
+Returns a formatted string. See PHP's [sprintf](https://www.php.net/manual/en/function.sprintf.php) for more information.
 
 ## `frequencies`
 
@@ -1046,7 +1046,7 @@ Same as print. But instead of writing it to a output stream,
 ```phel
 (printf fmt & xs)
 ```
-Output a formatted string.
+Output a formatted string. See PHP's [printf](https://www.php.net/manual/en/function.printf.php) for more information.
 
 ## `println`
 
