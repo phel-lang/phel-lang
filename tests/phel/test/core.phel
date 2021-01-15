@@ -934,7 +934,8 @@
   (is (output? "hello\nworld\n" (println "hello\nworld")) "println hello\\nworld"))
 
 (deftest test-format
-  (is (= "" (format "" "hello")) "format with empty fmt")
+  (is (= "" (format "")) "format with empty fmt")
+  (is (= "" (format "" "hello")) "format with empty fmt and one arg")
   (is (= "hello\nworld" (format "%s" "hello\nworld")) "format one string")
   (is (= "hello 1" (format "%s %d" "hello" 1)) "format with different types")
   (is (= "[\"a\" \"b\"]" (format "%s" ["a" "b"])) "format with tuple of strings")
