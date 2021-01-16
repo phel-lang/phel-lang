@@ -1375,6 +1375,17 @@ returns 1. If `xs` has one value, returns the reciprocal of x."
   (php/print "\n")
   nil)
 
+(defn format
+  "Returns a formatted string. See PHP's [sprintf](https://www.php.net/manual/en/function.sprintf.php) for more information."
+  [fmt & xs]
+  (apply php/sprintf fmt xs))
+
+(defn printf
+  "Output a formatted string. See PHP's [printf](https://www.php.net/manual/en/function.printf.php) for more information."
+  [fmt & xs]
+  (apply php/printf fmt xs)
+  nil)
+
 # ----------------
 # Threading macros
 # ----------------

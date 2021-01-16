@@ -504,6 +504,13 @@ List comprehension. The head of the loop is a tuple that contains a
 
   The for loops returns a array with all evaluated elements of the body.
 
+## `format`
+
+```phel
+(format fmt & xs)
+```
+Returns a formatted string. See PHP's [sprintf](https://www.php.net/manual/en/function.sprintf.php) for more information.
+
 ## `frequencies`
 
 ```phel
@@ -1033,6 +1040,13 @@ Prints the given values to the default output stream. Returns nil.
 ```
 Same as print. But instead of writing it to a output stream,
   The resulting string is returned.
+
+## `printf`
+
+```phel
+(printf fmt & xs)
+```
+Output a formatted string. See PHP's [printf](https://www.php.net/manual/en/function.printf.php) for more information.
 
 ## `println`
 
