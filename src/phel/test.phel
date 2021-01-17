@@ -9,24 +9,20 @@
 # Report
 # ------
 
-(def stats @{
-  :failed []
-  :counts @{
-    :failed 0
-    :error 0
-    :pass 0
-    :total 0
-  }
-})
+(def stats @{:failed []
+             :counts @{:failed 0
+                       :error 0
+                       :pass 0
+                       :total 0}})
 
 (defn report [data]
   (let [@{:state state :type type} data
         ok (= state :pass)]
     (print
-      (case state
-        :failed "F"
-        :pass "."
-        :error "E"))
+     (case state
+       :failed "F"
+       :pass "."
+       :error "E"))
     (update-in stats [:counts :total] inc)
     (update-in stats [:counts state] inc)
     (when (= (% (get-in stats [:counts :total]) 80) 0)
@@ -64,9 +60,9 @@
                           :value ',value
                           :form ',form
                           :result ,value-evaluated}]
-      (if ,result
-        (report (merge ,report-data @{:state :pass}))
-        (report (merge ,report-data @{:state :failed}))))))
+       (if ,result
+         (report (merge ,report-data @{:state :pass}))
+         (report (merge ,report-data @{:state :failed}))))))
 
 (defn- assert-binary [form message negated]
   (let [pred (first form)
@@ -90,9 +86,9 @@
                           :actual ',actual
                           :form ',form
                           :result ,actual-evaluated}]
-      (if ,result
-        (report (merge ,report-data @{:type :binary :state :pass}))
-        (report (merge ,report-data @{:type :binary :state :failed}))))))
+       (if ,result
+         (report (merge ,report-data @{:type :binary :state :pass}))
+         (report (merge ,report-data @{:type :binary :state :failed}))))))
 
 (defn- assert-output [form message]
   (let [expected (second form)
@@ -110,11 +106,11 @@
                           :form ',form
                           :exception-symbol ,(str exception-symbol)
                           :message ,message}]
-      (try
-        ,@body
-        (report (merge ,report-data @{:state :failed}))
-        (catch ,exception-symbol ,e
-          (report (merge ,report-data @{:state :pass})))))))
+       (try
+         ,@body
+         (report (merge ,report-data @{:state :failed}))
+         (catch ,exception-symbol ,e
+           (report (merge ,report-data @{:state :pass})))))))
 
 (defn- assert-thrown-with-msg [form message]
   (let [exception-symbol (second form)
@@ -130,14 +126,14 @@
                           :exception-symbol ,(str exception-symbol)
                           :expected-message ,expected-message
                           :message ,message}]
-      (try
-        ,@body
-        (report (merge ,report-data @{:state :failed :actual-message nil}))
-        (catch ,exception-symbol ,e
-          (let [,actual-message (php/-> ,e (getMessage))]
-            (if (= ,expected-message ,actual-message)
-              (report (merge ,report-data @{:state :pass :actual-message ,actual-message}))
-              (report (merge ,report-data @{:state :failed :actual-message ,actual-message})))))))))
+       (try
+         ,@body
+         (report (merge ,report-data @{:state :failed :actual-message nil}))
+         (catch ,exception-symbol ,e
+           (let [,actual-message (php/-> ,e (getMessage))]
+             (if (= ,expected-message ,actual-message)
+               (report (merge ,report-data @{:state :pass :actual-message ,actual-message}))
+               (report (merge ,report-data @{:state :failed :actual-message ,actual-message})))))))))
 
 (defn- assert-any [form message]
   (let [loc (location form)
@@ -149,34 +145,33 @@
                           :location ,loc
                           :form ',form
                           :result ,result}]
-      (if ,result
-        (report (merge ,report-data @{:state :pass}))
-        (report (merge ,report-data @{:state :failed}))))))
+       (if ,result
+         (report (merge ,report-data @{:state :pass}))
+         (report (merge ,report-data @{:state :failed}))))))
 
 (defn- assert-expr [form message]
   (cond
     (and (tuple? form) (= (first form) 'not) (tuple? (second form)) (= 3 (count (second form))))
-      (assert-binary form message true)
+    (assert-binary form message true)
     (and (tuple? form) (= (first form) 'not) (tuple? (second form)) (= 2 (count (second form))))
-      (assert-predicate form message true)
+    (assert-predicate form message true)
     (and (tuple? form) (= (first form) 'thrown?))
-      (assert-thrown form message)
+    (assert-thrown form message)
     (and (tuple? form) (= (first form) 'thrown-with-msg?))
-      (assert-thrown-with-msg form message)
+    (assert-thrown-with-msg form message)
     (and (tuple? form) (= (first form) 'output?))
-      (assert-output form message)
+    (assert-output form message)
     (and (tuple? form) (= 3 (count form)))
-      (assert-binary form message false)
+    (assert-binary form message false)
     (and (tuple? form) (= 2 (count form)))
-      (assert-predicate form message false)
-    (assert-any form message)
-  ))
+    (assert-predicate form message false)
+    (assert-any form message)))
 
 (defmacro is [form & [message]]
   (let [loc (location form) e (gensym)]
     `(try ,(assert-expr form message)
-      (catch Throwable ,e
-        (report @{:state :error :location ,loc :message ,message :form ',form :exception ,e})))))
+          (catch Throwable ,e
+            (report @{:state :error :location ,loc :message ,message :form ',form :exception ,e})))))
 
 # --------------
 # Defining tests
@@ -184,8 +179,7 @@
 
 (defmacro deftest [name & body]
   `(defn ,name @{:test true} []
-      ,@body
-      ))
+     ,@body))
 
 # ---------------------
 # error/failure printer
@@ -243,11 +237,11 @@
     (do
       (println "    expected:" form)
       (println "  to throw a:" exception-symbol "(it didn't)")
-    (do
-      (println "      expected:" form)
-      (println "    to throw a:" exception-symbol)
-      (println "  with message:" expected-message)
-      (println "       but got:" actual-message)))))
+      (do
+        (println "      expected:" form)
+        (println "    to throw a:" exception-symbol)
+        (println "  with message:" expected-message)
+        (println "       but got:" actual-message)))))
 
 (defn- print-any-failure [@{:form form :result result}]
   (println "          Test:" form)
@@ -301,8 +295,7 @@
 (defn- run-test [ns]
   (let [rt (php/:: \Phel\Runtime\RuntimeFactory (getInstance))
         _ (php/-> rt (loadNs ns))
-        tests (find-test-fns ns)
-        ]
+        tests (find-test-fns ns)]
     (dofor [test :in tests]
       (test))))
 

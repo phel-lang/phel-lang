@@ -20,9 +20,9 @@
         match-result (when-not (nil? http-host) (php/preg_match uri-host-port-regex http-host matches))]
     (cond
       (and (not (nil? http-host)) (one? match-result))
-        [(get matches 1) (php/intval (get matches 2))]
+      [(get matches 1) (php/intval (get matches 2))]
       (not (nil? http-host))
-        [http-host server-port]
+      [http-host server-port]
       [server-name server-port])))
 
 (defn uri-from-globals
@@ -51,11 +51,11 @@
   (let [res @{}]
     (dofor [k :keys (get files "tmp_name")
             :let [spec (php-associative-array
-                         "tmp_name" (get-in files ["tmp_name" k])
-                         "size" (get-in files ["size" k])
-                         "error" (get-in files ["error" k])
-                         "name" (get-in files ["name" k])
-                         "type" (get-in files ["type" k]))]]
+                        "tmp_name" (get-in files ["tmp_name" k])
+                        "size" (get-in files ["size" k])
+                        "error" (get-in files ["error" k])
+                        "name" (get-in files ["name" k])
+                        "type" (get-in files ["type" k]))]]
       (put res k (create-uploaded-file-from-spec spec)))
     res))
 
@@ -63,22 +63,22 @@
   (if (php/is_array (get value "tmp_name"))
     (normalize-nested-file-spec value)
     (uploaded-file
-      (get value "tmp_name")
-      (php/intval (get value "size"))
-      (php/intval (get value "error"))
-      (get value "name")
-      (get value "type"))))
+     (get value "tmp_name")
+     (php/intval (get value "size"))
+     (php/intval (get value "error"))
+     (get value "name")
+     (get value "type"))))
 
 (defn- normalize-files [files]
   (let [res @{}]
     (foreach [k v files]
       (cond
         (uploaded-file? v)
-          (put res k v)
+        (put res k v)
         (and (php/is_array v) (get v "tmp_name"))
-          (put res k (create-uploaded-file-from-spec v))
+        (put res k (create-uploaded-file-from-spec v))
         (indexed? v)
-          (put res k (normalize-files v))
+        (put res k (normalize-files v))
 
         (throw (php/new InvalidArgumentException "Invalid value in files specification"))))
     res))
@@ -105,27 +105,26 @@
                       k)]]
       (cond
         (and v (id 0 (php/strpos k "HTTP_")))
-          (let [name (php/strtr (php/strtolower (php/substr k 5)) "_" "-")]
-            (put headers (keyword name) v))
+        (let [name (php/strtr (php/strtolower (php/substr k 5)) "_" "-")]
+          (put headers (keyword name) v))
         (and v (id 0 (php/strpos k "CONTENT_")))
-          (let [name (str "content-" (php/strtolower (php/substr k 8)))]
-            (put headers (keyword name) v))))
+        (let [name (str "content-" (php/strtolower (php/substr k 8)))]
+          (put headers (keyword name) v))))
     headers))
 
 # -------
 # Request
 # -------
 
-(defstruct request [
-  method # HTTP Method ("GET", "POST", ...)
-  uri # URI
-  headers # Table with all headers
-  parsed-body # parsed body ($_POST)
-  query-params # Table with all query parameters ($_GET)
-  cookie-params # Table with all cookie parameters ($_COOKIE)
-  server-params # Table with alle server parameters ($_SERVER)
-  uploaded-files # Array of normalized uploaded files ($_FILES)
-  version # HTTP Version
+(defstruct request [method # HTTP Method ("GET", "POST", ...)
+                    uri # URI
+                    headers # Table with all headers
+                    parsed-body # parsed body ($_POST)
+                    query-params # Table with all query parameters ($_GET)
+                    cookie-params # Table with all cookie parameters ($_COOKIE)
+                    server-params # Table with alle server parameters ($_SERVER)
+                    uploaded-files # Array of normalized uploaded files ($_FILES)
+                    version # HTTP Version
 ])
 
 
@@ -141,8 +140,8 @@
   (let [content-type (get headers :content-type)
         types (php/strtolower (php/trim (first (php/explode ";" content-type 2))))]
     (and
-      (= method "POST")
-      (php/in_array types (php/array "application/x-www-form-urlencoded" "multipart/form-data")))))
+     (= method "POST")
+     (php/in_array types (php/array "application/x-www-form-urlencoded" "multipart/form-data")))))
 
 (defn request-from-globals-args
   "Extracts a request from args."
@@ -155,15 +154,15 @@
                   (php/str_replace "HTTP/" "" server-protocol)
                   "1.1")]
     (request
-      method
-      uri
-      headers
-      (when (post-global-valid method headers) (php-array-to-table post-parameter))
-      (php-array-to-table get-parameter)
-      (php-array-to-table cookies)
-      (php-array-to-table server)
-      (normalize-files files)
-      version)))
+     method
+     uri
+     headers
+     (when (post-global-valid method headers) (php-array-to-table post-parameter))
+     (php-array-to-table get-parameter)
+     (php-array-to-table cookies)
+     (php-array-to-table server)
+     (normalize-files files)
+     version)))
 
 (defn request-from-globals
   "Extracts a request from `$_SERVER`, `$_GET`, `$_POST`, `$_COOKIE` and `$_FILES`."
@@ -176,70 +175,68 @@
 
 (defstruct response [status headers body version reason])
 
-(def- response-phrases @{
-  100 "Continue"
-  101 "Switching Protocols"
-  102 "Processing"
-  103 "Early Hints"
-  200 "OK"
-  201 "Created"
-  202 "Accepted"
-  203 "Non-Authoritative Information"
-  204 "No Content"
-  205 "Reset Content"
-  206 "Partial Content"
-  207 "Multi-Status"
-  208 "Already Reported"
-  226 "IM Used"
-  300 "Multiple Choices"
-  301 "Moved Permanently"
-  302 "Found"
-  303 "See Other"
-  304 "Not Modified"
-  305 "Use Proxy"
-  307 "Temporary Redirect"
-  308 "Permanent Redirect"
-  400 "Bad Request"
-  401 "Unauthorized"
-  402 "Payment Required"
-  403 "Forbidden"
-  404 "Not Found"
-  405 "Method Not Allowed"
-  406 "Not Acceptable"
-  407 "Proxy Authentication Required"
-  408 "Request Timeout"
-  409 "Conflict"
-  410 "Gone"
-  411 "Length Required"
-  412 "Precondition Failed"
-  413 "Payload Too Large"
-  414 "URI Too Long"
-  415 "Unsupported Media Type"
-  416 "Range Not Satisfiable"
-  417 "Expectation Failed"
-  418 "I\'m a teapot"
-  421 "Misdirected Request"
-  422 "Unprocessable Entity"
-  423 "Locked"
-  424 "Failed Dependency"
-  425 "Too Early"
-  426 "Upgrade Required"
-  428 "Precondition Required"
-  429 "Too Many Requests"
-  431 "Request Header Fields Too Large"
-  451 "Unavailable For Legal Reasons"
-  500 "Internal Server Error"
-  501 "Not Implemented"
-  502 "Bad Gateway"
-  503 "Service Unavailable"
-  504 "Gateway Timeout"
-  505 "HTTP Version Not Supported"
-  506 "Variant Also Negotiates"
-  507 "Insufficient Storage"
-  508 "Loop Detected"
-  510 "Not Extended"
-  511 "Network Authentication Required"
-})
+(def- response-phrases @{100 "Continue"
+                         101 "Switching Protocols"
+                         102 "Processing"
+                         103 "Early Hints"
+                         200 "OK"
+                         201 "Created"
+                         202 "Accepted"
+                         203 "Non-Authoritative Information"
+                         204 "No Content"
+                         205 "Reset Content"
+                         206 "Partial Content"
+                         207 "Multi-Status"
+                         208 "Already Reported"
+                         226 "IM Used"
+                         300 "Multiple Choices"
+                         301 "Moved Permanently"
+                         302 "Found"
+                         303 "See Other"
+                         304 "Not Modified"
+                         305 "Use Proxy"
+                         307 "Temporary Redirect"
+                         308 "Permanent Redirect"
+                         400 "Bad Request"
+                         401 "Unauthorized"
+                         402 "Payment Required"
+                         403 "Forbidden"
+                         404 "Not Found"
+                         405 "Method Not Allowed"
+                         406 "Not Acceptable"
+                         407 "Proxy Authentication Required"
+                         408 "Request Timeout"
+                         409 "Conflict"
+                         410 "Gone"
+                         411 "Length Required"
+                         412 "Precondition Failed"
+                         413 "Payload Too Large"
+                         414 "URI Too Long"
+                         415 "Unsupported Media Type"
+                         416 "Range Not Satisfiable"
+                         417 "Expectation Failed"
+                         418 "I\'m a teapot"
+                         421 "Misdirected Request"
+                         422 "Unprocessable Entity"
+                         423 "Locked"
+                         424 "Failed Dependency"
+                         425 "Too Early"
+                         426 "Upgrade Required"
+                         428 "Precondition Required"
+                         429 "Too Many Requests"
+                         431 "Request Header Fields Too Large"
+                         451 "Unavailable For Legal Reasons"
+                         500 "Internal Server Error"
+                         501 "Not Implemented"
+                         502 "Bad Gateway"
+                         503 "Service Unavailable"
+                         504 "Gateway Timeout"
+                         505 "HTTP Version Not Supported"
+                         506 "Variant Also Negotiates"
+                         507 "Insufficient Storage"
+                         508 "Loop Detected"
+                         510 "Not Extended"
+                         511 "Network Authentication Required"})
 
 (defn create-response-from-table
   "Creates a response struct from a table. The table can have the following keys:
@@ -267,13 +264,13 @@
           status (or status 200)
           reason (or reason (get response-phrases status))]
       (php/header
-        (php/sprintf
-          "HTTP/%s %d%s"
-          version
-          status
-          (if reason (str " " reason) ""))
-        true
-        status))))
+       (php/sprintf
+        "HTTP/%s %d%s"
+        version
+        status
+        (if reason (str " " reason) ""))
+       true
+       status))))
 
 (defn- normalize-header-name [name]
   (when-not (or (keyword? name) (string? name))
@@ -289,10 +286,10 @@
                                (not (id 0 (php/strcasecmp normalized-name "Set-Cookie"))))]]
       (cond
         (string? values)
-          (php/header (php/sprintf "%s: %s" normalized-name values) replace status)
+        (php/header (php/sprintf "%s: %s" normalized-name values) replace status)
         (indexed? values)
-          (dofor [value :in values]
-            (php/header (php/sprintf "%s: %s" normalized-name value) replace status))))))
+        (dofor [value :in values]
+          (php/header (php/sprintf "%s: %s" normalized-name value) replace status))))))
 
 (defn emit-response
   "Emits the response."
