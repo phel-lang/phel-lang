@@ -57,7 +57,13 @@ final class Set extends AbstractType implements
 
     public function valid(): bool
     {
-        return key($this->data) !== null;
+        $result = key($this->data) !== null;
+
+        if (!$result) {
+            $this->currentIndex = 0;
+        }
+
+        return $result;
     }
 
     public function rewind(): void
