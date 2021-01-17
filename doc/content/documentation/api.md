@@ -137,6 +137,10 @@ returns logical false, and returns that value and doesn't evaluate any of the
 other expressions, otherwise it returns the value of the last expression.
 Calling the and function without arguments returns true.
 
+## `argv`
+
+Array of arguments passed to script.
+
 ## `array`
 
 ```phel
@@ -499,6 +503,13 @@ List comprehension. The head of the loop is a tuple that contains a
   * :when only evaluates the loop body if the condition is true.
 
   The for loops returns a array with all evaluated elements of the body.
+
+## `format`
+
+```phel
+(format fmt & xs)
+```
+Returns a formatted string. See PHP's [sprintf](https://www.php.net/manual/en/function.sprintf.php) for more information.
 
 ## `frequencies`
 
@@ -1030,6 +1041,13 @@ Prints the given values to the default output stream. Returns nil.
 Same as print. But instead of writing it to a output stream,
   The resulting string is returned.
 
+## `printf`
+
+```phel
+(printf fmt & xs)
+```
+Output a formatted string. See PHP's [printf](https://www.php.net/manual/en/function.printf.php) for more information.
+
 ## `println`
 
 ```phel
@@ -1211,6 +1229,13 @@ Creates a string by concatenating values together. If no arguments are
 provided an empty string is returned. Nil and false are represented as empty
 string. True is represented as 1. Otherwise it tries to call `__toString`.
 This is PHP equivalent to `$args[0] . $args[1] . $args[2] ...`
+
+## `str-contains?`
+
+```phel
+(str-contains? str s)
+```
+True if str contains s.
 
 ## `string?`
 
@@ -1462,7 +1487,7 @@ Evaluates `test` and if that is logical true, evaluates `body`.
 ```phel
 (when-not test & body)
 ```
-Evaluates `test` and if that is logical true, evaluates `body`.
+Evaluates `test` and if that is logical false, evaluates `body`.
 
 ## `with-output-buffer`
 

@@ -9,6 +9,18 @@ namespace Phel\Printer\TypePrinter;
  */
 final class StringPrinter implements TypePrinterInterface
 {
+    private const SPECIAL_CHARACTERS = [
+        9 => '\t',
+        10 => '\n',
+        11 => '\v',
+        12 => '\f',
+        13 => '\r',
+        27 => '\e',
+        34 => '\"',
+        36 => '\$',
+        92 => '\\\\',
+    ];
+
     private bool $readable;
 
     public function __construct(bool $readable)
@@ -24,49 +36,88 @@ final class StringPrinter implements TypePrinterInterface
         if (!$this->readable) {
             return $str;
         }
-        $ret = '"';
-        for ($i = 0, $l = strlen($str); $i < $l; ++$i) {
-            $o = ord($str[$i]);
-            switch (true) {
-                case $o === 9: $ret .= '\t'; break;
-                case $o === 10: $ret .= '\n'; break;
-                case $o === 11: $ret .= '\v'; break;
-                case $o === 12: $ret .= '\f'; break;
-                case $o === 13: $ret .= '\r'; break;
-                case $o === 27: $ret .= '\e'; break;
-                case $o === 36: $ret .= '\$'; break;
-                case $o === 34: $ret .= '\"'; break;
-                case $o === 92: $ret .= '\\\\'; break;
-                case $o >= 32 && $o <= 127:
-                    // characters U-00000000 - U-0000007F (same as ASCII)
-                    $ret .= $str[$i];
-                    break;
-                case ($o & 0xE0) === 0xC0:
-                    // characters U-00000080 - U-000007FF, mask 110XXXXX
-                    $hex = $this->utf8ToUnicodePoint(substr($str, $i, 2));
-                    $i += 1;
-                    $ret .= sprintf('\u{%04s}', $hex);
-                    break;
-                case ($o & 0xF0) === 0xE0:
-                    // characters U-00000800 - U-0000FFFF, mask 1110XXXX
-                    $hex = $this->utf8ToUnicodePoint(substr($str, $i, 3));
-                    $i += 2;
-                    $ret .= sprintf('\u{%04s}', $hex);
-                    break;
-                case ($o & 0xF8) === 0xF0:
-                    // characters U-00010000 - U-001FFFFF, mask 11110XXX
-                    $hex = $this->utf8ToUnicodePoint(substr($str, $i, 4));
-                    $i += 3;
-                    $ret .= sprintf('\u{%04s}', $hex);
-                    break;
-                case $o < 31 || $o > 126:
-                    $ret .= '\x' . str_pad(dechex($o), 2, '0', STR_PAD_LEFT);
-                    break;
-                default:
-                    $ret .= $str[$i];
+
+        return $this->readCharacters($str);
+    }
+
+    private function readCharacters(string $str): string
+    {
+        $return = '';
+        for ($index = 0, $length = strlen($str); $index < $length; ++$index) {
+            $asciiChar = ord($str[$index]);
+
+            if (isset(self::SPECIAL_CHARACTERS[$asciiChar])) {
+                $return .= self::SPECIAL_CHARACTERS[$asciiChar];
+                continue;
             }
+
+            if ($this->isAsciiCharacter($asciiChar)) {
+                $return .= $str[$index];
+                continue;
+            }
+
+            if ($this->isMask110XXXXX($asciiChar)) {
+                $hex = $this->utf8ToUnicodePoint(substr($str, $index, 2));
+                $return .= sprintf('\u{%04s}', $hex);
+                $index++;
+                continue;
+            }
+
+            if ($this->isMask1110XXXX($asciiChar)) {
+                $hex = $this->utf8ToUnicodePoint(substr($str, $index, 3));
+                $return .= sprintf('\u{%04s}', $hex);
+                $index += 2;
+                continue;
+            }
+
+            if ($this->isMask11110XXX($asciiChar)) {
+                $hex = $this->utf8ToUnicodePoint(substr($str, $index, 4));
+                $return .= sprintf('\u{%04s}', $hex);
+                $index += 3;
+                continue;
+            }
+
+            if ($asciiChar < 31 || $asciiChar > 126) {
+                $return .= '\x' . str_pad(dechex($asciiChar), 2, '0', STR_PAD_LEFT);
+                continue;
+            }
+
+            $return .= $str[$index];
         }
-        return $ret . '"';
+
+        return '"' . $return . '"';
+    }
+
+    /**
+     * Characters U-00000000 - U-0000007F (same as ASCII).
+     */
+    private function isAsciiCharacter(int $asciiChar): bool
+    {
+        return $asciiChar >= 32 && $asciiChar <= 127;
+    }
+
+    /**
+     * Characters U-00000080 - U-000007FF, mask 110XXXXX.
+     */
+    private function isMask110XXXXX(int $asciiChar): bool
+    {
+        return ($asciiChar & 0xE0) === 0xC0;
+    }
+
+    /**
+     * Characters U-00000800 - U-0000FFFF, mask 1110XXXX.
+     */
+    private function isMask1110XXXX(int $asciiChar): bool
+    {
+        return ($asciiChar & 0xF0) === 0xE0;
+    }
+
+    /**
+     * Characters U-00010000 - U-001FFFFF, mask 11110XXX.
+     */
+    private function isMask11110XXX(int $asciiChar): bool
+    {
+        return ($asciiChar & 0xF8) === 0xF0;
     }
 
     private function utf8ToUnicodePoint(string $str): string

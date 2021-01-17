@@ -28,6 +28,10 @@
 
 (def *ns* "\\phel\\core")
 
+(def argv
+  "Array of arguments passed to script."
+  (php/aget php/$GLOBALS "argv"))
+
 # --------------------------------------------
 # Basic methods for quasiquote and destructure
 # --------------------------------------------
@@ -303,7 +307,7 @@ implement the PHP Countable interface."
   `(if ,test (do ,@body)))
 
 (defmacro when-not
-  "Evaluates `test` and if that is logical true, evaluates `body`."
+  "Evaluates `test` and if that is logical false, evaluates `body`."
   [test & body]
   `(if ,test nil (do ,@body)))
 
@@ -475,6 +479,11 @@ Calling the and function without arguments returns true."
   "Checks if `x` is false. Same as `x === false` in PHP."
   [x]
   (id x false))
+
+(defn str-contains?
+  "True if str contains s."
+  [str s]
+  (not (false? (php/strpos str s))))
 
 (defn compare
   "An integer less than, equal to, or greater than zero when `x` is less than,
@@ -1364,6 +1373,17 @@ returns 1. If `xs` has one value, returns the reciprocal of x."
   [& xs]
   (apply print xs)
   (php/print "\n")
+  nil)
+
+(defn format
+  "Returns a formatted string. See PHP's [sprintf](https://www.php.net/manual/en/function.sprintf.php) for more information."
+  [fmt & xs]
+  (apply php/sprintf fmt xs))
+
+(defn printf
+  "Output a formatted string. See PHP's [printf](https://www.php.net/manual/en/function.printf.php) for more information."
+  [fmt & xs]
+  (apply php/printf fmt xs)
   nil)
 
 # ----------------

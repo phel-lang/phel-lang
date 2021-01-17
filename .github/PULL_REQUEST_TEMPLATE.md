@@ -1,6 +1,6 @@
 ## 📚 Description
 
-Replace this text by a short description of your feature/bugfix. 
+Replace this text with a short description of your feature/bugfix. 
 
 ## 🔖 Changes
 
