@@ -1,0 +1,60 @@
+(ns phel\core)
+
+(defn peek
+  "Returns the last element of a sequence."
+  [xs]
+  (php/aget xs (php/- (count xs) 1)))
+
+(defn push
+  "Inserts `x` at the end of the sequence `xs`."
+  [^:reference xs x]
+  (cond
+    (php-array? xs) (do (php/apush xs x) xs)
+    (php/instanceof xs PushInterface) (php/-> xs (push x))
+    (throw (php/new InvalidArgumentException
+                    (str "Can not push on type " (type xs))))))
+
+(defn pop
+  "Removes the last element of the array `xs`. If the array is empty
+  returns nil."
+  [^:reference xs]
+  (cond
+    (php-array? xs) (php/array_pop xs)
+    (php/instanceof xs PopInterface) (php/-> xs (pop))
+    (throw (php/new InvalidArgumentException "Can not pop"))))
+
+(defn remove
+  "Removes up to `n` element from array `xs` starting at index `offset`."
+  [^:reference xs offset & [n]]
+  (cond
+    (php-array? xs) (if n (php/array_splice xs offset n) (php/array_splice xs offset))
+    (php/instanceof xs RemoveInterface) (php/-> xs (remove offset n))
+    (throw (php/new InvalidArgumentException "Can not remove"))))
+
+(defn get
+  "Get the value mapped to `key` from the datastructure `ds`.
+  Returns `opt` or nil if the value cannot be found."
+  [ds k & [opt]]
+  (let [res (php/aget ds k)]
+    (if (nil? res)
+      opt
+      res)))
+
+(defn put
+  "Puts `value` mapped to `key` on the datastructure `ds`. Returns `ds`."
+  [ds key value]
+  (when (php-array? ds)
+    (throw (php/new InvalidArgumentException "Can not call put on pure PHP
+arrays. Use (php/aset ds key value)")))
+  (php/aset ds key value)
+  ds)
+
+(defn unset
+  "Returns `ds` without `key`."
+  [ds key]
+  (let [x ds]
+    (when (php-array? ds)
+      (throw (php/new InvalidArgumentException "Can not call unset on pure PHP
+arrays. Use (php/aunset ds key)")))
+    (php/aunset x key)
+    x))

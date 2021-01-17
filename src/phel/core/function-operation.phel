@@ -1,0 +1,23 @@
+(ns phel\core)
+
+(defn identity [x] x)
+
+(defn comp [& fs]
+  (case (count fs)
+    0 identity
+    1 (first fs)
+    2 |((first fs) (apply (second fs) $&))
+    (reduce2 comp fs)))
+
+(defn complement [f]
+  |(not (apply f $&)))
+
+(defn juxt [& fs]
+  (fn [& args]
+    (reduce
+     |(push $1 (apply $2 args))
+     @[]
+     fs)))
+
+(defn partial [f & args]
+  |(apply f (concat @[] args $&)))

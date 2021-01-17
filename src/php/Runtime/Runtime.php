@@ -101,6 +101,11 @@ class Runtime implements RuntimeInterface
         return true;
     }
 
+    public function loadFileIntoNamespace(string $ns, string $file): void
+    {
+        $this->loadFile($file, $ns);
+    }
+
     private function findFile(string $ns): ?string
     {
         $nsPath = str_replace('\\', DIRECTORY_SEPARATOR, $ns);

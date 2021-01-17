@@ -1,0 +1,26 @@
+(ns phel\core)
+
+(defn tree-seq
+  "Returns an array of the nodes in the tree, via a depth first walk.
+  branch? is a function with one argument that returns true if the given node
+  has children.
+  children must be a function with one argument that returns the children of the node.
+  root the root node of the tree."
+  [branch? children root]
+  (let [ret @[]]
+    (loop [stack @[root]]
+      (if (> (count stack) 0)
+        (let [node (pop stack)]
+          (push ret node)
+          (if (branch? node)
+            (recur (concat stack (reverse (children node))))
+            (recur stack)))
+        ret))))
+
+(defn flatten
+  "Takes a nested sequential data structure (tree), and returns their contents
+  as a single, flat array."
+  [xs]
+  (filter
+   (complement indexed?)
+   (rest (tree-seq indexed? identity xs))))
