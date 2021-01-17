@@ -46,6 +46,7 @@ final class Set extends AbstractType implements
 
     public function next(): void
     {
+        $this->currentIndex++;
         next($this->data);
     }
 
