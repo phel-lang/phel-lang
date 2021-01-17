@@ -7,6 +7,7 @@ namespace PhelTest\Unit\Exceptions;
 use Phel\Command\Repl\ColorStyleInterface;
 use Phel\Compiler\Emitter\OutputEmitter\MungeInterface;
 use Phel\Compiler\Parser\ReadModel\CodeSnippet;
+use Phel\Exceptions\Extractor\FilePositionExtractorInterface;
 use Phel\Exceptions\PhelCodeException;
 use Phel\Exceptions\TextExceptionPrinter;
 use Phel\Lang\SourceLocation;
@@ -31,14 +32,16 @@ final class TextExceptionPrinterTest extends TestCase
             $endLocation = new SourceLocation($file, $line = 1, $column = 23),
         );
 
-        $this->expectOutputString(<<<'MSG'
+        $this->expectOutputString(
+            <<<'MSG'
 Example code exception message
 in example-file.phel:1
 
 1| (+ 1 2 3 unknown-symbol)
             ^^^^^^^^^^^^^^
 
-MSG);
+MSG
+        );
         $exceptionPrinter = $this->createTextExceptionPrinter();
         $exceptionPrinter->printException($exception, $codeSnippet);
     }
@@ -48,7 +51,8 @@ MSG);
         return new TextExceptionPrinter(
             $this->stubPrinter(),
             $this->stubColorStyle(),
-            $this->stubMunge()
+            $this->stubMunge(),
+            $this->stubFilePositionExtractor()
         );
     }
 
@@ -69,5 +73,10 @@ MSG);
     private function stubMunge(): MungeInterface
     {
         return $this->createStub(MungeInterface::class);
+    }
+
+    private function stubFilePositionExtractor()
+    {
+        return $this->createStub(FilePositionExtractorInterface::class);
     }
 }

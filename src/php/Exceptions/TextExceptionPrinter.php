@@ -8,8 +8,11 @@ use Phel\Command\Repl\ColorStyle;
 use Phel\Command\Repl\ColorStyleInterface;
 use Phel\Compiler\Emitter\OutputEmitter\Munge;
 use Phel\Compiler\Emitter\OutputEmitter\MungeInterface;
-use Phel\Compiler\Emitter\OutputEmitter\SourceMap\SourceMapConsumer;
 use Phel\Compiler\Parser\ReadModel\CodeSnippet;
+use Phel\Exceptions\ExceptionPrinter\ExceptionPrinterTrait;
+use Phel\Exceptions\Extractor\CommentExtractor;
+use Phel\Exceptions\Extractor\FilePositionExtractor;
+use Phel\Exceptions\Extractor\FilePositionExtractorInterface;
 use Phel\Lang\FnInterface;
 use Phel\Printer\Printer;
 use Phel\Printer\PrinterInterface;
@@ -18,20 +21,33 @@ use Throwable;
 
 final class TextExceptionPrinter implements ExceptionPrinterInterface
 {
+    use ExceptionPrinterTrait;
+
     private PrinterInterface $printer;
     private ColorStyleInterface $style;
     private MungeInterface $munge;
+    private FilePositionExtractorInterface $filePositionExtractor;
 
     public static function readableWithStyle(): self
     {
-        return new self(Printer::readable(), ColorStyle::withStyles(), new Munge());
+        return new self(
+            Printer::readable(),
+            ColorStyle::withStyles(),
+            new Munge(),
+            new FilePositionExtractor(new CommentExtractor())
+        );
     }
 
-    public function __construct(PrinterInterface $printer, ColorStyleInterface $style, MungeInterface $munge)
-    {
+    public function __construct(
+        PrinterInterface $printer,
+        ColorStyleInterface $style,
+        MungeInterface $munge,
+        FilePositionExtractorInterface $filePositionExtractor
+    ) {
         $this->printer = $printer;
         $this->style = $style;
         $this->munge = $munge;
+        $this->filePositionExtractor = $filePositionExtractor;
     }
 
     public function printException(PhelCodeException $e, CodeSnippet $codeSnippet): void
@@ -75,10 +91,10 @@ final class TextExceptionPrinter implements ExceptionPrinterInterface
         $msg = $e->getMessage();
         $generatedLine = $e->getFile();
         $generatedColumn = $e->getLine();
-        [$file, $line] = $this->getOriginalFilePosition($generatedLine, $generatedColumn);
+        $pos = $this->filePositionExtractor->getOriginal($generatedLine, $generatedColumn);
 
         echo $this->style->blue("$type: $msg\n");
-        echo "in $file:$line (gen: $generatedLine:$generatedColumn)\n\n";
+        echo "in {$pos->fileName()}:{$pos->line()} (gen: $generatedLine:$generatedColumn)\n\n";
 
         foreach ($e->getTrace() as $i => $frame) {
             $class = $frame['class'] ?? null;
@@ -89,18 +105,9 @@ final class TextExceptionPrinter implements ExceptionPrinterInterface
                 $rf = new ReflectionClass($class);
                 if ($rf->implementsInterface(FnInterface::class)) {
                     $fnName = $this->munge->decodeNs($rf->getConstant('BOUND_TO'));
-                    $argParts = [];
-                    foreach ($frame['args'] as $arg) {
-                        $argParts[] = $this->printer->print($arg);
-                    }
-                    $argString = implode(' ', $argParts);
-                    if (count($argParts) > 0) {
-                        $argString = ' ' . $argString;
-                    }
-
-                    [$file, $line] = $this->getOriginalFilePosition($generatedLine, $generatedColumn);
-
-                    echo "#$i $file:$line (gen: $generatedLine:$generatedColumn) : ($fnName$argString)\n";
+                    $argString = $this->parseArgsAsString($this->printer, $frame['args']);
+                    $pos = $this->filePositionExtractor->getOriginal($generatedLine, $generatedColumn);
+                    echo "#$i {$pos->fileName()}:{$pos->line()} (gen: $generatedLine:$generatedColumn) : ($fnName$argString)\n";
 
                     continue;
                 }
@@ -112,88 +119,5 @@ final class TextExceptionPrinter implements ExceptionPrinterInterface
             $argString = $this->buildPhpArgsString($frame['args']);
             echo "#$i $generatedLine($generatedColumn): $class$type$fn($argString)\n";
         }
-    }
-
-    /**
-     * @psalm-return array{0:string, 1:int}
-     */
-    private function getOriginalFilePosition(string $filename, int $line): array
-    {
-        $f = fopen($filename, 'r');
-        $phpPrefix = fgets($f);
-        $fileNameComment = fgets($f);
-        $sourceMapComment = fgets($f);
-
-        $originalFile = $filename;
-        $originalLine = $line;
-
-        if ($fileNameComment
-            && $fileNameComment[0] === '/'
-            && $fileNameComment[1] === '/'
-            && $fileNameComment[2] === ' '
-        ) {
-            $originalFile = trim(substr($fileNameComment, 3));
-
-            if ($sourceMapComment
-                && $sourceMapComment[0] === '/'
-                && $sourceMapComment[1] === '/'
-                && $sourceMapComment[2] === ' '
-            ) {
-                $mapping = trim(substr($sourceMapComment, 3));
-
-                $sourceMapConsumer = new SourceMapConsumer($mapping);
-                $originalLine = ($sourceMapConsumer->getOriginalLine($line - 1)) ?: $line;
-            }
-        }
-
-        return [$originalFile, $originalLine];
-    }
-
-    private function buildPhpArgsString(array $args): string
-    {
-        $result = [];
-        foreach ($args as $arg) {
-            $result[] = $this->buildPhpArg($arg);
-        }
-
-        return implode(', ', $result);
-    }
-
-    /**
-     * Converts a PHP type to a string.
-     *
-     * @param mixed $arg The argument
-     */
-    private function buildPhpArg($arg): string
-    {
-        if (is_null($arg)) {
-            return 'NULL';
-        }
-
-        if (is_string($arg)) {
-            $s = $arg;
-            if (strlen($s) > 15) {
-                $s = substr($s, 0, 15) . '...';
-            }
-            return "'" . $s . "'";
-        }
-
-        if (is_bool($arg)) {
-            return ($arg) ? 'true' : 'false';
-        }
-
-        if (is_resource($arg)) {
-            return 'Resource id #' . ((string) $arg);
-        }
-
-        if (is_array($arg)) {
-            return 'Array';
-        }
-
-        if (is_object($arg)) {
-            return 'Object(' . get_class($arg) . ')';
-        }
-
-        return (string) $arg;
     }
 }
