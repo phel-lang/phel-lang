@@ -5,26 +5,29 @@ declare(strict_types=1);
 namespace Phel\Exceptions;
 
 use Phel\Command\Repl\ColorStyle;
+use Phel\Command\Repl\ColorStyleInterface;
 use Phel\Compiler\Emitter\OutputEmitter\Munge;
+use Phel\Compiler\Emitter\OutputEmitter\MungeInterface;
 use Phel\Compiler\Emitter\OutputEmitter\SourceMap\SourceMapConsumer;
 use Phel\Compiler\Parser\ReadModel\CodeSnippet;
 use Phel\Lang\FnInterface;
 use Phel\Printer\Printer;
+use Phel\Printer\PrinterInterface;
 use ReflectionClass;
 use Throwable;
 
 final class TextExceptionPrinter implements ExceptionPrinterInterface
 {
-    private Printer $printer;
-    private ColorStyle $style;
-    private Munge $munge;
+    private PrinterInterface $printer;
+    private ColorStyleInterface $style;
+    private MungeInterface $munge;
 
     public static function readableWithStyle(): self
     {
         return new self(Printer::readable(), ColorStyle::withStyles(), new Munge());
     }
 
-    private function __construct(Printer $printer, ColorStyle $style, Munge $munge)
+    public function __construct(PrinterInterface $printer, ColorStyleInterface $style, MungeInterface $munge)
     {
         $this->printer = $printer;
         $this->style = $style;
@@ -35,26 +38,27 @@ final class TextExceptionPrinter implements ExceptionPrinterInterface
     {
         $eStartLocation = $e->getStartLocation() ?? $codeSnippet->getStartLocation();
         $eEndLocation = $e->getEndLocation() ?? $codeSnippet->getEndLocation();
-        $firstLine = $eStartLocation->getLine();
+        $eFirstLine = $eStartLocation->getLine();
 
         echo $this->style->blue($e->getMessage()) . "\n";
-        echo 'in ' . $eStartLocation->getFile() . ':' . $firstLine . "\n\n";
+        echo 'in ' . $eStartLocation->getFile() . ':' . $eFirstLine . "\n\n";
 
         $lines = explode("\n", $codeSnippet->getCode());
         $endLineLength = strlen((string) $codeSnippet->getEndLocation()->getLine());
         $padLength = $endLineLength - strlen((string) $codeSnippet->getStartLocation()->getLine());
         foreach ($lines as $index => $line) {
-            echo str_pad((string) ($firstLine + $index), $padLength, ' ', STR_PAD_LEFT);
+            echo str_pad((string) ($eFirstLine + $index), $padLength, ' ', STR_PAD_LEFT);
             echo '| ';
             echo $line;
             echo "\n";
 
-            if ($eStartLocation->getLine() === $eEndLocation->getLine()) {
-                if ($eStartLocation->getLine() === $index + $codeSnippet->getStartLocation()->getLine()) {
-                    echo str_repeat(' ', $endLineLength + 2 + $eStartLocation->getColumn());
-                    echo $this->style->red(str_repeat('^', $eEndLocation->getColumn() - $eStartLocation->getColumn()));
-                    echo "\n";
-                }
+            $eStartLine = $eStartLocation->getLine();
+            if ($eStartLine === $eEndLocation->getLine()
+                && $eStartLine === $index + $codeSnippet->getStartLocation()->getLine()
+            ) {
+                echo str_repeat(' ', $endLineLength + 2 + $eStartLocation->getColumn());
+                echo $this->style->red(str_repeat('^', $eEndLocation->getColumn() - $eStartLocation->getColumn()));
+                echo "\n";
             }
         }
 

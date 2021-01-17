@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Phel\Command\Repl;
 
 /** @psalm-immutable */
-final class ColorStyle
+final class ColorStyle implements ColorStyleInterface
 {
     private const DEFAULT_STYLES = [
         'green' => "\033[0;32m%s\033[0m",
