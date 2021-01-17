@@ -4,32 +4,44 @@ namespace Phel\Compiler\Parser\ParserNode;
 
 use Phel\Lang\SourceLocation;
 
-final class MetaNode implements InnerNodeInterface
+final class FileNode implements InnerNodeInterface
 {
-    private NodeInterface $meta;
     /** @var NodeInterface[] */
     private array $children;
     private SourceLocation $startLocation;
     private SourceLocation $endLocation;
 
-    public function __construct(NodeInterface $meta, SourceLocation $startLocation, SourceLocation $endLocation, array $children)
+    public function __construct(SourceLocation $startLocation, SourceLocation $endLocation, array $children)
     {
-        $this->meta = $meta;
         $this->children = $children;
         $this->startLocation = $startLocation;
         $this->endLocation = $endLocation;
     }
 
+    /**
+     * @param NodeInterface[] $children
+     */
+    public static function createFromChildren(array $children): self
+    {
+        if (count($children) > 0) {
+            $startLocation = $children[0]->getStartLocation();
+            $endLocation = $children[count($children) - 1]->getEndLocation();
+        } else {
+            $startLocation = new SourceLocation('', 0, 0);
+            $endLocation = new SourceLocation('', 0, 0);
+        }
+
+        return new self($startLocation, $endLocation, $children);
+    }
+
     public function getChildren(): array
     {
-        return [$this->meta, ...$this->children];
+        return $this->children;
     }
 
     public function replaceChildren($children): InnerNodeInterface
     {
-        $this->meta = $children[0];
-        $this->children = array_slice($children, 1);
-
+        $this->children = $children;
         return $this;
     }
 
@@ -39,17 +51,18 @@ final class MetaNode implements InnerNodeInterface
         foreach ($this->children as $child) {
             $code .= $child->getCode();
         }
-        return $this->getCodePrefix() . $this->meta->getCode() . $code;
+
+        return $code;
     }
 
     public function getCodePrefix(): string
     {
-        return '^';
+        return '';
     }
 
     public function getCodePostfix(): ?string
     {
-        return null;
+        return '';
     }
 
     public function getStartLocation(): SourceLocation
@@ -60,15 +73,5 @@ final class MetaNode implements InnerNodeInterface
     public function getEndLocation(): SourceLocation
     {
         return $this->endLocation;
-    }
-
-    public function getMetaNode(): NodeInterface
-    {
-        return $this->meta;
-    }
-
-    public function getObjectNode(): NodeInterface
-    {
-        return $this->children[count($this->children) - 1];
     }
 }

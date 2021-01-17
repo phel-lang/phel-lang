@@ -12,6 +12,7 @@ use Phel\Command\Shared\NamespaceExtractorInterface;
 use Phel\Compiler\Analyzer\Environment\GlobalEnvironmentInterface;
 use Phel\Compiler\CompilerFactoryInterface;
 use Phel\Exceptions\TextExceptionPrinter;
+use Phel\Formatter\Formatter;
 use Phel\Runtime\RuntimeInterface;
 
 final class CommandFactory implements CommandFactoryInterface
@@ -50,6 +51,17 @@ final class CommandFactory implements CommandFactoryInterface
             $runtime,
             $this->createNamespaceExtractor($runtime->getEnv()),
             $this->compilerFactory->createEvalCompiler($runtime->getEnv())
+        );
+    }
+
+    public function createFormatCommand(): FormatCommand
+    {
+        return new FormatCommand(
+            $this->currentDir,
+            new Formatter(
+                $this->compilerFactory->createLexer(),
+                $this->compilerFactory->createParser(),
+            )
         );
     }
 

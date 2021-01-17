@@ -26,6 +26,12 @@ final class ListNode implements InnerNodeInterface
         return $this->children;
     }
 
+    public function replaceChildren($children): InnerNodeInterface
+    {
+        $this->children = $children;
+        return $this;
+    }
+
     public function getCode(): string
     {
         $code = '';
@@ -36,7 +42,7 @@ final class ListNode implements InnerNodeInterface
         return $this->getCodePrefix() . $code . $this->getCodePostfix();
     }
 
-    private function getCodePrefix(): string
+    public function getCodePrefix(): string
     {
         switch ($this->tokenType) {
             case Token::T_OPEN_PARENTHESIS:
@@ -56,7 +62,7 @@ final class ListNode implements InnerNodeInterface
         }
     }
 
-    private function getCodePostfix(): string
+    public function getCodePostfix(): ?string
     {
         switch ($this->tokenType) {
             case Token::T_OPEN_PARENTHESIS:

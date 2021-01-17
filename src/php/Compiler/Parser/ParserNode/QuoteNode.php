@@ -25,12 +25,18 @@ final class QuoteNode implements InnerNodeInterface
         return [$this->expression];
     }
 
+    public function replaceChildren($children): InnerNodeInterface
+    {
+        $this->expression = $children[0];
+        return $this;
+    }
+
     public function getCode(): string
     {
         return $this->getCodePrefix() . $this->expression->getCode();
     }
 
-    private function getCodePrefix(): string
+    public function getCodePrefix(): string
     {
         switch ($this->tokenType) {
             case Token::T_QUOTE:
@@ -44,6 +50,11 @@ final class QuoteNode implements InnerNodeInterface
             default:
                 throw new \RuntimeException('Can not find code prefix for token type: ' . $this->tokenType);
         }
+    }
+
+    public function getCodePostfix(): ?string
+    {
+        return null;
     }
 
     public function getStartLocation(): SourceLocation

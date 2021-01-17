@@ -11,4 +11,14 @@ interface InnerNodeInterface extends NodeInterface
      * @return NodeInterface[]
      */
     public function getChildren(): array;
+
+
+    /**
+     * @param NodeInterface[] $children
+     */
+    public function replaceChildren($children): self;
+
+    public function getCodePrefix(): string;
+
+    public function getCodePostfix(): ?string;
 }
