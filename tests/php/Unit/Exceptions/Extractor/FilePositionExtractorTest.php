@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace PhelTest\Unit\Exceptions\Extractor;
 
-use Phel\Exceptions\Extractor\CommentExtractorInterface;
 use Phel\Exceptions\Extractor\FilePositionExtractor;
-use Phel\Exceptions\Extractor\ReadModel\ExtractedComment;
 use Phel\Exceptions\Extractor\ReadModel\FilePosition;
+use Phel\Exceptions\Extractor\ReadModel\SourceMapInformation;
+use Phel\Exceptions\Extractor\SourceMapExtractorInterface;
 use PHPUnit\Framework\TestCase;
 
 final class FilePositionExtractorTest extends TestCase
@@ -47,11 +47,11 @@ final class FilePositionExtractorTest extends TestCase
     private function stubCommentExtractor(
         string $fileNameComment = '',
         string $sourceMapComment = ''
-    ): CommentExtractorInterface {
-        $commentExtractor = $this->createMock(CommentExtractorInterface::class);
+    ): SourceMapExtractorInterface {
+        $commentExtractor = $this->createMock(SourceMapExtractorInterface::class);
         $commentExtractor
             ->method('getExtractedComment')
-            ->willReturn(new ExtractedComment($fileNameComment, $sourceMapComment));
+            ->willReturn(new SourceMapInformation($fileNameComment, $sourceMapComment));
 
         return $commentExtractor;
     }

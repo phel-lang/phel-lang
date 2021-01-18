@@ -4,17 +4,17 @@ declare(strict_types=1);
 
 namespace Phel\Exceptions\Extractor;
 
-use Phel\Exceptions\Extractor\ReadModel\ExtractedComment;
+use Phel\Exceptions\Extractor\ReadModel\SourceMapInformation;
 
-final class SourceMapExtractor implements CommentExtractorInterface
+final class SourceMapExtractor implements SourceMapExtractorInterface
 {
-    public function getExtractedComment(string $fileName): ExtractedComment
+    public function extractFromFile(string $filename): SourceMapInformation
     {
-        $f = fopen($fileName, 'r');
+        $f = fopen($filename, 'r');
         $phpPrefix = fgets($f);
-        $fileNameComment = fgets($f);
+        $filenameComment = fgets($f);
         $sourceMapComment = fgets($f);
 
-        return new ExtractedComment($fileNameComment, $sourceMapComment);
+        return new SourceMapInformation($filenameComment, $sourceMapComment);
     }
 }

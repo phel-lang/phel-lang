@@ -4,15 +4,15 @@ declare(strict_types=1);
 
 namespace Phel\Exceptions\Extractor\ReadModel;
 
-final class FilePosition
+final class SourceMapInformation
 {
     private string $filename;
-    private int $line;
+    private string $sourceMap;
 
-    public function __construct(string $filename, int $line)
+    public function __construct(string $filename, string $sourceMap)
     {
         $this->filename = $filename;
-        $this->line = $line;
+        $this->sourceMap = $sourceMap;
     }
 
     public function filename(): string
@@ -20,8 +20,8 @@ final class FilePosition
         return $this->filename;
     }
 
-    public function line(): int
+    public function sourceMap(): string
     {
-        return $this->line;
+        return $this->sourceMap;
     }
 }

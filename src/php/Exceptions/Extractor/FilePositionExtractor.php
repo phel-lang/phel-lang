@@ -9,28 +9,27 @@ use Phel\Exceptions\Extractor\ReadModel\FilePosition;
 
 final class FilePositionExtractor implements FilePositionExtractorInterface
 {
-    private CommentExtractorInterface $commentExtractor;
+    private SourceMapExtractorInterface $sourceMapExtractor;
 
-    public function __construct(CommentExtractorInterface $commentExtractor)
+    public function __construct(SourceMapExtractorInterface $sourceMapExtractor)
     {
-        $this->commentExtractor = $commentExtractor;
+        $this->sourceMapExtractor = $sourceMapExtractor;
     }
 
-    public function getOriginal(string $fileName, int $line): FilePosition
+    public function getOriginal(string $filename, int $line): FilePosition
     {
-        $comments = $this->commentExtractor->getExtractedComment($fileName);
+        $sourceMapInfo = $this->sourceMapExtractor->extractFromFile($filename);
+        $filename = $sourceMapInfo->filename();
+        $sourceMap = $sourceMapInfo->sourceMap();
 
-        $fileNameComment = $comments->getFileNameComment();
-        $sourceMapComment = $comments->getSourceMapComment();
-
-        $originalFile = $fileName;
+        $originalFile = $filename;
         $originalLine = $line;
 
-        if (0 === strpos($fileNameComment, '// ')) {
-            $originalFile = trim(substr($fileNameComment, 3));
+        if (0 === strpos($filename, '// ')) {
+            $originalFile = trim(substr($filename, 3));
 
-            if (0 === strpos($sourceMapComment, '// ')) {
-                $mapping = trim(substr($sourceMapComment, 3));
+            if (0 === strpos($sourceMap, '// ')) {
+                $mapping = trim(substr($sourceMap, 3));
 
                 $sourceMapConsumer = new SourceMapConsumer($mapping);
                 $originalLine = ($sourceMapConsumer->getOriginalLine($line - 1)) ?: $line;

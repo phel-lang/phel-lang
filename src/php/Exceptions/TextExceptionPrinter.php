@@ -90,7 +90,7 @@ final class TextExceptionPrinter implements ExceptionPrinterInterface
         $pos = $this->filePositionExtractor->getOriginal($errorFile, $errorLine);
 
         echo $this->style->blue("$type: $msg\n");
-        echo "in {$pos->fileName()}:{$pos->line()} (gen: $errorFile:$errorLine)\n\n";
+        echo "in {$pos->filename()}:{$pos->line()} (gen: $errorFile:$errorLine)\n\n";
 
         foreach ($e->getTrace() as $i => $frame) {
             $class = $frame['class'] ?? null;
@@ -103,7 +103,7 @@ final class TextExceptionPrinter implements ExceptionPrinterInterface
                     $fnName = $this->munge->decodeNs($rf->getConstant('BOUND_TO'));
                     $argString = $this->exceptionArgsPrinter->parseArgsAsString($frame['args']);
                     $pos = $this->filePositionExtractor->getOriginal($file, $line);
-                    echo "#$i {$pos->fileName()}:{$pos->line()} (gen: $file:$line) : ($fnName$argString)\n";
+                    echo "#$i {$pos->filename()}:{$pos->line()} (gen: $file:$line) : ($fnName$argString)\n";
 
                     continue;
                 }
