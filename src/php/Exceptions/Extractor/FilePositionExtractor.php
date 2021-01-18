@@ -6,6 +6,7 @@ namespace Phel\Exceptions\Extractor;
 
 use Phel\Compiler\Emitter\OutputEmitter\SourceMap\SourceMapConsumer;
 use Phel\Exceptions\Extractor\ReadModel\FilePosition;
+use Phel\Exceptions\Extractor\ReadModel\SourceMapInformation;
 
 final class FilePositionExtractor implements FilePositionExtractorInterface
 {
@@ -19,23 +20,33 @@ final class FilePositionExtractor implements FilePositionExtractorInterface
     public function getOriginal(string $filename, int $line): FilePosition
     {
         $sourceMapInfo = $this->sourceMapExtractor->extractFromFile($filename);
-        $extractedFilename = $sourceMapInfo->filename();
-        $extractedSourceMap = $sourceMapInfo->sourceMap();
 
-        $originalFilename = $filename;
-        $originalLine = $line;
+        return new FilePosition(
+            $this->extractOriginalFilename($sourceMapInfo, $filename),
+            $this->extractOriginalLine($sourceMapInfo, $line)
+        );
+    }
 
-        if (0 === strpos($extractedFilename, '// ')) {
-            $originalFilename = trim(substr($extractedFilename, 3));
-
-            if (0 === strpos($extractedSourceMap, '// ')) {
-                $mapping = trim(substr($extractedSourceMap, 3));
-
-                $sourceMapConsumer = new SourceMapConsumer($mapping);
-                $originalLine = ($sourceMapConsumer->getOriginalLine($line - 1)) ?: $line;
-            }
+    private function extractOriginalFilename(SourceMapInformation $sourceMapInfo, string $filename): string
+    {
+        if (false === strpos($sourceMapInfo->filename(), '// ')) {
+            return $filename;
         }
 
-        return new FilePosition($originalFilename, $originalLine);
+        return trim(substr($sourceMapInfo->filename(), 3));
+    }
+
+    private function extractOriginalLine(SourceMapInformation $sourceMapInfo, int $line): int
+    {
+        if (false === strpos($sourceMapInfo->filename(), '// ')
+            || false === strpos($sourceMapInfo->sourceMap(), '// ')
+        ) {
+            return $line;
+        }
+
+        $mapping = trim(substr($sourceMapInfo->sourceMap(), 3));
+        $sourceMapConsumer = new SourceMapConsumer($mapping);
+
+        return ($sourceMapConsumer->getOriginalLine($line - 1)) ?: $line;
     }
 }
