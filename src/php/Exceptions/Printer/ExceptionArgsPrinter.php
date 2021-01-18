@@ -2,18 +2,41 @@
 
 declare(strict_types=1);
 
-namespace Phel\Exceptions\ExceptionPrinter;
+namespace Phel\Exceptions\Printer;
 
 use Phel\Printer\PrinterInterface;
 
-trait ExceptionPrinterTrait
+final class ExceptionArgsPrinter implements ExceptionArgsPrinterInterface
 {
-    private function buildPhpArgsString(array $args): string
+    private PrinterInterface $printer;
+
+    public function __construct(PrinterInterface $printer)
     {
-        $result = [];
-        foreach ($args as $arg) {
-            $result[] = $this->buildPhpArg($arg);
+        $this->printer = $printer;
+    }
+
+    public function parseArgsAsString(array $frameArgs): string
+    {
+        $argParts = array_map(
+            /** @param mixed $arg */
+            fn ($arg) => $this->printer->print($arg),
+            $frameArgs
+        );
+
+        $argString = implode(' ', $argParts);
+        if (count($argParts) > 0) {
+            $argString = ' ' . $argString;
         }
+
+        return $argString;
+    }
+
+    public function buildPhpArgsString(array $args): string
+    {
+        $result = array_map(
+            fn ($arg) => $this->buildPhpArg($arg),
+            $args
+        );
 
         return implode(', ', $result);
     }
@@ -35,7 +58,7 @@ trait ExceptionPrinterTrait
                 $s = substr($s, 0, 15) . '...';
             }
 
-            return "'" . $s . "'";
+            return "'{$s}'";
         }
 
         if (is_bool($arg)) {
@@ -55,21 +78,5 @@ trait ExceptionPrinterTrait
         }
 
         return (string)$arg;
-    }
-
-    private function parseArgsAsString(PrinterInterface $printer, array $frameArgs): string
-    {
-        $argParts = array_map(
-            /** @param mixed $arg */
-            static fn ($arg) => $printer->print($arg),
-            $frameArgs
-        );
-
-        $argString = implode(' ', $argParts);
-        if (count($argParts) > 0) {
-            $argString = ' ' . $argString;
-        }
-
-        return $argString;
     }
 }

@@ -6,7 +6,7 @@ namespace Phel\Exceptions\Extractor;
 
 use Phel\Exceptions\Extractor\ReadModel\ExtractedComment;
 
-final class CommentExtractor implements CommentExtractorInterface
+final class SourceMapExtractor implements CommentExtractorInterface
 {
     public function getExtractedComment(string $fileName): ExtractedComment
     {

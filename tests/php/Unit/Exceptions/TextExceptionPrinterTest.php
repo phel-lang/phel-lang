@@ -9,9 +9,9 @@ use Phel\Compiler\Emitter\OutputEmitter\MungeInterface;
 use Phel\Compiler\Parser\ReadModel\CodeSnippet;
 use Phel\Exceptions\Extractor\FilePositionExtractorInterface;
 use Phel\Exceptions\PhelCodeException;
+use Phel\Exceptions\Printer\ExceptionArgsPrinterInterface;
 use Phel\Exceptions\TextExceptionPrinter;
 use Phel\Lang\SourceLocation;
-use Phel\Printer\PrinterInterface;
 use PHPUnit\Framework\TestCase;
 
 final class TextExceptionPrinterTest extends TestCase
@@ -49,16 +49,16 @@ MSG
     private function createTextExceptionPrinter(): TextExceptionPrinter
     {
         return new TextExceptionPrinter(
-            $this->stubPrinter(),
+            $this->stubExceptionArgsPrinter(),
             $this->stubColorStyle(),
             $this->stubMunge(),
             $this->stubFilePositionExtractor()
         );
     }
 
-    private function stubPrinter(): PrinterInterface
+    private function stubExceptionArgsPrinter(): ExceptionArgsPrinterInterface
     {
-        return $this->createStub(PrinterInterface::class);
+        return $this->createStub(ExceptionArgsPrinterInterface::class);
     }
 
     private function stubColorStyle(): ColorStyleInterface

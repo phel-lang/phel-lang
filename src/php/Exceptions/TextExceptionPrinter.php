@@ -9,21 +9,19 @@ use Phel\Command\Repl\ColorStyleInterface;
 use Phel\Compiler\Emitter\OutputEmitter\Munge;
 use Phel\Compiler\Emitter\OutputEmitter\MungeInterface;
 use Phel\Compiler\Parser\ReadModel\CodeSnippet;
-use Phel\Exceptions\ExceptionPrinter\ExceptionPrinterTrait;
-use Phel\Exceptions\Extractor\CommentExtractor;
 use Phel\Exceptions\Extractor\FilePositionExtractor;
 use Phel\Exceptions\Extractor\FilePositionExtractorInterface;
+use Phel\Exceptions\Extractor\SourceMapExtractor;
+use Phel\Exceptions\Printer\ExceptionArgsPrinter;
+use Phel\Exceptions\Printer\ExceptionArgsPrinterInterface;
 use Phel\Lang\FnInterface;
 use Phel\Printer\Printer;
-use Phel\Printer\PrinterInterface;
 use ReflectionClass;
 use Throwable;
 
 final class TextExceptionPrinter implements ExceptionPrinterInterface
 {
-    use ExceptionPrinterTrait;
-
-    private PrinterInterface $printer;
+    private ExceptionArgsPrinterInterface $exceptionArgsPrinter;
     private ColorStyleInterface $style;
     private MungeInterface $munge;
     private FilePositionExtractorInterface $filePositionExtractor;
@@ -31,20 +29,20 @@ final class TextExceptionPrinter implements ExceptionPrinterInterface
     public static function readableWithStyle(): self
     {
         return new self(
-            Printer::readable(),
+            new ExceptionArgsPrinter(Printer::readable()),
             ColorStyle::withStyles(),
             new Munge(),
-            new FilePositionExtractor(new CommentExtractor())
+            new FilePositionExtractor(new SourceMapExtractor())
         );
     }
 
     public function __construct(
-        PrinterInterface $printer,
+        ExceptionArgsPrinterInterface $exceptionArgsPrinter,
         ColorStyleInterface $style,
         MungeInterface $munge,
         FilePositionExtractorInterface $filePositionExtractor
     ) {
-        $this->printer = $printer;
+        $this->exceptionArgsPrinter = $exceptionArgsPrinter;
         $this->style = $style;
         $this->munge = $munge;
         $this->filePositionExtractor = $filePositionExtractor;
@@ -105,7 +103,7 @@ final class TextExceptionPrinter implements ExceptionPrinterInterface
                 $rf = new ReflectionClass($class);
                 if ($rf->implementsInterface(FnInterface::class)) {
                     $fnName = $this->munge->decodeNs($rf->getConstant('BOUND_TO'));
-                    $argString = $this->parseArgsAsString($this->printer, $frame['args']);
+                    $argString = $this->exceptionArgsPrinter->parseArgsAsString($frame['args']);
                     $pos = $this->filePositionExtractor->getOriginal($generatedLine, $generatedColumn);
                     echo "#$i {$pos->fileName()}:{$pos->line()} (gen: $generatedLine:$generatedColumn) : ($fnName$argString)\n";
 
@@ -116,7 +114,7 @@ final class TextExceptionPrinter implements ExceptionPrinterInterface
             $class = $class ?? '';
             $type = $frame['type'] ?? '';
             $fn = $frame['function'];
-            $argString = $this->buildPhpArgsString($frame['args']);
+            $argString = $this->exceptionArgsPrinter->buildPhpArgsString($frame['args']);
             echo "#$i $generatedLine($generatedColumn): $class$type$fn($argString)\n";
         }
     }

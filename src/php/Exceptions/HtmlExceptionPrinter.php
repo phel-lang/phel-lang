@@ -7,34 +7,32 @@ namespace Phel\Exceptions;
 use Phel\Compiler\Emitter\OutputEmitter\Munge;
 use Phel\Compiler\Emitter\OutputEmitter\MungeInterface;
 use Phel\Compiler\Parser\ReadModel\CodeSnippet;
-use Phel\Exceptions\ExceptionPrinter\ExceptionPrinterTrait;
+use Phel\Exceptions\Printer\ExceptionArgsPrinter;
+use Phel\Exceptions\Printer\ExceptionArgsPrinterInterface;
 use Phel\Lang\FnInterface;
 use Phel\Printer\Printer;
-use Phel\Printer\PrinterInterface;
 use ReflectionClass;
 use Throwable;
 
 final class HtmlExceptionPrinter implements ExceptionPrinterInterface
 {
-    use ExceptionPrinterTrait;
-
-    private PrinterInterface $printer;
+    private ExceptionArgsPrinterInterface $exceptionArgsPrinter;
     private MungeInterface $munge;
+
+    private function __construct(
+        ExceptionArgsPrinterInterface $exceptionArgsPrinter,
+        MungeInterface $munge
+    ) {
+        $this->exceptionArgsPrinter = $exceptionArgsPrinter;
+        $this->munge = $munge;
+    }
 
     public static function create(): self
     {
         return new self(
-            Printer::readable(),
+            new ExceptionArgsPrinter(Printer::readable()),
             new Munge()
         );
-    }
-
-    private function __construct(
-        PrinterInterface $printer,
-        MungeInterface $munge
-    ) {
-        $this->printer = $printer;
-        $this->munge = $munge;
     }
 
     public function printException(PhelCodeException $e, CodeSnippet $codeSnippet): void
@@ -95,7 +93,7 @@ final class HtmlExceptionPrinter implements ExceptionPrinterInterface
                 $rf = new ReflectionClass($class);
                 if ($rf->implementsInterface(FnInterface::class)) {
                     $fnName = $this->munge->decodeNs($rf->getConstant('BOUND_TO'));
-                    $argString = $this->parseArgsAsString($this->printer, $frame['args']);
+                    $argString = $this->exceptionArgsPrinter->parseArgsAsString($frame['args']);
                     echo "<li>#$i $file($line): ($fnName$argString)</li>";
 
                     continue;
@@ -105,7 +103,7 @@ final class HtmlExceptionPrinter implements ExceptionPrinterInterface
             $class = $class ?? '';
             $type = $frame['type'] ?? '';
             $fn = $frame['function'];
-            $argString = $this->buildPhpArgsString($frame['args']);
+            $argString = $this->exceptionArgsPrinter->buildPhpArgsString($frame['args']);
             echo "<li>#$i $file($line): $class$type$fn($argString)</li>";
         }
 
