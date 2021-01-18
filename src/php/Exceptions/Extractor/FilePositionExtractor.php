@@ -19,23 +19,23 @@ final class FilePositionExtractor implements FilePositionExtractorInterface
     public function getOriginal(string $filename, int $line): FilePosition
     {
         $sourceMapInfo = $this->sourceMapExtractor->extractFromFile($filename);
-        $filename = $sourceMapInfo->filename();
-        $sourceMap = $sourceMapInfo->sourceMap();
+        $extractedFilename = $sourceMapInfo->filename();
+        $extractedSourceMap = $sourceMapInfo->sourceMap();
 
-        $originalFile = $filename;
+        $originalFilename = $filename;
         $originalLine = $line;
 
-        if (0 === strpos($filename, '// ')) {
-            $originalFile = trim(substr($filename, 3));
+        if (0 === strpos($extractedFilename, '// ')) {
+            $originalFilename = trim(substr($extractedFilename, 3));
 
-            if (0 === strpos($sourceMap, '// ')) {
-                $mapping = trim(substr($sourceMap, 3));
+            if (0 === strpos($extractedSourceMap, '// ')) {
+                $mapping = trim(substr($extractedSourceMap, 3));
 
                 $sourceMapConsumer = new SourceMapConsumer($mapping);
                 $originalLine = ($sourceMapConsumer->getOriginalLine($line - 1)) ?: $line;
             }
         }
 
-        return new FilePosition($originalFile, $originalLine);
+        return new FilePosition($originalFilename, $originalLine);
     }
 }

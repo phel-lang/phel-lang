@@ -15,44 +15,44 @@ final class FilePositionExtractorTest extends TestCase
     public function testGetOriginal(): void
     {
         $extractor = new FilePositionExtractor(
-            $this->stubCommentExtractor()
+            $this->stubSourceMapExtractor()
         );
 
-        $fileName = '/example-module-name/file-name.phel';
+        $filename = '/example-module-name/file-name.phel';
         $line = 1;
 
         self::assertEquals(
-            new FilePosition($fileName, $line),
-            $extractor->getOriginal($fileName, $line)
+            new FilePosition($filename, $line),
+            $extractor->getOriginal($filename, $line)
         );
     }
 
     public function testGetOriginalWithFileNameComment(): void
     {
         $extractor = new FilePositionExtractor(
-            $this->stubCommentExtractor(
+            $this->stubSourceMapExtractor(
                 '// file-name/comment'
             )
         );
 
-        $fileName = '/example-module-name/file-name.phel';
+        $filename = '/example-module-name/file-name.phel';
         $line = 1;
 
         self::assertEquals(
             new FilePosition('file-name/comment', $line),
-            $extractor->getOriginal($fileName, $line)
+            $extractor->getOriginal($filename, $line)
         );
     }
 
-    private function stubCommentExtractor(
-        string $fileNameComment = '',
-        string $sourceMapComment = ''
+    private function stubSourceMapExtractor(
+        string $filename = '',
+        string $sourceMap = ''
     ): SourceMapExtractorInterface {
-        $commentExtractor = $this->createMock(SourceMapExtractorInterface::class);
-        $commentExtractor
-            ->method('getExtractedComment')
-            ->willReturn(new SourceMapInformation($fileNameComment, $sourceMapComment));
+        $sourceMapExtractor = $this->createMock(SourceMapExtractorInterface::class);
+        $sourceMapExtractor
+            ->method('extractFromFile')
+            ->willReturn(new SourceMapInformation($filename, $sourceMap));
 
-        return $commentExtractor;
+        return $sourceMapExtractor;
     }
 }
