@@ -64,7 +64,7 @@ final class RuntimeFactory
     private static function createExceptionPrinter(): ExceptionPrinterInterface
     {
         if (PHP_SAPI === 'cli') {
-            return TextExceptionPrinter::readableWithStyle();
+            return TextExceptionPrinter::create();
         }
 
         return HtmlExceptionPrinter::create();

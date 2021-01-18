@@ -15,7 +15,7 @@ final class SourceMapConsumer
         $this->lineMapping = $this->decodeMapping($mapping);
     }
 
-    protected function decodeMapping(string $mapping): array
+    private function decodeMapping(string $mapping): array
     {
         $lines = explode(';', $mapping);
 
@@ -25,7 +25,7 @@ final class SourceMapConsumer
             $segments = explode(',', $line);
 
             foreach ($segments as $j => $segment) {
-                if (strlen($segment) > 0) {
+                if ($segment !== '') {
                     $relMapping = $this->vlq->decode($segment);
 
                     $absMapping = [
