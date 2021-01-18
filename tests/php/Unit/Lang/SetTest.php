@@ -151,7 +151,7 @@ final class SetTest extends TestCase
     public function testToPhpArray()
     {
         $set = new Set(['a', 'b']);
-        $this->assertEquals(['a' => 'a', 'b' => 'b'], $set->toPhpArray());
+        $this->assertEquals(['a', 'b'], $set->toPhpArray());
     }
 
     public function testToString()

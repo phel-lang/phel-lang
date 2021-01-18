@@ -14,4 +14,6 @@ interface CommandFactoryInterface
     public function createRunCommand(RuntimeInterface $runtime): RunCommand;
 
     public function createTestCommand(RuntimeInterface $runtime): TestCommand;
+
+    public function createFormatCommand(): FormatCommand;
 }

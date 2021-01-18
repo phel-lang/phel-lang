@@ -1,0 +1,62 @@
+(ns phel\core)
+
+(defn- equals1 [a b]
+  (if (php/instanceof a AbstractType)
+    (php/-> a (equals b))
+    (php/=== a b)))
+
+(defn cons
+  "Prepends `x` to the beginning of `xs`."
+  [x xs]
+  (if (php/is_array xs)
+    (do
+      (php/array_unshift xs x)
+      xs)
+    (if (php/instanceof xs ConsInterface)
+      (php/-> xs (cons x))
+      (if (php/=== xs nil)
+        @[x]
+        (throw (php/new InvalidArgumentException
+                        (php/. "cannot do cons " (php/print_r x true))))))))
+
+(defn ffirst
+  "Same as `(first (first xs))`"
+  [xs]
+  (first (first xs)))
+
+(defn second
+  "Returns the second element of an indexed sequence or nil."
+  [xs]
+  (first (next xs)))
+
+(defn rest
+  "Returns the sequence of elements after the first element. If there are no
+elements, returns an empty sequence."
+  [xs]
+  (if (php/instanceof xs RestInterface)
+    (php/-> xs (rest))
+    (if (php/is_array xs)
+      (php/array_slice xs 1)
+      (throw (php/new InvalidArgumentException "cannot do rest")))))
+
+(defn nfirst
+  "Same as `(next (first xs))`."
+  [xs]
+  (next (first xs)))
+
+(defn nnext
+  "Same as `(next (next xs))`"
+  [xs]
+  (next (next xs)))
+
+(defn count
+  "Counts the number of elements in a sequence. Can be used on everything that
+implement the PHP Countable interface."
+  [xs]
+  (if (php/instanceof xs Countable)
+    (php/-> xs (count))
+    (if (php/is_array xs)
+      (php/count xs)
+      (if (php/=== xs nil)
+        0
+        (throw (php/new InvalidArgumentException (str "object is not countable: " xs)))))))

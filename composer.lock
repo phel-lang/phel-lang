@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "b912a989be3e562760af17b7432411d3",
+    "content-hash": "908f9337bb444e888ad472db3d5b4532",
     "packages": [
         {
             "name": "phel/phel-composer-plugin",
@@ -5294,16 +5294,16 @@
         },
         {
             "name": "vimeo/psalm",
-            "version": "4.4.1",
+            "version": "dev-master",
             "source": {
                 "type": "git",
                 "url": "https://github.com/vimeo/psalm.git",
-                "reference": "9fd7a7d885b3a216cff8dec9d8c21a132f275224"
+                "reference": "ef0d19ed9fc66152e48229d4a0d305f19d1a6aa2"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/vimeo/psalm/zipball/9fd7a7d885b3a216cff8dec9d8c21a132f275224",
-                "reference": "9fd7a7d885b3a216cff8dec9d8c21a132f275224",
+                "url": "https://api.github.com/repos/vimeo/psalm/zipball/ef0d19ed9fc66152e48229d4a0d305f19d1a6aa2",
+                "reference": "ef0d19ed9fc66152e48229d4a0d305f19d1a6aa2",
                 "shasum": ""
             },
             "require": {
@@ -5350,6 +5350,7 @@
             "suggest": {
                 "ext-igbinary": "^2.0.5"
             },
+            "default-branch": true,
             "bin": [
                 "psalm",
                 "psalm-language-server",
@@ -5392,9 +5393,9 @@
             ],
             "support": {
                 "issues": "https://github.com/vimeo/psalm/issues",
-                "source": "https://github.com/vimeo/psalm/tree/4.4.1"
+                "source": "https://github.com/vimeo/psalm/tree/master"
             },
-            "time": "2021-01-14T21:44:29+00:00"
+            "time": "2021-01-16T06:12:18+00:00"
         },
         {
             "name": "webmozart/assert",
@@ -5503,7 +5504,8 @@
     "aliases": [],
     "minimum-stability": "stable",
     "stability-flags": {
-        "phel/phel-composer-plugin": 20
+        "phel/phel-composer-plugin": 20,
+        "vimeo/psalm": 20
     },
     "prefer-stable": false,
     "prefer-lowest": false,

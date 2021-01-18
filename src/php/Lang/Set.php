@@ -8,7 +8,7 @@ use Countable;
 use Iterator;
 use Phel\Printer\Printer;
 
-class Set extends AbstractType implements
+final class Set extends AbstractType implements
     Countable,
     Iterator,
     SeqInterface,
@@ -17,7 +17,8 @@ class Set extends AbstractType implements
     ConcatInterface
 {
     /** @var mixed[] */
-    protected array $data = [];
+    private array $data = [];
+    private int $currentIndex = 0;
 
     /**
      * @param mixed[] $data
@@ -45,21 +46,29 @@ class Set extends AbstractType implements
 
     public function next(): void
     {
+        $this->currentIndex++;
         next($this->data);
     }
 
     public function key()
     {
-        return key($this->data);
+        return $this->currentIndex;
     }
 
     public function valid(): bool
     {
-        return key($this->data) !== null;
+        $result = key($this->data) !== null;
+
+        if (!$result) {
+            $this->currentIndex = 0;
+        }
+
+        return $result;
     }
 
     public function rewind(): void
     {
+        $this->currentIndex = 0;
         reset($this->data);
     }
 
@@ -115,22 +124,22 @@ class Set extends AbstractType implements
 
     public function intersection(Set $set): Set
     {
-        return new Set(array_intersect_key($this->data, $set->toPhpArray()));
+        return new Set(array_intersect_key($this->data, $set->data));
     }
 
     public function difference(Set $set): Set
     {
-        return new Set(array_diff_key($this->data, $set->toPhpArray()));
+        return new Set(array_diff_key($this->data, $set->data));
     }
 
     public function equals($other): bool
     {
-        return $this->toPhpArray() == $other->toPhpArray();
+        return $this->data == $other->data;
     }
 
     public function toPhpArray(): array
     {
-        return $this->data;
+        return array_values($this->data);
     }
 
     /**

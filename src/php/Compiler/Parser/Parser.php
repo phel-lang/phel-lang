@@ -8,6 +8,7 @@ use Phel\Compiler\Lexer\Token;
 use Phel\Compiler\Lexer\TokenStream;
 use Phel\Compiler\Parser\ParserNode\AbstractAtomNode;
 use Phel\Compiler\Parser\ParserNode\CommentNode;
+use Phel\Compiler\Parser\ParserNode\FileNode;
 use Phel\Compiler\Parser\ParserNode\ListNode;
 use Phel\Compiler\Parser\ParserNode\MetaNode;
 use Phel\Compiler\Parser\ParserNode\NewlineNode;
@@ -44,6 +45,16 @@ final class Parser implements ParserInterface
         $tokenStream->clearReadTokens();
 
         return $this->readExpression($tokenStream);
+    }
+
+    public function parseAll(TokenStream $tokenStream): FileNode
+    {
+        $result = [];
+        while ($node = $this->parseNext($tokenStream)) {
+            $result[] = $node;
+        }
+
+        return FileNode::createFromChildren($result);
     }
 
     private function canParseToken(TokenStream $tokenStream): bool

@@ -1,0 +1,281 @@
+(ns phel\core)
+
+(defn map [f & xs]
+  (case (count xs)
+    0 (throw (php/new InvalidArgumentException "expected at least one indexed
+collection in map"))
+    1 (for [x :in (first xs)] (f x))
+    (loop [res @[]
+           seq xs]
+      (if (some? nil? seq)
+        res
+        (do
+          (push res (apply f (map first seq)))
+          (recur res (map next seq)))))))
+
+(defn map-indexed
+  "Applies f to each element in xs. f is a two argument function. The first
+  argument is index of the element in the sequence and the second element is the
+  element itself."
+  [f xs]
+  (for [[k v] :pairs xs] (f k v)))
+
+(defn mapcat
+  "Applies f on all xs and concatenate the result."
+  [f & xs]
+  (apply concat @[] (apply map f xs)))
+
+(defn reduce [f init xs]
+  (if (= (count xs) 0)
+    init
+    (recur f (f init (first xs)) (next xs))))
+
+(defn reduce2 [f [x & xs]]
+  (reduce f x xs))
+
+(defn slice
+  "Extract a slice of `xs`."
+  [xs & [offset & [length]]]
+  (cond
+    (php-array? xs) (php/array_slice xs offset length)
+    (php/instanceof xs SliceInterface) (php/-> xs (slice offset length))
+    (throw (php/new InvalidArgumentException "Can not slice"))))
+
+(defn get-in
+  [ds ks & [opt]]
+  (let [res (reduce get ds ks)]
+    (if (nil? res) opt res)))
+
+(defn put-in
+  [ds [k & ks] v]
+  (if-not (nil? ks)
+    (put ds k (put-in (get ds k @{}) ks v))
+    (put ds k v)))
+
+(defn update
+  [ds k f & args]
+  (put ds k (apply f (get ds k) args)))
+
+(defn update-in
+  [ds [k & ks] f & args]
+  (if ks
+    (put ds k (apply update-in (get ds k @{}) ks f args))
+    (let [current (get ds k)] # Extract value first for possible call-by-reference
+      (put ds k (apply f current args)))))
+
+(defn drop [n xs]
+  (slice xs (if (php/< n 0) 0 n)))
+
+(defn drop-while [pred xs]
+  (loop [s xs]
+    (if (and s (pred (first s)))
+      (recur (next s))
+      (if s s @[]))))
+
+(defn take [n xs]
+  (slice xs 0 (if (php/< n 0) 0 n)))
+
+(defn take-while [pred xs]
+  (for [x :in xs :while (pred x)] x))
+
+(defn filter [pred xs]
+  (for [x :in xs :when (pred x)] x))
+
+(defn keep [pred xs]
+  (for [x :in xs
+        :let [res (pred x)]
+        :when (not (nil? res))]
+    res))
+
+(defn keep-indexed [pred xs]
+  (for [[k v] :pairs xs
+        :let [res (pred k v)]
+        :when (not (nil? res))]
+    res))
+
+(defn find
+  "Returns the first item in `xs` where `(pred item)` evaluates to true."
+  [pred xs]
+  (loop [s xs]
+    (if s
+      (if (pred (first s))
+        (first s)
+        (recur (next s)))
+      nil)))
+
+(defn find-index [pred xs]
+  (loop [s xs
+         i 0]
+    (if s
+      (if (pred (first s))
+        i
+        (recur (next s) (php/+ i 1)))
+      nil)))
+
+(defn distinct
+  "Returns an array with duplicated values removed in `xs`."
+  [xs]
+  (let [seen @{}
+        ret @[]]
+    (dofor [x :in xs]
+      (when-not (get seen x)
+        (put seen x true)
+        (push ret x)))
+    ret))
+
+(defn reverse
+  "Reverses the order of the elements in the given sequence."
+  [xs]
+  (let [ret @[]]
+    (dofor [i :range [(php/- (count xs) 1) -1 -1]]
+      (push ret (get xs i)))
+    ret))
+
+(defn interleave
+  "Returns a array with the first items of each col, than the second items etc."
+  [& xs]
+  (loop [i 0
+         res @[]]
+    (let [nths (map |(get $ i) xs)]
+      (if (some? nil? nths)
+        res
+        (recur (php/+ i 1) (concat res nths))))))
+
+(defn interpose
+  [sep xs]
+  (let [res @[]]
+    (dofor [[k v] :pairs xs]
+      (when (> k 0)
+        (push res sep))
+      (push res v))
+    res))
+
+(defn frequencies
+  [xs]
+  (let [res @{}]
+    (dofor [x :in xs :let [n (get res x)]]
+      (put res x (php/+ 1 (or n 0))))
+    res))
+
+(defn keys
+  "Gets the keys of an associative data structure."
+  [xs]
+  (for [k :keys xs] k))
+
+(defn values
+  "Gets the values of an associative data structure."
+  [xs]
+  (for [x :in xs] x))
+
+(defn pairs
+  "Gets the pairs of an associative data structure."
+  [xs]
+  (for [p :pairs xs] p))
+
+(defn kvs
+  "Returns an array of key value pairs like @[k1 v1 k2 v2 k3 v3 ...]."
+  [xs]
+  (let [res @[]]
+    (dofor [[k v] :pairs xs]
+      (push res k)
+      (push res v))
+    res))
+
+(defn to-php-array
+  "Create a PHP Array from a sequential data structure."
+  [xs]
+  (apply php/array xs))
+
+(defn php-array-to-table
+  "Converts a PHP Array to a tables."
+  [arr]
+  (let [res @{}]
+    (foreach [k v arr]
+      (put res k v))
+    res))
+
+(defn sort
+  "Returns a sorted array. If no comparator is supplied compare is used."
+  [xs & [comp]]
+  (let [php-array (to-php-array xs)]
+    (php/usort php-array (or comp compare))
+    (apply array php-array)))
+
+(defn sort-by
+  "Returns a sorted array where the sort order is determined by comparing
+  (keyfn item). If no comparator is supplied compare is used."
+  [keyfn xs & [comp]]
+  (let [php-array (to-php-array xs)
+        cmp (or comp compare)]
+    (php/usort php-array |(cmp (keyfn $1) (keyfn $2)))
+    (apply array php-array)))
+
+(defn shuffle
+  "Returns a random permutation of xs."
+  [xs]
+  (let [php-array (to-php-array xs)]
+    (php/shuffle php-array)
+    (apply array php-array)))
+
+(defn repeat
+  "Returns an array of length n where every element is x."
+  [n x]
+  (for [i :range [n]] x))
+
+(defn group-by
+  "Returns a table of the elements of xs keyed by the result of
+  f on each element."
+  [f xs]
+  (let [res @{}]
+    (dofor [x :in xs :let [k (f x)]]
+      (when-not (get res k)
+        (put res k @[]))
+      (update-in res [k] push x))
+    res))
+
+(defn zipcoll
+  "Creates a table from two sequential data structures. Return a new table."
+  [a b]
+  (apply table (interleave a b)))
+
+(defn merge-into
+  "Merges multiple tables into first table. If a key appears in more than one
+  collection, then later values replace any previous ones."
+  [tab & tables]
+  (foreach [table tables]
+    (foreach [k v table]
+      (put tab k v)))
+  tab)
+
+(defn merge
+  "Merges multiple tables into one new table. If a key appears in more than one
+  collection, then later values replace any previous ones."
+  [& tables]
+  (apply merge-into @{} tables))
+
+(defn invert
+  "Returns a new table where the keys and values are swapped. If table has
+  duplicated values, some keys will be ignored."
+  [table]
+  (zipcoll (values table) (keys table)))
+
+(defn split-at
+  "Returns a tuple of [(take n coll) (drop n coll)]."
+  [n xs]
+  [(take n xs) (drop n xs)])
+
+(defn split-with
+  "Returns a tuple of [(take-while pred coll) (drop-while pred coll)]."
+  [f xs]
+  [(take-while f xs) (drop-while f xs)])
+
+(defn partition [n xs]
+  (if (< (count xs) n)
+    @[]
+    (let [res @[]]
+      (loop [xs xs]
+        (let [[a b] (split-at n xs)]
+          (push res a)
+          (if (>= (count b) n)
+            (recur b)
+            res))))))

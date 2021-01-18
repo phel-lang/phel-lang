@@ -1,0 +1,145 @@
+(ns phel\core)
+
+(defn type
+  "Returns the type of `x`. Following types can be returned:
+
+* `:tuple`
+* `:set`
+* `:array`
+* `:struct`
+* `:table`
+* `:keyword`
+* `:symbol`
+* `:int`
+* `:float`
+* `:string`
+* `:nil`
+* `:boolean`
+* `:function`
+* `:php/array`
+* `:php/resource`
+* `:php/object`
+* `:unknown`"
+  [x]
+  (cond
+    (php/instanceof x Tuple)          :tuple
+    (php/instanceof x Set)            :set
+    (php/instanceof x PhelArray)      :array
+    (php/instanceof x AbstractStruct) :struct
+    (php/instanceof x Table)          :table
+    (php/instanceof x Keyword)        :keyword
+    (php/instanceof x Symbol)         :symbol
+    (php/is_int x)                    :int
+    (php/is_float x)                  :float
+    (php/is_string x)                 :string
+    (php/is_null x)                   :nil
+    (php/is_bool x)                   :boolean
+    (php/is_callable x)               :function
+    (php/is_array x)                  :php/array
+    (php/is_resource x)               :php/resource
+    (php/is_object x)                 :php/object
+    :unknown))
+
+(defn nil?
+  "Returns true if `x` is nil, false otherwise."
+  [x]
+  (id x nil))
+
+(defn float?
+  "Returns true if `x` is float point number, false otherwise."
+  [x]
+  (= (type x) :float))
+
+(defn int?
+  "Returns true if `x` is an integer number, false otherwise."
+  [x]
+  (= (type x) :int))
+
+(defn number?
+  "Returns true if `x` is a number, false otherwise."
+  [x]
+  (or (= (type x) :int) (= (type x) :float)))
+
+(defn string?
+  "Returns true if `x` is a string, false otherwise."
+  [x]
+  (= (type x) :string))
+
+(defn keyword?
+  "Returns true if `x` is a keyword, false otherwise."
+  [x]
+  (= (type x) :keyword))
+
+(defn symbol?
+  "Returns true if `x` is a symbol, false otherwise."
+  [x]
+  (= (type x) :symbol))
+
+(defn function?
+  "Returns true if `x` is a function, false otherwise."
+  [x]
+  (= (type x) :function))
+
+(defn struct?
+  "Returns true if `x` is a struct, false otherwise."
+  [x]
+  (= (type x) :struct))
+
+(defn table?
+  "Returns true if `x` is a table, false otherwise."
+  [x]
+  (= (type x) :table))
+
+(defn array?
+  "Returns true if `x` is a array, false otherwise."
+  [x]
+  (= (type x) :array))
+
+(defn tuple?
+  "Returns true if `x` is a tuple, false otherwise."
+  [x]
+  (= (type x) :tuple))
+
+(defn tuple-brackets?
+  [x]
+  (and (tuple? x) (php/-> x (isUsingBracket))))
+
+(defn tuple-parens?
+  [x]
+  (and (tuple? x) (not (php/-> x (isUsingBracket)))))
+
+(defn boolean?
+  "Returns true if `x` is a boolean, false otherwise."
+  [x]
+  (= (type x) :boolean))
+
+(defn php-array?
+  "Returns true if `x` is a PHP Array, false otherwise."
+  [x]
+  (= (type x) :php/array))
+
+(defn php-resource?
+  "Returns true if `x` is a PHP resource, false otherwise."
+  [x]
+  (= (type x) :php/resource))
+
+(defn php-object?
+  "Returns true if `x` is a PHP object, false otherwise."
+  [x]
+  (= (type x) :php/object))
+
+(defn empty?
+  "Returns true if `(count x)` is zero, false otherwise."
+  [x]
+  (= 0 (count x)))
+
+(defn indexed?
+  "Returns true if `x` is indexed sequence, false otherwise."
+  [x]
+  (let [t (type x)]
+    (or (= t :array) (= t :tuple) (= t :php/array))))
+
+(defn set?
+  "Returns true if `x` is a set, false otherwise."
+  [x]
+  (= (type x) :set))

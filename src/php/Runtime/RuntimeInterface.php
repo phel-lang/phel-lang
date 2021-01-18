@@ -20,4 +20,6 @@ interface RuntimeInterface
      * @return bool true if the namespace was successfully loaded; false otherwise
      */
     public function loadNs(string $ns): bool;
+
+    public function loadFileIntoNamespace(string $ns, string $file): void;
 }

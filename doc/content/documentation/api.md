@@ -792,6 +792,13 @@ Returns true if `x` is a keyword, false otherwise.
 ```
 Returns an array of key value pairs like @[k1 v1 k2 v2 k3 v3 ...].
 
+## `load`
+
+```phel
+(load path)
+```
+Loads a file into the current namespace. It can be used to split large namespaces into multiple files.
+
 ## `map`
 
 ```phel
