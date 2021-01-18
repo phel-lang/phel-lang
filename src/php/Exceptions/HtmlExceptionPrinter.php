@@ -50,9 +50,7 @@ final class HtmlExceptionPrinter implements ExceptionPrinterInterface
         echo '<pre><code>';
         foreach ($lines as $index => $line) {
             echo str_pad((string)($firstLine + $index), $padLength, ' ', STR_PAD_LEFT);
-            echo '| ';
-            echo htmlspecialchars($line);
-            echo "\n";
+            echo '| ', htmlspecialchars($line), "\n";
 
             $eStartLine = $eStartLocation->getLine();
             if ($eStartLine === $eEndLocation->getLine()
@@ -78,10 +76,10 @@ final class HtmlExceptionPrinter implements ExceptionPrinterInterface
     {
         $type = get_class($e);
         $msg = $e->getMessage();
-        $file = $e->getFile();
-        $line = $e->getLine();
+        $errorFile = $e->getFile();
+        $errorLine = $e->getLine();
 
-        echo "<div>$type: $msg in $file:$line</div>";
+        echo "<div>$type: $msg in $errorFile:$errorLine</div>";
 
         echo '<ul>';
         foreach ($e->getTrace() as $i => $frame) {

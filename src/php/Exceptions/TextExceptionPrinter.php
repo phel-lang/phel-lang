@@ -26,16 +26,6 @@ final class TextExceptionPrinter implements ExceptionPrinterInterface
     private MungeInterface $munge;
     private FilePositionExtractorInterface $filePositionExtractor;
 
-    public static function readableWithStyle(): self
-    {
-        return new self(
-            new ExceptionArgsPrinter(Printer::readable()),
-            ColorStyle::withStyles(),
-            new Munge(),
-            new FilePositionExtractor(new SourceMapExtractor())
-        );
-    }
-
     public function __construct(
         ExceptionArgsPrinterInterface $exceptionArgsPrinter,
         ColorStyleInterface $style,
@@ -48,6 +38,16 @@ final class TextExceptionPrinter implements ExceptionPrinterInterface
         $this->filePositionExtractor = $filePositionExtractor;
     }
 
+    public static function create(): self
+    {
+        return new self(
+            new ExceptionArgsPrinter(Printer::readable()),
+            ColorStyle::withStyles(),
+            new Munge(),
+            new FilePositionExtractor(new SourceMapExtractor())
+        );
+    }
+
     public function printException(PhelCodeException $e, CodeSnippet $codeSnippet): void
     {
         $eStartLocation = $e->getStartLocation() ?? $codeSnippet->getStartLocation();
@@ -58,13 +58,11 @@ final class TextExceptionPrinter implements ExceptionPrinterInterface
         echo 'in ' . $eStartLocation->getFile() . ':' . $eFirstLine . "\n\n";
 
         $lines = explode("\n", $codeSnippet->getCode());
-        $endLineLength = strlen((string) $codeSnippet->getEndLocation()->getLine());
-        $padLength = $endLineLength - strlen((string) $codeSnippet->getStartLocation()->getLine());
+        $endLineLength = strlen((string)$codeSnippet->getEndLocation()->getLine());
+        $padLength = $endLineLength - strlen((string)$codeSnippet->getStartLocation()->getLine());
         foreach ($lines as $index => $line) {
-            echo str_pad((string) ($eFirstLine + $index), $padLength, ' ', STR_PAD_LEFT);
-            echo '| ';
-            echo $line;
-            echo "\n";
+            echo str_pad((string)($eFirstLine + $index), $padLength, ' ', STR_PAD_LEFT);
+            echo '| ', $line, "\n";
 
             $eStartLine = $eStartLocation->getLine();
             if ($eStartLine === $eEndLocation->getLine()
@@ -87,25 +85,25 @@ final class TextExceptionPrinter implements ExceptionPrinterInterface
     {
         $type = get_class($e);
         $msg = $e->getMessage();
-        $generatedLine = $e->getFile();
-        $generatedColumn = $e->getLine();
-        $pos = $this->filePositionExtractor->getOriginal($generatedLine, $generatedColumn);
+        $errorFile = $e->getFile();
+        $errorLine = $e->getLine();
+        $pos = $this->filePositionExtractor->getOriginal($errorFile, $errorLine);
 
         echo $this->style->blue("$type: $msg\n");
-        echo "in {$pos->fileName()}:{$pos->line()} (gen: $generatedLine:$generatedColumn)\n\n";
+        echo "in {$pos->fileName()}:{$pos->line()} (gen: $errorFile:$errorLine)\n\n";
 
         foreach ($e->getTrace() as $i => $frame) {
             $class = $frame['class'] ?? null;
-            $generatedLine = $frame['file'];
-            $generatedColumn = $frame['line'];
+            $file = $frame['file'];
+            $line = $frame['line'];
 
             if ($class) {
                 $rf = new ReflectionClass($class);
                 if ($rf->implementsInterface(FnInterface::class)) {
                     $fnName = $this->munge->decodeNs($rf->getConstant('BOUND_TO'));
                     $argString = $this->exceptionArgsPrinter->parseArgsAsString($frame['args']);
-                    $pos = $this->filePositionExtractor->getOriginal($generatedLine, $generatedColumn);
-                    echo "#$i {$pos->fileName()}:{$pos->line()} (gen: $generatedLine:$generatedColumn) : ($fnName$argString)\n";
+                    $pos = $this->filePositionExtractor->getOriginal($file, $line);
+                    echo "#$i {$pos->fileName()}:{$pos->line()} (gen: $file:$line) : ($fnName$argString)\n";
 
                     continue;
                 }
@@ -115,7 +113,7 @@ final class TextExceptionPrinter implements ExceptionPrinterInterface
             $type = $frame['type'] ?? '';
             $fn = $frame['function'];
             $argString = $this->exceptionArgsPrinter->buildPhpArgsString($frame['args']);
-            echo "#$i $generatedLine($generatedColumn): $class$type$fn($argString)\n";
+            echo "#$i $file($line): $class$type$fn($argString)\n";
         }
     }
 }
