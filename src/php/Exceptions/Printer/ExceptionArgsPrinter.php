@@ -65,16 +65,16 @@ final class ExceptionArgsPrinter implements ExceptionArgsPrinterInterface
             return ($arg) ? 'true' : 'false';
         }
 
-        if (is_resource($arg)) {
-            return 'Resource id #' . ((string)$arg);
-        }
-
         if (is_array($arg)) {
             return 'Array';
         }
 
         if (is_object($arg)) {
             return 'Object(' . get_class($arg) . ')';
+        }
+
+        if (is_resource($arg)) {
+            return 'Resource id #' . get_resource_id($arg);
         }
 
         return (string)$arg;
