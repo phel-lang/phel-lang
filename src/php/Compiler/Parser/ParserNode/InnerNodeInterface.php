@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Phel\Compiler\Parser\ParserNode;
 
 interface InnerNodeInterface extends NodeInterface
