@@ -4,7 +4,6 @@ namespace Phel\Compiler\Parser\ParserNode;
 
 interface InnerNodeInterface extends NodeInterface
 {
-
     /**
      * Returns all children of this node.
      *
@@ -12,11 +11,10 @@ interface InnerNodeInterface extends NodeInterface
      */
     public function getChildren(): array;
 
-
     /**
      * @param NodeInterface[] $children
      */
-    public function replaceChildren($children): self;
+    public function replaceChildren(array $children): self;
 
     public function getCodePrefix(): string;
 

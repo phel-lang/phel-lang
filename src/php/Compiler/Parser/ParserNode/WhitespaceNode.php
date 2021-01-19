@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Phel\Compiler\Parser\ParserNode;
 
 use Phel\Compiler\Lexer\Token;
@@ -20,8 +22,11 @@ final class WhitespaceNode implements TriviaNodeInterface
         );
     }
 
-    public function __construct(string $code, SourceLocation $startLocation, SourceLocation $endLocation)
-    {
+    public function __construct(
+        string $code,
+        SourceLocation $startLocation,
+        SourceLocation $endLocation
+    ) {
         $this->code = $code;
         $this->startLocation = $startLocation;
         $this->endLocation = $endLocation;

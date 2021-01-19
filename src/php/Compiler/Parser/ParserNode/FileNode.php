@@ -6,16 +6,19 @@ use Phel\Lang\SourceLocation;
 
 final class FileNode implements InnerNodeInterface
 {
-    /** @var NodeInterface[] */
-    private array $children;
     private SourceLocation $startLocation;
     private SourceLocation $endLocation;
+    /** @var NodeInterface[] */
+    private array $children;
 
-    public function __construct(SourceLocation $startLocation, SourceLocation $endLocation, array $children)
-    {
-        $this->children = $children;
+    public function __construct(
+        SourceLocation $startLocation,
+        SourceLocation $endLocation,
+        array $children
+    ) {
         $this->startLocation = $startLocation;
         $this->endLocation = $endLocation;
+        $this->children = $children;
     }
 
     /**
@@ -34,14 +37,21 @@ final class FileNode implements InnerNodeInterface
         return new self($startLocation, $endLocation, $children);
     }
 
+    /**
+     * @return NodeInterface[] $children
+     */
     public function getChildren(): array
     {
         return $this->children;
     }
 
-    public function replaceChildren($children): InnerNodeInterface
+    /**
+     * @param NodeInterface[] $children
+     */
+    public function replaceChildren(array $children): InnerNodeInterface
     {
         $this->children = $children;
+
         return $this;
     }
 

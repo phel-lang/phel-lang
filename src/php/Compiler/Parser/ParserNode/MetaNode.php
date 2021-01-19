@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Phel\Compiler\Parser\ParserNode;
 
 use Phel\Lang\SourceLocation;
@@ -7,25 +9,35 @@ use Phel\Lang\SourceLocation;
 final class MetaNode implements InnerNodeInterface
 {
     private NodeInterface $meta;
-    /** @var NodeInterface[] */
-    private array $children;
     private SourceLocation $startLocation;
     private SourceLocation $endLocation;
+    /** @var NodeInterface[] */
+    private array $children;
 
-    public function __construct(NodeInterface $meta, SourceLocation $startLocation, SourceLocation $endLocation, array $children)
-    {
+    public function __construct(
+        NodeInterface $meta,
+        SourceLocation $startLocation,
+        SourceLocation $endLocation,
+        array $children
+    ) {
         $this->meta = $meta;
-        $this->children = $children;
         $this->startLocation = $startLocation;
         $this->endLocation = $endLocation;
+        $this->children = $children;
     }
 
+    /**
+     * @return NodeInterface[] $children
+     */
     public function getChildren(): array
     {
         return [$this->meta, ...$this->children];
     }
 
-    public function replaceChildren($children): InnerNodeInterface
+    /**
+     * @param NodeInterface[] $children
+     */
+    public function replaceChildren(array $children): InnerNodeInterface
     {
         $this->meta = $children[0];
         $this->children = array_slice($children, 1);
@@ -39,6 +51,7 @@ final class MetaNode implements InnerNodeInterface
         foreach ($this->children as $child) {
             $code .= $child->getCode();
         }
+
         return $this->getCodePrefix() . $this->meta->getCode() . $code;
     }
 
