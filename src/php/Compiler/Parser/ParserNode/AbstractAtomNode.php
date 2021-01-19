@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Phel\Compiler\Parser\ParserNode;
 
 use Phel\Lang\SourceLocation;
@@ -12,7 +14,6 @@ abstract class AbstractAtomNode implements NodeInterface
     private string $code;
     private SourceLocation $startLocation;
     private SourceLocation $endLocation;
-
     /** @var T */
     private $value;
 
@@ -22,8 +23,12 @@ abstract class AbstractAtomNode implements NodeInterface
      * @param SourceLocation $endLocation The end location of the atom
      * @param T $value The value of the atom
      */
-    public function __construct(string $code, SourceLocation $startLocation, SourceLocation $endLocation, $value)
-    {
+    public function __construct(
+        string $code,
+        SourceLocation $startLocation,
+        SourceLocation $endLocation,
+        $value
+    ) {
         $this->code = $code;
         $this->startLocation = $startLocation;
         $this->endLocation = $endLocation;
