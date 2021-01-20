@@ -6,4 +6,4 @@
 \Phel\Runtime\RuntimeFactory::getInstance()->loadNs("xzy\\core");
 \Phel\Runtime\RuntimeFactory::getInstance()->loadNs("xyz\\foo");
 \Phel\Runtime\RuntimeFactory::getInstance()->getEnv()->setNs("test");
-$GLOBALS["__phel"]["phel\\core"]["*ns*"] = "\\test";
+$GLOBALS["__phel"]["phel\\core"]["*ns*"] = "test";
