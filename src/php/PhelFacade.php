@@ -10,9 +10,7 @@ use Phel\Command\FormatCommand;
 use Phel\Command\ReplCommand;
 use Phel\Command\RunCommand;
 use Phel\Command\TestCommand;
-use Phel\Compiler\Analyzer\Environment\GlobalEnvironment;
 use Phel\Exceptions\ExitException;
-use Phel\Runtime\RuntimeFactory;
 
 final class PhelFacade
 {
@@ -70,10 +68,7 @@ HELP;
 
     private function executeReplCommand(): void
     {
-        $globalEnv = new GlobalEnvironment();
-        RuntimeFactory::initialize($globalEnv)->loadNs('phel\core');
-
-        $this->commandFacade->executeReplCommand($globalEnv);
+        $this->commandFacade->executeReplCommand();
     }
 
     private function executeRunCommand(array $arguments): void

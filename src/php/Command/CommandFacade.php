@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace Phel\Command;
 
-use Phel\Compiler\Analyzer\Environment\GlobalEnvironmentInterface;
 use Phel\Runtime\RuntimeInterface;
 use RuntimeException;
 
@@ -24,10 +23,10 @@ final class CommandFacade implements CommandFacadeInterface
         $this->commandFactory = $commandFactory;
     }
 
-    public function executeReplCommand(GlobalEnvironmentInterface $globalEnv): void
+    public function executeReplCommand(): void
     {
         $this->commandFactory
-            ->createReplCommand($globalEnv)
+            ->createReplCommand($this->loadVendorPhelRuntime())
             ->run();
     }
 

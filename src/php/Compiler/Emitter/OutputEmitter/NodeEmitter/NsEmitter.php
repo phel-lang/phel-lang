@@ -34,7 +34,7 @@ final class NsEmitter implements NodeEmitterInterface
         $nsSym->setStartLocation($node->getStartSourceLocation());
         $this->outputEmitter->emitGlobalBase('phel\\core', $nsSym);
         $this->outputEmitter->emitStr(' = ', $node->getStartSourceLocation());
-        $this->outputEmitter->emitLiteral('\\' . $this->outputEmitter->mungeEncodeNs($node->getNamespace()));
+        $this->outputEmitter->emitLiteral($this->outputEmitter->mungeEncodeNs($node->getNamespace()));
         $this->outputEmitter->emitLine(';', $node->getStartSourceLocation());
     }
 }

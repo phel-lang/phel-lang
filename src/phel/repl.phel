@@ -1,0 +1,83 @@
+(ns phel\repl
+  (:use Phel\Lang\Symbol)
+  (:use Phel\Runtime\RuntimeFactory)
+  (:use Phel\Compiler\Analyzer\Environment\NodeEnvironment))
+
+(defn- get-runtime []
+  (php/:: RuntimeFactory (getInstance)))
+
+(defn- get-global-env []
+  (-> (get-runtime)
+      (php/-> (getEnv))))
+
+(defn resolve
+  "Resolves the given symbol in the current environment and returns a
+   resolved Symbol with the absolute namespace or nil if it can not be resolved"
+  [sym]
+  (-> (get-global-env)
+      (php/-> (resolveAsSymbol sym (php/:: NodeEnvironment (empty))))))
+
+(defn- clean-doc [str]
+  (php/trim (php/str_replace (php/array "```phel\n" "```") "" str)))
+
+(defn- find-doc [namespace name]
+  (-> php/$GLOBALS
+      (php/aget "__phel_meta")
+      (php/aget namespace)
+      (php/aget name)
+      (get :doc)
+      (clean-doc)))
+
+(defmacro doc
+  "Prints the documentation for the given symbol"
+  [sym]
+  (let [resolved-sym (resolve sym)]
+    (when resolved-sym
+      `(println (find-doc ,(php/-> resolved-sym (getNamespace)) ,(php/-> resolved-sym (getName)))))))
+
+(defn- extract-alias [sym options]
+  (if (:as options)
+    (:as options)
+    (let [parts (php/explode "\\" (php/-> sym (getName)))
+          last (pop parts)]
+      (php/:: Symbol (create last)))))
+
+(defn- set-ns [namespace]
+  (let [var-data (php/aget (php/aget php/$GLOBALS "__phel") "phel\\core")
+        _ (php/aset var-data "*ns*" namespace)
+        ns-data (php/aget php/$GLOBALS "__phel")
+        _ (php/aset ns-data "phel\\core" var-data)
+        _ (php/aset php/$GLOBALS "__phel" ns-data)]))
+
+(defn- require-namespace
+  [namespace alias refers]
+  (let [env (get-global-env)
+        current-ns *ns*
+        ns-var-array (php/aget (php/aget php/$GLOBALS "__phel") "phel\\core")]
+    (php/-> env (addRequireAlias current-ns alias namespace))
+    (foreach [r refers]
+      (php/-> env (addRefer current-ns r namespace)))
+    (php/-> (get-runtime) (loadNs namespace))
+    (php/-> (get-global-env) (setNs current-ns))
+    (set-ns current-ns)
+    namespace))
+
+(defmacro require
+  "Requires a Phel module into the environment"
+  [sym & args]
+  (let [options (apply table args)
+        alias (extract-alias sym options)
+        refers (or (:refer options) [])]
+    `(require-namespace ',sym ',alias ',refers)))
+
+(defn- use-namespace
+  [namespace alias]
+  (php/-> (get-global-env) (addUseAlias *ns* alias namespace))
+  namespace)
+
+(defmacro use
+  "Adds a use statement to the environment"
+  [sym & args]
+  (let [options (apply table args)
+        alias (extract-alias sym options)]
+    `(use-namespace ',sym ',alias)))

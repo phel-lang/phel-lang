@@ -4,11 +4,9 @@ declare(strict_types=1);
 
 namespace Phel\Command;
 
-use Phel\Compiler\Analyzer\Environment\GlobalEnvironmentInterface;
-
 interface CommandFacadeInterface
 {
-    public function executeReplCommand(GlobalEnvironmentInterface $globalEnv): void;
+    public function executeReplCommand(): void;
 
     public function executeRunCommand(string $fileOrPath): void;
 

@@ -116,6 +116,16 @@ final class GlobalEnvironment implements GlobalEnvironmentInterface
         $this->refers[$inNamespace][$fnName->getName()] = $ns;
     }
 
+    public function resolveAsSymbol(Symbol $name, NodeEnvironment $env): ?Symbol
+    {
+        $node = $this->resolve($name, $env);
+        if ($node instanceof GlobalVarNode) {
+            return Symbol::createForNamespace($node->getNamespace(), $node->getName()->getName());
+        }
+
+        return null;
+    }
+
     public function resolve(Symbol $name, NodeEnvironmentInterface $env): ?AbstractNode
     {
         $strName = $name->getName();

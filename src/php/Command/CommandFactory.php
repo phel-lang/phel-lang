@@ -26,11 +26,13 @@ final class CommandFactory implements CommandFactoryInterface
         $this->compilerFactory = $compilerFactory;
     }
 
-    public function createReplCommand(GlobalEnvironmentInterface $globalEnv): ReplCommand
+    public function createReplCommand(RuntimeInterface $runtime): ReplCommand
     {
+        $runtime->loadFileIntoNamespace('user', __DIR__ . '/Repl/startup.phel');
+
         return new ReplCommand(
             new ReplCommandSystemIo($this->currentDir . '.phel-repl-history'),
-            $this->compilerFactory->createEvalCompiler($globalEnv),
+            $this->compilerFactory->createEvalCompiler($runtime->getEnv()),
             TextExceptionPrinter::readableWithStyle(),
             ColorStyle::withStyles()
         );
