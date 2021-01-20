@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Phel\Compiler\Parser\ParserNode;
 
 use Phel\Compiler\Lexer\Token;
@@ -8,27 +10,38 @@ use Phel\Lang\SourceLocation;
 final class ListNode implements InnerNodeInterface
 {
     private int $tokenType;
-    /** @var NodeInterface[] */
-    private array $children;
     private SourceLocation $startLocation;
     private SourceLocation $endLocation;
+    /** @var NodeInterface[] */
+    private array $children;
 
-    public function __construct(int $tokenType, SourceLocation $startLocation, SourceLocation $endLocation, array $children)
-    {
+    public function __construct(
+        int $tokenType,
+        SourceLocation $startLocation,
+        SourceLocation $endLocation,
+        array $children
+    ) {
         $this->tokenType = $tokenType;
-        $this->children = $children;
         $this->startLocation = $startLocation;
         $this->endLocation = $endLocation;
+        $this->children = $children;
     }
 
+    /**
+     * @return NodeInterface[] $children
+     */
     public function getChildren(): array
     {
         return $this->children;
     }
 
-    public function replaceChildren($children): InnerNodeInterface
+    /**
+     * @param NodeInterface[] $children
+     */
+    public function replaceChildren(array $children): InnerNodeInterface
     {
         $this->children = $children;
+
         return $this;
     }
 
@@ -47,14 +60,14 @@ final class ListNode implements InnerNodeInterface
         switch ($this->tokenType) {
             case Token::T_OPEN_PARENTHESIS:
                 return '(';
-            case Token::T_OPEN_BRACKET:
-                return '[';
-            case Token::T_OPEN_BRACE:
-                return '{';
             case Token::T_FN:
                 return '|(';
+            case Token::T_OPEN_BRACKET:
+                return '[';
             case Token::T_ARRAY:
                 return '@[';
+            case Token::T_OPEN_BRACE:
+                return '{';
             case Token::T_TABLE:
                 return '@{';
             default:

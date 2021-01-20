@@ -5,9 +5,15 @@ declare(strict_types=1);
 namespace Phel\Exceptions;
 
 use Phel\Command\Repl\ColorStyle;
+use Phel\Command\Repl\ColorStyleInterface;
 use Phel\Compiler\Emitter\OutputEmitter\Munge;
-use Phel\Compiler\Emitter\OutputEmitter\SourceMap\SourceMapConsumer;
+use Phel\Compiler\Emitter\OutputEmitter\MungeInterface;
 use Phel\Compiler\Parser\ReadModel\CodeSnippet;
+use Phel\Exceptions\Extractor\FilePositionExtractor;
+use Phel\Exceptions\Extractor\FilePositionExtractorInterface;
+use Phel\Exceptions\Extractor\SourceMapExtractor;
+use Phel\Exceptions\Printer\ExceptionArgsPrinter;
+use Phel\Exceptions\Printer\ExceptionArgsPrinterInterface;
 use Phel\Lang\FnInterface;
 use Phel\Printer\Printer;
 use ReflectionClass;
@@ -15,46 +21,56 @@ use Throwable;
 
 final class TextExceptionPrinter implements ExceptionPrinterInterface
 {
-    private Printer $printer;
-    private ColorStyle $style;
-    private Munge $munge;
+    private ExceptionArgsPrinterInterface $exceptionArgsPrinter;
+    private ColorStyleInterface $style;
+    private MungeInterface $munge;
+    private FilePositionExtractorInterface $filePositionExtractor;
 
-    public static function readableWithStyle(): self
-    {
-        return new self(Printer::readable(), ColorStyle::withStyles(), new Munge());
-    }
-
-    private function __construct(Printer $printer, ColorStyle $style, Munge $munge)
-    {
-        $this->printer = $printer;
+    public function __construct(
+        ExceptionArgsPrinterInterface $exceptionArgsPrinter,
+        ColorStyleInterface $style,
+        MungeInterface $munge,
+        FilePositionExtractorInterface $filePositionExtractor
+    ) {
+        $this->exceptionArgsPrinter = $exceptionArgsPrinter;
         $this->style = $style;
         $this->munge = $munge;
+        $this->filePositionExtractor = $filePositionExtractor;
+    }
+
+    public static function create(): self
+    {
+        return new self(
+            new ExceptionArgsPrinter(Printer::readable()),
+            ColorStyle::withStyles(),
+            new Munge(),
+            new FilePositionExtractor(new SourceMapExtractor())
+        );
     }
 
     public function printException(PhelCodeException $e, CodeSnippet $codeSnippet): void
     {
         $eStartLocation = $e->getStartLocation() ?? $codeSnippet->getStartLocation();
         $eEndLocation = $e->getEndLocation() ?? $codeSnippet->getEndLocation();
-        $firstLine = $eStartLocation->getLine();
+        $eFirstLine = $eStartLocation->getLine();
 
         echo $this->style->blue($e->getMessage()) . "\n";
-        echo 'in ' . $eStartLocation->getFile() . ':' . $firstLine . "\n\n";
+        echo 'in ' . $eStartLocation->getFile() . ':' . $eFirstLine . "\n\n";
 
         $lines = explode("\n", $codeSnippet->getCode());
-        $endLineLength = strlen((string) $codeSnippet->getEndLocation()->getLine());
-        $padLength = $endLineLength - strlen((string) $codeSnippet->getStartLocation()->getLine());
+        $endLineLength = strlen((string)$codeSnippet->getEndLocation()->getLine());
+        $padLength = $endLineLength - strlen((string)$codeSnippet->getStartLocation()->getLine());
         foreach ($lines as $index => $line) {
-            echo str_pad((string) ($firstLine + $index), $padLength, ' ', STR_PAD_LEFT);
-            echo '| ';
-            echo $line;
-            echo "\n";
+            echo str_pad((string)($eFirstLine + $index), $padLength, ' ', STR_PAD_LEFT);
+            echo '| ', $line, "\n";
 
-            if ($eStartLocation->getLine() === $eEndLocation->getLine()) {
-                if ($eStartLocation->getLine() === $index + $codeSnippet->getStartLocation()->getLine()) {
-                    echo str_repeat(' ', $endLineLength + 2 + $eStartLocation->getColumn());
-                    echo $this->style->red(str_repeat('^', $eEndLocation->getColumn() - $eStartLocation->getColumn()));
-                    echo "\n";
-                }
+            $eStartLine = $eStartLocation->getLine();
+            if ($eStartLine === $eEndLocation->getLine()
+                && $eStartLine === $index + $codeSnippet->getStartLocation()->getLine()
+            ) {
+                echo str_repeat(' ', $endLineLength + 2 + $eStartLocation->getColumn());
+                echo $this->style->red(str_repeat('^', $eEndLocation->getColumn() - $eStartLocation->getColumn()));
+                echo "\n";
             }
         }
 
@@ -69,34 +85,25 @@ final class TextExceptionPrinter implements ExceptionPrinterInterface
     {
         $type = get_class($e);
         $msg = $e->getMessage();
-        $generatedLine = $e->getFile();
-        $generatedColumn = $e->getLine();
-        [$file, $line] = $this->getOriginalFilePosition($generatedLine, $generatedColumn);
+        $errorFile = $e->getFile();
+        $errorLine = $e->getLine();
+        $pos = $this->filePositionExtractor->getOriginal($errorFile, $errorLine);
 
         echo $this->style->blue("$type: $msg\n");
-        echo "in $file:$line (gen: $generatedLine:$generatedColumn)\n\n";
+        echo "in {$pos->filename()}:{$pos->line()} (gen: $errorFile:$errorLine)\n\n";
 
         foreach ($e->getTrace() as $i => $frame) {
             $class = $frame['class'] ?? null;
-            $generatedLine = $frame['file'];
-            $generatedColumn = $frame['line'];
+            $file = $frame['file'];
+            $line = $frame['line'];
 
             if ($class) {
                 $rf = new ReflectionClass($class);
                 if ($rf->implementsInterface(FnInterface::class)) {
                     $fnName = $this->munge->decodeNs($rf->getConstant('BOUND_TO'));
-                    $argParts = [];
-                    foreach ($frame['args'] as $arg) {
-                        $argParts[] = $this->printer->print($arg);
-                    }
-                    $argString = implode(' ', $argParts);
-                    if (count($argParts) > 0) {
-                        $argString = ' ' . $argString;
-                    }
-
-                    [$file, $line] = $this->getOriginalFilePosition($generatedLine, $generatedColumn);
-
-                    echo "#$i $file:$line (gen: $generatedLine:$generatedColumn) : ($fnName$argString)\n";
+                    $argString = $this->exceptionArgsPrinter->parseArgsAsString($frame['args']);
+                    $pos = $this->filePositionExtractor->getOriginal($file, $line);
+                    echo "#$i {$pos->filename()}:{$pos->line()} (gen: $file:$line) : ($fnName$argString)\n";
 
                     continue;
                 }
@@ -105,91 +112,8 @@ final class TextExceptionPrinter implements ExceptionPrinterInterface
             $class = $class ?? '';
             $type = $frame['type'] ?? '';
             $fn = $frame['function'];
-            $argString = $this->buildPhpArgsString($frame['args']);
-            echo "#$i $generatedLine($generatedColumn): $class$type$fn($argString)\n";
+            $argString = $this->exceptionArgsPrinter->buildPhpArgsString($frame['args']);
+            echo "#$i $file($line): $class$type$fn($argString)\n";
         }
-    }
-
-    /**
-     * @psalm-return array{0:string, 1:int}
-     */
-    private function getOriginalFilePosition(string $filename, int $line): array
-    {
-        $f = fopen($filename, 'r');
-        $phpPrefix = fgets($f);
-        $fileNameComment = fgets($f);
-        $sourceMapComment = fgets($f);
-
-        $originalFile = $filename;
-        $originalLine = $line;
-
-        if ($fileNameComment
-            && $fileNameComment[0] === '/'
-            && $fileNameComment[1] === '/'
-            && $fileNameComment[2] === ' '
-        ) {
-            $originalFile = trim(substr($fileNameComment, 3));
-
-            if ($sourceMapComment
-                && $sourceMapComment[0] === '/'
-                && $sourceMapComment[1] === '/'
-                && $sourceMapComment[2] === ' '
-            ) {
-                $mapping = trim(substr($sourceMapComment, 3));
-
-                $sourceMapConsumer = new SourceMapConsumer($mapping);
-                $originalLine = ($sourceMapConsumer->getOriginalLine($line - 1)) ?: $line;
-            }
-        }
-
-        return [$originalFile, $originalLine];
-    }
-
-    private function buildPhpArgsString(array $args): string
-    {
-        $result = [];
-        foreach ($args as $arg) {
-            $result[] = $this->buildPhpArg($arg);
-        }
-
-        return implode(', ', $result);
-    }
-
-    /**
-     * Converts a PHP type to a string.
-     *
-     * @param mixed $arg The argument
-     */
-    private function buildPhpArg($arg): string
-    {
-        if (is_null($arg)) {
-            return 'NULL';
-        }
-
-        if (is_string($arg)) {
-            $s = $arg;
-            if (strlen($s) > 15) {
-                $s = substr($s, 0, 15) . '...';
-            }
-            return "'" . $s . "'";
-        }
-
-        if (is_bool($arg)) {
-            return ($arg) ? 'true' : 'false';
-        }
-
-        if (is_resource($arg)) {
-            return 'Resource id #' . ((string) $arg);
-        }
-
-        if (is_array($arg)) {
-            return 'Array';
-        }
-
-        if (is_object($arg)) {
-            return 'Object(' . get_class($arg) . ')';
-        }
-
-        return (string) $arg;
     }
 }

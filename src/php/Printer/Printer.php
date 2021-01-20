@@ -28,7 +28,7 @@ use Phel\Printer\TypePrinter\TuplePrinter;
 use Phel\Printer\TypePrinter\TypePrinterInterface;
 use RuntimeException;
 
-final class Printer
+final class Printer implements PrinterInterface
 {
     private bool $readable;
 

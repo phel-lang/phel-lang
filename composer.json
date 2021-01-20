@@ -21,7 +21,8 @@
         "vimeo/psalm": "dev-master",
         "friendsofphp/php-cs-fixer": "^2.16",
         "infection/infection": "^0.16.3 || ^0.20.0",
-        "symfony/var-dumper": "^5.2"
+        "symfony/var-dumper": "^5.2",
+        "phpmetrics/phpmetrics": "^2.7"
     },
     "autoload": {
         "psr-4": {
@@ -47,8 +48,9 @@
         "test-compiler:coverage": "XDEBUG_MODE=coverage ./vendor/bin/phpunit --coverage-html data/coverage-report",
         "test-core": "./phel test",
         "psalm": "./vendor/bin/psalm",
-        "csfix": "./vendor/bin/php-cs-fixer fix",
-        "csrun": "./vendor/bin/php-cs-fixer fix --dry-run"
+        "csfix": "./vendor/bin/php-cs-fixer fix --allow-risky=yes",
+        "csrun": "./vendor/bin/php-cs-fixer fix --allow-risky=yes --dry-run",
+        "metrics-report": "./vendor/bin/phpmetrics --report-html=data/metrics-report src/php"
     },
     "bin": [
         "phel"

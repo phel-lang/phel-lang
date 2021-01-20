@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Phel\Compiler\Parser\ParserNode;
 
 use Phel\Compiler\Lexer\Token;
@@ -8,26 +10,37 @@ use Phel\Lang\SourceLocation;
 final class QuoteNode implements InnerNodeInterface
 {
     private int $tokenType;
-    private NodeInterface $expression;
     private SourceLocation $startLocation;
     private SourceLocation $endLocation;
+    private NodeInterface $expression;
 
-    public function __construct(int $tokenType, SourceLocation $startLocation, SourceLocation $endLocation, NodeInterface $expression)
-    {
+    public function __construct(
+        int $tokenType,
+        SourceLocation $startLocation,
+        SourceLocation $endLocation,
+        NodeInterface $expression
+    ) {
         $this->tokenType = $tokenType;
-        $this->expression = $expression;
         $this->startLocation = $startLocation;
         $this->endLocation = $endLocation;
+        $this->expression = $expression;
     }
 
+    /**
+     * @return NodeInterface[] $children
+     */
     public function getChildren(): array
     {
         return [$this->expression];
     }
 
-    public function replaceChildren($children): InnerNodeInterface
+    /**
+     * @param NodeInterface[] $children
+     */
+    public function replaceChildren(array $children): InnerNodeInterface
     {
         $this->expression = $children[0];
+
         return $this;
     }
 

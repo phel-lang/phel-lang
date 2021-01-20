@@ -33,7 +33,7 @@ final class CommandFactory implements CommandFactoryInterface
         return new ReplCommand(
             new ReplCommandSystemIo($this->currentDir . '.phel-repl-history'),
             $this->compilerFactory->createEvalCompiler($runtime->getEnv()),
-            TextExceptionPrinter::readableWithStyle(),
+            TextExceptionPrinter::create(),
             ColorStyle::withStyles()
         );
     }
