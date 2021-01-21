@@ -13,14 +13,14 @@ final class ReaderException extends PhelCodeException
 {
     private CodeSnippet $codeSnippet;
 
-    public static function forNode(NodeInterface $node, string $message): self
+    public static function forNode(NodeInterface $node, NodeInterface $root, string $message): self
     {
-        $codeSnippet = CodeSnippet::fromNode($node);
+        $codeSnippet = CodeSnippet::fromNode($root);
 
         return new self(
             $message,
-            $codeSnippet->getStartLocation(),
-            $codeSnippet->getEndLocation(),
+            $node->getStartLocation(),
+            $node->getEndLocation(),
             $codeSnippet
         );
     }

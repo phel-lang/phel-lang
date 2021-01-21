@@ -105,12 +105,12 @@ final class Parser implements ParserInterface
                     return $this->parseTableListNode($token, $tokenStream);
 
                 case Token::T_OPEN_BRACE:
-                    throw $this->createParserException($tokenStream, 'Unexpected token: {');
+                    throw $this->createParserException($tokenStream, $token, 'Unexpected token: {');
 
                 case Token::T_CLOSE_PARENTHESIS:
                 case Token::T_CLOSE_BRACKET:
                 case Token::T_CLOSE_BRACE:
-                    throw $this->createParserException($tokenStream, 'Unterminated list');
+                    throw $this->createParserException($tokenStream, $token, 'Unterminated list');
 
                 case Token::T_UNQUOTE_SPLICING:
                 case Token::T_UNQUOTE:
@@ -122,14 +122,21 @@ final class Parser implements ParserInterface
                     return $this->parseMetaNode($tokenStream);
 
                 case Token::T_EOF:
-                    throw $this->createParserException($tokenStream, 'Unterminated list');
+                    throw $this->createParserException($tokenStream, $token, 'Unterminated list');
 
                 default:
-                    throw $this->createParserException($tokenStream, 'Unhandled syntax token: ' . $token->getCode());
+                    throw $this->createParserException($tokenStream, $token, 'Unhandled syntax token: ' . $token->getCode());
             }
         }
 
-        throw $this->createParserException($tokenStream, 'Unterminated list');
+        // Throw exception differently because we may have not $token
+        $snippet = $tokenStream->getCodeSnippet();
+        throw new ParserException(
+            'Unterminated list',
+            $snippet,
+            $snippet->getStartLocation(),
+            $snippet->getEndLocation()
+        );
     }
 
     private function parseAtomNode(Token $token): AbstractAtomNode
@@ -149,13 +156,13 @@ final class Parser implements ParserInterface
                 ->createStringParser()
                 ->parse($token);
         } catch (StringParserException $e) {
-            throw $this->createParserException($tokenStream, $e->getMessage());
+            throw $this->createParserException($tokenStream, $token, $e->getMessage());
         }
     }
 
-    private function createParserException(TokenStream $tokenStream, string $message): ParserException
+    private function createParserException(TokenStream $tokenStream, Token $currentToken, string $message): ParserException
     {
-        return ParserException::forSnippet($tokenStream->getCodeSnippet(), $message);
+        return ParserException::forSnippet($tokenStream->getCodeSnippet(), $currentToken, $message);
     }
 
     /**

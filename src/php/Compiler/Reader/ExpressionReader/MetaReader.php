@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Phel\Compiler\Reader\ExpressionReader;
 
 use Phel\Compiler\Parser\ParserNode\MetaNode;
+use Phel\Compiler\Parser\ParserNode\NodeInterface;
 use Phel\Compiler\Reader\Reader;
 use Phel\Exceptions\ReaderException;
 use Phel\Lang\AbstractType;
@@ -25,23 +26,23 @@ final class MetaReader
     /**
      * @return AbstractType|string|float|int|bool
      */
-    public function read(MetaNode $node)
+    public function read(MetaNode $node, NodeInterface $root)
     {
         $metaExpression = $node->getMetaNode();
         $objectExpression = $node->getObjectNode();
 
-        $meta = $this->reader->readExpression($metaExpression);
+        $meta = $this->reader->readExpression($metaExpression, $root);
         if (is_string($meta) || $meta instanceof Symbol) {
             $meta = Table::fromKVs(new Keyword('tag'), $meta);
         } elseif ($meta instanceof Keyword) {
             $meta = Table::fromKVs($meta, true);
         } elseif (!$meta instanceof Table) {
-            throw ReaderException::forNode($node, 'Metadata must be a Symbol, String, Keyword or Table');
+            throw ReaderException::forNode($node, $root, 'Metadata must be a Symbol, String, Keyword or Table');
         }
-        $object = $this->reader->readExpression($objectExpression);
+        $object = $this->reader->readExpression($objectExpression, $root);
 
         if (!$object instanceof MetaInterface) {
-            throw ReaderException::forNode($node, 'Metadata can only applied to classes that implement MetaInterface');
+            throw ReaderException::forNode($node, $root, 'Metadata can only applied to classes that implement MetaInterface');
         }
 
         $objMeta = $object->getMeta();

@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Phel\Compiler\Reader\ExpressionReader;
 
 use Phel\Compiler\Parser\ParserNode\ListNode;
+use Phel\Compiler\Parser\ParserNode\NodeInterface;
 use Phel\Compiler\Reader\Reader;
 use Phel\Lang\Symbol;
 use Phel\Lang\Tuple;
@@ -18,9 +19,9 @@ final class ListFnReader
         $this->reader = $reader;
     }
 
-    public function read(ListNode $node, ?array &$fnArgs): Tuple
+    public function read(ListNode $node, ?array &$fnArgs, NodeInterface $root): Tuple
     {
-        $body = (new ListReader($this->reader))->read($node);
+        $body = (new ListReader($this->reader))->read($node, $root);
         $params = $this->extractParams($fnArgs);
         $fnArgs = null;
 

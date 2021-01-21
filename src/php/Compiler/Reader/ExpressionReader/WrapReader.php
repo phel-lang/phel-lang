@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Phel\Compiler\Reader\ExpressionReader;
 
+use Phel\Compiler\Parser\ParserNode\NodeInterface;
 use Phel\Compiler\Parser\ParserNode\QuoteNode;
 use Phel\Compiler\Reader\Reader;
 use Phel\Lang\Symbol;
@@ -18,9 +19,9 @@ final class WrapReader
         $this->reader = $reader;
     }
 
-    public function read(QuoteNode $node, string $wrapFn): Tuple
+    public function read(QuoteNode $node, string $wrapFn, NodeInterface $root): Tuple
     {
-        $expression = $this->reader->readExpression($node->getExpression());
+        $expression = $this->reader->readExpression($node->getExpression(), $root);
 
         $tuple = new Tuple([Symbol::create($wrapFn), $expression]);
         $tuple->setStartLocation($node->getStartLocation());

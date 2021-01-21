@@ -40,6 +40,6 @@ final class ListParser
             $acc[] = $this->parser->readExpression($tokenStream);
         }
 
-        throw ParserException::forSnippet($tokenStream->getCodeSnippet(), 'Unterminated list');
+        throw ParserException::forSnippet($tokenStream->getCodeSnippet(), $tokenStream->current(), 'Unterminated list');
     }
 }

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Phel\Compiler\Reader\ExpressionReader;
 
+use Phel\Compiler\Parser\ParserNode\NodeInterface;
 use Phel\Compiler\Parser\ParserNode\QuoteNode;
 use Phel\Compiler\Reader\QuasiquoteTransformerInterface;
 use Phel\Compiler\Reader\Reader;
@@ -23,9 +24,9 @@ final class QuoasiquoteReader
     /**
      * @return AbstractType|string|float|int|bool|null
      */
-    public function read(QuoteNode $node)
+    public function read(QuoteNode $node, NodeInterface $root)
     {
-        $expression = $this->reader->readExpression($node->getExpression());
+        $expression = $this->reader->readExpression($node->getExpression(), $root);
         $result = $this->quasiquoteTransformer->transform($expression);
 
         if ($result instanceof AbstractType) {
