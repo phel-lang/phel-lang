@@ -46,6 +46,7 @@
         ],
         "test-compiler": "./vendor/bin/phpunit",
         "test-compiler:coverage": "XDEBUG_MODE=coverage ./vendor/bin/phpunit --coverage-html data/coverage-report",
+        "test-infection": "XDEBUG_MODE=coverage ./vendor/bin/infection",
         "test-core": "./phel test",
         "psalm": "./vendor/bin/psalm",
         "csfix": "./vendor/bin/php-cs-fixer fix --allow-risky=yes",
