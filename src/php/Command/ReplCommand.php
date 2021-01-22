@@ -66,7 +66,7 @@ final class ReplCommand
                     break;
                 }
             } catch (Throwable $e) {
-                $this->io->output($e->getMessage() . PHP_EOL);
+                $this->io->output($e->getTraceAsString() . PHP_EOL);
             }
         }
 
