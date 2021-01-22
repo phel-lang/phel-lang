@@ -280,8 +280,8 @@
   (is (= false (false? true)) "(false? true)"))
 
 (deftest test-str-contains?
-   (is (true? (str-contains? "abc" "a")))
-   (is (false? (str-contains? "abc" "d"))))
+  (is (true? (str-contains? "abc" "a")))
+  (is (false? (str-contains? "abc" "d"))))
 
 (deftest test-compare
   (is (= -1 (compare 1 2)) "(compare 1 2)")
@@ -453,22 +453,22 @@
 
 (deftest test-remove
   (let [xs @[1 2 3 4]
-      removed (remove xs 2)]
+        removed (remove xs 2)]
     (is (= @[1 2] xs) "remove: elements are removed")
     (is (= @[3 4] removed) "remove: correct value is returned"))
 
   (let [xs (php/array 1 2 3 4)
-      removed (remove xs 2)]
+        removed (remove xs 2)]
     (is (= (php/array 1 2) xs) "remove on PHP array: elements are removed")
     (is (= (php/array 3 4) removed) "remove on PHP array: correct value is returned"))
 
   (let [xs @[1 2 3 4]
-      removed (remove xs 2 1)]
+        removed (remove xs 2 1)]
     (is (= @[1 2 4] xs) "remove with length: elements are removed")
     (is (= @[3] removed) "remove with length: correct value is returned"))
 
   (let [xs (php/array 1 2 3 4)
-      removed (remove xs 2 1)]
+        removed (remove xs 2 1)]
     (is (= (php/array 1 2 4) xs) "remove with length on PHP array: elements are removed")
     (is (= (php/array 3) removed) "remove with length on PHP array: correct value is returned")))
 
@@ -641,7 +641,7 @@
 
 (deftest test-group-by
   (is (= @{1 @["a"] 2 @["as" "aa"] 3 @["asd"] 4 @["asdf" "qwer"]}
-            (group-by php/strlen ["a" "as" "asd" "aa" "asdf" "qwer"])) "group-by"))
+         (group-by php/strlen ["a" "as" "asd" "aa" "asdf" "qwer"])) "group-by"))
 
 (deftest test-zipcoll
   (is (= @{:a 1 :b 2 :c 3} (zipcoll [:a :b :c] [1 2 3])) "zipcoll"))
@@ -669,16 +669,14 @@
   (is (= @[[1 2] [3 4]] (partition 2 [1 2 3 4 5])) "partition-2 five elements"))
 
 (deftest test-tree-seq
-  (is (= @[
-    [[1 2 [3]] [4]]
-    [1 2 [3]]
-    1
-    2
-    [3]
-    3
-    [4]
-    4
-  ] (tree-seq indexed? identity [[1 2 [3]] [4]])) "tree-seq"))
+  (is (= @[[[1 2 [3]] [4]]
+           [1 2 [3]]
+           1
+           2
+           [3]
+           3
+           [4]
+           4] (tree-seq indexed? identity [[1 2 [3]] [4]])) "tree-seq"))
 
 (deftest test-flatten
   (is (= @[1 2 3 4 5 6 7] (flatten [1 [2 [3 4 [5]] 6 [7]]])) "flatten")
@@ -718,7 +716,7 @@
 (deftest test-difference
   (is (= (set 1 2) (difference (set 1 2) (set 0 3))) "set difference")
   (is (= (set) (difference (set 1 2) (set 0 1 2 3))) "set difference")
-  (is (= (set 0 3) (difference (set 0 1 2 3) (set 1 2 ))) "set difference with common values"))
+  (is (= (set 0 3) (difference (set 0 1 2 3) (set 1 2))) "set difference with common values"))
 
 (deftest test-symmetric-difference
   (is (= (set 0 1 2 3) (symmetric-difference (set 1 2) (set 0 3))) "set symmetric-difference")

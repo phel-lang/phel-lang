@@ -35,6 +35,7 @@ class IndentRule implements RuleInterface
             new InnerIndenter('defn-', 0),
             new InnerIndenter('defmacro', 0),
             new InnerIndenter('defmacro-', 0),
+            new InnerIndenter('deftest', 0),
             new InnerIndenter('fn', 0),
 
             new BlockIndenter('catch', 2),
