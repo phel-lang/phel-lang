@@ -1,5 +1,5 @@
 {
-    "name": "phel/phel",
+    "name": "phel-lang/phel",
     "type": "library",
     "description": "Phel is a function programming language that compiles to PHP",
     "keywords": ["phel","lisp","functional","language"],
