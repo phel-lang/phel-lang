@@ -33,6 +33,6 @@ $commandFacade = new CommandFacade(
 try {
     $facade = new PhelFacade($commandFacade);
     $facade->runCommand($argv[1], array_slice($argv, 2));
-} catch (Exception $e) {
+} catch (Throwable $e) {
     print $e->getMessage() . PHP_EOL;
 }

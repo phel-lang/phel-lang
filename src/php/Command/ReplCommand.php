@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Phel\Command;
 
-use Phel\Command\Repl\ColorStyle;
+use Phel\Command\Repl\ColorStyleInterface;
 use Phel\Command\Repl\ReplCommandIoInterface;
 use Phel\Compiler\EvalCompilerInterface;
 use Phel\Exceptions\CompilerException;
@@ -19,16 +19,20 @@ final class ReplCommand
 {
     public const COMMAND_NAME = 'repl';
 
+    private const ENABLE_BRACKETED_PASTE = "\e[?2004h";
+    private const DISABLE_BRACKETED_PASTE = "\e[?2004l";
+    private const PROMPT = '>>> ';
+
     private ReplCommandIoInterface $io;
     private EvalCompilerInterface $compiler;
     private ExceptionPrinterInterface $exceptionPrinter;
-    private ColorStyle $style;
+    private ColorStyleInterface $style;
 
     public function __construct(
         ReplCommandIoInterface $io,
         EvalCompilerInterface $compiler,
         ExceptionPrinterInterface $exceptionPrinter,
-        ColorStyle $style
+        ColorStyleInterface $style
     ) {
         $this->io = $io;
         $this->compiler = $compiler;
@@ -42,11 +46,7 @@ final class ReplCommand
         $this->io->output($this->style->yellow("Welcome to the Phel Repl\n"));
         $this->io->output('Type "exit" or press Ctrl-D to exit.' . "\n");
 
-        try {
-            $this->loopReadLineAndAnalyze();
-        } catch (ExitException $e) {
-            $this->io->output($e->getMessage());
-        }
+        $this->loopReadLineAndAnalyze();
     }
 
     /**
@@ -55,16 +55,22 @@ final class ReplCommand
     private function loopReadLineAndAnalyze(): void
     {
         while (true) {
-            $this->io->output("\e[?2004h"); // Enable bracketed paste
-            $input = $this->io->readline('>>> ');
-            $this->io->output("\e[?2004l"); // Disable bracketed paste
-
             try {
-                $this->checkInputAndAnalyze($input);
+                $this->io->output(self::ENABLE_BRACKETED_PASTE);
+                $input = $this->io->readline(self::PROMPT);
+                $this->io->output(self::DISABLE_BRACKETED_PASTE);
+
+                try {
+                    $this->checkInputAndAnalyze($input);
+                } catch (ExitException $e) {
+                    break;
+                }
             } catch (Throwable $e) {
-                $this->io->output($e->getMessage());
+                $this->io->output($e->getMessage() . PHP_EOL);
             }
         }
+
+        $this->style->yellow("Bye!\n");
     }
 
     /**
@@ -72,12 +78,8 @@ final class ReplCommand
      */
     private function checkInputAndAnalyze(?string $input): void
     {
-        if (null === $input) {
-            throw new ExitException($this->style->yellow("Bye from Ctrl-D!\n"));
-        }
-
-        if ('exit' === $input) {
-            throw new ExitException($this->style->yellow("Bye!\n"));
+        if (null === $input || 'exit' === $input) {
+            throw new ExitException();
         }
 
         if ('' === $input) {
