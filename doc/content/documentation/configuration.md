@@ -75,7 +75,7 @@ $rt = require __DIR__ .'/../vendor/PhelRuntime.php';
 $rt->loadNs('hello-world\boot');
 ```
 
-The source of [Phel's composer plugin](https://github.com/jenshaase/phel-composer-plugin) can be found in a separate repository.
+The source of [Phel's composer plugin](https://github.com/phel-lang/phel-composer-plugin) can be found in a separate repository.
 
 
 ## Manually initializing and configuring the Runtime
