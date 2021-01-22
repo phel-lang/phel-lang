@@ -91,7 +91,7 @@ final class HtmlExceptionPrinter implements ExceptionPrinterInterface
                 $rf = new ReflectionClass($class);
                 if ($rf->implementsInterface(FnInterface::class)) {
                     $fnName = $this->munge->decodeNs($rf->getConstant('BOUND_TO'));
-                    $argString = $this->exceptionArgsPrinter->parseArgsAsString($frame['args']);
+                    $argString = $this->exceptionArgsPrinter->parseArgsAsString($frame['args'] ?? []);
                     echo "<li>#$i $file($line): ($fnName$argString)</li>";
 
                     continue;
