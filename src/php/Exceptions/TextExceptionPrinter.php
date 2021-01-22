@@ -101,7 +101,7 @@ final class TextExceptionPrinter implements ExceptionPrinterInterface
                 $rf = new ReflectionClass($class);
                 if ($rf->implementsInterface(FnInterface::class)) {
                     $fnName = $this->munge->decodeNs($rf->getConstant('BOUND_TO'));
-                    $argString = $this->exceptionArgsPrinter->parseArgsAsString($frame['args']);
+                    $argString = $this->exceptionArgsPrinter->parseArgsAsString($frame['args'] ?? []);
                     $pos = $this->filePositionExtractor->getOriginal($file, $line);
                     echo "#$i {$pos->filename()}:{$pos->line()} (gen: $file:$line) : ($fnName$argString)\n";
 
@@ -112,7 +112,7 @@ final class TextExceptionPrinter implements ExceptionPrinterInterface
             $class = $class ?? '';
             $type = $frame['type'] ?? '';
             $fn = $frame['function'];
-            $argString = $this->exceptionArgsPrinter->buildPhpArgsString($frame['args']);
+            $argString = $this->exceptionArgsPrinter->buildPhpArgsString($frame['args'] ?? []);
             echo "#$i $file($line): $class$type$fn($argString)\n";
         }
     }
