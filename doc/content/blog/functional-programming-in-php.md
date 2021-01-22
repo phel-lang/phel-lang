@@ -130,7 +130,7 @@ class MyProgram {
 
 A big disadvantage of this approach is, that we have to resolve all conflicting function names ourself. Not only for public methods but also for private methods. This becomes next to impossible if the program grows.
 
-A combination of the class module approach and the trait module approach would be a good solution to get started with function programming in PHP. However, the trick with the magic method `_get` cannot be used for the class module approach, since PHP has no magic method for static properties.
+A combination of the class module approach and the trait module approach would be a good solution to get started with functional programming in PHP. However, the trick with the magic method `_get` cannot be used for the class module approach, since PHP has no magic method for static properties.
 
 ## Alternatives
 
@@ -138,4 +138,4 @@ One last alternative is to use a language that is functional and compiles to PHP
 
 ## Introducing Phel
 
-Since I didn't found a good solution for this problem, I used my coronavirus spare time to solve it by myself. This is what turns out to be Phel. Phel is a function programming language that compiles to PHP. It is a dialect of Lisp inspired by [Clojure](https://clojure.org/) and [Janet](https://janet-lang.org/). While the status of Phel is currently alpha, it is fairly complete. If you want to try it, go ahead and read the [Getting started guide](/documentation/getting-started/). I'm looking for your feedback.
+Since I didn't found a good solution for this problem, I used my coronavirus spare time to solve it by myself. This is what turns out to be Phel. Phel is a functional programming language that compiles to PHP. It is a dialect of Lisp inspired by [Clojure](https://clojure.org/) and [Janet](https://janet-lang.org/). While the status of Phel is currently alpha, it is fairly complete. If you want to try it, go ahead and read the [Getting started guide](/documentation/getting-started/). I'm looking for your feedback.
