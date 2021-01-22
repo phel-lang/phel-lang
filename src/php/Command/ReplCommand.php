@@ -58,7 +58,12 @@ final class ReplCommand
             $this->io->output("\e[?2004h"); // Enable bracketed paste
             $input = $this->io->readline('>>> ');
             $this->io->output("\e[?2004l"); // Disable bracketed paste
-            $this->checkInputAndAnalyze($input);
+
+            try {
+                $this->checkInputAndAnalyze($input);
+            } catch (Throwable $e) {
+                $this->io->output($e->getMessage());
+            }
         }
     }
 
