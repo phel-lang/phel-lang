@@ -4,16 +4,24 @@ declare(strict_types=1);
 
 namespace PhelTest\Unit\Formatter\Rules;
 
-use Phel\Compiler\CompilerFactory;
-use Phel\Compiler\Lexer\Lexer;
-use Phel\Compiler\Parser\ParserNode\NodeInterface;
-use Phel\Formatter\Rules\RemoveTrailingWhitespaceRule;
-use Phel\Lang\Symbol;
+use Phel\Compiler\CompilerFactoryInterface;
+use Phel\Formatter\FormatterFactory;
 use PHPUnit\Framework\TestCase;
 
 final class RemoveTrailingWhitespaceRuleTest extends TestCase
 {
-    public function testEmptyLine()
+    use RuleParserTrait;
+
+    private FormatterFactory $formatterFactory;
+
+    public function setUp(): void
+    {
+        $this->formatterFactory = new FormatterFactory(
+            $this->createMock(CompilerFactoryInterface::class)
+        );
+    }
+
+    public function testEmptyLine(): void
     {
         $this->assertReformatted(
             ['  '],
@@ -21,7 +29,7 @@ final class RemoveTrailingWhitespaceRuleTest extends TestCase
         );
     }
 
-    public function testAfterList()
+    public function testAfterList(): void
     {
         $this->assertReformatted(
             ['(foo bar) '],
@@ -29,7 +37,7 @@ final class RemoveTrailingWhitespaceRuleTest extends TestCase
         );
     }
 
-    public function testBetweenList()
+    public function testBetweenList(): void
     {
         $this->assertReformatted(
             [
@@ -43,7 +51,7 @@ final class RemoveTrailingWhitespaceRuleTest extends TestCase
         );
     }
 
-    public function testInsideList()
+    public function testInsideList(): void
     {
         $this->assertReformatted(
             [
@@ -59,29 +67,19 @@ final class RemoveTrailingWhitespaceRuleTest extends TestCase
         );
     }
 
-    private function assertReformatted(array $actualLines, array $expectedLines)
+    private function assertReformatted(array $actualLines, array $expectedLines): void
     {
-        $this->assertEquals(
+        self::assertEquals(
             $expectedLines,
             explode("\n", $this->removeTrailingWhitespace(implode("\n", $actualLines)))
         );
     }
 
-    private function parse(string $string): NodeInterface
+    private function removeTrailingWhitespace(string $string): string
     {
-        Symbol::resetGen();
-        $parser = (new CompilerFactory())->createParser();
-        $tokenStream = (new Lexer())->lexString($string);
-
-        return $parser->parseAll($tokenStream);
-    }
-
-    private function removeTrailingWhitespace(string $string)
-    {
-        $node = $this->parse($string);
-        $rule = new RemoveTrailingWhitespaceRule();
-        $transformedNode = $rule->transform($node);
-
-        return $transformedNode->getCode();
+        return $this->formatterFactory
+            ->createRemoveTrailingWhitespaceRule()
+            ->transform($this->parseStringToNode($string))
+            ->getCode();
     }
 }

@@ -10,7 +10,7 @@ use PHPUnit\Framework\TestCase;
 
 final class ZipperTest extends TestCase
 {
-    public function testConstruct()
+    public function testConstruct(): void
     {
         $tree = [[1, 2], 3, [4, 5]];
         $zipper = ArrayZipper::createRoot($tree);
@@ -21,7 +21,7 @@ final class ZipperTest extends TestCase
         $this->assertTrue($zipper->isTop());
     }
 
-    public function testDownChild()
+    public function testDownChild(): void
     {
         $tree = [[1, 2], 3, [4, 5]];
         $zipper = ArrayZipper::createRoot($tree);
@@ -32,7 +32,7 @@ final class ZipperTest extends TestCase
         $this->assertEquals([1, 2], $down->getNode());
     }
 
-    public function testDownLeaf()
+    public function testDownLeaf(): void
     {
         $tree = [[1, 2], 3, [4, 5]];
         $zipper = ArrayZipper::createRoot($tree);
@@ -43,7 +43,7 @@ final class ZipperTest extends TestCase
         $this->assertEquals(1, $down->getNode());
     }
 
-    public function testDownNoChild()
+    public function testDownNoChild(): void
     {
         $this->expectException(ZipperException::class);
 
@@ -53,7 +53,7 @@ final class ZipperTest extends TestCase
         $zipper->down()->down();
     }
 
-    public function testDownOnLeaf()
+    public function testDownOnLeaf(): void
     {
         $this->expectException(ZipperException::class);
 
@@ -63,7 +63,7 @@ final class ZipperTest extends TestCase
         $zipper->down()->down()->down();
     }
 
-    public function testUp()
+    public function testUp(): void
     {
         $tree = [[1, 2], 3, [4, 5]];
         $zipper = ArrayZipper::createRoot($tree);
@@ -74,7 +74,7 @@ final class ZipperTest extends TestCase
         $this->assertEquals([1, 2], $down->getNode());
     }
 
-    public function testUpOnRoot()
+    public function testUpOnRoot(): void
     {
         $this->expectException(ZipperException::class);
 
@@ -84,7 +84,7 @@ final class ZipperTest extends TestCase
         $down = $zipper->up();
     }
 
-    public function testLeftOnRoot()
+    public function testLeftOnRoot(): void
     {
         $this->expectException(ZipperException::class);
 
@@ -93,7 +93,7 @@ final class ZipperTest extends TestCase
         $zipper->left();
     }
 
-    public function testLeftOnLeftmost()
+    public function testLeftOnLeftmost(): void
     {
         $this->expectException(ZipperException::class);
 
@@ -102,7 +102,7 @@ final class ZipperTest extends TestCase
         $zipper->down()->left();
     }
 
-    public function testLeftMost()
+    public function testLeftMost(): void
     {
         $tree = [[1, 2], 3, [4, 5]];
         $zipper = ArrayZipper::createRoot($tree);
@@ -112,7 +112,7 @@ final class ZipperTest extends TestCase
         $this->assertEquals([1, 2], $leftMost->getNode());
     }
 
-    public function testRightOnRoot()
+    public function testRightOnRoot(): void
     {
         $this->expectException(ZipperException::class);
 
@@ -121,7 +121,7 @@ final class ZipperTest extends TestCase
         $zipper->right();
     }
 
-    public function testRightOnRightMost()
+    public function testRightOnRightMost(): void
     {
         $this->expectException(ZipperException::class);
 
@@ -130,7 +130,7 @@ final class ZipperTest extends TestCase
         $zipper->down()->right()->right()->right();
     }
 
-    public function testRightMost()
+    public function testRightMost(): void
     {
         $tree = [[1, 2], 3, [4, 5]];
         $zipper = ArrayZipper::createRoot($tree);
@@ -140,7 +140,7 @@ final class ZipperTest extends TestCase
         $this->assertEquals([4, 5], $rightMost->getNode());
     }
 
-    public function testNext()
+    public function testNext(): void
     {
         $tree = [[1, 2], 3, [4, 5]];
         $zipper = ArrayZipper::createRoot($tree);
@@ -166,7 +166,7 @@ final class ZipperTest extends TestCase
         $this->assertEquals([[1, 2], 3, [4, 5]], $next->getNode());
     }
 
-    public function testPrev()
+    public function testPrev(): void
     {
         $tree = [[1, 2], 3, [4, 5]];
         $zipper = ArrayZipper::createRoot($tree);
@@ -195,7 +195,7 @@ final class ZipperTest extends TestCase
         $this->assertEquals([[1, 2], 3, [4, 5]], $prev->getNode());
     }
 
-    public function testInsertLeft()
+    public function testInsertLeft(): void
     {
         $tree = [[1, 2], 3, [4, 5]];
         $zipper = ArrayZipper::createRoot($tree);
@@ -206,7 +206,7 @@ final class ZipperTest extends TestCase
         );
     }
 
-    public function testInsertLeftOnTop()
+    public function testInsertLeftOnTop(): void
     {
         $this->expectException(Exception::class);
 
@@ -215,7 +215,7 @@ final class ZipperTest extends TestCase
         $zipper->insertLeft(0);
     }
 
-    public function testInsertRight()
+    public function testInsertRight(): void
     {
         $tree = [[1, 2], 3, [4, 5]];
         $zipper = ArrayZipper::createRoot($tree);
@@ -226,7 +226,7 @@ final class ZipperTest extends TestCase
         );
     }
 
-    public function testInsertRightOnTop()
+    public function testInsertRightOnTop(): void
     {
         $this->expectException(Exception::class);
 
@@ -235,7 +235,7 @@ final class ZipperTest extends TestCase
         $zipper->insertRight(0);
     }
 
-    public function testReplace()
+    public function testReplace(): void
     {
         $tree = [[1, 2], 3, [4, 5]];
         $zipper = ArrayZipper::createRoot($tree);
@@ -246,7 +246,7 @@ final class ZipperTest extends TestCase
         );
     }
 
-    public function testInsertChild()
+    public function testInsertChild(): void
     {
         $tree = [[1, 2], 3, [4, 5]];
         $zipper = ArrayZipper::createRoot($tree);
@@ -257,7 +257,7 @@ final class ZipperTest extends TestCase
         );
     }
 
-    public function testAppendChild()
+    public function testAppendChild(): void
     {
         $tree = [[1, 2], 3, [4, 5]];
         $zipper = ArrayZipper::createRoot($tree);
@@ -268,7 +268,7 @@ final class ZipperTest extends TestCase
         );
     }
 
-    public function testRemoveInner()
+    public function testRemoveInner(): void
     {
         $tree = [[1, 2], 3, [4, 5]];
         $zipper = ArrayZipper::createRoot($tree);
@@ -279,7 +279,7 @@ final class ZipperTest extends TestCase
         );
     }
 
-    public function testRemoveLeftMost()
+    public function testRemoveLeftMost(): void
     {
         $tree = [[1, 2], 3, [4, 5]];
         $zipper = ArrayZipper::createRoot($tree);
@@ -290,7 +290,7 @@ final class ZipperTest extends TestCase
         );
     }
 
-    public function testRemoveOnRoot()
+    public function testRemoveOnRoot(): void
     {
         $this->expectException(Exception::class);
 

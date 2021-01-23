@@ -7,7 +7,7 @@ namespace PhelTest\Unit\Formatter;
 use Phel\Formatter\AbstractZipper;
 
 /** @extends AbstractZipper<array<int>> */
-class ArrayZipper extends AbstractZipper
+final class ArrayZipper extends AbstractZipper
 {
     public function isBranch(): bool
     {
