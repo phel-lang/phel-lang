@@ -8,7 +8,7 @@ use Phel\Compiler\Parser\ParserNode\SymbolNode;
 use Phel\Formatter\ParseTreeZipper;
 use Phel\Lang\Symbol;
 
-class InnerIndenter implements IndenterInterface
+final class InnerIndenter implements IndenterInterface
 {
     private int $depth;
     private string $symbol;

@@ -7,33 +7,28 @@ namespace Phel\Formatter;
 use Phel\Compiler\Lexer\LexerInterface;
 use Phel\Compiler\Parser\ParserInterface;
 use Phel\Compiler\Parser\ParserNode\NodeInterface;
-use Phel\Formatter\Rules\IndentRule;
-use Phel\Formatter\Rules\RemoveSurroundingWhitespaceRule;
-use Phel\Formatter\Rules\RemoveTrailingWhitespaceRule;
 use Phel\Formatter\Rules\RuleInterface;
-use Phel\Formatter\Rules\UnindentRule;
 
-class Formatter
+final class Formatter implements FormatterInterface
 {
+    public const DEFAULT_SOURCE = 'string';
+
     private LexerInterface $lexer;
     private ParserInterface $parser;
     /** @var RuleInterface[] */
-    private array $rules = [];
+    private array $rules;
 
-    public const DEFAULT_SOURCE = 'string';
-
+    /**
+     * @param RuleInterface[] $rules
+     */
     public function __construct(
         LexerInterface $lexer,
-        ParserInterface $parser
+        ParserInterface $parser,
+        array $rules
     ) {
         $this->lexer = $lexer;
         $this->parser = $parser;
-        $this->rules = [
-            new RemoveSurroundingWhitespaceRule(),
-            new UnindentRule(),
-            new IndentRule(),
-            new RemoveTrailingWhitespaceRule(),
-        ];
+        $this->rules = $rules;
     }
 
     public function formatFile(string $filename): void
@@ -43,7 +38,7 @@ class Formatter
         file_put_contents($filename, $formattedCode);
     }
 
-    public function formatString(string $string, string $source = self::DEFAULT_SOURCE): string
+    private function formatString(string $string, string $source = self::DEFAULT_SOURCE): string
     {
         $tokenStream = $this->lexer->lexString($string, $source);
         $fileNode = $this->parser->parseAll($tokenStream);
@@ -52,7 +47,7 @@ class Formatter
         return $formattedNode->getCode();
     }
 
-    public function formatNode(NodeInterface $node): NodeInterface
+    private function formatNode(NodeInterface $node): NodeInterface
     {
         $formattedNode = $node;
         foreach ($this->rules as $rule) {

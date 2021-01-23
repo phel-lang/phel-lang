@@ -11,7 +11,7 @@ use Phel\Formatter\ParseTreeZipper;
 /**
  * This rule removes all identions. If is used a a preprocessor for the IndentRule.
  */
-class UnindentRule implements RuleInterface
+final class UnindentRule implements RuleInterface
 {
     public function transform(NodeInterface $node): NodeInterface
     {

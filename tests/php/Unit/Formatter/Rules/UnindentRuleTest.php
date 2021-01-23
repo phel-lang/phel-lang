@@ -4,16 +4,24 @@ declare(strict_types=1);
 
 namespace PhelTest\Unit\Formatter\Rules;
 
-use Phel\Compiler\CompilerFactory;
-use Phel\Compiler\Lexer\Lexer;
-use Phel\Compiler\Parser\ParserNode\NodeInterface;
-use Phel\Formatter\Rules\UnindentRule;
-use Phel\Lang\Symbol;
+use Phel\Compiler\CompilerFactoryInterface;
+use Phel\Formatter\FormatterFactory;
 use PHPUnit\Framework\TestCase;
 
 final class UnindentRuleTest extends TestCase
 {
-    public function testListUnindention()
+    use RuleParserTrait;
+
+    private FormatterFactory $formatterFactory;
+
+    public function setUp(): void
+    {
+        $this->formatterFactory = new FormatterFactory(
+            $this->createMock(CompilerFactoryInterface::class)
+        );
+    }
+
+    public function testListUnindention(): void
     {
         $this->assertUnindent(
             [
@@ -29,7 +37,7 @@ final class UnindentRuleTest extends TestCase
         );
     }
 
-    public function testListUnindentionWithComment()
+    public function testListUnindentionWithComment(): void
     {
         $this->assertUnindent(
             [
@@ -45,29 +53,19 @@ final class UnindentRuleTest extends TestCase
         );
     }
 
-    private function assertUnindent(array $actualLines, array $expectedLines)
+    private function assertUnindent(array $actualLines, array $expectedLines): void
     {
-        $this->assertEquals(
+        self::assertEquals(
             $expectedLines,
             explode("\n", $this->unindent(implode("\n", $actualLines)))
         );
     }
 
-    private function parse(string $string): NodeInterface
+    private function unindent(string $string): string
     {
-        Symbol::resetGen();
-        $parser = (new CompilerFactory())->createParser();
-        $tokenStream = (new Lexer())->lexString($string);
-
-        return $parser->parseNext($tokenStream);
-    }
-
-    private function unindent(string $string)
-    {
-        $node = $this->parse($string);
-        $rule = new UnindentRule();
-        $transformedNode = $rule->transform($node);
-
-        return $transformedNode->getCode();
+        return $this->formatterFactory
+            ->createUnindentRule()
+            ->transform($this->parseStringToNode($string))
+            ->getCode();
     }
 }

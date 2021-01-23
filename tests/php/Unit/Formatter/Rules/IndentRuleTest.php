@@ -4,16 +4,24 @@ declare(strict_types=1);
 
 namespace PhelTest\Unit\Formatter\Rules;
 
-use Phel\Compiler\CompilerFactory;
-use Phel\Compiler\Lexer\Lexer;
-use Phel\Compiler\Parser\ParserNode\NodeInterface;
-use Phel\Formatter\Rules\IndentRule;
-use Phel\Lang\Symbol;
+use Phel\Compiler\CompilerFactoryInterface;
+use Phel\Formatter\FormatterFactory;
 use PHPUnit\Framework\TestCase;
 
 final class IndentRuleTest extends TestCase
 {
-    public function testListIndention1()
+    use RuleParserTrait;
+
+    private FormatterFactory $formatterFactory;
+
+    public function setUp(): void
+    {
+        $this->formatterFactory = new FormatterFactory(
+            $this->createMock(CompilerFactoryInterface::class)
+        );
+    }
+
+    public function testListIndention1(): void
     {
         $this->assertIndent(
             [
@@ -29,7 +37,7 @@ final class IndentRuleTest extends TestCase
         );
     }
 
-    public function testListIndention2()
+    public function testListIndention2(): void
     {
         $this->assertIndent(
             [
@@ -45,7 +53,7 @@ final class IndentRuleTest extends TestCase
         );
     }
 
-    public function testBlockIndentionIf()
+    public function testBlockIndentionIf(): void
     {
         $this->assertIndent(
             [
@@ -61,7 +69,7 @@ final class IndentRuleTest extends TestCase
         );
     }
 
-    public function testBlockIndentionDo()
+    public function testBlockIndentionDo(): void
     {
         $this->assertIndent(
             [
@@ -77,7 +85,7 @@ final class IndentRuleTest extends TestCase
         );
     }
 
-    public function testBlockIndentionDo2()
+    public function testBlockIndentionDo2(): void
     {
         $this->assertIndent(
             [
@@ -91,7 +99,7 @@ final class IndentRuleTest extends TestCase
         );
     }
 
-    public function testBlockIndentionCase()
+    public function testBlockIndentionCase(): void
     {
         $this->assertIndent(
             [
@@ -107,7 +115,7 @@ final class IndentRuleTest extends TestCase
         );
     }
 
-    public function testDefIndention()
+    public function testDefIndention(): void
     {
         $this->assertIndent(
             [
@@ -121,7 +129,7 @@ final class IndentRuleTest extends TestCase
         );
     }
 
-    public function testDefnIndention()
+    public function testDefnIndention(): void
     {
         $this->assertIndent(
             [
@@ -135,7 +143,7 @@ final class IndentRuleTest extends TestCase
         );
     }
 
-    public function testDefnIndention2()
+    public function testDefnIndention2(): void
     {
         $this->assertIndent(
             [
@@ -151,7 +159,7 @@ final class IndentRuleTest extends TestCase
         );
     }
 
-    public function testLet()
+    public function testLet(): void
     {
         $this->assertIndent(
             [
@@ -167,7 +175,7 @@ final class IndentRuleTest extends TestCase
         );
     }
 
-    public function testTable()
+    public function testTable(): void
     {
         $this->assertIndent(
             [
@@ -181,7 +189,7 @@ final class IndentRuleTest extends TestCase
         );
     }
 
-    public function testLetNested()
+    public function testLetNested(): void
     {
         $this->assertIndent(
             [
@@ -197,7 +205,7 @@ final class IndentRuleTest extends TestCase
         );
     }
 
-    public function testNestedDef()
+    public function testNestedDef(): void
     {
         $this->assertIndent(
             [
@@ -213,29 +221,19 @@ final class IndentRuleTest extends TestCase
         );
     }
 
-    private function assertIndent(array $actualLines, array $expectedLines)
+    private function assertIndent(array $actualLines, array $expectedLines): void
     {
-        $this->assertEquals(
+        self::assertEquals(
             $expectedLines,
             explode("\n", $this->indent(implode("\n", $actualLines)))
         );
     }
 
-    private function parse(string $string): NodeInterface
+    private function indent(string $string): string
     {
-        Symbol::resetGen();
-        $parser = (new CompilerFactory())->createParser();
-        $tokenStream = (new Lexer())->lexString($string);
-
-        return $parser->parseAll($tokenStream);
-    }
-
-    private function indent(string $string)
-    {
-        $node = $this->parse($string);
-        $rule = new IndentRule();
-        $transformedNode = $rule->transform($node);
-
-        return $transformedNode->getCode();
+        return $this->formatterFactory
+            ->createIndentRule()
+            ->transform($this->parseStringToNode($string))
+            ->getCode();
     }
 }

@@ -7,7 +7,7 @@ namespace Phel\Formatter\Rules\Indenter;
 use Phel\Compiler\Parser\ParserNode\InnerNodeInterface;
 use Phel\Formatter\ParseTreeZipper;
 
-class LineIndenter implements IndenterInterface
+final class LineIndenter implements IndenterInterface
 {
     public function getMargin(ParseTreeZipper $loc, int $indentWidth): ?int
     {

@@ -4,20 +4,16 @@ declare(strict_types=1);
 
 namespace Phel\Command;
 
-use Phel\Formatter\Formatter;
+use Phel\Formatter\FormatterInterface;
 
 final class FormatCommand
 {
     public const COMMAND_NAME = 'fmt';
 
-    private string $currentDir;
-    private Formatter $formatter;
+    private FormatterInterface $formatter;
 
-    public function __construct(
-        string $currentDir,
-        Formatter $formatter
-    ) {
-        $this->currentDir = $currentDir;
+    public function __construct(FormatterInterface $formatter)
+    {
         $this->formatter = $formatter;
     }
 
