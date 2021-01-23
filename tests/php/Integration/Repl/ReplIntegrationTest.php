@@ -6,6 +6,7 @@ namespace PhelTest\Integration\Repl;
 
 use Generator;
 use Phel\Command\Repl\ColorStyle;
+use Phel\Command\Repl\InputValidator;
 use Phel\Command\ReplCommand;
 use Phel\Compiler\Analyzer\Environment\GlobalEnvironment;
 use Phel\Compiler\CompilerFactory;
@@ -19,10 +20,10 @@ use Phel\Runtime\RuntimeFactory;
 use PHPUnit\Framework\TestCase;
 use RecursiveDirectoryIterator;
 use RecursiveIteratorIterator;
+use SplFileInfo;
 
 final class ReplIntegrationTest extends TestCase
 {
-
     /**
      * @dataProvider providerIntegration
      */
@@ -60,10 +61,10 @@ final class ReplIntegrationTest extends TestCase
         }
     }
 
-    private function getInputs(string $testFileContent)
+    private function getInputs(string $testFileContent): array
     {
         $inputs = [];
-        foreach (explode("\n", $testFileContent) as $line) {
+        foreach (explode(PHP_EOL, $testFileContent) as $line) {
             if (strpos($line, '>>> ') === 0) {
                 $inputs[] = substr($line, 4);
             }
@@ -71,7 +72,7 @@ final class ReplIntegrationTest extends TestCase
         return $inputs;
     }
 
-    private function setupFreshRepl(ReplTestIo $io)
+    private function setupFreshRepl(ReplTestIo $io): ReplCommand
     {
         $compilerFactory = new CompilerFactory();
 
@@ -91,7 +92,9 @@ final class ReplIntegrationTest extends TestCase
             $io,
             $compilerFactory->createEvalCompiler($globalEnv),
             $exceptionPrinter,
-            ColorStyle::noStyles()
+            ColorStyle::noStyles(),
+            Printer::nonReadable(),
+            new InputValidator()
         );
     }
 }

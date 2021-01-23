@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Phel\Command;
 
 use Phel\Command\Repl\ColorStyleInterface;
+use Phel\Command\Repl\InputValidator;
 use Phel\Command\Repl\ReplCommandIoInterface;
 use Phel\Compiler\EvalCompilerInterface;
 use Phel\Exceptions\CompilerException;
@@ -12,7 +13,6 @@ use Phel\Exceptions\ExceptionPrinterInterface;
 use Phel\Exceptions\ExitException;
 use Phel\Exceptions\ParserException;
 use Phel\Exceptions\ReaderException;
-use Phel\Exceptions\WrongNumberOfParenthesisException;
 use Phel\Printer\PrinterInterface;
 use Throwable;
 
@@ -22,8 +22,8 @@ final class ReplCommand
 
     private const ENABLE_BRACKETED_PASTE = "\e[?2004h";
     private const DISABLE_BRACKETED_PASTE = "\e[?2004l";
-    private const INITIAL_PROMPT = 'phel(%d)> ';
-    private const OPEN_PROMPT = '....(%d)> ';
+    private const INITIAL_PROMPT = '>>> ';
+    private const OPEN_PROMPT = '... ';
     private const EXIT_REPL = 'exit';
 
     private ReplCommandIoInterface $io;
@@ -31,22 +31,25 @@ final class ReplCommand
     private ExceptionPrinterInterface $exceptionPrinter;
     private ColorStyleInterface $style;
     private PrinterInterface $printer;
+    private InputValidator $inputValidator;
 
-    private int $statementNumber = 1;
-    private string $inputBuffer = '';
+    /** @var string[] */
+    private array $inputBuffer = [];
 
     public function __construct(
         ReplCommandIoInterface $io,
         EvalCompilerInterface $compiler,
         ExceptionPrinterInterface $exceptionPrinter,
         ColorStyleInterface $style,
-        PrinterInterface $printer
+        PrinterInterface $printer,
+        InputValidator $inputValidator
     ) {
         $this->io = $io;
         $this->compiler = $compiler;
         $this->exceptionPrinter = $exceptionPrinter;
         $this->style = $style;
         $this->printer = $printer;
+        $this->inputValidator = $inputValidator;
     }
 
     public function run(): void
@@ -68,9 +71,9 @@ final class ReplCommand
             } catch (ExitException $e) {
                 break;
             } catch (Throwable $e) {
-                $this->inputBuffer = '';
+                $this->inputBuffer = [];
                 $this->io->output($this->style->red($e->getMessage() . PHP_EOL));
-                $this->io->output($e->getTraceAsString() . PHP_EOL);
+//                $this->io->output($e->getTraceAsString() . PHP_EOL);
             }
         }
 
@@ -94,7 +97,7 @@ final class ReplCommand
             $input = self::EXIT_REPL;
         }
 
-        $this->inputBuffer .= $input;
+        $this->inputBuffer[] = $input;
     }
 
     /**
@@ -102,50 +105,38 @@ final class ReplCommand
      */
     private function checkExitInputBuffer(): void
     {
-        if (self::EXIT_REPL === $this->inputBuffer) {
+        $firstInput = $this->inputBuffer[0] ?? '';
+
+        if (self::EXIT_REPL === $firstInput) {
             throw new ExitException();
         }
     }
 
     /**
-     * @throws WrongNumberOfParenthesisException
+     * @throws \RuntimeException
      */
     private function analyzeInputBuffer(): void
     {
-        if ('' === $this->inputBuffer) {
+        if ('' === end($this->inputBuffer)) {
             return;
         }
 
-        if (!$this->isInputReadyToBeAnalyzed($this->inputBuffer)) {
+        if (!$this->inputValidator->isInputReadyToBeAnalyzed($this->inputBuffer)) {
             return;
         }
 
-        $this->io->addHistory($this->inputBuffer);
+        $inputAsString = implode(PHP_EOL, $this->inputBuffer);
+        $this->io->addHistory(implode(PHP_EOL, $this->inputBuffer));
 
         try {
-            $this->analyzeInput($this->inputBuffer);
-        } catch (ParserException|ReaderException $e) {
+            $this->analyzeInput($inputAsString);
+        } catch (ParserException | ReaderException $e) {
             $this->io->output($this->exceptionPrinter->getExceptionString($e, $e->getCodeSnippet()));
         } catch (Throwable $e) {
             $this->io->output($this->exceptionPrinter->getStackTraceString($e));
         }
 
-        $this->inputBuffer = '';
-    }
-
-    /**
-     * @throws WrongNumberOfParenthesisException
-     */
-    private function isInputReadyToBeAnalyzed(string $input): bool
-    {
-        $totalOpenParenthesis = substr_count($input, '(');
-        $totalCloseParenthesis = substr_count($input, ')');
-
-        if ($totalCloseParenthesis > $totalOpenParenthesis) {
-            throw new WrongNumberOfParenthesisException();
-        }
-
-        return $totalCloseParenthesis === $totalOpenParenthesis;
+        $this->inputBuffer = [];
     }
 
     /**
@@ -157,7 +148,6 @@ final class ReplCommand
             $result = $this->compiler->eval($input);
             $this->io->output($this->printer->print($result));
             $this->io->output(PHP_EOL);
-            $this->statementNumber++;
         } catch (CompilerException $e) {
             $this->io->output(
                 $this->exceptionPrinter->getExceptionString(

@@ -1,12 +1,6 @@
->>> (
-Unterminated list
-in string:1
-
-1| (
-    ^
+>>> )
+Wrong number of parentheses
 >>> ([]]
-Unterminated list
-in string:1
-
-1| ([]]
-      ^
+Wrong number of brackets
+>>> (@{}}
+Wrong number of braces
