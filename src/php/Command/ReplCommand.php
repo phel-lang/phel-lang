@@ -79,25 +79,16 @@ final class ReplCommand
 
     private function addLineFromPromptToBuffer(): void
     {
-        $prompt = empty($this->inputBuffer)
-            ? self::INITIAL_PROMPT
-            : self::OPEN_PROMPT;
-
-<<<<<<< HEAD
         if ($this->io->isBracketedPasteSupported()) {
             $this->io->output(self::ENABLE_BRACKETED_PASTE);
         }
 
+        $prompt = empty($this->inputBuffer) ? self::INITIAL_PROMPT : self::OPEN_PROMPT;
         $input = $this->io->readline($prompt);
 
         if ($this->io->isBracketedPasteSupported()) {
             $this->io->output(self::DISABLE_BRACKETED_PASTE);
         }
-=======
-        $this->io->output(self::ENABLE_BRACKETED_PASTE);
-        $input = $this->io->readline(sprintf($prompt, $this->statementNumber));
-        $this->io->output(self::DISABLE_BRACKETED_PASTE);
->>>>>>> Add statementNumber next to the repl expression
 
         if ($input === null) {
             $input = self::EXIT_REPL;
