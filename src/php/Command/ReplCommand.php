@@ -12,6 +12,7 @@ use Phel\Exceptions\ExceptionPrinterInterface;
 use Phel\Exceptions\ExitException;
 use Phel\Exceptions\ParserException;
 use Phel\Exceptions\ReaderException;
+use Phel\Exceptions\WrongNumberOfParenthesisException;
 use Phel\Printer\Printer;
 use Throwable;
 
@@ -21,12 +22,16 @@ final class ReplCommand
 
     private const ENABLE_BRACKETED_PASTE = "\e[?2004h";
     private const DISABLE_BRACKETED_PASTE = "\e[?2004l";
-    private const PROMPT = '>>> ';
+    private const INITIAL_PROMPT = '>>> ';
+    private const OPEN_PROMPT = '... ';
+    private const EXIT_REPL = 'exit';
 
     private ReplCommandIoInterface $io;
     private EvalCompilerInterface $compiler;
     private ExceptionPrinterInterface $exceptionPrinter;
     private ColorStyleInterface $style;
+
+    private string $inputBuffer = '';
 
     public function __construct(
         ReplCommandIoInterface $io,
@@ -43,62 +48,103 @@ final class ReplCommand
     public function run(): void
     {
         $this->io->readHistory();
-        $this->io->output($this->style->yellow("Welcome to the Phel Repl\n"));
-        $this->io->output('Type "exit" or press Ctrl-D to exit.' . "\n");
+        $this->io->output($this->style->yellow('Welcome to the Phel Repl' . PHP_EOL));
+        $this->io->output('Type "exit" or press Ctrl-D to exit.' . PHP_EOL);
 
         $this->loopReadLineAndAnalyze();
     }
 
-    /**
-     * @throws ExitException
-     */
     private function loopReadLineAndAnalyze(): void
     {
         while (true) {
             try {
-                if ($this->io->isBracketedPasteSupported()) {
-                    $this->io->output(self::ENABLE_BRACKETED_PASTE);
-                }
-                $input = $this->io->readline(self::PROMPT);
-                if ($this->io->isBracketedPasteSupported()) {
-                    $this->io->output(self::DISABLE_BRACKETED_PASTE);
-                }
-
-                try {
-                    $this->checkInputAndAnalyze($input);
-                } catch (ExitException $e) {
-                    break;
-                }
+                $this->addLineFromPromptToBuffer();
+                $this->checkExitInputBuffer();
+                $this->analyzeInputBuffer();
+            } catch (ExitException $e) {
+                break;
             } catch (Throwable $e) {
+                $this->inputBuffer = '';
+                $this->io->output($this->style->red($e->getMessage() . PHP_EOL));
                 $this->io->output($e->getTraceAsString() . PHP_EOL);
             }
         }
 
-        $this->io->output($this->style->yellow("Bye!\n"));
+        $this->io->output($this->style->yellow('Bye!' . PHP_EOL));
+    }
+
+    private function addLineFromPromptToBuffer(): void
+    {
+        $prompt = empty($this->inputBuffer)
+            ? self::INITIAL_PROMPT
+            : self::OPEN_PROMPT;
+
+        if ($this->io->isBracketedPasteSupported()) {
+            $this->io->output(self::ENABLE_BRACKETED_PASTE);
+        }
+
+        $input = $this->io->readline($prompt);
+
+        if ($this->io->isBracketedPasteSupported()) {
+            $this->io->output(self::DISABLE_BRACKETED_PASTE);
+        }
+
+        if ($input === null) {
+            $input = self::EXIT_REPL;
+        }
+
+        $this->inputBuffer .= $input;
     }
 
     /**
      * @throws ExitException
      */
-    private function checkInputAndAnalyze(?string $input): void
+    private function checkExitInputBuffer(): void
     {
-        if (null === $input || 'exit' === $input) {
+        if (self::EXIT_REPL === $this->inputBuffer) {
             throw new ExitException();
         }
+    }
 
-        if ('' === $input) {
+    /**
+     * @throws WrongNumberOfParenthesisException
+     */
+    private function analyzeInputBuffer(): void
+    {
+        if ('' === $this->inputBuffer) {
             return;
         }
 
-        $this->io->addHistory($input);
+        if (!$this->isInputReadyToBeAnalyzed($this->inputBuffer)) {
+            return;
+        }
+
+        $this->io->addHistory($this->inputBuffer);
 
         try {
-            $this->analyzeInput($input);
+            $this->analyzeInput($this->inputBuffer);
         } catch (ParserException|ReaderException $e) {
             $this->io->output($this->exceptionPrinter->getExceptionString($e, $e->getCodeSnippet()));
         } catch (Throwable $e) {
             $this->io->output($this->exceptionPrinter->getStackTraceString($e));
         }
+
+        $this->inputBuffer = '';
+    }
+
+    /**
+     * @throws WrongNumberOfParenthesisException
+     */
+    private function isInputReadyToBeAnalyzed(string $input): bool
+    {
+        $totalOpenParenthesis = substr_count($input, '(');
+        $totalCloseParenthesis = substr_count($input, ')');
+
+        if ($totalCloseParenthesis > $totalOpenParenthesis) {
+            throw new WrongNumberOfParenthesisException();
+        }
+
+        return $totalCloseParenthesis === $totalOpenParenthesis;
     }
 
     /**
