@@ -1,7 +1,7 @@
 {
     "name": "phel-lang/phel-lang",
     "type": "library",
-    "description": "Phel is a function programming language that compiles to PHP",
+    "description": "Phel is a functional programming language that compiles to PHP",
     "keywords": ["phel","lisp","functional","language"],
     "homepage": "https://phel-lang.org/",
     "license": "MIT",
@@ -13,7 +13,7 @@
     ],
     "require": {
         "php": ">=7.4",
-        "phel/phel-composer-plugin": "dev-master"
+        "phel-lang/phel-composer-plugin": "^0.1"
     },
     "require-dev": {
         "ext-readline": "*",

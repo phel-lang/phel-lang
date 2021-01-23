@@ -9,7 +9,7 @@ use Phel\Exceptions\ZipperException;
 use Phel\Formatter\ParseTreeZipper;
 use Phel\Lang\Symbol;
 
-class BlockIndenter implements IndenterInterface
+final class BlockIndenter implements IndenterInterface
 {
     private int $index;
     private string $symbol;
@@ -29,9 +29,8 @@ class BlockIndenter implements IndenterInterface
 
             if (is_null($locAfterIndex) || $this->firstFormInLine($locAfterIndex)) {
                 return (new InnerIndenter($this->symbol, 0))->getMargin($loc, $indentWidth);
-            } else {
-                return $this->listIndenter->getMargin($loc, $indentWidth);
             }
+            return $this->listIndenter->getMargin($loc, $indentWidth);
         }
 
         return null;

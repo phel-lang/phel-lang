@@ -12,18 +12,23 @@ use Phel\Command\Shared\NamespaceExtractorInterface;
 use Phel\Compiler\Analyzer\Environment\GlobalEnvironmentInterface;
 use Phel\Compiler\CompilerFactoryInterface;
 use Phel\Exceptions\TextExceptionPrinter;
-use Phel\Formatter\Formatter;
+use Phel\Formatter\FormatterFactoryInterface;
 use Phel\Runtime\RuntimeInterface;
 
 final class CommandFactory implements CommandFactoryInterface
 {
     private string $currentDir;
     private CompilerFactoryInterface $compilerFactory;
+    private FormatterFactoryInterface $formatterFactory;
 
-    public function __construct(string $currentDir, CompilerFactoryInterface $compilerFactory)
-    {
+    public function __construct(
+        string $currentDir,
+        CompilerFactoryInterface $compilerFactory,
+        FormatterFactoryInterface $formatterFactory
+    ) {
         $this->currentDir = $currentDir;
         $this->compilerFactory = $compilerFactory;
+        $this->formatterFactory = $formatterFactory;
     }
 
     public function createReplCommand(RuntimeInterface $runtime): ReplCommand
@@ -59,11 +64,7 @@ final class CommandFactory implements CommandFactoryInterface
     public function createFormatCommand(): FormatCommand
     {
         return new FormatCommand(
-            $this->currentDir,
-            new Formatter(
-                $this->compilerFactory->createLexer(),
-                $this->compilerFactory->createParser(),
-            )
+            $this->formatterFactory->createFormatter()
         );
     }
 

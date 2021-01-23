@@ -4,16 +4,24 @@ declare(strict_types=1);
 
 namespace PhelTest\Unit\Formatter\Rules;
 
-use Phel\Compiler\CompilerFactory;
-use Phel\Compiler\Lexer\Lexer;
-use Phel\Compiler\Parser\ParserNode\NodeInterface;
-use Phel\Formatter\Rules\RemoveSurroundingWhitespaceRule;
-use Phel\Lang\Symbol;
+use Phel\Compiler\CompilerFactoryInterface;
+use Phel\Formatter\FormatterFactory;
 use PHPUnit\Framework\TestCase;
 
 final class RemoveSurroundingWhitespaceRuleTest extends TestCase
 {
-    public function testList()
+    use RuleParserTrait;
+
+    private FormatterFactory $formatterFactory;
+
+    public function setUp(): void
+    {
+        $this->formatterFactory = new FormatterFactory(
+            $this->createMock(CompilerFactoryInterface::class)
+        );
+    }
+
+    public function testList(): void
     {
         $this->assertReformatted(
             ['( 1 2 3 )'],
@@ -21,7 +29,7 @@ final class RemoveSurroundingWhitespaceRuleTest extends TestCase
         );
     }
 
-    public function testBracketList()
+    public function testBracketList(): void
     {
         $this->assertReformatted(
             ['[ 1 2 3 ]'],
@@ -29,7 +37,7 @@ final class RemoveSurroundingWhitespaceRuleTest extends TestCase
         );
     }
 
-    public function testArray()
+    public function testArray(): void
     {
         $this->assertReformatted(
             ['@[ 1 2 3 ]'],
@@ -37,7 +45,7 @@ final class RemoveSurroundingWhitespaceRuleTest extends TestCase
         );
     }
 
-    public function testTable()
+    public function testTable(): void
     {
         $this->assertReformatted(
             ['@{ :a 1 :b 2 }'],
@@ -45,7 +53,7 @@ final class RemoveSurroundingWhitespaceRuleTest extends TestCase
         );
     }
 
-    public function testRemoveNewlines()
+    public function testRemoveNewlines(): void
     {
         $this->assertReformatted(
             [
@@ -83,29 +91,19 @@ final class RemoveSurroundingWhitespaceRuleTest extends TestCase
     }
 
 
-    private function assertReformatted(array $actualLines, array $expectedLines)
+    private function assertReformatted(array $actualLines, array $expectedLines): void
     {
-        $this->assertEquals(
+        self::assertEquals(
             $expectedLines,
             explode("\n", $this->reformat(implode("\n", $actualLines)))
         );
     }
 
-    private function parse(string $string): NodeInterface
+    private function reformat(string $string): string
     {
-        Symbol::resetGen();
-        $parser = (new CompilerFactory())->createParser();
-        $tokenStream = (new Lexer())->lexString($string);
-
-        return $parser->parseAll($tokenStream);
-    }
-
-    private function reformat(string $string)
-    {
-        $node = $this->parse($string);
-        $rule = new RemoveSurroundingWhitespaceRule();
-        $transformedNode = $rule->transform($node);
-
-        return $transformedNode->getCode();
+        return $this->formatterFactory
+            ->createRemoveSurroundingWhitespaceRule()
+            ->transform($this->parseStringToNode($string))
+            ->getCode();
     }
 }
