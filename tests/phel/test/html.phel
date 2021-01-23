@@ -56,8 +56,9 @@
   (is (= "<div class=\"a\"></div>" (html [:div @{:class @{:a true :b false}}]))))
 
 (deftest css-styles
-  (is (= "<div style=\"background:green;color:red;\">bar</div>" (html [:div @{:style @{:color "red" :background "green"}} "bar"]))))
-
+  (is (=
+       "<div style=\"background:green;color:red;\">bar</div>"
+       (html [:div @{:style @{:color "red" :background "green"}} "bar"]))))
 
 (deftest compiled-tags
   (let [x "foo"]
