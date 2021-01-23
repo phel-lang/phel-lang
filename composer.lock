@@ -4,20 +4,20 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "aa1ca1906028a289bcf44e9e4cf3d5e9",
+    "content-hash": "c0958e79cb3eba253e0b0962615301ee",
     "packages": [
         {
-            "name": "phel/phel-composer-plugin",
-            "version": "dev-master",
+            "name": "phel-lang/phel-composer-plugin",
+            "version": "v0.1.0",
             "source": {
                 "type": "git",
-                "url": "https://github.com/jenshaase/phel-composer-plugin.git",
-                "reference": "752a223af4f2bf0d1ec3bcc68297db2cdae87585"
+                "url": "https://github.com/phel-lang/phel-composer-plugin.git",
+                "reference": "9e3af8cfe854ddfae04934c26877a5b989ca7156"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/jenshaase/phel-composer-plugin/zipball/752a223af4f2bf0d1ec3bcc68297db2cdae87585",
-                "reference": "752a223af4f2bf0d1ec3bcc68297db2cdae87585",
+                "url": "https://api.github.com/repos/phel-lang/phel-composer-plugin/zipball/9e3af8cfe854ddfae04934c26877a5b989ca7156",
+                "reference": "9e3af8cfe854ddfae04934c26877a5b989ca7156",
                 "shasum": ""
             },
             "require": {
@@ -30,7 +30,6 @@
                 "phpunit/phpunit": "^9",
                 "vimeo/psalm": "^3.11"
             },
-            "default-branch": true,
             "type": "composer-plugin",
             "extra": {
                 "class": "Phel\\Composer\\Plugin"
@@ -61,10 +60,10 @@
                 "plugin"
             ],
             "support": {
-                "issues": "https://github.com/jenshaase/phel-composer-plugin/issues",
-                "source": "https://github.com/jenshaase/phel-composer-plugin/tree/master"
+                "issues": "https://github.com/phel-lang/phel-composer-plugin/issues",
+                "source": "https://github.com/phel-lang/phel-composer-plugin/tree/v0.1.0"
             },
-            "time": "2020-12-13T13:20:19+00:00"
+            "time": "2021-01-17T20:38:50+00:00"
         }
     ],
     "packages-dev": [
@@ -5571,7 +5570,6 @@
     "aliases": [],
     "minimum-stability": "stable",
     "stability-flags": {
-        "phel/phel-composer-plugin": 20,
         "vimeo/psalm": 20
     },
     "prefer-stable": false,
