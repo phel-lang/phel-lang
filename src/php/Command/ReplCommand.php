@@ -13,7 +13,7 @@ use Phel\Exceptions\ExitException;
 use Phel\Exceptions\ParserException;
 use Phel\Exceptions\ReaderException;
 use Phel\Exceptions\WrongNumberOfParenthesisException;
-use Phel\Printer\Printer;
+use Phel\Printer\PrinterInterface;
 use Throwable;
 
 final class ReplCommand
@@ -22,27 +22,31 @@ final class ReplCommand
 
     private const ENABLE_BRACKETED_PASTE = "\e[?2004h";
     private const DISABLE_BRACKETED_PASTE = "\e[?2004l";
-    private const INITIAL_PROMPT = '>>> ';
-    private const OPEN_PROMPT = '... ';
+    private const INITIAL_PROMPT = 'phel(%d)> ';
+    private const OPEN_PROMPT = '....(%d)> ';
     private const EXIT_REPL = 'exit';
 
     private ReplCommandIoInterface $io;
     private EvalCompilerInterface $compiler;
     private ExceptionPrinterInterface $exceptionPrinter;
     private ColorStyleInterface $style;
+    private PrinterInterface $printer;
 
+    private int $statementNumber = 1;
     private string $inputBuffer = '';
 
     public function __construct(
         ReplCommandIoInterface $io,
         EvalCompilerInterface $compiler,
         ExceptionPrinterInterface $exceptionPrinter,
-        ColorStyleInterface $style
+        ColorStyleInterface $style,
+        PrinterInterface $printer
     ) {
         $this->io = $io;
         $this->compiler = $compiler;
         $this->exceptionPrinter = $exceptionPrinter;
         $this->style = $style;
+        $this->printer = $printer;
     }
 
     public function run(): void
@@ -79,6 +83,7 @@ final class ReplCommand
             ? self::INITIAL_PROMPT
             : self::OPEN_PROMPT;
 
+<<<<<<< HEAD
         if ($this->io->isBracketedPasteSupported()) {
             $this->io->output(self::ENABLE_BRACKETED_PASTE);
         }
@@ -88,6 +93,11 @@ final class ReplCommand
         if ($this->io->isBracketedPasteSupported()) {
             $this->io->output(self::DISABLE_BRACKETED_PASTE);
         }
+=======
+        $this->io->output(self::ENABLE_BRACKETED_PASTE);
+        $input = $this->io->readline(sprintf($prompt, $this->statementNumber));
+        $this->io->output(self::DISABLE_BRACKETED_PASTE);
+>>>>>>> Add statementNumber next to the repl expression
 
         if ($input === null) {
             $input = self::EXIT_REPL;
@@ -154,8 +164,9 @@ final class ReplCommand
     {
         try {
             $result = $this->compiler->eval($input);
-            $this->io->output(Printer::nonReadable()->print($result));
+            $this->io->output($this->printer->print($result));
             $this->io->output(PHP_EOL);
+            $this->statementNumber++;
         } catch (CompilerException $e) {
             $this->io->output(
                 $this->exceptionPrinter->getExceptionString(
