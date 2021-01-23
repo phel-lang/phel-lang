@@ -29,8 +29,14 @@ abstract class AbstractZipper
      * @param T[] $leftSiblings
      * @param T[] $rightSiblings
      */
-    final public function __construct($node, ?AbstractZipper $parent, array $leftSiblings, array $rightSiblings, bool $hasChanged, bool $isEnd)
-    {
+    final public function __construct(
+        $node,
+        ?AbstractZipper $parent,
+        array $leftSiblings,
+        array $rightSiblings,
+        bool $hasChanged,
+        bool $isEnd
+    ) {
         $this->node = $node;
         $this->parent = $parent;
         $this->leftSiblings = $leftSiblings;

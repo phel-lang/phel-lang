@@ -7,6 +7,7 @@ require_once __DIR__ . "{$slash}src{$slash}php{$slash}PhelFacade.php";
 use Phel\Command\CommandFacade;
 use Phel\Command\CommandFactory;
 use Phel\Compiler\CompilerFactory;
+use Phel\Formatter\FormatterFactory;
 use Phel\PhelFacade;
 
 if ($argc <= 1) {
@@ -22,11 +23,14 @@ if (!file_exists($autoloadPath)) {
 
 require $autoloadPath;
 
+$compilerFactory = new CompilerFactory();
+
 $commandFacade = new CommandFacade(
     $currentDir,
     new CommandFactory(
         $currentDir,
-        new CompilerFactory()
+        $compilerFactory,
+        new FormatterFactory($compilerFactory)
     )
 );
 

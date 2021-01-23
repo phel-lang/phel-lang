@@ -13,7 +13,7 @@ use Phel\Compiler\Parser\ParserNode\WhitespaceNode;
 use Phel\Exceptions\ZipperException;
 
 /** @extends AbstractZipper<NodeInterface> */
-class ParseTreeZipper extends AbstractZipper
+final class ParseTreeZipper extends AbstractZipper
 {
     /**
      * @psalm-assert-if-true InnerNodeInterface $this->node

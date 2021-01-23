@@ -17,7 +17,7 @@ use Phel\Formatter\Rules\Indenter\LineIndenter;
 use Phel\Formatter\Rules\Indenter\ListIndenter;
 use Phel\Lang\SourceLocation;
 
-class IndentRule implements RuleInterface
+final class IndentRule implements RuleInterface
 {
     private const INDENT_WIDTH = 2;
 

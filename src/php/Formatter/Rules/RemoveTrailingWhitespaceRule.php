@@ -7,7 +7,7 @@ namespace Phel\Formatter\Rules;
 use Phel\Compiler\Parser\ParserNode\NodeInterface;
 use Phel\Formatter\ParseTreeZipper;
 
-class RemoveTrailingWhitespaceRule implements RuleInterface
+final class RemoveTrailingWhitespaceRule implements RuleInterface
 {
     public function transform(NodeInterface $node): NodeInterface
     {
