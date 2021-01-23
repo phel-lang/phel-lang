@@ -13,4 +13,6 @@ interface ReplCommandIoInterface
     public function readline(?string $prompt = null): ?string;
 
     public function output(string $string): void;
+
+    public function isBracketedPasteSupported(): bool;
 }

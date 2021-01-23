@@ -56,9 +56,13 @@ final class ReplCommand
     {
         while (true) {
             try {
-                $this->io->output(self::ENABLE_BRACKETED_PASTE);
+                if ($this->io->isBracketedPasteSupported()) {
+                    $this->io->output(self::ENABLE_BRACKETED_PASTE);
+                }
                 $input = $this->io->readline(self::PROMPT);
-                $this->io->output(self::DISABLE_BRACKETED_PASTE);
+                if ($this->io->isBracketedPasteSupported()) {
+                    $this->io->output(self::DISABLE_BRACKETED_PASTE);
+                }
 
                 try {
                     $this->checkInputAndAnalyze($input);
@@ -70,7 +74,7 @@ final class ReplCommand
             }
         }
 
-        $this->style->yellow("Bye!\n");
+        $this->io->output($this->style->yellow("Bye!\n"));
     }
 
     /**
@@ -91,9 +95,9 @@ final class ReplCommand
         try {
             $this->analyzeInput($input);
         } catch (ParserException|ReaderException $e) {
-            $this->exceptionPrinter->printException($e, $e->getCodeSnippet());
+            $this->io->output($this->exceptionPrinter->getExceptionString($e, $e->getCodeSnippet()));
         } catch (Throwable $e) {
-            $this->exceptionPrinter->printStackTrace($e);
+            $this->io->output($this->exceptionPrinter->getStackTraceString($e));
         }
     }
 
@@ -107,9 +111,11 @@ final class ReplCommand
             $this->io->output(Printer::nonReadable()->print($result));
             $this->io->output(PHP_EOL);
         } catch (CompilerException $e) {
-            $this->exceptionPrinter->printException(
-                $e->getNestedException(),
-                $e->getCodeSnippet()
+            $this->io->output(
+                $this->exceptionPrinter->getExceptionString(
+                    $e->getNestedException(),
+                    $e->getCodeSnippet()
+                )
             );
         }
     }

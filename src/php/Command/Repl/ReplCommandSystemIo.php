@@ -41,4 +41,9 @@ final class ReplCommandSystemIo implements ReplCommandIoInterface
     {
         fwrite(STDOUT, $string);
     }
+
+    public function isBracketedPasteSupported(): bool
+    {
+        return \stripos(\readline_info('library_version'), 'editline') === false;
+    }
 }

@@ -50,47 +50,61 @@ final class TextExceptionPrinter implements ExceptionPrinterInterface
 
     public function printException(PhelCodeException $e, CodeSnippet $codeSnippet): void
     {
+        echo $this->getExceptionString($e, $codeSnippet);
+    }
+
+    public function getExceptionString(PhelCodeException $e, CodeSnippet $codeSnippet): string
+    {
+        $str = '';
         $eStartLocation = $e->getStartLocation() ?? $codeSnippet->getStartLocation();
         $eEndLocation = $e->getEndLocation() ?? $codeSnippet->getEndLocation();
         $eFirstLine = $eStartLocation->getLine();
 
-        echo $this->style->blue($e->getMessage()) . "\n";
-        echo 'in ' . $eStartLocation->getFile() . ':' . $eFirstLine . "\n\n";
+        $str .= $this->style->blue($e->getMessage()) . "\n";
+        $str .= 'in ' . $eStartLocation->getFile() . ':' . $eFirstLine . "\n\n";
 
         $lines = explode("\n", $codeSnippet->getCode());
         $endLineLength = strlen((string)$codeSnippet->getEndLocation()->getLine());
         $padLength = $endLineLength - strlen((string)$codeSnippet->getStartLocation()->getLine());
         foreach ($lines as $index => $line) {
-            echo str_pad((string)($eFirstLine + $index), $padLength, ' ', STR_PAD_LEFT);
-            echo '| ', $line, "\n";
+            $str .= str_pad((string)($eFirstLine + $index), $padLength, ' ', STR_PAD_LEFT);
+            $str .= '| ' . $line . "\n";
 
             $eStartLine = $eStartLocation->getLine();
             if ($eStartLine === $eEndLocation->getLine()
                 && $eStartLine === $index + $codeSnippet->getStartLocation()->getLine()
             ) {
-                echo str_repeat(' ', $endLineLength + 2 + $eStartLocation->getColumn());
-                echo $this->style->red(str_repeat('^', $eEndLocation->getColumn() - $eStartLocation->getColumn()));
-                echo "\n";
+                $str .= str_repeat(' ', $endLineLength + 2 + $eStartLocation->getColumn());
+                $str .= $this->style->red(str_repeat('^', max(1, $eEndLocation->getColumn() - $eStartLocation->getColumn())));
+                $str .= "\n";
             }
         }
 
         if ($e->getPrevious()) {
-            echo "\n\nCaused by:\n";
-            echo $e->getPrevious()->getTraceAsString();
-            echo "\n";
+            $str .= "\n\nCaused by:\n";
+            $str .= $e->getPrevious()->getTraceAsString();
+            $str .= "\n";
         }
+
+        return $str;
     }
 
     public function printStackTrace(Throwable $e): void
     {
+        echo $this->getStackTraceString($e);
+    }
+
+    public function getStackTraceString(Throwable $e): string
+    {
+        $str = '';
         $type = get_class($e);
         $msg = $e->getMessage();
         $errorFile = $e->getFile();
         $errorLine = $e->getLine();
         $pos = $this->filePositionExtractor->getOriginal($errorFile, $errorLine);
 
-        echo $this->style->blue("$type: $msg\n");
-        echo "in {$pos->filename()}:{$pos->line()} (gen: $errorFile:$errorLine)\n\n";
+        $str .= $this->style->blue("$type: $msg\n");
+        $str .= "in {$pos->filename()}:{$pos->line()} (gen: $errorFile:$errorLine)\n\n";
 
         foreach ($e->getTrace() as $i => $frame) {
             $class = $frame['class'] ?? null;
@@ -103,7 +117,7 @@ final class TextExceptionPrinter implements ExceptionPrinterInterface
                     $fnName = $this->munge->decodeNs($rf->getConstant('BOUND_TO'));
                     $argString = $this->exceptionArgsPrinter->parseArgsAsString($frame['args'] ?? []);
                     $pos = $this->filePositionExtractor->getOriginal($file, $line);
-                    echo "#$i {$pos->filename()}:{$pos->line()} (gen: $file:$line) : ($fnName$argString)\n";
+                    $str .= "#$i {$pos->filename()}:{$pos->line()} (gen: $file:$line) : ($fnName$argString)\n";
 
                     continue;
                 }
@@ -113,7 +127,9 @@ final class TextExceptionPrinter implements ExceptionPrinterInterface
             $type = $frame['type'] ?? '';
             $fn = $frame['function'];
             $argString = $this->exceptionArgsPrinter->buildPhpArgsString($frame['args'] ?? []);
-            echo "#$i $file($line): $class$type$fn($argString)\n";
+            $str .= "#$i $file($line): $class$type$fn($argString)\n";
         }
+
+        return $str;
     }
 }
