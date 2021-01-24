@@ -28,7 +28,7 @@ Return `a` to the power of `x`.
 
 ## `*ns*`
 
-
+Returns the namespace in the current scope.
 
 ## `+`
 
@@ -113,13 +113,6 @@ Checks if each argument is greater than or equal to the following argument. Retu
 
 Constant for Not a Number (NAN) values.
 
-## `__DIR__`
-
-```phel
-(__DIR__ )
-```
-
-
 ## `all?`
 
 ```phel
@@ -169,70 +162,70 @@ Binds `name` to `expr`, evaluates the first form in the lexical context
 ```phel
 (bit-and x y & args)
 ```
-
+Bitwise and
 
 ## `bit-clear`
 
 ```phel
 (bit-clear x n)
 ```
-
+Clear bit an index `n`
 
 ## `bit-flip`
 
 ```phel
 (bit-flip x n)
 ```
-
+Flip bit at index `n`
 
 ## `bit-not`
 
 ```phel
 (bit-not x)
 ```
-
+Bitwise complement
 
 ## `bit-or`
 
 ```phel
 (bit-or x y & args)
 ```
-
+Bitwise or
 
 ## `bit-set`
 
 ```phel
 (bit-set x n)
 ```
-
+Set bit an index `n`
 
 ## `bit-shift-left`
 
 ```phel
 (bit-shift-left x n)
 ```
-
+Bitwise shift left
 
 ## `bit-shift-right`
 
 ```phel
 (bit-shift-right x n)
 ```
-
+Bitwise shift right
 
 ## `bit-test`
 
 ```phel
 (bit-test x n)
 ```
-
+Test bit at index `n`
 
 ## `bit-xor`
 
 ```phel
 (bit-xor x y & args)
 ```
-
+Bitwise xor
 
 ## `boolean?`
 
@@ -264,7 +257,8 @@ Ignores the body of the comment.
 ```phel
 (comp & fs)
 ```
-
+Takes a list of functions and returns a function that is the composition
+  of those functions.
 
 ## `compare`
 
@@ -279,7 +273,7 @@ An integer less than, equal to, or greater than zero when `x` is less than,
 ```phel
 (complement f)
 ```
-
+Returns a function that takes the same arguments as `f` and returns the opposite truth value.
 
 ## `concat`
 
@@ -329,6 +323,9 @@ Declare a global symbol before it is defined.
 
 ## `def-`
 
+```phel
+(def- name value)
+```
 Define a private value that will not be exported.
 
 ## `defmacro`
@@ -393,14 +390,14 @@ Repeatedly executes body for side effects with bindings and modifiers as
 ```phel
 (drop n xs)
 ```
-
+Drops the first `n` elements of `xs`.
 
 ## `drop-while`
 
 ```phel
 (drop-while pred xs)
 ```
-
+Drops all elements at the front `xs` where `(pred x)` is true.
 
 ## `empty?`
 
@@ -442,7 +439,7 @@ Same as `(first (first xs))`
 ```phel
 (filter pred xs)
 ```
-
+Returns all elements of `xs` wher `(pred x)` is true.
 
 ## `find`
 
@@ -456,7 +453,7 @@ Returns the first item in `xs` where `(pred item)` evaluates to true.
 ```phel
 (find-index pred xs)
 ```
-
+Returns the first item in `xs` where `(pred index item)` evaluates to true.
 
 ## `first`
 
@@ -516,7 +513,7 @@ Returns a formatted string. See PHP's [sprintf](https://www.php.net/manual/en/fu
 ```phel
 (frequencies xs)
 ```
-
+Returns a table from distinct items in `xs` to the number of times they appear.
 
 ## `function?`
 
@@ -545,7 +542,7 @@ Get the value mapped to `key` from the datastructure `ds`.
 ```phel
 (get-in ds ks & [opt])
 ```
-
+Access a value in a nested data structure. Looks into the data structure via a sequence of keys.
 
 ## `group-by`
 
@@ -684,7 +681,7 @@ Checks if all values are identically. Same as `a === b` in PHP.
 ```phel
 (identity x)
 ```
-
+Returns its argument
 
 ## `if-not`
 
@@ -726,7 +723,7 @@ Returns a array with the first items of each col, than the second items etc.
 ```phel
 (interpose sep xs)
 ```
-
+Returns an array of elements separated by `sep`
 
 ## `intersection`
 
@@ -748,21 +745,22 @@ Returns a new table where the keys and values are swapped. If table has
 ```phel
 (juxt & fs)
 ```
-
+Takes a list of functions and returns a new function that is the juxtaposition of those functions.
+  `((juxt a b c) x) => [(a x) (b x) (c x)]`
 
 ## `keep`
 
 ```phel
 (keep pred xs)
 ```
-
+Returns a list of non-nil results of `(pred x)`.
 
 ## `keep-indexed`
 
 ```phel
 (keep-indexed pred xs)
 ```
-
+Returns a list of non-nil results of `(pred i x)`.
 
 ## `keys`
 
@@ -804,14 +802,15 @@ Loads a file into the current namespace. It can be used to split large namespace
 ```phel
 (map f & xs)
 ```
-
+Returns an array consisting of the result of applying `f` to all of the first items in each `xs`,
+   followed by applying `f` to all the second items in each `xs` until anyone of the `xs` is exhausted.
 
 ## `map-indexed`
 
 ```phel
 (map-indexed f xs)
 ```
-Applies f to each element in xs. f is a two argument function. The first
+Applies `f` to each element in `xs`. `f` is a two argument function. The first
   argument is index of the element in the sequence and the second element is the
   element itself.
 
@@ -820,7 +819,7 @@ Applies f to each element in xs. f is a two argument function. The first
 ```phel
 (mapcat f & xs)
 ```
-Applies f on all xs and concatenate the result.
+Applies `f` on all `xs` and concatenate the result.
 
 ## `max`
 
@@ -960,14 +959,16 @@ Gets the pairs of an associative data structure.
 ```phel
 (partial f & args)
 ```
-
+Takes a function `f` and fewer than normal arguments of `f` and returns a function
+  that a variable number of additional arguments. When call `f` will be called
+  with `args` and the additional arguments
 
 ## `partition`
 
 ```phel
 (partition n xs)
 ```
-
+Partition an indexed data structure into tuples of size n. Returns a new array.
 
 ## `peek`
 
@@ -1081,7 +1082,7 @@ Puts `value` mapped to `key` on the datastructure `ds`. Returns `ds`.
 ```phel
 (put-in ds [k & ks] v)
 ```
-
+Puts a value into a nested data structure.
 
 ## `rand`
 
@@ -1118,14 +1119,18 @@ Create an array of values [start, end). If the function has one argument the
 ```phel
 (reduce f init xs)
 ```
-
+Transforms an collection `xs` with a function `f` to produce a value by applying `f` to each element in order.
+  `f` is a function with two arguments. The first argument is the initial value and the second argument is
+  the element of `xs`. `f` returns a value that will be used as the initial value of the next call to `f`. The final
+  value of `f` is returned.
 
 ## `reduce2`
 
 ```phel
 (reduce2 f [x & xs])
 ```
-
+The 2-argument version of reduce that does not take a initialization value.
+  Instead the first argument of the list is used as initialization value.
 
 ## `remove`
 
@@ -1299,35 +1304,35 @@ Returns true if `x` is a table, false otherwise.
 ```phel
 (take n xs)
 ```
-
+Takes the first `n` elements of `xs`.
 
 ## `take-while`
 
 ```phel
 (take-while pred xs)
 ```
-
+Takes alle elements at the front of `xs` where `(pred x)` is true.
 
 ## `test/deftest`
 
 ```phel
 (deftest name & body)
 ```
-
+Defines a test function with no arguments
 
 ## `test/is`
 
 ```phel
 (is form & [message])
 ```
-
+Generic assertion macro.
 
 ## `test/print-summary`
 
 ```phel
 (print-summary )
 ```
-
+Prints the summary of the test suite
 
 ## `test/report`
 
@@ -1341,18 +1346,14 @@ Returns true if `x` is a table, false otherwise.
 ```phel
 (run-tests & namespaces)
 ```
-
-
-## `test/stats`
-
-
+Runs all test functions in the given namespaces
 
 ## `test/successful?`
 
 ```phel
 (successful? )
 ```
-
+Checks if all tests have passed.
 
 ## `to-php-array`
 
@@ -1406,14 +1407,14 @@ an empty Braket-Tuple is created.
 ```phel
 (tuple-brackets? x)
 ```
-
+Returns true if `x` is a bracket tuple, false otherwise
 
 ## `tuple-parens?`
 
 ```phel
 (tuple-parens? x)
 ```
-
+Returns true if `x` is a parens tuple, false otherwise
 
 ## `tuple?`
 
@@ -1466,14 +1467,14 @@ Returns `ds` without `key`.
 ```phel
 (update ds k f & args)
 ```
-
+Updates a value in a datastructure by applying `f` to the current element and replacing it with the result of `f`.
 
 ## `update-in`
 
 ```phel
 (update-in ds [k & ks] f & args)
 ```
-
+Updates a value into a nested data structure.
 
 ## `values`
 
@@ -1501,7 +1502,8 @@ Evaluates `test` and if that is logical false, evaluates `body`.
 ```phel
 (with-output-buffer & body)
 ```
-
+Everything that is printed inside the body will be stored in a buffer.
+   The result of the buffer is returned.
 
 ## `zero?`
 

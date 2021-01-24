@@ -2,7 +2,7 @@
 
 (defn map
   "Returns an array consisting of the result of applying `f` to all of the first items in each `xs`,
-   followed by applying `f` to alle the second items in each `xs` until anyone of the `xs` is exhausted."
+   followed by applying `f` to all the second items in each `xs` until anyone of the `xs` is exhausted."
   [f & xs]
   (case (count xs)
     0 (throw (php/new InvalidArgumentException "expected at least one indexed
@@ -17,18 +17,23 @@ collection in map"))
           (recur res (map next seq)))))))
 
 (defn map-indexed
-  "Applies f to each element in xs. f is a two argument function. The first
+  "Applies `f` to each element in `xs`. `f` is a two argument function. The first
   argument is index of the element in the sequence and the second element is the
   element itself."
   [f xs]
   (for [[k v] :pairs xs] (f k v)))
 
 (defn mapcat
-  "Applies f on all xs and concatenate the result."
+  "Applies `f` on all `xs` and concatenate the result."
   [f & xs]
   (apply concat @[] (apply map f xs)))
 
-(defn reduce [f init xs]
+(defn reduce
+  "Transforms an collection `xs` with a function `f` to produce a value by applying `f` to each element in order.
+  `f` is a function with two arguments. The first argument is the initial value and the second argument is
+  the element of `xs`. `f` returns a value that will be used as the initial value of the next call to `f`. The final
+  value of `f` is returned."
+  [f init xs]
   (if (= (count xs) 0)
     init
     (recur f (f init (first xs)) (next xs))))
@@ -54,47 +59,64 @@ collection in map"))
     (if (nil? res) opt res)))
 
 (defn put-in
+  "Puts a value into a nested data structure."
   [ds [k & ks] v]
   (if-not (nil? ks)
     (put ds k (put-in (get ds k @{}) ks v))
     (put ds k v)))
 
 (defn update
+  "Updates a value in a datastructure by applying `f` to the current element and replacing it with the result of `f`."
   [ds k f & args]
   (put ds k (apply f (get ds k) args)))
 
 (defn update-in
+  "Updates a value into a nested data structure."
   [ds [k & ks] f & args]
   (if ks
     (put ds k (apply update-in (get ds k @{}) ks f args))
     (let [current (get ds k)] # Extract value first for possible call-by-reference
       (put ds k (apply f current args)))))
 
-(defn drop [n xs]
+(defn drop
+  "Drops the first `n` elements of `xs`."
+  [n xs]
   (slice xs (if (php/< n 0) 0 n)))
 
-(defn drop-while [pred xs]
+(defn drop-while
+  "Drops all elements at the front `xs` where `(pred x)` is true."
+  [pred xs]
   (loop [s xs]
     (if (and s (pred (first s)))
       (recur (next s))
       (if s s @[]))))
 
-(defn take [n xs]
+(defn take
+  "Takes the first `n` elements of `xs`."
+  [n xs]
   (slice xs 0 (if (php/< n 0) 0 n)))
 
-(defn take-while [pred xs]
+(defn take-while
+  "Takes alle elements at the front of `xs` where `(pred x)` is true."
+  [pred xs]
   (for [x :in xs :while (pred x)] x))
 
-(defn filter [pred xs]
+(defn filter
+  "Returns all elements of `xs` wher `(pred x)` is true."
+  [pred xs]
   (for [x :in xs :when (pred x)] x))
 
-(defn keep [pred xs]
+(defn keep
+  "Returns a list of non-nil results of `(pred x)`."
+  [pred xs]
   (for [x :in xs
         :let [res (pred x)]
         :when (not (nil? res))]
     res))
 
-(defn keep-indexed [pred xs]
+(defn keep-indexed
+  "Returns a list of non-nil results of `(pred i x)`."
+  [pred xs]
   (for [[k v] :pairs xs
         :let [res (pred k v)]
         :when (not (nil? res))]
@@ -110,7 +132,9 @@ collection in map"))
         (recur (next s)))
       nil)))
 
-(defn find-index [pred xs]
+(defn find-index
+  "Returns the first item in `xs` where `(pred index item)` evaluates to true."
+  [pred xs]
   (loop [s xs
          i 0]
     (if s
@@ -149,6 +173,7 @@ collection in map"))
         (recur (php/+ i 1) (concat res nths))))))
 
 (defn interpose
+  "Returns an array of elements separated by `sep`"
   [sep xs]
   (let [res @[]]
     (dofor [[k v] :pairs xs]
@@ -158,6 +183,7 @@ collection in map"))
     res))
 
 (defn frequencies
+  "Returns a table from distinct items in `xs` to the number of times they appear."
   [xs]
   (let [res @{}]
     (dofor [x :in xs :let [n (get res x)]]
@@ -276,7 +302,9 @@ collection in map"))
   [f xs]
   [(take-while f xs) (drop-while f xs)])
 
-(defn partition [n xs]
+(defn partition
+  "Partition an indexed data structure into tuples of size n. Returns a new array."
+  [n xs]
   (if (< (count xs) n)
     @[]
     (let [res @[]]

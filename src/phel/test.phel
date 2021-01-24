@@ -9,7 +9,7 @@
 # Report
 # ------
 
-(def stats @{:failed []
+(def- stats @{:failed []
              :counts @{:failed 0
                        :error 0
                        :pass 0
@@ -167,7 +167,9 @@
     (assert-predicate form message false)
     (assert-any form message)))
 
-(defmacro is [form & [message]]
+(defmacro is
+  "Generic assertion macro."
+  [form & [message]]
   (let [loc (location form) e (gensym)]
     `(try ,(assert-expr form message)
           (catch Throwable ,e
@@ -177,7 +179,9 @@
 # Defining tests
 # --------------
 
-(defmacro deftest [name & body]
+(defmacro deftest
+  "Defines a test function with no arguments"
+  [name & body]
   `(defn ,name @{:test true} []
      ,@body))
 
@@ -263,7 +267,9 @@
     :error (print-error data)
     :failed (print-failure data)))
 
-(defn print-summary []
+(defn print-summary
+  "Prints the summary of the test suite"
+  []
   (println)
   (println)
   (for [data :in (get stats :failed)]
@@ -299,12 +305,16 @@
     (dofor [test :in tests]
       (test))))
 
-(defn run-tests [& namespaces]
+(defn run-tests
+  "Runs all test functions in the given namespaces"
+  [& namespaces]
   (dofor [n :in namespaces
           :let [s (php/-> n (getName))]]
     (run-test s))
   (print-summary))
 
-(defn successful? []
+(defn successful?
+  "Checks if all tests have passed."
+  []
   (let [@{:failed failed :error error} (get stats :counts)]
     (zero? (+ failed error))))

@@ -27,7 +27,9 @@
   (:use Exception)
   (:use InvalidArgumentException))
 
-(def *ns* "\\phel\\core")
+(def *ns*
+  "Returns the namespace in the current scope."
+  "\\phel\\core")
 
 (def argv
   "Array of arguments passed to script."
@@ -138,7 +140,7 @@ elements, returns nil."
 
 (def def-
   @{:macro true
-    :doc "Define a private value that will not be exported."}
+    :doc "```phel\n(def- name value)\n```\nDefine a private value that will not be exported."}
   (fn [name value] `(def ,name @{:private true} ,value)))
 
 (def defmacro
@@ -181,9 +183,6 @@ elements, returns nil."
   "Generates a new unique symbol."
   []
   (php/:: Symbol (gen)))
-
-(defmacro __DIR__ []
-  php/__DIR__)
 
 (defn str
   "Creates a string by concatenating values together. If no arguments are
