@@ -1,6 +1,9 @@
 (ns phel\core)
 
-(defn map [f & xs]
+(defn map
+  "Returns an array consisting of the result of applying `f` to all of the first items in each `xs`,
+   followed by applying `f` to alle the second items in each `xs` until anyone of the `xs` is exhausted."
+  [f & xs]
   (case (count xs)
     0 (throw (php/new InvalidArgumentException "expected at least one indexed
 collection in map"))
@@ -30,7 +33,10 @@ collection in map"))
     init
     (recur f (f init (first xs)) (next xs))))
 
-(defn reduce2 [f [x & xs]]
+(defn reduce2
+  "The 2-argument version of reduce that does not take a initialization value.
+  Instead the first argument of the list is used as initialization value."
+  [f [x & xs]]
   (reduce f x xs))
 
 (defn slice
@@ -42,6 +48,7 @@ collection in map"))
     (throw (php/new InvalidArgumentException "Can not slice"))))
 
 (defn get-in
+  "Access a value in a nested data structure. Looks into the data structure via a sequence of keys."
   [ds ks & [opt]]
   (let [res (reduce get ds ks)]
     (if (nil? res) opt res)))

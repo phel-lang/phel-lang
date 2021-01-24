@@ -101,10 +101,12 @@
   (= (type x) :tuple))
 
 (defn tuple-brackets?
+  "Returns true if `x` is a bracket tuple, false otherwise"
   [x]
   (and (tuple? x) (php/-> x (isUsingBracket))))
 
 (defn tuple-parens?
+  "Returns true if `x` is a parens tuple, false otherwise"
   [x]
   (and (tuple? x) (not (php/-> x (isUsingBracket)))))
 

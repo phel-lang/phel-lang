@@ -1,6 +1,9 @@
 (ns phel\core)
 
-(defmacro with-output-buffer [& body]
+(defmacro with-output-buffer
+  "Everything that is printed inside the body will be stored in a buffer.
+   The result of the buffer is returned."
+  [& body]
   (let [res (gensym)]
     `(do
        (php/ob_start)
