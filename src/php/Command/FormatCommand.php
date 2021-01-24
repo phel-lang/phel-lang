@@ -16,7 +16,7 @@ final class FormatCommand
     private FormatterInterface $formatter;
     private CommandIoInterface $io;
 
-    /** @var string[] */
+    /** @var list<string> */
     private array $filePaths = [];
 
     public function __construct(
@@ -41,8 +41,11 @@ final class FormatCommand
         if (is_dir($fileOrPath)) {
             $this->runFormatterInDirectory($fileOrPath);
         } elseif ($this->hasPhelExtension($fileOrPath)) {
-            $this->formatter->formatFile($fileOrPath);
-            $this->filePaths[] = $fileOrPath;
+            $wasFormatted = $this->formatter->formatFile($fileOrPath);
+
+            if ($wasFormatted) {
+                $this->filePaths[] = $fileOrPath;
+            }
         }
     }
 
@@ -62,10 +65,14 @@ final class FormatCommand
 
     private function printResult(): void
     {
-        $this->io->output('Formatted files:' . PHP_EOL);
+        if (empty($this->filePaths)) {
+            $this->io->output('No files were formatted.' . PHP_EOL);
+        } else {
+            $this->io->output('Formatted files:' . PHP_EOL);
 
-        foreach ($this->filePaths as $filePath) {
-            $this->io->output('# ' . $filePath . PHP_EOL);
+            foreach ($this->filePaths as $k => $filePath) {
+                $this->io->output(sprintf('  %d) %s %s', $k + 1, $filePath, PHP_EOL));
+            }
         }
     }
 }

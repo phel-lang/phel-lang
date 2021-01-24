@@ -31,11 +31,13 @@ final class Formatter implements FormatterInterface
         $this->rules = $rules;
     }
 
-    public function formatFile(string $filename): void
+    public function formatFile(string $filename): bool
     {
         $code = file_get_contents($filename);
         $formattedCode = $this->formatString($code, $filename);
         file_put_contents($filename, $formattedCode);
+
+        return (bool)strcmp($formattedCode, $code);
     }
 
     private function formatString(string $string, string $source = self::DEFAULT_SOURCE): string

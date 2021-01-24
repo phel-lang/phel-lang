@@ -6,5 +6,8 @@ namespace Phel\Formatter;
 
 interface FormatterInterface
 {
-    public function formatFile(string $filename): void;
+    /**
+     * @return bool True if the file was formatted. False if the file wasn't altered because it was already formatted.
+     */
+    public function formatFile(string $filename): bool;
 }
