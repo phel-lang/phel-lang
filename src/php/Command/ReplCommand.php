@@ -5,14 +5,12 @@ declare(strict_types=1);
 namespace Phel\Command;
 
 use Phel\Command\Repl\ColorStyleInterface;
-use Phel\Command\Repl\InputValidator;
 use Phel\Command\Repl\ReplCommandIoInterface;
 use Phel\Compiler\EvalCompilerInterface;
 use Phel\Exceptions\CompilerException;
 use Phel\Exceptions\ExceptionPrinterInterface;
 use Phel\Exceptions\ExitException;
-use Phel\Exceptions\ParserException;
-use Phel\Exceptions\ReaderException;
+use Phel\Exceptions\Parser\UnfinishedParserException;
 use Phel\Printer\PrinterInterface;
 use Throwable;
 
@@ -108,42 +106,26 @@ final class ReplCommand
         }
     }
 
-    /**
-     * @throws \RuntimeException
-     */
     private function analyzeInputBuffer(): void
     {
         if ('' === end($this->inputBuffer)) {
             return;
         }
 
-        if (!(new InputValidator())->isInputReadyToBeAnalyzed($this->inputBuffer)) {
-            return;
-        }
-
         $inputAsString = implode(PHP_EOL, $this->inputBuffer);
         $this->io->addHistory($inputAsString);
 
-        try {
-            $this->analyzeInput($inputAsString);
-        } catch (ParserException|ReaderException $e) {
-            $this->io->output($this->exceptionPrinter->getExceptionString($e, $e->getCodeSnippet()));
-        } catch (Throwable $e) {
-            $this->io->output($this->exceptionPrinter->getStackTraceString($e));
-        }
-
-        $this->inputBuffer = [];
+        $this->analyzeInput($inputAsString);
     }
 
-    /**
-     * @throws ReaderException
-     */
     private function analyzeInput(string $input): void
     {
         try {
             $result = $this->compiler->eval($input);
-            $this->io->output($this->printer->print($result));
-            $this->io->output(PHP_EOL);
+            $this->io->output($this->printer->print($result) . PHP_EOL);
+            $this->inputBuffer = [];
+        } catch (UnfinishedParserException $e) {
+            // The input is valid but more input is missing to finish parsing
         } catch (CompilerException $e) {
             $this->io->output(
                 $this->exceptionPrinter->getExceptionString(
@@ -151,6 +133,10 @@ final class ReplCommand
                     $e->getCodeSnippet()
                 )
             );
+            $this->inputBuffer = [];
+        } catch (Throwable $e) {
+            $this->io->output($this->exceptionPrinter->getStackTraceString($e));
+            $this->inputBuffer = [];
         }
     }
 }

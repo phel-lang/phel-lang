@@ -15,6 +15,7 @@ use Phel\Compiler\Parser\ReadModel\ReaderResult;
 use Phel\Compiler\Reader\ReaderInterface;
 use Phel\Exceptions\AnalyzerException;
 use Phel\Exceptions\CompilerException;
+use Phel\Exceptions\Parser\UnfinishedParserException;
 use Phel\Exceptions\ParserException;
 use Phel\Exceptions\ReaderException;
 
@@ -43,7 +44,7 @@ final class EvalCompiler implements EvalCompilerInterface
     /**
      * Evaluates a provided Phel code.
      *
-     * @throws CompilerException|ReaderException
+     * @throws CompilerException|UnfinishedParserException
      *
      * @return mixed The result of the executed code
      */
@@ -60,6 +61,8 @@ final class EvalCompiler implements EvalCompilerInterface
             $readerResult = $this->reader->read($parseTree);
 
             return $this->evalNode($readerResult);
+        } catch (UnfinishedParserException $e) {
+            throw $e;
         } catch (ParserException|ReaderException $e) {
             throw new CompilerException($e, $e->getCodeSnippet());
         }

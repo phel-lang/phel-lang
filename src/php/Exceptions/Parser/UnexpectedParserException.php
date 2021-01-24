@@ -8,7 +8,7 @@ use Phel\Compiler\Lexer\Token;
 use Phel\Compiler\Parser\ReadModel\CodeSnippet;
 use Phel\Exceptions\ParserException;
 
-class UnexpectedParserException extends ParserException
+final class UnexpectedParserException extends ParserException
 {
     public static function forSnippet(CodeSnippet $snippet, Token $token, string $message): self
     {
