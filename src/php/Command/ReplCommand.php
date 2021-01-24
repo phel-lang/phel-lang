@@ -122,7 +122,7 @@ final class ReplCommand
         }
 
         $inputAsString = implode(PHP_EOL, $this->inputBuffer);
-        $this->io->addHistory(implode(PHP_EOL, $this->inputBuffer));
+        $this->io->addHistory($inputAsString);
 
         try {
             $this->analyzeInput($inputAsString);

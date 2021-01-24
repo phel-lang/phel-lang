@@ -1,6 +1,6 @@
->>> )
-Wrong number of parentheses
->>> ([]]
-Wrong number of brackets
->>> (@{}}
-Wrong number of braces
+>>> ([]])
+Unterminated list
+in string:1
+
+1| ([]]
+      ^

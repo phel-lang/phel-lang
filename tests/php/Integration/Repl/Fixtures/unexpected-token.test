@@ -1,0 +1,6 @@
+>>> ({}})
+Unexpected token: {
+in string:1
+
+1| ({
+    ^

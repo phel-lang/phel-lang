@@ -7,7 +7,6 @@ namespace PhelTest\Unit\Command\Repl;
 use Generator;
 use Phel\Command\Repl\InputValidator;
 use PHPUnit\Framework\TestCase;
-use RuntimeException;
 
 final class InputValidatorTest extends TestCase
 {
@@ -75,26 +74,5 @@ final class InputValidatorTest extends TestCase
             'inputBuffer' => ['(+ 1 2 #)'],
             'expected' => false,
         ];
-    }
-
-    public function testWrongNumberOfParentheses(): void
-    {
-        $this->expectException(RuntimeException::class);
-        $this->expectExceptionMessage('Wrong number of parentheses');
-        $this->inputValidator->isInputReadyToBeAnalyzed(['())']);
-    }
-
-    public function testWrongNumberOfBrackets(): void
-    {
-        $this->expectException(RuntimeException::class);
-        $this->expectExceptionMessage('Wrong number of brackets');
-        $this->inputValidator->isInputReadyToBeAnalyzed(['[]]']);
-    }
-
-    public function testWrongNumberOfBraces(): void
-    {
-        $this->expectException(RuntimeException::class);
-        $this->expectExceptionMessage('Wrong number of braces');
-        $this->inputValidator->isInputReadyToBeAnalyzed(['{}}']);
     }
 }
