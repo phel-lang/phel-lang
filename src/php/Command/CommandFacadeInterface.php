@@ -12,5 +12,5 @@ interface CommandFacadeInterface
 
     public function executeTestCommand(array $paths): void;
 
-    public function executeFormatCommand(string $fileOrPath): void;
+    public function executeFormatCommand(array $paths): void;
 }

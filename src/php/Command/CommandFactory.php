@@ -6,6 +6,7 @@ namespace Phel\Command;
 
 use Phel\Command\Repl\ColorStyle;
 use Phel\Command\Repl\ReplCommandSystemIo;
+use Phel\Command\Shared\CommandIoInterface;
 use Phel\Command\Shared\CommandSystemIo;
 use Phel\Command\Shared\NamespaceExtractor;
 use Phel\Command\Shared\NamespaceExtractorInterface;
@@ -64,7 +65,8 @@ final class CommandFactory implements CommandFactoryInterface
     public function createFormatCommand(): FormatCommand
     {
         return new FormatCommand(
-            $this->formatterFactory->createFormatter()
+            $this->formatterFactory->createFormatter(),
+            $this->createCommandIo()
         );
     }
 
@@ -74,7 +76,12 @@ final class CommandFactory implements CommandFactoryInterface
             $this->compilerFactory->createLexer(),
             $this->compilerFactory->createParser(),
             $this->compilerFactory->createReader($globalEnv),
-            new CommandSystemIo()
+            $this->createCommandIo()
         );
+    }
+
+    private function createCommandIo(): CommandIoInterface
+    {
+        return new CommandSystemIo();
     }
 }
