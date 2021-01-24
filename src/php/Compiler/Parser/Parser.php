@@ -16,6 +16,8 @@ use Phel\Compiler\Parser\ParserNode\NodeInterface;
 use Phel\Compiler\Parser\ParserNode\QuoteNode;
 use Phel\Compiler\Parser\ParserNode\StringNode;
 use Phel\Compiler\Parser\ParserNode\WhitespaceNode;
+use Phel\Exceptions\Parser\UnexpectedParserException;
+use Phel\Exceptions\Parser\UnfinishedParserException;
 use Phel\Exceptions\ParserException;
 use Phel\Exceptions\StringParserException;
 
@@ -64,7 +66,7 @@ final class Parser implements ParserInterface
     }
 
     /**
-     * @throws ParserException
+     * @throws \Phel\Exceptions\ParserException
      */
     public function readExpression(TokenStream $tokenStream): NodeInterface
     {
@@ -105,12 +107,12 @@ final class Parser implements ParserInterface
                     return $this->parseTableListNode($token, $tokenStream);
 
                 case Token::T_OPEN_BRACE:
-                    throw $this->createParserException($tokenStream, $token, 'Unexpected token: {');
+                    throw $this->createUnexceptedParserException($tokenStream, $token, 'Unexpected token: {');
 
                 case Token::T_CLOSE_PARENTHESIS:
                 case Token::T_CLOSE_BRACKET:
                 case Token::T_CLOSE_BRACE:
-                    throw $this->createParserException($tokenStream, $token, 'Unterminated list');
+                    throw $this->createUnexceptedParserException($tokenStream, $token, 'Unterminated list');
 
                 case Token::T_UNQUOTE_SPLICING:
                 case Token::T_UNQUOTE:
@@ -122,16 +124,16 @@ final class Parser implements ParserInterface
                     return $this->parseMetaNode($tokenStream);
 
                 case Token::T_EOF:
-                    throw $this->createParserException($tokenStream, $token, 'Unterminated list');
+                    throw $this->createUnfinishedParserException($tokenStream, $token, 'Unterminated list');
 
                 default:
-                    throw $this->createParserException($tokenStream, $token, 'Unhandled syntax token: ' . $token->getCode());
+                    throw $this->createUnexceptedParserException($tokenStream, $token, 'Unhandled syntax token: ' . $token->getCode());
             }
         }
 
         // Throw exception differently because we may have not $token
         $snippet = $tokenStream->getCodeSnippet();
-        throw new ParserException(
+        throw new UnfinishedParserException(
             'Unterminated list',
             $snippet,
             $snippet->getStartLocation(),
@@ -156,13 +158,18 @@ final class Parser implements ParserInterface
                 ->createStringParser()
                 ->parse($token);
         } catch (StringParserException $e) {
-            throw $this->createParserException($tokenStream, $token, $e->getMessage());
+            throw $this->createUnexceptedParserException($tokenStream, $token, $e->getMessage());
         }
     }
 
-    private function createParserException(TokenStream $tokenStream, Token $currentToken, string $message): ParserException
+    private function createUnexceptedParserException(TokenStream $tokenStream, Token $currentToken, string $message): UnexpectedParserException
     {
-        return ParserException::forSnippet($tokenStream->getCodeSnippet(), $currentToken, $message);
+        return UnexpectedParserException::forSnippet($tokenStream->getCodeSnippet(), $currentToken, $message);
+    }
+
+    private function createUnfinishedParserException(TokenStream $tokenStream, Token $currentToken, string $message): UnfinishedParserException
+    {
+        return UnfinishedParserException::forSnippet($tokenStream->getCodeSnippet(), $currentToken, $message);
     }
 
     /**
