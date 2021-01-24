@@ -31,7 +31,6 @@ final class ReplCommand
     private ExceptionPrinterInterface $exceptionPrinter;
     private ColorStyleInterface $style;
     private PrinterInterface $printer;
-    private InputValidator $inputValidator;
 
     /** @var string[] */
     private array $inputBuffer = [];
@@ -41,15 +40,13 @@ final class ReplCommand
         EvalCompilerInterface $compiler,
         ExceptionPrinterInterface $exceptionPrinter,
         ColorStyleInterface $style,
-        PrinterInterface $printer,
-        InputValidator $inputValidator
+        PrinterInterface $printer
     ) {
         $this->io = $io;
         $this->compiler = $compiler;
         $this->exceptionPrinter = $exceptionPrinter;
         $this->style = $style;
         $this->printer = $printer;
-        $this->inputValidator = $inputValidator;
     }
 
     public function run(): void
@@ -73,7 +70,6 @@ final class ReplCommand
             } catch (Throwable $e) {
                 $this->inputBuffer = [];
                 $this->io->output($this->style->red($e->getMessage() . PHP_EOL));
-//                $this->io->output($e->getTraceAsString() . PHP_EOL);
             }
         }
 
@@ -121,7 +117,7 @@ final class ReplCommand
             return;
         }
 
-        if (!$this->inputValidator->isInputReadyToBeAnalyzed($this->inputBuffer)) {
+        if (!(new InputValidator())->isInputReadyToBeAnalyzed($this->inputBuffer)) {
             return;
         }
 
@@ -130,7 +126,7 @@ final class ReplCommand
 
         try {
             $this->analyzeInput($inputAsString);
-        } catch (ParserException | ReaderException $e) {
+        } catch (ParserException|ReaderException $e) {
             $this->io->output($this->exceptionPrinter->getExceptionString($e, $e->getCodeSnippet()));
         } catch (Throwable $e) {
             $this->io->output($this->exceptionPrinter->getStackTraceString($e));

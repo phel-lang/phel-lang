@@ -6,8 +6,8 @@ namespace PhelTest\Unit\Command\Repl;
 
 use Generator;
 use Phel\Command\Repl\InputValidator;
-use Phel\Exceptions\WrongNumberOfParenthesisException;
 use PHPUnit\Framework\TestCase;
+use RuntimeException;
 
 final class InputValidatorTest extends TestCase
 {
@@ -32,49 +32,69 @@ final class InputValidatorTest extends TestCase
     public function providerInputReady(): Generator
     {
         yield 'An empty list' => [
-            'input' => ['()'],
+            'inputBuffer' => ['()'],
+            'expected' => true,
+        ];
+
+        yield 'An empty list in multiline' => [
+            'inputBuffer' => ['(', ')'],
             'expected' => true,
         ];
 
         yield 'Calling a function' => [
-            'input' => ['(+ 1 2)'],
+            'inputBuffer' => ['(+ 1 2)'],
+            'expected' => true,
+        ];
+
+        yield 'Calling a function in multiline' => [
+            'inputBuffer' => ['(+ 1', '2', ')'],
+            'expected' => true,
+        ];
+
+        yield 'Function call in multiline with a comment in the middle' => [
+            'inputBuffer' => ['(+ 1', '2', '#)', ')'],
             'expected' => true,
         ];
 
         yield 'Closing parenthesis missing' => [
-            'input' => ['(+ 1 2'],
+            'inputBuffer' => ['(+ 1 2'],
+            'expected' => false,
+        ];
+
+        yield 'Closing parenthesis missing in multiline' => [
+            'inputBuffer' => ['(+ 1', '2 3'],
             'expected' => false,
         ];
 
         yield 'Only open parenthesis' => [
-            'input' => ['('],
+            'inputBuffer' => ['('],
             'expected' => false,
         ];
 
-        /* yield 'The closing parenthesis is after a comment sign' => [
-             'input' => '(+ 1 2 #)',
-             'expected' => false,
-         ];*/
+        yield 'The closing parenthesis is after a comment sign' => [
+            'inputBuffer' => ['(+ 1 2 #)'],
+            'expected' => false,
+        ];
     }
 
-    public function testWrongNumberOfParenthesis(): void
+    public function testWrongNumberOfParentheses(): void
     {
-        $this->expectException(\RuntimeException::class);
+        $this->expectException(RuntimeException::class);
+        $this->expectExceptionMessage('Wrong number of parentheses');
         $this->inputValidator->isInputReadyToBeAnalyzed(['())']);
     }
 
-    /*
-    /**
-     * @dataProvider providerWrongNumberOfParenthesis
-     *
-    public function testWrongNumberOfParenthesis(string $input): void
+    public function testWrongNumberOfBrackets(): void
     {
-        $this->expectException(WrongNumberOfParenthesisException::class);
-        $this->inputValidator->isInputReadyToBeAnalyzed('');
+        $this->expectException(RuntimeException::class);
+        $this->expectExceptionMessage('Wrong number of brackets');
+        $this->inputValidator->isInputReadyToBeAnalyzed(['[]]']);
     }
 
-    public function providerWrongNumberOfParenthesis(): Generator
+    public function testWrongNumberOfBraces(): void
     {
-        yield 'whe' => ['('];
-    }*/
+        $this->expectException(RuntimeException::class);
+        $this->expectExceptionMessage('Wrong number of braces');
+        $this->inputValidator->isInputReadyToBeAnalyzed(['{}}']);
+    }
 }

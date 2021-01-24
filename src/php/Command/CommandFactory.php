@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace Phel\Command;
 
 use Phel\Command\Repl\ColorStyle;
-use Phel\Command\Repl\InputValidator;
 use Phel\Command\Repl\ReplCommandSystemIo;
 use Phel\Command\Shared\CommandSystemIo;
 use Phel\Command\Shared\NamespaceExtractor;
@@ -42,8 +41,7 @@ final class CommandFactory implements CommandFactoryInterface
             $this->compilerFactory->createEvalCompiler($runtime->getEnv()),
             TextExceptionPrinter::create(),
             ColorStyle::withStyles(),
-            Printer::nonReadable(),
-            new InputValidator()
+            Printer::nonReadable()
         );
     }
 

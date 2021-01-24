@@ -6,7 +6,6 @@ namespace PhelTest\Integration\Repl;
 
 use Generator;
 use Phel\Command\Repl\ColorStyle;
-use Phel\Command\Repl\InputValidator;
 use Phel\Command\ReplCommand;
 use Phel\Compiler\Analyzer\Environment\GlobalEnvironment;
 use Phel\Compiler\CompilerFactory;
@@ -93,8 +92,7 @@ final class ReplIntegrationTest extends TestCase
             $compilerFactory->createEvalCompiler($globalEnv),
             $exceptionPrinter,
             ColorStyle::noStyles(),
-            Printer::nonReadable(),
-            new InputValidator()
+            Printer::nonReadable()
         );
     }
 }
