@@ -81,18 +81,23 @@ final class ReplCommand
             $this->io->output(self::ENABLE_BRACKETED_PASTE);
         }
 
-        $prompt = empty($this->inputBuffer) ? self::INITIAL_PROMPT : self::OPEN_PROMPT;
+        $isInitialInput = empty($this->inputBuffer);
+        $prompt = $isInitialInput ? self::INITIAL_PROMPT : self::OPEN_PROMPT;
         $input = $this->io->readline($prompt);
 
         if ($this->io->isBracketedPasteSupported()) {
             $this->io->output(self::DISABLE_BRACKETED_PASTE);
         }
 
-        if ($input === null) {
-            $input = self::EXIT_REPL;
+        if ($input === null && $isInitialInput) {
+            // Ctrl+D will exit the repl
+            $this->inputBuffer[] = self::EXIT_REPL;
+        } elseif ($input === null && !$isInitialInput) {
+            // Ctrl+D will restart the buffer
+            $this->inputBuffer = [];
+        } else {
+            $this->inputBuffer[] = $input;
         }
-
-        $this->inputBuffer[] = $input;
     }
 
     /**
@@ -114,15 +119,15 @@ final class ReplCommand
             return;
         }
 
-        $input = implode(PHP_EOL, $this->inputBuffer);
+        $fullInput = implode(PHP_EOL, $this->inputBuffer);
 
         try {
-            $result = $this->compiler->eval($input);
+            $result = $this->compiler->eval($fullInput);
             $this->io->output($this->printer->print($result) . PHP_EOL);
-            $this->io->addHistory($input);
+            $this->io->addHistory($fullInput);
             $this->inputBuffer = [];
         } catch (UnfinishedParserException $e) {
-            // The input is valid but more input is missing to finish parsing
+            // The input is valid but more input is missing to finish the parsing.
         } catch (CompilerException $e) {
             $this->io->output(
                 $this->exceptionPrinter->getExceptionString(
