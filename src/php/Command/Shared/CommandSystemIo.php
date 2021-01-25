@@ -13,6 +13,6 @@ final class CommandSystemIo implements CommandIoInterface
 
     public function output(string $string): void
     {
-        fwrite(STDOUT, $string);
+        print $string;
     }
 }
