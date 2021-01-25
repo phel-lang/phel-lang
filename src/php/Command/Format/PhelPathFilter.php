@@ -25,12 +25,11 @@ final class PhelPathFilter implements PathFilterInterface
                 if ($this->hasPhelExtension($path)) {
                     $returnPaths[] = $path;
                 }
-                continue;
-            }
-
-            foreach ($this->createRecursiveIterator($path) as $fileInfo) {
-                if ($this->isPhelFile($fileInfo->getPathname())) {
-                    $returnPaths[] = $fileInfo->getPathname();
+            } elseif (is_dir($path)) {
+                foreach ($this->createRecursiveIterator($path) as $fileInfo) {
+                    if ($this->isPhelFile($fileInfo->getPathname())) {
+                        $returnPaths[] = $fileInfo->getPathname();
+                    }
                 }
             }
         }
