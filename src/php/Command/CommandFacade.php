@@ -48,15 +48,11 @@ final class CommandFacade implements CommandFacadeInterface
             : exit(self::FAILED_CODE);
     }
 
-    public function executeFormatCommand(string $fileOrPath): void
+    public function executeFormatCommand(array $paths): void
     {
-        $result = $this->commandFactory
+        $this->commandFactory
             ->createFormatCommand()
-            ->run($fileOrPath);
-
-        ($result)
-            ? exit(self::SUCCESS_CODE)
-            : exit(self::FAILED_CODE);
+            ->run($paths);
     }
 
     private function loadVendorPhelRuntime(): RuntimeInterface

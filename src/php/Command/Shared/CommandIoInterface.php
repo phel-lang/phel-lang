@@ -7,4 +7,6 @@ namespace Phel\Command\Shared;
 interface CommandIoInterface
 {
     public function fileGetContents(string $path): string;
+
+    public function output(string $string): void;
 }

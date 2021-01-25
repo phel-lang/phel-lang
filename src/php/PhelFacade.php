@@ -28,7 +28,7 @@ Commands:
         Tests the given files. If no filenames are provided all tests in the
         test directory are executed.
 
-    fmt <filename>
+    fmt <filename-or-directory> ...
         Formats the given files.
 
     help
@@ -74,7 +74,7 @@ HELP;
     private function executeRunCommand(array $arguments): void
     {
         if (empty($arguments)) {
-            throw new InvalidArgumentException('Please provide a filename or namespace as argument!');
+            throw new InvalidArgumentException('Please, provide a filename or namespace as argument!');
         }
 
         $this->commandFacade->executeRunCommand($arguments[0]);
@@ -88,9 +88,9 @@ HELP;
     private function executeFormatCommand(array $arguments): void
     {
         if (empty($arguments)) {
-            throw new InvalidArgumentException('Please provide a filename as argument!');
+            throw new InvalidArgumentException('Please, provide a directory or a filename as arguments!');
         }
 
-        $this->commandFacade->executeFormatCommand($arguments[0]);
+        $this->commandFacade->executeFormatCommand($arguments);
     }
 }

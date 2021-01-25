@@ -10,4 +10,9 @@ final class CommandSystemIo implements CommandIoInterface
     {
         return file_get_contents($string);
     }
+
+    public function output(string $string): void
+    {
+        print $string;
+    }
 }

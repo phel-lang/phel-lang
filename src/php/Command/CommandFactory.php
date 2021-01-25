@@ -4,8 +4,11 @@ declare(strict_types=1);
 
 namespace Phel\Command;
 
+use Phel\Command\Format\PathFilterInterface;
+use Phel\Command\Format\PhelPathFilter;
 use Phel\Command\Repl\ColorStyle;
 use Phel\Command\Repl\ReplCommandSystemIo;
+use Phel\Command\Shared\CommandIoInterface;
 use Phel\Command\Shared\CommandSystemIo;
 use Phel\Command\Shared\NamespaceExtractor;
 use Phel\Command\Shared\NamespaceExtractorInterface;
@@ -64,7 +67,9 @@ final class CommandFactory implements CommandFactoryInterface
     public function createFormatCommand(): FormatCommand
     {
         return new FormatCommand(
-            $this->formatterFactory->createFormatter()
+            $this->formatterFactory->createFormatter(),
+            $this->createCommandIo(),
+            $this->createPathFilter()
         );
     }
 
@@ -74,7 +79,17 @@ final class CommandFactory implements CommandFactoryInterface
             $this->compilerFactory->createLexer(),
             $this->compilerFactory->createParser(),
             $this->compilerFactory->createReader($globalEnv),
-            new CommandSystemIo()
+            $this->createCommandIo()
         );
+    }
+
+    private function createCommandIo(): CommandIoInterface
+    {
+        return new CommandSystemIo();
+    }
+
+    private function createPathFilter(): PathFilterInterface
+    {
+        return new PhelPathFilter();
     }
 }
