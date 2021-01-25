@@ -10,9 +10,8 @@ use Phel\Compiler\EvalCompilerInterface;
 use Phel\Exceptions\CompilerException;
 use Phel\Exceptions\ExceptionPrinterInterface;
 use Phel\Exceptions\ExitException;
-use Phel\Exceptions\ParserException;
-use Phel\Exceptions\ReaderException;
-use Phel\Printer\Printer;
+use Phel\Exceptions\Parser\UnfinishedParserException;
+use Phel\Printer\PrinterInterface;
 use Throwable;
 
 final class ReplCommand
@@ -21,95 +20,119 @@ final class ReplCommand
 
     private const ENABLE_BRACKETED_PASTE = "\e[?2004h";
     private const DISABLE_BRACKETED_PASTE = "\e[?2004l";
-    private const PROMPT = '>>> ';
+    private const INITIAL_PROMPT = '>>> ';
+    private const OPEN_PROMPT = '... ';
+    private const EXIT_REPL = 'exit';
 
     private ReplCommandIoInterface $io;
     private EvalCompilerInterface $compiler;
     private ExceptionPrinterInterface $exceptionPrinter;
     private ColorStyleInterface $style;
+    private PrinterInterface $printer;
+
+    /** @var string[] */
+    private array $inputBuffer = [];
 
     public function __construct(
         ReplCommandIoInterface $io,
         EvalCompilerInterface $compiler,
         ExceptionPrinterInterface $exceptionPrinter,
-        ColorStyleInterface $style
+        ColorStyleInterface $style,
+        PrinterInterface $printer
     ) {
         $this->io = $io;
         $this->compiler = $compiler;
         $this->exceptionPrinter = $exceptionPrinter;
         $this->style = $style;
+        $this->printer = $printer;
     }
 
     public function run(): void
     {
         $this->io->readHistory();
-        $this->io->output($this->style->yellow("Welcome to the Phel Repl\n"));
-        $this->io->output('Type "exit" or press Ctrl-D to exit.' . "\n");
+        $this->io->output($this->style->yellow('Welcome to the Phel Repl' . PHP_EOL));
+        $this->io->output('Type "exit" or press Ctrl-D to exit.' . PHP_EOL);
 
         $this->loopReadLineAndAnalyze();
     }
 
-    /**
-     * @throws ExitException
-     */
     private function loopReadLineAndAnalyze(): void
     {
         while (true) {
             try {
-                if ($this->io->isBracketedPasteSupported()) {
-                    $this->io->output(self::ENABLE_BRACKETED_PASTE);
-                }
-                $input = $this->io->readline(self::PROMPT);
-                if ($this->io->isBracketedPasteSupported()) {
-                    $this->io->output(self::DISABLE_BRACKETED_PASTE);
-                }
-
-                try {
-                    $this->checkInputAndAnalyze($input);
-                } catch (ExitException $e) {
-                    break;
-                }
+                $this->addLineFromPromptToBuffer();
+                $this->checkExitInputBuffer();
+                $this->analyzeInputBuffer();
+            } catch (ExitException $e) {
+                break;
             } catch (Throwable $e) {
+                $this->inputBuffer = [];
+                $this->io->output($this->style->red($e->getMessage() . PHP_EOL));
                 $this->io->output($e->getTraceAsString() . PHP_EOL);
             }
         }
 
-        $this->io->output($this->style->yellow("Bye!\n"));
+        $this->io->output($this->style->yellow('Bye!' . PHP_EOL));
+    }
+
+    private function addLineFromPromptToBuffer(): void
+    {
+        if ($this->io->isBracketedPasteSupported()) {
+            $this->io->output(self::ENABLE_BRACKETED_PASTE);
+        }
+
+        $isInitialInput = empty($this->inputBuffer);
+        $prompt = $isInitialInput ? self::INITIAL_PROMPT : self::OPEN_PROMPT;
+        $input = $this->io->readline($prompt);
+
+        if ($this->io->isBracketedPasteSupported()) {
+            $this->io->output(self::DISABLE_BRACKETED_PASTE);
+        }
+
+        if ($input === null && $isInitialInput) {
+            // Ctrl+D will exit the repl
+            $this->inputBuffer[] = self::EXIT_REPL;
+        } elseif ($input === null && !$isInitialInput) {
+            // Ctrl+D will empty the buffer
+            $this->inputBuffer = [];
+        } else {
+            $this->inputBuffer[] = $input;
+        }
     }
 
     /**
      * @throws ExitException
      */
-    private function checkInputAndAnalyze(?string $input): void
+    private function checkExitInputBuffer(): void
     {
-        if (null === $input || 'exit' === $input) {
+        $firstInput = $this->inputBuffer[0] ?? '';
+
+        if (self::EXIT_REPL === $firstInput) {
             throw new ExitException();
-        }
-
-        if ('' === $input) {
-            return;
-        }
-
-        $this->io->addHistory($input);
-
-        try {
-            $this->analyzeInput($input);
-        } catch (ParserException|ReaderException $e) {
-            $this->io->output($this->exceptionPrinter->getExceptionString($e, $e->getCodeSnippet()));
-        } catch (Throwable $e) {
-            $this->io->output($this->exceptionPrinter->getStackTraceString($e));
         }
     }
 
-    /**
-     * @throws ReaderException
-     */
-    private function analyzeInput(string $input): void
+    private function analyzeInputBuffer(): void
     {
-        try {
-            $result = $this->compiler->eval($input);
-            $this->io->output(Printer::nonReadable()->print($result));
+        if (empty($this->inputBuffer)) {
             $this->io->output(PHP_EOL);
+            return;
+        }
+
+        if ('' === end($this->inputBuffer)) {
+            array_pop($this->inputBuffer);
+            return;
+        }
+
+        $fullInput = implode(PHP_EOL, $this->inputBuffer);
+
+        try {
+            $result = $this->compiler->eval($fullInput);
+            $this->io->output($this->printer->print($result) . PHP_EOL);
+            $this->io->addHistory($fullInput);
+            $this->inputBuffer = [];
+        } catch (UnfinishedParserException $e) {
+            // The input is valid but more input is missing to finish the parsing.
         } catch (CompilerException $e) {
             $this->io->output(
                 $this->exceptionPrinter->getExceptionString(
@@ -117,6 +140,10 @@ final class ReplCommand
                     $e->getCodeSnippet()
                 )
             );
+            $this->inputBuffer = [];
+        } catch (Throwable $e) {
+            $this->io->output($this->exceptionPrinter->getStackTraceString($e));
+            $this->inputBuffer = [];
         }
     }
 }
