@@ -93,7 +93,7 @@ final class ReplCommand
             // Ctrl+D will exit the repl
             $this->inputBuffer[] = self::EXIT_REPL;
         } elseif ($input === null && !$isInitialInput) {
-            // Ctrl+D will restart the buffer
+            // Ctrl+D will empty the buffer
             $this->inputBuffer = [];
         } else {
             $this->inputBuffer[] = $input;
@@ -114,6 +114,11 @@ final class ReplCommand
 
     private function analyzeInputBuffer(): void
     {
+        if (empty($this->inputBuffer)) {
+            $this->io->output(PHP_EOL);
+            return;
+        }
+
         if ('' === end($this->inputBuffer)) {
             array_pop($this->inputBuffer);
             return;
