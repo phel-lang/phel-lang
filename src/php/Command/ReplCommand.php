@@ -68,6 +68,7 @@ final class ReplCommand
             } catch (Throwable $e) {
                 $this->inputBuffer = [];
                 $this->io->output($this->style->red($e->getMessage() . PHP_EOL));
+                $this->io->output($e->getTraceAsString() . PHP_EOL);
             }
         }
 
@@ -109,20 +110,16 @@ final class ReplCommand
     private function analyzeInputBuffer(): void
     {
         if ('' === end($this->inputBuffer)) {
+            array_pop($this->inputBuffer);
             return;
         }
 
-        $inputAsString = implode(PHP_EOL, $this->inputBuffer);
-        $this->io->addHistory($inputAsString);
+        $input = implode(PHP_EOL, $this->inputBuffer);
 
-        $this->analyzeInput($inputAsString);
-    }
-
-    private function analyzeInput(string $input): void
-    {
         try {
             $result = $this->compiler->eval($input);
             $this->io->output($this->printer->print($result) . PHP_EOL);
+            $this->io->addHistory($input);
             $this->inputBuffer = [];
         } catch (UnfinishedParserException $e) {
             // The input is valid but more input is missing to finish parsing

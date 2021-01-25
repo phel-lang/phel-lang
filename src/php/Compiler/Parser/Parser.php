@@ -112,7 +112,7 @@ final class Parser implements ParserInterface
                 case Token::T_CLOSE_PARENTHESIS:
                 case Token::T_CLOSE_BRACKET:
                 case Token::T_CLOSE_BRACE:
-                    throw $this->createUnfinishedParserException($tokenStream, $token, 'Unterminated list (BRACKETS)');
+                    throw $this->createUnexceptedParserException($tokenStream, $token, 'Unterminated list (BRACKETS)');
 
                 case Token::T_UNQUOTE_SPLICING:
                 case Token::T_UNQUOTE:
