@@ -4,32 +4,29 @@ declare(strict_types=1);
 
 namespace Phel\Command;
 
+use Phel\Command\Format\PathFilterInterface;
 use Phel\Command\Shared\CommandIoInterface;
 use Phel\Formatter\FormatterInterface;
-use RecursiveDirectoryIterator;
-use RecursiveIteratorIterator;
 
 final class FormatCommand
 {
     public const COMMAND_NAME = 'fmt';
 
-    private const PHEL_EXTENSION = 'phel';
-
     private FormatterInterface $formatter;
     private CommandIoInterface $io;
-
-    /** @var array<string, bool> */
-    private array $alreadyTriedToFormatFilePath = [];
+    private PathFilterInterface $pathFilter;
 
     /** @var list<string> */
     private array $successfulFormattedFilePaths = [];
 
     public function __construct(
         FormatterInterface $formatter,
-        CommandIoInterface $io
+        CommandIoInterface $io,
+        PathFilterInterface $pathFilter
     ) {
         $this->formatter = $formatter;
         $this->io = $io;
+        $this->pathFilter = $pathFilter;
     }
 
     /**
@@ -37,46 +34,15 @@ final class FormatCommand
      */
     public function run(array $paths): void
     {
-        foreach (array_unique($paths) as $path) {
-            $this->runInPath($path);
+        foreach ($this->pathFilter->filterPaths($paths) as $path) {
+            $wasFormatted = $this->formatter->formatFile($path);
+
+            if ($wasFormatted) {
+                $this->successfulFormattedFilePaths[] = $path;
+            }
         }
 
         $this->printResult();
-    }
-
-    private function runInPath(string $path): void
-    {
-        if (is_dir($path)) {
-            $this->runFormatterInDirectory($path);
-            return;
-        }
-
-        if (isset($this->alreadyTriedToFormatFilePath[$path])) {
-            return;
-        }
-
-        $wasFormatted = $this->formatter->formatFile($path);
-
-        if ($wasFormatted) {
-            $this->successfulFormattedFilePaths[] = $path;
-        }
-
-        $this->alreadyTriedToFormatFilePath[$path] = true;
-    }
-
-    private function runFormatterInDirectory(string $directory): void
-    {
-        $iterator = new RecursiveIteratorIterator(
-            new RecursiveDirectoryIterator($directory, RecursiveDirectoryIterator::SKIP_DOTS),
-            RecursiveIteratorIterator::LEAVES_ONLY
-        );
-
-        foreach ($iterator as $fileInfo) {
-            /** @var \SplFileInfo $fileOrPath */
-            if ($fileInfo->getExtension() === self::PHEL_EXTENSION) {
-                $this->runInPath($fileInfo->getPathname());
-            }
-        }
     }
 
     private function printResult(): void
