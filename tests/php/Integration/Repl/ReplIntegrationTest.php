@@ -23,10 +23,12 @@ use SplFileInfo;
 
 final class ReplIntegrationTest extends TestCase
 {
+    private const PROMPT = 'phel(1)> ';
+
     /**
      * @dataProvider providerIntegration
      */
-    public function testIntegration(array $inputs, string $fileContent): void
+    public function testIntegration(array $inputs, string $expectedOutput): void
     {
         $io = new ReplTestIo();
         $repl = $this->setupFreshRepl($io);
@@ -35,7 +37,7 @@ final class ReplIntegrationTest extends TestCase
         $repl->run();
         $replOutput = $io->getOutputString();
 
-        $this->assertEquals($fileContent, $replOutput);
+        self::assertEquals($expectedOutput, $replOutput);
     }
 
     public function providerIntegration(): Generator
@@ -55,8 +57,14 @@ final class ReplIntegrationTest extends TestCase
 
             $filename = str_replace($fixturesDir . '/', '', $file->getRealPath());
             $fileContent = file_get_contents($file->getRealpath());
+            $expectedOutput = preg_replace('/....\(\d\)> (?<phel_code>.+)/', 'delete_me', $fileContent);
 
-            yield $filename => [$this->getInputs($fileContent), $fileContent];
+            $expectedOutput = implode(PHP_EOL, array_filter(
+                explode(PHP_EOL, $expectedOutput),
+                static fn (string $line): bool => $line !== 'delete_me'
+            ));
+
+            yield $filename => [$this->getInputs($fileContent), $expectedOutput];
         }
     }
 
@@ -64,8 +72,9 @@ final class ReplIntegrationTest extends TestCase
     {
         $inputs = [];
         foreach (explode(PHP_EOL, $testFileContent) as $line) {
-            if (strpos($line, '>>> ') === 0) {
-                $inputs[] = substr($line, 4);
+            preg_match('/....\(\d\)> (?<phel_code>.+)/', $line, $out);
+            if (!empty($out)) {
+                $inputs[] = $out['phel_code'];
             }
         }
         return $inputs;

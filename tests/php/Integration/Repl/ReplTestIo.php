@@ -8,9 +8,9 @@ use Phel\Command\Repl\ReplCommandIoInterface;
 
 final class ReplTestIo implements ReplCommandIoInterface
 {
-    private $outputs = [];
-    private $inputs = [];
-    private $currentIndex = 0;
+    private array $outputs = [];
+    private array $inputs = [];
+    private int $currentIndex = 0;
 
     public function readHistory(): void
     {
@@ -24,7 +24,6 @@ final class ReplTestIo implements ReplCommandIoInterface
     {
         if ($this->currentIndex < count($this->inputs)) {
             $line = $this->inputs[$this->currentIndex];
-            $this->output('>>> ' . $line . "\n");
             $this->currentIndex++;
 
             return $line;
