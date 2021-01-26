@@ -1,0 +1,11 @@
+phel:1> (php/+ 1
+....:1> 2
+....:1> ]
+Unterminated list (BRACKETS)
+in string:3
+
+3| (php/+ 1
+4| 2
+5| ]
+   ^
+

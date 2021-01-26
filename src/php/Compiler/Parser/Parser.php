@@ -37,6 +37,8 @@ final class Parser implements ParserInterface
      * @param TokenStream $tokenStream The token stream to read
      *
      * @throws ParserException
+     * @throws UnexpectedParserException
+     * @throws UnfinishedParserException
      */
     public function parseNext(TokenStream $tokenStream): ?NodeInterface
     {
@@ -66,7 +68,9 @@ final class Parser implements ParserInterface
     }
 
     /**
-     * @throws \Phel\Exceptions\ParserException
+     * @throws ParserException
+     * @throws UnexpectedParserException
+     * @throws UnfinishedParserException
      */
     public function readExpression(TokenStream $tokenStream): NodeInterface
     {

@@ -20,8 +20,8 @@ final class ReplCommand
 
     private const ENABLE_BRACKETED_PASTE = "\e[?2004h";
     private const DISABLE_BRACKETED_PASTE = "\e[?2004l";
-    private const INITIAL_PROMPT = '>>> ';
-    private const OPEN_PROMPT = '... ';
+    private const INITIAL_PROMPT = 'phel:%d> ';
+    private const OPEN_PROMPT = '....:%d> ';
     private const EXIT_REPL = 'exit';
 
     private ReplCommandIoInterface $io;
@@ -32,6 +32,7 @@ final class ReplCommand
 
     /** @var string[] */
     private array $inputBuffer = [];
+    private int $statementNumber = 1;
 
     public function __construct(
         ReplCommandIoInterface $io,
@@ -50,8 +51,8 @@ final class ReplCommand
     public function run(): void
     {
         $this->io->readHistory();
-        $this->io->output($this->style->yellow('Welcome to the Phel Repl' . PHP_EOL));
-        $this->io->output('Type "exit" or press Ctrl-D to exit.' . PHP_EOL);
+        $this->io->writeln($this->style->yellow('Welcome to the Phel Repl'));
+        $this->io->writeln('Type "exit" or press Ctrl-D to exit.');
 
         $this->loopReadLineAndAnalyze();
     }
@@ -67,26 +68,26 @@ final class ReplCommand
                 break;
             } catch (Throwable $e) {
                 $this->inputBuffer = [];
-                $this->io->output($this->style->red($e->getMessage() . PHP_EOL));
-                $this->io->output($e->getTraceAsString() . PHP_EOL);
+                $this->io->writeln($this->style->red($e->getMessage()));
+                $this->io->writeln($e->getTraceAsString());
             }
         }
 
-        $this->io->output($this->style->yellow('Bye!' . PHP_EOL));
+        $this->io->writeln($this->style->yellow('Bye!'));
     }
 
     private function addLineFromPromptToBuffer(): void
     {
         if ($this->io->isBracketedPasteSupported()) {
-            $this->io->output(self::ENABLE_BRACKETED_PASTE);
+            $this->io->write(self::ENABLE_BRACKETED_PASTE);
         }
 
         $isInitialInput = empty($this->inputBuffer);
         $prompt = $isInitialInput ? self::INITIAL_PROMPT : self::OPEN_PROMPT;
-        $input = $this->io->readline($prompt);
+        $input = $this->io->readline(sprintf($prompt, $this->statementNumber));
 
         if ($this->io->isBracketedPasteSupported()) {
-            $this->io->output(self::DISABLE_BRACKETED_PASTE);
+            $this->io->write(self::DISABLE_BRACKETED_PASTE);
         }
 
         if ($input === null && $isInitialInput) {
@@ -115,7 +116,6 @@ final class ReplCommand
     private function analyzeInputBuffer(): void
     {
         if (empty($this->inputBuffer)) {
-            $this->io->output(PHP_EOL);
             return;
         }
 
@@ -127,14 +127,17 @@ final class ReplCommand
         $fullInput = implode(PHP_EOL, $this->inputBuffer);
 
         try {
-            $result = $this->compiler->eval($fullInput);
-            $this->io->output($this->printer->print($result) . PHP_EOL);
+            $result = $this->compiler->eval($fullInput, $this->statementNumber);
+
+            $this->io->writeln($this->printer->print($result));
             $this->io->addHistory($fullInput);
+
             $this->inputBuffer = [];
+            $this->statementNumber++;
         } catch (UnfinishedParserException $e) {
             // The input is valid but more input is missing to finish the parsing.
         } catch (CompilerException $e) {
-            $this->io->output(
+            $this->io->write(
                 $this->exceptionPrinter->getExceptionString(
                     $e->getNestedException(),
                     $e->getCodeSnippet()
@@ -142,7 +145,7 @@ final class ReplCommand
             );
             $this->inputBuffer = [];
         } catch (Throwable $e) {
-            $this->io->output($this->exceptionPrinter->getStackTraceString($e));
+            $this->io->writeln($this->exceptionPrinter->getStackTraceString($e));
             $this->inputBuffer = [];
         }
     }

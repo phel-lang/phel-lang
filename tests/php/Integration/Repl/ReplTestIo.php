@@ -8,9 +8,9 @@ use Phel\Command\Repl\ReplCommandIoInterface;
 
 final class ReplTestIo implements ReplCommandIoInterface
 {
-    private $outputs = [];
-    private $inputs = [];
-    private $currentIndex = 0;
+    private array $outputs = [];
+    private array $inputs = [];
+    private int $currentIndex = 0;
 
     public function readHistory(): void
     {
@@ -24,7 +24,6 @@ final class ReplTestIo implements ReplCommandIoInterface
     {
         if ($this->currentIndex < count($this->inputs)) {
             $line = $this->inputs[$this->currentIndex];
-            $this->output('>>> ' . $line . "\n");
             $this->currentIndex++;
 
             return $line;
@@ -33,7 +32,12 @@ final class ReplTestIo implements ReplCommandIoInterface
         return null;
     }
 
-    public function output(string $string): void
+    public function write(string $string = ''): void
+    {
+        $this->outputs[] = $string;
+    }
+
+    public function writeln(string $string = ''): void
     {
         $this->outputs[] = $string;
     }
@@ -44,14 +48,14 @@ final class ReplTestIo implements ReplCommandIoInterface
         $this->currentIndex = 0;
     }
 
-    public function getOutputs()
+    public function getOutputs(): array
     {
         return array_slice($this->outputs, 2, -1);
     }
 
-    public function getOutputString()
+    public function getOutputString(): string
     {
-        return implode('', $this->getOutputs());
+        return implode('', $this->getOutputs()) . PHP_EOL;
     }
 
     public function isBracketedPasteSupported(): bool

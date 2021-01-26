@@ -15,6 +15,7 @@ use Phel\Exceptions\Extractor\SourceMapExtractor;
 use Phel\Exceptions\Printer\ExceptionArgsPrinter;
 use Phel\Exceptions\Printer\ExceptionArgsPrinterInterface;
 use Phel\Lang\FnInterface;
+use Phel\Lang\SourceLocation;
 use Phel\Printer\Printer;
 use ReflectionClass;
 use Throwable;
@@ -56,34 +57,33 @@ final class TextExceptionPrinter implements ExceptionPrinterInterface
     public function getExceptionString(PhelCodeException $e, CodeSnippet $codeSnippet): string
     {
         $str = '';
-        $eStartLocation = $e->getStartLocation() ?? $codeSnippet->getStartLocation();
-        $eEndLocation = $e->getEndLocation() ?? $codeSnippet->getEndLocation();
-        $eFirstLine = $eStartLocation->getLine();
+        $errorStartLocation = $e->getStartLocation() ?? $codeSnippet->getStartLocation();
+        $errorEndLocation = $e->getEndLocation() ?? $codeSnippet->getEndLocation();
+        $errorFirstLine = $errorStartLocation->getLine();
 
-        $str .= $this->style->blue($e->getMessage()) . "\n";
-        $str .= 'in ' . $eStartLocation->getFile() . ':' . $eFirstLine . "\n\n";
+        $str .= $this->style->blue($e->getMessage()) . PHP_EOL;
+        $str .= 'in ' . $errorStartLocation->getFile() . ':' . $errorFirstLine . PHP_EOL . PHP_EOL;
 
-        $lines = explode("\n", $codeSnippet->getCode());
+        $lines = explode(PHP_EOL, $codeSnippet->getCode());
         $endLineLength = strlen((string)$codeSnippet->getEndLocation()->getLine());
         $padLength = $endLineLength - strlen((string)$codeSnippet->getStartLocation()->getLine());
-        foreach ($lines as $index => $line) {
-            $str .= str_pad((string)($eFirstLine + $index), $padLength, ' ', STR_PAD_LEFT);
-            $str .= '| ' . $line . "\n";
 
-            $eStartLine = $eStartLocation->getLine();
-            if ($eStartLine === $eEndLocation->getLine()
+        foreach ($lines as $index => $line) {
+            $str .= str_pad((string)($errorFirstLine + $index), $padLength, ' ', STR_PAD_LEFT);
+            $str .= '| ' . $line . PHP_EOL;
+
+            $eStartLine = $errorStartLocation->getLine();
+            if ($eStartLine === $errorEndLocation->getLine()
                 && $eStartLine === $index + $codeSnippet->getStartLocation()->getLine()
             ) {
-                $str .= str_repeat(' ', $endLineLength + 2 + $eStartLocation->getColumn());
-                $str .= $this->style->red(str_repeat('^', max(1, $eEndLocation->getColumn() - $eStartLocation->getColumn())));
-                $str .= "\n";
+                $str .= $this->underliningErrorPointer($endLineLength, $errorStartLocation, $errorEndLocation);
             }
         }
 
         if ($e->getPrevious()) {
-            $str .= "\n\nCaused by:\n";
+            $str .= PHP_EOL . PHP_EOL . 'Caused by:' . PHP_EOL;
             $str .= $e->getPrevious()->getTraceAsString();
-            $str .= "\n";
+            $str .= PHP_EOL;
         }
 
         return $str;
@@ -103,8 +103,8 @@ final class TextExceptionPrinter implements ExceptionPrinterInterface
         $errorLine = $e->getLine();
         $pos = $this->filePositionExtractor->getOriginal($errorFile, $errorLine);
 
-        $str .= $this->style->blue("$type: $msg\n");
-        $str .= "in {$pos->filename()}:{$pos->line()} (gen: $errorFile:$errorLine)\n\n";
+        $str .= $this->style->blue("$type: $msg" . PHP_EOL);
+        $str .= "in {$pos->filename()}:{$pos->line()} (gen: $errorFile:$errorLine)" . PHP_EOL . PHP_EOL;
 
         foreach ($e->getTrace() as $i => $frame) {
             $class = $frame['class'] ?? null;
@@ -117,7 +117,7 @@ final class TextExceptionPrinter implements ExceptionPrinterInterface
                     $fnName = $this->munge->decodeNs($rf->getConstant('BOUND_TO'));
                     $argString = $this->exceptionArgsPrinter->parseArgsAsString($frame['args'] ?? []);
                     $pos = $this->filePositionExtractor->getOriginal($file, $line);
-                    $str .= "#$i {$pos->filename()}:{$pos->line()} (gen: $file:$line) : ($fnName$argString)\n";
+                    $str .= "#$i {$pos->filename()}:{$pos->line()} (gen: $file:$line) : ($fnName$argString)" . PHP_EOL;
 
                     continue;
                 }
@@ -127,9 +127,18 @@ final class TextExceptionPrinter implements ExceptionPrinterInterface
             $type = $frame['type'] ?? '';
             $fn = $frame['function'];
             $argString = $this->exceptionArgsPrinter->buildPhpArgsString($frame['args'] ?? []);
-            $str .= "#$i $file($line): $class$type$fn($argString)\n";
+            $str .= "#$i $file($line): $class$type$fn($argString)" . PHP_EOL;
         }
 
         return $str;
+    }
+
+    private function underliningErrorPointer(int $lineLength, SourceLocation $start, SourceLocation $end): string
+    {
+        $preEmptyLines = str_repeat(' ', $lineLength + 2 + $start->getColumn());
+        $pointer = str_repeat('^', max(1, $end->getColumn() - $start->getColumn()));
+        $pointerInRed = $this->style->red($pointer);
+
+        return $preEmptyLines . $pointerInRed . PHP_EOL;
     }
 }
