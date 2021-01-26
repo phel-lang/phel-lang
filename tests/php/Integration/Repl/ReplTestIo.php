@@ -9,9 +9,7 @@ use Phel\Command\Repl\ReplCommandIoInterface;
 final class ReplTestIo implements ReplCommandIoInterface
 {
     private array $outputs = [];
-    /**
-     * @var InputLine[]
-     */
+    /** @var InputLine[] */
     private array $inputs = [];
     private int $currentIndex = 0;
 

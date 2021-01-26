@@ -15,11 +15,13 @@ final class InputLine
         $this->content = $content;
     }
 
-    public function getContent() {
+    public function getContent()
+    {
         return $this->content;
     }
 
-    public function isCtrlD() {
+    public function isCtrlD()
+    {
         return $this->content === '<CTRL-D>';
     }
 

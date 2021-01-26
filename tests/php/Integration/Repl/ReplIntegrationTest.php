@@ -25,6 +25,7 @@ final class ReplIntegrationTest extends TestCase
 {
     /**
      * @dataProvider providerIntegration
+     *
      * @param array<InputLine> $inputs
      */
     public function testIntegration(array $inputs, string $expectedOutput): void
