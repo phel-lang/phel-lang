@@ -23,15 +23,13 @@ use SplFileInfo;
 
 final class ReplIntegrationTest extends TestCase
 {
-    private const PROMPT = 'phel(1)> ';
-
     /**
      * @dataProvider providerIntegration
      */
     public function testIntegration(array $inputs, string $expectedOutput): void
     {
         $io = new ReplTestIo();
-        $repl = $this->setupFreshRepl($io);
+        $repl = $this->createReplCommand($io);
 
         $io->setInputs($inputs);
         $repl->run();
@@ -57,37 +55,21 @@ final class ReplIntegrationTest extends TestCase
 
             $filename = str_replace($fixturesDir . '/', '', $file->getRealPath());
             $fileContent = file_get_contents($file->getRealpath());
-            $expectedOutput = preg_replace('/....\(\d\)> (?<phel_code>.+)/', 'delete_me', $fileContent);
 
-            $expectedOutput = implode(PHP_EOL, array_filter(
-                explode(PHP_EOL, $expectedOutput),
-                static fn (string $line): bool => $line !== 'delete_me'
-            ));
-
-            yield $filename => [$this->getInputs($fileContent), $expectedOutput];
+            yield $filename => [
+                $this->getInputs($fileContent),
+                $this->filterExpectedOutputFromFileContent($fileContent),
+            ];
         }
     }
 
-    private function getInputs(string $testFileContent): array
-    {
-        $inputs = [];
-        foreach (explode(PHP_EOL, $testFileContent) as $line) {
-            preg_match('/....\(\d\)> (?<phel_code>.+)/', $line, $out);
-            if (!empty($out)) {
-                $inputs[] = $out['phel_code'];
-            }
-        }
-        return $inputs;
-    }
-
-    private function setupFreshRepl(ReplTestIo $io): ReplCommand
+    private function createReplCommand(ReplTestIo $io): ReplCommand
     {
         $compilerFactory = new CompilerFactory();
 
         $globalEnv = new GlobalEnvironment();
         $rt = RuntimeFactory::initializeNew($globalEnv);
         $rt->addPath('phel\\', [__DIR__ . '/../../../../src/phel/']);
-        //$rt->loadNs("phel\\core");
 
         $exceptionPrinter = new TextExceptionPrinter(
             new ExceptionArgsPrinter(Printer::readable()),
@@ -103,5 +85,32 @@ final class ReplIntegrationTest extends TestCase
             ColorStyle::noStyles(),
             Printer::nonReadable()
         );
+    }
+
+    /**
+     * @return list<string>
+     */
+    private function getInputs(string $fileContent): array
+    {
+        $inputs = [];
+
+        foreach (explode(PHP_EOL, $fileContent) as $line) {
+            preg_match('/....:\d>(?<phel_code>.+)/', $line, $out);
+            if (!empty($out)) {
+                $inputs[] = trim($out['phel_code']);
+            }
+        }
+
+        return $inputs;
+    }
+
+    private function filterExpectedOutputFromFileContent(string $fileContent): string
+    {
+        $outputFromFileContent = preg_replace('/....:\d>(.+)/', 'delete_me', $fileContent);
+
+        return implode(PHP_EOL, array_filter(
+            explode(PHP_EOL, $outputFromFileContent),
+            static fn (string $line): bool => $line !== 'delete_me'
+        ));
     }
 }

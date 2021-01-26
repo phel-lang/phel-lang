@@ -20,8 +20,8 @@ final class ReplCommand
 
     private const ENABLE_BRACKETED_PASTE = "\e[?2004h";
     private const DISABLE_BRACKETED_PASTE = "\e[?2004l";
-    private const INITIAL_PROMPT = 'phel(%d)> ';
-    private const OPEN_PROMPT = '....(%d)> ';
+    private const INITIAL_PROMPT = 'phel:%d> ';
+    private const OPEN_PROMPT = '....:%d> ';
     private const EXIT_REPL = 'exit';
 
     private ReplCommandIoInterface $io;

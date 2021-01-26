@@ -1,6 +1,6 @@
-phel(1)> (php/+ 1
-....(1)> 2
-....(1)> ]
+phel:1> (php/+ 1
+....:1> 2
+....:1> ]
 Unterminated list (BRACKETS)
 in string:3
 
