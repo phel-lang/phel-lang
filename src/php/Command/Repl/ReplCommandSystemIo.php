@@ -37,9 +37,14 @@ final class ReplCommandSystemIo implements ReplCommandIoInterface
         return $line;
     }
 
-    public function output(string $string): void
+    public function write(string $string = ''): void
     {
-        fwrite(STDOUT, $string);
+        print $string;
+    }
+
+    public function writeln(string $string = ''): void
+    {
+        print $string . PHP_EOL;
     }
 
     public function isBracketedPasteSupported(): bool

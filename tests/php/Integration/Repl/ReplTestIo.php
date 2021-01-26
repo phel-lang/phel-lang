@@ -32,7 +32,12 @@ final class ReplTestIo implements ReplCommandIoInterface
         return null;
     }
 
-    public function output(string $string): void
+    public function write(string $string = ''): void
+    {
+        $this->outputs[] = $string;
+    }
+
+    public function writeln(string $string = ''): void
     {
         $this->outputs[] = $string;
     }
@@ -43,14 +48,14 @@ final class ReplTestIo implements ReplCommandIoInterface
         $this->currentIndex = 0;
     }
 
-    public function getOutputs()
+    public function getOutputs(): array
     {
         return array_slice($this->outputs, 2, -1);
     }
 
-    public function getOutputString()
+    public function getOutputString(): string
     {
-        return implode('', $this->getOutputs());
+        return implode('', $this->getOutputs()) . PHP_EOL;
     }
 
     public function isBracketedPasteSupported(): bool

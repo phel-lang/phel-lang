@@ -35,7 +35,7 @@ final class ReplIntegrationTest extends TestCase
         $repl->run();
         $replOutput = $io->getOutputString();
 
-        self::assertEquals($expectedOutput, $replOutput);
+        self::assertEquals(($expectedOutput), $replOutput);
     }
 
     public function providerIntegration(): Generator
