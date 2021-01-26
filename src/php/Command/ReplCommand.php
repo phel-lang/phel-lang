@@ -127,7 +127,7 @@ final class ReplCommand
         $fullInput = implode(PHP_EOL, $this->inputBuffer);
 
         try {
-            $result = $this->compiler->eval($fullInput);
+            $result = $this->compiler->eval($fullInput, $this->statementNumber);
 
             $this->io->writeln($this->printer->print($result));
             $this->io->addHistory($fullInput);
@@ -137,7 +137,7 @@ final class ReplCommand
         } catch (UnfinishedParserException $e) {
             // The input is valid but more input is missing to finish the parsing.
         } catch (CompilerException $e) {
-            $this->io->writeln(
+            $this->io->write(
                 $this->exceptionPrinter->getExceptionString(
                     $e->getNestedException(),
                     $e->getCodeSnippet()

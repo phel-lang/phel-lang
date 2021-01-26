@@ -48,10 +48,10 @@ final class EvalCompiler implements EvalCompilerInterface
      *
      * @return mixed The result of the executed code
      */
-    public function eval(string $code)
+    public function eval(string $code, int $startingLine = 1)
     {
         try {
-            $tokenStream = $this->lexer->lexString($code);
+            $tokenStream = $this->lexer->lexString($code, LexerInterface::DEFAULT_SOURCE, $startingLine);
             $parseTree = $this->parser->parseNext($tokenStream);
 
             if (!$parseTree || $parseTree instanceof TriviaNodeInterface) {

@@ -34,7 +34,7 @@ final class Lexer implements LexerInterface
 
     private int $cursor = 0;
     private int $line = 1;
-    private int $column = 1;
+    private int $column = 0;
     private string $combinedRegex;
 
     public function __construct()
@@ -42,18 +42,18 @@ final class Lexer implements LexerInterface
         $this->combinedRegex = '/(?:' . implode('|', self::REGEXPS) . ')/mA';
     }
 
-    public function lexString(string $code, string $source = self::DEFAULT_SOURCE): TokenStream
+    public function lexString(string $code, string $source = self::DEFAULT_SOURCE, int $startingLine = 1): TokenStream
     {
-        return new TokenStream($this->lexStringGenerator($code, $source));
+        return new TokenStream($this->lexStringGenerator($code, $source, $startingLine));
     }
 
     /**
      * @return Generator<Token>
      */
-    private function lexStringGenerator(string $code, string $source = self::DEFAULT_SOURCE): Generator
+    private function lexStringGenerator(string $code, string $source = self::DEFAULT_SOURCE, int $startingLine = 1): Generator
     {
         $this->cursor = 0;
-        $this->line = 1;
+        $this->line = $startingLine;
         $this->column = 0;
         $end = strlen($code);
 
