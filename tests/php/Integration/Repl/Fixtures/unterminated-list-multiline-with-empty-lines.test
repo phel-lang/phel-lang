@@ -1,10 +1,14 @@
 phel:1> (php/+ 1
-....:2> 2
-....:3> ]
+....:2>
+....:3> 2
+....:4>
+....:5> ]
 Unterminated list (BRACKETS)
-in string:3
+in string:5
 
 1| (php/+ 1
-2| 2
-3| ]
+2|
+3| 2
+4|
+5| ]
    ^

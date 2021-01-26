@@ -25,6 +25,7 @@ final class ReplIntegrationTest extends TestCase
 {
     /**
      * @dataProvider providerIntegration
+     * @param array<InputLine> $inputs
      */
     public function testIntegration(array $inputs, string $expectedOutput): void
     {
@@ -35,7 +36,7 @@ final class ReplIntegrationTest extends TestCase
         $repl->run();
         $replOutput = $io->getOutputString();
 
-        self::assertEquals(($expectedOutput), $replOutput);
+        self::assertEquals(trim($expectedOutput), trim($replOutput));
     }
 
     public function providerIntegration(): Generator
@@ -58,7 +59,7 @@ final class ReplIntegrationTest extends TestCase
 
             yield $filename => [
                 $this->getInputs($fileContent),
-                $this->filterExpectedOutputFromFileContent($fileContent),
+                $fileContent,
             ];
         }
     }
@@ -88,29 +89,21 @@ final class ReplIntegrationTest extends TestCase
     }
 
     /**
-     * @return list<string>
+     * @return array<InputLine>
      */
     private function getInputs(string $fileContent): array
     {
         $inputs = [];
 
         foreach (explode(PHP_EOL, $fileContent) as $line) {
-            preg_match('/....:\d>(?<phel_code>.+)/', $line, $out);
+            preg_match('/(....:\d> ?)(?<phel_code>.+)?/', $line, $out);
             if (!empty($out)) {
-                $inputs[] = trim($out['phel_code']);
+                $prompt = $out[1];
+                $code = $out['phel_code'] ?? '';
+                $inputs[] = new InputLine($prompt, $code);
             }
         }
 
         return $inputs;
-    }
-
-    private function filterExpectedOutputFromFileContent(string $fileContent): string
-    {
-        $outputFromFileContent = preg_replace('/....:\d>(.+)/', 'delete_me', $fileContent);
-
-        return implode(PHP_EOL, array_filter(
-            explode(PHP_EOL, $outputFromFileContent),
-            static fn (string $line): bool => $line !== 'delete_me'
-        ));
     }
 }

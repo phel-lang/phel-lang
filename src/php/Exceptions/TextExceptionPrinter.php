@@ -60,17 +60,22 @@ final class TextExceptionPrinter implements ExceptionPrinterInterface
         $errorStartLocation = $e->getStartLocation() ?? $codeSnippet->getStartLocation();
         $errorEndLocation = $e->getEndLocation() ?? $codeSnippet->getEndLocation();
         $errorFirstLine = $errorStartLocation->getLine();
+        $codeFirstLine = $codeSnippet->getStartLocation()->getLine();
 
         $str .= $this->style->blue($e->getMessage()) . PHP_EOL;
         $str .= 'in ' . $errorStartLocation->getFile() . ':' . $errorFirstLine . PHP_EOL . PHP_EOL;
 
         $lines = explode(PHP_EOL, $codeSnippet->getCode());
         $endLineLength = strlen((string)$codeSnippet->getEndLocation()->getLine());
-        $padLength = $endLineLength - strlen((string)$codeSnippet->getStartLocation()->getLine());
+        $padLength = $endLineLength - strlen((string)$codeFirstLine);
 
         foreach ($lines as $index => $line) {
-            $str .= str_pad((string)($errorFirstLine + $index), $padLength, ' ', STR_PAD_LEFT);
-            $str .= '| ' . $line . PHP_EOL;
+            $str .= str_pad((string)($codeFirstLine + $index), $padLength, ' ', STR_PAD_LEFT);
+            if (strlen($line) > 0) {
+                $str .= '| ' . $line . PHP_EOL;
+            } else {
+                $str .= '|' . PHP_EOL;
+            }
 
             $eStartLine = $errorStartLocation->getLine();
             if ($eStartLine === $errorEndLocation->getLine()

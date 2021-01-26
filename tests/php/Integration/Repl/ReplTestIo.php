@@ -9,6 +9,9 @@ use Phel\Command\Repl\ReplCommandIoInterface;
 final class ReplTestIo implements ReplCommandIoInterface
 {
     private array $outputs = [];
+    /**
+     * @var InputLine[]
+     */
     private array $inputs = [];
     private int $currentIndex = 0;
 
@@ -23,10 +26,15 @@ final class ReplTestIo implements ReplCommandIoInterface
     public function readline(?string $prompt = null): ?string
     {
         if ($this->currentIndex < count($this->inputs)) {
-            $line = $this->inputs[$this->currentIndex];
+            $inputLine = $this->inputs[$this->currentIndex];
+            $this->writeln($inputLine->__toString() . PHP_EOL);
             $this->currentIndex++;
 
-            return $line;
+            if ($inputLine->isCtrlD()) {
+                return null;
+            }
+
+            return $inputLine->getContent();
         }
 
         return null;
@@ -42,6 +50,9 @@ final class ReplTestIo implements ReplCommandIoInterface
         $this->outputs[] = $string;
     }
 
+    /**
+     * @param InputLine[] $inputs
+     */
     public function setInputs(array $inputs): void
     {
         $this->inputs = $inputs;
