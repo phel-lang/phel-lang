@@ -20,8 +20,8 @@ final class ReplCommand
 
     private const ENABLE_BRACKETED_PASTE = "\e[?2004h";
     private const DISABLE_BRACKETED_PASTE = "\e[?2004l";
-    private const INITIAL_PROMPT = '>>> ';
-    private const OPEN_PROMPT = '... ';
+    private const INITIAL_PROMPT = 'phel(%d)> ';
+    private const OPEN_PROMPT = '....(%d)> ';
     private const EXIT_REPL = 'exit';
 
     private ReplCommandIoInterface $io;
@@ -32,6 +32,7 @@ final class ReplCommand
 
     /** @var string[] */
     private array $inputBuffer = [];
+    private int $statementNumber = 1;
 
     public function __construct(
         ReplCommandIoInterface $io,
@@ -83,7 +84,7 @@ final class ReplCommand
 
         $isInitialInput = empty($this->inputBuffer);
         $prompt = $isInitialInput ? self::INITIAL_PROMPT : self::OPEN_PROMPT;
-        $input = $this->io->readline($prompt);
+        $input = $this->io->readline(sprintf($prompt, $this->statementNumber));
 
         if ($this->io->isBracketedPasteSupported()) {
             $this->io->output(self::DISABLE_BRACKETED_PASTE);
@@ -131,6 +132,7 @@ final class ReplCommand
             $this->io->output($this->printer->print($result) . PHP_EOL);
             $this->io->addHistory($fullInput);
             $this->inputBuffer = [];
+            $this->statementNumber++;
         } catch (UnfinishedParserException $e) {
             // The input is valid but more input is missing to finish the parsing.
         } catch (CompilerException $e) {
