@@ -32,7 +32,7 @@ final class ReplCommand
 
     /** @var string[] */
     private array $inputBuffer = [];
-    private int $statementNumber = 1;
+    private int $lineNumber = 1;
 
     public function __construct(
         ReplCommandIoInterface $io,
@@ -84,11 +84,13 @@ final class ReplCommand
 
         $isInitialInput = empty($this->inputBuffer);
         $prompt = $isInitialInput ? self::INITIAL_PROMPT : self::OPEN_PROMPT;
-        $input = $this->io->readline(sprintf($prompt, $this->statementNumber));
+        $input = $this->io->readline(sprintf($prompt, $this->lineNumber));
 
         if ($this->io->isBracketedPasteSupported()) {
             $this->io->write(self::DISABLE_BRACKETED_PASTE);
         }
+
+        $this->lineNumber++;
 
         if ($input === null && $isInitialInput) {
             // Ctrl+D will exit the repl
@@ -96,6 +98,7 @@ final class ReplCommand
         } elseif ($input === null && !$isInitialInput) {
             // Ctrl+D will empty the buffer
             $this->inputBuffer = [];
+            $this->io->writeln();
         } else {
             $this->inputBuffer[] = $input;
         }
@@ -119,21 +122,15 @@ final class ReplCommand
             return;
         }
 
-        if ('' === end($this->inputBuffer)) {
-            array_pop($this->inputBuffer);
-            return;
-        }
-
         $fullInput = implode(PHP_EOL, $this->inputBuffer);
 
         try {
-            $result = $this->compiler->eval($fullInput, $this->statementNumber);
+            $result = $this->compiler->eval($fullInput, $this->lineNumber - count($this->inputBuffer));
 
             $this->io->writeln($this->printer->print($result));
             $this->io->addHistory($fullInput);
 
             $this->inputBuffer = [];
-            $this->statementNumber++;
         } catch (UnfinishedParserException $e) {
             // The input is valid but more input is missing to finish the parsing.
         } catch (CompilerException $e) {
