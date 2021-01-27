@@ -10,10 +10,10 @@
 # ------
 
 (def- stats @{:failed []
-             :counts @{:failed 0
-                       :error 0
-                       :pass 0
-                       :total 0}})
+              :counts @{:failed 0
+                        :error 0
+                        :pass 0
+                        :total 0}})
 
 (defn report [data]
   (let [@{:state state :type type} data

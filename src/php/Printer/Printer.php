@@ -35,17 +35,17 @@ final class Printer implements PrinterInterface
 
     public static function readable(): self
     {
-        return new self(true);
+        return new self($readable = true);
     }
 
     public static function nonReadable(): self
     {
-        return new self(false);
+        return new self($readable= false);
     }
 
     public static function nonReadableWithColor(): self
     {
-        return new self(false, true);
+        return new self($readable=false, $withColor = true);
     }
 
     private function __construct(bool $readable, bool $withColor = false)
