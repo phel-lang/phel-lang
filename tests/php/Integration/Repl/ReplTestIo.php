@@ -8,9 +8,12 @@ use Phel\Command\Repl\ReplCommandIoInterface;
 
 final class ReplTestIo implements ReplCommandIoInterface
 {
+    /** @var array string[] */
     private array $outputs = [];
+
     /** @var InputLine[] */
     private array $inputs = [];
+
     private int $currentIndex = 0;
 
     public function readHistory(): void
@@ -48,15 +51,15 @@ final class ReplTestIo implements ReplCommandIoInterface
         $this->outputs[] = $string;
     }
 
-    /**
-     * @param InputLine[] $inputs
-     */
-    public function setInputs(array $inputs): void
+    public function setInputs(InputLine ...$inputs): void
     {
         $this->inputs = $inputs;
         $this->currentIndex = 0;
     }
 
+    /**
+     * @return string[]
+     */
     public function getOutputs(): array
     {
         return array_slice($this->outputs, 2, -1);

@@ -25,15 +25,13 @@ final class ReplIntegrationTest extends TestCase
 {
     /**
      * @dataProvider providerIntegration
-     *
-     * @param array<InputLine> $inputs
      */
-    public function testIntegration(array $inputs, string $expectedOutput): void
+    public function testIntegration(string $expectedOutput, InputLine ...$inputs): void
     {
         $io = new ReplTestIo();
         $repl = $this->createReplCommand($io);
 
-        $io->setInputs($inputs);
+        $io->setInputs(...$inputs);
         $repl->run();
         $replOutput = $io->getOutputString();
 
@@ -55,12 +53,12 @@ final class ReplIntegrationTest extends TestCase
                 continue;
             }
 
-            $filename = str_replace($fixturesDir . '/', '', $file->getRealPath());
             $fileContent = file_get_contents($file->getRealpath());
+            $filename = str_replace($fixturesDir . '/', '', $file->getRealPath());
 
             yield $filename => [
-                $this->getInputs($fileContent),
                 $fileContent,
+                ...$this->getInputs($fileContent),
             ];
         }
     }
@@ -90,16 +88,16 @@ final class ReplIntegrationTest extends TestCase
     }
 
     /**
-     * @return array<InputLine>
+     * @return InputLine[]
      */
     private function getInputs(string $fileContent): array
     {
         $inputs = [];
 
         foreach (explode(PHP_EOL, $fileContent) as $line) {
-            preg_match('/(....:\d> ?)(?<phel_code>.+)?/', $line, $out);
+            preg_match('/(?<prompt>....:\d> ?)(?<phel_code>.+)?/', $line, $out);
             if (!empty($out)) {
-                $prompt = $out[1];
+                $prompt = $out['prompt'];
                 $code = $out['phel_code'] ?? '';
                 $inputs[] = new InputLine($prompt, $code);
             }

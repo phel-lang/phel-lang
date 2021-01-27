@@ -15,17 +15,17 @@ final class InputLine
         $this->content = $content;
     }
 
-    public function getContent()
+    public function getContent(): string
     {
         return $this->content;
     }
 
-    public function isCtrlD()
+    public function isCtrlD(): bool
     {
         return $this->content === '<CTRL-D>';
     }
 
-    public function __toString()
+    public function __toString(): string
     {
         return $this->prompt . $this->content;
     }
