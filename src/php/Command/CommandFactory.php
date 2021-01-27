@@ -44,7 +44,7 @@ final class CommandFactory implements CommandFactoryInterface
             $this->compilerFactory->createEvalCompiler($runtime->getEnv()),
             TextExceptionPrinter::create(),
             ColorStyle::withStyles(),
-            Printer::nonReadable()->withColor()
+            Printer::nonReadableWithColor()
         );
     }
 

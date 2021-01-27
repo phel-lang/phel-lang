@@ -31,7 +31,7 @@ use RuntimeException;
 final class Printer implements PrinterInterface
 {
     private bool $readable;
-    private bool $withColor = false;
+    private bool $withColor;
 
     public static function readable(): self
     {
@@ -43,16 +43,15 @@ final class Printer implements PrinterInterface
         return new self(false);
     }
 
-    private function __construct(bool $readable)
+    public static function nonReadableWithColor(): self
     {
-        $this->readable = $readable;
+        return new self(false, true);
     }
 
-    public function withColor(): self
+    private function __construct(bool $readable, bool $withColor = false)
     {
-        $this->withColor = true;
-
-        return $this;
+        $this->readable = $readable;
+        $this->withColor = $withColor;
     }
 
     /**
