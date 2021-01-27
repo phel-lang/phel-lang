@@ -25,6 +25,7 @@ use Phel\Compiler\Reader\ExpressionReaderFactory;
 use Phel\Compiler\Reader\QuasiquoteTransformer;
 use Phel\Compiler\Reader\Reader;
 use Phel\Compiler\Reader\ReaderInterface;
+use Phel\Printer\Printer;
 
 final class CompilerFactory implements CompilerFactoryInterface
 {
@@ -89,7 +90,8 @@ final class CompilerFactory implements CompilerFactoryInterface
             $enableSourceMaps,
             new SourceMapGenerator(),
             new NodeEmitterFactory(),
-            new Munge()
+            new Munge(),
+            Printer::readable()
         );
     }
 

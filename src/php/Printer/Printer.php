@@ -31,6 +31,7 @@ use RuntimeException;
 final class Printer implements PrinterInterface
 {
     private bool $readable;
+    private bool $withColor = false;
 
     public static function readable(): self
     {
@@ -45,6 +46,13 @@ final class Printer implements PrinterInterface
     private function __construct(bool $readable)
     {
         $this->readable = $readable;
+    }
+
+    public function withColor(): self
+    {
+        $this->withColor = true;
+
+        return $this;
     }
 
     /**
@@ -80,10 +88,10 @@ final class Printer implements PrinterInterface
             return new TuplePrinter($this);
         }
         if ($form instanceof Keyword) {
-            return new KeywordPrinter();
+            return new KeywordPrinter($this->withColor);
         }
         if ($form instanceof Symbol) {
-            return new SymbolPrinter();
+            return new SymbolPrinter($this->withColor);
         }
         if ($form instanceof Set) {
             return new SetPrinter($this);
@@ -109,16 +117,16 @@ final class Printer implements PrinterInterface
         $printerName = gettype($form);
 
         if ('string' === $printerName) {
-            return new StringPrinter($this->readable);
+            return new StringPrinter($this->readable, $this->withColor);
         }
         if ('integer' === $printerName || 'double' === $printerName) {
-            return new NumberPrinter();
+            return new NumberPrinter($this->withColor);
         }
         if ('boolean' === $printerName) {
-            return new BooleanPrinter();
+            return new BooleanPrinter($this->withColor);
         }
         if ('NULL' === $printerName) {
-            return new NullPrinter();
+            return new NullPrinter($this->withColor);
         }
         if ('array' === $printerName && !$this->readable) {
             return new ArrayPrinter();

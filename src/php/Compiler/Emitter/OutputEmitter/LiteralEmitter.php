@@ -11,16 +11,20 @@ use Phel\Lang\PhelArray;
 use Phel\Lang\Symbol;
 use Phel\Lang\Table;
 use Phel\Lang\Tuple;
-use Phel\Printer\Printer;
+use Phel\Printer\PrinterInterface;
 use RuntimeException;
 
 final class LiteralEmitter
 {
     private OutputEmitterInterface $outputEmitter;
+    private PrinterInterface $printer;
 
-    public function __construct(OutputEmitterInterface $outputEmitter)
-    {
+    public function __construct(
+        OutputEmitterInterface $outputEmitter,
+        PrinterInterface $printer
+    ) {
         $this->outputEmitter = $outputEmitter;
+        $this->printer = $printer;
     }
 
     /**
@@ -71,7 +75,7 @@ final class LiteralEmitter
 
     private function emitStr(string $x): void
     {
-        $this->outputEmitter->emitStr(Printer::readable()->print($x));
+        $this->outputEmitter->emitStr($this->printer->print($x));
     }
 
     private function emitNull(): void

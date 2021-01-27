@@ -7,19 +7,21 @@ namespace Phel\Compiler\Emitter;
 use Phel\Compiler\Analyzer\Ast\AbstractNode;
 use Phel\Compiler\Analyzer\Environment\NodeEnvironmentInterface;
 use Phel\Compiler\Emitter\OutputEmitter\LiteralEmitter;
-use Phel\Compiler\Emitter\OutputEmitter\Munge;
+use Phel\Compiler\Emitter\OutputEmitter\MungeInterface;
 use Phel\Compiler\Emitter\OutputEmitter\NodeEmitterFactory;
 use Phel\Compiler\Emitter\OutputEmitter\SourceMap\SourceMapGenerator;
 use Phel\Lang\AbstractType;
 use Phel\Lang\SourceLocation;
 use Phel\Lang\Symbol;
+use Phel\Printer\PrinterInterface;
 
 final class OutputEmitter implements OutputEmitterInterface
 {
     private bool $enableSourceMaps;
     private SourceMapGenerator $sourceMapGenerator;
     private NodeEmitterFactory $nodeEmitterFactory;
-    private Munge $munge;
+    private MungeInterface $munge;
+    private PrinterInterface $printer;
 
     private int $indentLevel = 0;
     private int $generatedLines = 0;
@@ -30,12 +32,14 @@ final class OutputEmitter implements OutputEmitterInterface
         bool $enableSourceMaps,
         SourceMapGenerator $sourceMapGenerator,
         NodeEmitterFactory $nodeEmitterFactory,
-        Munge $munge
+        MungeInterface $munge,
+        PrinterInterface $printer
     ) {
         $this->enableSourceMaps = $enableSourceMaps;
         $this->sourceMapGenerator = $sourceMapGenerator;
         $this->nodeEmitterFactory = $nodeEmitterFactory;
         $this->munge = $munge;
+        $this->printer = $printer;
     }
 
     public function emitNodeAsString(AbstractNode $node): string
@@ -214,7 +218,7 @@ final class OutputEmitter implements OutputEmitterInterface
      */
     public function emitLiteral($value): void
     {
-        (new LiteralEmitter($this))->emitLiteral($value);
+        (new LiteralEmitter($this, $this->printer))->emitLiteral($value);
     }
 
     public function increaseIndentLevel(): void

@@ -11,11 +11,27 @@ use Phel\Lang\Keyword;
  */
 final class KeywordPrinter implements TypePrinterInterface
 {
+    private bool $withColor;
+
+    public function __construct(bool $withColor = false)
+    {
+        $this->withColor = $withColor;
+    }
+
     /**
      * @param Keyword $form
      */
     public function print($form): string
     {
-        return ':' . $form->getName();
+        return $this->color(':' . $form->getName());
+    }
+
+    private function color(string $str): string
+    {
+        if ($this->withColor) {
+            return sprintf("\033[0;93m%s\033[0m", $str);
+        }
+
+        return $str;
     }
 }
