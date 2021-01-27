@@ -5,16 +5,16 @@ declare(strict_types=1);
 namespace Phel\Printer\TypePrinter;
 
 use Phel\Lang\AbstractStruct;
-use Phel\Printer\Printer;
+use Phel\Printer\PrinterInterface;
 
 /**
  * @implements TypePrinterInterface<AbstractStruct>
  */
 final class StructPrinter implements TypePrinterInterface
 {
-    private Printer $printer;
+    private PrinterInterface $printer;
 
-    public function __construct(Printer $printer)
+    public function __construct(PrinterInterface $printer)
     {
         $this->printer = $printer;
     }

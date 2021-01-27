@@ -1,7 +1,8 @@
 (ns phel\repl
   (:use Phel\Lang\Symbol)
   (:use Phel\Runtime\RuntimeFactory)
-  (:use Phel\Compiler\Analyzer\Environment\NodeEnvironment))
+  (:use Phel\Compiler\Analyzer\Environment\NodeEnvironment)
+  (:use Phel\Printer\Printer))
 
 (defn- get-runtime []
   (php/:: RuntimeFactory (getInstance)))
@@ -81,3 +82,31 @@
   (let [options (apply table args)
         alias (extract-alias sym options)]
     `(use-namespace ',sym ',alias)))
+
+(defn- print-colorful-str
+  "Same as print-str from core, but with color."
+  [& xs]
+  (let [len (count xs)
+        printer (php/:: Printer (nonReadableWithColor))
+        pp |(php/-> printer (print $))]
+    (case (count xs)
+      0 ""
+      1 (pp (first xs))
+      (loop [res (pp (first xs))
+             seq (next xs)]
+        (if seq
+          (recur (str res " " (pp (first seq))) (next seq))
+          res)))))
+
+(defn print-colorful
+  "Colored print."
+  [& xs]
+  (php/print (apply print-colorful-str xs))
+  nil)
+
+(defn println-colorful
+  "Colored println."
+  [& xs]
+  (apply print-colorful xs)
+  (php/print "\n")
+  nil)

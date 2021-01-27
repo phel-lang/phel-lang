@@ -22,16 +22,25 @@ final class StringPrinter implements TypePrinterInterface
     ];
 
     private bool $readable;
+    private bool $withColor;
 
-    public function __construct(bool $readable)
+    public function __construct(bool $readable, bool $withColor = false)
     {
         $this->readable = $readable;
+        $this->withColor = $withColor;
     }
 
     /**
      * @param string $str
      */
     public function print($str): string
+    {
+        $str = $this->parseString($str);
+
+        return $this->color($str);
+    }
+
+    private function parseString(string $str): string
     {
         if (!$this->readable) {
             return $str;
@@ -134,5 +143,14 @@ final class StringPrinter implements TypePrinterInterface
         }
 
         return (string) $a;
+    }
+
+    private function color(string $str): string
+    {
+        if ($this->withColor) {
+            return sprintf("\033[0;95m%s\033[0m", $str);
+        }
+
+        return $str;
     }
 }
