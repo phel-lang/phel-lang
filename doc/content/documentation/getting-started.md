@@ -102,7 +102,7 @@ The final `composer.json` file should look like this:
         }
     ],
     "require": {
-        "phel/phel": "dev-master"
+        "phel-lang/phel-lang": "dev-master"
     },
     "extra": {
         "phel": {
