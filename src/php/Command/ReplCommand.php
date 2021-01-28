@@ -105,9 +105,9 @@ final class ReplCommand
         }
     }
 
-    private function addHistory(?string $input): void
+    private function addHistory(string $input): void
     {
-        if (!empty($input)) {
+        if ('' !== $input) {
             $this->io->addHistory($input);
         }
     }
