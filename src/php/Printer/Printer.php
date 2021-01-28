@@ -11,6 +11,7 @@ use Phel\Lang\Set;
 use Phel\Lang\Symbol;
 use Phel\Lang\Table;
 use Phel\Lang\Tuple;
+use Phel\Printer\TypePrinter\AnonymousClassPrinter;
 use Phel\Printer\TypePrinter\ArrayPrinter;
 use Phel\Printer\TypePrinter\BooleanPrinter;
 use Phel\Printer\TypePrinter\KeywordPrinter;
@@ -26,6 +27,7 @@ use Phel\Printer\TypePrinter\SymbolPrinter;
 use Phel\Printer\TypePrinter\TablePrinter;
 use Phel\Printer\TypePrinter\TuplePrinter;
 use Phel\Printer\TypePrinter\TypePrinterInterface;
+use ReflectionClass;
 use RuntimeException;
 
 final class Printer implements PrinterInterface
@@ -103,6 +105,9 @@ final class Printer implements PrinterInterface
         }
         if ($form instanceof AbstractStruct) {
             return new StructPrinter($this);
+        }
+        if ((new ReflectionClass($form))->isAnonymous()) {
+            return new AnonymousClassPrinter();
         }
 
         throw new RuntimeException('Printer can not print this type: ' . get_class($form));
