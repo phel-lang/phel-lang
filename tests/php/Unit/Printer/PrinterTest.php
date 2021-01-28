@@ -66,6 +66,18 @@ final class PrinterTest extends TestCase
         );
     }
 
+    public function testPrintToStringFromObject(): void
+    {
+        $class = new class() {
+            public function __toString(): string
+            {
+                return 'toString method';
+            }
+        };
+
+        self::assertSame('toString method', $this->print($class));
+    }
+
     private function print($x): string
     {
         return Printer::readable()->print($x);

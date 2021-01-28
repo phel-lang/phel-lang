@@ -11,12 +11,7 @@ use Phel\Lang\Keyword;
  */
 final class KeywordPrinter implements TypePrinterInterface
 {
-    private bool $withColor;
-
-    public function __construct(bool $withColor = false)
-    {
-        $this->withColor = $withColor;
-    }
+    use WithColorTrait;
 
     /**
      * @param Keyword $form

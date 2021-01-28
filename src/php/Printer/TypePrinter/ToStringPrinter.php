@@ -7,15 +7,13 @@ namespace Phel\Printer\TypePrinter;
 /**
  * @implements TypePrinterInterface<object>
  */
-final class AnonymousClassPrinter implements TypePrinterInterface
+final class ToStringPrinter implements TypePrinterInterface
 {
-    use WithColorTrait;
-
     /**
      * @param object $form
      */
     public function print($form): string
     {
-        return '<PHP-AnonymousClass>';
+        return $form->__toString();
     }
 }

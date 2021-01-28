@@ -9,12 +9,7 @@ namespace Phel\Printer\TypePrinter;
  */
 final class ArrayPrinter implements TypePrinterInterface
 {
-    private bool $withColor;
-
-    public function __construct(bool $withColor = false)
-    {
-        $this->withColor = $withColor;
-    }
+    use WithColorTrait;
 
     /**
      * @param array $form
