@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace PhelTest\Unit\Printer\TypePrinter;
 
 use Generator;
+use Phel\Printer\PrinterInterface;
 use Phel\Printer\TypePrinter\ArrayPrinter;
 use PHPUnit\Framework\TestCase;
 
@@ -15,7 +16,14 @@ final class ArrayPrinterTest extends TestCase
      */
     public function testPrint(array $form, string $expected): void
     {
-        self::assertSame($expected, (new ArrayPrinter())->print($form));
+        $printer = new class() implements PrinterInterface {
+            public function print($form): string
+            {
+                return (string)$form;
+            }
+        };
+
+        self::assertSame($expected, (new ArrayPrinter($printer))->print($form));
     }
 
     public function providerPrint(): Generator

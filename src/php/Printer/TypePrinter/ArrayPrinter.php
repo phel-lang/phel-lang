@@ -4,12 +4,21 @@ declare(strict_types=1);
 
 namespace Phel\Printer\TypePrinter;
 
+use Phel\Printer\PrinterInterface;
+
 /**
  * @implements TypePrinterInterface<array>
  */
 final class ArrayPrinter implements TypePrinterInterface
 {
-    use WithColorTrait;
+    private PrinterInterface $printer;
+    private bool $withColor;
+
+    public function __construct(PrinterInterface $printer, bool $withColor = false)
+    {
+        $this->printer = $printer;
+        $this->withColor = $withColor;
+    }
 
     /**
      * @param array $form
@@ -54,7 +63,7 @@ final class ArrayPrinter implements TypePrinterInterface
             return sprintf('"%s"', $v);
         }
 
-        return (string)$v;
+        return $this->printer->print($v);
     }
 
     private function color(string $str): string
