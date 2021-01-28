@@ -40,7 +40,7 @@ final class ArrayPrinter implements TypePrinterInterface
     private function formatValuesFromList(array $form): array
     {
         return array_map(
-            fn ($v) => $this->formatValue($v),
+            fn ($v) => $this->printer->print($v),
             $form
         );
     }
@@ -48,22 +48,10 @@ final class ArrayPrinter implements TypePrinterInterface
     private function formatKeyValuesFromDict(array $form): array
     {
         return array_map(
-            fn ($k, $v) => sprintf('%s:%s', $this->formatValue($k), $this->formatValue($v)),
+            fn ($k, $v) => sprintf('%s:%s', $this->printer->print($k), $this->printer->print($v)),
             array_keys($form),
             $form
         );
-    }
-
-    /**
-     * @param mixed $v
-     */
-    private function formatValue($v): string
-    {
-        if (is_string($v)) {
-            return sprintf('"%s"', $v);
-        }
-
-        return $this->printer->print($v);
     }
 
     private function color(string $str): string
