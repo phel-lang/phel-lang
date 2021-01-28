@@ -57,7 +57,7 @@ Next, require Phel as a dependency.
 
 ```bash
 # Require and install Phel
-composer require phel/phel:dev-master
+composer require phel-lang/phel-lang:dev-master
 ```
 
 Then, create a new directory `src` with a file `boot.phel` inside this directory.
@@ -102,7 +102,7 @@ The final `composer.json` file should look like this:
         }
     ],
     "require": {
-        "phel/phel": "dev-master"
+        "phel-lang/phel-lang": "dev-master"
     },
     "extra": {
         "phel": {
