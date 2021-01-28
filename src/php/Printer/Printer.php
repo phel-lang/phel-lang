@@ -128,7 +128,7 @@ final class Printer implements PrinterInterface
             return new NullPrinter($this->withColor);
         }
         if ('array' === $printerName && !$this->readable) {
-            return new ArrayPrinter();
+            return new ArrayPrinter($this->withColor);
         }
         if ('resource' === $printerName && !$this->readable) {
             return new ResourcePrinter();
