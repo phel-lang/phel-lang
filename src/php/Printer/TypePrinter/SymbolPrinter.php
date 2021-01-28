@@ -11,12 +11,7 @@ use Phel\Lang\Symbol;
  */
 final class SymbolPrinter implements TypePrinterInterface
 {
-    private bool $withColor;
-
-    public function __construct(bool $withColor = false)
-    {
-        $this->withColor = $withColor;
-    }
+    use WithColorTrait;
 
     /**
      * @param Symbol $form

@@ -11,9 +11,11 @@ use Phel\Lang\Set;
 use Phel\Lang\Symbol;
 use Phel\Lang\Table;
 use Phel\Lang\Tuple;
+use Phel\Printer\TypePrinter\AnonymousClassPrinter;
 use Phel\Printer\TypePrinter\ArrayPrinter;
 use Phel\Printer\TypePrinter\BooleanPrinter;
 use Phel\Printer\TypePrinter\KeywordPrinter;
+use Phel\Printer\TypePrinter\NonPrintableClassPrinter;
 use Phel\Printer\TypePrinter\NullPrinter;
 use Phel\Printer\TypePrinter\NumberPrinter;
 use Phel\Printer\TypePrinter\ObjectPrinter;
@@ -24,8 +26,10 @@ use Phel\Printer\TypePrinter\StringPrinter;
 use Phel\Printer\TypePrinter\StructPrinter;
 use Phel\Printer\TypePrinter\SymbolPrinter;
 use Phel\Printer\TypePrinter\TablePrinter;
+use Phel\Printer\TypePrinter\ToStringPrinter;
 use Phel\Printer\TypePrinter\TuplePrinter;
 use Phel\Printer\TypePrinter\TypePrinterInterface;
+use ReflectionClass;
 use RuntimeException;
 
 final class Printer implements PrinterInterface
@@ -104,8 +108,14 @@ final class Printer implements PrinterInterface
         if ($form instanceof AbstractStruct) {
             return new StructPrinter($this);
         }
+        if (method_exists($form, '__toString')) {
+            return new ToStringPrinter();
+        }
+        if ((new ReflectionClass($form))->isAnonymous()) {
+            return new AnonymousClassPrinter();
+        }
 
-        throw new RuntimeException('Printer can not print this type: ' . get_class($form));
+        return new NonPrintableClassPrinter($this->withColor);
     }
 
     /**
@@ -128,7 +138,7 @@ final class Printer implements PrinterInterface
             return new NullPrinter($this->withColor);
         }
         if ('array' === $printerName && !$this->readable) {
-            return new ArrayPrinter();
+            return new ArrayPrinter($this, $this->withColor);
         }
         if ('resource' === $printerName && !$this->readable) {
             return new ResourcePrinter();
