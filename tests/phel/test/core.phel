@@ -389,9 +389,17 @@
 
 (deftest test-indexed?
   (is (= false (indexed? @{})) "indexed? on table")
+  (is (= false (indexed? (php-associative-array "a" 1 "b" 2))) "indexed? on associative array")
   (is (= true (indexed? @[])) "indexed? on array")
   (is (= true (indexed? [])) "indexed? on tuple")
   (is (= true (indexed? (php/array))) "indexed? on php array"))
+
+(deftest test-associative?
+  (is (= true (associative? @{})) "associative? on table")
+  (is (= true (associative? (php-associative-array "a" 1 "b" 2))) "associative? on associative array")
+  (is (= false (associative? @[])) "associative? on array")
+  (is (= false (associative? [])) "associative? on tuple")
+  (is (= false (associative? (php/array))) "associative? on php array"))
 
 # ------------------
 # Sequence operation
