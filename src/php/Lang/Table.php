@@ -7,7 +7,6 @@ namespace Phel\Lang;
 use ArrayAccess;
 use Countable;
 use Iterator;
-use MultipleIterator;
 use Phel\Printer\Printer;
 use RuntimeException;
 
@@ -211,6 +210,10 @@ class Table extends AbstractType implements ArrayAccess, Countable, Iterator, Se
         // If direct comparision is not working
         // we have to iterate over all elements and compare the keys and values.
         foreach ($this as $key => $value) {
+            if ($key === null) {
+                return false;
+            }
+
             if (!isset($other[$key])) {
                 return false;
             }
