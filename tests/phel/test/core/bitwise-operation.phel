@@ -1,49 +1,49 @@
-(ns phel\test\core
-  (:require phel\test :refer [deftest is]))
+(ns phel\test\core\bitwise-operation
+  (:require phel\test :refer [deftest is-equals is-true is-false]))
 
 # -----------------
 # Bitwise operation
 # -----------------
 
 (deftest test-bit-and
-  (is (= 0b1000 (bit-and 0b1100 0b1001)) "bit-and of two number")
-  (is (= 0b1000 (bit-and 0b1111 0b1001 0b1000)) "bit-and of three numbers"))
+  (is-equals 0b1000 (bit-and 0b1100 0b1001) "bit-and of two number")
+  (is-equals 0b1000 (bit-and 0b1111 0b1001 0b1000) "bit-and of three numbers"))
 
 (deftest test-bit-or
-  (is (= 0b1101 (bit-or 0b1100 0b1001)) "bit-or of two number")
-  (is (= 0b1011 (bit-or 0b0010 0b1001 0b1000)) "bit-or of three numbers"))
+  (is-equals 0b1101 (bit-or 0b1100 0b1001) "bit-or of two number")
+  (is-equals 0b1011 (bit-or 0b0010 0b1001 0b1000) "bit-or of three numbers"))
 
 (deftest test-bit-xor
-  (is (= 0b0101 (bit-xor 0b1100 0b1001)) "bit-xor of two number")
-  (is (= 0b0011 (bit-xor 0b0010 0b1001 0b1000)) "bit-xor of three numbers"))
+  (is-equals 0b0101 (bit-xor 0b1100 0b1001) "bit-xor of two number")
+  (is-equals 0b0011 (bit-xor 0b0010 0b1001 0b1000) "bit-xor of three numbers"))
 
 (deftest test-bit-not
-  (is (= -8 (bit-not 0b0111)) "bit-not"))
+  (is-equals -8 (bit-not 0b0111) "bit-not"))
 
 (deftest test-bit-shift-left
-  (is (= 0b1101 (bit-shift-left 0b1101 0)) "bit-shift-left 0")
-  (is (= 0b11010 (bit-shift-left 0b1101 1)) "bit-shift-left 1")
-  (is (= 0b110100 (bit-shift-left 0b1101 2)) "bit-shift-left 2")
-  (is (= 0b1101000 (bit-shift-left 0b1101 3)) "bit-shift-left 3")
-  (is (= 0b11010000 (bit-shift-left 0b1101 4)) "bit-shift-left 4"))
+  (is-equals 0b1101 (bit-shift-left 0b1101 0) "bit-shift-left 0")
+  (is-equals 0b11010 (bit-shift-left 0b1101 1) "bit-shift-left 1")
+  (is-equals 0b110100 (bit-shift-left 0b1101 2) "bit-shift-left 2")
+  (is-equals 0b1101000 (bit-shift-left 0b1101 3) "bit-shift-left 3")
+  (is-equals 0b11010000 (bit-shift-left 0b1101 4) "bit-shift-left 4"))
 
 (deftest test-bit-shift-right
-  (is (= 0b1101 (bit-shift-right 0b1101 0)) "bit-shift-right 0")
-  (is (= 0b0110 (bit-shift-right 0b1101 1)) "bit-shift-right 1")
-  (is (= 0b0011 (bit-shift-right 0b1101 2)) "bit-shift-right 2")
-  (is (= 0b0001 (bit-shift-right 0b1101 3)) "bit-shift-right 3")
-  (is (= 0b0000 (bit-shift-right 0b1101 4)) "bit-shift-right 4"))
+  (is-equals 0b1101 (bit-shift-right 0b1101 0) "bit-shift-right 0")
+  (is-equals 0b0110 (bit-shift-right 0b1101 1) "bit-shift-right 1")
+  (is-equals 0b0011 (bit-shift-right 0b1101 2) "bit-shift-right 2")
+  (is-equals 0b0001 (bit-shift-right 0b1101 3) "bit-shift-right 3")
+  (is-equals 0b0000 (bit-shift-right 0b1101 4) "bit-shift-right 4"))
 
 (deftest test-bit-set
-  (is (= 0b1111 (bit-set 0b1011 2)) "bit-set at pos 2")
-  (is (= 0b1011 (bit-set 0b1011 0)) "bit-set at pos 0"))
+  (is-equals 0b1111 (bit-set 0b1011 2) "bit-set at pos 2")
+  (is-equals 0b1011 (bit-set 0b1011 0) "bit-set at pos 0"))
 
 (deftest test-bit-clear
-  (is (= 0b0011 (bit-clear 0b1011 3)) "bit-clear"))
+  (is-equals 0b0011 (bit-clear 0b1011 3) "bit-clear"))
 
 (deftest test-bit-flip
-  (is (= 0b1111 (bit-flip 0b1011 2)) "bit-flip"))
+  (is-equals 0b1111 (bit-flip 0b1011 2) "bit-flip"))
 
 (deftest test-bit-test
-  (is (= true (bit-test 0b1011 0)) "bit-test")
-  (is (= false (bit-test 0b1011 2)) "bit-test"))
+  (is-true (bit-test 0b1011 0) "bit-test")
+  (is-false (bit-test 0b1011 2) "bit-test"))

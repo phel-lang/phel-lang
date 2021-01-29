@@ -1,23 +1,23 @@
-(ns phel\test\core
-  (:require phel\test :refer [deftest is]))
+(ns phel\test\core\function-operation
+  (:require phel\test :refer [deftest is-equals is-false]))
 
 # ------------------
 # Function operation
 # ------------------
 
 (deftest test-identity
-  (is (= "a" (identity "a")) "identity returns itself"))
+  (is-equals "a" (identity "a") "identity returns itself"))
 
 (deftest test-comp
-  (is (= 1 ((comp) 1)) "compose zero arguments")
-  (is (= 2 ((comp inc) 1)) "compose one arguments")
-  (is (= 3 ((comp inc inc) 1)) "compose two arguments"))
+  (is-equals 1 ((comp) 1) "compose zero arguments")
+  (is-equals 2 ((comp inc) 1) "compose one arguments")
+  (is-equals 3 ((comp inc inc) 1) "compose two arguments"))
 
 (deftest test-complement
-  (is (= false ((complement and) true true)) "complement of and"))
+  (is-false ((complement and) true true) "complement of and"))
 
 (deftest test-juxt
-  (is (= @[2 1] ((juxt second first) @[1 2])) "juxt"))
+  (is-equals @[2 1] ((juxt second first) @[1 2]) "juxt"))
 
 (deftest test-partial
-  (is (= 3 ((partial + 2) 1)) "partial of add"))
+  (is-equals 3 ((partial + 2) 1) "partial of add"))

@@ -1,32 +1,32 @@
-(ns phel\test\core
-  (:require phel\test :refer [deftest is]))
+(ns phel\test\core\basic-constructors
+  (:require phel\test :refer [deftest is-equals]))
 
 # ------------------
 # Basic constructors
 # ------------------
 
 (deftest create-set
-  (is (= (set 1 2 3 :a :b :c) (set :a 1 2 :b 3 :c :c 1 2 3)) "construct set"))
+  (is-equals (set 1 2 3 :a :b :c) (set :a 1 2 :b 3 :c :c 1 2 3) "construct set"))
 
 (deftest create-keyword
-  (is (= :a (keyword "a")) "construct keyword"))
+  (is-equals :a (keyword "a") "construct keyword"))
 
 (deftest create-tuple
-  (is (= '(1 2 3) (tuple '1 '2 '3)) "construct tuple")
-  (is (= '[1 2 3] (tuple-brackets '1 '2 '3)) "construct bracket tuple"))
+  (is-equals '(1 2 3) (tuple '1 '2 '3) "construct tuple")
+  (is-equals '[1 2 3] (tuple-brackets '1 '2 '3) "construct bracket tuple"))
 
 (deftest create-array
-  (is (= @[1 2 3] (array 1 2 3)) "construct array"))
+  (is-equals @[1 2 3] (array 1 2 3) "construct array"))
 
 (deftest create-table
-  (is (= @{:a 1 :b 2} (table :a 1 :b 2)) "construct table"))
+  (is-equals @{:a 1 :b 2} (table :a 1 :b 2) "construct table"))
 
 (deftest create-php-indexed-array
   (let [arr (php-indexed-array "a" "b")]
-    (is (= "a" (php/aget arr 0)) "php-indexed-array: first key")
-    (is (= "b" (php/aget arr 1)) "php-indexed-array: second key")))
+    (is-equals "a" (php/aget arr 0) "php-indexed-array: first key")
+    (is-equals "b" (php/aget arr 1) "php-indexed-array: second key")))
 
 (deftest create-php-associative-array
   (let [arr (php-associative-array "a" 1 "b" 2)]
-    (is (= 1 (php/aget arr "a")) "php-associative-array: first key")
-    (is (= 2 (php/aget arr "b")) "php-associative-array: second key")))
+    (is-equals 1 (php/aget arr "a") "php-associative-array: first key")
+    (is-equals 2 (php/aget arr "b") "php-associative-array: second key")))

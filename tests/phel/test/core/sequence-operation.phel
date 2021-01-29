@@ -1,5 +1,5 @@
-(ns phel\test\core
-  (:require phel\test :refer [deftest is]))d
+(ns phel\test\core\sequence-operation
+  (:require phel\test :refer [deftest is]))
 
 (deftest test-peek
   (is (= 3 (peek [1 2 3])) "peek on tuple")
