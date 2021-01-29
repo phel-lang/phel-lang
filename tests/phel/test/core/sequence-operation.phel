@@ -1,0 +1,94 @@
+(ns phel\test\core
+  (:require phel\test :refer [deftest is]))d
+
+(deftest test-peek
+  (is (= 3 (peek [1 2 3])) "peek on tuple")
+  (is (= nil (peek [])) "peek on empty tuple")
+  (is (= 3 (peek @[1 2 3])) "peek on array")
+  (is (= nil (peek @[])) "peek on empty array")
+  (is (= 3 (peek (php/array 1 2 3))) "peek on php array")
+  (is (= nil (peek (php/array))) "peek on empty php array"))
+
+(deftest test-push
+  (let [x @[]]
+    (push x 1)
+    (is (= @[1] x) "push on array"))
+
+  (let [x (php/array)]
+    (push x 1)
+    (is (= (php/array 1) x) "push on PHP array")))
+
+(deftest test-pop
+  (let [x @[1 2]
+        y (pop x)]
+    (is (= @[1] x) "pop: last element is removed")
+    (is (= 2 y) "pop: last element is returned"))
+
+  (let [x (php/array 1 2)
+        y (pop x)]
+    (is (= (php/array 1) x) "pop on PHP array: last element is removed")
+    (is (= 2 y) "pop on PHP array: last element is returned")))
+
+(deftest test-remove
+  (let [xs @[1 2 3 4]
+        removed (remove xs 2)]
+    (is (= @[1 2] xs) "remove: elements are removed")
+    (is (= @[3 4] removed) "remove: correct value is returned"))
+
+  (let [xs (php/array 1 2 3 4)
+        removed (remove xs 2)]
+    (is (= (php/array 1 2) xs) "remove on PHP array: elements are removed")
+    (is (= (php/array 3 4) removed) "remove on PHP array: correct value is returned"))
+
+  (let [xs @[1 2 3 4]
+        removed (remove xs 2 1)]
+    (is (= @[1 2 4] xs) "remove with length: elements are removed")
+    (is (= @[3] removed) "remove with length: correct value is returned"))
+
+  (let [xs (php/array 1 2 3 4)
+        removed (remove xs 2 1)]
+    (is (= (php/array 1 2 4) xs) "remove with length on PHP array: elements are removed")
+    (is (= (php/array 3) removed) "remove with length on PHP array: correct value is returned")))
+
+(deftest test-slice
+  (is (= @[3 4] (slice @[1 2 3 4] 2)) "slice on array")
+  (is (= @[3] (slice @[1 2 3 4] 2 1)) "slice with length on array")
+  (is (= [3 4] (slice [1 2 3 4] 2)) "slice on tuple")
+  (is (= [3] (slice [1 2 3 4] 2 1)) "slice with length on tuple"))
+
+(deftest test-get
+  (is (= "b" (get (php/array "a" "b" "c") 1)) "get on php array")
+  (is (= "b" (get @["a" "b" "c"] 1)) "get on array")
+  (is (= "b" (get ["a" "b" "c"] 1)) "get on tuple")
+  (is (= "a" (get @{:a "a" :b "b"} :a)) "get on table")
+  (is (= nil (get nil 1)) "get on nil")
+  (is (= nil (get @["a" "b" "c"] 10)) "get on undefined index")
+  (is (= nil (get @{:a "a" :b "b"} :c)) "get on undefined key")
+  (is (= "x" (get nil 1 "x")) "get on nil with optional value")
+  (is (= "x" (get @["a" "b" "c"] 10 "x")) "get on undefined index with optional value")
+  (is (= "x" (get @{:a "a" :b "b"} :c "x")) "get on undefined key with optional value")
+  (is (id 0 (get @{:a 0} :a)) "gets zero from a table"))
+
+(deftest test-get-keyword
+  (is (= 1 (:a @{:a 1 :b 2})))
+  (is (= nil (:c @{:a 1 :b 2})))
+  (is (= 3 (:c @{:a 1 :b 2} 3))))
+
+(deftest test-get-in
+  (is (= "a" (get-in @["a"] [0])) "get-in level 1")
+  (is (= "a" (get-in @{:a @["a"]} [:a 0])) "get-in level 2")
+  (is (= "a" (get-in @{:a @[["b" "a"]]} [:a 0 1])) "get-in level 3")
+  (is (= "x" (get-in @{:a @[["b" "a"]]} [:b 0 1] "x")) "get-in level 3 with default"))
+
+(deftest test-put
+  (is (= @["a" "c"] (put @["a" "b"] 1 "c")) "put: replace entry on array")
+  (is (= @["a" "b" "c"] (put @["a" "b"] 2 "c")) "put: append entry on array")
+  (is (= @[nil nil "a"] (put @[] 2 "a")) "put: extends array with nil values")
+  (is (= @["a" nil "c"] (put @["a" "b" "c"] 1 nil)) "put: set nil value")
+  (is (= @{:a nil :b 2} (put @{:a 1 :b 2} :a nil)) "put: nil on table")
+  (is (= @{:a 3 :b 2} (put @{:a 1 :b 2} :a 3)) "put: replace entry on table")
+  (is (= @{:a 1 :b 2 :c 3} (put @{:a 1 :b 2} :c 3)) "put: append entry on table"))
+
+(deftest test-unset
+  (is (= @[:a :c :d] (unset @[:a :b :c :d] 1)) "unset: remove index from array")
+  (is (= @{:b 2} (unset @{:a 1 :b 2} :a)) "unset: remove key from table"))

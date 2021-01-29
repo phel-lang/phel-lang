@@ -1,0 +1,63 @@
+(ns phel\test\core
+  (:require phel\test :refer [deftest is]))
+
+# ----------------
+# Print operations
+# ----------------
+
+(deftest test-str
+  (is (= "" (str)) "str with no arg")
+  (is (= "hello\nworld" (str "hello\nworld")) "str with one arg")
+  (is (= "ab" (str "a" "b")) "str with two args")
+  (is (= "abc" (str "a" "b" "c")) "str with three args")
+  (is (= "[\"a\" \"b\"]" (str ["a" "b"])) "str with tuple of strings")
+  (is (= "@[\"a\" \"b\"]" (str @["a" "b"])) "str with array of strings")
+  (is (= "@{\"a\" \"b\"}" (str @{"a" "b"})) "str on table")
+  (is (= "(set \"a\" \"b\")" (str (set "a" "b"))) "str on set")
+  (is (= "x" (str 'x)) "str on symbol")
+  (is (= ":test" (str :test)) "str on keyword")
+  (is (= "1" (str 1)) "str on number")
+  (is (= "1" (str true)) "str on true")
+  (is (= "" (str false)) "str on false")
+  (is (= "" (str nil nil)) "str on nil"))
+
+(deftest test-print-str
+  (is (= "" (print-str)) "print-str with no arg")
+  (is (= "hello\nworld" (print-str "hello\nworld")) "print-str with one arg")
+  (is (= "a b" (print-str "a" "b")) "print-str with two args")
+  (is (= "a b c" (print-str "a" "b" "c")) "print-str with three args")
+  (is (= "[a b]" (print-str ["a" "b"])) "print-str with tuple of strings")
+  (is (= "@[a b]" (print-str @["a" "b"])) "print-str with array of strings")
+  (is (= "@{a b}" (print-str @{"a" "b"})) "print-str on table")
+  (is (= "(set a b)" (print-str (set "a" "b"))) "print-str on set")
+  (is (= "x" (print-str 'x)) "print-str on symbol")
+  (is (= ":test" (print-str :test)) "print-str on keyword")
+  (is (= "1" (print-str 1)) "print-str on number")
+  (is (= "true" (print-str true)) "print-str on true")
+  (is (= "false" (print-str false)) "print-str on false")
+  (is (= "nil" (print-str nil)) "print-str on nil"))
+
+(deftest test-print
+  (is (output? "hello\nworld" (print "hello\nworld")) "print hello\\nworld"))
+
+(deftest test-println
+  (is (output? "hello\nworld\n" (println "hello\nworld")) "println hello\\nworld"))
+
+(deftest test-format
+  (is (= "" (format "")) "format with empty fmt")
+  (is (= "" (format "" "hello")) "format with empty fmt and one arg")
+  (is (= "hello\nworld" (format "%s" "hello\nworld")) "format one string")
+  (is (= "hello 1" (format "%s %d" "hello" 1)) "format with different types")
+  (is (= "[\"a\" \"b\"]" (format "%s" ["a" "b"])) "format with tuple of strings")
+  (is (= "@[\"a\" \"b\"]" (format "%s" @["a" "b"])) "format with array of strings")
+  (is (= "@{\"a\" \"b\"}" (format "%s" @{"a" "b"})) "format on table")
+  (is (= "(set \"a\" \"b\")" (format "%s" (set "a" "b"))) "format on set")
+  (is (= "x" (format "%s" 'x)) "format on symbol")
+  (is (= ":test" (format "%s" :test)) "format on keyword")
+  (is (= "1" (format "%d" 1)) "format on number")
+  (is (= "1" (format "%d" true)) "format on true")
+  (is (= "0" (format "%d" false)) "format on false")
+  (is (= "" (format "%s" nil)) "format on nil"))
+
+(deftest test-printf
+  (is (output? "hello\nworld" (printf "%s\n%s" "hello" "world")) "printf hello\\nworld"))
