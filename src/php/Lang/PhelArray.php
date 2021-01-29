@@ -8,6 +8,7 @@ use ArrayAccess;
 use Countable;
 use InvalidArgumentException;
 use Iterator;
+use MultipleIterator;
 use Phel\Printer\Printer;
 
 /**
@@ -138,18 +139,44 @@ final class PhelArray extends AbstractType implements
 
     public function equals($other): bool
     {
+        // Should be the same type
         if (!($other instanceof PhelArray)) {
             return false;
         }
 
-        if (is_scalar(reset($this->data))) {
-            return $this->data === $other->data;
+        // Should have the same length
+        if (count($this) !== count($other)) {
+            return false;
         }
 
-        $otherDiff = array_diff_assoc($this->data, $other->data);
-        $thisDiff = array_diff_assoc($other->data, $this->data);
+        // Try to compare directly
+        // This is faster if it works but it will not catch all cases
+        // For example `(= @[:a] @[:a])` will fail because the Keyword Objects are
+        // not the same reference but.
+        // We could change the comparision operator to `==`. This will make the above
+        // example work but fail another example `(= @[1] @["1"])
+        // It would be helpful if the Object-comparsion RFC (https://wiki.php.net/rfc/object-comparison)
+        // would have been accepted but it is not.
+        if ($other->data === $this->data) {
+            return true;
+        }
 
-        return empty($otherDiff) && empty($thisDiff);
+        // If direct comparision is not working
+        // we have to iterate over all elements and compare the keys and values.
+        $mi = new MultipleIterator();
+        $mi->attachIterator($this);
+        $mi->attachIterator($other);
+
+        foreach ($mi as $keys => $values) {
+            [$k1, $k2] = $keys;
+            [$v1, $v2] = $values;
+
+            if ($k1 != $k2 || !$this->equals1($v1, $v2)) {
+                return false;
+            }
+        }
+
+        return true;
     }
 
     public function slice(int $offset = 0, ?int $length = null): SliceInterface

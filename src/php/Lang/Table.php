@@ -7,6 +7,7 @@ namespace Phel\Lang;
 use ArrayAccess;
 use Countable;
 use Iterator;
+use MultipleIterator;
 use Phel\Printer\Printer;
 use RuntimeException;
 
@@ -185,7 +186,41 @@ class Table extends AbstractType implements ArrayAccess, Countable, Iterator, Se
 
     public function equals($other): bool
     {
-        return $this == $other;
+        // Should be the same type
+        if (!($other instanceof Table)) {
+            return false;
+        }
+
+        // Should have the same length
+        if (count($this) !== count($other)) {
+            return false;
+        }
+
+        // Try to compare directly
+        // This is faster if it works but it will not catch all cases
+        // For example `(= @[:a] @[:a])` will fail because the Keyword Objects are
+        // not the same reference but.
+        // We could change the comparision operator to `==`. This will make the above
+        // example work but fail another example `(= @[1] @["1"])
+        // It would be helpful if the Object-comparsion RFC (https://wiki.php.net/rfc/object-comparison)
+        // would have been accepted but it is not.
+        if ($other->data === $this->data) {
+            return true;
+        }
+
+        // If direct comparision is not working
+        // we have to iterate over all elements and compare the keys and values.
+        foreach ($this as $key => $value) {
+            if (!isset($other[$key])) {
+                return false;
+            }
+
+            if (!$this->equals1($value, $other[$key])) {
+                return false;
+            }
+        }
+
+        return true;
     }
 
     public function toKeyValueList(): array
