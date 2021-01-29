@@ -1,7 +1,6 @@
 (ns phel\test\http
   (:require phel\http :as h)
-  (:require phel\test :refer [deftest is])
-  (:use DateTime))
+  (:require phel\test :refer [deftest is is-equals]))
 
 # Tests adopted from nyholm/psr7-server
 
@@ -52,7 +51,7 @@
 
 (deftest test-url
   (foreach [[name uri server] uri-examples]
-    (is (= uri (h/uri-from-globals server)) name)))
+    (is-equals  uri (h/uri-from-globals server)) name))
 
 
 # -----
@@ -61,24 +60,27 @@
 
 (def file-examples
   [["single file"
-    (php-associative-array "file" (php-associative-array
-                                   "name" "my-file.txt"
-                                   "type" "text/plain"
-                                   "tmp_name" "/tmp/my-file.txt"
-                                   "error" "0"
-                                   "size" "123"))
+    (php-associative-array
+     "file" (php-associative-array
+             "name" "my-file.txt"
+             "type" "text/plain"
+             "tmp_name" "/tmp/my-file.txt"
+             "error" "0"
+             "size" "123"))
     @{"file" (h/uploaded-file "/tmp/my-file.txt" 123 0 "my-file.txt" "text/plain")}]
    ["already converted"
-    (php-associative-array "file" (h/uploaded-file
-                                   "/tmp/my-file.txt"
-                                   123
-                                   0
-                                   "my-file.txt"
-                                   "text/plain"))
+    (php-associative-array
+     "file" (h/uploaded-file
+             "/tmp/my-file.txt"
+             123
+             0
+             "my-file.txt"
+             "text/plain"))
     @{"file" (h/uploaded-file "/tmp/my-file.txt" 123 0 "my-file.txt" "text/plain")}]
    ["already converted array"
-    (php-associative-array "file" @[(h/uploaded-file "/tmp/my-file1.txt" 123 0 "my-file1.txt" "text/plain")
-                                    (h/uploaded-file "/tmp/my-file2.txt" 321 0 "my-file2.txt" "text/plain")])
+    (php-associative-array
+     "file" @[(h/uploaded-file "/tmp/my-file1.txt" 123 0 "my-file1.txt" "text/plain")
+              (h/uploaded-file "/tmp/my-file2.txt" 321 0 "my-file2.txt" "text/plain")])
     @{"file" @{0 (h/uploaded-file "/tmp/my-file1.txt" 123 0 "my-file1.txt" "text/plain")
                1 (h/uploaded-file "/tmp/my-file2.txt" 321 0 "my-file2.txt" "text/plain")}}]
    ["multiple files"
@@ -129,119 +131,119 @@
 
 (deftest test-files-from-globals
   (foreach [[name files result] file-examples]
-    (is (= result (h/files-from-globals files)) name)))
+    (is-equals result (h/files-from-globals files) name)))
 
 # -------
 # Headers
 # -------
 
 (deftest test-headers-from-server
-  (is (=
-       @{:0 "NumericHeaderZero"
-         :1234 "NumericHeader"
-         :cookie "COOKIE"
-         :authorization "token"
-         :content-type "application/json"
-         :accept "application/json"
-         :x-foo-bar "FOOBAR"
-         :content-md5 "CONTENT-MD5"
-         :content-length "UNSPECIFIED"}
-       (h/headers-from-server (php-associative-array
-                               "HTTP_0" "NumericHeaderZero"
-                               "HTTP_1234" "NumericHeader"
-                               "HTTP_COOKIE" "COOKIE"
-                               "HTTP_AUTHORIZATION" "token"
-                               "HTTP_CONTENT_TYPE" "application/json"
-                               "HTTP_ACCEPT" "application/json"
-                               "HTTP_X_FOO_BAR" "FOOBAR"
-                               "CONTENT_MD5" "CONTENT-MD5"
-                               "CONTENT_LENGTH" "UNSPECIFIED")))
-      "header from globals")
-  (is (=
-       @{:x-foo-bar "nonprefixed"
-         :authorization "token"}
-       (h/headers-from-server (php-associative-array
-                               "HTTP_X_FOO_BAR" "nonprefixed"
-                               "REDIRECT_HTTP_AUTHORIZATION" "token"
-                               "REDIRECT_HTTP_X_FOO_BAR" "prefixed")))
-      "header from globals redirect normalization"))
+  (is-equals
+   @{:0 "NumericHeaderZero"
+     :1234 "NumericHeader"
+     :cookie "COOKIE"
+     :authorization "token"
+     :content-type "application/json"
+     :accept "application/json"
+     :x-foo-bar "FOOBAR"
+     :content-md5 "CONTENT-MD5"
+     :content-length "UNSPECIFIED"}
+   (h/headers-from-server (php-associative-array
+                           "HTTP_0" "NumericHeaderZero"
+                           "HTTP_1234" "NumericHeader"
+                           "HTTP_COOKIE" "COOKIE"
+                           "HTTP_AUTHORIZATION" "token"
+                           "HTTP_CONTENT_TYPE" "application/json"
+                           "HTTP_ACCEPT" "application/json"
+                           "HTTP_X_FOO_BAR" "FOOBAR"
+                           "CONTENT_MD5" "CONTENT-MD5"
+                           "CONTENT_LENGTH" "UNSPECIFIED"))
+   "header from globals")
+  (is-equals
+   @{:x-foo-bar "nonprefixed"
+     :authorization "token"}
+   (h/headers-from-server (php-associative-array
+                           "HTTP_X_FOO_BAR" "nonprefixed"
+                           "REDIRECT_HTTP_AUTHORIZATION" "token"
+                           "REDIRECT_HTTP_X_FOO_BAR" "prefixed"))
+   "header from globals redirect normalization"))
 
 # -------
 # Request
 # -------
 
 (deftest test-request-get
-  (is (=
-       "GET"
-       (get
-        (h/request-from-globals-args
-         (php-associative-array "REQUEST_METHOD" "GET")
-         (php-associative-array)
-         (php-associative-array)
-         (php-associative-array)
-         (php-associative-array))
-        :method))
-      "request method get"))
+  (is-equals
+   "GET"
+   (get
+    (h/request-from-globals-args
+     (php-associative-array "REQUEST_METHOD" "GET")
+     (php-associative-array)
+     (php-associative-array)
+     (php-associative-array)
+     (php-associative-array))
+    :method)
+   "request method get"))
 
 (deftest test-request-post
-  (is (=
-       "POST"
-       (get
-        (h/request-from-globals-args
-         (php-associative-array "REQUEST_METHOD" "POST")
-         (php-associative-array)
-         (php-associative-array)
-         (php-associative-array)
-         (php-associative-array))
-        :method))
-      "request method post"))
+  (is-equals
+   "POST"
+   (get
+    (h/request-from-globals-args
+     (php-associative-array "REQUEST_METHOD" "POST")
+     (php-associative-array)
+     (php-associative-array)
+     (php-associative-array)
+     (php-associative-array))
+    :method)
+   "request method post"))
 
 (deftest test-request-post-with-form-data
-  (is (=
-       @{"name" "phel"  "type" "lang"}
-       (get
-        (h/request-from-globals-args
-         (php-associative-array
-          "REQUEST_METHOD" "POST"
-          "CONTENT_TYPE" "multipart/form-data")
-         (php-associative-array)
-         (php-associative-array
-          "name" "phel"
-          "type" "lang")
-         (php-associative-array)
-         (php-associative-array))
-        :parsed-body))
-      "request method post with form data"))
+  (is-equals
+   @{"name" "phel"  "type" "lang"}
+   (get
+    (h/request-from-globals-args
+     (php-associative-array
+      "REQUEST_METHOD" "POST"
+      "CONTENT_TYPE" "multipart/form-data")
+     (php-associative-array)
+     (php-associative-array
+      "name" "phel"
+      "type" "lang")
+     (php-associative-array)
+     (php-associative-array))
+    :parsed-body)
+   "request method post with form data"))
 
 (deftest test-request-server-protocol-1
-  (is (=
-       "1.1"
-       (get
-        (h/request-from-globals-args
-         (php-associative-array
-          "SERVER_PROTOCOL" "HTTP/1.1"
-          "REQUEST_METHOD" "GET")
-         (php-associative-array)
-         (php-associative-array)
-         (php-associative-array)
-         (php-associative-array))
-        :version))
-      "server protocol 1.1"))
+  (is-equals
+   "1.1"
+   (get
+    (h/request-from-globals-args
+     (php-associative-array
+      "SERVER_PROTOCOL" "HTTP/1.1"
+      "REQUEST_METHOD" "GET")
+     (php-associative-array)
+     (php-associative-array)
+     (php-associative-array)
+     (php-associative-array))
+    :version)
+   "server protocol 1.1"))
 
 (deftest test-request-server-protocol-2
-  (is (=
-       "2.0"
-       (get
-        (h/request-from-globals-args
-         (php-associative-array
-          "SERVER_PROTOCOL" "HTTP/2.0"
-          "REQUEST_METHOD" "GET")
-         (php-associative-array)
-         (php-associative-array)
-         (php-associative-array)
-         (php-associative-array))
-        :version))
-      "server protocol 2.0"))
+  (is-equals
+   "2.0"
+   (get
+    (h/request-from-globals-args
+     (php-associative-array
+      "SERVER_PROTOCOL" "HTTP/2.0"
+      "REQUEST_METHOD" "GET")
+     (php-associative-array)
+     (php-associative-array)
+     (php-associative-array)
+     (php-associative-array))
+    :version)
+   "server protocol 2.0"))
 
 # --------
 # Response
@@ -252,37 +254,38 @@
 # and new headers can not be send anymore.
 
 (deftest test-response
-  (is (=
-       (h/response 200 @{} "" "1.1" "OK")
-       (h/create-response-from-table @{})) "create-response-from-table empty")
+  (is-equals
+   (h/response 200 @{} "" "1.1" "OK")
+   (h/create-response-from-table @{}) "create-response-from-table empty")
 
-  (is (=
-       (h/response 201 @{} "" "1.1" "Created")
-       (h/create-response-from-table @{:status 201})) "create-response-from-table status")
+  (is-equals
+   (h/response 201 @{} "" "1.1" "Created")
+   (h/create-response-from-table @{:status 201}) "create-response-from-table status")
 
-  (is (=
-       (h/response 200 @{:content-type "text/plain"} "" "1.1" "OK")
-       (h/create-response-from-table @{:headers @{:content-type "text/plain"}})) "create-response-from-table headers")
+  (is-equals
+   (h/response 200 @{:content-type "text/plain"} "" "1.1" "OK")
+   (h/create-response-from-table @{:headers @{:content-type "text/plain"}}) "create-response-from-table headers")
 
-  (is (=
-       (h/response 200 @{} "hello" "1.1" "OK")
-       (h/create-response-from-table @{:body "hello"})) "create-response-from-table body")
+  (is-equals
+   (h/response 200 @{} "hello" "1.1" "OK")
+   (h/create-response-from-table @{:body "hello"}) "create-response-from-table body")
 
-  (is (=
-       (h/response 200 @{} "" "2.0" "OK")
-       (h/create-response-from-table @{:version "2.0"})) "create-response-from-table version")
+  (is-equals
+   (h/response 200 @{} "" "2.0" "OK")
+   (h/create-response-from-table @{:version "2.0"}) "create-response-from-table version")
 
-  (is (=
-       (h/response 200 @{} "" "1.1" "Yes!")
-       (h/create-response-from-table @{:reason "Yes!"})) "create-response-from-table reason")
+  (is-equals
+   (h/response 200 @{} "" "1.1" "Yes!")
+   (h/create-response-from-table @{:reason "Yes!"}) "create-response-from-table reason")
 
-  (is (=
-       (h/response 200 @{} "test" "1.1" "OK")
-       (h/create-response-from-string "test")) "create-response-from-string"))
+  (is-equals
+   (h/response 200 @{} "test" "1.1" "OK")
+   (h/create-response-from-string "test") "create-response-from-string"))
 
-(def send-response-examples @[["send body"
-                               (h/response 200 @{:content-type "text/plain"} "Content!" nil nil)
-                               "Content!"]])
+(def send-response-examples
+  @[["send body"
+     (h/response 200 @{:content-type "text/plain"} "Content!" nil nil)
+     "Content!"]])
 
 (deftest test-send-response
   (foreach [[name response result] send-response-examples]

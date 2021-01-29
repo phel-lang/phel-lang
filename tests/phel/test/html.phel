@@ -1,85 +1,84 @@
 (ns phel\test\html
   (:require phel\html :refer [html raw-string doctype])
-  (:require phel\test :refer [deftest is]))
+  (:require phel\test :refer [deftest is-equals]))
 
 (deftest basic-tags
-  (is (= "<div></div>" (html [:div])))
-  (is (= "<div></div>" (html ["div"]))))
+  (is-equals "<div></div>" (html [:div]))
+  (is-equals "<div></div>" (html ["div"])))
 
 (deftest empty-tags
-  (is (= "<div></div>" (html [:div])))
-  (is (= "<h1></h1>" (html [:h1])))
-  (is (= "<script></script>" (html [:script])))
-  (is (= "<text></text>" (html [:text])))
-  (is (= "<a></a>" (html [:a])))
-  (is (= "<iframe></iframe>" (html [:iframe])))
-  (is (= "<title></title>" (html [:title])))
-  (is (= "<section></section>" (html [:section])))
-  (is (= "<select></select>" (html [:select])))
-  (is (= "<object></object>" (html [:object])))
-  (is (= "<video></video>" (html [:video]))))
+  (is-equals "<div></div>" (html [:div]))
+  (is-equals "<h1></h1>" (html [:h1]))
+  (is-equals "<script></script>" (html [:script]))
+  (is-equals "<text></text>" (html [:text]))
+  (is-equals "<a></a>" (html [:a]))
+  (is-equals "<iframe></iframe>" (html [:iframe]))
+  (is-equals "<title></title>" (html [:title]))
+  (is-equals "<section></section>" (html [:section]))
+  (is-equals "<select></select>" (html [:select]))
+  (is-equals "<object></object>" (html [:object]))
+  (is-equals "<video></video>" (html [:video])))
 
 (deftest void-tags
-  (is (= "<br />" (html [:br])))
-  (is (= "<link />" (html [:link])))
-  (is (= "<colgroup span=\"2\"></colgroup>" (html [:colgroup @{:span 2}])))
-  (is (= "<colgroup><col /></colgroup>" (html [:colgroup [:col]]))))
+  (is-equals "<br />" (html [:br]))
+  (is-equals "<link />" (html [:link]))
+  (is-equals "<colgroup span=\"2\"></colgroup>" (html [:colgroup @{:span 2}]))
+  (is-equals "<colgroup><col /></colgroup>" (html [:colgroup [:col]])))
 
 (deftest tags-with-text-content
-  (is (= "<text>Lorem Ipsum</text>" (html [:text "Lorem Ipsum"])))
-  (is (= "<text>foobar</text>" (html [:text "foo" "bar"]))))
+  (is-equals "<text>Lorem Ipsum</text>" (html [:text "Lorem Ipsum"]))
+  (is-equals "<text>foobar</text>" (html [:text "foo" "bar"])))
 
 (deftest nested-tags
-  (is (= "<body><p></p></body>" (html [:body [:p]])))
-  (is (= "<body><p></p><br /></body>" (html [:body [:p] [:br]])))
-  (is (= "<p><span><a>foo</a></span></p>" (html [:p [:span [:a "foo"]]]))))
+  (is-equals "<body><p></p></body>" (html [:body [:p]]))
+  (is-equals "<body><p></p><br /></body>" (html [:body [:p] [:br]]))
+  (is-equals "<p><span><a>foo</a></span></p>" (html [:p [:span [:a "foo"]]])))
 
 (deftest arrays
-  (is (= "<p>a</p><p>b</p>" (html [:p "a"] [:p "b"])))
-  (is (= "<body>foobar</body>" (html [:body @["foo" "bar"]])))
-  (is (= "<p>a</p><p>b</p>" (html @[[:p "a"] [:p "b"]]))))
+  (is-equals "<p>a</p><p>b</p>" (html [:p "a"] [:p "b"]))
+  (is-equals "<body>foobar</body>" (html [:body @["foo" "bar"]]))
+  (is-equals "<p>a</p><p>b</p>" (html @[[:p "a"] [:p "b"]])))
 
 (deftest tags-with-keyword-content
-  (is (= "<text>foo</text>" (html [:text :foo]))))
+  (is-equals "<text>foo</text>" (html [:text :foo])))
 
 (deftest tag-attributes
-  (is (= "<div></div>" (html [:div @{}])))
-  (is (= "<div id=\"foo\"></div>" (html [:div @{:id "foo"}])))
-  (is (= "<div id=\"foo\"></div>" (html [:div @{"id" :foo}])))
-  (is (= "<div id=\"&quot;\"></div>" (html [:div @{"id" "\""}])))
-  (is (= "<input type=\"checkbox\" checked=\"checked\" />" (html [:input @{:type "checkbox" :checked true}])))
-  (is (= "<input type=\"checkbox\" />" (html [:input @{:type "checkbox" :checked false}])))
-  (is (= "<div></div>" (html [:div @{:id nil}])))
-  (is (= "<div class=\"a\"></div>" (html [:div @{:class [:a]}])))
-  (is (= "<div class=\"a b\"></div>" (html [:div @{:class [:a "b"]}])))
-  (is (= "<div class=\"a b\"></div>" (html [:div @{:class @[:a "b"]}])))
-  (is (= "<div class=\"a\"></div>" (html [:div @{:class @{:a true :b false}}]))))
+  (is-equals "<div></div>" (html [:div @{}]))
+  (is-equals "<div id=\"foo\"></div>" (html [:div @{:id "foo"}]))
+  (is-equals "<div id=\"foo\"></div>" (html [:div @{"id" :foo}]))
+  (is-equals "<div id=\"&quot;\"></div>" (html [:div @{"id" "\""}]))
+  (is-equals "<input type=\"checkbox\" checked=\"checked\" />" (html [:input @{:type "checkbox" :checked true}]))
+  (is-equals "<input type=\"checkbox\" />" (html [:input @{:type "checkbox" :checked false}]))
+  (is-equals "<div></div>" (html [:div @{:id nil}]))
+  (is-equals "<div class=\"a\"></div>" (html [:div @{:class [:a]}]))
+  (is-equals "<div class=\"a b\"></div>" (html [:div @{:class [:a "b"]}]))
+  (is-equals "<div class=\"a b\"></div>" (html [:div @{:class @[:a "b"]}]))
+  (is-equals "<div class=\"a\"></div>" (html [:div @{:class @{:a true :b false}}])))
 
 (deftest css-styles
-  (is (=
-       "<div style=\"background:green;color:red;\">bar</div>"
-       (html [:div @{:style @{:color "red" :background "green"}} "bar"]))))
+  (is-equals "<div style=\"background:green;color:red;\">bar</div>"
+             (html [:div @{:style @{:color "red" :background "green"}} "bar"])))
 
 (deftest compiled-tags
   (let [x "foo"]
-    (is (= "<span>foo</span>" (html [:span x])))
-    (is (= "<span x=\"foo\"></span>" (html [:span @{:x x}])))
-    (is (= "<span foo=\"x\"></span>" (html [:span @{x "x"}])))
-    (is (= "<span x=\"foo\">bar</span>" (html [:span @{:x x} "bar"]))))
+    (is-equals "<span>foo</span>" (html [:span x]))
+    (is-equals "<span x=\"foo\"></span>" (html [:span @{:x x}]))
+    (is-equals "<span foo=\"x\"></span>" (html [:span @{x "x"}]))
+    (is-equals "<span x=\"foo\">bar</span>" (html [:span @{:x x} "bar"])))
 
-  (is (= "<span>2</span>" (html [:span (+ 1 1)])))
-  (is (= "<span x=\"2\"></span>" (html [:span @{:x (+ 1 1)}])))
+  (is-equals "<span>2</span>" (html [:span (+ 1 1)]))
+  (is-equals "<span x=\"2\"></span>" (html [:span @{:x (+ 1 1)}]))
 
-  (is (= "<div><p>a</p><p>b</p></div>" (html [:div [:p "a"] (if true [:p "b"] [:p "c"])])))
-  (is (= "<div><p>a</p><p>c</p></div>" (html [:div [:p "a"] (if false [:p "b"] [:p "c"])])))
+  (is-equals "<div><p>a</p><p>b</p></div>" (html [:div [:p "a"] (if true [:p "b"] [:p "c"])]))
+  (is-equals "<div><p>a</p><p>c</p></div>" (html [:div [:p "a"] (if false [:p "b"] [:p "c"])]))
 
-  (is (= "<ul><li>0</li><li>1</li><li>2</li></ul>" (html [:ul (for [i :range [0 3]] [:li i])])))
-  (is (= "<span>0</span><span>1</span><span>2</span>" (html (for [i :range [0 3]] [:span i])))))
+  (is-equals "<ul><li>0</li><li>1</li><li>2</li></ul>" (html [:ul (for [i :range [0 3]] [:li i])]))
+  (is-equals "<span>0</span><span>1</span><span>2</span>" (html (for [i :range [0 3]] [:span i]))))
 
 (deftest escaping
-  (is (= "<span>Bear &gt; Shark</span>" (html [:span "Bear > Shark"])))
-  (is (= "<span><a></a></span>" (html [:span (raw-string "<a></a>")])))
-  (is (= "<span>&amp;quot; &quot;&#039;&lt;&gt;</span>" (html [:span "&quot; \"'<>"]))))
+  (is-equals "<span>Bear &gt; Shark</span>" (html [:span "Bear > Shark"]))
+  (is-equals "<span><a></a></span>" (html [:span (raw-string "<a></a>")]))
+  (is-equals "<span>&amp;quot; &quot;&#039;&lt;&gt;</span>" (html [:span "&quot; \"'<>"])))
 
 (deftest doctypes
-  (is (= "<!DOCTYPE html>\n<div></div>" (html (doctype :html5) [:div]))))
+  (is-equals "<!DOCTYPE html>\n<div></div>" (html (doctype :html5) [:div])))
