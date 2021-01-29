@@ -175,6 +175,26 @@
           (catch Throwable ,e
             (report @{:state :error :location ,loc :message ,message :form ',form :exception ,e})))))
 
+(defn is-equals
+  "Assert two forms are equals."
+  [expected actual & message]
+  (is (= expected actual) message))
+
+(defn is-true
+  "Assert a form evaluates to true."
+  [form & message]
+  (is-equals true form message))
+
+(defn is-false
+  "Assert a form evaluates to false."
+  [form & message]
+  (is-equals false form message))
+
+(defn is-nil
+  "Assert a form evaluates to nil."
+  [form & message]
+  (is-equals nil form message))
+
 # --------------
 # Defining tests
 # --------------
