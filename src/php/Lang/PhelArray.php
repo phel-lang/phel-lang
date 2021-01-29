@@ -138,7 +138,18 @@ final class PhelArray extends AbstractType implements
 
     public function equals($other): bool
     {
-        return $this == $other;
+        if (!($other instanceof PhelArray)) {
+            return false;
+        }
+
+        if (is_scalar(reset($this->data))) {
+            return $this->data === $other->data;
+        }
+
+        $otherDiff = array_diff_assoc($this->data, $other->data);
+        $thisDiff = array_diff_assoc($other->data, $this->data);
+
+        return empty($otherDiff) && empty($thisDiff);
     }
 
     public function slice(int $offset = 0, ?int $length = null): SliceInterface

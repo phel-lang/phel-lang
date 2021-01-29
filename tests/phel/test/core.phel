@@ -197,7 +197,12 @@
   (is (= true (= 'test 'test)) "symbol are always equal")
   (is (= true (= [] [])) "two empty tuples are equal")
   (is (= true (= @[] @[])) "two empty arrays are equal")
-  (is (= true (= @{} @{})) "two empty tables are equal"))
+  (is (= true (= @{} @{})) "two empty tables are equal")
+  (is (= true (= @["hello"] @["hello"])) "two arrays with the same values")
+  (is (= true (= @{:key "value"} @{:key "value"})) "two tables with the same values")
+  (is (= false (= @["hello"] @[0])) "two arrays with different values")
+  (is (= false (= @["1"] @[1])) "two arrays with the same value but different types")
+  (is (= false (= @{:key "value"} @{})) "two tables with different values"))
 
 (deftest test-not
   (is (= false (not true)) "(not true)")
