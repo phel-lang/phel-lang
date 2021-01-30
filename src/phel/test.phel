@@ -46,7 +46,7 @@
   (let [pred (first form)
         value (second form)
         value-evaluated (gensym)
-        type (if negated :predicate :predicate-not)
+        type (if negated :predicate-not :predicate)
         loc (location form)
         result (gensym)
         report-data (gensym)]
