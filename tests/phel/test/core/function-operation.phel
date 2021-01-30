@@ -10,7 +10,7 @@
   (is (= 3 ((comp inc inc) 1)) "compose two arguments"))
 
 (deftest test-complement
-  (is (= false ((complement and) true true)) "complement of and"))
+  (is (false? ((complement and) true true)) "complement of and"))
 
 (deftest test-juxt
   (is (= @[2 1] ((juxt second first) @[1 2])) "juxt"))

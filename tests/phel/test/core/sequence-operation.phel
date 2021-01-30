@@ -3,11 +3,11 @@
 
 (deftest test-peek
   (is (= 3 (peek [1 2 3])) "peek on tuple")
-  (is (= nil (peek [])) "peek on empty tuple")
+  (is (nil? (peek [])) "peek on empty tuple")
   (is (= 3 (peek @[1 2 3])) "peek on array")
-  (is (= nil (peek @[])) "peek on empty array")
+  (is (nil? (peek @[])) "peek on empty array")
   (is (= 3 (peek (php/array 1 2 3))) "peek on php array")
-  (is (= nil (peek (php/array))) "peek on empty php array"))
+  (is (nil? (peek (php/array))) "peek on empty php array"))
 
 (deftest test-push
   (let [x @[]]
@@ -61,9 +61,9 @@
   (is (= "b" (get @["a" "b" "c"] 1)) "get on array")
   (is (= "b" (get ["a" "b" "c"] 1)) "get on tuple")
   (is (= "a" (get @{:a "a" :b "b"} :a)) "get on table")
-  (is (= nil (get nil 1)) "get on nil")
-  (is (= nil (get @["a" "b" "c"] 10)) "get on undefined index")
-  (is (= nil (get @{:a "a" :b "b"} :c)) "get on undefined key")
+  (is (nil? (get nil 1)) "get on nil")
+  (is (nil? (get @["a" "b" "c"] 10)) "get on undefined index")
+  (is (nil? (get @{:a "a" :b "b"} :c)) "get on undefined key")
   (is (= "x" (get nil 1 "x")) "get on nil with optional value")
   (is (= "x" (get @["a" "b" "c"] 10 "x")) "get on undefined index with optional value")
   (is (= "x" (get @{:a "a" :b "b"} :c "x")) "get on undefined key with optional value")
@@ -71,7 +71,7 @@
 
 (deftest test-get-keyword
   (is (= 1 (:a @{:a 1 :b 2})))
-  (is (= nil (:c @{:a 1 :b 2})))
+  (is (nil? (:c @{:a 1 :b 2})))
   (is (= 3 (:c @{:a 1 :b 2} 3))))
 
 (deftest test-get-in

@@ -9,26 +9,26 @@
 
 (deftest test-first
   (is (= 1 (first [1])) "first of tuple")
-  (is (= nil (first [])) "frist of empty tuple")
+  (is (nil? (first [])) "frist of empty tuple")
   (is (= 1 (first @[1])) "first of array")
-  (is (= nil (first @[])) "frist of empty array")
+  (is (nil? (first @[])) "frist of empty array")
   (is (= 1 (first (php/array 1))) "first of php array")
-  (is (= nil (first (php/array))) "frist of empty php array")
-  (is (= nil (first nil)) "frist of nil"))
+  (is (nil? (first (php/array))) "frist of empty php array")
+  (is (nil? (first nil)) "frist of nil"))
 
 (deftest test-ffirst
   (is (= 1 (ffirst [[1]])) "ffirst of nested tuple")
-  (is (= nil (ffirst [1])) "ffirst of tuple")
-  (is (= nil (ffirst nil)) "ffirst of nil"))
+  (is (nil? (ffirst [1])) "ffirst of tuple")
+  (is (nil? (ffirst nil)) "ffirst of nil"))
 
 (deftest test-second
   (is (= 2 (second [1 2])) "second of tuple")
-  (is (= nil (second [])) "second of empty tuple")
+  (is (nil? (second [])) "second of empty tuple")
   (is (= 2 (second @[1 2])) "second of array")
-  (is (= nil (second @[])) "second of empty array")
+  (is (nil? (second @[])) "second of empty array")
   (is (= 2 (second (php/array 1 2))) "second of pgp array")
-  (is (= nil (second (php/array))) "second of empty php array")
-  (is (= nil (second nil)) "second of nil"))
+  (is (nil? (second (php/array))) "second of empty php array")
+  (is (nil? (second nil)) "second of nil"))
 
 (deftest test-rest
   (is (= [2] (rest [1 2])) "rest of two element tuple")

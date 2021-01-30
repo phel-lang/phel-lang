@@ -11,11 +11,11 @@
   (is (= (set 1 2) (intersection (set 1 2) (set 0 1 2 3))) "set intersection with common values"))
 
 (comment
-  (deftest test-difference
-    (is (= (set 1 2) (difference (set 1 2) (set 0 3))) "set difference")
-    (is (= (set) (difference (set 1 2) (set 0 1 2 3))) "set difference")
-    (is (= (set "1") (difference (set "1" 2) (set 0 1 2 3))) "set difference type checks")
-    (is (= (set 0 3) (difference (set 0 1 2 3) (set 1 2))) "set difference with common values")))
+ (deftest test-difference
+   (is (= (set 1 2) (difference (set 1 2) (set 0 3))) "set difference")
+   (is (= (set) (difference (set 1 2) (set 0 1 2 3))) "set difference")
+   (is (= (set "1") (difference (set "1" 2) (set 0 1 2 3))) "set difference type checks")
+   (is (= (set 0 3) (difference (set 0 1 2 3) (set 1 2))) "set difference with common values")))
 
 (deftest test-symmetric-difference
   (is (= (set 0 1 2 3) (symmetric-difference (set 1 2) (set 0 3))) "set symmetric-difference")

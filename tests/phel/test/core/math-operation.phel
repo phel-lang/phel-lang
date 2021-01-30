@@ -41,47 +41,47 @@
   (is (= 0 (dec 1)) "(dec 1)"))
 
 (deftest test-even?
-  (is (= true (even? 0)) "(even? 0)")
-  (is (= false (even? 1)) "(even? 1)")
-  (is (= true (even? 2)) "(even? 2)"))
+  (is (true? (even? 0)) "(even? 0)")
+  (is (false? (even? 1)) "(even? 1)")
+  (is (true? (even? 2)) "(even? 2)"))
 
 (deftest test-odd?
-  (is (= false (odd? 0)) "(odd? 0)")
-  (is (= true (odd? 1)) "(odd? 1)")
-  (is (= false (odd? 2)) "(odd? 2)"))
+  (is (false? (odd? 0)) "(odd? 0)")
+  (is (true? (odd? 1)) "(odd? 1)")
+  (is (false? (odd? 2)) "(odd? 2)"))
 
 (deftest test-zero?
-  (is (= true (zero? 0)) "(zero? 0)")
-  (is (= true (zero? 0.0)) "(zero? 0.0)")
-  (is (= true (zero? 0.00)) "(zero? 0.00)")
-  (is (= false (zero? 0.1)) "(zero? 0.1)")
-  (is (= false (zero? -0.1)) "(zero? -0.1)"))
+  (is (true? (zero? 0)) "(zero? 0)")
+  (is (true? (zero? 0.0)) "(zero? 0.0)")
+  (is (true? (zero? 0.00)) "(zero? 0.00)")
+  (is (false? (zero? 0.1)) "(zero? 0.1)")
+  (is (false? (zero? -0.1)) "(zero? -0.1)"))
 
 (deftest test-one?
-  (is (= true (one? 1)) "(one? 1)")
-  (is (= true (one? 1.0)) "(one? 1.0)")
-  (is (= true (one? 1.0)) "(one? 1.00)")
-  (is (= false (one? 0)) "(one? 0)"))
+  (is (true? (one? 1)) "(one? 1)")
+  (is (true? (one? 1.0)) "(one? 1.0)")
+  (is (true? (one? 1.0)) "(one? 1.00)")
+  (is (false? (one? 0)) "(one? 0)"))
 
 (deftest test-pos?
-  (is (= false (pos? 0)) "(pos? 1)")
-  (is (= true (pos? 1)) "(pos? 1)")
-  (is (= true (pos? 0.1)) "(pos? 0.1)")
-  (is (= false (pos? -0.1)) "(pos? -0.1)")
-  (is (= false (pos? -1)) "(pos? -1)"))
+  (is (false? (pos? 0)) "(pos? 1)")
+  (is (true? (pos? 1)) "(pos? 1)")
+  (is (true? (pos? 0.1)) "(pos? 0.1)")
+  (is (false? (pos? -0.1)) "(pos? -0.1)")
+  (is (false? (pos? -1)) "(pos? -1)"))
 
 (deftest test-neg?
-  (is (= false (neg? 0)) "(neg? 1)")
-  (is (= false (neg? 1)) "(neg? 1)")
-  (is (= false (neg? 0.1)) "(neg? 0.1)")
-  (is (= true (neg? -0.1)) "(neg? -0.1)")
-  (is (= true (neg? -1)) "(neg? -1)"))
+  (is (false? (neg? 0)) "(neg? 1)")
+  (is (false? (neg? 1)) "(neg? 1)")
+  (is (false? (neg? 0.1)) "(neg? 0.1)")
+  (is (true? (neg? -0.1)) "(neg? -0.1)")
+  (is (true? (neg? -1)) "(neg? -1)"))
 
 (deftest test-nan?
-  (is (= true (nan? (php/acos 8))) "(nan? (php/acos 8)")
-  (is (= true (nan? php/NAN)) "(nan? (php/NAN))")
-  (is (= true (nan? NAN)) "(nan? NAN)")
-  (is (= false (nan? 9)) "(nan? 8)"))
+  (is (true? (nan? (php/acos 8))) "(nan? (php/acos 8)")
+  (is (true? (nan? php/NAN)) "(nan? (php/NAN))")
+  (is (true? (nan? NAN)) "(nan? NAN)")
+  (is (false? (nan? 9)) "(nan? 8)"))
 
 (deftest test-min
   (is (= 1 (min 1 2 3)) "(min 1 2 3)"))

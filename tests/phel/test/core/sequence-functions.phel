@@ -24,7 +24,7 @@
   (is (= "abc" (reduce2 str ["a" "b" "c"])) "reduce2 three elements tuple")
   (is (= "abc" (reduce2 str [nil "a" "b" "c"])) "reduce2 tuple containing a nil value")
   (is (= "a" (reduce2 str ["a"])) "reduce2 one element tuple")
-  (is (= nil (reduce2 str [])) "reduce2 empty tuple")
+  (is (nil? (reduce2 str [])) "reduce2 empty tuple")
   (is (= 6 (reduce2 + (set 1 2 3))) "reduce2 on set tuple"))
 
 (deftest test-put-in
@@ -85,13 +85,13 @@
 
 (deftest test-neg?
   (is (= -1 (find neg? @[1 2 3 -1 2 3])) "find first neg number")
-  (is (= nil (find neg? @[1 2 3 2 3])) "find: nothing to find")
-  (is (= nil (find neg? @[])) "find on empty array"))
+  (is (nil? (find neg? @[1 2 3 2 3])) "find: nothing to find")
+  (is (nil? (find neg? @[])) "find on empty array"))
 
 (deftest test-find-index?
   (is (= 3 (find-index neg? @[1 2 3 -1 2 3])) "find-index first neg number")
-  (is (= nil (find-index neg? @[1 2 3 2 3])) "find-index: nothing to find")
-  (is (= nil (find-index neg? @[])) "find-index on empty array"))
+  (is (nil? (find-index neg? @[1 2 3 2 3])) "find-index: nothing to find")
+  (is (nil? (find-index neg? @[])) "find-index on empty array"))
 
 (deftest test-distinct
   (is (= @[1 2 3] (distinct @[1 1 2 3 2 2 3 1])) "distinct: array")

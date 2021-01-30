@@ -23,8 +23,8 @@
 # ----------------------------
 
 (deftest test-next
-  (is (= nil (next [])) "next of empty tuple")
-  (is (= nil (next [1])) "next of one element tuple")
+  (is (nil? (next [])) "next of empty tuple")
+  (is (nil? (next [1])) "next of one element tuple")
   (is (= [2] (next [1 2])) "next of two element tuple"))
 
 (deftest test-concat
@@ -42,12 +42,12 @@
 
 (deftest test-set-first
   (is (= 1 (first (set 1 2 3))) "set first element")
-  (is (= nil (first (set))) "set first element from empty set"))
+  (is (nil? (first (set))) "set first element from empty set"))
 
 (deftest test-set-second
   (is (= 2 (second (set 1 2 3))) "set second element")
-  (is (= nil (second (set))) "set second element from empty set")
-  (is (= nil (second (set 1))) "set second element from 1-ary set"))
+  (is (nil? (second (set))) "set second element from empty set")
+  (is (nil? (second (set 1))) "set second element from 1-ary set"))
 
 (deftest test-set-concat
   (is (= (set 0 1 2 3) (concat (set 1 2) @[0 3])) "set concat array")
@@ -59,15 +59,15 @@
 (deftest test-struct
   (let [x (my-struct 1 2 3)]
     (is (= :struct (type x)) "struct: common type")
-    (is (= true (struct? x)) "struct: common type test")
-    (is (= false (table? x)) "struct is not a table")
+    (is (true? (struct? x)) "struct: common type test")
+    (is (false? (table? x)) "struct is not a table")
     (is (= 1 (get x :a)) "struct: get value from struct")
     (is (= (my-struct 12 2 3) (put x :a 12)) "struct: put value on struct")
-    (is (= true (my-struct? x)) "struct: correct type")
-    (is (= false (my-struct? :a)) "struct: incorrect type")))
+    (is (true? (my-struct? x)) "struct: correct type")
+    (is (false? (my-struct? :a)) "struct: incorrect type")))
 
 (deftest test-__FILE__
-  (is (= true (>= (php/strpos __FILE__ "tests/phel/test/core.phel") 0)) "__FILE__"))
+  (is (true? (>= (php/strpos __FILE__ "tests/phel/test/core.phel") 0)) "__FILE__"))
 
 (deftest test-__DIR__
-  (is (= true (and (false? (php/strpos __DIR__ "tests/phel/test/core.phel")) (>= (php/strpos __DIR__ "tests/phel/test") 0))) "__DIR__"))
+  (is (true? (and (false? (php/strpos __DIR__ "tests/phel/test/core.phel")) (>= (php/strpos __DIR__ "tests/phel/test") 0))) "__DIR__"))

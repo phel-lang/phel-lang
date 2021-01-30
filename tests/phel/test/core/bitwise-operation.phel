@@ -41,5 +41,5 @@
   (is (= 0b1111 (bit-flip 0b1011 2)) "bit-flip"))
 
 (deftest test-bit-test
-  (is (= true (bit-test 0b1011 0)) "bit-test")
-  (is (= false (bit-test 0b1011 2)) "bit-test"))
+  (is (true? (bit-test 0b1011 0)) "bit-test")
+  (is (false? (bit-test 0b1011 2)) "bit-test"))
