@@ -39,27 +39,14 @@ final class FormatCommand
      */
     public function run(array $paths): void
     {
-        try {
-            $this->formatPaths($paths);
-        } catch (ParserException $e) {
-            $this->io->writeln(
-                $this->exceptionPrinter->getExceptionString($e, $e->getCodeSnippet())
-            );
-        }
-    }
-
-    /**
-     * @param list<string> $paths
-     *
-     * @throws ParserException
-     */
-    private function formatPaths(array $paths): void
-    {
         foreach ($this->pathFilter->filterPaths($paths) as $path) {
-            $wasFormatted = $this->formatter->formatFile($path);
-
-            if ($wasFormatted) {
-                $this->successfulFormattedFilePaths[] = $path;
+            try {
+                $wasFormatted = $this->formatter->formatFile($path);
+                if ($wasFormatted) {
+                    $this->successfulFormattedFilePaths[] = $path;
+                }
+            } catch (ParserException $e) {
+                $this->printParParserException($e);
             }
         }
 
@@ -77,5 +64,15 @@ final class FormatCommand
                 $this->io->writeln(sprintf('  %d) %s', $k + 1, $filePath));
             }
         }
+    }
+
+    private function printParParserException(ParserException $e): void
+    {
+        $this->io->writeln(
+            $this->exceptionPrinter->getExceptionString(
+                $e,
+                $e->getCodeSnippet()
+            )
+        );
     }
 }
