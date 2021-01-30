@@ -134,6 +134,16 @@ final class Set extends AbstractType implements
 
     public function equals($other): bool
     {
+        // Should be the same type
+        if (!($other instanceof Set)) {
+            return false;
+        }
+
+        // Should have the same length
+        if (count($this) !== count($other)) {
+            return false;
+        }
+
         return $this->data == $other->data;
     }
 

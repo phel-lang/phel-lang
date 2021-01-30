@@ -24,6 +24,8 @@ final class Tuple extends AbstractType implements
     PushInterface,
     ConcatInterface
 {
+    use IteratorComparatorTrait;
+
     /** @var array<int, mixed> */
     private array $data;
     private bool $usingBracket;
@@ -174,7 +176,22 @@ final class Tuple extends AbstractType implements
 
     public function equals($other): bool
     {
-        return $this == $other;
+        // Should be the same type
+        if (!($other instanceof Tuple)) {
+            return false;
+        }
+
+        // Should have the same length
+        if (count($this) !== count($other)) {
+            return false;
+        }
+
+        // Should have the same brackets
+        if ($this->isUsingBracket() !== $other->isUsingBracket()) {
+            return false;
+        }
+
+        return $this->hasSameKeysAndValues($other);
     }
 
     public function first()

@@ -26,6 +26,8 @@ final class PhelArray extends AbstractType implements
     PushInterface,
     ConcatInterface
 {
+    use IteratorComparatorTrait;
+
     /** @var mixed[] */
     private array $data;
 
@@ -138,7 +140,17 @@ final class PhelArray extends AbstractType implements
 
     public function equals($other): bool
     {
-        return $this == $other;
+        // Should be the same type
+        if (!($other instanceof PhelArray)) {
+            return false;
+        }
+
+        // Should have the same length
+        if (count($this) !== count($other)) {
+            return false;
+        }
+
+        return $this->hasSameKeysAndValues($other);
     }
 
     public function slice(int $offset = 0, ?int $length = null): SliceInterface

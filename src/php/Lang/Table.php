@@ -185,7 +185,45 @@ class Table extends AbstractType implements ArrayAccess, Countable, Iterator, Se
 
     public function equals($other): bool
     {
-        return $this == $other;
+        // Should be the same type
+        if (!($other instanceof Table)) {
+            return false;
+        }
+
+        // Should have the same length
+        if (count($this) !== count($other)) {
+            return false;
+        }
+
+        // Try to compare directly
+        // This is faster if it works but it will not catch all cases
+        // For example `(= @[:a] @[:a])` will fail because the Keyword Objects are
+        // not the same reference but.
+        // We could change the comparison operator to `==`. This will make the above
+        // example work but fail another example `(= @[1] @["1"])
+        // It would be helpful if the Object-comparison RFC (https://wiki.php.net/rfc/object-comparison)
+        // would have been accepted but it is not.
+        if ($other->data === $this->data) {
+            return true;
+        }
+
+        // If direct comparison is not working
+        // we have to iterate over all elements and compare the keys and values.
+        foreach ($this as $key => $value) {
+            if ($key === null) {
+                return false;
+            }
+
+            if (!isset($other[$key])) {
+                return false;
+            }
+
+            if (!$this->areEquals($value, $other[$key])) {
+                return false;
+            }
+        }
+
+        return true;
     }
 
     public function toKeyValueList(): array

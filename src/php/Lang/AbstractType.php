@@ -15,6 +15,19 @@ abstract class AbstractType implements MetaInterface, SourceLocationInterface
     abstract public function hash(): string;
 
     /**
+     * @param mixed|null $a
+     * @param mixed|null $b
+     */
+    protected function areEquals($a, $b): bool
+    {
+        if ($a instanceof AbstractType) {
+            return $a->equals($b);
+        }
+
+        return $a === $b;
+    }
+
+    /**
      * Check if $other is equals to $this.
      *
      * @param mixed $other The other value

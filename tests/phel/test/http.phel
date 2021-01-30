@@ -47,7 +47,7 @@
     (h/uri "http" nil "::1" 8081 "/doc/article.php" "id=10&user=foo" nil)
     (php/array_merge uri-server-default (php-associative-array "SERVER_PORT" "8081" "HTTP_HOST" "::1:8081"))]
    ["empty server variable"
-    (h/uri nil nil nil nil nil nil nil)
+    (h/uri nil nil nil 0 nil nil nil)
     (php/array)]])
 
 (deftest test-url
