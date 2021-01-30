@@ -1,0 +1,97 @@
+(ns phel\test\core\math-operation
+  (:require phel\test :refer [deftest is]))
+
+(deftest test-+
+  (is (= 0 (+)) "+ zero arguments")
+  (is (= 1 (+ 1)) "+ one arguments")
+  (is (= 3 (+ 1 2)) "+ two arguments"))
+
+(deftest test--
+  (is (= 0 (-)) "- zero arguments")
+  (is (= -1 (- 1)) "- one arguments")
+  (is (= 1 (- 2 1)) "- two arguments"))
+
+(deftest test-*
+  (is (= 1 (*)) "* zero arguments")
+  (is (= 2 (* 2)) "* one arguments")
+  (is (= 6 (* 2 3)) "* two arguments")
+  (is (= 24 (* 2 3 4)) "* three arguments"))
+
+(deftest test-/
+  (is (= 1 (/)) "/ zero arguments")
+  (is (= 0.5 (/ 2)) "/ one arguments")
+  (is (= 2 (/ 4 2)) "/ two arguments")
+  (is (= 2 (/ 16 4 2)) "/ three arguments"))
+
+(deftest test-%
+  (is (= 0 (% 10 2)) "10 % 2")
+  (is (= 1 (% 11 2)) "11 % 2"))
+
+(deftest test-**
+  (is (= 8 (** 2 3)) "2 ** 3"))
+
+(deftest test-inc
+  (is (= 1 (inc 0)) "(inc 0)")
+  (is (= 0 (inc -1)) "(inc -1)")
+  (is (= 2 (inc 1)) "(inc 1)"))
+
+(deftest test-dec
+  (is (= -1 (dec 0)) "(dec 0)")
+  (is (= -2 (dec -1)) "(dec -1)")
+  (is (= 0 (dec 1)) "(dec 1)"))
+
+(deftest test-even?
+  (is (= true (even? 0)) "(even? 0)")
+  (is (= false (even? 1)) "(even? 1)")
+  (is (= true (even? 2)) "(even? 2)"))
+
+(deftest test-odd?
+  (is (= false (odd? 0)) "(odd? 0)")
+  (is (= true (odd? 1)) "(odd? 1)")
+  (is (= false (odd? 2)) "(odd? 2)"))
+
+(deftest test-zero?
+  (is (= true (zero? 0)) "(zero? 0)")
+  (is (= true (zero? 0.0)) "(zero? 0.0)")
+  (is (= true (zero? 0.00)) "(zero? 0.00)")
+  (is (= false (zero? 0.1)) "(zero? 0.1)")
+  (is (= false (zero? -0.1)) "(zero? -0.1)"))
+
+(deftest test-one?
+  (is (= true (one? 1)) "(one? 1)")
+  (is (= true (one? 1.0)) "(one? 1.0)")
+  (is (= true (one? 1.0)) "(one? 1.00)")
+  (is (= false (one? 0)) "(one? 0)"))
+
+(deftest test-pos?
+  (is (= false (pos? 0)) "(pos? 1)")
+  (is (= true (pos? 1)) "(pos? 1)")
+  (is (= true (pos? 0.1)) "(pos? 0.1)")
+  (is (= false (pos? -0.1)) "(pos? -0.1)")
+  (is (= false (pos? -1)) "(pos? -1)"))
+
+(deftest test-neg?
+  (is (= false (neg? 0)) "(neg? 1)")
+  (is (= false (neg? 1)) "(neg? 1)")
+  (is (= false (neg? 0.1)) "(neg? 0.1)")
+  (is (= true (neg? -0.1)) "(neg? -0.1)")
+  (is (= true (neg? -1)) "(neg? -1)"))
+
+(deftest test-nan?
+  (is (= true (nan? (php/acos 8))) "(nan? (php/acos 8)")
+  (is (= true (nan? php/NAN)) "(nan? (php/NAN))")
+  (is (= true (nan? NAN)) "(nan? NAN)")
+  (is (= false (nan? 9)) "(nan? 8)"))
+
+(deftest test-min
+  (is (= 1 (min 1 2 3)) "(min 1 2 3)"))
+
+(deftest test-max
+  (is (= 3 (max 1 2 3)) "(max 1 2 3)"))
+
+(deftest test-sum
+  (is (= 6 (sum [1 2 3])) "(sum [1 2 3])")
+  (is (= 0 (sum [])) "(sum [])"))
+
+(deftest test-mean
+  (is (= 2 (mean [1 2 3])) "(mean [1 2 3])"))

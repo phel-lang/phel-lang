@@ -1,7 +1,6 @@
 (ns phel\test\http
   (:require phel\http :as h)
-  (:require phel\test :refer [deftest is])
-  (:use DateTime))
+  (:require phel\test :refer [deftest is]))
 
 # Tests adopted from nyholm/psr7-server
 
