@@ -126,9 +126,8 @@ final class ReplCommand
 
         try {
             $result = $this->compiler->eval($fullInput, $this->lineNumber - count($this->inputBuffer));
-
+            $this->addHistory($fullInput);
             $this->io->writeln($this->printer->print($result));
-            $this->io->addHistory($fullInput);
 
             $this->inputBuffer = [];
         } catch (UnfinishedParserException $e) {
@@ -140,10 +139,19 @@ final class ReplCommand
                     $e->getCodeSnippet()
                 )
             );
+            $this->addHistory($fullInput);
             $this->inputBuffer = [];
         } catch (Throwable $e) {
             $this->io->writeln($this->exceptionPrinter->getStackTraceString($e));
+            $this->addHistory($fullInput);
             $this->inputBuffer = [];
+        }
+    }
+
+    private function addHistory(string $input): void
+    {
+        if ('' !== $input) {
+            $this->io->addHistory($input);
         }
     }
 }
