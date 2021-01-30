@@ -20,5 +20,10 @@ interface ParserInterface
      */
     public function parseNext(TokenStream $tokenStream): ?NodeInterface;
 
+    /**
+     * @throws ParserException
+     * @throws UnexpectedParserException
+     * @throws UnfinishedParserException
+     */
     public function parseAll(TokenStream $tokenStream): FileNode;
 }

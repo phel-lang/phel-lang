@@ -11,8 +11,8 @@ final class CommandSystemIo implements CommandIoInterface
         return file_get_contents($string);
     }
 
-    public function output(string $string): void
+    public function writeln(string $string = ''): void
     {
-        print $string;
+        print $string . PHP_EOL;
     }
 }

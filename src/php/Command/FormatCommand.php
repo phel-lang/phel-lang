@@ -6,6 +6,8 @@ namespace Phel\Command;
 
 use Phel\Command\Format\PathFilterInterface;
 use Phel\Command\Shared\CommandIoInterface;
+use Phel\Exceptions\ExceptionPrinterInterface;
+use Phel\Exceptions\ParserException;
 use Phel\Formatter\FormatterInterface;
 
 final class FormatCommand
@@ -15,6 +17,7 @@ final class FormatCommand
     private FormatterInterface $formatter;
     private CommandIoInterface $io;
     private PathFilterInterface $pathFilter;
+    private ExceptionPrinterInterface $exceptionPrinter;
 
     /** @var list<string> */
     private array $successfulFormattedFilePaths = [];
@@ -22,17 +25,35 @@ final class FormatCommand
     public function __construct(
         FormatterInterface $formatter,
         CommandIoInterface $io,
-        PathFilterInterface $pathFilter
+        PathFilterInterface $pathFilter,
+        ExceptionPrinterInterface $exceptionPrinter
     ) {
         $this->formatter = $formatter;
         $this->io = $io;
         $this->pathFilter = $pathFilter;
+        $this->exceptionPrinter = $exceptionPrinter;
     }
 
     /**
      * @param list<string> $paths
      */
     public function run(array $paths): void
+    {
+        try {
+            $this->formatPaths($paths);
+        } catch (ParserException $e) {
+            $this->io->writeln(
+                $this->exceptionPrinter->getExceptionString($e, $e->getCodeSnippet())
+            );
+        }
+    }
+
+    /**
+     * @param list<string> $paths
+     *
+     * @throws ParserException
+     */
+    private function formatPaths(array $paths): void
     {
         foreach ($this->pathFilter->filterPaths($paths) as $path) {
             $wasFormatted = $this->formatter->formatFile($path);
@@ -48,12 +69,12 @@ final class FormatCommand
     private function printResult(): void
     {
         if (empty($this->successfulFormattedFilePaths)) {
-            $this->io->output('No files were formatted.' . PHP_EOL);
+            $this->io->writeln('No files were formatted.');
         } else {
-            $this->io->output('Formatted files:' . PHP_EOL);
+            $this->io->writeln('Formatted files:');
 
             foreach ($this->successfulFormattedFilePaths as $k => $filePath) {
-                $this->io->output(sprintf('  %d) %s %s', $k + 1, $filePath, PHP_EOL));
+                $this->io->writeln(sprintf('  %d) %s', $k + 1, $filePath));
             }
         }
     }

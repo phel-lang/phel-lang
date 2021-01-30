@@ -51,6 +51,11 @@ final class Parser implements ParserInterface
         return $this->readExpression($tokenStream);
     }
 
+    /**
+     * @throws ParserException
+     * @throws UnexpectedParserException
+     * @throws UnfinishedParserException
+     */
     public function parseAll(TokenStream $tokenStream): FileNode
     {
         $result = [];

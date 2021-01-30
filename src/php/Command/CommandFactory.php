@@ -71,7 +71,8 @@ final class CommandFactory implements CommandFactoryInterface
         return new FormatCommand(
             $this->formatterFactory->createFormatter(),
             $this->createCommandIo(),
-            $this->createPathFilter()
+            $this->createPathFilter(),
+            TextExceptionPrinter::create()
         );
     }
 

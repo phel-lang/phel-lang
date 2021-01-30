@@ -36,7 +36,8 @@ final class FormatCommandTest extends TestCase
 
         $this->expectOutputString(<<<TXT
 Formatted files:
-  1) $path \n
+  1) $path
+
 TXT);
         $command->run([$path]);
 

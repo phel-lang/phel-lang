@@ -8,5 +8,5 @@ interface CommandIoInterface
 {
     public function fileGetContents(string $path): string;
 
-    public function output(string $string): void;
+    public function writeln(string $string): void;
 }

@@ -37,6 +37,9 @@ final class CommandFacade implements CommandFacadeInterface
             ->run($fileOrPath);
     }
 
+    /**
+     * @param list<string> $paths
+     */
     public function executeTestCommand(array $paths): void
     {
         $result = $this->commandFactory
@@ -48,6 +51,9 @@ final class CommandFacade implements CommandFacadeInterface
             : exit(self::FAILED_CODE);
     }
 
+    /**
+     * @param list<string> $paths
+     */
     public function executeFormatCommand(array $paths): void
     {
         $this->commandFactory

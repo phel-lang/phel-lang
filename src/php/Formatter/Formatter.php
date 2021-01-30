@@ -7,6 +7,7 @@ namespace Phel\Formatter;
 use Phel\Compiler\Lexer\LexerInterface;
 use Phel\Compiler\Parser\ParserInterface;
 use Phel\Compiler\Parser\ParserNode\NodeInterface;
+use Phel\Exceptions\ParserException;
 use Phel\Formatter\Rules\RuleInterface;
 
 final class Formatter implements FormatterInterface
@@ -31,6 +32,9 @@ final class Formatter implements FormatterInterface
         $this->rules = $rules;
     }
 
+    /**
+     * @throws ParserException
+     */
     public function formatFile(string $filename): bool
     {
         $code = file_get_contents($filename);
@@ -40,6 +44,9 @@ final class Formatter implements FormatterInterface
         return (bool)strcmp($formattedCode, $code);
     }
 
+    /**
+     * @throws ParserException
+     */
     private function formatString(string $string, string $source = self::DEFAULT_SOURCE): string
     {
         $tokenStream = $this->lexer->lexString($string, $source);
