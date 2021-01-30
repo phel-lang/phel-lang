@@ -101,14 +101,6 @@ final class ReplCommand
             $this->io->writeln();
         } else {
             $this->inputBuffer[] = $input;
-            $this->addHistory($input);
-        }
-    }
-
-    private function addHistory(string $input): void
-    {
-        if ('' !== $input) {
-            $this->io->addHistory($input);
         }
     }
 
@@ -132,6 +124,8 @@ final class ReplCommand
 
         $fullInput = implode(PHP_EOL, $this->inputBuffer);
 
+        $this->addHistory($fullInput);
+
         try {
             $result = $this->compiler->eval($fullInput, $this->lineNumber - count($this->inputBuffer));
             $this->io->writeln($this->printer->print($result));
@@ -150,6 +144,13 @@ final class ReplCommand
         } catch (Throwable $e) {
             $this->io->writeln($this->exceptionPrinter->getStackTraceString($e));
             $this->inputBuffer = [];
+        }
+    }
+
+    private function addHistory(string $input): void
+    {
+        if ('' !== $input) {
+            $this->io->addHistory($input);
         }
     }
 }
