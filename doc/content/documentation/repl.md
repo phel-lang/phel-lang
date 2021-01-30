@@ -51,7 +51,7 @@ The `require` function can be used to require another namespace into the REPL. T
 ```bash
 phel:1> (require phel\html :as h)
 phel\html
-phel:3> (h/html [:span])
+phel:2> (h/html [:span])
 <span></span>
 phel:3>
 ```
