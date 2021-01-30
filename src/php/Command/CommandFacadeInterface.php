@@ -10,7 +10,13 @@ interface CommandFacadeInterface
 
     public function executeRunCommand(string $fileOrPath): void;
 
+    /**
+     * @param list<string> $paths
+     */
     public function executeTestCommand(array $paths): void;
 
+    /**
+     * @param list<string> $paths
+     */
     public function executeFormatCommand(array $paths): void;
 }
