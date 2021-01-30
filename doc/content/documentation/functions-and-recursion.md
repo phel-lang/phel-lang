@@ -99,7 +99,7 @@ Calls the function with the given arguments. The last argument must be a list of
 
 ## Passing by reference
 
-Sometimes it is required that a variable should pass to a function by reference. This can be done by applied the `:reference` metadata to the symbol.
+Sometimes it is required that a variable should pass to a function by reference. This can be done by applying the `:reference` metadata to the symbol.
 
 ```phel
 (fn [^:reference my-arr]

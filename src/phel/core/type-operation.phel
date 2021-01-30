@@ -135,11 +135,31 @@
   [x]
   (= 0 (count x)))
 
+(defn- indexed-php-array?
+  [x]
+  (and
+   (= (type x) :php/array)
+   (or
+    (php/empty x)
+    (php/=== (php/array_keys x) (php/range 0 (php/- (php/count x) 1))))))
+
 (defn indexed?
   "Returns true if `x` is indexed sequence, false otherwise."
   [x]
   (let [t (type x)]
-    (or (= t :array) (= t :tuple) (= t :php/array))))
+    (or
+     (= t :array)
+     (= t :tuple)
+     (indexed-php-array? x))))
+
+(defn associative?
+  "Returns true if `x` is associative data structure, false otherwise."
+  [x]
+  (let [t (type x)]
+    (or
+     (= t :table)
+     (= t :struct)
+     (and (= t :php/array) (not (indexed-php-array? x))))))
 
 (defn set?
   "Returns true if `x` is a set, false otherwise."
