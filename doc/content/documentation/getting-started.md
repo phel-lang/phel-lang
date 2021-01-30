@@ -18,17 +18,17 @@ cd hello-world
 composer init
 ```
 
-Composer will ask a bunch of questions that can be answered as in the following example. Make sure to set *Minimum Stability* to **dev**:
+Composer will ask a bunch of questions that can be answered as in the following example.
 
 ```
 Welcome to the Composer config generator
 
 This command will guide you through creating your composer.json config.
 
-Package name (<vendor>/<name>) [jens/phel]: phel/hello-world
+Package name (<vendor>/<name>): phel-lang/hello-world
 Description []:
 Author [Your Name <your.name@domain.com>, n to skip]:
-Minimum Stability []: dev
+Minimum Stability []:
 Package Type (e.g. library, project, metapackage, composer-plugin) []: project
 License []:
 
@@ -38,7 +38,7 @@ Would you like to define your dependencies (require) interactively [yes]? no
 Would you like to define your dev dependencies (require-dev) interactively [yes]? no
 
 {
-    "name": "phel/hello-world",
+    "name": "phel-lang/hello-world",
     "type": "project",
     "authors": [
         {
@@ -46,7 +46,6 @@ Would you like to define your dev dependencies (require-dev) interactively [yes]
             "email": "your.name@domain.com"
         }
     ],
-    "minimum-stability": "dev",
     "require": {}
 }
 
@@ -57,7 +56,7 @@ Next, require Phel as a dependency.
 
 ```bash
 # Require and install Phel
-composer require phel-lang/phel-lang:dev-master
+composer require phel-lang/phel-lang
 ```
 
 Then, create a new directory `src` with a file `boot.phel` inside this directory.
@@ -87,13 +86,13 @@ For Phel to automatically resolve the project namespace and path, this code need
 }
 ```
 
-> Read documentation for [Configuration](/documentation/configuration) to see all available configuration options for Phel.
+> Read the documentation for [Configuration](/documentation/configuration) to see all available configuration options for Phel.
 
 The final `composer.json` file should look like this:
 
 ```json
 {
-    "name": "phel/hello-world",
+    "name": "phel-lang/hello-world",
     "type": "project",
     "authors": [
         {
@@ -102,7 +101,7 @@ The final `composer.json` file should look like this:
         }
     ],
     "require": {
-        "phel-lang/phel-lang": "dev-master"
+        "phel-lang/phel-lang": "^0.1"
     },
     "extra": {
         "phel": {
@@ -110,8 +109,7 @@ The final `composer.json` file should look like this:
                 "hello-world\\": "src/"
             }
         }
-    },
-    "minimum-stability": "dev"
+    }
 }
 ```
 
@@ -173,6 +171,11 @@ In the browser, the URL `http://localhost:8000` will now print "Hello, World!".
 
 To try Phel you can run a REPL by executing the `./vendor/bin/phel repl` command.
 
+> Read more about the [REPL](/documentation/repl) in its own chapter.
+
+## Phel Scaffolding
+
+As an alternative to the Getting started guide above the [Scaffolding project on Github](https://github.com/phel-lang/phel-scaffolding) is another good starting point.
 
 ## Editor support
 
