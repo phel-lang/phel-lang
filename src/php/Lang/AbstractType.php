@@ -18,7 +18,7 @@ abstract class AbstractType implements MetaInterface, SourceLocationInterface
      * @param mixed|null $a
      * @param mixed|null $b
      */
-    protected function equals1($a, $b): bool
+    protected function areEquals($a, $b): bool
     {
         if ($a instanceof AbstractType) {
             return $a->equals($b);

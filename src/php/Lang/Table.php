@@ -199,15 +199,15 @@ class Table extends AbstractType implements ArrayAccess, Countable, Iterator, Se
         // This is faster if it works but it will not catch all cases
         // For example `(= @[:a] @[:a])` will fail because the Keyword Objects are
         // not the same reference but.
-        // We could change the comparision operator to `==`. This will make the above
+        // We could change the comparison operator to `==`. This will make the above
         // example work but fail another example `(= @[1] @["1"])
-        // It would be helpful if the Object-comparsion RFC (https://wiki.php.net/rfc/object-comparison)
+        // It would be helpful if the Object-comparison RFC (https://wiki.php.net/rfc/object-comparison)
         // would have been accepted but it is not.
         if ($other->data === $this->data) {
             return true;
         }
 
-        // If direct comparision is not working
+        // If direct comparison is not working
         // we have to iterate over all elements and compare the keys and values.
         foreach ($this as $key => $value) {
             if ($key === null) {
@@ -218,7 +218,7 @@ class Table extends AbstractType implements ArrayAccess, Countable, Iterator, Se
                 return false;
             }
 
-            if (!$this->equals1($value, $other[$key])) {
+            if (!$this->areEquals($value, $other[$key])) {
                 return false;
             }
         }
