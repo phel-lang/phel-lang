@@ -150,7 +150,7 @@ final class PhelArray extends AbstractType implements
             return false;
         }
 
-        return $this->hasSameKeyValues($other);
+        return $this->hasSameKeysAndValues($other);
     }
 
     public function slice(int $offset = 0, ?int $length = null): SliceInterface

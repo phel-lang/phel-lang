@@ -191,7 +191,7 @@ final class Tuple extends AbstractType implements
             return false;
         }
 
-        return $this->hasSameKeyValues($other);
+        return $this->hasSameKeysAndValues($other);
     }
 
     public function first()

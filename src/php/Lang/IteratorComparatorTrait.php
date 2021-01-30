@@ -19,7 +19,7 @@ use MultipleIterator;
  */
 trait IteratorComparatorTrait
 {
-    private function hasSameKeyValues(Iterator $other): bool
+    private function hasSameKeysAndValues(Iterator $other): bool
     {
         if (!($this instanceof Iterator)) {
             return false;
