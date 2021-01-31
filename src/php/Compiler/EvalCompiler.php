@@ -14,7 +14,9 @@ use Phel\Compiler\Parser\ParserNode\TriviaNodeInterface;
 use Phel\Compiler\Parser\ReadModel\ReaderResult;
 use Phel\Compiler\Reader\ReaderInterface;
 use Phel\Exceptions\AnalyzerException;
+use Phel\Exceptions\CompiledCodeIsMalformedException;
 use Phel\Exceptions\CompilerException;
+use Phel\Exceptions\FileException;
 use Phel\Exceptions\Parser\UnfinishedParserException;
 use Phel\Exceptions\ParserException;
 use Phel\Exceptions\ReaderException;
@@ -44,7 +46,10 @@ final class EvalCompiler implements EvalCompilerInterface
     /**
      * Evaluates a provided Phel code.
      *
-     * @throws CompilerException|UnfinishedParserException
+     * @throws CompiledCodeIsMalformedException
+     * @throws CompilerException
+     * @throws FileException
+     * @throws UnfinishedParserException
      *
      * @return mixed The result of the executed code
      */
@@ -69,7 +74,9 @@ final class EvalCompiler implements EvalCompilerInterface
     }
 
     /**
+     * @throws CompiledCodeIsMalformedException
      * @throws CompilerException
+     * @throws FileException
      *
      * @return mixed
      */

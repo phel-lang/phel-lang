@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace Phel\Compiler\Emitter;
 
 use Phel\Compiler\Analyzer\Ast\AbstractNode;
+use Phel\Exceptions\CompiledCodeIsMalformedException;
+use Phel\Exceptions\FileException;
 
 final class Emitter implements EmitterInterface
 {
@@ -19,6 +21,15 @@ final class Emitter implements EmitterInterface
         $this->evalEmitter = $evalEmitter;
     }
 
+    public function emitNodeAsString(AbstractNode $node): string
+    {
+        return $this->outputEmitter->emitNodeAsString($node);
+    }
+
+    /**
+     * @throws CompiledCodeIsMalformedException
+     * @throws FileException
+     */
     public function emitNodeAndEval(AbstractNode $node): string
     {
         $code = $this->emitNodeAsString($node);
@@ -27,12 +38,10 @@ final class Emitter implements EmitterInterface
         return $code;
     }
 
-    public function emitNodeAsString(AbstractNode $node): string
-    {
-        return $this->outputEmitter->emitNodeAsString($node);
-    }
-
     /**
+     * @throws CompiledCodeIsMalformedException
+     * @throws FileException
+     *
      * @return mixed
      */
     public function evalCode(string $code)
