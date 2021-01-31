@@ -54,4 +54,4 @@ Phel requires PHP 7.4 or higher and Composer. Read the [Getting Started Guide](/
 
 ## Status of Development
 
-Phel has is fairly complete but not marked as ready. We still want to envolve this language without thinking to much about breaking changes. Maybe some of you are willing to test it out and give feedback.
+Phel is fairly complete but not marked as ready. We still want to envolve this language without thinking to much about breaking changes. Maybe some of you are willing to test it out and give feedback.
