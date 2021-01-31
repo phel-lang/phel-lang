@@ -4,7 +4,8 @@ declare(strict_types=1);
 
 namespace Phel\Compiler\Emitter;
 
-use RuntimeException;
+use Phel\Exceptions\CompiledCodeIsMalformedException;
+use Phel\Exceptions\FileException;
 use Throwable;
 
 final class EvalEmitter implements EvalEmitterInterface
@@ -12,7 +13,8 @@ final class EvalEmitter implements EvalEmitterInterface
     /**
      * Evaluates the code and returns the evaluated value.
      *
-     * @throws RuntimeException|Throwable
+     * @throws CompiledCodeIsMalformedException
+     * @throws FileException
      *
      * @return mixed
      */
@@ -20,7 +22,7 @@ final class EvalEmitter implements EvalEmitterInterface
     {
         $filename = tempnam(sys_get_temp_dir(), '__phel');
         if (!$filename) {
-            throw new RuntimeException('can not create temp file.');
+            throw FileException::canNotCreateTempFile();
         }
 
         try {
@@ -29,9 +31,9 @@ final class EvalEmitter implements EvalEmitterInterface
                 return require $filename;
             }
 
-            throw new RuntimeException('Can not require file: ' . $filename);
+            throw FileException::canNotCreateFile($filename);
         } catch (Throwable $e) {
-            throw $e;
+            throw CompiledCodeIsMalformedException::fromThrowable($e);
         }
     }
 }

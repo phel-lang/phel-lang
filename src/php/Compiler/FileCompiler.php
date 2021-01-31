@@ -13,7 +13,9 @@ use Phel\Compiler\Parser\ParserNode\TriviaNodeInterface;
 use Phel\Compiler\Parser\ReadModel\ReaderResult;
 use Phel\Compiler\Reader\ReaderInterface;
 use Phel\Exceptions\AnalyzerException;
+use Phel\Exceptions\CompiledCodeIsMalformedException;
 use Phel\Exceptions\CompilerException;
+use Phel\Exceptions\FileException;
 use Phel\Exceptions\ParserException;
 use Phel\Exceptions\ReaderException;
 
@@ -39,6 +41,11 @@ final class FileCompiler implements FileCompilerInterface
         $this->emitter = $emitter;
     }
 
+    /**
+     * @throws CompilerException
+     * @throws CompiledCodeIsMalformedException
+     * @throws FileException
+     */
     public function compile(string $filename): string
     {
         $code = file_get_contents($filename);
@@ -66,6 +73,11 @@ final class FileCompiler implements FileCompilerInterface
         return $code;
     }
 
+    /**
+     * @throws CompilerException
+     * @throws CompiledCodeIsMalformedException
+     * @throws FileException
+     */
     private function analyzeAndEvalNode(ReaderResult $readerResult): string
     {
         try {

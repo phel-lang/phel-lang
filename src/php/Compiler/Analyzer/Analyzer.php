@@ -72,6 +72,8 @@ final class Analyzer implements AnalyzerInterface
 
     /**
      * @param AbstractType|string|float|int|bool|null $x
+     *
+     * @throws AnalyzerException
      */
     public function analyzeMacro($x, NodeEnvironmentInterface $env): AbstractNode
     {
@@ -84,6 +86,8 @@ final class Analyzer implements AnalyzerInterface
 
     /**
      * @param AbstractType|string|float|int|bool|null $x
+     *
+     * @throws AnalyzerException
      */
     public function analyze($x, NodeEnvironmentInterface $env): AbstractNode
     {

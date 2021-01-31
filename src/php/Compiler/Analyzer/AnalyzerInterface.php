@@ -6,6 +6,7 @@ namespace Phel\Compiler\Analyzer;
 
 use Phel\Compiler\Analyzer\Ast\AbstractNode;
 use Phel\Compiler\Analyzer\Environment\NodeEnvironmentInterface;
+use Phel\Exceptions\AnalyzerException;
 use Phel\Lang\AbstractType;
 use Phel\Lang\Symbol;
 use Phel\Lang\Table;
@@ -14,6 +15,8 @@ interface AnalyzerInterface
 {
     /**
      * @param AbstractType|string|float|int|bool|null $x
+     *
+     * @throws AnalyzerException
      */
     public function analyze($x, NodeEnvironmentInterface $env): AbstractNode;
 

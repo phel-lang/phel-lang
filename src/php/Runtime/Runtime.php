@@ -7,8 +7,10 @@ namespace Phel\Runtime;
 use InvalidArgumentException;
 use Phel\Compiler\Analyzer\Environment\GlobalEnvironmentInterface;
 use Phel\Compiler\CompilerFactoryInterface;
+use Phel\Exceptions\CompiledCodeIsMalformedException;
 use Phel\Exceptions\CompilerException;
 use Phel\Exceptions\ExceptionPrinterInterface;
+use Phel\Exceptions\FileException;
 use Phel\Lang\Keyword;
 use Phel\Lang\MetaInterface;
 use Phel\Lang\Symbol;
@@ -78,6 +80,11 @@ class Runtime implements RuntimeInterface
         }
     }
 
+    /**
+     * @throws CompilerException
+     * @throws CompiledCodeIsMalformedException
+     * @throws FileException
+     */
     public function loadNs(string $ns): bool
     {
         if (in_array($ns, $this->loadedNs, true)) {
@@ -101,6 +108,11 @@ class Runtime implements RuntimeInterface
         return true;
     }
 
+    /**
+     * @throws CompilerException
+     * @throws CompiledCodeIsMalformedException
+     * @throws FileException
+     */
     public function loadFileIntoNamespace(string $ns, string $file): void
     {
         $this->loadFile($file, $ns);
@@ -186,6 +198,11 @@ class Runtime implements RuntimeInterface
         return true;
     }
 
+    /**
+     * @throws CompilerException
+     * @throws CompiledCodeIsMalformedException
+     * @throws FileException
+     */
     protected function loadFile(string $filename, string $ns): void
     {
         $code = $this->compilerFactory
