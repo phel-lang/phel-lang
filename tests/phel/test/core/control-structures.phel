@@ -1,0 +1,28 @@
+(ns phel\test\core\control-structures
+  (:require phel\test :refer [deftest is]))
+
+(deftest test-if-not
+  (is (= 2 (if-not true 1 2)) "if-not true")
+  (is (= 1 (if-not false 1 2)) "if-not false"))
+
+(deftest test-when
+  (is (= 1 (when true 1)) "when true")
+  (is (nil? (when false 1)) "when false"))
+
+(deftest test-when-not
+  (is (nil? (when-not true 1)) "when-not true")
+  (is (= 1 (when-not false 1)) "when-not false"))
+
+(deftest test-cond
+  (is (nil? (cond)) "cond zero args")
+  (is (= 1 (cond 1)) "cond one arg")
+  (is (= 1 (cond true 1 2)) "cond true")
+  (is (= 2 (cond false 1 2)) "cond false"))
+
+(deftest test-case
+  (is (nil? (case true)) "case zero args")
+  (is (= 1 (case true 1)) "case one arg")
+  (is (nil? (case true false 2)) "case one test without default")
+  (is (= 1 (case true false 2 1)) "case one failed test with default")
+  (is (= 2 (case true true 2)) "case one successful test without default")
+  (is (= 2 (case true true 2 1)) "case one successful test with default"))
