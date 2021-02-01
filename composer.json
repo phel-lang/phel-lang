@@ -19,7 +19,7 @@
         "ext-readline": "*",
         "phpunit/phpunit": "^9.5",
         "vimeo/psalm": "dev-master",
-        "friendsofphp/php-cs-fixer": "^2.16",
+        "friendsofphp/php-cs-fixer": "^2.18",
         "infection/infection": "^0.16.3 || ^0.20.0 || ^0.21.0",
         "symfony/var-dumper": "^5.2",
         "phpmetrics/phpmetrics": "^2.7"
