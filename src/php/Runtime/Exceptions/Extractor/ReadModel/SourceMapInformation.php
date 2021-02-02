@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Phel\Exceptions\Extractor\ReadModel;
+namespace Phel\Runtime\Exceptions\Extractor\ReadModel;
 
 final class SourceMapInformation
 {

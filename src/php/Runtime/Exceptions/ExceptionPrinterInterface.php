@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Phel\Exceptions;
+namespace Phel\Runtime\Exceptions;
 
 use Phel\Compiler\Exceptions\PhelCodeException;
 use Phel\Compiler\Parser\ReadModel\CodeSnippet;

@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Phel\Exceptions\Printer;
+namespace Phel\Runtime\Exceptions;
 
 interface ExceptionArgsPrinterInterface
 {

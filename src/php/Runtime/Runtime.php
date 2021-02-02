@@ -10,11 +10,11 @@ use Phel\Compiler\Analyzer\Exceptions\CompilerException;
 use Phel\Compiler\CompilerFactoryInterface;
 use Phel\Compiler\Emitter\Exceptions\CompiledCodeIsMalformedException;
 use Phel\Compiler\Emitter\Exceptions\FileException;
-use Phel\Exceptions\ExceptionPrinterInterface;
 use Phel\Lang\Keyword;
 use Phel\Lang\MetaInterface;
 use Phel\Lang\Symbol;
 use Phel\Lang\Table;
+use Phel\Runtime\Exceptions\ExceptionPrinterInterface;
 use Throwable;
 
 class Runtime implements RuntimeInterface

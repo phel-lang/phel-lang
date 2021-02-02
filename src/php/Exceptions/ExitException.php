@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace Phel\Exceptions;
 
-use Exception;
+use RuntimeException;
 
-final class ExitException extends Exception
+final class ExitException extends RuntimeException
 {
 }

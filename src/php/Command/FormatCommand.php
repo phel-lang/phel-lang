@@ -7,8 +7,8 @@ namespace Phel\Command;
 use Phel\Command\Format\PathFilterInterface;
 use Phel\Command\Shared\CommandIoInterface;
 use Phel\Compiler\Parser\Exceptions\AbstractParserException;
-use Phel\Exceptions\ExceptionPrinterInterface;
 use Phel\Formatter\FormatterInterface;
+use Phel\Runtime\Exceptions\ExceptionPrinterInterface;
 
 final class FormatCommand
 {

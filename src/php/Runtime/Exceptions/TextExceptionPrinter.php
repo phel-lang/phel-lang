@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Phel\Exceptions;
+namespace Phel\Runtime\Exceptions;
 
 use Phel\Command\Repl\ColorStyle;
 use Phel\Command\Repl\ColorStyleInterface;
@@ -10,14 +10,12 @@ use Phel\Compiler\Emitter\OutputEmitter\Munge;
 use Phel\Compiler\Emitter\OutputEmitter\MungeInterface;
 use Phel\Compiler\Exceptions\PhelCodeException;
 use Phel\Compiler\Parser\ReadModel\CodeSnippet;
-use Phel\Exceptions\Extractor\FilePositionExtractor;
-use Phel\Exceptions\Extractor\FilePositionExtractorInterface;
-use Phel\Exceptions\Extractor\SourceMapExtractor;
-use Phel\Exceptions\Printer\ExceptionArgsPrinter;
-use Phel\Exceptions\Printer\ExceptionArgsPrinterInterface;
 use Phel\Lang\FnInterface;
 use Phel\Lang\SourceLocation;
 use Phel\Printer\Printer;
+use Phel\Runtime\Exceptions\Extractor\FilePositionExtractor;
+use Phel\Runtime\Exceptions\Extractor\FilePositionExtractorInterface;
+use Phel\Runtime\Exceptions\Extractor\SourceMapExtractor;
 use ReflectionClass;
 use Throwable;
 

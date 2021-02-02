@@ -8,11 +8,11 @@ use Phel\Compiler\Analyzer\Environment\GlobalEnvironment;
 use Phel\Compiler\Analyzer\Environment\GlobalEnvironmentInterface;
 use Phel\Compiler\CompilerFactory;
 use Phel\Compiler\CompilerFactoryInterface;
-use Phel\Exceptions\ExceptionPrinterInterface;
-use Phel\Exceptions\HtmlExceptionPrinter;
-use Phel\Exceptions\TextExceptionPrinter;
+use Phel\Runtime\Exceptions\ExceptionPrinterInterface;
+use Phel\Runtime\Exceptions\HtmlExceptionPrinter;
 use Phel\Runtime\Exceptions\RuntimeAlreadyInitializedException;
 use Phel\Runtime\Exceptions\RuntimeNotInitializedException;
+use Phel\Runtime\Exceptions\TextExceptionPrinter;
 
 final class RuntimeFactory
 {

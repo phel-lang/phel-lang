@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace Phel\Exceptions\Extractor;
+namespace Phel\Runtime\Exceptions\Extractor;
 
-use Phel\Exceptions\Extractor\ReadModel\FilePosition;
+use Phel\Runtime\Exceptions\Extractor\ReadModel\FilePosition;
 
 interface FilePositionExtractorInterface
 {

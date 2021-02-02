@@ -2,11 +2,11 @@
 
 declare(strict_types=1);
 
-namespace Phel\Exceptions\Extractor;
+namespace Phel\Runtime\Exceptions\Extractor;
 
 use Phel\Compiler\Emitter\OutputEmitter\SourceMap\SourceMapConsumer;
-use Phel\Exceptions\Extractor\ReadModel\FilePosition;
-use Phel\Exceptions\Extractor\ReadModel\SourceMapInformation;
+use Phel\Runtime\Exceptions\Extractor\ReadModel\FilePosition;
+use Phel\Runtime\Exceptions\Extractor\ReadModel\SourceMapInformation;
 
 final class FilePositionExtractor implements FilePositionExtractorInterface
 {

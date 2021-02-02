@@ -8,10 +8,10 @@ use Phel\Command\Repl\ColorStyleInterface;
 use Phel\Compiler\Emitter\OutputEmitter\MungeInterface;
 use Phel\Compiler\Exceptions\PhelCodeException;
 use Phel\Compiler\Parser\ReadModel\CodeSnippet;
-use Phel\Exceptions\Extractor\FilePositionExtractorInterface;
-use Phel\Exceptions\Printer\ExceptionArgsPrinterInterface;
-use Phel\Exceptions\TextExceptionPrinter;
 use Phel\Lang\SourceLocation;
+use Phel\Runtime\Exceptions\ExceptionArgsPrinterInterface;
+use Phel\Runtime\Exceptions\Extractor\FilePositionExtractorInterface;
+use Phel\Runtime\Exceptions\TextExceptionPrinter;
 use PHPUnit\Framework\TestCase;
 
 final class TextExceptionPrinterTest extends TestCase
@@ -75,7 +75,7 @@ MSG
         return $this->createStub(MungeInterface::class);
     }
 
-    private function stubFilePositionExtractor()
+    private function stubFilePositionExtractor(): FilePositionExtractorInterface
     {
         return $this->createStub(FilePositionExtractorInterface::class);
     }
