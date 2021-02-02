@@ -15,10 +15,8 @@
         "configDir": "."
     },
     "mutators": {
-        "@default": true,
-        "@function_signature": false
+        "@default": true
     },
     "testFramework":"phpunit",
-    "bootstrap":"./vendor/autoload.php",
-    "testFrameworkOptions": "-vvv"
+    "bootstrap":"./vendor/autoload.php"
 }

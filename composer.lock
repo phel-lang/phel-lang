@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "c080a9ad32fa8541bf78964e45ad5ad8",
+    "content-hash": "80d0018272a95e6cd6f6ab529904ee08",
     "packages": [
         {
             "name": "phel-lang/phel-composer-plugin",
