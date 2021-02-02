@@ -5,9 +5,9 @@ declare(strict_types=1);
 namespace Phel\Compiler\Parser\ExpressionParser;
 
 use Phel\Compiler\Lexer\TokenStream;
+use Phel\Compiler\Parser\Exceptions\UnfinishedParserException;
 use Phel\Compiler\Parser\Parser;
 use Phel\Compiler\Parser\ParserNode\ListNode;
-use Phel\Exceptions\Parser\UnfinishedParserException;
 
 final class ListParser
 {
@@ -19,7 +19,7 @@ final class ListParser
     }
 
     /**
-     * @throws \Phel\Exceptions\ParserException
+     * @throws UnfinishedParserException
      */
     public function parse(TokenStream $tokenStream, int $endTokenType, int $tokenType): ListNode
     {

@@ -7,6 +7,7 @@ namespace PhelTest\Unit\Compiler\Parser;
 use Phel\Compiler\CompilerFactory;
 use Phel\Compiler\Lexer\Lexer;
 use Phel\Compiler\Lexer\Token;
+use Phel\Compiler\Parser\Exceptions\AbstractParserException;
 use Phel\Compiler\Parser\ParserNode\BooleanNode;
 use Phel\Compiler\Parser\ParserNode\CommentNode;
 use Phel\Compiler\Parser\ParserNode\KeywordNode;
@@ -20,7 +21,6 @@ use Phel\Compiler\Parser\ParserNode\QuoteNode;
 use Phel\Compiler\Parser\ParserNode\StringNode;
 use Phel\Compiler\Parser\ParserNode\SymbolNode;
 use Phel\Compiler\Parser\ParserNode\WhitespaceNode;
-use Phel\Exceptions\ParserException;
 use Phel\Lang\Keyword;
 use Phel\Lang\SourceLocation;
 use Phel\Lang\Symbol;
@@ -458,21 +458,21 @@ final class ParserTest extends TestCase
 
     public function testReadUnbalancedClosedParen(): void
     {
-        $this->expectException(ParserException::class);
+        $this->expectException(AbstractParserException::class);
         $this->expectExceptionMessage('Unterminated list');
         $this->parse(')');
     }
 
     public function testReadUnbalancedOpenParen(): void
     {
-        $this->expectException(ParserException::class);
+        $this->expectException(AbstractParserException::class);
         $this->expectExceptionMessage('Unterminated list');
         $this->parse('(');
     }
 
     public function testReadUnbalancedOpenBrace(): void
     {
-        $this->expectException(ParserException::class);
+        $this->expectException(AbstractParserException::class);
         $this->expectExceptionMessage('Unexpected token: {');
         $this->parse('{');
     }

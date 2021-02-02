@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace Phel\Compiler;
 
-use Phel\Exceptions\CompiledCodeIsMalformedException;
-use Phel\Exceptions\CompilerException;
-use Phel\Exceptions\FileException;
+use Phel\Compiler\Analyzer\Exceptions\CompilerException;
+use Phel\Compiler\Emitter\Exceptions\CompiledCodeIsMalformedException;
+use Phel\Compiler\Emitter\Exceptions\FileException;
 
 interface FileCompilerInterface
 {

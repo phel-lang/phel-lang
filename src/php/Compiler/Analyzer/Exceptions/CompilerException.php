@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Phel\Exceptions;
+namespace Phel\Compiler\Analyzer\Exceptions;
 
 use Exception;
 use Phel\Compiler\Exceptions\PhelCodeException;
@@ -16,7 +16,7 @@ final class CompilerException extends Exception
 
     public function __construct(PhelCodeException $nestedException, CodeSnippet $codeSnippet)
     {
-        parent::__construct($nestedException->getMessage(), 0, null);
+        parent::__construct($nestedException->getMessage());
         $this->nestedException = $nestedException;
         $this->codeSnippet = $codeSnippet;
     }

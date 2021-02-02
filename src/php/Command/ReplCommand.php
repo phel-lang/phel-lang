@@ -6,11 +6,11 @@ namespace Phel\Command;
 
 use Phel\Command\Repl\ColorStyleInterface;
 use Phel\Command\Repl\ReplCommandIoInterface;
+use Phel\Compiler\Analyzer\Exceptions\CompilerException;
 use Phel\Compiler\EvalCompilerInterface;
-use Phel\Exceptions\CompilerException;
+use Phel\Compiler\Parser\Exceptions\UnfinishedParserException;
 use Phel\Exceptions\ExceptionPrinterInterface;
 use Phel\Exceptions\ExitException;
-use Phel\Exceptions\Parser\UnfinishedParserException;
 use Phel\Printer\PrinterInterface;
 use Throwable;
 

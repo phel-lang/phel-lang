@@ -4,12 +4,12 @@ declare(strict_types=1);
 
 namespace Phel\Formatter;
 
-use Phel\Exceptions\ParserException;
+use Phel\Compiler\Parser\Exceptions\AbstractParserException;
 
 interface FormatterInterface
 {
     /**
-     * @throws ParserException
+     * @throws AbstractParserException
      *
      * @return bool True if the file was formatted. False if the file wasn't altered because it was already formatted.
      */

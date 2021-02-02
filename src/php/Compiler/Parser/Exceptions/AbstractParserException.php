@@ -2,13 +2,13 @@
 
 declare(strict_types=1);
 
-namespace Phel\Exceptions;
+namespace Phel\Compiler\Parser\Exceptions;
 
 use Phel\Compiler\Exceptions\PhelCodeException;
 use Phel\Compiler\Parser\ReadModel\CodeSnippet;
 use Phel\Lang\SourceLocation;
 
-class ParserException extends PhelCodeException
+abstract class AbstractParserException extends PhelCodeException
 {
     private CodeSnippet $codeSnippet;
 
