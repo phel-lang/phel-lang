@@ -14,7 +14,8 @@ use Phel\Compiler\Parser\ParserNode\SymbolNode;
 use Phel\Compiler\Parser\ParserNode\TriviaNodeInterface;
 use Phel\Compiler\Parser\ReadModel\CodeSnippet;
 use Phel\Compiler\Parser\ReadModel\ReaderResult;
-use Phel\Exceptions\ReaderException;
+use Phel\Compiler\Reader\Exceptions\NotValidQuoteNodeException;
+use Phel\Compiler\Reader\Exceptions\ReaderException;
 use Phel\Lang\AbstractType;
 use Phel\Lang\PhelArray;
 use Phel\Lang\Symbol;
@@ -147,6 +148,8 @@ final class Reader implements ReaderInterface
     }
 
     /**
+     * @throws NotValidQuoteNodeException
+     *
      * @return AbstractType|string|float|int|bool|null
      */
     private function readQuoteNode(QuoteNode $node, NodeInterface $root)
@@ -175,10 +178,12 @@ final class Reader implements ReaderInterface
                 ->read($node, $root);
         }
 
-        throw new RuntimeException('Not a valid QuoteNode: ' . get_class($node));
+        throw NotValidQuoteNodeException::forNode($node);
     }
 
     /**
+     * @throws ReaderException
+     *
      * @return AbstractType|string|float|int|bool
      */
     private function readMetaNode(MetaNode $node, NodeInterface $root)

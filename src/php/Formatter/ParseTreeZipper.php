@@ -10,7 +10,7 @@ use Phel\Compiler\Parser\ParserNode\NewlineNode;
 use Phel\Compiler\Parser\ParserNode\NodeInterface;
 use Phel\Compiler\Parser\ParserNode\TriviaNodeInterface;
 use Phel\Compiler\Parser\ParserNode\WhitespaceNode;
-use Phel\Exceptions\ZipperException;
+use Phel\Formatter\Exceptions\ZipperException;
 
 /** @extends AbstractZipper<NodeInterface> */
 final class ParseTreeZipper extends AbstractZipper
@@ -26,7 +26,7 @@ final class ParseTreeZipper extends AbstractZipper
     public function getChildren()
     {
         if (!$this->isBranch()) {
-            throw new ZipperException('called children on leaf node');
+            throw ZipperException::calledChildrenOnLeafNode();
         }
 
         return $this->node->getChildren();
@@ -35,7 +35,7 @@ final class ParseTreeZipper extends AbstractZipper
     public function makeNode($node, $children)
     {
         if (!$node instanceof InnerNodeInterface) {
-            throw new ZipperException('can replace children on leaf node');
+            throw ZipperException::canReplaceChildrenOnLeafNode();
         }
 
         /** @var InnerNodeInterface $node */

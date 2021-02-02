@@ -6,8 +6,8 @@ namespace Phel\Compiler\Reader\ExpressionReader;
 
 use Phel\Compiler\Parser\ParserNode\MetaNode;
 use Phel\Compiler\Parser\ParserNode\NodeInterface;
+use Phel\Compiler\Reader\Exceptions\ReaderException;
 use Phel\Compiler\Reader\Reader;
-use Phel\Exceptions\ReaderException;
 use Phel\Lang\AbstractType;
 use Phel\Lang\Keyword;
 use Phel\Lang\MetaInterface;
@@ -24,6 +24,8 @@ final class MetaReader
     }
 
     /**
+     * @throws ReaderException
+     *
      * @return AbstractType|string|float|int|bool
      */
     public function read(MetaNode $node, NodeInterface $root)

@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Phel\Exceptions;
+namespace Phel\Compiler\Reader\Exceptions;
 
 use Exception;
 use Phel\Compiler\Exceptions\PhelCodeException;

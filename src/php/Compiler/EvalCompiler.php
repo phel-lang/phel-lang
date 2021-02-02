@@ -18,8 +18,8 @@ use Phel\Compiler\Parser\Exceptions\UnfinishedParserException;
 use Phel\Compiler\Parser\ParserInterface;
 use Phel\Compiler\Parser\ParserNode\TriviaNodeInterface;
 use Phel\Compiler\Parser\ReadModel\ReaderResult;
+use Phel\Compiler\Reader\Exceptions\ReaderException;
 use Phel\Compiler\Reader\ReaderInterface;
-use Phel\Exceptions\ReaderException;
 
 final class EvalCompiler implements EvalCompilerInterface
 {

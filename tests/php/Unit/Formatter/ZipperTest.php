@@ -5,7 +5,8 @@ declare(strict_types=1);
 namespace PhelTest\Unit\Formatter;
 
 use Exception;
-use Phel\Exceptions\ZipperException;
+use Phel\Formatter\Exceptions\CanNotRemoveAtTheTopException;
+use Phel\Formatter\Exceptions\ZipperException;
 use PHPUnit\Framework\TestCase;
 
 final class ZipperTest extends TestCase
@@ -292,7 +293,7 @@ final class ZipperTest extends TestCase
 
     public function testRemoveOnRoot(): void
     {
-        $this->expectException(Exception::class);
+        $this->expectException(CanNotRemoveAtTheTopException::class);
 
         $tree = [[1, 2], 3, [4, 5]];
         $zipper = ArrayZipper::createRoot($tree);

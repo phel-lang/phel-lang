@@ -7,13 +7,13 @@ namespace Phel\Compiler\Reader;
 use Phel\Compiler\Analyzer\Ast\GlobalVarNode;
 use Phel\Compiler\Analyzer\Environment\GlobalEnvironmentInterface;
 use Phel\Compiler\Analyzer\Environment\NodeEnvironment;
+use Phel\Compiler\Reader\Exceptions\SpliceNotInListException;
 use Phel\Lang\AbstractType;
 use Phel\Lang\Keyword;
 use Phel\Lang\PhelArray;
 use Phel\Lang\Symbol;
 use Phel\Lang\Table;
 use Phel\Lang\Tuple;
-use RuntimeException;
 
 final class QuasiquoteTransformer implements QuasiquoteTransformerInterface
 {
@@ -27,6 +27,8 @@ final class QuasiquoteTransformer implements QuasiquoteTransformerInterface
     /**
      * @param AbstractType|string|float|int|bool|null $form The form to quasiqoute
      *
+     * @throws SpliceNotInListException
+     *
      * @return AbstractType|string|float|int|bool|null
      */
     public function transform($form)
@@ -37,7 +39,7 @@ final class QuasiquoteTransformer implements QuasiquoteTransformerInterface
         }
 
         if ($this->isUnquoteSplicing($form)) {
-            throw new RuntimeException('splice not in list');
+            throw new SpliceNotInListException();
         }
 
         if ($form instanceof Tuple && count($form) > 0) {
