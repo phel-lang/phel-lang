@@ -12,18 +12,18 @@ use PHPUnit\Framework\TestCase;
 
 final class FormatCommandTest extends TestCase
 {
+    private const FIXTURES_DIR = __DIR__ . '/Fixtures/test-fmt/';
+
     public function testGoodFormat(): void
     {
-        $currentDir = __DIR__ . '/Fixtures/test-fmt/';
-        $path = $currentDir . 'good-format.phel';
+        $path = self::FIXTURES_DIR . 'good-format.phel';
         $oldContent = file_get_contents($path);
 
         $command = $this
-            ->createCommandFactory($currentDir)
+            ->createCommandFactory(self::FIXTURES_DIR)
             ->createFormatCommand();
 
         $this->expectOutputRegex('/No files were formatted+/s');
-        $command->run([$path]);
 
         try {
             $command->run([$path]);
@@ -34,12 +34,11 @@ final class FormatCommandTest extends TestCase
 
     public function testBadFormat(): void
     {
-        $currentDir = __DIR__ . '/Fixtures/test-fmt/';
-        $path = $currentDir . 'bad-format.phel';
+        $path = self::FIXTURES_DIR . 'bad-format.phel';
         $oldContent = file_get_contents($path);
 
         $command = $this
-            ->createCommandFactory($currentDir)
+            ->createCommandFactory(self::FIXTURES_DIR)
             ->createFormatCommand();
 
         $this->expectOutputString(<<<TXT

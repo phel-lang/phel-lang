@@ -8,8 +8,7 @@
     "logs": {
         "text": "data/infection/infection.log",
         "summary": "data/infection/summary.log",
-        "perMutator": "data/infection/per-mutator.md",
-        "github": true
+        "perMutator": "data/infection/per-mutator.md"
     },
     "tmpDir": "data/infection",
     "phpUnit": {
