@@ -15,33 +15,43 @@ final class FormatCommandTest extends TestCase
     public function testGoodFormat(): void
     {
         $currentDir = __DIR__ . '/Fixtures/test-fmt/';
+        $path = $currentDir . 'good-format.phel';
+        $oldContent = file_get_contents($path);
 
         $command = $this
             ->createCommandFactory($currentDir)
             ->createFormatCommand();
 
         $this->expectOutputRegex('/No files were formatted+/s');
-        $command->run([$currentDir . 'good-format.phel']);
+        $command->run([$path]);
+
+        try {
+            $command->run([$path]);
+        } finally {
+            file_put_contents($path, $oldContent);
+        }
     }
 
     public function testBadFormat(): void
     {
         $currentDir = __DIR__ . '/Fixtures/test-fmt/';
+        $path = $currentDir . 'bad-format.phel';
+        $oldContent = file_get_contents($path);
+
         $command = $this
             ->createCommandFactory($currentDir)
             ->createFormatCommand();
-
-        $path = $currentDir . 'bad-format.phel';
-        $oldContent = file_get_contents($path);
 
         $this->expectOutputString(<<<TXT
 Formatted files:
   1) $path
 
 TXT);
-        $command->run([$path]);
-
-        file_put_contents($path, $oldContent);
+        try {
+            $command->run([$path]);
+        } finally {
+            file_put_contents($path, $oldContent);
+        }
     }
 
     private function createCommandFactory(string $currentDir): CommandFactoryInterface
