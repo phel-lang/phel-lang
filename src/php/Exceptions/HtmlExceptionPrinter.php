@@ -6,6 +6,7 @@ namespace Phel\Exceptions;
 
 use Phel\Compiler\Emitter\OutputEmitter\Munge;
 use Phel\Compiler\Emitter\OutputEmitter\MungeInterface;
+use Phel\Compiler\Exceptions\PhelCodeException;
 use Phel\Compiler\Parser\ReadModel\CodeSnippet;
 use Phel\Exceptions\Printer\ExceptionArgsPrinter;
 use Phel\Exceptions\Printer\ExceptionArgsPrinterInterface;

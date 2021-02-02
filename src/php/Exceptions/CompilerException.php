@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Phel\Exceptions;
 
 use Exception;
+use Phel\Compiler\Exceptions\PhelCodeException;
 use Phel\Compiler\Parser\ReadModel\CodeSnippet;
 
 final class CompilerException extends Exception

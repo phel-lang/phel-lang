@@ -6,9 +6,9 @@ namespace PhelTest\Unit\Exceptions;
 
 use Phel\Command\Repl\ColorStyleInterface;
 use Phel\Compiler\Emitter\OutputEmitter\MungeInterface;
+use Phel\Compiler\Exceptions\PhelCodeException;
 use Phel\Compiler\Parser\ReadModel\CodeSnippet;
 use Phel\Exceptions\Extractor\FilePositionExtractorInterface;
-use Phel\Exceptions\PhelCodeException;
 use Phel\Exceptions\Printer\ExceptionArgsPrinterInterface;
 use Phel\Exceptions\TextExceptionPrinter;
 use Phel\Lang\SourceLocation;

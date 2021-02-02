@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Phel\Exceptions;
+namespace Phel\Compiler\Exceptions;
 
 use Exception;
 use Phel\Lang\AbstractType;

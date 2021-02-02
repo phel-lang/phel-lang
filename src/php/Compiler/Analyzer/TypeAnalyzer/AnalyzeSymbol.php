@@ -8,7 +8,7 @@ use Phel\Compiler\Analyzer\Ast\AbstractNode;
 use Phel\Compiler\Analyzer\Ast\LocalVarNode;
 use Phel\Compiler\Analyzer\Ast\PhpVarNode;
 use Phel\Compiler\Analyzer\Environment\NodeEnvironmentInterface;
-use Phel\Exceptions\AnalyzerException;
+use Phel\Compiler\Analyzer\Exceptions\AnalyzerException;
 use Phel\Lang\Symbol;
 
 final class AnalyzeSymbol

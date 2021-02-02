@@ -8,6 +8,7 @@ use Phel\Command\Repl\ColorStyle;
 use Phel\Command\Repl\ColorStyleInterface;
 use Phel\Compiler\Emitter\OutputEmitter\Munge;
 use Phel\Compiler\Emitter\OutputEmitter\MungeInterface;
+use Phel\Compiler\Exceptions\PhelCodeException;
 use Phel\Compiler\Parser\ReadModel\CodeSnippet;
 use Phel\Exceptions\Extractor\FilePositionExtractor;
 use Phel\Exceptions\Extractor\FilePositionExtractorInterface;

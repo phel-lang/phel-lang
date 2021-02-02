@@ -6,8 +6,8 @@ namespace Phel\Compiler\Analyzer\TypeAnalyzer\TupleSymbol;
 
 use Phel\Compiler\Analyzer\Ast\PhpNewNode;
 use Phel\Compiler\Analyzer\Environment\NodeEnvironmentInterface;
+use Phel\Compiler\Analyzer\Exceptions\AnalyzerException;
 use Phel\Compiler\Analyzer\TypeAnalyzer\WithAnalyzerTrait;
-use Phel\Exceptions\AnalyzerException;
 use Phel\Lang\Tuple;
 
 final class PhpNewSymbol implements TupleSymbolAnalyzerInterface

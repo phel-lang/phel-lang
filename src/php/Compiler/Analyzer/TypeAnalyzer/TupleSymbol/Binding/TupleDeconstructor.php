@@ -4,13 +4,13 @@ declare(strict_types=1);
 
 namespace Phel\Compiler\Analyzer\TypeAnalyzer\TupleSymbol\Binding;
 
+use Phel\Compiler\Analyzer\Exceptions\AnalyzerException;
 use Phel\Compiler\Analyzer\TypeAnalyzer\TupleSymbol\Binding\Deconstructor\BindingDeconstructorInterface;
 use Phel\Compiler\Analyzer\TypeAnalyzer\TupleSymbol\Binding\Deconstructor\NullBindingDeconstructor;
 use Phel\Compiler\Analyzer\TypeAnalyzer\TupleSymbol\Binding\Deconstructor\PhelArrayBindingDeconstructor;
 use Phel\Compiler\Analyzer\TypeAnalyzer\TupleSymbol\Binding\Deconstructor\SymbolBindingDeconstructor;
 use Phel\Compiler\Analyzer\TypeAnalyzer\TupleSymbol\Binding\Deconstructor\TableBindingDeconstructor;
 use Phel\Compiler\Analyzer\TypeAnalyzer\TupleSymbol\Binding\Deconstructor\TupleBindingDeconstructor;
-use Phel\Exceptions\AnalyzerException;
 use Phel\Lang\AbstractType;
 use Phel\Lang\PhelArray;
 use Phel\Lang\Symbol;

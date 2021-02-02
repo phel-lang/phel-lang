@@ -6,7 +6,7 @@ namespace PhelTest\Unit\Compiler\Analyzer\TupleSymbol;
 
 use Phel\Compiler\Analyzer\Environment\NodeEnvironment;
 use Phel\Compiler\Analyzer\TypeAnalyzer\TupleSymbol\QuoteSymbol;
-use Phel\Exceptions\PhelCodeException;
+use Phel\Compiler\Exceptions\PhelCodeException;
 use Phel\Lang\Symbol;
 use Phel\Lang\Tuple;
 use PHPUnit\Framework\TestCase;

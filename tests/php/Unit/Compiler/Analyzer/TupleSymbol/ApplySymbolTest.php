@@ -13,7 +13,7 @@ use Phel\Compiler\Analyzer\Ast\TupleNode;
 use Phel\Compiler\Analyzer\Environment\GlobalEnvironment;
 use Phel\Compiler\Analyzer\Environment\NodeEnvironment;
 use Phel\Compiler\Analyzer\TypeAnalyzer\TupleSymbol\ApplySymbol;
-use Phel\Exceptions\PhelCodeException;
+use Phel\Compiler\Exceptions\PhelCodeException;
 use Phel\Lang\Symbol;
 use Phel\Lang\Tuple;
 use PHPUnit\Framework\TestCase;

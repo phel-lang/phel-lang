@@ -6,7 +6,7 @@ namespace Phel\Compiler\Analyzer;
 
 use Phel\Compiler\Analyzer\Ast\AbstractNode;
 use Phel\Compiler\Analyzer\Environment\NodeEnvironmentInterface;
-use Phel\Exceptions\AnalyzerException;
+use Phel\Compiler\Analyzer\Exceptions\AnalyzerException;
 use Phel\Lang\AbstractType;
 use Phel\Lang\Symbol;
 use Phel\Lang\Table;

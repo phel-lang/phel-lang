@@ -14,7 +14,7 @@ use Phel\Compiler\Analyzer\Ast\TupleNode;
 use Phel\Compiler\Analyzer\Environment\GlobalEnvironment;
 use Phel\Compiler\Analyzer\Environment\NodeEnvironment;
 use Phel\Compiler\Analyzer\TypeAnalyzer\TupleSymbol\ForeachSymbol;
-use Phel\Exceptions\PhelCodeException;
+use Phel\Compiler\Exceptions\PhelCodeException;
 use Phel\Lang\Symbol;
 use Phel\Lang\Table;
 use Phel\Lang\Tuple;

@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace Phel\Compiler\Analyzer\TypeAnalyzer\TupleSymbol\Binding\Deconstructor;
 
+use Phel\Compiler\Analyzer\Exceptions\AnalyzerException;
 use Phel\Compiler\Analyzer\TypeAnalyzer\TupleSymbol\Binding\TupleDeconstructor;
-use Phel\Exceptions\AnalyzerException;
-use Phel\Exceptions\PhelCodeException;
+use Phel\Compiler\Exceptions\PhelCodeException;
 use Phel\Lang\AbstractType;
 use Phel\Lang\Symbol;
 use Phel\Lang\Tuple;

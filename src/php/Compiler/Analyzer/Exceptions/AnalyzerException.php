@@ -2,9 +2,10 @@
 
 declare(strict_types=1);
 
-namespace Phel\Exceptions;
+namespace Phel\Compiler\Analyzer\Exceptions;
 
 use Exception;
+use Phel\Compiler\Exceptions\PhelCodeException;
 use Phel\Lang\AbstractType;
 
 final class AnalyzerException extends PhelCodeException
