@@ -4,12 +4,12 @@ declare(strict_types=1);
 
 namespace Phel\Command;
 
+use Phel\Command\Exceptions\ExitException;
 use Phel\Command\Repl\ColorStyleInterface;
 use Phel\Command\Repl\ReplCommandIoInterface;
 use Phel\Compiler\Analyzer\Exceptions\CompilerException;
 use Phel\Compiler\EvalCompilerInterface;
 use Phel\Compiler\Parser\Exceptions\UnfinishedParserException;
-use Phel\Exceptions\ExitException;
 use Phel\Printer\PrinterInterface;
 use Phel\Runtime\Exceptions\ExceptionPrinterInterface;
 use Throwable;

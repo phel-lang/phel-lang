@@ -10,7 +10,6 @@ use Phel\Command\FormatCommand;
 use Phel\Command\ReplCommand;
 use Phel\Command\RunCommand;
 use Phel\Command\TestCommand;
-use Phel\Exceptions\ExitException;
 
 final class PhelFacade
 {
@@ -44,7 +43,7 @@ HELP;
     }
 
     /**
-     * @throws ExitException
+     * @throws InvalidArgumentException
      */
     public function runCommand(string $commandName, array $arguments = []): void
     {
@@ -62,7 +61,7 @@ HELP;
                 $this->executeFormatCommand($arguments);
                 break;
             default:
-                throw new ExitException(self::HELP_TEXT);
+                throw new InvalidArgumentException(self::HELP_TEXT);
         }
     }
 

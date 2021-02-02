@@ -8,7 +8,7 @@ use Phel\Command\Repl\ColorStyle;
 use Phel\Command\Repl\ColorStyleInterface;
 use Phel\Compiler\Emitter\OutputEmitter\Munge;
 use Phel\Compiler\Emitter\OutputEmitter\MungeInterface;
-use Phel\Compiler\Exceptions\PhelCodeException;
+use Phel\Compiler\Exceptions\AbstractLocatedException;
 use Phel\Compiler\Parser\ReadModel\CodeSnippet;
 use Phel\Lang\FnInterface;
 use Phel\Lang\SourceLocation;
@@ -48,12 +48,12 @@ final class TextExceptionPrinter implements ExceptionPrinterInterface
         );
     }
 
-    public function printException(PhelCodeException $e, CodeSnippet $codeSnippet): void
+    public function printException(AbstractLocatedException $e, CodeSnippet $codeSnippet): void
     {
         echo $this->getExceptionString($e, $codeSnippet);
     }
 
-    public function getExceptionString(PhelCodeException $e, CodeSnippet $codeSnippet): string
+    public function getExceptionString(AbstractLocatedException $e, CodeSnippet $codeSnippet): string
     {
         $str = '';
         $errorStartLocation = $e->getStartLocation() ?? $codeSnippet->getStartLocation();

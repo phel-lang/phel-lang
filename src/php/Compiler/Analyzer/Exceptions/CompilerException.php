@@ -5,23 +5,23 @@ declare(strict_types=1);
 namespace Phel\Compiler\Analyzer\Exceptions;
 
 use Exception;
-use Phel\Compiler\Exceptions\PhelCodeException;
+use Phel\Compiler\Exceptions\AbstractLocatedException;
 use Phel\Compiler\Parser\ReadModel\CodeSnippet;
 
 final class CompilerException extends Exception
 {
     private CodeSnippet $codeSnippet;
 
-    private PhelCodeException $nestedException;
+    private AbstractLocatedException $nestedException;
 
-    public function __construct(PhelCodeException $nestedException, CodeSnippet $codeSnippet)
+    public function __construct(AbstractLocatedException $nestedException, CodeSnippet $codeSnippet)
     {
         parent::__construct($nestedException->getMessage());
         $this->nestedException = $nestedException;
         $this->codeSnippet = $codeSnippet;
     }
 
-    public function getNestedException(): PhelCodeException
+    public function getNestedException(): AbstractLocatedException
     {
         return $this->nestedException;
     }

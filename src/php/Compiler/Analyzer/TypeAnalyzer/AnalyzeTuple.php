@@ -31,7 +31,7 @@ use Phel\Compiler\Analyzer\TypeAnalyzer\TupleSymbol\RecurSymbol;
 use Phel\Compiler\Analyzer\TypeAnalyzer\TupleSymbol\ThrowSymbol;
 use Phel\Compiler\Analyzer\TypeAnalyzer\TupleSymbol\TrySymbol;
 use Phel\Compiler\Analyzer\TypeAnalyzer\TupleSymbol\TupleSymbolAnalyzerInterface;
-use Phel\Compiler\Exceptions\PhelCodeException;
+use Phel\Compiler\Exceptions\AbstractLocatedException;
 use Phel\Lang\Symbol;
 use Phel\Lang\Tuple;
 
@@ -42,7 +42,7 @@ final class AnalyzeTuple
     private const EMPTY_SYMBOL_NAME = '';
 
     /**
-     * @throws AnalyzerException|PhelCodeException
+     * @throws AnalyzerException|AbstractLocatedException
      */
     public function analyze(Tuple $tuple, NodeEnvironmentInterface $env): AbstractNode
     {

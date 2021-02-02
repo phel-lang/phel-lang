@@ -6,7 +6,7 @@ namespace Phel\Compiler\Analyzer\TypeAnalyzer\TupleSymbol\Binding\Deconstructor;
 
 use Phel\Compiler\Analyzer\Exceptions\AnalyzerException;
 use Phel\Compiler\Analyzer\TypeAnalyzer\TupleSymbol\Binding\TupleDeconstructor;
-use Phel\Compiler\Exceptions\PhelCodeException;
+use Phel\Compiler\Exceptions\AbstractLocatedException;
 use Phel\Lang\AbstractType;
 use Phel\Lang\Symbol;
 use Phel\Lang\Tuple;
@@ -38,7 +38,7 @@ final class TupleBindingDeconstructor implements BindingDeconstructorInterface
      * @param Tuple $binding The binding form
      * @param AbstractType|string|float|int|bool|null $value The value form
      *
-     * @throws PhelCodeException
+     * @throws AbstractLocatedException
      */
     public function deconstruct(array &$bindings, $binding, $value): void
     {

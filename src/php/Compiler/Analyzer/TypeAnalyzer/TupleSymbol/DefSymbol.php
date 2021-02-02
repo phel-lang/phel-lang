@@ -9,7 +9,7 @@ use Phel\Compiler\Analyzer\Ast\DefNode;
 use Phel\Compiler\Analyzer\Environment\NodeEnvironmentInterface;
 use Phel\Compiler\Analyzer\Exceptions\AnalyzerException;
 use Phel\Compiler\Analyzer\TypeAnalyzer\WithAnalyzerTrait;
-use Phel\Compiler\Exceptions\PhelCodeException;
+use Phel\Compiler\Exceptions\AbstractLocatedException;
 use Phel\Lang\AbstractType;
 use Phel\Lang\Keyword;
 use Phel\Lang\Symbol;
@@ -23,7 +23,7 @@ final class DefSymbol implements TupleSymbolAnalyzerInterface
     private const POSSIBLE_TUPLE_SIZES = [3, 4];
 
     /**
-     * @throws PhelCodeException
+     * @throws AbstractLocatedException
      */
     public function analyze(Tuple $tuple, NodeEnvironmentInterface $env): DefNode
     {

@@ -10,7 +10,7 @@ use Phel\Compiler\Analyzer\Ast\DefStructNode;
 use Phel\Compiler\Analyzer\Environment\GlobalEnvironment;
 use Phel\Compiler\Analyzer\Environment\NodeEnvironment;
 use Phel\Compiler\Analyzer\TypeAnalyzer\TupleSymbol\DefStructSymbol;
-use Phel\Compiler\Exceptions\PhelCodeException;
+use Phel\Compiler\Exceptions\AbstractLocatedException;
 use Phel\Lang\Symbol;
 use Phel\Lang\Tuple;
 use PHPUnit\Framework\TestCase;
@@ -26,7 +26,7 @@ final class DefStructSymbolTest extends TestCase
 
     public function testWithWrongNumberOfArguments(): void
     {
-        $this->expectException(PhelCodeException::class);
+        $this->expectException(AbstractLocatedException::class);
         $this->expectExceptionMessage("Exactly two arguments are required for 'defstruct. Got 1");
 
         $tuple = Tuple::create(
@@ -39,7 +39,7 @@ final class DefStructSymbolTest extends TestCase
 
     public function testFirstArgIsNotSymbol(): void
     {
-        $this->expectException(PhelCodeException::class);
+        $this->expectException(AbstractLocatedException::class);
         $this->expectExceptionMessage("First argument of 'defstruct must be a Symbol.");
 
         $tuple = Tuple::create(
@@ -54,7 +54,7 @@ final class DefStructSymbolTest extends TestCase
 
     public function testSecondArgIsNotTuple(): void
     {
-        $this->expectException(PhelCodeException::class);
+        $this->expectException(AbstractLocatedException::class);
         $this->expectExceptionMessage("Second argument of 'defstruct must be a Tuple.");
 
         $tuple = Tuple::create(
@@ -69,7 +69,7 @@ final class DefStructSymbolTest extends TestCase
 
     public function testTupleElemsAreNotSymbols(): void
     {
-        $this->expectException(PhelCodeException::class);
+        $this->expectException(AbstractLocatedException::class);
         $this->expectExceptionMessage('Defstruct field elements must be Symbols.');
 
         $tuple = Tuple::create(
