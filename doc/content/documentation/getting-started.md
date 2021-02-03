@@ -14,7 +14,7 @@ To get started right away the [Scaffolding project on Github](https://github.com
 ```bash
 git clone https://github.com/phel-lang/phel-scaffolding.git
 composer install
-# Start the repl to try Phel
+# Start the REPL to try Phel
 ./vendor/bin/phel repl
 ```
 
