@@ -6,9 +6,9 @@ namespace Phel\Command;
 
 use Phel\Command\Format\PathFilterInterface;
 use Phel\Command\Shared\CommandIoInterface;
-use Phel\Exceptions\ExceptionPrinterInterface;
-use Phel\Exceptions\ParserException;
+use Phel\Compiler\Parser\Exceptions\AbstractParserException;
 use Phel\Formatter\FormatterInterface;
+use Phel\Runtime\Exceptions\ExceptionPrinterInterface;
 
 final class FormatCommand
 {
@@ -45,8 +45,8 @@ final class FormatCommand
                 if ($wasFormatted) {
                     $this->successfulFormattedFilePaths[] = $path;
                 }
-            } catch (ParserException $e) {
-                $this->printParParserException($e);
+            } catch (AbstractParserException $e) {
+                $this->printParserException($e);
             }
         }
 
@@ -66,7 +66,7 @@ final class FormatCommand
         }
     }
 
-    private function printParParserException(ParserException $e): void
+    private function printParserException(AbstractParserException $e): void
     {
         $this->io->writeln(
             $this->exceptionPrinter->getExceptionString(

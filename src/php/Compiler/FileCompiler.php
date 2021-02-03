@@ -6,18 +6,18 @@ namespace Phel\Compiler;
 
 use Phel\Compiler\Analyzer\AnalyzerInterface;
 use Phel\Compiler\Analyzer\Environment\NodeEnvironment;
+use Phel\Compiler\Analyzer\Exceptions\AnalyzerException;
+use Phel\Compiler\Analyzer\Exceptions\CompilerException;
 use Phel\Compiler\Emitter\EmitterInterface;
+use Phel\Compiler\Emitter\Exceptions\CompiledCodeIsMalformedException;
+use Phel\Compiler\Emitter\Exceptions\FileException;
 use Phel\Compiler\Lexer\LexerInterface;
+use Phel\Compiler\Parser\Exceptions\AbstractParserException;
 use Phel\Compiler\Parser\ParserInterface;
 use Phel\Compiler\Parser\ParserNode\TriviaNodeInterface;
 use Phel\Compiler\Parser\ReadModel\ReaderResult;
+use Phel\Compiler\Reader\Exceptions\ReaderException;
 use Phel\Compiler\Reader\ReaderInterface;
-use Phel\Exceptions\AnalyzerException;
-use Phel\Exceptions\CompiledCodeIsMalformedException;
-use Phel\Exceptions\CompilerException;
-use Phel\Exceptions\FileException;
-use Phel\Exceptions\ParserException;
-use Phel\Exceptions\ReaderException;
 
 final class FileCompiler implements FileCompilerInterface
 {
@@ -65,7 +65,7 @@ final class FileCompiler implements FileCompilerInterface
                     $readerResult = $this->reader->read($parseTree);
                     $code .= $this->analyzeAndEvalNode($readerResult);
                 }
-            } catch (ParserException|ReaderException $e) {
+            } catch (AbstractParserException|ReaderException $e) {
                 throw new CompilerException($e, $e->getCodeSnippet());
             }
         }

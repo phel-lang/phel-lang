@@ -12,7 +12,7 @@ use Phel\Compiler\Analyzer\Ast\PropertyOrConstantAccessNode;
 use Phel\Compiler\Analyzer\Environment\GlobalEnvironment;
 use Phel\Compiler\Analyzer\Environment\NodeEnvironment;
 use Phel\Compiler\Analyzer\TypeAnalyzer\TupleSymbol\PhpObjectCallSymbol;
-use Phel\Exceptions\PhelCodeException;
+use Phel\Compiler\Exceptions\AbstractLocatedException;
 use Phel\Lang\Symbol;
 use Phel\Lang\Tuple;
 use PHPUnit\Framework\TestCase;
@@ -28,7 +28,7 @@ final class PhpObjectCallSymbolTest extends TestCase
 
     public function testTupleWithoutArgument(): void
     {
-        $this->expectException(PhelCodeException::class);
+        $this->expectException(AbstractLocatedException::class);
         $this->expectExceptionMessage("Exactly two arguments are expected for 'php/::");
 
         $tuple = Tuple::create(
@@ -42,7 +42,7 @@ final class PhpObjectCallSymbolTest extends TestCase
 
     public function testTupleWithWrongSymbol(): void
     {
-        $this->expectException(PhelCodeException::class);
+        $this->expectException(AbstractLocatedException::class);
         $this->expectExceptionMessage("Second argument of 'php/-> must be a Tuple or a Symbol");
 
         $tuple = Tuple::create(

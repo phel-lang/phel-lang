@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Phel\Compiler\Analyzer\TypeAnalyzer\TupleSymbol\Binding;
 
-use Phel\Exceptions\AnalyzerException;
+use Phel\Compiler\Analyzer\Exceptions\AnalyzerException;
 use Phel\Lang\AbstractType;
 use Phel\Lang\PhelArray;
 use Phel\Lang\Symbol;

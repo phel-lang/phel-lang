@@ -13,7 +13,7 @@ use Phel\Compiler\Analyzer\Ast\TupleNode;
 use Phel\Compiler\Analyzer\Environment\GlobalEnvironment;
 use Phel\Compiler\Analyzer\Environment\NodeEnvironment;
 use Phel\Compiler\Analyzer\TypeAnalyzer\TupleSymbol\ApplySymbol;
-use Phel\Exceptions\PhelCodeException;
+use Phel\Compiler\Exceptions\AbstractLocatedException;
 use Phel\Lang\Symbol;
 use Phel\Lang\Tuple;
 use PHPUnit\Framework\TestCase;
@@ -29,7 +29,7 @@ final class ApplySymbolTest extends TestCase
 
     public function testLessThan3Arguments(): void
     {
-        $this->expectException(PhelCodeException::class);
+        $this->expectException(AbstractLocatedException::class);
         $this->expectExceptionMessage("At least three arguments are required for 'apply");
 
         $tuple = Tuple::create(

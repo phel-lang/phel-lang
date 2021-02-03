@@ -10,7 +10,7 @@ use Phel\Compiler\Analyzer\Ast\DoNode;
 use Phel\Compiler\Analyzer\Environment\GlobalEnvironment;
 use Phel\Compiler\Analyzer\Environment\NodeEnvironment;
 use Phel\Compiler\Analyzer\TypeAnalyzer\TupleSymbol\DoSymbol;
-use Phel\Exceptions\PhelCodeException;
+use Phel\Compiler\Exceptions\AbstractLocatedException;
 use Phel\Lang\Symbol;
 use Phel\Lang\Tuple;
 use PHPUnit\Framework\TestCase;
@@ -26,7 +26,7 @@ final class DoSymbolTest extends TestCase
 
     public function testWrongSymbolName(): void
     {
-        $this->expectException(PhelCodeException::class);
+        $this->expectException(AbstractLocatedException::class);
         $this->expectExceptionMessage("This is not a 'do.");
 
         $tuple = Tuple::create(Symbol::create('unknown'));

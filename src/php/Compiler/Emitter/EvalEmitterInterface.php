@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace Phel\Compiler\Emitter;
 
-use Phel\Exceptions\CompiledCodeIsMalformedException;
-use Phel\Exceptions\FileException;
+use Phel\Compiler\Emitter\Exceptions\CompiledCodeIsMalformedException;
+use Phel\Compiler\Emitter\Exceptions\FileException;
 
 interface EvalEmitterInterface
 {

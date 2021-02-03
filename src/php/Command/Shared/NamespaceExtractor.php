@@ -5,11 +5,11 @@ declare(strict_types=1);
 namespace Phel\Command\Shared;
 
 use Phel\Compiler\Lexer\LexerInterface;
+use Phel\Compiler\Parser\Exceptions\AbstractParserException;
 use Phel\Compiler\Parser\ParserInterface;
 use Phel\Compiler\Parser\ParserNode\TriviaNodeInterface;
+use Phel\Compiler\Reader\Exceptions\ReaderException;
 use Phel\Compiler\Reader\ReaderInterface;
-use Phel\Exceptions\ParserException;
-use Phel\Exceptions\ReaderException;
 use Phel\Lang\Symbol;
 use Phel\Lang\Tuple;
 use RecursiveDirectoryIterator;
@@ -63,7 +63,7 @@ final class NamespaceExtractor implements NamespaceExtractorInterface
             }
 
             throw new RuntimeException('Cannot extract namespace from file: ' . $path);
-        } catch (ParserException|ReaderException $e) {
+        } catch (AbstractParserException|ReaderException $e) {
             throw new RuntimeException('Cannot parse file: ' . $path);
         }
     }

@@ -6,6 +6,8 @@ namespace Phel\Compiler\Reader\ExpressionReader;
 
 use Phel\Compiler\Parser\ParserNode\NodeInterface;
 use Phel\Compiler\Parser\ParserNode\QuoteNode;
+use Phel\Compiler\Reader\Exceptions\ReaderException;
+use Phel\Compiler\Reader\Exceptions\SpliceNotInListException;
 use Phel\Compiler\Reader\QuasiquoteTransformerInterface;
 use Phel\Compiler\Reader\Reader;
 use Phel\Lang\AbstractType;
@@ -22,6 +24,9 @@ final class QuoasiquoteReader
     }
 
     /**
+     * @throws ReaderException
+     * @throws SpliceNotInListException
+     *
      * @return AbstractType|string|float|int|bool|null
      */
     public function read(QuoteNode $node, NodeInterface $root)

@@ -6,7 +6,7 @@ namespace Phel\Compiler\Reader;
 
 use Phel\Compiler\Parser\ParserNode\NodeInterface;
 use Phel\Compiler\Parser\ReadModel\ReaderResult;
-use Phel\Exceptions\ReaderException;
+use Phel\Compiler\Reader\Exceptions\ReaderException;
 
 interface ReaderInterface
 {

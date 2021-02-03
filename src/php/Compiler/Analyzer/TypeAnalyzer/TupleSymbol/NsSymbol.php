@@ -6,9 +6,9 @@ namespace Phel\Compiler\Analyzer\TypeAnalyzer\TupleSymbol;
 
 use Phel\Compiler\Analyzer\Ast\NsNode;
 use Phel\Compiler\Analyzer\Environment\NodeEnvironmentInterface;
+use Phel\Compiler\Analyzer\Exceptions\AnalyzerException;
 use Phel\Compiler\Analyzer\TypeAnalyzer\PhpKeywords;
 use Phel\Compiler\Analyzer\TypeAnalyzer\WithAnalyzerTrait;
-use Phel\Exceptions\AnalyzerException;
 use Phel\Lang\Keyword;
 use Phel\Lang\Symbol;
 use Phel\Lang\Table;

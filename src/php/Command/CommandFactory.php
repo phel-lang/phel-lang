@@ -14,9 +14,9 @@ use Phel\Command\Shared\NamespaceExtractor;
 use Phel\Command\Shared\NamespaceExtractorInterface;
 use Phel\Compiler\Analyzer\Environment\GlobalEnvironmentInterface;
 use Phel\Compiler\CompilerFactoryInterface;
-use Phel\Exceptions\TextExceptionPrinter;
 use Phel\Formatter\FormatterFactoryInterface;
 use Phel\Printer\Printer;
+use Phel\Runtime\Exceptions\TextExceptionPrinter;
 use Phel\Runtime\RuntimeInterface;
 
 final class CommandFactory implements CommandFactoryInterface

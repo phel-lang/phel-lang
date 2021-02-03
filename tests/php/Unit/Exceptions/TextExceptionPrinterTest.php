@@ -5,13 +5,14 @@ declare(strict_types=1);
 namespace PhelTest\Unit\Exceptions;
 
 use Phel\Command\Repl\ColorStyleInterface;
+use Phel\Compiler\Analyzer\Exceptions\AnalyzerException;
 use Phel\Compiler\Emitter\OutputEmitter\MungeInterface;
 use Phel\Compiler\Parser\ReadModel\CodeSnippet;
-use Phel\Exceptions\Extractor\FilePositionExtractorInterface;
-use Phel\Exceptions\PhelCodeException;
-use Phel\Exceptions\Printer\ExceptionArgsPrinterInterface;
-use Phel\Exceptions\TextExceptionPrinter;
+use Phel\Lang\AbstractType;
 use Phel\Lang\SourceLocation;
+use Phel\Runtime\Exceptions\ExceptionArgsPrinterInterface;
+use Phel\Runtime\Exceptions\Extractor\FilePositionExtractorInterface;
+use Phel\Runtime\Exceptions\TextExceptionPrinter;
 use PHPUnit\Framework\TestCase;
 
 final class TextExceptionPrinterTest extends TestCase
@@ -26,11 +27,11 @@ final class TextExceptionPrinterTest extends TestCase
             '(+ 1 2 3 unknown-symbol)'
         );
 
-        $exception = new PhelCodeException(
-            'Example code exception message',
-            $startLocation = new SourceLocation($file, $line = 1, $column = 9),
-            $endLocation = new SourceLocation($file, $line = 1, $column = 23),
-        );
+        $type = $this->createStub(AbstractType::class);
+        $type->method('getStartLocation')->willReturn(new SourceLocation($file, $line = 1, $column = 9));
+        $type->method('getEndLocation')->willReturn(new SourceLocation($file, $line = 1, $column = 23));
+
+        $exception = AnalyzerException::withLocation('Example code exception message', $type);
 
         $this->expectOutputString(
             <<<'MSG'
@@ -75,7 +76,7 @@ MSG
         return $this->createStub(MungeInterface::class);
     }
 
-    private function stubFilePositionExtractor()
+    private function stubFilePositionExtractor(): FilePositionExtractorInterface
     {
         return $this->createStub(FilePositionExtractorInterface::class);
     }

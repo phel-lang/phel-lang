@@ -6,8 +6,8 @@ namespace Phel\Compiler\Reader\ExpressionReader;
 
 use Phel\Compiler\Parser\ParserNode\ListNode;
 use Phel\Compiler\Parser\ParserNode\NodeInterface;
+use Phel\Compiler\Reader\Exceptions\ReaderException;
 use Phel\Compiler\Reader\Reader;
-use Phel\Exceptions\ReaderException;
 use Phel\Lang\Table;
 
 final class ListTableReader

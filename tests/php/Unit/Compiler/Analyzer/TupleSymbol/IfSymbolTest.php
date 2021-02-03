@@ -10,7 +10,7 @@ use Phel\Compiler\Analyzer\Ast\IfNode;
 use Phel\Compiler\Analyzer\Environment\GlobalEnvironment;
 use Phel\Compiler\Analyzer\Environment\NodeEnvironment;
 use Phel\Compiler\Analyzer\TypeAnalyzer\TupleSymbol\IfSymbol;
-use Phel\Exceptions\PhelCodeException;
+use Phel\Compiler\Exceptions\AbstractLocatedException;
 use Phel\Lang\Symbol;
 use Phel\Lang\Tuple;
 use PHPUnit\Framework\TestCase;
@@ -22,7 +22,7 @@ final class IfSymbolTest extends TestCase
      */
     public function testRequiresAtLeastTwoOrThreeArgs(Tuple $tuple): void
     {
-        $this->expectException(PhelCodeException::class);
+        $this->expectException(AbstractLocatedException::class);
         $this->expectExceptionMessage("'if requires two or three arguments");
 
         $this->analyze($tuple);

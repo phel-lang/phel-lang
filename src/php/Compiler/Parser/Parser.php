@@ -6,6 +6,9 @@ namespace Phel\Compiler\Parser;
 
 use Phel\Compiler\Lexer\Token;
 use Phel\Compiler\Lexer\TokenStream;
+use Phel\Compiler\Parser\Exceptions\StringParserException;
+use Phel\Compiler\Parser\Exceptions\UnexpectedParserException;
+use Phel\Compiler\Parser\Exceptions\UnfinishedParserException;
 use Phel\Compiler\Parser\ParserNode\AbstractAtomNode;
 use Phel\Compiler\Parser\ParserNode\CommentNode;
 use Phel\Compiler\Parser\ParserNode\FileNode;
@@ -16,10 +19,6 @@ use Phel\Compiler\Parser\ParserNode\NodeInterface;
 use Phel\Compiler\Parser\ParserNode\QuoteNode;
 use Phel\Compiler\Parser\ParserNode\StringNode;
 use Phel\Compiler\Parser\ParserNode\WhitespaceNode;
-use Phel\Exceptions\Parser\UnexpectedParserException;
-use Phel\Exceptions\Parser\UnfinishedParserException;
-use Phel\Exceptions\ParserException;
-use Phel\Exceptions\StringParserException;
 
 final class Parser implements ParserInterface
 {
@@ -36,7 +35,6 @@ final class Parser implements ParserInterface
      *
      * @param TokenStream $tokenStream The token stream to read
      *
-     * @throws ParserException
      * @throws UnexpectedParserException
      * @throws UnfinishedParserException
      */
@@ -52,7 +50,6 @@ final class Parser implements ParserInterface
     }
 
     /**
-     * @throws ParserException
      * @throws UnexpectedParserException
      * @throws UnfinishedParserException
      */
@@ -73,7 +70,6 @@ final class Parser implements ParserInterface
     }
 
     /**
-     * @throws ParserException
      * @throws UnexpectedParserException
      * @throws UnfinishedParserException
      */
@@ -158,7 +154,7 @@ final class Parser implements ParserInterface
     }
 
     /**
-     * @throws ParserException
+     * @throws UnexpectedParserException
      */
     private function parseStringNode(Token $token, TokenStream $tokenStream): StringNode
     {
@@ -182,7 +178,7 @@ final class Parser implements ParserInterface
     }
 
     /**
-     * @throws ParserException
+     * @throws UnfinishedParserException
      */
     private function parseFnListNode(Token $token, TokenStream $tokenStream): ListNode
     {
@@ -192,7 +188,7 @@ final class Parser implements ParserInterface
     }
 
     /**
-     * @throws ParserException
+     * @throws UnfinishedParserException
      */
     private function parseArrayListNode(Token $token, TokenStream $tokenStream): ListNode
     {
@@ -202,7 +198,7 @@ final class Parser implements ParserInterface
     }
 
     /**
-     * @throws ParserException
+     * @throws UnfinishedParserException
      */
     private function parseTableListNode(Token $token, TokenStream $tokenStream): ListNode
     {

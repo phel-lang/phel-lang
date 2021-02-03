@@ -8,9 +8,9 @@ use Phel\Compiler\Analyzer\Ast\AbstractNode;
 use Phel\Compiler\Analyzer\Ast\FnNode;
 use Phel\Compiler\Analyzer\Ast\RecurFrame;
 use Phel\Compiler\Analyzer\Environment\NodeEnvironmentInterface;
+use Phel\Compiler\Analyzer\Exceptions\AnalyzerException;
 use Phel\Compiler\Analyzer\TypeAnalyzer\TupleSymbol\ReadModel\FnSymbolTuple;
 use Phel\Compiler\Analyzer\TypeAnalyzer\WithAnalyzerTrait;
-use Phel\Exceptions\AnalyzerException;
 use Phel\Lang\Symbol;
 use Phel\Lang\Tuple;
 

@@ -8,30 +8,37 @@ use Phel\Compiler\Analyzer\Environment\GlobalEnvironment;
 use Phel\Compiler\Analyzer\Environment\GlobalEnvironmentInterface;
 use Phel\Compiler\CompilerFactory;
 use Phel\Compiler\CompilerFactoryInterface;
-use Phel\Exceptions\ExceptionPrinterInterface;
-use Phel\Exceptions\HtmlExceptionPrinter;
-use Phel\Exceptions\TextExceptionPrinter;
-use RuntimeException;
+use Phel\Runtime\Exceptions\ExceptionPrinterInterface;
+use Phel\Runtime\Exceptions\HtmlExceptionPrinter;
+use Phel\Runtime\Exceptions\RuntimeAlreadyInitializedException;
+use Phel\Runtime\Exceptions\RuntimeNotInitializedException;
+use Phel\Runtime\Exceptions\TextExceptionPrinter;
 
 final class RuntimeFactory
 {
     private static ?RuntimeInterface $instance = null;
 
+    /**
+     * @throws RuntimeNotInitializedException
+     */
     public static function getInstance(): RuntimeInterface
     {
         if (null === self::$instance) {
-            throw new RuntimeException('Runtime must first be initialized. Call Runtime::initialize()');
+            throw new RuntimeNotInitializedException();
         }
 
         return self::$instance;
     }
 
+    /**
+     * @throws RuntimeAlreadyInitializedException
+     */
     public static function initialize(
         ?GlobalEnvironmentInterface $globalEnv = null,
         ?string $cacheDirectory = null
     ): RuntimeInterface {
         if (self::$instance !== null) {
-            throw new RuntimeException('Runtime is already initialized');
+            throw new RuntimeAlreadyInitializedException();
         }
 
         self::$instance = new Runtime(

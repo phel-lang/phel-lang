@@ -5,9 +5,9 @@ declare(strict_types=1);
 namespace Phel\Formatter;
 
 use Phel\Compiler\Lexer\LexerInterface;
+use Phel\Compiler\Parser\Exceptions\AbstractParserException;
 use Phel\Compiler\Parser\ParserInterface;
 use Phel\Compiler\Parser\ParserNode\NodeInterface;
-use Phel\Exceptions\ParserException;
 use Phel\Formatter\Rules\RuleInterface;
 
 final class Formatter implements FormatterInterface
@@ -33,7 +33,7 @@ final class Formatter implements FormatterInterface
     }
 
     /**
-     * @throws ParserException
+     * @throws AbstractParserException
      */
     public function formatFile(string $filename): bool
     {
@@ -45,7 +45,7 @@ final class Formatter implements FormatterInterface
     }
 
     /**
-     * @throws ParserException
+     * @throws AbstractParserException
      */
     private function formatString(string $string, string $source = self::DEFAULT_SOURCE): string
     {

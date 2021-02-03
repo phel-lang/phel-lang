@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Phel\Formatter\Rules\Indenter;
 
 use Phel\Compiler\Parser\ParserNode\SymbolNode;
-use Phel\Exceptions\ZipperException;
+use Phel\Formatter\Exceptions\ZipperException;
 use Phel\Formatter\ParseTreeZipper;
 use Phel\Lang\Symbol;
 

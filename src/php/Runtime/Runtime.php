@@ -6,15 +6,15 @@ namespace Phel\Runtime;
 
 use InvalidArgumentException;
 use Phel\Compiler\Analyzer\Environment\GlobalEnvironmentInterface;
+use Phel\Compiler\Analyzer\Exceptions\CompilerException;
 use Phel\Compiler\CompilerFactoryInterface;
-use Phel\Exceptions\CompiledCodeIsMalformedException;
-use Phel\Exceptions\CompilerException;
-use Phel\Exceptions\ExceptionPrinterInterface;
-use Phel\Exceptions\FileException;
+use Phel\Compiler\Emitter\Exceptions\CompiledCodeIsMalformedException;
+use Phel\Compiler\Emitter\Exceptions\FileException;
 use Phel\Lang\Keyword;
 use Phel\Lang\MetaInterface;
 use Phel\Lang\Symbol;
 use Phel\Lang\Table;
+use Phel\Runtime\Exceptions\ExceptionPrinterInterface;
 use Throwable;
 
 class Runtime implements RuntimeInterface

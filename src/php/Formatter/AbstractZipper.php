@@ -5,7 +5,8 @@ declare(strict_types=1);
 namespace Phel\Formatter;
 
 use Exception;
-use Phel\Exceptions\ZipperException;
+use Phel\Formatter\Exceptions\CanNotRemoveAtTheTopException;
+use Phel\Formatter\Exceptions\ZipperException;
 
 /**
  * @template T
@@ -382,12 +383,14 @@ abstract class AbstractZipper
     }
 
     /**
+     * @throws CanNotRemoveAtTheTopException
+     *
      * @return static<T>
      */
     public function remove(): AbstractZipper
     {
         if ($this->isTop()) {
-            throw new Exception('Can not remove at the top');
+            throw new CanNotRemoveAtTheTopException();
         }
 
         if (!$this->isFirst()) {

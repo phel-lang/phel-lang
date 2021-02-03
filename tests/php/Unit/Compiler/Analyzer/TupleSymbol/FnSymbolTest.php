@@ -13,7 +13,7 @@ use Phel\Compiler\Analyzer\Ast\LetNode;
 use Phel\Compiler\Analyzer\Environment\GlobalEnvironment;
 use Phel\Compiler\Analyzer\Environment\NodeEnvironment;
 use Phel\Compiler\Analyzer\TypeAnalyzer\TupleSymbol\FnSymbol;
-use Phel\Exceptions\PhelCodeException;
+use Phel\Compiler\Exceptions\AbstractLocatedException;
 use Phel\Lang\Symbol;
 use Phel\Lang\Table;
 use Phel\Lang\Tuple;
@@ -33,7 +33,7 @@ final class FnSymbolTest extends TestCase
 
     public function testRequiresAtLeastOneArg(): void
     {
-        $this->expectException(PhelCodeException::class);
+        $this->expectException(AbstractLocatedException::class);
         $this->expectExceptionMessage("'fn requires at least one argument");
 
         $tuple = Tuple::create(
@@ -45,7 +45,7 @@ final class FnSymbolTest extends TestCase
 
     public function testSecondArgMustBeATuple(): void
     {
-        $this->expectException(PhelCodeException::class);
+        $this->expectException(AbstractLocatedException::class);
         $this->expectExceptionMessage("Second argument of 'fn must be a Tuple");
 
         // This is the same as: (fn anything)
@@ -78,7 +78,7 @@ final class FnSymbolTest extends TestCase
     public function testVarNamesMustStartWithLetterOrUnderscore(string $paramName, bool $error): void
     {
         if ($error) {
-            $this->expectException(PhelCodeException::class);
+            $this->expectException(AbstractLocatedException::class);
             $this->expectExceptionMessageMatches('/(Variable names must start with a letter or underscore)*/i');
         } else {
             self::assertTrue(true); // In order to have an assertion without an error
@@ -125,7 +125,7 @@ final class FnSymbolTest extends TestCase
 
     public function testOnlyOneSymbolCanFollowTheAmpersandParameter(): void
     {
-        $this->expectException(PhelCodeException::class);
+        $this->expectException(AbstractLocatedException::class);
         $this->expectExceptionMessage('Unsupported parameter form, only one symbol can follow the & parameter');
 
         // This is the same as: (fn [& param-1 param-2])

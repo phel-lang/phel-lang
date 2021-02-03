@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Phel\Compiler\Analyzer\TypeAnalyzer\TupleSymbol\ReadModel;
 
-use Phel\Exceptions\AnalyzerException;
+use Phel\Compiler\Analyzer\Exceptions\AnalyzerException;
 use Phel\Lang\Symbol;
 use Phel\Lang\Tuple;
 

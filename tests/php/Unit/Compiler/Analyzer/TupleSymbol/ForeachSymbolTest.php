@@ -14,7 +14,7 @@ use Phel\Compiler\Analyzer\Ast\TupleNode;
 use Phel\Compiler\Analyzer\Environment\GlobalEnvironment;
 use Phel\Compiler\Analyzer\Environment\NodeEnvironment;
 use Phel\Compiler\Analyzer\TypeAnalyzer\TupleSymbol\ForeachSymbol;
-use Phel\Exceptions\PhelCodeException;
+use Phel\Compiler\Exceptions\AbstractLocatedException;
 use Phel\Lang\Symbol;
 use Phel\Lang\Table;
 use Phel\Lang\Tuple;
@@ -24,7 +24,7 @@ final class ForeachSymbolTest extends TestCase
 {
     public function testRequiresAtLeastTwoArg(): void
     {
-        $this->expectException(PhelCodeException::class);
+        $this->expectException(AbstractLocatedException::class);
         $this->expectExceptionMessage("At least two arguments are required for 'foreach");
 
         // (foreach)
@@ -37,7 +37,7 @@ final class ForeachSymbolTest extends TestCase
 
     public function testFirstArgMustBeATuple(): void
     {
-        $this->expectException(PhelCodeException::class);
+        $this->expectException(AbstractLocatedException::class);
         $this->expectExceptionMessage("First argument of 'foreach must be a tuple.");
 
         // (foreach x)
@@ -51,7 +51,7 @@ final class ForeachSymbolTest extends TestCase
 
     public function testArgForTupleCanNotBe1(): void
     {
-        $this->expectException(PhelCodeException::class);
+        $this->expectException(AbstractLocatedException::class);
         $this->expectExceptionMessage("Tuple of 'foreach must have exactly two or three elements.");
 
         // (foreach [x])
@@ -160,7 +160,7 @@ final class ForeachSymbolTest extends TestCase
 
     public function testArgForTupleCanNotBe4(): void
     {
-        $this->expectException(PhelCodeException::class);
+        $this->expectException(AbstractLocatedException::class);
         $this->expectExceptionMessage("Tuple of 'foreach must have exactly two or three elements.");
 
         // (foreach [x y z @{}])
