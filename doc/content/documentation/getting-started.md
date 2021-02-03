@@ -7,8 +7,20 @@ weight = 1
 
 Phel requires PHP 7.4 or higher and [Composer](https://getcomposer.org/).
 
+## Quick start
 
-## Initialize a new project using Composer
+To get started right away the [Scaffolding project on Github](https://github.com/phel-lang/phel-scaffolding) can be used.
+
+```bash
+git clone https://github.com/phel-lang/phel-scaffolding.git
+composer install
+# Start the repl to try Phel
+./vendor/bin/phel repl
+```
+
+More information can be found in the Readme of the project.
+
+## Manually initialize a new project using Composer
 
 The easiest way to get started is by setting up a new Composer project. First, create a new directory and initialize a new Composer project.
 
@@ -172,10 +184,6 @@ In the browser, the URL `http://localhost:8000` will now print "Hello, World!".
 To try Phel you can run a REPL by executing the `./vendor/bin/phel repl` command.
 
 > Read more about the [REPL](/documentation/repl) in its own chapter.
-
-## Phel Scaffolding
-
-As an alternative to the Getting started guide above the [Scaffolding project on Github](https://github.com/phel-lang/phel-scaffolding) is another good starting point.
 
 ## Editor support
 
