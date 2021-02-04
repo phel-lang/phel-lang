@@ -10,16 +10,12 @@ use PHPUnit\Framework\TestCase;
 
 final class CallPhelTest extends TestCase
 {
-    public function setUp(): void
-    {
-        RuntimeFactory::initializeNew(new GlobalEnvironment());
-    }
-
     public function testCallOdd(): void
     {
-        $wrapper = new ExampleWrapper();
+        RuntimeFactory::initializeNew(new GlobalEnvironment());
+        $wrapperMock = new ExampleWrapper();
 
-        self::assertTrue($wrapper->isOdd(1));
-        self::assertFalse($wrapper->isOdd(2));
+        self::assertTrue($wrapperMock->isOdd(1));
+        self::assertFalse($wrapperMock->isOdd(2));
     }
 }

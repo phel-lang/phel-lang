@@ -4,14 +4,14 @@ declare(strict_types=1);
 
 namespace PhelTest\Integration\Interop;
 
-use Phel\Interop\PhelCallerTrait;
+use Phel\Interop\CallPhelTrait;
 
 final class ExampleWrapper
 {
-    use PhelCallerTrait;
+    use CallPhelTrait;
 
     public function isOdd(int $number): bool
     {
-        return  $this->callPhel('phel\\core', 'odd?', $number);
+        return $this->callPhel('phel\\core', 'odd?', $number);
     }
 }
