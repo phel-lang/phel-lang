@@ -6,9 +6,11 @@ namespace Phel\Interop;
 
 use Phel\Runtime\RuntimeFactory;
 
-trait CallPhelTrait
+final class PhelCaller implements PhelCallableInterface
 {
     /**
+     * @param mixed[] $arguments
+     *
      * @return mixed
      */
     public function callPhel(string $namespace, string $definitionName, ...$arguments)
