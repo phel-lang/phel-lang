@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace Phel\Interop;
 
-use Phel\Runtime\Runtime;
 use Phel\Runtime\RuntimeFactory;
 
 trait CallPhelTrait
@@ -22,16 +21,11 @@ trait CallPhelTrait
     /**
      * @return mixed
      */
-    public function getPhelDefinition(string $namespace, string $definitionName)
+    private function getPhelDefinition(string $namespace, string $definitionName)
     {
-        $rt = $this->getRuntime();
+        $rt = RuntimeFactory::getInstance();
         $rt->loadNs($namespace);
 
         return $GLOBALS['__phel'][$namespace][$definitionName];
-    }
-
-    public function getRuntime(): Runtime
-    {
-        return RuntimeFactory::getInstance();
     }
 }

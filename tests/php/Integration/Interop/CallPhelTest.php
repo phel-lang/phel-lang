@@ -2,13 +2,13 @@
 
 declare(strict_types=1);
 
-namespace PhelTest\Unit\Interop;
+namespace PhelTest\Integration\Interop;
 
 use Phel\Compiler\Analyzer\Environment\GlobalEnvironment;
 use Phel\Runtime\RuntimeFactory;
 use PHPUnit\Framework\TestCase;
 
-class CallPhelTest extends TestCase
+final class CallPhelTest extends TestCase
 {
     public function testCallOdd(): void
     {

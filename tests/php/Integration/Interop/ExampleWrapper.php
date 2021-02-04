@@ -2,11 +2,11 @@
 
 declare(strict_types=1);
 
-namespace PhelTest\Unit\Interop;
+namespace PhelTest\Integration\Interop;
 
 use Phel\Interop\CallPhelTrait;
 
-class ExampleWrapper
+final class ExampleWrapper
 {
     use CallPhelTrait;
 
