@@ -21,29 +21,37 @@ final class CallEmitter implements NodeEmitterInterface
         $fnNode = $node->getFn();
 
         if ($fnNode instanceof PhpVarNode && $fnNode->isInfix()) {
-            // Args
-            $this->outputEmitter->emitStr('(', $node->getStartSourceLocation());
-            $this->outputEmitter->emitArgList(
-                $node->getArguments(),
-                $node->getStartSourceLocation(),
-                ' ' . $fnNode->getName() . ' '
-            );
-            $this->outputEmitter->emitStr(')', $node->getStartSourceLocation());
+            $this->emitPhpVarNodeInfix($node, $fnNode);
         } else {
-            if ($fnNode instanceof PhpVarNode) {
-                $this->outputEmitter->emitStr($fnNode->getName(), $fnNode->getStartSourceLocation());
-            } else {
-                $this->outputEmitter->emitStr('(', $node->getStartSourceLocation());
-                $this->outputEmitter->emitNode($node->getFn());
-                $this->outputEmitter->emitStr(')', $node->getStartSourceLocation());
-            }
-
-            // Args
-            $this->outputEmitter->emitStr('(', $node->getStartSourceLocation());
-            $this->outputEmitter->emitArgList($node->getArguments(), $node->getStartSourceLocation());
-            $this->outputEmitter->emitStr(')', $node->getStartSourceLocation());
+            $this->emitPhpVarNode($node, $fnNode);
         }
 
         $this->outputEmitter->emitContextSuffix($node->getEnv(), $node->getStartSourceLocation());
+    }
+
+    private function emitPhpVarNodeInfix(CallNode $node, PhpVarNode $fnNode): void
+    {
+        $this->outputEmitter->emitStr('(', $node->getStartSourceLocation());
+        $this->outputEmitter->emitArgList(
+            $node->getArguments(),
+            $node->getStartSourceLocation(),
+            ' ' . $fnNode->getName() . ' '
+        );
+        $this->outputEmitter->emitStr(')', $node->getStartSourceLocation());
+    }
+
+    private function emitPhpVarNode(CallNode $node, AbstractNode $fnNode): void
+    {
+        if ($fnNode instanceof PhpVarNode) {
+            $this->outputEmitter->emitStr($fnNode->getName(), $fnNode->getStartSourceLocation());
+        } else {
+            $this->outputEmitter->emitStr('(', $node->getStartSourceLocation());
+            $this->outputEmitter->emitNode($node->getFn());
+            $this->outputEmitter->emitStr(')', $node->getStartSourceLocation());
+        }
+
+        $this->outputEmitter->emitStr('(', $node->getStartSourceLocation());
+        $this->outputEmitter->emitArgList($node->getArguments(), $node->getStartSourceLocation());
+        $this->outputEmitter->emitStr(')', $node->getStartSourceLocation());
     }
 }
