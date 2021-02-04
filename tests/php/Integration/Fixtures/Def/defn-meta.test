@@ -1,0 +1,14 @@
+--PHEL--
+(defn identity @{:export true} [x] x)
+--PHP--
+$GLOBALS["__phel"]["user"]["identity"] = new class() extends \Phel\Lang\AbstractFn {
+  public const BOUND_TO = "user\\identity";
+
+  public function __invoke($x) {
+    return $x;
+  }
+};
+$GLOBALS["__phel_meta"]["user"]["identity"] = \Phel\Lang\Table::fromKVs(
+  new \Phel\Lang\Keyword("export"), true,
+  new \Phel\Lang\Keyword("doc"), "```phel\n(identity x)\n```\n"
+);
