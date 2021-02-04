@@ -634,7 +634,7 @@ final class ReaderTest extends TestCase
         );
     }
 
-    public function testShortFnRestArgumentMultipleTimes()
+    public function testShortFnRestArgumentMultipleTimes(): void
     {
         $this->assertEquals(
             Tuple::create(

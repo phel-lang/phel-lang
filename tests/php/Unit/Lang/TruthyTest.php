@@ -9,7 +9,7 @@ use PHPUnit\Framework\TestCase;
 
 final class TruthyTest extends TestCase
 {
-    public function testFalse()
+    public function testFalse(): void
     {
         $this->assertFalse(Truthy::isTruthy(null));
         $this->assertFalse(Truthy::isTruthy(false));

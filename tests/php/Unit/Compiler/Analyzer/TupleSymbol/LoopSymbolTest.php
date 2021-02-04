@@ -135,7 +135,7 @@ final class LoopSymbolTest extends TestCase
         );
     }
 
-    public function testWithDestruction()
+    public function testWithDestruction(): void
     {
         Symbol::resetGen();
         $tuple = Tuple::create(Symbol::create('loop'), Tuple::create(Tuple::create(Symbol::create('a')), 1), 1);
