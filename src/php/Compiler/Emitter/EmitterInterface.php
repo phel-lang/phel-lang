@@ -19,6 +19,9 @@ interface EmitterInterface
     public function emitNodeAndEval(AbstractNode $node): string;
 
     /**
+     * @throws CompiledCodeIsMalformedException
+     * @throws FileException
+     *
      * @return mixed
      */
     public function evalCode(string $code);

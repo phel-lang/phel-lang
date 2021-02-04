@@ -6,10 +6,10 @@ namespace Phel\Runtime;
 
 use InvalidArgumentException;
 use Phel\Compiler\Analyzer\Environment\GlobalEnvironmentInterface;
-use Phel\Compiler\Analyzer\Exceptions\CompilerException;
 use Phel\Compiler\CompilerFactoryInterface;
 use Phel\Compiler\Emitter\Exceptions\CompiledCodeIsMalformedException;
 use Phel\Compiler\Emitter\Exceptions\FileException;
+use Phel\Compiler\Exceptions\CompilerException;
 use Phel\Lang\Keyword;
 use Phel\Lang\MetaInterface;
 use Phel\Lang\Symbol;

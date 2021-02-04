@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace Phel\Compiler\Emitter\OutputEmitter;
 
 use Phel\Compiler\Analyzer\Ast;
+use Phel\Compiler\Emitter\Exceptions\NotSupportedAstException;
 use Phel\Compiler\Emitter\OutputEmitterInterface;
-use RuntimeException;
 
 final class NodeEmitterFactory
 {
@@ -74,7 +74,7 @@ final class NodeEmitterFactory
             case Ast\DefStructNode::class:
                 return new NodeEmitter\DefStructEmitter($outputEmitter);
             default:
-                throw new RuntimeException("Not supported AstClassName: '$astNodeClassName'");
+                throw NotSupportedAstException::withClassName($astNodeClassName);
         }
     }
 }
