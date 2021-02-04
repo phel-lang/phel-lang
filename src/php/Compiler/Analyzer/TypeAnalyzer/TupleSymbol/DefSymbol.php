@@ -84,27 +84,37 @@ final class DefSymbol implements TupleSymbolAnalyzerInterface
             throw AnalyzerException::withLocation('$init must be AbstractType|string|float|int|bool|null', $tuple);
         }
 
-        if (is_string($meta)) {
-            $key = (new Keyword('doc'))->copyLocationFrom($tuple);
+        $meta = $this->normalizeMeta($meta, $tuple);
 
-            return [
-                Table::fromKVs($key, $meta)->copyLocationFrom($tuple),
-                $init,
-            ];
-        }
-
-        if ($meta instanceof Keyword) {
-            return [
-                Table::fromKVs($meta, true)->copyLocationFrom($meta),
-                $init,
-            ];
-        }
-
-        if (!$meta instanceof Table) {
-            throw AnalyzerException::withLocation('Metadata must be a String, Keyword or Table', $tuple);
+        foreach ($tuple->getMeta() as $key => $value) {
+            if ($key !== null) {
+                $meta[$key] = $value;
+            }
         }
 
         return [$meta, $init];
+    }
+
+    /**
+     * @param mixed $meta
+     */
+    private function normalizeMeta($meta, Tuple $tuple): Table
+    {
+        if (is_string($meta)) {
+            $key = (new Keyword('doc'))->copyLocationFrom($tuple);
+
+            return Table::fromKVs($key, $meta)->copyLocationFrom($tuple);
+        }
+
+        if ($meta instanceof Keyword) {
+            return Table::fromKVs($meta, true)->copyLocationFrom($meta);
+        }
+
+        if ($meta instanceof Table) {
+            return $meta;
+        }
+
+        throw AnalyzerException::withLocation('Metadata must be a String, Keyword or Table', $tuple);
     }
 
     private function getInitialMetaAndInit(Tuple $tuple): array

@@ -1,0 +1,8 @@
+--PHEL--
+^:export (def x :private 1)
+--PHP--
+$GLOBALS["__phel"]["user"]["x"] = 1;
+$GLOBALS["__phel_meta"]["user"]["x"] = \Phel\Lang\Table::fromKVs(
+  new \Phel\Lang\Keyword("private"), true,
+  new \Phel\Lang\Keyword("export"), true
+);
