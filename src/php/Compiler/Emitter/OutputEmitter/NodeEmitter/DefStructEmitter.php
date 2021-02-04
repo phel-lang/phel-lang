@@ -17,7 +17,14 @@ final class DefStructEmitter implements NodeEmitterInterface
     {
         assert($node instanceof DefStructNode);
 
-        $paramCount = count($node->getParams());
+        $this->emitClassBegin($node);
+        $this->emitConstructor($node);
+        $this->emitGetAllowedKeysFunction($node);
+        $this->emitClassEnd($node);
+    }
+
+    private function emitClassBegin(DefStructNode $node): void
+    {
         $this->outputEmitter->emitLine(
             'namespace ' . $this->outputEmitter->mungeEncodeNs($node->getNamespace()) . ';',
             $node->getStartSourceLocation()
@@ -27,9 +34,13 @@ final class DefStructEmitter implements NodeEmitterInterface
             $node->getStartSourceLocation()
         );
         $this->outputEmitter->increaseIndentLevel();
+    }
 
-        // Constructor
+    private function emitConstructor(DefStructNode $node): void
+    {
+        $paramCount = count($node->getParams());
         $this->outputEmitter->emitStr('public function __construct(', $node->getStartSourceLocation());
+
         foreach ($node->getParams() as $i => $param) {
             $this->outputEmitter->emitPhpVariable($param);
 
@@ -37,8 +48,10 @@ final class DefStructEmitter implements NodeEmitterInterface
                 $this->outputEmitter->emitStr(', ', $node->getStartSourceLocation());
             }
         }
+
         $this->outputEmitter->emitLine(') {', $node->getStartSourceLocation());
         $this->outputEmitter->increaseIndentLevel();
+
         foreach ($node->getParams() as $i => $param) {
             $keyword = new Keyword($param->getName());
             $keyword->setStartLocation($node->getStartSourceLocation());
@@ -49,14 +62,20 @@ final class DefStructEmitter implements NodeEmitterInterface
             $this->outputEmitter->emitPhpVariable($param);
             $this->outputEmitter->emitLine(');', $node->getStartSourceLocation());
         }
+
         $this->outputEmitter->decreaseIndentLevel();
         $this->outputEmitter->emitLine('}', $node->getStartSourceLocation());
+    }
 
-        // Get Allowed Keys Function
+    private function emitGetAllowedKeysFunction(DefStructNode $node): void
+    {
+        $paramCount = count($node->getParams());
+
         $this->outputEmitter->emitStr('public function getAllowedKeys(', $node->getStartSourceLocation());
         $this->outputEmitter->emitLine('): array {', $node->getStartSourceLocation());
         $this->outputEmitter->increaseIndentLevel();
         $this->outputEmitter->emitStr('return [', $node->getStartSourceLocation());
+
         foreach ($node->getParamsAsKeywords() as $i => $keyword) {
             $this->outputEmitter->emitLiteral($keyword);
 
@@ -64,11 +83,14 @@ final class DefStructEmitter implements NodeEmitterInterface
                 $this->outputEmitter->emitStr(', ', $node->getStartSourceLocation());
             }
         }
+
         $this->outputEmitter->emitLine('];', $node->getStartSourceLocation());
         $this->outputEmitter->decreaseIndentLevel();
         $this->outputEmitter->emitLine('}', $node->getStartSourceLocation());
+    }
 
-        // End of class
+    private function emitClassEnd(DefStructNode $node): void
+    {
         $this->outputEmitter->decreaseIndentLevel();
         $this->outputEmitter->emitLine('}', $node->getStartSourceLocation());
     }
