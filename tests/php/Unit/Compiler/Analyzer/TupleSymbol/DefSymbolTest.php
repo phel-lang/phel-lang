@@ -112,7 +112,7 @@ final class DefSymbolTest extends TestCase
         );
     }
 
-    public function testDocstring()
+    public function testDocstring(): void
     {
         $tuple = Tuple::create(
             Symbol::create(Symbol::NAME_DEF),
@@ -145,7 +145,7 @@ final class DefSymbolTest extends TestCase
         );
     }
 
-    public function testMetaKeyword()
+    public function testMetaKeyword(): void
     {
         $tuple = Tuple::create(
             Symbol::create(Symbol::NAME_DEF),
@@ -178,7 +178,7 @@ final class DefSymbolTest extends TestCase
         );
     }
 
-    public function testMetaTableKeyword()
+    public function testMetaTableKeyword(): void
     {
         $tuple = Tuple::create(
             Symbol::create(Symbol::NAME_DEF),
@@ -211,7 +211,7 @@ final class DefSymbolTest extends TestCase
         );
     }
 
-    public function testInvalidMeta()
+    public function testInvalidMeta(): void
     {
         $this->expectException(AnalyzerException::class);
         $this->expectExceptionMessage('Metadata must be a String, Keyword or Table');

@@ -36,7 +36,7 @@ final class InvokeSymbolTest extends TestCase
         };
 
         $env->addDefinition('user', Symbol::create('my-failed-macro'), Table::fromKVs(new Keyword('macro'), true));
-        $GLOBALS['__phel']['user']['my-failed-macro'] = function ($a) {
+        $GLOBALS['__phel']['user']['my-failed-macro'] = function ($a): void {
             throw new Exception('my-failed-macro message');
         };
 

@@ -47,4 +47,5 @@ return PhpCsFixer\Config::create()
     'single_quote' => true,
     'trailing_comma_in_multiline_array' => true,
     'trim_array_spaces' => true,
+    'void_return' => true,
   ]);

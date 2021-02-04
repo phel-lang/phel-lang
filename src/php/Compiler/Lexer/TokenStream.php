@@ -34,7 +34,7 @@ final class TokenStream implements Iterator
         return $this->tokenGenerator->key();
     }
 
-    public function rewind()
+    public function rewind(): void
     {
         $this->tokenGenerator->rewind();
     }
