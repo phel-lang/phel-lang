@@ -84,21 +84,26 @@ elements, returns nil."
   @{:private true
     :doc "Concatenates two sequential data structures."}
   (fn [xs ys]
-    (if (php/instanceof xs ConcatInterface)
-      (php/-> xs (concat ys))
-      (do
-        (foreach [y ys]
-          (php/apush xs y))
-        xs))))
+    (if (php/=== nil ys)
+      xs
+      (if (php/instanceof xs ConcatInterface)
+        (php/-> xs (concat ys))
+        (do
+          (foreach [y ys]
+            (php/apush xs y))
+          xs)))))
 
 (def concat
   "```phel\n(concat arr & xs)\n```\nConcatenates multiple sequential data structures."
-  (fn [arr & xs]
-    (loop [res arr
-           [y & ys] xs]
-      (if (php/=== nil y)
+  (fn [arr & others]
+    (if (php/=== nil arr)
+      '()
+      (loop [res arr
+           other others]
+      (if (php/=== nil other)
         res
-        (recur (concat1 res y) ys)))))
+        (let [[y & ys] other]
+          (recur (concat1 res y) ys)))))))
 
 # quasiquote can be used down here
 

@@ -30,7 +30,10 @@
 (deftest test-concat
   (is (= @[1 2] (concat @[1 2])) "concat one argument")
   (is (= @[1 2 3 4] (concat @[1] @[2 3] @[4])) "concat three arguments")
-  (is (= [1 2 3 4] (concat [1 2] [3 4])) "concat tuples"))
+  (is (= [1 2 3 4] (concat [1 2] [3 4])) "concat tuples")
+  (is (= '() (concat nil)) "concat nil")
+  (is (= '() (concat nil nil)) "concat two nil")
+  (is (= [1 2 3 4 5 6] (concat [1 2 3] nil [4 5 6])) "concat tuples and nil"))
 
 (deftest test-set-push
   (let [s1 (set 1 2)
