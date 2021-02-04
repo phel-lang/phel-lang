@@ -41,26 +41,26 @@ final class SymbolTest extends TestCase
         $this->assertEquals('namespace/test', $s->getFullName());
     }
 
-    public function testToString()
+    public function testToString(): void
     {
         $s = Symbol::createForNamespace('namespace', 'test');
         $this->assertEquals('test', $s->__toString());
     }
 
-    public function testGen()
+    public function testGen(): void
     {
         Symbol::resetGen();
         $this->assertEquals('__phel_1', Symbol::gen());
         $this->assertEquals('bla2', Symbol::gen('bla'));
     }
 
-    public function testHash()
+    public function testHash(): void
     {
         $s = Symbol::createForNamespace('namespace', 'test');
         $this->assertEquals('test', $s->hash());
     }
 
-    public function testEquals()
+    public function testEquals(): void
     {
         $s1 = Symbol::createForNamespace('namespace', 'test');
         $s2 = Symbol::createForNamespace('namespace', 'test');
@@ -75,7 +75,7 @@ final class SymbolTest extends TestCase
         $this->assertFalse($s4->equals($s1));
     }
 
-    public function testIdentical()
+    public function testIdentical(): void
     {
         $s1 = Symbol::createForNamespace('namespace', 'test');
         $s2 = Symbol::createForNamespace('namespace', 'test');
