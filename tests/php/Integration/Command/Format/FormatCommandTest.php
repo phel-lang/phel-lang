@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace PhelTest\Integration\Command;
+namespace PhelTest\Integration\Command\Format;
 
 use Phel\Command\CommandFactory;
 use Phel\Command\CommandFactoryInterface;
@@ -12,7 +12,7 @@ use PHPUnit\Framework\TestCase;
 
 final class FormatCommandTest extends TestCase
 {
-    private const FIXTURES_DIR = __DIR__ . '/Fixtures/test-fmt/';
+    private const FIXTURES_DIR = __DIR__ . '/Fixtures/';
 
     public function testGoodFormat(): void
     {

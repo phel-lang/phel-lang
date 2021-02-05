@@ -2,11 +2,9 @@
 
 declare(strict_types=1);
 
-namespace Phel\Command;
+namespace Phel\Command\Repl;
 
-use Phel\Command\Exceptions\ExitException;
-use Phel\Command\Repl\ColorStyleInterface;
-use Phel\Command\Repl\ReplCommandIoInterface;
+use Phel\Command\Repl\Exceptions\ExitException;
 use Phel\Compiler\EvalCompilerInterface;
 use Phel\Compiler\Exceptions\CompilerException;
 use Phel\Compiler\Parser\Exceptions\UnfinishedParserException;
@@ -112,7 +110,7 @@ final class ReplCommand
         $firstInput = $this->inputBuffer[0] ?? '';
 
         if (self::EXIT_REPL === $firstInput) {
-            throw new ExitException();
+            throw ExitException::fromRepl();
         }
     }
 

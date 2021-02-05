@@ -4,6 +4,11 @@ declare(strict_types=1);
 
 namespace Phel\Command;
 
+use Phel\Command\Run\Exceptions\CannotLoadNamespaceException;
+use Phel\Command\Test\Exceptions\CannotFindAnyTestsException;
+use Phel\Compiler\Emitter\Exceptions\CompiledCodeIsMalformedException;
+use Phel\Compiler\Emitter\Exceptions\FileException;
+use Phel\Compiler\Exceptions\CompilerException;
 use Phel\Runtime\RuntimeInterface;
 use RuntimeException;
 
@@ -30,6 +35,12 @@ final class CommandFacade implements CommandFacadeInterface
             ->run();
     }
 
+    /**
+     * @throws CompilerException
+     * @throws CompiledCodeIsMalformedException
+     * @throws FileException
+     * @throws CannotLoadNamespaceException
+     */
     public function executeRunCommand(string $fileOrPath): void
     {
         $this->commandFactory
@@ -39,6 +50,11 @@ final class CommandFacade implements CommandFacadeInterface
 
     /**
      * @param list<string> $paths
+     *
+     * @throws CompilerException
+     * @throws CompiledCodeIsMalformedException
+     * @throws FileException
+     * @throws CannotFindAnyTestsException
      */
     public function executeTestCommand(array $paths): void
     {

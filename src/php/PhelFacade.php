@@ -6,10 +6,10 @@ namespace Phel;
 
 use InvalidArgumentException;
 use Phel\Command\CommandFacadeInterface;
-use Phel\Command\FormatCommand;
-use Phel\Command\ReplCommand;
-use Phel\Command\RunCommand;
-use Phel\Command\TestCommand;
+use Phel\Command\Format\FormatCommand;
+use Phel\Command\Repl\ReplCommand;
+use Phel\Command\Run\RunCommand;
+use Phel\Command\Test\TestCommand;
 
 final class PhelFacade
 {
@@ -87,7 +87,7 @@ HELP;
     private function executeFormatCommand(array $arguments): void
     {
         if (empty($arguments)) {
-            throw new InvalidArgumentException('Please, provide a directory or a filename as arguments!');
+            throw new InvalidArgumentException('Please, provide a filename or a directory as arguments!');
         }
 
         $this->commandFacade->executeFormatCommand($arguments);

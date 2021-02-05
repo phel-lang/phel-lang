@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace PhelTest\Integration\Repl;
+namespace PhelTest\Integration\Command\Repl;
 
 final class InputLine
 {

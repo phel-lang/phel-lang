@@ -2,11 +2,14 @@
 
 declare(strict_types=1);
 
-namespace Phel\Command;
+namespace Phel\Command\Run;
 
+use Phel\Command\Run\Exceptions\CannotLoadNamespaceException;
 use Phel\Command\Shared\NamespaceExtractorInterface;
+use Phel\Compiler\Emitter\Exceptions\CompiledCodeIsMalformedException;
+use Phel\Compiler\Emitter\Exceptions\FileException;
+use Phel\Compiler\Exceptions\CompilerException;
 use Phel\Runtime\RuntimeInterface;
-use RuntimeException;
 
 final class RunCommand
 {
@@ -23,6 +26,12 @@ final class RunCommand
         $this->namespaceExtractor = $namespaceExtractor;
     }
 
+    /**
+     * @throws CompilerException
+     * @throws CompiledCodeIsMalformedException
+     * @throws FileException
+     * @throws CannotLoadNamespaceException
+     */
     public function run(string $fileOrPath): void
     {
         $ns = file_exists($fileOrPath)
@@ -32,7 +41,7 @@ final class RunCommand
         $result = $this->runtime->loadNs($ns);
 
         if (!$result) {
-            throw new RuntimeException('Cannot load namespace: ' . $ns);
+            throw CannotLoadNamespaceException::withName($ns);
         }
     }
 }

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Phel\Command\Shared;
 
+use Phel\Command\Shared\Exceptions\ExtractorException;
 use Phel\Compiler\Lexer\LexerInterface;
 use Phel\Compiler\Parser\Exceptions\AbstractParserException;
 use Phel\Compiler\Parser\ParserInterface;
@@ -16,7 +17,6 @@ use RecursiveDirectoryIterator;
 use RecursiveIteratorIterator;
 use RecursiveRegexIterator;
 use RegexIterator;
-use RuntimeException;
 
 final class NamespaceExtractor implements NamespaceExtractorInterface
 {
@@ -37,6 +37,9 @@ final class NamespaceExtractor implements NamespaceExtractorInterface
         $this->io = $io;
     }
 
+    /**
+     * @throws ExtractorException
+     */
     public function getNamespaceFromFile(string $path): string
     {
         $content = $this->io->fileGetContents($path);
@@ -48,7 +51,7 @@ final class NamespaceExtractor implements NamespaceExtractorInterface
             } while ($parseTree && $parseTree instanceof TriviaNodeInterface);
 
             if (!$parseTree) {
-                throw new RuntimeException('Cannot read file: ' . $path);
+                throw ExtractorException::cannotReadFile($path);
             }
 
             $readerResult = $this->reader->read($parseTree);
@@ -62,9 +65,9 @@ final class NamespaceExtractor implements NamespaceExtractorInterface
                 return $ast[1]->getName();
             }
 
-            throw new RuntimeException('Cannot extract namespace from file: ' . $path);
+            throw ExtractorException::cannotExtractNamespaceFromPath($path);
         } catch (AbstractParserException|ReaderException $e) {
-            throw new RuntimeException('Cannot parse file: ' . $path);
+            throw ExtractorException::cannotParseFile($path);
         }
     }
 
@@ -93,22 +96,25 @@ final class NamespaceExtractor implements NamespaceExtractorInterface
         );
     }
 
+    /**
+     * @throws ExtractorException
+     */
     private function getPhelConfig(string $currentDirectory): array
     {
         $composerContent = file_get_contents($currentDirectory . 'composer.json');
         if (!$composerContent) {
-            throw new \Exception('Cannot read composer.json in: ' . $currentDirectory);
+            throw ExtractorException::cannotReadComposerJsonInPath($currentDirectory);
         }
 
-        $composerData = json_decode($composerContent, true);
+        $composerData = \json_decode($composerContent, true);
         if (!$composerData) {
-            throw new \Exception('Cannot parse composer.json in: ' . $currentDirectory);
+            throw ExtractorException::cannotReadComposerJsonInPath($currentDirectory);
         }
 
         if (isset($composerData['extra']['phel'])) {
             return $composerData['extra']['phel'];
         }
 
-        throw new \Exception('No Phel configuration found in composer.json');
+        throw ExtractorException::noPhelConfigurationFoundInComposerJson();
     }
 }
