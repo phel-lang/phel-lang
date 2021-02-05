@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace PhelTest\Integration\Repl;
+namespace PhelTest\Integration\Command\Repl;
 
 use Generator;
 use Phel\Command\Repl\ColorStyle;
@@ -21,7 +21,7 @@ use RecursiveDirectoryIterator;
 use RecursiveIteratorIterator;
 use SplFileInfo;
 
-final class ReplIntegrationTest extends TestCase
+final class ReplCommandTest extends TestCase
 {
     /**
      * @dataProvider providerIntegration

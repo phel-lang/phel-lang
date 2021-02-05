@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace PhelTest\Integration\Command;
+namespace PhelTest\Integration\Command\Run;
 
 use Phel\Command\CommandFactory;
 use Phel\Command\CommandFactoryInterface;
