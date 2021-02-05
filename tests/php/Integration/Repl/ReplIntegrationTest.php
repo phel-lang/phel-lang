@@ -6,7 +6,7 @@ namespace PhelTest\Integration\Repl;
 
 use Generator;
 use Phel\Command\Repl\ColorStyle;
-use Phel\Command\ReplCommand;
+use Phel\Command\Repl\ReplCommand;
 use Phel\Compiler\Analyzer\Environment\GlobalEnvironment;
 use Phel\Compiler\CompilerFactory;
 use Phel\Compiler\Emitter\OutputEmitter\Munge;

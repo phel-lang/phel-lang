@@ -2,12 +2,15 @@
 
 declare(strict_types=1);
 
-namespace Phel\Command;
+namespace Phel\Command\Test;
 
 use Phel\Command\Shared\NamespaceExtractorInterface;
+use Phel\Command\Test\Exceptions\CannotFindAnyTestsException;
+use Phel\Compiler\Emitter\Exceptions\CompiledCodeIsMalformedException;
+use Phel\Compiler\Emitter\Exceptions\FileException;
 use Phel\Compiler\EvalCompilerInterface;
+use Phel\Compiler\Exceptions\CompilerException;
 use Phel\Runtime\RuntimeInterface;
-use RuntimeException;
 
 final class TestCommand
 {
@@ -30,12 +33,18 @@ final class TestCommand
         $this->evalCompiler = $evalCompiler;
     }
 
+    /**
+     * @throws CompilerException
+     * @throws CompiledCodeIsMalformedException
+     * @throws FileException
+     * @throws CannotFindAnyTestsException
+     */
     public function run(array $paths): bool
     {
         $namespaces = $this->getNamespacesFromPaths($paths);
 
         if (empty($namespaces)) {
-            throw new RuntimeException('Cannot find any tests');
+            throw new CannotFindAnyTestsException();
         }
 
         $this->runtime->loadNs('phel\test');

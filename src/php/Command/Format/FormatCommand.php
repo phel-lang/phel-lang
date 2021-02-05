@@ -2,9 +2,8 @@
 
 declare(strict_types=1);
 
-namespace Phel\Command;
+namespace Phel\Command\Format;
 
-use Phel\Command\Format\PathFilterInterface;
 use Phel\Command\Shared\CommandIoInterface;
 use Phel\Compiler\Parser\Exceptions\AbstractParserException;
 use Phel\Formatter\FormatterInterface;
