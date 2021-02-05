@@ -6,7 +6,7 @@ namespace Phel\Interop;
 
 use Phel\Runtime\RuntimeFactory;
 
-final class PhelCaller implements PhelCallableInterface
+trait PhelCallerTrait
 {
     /**
      * @param mixed[] $arguments

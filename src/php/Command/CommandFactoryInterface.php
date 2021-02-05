@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Phel\Command;
 
+use Phel\Command\Export\ExportCommand;
 use Phel\Command\Format\FormatCommand;
 use Phel\Command\Repl\ReplCommand;
 use Phel\Command\Run\RunCommand;
@@ -19,4 +20,6 @@ interface CommandFactoryInterface
     public function createTestCommand(RuntimeInterface $runtime): TestCommand;
 
     public function createFormatCommand(): FormatCommand;
+
+    public function createExportCommand(RuntimeInterface $runtime): ExportCommand;
 }

@@ -6,6 +6,7 @@ namespace Phel;
 
 use InvalidArgumentException;
 use Phel\Command\CommandFacadeInterface;
+use Phel\Command\Export\ExportCommand;
 use Phel\Command\Format\FormatCommand;
 use Phel\Command\Repl\ReplCommand;
 use Phel\Command\Run\RunCommand;
@@ -29,6 +30,9 @@ Commands:
 
     fmt <filename-or-directory> ...
         Formats the given files.
+    
+    export
+        Export all definitions with {:export true} meta as PHP classes 
 
     help
         Show this help message.
@@ -59,6 +63,9 @@ HELP;
                 break;
             case FormatCommand::COMMAND_NAME:
                 $this->executeFormatCommand($arguments);
+                break;
+           case ExportCommand::COMMAND_NAME:
+                $this->executeExportCommand($arguments);
                 break;
             default:
                 throw new InvalidArgumentException(self::HELP_TEXT);
@@ -91,5 +98,14 @@ HELP;
         }
 
         $this->commandFacade->executeFormatCommand($arguments);
+    }
+
+    private function executeExportCommand(array $arguments): void
+    {
+        if (empty($arguments)) {
+            throw new InvalidArgumentException('Please, provide a filename or a directory as arguments!');
+        }
+
+        $this->commandFacade->executeExportCommand($arguments);
     }
 }

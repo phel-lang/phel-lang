@@ -8,6 +8,7 @@ use Phel\Command\CommandFacade;
 use Phel\Command\CommandFactory;
 use Phel\Compiler\CompilerFactory;
 use Phel\Formatter\FormatterFactory;
+use Phel\Interop\InteropFactory;
 use Phel\PhelFacade;
 
 if ($argc <= 1) {
@@ -30,7 +31,8 @@ $commandFacade = new CommandFacade(
     new CommandFactory(
         $currentDir,
         $compilerFactory,
-        new FormatterFactory($compilerFactory)
+        new FormatterFactory($compilerFactory),
+        new InteropFactory()
     )
 );
 

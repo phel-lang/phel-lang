@@ -4,6 +4,9 @@ declare(strict_types=1);
 
 namespace Phel\Command;
 
+use Phel\Command\Export\ExportCommand;
+use Phel\Command\Export\FunctionsToExportFinder;
+use Phel\Command\Export\FunctionsToExportFinderInterface;
 use Phel\Command\Format\FormatCommand;
 use Phel\Command\Format\PathFilterInterface;
 use Phel\Command\Format\PhelPathFilter;
@@ -19,6 +22,7 @@ use Phel\Command\Test\TestCommand;
 use Phel\Compiler\Analyzer\Environment\GlobalEnvironmentInterface;
 use Phel\Compiler\CompilerFactoryInterface;
 use Phel\Formatter\FormatterFactoryInterface;
+use Phel\Interop\InteropFactoryInterface;
 use Phel\Printer\Printer;
 use Phel\Runtime\Exceptions\TextExceptionPrinter;
 use Phel\Runtime\RuntimeInterface;
@@ -28,15 +32,18 @@ final class CommandFactory implements CommandFactoryInterface
     private string $currentDir;
     private CompilerFactoryInterface $compilerFactory;
     private FormatterFactoryInterface $formatterFactory;
+    private InteropFactoryInterface $interopFactory;
 
     public function __construct(
         string $currentDir,
         CompilerFactoryInterface $compilerFactory,
-        FormatterFactoryInterface $formatterFactory
+        FormatterFactoryInterface $formatterFactory,
+        InteropFactoryInterface $interopFactory
     ) {
         $this->currentDir = $currentDir;
         $this->compilerFactory = $compilerFactory;
         $this->formatterFactory = $formatterFactory;
+        $this->interopFactory = $interopFactory;
     }
 
     public function createReplCommand(RuntimeInterface $runtime): ReplCommand
@@ -80,13 +87,12 @@ final class CommandFactory implements CommandFactoryInterface
         );
     }
 
-    private function createNamespaceExtractor(GlobalEnvironmentInterface $globalEnv): NamespaceExtractorInterface
+    public function createExportCommand(RuntimeInterface $runtime): ExportCommand
     {
-        return new NamespaceExtractor(
-            $this->compilerFactory->createLexer(),
-            $this->compilerFactory->createParser(),
-            $this->compilerFactory->createReader($globalEnv),
-            $this->createCommandIo()
+        return new ExportCommand(
+            $this->interopFactory->createExportFunctionsGenerator(__DIR__ . '/../../../Generated'),
+            $this->createCommandIo(),
+            $this->createFunctionsToExportFinder($runtime)
         );
     }
 
@@ -98,5 +104,24 @@ final class CommandFactory implements CommandFactoryInterface
     private function createPathFilter(): PathFilterInterface
     {
         return new PhelPathFilter();
+    }
+
+    private function createFunctionsToExportFinder(RuntimeInterface $runtime): FunctionsToExportFinderInterface
+    {
+        return new FunctionsToExportFinder(
+            $this->currentDir,
+            $runtime,
+            $this->createNamespaceExtractor($runtime->getEnv())
+        );
+    }
+
+    private function createNamespaceExtractor(GlobalEnvironmentInterface $globalEnv): NamespaceExtractorInterface
+    {
+        return new NamespaceExtractor(
+            $this->compilerFactory->createLexer(),
+            $this->compilerFactory->createParser(),
+            $this->compilerFactory->createReader($globalEnv),
+            $this->createCommandIo()
+        );
     }
 }
