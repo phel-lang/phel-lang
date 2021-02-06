@@ -5,25 +5,28 @@ declare(strict_types=1);
 namespace Phel\Command\Export;
 
 use Phel\Command\Shared\CommandIoInterface;
-use Phel\Interop\Generator\WrapperGenerator;
+use Phel\Interop\Generator\WrapperGeneratorInterface;
 use Phel\Interop\ReadModel\Wrapper;
 
 final class ExportCommand
 {
     public const COMMAND_NAME = 'export';
 
-    private WrapperGenerator $wrapperGenerator;
+    private WrapperGeneratorInterface $wrapperGenerator;
     private CommandIoInterface $io;
-    private FunctionsToExportFinderInterface $exportFinder;
+    private FunctionsToExportFinderInterface $functionsToExportFinder;
+    private DirectoryRemoverInterface $directoryRemover;
 
     public function __construct(
-        WrapperGenerator $wrapperGenerator,
+        WrapperGeneratorInterface $wrapperGenerator,
         CommandIoInterface $io,
-        FunctionsToExportFinderInterface $exportFinder
+        FunctionsToExportFinderInterface $functionsToExportFinder,
+        DirectoryRemoverInterface $directoryRemover
     ) {
         $this->wrapperGenerator = $wrapperGenerator;
         $this->io = $io;
-        $this->exportFinder = $exportFinder;
+        $this->functionsToExportFinder = $functionsToExportFinder;
+        $this->directoryRemover = $directoryRemover;
     }
 
     /**
@@ -32,7 +35,7 @@ final class ExportCommand
     public function run(array $paths): void
     {
         $wrappers = [];
-        foreach ($this->exportFinder->findInPaths($paths) as $ns => $functionsToExport) {
+        foreach ($this->functionsToExportFinder->findInPaths($paths) as $ns => $functionsToExport) {
             $wrappers[] = $this->wrapperGenerator->generateCompiledPhp($ns, ...$functionsToExport);
         }
 
@@ -48,14 +51,16 @@ final class ExportCommand
     {
         $this->io->writeln('Exported namespaces:');
 
+        $first = reset($wrappers);
+        $this->directoryRemover->removeDir($first->destinationDir());
+
         foreach ($wrappers as $i => $wrapper) {
-            $dir = dirname($wrapper->destinyPath());
-            if (!is_dir($dir)) {
-                mkdir($dir, 0777, true);
+            if (!is_dir($wrapper->dir())) {
+                mkdir($wrapper->dir(), 0777, true);
             }
 
-            file_put_contents($wrapper->destinyPath(), $wrapper->compiledPhp());
-            $this->io->writeln(sprintf('  %d) %s', $i + 1, $wrapper->destinyPath()));
+            file_put_contents($wrapper->absolutePath(), $wrapper->compiledPhp());
+            $this->io->writeln(sprintf('  %d) %s', $i + 1, $wrapper->absolutePath()));
         }
     }
 }

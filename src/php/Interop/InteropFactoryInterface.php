@@ -8,5 +8,5 @@ use Phel\Interop\Generator\WrapperGenerator;
 
 interface InteropFactoryInterface
 {
-    public function createWrapperGenerator(string $destinyDirectory): WrapperGenerator;
+    public function createWrapperGenerator(string $destinationDir): WrapperGenerator;
 }

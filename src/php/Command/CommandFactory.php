@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Phel\Command;
 
+use Phel\Command\Export\DirectoryRemover;
+use Phel\Command\Export\DirectoryRemoverInterface;
 use Phel\Command\Export\ExportCommand;
 use Phel\Command\Export\FunctionsToExportFinder;
 use Phel\Command\Export\FunctionsToExportFinderInterface;
@@ -92,7 +94,8 @@ final class CommandFactory implements CommandFactoryInterface
         return new ExportCommand(
             $this->interopFactory->createWrapperGenerator($this->currentDir . 'src/PhelGenerated'),
             $this->createCommandIo(),
-            $this->createFunctionsToExportFinder($runtime)
+            $this->createFunctionsToExportFinder($runtime),
+            $this->createDirectoryRemover()
         );
     }
 
@@ -123,5 +126,10 @@ final class CommandFactory implements CommandFactoryInterface
             $this->compilerFactory->createReader($globalEnv),
             $this->createCommandIo()
         );
+    }
+
+    private function createDirectoryRemover(): DirectoryRemoverInterface
+    {
+        return new DirectoryRemover();
     }
 }

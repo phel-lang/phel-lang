@@ -24,7 +24,7 @@ final class ExportFunctionGeneratorTest extends TestCase
         $phelNs = 'custom_namespace\\file_name_example';
 
         $functionToExport = new FunctionToExport(new class() implements FnInterface {
-            public const BOUND_TO = 'custom_namespace\\file_name_example\\phel-function_example';
+            public const BOUND_TO = 'custom_namespace\\file_name_example\\phel_function_example';
 
             public function __invoke(int $a, int ...$b)
             {
@@ -34,7 +34,9 @@ final class ExportFunctionGeneratorTest extends TestCase
 
         $wrapper = $generator->generateCompiledPhp($phelNs, $functionToExport);
 
-        self::assertSame('./CustomNamespace/FileNameExample.php', $wrapper->destinyPath());
+        self::assertSame('.', $wrapper->destinationDir());
+        self::assertSame('./CustomNamespace', $wrapper->dir());
+        self::assertSame('./CustomNamespace/FileNameExample.php', $wrapper->absolutePath());
 
         $expectedCompiledPhp = <<<'TXT'
 <?php declare(strict_types=1);

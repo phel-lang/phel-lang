@@ -6,17 +6,17 @@ namespace Phel\Interop;
 
 use Phel\Interop\Generator\Builder\CompiledPhpClassBuilder;
 use Phel\Interop\Generator\Builder\CompiledPhpMethodBuilder;
-use Phel\Interop\Generator\Builder\WrapperDestinyBuilder;
+use Phel\Interop\Generator\Builder\WrapperRelativeFilenamePathBuilder;
 use Phel\Interop\Generator\WrapperGenerator;
 
 final class InteropFactory implements InteropFactoryInterface
 {
-    public function createWrapperGenerator(string $destinyDirectory): WrapperGenerator
+    public function createWrapperGenerator(string $destinationDir): WrapperGenerator
     {
         return new WrapperGenerator(
-            $destinyDirectory,
+            $destinationDir,
             new CompiledPhpClassBuilder(new CompiledPhpMethodBuilder()),
-            new WrapperDestinyBuilder()
+            new WrapperRelativeFilenamePathBuilder()
         );
     }
 }
