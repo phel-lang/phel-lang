@@ -27,7 +27,8 @@ trait PhelCallerTrait
     {
         $rt = RuntimeFactory::getInstance();
         $rt->loadNs($namespace);
+        $phelNs = str_replace('-', '_', $namespace);
 
-        return $GLOBALS['__phel'][$namespace][$definitionName];
+        return $GLOBALS['__phel'][$phelNs][$definitionName];
     }
 }

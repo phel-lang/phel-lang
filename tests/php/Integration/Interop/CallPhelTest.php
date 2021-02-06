@@ -10,16 +10,23 @@ use PHPUnit\Framework\TestCase;
 
 final class CallPhelTest extends TestCase
 {
+    private ExampleWrapper $wrapper;
+
     public function setUp(): void
     {
         RuntimeFactory::initializeNew(new GlobalEnvironment());
+
+        $this->wrapper = new ExampleWrapper();
     }
 
     public function testCallOdd(): void
     {
-        $wrapper = new ExampleWrapper();
+        self::assertTrue($this->wrapper->isOdd(1));
+        self::assertFalse($this->wrapper->isOdd(2));
+    }
 
-        self::assertTrue($wrapper->isOdd(1));
-        self::assertFalse($wrapper->isOdd(2));
+    public function testCallPrintStr(): void
+    {
+        self::assertSame('a b c', $this->wrapper->printStr('a', 'b', 'c'));
     }
 }
