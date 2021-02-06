@@ -90,7 +90,7 @@ final class CommandFactory implements CommandFactoryInterface
     public function createExportCommand(RuntimeInterface $runtime): ExportCommand
     {
         return new ExportCommand(
-            $this->interopFactory->createExportFunctionsGenerator(__DIR__ . '/../../../Generated'),
+            $this->interopFactory->createExportFunctionsGenerator($this->currentDir . 'src/Generated'),
             $this->createCommandIo(),
             $this->createFunctionsToExportFinder($runtime)
         );

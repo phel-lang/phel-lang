@@ -118,6 +118,9 @@ namespace $NAMESPACE$;
 
 use Phel\Interop\PhelCallerTrait;
 
+/**
+ * THIS FILE IS AUTO-GENERATED, DO NOT CHANGE ANYTHING IN THIS FILE
+ */
 final class $CLASS_NAME$
 {
     use PhelCallerTrait;
@@ -135,7 +138,7 @@ TXT;
      */
     public function $METHOD_NAME$($ARGS$)
     {
-        return $this->callPhel('$PHEL_NAMESPACE$', '$PHEL_FUNCTION_NAME$', $ARGS$);
+        return self::callPhel('$PHEL_NAMESPACE$', '$PHEL_FUNCTION_NAME$', $ARGS$);
     }
 
 TXT;

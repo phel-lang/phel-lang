@@ -13,9 +13,9 @@ trait PhelCallerTrait
      *
      * @return mixed
      */
-    public function callPhel(string $namespace, string $definitionName, ...$arguments)
+    private static function callPhel(string $namespace, string $definitionName, ...$arguments)
     {
-        $fn = $this->getPhelDefinition($namespace, $definitionName);
+        $fn = self::getPhelDefinition($namespace, $definitionName);
 
         return $fn(...$arguments);
     }
@@ -23,7 +23,7 @@ trait PhelCallerTrait
     /**
      * @return mixed
      */
-    private function getPhelDefinition(string $namespace, string $definitionName)
+    private static function getPhelDefinition(string $namespace, string $definitionName)
     {
         $rt = RuntimeFactory::getInstance();
         $rt->loadNs($namespace);

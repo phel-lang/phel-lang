@@ -36,6 +36,9 @@ namespace Generated\Phel;
 
 use Phel\Interop\PhelCallerTrait;
 
+/**
+ * THIS FILE IS AUTO-GENERATED, DO NOT CHANGE ANYTHING IN THIS FILE
+ */
 final class LocalTest
 {
     use PhelCallerTrait;
