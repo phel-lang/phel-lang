@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace Phel\Interop;
 
-use Phel\Interop\Generator\ExportFunctionGenerator;
+use Phel\Interop\Generator\WrapperGenerator;
 
 interface InteropFactoryInterface
 {
-    public function createExportFunctionsGenerator(string $destinyDirectory): ExportFunctionGenerator;
+    public function createWrapperGenerator(string $destinyDirectory): WrapperGenerator;
 }

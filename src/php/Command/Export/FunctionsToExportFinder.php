@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Phel\Command\Export;
 
 use Phel\Command\Shared\NamespaceExtractorInterface;
-use Phel\Interop\Generator\FunctionToExport;
+use Phel\Interop\ReadModel\FunctionToExport;
 use Phel\Lang\Keyword;
 use Phel\Lang\Table;
 use Phel\Runtime\RuntimeInterface;

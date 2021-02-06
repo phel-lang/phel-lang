@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Phel\Command\Export;
 
-use Phel\Interop\Generator\FunctionToExport;
+use Phel\Interop\ReadModel\FunctionToExport;
 
 interface FunctionsToExportFinderInterface
 {

@@ -4,20 +4,27 @@ declare(strict_types=1);
 
 namespace PhelTest\Unit\Interop\Generator;
 
-use Phel\Interop\Generator\ExportFunctionGenerator;
-use Phel\Interop\Generator\FunctionToExport;
+use Phel\Interop\InteropFactory;
+use Phel\Interop\ReadModel\FunctionToExport;
 use Phel\Lang\FnInterface;
 use PHPUnit\Framework\TestCase;
 
 final class ExportFunctionGeneratorTest extends TestCase
 {
+    private InteropFactory $interopFactory;
+
+    public function setUp(): void
+    {
+        $this->interopFactory = new InteropFactory();
+    }
+
     public function testGenerateWrapper(): void
     {
-        $generator = new ExportFunctionGenerator('.');
-        $phelNs = 'phel\\local_test';
+        $generator = $this->interopFactory->createWrapperGenerator('.');
+        $phelNs = 'custom_namespace\\file_name_example';
 
         $functionToExport = new FunctionToExport(new class() implements FnInterface {
-            public const BOUND_TO = 'phel\\local_test\\adder_example';
+            public const BOUND_TO = 'custom_namespace\\file_name_example\\phel-function_example';
 
             public function __invoke(int $a, int ...$b)
             {
@@ -25,30 +32,30 @@ final class ExportFunctionGeneratorTest extends TestCase
             }
         });
 
-        $wrapper = $generator->generateWrapper($phelNs, $functionToExport);
+        $wrapper = $generator->generateCompiledPhp($phelNs, $functionToExport);
 
-        self::assertSame('./LocalTest.php', $wrapper->destinyPath());
+        self::assertSame('./CustomNamespace/FileNameExample.php', $wrapper->destinyPath());
 
         $expectedCompiledPhp = <<<'TXT'
 <?php declare(strict_types=1);
 
-namespace Generated\Phel;
+namespace PhelGenerated\CustomNamespace;
 
 use Phel\Interop\PhelCallerTrait;
 
 /**
  * THIS FILE IS AUTO-GENERATED, DO NOT CHANGE ANYTHING IN THIS FILE
  */
-final class LocalTest
+final class FileNameExample
 {
     use PhelCallerTrait;
 
     /**
      * @return mixed
      */
-    public static function adderExample($a, ...$b)
+    public static function phelFunctionExample($a, ...$b)
     {
-        return self::callPhel('phel\\local_test', 'adder-example', $a, ...$b);
+        return self::callPhel('custom-namespace\\file-name-example', 'phel-function-example', $a, ...$b);
     }
 
 }
