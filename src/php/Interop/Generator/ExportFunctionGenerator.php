@@ -45,7 +45,7 @@ final class ExportFunctionGenerator
             ], [
                 $phpMethodName,
                 $this->buildArgs($ref->getMethod('__invoke')),
-                $phelNs,
+                str_replace('\\', '\\\\', $phelNs),
                 $phelFunctionName,
             ], $this->methodTemplate());
         }
@@ -71,13 +71,13 @@ final class ExportFunctionGenerator
 
     private function dashesToCamelCase(string $string, bool $capitalizeFirstCharacter = false): string
     {
-        $str = str_replace(' ', '', ucwords(str_replace('-', ' ', $string)));
+        $result = str_replace(' ', '', ucwords(str_replace('-', ' ', $string)));
 
         if (!$capitalizeFirstCharacter) {
-            $str[0] = strtolower($str[0]);
+            $result[0] = strtolower($result[0]);
         }
 
-        return $str;
+        return $result;
     }
 
     private function buildCompiledPhpClass(string $phelNs, string $compiledPhpMethods): string
@@ -97,8 +97,9 @@ final class ExportFunctionGenerator
     {
         $normalizedNs = explode('-', str_replace('\\', '-', $phelNs));
         array_pop($normalizedNs);
+        $words = ucwords(str_replace('_', ' ', implode('', $normalizedNs)));
 
-        return 'Generated\\' . str_replace(' ', '\\', ucwords(implode(' ', $normalizedNs)));
+        return 'Generated\\' . str_replace(' ', '', $words);
     }
 
     private function buildClassName(string $phelNs): string
@@ -136,7 +137,7 @@ TXT;
     /**
      * @return mixed
      */
-    public function $METHOD_NAME$($ARGS$)
+    public static function $METHOD_NAME$($ARGS$)
     {
         return self::callPhel('$PHEL_NAMESPACE$', '$PHEL_FUNCTION_NAME$', $ARGS$);
     }

@@ -46,9 +46,9 @@ final class LocalTest
     /**
      * @return mixed
      */
-    public function adderExample($a, ...$b)
+    public static function adderExample($a, ...$b)
     {
-        return $this->callPhel('phel\local_test', 'adder-example', $a, ...$b);
+        return self::callPhel('phel\\local_test', 'adder-example', $a, ...$b);
     }
 
 }
