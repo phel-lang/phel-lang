@@ -13,7 +13,8 @@
     ],
     "require": {
         "php": ">=7.4",
-        "phel-lang/phel-composer-plugin": "^0.1"
+        "phel-lang/phel-composer-plugin": "^0.1",
+        "symfony/dotenv": "^5.2"
     },
     "require-dev": {
         "ext-readline": "*",

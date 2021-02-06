@@ -11,11 +11,20 @@ use Phel\Interop\Generator\WrapperGenerator;
 
 final class InteropFactory implements InteropFactoryInterface
 {
+    private string $targetFolder;
+    private string $prefixNamespace;
+
+    public function __construct(string $targetFolder, string $prefixNamespace)
+    {
+        $this->targetFolder = $targetFolder;
+        $this->prefixNamespace = $prefixNamespace;
+    }
+
     public function createWrapperGenerator(string $destinationDir): WrapperGenerator
     {
         return new WrapperGenerator(
-            $destinationDir,
-            new CompiledPhpClassBuilder(new CompiledPhpMethodBuilder()),
+            $this->targetFolder,
+            new CompiledPhpClassBuilder($this->prefixNamespace, new CompiledPhpMethodBuilder()),
             new WrapperRelativeFilenamePathBuilder()
         );
     }

@@ -11,16 +11,10 @@ use PHPUnit\Framework\TestCase;
 
 final class ExportFunctionGeneratorTest extends TestCase
 {
-    private InteropFactory $interopFactory;
-
-    public function setUp(): void
-    {
-        $this->interopFactory = new InteropFactory();
-    }
-
     public function testGenerateWrapper(): void
     {
-        $generator = $this->interopFactory->createWrapperGenerator('.');
+        $interopFactory = new InteropFactory('.', 'PhelGenerated');
+        $generator = $interopFactory->createWrapperGenerator('.');
         $phelNs = 'custom_namespace\\file_name_example';
 
         $functionToExport = new FunctionToExport(new class() implements FnInterface {

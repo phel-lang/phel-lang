@@ -8,10 +8,12 @@ use Phel\Interop\ReadModel\FunctionToExport;
 
 final class CompiledPhpClassBuilder
 {
+    private string $prefixNamespace;
     private CompiledPhpMethodBuilder $methodBuilder;
 
-    public function __construct(CompiledPhpMethodBuilder $methodBuilder)
+    public function __construct(string $prefixNamespace, CompiledPhpMethodBuilder $methodBuilder)
     {
+        $this->prefixNamespace = $prefixNamespace;
         $this->methodBuilder = $methodBuilder;
     }
 
@@ -34,7 +36,7 @@ final class CompiledPhpClassBuilder
         array_pop($normalizedNs);
         $words = ucwords(str_replace('_', ' ', implode('', $normalizedNs)));
 
-        return 'PhelGenerated\\' . str_replace(' ', '', $words);
+        return $this->prefixNamespace . '\\' . str_replace(' ', '', $words);
     }
 
     private function buildClassName(string $phelNs): string
