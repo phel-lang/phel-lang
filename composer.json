@@ -64,13 +64,13 @@
             "loader-dev": {
                 "phel\\": "tests/phel/"
             },
-            "export" : {
-                "target-directory" : "src/PhelGenerated",
-                "prefix-namespace" : "PhelGenerated"
-            },
             "tests": [
                 "tests/phel/"
-            ]
+            ],
+            "export" : {
+                "target-directory" : "src/PhelGenerated",
+                "namespace-prefix" : "PhelGenerated"
+            }
         }
     }
 }

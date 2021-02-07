@@ -20,7 +20,11 @@ These are all Phel specific configuration options available.
         },
         "tests": [
             "tests/"
-        ]
+        ],
+        "export" : {
+            "target-directory" : "src/PhelGenerated",
+            "namespace-prefix" : "PhelGenerated"
+        }
     }
 }
 ```
@@ -59,6 +63,12 @@ The `loader-dev` configuration section is equivalent to the `loader` configurati
 
 This configuration entry defines a list of folders where the test files of a project can be found.
 
+### `export`
+
+To be able to use the export command you have to define these two options:
+
+- "target-directory": the root directory where the PHP wrappers will be store.
+- "namespace-prefix" : the namespace prefix for all the PHP wrappers.
 
 ## Phel Composer Plugin
 

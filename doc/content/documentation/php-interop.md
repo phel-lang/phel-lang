@@ -115,3 +115,24 @@ In Phel you can also use PHP Magic Methods `__DIR__` and `__FILE__`. These resol
 (println __DIR__) # Prints the directory name of the file
 (println __FILE__) # Prints the filename of the file
 ```
+
+## Calling Phel functions from PHP
+
+You can define your own classes using the `Phel\Runtime\RuntimeFactory\PhelCallerTrait`.
+Then you will be able to call any phel function by using the:
+```php
+function callPhel(string $namespace, string $definitionName, ...$arguments): mixed {/*...*/}
+```
+
+Or you can use the `phel export <phel-path>` command to generate those wrapper classes for you.
+To let the command known which functions from a given file you want to export you should add
+the meta keyword "export" to the function like: `@{:export true}`
+```clojure
+(defn adder
+  @{:export true}
+  [a b]
+  (+ a b))
+```
+
+In addition, it is important to add these two extra phel configuration options to your composer:
+"target-directory", "namespace-prefix". You can read more about them in the [configuration section](../configuration/#export).

@@ -145,16 +145,13 @@ final class CommandFactory implements CommandFactoryInterface
     {
         $phelConfigExport = $this->phelConfig->get('export');
 
-        if (!isset($phelConfigExport['target-directory'])) {
-            throw new LogicException('"target-directory" phel config missing in composer.json');
-        }
-        if (!isset($phelConfigExport['prefix-namespace'])) {
-            throw new LogicException('"prefix-namespace" phel config missing in composer.json');
+        if (!isset($phelConfigExport['target-directory'], $phelConfigExport['namespace-prefix'])) {
+            throw new LogicException('"target-directory" and "namespace-prefix" phel config are mandatory inside the extra.phel.export option (in composer.json)');
         }
 
         $exportConfig = new ExportConfig(
             (string)$phelConfigExport['target-directory'],
-            (string)$phelConfigExport['prefix-namespace']
+            (string)$phelConfigExport['namespace-prefix']
         );
 
         return $this->interopFactory->createWrapperGenerator($exportConfig);
