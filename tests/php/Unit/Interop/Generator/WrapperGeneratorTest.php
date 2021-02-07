@@ -4,17 +4,21 @@ declare(strict_types=1);
 
 namespace PhelTest\Unit\Interop\Generator;
 
-use Phel\Interop\InteropFactory;
+use Phel\Interop\Generator\Builder\CompiledPhpClassBuilder;
+use Phel\Interop\Generator\Builder\CompiledPhpMethodBuilder;
+use Phel\Interop\Generator\Builder\WrapperRelativeFilenamePathBuilder;
+use Phel\Interop\Generator\WrapperGenerator;
+use Phel\Interop\Generator\WrapperGeneratorInterface;
 use Phel\Interop\ReadModel\ExportConfig;
 use Phel\Interop\ReadModel\FunctionToExport;
 use Phel\Lang\FnInterface;
 use PHPUnit\Framework\TestCase;
 
-final class ExportFunctionGeneratorTest extends TestCase
+final class WrapperGeneratorTest extends TestCase
 {
-    public function testGenerateWrapper(): void
+    public function testGenerateCompiledPhp(): void
     {
-        $generator = (new InteropFactory())->createWrapperGenerator(new ExportConfig('.', 'PhelGenerated'));
+        $generator = $this->createWrapperGenerator();
         $phelNs = 'custom_namespace\\file_name_example';
 
         $functionToExport = new FunctionToExport(new class() implements FnInterface {
@@ -57,5 +61,16 @@ final class FileNameExample
 }
 TXT;
         self::assertSame($expectedCompiledPhp, $wrapper->compiledPhp());
+    }
+
+    private function createWrapperGenerator(): WrapperGeneratorInterface
+    {
+        $exportConfig = new ExportConfig('.', 'PhelGenerated');
+
+        return new WrapperGenerator(
+            $exportConfig->targetDir(),
+            new CompiledPhpClassBuilder($exportConfig->prefixNamespace(), new CompiledPhpMethodBuilder()),
+            new WrapperRelativeFilenamePathBuilder()
+        );
     }
 }

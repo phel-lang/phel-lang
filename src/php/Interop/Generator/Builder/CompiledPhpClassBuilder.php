@@ -32,19 +32,19 @@ final class CompiledPhpClassBuilder
 
     private function buildNamespace(string $phelNs): string
     {
-        $normalizedNs = explode('-', str_replace('\\', '-', $phelNs));
-        array_pop($normalizedNs);
-        $words = ucwords(str_replace('_', ' ', implode('', $normalizedNs)));
+        $words = explode('\\', $phelNs);
+        array_pop($words);
+        $pascalWords = array_map(fn (string $w) =>  $this->underscoreToPascalCase($w), $words);
 
-        return $this->prefixNamespace . '\\' . str_replace(' ', '', $words);
+        return $this->prefixNamespace . '\\' . implode('\\', $pascalWords);
     }
 
     private function buildClassName(string $phelNs): string
     {
-        $normalizedNs = explode('-', str_replace('\\', '-', $phelNs));
-        $className = str_replace('_', '-', array_pop($normalizedNs));
+        $words = explode('\\', $phelNs);
+        $className = array_pop($words);
 
-        return $this->dashesToCamelCase($className, true);
+        return $this->underscoreToPascalCase($className);
     }
 
     private function buildCompiledPhpMethods(string $phelNs, FunctionToExport ...$functionsToExport): string
@@ -57,15 +57,9 @@ final class CompiledPhpClassBuilder
         return $compiledMethods;
     }
 
-    private function dashesToCamelCase(string $string, bool $capitalizeFirstCharacter = false): string
+    private function underscoreToPascalCase(string $string): string
     {
-        $result = str_replace(' ', '', ucwords(str_replace('-', ' ', $string)));
-
-        if (!$capitalizeFirstCharacter) {
-            $result[0] = strtolower($result[0]);
-        }
-
-        return $result;
+        return str_replace(' ', '', ucwords(str_replace('_', ' ', $string)));
     }
 
     private function classTemplate(): string

@@ -14,8 +14,7 @@ final class CompiledPhpMethodBuilder
     public function build(string $phelNs, FunctionToExport $functionToExport): string
     {
         $ref = new ReflectionClass($functionToExport->fn());
-        $boundTo = $ref->getConstant('BOUND_TO');
-        $phelFunctionName = str_replace('_', '-', substr(strrchr($boundTo, '\\'), 1));
+        $boundTo = (string)$ref->getConstant('BOUND_TO');
 
         return str_replace([
             '$METHOD_NAME$',
@@ -23,11 +22,26 @@ final class CompiledPhpMethodBuilder
             '$PHEL_NAMESPACE$',
             '$PHEL_FUNCTION_NAME$',
         ], [
-            $this->dashesToCamelCase($phelFunctionName),
+            $this->buildMethodName($boundTo),
             $this->buildArgs($ref->getMethod('__invoke')),
             str_replace(['_', '\\'], ['-', '\\\\'], $phelNs),
-            $phelFunctionName,
+            $this->buildPhelFunctionName($boundTo),
         ], $this->methodTemplate());
+    }
+
+    private function buildMethodName(string $boundTo): string
+    {
+        $words = explode('\\', $boundTo);
+        $className = array_pop($words);
+
+        return $this->underscoreToCamelCase($className);
+    }
+
+    private function underscoreToCamelCase(string $string): string
+    {
+        $str = str_replace(' ', '', ucwords(str_replace('_', ' ', $string)));
+
+        return lcfirst($str);
     }
 
     private function buildArgs(ReflectionMethod $refInvoke): string
@@ -46,15 +60,9 @@ final class CompiledPhpMethodBuilder
         return implode(', ', $args);
     }
 
-    private function dashesToCamelCase(string $string, bool $capitalizeFirstCharacter = false): string
+    private function buildPhelFunctionName(string $boundTo): string
     {
-        $result = str_replace(' ', '', ucwords(str_replace('-', ' ', $string)));
-
-        if (!$capitalizeFirstCharacter) {
-            $result[0] = strtolower($result[0]);
-        }
-
-        return $result;
+        return str_replace('_', '-', substr(strrchr($boundTo, '\\'), 1));
     }
 
     private function methodTemplate(): string

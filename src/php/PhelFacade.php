@@ -31,8 +31,8 @@ Commands:
     fmt <filename-or-directory> ...
         Formats the given files.
     
-    export
-        Export all definitions with {:export true} meta as PHP classes 
+    export <filename> ...
+        Export all definitions with @{:export true} meta as PHP classes 
 
     help
         Show this help message.

@@ -26,13 +26,12 @@ if (!file_exists($autoloadPath)) {
 require $autoloadPath;
 
 $compilerFactory = new CompilerFactory();
-$phelConfig = PhelConfig::createFromRootDir($projectRootDir);
 
 $commandFacade = new CommandFacade(
     $projectRootDir,
     new CommandFactory(
         $projectRootDir,
-        $phelConfig,
+        PhelConfig::createFromRootDir($projectRootDir),
         $compilerFactory,
         new FormatterFactory($compilerFactory),
         new InteropFactory()
