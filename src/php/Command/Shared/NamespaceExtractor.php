@@ -79,11 +79,11 @@ final class NamespaceExtractor implements NamespaceExtractorInterface
     /**
      * @throws RuntimeException
      */
-    public function getNamespacesFromConfig(string $currentDir): array
+    public function getNamespacesFromConfig(string $projectRootDir): array
     {
         $namespaces = [];
         foreach ($this->testDirectories as $testDir) {
-            $allNamespacesInDir = $this->findAllNs($currentDir . $testDir);
+            $allNamespacesInDir = $this->findAllNs($projectRootDir . $testDir);
             $namespaces[] = $allNamespacesInDir;
         }
 

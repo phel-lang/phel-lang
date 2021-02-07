@@ -16,8 +16,8 @@ if ($argc <= 1) {
     exit(PhelFacade::HELP_TEXT);
 }
 
-$currentDir = getcwd() . $slash;
-$autoloadPath = $currentDir . 'vendor' . $slash . 'autoload.php';
+$projectRootDir = getcwd() . $slash;
+$autoloadPath = $projectRootDir . 'vendor' . $slash . 'autoload.php';
 
 if (!file_exists($autoloadPath)) {
     exit("Cannot load composer's autoload file: " . $autoloadPath);
@@ -26,12 +26,12 @@ if (!file_exists($autoloadPath)) {
 require $autoloadPath;
 
 $compilerFactory = new CompilerFactory();
-$phelConfig = PhelConfig::createFromRootDir($currentDir);
+$phelConfig = PhelConfig::createFromRootDir($projectRootDir);
 
 $commandFacade = new CommandFacade(
-    $currentDir,
+    $projectRootDir,
     new CommandFactory(
-        $currentDir,
+        $projectRootDir,
         $phelConfig,
         $compilerFactory,
         new FormatterFactory($compilerFactory),

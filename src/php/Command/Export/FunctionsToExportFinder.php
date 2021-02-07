@@ -12,16 +12,16 @@ use Phel\Runtime\RuntimeInterface;
 
 final class FunctionsToExportFinder implements FunctionsToExportFinderInterface
 {
-    private string $currentDir;
+    private string $projectRootDir;
     private RuntimeInterface $runtime;
     private NamespaceExtractorInterface $nsExtractor;
 
     public function __construct(
-        string $currentDir,
+        string $projectRootDir,
         RuntimeInterface $runtime,
         NamespaceExtractorInterface $nsExtractor
     ) {
-        $this->currentDir = $currentDir;
+        $this->projectRootDir = $projectRootDir;
         $this->runtime = $runtime;
         $this->nsExtractor = $nsExtractor;
     }
@@ -69,7 +69,7 @@ final class FunctionsToExportFinder implements FunctionsToExportFinderInterface
     private function getNamespacesFromPaths(array $paths): array
     {
         if (empty($paths)) {
-            return $this->nsExtractor->getNamespacesFromConfig($this->currentDir);
+            return $this->nsExtractor->getNamespacesFromConfig($this->projectRootDir);
         }
 
         return array_map(
