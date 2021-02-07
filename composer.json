@@ -13,8 +13,7 @@
     ],
     "require": {
         "php": ">=7.4",
-        "phel-lang/phel-composer-plugin": "^0.1",
-        "symfony/dotenv": "^5.2"
+        "phel-lang/phel-composer-plugin": "^0.1"
     },
     "require-dev": {
         "ext-readline": "*",
@@ -64,6 +63,10 @@
             },
             "loader-dev": {
                 "phel\\": "tests/phel/"
+            },
+            "export" : {
+                "target-directory" : "src/PhelGenerated",
+                "prefix-namespace" : "PhelGenerated"
             },
             "tests": [
                 "tests/phel/"

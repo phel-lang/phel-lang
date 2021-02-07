@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace PhelTest\Unit\Interop\Generator;
 
 use Phel\Interop\InteropFactory;
+use Phel\Interop\ReadModel\ExportConfig;
 use Phel\Interop\ReadModel\FunctionToExport;
 use Phel\Lang\FnInterface;
 use PHPUnit\Framework\TestCase;
@@ -13,8 +14,7 @@ final class ExportFunctionGeneratorTest extends TestCase
 {
     public function testGenerateWrapper(): void
     {
-        $interopFactory = new InteropFactory('.', 'PhelGenerated');
-        $generator = $interopFactory->createWrapperGenerator('.');
+        $generator = (new InteropFactory())->createWrapperGenerator(new ExportConfig('.', 'PhelGenerated'));
         $phelNs = 'custom_namespace\\file_name_example';
 
         $functionToExport = new FunctionToExport(new class() implements FnInterface {

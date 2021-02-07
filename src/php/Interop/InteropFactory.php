@@ -8,23 +8,15 @@ use Phel\Interop\Generator\Builder\CompiledPhpClassBuilder;
 use Phel\Interop\Generator\Builder\CompiledPhpMethodBuilder;
 use Phel\Interop\Generator\Builder\WrapperRelativeFilenamePathBuilder;
 use Phel\Interop\Generator\WrapperGenerator;
+use Phel\Interop\ReadModel\ExportConfig;
 
 final class InteropFactory implements InteropFactoryInterface
 {
-    private string $targetFolder;
-    private string $prefixNamespace;
-
-    public function __construct(string $targetFolder, string $prefixNamespace)
-    {
-        $this->targetFolder = $targetFolder;
-        $this->prefixNamespace = $prefixNamespace;
-    }
-
-    public function createWrapperGenerator(string $destinationDir): WrapperGenerator
+    public function createWrapperGenerator(ExportConfig $exportConfig): WrapperGenerator
     {
         return new WrapperGenerator(
-            $this->targetFolder,
-            new CompiledPhpClassBuilder($this->prefixNamespace, new CompiledPhpMethodBuilder()),
+            $exportConfig->targetDir(),
+            new CompiledPhpClassBuilder($exportConfig->prefixNamespace(), new CompiledPhpMethodBuilder()),
             new WrapperRelativeFilenamePathBuilder()
         );
     }

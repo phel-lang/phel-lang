@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Phel\Command;
 
+use LogicException;
 use Phel\Command\Export\DirectoryRemover;
 use Phel\Command\Export\DirectoryRemoverInterface;
 use Phel\Command\Export\ExportCommand;
@@ -24,26 +25,32 @@ use Phel\Command\Test\TestCommand;
 use Phel\Compiler\Analyzer\Environment\GlobalEnvironmentInterface;
 use Phel\Compiler\CompilerFactoryInterface;
 use Phel\Formatter\FormatterFactoryInterface;
+use Phel\Interop\Generator\WrapperGeneratorInterface;
 use Phel\Interop\InteropFactoryInterface;
+use Phel\Interop\ReadModel\ExportConfig;
+use Phel\PhelConfigInterface;
 use Phel\Printer\Printer;
 use Phel\Runtime\Exceptions\TextExceptionPrinter;
 use Phel\Runtime\RuntimeInterface;
 
 final class CommandFactory implements CommandFactoryInterface
 {
-    private string $currentDir;
+    private string $projectRootDir;
+    private PhelConfigInterface $phelConfig;
     private CompilerFactoryInterface $compilerFactory;
     private FormatterFactoryInterface $formatterFactory;
     private InteropFactoryInterface $interopFactory;
 
     public function __construct(
-        string $currentDir,
+        string $projectRootDir,
+        PhelConfigInterface $phelConfig,
         CompilerFactoryInterface $compilerFactory,
         FormatterFactoryInterface $formatterFactory,
         InteropFactoryInterface $interopFactory
     ) {
-        $this->currentDir = $currentDir;
+        $this->projectRootDir = $projectRootDir;
         $this->compilerFactory = $compilerFactory;
+        $this->phelConfig = $phelConfig;
         $this->formatterFactory = $formatterFactory;
         $this->interopFactory = $interopFactory;
     }
@@ -53,7 +60,7 @@ final class CommandFactory implements CommandFactoryInterface
         $runtime->loadFileIntoNamespace('user', __DIR__ . '/Repl/startup.phel');
 
         return new ReplCommand(
-            new ReplCommandSystemIo($this->currentDir . '.phel-repl-history'),
+            new ReplCommandSystemIo($this->projectRootDir . '.phel-repl-history'),
             $this->compilerFactory->createEvalCompiler($runtime->getEnv()),
             TextExceptionPrinter::create(),
             ColorStyle::withStyles(),
@@ -72,7 +79,7 @@ final class CommandFactory implements CommandFactoryInterface
     public function createTestCommand(RuntimeInterface $runtime): TestCommand
     {
         return new TestCommand(
-            $this->currentDir,
+            $this->projectRootDir,
             $runtime,
             $this->createNamespaceExtractor($runtime->getEnv()),
             $this->compilerFactory->createEvalCompiler($runtime->getEnv())
@@ -92,7 +99,7 @@ final class CommandFactory implements CommandFactoryInterface
     public function createExportCommand(RuntimeInterface $runtime): ExportCommand
     {
         return new ExportCommand(
-            $this->interopFactory->createWrapperGenerator($this->currentDir . 'src/PhelGenerated'),
+            $this->createWrapperGenerator(),
             $this->createCommandIo(),
             $this->createFunctionsToExportFinder($runtime),
             $this->createDirectoryRemover()
@@ -112,7 +119,7 @@ final class CommandFactory implements CommandFactoryInterface
     private function createFunctionsToExportFinder(RuntimeInterface $runtime): FunctionsToExportFinderInterface
     {
         return new FunctionsToExportFinder(
-            $this->currentDir,
+            $this->projectRootDir,
             $runtime,
             $this->createNamespaceExtractor($runtime->getEnv())
         );
@@ -124,12 +131,32 @@ final class CommandFactory implements CommandFactoryInterface
             $this->compilerFactory->createLexer(),
             $this->compilerFactory->createParser(),
             $this->compilerFactory->createReader($globalEnv),
-            $this->createCommandIo()
+            $this->createCommandIo(),
+            $this->phelConfig->get('tests') ?? []
         );
     }
 
     private function createDirectoryRemover(): DirectoryRemoverInterface
     {
         return new DirectoryRemover();
+    }
+
+    private function createWrapperGenerator(): WrapperGeneratorInterface
+    {
+        $phelConfigExport = $this->phelConfig->get('export');
+
+        if (!isset($phelConfigExport['target-directory'])) {
+            throw new LogicException('"target-directory" phel config missing in composer.json');
+        }
+        if (!isset($phelConfigExport['prefix-namespace'])) {
+            throw new LogicException('"prefix-namespace" phel config missing in composer.json');
+        }
+
+        $exportConfig = new ExportConfig(
+            (string)$phelConfigExport['target-directory'],
+            (string)$phelConfigExport['prefix-namespace']
+        );
+
+        return $this->interopFactory->createWrapperGenerator($exportConfig);
     }
 }

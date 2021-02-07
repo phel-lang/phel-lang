@@ -9,8 +9,8 @@ use Phel\Command\CommandFactory;
 use Phel\Compiler\CompilerFactory;
 use Phel\Formatter\FormatterFactory;
 use Phel\Interop\InteropFactory;
+use Phel\PhelConfig;
 use Phel\PhelFacade;
-use Symfony\Component\Dotenv\Dotenv;
 
 if ($argc <= 1) {
     exit(PhelFacade::HELP_TEXT);
@@ -25,22 +25,17 @@ if (!file_exists($autoloadPath)) {
 
 require $autoloadPath;
 
-if (is_file($currentDir . '/.env')) {
-    (new Dotenv())->load($currentDir . '/.env');
-}
-
 $compilerFactory = new CompilerFactory();
+$phelConfig = PhelConfig::createFromRootDir($currentDir);
 
 $commandFacade = new CommandFacade(
     $currentDir,
     new CommandFactory(
         $currentDir,
+        $phelConfig,
         $compilerFactory,
         new FormatterFactory($compilerFactory),
-        new InteropFactory(
-            $_ENV['EXPORT_TARGET_FOLDER'] ?? 'src/PhelGenerated',
-            $_ENV['EXPORT_PREFIX_NAMESPACE'] ?? 'PhelGenerated'
-        )
+        new InteropFactory()
     )
 );
 

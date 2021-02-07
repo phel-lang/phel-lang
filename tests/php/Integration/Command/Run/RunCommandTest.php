@@ -10,6 +10,7 @@ use Phel\Compiler\Analyzer\Environment\GlobalEnvironment;
 use Phel\Compiler\CompilerFactory;
 use Phel\Formatter\FormatterFactoryInterface;
 use Phel\Interop\InteropFactoryInterface;
+use Phel\PhelConfigInterface;
 use Phel\Runtime\RuntimeFactory;
 use Phel\Runtime\RuntimeInterface;
 use PHPUnit\Framework\TestCase;
@@ -83,6 +84,7 @@ final class RunCommandTest extends TestCase
     {
         return new CommandFactory(
             __DIR__,
+            $this->createStub(PhelConfigInterface::class),
             new CompilerFactory(),
             $this->createStub(FormatterFactoryInterface::class),
             $this->createStub(InteropFactoryInterface::class)

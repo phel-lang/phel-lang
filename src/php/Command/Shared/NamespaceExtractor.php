@@ -17,6 +17,7 @@ use RecursiveDirectoryIterator;
 use RecursiveIteratorIterator;
 use RecursiveRegexIterator;
 use RegexIterator;
+use RuntimeException;
 
 final class NamespaceExtractor implements NamespaceExtractorInterface
 {
@@ -24,17 +25,21 @@ final class NamespaceExtractor implements NamespaceExtractorInterface
     private ParserInterface $parser;
     private ReaderInterface $reader;
     private CommandIoInterface $io;
+    /** @var list<string> */
+    private array $testDirectories;
 
     public function __construct(
         LexerInterface $lexer,
         ParserInterface $parser,
         ReaderInterface $reader,
-        CommandIoInterface $io
+        CommandIoInterface $io,
+        array $testDirectories
     ) {
         $this->lexer = $lexer;
         $this->parser = $parser;
         $this->reader = $reader;
         $this->io = $io;
+        $this->testDirectories = $testDirectories;
     }
 
     /**
@@ -71,13 +76,13 @@ final class NamespaceExtractor implements NamespaceExtractorInterface
         }
     }
 
+    /**
+     * @throws RuntimeException
+     */
     public function getNamespacesFromConfig(string $currentDir): array
     {
-        $config = $this->getPhelConfig($currentDir);
         $namespaces = [];
-
-        $testDirectories = $config['tests'] ?? [];
-        foreach ($testDirectories as $testDir) {
+        foreach ($this->testDirectories as $testDir) {
             $allNamespacesInDir = $this->findAllNs($currentDir . $testDir);
             $namespaces[] = $allNamespacesInDir;
         }
@@ -94,27 +99,5 @@ final class NamespaceExtractor implements NamespaceExtractorInterface
             fn ($file) => $this->getNamespaceFromFile($file[0]),
             iterator_to_array($phelIterator)
         );
-    }
-
-    /**
-     * @throws ExtractorException
-     */
-    private function getPhelConfig(string $currentDirectory): array
-    {
-        $composerContent = file_get_contents($currentDirectory . 'composer.json');
-        if (!$composerContent) {
-            throw ExtractorException::cannotReadComposerJsonInPath($currentDirectory);
-        }
-
-        $composerData = \json_decode($composerContent, true);
-        if (!$composerData) {
-            throw ExtractorException::cannotReadComposerJsonInPath($currentDirectory);
-        }
-
-        if (isset($composerData['extra']['phel'])) {
-            return $composerData['extra']['phel'];
-        }
-
-        throw ExtractorException::noPhelConfigurationFoundInComposerJson();
     }
 }
