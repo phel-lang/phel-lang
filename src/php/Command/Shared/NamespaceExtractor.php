@@ -17,7 +17,6 @@ use RecursiveDirectoryIterator;
 use RecursiveIteratorIterator;
 use RecursiveRegexIterator;
 use RegexIterator;
-use RuntimeException;
 
 final class NamespaceExtractor implements NamespaceExtractorInterface
 {
@@ -25,21 +24,17 @@ final class NamespaceExtractor implements NamespaceExtractorInterface
     private ParserInterface $parser;
     private ReaderInterface $reader;
     private CommandIoInterface $io;
-    /** @var list<string> */
-    private array $testDirectories;
 
     public function __construct(
         LexerInterface $lexer,
         ParserInterface $parser,
         ReaderInterface $reader,
-        CommandIoInterface $io,
-        array $testDirectories
+        CommandIoInterface $io
     ) {
         $this->lexer = $lexer;
         $this->parser = $parser;
         $this->reader = $reader;
         $this->io = $io;
-        $this->testDirectories = $testDirectories;
     }
 
     /**
@@ -77,13 +72,15 @@ final class NamespaceExtractor implements NamespaceExtractorInterface
     }
 
     /**
-     * @throws RuntimeException
+     * @param list<string> $directories
+     *
+     * @throws ExtractorException
      */
-    public function getNamespacesFromConfig(string $projectRootDir): array
+    public function getNamespacesFromDirectories(array $directories, string $projectRootDir): array
     {
         $namespaces = [];
-        foreach ($this->testDirectories as $testDir) {
-            $allNamespacesInDir = $this->findAllNs($projectRootDir . $testDir);
+        foreach ($directories as $directory) {
+            $allNamespacesInDir = $this->findAllNs($projectRootDir . $directory);
             $namespaces[] = $allNamespacesInDir;
         }
 

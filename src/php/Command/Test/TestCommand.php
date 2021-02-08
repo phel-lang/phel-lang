@@ -20,17 +20,21 @@ final class TestCommand
     private RuntimeInterface $runtime;
     private NamespaceExtractorInterface $nsExtractor;
     private EvalCompilerInterface $evalCompiler;
+    /** @var list<string> */
+    private array $defaultDirectories;
 
     public function __construct(
         string $projectRootDir,
         RuntimeInterface $runtime,
         NamespaceExtractorInterface $nsExtractor,
-        EvalCompilerInterface $evalCompiler
+        EvalCompilerInterface $evalCompiler,
+        array $defaultDirectories
     ) {
         $this->projectRootDir = $projectRootDir;
         $this->runtime = $runtime;
         $this->nsExtractor = $nsExtractor;
         $this->evalCompiler = $evalCompiler;
+        $this->defaultDirectories = $defaultDirectories;
     }
 
     /**
@@ -56,7 +60,7 @@ final class TestCommand
     private function getNamespacesFromPaths(array $paths): array
     {
         if (empty($paths)) {
-            return $this->nsExtractor->getNamespacesFromConfig($this->projectRootDir);
+            return $this->nsExtractor->getNamespacesFromDirectories($this->defaultDirectories, $this->projectRootDir);
         }
 
         return array_map(

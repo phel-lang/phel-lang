@@ -26,13 +26,14 @@ Commands:
 
     test <filename> <filename> ...
         Tests the given files. If no filenames are provided all tests in the
-        test directory are executed.
+        "tests" directory are executed.
 
     fmt <filename-or-directory> ...
         Formats the given files.
     
-    export <filename> ...
-        Export all definitions with @{:export true} meta as PHP classes 
+    export
+        Export all definitions with the meta `@{:export true}` as PHP classes.
+        By default, it will search in the `src/` directory; see your "extra.phel.export-directories" composer option.
 
     help
         Show this help message.
@@ -65,7 +66,7 @@ HELP;
                 $this->executeFormatCommand($arguments);
                 break;
            case ExportCommand::COMMAND_NAME:
-                $this->executeExportCommand($arguments);
+                $this->executeExportCommand();
                 break;
             default:
                 throw new InvalidArgumentException(self::HELP_TEXT);
@@ -100,12 +101,8 @@ HELP;
         $this->commandFacade->executeFormatCommand($arguments);
     }
 
-    private function executeExportCommand(array $arguments): void
+    private function executeExportCommand(): void
     {
-        if (empty($arguments)) {
-            throw new InvalidArgumentException('Please, provide a filename or a directory as arguments!');
-        }
-
-        $this->commandFacade->executeExportCommand($arguments);
+        $this->commandFacade->executeExportCommand();
     }
 }

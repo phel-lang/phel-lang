@@ -29,13 +29,10 @@ final class ExportCommand
         $this->directoryRemover = $directoryRemover;
     }
 
-    /**
-     * @param list<string> $paths
-     */
-    public function run(array $paths): void
+    public function run(): void
     {
         $wrappers = [];
-        foreach ($this->functionsToExportFinder->findInPaths($paths) as $ns => $functionsToExport) {
+        foreach ($this->functionsToExportFinder->findInPaths() as $ns => $functionsToExport) {
             $wrappers[] = $this->wrapperGenerator->generateCompiledPhp($ns, ...$functionsToExport);
         }
 

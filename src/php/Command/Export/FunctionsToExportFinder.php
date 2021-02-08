@@ -5,6 +5,9 @@ declare(strict_types=1);
 namespace Phel\Command\Export;
 
 use Phel\Command\Shared\NamespaceExtractorInterface;
+use Phel\Compiler\Emitter\Exceptions\CompiledCodeIsMalformedException;
+use Phel\Compiler\Emitter\Exceptions\FileException;
+use Phel\Compiler\Exceptions\CompilerException;
 use Phel\Interop\ReadModel\FunctionToExport;
 use Phel\Lang\Keyword;
 use Phel\Lang\Table;
@@ -15,32 +18,40 @@ final class FunctionsToExportFinder implements FunctionsToExportFinderInterface
     private string $projectRootDir;
     private RuntimeInterface $runtime;
     private NamespaceExtractorInterface $nsExtractor;
+    /** @var list<string> */
+    private array $defaultDirectories;
 
     public function __construct(
         string $projectRootDir,
         RuntimeInterface $runtime,
-        NamespaceExtractorInterface $nsExtractor
+        NamespaceExtractorInterface $nsExtractor,
+        array $defaultDirectories
     ) {
         $this->projectRootDir = $projectRootDir;
         $this->runtime = $runtime;
         $this->nsExtractor = $nsExtractor;
+        $this->defaultDirectories = $defaultDirectories;
     }
 
     /**
-     * @param list<string> $paths
-     *
      * @return array<string, list<FunctionToExport>>
      */
-    public function findInPaths(array $paths): array
+    public function findInPaths(): array
     {
-        $this->loadAllNsFromPaths($paths);
+        $this->loadAllNsFromPaths();
 
         return $this->findAllFunctionsToExport();
     }
 
-    private function loadAllNsFromPaths(array $paths): void
+    /**
+     * @throws CompilerException
+     * @throws CompiledCodeIsMalformedException
+     * @throws FileException
+     */
+    private function loadAllNsFromPaths(): void
     {
-        $namespaces = $this->getNamespacesFromPaths($paths);
+        $namespaces = $this->nsExtractor
+            ->getNamespacesFromDirectories($this->defaultDirectories, $this->projectRootDir);
 
         foreach ($namespaces as $namespace) {
             $this->runtime->loadNs($namespace);
@@ -64,18 +75,6 @@ final class FunctionsToExportFinder implements FunctionsToExportFinderInterface
         }
 
         return $functionsToExport;
-    }
-
-    private function getNamespacesFromPaths(array $paths): array
-    {
-        if (empty($paths)) {
-            return $this->nsExtractor->getNamespacesFromConfig($this->projectRootDir);
-        }
-
-        return array_map(
-            fn (string $filename): string => $this->nsExtractor->getNamespaceFromFile($filename),
-            $paths
-        );
     }
 
     private function isExport(string $ns, string $fnName): bool

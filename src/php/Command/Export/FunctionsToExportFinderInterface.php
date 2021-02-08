@@ -9,9 +9,7 @@ use Phel\Interop\ReadModel\FunctionToExport;
 interface FunctionsToExportFinderInterface
 {
     /**
-     * @param list<string> $paths
-     *
      * @return array<string, list<FunctionToExport>>
      */
-    public function findInPaths(array $paths): array;
+    public function findInPaths(): array;
 }

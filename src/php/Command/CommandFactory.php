@@ -82,7 +82,8 @@ final class CommandFactory implements CommandFactoryInterface
             $this->projectRootDir,
             $runtime,
             $this->createNamespaceExtractor($runtime->getEnv()),
-            $this->compilerFactory->createEvalCompiler($runtime->getEnv())
+            $this->compilerFactory->createEvalCompiler($runtime->getEnv()),
+            $this->phelConfig->get('tests') ?? []
         );
     }
 
@@ -121,7 +122,8 @@ final class CommandFactory implements CommandFactoryInterface
         return new FunctionsToExportFinder(
             $this->projectRootDir,
             $runtime,
-            $this->createNamespaceExtractor($runtime->getEnv())
+            $this->createNamespaceExtractor($runtime->getEnv()),
+            $this->phelConfig->get('export-directories') ?? []
         );
     }
 
@@ -131,8 +133,7 @@ final class CommandFactory implements CommandFactoryInterface
             $this->compilerFactory->createLexer(),
             $this->compilerFactory->createParser(),
             $this->compilerFactory->createReader($globalEnv),
-            $this->createCommandIo(),
-            $this->phelConfig->get('tests') ?? []
+            $this->createCommandIo()
         );
     }
 
@@ -143,16 +144,14 @@ final class CommandFactory implements CommandFactoryInterface
 
     private function createWrapperGenerator(): WrapperGeneratorInterface
     {
-        $phelConfigExport = $this->phelConfig->get('export');
+        $targetDirectory =(string) $this->phelConfig->get('export-target-directory');
+        $namespacePrefix =(string) $this->phelConfig->get('export-namespace-prefix');
 
-        if (!isset($phelConfigExport['target-directory'], $phelConfigExport['namespace-prefix'])) {
-            throw new LogicException('"target-directory" and "namespace-prefix" phel config are mandatory inside the extra.phel.export option (in composer.json)');
+        if (empty($targetDirectory) || empty($namespacePrefix)) {
+            throw new LogicException('"export-target-directory" and "export-namespace-prefix" phel config are mandatory inside the extra.phel option (in composer.json)');
         }
 
-        $exportConfig = new ExportConfig(
-            (string)$phelConfigExport['target-directory'],
-            (string)$phelConfigExport['namespace-prefix']
-        );
+        $exportConfig = new ExportConfig($targetDirectory, $namespacePrefix);
 
         return $this->interopFactory->createWrapperGenerator($exportConfig);
     }

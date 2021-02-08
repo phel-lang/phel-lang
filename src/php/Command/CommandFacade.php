@@ -77,14 +77,11 @@ final class CommandFacade implements CommandFacadeInterface
             ->run($paths);
     }
 
-    /**
-     * @param list<string> $paths
-     */
-    public function executeExportCommand(array $paths): void
+    public function executeExportCommand(): void
     {
         $this->commandFactory
             ->createExportCommand($this->loadVendorPhelRuntime())
-            ->run($paths);
+            ->run();
     }
 
     private function loadVendorPhelRuntime(): RuntimeInterface
