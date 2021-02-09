@@ -6,11 +6,11 @@ namespace Phel;
 
 use RuntimeException;
 
-final class PhelConfig implements PhelConfigInterface
+abstract class AbstractPhelConfig
 {
     private array $config;
 
-    public static function createFromRootDir(string $rootDir): self
+    public function __construct(string $rootDir)
     {
         $composerContent = file_get_contents($rootDir . 'composer.json');
         if (!$composerContent) {
@@ -26,12 +26,7 @@ final class PhelConfig implements PhelConfigInterface
             throw new RuntimeException('No Phel configuration found in composer.json');
         }
 
-        return new self($composerData['extra']['phel']);
-    }
-
-    private function __construct(array $config)
-    {
-        $this->config = $config;
+        $this->config = $composerData['extra']['phel'];
     }
 
     /**

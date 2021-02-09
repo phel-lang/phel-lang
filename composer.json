@@ -67,9 +67,13 @@
             "tests": [
                 "tests/phel/"
             ],
-            "export-directories": ["src/phel"],
-            "export-target-directory" : "src/PhelGenerated",
-            "export-namespace-prefix" : "PhelGenerated"
+            "export": {
+                "directories": [
+                    "src/phel"
+                ],
+                "target-directory": "src/PhelGenerated",
+                "namespace-prefix": "PhelGenerated"
+            }
         }
     }
 }

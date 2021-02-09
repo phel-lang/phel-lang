@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace Phel\Command;
 
-use LogicException;
 use Phel\Command\Export\DirectoryRemover;
 use Phel\Command\Export\DirectoryRemoverInterface;
 use Phel\Command\Export\ExportCommand;
@@ -27,8 +26,6 @@ use Phel\Compiler\CompilerFactoryInterface;
 use Phel\Formatter\FormatterFactoryInterface;
 use Phel\Interop\Generator\WrapperGeneratorInterface;
 use Phel\Interop\InteropFactoryInterface;
-use Phel\Interop\ReadModel\ExportConfig;
-use Phel\PhelConfigInterface;
 use Phel\Printer\Printer;
 use Phel\Runtime\Exceptions\TextExceptionPrinter;
 use Phel\Runtime\RuntimeInterface;
@@ -36,21 +33,21 @@ use Phel\Runtime\RuntimeInterface;
 final class CommandFactory implements CommandFactoryInterface
 {
     private string $projectRootDir;
-    private PhelConfigInterface $phelConfig;
+    private CommandConfigInterface $commandConfig;
     private CompilerFactoryInterface $compilerFactory;
     private FormatterFactoryInterface $formatterFactory;
     private InteropFactoryInterface $interopFactory;
 
     public function __construct(
         string $projectRootDir,
-        PhelConfigInterface $phelConfig,
+        CommandConfigInterface $commandConfig,
         CompilerFactoryInterface $compilerFactory,
         FormatterFactoryInterface $formatterFactory,
         InteropFactoryInterface $interopFactory
     ) {
         $this->projectRootDir = $projectRootDir;
+        $this->commandConfig = $commandConfig;
         $this->compilerFactory = $compilerFactory;
-        $this->phelConfig = $phelConfig;
         $this->formatterFactory = $formatterFactory;
         $this->interopFactory = $interopFactory;
     }
@@ -83,7 +80,7 @@ final class CommandFactory implements CommandFactoryInterface
             $runtime,
             $this->createNamespaceExtractor($runtime->getEnv()),
             $this->compilerFactory->createEvalCompiler($runtime->getEnv()),
-            $this->phelConfig->get('tests') ?? []
+            $this->commandConfig->getDefaultTestDirectories()
         );
     }
 
@@ -123,7 +120,7 @@ final class CommandFactory implements CommandFactoryInterface
             $this->projectRootDir,
             $runtime,
             $this->createNamespaceExtractor($runtime->getEnv()),
-            $this->phelConfig->get('export-directories') ?? []
+            $this->commandConfig->getExportDirectories()
         );
     }
 
@@ -144,15 +141,6 @@ final class CommandFactory implements CommandFactoryInterface
 
     private function createWrapperGenerator(): WrapperGeneratorInterface
     {
-        $targetDirectory =(string) $this->phelConfig->get('export-target-directory');
-        $namespacePrefix =(string) $this->phelConfig->get('export-namespace-prefix');
-
-        if (empty($targetDirectory) || empty($namespacePrefix)) {
-            throw new LogicException('"export-target-directory" and "export-namespace-prefix" phel config are mandatory inside the extra.phel option (in composer.json)');
-        }
-
-        $exportConfig = new ExportConfig($targetDirectory, $namespacePrefix);
-
-        return $this->interopFactory->createWrapperGenerator($exportConfig);
+        return $this->interopFactory->createWrapperGenerator();
     }
 }

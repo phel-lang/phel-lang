@@ -4,12 +4,12 @@
 $slash = DIRECTORY_SEPARATOR;
 require_once __DIR__ . "{$slash}src{$slash}php{$slash}PhelFacade.php";
 
+use Phel\Command\CommandConfig;
 use Phel\Command\CommandFacade;
 use Phel\Command\CommandFactory;
 use Phel\Compiler\CompilerFactory;
 use Phel\Formatter\FormatterFactory;
-use Phel\Interop\InteropFactory;
-use Phel\PhelConfig;
+use Phel\Interop\InteropConfig;use Phel\Interop\InteropFactory;
 use Phel\PhelFacade;
 
 if ($argc <= 1) {
@@ -31,10 +31,10 @@ $commandFacade = new CommandFacade(
     $projectRootDir,
     new CommandFactory(
         $projectRootDir,
-        PhelConfig::createFromRootDir($projectRootDir),
+        new CommandConfig($projectRootDir),
         $compilerFactory,
         new FormatterFactory($compilerFactory),
-        new InteropFactory()
+        new InteropFactory(new InteropConfig($projectRootDir))
     )
 );
 

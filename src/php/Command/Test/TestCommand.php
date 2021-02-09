@@ -60,7 +60,10 @@ final class TestCommand
     private function getNamespacesFromPaths(array $paths): array
     {
         if (empty($paths)) {
-            return $this->nsExtractor->getNamespacesFromDirectories($this->defaultDirectories, $this->projectRootDir);
+            return $this->nsExtractor->getNamespacesFromDirectories(
+                $this->defaultDirectories,
+                $this->projectRootDir
+            );
         }
 
         return array_map(

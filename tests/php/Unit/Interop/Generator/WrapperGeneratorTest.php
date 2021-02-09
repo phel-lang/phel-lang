@@ -9,7 +9,6 @@ use Phel\Interop\Generator\Builder\CompiledPhpMethodBuilder;
 use Phel\Interop\Generator\Builder\WrapperRelativeFilenamePathBuilder;
 use Phel\Interop\Generator\WrapperGenerator;
 use Phel\Interop\Generator\WrapperGeneratorInterface;
-use Phel\Interop\ReadModel\ExportConfig;
 use Phel\Interop\ReadModel\FunctionToExport;
 use Phel\Lang\FnInterface;
 use PHPUnit\Framework\TestCase;
@@ -65,11 +64,12 @@ TXT;
 
     private function createWrapperGenerator(): WrapperGeneratorInterface
     {
-        $exportConfig = new ExportConfig('.', 'PhelGenerated');
-
         return new WrapperGenerator(
-            $exportConfig->targetDir(),
-            new CompiledPhpClassBuilder($exportConfig->prefixNamespace(), new CompiledPhpMethodBuilder()),
+            $destinationDir = '.',
+            new CompiledPhpClassBuilder(
+                $prefixNamespace = 'PhelGenerated',
+                new CompiledPhpMethodBuilder()
+            ),
             new WrapperRelativeFilenamePathBuilder()
         );
     }
