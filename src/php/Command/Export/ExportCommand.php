@@ -33,7 +33,7 @@ final class ExportCommand
     {
         $wrappers = [];
         foreach ($this->functionsToExportFinder->findInPaths() as $ns => $functionsToExport) {
-            $wrappers[] = $this->wrapperGenerator->generateCompiledPhp($ns, ...$functionsToExport);
+            $wrappers[] = $this->wrapperGenerator->generateCompiledPhp($ns, $functionsToExport);
         }
 
         if (empty($wrappers)) {
@@ -41,10 +41,13 @@ final class ExportCommand
             return;
         }
 
-        $this->writeGeneratedWrappers(...$wrappers);
+        $this->writeGeneratedWrappers($wrappers);
     }
 
-    private function writeGeneratedWrappers(Wrapper ...$wrappers): void
+    /**
+     * @param list<Wrapper> $wrappers
+     */
+    private function writeGeneratedWrappers(array $wrappers): void
     {
         $this->io->writeln('Exported namespaces:');
 

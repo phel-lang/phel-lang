@@ -21,9 +21,12 @@ These are all Phel specific configuration options available.
         "tests": [
             "tests/"
         ],
-        "export" : {
-            "target-directory" : "src/PhelGenerated",
-            "namespace-prefix" : "PhelGenerated"
+        "export": {
+            "directories": [
+                "src/phel"
+            ],
+            "namespace-prefix": "PhelGenerated",
+            "target-directory": "src/PhelGenerated"
         }
     }
 }
@@ -67,8 +70,11 @@ This configuration entry defines a list of folders where the test files of a pro
 
 To be able to use the export command you have to define these two options:
 
-- "target-directory": the root directory where the PHP wrappers will be store.
+- "directories" : the root directory to look up for functions to export.
 - "namespace-prefix" : the namespace prefix for all the PHP wrappers.
+- "target-directory": the root directory where the PHP wrappers will be store.
+
+Check the [Interop chapter](../php-interop/#calling-phel-functions-from-php) to get more information about the export command.
 
 ## Phel Composer Plugin
 

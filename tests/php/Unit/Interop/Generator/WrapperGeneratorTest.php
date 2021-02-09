@@ -29,7 +29,7 @@ final class WrapperGeneratorTest extends TestCase
             }
         });
 
-        $wrapper = $generator->generateCompiledPhp($phelNs, $functionToExport);
+        $wrapper = $generator->generateCompiledPhp($phelNs, [$functionToExport]);
 
         self::assertSame('.', $wrapper->destinationDir());
         self::assertSame('./CustomNamespace', $wrapper->dir());

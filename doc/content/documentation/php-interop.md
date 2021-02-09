@@ -118,14 +118,20 @@ In Phel you can also use PHP Magic Methods `__DIR__` and `__FILE__`. These resol
 
 ## Calling Phel functions from PHP
 
+There are two possible ways to call wrap around your phel functions in PHP classes:
+
+### Manually
 You can define your own classes using the `Phel\Runtime\RuntimeFactory\PhelCallerTrait`.
-Then you will be able to call any phel function by using the:
+Then you will be able to call any phel function by using the `callPhel` method:
 ```php
-function callPhel(string $namespace, string $definitionName, ...$arguments): mixed {/*...*/}
+function callPhel(string $namespace, string $definitionName, ...$arguments): mixed
 ```
 
-Or you can use the `phel export <phel-path>` command to generate those wrapper classes for you.
-To let the command known which functions from a given file you want to export you should add
+### Using the `export` command
+
+You can use the `phel export` command to generate those wrapper classes for you.
+
+To let the command known which functions you want to export you should add
 the meta keyword "export" to the function like: `@{:export true}`
 ```clojure
 (defn adder
@@ -134,5 +140,15 @@ the meta keyword "export" to the function like: `@{:export true}`
   (+ a b))
 ```
 
-In addition, it is important to add these two extra phel configuration options to your composer:
-"target-directory", "namespace-prefix". You can read more about them in the [configuration section](../configuration/#export).
+In addition, it is important to add this "extra phel configuration" options to your composer:
+```json
+"export": {
+    "directories": [
+        "src/phel"
+    ],
+    "namespace-prefix": "PhelGenerated",
+    "target-directory": "src/PhelGenerated"
+}
+```
+
+You can read more about them in the [configuration section](../configuration/#export).

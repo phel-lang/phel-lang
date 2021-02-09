@@ -9,5 +9,8 @@ use Phel\Interop\ReadModel\Wrapper;
 
 interface WrapperGeneratorInterface
 {
-    public function generateCompiledPhp(string $phelNs, FunctionToExport ...$functionsToExport): Wrapper;
+    /**
+     * @param list<FunctionToExport> $functionsToExport
+     */
+    public function generateCompiledPhp(string $phelNs, array $functionsToExport): Wrapper;
 }

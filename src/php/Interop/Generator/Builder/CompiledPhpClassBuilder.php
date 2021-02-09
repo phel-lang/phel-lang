@@ -17,7 +17,10 @@ final class CompiledPhpClassBuilder
         $this->methodBuilder = $methodBuilder;
     }
 
-    public function build(string $phelNs, FunctionToExport ...$functionsToExport): string
+    /**
+     * @param list<FunctionToExport> $functionsToExport
+     */
+    public function build(string $phelNs, array $functionsToExport): string
     {
         return str_replace([
             '$NAMESPACE$',
@@ -26,7 +29,7 @@ final class CompiledPhpClassBuilder
         ], [
             $this->buildNamespace($phelNs),
             $this->buildClassName($phelNs),
-            $this->buildCompiledPhpMethods($phelNs, ...$functionsToExport),
+            $this->buildCompiledPhpMethods($phelNs, $functionsToExport),
         ], $this->classTemplate());
     }
 
@@ -47,7 +50,10 @@ final class CompiledPhpClassBuilder
         return $this->underscoreToPascalCase($className);
     }
 
-    private function buildCompiledPhpMethods(string $phelNs, FunctionToExport ...$functionsToExport): string
+    /**
+     * @param list<FunctionToExport> $functionsToExport
+     */
+    private function buildCompiledPhpMethods(string $phelNs, array $functionsToExport): string
     {
         $compiledMethods = '';
         foreach ($functionsToExport as $functionToExport) {

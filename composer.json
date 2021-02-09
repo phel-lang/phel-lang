@@ -71,8 +71,8 @@
                 "directories": [
                     "src/phel"
                 ],
-                "target-directory": "src/PhelGenerated",
-                "namespace-prefix": "PhelGenerated"
+                "namespace-prefix": "PhelGenerated",
+                "target-directory": "src/PhelGenerated"
             }
         }
     }
