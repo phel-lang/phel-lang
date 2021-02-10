@@ -64,9 +64,9 @@ This configuration entry defines a list of folders where the test files of a pro
 
 These configuration options are used for the Phel export command that is described in the [PHP Interop](php-interop/#calling-phel-functions-from-php) chapter. Currently, the export command requires three options:
 
-- `directories`: Defines a list of directories in wihch the export command should search for export functions.
+- `directories`: Defines a list of directories in which the export command should search for export functions.
 - `namespace-prefix`: Defines a namespace prefix for all generated PHP classes.
-- `target-directory`: Defines the directory where the generetade PHP classes are stored.
+- `target-directory`: Defines the directory where the generated PHP classes are stored.
 
 ## Phel Composer Plugin
 

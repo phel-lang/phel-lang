@@ -139,9 +139,9 @@ class MyExistingClass {
 
 ### Using the `export` command
 
-Alternativly, the `phel export` command can be used. This command will generate a wrapper class for all Phel functions that are marked as *export*.
+Alternatively, the `phel export` command can be used. This command will generate a wrapper class for all Phel functions that are marked as *export*.
 
-Before using the `export` command the reqiured configuration options need to be added to `composer.json`:
+Before using the `export` command the required configuration options need to be added to `composer.json`:
 
 ```json
 {
