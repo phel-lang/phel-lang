@@ -118,37 +118,52 @@ In Phel you can also use PHP Magic Methods `__DIR__` and `__FILE__`. These resol
 
 ## Calling Phel functions from PHP
 
-There are two possible ways to call wrap around your phel functions in PHP classes:
+Phel also provides a way to let you call Phel function from PHP. This is useful for existing PHP application that want to integrade Phel. Currently there are two way to do this.
 
 ### Manually
-You can define your own classes using the `Phel\Runtime\RuntimeFactory\PhelCallerTrait`.
-Then you will be able to call any phel function by using the `callPhel` method:
+
+The `PhelCallerTrait` can be used to call any Phel function from an existing PHP class.
+Simply inject the trait in the class and call the `callPhel` function.
+
 ```php
-function callPhel(string $namespace, string $definitionName, ...$arguments): mixed
+use Phel\Runtime\RuntimeFactory\PhelCallerTrait;
+
+class MyExistingClass {
+  use PhelCallerTrait;
+
+  public function myExistingMethod(...$arguments) {
+    return $this->callPhel('my\phel\namespace', 'phel-function-name', ...$arguments);
+  }
+}
 ```
 
 ### Using the `export` command
 
-You can use the `phel export` command to generate those wrapper classes for you.
+Alternativly, the `phel export` command can be used. This command will generate a wrapper class for all Phel functions that are marked as *export*.
 
-To let the command known which functions you want to export you should add
-the meta keyword "export" to the function like: `@{:export true}`
-```clojure
-(defn adder
-  @{:export true}
-  [a b]
-  (+ a b))
-```
+Before using the `export` command the reqiured configuration options need to be added to `composer.json`:
 
-In addition, it is important to add this "extra phel configuration" options to your composer:
 ```json
-"export": {
+{
+  "export": {
     "directories": [
         "src/phel"
     ],
     "namespace-prefix": "PhelGenerated",
     "target-directory": "src/PhelGenerated"
+  }
 }
 ```
 
-You can read more about them in the [configuration section](../configuration/#export).
+A detailed description of the options can be found in the [Configuration](/configuration/#export) chapter.
+
+To mark a function as exported the following meta data needs to be added to the function:
+
+```phel
+(defn my-function
+  @{:export true}
+  [a b]
+  (+ a b))
+```
+
+Now the `phel export` command will generate a PHP wrapper class in `src/PhelGenerated`.

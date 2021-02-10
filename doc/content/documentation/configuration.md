@@ -32,13 +32,7 @@ These are all Phel specific configuration options available.
 }
 ```
 
-Until Phel is officially released, setting `minimum-stability` to `dev` in `composer.json` is required.
-
-```json
-"minimum-stability": "dev"
-```
-
-## Options
+## Options in detail
 
 This chapter contains all configuration options explained in detail.
 
@@ -68,13 +62,11 @@ This configuration entry defines a list of folders where the test files of a pro
 
 ### `export`
 
-To be able to use the export command you have to define these two options:
+These configuration options are used for the Phel export command that is described in the [PHP Interop](php-interop/#calling-phel-functions-from-php) chapter. Currently, the export command requires three options:
 
-- "directories" : the root directory to look up for functions to export.
-- "namespace-prefix" : the namespace prefix for all the PHP wrappers.
-- "target-directory": the root directory where the PHP wrappers will be store.
-
-Check the [Interop chapter](../php-interop/#calling-phel-functions-from-php) to get more information about the export command.
+- `directories`: Defines a list of directories in wihch the export command should search for export functions.
+- `namespace-prefix`: Defines a namespace prefix for all generated PHP classes.
+- `target-directory`: Defines the directory where the generetade PHP classes are stored.
 
 ## Phel Composer Plugin
 
