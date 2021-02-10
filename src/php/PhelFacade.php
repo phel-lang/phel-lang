@@ -30,10 +30,11 @@ Commands:
 
     fmt <filename-or-directory> ...
         Formats the given files.
-    
+
     export
-        Export all definitions with the meta `@{:export true}` as PHP classes.
-        By default, it will search in the `src/` directory; see your "extra.phel.export-directories" composer option.
+        Export all definitions with the meta data `@{:export true}` as PHP classes.
+        By default, it will search in the `src/` directory. All configuration
+        options need to be set in composer.json.
 
     help
         Show this help message.

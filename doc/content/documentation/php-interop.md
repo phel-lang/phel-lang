@@ -126,7 +126,7 @@ The `PhelCallerTrait` can be used to call any Phel function from an existing PHP
 Simply inject the trait in the class and call the `callPhel` function.
 
 ```php
-use Phel\Runtime\RuntimeFactory\PhelCallerTrait;
+use Phel\Interop\PhelCallerTrait;
 
 class MyExistingClass {
   use PhelCallerTrait;
