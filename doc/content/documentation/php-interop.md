@@ -118,7 +118,14 @@ In Phel you can also use PHP Magic Methods `__DIR__` and `__FILE__`. These resol
 
 ## Calling Phel functions from PHP
 
-Phel also provides a way to let you call Phel function from PHP. This is useful for existing PHP application that want to integrade Phel. Currently there are two way to do this.
+Phel also provides a way to let you call Phel function from PHP. This is useful for existing PHP application that want to integrade Phel. Therefore, you have to load the Phel Runtime at the beginning of your script. This can be done directly after the `autoload.php` file was loaded.
+
+```php
+require_once 'vendors/autoload.php';
+require_once 'vendors/PhelRuntime.php';
+```
+
+Phel provide two ways to call Phel functions, manually or by using the `export` command.
 
 ### Manually
 
@@ -166,4 +173,4 @@ To mark a function as exported the following meta data needs to be added to the 
   (+ a b))
 ```
 
-Now the `phel export` command will generate a PHP wrapper class in `src/PhelGenerated`.
+Now the `phel export` command will generate a PHP wrapper class in `src/PhelGenerated`. This class can then be used in the PHP application to call Phel functions.
