@@ -35,11 +35,16 @@ final class CompiledPhpClassBuilder
 
     private function buildNamespace(string $phelNs): string
     {
-        $words = explode('\\', $phelNs);
-        array_pop($words);
-        $pascalWords = array_map(fn (string $w) =>  $this->underscoreToPascalCase($w), $words);
+        $phelNsWords = explode('\\', $phelNs);
+        array_pop($phelNsWords);
+        $pascalWords = array_map(fn (string $w) => $this->underscoreToPascalCase($w), $phelNsWords);
+        $normalizedNamespace = implode('\\', $pascalWords);
 
-        return $this->prefixNamespace . '\\' . implode('\\', $pascalWords);
+        if (empty($this->prefixNamespace)) {
+            return $normalizedNamespace;
+        }
+
+        return $this->prefixNamespace . '\\' . $normalizedNamespace;
     }
 
     private function buildClassName(string $phelNs): string
