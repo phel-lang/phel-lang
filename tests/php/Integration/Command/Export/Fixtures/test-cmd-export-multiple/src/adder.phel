@@ -1,0 +1,11 @@
+(ns test-cmd-export-multiple\adder)
+
+(defn adder-1
+  @{:export true}
+  [a b]
+  (php/+ a b))
+
+(defn adder-2
+  @{:export true}
+  [a b]
+  (php/+ a b))
