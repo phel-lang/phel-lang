@@ -21,7 +21,6 @@ final class InteropFactory implements InteropFactoryInterface
     public function createWrapperGenerator(): WrapperGenerator
     {
         return new WrapperGenerator(
-            $this->config->targetDir(),
             new CompiledPhpClassBuilder($this->config->prefixNamespace(), new CompiledPhpMethodBuilder()),
             new WrapperRelativeFilenamePathBuilder()
         );

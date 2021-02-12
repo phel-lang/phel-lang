@@ -11,16 +11,13 @@ use Phel\Interop\ReadModel\Wrapper;
 
 final class WrapperGenerator implements WrapperGeneratorInterface
 {
-    private string $destinationDir;
     private CompiledPhpClassBuilder $classBuilder;
     private WrapperRelativeFilenamePathBuilder $relativeFilenamePathBuilder;
 
     public function __construct(
-        string $destinationDir,
         CompiledPhpClassBuilder $classBuilder,
         WrapperRelativeFilenamePathBuilder $relativeFilenamePathBuilder
     ) {
-        $this->destinationDir = $destinationDir;
         $this->classBuilder = $classBuilder;
         $this->relativeFilenamePathBuilder = $relativeFilenamePathBuilder;
     }
@@ -33,6 +30,6 @@ final class WrapperGenerator implements WrapperGeneratorInterface
         $relativeFilenamePath = $this->relativeFilenamePathBuilder->build($phelNs);
         $compiledPhpClass = $this->classBuilder->build($phelNs, $functionsToExport);
 
-        return new Wrapper($this->destinationDir, $relativeFilenamePath, $compiledPhpClass);
+        return new Wrapper($relativeFilenamePath, $compiledPhpClass);
     }
 }

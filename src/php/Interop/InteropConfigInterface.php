@@ -6,7 +6,5 @@ namespace Phel\Interop;
 
 interface InteropConfigInterface
 {
-    public function targetDir(): string;
-
     public function prefixNamespace(): string;
 }

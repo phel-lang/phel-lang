@@ -100,7 +100,8 @@ final class CommandFactory implements CommandFactoryInterface
             $this->createWrapperGenerator(),
             $this->createCommandIo(),
             $this->createFunctionsToExportFinder($runtime),
-            $this->createDirectoryRemover()
+            $this->createDirectoryRemover(),
+            $this->commandConfig->getExportTargetDirectory()
         );
     }
 

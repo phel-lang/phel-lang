@@ -31,9 +31,7 @@ final class WrapperGeneratorTest extends TestCase
 
         $wrapper = $generator->generateCompiledPhp($phelNs, [$functionToExport]);
 
-        self::assertSame('.', $wrapper->destinationDir());
-        self::assertSame('./CustomNamespace', $wrapper->dir());
-        self::assertSame('./CustomNamespace/FileNameExample.php', $wrapper->absolutePath());
+        self::assertSame('CustomNamespace/FileNameExample.php', $wrapper->relativeFilenamePath());
 
         $expectedCompiledPhp = <<<'TXT'
 <?php declare(strict_types=1);
@@ -65,7 +63,6 @@ TXT;
     private function createWrapperGenerator(): WrapperGeneratorInterface
     {
         return new WrapperGenerator(
-            $destinationDir = '.',
             new CompiledPhpClassBuilder(
                 $prefixNamespace = 'PhelGenerated',
                 new CompiledPhpMethodBuilder()

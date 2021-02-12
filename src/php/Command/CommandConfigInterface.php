@@ -15,4 +15,6 @@ interface CommandConfigInterface
      * @return list<string>
      */
     public function getDefaultTestDirectories(): array;
+
+    public function getExportTargetDirectory(): string;
 }

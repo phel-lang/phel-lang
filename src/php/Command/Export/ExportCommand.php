@@ -16,17 +16,20 @@ final class ExportCommand
     private CommandIoInterface $io;
     private FunctionsToExportFinderInterface $functionsToExportFinder;
     private DirectoryRemoverInterface $directoryRemover;
+    private string $destinationDir;
 
     public function __construct(
         WrapperGeneratorInterface $wrapperGenerator,
         CommandIoInterface $io,
         FunctionsToExportFinderInterface $functionsToExportFinder,
-        DirectoryRemoverInterface $directoryRemover
+        DirectoryRemoverInterface $directoryRemover,
+        string $destinationDir
     ) {
         $this->wrapperGenerator = $wrapperGenerator;
         $this->io = $io;
         $this->functionsToExportFinder = $functionsToExportFinder;
         $this->directoryRemover = $directoryRemover;
+        $this->destinationDir = $destinationDir;
     }
 
     public function run(): void
@@ -35,6 +38,8 @@ final class ExportCommand
         foreach ($this->functionsToExportFinder->findInPaths() as $ns => $functionsToExport) {
             $wrappers[] = $this->wrapperGenerator->generateCompiledPhp($ns, $functionsToExport);
         }
+
+        $this->directoryRemover->removeDir($this->destinationDir);
 
         if (empty($wrappers)) {
             $this->io->writeln('No functions were found to be exported.');
@@ -51,16 +56,16 @@ final class ExportCommand
     {
         $this->io->writeln('Exported namespaces:');
 
-        $first = reset($wrappers);
-        $this->directoryRemover->removeDir($first->destinationDir());
-
         foreach ($wrappers as $i => $wrapper) {
-            if (!is_dir($wrapper->dir())) {
-                mkdir($wrapper->dir(), 0777, true);
+            $wrapperPath = $this->destinationDir . '/' . $wrapper->relativeFilenamePath();
+            $dir = dirname($wrapperPath);
+
+            if (!is_dir($dir)) {
+                mkdir($dir, 0777, true);
             }
 
-            file_put_contents($wrapper->absolutePath(), $wrapper->compiledPhp());
-            $this->io->writeln(sprintf('  %d) %s', $i + 1, $wrapper->absolutePath()));
+            file_put_contents($wrapperPath, $wrapper->compiledPhp());
+            $this->io->writeln(sprintf('  %d) %s', $i + 1, $wrapper->relativeFilenamePath()));
         }
     }
 }
