@@ -12,11 +12,11 @@ final class ExampleWrapper
 
     public function isOdd(int $number): bool
     {
-        return self::callPhel('phel\\core', 'odd?', $number);
+        return $this->callPhel('phel\\core', 'odd?', $number);
     }
 
     public function printStr(string ...$strings): string
     {
-        return self::callPhel('phel\\core', 'print-str', ...$strings);
+        return $this->callPhel('phel\\core', 'print-str', ...$strings);
     }
 }

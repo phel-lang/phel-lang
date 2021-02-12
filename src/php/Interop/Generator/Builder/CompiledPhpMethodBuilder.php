@@ -72,9 +72,9 @@ final class CompiledPhpMethodBuilder
     /**
      * @return mixed
      */
-    public static function $METHOD_NAME$($ARGS$)
+    public function $METHOD_NAME$($ARGS$)
     {
-        return self::callPhel('$PHEL_NAMESPACE$', '$PHEL_FUNCTION_NAME$', $ARGS$);
+        return $this->callPhel('$PHEL_NAMESPACE$', '$PHEL_FUNCTION_NAME$', $ARGS$);
     }
 
 TXT;
