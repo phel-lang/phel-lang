@@ -12,8 +12,6 @@ use Phel\Formatter\Rules\RuleInterface;
 
 final class Formatter implements FormatterInterface
 {
-    public const DEFAULT_SOURCE = 'string';
-
     private LexerInterface $lexer;
     private ParserInterface $parser;
     /** @var RuleInterface[] */
@@ -35,19 +33,7 @@ final class Formatter implements FormatterInterface
     /**
      * @throws AbstractParserException
      */
-    public function formatFile(string $filename): bool
-    {
-        $code = file_get_contents($filename);
-        $formattedCode = $this->formatString($code, $filename);
-        file_put_contents($filename, $formattedCode);
-
-        return (bool)strcmp($formattedCode, $code);
-    }
-
-    /**
-     * @throws AbstractParserException
-     */
-    private function formatString(string $string, string $source = self::DEFAULT_SOURCE): string
+    public function format(string $string, string $source = self::DEFAULT_SOURCE): string
     {
         $tokenStream = $this->lexer->lexString($string, $source);
         $fileNode = $this->parser->parseAll($tokenStream);

@@ -40,7 +40,7 @@ final class FormatCommand
     {
         foreach ($this->pathFilter->filterPaths($paths) as $path) {
             try {
-                $wasFormatted = $this->formatter->formatFile($path);
+                $wasFormatted = $this->formatFile($path);
                 if ($wasFormatted) {
                     $this->successfulFormattedFilePaths[] = $path;
                 }
@@ -50,6 +50,20 @@ final class FormatCommand
         }
 
         $this->printResult();
+    }
+
+    /**
+     * @throws AbstractParserException
+     *
+     * @return bool True if the file was formatted. False if the file wasn't altered because it was already formatted.
+     */
+    public function formatFile(string $filename): bool
+    {
+        $code = $this->io->fileGetContents($filename);
+        $formattedCode = $this->formatter->format($code, $filename);
+        $this->io->filePutContents($filename, $formattedCode);
+
+        return (bool)strcmp($formattedCode, $code);
     }
 
     private function printResult(): void

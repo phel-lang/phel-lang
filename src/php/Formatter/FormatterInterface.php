@@ -8,10 +8,12 @@ use Phel\Compiler\Parser\Exceptions\AbstractParserException;
 
 interface FormatterInterface
 {
+    public const DEFAULT_SOURCE = 'string';
+
     /**
      * @throws AbstractParserException
      *
-     * @return bool True if the file was formatted. False if the file wasn't altered because it was already formatted.
+     * @return string The formatted file result
      */
-    public function formatFile(string $filename): bool;
+    public function format(string $string, string $source = self::DEFAULT_SOURCE): string;
 }
