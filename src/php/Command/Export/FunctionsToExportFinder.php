@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Phel\Command\Export;
 
+use Phel\Command\Shared\Exceptions\ExtractorException;
 use Phel\Command\Shared\NamespaceExtractorInterface;
 use Phel\Compiler\Emitter\Exceptions\CompiledCodeIsMalformedException;
 use Phel\Compiler\Emitter\Exceptions\FileException;
@@ -34,6 +35,11 @@ final class FunctionsToExportFinder implements FunctionsToExportFinderInterface
     }
 
     /**
+     * @throws CompilerException
+     * @throws CompiledCodeIsMalformedException
+     * @throws ExtractorException
+     * @throws FileException
+     *
      * @return array<string, list<FunctionToExport>>
      */
     public function findInPaths(): array
@@ -46,6 +52,7 @@ final class FunctionsToExportFinder implements FunctionsToExportFinderInterface
     /**
      * @throws CompilerException
      * @throws CompiledCodeIsMalformedException
+     * @throws ExtractorException
      * @throws FileException
      */
     private function loadAllNsFromPaths(): void

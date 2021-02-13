@@ -61,10 +61,10 @@ final class ExportCommand
             $dir = dirname($wrapperPath);
 
             if (!is_dir($dir)) {
-                mkdir($dir, 0777, true);
+                $this->io->createDirectory($dir);
             }
 
-            file_put_contents($wrapperPath, $wrapper->compiledPhp());
+            $this->io->filePutContents($wrapperPath, $wrapper->compiledPhp());
             $this->io->writeln(sprintf('  %d) %s', $i + 1, $wrapper->relativeFilenamePath()));
         }
     }

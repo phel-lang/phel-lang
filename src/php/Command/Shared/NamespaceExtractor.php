@@ -87,6 +87,9 @@ final class NamespaceExtractor implements NamespaceExtractorInterface
         return array_merge(...array_values($namespaces));
     }
 
+    /**
+     * @throws ExtractorException
+     */
     private function findAllNs(string $directory): array
     {
         $iterator = new RecursiveIteratorIterator(new RecursiveDirectoryIterator($directory));
