@@ -4,8 +4,6 @@ declare(strict_types=1);
 
 namespace Phel\Formatter;
 
-use Exception;
-use Phel\Formatter\Exceptions\CanNotRemoveAtTheTopException;
 use Phel\Formatter\Exceptions\ZipperException;
 
 /**
@@ -74,12 +72,14 @@ abstract class AbstractZipper
     abstract public function makeNode($node, $children);
 
     /**
+     * @throws ZipperException
+     *
      * @return static<T>
      */
     public function left(): AbstractZipper
     {
         if ($this->isTop()) {
-            throw new ZipperException('Can not go left on the root node');
+            throw ZipperException::cannotGoLeftOnRootNode();
         }
 
         if ($this->isFirst()) {
@@ -125,11 +125,11 @@ abstract class AbstractZipper
     public function right(): AbstractZipper
     {
         if ($this->isTop()) {
-            throw new ZipperException('Can not go right on the root node');
+            throw ZipperException::cannotGoRightOnRootNode();
         }
 
         if ($this->isLast()) {
-            throw new ZipperException('Can not go right on the rightmost node');
+            throw ZipperException::cannotGoRightOnLastNode();
         }
 
         $rightSiblings = $this->rightSiblings;
@@ -171,7 +171,7 @@ abstract class AbstractZipper
     public function up(): AbstractZipper
     {
         if ($this->isTop()) {
-            throw new ZipperException('Can not go up on the root node');
+            throw ZipperException::cannotGoUpOnRootNode();
         }
 
         if ($this->hasChanged) {
@@ -218,12 +218,12 @@ abstract class AbstractZipper
     public function down(): AbstractZipper
     {
         if (!$this->isBranch()) {
-            throw new ZipperException('Can not go down on a leaf node');
+            throw ZipperException::cannotGoDownOnLeafNode();
         }
 
         $children = $this->getChildren();
         if (count($children) == 0) {
-            throw new ZipperException('Can not go down on a node with zero children');
+            throw ZipperException::cannotGoDownOnNodeWithZeroChildren();
         }
 
         $leftChild = array_shift($children);
@@ -314,12 +314,14 @@ abstract class AbstractZipper
     /**
      * @param T $node
      *
+     * @throws ZipperException
+     *
      * @return static
      */
     public function insertLeft($node)
     {
         if ($this->isTop()) {
-            throw new Exception('Can not insert left at the top');
+            throw ZipperException::cannotInsertLeftOnRootNode();
         }
 
         $this->hasChanged = true;
@@ -331,12 +333,14 @@ abstract class AbstractZipper
     /**
      * @param T $node
      *
+     * @throws ZipperException
+     *
      * @return static
      */
     public function insertRight($node)
     {
         if ($this->isTop()) {
-            throw new Exception('Can not insert right at the top');
+            throw ZipperException::cannotInsertRightOnRootNode();
         }
 
         $this->hasChanged = true;
@@ -383,14 +387,14 @@ abstract class AbstractZipper
     }
 
     /**
-     * @throws CanNotRemoveAtTheTopException
+     * @throws ZipperException
      *
      * @return static<T>
      */
     public function remove(): AbstractZipper
     {
         if ($this->isTop()) {
-            throw new CanNotRemoveAtTheTopException();
+            throw ZipperException::cannotRemoveOnRootNode();
         }
 
         if (!$this->isFirst()) {

@@ -11,6 +11,7 @@ use Phel\Compiler\Emitter\EmitterInterface;
 use Phel\Compiler\Emitter\Exceptions\CompiledCodeIsMalformedException;
 use Phel\Compiler\Emitter\Exceptions\FileException;
 use Phel\Compiler\Exceptions\CompilerException;
+use Phel\Compiler\Lexer\Exceptions\LexerValueException;
 use Phel\Compiler\Lexer\LexerInterface;
 use Phel\Compiler\Parser\Exceptions\AbstractParserException;
 use Phel\Compiler\Parser\ParserInterface;
@@ -45,6 +46,7 @@ final class FileCompiler implements FileCompilerInterface
      * @throws CompilerException
      * @throws CompiledCodeIsMalformedException
      * @throws FileException
+     * @throws LexerValueException
      */
     public function compile(string $filename): string
     {

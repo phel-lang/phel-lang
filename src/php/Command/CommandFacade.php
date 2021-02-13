@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Phel\Command;
 
 use Phel\Command\Run\Exceptions\CannotLoadNamespaceException;
+use Phel\Command\Shared\Exceptions\ExtractorException;
 use Phel\Command\Test\Exceptions\CannotFindAnyTestsException;
 use Phel\Compiler\Emitter\Exceptions\CompiledCodeIsMalformedException;
 use Phel\Compiler\Emitter\Exceptions\FileException;
@@ -77,6 +78,12 @@ final class CommandFacade implements CommandFacadeInterface
             ->run($paths);
     }
 
+    /**
+     * @throws CompilerException
+     * @throws CompiledCodeIsMalformedException
+     * @throws ExtractorException
+     * @throws FileException
+     */
     public function executeExportCommand(): void
     {
         $this->commandFactory

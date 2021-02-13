@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Phel\Command\Shared;
 
 use Phel\Command\Shared\Exceptions\ExtractorException;
+use Phel\Compiler\Lexer\Exceptions\LexerValueException;
 use Phel\Compiler\Lexer\LexerInterface;
 use Phel\Compiler\Parser\Exceptions\AbstractParserException;
 use Phel\Compiler\Parser\ParserInterface;
@@ -39,6 +40,7 @@ final class NamespaceExtractor implements NamespaceExtractorInterface
 
     /**
      * @throws ExtractorException
+     * @throws LexerValueException
      */
     public function getNamespaceFromFile(string $path): string
     {
