@@ -4,10 +4,12 @@ declare(strict_types=1);
 
 namespace PhelTest\Integration\Command\Format;
 
+use Phel\Command\CommandConfigInterface;
 use Phel\Command\CommandFactory;
 use Phel\Command\CommandFactoryInterface;
 use Phel\Compiler\CompilerFactory;
 use Phel\Formatter\FormatterFactory;
+use Phel\Interop\InteropFactoryInterface;
 use PHPUnit\Framework\TestCase;
 
 final class FormatCommandTest extends TestCase
@@ -59,8 +61,10 @@ TXT);
 
         return new CommandFactory(
             $currentDir,
+            $this->createStub(CommandConfigInterface::class),
             $compilerFactory,
-            new FormatterFactory($compilerFactory)
+            new FormatterFactory($compilerFactory),
+            $this->createStub(InteropFactoryInterface::class)
         );
     }
 }

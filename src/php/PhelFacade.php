@@ -6,6 +6,7 @@ namespace Phel;
 
 use InvalidArgumentException;
 use Phel\Command\CommandFacadeInterface;
+use Phel\Command\Export\ExportCommand;
 use Phel\Command\Format\FormatCommand;
 use Phel\Command\Repl\ReplCommand;
 use Phel\Command\Run\RunCommand;
@@ -25,10 +26,15 @@ Commands:
 
     test <filename> <filename> ...
         Tests the given files. If no filenames are provided all tests in the
-        test directory are executed.
+        "tests" directory are executed.
 
     fmt <filename-or-directory> ...
         Formats the given files.
+
+    export
+        Export all definitions with the meta data `@{:export true}` as PHP classes.
+        By default, it will search in the `src/` directory. All configuration
+        options need to be set in composer.json.
 
     help
         Show this help message.
@@ -59,6 +65,9 @@ HELP;
                 break;
             case FormatCommand::COMMAND_NAME:
                 $this->executeFormatCommand($arguments);
+                break;
+           case ExportCommand::COMMAND_NAME:
+                $this->executeExportCommand();
                 break;
             default:
                 throw new InvalidArgumentException(self::HELP_TEXT);
@@ -91,5 +100,10 @@ HELP;
         }
 
         $this->commandFacade->executeFormatCommand($arguments);
+    }
+
+    private function executeExportCommand(): void
+    {
+        $this->commandFacade->executeExportCommand();
     }
 }

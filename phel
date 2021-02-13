@@ -4,18 +4,20 @@
 $slash = DIRECTORY_SEPARATOR;
 require_once __DIR__ . "{$slash}src{$slash}php{$slash}PhelFacade.php";
 
+use Phel\Command\CommandConfig;
 use Phel\Command\CommandFacade;
 use Phel\Command\CommandFactory;
 use Phel\Compiler\CompilerFactory;
 use Phel\Formatter\FormatterFactory;
+use Phel\Interop\InteropConfig;use Phel\Interop\InteropFactory;
 use Phel\PhelFacade;
 
 if ($argc <= 1) {
     exit(PhelFacade::HELP_TEXT);
 }
 
-$currentDir = getcwd() . $slash;
-$autoloadPath = $currentDir . 'vendor' . $slash . 'autoload.php';
+$projectRootDir = getcwd() . $slash;
+$autoloadPath = $projectRootDir . 'vendor' . $slash . 'autoload.php';
 
 if (!file_exists($autoloadPath)) {
     exit("Cannot load composer's autoload file: " . $autoloadPath);
@@ -26,11 +28,13 @@ require $autoloadPath;
 $compilerFactory = new CompilerFactory();
 
 $commandFacade = new CommandFacade(
-    $currentDir,
+    $projectRootDir,
     new CommandFactory(
-        $currentDir,
+        $projectRootDir,
+        new CommandConfig($projectRootDir),
         $compilerFactory,
-        new FormatterFactory($compilerFactory)
+        new FormatterFactory($compilerFactory),
+        new InteropFactory(new InteropConfig($projectRootDir))
     )
 );
 

@@ -115,3 +115,62 @@ In Phel you can also use PHP Magic Methods `__DIR__` and `__FILE__`. These resol
 (println __DIR__) # Prints the directory name of the file
 (println __FILE__) # Prints the filename of the file
 ```
+
+## Calling Phel functions from PHP
+
+Phel also provides a way to let you call Phel function from PHP. This is useful for existing PHP application that wants to integrate Phel. Therefore, you have to load the Phel Runtime at the beginning of your script. This can be done directly after the `autoload.php` file was loaded.
+
+```php
+require_once 'vendors/autoload.php';
+require_once 'vendors/PhelRuntime.php';
+```
+
+Phel provide two ways to call Phel functions, manually or by using the `export` command.
+
+### Manually
+
+The `PhelCallerTrait` can be used to call any Phel function from an existing PHP class.
+Simply inject the trait in the class and call the `callPhel` function.
+
+```php
+use Phel\Interop\PhelCallerTrait;
+
+class MyExistingClass {
+  use PhelCallerTrait;
+
+  public function myExistingMethod(...$arguments) {
+    return $this->callPhel('my\phel\namespace', 'phel-function-name', ...$arguments);
+  }
+}
+```
+
+### Using the `export` command
+
+Alternatively, the `phel export` command can be used. This command will generate a wrapper class for all Phel functions that are marked as *export*.
+
+Before using the `export` command the required configuration options need to be added to `composer.json`:
+
+```json
+{
+  "export": {
+    "directories": [
+        "src/phel"
+    ],
+    "namespace-prefix": "PhelGenerated",
+    "target-directory": "src/PhelGenerated"
+  }
+}
+```
+
+A detailed description of the options can be found in the [Configuration](/configuration/#export) chapter.
+
+To mark a function as exported the following meta data needs to be added to the function:
+
+```phel
+(defn my-function
+  @{:export true}
+  [a b]
+  (+ a b))
+```
+
+Now the `phel export` command will generate a PHP wrapper class in the target directory (in this case `src/PhelGenerated`). This class can then be used in the PHP application to call Phel functions.

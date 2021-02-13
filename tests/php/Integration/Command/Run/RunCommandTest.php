@@ -4,11 +4,13 @@ declare(strict_types=1);
 
 namespace PhelTest\Integration\Command\Run;
 
+use Phel\Command\CommandConfigInterface;
 use Phel\Command\CommandFactory;
 use Phel\Command\CommandFactoryInterface;
 use Phel\Compiler\Analyzer\Environment\GlobalEnvironment;
 use Phel\Compiler\CompilerFactory;
 use Phel\Formatter\FormatterFactoryInterface;
+use Phel\Interop\InteropFactoryInterface;
 use Phel\Runtime\RuntimeFactory;
 use Phel\Runtime\RuntimeInterface;
 use PHPUnit\Framework\TestCase;
@@ -82,8 +84,10 @@ final class RunCommandTest extends TestCase
     {
         return new CommandFactory(
             __DIR__,
+            $this->createStub(CommandConfigInterface::class),
             new CompilerFactory(),
-            $this->createMock(FormatterFactoryInterface::class)
+            $this->createStub(FormatterFactoryInterface::class),
+            $this->createStub(InteropFactoryInterface::class)
         );
     }
 }

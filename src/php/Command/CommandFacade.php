@@ -17,14 +17,14 @@ final class CommandFacade implements CommandFacadeInterface
     private const SUCCESS_CODE = 0;
     private const FAILED_CODE = 1;
 
-    private string $currentDir;
+    private string $projectRootDir;
     private CommandFactoryInterface $commandFactory;
 
     public function __construct(
-        string $currentDir,
+        string $projectRootDir,
         CommandFactoryInterface $commandFactory
     ) {
-        $this->currentDir = $currentDir;
+        $this->projectRootDir = $projectRootDir;
         $this->commandFactory = $commandFactory;
     }
 
@@ -77,9 +77,16 @@ final class CommandFacade implements CommandFacadeInterface
             ->run($paths);
     }
 
+    public function executeExportCommand(): void
+    {
+        $this->commandFactory
+            ->createExportCommand($this->loadVendorPhelRuntime())
+            ->run();
+    }
+
     private function loadVendorPhelRuntime(): RuntimeInterface
     {
-        $runtimePath = $this->currentDir
+        $runtimePath = $this->projectRootDir
             . DIRECTORY_SEPARATOR . 'vendor'
             . DIRECTORY_SEPARATOR . 'PhelRuntime.php';
 

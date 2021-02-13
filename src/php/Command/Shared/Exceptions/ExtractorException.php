@@ -22,14 +22,4 @@ final class ExtractorException extends RuntimeException
     {
         return new self('Cannot parse file: ' . $path);
     }
-
-    public static function cannotReadComposerJsonInPath(string $path): self
-    {
-        return new self('Cannot read composer.json in: ' . $path);
-    }
-
-    public static function noPhelConfigurationFoundInComposerJson(): self
-    {
-        return new self('No Phel configuration found in composer.json');
-    }
 }

@@ -16,21 +16,25 @@ final class TestCommand
 {
     public const COMMAND_NAME = 'test';
 
-    private string $currentDir;
+    private string $projectRootDir;
     private RuntimeInterface $runtime;
     private NamespaceExtractorInterface $nsExtractor;
     private EvalCompilerInterface $evalCompiler;
+    /** @var list<string> */
+    private array $defaultDirectories;
 
     public function __construct(
-        string $currentDir,
+        string $projectRootDir,
         RuntimeInterface $runtime,
         NamespaceExtractorInterface $nsExtractor,
-        EvalCompilerInterface $evalCompiler
+        EvalCompilerInterface $evalCompiler,
+        array $defaultDirectories
     ) {
-        $this->currentDir = $currentDir;
+        $this->projectRootDir = $projectRootDir;
         $this->runtime = $runtime;
         $this->nsExtractor = $nsExtractor;
         $this->evalCompiler = $evalCompiler;
+        $this->defaultDirectories = $defaultDirectories;
     }
 
     /**
@@ -56,7 +60,10 @@ final class TestCommand
     private function getNamespacesFromPaths(array $paths): array
     {
         if (empty($paths)) {
-            return $this->nsExtractor->getNamespacesFromConfig($this->currentDir);
+            return $this->nsExtractor->getNamespacesFromDirectories(
+                $this->defaultDirectories,
+                $this->projectRootDir
+            );
         }
 
         return array_map(

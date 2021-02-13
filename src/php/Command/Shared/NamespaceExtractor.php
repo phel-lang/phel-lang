@@ -71,14 +71,16 @@ final class NamespaceExtractor implements NamespaceExtractorInterface
         }
     }
 
-    public function getNamespacesFromConfig(string $currentDir): array
+    /**
+     * @param list<string> $directories
+     *
+     * @throws ExtractorException
+     */
+    public function getNamespacesFromDirectories(array $directories, string $projectRootDir): array
     {
-        $config = $this->getPhelConfig($currentDir);
         $namespaces = [];
-
-        $testDirectories = $config['tests'] ?? [];
-        foreach ($testDirectories as $testDir) {
-            $allNamespacesInDir = $this->findAllNs($currentDir . $testDir);
+        foreach ($directories as $directory) {
+            $allNamespacesInDir = $this->findAllNs($projectRootDir . $directory);
             $namespaces[] = $allNamespacesInDir;
         }
 
@@ -94,27 +96,5 @@ final class NamespaceExtractor implements NamespaceExtractorInterface
             fn ($file) => $this->getNamespaceFromFile($file[0]),
             iterator_to_array($phelIterator)
         );
-    }
-
-    /**
-     * @throws ExtractorException
-     */
-    private function getPhelConfig(string $currentDirectory): array
-    {
-        $composerContent = file_get_contents($currentDirectory . 'composer.json');
-        if (!$composerContent) {
-            throw ExtractorException::cannotReadComposerJsonInPath($currentDirectory);
-        }
-
-        $composerData = \json_decode($composerContent, true);
-        if (!$composerData) {
-            throw ExtractorException::cannotReadComposerJsonInPath($currentDirectory);
-        }
-
-        if (isset($composerData['extra']['phel'])) {
-            return $composerData['extra']['phel'];
-        }
-
-        throw ExtractorException::noPhelConfigurationFoundInComposerJson();
     }
 }
