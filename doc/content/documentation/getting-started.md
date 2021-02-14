@@ -187,4 +187,4 @@ To try Phel you can run a REPL by executing the `./vendor/bin/phel repl` command
 
 ## Editor support
 
-Phel comes with basic editor support for VSCode. Please check out the [plugin's README file](https://github.com/phel-lang/phel-lang/tree/master/editor-support/vscode) for more information.
+Phel comes with basic editor support for VSCode. Please check out the [plugin's README file](https://github.com/phel-lang/phel-vs-code-extension) for more information.

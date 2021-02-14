@@ -5,9 +5,12 @@ declare(strict_types=1);
 namespace Phel\Command\Format;
 
 use Phel\Command\Shared\CommandIoInterface;
+use Phel\Compiler\Lexer\Exceptions\LexerValueException;
 use Phel\Compiler\Parser\Exceptions\AbstractParserException;
+use Phel\Formatter\Exceptions\ZipperException;
 use Phel\Formatter\FormatterInterface;
 use Phel\Runtime\Exceptions\ExceptionPrinterInterface;
+use Throwable;
 
 final class FormatCommand
 {
@@ -46,6 +49,8 @@ final class FormatCommand
                 }
             } catch (AbstractParserException $e) {
                 $this->printParserException($e);
+            } catch (Throwable $e) {
+                $this->printThrowableException($e);
             }
         }
 
@@ -54,6 +59,8 @@ final class FormatCommand
 
     /**
      * @throws AbstractParserException
+     * @throws LexerValueException
+     * @throws ZipperException
      *
      * @return bool True if the file was formatted. False if the file wasn't altered because it was already formatted.
      */
@@ -87,5 +94,10 @@ final class FormatCommand
                 $e->getCodeSnippet()
             )
         );
+    }
+
+    private function printThrowableException(Throwable $e): void
+    {
+        $this->io->writeln($e->getMessage());
     }
 }
