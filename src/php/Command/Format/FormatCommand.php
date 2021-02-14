@@ -6,6 +6,7 @@ namespace Phel\Command\Format;
 
 use Phel\Command\Shared\CommandIoInterface;
 use Phel\Compiler\Parser\Exceptions\AbstractParserException;
+use Phel\Formatter\Exceptions\ZipperException;
 use Phel\Formatter\FormatterInterface;
 use Phel\Runtime\Exceptions\ExceptionPrinterInterface;
 
@@ -46,6 +47,8 @@ final class FormatCommand
                 }
             } catch (AbstractParserException $e) {
                 $this->printParserException($e);
+            } catch (ZipperException $e) {
+                $this->printZipperException($e);
             }
         }
 
@@ -73,5 +76,10 @@ final class FormatCommand
                 $e->getCodeSnippet()
             )
         );
+    }
+
+    private function printZipperException(ZipperException $e): void
+    {
+        $this->io->writeln($e->getMessage());
     }
 }

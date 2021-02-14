@@ -5,18 +5,21 @@ declare(strict_types=1);
 namespace Phel\Formatter\Rules;
 
 use Phel\Compiler\Parser\ParserNode\NodeInterface;
-use Phel\Formatter\Exceptions\CanNotRemoveAtTheTopException;
+use Phel\Formatter\Exceptions\ZipperException;
 use Phel\Formatter\ParseTreeZipper;
 
 final class RemoveSurroundingWhitespaceRule implements RuleInterface
 {
+    /**
+     * @throws ZipperException
+     */
     public function transform(NodeInterface $node): NodeInterface
     {
         return $this->removeSurroundingWhitespace(ParseTreeZipper::createRoot($node));
     }
 
     /**
-     * @throws CanNotRemoveAtTheTopException
+     * @throws ZipperException
      */
     private function removeSurroundingWhitespace(ParseTreeZipper $loc): NodeInterface
     {

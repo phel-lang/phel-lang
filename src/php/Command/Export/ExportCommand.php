@@ -5,6 +5,10 @@ declare(strict_types=1);
 namespace Phel\Command\Export;
 
 use Phel\Command\Shared\CommandIoInterface;
+use Phel\Command\Shared\Exceptions\ExtractorException;
+use Phel\Compiler\Emitter\Exceptions\CompiledCodeIsMalformedException;
+use Phel\Compiler\Emitter\Exceptions\FileException;
+use Phel\Compiler\Exceptions\CompilerException;
 use Phel\Interop\Generator\WrapperGeneratorInterface;
 use Phel\Interop\ReadModel\Wrapper;
 
@@ -32,6 +36,12 @@ final class ExportCommand
         $this->destinationDir = $destinationDir;
     }
 
+    /**
+     * @throws CompilerException
+     * @throws CompiledCodeIsMalformedException
+     * @throws ExtractorException
+     * @throws FileException
+     */
     public function run(): void
     {
         $wrappers = [];

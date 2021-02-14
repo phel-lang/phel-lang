@@ -4,10 +4,12 @@ declare(strict_types=1);
 
 namespace Phel\Formatter;
 
+use Phel\Compiler\Lexer\Exceptions\LexerValueException;
 use Phel\Compiler\Lexer\LexerInterface;
 use Phel\Compiler\Parser\Exceptions\AbstractParserException;
 use Phel\Compiler\Parser\ParserInterface;
 use Phel\Compiler\Parser\ParserNode\NodeInterface;
+use Phel\Formatter\Exceptions\ZipperException;
 use Phel\Formatter\Rules\RuleInterface;
 
 final class Formatter implements FormatterInterface
@@ -34,6 +36,7 @@ final class Formatter implements FormatterInterface
 
     /**
      * @throws AbstractParserException
+     * @throws ZipperException
      */
     public function formatFile(string $filename): bool
     {
@@ -46,6 +49,8 @@ final class Formatter implements FormatterInterface
 
     /**
      * @throws AbstractParserException
+     * @throws LexerValueException
+     * @throws ZipperException
      */
     private function formatString(string $string, string $source = self::DEFAULT_SOURCE): string
     {
@@ -56,6 +61,9 @@ final class Formatter implements FormatterInterface
         return $formattedNode->getCode();
     }
 
+    /**
+     * @throws ZipperException
+     */
     private function formatNode(NodeInterface $node): NodeInterface
     {
         $formattedNode = $node;
