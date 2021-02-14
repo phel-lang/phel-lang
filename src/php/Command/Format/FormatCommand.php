@@ -5,10 +5,12 @@ declare(strict_types=1);
 namespace Phel\Command\Format;
 
 use Phel\Command\Shared\CommandIoInterface;
+use Phel\Compiler\Lexer\Exceptions\LexerValueException;
 use Phel\Compiler\Parser\Exceptions\AbstractParserException;
 use Phel\Formatter\Exceptions\ZipperException;
 use Phel\Formatter\FormatterInterface;
 use Phel\Runtime\Exceptions\ExceptionPrinterInterface;
+use Throwable;
 
 final class FormatCommand
 {
@@ -41,18 +43,34 @@ final class FormatCommand
     {
         foreach ($this->pathFilter->filterPaths($paths) as $path) {
             try {
-                $wasFormatted = $this->formatter->formatFile($path);
+                $wasFormatted = $this->formatFile($path);
                 if ($wasFormatted) {
                     $this->successfulFormattedFilePaths[] = $path;
                 }
             } catch (AbstractParserException $e) {
                 $this->printParserException($e);
-            } catch (ZipperException $e) {
-                $this->printZipperException($e);
+            } catch (Throwable $e) {
+                $this->printThrowableException($e);
             }
         }
 
         $this->printResult();
+    }
+
+    /**
+     * @throws AbstractParserException
+     * @throws LexerValueException
+     * @throws ZipperException
+     *
+     * @return bool True if the file was formatted. False if the file wasn't altered because it was already formatted.
+     */
+    public function formatFile(string $filename): bool
+    {
+        $code = $this->io->fileGetContents($filename);
+        $formattedCode = $this->formatter->format($code, $filename);
+        $this->io->filePutContents($filename, $formattedCode);
+
+        return (bool)strcmp($formattedCode, $code);
     }
 
     private function printResult(): void
@@ -78,7 +96,7 @@ final class FormatCommand
         );
     }
 
-    private function printZipperException(ZipperException $e): void
+    private function printThrowableException(Throwable $e): void
     {
         $this->io->writeln($e->getMessage());
     }
