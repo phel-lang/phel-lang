@@ -8,8 +8,8 @@ use RuntimeException;
 
 final class CannotFindAnyTestsException extends RuntimeException
 {
-    public function __construct()
+    public static function inPaths(array $paths): self
     {
-        parent::__construct('Cannot find any tests');
+        return new self('Cannot find any tests in : ' . implode(',', $paths));
     }
 }

@@ -48,7 +48,7 @@ final class TestCommand
         $namespaces = $this->getNamespacesFromPaths($paths);
 
         if (empty($namespaces)) {
-            throw new CannotFindAnyTestsException();
+            throw CannotFindAnyTestsException::inPaths($paths);
         }
 
         $this->runtime->loadNs('phel\test');

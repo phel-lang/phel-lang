@@ -5,12 +5,11 @@ declare(strict_types=1);
 namespace Phel\Command\Export;
 
 use Phel\Command\Shared\CommandIoInterface;
-use Phel\Command\Shared\Exceptions\ExtractorException;
-use Phel\Compiler\Emitter\Exceptions\CompiledCodeIsMalformedException;
-use Phel\Compiler\Emitter\Exceptions\FileException;
 use Phel\Compiler\Exceptions\CompilerException;
 use Phel\Interop\Generator\WrapperGeneratorInterface;
 use Phel\Interop\ReadModel\Wrapper;
+use RuntimeException;
+use Throwable;
 
 final class ExportCommand
 {
@@ -36,27 +35,35 @@ final class ExportCommand
         $this->destinationDir = $destinationDir;
     }
 
+    public function run(): void
+    {
+        try {
+            $wrappers = $this->generateWrappers();
+            $this->directoryRemover->removeDir($this->destinationDir);
+            $this->writeGeneratedWrappers($wrappers);
+        } catch (Throwable $e) {
+            $this->io->writeln($e->getMessage());
+        }
+    }
+
     /**
      * @throws CompilerException
-     * @throws CompiledCodeIsMalformedException
-     * @throws ExtractorException
-     * @throws FileException
+     * @throws RuntimeException
+     *
+     * @return list<Wrapper>
      */
-    public function run(): void
+    private function generateWrappers(): array
     {
         $wrappers = [];
         foreach ($this->functionsToExportFinder->findInPaths() as $ns => $functionsToExport) {
             $wrappers[] = $this->wrapperGenerator->generateCompiledPhp($ns, $functionsToExport);
         }
 
-        $this->directoryRemover->removeDir($this->destinationDir);
-
         if (empty($wrappers)) {
-            $this->io->writeln('No functions were found to be exported.');
-            return;
+            throw new RuntimeException('No functions were found to be exported');
         }
 
-        $this->writeGeneratedWrappers($wrappers);
+        return $wrappers;
     }
 
     /**
