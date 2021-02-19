@@ -78,6 +78,7 @@ final class CommandFactory implements CommandFactoryInterface
         return new TestCommand(
             $this->projectRootDir,
             $runtime,
+            $this->createCommandIo(),
             $this->createNamespaceExtractor($runtime->getEnv()),
             $this->compilerFactory->createEvalCompiler($runtime->getEnv()),
             $this->commandConfig->getDefaultTestDirectories()
