@@ -14,13 +14,12 @@ use Phel\Interop\InteropFactoryInterface;
 use Phel\Runtime\RuntimeFactory;
 use Phel\Runtime\RuntimeInterface;
 use PHPUnit\Framework\TestCase;
-use RuntimeException;
 
 final class RunCommandTest extends TestCase
 {
     public function testRunByNamespace(): void
     {
-        $this->expectOutputString("hello world\n");
+        $this->expectOutputRegex('~hello world~');
 
         $runtime = $this->createRuntime();
         $runtime->addPath('test\\', [__DIR__ . '/Fixtures']);
@@ -32,7 +31,7 @@ final class RunCommandTest extends TestCase
 
     public function testRunByFilename(): void
     {
-        $this->expectOutputString("hello world\n");
+        $this->expectOutputRegex('~hello world~');
 
         $runtime = $this->createRuntime();
         $runtime->addPath('test\\', [__DIR__ . '/Fixtures']);
@@ -45,8 +44,7 @@ final class RunCommandTest extends TestCase
     public function testCannotParseFile(): void
     {
         $filename = __DIR__ . '/Fixtures/test-script-not-parsable.phel';
-        $this->expectException(RuntimeException::class);
-        $this->expectExceptionMessage('Cannot parse file: ' . $filename);
+        $this->expectOutputRegex(sprintf('~Cannot parse file: %s~', $filename));
 
         $this->createCommandFactory()
             ->createRunCommand($this->createRuntime())
@@ -56,8 +54,7 @@ final class RunCommandTest extends TestCase
     public function testCannotReadFile(): void
     {
         $filename = __DIR__ . '/Fixtures/this-file-does-not-exist.phel';
-        $this->expectException(RuntimeException::class);
-        $this->expectExceptionMessage('Cannot load namespace: ' . $filename);
+        $this->expectOutputRegex(sprintf('~Cannot load namespace: %s~', $filename));
 
         $this->createCommandFactory()
             ->createRunCommand($this->createRuntime())
@@ -67,8 +64,7 @@ final class RunCommandTest extends TestCase
     public function testFileWithoutNs(): void
     {
         $filename = __DIR__ . '/Fixtures/test-script-without-ns.phel';
-        $this->expectException(RuntimeException::class);
-        $this->expectExceptionMessage('Cannot extract namespace from file: ' . $filename);
+        $this->expectOutputRegex(sprintf('~Cannot extract namespace from file: %s~', $filename));
 
         $this->createCommandFactory()
             ->createRunCommand($this->createRuntime())

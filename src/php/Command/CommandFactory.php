@@ -69,6 +69,7 @@ final class CommandFactory implements CommandFactoryInterface
     {
         return new RunCommand(
             $runtime,
+            $this->createCommandIo(),
             $this->createNamespaceExtractor($runtime->getEnv())
         );
     }
