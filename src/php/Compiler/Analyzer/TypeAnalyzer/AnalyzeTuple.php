@@ -26,6 +26,7 @@ use Phel\Compiler\Analyzer\TypeAnalyzer\TupleSymbol\PhpASetSymbol;
 use Phel\Compiler\Analyzer\TypeAnalyzer\TupleSymbol\PhpAUnsetSymbol;
 use Phel\Compiler\Analyzer\TypeAnalyzer\TupleSymbol\PhpNewSymbol;
 use Phel\Compiler\Analyzer\TypeAnalyzer\TupleSymbol\PhpObjectCallSymbol;
+use Phel\Compiler\Analyzer\TypeAnalyzer\TupleSymbol\PhpOSetSymbol;
 use Phel\Compiler\Analyzer\TypeAnalyzer\TupleSymbol\QuoteSymbol;
 use Phel\Compiler\Analyzer\TypeAnalyzer\TupleSymbol\RecurSymbol;
 use Phel\Compiler\Analyzer\TypeAnalyzer\TupleSymbol\ThrowSymbol;
@@ -104,6 +105,8 @@ final class AnalyzeTuple
                 return new ForeachSymbol($this->analyzer);
             case Symbol::NAME_DEF_STRUCT:
                 return new DefStructSymbol($this->analyzer);
+            case Symbol::NAME_PHP_OBJECT_SET:
+                return new PhpOSetSymbol($this->analyzer);
             default:
                 return new InvokeSymbol($this->analyzer);
         }

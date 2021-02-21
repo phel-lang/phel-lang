@@ -1,0 +1,10 @@
+--PHEL--
+(def a (php/new \stdclass))
+(php/oset (php/-> a name) "test")
+--PHP--
+$GLOBALS["__phel"]["user"]["a"] = (new \stdclass());
+(function() {
+  $target_1 = $GLOBALS["__phel"]["user"]["a"];
+  $target_1->name = "test";
+  return $target_1;
+})();

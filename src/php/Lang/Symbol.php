@@ -36,6 +36,7 @@ final class Symbol extends AbstractType implements IdenticalInterface
     public const NAME_TRY = 'try';
     public const NAME_TUPLE = 'tuple';
     public const NAME_TUPLE_BRACKETS = 'tuple-brackets';
+    public const NAME_PHP_OBJECT_SET = 'php/oset';
 
     private static int $symGenCounter = 1;
 
