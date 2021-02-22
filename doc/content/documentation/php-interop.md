@@ -33,8 +33,8 @@ Evaluates `expr` and creates a new PHP class using the arguments. The instance o
 ## PHP method and property call
 
 ```phel
-(php/-> (methodname expr*))
-(php/-> property)
+(php/-> object (methodname expr*))
+(php/-> object property)
 ```
 
 Calls a method or property on a PHP object. Both `methodname` and `property` must be symbols and cannot be an evaluated value.
@@ -52,8 +52,8 @@ Calls a method or property on a PHP object. Both `methodname` and `property` mus
 ## PHP static method and property call
 
 ```phel
-(php/:: (methodname expr*))
-(php/:: property)
+(php/:: class (methodname expr*))
+(php/:: class property)
 ```
 
 Same as above, but for static calls on PHP classes.
@@ -67,6 +67,20 @@ Same as above, but for static calls on PHP classes.
 # Evaluates to a new instance of DateTimeImmutable
 (php/:: DateTimeImmutable (createFromFormat "Y-m-d" "2020-03-22"))
 
+```
+
+## PHP set object properties
+
+```phel
+(php/oset (php/-> object property) value)
+(php/oset (php/:: class property) value)
+```
+
+Use `php/oset` to set a value to a class/object property.
+
+```phel
+(def x (php/new \stdclass))
+(php/oset (php/-> x name) "foo")
 ```
 
 ## Get PHP-Array value

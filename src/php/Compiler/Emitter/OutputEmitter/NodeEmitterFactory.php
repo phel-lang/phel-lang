@@ -73,6 +73,8 @@ final class NodeEmitterFactory
                 return new NodeEmitter\TableEmitter($outputEmitter);
             case Ast\DefStructNode::class:
                 return new NodeEmitter\DefStructEmitter($outputEmitter);
+            case Ast\PhpObjectSetNode::class:
+                return new NodeEmitter\PhpObjectSetEmitter($outputEmitter);
             default:
                 throw NotSupportedAstException::withClassName($astNodeClassName);
         }
