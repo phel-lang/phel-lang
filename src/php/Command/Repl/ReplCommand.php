@@ -9,7 +9,6 @@ use Phel\Compiler\EvalCompilerInterface;
 use Phel\Compiler\Exceptions\CompilerException;
 use Phel\Compiler\Parser\Exceptions\UnfinishedParserException;
 use Phel\Printer\PrinterInterface;
-use Phel\Runtime\Exceptions\ExceptionPrinterInterface;
 use Throwable;
 
 final class ReplCommand
@@ -24,7 +23,6 @@ final class ReplCommand
 
     private ReplCommandIoInterface $io;
     private EvalCompilerInterface $compiler;
-    private ExceptionPrinterInterface $exceptionPrinter;
     private ColorStyleInterface $style;
     private PrinterInterface $printer;
 
@@ -35,13 +33,11 @@ final class ReplCommand
     public function __construct(
         ReplCommandIoInterface $io,
         EvalCompilerInterface $compiler,
-        ExceptionPrinterInterface $exceptionPrinter,
         ColorStyleInterface $style,
         PrinterInterface $printer
     ) {
         $this->io = $io;
         $this->compiler = $compiler;
-        $this->exceptionPrinter = $exceptionPrinter;
         $this->style = $style;
         $this->printer = $printer;
     }
@@ -131,16 +127,11 @@ final class ReplCommand
         } catch (UnfinishedParserException $e) {
             // The input is valid but more input is missing to finish the parsing.
         } catch (CompilerException $e) {
-            $this->io->write(
-                $this->exceptionPrinter->getExceptionString(
-                    $e->getNestedException(),
-                    $e->getCodeSnippet()
-                )
-            );
+            $this->io->writeLocatedException($e->getNestedException(), $e->getCodeSnippet());
             $this->addHistory($fullInput);
             $this->inputBuffer = [];
         } catch (Throwable $e) {
-            $this->io->writeln($this->exceptionPrinter->getStackTraceString($e));
+            $this->io->writeStackTrace($e);
             $this->addHistory($fullInput);
             $this->inputBuffer = [];
         }

@@ -9,14 +9,8 @@ use Phel\Command\CommandFacadeInterface;
 use Phel\Command\Export\ExportCommand;
 use Phel\Command\Format\FormatCommand;
 use Phel\Command\Repl\ReplCommand;
-use Phel\Command\Run\Exceptions\CannotLoadNamespaceException;
 use Phel\Command\Run\RunCommand;
-use Phel\Command\Shared\Exceptions\ExtractorException;
-use Phel\Command\Test\Exceptions\CannotFindAnyTestsException;
 use Phel\Command\Test\TestCommand;
-use Phel\Compiler\Emitter\Exceptions\CompiledCodeIsMalformedException;
-use Phel\Compiler\Emitter\Exceptions\FileException;
-use Phel\Compiler\Exceptions\CompilerException;
 
 final class PhelFacade
 {
@@ -55,10 +49,6 @@ HELP;
     }
 
     /**
-     * @throws CannotLoadNamespaceException
-     * @throws CompilerException
-     * @throws CompiledCodeIsMalformedException
-     * @throws FileException
      * @throws InvalidArgumentException
      */
     public function runCommand(string $commandName, array $arguments = []): void
@@ -89,12 +79,6 @@ HELP;
         $this->commandFacade->executeReplCommand();
     }
 
-    /**
-     * @throws CannotLoadNamespaceException
-     * @throws CompilerException
-     * @throws CompiledCodeIsMalformedException
-     * @throws FileException
-     */
     private function executeRunCommand(array $arguments): void
     {
         if (empty($arguments)) {
@@ -104,12 +88,6 @@ HELP;
         $this->commandFacade->executeRunCommand($arguments[0]);
     }
 
-    /**
-     * @throws CannotFindAnyTestsException
-     * @throws CompilerException
-     * @throws CompiledCodeIsMalformedException
-     * @throws FileException
-     */
     private function executeTestCommand(array $arguments): void
     {
         $this->commandFacade->executeTestCommand($arguments);
@@ -124,12 +102,6 @@ HELP;
         $this->commandFacade->executeFormatCommand($arguments);
     }
 
-    /**
-     * @throws CompilerException
-     * @throws CompiledCodeIsMalformedException
-     * @throws ExtractorException
-     * @throws FileException
-     */
     private function executeExportCommand(): void
     {
         $this->commandFacade->executeExportCommand();

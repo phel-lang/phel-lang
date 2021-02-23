@@ -28,11 +28,12 @@ final class ReplCommandTest extends TestCase
      */
     public function testIntegration(string $expectedOutput, InputLine ...$inputs): void
     {
-        $io = new ReplTestIo();
-        $repl = $this->createReplCommand($io);
-
+        $io = $this->createReplTestIo();
         $io->setInputs(...$inputs);
+
+        $repl = $this->createReplCommand($io);
         $repl->run();
+
         $replOutput = $io->getOutputString();
 
         self::assertEquals(trim($expectedOutput), trim($replOutput));
@@ -71,17 +72,9 @@ final class ReplCommandTest extends TestCase
         $rt = RuntimeFactory::initializeNew($globalEnv);
         $rt->addPath('phel\\', [__DIR__ . '/../../../../src/phel/']);
 
-        $exceptionPrinter = new TextExceptionPrinter(
-            new ExceptionArgsPrinter(Printer::readable()),
-            ColorStyle::noStyles(),
-            new Munge(),
-            new FilePositionExtractor(new SourceMapExtractor())
-        );
-
         return new ReplCommand(
             $io,
             $compilerFactory->createEvalCompiler($globalEnv),
-            $exceptionPrinter,
             ColorStyle::noStyles(),
             Printer::nonReadable()
         );
@@ -104,5 +97,17 @@ final class ReplCommandTest extends TestCase
         }
 
         return $inputs;
+    }
+
+    private function createReplTestIo(): ReplTestIo
+    {
+        $exceptionPrinter = new TextExceptionPrinter(
+            new ExceptionArgsPrinter(Printer::readable()),
+            ColorStyle::noStyles(),
+            new Munge(),
+            new FilePositionExtractor(new SourceMapExtractor())
+        );
+
+        return new ReplTestIo($exceptionPrinter);
     }
 }

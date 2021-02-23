@@ -31,7 +31,7 @@ final class TestCommandTest extends TestCase
             ->createTestCommand($runtime);
 
         $this->expectOutputString("..\n\n\n\nPassed: 2\nFailed: 0\nError: 0\nTotal: 2\n");
-        self::assertTrue($testCommand->run([]));
+        $testCommand->run([]);
     }
 
     public function testOneFileInProject(): void
@@ -48,7 +48,7 @@ final class TestCommandTest extends TestCase
             ->createTestCommand($runtime);
 
         $this->expectOutputString(".\n\n\n\nPassed: 1\nFailed: 0\nError: 0\nTotal: 1\n");
-        self::assertTrue($testCommand->run([$currentDir . 'tests/test1.phel']));
+        $testCommand->run([$currentDir . 'tests/test1.phel']);
     }
 
     public function testAllInFailedProject(): void
@@ -65,7 +65,7 @@ final class TestCommandTest extends TestCase
             ->createTestCommand($runtime);
 
         $this->expectOutputRegex('/.*Failed\\: 1.*/');
-        self::assertFalse($testCommand->run([]));
+        $testCommand->run([]);
     }
 
     private function createRuntime(): RuntimeInterface
