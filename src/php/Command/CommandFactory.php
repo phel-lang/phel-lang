@@ -13,6 +13,7 @@ use Phel\Command\Format\FormatCommand;
 use Phel\Command\Format\PathFilterInterface;
 use Phel\Command\Format\PhelPathFilter;
 use Phel\Command\Repl\ColorStyle;
+use Phel\Command\Repl\ColorStyleInterface;
 use Phel\Command\Repl\ReplCommand;
 use Phel\Command\Repl\ReplCommandSystemIo;
 use Phel\Command\Run\RunCommand;
@@ -27,6 +28,8 @@ use Phel\Formatter\FormatterFactoryInterface;
 use Phel\Interop\Generator\WrapperGeneratorInterface;
 use Phel\Interop\InteropFactoryInterface;
 use Phel\Printer\Printer;
+use Phel\Printer\PrinterInterface;
+use Phel\Runtime\Exceptions\ExceptionPrinterInterface;
 use Phel\Runtime\Exceptions\TextExceptionPrinter;
 use Phel\Runtime\RuntimeInterface;
 
@@ -59,9 +62,9 @@ final class CommandFactory implements CommandFactoryInterface
         return new ReplCommand(
             new ReplCommandSystemIo($this->projectRootDir . '.phel-repl-history'),
             $this->compilerFactory->createEvalCompiler($runtime->getEnv()),
-            TextExceptionPrinter::create(),
-            ColorStyle::withStyles(),
-            Printer::nonReadableWithColor()
+            $this->createExceptionPrinter(),
+            $this->createColorStyle(),
+            $this->createPrinter()
         );
     }
 
@@ -91,8 +94,7 @@ final class CommandFactory implements CommandFactoryInterface
         return new FormatCommand(
             $this->formatterFactory->createFormatter(),
             $this->createCommandIo(),
-            $this->createPathFilter(),
-            TextExceptionPrinter::create()
+            $this->createPathFilter()
         );
     }
 
@@ -109,7 +111,14 @@ final class CommandFactory implements CommandFactoryInterface
 
     private function createCommandIo(): CommandIoInterface
     {
-        return new CommandSystemIo();
+        return new CommandSystemIo(
+            $this->createExceptionPrinter()
+        );
+    }
+
+    private function createExceptionPrinter(): ExceptionPrinterInterface
+    {
+        return TextExceptionPrinter::create();
     }
 
     private function createPathFilter(): PathFilterInterface
@@ -145,5 +154,15 @@ final class CommandFactory implements CommandFactoryInterface
     private function createWrapperGenerator(): WrapperGeneratorInterface
     {
         return $this->interopFactory->createWrapperGenerator();
+    }
+
+    private function createColorStyle(): ColorStyleInterface
+    {
+        return ColorStyle::withStyles();
+    }
+
+    private function createPrinter(): PrinterInterface
+    {
+        return Printer::nonReadableWithColor();
     }
 }

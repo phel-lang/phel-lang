@@ -36,7 +36,7 @@ final class RunCommand
         try {
             $this->loadNamespace($fileOrPath);
         } catch (Throwable $e) {
-            $this->io->writeln($e->getMessage());
+            $this->io->writeStackTrace($e);
         }
     }
 

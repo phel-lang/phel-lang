@@ -9,7 +9,6 @@ use Phel\Compiler\Lexer\Exceptions\LexerValueException;
 use Phel\Compiler\Parser\Exceptions\AbstractParserException;
 use Phel\Formatter\Exceptions\ZipperException;
 use Phel\Formatter\FormatterInterface;
-use Phel\Runtime\Exceptions\ExceptionPrinterInterface;
 use Throwable;
 
 final class FormatCommand
@@ -19,7 +18,6 @@ final class FormatCommand
     private FormatterInterface $formatter;
     private CommandIoInterface $io;
     private PathFilterInterface $pathFilter;
-    private ExceptionPrinterInterface $exceptionPrinter;
 
     /** @var list<string> */
     private array $successfulFormattedFilePaths = [];
@@ -27,13 +25,11 @@ final class FormatCommand
     public function __construct(
         FormatterInterface $formatter,
         CommandIoInterface $io,
-        PathFilterInterface $pathFilter,
-        ExceptionPrinterInterface $exceptionPrinter
+        PathFilterInterface $pathFilter
     ) {
         $this->formatter = $formatter;
         $this->io = $io;
         $this->pathFilter = $pathFilter;
-        $this->exceptionPrinter = $exceptionPrinter;
     }
 
     /**
@@ -48,9 +44,9 @@ final class FormatCommand
                     $this->successfulFormattedFilePaths[] = $path;
                 }
             } catch (AbstractParserException $e) {
-                $this->printParserException($e);
+                $this->io->writeLocatedException($e, $e->getCodeSnippet());
             } catch (Throwable $e) {
-                $this->printThrowableException($e);
+                $this->io->writeStackTrace($e);
             }
         }
 
@@ -84,20 +80,5 @@ final class FormatCommand
                 $this->io->writeln(sprintf('  %d) %s', $k + 1, $filePath));
             }
         }
-    }
-
-    private function printParserException(AbstractParserException $e): void
-    {
-        $this->io->writeln(
-            $this->exceptionPrinter->getExceptionString(
-                $e,
-                $e->getCodeSnippet()
-            )
-        );
-    }
-
-    private function printThrowableException(Throwable $e): void
-    {
-        $this->io->writeln($e->getMessage());
     }
 }
