@@ -9,6 +9,9 @@ use RuntimeException;
 
 final class CommandFacade implements CommandFacadeInterface
 {
+    private const SUCCESS_CODE = 0;
+    private const FAILED_CODE = 1;
+
     private string $projectRootDir;
     private CommandFactoryInterface $commandFactory;
 
@@ -39,9 +42,13 @@ final class CommandFacade implements CommandFacadeInterface
      */
     public function executeTestCommand(array $paths): void
     {
-        $this->commandFactory
+        $result = $this->commandFactory
             ->createTestCommand($this->loadVendorPhelRuntime())
             ->run($paths);
+
+        ($result)
+            ? exit(self::SUCCESS_CODE)
+            : exit(self::FAILED_CODE);
     }
 
     /**

@@ -44,16 +44,20 @@ final class TestCommand
 
     /**
      * @param list<string> $paths
+     *
+     * @return bool true if all tests were successful. False otherwise.
      */
-    public function run(array $paths): void
+    public function run(array $paths): bool
     {
         try {
-            $this->evalNamespaces($paths);
+            return $this->evalNamespaces($paths);
         } catch (CompilerException $e) {
             $this->io->writeLocatedException($e->getNestedException(), $e->getCodeSnippet());
         } catch (Throwable $e) {
             $this->io->writeStackTrace($e);
         }
+
+        return false;
     }
 
     /**
@@ -63,8 +67,10 @@ final class TestCommand
      * @throws CompiledCodeIsMalformedException
      * @throws FileException
      * @throws CannotFindAnyTestsException
+     *
+     * @return bool true if all tests were successful. False otherwise.
      */
-    private function evalNamespaces(array $paths): void
+    private function evalNamespaces(array $paths): bool
     {
         $namespaces = $this->getNamespacesFromPaths($paths);
 
@@ -75,7 +81,7 @@ final class TestCommand
         $this->runtime->loadNs('phel\test');
         $nsString = $this->namespacesAsString($namespaces);
 
-        $this->evalCompiler->eval('(do (phel\test/run-tests ' . $nsString . ') (successful?))');
+        return $this->evalCompiler->eval('(do (phel\test/run-tests ' . $nsString . ') (successful?))');
     }
 
     private function getNamespacesFromPaths(array $paths): array
