@@ -49,8 +49,10 @@ final class TestCommand
     {
         try {
             $this->evalNamespaces($paths);
+        } catch (CompilerException $e) {
+            $this->io->writeLocatedException($e->getNestedException(), $e->getCodeSnippet());
         } catch (Throwable $e) {
-            $this->io->writeln($e->getMessage());
+            $this->io->writeStackTrace($e);
         }
     }
 

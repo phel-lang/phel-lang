@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace Phel\Compiler\Exceptions;
 
-use Exception;
 use Phel\Compiler\Parser\ReadModel\CodeSnippet;
+use RuntimeException;
 
-final class CompilerException extends Exception
+final class CompilerException extends RuntimeException
 {
     private CodeSnippet $codeSnippet;
 
