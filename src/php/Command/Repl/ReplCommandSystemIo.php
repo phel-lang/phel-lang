@@ -4,13 +4,22 @@ declare(strict_types=1);
 
 namespace Phel\Command\Repl;
 
+use Phel\Compiler\Exceptions\AbstractLocatedException;
+use Phel\Compiler\Parser\ReadModel\CodeSnippet;
+use Phel\Runtime\Exceptions\ExceptionPrinterInterface;
+use Throwable;
+
 final class ReplCommandSystemIo implements ReplCommandIoInterface
 {
     private string $historyFile;
+    private ExceptionPrinterInterface $exceptionPrinter;
 
-    public function __construct(string $historyFile)
-    {
+    public function __construct(
+        string $historyFile,
+        ExceptionPrinterInterface $exceptionPrinter
+    ) {
         $this->historyFile = $historyFile;
+        $this->exceptionPrinter = $exceptionPrinter;
     }
 
     public function readHistory(): void
@@ -35,6 +44,16 @@ final class ReplCommandSystemIo implements ReplCommandIoInterface
         }
 
         return $line;
+    }
+
+    public function writeStackTrace(Throwable $e): void
+    {
+        $this->writeln($this->exceptionPrinter->getStackTraceString($e));
+    }
+
+    public function writeLocatedException(AbstractLocatedException $e, CodeSnippet $codeSnippet): void
+    {
+        $this->writeln($this->exceptionPrinter->getExceptionString($e, $codeSnippet));
     }
 
     public function write(string $string = ''): void

@@ -5,9 +5,15 @@ declare(strict_types=1);
 namespace PhelTest\Integration\Command\Repl;
 
 use Phel\Command\Repl\ReplCommandIoInterface;
+use Phel\Compiler\Exceptions\AbstractLocatedException;
+use Phel\Compiler\Parser\ReadModel\CodeSnippet;
+use Phel\Runtime\Exceptions\ExceptionPrinterInterface;
+use Throwable;
 
 final class ReplTestIo implements ReplCommandIoInterface
 {
+    private ExceptionPrinterInterface $exceptionPrinter;
+
     /** @var array string[] */
     private array $outputs = [];
 
@@ -15,6 +21,12 @@ final class ReplTestIo implements ReplCommandIoInterface
     private array $inputs = [];
 
     private int $currentIndex = 0;
+
+
+    public function __construct(ExceptionPrinterInterface $exceptionPrinter)
+    {
+        $this->exceptionPrinter = $exceptionPrinter;
+    }
 
     public function readHistory(): void
     {
@@ -39,6 +51,16 @@ final class ReplTestIo implements ReplCommandIoInterface
         }
 
         return null;
+    }
+
+    public function writeStackTrace(Throwable $e): void
+    {
+        $this->write($this->exceptionPrinter->getStackTraceString($e));
+    }
+
+    public function writeLocatedException(AbstractLocatedException $e, CodeSnippet $codeSnippet): void
+    {
+        $this->write($this->exceptionPrinter->getExceptionString($e, $codeSnippet));
     }
 
     public function write(string $string = ''): void

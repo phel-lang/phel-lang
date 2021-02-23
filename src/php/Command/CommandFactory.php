@@ -15,6 +15,7 @@ use Phel\Command\Format\PhelPathFilter;
 use Phel\Command\Repl\ColorStyle;
 use Phel\Command\Repl\ColorStyleInterface;
 use Phel\Command\Repl\ReplCommand;
+use Phel\Command\Repl\ReplCommandIoInterface;
 use Phel\Command\Repl\ReplCommandSystemIo;
 use Phel\Command\Run\RunCommand;
 use Phel\Command\Shared\CommandIoInterface;
@@ -60,9 +61,8 @@ final class CommandFactory implements CommandFactoryInterface
         $runtime->loadFileIntoNamespace('user', __DIR__ . '/Repl/startup.phel');
 
         return new ReplCommand(
-            new ReplCommandSystemIo($this->projectRootDir . '.phel-repl-history'),
+            $this->createReplCommandIo(),
             $this->compilerFactory->createEvalCompiler($runtime->getEnv()),
-            $this->createExceptionPrinter(),
             $this->createColorStyle(),
             $this->createPrinter()
         );
@@ -106,6 +106,14 @@ final class CommandFactory implements CommandFactoryInterface
             $this->createFunctionsToExportFinder($runtime),
             $this->createDirectoryRemover(),
             $this->commandConfig->getExportTargetDirectory()
+        );
+    }
+
+    private function createReplCommandIo(): ReplCommandIoInterface
+    {
+        return new ReplCommandSystemIo(
+            $this->projectRootDir . '.phel-repl-history',
+            $this->createExceptionPrinter()
         );
     }
 
