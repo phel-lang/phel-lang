@@ -35,6 +35,8 @@ final class RunCommand
     {
         try {
             $this->loadNamespace($fileOrPath);
+        } catch (CompilerException $e) {
+            $this->io->writeLocatedException($e->getNestedException(), $e->getCodeSnippet());
         } catch (Throwable $e) {
             $this->io->writeStackTrace($e);
         }
