@@ -58,6 +58,7 @@ final class RuntimeFactory
         GlobalEnvironmentInterface $globalEnv,
         string $cacheDirectory = null
     ): RuntimeInterface {
+        unset($GLOBALS['__phel']);
         self::$instance = new Runtime(
             $globalEnv,
             self::createExceptionPrinter(),
