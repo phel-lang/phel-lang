@@ -63,15 +63,6 @@ In order to make a substantial change it is a good practice to discuss the idea 
 
 Phel requires PHP 7.4 or higher and Composer.
 
-You can either install the dependencies by yourself or use the provided docker container:
-
-```bash
-docker-compose up
-docker exec -ti -u dev phel_lang_php bash
-composer install
-composer test-all
-```
-
 ### Testing
 
 Phel has two test suites. The first test suite runs PHPUnit to test the compiler itself. The second test suite runs tests against Phel's core library.
