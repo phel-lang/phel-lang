@@ -176,7 +176,7 @@ Before using the `export` command the required configuration options need to be 
 }
 ```
 
-A detailed description of the options can be found in the [Configuration](/configuration/#export) chapter.
+A detailed description of the options can be found in the [Configuration](/documentation/configuration/#export) chapter.
 
 To mark a function as exported the following meta data needs to be added to the function:
 

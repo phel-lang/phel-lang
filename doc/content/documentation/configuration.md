@@ -62,7 +62,7 @@ This configuration entry defines a list of folders where the test files of a pro
 
 ### `export`
 
-These configuration options are used for the Phel export command that is described in the [PHP Interop](php-interop/#calling-phel-functions-from-php) chapter. Currently, the export command requires three options:
+These configuration options are used for the Phel export command that is described in the [PHP Interop](/documentation/php-interop/#calling-phel-functions-from-php) chapter. Currently, the export command requires three options:
 
 - `directories`: Defines a list of directories in which the export command should search for export functions.
 - `namespace-prefix`: Defines a namespace prefix for all generated PHP classes.
