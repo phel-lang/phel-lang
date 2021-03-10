@@ -169,9 +169,9 @@ final class Tuple extends AbstractType implements
         return new Tuple([$x, ...$this->data], $this->isUsingBracket());
     }
 
-    public function hash(): string
+    public function hash(): int
     {
-        return spl_object_hash($this);
+        return crc32(spl_object_hash($this));
     }
 
     public function equals($other): bool

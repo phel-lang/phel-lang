@@ -99,9 +99,9 @@ final class Symbol extends AbstractType implements IdenticalInterface
         self::$symGenCounter = 1;
     }
 
-    public function hash(): string
+    public function hash(): int
     {
-        return $this->getName();
+        return crc32($this->getName());
     }
 
     public function equals($other): bool

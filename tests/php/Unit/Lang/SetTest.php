@@ -25,7 +25,7 @@ final class SetTest extends TestCase
     public function testHash(): void
     {
         $set = new Set(['a']);
-        $this->assertEquals(spl_object_hash($set), $set->hash());
+        $this->assertEquals(crc32(spl_object_hash($set)), $set->hash());
     }
 
     public function testForeach(): void

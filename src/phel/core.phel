@@ -108,6 +108,20 @@ elements, returns nil."
 # quasiquote can be used down here
 
 # ------------
+# Meta helpers
+# ------------
+
+(def meta
+  "```phel\n(meta obj)\n```\nGets the meta of the give object"
+  (fn [obj]
+    (php/-> obj (getMeta))))
+
+(def set-meta!
+  "```phel\n(set-meta! obj)\n```\nSets the meta data to a given object"
+  (fn [obj meta]
+    (php/-> obj (setMeta meta))))
+
+# ------------
 # Basic macros
 # ------------
 

@@ -29,9 +29,9 @@ final class Set extends AbstractType implements
         $this->concat($data);
     }
 
-    public function hash(): string
+    public function hash(): int
     {
-        return spl_object_hash($this);
+        return crc32(spl_object_hash($this));
     }
 
     public function count(): int
@@ -157,17 +157,17 @@ final class Set extends AbstractType implements
      *
      * @param mixed $offset The access key of the Set
      */
-    private function offsetHash($offset): string
+    private function offsetHash($offset): int
     {
         if ($offset instanceof AbstractType) {
             return $offset->hash();
         }
 
         if (is_object($offset)) {
-            return spl_object_hash($offset);
+            return crc32(spl_object_hash($offset));
         }
 
-        return (string) $offset;
+        return crc32((string) $offset);
     }
 
     public function __toString(): string

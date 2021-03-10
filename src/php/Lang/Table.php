@@ -178,9 +178,9 @@ class Table extends AbstractType implements ArrayAccess, Countable, Iterator, Se
         return new PhelArray($res);
     }
 
-    public function hash(): string
+    public function hash(): int
     {
-        return spl_object_hash($this);
+        return crc32(spl_object_hash($this));
     }
 
     public function equals($other): bool
@@ -242,17 +242,17 @@ class Table extends AbstractType implements ArrayAccess, Countable, Iterator, Se
      *
      * @param mixed $offset The access key of the Table
      */
-    private function offsetHash($offset): string
+    private function offsetHash($offset): int
     {
         if ($offset instanceof AbstractType) {
             return $offset->hash();
         }
 
         if (is_object($offset)) {
-            return spl_object_hash($offset);
+            return crc32(spl_object_hash($offset));
         }
 
-        return (string) $offset;
+        return crc32((string) $offset);
     }
 
     public function __toString(): string

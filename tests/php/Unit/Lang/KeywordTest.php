@@ -19,7 +19,7 @@ final class KeywordTest extends TestCase
     public function testGetHash(): void
     {
         $keyword = new Keyword('test');
-        $this->assertEquals(':test', $keyword->hash());
+        $this->assertEquals(crc32(':test'), $keyword->hash());
     }
 
     public function testEquals(): void

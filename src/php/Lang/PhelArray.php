@@ -133,9 +133,9 @@ final class PhelArray extends AbstractType implements
         return key($this->data) !== null;
     }
 
-    public function hash(): string
+    public function hash(): int
     {
-        return spl_object_hash($this);
+        return crc32(spl_object_hash($this));
     }
 
     public function equals($other): bool

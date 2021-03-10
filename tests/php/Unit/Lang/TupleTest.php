@@ -137,7 +137,7 @@ final class TupleTest extends TestCase
     public function testHash(): void
     {
         $t1 = Tuple::create('a', 1);
-        $this->assertEquals(spl_object_hash($t1), $t1->hash());
+        $this->assertEquals(crc32(spl_object_hash($t1)), $t1->hash());
     }
 
     public function testEquals(): void

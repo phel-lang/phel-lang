@@ -28,9 +28,9 @@ final class Keyword extends AbstractType implements IdenticalInterface, FnInterf
         return $this->name;
     }
 
-    public function hash(): string
+    public function hash(): int
     {
-        return ':' . $this->getName();
+        return crc32(':' . $this->getName());
     }
 
     public function equals($other): bool

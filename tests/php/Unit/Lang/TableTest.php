@@ -137,7 +137,7 @@ final class TableTest extends TestCase
     public function testHash(): void
     {
         $table = Table::fromKVs('a', 1);
-        $this->assertEquals(spl_object_hash($table), $table->hash());
+        $this->assertEquals(crc32(spl_object_hash($table)), $table->hash());
     }
 
     public function testEquals(): void

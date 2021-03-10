@@ -22,7 +22,8 @@
         "friendsofphp/php-cs-fixer": "^2.18",
         "infection/infection": "^0.21",
         "symfony/var-dumper": "^5.2",
-        "phpmetrics/phpmetrics": "^2.7"
+        "phpmetrics/phpmetrics": "^2.7",
+        "phpbench/phpbench": "^1.0.0-alpha4"
     },
     "autoload": {
         "psr-4": {
