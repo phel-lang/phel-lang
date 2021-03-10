@@ -9,7 +9,7 @@ Standardize the modular design of the different modules
 The modules have a similar structure between each other. At the root of a module you can find: 
 
 - Facade: it's the entry point of the module. 
-  If another module wants to interact with another module, they will do it via the Facade.
+  If one module wants to interact with another module, they will do it via the Facade.
   
 - Factory: it's where the instances of that module are created. This is the place where 
   the Dependency Injection (DI) happens.
