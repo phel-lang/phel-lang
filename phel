@@ -4,13 +4,8 @@
 $slash = DIRECTORY_SEPARATOR;
 require_once __DIR__ . "{$slash}src{$slash}php{$slash}PhelFacade.php";
 
-use Phel\Command\CommandConfig;
-use Phel\Command\CommandFacade;
-use Phel\Command\CommandFactory;
-use Phel\Compiler\CompilerFactory;
-use Phel\Formatter\FormatterFactory;
-use Phel\Interop\InteropConfig;use Phel\Interop\InteropFactory;
 use Phel\PhelFacade;
+use Phel\PhelFacadeFactory;
 
 if ($argc <= 1) {
     exit(PhelFacade::HELP_TEXT);
@@ -25,21 +20,9 @@ if (!file_exists($autoloadPath)) {
 
 require $autoloadPath;
 
-$compilerFactory = new CompilerFactory();
-
-$commandFacade = new CommandFacade(
-    $projectRootDir,
-    new CommandFactory(
-        $projectRootDir,
-        new CommandConfig($projectRootDir),
-        $compilerFactory,
-        new FormatterFactory($compilerFactory),
-        new InteropFactory(new InteropConfig($projectRootDir))
-    )
-);
-
 try {
-    $facade = new PhelFacade($commandFacade);
+    $factory = new PhelFacadeFactory($projectRootDir);
+    $facade = $factory->createPhelFacade();
     $facade->runCommand($argv[1], array_slice($argv, 2));
 } catch (Throwable $e) {
     print $e->getMessage() . PHP_EOL;
