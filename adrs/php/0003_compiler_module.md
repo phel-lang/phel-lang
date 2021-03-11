@@ -2,13 +2,33 @@
 
 ## Motivation
 
-Describe the responsibilities of the compiler module
+Describe the responsibilities of the compiler module.
 
 ## Compiler Submodules
 
-- Lexer: It will iterate character by character to do two things: decide where each token starts/stops and what type of token it is.
-- Parser: It makes sure the code follows the correct syntax. It does this by looking at the tokens, one at a time, and deciding if the ordering is legal as defined by our language.
-- Emitter: It will produce the compiled code.
+- Lexer
+- Parser
+- Reader 
+- Analyzer
+- Emitter
 
-- Analyzer: Analyse an AST
-- Reader: Gets the AST from a given Node
+#### Lexer
+
+The Lexer splits a string into tokens. Each token has a type and a position.
+
+#### Parser
+
+The Parser transform the tokens of the Lexer into a parse tree. The parse tree contains all tokens including all whitespace tokens.
+
+#### Reader
+
+The reader transforms the parse tree into a Phel data structure. All unnecessary white-space tokens are removed in this step.
+
+#### Analyzer
+
+The analyzer analyzes the result of the reader, validates the input, and adds information to an environment. If everything is ok an abstract syntax tree is returned.
+
+#### Emitter
+
+The emitter takes the abstract syntax tree from the Analyzer and transforms it into a PHP code string.
+
