@@ -305,7 +305,7 @@ collection in map"))
 (defn partition
   "Partitions an indexed data structure into arrays of size n. Returns a new array."
   [n xs]
-  (if (< (count xs) n)
+  (if (<= (count xs) n)
     @[xs]
     (let [res @[]]
       (loop [xs xs]
