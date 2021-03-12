@@ -73,8 +73,10 @@
   (is (= @[] (take-last 0 @["a" "b" "c"])) "take-last zero elements")
   (is (= @[] (take-last -1 @["a" "b" "c"])) "take-last with negative number")
   (is (= ["b" "c"] (take-last 2 ["a" "b" "c"])) "take-last on tuple")
+  (is (= [] (take-last 1 [])) "take-last on empty tuple")
   (is (= @[] (take-last -1 ["a" "b" "c"])) "take-last with negative number on tuple")
   (is (= (php/array "b" "c") (take-last 2 (php/array "a" "b" "c"))) "take-last on php array")
+  (is (= (php/array) (take-last 1 (php/array))) "take-last on empty php array")
   (is (= @[] (take-last -1 (php/array "a" "b" "c"))) "take-last with negative number on php array"))
 
 (deftest test-take-while
