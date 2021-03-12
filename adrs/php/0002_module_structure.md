@@ -2,8 +2,9 @@
 
 ## Motivation
 
-Standardize the design of the different modules. Considering a module as an internal package that contains
-a group of related classes that belong together driven by its scope.
+This ADR standardizes the design of different modules.
+A module divides this project into smaller parts.
+Each module defines a set of classes that belong together and are independently of classes in other modules.
 
 ## Decision
 
@@ -20,7 +21,7 @@ We stand for low coupling and high cohesion.
 The modules have a similar structure between each other. At the root of a module you can find:
 
 - Facade: A Facade is the class that defines the entry point of the module.
-  - There must be one Facade per module.
+  - There must be exactly one Facade per module.
   - If one module wants to interact with another module, they will do it via the Facade.
 
 - Factory: A factory is a class where the instances of the module are created.
