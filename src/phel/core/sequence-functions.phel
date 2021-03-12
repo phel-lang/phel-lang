@@ -303,7 +303,7 @@ collection in map"))
   [(take-while f xs) (drop-while f xs)])
 
 (defn partition
-  "Partition an indexed data structure into tuples of size n. Returns a new array."
+  "Partitions an indexed data structure into arrays of size n. Returns a new array."
   [n xs]
   (if (< (count xs) n)
     @[xs]
