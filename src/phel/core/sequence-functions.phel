@@ -301,20 +301,7 @@ collection in map"))
   "Returns a tuple of [(take-while pred coll) (drop-while pred coll)]."
   [f xs]
   [(take-while f xs) (drop-while f xs)])
-
-(defn partition
-  "Partitions an indexed data structure into arrays of size n. Returns a new array."
-  [n xs]
-  (if (<= (count xs) n)
-    @[xs]
-    (let [res @[]]
-      (loop [xs xs]
-        (let [[a b] (split-at n xs)]
-          (push res a)
-          (if (>= (count b) n)
-            (recur b)
-            (do (push res b) res)))))))
-            
+          
 (defn partition
   "Partitions an indexed data structure into arrays of max size n. Returns a new array."
   [n xs]
