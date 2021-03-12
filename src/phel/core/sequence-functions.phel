@@ -319,7 +319,7 @@ collection in map"))
   "Partitions an indexed data structure into arrays of max size n. Returns a new array."
   [n xs]
   (if (<= (count xs) n)
-    @[xs]
+    (if (= (count xs) 0) @[] @[xs])
     (let [res @[]]
       (loop [xs xs]
         (let [[a b] (split-at n xs)]
