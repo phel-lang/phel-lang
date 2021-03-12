@@ -306,11 +306,11 @@ collection in map"))
   "Partition an indexed data structure into tuples of size n. Returns a new array."
   [n xs]
   (if (< (count xs) n)
-    @[]
+    @[xs]
     (let [res @[]]
       (loop [xs xs]
         (let [[a b] (split-at n xs)]
           (push res a)
           (if (>= (count b) n)
             (recur b)
-            res))))))
+            (do (push res b) res)))))))
