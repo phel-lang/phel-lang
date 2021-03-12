@@ -4,14 +4,20 @@ declare(strict_types=1);
 
 namespace Phel\Formatter;
 
+use Phel\Compiler\Lexer\Exceptions\LexerValueException;
 use Phel\Compiler\Parser\Exceptions\AbstractParserException;
+use Phel\Formatter\Exceptions\ZipperException;
 
 interface FormatterInterface
 {
+    public const DEFAULT_SOURCE = 'string';
+
     /**
      * @throws AbstractParserException
+     * @throws LexerValueException
+     * @throws ZipperException
      *
-     * @return bool True if the file was formatted. False if the file wasn't altered because it was already formatted.
+     * @return string The formatted file result
      */
-    public function formatFile(string $filename): bool;
+    public function format(string $string, string $source = self::DEFAULT_SOURCE): string;
 }

@@ -18,13 +18,22 @@ final class NsEmitter implements NodeEmitterInterface
     {
         assert($node instanceof NsNode);
 
+        $this->emitRequiredNamespaces($node);
+        $this->emitCurrentNamespace($node);
+    }
+
+    private function emitRequiredNamespaces(NsNode $node): void
+    {
         foreach ($node->getRequireNs() as $i => $ns) {
             $this->outputEmitter->emitLine(
                 '\Phel\Runtime\RuntimeFactory::getInstance()->loadNs("' . addslashes($ns->getName()) . '");',
                 $ns->getStartLocation()
             );
         }
+    }
 
+    private function emitCurrentNamespace(NsNode $node): void
+    {
         $this->outputEmitter->emitLine(
             '\Phel\Runtime\RuntimeFactory::getInstance()->getEnv()->setNs("' . addslashes($node->getNamespace()) . '");',
             $node->getStartSourceLocation()

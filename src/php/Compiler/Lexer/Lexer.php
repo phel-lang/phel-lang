@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace Phel\Compiler\Lexer;
 
-use Exception;
 use Generator;
+use Phel\Compiler\Lexer\Exceptions\LexerValueException;
 use Phel\Lang\SourceLocation;
 
 final class Lexer implements LexerInterface
@@ -42,12 +42,17 @@ final class Lexer implements LexerInterface
         $this->combinedRegex = '/(?:' . implode('|', self::REGEXPS) . ')/mA';
     }
 
+    /**
+     * @throws LexerValueException
+     */
     public function lexString(string $code, string $source = self::DEFAULT_SOURCE, int $startingLine = 1): TokenStream
     {
         return new TokenStream($this->lexStringGenerator($code, $source, $startingLine));
     }
 
     /**
+     * @throws LexerValueException
+     *
      * @return Generator<Token>
      */
     private function lexStringGenerator(string $code, string $source = self::DEFAULT_SOURCE, int $startingLine = 1): Generator
@@ -68,7 +73,7 @@ final class Lexer implements LexerInterface
 
                 $startLocation = $endLocation;
             } else {
-                throw new Exception('Unexpected state');
+                throw LexerValueException::unexpectedLexerState();
             }
         }
 

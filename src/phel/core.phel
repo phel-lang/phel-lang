@@ -99,11 +99,11 @@ elements, returns nil."
     (if (php/=== nil arr)
       '()
       (loop [res arr
-           other others]
-      (if (php/=== nil other)
-        res
-        (let [[y & ys] other]
-          (recur (concat1 res y) ys)))))))
+             other others]
+        (if (php/=== nil other)
+          res
+          (let [[y & ys] other]
+            (recur (concat1 res y) ys)))))))
 
 # quasiquote can be used down here
 

@@ -8,5 +8,8 @@ interface NamespaceExtractorInterface
 {
     public function getNamespaceFromFile(string $path): string;
 
-    public function getNamespacesFromConfig(string $currentDir): array;
+    /**
+     * @param list<string> $directories
+     */
+    public function getNamespacesFromDirectories(array $directories, string $projectRootDir): array;
 }

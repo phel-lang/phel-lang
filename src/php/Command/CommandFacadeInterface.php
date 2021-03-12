@@ -19,4 +19,6 @@ interface CommandFacadeInterface
      * @param list<string> $paths
      */
     public function executeFormatCommand(array $paths): void;
+
+    public function executeExportCommand(): void;
 }
