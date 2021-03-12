@@ -164,8 +164,8 @@
 
 (deftest test-partition
   (is (= @[] (partition 2 [])) "partition-2 empty")
-  (is (= @[] (partition 2 [1])) "partition-2 one element")
+  (is (= @[1] (partition 2 [1])) "partition-2 one element")
   (is (= @[[1 2]] (partition 2 [1 2])) "partition-2 two elements")
-  (is (= @[[1 2]] (partition 2 [1 2 3])) "partition-2 three elements")
+  (is (= @[[1 2] [3]] (partition 2 [1 2 3])) "partition-2 three elements")
   (is (= @[[1 2] [3 4]] (partition 2 [1 2 3 4])) "partition-2 four elements")
-  (is (= @[[1 2] [3 4]] (partition 2 [1 2 3 4 5])) "partition-2 five elements"))
+  (is (= @[[1 2] [3 4] [5] (partition 2 [1 2 3 4 5])) "partition-2 five elements"))
