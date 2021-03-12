@@ -120,7 +120,10 @@ class HashCollisionNode implements HashMapNodeInterface
             return $notFound;
         }
 
-        return $this->objects[$index + 1];
+        /** @var V $value */
+        $value = $this->objects[$index + 1];
+
+        return $value;
     }
 
     private function mask(int $hash, int $shift): int
