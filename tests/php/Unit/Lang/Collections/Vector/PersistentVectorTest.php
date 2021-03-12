@@ -6,8 +6,8 @@ namespace PhelTest\Unit\Lang\Collections\Vector;
 
 use Phel\Lang\Collections\Vector\PersistentVector;
 use Phel\Lang\Collections\Vector\RangeIterator;
-use PhelTest\Benchmark\Lang\Collections\HashMap\SimpleEqualizer;
-use PhelTest\Unit\Lang\Collections\HashMap\ModuloHasher;
+use PhelTest\Unit\Lang\Collections\ModuloHasher;
+use PhelTest\Unit\Lang\Collections\SimpleEqualizer;
 use PHPUnit\Framework\TestCase;
 use RuntimeException;
 

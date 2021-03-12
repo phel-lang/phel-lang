@@ -8,6 +8,10 @@ use Countable;
 use Iterator;
 use Phel\Printer\Printer;
 
+/**
+ * @template T
+ * @template-implements SeqInterface<T, PhelArray>
+ */
 final class Set extends AbstractType implements
     Countable,
     Iterator,
@@ -88,7 +92,7 @@ final class Set extends AbstractType implements
         return $this->current();
     }
 
-    public function cdr(): ?CdrInterface
+    public function cdr()
     {
         if ($this->count() <= 1) {
             return null;
@@ -97,7 +101,7 @@ final class Set extends AbstractType implements
         return new PhelArray(array_values(array_slice($this->data, 1)));
     }
 
-    public function rest(): RestInterface
+    public function rest()
     {
         $this->rewind();
         $this->next();

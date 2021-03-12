@@ -11,8 +11,10 @@ use Iterator;
 use Phel\Printer\Printer;
 
 /**
+ * @template T
  * @template-implements ArrayAccess<int, mixed>
  * @template-implements Iterator<int, mixed>
+ * @template-implements SeqInterface<T, Tuple<T>>
  */
 final class Tuple extends AbstractType implements
     ArrayAccess,
@@ -203,7 +205,7 @@ final class Tuple extends AbstractType implements
         return null;
     }
 
-    public function cdr(): ?CdrInterface
+    public function cdr()
     {
         if ($this->count() <= 1) {
             return null;
@@ -212,7 +214,7 @@ final class Tuple extends AbstractType implements
         return new Tuple(array_slice($this->data, 1), $this->isUsingBracket());
     }
 
-    public function rest(): RestInterface
+    public function rest()
     {
         return new Tuple(array_slice($this->data, 1), $this->isUsingBracket());
     }

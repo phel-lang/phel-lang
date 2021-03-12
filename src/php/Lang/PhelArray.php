@@ -11,8 +11,10 @@ use Iterator;
 use Phel\Printer\Printer;
 
 /**
- * @template-implements ArrayAccess<int, mixed>
- * @template-implements Iterator<int, mixed>
+ * @template T
+ * @template-implements ArrayAccess<int, T>
+ * @template-implements Iterator<int, T>
+ * @template-implements SeqInterface<T, PhelArray>
  */
 final class PhelArray extends AbstractType implements
     ArrayAccess,
@@ -178,7 +180,7 @@ final class PhelArray extends AbstractType implements
         return null;
     }
 
-    public function cdr(): ?CdrInterface
+    public function cdr()
     {
         if ($this->count() <= 1) {
             return null;
@@ -187,7 +189,7 @@ final class PhelArray extends AbstractType implements
         return new PhelArray(array_slice($this->data, 1));
     }
 
-    public function rest(): RestInterface
+    public function rest()
     {
         return new PhelArray(array_slice($this->data, 1));
     }

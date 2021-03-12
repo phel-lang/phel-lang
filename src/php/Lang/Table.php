@@ -10,6 +10,9 @@ use Iterator;
 use Phel\Printer\Printer;
 use RuntimeException;
 
+/**
+ * @template-implements SeqInterface<Tuple, PhelArray>
+ */
 class Table extends AbstractType implements ArrayAccess, Countable, Iterator, SeqInterface
 {
     protected array $data = [];

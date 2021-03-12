@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace PhelTest\Unit\Lang\Collections\HashMap;
 
 use Phel\Lang\Collections\HashMap\PersistentHashMap;
+use PhelTest\Unit\Lang\Collections\ModuloHasher;
+use PhelTest\Unit\Lang\Collections\SimpleEqualizer;
 use PHPUnit\Framework\TestCase;
 
 class PersistentHashMapTest extends TestCase

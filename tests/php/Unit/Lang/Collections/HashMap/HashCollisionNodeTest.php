@@ -7,6 +7,8 @@ namespace PhelTest\Unit\Lang\Collections\HashMap;
 use Phel\Lang\Collections\HashMap\Box;
 use Phel\Lang\Collections\HashMap\HashCollisionNode;
 use Phel\Lang\Collections\HashMap\IndexedNode;
+use PhelTest\Unit\Lang\Collections\ModuloHasher;
+use PhelTest\Unit\Lang\Collections\SimpleEqualizer;
 use PHPUnit\Framework\TestCase;
 
 class HashCollisionNodeTest extends TestCase

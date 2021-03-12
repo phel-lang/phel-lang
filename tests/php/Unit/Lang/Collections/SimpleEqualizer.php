@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace PhelTest\Unit\Lang\Collections\HashMap;
+namespace PhelTest\Unit\Lang\Collections;
 
 use Phel\Lang\EqualizerInterface;
 
