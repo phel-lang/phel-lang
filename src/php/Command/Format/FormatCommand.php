@@ -13,7 +13,7 @@ use Throwable;
 
 final class FormatCommand
 {
-    public const COMMAND_NAME = 'fmt';
+    public const COMMAND_NAME = 'format';
 
     private FormatterInterface $formatter;
     private CommandIoInterface $io;
