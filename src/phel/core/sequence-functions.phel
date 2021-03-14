@@ -96,6 +96,11 @@ collection in map"))
   [n xs]
   (slice xs 0 (if (php/< n 0) 0 n)))
 
+(defn take-last
+  "Takes the last `n` elements of `xs`."
+  [n xs]
+  (if (php/<= n 0) @[] (slice xs (php/* -1 n))))
+
 (defn take-while
   "Takes alle elements at the front of `xs` where `(pred x)` is true."
   [pred xs]
