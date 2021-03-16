@@ -5,12 +5,16 @@ declare(strict_types=1);
 namespace Phel\Lang\Collections\HashMap;
 
 use Countable;
+use IteratorAggregate;
+use Phel\Lang\Table;
 
 /**
  * @template K
  * @template V
+ *
+ * @extends IteratorAggregate<K, V>
  */
-interface PersistentHashMapInterface extends Countable
+interface PersistentHashMapInterface extends Countable, IteratorAggregate
 {
     /**
      * @param K $key
@@ -34,4 +38,6 @@ interface PersistentHashMapInterface extends Countable
      * @return V
      */
     public function find($key);
+
+    public function toTable(): Table;
 }

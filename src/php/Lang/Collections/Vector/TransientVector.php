@@ -65,7 +65,7 @@ class TransientVector implements PersistentVectorInterface
 
     public function persistent(): PersistentVector
     {
-        return new PersistentVector($this->hasher, $this->equalizer, $this->count, $this->shift, $this->root, $this->tail);
+        return new PersistentVector($this->hasher, $this->equalizer, null, $this->count, $this->shift, $this->root, $this->tail);
     }
 
     /**

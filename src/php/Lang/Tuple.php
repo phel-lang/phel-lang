@@ -26,6 +26,7 @@ final class Tuple extends AbstractType implements
     PushInterface,
     ConcatInterface
 {
+    use MetaTrait;
     use IteratorComparatorTrait;
 
     /** @var array<int, mixed> */

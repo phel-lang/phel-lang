@@ -189,7 +189,7 @@ class Runtime implements RuntimeInterface
                     $this->globalEnv->addDefinition(
                         $ns,
                         Symbol::create($name),
-                        $def->getMeta()
+                        $def->getMeta()->toTable()
                     );
                 }
             }

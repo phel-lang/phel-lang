@@ -15,7 +15,7 @@ final class EmptyListTest extends TestCase
 {
     public function testPrependOnEmptyList(): void
     {
-        $list = (new EmptyList(new ModuloHasher(), new SimpleEqualizer()))->prepend('foo');
+        $list = (new EmptyList(new ModuloHasher(), new SimpleEqualizer(), null))->prepend('foo');
 
         $this->assertTrue($list instanceof PersistentList);
         $this->assertEquals(1, $list->count());
@@ -26,13 +26,13 @@ final class EmptyListTest extends TestCase
     {
         $this->expectException(RuntimeException::class);
 
-        $list = new EmptyList(new ModuloHasher(), new SimpleEqualizer());
+        $list = new EmptyList(new ModuloHasher(), new SimpleEqualizer(), null);
         $list->pop();
     }
 
     public function testCount(): void
     {
-        $list = new EmptyList(new ModuloHasher(), new SimpleEqualizer());
+        $list = new EmptyList(new ModuloHasher(), new SimpleEqualizer(), null);
         $this->assertEquals(0, $list->count());
     }
 
@@ -40,31 +40,31 @@ final class EmptyListTest extends TestCase
     {
         $this->expectException(RuntimeException::class);
 
-        $list = new EmptyList(new ModuloHasher(), new SimpleEqualizer());
+        $list = new EmptyList(new ModuloHasher(), new SimpleEqualizer(), null);
         $list->get(0);
     }
 
     public function testEqualsDifferentType(): void
     {
-        $list = new EmptyList(new ModuloHasher(), new SimpleEqualizer());
+        $list = new EmptyList(new ModuloHasher(), new SimpleEqualizer(), null);
         $this->assertFalse($list->equals([]));
     }
 
     public function testEqualsSameType(): void
     {
-        $list = new EmptyList(new ModuloHasher(), new SimpleEqualizer());
-        $this->assertTrue($list->equals(new EmptyList(new ModuloHasher(), new SimpleEqualizer())));
+        $list = new EmptyList(new ModuloHasher(), new SimpleEqualizer(), null);
+        $this->assertTrue($list->equals(new EmptyList(new ModuloHasher(), new SimpleEqualizer(), null)));
     }
 
     public function testHash(): void
     {
-        $list = new EmptyList(new ModuloHasher(), new SimpleEqualizer());
+        $list = new EmptyList(new ModuloHasher(), new SimpleEqualizer(), null);
         $this->assertEquals(1, $list->hash());
     }
 
     public function testIterator(): void
     {
-        $list = new EmptyList(new ModuloHasher(), new SimpleEqualizer());
+        $list = new EmptyList(new ModuloHasher(), new SimpleEqualizer(), null);
 
         $result = [];
         foreach ($list as $index => $value) {
@@ -75,19 +75,19 @@ final class EmptyListTest extends TestCase
 
     public function testFirst(): void
     {
-        $list = new EmptyList(new ModuloHasher(), new SimpleEqualizer());
+        $list = new EmptyList(new ModuloHasher(), new SimpleEqualizer(), null);
         $this->assertNull($list->first());
     }
 
     public function testRest(): void
     {
-        $list = new EmptyList(new ModuloHasher(), new SimpleEqualizer());
+        $list = new EmptyList(new ModuloHasher(), new SimpleEqualizer(), null);
         $this->assertEquals($list, $list->rest());
     }
 
     public function testCdr(): void
     {
-        $list = new EmptyList(new ModuloHasher(), new SimpleEqualizer());
+        $list = new EmptyList(new ModuloHasher(), new SimpleEqualizer(), null);
         $this->assertNull($list->cdr());
     }
 }

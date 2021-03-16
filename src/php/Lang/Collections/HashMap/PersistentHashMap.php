@@ -5,11 +5,11 @@ declare(strict_types=1);
 namespace Phel\Lang\Collections\HashMap;
 
 use EmptyIterator;
-use IteratorAggregate;
+use Phel\Lang\AbstractType;
 use Phel\Lang\EqualizerInterface;
-use Phel\Lang\EqualsInterface;
-use Phel\Lang\HashableInterface;
 use Phel\Lang\HasherInterface;
+use Phel\Lang\Table;
+use Phel\Lang\TypeFactory;
 use Traversable;
 
 /**
@@ -17,9 +17,9 @@ use Traversable;
  * @template V
  *
  * @implements PersistentHashMapInterface<K, V>
- * @implements IteratorAggregate<K, V>
+ * @extends AbstractType<PersistentHashMap<K, V>>
  */
-class PersistentHashMap implements PersistentHashMapInterface, IteratorAggregate, EqualsInterface, HashableInterface
+class PersistentHashMap extends AbstractType implements PersistentHashMapInterface
 {
     private EqualizerInterface $equalizer;
     private HasherInterface $hasher;
@@ -30,6 +30,7 @@ class PersistentHashMap implements PersistentHashMapInterface, IteratorAggregate
     /** @var V */
     private $nullValue;
     private int $hashCache = 0;
+    private ?PersistentHashMapInterface $meta;
 
     /** @var \stdclass|null */
     private static $NOT_FOUND;
@@ -37,25 +38,20 @@ class PersistentHashMap implements PersistentHashMapInterface, IteratorAggregate
     /**
      * @param V $nullValue
      */
-    public function __construct(HasherInterface $hasher, EqualizerInterface $equalizer, int $count, ?HashMapNodeInterface $root, bool $hasNull, $nullValue)
+    public function __construct(HasherInterface $hasher, EqualizerInterface $equalizer, ?PersistentHashMapInterface $meta, int $count, ?HashMapNodeInterface $root, bool $hasNull, $nullValue)
     {
-        //echo "create Map\n";
         $this->hasher = $hasher;
         $this->equalizer = $equalizer;
+        $this->meta = $meta;
         $this->count = $count;
         $this->root = $root;
         $this->hasNull = $hasNull;
         $this->nullValue = $nullValue;
     }
 
-    public function __destruct()
-    {
-        //echo "destruct Map\n";
-    }
-
     public static function empty(HasherInterface $hasher, EqualizerInterface $equalizer): self
     {
-        return new self($hasher, $equalizer, 0, null, false, null);
+        return new self($hasher, $equalizer, null, 0, null, false, null);
     }
 
     public static function getNotFound(): \stdclass
@@ -65,6 +61,20 @@ class PersistentHashMap implements PersistentHashMapInterface, IteratorAggregate
         }
 
         return self::$NOT_FOUND;
+    }
+
+    public function getMeta(): PersistentHashMapInterface
+    {
+        if ($this->meta) {
+            return $this->meta;
+        }
+
+        return TypeFactory::getInstance()->emptyPersistentHashMap();
+    }
+
+    public function withMeta(?PersistentHashMapInterface $meta)
+    {
+        return new PersistentHashMap($this->hasher, $this->equalizer, $meta, $this->count, $this->root, $this->hasNull, $this->nullValue);
     }
 
     public function containsKey($key): bool
@@ -87,7 +97,7 @@ class PersistentHashMap implements PersistentHashMapInterface, IteratorAggregate
                 return $this;
             }
 
-            return new PersistentHashMap($this->hasher, $this->equalizer, $this->hasNull ? $this->count : $this->count + 1, $this->root, true, $value);
+            return new PersistentHashMap($this->hasher, $this->equalizer, $this->meta, $this->hasNull ? $this->count : $this->count + 1, $this->root, true, $value);
         }
 
         $addedLeaf = new Box(false);
@@ -98,13 +108,13 @@ class PersistentHashMap implements PersistentHashMapInterface, IteratorAggregate
             return $this;
         }
 
-        return new PersistentHashMap($this->hasher, $this->equalizer, $addedLeaf->getValue() === false ? $this->count : $this->count +1, $newRoot, $this->hasNull, $this->nullValue);
+        return new PersistentHashMap($this->hasher, $this->equalizer, $this->meta, $addedLeaf->getValue() === false ? $this->count : $this->count +1, $newRoot, $this->hasNull, $this->nullValue);
     }
 
     public function remove($key): PersistentHashMap
     {
         if ($key === null) {
-            return $this->hasNull ? new PersistentHashMap($this->hasher, $this->equalizer, $this->count - 1, $this->root, false, null) : $this;
+            return $this->hasNull ? new PersistentHashMap($this->hasher, $this->equalizer, $this->meta, $this->count - 1, $this->root, false, null) : $this;
         }
 
         if ($this->root === null) {
@@ -117,7 +127,7 @@ class PersistentHashMap implements PersistentHashMapInterface, IteratorAggregate
             return $this;
         }
 
-        return new PersistentHashMap($this->hasher, $this->equalizer, $this->count - 1, $newRoot, $this->hasNull, $this->nullValue);
+        return new PersistentHashMap($this->hasher, $this->equalizer, $this->meta, $this->count - 1, $newRoot, $this->hasNull, $this->nullValue);
     }
 
     public function find($key)
@@ -184,5 +194,14 @@ class PersistentHashMap implements PersistentHashMapInterface, IteratorAggregate
         }
 
         return true;
+    }
+
+    public function toTable(): Table
+    {
+        $t = Table::empty();
+        foreach ($this as $key => $value) {
+            $t[$key] = $value;
+        }
+        return $t;
     }
 }

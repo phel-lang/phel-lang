@@ -4,21 +4,24 @@ declare(strict_types=1);
 
 namespace Phel\Lang;
 
+use Phel\Lang\Collections\HashMap\PersistentHashMapInterface;
+
 trait MetaTrait
 {
-    private ?Table $meta = null;
+    private ?PersistentHashMapInterface $meta = null;
 
-    public function getMeta(): Table
+    public function getMeta(): PersistentHashMapInterface
     {
         if ($this->meta === null) {
-            $this->meta = new Table();
+            $this->meta = TypeFactory::getInstance()->emptyPersistentHashMap();
         }
 
         return $this->meta;
     }
 
-    public function setMeta(Table $meta): void
+    public function withMeta(?PersistentHashMapInterface $meta)
     {
         $this->meta = $meta;
+        return $this;
     }
 }

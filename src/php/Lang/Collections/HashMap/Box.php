@@ -14,13 +14,7 @@ class Box
      */
     public function __construct($value)
     {
-        //echo "create Box\n";
         $this->value = $value;
-    }
-
-    public function __destruct()
-    {
-        //echo "destruct Box\n";
     }
 
     /**

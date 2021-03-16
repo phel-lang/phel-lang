@@ -22,15 +22,9 @@ class IndexedNode implements HashMapNodeInterface
 
     public function __construct(HasherInterface $hasher, EqualizerInterface $equalizer, array $objects)
     {
-        //echo "create IndexedNode\n";
         $this->hasher = $hasher;
         $this->equalizer = $equalizer;
         $this->objects = $objects;
-    }
-
-    public function __destruct()
-    {
-        // echo "destruct IndexedNode\n";
     }
 
     public static function empty(HasherInterface $hasher, EqualizerInterface $equalizer): self

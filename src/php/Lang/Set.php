@@ -20,6 +20,7 @@ final class Set extends AbstractType implements
     PushInterface,
     ConcatInterface
 {
+    use MetaTrait;
     /** @var mixed[] */
     private array $data = [];
     private int $currentIndex = 0;

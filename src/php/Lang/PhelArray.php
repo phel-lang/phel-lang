@@ -28,6 +28,7 @@ final class PhelArray extends AbstractType implements
     PushInterface,
     ConcatInterface
 {
+    use MetaTrait;
     use IteratorComparatorTrait;
 
     /** @var mixed[] */

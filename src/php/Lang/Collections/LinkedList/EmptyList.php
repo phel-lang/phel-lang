@@ -6,31 +6,49 @@ namespace Phel\Lang\Collections\LinkedList;
 
 use EmptyIterator;
 use IteratorAggregate;
+use Phel\Lang\AbstractType;
+use Phel\Lang\Collections\HashMap\PersistentHashMapInterface;
 use Phel\Lang\EqualizerInterface;
-use Phel\Lang\EqualsInterface;
-use Phel\Lang\HashableInterface;
 use Phel\Lang\HasherInterface;
+use Phel\Lang\TypeFactory;
 use RuntimeException;
 use Traversable;
 
 /**
  * @template T
  * @template-implements PersistentListInterface<T>
+ * @extends AbstractType<EmptyList<T>>
  */
-class EmptyList implements PersistentListInterface, IteratorAggregate, HashableInterface, EqualsInterface
+class EmptyList extends AbstractType implements PersistentListInterface, IteratorAggregate
 {
     private EqualizerInterface $equalizer;
     private HasherInterface $hasher;
+    private ?PersistentHashMapInterface $meta;
 
-    public function __construct(HasherInterface $hasher, EqualizerInterface $equalizer)
+    public function __construct(HasherInterface $hasher, EqualizerInterface $equalizer, ?PersistentHashMapInterface $meta)
     {
         $this->hasher = $hasher;
         $this->equalizer = $equalizer;
+        $this->meta = $meta;
+    }
+
+    public function getMeta(): PersistentHashMapInterface
+    {
+        if ($this->meta) {
+            return $this->meta;
+        }
+
+        return TypeFactory::getInstance()->emptyPersistentHashMap();
+    }
+
+    public function withMeta(?PersistentHashMapInterface $meta)
+    {
+        return new EmptyList($this->hasher, $this->equalizer, $meta);
     }
 
     public function prepend($value): PersistentListInterface
     {
-        return new PersistentList($this->hasher, $this->equalizer, $value, $this, 1);
+        return new PersistentList($this->hasher, $this->equalizer, $this->meta, $value, $this, 1);
     }
 
     public function pop(): PersistentListInterface

@@ -8,6 +8,8 @@ use Phel\Printer\Printer;
 
 final class Keyword extends AbstractType implements IdenticalInterface, FnInterface
 {
+    use MetaTrait;
+
     private string $name;
 
     public function __construct(string $name)

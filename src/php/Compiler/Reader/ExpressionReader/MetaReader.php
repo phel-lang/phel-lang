@@ -50,11 +50,10 @@ final class MetaReader
         $objMeta = $object->getMeta();
         foreach ($meta as $k => $v) {
             if ($k) {
-                $objMeta[$k] = $v;
+                $objMeta = $objMeta->put($k, $v);
             }
         }
-        $object->setMeta($objMeta);
 
-        return $object;
+        return $object->withMeta($objMeta);
     }
 }

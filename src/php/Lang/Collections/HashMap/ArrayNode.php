@@ -25,16 +25,10 @@ class ArrayNode implements HashMapNodeInterface, Countable
 
     public function __construct(HasherInterface $hasher, EqualizerInterface $equalizer, int $count, array $childNodes)
     {
-        //echo "create ArrayNode\n";
         $this->hasher = $hasher;
         $this->equalizer = $equalizer;
         $this->count = $count;
         $this->childNodes = $childNodes;
-    }
-
-    public function __destruct()
-    {
-        //echo "destruct ArrayNode\n";
     }
 
     public static function empty(HasherInterface $hasher, EqualizerInterface $equalizer): self

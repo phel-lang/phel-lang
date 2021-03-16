@@ -5,10 +5,11 @@ declare(strict_types=1);
 namespace Phel\Lang\Collections\Vector;
 
 use IteratorAggregate;
+use Phel\Lang\AbstractType;
+use Phel\Lang\Collections\HashMap\PersistentHashMapInterface;
 use Phel\Lang\EqualizerInterface;
-use Phel\Lang\EqualsInterface;
-use Phel\Lang\HashableInterface;
 use Phel\Lang\HasherInterface;
+use Phel\Lang\TypeFactory;
 use Traversable;
 
 /**
@@ -28,11 +29,13 @@ use Traversable;
  * @template T
  * @implements PersistentVectorInterface<T>
  * @implements IteratorAggregate<T>
+ * @extends AbstractType<PersistentVector<T>>
  */
-class PersistentVector implements PersistentVectorInterface, IteratorAggregate, HashableInterface, EqualsInterface
+class PersistentVector extends AbstractType implements PersistentVectorInterface, IteratorAggregate
 {
     private EqualizerInterface $equalizer;
     private HasherInterface $hasher;
+    private ?PersistentHashMapInterface $meta;
     /** @var int The number of elements stored in this vector */
     private int $count;
     private int $shift;
@@ -42,10 +45,11 @@ class PersistentVector implements PersistentVectorInterface, IteratorAggregate, 
     private array $tail;
     private int $hashCache = 0;
 
-    public function __construct(HasherInterface $hasher, EqualizerInterface $equalizer, int $count, int $shift, array $root, array $tail)
+    public function __construct(HasherInterface $hasher, EqualizerInterface $equalizer, ?PersistentHashMapInterface $meta, int $count, int $shift, array $root, array $tail)
     {
         $this->hasher = $hasher;
         $this->equalizer = $equalizer;
+        $this->meta = $meta;
         $this->count = $count;
         $this->shift = $shift;
         $this->root = $root;
@@ -54,7 +58,7 @@ class PersistentVector implements PersistentVectorInterface, IteratorAggregate, 
 
     public static function empty(HasherInterface $hasher, EqualizerInterface $equalizer): self
     {
-        return new self($hasher, $equalizer, 0, self::SHIFT, [], []);
+        return new self($hasher, $equalizer, null, 0, self::SHIFT, [], []);
     }
 
     public static function fromArray(HasherInterface $hasher, EqualizerInterface $equalizer, array $values): PersistentVector
@@ -65,6 +69,20 @@ class PersistentVector implements PersistentVectorInterface, IteratorAggregate, 
         }
 
         return $tv->persistent();
+    }
+
+    public function getMeta(): PersistentHashMapInterface
+    {
+        if ($this->meta) {
+            return $this->meta;
+        }
+
+        return TypeFactory::getInstance()->emptyPersistentHashMap();
+    }
+
+    public function withMeta(?PersistentHashMapInterface $meta)
+    {
+        return new PersistentVector($this->hasher, $this->equalizer, $meta, $this->count, $this->shift, $this->root, $this->tail);
     }
 
     /**
@@ -99,6 +117,7 @@ class PersistentVector implements PersistentVectorInterface, IteratorAggregate, 
             return new PersistentVector(
                 $this->hasher,
                 $this->equalizer,
+                $this->meta,
                 $this->count + 1,
                 $this->shift,
                 $this->root,
@@ -120,6 +139,7 @@ class PersistentVector implements PersistentVectorInterface, IteratorAggregate, 
         return new PersistentVector(
             $this->hasher,
             $this->equalizer,
+            $this->meta,
             $this->count + 1,
             $newShift,
             $newRoot,
@@ -181,6 +201,7 @@ class PersistentVector implements PersistentVectorInterface, IteratorAggregate, 
                 return new PersistentVector(
                     $this->hasher,
                     $this->equalizer,
+                    $this->meta,
                     $this->count,
                     $this->shift,
                     $this->root,
@@ -191,6 +212,7 @@ class PersistentVector implements PersistentVectorInterface, IteratorAggregate, 
             return new PersistentVector(
                 $this->hasher,
                 $this->equalizer,
+                $this->meta,
                 $this->count,
                 $this->shift,
                 $this->doUpdate($this->shift, $this->root, $i, $value),
@@ -281,6 +303,7 @@ class PersistentVector implements PersistentVectorInterface, IteratorAggregate, 
             return new PersistentVector(
                 $this->hasher,
                 $this->equalizer,
+                $this->meta,
                 $this->count - 1,
                 $this->shift,
                 $this->root,
@@ -304,6 +327,7 @@ class PersistentVector implements PersistentVectorInterface, IteratorAggregate, 
         return new PersistentVector(
             $this->hasher,
             $this->equalizer,
+            $this->meta,
             $this->count - 1,
             $newShift,
             $newRoot,

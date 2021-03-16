@@ -8,6 +8,8 @@ use Phel\Printer\Printer;
 
 final class Symbol extends AbstractType implements IdenticalInterface
 {
+    use MetaTrait;
+
     public const NAME_APPLY = 'apply';
     public const NAME_ARRAY = 'array';
     public const NAME_CONCAT = 'concat';

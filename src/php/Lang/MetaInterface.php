@@ -4,9 +4,17 @@ declare(strict_types=1);
 
 namespace Phel\Lang;
 
+use Phel\Lang\Collections\HashMap\PersistentHashMapInterface;
+
+/**
+ * @template TSelf
+ */
 interface MetaInterface
 {
-    public function getMeta(): Table;
+    public function getMeta(): PersistentHashMapInterface;
 
-    public function setMeta(Table $meta): void;
+    /**
+     * @return TSelf
+     */
+    public function withMeta(PersistentHashMapInterface $meta);
 }

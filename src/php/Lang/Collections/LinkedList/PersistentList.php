@@ -5,10 +5,11 @@ declare(strict_types=1);
 namespace Phel\Lang\Collections\LinkedList;
 
 use IteratorAggregate;
+use Phel\Lang\AbstractType;
+use Phel\Lang\Collections\HashMap\PersistentHashMapInterface;
 use Phel\Lang\EqualizerInterface;
-use Phel\Lang\EqualsInterface;
-use Phel\Lang\HashableInterface;
 use Phel\Lang\HasherInterface;
+use Phel\Lang\TypeFactory;
 use RuntimeException;
 use Traversable;
 
@@ -16,11 +17,13 @@ use Traversable;
  * @template T
  * @implements PersistentListInterface<T>
  * @implements IteratorAggregate<T>
+ * @extends AbstractType<PersistentList<T>>
  */
-class PersistentList implements PersistentListInterface, IteratorAggregate, HashableInterface, EqualsInterface
+class PersistentList extends AbstractType implements PersistentListInterface, IteratorAggregate
 {
     private EqualizerInterface $equalizer;
     private HasherInterface $hasher;
+    private ?PersistentHashMapInterface $meta;
     /** @var T */
     private $first;
     /** @var PersistentList<T>|EmptyList<T> */
@@ -32,10 +35,11 @@ class PersistentList implements PersistentListInterface, IteratorAggregate, Hash
      * @param T $first
      * @param PersistentList<T>|EmptyList<T> $rest
      */
-    public function __construct(HasherInterface $hasher, EqualizerInterface $equalizer, $first, $rest, int $count)
+    public function __construct(HasherInterface $hasher, EqualizerInterface $equalizer, ?PersistentHashMapInterface $meta, $first, $rest, int $count)
     {
         $this->hasher = $hasher;
         $this->equalizer = $equalizer;
+        $this->meta = $meta;
         $this->first = $first;
         $this->rest = $rest;
         $this->count = $count;
@@ -48,7 +52,7 @@ class PersistentList implements PersistentListInterface, IteratorAggregate, Hash
      */
     public static function empty(HasherInterface $hasher, EqualizerInterface $equalizer): EmptyList
     {
-        return new EmptyList($hasher, $equalizer);
+        return new EmptyList($hasher, $equalizer, null);
     }
 
     /**
@@ -70,12 +74,26 @@ class PersistentList implements PersistentListInterface, IteratorAggregate, Hash
         return $result;
     }
 
+    public function getMeta(): PersistentHashMapInterface
+    {
+        if ($this->meta) {
+            return $this->meta;
+        }
+
+        return TypeFactory::getInstance()->emptyPersistentHashMap();
+    }
+
+    public function withMeta(?PersistentHashMapInterface $meta)
+    {
+        return new PersistentList($this->hasher, $this->equalizer, $meta, $this->first, $this->rest, $this->count);
+    }
+
     /**
      * @param T $value
      */
     public function prepend($value): PersistentListInterface
     {
-        return new self($this->hasher, $this->equalizer, $value, $this, $this->count + 1);
+        return new self($this->hasher, $this->equalizer, $this->meta, $value, $this, $this->count + 1);
     }
 
     public function pop(): PersistentListInterface

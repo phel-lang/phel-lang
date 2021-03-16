@@ -4,21 +4,47 @@ declare(strict_types=1);
 
 namespace Phel\Lang\Collections\HashSet;
 
+use IteratorAggregate;
+use Phel\Lang\AbstractType;
+use Phel\Lang\Collections\HashMap\PersistentHashMap;
 use Phel\Lang\Collections\HashMap\PersistentHashMapInterface;
+use Phel\Lang\HasherInterface;
+use Phel\Lang\TypeFactory;
+use Traversable;
 
 /**
  * @template V
  *
  * @implements PersistentHashSetInterface<V>
+ * @extends AbstractType<PersistentHashSet<V>>
  */
-class PersistentHashSet implements PersistentHashSetInterface
+class PersistentHashSet extends AbstractType implements PersistentHashSetInterface, IteratorAggregate
 {
-    /** @var PersistentHashMapInterface<V, V> */
-    private $map;
+    private HasherInterface $hasher;
+    private ?PersistentHashMapInterface $meta;
+    /** @var PersistentHashMap<V, V> */
+    private PersistentHashMap $map;
+    private int $hashCache = 0;
 
-    public function __construct(PersistentHashMapInterface $map)
+    public function __construct(HasherInterface $hasher, ?PersistentHashMapInterface $meta, PersistentHashMap $map)
     {
+        $this->hasher = $hasher;
+        $this->meta = $meta;
         $this->map = $map;
+    }
+
+    public function getMeta(): PersistentHashMapInterface
+    {
+        if ($this->meta) {
+            return $this->meta;
+        }
+
+        return TypeFactory::getInstance()->emptyPersistentHashMap();
+    }
+
+    public function withMeta(?PersistentHashMapInterface $meta)
+    {
+        return new PersistentHashSet($this->hasher, $meta, $this->map);
     }
 
     /**
@@ -38,7 +64,7 @@ class PersistentHashSet implements PersistentHashSetInterface
             return $this;
         }
 
-        return new PersistentHashSet($this->map->put($value, $value));
+        return new PersistentHashSet($this->hasher, $this->meta, $this->map->put($value, $value));
     }
 
     /**
@@ -47,7 +73,7 @@ class PersistentHashSet implements PersistentHashSetInterface
     public function remove($value): PersistentHashSetInterface
     {
         if ($this->contains($value)) {
-            return new PersistentHashSet($this->map->remove($value));
+            return new PersistentHashSet($this->hasher, $this->meta, $this->map->remove($value));
         }
 
         return $this;
@@ -56,5 +82,32 @@ class PersistentHashSet implements PersistentHashSetInterface
     public function count(): int
     {
         return $this->map->count();
+    }
+
+    public function equals($other): bool
+    {
+        if (!$other instanceof PersistentHashSet) {
+            return false;
+        }
+
+        return $this->map->equals($other->map);
+    }
+
+    public function hash(): int
+    {
+        if ($this->hashCache === 0) {
+            foreach ($this->map as $value) {
+                $this->hashCache += $this->hasher->hash($value);
+            }
+        }
+
+        return $this->hashCache;
+    }
+
+    public function getIterator(): Traversable
+    {
+        foreach ($this->map as $value) {
+            yield $value;
+        }
     }
 }

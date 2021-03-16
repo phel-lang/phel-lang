@@ -682,7 +682,7 @@ final class ReaderTest extends TestCase
 
     private function withMeta(MetaInterface $x, Table $t): MetaInterface
     {
-        $x->setMeta($t);
+        $x->withMeta($t->toPersistentHashMap());
 
         return $x;
     }
