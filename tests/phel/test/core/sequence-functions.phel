@@ -61,7 +61,23 @@
   (is (= @[] (take 0 @["a" "b" "c"])) "take zero elements")
   (is (= @[] (take -1 @["a" "b" "c"])) "take with negative number")
   (is (= ["a" "b"] (take 2 ["a" "b" "c"])) "take on tuple")
-  (is (= (php/array "a" "b") (take 2 (php/array "a" "b" "c"))) "take on php array"))
+  (is (= [] (take -1 ["a" "b" "c"])) "take on tuple")
+  (is (= (php/array "a" "b") (take 2 (php/array "a" "b" "c"))) "take on php array")
+  (is (= (php/array) (take -1 (php/array "a" "b" "c"))) "take on php array"))
+
+(deftest test-take-last
+  (is (= @["c"] (take-last 1 @["a" "b" "c"])) "take-last element")
+  (is (= @["b" "c"] (take-last 2 @["a" "b" "c"])) "take-last two elements")
+  (is (= @["a" "b" "c"] (take-last 3 @["a" "b" "c"])) "take-last three elements")
+  (is (= @["a" "b" "c"] (take-last 4 @["a" "b" "c"])) "take-last four elements")
+  (is (= @[] (take-last 0 @["a" "b" "c"])) "take-last zero elements")
+  (is (= @[] (take-last -1 @["a" "b" "c"])) "take-last with negative number")
+  (is (= ["b" "c"] (take-last 2 ["a" "b" "c"])) "take-last on tuple")
+  (is (= [] (take-last 1 [])) "take-last on empty tuple")
+  (is (= @[] (take-last -1 ["a" "b" "c"])) "take-last with negative number on tuple")
+  (is (= (php/array "b" "c") (take-last 2 (php/array "a" "b" "c"))) "take-last on php array")
+  (is (= (php/array) (take-last 1 (php/array))) "take-last on empty php array")
+  (is (= @[] (take-last -1 (php/array "a" "b" "c"))) "take-last with negative number on php array"))
 
 (deftest test-take-while
   (is (= @[-1 -2 -3] (take-while neg? @[-1 -2 -3 1 2 3 4 -4 -5 -6])) "take-while: first three element")
