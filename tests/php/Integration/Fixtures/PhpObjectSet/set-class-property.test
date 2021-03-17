@@ -3,6 +3,18 @@
 (php/oset (php/-> a name) "test")
 --PHP--
 $GLOBALS["__phel"]["user"]["a"] = (new \stdclass());
+$GLOBALS["__phel_meta"]["user"]["a"] = \Phel\Lang\Table::fromKVs(
+  new \Phel\Lang\Keyword("start-location"), \Phel\Lang\Table::fromKVs(
+    new \Phel\Lang\Keyword("file"), "PhpObjectSet/set-class-property.test",
+    new \Phel\Lang\Keyword("line"), 1,
+    new \Phel\Lang\Keyword("column"), 0
+  ),
+  new \Phel\Lang\Keyword("end-location"), \Phel\Lang\Table::fromKVs(
+    new \Phel\Lang\Keyword("file"), "PhpObjectSet/set-class-property.test",
+    new \Phel\Lang\Keyword("line"), 1,
+    new \Phel\Lang\Keyword("column"), 27
+  )
+);
 (function() {
   $target_1 = $GLOBALS["__phel"]["user"]["a"];
   $target_1->name = "test";

@@ -186,10 +186,11 @@ class Runtime implements RuntimeInterface
                 /** @var MetaInterface $def */
                 $def = $nsDefinitions[$name];
                 if ($meta[new Keyword('private')] !== true) {
+                    $defMeta = $def->getMeta();
                     $this->globalEnv->addDefinition(
                         $ns,
                         Symbol::create($name),
-                        $def->getMeta()->toTable()
+                        $defMeta ? $defMeta->toTable() : Table::empty()
                     );
                 }
             }

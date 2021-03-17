@@ -10,12 +10,8 @@ trait MetaTrait
 {
     private ?PersistentHashMapInterface $meta = null;
 
-    public function getMeta(): PersistentHashMapInterface
+    public function getMeta(): ?PersistentHashMapInterface
     {
-        if ($this->meta === null) {
-            $this->meta = TypeFactory::getInstance()->emptyPersistentHashMap();
-        }
-
         return $this->meta;
     }
 

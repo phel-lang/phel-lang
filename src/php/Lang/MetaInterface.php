@@ -11,10 +11,10 @@ use Phel\Lang\Collections\HashMap\PersistentHashMapInterface;
  */
 interface MetaInterface
 {
-    public function getMeta(): PersistentHashMapInterface;
+    public function getMeta(): ?PersistentHashMapInterface;
 
     /**
      * @return TSelf
      */
-    public function withMeta(PersistentHashMapInterface $meta);
+    public function withMeta(?PersistentHashMapInterface $meta);
 }

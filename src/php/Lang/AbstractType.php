@@ -13,93 +13,113 @@ use Phel\Lang\Collections\HashMap\PersistentHashMap;
  */
 abstract class AbstractType implements MetaInterface, SourceLocationInterface, EqualsInterface, HashableInterface
 {
-    use SourceLocationTrait;
-    // private const KEYWORD_START_LOCATION = 'start-location';
-    // private const KEYWORD_END_LOCATION = 'end-location';
-    // private const KEYWORD_FILE = 'file';
-    // private const KEYWORD_LINE = 'line';
-    // private const KEYWORD_COLUMN = 'column';
+    private const KEYWORD_START_LOCATION = 'start-location';
+    private const KEYWORD_END_LOCATION = 'end-location';
+    private const KEYWORD_FILE = 'file';
+    private const KEYWORD_LINE = 'line';
+    private const KEYWORD_COLUMN = 'column';
 
-    // /**
-    //  * @return static
-    //  */
-    // public function setStartLocation(?SourceLocation $startLocation)
-    // {
-    //     $startLocationKeyword = TypeFactory::getInstance()->keyword(self::KEYWORD_START_LOCATION);
+    /**
+     * @return static
+     */
+    public function setStartLocation(?SourceLocation $startLocation)
+    {
+        $startLocationKeyword = TypeFactory::getInstance()->keyword(self::KEYWORD_START_LOCATION);
 
-    //     if ($startLocation === null) {
-    //         return $this->withMeta(
-    //             $this->getMeta()->remove($startLocationKeyword)
-    //         );
-    //     }
+        if ($startLocation === null) {
+            return $this;
+        }
 
-    //     return $this->withMeta(
-    //         $this->getMeta()->put($startLocation, $this->createLocationMap($startLocation))
-    //     );
-    // }
+        $meta = $this->getMeta();
+        if ($meta === null) {
+            $meta = TypeFactory::getInstance()->emptyPersistentHashMap();
+        }
 
-    // /**
-    //  * @return static
-    //  */
-    // public function setEndLocation(?SourceLocation $endLocation)
-    // {
-    //     $endLocationKeyword = TypeFactory::getInstance()->keyword(self::KEYWORD_END_LOCATION);
+        return $this->withMeta(
+            $meta->put($startLocationKeyword, $this->createLocationMap($startLocation))
+        );
+    }
 
-    //     if ($endLocation === null) {
-    //         return $this->withMeta(
-    //             $this->getMeta()->remove($endLocationKeyword)
-    //         );
-    //     }
+    /**
+     * @return static
+     */
+    public function setEndLocation(?SourceLocation $endLocation)
+    {
+        $endLocationKeyword = TypeFactory::getInstance()->keyword(self::KEYWORD_END_LOCATION);
 
-    //     return $this->withMeta(
-    //         $this->getMeta()->put($endLocationKeyword, $this->createLocationMap($endLocation))
-    //     );
-    // }
+        if ($endLocation === null) {
+            return $this;
+        }
 
-    // public function getStartLocation(): ?SourceLocation
-    // {
-    //     /** @var ?SourceLocation $entry */
-    //     $entry = $this->getMeta()
-    //         ->find(TypeFactory::getInstance()->keyword(self::KEYWORD_START_LOCATION));
+        $meta = $this->getMeta();
+        if ($meta === null) {
+            $meta = TypeFactory::getInstance()->emptyPersistentHashMap();
+        }
 
-    //     return $entry;
-    // }
+        return $this->withMeta(
+            $meta->put($endLocationKeyword, $this->createLocationMap($endLocation))
+        );
+    }
 
-    // public function getEndLocation(): ?SourceLocation
-    // {
-    //     /** @var ?SourceLocation $entry */
-    //     $entry = $this->getMeta()
-    //         ->find(TypeFactory::getInstance()->keyword(self::KEYWORD_END_LOCATION));
+    public function getStartLocation(): ?SourceLocation
+    {
+        $meta = $this->getMeta();
+        $entry = null;
+        if ($meta) {
+            /** @var ?PersistentHashMap $entry */
+            $entry = $meta->find(TypeFactory::getInstance()->keyword(self::KEYWORD_START_LOCATION));
+        }
 
-    //     return $entry;
-    // }
+        return $entry ? $this->createLocationFromMap($entry) : null;
+    }
 
-    // /**
-    //  * Copies the start and end location from $other.
-    //  *
-    //  * @param mixed $other The object to copy from
-    //  *
-    //  * @return static
-    //  */
-    // public function copyLocationFrom($other): self
-    // {
-    //     if ($other && $other instanceof SourceLocationInterface) {
-    //         $this->setStartLocation($other->getStartLocation());
-    //         $this->setEndLocation($other->getEndLocation());
-    //     }
+    public function getEndLocation(): ?SourceLocation
+    {
+        $meta = $this->getMeta();
+        $entry = null;
+        if ($meta) {
+            /** @var ?PersistentHashMap $entry */
+            $entry = $meta->find(TypeFactory::getInstance()->keyword(self::KEYWORD_END_LOCATION));
+        }
 
-    //     return $this;
-    // }
+        return $entry ? $this->createLocationFromMap($entry) : null;
+    }
 
-    // private function createLocationMap(SourceLocation $location): PersistentHashMap
-    // {
-    //     return TypeFactory::getInstance()->persistentHashMapFromKVs(
-    //         TypeFactory::getInstance()->keyword(self::KEYWORD_FILE),
-    //         $location->getFile(),
-    //         TypeFactory::getInstance()->keyword(self::KEYWORD_LINE),
-    //         $location->getLine(),
-    //         TypeFactory::getInstance()->keyword(self::KEYWORD_COLUMN),
-    //         $location->getColumn(),
-    //     );
-    // }
+    /**
+     * Copies the start and end location from $other.
+     *
+     * @param mixed $other The object to copy from
+     *
+     * @return static
+     */
+    public function copyLocationFrom($other): self
+    {
+        if ($other && $other instanceof SourceLocationInterface) {
+            $this->setStartLocation($other->getStartLocation());
+            $this->setEndLocation($other->getEndLocation());
+        }
+
+        return $this;
+    }
+
+    private function createLocationMap(SourceLocation $location): PersistentHashMap
+    {
+        return TypeFactory::getInstance()->persistentHashMapFromKVs(
+            TypeFactory::getInstance()->keyword(self::KEYWORD_FILE),
+            $location->getFile(),
+            TypeFactory::getInstance()->keyword(self::KEYWORD_LINE),
+            $location->getLine(),
+            TypeFactory::getInstance()->keyword(self::KEYWORD_COLUMN),
+            $location->getColumn(),
+        );
+    }
+
+    private function createLocationFromMap(PersistentHashMap $map): SourceLocation
+    {
+        return new SourceLocation(
+            $map->find(TypeFactory::getInstance()->keyword(self::KEYWORD_FILE)) ?? 'source',
+            $map->find(TypeFactory::getInstance()->keyword(self::KEYWORD_LINE)) ?? 0,
+            $map->find(TypeFactory::getInstance()->keyword(self::KEYWORD_COLUMN)) ?? 0,
+        );
+    }
 }

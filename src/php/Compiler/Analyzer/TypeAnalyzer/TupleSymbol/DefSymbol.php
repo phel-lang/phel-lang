@@ -86,9 +86,12 @@ final class DefSymbol implements TupleSymbolAnalyzerInterface
 
         $meta = $this->normalizeMeta($meta, $tuple);
 
-        foreach ($tuple->getMeta()->getIterator() as $key => $value) {
-            if ($key !== null) {
-                $meta[$key] = $value;
+        $tupleMeta = $tuple->getMeta();
+        if ($tupleMeta) {
+            foreach ($tupleMeta->getIterator() as $key => $value) {
+                if ($key !== null) {
+                    $meta[$key] = $value;
+                }
             }
         }
 

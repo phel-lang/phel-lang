@@ -9,7 +9,6 @@ use Phel\Lang\AbstractType;
 use Phel\Lang\EqualizerInterface;
 use Phel\Lang\HasherInterface;
 use Phel\Lang\Table;
-use Phel\Lang\TypeFactory;
 use Traversable;
 
 /**
@@ -63,13 +62,9 @@ class PersistentHashMap extends AbstractType implements PersistentHashMapInterfa
         return self::$NOT_FOUND;
     }
 
-    public function getMeta(): PersistentHashMapInterface
+    public function getMeta(): ?PersistentHashMapInterface
     {
-        if ($this->meta) {
-            return $this->meta;
-        }
-
-        return TypeFactory::getInstance()->emptyPersistentHashMap();
+        return $this->meta;
     }
 
     public function withMeta(?PersistentHashMapInterface $meta)

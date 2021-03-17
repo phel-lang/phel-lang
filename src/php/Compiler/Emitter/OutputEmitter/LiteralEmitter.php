@@ -6,6 +6,7 @@ namespace Phel\Compiler\Emitter\OutputEmitter;
 
 use Phel\Compiler\Emitter\OutputEmitterInterface;
 use Phel\Lang\AbstractType;
+use Phel\Lang\Collections\HashMap\PersistentHashMap;
 use Phel\Lang\Keyword;
 use Phel\Lang\PhelArray;
 use Phel\Lang\Symbol;
@@ -52,8 +53,14 @@ final class LiteralEmitter
             $this->emitTable($x);
         } elseif ($x instanceof Tuple) {
             $this->emitTuple($x);
+        } elseif ($x instanceof PersistentHashMap) {
+            $this->emitTable($x->toTable());
         } else {
-            throw new RuntimeException('literal not supported: ' . gettype($x));
+            $typeName = gettype($x);
+            if ($typeName === 'object') {
+                $typeName = get_class($x);
+            }
+            throw new RuntimeException('literal not supported: ' . $typeName);
         }
     }
 

@@ -9,7 +9,6 @@ use Phel\Lang\AbstractType;
 use Phel\Lang\Collections\HashMap\PersistentHashMapInterface;
 use Phel\Lang\EqualizerInterface;
 use Phel\Lang\HasherInterface;
-use Phel\Lang\TypeFactory;
 use Traversable;
 
 /**
@@ -71,13 +70,9 @@ class PersistentVector extends AbstractType implements PersistentVectorInterface
         return $tv->persistent();
     }
 
-    public function getMeta(): PersistentHashMapInterface
+    public function getMeta(): ?PersistentHashMapInterface
     {
-        if ($this->meta) {
-            return $this->meta;
-        }
-
-        return TypeFactory::getInstance()->emptyPersistentHashMap();
+        return $this->meta;
     }
 
     public function withMeta(?PersistentHashMapInterface $meta)

@@ -13,6 +13,7 @@ use Phel\Lang\Keyword;
 use Phel\Lang\MetaInterface;
 use Phel\Lang\Symbol;
 use Phel\Lang\Table;
+use Phel\Lang\TypeFactory;
 
 final class MetaReader
 {
@@ -47,13 +48,13 @@ final class MetaReader
             throw ReaderException::forNode($node, $root, 'Metadata can only applied to classes that implement MetaInterface');
         }
 
-        $objMeta = $object->getMeta();
+        $objMeta = $object->getMeta() ?? TypeFactory::getInstance()->emptyPersistentHashMap();
         foreach ($meta as $k => $v) {
             if ($k) {
                 $objMeta = $objMeta->put($k, $v);
             }
         }
 
-        return $object->withMeta($objMeta);
+        return $object->withMeta(count($objMeta) > 0 ? $objMeta : null);
     }
 }

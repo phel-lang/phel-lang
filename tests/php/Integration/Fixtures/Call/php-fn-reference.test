@@ -10,4 +10,16 @@ $GLOBALS["__phel"]["user"]["reduce"] = new class() extends \Phel\Lang\AbstractFn
     return ($f)(...(($xs) ?? []));
   }
 };
+$GLOBALS["__phel_meta"]["user"]["reduce"] = \Phel\Lang\Table::fromKVs(
+  new \Phel\Lang\Keyword("start-location"), \Phel\Lang\Table::fromKVs(
+    new \Phel\Lang\Keyword("file"), "Call/php-fn-reference.test",
+    new \Phel\Lang\Keyword("line"), 1,
+    new \Phel\Lang\Keyword("column"), 0
+  ),
+  new \Phel\Lang\Keyword("end-location"), \Phel\Lang\Table::fromKVs(
+    new \Phel\Lang\Keyword("file"), "Call/php-fn-reference.test",
+    new \Phel\Lang\Keyword("line"), 1,
+    new \Phel\Lang\Keyword("column"), 37
+  )
+);
 ($GLOBALS["__phel"]["user"]["reduce"])((function(...$args) { return array(...$args);}), \Phel\Lang\Tuple::createBracket(1, 2, 3));

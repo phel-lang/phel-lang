@@ -9,7 +9,6 @@ use Phel\Lang\AbstractType;
 use Phel\Lang\Collections\HashMap\PersistentHashMap;
 use Phel\Lang\Collections\HashMap\PersistentHashMapInterface;
 use Phel\Lang\HasherInterface;
-use Phel\Lang\TypeFactory;
 use Traversable;
 
 /**
@@ -33,13 +32,9 @@ class PersistentHashSet extends AbstractType implements PersistentHashSetInterfa
         $this->map = $map;
     }
 
-    public function getMeta(): PersistentHashMapInterface
+    public function getMeta(): ?PersistentHashMapInterface
     {
-        if ($this->meta) {
-            return $this->meta;
-        }
-
-        return TypeFactory::getInstance()->emptyPersistentHashMap();
+        return $this->meta;
     }
 
     public function withMeta(?PersistentHashMapInterface $meta)
