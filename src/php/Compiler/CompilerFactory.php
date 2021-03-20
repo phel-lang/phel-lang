@@ -28,7 +28,7 @@ use Phel\Compiler\Reader\ReaderInterface;
 use Phel\Printer\Printer;
 use Phel\Runtime\RuntimeFacadeInterface;
 
-final class CompilerFactory extends AbstractFactory implements CompilerFactoryInterface
+final class CompilerFactory extends AbstractFactory
 {
     public function createEvalCompiler(): EvalCompilerInterface
     {

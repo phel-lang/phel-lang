@@ -17,6 +17,7 @@ use Phel\Compiler\Lexer\TokenStream;
 use Phel\Compiler\Parser\Exceptions\UnexpectedParserException;
 use Phel\Compiler\Parser\Exceptions\UnfinishedParserException;
 use Phel\Compiler\Parser\ParserInterface;
+use Phel\Compiler\Parser\ParserNode\FileNode;
 use Phel\Compiler\Parser\ParserNode\NodeInterface;
 use Phel\Compiler\Parser\ReadModel\ReaderResult;
 use Phel\Compiler\Reader\Exceptions\ReaderException;
@@ -107,6 +108,17 @@ final class CompilerFacade extends AbstractFacade implements CompilerFacadeInter
         return $this->getFactory()
             ->createParser()
             ->parseNext($tokenStream);
+    }
+
+    /**
+     * @throws UnexpectedParserException
+     * @throws UnfinishedParserException
+     */
+    public function parseAll(TokenStream $tokenStream): FileNode
+    {
+        return $this->getFactory()
+            ->createParser()
+            ->parseAll($tokenStream);
     }
 
     /**

@@ -4,18 +4,16 @@ declare(strict_types=1);
 
 namespace Phel\Formatter\Formatter;
 
+use Phel\Compiler\CompilerFacadeInterface;
 use Phel\Compiler\Lexer\Exceptions\LexerValueException;
-use Phel\Compiler\Lexer\LexerInterface;
 use Phel\Compiler\Parser\Exceptions\AbstractParserException;
-use Phel\Compiler\Parser\ParserInterface;
 use Phel\Compiler\Parser\ParserNode\NodeInterface;
 use Phel\Formatter\Exceptions\ZipperException;
 use Phel\Formatter\Rules\RuleInterface;
 
 final class Formatter implements FormatterInterface
 {
-    private LexerInterface $lexer;
-    private ParserInterface $parser;
+    private CompilerFacadeInterface $compilerFacade;
     /** @var RuleInterface[] */
     private array $rules;
 
@@ -23,12 +21,10 @@ final class Formatter implements FormatterInterface
      * @param RuleInterface[] $rules
      */
     public function __construct(
-        LexerInterface $lexer,
-        ParserInterface $parser,
+        CompilerFacadeInterface $compilerFacade,
         array $rules
     ) {
-        $this->lexer = $lexer;
-        $this->parser = $parser;
+        $this->compilerFacade = $compilerFacade;
         $this->rules = $rules;
     }
 
@@ -39,8 +35,8 @@ final class Formatter implements FormatterInterface
      */
     public function format(string $string, string $source = self::DEFAULT_SOURCE): string
     {
-        $tokenStream = $this->lexer->lexString($string, $source);
-        $fileNode = $this->parser->parseAll($tokenStream);
+        $tokenStream = $this->compilerFacade->lexString($string, $source);
+        $fileNode = $this->compilerFacade->parseAll($tokenStream);
         $formattedNode = $this->formatNode($fileNode);
 
         return $formattedNode->getCode();

@@ -20,8 +20,7 @@ final class FormatterFactory extends AbstractFactory
     public function createFormatter(): FormatterInterface
     {
         return new Formatter(
-            $this->getFacadeCompiler()->createLexer(),
-            $this->getFacadeCompiler()->createParser(),
+            $this->getFacadeCompiler(),
             [
                 $this->createRemoveSurroundingWhitespaceRule(),
                 $this->createUnindentRule(),
@@ -36,12 +35,12 @@ final class FormatterFactory extends AbstractFactory
         return new RemoveSurroundingWhitespaceRule();
     }
 
-    public function createUnindentRule(): UnindentRule
+    private function createUnindentRule(): UnindentRule
     {
         return new UnindentRule();
     }
 
-    public function createIndentRule(): IndentRule
+    private function createIndentRule(): IndentRule
     {
         return new IndentRule([
             new InnerIndenter('def', 0),
@@ -72,7 +71,7 @@ final class FormatterFactory extends AbstractFactory
         ]);
     }
 
-    public function createRemoveTrailingWhitespaceRule(): RemoveTrailingWhitespaceRule
+    private function createRemoveTrailingWhitespaceRule(): RemoveTrailingWhitespaceRule
     {
         return new RemoveTrailingWhitespaceRule();
     }

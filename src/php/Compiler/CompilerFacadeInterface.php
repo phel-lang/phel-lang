@@ -16,6 +16,7 @@ use Phel\Compiler\Lexer\TokenStream;
 use Phel\Compiler\Parser\Exceptions\UnexpectedParserException;
 use Phel\Compiler\Parser\Exceptions\UnfinishedParserException;
 use Phel\Compiler\Parser\ParserInterface;
+use Phel\Compiler\Parser\ParserNode\FileNode;
 use Phel\Compiler\Parser\ParserNode\NodeInterface;
 use Phel\Compiler\Parser\ReadModel\ReaderResult;
 use Phel\Compiler\Reader\Exceptions\ReaderException;
@@ -23,16 +24,34 @@ use Phel\Compiler\Reader\ReaderInterface;
 
 interface CompilerFacadeInterface
 {
+    /**
+     * @deprecated
+     */
     public function createLexer(): LexerInterface;
 
+    /**
+     * @deprecated
+     */
     public function createReader(): ReaderInterface;
 
+    /**
+     * @deprecated
+     */
     public function createParser(): ParserInterface;
 
+    /**
+     * @deprecated
+     */
     public function createAnalyzer(): AnalyzerInterface;
 
+    /**
+     * @deprecated
+     */
     public function createEmitter(bool $enableSourceMaps = true): EmitterInterface;
 
+    /**
+     * @deprecated
+     */
     public function createOutputEmitter(bool $enableSourceMaps = true): OutputEmitterInterface;
 
     /**
@@ -66,4 +85,10 @@ interface CompilerFacadeInterface
      * @throws ReaderException
      */
     public function read(NodeInterface $parseTree): ReaderResult;
+
+    /**
+     * @throws UnexpectedParserException
+     * @throws UnfinishedParserException
+     */
+    public function parseAll(TokenStream $tokenStream): FileNode;
 }
