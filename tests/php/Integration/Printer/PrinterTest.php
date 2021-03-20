@@ -93,7 +93,7 @@ final class PrinterTest extends TestCase
 
     private function read(string $string): string
     {
-        $tokenStream = $this->compilerFacade->createLexer()->lexString($string);
+        $tokenStream = $this->compilerFacade->lexString($string);
         $parseTree = $this->compilerFacade->parseNext($tokenStream);
 
         return (string)$this->compilerFacade->read($parseTree)->getAst();

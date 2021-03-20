@@ -4,56 +4,20 @@ declare(strict_types=1);
 
 namespace Phel\Compiler;
 
-use Phel\Compiler\Analyzer\AnalyzerInterface;
-use Phel\Compiler\Emitter\EmitterInterface;
 use Phel\Compiler\Emitter\Exceptions\CompiledCodeIsMalformedException;
 use Phel\Compiler\Emitter\Exceptions\FileException;
-use Phel\Compiler\Emitter\OutputEmitterInterface;
 use Phel\Compiler\Exceptions\CompilerException;
 use Phel\Compiler\Lexer\Exceptions\LexerValueException;
-use Phel\Compiler\Lexer\LexerInterface;
 use Phel\Compiler\Lexer\TokenStream;
 use Phel\Compiler\Parser\Exceptions\UnexpectedParserException;
 use Phel\Compiler\Parser\Exceptions\UnfinishedParserException;
-use Phel\Compiler\Parser\ParserInterface;
 use Phel\Compiler\Parser\ParserNode\FileNode;
 use Phel\Compiler\Parser\ParserNode\NodeInterface;
 use Phel\Compiler\Parser\ReadModel\ReaderResult;
 use Phel\Compiler\Reader\Exceptions\ReaderException;
-use Phel\Compiler\Reader\ReaderInterface;
 
 interface CompilerFacadeInterface
 {
-    /**
-     * @deprecated
-     */
-    public function createLexer(): LexerInterface;
-
-    /**
-     * @deprecated
-     */
-    public function createReader(): ReaderInterface;
-
-    /**
-     * @deprecated
-     */
-    public function createParser(): ParserInterface;
-
-    /**
-     * @deprecated
-     */
-    public function createAnalyzer(): AnalyzerInterface;
-
-    /**
-     * @deprecated
-     */
-    public function createEmitter(bool $enableSourceMaps = true): EmitterInterface;
-
-    /**
-     * @deprecated
-     */
-    public function createOutputEmitter(bool $enableSourceMaps = true): OutputEmitterInterface;
-
     /**
      * Evaluates a provided Phel code.
      *

@@ -5,59 +5,23 @@ declare(strict_types=1);
 namespace Phel\Compiler;
 
 use Gacela\AbstractFacade;
-use Phel\Compiler\Analyzer\AnalyzerInterface;
-use Phel\Compiler\Emitter\EmitterInterface;
 use Phel\Compiler\Emitter\Exceptions\CompiledCodeIsMalformedException;
 use Phel\Compiler\Emitter\Exceptions\FileException;
-use Phel\Compiler\Emitter\OutputEmitterInterface;
 use Phel\Compiler\Exceptions\CompilerException;
 use Phel\Compiler\Lexer\Exceptions\LexerValueException;
-use Phel\Compiler\Lexer\LexerInterface;
 use Phel\Compiler\Lexer\TokenStream;
 use Phel\Compiler\Parser\Exceptions\UnexpectedParserException;
 use Phel\Compiler\Parser\Exceptions\UnfinishedParserException;
-use Phel\Compiler\Parser\ParserInterface;
 use Phel\Compiler\Parser\ParserNode\FileNode;
 use Phel\Compiler\Parser\ParserNode\NodeInterface;
 use Phel\Compiler\Parser\ReadModel\ReaderResult;
 use Phel\Compiler\Reader\Exceptions\ReaderException;
-use Phel\Compiler\Reader\ReaderInterface;
 
 /**
  * @method CompilerFactory getFactory()
  */
 final class CompilerFacade extends AbstractFacade implements CompilerFacadeInterface
 {
-    public function createLexer(): LexerInterface
-    {
-        return $this->getFactory()->createLexer();
-    }
-
-    public function createReader(): ReaderInterface
-    {
-        return $this->getFactory()->createReader();
-    }
-
-    public function createParser(): ParserInterface
-    {
-        return $this->getFactory()->createParser();
-    }
-
-    public function createAnalyzer(): AnalyzerInterface
-    {
-        return $this->getFactory()->createAnalyzer();
-    }
-
-    public function createEmitter(bool $enableSourceMaps = true): EmitterInterface
-    {
-        return $this->getFactory()->createEmitter($enableSourceMaps);
-    }
-
-    public function createOutputEmitter(bool $enableSourceMaps = true): OutputEmitterInterface
-    {
-        return $this->getFactory()->createOutputEmitter($enableSourceMaps);
-    }
-
     /**
      * Evaluates a provided Phel code.
      *

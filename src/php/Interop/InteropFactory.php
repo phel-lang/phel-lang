@@ -22,15 +22,12 @@ use Phel\Runtime\RuntimeFacade;
 /**
  * @method InteropConfig getConfig()
  */
-final class InteropFactory extends AbstractFactory implements InteropFactoryInterface
+final class InteropFactory extends AbstractFactory
 {
     public function createWrapperGenerator(): WrapperGenerator
     {
         return new WrapperGenerator(
-            new CompiledPhpClassBuilder(
-                $this->getConfig()->prefixNamespace(),
-                new CompiledPhpMethodBuilder()
-            ),
+            $this->createCompiledPhpClassBuilder(),
             new WrapperRelativeFilenamePathBuilder()
         );
     }
@@ -55,6 +52,14 @@ final class InteropFactory extends AbstractFactory implements InteropFactoryInte
         return new FileCreator(
             $this->getConfig()->getExportTargetDirectory(),
             $this->createFileSystemIo()
+        );
+    }
+
+    private function createCompiledPhpClassBuilder(): CompiledPhpClassBuilder
+    {
+        return new CompiledPhpClassBuilder(
+            $this->getConfig()->prefixNamespace(),
+            new CompiledPhpMethodBuilder()
         );
     }
 
