@@ -5,41 +5,41 @@ declare(strict_types=1);
 namespace Phel\Command\Test;
 
 use Phel\Command\Shared\CommandIoInterface;
-use Phel\Command\Shared\NamespaceExtractorInterface;
 use Phel\Command\Test\Exceptions\CannotFindAnyTestsException;
+use Phel\Compiler\CompilerFacadeInterface;
 use Phel\Compiler\Emitter\Exceptions\CompiledCodeIsMalformedException;
 use Phel\Compiler\Emitter\Exceptions\FileException;
-use Phel\Compiler\EvalCompilerInterface;
 use Phel\Compiler\Exceptions\CompilerException;
-use Phel\Runtime\RuntimeInterface;
+use Phel\Runtime\RuntimeFacadeInterface;
 use Throwable;
 
 final class TestCommand
 {
     public const COMMAND_NAME = 'test';
 
-    private string $projectRootDir;
-    private RuntimeInterface $runtime;
     private CommandIoInterface $io;
-    private NamespaceExtractorInterface $nsExtractor;
-    private EvalCompilerInterface $evalCompiler;
+    private RuntimeFacadeInterface $runtimeFacade;
+    private CompilerFacadeInterface $compilerFacade;
     /** @var list<string> */
     private array $defaultDirectories;
 
     public function __construct(
-        string $projectRootDir,
-        RuntimeInterface $runtime,
         CommandIoInterface $io,
-        NamespaceExtractorInterface $nsExtractor,
-        EvalCompilerInterface $evalCompiler,
+        RuntimeFacadeInterface $runtimeFacade,
+        CompilerFacadeInterface $compilerFacade,
         array $defaultDirectories
     ) {
-        $this->projectRootDir = $projectRootDir;
-        $this->runtime = $runtime;
         $this->io = $io;
-        $this->nsExtractor = $nsExtractor;
-        $this->evalCompiler = $evalCompiler;
+        $this->runtimeFacade = $runtimeFacade;
+        $this->compilerFacade = $compilerFacade;
         $this->defaultDirectories = $defaultDirectories;
+    }
+
+    public function addRuntimePath(string $namespacePrefix, array $path): self
+    {
+        $this->runtimeFacade->addPath($namespacePrefix, $path);
+
+        return $this;
     }
 
     /**
@@ -78,23 +78,20 @@ final class TestCommand
             throw CannotFindAnyTestsException::inPaths($paths);
         }
 
-        $this->runtime->loadNs('phel\test');
+        $this->runtimeFacade->getRuntime()->loadNs('phel\test');
         $nsString = $this->namespacesAsString($namespaces);
 
-        return $this->evalCompiler->eval('(do (phel\test/run-tests ' . $nsString . ') (successful?))');
+        return $this->compilerFacade->eval('(do (phel\test/run-tests ' . $nsString . ') (successful?))');
     }
 
     private function getNamespacesFromPaths(array $paths): array
     {
         if (empty($paths)) {
-            return $this->nsExtractor->getNamespacesFromDirectories(
-                $this->defaultDirectories,
-                $this->projectRootDir
-            );
+            return $this->runtimeFacade->getNamespacesFromDirectories($this->defaultDirectories);
         }
 
         return array_map(
-            fn (string $filename): string => $this->nsExtractor->getNamespaceFromFile($filename),
+            fn (string $filename): string => $this->runtimeFacade->getNamespaceFromFile($filename),
             $paths
         );
     }

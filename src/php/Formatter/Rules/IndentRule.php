@@ -9,7 +9,7 @@ use Phel\Compiler\Parser\ParserNode\ListNode;
 use Phel\Compiler\Parser\ParserNode\MetaNode;
 use Phel\Compiler\Parser\ParserNode\NodeInterface;
 use Phel\Compiler\Parser\ParserNode\WhitespaceNode;
-use Phel\Formatter\ParseTreeZipper;
+use Phel\Formatter\Formatter\ParseTreeZipper;
 use Phel\Formatter\Rules\Indenter\IndenterInterface;
 use Phel\Formatter\Rules\Indenter\LineIndenter;
 use Phel\Formatter\Rules\Indenter\ListIndenter;

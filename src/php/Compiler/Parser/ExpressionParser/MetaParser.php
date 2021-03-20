@@ -23,10 +23,10 @@ final class MetaParser
         $startLocation = $tokenStream->current()->getStartLocation();
         $tokenStream->next();
 
-        $meta =  $this->parser->readExpression($tokenStream);
+        $meta = $this->parser->readExpression($tokenStream);
         $children = [];
         do {
-            $object =  $this->parser->readExpression($tokenStream);
+            $object = $this->parser->readExpression($tokenStream);
             $children[] = $object;
         } while ($object instanceof TriviaNodeInterface);
 

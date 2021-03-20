@@ -6,6 +6,6 @@
 (php/new DateTimeImmutable)
 (php/new D)
 --PHP--
-\Phel\Runtime\RuntimeFactory::getInstance()->getEnv()->setNs("test");
+\Phel\Runtime\RuntimeSingleton::getInstance()->getEnv()->setNs("test");
 $GLOBALS["__phel"]["phel\\core"]["*ns*"] = "test";
 (new DateTimeImmutable());(new DateTime());

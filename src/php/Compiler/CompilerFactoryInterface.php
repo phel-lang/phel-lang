@@ -4,24 +4,26 @@ declare(strict_types=1);
 
 namespace Phel\Compiler;
 
-use Phel\Compiler\Analyzer\Environment\GlobalEnvironmentInterface;
 use Phel\Compiler\Emitter\EmitterInterface;
 use Phel\Compiler\Emitter\OutputEmitterInterface;
 use Phel\Compiler\Lexer\LexerInterface;
 use Phel\Compiler\Parser\ParserInterface;
 use Phel\Compiler\Reader\ReaderInterface;
 
+/**
+ * deprecated Remove me without replacement. CompilerFacade is the one which should have the Interface!
+ */
 interface CompilerFactoryInterface
 {
-    public function createEvalCompiler(GlobalEnvironmentInterface $globalEnv): EvalCompilerInterface;
+    public function createEvalCompiler(): EvalCompilerInterface;
 
-    public function createFileCompiler(GlobalEnvironmentInterface $globalEnv): FileCompilerInterface;
+    public function createFileCompiler(): FileCompilerInterface;
 
     public function createLexer(bool $withLocation = true): LexerInterface;
 
     public function createParser(): ParserInterface;
 
-    public function createReader(GlobalEnvironmentInterface $globalEnv): ReaderInterface;
+    public function createReader(): ReaderInterface;
 
     public function createEmitter(bool $enableSourceMaps = true): EmitterInterface;
 

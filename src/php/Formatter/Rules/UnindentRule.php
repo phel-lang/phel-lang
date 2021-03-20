@@ -7,7 +7,7 @@ namespace Phel\Formatter\Rules;
 use Phel\Compiler\Parser\ParserNode\NodeInterface;
 use Phel\Formatter\Exceptions\CanNotRemoveAtTheTopException;
 use Phel\Formatter\Exceptions\ZipperException;
-use Phel\Formatter\ParseTreeZipper;
+use Phel\Formatter\Formatter\ParseTreeZipper;
 
 /**
  * This rule removes all identions. If is used a preprocessor for the IndentRule.

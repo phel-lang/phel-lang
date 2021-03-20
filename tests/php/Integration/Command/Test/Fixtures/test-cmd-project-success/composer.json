@@ -1,9 +1,0 @@
-{
-    "extra": {
-        "phel": {
-            "tests": [
-                "tests/"
-            ]
-        }
-    }
-}

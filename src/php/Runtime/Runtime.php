@@ -6,7 +6,7 @@ namespace Phel\Runtime;
 
 use InvalidArgumentException;
 use Phel\Compiler\Analyzer\Environment\GlobalEnvironmentInterface;
-use Phel\Compiler\CompilerFactoryInterface;
+use Phel\Compiler\CompilerFacadeInterface;
 use Phel\Compiler\Emitter\Exceptions\CompiledCodeIsMalformedException;
 use Phel\Compiler\Emitter\Exceptions\FileException;
 use Phel\Compiler\Exceptions\CompilerException;
@@ -21,11 +21,8 @@ use Throwable;
 class Runtime implements RuntimeInterface
 {
     protected GlobalEnvironmentInterface $globalEnv;
-
     private ExceptionPrinterInterface $exceptionPrinter;
-
-    private CompilerFactoryInterface $compilerFactory;
-
+    private CompilerFacadeInterface $compilerFacade;
     private ?string $cacheDirectory = null;
 
     /** @var string[] */
@@ -37,7 +34,7 @@ class Runtime implements RuntimeInterface
     public function __construct(
         GlobalEnvironmentInterface $globalEnv,
         ExceptionPrinterInterface $exceptionPrinter,
-        CompilerFactoryInterface $compilerFactory,
+        CompilerFacadeInterface $compilerFacade,
         ?string $cacheDirectory = null
     ) {
         set_exception_handler([$this, 'exceptionHandler']);
@@ -45,7 +42,7 @@ class Runtime implements RuntimeInterface
 
         $this->globalEnv = $globalEnv;
         $this->exceptionPrinter = $exceptionPrinter;
-        $this->compilerFactory = $compilerFactory;
+        $this->compilerFacade = $compilerFacade;
         $this->cacheDirectory = $cacheDirectory;
     }
 
@@ -207,9 +204,7 @@ class Runtime implements RuntimeInterface
      */
     protected function loadFile(string $filename, string $ns): void
     {
-        $code = $this->compilerFactory
-            ->createFileCompiler($this->globalEnv)
-            ->compile($filename);
+        $code = $this->compilerFacade->compile($filename);
 
         $cacheFilePath = $this->getCachedFilePath($filename, $ns);
         if ($cacheFilePath) {

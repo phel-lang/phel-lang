@@ -15,7 +15,7 @@ use Phel\Compiler\Parser\ParserInterface;
 use Phel\Compiler\Parser\ParserNode\TriviaNodeInterface;
 use Phel\Compiler\Reader\ReaderInterface;
 use Phel\Lang\Symbol;
-use Phel\Runtime\RuntimeFactory;
+use Phel\Runtime\RuntimeSingleton;
 use PHPUnit\Framework\TestCase;
 use RecursiveDirectoryIterator;
 use RecursiveIteratorIterator;
@@ -30,7 +30,7 @@ final class IntegrationTest extends TestCase
     {
         Symbol::resetGen();
         $globalEnv = new GlobalEnvironment();
-        $rt = RuntimeFactory::initializeNew($globalEnv);
+        $rt = RuntimeSingleton::initializeNew($globalEnv);
         $rt->addPath('phel\\', [__DIR__ . '/../../src/phel/']);
         $rt->loadNs('phel\core');
         self::$globalEnv = $globalEnv;

@@ -6,7 +6,7 @@ namespace Phel\Formatter\Rules\Indenter;
 
 use Phel\Compiler\Parser\ParserNode\SymbolNode;
 use Phel\Formatter\Exceptions\ZipperException;
-use Phel\Formatter\ParseTreeZipper;
+use Phel\Formatter\Formatter\ParseTreeZipper;
 use Phel\Lang\Symbol;
 
 final class BlockIndenter implements IndenterInterface

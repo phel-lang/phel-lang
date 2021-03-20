@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace PhelTest\Integration\Interop;
 
 use Phel\Compiler\Analyzer\Environment\GlobalEnvironment;
-use Phel\Runtime\RuntimeFactory;
+use Phel\Runtime\RuntimeSingleton;
 use PHPUnit\Framework\TestCase;
 
 final class CallPhelTest extends TestCase
@@ -14,7 +14,7 @@ final class CallPhelTest extends TestCase
 
     public function setUp(): void
     {
-        RuntimeFactory::initializeNew(new GlobalEnvironment());
+        RuntimeSingleton::initializeNew(new GlobalEnvironment());
 
         $this->wrapper = new ExampleWrapper();
     }

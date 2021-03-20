@@ -7,8 +7,8 @@
 
 (defstruct abc [a])
 --PHP--
-\Phel\Runtime\RuntimeFactory::getInstance()->loadNs("my-namespace\\core");
-\Phel\Runtime\RuntimeFactory::getInstance()->getEnv()->setNs("hello-world");
+\Phel\Runtime\RuntimeSingleton::getInstance()->loadNs("my-namespace\\core");
+\Phel\Runtime\RuntimeSingleton::getInstance()->getEnv()->setNs("hello-world");
 $GLOBALS["__phel"]["phel\\core"]["*ns*"] = "hello_world";
 $GLOBALS["__phel"]["hello_world"]["x"] = 10;
 $GLOBALS["__phel_meta"]["hello_world"]["x"] = \Phel\Lang\TypeFactory::getInstance()->persistentMapFromKVs(

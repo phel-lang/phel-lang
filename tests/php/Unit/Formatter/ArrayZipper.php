@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace PhelTest\Unit\Formatter;
 
-use Phel\Formatter\AbstractZipper;
+use Phel\Formatter\Formatter\AbstractZipper;
 
 /** @extends AbstractZipper<array<int>> */
 final class ArrayZipper extends AbstractZipper

@@ -1,11 +1,11 @@
 (ns phel\repl
   (:use Phel\Lang\Symbol)
-  (:use Phel\Runtime\RuntimeFactory)
+  (:use Phel\Runtime\RuntimeSingleton)
   (:use Phel\Compiler\Analyzer\Environment\NodeEnvironment)
   (:use Phel\Printer\Printer))
 
 (defn- get-runtime []
-  (php/:: RuntimeFactory (getInstance)))
+  (php/:: RuntimeSingleton (getInstance)))
 
 (defn- get-global-env []
   (-> (get-runtime)

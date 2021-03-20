@@ -13,7 +13,8 @@
     ],
     "require": {
         "php": ">=7.4",
-        "phel-lang/phel-composer-plugin": "^0.1"
+        "phel-lang/phel-composer-plugin": "dev-change-factory-to-singleton",
+        "chemaclass/gacela": "^0.0.1"
     },
     "require-dev": {
         "ext-readline": "*",
@@ -46,7 +47,7 @@
             "@psalm"
         ],
         "test-compiler": "./vendor/bin/phpunit --testsuite=integration,unit",
-        "test-compiler:coverage": "XDEBUG_MODE=coverage ./vendor/bin/phpunit --coverage-html=data/coverage-html --coverage-xml=data/coverage-xml --log-junit=data/coverage-xml/junit.xml",
+        "test-compiler:coverage": "XDEBUG_MODE=coverage ./vendor/bin/phpunit --testsuite=integration,unit --coverage-html=data/coverage-html --coverage-xml=data/coverage-xml --log-junit=data/coverage-xml/junit.xml",
         "test-infection": "XDEBUG_MODE=coverage ./vendor/bin/infection --threads=4 --only-covered --coverage=data/coverage-xml",
         "test-core": "./phel test",
         "psalm": "./vendor/bin/psalm --no-cache",
@@ -64,16 +65,6 @@
             },
             "loader-dev": {
                 "phel\\": "tests/phel/"
-            },
-            "tests": [
-                "tests/phel/"
-            ],
-            "export": {
-                "directories": [
-                    "src/phel"
-                ],
-                "namespace-prefix": "PhelGenerated",
-                "target-directory": "src/PhelGenerated"
             }
         }
     }

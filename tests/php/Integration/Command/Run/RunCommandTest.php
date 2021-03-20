@@ -4,28 +4,31 @@ declare(strict_types=1);
 
 namespace PhelTest\Integration\Command\Run;
 
-use Phel\Command\CommandConfigInterface;
+use Gacela\Config;
 use Phel\Command\CommandFactory;
-use Phel\Command\CommandFactoryInterface;
-use Phel\Compiler\Analyzer\Environment\GlobalEnvironment;
-use Phel\Compiler\CompilerFactory;
-use Phel\Formatter\FormatterFactoryInterface;
-use Phel\Interop\InteropFactoryInterface;
-use Phel\Runtime\RuntimeFactory;
-use Phel\Runtime\RuntimeInterface;
+use Phel\Runtime\RuntimeSingleton;
 use PHPUnit\Framework\TestCase;
 
 final class RunCommandTest extends TestCase
 {
+    public static function setUpBeforeClass(): void
+    {
+        Config::$applicationRootDir = __DIR__;
+        Config::init();
+    }
+
+    public function setUp(): void
+    {
+        RuntimeSingleton::reset();
+    }
+
     public function testRunByNamespace(): void
     {
         $this->expectOutputRegex('~hello world~');
 
-        $runtime = $this->createRuntime();
-        $runtime->addPath('test\\', [__DIR__ . '/Fixtures']);
-
         $this->createCommandFactory()
-            ->createRunCommand($runtime)
+            ->createRunCommand()
+            ->addRuntimePath('test\\', [__DIR__ . '/Fixtures'])
             ->run('test\\test-script');
     }
 
@@ -33,11 +36,9 @@ final class RunCommandTest extends TestCase
     {
         $this->expectOutputRegex('~hello world~');
 
-        $runtime = $this->createRuntime();
-        $runtime->addPath('test\\', [__DIR__ . '/Fixtures']);
-
         $this->createCommandFactory()
-            ->createRunCommand($runtime)
+            ->createRunCommand()
+            ->addRuntimePath('test\\', [__DIR__ . '/Fixtures'])
             ->run(__DIR__ . '/Fixtures/test-script.phel');
     }
 
@@ -47,7 +48,7 @@ final class RunCommandTest extends TestCase
         $this->expectOutputRegex(sprintf('~Cannot parse file: %s~', $filename));
 
         $this->createCommandFactory()
-            ->createRunCommand($this->createRuntime())
+            ->createRunCommand()
             ->run($filename);
     }
 
@@ -57,7 +58,7 @@ final class RunCommandTest extends TestCase
         $this->expectOutputRegex(sprintf('~Cannot load namespace: %s~', $filename));
 
         $this->createCommandFactory()
-            ->createRunCommand($this->createRuntime())
+            ->createRunCommand()
             ->run($filename);
     }
 
@@ -67,23 +68,12 @@ final class RunCommandTest extends TestCase
         $this->expectOutputRegex(sprintf('~Cannot extract namespace from file: %s~', $filename));
 
         $this->createCommandFactory()
-            ->createRunCommand($this->createRuntime())
+            ->createRunCommand()
             ->run($filename);
     }
 
-    private function createRuntime(): RuntimeInterface
+    private function createCommandFactory(): CommandFactory
     {
-        return RuntimeFactory::initializeNew(new GlobalEnvironment());
-    }
-
-    private function createCommandFactory(): CommandFactoryInterface
-    {
-        return new CommandFactory(
-            __DIR__,
-            $this->createStub(CommandConfigInterface::class),
-            new CompilerFactory(),
-            $this->createStub(FormatterFactoryInterface::class),
-            $this->createStub(InteropFactoryInterface::class)
-        );
+        return new CommandFactory();
     }
 }

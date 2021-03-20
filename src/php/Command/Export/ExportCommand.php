@@ -4,10 +4,12 @@ declare(strict_types=1);
 
 namespace Phel\Command\Export;
 
+use Phel\Command\Export\Exceptions\NoFunctionsFoundException;
 use Phel\Command\Shared\CommandIoInterface;
 use Phel\Compiler\Exceptions\CompilerException;
-use Phel\Interop\Generator\WrapperGeneratorInterface;
+use Phel\Interop\InteropFacadeInterface;
 use Phel\Interop\ReadModel\Wrapper;
+use Phel\Runtime\RuntimeFacadeInterface;
 use RuntimeException;
 use Throwable;
 
@@ -15,32 +17,35 @@ final class ExportCommand
 {
     public const COMMAND_NAME = 'export';
 
-    private WrapperGeneratorInterface $wrapperGenerator;
     private CommandIoInterface $io;
-    private FunctionsToExportFinderInterface $functionsToExportFinder;
-    private DirectoryRemoverInterface $directoryRemover;
-    private string $destinationDir;
+    private RuntimeFacadeInterface $runtimeFacade;
+    private InteropFacadeInterface $interopFacade;
 
     public function __construct(
-        WrapperGeneratorInterface $wrapperGenerator,
         CommandIoInterface $io,
-        FunctionsToExportFinderInterface $functionsToExportFinder,
-        DirectoryRemoverInterface $directoryRemover,
-        string $destinationDir
+        RuntimeFacadeInterface $runtimeFacade,
+        InteropFacadeInterface $interopFacade
     ) {
-        $this->wrapperGenerator = $wrapperGenerator;
         $this->io = $io;
-        $this->functionsToExportFinder = $functionsToExportFinder;
-        $this->directoryRemover = $directoryRemover;
-        $this->destinationDir = $destinationDir;
+        $this->runtimeFacade = $runtimeFacade;
+        $this->interopFacade = $interopFacade;
+    }
+
+    public function addRuntimePath(string $namespacePrefix, array $path): self
+    {
+        $this->runtimeFacade->addPath($namespacePrefix, $path);
+
+        return $this;
     }
 
     public function run(): void
     {
         try {
             $wrappers = $this->generateWrappers();
-            $this->directoryRemover->removeDir($this->destinationDir);
+            $this->interopFacade->removeDestinationDir();
             $this->writeGeneratedWrappers($wrappers);
+        } catch (NoFunctionsFoundException $e) {
+            $this->io->writeln($e->getMessage());
         } catch (CompilerException $e) {
             $this->io->writeLocatedException($e->getNestedException(), $e->getCodeSnippet());
         } catch (Throwable $e) {
@@ -49,20 +54,19 @@ final class ExportCommand
     }
 
     /**
-     * @throws CompilerException
      * @throws RuntimeException
+     * @throws CompilerException
      *
      * @return list<Wrapper>
      */
     private function generateWrappers(): array
     {
         $wrappers = [];
-        foreach ($this->functionsToExportFinder->findInPaths() as $ns => $functionsToExport) {
-            $wrappers[] = $this->wrapperGenerator->generateCompiledPhp($ns, $functionsToExport);
+        foreach ($this->interopFacade->getFunctionsToExport() as $ns => $functionsToExport) {
+            $wrappers[] = $this->interopFacade->generateCompiledPhp($ns, $functionsToExport);
         }
-
         if (empty($wrappers)) {
-            throw new RuntimeException('No functions were found to be exported');
+            throw new NoFunctionsFoundException();
         }
 
         return $wrappers;
@@ -76,14 +80,7 @@ final class ExportCommand
         $this->io->writeln('Exported namespaces:');
 
         foreach ($wrappers as $i => $wrapper) {
-            $wrapperPath = $this->destinationDir . '/' . $wrapper->relativeFilenamePath();
-            $dir = dirname($wrapperPath);
-
-            if (!is_dir($dir)) {
-                $this->io->createDirectory($dir);
-            }
-
-            $this->io->filePutContents($wrapperPath, $wrapper->compiledPhp());
+            $this->interopFacade->createFileFromWrapper($wrapper);
             $this->io->writeln(sprintf('  %d) %s', $i + 1, $wrapper->relativeFilenamePath()));
         }
     }

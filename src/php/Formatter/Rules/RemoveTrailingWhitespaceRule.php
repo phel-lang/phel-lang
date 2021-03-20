@@ -6,7 +6,7 @@ namespace Phel\Formatter\Rules;
 
 use Phel\Compiler\Parser\ParserNode\NodeInterface;
 use Phel\Formatter\Exceptions\CanNotRemoveAtTheTopException;
-use Phel\Formatter\ParseTreeZipper;
+use Phel\Formatter\Formatter\ParseTreeZipper;
 
 final class RemoveTrailingWhitespaceRule implements RuleInterface
 {

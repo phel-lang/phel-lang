@@ -29,7 +29,7 @@
   (:use Phel\Lang\Collections\HashSet\TransientHashSetInterface)
   (:use Phel\Compiler\Emitter\OutputEmitter\Munge)
   (:use Phel\Printer\Printer)
-  (:use Phel\Runtime\RuntimeFactory)
+  (:use Phel\Runtime\RuntimeSingleton)
   (:use Countable)
   (:use Exception)
   (:use InvalidArgumentException))
@@ -221,7 +221,7 @@ This is PHP equivalent to `$args[0] . $args[1] . $args[2] ...`"
 (defn load
   "Loads a file into the current namespace. It can be used to split large namespaces into multiple files."
   [path]
-  (php/-> (php/:: RuntimeFactory (getInstance)) (loadFileIntoNamespace *ns* path)))
+  (php/-> (php/:: RuntimeSingleton (getInstance)) (loadFileIntoNamespace *ns* path)))
 
 (defn transient
   "Converts a persistent collection to a transient collection"

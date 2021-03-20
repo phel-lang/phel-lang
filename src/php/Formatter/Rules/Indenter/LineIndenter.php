@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Phel\Formatter\Rules\Indenter;
 
 use Phel\Compiler\Parser\ParserNode\InnerNodeInterface;
-use Phel\Formatter\ParseTreeZipper;
+use Phel\Formatter\Formatter\ParseTreeZipper;
 
 final class LineIndenter implements IndenterInterface
 {

@@ -1,6 +1,6 @@
 (ns phel\test
   (:use Phel\Lang\Symbol)
-  (:use Phel\Runtime\RuntimeFactory)
+  (:use Phel\Runtime\RuntimeSingleton)
   (:use Phel\Compiler\Emitter\OutputEmitter\Munge)
   (:use Phel\Runtime\Exceptions\TextExceptionPrinter)
   (:use Throwable))
@@ -299,7 +299,7 @@
       (get-in php/$GLOBALS ["__phel" munge-ns fn-name]))))
 
 (defn- run-test [ns]
-  (let [rt (php/:: \Phel\Runtime\RuntimeFactory (getInstance))
+  (let [rt (php/:: \Phel\Runtime\RuntimeSingleton (getInstance))
         _ (php/-> rt (loadNs ns))
         tests (find-test-fns ns)]
     (dofor [test :in tests]
