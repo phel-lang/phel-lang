@@ -14,7 +14,7 @@ final class FormatCommandTest extends TestCase
 
     protected function setUp(): void
     {
-        Config::$applicationRootDir = __DIR__;
+        Config::setApplicationRootDir(__DIR__);
     }
 
     public function testGoodFormat(): void

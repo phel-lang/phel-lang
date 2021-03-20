@@ -18,6 +18,6 @@ final class CommandConfig extends AbstractConfig
 
     public function getApplicationRootDir(): string
     {
-        return Config::$applicationRootDir;
+        return Config::getApplicationRootDir();
     }
 }

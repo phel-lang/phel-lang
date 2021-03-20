@@ -19,7 +19,7 @@ if ($argc <= 1) {
     exit(MainFacade::HELP_TEXT);
 }
 
-Config::$applicationRootDir = realpath(__DIR__);
+Config::setApplicationRootDir(realpath(__DIR__));
 
 try {
     $facade = new MainFacade();

@@ -1,4 +1,4 @@
-vendor
+/vendor
 .phpunit.*
 data
 var

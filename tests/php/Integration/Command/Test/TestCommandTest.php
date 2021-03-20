@@ -13,7 +13,7 @@ final class TestCommandTest extends TestCase
 {
     public static function setUpBeforeClass(): void
     {
-        Config::$applicationRootDir = __DIR__;
+        Config::setApplicationRootDir(__DIR__);
         Config::init();
     }
 
