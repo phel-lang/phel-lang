@@ -18,7 +18,7 @@
     "require-dev": {
         "ext-readline": "*",
         "phpunit/phpunit": "^9.5",
-        "vimeo/psalm": "^4.6",
+        "vimeo/psalm": "4.6.3",
         "friendsofphp/php-cs-fixer": "^2.18",
         "infection/infection": "^0.21",
         "symfony/var-dumper": "^5.2",
