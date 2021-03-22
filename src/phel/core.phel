@@ -248,3 +248,4 @@ This is PHP equivalent to `$args[0] . $args[1] . $args[2] ...`"
 (load (str __DIR__ "/core/math-operation.phel"))
 (load (str __DIR__ "/core/print-operation.phel"))
 (load (str __DIR__ "/core/threading-macros.phel"))
+(load (str __DIR__ "/core/regex-functions.phel"))

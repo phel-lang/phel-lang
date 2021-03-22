@@ -1,0 +1,7 @@
+(ns phel\test\core\regex-functions
+  (:require phel\test :refer [deftest is]))
+
+(deftest test-re-seq
+  (let [input "Hello, 1 regex 2 test"]
+    (is (= @["1" "2"] (re-seq "/\d+/" input)) "regex [0-9]")
+    (is (= @["Hello" "1" "regex" "2" "test"] (re-seq "/\w+/" input)) "regex [a-zA-Z0-9_]")))
