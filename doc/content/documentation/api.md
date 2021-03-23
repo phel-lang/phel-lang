@@ -157,6 +157,13 @@ Binds `name` to `expr`, evaluates the first form in the lexical context
   of that binding, then binds name to that result, repeating for each
   successive form, returning the result of the last form.
 
+## `associative?`
+
+```phel
+(associative? x)
+```
+Returns true if `x` is associative data structure, false otherwise.
+
 ## `bit-and`
 
 ```phel
@@ -1114,6 +1121,13 @@ Create an array of values [start, end). If the function has one argument the
   the range [0, end) is returned. With two arguments, returns [start, end).
   The third argument is an optional step width (default 1).
 
+## `re-seq`
+
+```phel
+(re-seq re s)
+```
+Returns a sequence of successive matches of pattern in string.
+
 ## `reduce`
 
 ```phel
@@ -1305,6 +1319,13 @@ Returns true if `x` is a table, false otherwise.
 (take n xs)
 ```
 Takes the first `n` elements of `xs`.
+
+## `take-last`
+
+```phel
+(take-last n xs)
+```
+Takes the last `n` elements of `xs`.
 
 ## `take-while`
 
