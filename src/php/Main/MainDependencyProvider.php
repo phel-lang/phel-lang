@@ -7,6 +7,7 @@ namespace Phel\Main;
 use Gacela\AbstractDependencyProvider;
 use Gacela\Container\Container;
 use Phel\Command\CommandFacade;
+use Phel\Command\CommandFacadeInterface;
 
 final class MainDependencyProvider extends AbstractDependencyProvider
 {
@@ -19,6 +20,8 @@ final class MainDependencyProvider extends AbstractDependencyProvider
 
     private function addCommandFacade(Container $container): void
     {
-        $container->set(self::FACADE_COMMAND, fn () => new CommandFacade());
+        $container->set(self::FACADE_COMMAND, function (Container $container): CommandFacadeInterface {
+            return $container->getLocator()->get(CommandFacade::class);
+        });
     }
 }

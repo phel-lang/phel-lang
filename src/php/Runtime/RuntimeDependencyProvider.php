@@ -7,6 +7,7 @@ namespace Phel\Runtime;
 use Gacela\AbstractDependencyProvider;
 use Gacela\Container\Container;
 use Phel\Compiler\CompilerFacade;
+use Phel\Compiler\CompilerFacadeInterface;
 
 final class RuntimeDependencyProvider extends AbstractDependencyProvider
 {
@@ -19,6 +20,8 @@ final class RuntimeDependencyProvider extends AbstractDependencyProvider
 
     private function addCompilerFacade(Container $container): void
     {
-        $container->set(self::FACADE_COMPILER, fn () => new CompilerFacade());
+        $container->set(self::FACADE_COMPILER, function (Container $container): CompilerFacadeInterface {
+            return $container->getLocator()->get(CompilerFacade::class);
+        });
     }
 }

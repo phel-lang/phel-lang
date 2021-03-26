@@ -7,6 +7,7 @@ namespace Phel\Interop;
 use Gacela\AbstractDependencyProvider;
 use Gacela\Container\Container;
 use Phel\Runtime\RuntimeFacade;
+use Phel\Runtime\RuntimeFacadeInterface;
 
 final class InteropDependencyProvider extends AbstractDependencyProvider
 {
@@ -19,6 +20,8 @@ final class InteropDependencyProvider extends AbstractDependencyProvider
 
     private function addFacadeRuntime(Container $container): void
     {
-        $container->set(self::FACADE_RUNTIME, fn () => new RuntimeFacade());
+        $container->set(self::FACADE_RUNTIME, function (Container $container): RuntimeFacadeInterface {
+            return $container->getLocator()->get(RuntimeFacade::class);
+        });
     }
 }
