@@ -14,7 +14,7 @@
     "require": {
         "php": ">=7.4",
         "phel-lang/phel-composer-plugin": "dev-change-factory-to-singleton",
-        "chemaclass/gacela": "dev-master"
+        "chemaclass/gacela": "^0.1"
     },
     "require-dev": {
         "ext-readline": "*",
@@ -26,7 +26,6 @@
         "phpmetrics/phpmetrics": "^2.7",
         "phpbench/phpbench": "^1.0.0-beta2"
     },
-    "minimum-stability": "dev",
     "autoload": {
         "psr-4": {
             "Phel\\": "src/php/"
