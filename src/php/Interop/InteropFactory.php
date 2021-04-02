@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Phel\Interop;
 
-use Gacela\AbstractFactory;
+use Gacela\Framework\AbstractFactory;
 use Phel\Interop\DirectoryRemover\DirectoryRemover;
 use Phel\Interop\DirectoryRemover\DirectoryRemoverInterface;
 use Phel\Interop\ExportFinder\FunctionsToExportFinder;

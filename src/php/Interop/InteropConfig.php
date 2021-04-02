@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Phel\Interop;
 
-use Gacela\AbstractConfig;
+use Gacela\Framework\AbstractConfig;
 
 final class InteropConfig extends AbstractConfig
 {

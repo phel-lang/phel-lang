@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Phel\Main;
 
-use Gacela\AbstractFactory;
+use Gacela\Framework\AbstractFactory;
 use Phel\Command\CommandFacadeInterface;
 
 final class MainFactory extends AbstractFactory

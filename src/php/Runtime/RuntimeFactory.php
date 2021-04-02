@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Phel\Runtime;
 
-use Gacela\AbstractFactory;
+use Gacela\Framework\AbstractFactory;
 use Phel\Compiler\CompilerFacadeInterface;
 use Phel\Runtime\Extractor\NamespaceExtractor;
 use Phel\Runtime\Extractor\NamespaceExtractorInterface;

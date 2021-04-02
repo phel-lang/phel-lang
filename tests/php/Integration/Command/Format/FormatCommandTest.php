@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace PhelTest\Integration\Command\Format;
 
-use Gacela\Config;
+use Gacela\Framework\Config;
 use Phel\Command\CommandFactory;
 use PHPUnit\Framework\TestCase;
 

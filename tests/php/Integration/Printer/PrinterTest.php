@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace PhelTest\Integration\Printer;
 
-use Gacela\Config;
+use Gacela\Framework\Config;
 use Phel\Compiler\CompilerFacade;
 use Phel\Compiler\CompilerFacadeInterface;
 use Phel\Printer\Printer;

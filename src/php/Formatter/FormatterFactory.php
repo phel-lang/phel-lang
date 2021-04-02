@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Phel\Formatter;
 
-use Gacela\AbstractFactory;
+use Gacela\Framework\AbstractFactory;
 use Phel\Compiler\CompilerFacade;
 use Phel\Formatter\Formatter\Formatter;
 use Phel\Formatter\Formatter\FormatterInterface;

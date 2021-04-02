@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Phel\Interop;
 
-use Gacela\AbstractFacade;
+use Gacela\Framework\AbstractFacade;
 use Phel\Interop\ReadModel\FunctionToExport;
 use Phel\Interop\ReadModel\Wrapper;
 

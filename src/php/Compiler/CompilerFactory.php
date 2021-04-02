@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Phel\Compiler;
 
-use Gacela\AbstractFactory;
+use Gacela\Framework\AbstractFactory;
 use Phel\Compiler\Analyzer\Analyzer;
 use Phel\Compiler\Analyzer\AnalyzerInterface;
 use Phel\Compiler\Compiler\EvalCompiler;

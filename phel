@@ -3,8 +3,8 @@
 
 $slash = DIRECTORY_SEPARATOR;
 
+use Gacela\Framework\Config;
 use Phel\Main\MainFacade;
-use Gacela\Config;
 
 $projectRootDir = getcwd() . $slash;
 $autoloadPath = $projectRootDir . 'vendor' . $slash . 'autoload.php';

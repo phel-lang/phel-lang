@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace Phel\Runtime;
 
-use Gacela\AbstractDependencyProvider;
-use Gacela\Container\Container;
+use Gacela\Framework\AbstractDependencyProvider;
+use Gacela\Framework\Container\Container;
 use Phel\Compiler\CompilerFacade;
 use Phel\Compiler\CompilerFacadeInterface;
 

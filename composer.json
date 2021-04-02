@@ -14,7 +14,7 @@
     "require": {
         "php": ">=7.4",
         "phel-lang/phel-composer-plugin": "dev-change-factory-to-singleton",
-        "chemaclass/gacela": "^0.1"
+        "chemaclass/gacela": "dev-master"
     },
     "require-dev": {
         "ext-readline": "*",

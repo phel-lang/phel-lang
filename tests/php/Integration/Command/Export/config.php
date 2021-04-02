@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-use Gacela\Config;
+use Gacela\Framework\Config;
 use Phel\Command\CommandConfig;
 use Phel\Interop\InteropConfig;
 

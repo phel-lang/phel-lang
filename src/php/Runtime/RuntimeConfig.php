@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace Phel\Runtime;
 
-use Gacela\AbstractConfig;
-use Gacela\Config;
+use Gacela\Framework\AbstractConfig;
+use Gacela\Framework\Config;
 
 final class RuntimeConfig extends AbstractConfig
 {

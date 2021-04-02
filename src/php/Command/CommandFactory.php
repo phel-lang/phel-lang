@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Phel\Command;
 
-use Gacela\AbstractFactory;
+use Gacela\Framework\AbstractFactory;
 use Phel\Command\Export\ExportCommand;
 use Phel\Command\Format\FormatCommand;
 use Phel\Command\Format\PathFilterInterface;

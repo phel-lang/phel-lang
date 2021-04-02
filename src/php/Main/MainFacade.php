@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Phel\Main;
 
-use Gacela\AbstractFacade;
+use Gacela\Framework\AbstractFacade;
 use InvalidArgumentException;
 use Phel\Command\Export\ExportCommand;
 use Phel\Command\Format\FormatCommand;

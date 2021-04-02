@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Phel\Runtime;
 
-use Gacela\AbstractFacade;
+use Gacela\Framework\AbstractFacade;
 
 /**
  * @method RuntimeFactory getFactory()

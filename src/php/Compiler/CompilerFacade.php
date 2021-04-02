@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Phel\Compiler;
 
-use Gacela\AbstractFacade;
+use Gacela\Framework\AbstractFacade;
 use Phel\Compiler\Emitter\Exceptions\CompiledCodeIsMalformedException;
 use Phel\Compiler\Emitter\Exceptions\FileException;
 use Phel\Compiler\Exceptions\CompilerException;
