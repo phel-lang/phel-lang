@@ -8,6 +8,7 @@ use Phel\Lang\Collections\HashMap\PersistentHashMap;
 use Phel\Lang\Collections\HashSet\PersistentHashSet;
 use Phel\Lang\Collections\LinkedList\EmptyList;
 use Phel\Lang\Collections\LinkedList\PersistentList;
+use Phel\Lang\Collections\LinkedList\PersistentListInterface;
 use Phel\Lang\Collections\Vector\PersistentVector;
 use RuntimeException;
 
@@ -64,10 +65,7 @@ class TypeFactory
         return PersistentList::empty($this->hasher, $this->equalizer);
     }
 
-    /**
-     * @return PersistentList|EmptyList
-     */
-    public function emptyPersistentListFromArray(array $values)
+    public function persistentListFromArray(array $values): PersistentListInterface
     {
         return PersistentList::fromArray($this->hasher, $this->equalizer, $values);
     }

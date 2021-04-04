@@ -5,12 +5,13 @@ declare(strict_types=1);
 namespace Phel\Printer;
 
 use Phel\Lang\AbstractStruct;
+use Phel\Lang\Collections\LinkedList\PersistentListInterface;
+use Phel\Lang\Collections\Vector\PersistentVectorInterface;
 use Phel\Lang\Keyword;
 use Phel\Lang\PhelArray;
 use Phel\Lang\Set;
 use Phel\Lang\Symbol;
 use Phel\Lang\Table;
-use Phel\Lang\Tuple;
 use Phel\Printer\TypePrinter\AnonymousClassPrinter;
 use Phel\Printer\TypePrinter\ArrayPrinter;
 use Phel\Printer\TypePrinter\BooleanPrinter;
@@ -19,6 +20,8 @@ use Phel\Printer\TypePrinter\NonPrintableClassPrinter;
 use Phel\Printer\TypePrinter\NullPrinter;
 use Phel\Printer\TypePrinter\NumberPrinter;
 use Phel\Printer\TypePrinter\ObjectPrinter;
+use Phel\Printer\TypePrinter\PersistentListPrinter;
+use Phel\Printer\TypePrinter\PersistentVectorPrinter;
 use Phel\Printer\TypePrinter\PhelArrayPrinter;
 use Phel\Printer\TypePrinter\ResourcePrinter;
 use Phel\Printer\TypePrinter\SetPrinter;
@@ -27,7 +30,6 @@ use Phel\Printer\TypePrinter\StructPrinter;
 use Phel\Printer\TypePrinter\SymbolPrinter;
 use Phel\Printer\TypePrinter\TablePrinter;
 use Phel\Printer\TypePrinter\ToStringPrinter;
-use Phel\Printer\TypePrinter\TuplePrinter;
 use Phel\Printer\TypePrinter\TypePrinterInterface;
 use ReflectionClass;
 use RuntimeException;
@@ -87,8 +89,11 @@ final class Printer implements PrinterInterface
      */
     private function createObjectTypePrinter($form): TypePrinterInterface
     {
-        if ($form instanceof Tuple) {
-            return new TuplePrinter($this);
+        if ($form instanceof PersistentListInterface) {
+            return new PersistentListPrinter($this);
+        }
+        if ($form instanceof PersistentVectorInterface) {
+            return new PersistentVectorPrinter($this);
         }
         if ($form instanceof Keyword) {
             return new KeywordPrinter($this->withColor);

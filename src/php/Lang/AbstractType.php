@@ -5,13 +5,14 @@ declare(strict_types=1);
 namespace Phel\Lang;
 
 use Phel\Lang\Collections\HashMap\PersistentHashMap;
+use Phel\Printer\Printer;
 
 /**
  * @template TSelf
  *
- * @implements MetaInterface<TSelf>
+ * @implements TypeInterface<TSelf>
  */
-abstract class AbstractType implements MetaInterface, SourceLocationInterface, EqualsInterface, HashableInterface
+abstract class AbstractType implements TypeInterface
 {
     private const KEYWORD_START_LOCATION = 'start-location';
     private const KEYWORD_END_LOCATION = 'end-location';
@@ -121,5 +122,10 @@ abstract class AbstractType implements MetaInterface, SourceLocationInterface, E
             $map->find(TypeFactory::getInstance()->keyword(self::KEYWORD_LINE)) ?? 0,
             $map->find(TypeFactory::getInstance()->keyword(self::KEYWORD_COLUMN)) ?? 0,
         );
+    }
+
+    public function __toString()
+    {
+        return Printer::readable()->print($this);
     }
 }

@@ -31,7 +31,7 @@ class RangeIterator implements Iterator
 
     public function current()
     {
-        assert(isset($this->currentArray[$this->currentIndex & 0x01f]));
+        assert($this->currentArray !== null);
         return $this->currentArray[$this->currentIndex & 0x01f];
     }
 

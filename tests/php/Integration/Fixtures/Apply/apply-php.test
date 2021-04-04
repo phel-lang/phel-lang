@@ -1,4 +1,4 @@
 --PHEL--
 (apply php/array 1 2 [3])
 --PHP--
-array(1, 2, ...((\Phel\Lang\Tuple::createBracket(3)) ?? []));
+array(1, 2, ...((\Phel\Lang\TypeFactory::getInstance()->persistentVectorFromArray([3])) ?? []));

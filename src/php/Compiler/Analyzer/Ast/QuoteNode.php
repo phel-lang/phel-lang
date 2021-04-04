@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace Phel\Compiler\Analyzer\Ast;
 
 use Phel\Compiler\Analyzer\Environment\NodeEnvironmentInterface;
-use Phel\Lang\AbstractType;
 use Phel\Lang\SourceLocation;
+use Phel\Lang\TypeInterface;
 
 final class QuoteNode extends AbstractNode
 {
@@ -14,7 +14,7 @@ final class QuoteNode extends AbstractNode
     private $value;
 
     /**
-     * @param AbstractType|string|float|int|bool|null $value
+     * @param TypeInterface|string|float|int|bool|null $value
      */
     public function __construct(NodeEnvironmentInterface $env, $value, ?SourceLocation $sourceLocation = null)
     {

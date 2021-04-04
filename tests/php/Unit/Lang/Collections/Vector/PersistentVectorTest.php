@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace PhelTest\Unit\Lang\Collections\Vector;
 
+use Phel\Lang\Collections\Exceptions\IndexOutOfBoundsException;
 use Phel\Lang\Collections\Vector\PersistentVector;
 use Phel\Lang\Collections\Vector\RangeIterator;
 use PhelTest\Unit\Lang\Collections\ModuloHasher;
@@ -108,7 +109,7 @@ final class PersistentVectorTest extends TestCase
 
     public function testGetOutOfRange(): void
     {
-        $this->expectException(RuntimeException::class);
+        $this->expectException(IndexOutOfBoundsException::class);
         $vEmpty = PersistentVector::empty(new ModuloHasher(), new SimpleEqualizer());
 
         $vEmpty->get(0);

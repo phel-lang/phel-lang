@@ -14,7 +14,8 @@ use Phel\Lang\PhelArray;
 use Phel\Lang\SourceLocation;
 use Phel\Lang\Symbol;
 use Phel\Lang\Table;
-use Phel\Lang\Tuple;
+use Phel\Lang\TypeFactory;
+use Phel\Lang\TypeInterface;
 use PHPUnit\Framework\TestCase;
 
 final class ReaderTest extends TestCase
@@ -81,25 +82,25 @@ final class ReaderTest extends TestCase
     public function testReadList(): void
     {
         self::assertEquals(
-            $this->loc(new Tuple([], false), 1, 0, 1, 2),
+            $this->loc(TypeFactory::getInstance()->emptyPersistentList(), 1, 0, 1, 2),
             $this->read('()')
         );
         self::assertEquals(
-            $this->loc(new Tuple([
-                $this->loc(new Tuple([], false), 1, 1, 1, 3),
-            ], false), 1, 0, 1, 4),
+            $this->loc(TypeFactory::getInstance()->persistentListFromArray([
+                $this->loc(TypeFactory::getInstance()->emptyPersistentList(), 1, 1, 1, 3),
+            ]), 1, 0, 1, 4),
             $this->read('(())')
         );
 
         self::assertEquals(
-            $this->loc(new Tuple([
+            $this->loc(TypeFactory::getInstance()->persistentListFromArray([
                 $this->loc(Symbol::create('a'), 1, 1, 1, 2),
-            ], false), 1, 0, 1, 3),
+            ]), 1, 0, 1, 3),
             $this->read('(a)')
         );
 
         self::assertEquals(
-            $this->loc(new Tuple([
+            $this->loc(TypeFactory::getInstance()->persistentListFromArray([
                 $this->loc(Symbol::create('a'), 1, 1, 1, 2),
                 $this->loc(Symbol::create('b'), 1, 3, 1, 4),
             ], false), 1, 0, 1, 5),
@@ -107,31 +108,31 @@ final class ReaderTest extends TestCase
         );
     }
 
-    public function testRdlistBracket(): void
+    public function testReadVector(): void
     {
         self::assertEquals(
-            $this->loc(new Tuple([], true), 1, 0, 1, 2),
+            $this->loc(TypeFactory::getInstance()->emptyPersistentVector(), 1, 0, 1, 2),
             $this->read('[]')
         );
         self::assertEquals(
-            $this->loc(new Tuple([
-                $this->loc(new Tuple([], true), 1, 1, 1, 3),
-            ], true), 1, 0, 1, 4),
+            $this->loc(TypeFactory::getInstance()->persistentVectorFromArray([
+                $this->loc(TypeFactory::getInstance()->emptyPersistentVector(), 1, 1, 1, 3),
+            ]), 1, 0, 1, 4),
             $this->read('[[]]')
         );
 
         self::assertEquals(
-            $this->loc(new Tuple([
+            $this->loc(TypeFactory::getInstance()->persistentVectorFromArray([
                 $this->loc(Symbol::create('a'), 1, 1, 1, 2),
-            ], true), 1, 0, 1, 3),
+            ]), 1, 0, 1, 3),
             $this->read('[a]')
         );
 
         self::assertEquals(
-            $this->loc(new Tuple([
+            $this->loc(TypeFactory::getInstance()->persistentVectorFromArray([
                 $this->loc(Symbol::create('a'), 1, 1, 1, 2),
                 $this->loc(Symbol::create('b'), 1, 3, 1, 4),
-            ], true), 1, 0, 1, 5),
+            ]), 1, 0, 1, 5),
             $this->read('[a b]')
         );
     }
@@ -139,7 +140,7 @@ final class ReaderTest extends TestCase
     public function testQuote(): void
     {
         self::assertEquals(
-            $this->loc(new Tuple([
+            $this->loc(TypeFactory::getInstance()->persistentListFromArray([
                 Symbol::create(Symbol::NAME_QUOTE),
                 $this->loc(Symbol::create('a'), 1, 1, 1, 2),
             ]), 1, 0, 1, 2),
@@ -150,7 +151,7 @@ final class ReaderTest extends TestCase
     public function testUnquote(): void
     {
         self::assertEquals(
-            $this->loc(new Tuple([
+            $this->loc(TypeFactory::getInstance()->persistentListFromArray([
                 Symbol::create(Symbol::NAME_UNQUOTE),
                 $this->loc(Symbol::create('a'), 1, 1, 1, 2),
             ]), 1, 0, 1, 2),
@@ -161,7 +162,7 @@ final class ReaderTest extends TestCase
     public function testUnquoteSplice(): void
     {
         self::assertEquals(
-            $this->loc(new Tuple([
+            $this->loc(TypeFactory::getInstance()->persistentListFromArray([
                 Symbol::create(Symbol::NAME_UNQUOTE_SPLICING),
                 $this->loc(Symbol::create('a'), 1, 2, 1, 3),
             ]), 1, 0, 1, 3),
@@ -172,7 +173,7 @@ final class ReaderTest extends TestCase
     public function testQuasiquote1(): void
     {
         self::assertEquals(
-            $this->loc(new Tuple([
+            $this->loc(TypeFactory::getInstance()->persistentListFromArray([
                 $this->loc(Symbol::create(Symbol::NAME_QUOTE), 1, 1, 1, 8),
                 $this->loc(Symbol::create(Symbol::NAME_UNQUOTE), 1, 1, 1, 8),
             ]), 1, 0, 1, 8),
@@ -183,7 +184,7 @@ final class ReaderTest extends TestCase
     public function testQuasiquote2(): void
     {
         self::assertEquals(
-            $this->loc(new Tuple([
+            $this->loc(TypeFactory::getInstance()->persistentListFromArray([
                 $this->loc(Symbol::create(Symbol::NAME_QUOTE), 1, 1, 1, 2),
                 $this->loc(Symbol::create('a'), 1, 1, 1, 2),
             ]), 1, 0, 1, 2),
@@ -193,50 +194,44 @@ final class ReaderTest extends TestCase
 
     public function testQuasiquote3(): void
     {
-        self::assertEquals(
-            $this->read('(apply tuple (concat (tuple (quote foo)) (tuple bar)))', true),
-            $this->read('`(foo ,bar)', true)
-        );
+        $l1 = $this->read('(apply list (concat (list (quote foo)) (list bar)))', true);
+        $l2 = $this->read('`(foo ,bar)', true);
+        self::assertTrue($l1->equals($l2));
     }
 
     public function testQuasiquote4(): void
     {
-        self::assertEquals(
-            $this->read('\'a', true),
-            $this->read('``,a', true)
-        );
+        $l1 = $this->read('\'a', true);
+        $l2 = $this->read('``,a', true);
+        self::assertTrue($l1->equals($l2));
     }
 
     public function testQuasiquote5(): void
     {
-        self::assertEquals(
-            $this->read('(apply tuple (concat (tuple (quote foo)) bar))', true),
-            $this->read('`(foo ,@bar)', true)
-        );
+        $l1 = $this->read('(apply list (concat (list (quote foo)) bar))', true);
+        $l2 = $this->read('`(foo ,@bar)', true);
+        self::assertTrue($l1->equals($l2));
     }
 
     public function testQuasiquote6(): void
     {
-        self::assertEquals(
-            $this->read('(apply tuple (concat (tuple foo) bar))', true),
-            $this->read('`(,foo ,@bar)', true)
-        );
+        $l1 = $this->read('(apply list (concat (list foo) bar))', true);
+        $l2 = $this->read('`(,foo ,@bar)', true);
+        self::assertTrue($l1->equals($l2));
     }
 
     public function testQuasiquote7(): void
     {
-        self::assertEquals(
-            $this->read('(apply tuple (concat foo bar))', true),
-            $this->read('`(,@foo ,@bar)', true)
-        );
+        $l1 = $this->read('(apply list (concat foo bar))', true);
+        $l2 = $this->read('`(,@foo ,@bar)', true);
+        self::assertTrue($l1->equals($l2));
     }
 
     public function testQuasiquote8(): void
     {
-        self::assertEquals(
-            $this->read('(apply tuple (concat foo bar (tuple 1) (tuple "string") (tuple :keyword) (tuple true) (tuple nil)))', true),
-            $this->read('`(,@foo ,@bar 1 "string" :keyword true nil)', true)
-        );
+        $l1 = $this->read('(apply list (concat foo bar (list 1) (list "string") (list :keyword) (list true) (list nil)))', true);
+        $l2 = $this->read('`(,@foo ,@bar 1 "string" :keyword true nil)', true);
+        self::assertTrue($l1->equals($l2));
     }
 
     public function testReadString(): void
@@ -452,7 +447,7 @@ final class ReaderTest extends TestCase
         );
     }
 
-    public function testTupleMeta(): void
+    public function testVectorMeta(): void
     {
         $this->expectException(ReaderException::class);
         $this->expectExceptionMessage('Metadata must be a Symbol, String, Keyword or Table');
@@ -469,19 +464,19 @@ final class ReaderTest extends TestCase
     public function testReadShortFnZeroArgs(): void
     {
         self::assertEquals(
-            Tuple::create(
+            TypeFactory::getInstance()->persistentListFromArray([
                 Symbol::create(Symbol::NAME_FN),
-                Tuple::createBracket(),
+                TypeFactory::getInstance()->emptyPersistentVector(),
                 $this->loc(
-                    Tuple::create(
-                        $this->loc(Symbol::create('add'), 1, 2, 1, 5)
-                    ),
+                    TypeFactory::getInstance()->persistentListFromArray([
+                        $this->loc(Symbol::create('add'), 1, 2, 1, 5),
+                    ]),
                     1,
                     0,
                     1,
                     6
-                )
-            ),
+                ),
+            ]),
             $this->read('|(add)')
         );
     }
@@ -489,22 +484,22 @@ final class ReaderTest extends TestCase
     public function testReadShortFnOneArg(): void
     {
         self::assertEquals(
-            Tuple::create(
+            TypeFactory::getInstance()->persistentListFromArray([
                 Symbol::create(Symbol::NAME_FN),
-                Tuple::createBracket(
-                    Symbol::create('__short_fn_1_1')
-                ),
+                TypeFactory::getInstance()->persistentVectorFromArray([
+                    Symbol::create('__short_fn_1_1'),
+                ]),
                 $this->loc(
-                    Tuple::create(
+                    TypeFactory::getInstance()->persistentListFromArray([
                         $this->loc(Symbol::create('add'), 1, 2, 1, 5),
-                        $this->loc(Symbol::create('__short_fn_1_1'), 1, 6, 1, 7)
-                    ),
+                        $this->loc(Symbol::create('__short_fn_1_1'), 1, 6, 1, 7),
+                    ]),
                     1,
                     0,
                     1,
                     8
-                )
-            ),
+                ),
+            ]),
             $this->read('|(add $)')
         );
     }
@@ -512,23 +507,23 @@ final class ReaderTest extends TestCase
     public function testReadShortFnOneArgTwoTimes(): void
     {
         self::assertEquals(
-            Tuple::create(
+            TypeFactory::getInstance()->persistentListFromArray([
                 Symbol::create(Symbol::NAME_FN),
-                Tuple::createBracket(
-                    Symbol::create('__short_fn_1_1')
-                ),
+                TypeFactory::getInstance()->persistentVectorFromArray([
+                    Symbol::create('__short_fn_1_1'),
+                ]),
                 $this->loc(
-                    Tuple::create(
+                    TypeFactory::getInstance()->persistentListFromArray([
                         $this->loc(Symbol::create('add'), 1, 2, 1, 5),
                         $this->loc(Symbol::create('__short_fn_1_1'), 1, 6, 1, 7),
-                        $this->loc(Symbol::create('__short_fn_1_1'), 1, 8, 1, 9)
-                    ),
+                        $this->loc(Symbol::create('__short_fn_1_1'), 1, 8, 1, 9),
+                    ]),
                     1,
                     0,
                     1,
                     10
-                )
-            ),
+                ),
+            ]),
             $this->read('|(add $ $)')
         );
     }
@@ -536,24 +531,24 @@ final class ReaderTest extends TestCase
     public function testReadShortFnTwoArguments(): void
     {
         self::assertEquals(
-            Tuple::create(
+            TypeFactory::getInstance()->persistentListFromArray([
                 Symbol::create(Symbol::NAME_FN),
-                Tuple::createBracket(
+                TypeFactory::getInstance()->persistentVectorFromArray([
                     Symbol::create('__short_fn_1_1'),
-                    Symbol::create('__short_fn_2_2')
-                ),
+                    Symbol::create('__short_fn_2_2'),
+                ]),
                 $this->loc(
-                    Tuple::create(
+                    TypeFactory::getInstance()->persistentListFromArray([
                         $this->loc(Symbol::create('add'), 1, 2, 1, 5),
                         $this->loc(Symbol::create('__short_fn_1_1'), 1, 6, 1, 8),
-                        $this->loc(Symbol::create('__short_fn_2_2'), 1, 9, 1, 11)
-                    ),
+                        $this->loc(Symbol::create('__short_fn_2_2'), 1, 9, 1, 11),
+                    ]),
                     1,
                     0,
                     1,
                     12
-                )
-            ),
+                ),
+            ]),
             $this->read('|(add $1 $2)')
         );
     }
@@ -561,23 +556,23 @@ final class ReaderTest extends TestCase
     public function testReadShortFnArgumentsTwice(): void
     {
         self::assertEquals(
-            Tuple::create(
+            TypeFactory::getInstance()->persistentListFromArray([
                 Symbol::create(Symbol::NAME_FN),
-                Tuple::createBracket(
-                    Symbol::create('__short_fn_1_1')
-                ),
+                TypeFactory::getInstance()->persistentVectorFromArray([
+                    Symbol::create('__short_fn_1_1'),
+                ]),
                 $this->loc(
-                    Tuple::create(
+                    TypeFactory::getInstance()->persistentListFromArray([
                         $this->loc(Symbol::create('add'), 1, 2, 1, 5),
                         $this->loc(Symbol::create('__short_fn_1_1'), 1, 6, 1, 8),
-                        $this->loc(Symbol::create('__short_fn_1_1'), 1, 9, 1, 11)
-                    ),
+                        $this->loc(Symbol::create('__short_fn_1_1'), 1, 9, 1, 11),
+                    ]),
                     1,
                     0,
                     1,
                     12
-                )
-            ),
+                ),
+            ]),
             $this->read('|(add $1 $1)')
         );
     }
@@ -585,25 +580,25 @@ final class ReaderTest extends TestCase
     public function testReadShortFnMissingArgument(): void
     {
         self::assertEquals(
-            Tuple::create(
+            TypeFactory::getInstance()->persistentListFromArray([
                 Symbol::create(Symbol::NAME_FN),
-                Tuple::createBracket(
+                TypeFactory::getInstance()->persistentVectorFromArray([
                     Symbol::create('__short_fn_1_1'),
                     Symbol::create('__short_fn_undefined_3'),
-                    Symbol::create('__short_fn_3_2')
-                ),
+                    Symbol::create('__short_fn_3_2'),
+                ]),
                 $this->loc(
-                    Tuple::create(
+                    TypeFactory::getInstance()->persistentListFromArray([
                         $this->loc(Symbol::create('add'), 1, 2, 1, 5),
                         $this->loc(Symbol::create('__short_fn_1_1'), 1, 6, 1, 8),
-                        $this->loc(Symbol::create('__short_fn_3_2'), 1, 9, 1, 11)
-                    ),
+                        $this->loc(Symbol::create('__short_fn_3_2'), 1, 9, 1, 11),
+                    ]),
                     1,
                     0,
                     1,
                     12
-                )
-            ),
+                ),
+            ]),
             $this->read('|(add $1 $3)')
         );
     }
@@ -611,25 +606,25 @@ final class ReaderTest extends TestCase
     public function testReadShortFnRestArguments(): void
     {
         self::assertEquals(
-            Tuple::create(
+            TypeFactory::getInstance()->persistentListFromArray([
                 Symbol::create(Symbol::NAME_FN),
-                Tuple::createBracket(
+                TypeFactory::getInstance()->persistentVectorFromArray([
                     Symbol::create('__short_fn_1_1'),
                     Symbol::create('&'),
-                    Symbol::create('__short_fn_rest_2')
-                ),
+                    Symbol::create('__short_fn_rest_2'),
+                ]),
                 $this->loc(
-                    Tuple::create(
+                    TypeFactory::getInstance()->persistentListFromArray([
                         $this->loc(Symbol::create('add'), 1, 2, 1, 5),
                         $this->loc(Symbol::create('__short_fn_1_1'), 1, 6, 1, 8),
-                        $this->loc(Symbol::create('__short_fn_rest_2'), 1, 9, 1, 11)
-                    ),
+                        $this->loc(Symbol::create('__short_fn_rest_2'), 1, 9, 1, 11),
+                    ]),
                     1,
                     0,
                     1,
                     12
-                )
-            ),
+                ),
+            ]),
             $this->read('|(add $1 $&)')
         );
     }
@@ -637,24 +632,24 @@ final class ReaderTest extends TestCase
     public function testShortFnRestArgumentMultipleTimes(): void
     {
         $this->assertEquals(
-            Tuple::create(
+            TypeFactory::getInstance()->persistentListFromArray([
                 Symbol::create(Symbol::NAME_FN),
-                Tuple::createBracket(
+                TypeFactory::getInstance()->persistentVectorFromArray([
                     Symbol::create('&'),
-                    Symbol::create('__short_fn_rest_1')
-                ),
+                    Symbol::create('__short_fn_rest_1'),
+                ]),
                 $this->loc(
-                    Tuple::create(
+                    TypeFactory::getInstance()->persistentListFromArray([
                         $this->loc(Symbol::create('concat'), 1, 2, 1, 8),
                         $this->loc(Symbol::create('__short_fn_rest_1'), 1, 9, 1, 11),
-                        $this->loc(Symbol::create('__short_fn_rest_1'), 1, 12, 1, 14)
-                    ),
+                        $this->loc(Symbol::create('__short_fn_rest_1'), 1, 12, 1, 14),
+                    ]),
                     1,
                     0,
                     1,
                     15
-                )
-            ),
+                ),
+            ]),
             $this->read('|(concat $& $&)')
         );
     }
@@ -668,14 +663,10 @@ final class ReaderTest extends TestCase
 
         $parser = $this->compilerFactory->createParser();
         $reader = $this->compilerFactory->createReader(new GlobalEnvironment());
-        $tokenStream = $this->compilerFactory->createLexer()->lexString($string);
+        $tokenStream = $this->compilerFactory->createLexer($removeLoc)->lexString($string);
 
         $parseTree = $parser->parseNext($tokenStream);
         $result = $reader->read($parseTree)->getAst();
-
-        if ($removeLoc) {
-            $this->removeLoc($result);
-        }
 
         return $result;
     }
@@ -687,35 +678,10 @@ final class ReaderTest extends TestCase
         return $x;
     }
 
-    private function loc(AbstractType $x, $beginLine, $beginColumn, $endLine, $endColumn): AbstractType
+    private function loc(TypeInterface $x, $beginLine, $beginColumn, $endLine, $endColumn): AbstractType
     {
-        $x->setStartLocation(new SourceLocation('string', $beginLine, $beginColumn));
-        $x->setEndLocation(new SourceLocation('string', $endLine, $endColumn));
-
-        return $x;
-    }
-
-    /**
-     * @param AbstractType|string|float|int|bool|null $x
-     */
-    private function removeLoc($x)
-    {
-        if ($x instanceof AbstractType) {
-            $x->setStartLocation(new SourceLocation('string', 0, 0));
-            $x->setEndLocation(new SourceLocation('string', 0, 0));
-        }
-
-        if ($x instanceof Tuple || $x instanceof PhelArray) {
-            foreach ($x as $elem) {
-                $this->removeLoc($elem);
-            }
-        } elseif ($x instanceof Table) {
-            foreach ($x as $k => $v) {
-                $this->removeLoc($k);
-                $this->removeLoc($v);
-            }
-        }
-
-        return $x;
+        return $x
+            ->setStartLocation(new SourceLocation('string', $beginLine, $beginColumn))
+            ->setEndLocation(new SourceLocation('string', $endLine, $endColumn));
     }
 }

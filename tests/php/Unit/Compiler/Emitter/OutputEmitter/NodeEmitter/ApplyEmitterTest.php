@@ -8,7 +8,7 @@ use Phel\Compiler\Analyzer\Ast\ApplyNode;
 use Phel\Compiler\Analyzer\Ast\FnNode;
 use Phel\Compiler\Analyzer\Ast\LiteralNode;
 use Phel\Compiler\Analyzer\Ast\PhpVarNode;
-use Phel\Compiler\Analyzer\Ast\TupleNode;
+use Phel\Compiler\Analyzer\Ast\VectorNode;
 use Phel\Compiler\Analyzer\Environment\NodeEnvironment;
 use Phel\Compiler\Analyzer\Environment\NodeEnvironmentInterface;
 use Phel\Compiler\CompilerFactory;
@@ -32,7 +32,7 @@ final class ApplyEmitterTest extends TestCase
     {
         $node = new PhpVarNode(NodeEnvironment::empty(), '+');
         $args = [
-            new TupleNode(NodeEnvironment::empty()->withContext(NodeEnvironmentInterface::CONTEXT_EXPRESSION), [
+            new VectorNode(NodeEnvironment::empty()->withContext(NodeEnvironmentInterface::CONTEXT_EXPRESSION), [
                 new LiteralNode(NodeEnvironment::empty()->withContext(NodeEnvironmentInterface::CONTEXT_EXPRESSION), 2),
                 new LiteralNode(NodeEnvironment::empty()->withContext(NodeEnvironmentInterface::CONTEXT_EXPRESSION), 3),
                 new LiteralNode(NodeEnvironment::empty()->withContext(NodeEnvironmentInterface::CONTEXT_EXPRESSION), 4),
@@ -43,7 +43,7 @@ final class ApplyEmitterTest extends TestCase
         $this->applyEmitter->emit($applyNode);
 
         $this->expectOutputString(
-            'array_reduce([...((\Phel\Lang\Tuple::createBracket(2, 3, 4)) ?? [])], function($a, $b) { return ($a + $b); });'
+            'array_reduce([...((\Phel\Lang\TypeFactory::getInstance()->persistentVectorFromArray([2, 3, 4])) ?? [])], function($a, $b) { return ($a + $b); });'
         );
     }
 
@@ -52,7 +52,7 @@ final class ApplyEmitterTest extends TestCase
         $node = new PhpVarNode(NodeEnvironment::empty(), 'str');
         $args = [
             new LiteralNode(NodeEnvironment::empty()->withContext(NodeEnvironmentInterface::CONTEXT_EXPRESSION), 'abc'),
-            new TupleNode(NodeEnvironment::empty()->withContext(NodeEnvironmentInterface::CONTEXT_EXPRESSION), [
+            new VectorNode(NodeEnvironment::empty()->withContext(NodeEnvironmentInterface::CONTEXT_EXPRESSION), [
                 new LiteralNode(NodeEnvironment::empty()->withContext(NodeEnvironmentInterface::CONTEXT_EXPRESSION), 'def'),
             ]),
         ];
@@ -60,7 +60,7 @@ final class ApplyEmitterTest extends TestCase
         $applyNode = new ApplyNode(NodeEnvironment::empty(), $node, $args);
         $this->applyEmitter->emit($applyNode);
 
-        $this->expectOutputString('str("abc", ...((\Phel\Lang\Tuple::createBracket("def")) ?? []));');
+        $this->expectOutputString('str("abc", ...((\Phel\Lang\TypeFactory::getInstance()->persistentVectorFromArray(["def"])) ?? []));');
     }
 
     public function testNoPhpVarNode(): void
@@ -75,7 +75,7 @@ final class ApplyEmitterTest extends TestCase
         );
 
         $args = [
-            new TupleNode(NodeEnvironment::empty()->withContext(NodeEnvironmentInterface::CONTEXT_EXPRESSION), [
+            new VectorNode(NodeEnvironment::empty()->withContext(NodeEnvironmentInterface::CONTEXT_EXPRESSION), [
                 new LiteralNode(NodeEnvironment::empty()->withContext(NodeEnvironmentInterface::CONTEXT_EXPRESSION), 1),
             ]),
         ];
@@ -90,6 +90,6 @@ final class ApplyEmitterTest extends TestCase
     $x = new \Phel\Lang\PhelArray($x);
     return x;
   }
-};)(...((\Phel\Lang\Tuple::createBracket(1)) ?? []));');
+};)(...((\Phel\Lang\TypeFactory::getInstance()->persistentVectorFromArray([1])) ?? []));');
     }
 }

@@ -6,7 +6,7 @@ namespace PhelTest\Unit\Lang;
 
 use Phel\Lang\PhelArray;
 use Phel\Lang\Table;
-use Phel\Lang\Tuple;
+use Phel\Lang\TypeFactory;
 use PHPUnit\Framework\TestCase;
 
 final class TableTest extends TestCase
@@ -95,7 +95,10 @@ final class TableTest extends TestCase
     public function testFirst(): void
     {
         $table = Table::fromKVs('a', 1, 'b', 2);
-        $this->assertEquals(new Tuple(['a', 1], true), $table->first());
+        $this->assertEquals(
+            TypeFactory::getInstance()->persistentVectorFromArray(['a', 1]),
+            $table->first()
+        );
     }
 
     public function testCdr(): void
@@ -103,8 +106,8 @@ final class TableTest extends TestCase
         $table = Table::fromKVs('a', 1, 'b', 2, 'c', 3);
         $this->assertEquals(
             PhelArray::create(
-                new Tuple(['b', 2], true),
-                new Tuple(['c', 3], true)
+                TypeFactory::getInstance()->persistentVectorFromArray(['b', 2]),
+                TypeFactory::getInstance()->persistentVectorFromArray(['c', 3])
             ),
             $table->cdr()
         );
@@ -121,8 +124,8 @@ final class TableTest extends TestCase
         $table = Table::fromKVs('a', 1, 'b', 2, 'c', 3);
         $this->assertEquals(
             PhelArray::create(
-                new Tuple(['b', 2], true),
-                new Tuple(['c', 3], true)
+                TypeFactory::getInstance()->persistentVectorFromArray(['b', 2]),
+                TypeFactory::getInstance()->persistentVectorFromArray(['c', 3])
             ),
             $table->rest()
         );

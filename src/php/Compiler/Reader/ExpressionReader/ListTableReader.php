@@ -21,12 +21,12 @@ final class ListTableReader
 
     public function read(ListNode $node, NodeInterface $root): Table
     {
-        $tuple = (new ListReader($this->reader))->read($node, $root);
+        $list = (new ListReader($this->reader))->read($node, $root);
 
-        if (!$tuple->hasEvenNumberOfParams()) {
+        if ($list->count() % 2 !== 0) {
             throw ReaderException::forNode($node, $root, 'Tables must have an even number of parameters');
         }
 
-        return Table::fromTuple($tuple);
+        return Table::fromKVArray($list->toArray())->withMeta($list->getMeta());
     }
 }

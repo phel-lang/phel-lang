@@ -4,30 +4,41 @@ declare(strict_types=1);
 
 namespace Phel\Lang\Collections\LinkedList;
 
+use ArrayAccess;
 use Countable;
+use IteratorAggregate;
+use Phel\Lang\ConcatInterface;
+use Phel\Lang\ConsInterface;
 use Phel\Lang\SeqInterface;
+use Phel\Lang\TypeInterface;
 
 /**
- * @template T
- * @template-extends SeqInterface<T, PersistentListInterface<T>>
+ * @template TValue
+ *
+ * @extends SeqInterface<TValue, PersistentListInterface<TValue>>
+ * @extends TypeInterface<PersistentListInterface<TValue>>
+ * @extends IteratorAggregate<TValue>
+ * @extends ConsInterface<PersistentListInterface<TValue>>
+ * @extends ArrayAccess<TValue>
+ * @extends ConcatInterface<PersistentListInterface<TValue>>
  */
-interface PersistentListInterface extends SeqInterface, Countable
+interface PersistentListInterface extends TypeInterface, SeqInterface, IteratorAggregate, Countable, ConsInterface, ArrayAccess, ConcatInterface
 {
 
     /**
-     * @param T $value
+     * @param TValue $value
      *
-     * @return PersistentListInterface<T>
+     * @return PersistentListInterface<TValue>
      */
     public function prepend($value): PersistentListInterface;
 
     /**
-     * @return T
+     * @return TValue
      */
     public function get(int $i);
 
     /**
-     * @return PersistentListInterface<T>
+     * @return PersistentListInterface<TValue>
      */
     public function pop(): PersistentListInterface;
 }

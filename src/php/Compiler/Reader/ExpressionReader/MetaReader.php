@@ -8,12 +8,12 @@ use Phel\Compiler\Parser\ParserNode\MetaNode;
 use Phel\Compiler\Parser\ParserNode\NodeInterface;
 use Phel\Compiler\Reader\Exceptions\ReaderException;
 use Phel\Compiler\Reader\Reader;
-use Phel\Lang\AbstractType;
 use Phel\Lang\Keyword;
 use Phel\Lang\MetaInterface;
 use Phel\Lang\Symbol;
 use Phel\Lang\Table;
 use Phel\Lang\TypeFactory;
+use Phel\Lang\TypeInterface;
 
 final class MetaReader
 {
@@ -27,7 +27,7 @@ final class MetaReader
     /**
      * @throws ReaderException
      *
-     * @return AbstractType|string|float|int|bool
+     * @return TypeInterface|string|float|int|bool
      */
     public function read(MetaNode $node, NodeInterface $root)
     {

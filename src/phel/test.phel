@@ -2,7 +2,7 @@
   (:use Phel\Lang\Symbol)
   (:use Phel\Runtime\RuntimeFactory)
   (:use Phel\Compiler\Emitter\OutputEmitter\Munge)
-  (:use Phel\Exceptions\TextExceptionPrinter)
+  (:use Phel\Runtime\Exceptions\TextExceptionPrinter)
   (:use Throwable))
 
 # ------
@@ -151,19 +151,19 @@
 
 (defn- assert-expr [form message]
   (cond
-    (and (tuple? form) (= (first form) 'not) (tuple? (second form)) (= 3 (count (second form))))
+    (and (list? form) (= (first form) 'not) (list? (second form)) (= 3 (count (second form))))
     (assert-binary form message true)
-    (and (tuple? form) (= (first form) 'not) (tuple? (second form)) (= 2 (count (second form))))
+    (and (list? form) (= (first form) 'not) (list? (second form)) (= 2 (count (second form))))
     (assert-predicate form message true)
-    (and (tuple? form) (= (first form) 'thrown?))
+    (and (list? form) (= (first form) 'thrown?))
     (assert-thrown form message)
-    (and (tuple? form) (= (first form) 'thrown-with-msg?))
+    (and (list? form) (= (first form) 'thrown-with-msg?))
     (assert-thrown-with-msg form message)
-    (and (tuple? form) (= (first form) 'output?))
+    (and (list? form) (= (first form) 'output?))
     (assert-output form message)
-    (and (tuple? form) (= 3 (count form)))
+    (and (list? form) (= 3 (count form)))
     (assert-binary form message false)
-    (and (tuple? form) (= 2 (count form)))
+    (and (list? form) (= 2 (count form)))
     (assert-predicate form message false)
     (assert-any form message)))
 
@@ -206,7 +206,7 @@
 (defn- print-error [data]
   (print-error-headline data)
   (let [@{:exception exception :form form} data
-        printer (php/:: TextExceptionPrinter (readableWithStyle))]
+        printer (php/:: TextExceptionPrinter (create))]
     (println "              Test:" form)
     (println " throwed exception:" (php/get_class exception))
     (println)

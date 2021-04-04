@@ -1,7 +1,6 @@
 (ns phel\core
   (:use Phel\Lang\AbstractType)
   (:use Phel\Lang\AbstractStruct)
-  (:use Phel\Lang\Tuple)
   (:use Phel\Lang\Keyword)
   (:use Phel\Lang\PhelArray)
   (:use Phel\Lang\Table)
@@ -20,6 +19,9 @@
   (:use Phel\Lang\RemoveInterface)
   (:use Phel\Lang\Symbol)
   (:use Phel\Lang\Truthy)
+  (:use Phel\Lang\TypeFactory)
+  (:use Phel\Lang\Collections\LinkedList\PersistentListInterface)
+  (:use Phel\Lang\Collections\Vector\PersistentVectorInterface)
   (:use Phel\Compiler\Emitter\OutputEmitter\Munge)
   (:use Phel\Printer\Printer)
   (:use Phel\Runtime\RuntimeFactory)
@@ -39,14 +41,13 @@
 # Basic methods for quasiquote and destructure
 # --------------------------------------------
 
-(def tuple
-  "```phel\n(tuple & xs)\n```\nCreates a new Tuple. If no argument is provided, an empty Tuple is created."
-  (fn [& xs] (php/new Tuple (php/-> xs (toPhpArray)))))
+(def list
+  "```phel\n(list & xs)\n```\nCreates a new list. If no argument is provided, an empty list is created."
+  (fn [& xs] (php/-> (php/:: TypeFactory (getInstance)) (persistentListFromArray (php/-> xs (toPhpArray))))))
 
-(def tuple-brackets
-  "```phel\n(tuple-brackets & xs)\n```\nCreates a new Bracket-Tuple. If no argument is provided,
-an empty Braket-Tuple is created."
-  (fn [& xs] (php/new Tuple (php/-> xs (toPhpArray)) true)))
+(def vector
+  "```phel\n(vetcor & xs)\n```\nCreates a new vector. If no argument is provided, an empty list is created."
+  (fn [& xs] (php/-> (php/:: TypeFactory (getInstance)) (persistentVectorFromArray (php/-> xs (toPhpArray))))))
 
 (def array
   "```phel\n(array & xs)\n```\nCreates a new Array. If no argument is provided, an empty Array is created."

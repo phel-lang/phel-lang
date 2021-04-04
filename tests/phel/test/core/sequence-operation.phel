@@ -2,8 +2,8 @@
   (:require phel\test :refer [deftest is]))
 
 (deftest test-peek
-  (is (= 3 (peek [1 2 3])) "peek on tuple")
-  (is (nil? (peek [])) "peek on empty tuple")
+  (is (= 3 (peek [1 2 3])) "peek on vector")
+  (is (nil? (peek [])) "peek on empty vector")
   (is (= 3 (peek @[1 2 3])) "peek on array")
   (is (nil? (peek @[])) "peek on empty array")
   (is (= 3 (peek (php/array 1 2 3))) "peek on php array")
@@ -53,13 +53,13 @@
 (deftest test-slice
   (is (= @[3 4] (slice @[1 2 3 4] 2)) "slice on array")
   (is (= @[3] (slice @[1 2 3 4] 2 1)) "slice with length on array")
-  (is (= [3 4] (slice [1 2 3 4] 2)) "slice on tuple")
-  (is (= [3] (slice [1 2 3 4] 2 1)) "slice with length on tuple"))
+  (is (= [3 4] (slice [1 2 3 4] 2)) "slice on vector")
+  (is (= [3] (slice [1 2 3 4] 2 1)) "slice with length on vector"))
 
 (deftest test-get
   (is (= "b" (get (php/array "a" "b" "c") 1)) "get on php array")
   (is (= "b" (get @["a" "b" "c"] 1)) "get on array")
-  (is (= "b" (get ["a" "b" "c"] 1)) "get on tuple")
+  (is (= "b" (get ["a" "b" "c"] 1)) "get on vector")
   (is (= "a" (get @{:a "a" :b "b"} :a)) "get on table")
   (is (nil? (get nil 1)) "get on nil")
   (is (nil? (get @["a" "b" "c"] 10)) "get on undefined index")

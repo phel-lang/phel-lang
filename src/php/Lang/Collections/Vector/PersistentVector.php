@@ -4,8 +4,7 @@ declare(strict_types=1);
 
 namespace Phel\Lang\Collections\Vector;
 
-use IteratorAggregate;
-use Phel\Lang\AbstractType;
+use Phel\Lang\Collections\Exceptions\IndexOutOfBoundsException;
 use Phel\Lang\Collections\HashMap\PersistentHashMapInterface;
 use Phel\Lang\EqualizerInterface;
 use Phel\Lang\HasherInterface;
@@ -26,15 +25,10 @@ use Traversable;
  * * https://hypirion.com/musings/persistent-vector-performance-summarised
  *
  * @template T
- * @implements PersistentVectorInterface<T>
- * @implements IteratorAggregate<T>
- * @extends AbstractType<PersistentVector<T>>
+ * @extends AbstractPersistentVector<T>
  */
-class PersistentVector extends AbstractType implements PersistentVectorInterface, IteratorAggregate
+class PersistentVector extends AbstractPersistentVector
 {
-    private EqualizerInterface $equalizer;
-    private HasherInterface $hasher;
-    private ?PersistentHashMapInterface $meta;
     /** @var int The number of elements stored in this vector */
     private int $count;
     private int $shift;
@@ -42,13 +36,10 @@ class PersistentVector extends AbstractType implements PersistentVectorInterface
     private array $root;
     /** @var T[] The tail of the vector. This is an optimization */
     private array $tail;
-    private int $hashCache = 0;
 
     public function __construct(HasherInterface $hasher, EqualizerInterface $equalizer, ?PersistentHashMapInterface $meta, int $count, int $shift, array $root, array $tail)
     {
-        $this->hasher = $hasher;
-        $this->equalizer = $equalizer;
-        $this->meta = $meta;
+        parent::__construct($hasher, $equalizer, $meta);
         $this->count = $count;
         $this->shift = $shift;
         $this->root = $root;
@@ -68,11 +59,6 @@ class PersistentVector extends AbstractType implements PersistentVectorInterface
         }
 
         return $tv->persistent();
-    }
-
-    public function getMeta(): ?PersistentHashMapInterface
-    {
-        return $this->meta;
     }
 
     public function withMeta(?PersistentHashMapInterface $meta)
@@ -266,7 +252,7 @@ class PersistentVector extends AbstractType implements PersistentVectorInterface
             return $node;
         }
 
-        throw new \RuntimeException('Index out of bounds');
+        throw new IndexOutOfBoundsException("Index $i is not in interval [0, {$this->count})");
     }
 
     /**
@@ -396,34 +382,20 @@ class PersistentVector extends AbstractType implements PersistentVectorInterface
         return $this->count - count($this->tail);
     }
 
-    public function hash(): int
+    /**
+     * @return PersistentVectorInterface|null
+     */
+    public function cdr()
     {
-        if ($this->hashCache === 0) {
-            $this->hashCache = 1;
-            foreach ($this as $obj) {
-                $this->hashCache = 31 * $this->hashCache + $this->hasher->hash($obj);
-            }
+        if ($this->count() <= 1) {
+            return null;
         }
 
-        return $this->hashCache;
+        return new SubVector($this->hasher, $this->equalizer, $this->meta, $this, 1, $this->count());
     }
 
-    public function equals($other): bool
+    public function sliceNormalized(int $start, int $end): PersistentVectorInterface
     {
-        if (!$other instanceof PersistentVectorInterface) {
-            return false;
-        }
-
-        if ($this->count !== $other->count()) {
-            return false;
-        }
-
-        for ($i = 0; $i < $this->count; $i++) {
-            if (!$this->equalizer->equals($this->get($i), $other->get($i))) {
-                return false;
-            }
-        }
-
-        return true;
+        return new SubVector($this->hasher, $this->equalizer, $this->meta, $this, $start, $end);
     }
 }

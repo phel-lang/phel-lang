@@ -12,7 +12,7 @@ use Phel\Printer\Printer;
 use RuntimeException;
 
 /**
- * @template-implements SeqInterface<Tuple, PhelArray>
+ * @template-implements SeqInterface<\Phel\Lang\Collections\Vector\PersistentVectorInterface, PhelArray>
  */
 class Table extends AbstractType implements ArrayAccess, Countable, Iterator, SeqInterface
 {
@@ -48,15 +48,6 @@ class Table extends AbstractType implements ArrayAccess, Countable, Iterator, Se
     public static function fromKVArray(array $kvs): Table
     {
         return self::fromKVs(...$kvs);
-    }
-
-    public static function fromTuple(Tuple $tuple): self
-    {
-        $table = self::fromKVArray($tuple->toArray());
-        $table->setStartLocation($tuple->getStartLocation());
-        $table->setEndLocation($tuple->getEndLocation());
-
-        return $table;
     }
 
     public function offsetSet($offset, $value): void
@@ -138,7 +129,7 @@ class Table extends AbstractType implements ArrayAccess, Countable, Iterator, Se
         $key = $this->key();
         $value = $this->current();
 
-        return new Tuple([$key, $value], true);
+        return TypeFactory::getInstance()->persistentVectorFromArray([$key, $value]);
     }
 
     public function cdr(): ?CdrInterface
@@ -154,7 +145,7 @@ class Table extends AbstractType implements ArrayAccess, Countable, Iterator, Se
         while ($this->valid()) {
             $key = $this->key();
             $value = $this->current();
-            $res[] = new Tuple([$key, $value], true);
+            $res[] = TypeFactory::getInstance()->persistentVectorFromArray([$key, $value]);
 
             $this->next();
         }
@@ -173,7 +164,7 @@ class Table extends AbstractType implements ArrayAccess, Countable, Iterator, Se
         while ($this->valid()) {
             $key = $this->key();
             $value = $this->current();
-            $res[] = new Tuple([$key, $value], true);
+            $res[] = TypeFactory::getInstance()->persistentVectorFromArray([$key, $value]);
 
             $this->next();
         }
@@ -242,6 +233,11 @@ class Table extends AbstractType implements ArrayAccess, Countable, Iterator, Se
         return $result;
     }
 
+    public function toArray(): array
+    {
+        return $this->toKeyValueList();
+    }
+
     /**
      * Creates a hash for the given key.
      *
@@ -249,7 +245,7 @@ class Table extends AbstractType implements ArrayAccess, Countable, Iterator, Se
      */
     private function offsetHash($offset): int
     {
-        if ($offset instanceof AbstractType) {
+        if ($offset instanceof TypeInterface) {
             return $offset->hash();
         }
 
@@ -273,5 +269,17 @@ class Table extends AbstractType implements ArrayAccess, Countable, Iterator, Se
     public function __toString(): string
     {
         return Printer::readable()->print($this);
+    }
+
+    /**
+     * Concatenates a value to the data structure.
+     *
+     * @param mixed[] $xs The value to concatenate
+     *
+     * @return PhelArray
+     */
+    public function concat($xs)
+    {
+        throw new \Exception('concat not yet implemented on table');
     }
 }

@@ -20,8 +20,8 @@ final class ListArrayReader
 
     public function read(ListNode $node, NodeInterface $root): PhelArray
     {
-        $tuple = (new ListReader($this->reader))->read($node, $root);
+        $list = (new ListReader($this->reader))->read($node, $root);
 
-        return PhelArray::fromTuple($tuple);
+        return PhelArray::create(...$list->toArray())->withMeta($list->getMeta());
     }
 }

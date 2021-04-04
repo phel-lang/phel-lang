@@ -5,13 +5,14 @@ declare(strict_types=1);
 namespace Phel\Compiler\Emitter\OutputEmitter;
 
 use Phel\Compiler\Emitter\OutputEmitterInterface;
-use Phel\Lang\AbstractType;
 use Phel\Lang\Collections\HashMap\PersistentHashMap;
+use Phel\Lang\Collections\LinkedList\PersistentListInterface;
+use Phel\Lang\Collections\Vector\PersistentVector;
 use Phel\Lang\Keyword;
 use Phel\Lang\PhelArray;
 use Phel\Lang\Symbol;
 use Phel\Lang\Table;
-use Phel\Lang\Tuple;
+use Phel\Lang\TypeInterface;
 use Phel\Printer\PrinterInterface;
 use RuntimeException;
 
@@ -29,7 +30,7 @@ final class LiteralEmitter
     }
 
     /**
-     * @param AbstractType|string|float|int|bool|null $x The value
+     * @param TypeInterface|string|float|int|bool|null $x The value
      */
     public function emitLiteral($x): void
     {
@@ -51,10 +52,12 @@ final class LiteralEmitter
             $this->emitPhelArray($x);
         } elseif ($x instanceof Table) {
             $this->emitTable($x);
-        } elseif ($x instanceof Tuple) {
-            $this->emitTuple($x);
         } elseif ($x instanceof PersistentHashMap) {
             $this->emitTable($x->toTable());
+        } elseif ($x instanceof PersistentVector) {
+            $this->emitVector($x);
+        } elseif ($x instanceof PersistentListInterface) {
+            $this->emitList($x);
         } else {
             $typeName = gettype($x);
             if ($typeName === 'object') {
@@ -159,13 +162,9 @@ final class LiteralEmitter
         $this->outputEmitter->emitStr(')', $x->getStartLocation());
     }
 
-    private function emitTuple(Tuple $x): void
+    private function emitList(PersistentListInterface $x): void
     {
-        if ($x->isUsingBracket()) {
-            $this->outputEmitter->emitStr('\Phel\Lang\Tuple::createBracket(', $x->getStartLocation());
-        } else {
-            $this->outputEmitter->emitStr('\Phel\Lang\Tuple::create(', $x->getStartLocation());
-        }
+        $this->outputEmitter->emitStr('\Phel\Lang\TypeFactory::getInstance()->persistentListFromArray([', $x->getStartLocation());
 
         if (count($x) > 0) {
             $this->outputEmitter->increaseIndentLevel();
@@ -183,6 +182,29 @@ final class LiteralEmitter
         if (count($x) > 0) {
             $this->outputEmitter->decreaseIndentLevel();
         }
-        $this->outputEmitter->emitStr(')', $x->getStartLocation());
+        $this->outputEmitter->emitStr('])', $x->getStartLocation());
+    }
+
+    private function emitVector(PersistentVector $x): void
+    {
+        $this->outputEmitter->emitStr('\Phel\Lang\TypeFactory::getInstance()->persistentVectorFromArray([', $x->getStartLocation());
+
+        if (count($x) > 0) {
+            $this->outputEmitter->increaseIndentLevel();
+            $this->outputEmitter->emitLine();
+        }
+
+        foreach ($x as $i => $value) {
+            $this->outputEmitter->emitLiteral($value);
+            if ($i < count($x) - 1) {
+                $this->outputEmitter->emitStr(',', $x->getStartLocation());
+            }
+            $this->outputEmitter->emitLine();
+        }
+
+        if (count($x) > 0) {
+            $this->outputEmitter->decreaseIndentLevel();
+        }
+        $this->outputEmitter->emitStr('])', $x->getStartLocation());
     }
 }

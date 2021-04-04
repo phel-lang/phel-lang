@@ -39,8 +39,8 @@ final class NodeEmitterFactory
                 return new NodeEmitter\IfEmitter($outputEmitter);
             case Ast\ApplyNode::class:
                 return new NodeEmitter\ApplyEmitter($outputEmitter);
-            case Ast\TupleNode::class:
-                return new NodeEmitter\TupleEmitter($outputEmitter);
+            case Ast\VectorNode::class:
+                return new NodeEmitter\VectorEmitter($outputEmitter);
             case Ast\PhpNewNode::class:
                 return new NodeEmitter\PhpNewEmitter($outputEmitter);
             case Ast\PhpVarNode::class:

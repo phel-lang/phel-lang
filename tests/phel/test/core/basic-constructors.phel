@@ -1,9 +1,11 @@
 (ns phel\test\core\basic-constructors
   (:require phel\test :refer [deftest is]))
 
-(deftest create-tuple
-  (is (= '(1 2 3) (tuple '1 '2 '3)) "construct tuple")
-  (is (= '[1 2 3] (tuple-brackets '1 '2 '3)) "construct bracket tuple"))
+(deftest create-list
+  (is (= '(1 2 3) (list '1 '2 '3)) "construct list"))
+
+(deftest create-vector
+  (is (= '[1 2 3] (vector '1 '2 '3)) "construct vector"))
 
 (deftest create-array
   (is (= @[1 2 3] (array 1 2 3)) "construct array"))

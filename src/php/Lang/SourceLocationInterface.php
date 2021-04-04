@@ -19,4 +19,11 @@ interface SourceLocationInterface
     public function getStartLocation(): ?SourceLocation;
 
     public function getEndLocation(): ?SourceLocation;
+
+    /**
+     * @param mixed $other
+     *
+     * @return static
+     */
+    public function copyLocationFrom($other);
 }

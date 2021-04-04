@@ -5,10 +5,10 @@
 # Destructuring
 # -------------
 
-(deftest destructure-tuple
+(deftest destructure-vector
   (is (= 3 (let [[a b] @[1 2]] (+ a b))) "from array")
   (is (= 3 (let [[a b] (php/array 1 2)] (+ a b))) "from php array")
-  (is (= 10 (let [[a [c d] b] @[1 (tuple 4 3) 2]] (+ a b c d))) "nested")
+  (is (= 10 (let [[a [c d] b] @[1 (list 4 3) 2]] (+ a b c d))) "nested")
   (is (= 4 (let [[a _ b] @[1 2 3]] (+ a b))) "ignore value"))
 
 (deftest destructure-table
@@ -23,17 +23,17 @@
 # ----------------------------
 
 (deftest test-next
-  (is (nil? (next [])) "next of empty tuple")
-  (is (nil? (next [1])) "next of one element tuple")
-  (is (= [2] (next [1 2])) "next of two element tuple"))
+  (is (nil? (next [])) "next of empty vector")
+  (is (nil? (next [1])) "next of one element vector")
+  (is (= [2] (next [1 2])) "next of two element vector"))
 
 (deftest test-concat
   (is (= @[1 2] (concat @[1 2])) "concat one argument")
   (is (= @[1 2 3 4] (concat @[1] @[2 3] @[4])) "concat three arguments")
-  (is (= [1 2 3 4] (concat [1 2] [3 4])) "concat tuples")
+  (is (= [1 2 3 4] (concat [1 2] [3 4])) "concat vectors")
   (is (= '() (concat nil)) "concat nil")
   (is (= '() (concat nil nil)) "concat two nil")
-  (is (= [1 2 3 4 5 6] (concat [1 2 3] nil [4 5 6])) "concat tuples and nil"))
+  (is (= [1 2 3 4 5 6] (concat [1 2 3] nil [4 5 6])) "concat vectors and nil"))
 
 (deftest test-set-push
   (let [s1 (set 1 2)

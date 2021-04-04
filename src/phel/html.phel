@@ -85,7 +85,7 @@
 
 (defn- render-html [element]
   (cond
-    (tuple-brackets? element) (render-element element)
+    (vector? element)         (render-element element)
     (indexed? element)        (apply str (map render-html element))
     (raw-string? element)     (get element :s)
     (string? element)         (escape-html element)
@@ -125,7 +125,7 @@
       `(str ,(str "<" tag) ,(compile-attrs attrs) " />"))))
 
 (defn- compile-form [form]
-  (let [form-name (if (and (tuple? form) (symbol? (first form)))
+  (let [form-name (if (and (list? form) (symbol? (first form)))
                     (php/-> (first form) (getName)))]
     (case form-name
       "for" (let [[_ bindings body] form]
@@ -137,7 +137,7 @@
 (defn- compile-seq [content]
   (for [element :in content]
     (cond
-      (tuple-brackets? element) (compile-element element)
+      (vector? element)         (compile-element element)
       (keyword? element)        (escape-html (php/-> element (getName)))
       (raw-string? element)     (get element :s)
       (string? element)         (escape-html element)

@@ -157,6 +157,11 @@ final class Set extends AbstractType implements
         return array_values($this->data);
     }
 
+    public function toArray(): array
+    {
+        return $this->toPhpArray();
+    }
+
     /**
      * Creates a hash for the given key.
      *
@@ -164,7 +169,7 @@ final class Set extends AbstractType implements
      */
     private function offsetHash($offset): int
     {
-        if ($offset instanceof AbstractType) {
+        if ($offset instanceof TypeInterface) {
             return $offset->hash();
         }
 

@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace Phel\Lang\Collections\LinkedList;
 
-use IteratorAggregate;
 use Phel\Lang\AbstractType;
 use Phel\Lang\Collections\HashMap\PersistentHashMapInterface;
 use Phel\Lang\EqualizerInterface;
@@ -15,24 +14,23 @@ use Traversable;
 /**
  * @template T
  * @implements PersistentListInterface<T>
- * @implements IteratorAggregate<T>
- * @extends AbstractType<PersistentList<T>>
+ * @extends AbstractType<PersistentListInterface<T>>
  */
-class PersistentList extends AbstractType implements PersistentListInterface, IteratorAggregate
+class PersistentList extends AbstractType implements PersistentListInterface
 {
     private EqualizerInterface $equalizer;
     private HasherInterface $hasher;
     private ?PersistentHashMapInterface $meta;
     /** @var T */
     private $first;
-    /** @var PersistentList<T>|EmptyList<T> */
+    /** @var PersistentListInterface<T> */
     private $rest;
     private int $count;
     private int $hashCache = 0;
 
     /**
      * @param T $first
-     * @param PersistentList<T>|EmptyList<T> $rest
+     * @param PersistentListInterface<T> $rest
      */
     public function __construct(HasherInterface $hasher, EqualizerInterface $equalizer, ?PersistentHashMapInterface $meta, $first, $rest, int $count)
     {
@@ -49,24 +47,15 @@ class PersistentList extends AbstractType implements PersistentListInterface, It
      *
      * @return EmptyList<TT>
      */
-    public static function empty(HasherInterface $hasher, EqualizerInterface $equalizer): EmptyList
+    public static function empty(HasherInterface $hasher, EqualizerInterface $equalizer): PersistentListInterface
     {
         return new EmptyList($hasher, $equalizer, null);
     }
 
-    /**
-     * @template TT
-     *
-     * @param TT[] $values
-     *
-     * @return PersistentList<TT>|EmptyList<TT>
-     */
-    public static function fromArray(HasherInterface $hasher, EqualizerInterface $equalizer, array $values)
+    public static function fromArray(HasherInterface $hasher, EqualizerInterface $equalizer, array $values): PersistentListInterface
     {
-        /** @var EmptyList<TT> $result */
         $result = self::empty($hasher, $equalizer);
         for ($i = count($values) - 1; $i >= 0; $i--) {
-            /** @var PersistentList<TT> $result */
             $result = $result->prepend($values[$i]);
         }
 
@@ -85,12 +74,17 @@ class PersistentList extends AbstractType implements PersistentListInterface, It
 
     /**
      * @param T $value
+     *
+     * @return PersistentListInterface<T>
      */
     public function prepend($value): PersistentListInterface
     {
         return new self($this->hasher, $this->equalizer, $this->meta, $value, $this, $this->count + 1);
     }
 
+    /**
+     * @return PersistentListInterface<T>
+     */
     public function pop(): PersistentListInterface
     {
         return $this->rest;
@@ -174,7 +168,7 @@ class PersistentList extends AbstractType implements PersistentListInterface, It
     }
 
     /**
-     * @return PersistentList<T>|EmptyList<T>
+     * @return PersistentListInterface
      */
     public function rest()
     {
@@ -182,7 +176,7 @@ class PersistentList extends AbstractType implements PersistentListInterface, It
     }
 
     /**
-     * @return PersistentList<T>|EmptyList<T>|null
+     * @return PersistentListInterface|null
      */
     public function cdr()
     {
@@ -191,5 +185,60 @@ class PersistentList extends AbstractType implements PersistentListInterface, It
         }
 
         return $this->rest;
+    }
+
+    public function toArray(): array
+    {
+        return iterator_to_array($this->getIterator());
+    }
+
+    /**
+     * Concatenates a value to the data structure.
+     *
+     * @param mixed[] $xs The value to concatenate
+     *
+     * @return PersistentListInterface
+     */
+    public function concat($xs)
+    {
+        return self::fromArray($this->hasher, $this->equalizer, [...$this->toArray(), ...$xs]);
+    }
+
+    /**
+     * @param mixed $x
+     *
+     * @return PersistentListInterface
+     */
+    public function cons($x)
+    {
+        return $this->prepend($x);
+    }
+
+    /**
+     * @param int $offset
+     */
+    public function offsetExists($offset): bool
+    {
+        return $offset >= 0 && $offset < $this->count();
+    }
+
+    /**
+     * @param int $offset
+     *
+     * @return mixed|null
+     */
+    public function offsetGet($offset)
+    {
+        return $this->get($offset);
+    }
+
+    public function offsetSet($offset, $value): void
+    {
+        throw new \Exception('offsetSet not supported on lists');
+    }
+
+    public function offsetUnset($offset): void
+    {
+        throw new \Exception('offsetUnset not supported on lists');
     }
 }

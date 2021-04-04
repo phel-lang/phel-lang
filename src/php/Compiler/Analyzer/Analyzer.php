@@ -9,17 +9,18 @@ use Phel\Compiler\Analyzer\Environment\GlobalEnvironmentInterface;
 use Phel\Compiler\Analyzer\Environment\NodeEnvironmentInterface;
 use Phel\Compiler\Analyzer\Exceptions\AnalyzerException;
 use Phel\Compiler\Analyzer\TypeAnalyzer\AnalyzeArray;
-use Phel\Compiler\Analyzer\TypeAnalyzer\AnalyzeBracketTuple;
 use Phel\Compiler\Analyzer\TypeAnalyzer\AnalyzeLiteral;
+use Phel\Compiler\Analyzer\TypeAnalyzer\AnalyzePersistentList;
+use Phel\Compiler\Analyzer\TypeAnalyzer\AnalyzePersistentVector;
 use Phel\Compiler\Analyzer\TypeAnalyzer\AnalyzeSymbol;
 use Phel\Compiler\Analyzer\TypeAnalyzer\AnalyzeTable;
-use Phel\Compiler\Analyzer\TypeAnalyzer\AnalyzeTuple;
-use Phel\Lang\AbstractType;
+use Phel\Lang\Collections\LinkedList\PersistentListInterface;
+use Phel\Lang\Collections\Vector\PersistentVectorInterface;
 use Phel\Lang\Keyword;
 use Phel\Lang\PhelArray;
 use Phel\Lang\Symbol;
 use Phel\Lang\Table;
-use Phel\Lang\Tuple;
+use Phel\Lang\TypeInterface;
 
 final class Analyzer implements AnalyzerInterface
 {
@@ -71,7 +72,7 @@ final class Analyzer implements AnalyzerInterface
     }
 
     /**
-     * @param AbstractType|string|float|int|bool|null $x
+     * @param TypeInterface|string|float|int|bool|null $x
      *
      * @throws AnalyzerException
      */
@@ -85,7 +86,7 @@ final class Analyzer implements AnalyzerInterface
     }
 
     /**
-     * @param AbstractType|string|float|int|bool|null $x
+     * @param TypeInterface|string|float|int|bool|null $x
      *
      * @throws AnalyzerException
      */
@@ -99,10 +100,6 @@ final class Analyzer implements AnalyzerInterface
             return (new AnalyzeSymbol($this))->analyze($x, $env);
         }
 
-        if ($x instanceof Tuple && $x->isUsingBracket()) {
-            return (new AnalyzeBracketTuple($this))->analyze($x, $env);
-        }
-
         if ($x instanceof PhelArray) {
             return (new AnalyzeArray($this))->analyze($x, $env);
         }
@@ -111,15 +108,19 @@ final class Analyzer implements AnalyzerInterface
             return (new AnalyzeTable($this))->analyze($x, $env);
         }
 
-        if ($x instanceof Tuple) {
-            return (new AnalyzeTuple($this))->analyze($x, $env);
+        if ($x instanceof PersistentListInterface) {
+            return (new AnalyzePersistentList($this))->analyze($x, $env);
+        }
+
+        if ($x instanceof PersistentVectorInterface) {
+            return (new AnalyzePersistentVector($this))->analyze($x, $env);
         }
 
         throw new AnalyzerException('Unhandled type: ' . var_export($x, true));
     }
 
     /**
-     * @param AbstractType|string|float|int|bool|null $x
+     * @param TypeInterface|string|float|int|bool|null $x
      */
     private function isLiteral($x): bool
     {

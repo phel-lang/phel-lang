@@ -3,8 +3,8 @@
   (:require phel\test :refer [deftest is]))
 
 (deftest test-type
-  (is (= :tuple (type [])) "type of bracket tuple")
-  (is (= :tuple (type '())) "type of tuple")
+  (is (= :vector (type [])) "type of vector")
+  (is (= :list (type '())) "type of list")
   (is (= :table (type @{})) "type of table")
   (is (= :set (type (set))) "type of set")
   (is (= :keyword (type :test)) "type of keyword")
@@ -67,10 +67,13 @@
   (is (true? (array? @[])) "array? on phel array")
   (is (false? (array? (php/array))) "array? on php array"))
 
-(deftest test-tuple?
-  (is (true? (tuple? [])) "tuple?")
-  (is (true? (tuple-brackets? [])) "tuple-brackets?")
-  (is (true? (tuple-parens? '())) "tuple-parens?"))
+(deftest test-vector?
+  (is (true? (vector? [])) "vector?")
+  (is (false? (vector? '())) "vector? on list"))
+
+(deftest test-list?
+  (is (false? (list? [])) "list? on vector")
+  (is (true? (list? '())) "list?"))
 
 (deftest test-boolean?
   (is (true? (boolean? true)) "boolean? on true")
@@ -89,11 +92,11 @@
 
 (deftest test-empty?
   (is (true? (empty? @[])) "empty? on empty phel array")
-  (is (true? (empty? [])) "empty? on empty phel tuple")
+  (is (true? (empty? [])) "empty? on empty vector")
   (is (true? (empty? (php/array))) "empty? on empty php array")
   (is (true? (empty? @{})) "empty? on empty table")
   (is (false? (empty? @[1])) "empty? on one element array")
-  (is (false? (empty? [1])) "empty? on one element tuple")
+  (is (false? (empty? [1])) "empty? on one element vector")
   (is (false? (empty? (php/array 1))) "empty? on one element php array")
   (is (false? (empty? @{:a 1})) "empty? on one element table"))
 
@@ -101,12 +104,12 @@
   (is (false? (indexed? @{})) "indexed? on table")
   (is (false? (indexed? (php-associative-array "a" 1 "b" 2))) "indexed? on associative array")
   (is (true? (indexed? @[])) "indexed? on array")
-  (is (true? (indexed? [])) "indexed? on tuple")
+  (is (true? (indexed? [])) "indexed? on vector")
   (is (true? (indexed? (php/array))) "indexed? on php array"))
 
 (deftest test-associative?
   (is (true? (associative? @{})) "associative? on table")
   (is (true? (associative? (php-associative-array "a" 1 "b" 2))) "associative? on associative array")
   (is (false? (associative? @[])) "associative? on array")
-  (is (false? (associative? [])) "associative? on tuple")
+  (is (false? (associative? [])) "associative? on vector")
   (is (false? (associative? (php/array))) "associative? on php array"))

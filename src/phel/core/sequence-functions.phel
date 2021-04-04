@@ -298,17 +298,17 @@ collection in map"))
   (zipcoll (values table) (keys table)))
 
 (defn split-at
-  "Returns a tuple of [(take n coll) (drop n coll)]."
+  "Returns a vector of [(take n coll) (drop n coll)]."
   [n xs]
   [(take n xs) (drop n xs)])
 
 (defn split-with
-  "Returns a tuple of [(take-while pred coll) (drop-while pred coll)]."
+  "Returns a vector of [(take-while pred coll) (drop-while pred coll)]."
   [f xs]
   [(take-while f xs) (drop-while f xs)])
 
 (defn partition
-  "Partition an indexed data structure into tuples of size n. Returns a new array."
+  "Partition an indexed data structure into vectors of size n. Returns a new array."
   [n xs]
   (if (< (count xs) n)
     @[]

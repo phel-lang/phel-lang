@@ -13,7 +13,7 @@ use RuntimeException;
 
 final class ListNodeTest extends TestCase
 {
-    public function testGetCodeTuple(): void
+    public function testGetCodeList(): void
     {
         self::assertEquals(
             '(1)',

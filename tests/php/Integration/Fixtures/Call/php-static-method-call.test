@@ -1,4 +1,4 @@
 --PHEL--
-(php/:: \DateTimeImmutable [createFromFormat "Y-m-d" "2020-03-22"])
+(php/:: \DateTimeImmutable (createFromFormat "Y-m-d" "2020-03-22"))
 --PHP--
 (\DateTimeImmutable::createFromFormat("Y-m-d", "2020-03-22"));

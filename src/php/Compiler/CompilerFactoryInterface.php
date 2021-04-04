@@ -17,7 +17,7 @@ interface CompilerFactoryInterface
 
     public function createFileCompiler(GlobalEnvironmentInterface $globalEnv): FileCompilerInterface;
 
-    public function createLexer(): LexerInterface;
+    public function createLexer(bool $withoutLocation = false): LexerInterface;
 
     public function createParser(): ParserInterface;
 

@@ -8,12 +8,15 @@ use Phel\Compiler\Analyzer\Ast\GlobalVarNode;
 use Phel\Compiler\Analyzer\Environment\GlobalEnvironmentInterface;
 use Phel\Compiler\Analyzer\Environment\NodeEnvironment;
 use Phel\Compiler\Reader\Exceptions\SpliceNotInListException;
-use Phel\Lang\AbstractType;
+use Phel\Lang\Collections\LinkedList\PersistentList;
+use Phel\Lang\Collections\LinkedList\PersistentListInterface;
+use Phel\Lang\Collections\Vector\PersistentVector;
 use Phel\Lang\Keyword;
 use Phel\Lang\PhelArray;
 use Phel\Lang\Symbol;
 use Phel\Lang\Table;
-use Phel\Lang\Tuple;
+use Phel\Lang\TypeFactory;
+use Phel\Lang\TypeInterface;
 
 final class QuasiquoteTransformer implements QuasiquoteTransformerInterface
 {
@@ -25,96 +28,108 @@ final class QuasiquoteTransformer implements QuasiquoteTransformerInterface
     }
 
     /**
-     * @param AbstractType|string|float|int|bool|null $form The form to quasiqoute
+     * @param TypeInterface|string|float|int|bool|null $form The form to quasiqoute
      *
      * @throws SpliceNotInListException
      *
-     * @return AbstractType|string|float|int|bool|null
+     * @return TypeInterface|string|float|int|bool|null
      */
     public function transform($form)
     {
         if ($this->isUnquote($form)) {
-            /** @var Tuple $form */
-            return $form[1];
+            /** @var PersistentList $form */
+            return $form->get(1);
         }
 
         if ($this->isUnquoteSplicing($form)) {
             throw new SpliceNotInListException();
         }
 
-        if ($form instanceof Tuple && count($form) > 0) {
-            return $this->createTupleFromTuple($form);
+        if ($form instanceof PersistentList && count($form) > 0) {
+            return $this->createFromPersistentList($form);
+        }
+
+        if ($form instanceof PersistentVector && count($form) > 0) {
+            return $this->createFromPersistentVector($form);
         }
 
         if ($form instanceof Table && count($form) > 0) {
-            return $this->createTupleFromTable($form);
+            return $this->createFromTable($form);
         }
 
         if ($form instanceof PhelArray && count($form) > 0) {
-            return $this->createTupleFromPhelArray($form);
+            return $this->createFromPhelArray($form);
         }
 
         if ($this->isLiteral($form)) {
             return $form;
         }
 
-        return $this->createTupleOtherwise($form);
+        return $this->createOtherwise($form);
     }
 
     /**
-     * @param AbstractType|string|float|int|bool|null $form
+     * @param TypeInterface|string|float|int|bool|null $form
      */
     private function isUnquote($form): bool
     {
-        return $form instanceof Tuple && $form[0] == Symbol::NAME_UNQUOTE;
+        return $form instanceof PersistentListInterface && $form->get(0) == Symbol::NAME_UNQUOTE;
     }
 
     /**
-     * @param AbstractType|string|float|int|bool|null $form
+     * @param TypeInterface|string|float|int|bool|null $form
      */
     private function isUnquoteSplicing($form): bool
     {
-        return $form instanceof Tuple && $form[0] == Symbol::NAME_UNQUOTE_SPLICING;
+        return $form instanceof PersistentListInterface && $form->get(0) == Symbol::NAME_UNQUOTE_SPLICING;
     }
 
-    private function createTupleFromTuple(Tuple $form): Tuple
+    private function createFromPersistentList(PersistentList $form): PersistentListInterface
     {
-        $tupleBuilder = $form->isUsingBracket()
-            ? Symbol::NAME_TUPLE_BRACKETS
-            : Symbol::NAME_TUPLE;
-
-        return Tuple::create(
+        return TypeFactory::getInstance()->persistentListFromArray([
             (Symbol::create(Symbol::NAME_APPLY))->copyLocationFrom($form),
-            (Symbol::create($tupleBuilder))->copyLocationFrom($form),
-            Tuple::create(
+            (Symbol::create(Symbol::NAME_LIST))->copyLocationFrom($form),
+            TypeFactory::getInstance()->persistentListFromArray([
                 (Symbol::create(Symbol::NAME_CONCAT))->copyLocationFrom($form),
-                ...$this->expandList($form)
-            )->copyLocationFrom($form)
-        )->copyLocationFrom($form);
+                ...$this->expandList($form),
+            ])->copyLocationFrom($form),
+        ])->copyLocationFrom($form);
     }
 
-    private function createTupleFromTable(Table $form): Tuple
+    private function createFromPersistentVector(PersistentVector $form): PersistentListInterface
     {
-        return Tuple::create(
+        return TypeFactory::getInstance()->persistentListFromArray([
+            (Symbol::create(Symbol::NAME_APPLY))->copyLocationFrom($form),
+            (Symbol::create(Symbol::NAME_VECTOR))->copyLocationFrom($form),
+            TypeFactory::getInstance()->persistentListFromArray([
+                (Symbol::create(Symbol::NAME_CONCAT))->copyLocationFrom($form),
+                ...$this->expandList($form),
+            ])->copyLocationFrom($form),
+        ])->copyLocationFrom($form);
+    }
+
+    private function createFromTable(Table $form): PersistentListInterface
+    {
+        return TypeFactory::getInstance()->persistentListFromArray([
             (Symbol::create(Symbol::NAME_APPLY))->copyLocationFrom($form),
             (Symbol::create(Symbol::NAME_TABLE))->copyLocationFrom($form),
-            Tuple::create(
+            TypeFactory::getInstance()->persistentListFromArray([
                 (Symbol::create(Symbol::NAME_CONCAT))->copyLocationFrom($form),
-                ...$this->expandList($form->toKeyValueList())
-            )->copyLocationFrom($form)
-        )->copyLocationFrom($form);
+                ...$this->expandList($form->toKeyValueList()),
+            ])->copyLocationFrom($form),
+        ])->copyLocationFrom($form);
     }
 
-    private function createTupleFromPhelArray(PhelArray $form): Tuple
+    private function createFromPhelArray(PhelArray $form): PersistentListInterface
     {
-        return Tuple::create(
+        return TypeFactory::getInstance()->persistentListFromArray([
             (Symbol::create(Symbol::NAME_APPLY))->copyLocationFrom($form),
             (Symbol::create(Symbol::NAME_ARRAY))->copyLocationFrom($form),
-            Tuple::create(
+            TypeFactory::getInstance()->persistentListFromArray([
                 (Symbol::create(Symbol::NAME_CONCAT))->copyLocationFrom($form),
-                ...$this->expandList($form)
-            )->copyLocationFrom($form)
-        )->copyLocationFrom($form);
+                ...$this->expandList($form),
+            ])->copyLocationFrom($form),
+        ])->copyLocationFrom($form);
     }
 
     private function expandList(iterable $seq): array
@@ -122,17 +137,17 @@ final class QuasiquoteTransformer implements QuasiquoteTransformerInterface
         $xs = [];
         foreach ($seq as $item) {
             if ($this->isUnquote($item)) {
-                $xs[] = Tuple::create(
-                    (Symbol::create(Symbol::NAME_TUPLE))->copyLocationFrom($item),
-                    $item[1]
-                )->copyLocationFrom($item);
+                $xs[] = TypeFactory::getInstance()->persistentListFromArray([
+                    (Symbol::create(Symbol::NAME_LIST))->copyLocationFrom($item),
+                    $item->get(1),
+                ])->copyLocationFrom($item);
             } elseif ($this->isUnquoteSplicing($item)) {
-                $xs[] = $item[1];
+                $xs[] = $item->get(1);
             } else {
-                $xs[] = Tuple::create(
-                    (Symbol::create(Symbol::NAME_TUPLE))->copyLocationFrom($item),
-                    $this->transform($item)
-                )->copyLocationFrom($item);
+                $xs[] = TypeFactory::getInstance()->persistentListFromArray([
+                    (Symbol::create(Symbol::NAME_LIST))->copyLocationFrom($item),
+                    $this->transform($item),
+                ])->copyLocationFrom($item);
             }
         }
 
@@ -140,7 +155,7 @@ final class QuasiquoteTransformer implements QuasiquoteTransformerInterface
     }
 
     /**
-     * @param AbstractType|string|float|int|bool|null $x The form to check
+     * @param TypeInterface|string|float|int|bool|null $x The form to check
      */
     private function isLiteral($x): bool
     {
@@ -153,9 +168,9 @@ final class QuasiquoteTransformer implements QuasiquoteTransformerInterface
     }
 
     /**
-     * @param AbstractType|string|float|int|bool|null $form
+     * @param TypeInterface|string|float|int|bool|null $form
      */
-    private function createTupleOtherwise($form): Tuple
+    private function createOtherwise($form): PersistentListInterface
     {
         if ($form instanceof Symbol) {
             $node = $this->env->resolve($form, NodeEnvironment::empty());
@@ -166,9 +181,9 @@ final class QuasiquoteTransformer implements QuasiquoteTransformerInterface
             }
         }
 
-        return Tuple::create(
+        return TypeFactory::getInstance()->persistentListFromArray([
             (Symbol::create(Symbol::NAME_QUOTE))->copyLocationFrom($form),
-            $form
-        )->copyLocationFrom($form);
+            $form,
+        ])->copyLocationFrom($form);
     }
 }

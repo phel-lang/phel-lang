@@ -10,7 +10,7 @@ use Phel\Lang\Keyword;
 use Phel\Lang\PhelArray;
 use Phel\Lang\Symbol;
 use Phel\Lang\Table;
-use Phel\Lang\Tuple;
+use Phel\Lang\TypeFactory;
 use PHPUnit\Framework\TestCase;
 use RuntimeException;
 
@@ -21,7 +21,7 @@ final class QuasiquoteTest extends TestCase
         $q = new QuasiquoteTransformer(new GlobalEnvironment());
         self::assertEquals(
             1,
-            $q->transform(Tuple::create(Symbol::create(Symbol::NAME_UNQUOTE), 1))
+            $q->transform(TypeFactory::getInstance()->persistentListFromArray([Symbol::create(Symbol::NAME_UNQUOTE), 1]))
         );
     }
 
@@ -29,74 +29,86 @@ final class QuasiquoteTest extends TestCase
     {
         $this->expectException(RuntimeException::class);
         $q = new QuasiquoteTransformer(new GlobalEnvironment());
-        $q->transform(Tuple::create(Symbol::create(Symbol::NAME_UNQUOTE_SPLICING), 1));
+        $q->transform(TypeFactory::getInstance()->persistentListFromArray([Symbol::create(Symbol::NAME_UNQUOTE_SPLICING), 1]));
     }
 
-    public function testTransformCreateTuple(): void
+    public function testTransformCreateList(): void
     {
         $q = new QuasiquoteTransformer(new GlobalEnvironment());
         self::assertEquals(
-            Tuple::create(
+            TypeFactory::getInstance()->persistentListFromArray([
                 Symbol::create(Symbol::NAME_APPLY),
-                Symbol::create(Symbol::NAME_TUPLE),
-                Tuple::create(
+                Symbol::create(Symbol::NAME_LIST),
+                TypeFactory::getInstance()->persistentListFromArray([
                     Symbol::create(Symbol::NAME_CONCAT),
-                    Tuple::create(Symbol::create(Symbol::NAME_TUPLE), 1),
-                    Tuple::create(Symbol::create(Symbol::NAME_TUPLE), 2)
-                )
-            ),
-            $q->transform(Tuple::create(1, 2))
+                    TypeFactory::getInstance()->persistentListFromArray([Symbol::create(Symbol::NAME_LIST), 1]),
+                    TypeFactory::getInstance()->persistentListFromArray([Symbol::create(Symbol::NAME_LIST), 2]),
+                ]),
+            ]),
+            $q->transform(TypeFactory::getInstance()->persistentListFromArray([1, 2]))
         );
     }
 
-    public function testTransformCreateTupleWithUnquoteSplicing(): void
+    public function testTransformCreateListWithUnquoteSplicing(): void
     {
         $q = new QuasiquoteTransformer(new GlobalEnvironment());
         self::assertEquals(
-            Tuple::create(
+            TypeFactory::getInstance()->persistentListFromArray([
                 Symbol::create(Symbol::NAME_APPLY),
-                Symbol::create(Symbol::NAME_TUPLE),
-                Tuple::create(
+                Symbol::create(Symbol::NAME_LIST),
+                TypeFactory::getInstance()->persistentListFromArray([
                     Symbol::create(Symbol::NAME_CONCAT),
-                    Tuple::create(Symbol::create(Symbol::NAME_TUPLE), 1),
-                    2
-                )
-            ),
-            $q->transform(Tuple::create(1, Tuple::create(Symbol::create(Symbol::NAME_UNQUOTE_SPLICING), 2)))
+                    TypeFactory::getInstance()->persistentListFromArray([Symbol::create(Symbol::NAME_LIST), 1]),
+                    2,
+                ]),
+            ]),
+            $q->transform(TypeFactory::getInstance()->persistentListFromArray([
+                1,
+                TypeFactory::getInstance()->persistentListFromArray([
+                    Symbol::create(Symbol::NAME_UNQUOTE_SPLICING),
+                    2,
+                ]),
+            ]))
         );
     }
 
-    public function testTransformCreateTupleWithUnquote(): void
+    public function testTransformCreateListWithUnquote(): void
     {
         $q = new QuasiquoteTransformer(new GlobalEnvironment());
         self::assertEquals(
-            Tuple::create(
+            TypeFactory::getInstance()->persistentListFromArray([
                 Symbol::create(Symbol::NAME_APPLY),
-                Symbol::create(Symbol::NAME_TUPLE),
-                Tuple::create(
+                Symbol::create(Symbol::NAME_LIST),
+                TypeFactory::getInstance()->persistentListFromArray([
                     Symbol::create(Symbol::NAME_CONCAT),
-                    Tuple::create(Symbol::create(Symbol::NAME_TUPLE), 1),
-                    Tuple::create(Symbol::create(Symbol::NAME_TUPLE), 2)
-                )
-            ),
-            $q->transform(Tuple::create(1, Tuple::create(Symbol::create(Symbol::NAME_UNQUOTE), 2)))
+                    TypeFactory::getInstance()->persistentListFromArray([Symbol::create(Symbol::NAME_LIST), 1]),
+                    TypeFactory::getInstance()->persistentListFromArray([Symbol::create(Symbol::NAME_LIST), 2]),
+                ]),
+            ]),
+            $q->transform(TypeFactory::getInstance()->persistentListFromArray([
+                1,
+                TypeFactory::getInstance()->persistentListFromArray([
+                    Symbol::create(Symbol::NAME_UNQUOTE),
+                    2,
+                ]),
+            ]))
         );
     }
 
-    public function testTransformCreateTupleBrackets(): void
+    public function testTransformCreateVector(): void
     {
         $q = new QuasiquoteTransformer(new GlobalEnvironment());
         self::assertEquals(
-            Tuple::create(
+            TypeFactory::getInstance()->persistentListFromArray([
                 Symbol::create(Symbol::NAME_APPLY),
-                Symbol::create(Symbol::NAME_TUPLE_BRACKETS),
-                Tuple::create(
+                Symbol::create(Symbol::NAME_VECTOR),
+                TypeFactory::getInstance()->persistentListFromArray([
                     Symbol::create(Symbol::NAME_CONCAT),
-                    Tuple::create(Symbol::create(Symbol::NAME_TUPLE), 1),
-                    Tuple::create(Symbol::create(Symbol::NAME_TUPLE), 2)
-                )
-            ),
-            $q->transform(Tuple::createBracket(1, 2))
+                    TypeFactory::getInstance()->persistentListFromArray([Symbol::create(Symbol::NAME_LIST), 1]),
+                    TypeFactory::getInstance()->persistentListFromArray([Symbol::create(Symbol::NAME_LIST), 2]),
+                ]),
+            ]),
+            $q->transform(TypeFactory::getInstance()->persistentVectorFromArray([1, 2]))
         );
     }
 
@@ -104,17 +116,17 @@ final class QuasiquoteTest extends TestCase
     {
         $q = new QuasiquoteTransformer(new GlobalEnvironment());
         self::assertEquals(
-            Tuple::create(
+            TypeFactory::getInstance()->persistentListFromArray([
                 Symbol::create(Symbol::NAME_APPLY),
                 Symbol::create(Symbol::NAME_TABLE),
-                Tuple::create(
+                TypeFactory::getInstance()->persistentListFromArray([
                     Symbol::create(Symbol::NAME_CONCAT),
-                    Tuple::create(Symbol::create(Symbol::NAME_TUPLE), 'a'),
-                    Tuple::create(Symbol::create(Symbol::NAME_TUPLE), 1),
-                    Tuple::create(Symbol::create(Symbol::NAME_TUPLE), 'b'),
-                    Tuple::create(Symbol::create(Symbol::NAME_TUPLE), 2)
-                )
-            ),
+                    TypeFactory::getInstance()->persistentListFromArray([Symbol::create(Symbol::NAME_LIST), 'a']),
+                    TypeFactory::getInstance()->persistentListFromArray([Symbol::create(Symbol::NAME_LIST), 1]),
+                    TypeFactory::getInstance()->persistentListFromArray([Symbol::create(Symbol::NAME_LIST), 'b']),
+                    TypeFactory::getInstance()->persistentListFromArray([Symbol::create(Symbol::NAME_LIST), 2]),
+                ]),
+            ]),
             $q->transform(Table::fromKVs('a', 1, 'b', 2))
         );
     }
@@ -123,15 +135,15 @@ final class QuasiquoteTest extends TestCase
     {
         $q = new QuasiquoteTransformer(new GlobalEnvironment());
         self::assertEquals(
-            Tuple::create(
+            TypeFactory::getInstance()->persistentListFromArray([
                 Symbol::create(Symbol::NAME_APPLY),
                 Symbol::create(Symbol::NAME_ARRAY),
-                Tuple::create(
+                TypeFactory::getInstance()->persistentListFromArray([
                     Symbol::create(Symbol::NAME_CONCAT),
-                    Tuple::create(Symbol::create(Symbol::NAME_TUPLE), 1),
-                    Tuple::create(Symbol::create(Symbol::NAME_TUPLE), 2)
-                )
-            ),
+                    TypeFactory::getInstance()->persistentListFromArray([Symbol::create(Symbol::NAME_LIST), 1]),
+                    TypeFactory::getInstance()->persistentListFromArray([Symbol::create(Symbol::NAME_LIST), 2]),
+                ]),
+            ]),
             $q->transform(PhelArray::create(1, 2))
         );
     }
@@ -194,10 +206,10 @@ final class QuasiquoteTest extends TestCase
     {
         $q = new QuasiquoteTransformer(new GlobalEnvironment());
         self::assertEquals(
-            Tuple::create(
+            TypeFactory::getInstance()->persistentListFromArray([
                 Symbol::create(Symbol::NAME_QUOTE),
-                Symbol::create('test')
-            ),
+                Symbol::create('test'),
+            ]),
             $q->transform(Symbol::create('test'))
         );
     }
@@ -209,10 +221,10 @@ final class QuasiquoteTest extends TestCase
 
         $q = new QuasiquoteTransformer($env);
         self::assertEquals(
-            Tuple::create(
+            TypeFactory::getInstance()->persistentListFromArray([
                 Symbol::create(Symbol::NAME_QUOTE),
-                Symbol::createForNamespace('test', 'abc')
-            ),
+                Symbol::createForNamespace('test', 'abc'),
+            ]),
             $q->transform(Symbol::createForNamespace('test', 'abc'))
         );
     }

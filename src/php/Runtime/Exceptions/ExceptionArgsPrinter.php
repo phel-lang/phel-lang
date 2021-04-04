@@ -74,7 +74,10 @@ final class ExceptionArgsPrinter implements ExceptionArgsPrinterInterface
         }
 
         if (is_resource($arg)) {
-            return 'Resource id #' . get_resource_id($arg);
+            /**
+             * @psalm-suppress UndefinedFunction
+             */
+            return 'Resource id #' . \get_resource_id($arg);
         }
 
         return (string)$arg;

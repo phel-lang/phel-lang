@@ -18,7 +18,7 @@ final class Keyword extends AbstractType implements IdenticalInterface, FnInterf
     }
 
     /**
-     * @param AbstractType|string|float|int|bool|null $default
+     * @param TypeInterface|string|float|int|bool|null $default
      */
     public function __invoke(Table $obj, $default = null)
     {

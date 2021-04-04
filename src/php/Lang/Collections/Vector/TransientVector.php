@@ -4,13 +4,19 @@ declare(strict_types=1);
 
 namespace Phel\Lang\Collections\Vector;
 
+use Exception;
+use Phel\Lang\AbstractType;
+use Phel\Lang\Collections\HashMap\PersistentHashMapInterface;
 use Phel\Lang\EqualizerInterface;
 use Phel\Lang\HasherInterface;
+use Traversable;
 
 /**
  * @template T
+ * @implements PersistentVectorInterface<T>
+ * @extends AbstractType<TransientVector<T>>
  */
-class TransientVector implements PersistentVectorInterface
+class TransientVector extends AbstractType implements PersistentVectorInterface
 {
     private EqualizerInterface $equalizer;
     private HasherInterface $hasher;
@@ -271,5 +277,138 @@ class TransientVector implements PersistentVectorInterface
         }
 
         return $this->count - count($this->tail);
+    }
+
+    public function toArray(): array
+    {
+        $result = [];
+        $this->fillArray($this->root, $this->shift, $result);
+        $result[] = $this->tail;
+        return array_merge(...$result);
+    }
+
+    private function fillArray(array $node, int $shift, array &$targetArr = []): void
+    {
+        if ($shift) {
+            $shift -= self::SHIFT;
+            foreach ($node as $x) {
+                $this->fillArray($x, $shift, $targetArr);
+            }
+        } else {
+            $targetArr[] = $node;
+        }
+    }
+
+    public function getMeta(): ?PersistentHashMapInterface
+    {
+        throw new Exception('not defined yet');
+    }
+
+    public function withMeta(?PersistentHashMapInterface $meta): void
+    {
+        throw new Exception('not defined yet');
+    }
+
+    public function equals($other): bool
+    {
+        throw new Exception('not defined yet');
+    }
+
+    public function hash(): int
+    {
+        throw new Exception('not defined yet');
+    }
+
+    public function first()
+    {
+        return $this->get(0);
+    }
+
+    /**
+     * @return TransientVector
+     */
+    public function rest()
+    {
+        throw new \Exception('Rest not yet implemented on Vector');
+    }
+
+    /**
+     * @return TransientVector|null
+     */
+    public function cdr()
+    {
+        throw new \Exception('Cdr not yet implemented on Vector');
+    }
+
+    public function getIterator(): Traversable
+    {
+        throw new \Exception('getIterator not yet implemented on Vector');
+    }
+
+    /**
+     * Concatenates a value to the data structure.
+     *
+     * @param mixed[] $xs The value to concatenate
+     *
+     * @return static
+     */
+    public function concat($xs)
+    {
+        foreach ($xs as $x) {
+            $this->append($x);
+        }
+
+        return $this;
+    }
+
+    /**
+     * @param int $offset
+     */
+    public function offsetExists($offset): bool
+    {
+        return $offset >= 0 && $offset < $this->count();
+    }
+
+    /**
+     * @param int $offset
+     *
+     * @return mixed|null
+     */
+    public function offsetGet($offset)
+    {
+        return $this->get($offset);
+    }
+
+    public function offsetSet($offset, $value): void
+    {
+        throw new \Exception('offsetSet not supported on transient vectors');
+    }
+
+    public function offsetUnset($offset): void
+    {
+        throw new \Exception('offsetUnset not supported on transient vectors');
+    }
+
+    /**
+     * @param mixed $x
+     *
+     * @return PersistentVectorInterface
+     */
+    public function push($x)
+    {
+        return $this->append($x);
+    }
+
+    /**
+     * Remove values on a indexed data structures.
+     *
+     * @param int $offset The offset where to start to remove values
+     * @param ?int $length The number of how many elements should be removed
+     *
+     * @return PersistentVectorInterface
+     */
+    public function slice(int $offset = 0, ?int $length = null)
+    {
+        throw new \Exception('slice not supported on transient vectors');
     }
 }

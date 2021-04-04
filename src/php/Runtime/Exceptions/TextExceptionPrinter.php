@@ -112,8 +112,8 @@ final class TextExceptionPrinter implements ExceptionPrinterInterface
 
         foreach ($e->getTrace() as $i => $frame) {
             $class = $frame['class'] ?? null;
-            $file = $frame['file'];
-            $line = $frame['line'];
+            $file = $frame['file'] ?? 'unknown_file';
+            $line = $frame['line'] ?? 0;
 
             if ($class) {
                 $rf = new ReflectionClass($class);

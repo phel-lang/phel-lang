@@ -12,6 +12,7 @@ use Phel\Compiler\Reader\ExpressionReader\ListTableReader;
 use Phel\Compiler\Reader\ExpressionReader\MetaReader;
 use Phel\Compiler\Reader\ExpressionReader\QuoasiquoteReader;
 use Phel\Compiler\Reader\ExpressionReader\SymbolReader;
+use Phel\Compiler\Reader\ExpressionReader\VectorReader;
 use Phel\Compiler\Reader\ExpressionReader\WrapReader;
 
 final class ExpressionReaderFactory implements ExpressionReaderFactoryInterface
@@ -29,6 +30,11 @@ final class ExpressionReaderFactory implements ExpressionReaderFactoryInterface
     public function createListReader(Reader $reader): ListReader
     {
         return new ListReader($reader);
+    }
+
+    public function createVectorReader(Reader $reader): VectorReader
+    {
+        return new VectorReader($reader);
     }
 
     public function createListArrayReader(Reader $reader): ListArrayReader

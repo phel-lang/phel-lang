@@ -3,7 +3,6 @@
 (defn type
   "Returns the type of `x`. Following types can be returned:
 
-* `:tuple`
 * `:set`
 * `:array`
 * `:struct`
@@ -22,22 +21,23 @@
 * `:unknown`"
   [x]
   (cond
-    (php/instanceof x Tuple)          :tuple
-    (php/instanceof x Set)            :set
-    (php/instanceof x PhelArray)      :array
-    (php/instanceof x AbstractStruct) :struct
-    (php/instanceof x Table)          :table
-    (php/instanceof x Keyword)        :keyword
-    (php/instanceof x Symbol)         :symbol
-    (php/is_int x)                    :int
-    (php/is_float x)                  :float
-    (php/is_string x)                 :string
-    (php/is_null x)                   :nil
-    (php/is_bool x)                   :boolean
-    (php/is_callable x)               :function
-    (php/is_array x)                  :php/array
-    (php/is_resource x)               :php/resource
-    (php/is_object x)                 :php/object
+    (php/instanceof x PersistentVectorInterface) :vector
+    (php/instanceof x PersistentListInterface)   :list
+    (php/instanceof x Set)                       :set
+    (php/instanceof x PhelArray)                 :array
+    (php/instanceof x AbstractStruct)            :struct
+    (php/instanceof x Table)                     :table
+    (php/instanceof x Keyword)                   :keyword
+    (php/instanceof x Symbol)                    :symbol
+    (php/is_int x)                               :int
+    (php/is_float x)                             :float
+    (php/is_string x)                            :string
+    (php/is_null x)                              :nil
+    (php/is_bool x)                              :boolean
+    (php/is_callable x)                          :function
+    (php/is_array x)                             :php/array
+    (php/is_resource x)                          :php/resource
+    (php/is_object x)                            :php/object
     :unknown))
 
 (defn nil?
@@ -95,20 +95,15 @@
   [x]
   (= (type x) :array))
 
-(defn tuple?
-  "Returns true if `x` is a tuple, false otherwise."
+(defn vector?
+  "Returns true if `x` is a vector, false otherwise."
   [x]
-  (= (type x) :tuple))
+  (= (type x) :vector))
 
-(defn tuple-brackets?
-  "Returns true if `x` is a bracket tuple, false otherwise"
+(defn list?
+  "Returns true if `x` is a list, false otherwise."
   [x]
-  (and (tuple? x) (php/-> x (isUsingBracket))))
-
-(defn tuple-parens?
-  "Returns true if `x` is a parens tuple, false otherwise"
-  [x]
-  (and (tuple? x) (not (php/-> x (isUsingBracket)))))
+  (= (type x) :list))
 
 (defn boolean?
   "Returns true if `x` is a boolean, false otherwise."
@@ -149,7 +144,8 @@
   (let [t (type x)]
     (or
      (= t :array)
-     (= t :tuple)
+     (= t :list)
+     (= t :vector)
      (indexed-php-array? x))))
 
 (defn associative?
