@@ -22,7 +22,7 @@ final class InvokeSymbol implements SpecialFormAnalyzerInterface
     public function analyze(PersistentListInterface $list, NodeEnvironmentInterface $env): AbstractNode
     {
         $f = $this->analyzer->analyze(
-            $list->get(0),
+            $list->first(),
             $env->withContext(NodeEnvironmentInterface::CONTEXT_EXPRESSION)->withDisallowRecurFrame()
         );
 
@@ -33,7 +33,7 @@ final class InvokeSymbol implements SpecialFormAnalyzerInterface
         return new CallNode(
             $env,
             $f,
-            $this->arguments($list, $env),
+            $this->arguments($list->rest(), $env),
             $list->getStartLocation()
         );
     }
@@ -53,10 +53,7 @@ final class InvokeSymbol implements SpecialFormAnalyzerInterface
         $nodeName = $macroNode->getName()->getName();
         $fn = $GLOBALS['__phel'][$macroNode->getNamespace()][$nodeName];
 
-        $arguments = [];
-        for ($i = 1; $i < $listCount; $i++) {
-            $arguments[] = $list->get($i);
-        }
+        $arguments = $list->rest()->toArray();
 
         try {
             $result = $fn(...$arguments);
@@ -114,12 +111,12 @@ final class InvokeSymbol implements SpecialFormAnalyzerInterface
         return $type;
     }
 
-    private function arguments(PersistentListInterface $list, NodeEnvironmentInterface $env): array
+    private function arguments(PersistentListInterface $argsList, NodeEnvironmentInterface $env): array
     {
         $arguments = [];
-        for ($i = 1, $iMax = count($list); $i < $iMax; $i++) {
+        foreach ($argsList as $element) {
             $arguments[] = $this->analyzer->analyze(
-                $list->get($i),
+                $element,
                 $env->withContext(NodeEnvironmentInterface::CONTEXT_EXPRESSION)->withDisallowRecurFrame()
             );
         }

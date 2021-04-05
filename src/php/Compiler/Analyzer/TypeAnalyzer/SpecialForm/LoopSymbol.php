@@ -71,10 +71,7 @@ final class LoopSymbol implements SpecialFormAnalyzerInterface
         }
 
         if (count($lets) > 0) {
-            $bodyExpr = [];
-            for ($i = 2; $i < $listCount; $i++) {
-                $bodyExpr[] = $list->get($i);
-            }
+            $bodyExpr = $list->rest()->rest()->toArray();
             $letSym = Symbol::create(Symbol::NAME_LET)->copyLocationFrom($list->get(0));
             $letExpr = TypeFactory::getInstance()->persistentListFromArray([
                 $letSym,
@@ -96,10 +93,7 @@ final class LoopSymbol implements SpecialFormAnalyzerInterface
     private function analyzeLetOrLoop(PersistentListInterface $list, NodeEnvironmentInterface $env): LetNode
     {
         $listCount = count($list);
-        $exprs = [];
-        for ($i = 2; $i < $listCount; $i++) {
-            $exprs[] = $list->get($i);
-        }
+        $exprs = $list->rest()->rest()->toArray();
 
         /** @psalm-suppress PossiblyNullArgument */
         /** @var PersistentVectorInterface $bindingVector */

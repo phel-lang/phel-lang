@@ -66,11 +66,10 @@ final class PhpObjectCallSymbol implements SpecialFormAnalyzerInterface
     {
         /** @var PersistentListInterface $list2 */
         $list2 = $list->get(2);
-        $tCount = count($list2);
         $args = [];
-        for ($i = 1; $i < $tCount; $i++) {
+        for ($forms = $list2->cdr(); $forms != null; $forms = $forms->cdr()) {
             $args[] = $this->analyzer->analyze(
-                $list2->get($i),
+                $forms->first(),
                 $env->withContext(NodeEnvironmentInterface::CONTEXT_EXPRESSION)->withDisallowRecurFrame()
             );
         }

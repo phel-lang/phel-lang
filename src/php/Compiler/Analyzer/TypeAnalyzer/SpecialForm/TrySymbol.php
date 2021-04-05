@@ -19,15 +19,14 @@ final class TrySymbol implements SpecialFormAnalyzerInterface
 
     public function analyze(PersistentListInterface $list, NodeEnvironmentInterface $env): TryNode
     {
-        $listCount = count($list);
         $state = 'start';
         $body = [];
         $catches = [];
         /** @var PersistentListInterface|null $finally */
         $finally = null;
-        for ($i = 1; $i < $listCount; $i++) {
+        for ($forms = $list->cdr(); $forms != null; $forms = $forms->cdr()) {
             /** @var mixed $form */
-            $form = $list->get($i);
+            $form = $forms->first();
 
             switch ($state) {
                 case 'start':
@@ -87,11 +86,7 @@ final class TrySymbol implements SpecialFormAnalyzerInterface
                 throw AnalyzerException::withLocation("Second argument of 'catch must be a Symbol", $catch);
             }
 
-            $exprs = [Symbol::create(Symbol::NAME_DO)];
-            $catchCount = count($catch);
-            for ($i = 3; $i < $catchCount; $i++) {
-                $exprs[] = $catch->get($i);
-            }
+            $exprs = [Symbol::create(Symbol::NAME_DO), ...$catch->rest()->rest()->rest()->toArray()];
 
             $catchBody = $this->analyzer->analyze(
                 TypeFactory::getInstance()->persistentListFromArray($exprs),

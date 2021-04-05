@@ -63,10 +63,7 @@ final class LetSymbol implements SpecialFormAnalyzerInterface
 
     private function analyzeLetOrLoop(PersistentListInterface $list, NodeEnvironmentInterface $env): LetNode
     {
-        $exprs = [];
-        for ($i = 2, $iMax = count($list); $i < $iMax; $i++) {
-            $exprs[] = $list->get($i);
-        }
+        $exprs = $list->rest()->rest()->toArray();
 
         /** @psalm-suppress PossiblyNullArgument */
         /** @var PersistentVectorInterface $bindingVector */

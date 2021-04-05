@@ -55,8 +55,9 @@ final class AnalyzePersistentList
 
     private function getSymbolName(PersistentListInterface $list): string
     {
-        return count($list) > 0 && $list->get(0) instanceof Symbol
-            ? $list->get(0)->getFullName()
+        $first = $list->first();
+        return $first && $first instanceof Symbol
+            ? $first->getFullName()
             : self::EMPTY_SYMBOL_NAME;
     }
 

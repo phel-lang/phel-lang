@@ -55,10 +55,9 @@ final class RecurSymbol implements SpecialFormAnalyzerInterface
     public function expressions(PersistentListInterface $list, NodeEnvironmentInterface $env): array
     {
         $expressions = [];
-
-        for ($i = 1, $listCount = count($list); $i < $listCount; $i++) {
+        for ($forms = $list->cdr(); $forms != null; $forms = $forms->cdr()) {
             $expressions[] = $this->analyzer->analyze(
-                $list->get($i),
+                $forms->first(),
                 $env->withContext(NodeEnvironmentInterface::CONTEXT_EXPRESSION)->withDisallowRecurFrame()
             );
         }
