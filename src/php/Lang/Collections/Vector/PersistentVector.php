@@ -34,7 +34,7 @@ class PersistentVector extends AbstractPersistentVector
     private int $shift;
     /** @var array<array> The root node of this vector */
     private array $root;
-    /** @var T[] The tail of the vector. This is an optimization */
+    /** @var array<int, T> The tail of the vector. This is an optimization */
     private array $tail;
 
     public function __construct(HasherInterface $hasher, EqualizerInterface $equalizer, ?PersistentHashMapInterface $meta, int $count, int $shift, array $root, array $tail)

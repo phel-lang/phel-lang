@@ -15,5 +15,8 @@ namespace Phel\Lang;
  */
 interface SeqInterface extends FirstInterface, CdrInterface, RestInterface
 {
+    /**
+     * @return array<int, TFirst>
+     */
     public function toArray(): array;
 }
