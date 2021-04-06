@@ -11,7 +11,7 @@ final class MetaNode implements InnerNodeInterface
     private NodeInterface $meta;
     private SourceLocation $startLocation;
     private SourceLocation $endLocation;
-    /** @var NodeInterface[] */
+    /** @var array<int, NodeInterface> */
     private array $children;
 
     public function __construct(

@@ -20,7 +20,7 @@ class HashCollisionNode implements HashMapNodeInterface
     private EqualizerInterface $equalizer;
     private int $hash;
     private int $count;
-    /** @var array<K|V> */
+    /** @var array<int, K|V> */
     private array $objects;
 
     public function __construct(HasherInterface $hasher, EqualizerInterface $equalizer, int $hash, int $count, array $objects)

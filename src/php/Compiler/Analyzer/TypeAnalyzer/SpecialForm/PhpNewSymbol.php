@@ -26,9 +26,9 @@ final class PhpNewSymbol implements SpecialFormAnalyzerInterface
             $env->withContext(NodeEnvironmentInterface::CONTEXT_EXPRESSION)->withDisallowRecurFrame()
         );
         $args = [];
-        for ($i = 2; $i < $listCount; $i++) {
+        for ($forms = $list->rest()->cdr(); $forms != null; $forms = $forms->cdr()) {
             $args[] = $this->analyzer->analyze(
-                $list->get($i),
+                $forms->first(),
                 $env->withContext(NodeEnvironmentInterface::CONTEXT_EXPRESSION)->withDisallowRecurFrame()
             );
         }

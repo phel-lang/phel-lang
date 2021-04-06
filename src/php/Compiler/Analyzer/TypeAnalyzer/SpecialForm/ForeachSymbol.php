@@ -118,10 +118,7 @@ final class ForeachSymbol implements SpecialFormAnalyzerInterface
 
     private function buildTupleBody(array $lets, PersistentListInterface $list): PersistentListInterface
     {
-        $bodys = [];
-        for ($i = 2, $iMax = count($list); $i < $iMax; $i++) {
-            $bodys[] = $list->get($i);
-        }
+        $bodys = $list->rest()->rest()->toArray();
 
         if (!empty($lets)) {
             return TypeFactory::getInstance()->persistentListFromArray([

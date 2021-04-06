@@ -15,9 +15,9 @@ abstract class AbstractZipper
     protected $node;
     /** @var ?AbstractZipper<T> */
     protected ?AbstractZipper $parent;
-    /** @var T[] */
+    /** @var array<int, T> */
     protected array $leftSiblings;
-    /** @var T[] */
+    /** @var array<int, T> */
     protected array $rightSiblings;
     protected bool $hasChanged = false;
     protected bool $isEnd = false;
@@ -57,7 +57,7 @@ abstract class AbstractZipper
     }
 
     /**
-     * @return T[]
+     * @return array<int, T>
      */
     abstract public function getChildren();
 
@@ -437,7 +437,7 @@ abstract class AbstractZipper
     }
 
     /**
-     * @psalm-assert-if-false static<T> $this->parent
+     * @psalm-assert-if-false AbstractZipper<T> $this->parent
      */
     public function isTop(): bool
     {

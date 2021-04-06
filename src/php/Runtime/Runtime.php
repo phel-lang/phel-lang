@@ -30,7 +30,7 @@ class Runtime implements RuntimeInterface
     /** @var string[] */
     private array $loadedNs = [];
 
-    /** @var array<string, string[]> */
+    /** @var array<string, array<int, string>> */
     private array $paths = [];
 
     public function __construct(
@@ -55,7 +55,7 @@ class Runtime implements RuntimeInterface
 
     /**
      * @param string $namespacePrefix
-     * @param string[] $path
+     * @param array<int, string> $path
      */
     public function addPath(string $namespacePrefix, array $path): void
     {

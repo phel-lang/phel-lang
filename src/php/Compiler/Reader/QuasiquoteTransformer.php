@@ -132,6 +132,9 @@ final class QuasiquoteTransformer implements QuasiquoteTransformerInterface
         ])->copyLocationFrom($form);
     }
 
+    /**
+     * @return array<int, mixed>
+     */
     private function expandList(iterable $seq): array
     {
         $xs = [];

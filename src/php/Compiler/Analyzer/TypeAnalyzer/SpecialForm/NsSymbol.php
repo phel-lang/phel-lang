@@ -49,8 +49,8 @@ final class NsSymbol implements SpecialFormAnalyzerInterface
         $this->analyzer->setNamespace($ns);
 
         $requireNs = [];
-        for ($i = 2; $i < $listCount; $i++) {
-            $import = $list->get($i);
+        for ($forms = $list->rest()->cdr(); $forms != null; $forms = $forms->cdr()) {
+            $import = $forms->first();
 
             if (!($import instanceof PersistentListInterface)) {
                 throw AnalyzerException::withLocation("Import in 'ns must be Lists.", $list);

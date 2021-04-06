@@ -12,7 +12,7 @@ interface ConcatInterface
     /**
      * Concatenates a value to the data structure.
      *
-     * @param mixed[] $xs The value to concatenate
+     * @param array<int, mixed> $xs The value to concatenate
      *
      * @return T
      */

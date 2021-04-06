@@ -65,6 +65,9 @@ final class FnSymbol implements SpecialFormAnalyzerInterface
         return $this->analyzer->analyze($body, $bodyEnv);
     }
 
+    /**
+     * @param array<int, mixed> $body
+     */
     private function createDoTupleWithBody(array $body): PersistentListInterface
     {
         return TypeFactory::getInstance()->persistentListFromArray([
@@ -73,6 +76,9 @@ final class FnSymbol implements SpecialFormAnalyzerInterface
         ])->copyLocationFrom($body);
     }
 
+    /**
+     * @param array<int, mixed> $listBody
+     */
     private function createLetTupleWithBody(FnSymbolTuple $fnSymbolTuple, array $listBody): PersistentListInterface
     {
         return TypeFactory::getInstance()->persistentListFromArray([

@@ -22,10 +22,15 @@ final class ApplySymbol implements SpecialFormAnalyzerInterface
             throw AnalyzerException::withLocation("At least three arguments are required for 'apply", $list);
         }
 
+        $data = $list->rest();
+        $fnExpr = $data->first();
+        $args = $data->rest();
+
+
         return new ApplyNode(
             $env,
-            $this->fnExpr($list->get(1), $env),
-            $this->arguments($list, $env),
+            $this->fnExpr($fnExpr, $env),
+            $this->arguments($args, $env),
             $list->getStartLocation()
         );
     }
@@ -46,11 +51,12 @@ final class ApplySymbol implements SpecialFormAnalyzerInterface
         );
     }
 
-    private function arguments(PersistentListInterface $x, NodeEnvironmentInterface $env): array
+    private function arguments(PersistentListInterface $argsList, NodeEnvironmentInterface $env): array
     {
         $args = [];
-        for ($i = 2, $iMax = count($x); $i < $iMax; $i++) {
-            $args[] = $this->fnExpr($x->get($i), $env);
+
+        foreach ($argsList as $element) {
+            $args[] = $this->fnExpr($element, $env);
         }
 
         return $args;

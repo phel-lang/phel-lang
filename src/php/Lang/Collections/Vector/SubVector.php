@@ -45,6 +45,9 @@ class SubVector extends AbstractPersistentVector
         return null;
     }
 
+    /**
+     * @return array<int, mixed>
+     */
     public function toArray(): array
     {
         return array_slice($this->vector->toArray(), $this->start, $this->end - $this->start);
