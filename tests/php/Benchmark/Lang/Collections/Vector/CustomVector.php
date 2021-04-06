@@ -8,7 +8,7 @@ use Phel\Lang\Collections\Map\PersistentMapInterface;
 use Phel\Lang\Collections\Vector\PersistentVectorInterface;
 use Phel\Lang\SourceLocation;
 
-final class VectorA implements PersistentVectorInterface
+final class CustomVector implements PersistentVectorInterface
 {
     private array $data;
     private array $tail;
@@ -24,10 +24,10 @@ final class VectorA implements PersistentVectorInterface
     public function append($value): PersistentVectorInterface
     {
         if (count($this->tail) < self::BRANCH_FACTOR) {
-            return new VectorA($this->count + 1, $this->data, [...$this->tail, $value]);
+            return new CustomVector($this->count + 1, $this->data, [...$this->tail, $value]);
         }
 
-        return new VectorA($this->count + 1, [...$this->data, $this->tail], [$value]);
+        return new CustomVector($this->count + 1, [...$this->data, $this->tail], [$value]);
     }
 
     public function count(): int
