@@ -6,10 +6,12 @@ namespace PhelTest\Benchmark\Lang\Collections\Vector;
 
 use Phel\Lang\Collections\Vector\PersistentVector;
 use Phel\Lang\Collections\Vector\TransientVector;
+use Phel\Lang\EqualizerInterface;
+use Phel\Lang\HasherInterface;
 
-class VectorAddBench
+final class VectorAddBench
 {
-    const MAX_ADD = 1000;
+    private const MAX_ADD = 1000;
 
     /**
      * @Revs(1000)
@@ -27,7 +29,7 @@ class VectorAddBench
      */
     public function benchPersistentVectorAdd(): void
     {
-        $vector = PersistentVector::empty();
+        $vector = PersistentVector::empty($this->createHasher(), $this->createEqualizer());
         for ($i = 0; $i < self::MAX_ADD; $i++) {
             $vector = $vector->append($i);
         }
@@ -38,7 +40,7 @@ class VectorAddBench
      */
     public function benchTransientVectorAdd(): void
     {
-        $vector = TransientVector::empty();
+        $vector = TransientVector::empty($this->createHasher(), $this->createEqualizer());
         for ($i = 0; $i < self::MAX_ADD; $i++) {
             $vector = $vector->append($i);
         }
@@ -77,5 +79,25 @@ class VectorAddBench
         for ($i = 0; $i < self::MAX_ADD; $i++) {
             $siv = $siv->append($i);
         }
+    }
+
+    private function createHasher(): HasherInterface
+    {
+        return new class() implements HasherInterface {
+            public function hash($value): int
+            {
+                return 0;
+            }
+        };
+    }
+
+    private function createEqualizer(): EqualizerInterface
+    {
+        return new class() implements EqualizerInterface {
+            public function equals($a, $b): bool
+            {
+                return false;
+            }
+        };
     }
 }

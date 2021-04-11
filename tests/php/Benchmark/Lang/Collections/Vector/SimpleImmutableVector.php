@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace PhelTest\Benchmark\Lang\Collections\Vector;
 
-class SimpleImmutableVector
+final class SimpleImmutableVector
 {
     private array $data;
 

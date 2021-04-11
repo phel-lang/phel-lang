@@ -6,9 +6,9 @@ namespace PhelTest\Benchmark\Lang\Collections\HashMap;
 
 use Phel\Lang\Collections\HashMap\PersistentHashMap;
 
-class PersistentHashMapAddBench
+final class PersistentHashMapAddBench
 {
-    const MAX_ADD = 1000;
+    private const MAX_ADD = 1000;
 
     /**
      * @Revs(1000)
