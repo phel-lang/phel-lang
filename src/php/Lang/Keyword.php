@@ -13,6 +13,9 @@ final class Keyword extends AbstractType implements IdenticalInterface, FnInterf
     private string $name;
     private int $hash;
 
+    /** @var array<string, Keyword> */
+    private static $refStore = [];
+
     public function __construct(string $name)
     {
         $this->name = $name;
@@ -21,7 +24,11 @@ final class Keyword extends AbstractType implements IdenticalInterface, FnInterf
 
     public static function create(string $name): Keyword
     {
-        return new Keyword($name);
+        if (!isset(self::$refStore[$name])) {
+            self::$refStore[$name] = new Keyword($name);
+        }
+
+        return self::$refStore[$name];
     }
 
     /**
