@@ -30,7 +30,7 @@ final class ListFnReader
             Symbol::create(Symbol::NAME_FN),
             TypeFactory::getInstance()->persistentVectorFromArray($params),
             $body,
-        ]);
+        ])->setStartLocation($node->getStartLocation())->setEndLocation($node->getEndLocation());
     }
 
     private function extractParams(?array $fnArgs): array

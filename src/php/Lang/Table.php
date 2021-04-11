@@ -7,7 +7,7 @@ namespace Phel\Lang;
 use ArrayAccess;
 use Countable;
 use Iterator;
-use Phel\Lang\Collections\HashMap\PersistentHashMap;
+use Phel\Lang\Collections\HashMap\PersistentHashMapInterface;
 use Phel\Printer\Printer;
 use RuntimeException;
 
@@ -256,7 +256,7 @@ class Table extends AbstractType implements ArrayAccess, Countable, Iterator, Se
         return crc32((string) $offset);
     }
 
-    public function toPersistentHashMap(): PersistentHashMap
+    public function toPersistentHashMap(): PersistentHashMapInterface
     {
         $m = TypeFactory::getInstance()->emptyPersistentHashMap();
         foreach ($this as $k => $v) {

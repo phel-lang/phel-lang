@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Phel\Compiler\Emitter\OutputEmitter;
 
 use Phel\Compiler\Emitter\OutputEmitterInterface;
-use Phel\Lang\Collections\HashMap\PersistentHashMap;
+use Phel\Lang\Collections\HashMap\PersistentHashMapInterface;
 use Phel\Lang\Collections\LinkedList\PersistentListInterface;
 use Phel\Lang\Collections\Vector\PersistentVector;
 use Phel\Lang\Keyword;
@@ -52,7 +52,7 @@ final class LiteralEmitter
             $this->emitPhelArray($x);
         } elseif ($x instanceof Table) {
             $this->emitTable($x);
-        } elseif ($x instanceof PersistentHashMap) {
+        } elseif ($x instanceof PersistentHashMapInterface) {
             $this->emitTable($x->toTable());
         } elseif ($x instanceof PersistentVector) {
             $this->emitVector($x);

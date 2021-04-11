@@ -51,7 +51,7 @@ class PersistentVector extends AbstractPersistentVector
         return new self($hasher, $equalizer, null, 0, self::SHIFT, [], []);
     }
 
-    public static function fromArray(HasherInterface $hasher, EqualizerInterface $equalizer, array $values): PersistentVector
+    public static function fromArray(HasherInterface $hasher, EqualizerInterface $equalizer, array $values): PersistentVectorInterface
     {
         $tv = TransientVector::empty($hasher, $equalizer);
         foreach ($values as $value) {
@@ -397,5 +397,17 @@ class PersistentVector extends AbstractPersistentVector
     public function sliceNormalized(int $start, int $end): PersistentVectorInterface
     {
         return new SubVector($this->hasher, $this->equalizer, $this->meta, $this, $start, $end);
+    }
+
+    public function asTransient(): TransientVector
+    {
+        return new TransientVector(
+            $this->hasher,
+            $this->equalizer,
+            $this->count,
+            $this->shift,
+            $this->root,
+            $this->tail
+        );
     }
 }

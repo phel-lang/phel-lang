@@ -22,6 +22,9 @@ final class ListArrayReader
     {
         $list = (new ListReader($this->reader))->read($node, $root);
 
-        return PhelArray::create(...$list->toArray())->withMeta($list->getMeta());
+        return PhelArray::create(...$list->toArray())
+            ->setStartLocation($node->getStartLocation())
+            ->setEndLocation($node->getEndLocation())
+            ->withMeta($list->getMeta());
     }
 }

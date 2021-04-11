@@ -95,6 +95,30 @@ final class DefSymbol implements SpecialFormAnalyzerInterface
             }
         }
 
+        $startLocation = $list->getStartLocation();
+        if ($startLocation) {
+            $meta[new Keyword('start-location')] = Table::fromKVs(
+                new Keyword('file'),
+                $startLocation->getFile(),
+                new Keyword('line'),
+                $startLocation->getLine(),
+                new Keyword('column'),
+                $startLocation->getColumn(),
+            );
+        }
+
+        $endLocation = $list->getEndLocation();
+        if ($endLocation) {
+            $meta[new Keyword('end-location')] = Table::fromKVs(
+                new Keyword('file'),
+                $endLocation->getFile(),
+                new Keyword('line'),
+                $endLocation->getLine(),
+                new Keyword('column'),
+                $endLocation->getColumn(),
+            );
+        }
+
         return [$meta, $init];
     }
 

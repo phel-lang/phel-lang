@@ -5,11 +5,13 @@ declare(strict_types=1);
 namespace Phel\Lang;
 
 use Phel\Lang\Collections\HashMap\PersistentHashMap;
+use Phel\Lang\Collections\HashMap\PersistentHashMapInterface;
 use Phel\Lang\Collections\HashSet\PersistentHashSet;
 use Phel\Lang\Collections\LinkedList\EmptyList;
 use Phel\Lang\Collections\LinkedList\PersistentList;
 use Phel\Lang\Collections\LinkedList\PersistentListInterface;
 use Phel\Lang\Collections\Vector\PersistentVector;
+use Phel\Lang\Collections\Vector\PersistentVectorInterface;
 use RuntimeException;
 
 class TypeFactory
@@ -33,7 +35,7 @@ class TypeFactory
         return self::$instance;
     }
 
-    public function emptyPersistentHashMap(): PersistentHashMap
+    public function emptyPersistentHashMap(): PersistentHashMapInterface
     {
         return PersistentHashMap::empty($this->hasher, $this->equalizer);
     }
@@ -41,24 +43,24 @@ class TypeFactory
     /**
      * @param mixed[] $kvs
      */
-    public function persistentHashMapFromKVs(...$kvs): PersistentHashMap
+    public function persistentHashMapFromKVs(...$kvs): PersistentHashMapInterface
     {
         if (count($kvs) % 2 !== 0) {
             // TODO: Better exception
             throw new RuntimeException('A even number of elements must be provided');
         }
 
-        $result = PersistentHashMap::empty($this->hasher, $this->equalizer);
+        $result = $this->emptyPersistentHashMap();
         for ($i = 0, $l = count($kvs); $i < $l; $i += 2) {
             $result = $result->put($kvs[$i], $kvs[$i+1]);
         }
         return $result;
     }
 
-    public function emptyPersistentHashSet(): PersistentHashSet
+    /*public function emptyPersistentHashSet(): PersistentHashSet
     {
         return new PersistentHashSet($this->hasher, null, $this->emptyPersistentHashMap());
-    }
+    }*/
 
     public function emptyPersistentList(): EmptyList
     {
@@ -70,12 +72,12 @@ class TypeFactory
         return PersistentList::fromArray($this->hasher, $this->equalizer, $values);
     }
 
-    public function emptyPersistentVector(): PersistentVector
+    public function emptyPersistentVector(): PersistentVectorInterface
     {
         return PersistentVector::empty($this->hasher, $this->equalizer);
     }
 
-    public function persistentVectorFromArray(array $values): PersistentVector
+    public function persistentVectorFromArray(array $values): PersistentVectorInterface
     {
         return PersistentVector::fromArray($this->hasher, $this->equalizer, $values);
     }
@@ -92,6 +94,6 @@ class TypeFactory
 
     public function keyword(string $name): Keyword
     {
-        return new Keyword($name);
+        return Keyword::create($name);
     }
 }

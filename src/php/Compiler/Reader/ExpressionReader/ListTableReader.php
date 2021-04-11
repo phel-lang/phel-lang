@@ -27,6 +27,9 @@ final class ListTableReader
             throw ReaderException::forNode($node, $root, 'Tables must have an even number of parameters');
         }
 
-        return Table::fromKVArray($list->toArray())->withMeta($list->getMeta());
+        return Table::fromKVArray($list->toArray())
+            ->setStartLocation($node->getStartLocation())
+            ->setEndLocation($node->getEndLocation())
+            ->withMeta($list->getMeta());
     }
 }

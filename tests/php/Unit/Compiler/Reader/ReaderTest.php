@@ -464,19 +464,25 @@ final class ReaderTest extends TestCase
     public function testReadShortFnZeroArgs(): void
     {
         self::assertEquals(
-            TypeFactory::getInstance()->persistentListFromArray([
-                Symbol::create(Symbol::NAME_FN),
-                TypeFactory::getInstance()->emptyPersistentVector(),
-                $this->loc(
-                    TypeFactory::getInstance()->persistentListFromArray([
-                        $this->loc(Symbol::create('add'), 1, 2, 1, 5),
-                    ]),
-                    1,
-                    0,
-                    1,
-                    6
-                ),
-            ]),
+            $this->loc(
+                TypeFactory::getInstance()->persistentListFromArray([
+                    Symbol::create(Symbol::NAME_FN),
+                    TypeFactory::getInstance()->emptyPersistentVector(),
+                    $this->loc(
+                        TypeFactory::getInstance()->persistentListFromArray([
+                            $this->loc(Symbol::create('add'), 1, 2, 1, 5),
+                        ]),
+                        1,
+                        0,
+                        1,
+                        6
+                    ),
+                ]),
+                1,
+                0,
+                1,
+                6
+            ),
             $this->read('|(add)')
         );
     }
@@ -484,22 +490,28 @@ final class ReaderTest extends TestCase
     public function testReadShortFnOneArg(): void
     {
         self::assertEquals(
-            TypeFactory::getInstance()->persistentListFromArray([
-                Symbol::create(Symbol::NAME_FN),
-                TypeFactory::getInstance()->persistentVectorFromArray([
-                    Symbol::create('__short_fn_1_1'),
-                ]),
-                $this->loc(
-                    TypeFactory::getInstance()->persistentListFromArray([
-                        $this->loc(Symbol::create('add'), 1, 2, 1, 5),
-                        $this->loc(Symbol::create('__short_fn_1_1'), 1, 6, 1, 7),
+            $this->loc(
+                TypeFactory::getInstance()->persistentListFromArray([
+                    Symbol::create(Symbol::NAME_FN),
+                    TypeFactory::getInstance()->persistentVectorFromArray([
+                        Symbol::create('__short_fn_1_1'),
                     ]),
-                    1,
-                    0,
-                    1,
-                    8
-                ),
-            ]),
+                    $this->loc(
+                        TypeFactory::getInstance()->persistentListFromArray([
+                            $this->loc(Symbol::create('add'), 1, 2, 1, 5),
+                            $this->loc(Symbol::create('__short_fn_1_1'), 1, 6, 1, 7),
+                        ]),
+                        1,
+                        0,
+                        1,
+                        8
+                    ),
+                ]),
+                1,
+                0,
+                1,
+                8
+            ),
             $this->read('|(add $)')
         );
     }
@@ -507,23 +519,29 @@ final class ReaderTest extends TestCase
     public function testReadShortFnOneArgTwoTimes(): void
     {
         self::assertEquals(
-            TypeFactory::getInstance()->persistentListFromArray([
-                Symbol::create(Symbol::NAME_FN),
-                TypeFactory::getInstance()->persistentVectorFromArray([
-                    Symbol::create('__short_fn_1_1'),
-                ]),
-                $this->loc(
-                    TypeFactory::getInstance()->persistentListFromArray([
-                        $this->loc(Symbol::create('add'), 1, 2, 1, 5),
-                        $this->loc(Symbol::create('__short_fn_1_1'), 1, 6, 1, 7),
-                        $this->loc(Symbol::create('__short_fn_1_1'), 1, 8, 1, 9),
+            $this->loc(
+                TypeFactory::getInstance()->persistentListFromArray([
+                    Symbol::create(Symbol::NAME_FN),
+                    TypeFactory::getInstance()->persistentVectorFromArray([
+                        Symbol::create('__short_fn_1_1'),
                     ]),
-                    1,
-                    0,
-                    1,
-                    10
-                ),
-            ]),
+                    $this->loc(
+                        TypeFactory::getInstance()->persistentListFromArray([
+                            $this->loc(Symbol::create('add'), 1, 2, 1, 5),
+                            $this->loc(Symbol::create('__short_fn_1_1'), 1, 6, 1, 7),
+                            $this->loc(Symbol::create('__short_fn_1_1'), 1, 8, 1, 9),
+                        ]),
+                        1,
+                        0,
+                        1,
+                        10
+                    ),
+                ]),
+                1,
+                0,
+                1,
+                10
+            ),
             $this->read('|(add $ $)')
         );
     }
@@ -531,24 +549,30 @@ final class ReaderTest extends TestCase
     public function testReadShortFnTwoArguments(): void
     {
         self::assertEquals(
-            TypeFactory::getInstance()->persistentListFromArray([
-                Symbol::create(Symbol::NAME_FN),
-                TypeFactory::getInstance()->persistentVectorFromArray([
-                    Symbol::create('__short_fn_1_1'),
-                    Symbol::create('__short_fn_2_2'),
-                ]),
-                $this->loc(
-                    TypeFactory::getInstance()->persistentListFromArray([
-                        $this->loc(Symbol::create('add'), 1, 2, 1, 5),
-                        $this->loc(Symbol::create('__short_fn_1_1'), 1, 6, 1, 8),
-                        $this->loc(Symbol::create('__short_fn_2_2'), 1, 9, 1, 11),
+            $this->loc(
+                TypeFactory::getInstance()->persistentListFromArray([
+                    Symbol::create(Symbol::NAME_FN),
+                    TypeFactory::getInstance()->persistentVectorFromArray([
+                        Symbol::create('__short_fn_1_1'),
+                        Symbol::create('__short_fn_2_2'),
                     ]),
-                    1,
-                    0,
-                    1,
-                    12
-                ),
-            ]),
+                    $this->loc(
+                        TypeFactory::getInstance()->persistentListFromArray([
+                            $this->loc(Symbol::create('add'), 1, 2, 1, 5),
+                            $this->loc(Symbol::create('__short_fn_1_1'), 1, 6, 1, 8),
+                            $this->loc(Symbol::create('__short_fn_2_2'), 1, 9, 1, 11),
+                        ]),
+                        1,
+                        0,
+                        1,
+                        12
+                    ),
+                ]),
+                1,
+                0,
+                1,
+                12
+            ),
             $this->read('|(add $1 $2)')
         );
     }
@@ -556,23 +580,29 @@ final class ReaderTest extends TestCase
     public function testReadShortFnArgumentsTwice(): void
     {
         self::assertEquals(
-            TypeFactory::getInstance()->persistentListFromArray([
-                Symbol::create(Symbol::NAME_FN),
-                TypeFactory::getInstance()->persistentVectorFromArray([
-                    Symbol::create('__short_fn_1_1'),
-                ]),
-                $this->loc(
-                    TypeFactory::getInstance()->persistentListFromArray([
-                        $this->loc(Symbol::create('add'), 1, 2, 1, 5),
-                        $this->loc(Symbol::create('__short_fn_1_1'), 1, 6, 1, 8),
-                        $this->loc(Symbol::create('__short_fn_1_1'), 1, 9, 1, 11),
+            $this->loc(
+                TypeFactory::getInstance()->persistentListFromArray([
+                    Symbol::create(Symbol::NAME_FN),
+                    TypeFactory::getInstance()->persistentVectorFromArray([
+                        Symbol::create('__short_fn_1_1'),
                     ]),
-                    1,
-                    0,
-                    1,
-                    12
-                ),
-            ]),
+                    $this->loc(
+                        TypeFactory::getInstance()->persistentListFromArray([
+                            $this->loc(Symbol::create('add'), 1, 2, 1, 5),
+                            $this->loc(Symbol::create('__short_fn_1_1'), 1, 6, 1, 8),
+                            $this->loc(Symbol::create('__short_fn_1_1'), 1, 9, 1, 11),
+                        ]),
+                        1,
+                        0,
+                        1,
+                        12
+                    ),
+                ]),
+                1,
+                0,
+                1,
+                12
+            ),
             $this->read('|(add $1 $1)')
         );
     }
@@ -580,25 +610,31 @@ final class ReaderTest extends TestCase
     public function testReadShortFnMissingArgument(): void
     {
         self::assertEquals(
-            TypeFactory::getInstance()->persistentListFromArray([
-                Symbol::create(Symbol::NAME_FN),
-                TypeFactory::getInstance()->persistentVectorFromArray([
-                    Symbol::create('__short_fn_1_1'),
-                    Symbol::create('__short_fn_undefined_3'),
-                    Symbol::create('__short_fn_3_2'),
-                ]),
-                $this->loc(
-                    TypeFactory::getInstance()->persistentListFromArray([
-                        $this->loc(Symbol::create('add'), 1, 2, 1, 5),
-                        $this->loc(Symbol::create('__short_fn_1_1'), 1, 6, 1, 8),
-                        $this->loc(Symbol::create('__short_fn_3_2'), 1, 9, 1, 11),
+            $this->loc(
+                TypeFactory::getInstance()->persistentListFromArray([
+                    Symbol::create(Symbol::NAME_FN),
+                    TypeFactory::getInstance()->persistentVectorFromArray([
+                        Symbol::create('__short_fn_1_1'),
+                        Symbol::create('__short_fn_undefined_3'),
+                        Symbol::create('__short_fn_3_2'),
                     ]),
-                    1,
-                    0,
-                    1,
-                    12
-                ),
-            ]),
+                    $this->loc(
+                        TypeFactory::getInstance()->persistentListFromArray([
+                            $this->loc(Symbol::create('add'), 1, 2, 1, 5),
+                            $this->loc(Symbol::create('__short_fn_1_1'), 1, 6, 1, 8),
+                            $this->loc(Symbol::create('__short_fn_3_2'), 1, 9, 1, 11),
+                        ]),
+                        1,
+                        0,
+                        1,
+                        12
+                    ),
+                ]),
+                1,
+                0,
+                1,
+                12
+            ),
             $this->read('|(add $1 $3)')
         );
     }
@@ -606,25 +642,31 @@ final class ReaderTest extends TestCase
     public function testReadShortFnRestArguments(): void
     {
         self::assertEquals(
-            TypeFactory::getInstance()->persistentListFromArray([
-                Symbol::create(Symbol::NAME_FN),
-                TypeFactory::getInstance()->persistentVectorFromArray([
-                    Symbol::create('__short_fn_1_1'),
-                    Symbol::create('&'),
-                    Symbol::create('__short_fn_rest_2'),
-                ]),
-                $this->loc(
-                    TypeFactory::getInstance()->persistentListFromArray([
-                        $this->loc(Symbol::create('add'), 1, 2, 1, 5),
-                        $this->loc(Symbol::create('__short_fn_1_1'), 1, 6, 1, 8),
-                        $this->loc(Symbol::create('__short_fn_rest_2'), 1, 9, 1, 11),
+            $this->loc(
+                TypeFactory::getInstance()->persistentListFromArray([
+                    Symbol::create(Symbol::NAME_FN),
+                    TypeFactory::getInstance()->persistentVectorFromArray([
+                        Symbol::create('__short_fn_1_1'),
+                        Symbol::create('&'),
+                        Symbol::create('__short_fn_rest_2'),
                     ]),
-                    1,
-                    0,
-                    1,
-                    12
-                ),
-            ]),
+                    $this->loc(
+                        TypeFactory::getInstance()->persistentListFromArray([
+                            $this->loc(Symbol::create('add'), 1, 2, 1, 5),
+                            $this->loc(Symbol::create('__short_fn_1_1'), 1, 6, 1, 8),
+                            $this->loc(Symbol::create('__short_fn_rest_2'), 1, 9, 1, 11),
+                        ]),
+                        1,
+                        0,
+                        1,
+                        12
+                    ),
+                ]),
+                1,
+                0,
+                1,
+                12
+            ),
             $this->read('|(add $1 $&)')
         );
     }
@@ -632,24 +674,30 @@ final class ReaderTest extends TestCase
     public function testShortFnRestArgumentMultipleTimes(): void
     {
         $this->assertEquals(
-            TypeFactory::getInstance()->persistentListFromArray([
-                Symbol::create(Symbol::NAME_FN),
-                TypeFactory::getInstance()->persistentVectorFromArray([
-                    Symbol::create('&'),
-                    Symbol::create('__short_fn_rest_1'),
-                ]),
-                $this->loc(
-                    TypeFactory::getInstance()->persistentListFromArray([
-                        $this->loc(Symbol::create('concat'), 1, 2, 1, 8),
-                        $this->loc(Symbol::create('__short_fn_rest_1'), 1, 9, 1, 11),
-                        $this->loc(Symbol::create('__short_fn_rest_1'), 1, 12, 1, 14),
+            $this->loc(
+                TypeFactory::getInstance()->persistentListFromArray([
+                    Symbol::create(Symbol::NAME_FN),
+                    TypeFactory::getInstance()->persistentVectorFromArray([
+                        Symbol::create('&'),
+                        Symbol::create('__short_fn_rest_1'),
                     ]),
-                    1,
-                    0,
-                    1,
-                    15
-                ),
-            ]),
+                    $this->loc(
+                        TypeFactory::getInstance()->persistentListFromArray([
+                            $this->loc(Symbol::create('concat'), 1, 2, 1, 8),
+                            $this->loc(Symbol::create('__short_fn_rest_1'), 1, 9, 1, 11),
+                            $this->loc(Symbol::create('__short_fn_rest_1'), 1, 12, 1, 14),
+                        ]),
+                        1,
+                        0,
+                        1,
+                        15
+                    ),
+                ]),
+                1,
+                0,
+                1,
+                15
+            ),
             $this->read('|(concat $& $&)')
         );
     }
