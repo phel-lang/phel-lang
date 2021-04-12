@@ -182,7 +182,7 @@
 (defmacro deftest
   "Defines a test function with no arguments"
   [name & body]
-  `(defn ,name @{:test true} []
+  `(defn ,name {:test true} []
      ,@body))
 
 # ---------------------

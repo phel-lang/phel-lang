@@ -4,17 +4,21 @@ declare(strict_types=1);
 
 namespace Phel\Lang\Collections\HashMap;
 
+use ArrayAccess;
 use Countable;
 use IteratorAggregate;
 use Phel\Lang\Table;
+use Phel\Lang\TypeInterface;
 
 /**
  * @template K
  * @template V
  *
  * @extends IteratorAggregate<K, V>
+ * @extends ArrayAccess<K,V>
+ * @extends TypeInterface<PersistentHashMapInterface<K, V>>
  */
-interface PersistentHashMapInterface extends Countable, IteratorAggregate
+interface PersistentHashMapInterface extends TypeInterface, Countable, IteratorAggregate, ArrayAccess
 {
     /**
      * @param K $key
@@ -40,4 +44,6 @@ interface PersistentHashMapInterface extends Countable, IteratorAggregate
     public function find($key);
 
     public function toTable(): Table;
+
+    public function merge(PersistentHashMapInterface $other): PersistentHashMapInterface;
 }

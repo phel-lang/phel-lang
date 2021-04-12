@@ -8,17 +8,17 @@ use Phel\Compiler\Analyzer\Ast\AbstractNode;
 use Phel\Compiler\Analyzer\Ast\GlobalVarNode;
 use Phel\Compiler\Analyzer\Ast\LiteralNode;
 use Phel\Compiler\Analyzer\Ast\PhpClassNameNode;
+use Phel\Lang\Collections\HashMap\PersistentHashMapInterface;
 use Phel\Lang\Keyword;
 use Phel\Lang\SourceLocation;
 use Phel\Lang\Symbol;
-use Phel\Lang\Table;
 use RuntimeException;
 
 final class GlobalEnvironment implements GlobalEnvironmentInterface
 {
     private string $ns = 'user';
 
-    /** @var array<string, array<string, Table>> */
+    /** @var array<string, array<string, PersistentHashMapInterface>> */
     private array $definitions = [];
 
     /** @var array<string, array<string, Symbol>> */
@@ -42,7 +42,7 @@ final class GlobalEnvironment implements GlobalEnvironmentInterface
         $this->ns = $ns;
     }
 
-    public function addDefinition(string $namespace, Symbol $name, Table $meta): void
+    public function addDefinition(string $namespace, Symbol $name, PersistentHashMapInterface $meta): void
     {
         if (!array_key_exists($namespace, $this->definitions)) {
             $this->definitions[$namespace] = [];
@@ -56,7 +56,7 @@ final class GlobalEnvironment implements GlobalEnvironmentInterface
         return (isset($this->definitions[$namespace][$name->getName()]));
     }
 
-    public function getDefinition(string $namespace, Symbol $name): ?Table
+    public function getDefinition(string $namespace, Symbol $name): ?PersistentHashMapInterface
     {
         if ($this->hasDefinition($namespace, $name)) {
             return $this->definitions[$namespace][$name->getName()];
@@ -233,7 +233,7 @@ final class GlobalEnvironment implements GlobalEnvironmentInterface
         return null;
     }
 
-    private function isDefinitionPrivate(Table $meta): bool
+    private function isDefinitionPrivate(PersistentHashMapInterface $meta): bool
     {
         return $meta[new Keyword('private')] === true;
     }

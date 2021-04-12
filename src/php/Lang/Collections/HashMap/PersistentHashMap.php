@@ -9,6 +9,7 @@ use Phel\Lang\AbstractType;
 use Phel\Lang\EqualizerInterface;
 use Phel\Lang\HasherInterface;
 use Phel\Lang\Table;
+use RuntimeException;
 use Traversable;
 
 /**
@@ -198,5 +199,43 @@ class PersistentHashMap extends AbstractType implements PersistentHashMapInterfa
             $t[$key] = $value;
         }
         return $t;
+    }
+
+    /**
+     * @param K $offset
+     *
+     * @return V|null
+     */
+    public function offsetGet($offset)
+    {
+        return $this->find($offset);
+    }
+
+    /**
+     * @param K $offset
+     */
+    public function offsetExists($offset): bool
+    {
+        return $this->containsKey($offset);
+    }
+
+    public function offsetSet($offset, $value): void
+    {
+        throw new RuntimeException('Method offsetSet is not supported on PersistentHashMap');
+    }
+
+    public function offsetUnset($offset): void
+    {
+        throw new RuntimeException('Method offsetUnset is not supported on PersistentHashMap');
+    }
+
+    public function merge(PersistentHashMapInterface $other): PersistentHashMapInterface
+    {
+        $m = $this;
+        foreach ($other as $k => $v) {
+            $m = $m->put($k, $v);
+        }
+
+        return $m;
     }
 }

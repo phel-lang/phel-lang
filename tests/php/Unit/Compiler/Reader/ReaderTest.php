@@ -8,8 +8,8 @@ use Phel\Compiler\Analyzer\Environment\GlobalEnvironment;
 use Phel\Compiler\CompilerFactory;
 use Phel\Compiler\Reader\Exceptions\ReaderException;
 use Phel\Lang\AbstractType;
+use Phel\Lang\Collections\HashMap\PersistentHashMapInterface;
 use Phel\Lang\Keyword;
-use Phel\Lang\MetaInterface;
 use Phel\Lang\PhelArray;
 use Phel\Lang\SourceLocation;
 use Phel\Lang\Symbol;
@@ -311,6 +311,50 @@ final class ReaderTest extends TestCase
         );
     }
 
+    public function testReadEmptyMap(): void
+    {
+        self::assertEquals(
+            $this->loc(TypeFactory::getInstance()->emptyPersistentHashMap(), 1, 0, 1, 2),
+            $this->read('{}')
+        );
+    }
+
+    public function testMapTable1(): void
+    {
+        self::assertEquals(
+            $this->loc(
+                TypeFactory::getInstance()->persistentHashMapFromKVs(
+                    $this->loc(new Keyword('a'), 1, 1, 1, 3),
+                    1
+                ),
+                1,
+                0,
+                1,
+                6
+            ),
+            $this->read('{:a 1}')
+        );
+    }
+
+    public function testMapTable2(): void
+    {
+        self::assertEquals(
+            $this->loc(TypeFactory::getInstance()->persistentHashMapFromKVs(
+                $this->loc(new Keyword('a'), 1, 1, 1, 3),
+                1,
+                $this->loc(new Keyword('b'), 1, 6, 1, 8),
+                2
+            ), 1, 0, 1, 11),
+            $this->read('{:a 1 :b 2}')
+        );
+    }
+
+    public function testMapUneven(): void
+    {
+        $this->expectException(ReaderException::class);
+        $this->read('{:a}');
+    }
+
     public function testReadEmptyTable(): void
     {
         self::assertEquals(
@@ -352,7 +396,7 @@ final class ReaderTest extends TestCase
             $this->loc(
                 $this->withMeta(
                     Symbol::create('test'),
-                    Table::fromKVs(
+                    TypeFactory::getInstance()->persistentHashMapFromKVs(
                         $this->loc(new Keyword('test'), 1, 1, 1, 6),
                         true
                     )
@@ -372,7 +416,10 @@ final class ReaderTest extends TestCase
             $this->loc(
                 $this->withMeta(
                     Symbol::create('test'),
-                    Table::fromKVs(new Keyword('tag'), 'test')
+                    TypeFactory::getInstance()->persistentHashMapFromKVs(
+                        new Keyword('tag'),
+                        'test'
+                    )
                 ),
                 1,
                 8,
@@ -389,7 +436,7 @@ final class ReaderTest extends TestCase
             $this->loc(
                 $this->withMeta(
                     Symbol::create('test'),
-                    Table::fromKVs(
+                    TypeFactory::getInstance()->persistentHashMapFromKVs(
                         new Keyword('tag'),
                         $this->loc(Symbol::create('String'), 1, 1, 1, 7)
                     )
@@ -409,19 +456,19 @@ final class ReaderTest extends TestCase
             $this->loc(
                 $this->withMeta(
                     Symbol::create('test'),
-                    Table::fromKVs(
-                        $this->loc(new Keyword('a'), 1, 3, 1, 5),
+                    TypeFactory::getInstance()->persistentHashMapFromKVs(
+                        $this->loc(new Keyword('a'), 1, 2, 1, 4),
                         1,
-                        $this->loc(new Keyword('b'), 1, 8, 1, 10),
+                        $this->loc(new Keyword('b'), 1, 7, 1, 9),
                         2
                     )
                 ),
                 1,
-                14,
+                13,
                 1,
-                18
+                17
             ),
-            $this->read('^@{:a 1 :b 2} test')
+            $this->read('^{:a 1 :b 2} test')
         );
     }
 
@@ -431,7 +478,7 @@ final class ReaderTest extends TestCase
             $this->loc(
                 $this->withMeta(
                     Symbol::create('test'),
-                    Table::fromKVs(
+                    TypeFactory::getInstance()->persistentHashMapFromKVs(
                         $this->loc(new Keyword('a'), 1, 1, 1, 3),
                         true,
                         $this->loc(new Keyword('b'), 1, 5, 1, 7),
@@ -450,7 +497,7 @@ final class ReaderTest extends TestCase
     public function testVectorMeta(): void
     {
         $this->expectException(ReaderException::class);
-        $this->expectExceptionMessage('Metadata must be a Symbol, String, Keyword or Table');
+        $this->expectExceptionMessage('Metadata must be a Symbol, String, Keyword or Map');
         $this->read('^[:a] test');
     }
 
@@ -719,11 +766,14 @@ final class ReaderTest extends TestCase
         return $result;
     }
 
-    private function withMeta(MetaInterface $x, Table $t): MetaInterface
+    /**
+     * @param mixed $x
+     *
+     * @return mixed
+     */
+    private function withMeta($x, PersistentHashMapInterface $t)
     {
-        $x->withMeta($t->toPersistentHashMap());
-
-        return $x;
+        return $x->withMeta($t);
     }
 
     private function loc(TypeInterface $x, $beginLine, $beginColumn, $endLine, $endColumn): AbstractType

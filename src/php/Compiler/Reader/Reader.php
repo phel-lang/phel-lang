@@ -118,6 +118,12 @@ final class Reader implements ReaderInterface
                 ->read($node, $root);
         }
 
+        if ($node->getTokenType() === Token::T_OPEN_BRACE) {
+            return $this->readerFactory
+                ->createMapReader($this)
+                ->read($node, $root);
+        }
+
         if ($node->getTokenType() === Token::T_ARRAY) {
             return $this->readerFactory
                 ->createListArrayReader($this)

@@ -57,6 +57,11 @@ class TypeFactory
         return $result;
     }
 
+    public function persistentHashMapFromArray(array $kvs): PersistentHashMapInterface
+    {
+        return $this->persistentHashMapFromKVs(...$kvs);
+    }
+
     /*public function emptyPersistentHashSet(): PersistentHashSet
     {
         return new PersistentHashSet($this->hasher, null, $this->emptyPersistentHashMap());

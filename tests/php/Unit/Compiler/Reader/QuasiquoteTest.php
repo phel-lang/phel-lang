@@ -112,6 +112,25 @@ final class QuasiquoteTest extends TestCase
         );
     }
 
+    public function testTransformCreateMap(): void
+    {
+        $q = new QuasiquoteTransformer(new GlobalEnvironment());
+        self::assertEquals(
+            TypeFactory::getInstance()->persistentListFromArray([
+                Symbol::create(Symbol::NAME_APPLY),
+                Symbol::create(Symbol::NAME_MAP),
+                TypeFactory::getInstance()->persistentListFromArray([
+                    Symbol::create(Symbol::NAME_CONCAT),
+                    TypeFactory::getInstance()->persistentListFromArray([Symbol::create(Symbol::NAME_LIST), 'a']),
+                    TypeFactory::getInstance()->persistentListFromArray([Symbol::create(Symbol::NAME_LIST), 1]),
+                    TypeFactory::getInstance()->persistentListFromArray([Symbol::create(Symbol::NAME_LIST), 'b']),
+                    TypeFactory::getInstance()->persistentListFromArray([Symbol::create(Symbol::NAME_LIST), 2]),
+                ]),
+            ]),
+            $q->transform(TypeFactory::getInstance()->persistentHashMapFromKVs('a', 1, 'b', 2))
+        );
+    }
+
     public function testTransformCreateTable(): void
     {
         $q = new QuasiquoteTransformer(new GlobalEnvironment());
@@ -217,7 +236,7 @@ final class QuasiquoteTest extends TestCase
     public function testTransformGlobalSymbol(): void
     {
         $env = new GlobalEnvironment();
-        $env->addDefinition('test', Symbol::create('abc'), Table::fromKVs());
+        $env->addDefinition('test', Symbol::create('abc'), TypeFactory::getInstance()->emptyPersistentHashMap());
 
         $q = new QuasiquoteTransformer($env);
         self::assertEquals(

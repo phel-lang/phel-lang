@@ -14,7 +14,6 @@ use Phel\Compiler\Analyzer\Exceptions\AnalyzerException;
 use Phel\Compiler\Analyzer\TypeAnalyzer\SpecialForm\DefSymbol;
 use Phel\Lang\Keyword;
 use Phel\Lang\Symbol;
-use Phel\Lang\Table;
 use Phel\Lang\TypeFactory;
 use PHPUnit\Framework\TestCase;
 use stdClass;
@@ -98,7 +97,7 @@ final class DefSymbolTest extends TestCase
                 $env,
                 'user',
                 Symbol::create('name'),
-                Table::fromKVs(),
+                TypeFactory::getInstance()->emptyPersistentHashMap(),
                 new LiteralNode(
                     $env
                         ->withContext(NodeEnvironment::CONTEXT_EXPRESSION)
@@ -128,7 +127,7 @@ final class DefSymbolTest extends TestCase
                 $env,
                 'user',
                 Symbol::create('name'),
-                Table::fromKVs(
+                TypeFactory::getInstance()->persistentHashMapFromKVs(
                     new Keyword('doc'),
                     'my docstring'
                 ),
@@ -161,7 +160,7 @@ final class DefSymbolTest extends TestCase
                 $env,
                 'user',
                 Symbol::create('name'),
-                Table::fromKVs(
+                TypeFactory::getInstance()->persistentHashMapFromKVs(
                     new Keyword('private'),
                     true
                 ),
@@ -183,7 +182,7 @@ final class DefSymbolTest extends TestCase
         $list = TypeFactory::getInstance()->persistentListFromArray([
             Symbol::create(Symbol::NAME_DEF),
             Symbol::create('name'),
-            Table::fromKVs(new Keyword('private'), true),
+            TypeFactory::getInstance()->persistentHashMapFromKVs(new Keyword('private'), true),
             'any value',
         ]);
         $env = NodeEnvironment::empty();
@@ -194,7 +193,7 @@ final class DefSymbolTest extends TestCase
                 $env,
                 'user',
                 Symbol::create('name'),
-                Table::fromKVs(
+                TypeFactory::getInstance()->persistentHashMapFromKVs(
                     new Keyword('private'),
                     true
                 ),
@@ -214,7 +213,7 @@ final class DefSymbolTest extends TestCase
     public function testInvalidMeta(): void
     {
         $this->expectException(AnalyzerException::class);
-        $this->expectExceptionMessage('Metadata must be a String, Keyword or Table');
+        $this->expectExceptionMessage('Metadata must be a String, Keyword or Map');
 
         $list = TypeFactory::getInstance()->persistentListFromArray([
             Symbol::create(Symbol::NAME_DEF),

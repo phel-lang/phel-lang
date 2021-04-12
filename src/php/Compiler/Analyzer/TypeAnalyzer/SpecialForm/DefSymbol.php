@@ -10,10 +10,11 @@ use Phel\Compiler\Analyzer\Environment\NodeEnvironmentInterface;
 use Phel\Compiler\Analyzer\Exceptions\AnalyzerException;
 use Phel\Compiler\Analyzer\TypeAnalyzer\WithAnalyzerTrait;
 use Phel\Compiler\Exceptions\AbstractLocatedException;
+use Phel\Lang\Collections\HashMap\PersistentHashMapInterface;
 use Phel\Lang\Collections\LinkedList\PersistentListInterface;
 use Phel\Lang\Keyword;
 use Phel\Lang\Symbol;
-use Phel\Lang\Table;
+use Phel\Lang\TypeFactory;
 use Phel\Lang\TypeInterface;
 
 final class DefSymbol implements SpecialFormAnalyzerInterface
@@ -37,15 +38,15 @@ final class DefSymbol implements SpecialFormAnalyzerInterface
 
         $namespace = $this->analyzer->getNamespace();
 
-        [$metaTable, $init] = $this->createMetaTableAndInit($list);
+        [$metaMap, $init] = $this->createMetaMapAndInit($list);
 
-        $this->analyzer->addDefinition($namespace, $nameSymbol, $metaTable);
+        $this->analyzer->addDefinition($namespace, $nameSymbol, $metaMap);
 
         return new DefNode(
             $env,
             $namespace,
             $nameSymbol,
-            $metaTable,
+            $metaMap,
             $this->analyzeInit($init, $env, $namespace, $nameSymbol),
             $list->getStartLocation()
         );
@@ -71,9 +72,9 @@ final class DefSymbol implements SpecialFormAnalyzerInterface
     }
 
     /**
-     * @return array{0:Table, 1:mixed}
+     * @return array{0:PersistentHashMapInterface, 1:mixed}
      */
-    private function createMetaTableAndInit(PersistentListInterface $list): array
+    private function createMetaMapAndInit(PersistentListInterface $list): array
     {
         [$meta, $init] = $this->getInitialMetaAndInit($list);
 
@@ -90,33 +91,33 @@ final class DefSymbol implements SpecialFormAnalyzerInterface
         if ($listMeta) {
             foreach ($listMeta->getIterator() as $key => $value) {
                 if ($key !== null) {
-                    $meta[$key] = $value;
+                    $meta = $meta->put($key, $value);
                 }
             }
         }
 
         $startLocation = $list->getStartLocation();
         if ($startLocation) {
-            $meta[new Keyword('start-location')] = Table::fromKVs(
+            $meta = $meta->put(new Keyword('start-location'), TypeFactory::getInstance()->persistentHashMapFromKVs(
                 new Keyword('file'),
                 $startLocation->getFile(),
                 new Keyword('line'),
                 $startLocation->getLine(),
                 new Keyword('column'),
                 $startLocation->getColumn(),
-            );
+            ));
         }
 
         $endLocation = $list->getEndLocation();
         if ($endLocation) {
-            $meta[new Keyword('end-location')] = Table::fromKVs(
+            $meta = $meta->put(new Keyword('end-location'), TypeFactory::getInstance()->persistentHashMapFromKVs(
                 new Keyword('file'),
                 $endLocation->getFile(),
                 new Keyword('line'),
                 $endLocation->getLine(),
                 new Keyword('column'),
                 $endLocation->getColumn(),
-            );
+            ));
         }
 
         return [$meta, $init];
@@ -125,29 +126,33 @@ final class DefSymbol implements SpecialFormAnalyzerInterface
     /**
      * @param mixed $meta
      */
-    private function normalizeMeta($meta, PersistentListInterface $list): Table
+    private function normalizeMeta($meta, PersistentListInterface $list): PersistentHashMapInterface
     {
         if (is_string($meta)) {
             $key = (new Keyword('doc'))->copyLocationFrom($list);
 
-            return Table::fromKVs($key, $meta)->copyLocationFrom($list);
+            return TypeFactory::getInstance()
+                ->persistentHashMapFromKVs($key, $meta)
+                ->copyLocationFrom($list);
         }
 
         if ($meta instanceof Keyword) {
-            return Table::fromKVs($meta, true)->copyLocationFrom($meta);
+            return TypeFactory::getInstance()
+                ->persistentHashMapFromKVs($meta, true)
+                ->copyLocationFrom($meta);
         }
 
-        if ($meta instanceof Table) {
+        if ($meta instanceof PersistentHashMapInterface) {
             return $meta;
         }
 
-        throw AnalyzerException::withLocation('Metadata must be a String, Keyword or Table', $list);
+        throw AnalyzerException::withLocation('Metadata must be a String, Keyword or Map', $list);
     }
 
     private function getInitialMetaAndInit(PersistentListInterface $list): array
     {
         if (count($list) === 3) {
-            return [new Table(), $list->get(2)];
+            return [TypeFactory::getInstance()->emptyPersistentHashMap(), $list->get(2)];
         }
 
         return [$list->get(2), $list->get(3)];

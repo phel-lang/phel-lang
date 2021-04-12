@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Phel\Lang;
 
+use Phel\Lang\Collections\HashMap\PersistentHashMapInterface;
 use Phel\Printer\Printer;
 
 final class Keyword extends AbstractType implements IdenticalInterface, FnInterface
@@ -32,9 +33,10 @@ final class Keyword extends AbstractType implements IdenticalInterface, FnInterf
     }
 
     /**
+     * @param PersistentHashMapInterface|Table $obj
      * @param TypeInterface|string|float|int|bool|null $default
      */
-    public function __invoke(Table $obj, $default = null)
+    public function __invoke($obj, $default = null)
     {
         return $obj[$this] ?? $default;
     }

@@ -9,11 +9,12 @@ use Phel\Compiler\Analyzer\Environment\NodeEnvironmentInterface;
 use Phel\Compiler\Analyzer\Exceptions\AnalyzerException;
 use Phel\Compiler\Analyzer\TypeAnalyzer\PhpKeywords;
 use Phel\Compiler\Analyzer\TypeAnalyzer\WithAnalyzerTrait;
+use Phel\Lang\Collections\HashMap\PersistentHashMapInterface;
 use Phel\Lang\Collections\LinkedList\PersistentListInterface;
 use Phel\Lang\Collections\Vector\PersistentVectorInterface;
 use Phel\Lang\Keyword;
 use Phel\Lang\Symbol;
-use Phel\Lang\Table;
+use Phel\Lang\TypeFactory;
 
 final class NsSymbol implements SpecialFormAnalyzerInterface
 {
@@ -87,12 +88,12 @@ final class NsSymbol implements SpecialFormAnalyzerInterface
             throw AnalyzerException::withLocation('First argument in :use must be a symbol.', $import);
         }
 
-        $useData = Table::fromKVArray($import->toArray());
+        $useData = TypeFactory::getInstance()->persistentHashMapFromKVs(...$import->toArray());
         $alias = $this->extractAlias($useData, $import, 'use');
         $this->analyzer->addUseAlias($ns, $alias, $useSymbol);
     }
 
-    private function extractAlias(Table $requireData, PersistentListInterface $import, string $type): Symbol
+    private function extractAlias(PersistentHashMapInterface $requireData, PersistentListInterface $import, string $type): Symbol
     {
         $alias = $requireData[new Keyword('as')];
 
@@ -103,13 +104,13 @@ final class NsSymbol implements SpecialFormAnalyzerInterface
             return $alias;
         }
 
-        $alias = $requireData[new Keyword($type)];
+        $alias2 = $requireData[new Keyword($type)];
 
-        if ($alias) {
-            if (!($alias instanceof Symbol)) {
+        if ($alias2) {
+            if (!($alias2 instanceof Symbol)) {
                 throw AnalyzerException::withLocation("First argument in :$type must be a symbol.", $import);
             }
-            $parts = explode('\\', $alias->getName());
+            $parts = explode('\\', $alias2->getName());
             return Symbol::create($parts[count($parts) - 1]);
         }
 
@@ -119,7 +120,7 @@ final class NsSymbol implements SpecialFormAnalyzerInterface
     /**
      * @return Symbol[]
      */
-    private function extractRefer(Table $requireData, PersistentListInterface $import): array
+    private function extractRefer(PersistentHashMapInterface $requireData, PersistentListInterface $import): array
     {
         $refer = $requireData[new Keyword('refer')];
 
@@ -151,7 +152,7 @@ final class NsSymbol implements SpecialFormAnalyzerInterface
             throw AnalyzerException::withLocation('First argument in :require must be a symbol.', $import);
         }
 
-        $requireData = Table::fromKVArray($import->toArray());
+        $requireData = TypeFactory::getInstance()->persistentHashMapFromKVs(...$import->toArray());
         $alias = $this->extractAlias($requireData, $import, 'require');
         $referSymbols = $this->extractRefer($requireData, $import);
 

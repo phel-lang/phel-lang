@@ -19,7 +19,6 @@ use Phel\Compiler\Analyzer\TypeAnalyzer\SpecialForm\InvokeSymbol;
 use Phel\Lang\Keyword;
 use Phel\Lang\PhelArray;
 use Phel\Lang\Symbol;
-use Phel\Lang\Table;
 use Phel\Lang\TypeFactory;
 use PHPUnit\Framework\TestCase;
 
@@ -30,12 +29,12 @@ final class InvokeSymbolTest extends TestCase
     public function setUp(): void
     {
         $env = new GlobalEnvironment();
-        $env->addDefinition('user', Symbol::create('my-macro'), Table::fromKVs(new Keyword('macro'), true));
+        $env->addDefinition('user', Symbol::create('my-macro'), TypeFactory::getInstance()->persistentHashMapFromKVs(new Keyword('macro'), true));
         $GLOBALS['__phel']['user']['my-macro'] = function ($a) {
             return $a;
         };
 
-        $env->addDefinition('user', Symbol::create('my-failed-macro'), Table::fromKVs(new Keyword('macro'), true));
+        $env->addDefinition('user', Symbol::create('my-failed-macro'), TypeFactory::getInstance()->persistentHashMapFromKVs(new Keyword('macro'), true));
         $GLOBALS['__phel']['user']['my-failed-macro'] = function ($a): void {
             throw new Exception('my-failed-macro message');
         };

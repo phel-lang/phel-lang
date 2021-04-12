@@ -8,6 +8,7 @@ use Phel\Compiler\Analyzer\Ast\GlobalVarNode;
 use Phel\Compiler\Analyzer\Environment\GlobalEnvironmentInterface;
 use Phel\Compiler\Analyzer\Environment\NodeEnvironment;
 use Phel\Compiler\Reader\Exceptions\SpliceNotInListException;
+use Phel\Lang\Collections\HashMap\PersistentHashMapInterface;
 use Phel\Lang\Collections\LinkedList\PersistentList;
 use Phel\Lang\Collections\LinkedList\PersistentListInterface;
 use Phel\Lang\Collections\Vector\PersistentVector;
@@ -51,6 +52,10 @@ final class QuasiquoteTransformer implements QuasiquoteTransformerInterface
 
         if ($form instanceof PersistentVector && count($form) > 0) {
             return $this->createFromPersistentVector($form);
+        }
+
+        if ($form instanceof PersistentHashMapInterface && count($form) > 0) {
+            return $this->createFromMap($form);
         }
 
         if ($form instanceof Table && count($form) > 0) {
@@ -104,6 +109,24 @@ final class QuasiquoteTransformer implements QuasiquoteTransformerInterface
             TypeFactory::getInstance()->persistentListFromArray([
                 (Symbol::create(Symbol::NAME_CONCAT))->copyLocationFrom($form),
                 ...$this->expandList($form),
+            ])->copyLocationFrom($form),
+        ])->copyLocationFrom($form);
+    }
+
+    private function createFromMap(PersistentHashMapInterface $form): PersistentListInterface
+    {
+        $kvs = [];
+        foreach ($form as $k => $v) {
+            $kvs[] = $k;
+            $kvs[] = $v;
+        }
+
+        return TypeFactory::getInstance()->persistentListFromArray([
+            (Symbol::create(Symbol::NAME_APPLY))->copyLocationFrom($form),
+            (Symbol::create(Symbol::NAME_MAP))->copyLocationFrom($form),
+            TypeFactory::getInstance()->persistentListFromArray([
+                (Symbol::create(Symbol::NAME_CONCAT))->copyLocationFrom($form),
+                ...$this->expandList($kvs),
             ])->copyLocationFrom($form),
         ])->copyLocationFrom($form);
     }

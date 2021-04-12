@@ -13,7 +13,7 @@ use Phel\Compiler\Analyzer\Environment\NodeEnvironment;
 use Phel\Compiler\Analyzer\Exceptions\AnalyzerException;
 use Phel\Compiler\Analyzer\TypeAnalyzer\AnalyzeSymbol;
 use Phel\Lang\Symbol;
-use Phel\Lang\Table;
+use Phel\Lang\TypeFactory;
 use PHPUnit\Framework\TestCase;
 
 final class AnalyzeSymbolTest extends TestCase
@@ -59,12 +59,12 @@ final class AnalyzeSymbolTest extends TestCase
     {
         $globalEnv = new GlobalEnvironment();
         $globalEnv->setNs('test');
-        $globalEnv->addDefinition('test', Symbol::create('a'), new Table());
+        $globalEnv->addDefinition('test', Symbol::create('a'), TypeFactory::getInstance()->emptyPersistentHashMap());
         $symbolAnalyzer = new AnalyzeSymbol(new Analyzer($globalEnv));
 
         $env = NodeEnvironment::empty();
         self::assertEquals(
-            new GlobalVarNode($env, 'test', Symbol::create('a'), new Table(), null),
+            new GlobalVarNode($env, 'test', Symbol::create('a'), TypeFactory::getInstance()->emptyPersistentHashMap(), null),
             $symbolAnalyzer->analyze(Symbol::create('a'), $env)
         );
     }
@@ -82,7 +82,7 @@ final class AnalyzeSymbolTest extends TestCase
     {
         $globalEnv = new GlobalEnvironment();
         $globalEnv->setNs('test');
-        $globalEnv->addDefinition('test', Symbol::create('a'), new Table());
+        $globalEnv->addDefinition('test', Symbol::create('a'), TypeFactory::getInstance()->emptyPersistentHashMap());
         $symbolAnalyzer = new AnalyzeSymbol(new Analyzer($globalEnv));
 
         $env = NodeEnvironment::empty()->withLocals([Symbol::create('a')]);

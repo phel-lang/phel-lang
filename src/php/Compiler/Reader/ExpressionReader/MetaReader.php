@@ -8,10 +8,10 @@ use Phel\Compiler\Parser\ParserNode\MetaNode;
 use Phel\Compiler\Parser\ParserNode\NodeInterface;
 use Phel\Compiler\Reader\Exceptions\ReaderException;
 use Phel\Compiler\Reader\Reader;
+use Phel\Lang\Collections\HashMap\PersistentHashMapInterface;
 use Phel\Lang\Keyword;
 use Phel\Lang\MetaInterface;
 use Phel\Lang\Symbol;
-use Phel\Lang\Table;
 use Phel\Lang\TypeFactory;
 use Phel\Lang\TypeInterface;
 
@@ -36,11 +36,11 @@ final class MetaReader
 
         $meta = $this->reader->readExpression($metaExpression, $root);
         if (is_string($meta) || $meta instanceof Symbol) {
-            $meta = Table::fromKVs(new Keyword('tag'), $meta);
+            $meta = TypeFactory::getInstance()->persistentHashMapFromKVs(new Keyword('tag'), $meta);
         } elseif ($meta instanceof Keyword) {
-            $meta = Table::fromKVs($meta, true);
-        } elseif (!$meta instanceof Table) {
-            throw ReaderException::forNode($node, $root, 'Metadata must be a Symbol, String, Keyword or Table');
+            $meta = TypeFactory::getInstance()->persistentHashMapFromKVs($meta, true);
+        } elseif (!$meta instanceof PersistentHashMapInterface) {
+            throw ReaderException::forNode($node, $root, 'Metadata must be a Symbol, String, Keyword or Map');
         }
         $object = $this->reader->readExpression($objectExpression, $root);
 

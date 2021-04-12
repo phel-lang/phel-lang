@@ -17,7 +17,6 @@ use Phel\Compiler\Analyzer\Exceptions\AnalyzerException;
 use Phel\Compiler\Analyzer\TypeAnalyzer\SpecialForm\Binding\BindingValidator;
 use Phel\Compiler\Analyzer\TypeAnalyzer\SpecialForm\LoopSymbol;
 use Phel\Lang\Symbol;
-use Phel\Lang\Table;
 use Phel\Lang\TypeFactory;
 use PHPUnit\Framework\TestCase;
 
@@ -28,8 +27,8 @@ final class LoopSymbolTest extends TestCase
     public function setUp(): void
     {
         $env = new GlobalEnvironment();
-        $env->addDefinition('phel\\core', Symbol::create('first'), new Table());
-        $env->addDefinition('phel\\core', Symbol::create('next'), new Table());
+        $env->addDefinition('phel\\core', Symbol::create('first'), TypeFactory::getInstance()->emptyPersistentHashMap());
+        $env->addDefinition('phel\\core', Symbol::create('next'), TypeFactory::getInstance()->emptyPersistentHashMap());
         $this->analyzer = new Analyzer($env);
     }
 

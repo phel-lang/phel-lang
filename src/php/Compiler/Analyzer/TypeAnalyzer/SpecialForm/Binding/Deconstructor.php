@@ -6,11 +6,13 @@ namespace Phel\Compiler\Analyzer\TypeAnalyzer\SpecialForm\Binding;
 
 use Phel\Compiler\Analyzer\Exceptions\AnalyzerException;
 use Phel\Compiler\Analyzer\TypeAnalyzer\SpecialForm\Binding\Deconstructor\BindingDeconstructorInterface;
+use Phel\Compiler\Analyzer\TypeAnalyzer\SpecialForm\Binding\Deconstructor\MapBindingDeconstructor;
 use Phel\Compiler\Analyzer\TypeAnalyzer\SpecialForm\Binding\Deconstructor\NullBindingDeconstructor;
 use Phel\Compiler\Analyzer\TypeAnalyzer\SpecialForm\Binding\Deconstructor\PhelArrayBindingDeconstructor;
 use Phel\Compiler\Analyzer\TypeAnalyzer\SpecialForm\Binding\Deconstructor\SymbolBindingDeconstructor;
 use Phel\Compiler\Analyzer\TypeAnalyzer\SpecialForm\Binding\Deconstructor\TableBindingDeconstructor;
 use Phel\Compiler\Analyzer\TypeAnalyzer\SpecialForm\Binding\Deconstructor\VectorBindingDeconstructor;
+use Phel\Lang\Collections\HashMap\PersistentHashMapInterface;
 use Phel\Lang\Collections\Vector\PersistentVectorInterface;
 use Phel\Lang\PhelArray;
 use Phel\Lang\Symbol;
@@ -65,6 +67,10 @@ final class Deconstructor implements DeconstructorInterface
 
         if ($binding instanceof PersistentVectorInterface) {
             return new VectorBindingDeconstructor($this);
+        }
+
+        if ($binding instanceof PersistentHashMapInterface) {
+            return new MapBindingDeconstructor($this);
         }
 
         if ($binding instanceof Table) {

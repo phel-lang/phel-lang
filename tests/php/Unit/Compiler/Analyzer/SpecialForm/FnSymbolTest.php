@@ -16,7 +16,6 @@ use Phel\Compiler\Analyzer\TypeAnalyzer\SpecialForm\FnSymbol;
 use Phel\Compiler\Exceptions\AbstractLocatedException;
 use Phel\Lang\Collections\LinkedList\PersistentListInterface;
 use Phel\Lang\Symbol;
-use Phel\Lang\Table;
 use Phel\Lang\TypeFactory;
 use PHPUnit\Framework\TestCase;
 
@@ -27,8 +26,8 @@ final class FnSymbolTest extends TestCase
     public function setUp(): void
     {
         $env = new GlobalEnvironment();
-        $env->addDefinition('phel\\core', Symbol::create('first'), new Table());
-        $env->addDefinition('phel\\core', Symbol::create('next'), new Table());
+        $env->addDefinition('phel\\core', Symbol::create('first'), TypeFactory::getInstance()->emptyPersistentHashMap());
+        $env->addDefinition('phel\\core', Symbol::create('next'), TypeFactory::getInstance()->emptyPersistentHashMap());
         $this->analyzer = new Analyzer($env);
     }
 

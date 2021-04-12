@@ -10,10 +10,11 @@ use Phel\Compiler\CompilerFactoryInterface;
 use Phel\Compiler\Emitter\Exceptions\CompiledCodeIsMalformedException;
 use Phel\Compiler\Emitter\Exceptions\FileException;
 use Phel\Compiler\Exceptions\CompilerException;
+use Phel\Lang\Collections\HashMap\PersistentHashMapInterface;
 use Phel\Lang\Keyword;
 use Phel\Lang\MetaInterface;
 use Phel\Lang\Symbol;
-use Phel\Lang\Table;
+use Phel\Lang\TypeFactory;
 use Phel\Runtime\Exceptions\ExceptionPrinterInterface;
 use Throwable;
 
@@ -181,8 +182,8 @@ class Runtime implements RuntimeInterface
             $nsDefinitions = $GLOBALS['__phel'][$ns];
             /** @var string $name */
             foreach (array_keys($nsDefinitions) as $name) {
-                /** @var Table $meta */
-                $meta = $GLOBALS['__phel_meta'][$ns][$name] ?? new Table();
+                /** @var PersistentHashMapInterface<mixed, mixed> $meta */
+                $meta = $GLOBALS['__phel_meta'][$ns][$name] ?? TypeFactory::getInstance()->emptyPersistentHashMap();
                 /** @var MetaInterface $def */
                 $def = $nsDefinitions[$name];
                 if ($meta[new Keyword('private')] !== true) {
@@ -190,7 +191,7 @@ class Runtime implements RuntimeInterface
                     $this->globalEnv->addDefinition(
                         $ns,
                         Symbol::create($name),
-                        $defMeta ? $defMeta->toTable() : Table::empty()
+                        $defMeta ? $defMeta : TypeFactory::getInstance()->emptyPersistentHashMap()
                     );
                 }
             }

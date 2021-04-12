@@ -5,22 +5,22 @@ declare(strict_types=1);
 namespace Phel\Compiler\Analyzer\Ast;
 
 use Phel\Compiler\Analyzer\Environment\NodeEnvironmentInterface;
+use Phel\Lang\Collections\HashMap\PersistentHashMapInterface;
 use Phel\Lang\SourceLocation;
 use Phel\Lang\Symbol;
-use Phel\Lang\Table;
 
 final class DefNode extends AbstractNode
 {
     private string $namespace;
     private Symbol $name;
-    private Table $meta;
+    private PersistentHashMapInterface $meta;
     private AbstractNode $init;
 
     public function __construct(
         NodeEnvironmentInterface $env,
         string $namespace,
         Symbol $name,
-        Table $meta,
+        PersistentHashMapInterface $meta,
         AbstractNode $init,
         ?SourceLocation $sourceLocation = null
     ) {
@@ -41,7 +41,7 @@ final class DefNode extends AbstractNode
         return $this->name;
     }
 
-    public function getMeta(): Table
+    public function getMeta(): PersistentHashMapInterface
     {
         return $this->meta;
     }

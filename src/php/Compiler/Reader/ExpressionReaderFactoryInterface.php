@@ -9,6 +9,7 @@ use Phel\Compiler\Reader\ExpressionReader\ListArrayReader;
 use Phel\Compiler\Reader\ExpressionReader\ListFnReader;
 use Phel\Compiler\Reader\ExpressionReader\ListReader;
 use Phel\Compiler\Reader\ExpressionReader\ListTableReader;
+use Phel\Compiler\Reader\ExpressionReader\MapReader;
 use Phel\Compiler\Reader\ExpressionReader\MetaReader;
 use Phel\Compiler\Reader\ExpressionReader\QuoasiquoteReader;
 use Phel\Compiler\Reader\ExpressionReader\SymbolReader;
@@ -24,6 +25,8 @@ interface ExpressionReaderFactoryInterface
     public function createListReader(Reader $reader): ListReader;
 
     public function createVectorReader(Reader $reader): VectorReader;
+
+    public function createMapReader(Reader $reader): MapReader;
 
     public function createListArrayReader(Reader $reader): ListArrayReader;
 

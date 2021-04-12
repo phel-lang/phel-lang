@@ -11,14 +11,14 @@
 \Phel\Runtime\RuntimeFactory::getInstance()->getEnv()->setNs("hello-world");
 $GLOBALS["__phel"]["phel\\core"]["*ns*"] = "hello_world";
 $GLOBALS["__phel"]["hello_world"]["x"] = 10;
-$GLOBALS["__phel_meta"]["hello_world"]["x"] = \Phel\Lang\Table::fromKVs(
+$GLOBALS["__phel_meta"]["hello_world"]["x"] = \Phel\Lang\TypeFactory::getInstance()->persistentHashMapFromKVs(
   new \Phel\Lang\Keyword("private"), true,
-  new \Phel\Lang\Keyword("start-location"), \Phel\Lang\Table::fromKVs(
+  new \Phel\Lang\Keyword("start-location"), \Phel\Lang\TypeFactory::getInstance()->persistentHashMapFromKVs(
     new \Phel\Lang\Keyword("file"), "Ns/munge-ns.test",
     new \Phel\Lang\Keyword("line"), 5,
     new \Phel\Lang\Keyword("column"), 0
   ),
-  new \Phel\Lang\Keyword("end-location"), \Phel\Lang\Table::fromKVs(
+  new \Phel\Lang\Keyword("end-location"), \Phel\Lang\TypeFactory::getInstance()->persistentHashMapFromKVs(
     new \Phel\Lang\Keyword("file"), "Ns/munge-ns.test",
     new \Phel\Lang\Keyword("line"), 5,
     new \Phel\Lang\Keyword("column"), 19
@@ -44,14 +44,14 @@ $GLOBALS["__phel"]["hello_world"]["abc"] = new class() extends \Phel\Lang\Abstra
     })();
   }
 };
-$GLOBALS["__phel_meta"]["hello_world"]["abc"] = \Phel\Lang\Table::fromKVs(
+$GLOBALS["__phel_meta"]["hello_world"]["abc"] = \Phel\Lang\TypeFactory::getInstance()->persistentHashMapFromKVs(
   new \Phel\Lang\Keyword("doc"), "```phel\n(abc a)\n```\nCreates a new abc struct",
-  new \Phel\Lang\Keyword("start-location"), \Phel\Lang\Table::fromKVs(
+  new \Phel\Lang\Keyword("start-location"), \Phel\Lang\TypeFactory::getInstance()->persistentHashMapFromKVs(
     new \Phel\Lang\Keyword("file"), "Ns/munge-ns.test",
     new \Phel\Lang\Keyword("line"), 7,
     new \Phel\Lang\Keyword("column"), 0
   ),
-  new \Phel\Lang\Keyword("end-location"), \Phel\Lang\Table::fromKVs(
+  new \Phel\Lang\Keyword("end-location"), \Phel\Lang\TypeFactory::getInstance()->persistentHashMapFromKVs(
     new \Phel\Lang\Keyword("file"), "Ns/munge-ns.test",
     new \Phel\Lang\Keyword("line"), 7,
     new \Phel\Lang\Keyword("column"), 19
@@ -65,14 +65,14 @@ $GLOBALS["__phel"]["hello_world"]["abc?"] = new class() extends \Phel\Lang\Abstr
     return is_a($x, "hello_world\\abc");
   }
 };
-$GLOBALS["__phel_meta"]["hello_world"]["abc?"] = \Phel\Lang\Table::fromKVs(
+$GLOBALS["__phel_meta"]["hello_world"]["abc?"] = \Phel\Lang\TypeFactory::getInstance()->persistentHashMapFromKVs(
   new \Phel\Lang\Keyword("doc"), "```phel\n(abc? x)\n```\nChecks if `x` is an instance of the abc struct",
-  new \Phel\Lang\Keyword("start-location"), \Phel\Lang\Table::fromKVs(
+  new \Phel\Lang\Keyword("start-location"), \Phel\Lang\TypeFactory::getInstance()->persistentHashMapFromKVs(
     new \Phel\Lang\Keyword("file"), "Ns/munge-ns.test",
     new \Phel\Lang\Keyword("line"), 7,
     new \Phel\Lang\Keyword("column"), 0
   ),
-  new \Phel\Lang\Keyword("end-location"), \Phel\Lang\Table::fromKVs(
+  new \Phel\Lang\Keyword("end-location"), \Phel\Lang\TypeFactory::getInstance()->persistentHashMapFromKVs(
     new \Phel\Lang\Keyword("file"), "Ns/munge-ns.test",
     new \Phel\Lang\Keyword("line"), 7,
     new \Phel\Lang\Keyword("column"), 19

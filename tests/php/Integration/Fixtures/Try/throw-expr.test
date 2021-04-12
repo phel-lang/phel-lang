@@ -11,13 +11,13 @@ $GLOBALS["__phel"]["user"]["x"] = new class() extends \Phel\Lang\AbstractFn {
     return $e_1;
   }
 };
-$GLOBALS["__phel_meta"]["user"]["x"] = \Phel\Lang\Table::fromKVs(
-  new \Phel\Lang\Keyword("start-location"), \Phel\Lang\Table::fromKVs(
+$GLOBALS["__phel_meta"]["user"]["x"] = \Phel\Lang\TypeFactory::getInstance()->persistentHashMapFromKVs(
+  new \Phel\Lang\Keyword("start-location"), \Phel\Lang\TypeFactory::getInstance()->persistentHashMapFromKVs(
     new \Phel\Lang\Keyword("file"), "Try/throw-expr.test",
     new \Phel\Lang\Keyword("line"), 1,
     new \Phel\Lang\Keyword("column"), 0
   ),
-  new \Phel\Lang\Keyword("end-location"), \Phel\Lang\Table::fromKVs(
+  new \Phel\Lang\Keyword("end-location"), \Phel\Lang\TypeFactory::getInstance()->persistentHashMapFromKVs(
     new \Phel\Lang\Keyword("file"), "Try/throw-expr.test",
     new \Phel\Lang\Keyword("line"), 1,
     new \Phel\Lang\Keyword("column"), 56

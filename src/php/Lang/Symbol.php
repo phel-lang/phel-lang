@@ -39,6 +39,7 @@ final class Symbol extends AbstractType implements IdenticalInterface
     public const NAME_PHP_OBJECT_SET = 'php/oset';
     public const NAME_LIST = 'list';
     public const NAME_VECTOR = 'vector';
+    public const NAME_MAP = 'hash-map';
 
     private static int $symGenCounter = 1;
 

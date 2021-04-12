@@ -9,6 +9,7 @@ use Phel\Compiler\Reader\ExpressionReader\ListArrayReader;
 use Phel\Compiler\Reader\ExpressionReader\ListFnReader;
 use Phel\Compiler\Reader\ExpressionReader\ListReader;
 use Phel\Compiler\Reader\ExpressionReader\ListTableReader;
+use Phel\Compiler\Reader\ExpressionReader\MapReader;
 use Phel\Compiler\Reader\ExpressionReader\MetaReader;
 use Phel\Compiler\Reader\ExpressionReader\QuoasiquoteReader;
 use Phel\Compiler\Reader\ExpressionReader\SymbolReader;
@@ -67,5 +68,10 @@ final class ExpressionReaderFactory implements ExpressionReaderFactoryInterface
     public function createMetaReader(Reader $reader): MetaReader
     {
         return new MetaReader($reader);
+    }
+
+    public function createMapReader(Reader $reader): MapReader
+    {
+        return new MapReader($reader);
     }
 }

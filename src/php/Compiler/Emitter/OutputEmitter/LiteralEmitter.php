@@ -53,7 +53,7 @@ final class LiteralEmitter
         } elseif ($x instanceof Table) {
             $this->emitTable($x);
         } elseif ($x instanceof PersistentHashMapInterface) {
-            $this->emitTable($x->toTable());
+            $this->emitMap($x);
         } elseif ($x instanceof PersistentVector) {
             $this->emitVector($x);
         } elseif ($x instanceof PersistentListInterface) {
@@ -139,6 +139,32 @@ final class LiteralEmitter
     private function emitTable(Table $x): void
     {
         $this->outputEmitter->emitStr('\Phel\Lang\Table::fromKVs(', $x->getStartLocation());
+        if (count($x) > 0) {
+            $this->outputEmitter->increaseIndentLevel();
+            $this->outputEmitter->emitLine();
+        }
+
+        $i = 0;
+        foreach ($x as $key => $value) {
+            $this->outputEmitter->emitLiteral($key);
+            $this->outputEmitter->emitStr(', ', $x->getStartLocation());
+            $this->outputEmitter->emitLiteral($value);
+            if ($i < count($x) - 1) {
+                $this->outputEmitter->emitStr(',', $x->getStartLocation());
+            }
+            $this->outputEmitter->emitLine();
+            $i++;
+        }
+
+        if (count($x) > 0) {
+            $this->outputEmitter->decreaseIndentLevel();
+        }
+        $this->outputEmitter->emitStr(')', $x->getStartLocation());
+    }
+
+    private function emitMap(PersistentHashMapInterface $x): void
+    {
+        $this->outputEmitter->emitStr('\Phel\Lang\TypeFactory::getInstance()->persistentHashMapFromKVs(', $x->getStartLocation());
         if (count($x) > 0) {
             $this->outputEmitter->increaseIndentLevel();
             $this->outputEmitter->emitLine();
