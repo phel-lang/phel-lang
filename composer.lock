@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "854129375c17b30244efff98c3645f7d",
+    "content-hash": "e4537b7bfe72c2b3ec6fc0acec62f3c6",
     "packages": [
         {
             "name": "phel-lang/phel-composer-plugin",
@@ -232,6 +232,72 @@
                 }
             ],
             "time": "2021-03-30T17:13:30+00:00"
+        },
+        {
+            "name": "beberlei/assert",
+            "version": "v3.2.7",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/beberlei/assert.git",
+                "reference": "d63a6943fc4fd1a2aedb65994e3548715105abcf"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/beberlei/assert/zipball/d63a6943fc4fd1a2aedb65994e3548715105abcf",
+                "reference": "d63a6943fc4fd1a2aedb65994e3548715105abcf",
+                "shasum": ""
+            },
+            "require": {
+                "ext-ctype": "*",
+                "ext-json": "*",
+                "ext-mbstring": "*",
+                "ext-simplexml": "*",
+                "php": "^7"
+            },
+            "require-dev": {
+                "friendsofphp/php-cs-fixer": "*",
+                "phpstan/phpstan-shim": "*",
+                "phpunit/phpunit": ">=6.0.0 <8"
+            },
+            "suggest": {
+                "ext-intl": "Needed to allow Assertion::count(), Assertion::isCountable(), Assertion::minCount(), and Assertion::maxCount() to operate on ResourceBundles"
+            },
+            "type": "library",
+            "autoload": {
+                "psr-4": {
+                    "Assert\\": "lib/Assert"
+                },
+                "files": [
+                    "lib/Assert/functions.php"
+                ]
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "BSD-2-Clause"
+            ],
+            "authors": [
+                {
+                    "name": "Benjamin Eberlei",
+                    "email": "kontakt@beberlei.de",
+                    "role": "Lead Developer"
+                },
+                {
+                    "name": "Richard Quadling",
+                    "email": "rquadling@gmail.com",
+                    "role": "Collaborator"
+                }
+            ],
+            "description": "Thin assertion library for input validation in business models.",
+            "keywords": [
+                "assert",
+                "assertion",
+                "validation"
+            ],
+            "support": {
+                "issues": "https://github.com/beberlei/assert/issues",
+                "source": "https://github.com/beberlei/assert/tree/v3"
+            },
+            "time": "2019-12-19T17:51:41+00:00"
         },
         {
             "name": "composer/semver",
@@ -737,16 +803,16 @@
         },
         {
             "name": "friendsofphp/php-cs-fixer",
-            "version": "v2.18.4",
+            "version": "v2.18.5",
             "source": {
                 "type": "git",
                 "url": "https://github.com/FriendsOfPHP/PHP-CS-Fixer.git",
-                "reference": "06f764e3cb6d60822d8f5135205f9d32b5508a31"
+                "reference": "e0f6d05c8b157f50029ca6c65c19ed2694f475bf"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/FriendsOfPHP/PHP-CS-Fixer/zipball/06f764e3cb6d60822d8f5135205f9d32b5508a31",
-                "reference": "06f764e3cb6d60822d8f5135205f9d32b5508a31",
+                "url": "https://api.github.com/repos/FriendsOfPHP/PHP-CS-Fixer/zipball/e0f6d05c8b157f50029ca6c65c19ed2694f475bf",
+                "reference": "e0f6d05c8b157f50029ca6c65c19ed2694f475bf",
                 "shasum": ""
             },
             "require": {
@@ -829,7 +895,7 @@
             "description": "A tool to automatically fix PHP code style",
             "support": {
                 "issues": "https://github.com/FriendsOfPHP/PHP-CS-Fixer/issues",
-                "source": "https://github.com/FriendsOfPHP/PHP-CS-Fixer/tree/v2.18.4"
+                "source": "https://github.com/FriendsOfPHP/PHP-CS-Fixer/tree/v2.18.5"
             },
             "funding": [
                 {
@@ -837,7 +903,7 @@
                     "type": "github"
                 }
             ],
-            "time": "2021-03-20T14:52:33+00:00"
+            "time": "2021-04-06T18:37:33+00:00"
         },
         {
             "name": "infection/abstract-testframework-adapter",
@@ -1701,16 +1767,16 @@
         },
         {
             "name": "phpbench/container",
-            "version": "2.0.1",
+            "version": "2.1.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/phpbench/container.git",
-                "reference": "04054b7c8cb30f948e5a289601c34834db58aa9f"
+                "reference": "def10824b6009d31028fa8dc9f73f4b26b234a67"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/phpbench/container/zipball/04054b7c8cb30f948e5a289601c34834db58aa9f",
-                "reference": "04054b7c8cb30f948e5a289601c34834db58aa9f",
+                "url": "https://api.github.com/repos/phpbench/container/zipball/def10824b6009d31028fa8dc9f73f4b26b234a67",
+                "reference": "def10824b6009d31028fa8dc9f73f4b26b234a67",
                 "shasum": ""
             },
             "require": {
@@ -1746,9 +1812,9 @@
             "description": "Simple, configurable, service container.",
             "support": {
                 "issues": "https://github.com/phpbench/container/issues",
-                "source": "https://github.com/phpbench/container/tree/2.0.1"
+                "source": "https://github.com/phpbench/container/tree/2.1.0"
             },
-            "time": "2020-11-21T10:55:32+00:00"
+            "time": "2021-04-04T07:23:17+00:00"
         },
         {
             "name": "phpbench/dom",
@@ -1801,22 +1867,21 @@
         },
         {
             "name": "phpbench/phpbench",
-            "version": "1.0.0-alpha6",
+            "version": "1.0.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/phpbench/phpbench.git",
-                "reference": "7c22ace875249a3d79a3de2a04dbd9d3171420e8"
+                "reference": "d3262826d103a4e3ae728e21fc79b05f0fb8f0fd"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/phpbench/phpbench/zipball/7c22ace875249a3d79a3de2a04dbd9d3171420e8",
-                "reference": "7c22ace875249a3d79a3de2a04dbd9d3171420e8",
+                "url": "https://api.github.com/repos/phpbench/phpbench/zipball/d3262826d103a4e3ae728e21fc79b05f0fb8f0fd",
+                "reference": "d3262826d103a4e3ae728e21fc79b05f0fb8f0fd",
                 "shasum": ""
             },
             "require": {
                 "beberlei/assert": "^2.4 || ^3.0",
                 "doctrine/annotations": "^1.2.7",
-                "doctrine/lexer": "^1.2",
                 "ext-dom": "*",
                 "ext-json": "*",
                 "ext-pcre": "*",
@@ -1824,8 +1889,9 @@
                 "ext-spl": "*",
                 "ext-tokenizer": "*",
                 "php": "^7.2 || ^8.0",
-                "phpbench/container": "^2.0",
+                "phpbench/container": "^2.1",
                 "phpbench/dom": "~0.3.0",
+                "psr/log": "^1.1",
                 "seld/jsonlint": "^1.1",
                 "symfony/console": "^4.2 || ^5.0",
                 "symfony/filesystem": "^4.2 || ^5.0",
@@ -1877,9 +1943,9 @@
             "description": "PHP Benchmarking Framework",
             "support": {
                 "issues": "https://github.com/phpbench/phpbench/issues",
-                "source": "https://github.com/phpbench/phpbench/tree/1.0.0-alpha6"
+                "source": "https://github.com/phpbench/phpbench/tree/1.0.0"
             },
-            "time": "2021-02-28T21:22:16+00:00"
+            "time": "2021-04-13T15:31:36+00:00"
         },
         {
             "name": "phpdocumentor/reflection-common",
