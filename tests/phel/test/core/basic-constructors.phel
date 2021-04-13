@@ -16,6 +16,9 @@
 (deftest create-table
   (is (= @{:a 1 :b 2} (table :a 1 :b 2)) "construct table"))
 
+(deftest create-hash-map
+  (is (= {:a 1 :b 2} (hash-map :a 1 :b 2)) "construct hash-map"))
+
 (deftest create-set
   (is (= (set 1 2 3 :a :b :c) (set :a 1 2 :b 3 :c :c 1 2 3)) "construct set"))
 

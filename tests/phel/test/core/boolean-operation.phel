@@ -78,6 +78,16 @@
    (is (false? (= (set :a (set "1")) (set :a (set 1)))) "nested sets with different types are not equal")
    (is (false? (= (set 1) (set 1 2))) "sets with different size are not equals")))
 
+(deftest test-=-on-map
+  (is (true? (= {} {})) "two empty hash maps are equal")
+  (is (true? (= {:key "value"} {:key "value"})) "two hash maps with the same values")
+  (is (false? (= {:key "value"} {:key 0})) "two hash maps with same keys but different values")
+  (is (true? (= {:key @{:k "v"}} {:key @{:k "v"}})) "nested hash maps are equal")
+  (is (false? (= {:key @{:k "v"}} {:key @{:k 0}})) "nested hash maps with different types are not equal")
+  (is (false? (= {:key "value"} {})) "two hash maps with different values")
+  (is (true? (= {:k1 "v1" :k2 "v2"} {:k1 "v1" :k2 "v2"})) "two keys with same value")
+  (is (true? (= {:k1 "v1" :k2 "v2"} {:k2 "v2" :k1 "v1"})) "two keys with same value but different order"))
+
 (deftest test-=-on-table
   (is (true? (= @{} @{})) "two empty tables are equal")
   (is (true? (= @{:key "value"} @{:key "value"})) "two tables with the same values")

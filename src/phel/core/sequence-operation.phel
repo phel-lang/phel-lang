@@ -10,6 +10,7 @@
   [^:reference xs x]
   (cond
     (php-array? xs) (do (php/apush xs x) xs)
+    (or (vector? xs) (php/instanceof xs TransientVectorInterface)) (php/-> xs (append x))
     (php/instanceof xs PushInterface) (php/-> xs (push x))
     (throw (php/new InvalidArgumentException
                     (str "Can not push on type " (type xs))))))
@@ -43,18 +44,33 @@
 (defn put
   "Puts `value` mapped to `key` on the datastructure `ds`. Returns `ds`."
   [ds key value]
-  (when (php-array? ds)
+  (cond
+    (php-array? ds)
     (throw (php/new InvalidArgumentException "Can not call put on pure PHP
-arrays. Use (php/aset ds key value)")))
-  (php/aset ds key value)
-  ds)
+arrays. Use (php/aset ds key value)"))
+
+    (or (hash-map? ds) (php/instanceof ds TransientHashMapInterface))
+    (php/-> ds (put key value))
+
+    (or (vector? ds) (php/instanceof ds TransientVectorInterface))
+    (php/-> ds (update key value))
+
+    (do
+      (php/aset ds key value)
+      ds)))
 
 (defn unset
   "Returns `ds` without `key`."
   [ds key]
-  (let [x ds]
-    (when (php-array? ds)
-      (throw (php/new InvalidArgumentException "Can not call unset on pure PHP
-arrays. Use (php/aunset ds key)")))
-    (php/aunset x key)
-    x))
+  (cond
+    (php-array? ds)
+    (throw (php/new InvalidArgumentException "Can not call unset on pure PHP
+arrays. Use (php/aunset ds key)"))
+
+    (or (hash-map? ds) (php/instanceof ds TransientHashMapInterface))
+    (php/-> ds (remove key))
+
+    (let [x ds]
+      (php/aunset x key)
+      x)
+    ))

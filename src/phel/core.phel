@@ -22,7 +22,9 @@
   (:use Phel\Lang\TypeFactory)
   (:use Phel\Lang\Collections\LinkedList\PersistentListInterface)
   (:use Phel\Lang\Collections\Vector\PersistentVectorInterface)
+  (:use Phel\Lang\Collections\Vector\TransientVectorInterface)
   (:use Phel\Lang\Collections\HashMap\PersistentHashMapInterface)
+  (:use Phel\Lang\Collections\HashMap\TransientHashMapInterface)
   (:use Phel\Compiler\Emitter\OutputEmitter\Munge)
   (:use Phel\Printer\Printer)
   (:use Phel\Runtime\RuntimeFactory)
@@ -218,6 +220,16 @@ This is PHP equivalent to `$args[0] . $args[1] . $args[2] ...`"
   "Loads a file into the current namespace. It can be used to split large namespaces into multiple files."
   [path]
   (php/-> (php/:: RuntimeFactory (getInstance)) (loadFileIntoNamespace *ns* path)))
+
+(defn transient
+  "Converts a persistent collection to a transient collection"
+  [coll]
+  (php/-> coll (asTransient)))
+
+(defn persistent
+  "Converts a transient collection to a persistent collection"
+  [coll]
+  (php/-> coll (persistent)))
 
 (load (str __DIR__ "/core/basic-constructors.phel"))
 (load (str __DIR__ "/core/basic-sequence-operation.phel"))

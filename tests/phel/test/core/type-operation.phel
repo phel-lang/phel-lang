@@ -6,6 +6,7 @@
   (is (= :vector (type [])) "type of vector")
   (is (= :list (type '())) "type of list")
   (is (= :table (type @{})) "type of table")
+  (is (= :hash-map (type {})) "type of map")
   (is (= :set (type (set))) "type of set")
   (is (= :keyword (type :test)) "type of keyword")
   (is (= :symbol (type 'x)) "type of symbol")
@@ -63,6 +64,9 @@
 (deftest test-table?
   (is (true? (table? @{})) "table?"))
 
+(deftest test-hash-map?
+  (is (true? (hash-map? {})) "hash-map?"))
+
 (deftest test-array?
   (is (true? (array? @[])) "array? on phel array")
   (is (false? (array? (php/array))) "array? on php array"))
@@ -95,13 +99,16 @@
   (is (true? (empty? [])) "empty? on empty vector")
   (is (true? (empty? (php/array))) "empty? on empty php array")
   (is (true? (empty? @{})) "empty? on empty table")
+  (is (true? (empty? {})) "empty? on empty map")
   (is (false? (empty? @[1])) "empty? on one element array")
   (is (false? (empty? [1])) "empty? on one element vector")
   (is (false? (empty? (php/array 1))) "empty? on one element php array")
-  (is (false? (empty? @{:a 1})) "empty? on one element table"))
+  (is (false? (empty? @{:a 1})) "empty? on one element table")
+  (is (false? (empty? {:a 1})) "empty? on one element map"))
 
 (deftest test-indexed?
   (is (false? (indexed? @{})) "indexed? on table")
+  (is (false? (indexed? {})) "indexed? on map")
   (is (false? (indexed? (php-associative-array "a" 1 "b" 2))) "indexed? on associative array")
   (is (true? (indexed? @[])) "indexed? on array")
   (is (true? (indexed? [])) "indexed? on vector")
@@ -109,6 +116,7 @@
 
 (deftest test-associative?
   (is (true? (associative? @{})) "associative? on table")
+  (is (true? (associative? {})) "associative? on map")
   (is (true? (associative? (php-associative-array "a" 1 "b" 2))) "associative? on associative array")
   (is (false? (associative? @[])) "associative? on array")
   (is (false? (associative? [])) "associative? on vector")

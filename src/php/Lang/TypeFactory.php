@@ -50,11 +50,11 @@ class TypeFactory
             throw new RuntimeException('A even number of elements must be provided');
         }
 
-        $result = $this->emptyPersistentHashMap();
+        $result = PersistentHashMap::empty($this->hasher, $this->equalizer)->asTransient();
         for ($i = 0, $l = count($kvs); $i < $l; $i += 2) {
-            $result = $result->put($kvs[$i], $kvs[$i+1]);
+            $result->put($kvs[$i], $kvs[$i+1]);
         }
-        return $result;
+        return $result->persistent();
     }
 
     public function persistentHashMapFromArray(array $kvs): PersistentHashMapInterface

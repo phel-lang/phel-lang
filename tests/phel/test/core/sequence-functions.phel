@@ -28,13 +28,18 @@
   (is (= 6 (reduce2 + (set 1 2 3))) "reduce2 on set vector"))
 
 (deftest test-put-in
-  (is (= @{:a @{:b @{:c 1}}} (put-in @{:a @{}} @[:a :b :c] 1)) "put-in: autocreate tables")
+  (is (= @{:a @{:b {:c 1}}} (put-in @{:a @{}} @[:a :b :c] 1)) "put-in: autocreate tables")
   (is (= @{:a @{:b @{:c 2}}} (put-in @{:a @{:b @{:c 1}}} @[:a :b :c] 2)) "put-in: update value of table")
   (is (= @{:a @{:b @[2]}} (put-in @{:a @{:b @[1]}} @[:a :b 0] 2)) "put-in: update value of array"))
 
+(deftest test-put-in-map
+  (is (= {:a {:b {:c 1}}} (put-in {:a {}} [:a :b :c] 1)) "put-in (map): autocreate tables")
+  (is (= {:a {:b {:c 2}}} (put-in {:a {:b {:c 1}}} [:a :b :c] 2)) "put-in (map): update value of table")
+  (is (= {:a {:b [2]}} (put-in {:a {:b [1]}} [:a :b 0] 2)) "put-in (map): update value of array"))
+
 (deftest test-update-in
   (is (= @{:a 2} (update-in @{:a 1} @[:a] inc)) "update-in: update value of table")
-  (is (= @{:a @{:b @{:c 1}}} (update-in @{:a @{}} @[:a :b :c] inc)) "update-in: autocreate tables")
+  (is (= @{:a @{:b {:c 1}}} (update-in @{:a @{}} @[:a :b :c] inc)) "update-in: autocreate tables")
   (is (= @{:a @{:b @[2]}} (update-in @{:a @{:b @[1]}} @[:a :b 0] inc)) "update-in: update value of array"))
 
 (deftest test-drop
@@ -110,8 +115,8 @@
   (is (nil? (find-index neg? @[])) "find-index on empty array"))
 
 (deftest test-distinct
-  (is (= @[1 2 3] (distinct @[1 1 2 3 2 2 3 1])) "distinct: array")
-  (is (= @[1 2 3] (distinct (php/array 1 1 2 3 2 2 3 1))) "distinct: php array"))
+  (is (= [1 2 3] (distinct @[1 1 2 3 2 2 3 1])) "distinct: array")
+  (is (= [1 2 3] (distinct (php/array 1 1 2 3 2 2 3 1))) "distinct: php array"))
 
 (deftest test-reverse
   (is (= @[3 2 1] (reverse [1 2 3])) "reverse: vector")
@@ -126,25 +131,29 @@
   (is (= @["a" "," "b" "," "c"] (interpose "," ["a" "b" "c"])) "interpose"))
 
 (deftest test-frequencies
-  (is (= @{1 2 2 3 3 2 4 1} (frequencies [1 1 2 3 2 2 3 4])) "frequencies"))
+  (is (= {1 2 2 3 3 2 4 1} (frequencies [1 1 2 3 2 2 3 4])) "frequencies"))
 
 (deftest test-keys
   (is (= @[:a :b :c] (keys @{:a 1 :b 2 :c 3})) "keys of tables")
+  (is (= @[:a :b :c] (keys {:a 1 :b 2 :c 3})) "keys of map")
   (is (= @[0 1 2] (keys @[3 2 1])) "keys of array")
   (is (= @[0 1 2] (keys [3 2 1])) "keys of vector"))
 
 (deftest test-values
   (is (= @[1 2 3] (values @{:a 1 :b 2 :c 3})) "values of tables")
+  (is (= @[1 2 3] (values {:a 1 :b 2 :c 3})) "values of map")
   (is (= @[3 2 1] (values @[3 2 1])) "values of array")
   (is (= @[3 2 1] (values [3 2 1])) "values of vector"))
 
 (deftest test-pairs
   (is (= @[[:a 1] [:b 2] [:c 3]] (pairs @{:a 1 :b 2 :c 3})) "pairs of tables")
+  (is (= @[[:a 1] [:b 2] [:c 3]] (pairs {:a 1 :b 2 :c 3})) "pairs of maps")
   (is (= @[[0 3] [1 2] [2 1]] (pairs @[3 2 1])) "pairs of array")
   (is (= @[[0 3] [1 2] [2 1]] (pairs [3 2 1])) "pairs of vector"))
 
 (deftest test-kvs
   (is (= @[:a 1 :b 2 :c 3] (kvs @{:a 1 :b 2 :c 3})) "kvs of tables")
+  (is (= @[:a 1 :b 2 :c 3] (kvs {:a 1 :b 2 :c 3})) "kvs of maps")
   (is (= @[0 3 1 2 2 1] (kvs @[3 2 1])) "kvs of array")
   (is (= @[0 3 1 2 2 1] (kvs [3 2 1])) "kvs of vector"))
 
@@ -158,18 +167,18 @@
   (is (= @[3 2 1] (sort-by - @[3 2 1])) "sort-by reversed"))
 
 (deftest test-group-by
-  (is (= @{1 @["a"] 2 @["as" "aa"] 3 @["asd"] 4 @["asdf" "qwer"]}
+  (is (= {1 @["a"] 2 @["as" "aa"] 3 @["asd"] 4 @["asdf" "qwer"]}
          (group-by php/strlen ["a" "as" "asd" "aa" "asdf" "qwer"])) "group-by"))
 
 (deftest test-zipcoll
-  (is (= @{:a 1 :b 2 :c 3} (zipcoll [:a :b :c] [1 2 3])) "zipcoll"))
+  (is (= {:a 1 :b 2 :c 3} (zipcoll [:a :b :c] [1 2 3])) "zipcoll"))
 
 (deftest test-merge
-  (is (= @{:a -1 :b 2 :c 3 :d 4} (merge @{:a 1 :b 2} @{:a -1 :c 3} @{:d 4})) "merge"))
+  (is (= {:a -1 :b 2 :c 3 :d 4} (merge {:a 1 :b 2} {:a -1 :c 3} {:d 4})) "merge"))
 
 (deftest test-invert
-  (is (= @{1 :a 2 :b} (invert @{:a 1 :b 2})) "invert")
-  (is (= @{1 :a 2 :c} (invert @{:a 1 :b 2 :c 2})) "invert duplicate values"))
+  (is (= {1 :a 2 :b} (invert {:a 1 :b 2})) "invert")
+  (is (= {1 :a 2 :c} (invert {:a 1 :b 2 :c 2})) "invert duplicate values"))
 
 (deftest test-split-at
   (is (= [[1 2] [3 4 5]] (split-at 2 [1 2 3 4 5])) "split-at")

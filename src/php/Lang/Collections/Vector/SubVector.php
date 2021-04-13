@@ -6,6 +6,7 @@ namespace Phel\Lang\Collections\Vector;
 
 use Phel\Lang\Collections\Exceptions\IndexOutOfBoundsException;
 use Phel\Lang\Collections\HashMap\PersistentHashMapInterface;
+use Phel\Lang\Collections\HashMap\TransientHashMapInterface;
 use Phel\Lang\EqualizerInterface;
 use Phel\Lang\HasherInterface;
 use Traversable;
@@ -120,5 +121,13 @@ class SubVector extends AbstractPersistentVector
     public function sliceNormalized(int $start, int $end): PersistentVectorInterface
     {
         return new SubVector($this->hasher, $this->equalizer, $this->meta, $this->vector, $this->start + $start, $this->start + $end);
+    }
+
+    /**
+     * @return TransientHashMapInterface
+     */
+    public function asTransient()
+    {
+        throw new \RuntimeException('asTransient is not supported on SubVector');
     }
 }

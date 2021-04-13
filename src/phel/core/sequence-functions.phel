@@ -62,7 +62,7 @@ collection in map"))
   "Puts a value into a nested data structure."
   [ds [k & ks] v]
   (if-not (nil? ks)
-    (put ds k (put-in (get ds k @{}) ks v))
+    (put ds k (put-in (get ds k {}) ks v))
     (put ds k v)))
 
 (defn update
@@ -74,7 +74,7 @@ collection in map"))
   "Updates a value into a nested data structure."
   [ds [k & ks] f & args]
   (if ks
-    (put ds k (apply update-in (get ds k @{}) ks f args))
+    (put ds k (apply update-in (get ds k {}) ks f args))
     (let [current (get ds k)] # Extract value first for possible call-by-reference
       (put ds k (apply f current args)))))
 
@@ -151,13 +151,13 @@ collection in map"))
 (defn distinct
   "Returns an array with duplicated values removed in `xs`."
   [xs]
-  (let [seen @{}
-        ret @[]]
+  (let [seen (transient {})
+        ret (transient [])]
     (dofor [x :in xs]
       (when-not (get seen x)
         (put seen x true)
         (push ret x)))
-    ret))
+    (persistent ret)))
 
 (defn reverse
   "Reverses the order of the elements in the given sequence."
@@ -190,10 +190,10 @@ collection in map"))
 (defn frequencies
   "Returns a table from distinct items in `xs` to the number of times they appear."
   [xs]
-  (let [res @{}]
+  (let [res (transient {})]
     (dofor [x :in xs :let [n (get res x)]]
       (put res x (php/+ 1 (or n 0))))
-    res))
+    (persistent res)))
 
 (defn keys
   "Gets the keys of an associative data structure."
@@ -232,6 +232,14 @@ collection in map"))
       (put res k v))
     res))
 
+(defn php-array-to-map
+  "Converts a PHP Array to a tables."
+  [arr]
+  (let [res (transient {})]
+    (foreach [k v arr]
+      (put res k v))
+    (persistent res)))
+
 (defn sort
   "Returns a sorted array. If no comparator is supplied compare is used."
   [xs & [comp]]
@@ -264,17 +272,17 @@ collection in map"))
   "Returns a table of the elements of xs keyed by the result of
   f on each element."
   [f xs]
-  (let [res @{}]
+  (let [res (transient {})]
     (dofor [x :in xs :let [k (f x)]]
       (when-not (get res k)
         (put res k @[]))
       (update-in res [k] push x))
-    res))
+    (persistent res)))
 
 (defn zipcoll
   "Creates a table from two sequential data structures. Return a new table."
   [a b]
-  (apply table (interleave a b)))
+  (apply hash-map (interleave a b)))
 
 (defn merge-into
   "Merges multiple tables into first table. If a key appears in more than one
@@ -289,7 +297,7 @@ collection in map"))
   "Merges multiple tables into one new table. If a key appears in more than one
   collection, then later values replace any previous ones."
   [& tables]
-  (apply merge-into @{} tables))
+  (persistent (apply merge-into (transient {}) tables)))
 
 (defn invert
   "Returns a new table where the keys and values are swapped. If table has

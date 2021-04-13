@@ -238,4 +238,16 @@ class PersistentHashMap extends AbstractType implements PersistentHashMapInterfa
 
         return $m;
     }
+
+    public function asTransient(): TransientHashMap
+    {
+        return new TransientHashMap(
+            $this->hasher,
+            $this->equalizer,
+            $this->count,
+            $this->root,
+            $this->hasNull,
+            $this->nullValue
+        );
+    }
 }

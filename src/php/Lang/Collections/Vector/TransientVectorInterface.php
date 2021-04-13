@@ -4,12 +4,13 @@ declare(strict_types=1);
 
 namespace Phel\Lang\Collections\Vector;
 
+use ArrayAccess;
 use Countable;
 
 /**
  * @template T
  */
-interface TransientVectorInterface extends Countable
+interface TransientVectorInterface extends Countable, ArrayAccess
 {
     public const BRANCH_FACTOR = 32;
     public const INDEX_MASK = self::BRANCH_FACTOR - 1;

@@ -6,6 +6,7 @@ namespace Phel\Lang\Collections\Vector;
 
 use Phel\Lang\EqualizerInterface;
 use Phel\Lang\HasherInterface;
+use RuntimeException;
 
 /**
  * @template T
@@ -272,5 +273,33 @@ class TransientVector implements TransientVectorInterface
         }
 
         return $this->count - count($this->tail);
+    }
+
+    /**
+     * @param int $offset
+     *
+     * @return mixed|null
+     */
+    public function offsetGet($offset)
+    {
+        return $this->get($offset);
+    }
+
+    /**
+     * @param int $offset
+     */
+    public function offsetExists($offset): bool
+    {
+        return $offset >= 0 && $offset < $this->count();
+    }
+
+    public function offsetSet($offset, $value): void
+    {
+        throw new RuntimeException('Method offsetSet is not supported on VectorSequence');
+    }
+
+    public function offsetUnset($offset): void
+    {
+        throw new RuntimeException('Method offsetUnset is not supported on VectorSequence');
     }
 }
