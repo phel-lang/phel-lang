@@ -41,6 +41,11 @@ class TransientHashMap implements TransientHashMapInterface
         $this->nullValue = $nullValue;
     }
 
+    public static function empty(HasherInterface $hasher, EqualizerInterface $equalizer): TransientHashMap
+    {
+        return new self($hasher, $equalizer, 0, null, false, null);
+    }
+
     public static function getNotFound(): \stdclass
     {
         if (!self::$NOT_FOUND) {
@@ -66,12 +71,15 @@ class TransientHashMap implements TransientHashMapInterface
     public function put($key, $value): self
     {
         if ($key === null) {
-            if ($this->hasNull && $this->equalizer->equals($value, $this->nullValue)) {
-                return $this;
+            if (!$this->equalizer->equals($value, $this->nullValue)) {
+                $this->nullValue = $value;
             }
 
-            $this->count++;
-            $this->hasNull = true;
+            if (!$this->hasNull) {
+                $this->count++;
+                $this->hasNull = true;
+            }
+
             return $this;
         }
 

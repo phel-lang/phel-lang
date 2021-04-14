@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Phel\Lang;
 
+use Phel\Lang\Collections\HashMap\PersistentArrayMap;
 use Phel\Lang\Collections\HashMap\PersistentHashMap;
 use Phel\Lang\Collections\HashMap\PersistentHashMapInterface;
 use Phel\Lang\Collections\HashSet\PersistentHashSet;
@@ -12,7 +13,6 @@ use Phel\Lang\Collections\LinkedList\PersistentList;
 use Phel\Lang\Collections\LinkedList\PersistentListInterface;
 use Phel\Lang\Collections\Vector\PersistentVector;
 use Phel\Lang\Collections\Vector\PersistentVectorInterface;
-use RuntimeException;
 
 class TypeFactory
 {
@@ -37,7 +37,7 @@ class TypeFactory
 
     public function emptyPersistentHashMap(): PersistentHashMapInterface
     {
-        return PersistentHashMap::empty($this->hasher, $this->equalizer);
+        return PersistentArrayMap::empty($this->hasher, $this->equalizer);
     }
 
     /**
@@ -45,21 +45,16 @@ class TypeFactory
      */
     public function persistentHashMapFromKVs(...$kvs): PersistentHashMapInterface
     {
-        if (count($kvs) % 2 !== 0) {
-            // TODO: Better exception
-            throw new RuntimeException('A even number of elements must be provided');
-        }
-
-        $result = PersistentHashMap::empty($this->hasher, $this->equalizer)->asTransient();
-        for ($i = 0, $l = count($kvs); $i < $l; $i += 2) {
-            $result->put($kvs[$i], $kvs[$i+1]);
-        }
-        return $result->persistent();
+        return $this->persistentHashMapFromArray($kvs);
     }
 
     public function persistentHashMapFromArray(array $kvs): PersistentHashMapInterface
     {
-        return $this->persistentHashMapFromKVs(...$kvs);
+        if (count($kvs) <= PersistentArrayMap::MAX_SIZE) {
+            return PersistentArrayMap::fromArray($this->hasher, $this->equalizer, $kvs);
+        }
+
+        return PersistentHashMap::fromArray($this->hasher, $this->equalizer, $kvs);
     }
 
     /*public function emptyPersistentHashSet(): PersistentHashSet

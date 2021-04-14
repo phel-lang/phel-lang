@@ -479,9 +479,9 @@ final class ReaderTest extends TestCase
                 $this->withMeta(
                     Symbol::create('test'),
                     TypeFactory::getInstance()->persistentHashMapFromKVs(
-                        $this->loc(new Keyword('a'), 1, 1, 1, 3),
-                        true,
                         $this->loc(new Keyword('b'), 1, 5, 1, 7),
+                        true,
+                        $this->loc(new Keyword('a'), 1, 1, 1, 3),
                         true
                     )
                 ),

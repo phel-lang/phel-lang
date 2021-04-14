@@ -5,10 +5,8 @@ declare(strict_types=1);
 namespace Phel\Lang\Collections\HashMap;
 
 use EmptyIterator;
-use Phel\Lang\AbstractType;
 use Phel\Lang\EqualizerInterface;
 use Phel\Lang\HasherInterface;
-use Phel\Lang\Table;
 use RuntimeException;
 use Traversable;
 
@@ -16,21 +14,16 @@ use Traversable;
  * @template K
  * @template V
  *
- * @implements PersistentHashMapInterface<K, V>
- * @extends AbstractType<PersistentHashMap<K, V>>
+ * @extends AbstractPersistentMap<K, V>
  */
-class PersistentHashMap extends AbstractType implements PersistentHashMapInterface
+class PersistentHashMap extends AbstractPersistentMap
 {
-    private EqualizerInterface $equalizer;
-    private HasherInterface $hasher;
     private int $count;
     /** @var ?HashMapNodeInterface<K, V> */
     private ?HashMapNodeInterface $root;
     private bool $hasNull;
     /** @var V */
     private $nullValue;
-    private int $hashCache = 0;
-    private ?PersistentHashMapInterface $meta;
 
     /** @var \stdclass|null */
     private static $NOT_FOUND;
@@ -40,9 +33,7 @@ class PersistentHashMap extends AbstractType implements PersistentHashMapInterfa
      */
     public function __construct(HasherInterface $hasher, EqualizerInterface $equalizer, ?PersistentHashMapInterface $meta, int $count, ?HashMapNodeInterface $root, bool $hasNull, $nullValue)
     {
-        $this->hasher = $hasher;
-        $this->equalizer = $equalizer;
-        $this->meta = $meta;
+        parent::__construct($hasher, $equalizer, $meta);
         $this->count = $count;
         $this->root = $root;
         $this->hasNull = $hasNull;
@@ -54,6 +45,19 @@ class PersistentHashMap extends AbstractType implements PersistentHashMapInterfa
         return new self($hasher, $equalizer, null, 0, null, false, null);
     }
 
+    public static function fromArray(HasherInterface $hasher, EqualizerInterface $equalizer, array $kvs): PersistentHashMapInterface
+    {
+        if (count($kvs) % 2 !== 0) {
+            throw new RuntimeException('A even number of elements must be provided');
+        }
+
+        $result = self::empty($hasher, $equalizer)->asTransient();
+        for ($i = 0, $l = count($kvs); $i < $l; $i += 2) {
+            $result->put($kvs[$i], $kvs[$i+1]);
+        }
+        return $result->persistent();
+    }
+
     public static function getNotFound(): \stdclass
     {
         if (!self::$NOT_FOUND) {
@@ -61,11 +65,6 @@ class PersistentHashMap extends AbstractType implements PersistentHashMapInterfa
         }
 
         return self::$NOT_FOUND;
-    }
-
-    public function getMeta(): ?PersistentHashMapInterface
-    {
-        return $this->meta;
     }
 
     public function withMeta(?PersistentHashMapInterface $meta)
@@ -155,88 +154,6 @@ class PersistentHashMap extends AbstractType implements PersistentHashMapInterfa
         }
 
         return new EmptyIterator();
-    }
-
-    public function hash(): int
-    {
-        if ($this->hashCache === 0) {
-            $this->hashCache = 1;
-            foreach ($this as $key => $value) {
-                $this->hashCache += $this->hasher->hash($key) ^ $this->hasher->hash($value);
-            }
-        }
-
-        return $this->hashCache;
-    }
-
-    public function equals($other): bool
-    {
-        if (!$other instanceof PersistentHashMap) {
-            return false;
-        }
-
-        if ($this->count !== $other->count()) {
-            return false;
-        }
-
-        foreach ($this as $key => $value) {
-            if (!$other->containsKey($key)) {
-                return false;
-            }
-
-            if (!$this->equalizer->equals($value, $other->find($key))) {
-                return false;
-            }
-        }
-
-        return true;
-    }
-
-    public function toTable(): Table
-    {
-        $t = Table::empty();
-        foreach ($this as $key => $value) {
-            $t[$key] = $value;
-        }
-        return $t;
-    }
-
-    /**
-     * @param K $offset
-     *
-     * @return V|null
-     */
-    public function offsetGet($offset)
-    {
-        return $this->find($offset);
-    }
-
-    /**
-     * @param K $offset
-     */
-    public function offsetExists($offset): bool
-    {
-        return $this->containsKey($offset);
-    }
-
-    public function offsetSet($offset, $value): void
-    {
-        throw new RuntimeException('Method offsetSet is not supported on PersistentHashMap');
-    }
-
-    public function offsetUnset($offset): void
-    {
-        throw new RuntimeException('Method offsetUnset is not supported on PersistentHashMap');
-    }
-
-    public function merge(PersistentHashMapInterface $other): PersistentHashMapInterface
-    {
-        $m = $this;
-        foreach ($other as $k => $v) {
-            $m = $m->put($k, $v);
-        }
-
-        return $m;
     }
 
     public function asTransient(): TransientHashMap

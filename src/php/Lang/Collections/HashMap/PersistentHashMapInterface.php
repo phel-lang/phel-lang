@@ -8,7 +8,6 @@ use ArrayAccess;
 use Countable;
 use IteratorAggregate;
 use Phel\Lang\Collections\AsTransientInterface;
-use Phel\Lang\Table;
 use Phel\Lang\TypeInterface;
 
 /**
@@ -44,8 +43,6 @@ interface PersistentHashMapInterface extends TypeInterface, Countable, IteratorA
      * @return V
      */
     public function find($key);
-
-    public function toTable(): Table;
 
     public function merge(PersistentHashMapInterface $other): PersistentHashMapInterface;
 }
