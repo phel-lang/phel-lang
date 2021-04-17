@@ -11,7 +11,7 @@ use Phel\Lang\FnInterface;
 /**
  * @template V
  *
- * @extends AsTransientInterface<TransientHashMapInterface>
+ * @extends AsTransientInterface<TransientHashSetInterface>
  */
 interface PersistentHashSetInterface extends Countable, AsTransientInterface, FnInterface
 {
