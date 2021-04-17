@@ -8,6 +8,7 @@ use ArrayAccess;
 use Countable;
 use IteratorAggregate;
 use Phel\Lang\Collections\AsTransientInterface;
+use Phel\Lang\FnInterface;
 use Phel\Lang\TypeInterface;
 
 /**
@@ -19,7 +20,7 @@ use Phel\Lang\TypeInterface;
  * @extends TypeInterface<PersistentHashMapInterface<K, V>>
  * @extends AsTransientInterface<TransientHashMapInterface>
  */
-interface PersistentHashMapInterface extends TypeInterface, Countable, IteratorAggregate, ArrayAccess, AsTransientInterface
+interface PersistentHashMapInterface extends TypeInterface, Countable, IteratorAggregate, ArrayAccess, AsTransientInterface, FnInterface
 {
     /**
      * @param K $key

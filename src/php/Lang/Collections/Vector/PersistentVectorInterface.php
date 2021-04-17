@@ -9,6 +9,7 @@ use Countable;
 use IteratorAggregate;
 use Phel\Lang\Collections\AsTransientInterface;
 use Phel\Lang\ConcatInterface;
+use Phel\Lang\FnInterface;
 use Phel\Lang\PushInterface;
 use Phel\Lang\SeqInterface;
 use Phel\Lang\SliceInterface;
@@ -25,7 +26,7 @@ use Phel\Lang\TypeInterface;
  * @extends PushInterface<PersistentVectorInterface<T>>
  * AsTransientInterface<TransientVectorInterface>
  */
-interface PersistentVectorInterface extends TypeInterface, SeqInterface, IteratorAggregate, Countable, ArrayAccess, ConcatInterface, PushInterface, SliceInterface, AsTransientInterface
+interface PersistentVectorInterface extends TypeInterface, SeqInterface, IteratorAggregate, Countable, ArrayAccess, ConcatInterface, PushInterface, SliceInterface, AsTransientInterface, FnInterface
 {
     public const BRANCH_FACTOR = 32;
     public const INDEX_MASK = self::BRANCH_FACTOR - 1;

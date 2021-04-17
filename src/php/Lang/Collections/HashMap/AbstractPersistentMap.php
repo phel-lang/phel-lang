@@ -30,6 +30,16 @@ abstract class AbstractPersistentMap extends AbstractType implements PersistentH
         $this->meta = $meta;
     }
 
+    /**
+     * @param K $key
+     *
+     * @return ?V
+     */
+    public function __invoke($key)
+    {
+        return $this->find($key);
+    }
+
     public function getMeta(): ?PersistentHashMapInterface
     {
         return $this->meta;

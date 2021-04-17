@@ -6,7 +6,6 @@ namespace Phel\Lang\Collections\HashSet;
 
 use IteratorAggregate;
 use Phel\Lang\AbstractType;
-use Phel\Lang\Collections\HashMap\PersistentHashMap;
 use Phel\Lang\Collections\HashMap\PersistentHashMapInterface;
 use Phel\Lang\HasherInterface;
 use Traversable;
@@ -21,15 +20,25 @@ class PersistentHashSet extends AbstractType implements PersistentHashSetInterfa
 {
     private HasherInterface $hasher;
     private ?PersistentHashMapInterface $meta;
-    /** @var PersistentHashMap<V, V> */
-    private PersistentHashMap $map;
+    /** @var PersistentHashMapInterface<V, V> */
+    private PersistentHashMapInterface $map;
     private int $hashCache = 0;
 
-    public function __construct(HasherInterface $hasher, ?PersistentHashMapInterface $meta, PersistentHashMap $map)
+    public function __construct(HasherInterface $hasher, ?PersistentHashMapInterface $meta, PersistentHashMapInterface $map)
     {
         $this->hasher = $hasher;
         $this->meta = $meta;
         $this->map = $map;
+    }
+
+    /**
+     * @param V $key
+     *
+     * @return ?V
+     */
+    public function __invoke($key)
+    {
+        return $this->map->find($key);
     }
 
     public function getMeta(): ?PersistentHashMapInterface
@@ -85,7 +94,17 @@ class PersistentHashSet extends AbstractType implements PersistentHashSetInterfa
             return false;
         }
 
-        return $this->map->equals($other->map);
+        if ($this->count() !== $other->count()) {
+            return false;
+        }
+
+        foreach ($this as $value) {
+            if (!$other->contains($value)) {
+                return false;
+            }
+        }
+
+        return true;
     }
 
     public function hash(): int
@@ -104,5 +123,10 @@ class PersistentHashSet extends AbstractType implements PersistentHashSetInterfa
         foreach ($this->map as $value) {
             yield $value;
         }
+    }
+
+    public function asTransient(): TransientHashSet
+    {
+        return new TransientHashSet($this->hasher, $this->map->asTransient());
     }
 }

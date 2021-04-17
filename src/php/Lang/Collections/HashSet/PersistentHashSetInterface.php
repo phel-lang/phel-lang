@@ -5,11 +5,13 @@ declare(strict_types=1);
 namespace Phel\Lang\Collections\HashSet;
 
 use Countable;
+use Phel\Lang\Collections\AsTransientInterface;
+use Phel\Lang\FnInterface;
 
 /**
  * @template V
  */
-interface PersistentHashSetInterface extends Countable
+interface PersistentHashSetInterface extends Countable, AsTransientInterface, FnInterface
 {
     /**
      * @param V $value

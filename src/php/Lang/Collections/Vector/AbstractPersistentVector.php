@@ -29,6 +29,16 @@ abstract class AbstractPersistentVector extends AbstractType implements Persiste
         $this->meta = $meta;
     }
 
+    /**
+     * @param int $index
+     *
+     * @return T
+     */
+    public function __invoke(int $index)
+    {
+        return $this->get($index);
+    }
+
     public function first()
     {
         if ($this->count() > 0) {
