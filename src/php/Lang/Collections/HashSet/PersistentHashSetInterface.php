@@ -10,6 +10,8 @@ use Phel\Lang\FnInterface;
 
 /**
  * @template V
+ *
+ * @extends AsTransientInterface<TransientHashMapInterface>
  */
 interface PersistentHashSetInterface extends Countable, AsTransientInterface, FnInterface
 {
