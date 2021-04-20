@@ -1,6 +1,6 @@
 (ns phel\core
   (:use Phel\Lang\AbstractType)
-  (:use Phel\Lang\AbstractStruct)
+  (:use Phel\Lang\Collections\Struct\AbstractPersistentStruct)
   (:use Phel\Lang\Keyword)
   (:use Phel\Lang\PhelArray)
   (:use Phel\Lang\Table)

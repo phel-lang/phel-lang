@@ -49,7 +49,7 @@
     (throw (php/new InvalidArgumentException "Can not call put on pure PHP
 arrays. Use (php/aset ds key value)"))
 
-    (or (hash-map? ds) (php/instanceof ds TransientHashMapInterface))
+    (or (struct? ds) (hash-map? ds) (php/instanceof ds TransientHashMapInterface))
     (php/-> ds (put key value))
 
     (or (vector? ds) (php/instanceof ds TransientVectorInterface))

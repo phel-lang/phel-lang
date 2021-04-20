@@ -25,12 +25,16 @@ $GLOBALS["__phel_meta"]["hello_world"]["x"] = \Phel\Lang\TypeFactory::getInstanc
   )
 );
 namespace hello_world;
-class abc extends \Phel\Lang\AbstractStruct {
-  public function __construct($a) {
-    $this->offsetSet(new \Phel\Lang\Keyword("a"), $a);
-  }
-  public function getAllowedKeys(): array {
-    return [new \Phel\Lang\Keyword("a")];
+class abc extends \Phel\Lang\Collections\Struct\AbstractPersistentStruct {
+
+  protected const ALLOWED_KEYS = ['a'];
+
+  protected $a;
+
+  public function __construct($a, $meta = null) {
+    parent::__construct();
+    $this->a = $a;
+    $this->meta = $meta;
   }
 }
 

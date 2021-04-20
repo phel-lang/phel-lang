@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace Phel\Printer;
 
-use Phel\Lang\AbstractStruct;
 use Phel\Lang\Collections\HashMap\PersistentHashMapInterface;
 use Phel\Lang\Collections\LinkedList\PersistentListInterface;
+use Phel\Lang\Collections\Struct\AbstractPersistentStruct;
 use Phel\Lang\Collections\Vector\PersistentVectorInterface;
 use Phel\Lang\Keyword;
 use Phel\Lang\PhelArray;
@@ -115,7 +115,7 @@ final class Printer implements PrinterInterface
         if ($form instanceof Table) {
             return new TablePrinter($this);
         }
-        if ($form instanceof AbstractStruct) {
+        if ($form instanceof AbstractPersistentStruct) {
             return new StructPrinter($this);
         }
         if (method_exists($form, '__toString')) {

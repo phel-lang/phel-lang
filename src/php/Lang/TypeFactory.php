@@ -96,4 +96,14 @@ class TypeFactory
     {
         return Keyword::create($name);
     }
+
+    public function getEqualizer(): EqualizerInterface
+    {
+        return $this->equalizer;
+    }
+
+    public function getHasher(): HasherInterface
+    {
+        return $this->hasher;
+    }
 }
