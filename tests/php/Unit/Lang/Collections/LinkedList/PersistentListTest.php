@@ -6,6 +6,7 @@ namespace PhelTest\Unit\Lang\Collections\Vector;
 
 use Phel\Lang\Collections\LinkedList\EmptyList;
 use Phel\Lang\Collections\LinkedList\PersistentList;
+use Phel\Lang\TypeFactory;
 use PhelTest\Unit\Lang\Collections\ModuloHasher;
 use PhelTest\Unit\Lang\Collections\SimpleEqualizer;
 use PHPUnit\Framework\TestCase;
@@ -13,20 +14,20 @@ use RuntimeException;
 
 final class PersistentListTest extends TestCase
 {
-    public function testPrependOnEmptyList(): void
+    public function testConsOnEmptyList(): void
     {
-        $list = PersistentList::empty(new ModuloHasher(), new SimpleEqualizer())->prepend('foo');
+        $list = PersistentList::empty(new ModuloHasher(), new SimpleEqualizer())->cons('foo');
 
         $this->assertTrue($list instanceof PersistentList);
         $this->assertEquals(1, $list->count());
         $this->assertEquals('foo', $list->get(0));
     }
 
-    public function testPrependOnList(): void
+    public function testConsOnList(): void
     {
         $list = PersistentList::empty(new ModuloHasher(), new SimpleEqualizer())
-            ->prepend('foo')
-            ->prepend('bar');
+            ->cons('foo')
+            ->cons('bar');
 
         $this->assertTrue($list instanceof PersistentList);
         $this->assertEquals(2, $list->count());
@@ -172,5 +173,42 @@ final class PersistentListTest extends TestCase
         $list = PersistentList::fromArray(new ModuloHasher(), new SimpleEqualizer(), ['foo', 'bar']);
 
         $this->assertEquals(PersistentList::fromArray(new ModuloHasher(), new SimpleEqualizer(), ['bar']), $list->cdr());
+    }
+
+    public function testAddMetaData(): void
+    {
+        $meta = TypeFactory::getInstance()->emptyPersistentHashMap();
+        $list = PersistentList::fromArray(new ModuloHasher(), new SimpleEqualizer(), ['foo', 'bar']);
+        $listWithMeta = $list->withMeta($meta);
+
+        $this->assertEquals(null, $list->getMeta());
+        $this->assertEquals($meta, $listWithMeta->getMeta());
+    }
+
+    public function testConcat(): void
+    {
+        $list1 = PersistentList::fromArray(new ModuloHasher(), new SimpleEqualizer(), ['foo', 'bar']);
+        $list2 = PersistentList::fromArray(new ModuloHasher(), new SimpleEqualizer(), ['foobar']);
+
+        $list = $list1->concat($list2);
+        $this->assertEquals(['foo', 'bar', 'foobar'], $list->toArray());
+    }
+
+    public function testOffsetExists(): void
+    {
+        $list = PersistentList::fromArray(new ModuloHasher(), new SimpleEqualizer(), ['foo', 'bar']);
+
+        $this->assertFalse(isset($list[-1]));
+        $this->assertTrue(isset($list[0]));
+        $this->assertTrue(isset($list[1]));
+        $this->assertFalse(isset($list[2]));
+    }
+
+    public function testOffsetGet(): void
+    {
+        $list = PersistentList::fromArray(new ModuloHasher(), new SimpleEqualizer(), ['foo', 'bar']);
+
+        $this->assertEquals('foo', $list[0]);
+        $this->assertEquals('bar', $list[1]);
     }
 }
