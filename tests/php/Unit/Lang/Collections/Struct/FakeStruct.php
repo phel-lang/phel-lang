@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace PhelTest\Unit\Lang;
+namespace PhelTest\Unit\Lang\Collections\Struct;
 
 use Phel\Lang\Collections\Struct\AbstractPersistentStruct;
 
