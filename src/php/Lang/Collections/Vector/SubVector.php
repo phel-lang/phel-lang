@@ -111,7 +111,7 @@ class SubVector extends AbstractPersistentVector
 
     public function pop(): PersistentVectorInterface
     {
-        if ($this->end - 1 == $this->start) {
+        if ($this->end - 1 <= $this->start) {
             return PersistentVector::empty($this->hasher, $this->equalizer);
         }
 

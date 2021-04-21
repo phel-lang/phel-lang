@@ -7,6 +7,9 @@ namespace PhelTest\Unit\Lang\Collections\Vector;
 use Phel\Lang\Collections\Exceptions\IndexOutOfBoundsException;
 use Phel\Lang\Collections\Vector\PersistentVector;
 use Phel\Lang\Collections\Vector\RangeIterator;
+use Phel\Lang\Collections\Vector\SubVector;
+use Phel\Lang\Collections\Vector\TransientVector;
+use Phel\Lang\TypeFactory;
 use PhelTest\Unit\Lang\Collections\ModuloHasher;
 use PhelTest\Unit\Lang\Collections\SimpleEqualizer;
 use PHPUnit\Framework\TestCase;
@@ -232,5 +235,200 @@ final class PersistentVectorTest extends TestCase
     public function testGetRangeIterator(): void
     {
         $this->assertInstanceOf(RangeIterator::class, PersistentVector::fromArray(new ModuloHasher(), new SimpleEqualizer(), [1, 2, 3])->getRangeIterator(0, 2));
+    }
+
+    public function testAddMetaData(): void
+    {
+        $meta = TypeFactory::getInstance()->emptyPersistentHashMap();
+        $vector = PersistentVector::empty(new ModuloHasher(), new SimpleEqualizer());
+        $vectorWithMeta = $vector->withMeta($meta);
+
+        $this->assertEquals(null, $vector->getMeta());
+        $this->assertEquals($meta, $vectorWithMeta->getMeta());
+    }
+
+    public function testCdrOnEmptyVector(): void
+    {
+        $vector = PersistentVector::empty(new ModuloHasher(), new SimpleEqualizer());
+        $this->assertNull($vector->cdr());
+    }
+
+    public function testCdrOnOneElementVector(): void
+    {
+        $vector = PersistentVector::fromArray(new ModuloHasher(), new SimpleEqualizer(), [1]);
+        $this->assertNull($vector->cdr());
+    }
+
+    public function testCdrOnTwoElementVector(): void
+    {
+        $vector = PersistentVector::fromArray(new ModuloHasher(), new SimpleEqualizer(), [1, 2]);
+
+        $result = [];
+        foreach ($vector->cdr() as $x) {
+            $result[] = $x;
+        }
+        $this->assertEquals([2], $result);
+    }
+
+    public function testSlice(): void
+    {
+        $vector = PersistentVector::fromArray(new ModuloHasher(), new SimpleEqualizer(), [1, 2, 3, 4])
+            ->slice(1, 2);
+
+        $this->assertInstanceOf(SubVector::class, $vector);
+        $this->assertEquals(2, count($vector));
+    }
+
+    public function testSliceToEmpty(): void
+    {
+        $vector = PersistentVector::fromArray(new ModuloHasher(), new SimpleEqualizer(), [1, 2, 3, 4])
+            ->slice(1, 0);
+
+        $this->assertInstanceOf(PersistentVector::class, $vector);
+        $this->assertEquals(0, count($vector));
+    }
+
+    public function testSliceWithoutLength(): void
+    {
+        $vector = PersistentVector::fromArray(new ModuloHasher(), new SimpleEqualizer(), [1, 2, 3, 4])
+            ->slice(1);
+
+        $this->assertInstanceOf(SubVector::class, $vector);
+        $this->assertEquals(3, count($vector));
+    }
+
+    public function testAsTransient(): void
+    {
+        $vector = PersistentVector::fromArray(new ModuloHasher(), new SimpleEqualizer(), [1, 2, 3, 4])
+            ->asTransient();
+
+        $this->assertInstanceOf(TransientVector::class, $vector);
+        $this->assertEquals(4, count($vector));
+    }
+
+    public function testFirstOnEmpty(): void
+    {
+        $vector = PersistentVector::empty(new ModuloHasher(), new SimpleEqualizer());
+        $this->assertNull($vector->first());
+    }
+
+    public function testFirstSingleElementVector(): void
+    {
+        $vector = PersistentVector::fromArray(new ModuloHasher(), new SimpleEqualizer(), [1]);
+        $this->assertEquals(1, $vector->first());
+    }
+
+    public function testInvoke(): void
+    {
+        $vector = PersistentVector::fromArray(new ModuloHasher(), new SimpleEqualizer(), [1, 2, 3, 4]);
+
+        $this->assertEquals(2, $vector(1));
+    }
+
+    public function testRestOnEmptyVector(): void
+    {
+        $vector = PersistentVector::empty(new ModuloHasher(), new SimpleEqualizer());
+        $this->assertEquals(
+            PersistentVector::empty(new ModuloHasher(), new SimpleEqualizer()),
+            $vector->rest()
+        );
+    }
+
+    public function testRestOnOneElementVector(): void
+    {
+        $vector = PersistentVector::fromArray(new ModuloHasher(), new SimpleEqualizer(), [1]);
+        $this->assertEquals(
+            PersistentVector::empty(new ModuloHasher(), new SimpleEqualizer()),
+            $vector->rest()
+        );
+    }
+
+    public function testRestOnTwoElementVector(): void
+    {
+        $vector = PersistentVector::fromArray(new ModuloHasher(), new SimpleEqualizer(), [1, 2]);
+
+        $result = [];
+        foreach ($vector->rest() as $x) {
+            $result[] = $x;
+        }
+        $this->assertEquals([2], $result);
+    }
+
+    public function testHash(): void
+    {
+        $vector = PersistentVector::fromArray(new ModuloHasher(), new SimpleEqualizer(), [1, 2]);
+        $this->assertEquals(994, $vector->hash());
+    }
+
+    public function testEqualsOtherType(): void
+    {
+        $vector = PersistentVector::fromArray(new ModuloHasher(), new SimpleEqualizer(), [1, 2]);
+
+        $this->assertFalse($vector->equals([1, 2]));
+    }
+
+    public function testEqualsDifferentLength(): void
+    {
+        $vector1 = PersistentVector::fromArray(new ModuloHasher(), new SimpleEqualizer(), [1, 2]);
+        $vector2 = PersistentVector::fromArray(new ModuloHasher(), new SimpleEqualizer(), [1, 2, 3]);
+
+        $this->assertFalse($vector1->equals($vector2));
+        $this->assertFalse($vector2->equals($vector1));
+    }
+
+    public function testEqualsDifferentValues(): void
+    {
+        $vector1 = PersistentVector::fromArray(new ModuloHasher(), new SimpleEqualizer(), [1, 2]);
+        $vector2 = PersistentVector::fromArray(new ModuloHasher(), new SimpleEqualizer(), [1, 3]);
+
+        $this->assertFalse($vector1->equals($vector2));
+        $this->assertFalse($vector2->equals($vector1));
+    }
+
+    public function testEqualsSameValues(): void
+    {
+        $vector1 = PersistentVector::fromArray(new ModuloHasher(), new SimpleEqualizer(), [1, 2]);
+        $vector2 = PersistentVector::fromArray(new ModuloHasher(), new SimpleEqualizer(), [1, 2]);
+
+        $this->assertTrue($vector1->equals($vector2));
+        $this->assertTrue($vector2->equals($vector1));
+    }
+
+    public function testOffsetGet(): void
+    {
+        $vector = PersistentVector::fromArray(new ModuloHasher(), new SimpleEqualizer(), [1, 2]);
+
+        $this->assertEquals(1, $vector[0]);
+        $this->assertEquals(2, $vector[1]);
+    }
+
+    public function testOffsetExists(): void
+    {
+        $vector = PersistentVector::fromArray(new ModuloHasher(), new SimpleEqualizer(), [1, 2]);
+
+        $this->assertTrue(isset($vector[0]));
+        $this->assertTrue(isset($vector[1]));
+        $this->assertFalse(isset($vector[2]));
+    }
+
+    public function testPush(): void
+    {
+        $vector1 = PersistentVector::fromArray(new ModuloHasher(), new SimpleEqualizer(), [1, 2]);
+        $vector2 = $vector1->push(3);
+
+        $this->assertEquals(2, count($vector1));
+        $this->assertEquals(3, count($vector2));
+        $this->assertEquals(3, $vector2->get(2));
+    }
+
+    public function testConcat(): void
+    {
+        $vector1 = PersistentVector::fromArray(new ModuloHasher(), new SimpleEqualizer(), [1, 2]);
+        $vector2 = $vector1->concat([3, 4]);
+
+        $this->assertEquals(2, count($vector1));
+        $this->assertEquals(4, count($vector2));
+        $this->assertEquals(3, $vector2->get(2));
+        $this->assertEquals(4, $vector2->get(3));
     }
 }
