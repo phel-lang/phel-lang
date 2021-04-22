@@ -129,4 +129,26 @@ class PersistentHashSet extends AbstractType implements PersistentHashSetInterfa
     {
         return new TransientHashSet($this->hasher, $this->map->asTransient());
     }
+
+    public function toPhpArray(): array
+    {
+        return iterator_to_array($this);
+    }
+
+    /**
+     * Concatenates a value to the data structure.
+     *
+     * @param array<int, mixed> $xs The value to concatenate
+     *
+     * @return PersistentHashSetInterface
+     */
+    public function concat($xs)
+    {
+        $map = $this->asTransient();
+        foreach ($xs as $x) {
+            $map->add($x);
+        }
+
+        return $map->persistent();
+    }
 }

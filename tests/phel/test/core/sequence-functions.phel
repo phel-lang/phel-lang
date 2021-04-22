@@ -18,14 +18,14 @@
   (is (= "abc" (reduce str "" ["a" "b" "c"])) "reduce three elements vector")
   (is (= "abc" (reduce str "" [nil "a" "b" "c"])) "reduce vector containing a nil value")
   (is (= "x" (reduce str "x" [])) "reduce empty vector")
-  (is (= 6 (reduce + 0 (set 1 2 3))) "reduce on set"))
+  (is (= 6 (reduce + 0 (for [x :in (set 1 2 3)] x))) "reduce on set"))
 
 (deftest test-reduce2
   (is (= "abc" (reduce2 str ["a" "b" "c"])) "reduce2 three elements vector")
   (is (= "abc" (reduce2 str [nil "a" "b" "c"])) "reduce2 vector containing a nil value")
   (is (= "a" (reduce2 str ["a"])) "reduce2 one element vector")
   (is (nil? (reduce2 str [])) "reduce2 empty vector")
-  (is (= 6 (reduce2 + (set 1 2 3))) "reduce2 on set vector"))
+  (is (= 6 (reduce2 + (for [x :in (set 1 2 3)] x))) "reduce2 on set vector"))
 
 (deftest test-put-in
   (is (= @{:a @{:b {:c 1}}} (put-in @{:a @{}} @[:a :b :c] 1)) "put-in: autocreate tables")

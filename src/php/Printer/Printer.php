@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Phel\Printer;
 
 use Phel\Lang\Collections\HashMap\PersistentHashMapInterface;
+use Phel\Lang\Collections\HashSet\PersistentHashSetInterface;
 use Phel\Lang\Collections\LinkedList\PersistentListInterface;
 use Phel\Lang\Collections\Struct\AbstractPersistentStruct;
 use Phel\Lang\Collections\Vector\PersistentVectorInterface;
@@ -22,6 +23,7 @@ use Phel\Printer\TypePrinter\NullPrinter;
 use Phel\Printer\TypePrinter\NumberPrinter;
 use Phel\Printer\TypePrinter\ObjectPrinter;
 use Phel\Printer\TypePrinter\PersistentHashMapPrinter;
+use Phel\Printer\TypePrinter\PersistentHashSetPrinter;
 use Phel\Printer\TypePrinter\PersistentListPrinter;
 use Phel\Printer\TypePrinter\PersistentVectorPrinter;
 use Phel\Printer\TypePrinter\PhelArrayPrinter;
@@ -99,6 +101,9 @@ final class Printer implements PrinterInterface
         }
         if ($form instanceof PersistentHashMapInterface) {
             return new PersistentHashMapPrinter($this);
+        }
+        if ($form instanceof PersistentHashSetInterface) {
+            return new PersistentHashSetPrinter($this);
         }
         if ($form instanceof Keyword) {
             return new KeywordPrinter($this->withColor);

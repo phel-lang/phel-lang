@@ -6,6 +6,7 @@ namespace Phel\Lang\Collections\HashSet;
 
 use Countable;
 use Phel\Lang\Collections\AsTransientInterface;
+use Phel\Lang\ConcatInterface;
 use Phel\Lang\FnInterface;
 
 /**
@@ -13,7 +14,7 @@ use Phel\Lang\FnInterface;
  *
  * @extends AsTransientInterface<TransientHashSetInterface>
  */
-interface PersistentHashSetInterface extends Countable, AsTransientInterface, FnInterface
+interface PersistentHashSetInterface extends Countable, AsTransientInterface, FnInterface, ConcatInterface
 {
     /**
      * @param V $value
@@ -29,4 +30,6 @@ interface PersistentHashSetInterface extends Countable, AsTransientInterface, Fn
      * @param V $value
      */
     public function remove($value): PersistentHashSetInterface;
+
+    public function toPhpArray(): array;
 }

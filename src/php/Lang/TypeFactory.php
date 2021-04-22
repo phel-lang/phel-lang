@@ -8,6 +8,8 @@ use Phel\Lang\Collections\HashMap\PersistentArrayMap;
 use Phel\Lang\Collections\HashMap\PersistentHashMap;
 use Phel\Lang\Collections\HashMap\PersistentHashMapInterface;
 use Phel\Lang\Collections\HashSet\PersistentHashSet;
+use Phel\Lang\Collections\HashSet\PersistentHashSetInterface;
+use Phel\Lang\Collections\HashSet\TransientHashSet;
 use Phel\Lang\Collections\LinkedList\EmptyList;
 use Phel\Lang\Collections\LinkedList\PersistentList;
 use Phel\Lang\Collections\LinkedList\PersistentListInterface;
@@ -57,10 +59,20 @@ class TypeFactory
         return PersistentHashMap::fromArray($this->hasher, $this->equalizer, $kvs);
     }
 
-    /*public function emptyPersistentHashSet(): PersistentHashSet
+    public function emptyPersistentHashSet(): PersistentHashSetInterface
     {
         return new PersistentHashSet($this->hasher, null, $this->emptyPersistentHashMap());
-    }*/
+    }
+
+    public function persistentHashSetFromArray(array $values): PersistentHashSetInterface
+    {
+        $set = new TransientHashSet($this->hasher, $this->emptyPersistentHashMap()->asTransient());
+        foreach ($values as $value) {
+            $set->add($value);
+        }
+
+        return $set->persistent();
+    }
 
     public function emptyPersistentList(): EmptyList
     {

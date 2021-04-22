@@ -25,6 +25,8 @@
   (:use Phel\Lang\Collections\Vector\TransientVectorInterface)
   (:use Phel\Lang\Collections\HashMap\PersistentHashMapInterface)
   (:use Phel\Lang\Collections\HashMap\TransientHashMapInterface)
+  (:use Phel\Lang\Collections\HashSet\PersistentHashSetInterface)
+  (:use Phel\Lang\Collections\HashSet\TransientHashSetInterface)
   (:use Phel\Compiler\Emitter\OutputEmitter\Munge)
   (:use Phel\Printer\Printer)
   (:use Phel\Runtime\RuntimeFactory)
@@ -127,7 +129,7 @@ elements, returns nil."
 (def set-meta!
   "```phel\n(set-meta! obj)\n```\nSets the meta data to a given object"
   (fn [obj meta]
-    (php/-> obj (setMeta meta))))
+    (php/-> obj (withMeta meta))))
 
 # ------------
 # Basic macros

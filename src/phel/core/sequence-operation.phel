@@ -11,6 +11,7 @@
   (cond
     (php-array? xs) (do (php/apush xs x) xs)
     (or (vector? xs) (php/instanceof xs TransientVectorInterface)) (php/-> xs (append x))
+    (or (set? xs) (php/instanceof xs TransientHashSetInterface)) (php/-> xs (add x))
     (php/instanceof xs PushInterface) (php/-> xs (push x))
     (throw (php/new InvalidArgumentException
                     (str "Can not push on type " (type xs))))))
