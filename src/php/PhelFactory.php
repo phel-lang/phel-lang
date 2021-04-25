@@ -2,15 +2,15 @@
 
 declare(strict_types=1);
 
-namespace Phel\Main;
+namespace Phel;
 
 use Gacela\Framework\AbstractFactory;
 use Phel\Command\CommandFacadeInterface;
 
-final class MainFactory extends AbstractFactory
+final class PhelFactory extends AbstractFactory
 {
     public function getCommandFacade(): CommandFacadeInterface
     {
-        return $this->getProvidedDependency(MainDependencyProvider::FACADE_COMMAND);
+        return $this->getProvidedDependency(PhelDependencyProvider::FACADE_COMMAND);
     }
 }

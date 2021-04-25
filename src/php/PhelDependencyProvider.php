@@ -2,14 +2,14 @@
 
 declare(strict_types=1);
 
-namespace Phel\Main;
+namespace Phel;
 
 use Gacela\Framework\AbstractDependencyProvider;
 use Gacela\Framework\Container\Container;
 use Phel\Command\CommandFacade;
 use Phel\Command\CommandFacadeInterface;
 
-final class MainDependencyProvider extends AbstractDependencyProvider
+final class PhelDependencyProvider extends AbstractDependencyProvider
 {
     public const FACADE_COMMAND = 'FACADE_COMMAND';
 

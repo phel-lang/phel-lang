@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Phel\Main;
+namespace Phel;
 
 use Gacela\Framework\AbstractFacade;
 use InvalidArgumentException;
@@ -13,9 +13,9 @@ use Phel\Command\Run\RunCommand;
 use Phel\Command\Test\TestCommand;
 
 /**
- * @method MainFactory getFactory()
+ * @method PhelFactory getFactory()
  */
-final class MainFacade extends AbstractFacade
+final class PhelFacade extends AbstractFacade
 {
     public const HELP_TEXT = <<<HELP
 Usage: phel [command]
