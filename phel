@@ -3,7 +3,6 @@
 
 $slash = DIRECTORY_SEPARATOR;
 
-use Gacela\Framework\Config;
 use Phel\Main\MainFacade;
 
 $projectRootDir = getcwd() . $slash;
@@ -18,8 +17,6 @@ require $autoloadPath;
 if ($argc <= 1) {
     exit(MainFacade::HELP_TEXT);
 }
-
-Config::setApplicationRootDir(getcwd());
 
 try {
     $facade = new MainFacade();
