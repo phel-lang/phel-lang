@@ -249,7 +249,7 @@ class IndexedNode implements HashMapNodeInterface
             /** @var HashMapNodeInterface $node */
             $node = $currentValue;
 
-            return $node->find($shift+5, $hash, $key, $notFound);
+            return $node->find($shift + 5, $hash, $key, $notFound);
         }
 
         if ($this->equalizer->equals($key, $currentKey)) {

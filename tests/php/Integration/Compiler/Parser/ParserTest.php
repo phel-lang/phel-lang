@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace PhelTest\Unit\Compiler\Parser;
+namespace PhelTest\Integration\Compiler\Parser;
 
-use Phel\Compiler\CompilerFactory;
-use Phel\Compiler\Lexer\Lexer;
+use Phel\Compiler\CompilerFacade;
+use Phel\Compiler\CompilerFacadeInterface;
 use Phel\Compiler\Lexer\Token;
 use Phel\Compiler\Parser\Exceptions\AbstractParserException;
 use Phel\Compiler\Parser\ParserNode\BooleanNode;
@@ -24,15 +24,22 @@ use Phel\Compiler\Parser\ParserNode\WhitespaceNode;
 use Phel\Lang\Keyword;
 use Phel\Lang\SourceLocation;
 use Phel\Lang\Symbol;
+use Phel\Runtime\RuntimeSingleton;
 use PHPUnit\Framework\TestCase;
 
 final class ParserTest extends TestCase
 {
-    private CompilerFactory $compilerFactory;
+    private CompilerFacadeInterface $compilerFacade;
+
+    public static function setUpBeforeClass(): void
+    {
+        RuntimeSingleton::reset();
+    }
 
     public function setUp(): void
     {
-        $this->compilerFactory = new CompilerFactory();
+        Symbol::resetGen();
+        $this->compilerFacade = new CompilerFacade();
     }
 
     public function testReadNumber(): void
@@ -515,20 +522,17 @@ final class ParserTest extends TestCase
 
     public function testEOF(): void
     {
-        $parser = $this->compilerFactory->createParser();
-        $tokenStream = $this->compilerFactory->createLexer()->lexString('');
+        $tokenStream = $this->compilerFacade->lexString('');
 
-        self::assertNull($parser->parseNext($tokenStream));
+        self::assertNull($this->compilerFacade->parseNext($tokenStream));
     }
 
     public function testInvalidGenerator(): void
     {
-        Symbol::resetGen();
-        $parser = $this->compilerFactory->createParser();
-        $tokenStream = $this->compilerFactory->createLexer()->lexString('');
+        $tokenStream = $this->compilerFacade->lexString('');
 
         $tokenStream->next();
-        self::assertNull($parser->parseNext($tokenStream));
+        self::assertNull($this->compilerFacade->parseNext($tokenStream));
     }
 
     public function testReadComment(): void
@@ -557,11 +561,9 @@ final class ParserTest extends TestCase
 
     private function parse(string $string): NodeInterface
     {
-        Symbol::resetGen();
-        $parser = (new CompilerFactory())->createParser();
-        $tokenStream = (new Lexer())->lexString($string);
+        $tokenStream = $this->compilerFacade->lexString($string);
 
-        return $parser->parseNext($tokenStream);
+        return $this->compilerFacade->parseNext($tokenStream);
     }
 
     private function loc($line, $column): SourceLocation

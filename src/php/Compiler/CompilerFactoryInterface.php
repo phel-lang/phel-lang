@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Phel\Compiler;
 
+use Phel\Compiler\Compiler\EvalCompilerInterface;
+use Phel\Compiler\Compiler\FileCompilerInterface;
 use Phel\Compiler\Emitter\EmitterInterface;
 use Phel\Compiler\Emitter\OutputEmitterInterface;
 use Phel\Compiler\Lexer\LexerInterface;

@@ -55,8 +55,8 @@ final class IntegrationTest extends TestCase
 
         $compiledCode = $this->compilePhelCode(
             $this->compilerFactory->createParser(),
-            $this->compilerFactory->createReader($globalEnv),
-            $this->compilerFactory->createAnalyzer($globalEnv),
+            $this->compilerFactory->createReader(),
+            $this->compilerFactory->createAnalyzer(),
             $this->compilerFactory->createEmitter($enableSourceMaps = false),
             $this->compilerFactory->createLexer()->lexString($phelCode, $filename)
         );

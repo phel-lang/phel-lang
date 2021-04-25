@@ -2,12 +2,11 @@
 
 declare(strict_types=1);
 
-namespace PhelTest\Unit\Compiler\Reader;
+namespace PhelTest\Integration\Compiler\Reader;
 
-use Phel\Compiler\Analyzer\Environment\GlobalEnvironment;
-use Phel\Compiler\CompilerFactory;
+use Phel\Compiler\CompilerFacade;
+use Phel\Compiler\CompilerFacadeInterface;
 use Phel\Compiler\Reader\Exceptions\ReaderException;
-use Phel\Lang\AbstractType;
 use Phel\Lang\Collections\Map\PersistentMapInterface;
 use Phel\Lang\Keyword;
 use Phel\Lang\PhelArray;
@@ -16,15 +15,22 @@ use Phel\Lang\Symbol;
 use Phel\Lang\Table;
 use Phel\Lang\TypeFactory;
 use Phel\Lang\TypeInterface;
+use Phel\Runtime\RuntimeSingleton;
 use PHPUnit\Framework\TestCase;
 
 final class ReaderTest extends TestCase
 {
-    private CompilerFactory $compilerFactory;
+    private CompilerFacadeInterface $compilerFacade;
+
+    public static function setUpBeforeClass(): void
+    {
+        RuntimeSingleton::reset();
+    }
 
     public function setUp(): void
     {
-        $this->compilerFactory = new CompilerFactory();
+        Symbol::resetGen();
+        $this->compilerFacade = new CompilerFacade();
     }
 
     public function testReadNumber(): void
@@ -103,7 +109,7 @@ final class ReaderTest extends TestCase
             $this->loc(TypeFactory::getInstance()->persistentListFromArray([
                 $this->loc(Symbol::create('a'), 1, 1, 1, 2),
                 $this->loc(Symbol::create('b'), 1, 3, 1, 4),
-            ], false), 1, 0, 1, 5),
+            ]), 1, 0, 1, 5),
             $this->read('(a b)')
         );
     }
@@ -750,20 +756,14 @@ final class ReaderTest extends TestCase
     }
 
     /**
-     * @return AbstractType|string|float|int|bool|null
+     * @return TypeInterface|string|float|int|bool|null
      */
     private function read(string $string, bool $removeLoc = false)
     {
-        Symbol::resetGen();
+        $tokenStream = $this->compilerFacade->lexString($string, !$removeLoc);
+        $parseTree = $this->compilerFacade->parseNext($tokenStream);
 
-        $parser = $this->compilerFactory->createParser();
-        $reader = $this->compilerFactory->createReader(new GlobalEnvironment());
-        $tokenStream = $this->compilerFactory->createLexer(!$removeLoc)->lexString($string);
-
-        $parseTree = $parser->parseNext($tokenStream);
-        $result = $reader->read($parseTree)->getAst();
-
-        return $result;
+        return $this->compilerFacade->read($parseTree)->getAst();
     }
 
     /**
@@ -776,7 +776,7 @@ final class ReaderTest extends TestCase
         return $x->withMeta($t);
     }
 
-    private function loc(TypeInterface $x, $beginLine, $beginColumn, $endLine, $endColumn): AbstractType
+    private function loc(TypeInterface $x, $beginLine, $beginColumn, $endLine, $endColumn): TypeInterface
     {
         return $x
             ->setStartLocation(new SourceLocation('string', $beginLine, $beginColumn))

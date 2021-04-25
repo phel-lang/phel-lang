@@ -2,10 +2,9 @@
 
 declare(strict_types=1);
 
-namespace Phel\Command\Export;
+namespace Phel\Interop\ExportFinder;
 
 use Phel\Command\Shared\Exceptions\ExtractorException;
-use Phel\Command\Shared\NamespaceExtractorInterface;
 use Phel\Compiler\Emitter\Exceptions\CompiledCodeIsMalformedException;
 use Phel\Compiler\Emitter\Exceptions\FileException;
 use Phel\Compiler\Exceptions\CompilerException;
@@ -13,33 +12,27 @@ use Phel\Interop\ReadModel\FunctionToExport;
 use Phel\Lang\Collections\Map\PersistentMapInterface;
 use Phel\Lang\Keyword;
 use Phel\Lang\TypeFactory;
-use Phel\Runtime\RuntimeInterface;
+use Phel\Runtime\RuntimeFacadeInterface;
 
 final class FunctionsToExportFinder implements FunctionsToExportFinderInterface
 {
-    private string $projectRootDir;
-    private RuntimeInterface $runtime;
-    private NamespaceExtractorInterface $nsExtractor;
+    private RuntimeFacadeInterface $runtimeFacade;
     /** @var list<string> */
-    private array $defaultDirectories;
+    private array $exportDirectories;
 
     public function __construct(
-        string $projectRootDir,
-        RuntimeInterface $runtime,
-        NamespaceExtractorInterface $nsExtractor,
-        array $defaultDirectories
+        RuntimeFacadeInterface $runtimeFacade,
+        array $exportDirectories
     ) {
-        $this->projectRootDir = $projectRootDir;
-        $this->runtime = $runtime;
-        $this->nsExtractor = $nsExtractor;
-        $this->defaultDirectories = $defaultDirectories;
+        $this->runtimeFacade = $runtimeFacade;
+        $this->exportDirectories = $exportDirectories;
     }
 
     /**
-     * @throws CompilerException
      * @throws CompiledCodeIsMalformedException
      * @throws ExtractorException
      * @throws FileException
+     * @throws CompilerException
      *
      * @return array<string, list<FunctionToExport>>
      */
@@ -58,11 +51,13 @@ final class FunctionsToExportFinder implements FunctionsToExportFinderInterface
      */
     private function loadAllNsFromPaths(): void
     {
-        $namespaces = $this->nsExtractor
-            ->getNamespacesFromDirectories($this->defaultDirectories, $this->projectRootDir);
+        $runtime = $this->runtimeFacade->getRuntime();
 
-        foreach ($namespaces as $namespace) {
-            $this->runtime->loadNs($namespace);
+        $namespaceFromDirectories = $this->runtimeFacade
+            ->getNamespacesFromDirectories($this->exportDirectories);
+
+        foreach ($namespaceFromDirectories as $namespace) {
+            $runtime->loadNs($namespace);
         }
     }
 

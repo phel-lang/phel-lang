@@ -99,7 +99,7 @@ class TransientArrayMap implements TransientMapInterface
      */
     private function findIndex($key)
     {
-        for ($i = 0, $cnt = count($this->array); $i < $cnt; $i+=2) {
+        for ($i = 0, $cnt = count($this->array); $i < $cnt; $i += 2) {
             $k = $this->array[$i];
             if ($this->equalizer->equals($k, $key)) {
                 return $i;
