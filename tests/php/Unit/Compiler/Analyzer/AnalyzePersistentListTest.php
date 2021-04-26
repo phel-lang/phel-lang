@@ -145,49 +145,58 @@ final class AnalyzePersistentListTest extends TestCase
         );
     }
 
-    /*public function testSymbolWithNamePhpArrayGet(): void
+    public function testSymbolWithNamePhpArrayGet(): void
     {
         $list = TypeFactory::getInstance()->persistentListFromArray([
             Symbol::create(Symbol::NAME_PHP_ARRAY_GET),
+            TypeFactory::getInstance()->persistentListFromArray([Symbol::create('php/array')]),
+            0,
         ]);
         self::assertInstanceOf(
             PhpArrayGetNode::class,
             $this->listAnalyzer->analyze($list, NodeEnvironment::empty())
         );
-    }*/
+    }
 
-    /*public function testSymbolWithNamePhpArraySet(): void
+    public function testSymbolWithNamePhpArraySet(): void
     {
         $list = TypeFactory::getInstance()->persistentListFromArray([
-            Symbol::create(Symbol::NAME_PHP_ARRAY_SET)
+            Symbol::create(Symbol::NAME_PHP_ARRAY_SET),
+            TypeFactory::getInstance()->persistentListFromArray([Symbol::create('php/array')]),
+            0,
+            1,
         ]);
         self::assertInstanceOf(
             PhpArraySetNode::class,
             $this->listAnalyzer->analyze($list, NodeEnvironment::empty())
         );
-    }*/
+    }
 
-    /*public function testSymbolWithNamePhpArrayPush(): void
+    public function testSymbolWithNamePhpArrayPush(): void
     {
         $list = TypeFactory::getInstance()->persistentListFromArray([
-            Symbol::create(Symbol::NAME_PHP_ARRAY_PUSH)
+            Symbol::create(Symbol::NAME_PHP_ARRAY_PUSH),
+            TypeFactory::getInstance()->persistentListFromArray([Symbol::create('php/array')]),
+            1,
         ]);
         self::assertInstanceOf(
             PhpArrayPushNode::class,
             $this->listAnalyzer->analyze($list, NodeEnvironment::empty())
         );
-    }*/
+    }
 
-    /*public function testSymbolWithNamePhpArrayUnset(): void
+    public function testSymbolWithNamePhpArrayUnset(): void
     {
         $list = TypeFactory::getInstance()->persistentListFromArray([
-            Symbol::create(Symbol::NAME_PHP_ARRAY_UNSET)
+            Symbol::create(Symbol::NAME_PHP_ARRAY_UNSET),
+            TypeFactory::getInstance()->persistentListFromArray([Symbol::create('php/array')]),
+            0,
         ]);
         self::assertInstanceOf(
             PhpArrayUnsetNode::class,
             $this->listAnalyzer->analyze($list, NodeEnvironment::empty())
         );
-    }*/
+    }
 
     public function testSymbolWithNameRecur(): void
     {

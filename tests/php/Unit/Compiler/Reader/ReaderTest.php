@@ -758,7 +758,7 @@ final class ReaderTest extends TestCase
 
         $parser = $this->compilerFactory->createParser();
         $reader = $this->compilerFactory->createReader(new GlobalEnvironment());
-        $tokenStream = $this->compilerFactory->createLexer($removeLoc)->lexString($string);
+        $tokenStream = $this->compilerFactory->createLexer(!$removeLoc)->lexString($string);
 
         $parseTree = $parser->parseNext($tokenStream);
         $result = $reader->read($parseTree)->getAst();

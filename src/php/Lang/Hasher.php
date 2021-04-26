@@ -23,11 +23,11 @@ class Hasher implements HasherInterface
         }
 
         if ($value === true) {
-            return 1231;
+            return 1231; // Same hash value as in clojure
         }
 
         if ($value === false) {
-            return 1237;
+            return 1237; // Same hash value as in clojure
         }
 
         if (is_string($value)) {
@@ -48,14 +48,14 @@ class Hasher implements HasherInterface
             }
 
             if ($value === INF) {
-                return 2146435072;
+                return 2146435072; // Same hash value as in clojure
             }
 
             if ($value === -INF) {
-                return -1048576;
+                return -1048576; // Same hash value as in clojure
             }
 
-            return 2146959360;
+            return 2146959360; // Same hash value as in clojure
         }
 
         if (is_object($value)) {

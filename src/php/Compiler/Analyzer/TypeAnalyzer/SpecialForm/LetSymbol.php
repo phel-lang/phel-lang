@@ -63,8 +63,6 @@ final class LetSymbol implements SpecialFormAnalyzerInterface
 
     private function analyzeLetOrLoop(PersistentListInterface $list, NodeEnvironmentInterface $env): LetNode
     {
-        $exprs = $list->rest()->rest()->toArray();
-
         /** @psalm-suppress PossiblyNullArgument */
         /** @var PersistentVectorInterface $bindingVector */
         $bindingVector = $list->get(1);
@@ -87,6 +85,7 @@ final class LetSymbol implements SpecialFormAnalyzerInterface
             $bodyEnv = $bodyEnv->withShadowedLocal($binding->getSymbol(), $binding->getShadow());
         }
 
+        $exprs = $list->rest()->rest()->toArray();
         $bodyExpr = $this->analyzer->analyze(
             TypeFactory::getInstance()->persistentListFromArray([
                 Symbol::create(Symbol::NAME_DO), ...$exprs,
