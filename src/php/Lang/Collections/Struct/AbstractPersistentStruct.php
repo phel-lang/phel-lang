@@ -15,10 +15,9 @@ use Phel\Lang\TypeFactory;
 use Phel\Printer\Printer;
 
 /**
- * @template K
  * @template V
  *
- * @extends AbstractPersistentMap<K, V>
+ * @extends AbstractPersistentMap<Keyword, V>
  */
 abstract class AbstractPersistentStruct extends AbstractPersistentMap
 {
@@ -44,7 +43,7 @@ abstract class AbstractPersistentStruct extends AbstractPersistentMap
 
     public function containsKey($key): bool
     {
-        return $key instanceof Keyword && in_array($key->getName(), static::ALLOWED_KEYS);
+        return in_array($key->getName(), static::ALLOWED_KEYS);
     }
 
     public function put($key, $value): PersistentHashMapInterface
@@ -101,11 +100,11 @@ abstract class AbstractPersistentStruct extends AbstractPersistentMap
     }
 
     /**
-     * @param K $key
+     * @param Keyword $key
      */
-    protected function validateKey($key): string
+    protected function validateKey(Keyword $key): string
     {
-        if ($key instanceof Keyword && in_array($key->getName(), static::ALLOWED_KEYS)) {
+        if (in_array($key->getName(), static::ALLOWED_KEYS)) {
             return $this->munge->encode($key->getName());
         }
 

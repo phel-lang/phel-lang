@@ -47,7 +47,7 @@ jobs:
         run: composer update --no-interaction --no-ansi --no-progress
 
       - name: Run vimeo/psalm on internal code
-        run: ./vendor/bin/psalm --config=psalm.xml --no-cache --no-progress --shepherd --show-info=false --stats
+        run: ./vendor/bin/psalm --config=psalm.xml --no-progress --shepherd --show-info=false --stats
 
   tests:
     name: Tests

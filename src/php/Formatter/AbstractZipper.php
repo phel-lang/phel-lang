@@ -8,6 +8,8 @@ use Phel\Formatter\Exceptions\ZipperException;
 
 /**
  * @template T
+ *
+ * @psalm-consistent-constructor
  */
 abstract class AbstractZipper
 {
@@ -45,16 +47,21 @@ abstract class AbstractZipper
     }
 
     /**
-     * @template U
+     * @param T $node
+     * @param ?AbstractZipper<T> $parent
+     * @param T[] $leftSiblings
+     * @param T[] $rightSiblings
      *
-     * @param U $root
-     *
-     * @return static<U>
+     * @return static
      */
-    final public static function createRoot($root): AbstractZipper
-    {
-        return new static($root, null, [], [], false, false);
-    }
+    abstract protected function createNewInstance(
+        $node,
+        ?AbstractZipper $parent,
+        array $leftSiblings,
+        array $rightSiblings,
+        bool $hasChanged,
+        bool $isEnd
+    );
 
     /**
      * @return array<int, T>
@@ -88,7 +95,7 @@ abstract class AbstractZipper
 
         $leftSiblings = $this->leftSiblings;
         $left = array_pop($leftSiblings);
-        return new static(
+        return $this->createNewInstance(
             $left,
             $this->parent,
             $leftSiblings,
@@ -134,7 +141,7 @@ abstract class AbstractZipper
 
         $rightSiblings = $this->rightSiblings;
         $right = array_shift($rightSiblings);
-        return new static(
+        return $this->createNewInstance(
             $right,
             $this->parent,
             [...$this->leftSiblings, $this->node],
@@ -180,7 +187,7 @@ abstract class AbstractZipper
                 [...$this->leftSiblings, $this->node, ...$this->rightSiblings]
             );
 
-            return new static(
+            return $this->createNewInstance(
                 $newParent,
                 $this->parent->parent,
                 $this->parent->lefts(),
@@ -228,7 +235,7 @@ abstract class AbstractZipper
 
         $leftChild = array_shift($children);
 
-        return new static(
+        return $this->createNewInstance(
             $leftChild,
             $this,
             [],
@@ -400,7 +407,7 @@ abstract class AbstractZipper
         if (!$this->isFirst()) {
             $leftSiblings = $this->leftSiblings;
             $left = array_pop($leftSiblings);
-            $loc = new static(
+            $loc = $this->createNewInstance(
                 $left,
                 $this->parent,
                 $leftSiblings,
@@ -416,7 +423,7 @@ abstract class AbstractZipper
             return $loc;
         }
 
-        return new static(
+        return $this->createNewInstance(
             $this->makeNode($this->parent->getNode(), $this->rightSiblings),
             $this->parent->parent,
             $this->parent->lefts(),
