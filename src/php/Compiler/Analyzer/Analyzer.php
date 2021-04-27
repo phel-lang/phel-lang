@@ -10,8 +10,8 @@ use Phel\Compiler\Analyzer\Environment\NodeEnvironmentInterface;
 use Phel\Compiler\Analyzer\Exceptions\AnalyzerException;
 use Phel\Compiler\Analyzer\TypeAnalyzer\AnalyzeArray;
 use Phel\Compiler\Analyzer\TypeAnalyzer\AnalyzeLiteral;
-use Phel\Compiler\Analyzer\TypeAnalyzer\AnalyzeMap;
 use Phel\Compiler\Analyzer\TypeAnalyzer\AnalyzePersistentList;
+use Phel\Compiler\Analyzer\TypeAnalyzer\AnalyzePersistentMap;
 use Phel\Compiler\Analyzer\TypeAnalyzer\AnalyzePersistentVector;
 use Phel\Compiler\Analyzer\TypeAnalyzer\AnalyzeSymbol;
 use Phel\Compiler\Analyzer\TypeAnalyzer\AnalyzeTable;
@@ -119,7 +119,7 @@ final class Analyzer implements AnalyzerInterface
         }
 
         if ($x instanceof PersistentMapInterface) {
-            return (new AnalyzeMap($this))->analyze($x, $env);
+            return (new AnalyzePersistentMap($this))->analyze($x, $env);
         }
 
         throw new AnalyzerException('Unhandled type: ' . var_export($x, true));

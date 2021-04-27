@@ -9,17 +9,17 @@ use Phel\Compiler\Analyzer\Ast\LiteralNode;
 use Phel\Compiler\Analyzer\Ast\MapNode;
 use Phel\Compiler\Analyzer\Environment\GlobalEnvironment;
 use Phel\Compiler\Analyzer\Environment\NodeEnvironment;
-use Phel\Compiler\Analyzer\TypeAnalyzer\AnalyzeMap;
+use Phel\Compiler\Analyzer\TypeAnalyzer\AnalyzePersistentMap;
 use Phel\Lang\TypeFactory;
 use PHPUnit\Framework\TestCase;
 
 final class AnalyzePersistentMapTest extends TestCase
 {
-    private AnalyzeMap $mapAnalyzer;
+    private AnalyzePersistentMap $mapAnalyzer;
 
     public function setUp(): void
     {
-        $this->mapAnalyzer = new AnalyzeMap(new Analyzer(new GlobalEnvironment()));
+        $this->mapAnalyzer = new AnalyzePersistentMap(new Analyzer(new GlobalEnvironment()));
     }
 
     public function testEmptyMap(): void

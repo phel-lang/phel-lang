@@ -9,7 +9,7 @@ use Phel\Compiler\Analyzer\Environment\NodeEnvironmentInterface;
 use Phel\Lang\Collections\Map\PersistentMapInterface;
 use Phel\Lang\TypeInterface;
 
-final class AnalyzeMap
+final class AnalyzePersistentMap
 {
     use WithAnalyzerTrait;
 
