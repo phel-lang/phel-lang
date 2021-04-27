@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Phel\Lang\Collections\LinkedList;
 
 use Phel\Lang\AbstractType;
-use Phel\Lang\Collections\HashMap\PersistentHashMapInterface;
+use Phel\Lang\Collections\Map\PersistentMapInterface;
 use Phel\Lang\EqualizerInterface;
 use Phel\Lang\HasherInterface;
 use RuntimeException;
@@ -20,7 +20,7 @@ class PersistentList extends AbstractType implements PersistentListInterface
 {
     private EqualizerInterface $equalizer;
     private HasherInterface $hasher;
-    private ?PersistentHashMapInterface $meta;
+    private ?PersistentMapInterface $meta;
     /** @var T */
     private $first;
     /** @var PersistentListInterface<T> */
@@ -32,7 +32,7 @@ class PersistentList extends AbstractType implements PersistentListInterface
      * @param T $first
      * @param PersistentListInterface<T> $rest
      */
-    public function __construct(HasherInterface $hasher, EqualizerInterface $equalizer, ?PersistentHashMapInterface $meta, $first, $rest, int $count)
+    public function __construct(HasherInterface $hasher, EqualizerInterface $equalizer, ?PersistentMapInterface $meta, $first, $rest, int $count)
     {
         $this->hasher = $hasher;
         $this->equalizer = $equalizer;
@@ -62,12 +62,12 @@ class PersistentList extends AbstractType implements PersistentListInterface
         return $result;
     }
 
-    public function getMeta(): ?PersistentHashMapInterface
+    public function getMeta(): ?PersistentMapInterface
     {
         return $this->meta;
     }
 
-    public function withMeta(?PersistentHashMapInterface $meta)
+    public function withMeta(?PersistentMapInterface $meta)
     {
         return new PersistentList($this->hasher, $this->equalizer, $meta, $this->first, $this->rest, $this->count);
     }

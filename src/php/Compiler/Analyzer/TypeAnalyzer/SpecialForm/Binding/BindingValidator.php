@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Phel\Compiler\Analyzer\TypeAnalyzer\SpecialForm\Binding;
 
 use Phel\Compiler\Analyzer\Exceptions\AnalyzerException;
-use Phel\Lang\Collections\HashMap\PersistentHashMapInterface;
+use Phel\Lang\Collections\Map\PersistentMapInterface;
 use Phel\Lang\Collections\Vector\PersistentVectorInterface;
 use Phel\Lang\PhelArray;
 use Phel\Lang\Symbol;
@@ -50,7 +50,7 @@ final class BindingValidator implements BindingValidatorInterface
     {
         return $form instanceof Symbol
             || $form instanceof PersistentVectorInterface
-            || $form instanceof PersistentHashMapInterface
+            || $form instanceof PersistentMapInterface
             || $form instanceof Table
             || $form instanceof PhelArray;
     }

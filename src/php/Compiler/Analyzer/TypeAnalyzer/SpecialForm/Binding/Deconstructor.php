@@ -12,7 +12,7 @@ use Phel\Compiler\Analyzer\TypeAnalyzer\SpecialForm\Binding\Deconstructor\PhelAr
 use Phel\Compiler\Analyzer\TypeAnalyzer\SpecialForm\Binding\Deconstructor\SymbolBindingDeconstructor;
 use Phel\Compiler\Analyzer\TypeAnalyzer\SpecialForm\Binding\Deconstructor\TableBindingDeconstructor;
 use Phel\Compiler\Analyzer\TypeAnalyzer\SpecialForm\Binding\Deconstructor\VectorBindingDeconstructor;
-use Phel\Lang\Collections\HashMap\PersistentHashMapInterface;
+use Phel\Lang\Collections\Map\PersistentMapInterface;
 use Phel\Lang\Collections\Vector\PersistentVectorInterface;
 use Phel\Lang\PhelArray;
 use Phel\Lang\Symbol;
@@ -69,7 +69,7 @@ final class Deconstructor implements DeconstructorInterface
             return new VectorBindingDeconstructor($this);
         }
 
-        if ($binding instanceof PersistentHashMapInterface) {
+        if ($binding instanceof PersistentMapInterface) {
             return new MapBindingDeconstructor($this);
         }
 

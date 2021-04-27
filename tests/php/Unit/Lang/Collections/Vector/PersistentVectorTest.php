@@ -239,7 +239,7 @@ final class PersistentVectorTest extends TestCase
 
     public function testAddMetaData(): void
     {
-        $meta = TypeFactory::getInstance()->emptyPersistentHashMap();
+        $meta = TypeFactory::getInstance()->emptyPersistentMap();
         $vector = PersistentVector::empty(new ModuloHasher(), new SimpleEqualizer());
         $vectorWithMeta = $vector->withMeta($meta);
 

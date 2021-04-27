@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace PhelTest\Unit\Lang\Collections\Struct;
 
 use InvalidArgumentException;
-use Phel\Lang\Collections\HashMap\PersistentHashMap;
+use Phel\Lang\Collections\Map\PersistentHashMap;
 use Phel\Lang\Keyword;
 use Phel\Lang\TypeFactory;
 use PHPUnit\Framework\TestCase;
@@ -110,7 +110,7 @@ final class StructTest extends TestCase
 
     public function testWithMeta(): void
     {
-        $meta = TypeFactory::getInstance()->emptyPersistentHashMap();
+        $meta = TypeFactory::getInstance()->emptyPersistentMap();
         $s = FakeStruct::fromKVs(new Keyword('a'), 1, new Keyword('b'), 2);
         $sWithMeta = $s->withMeta($meta);
 

@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace PhelTest\Benchmark\Lang\Collections\Vector;
 
-use Phel\Lang\Collections\HashMap\PersistentHashMapInterface;
+use Phel\Lang\Collections\Map\PersistentMapInterface;
 use Phel\Lang\Collections\Vector\PersistentVectorInterface;
 use Phel\Lang\SourceLocation;
 
@@ -105,13 +105,13 @@ final class VectorA implements PersistentVectorInterface
         return 0;
     }
 
-    public function getMeta(): ?PersistentHashMapInterface
+    public function getMeta(): ?PersistentMapInterface
     {
         // TODO: Implement getMeta() method.
         return null;
     }
 
-    public function withMeta(?PersistentHashMapInterface $meta): void
+    public function withMeta(?PersistentMapInterface $meta): void
     {
         // TODO: Implement withMeta() method.
     }

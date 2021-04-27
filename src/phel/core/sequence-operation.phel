@@ -50,7 +50,7 @@
     (throw (php/new InvalidArgumentException "Can not call put on pure PHP
 arrays. Use (php/aset ds key value)"))
 
-    (or (struct? ds) (hash-map? ds) (php/instanceof ds TransientHashMapInterface))
+    (or (struct? ds) (hash-map? ds) (php/instanceof ds TransientMapInterface))
     (php/-> ds (put key value))
 
     (or (vector? ds) (php/instanceof ds TransientVectorInterface))
@@ -68,7 +68,7 @@ arrays. Use (php/aset ds key value)"))
     (throw (php/new InvalidArgumentException "Can not call unset on pure PHP
 arrays. Use (php/aunset ds key)"))
 
-    (or (hash-map? ds) (php/instanceof ds TransientHashMapInterface))
+    (or (hash-map? ds) (php/instanceof ds TransientMapInterface))
     (php/-> ds (remove key))
 
     (let [x ds]

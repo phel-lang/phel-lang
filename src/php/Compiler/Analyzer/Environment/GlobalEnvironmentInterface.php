@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Phel\Compiler\Analyzer\Environment;
 
 use Phel\Compiler\Analyzer\Ast\AbstractNode;
-use Phel\Lang\Collections\HashMap\PersistentHashMapInterface;
+use Phel\Lang\Collections\Map\PersistentMapInterface;
 use Phel\Lang\Symbol;
 
 interface GlobalEnvironmentInterface
@@ -14,11 +14,11 @@ interface GlobalEnvironmentInterface
 
     public function setNs(string $ns): void;
 
-    public function addDefinition(string $namespace, Symbol $name, PersistentHashMapInterface $meta): void;
+    public function addDefinition(string $namespace, Symbol $name, PersistentMapInterface $meta): void;
 
     public function hasDefinition(string $namespace, Symbol $name): bool;
 
-    public function getDefinition(string $namespace, Symbol $name): ?PersistentHashMapInterface;
+    public function getDefinition(string $namespace, Symbol $name): ?PersistentMapInterface;
 
     public function addRequireAlias(string $inNamespace, Symbol $name, Symbol $fullName): void;
 

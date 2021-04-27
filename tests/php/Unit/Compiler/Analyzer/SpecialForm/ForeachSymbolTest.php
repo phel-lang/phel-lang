@@ -181,8 +181,8 @@ final class ForeachSymbolTest extends TestCase
     private function analyze(PersistentListInterface $list): ForeachNode
     {
         $env = new GlobalEnvironment();
-        $env->addDefinition('phel\\core', Symbol::create('first'), TypeFactory::getInstance()->emptyPersistentHashMap());
-        $env->addDefinition('phel\\core', Symbol::create('next'), TypeFactory::getInstance()->emptyPersistentHashMap());
+        $env->addDefinition('phel\\core', Symbol::create('first'), TypeFactory::getInstance()->emptyPersistentMap());
+        $env->addDefinition('phel\\core', Symbol::create('next'), TypeFactory::getInstance()->emptyPersistentMap());
         $analyzer = new Analyzer($env);
 
         return (new ForeachSymbol($analyzer))->analyze($list, NodeEnvironment::empty());

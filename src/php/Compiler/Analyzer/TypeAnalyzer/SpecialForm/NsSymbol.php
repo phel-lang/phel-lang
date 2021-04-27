@@ -9,8 +9,8 @@ use Phel\Compiler\Analyzer\Environment\NodeEnvironmentInterface;
 use Phel\Compiler\Analyzer\Exceptions\AnalyzerException;
 use Phel\Compiler\Analyzer\TypeAnalyzer\PhpKeywords;
 use Phel\Compiler\Analyzer\TypeAnalyzer\WithAnalyzerTrait;
-use Phel\Lang\Collections\HashMap\PersistentHashMapInterface;
 use Phel\Lang\Collections\LinkedList\PersistentListInterface;
+use Phel\Lang\Collections\Map\PersistentMapInterface;
 use Phel\Lang\Collections\Vector\PersistentVectorInterface;
 use Phel\Lang\Keyword;
 use Phel\Lang\Symbol;
@@ -88,12 +88,12 @@ final class NsSymbol implements SpecialFormAnalyzerInterface
             throw AnalyzerException::withLocation('First argument in :use must be a symbol.', $import);
         }
 
-        $useData = TypeFactory::getInstance()->persistentHashMapFromKVs(...$import->toArray());
+        $useData = TypeFactory::getInstance()->persistentMapFromKVs(...$import->toArray());
         $alias = $this->extractAlias($useData, $import, 'use');
         $this->analyzer->addUseAlias($ns, $alias, $useSymbol);
     }
 
-    private function extractAlias(PersistentHashMapInterface $requireData, PersistentListInterface $import, string $type): Symbol
+    private function extractAlias(PersistentMapInterface $requireData, PersistentListInterface $import, string $type): Symbol
     {
         $alias = $requireData[new Keyword('as')];
 
@@ -120,7 +120,7 @@ final class NsSymbol implements SpecialFormAnalyzerInterface
     /**
      * @return Symbol[]
      */
-    private function extractRefer(PersistentHashMapInterface $requireData, PersistentListInterface $import): array
+    private function extractRefer(PersistentMapInterface $requireData, PersistentListInterface $import): array
     {
         $refer = $requireData[new Keyword('refer')];
 
@@ -152,7 +152,7 @@ final class NsSymbol implements SpecialFormAnalyzerInterface
             throw AnalyzerException::withLocation('First argument in :require must be a symbol.', $import);
         }
 
-        $requireData = TypeFactory::getInstance()->persistentHashMapFromKVs(...$import->toArray());
+        $requireData = TypeFactory::getInstance()->persistentMapFromKVs(...$import->toArray());
         $alias = $this->extractAlias($requireData, $import, 'require');
         $referSymbols = $this->extractRefer($requireData, $import);
 

@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Phel\Lang\Collections\Vector;
 
 use Phel\Lang\AbstractType;
-use Phel\Lang\Collections\HashMap\PersistentHashMapInterface;
+use Phel\Lang\Collections\Map\PersistentMapInterface;
 use Phel\Lang\EqualizerInterface;
 use Phel\Lang\HasherInterface;
 use RuntimeException;
@@ -19,10 +19,10 @@ abstract class AbstractPersistentVector extends AbstractType implements Persiste
 {
     protected EqualizerInterface $equalizer;
     protected HasherInterface $hasher;
-    protected ?PersistentHashMapInterface $meta;
+    protected ?PersistentMapInterface $meta;
     private int $hashCache = 0;
 
-    public function __construct(HasherInterface $hasher, EqualizerInterface $equalizer, ?PersistentHashMapInterface $meta)
+    public function __construct(HasherInterface $hasher, EqualizerInterface $equalizer, ?PersistentMapInterface $meta)
     {
         $this->equalizer = $equalizer;
         $this->hasher = $hasher;
@@ -61,7 +61,7 @@ abstract class AbstractPersistentVector extends AbstractType implements Persiste
         return $cdr;
     }
 
-    public function getMeta(): ?PersistentHashMapInterface
+    public function getMeta(): ?PersistentMapInterface
     {
         return $this->meta;
     }

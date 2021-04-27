@@ -6,7 +6,7 @@ namespace Phel\Lang\Collections\LinkedList;
 
 use EmptyIterator;
 use Phel\Lang\AbstractType;
-use Phel\Lang\Collections\HashMap\PersistentHashMapInterface;
+use Phel\Lang\Collections\Map\PersistentMapInterface;
 use Phel\Lang\EqualizerInterface;
 use Phel\Lang\HasherInterface;
 use RuntimeException;
@@ -21,21 +21,21 @@ class EmptyList extends AbstractType implements PersistentListInterface
 {
     private EqualizerInterface $equalizer;
     private HasherInterface $hasher;
-    private ?PersistentHashMapInterface $meta;
+    private ?PersistentMapInterface $meta;
 
-    public function __construct(HasherInterface $hasher, EqualizerInterface $equalizer, ?PersistentHashMapInterface $meta)
+    public function __construct(HasherInterface $hasher, EqualizerInterface $equalizer, ?PersistentMapInterface $meta)
     {
         $this->hasher = $hasher;
         $this->equalizer = $equalizer;
         $this->meta = $meta;
     }
 
-    public function getMeta(): ?PersistentHashMapInterface
+    public function getMeta(): ?PersistentMapInterface
     {
         return $this->meta;
     }
 
-    public function withMeta(?PersistentHashMapInterface $meta)
+    public function withMeta(?PersistentMapInterface $meta)
     {
         return new EmptyList($this->hasher, $this->equalizer, $meta);
     }

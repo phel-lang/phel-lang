@@ -60,7 +60,7 @@ final class KeywordTest extends TestCase
     {
         $keyword1 = new Keyword('test1');
         $keyword2 = new Keyword('test2');
-        $table = TypeFactory::getInstance()->persistentHashMapFromKVs(new Keyword('test1'), 'abc');
+        $table = TypeFactory::getInstance()->persistentMapFromKVs(new Keyword('test1'), 'abc');
         $this->assertEquals('abc', $keyword1($table));
         $this->assertNull($keyword2($table));
         $this->assertEquals('xyz', $keyword2($table, 'xyz'));

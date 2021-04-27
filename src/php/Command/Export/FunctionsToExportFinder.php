@@ -10,7 +10,7 @@ use Phel\Compiler\Emitter\Exceptions\CompiledCodeIsMalformedException;
 use Phel\Compiler\Emitter\Exceptions\FileException;
 use Phel\Compiler\Exceptions\CompilerException;
 use Phel\Interop\ReadModel\FunctionToExport;
-use Phel\Lang\Collections\HashMap\PersistentHashMapInterface;
+use Phel\Lang\Collections\Map\PersistentMapInterface;
 use Phel\Lang\Keyword;
 use Phel\Lang\TypeFactory;
 use Phel\Runtime\RuntimeInterface;
@@ -87,7 +87,7 @@ final class FunctionsToExportFinder implements FunctionsToExportFinderInterface
 
     private function isExport(string $ns, string $fnName): bool
     {
-        /** @var PersistentHashMapInterface $meta */
+        /** @var PersistentMapInterface $meta */
         $meta = $GLOBALS['__phel_meta'][$ns][$fnName] ?? TypeFactory::getInstance()->emptyPersistentList();
 
         return (bool)($meta[new Keyword('export')] ?? false);

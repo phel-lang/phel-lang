@@ -59,12 +59,12 @@ final class AnalyzeSymbolTest extends TestCase
     {
         $globalEnv = new GlobalEnvironment();
         $globalEnv->setNs('test');
-        $globalEnv->addDefinition('test', Symbol::create('a'), TypeFactory::getInstance()->emptyPersistentHashMap());
+        $globalEnv->addDefinition('test', Symbol::create('a'), TypeFactory::getInstance()->emptyPersistentMap());
         $symbolAnalyzer = new AnalyzeSymbol(new Analyzer($globalEnv));
 
         $env = NodeEnvironment::empty();
         self::assertEquals(
-            new GlobalVarNode($env, 'test', Symbol::create('a'), TypeFactory::getInstance()->emptyPersistentHashMap(), null),
+            new GlobalVarNode($env, 'test', Symbol::create('a'), TypeFactory::getInstance()->emptyPersistentMap(), null),
             $symbolAnalyzer->analyze(Symbol::create('a'), $env)
         );
     }
@@ -82,7 +82,7 @@ final class AnalyzeSymbolTest extends TestCase
     {
         $globalEnv = new GlobalEnvironment();
         $globalEnv->setNs('test');
-        $globalEnv->addDefinition('test', Symbol::create('a'), TypeFactory::getInstance()->emptyPersistentHashMap());
+        $globalEnv->addDefinition('test', Symbol::create('a'), TypeFactory::getInstance()->emptyPersistentMap());
         $symbolAnalyzer = new AnalyzeSymbol(new Analyzer($globalEnv));
 
         $env = NodeEnvironment::empty()->withLocals([Symbol::create('a')]);

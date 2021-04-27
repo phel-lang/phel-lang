@@ -8,7 +8,7 @@ use Phel\Compiler\Parser\ParserNode\ListNode;
 use Phel\Compiler\Parser\ParserNode\NodeInterface;
 use Phel\Compiler\Reader\Exceptions\ReaderException;
 use Phel\Compiler\Reader\Reader;
-use Phel\Lang\Collections\HashMap\PersistentHashMapInterface;
+use Phel\Lang\Collections\Map\PersistentMapInterface;
 use Phel\Lang\TypeFactory;
 
 final class MapReader
@@ -20,7 +20,7 @@ final class MapReader
         $this->reader = $reader;
     }
 
-    public function read(ListNode $node, NodeInterface $root): PersistentHashMapInterface
+    public function read(ListNode $node, NodeInterface $root): PersistentMapInterface
     {
         $list = (new ListReader($this->reader))->read($node, $root);
 
@@ -29,7 +29,7 @@ final class MapReader
         }
 
         return TypeFactory::getInstance()
-            ->persistentHashMapFromKVs(...$list->toArray())
+            ->persistentMapFromKVs(...$list->toArray())
             ->setStartLocation($node->getStartLocation())
             ->setEndLocation($node->getEndLocation());
     }

@@ -9,7 +9,7 @@ use Countable;
 /**
  * @template V
  *
- * @extends AsTransientInterface<TransientHashMapInterface>
+ * @extends AsTransientInterface<TransientMapInterface>
  */
 interface TransientHashSetInterface extends Countable
 {

@@ -8,9 +8,9 @@ use Phel\Compiler\Analyzer\Ast\GlobalVarNode;
 use Phel\Compiler\Analyzer\Environment\GlobalEnvironmentInterface;
 use Phel\Compiler\Analyzer\Environment\NodeEnvironment;
 use Phel\Compiler\Reader\Exceptions\SpliceNotInListException;
-use Phel\Lang\Collections\HashMap\PersistentHashMapInterface;
 use Phel\Lang\Collections\LinkedList\PersistentList;
 use Phel\Lang\Collections\LinkedList\PersistentListInterface;
+use Phel\Lang\Collections\Map\PersistentMapInterface;
 use Phel\Lang\Collections\Vector\PersistentVector;
 use Phel\Lang\Keyword;
 use Phel\Lang\PhelArray;
@@ -54,7 +54,7 @@ final class QuasiquoteTransformer implements QuasiquoteTransformerInterface
             return $this->createFromPersistentVector($form);
         }
 
-        if ($form instanceof PersistentHashMapInterface && count($form) > 0) {
+        if ($form instanceof PersistentMapInterface && count($form) > 0) {
             return $this->createFromMap($form);
         }
 
@@ -113,7 +113,7 @@ final class QuasiquoteTransformer implements QuasiquoteTransformerInterface
         ])->copyLocationFrom($form);
     }
 
-    private function createFromMap(PersistentHashMapInterface $form): PersistentListInterface
+    private function createFromMap(PersistentMapInterface $form): PersistentListInterface
     {
         $kvs = [];
         foreach ($form as $k => $v) {

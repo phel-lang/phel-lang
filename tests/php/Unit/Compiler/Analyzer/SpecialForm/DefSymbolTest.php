@@ -97,7 +97,7 @@ final class DefSymbolTest extends TestCase
                 $env,
                 'user',
                 Symbol::create('name'),
-                TypeFactory::getInstance()->emptyPersistentHashMap(),
+                TypeFactory::getInstance()->emptyPersistentMap(),
                 new LiteralNode(
                     $env
                         ->withContext(NodeEnvironment::CONTEXT_EXPRESSION)
@@ -127,7 +127,7 @@ final class DefSymbolTest extends TestCase
                 $env,
                 'user',
                 Symbol::create('name'),
-                TypeFactory::getInstance()->persistentHashMapFromKVs(
+                TypeFactory::getInstance()->persistentMapFromKVs(
                     new Keyword('doc'),
                     'my docstring'
                 ),
@@ -160,7 +160,7 @@ final class DefSymbolTest extends TestCase
                 $env,
                 'user',
                 Symbol::create('name'),
-                TypeFactory::getInstance()->persistentHashMapFromKVs(
+                TypeFactory::getInstance()->persistentMapFromKVs(
                     new Keyword('private'),
                     true
                 ),
@@ -182,7 +182,7 @@ final class DefSymbolTest extends TestCase
         $list = TypeFactory::getInstance()->persistentListFromArray([
             Symbol::create(Symbol::NAME_DEF),
             Symbol::create('name'),
-            TypeFactory::getInstance()->persistentHashMapFromKVs(new Keyword('private'), true),
+            TypeFactory::getInstance()->persistentMapFromKVs(new Keyword('private'), true),
             'any value',
         ]);
         $env = NodeEnvironment::empty();
@@ -193,7 +193,7 @@ final class DefSymbolTest extends TestCase
                 $env,
                 'user',
                 Symbol::create('name'),
-                TypeFactory::getInstance()->persistentHashMapFromKVs(
+                TypeFactory::getInstance()->persistentMapFromKVs(
                     new Keyword('private'),
                     true
                 ),

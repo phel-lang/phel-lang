@@ -7,9 +7,9 @@ namespace Phel\Lang\Collections\Struct;
 use InvalidArgumentException;
 use Phel\Compiler\Emitter\OutputEmitter\Munge;
 use Phel\Compiler\Emitter\OutputEmitter\MungeInterface;
-use Phel\Lang\Collections\HashMap\AbstractPersistentMap;
-use Phel\Lang\Collections\HashMap\PersistentHashMapInterface;
-use Phel\Lang\Collections\HashMap\TransientHashMapInterface;
+use Phel\Lang\Collections\Map\AbstractPersistentMap;
+use Phel\Lang\Collections\Map\PersistentMapInterface;
+use Phel\Lang\Collections\Map\TransientMapInterface;
 use Phel\Lang\Keyword;
 use Phel\Lang\TypeFactory;
 use Phel\Printer\Printer;
@@ -34,7 +34,7 @@ abstract class AbstractPersistentStruct extends AbstractPersistentMap
         $this->munge = new Munge();
     }
 
-    public function withMeta(?PersistentHashMapInterface $meta)
+    public function withMeta(?PersistentMapInterface $meta)
     {
         $newInstance = clone $this;
         $newInstance->meta = $meta;
@@ -46,7 +46,7 @@ abstract class AbstractPersistentStruct extends AbstractPersistentMap
         return in_array($key->getName(), static::ALLOWED_KEYS);
     }
 
-    public function put($key, $value): PersistentHashMapInterface
+    public function put($key, $value): PersistentMapInterface
     {
         $stringKey = $this->validateKey($key);
 
@@ -55,7 +55,7 @@ abstract class AbstractPersistentStruct extends AbstractPersistentMap
         return $newInstance;
     }
 
-    public function remove($key): PersistentHashMapInterface
+    public function remove($key): PersistentMapInterface
     {
         $stringKey = $this->validateKey($key);
 
@@ -83,7 +83,7 @@ abstract class AbstractPersistentStruct extends AbstractPersistentMap
     }
 
     /**
-     * @return TransientHashMapInterface
+     * @return TransientMapInterface
      */
     public function asTransient()
     {

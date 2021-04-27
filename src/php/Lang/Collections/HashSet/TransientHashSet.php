@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Phel\Lang\Collections\HashSet;
 
-use Phel\Lang\Collections\HashMap\TransientHashMapInterface;
+use Phel\Lang\Collections\Map\TransientMapInterface;
 use Phel\Lang\HasherInterface;
 
 /**
@@ -14,10 +14,10 @@ use Phel\Lang\HasherInterface;
  */
 class TransientHashSet implements TransientHashSetInterface
 {
-    private TransientHashMapInterface $transientMap;
+    private TransientMapInterface $transientMap;
     private HasherInterface $hasher;
 
-    public function __construct(HasherInterface $hasher, TransientHashMapInterface $transientMap)
+    public function __construct(HasherInterface $hasher, TransientMapInterface $transientMap)
     {
         $this->hasher = $hasher;
         $this->transientMap = $transientMap;

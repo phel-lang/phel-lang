@@ -10,8 +10,8 @@ use Phel\Compiler\Analyzer\Environment\NodeEnvironmentInterface;
 use Phel\Compiler\Analyzer\Exceptions\AnalyzerException;
 use Phel\Compiler\Analyzer\TypeAnalyzer\WithAnalyzerTrait;
 use Phel\Compiler\Exceptions\AbstractLocatedException;
-use Phel\Lang\Collections\HashMap\PersistentHashMapInterface;
 use Phel\Lang\Collections\LinkedList\PersistentListInterface;
+use Phel\Lang\Collections\Map\PersistentMapInterface;
 use Phel\Lang\Keyword;
 use Phel\Lang\Symbol;
 use Phel\Lang\TypeFactory;
@@ -72,7 +72,7 @@ final class DefSymbol implements SpecialFormAnalyzerInterface
     }
 
     /**
-     * @return array{0:PersistentHashMapInterface, 1:mixed}
+     * @return array{0:PersistentMapInterface, 1:mixed}
      */
     private function createMetaMapAndInit(PersistentListInterface $list): array
     {
@@ -98,7 +98,7 @@ final class DefSymbol implements SpecialFormAnalyzerInterface
 
         $startLocation = $list->getStartLocation();
         if ($startLocation) {
-            $meta = $meta->put(new Keyword('start-location'), TypeFactory::getInstance()->persistentHashMapFromKVs(
+            $meta = $meta->put(new Keyword('start-location'), TypeFactory::getInstance()->persistentMapFromKVs(
                 new Keyword('file'),
                 $startLocation->getFile(),
                 new Keyword('line'),
@@ -110,7 +110,7 @@ final class DefSymbol implements SpecialFormAnalyzerInterface
 
         $endLocation = $list->getEndLocation();
         if ($endLocation) {
-            $meta = $meta->put(new Keyword('end-location'), TypeFactory::getInstance()->persistentHashMapFromKVs(
+            $meta = $meta->put(new Keyword('end-location'), TypeFactory::getInstance()->persistentMapFromKVs(
                 new Keyword('file'),
                 $endLocation->getFile(),
                 new Keyword('line'),
@@ -126,23 +126,23 @@ final class DefSymbol implements SpecialFormAnalyzerInterface
     /**
      * @param mixed $meta
      */
-    private function normalizeMeta($meta, PersistentListInterface $list): PersistentHashMapInterface
+    private function normalizeMeta($meta, PersistentListInterface $list): PersistentMapInterface
     {
         if (is_string($meta)) {
             $key = (new Keyword('doc'))->copyLocationFrom($list);
 
             return TypeFactory::getInstance()
-                ->persistentHashMapFromKVs($key, $meta)
+                ->persistentMapFromKVs($key, $meta)
                 ->copyLocationFrom($list);
         }
 
         if ($meta instanceof Keyword) {
             return TypeFactory::getInstance()
-                ->persistentHashMapFromKVs($meta, true)
+                ->persistentMapFromKVs($meta, true)
                 ->copyLocationFrom($meta);
         }
 
-        if ($meta instanceof PersistentHashMapInterface) {
+        if ($meta instanceof PersistentMapInterface) {
             return $meta;
         }
 
@@ -152,7 +152,7 @@ final class DefSymbol implements SpecialFormAnalyzerInterface
     private function getInitialMetaAndInit(PersistentListInterface $list): array
     {
         if (count($list) === 3) {
-            return [TypeFactory::getInstance()->emptyPersistentHashMap(), $list->get(2)];
+            return [TypeFactory::getInstance()->emptyPersistentMap(), $list->get(2)];
         }
 
         return [$list->get(2), $list->get(3)];

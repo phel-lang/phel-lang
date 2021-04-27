@@ -4,15 +4,15 @@ declare(strict_types=1);
 
 namespace Phel\Lang;
 
-use Phel\Lang\Collections\HashMap\PersistentArrayMap;
-use Phel\Lang\Collections\HashMap\PersistentHashMap;
-use Phel\Lang\Collections\HashMap\PersistentHashMapInterface;
 use Phel\Lang\Collections\HashSet\PersistentHashSet;
 use Phel\Lang\Collections\HashSet\PersistentHashSetInterface;
 use Phel\Lang\Collections\HashSet\TransientHashSet;
 use Phel\Lang\Collections\LinkedList\EmptyList;
 use Phel\Lang\Collections\LinkedList\PersistentList;
 use Phel\Lang\Collections\LinkedList\PersistentListInterface;
+use Phel\Lang\Collections\Map\PersistentArrayMap;
+use Phel\Lang\Collections\Map\PersistentHashMap;
+use Phel\Lang\Collections\Map\PersistentMapInterface;
 use Phel\Lang\Collections\Vector\PersistentVector;
 use Phel\Lang\Collections\Vector\PersistentVectorInterface;
 
@@ -37,7 +37,7 @@ class TypeFactory
         return self::$instance;
     }
 
-    public function emptyPersistentHashMap(): PersistentHashMapInterface
+    public function emptyPersistentMap(): PersistentMapInterface
     {
         return PersistentArrayMap::empty($this->hasher, $this->equalizer);
     }
@@ -45,12 +45,12 @@ class TypeFactory
     /**
      * @param mixed[] $kvs
      */
-    public function persistentHashMapFromKVs(...$kvs): PersistentHashMapInterface
+    public function persistentMapFromKVs(...$kvs): PersistentMapInterface
     {
-        return $this->persistentHashMapFromArray($kvs);
+        return $this->persistentMapFromArray($kvs);
     }
 
-    public function persistentHashMapFromArray(array $kvs): PersistentHashMapInterface
+    public function persistentMapFromArray(array $kvs): PersistentMapInterface
     {
         if (count($kvs) <= PersistentArrayMap::MAX_SIZE) {
             return PersistentArrayMap::fromArray($this->hasher, $this->equalizer, $kvs);
@@ -61,12 +61,12 @@ class TypeFactory
 
     public function emptyPersistentHashSet(): PersistentHashSetInterface
     {
-        return new PersistentHashSet($this->hasher, null, $this->emptyPersistentHashMap());
+        return new PersistentHashSet($this->hasher, null, $this->emptyPersistentMap());
     }
 
     public function persistentHashSetFromArray(array $values): PersistentHashSetInterface
     {
-        $set = new TransientHashSet($this->hasher, $this->emptyPersistentHashMap()->asTransient());
+        $set = new TransientHashSet($this->hasher, $this->emptyPersistentMap()->asTransient());
         foreach ($values as $value) {
             $set->add($value);
         }

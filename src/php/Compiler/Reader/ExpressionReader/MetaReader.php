@@ -8,7 +8,7 @@ use Phel\Compiler\Parser\ParserNode\MetaNode;
 use Phel\Compiler\Parser\ParserNode\NodeInterface;
 use Phel\Compiler\Reader\Exceptions\ReaderException;
 use Phel\Compiler\Reader\Reader;
-use Phel\Lang\Collections\HashMap\PersistentHashMapInterface;
+use Phel\Lang\Collections\Map\PersistentMapInterface;
 use Phel\Lang\Keyword;
 use Phel\Lang\MetaInterface;
 use Phel\Lang\Symbol;
@@ -36,10 +36,10 @@ final class MetaReader
 
         $meta = $this->reader->readExpression($metaExpression, $root);
         if (is_string($meta) || $meta instanceof Symbol) {
-            $meta = TypeFactory::getInstance()->persistentHashMapFromKVs(new Keyword('tag'), $meta);
+            $meta = TypeFactory::getInstance()->persistentMapFromKVs(new Keyword('tag'), $meta);
         } elseif ($meta instanceof Keyword) {
-            $meta = TypeFactory::getInstance()->persistentHashMapFromKVs($meta, true);
-        } elseif (!$meta instanceof PersistentHashMapInterface) {
+            $meta = TypeFactory::getInstance()->persistentMapFromKVs($meta, true);
+        } elseif (!$meta instanceof PersistentMapInterface) {
             throw ReaderException::forNode($node, $root, 'Metadata must be a Symbol, String, Keyword or Map');
         }
         $object = $this->reader->readExpression($objectExpression, $root);
@@ -48,7 +48,7 @@ final class MetaReader
             throw ReaderException::forNode($node, $root, 'Metadata can only applied to classes that implement MetaInterface');
         }
 
-        $objMeta = $object->getMeta() ?? TypeFactory::getInstance()->emptyPersistentHashMap();
+        $objMeta = $object->getMeta() ?? TypeFactory::getInstance()->emptyPersistentMap();
         foreach ($meta as $k => $v) {
             if ($k) {
                 $objMeta = $objMeta->put($k, $v);

@@ -23,8 +23,8 @@
   (:use Phel\Lang\Collections\LinkedList\PersistentListInterface)
   (:use Phel\Lang\Collections\Vector\PersistentVectorInterface)
   (:use Phel\Lang\Collections\Vector\TransientVectorInterface)
-  (:use Phel\Lang\Collections\HashMap\PersistentHashMapInterface)
-  (:use Phel\Lang\Collections\HashMap\TransientHashMapInterface)
+  (:use Phel\Lang\Collections\Map\PersistentMapInterface)
+  (:use Phel\Lang\Collections\Map\TransientMapInterface)
   (:use Phel\Lang\Collections\HashSet\PersistentHashSetInterface)
   (:use Phel\Lang\Collections\HashSet\TransientHashSetInterface)
   (:use Phel\Compiler\Emitter\OutputEmitter\Munge)
@@ -56,7 +56,7 @@
 
 (def hash-map
   "```phel\n(hash-map & xs)\n```\nCreates a new hash map. If no argument is provided, an empty hash map is created. The number of parameters must be even."
-  (fn [& xs] (php/-> (php/:: TypeFactory (getInstance)) (persistentHashMapFromArray (php/-> xs (toPhpArray))))))
+  (fn [& xs] (php/-> (php/:: TypeFactory (getInstance)) (persistentMapFromArray (php/-> xs (toPhpArray))))))
 
 (def array
   "```phel\n(array & xs)\n```\nCreates a new Array. If no argument is provided, an empty Array is created."
@@ -145,10 +145,10 @@ elements, returns nil."
           fdecl (if (php/is_string (php/aget fdecl 0))
                   (next fdecl)
                   fdecl)
-          meta (if (php/instanceof (php/aget fdecl 0) PersistentHashMapInterface)
+          meta (if (php/instanceof (php/aget fdecl 0) PersistentMapInterface)
                  (php/-> meta (merge (php/aget fdecl 0)))
                  meta)
-          fdecl (if (php/instanceof (php/aget fdecl 0) PersistentHashMapInterface)
+          fdecl (if (php/instanceof (php/aget fdecl 0) PersistentMapInterface)
                   (next fdecl)
                   fdecl)
           args (php/aget fdecl 0)

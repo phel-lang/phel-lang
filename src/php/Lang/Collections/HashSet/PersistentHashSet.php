@@ -6,7 +6,7 @@ namespace Phel\Lang\Collections\HashSet;
 
 use IteratorAggregate;
 use Phel\Lang\AbstractType;
-use Phel\Lang\Collections\HashMap\PersistentHashMapInterface;
+use Phel\Lang\Collections\Map\PersistentMapInterface;
 use Phel\Lang\HasherInterface;
 use Traversable;
 
@@ -19,12 +19,12 @@ use Traversable;
 class PersistentHashSet extends AbstractType implements PersistentHashSetInterface, IteratorAggregate
 {
     private HasherInterface $hasher;
-    private ?PersistentHashMapInterface $meta;
-    /** @var PersistentHashMapInterface<V, V> */
-    private PersistentHashMapInterface $map;
+    private ?PersistentMapInterface $meta;
+    /** @var PersistentMapInterface<V, V> */
+    private PersistentMapInterface $map;
     private int $hashCache = 0;
 
-    public function __construct(HasherInterface $hasher, ?PersistentHashMapInterface $meta, PersistentHashMapInterface $map)
+    public function __construct(HasherInterface $hasher, ?PersistentMapInterface $meta, PersistentMapInterface $map)
     {
         $this->hasher = $hasher;
         $this->meta = $meta;
@@ -41,12 +41,12 @@ class PersistentHashSet extends AbstractType implements PersistentHashSetInterfa
         return $this->map->find($key);
     }
 
-    public function getMeta(): ?PersistentHashMapInterface
+    public function getMeta(): ?PersistentMapInterface
     {
         return $this->meta;
     }
 
-    public function withMeta(?PersistentHashMapInterface $meta)
+    public function withMeta(?PersistentMapInterface $meta)
     {
         return new PersistentHashSet($this->hasher, $meta, $this->map);
     }

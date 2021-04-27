@@ -15,8 +15,8 @@ use Phel\Compiler\Analyzer\TypeAnalyzer\AnalyzePersistentList;
 use Phel\Compiler\Analyzer\TypeAnalyzer\AnalyzePersistentVector;
 use Phel\Compiler\Analyzer\TypeAnalyzer\AnalyzeSymbol;
 use Phel\Compiler\Analyzer\TypeAnalyzer\AnalyzeTable;
-use Phel\Lang\Collections\HashMap\PersistentHashMapInterface;
 use Phel\Lang\Collections\LinkedList\PersistentListInterface;
+use Phel\Lang\Collections\Map\PersistentMapInterface;
 use Phel\Lang\Collections\Vector\PersistentVectorInterface;
 use Phel\Lang\Keyword;
 use Phel\Lang\PhelArray;
@@ -68,7 +68,7 @@ final class Analyzer implements AnalyzerInterface
         }
     }
 
-    public function addDefinition(string $ns, Symbol $symbol, PersistentHashMapInterface $meta): void
+    public function addDefinition(string $ns, Symbol $symbol, PersistentMapInterface $meta): void
     {
         $this->globalEnvironment->addDefinition($ns, $symbol, $meta);
     }
@@ -118,7 +118,7 @@ final class Analyzer implements AnalyzerInterface
             return (new AnalyzePersistentVector($this))->analyze($x, $env);
         }
 
-        if ($x instanceof PersistentHashMapInterface) {
+        if ($x instanceof PersistentMapInterface) {
             return (new AnalyzeMap($this))->analyze($x, $env);
         }
 

@@ -6,14 +6,14 @@ namespace Phel\Compiler\Analyzer\TypeAnalyzer;
 
 use Phel\Compiler\Analyzer\Ast\MapNode;
 use Phel\Compiler\Analyzer\Environment\NodeEnvironmentInterface;
-use Phel\Lang\Collections\HashMap\PersistentHashMapInterface;
+use Phel\Lang\Collections\Map\PersistentMapInterface;
 use Phel\Lang\TypeInterface;
 
 final class AnalyzeMap
 {
     use WithAnalyzerTrait;
 
-    public function analyze(PersistentHashMapInterface $map, NodeEnvironmentInterface $env): MapNode
+    public function analyze(PersistentMapInterface $map, NodeEnvironmentInterface $env): MapNode
     {
         $keyValues = [];
         $kvEnv = $env->withContext(NodeEnvironmentInterface::CONTEXT_EXPRESSION);

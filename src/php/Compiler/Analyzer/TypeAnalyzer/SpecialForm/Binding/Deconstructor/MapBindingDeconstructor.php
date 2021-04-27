@@ -5,14 +5,14 @@ declare(strict_types=1);
 namespace Phel\Compiler\Analyzer\TypeAnalyzer\SpecialForm\Binding\Deconstructor;
 
 use Phel\Compiler\Analyzer\TypeAnalyzer\SpecialForm\Binding\Deconstructor;
-use Phel\Lang\Collections\HashMap\PersistentHashMapInterface;
 use Phel\Lang\Collections\LinkedList\PersistentListInterface;
+use Phel\Lang\Collections\Map\PersistentMapInterface;
 use Phel\Lang\Symbol;
 use Phel\Lang\TypeFactory;
 use Phel\Lang\TypeInterface;
 
 /**
- * @implements BindingDeconstructorInterface<PersistentHashMapInterface>
+ * @implements BindingDeconstructorInterface<PersistentMapInterface>
  */
 final class MapBindingDeconstructor implements BindingDeconstructorInterface
 {
@@ -26,7 +26,7 @@ final class MapBindingDeconstructor implements BindingDeconstructorInterface
     }
 
     /**
-     * @param PersistentHashMapInterface $binding The binding form
+     * @param PersistentMapInterface $binding The binding form
      * @param TypeInterface|string|float|int|bool|null $value The value form
      */
     public function deconstruct(array &$bindings, $binding, $value): void
@@ -43,7 +43,7 @@ final class MapBindingDeconstructor implements BindingDeconstructorInterface
      * @param TypeInterface|string|float|int|bool|null $key
      * @param TypeInterface|string|float|int|bool|null $bindTo
      */
-    private function bindingIteration(array &$bindings, PersistentHashMapInterface $binding, $key, $bindTo): void
+    private function bindingIteration(array &$bindings, PersistentMapInterface $binding, $key, $bindTo): void
     {
         $accessSymbol = Symbol::gen()->copyLocationFrom($binding);
         $accessValue = $this->createAccessValue($binding, $key);
@@ -55,7 +55,7 @@ final class MapBindingDeconstructor implements BindingDeconstructorInterface
     /**
      * @param TypeInterface|string|float|int|bool|null $key
      */
-    private function createAccessValue(PersistentHashMapInterface $binding, $key): PersistentListInterface
+    private function createAccessValue(PersistentMapInterface $binding, $key): PersistentListInterface
     {
         return TypeFactory::getInstance()->persistentListFromArray([
             (Symbol::create(Symbol::NAME_PHP_ARRAY_GET))->copyLocationFrom($binding),

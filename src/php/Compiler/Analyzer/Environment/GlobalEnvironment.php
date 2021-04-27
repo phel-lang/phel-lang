@@ -8,7 +8,7 @@ use Phel\Compiler\Analyzer\Ast\AbstractNode;
 use Phel\Compiler\Analyzer\Ast\GlobalVarNode;
 use Phel\Compiler\Analyzer\Ast\LiteralNode;
 use Phel\Compiler\Analyzer\Ast\PhpClassNameNode;
-use Phel\Lang\Collections\HashMap\PersistentHashMapInterface;
+use Phel\Lang\Collections\Map\PersistentMapInterface;
 use Phel\Lang\Keyword;
 use Phel\Lang\SourceLocation;
 use Phel\Lang\Symbol;
@@ -18,7 +18,7 @@ final class GlobalEnvironment implements GlobalEnvironmentInterface
 {
     private string $ns = 'user';
 
-    /** @var array<string, array<string, PersistentHashMapInterface>> */
+    /** @var array<string, array<string, PersistentMapInterface>> */
     private array $definitions = [];
 
     /** @var array<string, array<string, Symbol>> */
@@ -42,7 +42,7 @@ final class GlobalEnvironment implements GlobalEnvironmentInterface
         $this->ns = $ns;
     }
 
-    public function addDefinition(string $namespace, Symbol $name, PersistentHashMapInterface $meta): void
+    public function addDefinition(string $namespace, Symbol $name, PersistentMapInterface $meta): void
     {
         if (!array_key_exists($namespace, $this->definitions)) {
             $this->definitions[$namespace] = [];
@@ -56,7 +56,7 @@ final class GlobalEnvironment implements GlobalEnvironmentInterface
         return (isset($this->definitions[$namespace][$name->getName()]));
     }
 
-    public function getDefinition(string $namespace, Symbol $name): ?PersistentHashMapInterface
+    public function getDefinition(string $namespace, Symbol $name): ?PersistentMapInterface
     {
         if ($this->hasDefinition($namespace, $name)) {
             return $this->definitions[$namespace][$name->getName()];
@@ -233,7 +233,7 @@ final class GlobalEnvironment implements GlobalEnvironmentInterface
         return null;
     }
 
-    private function isDefinitionPrivate(PersistentHashMapInterface $meta): bool
+    private function isDefinitionPrivate(PersistentMapInterface $meta): bool
     {
         return $meta[new Keyword('private')] === true;
     }

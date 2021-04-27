@@ -27,7 +27,7 @@ final class AnalyzePersistentMapTest extends TestCase
         $env = NodeEnvironment::empty();
         self::assertEquals(
             new MapNode($env, [], null),
-            $this->mapAnalyzer->analyze(TypeFactory::getInstance()->emptyPersistentHashMap(), $env)
+            $this->mapAnalyzer->analyze(TypeFactory::getInstance()->emptyPersistentMap(), $env)
         );
     }
 
@@ -39,7 +39,7 @@ final class AnalyzePersistentMapTest extends TestCase
                 new LiteralNode($env->withContext(NodeEnvironment::CONTEXT_EXPRESSION), 'a', null),
                 new LiteralNode($env->withContext(NodeEnvironment::CONTEXT_EXPRESSION), 1, null),
             ], null),
-            $this->mapAnalyzer->analyze(TypeFactory::getInstance()->persistentHashMapFromKVs('a', 1), $env)
+            $this->mapAnalyzer->analyze(TypeFactory::getInstance()->persistentMapFromKVs('a', 1), $env)
         );
     }
 }

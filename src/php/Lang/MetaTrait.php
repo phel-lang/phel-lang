@@ -4,18 +4,18 @@ declare(strict_types=1);
 
 namespace Phel\Lang;
 
-use Phel\Lang\Collections\HashMap\PersistentHashMapInterface;
+use Phel\Lang\Collections\Map\PersistentMapInterface;
 
 trait MetaTrait
 {
-    private ?PersistentHashMapInterface $meta = null;
+    private ?PersistentMapInterface $meta = null;
 
-    public function getMeta(): ?PersistentHashMapInterface
+    public function getMeta(): ?PersistentMapInterface
     {
         return $this->meta;
     }
 
-    public function withMeta(?PersistentHashMapInterface $meta)
+    public function withMeta(?PersistentMapInterface $meta)
     {
         $this->meta = $meta;
         return $this;

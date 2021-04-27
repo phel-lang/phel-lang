@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace Phel\Printer;
 
-use Phel\Lang\Collections\HashMap\PersistentHashMapInterface;
 use Phel\Lang\Collections\HashSet\PersistentHashSetInterface;
 use Phel\Lang\Collections\LinkedList\PersistentListInterface;
+use Phel\Lang\Collections\Map\PersistentMapInterface;
 use Phel\Lang\Collections\Struct\AbstractPersistentStruct;
 use Phel\Lang\Collections\Vector\PersistentVectorInterface;
 use Phel\Lang\Keyword;
@@ -22,9 +22,9 @@ use Phel\Printer\TypePrinter\NonPrintableClassPrinter;
 use Phel\Printer\TypePrinter\NullPrinter;
 use Phel\Printer\TypePrinter\NumberPrinter;
 use Phel\Printer\TypePrinter\ObjectPrinter;
-use Phel\Printer\TypePrinter\PersistentHashMapPrinter;
 use Phel\Printer\TypePrinter\PersistentHashSetPrinter;
 use Phel\Printer\TypePrinter\PersistentListPrinter;
+use Phel\Printer\TypePrinter\PersistentMapPrinter;
 use Phel\Printer\TypePrinter\PersistentVectorPrinter;
 use Phel\Printer\TypePrinter\PhelArrayPrinter;
 use Phel\Printer\TypePrinter\ResourcePrinter;
@@ -99,8 +99,8 @@ final class Printer implements PrinterInterface
         if ($form instanceof PersistentVectorInterface) {
             return new PersistentVectorPrinter($this);
         }
-        if ($form instanceof PersistentHashMapInterface) {
-            return new PersistentHashMapPrinter($this);
+        if ($form instanceof PersistentMapInterface) {
+            return new PersistentMapPrinter($this);
         }
         if ($form instanceof PersistentHashSetInterface) {
             return new PersistentHashSetPrinter($this);

@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace Phel\Compiler\Emitter\OutputEmitter;
 
 use Phel\Compiler\Emitter\OutputEmitterInterface;
-use Phel\Lang\Collections\HashMap\PersistentHashMapInterface;
 use Phel\Lang\Collections\LinkedList\PersistentListInterface;
+use Phel\Lang\Collections\Map\PersistentMapInterface;
 use Phel\Lang\Collections\Vector\PersistentVector;
 use Phel\Lang\Keyword;
 use Phel\Lang\PhelArray;
@@ -52,7 +52,7 @@ final class LiteralEmitter
             $this->emitPhelArray($x);
         } elseif ($x instanceof Table) {
             $this->emitTable($x);
-        } elseif ($x instanceof PersistentHashMapInterface) {
+        } elseif ($x instanceof PersistentMapInterface) {
             $this->emitMap($x);
         } elseif ($x instanceof PersistentVector) {
             $this->emitVector($x);
@@ -162,9 +162,9 @@ final class LiteralEmitter
         $this->outputEmitter->emitStr(')', $x->getStartLocation());
     }
 
-    private function emitMap(PersistentHashMapInterface $x): void
+    private function emitMap(PersistentMapInterface $x): void
     {
-        $this->outputEmitter->emitStr('\Phel\Lang\TypeFactory::getInstance()->persistentHashMapFromKVs(', $x->getStartLocation());
+        $this->outputEmitter->emitStr('\Phel\Lang\TypeFactory::getInstance()->persistentMapFromKVs(', $x->getStartLocation());
         if (count($x) > 0) {
             $this->outputEmitter->increaseIndentLevel();
             $this->outputEmitter->emitLine();

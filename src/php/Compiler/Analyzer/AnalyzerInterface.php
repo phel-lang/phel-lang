@@ -7,7 +7,7 @@ namespace Phel\Compiler\Analyzer;
 use Phel\Compiler\Analyzer\Ast\AbstractNode;
 use Phel\Compiler\Analyzer\Environment\NodeEnvironmentInterface;
 use Phel\Compiler\Analyzer\Exceptions\AnalyzerException;
-use Phel\Lang\Collections\HashMap\PersistentHashMapInterface;
+use Phel\Lang\Collections\Map\PersistentMapInterface;
 use Phel\Lang\Symbol;
 use Phel\Lang\TypeInterface;
 
@@ -40,5 +40,5 @@ interface AnalyzerInterface
      */
     public function addRefers(string $ns, array $referSymbols, Symbol $nsSymbol): void;
 
-    public function addDefinition(string $ns, Symbol $symbol, PersistentHashMapInterface $meta): void;
+    public function addDefinition(string $ns, Symbol $symbol, PersistentMapInterface $meta): void;
 }

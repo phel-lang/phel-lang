@@ -177,7 +177,7 @@ final class PersistentListTest extends TestCase
 
     public function testAddMetaData(): void
     {
-        $meta = TypeFactory::getInstance()->emptyPersistentHashMap();
+        $meta = TypeFactory::getInstance()->emptyPersistentMap();
         $list = PersistentList::fromArray(new ModuloHasher(), new SimpleEqualizer(), ['foo', 'bar']);
         $listWithMeta = $list->withMeta($meta);
 

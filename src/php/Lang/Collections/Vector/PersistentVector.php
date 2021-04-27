@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Phel\Lang\Collections\Vector;
 
 use Phel\Lang\Collections\Exceptions\IndexOutOfBoundsException;
-use Phel\Lang\Collections\HashMap\PersistentHashMapInterface;
+use Phel\Lang\Collections\Map\PersistentMapInterface;
 use Phel\Lang\EqualizerInterface;
 use Phel\Lang\HasherInterface;
 use Traversable;
@@ -37,7 +37,7 @@ class PersistentVector extends AbstractPersistentVector
     /** @var array<int, T> The tail of the vector. This is an optimization */
     private array $tail;
 
-    public function __construct(HasherInterface $hasher, EqualizerInterface $equalizer, ?PersistentHashMapInterface $meta, int $count, int $shift, array $root, array $tail)
+    public function __construct(HasherInterface $hasher, EqualizerInterface $equalizer, ?PersistentMapInterface $meta, int $count, int $shift, array $root, array $tail)
     {
         parent::__construct($hasher, $equalizer, $meta);
         $this->count = $count;
@@ -61,7 +61,7 @@ class PersistentVector extends AbstractPersistentVector
         return $tv->persistent();
     }
 
-    public function withMeta(?PersistentHashMapInterface $meta)
+    public function withMeta(?PersistentMapInterface $meta)
     {
         return new PersistentVector($this->hasher, $this->equalizer, $meta, $this->count, $this->shift, $this->root, $this->tail);
     }

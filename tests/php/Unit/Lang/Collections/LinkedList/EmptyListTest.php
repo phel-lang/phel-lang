@@ -135,7 +135,7 @@ final class EmptyListTest extends TestCase
 
     public function testAddMetaData(): void
     {
-        $meta = TypeFactory::getInstance()->emptyPersistentHashMap();
+        $meta = TypeFactory::getInstance()->emptyPersistentMap();
         $list = new EmptyList(new ModuloHasher(), new SimpleEqualizer(), null);
         $listWithMeta = $list->withMeta($meta);
 

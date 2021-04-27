@@ -127,7 +127,7 @@ final class QuasiquoteTest extends TestCase
                     TypeFactory::getInstance()->persistentListFromArray([Symbol::create(Symbol::NAME_LIST), 2]),
                 ]),
             ]),
-            $q->transform(TypeFactory::getInstance()->persistentHashMapFromKVs('a', 1, 'b', 2))
+            $q->transform(TypeFactory::getInstance()->persistentMapFromKVs('a', 1, 'b', 2))
         );
     }
 
@@ -236,7 +236,7 @@ final class QuasiquoteTest extends TestCase
     public function testTransformGlobalSymbol(): void
     {
         $env = new GlobalEnvironment();
-        $env->addDefinition('test', Symbol::create('abc'), TypeFactory::getInstance()->emptyPersistentHashMap());
+        $env->addDefinition('test', Symbol::create('abc'), TypeFactory::getInstance()->emptyPersistentMap());
 
         $q = new QuasiquoteTransformer($env);
         self::assertEquals(

@@ -25,7 +25,7 @@
     (php/instanceof x PersistentVectorInterface)  :vector
     (php/instanceof x PersistentListInterface)    :list
     (php/instanceof x AbstractPersistentStruct)   :struct
-    (php/instanceof x PersistentHashMapInterface) :hash-map
+    (php/instanceof x PersistentMapInterface) :hash-map
     (php/instanceof x PersistentHashSetInterface) :set
     (php/instanceof x PhelArray)                  :array
     (php/instanceof x Table)                      :table

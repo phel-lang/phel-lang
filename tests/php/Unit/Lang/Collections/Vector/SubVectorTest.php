@@ -5,10 +5,10 @@ declare(strict_types=1);
 namespace PhelTest\Unit\Lang\Collections\Vector;
 
 use Phel\Lang\Collections\Exceptions\IndexOutOfBoundsException;
-use Phel\Lang\Collections\HashMap\PersistentHashMap;
+use Phel\Lang\Collections\Map\PersistentHashMap;
 use Phel\Lang\Collections\Vector\PersistentVector;
 use Phel\Lang\Collections\Vector\SubVector;
-use PhelTest\Benchmark\Lang\Collections\HashMap\SimpleEqualizer;
+use PhelTest\Benchmark\Lang\Collections\Map\SimpleEqualizer;
 use PhelTest\Unit\Lang\Collections\ModuloHasher;
 use PHPUnit\Framework\TestCase;
 

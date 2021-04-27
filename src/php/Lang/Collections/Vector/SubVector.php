@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace Phel\Lang\Collections\Vector;
 
 use Phel\Lang\Collections\Exceptions\IndexOutOfBoundsException;
-use Phel\Lang\Collections\HashMap\PersistentHashMapInterface;
-use Phel\Lang\Collections\HashMap\TransientHashMapInterface;
+use Phel\Lang\Collections\Map\PersistentMapInterface;
+use Phel\Lang\Collections\Map\TransientMapInterface;
 use Phel\Lang\EqualizerInterface;
 use Phel\Lang\HasherInterface;
 use Traversable;
@@ -21,7 +21,7 @@ class SubVector extends AbstractPersistentVector
     private int $start;
     private int $end;
 
-    public function __construct(HasherInterface $hasher, EqualizerInterface $equalizer, ?PersistentHashMapInterface $meta, PersistentVectorInterface $vector, int $start, int $end)
+    public function __construct(HasherInterface $hasher, EqualizerInterface $equalizer, ?PersistentMapInterface $meta, PersistentVectorInterface $vector, int $start, int $end)
     {
         parent::__construct($hasher, $equalizer, $meta);
         $this->vector = $vector;
@@ -54,7 +54,7 @@ class SubVector extends AbstractPersistentVector
         return array_slice($this->vector->toArray(), $this->start, $this->end - $this->start);
     }
 
-    public function withMeta(?PersistentHashMapInterface $meta)
+    public function withMeta(?PersistentMapInterface $meta)
     {
         return new SubVector($this->hasher, $this->equalizer, $meta, $this->vector, $this->start, $this->end);
     }
@@ -124,7 +124,7 @@ class SubVector extends AbstractPersistentVector
     }
 
     /**
-     * @return TransientHashMapInterface
+     * @return TransientMapInterface
      */
     public function asTransient()
     {
