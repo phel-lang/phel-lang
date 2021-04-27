@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace PhelTest\Unit\Lang\Collections\Vector;
 
+use Phel\Lang\Collections\Exceptions\IndexOutOfBoundsException;
 use Phel\Lang\Collections\Vector\TransientVector;
 use PhelTest\Unit\Lang\Collections\ModuloHasher;
 use PhelTest\Unit\Lang\Collections\SimpleEqualizer;
@@ -67,7 +68,7 @@ final class TransientVectorTest extends TestCase
 
     public function testUpdateOutOfRange(): void
     {
-        $this->expectException(RuntimeException::class);
+        $this->expectException(IndexOutOfBoundsException::class);
         $v = TransientVector::empty(new ModuloHasher(), new SimpleEqualizer());
 
         $v->update(1, 10);
@@ -108,7 +109,7 @@ final class TransientVectorTest extends TestCase
 
     public function testGetOutOfRange(): void
     {
-        $this->expectException(RuntimeException::class);
+        $this->expectException(IndexOutOfBoundsException::class);
         $vEmpty = TransientVector::empty(new ModuloHasher(), new SimpleEqualizer());
 
         $vEmpty->get(0);

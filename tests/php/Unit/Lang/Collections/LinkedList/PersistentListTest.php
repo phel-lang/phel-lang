@@ -4,13 +4,13 @@ declare(strict_types=1);
 
 namespace PhelTest\Unit\Lang\Collections\Vector;
 
+use Phel\Lang\Collections\Exceptions\IndexOutOfBoundsException;
 use Phel\Lang\Collections\LinkedList\EmptyList;
 use Phel\Lang\Collections\LinkedList\PersistentList;
 use Phel\Lang\TypeFactory;
 use PhelTest\Unit\Lang\Collections\ModuloHasher;
 use PhelTest\Unit\Lang\Collections\SimpleEqualizer;
 use PHPUnit\Framework\TestCase;
-use RuntimeException;
 
 final class PersistentListTest extends TestCase
 {
@@ -79,7 +79,7 @@ final class PersistentListTest extends TestCase
 
     public function testGetNegativeNumber(): void
     {
-        $this->expectException(RuntimeException::class);
+        $this->expectException(IndexOutOfBoundsException::class);
 
         $list = PersistentList::fromArray(new ModuloHasher(), new SimpleEqualizer(), ['foo', 'bar', 'foobar']);
         $list->get(-1);
@@ -87,7 +87,7 @@ final class PersistentListTest extends TestCase
 
     public function testGetOutOfBound(): void
     {
-        $this->expectException(RuntimeException::class);
+        $this->expectException(IndexOutOfBoundsException::class);
 
         $list = PersistentList::fromArray(new ModuloHasher(), new SimpleEqualizer(), ['foo', 'bar', 'foobar']);
         $list->get(3);

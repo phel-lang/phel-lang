@@ -6,6 +6,7 @@ namespace Phel\Lang\Collections\LinkedList;
 
 use EmptyIterator;
 use Phel\Lang\AbstractType;
+use Phel\Lang\Collections\Exceptions\IndexOutOfBoundsException;
 use Phel\Lang\Collections\Map\PersistentMapInterface;
 use Phel\Lang\EqualizerInterface;
 use Phel\Lang\HasherInterface;
@@ -61,11 +62,13 @@ class EmptyList extends AbstractType implements PersistentListInterface
     }
 
     /**
+     * @throws IndexOutOfBoundsException
+     *
      * @return T
      */
     public function get(int $i)
     {
-        throw new \RuntimeException('Index out of bounds');
+        throw new IndexOutOfBoundsException('Index out of bounds');
     }
 
     public function equals($other): bool

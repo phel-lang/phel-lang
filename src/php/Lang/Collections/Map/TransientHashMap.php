@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace Phel\Lang\Collections\Map;
 
+use Phel\Lang\Collections\Exceptions\MethodNotSupportedException;
 use Phel\Lang\EqualizerInterface;
 use Phel\Lang\HasherInterface;
-use RuntimeException;
 
 /**
  * @template K
@@ -173,11 +173,11 @@ class TransientHashMap implements TransientMapInterface
 
     public function offsetSet($offset, $value): void
     {
-        throw new RuntimeException('Method offsetSet is not supported on TransientMap');
+        throw new MethodNotSupportedException('Method offsetSet is not supported on TransientMap');
     }
 
     public function offsetUnset($offset): void
     {
-        throw new RuntimeException('Method offsetUnset is not supported on TransientMap');
+        throw new MethodNotSupportedException('Method offsetUnset is not supported on TransientMap');
     }
 }

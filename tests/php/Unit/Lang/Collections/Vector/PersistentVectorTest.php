@@ -72,7 +72,7 @@ final class PersistentVectorTest extends TestCase
 
     public function testUpdateOutOfRange(): void
     {
-        $this->expectException(RuntimeException::class);
+        $this->expectException(IndexOutOfBoundsException::class);
         $v = PersistentVector::empty(new ModuloHasher(), new SimpleEqualizer());
 
         $v->update(1, 10);

@@ -4,9 +4,10 @@ declare(strict_types=1);
 
 namespace Phel\Lang\Collections\Vector;
 
+use Phel\Lang\Collections\Exceptions\IndexOutOfBoundsException;
+use Phel\Lang\Collections\Exceptions\MethodNotSupportedException;
 use Phel\Lang\EqualizerInterface;
 use Phel\Lang\HasherInterface;
-use RuntimeException;
 
 /**
  * @template T
@@ -150,7 +151,7 @@ class TransientVector implements TransientVectorInterface
             return $this->append($value);
         }
 
-        throw new \RuntimeException('Index out of bounds');
+        throw new IndexOutOfBoundsException('Index out of bounds');
     }
 
     /**
@@ -260,7 +261,7 @@ class TransientVector implements TransientVectorInterface
             return $node;
         }
 
-        throw new \RuntimeException('Index out of bounds');
+        throw new IndexOutOfBoundsException('Index out of bounds');
     }
 
     /**
@@ -295,11 +296,11 @@ class TransientVector implements TransientVectorInterface
 
     public function offsetSet($offset, $value): void
     {
-        throw new RuntimeException('Method offsetSet is not supported on VectorSequence');
+        throw new MethodNotSupportedException('Method offsetSet is not supported on VectorSequence');
     }
 
     public function offsetUnset($offset): void
     {
-        throw new RuntimeException('Method offsetUnset is not supported on VectorSequence');
+        throw new MethodNotSupportedException('Method offsetUnset is not supported on VectorSequence');
     }
 }

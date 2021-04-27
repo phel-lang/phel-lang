@@ -5,10 +5,10 @@ declare(strict_types=1);
 namespace Phel\Lang\Collections\Vector;
 
 use Phel\Lang\AbstractType;
+use Phel\Lang\Collections\Exceptions\MethodNotSupportedException;
 use Phel\Lang\Collections\Map\PersistentMapInterface;
 use Phel\Lang\EqualizerInterface;
 use Phel\Lang\HasherInterface;
-use RuntimeException;
 
 /**
  * @template T
@@ -121,12 +121,12 @@ abstract class AbstractPersistentVector extends AbstractType implements Persiste
 
     public function offsetSet($offset, $value): void
     {
-        throw new RuntimeException('Method offsetSet is not supported on VectorSequence');
+        throw new MethodNotSupportedException('Method offsetSet is not supported on VectorSequence');
     }
 
     public function offsetUnset($offset): void
     {
-        throw new RuntimeException('Method offsetUnset is not supported on VectorSequence');
+        throw new MethodNotSupportedException('Method offsetUnset is not supported on VectorSequence');
     }
 
     public function push($x)

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace PhelTest\Unit\Lang\Collections\Vector;
 
+use Phel\Lang\Collections\Exceptions\IndexOutOfBoundsException;
 use Phel\Lang\Collections\LinkedList\EmptyList;
 use Phel\Lang\Collections\LinkedList\PersistentList;
 use Phel\Lang\TypeFactory;
@@ -39,7 +40,7 @@ final class EmptyListTest extends TestCase
 
     public function testCanGetOnEmtpyList(): void
     {
-        $this->expectException(RuntimeException::class);
+        $this->expectException(IndexOutOfBoundsException::class);
 
         $list = new EmptyList(new ModuloHasher(), new SimpleEqualizer(), null);
         $list->get(0);
@@ -127,7 +128,7 @@ final class EmptyListTest extends TestCase
 
     public function testOffsetGet(): void
     {
-        $this->expectException(RuntimeException::class);
+        $this->expectException(IndexOutOfBoundsException::class);
 
         $list = new EmptyList(new ModuloHasher(), new SimpleEqualizer(), null);
         $list[0];

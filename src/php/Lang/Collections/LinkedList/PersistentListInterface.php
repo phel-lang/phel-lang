@@ -7,6 +7,7 @@ namespace Phel\Lang\Collections\LinkedList;
 use ArrayAccess;
 use Countable;
 use IteratorAggregate;
+use Phel\Lang\Collections\Exceptions\IndexOutOfBoundsException;
 use Phel\Lang\ConcatInterface;
 use Phel\Lang\ConsInterface;
 use Phel\Lang\SeqInterface;
@@ -33,6 +34,8 @@ interface PersistentListInterface extends TypeInterface, SeqInterface, IteratorA
     public function prepend($value): PersistentListInterface;
 
     /**
+     * @throws IndexOutOfBoundsException
+     *
      * @return TValue
      */
     public function get(int $i);

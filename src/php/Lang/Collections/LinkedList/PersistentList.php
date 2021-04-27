@@ -5,10 +5,10 @@ declare(strict_types=1);
 namespace Phel\Lang\Collections\LinkedList;
 
 use Phel\Lang\AbstractType;
+use Phel\Lang\Collections\Exceptions\IndexOutOfBoundsException;
 use Phel\Lang\Collections\Map\PersistentMapInterface;
 use Phel\Lang\EqualizerInterface;
 use Phel\Lang\HasherInterface;
-use RuntimeException;
 use Traversable;
 
 /**
@@ -96,6 +96,8 @@ class PersistentList extends AbstractType implements PersistentListInterface
     }
 
     /**
+     * @throws IndexOutOfBoundsException
+     *
      * @return T
      */
     public function get(int $i)
@@ -111,7 +113,7 @@ class PersistentList extends AbstractType implements PersistentListInterface
             $list = $list->rest();
         }
 
-        throw new RuntimeException('Index out of bounds');
+        throw new IndexOutOfBoundsException('Index out of bounds');
     }
 
     public function equals($other): bool

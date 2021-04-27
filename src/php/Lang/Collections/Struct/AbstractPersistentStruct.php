@@ -7,6 +7,7 @@ namespace Phel\Lang\Collections\Struct;
 use InvalidArgumentException;
 use Phel\Compiler\Emitter\OutputEmitter\Munge;
 use Phel\Compiler\Emitter\OutputEmitter\MungeInterface;
+use Phel\Lang\Collections\Exceptions\MethodNotSupportedException;
 use Phel\Lang\Collections\Map\AbstractPersistentMap;
 use Phel\Lang\Collections\Map\PersistentMapInterface;
 use Phel\Lang\Collections\Map\TransientMapInterface;
@@ -87,7 +88,7 @@ abstract class AbstractPersistentStruct extends AbstractPersistentMap
      */
     public function asTransient()
     {
-        throw new \RuntimeException('Structs don\'t support transients');
+        throw new MethodNotSupportedException('Structs don\'t support transients');
     }
 
     public function equals($other): bool

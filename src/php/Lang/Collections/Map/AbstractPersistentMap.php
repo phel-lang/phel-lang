@@ -5,9 +5,9 @@ declare(strict_types=1);
 namespace Phel\Lang\Collections\Map;
 
 use Phel\Lang\AbstractType;
+use Phel\Lang\Collections\Exceptions\MethodNotSupportedException;
 use Phel\Lang\EqualizerInterface;
 use Phel\Lang\HasherInterface;
-use RuntimeException;
 
 /**
  * @template K
@@ -110,11 +110,11 @@ abstract class AbstractPersistentMap extends AbstractType implements PersistentM
 
     public function offsetSet($offset, $value): void
     {
-        throw new RuntimeException('Method offsetSet is not supported on PersistentMap');
+        throw new MethodNotSupportedException('Method offsetSet is not supported on PersistentMap');
     }
 
     public function offsetUnset($offset): void
     {
-        throw new RuntimeException('Method offsetUnset is not supported on PersistentMap');
+        throw new MethodNotSupportedException('Method offsetUnset is not supported on PersistentMap');
     }
 }

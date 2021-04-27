@@ -205,7 +205,7 @@ class PersistentVector extends AbstractPersistentVector
             return $this->append($value);
         }
 
-        throw new \RuntimeException('Index out of bounds');
+        throw new IndexOutOfBoundsException('Index out of bounds');
     }
 
     /**
