@@ -7,6 +7,69 @@
     "content-hash": "c9ef794623f4980180ab1dea968089de",
     "packages": [
         {
+<<<<<<< HEAD
+=======
+            "name": "gacela-project/gacela",
+            "version": "dev-master",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/gacela-project/gacela.git",
+                "reference": "fd27ee979c8cb24585c3f3443a9fc8e7e31607c6"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/gacela-project/gacela/zipball/fd27ee979c8cb24585c3f3443a9fc8e7e31607c6",
+                "reference": "fd27ee979c8cb24585c3f3443a9fc8e7e31607c6",
+                "shasum": ""
+            },
+            "require": {
+                "ext-json": "*",
+                "php": ">=7.4"
+            },
+            "require-dev": {
+                "friendsofphp/php-cs-fixer": "^2.18",
+                "phpunit/phpunit": "^9.5",
+                "symfony/var-dumper": "^5.2",
+                "vimeo/psalm": "^4.6"
+            },
+            "default-branch": true,
+            "bin": [
+                "gacela"
+            ],
+            "type": "library",
+            "autoload": {
+                "psr-4": {
+                    "Gacela\\": "src/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Jose Maria Valera Reales",
+                    "email": "chemaclass@outlook.es"
+                },
+                {
+                    "name": "Jesus Valera Reales",
+                    "email": "jesus1902@outlook.com"
+                }
+            ],
+            "description": "Gacela Framework",
+            "keywords": [
+                "kernel",
+                "modular",
+                "php"
+            ],
+            "support": {
+                "issues": "https://github.com/gacela-project/gacela/issues",
+                "source": "https://github.com/gacela-project/gacela/tree/0.2.0"
+            },
+            "time": "2021-04-27T21:30:01+00:00"
+        },
+        {
+>>>>>>> a78bf0a8 (Fixing integration tests: missing its fake runtime)
             "name": "phel-lang/phel-composer-plugin",
             "version": "v0.1.0",
             "source": {
