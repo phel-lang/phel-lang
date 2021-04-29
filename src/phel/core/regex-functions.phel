@@ -5,4 +5,4 @@
   [re s]
   (let [matches (php/array)
         match-result (php/preg_match_all re s matches)]
-    (apply array (php/aget matches 0))))
+    (apply vector (php/aget matches 0))))
