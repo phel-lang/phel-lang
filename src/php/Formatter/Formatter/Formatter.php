@@ -35,7 +35,7 @@ final class Formatter implements FormatterInterface
      */
     public function format(string $string, string $source = self::DEFAULT_SOURCE): string
     {
-        $tokenStream = $this->compilerFacade->lexString($string, $withoutLocation = false, $source);
+        $tokenStream = $this->compilerFacade->lexString($string, $withLocation = true, $source);
         $fileNode = $this->compilerFacade->parseAll($tokenStream);
         $formattedNode = $this->formatNode($fileNode);
 

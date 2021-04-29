@@ -37,7 +37,7 @@ interface CompilerFacadeInterface
     /**
      * @throws LexerValueException
      */
-    public function lexString(string $code, bool $withoutLocation = false, string $source = 'string', int $startingLine = 1): TokenStream;
+    public function lexString(string $code, bool $withLocation = true, string $source = 'string', int $startingLine = 1): TokenStream;
 
     /**
      * @throws UnexpectedParserException

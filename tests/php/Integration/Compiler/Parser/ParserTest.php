@@ -566,7 +566,7 @@ final class ParserTest extends TestCase
         return $this->compilerFacade->parseNext($tokenStream);
     }
 
-    private function loc($line, $column): SourceLocation
+    private function loc(int $line, int $column): SourceLocation
     {
         return new SourceLocation('string', $line, $column);
     }
