@@ -4,14 +4,18 @@ declare(strict_types=1);
 
 namespace PhelTest\Unit\Printer\TypePrinter;
 
-use Phel\Lang\AbstractStruct;
+use Phel\Lang\Collections\Struct\AbstractPersistentStruct;
 
-final class StubStruct extends AbstractStruct
+final class StubStruct extends AbstractPersistentStruct
 {
-    private array $allowedKeys;
+    protected const ALLOWED_KEYS = ['a', 'b'];
+    protected $a;
+    protected $b;
+    private $allowedKeys;
 
     public function __construct(array $allowedKeys)
     {
+        parent::__construct();
         $this->allowedKeys = $allowedKeys;
     }
 

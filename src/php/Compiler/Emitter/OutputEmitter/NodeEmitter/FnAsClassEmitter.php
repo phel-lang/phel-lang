@@ -128,7 +128,8 @@ final class FnAsClassEmitter implements NodeEmitterInterface
                 $this->outputEmitter->emitPhpVariable($p, null, false, true);
             } else {
                 $meta = $p->getMeta();
-                $this->outputEmitter->emitPhpVariable($p, null, isset($meta[new Keyword('reference')]));
+                $isReference = $meta && $meta->find(new Keyword('reference')) === true;
+                $this->outputEmitter->emitPhpVariable($p, null, $isReference);
             }
 
             if ($i < $paramsCount - 1) {

@@ -2,6 +2,6 @@
 (foreach [v [1 2 3]]
   (php/+ v v))
 --PHP--
-foreach ((\Phel\Lang\Tuple::createBracket(1, 2, 3) ?? []) as $v) {
+foreach ((\Phel\Lang\TypeFactory::getInstance()->persistentVectorFromArray([1, 2, 3]) ?? []) as $v) {
   ($v + $v);
 }

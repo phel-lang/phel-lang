@@ -36,10 +36,12 @@ final class Lexer implements LexerInterface
     private int $line = 1;
     private int $column = 0;
     private string $combinedRegex;
+    private bool $withLocation;
 
-    public function __construct()
+    public function __construct(bool $withLocation = true)
     {
         $this->combinedRegex = '/(?:' . implode('|', self::REGEXPS) . ')/mA';
+        $this->withLocation = $withLocation;
     }
 
     /**
@@ -62,12 +64,20 @@ final class Lexer implements LexerInterface
         $this->column = 0;
         $end = strlen($code);
 
-        $startLocation = new SourceLocation($source, $this->line, $this->column);
+        if ($this->withLocation) {
+            $startLocation = new SourceLocation($source, $this->line, $this->column);
+        } else {
+            $startLocation = new SourceLocation('string', 0, 0);
+        }
 
         while ($this->cursor < $end) {
             if (preg_match($this->combinedRegex, $code, $matches, 0, $this->cursor)) {
                 $this->moveCursor($matches[0]);
-                $endLocation = new SourceLocation($source, $this->line, $this->column);
+                if ($this->withLocation) {
+                    $endLocation = new SourceLocation($source, $this->line, $this->column);
+                } else {
+                    $endLocation = new SourceLocation('string', 0, 0);
+                }
 
                 yield new Token(count($matches), $matches[0], $startLocation, $endLocation);
 

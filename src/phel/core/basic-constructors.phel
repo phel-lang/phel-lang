@@ -3,7 +3,7 @@
 (defn set
   "Creates a new Set. If no argument is provided, an empty Set is created."
   [& xs]
-  (php/new Set (php/-> xs (toPhpArray))))
+  (php/-> (php/:: TypeFactory (getInstance)) (persistentHashSetFromArray (php/-> xs (toPhpArray)))))
 
 (defn keyword
   "Creates a new Keyword from a given string."

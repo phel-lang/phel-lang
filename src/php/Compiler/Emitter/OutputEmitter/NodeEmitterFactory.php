@@ -39,8 +39,8 @@ final class NodeEmitterFactory
                 return new NodeEmitter\IfEmitter($outputEmitter);
             case Ast\ApplyNode::class:
                 return new NodeEmitter\ApplyEmitter($outputEmitter);
-            case Ast\TupleNode::class:
-                return new NodeEmitter\TupleEmitter($outputEmitter);
+            case Ast\VectorNode::class:
+                return new NodeEmitter\VectorEmitter($outputEmitter);
             case Ast\PhpNewNode::class:
                 return new NodeEmitter\PhpNewEmitter($outputEmitter);
             case Ast\PhpVarNode::class:
@@ -75,6 +75,8 @@ final class NodeEmitterFactory
                 return new NodeEmitter\DefStructEmitter($outputEmitter);
             case Ast\PhpObjectSetNode::class:
                 return new NodeEmitter\PhpObjectSetEmitter($outputEmitter);
+            case Ast\MapNode::class:
+                return new NodeEmitter\MapEmitter($outputEmitter);
             default:
                 throw NotSupportedAstException::withClassName($astNodeClassName);
         }

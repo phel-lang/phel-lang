@@ -4,11 +4,11 @@ declare(strict_types=1);
 
 namespace Phel\Printer\TypePrinter;
 
-use Phel\Lang\AbstractStruct;
+use Phel\Lang\Collections\Struct\AbstractPersistentStruct;
 use Phel\Printer\PrinterInterface;
 
 /**
- * @implements TypePrinterInterface<AbstractStruct>
+ * @implements TypePrinterInterface<AbstractPersistentStruct>
  */
 final class StructPrinter implements TypePrinterInterface
 {
@@ -20,7 +20,7 @@ final class StructPrinter implements TypePrinterInterface
     }
 
     /**
-     * @param AbstractStruct $form
+     * @param AbstractPersistentStruct $form
      */
     public function print($form): string
     {

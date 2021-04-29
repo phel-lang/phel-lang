@@ -6,11 +6,24 @@ namespace Phel\Lang;
 
 interface SourceLocationInterface
 {
-    public function setStartLocation(?SourceLocation $startLocation): void;
+    /**
+     * @return static
+     */
+    public function setStartLocation(?SourceLocation $startLocation);
 
-    public function setEndLocation(?SourceLocation $endLocation): void;
+    /**
+     * @return static
+     */
+    public function setEndLocation(?SourceLocation $endLocation);
 
     public function getStartLocation(): ?SourceLocation;
 
     public function getEndLocation(): ?SourceLocation;
+
+    /**
+     * @param mixed $other
+     *
+     * @return static
+     */
+    public function copyLocationFrom($other);
 }

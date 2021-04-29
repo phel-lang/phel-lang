@@ -11,8 +11,10 @@ use Iterator;
 use Phel\Printer\Printer;
 
 /**
- * @template-implements ArrayAccess<int, mixed>
- * @template-implements Iterator<int, mixed>
+ * @template T
+ * @template-implements ArrayAccess<int, T>
+ * @template-implements Iterator<int, T>
+ * @template-implements SeqInterface<T, PhelArray>
  */
 final class PhelArray extends AbstractType implements
     ArrayAccess,
@@ -26,6 +28,7 @@ final class PhelArray extends AbstractType implements
     PushInterface,
     ConcatInterface
 {
+    use MetaTrait;
     use IteratorComparatorTrait;
 
     /** @var mixed[] */
@@ -47,15 +50,6 @@ final class PhelArray extends AbstractType implements
     public static function create(...$values): PhelArray
     {
         return new PhelArray($values);
-    }
-
-    public static function fromTuple(Tuple $tuple): self
-    {
-        $arr = new PhelArray($tuple->toArray());
-        $arr->setStartLocation($tuple->getStartLocation());
-        $arr->setEndLocation($tuple->getEndLocation());
-
-        return $arr;
     }
 
     public function offsetSet($offset, $value): void
@@ -133,9 +127,9 @@ final class PhelArray extends AbstractType implements
         return key($this->data) !== null;
     }
 
-    public function hash(): string
+    public function hash(): int
     {
-        return spl_object_hash($this);
+        return crc32(spl_object_hash($this));
     }
 
     public function equals($other): bool
@@ -166,6 +160,11 @@ final class PhelArray extends AbstractType implements
 
     public function toPhpArray(): array
     {
+        return $this->toArray();
+    }
+
+    public function toArray(): array
+    {
         return $this->data;
     }
 
@@ -178,7 +177,7 @@ final class PhelArray extends AbstractType implements
         return null;
     }
 
-    public function cdr(): ?CdrInterface
+    public function cdr()
     {
         if ($this->count() <= 1) {
             return null;
@@ -187,7 +186,7 @@ final class PhelArray extends AbstractType implements
         return new PhelArray(array_slice($this->data, 1));
     }
 
-    public function rest(): RestInterface
+    public function rest()
     {
         return new PhelArray(array_slice($this->data, 1));
     }

@@ -9,14 +9,16 @@ trait SourceLocationTrait
     private ?SourceLocation $startLocation = null;
     private ?SourceLocation $endLocation = null;
 
-    public function setStartLocation(?SourceLocation $startLocation): void
+    public function setStartLocation(?SourceLocation $startLocation)
     {
         $this->startLocation = $startLocation;
+        return $this;
     }
 
-    public function setEndLocation(?SourceLocation $endLocation): void
+    public function setEndLocation(?SourceLocation $endLocation)
     {
         $this->endLocation = $endLocation;
+        return $this;
     }
 
     public function getStartLocation(): ?SourceLocation

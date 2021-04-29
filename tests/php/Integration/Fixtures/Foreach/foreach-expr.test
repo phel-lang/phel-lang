@@ -8,10 +8,22 @@ $GLOBALS["__phel"]["user"]["x"] = new class() extends \Phel\Lang\AbstractFn {
 
   public function __invoke() {
     return (function() {
-      foreach ((\Phel\Lang\Tuple::createBracket(1, 2, 3) ?? []) as $v) {
+      foreach ((\Phel\Lang\TypeFactory::getInstance()->persistentVectorFromArray([1, 2, 3]) ?? []) as $v) {
         ($v + $v);
       }
       return null;
     })();
   }
 };
+$GLOBALS["__phel_meta"]["user"]["x"] = \Phel\Lang\TypeFactory::getInstance()->persistentMapFromKVs(
+  new \Phel\Lang\Keyword("start-location"), \Phel\Lang\TypeFactory::getInstance()->persistentMapFromKVs(
+    new \Phel\Lang\Keyword("file"), "Foreach/foreach-expr.test",
+    new \Phel\Lang\Keyword("line"), 1,
+    new \Phel\Lang\Keyword("column"), 0
+  ),
+  new \Phel\Lang\Keyword("end-location"), \Phel\Lang\TypeFactory::getInstance()->persistentMapFromKVs(
+    new \Phel\Lang\Keyword("file"), "Foreach/foreach-expr.test",
+    new \Phel\Lang\Keyword("line"), 3,
+    new \Phel\Lang\Keyword("column"), 18
+  )
+);

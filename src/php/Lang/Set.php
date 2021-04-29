@@ -8,6 +8,10 @@ use Countable;
 use Iterator;
 use Phel\Printer\Printer;
 
+/**
+ * @template T
+ * @template-implements SeqInterface<T, PhelArray>
+ */
 final class Set extends AbstractType implements
     Countable,
     Iterator,
@@ -16,6 +20,7 @@ final class Set extends AbstractType implements
     PushInterface,
     ConcatInterface
 {
+    use MetaTrait;
     /** @var mixed[] */
     private array $data = [];
     private int $currentIndex = 0;
@@ -29,9 +34,9 @@ final class Set extends AbstractType implements
         $this->concat($data);
     }
 
-    public function hash(): string
+    public function hash(): int
     {
-        return spl_object_hash($this);
+        return crc32(spl_object_hash($this));
     }
 
     public function count(): int
@@ -88,7 +93,7 @@ final class Set extends AbstractType implements
         return $this->current();
     }
 
-    public function cdr(): ?CdrInterface
+    public function cdr()
     {
         if ($this->count() <= 1) {
             return null;
@@ -97,7 +102,7 @@ final class Set extends AbstractType implements
         return new PhelArray(array_values(array_slice($this->data, 1)));
     }
 
-    public function rest(): RestInterface
+    public function rest()
     {
         $this->rewind();
         $this->next();
@@ -152,22 +157,27 @@ final class Set extends AbstractType implements
         return array_values($this->data);
     }
 
+    public function toArray(): array
+    {
+        return $this->toPhpArray();
+    }
+
     /**
      * Creates a hash for the given key.
      *
      * @param mixed $offset The access key of the Set
      */
-    private function offsetHash($offset): string
+    private function offsetHash($offset): int
     {
-        if ($offset instanceof AbstractType) {
+        if ($offset instanceof TypeInterface) {
             return $offset->hash();
         }
 
         if (is_object($offset)) {
-            return spl_object_hash($offset);
+            return crc32(spl_object_hash($offset));
         }
 
-        return (string) $offset;
+        return crc32((string) $offset);
     }
 
     public function __toString(): string

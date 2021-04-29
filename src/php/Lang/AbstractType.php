@@ -4,33 +4,66 @@ declare(strict_types=1);
 
 namespace Phel\Lang;
 
-abstract class AbstractType implements MetaInterface, SourceLocationInterface
+use Phel\Printer\Printer;
+
+/**
+ * @template TSelf
+ *
+ * @implements TypeInterface<TSelf>
+ */
+abstract class AbstractType implements TypeInterface
 {
-    use SourceLocationTrait;
-    use MetaTrait;
+    private ?SourceLocation $startLocation = null;
+    private ?SourceLocation $endLocation = null;
 
     /**
-     * Computes a hash of the object.
+     * @return static
      */
-    abstract public function hash(): string;
-
-    /**
-     * @param mixed|null $a
-     * @param mixed|null $b
-     */
-    protected function areEquals($a, $b): bool
+    public function setStartLocation(?SourceLocation $startLocation)
     {
-        if ($a instanceof AbstractType) {
-            return $a->equals($b);
-        }
-
-        return $a === $b;
+        $this->startLocation = $startLocation;
+        return $this;
     }
 
     /**
-     * Check if $other is equals to $this.
-     *
-     * @param mixed $other The other value
+     * @return static
      */
-    abstract public function equals($other): bool;
+    public function setEndLocation(?SourceLocation $endLocation)
+    {
+        $this->endLocation = $endLocation;
+        return $this;
+    }
+
+    public function getStartLocation(): ?SourceLocation
+    {
+        return $this->startLocation;
+    }
+
+    public function getEndLocation(): ?SourceLocation
+    {
+        return $this->endLocation;
+    }
+
+    /**
+     * Copies the start and end location from $other.
+     *
+     * @param mixed $other The object to copy from
+     *
+     * @return static
+     */
+    public function copyLocationFrom($other): self
+    {
+        if ($other && $other instanceof SourceLocationInterface) {
+            return $this
+                ->setStartLocation($other->getStartLocation())
+                ->setEndLocation($other->getEndLocation());
+        }
+
+        return $this;
+    }
+
+    public function __toString()
+    {
+        return Printer::readable()->print($this);
+    }
 }
