@@ -6,7 +6,6 @@ namespace Phel\Printer;
 
 final class PrinterFacade
 {
-    /** @var PrinterFactory */
     private PrinterFactory $printerFactory;
 
     public function __construct(PrinterFactory $printerFactory)

@@ -128,7 +128,7 @@ final class VLQ
         $result = '';
 
         if ($num < 0) {
-            $num = (-$num << 1)|1;
+            $num = (-$num << 1) | 1;
         } else {
             $num <<= 1;
         }

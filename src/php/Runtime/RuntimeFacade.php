@@ -25,8 +25,7 @@ final class RuntimeFacade extends AbstractFacade implements RuntimeFacadeInterfa
 
     public function getNamespaceFromFile(string $path): string
     {
-        return $this
-            ->getFactory()
+        return $this->getFactory()
             ->createNamespaceExtractor()
             ->getNamespaceFromFile($path);
     }
