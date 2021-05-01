@@ -21,7 +21,7 @@ final class TransientVectorBench
     }
 
     /**
-     * @Iterations(10)
+     * @Iterations(5)
      * @Revs(1000)
      */
     public function bench_append(): void
@@ -30,7 +30,7 @@ final class TransientVectorBench
     }
 
     /**
-     * @Iterations(10)
+     * @Iterations(5)
      * @Revs(1000)
      */
     public function bench_update(): void
