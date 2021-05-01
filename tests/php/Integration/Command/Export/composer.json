@@ -1,0 +1,14 @@
+{
+  "extra": {
+    "phel": {
+      "export": {
+        "directories": [
+          "src"
+        ],
+        "target-directory": "./tests/php/Integration/Command/Export/PhelGenerated",
+        "namespace-prefix": "PhelGenerated"
+      }
+    }
+  }
+}
+

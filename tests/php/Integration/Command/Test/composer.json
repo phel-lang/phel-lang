@@ -1,0 +1,9 @@
+{
+  "extra": {
+    "phel": {
+      "tests": [
+        "Fixtures"
+      ]
+    }
+  }
+}

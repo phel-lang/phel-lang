@@ -4,26 +4,25 @@ declare(strict_types=1);
 
 namespace Phel\Interop;
 
-use Gacela\Framework\AbstractConfig;
+use Phel\PhelAbstractConfig;
 
-final class InteropConfig extends AbstractConfig
+final class InteropConfig extends PhelAbstractConfig
 {
-    public const EXPORT_NAMESPACE_PREFIX = 'EXPORT_NAMESPACE_PREFIX';
-    public const EXPORT_DIRECTORIES = 'EXPORT_DIRECTORIES';
-    public const EXPORT_TARGET_DIRECTORY = 'EXPORT_TARGET_DIRECTORY';
-
     public function prefixNamespace(): string
     {
-        return (string)$this->get(self::EXPORT_NAMESPACE_PREFIX, '');
+        return (string)$this->get('extra')['phel']['export']['namespace-prefix'];
     }
 
     public function getExportTargetDirectory(): string
     {
-        return $this->get(self::EXPORT_TARGET_DIRECTORY, 'PhelGenerated');
+        return (string)($this->get('extra')['phel']['export']['target-directory'] ?? 'PhelGenerated');
     }
 
+    /**
+     * @return string[]
+     */
     public function getExportDirectories(): array
     {
-        return $this->get(self::EXPORT_DIRECTORIES, []);
+        return $this->get('extra')['phel']['export']['directories'] ?? [];
     }
 }

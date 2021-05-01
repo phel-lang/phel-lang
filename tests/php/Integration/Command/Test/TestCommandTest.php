@@ -14,7 +14,6 @@ final class TestCommandTest extends TestCase
     public static function setUpBeforeClass(): void
     {
         Config::setApplicationRootDir(__DIR__);
-        Config::init();
     }
 
     public function setUp(): void

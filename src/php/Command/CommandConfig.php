@@ -4,16 +4,17 @@ declare(strict_types=1);
 
 namespace Phel\Command;
 
-use Gacela\Framework\AbstractConfig;
 use Gacela\Framework\Config;
+use Phel\PhelAbstractConfig;
 
-final class CommandConfig extends AbstractConfig
+final class CommandConfig extends PhelAbstractConfig
 {
-    public const DEFAULT_TEST_DIRECTORIES = 'DEFAULT_TEST_DIRECTORIES';
-
+    /**
+     * @return string[]
+     */
     public function getDefaultTestDirectories(): array
     {
-        return $this->get(self::DEFAULT_TEST_DIRECTORIES, []);
+        return $this->get('extra')['phel']['tests'] ?? [];
     }
 
     public function getApplicationRootDir(): string
