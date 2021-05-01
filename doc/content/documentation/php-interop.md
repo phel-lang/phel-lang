@@ -162,18 +162,15 @@ class MyExistingClass {
 
 Alternatively, the `phel export` command can be used. This command will generate a wrapper class for all Phel functions that are marked as *export*.
 
-Before using the `export` command the required configuration options need to be added to `composer.json`:
+Before using the `export` command the required configuration options need to be added to any of your `config/` files:
+```php
+use Phel\Interop\InteropConfig;
 
-```json
-{
-  "export": {
-    "directories": [
-        "src/phel"
-    ],
-    "namespace-prefix": "PhelGenerated",
-    "target-directory": "src/PhelGenerated"
-  }
-}
+return [
+    InteropConfig::EXPORT_DIRECTORIES => ['src/phel'],
+    InteropConfig::EXPORT_NAMESPACE_PREFIX => 'PhelGenerated',
+    InteropConfig::EXPORT_TARGET_DIRECTORY => 'src/PhelGenerated',
+];
 ```
 
 A detailed description of the options can be found in the [Configuration](/documentation/configuration/#export) chapter.
