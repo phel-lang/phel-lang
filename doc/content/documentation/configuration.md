@@ -3,13 +3,11 @@ title = "Configuration"
 weight = 17
 +++
 
-Phel comes with some configuration options:
-1. To define your custom namespaces inside your `composer.json` in the `extra` section.
-2. All other configuration options will be saved inside the `config/` directory at the root level of your project.
+Phel comes with some configuration options. They are stored in the `composer.json` file in the `extra` section.
 
 ## Structure
 
-1. Composer loader options:
+These are all Phel specific configuration options available.
 
 ```json
 "extra": {
@@ -19,25 +17,22 @@ Phel comes with some configuration options:
         },
         "loader-dev": {
             "hello-world\\tests\\": "tests/"
+        },
+        "tests": [
+            "tests/"
+        ],
+        "export": {
+            "directories": [
+                "src/phel"
+            ],
+            "namespace-prefix": "PhelGenerated",
+            "target-directory": "src/PhelGenerated"
         }
     }
 }
 ```
 
-2. Config options:
-```php
-use Phel\Command\CommandConfig;
-use Phel\Interop\InteropConfig;
-
-return [
-    CommandConfig::DEFAULT_TEST_DIRECTORIES => ['tests'],
-    InteropConfig::EXPORT_DIRECTORIES => ['src/modules/'],
-    InteropConfig::EXPORT_NAMESPACE_PREFIX => 'PhelGenerated',
-    InteropConfig::EXPORT_TARGET_DIRECTORY => 'src/PhelGenerated',
-];
-```
-
-## Composer options in detail
+## Options in detail
 
 This chapter contains all configuration options explained in detail.
 
@@ -61,24 +56,21 @@ Modules needed to run the test suite should not be included in the main autoload
 
 The `loader-dev` configuration section is equivalent to the `loader` configuration section. Namespaces and paths are defined in the same way.
 
-## Config options in detail
-
 ### `tests`
 
-This configuration entry defines a list of folders where the test files of a project can be found (`CommandConfig::DEFAULT_TEST_DIRECTORIES`).
+This configuration entry defines a list of folders where the test files of a project can be found.
 
 ### `export`
 
 These configuration options are used for the Phel export command that is described in the [PHP Interop](/documentation/php-interop/#calling-phel-functions-from-php) chapter. Currently, the export command requires three options:
 
-- `directories`: Defines a list of directories in which the export command should search for export functions (`InteropConfig::EXPORT_DIRECTORIES`).
-- `namespace-prefix`: Defines a namespace prefix for all generated PHP classes (`InteropConfig::EXPORT_NAMESPACE_PREFIX`).
-- `target-directory`: Defines the directory where the generated PHP classes are stored (`InteropConfig::EXPORT_TARGET_DIRECTORY`).
+- `directories`: Defines a list of directories in which the export command should search for export functions.
+- `namespace-prefix`: Defines a namespace prefix for all generated PHP classes.
+- `target-directory`: Defines the directory where the generated PHP classes are stored.
 
 ## Phel Composer Plugin
 
-Phel Runtime is configured automatically by the plugin. Whenever a package is updated or installed a file is generated in `vendor/PhelRuntime.php`.
-This file initializes the Phel Runtime according to the defined `loader` and `loader-dev` configuration options.
+Phel Runtime is configured automatically by the plugin. Whenever a package is updated or installed a file is generated in `vendor/PhelRuntime.php`. This file initializes the Phel Runtime according to the defined `loader` and `loader-dev` configuration options.
 
 The generated Runtime can be loaded like this.
 
