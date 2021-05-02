@@ -181,6 +181,12 @@
   (is (true? (str-contains? "abc" "a")))
   (is (false? (str-contains? "abc" "d"))))
 
+(deftest test-contains?
+  (let [full-name {:first-name "Marco" :last-name "Polo"}]
+    (is (true? (contains? full-name :first-name)))
+    (is (true? (contains? full-name :last-name)))
+    (is (false? (contains? full-name :unknown)))))
+
 (deftest test-compare
   (is (= -1 (compare 1 2)) "(compare 1 2)")
   (is (= 1 (compare 2 1)) "(compare 2 1)")
