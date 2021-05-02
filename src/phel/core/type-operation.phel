@@ -3,11 +3,13 @@
 (defn type
   "Returns the type of `x`. Following types can be returned:
 
+* `:vector`
+* `:list`
+* `:struct`
+* `:hash-map`
 * `:set`
 * `:array`
-* `:struct`
 * `:table`
-* `:hash-map`
 * `:keyword`
 * `:symbol`
 * `:int`
@@ -25,7 +27,7 @@
     (php/instanceof x PersistentVectorInterface)  :vector
     (php/instanceof x PersistentListInterface)    :list
     (php/instanceof x AbstractPersistentStruct)   :struct
-    (php/instanceof x PersistentMapInterface) :hash-map
+    (php/instanceof x PersistentMapInterface)     :hash-map
     (php/instanceof x PersistentHashSetInterface) :set
     (php/instanceof x PhelArray)                  :array
     (php/instanceof x Table)                      :table
