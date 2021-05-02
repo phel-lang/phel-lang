@@ -6,7 +6,7 @@ namespace PhelTest\Unit\Lang\Collections;
 
 use Phel\Lang\EqualizerInterface;
 
-class SimpleEqualizer implements EqualizerInterface
+final class SimpleEqualizer implements EqualizerInterface
 {
     public function equals($a, $b): bool
     {

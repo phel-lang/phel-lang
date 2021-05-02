@@ -8,8 +8,8 @@ use Phel\Lang\Collections\Exceptions\IndexOutOfBoundsException;
 use Phel\Lang\Collections\Map\PersistentHashMap;
 use Phel\Lang\Collections\Vector\PersistentVector;
 use Phel\Lang\Collections\Vector\SubVector;
-use PhelTest\Benchmark\Lang\Collections\Map\SimpleEqualizer;
 use PhelTest\Unit\Lang\Collections\ModuloHasher;
+use PhelTest\Unit\Lang\Collections\SimpleEqualizer;
 use PHPUnit\Framework\TestCase;
 
 final class SubVectorTest extends TestCase

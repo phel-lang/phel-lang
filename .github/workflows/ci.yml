@@ -75,3 +75,6 @@ jobs:
 
       - name: Run tests to the core library
         run: composer run-script test-core
+
+      - name: Run PHPBench
+        run: vendor/bin/phpbench run --iterations=3 --warmup=1 --report=aggregate
