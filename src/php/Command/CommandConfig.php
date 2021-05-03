@@ -5,16 +5,16 @@ declare(strict_types=1);
 namespace Phel\Command;
 
 use Gacela\Framework\Config;
-use Phel\PhelAbstractConfig;
+use Phel\AbstractPhelConfig;
 
-final class CommandConfig extends PhelAbstractConfig
+final class CommandConfig extends AbstractPhelConfig
 {
     /**
      * @return string[]
      */
-    public function getDefaultTestDirectories(): array
+    public function getTestDirectories(): array
     {
-        return $this->get('extra')['phel']['tests'] ?? [];
+        return $this->get('tests', []);
     }
 
     public function getApplicationRootDir(): string

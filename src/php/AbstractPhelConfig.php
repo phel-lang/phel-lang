@@ -11,7 +11,7 @@ use function json_decode;
 /**
  * This is a layer on top of Gacela config, to get the values from the composer.json.
  */
-abstract class PhelAbstractConfig extends AbstractConfig
+abstract class AbstractPhelConfig extends AbstractConfig
 {
     private array $composerJson = [];
 
@@ -27,6 +27,6 @@ abstract class PhelAbstractConfig extends AbstractConfig
             $this->composerJson = json_decode(file_get_contents($composerJsonPath), true);
         }
 
-        return $this->composerJson[$key] ?? $default;
+        return $this->composerJson['extra']['phel'][$key] ?? $default;
     }
 }

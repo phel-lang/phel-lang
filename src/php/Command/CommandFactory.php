@@ -61,7 +61,7 @@ final class CommandFactory extends AbstractFactory
             $this->createCommandIo(),
             $this->getRuntimeFacade(),
             $this->getCompilerFacade(),
-            $this->getConfig()->getDefaultTestDirectories()
+            $this->getConfig()->getTestDirectories()
         );
     }
 

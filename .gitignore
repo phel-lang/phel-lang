@@ -10,4 +10,3 @@ src/phel/local.phel
 infection.json
 .vscode
 PhelGenerated/
-/config/local.php

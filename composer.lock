@@ -4,11 +4,11 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "771fab9089b8171adda9871d5965e9e9",
+    "content-hash": "f429546fb7180351513594aaf729b9d1",
     "packages": [
         {
             "name": "gacela-project/gacela",
-            "version": "dev-master",
+            "version": "0.2.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/gacela-project/gacela.git",
@@ -30,7 +30,6 @@
                 "symfony/var-dumper": "^5.2",
                 "vimeo/psalm": "^4.6"
             },
-            "default-branch": true,
             "bin": [
                 "gacela"
             ],
@@ -5884,7 +5883,6 @@
     "minimum-stability": "stable",
     "stability-flags": {
         "phel-lang/phel-composer-plugin": 20,
-        "gacela-project/gacela": 20,
         "phpbench/phpbench": 10
     },
     "prefer-stable": false,

@@ -21,18 +21,18 @@ final class TestCommand
     private RuntimeFacadeInterface $runtimeFacade;
     private CompilerFacadeInterface $compilerFacade;
     /** @var list<string> */
-    private array $defaultDirectories;
+    private array $defaultTestDirectories;
 
     public function __construct(
         CommandIoInterface $io,
         RuntimeFacadeInterface $runtimeFacade,
         CompilerFacadeInterface $compilerFacade,
-        array $defaultDirectories
+        array $testDirectories
     ) {
         $this->io = $io;
         $this->runtimeFacade = $runtimeFacade;
         $this->compilerFacade = $compilerFacade;
-        $this->defaultDirectories = $defaultDirectories;
+        $this->defaultTestDirectories = $testDirectories;
     }
 
     public function addRuntimePath(string $namespacePrefix, array $path): self
@@ -87,7 +87,7 @@ final class TestCommand
     private function getNamespacesFromPaths(array $paths): array
     {
         if (empty($paths)) {
-            return $this->runtimeFacade->getNamespacesFromDirectories($this->defaultDirectories);
+            return $this->runtimeFacade->getNamespacesFromDirectories($this->defaultTestDirectories);
         }
 
         return array_map(
