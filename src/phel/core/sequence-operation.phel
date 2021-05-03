@@ -71,6 +71,9 @@ arrays. Use (php/aunset ds key)"))
     (or (hash-map? ds) (php/instanceof ds TransientMapInterface))
     (php/-> ds (remove key))
 
+    (or (set? ds) (php/instanceof ds TransientHashSetInterface))
+    (php/-> ds (remove key))
+
     (let [x ds]
       (php/aunset x key)
       x)

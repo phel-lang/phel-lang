@@ -63,7 +63,7 @@ Each global function can take an optional doc comment and attribute map.
 
 (defn my-private-add-function
   "adds value a and b"
-  @{:private true}
+  {:private true}
   [a b]
   (+ a b))
 ```

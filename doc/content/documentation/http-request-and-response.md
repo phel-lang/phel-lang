@@ -13,12 +13,12 @@ The request struct is defined like this:
 (defstruct request [
   method            # HTTP Method ("GET", "POST", ...)
   uri               # the 'uri' struct (see below)
-  headers           # Table of all headers. Keys are keywords, Values are string
+  headers           # Map of all headers. Keys are keywords, Values are string
   parsed-body       # The parsed body ($_POST), when availabe otherwise nil
-  query-params      # Table with all query parameters ($_GET)
-  cookie-params     # Table with all cookie parameters ($_COOKIE)
-  server-params     # Table with all server parameters ($_SERVER)
-  uploaded-files    # Table of 'uploaded-file' structs (see below)
+  query-params      # Map with all query parameters ($_GET)
+  cookie-params     # Map with all cookie parameters ($_COOKIE)
+  server-params     # Map with all server parameters ($_SERVER)
+  uploaded-files    # Map of 'uploaded-file' structs (see below)
   version           # The HTTP Version
 ])
 
@@ -57,7 +57,7 @@ The `phel\http` module also contains a response struct. This struct can be used 
 ```phel
 (defstruct response [
   status    # The HTTP status code
-  headers   # A table of headers
+  headers   # A map of headers
   body      # The body of the response (string)
   version   # The HTTP protocol version
   reason    # The HTTP status code reason text
@@ -70,13 +70,13 @@ To make it easier to create responses. Phel has two helpers methods to create a 
 (ns my-namepace
   (:require phel\http))
 
-# Create response from table
-(http/create-response-from-table @{:status 200 :body "Test"})
-# Evaluates to (response 200 @{} "Test" "1.1" "OK")
+# Create response from map
+(http/create-response-from-map {:status 200 :body "Test"})
+# Evaluates to (response 200 {} "Test" "1.1" "OK")
 
 # Create response from string
 (http/create-response-from-string "Hello World")
-# Evaluates to (response 200 @{} "Hello World" "1.1" "OK")
+# Evaluates to (response 200 {} "Hello World" "1.1" "OK")
 ```
 
 To send the response to the client the `emit-response` function can be used.
@@ -85,7 +85,7 @@ To send the response to the client the `emit-response` function can be used.
 (ns my-namepace
   (:require phel\http))
 
-(let [rsp (http/create-response-from-table
-            @{:status 404 :body "Page not found"})]
+(let [rsp (http/create-response-from-map
+            {:status 404 :body "Page not found"})]
   (http/emit-response rsp))
 ```

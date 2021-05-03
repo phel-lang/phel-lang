@@ -25,7 +25,7 @@ Phel has a different concept of truthniss. In Phel only `false` and `nil` repres
 
 ## Identity vs Equality
 
-The function `id` returns `true` if two values are identical. Identical is stricter than equality. It first checks if both types are identical and then compares their values. Phel Keywords and Symbol with the same name are always identical. Tuples, Arrays and Tables are only identical if they point to the same reference.
+The function `id` returns `true` if two values are identical. Identical is stricter than equality. It first checks if both types are identical and then compares their values. Phel Keywords and Symbol with the same name are always identical. Lists, Vectors, Maps and Sets are only identical if they point to the same reference.
 
 ```phel
 (id true true) # Evaluates to true
@@ -33,12 +33,12 @@ The function `id` returns `true` if two values are identical. Identical is stric
 (id 5 "5") # Evaluates to false
 (id :test :test) # Evaluates to true
 (id 'sym 'sym') # Evaluates to true
+(id '() '()) # Evaluates to false
 (id [] []) # Evaluates to false
-(id @[] @[]) # Evaluates to false
-(id @{} @{}) # Evaluates to false
+(id {} {}) # Evaluates to false
 ```
 
-To check if to two values are equal the equal function (`=`) can be used. Two values are equal if they have the same type and value. Tuples, Arrays and Tables are equal if they have same values but they must not point to the same reference.
+To check if to two values are equal the equal function (`=`) can be used. Two values are equal if they have the same type and value. Lists, Vectors, Maps and Sets are equal if they have same values but they must not point to the same reference.
 
 ```phel
 (= true true) # Evaluates to true
@@ -48,9 +48,9 @@ To check if to two values are equal the equal function (`=`) can be used. Two va
 (= 5 5.0) # Evaluates to false
 (= :test :test) # Evaluates to true
 (= 'sym 'sym') # Evaluates to true
+(= '() '()) # Evaluates to true
 (= [] []) # Evaluates to true
-(= @[] @[]) # Evaluates to true
-(= @{} @{}) # Evaluates to true
+(= {} {}) # Evaluates to true
 ```
 
 The function `id` is equivalent to PHP's identity operator (`===`) with support for Phel types. However, the equality function `=` is not equivalent to PHP's equal operator (`==`). If you want to test if two values are PHP equal, the function `php/==` can be used. To check if two values are unequal the `not=` function can be used.

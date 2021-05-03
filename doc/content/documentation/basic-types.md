@@ -90,41 +90,39 @@ string."
 "Unicodes can be encoded as in PHP: \u{1000}"
 ```
 
-## Tuples
+## Lists
 
-Tuples are a sequence of white space separated values surrounded by either parentheses or brackets.
+Lists are a sequence of white space separated values surrounded by parentheses.
 
 ```phel
 (do 1 2 3)
-[do 1 2 3]
 ```
 
-Squared brackets indicate that the tuple is a literal. Round parentheses on the other side will be interpreted as a function call, a macro call or special form by the compiler. Tuples are immutable.
+Lists will be interpreted as a function calls, a macro call or special form by the compiler.
 
-## Arrays
+## Vectors
 
-Arrays are similar to tuples but have a leading `@`.
+Vectors are a sequence of white space separated values surrounded by brackets.
 
 ```phel
-@[]
-@[:a :b :c]
+[1 2 3]
 ```
 
-An Array in Phel is an indexed datastructure. In contrast to PHP arrays, Phel arrays cannot be used as Map, HashTable or Dictionary.
+A Vector in Phel is an indexed datastructure. In contrast to PHP arrays, Phel vectors cannot be used as Map, HashTable or Dictionary.
 
-## Tables
+## Maps
 
-Tables are represented by a sequence of white-space delimited key value pairs surrounded by curly braces and the prefix `@`. There must be an even number of items between curly braces or the parser will signal a parse error. The sequence is defined as key1, value1, key2, value2, etc.
+Maps are represented by a sequence of white-space delimited key value pairs surrounded by curly braces`. There must be an even number of items between curly braces or the parser will signal a parse error. The sequence is defined as key1, value1, key2, value2, etc.
 
 ```phel
-@{}
-@{:key1 "value1" :key2 "value2"}
-@{(1 2 3) (4 5 6)}
-@{@[] @[]}
-@{1 2 3 4 5 6}
+{}
+{:key1 "value1" :key2 "value2"}
+{(1 2 3) (4 5 6)}
+{[] []}
+{1 2 3 4 5 6}
 ```
 
-In contrast to PHP associative arrays, Phel tables can have any type of keys.
+In contrast to PHP associative arrays, Phel Maps can have any type of keys.
 
 ## Sets
 
@@ -141,3 +139,28 @@ Comments begin with a `#` character and continue until the end of the line. Ther
 ```phel
 # This is a comment
 ```
+
+## Arrays (deprecated, use Vectors)
+
+Arrays are similar to vectors but have a leading `@`.
+
+```phel
+@[]
+@[:a :b :c]
+```
+
+An Array in Phel is an indexed datastructure. In contrast to PHP arrays, Phel arrays cannot be used as Map, HashTable or Dictionary.
+
+## Tables (deprecated, use Maps)
+
+Tables are represented by a sequence of white-space delimited key value pairs surrounded by curly braces and the prefix `@`. There must be an even number of items between curly braces or the parser will signal a parse error. The sequence is defined as key1, value1, key2, value2, etc.
+
+```phel
+@{}
+@{:key1 "value1" :key2 "value2"}
+@{(1 2 3) (4 5 6)}
+@{@[] @[]}
+@{1 2 3 4 5 6}
+```
+
+In contrast to PHP associative arrays, Phel tables can have any type of keys.
