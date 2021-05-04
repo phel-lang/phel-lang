@@ -1,7 +1,9 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
-## Unreleased
+## 0.x.x
+
+* Adding `re-seq` phel function (#259)
 
 ## 0.2.0 (2021-02-22)
 
