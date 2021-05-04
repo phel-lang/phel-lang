@@ -1177,6 +1177,13 @@ Create an array of values [start, end). If the function has one argument the
   the range [0, end) is returned. With two arguments, returns [start, end).
   The third argument is an optional step width (default 1).
 
+## `re-seq`
+
+```phel
+(re-seq re s)
+```
+Returns a sequence of successive matches of pattern in string.
+
 ## `reduce`
 
 ```phel
