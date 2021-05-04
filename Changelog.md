@@ -9,6 +9,7 @@ All notable changes to this project will be documented in this file.
 * Rename `fmt` command to `format` (#248)
 * Added new function `take-last` (#245)
 * Added new function `re-seq` (#245)
+* Added new function `contains?` (#267)
 
 ## 0.2.0 (2021-02-22)
 
