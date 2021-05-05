@@ -2,6 +2,16 @@
 (def x "my number" 1)
 --PHP--
 $GLOBALS["__phel"]["user"]["x"] = 1;
-$GLOBALS["__phel_meta"]["user"]["x"] = \Phel\Lang\Table::fromKVs(
-  new \Phel\Lang\Keyword("doc"), "my number"
+$GLOBALS["__phel_meta"]["user"]["x"] = \Phel\Lang\TypeFactory::getInstance()->persistentMapFromKVs(
+  new \Phel\Lang\Keyword("doc"), "my number",
+  new \Phel\Lang\Keyword("start-location"), \Phel\Lang\TypeFactory::getInstance()->persistentMapFromKVs(
+    new \Phel\Lang\Keyword("file"), "Def/doc-def.test",
+    new \Phel\Lang\Keyword("line"), 1,
+    new \Phel\Lang\Keyword("column"), 0
+  ),
+  new \Phel\Lang\Keyword("end-location"), \Phel\Lang\TypeFactory::getInstance()->persistentMapFromKVs(
+    new \Phel\Lang\Keyword("file"), "Def/doc-def.test",
+    new \Phel\Lang\Keyword("line"), 1,
+    new \Phel\Lang\Keyword("column"), 21
+  )
 );

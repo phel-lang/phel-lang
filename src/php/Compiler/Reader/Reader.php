@@ -16,11 +16,8 @@ use Phel\Compiler\Parser\ReadModel\CodeSnippet;
 use Phel\Compiler\Parser\ReadModel\ReaderResult;
 use Phel\Compiler\Reader\Exceptions\NotValidQuoteNodeException;
 use Phel\Compiler\Reader\Exceptions\ReaderException;
-use Phel\Lang\AbstractType;
-use Phel\Lang\PhelArray;
 use Phel\Lang\Symbol;
-use Phel\Lang\Table;
-use Phel\Lang\Tuple;
+use Phel\Lang\TypeInterface;
 use RuntimeException;
 
 final class Reader implements ReaderInterface
@@ -63,7 +60,7 @@ final class Reader implements ReaderInterface
     /**
      * @throws ReaderException
      *
-     * @return AbstractType|string|float|int|bool|null
+     * @return TypeInterface|string|float|int|bool|null
      */
     public function readExpression(NodeInterface $node, NodeInterface $root)
     {
@@ -98,7 +95,7 @@ final class Reader implements ReaderInterface
     }
 
     /**
-     * @return AbstractType|string|float|int|bool|null
+     * @return TypeInterface|string|float|int|bool|null
      */
     private function readAtomNode(AbstractAtomNode $node)
     {
@@ -107,10 +104,7 @@ final class Reader implements ReaderInterface
             ->read($node);
     }
 
-    /**
-     * @return Tuple|PhelArray|Table
-     */
-    private function readListNode(ListNode $node, NodeInterface $root)
+    private function readListNode(ListNode $node, NodeInterface $root): TypeInterface
     {
         if ($node->getTokenType() === Token::T_OPEN_PARENTHESIS) {
             return $this->readerFactory
@@ -120,8 +114,14 @@ final class Reader implements ReaderInterface
 
         if ($node->getTokenType() === Token::T_OPEN_BRACKET) {
             return $this->readerFactory
-                ->createListReader($this)
-                ->readUsingBrackets($node, $root);
+                ->createVectorReader($this)
+                ->read($node, $root);
+        }
+
+        if ($node->getTokenType() === Token::T_OPEN_BRACE) {
+            return $this->readerFactory
+                ->createMapReader($this)
+                ->read($node, $root);
         }
 
         if ($node->getTokenType() === Token::T_ARRAY) {
@@ -150,7 +150,7 @@ final class Reader implements ReaderInterface
     /**
      * @throws NotValidQuoteNodeException
      *
-     * @return AbstractType|string|float|int|bool|null
+     * @return TypeInterface|string|float|int|bool|null
      */
     private function readQuoteNode(QuoteNode $node, NodeInterface $root)
     {
@@ -184,7 +184,7 @@ final class Reader implements ReaderInterface
     /**
      * @throws ReaderException
      *
-     * @return AbstractType|string|float|int|bool
+     * @return TypeInterface|string|float|int|bool
      */
     private function readMetaNode(MetaNode $node, NodeInterface $root)
     {

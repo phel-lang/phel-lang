@@ -6,3 +6,15 @@ $GLOBALS["__phel"]["user"]["x"] = (function() {
   $y_2 = 2;
   return ($x_1 + $y_2);
 })();
+$GLOBALS["__phel_meta"]["user"]["x"] = \Phel\Lang\TypeFactory::getInstance()->persistentMapFromKVs(
+  new \Phel\Lang\Keyword("start-location"), \Phel\Lang\TypeFactory::getInstance()->persistentMapFromKVs(
+    new \Phel\Lang\Keyword("file"), "Let/let-expr.test",
+    new \Phel\Lang\Keyword("line"), 1,
+    new \Phel\Lang\Keyword("column"), 0
+  ),
+  new \Phel\Lang\Keyword("end-location"), \Phel\Lang\TypeFactory::getInstance()->persistentMapFromKVs(
+    new \Phel\Lang\Keyword("file"), "Let/let-expr.test",
+    new \Phel\Lang\Keyword("line"), 1,
+    new \Phel\Lang\Keyword("column"), 35
+  )
+);

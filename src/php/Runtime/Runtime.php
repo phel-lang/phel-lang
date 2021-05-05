@@ -10,10 +10,11 @@ use Phel\Compiler\CompilerFactoryInterface;
 use Phel\Compiler\Emitter\Exceptions\CompiledCodeIsMalformedException;
 use Phel\Compiler\Emitter\Exceptions\FileException;
 use Phel\Compiler\Exceptions\CompilerException;
+use Phel\Lang\Collections\Map\PersistentMapInterface;
 use Phel\Lang\Keyword;
 use Phel\Lang\MetaInterface;
 use Phel\Lang\Symbol;
-use Phel\Lang\Table;
+use Phel\Lang\TypeFactory;
 use Phel\Runtime\Exceptions\ExceptionPrinterInterface;
 use Throwable;
 
@@ -30,7 +31,7 @@ class Runtime implements RuntimeInterface
     /** @var string[] */
     private array $loadedNs = [];
 
-    /** @var array<string, string[]> */
+    /** @var array<string, array<int, string>> */
     private array $paths = [];
 
     public function __construct(
@@ -55,7 +56,7 @@ class Runtime implements RuntimeInterface
 
     /**
      * @param string $namespacePrefix
-     * @param string[] $path
+     * @param array<int, string> $path
      */
     public function addPath(string $namespacePrefix, array $path): void
     {
@@ -181,15 +182,16 @@ class Runtime implements RuntimeInterface
             $nsDefinitions = $GLOBALS['__phel'][$ns];
             /** @var string $name */
             foreach (array_keys($nsDefinitions) as $name) {
-                /** @var Table $meta */
-                $meta = $GLOBALS['__phel_meta'][$ns][$name] ?? new Table();
+                /** @var PersistentMapInterface<mixed, mixed> $meta */
+                $meta = $GLOBALS['__phel_meta'][$ns][$name] ?? TypeFactory::getInstance()->emptyPersistentMap();
                 /** @var MetaInterface $def */
                 $def = $nsDefinitions[$name];
                 if ($meta[new Keyword('private')] !== true) {
+                    $defMeta = $def->getMeta();
                     $this->globalEnv->addDefinition(
                         $ns,
                         Symbol::create($name),
-                        $def->getMeta()
+                        $defMeta ? $defMeta : TypeFactory::getInstance()->emptyPersistentMap()
                     );
                 }
             }

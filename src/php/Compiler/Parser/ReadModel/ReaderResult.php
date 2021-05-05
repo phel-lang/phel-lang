@@ -4,16 +4,16 @@ declare(strict_types=1);
 
 namespace Phel\Compiler\Parser\ReadModel;
 
-use Phel\Lang\AbstractType;
+use Phel\Lang\TypeInterface;
 
 final class ReaderResult
 {
-    /** @var AbstractType|string|float|int|bool|null */
+    /** @var TypeInterface|string|float|int|bool|null */
     private $ast;
     private CodeSnippet $codeSnippet;
 
     /**
-     * @param AbstractType|string|float|int|bool|null $ast The form read by the reader
+     * @param TypeInterface|string|float|int|bool|null $ast The form read by the reader
      * @param CodeSnippet $codeSnippet The Code that have been read for the form
      */
     public function __construct($ast, CodeSnippet $codeSnippet)
@@ -23,7 +23,7 @@ final class ReaderResult
     }
 
     /**
-     * @return AbstractType|string|float|int|bool|null
+     * @return TypeInterface|string|float|int|bool|null
      */
     public function getAst()
     {

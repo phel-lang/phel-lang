@@ -28,7 +28,7 @@ Commands:
         Tests the given files. If no filenames are provided all tests in the
         "tests" directory are executed.
 
-    fmt <filename-or-directory> ...
+    format <filename-or-directory> ...
         Formats the given files.
 
     export

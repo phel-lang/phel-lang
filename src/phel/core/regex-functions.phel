@@ -1,0 +1,8 @@
+(ns phel\core)
+
+(defn re-seq
+  "Returns a sequence of successive matches of pattern in string."
+  [re s]
+  (let [matches (php/array)
+        match-result (php/preg_match_all re s matches)]
+    (apply vector (php/aget matches 0))))

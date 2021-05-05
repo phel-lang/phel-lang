@@ -15,7 +15,7 @@ interface RuntimeInterface
 
     /**
      * @param string $namespacePrefix
-     * @param string[] $path
+     * @param array<int, string> $path
      */
     public function addPath(string $namespacePrefix, array $path): void;
 

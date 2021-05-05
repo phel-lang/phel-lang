@@ -26,10 +26,10 @@
       nil
       (if (php/=== cnt 1)
         (first pairs)
-        (tuple 'if
-               (first pairs)
-               (second pairs)
-               (cons 'cond (apply tuple (next (next pairs)))))))))
+        (list 'if
+              (first pairs)
+              (second pairs)
+              (cons 'cond (apply list (next (next pairs)))))))))
 
 (defmacro case
   "Takes an expression `e` and a set of test-content/expression pairs. First

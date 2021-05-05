@@ -122,7 +122,7 @@ final class PhelArrayTest extends TestCase
     public function testHash(): void
     {
         $arr = new PhelArray([1, 2, 3]);
-        $this->assertEquals(spl_object_hash($arr), $arr->hash());
+        $this->assertEquals(crc32(spl_object_hash($arr)), $arr->hash());
     }
 
     public function testSlice(): void

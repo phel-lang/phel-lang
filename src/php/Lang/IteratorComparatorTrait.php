@@ -47,5 +47,12 @@ trait IteratorComparatorTrait
         return true;
     }
 
-    abstract protected function areEquals($a, $b): bool;
+    /**
+     * @param mixed $a
+     * @param mixed $b
+     */
+    protected function areEquals($a, $b): bool
+    {
+        return (new Equalizer())->equals($a, $b);
+    }
 }

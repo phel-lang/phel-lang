@@ -66,7 +66,7 @@
                                    "tmp_name" "/tmp/my-file.txt"
                                    "error" "0"
                                    "size" "123"))
-    @{"file" (h/uploaded-file "/tmp/my-file.txt" 123 0 "my-file.txt" "text/plain")}]
+    {"file" (h/uploaded-file "/tmp/my-file.txt" 123 0 "my-file.txt" "text/plain")}]
    ["already converted"
     (php-associative-array "file" (h/uploaded-file
                                    "/tmp/my-file.txt"
@@ -74,12 +74,12 @@
                                    0
                                    "my-file.txt"
                                    "text/plain"))
-    @{"file" (h/uploaded-file "/tmp/my-file.txt" 123 0 "my-file.txt" "text/plain")}]
+    {"file" (h/uploaded-file "/tmp/my-file.txt" 123 0 "my-file.txt" "text/plain")}]
    ["already converted array"
     (php-associative-array "file" @[(h/uploaded-file "/tmp/my-file1.txt" 123 0 "my-file1.txt" "text/plain")
                                     (h/uploaded-file "/tmp/my-file2.txt" 321 0 "my-file2.txt" "text/plain")])
-    @{"file" @{0 (h/uploaded-file "/tmp/my-file1.txt" 123 0 "my-file1.txt" "text/plain")
-               1 (h/uploaded-file "/tmp/my-file2.txt" 321 0 "my-file2.txt" "text/plain")}}]
+    {"file" {0 (h/uploaded-file "/tmp/my-file1.txt" 123 0 "my-file1.txt" "text/plain")
+             1 (h/uploaded-file "/tmp/my-file2.txt" 321 0 "my-file2.txt" "text/plain")}}]
    ["multiple files"
     (php-associative-array
      "file-1" (php-associative-array
@@ -94,8 +94,8 @@
                "tmp_name" "/tmp/my-file-2.txt"
                "error" "4"
                "size" "0"))
-    @{"file-1" (h/uploaded-file "/tmp/my-file.txt" 123 0 "my-file.txt" "text/plain")
-      "file-2" (h/uploaded-file "/tmp/my-file-2.txt" 0 4 "" "")}]
+    {"file-1" (h/uploaded-file "/tmp/my-file.txt" 123 0 "my-file.txt" "text/plain")
+     "file-2" (h/uploaded-file "/tmp/my-file-2.txt" 0 4 "" "")}]
    ["nested files"
     (php-associative-array
      "files" (php-associative-array
@@ -120,11 +120,11 @@
                "size" (php-associative-array
                        "a" "421"
                        "b" (php/array "32" "0"))))
-    @{"files" @{0 (h/uploaded-file "/tmp/my-file.txt" 123 0 "my-file.txt" "text/plain")
-                1 (h/uploaded-file "/tmp/my-image.png" 4321 1 "Image.png" "image/png")}
-      "nested" @{"a" (h/uploaded-file "/tmp/a.txt" 421 0 "a.txt" "text/plain")
-                 "b" @{0 (h/uploaded-file "/tmp/b1.txt" 32 0 "b.txt" "text/plain")
-                       1 (h/uploaded-file "/tmp/b2.txt" 0 4 "" "")}}}]])
+    {"files" {0 (h/uploaded-file "/tmp/my-file.txt" 123 0 "my-file.txt" "text/plain")
+              1 (h/uploaded-file "/tmp/my-image.png" 4321 1 "Image.png" "image/png")}
+      "nested" {"a" (h/uploaded-file "/tmp/a.txt" 421 0 "a.txt" "text/plain")
+                "b" {0 (h/uploaded-file "/tmp/b1.txt" 32 0 "b.txt" "text/plain")
+                     1 (h/uploaded-file "/tmp/b2.txt" 0 4 "" "")}}}]])
 
 (deftest test-files-from-globals
   (foreach [[name files result] file-examples]
@@ -136,15 +136,15 @@
 
 (deftest test-headers-from-server
   (is (=
-       @{:0 "NumericHeaderZero"
-         :1234 "NumericHeader"
-         :cookie "COOKIE"
-         :authorization "token"
-         :content-type "application/json"
-         :accept "application/json"
-         :x-foo-bar "FOOBAR"
-         :content-md5 "CONTENT-MD5"
-         :content-length "UNSPECIFIED"}
+       {:0 "NumericHeaderZero"
+        :1234 "NumericHeader"
+        :cookie "COOKIE"
+        :authorization "token"
+        :content-type "application/json"
+        :accept "application/json"
+        :x-foo-bar "FOOBAR"
+        :content-md5 "CONTENT-MD5"
+        :content-length "UNSPECIFIED"}
        (h/headers-from-server (php-associative-array
                                "HTTP_0" "NumericHeaderZero"
                                "HTTP_1234" "NumericHeader"
@@ -157,8 +157,8 @@
                                "CONTENT_LENGTH" "UNSPECIFIED")))
       "header from globals")
   (is (=
-       @{:x-foo-bar "nonprefixed"
-         :authorization "token"}
+       {:x-foo-bar "nonprefixed"
+        :authorization "token"}
        (h/headers-from-server (php-associative-array
                                "HTTP_X_FOO_BAR" "nonprefixed"
                                "REDIRECT_HTTP_AUTHORIZATION" "token"
@@ -197,7 +197,7 @@
 
 (deftest test-request-post-with-form-data
   (is (=
-       @{"name" "phel"  "type" "lang"}
+       {"name" "phel"  "type" "lang"}
        (get
         (h/request-from-globals-args
          (php-associative-array
@@ -252,35 +252,35 @@
 
 (deftest test-response
   (is (=
-       (h/response 200 @{} "" "1.1" "OK")
-       (h/create-response-from-table @{})) "create-response-from-table empty")
+       (h/response 200 {} "" "1.1" "OK")
+       (h/create-response-from-map {})) "create-response-from-map empty")
 
   (is (=
-       (h/response 201 @{} "" "1.1" "Created")
-       (h/create-response-from-table @{:status 201})) "create-response-from-table status")
+       (h/response 201 {} "" "1.1" "Created")
+       (h/create-response-from-map {:status 201})) "create-response-from-map status")
 
   (is (=
-       (h/response 200 @{:content-type "text/plain"} "" "1.1" "OK")
-       (h/create-response-from-table @{:headers @{:content-type "text/plain"}})) "create-response-from-table headers")
+       (h/response 200 {:content-type "text/plain"} "" "1.1" "OK")
+       (h/create-response-from-map {:headers {:content-type "text/plain"}})) "create-response-from-map headers")
 
   (is (=
-       (h/response 200 @{} "hello" "1.1" "OK")
-       (h/create-response-from-table @{:body "hello"})) "create-response-from-table body")
+       (h/response 200 {} "hello" "1.1" "OK")
+       (h/create-response-from-map {:body "hello"})) "create-response-from-map body")
 
   (is (=
-       (h/response 200 @{} "" "2.0" "OK")
-       (h/create-response-from-table @{:version "2.0"})) "create-response-from-table version")
+       (h/response 200 {} "" "2.0" "OK")
+       (h/create-response-from-map {:version "2.0"})) "create-response-from-map version")
 
   (is (=
-       (h/response 200 @{} "" "1.1" "Yes!")
-       (h/create-response-from-table @{:reason "Yes!"})) "create-response-from-table reason")
+       (h/response 200 {} "" "1.1" "Yes!")
+       (h/create-response-from-map {:reason "Yes!"})) "create-response-from-map reason")
 
   (is (=
-       (h/response 200 @{} "test" "1.1" "OK")
+       (h/response 200 {} "test" "1.1" "OK")
        (h/create-response-from-string "test")) "create-response-from-string"))
 
 (def send-response-examples @[["send body"
-                               (h/response 200 @{:content-type "text/plain"} "Content!" nil nil)
+                               (h/response 200 {:content-type "text/plain"} "Content!" nil nil)
                                "Content!"]])
 
 (deftest test-send-response

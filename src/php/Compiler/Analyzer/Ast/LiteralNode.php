@@ -5,16 +5,16 @@ declare(strict_types=1);
 namespace Phel\Compiler\Analyzer\Ast;
 
 use Phel\Compiler\Analyzer\Environment\NodeEnvironmentInterface;
-use Phel\Lang\AbstractType;
 use Phel\Lang\SourceLocation;
+use Phel\Lang\TypeInterface;
 
 final class LiteralNode extends AbstractNode
 {
-    /** @var AbstractType|string|float|int|bool|null */
+    /** @var TypeInterface|string|float|int|bool|null */
     private $value;
 
     /**
-     * @param AbstractType|string|float|int|bool|null $value
+     * @param TypeInterface|string|float|int|bool|null $value
      */
     public function __construct(NodeEnvironmentInterface $env, $value, ?SourceLocation $sourceLocation = null)
     {
@@ -23,7 +23,7 @@ final class LiteralNode extends AbstractNode
     }
 
     /**
-     * @return AbstractType|string|float|int|bool|null
+     * @return TypeInterface|string|float|int|bool|null
      */
     public function getValue()
     {

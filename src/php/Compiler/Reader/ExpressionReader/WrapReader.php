@@ -7,8 +7,9 @@ namespace Phel\Compiler\Reader\ExpressionReader;
 use Phel\Compiler\Parser\ParserNode\NodeInterface;
 use Phel\Compiler\Parser\ParserNode\QuoteNode;
 use Phel\Compiler\Reader\Reader;
+use Phel\Lang\Collections\LinkedList\PersistentListInterface;
 use Phel\Lang\Symbol;
-use Phel\Lang\Tuple;
+use Phel\Lang\TypeFactory;
 
 final class WrapReader
 {
@@ -19,14 +20,13 @@ final class WrapReader
         $this->reader = $reader;
     }
 
-    public function read(QuoteNode $node, string $wrapFn, NodeInterface $root): Tuple
+    public function read(QuoteNode $node, string $wrapFn, NodeInterface $root): PersistentListInterface
     {
         $expression = $this->reader->readExpression($node->getExpression(), $root);
 
-        $tuple = new Tuple([Symbol::create($wrapFn), $expression]);
-        $tuple->setStartLocation($node->getStartLocation());
-        $tuple->setEndLocation($node->getEndLocation());
-
-        return $tuple;
+        return TypeFactory::getInstance()
+            ->persistentListFromArray([Symbol::create($wrapFn), $expression])
+            ->setStartLocation($node->getStartLocation())
+            ->setEndLocation($node->getEndLocation());
     }
 }

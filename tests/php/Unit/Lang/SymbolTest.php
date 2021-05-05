@@ -57,7 +57,7 @@ final class SymbolTest extends TestCase
     public function testHash(): void
     {
         $s = Symbol::createForNamespace('namespace', 'test');
-        $this->assertEquals('test', $s->hash());
+        $this->assertEquals(crc32('test'), $s->hash());
     }
 
     public function testEquals(): void

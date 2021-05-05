@@ -12,8 +12,8 @@ use Phel\Compiler\Parser\ParserInterface;
 use Phel\Compiler\Parser\ParserNode\TriviaNodeInterface;
 use Phel\Compiler\Reader\Exceptions\ReaderException;
 use Phel\Compiler\Reader\ReaderInterface;
+use Phel\Lang\Collections\LinkedList\PersistentListInterface;
 use Phel\Lang\Symbol;
-use Phel\Lang\Tuple;
 use RecursiveDirectoryIterator;
 use RecursiveIteratorIterator;
 use RecursiveRegexIterator;
@@ -59,7 +59,7 @@ final class NamespaceExtractor implements NamespaceExtractorInterface
             $readerResult = $this->reader->read($parseTree);
             $ast = $readerResult->getAst();
 
-            if ($ast instanceof Tuple
+            if ($ast instanceof PersistentListInterface
                 && $ast[0] instanceof Symbol
                 && $ast[1] instanceof Symbol
                 && $ast[0]->getName() === Symbol::NAME_NS

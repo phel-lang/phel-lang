@@ -1,14 +1,20 @@
 --PHEL--
-(defstruct* my-type [a b c])
+(defstruct* my-type [a b c?])
 --PHP--
 namespace user;
-class my_type extends \Phel\Lang\AbstractStruct {
-  public function __construct($a, $b, $c) {
-    $this->offsetSet(new \Phel\Lang\Keyword("a"), $a);
-    $this->offsetSet(new \Phel\Lang\Keyword("b"), $b);
-    $this->offsetSet(new \Phel\Lang\Keyword("c"), $c);
-  }
-  public function getAllowedKeys(): array {
-    return [new \Phel\Lang\Keyword("a"), new \Phel\Lang\Keyword("b"), new \Phel\Lang\Keyword("c")];
+class my_type extends \Phel\Lang\Collections\Struct\AbstractPersistentStruct {
+
+  protected const ALLOWED_KEYS = ['a', 'b', 'c?'];
+
+  protected $a;
+  protected $b;
+  protected $c_QMARK_;
+
+  public function __construct($a, $b, $c_QMARK_, $meta = null) {
+    parent::__construct();
+    $this->a = $a;
+    $this->b = $b;
+    $this->c_QMARK_ = $c_QMARK_;
+    $this->meta = $meta;
   }
 }

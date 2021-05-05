@@ -8,11 +8,12 @@ use Phel\Compiler\Parser\ParserNode\MetaNode;
 use Phel\Compiler\Parser\ParserNode\NodeInterface;
 use Phel\Compiler\Reader\Exceptions\ReaderException;
 use Phel\Compiler\Reader\Reader;
-use Phel\Lang\AbstractType;
+use Phel\Lang\Collections\Map\PersistentMapInterface;
 use Phel\Lang\Keyword;
 use Phel\Lang\MetaInterface;
 use Phel\Lang\Symbol;
-use Phel\Lang\Table;
+use Phel\Lang\TypeFactory;
+use Phel\Lang\TypeInterface;
 
 final class MetaReader
 {
@@ -26,7 +27,7 @@ final class MetaReader
     /**
      * @throws ReaderException
      *
-     * @return AbstractType|string|float|int|bool
+     * @return TypeInterface|string|float|int|bool
      */
     public function read(MetaNode $node, NodeInterface $root)
     {
@@ -35,11 +36,11 @@ final class MetaReader
 
         $meta = $this->reader->readExpression($metaExpression, $root);
         if (is_string($meta) || $meta instanceof Symbol) {
-            $meta = Table::fromKVs(new Keyword('tag'), $meta);
+            $meta = TypeFactory::getInstance()->persistentMapFromKVs(new Keyword('tag'), $meta);
         } elseif ($meta instanceof Keyword) {
-            $meta = Table::fromKVs($meta, true);
-        } elseif (!$meta instanceof Table) {
-            throw ReaderException::forNode($node, $root, 'Metadata must be a Symbol, String, Keyword or Table');
+            $meta = TypeFactory::getInstance()->persistentMapFromKVs($meta, true);
+        } elseif (!$meta instanceof PersistentMapInterface) {
+            throw ReaderException::forNode($node, $root, 'Metadata must be a Symbol, String, Keyword or Map');
         }
         $object = $this->reader->readExpression($objectExpression, $root);
 
@@ -47,14 +48,13 @@ final class MetaReader
             throw ReaderException::forNode($node, $root, 'Metadata can only applied to classes that implement MetaInterface');
         }
 
-        $objMeta = $object->getMeta();
+        $objMeta = $object->getMeta() ?? TypeFactory::getInstance()->emptyPersistentMap();
         foreach ($meta as $k => $v) {
             if ($k) {
-                $objMeta[$k] = $v;
+                $objMeta = $objMeta->put($k, $v);
             }
         }
-        $object->setMeta($objMeta);
 
-        return $object;
+        return $object->withMeta(count($objMeta) > 0 ? $objMeta : null);
     }
 }
