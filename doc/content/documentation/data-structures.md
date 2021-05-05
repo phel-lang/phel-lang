@@ -108,7 +108,7 @@ To add or update a key-value pair in the map use the `put` function
 (put {:a "foo"} :a "bar") # Evaluates to {:a "bar"}
 ```
 
-A value it a map can be removed with the `unset` function
+A value in a map can be removed with the `unset` function
 
 ```phel
 (unset {:a "foo"} :a) # Evaluates to {}
@@ -117,8 +117,8 @@ A value it a map can be removed with the `unset` function
 As in the other data structures, the `count` function can be used to count the key-value-pairs.
 
 ```phel
-(count {}) # Evalutes to 0
-(count {:a "foo"}) # Evalutaes to 1
+(count {}) # Evaluates to 0
+(count {:a "foo"}) # Evaluates to 1
 ```
 
 ## Structs
@@ -148,7 +148,7 @@ A new set can be created by using the `set` function
 The `push` function can be used to add a new value to the Set.
 
 ```phel
-(push (set 1 2 3) 4) # Evaluates to (set 1 2 3)
+(push (set 1 2 3) 4) # Evaluates to (set 1 2 3 4)
 (push (set 1 2 3) 2) # Evaluates to (set 1 2 3)
 ```
 
@@ -214,7 +214,7 @@ For example, if we want to convert a PHP Array to a persistent map. This functio
 
 ```phel
 (defn php-array-to-map
-  "Converts a PHP Array to a tables."
+  "Converts a PHP Array to a map."
   [arr]
   (let [res (transient {})] # Convert a persistent data to a transient
     (foreach [k v arr]

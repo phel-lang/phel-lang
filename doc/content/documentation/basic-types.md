@@ -112,7 +112,7 @@ A Vector in Phel is an indexed datastructure. In contrast to PHP arrays, Phel ve
 
 ## Maps
 
-Maps are represented by a sequence of white-space delimited key value pairs surrounded by curly braces`. There must be an even number of items between curly braces or the parser will signal a parse error. The sequence is defined as key1, value1, key2, value2, etc.
+Maps are represented by a sequence of white-space delimited key value pairs surrounded by curly braces. There must be an even number of items between curly braces or the parser will signal a parse error. The sequence is defined as key1, value1, key2, value2, etc.
 
 ```phel
 {}
