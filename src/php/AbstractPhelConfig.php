@@ -6,7 +6,7 @@ namespace Phel;
 
 use Gacela\Framework\AbstractConfig;
 use Gacela\Framework\Config;
-use function json_decode;
+use RuntimeException;
 
 /**
  * This is a layer on top of Gacela config, to get the values from the composer.json.
@@ -23,10 +23,24 @@ abstract class AbstractPhelConfig extends AbstractConfig
     protected function get(string $key, $default = null)
     {
         if (empty($this->composerJson)) {
-            $composerJsonPath = Config::getApplicationRootDir() . DIRECTORY_SEPARATOR . 'composer.json';
-            $this->composerJson = json_decode(file_get_contents($composerJsonPath), true);
+            $this->composerJson = $this->readComposerJson();
         }
 
         return $this->composerJson['extra']['phel'][$key] ?? $default;
+    }
+
+    private function readComposerJson(): array
+    {
+        $composerJsonPath = Config::getApplicationRootDir() . DIRECTORY_SEPARATOR . 'composer.json';
+        if (!file_exists($composerJsonPath)) {
+            throw new RuntimeException('composer.json not found?');
+        }
+
+        $content = json_decode(file_get_contents($composerJsonPath), true);
+        if (null === $content) {
+            throw new RuntimeException("composer.json malformed and not parsable.\nPath: $composerJsonPath");
+        }
+
+        return $content;
     }
 }
