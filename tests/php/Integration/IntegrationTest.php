@@ -58,7 +58,7 @@ final class IntegrationTest extends TestCase
             $this->compilerFactory->createReader($globalEnv),
             $this->compilerFactory->createAnalyzer($globalEnv),
             $this->compilerFactory->createEmitter($enableSourceMaps = false),
-            $this->compilerFactory->createLexer()->lexString($phelCode)
+            $this->compilerFactory->createLexer()->lexString($phelCode, $filename)
         );
 
         self::assertEquals($expectedGeneratedCode, $compiledCode, 'in ' . $filename);

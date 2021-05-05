@@ -7,21 +7,21 @@ namespace Phel\Compiler\Analyzer;
 use Phel\Compiler\Analyzer\Ast\AbstractNode;
 use Phel\Compiler\Analyzer\Environment\NodeEnvironmentInterface;
 use Phel\Compiler\Analyzer\Exceptions\AnalyzerException;
-use Phel\Lang\AbstractType;
+use Phel\Lang\Collections\Map\PersistentMapInterface;
 use Phel\Lang\Symbol;
-use Phel\Lang\Table;
+use Phel\Lang\TypeInterface;
 
 interface AnalyzerInterface
 {
     /**
-     * @param AbstractType|string|float|int|bool|null $x
+     * @param TypeInterface|string|float|int|bool|null $x
      *
      * @throws AnalyzerException
      */
     public function analyze($x, NodeEnvironmentInterface $env): AbstractNode;
 
     /**
-     * @param AbstractType|string|float|int|bool|null $x
+     * @param TypeInterface|string|float|int|bool|null $x
      */
     public function analyzeMacro($x, NodeEnvironmentInterface $env): AbstractNode;
 
@@ -40,5 +40,5 @@ interface AnalyzerInterface
      */
     public function addRefers(string $ns, array $referSymbols, Symbol $nsSymbol): void;
 
-    public function addDefinition(string $ns, Symbol $symbol, Table $meta): void;
+    public function addDefinition(string $ns, Symbol $symbol, PersistentMapInterface $meta): void;
 }

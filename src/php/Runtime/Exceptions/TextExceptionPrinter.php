@@ -112,13 +112,14 @@ final class TextExceptionPrinter implements ExceptionPrinterInterface
 
         foreach ($e->getTrace() as $i => $frame) {
             $class = $frame['class'] ?? null;
-            $file = $frame['file'];
-            $line = $frame['line'];
+            $file = $frame['file'] ?? 'unknown_file';
+            $line = $frame['line'] ?? 0;
 
             if ($class) {
                 $rf = new ReflectionClass($class);
                 if ($rf->implementsInterface(FnInterface::class)) {
-                    $fnName = $this->munge->decodeNs($rf->getConstant('BOUND_TO'));
+                    $boundTo = $rf->getConstant('BOUND_TO');
+                    $fnName = $boundTo !== false ? $this->munge->decodeNs($boundTo) : '__invoke';
                     $argString = $this->exceptionArgsPrinter->parseArgsAsString($frame['args'] ?? []);
                     $pos = $this->filePositionExtractor->getOriginal($file, $line);
                     $str .= "#$i {$pos->filename()}:{$pos->line()} (gen: $file:$line) : ($fnName$argString)" . PHP_EOL;

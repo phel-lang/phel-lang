@@ -48,7 +48,7 @@
 (declare create-uploaded-file-from-spec)
 
 (defn- normalize-nested-file-spec [files]
-  (let [res @{}]
+  (let [res (transient {})]
     (dofor [k :keys (get files "tmp_name")
             :let [spec (php-associative-array
                         "tmp_name" (get-in files ["tmp_name" k])
@@ -57,7 +57,7 @@
                         "name" (get-in files ["name" k])
                         "type" (get-in files ["type" k]))]]
       (put res k (create-uploaded-file-from-spec spec)))
-    res))
+    (persistent res)))
 
 (defn- create-uploaded-file-from-spec [value]
   (if (php/is_array (get value "tmp_name"))
@@ -70,7 +70,7 @@
      (get value "type"))))
 
 (defn- normalize-files [files]
-  (let [res @{}]
+  (let [res (transient {})]
     (foreach [k v files]
       (cond
         (uploaded-file? v)
@@ -81,10 +81,10 @@
         (put res k (normalize-files v))
 
         (throw (php/new InvalidArgumentException "Invalid value in files specification"))))
-    res))
+    (persistent res)))
 
 (defn files-from-globals
-  "Extracts the files from `$_FILES` and normalizes them to a table of \"uploaded-file\"."
+  "Extracts the files from `$_FILES` and normalizes them to a map of \"uploaded-file\"."
   [& [files]]
   (normalize-files (or files php/$_FILES)))
 
@@ -95,7 +95,7 @@
 (defn headers-from-server
   "Extracts all headers from the `$_SERVER` variable."
   [& [server]]
-  (let [headers @{}
+  (let [headers (transient {})
         server (or server php/$_SERVER)]
     (dofor [[k v] :pairs server
             :let [redirected? (id 0 (php/strpos k "REDIRECT_"))
@@ -110,7 +110,7 @@
         (and v (id 0 (php/strpos k "CONTENT_")))
         (let [name (str "content-" (php/strtolower (php/substr k 8)))]
           (put headers (keyword name) v))))
-    headers))
+    (persistent headers)))
 
 # -------
 # Request
@@ -118,11 +118,11 @@
 
 (defstruct request [method # HTTP Method ("GET", "POST", ...)
                     uri # URI
-                    headers # Table with all headers
+                    headers # Map with all headers
                     parsed-body # parsed body ($_POST)
-                    query-params # Table with all query parameters ($_GET)
-                    cookie-params # Table with all cookie parameters ($_COOKIE)
-                    server-params # Table with alle server parameters ($_SERVER)
+                    query-params # Map with all query parameters ($_GET)
+                    cookie-params # Map with all cookie parameters ($_COOKIE)
+                    server-params # Map with alle server parameters ($_SERVER)
                     uploaded-files # Array of normalized uploaded files ($_FILES)
                     version # HTTP Version
 ])
@@ -157,10 +157,10 @@
      method
      uri
      headers
-     (when (post-global-valid method headers) (php-array-to-table post-parameter))
-     (php-array-to-table get-parameter)
-     (php-array-to-table cookies)
-     (php-array-to-table server)
+     (when (post-global-valid method headers) (php-array-to-map post-parameter))
+     (php-array-to-map get-parameter)
+     (php-array-to-map cookies)
+     (php-array-to-map server)
      (normalize-files files)
      version)))
 
@@ -175,79 +175,79 @@
 
 (defstruct response [status headers body version reason])
 
-(def- response-phrases @{100 "Continue"
-                         101 "Switching Protocols"
-                         102 "Processing"
-                         103 "Early Hints"
-                         200 "OK"
-                         201 "Created"
-                         202 "Accepted"
-                         203 "Non-Authoritative Information"
-                         204 "No Content"
-                         205 "Reset Content"
-                         206 "Partial Content"
-                         207 "Multi-Status"
-                         208 "Already Reported"
-                         226 "IM Used"
-                         300 "Multiple Choices"
-                         301 "Moved Permanently"
-                         302 "Found"
-                         303 "See Other"
-                         304 "Not Modified"
-                         305 "Use Proxy"
-                         307 "Temporary Redirect"
-                         308 "Permanent Redirect"
-                         400 "Bad Request"
-                         401 "Unauthorized"
-                         402 "Payment Required"
-                         403 "Forbidden"
-                         404 "Not Found"
-                         405 "Method Not Allowed"
-                         406 "Not Acceptable"
-                         407 "Proxy Authentication Required"
-                         408 "Request Timeout"
-                         409 "Conflict"
-                         410 "Gone"
-                         411 "Length Required"
-                         412 "Precondition Failed"
-                         413 "Payload Too Large"
-                         414 "URI Too Long"
-                         415 "Unsupported Media Type"
-                         416 "Range Not Satisfiable"
-                         417 "Expectation Failed"
-                         418 "I\'m a teapot"
-                         421 "Misdirected Request"
-                         422 "Unprocessable Entity"
-                         423 "Locked"
-                         424 "Failed Dependency"
-                         425 "Too Early"
-                         426 "Upgrade Required"
-                         428 "Precondition Required"
-                         429 "Too Many Requests"
-                         431 "Request Header Fields Too Large"
-                         451 "Unavailable For Legal Reasons"
-                         500 "Internal Server Error"
-                         501 "Not Implemented"
-                         502 "Bad Gateway"
-                         503 "Service Unavailable"
-                         504 "Gateway Timeout"
-                         505 "HTTP Version Not Supported"
-                         506 "Variant Also Negotiates"
-                         507 "Insufficient Storage"
-                         508 "Loop Detected"
-                         510 "Not Extended"
-                         511 "Network Authentication Required"})
+(def- response-phrases {100 "Continue"
+                        101 "Switching Protocols"
+                        102 "Processing"
+                        103 "Early Hints"
+                        200 "OK"
+                        201 "Created"
+                        202 "Accepted"
+                        203 "Non-Authoritative Information"
+                        204 "No Content"
+                        205 "Reset Content"
+                        206 "Partial Content"
+                        207 "Multi-Status"
+                        208 "Already Reported"
+                        226 "IM Used"
+                        300 "Multiple Choices"
+                        301 "Moved Permanently"
+                        302 "Found"
+                        303 "See Other"
+                        304 "Not Modified"
+                        305 "Use Proxy"
+                        307 "Temporary Redirect"
+                        308 "Permanent Redirect"
+                        400 "Bad Request"
+                        401 "Unauthorized"
+                        402 "Payment Required"
+                        403 "Forbidden"
+                        404 "Not Found"
+                        405 "Method Not Allowed"
+                        406 "Not Acceptable"
+                        407 "Proxy Authentication Required"
+                        408 "Request Timeout"
+                        409 "Conflict"
+                        410 "Gone"
+                        411 "Length Required"
+                        412 "Precondition Failed"
+                        413 "Payload Too Large"
+                        414 "URI Too Long"
+                        415 "Unsupported Media Type"
+                        416 "Range Not Satisfiable"
+                        417 "Expectation Failed"
+                        418 "I\'m a teapot"
+                        421 "Misdirected Request"
+                        422 "Unprocessable Entity"
+                        423 "Locked"
+                        424 "Failed Dependency"
+                        425 "Too Early"
+                        426 "Upgrade Required"
+                        428 "Precondition Required"
+                        429 "Too Many Requests"
+                        431 "Request Header Fields Too Large"
+                        451 "Unavailable For Legal Reasons"
+                        500 "Internal Server Error"
+                        501 "Not Implemented"
+                        502 "Bad Gateway"
+                        503 "Service Unavailable"
+                        504 "Gateway Timeout"
+                        505 "HTTP Version Not Supported"
+                        506 "Variant Also Negotiates"
+                        507 "Insufficient Storage"
+                        508 "Loop Detected"
+                        510 "Not Extended"
+                        511 "Network Authentication Required"})
 
-(defn create-response-from-table
-  "Creates a response struct from a table. The table can have the following keys:
+(defn create-response-from-map
+  "Creates a response struct from a map. The map can have the following keys:
   * `:status` The HTTP Status (default 200)
-  * `:headers` A table of HTTP Headers (default: empty table)
+  * `:headers` A map of HTTP Headers (default: empty map)
   * `:body` The body of the response (default: empty string)
   * `:version` The HTTP Version (default: 1.1)
   * `:reason` The HTTP status reason. If not provided a common status reason is taken"
-  [@{:status status :headers headers :body body :version version :reason reason}]
+  [{:status status :headers headers :body body :version version :reason reason}]
   (let [status (or status 200)
-        headers (or headers @{})
+        headers (or headers {})
         body (or body "")
         version (or version "1.1")
         reason (or reason (get response-phrases status) "")]
@@ -256,9 +256,9 @@
 (defn create-response-from-string
   "Create a response from a string."
   [s]
-  (create-response-from-table @{:body s}))
+  (create-response-from-map {:body s}))
 
-(defn- emit-status-line [@{:status status :reason reason :version version}]
+(defn- emit-status-line [{:status status :reason reason :version version}]
   (when-not (php/headers_sent)
     (let [version (or version "1.1")
           status (or status 200)
@@ -278,7 +278,7 @@
   (let [name (if (keyword? name) (php/-> name (getName)) name)]
     (php/ucwords name "-")))
 
-(defn- emit-headers [@{:status status :headers headers}]
+(defn- emit-headers [{:status status :headers headers}]
   (when-not (php/headers_sent)
     (dofor [[header values] :pairs headers
             :let [normalized-name (normalize-header-name header)

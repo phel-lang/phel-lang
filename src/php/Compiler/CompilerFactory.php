@@ -51,9 +51,9 @@ final class CompilerFactory implements CompilerFactoryInterface
         );
     }
 
-    public function createLexer(): LexerInterface
+    public function createLexer(bool $withLocation = true): LexerInterface
     {
-        return new Lexer();
+        return new Lexer($withLocation);
     }
 
     public function createReader(GlobalEnvironmentInterface $globalEnv): ReaderInterface

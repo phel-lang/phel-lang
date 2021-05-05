@@ -7,11 +7,16 @@ namespace Phel\Lang;
 use ArrayAccess;
 use Countable;
 use Iterator;
+use Phel\Lang\Collections\Map\PersistentMapInterface;
 use Phel\Printer\Printer;
 use RuntimeException;
 
+/**
+ * @template-implements SeqInterface<\Phel\Lang\Collections\Vector\PersistentVectorInterface, PhelArray>
+ */
 class Table extends AbstractType implements ArrayAccess, Countable, Iterator, SeqInterface
 {
+    use MetaTrait;
     protected array $data = [];
 
     protected array $keys = [];
@@ -43,15 +48,6 @@ class Table extends AbstractType implements ArrayAccess, Countable, Iterator, Se
     public static function fromKVArray(array $kvs): Table
     {
         return self::fromKVs(...$kvs);
-    }
-
-    public static function fromTuple(Tuple $tuple): self
-    {
-        $table = self::fromKVArray($tuple->toArray());
-        $table->setStartLocation($tuple->getStartLocation());
-        $table->setEndLocation($tuple->getEndLocation());
-
-        return $table;
     }
 
     public function offsetSet($offset, $value): void
@@ -133,7 +129,7 @@ class Table extends AbstractType implements ArrayAccess, Countable, Iterator, Se
         $key = $this->key();
         $value = $this->current();
 
-        return new Tuple([$key, $value], true);
+        return TypeFactory::getInstance()->persistentVectorFromArray([$key, $value]);
     }
 
     public function cdr(): ?CdrInterface
@@ -149,7 +145,7 @@ class Table extends AbstractType implements ArrayAccess, Countable, Iterator, Se
         while ($this->valid()) {
             $key = $this->key();
             $value = $this->current();
-            $res[] = new Tuple([$key, $value], true);
+            $res[] = TypeFactory::getInstance()->persistentVectorFromArray([$key, $value]);
 
             $this->next();
         }
@@ -168,7 +164,7 @@ class Table extends AbstractType implements ArrayAccess, Countable, Iterator, Se
         while ($this->valid()) {
             $key = $this->key();
             $value = $this->current();
-            $res[] = new Tuple([$key, $value], true);
+            $res[] = TypeFactory::getInstance()->persistentVectorFromArray([$key, $value]);
 
             $this->next();
         }
@@ -178,9 +174,9 @@ class Table extends AbstractType implements ArrayAccess, Countable, Iterator, Se
         return new PhelArray($res);
     }
 
-    public function hash(): string
+    public function hash(): int
     {
-        return spl_object_hash($this);
+        return crc32(spl_object_hash($this));
     }
 
     public function equals($other): bool
@@ -218,7 +214,7 @@ class Table extends AbstractType implements ArrayAccess, Countable, Iterator, Se
                 return false;
             }
 
-            if (!$this->areEquals($value, $other[$key])) {
+            if (!(new Equalizer())->equals($value, $other[$key])) {
                 return false;
             }
         }
@@ -237,26 +233,53 @@ class Table extends AbstractType implements ArrayAccess, Countable, Iterator, Se
         return $result;
     }
 
+    public function toArray(): array
+    {
+        return $this->toKeyValueList();
+    }
+
     /**
      * Creates a hash for the given key.
      *
      * @param mixed $offset The access key of the Table
      */
-    private function offsetHash($offset): string
+    private function offsetHash($offset): int
     {
-        if ($offset instanceof AbstractType) {
+        if ($offset instanceof TypeInterface) {
             return $offset->hash();
         }
 
         if (is_object($offset)) {
-            return spl_object_hash($offset);
+            return crc32(spl_object_hash($offset));
         }
 
-        return (string) $offset;
+        return crc32((string) $offset);
+    }
+
+    public function toPersistentMap(): PersistentMapInterface
+    {
+        $m = TypeFactory::getInstance()->emptyPersistentMap();
+        foreach ($this as $k => $v) {
+            $m = $m->put($k, $v);
+        }
+
+        return $m;
     }
 
     public function __toString(): string
     {
         return Printer::readable()->print($this);
+    }
+
+    /**
+     * Concatenates a value to the data structure.
+     *
+     * @param mixed[] $xs The value to concatenate
+     *
+     * @return PhelArray
+     */
+    public function concat($xs)
+    {
+        throw new \Exception('concat not yet implemented on table');
     }
 }

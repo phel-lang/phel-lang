@@ -77,7 +77,7 @@ final class LexerTest extends TestCase
         );
     }
 
-    public function testReadEmptyTuple(): void
+    public function testReadEmptyList(): void
     {
         self::assertEquals(
             [
@@ -144,7 +144,7 @@ final class LexerTest extends TestCase
         );
     }
 
-    public function testReadTuple(): void
+    public function testReadVector(): void
     {
         self::assertEquals(
             [

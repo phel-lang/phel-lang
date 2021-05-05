@@ -52,7 +52,7 @@
             (throw (php/new InvalidArgumentException (str "This verb is not supported in for loop " verb)))))))))
 
 (defmacro for
-  "List comprehension. The head of the loop is a tuple that contains a
+  "List comprehension. The head of the loop is a vector that contains a
   sequence of bindings and modifiers. A binding is a sequence of three
   values `binding :verb expr`. Where `binding` is a binding as
   in let and `:verb` is one of the following keywords:

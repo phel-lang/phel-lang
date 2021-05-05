@@ -5,22 +5,22 @@ declare(strict_types=1);
 namespace Phel\Compiler\Analyzer\Ast;
 
 use Phel\Compiler\Analyzer\Environment\NodeEnvironmentInterface;
+use Phel\Lang\Collections\Map\PersistentMapInterface;
 use Phel\Lang\Keyword;
 use Phel\Lang\SourceLocation;
 use Phel\Lang\Symbol;
-use Phel\Lang\Table;
 
 final class GlobalVarNode extends AbstractNode
 {
     private string $namespace;
     private Symbol $name;
-    private Table $meta;
+    private PersistentMapInterface $meta;
 
     public function __construct(
         NodeEnvironmentInterface $env,
         string $namespace,
         Symbol $name,
-        Table $meta,
+        PersistentMapInterface $meta,
         ?SourceLocation $sourceLocation = null
     ) {
         parent::__construct($env, $sourceLocation);
@@ -39,7 +39,7 @@ final class GlobalVarNode extends AbstractNode
         return $this->name;
     }
 
-    public function getMeta(): Table
+    public function getMeta(): PersistentMapInterface
     {
         return $this->meta;
     }

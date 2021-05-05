@@ -6,9 +6,9 @@ namespace Phel\Compiler\Emitter;
 
 use Phel\Compiler\Analyzer\Ast\AbstractNode;
 use Phel\Compiler\Analyzer\Environment\NodeEnvironmentInterface;
-use Phel\Lang\AbstractType;
 use Phel\Lang\SourceLocation;
 use Phel\Lang\Symbol;
+use Phel\Lang\TypeInterface;
 
 interface OutputEmitterInterface
 {
@@ -46,7 +46,7 @@ interface OutputEmitterInterface
     public function emitFnWrapSuffix(?SourceLocation $sl = null): void;
 
     /**
-     * @param AbstractType|string|float|int|bool|null $value
+     * @param TypeInterface|string|float|int|bool|null $value
      */
     public function emitLiteral($value): void;
 

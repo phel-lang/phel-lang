@@ -302,6 +302,42 @@ final class ParserTest extends TestCase
         );
     }
 
+    public function testReadEmptyMap(): void
+    {
+        self::assertEquals(
+            new ListNode(Token::T_OPEN_BRACE, $this->loc(1, 0), $this->loc(1, 2), []),
+            $this->parse('{}')
+        );
+    }
+
+    public function testReadMap1(): void
+    {
+        self::assertEquals(
+            new ListNode(Token::T_OPEN_BRACE, $this->loc(1, 0), $this->loc(1, 6), [
+                new KeywordNode(':a', $this->loc(1, 1), $this->loc(1, 3), new Keyword('a')),
+                new WhitespaceNode(' ', $this->loc(1, 3), $this->loc(1, 4)),
+                new NumberNode('1', $this->loc(1, 4), $this->loc(1, 5), 1),
+            ]),
+            $this->parse('{:a 1}')
+        );
+    }
+
+    public function testReadMap2(): void
+    {
+        self::assertEquals(
+            new ListNode(Token::T_OPEN_BRACE, $this->loc(1, 0), $this->loc(1, 11), [
+                new KeywordNode(':a', $this->loc(1, 1), $this->loc(1, 3), new Keyword('a')),
+                new WhitespaceNode(' ', $this->loc(1, 3), $this->loc(1, 4)),
+                new NumberNode('1', $this->loc(1, 4), $this->loc(1, 5), 1),
+                new WhitespaceNode(' ', $this->loc(1, 5), $this->loc(1, 6)),
+                new KeywordNode(':b', $this->loc(1, 6), $this->loc(1, 8), new Keyword('b')),
+                new WhitespaceNode(' ', $this->loc(1, 8), $this->loc(1, 9)),
+                new NumberNode('2', $this->loc(1, 9), $this->loc(1, 10), 2),
+            ]),
+            $this->parse('{:a 1 :b 2}')
+        );
+    }
+
     public function testReadEmptyTable(): void
     {
         self::assertEquals(
@@ -473,7 +509,7 @@ final class ParserTest extends TestCase
     public function testReadUnbalancedOpenBrace(): void
     {
         $this->expectException(AbstractParserException::class);
-        $this->expectExceptionMessage('Unexpected token: {');
+        $this->expectExceptionMessage('Unterminated list');
         $this->parse('{');
     }
 

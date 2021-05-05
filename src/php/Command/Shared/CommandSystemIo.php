@@ -47,6 +47,12 @@ final class CommandSystemIo implements CommandIoInterface
     public function writeStackTrace(Throwable $e): void
     {
         $this->writeln($this->exceptionPrinter->getStackTraceString($e));
+
+        if ($e->getPrevious()) {
+            $this->writeln();
+            $this->writeln('Caused by');
+            $this->writeStackTrace($e->getPrevious());
+        }
     }
 
     public function writeLocatedException(AbstractLocatedException $e, CodeSnippet $codeSnippet): void

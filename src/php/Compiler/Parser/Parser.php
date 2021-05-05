@@ -112,7 +112,7 @@ final class Parser implements ParserInterface
                     return $this->parseTableListNode($token, $tokenStream);
 
                 case Token::T_OPEN_BRACE:
-                    throw $this->createUnexceptedParserException($tokenStream, $token, 'Unexpected token: {');
+                    return $this->parseMapListNode($token, $tokenStream);
 
                 case Token::T_CLOSE_PARENTHESIS:
                 case Token::T_CLOSE_BRACKET:
@@ -201,6 +201,13 @@ final class Parser implements ParserInterface
      * @throws UnfinishedParserException
      */
     private function parseTableListNode(Token $token, TokenStream $tokenStream): ListNode
+    {
+        return $this->parserFactory
+            ->createListParser($this)
+            ->parse($tokenStream, Token::T_CLOSE_BRACE, $token->getType());
+    }
+
+    private function parseMapListNode(Token $token, TokenStream $tokenStream): ListNode
     {
         return $this->parserFactory
             ->createListParser($this)

@@ -10,9 +10,9 @@ use Phel\Compiler\Emitter\OutputEmitter\LiteralEmitter;
 use Phel\Compiler\Emitter\OutputEmitter\MungeInterface;
 use Phel\Compiler\Emitter\OutputEmitter\NodeEmitterFactory;
 use Phel\Compiler\Emitter\OutputEmitter\SourceMap\SourceMapGenerator;
-use Phel\Lang\AbstractType;
 use Phel\Lang\SourceLocation;
 use Phel\Lang\Symbol;
+use Phel\Lang\TypeInterface;
 use Phel\Printer\PrinterInterface;
 
 final class OutputEmitter implements OutputEmitterInterface
@@ -214,7 +214,7 @@ final class OutputEmitter implements OutputEmitterInterface
     }
 
     /**
-     * @param AbstractType|string|float|int|bool|null $value
+     * @param TypeInterface|string|float|int|bool|null $value
      */
     public function emitLiteral($value): void
     {

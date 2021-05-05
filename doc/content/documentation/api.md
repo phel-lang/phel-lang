@@ -52,7 +52,7 @@ Returns the difference of all elements in `xs`. If `xs` is empty, return 0. If `
 (-> x & forms)
 ```
 Threads the expr through the forms. Inserts `x` as the second item
-  in the first from, making a tuple of it if it is not a tuple already.
+  in the first from, making a list of it if it is not a list already.
   If there are more froms, inserts the first form as the second item in
   the second form, etc.
 
@@ -62,8 +62,8 @@ Threads the expr through the forms. Inserts `x` as the second item
 (->> x & forms)
 ```
 Threads the expr through the forms. Inserts `x` as the
-  last item in the first form, making a tuple of it if it is not a
-  tuple already. If there are more forms, inserts the first form as the
+  last item in the first form, making a list of it if it is not a
+  list already. If there are more forms, inserts the first form as the
   last item in second form, etc.
 
 ## `/`
@@ -156,6 +156,13 @@ Returns true if `x` is a array, false otherwise.
 Binds `name` to `expr`, evaluates the first form in the lexical context
   of that binding, then binds name to that result, repeating for each
   successive form, returning the result of the last form.
+
+## `associative?`
+
+```phel
+(associative? x)
+```
+Returns true if `x` is associative data structure, false otherwise.
 
 ## `bit-and`
 
@@ -370,6 +377,13 @@ Define a new struct.
 ```
 Difference between multiple sets into a new one.
 
+## `difference-pair`
+
+```phel
+(difference-pair s1 s2)
+```
+
+
 ## `distinct`
 
 ```phel
@@ -482,7 +496,7 @@ Returns true if `x` is float point number, false otherwise.
 ```phel
 (for head & body)
 ```
-List comprehension. The head of the loop is a tuple that contains a
+List comprehension. The head of the loop is a vector that contains a
   sequence of bindings and modifiers. A binding is a sequence of three
   values `binding :verb expr`. Where `binding` is a binding as
   in let and `:verb` is one of the following keywords:
@@ -552,24 +566,38 @@ Access a value in a nested data structure. Looks into the data structure via a s
 Returns a table of the elements of xs keyed by the result of
   f on each element.
 
+## `hash-map`
+
+```phel
+(hash-map & xs)
+```
+Creates a new hash map. If no argument is provided, an empty hash map is created. The number of parameters must be even.
+
+## `hash-map?`
+
+```phel
+(hash-map? x)
+```
+Returns true if `x` is a hash map, false otherwise.
+
+## `http/create-response-from-map`
+
+```phel
+(create-response-from-map {:status status :headers headers :body body :version version :reason reason})
+```
+Creates a response struct from a map. The map can have the following keys:
+  * `:status` The HTTP Status (default 200)
+  * `:headers` A map of HTTP Headers (default: empty map)
+  * `:body` The body of the response (default: empty string)
+  * `:version` The HTTP Version (default: 1.1)
+  * `:reason` The HTTP status reason. If not provided a common status reason is taken
+
 ## `http/create-response-from-string`
 
 ```phel
 (create-response-from-string s)
 ```
 Create a response from a string.
-
-## `http/create-response-from-table`
-
-```phel
-(create-response-from-table @{:status status :headers headers :body body :version version :reason reason})
-```
-Creates a response struct from a table. The table can have the following keys:
-  * `:status` The HTTP Status (default 200)
-  * `:headers` A table of HTTP Headers (default: empty table)
-  * `:body` The body of the response (default: empty string)
-  * `:version` The HTTP Version (default: 1.1)
-  * `:reason` The HTTP status reason. If not provided a common status reason is taken
 
 ## `http/emit-response`
 
@@ -583,7 +611,7 @@ Emits the response.
 ```phel
 (files-from-globals & [files])
 ```
-Extracts the files from `$_FILES` and normalizes them to a table of "uploaded-file".
+Extracts the files from `$_FILES` and normalizes them to a map of "uploaded-file".
 
 ## `http/headers-from-server`
 
@@ -790,6 +818,20 @@ Returns true if `x` is a keyword, false otherwise.
 ```
 Returns an array of key value pairs like @[k1 v1 k2 v2 k3 v3 ...].
 
+## `list`
+
+```phel
+(list & xs)
+```
+Creates a new list. If no argument is provided, an empty list is created.
+
+## `list?`
+
+```phel
+(list? x)
+```
+Returns true if `x` is a list, false otherwise.
+
 ## `load`
 
 ```phel
@@ -850,6 +892,13 @@ Merges multiple tables into one new table. If a key appears in more than one
 ```
 Merges multiple tables into first table. If a key appears in more than one
   collection, then later values replace any previous ones.
+
+## `meta`
+
+```phel
+(meta obj)
+```
+Gets the meta of the give object
 
 ## `min`
 
@@ -968,7 +1017,7 @@ Takes a function `f` and fewer than normal arguments of `f` and returns a functi
 ```phel
 (partition n xs)
 ```
-Partition an indexed data structure into tuples of size n. Returns a new array.
+Partition an indexed data structure into vectors of size n. Returns a new array.
 
 ## `peek`
 
@@ -976,6 +1025,20 @@ Partition an indexed data structure into tuples of size n. Returns a new array.
 (peek xs)
 ```
 Returns the last element of a sequence.
+
+## `persistent`
+
+```phel
+(persistent coll)
+```
+Converts a transient collection to a persistent collection
+
+## `php-array-to-map`
+
+```phel
+(php-array-to-map arr)
+```
+Converts a PHP Array to a tables.
 
 ## `php-array-to-table`
 
@@ -1114,6 +1177,13 @@ Create an array of values [start, end). If the function has one argument the
   the range [0, end) is returned. With two arguments, returns [start, end).
   The third argument is an optional step width (default 1).
 
+## `re-seq`
+
+```phel
+(re-seq re s)
+```
+Returns a sequence of successive matches of pattern in string.
+
 ## `reduce`
 
 ```phel
@@ -1175,6 +1245,13 @@ Returns the second element of an indexed sequence or nil.
 ```
 Creates a new Set. If no argument is provided, an empty Set is created.
 
+## `set-meta!`
+
+```phel
+(set-meta! obj)
+```
+Sets the meta data to a given object
+
 ## `set?`
 
 ```phel
@@ -1223,14 +1300,14 @@ Returns a sorted array where the sort order is determined by comparing
 ```phel
 (split-at n xs)
 ```
-Returns a tuple of [(take n coll) (drop n coll)].
+Returns a vector of [(take n coll) (drop n coll)].
 
 ## `split-with`
 
 ```phel
 (split-with f xs)
 ```
-Returns a tuple of [(take-while pred coll) (drop-while pred coll)].
+Returns a vector of [(take-while pred coll) (drop-while pred coll)].
 
 ## `str`
 
@@ -1306,6 +1383,13 @@ Returns true if `x` is a table, false otherwise.
 ```
 Takes the first `n` elements of `xs`.
 
+## `take-last`
+
+```phel
+(take-last n xs)
+```
+Takes the last `n` elements of `xs`.
+
 ## `take-while`
 
 ```phel
@@ -1362,6 +1446,13 @@ Checks if all tests have passed.
 ```
 Create a PHP Array from a sequential data structure.
 
+## `transient`
+
+```phel
+(transient coll)
+```
+Converts a persistent collection to a transient collection
+
 ## `tree-seq`
 
 ```phel
@@ -1387,42 +1478,6 @@ Checks if `x` is true. Same as `x === true` in PHP.
 ```
 Checks if `x` is truthy. Same as `x == true` in PHP.
 
-## `tuple`
-
-```phel
-(tuple & xs)
-```
-Creates a new Tuple. If no argument is provided, an empty Tuple is created.
-
-## `tuple-brackets`
-
-```phel
-(tuple-brackets & xs)
-```
-Creates a new Bracket-Tuple. If no argument is provided,
-an empty Braket-Tuple is created.
-
-## `tuple-brackets?`
-
-```phel
-(tuple-brackets? x)
-```
-Returns true if `x` is a bracket tuple, false otherwise
-
-## `tuple-parens?`
-
-```phel
-(tuple-parens? x)
-```
-Returns true if `x` is a parens tuple, false otherwise
-
-## `tuple?`
-
-```phel
-(tuple? x)
-```
-Returns true if `x` is a tuple, false otherwise.
-
 ## `type`
 
 ```phel
@@ -1430,10 +1485,12 @@ Returns true if `x` is a tuple, false otherwise.
 ```
 Returns the type of `x`. Following types can be returned:
 
-* `:tuple`
+* `:vector`
+* `:list`
+* `:struct`
+* `:hash-map`
 * `:set`
 * `:array`
-* `:struct`
 * `:table`
 * `:keyword`
 * `:symbol`
@@ -1482,6 +1539,20 @@ Updates a value into a nested data structure.
 (values xs)
 ```
 Gets the values of an associative data structure.
+
+## `vector`
+
+```phel
+(vetcor & xs)
+```
+Creates a new vector. If no argument is provided, an empty list is created.
+
+## `vector?`
+
+```phel
+(vector? x)
+```
+Returns true if `x` is a vector, false otherwise.
 
 ## `when`
 

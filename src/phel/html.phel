@@ -32,8 +32,8 @@
       (throw (php/new InvalidArgumentException (str tag " is not a valid element name."))))
     (let [tag (to-str tag)
           elem (first content)
-          map-attrs (if (table? elem) elem @{})
-          content (if (table? elem) (next content) content)
+          map-attrs (if (associative? elem) elem {})
+          content (if (associative? elem) (next content) content)
           content-arr (if (nil? content) nil (apply array content))]
       [tag map-attrs content-arr])))
 
@@ -52,9 +52,9 @@
 
 (defn- render-attribute-value [name value]
   (cond
-    (and (= name "style") (table? value))
+    (and (= name "style") (associative? value))
     (render-style-table value)
-    (table? value)
+    (associative? value)
     (render-attr-table value)
     (indexed? value)
     (escape-html (php/implode " " (to-php-array (map to-str value))))
@@ -85,7 +85,7 @@
 
 (defn- render-html [element]
   (cond
-    (tuple-brackets? element) (render-element element)
+    (vector? element)         (render-element element)
     (indexed? element)        (apply str (map render-html element))
     (raw-string? element)     (get element :s)
     (string? element)         (escape-html element)
@@ -125,7 +125,7 @@
       `(str ,(str "<" tag) ,(compile-attrs attrs) " />"))))
 
 (defn- compile-form [form]
-  (let [form-name (if (and (tuple? form) (symbol? (first form)))
+  (let [form-name (if (and (list? form) (symbol? (first form)))
                     (php/-> (first form) (getName)))]
     (case form-name
       "for" (let [[_ bindings body] form]
@@ -137,7 +137,7 @@
 (defn- compile-seq [content]
   (for [element :in content]
     (cond
-      (tuple-brackets? element) (compile-element element)
+      (vector? element)         (compile-element element)
       (keyword? element)        (escape-html (php/-> element (getName)))
       (raw-string? element)     (get element :s)
       (string? element)         (escape-html element)
@@ -151,13 +151,13 @@
   (apply compile-html content))
 
 (def- doctypes
-  @{:html4              (str "<!DOCTYPE html PUBLIC \"-//W3C//DTD HTML 4.01//EN\" "
-                             "\"http://www.w3.org/TR/html4/strict.dtd\">\n")
-    :xhtml-strict       (str "<!DOCTYPE html PUBLIC \"-//W3C//DTD XHTML 1.0 Strict//EN\" "
-                             "\"http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd\">\n")
-    :xhtml-transitional (str "<!DOCTYPE html PUBLIC \"-//W3C//DTD XHTML 1.0 Transitional//EN\" "
-                             "\"http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd\">\n")
-    :html5              "<!DOCTYPE html>\n"})
+  {:html4              (str "<!DOCTYPE html PUBLIC \"-//W3C//DTD HTML 4.01//EN\" "
+                            "\"http://www.w3.org/TR/html4/strict.dtd\">\n")
+   :xhtml-strict       (str "<!DOCTYPE html PUBLIC \"-//W3C//DTD XHTML 1.0 Strict//EN\" "
+                            "\"http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd\">\n")
+   :xhtml-transitional (str "<!DOCTYPE html PUBLIC \"-//W3C//DTD XHTML 1.0 Transitional//EN\" "
+                            "\"http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd\">\n")
+   :html5              "<!DOCTYPE html>\n"})
 
 (defn doctype [type]
   (raw-string (get doctypes type (:html5 doctypes))))

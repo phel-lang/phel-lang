@@ -8,6 +8,8 @@ use Phel\Printer\Printer;
 
 final class Symbol extends AbstractType implements IdenticalInterface
 {
+    use MetaTrait;
+
     public const NAME_APPLY = 'apply';
     public const NAME_ARRAY = 'array';
     public const NAME_CONCAT = 'concat';
@@ -34,9 +36,10 @@ final class Symbol extends AbstractType implements IdenticalInterface
     public const NAME_TABLE = 'table';
     public const NAME_THROW = 'throw';
     public const NAME_TRY = 'try';
-    public const NAME_TUPLE = 'tuple';
-    public const NAME_TUPLE_BRACKETS = 'tuple-brackets';
     public const NAME_PHP_OBJECT_SET = 'php/oset';
+    public const NAME_LIST = 'list';
+    public const NAME_VECTOR = 'vector';
+    public const NAME_MAP = 'hash-map';
 
     private static int $symGenCounter = 1;
 
@@ -100,9 +103,9 @@ final class Symbol extends AbstractType implements IdenticalInterface
         self::$symGenCounter = 1;
     }
 
-    public function hash(): string
+    public function hash(): int
     {
-        return $this->getName();
+        return crc32($this->getName());
     }
 
     public function equals($other): bool

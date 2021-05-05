@@ -1,11 +1,11 @@
 (ns test-cmd-export-multiple\multiplier)
 
 (defn multiplier-1
-  @{:export true}
+  {:export true}
   [a b]
   (php/* a b))
 
 (defn multiplier-2
-  @{:export true}
+  {:export true}
   [a b]
   (php/* a b))

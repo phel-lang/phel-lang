@@ -12,9 +12,41 @@ use Phel\Compiler\Parser\ParserNode\TriviaNodeInterface;
 use Phel\Compiler\Parser\ParserNode\WhitespaceNode;
 use Phel\Formatter\Exceptions\ZipperException;
 
-/** @extends AbstractZipper<NodeInterface> */
+/**
+ * @extends AbstractZipper<NodeInterface>
+ */
 final class ParseTreeZipper extends AbstractZipper
 {
+
+    /**
+     * @param NodeInterface $root
+     *
+     * @return ParseTreeZipper
+     */
+    public static function createRoot($root): ParseTreeZipper
+    {
+        return new self($root, null, [], [], false, false);
+    }
+
+    /**
+     * @param NodeInterface $node
+     * @param ?AbstractZipper<NodeInterface> $parent
+     * @param NodeInterface[] $leftSiblings
+     * @param NodeInterface[] $rightSiblings
+     *
+     * @return static
+     */
+    protected function createNewInstance(
+        $node,
+        ?AbstractZipper $parent,
+        array $leftSiblings,
+        array $rightSiblings,
+        bool $hasChanged,
+        bool $isEnd
+    ) {
+        return new self($node, $parent, $leftSiblings, $rightSiblings, $hasChanged, $isEnd);
+    }
+
     /**
      * @psalm-assert-if-true InnerNodeInterface $this->node
      */

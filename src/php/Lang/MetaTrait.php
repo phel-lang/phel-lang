@@ -4,21 +4,20 @@ declare(strict_types=1);
 
 namespace Phel\Lang;
 
+use Phel\Lang\Collections\Map\PersistentMapInterface;
+
 trait MetaTrait
 {
-    private ?Table $meta = null;
+    private ?PersistentMapInterface $meta = null;
 
-    public function getMeta(): Table
+    public function getMeta(): ?PersistentMapInterface
     {
-        if ($this->meta === null) {
-            $this->meta = new Table();
-        }
-
         return $this->meta;
     }
 
-    public function setMeta(Table $meta): void
+    public function withMeta(?PersistentMapInterface $meta)
     {
         $this->meta = $meta;
+        return $this;
     }
 }
