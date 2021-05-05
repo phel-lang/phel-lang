@@ -15,12 +15,12 @@ This special form binds a value to a global symbol. A definition cannot be redef
 (def sum-of-three (+ 1 2 3))
 ```
 
-To each definition metadata can be attached. Metadata is either a Keyword, a String or a Table.
+To each definition metadata can be attached. Metadata is either a Keyword, a String or a Map.
 
 ```phel
 (def my-private-variable :private 12)
 (def my-name "Stores the name of this language" "Phel")
-(def my-other-name @{:private true :doc "This is my doc"} "My value")
+(def my-other-name {:private true :doc "This is my doc"} "My value")
 ```
 
 ## Local bindings (let)

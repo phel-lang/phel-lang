@@ -30,8 +30,8 @@ Quote make macros possible, since its helps to distinguish between code and data
 (quote hi) # Evaluates the symbol hi
 (quote quote) # Evaluates to the symbol quote
 
-'(1 2 3) # Evaluates to the tuple (1 2 3)
-'(print 1 2 3) # Evaluates to the tuple (print 1 2 3). Nothing is printed.
+'(1 2 3) # Evaluates to the list (1 2 3)
+'(print 1 2 3) # Evaluates to the list (print 1 2 3). Nothing is printed.
 ```
 
 # Define a macro
@@ -46,7 +46,7 @@ Together with `quote` and `defmarco`, it is now possible to define a custom `def
 
 ```phel
 (defmacro mydefn [name args & body]
-  (tuple 'def name (apply tuple 'fn name args body)))
+  (list 'def name (apply list 'fn name args body)))
 ```
 This macro is very simple at does not support all the feature of `defn`. But it illustrates the basics of a macro.
 
