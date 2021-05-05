@@ -318,8 +318,8 @@ collection in map"))
   "Partition an indexed data structure into vectors of maximum size n. Returns a new vector."
   [n xs]
   (if (<= (count xs) n)
-    (if (= (count xs) 0) @[] @[xs])
-    (let [res @[]]
+    (if (= (count xs) 0) [] [xs])
+    (let [res []]
       (loop [xs xs]
         (let [[a b] (split-at n xs)]
           (push res a)
