@@ -20,15 +20,14 @@ use Phel\Lang\Table;
 use Phel\Printer\TypePrinter\AnonymousClassPrinter;
 use Phel\Printer\TypePrinter\ArrayPrinter;
 use Phel\Printer\TypePrinter\BooleanPrinter;
+use Phel\Printer\TypePrinter\HashSetPrinter;
 use Phel\Printer\TypePrinter\KeywordPrinter;
 use Phel\Printer\TypePrinter\MapPrinter;
 use Phel\Printer\TypePrinter\NonPrintableClassPrinter;
 use Phel\Printer\TypePrinter\NullPrinter;
 use Phel\Printer\TypePrinter\NumberPrinter;
 use Phel\Printer\TypePrinter\ObjectPrinter;
-use Phel\Printer\TypePrinter\HashSetPrinter;
 use Phel\Printer\TypePrinter\PersistentListPrinter;
-use Phel\Printer\TypePrinter\PersistentVectorPrinter;
 use Phel\Printer\TypePrinter\PhelArrayPrinter;
 use Phel\Printer\TypePrinter\ResourcePrinter;
 use Phel\Printer\TypePrinter\SetPrinter;
@@ -38,6 +37,7 @@ use Phel\Printer\TypePrinter\SymbolPrinter;
 use Phel\Printer\TypePrinter\TablePrinter;
 use Phel\Printer\TypePrinter\ToStringPrinter;
 use Phel\Printer\TypePrinter\TypePrinterInterface;
+use Phel\Printer\TypePrinter\VectorPrinter;
 use ReflectionClass;
 use RuntimeException;
 
@@ -100,7 +100,7 @@ final class Printer implements PrinterInterface
             return new PersistentListPrinter($this);
         }
         if ($form instanceof PersistentVectorInterface || $form instanceof TransientVectorInterface) {
-            return new PersistentVectorPrinter($this);
+            return new VectorPrinter($this);
         }
         if ($form instanceof PersistentMapInterface || $form instanceof TransientMapInterface) {
             return new MapPrinter($this);

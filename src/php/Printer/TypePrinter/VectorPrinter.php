@@ -9,9 +9,9 @@ use Phel\Lang\Collections\Vector\TransientVectorInterface;
 use Phel\Printer\PrinterInterface;
 
 /**
- * @implements TypePrinterInterface<PersistentVectorInterface>
+ * @implements TypePrinterInterface<PersistentVectorInterface|TransientVectorInterface>
  */
-final class PersistentVectorPrinter implements TypePrinterInterface
+final class VectorPrinter implements TypePrinterInterface
 {
     private PrinterInterface $printer;
 
