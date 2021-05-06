@@ -6,12 +6,13 @@ namespace Phel\Lang\Collections\Map;
 
 use ArrayAccess;
 use Countable;
+use IteratorAggregate;
 
 /**
  * @template K
  * @template V
  */
-interface TransientMapInterface extends Countable, ArrayAccess
+interface TransientMapInterface extends Countable, ArrayAccess, IteratorAggregate
 {
     /**
      * @param K $key

@@ -7,6 +7,7 @@ namespace Phel\Lang\Collections\Map;
 use Phel\Lang\Collections\Exceptions\MethodNotSupportedException;
 use Phel\Lang\EqualizerInterface;
 use Phel\Lang\HasherInterface;
+use Traversable;
 
 /**
  * @template K
@@ -179,5 +180,10 @@ class TransientHashMap implements TransientMapInterface
     public function offsetUnset($offset): void
     {
         throw new MethodNotSupportedException('Method offsetUnset is not supported on TransientMap');
+    }
+
+    public function getIterator(): Traversable
+    {
+        return $this->persistent()->getIterator();
     }
 }

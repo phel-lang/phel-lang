@@ -7,6 +7,7 @@ namespace Phel\Lang\Collections\Map;
 use Phel\Lang\Collections\Exceptions\MethodNotSupportedException;
 use Phel\Lang\EqualizerInterface;
 use Phel\Lang\HasherInterface;
+use Traversable;
 
 /**
  * @template K
@@ -145,5 +146,10 @@ class TransientArrayMap implements TransientMapInterface
     public function persistent(): PersistentMapInterface
     {
         return new PersistentArrayMap($this->hasher, $this->equalizer, null, $this->array);
+    }
+
+    public function getIterator(): Traversable
+    {
+        return $this->persistent()->getIterator();
     }
 }

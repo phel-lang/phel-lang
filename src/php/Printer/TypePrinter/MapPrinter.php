@@ -5,12 +5,13 @@ declare(strict_types=1);
 namespace Phel\Printer\TypePrinter;
 
 use Phel\Lang\Collections\Map\PersistentMapInterface;
+use Phel\Lang\Collections\Map\TransientMapInterface;
 use Phel\Printer\PrinterInterface;
 
 /**
- * @implements TypePrinterInterface<PersistentMapInterface>
+ * @implements TypePrinterInterface<PersistentMapInterface|TransientMapInterface>
  */
-final class PersistentMapPrinter implements TypePrinterInterface
+final class MapPrinter implements TypePrinterInterface
 {
     private PrinterInterface $printer;
 
@@ -20,7 +21,7 @@ final class PersistentMapPrinter implements TypePrinterInterface
     }
 
     /**
-     * @param PersistentMapInterface $form
+     * @param PersistentMapInterface|TransientMapInterface $form
      */
     public function print($form): string
     {
