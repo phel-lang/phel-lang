@@ -29,4 +29,6 @@ interface TransientHashSetInterface extends Countable
     public function remove($value): TransientHashSetInterface;
 
     public function persistent(): PersistentHashSetInterface;
+
+    public function toPhpArray(): array;
 }

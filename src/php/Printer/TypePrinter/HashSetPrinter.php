@@ -5,12 +5,13 @@ declare(strict_types=1);
 namespace Phel\Printer\TypePrinter;
 
 use Phel\Lang\Collections\HashSet\PersistentHashSetInterface;
+use Phel\Lang\Collections\HashSet\TransientHashSetInterface;
 use Phel\Printer\PrinterInterface;
 
 /**
- * @implements TypePrinterInterface<PersistentHashSetInterface>
+ * @implements TypePrinterInterface<PersistentHashSetInterface|TransientHashSetInterface>
  */
-final class PersistentHashSetPrinter implements TypePrinterInterface
+final class HashSetPrinter implements TypePrinterInterface
 {
     private PrinterInterface $printer;
 
@@ -20,7 +21,7 @@ final class PersistentHashSetPrinter implements TypePrinterInterface
     }
 
     /**
-     * @param PersistentHashSetInterface $form
+     * @param PersistentHashSetInterface|TransientHashSetInterface $form
      */
     public function print($form): string
     {

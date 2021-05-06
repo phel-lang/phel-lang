@@ -60,4 +60,9 @@ class TransientHashSet implements TransientHashSetInterface
     {
         return new PersistentHashSet($this->hasher, null, $this->transientMap->persistent());
     }
+
+    public function toPhpArray(): array
+    {
+        return $this->persistent()->toPhpArray();
+    }
 }

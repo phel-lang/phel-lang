@@ -26,7 +26,7 @@ use Phel\Printer\TypePrinter\NonPrintableClassPrinter;
 use Phel\Printer\TypePrinter\NullPrinter;
 use Phel\Printer\TypePrinter\NumberPrinter;
 use Phel\Printer\TypePrinter\ObjectPrinter;
-use Phel\Printer\TypePrinter\PersistentHashSetPrinter;
+use Phel\Printer\TypePrinter\HashSetPrinter;
 use Phel\Printer\TypePrinter\PersistentListPrinter;
 use Phel\Printer\TypePrinter\PersistentVectorPrinter;
 use Phel\Printer\TypePrinter\PhelArrayPrinter;
@@ -106,7 +106,7 @@ final class Printer implements PrinterInterface
             return new MapPrinter($this);
         }
         if ($form instanceof PersistentHashSetInterface || $form instanceof TransientHashSetInterface) {
-            return new PersistentHashSetPrinter($this);
+            return new HashSetPrinter($this);
         }
         if ($form instanceof Keyword) {
             return new KeywordPrinter($this->withColor);
