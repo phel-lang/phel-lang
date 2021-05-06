@@ -8,6 +8,7 @@ use Phel\Lang\Collections\Exceptions\IndexOutOfBoundsException;
 use Phel\Lang\Collections\Exceptions\MethodNotSupportedException;
 use Phel\Lang\EqualizerInterface;
 use Phel\Lang\HasherInterface;
+use Traversable;
 
 /**
  * @template T
@@ -302,5 +303,10 @@ class TransientVector implements TransientVectorInterface
     public function offsetUnset($offset): void
     {
         throw new MethodNotSupportedException('Method offsetUnset is not supported on VectorSequence');
+    }
+
+    public function getIterator(): Traversable
+    {
+        return $this->persistent()->getIterator();
     }
 }

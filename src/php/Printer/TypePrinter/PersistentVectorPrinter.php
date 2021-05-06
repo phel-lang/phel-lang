@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Phel\Printer\TypePrinter;
 
 use Phel\Lang\Collections\Vector\PersistentVectorInterface;
+use Phel\Lang\Collections\Vector\TransientVectorInterface;
 use Phel\Printer\PrinterInterface;
 
 /**
@@ -20,7 +21,7 @@ final class PersistentVectorPrinter implements TypePrinterInterface
     }
 
     /**
-     * @param PersistentVectorInterface $form
+     * @param PersistentVectorInterface|TransientVectorInterface $form
      */
     public function print($form): string
     {

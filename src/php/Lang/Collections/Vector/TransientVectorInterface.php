@@ -6,11 +6,13 @@ namespace Phel\Lang\Collections\Vector;
 
 use ArrayAccess;
 use Countable;
+use IteratorAggregate;
 
 /**
  * @template T
+ * @extends IteratorAggregate
  */
-interface TransientVectorInterface extends Countable, ArrayAccess
+interface TransientVectorInterface extends Countable, ArrayAccess, IteratorAggregate
 {
     public const BRANCH_FACTOR = 32;
     public const INDEX_MASK = self::BRANCH_FACTOR - 1;

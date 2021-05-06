@@ -5,10 +5,13 @@ declare(strict_types=1);
 namespace Phel\Printer;
 
 use Phel\Lang\Collections\HashSet\PersistentHashSetInterface;
+use Phel\Lang\Collections\HashSet\TransientHashSetInterface;
 use Phel\Lang\Collections\LinkedList\PersistentListInterface;
 use Phel\Lang\Collections\Map\PersistentMapInterface;
+use Phel\Lang\Collections\Map\TransientMapInterface;
 use Phel\Lang\Collections\Struct\AbstractPersistentStruct;
 use Phel\Lang\Collections\Vector\PersistentVectorInterface;
+use Phel\Lang\Collections\Vector\TransientVectorInterface;
 use Phel\Lang\Keyword;
 use Phel\Lang\PhelArray;
 use Phel\Lang\Set;
@@ -50,12 +53,12 @@ final class Printer implements PrinterInterface
 
     public static function nonReadable(): self
     {
-        return new self($readable= false);
+        return new self($readable = false);
     }
 
     public static function nonReadableWithColor(): self
     {
-        return new self($readable=false, $withColor = true);
+        return new self($readable = false, $withColor = true);
     }
 
     private function __construct(bool $readable, bool $withColor = false)
@@ -96,13 +99,13 @@ final class Printer implements PrinterInterface
         if ($form instanceof PersistentListInterface) {
             return new PersistentListPrinter($this);
         }
-        if ($form instanceof PersistentVectorInterface) {
+        if ($form instanceof PersistentVectorInterface || $form instanceof TransientVectorInterface) {
             return new PersistentVectorPrinter($this);
         }
-        if ($form instanceof PersistentMapInterface) {
+        if ($form instanceof PersistentMapInterface || $form instanceof TransientMapInterface) {
             return new PersistentMapPrinter($this);
         }
-        if ($form instanceof PersistentHashSetInterface) {
+        if ($form instanceof PersistentHashSetInterface || $form instanceof TransientHashSetInterface) {
             return new PersistentHashSetPrinter($this);
         }
         if ($form instanceof Keyword) {
