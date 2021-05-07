@@ -23,6 +23,11 @@ final class RuntimeFactory extends AbstractFactory
         );
     }
 
+    public function initialize(): RuntimeInterface
+    {
+        return RuntimeSingleton::initialize();
+    }
+
     public function getRuntime(): RuntimeInterface
     {
         if (RuntimeSingleton::isInitialized()) {
