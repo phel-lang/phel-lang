@@ -10,7 +10,6 @@ use IteratorAggregate;
 
 /**
  * @template T
- * @extends IteratorAggregate
  */
 interface TransientVectorInterface extends Countable, ArrayAccess, IteratorAggregate
 {
