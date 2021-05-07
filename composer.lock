@@ -71,12 +71,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/phel-lang/phel-composer-plugin.git",
-                "reference": "e863c8af945c9d78aaa42fdec50cfab167a520ca"
+                "reference": "b342682efe644546b6ba8c0390a9587f55430ef5"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/phel-lang/phel-composer-plugin/zipball/e863c8af945c9d78aaa42fdec50cfab167a520ca",
-                "reference": "e863c8af945c9d78aaa42fdec50cfab167a520ca",
+                "url": "https://api.github.com/repos/phel-lang/phel-composer-plugin/zipball/b342682efe644546b6ba8c0390a9587f55430ef5",
+                "reference": "b342682efe644546b6ba8c0390a9587f55430ef5",
                 "shasum": ""
             },
             "require": {
@@ -122,7 +122,7 @@
                 "issues": "https://github.com/phel-lang/phel-composer-plugin/issues",
                 "source": "https://github.com/phel-lang/phel-composer-plugin/tree/change-factory-to-singleton"
             },
-            "time": "2021-03-19T00:35:27+00:00"
+            "time": "2021-05-07T19:11:22+00:00"
         }
     ],
     "packages-dev": [
