@@ -314,6 +314,7 @@ collection in map"))
   "Returns a vector of [(take-while pred coll) (drop-while pred coll)]."
   [f xs]
   [(take-while f xs) (drop-while f xs)])
+
 (defn partition
   "Partition an indexed data structure into vectors of maximum size n. Returns a new vector."
   [n xs]
@@ -322,9 +323,11 @@ collection in map"))
     (let [res (transient [])]
       (loop [xs xs]
         (let [[a b] (split-at n xs)]
-          (persistent (push res a))
+          (push res a)
           (if (>= (count b) n)
             (recur b)
             (if (= (count b) 0) 
               (persistent res)
-              (do (push res b) (persistent res)))))))))
+              (do 
+                (push res b) 
+                (persistent res)))))))))
