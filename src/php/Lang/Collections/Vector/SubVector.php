@@ -7,7 +7,6 @@ namespace Phel\Lang\Collections\Vector;
 use Phel\Lang\Collections\Exceptions\IndexOutOfBoundsException;
 use Phel\Lang\Collections\Exceptions\MethodNotSupportedException;
 use Phel\Lang\Collections\Map\PersistentMapInterface;
-use Phel\Lang\Collections\Map\TransientMapInterface;
 use Phel\Lang\EqualizerInterface;
 use Phel\Lang\HasherInterface;
 use Traversable;
@@ -124,10 +123,7 @@ class SubVector extends AbstractPersistentVector
         return new SubVector($this->hasher, $this->equalizer, $this->meta, $this->vector, $this->start + $start, $this->start + $end);
     }
 
-    /**
-     * @return TransientMapInterface
-     */
-    public function asTransient()
+    public function asTransient(): void
     {
         throw new MethodNotSupportedException('asTransient is not supported on SubVector');
     }

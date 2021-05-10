@@ -148,7 +148,10 @@ Calling the and function without arguments returns true."
 (defn contains?
   "Returns true if key is present in the given collection, otherwise returns false."
   [coll key]
-  (not (nil? (coll key))))
+  (cond
+    (php/instanceof coll ContainsInterface) (php/-> coll (contains key))
+    (php/is_array coll) (php/array_key_exists key coll)
+    (throw (php/new InvalidArgumentException (php/. "cannot call 'contains?' on " (php/get_class coll))))))
 
 (defn compare
   "An integer less than, equal to, or greater than zero when `x` is less than,

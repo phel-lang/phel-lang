@@ -158,4 +158,9 @@ class EmptyList extends AbstractType implements PersistentListInterface
     {
         throw new \Exception('offsetUnset not supported on lists');
     }
+
+    public function contains($index): bool
+    {
+        return false;
+    }
 }

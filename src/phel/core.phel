@@ -11,6 +11,7 @@
   (:use Phel\Lang\FirstInterface)
   (:use Phel\Lang\IdenticalInterface)
   (:use Phel\Lang\ConsInterface)
+  (:use Phel\Lang\ContainsInterface)
   (:use Phel\Lang\MetaInterface)
   (:use Phel\Lang\Nil)
   (:use Phel\Lang\PopInterface)

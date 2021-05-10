@@ -8,6 +8,7 @@ use ArrayAccess;
 use Countable;
 use IteratorAggregate;
 use Phel\Lang\Collections\AsTransientInterface;
+use Phel\Lang\ContainsInterface;
 use Phel\Lang\FnInterface;
 use Phel\Lang\TypeInterface;
 
@@ -19,13 +20,10 @@ use Phel\Lang\TypeInterface;
  * @extends ArrayAccess<K,V>
  * @extends TypeInterface<PersistentMapInterface<K, V>>
  * @extends AsTransientInterface<TransientMapInterface>
+ * @extends ContainsInterface<K>
  */
-interface PersistentMapInterface extends TypeInterface, Countable, IteratorAggregate, ArrayAccess, AsTransientInterface, FnInterface
+interface PersistentMapInterface extends TypeInterface, Countable, IteratorAggregate, ArrayAccess, AsTransientInterface, FnInterface, ContainsInterface
 {
-    /**
-     * @param K $key
-     */
-    public function containsKey($key): bool;
 
     /**
      * @param K $key

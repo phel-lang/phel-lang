@@ -6,17 +6,16 @@ namespace Phel\Lang\Collections\Map;
 
 use ArrayAccess;
 use Countable;
+use Phel\Lang\ContainsInterface;
 
 /**
  * @template K
  * @template V
+ *
+ * @extends ContainsInferface<K>
  */
-interface TransientMapInterface extends Countable, ArrayAccess
+interface TransientMapInterface extends Countable, ArrayAccess, ContainsInterface
 {
-    /**
-     * @param K $key
-     */
-    public function containsKey($key): bool;
 
     /**
      * @param K $key
