@@ -182,7 +182,7 @@ To mark a function as exported the following meta data needs to be added to the 
 
 ```phel
 (defn my-function
-  @{:export true}
+  {:export true}
   [a b]
   (+ a b))
 ```

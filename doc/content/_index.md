@@ -12,7 +12,7 @@ Feel free to ask questions and join discussions on the [Phel Gitter channel](htt
 
 * Built on PHP's ecosystem
 * Good error reporting
-* Different Datastructures (Arrays, Tables and Tuples)
+* Persistent Datastructures (Lists, Vectors, Maps and Sets)
 * Macros
 * Recursive functions
 * Powerful but simple Syntax

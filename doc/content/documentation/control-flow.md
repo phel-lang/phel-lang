@@ -19,7 +19,7 @@ The _test_ evaluates to `false` if its value is `false` or equal to `nil`. Every
 (if true (print 1) (print 2)) # prints 1 but not 2
 (if 0 (print 1) (print 2)) # prints 2
 (if nil (print 1) (print 2)) # prints 2
-(if @[] (print 1) (print 2)) # prints 2
+(if [] (print 1) (print 2)) # prints 2
 ```
 
 ## Case
@@ -114,7 +114,7 @@ A more powerful loop functionality is provided by the `for` loop. The `for` loop
 (for head body+)
 ```
 
-The `head` of the loop is a tuple that contains a
+The `head` of the loop is a vector that contains a
 sequence of bindings and modifiers. A binding is a sequence of three
 values `binding :verb expr`. Where `binding` is a binding as
 in `let` and `:verb` is one of the following keywords:
@@ -132,24 +132,24 @@ have the form `:modifier argument`. The following modifiers are supported:
 * `:when` only evaluates the loop body if the condition is true.
 
 ```phel
-(for [x :range [0 3]] x) # Evaluates to @[1 2 3]
-(for [x :range [3 0 -1]] x) # Evaluates to @[3 2 1]
+(for [x :range [0 3]] x) # Evaluates to [1 2 3]
+(for [x :range [3 0 -1]] x) # Evaluates to [3 2 1]
 
-(for [x :in [1 2 3]] (inc x)) # Evaluates to @[2 3 4]
-(for [x :in @{:a 1 :b 2 :c 3}] x) # Evaluates to @[1 2 3]
+(for [x :in [1 2 3]] (inc x)) # Evaluates to [2 3 4]
+(for [x :in {:a 1 :b 2 :c 3}] x) # Evaluates to [1 2 3]
 
-(for [x :keys @[1 2 3]] x) # Evaluates to @[0 1 2]
-(for [x :keys @{:a 1 :b 2 :c 3}] x) # Evaluates to @[:a :b :c]
+(for [x :keys [1 2 3]] x) # Evaluates to [0 1 2]
+(for [x :keys {:a 1 :b 2 :c 3}] x) # Evaluates to [:a :b :c]
 
-(for [[k v] :pairs @{:a 1 :b 2 :c 3}] [v k]) # Evaluates to @[[1 :a] [2 :b] [3 :c]]
-(for [[k v] :pairs @[1 2 3]] [k v]) # Evaluates to @[[0 1] [1 2] [2 3]]
+(for [[k v] :pairs {:a 1 :b 2 :c 3}] [v k]) # Evaluates to [[1 :a] [2 :b] [3 :c]]
+(for [[k v] :pairs [1 2 3]] [k v]) # Evaluates to [[0 1] [1 2] [2 3]]
 
-(for [x :in [2 2 2 3 3 4 5 6 6] :while (even? x)] x) # Evalutes to @[2 2 2]
-(for [x :in [2 2 2 3 3 4 5 6 6] :when (even? x)] x) # Evalutaes to @[2 2 2 4 6 6]
+(for [x :in [2 2 2 3 3 4 5 6 6] :while (even? x)] x) # Evalutes to [2 2 2]
+(for [x :in [2 2 2 3 3 4 5 6 6] :when (even? x)] x) # Evalutaes to [2 2 2 4 6 6]
 
-(for [x :in [1 2 3] :let [y (inc x)]] [x y]) # Evaluates to @[[1 2] [2 3] [3 4]]
+(for [x :in [1 2 3] :let [y (inc x)]] [x y]) # Evaluates to [[1 2] [2 3] [3 4]]
 
-(for [x :range [0 4] y :range [0 x]] [x y]) # Evaluates to @[[1 0] [2 0] [2 1] [3 0] [3 1] [3 2]]
+(for [x :range [0 4] y :range [0 x]] [x y]) # Evaluates to [[1 0] [2 0] [2 1] [3 0] [3 1] [3 2]]
 ```
 
 ## Exceptions
