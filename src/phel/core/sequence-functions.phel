@@ -316,14 +316,18 @@ collection in map"))
   [(take-while f xs) (drop-while f xs)])
 
 (defn partition
-  "Partition an indexed data structure into vectors of size n. Returns a new array."
+  "Partition an indexed data structure into vectors of maximum size n. Returns a new vector."
   [n xs]
-  (if (< (count xs) n)
-    @[]
-    (let [res @[]]
+  (if (<= (count xs) n)
+    (if (= (count xs) 0) [] [xs])
+    (let [res (transient [])]
       (loop [xs xs]
         (let [[a b] (split-at n xs)]
           (push res a)
           (if (>= (count b) n)
             (recur b)
-            res))))))
+            (if (= (count b) 0) 
+              (persistent res)
+              (do 
+                (push res b) 
+                (persistent res)))))))))
