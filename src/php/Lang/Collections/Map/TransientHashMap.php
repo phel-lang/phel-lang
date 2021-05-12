@@ -55,7 +55,7 @@ class TransientHashMap implements TransientMapInterface
         return self::$NOT_FOUND;
     }
 
-    public function containsKey($key): bool
+    public function contains($key): bool
     {
         if ($key === null) {
             return $this->hasNull;
@@ -168,7 +168,7 @@ class TransientHashMap implements TransientMapInterface
      */
     public function offsetExists($offset): bool
     {
-        return $this->containsKey($offset);
+        return $this->contains($offset);
     }
 
     public function offsetSet($offset, $value): void

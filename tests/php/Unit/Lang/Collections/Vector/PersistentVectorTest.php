@@ -431,4 +431,13 @@ final class PersistentVectorTest extends TestCase
         $this->assertEquals(3, $vector2->get(2));
         $this->assertEquals(4, $vector2->get(3));
     }
+
+    public function testContains(): void
+    {
+        $vector = PersistentVector::fromArray(new ModuloHasher(), new SimpleEqualizer(), [1, 2]);
+
+        $this->assertTrue($vector->contains(0));
+        $this->assertTrue($vector->contains(1));
+        $this->assertFalse($vector->contains(2));
+    }
 }

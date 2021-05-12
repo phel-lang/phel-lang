@@ -181,6 +181,28 @@
   (is (true? (str-contains? "abc" "a")))
   (is (false? (str-contains? "abc" "d"))))
 
+(deftest test-contains?-map
+  (let [full-name {:first-name "Marco" :last-name "Polo" :street nil}]
+    (is (true? (contains? full-name :first-name)))
+    (is (true? (contains? full-name :last-name)))
+    (is (true? (contains? full-name :street)))
+    (is (false? (contains? full-name :unknown)))))
+
+(deftest test-contains?-list
+  (is (false? (contains? '() 0)))
+  (is (true? (contains? '(1) 0)))
+  (is (false? (contains? '(1) 1))))
+
+(deftest test-contains?-vector
+  (is (false? (contains? [] 0)))
+  (is (true? (contains? [1] 0)))
+  (is (false? (contains? [1] 1))))
+
+  (deftest test-contains?-set
+  (is (false? (contains? (set) 1)))
+  (is (true? (contains? (set 1) 1)))
+  (is (false? (contains? (set 1) 2))))
+
 (deftest test-compare
   (is (= -1 (compare 1 2)) "(compare 1 2)")
   (is (= 1 (compare 2 1)) "(compare 2 1)")

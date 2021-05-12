@@ -32,7 +32,7 @@ class TransientArrayMap implements TransientMapInterface
         return new self($hasher, $equalizer, []);
     }
 
-    public function containsKey($key): bool
+    public function contains($key): bool
     {
         return $this->findIndex($key) !== false;
     }
@@ -129,7 +129,7 @@ class TransientArrayMap implements TransientMapInterface
      */
     public function offsetExists($offset): bool
     {
-        return $this->containsKey($offset);
+        return $this->contains($offset);
     }
 
     public function offsetSet($offset, $value): void

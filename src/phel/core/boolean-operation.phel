@@ -112,6 +112,7 @@ Calling the and function without arguments returns true."
     (php/=== (count xs) 0) true
     (pred (first xs))     (recur pred (next xs))
     false))
+
 (defn some?
   "Returns true if `(pred x)` is logical true for at least one `x` in `xs`, else false."
   [pred xs]
@@ -134,10 +135,23 @@ Calling the and function without arguments returns true."
   [x]
   (id x false))
 
+(defn nil?
+  "Returns true if `x` is nil, false otherwise."
+  [x]
+  (id x nil))
+
 (defn str-contains?
   "True if str contains s."
   [str s]
   (not (false? (php/strpos str s))))
+
+(defn contains?
+  "Returns true if key is present in the given collection, otherwise returns false."
+  [coll key]
+  (cond
+    (php/instanceof coll ContainsInterface) (php/-> coll (contains key))
+    (php/is_array coll) (php/array_key_exists key coll)
+    (throw (php/new InvalidArgumentException (php/. "cannot call 'contains?' on " (php/get_class coll))))))
 
 (defn compare
   "An integer less than, equal to, or greater than zero when `x` is less than,

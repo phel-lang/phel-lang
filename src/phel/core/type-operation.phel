@@ -44,11 +44,6 @@
     (php/is_object x)                             :php/object
     :unknown))
 
-(defn nil?
-  "Returns true if `x` is nil, false otherwise."
-  [x]
-  (id x nil))
-
 (defn float?
   "Returns true if `x` is float point number, false otherwise."
   [x]

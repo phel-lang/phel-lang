@@ -42,7 +42,7 @@ abstract class AbstractPersistentStruct extends AbstractPersistentMap
         return $newInstance;
     }
 
-    public function containsKey($key): bool
+    public function contains($key): bool
     {
         return in_array($key->getName(), static::ALLOWED_KEYS);
     }

@@ -33,7 +33,7 @@ class TransientHashSet implements TransientHashSetInterface
      */
     public function contains($value): bool
     {
-        return $this->transientMap->containsKey($value);
+        return $this->transientMap->contains($value);
     }
 
     /**

@@ -11,6 +11,7 @@ All notable changes to this project will be documented in this file.
 * Added new function `re-seq` (#245)
 * `partition` now returns all items if the length of the given array is lower than the given size n. (#246)
 * `partition` now returns remaining items if the size of the remaining array is lower than given size n. (#246)
+* Added new function `contains?` (#267)
 
 
 ## 0.2.0 (2021-02-22)

@@ -72,7 +72,7 @@ class PersistentHashMap extends AbstractPersistentMap
         return new PersistentHashMap($this->hasher, $this->equalizer, $meta, $this->count, $this->root, $this->hasNull, $this->nullValue);
     }
 
-    public function containsKey($key): bool
+    public function contains($key): bool
     {
         if ($key === null) {
             return $this->hasNull;
