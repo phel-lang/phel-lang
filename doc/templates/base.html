@@ -3,7 +3,10 @@
 
 <head>
   <meta charset="utf-8">
-  <title>{% block title %}{{ config.title }}{% endblock title %}</title>
+  {% block meta_content %}
+  <title>{{ config.title }}</title>
+  <meta property="og:title" content="{{ config.title }}" />
+  {% endblock meta_content %}
 
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="description" content="{{ config.description }}">
@@ -12,7 +15,6 @@
   <link rel="alternate icon" type="image/png" href="/favicon-32.png">
 
   <meta property="og:description" content="{{ config.description }}" />
-  <meta property="og:title" content="{{ config.title }}" />
   <meta property="og:type" content="website" />
   <meta property="og:url" content="https://phel-lang.org/" />
   <meta property="og:image" content="https://phel-lang.org/favicon-512.png" />

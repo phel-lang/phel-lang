@@ -1,6 +1,9 @@
 {% extends "base.html" %}
 
-{% block title %}{{ page.title }} | {{ super() }} {% endblock title %}
+{% block meta_content %}
+    <title>{{ page.title }} | {{ config.title }}</title>
+    <meta property="og:title" content="{{ page.title }} | {{ config.title }}" />
+{% endblock meta_content %}
 {% block body %}
 <div class="blog">
     <div class="logo">
