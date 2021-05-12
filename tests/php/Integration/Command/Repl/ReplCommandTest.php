@@ -8,14 +8,15 @@ use Generator;
 use Phel\Command\Repl\ColorStyle;
 use Phel\Command\Repl\ReplCommand;
 use Phel\Compiler\Analyzer\Environment\GlobalEnvironment;
-use Phel\Compiler\CompilerFactory;
+use Phel\Compiler\CompilerFacade;
 use Phel\Compiler\Emitter\OutputEmitter\Munge;
 use Phel\Printer\Printer;
 use Phel\Runtime\Exceptions\ExceptionArgsPrinter;
 use Phel\Runtime\Exceptions\Extractor\FilePositionExtractor;
 use Phel\Runtime\Exceptions\Extractor\SourceMapExtractor;
 use Phel\Runtime\Exceptions\TextExceptionPrinter;
-use Phel\Runtime\RuntimeFactory;
+use Phel\Runtime\RuntimeFacade;
+use Phel\Runtime\RuntimeSingleton;
 use PHPUnit\Framework\TestCase;
 use RecursiveDirectoryIterator;
 use RecursiveIteratorIterator;
@@ -23,6 +24,11 @@ use SplFileInfo;
 
 final class ReplCommandTest extends TestCase
 {
+    protected function setUp(): void
+    {
+        RuntimeSingleton::initializeNew(new GlobalEnvironment());
+    }
+
     /**
      * @dataProvider providerIntegration
      */
@@ -66,18 +72,17 @@ final class ReplCommandTest extends TestCase
 
     private function createReplCommand(ReplTestIo $io): ReplCommand
     {
-        $compilerFactory = new CompilerFactory();
-
-        $globalEnv = new GlobalEnvironment();
-        $rt = RuntimeFactory::initializeNew($globalEnv);
-        $rt->addPath('phel\\', [__DIR__ . '/../../../../src/phel/']);
-
-        return new ReplCommand(
+        $command = new ReplCommand(
+            new RuntimeFacade(),
             $io,
-            $compilerFactory->createEvalCompiler($globalEnv),
+            new CompilerFacade(),
             ColorStyle::noStyles(),
             Printer::nonReadable()
         );
+
+        $command->addRuntimePath('phel\\', [__DIR__ . '/../../../../src/phel/']);
+
+        return $command;
     }
 
     /**

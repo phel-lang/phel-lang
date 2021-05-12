@@ -26,7 +26,7 @@ final class NsEmitter implements NodeEmitterInterface
     {
         foreach ($node->getRequireNs() as $i => $ns) {
             $this->outputEmitter->emitLine(
-                '\Phel\Runtime\RuntimeFactory::getInstance()->loadNs("' . addslashes($ns->getName()) . '");',
+                '\Phel\Runtime\RuntimeSingleton::getInstance()->loadNs("' . addslashes($ns->getName()) . '");',
                 $ns->getStartLocation()
             );
         }
@@ -35,7 +35,7 @@ final class NsEmitter implements NodeEmitterInterface
     private function emitCurrentNamespace(NsNode $node): void
     {
         $this->outputEmitter->emitLine(
-            '\Phel\Runtime\RuntimeFactory::getInstance()->getEnv()->setNs("' . addslashes($node->getNamespace()) . '");',
+            '\Phel\Runtime\RuntimeSingleton::getInstance()->getEnv()->setNs("' . addslashes($node->getNamespace()) . '");',
             $node->getStartSourceLocation()
         );
 

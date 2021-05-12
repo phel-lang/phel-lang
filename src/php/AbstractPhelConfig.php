@@ -4,36 +4,43 @@ declare(strict_types=1);
 
 namespace Phel;
 
+use Gacela\Framework\AbstractConfig;
+use Gacela\Framework\Config;
 use RuntimeException;
 
-abstract class AbstractPhelConfig
+/**
+ * This is a layer on top of Gacela config, to get the values from the composer.json.
+ */
+abstract class AbstractPhelConfig extends AbstractConfig
 {
-    private array $config;
-
-    public function __construct(string $rootDir)
-    {
-        $composerContent = file_get_contents($rootDir . 'composer.json');
-        if (!$composerContent) {
-            throw new RuntimeException('Cannot read composer.json in: ' . $rootDir);
-        }
-
-        $composerData = \json_decode($composerContent, true);
-        if (!$composerData) {
-            throw new RuntimeException('Cannot read composer.json in: ' . $rootDir);
-        }
-
-        if (!isset($composerData['extra']['phel'])) {
-            throw new RuntimeException('No Phel configuration found in composer.json');
-        }
-
-        $this->config = $composerData['extra']['phel'];
-    }
+    private array $composerJson = [];
 
     /**
-     * @return mixed|null
+     * @override to load the config from the composer.json
+     *
+     * @param null|mixed $default
      */
-    public function get(string $key)
+    protected function get(string $key, $default = null)
     {
-        return $this->config[$key] ?? null;
+        if (empty($this->composerJson)) {
+            $this->composerJson = $this->readComposerJson();
+        }
+
+        return $this->composerJson['extra']['phel'][$key] ?? $default;
+    }
+
+    private function readComposerJson(): array
+    {
+        $composerJsonPath = Config::getApplicationRootDir() . DIRECTORY_SEPARATOR . 'composer.json';
+        if (!file_exists($composerJsonPath)) {
+            throw new RuntimeException('composer.json not found?');
+        }
+
+        $content = json_decode(file_get_contents($composerJsonPath), true);
+        if (null === $content) {
+            throw new RuntimeException("composer.json malformed and not parsable.\nPath: $composerJsonPath");
+        }
+
+        return $content;
     }
 }

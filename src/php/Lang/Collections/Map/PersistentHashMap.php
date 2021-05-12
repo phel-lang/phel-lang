@@ -53,7 +53,7 @@ class PersistentHashMap extends AbstractPersistentMap
 
         $result = self::empty($hasher, $equalizer)->asTransient();
         for ($i = 0, $l = count($kvs); $i < $l; $i += 2) {
-            $result->put($kvs[$i], $kvs[$i+1]);
+            $result->put($kvs[$i], $kvs[$i + 1]);
         }
         return $result->persistent();
     }
@@ -103,7 +103,7 @@ class PersistentHashMap extends AbstractPersistentMap
             return $this;
         }
 
-        return new PersistentHashMap($this->hasher, $this->equalizer, $this->meta, $addedLeaf->getValue() === false ? $this->count : $this->count +1, $newRoot, $this->hasNull, $this->nullValue);
+        return new PersistentHashMap($this->hasher, $this->equalizer, $this->meta, $addedLeaf->getValue() === false ? $this->count : $this->count + 1, $newRoot, $this->hasNull, $this->nullValue);
     }
 
     public function remove($key): PersistentHashMap

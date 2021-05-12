@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Phel\Formatter\Rules\Indenter;
 
-use Phel\Formatter\ParseTreeZipper;
+use Phel\Formatter\Formatter\ParseTreeZipper;
 
 interface IndenterInterface
 {

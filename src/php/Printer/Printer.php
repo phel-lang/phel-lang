@@ -50,15 +50,15 @@ final class Printer implements PrinterInterface
 
     public static function nonReadable(): self
     {
-        return new self($readable= false);
+        return new self($readable = false);
     }
 
     public static function nonReadableWithColor(): self
     {
-        return new self($readable=false, $withColor = true);
+        return new self($readable = false, $withColor = true);
     }
 
-    private function __construct(bool $readable, bool $withColor = false)
+    public function __construct(bool $readable, bool $withColor = false)
     {
         $this->readable = $readable;
         $this->withColor = $withColor;

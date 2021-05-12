@@ -4,7 +4,10 @@ declare(strict_types=1);
 
 namespace Phel\Formatter;
 
-use Phel\Compiler\CompilerFactoryInterface;
+use Gacela\Framework\AbstractFactory;
+use Phel\Compiler\CompilerFacade;
+use Phel\Formatter\Formatter\Formatter;
+use Phel\Formatter\Formatter\FormatterInterface;
 use Phel\Formatter\Rules\Indenter\BlockIndenter;
 use Phel\Formatter\Rules\Indenter\InnerIndenter;
 use Phel\Formatter\Rules\IndentRule;
@@ -12,20 +15,12 @@ use Phel\Formatter\Rules\RemoveSurroundingWhitespaceRule;
 use Phel\Formatter\Rules\RemoveTrailingWhitespaceRule;
 use Phel\Formatter\Rules\UnindentRule;
 
-final class FormatterFactory implements FormatterFactoryInterface
+final class FormatterFactory extends AbstractFactory
 {
-    private CompilerFactoryInterface $compilerFactory;
-
-    public function __construct(CompilerFactoryInterface $compilerFactory)
-    {
-        $this->compilerFactory = $compilerFactory;
-    }
-
     public function createFormatter(): FormatterInterface
     {
         return new Formatter(
-            $this->compilerFactory->createLexer(),
-            $this->compilerFactory->createParser(),
+            $this->getFacadeCompiler(),
             [
                 $this->createRemoveSurroundingWhitespaceRule(),
                 $this->createUnindentRule(),
@@ -40,12 +35,12 @@ final class FormatterFactory implements FormatterFactoryInterface
         return new RemoveSurroundingWhitespaceRule();
     }
 
-    public function createUnindentRule(): UnindentRule
+    private function createUnindentRule(): UnindentRule
     {
         return new UnindentRule();
     }
 
-    public function createIndentRule(): IndentRule
+    private function createIndentRule(): IndentRule
     {
         return new IndentRule([
             new InnerIndenter('def', 0),
@@ -76,8 +71,13 @@ final class FormatterFactory implements FormatterFactoryInterface
         ]);
     }
 
-    public function createRemoveTrailingWhitespaceRule(): RemoveTrailingWhitespaceRule
+    private function createRemoveTrailingWhitespaceRule(): RemoveTrailingWhitespaceRule
     {
         return new RemoveTrailingWhitespaceRule();
+    }
+
+    private function getFacadeCompiler(): CompilerFacade
+    {
+        return $this->getProvidedDependency(FormatterDependencyProvider::FACADE_COMPILER);
     }
 }

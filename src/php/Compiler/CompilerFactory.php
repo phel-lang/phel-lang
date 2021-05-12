@@ -4,9 +4,13 @@ declare(strict_types=1);
 
 namespace Phel\Compiler;
 
+use Gacela\Framework\AbstractFactory;
 use Phel\Compiler\Analyzer\Analyzer;
 use Phel\Compiler\Analyzer\AnalyzerInterface;
-use Phel\Compiler\Analyzer\Environment\GlobalEnvironmentInterface;
+use Phel\Compiler\Compiler\EvalCompiler;
+use Phel\Compiler\Compiler\EvalCompilerInterface;
+use Phel\Compiler\Compiler\FileCompiler;
+use Phel\Compiler\Compiler\FileCompilerInterface;
 use Phel\Compiler\Emitter\Emitter;
 use Phel\Compiler\Emitter\EmitterInterface;
 use Phel\Compiler\Emitter\EvalEmitter;
@@ -26,27 +30,28 @@ use Phel\Compiler\Reader\QuasiquoteTransformer;
 use Phel\Compiler\Reader\Reader;
 use Phel\Compiler\Reader\ReaderInterface;
 use Phel\Printer\Printer;
+use Phel\Runtime\RuntimeFacadeInterface;
 
-final class CompilerFactory implements CompilerFactoryInterface
+final class CompilerFactory extends AbstractFactory
 {
-    public function createEvalCompiler(GlobalEnvironmentInterface $globalEnv): EvalCompilerInterface
+    public function createEvalCompiler(): EvalCompilerInterface
     {
         return new EvalCompiler(
             $this->createLexer(),
             $this->createParser(),
-            $this->createReader($globalEnv),
-            $this->createAnalyzer($globalEnv),
+            $this->createReader(),
+            $this->createAnalyzer(),
             $this->createEmitter()
         );
     }
 
-    public function createFileCompiler(GlobalEnvironmentInterface $globalEnv): FileCompilerInterface
+    public function createFileCompiler(): FileCompilerInterface
     {
         return new FileCompiler(
             $this->createLexer(),
             $this->createParser(),
-            $this->createReader($globalEnv),
-            $this->createAnalyzer($globalEnv),
+            $this->createReader(),
+            $this->createAnalyzer(),
             $this->createEmitter()
         );
     }
@@ -56,11 +61,13 @@ final class CompilerFactory implements CompilerFactoryInterface
         return new Lexer($withLocation);
     }
 
-    public function createReader(GlobalEnvironmentInterface $globalEnv): ReaderInterface
+    public function createReader(): ReaderInterface
     {
+        $runtime = $this->getRuntimeFacade()->getRuntime();
+
         return new Reader(
             new ExpressionReaderFactory(),
-            new QuasiquoteTransformer($globalEnv)
+            new QuasiquoteTransformer($runtime->getEnv())
         );
     }
 
@@ -71,9 +78,11 @@ final class CompilerFactory implements CompilerFactoryInterface
         );
     }
 
-    public function createAnalyzer(GlobalEnvironmentInterface $globalEnv): AnalyzerInterface
+    public function createAnalyzer(): AnalyzerInterface
     {
-        return new Analyzer($globalEnv);
+        $runtime = $this->getRuntimeFacade()->getRuntime();
+
+        return new Analyzer($runtime->getEnv());
     }
 
     public function createEmitter(bool $enableSourceMaps = true): EmitterInterface
@@ -98,5 +107,10 @@ final class CompilerFactory implements CompilerFactoryInterface
     private function createEvalEmitter(): EvalEmitterInterface
     {
         return new EvalEmitter();
+    }
+
+    private function getRuntimeFacade(): RuntimeFacadeInterface
+    {
+        return $this->getProvidedDependency(CompilerDependencyProvider::FACADE_RUNTIME);
     }
 }

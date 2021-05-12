@@ -4,82 +4,44 @@ declare(strict_types=1);
 
 namespace Phel\Runtime;
 
-use Phel\Compiler\Analyzer\Environment\GlobalEnvironment;
-use Phel\Compiler\Analyzer\Environment\GlobalEnvironmentInterface;
-use Phel\Compiler\CompilerFactory;
-use Phel\Compiler\CompilerFactoryInterface;
-use Phel\Runtime\Exceptions\ExceptionPrinterInterface;
-use Phel\Runtime\Exceptions\HtmlExceptionPrinter;
-use Phel\Runtime\Exceptions\RuntimeAlreadyInitializedException;
-use Phel\Runtime\Exceptions\RuntimeNotInitializedException;
-use Phel\Runtime\Exceptions\TextExceptionPrinter;
+use Gacela\Framework\AbstractFactory;
+use Phel\Compiler\CompilerFacadeInterface;
+use Phel\Runtime\Extractor\NamespaceExtractor;
+use Phel\Runtime\Extractor\NamespaceExtractorInterface;
+use RuntimeException;
 
-final class RuntimeFactory
+/**
+ * @method RuntimeConfig getConfig()
+ */
+final class RuntimeFactory extends AbstractFactory
 {
-    private static ?RuntimeInterface $instance = null;
-
-    /**
-     * @throws RuntimeNotInitializedException
-     */
-    public static function getInstance(): RuntimeInterface
+    public function createNamespaceExtractor(): NamespaceExtractorInterface
     {
-        if (null === self::$instance) {
-            throw new RuntimeNotInitializedException();
-        }
-
-        return self::$instance;
-    }
-
-    /**
-     * @throws RuntimeAlreadyInitializedException
-     */
-    public static function initialize(
-        ?GlobalEnvironmentInterface $globalEnv = null,
-        ?string $cacheDirectory = null
-    ): RuntimeInterface {
-        if (self::$instance !== null) {
-            throw new RuntimeAlreadyInitializedException();
-        }
-
-        self::$instance = new Runtime(
-            $globalEnv ?? new GlobalEnvironment(),
-            static::createExceptionPrinter(),
-            static::createCompilerFactory(),
-            $cacheDirectory
+        return new NamespaceExtractor(
+            $this->getConfig()->getApplicationRootDir(),
+            $this->getCompilerFacade()
         );
-
-        return self::$instance;
     }
 
-    /**
-     * @interal
-     */
-    public static function initializeNew(
-        GlobalEnvironmentInterface $globalEnv,
-        string $cacheDirectory = null
-    ): RuntimeInterface {
-        unset($GLOBALS['__phel']);
-        self::$instance = new Runtime(
-            $globalEnv,
-            self::createExceptionPrinter(),
-            self::createCompilerFactory(),
-            $cacheDirectory
-        );
-
-        return self::$instance;
-    }
-
-    private static function createExceptionPrinter(): ExceptionPrinterInterface
+    public function getRuntime(): RuntimeInterface
     {
-        if (PHP_SAPI === 'cli') {
-            return TextExceptionPrinter::create();
+        if (RuntimeSingleton::isInitialized()) {
+            return RuntimeSingleton::getInstance();
         }
 
-        return HtmlExceptionPrinter::create();
+        $runtimePath = $this->getConfig()->getApplicationRootDir()
+            . DIRECTORY_SEPARATOR . 'vendor'
+            . DIRECTORY_SEPARATOR . 'PhelRuntime.php';
+
+        if (!file_exists($runtimePath)) {
+            throw new RuntimeException('The Runtime could not be loaded from: ' . $runtimePath);
+        }
+
+        return require $runtimePath;
     }
 
-    private static function createCompilerFactory(): CompilerFactoryInterface
+    private function getCompilerFacade(): CompilerFacadeInterface
     {
-        return new CompilerFactory();
+        return $this->getProvidedDependency(RuntimeDependencyProvider::FACADE_COMPILER);
     }
 }

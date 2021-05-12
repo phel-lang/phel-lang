@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Phel\Interop;
 
-use Phel\Runtime\RuntimeFactory;
+use Phel\Runtime\RuntimeSingleton;
 
 trait PhelCallerTrait
 {
@@ -25,7 +25,7 @@ trait PhelCallerTrait
      */
     private function getPhelDefinition(string $namespace, string $definitionName)
     {
-        $rt = RuntimeFactory::getInstance();
+        $rt = RuntimeSingleton::getInstance();
         $rt->loadNs($namespace);
         $phelNs = str_replace('-', '_', $namespace);
 

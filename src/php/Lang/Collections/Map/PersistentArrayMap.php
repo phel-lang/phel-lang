@@ -45,7 +45,7 @@ class PersistentArrayMap extends AbstractPersistentMap
 
         $result = self::empty($hasher, $equalizer)->asTransient();
         for ($i = 0, $l = count($kvs); $i < $l; $i += 2) {
-            $result->put($kvs[$i], $kvs[$i+1]);
+            $result->put($kvs[$i], $kvs[$i + 1]);
         }
         return $result->persistent();
     }
@@ -114,7 +114,7 @@ class PersistentArrayMap extends AbstractPersistentMap
      */
     private function findIndex($key)
     {
-        for ($i = 0, $cnt = count($this->array); $i < $cnt; $i+=2) {
+        for ($i = 0, $cnt = count($this->array); $i < $cnt; $i += 2) {
             $k = $this->array[$i];
             if ($this->equalizer->equals($k, $key)) {
                 return $i;

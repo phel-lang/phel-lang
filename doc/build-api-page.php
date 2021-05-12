@@ -4,11 +4,11 @@ declare(strict_types=1);
 
 use Phel\Lang\Keyword;
 use Phel\Lang\Table;
-use Phel\Runtime\RuntimeFactory;
+use Phel\Runtime\RuntimeSingleton;
 
 require __DIR__ . '/../vendor/autoload.php';
 
-$rt = RuntimeFactory::initialize();
+$rt = RuntimeSingleton::initialize();
 $rt->addPath('phel\\', [__DIR__ . '/../src/phel']);
 $rt->loadNs('phel\core');
 $rt->loadNs('phel\http');

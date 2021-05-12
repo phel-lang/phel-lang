@@ -4,15 +4,18 @@ declare(strict_types=1);
 
 namespace Phel;
 
+use Gacela\Framework\AbstractFacade;
 use InvalidArgumentException;
-use Phel\Command\CommandFacadeInterface;
 use Phel\Command\Export\ExportCommand;
 use Phel\Command\Format\FormatCommand;
 use Phel\Command\Repl\ReplCommand;
 use Phel\Command\Run\RunCommand;
 use Phel\Command\Test\TestCommand;
 
-final class PhelFacade
+/**
+ * @method PhelFactory getFactory()
+ */
+final class PhelFacade extends AbstractFacade
 {
     public const HELP_TEXT = <<<HELP
 Usage: phel [command]
@@ -40,13 +43,6 @@ Commands:
         Show this help message.
 
 HELP;
-
-    private CommandFacadeInterface $commandFacade;
-
-    public function __construct(CommandFacadeInterface $commandFacade)
-    {
-        $this->commandFacade = $commandFacade;
-    }
 
     /**
      * @throws InvalidArgumentException
@@ -76,7 +72,9 @@ HELP;
 
     private function executeReplCommand(): void
     {
-        $this->commandFacade->executeReplCommand();
+        $this->getFactory()
+            ->getCommandFacade()
+            ->executeReplCommand();
     }
 
     private function executeRunCommand(array $arguments): void
@@ -85,12 +83,16 @@ HELP;
             throw new InvalidArgumentException('Please, provide a filename or namespace as argument!');
         }
 
-        $this->commandFacade->executeRunCommand($arguments[0]);
+        $this->getFactory()
+            ->getCommandFacade()
+            ->executeRunCommand($arguments[0]);
     }
 
     private function executeTestCommand(array $arguments): void
     {
-        $this->commandFacade->executeTestCommand($arguments);
+        $this->getFactory()
+            ->getCommandFacade()
+            ->executeTestCommand($arguments);
     }
 
     private function executeFormatCommand(array $arguments): void
@@ -99,11 +101,15 @@ HELP;
             throw new InvalidArgumentException('Please, provide a filename or a directory as arguments!');
         }
 
-        $this->commandFacade->executeFormatCommand($arguments);
+        $this->getFactory()
+            ->getCommandFacade()
+            ->executeFormatCommand($arguments);
     }
 
     private function executeExportCommand(): void
     {
-        $this->commandFacade->executeExportCommand();
+        $this->getFactory()
+            ->getCommandFacade()
+            ->executeExportCommand();
     }
 }

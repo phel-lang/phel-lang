@@ -5,10 +5,11 @@ declare(strict_types=1);
 namespace Phel\Command\Repl;
 
 use Phel\Command\Repl\Exceptions\ExitException;
-use Phel\Compiler\EvalCompilerInterface;
+use Phel\Compiler\CompilerFacadeInterface;
 use Phel\Compiler\Exceptions\CompilerException;
 use Phel\Compiler\Parser\Exceptions\UnfinishedParserException;
 use Phel\Printer\PrinterInterface;
+use Phel\Runtime\RuntimeFacadeInterface;
 use Throwable;
 
 final class ReplCommand
@@ -21,8 +22,9 @@ final class ReplCommand
     private const OPEN_PROMPT = '....:%d> ';
     private const EXIT_REPL = 'exit';
 
+    private RuntimeFacadeInterface $runtimeFacade;
     private ReplCommandIoInterface $io;
-    private EvalCompilerInterface $compiler;
+    private CompilerFacadeInterface $compilerFacade;
     private ColorStyleInterface $style;
     private PrinterInterface $printer;
 
@@ -31,15 +33,24 @@ final class ReplCommand
     private int $lineNumber = 1;
 
     public function __construct(
+        RuntimeFacadeInterface $runtimeFacade,
         ReplCommandIoInterface $io,
-        EvalCompilerInterface $compiler,
+        CompilerFacadeInterface $compilerFacade,
         ColorStyleInterface $style,
         PrinterInterface $printer
     ) {
+        $this->runtimeFacade = $runtimeFacade;
         $this->io = $io;
-        $this->compiler = $compiler;
+        $this->compilerFacade = $compilerFacade;
         $this->style = $style;
         $this->printer = $printer;
+    }
+
+    public function addRuntimePath(string $namespacePrefix, array $path): self
+    {
+        $this->runtimeFacade->addPath($namespacePrefix, $path);
+
+        return $this;
     }
 
     public function run(): void
@@ -119,7 +130,7 @@ final class ReplCommand
         $fullInput = implode(PHP_EOL, $this->inputBuffer);
 
         try {
-            $result = $this->compiler->eval($fullInput, $this->lineNumber - count($this->inputBuffer));
+            $result = $this->compilerFacade->eval($fullInput, $this->lineNumber - count($this->inputBuffer));
             $this->addHistory($fullInput);
             $this->io->writeln($this->printer->print($result));
 

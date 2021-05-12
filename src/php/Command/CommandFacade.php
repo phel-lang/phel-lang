@@ -4,36 +4,27 @@ declare(strict_types=1);
 
 namespace Phel\Command;
 
-use Phel\Runtime\RuntimeInterface;
-use RuntimeException;
+use Gacela\Framework\AbstractFacade;
 
-final class CommandFacade implements CommandFacadeInterface
+/**
+ * @method CommandFactory getFactory()
+ */
+final class CommandFacade extends AbstractFacade implements CommandFacadeInterface
 {
     private const SUCCESS_CODE = 0;
     private const FAILED_CODE = 1;
 
-    private string $projectRootDir;
-    private CommandFactoryInterface $commandFactory;
-
-    public function __construct(
-        string $projectRootDir,
-        CommandFactoryInterface $commandFactory
-    ) {
-        $this->projectRootDir = $projectRootDir;
-        $this->commandFactory = $commandFactory;
-    }
-
     public function executeReplCommand(): void
     {
-        $this->commandFactory
-            ->createReplCommand($this->loadVendorPhelRuntime())
+        $this->getFactory()
+            ->createReplCommand()
             ->run();
     }
 
     public function executeRunCommand(string $fileOrPath): void
     {
-        $this->commandFactory
-            ->createRunCommand($this->loadVendorPhelRuntime())
+        $this->getFactory()
+            ->createRunCommand()
             ->run($fileOrPath);
     }
 
@@ -42,8 +33,8 @@ final class CommandFacade implements CommandFacadeInterface
      */
     public function executeTestCommand(array $paths): void
     {
-        $result = $this->commandFactory
-            ->createTestCommand($this->loadVendorPhelRuntime())
+        $result = $this->getFactory()
+            ->createTestCommand()
             ->run($paths);
 
         ($result)
@@ -56,28 +47,15 @@ final class CommandFacade implements CommandFacadeInterface
      */
     public function executeFormatCommand(array $paths): void
     {
-        $this->commandFactory
+        $this->getFactory()
             ->createFormatCommand()
             ->run($paths);
     }
 
     public function executeExportCommand(): void
     {
-        $this->commandFactory
-            ->createExportCommand($this->loadVendorPhelRuntime())
+        $this->getFactory()
+            ->createExportCommand()
             ->run();
-    }
-
-    private function loadVendorPhelRuntime(): RuntimeInterface
-    {
-        $runtimePath = $this->projectRootDir
-            . DIRECTORY_SEPARATOR . 'vendor'
-            . DIRECTORY_SEPARATOR . 'PhelRuntime.php';
-
-        if (!file_exists($runtimePath)) {
-            throw new RuntimeException('The Runtime could not be loaded from: ' . $runtimePath);
-        }
-
-        return require $runtimePath;
     }
 }

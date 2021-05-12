@@ -25,7 +25,7 @@ final class FakeStruct extends AbstractPersistentStruct
     {
         $result = new self(null, null, null);
         for ($i = 0, $l = count($kvs); $i < $l; $i += 2) {
-            $result = $result->put($kvs[$i], $kvs[$i+1]);
+            $result = $result->put($kvs[$i], $kvs[$i + 1]);
         }
         return $result;
     }

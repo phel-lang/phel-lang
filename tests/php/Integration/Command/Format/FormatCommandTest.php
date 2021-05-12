@@ -4,17 +4,18 @@ declare(strict_types=1);
 
 namespace PhelTest\Integration\Command\Format;
 
-use Phel\Command\CommandConfigInterface;
+use Gacela\Framework\Config;
 use Phel\Command\CommandFactory;
-use Phel\Command\CommandFactoryInterface;
-use Phel\Compiler\CompilerFactory;
-use Phel\Formatter\FormatterFactory;
-use Phel\Interop\InteropFactoryInterface;
 use PHPUnit\Framework\TestCase;
 
 final class FormatCommandTest extends TestCase
 {
     private const FIXTURES_DIR = __DIR__ . '/Fixtures/';
+
+    protected function setUp(): void
+    {
+        Config::setApplicationRootDir(__DIR__);
+    }
 
     public function testGoodFormat(): void
     {
@@ -22,7 +23,7 @@ final class FormatCommandTest extends TestCase
         $oldContent = file_get_contents($path);
 
         $command = $this
-            ->createCommandFactory(self::FIXTURES_DIR)
+            ->createCommandFactory()
             ->createFormatCommand();
 
         $this->expectOutputRegex('/No files were formatted+/s');
@@ -40,7 +41,7 @@ final class FormatCommandTest extends TestCase
         $oldContent = file_get_contents($path);
 
         $command = $this
-            ->createCommandFactory(self::FIXTURES_DIR)
+            ->createCommandFactory()
             ->createFormatCommand();
 
         $this->expectOutputString(<<<TXT
@@ -55,16 +56,8 @@ TXT);
         }
     }
 
-    private function createCommandFactory(string $currentDir): CommandFactoryInterface
+    private function createCommandFactory(): CommandFactory
     {
-        $compilerFactory = new CompilerFactory();
-
-        return new CommandFactory(
-            $currentDir,
-            $this->createStub(CommandConfigInterface::class),
-            $compilerFactory,
-            new FormatterFactory($compilerFactory),
-            $this->createStub(InteropFactoryInterface::class)
-        );
+        return new CommandFactory();
     }
 }

@@ -8,27 +8,27 @@ use Phel\Command\Shared\CommandIoInterface;
 use Phel\Compiler\Lexer\Exceptions\LexerValueException;
 use Phel\Compiler\Parser\Exceptions\AbstractParserException;
 use Phel\Formatter\Exceptions\ZipperException;
-use Phel\Formatter\FormatterInterface;
+use Phel\Formatter\FormatterFacadeInterface;
 use Throwable;
 
 final class FormatCommand
 {
     public const COMMAND_NAME = 'format';
 
-    private FormatterInterface $formatter;
     private CommandIoInterface $io;
+    private FormatterFacadeInterface $formatterFacade;
     private PathFilterInterface $pathFilter;
 
     /** @var list<string> */
     private array $successfulFormattedFilePaths = [];
 
     public function __construct(
-        FormatterInterface $formatter,
         CommandIoInterface $io,
+        FormatterFacadeInterface $formatterFacade,
         PathFilterInterface $pathFilter
     ) {
-        $this->formatter = $formatter;
         $this->io = $io;
+        $this->formatterFacade = $formatterFacade;
         $this->pathFilter = $pathFilter;
     }
 
@@ -63,7 +63,7 @@ final class FormatCommand
     public function formatFile(string $filename): bool
     {
         $code = $this->io->fileGetContents($filename);
-        $formattedCode = $this->formatter->format($code, $filename);
+        $formattedCode = $this->formatterFacade->format($code, $filename);
         $this->io->filePutContents($filename, $formattedCode);
 
         return (bool)strcmp($formattedCode, $code);
