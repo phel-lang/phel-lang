@@ -68,7 +68,7 @@ abstract class AbstractPersistentMap extends AbstractType implements PersistentM
         }
 
         foreach ($this as $key => $value) {
-            if (!$other->containsKey($key)) {
+            if (!$other->contains($key)) {
                 return false;
             }
 
@@ -105,7 +105,7 @@ abstract class AbstractPersistentMap extends AbstractType implements PersistentM
      */
     public function offsetExists($offset): bool
     {
-        return $this->containsKey($offset);
+        return $this->contains($offset);
     }
 
     public function offsetSet($offset, $value): void

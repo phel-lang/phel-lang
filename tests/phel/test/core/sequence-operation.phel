@@ -102,5 +102,4 @@
 (deftest test-unset
   (is (= @[:a :c :d] (unset @[:a :b :c :d] 1)) "unset: remove index from array")
   (is (= @{:b 2} (unset @{:a 1 :b 2} :a)) "unset: remove key from table")
-  (is (= {:b 2} (unset {:a 1 :b 2} :a)) "unset: remove key from map")
-  )
+  (is (= {:b 2} (unset {:a 1 :b 2} :a)) "unset: remove key from map"))

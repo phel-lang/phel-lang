@@ -11,6 +11,7 @@
   (:use Phel\Lang\FirstInterface)
   (:use Phel\Lang\IdenticalInterface)
   (:use Phel\Lang\ConsInterface)
+  (:use Phel\Lang\ContainsInterface)
   (:use Phel\Lang\MetaInterface)
   (:use Phel\Lang\Nil)
   (:use Phel\Lang\PopInterface)
@@ -248,3 +249,4 @@ This is PHP equivalent to `$args[0] . $args[1] . $args[2] ...`"
 (load (str __DIR__ "/core/math-operation.phel"))
 (load (str __DIR__ "/core/print-operation.phel"))
 (load (str __DIR__ "/core/threading-macros.phel"))
+(load (str __DIR__ "/core/regex-functions.phel"))

@@ -16,8 +16,8 @@ class PersistentHashMapTest extends TestCase
         $h = PersistentHashMap::empty(new ModuloHasher(), new SimpleEqualizer());
 
         self::assertEquals(0, $h->count());
-        self::assertFalse($h->containsKey('test'));
-        self::assertFalse($h->containsKey(null));
+        self::assertFalse($h->contains('test'));
+        self::assertFalse($h->contains(null));
         self::assertNull($h->find('test'));
     }
 
@@ -28,10 +28,10 @@ class PersistentHashMapTest extends TestCase
 
         self::assertEquals(null, $h->find(null));
         self::assertEquals(0, $h->count());
-        self::assertFalse($h->containsKey(null));
+        self::assertFalse($h->contains(null));
         self::assertEquals('test', $h2->find(null));
         self::assertEquals(1, $h2->count());
-        self::assertTrue($h2->containsKey(null));
+        self::assertTrue($h2->contains(null));
     }
 
     public function testPutKeyValue(): void
@@ -40,7 +40,7 @@ class PersistentHashMapTest extends TestCase
             ->put(1, 'test');
 
         self::assertEquals(1, $h->count());
-        self::assertTrue($h->containsKey(1));
+        self::assertTrue($h->contains(1));
         self::assertEquals('test', $h->find(1));
     }
 
@@ -51,7 +51,7 @@ class PersistentHashMapTest extends TestCase
             ->put(1, 'test');
 
         self::assertEquals(1, $h->count());
-        self::assertTrue($h->containsKey(1));
+        self::assertTrue($h->contains(1));
         self::assertEquals('test', $h->find(1));
     }
 
@@ -62,7 +62,7 @@ class PersistentHashMapTest extends TestCase
             ->put(null, 'test');
 
         self::assertEquals(1, $h->count());
-        self::assertTrue($h->containsKey(null));
+        self::assertTrue($h->contains(null));
         self::assertEquals('test', $h->find(null));
     }
 
@@ -89,7 +89,7 @@ class PersistentHashMapTest extends TestCase
             ->remove(null);
 
         self::assertEquals(0, $h->count());
-        self::assertFalse($h->containsKey(null));
+        self::assertFalse($h->contains(null));
         self::assertNull($h->find(null));
     }
 
@@ -99,7 +99,7 @@ class PersistentHashMapTest extends TestCase
             ->remove(null);
 
         self::assertEquals(0, $h->count());
-        self::assertFalse($h->containsKey(null));
+        self::assertFalse($h->contains(null));
         self::assertNull($h->find(null));
     }
 
@@ -109,7 +109,7 @@ class PersistentHashMapTest extends TestCase
             ->remove(1);
 
         self::assertEquals(0, $h->count());
-        self::assertFalse($h->containsKey(1));
+        self::assertFalse($h->contains(1));
         self::assertNull($h->find(1));
     }
 
@@ -120,9 +120,9 @@ class PersistentHashMapTest extends TestCase
             ->remove(1);
 
         self::assertEquals(1, $h->count());
-        self::assertTrue($h->containsKey(2));
+        self::assertTrue($h->contains(2));
         self::assertEquals('test', $h->find(2));
-        self::assertFalse($h->containsKey(1));
+        self::assertFalse($h->contains(1));
         self::assertNull($h->find(1));
     }
 
@@ -133,7 +133,7 @@ class PersistentHashMapTest extends TestCase
             ->remove(1);
 
         self::assertEquals(0, $h->count());
-        self::assertFalse($h->containsKey(1));
+        self::assertFalse($h->contains(1));
         self::assertNull($h->find(1));
     }
 

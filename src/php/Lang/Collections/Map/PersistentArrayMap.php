@@ -55,7 +55,7 @@ class PersistentArrayMap extends AbstractPersistentMap
         return new PersistentArrayMap($this->hasher, $this->equalizer, $meta, $this->array);
     }
 
-    public function containsKey($key): bool
+    public function contains($key): bool
     {
         return $this->findIndex($key) !== false;
     }

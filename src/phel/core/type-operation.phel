@@ -3,11 +3,13 @@
 (defn type
   "Returns the type of `x`. Following types can be returned:
 
+* `:vector`
+* `:list`
+* `:struct`
+* `:hash-map`
 * `:set`
 * `:array`
-* `:struct`
 * `:table`
-* `:hash-map`
 * `:keyword`
 * `:symbol`
 * `:int`
@@ -25,7 +27,7 @@
     (php/instanceof x PersistentVectorInterface)  :vector
     (php/instanceof x PersistentListInterface)    :list
     (php/instanceof x AbstractPersistentStruct)   :struct
-    (php/instanceof x PersistentMapInterface) :hash-map
+    (php/instanceof x PersistentMapInterface)     :hash-map
     (php/instanceof x PersistentHashSetInterface) :set
     (php/instanceof x PhelArray)                  :array
     (php/instanceof x Table)                      :table
@@ -41,11 +43,6 @@
     (php/is_resource x)                           :php/resource
     (php/is_object x)                             :php/object
     :unknown))
-
-(defn nil?
-  "Returns true if `x` is nil, false otherwise."
-  [x]
-  (id x nil))
 
 (defn float?
   "Returns true if `x` is float point number, false otherwise."

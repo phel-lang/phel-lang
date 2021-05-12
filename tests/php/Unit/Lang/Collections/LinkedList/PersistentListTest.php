@@ -211,4 +211,14 @@ final class PersistentListTest extends TestCase
         $this->assertEquals('foo', $list[0]);
         $this->assertEquals('bar', $list[1]);
     }
+
+    public function testContains(): void
+    {
+        $list = PersistentList::fromArray(new ModuloHasher(), new SimpleEqualizer(), ['foo', 'bar']);
+
+        $this->assertFalse($list->contains(-1));
+        $this->assertTrue($list->contains(0));
+        $this->assertTrue($list->contains(1));
+        $this->assertFalse($list->contains(2));
+    }
 }

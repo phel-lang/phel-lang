@@ -56,7 +56,7 @@ class PersistentHashSet extends AbstractType implements PersistentHashSetInterfa
      */
     public function contains($value): bool
     {
-        return $this->map->containsKey($value);
+        return $this->map->contains($value);
     }
 
     /**

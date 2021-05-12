@@ -7,20 +7,17 @@ namespace Phel\Lang\Collections\HashSet;
 use Countable;
 use Phel\Lang\Collections\AsTransientInterface;
 use Phel\Lang\ConcatInterface;
+use Phel\Lang\ContainsInterface;
 use Phel\Lang\FnInterface;
 
 /**
  * @template V
  *
  * @extends AsTransientInterface<TransientHashSetInterface>
+ * @extends ContainsInterface<V>
  */
-interface PersistentHashSetInterface extends Countable, AsTransientInterface, FnInterface, ConcatInterface
+interface PersistentHashSetInterface extends Countable, AsTransientInterface, FnInterface, ConcatInterface, ContainsInterface
 {
-    /**
-     * @param V $value
-     */
-    public function contains($value): bool;
-
     /**
      * @param V $value
      */

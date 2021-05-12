@@ -126,6 +126,12 @@ final class EmptyListTest extends TestCase
         $this->assertFalse(isset($list[0]));
     }
 
+    public function testContains(): void
+    {
+        $list = new EmptyList(new ModuloHasher(), new SimpleEqualizer(), null);
+        $this->assertFalse($list->contains(0));
+    }
+
     public function testOffsetGet(): void
     {
         $this->expectException(IndexOutOfBoundsException::class);
