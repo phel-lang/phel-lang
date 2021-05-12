@@ -4,6 +4,8 @@ All notable changes to this project will be documented in this file.
 
 ## Unreleased
 
+## 0.3.0 (2021-05-12)
+
 * New persistent data structures (#244)
   - The old data structures have been deprecated and will be removed in the next version.
 * Rename `fmt` command to `format` (#248)
