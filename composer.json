@@ -14,7 +14,7 @@
     "require": {
         "ext-json": "*",
         "php": ">=7.4",
-        "phel-lang/phel-composer-plugin": "dev-change-factory-to-singleton",
+        "phel-lang/phel-composer-plugin": "^0.2",
         "gacela-project/gacela": "^0.2.0"
     },
     "require-dev": {
