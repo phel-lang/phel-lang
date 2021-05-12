@@ -306,6 +306,13 @@ Takes a set of test/expression pairs. Evaluates each test one at a time.
 ```
 Prepends `x` to the beginning of `xs`.
 
+## `contains?`
+
+```phel
+(contains? coll key)
+```
+Returns true if key is present in the given collection, otherwise returns false.
+
 ## `count`
 
 ```phel
@@ -1017,7 +1024,7 @@ Takes a function `f` and fewer than normal arguments of `f` and returns a functi
 ```phel
 (partition n xs)
 ```
-Partition an indexed data structure into vectors of size n. Returns a new array.
+Partition an indexed data structure into vectors of maximum size n. Returns a new vector.
 
 ## `peek`
 
