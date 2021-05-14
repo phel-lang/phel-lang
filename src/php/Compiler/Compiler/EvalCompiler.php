@@ -9,8 +9,9 @@ use Phel\Compiler\Analyzer\Environment\NodeEnvironment;
 use Phel\Compiler\Analyzer\Environment\NodeEnvironmentInterface;
 use Phel\Compiler\Analyzer\Exceptions\AnalyzerException;
 use Phel\Compiler\Emitter\EmitterInterface;
-use Phel\Compiler\Emitter\Exceptions\CompiledCodeIsMalformedException;
-use Phel\Compiler\Emitter\Exceptions\FileException;
+use Phel\Compiler\Evaluator\EvaluatorInterface;
+use Phel\Compiler\Evaluator\Exceptions\CompiledCodeIsMalformedException;
+use Phel\Compiler\Evaluator\Exceptions\FileException;
 use Phel\Compiler\Exceptions\CompilerException;
 use Phel\Compiler\Lexer\Exceptions\LexerValueException;
 use Phel\Compiler\Lexer\LexerInterface;
@@ -29,19 +30,22 @@ final class EvalCompiler implements EvalCompilerInterface
     private ReaderInterface $reader;
     private AnalyzerInterface $analyzer;
     private EmitterInterface $emitter;
+    private EvaluatorInterface $evaluator;
 
     public function __construct(
         LexerInterface $lexer,
         ParserInterface $parser,
         ReaderInterface $reader,
         AnalyzerInterface $analyzer,
-        EmitterInterface $emitter
+        EmitterInterface $emitter,
+        EvaluatorInterface $evaluator
     ) {
         $this->lexer = $lexer;
         $this->parser = $parser;
         $this->reader = $reader;
         $this->analyzer = $analyzer;
         $this->emitter = $emitter;
+        $this->evaluator = $evaluator;
     }
 
     /**
@@ -90,9 +94,9 @@ final class EvalCompiler implements EvalCompilerInterface
                 NodeEnvironment::empty()->withContext(NodeEnvironmentInterface::CONTEXT_RETURN)
             );
 
-            $code = $this->emitter->emitNodeAsString($node);
+            $code = $this->emitter->emitNode($node);
 
-            return $this->emitter->evalCode($code);
+            return $this->evaluator->eval($code);
         } catch (AnalyzerException $e) {
             throw new CompilerException($e, $readerResult->getCodeSnippet());
         }

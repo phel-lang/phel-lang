@@ -2,13 +2,13 @@
 
 declare(strict_types=1);
 
-namespace Phel\Compiler\Emitter;
+namespace Phel\Compiler\Evaluator;
 
-use Phel\Compiler\Emitter\Exceptions\CompiledCodeIsMalformedException;
-use Phel\Compiler\Emitter\Exceptions\FileException;
+use Phel\Compiler\Evaluator\Exceptions\CompiledCodeIsMalformedException;
+use Phel\Compiler\Evaluator\Exceptions\FileException;
 use Throwable;
 
-final class EvalEmitter implements EvalEmitterInterface
+final class RequireEvaluator implements EvaluatorInterface
 {
     /**
      * Evaluates the code and returns the evaluated value.

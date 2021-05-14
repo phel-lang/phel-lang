@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace Phel\Runtime;
 
 use Phel\Compiler\Analyzer\Environment\GlobalEnvironmentInterface;
-use Phel\Compiler\Emitter\Exceptions\CompiledCodeIsMalformedException;
-use Phel\Compiler\Emitter\Exceptions\FileException;
+use Phel\Compiler\Evaluator\Exceptions\CompiledCodeIsMalformedException;
+use Phel\Compiler\Evaluator\Exceptions\FileException;
 use Phel\Compiler\Exceptions\CompilerException;
 
 interface RuntimeInterface

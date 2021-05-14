@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace Phel\Compiler;
 
-use Phel\Compiler\Emitter\Exceptions\CompiledCodeIsMalformedException;
-use Phel\Compiler\Emitter\Exceptions\FileException;
+use Phel\Compiler\Evaluator\Exceptions\CompiledCodeIsMalformedException;
+use Phel\Compiler\Evaluator\Exceptions\FileException;
 use Phel\Compiler\Exceptions\CompilerException;
 use Phel\Compiler\Lexer\Exceptions\LexerValueException;
 use Phel\Compiler\Lexer\TokenStream;

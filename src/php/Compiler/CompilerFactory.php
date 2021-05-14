@@ -13,13 +13,13 @@ use Phel\Compiler\Compiler\FileCompiler;
 use Phel\Compiler\Compiler\FileCompilerInterface;
 use Phel\Compiler\Emitter\Emitter;
 use Phel\Compiler\Emitter\EmitterInterface;
-use Phel\Compiler\Emitter\EvalEmitter;
-use Phel\Compiler\Emitter\EvalEmitterInterface;
 use Phel\Compiler\Emitter\OutputEmitter;
 use Phel\Compiler\Emitter\OutputEmitter\Munge;
 use Phel\Compiler\Emitter\OutputEmitter\NodeEmitterFactory;
 use Phel\Compiler\Emitter\OutputEmitter\SourceMap\SourceMapGenerator;
 use Phel\Compiler\Emitter\OutputEmitterInterface;
+use Phel\Compiler\Evaluator\EvaluatorInterface;
+use Phel\Compiler\Evaluator\RequireEvaluator;
 use Phel\Compiler\Lexer\Lexer;
 use Phel\Compiler\Lexer\LexerInterface;
 use Phel\Compiler\Parser\ExpressionParserFactory;
@@ -41,7 +41,8 @@ final class CompilerFactory extends AbstractFactory
             $this->createParser(),
             $this->createReader(),
             $this->createAnalyzer(),
-            $this->createEmitter()
+            $this->createEmitter(),
+            $this->createEvaluator()
         );
     }
 
@@ -52,7 +53,8 @@ final class CompilerFactory extends AbstractFactory
             $this->createParser(),
             $this->createReader(),
             $this->createAnalyzer(),
-            $this->createEmitter()
+            $this->createEmitter(),
+            $this->createEvaluator()
         );
     }
 
@@ -88,8 +90,7 @@ final class CompilerFactory extends AbstractFactory
     public function createEmitter(bool $enableSourceMaps = true): EmitterInterface
     {
         return new Emitter(
-            $this->createOutputEmitter($enableSourceMaps),
-            $this->createEvalEmitter()
+            $this->createOutputEmitter($enableSourceMaps)
         );
     }
 
@@ -104,9 +105,9 @@ final class CompilerFactory extends AbstractFactory
         );
     }
 
-    private function createEvalEmitter(): EvalEmitterInterface
+    public function createEvaluator(): EvaluatorInterface
     {
-        return new EvalEmitter();
+        return new RequireEvaluator();
     }
 
     private function getRuntimeFacade(): RuntimeFacadeInterface

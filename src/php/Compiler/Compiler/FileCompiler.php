@@ -8,8 +8,9 @@ use Phel\Compiler\Analyzer\AnalyzerInterface;
 use Phel\Compiler\Analyzer\Environment\NodeEnvironment;
 use Phel\Compiler\Analyzer\Exceptions\AnalyzerException;
 use Phel\Compiler\Emitter\EmitterInterface;
-use Phel\Compiler\Emitter\Exceptions\CompiledCodeIsMalformedException;
-use Phel\Compiler\Emitter\Exceptions\FileException;
+use Phel\Compiler\Evaluator\EvaluatorInterface;
+use Phel\Compiler\Evaluator\Exceptions\CompiledCodeIsMalformedException;
+use Phel\Compiler\Evaluator\Exceptions\FileException;
 use Phel\Compiler\Exceptions\CompilerException;
 use Phel\Compiler\Lexer\Exceptions\LexerValueException;
 use Phel\Compiler\Lexer\LexerInterface;
@@ -27,19 +28,22 @@ final class FileCompiler implements FileCompilerInterface
     private ReaderInterface $reader;
     private AnalyzerInterface $analyzer;
     private EmitterInterface $emitter;
+    private EvaluatorInterface $evaluator;
 
     public function __construct(
         LexerInterface $lexer,
         ParserInterface $parser,
         ReaderInterface $reader,
         AnalyzerInterface $analyzer,
-        EmitterInterface $emitter
+        EmitterInterface $emitter,
+        EvaluatorInterface $evaluator
     ) {
         $this->lexer = $lexer;
         $this->parser = $parser;
         $this->reader = $reader;
         $this->analyzer = $analyzer;
         $this->emitter = $emitter;
+        $this->evaluator = $evaluator;
     }
 
     /**
@@ -91,6 +95,9 @@ final class FileCompiler implements FileCompilerInterface
             throw new CompilerException($e, $readerResult->getCodeSnippet());
         }
 
-        return $this->emitter->emitNodeAndEval($node);
+        $code = $this->emitter->emitNode($node);
+        $this->evaluator->eval($code);
+
+        return $code;
     }
 }

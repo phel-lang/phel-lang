@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Phel\Compiler\Emitter\Exceptions;
+namespace Phel\Compiler\Evaluator\Exceptions;
 
 use RuntimeException;
 use Throwable;
