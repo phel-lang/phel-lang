@@ -8,10 +8,10 @@
     0 (throw (php/new InvalidArgumentException "expected at least one indexed
 collection in map"))
     1 (for [x :in (first xs)] (f x))
-    (loop [res @[]
+    (loop [res (transient [])
            seq xs]
       (if (some? nil? seq)
-        res
+        (persistent res)
         (do
           (push res (apply f (map first seq)))
           (recur res (map next seq)))))))
@@ -26,7 +26,7 @@ collection in map"))
 (defn mapcat
   "Applies `f` on all `xs` and concatenate the result."
   [f & xs]
-  (apply concat @[] (apply map f xs)))
+  (apply concat [] (apply map f xs)))
 
 (defn reduce
   "Transforms an collection `xs` with a function `f` to produce a value by applying `f` to each element in order.
@@ -89,7 +89,7 @@ collection in map"))
   (loop [s xs]
     (if (and s (pred (first s)))
       (recur (next s))
-      (if s s @[]))))
+      (if s s []))))
 
 (defn take
   "Takes the first `n` elements of `xs`."
@@ -99,7 +99,7 @@ collection in map"))
 (defn take-last
   "Takes the last `n` elements of `xs`."
   [n xs]
-  (if (php/<= n 0) @[] (slice xs (php/* -1 n))))
+  (if (php/<= n 0) [] (slice xs (php/* -1 n))))
 
 (defn take-while
   "Takes alle elements at the front of `xs` where `(pred x)` is true."
@@ -162,16 +162,16 @@ collection in map"))
 (defn reverse
   "Reverses the order of the elements in the given sequence."
   [xs]
-  (let [ret @[]]
+  (let [ret (transient [])]
     (dofor [i :range [(php/- (count xs) 1) -1 -1]]
       (push ret (get xs i)))
-    ret))
+    (persistent ret)))
 
 (defn interleave
   "Returns a array with the first items of each col, than the second items etc."
   [& xs]
   (loop [i 0
-         res @[]]
+         res []]
     (let [nths (map |(get $ i) xs)]
       (if (some? nil? nths)
         res
@@ -180,12 +180,12 @@ collection in map"))
 (defn interpose
   "Returns an array of elements separated by `sep`"
   [sep xs]
-  (let [res @[]]
+  (let [res (transient [])]
     (dofor [[k v] :pairs xs]
       (when (> k 0)
         (push res sep))
       (push res v))
-    res))
+    (persistent res)))
 
 (defn frequencies
   "Returns a table from distinct items in `xs` to the number of times they appear."
@@ -211,13 +211,13 @@ collection in map"))
   (for [p :pairs xs] p))
 
 (defn kvs
-  "Returns an array of key value pairs like @[k1 v1 k2 v2 k3 v3 ...]."
+  "Returns an array of key value pairs like [k1 v1 k2 v2 k3 v3 ...]."
   [xs]
-  (let [res @[]]
+  (let [res (transient [])]
     (dofor [[k v] :pairs xs]
       (push res k)
       (push res v))
-    res))
+    (persistent res)))
 
 (defn to-php-array
   "Create a PHP Array from a sequential data structure."
@@ -275,7 +275,7 @@ collection in map"))
   (let [res (transient {})]
     (dofor [x :in xs :let [k (f x)]]
       (when-not (get res k)
-        (put res k @[]))
+        (put res k []))
       (update-in res [k] push x))
     (persistent res)))
 
@@ -326,8 +326,8 @@ collection in map"))
           (push res a)
           (if (>= (count b) n)
             (recur b)
-            (if (= (count b) 0) 
+            (if (= (count b) 0)
               (persistent res)
-              (do 
-                (push res b) 
+              (do
+                (push res b)
                 (persistent res)))))))))
