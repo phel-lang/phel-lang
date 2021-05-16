@@ -8,7 +8,7 @@
   (case (count rest)
     0 (range 0 a 1)
     1 (range a (get rest 0) 1)
-    2 (let [res @[]
+    2 (let [res (transient [])
             begin a
             end (get rest 0)
             step (get rest 1)
@@ -18,7 +18,7 @@
             (do
               (push res i)
               (recur (php/+ i step)))
-            res)))
+            (persistent res))))
     (throw (php/new InvalidArgumentException "Range function expects one, two or three arguments"))))
 
 (defn- for-builder [body head i]
