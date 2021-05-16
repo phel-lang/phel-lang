@@ -9,9 +9,13 @@ use Phel\Compiler\Lexer\Exceptions\LexerValueException;
 use Phel\Compiler\Parser\Exceptions\AbstractParserException;
 use Phel\Formatter\Exceptions\ZipperException;
 use Phel\Formatter\FormatterFacadeInterface;
+use Symfony\Component\Console\Command\Command;
+use Symfony\Component\Console\Input\InputArgument;
+use Symfony\Component\Console\Input\InputInterface;
+use Symfony\Component\Console\Output\OutputInterface;
 use Throwable;
 
-final class FormatCommand
+final class FormatCommand extends Command
 {
     public const COMMAND_NAME = 'format';
 
@@ -27,16 +31,26 @@ final class FormatCommand
         FormatterFacadeInterface $formatterFacade,
         PathFilterInterface $pathFilter
     ) {
+        parent::__construct(self::COMMAND_NAME);
         $this->io = $io;
         $this->formatterFacade = $formatterFacade;
         $this->pathFilter = $pathFilter;
     }
 
-    /**
-     * @param list<string> $paths
-     */
-    public function run(array $paths): void
+    protected function configure(): void
     {
+        $this->setDescription('Formats the given files.')
+            ->addArgument(
+                'paths',
+                InputArgument::IS_ARRAY|InputArgument::REQUIRED,
+                'The file paths that you want to format.'
+            );
+    }
+
+    public function execute(InputInterface $input, OutputInterface $output): int
+    {
+        /** @var list<string> $paths */
+        $paths = $input->getArgument('paths');
         foreach ($this->pathFilter->filterPaths($paths) as $path) {
             try {
                 $wasFormatted = $this->formatFile($path);
@@ -51,6 +65,8 @@ final class FormatCommand
         }
 
         $this->printResult();
+
+        return 0;
     }
 
     /**
