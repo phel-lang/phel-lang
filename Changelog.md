@@ -4,6 +4,10 @@ All notable changes to this project will be documented in this file.
 
 ## Unreleased
 
+## 0.3.1 (2021-05-16)
+
+* For loop will now return a vector instead of an array (#276)
+
 ## 0.3.0 (2021-05-12)
 
 * New persistent data structures (#244)
