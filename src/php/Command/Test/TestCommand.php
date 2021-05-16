@@ -64,16 +64,14 @@ final class TestCommand extends Command
         $paths = $input->getArgument('paths');
         try {
             $result = $this->evalNamespaces($paths);
-            ($result)
-                ? exit(self::SUCCESS)
-                : exit(self::FAILURE);
+            return ($result) ? self::SUCCESS : self::FAILURE;
         } catch (CompilerException $e) {
             $this->io->writeLocatedException($e->getNestedException(), $e->getCodeSnippet());
         } catch (Throwable $e) {
             $this->io->writeStackTrace($e);
         }
 
-        exit(self::FAILURE);
+        return self::FAILURE;
     }
 
     /**

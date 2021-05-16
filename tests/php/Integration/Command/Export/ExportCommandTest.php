@@ -9,6 +9,8 @@ use Phel\Command\CommandFactory;
 use Phel\Runtime\RuntimeSingleton;
 use PhelTest\Integration\Util\DirectoryUtil;
 use PHPUnit\Framework\TestCase;
+use Symfony\Component\Console\Input\InputInterface;
+use Symfony\Component\Console\Output\OutputInterface;
 
 final class ExportCommandTest extends TestCase
 {
@@ -33,7 +35,10 @@ final class ExportCommandTest extends TestCase
         $this->expectOutputRegex('~TestCmdExportMultiple/Adder~');
         $this->expectOutputRegex('~TestCmdExportMultiple/Multiplier~');
 
-        $command->run();
+        $command->run(
+            $this->createStub(InputInterface::class),
+            $this->createStub(OutputInterface::class)
+        );
 
         self::assertFileExists(__DIR__ . '/PhelGenerated/TestCmdExportMultiple/Adder.php');
         self::assertFileExists(__DIR__ . '/PhelGenerated/TestCmdExportMultiple/Multiplier.php');

@@ -8,6 +8,8 @@ use Gacela\Framework\Config;
 use Phel\Command\CommandFactory;
 use Phel\Runtime\RuntimeSingleton;
 use PHPUnit\Framework\TestCase;
+use Symfony\Component\Console\Input\InputInterface;
+use Symfony\Component\Console\Output\OutputInterface;
 
 final class RunCommandTest extends TestCase
 {
@@ -28,7 +30,10 @@ final class RunCommandTest extends TestCase
         $this->createCommandFactory()
             ->createRunCommand()
             ->addRuntimePath('test\\', [__DIR__ . '/Fixtures'])
-            ->run('test\\test-script');
+            ->run(
+                $this->stubInput('test\\test-script'),
+                $this->createStub(OutputInterface::class)
+            );
     }
 
     public function testRunByFilename(): void
@@ -38,7 +43,10 @@ final class RunCommandTest extends TestCase
         $this->createCommandFactory()
             ->createRunCommand()
             ->addRuntimePath('test\\', [__DIR__ . '/Fixtures'])
-            ->run(__DIR__ . '/Fixtures/test-script.phel');
+            ->run(
+                $this->stubInput(__DIR__ . '/Fixtures/test-script.phel'),
+                $this->createStub(OutputInterface::class)
+            );
     }
 
     public function testCannotParseFile(): void
@@ -48,7 +56,10 @@ final class RunCommandTest extends TestCase
 
         $this->createCommandFactory()
             ->createRunCommand()
-            ->run($filename);
+            ->run(
+                $this->stubInput($filename),
+                $this->createStub(OutputInterface::class)
+            );
     }
 
     public function testCannotReadFile(): void
@@ -58,7 +69,10 @@ final class RunCommandTest extends TestCase
 
         $this->createCommandFactory()
             ->createRunCommand()
-            ->run($filename);
+            ->run(
+                $this->stubInput($filename),
+                $this->createStub(OutputInterface::class)
+            );
     }
 
     public function testFileWithoutNs(): void
@@ -68,11 +82,22 @@ final class RunCommandTest extends TestCase
 
         $this->createCommandFactory()
             ->createRunCommand()
-            ->run($filename);
+            ->run(
+                $this->stubInput($filename),
+                $this->createStub(OutputInterface::class)
+            );
     }
 
     private function createCommandFactory(): CommandFactory
     {
         return new CommandFactory();
+    }
+
+    private function stubInput(string $path): InputInterface
+    {
+        $input = $this->createStub(InputInterface::class);
+        $input->method('getArgument')->willReturn($path);
+
+        return $input;
     }
 }

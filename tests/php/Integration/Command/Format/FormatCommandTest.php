@@ -7,6 +7,8 @@ namespace PhelTest\Integration\Command\Format;
 use Gacela\Framework\Config;
 use Phel\Command\CommandFactory;
 use PHPUnit\Framework\TestCase;
+use Symfony\Component\Console\Input\InputInterface;
+use Symfony\Component\Console\Output\OutputInterface;
 
 final class FormatCommandTest extends TestCase
 {
@@ -29,7 +31,10 @@ final class FormatCommandTest extends TestCase
         $this->expectOutputRegex('/No files were formatted+/s');
 
         try {
-            $command->run([$path]);
+            $command->run(
+                $this->stubInput([$path]),
+                $this->createStub(OutputInterface::class)
+            );
         } finally {
             file_put_contents($path, $oldContent);
         }
@@ -50,7 +55,10 @@ Formatted files:
 
 TXT);
         try {
-            $command->run([$path]);
+            $command->run(
+                $this->stubInput([$path]),
+                $this->createStub(OutputInterface::class)
+            );
         } finally {
             file_put_contents($path, $oldContent);
         }
@@ -59,5 +67,13 @@ TXT);
     private function createCommandFactory(): CommandFactory
     {
         return new CommandFactory();
+    }
+
+    private function stubInput(array $paths): InputInterface
+    {
+        $input = $this->createStub(InputInterface::class);
+        $input->method('getArgument')->willReturn($paths);
+
+        return $input;
     }
 }

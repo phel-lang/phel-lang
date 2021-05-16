@@ -51,7 +51,8 @@ final class RunCommand extends Command
 
     public function execute(InputInterface $input, OutputInterface $output): int
     {
-        $fileOrPath = (string)$input->getArgument('path');
+        /** @var string $fileOrPath */
+        $fileOrPath = $input->getArgument('path');
         try {
             $this->loadNamespace($fileOrPath);
         } catch (CompilerException $e) {

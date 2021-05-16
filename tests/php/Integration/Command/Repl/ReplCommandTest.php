@@ -21,6 +21,8 @@ use PHPUnit\Framework\TestCase;
 use RecursiveDirectoryIterator;
 use RecursiveIteratorIterator;
 use SplFileInfo;
+use Symfony\Component\Console\Input\InputInterface;
+use Symfony\Component\Console\Output\OutputInterface;
 
 final class ReplCommandTest extends TestCase
 {
@@ -38,7 +40,10 @@ final class ReplCommandTest extends TestCase
         $io->setInputs(...$inputs);
 
         $repl = $this->createReplCommand($io);
-        $repl->run();
+        $repl->run(
+            $this->createStub(InputInterface::class),
+            $this->createStub(OutputInterface::class)
+        );
 
         $replOutput = $io->getOutputString();
 
