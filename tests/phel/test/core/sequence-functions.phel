@@ -2,17 +2,17 @@
   (:require phel\test :refer [deftest is]))
 
 (deftest test-map
-  (is (= @["1" "2"] (map str [1 2])) "map1")
-  (is (= @["13" "24"] (map str [1 2] [3 4])) "map2")
-  (is (= @["13" "24"] (map str [1 2 10] [3 4])) "map2 unequal size"))
+  (is (= ["1" "2"] (map str [1 2])) "map1")
+  (is (= ["13" "24"] (map str [1 2] [3 4])) "map2")
+  (is (= ["13" "24"] (map str [1 2 10] [3 4])) "map2 unequal size"))
 
 (deftest test-map-indexed
-  (is (= @[[0 "a"] [1 "b"] [2 "c"]] (map-indexed vector ["a" "b" "c"])) "map-indexed"))
+  (is (= [[0 "a"] [1 "b"] [2 "c"]] (map-indexed vector ["a" "b" "c"])) "map-indexed"))
 
 (deftest test-mapcat
-  (is (= @[1 2 3 4 5 6] (mapcat reverse [[3 2 1] [6 5 4]])) "mapcat")
-  (is (= @[] (mapcat identity [])) "mapcat on empty vector")
-  (is (= @[] (mapcat identity @[])) "mapcat on empty array"))
+  (is (= [1 2 3 4 5 6] (mapcat reverse [[3 2 1] [6 5 4]])) "mapcat")
+  (is (= [] (mapcat identity [])) "mapcat on empty vector")
+  (is (= [] (mapcat identity @[])) "mapcat on empty array"))
 
 (deftest test-reduce
   (is (= "abc" (reduce str "" ["a" "b" "c"])) "reduce three elements vector")
@@ -53,7 +53,7 @@
 
 (deftest test-drop-while
   (is (= @[1 2 3 4 -1 -2 -3] (drop-while neg? @[-1 -2 -3 1 2 3 4 -1 -2 -3])) "drop-while: first three element")
-  (is (= @[] (drop-while neg? @[-1 -2 -3])) "drop-while: everything")
+  (is (= [] (drop-while neg? @[-1 -2 -3])) "drop-while: everything")
   (is (= @[] (drop-while neg? @[])) "drop-while: empty array")
   (is (= @[1 2 3 4] (drop-while neg? @[1 2 3 4])) "drop-while: nothing")
   (is (= [1 2 3 4 -1 -2 -3] (drop-while neg? [-1 -2 -3 1 2 3 4 -1 -2 -3])) "drop-while: vector")
@@ -75,34 +75,34 @@
   (is (= @["b" "c"] (take-last 2 @["a" "b" "c"])) "take-last two elements")
   (is (= @["a" "b" "c"] (take-last 3 @["a" "b" "c"])) "take-last three elements")
   (is (= @["a" "b" "c"] (take-last 4 @["a" "b" "c"])) "take-last four elements")
-  (is (= @[] (take-last 0 @["a" "b" "c"])) "take-last zero elements")
-  (is (= @[] (take-last -1 @["a" "b" "c"])) "take-last with negative number")
+  (is (= [] (take-last 0 @["a" "b" "c"])) "take-last zero elements")
+  (is (= [] (take-last -1 @["a" "b" "c"])) "take-last with negative number")
   (is (= ["b" "c"] (take-last 2 ["a" "b" "c"])) "take-last on vector")
   (is (= [] (take-last 1 [])) "take-last on empty vector")
-  (is (= @[] (take-last -1 ["a" "b" "c"])) "take-last with negative number on vector")
+  (is (= [] (take-last -1 ["a" "b" "c"])) "take-last with negative number on vector")
   (is (= (php/array "b" "c") (take-last 2 (php/array "a" "b" "c"))) "take-last on php array")
   (is (= (php/array) (take-last 1 (php/array))) "take-last on empty php array")
-  (is (= @[] (take-last -1 (php/array "a" "b" "c"))) "take-last with negative number on php array"))
+  (is (= [] (take-last -1 (php/array "a" "b" "c"))) "take-last with negative number on php array"))
 
 (deftest test-take-while
-  (is (= @[-1 -2 -3] (take-while neg? @[-1 -2 -3 1 2 3 4 -4 -5 -6])) "take-while: first three element")
-  (is (= @[-1 -2 -3] (take-while neg? @[-1 -2 -3])) "take-while: everything")
-  (is (= @[] (take-while neg? @[1 2 3 4])) "take-while: nothing")
-  (is (= @[] (take-while neg? @[])) "take-while: empty array")
-  (is (= @[-1 -2 -3] (take-while neg? [-1 -2 -3 1 2 3 4 -4 -5 -6])) "take-while on vector")
-  (is (= @[-1 -2 -3] (take-while neg? (php/array -1 -2 -3 1 2 3 4 -4 -5 -6))) "take-while on php array"))
+  (is (= [-1 -2 -3] (take-while neg? @[-1 -2 -3 1 2 3 4 -4 -5 -6])) "take-while: first three element")
+  (is (= [-1 -2 -3] (take-while neg? @[-1 -2 -3])) "take-while: everything")
+  (is (= [] (take-while neg? @[1 2 3 4])) "take-while: nothing")
+  (is (= [] (take-while neg? @[])) "take-while: empty array")
+  (is (= [-1 -2 -3] (take-while neg? [-1 -2 -3 1 2 3 4 -4 -5 -6])) "take-while on vector")
+  (is (= [-1 -2 -3] (take-while neg? (php/array -1 -2 -3 1 2 3 4 -4 -5 -6))) "take-while on php array"))
 
 (deftest test-filter
-  (is (= @[-1 -2 -3] (filter neg? @[-1 2 3 -2 -3 4 5])) "filter: neg?")
-  (is (= @[-1 -2 -3] (filter neg? [-1 2 3 -2 -3 4 5])) "filter on vector")
-  (is (= @[-1 -2 -3] (filter neg? (php/array -1 2 3 -2 -3 4 5))) "filter on php array"))
+  (is (= [-1 -2 -3] (filter neg? @[-1 2 3 -2 -3 4 5])) "filter: neg?")
+  (is (= [-1 -2 -3] (filter neg? [-1 2 3 -2 -3 4 5])) "filter on vector")
+  (is (= [-1 -2 -3] (filter neg? (php/array -1 2 3 -2 -3 4 5))) "filter on php array"))
 
 (deftest test-keep
-  (is (= @[true false false true true false false] (keep neg? @[-1 2 3 -2 -3 4 5])) "keep: neg?")
-  (is (= @[-1 -2 -3] (keep (fn [x] (if (neg? x) x nil)) @[-1 2 3 -2 -3 4 5])) "keep: filter nil"))
+  (is (= [true false false true true false false] (keep neg? @[-1 2 3 -2 -3 4 5])) "keep: neg?")
+  (is (= [-1 -2 -3] (keep (fn [x] (if (neg? x) x nil)) @[-1 2 3 -2 -3 4 5])) "keep: filter nil"))
 
 (deftest test-keep-indexed
-  (is (= @[:b :d] (keep-indexed (fn [idx x] (if (odd? idx) x)) @[:a :b :c :d :e])) "keep-indexed"))
+  (is (= [:b :d] (keep-indexed (fn [idx x] (if (odd? idx) x)) @[:a :b :c :d :e])) "keep-indexed"))
 
 (deftest test-neg?
   (is (= -1 (find neg? @[1 2 3 -1 2 3])) "find first neg number")
@@ -119,43 +119,43 @@
   (is (= [1 2 3] (distinct (php/array 1 1 2 3 2 2 3 1))) "distinct: php array"))
 
 (deftest test-reverse
-  (is (= @[3 2 1] (reverse [1 2 3])) "reverse: vector")
-  (is (= @[3 2 1] (reverse @[1 2 3])) "reverse: array")
-  (is (= @[] (reverse nil)) "reverse: nil"))
+  (is (= [3 2 1] (reverse [1 2 3])) "reverse: vector")
+  (is (= [3 2 1] (reverse @[1 2 3])) "reverse: array")
+  (is (= [] (reverse nil)) "reverse: nil"))
 
 (deftest test-interleave
-  (is (= @[:a 1 :b 2 :c 3] (interleave [:a :b :c] [1 2 3])) "interleave equal size")
-  (is (= @[:a 1 :b 2] (interleave [:a :b :c] [1 2])) "interleave different size"))
+  (is (= [:a 1 :b 2 :c 3] (interleave [:a :b :c] [1 2 3])) "interleave equal size")
+  (is (= [:a 1 :b 2] (interleave [:a :b :c] [1 2])) "interleave different size"))
 
 (deftest test-interpose
-  (is (= @["a" "," "b" "," "c"] (interpose "," ["a" "b" "c"])) "interpose"))
+  (is (= ["a" "," "b" "," "c"] (interpose "," ["a" "b" "c"])) "interpose"))
 
 (deftest test-frequencies
   (is (= {1 2 2 3 3 2 4 1} (frequencies [1 1 2 3 2 2 3 4])) "frequencies"))
 
 (deftest test-keys
-  (is (= @[:a :b :c] (keys @{:a 1 :b 2 :c 3})) "keys of tables")
-  (is (= @[:a :b :c] (keys {:a 1 :b 2 :c 3})) "keys of map")
-  (is (= @[0 1 2] (keys @[3 2 1])) "keys of array")
-  (is (= @[0 1 2] (keys [3 2 1])) "keys of vector"))
+  (is (= [:a :b :c] (keys @{:a 1 :b 2 :c 3})) "keys of tables")
+  (is (= [:a :b :c] (keys {:a 1 :b 2 :c 3})) "keys of map")
+  (is (= [0 1 2] (keys @[3 2 1])) "keys of array")
+  (is (= [0 1 2] (keys [3 2 1])) "keys of vector"))
 
 (deftest test-values
-  (is (= @[1 2 3] (values @{:a 1 :b 2 :c 3})) "values of tables")
-  (is (= @[1 2 3] (values {:a 1 :b 2 :c 3})) "values of map")
-  (is (= @[3 2 1] (values @[3 2 1])) "values of array")
-  (is (= @[3 2 1] (values [3 2 1])) "values of vector"))
+  (is (= [1 2 3] (values @{:a 1 :b 2 :c 3})) "values of tables")
+  (is (= [1 2 3] (values {:a 1 :b 2 :c 3})) "values of map")
+  (is (= [3 2 1] (values @[3 2 1])) "values of array")
+  (is (= [3 2 1] (values [3 2 1])) "values of vector"))
 
 (deftest test-pairs
-  (is (= @[[:a 1] [:b 2] [:c 3]] (pairs @{:a 1 :b 2 :c 3})) "pairs of tables")
-  (is (= @[[:a 1] [:b 2] [:c 3]] (pairs {:a 1 :b 2 :c 3})) "pairs of maps")
-  (is (= @[[0 3] [1 2] [2 1]] (pairs @[3 2 1])) "pairs of array")
-  (is (= @[[0 3] [1 2] [2 1]] (pairs [3 2 1])) "pairs of vector"))
+  (is (= [[:a 1] [:b 2] [:c 3]] (pairs @{:a 1 :b 2 :c 3})) "pairs of tables")
+  (is (= [[:a 1] [:b 2] [:c 3]] (pairs {:a 1 :b 2 :c 3})) "pairs of maps")
+  (is (= [[0 3] [1 2] [2 1]] (pairs @[3 2 1])) "pairs of array")
+  (is (= [[0 3] [1 2] [2 1]] (pairs [3 2 1])) "pairs of vector"))
 
 (deftest test-kvs
-  (is (= @[:a 1 :b 2 :c 3] (kvs @{:a 1 :b 2 :c 3})) "kvs of tables")
-  (is (= @[:a 1 :b 2 :c 3] (kvs {:a 1 :b 2 :c 3})) "kvs of maps")
-  (is (= @[0 3 1 2 2 1] (kvs @[3 2 1])) "kvs of array")
-  (is (= @[0 3 1 2 2 1] (kvs [3 2 1])) "kvs of vector"))
+  (is (= [:a 1 :b 2 :c 3] (kvs @{:a 1 :b 2 :c 3})) "kvs of tables")
+  (is (= [:a 1 :b 2 :c 3] (kvs {:a 1 :b 2 :c 3})) "kvs of maps")
+  (is (= [0 3 1 2 2 1] (kvs @[3 2 1])) "kvs of array")
+  (is (= [0 3 1 2 2 1] (kvs [3 2 1])) "kvs of vector"))
 
 (deftest test-to-php-array
   (is (= (php/array 3 2 1) (to-php-array @[3 2 1])) "to-php-array"))
@@ -167,7 +167,7 @@
   (is (= @[3 2 1] (sort-by - @[3 2 1])) "sort-by reversed"))
 
 (deftest test-group-by
-  (is (= {1 @["a"] 2 @["as" "aa"] 3 @["asd"] 4 @["asdf" "qwer"]}
+  (is (= {1 ["a"] 2 ["as" "aa"] 3 ["asd"] 4 ["asdf" "qwer"]}
          (group-by php/strlen ["a" "as" "asd" "aa" "asdf" "qwer"])) "group-by"))
 
 (deftest test-zipcoll
@@ -185,7 +185,7 @@
   (is (= [[1 2] []] (split-at 3 [1 2])) "split-at empty"))
 
 (deftest test-split-with
-  (is (= [@[1 2 3] @[4 5]] (split-with (partial >= 3) @[1 2 3 4 5])) "split-with"))
+  (is (= [[1 2 3] [4 5]] (split-with (partial >= 3) [1 2 3 4 5])) "split-with"))
 
 (deftest test-partition
   (is (= [] (partition 2 [])) "partition-2 empty")
