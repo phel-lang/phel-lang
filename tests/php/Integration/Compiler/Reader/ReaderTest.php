@@ -760,6 +760,7 @@ final class ReaderTest extends TestCase
      */
     private function read(string $string, bool $removeLoc = false)
     {
+        Symbol::resetGen();
         $tokenStream = $this->compilerFacade->lexString($string, !$removeLoc);
         $parseTree = $this->compilerFacade->parseNext($tokenStream);
 

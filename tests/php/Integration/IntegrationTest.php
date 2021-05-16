@@ -10,6 +10,7 @@ use Phel\Compiler\Analyzer\Environment\GlobalEnvironment;
 use Phel\Compiler\Analyzer\Environment\NodeEnvironment;
 use Phel\Compiler\CompilerFactory;
 use Phel\Compiler\Emitter\EmitterInterface;
+use Phel\Compiler\Evaluator\EvaluatorInterface;
 use Phel\Compiler\Lexer\TokenStream;
 use Phel\Compiler\Parser\ParserInterface;
 use Phel\Compiler\Parser\ParserNode\TriviaNodeInterface;
@@ -58,7 +59,8 @@ final class IntegrationTest extends TestCase
             $this->compilerFactory->createReader(),
             $this->compilerFactory->createAnalyzer(),
             $this->compilerFactory->createEmitter($enableSourceMaps = false),
-            $this->compilerFactory->createLexer()->lexString($phelCode, $filename)
+            $this->compilerFactory->createLexer()->lexString($phelCode, $filename),
+            $this->compilerFactory->createEvaluator()
         );
 
         self::assertEquals($expectedGeneratedCode, $compiledCode, 'in ' . $filename);
@@ -96,7 +98,8 @@ final class IntegrationTest extends TestCase
         ReaderInterface $reader,
         AnalyzerInterface $analyzer,
         EmitterInterface $emitter,
-        TokenStream $tokenStream
+        TokenStream $tokenStream,
+        EvaluatorInterface $evaluator
     ): string {
         $compiledCode = [];
 
@@ -109,7 +112,9 @@ final class IntegrationTest extends TestCase
             if (!$parseTree instanceof TriviaNodeInterface) {
                 $readAst = $reader->read($parseTree);
                 $node = $analyzer->analyze($readAst->getAst(), NodeEnvironment::empty());
-                $compiledCode[] = $emitter->emitNodeAndEval($node);
+                $code = $emitter->emitNode($node);
+                $evaluator->eval($code);
+                $compiledCode[] = $code;
             }
         }
 
