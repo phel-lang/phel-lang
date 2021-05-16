@@ -11,9 +11,13 @@ use Phel\Compiler\Evaluator\Exceptions\CompiledCodeIsMalformedException;
 use Phel\Compiler\Evaluator\Exceptions\FileException;
 use Phel\Compiler\Exceptions\CompilerException;
 use Phel\Runtime\RuntimeFacadeInterface;
+use Symfony\Component\Console\Command\Command;
+use Symfony\Component\Console\Input\InputArgument;
+use Symfony\Component\Console\Input\InputInterface;
+use Symfony\Component\Console\Output\OutputInterface;
 use Throwable;
 
-final class TestCommand
+final class TestCommand extends Command
 {
     public const COMMAND_NAME = 'test';
 
@@ -29,10 +33,22 @@ final class TestCommand
         CompilerFacadeInterface $compilerFacade,
         array $testDirectories
     ) {
+        parent::__construct(self::COMMAND_NAME);
         $this->io = $io;
         $this->runtimeFacade = $runtimeFacade;
         $this->compilerFacade = $compilerFacade;
         $this->defaultTestDirectories = $testDirectories;
+    }
+
+    protected function configure(): void
+    {
+        $this->setDescription('Tests the given files. If no filenames are provided all tests in the "tests" directory are executed.')
+            ->addArgument(
+                'paths',
+                InputArgument::IS_ARRAY | InputArgument::OPTIONAL,
+                'The file paths that you want to format.',
+                []
+            );
     }
 
     public function addRuntimePath(string $namespacePrefix, array $path): self
@@ -42,31 +58,31 @@ final class TestCommand
         return $this;
     }
 
-    /**
-     * @param list<string> $paths
-     *
-     * @return bool true if all tests were successful. False otherwise.
-     */
-    public function run(array $paths): bool
+    public function execute(InputInterface $input, OutputInterface $output): int
     {
+        /** @var list<string> $paths */
+        $paths = $input->getArgument('paths');
         try {
-            return $this->evalNamespaces($paths);
+            $result = $this->evalNamespaces($paths);
+            ($result)
+                ? exit(self::SUCCESS)
+                : exit(self::FAILURE);
         } catch (CompilerException $e) {
             $this->io->writeLocatedException($e->getNestedException(), $e->getCodeSnippet());
         } catch (Throwable $e) {
             $this->io->writeStackTrace($e);
         }
 
-        return false;
+        exit(self::FAILURE);
     }
 
     /**
      * @param list<string> $paths
      *
+     * @throws CannotFindAnyTestsException
      * @throws CompilerException
      * @throws CompiledCodeIsMalformedException
      * @throws FileException
-     * @throws CannotFindAnyTestsException
      *
      * @return bool true if all tests were successful. False otherwise.
      */
