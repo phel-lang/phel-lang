@@ -11,9 +11,12 @@ use Phel\Interop\InteropFacadeInterface;
 use Phel\Interop\ReadModel\Wrapper;
 use Phel\Runtime\RuntimeFacadeInterface;
 use RuntimeException;
+use Symfony\Component\Console\Command\Command;
+use Symfony\Component\Console\Input\InputInterface;
+use Symfony\Component\Console\Output\OutputInterface;
 use Throwable;
 
-final class ExportCommand
+final class ExportCommand extends Command
 {
     public const COMMAND_NAME = 'export';
 
@@ -26,9 +29,15 @@ final class ExportCommand
         RuntimeFacadeInterface $runtimeFacade,
         InteropFacadeInterface $interopFacade
     ) {
+        parent::__construct(self::COMMAND_NAME);
         $this->io = $io;
         $this->runtimeFacade = $runtimeFacade;
         $this->interopFacade = $interopFacade;
+    }
+
+    protected function configure(): void
+    {
+        $this->setDescription('Export all definitions with the meta data `@{:export true}` as PHP classes.');
     }
 
     public function addRuntimePath(string $namespacePrefix, array $path): self
@@ -38,7 +47,7 @@ final class ExportCommand
         return $this;
     }
 
-    public function run(): void
+    public function execute(InputInterface $input, OutputInterface $output): int
     {
         try {
             $wrappers = $this->generateWrappers();
@@ -51,6 +60,8 @@ final class ExportCommand
         } catch (Throwable $e) {
             $this->io->writeStackTrace($e);
         }
+
+        return 0;
     }
 
     /**
