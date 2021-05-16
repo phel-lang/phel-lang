@@ -13,7 +13,7 @@ interface CommandFacadeInterface
     /**
      * @param list<string> $paths
      */
-    public function executeTestCommand(array $paths): void;
+    public function executeTestCommand(array $paths, array $options = []): void;
 
     /**
      * @param list<string> $paths

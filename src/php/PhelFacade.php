@@ -27,7 +27,7 @@ Commands:
     run <filename-or-namespace>
         Runs a script.
 
-    test <filename> <filename> ...
+    test <filename> <filename> ... [--filter=...]
         Tests the given files. If no filenames are provided all tests in the
         "tests" directory are executed.
 
@@ -49,20 +49,23 @@ HELP;
      */
     public function runCommand(string $commandName, array $arguments = []): void
     {
+        $inputs = $this->getInputs($arguments);
+        $options = $this->getOptions($arguments);
+
         switch ($commandName) {
             case ReplCommand::COMMAND_NAME:
                 $this->executeReplCommand();
                 break;
             case RunCommand::COMMAND_NAME:
-                $this->executeRunCommand($arguments);
+                $this->executeRunCommand($inputs);
                 break;
             case TestCommand::COMMAND_NAME:
-                $this->executeTestCommand($arguments);
+                $this->executeTestCommand($inputs, $options);
                 break;
             case FormatCommand::COMMAND_NAME:
-                $this->executeFormatCommand($arguments);
+                $this->executeFormatCommand($inputs);
                 break;
-           case ExportCommand::COMMAND_NAME:
+            case ExportCommand::COMMAND_NAME:
                 $this->executeExportCommand();
                 break;
             default:
@@ -77,33 +80,33 @@ HELP;
             ->executeReplCommand();
     }
 
-    private function executeRunCommand(array $arguments): void
+    private function executeRunCommand(array $inputs): void
     {
-        if (empty($arguments)) {
+        if (empty($inputs)) {
             throw new InvalidArgumentException('Please, provide a filename or namespace as argument!');
         }
 
         $this->getFactory()
             ->getCommandFacade()
-            ->executeRunCommand($arguments[0]);
+            ->executeRunCommand($inputs[0]);
     }
 
-    private function executeTestCommand(array $arguments): void
+    private function executeTestCommand(array $inputs, array $options = []): void
     {
         $this->getFactory()
             ->getCommandFacade()
-            ->executeTestCommand($arguments);
+            ->executeTestCommand($inputs, $options);
     }
 
-    private function executeFormatCommand(array $arguments): void
+    private function executeFormatCommand(array $inputs): void
     {
-        if (empty($arguments)) {
+        if (empty($inputs)) {
             throw new InvalidArgumentException('Please, provide a filename or a directory as arguments!');
         }
 
         $this->getFactory()
             ->getCommandFacade()
-            ->executeFormatCommand($arguments);
+            ->executeFormatCommand($inputs);
     }
 
     private function executeExportCommand(): void
@@ -111,5 +114,21 @@ HELP;
         $this->getFactory()
             ->getCommandFacade()
             ->executeExportCommand();
+    }
+
+    private function getInputs(array $arguments): array
+    {
+        return array_filter(
+            $arguments,
+            static fn (string $a): bool => 0 !== strpos($a, '--')
+        );
+    }
+
+    private function getOptions(array $arguments): array
+    {
+        return array_filter(
+            $arguments,
+            static fn (string $a): bool => 0 === strpos($a, '--')
+        );
     }
 }

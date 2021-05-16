@@ -47,10 +47,10 @@ final class TestCommand
      *
      * @return bool true if all tests were successful. False otherwise.
      */
-    public function run(array $paths): bool
+    public function run(array $paths, ?TestCommandOptions $options = null): bool
     {
         try {
-            return $this->evalNamespaces($paths);
+            return $this->evalNamespaces($paths, $options ?? TestCommandOptions::empty());
         } catch (CompilerException $e) {
             $this->io->writeLocatedException($e->getNestedException(), $e->getCodeSnippet());
         } catch (Throwable $e) {
@@ -70,7 +70,7 @@ final class TestCommand
      *
      * @return bool true if all tests were successful. False otherwise.
      */
-    private function evalNamespaces(array $paths): bool
+    private function evalNamespaces(array $paths, TestCommandOptions $options): bool
     {
         $namespaces = $this->getNamespacesFromPaths($paths);
 
@@ -79,9 +79,12 @@ final class TestCommand
         }
 
         $this->runtimeFacade->getRuntime()->loadNs('phel\test');
-        $nsString = $this->namespacesAsString($namespaces);
 
-        return $this->compilerFacade->eval('(do (phel\test/run-tests ' . $nsString . ') (successful?))');
+        return $this->compilerFacade->eval(sprintf(
+            '(do (phel\test/run-tests %s %s) (successful?))',
+            $options->asPhelHashMap(),
+            $this->namespacesAsString($namespaces)
+        ));
     }
 
     private function getNamespacesFromPaths(array $paths): array

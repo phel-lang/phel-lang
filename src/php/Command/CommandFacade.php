@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Phel\Command;
 
 use Gacela\Framework\AbstractFacade;
+use Phel\Command\Test\TestCommandOptions;
 
 /**
  * @method CommandFactory getFactory()
@@ -31,11 +32,11 @@ final class CommandFacade extends AbstractFacade implements CommandFacadeInterfa
     /**
      * @param list<string> $paths
      */
-    public function executeTestCommand(array $paths): void
+    public function executeTestCommand(array $paths, array $options = []): void
     {
         $result = $this->getFactory()
             ->createTestCommand()
-            ->run($paths);
+            ->run($paths, TestCommandOptions::fromArray($options));
 
         ($result)
             ? exit(self::SUCCESS_CODE)
