@@ -10,9 +10,12 @@ use Phel\Compiler\Exceptions\CompilerException;
 use Phel\Compiler\Parser\Exceptions\UnfinishedParserException;
 use Phel\Printer\PrinterInterface;
 use Phel\Runtime\RuntimeFacadeInterface;
+use Symfony\Component\Console\Command\Command;
+use Symfony\Component\Console\Input\InputInterface;
+use Symfony\Component\Console\Output\OutputInterface;
 use Throwable;
 
-final class ReplCommand
+final class ReplCommand extends Command
 {
     public const COMMAND_NAME = 'repl';
 
@@ -39,11 +42,17 @@ final class ReplCommand
         ColorStyleInterface $style,
         PrinterInterface $printer
     ) {
+        parent::__construct(self::COMMAND_NAME);
         $this->runtimeFacade = $runtimeFacade;
         $this->io = $io;
         $this->compilerFacade = $compilerFacade;
         $this->style = $style;
         $this->printer = $printer;
+    }
+
+    protected function configure(): void
+    {
+        $this->setDescription('Start a Repl.');
     }
 
     public function addRuntimePath(string $namespacePrefix, array $path): self
@@ -53,13 +62,15 @@ final class ReplCommand
         return $this;
     }
 
-    public function run(): void
+    public function execute(InputInterface $input, OutputInterface $output): int
     {
         $this->io->readHistory();
         $this->io->writeln($this->style->yellow('Welcome to the Phel Repl'));
         $this->io->writeln('Type "exit" or press Ctrl-D to exit.');
 
         $this->loopReadLineAndAnalyze();
+
+        return 0;
     }
 
     private function loopReadLineAndAnalyze(): void
