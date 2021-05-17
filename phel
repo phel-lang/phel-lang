@@ -3,7 +3,8 @@
 
 $slash = DIRECTORY_SEPARATOR;
 
-use Phel\PhelFacade;
+use Phel\Command\CommandFactory;
+use Symfony\Component\Console\Application;
 
 $projectRootDir = getcwd() . $slash;
 $autoloadPath = $projectRootDir . 'vendor' . $slash . 'autoload.php';
@@ -14,13 +15,12 @@ if (!file_exists($autoloadPath)) {
 
 require $autoloadPath;
 
-if ($argc <= 1) {
-    exit(PhelFacade::HELP_TEXT);
-}
+$commandFactory = new CommandFactory();
 
-try {
-    $facade = new PhelFacade();
-    $facade->runCommand($argv[1], array_slice($argv, 2));
-} catch (Throwable $e) {
-    print $e->getMessage() . PHP_EOL;
-}
+$application = new Application();
+$application->add($commandFactory->createExportCommand());
+$application->add($commandFactory->createFormatCommand());
+$application->add($commandFactory->createReplCommand());
+$application->add($commandFactory->createRunCommand());
+$application->add($commandFactory->createTestCommand());
+$application->run();

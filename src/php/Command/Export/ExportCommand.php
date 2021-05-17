@@ -11,9 +11,12 @@ use Phel\Interop\InteropFacadeInterface;
 use Phel\Interop\ReadModel\Wrapper;
 use Phel\Runtime\RuntimeFacadeInterface;
 use RuntimeException;
+use Symfony\Component\Console\Command\Command;
+use Symfony\Component\Console\Input\InputInterface;
+use Symfony\Component\Console\Output\OutputInterface;
 use Throwable;
 
-final class ExportCommand
+final class ExportCommand extends Command
 {
     public const COMMAND_NAME = 'export';
 
@@ -26,9 +29,15 @@ final class ExportCommand
         RuntimeFacadeInterface $runtimeFacade,
         InteropFacadeInterface $interopFacade
     ) {
+        parent::__construct(self::COMMAND_NAME);
         $this->io = $io;
         $this->runtimeFacade = $runtimeFacade;
         $this->interopFacade = $interopFacade;
+    }
+
+    protected function configure(): void
+    {
+        $this->setDescription('Export all definitions with the meta data `@{:export true}` as PHP classes.');
     }
 
     public function addRuntimePath(string $namespacePrefix, array $path): self
@@ -38,18 +47,38 @@ final class ExportCommand
         return $this;
     }
 
-    public function run(): void
+    public function execute(InputInterface $input, OutputInterface $output): int
     {
         try {
-            $wrappers = $this->generateWrappers();
-            $this->interopFacade->removeDestinationDir();
-            $this->writeGeneratedWrappers($wrappers);
+            $this->createGeneratedWrappers();
+
+            return self::SUCCESS;
         } catch (NoFunctionsFoundException $e) {
             $this->io->writeln($e->getMessage());
+
+            return self::SUCCESS;
         } catch (CompilerException $e) {
             $this->io->writeLocatedException($e->getNestedException(), $e->getCodeSnippet());
         } catch (Throwable $e) {
             $this->io->writeStackTrace($e);
+        }
+
+        return self::FAILURE;
+    }
+
+    /**
+     * @throws CompilerException
+     * @throws RuntimeException
+     * @throws NoFunctionsFoundException
+     */
+    private function createGeneratedWrappers(): void
+    {
+        $this->interopFacade->removeDestinationDir();
+        $this->io->writeln('Exported namespaces:');
+
+        foreach ($this->generateWrappers() as $i => $wrapper) {
+            $this->interopFacade->createFileFromWrapper($wrapper);
+            $this->io->writeln(sprintf('  %d) %s', $i + 1, $wrapper->relativeFilenamePath()));
         }
     }
 
@@ -70,18 +99,5 @@ final class ExportCommand
         }
 
         return $wrappers;
-    }
-
-    /**
-     * @param list<Wrapper> $wrappers
-     */
-    private function writeGeneratedWrappers(array $wrappers): void
-    {
-        $this->io->writeln('Exported namespaces:');
-
-        foreach ($wrappers as $i => $wrapper) {
-            $this->interopFacade->createFileFromWrapper($wrapper);
-            $this->io->writeln(sprintf('  %d) %s', $i + 1, $wrapper->relativeFilenamePath()));
-        }
     }
 }

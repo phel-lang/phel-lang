@@ -10,9 +10,13 @@ use Phel\Compiler\Evaluator\Exceptions\CompiledCodeIsMalformedException;
 use Phel\Compiler\Evaluator\Exceptions\FileException;
 use Phel\Compiler\Exceptions\CompilerException;
 use Phel\Runtime\RuntimeFacadeInterface;
+use Symfony\Component\Console\Command\Command;
+use Symfony\Component\Console\Input\InputArgument;
+use Symfony\Component\Console\Input\InputInterface;
+use Symfony\Component\Console\Output\OutputInterface;
 use Throwable;
 
-final class RunCommand
+final class RunCommand extends Command
 {
     public const COMMAND_NAME = 'run';
 
@@ -23,8 +27,19 @@ final class RunCommand
         CommandIoInterface $io,
         RuntimeFacadeInterface $runtimeFacade
     ) {
+        parent::__construct(self::COMMAND_NAME);
         $this->io = $io;
         $this->runtimeFacade = $runtimeFacade;
+    }
+
+    protected function configure(): void
+    {
+        $this->setDescription('Runs a script.')
+            ->addArgument(
+                'path',
+                InputArgument::REQUIRED,
+                'The file path that you want to run.'
+            );
     }
 
     public function addRuntimePath(string $namespacePrefix, array $path): self
@@ -34,15 +49,21 @@ final class RunCommand
         return $this;
     }
 
-    public function run(string $fileOrPath): void
+    public function execute(InputInterface $input, OutputInterface $output): int
     {
         try {
+            /** @var string $fileOrPath */
+            $fileOrPath = $input->getArgument('path');
             $this->loadNamespace($fileOrPath);
+
+            return self::SUCCESS;
         } catch (CompilerException $e) {
             $this->io->writeLocatedException($e->getNestedException(), $e->getCodeSnippet());
         } catch (Throwable $e) {
             $this->io->writeStackTrace($e);
         }
+
+        return self::FAILURE;
     }
 
     /**

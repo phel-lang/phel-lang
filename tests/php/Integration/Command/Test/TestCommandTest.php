@@ -8,6 +8,8 @@ use Gacela\Framework\Config;
 use Phel\Command\CommandFactory;
 use Phel\Runtime\RuntimeSingleton;
 use PHPUnit\Framework\TestCase;
+use Symfony\Component\Console\Input\InputInterface;
+use Symfony\Component\Console\Output\OutputInterface;
 
 final class TestCommandTest extends TestCase
 {
@@ -25,43 +27,63 @@ final class TestCommandTest extends TestCase
     {
         $currentDir = __DIR__ . '/Fixtures/test-cmd-project-success/';
 
-        $testCommand = $this
+        $command = $this
             ->createCommandFactory()
             ->createTestCommand()
             ->addRuntimePath('test-cmd-project-success\\', [$currentDir]);
 
         $this->expectOutputString("..\n\n\n\nPassed: 2\nFailed: 0\nError: 0\nTotal: 2\n");
-        self::assertTrue($testCommand->run([]));
+
+        $command->run(
+            $this->stubInput([]),
+            $this->createStub(OutputInterface::class)
+        );
     }
 
     public function testOneFileInProject(): void
     {
         $currentDir = __DIR__ . '/Fixtures/test-cmd-project-success/';
 
-        $testCommand = $this
+        $command = $this
             ->createCommandFactory()
             ->createTestCommand()
             ->addRuntimePath('test-cmd-project-success\\', [$currentDir]);
 
         $this->expectOutputString(".\n\n\n\nPassed: 1\nFailed: 0\nError: 0\nTotal: 1\n");
-        self::assertTrue($testCommand->run([$currentDir . '/test1.phel']));
+
+        $command->run(
+            $this->stubInput([$currentDir . '/test1.phel']),
+            $this->createStub(OutputInterface::class)
+        );
     }
 
     public function testAllInFailedProject(): void
     {
         $currentDir = __DIR__ . '/Fixtures/test-cmd-project-failure/';
 
-        $testCommand = $this
+        $command = $this
             ->createCommandFactory()
             ->createTestCommand()
             ->addRuntimePath('test-cmd-project-failure\\', [$currentDir]);
 
         $this->expectOutputRegex('/.*Failed\\: 1.*/');
-        self::assertFalse($testCommand->run([]));
+
+        $command->run(
+            $this->stubInput([]),
+            $this->createStub(OutputInterface::class)
+        );
     }
 
     private function createCommandFactory(): CommandFactory
     {
         return new CommandFactory();
+    }
+
+    private function stubInput(array $paths): InputInterface
+    {
+        $input = $this->createStub(InputInterface::class);
+        $input->method('getArgument')->willReturn($paths);
+
+        return $input;
     }
 }
