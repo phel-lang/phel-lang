@@ -50,13 +50,13 @@ final class ExportCommand extends Command
     public function execute(InputInterface $input, OutputInterface $output): int
     {
         try {
-            $wrappers = $this->generateWrappers();
-            $this->interopFacade->removeDestinationDir();
-            $this->writeGeneratedWrappers($wrappers);
+            $this->createGeneratedWrappers();
 
             return self::SUCCESS;
         } catch (NoFunctionsFoundException $e) {
             $this->io->writeln($e->getMessage());
+
+            return self::SUCCESS;
         } catch (CompilerException $e) {
             $this->io->writeLocatedException($e->getNestedException(), $e->getCodeSnippet());
         } catch (Throwable $e) {
@@ -64,6 +64,22 @@ final class ExportCommand extends Command
         }
 
         return self::FAILURE;
+    }
+
+    /**
+     * @throws CompilerException
+     * @throws RuntimeException
+     * @throws NoFunctionsFoundException
+     */
+    private function createGeneratedWrappers(): void
+    {
+        $this->interopFacade->removeDestinationDir();
+        $this->io->writeln('Exported namespaces:');
+
+        foreach ($this->generateWrappers() as $i => $wrapper) {
+            $this->interopFacade->createFileFromWrapper($wrapper);
+            $this->io->writeln(sprintf('  %d) %s', $i + 1, $wrapper->relativeFilenamePath()));
+        }
     }
 
     /**
@@ -83,18 +99,5 @@ final class ExportCommand extends Command
         }
 
         return $wrappers;
-    }
-
-    /**
-     * @param list<Wrapper> $wrappers
-     */
-    private function writeGeneratedWrappers(array $wrappers): void
-    {
-        $this->io->writeln('Exported namespaces:');
-
-        foreach ($wrappers as $i => $wrapper) {
-            $this->interopFacade->createFileFromWrapper($wrapper);
-            $this->io->writeln(sprintf('  %d) %s', $i + 1, $wrapper->relativeFilenamePath()));
-        }
     }
 }
