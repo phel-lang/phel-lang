@@ -53,6 +53,8 @@ final class ExportCommand extends Command
             $wrappers = $this->generateWrappers();
             $this->interopFacade->removeDestinationDir();
             $this->writeGeneratedWrappers($wrappers);
+
+            return self::SUCCESS;
         } catch (NoFunctionsFoundException $e) {
             $this->io->writeln($e->getMessage());
         } catch (CompilerException $e) {
@@ -61,7 +63,7 @@ final class ExportCommand extends Command
             $this->io->writeStackTrace($e);
         }
 
-        return 0;
+        return self::FAILURE;
     }
 
     /**

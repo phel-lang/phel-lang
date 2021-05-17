@@ -70,7 +70,7 @@ final class ReplCommand extends Command
 
         $this->loopReadLineAndAnalyze();
 
-        return 0;
+        return self::SUCCESS;
     }
 
     private function loopReadLineAndAnalyze(): void

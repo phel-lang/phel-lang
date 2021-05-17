@@ -66,7 +66,7 @@ final class FormatCommand extends Command
 
         $this->printResult();
 
-        return 0;
+        return self::SUCCESS;
     }
 
     /**

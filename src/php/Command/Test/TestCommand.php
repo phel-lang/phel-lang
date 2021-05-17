@@ -60,10 +60,11 @@ final class TestCommand extends Command
 
     public function execute(InputInterface $input, OutputInterface $output): int
     {
-        /** @var list<string> $paths */
-        $paths = $input->getArgument('paths');
         try {
+            /** @var list<string> $paths */
+            $paths = $input->getArgument('paths');
             $result = $this->evalNamespaces($paths);
+
             return ($result) ? self::SUCCESS : self::FAILURE;
         } catch (CompilerException $e) {
             $this->io->writeLocatedException($e->getNestedException(), $e->getCodeSnippet());

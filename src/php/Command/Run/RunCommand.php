@@ -51,17 +51,19 @@ final class RunCommand extends Command
 
     public function execute(InputInterface $input, OutputInterface $output): int
     {
-        /** @var string $fileOrPath */
-        $fileOrPath = $input->getArgument('path');
         try {
+            /** @var string $fileOrPath */
+            $fileOrPath = $input->getArgument('path');
             $this->loadNamespace($fileOrPath);
+
+            return self::SUCCESS;
         } catch (CompilerException $e) {
             $this->io->writeLocatedException($e->getNestedException(), $e->getCodeSnippet());
         } catch (Throwable $e) {
             $this->io->writeStackTrace($e);
         }
 
-        return 0;
+        return self::FAILURE;
     }
 
     /**
