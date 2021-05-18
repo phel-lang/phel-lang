@@ -35,11 +35,6 @@ final class ExportCommand extends Command
         $this->interopFacade = $interopFacade;
     }
 
-    protected function configure(): void
-    {
-        $this->setDescription('Export all definitions with the meta data `@{:export true}` as PHP classes.');
-    }
-
     public function addRuntimePath(string $namespacePrefix, array $path): self
     {
         $this->runtimeFacade->addPath($namespacePrefix, $path);
@@ -47,7 +42,12 @@ final class ExportCommand extends Command
         return $this;
     }
 
-    public function execute(InputInterface $input, OutputInterface $output): int
+    protected function configure(): void
+    {
+        $this->setDescription('Export all definitions with the meta data `@{:export true}` as PHP classes.');
+    }
+
+    protected function execute(InputInterface $input, OutputInterface $output): int
     {
         try {
             $this->createGeneratedWrappers($output);

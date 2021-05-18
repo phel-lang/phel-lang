@@ -48,7 +48,7 @@ final class FormatCommand extends Command
             );
     }
 
-    public function execute(InputInterface $input, OutputInterface $output): int
+    protected function execute(InputInterface $input, OutputInterface $output): int
     {
         /** @var list<string> $paths */
         $paths = $input->getArgument('paths');
@@ -77,16 +77,7 @@ final class FormatCommand extends Command
      *
      * @return bool True if the file was formatted. False if the file wasn't altered because it was already formatted.
      */
-    public function formatFile(string $filename): bool
-    {
-        $code = $this->fileGetContents($filename);
-        $formattedCode = $this->formatterFacade->format($code, $filename);
-        file_put_contents($filename, $formattedCode);
-
-        return (bool)strcmp($formattedCode, $code);
-    }
-
-    public function fileGetContents(string $filename): string
+    private function formatFile(string $filename): bool
     {
         if (is_dir($filename)) {
             throw new RuntimeException(sprintf('"%s" is a directory but needs to be a file path', $filename));
@@ -96,7 +87,11 @@ final class FormatCommand extends Command
             throw new RuntimeException(sprintf('File path "%s" not found', $filename));
         }
 
-        return file_get_contents($filename);
+        $code = file_get_contents($filename);
+        $formattedCode = $this->formatterFacade->format($code, $filename);
+        file_put_contents($filename, $formattedCode);
+
+        return (bool)strcmp($formattedCode, $code);
     }
 
     private function printResult(OutputInterface $output): void
