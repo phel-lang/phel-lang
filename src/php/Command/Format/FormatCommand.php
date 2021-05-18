@@ -4,11 +4,12 @@ declare(strict_types=1);
 
 namespace Phel\Command\Format;
 
-use Phel\Command\Shared\CommandIoInterface;
+use Phel\Command\Shared\CommandExceptionWriterInterface;
 use Phel\Compiler\Lexer\Exceptions\LexerValueException;
 use Phel\Compiler\Parser\Exceptions\AbstractParserException;
 use Phel\Formatter\Exceptions\ZipperException;
 use Phel\Formatter\FormatterFacadeInterface;
+use RuntimeException;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
@@ -19,7 +20,7 @@ final class FormatCommand extends Command
 {
     public const COMMAND_NAME = 'format';
 
-    private CommandIoInterface $io;
+    private CommandExceptionWriterInterface $exceptionWriter;
     private FormatterFacadeInterface $formatterFacade;
     private PathFilterInterface $pathFilter;
 
@@ -27,12 +28,12 @@ final class FormatCommand extends Command
     private array $successfulFormattedFilePaths = [];
 
     public function __construct(
-        CommandIoInterface $io,
+        CommandExceptionWriterInterface $exceptionWriter,
         FormatterFacadeInterface $formatterFacade,
         PathFilterInterface $pathFilter
     ) {
         parent::__construct(self::COMMAND_NAME);
-        $this->io = $io;
+        $this->exceptionWriter = $exceptionWriter;
         $this->formatterFacade = $formatterFacade;
         $this->pathFilter = $pathFilter;
     }
@@ -58,13 +59,13 @@ final class FormatCommand extends Command
                     $this->successfulFormattedFilePaths[] = $path;
                 }
             } catch (AbstractParserException $e) {
-                $this->io->writeLocatedException($e, $e->getCodeSnippet());
+                $this->exceptionWriter->writeLocatedException($output, $e, $e->getCodeSnippet());
             } catch (Throwable $e) {
-                $this->io->writeStackTrace($e);
+                $this->exceptionWriter->writeStackTrace($output, $e);
             }
         }
 
-        $this->printResult();
+        $this->printResult($output);
 
         return self::SUCCESS;
     }
@@ -78,22 +79,35 @@ final class FormatCommand extends Command
      */
     public function formatFile(string $filename): bool
     {
-        $code = $this->io->fileGetContents($filename);
+        $code = $this->fileGetContents($filename);
         $formattedCode = $this->formatterFacade->format($code, $filename);
-        $this->io->filePutContents($filename, $formattedCode);
+        file_put_contents($filename, $formattedCode);
 
         return (bool)strcmp($formattedCode, $code);
     }
 
-    private function printResult(): void
+    public function fileGetContents(string $filename): string
+    {
+        if (is_dir($filename)) {
+            throw new RuntimeException(sprintf('"%s" is a directory but needs to be a file path', $filename));
+        }
+
+        if (!is_file($filename)) {
+            throw new RuntimeException(sprintf('File path "%s" not found', $filename));
+        }
+
+        return file_get_contents($filename);
+    }
+
+    private function printResult(OutputInterface $output): void
     {
         if (empty($this->successfulFormattedFilePaths)) {
-            $this->io->writeln('No files were formatted.');
+            $output->writeln('No files were formatted.');
         } else {
-            $this->io->writeln('Formatted files:');
+            $output->writeln('Formatted files:');
 
             foreach ($this->successfulFormattedFilePaths as $k => $filePath) {
-                $this->io->writeln(sprintf('  %d) %s', $k + 1, $filePath));
+                $output->writeln(sprintf('  %d) %s', $k + 1, $filePath));
             }
         }
     }

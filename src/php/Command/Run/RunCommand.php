@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Phel\Command\Run;
 
 use Phel\Command\Run\Exceptions\CannotLoadNamespaceException;
-use Phel\Command\Shared\CommandIoInterface;
+use Phel\Command\Shared\CommandExceptionWriterInterface;
 use Phel\Compiler\Evaluator\Exceptions\CompiledCodeIsMalformedException;
 use Phel\Compiler\Evaluator\Exceptions\FileException;
 use Phel\Compiler\Exceptions\CompilerException;
@@ -20,15 +20,15 @@ final class RunCommand extends Command
 {
     public const COMMAND_NAME = 'run';
 
-    private CommandIoInterface $io;
+    private CommandExceptionWriterInterface $exceptionWriter;
     private RuntimeFacadeInterface $runtimeFacade;
 
     public function __construct(
-        CommandIoInterface $io,
+        CommandExceptionWriterInterface $exceptionWriter,
         RuntimeFacadeInterface $runtimeFacade
     ) {
         parent::__construct(self::COMMAND_NAME);
-        $this->io = $io;
+        $this->exceptionWriter = $exceptionWriter;
         $this->runtimeFacade = $runtimeFacade;
     }
 
@@ -58,9 +58,9 @@ final class RunCommand extends Command
 
             return self::SUCCESS;
         } catch (CompilerException $e) {
-            $this->io->writeLocatedException($e->getNestedException(), $e->getCodeSnippet());
+            $this->exceptionWriter->writeLocatedException($output, $e->getNestedException(), $e->getCodeSnippet());
         } catch (Throwable $e) {
-            $this->io->writeStackTrace($e);
+            $this->exceptionWriter->writeStackTrace($output, $e);
         }
 
         return self::FAILURE;

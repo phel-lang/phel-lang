@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Phel\Command\Export;
 
 use Phel\Command\Export\Exceptions\NoFunctionsFoundException;
-use Phel\Command\Shared\CommandIoInterface;
+use Phel\Command\Shared\CommandExceptionWriterInterface;
 use Phel\Compiler\Exceptions\CompilerException;
 use Phel\Interop\InteropFacadeInterface;
 use Phel\Interop\ReadModel\Wrapper;
@@ -20,17 +20,17 @@ final class ExportCommand extends Command
 {
     public const COMMAND_NAME = 'export';
 
-    private CommandIoInterface $io;
+    private CommandExceptionWriterInterface $exceptionWriter;
     private RuntimeFacadeInterface $runtimeFacade;
     private InteropFacadeInterface $interopFacade;
 
     public function __construct(
-        CommandIoInterface $io,
+        CommandExceptionWriterInterface $exceptionWriter,
         RuntimeFacadeInterface $runtimeFacade,
         InteropFacadeInterface $interopFacade
     ) {
         parent::__construct(self::COMMAND_NAME);
-        $this->io = $io;
+        $this->exceptionWriter = $exceptionWriter;
         $this->runtimeFacade = $runtimeFacade;
         $this->interopFacade = $interopFacade;
     }
@@ -50,17 +50,17 @@ final class ExportCommand extends Command
     public function execute(InputInterface $input, OutputInterface $output): int
     {
         try {
-            $this->createGeneratedWrappers();
+            $this->createGeneratedWrappers($output);
 
             return self::SUCCESS;
         } catch (NoFunctionsFoundException $e) {
-            $this->io->writeln($e->getMessage());
+            $output->writeln($e->getMessage());
 
             return self::SUCCESS;
         } catch (CompilerException $e) {
-            $this->io->writeLocatedException($e->getNestedException(), $e->getCodeSnippet());
+            $this->exceptionWriter->writeLocatedException($output, $e->getNestedException(), $e->getCodeSnippet());
         } catch (Throwable $e) {
-            $this->io->writeStackTrace($e);
+            $this->exceptionWriter->writeStackTrace($output, $e);
         }
 
         return self::FAILURE;
@@ -71,14 +71,14 @@ final class ExportCommand extends Command
      * @throws RuntimeException
      * @throws NoFunctionsFoundException
      */
-    private function createGeneratedWrappers(): void
+    private function createGeneratedWrappers(OutputInterface $output): void
     {
         $this->interopFacade->removeDestinationDir();
-        $this->io->writeln('Exported namespaces:');
+        $output->writeln('Exported namespaces:');
 
         foreach ($this->generateWrappers() as $i => $wrapper) {
             $this->interopFacade->createFileFromWrapper($wrapper);
-            $this->io->writeln(sprintf('  %d) %s', $i + 1, $wrapper->relativeFilenamePath()));
+            $output->writeln(sprintf('  %d) %s', $i + 1, $wrapper->relativeFilenamePath()));
         }
     }
 

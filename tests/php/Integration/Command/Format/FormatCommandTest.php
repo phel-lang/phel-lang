@@ -5,16 +5,14 @@ declare(strict_types=1);
 namespace PhelTest\Integration\Command\Format;
 
 use Gacela\Framework\Config;
-use Phel\Command\CommandFactory;
-use PHPUnit\Framework\TestCase;
+use PhelTest\Integration\Command\AbstractCommandTest;
 use Symfony\Component\Console\Input\InputInterface;
-use Symfony\Component\Console\Output\OutputInterface;
 
-final class FormatCommandTest extends TestCase
+final class FormatCommandTest extends AbstractCommandTest
 {
     private const FIXTURES_DIR = __DIR__ . '/Fixtures/';
 
-    protected function setUp(): void
+    public static function setUpBeforeClass(): void
     {
         Config::setApplicationRootDir(__DIR__);
     }
@@ -33,7 +31,7 @@ final class FormatCommandTest extends TestCase
         try {
             $command->run(
                 $this->stubInput([$path]),
-                $this->createStub(OutputInterface::class)
+                $this->stubOutput()
             );
         } finally {
             file_put_contents($path, $oldContent);
@@ -57,16 +55,11 @@ TXT);
         try {
             $command->run(
                 $this->stubInput([$path]),
-                $this->createStub(OutputInterface::class)
+                $this->stubOutput()
             );
         } finally {
             file_put_contents($path, $oldContent);
         }
-    }
-
-    private function createCommandFactory(): CommandFactory
-    {
-        return new CommandFactory();
     }
 
     private function stubInput(array $paths): InputInterface

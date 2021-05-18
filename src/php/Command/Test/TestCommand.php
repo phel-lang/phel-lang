@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Phel\Command\Test;
 
-use Phel\Command\Shared\CommandIoInterface;
+use Phel\Command\Shared\CommandExceptionWriterInterface;
 use Phel\Command\Test\Exceptions\CannotFindAnyTestsException;
 use Phel\Compiler\CompilerFacadeInterface;
 use Phel\Compiler\Evaluator\Exceptions\CompiledCodeIsMalformedException;
@@ -21,20 +21,20 @@ final class TestCommand extends Command
 {
     public const COMMAND_NAME = 'test';
 
-    private CommandIoInterface $io;
+    private CommandExceptionWriterInterface $exceptionWriter;
     private RuntimeFacadeInterface $runtimeFacade;
     private CompilerFacadeInterface $compilerFacade;
     /** @var list<string> */
     private array $defaultTestDirectories;
 
     public function __construct(
-        CommandIoInterface $io,
+        CommandExceptionWriterInterface $exceptionWriter,
         RuntimeFacadeInterface $runtimeFacade,
         CompilerFacadeInterface $compilerFacade,
         array $testDirectories
     ) {
         parent::__construct(self::COMMAND_NAME);
-        $this->io = $io;
+        $this->exceptionWriter = $exceptionWriter;
         $this->runtimeFacade = $runtimeFacade;
         $this->compilerFacade = $compilerFacade;
         $this->defaultTestDirectories = $testDirectories;
@@ -67,9 +67,9 @@ final class TestCommand extends Command
 
             return ($result) ? self::SUCCESS : self::FAILURE;
         } catch (CompilerException $e) {
-            $this->io->writeLocatedException($e->getNestedException(), $e->getCodeSnippet());
+            $this->exceptionWriter->writeLocatedException($output, $e->getNestedException(), $e->getCodeSnippet());
         } catch (Throwable $e) {
-            $this->io->writeStackTrace($e);
+            $this->exceptionWriter->writeStackTrace($output, $e);
         }
 
         return self::FAILURE;

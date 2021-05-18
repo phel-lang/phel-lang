@@ -5,22 +5,14 @@ declare(strict_types=1);
 namespace PhelTest\Integration\Command\Test;
 
 use Gacela\Framework\Config;
-use Phel\Command\CommandFactory;
-use Phel\Runtime\RuntimeSingleton;
-use PHPUnit\Framework\TestCase;
+use PhelTest\Integration\Command\AbstractCommandTest;
 use Symfony\Component\Console\Input\InputInterface;
-use Symfony\Component\Console\Output\OutputInterface;
 
-final class TestCommandTest extends TestCase
+final class TestCommandTest extends AbstractCommandTest
 {
     public static function setUpBeforeClass(): void
     {
         Config::setApplicationRootDir(__DIR__);
-    }
-
-    public function setUp(): void
-    {
-        RuntimeSingleton::reset();
     }
 
     public function testAllInProject(): void
@@ -34,10 +26,7 @@ final class TestCommandTest extends TestCase
 
         $this->expectOutputString("..\n\n\n\nPassed: 2\nFailed: 0\nError: 0\nTotal: 2\n");
 
-        $command->run(
-            $this->stubInput([]),
-            $this->createStub(OutputInterface::class)
-        );
+        $command->run($this->stubInput([]), $this->stubOutput());
     }
 
     public function testOneFileInProject(): void
@@ -53,7 +42,7 @@ final class TestCommandTest extends TestCase
 
         $command->run(
             $this->stubInput([$currentDir . '/test1.phel']),
-            $this->createStub(OutputInterface::class)
+            $this->stubOutput()
         );
     }
 
@@ -68,15 +57,7 @@ final class TestCommandTest extends TestCase
 
         $this->expectOutputRegex('/.*Failed\\: 1.*/');
 
-        $command->run(
-            $this->stubInput([]),
-            $this->createStub(OutputInterface::class)
-        );
-    }
-
-    private function createCommandFactory(): CommandFactory
-    {
-        return new CommandFactory();
+        $command->run($this->stubInput([]), $this->stubOutput());
     }
 
     private function stubInput(array $paths): InputInterface
