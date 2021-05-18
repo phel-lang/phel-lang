@@ -4,11 +4,11 @@ declare(strict_types=1);
 
 namespace Phel\Interop\ExportFinder;
 
-use Phel\Command\Shared\Exceptions\ExtractorException;
 use Phel\Compiler\Evaluator\Exceptions\CompiledCodeIsMalformedException;
 use Phel\Compiler\Evaluator\Exceptions\FileException;
 use Phel\Compiler\Exceptions\CompilerException;
 use Phel\Interop\ReadModel\FunctionToExport;
+use Phel\Runtime\Extractor\ExtractorException;
 
 interface FunctionsToExportFinderInterface
 {

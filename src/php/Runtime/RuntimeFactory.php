@@ -6,9 +6,9 @@ namespace Phel\Runtime;
 
 use Gacela\Framework\AbstractFactory;
 use Phel\Compiler\CompilerFacadeInterface;
+use Phel\Runtime\Exceptions\PhelRuntimeException;
 use Phel\Runtime\Extractor\NamespaceExtractor;
 use Phel\Runtime\Extractor\NamespaceExtractorInterface;
-use RuntimeException;
 
 /**
  * @method RuntimeConfig getConfig()
@@ -23,6 +23,9 @@ final class RuntimeFactory extends AbstractFactory
         );
     }
 
+    /**
+     * @throws PhelRuntimeException
+     */
     public function getRuntime(): RuntimeInterface
     {
         if (RuntimeSingleton::isInitialized()) {
@@ -34,7 +37,7 @@ final class RuntimeFactory extends AbstractFactory
             . DIRECTORY_SEPARATOR . 'PhelRuntime.php';
 
         if (!file_exists($runtimePath)) {
-            throw new RuntimeException('The Runtime could not be loaded from: ' . $runtimePath);
+            throw PhelRuntimeException::couldNotBeLoadedFrom($runtimePath);
         }
 
         return require $runtimePath;

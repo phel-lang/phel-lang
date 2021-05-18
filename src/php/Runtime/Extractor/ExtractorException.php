@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Phel\Command\Shared\Exceptions;
+namespace Phel\Runtime\Extractor;
 
 use RuntimeException;
 
