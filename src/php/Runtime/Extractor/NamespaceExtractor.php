@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace Phel\Runtime\Extractor;
 
-use Phel\Command\Shared\Exceptions\ExtractorException;
 use Phel\Compiler\CompilerFacadeInterface;
 use Phel\Compiler\Lexer\Exceptions\LexerValueException;
 use Phel\Compiler\Parser\Exceptions\AbstractParserException;

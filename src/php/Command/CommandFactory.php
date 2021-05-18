@@ -15,8 +15,8 @@ use Phel\Command\Repl\ReplCommand;
 use Phel\Command\Repl\ReplCommandIoInterface;
 use Phel\Command\Repl\ReplCommandSystemIo;
 use Phel\Command\Run\RunCommand;
-use Phel\Command\Shared\CommandIoInterface;
-use Phel\Command\Shared\CommandSystemIo;
+use Phel\Command\Shared\CommandExceptionWriter;
+use Phel\Command\Shared\CommandExceptionWriterInterface;
 use Phel\Command\Test\TestCommand;
 use Phel\Compiler\CompilerFacadeInterface;
 use Phel\Formatter\FormatterFacadeInterface;
@@ -50,7 +50,7 @@ final class CommandFactory extends AbstractFactory
     public function createRunCommand(): RunCommand
     {
         return new RunCommand(
-            $this->createCommandIo(),
+            $this->createCommandExceptionWriter(),
             $this->getRuntimeFacade()
         );
     }
@@ -58,7 +58,7 @@ final class CommandFactory extends AbstractFactory
     public function createTestCommand(): TestCommand
     {
         return new TestCommand(
-            $this->createCommandIo(),
+            $this->createCommandExceptionWriter(),
             $this->getRuntimeFacade(),
             $this->getCompilerFacade(),
             $this->getConfig()->getTestDirectories()
@@ -68,7 +68,7 @@ final class CommandFactory extends AbstractFactory
     public function createFormatCommand(): FormatCommand
     {
         return new FormatCommand(
-            $this->createCommandIo(),
+            $this->createCommandExceptionWriter(),
             $this->getFormatterFacade(),
             $this->createPathFilter()
         );
@@ -77,7 +77,7 @@ final class CommandFactory extends AbstractFactory
     public function createExportCommand(): ExportCommand
     {
         return new ExportCommand(
-            $this->createCommandIo(),
+            $this->createCommandExceptionWriter(),
             $this->getRuntimeFacade(),
             $this->getInteropFacade()
         );
@@ -91,9 +91,9 @@ final class CommandFactory extends AbstractFactory
         );
     }
 
-    private function createCommandIo(): CommandIoInterface
+    private function createCommandExceptionWriter(): CommandExceptionWriterInterface
     {
-        return new CommandSystemIo(
+        return new CommandExceptionWriter(
             $this->createExceptionPrinter()
         );
     }

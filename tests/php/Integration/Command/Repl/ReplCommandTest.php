@@ -17,16 +17,16 @@ use Phel\Runtime\Exceptions\Extractor\SourceMapExtractor;
 use Phel\Runtime\Exceptions\TextExceptionPrinter;
 use Phel\Runtime\RuntimeFacade;
 use Phel\Runtime\RuntimeSingleton;
-use PHPUnit\Framework\TestCase;
+use PhelTest\Integration\Command\AbstractCommandTest;
 use RecursiveDirectoryIterator;
 use RecursiveIteratorIterator;
 use SplFileInfo;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 
-final class ReplCommandTest extends TestCase
+final class ReplCommandTest extends AbstractCommandTest
 {
-    protected function setUp(): void
+    public function setUp(): void
     {
         RuntimeSingleton::initializeNew(new GlobalEnvironment());
     }
