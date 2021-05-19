@@ -4,13 +4,14 @@
 
 Describe the responsibilities of the compiler module.
 
-## Compiler Submodules
+## Compiler sub-modules
 
 - Lexer
 - Parser
-- Reader 
+- Reader
 - Analyzer
 - Emitter
+- Evaluator
 
 #### Lexer
 
@@ -32,3 +33,6 @@ The analyzer analyzes the result of the reader, validates the input, and adds in
 
 The emitter takes the abstract syntax tree from the Analyzer and transforms it into a PHP code string.
 
+#### Evaluator
+
+The evaluator takes the generated PHP string and evaluates it.
