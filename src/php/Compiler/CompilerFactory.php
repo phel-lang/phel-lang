@@ -90,6 +90,8 @@ final class CompilerFactory extends AbstractFactory
     public function createEmitter(bool $enableSourceMaps = true): EmitterInterface
     {
         return new Emitter(
+            $enableSourceMaps,
+            new SourceMapGenerator(),
             $this->createOutputEmitter($enableSourceMaps)
         );
     }
@@ -98,7 +100,6 @@ final class CompilerFactory extends AbstractFactory
     {
         return new OutputEmitter(
             $enableSourceMaps,
-            new SourceMapGenerator(),
             new NodeEmitterFactory(),
             new Munge(),
             Printer::readable()

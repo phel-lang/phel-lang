@@ -6,13 +6,18 @@ namespace Phel\Compiler\Emitter;
 
 use Phel\Compiler\Analyzer\Ast\AbstractNode;
 use Phel\Compiler\Analyzer\Environment\NodeEnvironmentInterface;
+use Phel\Compiler\Emitter\OutputEmitter\SourceMap\SourceMapState;
 use Phel\Lang\SourceLocation;
 use Phel\Lang\Symbol;
 use Phel\Lang\TypeInterface;
 
 interface OutputEmitterInterface
 {
-    public function emitNodeAsString(AbstractNode $node): string;
+    public function resetIndentLevel(): void;
+
+    public function resetSourceMapState(): void;
+
+    public function getSourceMapState(): SourceMapState;
 
     public function emitNode(AbstractNode $node): void;
 
