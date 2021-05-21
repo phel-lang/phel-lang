@@ -123,7 +123,7 @@ final class InvokeSymbolTest extends TestCase
     public function testMacroUndefinedMacro(): void
     {
         $this->expectException(AnalyzerException::class);
-        $this->expectExceptionMessage('Can not resolve symbol \'user/my-undefined-macro\'');
+        $this->expectExceptionMessage('Cannot resolve symbol \'user/my-undefined-macro\'');
 
         $list = TypeFactory::getInstance()->persistentListFromArray([
             Symbol::createForNamespace('user', 'my-undefined-macro'),

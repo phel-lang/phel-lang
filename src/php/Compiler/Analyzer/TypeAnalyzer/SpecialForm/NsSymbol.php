@@ -41,7 +41,7 @@ final class NsSymbol implements SpecialFormAnalyzerInterface
         foreach ($parts as $part) {
             if ($this->isPHPKeyword($part)) {
                 throw AnalyzerException::withLocation(
-                    "The namespace is not valid. The part '{$part}' can not be used because it is a reserved keyword.",
+                    "The namespace is not valid. The part '{$part}' cannot be used because it is a reserved keyword.",
                     $list
                 );
             }
@@ -114,7 +114,7 @@ final class NsSymbol implements SpecialFormAnalyzerInterface
             return Symbol::create($parts[count($parts) - 1]);
         }
 
-        throw AnalyzerException::withLocation('Can not extract alias', $import);
+        throw AnalyzerException::withLocation('Cannot extract alias', $import);
     }
 
     /**

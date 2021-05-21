@@ -72,7 +72,7 @@ final class AnalyzeSymbolTest extends TestCase
     public function testUndefinedGlobalVar(): void
     {
         $this->expectException(AnalyzerException::class);
-        $this->expectExceptionMessage("Can not resolve symbol 'a'");
+        $this->expectExceptionMessage("Cannot resolve symbol 'a'");
 
         $env = NodeEnvironment::empty();
         $this->symbolAnalyzer->analyze(Symbol::create('a'), $env);

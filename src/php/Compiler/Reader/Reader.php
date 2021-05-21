@@ -48,7 +48,7 @@ final class Reader implements ReaderInterface
     public function read(NodeInterface $parseTree): ReaderResult
     {
         if ($parseTree instanceof TriviaNodeInterface) {
-            throw ReaderException::forNode($parseTree, $parseTree, 'Can not read from whitespace or comments');
+            throw ReaderException::forNode($parseTree, $parseTree, 'Cannot read from whitespace or comments');
         }
 
         return new ReaderResult(

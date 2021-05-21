@@ -10,11 +10,11 @@ final class FileException extends RuntimeException
 {
     public static function canNotCreateTempFile(): self
     {
-        return new self('Can not create temp file.');
+        return new self('Cannot create temp file.');
     }
 
     public static function canNotCreateFile(string $filename): self
     {
-        return new self('Can not require file: ' . $filename);
+        return new self('Cannot require file: ' . $filename);
     }
 }

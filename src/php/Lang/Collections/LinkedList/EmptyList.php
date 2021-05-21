@@ -53,7 +53,7 @@ class EmptyList extends AbstractType implements PersistentListInterface
 
     public function pop(): PersistentListInterface
     {
-        throw new RuntimeException('Can not pop empty list');
+        throw new RuntimeException('Cannot pop empty list');
     }
 
     public function count(): int

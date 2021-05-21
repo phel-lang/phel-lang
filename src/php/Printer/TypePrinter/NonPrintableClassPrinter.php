@@ -16,7 +16,7 @@ final class NonPrintableClassPrinter implements TypePrinterInterface
      */
     public function print($form): string
     {
-        return 'Printer can not print this type: ' . $this->color(get_class($form));
+        return 'Printer cannot print this type: ' . $this->color(get_class($form));
     }
 
     private function color(string $str): string

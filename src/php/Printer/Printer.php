@@ -162,6 +162,6 @@ final class Printer implements PrinterInterface
             return new ObjectPrinter();
         }
 
-        throw new RuntimeException('Printer can not print this type: ' . $printerName);
+        throw new RuntimeException('Printer cannot print this type: ' . $printerName);
     }
 }

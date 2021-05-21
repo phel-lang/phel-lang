@@ -26,12 +26,12 @@ final class NonPrintableClassPrinterTest extends TestCase
     {
         yield 'Empty array' => [
             'form' => new DateTime(),
-            'expected ' => 'Printer can not print this type: DateTime',
+            'expected ' => 'Printer cannot print this type: DateTime',
         ];
 
         yield 'simple numeric list' => [
             'form' => new stdClass(),
-            'expected ' => 'Printer can not print this type: stdClass',
+            'expected ' => 'Printer cannot print this type: stdClass',
         ];
     }
 }

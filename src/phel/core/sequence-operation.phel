@@ -14,7 +14,7 @@
     (or (set? xs) (php/instanceof xs TransientHashSetInterface)) (php/-> xs (add x))
     (php/instanceof xs PushInterface) (php/-> xs (push x))
     (throw (php/new InvalidArgumentException
-                    (str "Can not push on type " (type xs))))))
+                    (str "Cannot push on type " (type xs))))))
 
 (defn pop
   "Removes the last element of the array `xs`. If the array is empty
@@ -23,7 +23,7 @@
   (cond
     (php-array? xs) (php/array_pop xs)
     (php/instanceof xs PopInterface) (php/-> xs (pop))
-    (throw (php/new InvalidArgumentException "Can not pop"))))
+    (throw (php/new InvalidArgumentException "Cannot pop"))))
 
 (defn remove
   "Removes up to `n` element from array `xs` starting at index `offset`."
@@ -31,7 +31,7 @@
   (cond
     (php-array? xs) (if n (php/array_splice xs offset n) (php/array_splice xs offset))
     (php/instanceof xs RemoveInterface) (php/-> xs (remove offset n))
-    (throw (php/new InvalidArgumentException "Can not remove"))))
+    (throw (php/new InvalidArgumentException "Cannot remove"))))
 
 (defn get
   "Get the value mapped to `key` from the datastructure `ds`.
@@ -47,7 +47,7 @@
   [ds key value]
   (cond
     (php-array? ds)
-    (throw (php/new InvalidArgumentException "Can not call put on pure PHP
+    (throw (php/new InvalidArgumentException "Cannot call put on pure PHP
 arrays. Use (php/aset ds key value)"))
 
     (or (struct? ds) (hash-map? ds) (php/instanceof ds TransientMapInterface))
@@ -65,7 +65,7 @@ arrays. Use (php/aset ds key value)"))
   [ds key]
   (cond
     (php-array? ds)
-    (throw (php/new InvalidArgumentException "Can not call unset on pure PHP
+    (throw (php/new InvalidArgumentException "Cannot call unset on pure PHP
 arrays. Use (php/aunset ds key)"))
 
     (or (hash-map? ds) (php/instanceof ds TransientMapInterface))

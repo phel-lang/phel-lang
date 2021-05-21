@@ -13,7 +13,7 @@
 
 (defn resolve
   "Resolves the given symbol in the current environment and returns a
-   resolved Symbol with the absolute namespace or nil if it can not be resolved"
+   resolved Symbol with the absolute namespace or nil if it cannot be resolved"
   [sym]
   (-> (get-global-env)
       (php/-> (resolveAsSymbol sym (php/:: NodeEnvironment (empty))))))

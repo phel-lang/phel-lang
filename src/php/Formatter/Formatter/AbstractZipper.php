@@ -90,7 +90,7 @@ abstract class AbstractZipper
         }
 
         if ($this->isFirst()) {
-            throw new ZipperException('Can not go left on the leftmost node');
+            throw new ZipperException('Cannot go left on the leftmost node');
         }
 
         $leftSiblings = $this->leftSiblings;

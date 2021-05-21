@@ -33,10 +33,10 @@ final class BindingValidator implements BindingValidatorInterface
         $type = is_object($form) ? get_class($form) : gettype($form);
 
         if ($form instanceof TypeInterface) {
-            throw AnalyzerException::withLocation('Can not destructure ' . $type, $form);
+            throw AnalyzerException::withLocation('Cannot destructure ' . $type, $form);
         }
 
-        throw new AnalyzerException('Can not destructure ' . $type);
+        throw new AnalyzerException('Cannot destructure ' . $type);
     }
 
     /**

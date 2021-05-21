@@ -25,28 +25,28 @@ final class BindingValidatorTest extends TestCase
 
     public function testIntegerType(): void
     {
-        $this->expectExceptionMessage('Can not destructure integer');
+        $this->expectExceptionMessage('Cannot destructure integer');
 
         $this->validator->assertSupportedBinding(1);
     }
 
     public function testFloatType(): void
     {
-        $this->expectExceptionMessage('Can not destructure double');
+        $this->expectExceptionMessage('Cannot destructure double');
 
         $this->validator->assertSupportedBinding(1.99);
     }
 
     public function testStringType(): void
     {
-        $this->expectExceptionMessage('Can not destructure string');
+        $this->expectExceptionMessage('Cannot destructure string');
 
         $this->validator->assertSupportedBinding('');
     }
 
     public function testKeywordType(): void
     {
-        $this->expectExceptionMessage('Can not destructure Phel\Lang\Keyword');
+        $this->expectExceptionMessage('Cannot destructure Phel\Lang\Keyword');
 
         $this->validator->assertSupportedBinding(new Keyword('any'));
     }
