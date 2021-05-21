@@ -17,6 +17,7 @@ use Phel\Compiler\Emitter\OutputEmitter;
 use Phel\Compiler\Emitter\OutputEmitter\Munge;
 use Phel\Compiler\Emitter\OutputEmitter\NodeEmitterFactory;
 use Phel\Compiler\Emitter\OutputEmitter\SourceMap\SourceMapGenerator;
+use Phel\Compiler\Emitter\OutputEmitter\SourceMap\SourceMapState;
 use Phel\Compiler\Emitter\OutputEmitterInterface;
 use Phel\Compiler\Evaluator\EvaluatorInterface;
 use Phel\Compiler\Evaluator\RequireEvaluator;
@@ -102,7 +103,8 @@ final class CompilerFactory extends AbstractFactory
             $enableSourceMaps,
             new NodeEmitterFactory(),
             new Munge(),
-            Printer::readable()
+            Printer::readable(),
+            new SourceMapState()
         );
     }
 

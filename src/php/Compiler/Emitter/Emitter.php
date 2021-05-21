@@ -30,8 +30,7 @@ final class Emitter implements EmitterInterface
 
         ob_start();
         $this->outputEmitter->emitNode($node);
-        $code = ob_get_contents();
-        ob_end_clean();
+        $code = ob_get_clean();
 
         if (!$this->enableSourceMaps) {
             return $code;

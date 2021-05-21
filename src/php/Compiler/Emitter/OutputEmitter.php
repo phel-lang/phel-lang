@@ -29,13 +29,14 @@ final class OutputEmitter implements OutputEmitterInterface
         bool $enableSourceMaps,
         NodeEmitterFactory $nodeEmitterFactory,
         MungeInterface $munge,
-        PrinterInterface $printer
+        PrinterInterface $printer,
+        SourceMapState $sourceMapState
     ) {
         $this->enableSourceMaps = $enableSourceMaps;
         $this->nodeEmitterFactory = $nodeEmitterFactory;
         $this->munge = $munge;
         $this->printer = $printer;
-        $this->sourceMapState = new SourceMapState();
+        $this->sourceMapState = $sourceMapState;
     }
 
     public function resetIndentLevel(): void

@@ -21,13 +21,13 @@ final class SourceMapState
 
     public function incGeneratedLines(int $amount = 1): SourceMapState
     {
-        $this->generatedLines = $this->generatedLines + $amount;
+        $this->generatedLines += $amount;
         return $this;
     }
 
     public function incGeneratedColumns(int $amount = 1): SourceMapState
     {
-        $this->generatedColumns = $this->generatedColumns + $amount;
+        $this->generatedColumns += $amount;
         return $this;
     }
 
@@ -41,12 +41,6 @@ final class SourceMapState
         return $this->generatedColumns;
     }
 
-    public function setGeneratedLines(int $value): SourceMapState
-    {
-        $this->generatedLines = $value;
-        return $this;
-    }
-
     public function setGeneratedColumns(int $value): SourceMapState
     {
         $this->generatedColumns = $value;
@@ -56,12 +50,6 @@ final class SourceMapState
     public function getMappings(): array
     {
         return $this->mappings;
-    }
-
-    public function setMappings(array $mappings): SourceMapState
-    {
-        $this->mappings = $mappings;
-        return $this;
     }
 
     public function addMapping(array $mapping): SourceMapState
