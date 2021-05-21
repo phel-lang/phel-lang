@@ -50,7 +50,7 @@ collection in map"))
   (cond
     (php-array? xs) (php/array_slice xs offset length)
     (php/instanceof xs SliceInterface) (php/-> xs (slice offset length))
-    (throw (php/new InvalidArgumentException "Can not slice"))))
+    (throw (php/new InvalidArgumentException "Cannot slice"))))
 
 (defn get-in
   "Access a value in a nested data structure. Looks into the data structure via a sequence of keys."

@@ -71,7 +71,7 @@ final class ListNode implements InnerNodeInterface
             case Token::T_TABLE:
                 return '@{';
             default:
-                throw new \RuntimeException('Can not find code prefix for token type: ' . $this->tokenType);
+                throw new \RuntimeException('Cannot find code prefix for token type: ' . $this->tokenType);
         }
     }
 
@@ -88,7 +88,7 @@ final class ListNode implements InnerNodeInterface
             case Token::T_TABLE:
                 return '}';
             default:
-                throw new \RuntimeException('Can not find code prefix for token type: ' . $this->tokenType);
+                throw new \RuntimeException('Cannot find code prefix for token type: ' . $this->tokenType);
         }
     }
 

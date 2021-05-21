@@ -46,7 +46,7 @@ final class AnalyzeSymbol
         $globalResolve = $this->analyzer->resolve($symbol, $env);
 
         if (!$globalResolve) {
-            throw AnalyzerException::withLocation("Can not resolve symbol '{$symbol->getFullName()}'", $symbol);
+            throw AnalyzerException::withLocation("Cannot resolve symbol '{$symbol->getFullName()}'", $symbol);
         }
 
         return $globalResolve;

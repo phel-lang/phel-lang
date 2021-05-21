@@ -134,7 +134,7 @@
   (let [method (get (or server php/$_SERVER) "REQUEST_METHOD")]
     (if method
       method
-      (throw (php/new InvalidArgumentException "can not determine HTTP Method")))))
+      (throw (php/new InvalidArgumentException "cannot determine HTTP Method")))))
 
 (defn- post-global-valid [method headers]
   (let [content-type (get headers :content-type)

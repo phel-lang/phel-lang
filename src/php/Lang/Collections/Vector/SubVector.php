@@ -87,7 +87,7 @@ class SubVector extends AbstractPersistentVector
     {
         if ($this->start + $i > $this->end) {
             $count = $this->count();
-            throw new IndexOutOfBoundsException("Can not update index $i. Length of vector is $count");
+            throw new IndexOutOfBoundsException("Cannot update index $i. Length of vector is $count");
         }
 
         if ($this->start + $i === $this->end) {
@@ -106,7 +106,7 @@ class SubVector extends AbstractPersistentVector
             return $this->vector->get($i + $this->start);
         }
 
-        throw new IndexOutOfBoundsException("Can not access value at index $i.");
+        throw new IndexOutOfBoundsException("Cannot access value at index $i.");
     }
 
     public function pop(): PersistentVectorInterface

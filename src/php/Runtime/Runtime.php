@@ -170,7 +170,7 @@ class Runtime implements RuntimeInterface
         $path = $this->getCachedFilePath($filename, $ns);
 
         if (!$path) {
-            throw new InvalidArgumentException("Can not load cached file: {$filename}");
+            throw new InvalidArgumentException("Cannot load cached file: {$filename}");
         }
 
         // Update global environment

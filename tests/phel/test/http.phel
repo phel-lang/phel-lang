@@ -246,9 +246,9 @@
 # Response
 # --------
 
-# TODO: Headers can not be tested at this point
+# TODO: Headers cannot be tested at this point
 # because the test script already has send some output
-# and new headers can not be send anymore.
+# and new headers cannot be send anymore.
 
 (deftest test-response
   (is (=

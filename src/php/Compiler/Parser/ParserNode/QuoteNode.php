@@ -61,7 +61,7 @@ final class QuoteNode implements InnerNodeInterface
             case Token::T_QUASIQUOTE:
                 return '`';
             default:
-                throw new \RuntimeException('Can not find code prefix for token type: ' . $this->tokenType);
+                throw new \RuntimeException('Cannot find code prefix for token type: ' . $this->tokenType);
         }
     }
 

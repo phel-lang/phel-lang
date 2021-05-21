@@ -1,6 +1,6 @@
 phel:1> (def my-fn (fn []
 ....:2>   (undefined-fn 1 2)))
-Can not resolve symbol 'undefined-fn'
+Cannot resolve symbol 'undefined-fn'
 in string:2
 
 1| (def my-fn (fn []
