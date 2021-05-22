@@ -9,7 +9,7 @@ use Phel\Compiler\Analyzer\Environment\NodeEnvironmentInterface;
 use Phel\Compiler\Emitter\OutputEmitter\LiteralEmitter;
 use Phel\Compiler\Emitter\OutputEmitter\MungeInterface;
 use Phel\Compiler\Emitter\OutputEmitter\NodeEmitterFactory;
-use Phel\Compiler\Emitter\OutputEmitter\SourceMap\SourceMapGenerator;
+use Phel\Compiler\Emitter\OutputEmitter\SourceMap\SourceMapState;
 use Phel\Lang\SourceLocation;
 use Phel\Lang\Symbol;
 use Phel\Lang\TypeInterface;
@@ -18,57 +18,40 @@ use Phel\Printer\PrinterInterface;
 final class OutputEmitter implements OutputEmitterInterface
 {
     private bool $enableSourceMaps;
-    private SourceMapGenerator $sourceMapGenerator;
     private NodeEmitterFactory $nodeEmitterFactory;
     private MungeInterface $munge;
     private PrinterInterface $printer;
 
     private int $indentLevel = 0;
-    private int $generatedLines = 0;
-    private int $generatedColumns = 0;
-    private array $sourceMap = [];
+    private SourceMapState $sourceMapState;
 
     public function __construct(
         bool $enableSourceMaps,
-        SourceMapGenerator $sourceMapGenerator,
         NodeEmitterFactory $nodeEmitterFactory,
         MungeInterface $munge,
-        PrinterInterface $printer
+        PrinterInterface $printer,
+        SourceMapState $sourceMapState
     ) {
         $this->enableSourceMaps = $enableSourceMaps;
-        $this->sourceMapGenerator = $sourceMapGenerator;
         $this->nodeEmitterFactory = $nodeEmitterFactory;
         $this->munge = $munge;
         $this->printer = $printer;
+        $this->sourceMapState = $sourceMapState;
     }
 
-    public function emitNodeAsString(AbstractNode $node): string
+    public function resetIndentLevel(): void
     {
-        $this->generatedLines = 0;
-        $this->generatedColumns = 0;
         $this->indentLevel = 0;
-        $this->sourceMap = [];
+    }
 
-        ob_start();
-        $this->emitNode($node);
-        $code = ob_get_contents();
-        ob_end_clean();
+    public function resetSourceMapState(): void
+    {
+        $this->sourceMapState->reset();
+    }
 
-        if (!$this->enableSourceMaps) {
-            return $code;
-        }
-
-        $sourceMap = $this->sourceMapGenerator->encode($this->sourceMap);
-        $sourceLocation = $node->getStartSourceLocation();
-        $file = $sourceLocation
-            ? $sourceLocation->getFile()
-            : 'string';
-
-        return (
-            '// ' . $file . "\n"
-            . '// ;;' . $sourceMap . "\n"
-            . $code
-        );
+    public function getSourceMapState(): SourceMapState
+    {
+        return $this->sourceMapState;
     }
 
     public function emitNode(AbstractNode $node): void
@@ -83,34 +66,36 @@ final class OutputEmitter implements OutputEmitterInterface
             $this->emitStr($str, $sl);
         }
 
-        $this->generatedLines++;
-        $this->generatedColumns = 0;
+        $this->sourceMapState->incGeneratedLines();
+        $this->sourceMapState->setGeneratedColumns(0);
 
         echo PHP_EOL;
     }
 
     public function emitStr(string $str, ?SourceLocation $sl = null): void
     {
-        if ($this->generatedColumns === 0) {
-            $this->generatedColumns += $this->indentLevel * 2;
+        if ($this->sourceMapState->getGeneratedColumns() === 0) {
+            $this->sourceMapState->incGeneratedColumns($this->indentLevel * 2);
             echo str_repeat(' ', $this->indentLevel * 2);
         }
 
         if ($this->enableSourceMaps && $sl) {
-            $this->sourceMap[] = [
-                'source' => $sl->getFile(),
-                'original' => [
-                    'line' => $sl->getLine() - 1,
-                    'column' => $sl->getColumn(),
-                ],
-                'generated' => [
-                    'line' => $this->generatedLines,
-                    'column' => $this->generatedColumns,
-                ],
-            ];
+            $this->sourceMapState->addMapping(
+                [
+                    'source' => $sl->getFile(),
+                    'original' => [
+                        'line' => $sl->getLine() - 1,
+                        'column' => $sl->getColumn(),
+                    ],
+                    'generated' => [
+                        'line' => $this->sourceMapState->getGeneratedLines(),
+                        'column' => $this->sourceMapState->getGeneratedColumns(),
+                    ],
+                ]
+            );
         }
 
-        $this->generatedColumns += strlen($str);
+        $this->sourceMapState->incGeneratedColumns(strlen($str));
 
         echo $str;
     }
