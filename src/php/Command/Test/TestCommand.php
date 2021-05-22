@@ -11,6 +11,7 @@ use Phel\Compiler\Evaluator\Exceptions\CompiledCodeIsMalformedException;
 use Phel\Compiler\Evaluator\Exceptions\FileException;
 use Phel\Compiler\Exceptions\CompilerException;
 use Phel\Runtime\RuntimeFacadeInterface;
+use SebastianBergmann\Timer\ResourceUsageFormatter;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
@@ -64,6 +65,7 @@ final class TestCommand extends Command
             /** @var list<string> $paths */
             $paths = $input->getArgument('paths');
             $result = $this->evalNamespaces($paths);
+            $output->writeln((new ResourceUsageFormatter())->resourceUsageSinceStartOfRequest());
 
             return ($result) ? self::SUCCESS : self::FAILURE;
         } catch (CompilerException $e) {

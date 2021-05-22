@@ -10,9 +10,11 @@ use Phel\Compiler\Evaluator\Exceptions\CompiledCodeIsMalformedException;
 use Phel\Compiler\Evaluator\Exceptions\FileException;
 use Phel\Compiler\Exceptions\CompilerException;
 use Phel\Runtime\RuntimeFacadeInterface;
+use SebastianBergmann\Timer\ResourceUsageFormatter;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
+use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 use Throwable;
 
@@ -39,6 +41,11 @@ final class RunCommand extends Command
                 'path',
                 InputArgument::REQUIRED,
                 'The file path that you want to run.'
+            )->addOption(
+                'with-time',
+                't',
+                InputOption::VALUE_NONE,
+                'With time awareness'
             );
     }
 
@@ -55,6 +62,10 @@ final class RunCommand extends Command
             /** @var string $fileOrPath */
             $fileOrPath = $input->getArgument('path');
             $this->loadNamespace($fileOrPath);
+
+            if ($input->getOption('with-time')) {
+                $output->writeln((new ResourceUsageFormatter())->resourceUsageSinceStartOfRequest());
+            }
 
             return self::SUCCESS;
         } catch (CompilerException $e) {

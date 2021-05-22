@@ -24,7 +24,11 @@ final class TestCommandTest extends AbstractCommandTest
             ->createTestCommand()
             ->addRuntimePath('test-cmd-project-success\\', [$currentDir]);
 
-        $this->expectOutputString("..\n\n\n\nPassed: 2\nFailed: 0\nError: 0\nTotal: 2\n");
+        $this->expectOutputRegex('/\.\..*/');
+        $this->expectOutputRegex('/.*Passed: 2.*/');
+        $this->expectOutputRegex('/.*Failed: 0.*/');
+        $this->expectOutputRegex('/.*Error: 0.*/');
+        $this->expectOutputRegex('/.*Total: 2.*/');
 
         $command->run($this->stubInput([]), $this->stubOutput());
     }
@@ -38,7 +42,11 @@ final class TestCommandTest extends AbstractCommandTest
             ->createTestCommand()
             ->addRuntimePath('test-cmd-project-success\\', [$currentDir]);
 
-        $this->expectOutputString(".\n\n\n\nPassed: 1\nFailed: 0\nError: 0\nTotal: 1\n");
+        $this->expectOutputRegex('/\..*/');
+        $this->expectOutputRegex('/.*Passed: 1.*/');
+        $this->expectOutputRegex('/.*Failed: 0.*/');
+        $this->expectOutputRegex('/.*Error: 0.*/');
+        $this->expectOutputRegex('/.*Total: 1.*/');
 
         $command->run(
             $this->stubInput([$currentDir . '/test1.phel']),
@@ -55,7 +63,11 @@ final class TestCommandTest extends AbstractCommandTest
             ->createTestCommand()
             ->addRuntimePath('test-cmd-project-failure\\', [$currentDir]);
 
-        $this->expectOutputRegex('/.*Failed\\: 1.*/');
+        $this->expectOutputRegex('/E.*/');
+        $this->expectOutputRegex('/.*Passed: 0.*/');
+        $this->expectOutputRegex('/.*Failed: 1.*/');
+        $this->expectOutputRegex('/.*Error: 0.*/');
+        $this->expectOutputRegex('/.*Total: 1.*/');
 
         $command->run($this->stubInput([]), $this->stubOutput());
     }
