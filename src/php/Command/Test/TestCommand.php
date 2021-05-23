@@ -15,6 +15,7 @@ use SebastianBergmann\Timer\ResourceUsageFormatter;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
+use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 use Throwable;
 
@@ -49,6 +50,11 @@ final class TestCommand extends Command
                 InputArgument::IS_ARRAY | InputArgument::OPTIONAL,
                 'The file paths that you want to format.',
                 []
+            )->addOption(
+                'filter',
+                'f',
+                InputOption::VALUE_OPTIONAL,
+                'Filter by test names.'
             );
     }
 
@@ -63,8 +69,13 @@ final class TestCommand extends Command
     {
         try {
             /** @var list<string> $paths */
-            $paths = $input->getArgument('paths');
-            $result = $this->evalNamespaces($paths);
+            $paths = (array)$input->getArgument('paths');
+
+            /** @psalm-suppress PossiblyInvalidCast */
+            $result = $this->evalNamespaces($paths, TestCommandOptions::fromArray([
+                TestCommandOptions::FILTER => (string)$input->getOption('filter'),
+            ]));
+
             $output->writeln((new ResourceUsageFormatter())->resourceUsageSinceStartOfRequest());
 
             return ($result) ? self::SUCCESS : self::FAILURE;
@@ -87,7 +98,7 @@ final class TestCommand extends Command
      *
      * @return bool true if all tests were successful. False otherwise.
      */
-    private function evalNamespaces(array $paths): bool
+    private function evalNamespaces(array $paths, TestCommandOptions $options): bool
     {
         $namespaces = $this->getNamespacesFromPaths($paths);
 
@@ -96,9 +107,14 @@ final class TestCommand extends Command
         }
 
         $this->runtimeFacade->getRuntime()->loadNs('phel\test');
-        $nsString = $this->namespacesAsString($namespaces);
 
-        return $this->compilerFacade->eval('(do (phel\test/run-tests ' . $nsString . ') (successful?))');
+        $phelCode = sprintf(
+            '(do (phel\test/run-tests %s %s) (successful?))',
+            $options->asPhelHashMap(),
+            $this->namespacesAsString($namespaces),
+        );
+
+        return $this->compilerFacade->eval($phelCode);
     }
 
     private function getNamespacesFromPaths(array $paths): array
