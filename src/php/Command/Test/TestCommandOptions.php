@@ -28,11 +28,15 @@ final class TestCommandOptions
 
     public function asPhelHashMap(): string
     {
-        $filter = empty($this->filter) ? 'nil' : sprintf('"%s"', $this->filter);
+        $filter = empty($this->filter) ? null : $this->filter;
 
-        $optionsMap = TypeFactory::getInstance()
-            ->persistentMapFromKVs(':filter', $filter);
+        $typeFactory = TypeFactory::getInstance();
 
-        return Printer::nonReadable()->print($optionsMap);
+        $optionsMap = $typeFactory->persistentMapFromKVs(
+            $typeFactory->keyword(self::FILTER),
+            $filter
+        );
+
+        return Printer::readable()->print($optionsMap);
     }
 }
