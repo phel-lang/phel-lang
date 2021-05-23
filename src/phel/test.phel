@@ -173,7 +173,11 @@
   (let [loc (location form) e (gensym)]
     `(try ,(assert-expr form message)
           (catch Throwable ,e
-            (report @{:state :error :location ,loc :message ,message :form ',form :exception ,e})))))
+            (report @{:state :error
+                      :location ,loc
+                      :message ,message
+                      :form ',form
+                      :exception ,e})))))
 
 # --------------
 # Defining tests
@@ -182,7 +186,7 @@
 (defmacro deftest
   "Defines a test function with no arguments"
   [name & body]
-  `(defn ,name {:test true} []
+  `(defn ,name {:test true :test-name ,name} []
      ,@body))
 
 # ---------------------
@@ -290,27 +294,27 @@
 # Running tests
 # -------------
 
-(defn- find-test-fns [ns]
+(defn- find-test-fns [ns {:filter filter}]
   (let [munge (php/new Munge)
         munge-ns (php/-> munge (encodeNs ns))]
     (for [fn-name :keys (get-in php/$GLOBALS ["__phel" munge-ns])
           :let [meta (get-in php/$GLOBALS ["__phel_meta" munge-ns fn-name])]
-          :when (get meta :test)]
+          :when (and (:test meta) (or (nil? filter) (str-contains? (:test-name meta) filter)))]
       (get-in php/$GLOBALS ["__phel" munge-ns fn-name]))))
 
-(defn- run-test [ns]
+(defn- run-test [options ns]
   (let [rt (php/:: \Phel\Runtime\RuntimeSingleton (getInstance))
         _ (php/-> rt (loadNs ns))
-        tests (find-test-fns ns)]
+        tests (find-test-fns ns options)]
     (dofor [test :in tests]
       (test))))
 
 (defn run-tests
   "Runs all test functions in the given namespaces"
-  [& namespaces]
-  (dofor [n :in namespaces
-          :let [s (php/-> n (getName))]]
-    (run-test s))
+  [options & namespaces]
+  (dofor [namespace :in namespaces
+          :let [ns-name (php/-> namespace (getName))]]
+    (run-test options ns-name))
   (print-summary))
 
 (defn successful?
