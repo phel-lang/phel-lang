@@ -65,14 +65,10 @@ final class NsSymbol implements SpecialFormAnalyzerInterface
             } elseif ($this->isKeywordWithName($value, 'require')) {
                 $requireNs[] = $this->analyzeRequire($ns, $import);
             } elseif ($value instanceof Keyword) {
-                $message = "Unexpected keyword encountered in 'ns.";
-                $possibleMatch = $this->findNearestKeywordName($value);
-
-                if ($possibleMatch) {
-                    $message .= " Did you mean $possibleMatch?";
-                }
-
-                throw AnalyzerException::withLocation($message, $list);
+                throw AnalyzerException::withLocation(
+                    "Unexpected keyword {$value->getName()} encountered in 'ns. Expected :use or :require.",
+                    $value
+                );
             }
         }
 
@@ -171,20 +167,5 @@ final class NsSymbol implements SpecialFormAnalyzerInterface
         $this->analyzer->addRefers($ns, $referSymbols, $requireSymbol);
 
         return $requireSymbol;
-    }
-
-    private function findNearestKeywordName(Keyword $keyword): ?string
-    {
-        $name = $keyword->getName();
-
-        foreach (['use', 'require'] as $expectedKeywordName) {
-            similar_text($name, $expectedKeywordName, $similarityPercentage);
-
-            if ($similarityPercentage >= 50.0) {
-                return $expectedKeywordName;
-            }
-        }
-
-        return null;
     }
 }
