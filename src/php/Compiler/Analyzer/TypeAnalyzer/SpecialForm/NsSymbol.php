@@ -57,11 +57,18 @@ final class NsSymbol implements SpecialFormAnalyzerInterface
                 throw AnalyzerException::withLocation("Import in 'ns must be Lists.", $list);
             }
 
+            $value = $import->get(0);
+
             /** @var PersistentListInterface $import */
-            if ($this->isKeywordWithName($import->get(0), 'use')) {
+            if ($this->isKeywordWithName($value, 'use')) {
                 $this->analyzeUse($ns, $import);
-            } elseif ($this->isKeywordWithName($import->get(0), 'require')) {
+            } elseif ($this->isKeywordWithName($value, 'require')) {
                 $requireNs[] = $this->analyzeRequire($ns, $import);
+            } elseif ($value instanceof Keyword) {
+                throw AnalyzerException::withLocation(
+                    "Unexpected keyword {$value->getName()} encountered in 'ns. Expected :use or :require.",
+                    $value
+                );
             }
         }
 
