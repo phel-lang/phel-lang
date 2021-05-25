@@ -156,15 +156,17 @@ class PersistentHashMap extends AbstractPersistentMap
         return new EmptyIterator();
     }
 
-    public function asTransient(): TransientHashMap
+    public function asTransient(): TransientMapWrapper
     {
-        return new TransientHashMap(
-            $this->hasher,
-            $this->equalizer,
-            $this->count,
-            $this->root,
-            $this->hasNull,
-            $this->nullValue
+        return new TransientMapWrapper(
+            new TransientHashMap(
+                $this->hasher,
+                $this->equalizer,
+                $this->count,
+                $this->root,
+                $this->hasNull,
+                $this->nullValue
+            )
         );
     }
 }
