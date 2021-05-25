@@ -4,6 +4,13 @@ All notable changes to this project will be documented in this file.
 
 ## Unreleased
 
+## 0.3.2 (2021-05-16)
+
+* Transient Maps can grow bigger than 16 elements (#289)
+* Added a filter option to the test command. (#285)
+* Added execution time and resource usage to the test command (#284)
+* Disallows unexpected keywords in ns (#286)
+
 ## 0.3.1 (2021-05-16)
 
 * For loop will now return a vector instead of an array (#276)
