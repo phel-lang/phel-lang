@@ -27,3 +27,10 @@
   (is (= [2 2 2 4 6 6] (for [x :in [2 2 2 3 3 4 5 6 6] :when (even? x)] x)) "for loop (:range :when)")
   (is (= [[1 2] [2 3] [3 4]] (for [x :in [1 2 3] :let [y (inc x)]] [x y])) "for loop (:range :let)")
   (is (= [[1 0] [2 0] [2 1] [3 0] [3 1] [3 2]] (for [x :range [0 4] y :range [0 x]] [x y])) "for loop nested"))
+
+(deftest test-for-loop-big
+  (is
+   (=
+    {0 0 1 1 2 2 3 3 4 4 5 5 6 6 7 7 8 8 9 9 10 10 11 11 12 12 13 13 14 14 15 15 16 16 17 17 18 18 19 19}
+    (let [x (transient {})] (for [i :range [0 20]] (put x i i)) (persistent x)))
+    "for loop with transient map"))
