@@ -136,12 +136,14 @@ class PersistentArrayMap extends AbstractPersistentMap
         }
     }
 
-    public function asTransient(): TransientArrayMap
+    public function asTransient(): TransientMapWrapper
     {
-        return new TransientArrayMap(
-            $this->hasher,
-            $this->equalizer,
-            $this->array
+        return new TransientMapWrapper(
+            new TransientArrayMap(
+                $this->hasher,
+                $this->equalizer,
+                $this->array
+            )
         );
     }
 }
