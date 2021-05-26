@@ -21,7 +21,7 @@
            :pass "."
            :error "E")))
 
-(defn- should-report-println [total-columns]
+(defn- should-report-println? [total-columns]
   (= (% (get-in stats [:counts :total]) total-columns) 0))
 
 (defn report [data]
@@ -31,7 +31,7 @@
     (print-report-state state)
     (update-in stats [:counts :total] inc)
     (update-in stats [:counts state] inc)
-    (when (should-report-println total-columns) (println))
+    (when (should-report-println? total-columns) (println))
     (when-not ok
       (update-in stats [:failed] push data))))
 
@@ -217,7 +217,7 @@
   (let [{:exception exception :form form} data
         printer (php/:: TextExceptionPrinter (create))]
     (println "              Test:" form)
-    (println "  thrown exception:" (php/get_class exception))
+    (println "   threw exception:" (php/get_class exception))
     (println)
     (php/-> printer (printStackTrace exception))))
 
