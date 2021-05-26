@@ -10,23 +10,28 @@
 # ------
 
 (def- stats @{:failed []
-              :counts @{:failed 0
-                        :error 0
-                        :pass 0
-                        :total 0}})
+              :counts {:failed 0
+                       :error 0
+                       :pass 0
+                       :total 0}})
+
+(defn- print-report-state [state]
+  (print (case state
+           :failed "F"
+           :pass "."
+           :error "E")))
+
+(defn- should-report-println [total-columns]
+  (= (% (get-in stats [:counts :total]) total-columns) 0))
 
 (defn report [data]
-  (let [@{:state state :type type} data
-        ok (= state :pass)]
-    (print
-     (case state
-       :failed "F"
-       :pass "."
-       :error "E"))
+  (let [{:state state :type type} data
+        ok (= state :pass)
+        total-columns 80]
+    (print-report-state state)
     (update-in stats [:counts :total] inc)
     (update-in stats [:counts state] inc)
-    (when (= (% (get-in stats [:counts :total]) 80) 0)
-      (println))
+    (when (should-report-println total-columns) (println))
     (when-not ok
       (update-in stats [:failed] push data))))
 
@@ -38,9 +43,9 @@
 (defn- location [form]
   (let [loc (php/-> form (getStartLocation))]
     (when loc
-      @{:file (php/-> loc (getFile))
-        :line (php/-> loc (getLine))
-        :column (php/-> loc (getColumn))})))
+      {:file (php/-> loc (getFile))
+       :line (php/-> loc (getLine))
+       :column (php/-> loc (getColumn))})))
 
 (defn- assert-predicate [form message negated]
   (let [pred (first form)
@@ -53,16 +58,16 @@
     `(let [,value-evaluated ,value
            ,result (,pred ,value-evaluated)
            ,result (if ,negated (not ,result) ,result)
-           ,report-data @{:type ,type
-                          :message ,message
-                          :location ,loc
-                          :pred ',pred
-                          :value ',value
-                          :form ',form
-                          :result ,value-evaluated}]
+           ,report-data {:type ,type
+                         :message ,message
+                         :location ,loc
+                         :pred ',pred
+                         :value ',value
+                         :form ',form
+                         :result ,value-evaluated}]
        (if ,result
-         (report (merge ,report-data @{:state :pass}))
-         (report (merge ,report-data @{:state :failed}))))))
+         (report (merge ,report-data {:state :pass}))
+         (report (merge ,report-data {:state :failed}))))))
 
 (defn- assert-binary [form message negated]
   (let [pred (first form)
@@ -78,17 +83,17 @@
            ,actual-evaluated ,actual
            ,result (,pred ,expected-evaluated ,actual-evaluated)
            ,result (if ,negated (not ,result) ,result)
-           ,report-data @{:type ,type
-                          :message ,message
-                          :location ,loc
-                          :pred ',pred
-                          :expected ,expected-evaluated
-                          :actual ',actual
-                          :form ',form
-                          :result ,actual-evaluated}]
+           ,report-data {:type ,type
+                         :message ,message
+                         :location ,loc
+                         :pred ',pred
+                         :expected ,expected-evaluated
+                         :actual ',actual
+                         :form ',form
+                         :result ,actual-evaluated}]
        (if ,result
-         (report (merge ,report-data @{:type :binary :state :pass}))
-         (report (merge ,report-data @{:type :binary :state :failed}))))))
+         (report (merge ,report-data {:type :binary :state :pass}))
+         (report (merge ,report-data {:type :binary :state :failed}))))))
 
 (defn- assert-output [form message]
   (let [expected (second form)
@@ -101,16 +106,16 @@
         loc (location form)
         report-data (gensym)
         e (gensym)]
-    `(let [,report-data @{:type :thrown
-                          :location ,loc
-                          :form ',form
-                          :exception-symbol ,(str exception-symbol)
-                          :message ,message}]
+    `(let [,report-data {:type :thrown
+                         :location ,loc
+                         :form ',form
+                         :exception-symbol ,(str exception-symbol)
+                         :message ,message}]
        (try
          ,@body
-         (report (merge ,report-data @{:state :failed}))
+         (report (merge ,report-data {:state :failed}))
          (catch ,exception-symbol ,e
-           (report (merge ,report-data @{:state :pass})))))))
+           (report (merge ,report-data {:state :pass})))))))
 
 (defn- assert-thrown-with-msg [form message]
   (let [exception-symbol (second form)
@@ -120,34 +125,34 @@
         actual-message (gensym)
         report-data (gensym)
         e (gensym)]
-    `(let [,report-data @{:type :thrown-with-msg
-                          :form ',form
-                          :location ,loc
-                          :exception-symbol ,(str exception-symbol)
-                          :expected-message ,expected-message
-                          :message ,message}]
+    `(let [,report-data {:type :thrown-with-msg
+                         :form ',form
+                         :location ,loc
+                         :exception-symbol ,(str exception-symbol)
+                         :expected-message ,expected-message
+                         :message ,message}]
        (try
          ,@body
-         (report (merge ,report-data @{:state :failed :actual-message nil}))
+         (report (merge ,report-data {:state :failed :actual-message nil}))
          (catch ,exception-symbol ,e
            (let [,actual-message (php/-> ,e (getMessage))]
              (if (= ,expected-message ,actual-message)
-               (report (merge ,report-data @{:state :pass :actual-message ,actual-message}))
-               (report (merge ,report-data @{:state :failed :actual-message ,actual-message})))))))))
+               (report (merge ,report-data {:state :pass :actual-message ,actual-message}))
+               (report (merge ,report-data {:state :failed :actual-message ,actual-message})))))))))
 
 (defn- assert-any [form message]
   (let [loc (location form)
         result (gensym)
         report-data (gensym)]
     `(let [,result ,form
-           ,report-data @{:type :any
-                          :message ,message
-                          :location ,loc
-                          :form ',form
-                          :result ,result}]
+           ,report-data {:type :any
+                         :message ,message
+                         :location ,loc
+                         :form ',form
+                         :result ,result}]
        (if ,result
-         (report (merge ,report-data @{:state :pass}))
-         (report (merge ,report-data @{:state :failed}))))))
+         (report (merge ,report-data {:state :pass}))
+         (report (merge ,report-data {:state :failed}))))))
 
 (defn- assert-expr [form message]
   (cond
@@ -173,11 +178,11 @@
   (let [loc (location form) e (gensym)]
     `(try ,(assert-expr form message)
           (catch Throwable ,e
-            (report @{:state :error
-                      :location ,loc
-                      :message ,message
-                      :form ',form
-                      :exception ,e})))))
+            (report {:state :error
+                     :location ,loc
+                     :message ,message
+                     :form ',form
+                     :exception ,e})))))
 
 # --------------
 # Defining tests
@@ -193,7 +198,7 @@
 # error/failure printer
 # ---------------------
 
-(defn- print-headline [prefix @{:message message :location location}]
+(defn- print-headline [prefix {:message message :location location}]
   (print prefix)
   (when message
     (print (str " in '" message "'")))
@@ -209,38 +214,38 @@
 
 (defn- print-error [data]
   (print-error-headline data)
-  (let [@{:exception exception :form form} data
+  (let [{:exception exception :form form} data
         printer (php/:: TextExceptionPrinter (create))]
     (println "              Test:" form)
-    (println " throwed exception:" (php/get_class exception))
+    (println "  thrown exception:" (php/get_class exception))
     (println)
     (php/-> printer (printStackTrace exception))))
 
-(defn- print-predicate-failure [@{:pred pred :value value :result result}]
+(defn- print-predicate-failure [{:pred pred :value value :result result}]
   (println "                 Test:" value)
   (println "         evaluated to:" result)
   (println "  but doesn't satisfy:" pred))
 
-(defn- print-predicate-not-failure [@{:pred pred :value value :result result}]
+(defn- print-predicate-not-failure [{:pred pred :value value :result result}]
   (println "              Test:" value)
   (println "      evaluated to:" result)
   (println "  but does satisfy:" pred " (it shouldn't)"))
 
-(defn- print-binary-failure [@{:pred pred :expected expected :actual actual :result result}]
+(defn- print-binary-failure [{:pred pred :expected expected :actual actual :result result}]
   (println "          Test:" actual)
   (println "  evaluated to:" result)
   (println "    but is not:" pred "to" expected))
 
-(defn- print-binary-not-failure [@{:pred pred :expected expected :actual actual :result result}]
+(defn- print-binary-not-failure [{:pred pred :expected expected :actual actual :result result}]
   (println "          Test:" actual)
   (println "  evaluated to:" result)
   (println "        but is:" pred "to" expected "(it shouldn't be)"))
 
-(defn- print-thrown-failure [@{:form form :exception-symbol exception-symbol}]
+(defn- print-thrown-failure [{:form form :exception-symbol exception-symbol}]
   (println "    expected:" form)
   (println "  to throw a:" exception-symbol "(it didn't)"))
 
-(defn- print-thrown-with-msg-failure [@{:form form :exception-symbol exception-symbol :expected-message expected-message :actual-message actual-message}]
+(defn- print-thrown-with-msg-failure [{:form form :exception-symbol exception-symbol :expected-message expected-message :actual-message actual-message}]
   (if (nil? actual-message)
     (do
       (println "    expected:" form)
@@ -251,7 +256,7 @@
         (println "  with message:" expected-message)
         (println "       but got:" actual-message)))))
 
-(defn- print-any-failure [@{:form form :result result}]
+(defn- print-any-failure [{:form form :result result}]
   (println "          Test:" form)
   (println "  evaluated to:" result "(which is not truthy)"))
 
@@ -283,7 +288,7 @@
   (println)
   (println)
 
-  (let [@{:failed failed :error error :pass pass} (get stats :counts)
+  (let [{:failed failed :error error :pass pass} (get stats :counts)
         total (+ failed error pass)]
     (println "Passed:" pass)
     (println "Failed:" failed)
@@ -320,5 +325,5 @@
 (defn successful?
   "Checks if all tests have passed."
   []
-  (let [@{:failed failed :error error} (get stats :counts)]
+  (let [{:failed failed :error error} (get stats :counts)]
     (zero? (+ failed error))))
