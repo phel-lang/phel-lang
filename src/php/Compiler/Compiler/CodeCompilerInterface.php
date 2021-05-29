@@ -8,7 +8,7 @@ use Phel\Compiler\Evaluator\Exceptions\CompiledCodeIsMalformedException;
 use Phel\Compiler\Evaluator\Exceptions\FileException;
 use Phel\Compiler\Exceptions\CompilerException;
 
-interface FileCompilerInterface
+interface CodeCompilerInterface
 {
     public const DEFAULT_SOURCE = 'string';
 

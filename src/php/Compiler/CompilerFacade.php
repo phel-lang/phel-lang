@@ -5,10 +5,12 @@ declare(strict_types=1);
 namespace Phel\Compiler;
 
 use Gacela\Framework\AbstractFacade;
+use Phel\Compiler\Compiler\CodeCompiler;
 use Phel\Compiler\Evaluator\Exceptions\CompiledCodeIsMalformedException;
 use Phel\Compiler\Evaluator\Exceptions\FileException;
 use Phel\Compiler\Exceptions\CompilerException;
 use Phel\Compiler\Lexer\Exceptions\LexerValueException;
+use Phel\Compiler\Lexer\Lexer;
 use Phel\Compiler\Lexer\TokenStream;
 use Phel\Compiler\Parser\Exceptions\UnexpectedParserException;
 use Phel\Compiler\Parser\Exceptions\UnfinishedParserException;
@@ -41,17 +43,17 @@ final class CompilerFacade extends AbstractFacade implements CompilerFacadeInter
      * @throws CompiledCodeIsMalformedException
      * @throws FileException
      */
-    public function compile(string $phelCode, string $source = 'string', bool $enableSourceMaps = false): string
+    public function compile(string $phelCode, string $source = CodeCompiler::DEFAULT_SOURCE, bool $enableSourceMaps = false): string
     {
         return $this->getFactory()
-            ->createFileCompiler($enableSourceMaps)
+            ->createCodeCompiler($enableSourceMaps)
             ->compile($phelCode, $source);
     }
 
     /**
      * @throws LexerValueException
      */
-    public function lexString(string $code, bool $withLocation = true, string $source = 'string', int $startingLine = 1): TokenStream
+    public function lexString(string $code, bool $withLocation = true, string $source = Lexer::DEFAULT_SOURCE, int $startingLine = 1): TokenStream
     {
         return $this->getFactory()
             ->createLexer($withLocation)

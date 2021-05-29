@@ -21,7 +21,7 @@ use Phel\Compiler\Parser\ReadModel\ReaderResult;
 use Phel\Compiler\Reader\Exceptions\ReaderException;
 use Phel\Compiler\Reader\ReaderInterface;
 
-final class FileCompiler implements FileCompilerInterface
+final class CodeCompiler implements CodeCompilerInterface
 {
     private LexerInterface $lexer;
     private ParserInterface $parser;
@@ -69,7 +69,7 @@ final class FileCompiler implements FileCompilerInterface
                     $readerResult = $this->reader->read($parseTree);
                     $phpCode .= $this->analyzeAndEvalNode($readerResult);
                 }
-            } catch (AbstractParserException | ReaderException $e) {
+            } catch (AbstractParserException|ReaderException $e) {
                 throw new CompilerException($e, $e->getCodeSnippet());
             }
         }
