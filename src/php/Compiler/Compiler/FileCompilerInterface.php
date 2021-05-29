@@ -10,17 +10,12 @@ use Phel\Compiler\Exceptions\CompilerException;
 
 interface FileCompilerInterface
 {
-    /**
-     * @throws CompilerException
-     * @throws CompiledCodeIsMalformedException
-     * @throws FileException
-     */
-    public function compileFile(string $filename): string;
+    public const DEFAULT_SOURCE = 'string';
 
     /**
      * @throws CompilerException
      * @throws CompiledCodeIsMalformedException
      * @throws FileException
      */
-    public function compileCode(string $code): string;
+    public function compile(string $phelCode, string $source = self::DEFAULT_SOURCE): string;
 }

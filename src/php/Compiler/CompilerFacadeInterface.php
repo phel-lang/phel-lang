@@ -32,14 +32,7 @@ interface CompilerFacadeInterface
      * @throws CompiledCodeIsMalformedException
      * @throws FileException
      */
-    public function compileFile(string $filename): string;
-
-    /**
-     * @throws CompilerException
-     * @throws CompiledCodeIsMalformedException
-     * @throws FileException
-     */
-    public function compileCode(string $code, bool $enableSourceMaps = false): string;
+    public function compile(string $phelCode, string $source = '', bool $enableSourceMaps = false): string;
 
     /**
      * @throws LexerValueException

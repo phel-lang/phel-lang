@@ -41,23 +41,11 @@ final class CompilerFacade extends AbstractFacade implements CompilerFacadeInter
      * @throws CompiledCodeIsMalformedException
      * @throws FileException
      */
-    public function compileFile(string $filename): string
-    {
-        return $this->getFactory()
-            ->createFileCompiler()
-            ->compileFile($filename);
-    }
-
-    /**
-     * @throws CompilerException
-     * @throws CompiledCodeIsMalformedException
-     * @throws FileException
-     */
-    public function compileCode(string $code, bool $enableSourceMaps = false): string
+    public function compile(string $phelCode, string $source = 'string', bool $enableSourceMaps = false): string
     {
         return $this->getFactory()
             ->createFileCompiler($enableSourceMaps)
-            ->compileCode($code);
+            ->compile($phelCode, $source);
     }
 
     /**
