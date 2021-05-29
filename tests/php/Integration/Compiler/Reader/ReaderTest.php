@@ -759,10 +759,10 @@ final class ReaderTest extends TestCase
     /**
      * @return TypeInterface|string|float|int|bool|null
      */
-    private function read(string $string, bool $withLocation = false)
+    private function read(string $string, bool $withLocation = true)
     {
         Symbol::resetGen();
-        $tokenStream = $this->compilerFacade->lexString($string, Lexer::DEFAULT_SOURCE, !$withLocation);
+        $tokenStream = $this->compilerFacade->lexString($string, Lexer::DEFAULT_SOURCE, $withLocation);
         $parseTree = $this->compilerFacade->parseNext($tokenStream);
 
         return $this->compilerFacade->read($parseTree)->getAst();
