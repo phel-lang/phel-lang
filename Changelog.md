@@ -4,6 +4,8 @@ All notable changes to this project will be documented in this file.
 
 ## Unreleased
 
+* Removed `load` function in `phel\core`
+
 ## 0.3.2 (2021-05-16)
 
 * Transient Maps can grow bigger than 16 elements (#289)
