@@ -219,11 +219,6 @@ This is PHP equivalent to `$args[0] . $args[1] . $args[2] ...`"
     ""
     (apply php/. args)))
 
-(defn load
-  "Loads a file into the current namespace. It can be used to split large namespaces into multiple files."
-  [path]
-  (php/-> (php/:: RuntimeSingleton (getInstance)) (loadFileIntoNamespace *ns* path)))
-
 (defn transient
   "Converts a persistent collection to a transient collection"
   [coll]
@@ -234,19 +229,1423 @@ This is PHP equivalent to `$args[0] . $args[1] . $args[2] ...`"
   [coll]
   (php/-> coll (persistent)))
 
-(load (str __DIR__ "/core/basic-constructors.phel"))
-(load (str __DIR__ "/core/basic-sequence-operation.phel"))
-(load (str __DIR__ "/core/control-structures.phel"))
-(load (str __DIR__ "/core/boolean-operation.phel"))
-(load (str __DIR__ "/core/type-operation.phel"))
-(load (str __DIR__ "/core/sequence-operation.phel"))
-(load (str __DIR__ "/core/for-loop.phel"))
-(load (str __DIR__ "/core/sequence-functions.phel"))
-(load (str __DIR__ "/core/set-operation.phel"))
-(load (str __DIR__ "/core/function-operation.phel"))
-(load (str __DIR__ "/core/more-sequence-operation.phel"))
-(load (str __DIR__ "/core/bitwise-operation.phel"))
-(load (str __DIR__ "/core/math-operation.phel"))
-(load (str __DIR__ "/core/print-operation.phel"))
-(load (str __DIR__ "/core/threading-macros.phel"))
-(load (str __DIR__ "/core/regex-functions.phel"))
+# ------------------
+# Basic constructors
+# ------------------
+
+(defn set
+  "Creates a new Set. If no argument is provided, an empty Set is created."
+  [& xs]
+  (php/-> (php/:: TypeFactory (getInstance)) (persistentHashSetFromArray (php/-> xs (toPhpArray)))))
+
+(defn keyword
+  "Creates a new Keyword from a given string."
+  [x]
+  (php/new Keyword x))
+
+(defn php-indexed-array
+  "Creates an PHP indexed array from the given values."
+  [& xs]
+  (apply php/array xs))
+
+(defn php-associative-array
+  "Creates a PHP associative array. An even number of parameters must be provided."
+  [& xs]
+  (let [cnt (php/count xs)
+        res (php/array)]
+    (if (php/=== 1 (php/% cnt 2))
+      (throw (php/new InvalidArgumentException "An even number of parameters must be provided for 'php-associative-array'")))
+    (loop [i 0]
+      (if (php/< i cnt)
+        (do
+          (php/aset res (php/aget xs i) (php/aget xs (php/+ i 1)))
+          (recur (php/+ i 2)))
+        res))))
+
+# ------------------------
+# Basic sequence operation
+# ------------------------
+
+(defn- equals1 [a b]
+  (if (php/instanceof a AbstractType)
+    (php/-> a (equals b))
+    (php/=== a b)))
+
+(defn cons
+  "Prepends `x` to the beginning of `xs`."
+  [x xs]
+  (if (php/is_array xs)
+    (do
+      (php/array_unshift xs x)
+      xs)
+    (if (php/instanceof xs ConsInterface)
+      (php/-> xs (cons x))
+      (if (php/=== xs nil)
+        @[x]
+        (throw (php/new InvalidArgumentException
+                        (php/. "cannot do cons " (php/print_r x true))))))))
+
+(defn ffirst
+  "Same as `(first (first xs))`"
+  [xs]
+  (first (first xs)))
+
+(defn second
+  "Returns the second element of an indexed sequence or nil."
+  [xs]
+  (first (next xs)))
+
+(defn rest
+  "Returns the sequence of elements after the first element. If there are no
+elements, returns an empty sequence."
+  [xs]
+  (if (php/instanceof xs RestInterface)
+    (php/-> xs (rest))
+    (if (php/is_array xs)
+      (php/array_slice xs 1)
+      (throw (php/new InvalidArgumentException "cannot do rest")))))
+
+(defn nfirst
+  "Same as `(next (first xs))`."
+  [xs]
+  (next (first xs)))
+
+(defn nnext
+  "Same as `(next (next xs))`"
+  [xs]
+  (next (next xs)))
+
+(defn count
+  "Counts the number of elements in a sequence. Can be used on everything that
+implement the PHP Countable interface."
+  [xs]
+  (if (php/instanceof xs Countable)
+    (php/-> xs (count))
+    (if (php/is_array xs)
+      (php/count xs)
+      (if (php/=== xs nil)
+        0
+        (throw (php/new InvalidArgumentException (str "object is not countable: " xs)))))))
+
+# ------------------
+# Control structures
+# ------------------
+
+(defmacro if-not
+  "Shorthand for `(if (not condition) else then)`."
+  [test then & [else]]
+  `(if ,test ,else ,then))
+
+(defmacro when
+  "Evaluates `test` and if that is logical true, evaluates `body`."
+  [test & body]
+  `(if ,test (do ,@body)))
+
+(defmacro when-not
+  "Evaluates `test` and if that is logical false, evaluates `body`."
+  [test & body]
+  `(if ,test nil (do ,@body)))
+
+(defmacro cond
+  "Takes a set of test/expression pairs. Evaluates each test one at a time.
+  If a test returns logically true, the expression is evaluated and return.
+  If no test matches a final last expression can be provided that is than
+  evaluated and return. Otherwise, nil is returned."
+  [& pairs]
+  (let [cnt (count pairs)]
+    (if (php/=== cnt 0)
+      nil
+      (if (php/=== cnt 1)
+        (first pairs)
+        (list 'if
+              (first pairs)
+              (second pairs)
+              (cons 'cond (apply list (next (next pairs)))))))))
+
+(defmacro case
+  "Takes an expression `e` and a set of test-content/expression pairs. First
+  evaluates `e` and the then finds the first pair where the test-constant matches
+  the result of `e`. The associated expression is then evaluated and returned.
+  If no matches can be found a final last expression can be provided that is
+  than evaluated and return. Otherwise, nil is returned."
+  [e & pairs]
+  (if (next pairs)
+    (let [v (gensym)]
+      `(let [,v ,e]
+         (if (equals1 ,v ',(first pairs))
+           ,(first (next pairs))
+           (case ,v ,@(next (next pairs))))))
+    (first pairs)))
+
+# -----------------
+# Boolean operation
+# -----------------
+
+(defmacro or
+  "Evaluates each expression one at a time, from left to right. If a form
+returns a logical true value, or returns that value and doesn't evaluate any of
+the other expressions, otherwise it returns the value of the last expression.
+Calling or without arguments, returns nil."
+  [& args]
+  (case (count args)
+    0 nil
+    1 (first args)
+    (let [v (gensym)]
+      `(let [,v ,(first args)]
+         (if ,v ,v (or ,@(next args)))))))
+
+(defmacro and
+  "Evaluates each expression one at a time, from left to right. If a form
+returns logical false, and returns that value and doesn't evaluate any of the
+other expressions, otherwise it returns the value of the last expression.
+Calling the and function without arguments returns true."
+  [& args]
+  (case (count args)
+    0 'true
+    1 (first args)
+    (let [v (gensym)]
+      `(let [,v ,(first args)]
+         (if ,v (and ,@(next args)) ,v)))))
+
+(defn- id2 [a b]
+  (if (php/instanceof a IdenticalInterface)
+    (php/-> a (identical b))
+    (php/=== a b)))
+
+(defn id
+  "Checks if all values are identically. Same as `a === b` in PHP."
+  [a & more]
+  (case (count more)
+    0 true
+    1 (id2 a (first more))
+    (if (id2 a (first more))
+      (recur (first more) (next more))
+      false)))
+
+(defn =
+  "Checks if all values are equal. Same as `a == b` in PHP."
+  [a & more]
+  (case (count more)
+    0 true
+    1 (equals1 a (first more))
+    (if (equals1 a (first more))
+      (recur (first more) (next more))
+      false)))
+
+(defn not
+  "The `not` function returns `true` if the given value is logical false and
+`false` otherwise."
+  [x]
+  (if x false true))
+
+(defn not=
+  "Checks if all values are unequal. Same as `a != b` in PHP."
+  [a & more]
+  (case (count more)
+    0 false
+    1 (not (= a (first more)))
+    (not (apply = a more))))
+
+(defn <
+  "Checks if each argument is strictly less than the following argument. Returns a boolean."
+  [a & more]
+  (case (count more)
+    0 true
+    1 (php/< a (first more))
+    (if (php/< a (first more))
+      (recur (first more) (next more))
+      false)))
+
+(defn <=
+  "Checks if each argument is less than or equal to the following argument. Returns a boolean."
+  [a & more]
+  (case (count more)
+    0 true
+    1 (php/<= a (first more))
+    (if (php/<= a (first more))
+      (recur (first more) (next more))
+      false)))
+
+(defn >
+  "Checks if each argument is strictly greater than the following argument. Returns a boolean."
+  [a & more]
+  (case (count more)
+    0 true
+    1 (php/> a (first more))
+    (if (php/> a (first more))
+      (recur (first more) (next more))
+      false)))
+
+(defn >=
+  "Checks if each argument is greater than or equal to the following argument. Returns a boolean."
+  [a & more]
+  (case (count more)
+    0 true
+    1 (php/>= a (first more))
+    (if (php/>= a (first more))
+      (recur (first more) (next more))
+      false)))
+
+(defn all?
+  "Returns true if `(pred x)` is logical true for every `x` in `xs`, else false."
+  [pred xs]
+  (cond
+    (php/=== (count xs) 0) true
+    (pred (first xs))     (recur pred (next xs))
+    false))
+
+(defn some?
+  "Returns true if `(pred x)` is logical true for at least one `x` in `xs`, else false."
+  [pred xs]
+  (if xs
+    (or (pred (first xs)) (recur pred (next xs)))
+    false))
+
+(defn true?
+  "Checks if `x` is true. Same as `x === true` in PHP."
+  [x]
+  (id x true))
+
+(defn truthy?
+  "Checks if `x` is truthy. Same as `x == true` in PHP."
+  [x]
+  (php/:: Truthy (isTruthy x)))
+
+(defn false?
+  "Checks if `x` is false. Same as `x === false` in PHP."
+  [x]
+  (id x false))
+
+(defn nil?
+  "Returns true if `x` is nil, false otherwise."
+  [x]
+  (id x nil))
+
+(defn str-contains?
+  "True if str contains s."
+  [str s]
+  (not (false? (php/strpos str s))))
+
+(defn contains?
+  "Returns true if key is present in the given collection, otherwise returns false."
+  [coll key]
+  (cond
+    (php/instanceof coll ContainsInterface) (php/-> coll (contains key))
+    (php/is_array coll) (php/array_key_exists key coll)
+    (throw (php/new InvalidArgumentException (php/. "cannot call 'contains?' on " (php/get_class coll))))))
+
+(defn compare
+  "An integer less than, equal to, or greater than zero when `x` is less than,
+  equal to, or greater than `y`, respectively."
+  [x y]
+  (php/<=> x y))
+
+# --------------
+# Type operation
+# --------------
+
+(defn type
+  "Returns the type of `x`. Following types can be returned:
+
+* `:vector`
+* `:list`
+* `:struct`
+* `:hash-map`
+* `:set`
+* `:array`
+* `:table`
+* `:keyword`
+* `:symbol`
+* `:int`
+* `:float`
+* `:string`
+* `:nil`
+* `:boolean`
+* `:function`
+* `:php/array`
+* `:php/resource`
+* `:php/object`
+* `:unknown`"
+  [x]
+  (cond
+    (php/instanceof x PersistentVectorInterface)  :vector
+    (php/instanceof x PersistentListInterface)    :list
+    (php/instanceof x AbstractPersistentStruct)   :struct
+    (php/instanceof x PersistentMapInterface)     :hash-map
+    (php/instanceof x PersistentHashSetInterface) :set
+    (php/instanceof x PhelArray)                  :array
+    (php/instanceof x Table)                      :table
+    (php/instanceof x Keyword)                    :keyword
+    (php/instanceof x Symbol)                     :symbol
+    (php/is_int x)                                :int
+    (php/is_float x)                              :float
+    (php/is_string x)                             :string
+    (php/is_null x)                               :nil
+    (php/is_bool x)                               :boolean
+    (php/is_callable x)                           :function
+    (php/is_array x)                              :php/array
+    (php/is_resource x)                           :php/resource
+    (php/is_object x)                             :php/object
+    :unknown))
+
+(defn float?
+  "Returns true if `x` is float point number, false otherwise."
+  [x]
+  (= (type x) :float))
+
+(defn int?
+  "Returns true if `x` is an integer number, false otherwise."
+  [x]
+  (= (type x) :int))
+
+(defn number?
+  "Returns true if `x` is a number, false otherwise."
+  [x]
+  (or (= (type x) :int) (= (type x) :float)))
+
+(defn string?
+  "Returns true if `x` is a string, false otherwise."
+  [x]
+  (= (type x) :string))
+
+(defn keyword?
+  "Returns true if `x` is a keyword, false otherwise."
+  [x]
+  (= (type x) :keyword))
+
+(defn symbol?
+  "Returns true if `x` is a symbol, false otherwise."
+  [x]
+  (= (type x) :symbol))
+
+(defn function?
+  "Returns true if `x` is a function, false otherwise."
+  [x]
+  (= (type x) :function))
+
+(defn struct?
+  "Returns true if `x` is a struct, false otherwise."
+  [x]
+  (= (type x) :struct))
+
+(defn table?
+  "Returns true if `x` is a table, false otherwise."
+  [x]
+  (= (type x) :table))
+
+(defn hash-map?
+  "Returns true if `x` is a hash map, false otherwise."
+  [x]
+  (= (type x) :hash-map))
+
+(defn array?
+  "Returns true if `x` is a array, false otherwise."
+  [x]
+  (= (type x) :array))
+
+(defn vector?
+  "Returns true if `x` is a vector, false otherwise."
+  [x]
+  (= (type x) :vector))
+
+(defn list?
+  "Returns true if `x` is a list, false otherwise."
+  [x]
+  (= (type x) :list))
+
+(defn boolean?
+  "Returns true if `x` is a boolean, false otherwise."
+  [x]
+  (= (type x) :boolean))
+
+(defn php-array?
+  "Returns true if `x` is a PHP Array, false otherwise."
+  [x]
+  (= (type x) :php/array))
+
+(defn php-resource?
+  "Returns true if `x` is a PHP resource, false otherwise."
+  [x]
+  (= (type x) :php/resource))
+
+(defn php-object?
+  "Returns true if `x` is a PHP object, false otherwise."
+  [x]
+  (= (type x) :php/object))
+
+(defn empty?
+  "Returns true if `(count x)` is zero, false otherwise."
+  [x]
+  (= 0 (count x)))
+
+(defn- indexed-php-array?
+  [x]
+  (and
+   (= (type x) :php/array)
+   (or
+    (php/empty x)
+    (php/=== (php/array_keys x) (php/range 0 (php/- (php/count x) 1))))))
+
+(defn indexed?
+  "Returns true if `x` is indexed sequence, false otherwise."
+  [x]
+  (let [t (type x)]
+    (or
+     (= t :array)
+     (= t :list)
+     (= t :vector)
+     (indexed-php-array? x))))
+
+(defn associative?
+  "Returns true if `x` is associative data structure, false otherwise."
+  [x]
+  (let [t (type x)]
+    (or
+     (= t :table)
+     (= t :hash-map)
+     (= t :struct)
+     (and (= t :php/array) (not (indexed-php-array? x))))))
+
+(defn set?
+  "Returns true if `x` is a set, false otherwise."
+  [x]
+  (= (type x) :set))
+
+# ------------------
+# Sequence operation
+# ------------------
+
+(defn peek
+  "Returns the last element of a sequence."
+  [xs]
+  (php/aget xs (php/- (count xs) 1)))
+
+(defn push
+  "Inserts `x` at the end of the sequence `xs`."
+  [^:reference xs x]
+  (cond
+    (php-array? xs) (do (php/apush xs x) xs)
+    (or (vector? xs) (php/instanceof xs TransientVectorInterface)) (php/-> xs (append x))
+    (or (set? xs) (php/instanceof xs TransientHashSetInterface)) (php/-> xs (add x))
+    (php/instanceof xs PushInterface) (php/-> xs (push x))
+    (throw (php/new InvalidArgumentException
+                    (str "Cannot push on type " (type xs))))))
+
+(defn pop
+  "Removes the last element of the array `xs`. If the array is empty
+  returns nil."
+  [^:reference xs]
+  (cond
+    (php-array? xs) (php/array_pop xs)
+    (php/instanceof xs PopInterface) (php/-> xs (pop))
+    (throw (php/new InvalidArgumentException "Cannot pop"))))
+
+(defn remove
+  "Removes up to `n` element from array `xs` starting at index `offset`."
+  [^:reference xs offset & [n]]
+  (cond
+    (php-array? xs) (if n (php/array_splice xs offset n) (php/array_splice xs offset))
+    (php/instanceof xs RemoveInterface) (php/-> xs (remove offset n))
+    (throw (php/new InvalidArgumentException "Cannot remove"))))
+
+(defn get
+  "Get the value mapped to `key` from the datastructure `ds`.
+  Returns `opt` or nil if the value cannot be found."
+  [ds k & [opt]]
+  (let [res (php/aget ds k)]
+    (if (nil? res)
+      opt
+      res)))
+
+(defn put
+  "Puts `value` mapped to `key` on the datastructure `ds`. Returns `ds`."
+  [ds key value]
+  (cond
+    (php-array? ds)
+    (throw (php/new InvalidArgumentException "Cannot call put on pure PHP
+arrays. Use (php/aset ds key value)"))
+
+    (or (struct? ds) (hash-map? ds) (php/instanceof ds TransientMapInterface))
+    (php/-> ds (put key value))
+
+    (or (vector? ds) (php/instanceof ds TransientVectorInterface))
+    (php/-> ds (update key value))
+
+    (do
+      (php/aset ds key value)
+      ds)))
+
+(defn unset
+  "Returns `ds` without `key`."
+  [ds key]
+  (cond
+    (php-array? ds)
+    (throw (php/new InvalidArgumentException "Cannot call unset on pure PHP
+arrays. Use (php/aunset ds key)"))
+
+    (or (hash-map? ds) (php/instanceof ds TransientMapInterface))
+    (php/-> ds (remove key))
+
+    (or (set? ds) (php/instanceof ds TransientHashSetInterface))
+    (php/-> ds (remove key))
+
+    (let [x ds]
+      (php/aunset x key)
+      x)
+    ))
+
+# --------
+# For loop
+# --------
+
+(defn range
+  "Create an array of values [start, end). If the function has one argument the
+  the range [0, end) is returned. With two arguments, returns [start, end).
+  The third argument is an optional step width (default 1)."
+  [a & rest]
+  (case (count rest)
+    0 (range 0 a 1)
+    1 (range a (get rest 0) 1)
+    2 (let [res (transient [])
+            begin a
+            end (get rest 0)
+            step (get rest 1)
+            cmp (if (< step 0) > <)]
+        (loop [i begin]
+          (if (cmp i end)
+            (do
+              (push res i)
+              (recur (php/+ i step)))
+            (persistent res))))
+    (throw (php/new InvalidArgumentException "Range function expects one, two or three arguments"))))
+
+(defn- for-builder [body head i]
+  (if (<= (count head) i)
+    # No more heads, return the body
+    body
+
+    # Handle heads
+    (let [@[i binding (php/+ i 1) verb] head]
+      (if (keyword? binding)
+        # Case 1: Modifiers
+        (let [rest (for-builder body head (php/+ i 2))]
+          (case binding
+            :while  `(if ,verb ,rest php/break)
+            :let    `(let ,verb ,rest)
+            :when   `(when ,verb ,rest)
+            (throw (php/new InvalidArgumentException (str "This modifier is not supported in for loop: " verb)))))
+
+        # Case 2: Verbs
+        (let [@[(php/+ i 2) object] head
+              rest (for-builder body head (php/+ i 3))
+              value-sym (gensym)]
+          (case verb
+            :range  `(foreach [,binding (apply range ,object)] ,rest)
+            :in     `(foreach [,value-sym ,object] (let [,binding ,value-sym] ,rest))
+            :keys   (let [key-sym (gensym)]
+                      `(foreach [,key-sym ,value-sym ,object] (let [,binding ,key-sym] ,rest)))
+            :pairs  (let [key-sym (gensym)]
+                      `(foreach [,key-sym ,value-sym ,object]
+                         (let [,binding [,key-sym ,value-sym]] ,rest)))
+            (throw (php/new InvalidArgumentException (str "This verb is not supported in for loop " verb)))))))))
+
+(defmacro for
+  "List comprehension. The head of the loop is a vector that contains a
+  sequence of bindings and modifiers. A binding is a sequence of three
+  values `binding :verb expr`. Where `binding` is a binding as
+  in let and `:verb` is one of the following keywords:
+
+  * :range loop over a range by using the range function.
+  * :in loops over all values of a collection.
+  * :keys loops over all keys/indexes of a collection.
+  * :pairs loops over all key value pairs of a collection.
+
+  After each loop binding additional modifiers can be applied. Modifiers
+  have the form `:modifier argument`. The following modifiers are supported:
+
+  * :while breaks the loop if the expression is falsy.
+  * :let defines additional bindings.
+  * :when only evaluates the loop body if the condition is true.
+
+  The for loops returns a array with all evaluated elements of the body."
+  [head & body]
+  (let [res-sym (gensym "res__")
+        loop-body (for-builder `(push ,res-sym (do ,@body)) head 0)]
+    `(let [,res-sym (transient [])]
+       ,loop-body
+       (persistent ,res-sym))))
+
+(defmacro dofor
+  "Repeatedly executes body for side effects with bindings and modifiers as
+  provided by for. Returns nil."
+  [head & body]
+  (for-builder `(do ,@body) head 0))
+
+# ------------------
+# Sequence functions
+# ------------------
+
+(defn map
+  "Returns an array consisting of the result of applying `f` to all of the first items in each `xs`,
+   followed by applying `f` to all the second items in each `xs` until anyone of the `xs` is exhausted."
+  [f & xs]
+  (case (count xs)
+    0 (throw (php/new InvalidArgumentException "expected at least one indexed
+collection in map"))
+    1 (for [x :in (first xs)] (f x))
+    (loop [res (transient [])
+           seq xs]
+      (if (some? nil? seq)
+        (persistent res)
+        (do
+          (push res (apply f (map first seq)))
+          (recur res (map next seq)))))))
+
+(defn map-indexed
+  "Applies `f` to each element in `xs`. `f` is a two argument function. The first
+  argument is index of the element in the sequence and the second element is the
+  element itself."
+  [f xs]
+  (for [[k v] :pairs xs] (f k v)))
+
+(defn mapcat
+  "Applies `f` on all `xs` and concatenate the result."
+  [f & xs]
+  (apply concat [] (apply map f xs)))
+
+(defn reduce
+  "Transforms an collection `xs` with a function `f` to produce a value by applying `f` to each element in order.
+  `f` is a function with two arguments. The first argument is the initial value and the second argument is
+  the element of `xs`. `f` returns a value that will be used as the initial value of the next call to `f`. The final
+  value of `f` is returned."
+  [f init xs]
+  (if (= (count xs) 0)
+    init
+    (recur f (f init (first xs)) (next xs))))
+
+(defn reduce2
+  "The 2-argument version of reduce that does not take a initialization value.
+  Instead the first argument of the list is used as initialization value."
+  [f [x & xs]]
+  (reduce f x xs))
+
+(defn slice
+  "Extract a slice of `xs`."
+  [xs & [offset & [length]]]
+  (cond
+    (php-array? xs) (php/array_slice xs offset length)
+    (php/instanceof xs SliceInterface) (php/-> xs (slice offset length))
+    (throw (php/new InvalidArgumentException "Cannot slice"))))
+
+(defn get-in
+  "Access a value in a nested data structure. Looks into the data structure via a sequence of keys."
+  [ds ks & [opt]]
+  (let [res (reduce get ds ks)]
+    (if (nil? res) opt res)))
+
+(defn put-in
+  "Puts a value into a nested data structure."
+  [ds [k & ks] v]
+  (if-not (nil? ks)
+    (put ds k (put-in (get ds k {}) ks v))
+    (put ds k v)))
+
+(defn update
+  "Updates a value in a datastructure by applying `f` to the current element and replacing it with the result of `f`."
+  [ds k f & args]
+  (put ds k (apply f (get ds k) args)))
+
+(defn update-in
+  "Updates a value into a nested data structure."
+  [ds [k & ks] f & args]
+  (if ks
+    (put ds k (apply update-in (get ds k {}) ks f args))
+    (let [current (get ds k)] # Extract value first for possible call-by-reference
+      (put ds k (apply f current args)))))
+
+(defn drop
+  "Drops the first `n` elements of `xs`."
+  [n xs]
+  (slice xs (if (php/< n 0) 0 n)))
+
+(defn drop-while
+  "Drops all elements at the front `xs` where `(pred x)` is true."
+  [pred xs]
+  (loop [s xs]
+    (if (and s (pred (first s)))
+      (recur (next s))
+      (if s s []))))
+
+(defn take
+  "Takes the first `n` elements of `xs`."
+  [n xs]
+  (slice xs 0 (if (php/< n 0) 0 n)))
+
+(defn take-last
+  "Takes the last `n` elements of `xs`."
+  [n xs]
+  (if (php/<= n 0) [] (slice xs (php/* -1 n))))
+
+(defn take-while
+  "Takes alle elements at the front of `xs` where `(pred x)` is true."
+  [pred xs]
+  (for [x :in xs :while (pred x)] x))
+
+(defn filter
+  "Returns all elements of `xs` wher `(pred x)` is true."
+  [pred xs]
+  (for [x :in xs :when (pred x)] x))
+
+(defn keep
+  "Returns a list of non-nil results of `(pred x)`."
+  [pred xs]
+  (for [x :in xs
+        :let [res (pred x)]
+        :when (not (nil? res))]
+    res))
+
+(defn keep-indexed
+  "Returns a list of non-nil results of `(pred i x)`."
+  [pred xs]
+  (for [[k v] :pairs xs
+        :let [res (pred k v)]
+        :when (not (nil? res))]
+    res))
+
+(defn find
+  "Returns the first item in `xs` where `(pred item)` evaluates to true."
+  [pred xs]
+  (loop [s xs]
+    (if s
+      (if (pred (first s))
+        (first s)
+        (recur (next s)))
+      nil)))
+
+(defn find-index
+  "Returns the first item in `xs` where `(pred index item)` evaluates to true."
+  [pred xs]
+  (loop [s xs
+         i 0]
+    (if s
+      (if (pred (first s))
+        i
+        (recur (next s) (php/+ i 1)))
+      nil)))
+
+(defn distinct
+  "Returns an array with duplicated values removed in `xs`."
+  [xs]
+  (let [seen (transient {})
+        ret (transient [])]
+    (dofor [x :in xs]
+      (when-not (get seen x)
+        (put seen x true)
+        (push ret x)))
+    (persistent ret)))
+
+(defn reverse
+  "Reverses the order of the elements in the given sequence."
+  [xs]
+  (let [ret (transient [])]
+    (dofor [i :range [(php/- (count xs) 1) -1 -1]]
+      (push ret (get xs i)))
+    (persistent ret)))
+
+(defn interleave
+  "Returns a array with the first items of each col, than the second items etc."
+  [& xs]
+  (loop [i 0
+         res []]
+    (let [nths (map |(get $ i) xs)]
+      (if (some? nil? nths)
+        res
+        (recur (php/+ i 1) (concat res nths))))))
+
+(defn interpose
+  "Returns an array of elements separated by `sep`"
+  [sep xs]
+  (let [res (transient [])]
+    (dofor [[k v] :pairs xs]
+      (when (> k 0)
+        (push res sep))
+      (push res v))
+    (persistent res)))
+
+(defn frequencies
+  "Returns a table from distinct items in `xs` to the number of times they appear."
+  [xs]
+  (let [res (transient {})]
+    (dofor [x :in xs :let [n (get res x)]]
+      (put res x (php/+ 1 (or n 0))))
+    (persistent res)))
+
+(defn keys
+  "Gets the keys of an associative data structure."
+  [xs]
+  (for [k :keys xs] k))
+
+(defn values
+  "Gets the values of an associative data structure."
+  [xs]
+  (for [x :in xs] x))
+
+(defn pairs
+  "Gets the pairs of an associative data structure."
+  [xs]
+  (for [p :pairs xs] p))
+
+(defn kvs
+  "Returns an array of key value pairs like [k1 v1 k2 v2 k3 v3 ...]."
+  [xs]
+  (let [res (transient [])]
+    (dofor [[k v] :pairs xs]
+      (push res k)
+      (push res v))
+    (persistent res)))
+
+(defn to-php-array
+  "Create a PHP Array from a sequential data structure."
+  [xs]
+  (apply php/array xs))
+
+(defn php-array-to-table
+  "Converts a PHP Array to a tables."
+  [arr]
+  (let [res @{}]
+    (foreach [k v arr]
+      (put res k v))
+    res))
+
+(defn php-array-to-map
+  "Converts a PHP Array to a tables."
+  [arr]
+  (let [res (transient {})]
+    (foreach [k v arr]
+      (put res k v))
+    (persistent res)))
+
+(defn sort
+  "Returns a sorted array. If no comparator is supplied compare is used."
+  [xs & [comp]]
+  (let [php-array (to-php-array xs)]
+    (php/usort php-array (or comp compare))
+    (apply array php-array)))
+
+(defn sort-by
+  "Returns a sorted array where the sort order is determined by comparing
+  (keyfn item). If no comparator is supplied compare is used."
+  [keyfn xs & [comp]]
+  (let [php-array (to-php-array xs)
+        cmp (or comp compare)]
+    (php/usort php-array |(cmp (keyfn $1) (keyfn $2)))
+    (apply array php-array)))
+
+(defn shuffle
+  "Returns a random permutation of xs."
+  [xs]
+  (let [php-array (to-php-array xs)]
+    (php/shuffle php-array)
+    (apply array php-array)))
+
+(defn repeat
+  "Returns an array of length n where every element is x."
+  [n x]
+  (for [i :range [n]] x))
+
+(defn group-by
+  "Returns a table of the elements of xs keyed by the result of
+  f on each element."
+  [f xs]
+  (let [res (transient {})]
+    (dofor [x :in xs :let [k (f x)]]
+      (when-not (get res k)
+        (put res k []))
+      (update-in res [k] push x))
+    (persistent res)))
+
+(defn zipcoll
+  "Creates a table from two sequential data structures. Return a new table."
+  [a b]
+  (apply hash-map (interleave a b)))
+
+(defn merge-into
+  "Merges multiple tables into first table. If a key appears in more than one
+  collection, then later values replace any previous ones."
+  [tab & tables]
+  (foreach [table tables]
+    (foreach [k v table]
+      (put tab k v)))
+  tab)
+
+(defn merge
+  "Merges multiple tables into one new table. If a key appears in more than one
+  collection, then later values replace any previous ones."
+  [& tables]
+  (persistent (apply merge-into (transient {}) tables)))
+
+(defn invert
+  "Returns a new table where the keys and values are swapped. If table has
+  duplicated values, some keys will be ignored."
+  [table]
+  (zipcoll (values table) (keys table)))
+
+(defn split-at
+  "Returns a vector of [(take n coll) (drop n coll)]."
+  [n xs]
+  [(take n xs) (drop n xs)])
+
+(defn split-with
+  "Returns a vector of [(take-while pred coll) (drop-while pred coll)]."
+  [f xs]
+  [(take-while f xs) (drop-while f xs)])
+
+(defn partition
+  "Partition an indexed data structure into vectors of maximum size n. Returns a new vector."
+  [n xs]
+  (if (<= (count xs) n)
+    (if (= (count xs) 0) [] [xs])
+    (let [res (transient [])]
+      (loop [xs xs]
+        (let [[a b] (split-at n xs)]
+          (push res a)
+          (if (>= (count b) n)
+            (recur b)
+            (if (= (count b) 0)
+              (persistent res)
+              (do
+                (push res b)
+                (persistent res)))))))))
+
+# -------------
+# Set operation
+# -------------
+
+(defn union
+  "Union multiple sets into a new one."
+  [& sets]
+  (let [target (transient (set))]
+    (foreach [s sets]
+      (foreach [v s]
+        (php/-> target (add v))))
+    (persistent target)))
+
+(defn- intersection-pair
+  [s1 s2]
+  (if (< (count s2) (count s1))
+    (recur s2 s1)
+    (let [result (transient s1)]
+      (foreach [item s1]
+        (when-not (php/-> s2 (contains item))
+          (php/-> result (remove item))))
+      (persistent result))))
+
+(defn intersection
+  "Intersect multiple sets into a new one."
+  [set & sets]
+  (reduce intersection-pair set sets))
+
+(defn difference-pair
+  [s1 s2]
+  (if (< (count s1) (count s2))
+    (let [result (transient s1)]
+      (foreach [item s1]
+        (when (php/-> s2 (contains item))
+          (php/-> result (remove item))))
+      (persistent result))
+
+    (let [result (transient s1)]
+      (foreach [item s2]
+        (php/-> result (remove item)))
+      (persistent result))))
+
+(defn difference
+  "Difference between multiple sets into a new one."
+  [set & sets]
+  (reduce difference-pair set sets))
+
+(defn symmetric-difference
+  "Symmetric difference between multiple sets into a new one."
+  [set & sets]
+  (reduce |(union (difference $1 $2) (difference $2 $1)) set sets))
+
+# ------------------
+# Function operation
+# ------------------
+
+(defn identity
+  "Returns its argument"
+  [x]
+  x)
+
+(defn comp
+  "Takes a list of functions and returns a function that is the composition
+  of those functions."
+  [& fs]
+  (case (count fs)
+    0 identity
+    1 (first fs)
+    2 |((first fs) (apply (second fs) $&))
+    (reduce2 comp fs)))
+
+(defn complement
+  "Returns a function that takes the same arguments as `f` and returns the opposite truth value."
+  [f]
+  |(not (apply f $&)))
+
+(defn juxt
+  "Takes a list of functions and returns a new function that is the juxtaposition of those functions.
+  `((juxt a b c) x) => [(a x) (b x) (c x)]`"
+  [& fs]
+  (fn [& args]
+    (reduce
+     |(push $1 (apply $2 args))
+     @[]
+     fs)))
+
+(defn partial
+  "Takes a function `f` and fewer than normal arguments of `f` and returns a function
+  that a variable number of additional arguments. When call `f` will be called
+  with `args` and the additional arguments"
+  [f & args]
+  |(apply f (concat @[] args $&)))
+
+# -----------------------
+# More sequence operation
+# -----------------------
+
+(defn tree-seq
+  "Returns an array of the nodes in the tree, via a depth first walk.
+  branch? is a function with one argument that returns true if the given node
+  has children.
+  children must be a function with one argument that returns the children of the node.
+  root the root node of the tree."
+  [branch? children root]
+  (let [ret @[]]
+    (loop [stack @[root]]
+      (if (> (count stack) 0)
+        (let [node (pop stack)]
+          (push ret node)
+          (if (branch? node)
+            (recur (concat stack (reverse (children node))))
+            (recur stack)))
+        ret))))
+
+(defn flatten
+  "Takes a nested sequential data structure (tree), and returns their contents
+  as a single, flat array."
+  [xs]
+  (filter
+   (complement indexed?)
+   (rest (tree-seq indexed? identity xs))))
+
+# -----------------
+# Bitwise operation
+# -----------------
+
+(defn bit-and
+  "Bitwise and"
+  [x y & args]
+  (let [all (concat [x y] args)]
+    (reduce2 |(php/& $1 $2) all)))
+
+(defn bit-or
+  "Bitwise or"
+  [x y & args]
+  (let [all (concat [x y] args)]
+    (reduce2 |(php/| $1 $2) all)))
+
+(defn bit-xor
+  "Bitwise xor"
+  [x y & args]
+  (let [all (concat [x y] args)]
+    (reduce2 |(php/^ $1 $2) all)))
+
+(defn bit-not
+  "Bitwise complement"
+  [x]
+  (php/~ x))
+
+(defn bit-shift-left
+  "Bitwise shift left"
+  [x n]
+  (php/<< x n))
+
+(defn bit-shift-right
+  "Bitwise shift right"
+  [x n]
+  (php/>> x n))
+
+(defn bit-set
+  "Set bit an index `n`"
+  [x n]
+  (bit-or x (bit-shift-left 1 n)))
+
+(defn bit-clear
+  "Clear bit an index `n`"
+  [x n]
+  (bit-and x (bit-not (bit-shift-left 1 n))))
+
+(defn bit-flip
+  "Flip bit at index `n`"
+  [x n]
+  (bit-xor x (bit-shift-left 1 n)))
+
+(defn bit-test
+  "Test bit at index `n`"
+  [x n]
+  (php/!= 0 (bit-and x (bit-shift-left 1 n))))
+
+# --------------
+# Math operation
+# --------------
+
+(def NAN
+  "Constant for Not a Number (NAN) values."
+  php/NAN)
+
+(defn +
+  "Returns the sum of all elements in `xs`. All elements `xs` must be numbers.
+  If `xs` is empty, return 0."
+  [& xs]
+  (if (empty? xs)
+    0
+    (apply php/+ xs)))
+
+(defn -
+  "Returns the difference of all elements in `xs`. If `xs` is empty, return 0. If `xs`
+  has one element, return the negative value of that element."
+  [& xs]
+  (case (count xs)
+    0 0
+    1 (php/* -1 (first xs))
+    2 (php/- (first xs) (second xs))
+    (reduce2 |(php/- $1 $2) xs)))
+
+(defn *
+  "Returns the product of all elements in `xs`. All elements in `xs` must be
+numbers. If `xs` is empty, return 1."
+  [& xs]
+  (case (count xs)
+    0 1
+    1 (first xs)
+    2 (php/* (first xs) (second xs))
+    (reduce2 |(php/* $1 $2) xs)))
+
+(defn /
+  "Returns the nominator divided by all the denominators. If `xs` is empty,
+returns 1. If `xs` has one value, returns the reciprocal of x."
+  [& xs]
+  (case (count xs)
+    0 1
+    1 (php// 1 (first xs))
+    2 (php// (first xs) (second xs))
+    (reduce2 |(php// $1 $2) xs)))
+
+(defn %
+  "Return the remainder of `dividend` / `divisor`."
+  [dividend divisor]
+  (php/% dividend divisor))
+
+(defn **
+  "Return `a` to the power of `x`."
+  [a x]
+  (php/** a x))
+
+(defn inc
+  "Increments `x` by one."
+  [x]
+  (+ x 1))
+
+(defn dec
+  "Decrements `x` by one."
+  [x]
+  (- x 1))
+
+(defn even?
+  "Checks if `x` is even."
+  [x]
+  (= 0 (% x 2)))
+
+(defn odd?
+  "Checks if `x` is odd."
+  [x]
+  (= 1 (% x 2)))
+
+(defn zero?
+  "Checks if `x` is zero."
+  [x]
+  (or (= x 0) (= x 0.0)))
+
+(defn one?
+  "Checks if `x` is one."
+  [x]
+  (or (= x 1) (= x 1.0)))
+
+(defn pos?
+  "Checks if `x` is greater than zero."
+  [x]
+  (> x 0))
+
+(defn neg?
+  "Checks if `x` is smaller than zero."
+  [x]
+  (< x 0))
+
+(defn nan?
+  "Checks if `x` is not a number."
+  [x]
+  (php/is_nan x))
+
+(defn rand
+  "Returns a random number between 0 and 1."
+  []
+  (/ (php/random_int 0 php/PHP_INT_MAX) php/PHP_INT_MAX))
+
+(defn rand-int
+  "Returns a random number between 0 and `n`."
+  [n]
+  (php/random_int 0 n))
+
+(defn rand-nth
+  "Returns a random item from xs."
+  [xs]
+  (get xs (rand-int (dec (count xs)))))
+
+(defn extreme
+  "Returns the most extreme value in `args` based on the binary `order` function."
+  [order args]
+  (reduce2 |(if (order $1 $2) $1 $2) args))
+
+(defn min
+  "Returns the numeric minimum of all numbers."
+  [& numbers]
+  (extreme < numbers))
+
+(defn max
+  "Returns the numeric maximum of all numbers."
+  [& numbers]
+  (extreme > numbers))
+
+(defn sum
+  "Returns the sum of all elements is `xs`."
+  [xs]
+  (apply + xs))
+
+(defn mean
+  "Returns the mean of `xs`."
+  [xs]
+  (/ (sum xs) (count xs)))
+
+# ---------------
+# Print operation
+# ---------------
+
+(defmacro with-output-buffer
+  "Everything that is printed inside the body will be stored in a buffer.
+   The result of the buffer is returned."
+  [& body]
+  (let [res (gensym)]
+    `(do
+       (php/ob_start)
+       ,@body
+       (let [,res (php/ob_get_contents)]
+         (php/ob_end_clean)
+         ,res))))
+
+(defn print-str
+  "Same as print. But instead of writing it to a output stream,
+  The resulting string is returned."
+  [& xs]
+  (let [len (count xs)
+        printer (php/:: Printer (nonReadable))
+        pp |(php/-> printer (print $))]
+    (case (count xs)
+      0 ""
+      1 (pp (first xs))
+      (loop [res (pp (first xs))
+             seq (next xs)]
+        (if seq
+          (recur (str res " " (pp (first seq))) (next seq))
+          res)))))
+
+(defn print
+  "Prints the given values to the default output stream. Returns nil."
+  [& xs]
+  (php/print (apply print-str xs))
+  nil)
+
+(defn println
+  "Same as print followed by a newline."
+  [& xs]
+  (apply print xs)
+  (php/print "\n")
+  nil)
+
+(defn format
+  "Returns a formatted string. See PHP's [sprintf](https://www.php.net/manual/en/function.sprintf.php) for more information."
+  [fmt & xs]
+  (apply php/sprintf fmt xs))
+
+(defn printf
+  "Output a formatted string. See PHP's [printf](https://www.php.net/manual/en/function.printf.php) for more information."
+  [fmt & xs]
+  (apply php/printf fmt xs)
+  nil)
+
+# ----------------
+# Threading macros
+# ----------------
+
+(defmacro ->
+  "Threads the expr through the forms. Inserts `x` as the second item
+  in the first from, making a list of it if it is not a list already.
+  If there are more froms, inserts the first form as the second item in
+  the second form, etc."
+  [x & forms]
+  (loop [x x
+         forms (if (empty? forms) nil forms)]
+    (if forms
+      (let [form (first forms)
+            threaded (if (list? form)
+                       `(,(first form) ,x ,@(next form))
+                       (list form x))]
+        (recur threaded (next forms)))
+      x)))
+
+(defmacro ->>
+  "Threads the expr through the forms. Inserts `x` as the
+  last item in the first form, making a list of it if it is not a
+  list already. If there are more forms, inserts the first form as the
+  last item in second form, etc."
+  [x & forms]
+  (loop [x x
+         forms (if (empty? forms) nil forms)]
+    (if forms
+      (let [form (first forms)
+            threaded (if (list? form)
+                       `(,(first form) ,@(next form) ,x)
+                       (list form x))]
+        (recur threaded (next forms)))
+      x)))
+
+(defmacro as->
+  "Binds `name` to `expr`, evaluates the first form in the lexical context
+  of that binding, then binds name to that result, repeating for each
+  successive form, returning the result of the last form."
+  [expr name & forms]
+  (let [x (gensym)]
+    `(let [,name ,expr
+           ,@(interleave (repeat (count forms) name) forms)]
+       ,name)))
+
+# ---------------
+# Regex functions
+# ---------------
+
+(defn re-seq
+  "Returns a sequence of successive matches of pattern in string."
+  [re s]
+  (let [matches (php/array)
+        match-result (php/preg_match_all re s matches)]
+    (apply vector (php/aget matches 0))))
