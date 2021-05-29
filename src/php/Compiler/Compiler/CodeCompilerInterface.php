@@ -8,12 +8,14 @@ use Phel\Compiler\Evaluator\Exceptions\CompiledCodeIsMalformedException;
 use Phel\Compiler\Evaluator\Exceptions\FileException;
 use Phel\Compiler\Exceptions\CompilerException;
 
-interface FileCompilerInterface
+interface CodeCompilerInterface
 {
+    public const DEFAULT_SOURCE = 'string';
+
     /**
      * @throws CompilerException
      * @throws CompiledCodeIsMalformedException
      * @throws FileException
      */
-    public function compile(string $filename): string;
+    public function compile(string $phelCode, string $source = self::DEFAULT_SOURCE): string;
 }

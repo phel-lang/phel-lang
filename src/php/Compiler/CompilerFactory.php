@@ -7,10 +7,10 @@ namespace Phel\Compiler;
 use Gacela\Framework\AbstractFactory;
 use Phel\Compiler\Analyzer\Analyzer;
 use Phel\Compiler\Analyzer\AnalyzerInterface;
+use Phel\Compiler\Compiler\CodeCompiler;
+use Phel\Compiler\Compiler\CodeCompilerInterface;
 use Phel\Compiler\Compiler\EvalCompiler;
 use Phel\Compiler\Compiler\EvalCompilerInterface;
-use Phel\Compiler\Compiler\FileCompiler;
-use Phel\Compiler\Compiler\FileCompilerInterface;
 use Phel\Compiler\Emitter\Emitter;
 use Phel\Compiler\Emitter\EmitterInterface;
 use Phel\Compiler\Emitter\OutputEmitter;
@@ -47,14 +47,14 @@ final class CompilerFactory extends AbstractFactory
         );
     }
 
-    public function createFileCompiler(): FileCompilerInterface
+    public function createCodeCompiler(bool $enableSourceMaps = true): CodeCompilerInterface
     {
-        return new FileCompiler(
+        return new CodeCompiler(
             $this->createLexer(),
             $this->createParser(),
             $this->createReader(),
             $this->createAnalyzer(),
-            $this->createEmitter(),
+            $this->createEmitter($enableSourceMaps),
             $this->createEvaluator()
         );
     }

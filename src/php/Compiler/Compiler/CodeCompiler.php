@@ -21,7 +21,7 @@ use Phel\Compiler\Parser\ReadModel\ReaderResult;
 use Phel\Compiler\Reader\Exceptions\ReaderException;
 use Phel\Compiler\Reader\ReaderInterface;
 
-final class FileCompiler implements FileCompilerInterface
+final class CodeCompiler implements CodeCompilerInterface
 {
     private LexerInterface $lexer;
     private ParserInterface $parser;
@@ -52,16 +52,14 @@ final class FileCompiler implements FileCompilerInterface
      * @throws FileException
      * @throws LexerValueException
      */
-    public function compile(string $filename): string
+    public function compile(string $phelCode, string $source = self::DEFAULT_SOURCE): string
     {
-        $code = file_get_contents($filename);
-        $tokenStream = $this->lexer->lexString($code, $filename);
-        $code = '';
+        $tokenStream = $this->lexer->lexString($phelCode, $source);
+        $phpCode = '';
 
         while (true) {
             try {
                 $parseTree = $this->parser->parseNext($tokenStream);
-
                 // If we reached the end exit this loop
                 if (!$parseTree) {
                     break;
@@ -69,14 +67,14 @@ final class FileCompiler implements FileCompilerInterface
 
                 if (!$parseTree instanceof TriviaNodeInterface) {
                     $readerResult = $this->reader->read($parseTree);
-                    $code .= $this->analyzeAndEvalNode($readerResult);
+                    $phpCode .= $this->analyzeAndEvalNode($readerResult);
                 }
             } catch (AbstractParserException|ReaderException $e) {
                 throw new CompilerException($e, $e->getCodeSnippet());
             }
         }
 
-        return $code;
+        return $phpCode;
     }
 
     /**

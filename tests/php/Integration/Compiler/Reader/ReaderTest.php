@@ -6,6 +6,7 @@ namespace PhelTest\Integration\Compiler\Reader;
 
 use Phel\Compiler\CompilerFacade;
 use Phel\Compiler\CompilerFacadeInterface;
+use Phel\Compiler\Lexer\Lexer;
 use Phel\Compiler\Reader\Exceptions\ReaderException;
 use Phel\Lang\Collections\Map\PersistentMapInterface;
 use Phel\Lang\Keyword;
@@ -758,10 +759,10 @@ final class ReaderTest extends TestCase
     /**
      * @return TypeInterface|string|float|int|bool|null
      */
-    private function read(string $string, bool $removeLoc = false)
+    private function read(string $string, bool $withLocation = true)
     {
         Symbol::resetGen();
-        $tokenStream = $this->compilerFacade->lexString($string, !$removeLoc);
+        $tokenStream = $this->compilerFacade->lexString($string, Lexer::DEFAULT_SOURCE, $withLocation);
         $parseTree = $this->compilerFacade->parseNext($tokenStream);
 
         return $this->compilerFacade->read($parseTree)->getAst();
