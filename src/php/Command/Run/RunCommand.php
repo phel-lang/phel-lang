@@ -6,6 +6,7 @@ namespace Phel\Command\Run;
 
 use Phel\Command\Run\Exceptions\CannotLoadNamespaceException;
 use Phel\Command\Shared\CommandExceptionWriterInterface;
+use Phel\Compiler\CompilerFacadeInterface;
 use Phel\Compiler\Evaluator\Exceptions\CompiledCodeIsMalformedException;
 use Phel\Compiler\Evaluator\Exceptions\FileException;
 use Phel\Compiler\Exceptions\CompilerException;
@@ -24,14 +25,17 @@ final class RunCommand extends Command
 
     private CommandExceptionWriterInterface $exceptionWriter;
     private RuntimeFacadeInterface $runtimeFacade;
+    private CompilerFacadeInterface $compilerFacade;
 
     public function __construct(
         CommandExceptionWriterInterface $exceptionWriter,
-        RuntimeFacadeInterface $runtimeFacade
+        RuntimeFacadeInterface $runtimeFacade,
+        CompilerFacadeInterface $compilerFacade
     ) {
         parent::__construct(self::COMMAND_NAME);
         $this->exceptionWriter = $exceptionWriter;
         $this->runtimeFacade = $runtimeFacade;
+        $this->compilerFacade = $compilerFacade;
     }
 
     protected function configure(): void
@@ -86,7 +90,7 @@ final class RunCommand extends Command
     private function loadNamespace(string $fileOrPath): void
     {
         $ns = file_exists($fileOrPath)
-            ? $this->runtimeFacade->getNamespaceFromFile($fileOrPath)
+            ? $this->compilerFacade->extractNamespaceFromFile($fileOrPath)->getNamespace()
             : $fileOrPath;
 
         $result = $this->runtimeFacade->getRuntime()->loadNs($ns);

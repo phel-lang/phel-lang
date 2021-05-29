@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Phel\Compiler;
 
 use Gacela\Framework\AbstractFacade;
+use Phel\Compiler\Analyzer\Ast\NsNode;
 use Phel\Compiler\Compiler\CodeCompiler;
 use Phel\Compiler\Evaluator\Exceptions\CompiledCodeIsMalformedException;
 use Phel\Compiler\Evaluator\Exceptions\FileException;
@@ -100,5 +101,19 @@ final class CompilerFacade extends AbstractFacade implements CompilerFacadeInter
         return $this->getFactory()
             ->createReader()
             ->read($parseTree);
+    }
+
+    public function extractNamespaceFromFile(string $filename): NsNode
+    {
+        return $this->getFactory()
+            ->createNamespaceExtractor()
+            ->getNamespaceFromFile($filename);
+    }
+
+    public function extractNamespaceFromDirectories(array $directories): array
+    {
+        return $this->getFactory()
+            ->createNamespaceExtractor()
+            ->getNamespacesFromDirectories($directories);
     }
 }

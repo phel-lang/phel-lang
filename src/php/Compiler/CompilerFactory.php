@@ -11,6 +11,7 @@ use Phel\Compiler\Compiler\CodeCompiler;
 use Phel\Compiler\Compiler\CodeCompilerInterface;
 use Phel\Compiler\Compiler\EvalCompiler;
 use Phel\Compiler\Compiler\EvalCompilerInterface;
+use Phel\Compiler\Compiler\NamespaceExtractor;
 use Phel\Compiler\Emitter\Emitter;
 use Phel\Compiler\Emitter\EmitterInterface;
 use Phel\Compiler\Emitter\OutputEmitter;
@@ -56,6 +57,16 @@ final class CompilerFactory extends AbstractFactory
             $this->createAnalyzer(),
             $this->createEmitter($enableSourceMaps),
             $this->createEvaluator()
+        );
+    }
+
+    public function createNamespaceExtractor(): NamespaceExtractor
+    {
+        return new NamespaceExtractor(
+            $this->createLexer(),
+            $this->createParser(),
+            $this->createReader(),
+            $this->createAnalyzer()
         );
     }
 

@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Phel\Interop;
 
 use Gacela\Framework\AbstractFactory;
+use Phel\Compiler\CompilerFacadeInterface;
 use Phel\Interop\DirectoryRemover\DirectoryRemover;
 use Phel\Interop\DirectoryRemover\DirectoryRemoverInterface;
 use Phel\Interop\ExportFinder\FunctionsToExportFinder;
@@ -36,6 +37,7 @@ final class InteropFactory extends AbstractFactory
     {
         return new FunctionsToExportFinder(
             $this->getRuntimeFacade(),
+            $this->getCompilerFacade(),
             $this->getConfig()->getExportDirectories()
         );
     }
@@ -71,5 +73,10 @@ final class InteropFactory extends AbstractFactory
     private function getRuntimeFacade(): RuntimeFacade
     {
         return $this->getProvidedDependency(InteropDependencyProvider::FACADE_RUNTIME);
+    }
+
+    private function getCompilerFacade(): CompilerFacadeInterface
+    {
+        return $this->getProvidedDependency(InteropDependencyProvider::FACADE_COMPILER);
     }
 }

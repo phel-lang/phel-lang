@@ -8,12 +8,5 @@ interface RuntimeFacadeInterface
 {
     public function getRuntime(): RuntimeInterface;
 
-    public function getNamespaceFromFile(string $path): string;
-
-    /**
-     * @param list<string> $directories
-     */
-    public function getNamespacesFromDirectories(array $directories): array;
-
     public function addPath(string $namespacePrefix, array $path): void;
 }

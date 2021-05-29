@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Phel\Runtime\Extractor;
+namespace Phel\Compiler\Compiler;
 
 use RuntimeException;
 

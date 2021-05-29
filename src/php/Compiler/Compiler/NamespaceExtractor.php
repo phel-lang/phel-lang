@@ -2,15 +2,18 @@
 
 declare(strict_types=1);
 
-namespace Phel\Runtime\Extractor;
+namespace Phel\Compiler\Compiler;
 
-use Phel\Compiler\CompilerFacadeInterface;
+use Phel\Compiler\Analyzer\AnalyzerInterface;
+use Phel\Compiler\Analyzer\Ast\NsNode;
+use Phel\Compiler\Analyzer\Environment\NodeEnvironment;
 use Phel\Compiler\Lexer\Exceptions\LexerValueException;
+use Phel\Compiler\Lexer\LexerInterface;
 use Phel\Compiler\Parser\Exceptions\AbstractParserException;
+use Phel\Compiler\Parser\ParserInterface;
 use Phel\Compiler\Parser\ParserNode\TriviaNodeInterface;
 use Phel\Compiler\Reader\Exceptions\ReaderException;
-use Phel\Lang\Collections\LinkedList\PersistentListInterface;
-use Phel\Lang\Symbol;
+use Phel\Compiler\Reader\ReaderInterface;
 use RecursiveDirectoryIterator;
 use RecursiveIteratorIterator;
 use RecursiveRegexIterator;
@@ -18,44 +21,47 @@ use RegexIterator;
 
 final class NamespaceExtractor implements NamespaceExtractorInterface
 {
-    private string $rootDir;
-    private CompilerFacadeInterface $compilerFacade;
+    private LexerInterface $lexer;
+    private ParserInterface $parser;
+    private ReaderInterface $reader;
+    private AnalyzerInterface $analyzer;
 
     public function __construct(
-        string $rootDir,
-        CompilerFacadeInterface $compilerFacade
+        LexerInterface $lexer,
+        ParserInterface $parser,
+        ReaderInterface $reader,
+        AnalyzerInterface $analyzer
     ) {
-        $this->rootDir = $rootDir;
-        $this->compilerFacade = $compilerFacade;
+        $this->lexer = $lexer;
+        $this->parser = $parser;
+        $this->reader = $reader;
+        $this->analyzer = $analyzer;
     }
 
     /**
      * @throws ExtractorException
      * @throws LexerValueException
      */
-    public function getNamespaceFromFile(string $path): string
+    public function getNamespaceFromFile(string $path): NsNode
     {
         $content = file_get_contents($path);
 
         try {
-            $tokenStream = $this->compilerFacade->lexString($content);
+            $tokenStream = $this->lexer->lexString($content);
             do {
-                $parseTree = $this->compilerFacade->parseNext($tokenStream);
+                $parseTree = $this->parser->parseNext($tokenStream);
             } while ($parseTree && $parseTree instanceof TriviaNodeInterface);
 
             if (!$parseTree) {
                 throw ExtractorException::cannotReadFile($path);
             }
 
-            $readerResult = $this->compilerFacade->read($parseTree);
+            $readerResult = $this->reader->read($parseTree);
             $ast = $readerResult->getAst();
+            $node = $this->analyzer->analyze($ast, NodeEnvironment::empty());
 
-            if ($ast instanceof PersistentListInterface
-                && $ast[0] instanceof Symbol
-                && $ast[1] instanceof Symbol
-                && $ast[0]->getName() === Symbol::NAME_NS
-            ) {
-                return $ast[1]->getName();
+            if ($node instanceof NsNode) {
+                return $node;
             }
 
             throw ExtractorException::cannotExtractNamespaceFromPath($path);
@@ -68,12 +74,14 @@ final class NamespaceExtractor implements NamespaceExtractorInterface
      * @param list<string> $directories
      *
      * @throws ExtractorException
+     *
+     * @return NsNode[]
      */
     public function getNamespacesFromDirectories(array $directories): array
     {
         $namespaces = [];
         foreach ($directories as $directory) {
-            $allNamespacesInDir = $this->findAllNs($this->rootDir . '/' . $directory);
+            $allNamespacesInDir = $this->findAllNs($directory);
             $namespaces[] = $allNamespacesInDir;
         }
 

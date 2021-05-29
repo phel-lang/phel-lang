@@ -6,6 +6,7 @@ namespace Phel\Command\Test;
 
 use Phel\Command\Shared\CommandExceptionWriterInterface;
 use Phel\Command\Test\Exceptions\CannotFindAnyTestsException;
+use Phel\Compiler\Analyzer\Ast\NsNode;
 use Phel\Compiler\CompilerFacadeInterface;
 use Phel\Compiler\Evaluator\Exceptions\CompiledCodeIsMalformedException;
 use Phel\Compiler\Evaluator\Exceptions\FileException;
@@ -117,14 +118,22 @@ final class TestCommand extends Command
         return $this->compilerFacade->eval($phelCode);
     }
 
+    /**
+     * @param string[] $paths
+     *
+     * @return string[]
+     */
     private function getNamespacesFromPaths(array $paths): array
     {
         if (empty($paths)) {
-            return $this->runtimeFacade->getNamespacesFromDirectories($this->defaultTestDirectories);
+            return array_map(
+                fn (NsNode $node): string => $node->getNamespace(),
+                $this->compilerFacade->extractNamespaceFromDirectories($this->defaultTestDirectories)
+            );
         }
 
         return array_map(
-            fn (string $filename): string => $this->runtimeFacade->getNamespaceFromFile($filename),
+            fn (string $filename): string => $this->compilerFacade->extractNamespaceFromFile($filename)->getNamespace(),
             $paths
         );
     }

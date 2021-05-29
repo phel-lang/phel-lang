@@ -51,7 +51,8 @@ final class CommandFactory extends AbstractFactory
     {
         return new RunCommand(
             $this->createCommandExceptionWriter(),
-            $this->getRuntimeFacade()
+            $this->getRuntimeFacade(),
+            $this->getCompilerFacade()
         );
     }
 
