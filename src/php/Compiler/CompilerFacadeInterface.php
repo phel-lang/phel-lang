@@ -21,13 +21,11 @@ use Phel\Compiler\Reader\Exceptions\ReaderException;
 interface CompilerFacadeInterface
 {
     /**
-     * Evaluates a provided Phel code.
-     *
      * @throws CompilerException|UnfinishedParserException
      *
      * @return mixed The result of the executed code
      */
-    public function eval(string $code, int $startingLine = 1);
+    public function eval(string $phelCode, int $startingLine = 1);
 
     /**
      * @throws CompilerException
@@ -39,7 +37,7 @@ interface CompilerFacadeInterface
     /**
      * @throws LexerValueException
      */
-    public function lexString(string $code, bool $withLocation = true, string $source = Lexer::DEFAULT_SOURCE, int $startingLine = 1): TokenStream;
+    public function lexString(string $code, string $source = Lexer::DEFAULT_SOURCE, bool $withLocation = true, int $startingLine = 1): TokenStream;
 
     /**
      * @throws UnexpectedParserException

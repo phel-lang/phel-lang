@@ -25,17 +25,15 @@ use Phel\Compiler\Reader\Exceptions\ReaderException;
 final class CompilerFacade extends AbstractFacade implements CompilerFacadeInterface
 {
     /**
-     * Evaluates a provided Phel code.
-     *
      * @throws CompilerException|UnfinishedParserException
      *
      * @return mixed The result of the executed code
      */
-    public function eval(string $code, int $startingLine = 1)
+    public function eval(string $phelCode, int $startingLine = 1)
     {
         return $this->getFactory()
             ->createEvalCompiler()
-            ->eval($code, $startingLine);
+            ->eval($phelCode, $startingLine);
     }
 
     /**
@@ -43,8 +41,11 @@ final class CompilerFacade extends AbstractFacade implements CompilerFacadeInter
      * @throws CompiledCodeIsMalformedException
      * @throws FileException
      */
-    public function compile(string $phelCode, string $source = CodeCompiler::DEFAULT_SOURCE, bool $enableSourceMaps = false): string
-    {
+    public function compile(
+        string $phelCode,
+        string $source = CodeCompiler::DEFAULT_SOURCE,
+        bool $enableSourceMaps = false
+    ): string {
         return $this->getFactory()
             ->createCodeCompiler($enableSourceMaps)
             ->compile($phelCode, $source);
@@ -53,8 +54,12 @@ final class CompilerFacade extends AbstractFacade implements CompilerFacadeInter
     /**
      * @throws LexerValueException
      */
-    public function lexString(string $code, bool $withLocation = true, string $source = Lexer::DEFAULT_SOURCE, int $startingLine = 1): TokenStream
-    {
+    public function lexString(
+        string $code,
+        string $source = Lexer::DEFAULT_SOURCE,
+        bool $withLocation = true,
+        int $startingLine = 1
+    ): TokenStream {
         return $this->getFactory()
             ->createLexer($withLocation)
             ->lexString($code, $source, $startingLine);
@@ -88,12 +93,6 @@ final class CompilerFacade extends AbstractFacade implements CompilerFacadeInter
     }
 
     /**
-     * Reads the next expression from the token stream.
-     *
-     * If the token stream reaches the end, null is returned.
-     *
-     * @param NodeInterface $tokenStream The token stream to read
-     *
      * @throws ReaderException
      */
     public function read(NodeInterface $parseTree): ReaderResult
