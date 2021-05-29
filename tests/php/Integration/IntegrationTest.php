@@ -73,10 +73,9 @@ final class IntegrationTest extends TestCase
 
             $test = file_get_contents($file->getRealpath());
 
-            if (preg_match('/--PHEL--\s*(.*?)\s*--PHP--\s*(.*)/s', $test, $match)) {
+            if (preg_match('/--PHEL--\s*(?<phel>.*?)\s*--PHP--\s*(?<php>.*)/s', $test, $match)) {
                 $filename = str_replace($fixturesDir . '/', '', $file->getRealPath());
-                $phelCode = $match[1];
-                $phpCode = $match[2];
+                ['phel' => $phelCode, 'php' => $phpCode] = $match;
 
                 yield $filename => [$filename, $phelCode, $phpCode];
             }
