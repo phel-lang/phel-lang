@@ -52,9 +52,21 @@ final class FileCompiler implements FileCompilerInterface
      * @throws FileException
      * @throws LexerValueException
      */
-    public function compile(string $filename): string
+    public function compileFile(string $filename): string
     {
         $code = file_get_contents($filename);
+
+        return $this->compileCode($code, $filename);
+    }
+
+    /**
+     * @throws CompilerException
+     * @throws CompiledCodeIsMalformedException
+     * @throws FileException
+     * @throws LexerValueException
+     */
+    public function compileCode(string $code, string $filename = 'string'): string
+    {
         $tokenStream = $this->lexer->lexString($code, $filename);
         $code = '';
 
@@ -71,7 +83,7 @@ final class FileCompiler implements FileCompilerInterface
                     $readerResult = $this->reader->read($parseTree);
                     $code .= $this->analyzeAndEvalNode($readerResult);
                 }
-            } catch (AbstractParserException|ReaderException $e) {
+            } catch (AbstractParserException | ReaderException $e) {
                 throw new CompilerException($e, $e->getCodeSnippet());
             }
         }

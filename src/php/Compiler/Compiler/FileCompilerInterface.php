@@ -15,5 +15,12 @@ interface FileCompilerInterface
      * @throws CompiledCodeIsMalformedException
      * @throws FileException
      */
-    public function compile(string $filename): string;
+    public function compileFile(string $filename): string;
+
+    /**
+     * @throws CompilerException
+     * @throws CompiledCodeIsMalformedException
+     * @throws FileException
+     */
+    public function compileCode(string $code): string;
 }

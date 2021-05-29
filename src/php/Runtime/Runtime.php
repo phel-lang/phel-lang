@@ -204,7 +204,7 @@ class Runtime implements RuntimeInterface
      */
     protected function loadFile(string $filename, string $ns): void
     {
-        $code = $this->compilerFacade->compile($filename);
+        $code = $this->compilerFacade->compileFile($filename);
 
         $cacheFilePath = $this->getCachedFilePath($filename, $ns);
         if ($cacheFilePath) {

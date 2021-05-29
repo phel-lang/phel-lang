@@ -47,14 +47,14 @@ final class CompilerFactory extends AbstractFactory
         );
     }
 
-    public function createFileCompiler(): FileCompilerInterface
+    public function createFileCompiler(bool $enableSourceMaps = true): FileCompilerInterface
     {
         return new FileCompiler(
             $this->createLexer(),
             $this->createParser(),
             $this->createReader(),
             $this->createAnalyzer(),
-            $this->createEmitter(),
+            $this->createEmitter($enableSourceMaps),
             $this->createEvaluator()
         );
     }

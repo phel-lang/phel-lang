@@ -5,16 +5,8 @@ declare(strict_types=1);
 namespace PhelTest\Integration;
 
 use Generator;
-use Phel\Compiler\Analyzer\AnalyzerInterface;
 use Phel\Compiler\Analyzer\Environment\GlobalEnvironment;
-use Phel\Compiler\Analyzer\Environment\NodeEnvironment;
-use Phel\Compiler\CompilerFactory;
-use Phel\Compiler\Emitter\EmitterInterface;
-use Phel\Compiler\Evaluator\EvaluatorInterface;
-use Phel\Compiler\Lexer\TokenStream;
-use Phel\Compiler\Parser\ParserInterface;
-use Phel\Compiler\Parser\ParserNode\TriviaNodeInterface;
-use Phel\Compiler\Reader\ReaderInterface;
+use Phel\Compiler\CompilerFacade;
 use Phel\Lang\Symbol;
 use Phel\Runtime\RuntimeSingleton;
 use PHPUnit\Framework\TestCase;
@@ -25,7 +17,8 @@ use SplFileInfo;
 final class IntegrationTest extends TestCase
 {
     private static GlobalEnvironment $globalEnv;
-    private CompilerFactory $compilerFactory;
+
+    private CompilerFacade $compilerFacade;
 
     public static function setUpBeforeClass(): void
     {
@@ -39,7 +32,7 @@ final class IntegrationTest extends TestCase
 
     public function setUp(): void
     {
-        $this->compilerFactory = new CompilerFactory();
+        $this->compilerFacade = new CompilerFacade();
     }
 
     /**
@@ -54,16 +47,13 @@ final class IntegrationTest extends TestCase
         $globalEnv->setNs('user');
         Symbol::resetGen();
 
-        $compiledCode = $this->compilePhelCode(
-            $this->compilerFactory->createParser(),
-            $this->compilerFactory->createReader(),
-            $this->compilerFactory->createAnalyzer(),
-            $this->compilerFactory->createEmitter($enableSourceMaps = false),
-            $this->compilerFactory->createLexer()->lexString($phelCode, $filename),
-            $this->compilerFactory->createEvaluator()
-        );
+        $compiledCode = $this->compilerFacade->compileCode($phelCode);
 
-        self::assertEquals($expectedGeneratedCode, $compiledCode, 'in ' . $filename);
+        self::assertSame(
+            trim($expectedGeneratedCode),
+            trim($compiledCode),
+            'in ' . $filename
+        );
     }
 
     public function providerIntegration(): Generator
@@ -86,38 +76,10 @@ final class IntegrationTest extends TestCase
             if (preg_match('/--PHEL--\s*(.*?)\s*--PHP--\s*(.*)/s', $test, $match)) {
                 $filename = str_replace($fixturesDir . '/', '', $file->getRealPath());
                 $phelCode = $match[1];
-                $phpCode = trim($match[2]);
+                $phpCode = $match[2];
 
                 yield $filename => [$filename, $phelCode, $phpCode];
             }
         }
-    }
-
-    private function compilePhelCode(
-        ParserInterface $parser,
-        ReaderInterface $reader,
-        AnalyzerInterface $analyzer,
-        EmitterInterface $emitter,
-        TokenStream $tokenStream,
-        EvaluatorInterface $evaluator
-    ): string {
-        $compiledCode = [];
-
-        while (true) {
-            $parseTree = $parser->parseNext($tokenStream);
-            if (!$parseTree) {
-                break;
-            }
-
-            if (!$parseTree instanceof TriviaNodeInterface) {
-                $readAst = $reader->read($parseTree);
-                $node = $analyzer->analyze($readAst->getAst(), NodeEnvironment::empty());
-                $code = $emitter->emitNode($node);
-                $evaluator->eval($code);
-                $compiledCode[] = $code;
-            }
-        }
-
-        return trim(implode('', $compiledCode));
     }
 }
