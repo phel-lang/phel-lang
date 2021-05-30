@@ -11,6 +11,7 @@ use Phel\Compiler\CompilerFacadeInterface;
 use Phel\Compiler\Evaluator\Exceptions\CompiledCodeIsMalformedException;
 use Phel\Compiler\Evaluator\Exceptions\FileException;
 use Phel\Compiler\Exceptions\CompilerException;
+use Phel\NamespaceExtractor\NamespaceExtractorFacadeInterface;
 use Phel\Runtime\RuntimeFacadeInterface;
 use SebastianBergmann\Timer\ResourceUsageFormatter;
 use Symfony\Component\Console\Command\Command;
@@ -27,6 +28,7 @@ final class TestCommand extends Command
     private CommandExceptionWriterInterface $exceptionWriter;
     private RuntimeFacadeInterface $runtimeFacade;
     private CompilerFacadeInterface $compilerFacade;
+    private NamespaceExtractorFacadeInterface $namespaceExtractor;
     /** @var list<string> */
     private array $defaultTestDirectories;
 
@@ -34,12 +36,14 @@ final class TestCommand extends Command
         CommandExceptionWriterInterface $exceptionWriter,
         RuntimeFacadeInterface $runtimeFacade,
         CompilerFacadeInterface $compilerFacade,
+        NamespaceExtractorFacadeInterface $namespaceExtractor,
         array $testDirectories
     ) {
         parent::__construct(self::COMMAND_NAME);
         $this->exceptionWriter = $exceptionWriter;
         $this->runtimeFacade = $runtimeFacade;
         $this->compilerFacade = $compilerFacade;
+        $this->namespaceExtractor = $namespaceExtractor;
         $this->defaultTestDirectories = $testDirectories;
     }
 
@@ -127,13 +131,13 @@ final class TestCommand extends Command
     {
         if (empty($paths)) {
             return array_map(
-                fn (NsNode $node): string => $node->getNamespace(),
-                $this->compilerFacade->extractNamespaceFromDirectories($this->defaultTestDirectories)
+                static fn (NsNode $node): string => $node->getNamespace(),
+                $this->namespaceExtractor->getNamespaceFromDirectories($this->defaultTestDirectories)
             );
         }
 
         return array_map(
-            fn (string $filename): string => $this->compilerFacade->extractNamespaceFromFile($filename)->getNamespace(),
+            fn (string $filename): string => $this->namespaceExtractor->getNamespaceFromFile($filename)->getNamespace(),
             $paths
         );
     }
