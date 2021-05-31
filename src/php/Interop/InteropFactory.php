@@ -17,6 +17,7 @@ use Phel\Interop\Generator\Builder\CompiledPhpClassBuilder;
 use Phel\Interop\Generator\Builder\CompiledPhpMethodBuilder;
 use Phel\Interop\Generator\Builder\WrapperRelativeFilenamePathBuilder;
 use Phel\Interop\Generator\WrapperGenerator;
+use Phel\NamespaceExtractor\NamespaceExtractorFacadeInterface;
 use Phel\Runtime\RuntimeFacade;
 
 /**
@@ -36,6 +37,7 @@ final class InteropFactory extends AbstractFactory
     {
         return new FunctionsToExportFinder(
             $this->getRuntimeFacade(),
+            $this->getNamespaceExtractorFacade(),
             $this->getConfig()->getExportDirectories()
         );
     }
@@ -71,5 +73,10 @@ final class InteropFactory extends AbstractFactory
     private function getRuntimeFacade(): RuntimeFacade
     {
         return $this->getProvidedDependency(InteropDependencyProvider::FACADE_RUNTIME);
+    }
+
+    private function getNamespaceExtractorFacade(): NamespaceExtractorFacadeInterface
+    {
+        return $this->getProvidedDependency(InteropDependencyProvider::FACADE_NAMESPACE_EXTRACTOR);
     }
 }

@@ -5,24 +5,13 @@ declare(strict_types=1);
 namespace Phel\Runtime;
 
 use Gacela\Framework\AbstractFactory;
-use Phel\Compiler\CompilerFacadeInterface;
 use Phel\Runtime\Exceptions\PhelRuntimeException;
-use Phel\Runtime\Extractor\NamespaceExtractor;
-use Phel\Runtime\Extractor\NamespaceExtractorInterface;
 
 /**
  * @method RuntimeConfig getConfig()
  */
 final class RuntimeFactory extends AbstractFactory
 {
-    public function createNamespaceExtractor(): NamespaceExtractorInterface
-    {
-        return new NamespaceExtractor(
-            $this->getConfig()->getApplicationRootDir(),
-            $this->getCompilerFacade()
-        );
-    }
-
     /**
      * @throws PhelRuntimeException
      */
@@ -41,10 +30,5 @@ final class RuntimeFactory extends AbstractFactory
         }
 
         return require $runtimePath;
-    }
-
-    private function getCompilerFacade(): CompilerFacadeInterface
-    {
-        return $this->getProvidedDependency(RuntimeDependencyProvider::FACADE_COMPILER);
     }
 }

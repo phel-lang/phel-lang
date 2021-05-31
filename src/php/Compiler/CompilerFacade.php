@@ -5,6 +5,9 @@ declare(strict_types=1);
 namespace Phel\Compiler;
 
 use Gacela\Framework\AbstractFacade;
+use Phel\Compiler\Analyzer\Ast\AbstractNode;
+use Phel\Compiler\Analyzer\Environment\NodeEnvironmentInterface;
+use Phel\Compiler\Analyzer\Exceptions\AnalyzerException;
 use Phel\Compiler\Compiler\CodeCompiler;
 use Phel\Compiler\Evaluator\Exceptions\CompiledCodeIsMalformedException;
 use Phel\Compiler\Evaluator\Exceptions\FileException;
@@ -18,12 +21,25 @@ use Phel\Compiler\Parser\ParserNode\FileNode;
 use Phel\Compiler\Parser\ParserNode\NodeInterface;
 use Phel\Compiler\Parser\ReadModel\ReaderResult;
 use Phel\Compiler\Reader\Exceptions\ReaderException;
+use Phel\Lang\TypeInterface;
 
 /**
  * @method CompilerFactory getFactory()
  */
 final class CompilerFacade extends AbstractFacade implements CompilerFacadeInterface
 {
+    /**
+     * @param TypeInterface|string|float|int|bool|null $x
+     *
+     * @throws AnalyzerException
+     */
+    public function analyze($x, NodeEnvironmentInterface $env): AbstractNode
+    {
+        return $this->getFactory()
+            ->createAnalyzer()
+            ->analyze($x, $env);
+    }
+
     /**
      * @throws CompilerException|UnfinishedParserException
      *
