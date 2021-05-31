@@ -25,7 +25,11 @@ final class ReaderTest extends TestCase
 
     public static function setUpBeforeClass(): void
     {
+        // Reset Singleton and initalize a new empty runtime.
+        // We initialize the runtime here because we don't want to let
+        // others define the runtime for us.
         RuntimeSingleton::reset();
+        RuntimeSingleton::initialize();
     }
 
     public function setUp(): void
