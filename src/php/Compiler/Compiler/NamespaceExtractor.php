@@ -4,16 +4,13 @@ declare(strict_types=1);
 
 namespace Phel\Compiler\Compiler;
 
-use Phel\Compiler\Analyzer\AnalyzerInterface;
 use Phel\Compiler\Analyzer\Ast\NsNode;
 use Phel\Compiler\Analyzer\Environment\NodeEnvironment;
+use Phel\Compiler\CompilerFacadeInterface;
 use Phel\Compiler\Lexer\Exceptions\LexerValueException;
-use Phel\Compiler\Lexer\LexerInterface;
 use Phel\Compiler\Parser\Exceptions\AbstractParserException;
-use Phel\Compiler\Parser\ParserInterface;
 use Phel\Compiler\Parser\ParserNode\TriviaNodeInterface;
 use Phel\Compiler\Reader\Exceptions\ReaderException;
-use Phel\Compiler\Reader\ReaderInterface;
 use RecursiveDirectoryIterator;
 use RecursiveIteratorIterator;
 use RecursiveRegexIterator;
@@ -21,21 +18,11 @@ use RegexIterator;
 
 final class NamespaceExtractor implements NamespaceExtractorInterface
 {
-    private LexerInterface $lexer;
-    private ParserInterface $parser;
-    private ReaderInterface $reader;
-    private AnalyzerInterface $analyzer;
+    private CompilerFacadeInterface $compilerFacade;
 
-    public function __construct(
-        LexerInterface $lexer,
-        ParserInterface $parser,
-        ReaderInterface $reader,
-        AnalyzerInterface $analyzer
-    ) {
-        $this->lexer = $lexer;
-        $this->parser = $parser;
-        $this->reader = $reader;
-        $this->analyzer = $analyzer;
+    public function __construct(CompilerFacadeInterface $compilerFacade)
+    {
+        $this->compilerFacade = $compilerFacade;
     }
 
     /**
@@ -47,18 +34,18 @@ final class NamespaceExtractor implements NamespaceExtractorInterface
         $content = file_get_contents($path);
 
         try {
-            $tokenStream = $this->lexer->lexString($content);
+            $tokenStream = $this->compilerFacade->lexString($content);
             do {
-                $parseTree = $this->parser->parseNext($tokenStream);
+                $parseTree = $this->compilerFacade->parseNext($tokenStream);
             } while ($parseTree && $parseTree instanceof TriviaNodeInterface);
 
             if (!$parseTree) {
                 throw ExtractorException::cannotReadFile($path);
             }
 
-            $readerResult = $this->reader->read($parseTree);
+            $readerResult = $this->compilerFacade->read($parseTree);
             $ast = $readerResult->getAst();
-            $node = $this->analyzer->analyze($ast, NodeEnvironment::empty());
+            $node = $this->compilerFacade->analyze($ast, NodeEnvironment::empty());
 
             if ($node instanceof NsNode) {
                 return $node;

@@ -4,7 +4,9 @@ declare(strict_types=1);
 
 namespace Phel\Compiler;
 
-use Phel\Compiler\Analyzer\Ast\NsNode;
+use Phel\Compiler\Analyzer\Ast\AbstractNode;
+use Phel\Compiler\Analyzer\Environment\NodeEnvironmentInterface;
+use Phel\Compiler\Analyzer\Exceptions\AnalyzerException;
 use Phel\Compiler\Compiler\CodeCompiler;
 use Phel\Compiler\Evaluator\Exceptions\CompiledCodeIsMalformedException;
 use Phel\Compiler\Evaluator\Exceptions\FileException;
@@ -18,9 +20,17 @@ use Phel\Compiler\Parser\ParserNode\FileNode;
 use Phel\Compiler\Parser\ParserNode\NodeInterface;
 use Phel\Compiler\Parser\ReadModel\ReaderResult;
 use Phel\Compiler\Reader\Exceptions\ReaderException;
+use Phel\Lang\TypeInterface;
 
 interface CompilerFacadeInterface
 {
+    /**
+     * @param TypeInterface|string|float|int|bool|null $x
+     *
+     * @throws AnalyzerException
+     */
+    public function analyze($x, NodeEnvironmentInterface $env): AbstractNode;
+
     /**
      * @throws CompilerException|UnfinishedParserException
      *
@@ -56,24 +66,4 @@ interface CompilerFacadeInterface
      * @throws UnfinishedParserException
      */
     public function parseAll(TokenStream $tokenStream): FileNode;
-
-    /**
-     * Extracts the namespace from a given file. It expects that the
-     * first statement in the file is the 'ns statement.
-     *
-     * @param string $filename The path to the file
-     *
-     * @return NsNode
-     */
-    public function extractNamespaceFromFile(string $filename): NsNode;
-
-    /**
-     * Extracts all namespaces from all Phel files in the given directories.
-     * It expects that the first statement in the file is the 'ns statement.
-     *
-     * @param string[] $directories The list of the directories
-     *
-     * @return NsNode[]
-     */
-    public function extractNamespaceFromDirectories(array $directories): array;
 }

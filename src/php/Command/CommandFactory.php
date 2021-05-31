@@ -21,6 +21,7 @@ use Phel\Command\Test\TestCommand;
 use Phel\Compiler\CompilerFacadeInterface;
 use Phel\Formatter\FormatterFacadeInterface;
 use Phel\Interop\InteropFacadeInterface;
+use Phel\NamespaceExtractor\NamespaceExtractorFacadeInterface;
 use Phel\Printer\Printer;
 use Phel\Printer\PrinterInterface;
 use Phel\Runtime\Exceptions\ExceptionPrinterInterface;
@@ -52,7 +53,7 @@ final class CommandFactory extends AbstractFactory
         return new RunCommand(
             $this->createCommandExceptionWriter(),
             $this->getRuntimeFacade(),
-            $this->getCompilerFacade()
+            $this->getNamespaceExtractorFacade()
         );
     }
 
@@ -62,6 +63,7 @@ final class CommandFactory extends AbstractFactory
             $this->createCommandExceptionWriter(),
             $this->getRuntimeFacade(),
             $this->getCompilerFacade(),
+            $this->getNamespaceExtractorFacade(),
             $this->getConfig()->getTestDirectories()
         );
     }
@@ -137,5 +139,10 @@ final class CommandFactory extends AbstractFactory
     private function getRuntimeFacade(): RuntimeFacadeInterface
     {
         return $this->getProvidedDependency(CommandDependencyProvider::FACADE_RUNTIME);
+    }
+
+    private function getNamespaceExtractorFacade(): NamespaceExtractorFacadeInterface
+    {
+        return $this->getProvidedDependency(CommandDependencyProvider::FACADE_NAMESPACE_EXTRACTOR);
     }
 }

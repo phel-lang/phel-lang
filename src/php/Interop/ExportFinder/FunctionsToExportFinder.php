@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace Phel\Interop\ExportFinder;
 
 use Phel\Compiler\Compiler\ExtractorException;
-use Phel\Compiler\CompilerFacadeInterface;
 use Phel\Compiler\Evaluator\Exceptions\CompiledCodeIsMalformedException;
 use Phel\Compiler\Evaluator\Exceptions\FileException;
 use Phel\Compiler\Exceptions\CompilerException;
@@ -13,22 +12,23 @@ use Phel\Interop\ReadModel\FunctionToExport;
 use Phel\Lang\Collections\Map\PersistentMapInterface;
 use Phel\Lang\Keyword;
 use Phel\Lang\TypeFactory;
+use Phel\NamespaceExtractor\NamespaceExtractorFacadeInterface;
 use Phel\Runtime\RuntimeFacadeInterface;
 
 final class FunctionsToExportFinder implements FunctionsToExportFinderInterface
 {
     private RuntimeFacadeInterface $runtimeFacade;
-    private CompilerFacadeInterface $compilerFacade;
+    private NamespaceExtractorFacadeInterface $namespaceExtractorFacade;
     /** @var list<string> */
     private array $exportDirectories;
 
     public function __construct(
         RuntimeFacadeInterface $runtimeFacade,
-        CompilerFacadeInterface $compilerFacade,
+        NamespaceExtractorFacadeInterface $namespaceExtractorFacade,
         array $exportDirectories
     ) {
         $this->runtimeFacade = $runtimeFacade;
-        $this->compilerFacade = $compilerFacade;
+        $this->namespaceExtractorFacade = $namespaceExtractorFacade;
         $this->exportDirectories = $exportDirectories;
     }
 
@@ -57,8 +57,8 @@ final class FunctionsToExportFinder implements FunctionsToExportFinderInterface
     {
         $runtime = $this->runtimeFacade->getRuntime();
 
-        $namespaceFromDirectories = $this->compilerFacade
-            ->extractNamespaceFromDirectories($this->exportDirectories);
+        $namespaceFromDirectories = $this->namespaceExtractorFacade
+            ->getNamespaceFromDirectories($this->exportDirectories);
 
         foreach ($namespaceFromDirectories as $namespaceNode) {
             $runtime->loadNs($namespaceNode->getNamespace());
