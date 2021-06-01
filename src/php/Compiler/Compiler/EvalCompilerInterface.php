@@ -16,5 +16,5 @@ interface EvalCompilerInterface
      *
      * @return mixed The result of the executed code
      */
-    public function eval(string $code, int $startingLine = 1);
+    public function eval(string $phelCode, int $startingLine = 1);
 }

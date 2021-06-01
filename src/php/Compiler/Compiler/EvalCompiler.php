@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Phel\Compiler\Compiler;
 
 use Phel\Compiler\Analyzer\AnalyzerInterface;
+use Phel\Compiler\Analyzer\Ast\AbstractNode;
 use Phel\Compiler\Analyzer\Environment\NodeEnvironment;
 use Phel\Compiler\Analyzer\Environment\NodeEnvironmentInterface;
 use Phel\Compiler\Analyzer\Exceptions\AnalyzerException;
@@ -59,10 +60,10 @@ final class EvalCompiler implements EvalCompilerInterface
      *
      * @return mixed The result of the executed code
      */
-    public function eval(string $code, int $startingLine = 1)
+    public function eval(string $phelCode, int $startingLine = 1)
     {
         try {
-            $tokenStream = $this->lexer->lexString($code, LexerInterface::DEFAULT_SOURCE, $startingLine);
+            $tokenStream = $this->lexer->lexString($phelCode, LexerInterface::DEFAULT_SOURCE, $startingLine);
             $parseTree = $this->parser->parseNext($tokenStream);
 
             if (!$parseTree || $parseTree instanceof TriviaNodeInterface) {
@@ -70,8 +71,9 @@ final class EvalCompiler implements EvalCompilerInterface
             }
 
             $readerResult = $this->reader->read($parseTree);
+            $node = $this->analyze($readerResult);
 
-            return $this->evalNode($readerResult);
+            return $this->evalNode($node);
         } catch (UnfinishedParserException $e) {
             throw $e;
         } catch (AbstractParserException|ReaderException $e) {
@@ -80,25 +82,30 @@ final class EvalCompiler implements EvalCompilerInterface
     }
 
     /**
-     * @throws CompiledCodeIsMalformedException
      * @throws CompilerException
-     * @throws FileException
-     *
-     * @return mixed
      */
-    private function evalNode(ReaderResult $readerResult)
+    private function analyze(ReaderResult $readerResult): AbstractNode
     {
         try {
-            $node = $this->analyzer->analyze(
+            return $this->analyzer->analyze(
                 $readerResult->getAst(),
                 NodeEnvironment::empty()->withContext(NodeEnvironmentInterface::CONTEXT_RETURN)
             );
-
-            $code = $this->emitter->emitNode($node);
-
-            return $this->evaluator->eval($code);
         } catch (AnalyzerException $e) {
             throw new CompilerException($e, $readerResult->getCodeSnippet());
         }
+    }
+
+    /**
+     * @throws CompiledCodeIsMalformedException
+     * @throws FileException
+     *
+     * @return mixed The result of the executed code
+     */
+    private function evalNode(AbstractNode $node)
+    {
+        $code = $this->emitter->emitNode($node);
+
+        return $this->evaluator->eval($code);
     }
 }
