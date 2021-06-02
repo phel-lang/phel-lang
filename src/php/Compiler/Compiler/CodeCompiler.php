@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Phel\Compiler\Compiler;
 
 use Phel\Compiler\Analyzer\AnalyzerInterface;
+use Phel\Compiler\Analyzer\Ast\AbstractNode;
 use Phel\Compiler\Analyzer\Environment\NodeEnvironment;
 use Phel\Compiler\Analyzer\Exceptions\AnalyzerException;
 use Phel\Compiler\Emitter\EmitterInterface;
@@ -67,7 +68,8 @@ final class CodeCompiler implements CodeCompilerInterface
 
                 if (!$parseTree instanceof TriviaNodeInterface) {
                     $readerResult = $this->reader->read($parseTree);
-                    $phpCode .= $this->analyzeAndEvalNode($readerResult);
+                    $node = $this->analyze($readerResult);
+                    $phpCode .= $this->emitNode($node);
                 }
             } catch (AbstractParserException|ReaderException $e) {
                 throw new CompilerException($e, $e->getCodeSnippet());
@@ -79,20 +81,25 @@ final class CodeCompiler implements CodeCompilerInterface
 
     /**
      * @throws CompilerException
-     * @throws CompiledCodeIsMalformedException
-     * @throws FileException
      */
-    private function analyzeAndEvalNode(ReaderResult $readerResult): string
+    private function analyze(ReaderResult $readerResult): AbstractNode
     {
         try {
-            $node = $this->analyzer->analyze(
+            return $this->analyzer->analyze(
                 $readerResult->getAst(),
                 NodeEnvironment::empty()
             );
         } catch (AnalyzerException $e) {
             throw new CompilerException($e, $readerResult->getCodeSnippet());
         }
+    }
 
+    /**
+     * @throws CompiledCodeIsMalformedException
+     * @throws FileException
+     */
+    private function emitNode(AbstractNode $node): string
+    {
         $code = $this->emitter->emitNode($node);
         $this->evaluator->eval($code);
 
