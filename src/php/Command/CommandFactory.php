@@ -37,7 +37,7 @@ final class CommandFactory extends AbstractFactory
     {
         $this->getRuntimeFacade()
             ->getRuntime()
-            ->loadFileIntoNamespace('user', __DIR__ . '/Repl/startup.phel');
+            ->loadFileIntoNamespace('user', $this->getConfig()->getReplStartupPhel());
 
         return new ReplCommand(
             $this->getRuntimeFacade(),
@@ -89,7 +89,7 @@ final class CommandFactory extends AbstractFactory
     private function createReplCommandIo(): ReplCommandIoInterface
     {
         return new ReplCommandSystemIo(
-            $this->getConfig()->getApplicationRootDir() . '/.phel-repl-history',
+            $this->getConfig()->getPhelReplHistory(),
             $this->createExceptionPrinter()
         );
     }

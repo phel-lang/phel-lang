@@ -15,13 +15,18 @@ final class CommandConfig extends AbstractPhelConfig
     public function getTestDirectories(): array
     {
         return array_map(
-            fn (string $dir): string =>  $this->getApplicationRootDir() . '/' . $dir,
+            static fn (string $dir): string => Config::getApplicationRootDir() . '/' . $dir,
             $this->get('tests', [])
         );
     }
 
-    public function getApplicationRootDir(): string
+    public function getPhelReplHistory(): string
     {
-        return Config::getApplicationRootDir();
+        return Config::getApplicationRootDir() . '/.phel-repl-history';
+    }
+
+    public function getReplStartupPhel(): string
+    {
+        return __DIR__ . '/Repl/startup.phel';
     }
 }
