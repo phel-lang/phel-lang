@@ -28,7 +28,7 @@ final class LetSymbolTest extends TestCase
         $this->analyzer = new Analyzer(new GlobalEnvironment());
     }
 
-    public function testWrongSymbolName(): void
+    public function test_wrong_symbol_name(): void
     {
         $this->expectException(AnalyzerException::class);
         $this->expectExceptionMessage("This is not a 'let.");
@@ -41,7 +41,7 @@ final class LetSymbolTest extends TestCase
         $analyzer->analyze($list, $env);
     }
 
-    public function testWrongArguments(): void
+    public function test_wrong_arguments(): void
     {
         $this->expectException(AnalyzerException::class);
         $this->expectExceptionMessage("At least two arguments are required for 'let");
@@ -52,7 +52,7 @@ final class LetSymbolTest extends TestCase
         $this->analyzer->analyze($list, $env);
     }
 
-    public function testWrongSecondArgument(): void
+    public function test_wrong_second_argument(): void
     {
         $this->expectException(AnalyzerException::class);
         $this->expectExceptionMessage('Binding parameter must be a vector');
@@ -63,7 +63,7 @@ final class LetSymbolTest extends TestCase
         $this->analyzer->analyze($list, $env);
     }
 
-    public function testUnevenBindings(): void
+    public function test_uneven_bindings(): void
     {
         $this->expectException(AnalyzerException::class);
         $this->expectExceptionMessage('Bindings must be a even number of parameters');
@@ -77,7 +77,7 @@ final class LetSymbolTest extends TestCase
         $this->analyzer->analyze($list, $env);
     }
 
-    public function testWithNoBindings(): void
+    public function test_with_no_bindings(): void
     {
         $list = TypeFactory::getInstance()->persistentListFromArray([
             Symbol::create('let'),
@@ -91,7 +91,7 @@ final class LetSymbolTest extends TestCase
         );
     }
 
-    public function testWithOneBinding(): void
+    public function test_with_one_binding(): void
     {
         Symbol::resetGen();
         $list = TypeFactory::getInstance()->persistentListFromArray([
@@ -130,7 +130,7 @@ final class LetSymbolTest extends TestCase
         );
     }
 
-    public function testWithOneBodyExpression(): void
+    public function test_with_one_body_expression(): void
     {
         $list = TypeFactory::getInstance()->persistentListFromArray([
             Symbol::create('let'),
@@ -154,7 +154,7 @@ final class LetSymbolTest extends TestCase
         );
     }
 
-    public function testWithTwoBodyExpression(): void
+    public function test_with_two_body_expression(): void
     {
         $list = TypeFactory::getInstance()->persistentListFromArray([
             Symbol::create('let'),

@@ -9,7 +9,7 @@ use PHPUnit\Framework\TestCase;
 
 final class SymbolTest extends TestCase
 {
-    public function testCreateWithoutNs(): void
+    public function test_create_without_ns(): void
     {
         $s = Symbol::create('test');
         $this->assertEquals('test', $s->getName());
@@ -17,7 +17,7 @@ final class SymbolTest extends TestCase
         $this->assertEquals('test', $s->getFullName());
     }
 
-    public function testCreateWithNs(): void
+    public function test_create_with_ns(): void
     {
         $s = Symbol::create('namespace/test');
         $this->assertEquals('test', $s->getName());
@@ -25,7 +25,7 @@ final class SymbolTest extends TestCase
         $this->assertEquals('namespace/test', $s->getFullName());
     }
 
-    public function testCreateForNamespaceWithoutNs(): void
+    public function test_create_for_namespace_without_ns(): void
     {
         $s = Symbol::createForNamespace(null, 'test');
         $this->assertEquals('test', $s->getName());
@@ -33,7 +33,7 @@ final class SymbolTest extends TestCase
         $this->assertEquals('test', $s->getFullName());
     }
 
-    public function testCreateForNamespaceWithNs(): void
+    public function test_create_for_namespace_with_ns(): void
     {
         $s = Symbol::createForNamespace('namespace', 'test');
         $this->assertEquals('test', $s->getName());
@@ -41,26 +41,26 @@ final class SymbolTest extends TestCase
         $this->assertEquals('namespace/test', $s->getFullName());
     }
 
-    public function testToString(): void
+    public function test_to_string(): void
     {
         $s = Symbol::createForNamespace('namespace', 'test');
         $this->assertEquals('test', $s->__toString());
     }
 
-    public function testGen(): void
+    public function test_gen(): void
     {
         Symbol::resetGen();
         $this->assertEquals('__phel_1', Symbol::gen());
         $this->assertEquals('bla2', Symbol::gen('bla'));
     }
 
-    public function testHash(): void
+    public function test_hash(): void
     {
         $s = Symbol::createForNamespace('namespace', 'test');
         $this->assertEquals(crc32('test'), $s->hash());
     }
 
-    public function testEquals(): void
+    public function test_equals(): void
     {
         $s1 = Symbol::createForNamespace('namespace', 'test');
         $s2 = Symbol::createForNamespace('namespace', 'test');
@@ -75,7 +75,7 @@ final class SymbolTest extends TestCase
         $this->assertFalse($s4->equals($s1));
     }
 
-    public function testIdentical(): void
+    public function test_identical(): void
     {
         $s1 = Symbol::createForNamespace('namespace', 'test');
         $s2 = Symbol::createForNamespace('namespace', 'test');

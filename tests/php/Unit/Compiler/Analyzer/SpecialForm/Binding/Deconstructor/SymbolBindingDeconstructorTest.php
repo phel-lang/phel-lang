@@ -21,7 +21,7 @@ final class SymbolBindingDeconstructorTest extends TestCase
         $this->deconstructor = new SymbolBindingDeconstructor();
     }
 
-    public function testDeconstruct(): void
+    public function test_deconstruct(): void
     {
         $bindings = [];
         $binding = Symbol::create('test');
@@ -33,7 +33,7 @@ final class SymbolBindingDeconstructorTest extends TestCase
         ], $bindings);
     }
 
-    public function testWithUnderscoreSymbol(): void
+    public function test_with_underscore_symbol(): void
     {
         $bindings = [];
         $binding = Symbol::create('_');

@@ -22,7 +22,7 @@ final class AnalyzeArrayTest extends TestCase
         $this->arrayAnalzyer = new AnalyzeArray(new Analyzer(new GlobalEnvironment()));
     }
 
-    public function testEmptyArray(): void
+    public function test_empty_array(): void
     {
         $env = NodeEnvironment::empty();
         self::assertEquals(
@@ -31,7 +31,7 @@ final class AnalyzeArrayTest extends TestCase
         );
     }
 
-    public function testArray(): void
+    public function test_array(): void
     {
         $env = NodeEnvironment::empty();
         self::assertEquals(

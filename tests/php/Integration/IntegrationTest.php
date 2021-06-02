@@ -38,7 +38,7 @@ final class IntegrationTest extends TestCase
     /**
      * @dataProvider providerIntegration
      */
-    public function testIntegration(
+    public function test_integration(
         string $filename,
         string $phelCode,
         string $expectedGeneratedCode

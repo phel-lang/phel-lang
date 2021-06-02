@@ -21,7 +21,7 @@ final class AnalyzeLiteralTest extends TestCase
         $this->literalAnalzyer = new AnalyzeLiteral(new Analyzer(new GlobalEnvironment()));
     }
 
-    public function testSymbolLiteral(): void
+    public function test_symbol_literal(): void
     {
         $env = NodeEnvironment::empty();
         self::assertEquals(
@@ -30,7 +30,7 @@ final class AnalyzeLiteralTest extends TestCase
         );
     }
 
-    public function testNumberLiteral(): void
+    public function test_number_literal(): void
     {
         $env = NodeEnvironment::empty();
         self::assertEquals(

@@ -15,7 +15,7 @@ final class PhelArrayPrinterTest extends TestCase
     /**
      * @dataProvider printerDataProvider
      */
-    public function testPrint(string $expected, PhelArray $phelArray): void
+    public function test_print(string $expected, PhelArray $phelArray): void
     {
         self::assertSame(
             $expected,

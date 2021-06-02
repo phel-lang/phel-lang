@@ -31,7 +31,7 @@ final class FnSymbolTest extends TestCase
         $this->analyzer = new Analyzer($env);
     }
 
-    public function testRequiresAtLeastOneArg(): void
+    public function test_requires_at_least_one_arg(): void
     {
         $this->expectException(AbstractLocatedException::class);
         $this->expectExceptionMessage("'fn requires at least one argument");
@@ -43,7 +43,7 @@ final class FnSymbolTest extends TestCase
         (new FnSymbol($this->analyzer))->analyze($list, NodeEnvironment::empty());
     }
 
-    public function testSecondArgMustBeAVector(): void
+    public function test_second_arg_must_be_a_vector(): void
     {
         $this->expectException(AbstractLocatedException::class);
         $this->expectExceptionMessage("Second argument of 'fn must be a vector");
@@ -57,7 +57,7 @@ final class FnSymbolTest extends TestCase
         $this->analyze($list);
     }
 
-    public function testIsNotVariadic(): void
+    public function test_is_not_variadic(): void
     {
         // This is the same as: (fn [anything])
         $list = TypeFactory::getInstance()->persistentListFromArray([
@@ -75,7 +75,7 @@ final class FnSymbolTest extends TestCase
     /**
      * @dataProvider providerVarNamesMustStartWithLetterOrUnderscore
      */
-    public function testVarNamesMustStartWithLetterOrUnderscore(string $paramName, bool $error): void
+    public function test_var_names_must_start_with_letter_or_underscore(string $paramName, bool $error): void
     {
         if ($error) {
             $this->expectException(AbstractLocatedException::class);
@@ -123,7 +123,7 @@ final class FnSymbolTest extends TestCase
         ];
     }
 
-    public function testOnlyOneSymbolCanFollowTheAmpersandParameter(): void
+    public function test_only_one_symbol_can_follow_the_ampersand_parameter(): void
     {
         $this->expectException(AbstractLocatedException::class);
         $this->expectExceptionMessage('Unsupported parameter form, only one symbol can follow the & parameter');
@@ -144,7 +144,7 @@ final class FnSymbolTest extends TestCase
     /**
      * @dataProvider providerGetParams
      */
-    public function testGetParams(PersistentListInterface $list, array $expectedParams): void
+    public function test_get_params(PersistentListInterface $list, array $expectedParams): void
     {
         $node = $this->analyze($list);
 
@@ -186,7 +186,7 @@ final class FnSymbolTest extends TestCase
     /**
      * @dataProvider providerGetBody
      */
-    public function testGetBody(PersistentListInterface $list, string $expectedBodyInstanceOf): void
+    public function test_get_body(PersistentListInterface $list, string $expectedBodyInstanceOf): void
     {
         $node = $this->analyze($list);
 

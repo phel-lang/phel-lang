@@ -26,7 +26,7 @@ final class PrinterTest extends TestCase
         $this->compilerFacade = new CompilerFacade();
     }
 
-    public function testPrintString(): void
+    public function test_print_string(): void
     {
         self::assertEquals(
             '"test"',
@@ -34,7 +34,7 @@ final class PrinterTest extends TestCase
         );
     }
 
-    public function testPrintEscapedStringChars(): void
+    public function test_print_escaped_string_chars(): void
     {
         self::assertEquals(
             '"\n\r\t\v\f\e\"\$\\\\"',
@@ -42,7 +42,7 @@ final class PrinterTest extends TestCase
         );
     }
 
-    public function testPrintDollarSignEscapedStringChars(): void
+    public function test_print_dollar_sign_escaped_string_chars(): void
     {
         self::assertEquals(
             '"\$ \$abc"',
@@ -50,7 +50,7 @@ final class PrinterTest extends TestCase
         );
     }
 
-    public function testPrintEscapedHexdecimalChars(): void
+    public function test_print_escaped_hexdecimal_chars(): void
     {
         self::assertEquals(
             '"\x07"',
@@ -58,7 +58,7 @@ final class PrinterTest extends TestCase
         );
     }
 
-    public function testPrintEscapedUnicodeChars(): void
+    public function test_print_escaped_unicode_chars(): void
     {
         self::assertEquals(
             '"\u{1000}"',
@@ -66,7 +66,7 @@ final class PrinterTest extends TestCase
         );
     }
 
-    public function testPrintZero(): void
+    public function test_print_zero(): void
     {
         self::assertEquals(
             '0',
@@ -74,7 +74,7 @@ final class PrinterTest extends TestCase
         );
     }
 
-    public function testPrintToStringFromObject(): void
+    public function test_print_to_string_from_object(): void
     {
         $class = new class() {
             public function __toString(): string

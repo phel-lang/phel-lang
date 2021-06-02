@@ -13,7 +13,7 @@ use PHPUnit\Framework\TestCase;
 
 class TransientArrayMapTest extends TestCase
 {
-    public function testEmpty(): void
+    public function test_empty(): void
     {
         $h = TransientArrayMap::empty(new ModuloHasher(), new SimpleEqualizer());
 
@@ -23,7 +23,7 @@ class TransientArrayMapTest extends TestCase
         self::assertNull($h->find('test'));
     }
 
-    public function testAddNullKey(): void
+    public function test_add_null_key(): void
     {
         $h = TransientArrayMap::empty(new ModuloHasher(), new SimpleEqualizer());
         $h2 = $h->put(null, 'test');
@@ -36,7 +36,7 @@ class TransientArrayMapTest extends TestCase
         self::assertTrue($h2->contains(null));
     }
 
-    public function testPutKeyValue(): void
+    public function test_put_key_value(): void
     {
         $h = TransientArrayMap::empty(new ModuloHasher(), new SimpleEqualizer())
             ->put(1, 'test');
@@ -46,7 +46,7 @@ class TransientArrayMapTest extends TestCase
         self::assertEquals('test', $h->find(1));
     }
 
-    public function testPutSameKeyValueTwice(): void
+    public function test_put_same_key_value_twice(): void
     {
         $h = TransientArrayMap::empty(new ModuloHasher(), new SimpleEqualizer())
             ->put(1, 'test')
@@ -57,7 +57,7 @@ class TransientArrayMapTest extends TestCase
         self::assertEquals('test', $h->find(1));
     }
 
-    public function testPutSameKeyDifferentValueTwice(): void
+    public function test_put_same_key_different_value_twice(): void
     {
         $h = TransientArrayMap::empty(new ModuloHasher(), new SimpleEqualizer())
             ->put(1, 'test')
@@ -68,7 +68,7 @@ class TransientArrayMapTest extends TestCase
         self::assertEquals('foo', $h->find(1));
     }
 
-    public function testPutNullTwice(): void
+    public function test_put_null_twice(): void
     {
         $h = TransientArrayMap::empty(new ModuloHasher(), new SimpleEqualizer())
             ->put(null, 'test')
@@ -79,7 +79,7 @@ class TransientArrayMapTest extends TestCase
         self::assertEquals('test', $h->find(null));
     }
 
-    public function testConvertToTransientHashMap(): void
+    public function test_convert_to_transient_hash_map(): void
     {
         $h = TransientArrayMap::empty(new ModuloHasher(), new SimpleEqualizer());
         for ($i = 0; $i < PersistentArrayMap::MAX_SIZE + 1; $i++) {
@@ -89,7 +89,7 @@ class TransientArrayMapTest extends TestCase
         $this->assertInstanceOf(TransientHashMap::class, $h);
     }
 
-    public function testRemoveExistingNullKey(): void
+    public function test_remove_existing_null_key(): void
     {
         $h = TransientArrayMap::empty(new ModuloHasher(), new SimpleEqualizer())
             ->put(null, 'test')
@@ -100,7 +100,7 @@ class TransientArrayMapTest extends TestCase
         self::assertNull($h->find(null));
     }
 
-    public function testRemoveNonExistingNullKey(): void
+    public function test_remove_non_existing_null_key(): void
     {
         $h = TransientArrayMap::empty(new ModuloHasher(), new SimpleEqualizer())
             ->remove(null);
@@ -110,7 +110,7 @@ class TransientArrayMapTest extends TestCase
         self::assertNull($h->find(null));
     }
 
-    public function testRemoveNonExistingKey(): void
+    public function test_remove_non_existing_key(): void
     {
         $h = TransientArrayMap::empty(new ModuloHasher(), new SimpleEqualizer())
             ->remove(1);
@@ -120,7 +120,7 @@ class TransientArrayMapTest extends TestCase
         self::assertNull($h->find(1));
     }
 
-    public function testRemoveNonExistingKeyInChild(): void
+    public function test_remove_non_existing_key_in_child(): void
     {
         $h = TransientArrayMap::empty(new ModuloHasher(), new SimpleEqualizer())
             ->put(2, 'test')
@@ -133,7 +133,7 @@ class TransientArrayMapTest extends TestCase
         self::assertNull($h->find(1));
     }
 
-    public function testRemoveExistingKey(): void
+    public function test_remove_existing_key(): void
     {
         $h = TransientArrayMap::empty(new ModuloHasher(), new SimpleEqualizer())
             ->put(1, 'test')

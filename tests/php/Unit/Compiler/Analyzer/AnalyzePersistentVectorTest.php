@@ -22,7 +22,7 @@ final class AnalyzePersistentVectorTest extends TestCase
         $this->vectorAnalzyer = new AnalyzePersistentVector(new Analyzer(new GlobalEnvironment()));
     }
 
-    public function testEmptyVector(): void
+    public function test_empty_vector(): void
     {
         $env = NodeEnvironment::empty();
         self::assertEquals(
@@ -31,7 +31,7 @@ final class AnalyzePersistentVectorTest extends TestCase
         );
     }
 
-    public function testVector(): void
+    public function test_vector(): void
     {
         $env = NodeEnvironment::empty();
         self::assertEquals(

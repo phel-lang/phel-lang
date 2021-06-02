@@ -17,7 +17,7 @@ use PHPUnit\Framework\TestCase;
 
 final class TextExceptionPrinterTest extends TestCase
 {
-    public function testPrintException(): void
+    public function test_print_exception(): void
     {
         $file = 'example-file.phel';
 

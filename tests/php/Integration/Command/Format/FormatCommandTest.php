@@ -17,7 +17,7 @@ final class FormatCommandTest extends AbstractCommandTest
         Config::setApplicationRootDir(__DIR__);
     }
 
-    public function testGoodFormat(): void
+    public function test_good_format(): void
     {
         $path = self::FIXTURES_DIR . 'good-format.phel';
         $oldContent = file_get_contents($path);
@@ -38,7 +38,7 @@ final class FormatCommandTest extends AbstractCommandTest
         }
     }
 
-    public function testBadFormat(): void
+    public function test_bad_format(): void
     {
         $path = self::FIXTURES_DIR . 'bad-format.phel';
         $oldContent = file_get_contents($path);

@@ -31,7 +31,7 @@ final class VectorBindingDeconstructorTest extends TestCase
         );
     }
 
-    public function testEmptyVector(): void
+    public function test_empty_vector(): void
     {
         // Test for binding like this (let [[] x])
         // This will be destructured to this:
@@ -50,7 +50,7 @@ final class VectorBindingDeconstructorTest extends TestCase
         ], $bindings);
     }
 
-    public function testVectorWithOneSymbol(): void
+    public function test_vector_with_one_symbol(): void
     {
         // Test for binding like this (let [[a] x])
         // This will be destructured to this:
@@ -92,7 +92,7 @@ final class VectorBindingDeconstructorTest extends TestCase
         ], $bindings);
     }
 
-    public function testVectorWithSymbols(): void
+    public function test_vector_with_symbols(): void
     {
         // Test for binding like this (let [[a b] x])
         // This will be destructured to this:
@@ -156,7 +156,7 @@ final class VectorBindingDeconstructorTest extends TestCase
         ], $bindings);
     }
 
-    public function testVectorWithOneSymbolWithRest(): void
+    public function test_vector_with_one_symbol_with_rest(): void
     {
         // Test for binding like this (let [[a & b] x])
         // This will be destructured to this:
@@ -213,7 +213,7 @@ final class VectorBindingDeconstructorTest extends TestCase
         ], $bindings);
     }
 
-    public function testExceptionWhenMultipleRestSymbol(): void
+    public function test_exception_when_multiple_rest_symbol(): void
     {
         $bindToA = Symbol::create('a');
         $bindToB = Symbol::create('b');

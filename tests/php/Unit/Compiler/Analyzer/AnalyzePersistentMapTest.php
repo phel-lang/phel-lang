@@ -22,7 +22,7 @@ final class AnalyzePersistentMapTest extends TestCase
         $this->mapAnalyzer = new AnalyzePersistentMap(new Analyzer(new GlobalEnvironment()));
     }
 
-    public function testEmptyMap(): void
+    public function test_empty_map(): void
     {
         $env = NodeEnvironment::empty();
         self::assertEquals(
@@ -31,7 +31,7 @@ final class AnalyzePersistentMapTest extends TestCase
         );
     }
 
-    public function testMap(): void
+    public function test_map(): void
     {
         $env = NodeEnvironment::empty();
         self::assertEquals(

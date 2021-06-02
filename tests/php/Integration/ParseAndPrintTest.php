@@ -18,7 +18,7 @@ final class ParseAndPrintTest extends TestCase
         $this->compilerFactory = new CompilerFactory();
     }
 
-    public function testParseAndPrintCoreLibrary(): void
+    public function test_parse_and_print_core_library(): void
     {
         $coreLibCode = file_get_contents(__DIR__ . '/../../../src/phel/core.phel');
 

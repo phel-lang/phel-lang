@@ -10,7 +10,7 @@ use PHPUnit\Framework\TestCase;
 
 final class SetTest extends TestCase
 {
-    public function testCount(): void
+    public function test_count(): void
     {
         $set1 = new Set([]);
         $set2 = new Set(['a']);
@@ -22,13 +22,13 @@ final class SetTest extends TestCase
         $this->assertEquals(2, count($set4));
     }
 
-    public function testHash(): void
+    public function test_hash(): void
     {
         $set = new Set(['a']);
         $this->assertEquals(crc32(spl_object_hash($set)), $set->hash());
     }
 
-    public function testForeach(): void
+    public function test_foreach(): void
     {
         $set = new Set(['a', 'b']);
         $result = [];
@@ -39,7 +39,7 @@ final class SetTest extends TestCase
         $this->assertEquals(['a', 'b'], $result);
     }
 
-    public function testCons(): void
+    public function test_cons(): void
     {
         $set = new Set(['a']);
         $set->cons('b');
@@ -47,43 +47,43 @@ final class SetTest extends TestCase
         $this->assertEquals(new Set(['a', 'b']), $set);
     }
 
-    public function testFirst(): void
+    public function test_first(): void
     {
         $set = new Set(['a', 'b']);
         $this->assertEquals('a', $set->first());
     }
 
-    public function testFirstEmpty(): void
+    public function test_first_empty(): void
     {
         $set = new Set([]);
         $this->assertNull($set->first());
     }
 
-    public function testCdr(): void
+    public function test_cdr(): void
     {
         $set = new Set(['a', 'b']);
         $this->assertEquals(new PhelArray(['b']), $set->cdr());
     }
 
-    public function testCdrEmpty(): void
+    public function test_cdr_empty(): void
     {
         $set = new Set([]);
         $this->assertEquals(null, $set->cdr());
     }
 
-    public function testRest(): void
+    public function test_rest(): void
     {
         $set = new Set(['a', 'b']);
         $this->assertEquals(new PhelArray(['b']), $set->rest());
     }
 
-    public function testRestEmpty(): void
+    public function test_rest_empty(): void
     {
         $set = new Set([]);
         $this->assertEquals(new PhelArray([]), $set->rest());
     }
 
-    public function testPush(): void
+    public function test_push(): void
     {
         $set = new Set(['a']);
         $set->push('b');
@@ -91,7 +91,7 @@ final class SetTest extends TestCase
         $this->assertEquals(new Set(['a', 'b']), $set);
     }
 
-    public function testPushDifferentTypes(): void
+    public function test_push_different_types(): void
     {
         $set1 = new Set(['a']);
         $set2 = new Set(['b']);
@@ -103,7 +103,7 @@ final class SetTest extends TestCase
         $this->assertEquals(new Set(['a', 1, $set2, $date]), $set1);
     }
 
-    public function testConcat(): void
+    public function test_concat(): void
     {
         $set1 = new Set(['a', 'b']);
         $set2 = new Set(['b', 'c']);
@@ -113,7 +113,7 @@ final class SetTest extends TestCase
         $this->assertEquals(new Set(['b', 'c']), $set2);
     }
 
-    public function testIntersection(): void
+    public function test_intersection(): void
     {
         $set1 = new Set(['a', 'b']);
         $set2 = new Set(['b', 'c']);
@@ -124,7 +124,7 @@ final class SetTest extends TestCase
         $this->assertEquals(new Set(['b', 'c']), $set2);
     }
 
-    public function testDifference(): void
+    public function test_difference(): void
     {
         $set1 = new Set(['a', 'b']);
         $set2 = new Set(['b', 'c']);
@@ -135,7 +135,7 @@ final class SetTest extends TestCase
         $this->assertEquals(new Set(['b', 'c']), $set2);
     }
 
-    public function testEquals(): void
+    public function test_equals(): void
     {
         $set1 = new Set(['a', 'b']);
         $set2 = new Set(['a', 'b']);
@@ -148,13 +148,13 @@ final class SetTest extends TestCase
         $this->assertFalse($set3->equals($set1));
     }
 
-    public function testToPhpArray(): void
+    public function test_to_php_array(): void
     {
         $set = new Set(['a', 'b']);
         $this->assertEquals(['a', 'b'], $set->toPhpArray());
     }
 
-    public function testToString(): void
+    public function test_to_string(): void
     {
         $set = new Set(['a', 'b']);
         $this->assertEquals('(set "a" "b")', $set->__toString());

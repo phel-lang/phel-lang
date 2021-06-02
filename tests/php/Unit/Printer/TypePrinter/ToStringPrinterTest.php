@@ -9,7 +9,7 @@ use PHPUnit\Framework\TestCase;
 
 final class ToStringPrinterTest extends TestCase
 {
-    public function testPrint(): void
+    public function test_print(): void
     {
         $class = new class() {
             public function __toString(): string

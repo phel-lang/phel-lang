@@ -42,7 +42,7 @@ final class InvokeSymbolTest extends TestCase
         $this->analyzer = new Analyzer($env);
     }
 
-    public function testInvokeWithoutArguments(): void
+    public function test_invoke_without_arguments(): void
     {
         $list = TypeFactory::getInstance()->persistentListFromArray([
             Symbol::createForNamespace('php', '+'),
@@ -60,7 +60,7 @@ final class InvokeSymbolTest extends TestCase
         );
     }
 
-    public function testInvokeWithOneArguments(): void
+    public function test_invoke_with_one_arguments(): void
     {
         $list = TypeFactory::getInstance()->persistentListFromArray([
             Symbol::createForNamespace('php', '+'),
@@ -81,7 +81,7 @@ final class InvokeSymbolTest extends TestCase
         );
     }
 
-    public function testMacroExpand(): void
+    public function test_macro_expand(): void
     {
         $list = TypeFactory::getInstance()->persistentListFromArray([
             Symbol::createForNamespace('user', 'my-macro'),
@@ -107,7 +107,7 @@ final class InvokeSymbolTest extends TestCase
         );
     }
 
-    public function testMacroExpandFailure(): void
+    public function test_macro_expand_failure(): void
     {
         $this->expectException(AnalyzerException::class);
         $this->expectExceptionMessage('Error in expanding macro "user\\my-failed-macro": my-failed-macro message');
@@ -120,7 +120,7 @@ final class InvokeSymbolTest extends TestCase
         $node = (new InvokeSymbol($this->analyzer))->analyze($list, $env);
     }
 
-    public function testMacroUndefinedMacro(): void
+    public function test_macro_undefined_macro(): void
     {
         $this->expectException(AnalyzerException::class);
         $this->expectExceptionMessage('Cannot resolve symbol \'user/my-undefined-macro\'');

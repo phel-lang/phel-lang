@@ -10,7 +10,7 @@ use PHPUnit\Framework\TestCase;
 
 final class BooleanNodeTest extends TestCase
 {
-    public function testGetCode(): void
+    public function test_get_code(): void
     {
         self::assertEquals(
             'true',
@@ -18,7 +18,7 @@ final class BooleanNodeTest extends TestCase
         );
     }
 
-    public function testGetStartLocation(): void
+    public function test_get_start_location(): void
     {
         self::assertEquals(
             $this->loc(1, 0),
@@ -26,7 +26,7 @@ final class BooleanNodeTest extends TestCase
         );
     }
 
-    public function testGetEndLocation(): void
+    public function test_get_end_location(): void
     {
         self::assertEquals(
             $this->loc(1, 4),
@@ -34,7 +34,7 @@ final class BooleanNodeTest extends TestCase
         );
     }
 
-    public function testValue(): void
+    public function test_value(): void
     {
         self::assertTrue(
             (new BooleanNode('true', $this->loc(1, 0), $this->loc(1, 4), true))->getValue()

@@ -42,7 +42,7 @@ final class ParserTest extends TestCase
         $this->compilerFacade = new CompilerFacade();
     }
 
-    public function testReadNumber(): void
+    public function test_read_number(): void
     {
         self::assertEquals(new NumberNode('1', $this->loc(1, 0), $this->loc(1, 1), 1), $this->parse('1'));
         self::assertEquals(new NumberNode('10', $this->loc(1, 0), $this->loc(1, 2), 10), $this->parse('10'));
@@ -65,7 +65,7 @@ final class ParserTest extends TestCase
         self::assertEquals(new NumberNode('7E-10', $this->loc(1, 0), $this->loc(1, 5), 7E-10), $this->parse('7E-10'));
     }
 
-    public function testReadKeyword(): void
+    public function test_read_keyword(): void
     {
         self::assertEquals(
             new KeywordNode(':test', $this->loc(1, 0), $this->loc(1, 5), new Keyword('test')),
@@ -73,7 +73,7 @@ final class ParserTest extends TestCase
         );
     }
 
-    public function testReadBoolean(): void
+    public function test_read_boolean(): void
     {
         self::assertEquals(
             new BooleanNode('true', $this->loc(1, 0), $this->loc(1, 4), true),
@@ -85,7 +85,7 @@ final class ParserTest extends TestCase
         );
     }
 
-    public function testReadNil(): void
+    public function test_read_nil(): void
     {
         self::assertEquals(
             new NilNode('nil', $this->loc(1, 0), $this->loc(1, 3), null),
@@ -93,7 +93,7 @@ final class ParserTest extends TestCase
         );
     }
 
-    public function testReadSymbol(): void
+    public function test_read_symbol(): void
     {
         self::assertEquals(
             new SymbolNode('test', $this->loc(1, 0), $this->loc(1, 4), Symbol::create('test')),
@@ -101,7 +101,7 @@ final class ParserTest extends TestCase
         );
     }
 
-    public function testReadList(): void
+    public function test_read_list(): void
     {
         self::assertEquals(
             new ListNode(Token::T_OPEN_PARENTHESIS, $this->loc(1, 0), $this->loc(1, 2), []),
@@ -131,7 +131,7 @@ final class ParserTest extends TestCase
         );
     }
 
-    public function testRdlistBracket(): void
+    public function test_rdlist_bracket(): void
     {
         self::assertEquals(
             new ListNode(Token::T_OPEN_BRACKET, $this->loc(1, 0), $this->loc(1, 2), []),
@@ -161,7 +161,7 @@ final class ParserTest extends TestCase
         );
     }
 
-    public function testQuote(): void
+    public function test_quote(): void
     {
         self::assertEquals(
             new QuoteNode(
@@ -174,7 +174,7 @@ final class ParserTest extends TestCase
         );
     }
 
-    public function testUnquote(): void
+    public function test_unquote(): void
     {
         self::assertEquals(
             new QuoteNode(
@@ -187,7 +187,7 @@ final class ParserTest extends TestCase
         );
     }
 
-    public function testUnquoteSplice(): void
+    public function test_unquote_splice(): void
     {
         self::assertEquals(
             new QuoteNode(
@@ -200,7 +200,7 @@ final class ParserTest extends TestCase
         );
     }
 
-    public function testQuasiquote1(): void
+    public function test_quasiquote1(): void
     {
         self::assertEquals(
             new QuoteNode(
@@ -213,7 +213,7 @@ final class ParserTest extends TestCase
         );
     }
 
-    public function testQuasiquote2(): void
+    public function test_quasiquote2(): void
     {
         self::assertEquals(
             new QuoteNode(
@@ -226,7 +226,7 @@ final class ParserTest extends TestCase
         );
     }
 
-    public function testReadString(): void
+    public function test_read_string(): void
     {
         self::assertEquals(
             new StringNode('"abc"', $this->loc(1, 0), $this->loc(1, 5), 'abc'),
@@ -279,7 +279,7 @@ final class ParserTest extends TestCase
         );
     }
 
-    public function testReadEmptyArray(): void
+    public function test_read_empty_array(): void
     {
         self::assertEquals(
             new ListNode(Token::T_ARRAY, $this->loc(1, 0), $this->loc(1, 3), []),
@@ -287,7 +287,7 @@ final class ParserTest extends TestCase
         );
     }
 
-    public function testReadArray1(): void
+    public function test_read_array1(): void
     {
         self::assertEquals(
             new ListNode(Token::T_ARRAY, $this->loc(1, 0), $this->loc(1, 4), [
@@ -297,7 +297,7 @@ final class ParserTest extends TestCase
         );
     }
 
-    public function testReadArray2(): void
+    public function test_read_array2(): void
     {
         self::assertEquals(
             new ListNode(Token::T_ARRAY, $this->loc(1, 0), $this->loc(1, 6), [
@@ -309,7 +309,7 @@ final class ParserTest extends TestCase
         );
     }
 
-    public function testReadEmptyMap(): void
+    public function test_read_empty_map(): void
     {
         self::assertEquals(
             new ListNode(Token::T_OPEN_BRACE, $this->loc(1, 0), $this->loc(1, 2), []),
@@ -317,7 +317,7 @@ final class ParserTest extends TestCase
         );
     }
 
-    public function testReadMap1(): void
+    public function test_read_map1(): void
     {
         self::assertEquals(
             new ListNode(Token::T_OPEN_BRACE, $this->loc(1, 0), $this->loc(1, 6), [
@@ -329,7 +329,7 @@ final class ParserTest extends TestCase
         );
     }
 
-    public function testReadMap2(): void
+    public function test_read_map2(): void
     {
         self::assertEquals(
             new ListNode(Token::T_OPEN_BRACE, $this->loc(1, 0), $this->loc(1, 11), [
@@ -345,7 +345,7 @@ final class ParserTest extends TestCase
         );
     }
 
-    public function testReadEmptyTable(): void
+    public function test_read_empty_table(): void
     {
         self::assertEquals(
             new ListNode(Token::T_TABLE, $this->loc(1, 0), $this->loc(1, 3), []),
@@ -353,7 +353,7 @@ final class ParserTest extends TestCase
         );
     }
 
-    public function testReadTable1(): void
+    public function test_read_table1(): void
     {
         self::assertEquals(
             new ListNode(Token::T_TABLE, $this->loc(1, 0), $this->loc(1, 7), [
@@ -365,7 +365,7 @@ final class ParserTest extends TestCase
         );
     }
 
-    public function testReadTable2(): void
+    public function test_read_table2(): void
     {
         self::assertEquals(
             new ListNode(Token::T_TABLE, $this->loc(1, 0), $this->loc(1, 12), [
@@ -381,7 +381,7 @@ final class ParserTest extends TestCase
         );
     }
 
-    public function testMetaKeyword(): void
+    public function test_meta_keyword(): void
     {
         self::assertEquals(
             new MetaNode(
@@ -397,7 +397,7 @@ final class ParserTest extends TestCase
         );
     }
 
-    public function testMetaString(): void
+    public function test_meta_string(): void
     {
         self::assertEquals(
             new MetaNode(
@@ -413,7 +413,7 @@ final class ParserTest extends TestCase
         );
     }
 
-    public function testMetaSymbol(): void
+    public function test_meta_symbol(): void
     {
         self::assertEquals(
             new MetaNode(
@@ -429,7 +429,7 @@ final class ParserTest extends TestCase
         );
     }
 
-    public function testMetaTable(): void
+    public function test_meta_table(): void
     {
         self::assertEquals(
             new MetaNode(
@@ -453,7 +453,7 @@ final class ParserTest extends TestCase
         );
     }
 
-    public function testConcatMeta(): void
+    public function test_concat_meta(): void
     {
         self::assertEquals(
             new MetaNode(
@@ -477,7 +477,7 @@ final class ParserTest extends TestCase
         );
     }
 
-    public function testReadShortFnZeroArgs(): void
+    public function test_read_short_fn_zero_args(): void
     {
         self::assertEquals(
             new ListNode(Token::T_FN, $this->loc(1, 0), $this->loc(1, 6), [
@@ -487,7 +487,7 @@ final class ParserTest extends TestCase
         );
     }
 
-    public function testReadShortFnOneArg(): void
+    public function test_read_short_fn_one_arg(): void
     {
         self::assertEquals(
             new ListNode(Token::T_FN, $this->loc(1, 0), $this->loc(1, 8), [
@@ -499,35 +499,35 @@ final class ParserTest extends TestCase
         );
     }
 
-    public function testReadUnbalancedClosedParen(): void
+    public function test_read_unbalanced_closed_paren(): void
     {
         $this->expectException(AbstractParserException::class);
         $this->expectExceptionMessage('Unterminated list');
         $this->parse(')');
     }
 
-    public function testReadUnbalancedOpenParen(): void
+    public function test_read_unbalanced_open_paren(): void
     {
         $this->expectException(AbstractParserException::class);
         $this->expectExceptionMessage('Unterminated list');
         $this->parse('(');
     }
 
-    public function testReadUnbalancedOpenBrace(): void
+    public function test_read_unbalanced_open_brace(): void
     {
         $this->expectException(AbstractParserException::class);
         $this->expectExceptionMessage('Unterminated list');
         $this->parse('{');
     }
 
-    public function testEOF(): void
+    public function test_eof(): void
     {
         $tokenStream = $this->compilerFacade->lexString('');
 
         self::assertNull($this->compilerFacade->parseNext($tokenStream));
     }
 
-    public function testInvalidGenerator(): void
+    public function test_invalid_generator(): void
     {
         $tokenStream = $this->compilerFacade->lexString('');
 
@@ -535,7 +535,7 @@ final class ParserTest extends TestCase
         self::assertNull($this->compilerFacade->parseNext($tokenStream));
     }
 
-    public function testReadComment(): void
+    public function test_read_comment(): void
     {
         self::assertEquals(
             new CommentNode('# Test', $this->loc(1, 0), $this->loc(1, 6)),
@@ -543,7 +543,7 @@ final class ParserTest extends TestCase
         );
     }
 
-    public function testReadWhitespaceOnly(): void
+    public function test_read_whitespace_only(): void
     {
         self::assertEquals(
             new WhitespaceNode(" \t", $this->loc(1, 0), $this->loc(1, 2)),
@@ -551,7 +551,7 @@ final class ParserTest extends TestCase
         );
     }
 
-    public function testReadNewline(): void
+    public function test_read_newline(): void
     {
         self::assertEquals(
             new NewlineNode("\n", $this->loc(1, 0), $this->loc(2, 0)),

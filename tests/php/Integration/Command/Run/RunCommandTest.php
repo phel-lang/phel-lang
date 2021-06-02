@@ -15,7 +15,7 @@ final class RunCommandTest extends AbstractCommandTest
         Config::setApplicationRootDir(__DIR__);
     }
 
-    public function testRunByNamespace(): void
+    public function test_run_by_namespace(): void
     {
         $this->expectOutputRegex('~hello world~');
 
@@ -28,7 +28,7 @@ final class RunCommandTest extends AbstractCommandTest
             );
     }
 
-    public function testRunByFilename(): void
+    public function test_run_by_filename(): void
     {
         $this->expectOutputRegex('~hello world~');
 
@@ -41,7 +41,7 @@ final class RunCommandTest extends AbstractCommandTest
             );
     }
 
-    public function testCannotParseFile(): void
+    public function test_cannot_parse_file(): void
     {
         $filename = __DIR__ . '/Fixtures/test-script-not-parsable.phel';
         $this->expectOutputRegex(sprintf('~Cannot parse file: %s~', $filename));
@@ -51,7 +51,7 @@ final class RunCommandTest extends AbstractCommandTest
             ->run($this->stubInput($filename), $this->stubOutput());
     }
 
-    public function testCannotReadFile(): void
+    public function test_cannot_read_file(): void
     {
         $filename = __DIR__ . '/Fixtures/this-file-does-not-exist.phel';
         $this->expectOutputRegex(sprintf('~Cannot load namespace: %s~', $filename));
@@ -61,7 +61,7 @@ final class RunCommandTest extends AbstractCommandTest
             ->run($this->stubInput($filename), $this->stubOutput());
     }
 
-    public function testFileWithoutNs(): void
+    public function test_file_without_ns(): void
     {
         $filename = __DIR__ . '/Fixtures/test-script-without-ns.phel';
         $this->expectOutputRegex(sprintf('~Cannot extract namespace from file: %s~', $filename));

@@ -27,7 +27,7 @@ final class ApplySymbolTest extends TestCase
         $this->analyzer = new Analyzer(new GlobalEnvironment());
     }
 
-    public function testLessThan3Arguments(): void
+    public function test_less_than3_arguments(): void
     {
         $this->expectException(AbstractLocatedException::class);
         $this->expectExceptionMessage("At least three arguments are required for 'apply");
@@ -39,7 +39,7 @@ final class ApplySymbolTest extends TestCase
         (new ApplySymbol($this->analyzer))->analyze($list, NodeEnvironment::empty());
     }
 
-    public function testApplyNode(): void
+    public function test_apply_node(): void
     {
         $list = TypeFactory::getInstance()->persistentListFromArray([
             Symbol::create(Symbol::NAME_APPLY),

@@ -12,7 +12,7 @@ use PHPUnit\Framework\TestCase;
 
 final class FilePositionExtractorTest extends TestCase
 {
-    public function testGetOriginal(): void
+    public function test_get_original(): void
     {
         $extractor = new FilePositionExtractor(
             $this->stubSourceMapExtractor()
@@ -27,7 +27,7 @@ final class FilePositionExtractorTest extends TestCase
         );
     }
 
-    public function testGetOriginalWithFileNameComment(): void
+    public function test_get_original_with_file_name_comment(): void
     {
         $extractor = new FilePositionExtractor(
             $this->stubSourceMapExtractor(

@@ -18,7 +18,7 @@ final class LexerTest extends TestCase
         $this->compilerFactory = new CompilerFactory();
     }
 
-    public function testWhitespaceWithNewline(): void
+    public function test_whitespace_with_newline(): void
     {
         self::assertEquals(
             [
@@ -32,7 +32,7 @@ final class LexerTest extends TestCase
         );
     }
 
-    public function testReadCommentWithoutText(): void
+    public function test_read_comment_without_text(): void
     {
         self::assertEquals(
             [
@@ -43,7 +43,7 @@ final class LexerTest extends TestCase
         );
     }
 
-    public function testReadCommentWithoutNewLine(): void
+    public function test_read_comment_without_new_line(): void
     {
         self::assertEquals(
             [
@@ -54,7 +54,7 @@ final class LexerTest extends TestCase
         );
     }
 
-    public function testReadCommentWithNewLine(): void
+    public function test_read_comment_with_new_line(): void
     {
         self::assertEquals(
             [
@@ -66,7 +66,7 @@ final class LexerTest extends TestCase
         );
     }
 
-    public function testReadSingleSyntaxChar(): void
+    public function test_read_single_syntax_char(): void
     {
         self::assertEquals(
             [
@@ -77,7 +77,7 @@ final class LexerTest extends TestCase
         );
     }
 
-    public function testReadEmptyList(): void
+    public function test_read_empty_list(): void
     {
         self::assertEquals(
             [
@@ -89,7 +89,7 @@ final class LexerTest extends TestCase
         );
     }
 
-    public function testReadWord(): void
+    public function test_read_word(): void
     {
         self::assertEquals(
             [
@@ -100,7 +100,7 @@ final class LexerTest extends TestCase
         );
     }
 
-    public function testReadNumber(): void
+    public function test_read_number(): void
     {
         self::assertEquals(
             [
@@ -111,7 +111,7 @@ final class LexerTest extends TestCase
         );
     }
 
-    public function testReadEmptyString(): void
+    public function test_read_empty_string(): void
     {
         self::assertEquals(
             [
@@ -122,7 +122,7 @@ final class LexerTest extends TestCase
         );
     }
 
-    public function testReadString(): void
+    public function test_read_string(): void
     {
         self::assertEquals(
             [
@@ -133,7 +133,7 @@ final class LexerTest extends TestCase
         );
     }
 
-    public function testReadEscapedString(): void
+    public function test_read_escaped_string(): void
     {
         self::assertEquals(
             [
@@ -144,7 +144,7 @@ final class LexerTest extends TestCase
         );
     }
 
-    public function testReadVector(): void
+    public function test_read_vector(): void
     {
         self::assertEquals(
             [
@@ -159,7 +159,7 @@ final class LexerTest extends TestCase
         );
     }
 
-    public function testUnexpectedState(): void
+    public function test_unexpected_state(): void
     {
         $this->expectException(\Exception::class);
 

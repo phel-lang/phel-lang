@@ -14,7 +14,7 @@ final class SymbolPrinterTest extends TestCase
     /**
      * @dataProvider printerDataProvider
      */
-    public function testPrint(string $expected, Symbol $symbol): void
+    public function test_print(string $expected, Symbol $symbol): void
     {
         self::assertSame(
             $expected,

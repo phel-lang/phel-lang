@@ -30,7 +30,7 @@ final class DeconstructorTest extends TestCase
         );
     }
 
-    public function testEmptyVector(): void
+    public function test_empty_vector(): void
     {
         $bindings = $this->deconstructor->deconstruct(
             TypeFactory::getInstance()->persistentVectorFromArray([])
@@ -39,7 +39,7 @@ final class DeconstructorTest extends TestCase
         self::assertEquals([], $bindings);
     }
 
-    public function testVectorWithEmptyVectors(): void
+    public function test_vector_with_empty_vectors(): void
     {
         // Test for binding like this (let [[a] [10]
         //                                  [b] [20]])
@@ -109,7 +109,7 @@ final class DeconstructorTest extends TestCase
         ], $bindings);
     }
 
-    public function testTableBinding(): void
+    public function test_table_binding(): void
     {
         // Test for binding like this (let [@{:key a} x])
         // This will be destructured to this:
@@ -143,7 +143,7 @@ final class DeconstructorTest extends TestCase
         ], $bindings);
     }
 
-    public function testArrayBinding(): void
+    public function test_array_binding(): void
     {
         // Test for binding like this (let [@[0 a] x])
         // This will be destructured to this:
@@ -181,7 +181,7 @@ final class DeconstructorTest extends TestCase
         ], $bindings);
     }
 
-    public function testNilBinding(): void
+    public function test_nil_binding(): void
     {
         // Test for binding like this (let [nil x])
         // This will be destructured to this:

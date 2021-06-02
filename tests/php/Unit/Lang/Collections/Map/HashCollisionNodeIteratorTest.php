@@ -11,7 +11,7 @@ use PHPUnit\Framework\TestCase;
 
 class HashCollisionNodeIteratorTest extends TestCase
 {
-    public function testIterateOnEmptyNode(): void
+    public function test_iterate_on_empty_node(): void
     {
         $node = new HashCollisionNode(new ModuloHasher(), new SimpleEqualizer(), 1, 0, []);
 
@@ -23,7 +23,7 @@ class HashCollisionNodeIteratorTest extends TestCase
         $this->assertEmpty($result);
     }
 
-    public function testIterateOnSingleEntryNode(): void
+    public function test_iterate_on_single_entry_node(): void
     {
         $node = new HashCollisionNode(new ModuloHasher(), new SimpleEqualizer(), 1, 1, [1, 'foo']);
 
@@ -35,7 +35,7 @@ class HashCollisionNodeIteratorTest extends TestCase
         $this->assertEquals([1 => 'foo'], $result);
     }
 
-    public function testIterateOnTwoEntryNode(): void
+    public function test_iterate_on_two_entry_node(): void
     {
         $node = new HashCollisionNode(new ModuloHasher(), new SimpleEqualizer(), 1, 2, [1, 'foo', 3, 'bar']);
 

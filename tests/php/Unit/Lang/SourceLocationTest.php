@@ -9,39 +9,39 @@ use PHPUnit\Framework\TestCase;
 
 final class SourceLocationTest extends TestCase
 {
-    public function testGetFile(): void
+    public function test_get_file(): void
     {
         $s = new SourceLocation('/test', 1, 2);
         $this->assertEquals('/test', $s->getFile());
     }
 
-    public function testSetFile(): void
+    public function test_set_file(): void
     {
         $s = new SourceLocation('/test', 1, 2);
         $s->setFile('/abc');
         $this->assertEquals('/abc', $s->getFile());
     }
 
-    public function testGetLine(): void
+    public function test_get_line(): void
     {
         $s = new SourceLocation('/test', 1, 2);
         $this->assertEquals(1, $s->getLine());
     }
 
-    public function testSetLine(): void
+    public function test_set_line(): void
     {
         $s = new SourceLocation('/test', 1, 2);
         $s->setLine(32);
         $this->assertEquals(32, $s->getLine());
     }
 
-    public function testGetColumn(): void
+    public function test_get_column(): void
     {
         $s = new SourceLocation('/test', 1, 2);
         $this->assertEquals(2, $s->getColumn());
     }
 
-    public function testSetColumn(): void
+    public function test_set_column(): void
     {
         $s = new SourceLocation('/test', 1, 2);
         $s->setColumn(32);

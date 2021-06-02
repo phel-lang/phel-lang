@@ -19,13 +19,13 @@ final class CallPhelTest extends TestCase
         $this->wrapper = new ExampleWrapper();
     }
 
-    public function testCallOdd(): void
+    public function test_call_odd(): void
     {
         self::assertTrue($this->wrapper->isOdd(1));
         self::assertFalse($this->wrapper->isOdd(2));
     }
 
-    public function testCallPrintStr(): void
+    public function test_call_print_str(): void
     {
         self::assertSame('a b c', $this->wrapper->printStr('a', 'b', 'c'));
     }

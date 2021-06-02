@@ -27,7 +27,7 @@ final class DefSymbolTest extends TestCase
         $this->analyzer = new Analyzer(new GlobalEnvironment());
     }
 
-    public function testWithDefNotAllowed(): void
+    public function test_with_def_not_allowed(): void
     {
         $this->expectException(AnalyzerException::class);
         $this->expectExceptionMessage("'def inside of a 'def is forbidden");
@@ -44,7 +44,7 @@ final class DefSymbolTest extends TestCase
         (new DefSymbol($this->analyzer))->analyze($list, NodeEnvironment::empty());
     }
 
-    public function testWithWrongNumberOfArguments(): void
+    public function test_with_wrong_number_of_arguments(): void
     {
         $this->expectException(AnalyzerException::class);
         $this->expectExceptionMessage("Two or three arguments are required for 'def. Got 2");
@@ -56,7 +56,7 @@ final class DefSymbolTest extends TestCase
         (new DefSymbol($this->analyzer))->analyze($list, NodeEnvironment::empty());
     }
 
-    public function testFirstArgumentMustBeSymbol(): void
+    public function test_first_argument_must_be_symbol(): void
     {
         $this->expectException(AnalyzerException::class);
         $this->expectExceptionMessage("First argument of 'def must be a Symbol.");
@@ -69,7 +69,7 @@ final class DefSymbolTest extends TestCase
         (new DefSymbol($this->analyzer))->analyze($list, NodeEnvironment::empty());
     }
 
-    public function testFalseInitValue(): void
+    public function test_false_init_value(): void
     {
         $this->expectException(AnalyzerException::class);
         $this->expectExceptionMessage('$init must be TypeInterface|string|float|int|bool|null');
@@ -82,7 +82,7 @@ final class DefSymbolTest extends TestCase
         (new DefSymbol($this->analyzer))->analyze($list, NodeEnvironment::empty());
     }
 
-    public function testInitValues(): void
+    public function test_init_values(): void
     {
         $list = TypeFactory::getInstance()->persistentListFromArray([
             Symbol::create(Symbol::NAME_DEF),
@@ -111,7 +111,7 @@ final class DefSymbolTest extends TestCase
         );
     }
 
-    public function testDocstring(): void
+    public function test_docstring(): void
     {
         $list = TypeFactory::getInstance()->persistentListFromArray([
             Symbol::create(Symbol::NAME_DEF),
@@ -144,7 +144,7 @@ final class DefSymbolTest extends TestCase
         );
     }
 
-    public function testMetaKeyword(): void
+    public function test_meta_keyword(): void
     {
         $list = TypeFactory::getInstance()->persistentListFromArray([
             Symbol::create(Symbol::NAME_DEF),
@@ -177,7 +177,7 @@ final class DefSymbolTest extends TestCase
         );
     }
 
-    public function testMetaTableKeyword(): void
+    public function test_meta_table_keyword(): void
     {
         $list = TypeFactory::getInstance()->persistentListFromArray([
             Symbol::create(Symbol::NAME_DEF),
@@ -210,7 +210,7 @@ final class DefSymbolTest extends TestCase
         );
     }
 
-    public function testInvalidMeta(): void
+    public function test_invalid_meta(): void
     {
         $this->expectException(AnalyzerException::class);
         $this->expectExceptionMessage('Metadata must be a String, Keyword or Map');

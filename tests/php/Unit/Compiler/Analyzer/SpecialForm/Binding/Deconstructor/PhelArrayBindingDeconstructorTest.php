@@ -27,7 +27,7 @@ final class PhelArrayBindingDeconstructorTest extends TestCase
         );
     }
 
-    public function testDeconstructSymbol(): void
+    public function test_deconstruct_symbol(): void
     {
         // Test for binding like this (let [@[0 a] x])
         // This will be destructured to this:
@@ -66,7 +66,7 @@ final class PhelArrayBindingDeconstructorTest extends TestCase
         ], $bindings);
     }
 
-    public function testDeconstructNestedVector(): void
+    public function test_deconstruct_nested_vector(): void
     {
         // Test for binding like this (let [@[0 [a]] x])
         // This will be destructured to this:

@@ -28,7 +28,7 @@ final class ApplyEmitterTest extends TestCase
         $this->applyEmitter = new ApplyEmitter($outputEmitter);
     }
 
-    public function testPhpVarNodeAndFnNodeIsInfix(): void
+    public function test_php_var_node_and_fn_node_is_infix(): void
     {
         $node = new PhpVarNode(NodeEnvironment::empty(), '+');
         $args = [
@@ -47,7 +47,7 @@ final class ApplyEmitterTest extends TestCase
         );
     }
 
-    public function testPhpVarNodeButNoInfix(): void
+    public function test_php_var_node_but_no_infix(): void
     {
         $node = new PhpVarNode(NodeEnvironment::empty(), 'str');
         $args = [
@@ -63,7 +63,7 @@ final class ApplyEmitterTest extends TestCase
         $this->expectOutputString('str("abc", ...((\Phel\Lang\TypeFactory::getInstance()->persistentVectorFromArray(["def"])) ?? []));');
     }
 
-    public function testNoPhpVarNode(): void
+    public function test_no_php_var_node(): void
     {
         $fnNode = new FnNode(
             NodeEnvironment::empty(),

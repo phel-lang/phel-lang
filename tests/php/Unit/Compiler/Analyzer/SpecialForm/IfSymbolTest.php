@@ -21,7 +21,7 @@ final class IfSymbolTest extends TestCase
     /**
      * @dataProvider providerRequiresAtLeastTwoOrThreeArgs
      */
-    public function testRequiresAtLeastTwoOrThreeArgs(PersistentListInterface $list): void
+    public function test_requires_at_least_two_or_three_args(PersistentListInterface $list): void
     {
         $this->expectException(AbstractLocatedException::class);
         $this->expectExceptionMessage("'if requires two or three arguments");
@@ -55,7 +55,7 @@ final class IfSymbolTest extends TestCase
         ];
     }
 
-    public function testAnalyze(): void
+    public function test_analyze(): void
     {
         $list = TypeFactory::getInstance()->persistentListFromArray([
             Symbol::create(Symbol::NAME_IF),

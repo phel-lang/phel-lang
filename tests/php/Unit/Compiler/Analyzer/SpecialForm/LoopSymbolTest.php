@@ -32,7 +32,7 @@ final class LoopSymbolTest extends TestCase
         $this->analyzer = new Analyzer($env);
     }
 
-    public function testWrongSymbolName(): void
+    public function test_wrong_symbol_name(): void
     {
         $this->expectException(AnalyzerException::class);
         $this->expectExceptionMessage("This is not a 'loop.");
@@ -43,7 +43,7 @@ final class LoopSymbolTest extends TestCase
         (new LoopSymbol($this->analyzer, new BindingValidator()))->analyze($list, $env);
     }
 
-    public function testWrongNumberOfArguments(): void
+    public function test_wrong_number_of_arguments(): void
     {
         $this->expectException(AnalyzerException::class);
         $this->expectExceptionMessage("At least two arguments are required for 'loop.");
@@ -54,7 +54,7 @@ final class LoopSymbolTest extends TestCase
         $this->analyzer->analyze($list, $env);
     }
 
-    public function testWrongBindingParameter(): void
+    public function test_wrong_binding_parameter(): void
     {
         $this->expectException(AnalyzerException::class);
         $this->expectExceptionMessage('Binding parameter must be a vector');
@@ -65,7 +65,7 @@ final class LoopSymbolTest extends TestCase
         $this->analyzer->analyze($list, $env);
     }
 
-    public function testUnevenBindings(): void
+    public function test_uneven_bindings(): void
     {
         $this->expectException(AnalyzerException::class);
         $this->expectExceptionMessage('Bindings must be a even number of parameters');
@@ -79,7 +79,7 @@ final class LoopSymbolTest extends TestCase
         $this->analyzer->analyze($list, $env);
     }
 
-    public function testBasicLoop(): void
+    public function test_basic_loop(): void
     {
         $list = TypeFactory::getInstance()->persistentListFromArray([
             Symbol::create('loop'),
@@ -102,7 +102,7 @@ final class LoopSymbolTest extends TestCase
         );
     }
 
-    public function testLoopWithBinding(): void
+    public function test_loop_with_binding(): void
     {
         Symbol::resetGen();
         $list = TypeFactory::getInstance()->persistentListFromArray([
@@ -146,7 +146,7 @@ final class LoopSymbolTest extends TestCase
         );
     }
 
-    public function testWithDestruction(): void
+    public function test_with_destruction(): void
     {
         Symbol::resetGen();
         $list = TypeFactory::getInstance()->persistentListFromArray([

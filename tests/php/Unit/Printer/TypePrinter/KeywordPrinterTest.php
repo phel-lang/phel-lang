@@ -14,7 +14,7 @@ final class KeywordPrinterTest extends TestCase
     /**
      * @dataProvider printerDataProvider
      */
-    public function testPrint(string $expected, Keyword $keyword): void
+    public function test_print(string $expected, Keyword $keyword): void
     {
         self::assertSame(
             $expected,

@@ -24,7 +24,7 @@ final class FnAsClassEmitterTest extends TestCase
         $this->fnAsClassEmitter = new FnAsClassEmitter($outputEmitter);
     }
 
-    public function testIdentityFn(): void
+    public function test_identity_fn(): void
     {
         $fnNode = new FnNode(
             NodeEnvironment::empty(),
@@ -46,7 +46,7 @@ final class FnAsClassEmitterTest extends TestCase
 };');
     }
 
-    public function testWithoutParameters(): void
+    public function test_without_parameters(): void
     {
         $fnNode = new FnNode(
             NodeEnvironment::empty(),
@@ -68,7 +68,7 @@ final class FnAsClassEmitterTest extends TestCase
 };');
     }
 
-    public function testWithUses(): void
+    public function test_with_uses(): void
     {
         $fnNode = new FnNode(
             NodeEnvironment::empty(),
@@ -99,7 +99,7 @@ final class FnAsClassEmitterTest extends TestCase
 };');
     }
 
-    public function testIsVariadic(): void
+    public function test_is_variadic(): void
     {
         $fnNode = new FnNode(
             NodeEnvironment::empty(),
@@ -122,7 +122,7 @@ final class FnAsClassEmitterTest extends TestCase
 };');
     }
 
-    public function testIsRecurs(): void
+    public function test_is_recurs(): void
     {
         $fnNode = new FnNode(
             NodeEnvironment::empty(),
@@ -146,7 +146,7 @@ final class FnAsClassEmitterTest extends TestCase
 };');
     }
 
-    public function testVariadicAndRecurs(): void
+    public function test_variadic_and_recurs(): void
     {
         $fnNode = new FnNode(
             NodeEnvironment::empty(),

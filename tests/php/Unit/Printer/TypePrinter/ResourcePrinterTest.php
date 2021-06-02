@@ -9,7 +9,7 @@ use PHPUnit\Framework\TestCase;
 
 final class ResourcePrinterTest extends TestCase
 {
-    public function testPrint(): void
+    public function test_print(): void
     {
         self::assertMatchesRegularExpression(
             '<PHP Resource id #Resource id #\d+>',

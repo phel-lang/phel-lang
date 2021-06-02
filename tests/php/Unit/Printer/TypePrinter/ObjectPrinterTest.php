@@ -13,7 +13,7 @@ final class ObjectPrinterTest extends TestCase
     /**
      * @dataProvider printerDataProvider
      */
-    public function testPrint(string $expected, object $object): void
+    public function test_print(string $expected, object $object): void
     {
         self::assertSame(
             $expected,

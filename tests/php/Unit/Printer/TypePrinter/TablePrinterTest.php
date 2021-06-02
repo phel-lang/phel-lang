@@ -15,7 +15,7 @@ final class TablePrinterTest extends TestCase
     /**
      * @dataProvider printerDataProvider
      */
-    public function testPrint(string $expected, Table $table): void
+    public function test_print(string $expected, Table $table): void
     {
         self::assertSame(
             $expected,

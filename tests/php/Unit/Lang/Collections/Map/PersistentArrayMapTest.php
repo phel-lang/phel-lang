@@ -13,7 +13,7 @@ use RuntimeException;
 
 class PersistentArrayMapTest extends TestCase
 {
-    public function testEmpty(): void
+    public function test_empty(): void
     {
         $h = PersistentArrayMap::empty(new ModuloHasher(), new SimpleEqualizer());
 
@@ -23,13 +23,13 @@ class PersistentArrayMapTest extends TestCase
         self::assertNull($h->find('test'));
     }
 
-    public function testCanNotCreateFromArrayWithUnevenValues(): void
+    public function test_can_not_create_from_array_with_uneven_values(): void
     {
         $this->expectException(RuntimeException::class);
         PersistentArrayMap::fromArray(new ModuloHasher(), new SimpleEqualizer(), ['test']);
     }
 
-    public function testAddNullKey(): void
+    public function test_add_null_key(): void
     {
         $h = PersistentArrayMap::empty(new ModuloHasher(), new SimpleEqualizer());
         $h2 = $h->put(null, 'test');
@@ -42,7 +42,7 @@ class PersistentArrayMapTest extends TestCase
         self::assertTrue($h2->contains(null));
     }
 
-    public function testPutKeyValue(): void
+    public function test_put_key_value(): void
     {
         $h = PersistentArrayMap::empty(new ModuloHasher(), new SimpleEqualizer())
             ->put(1, 'test');
@@ -52,7 +52,7 @@ class PersistentArrayMapTest extends TestCase
         self::assertEquals('test', $h->find(1));
     }
 
-    public function testPutSameKeyValueTwice(): void
+    public function test_put_same_key_value_twice(): void
     {
         $h = PersistentArrayMap::empty(new ModuloHasher(), new SimpleEqualizer())
             ->put(1, 'test')
@@ -63,7 +63,7 @@ class PersistentArrayMapTest extends TestCase
         self::assertEquals('test', $h->find(1));
     }
 
-    public function testPutSameKeyDifferentValue(): void
+    public function test_put_same_key_different_value(): void
     {
         $h = PersistentArrayMap::empty(new ModuloHasher(), new SimpleEqualizer())
             ->put(1, 'test')
@@ -74,7 +74,7 @@ class PersistentArrayMapTest extends TestCase
         self::assertEquals('foo', $h->find(1));
     }
 
-    public function testPutNullTwice(): void
+    public function test_put_null_twice(): void
     {
         $h = PersistentArrayMap::empty(new ModuloHasher(), new SimpleEqualizer())
             ->put(null, 'test')
@@ -85,7 +85,7 @@ class PersistentArrayMapTest extends TestCase
         self::assertEquals('test', $h->find(null));
     }
 
-    public function testMerge(): void
+    public function test_merge(): void
     {
         $h1 = PersistentArrayMap::empty(new ModuloHasher(), new SimpleEqualizer())
             ->put(1, 'test');
@@ -100,7 +100,7 @@ class PersistentArrayMapTest extends TestCase
         $this->assertEquals($expected, $h1->merge($h2));
     }
 
-    public function testConvertToPersistentHashMap(): void
+    public function test_convert_to_persistent_hash_map(): void
     {
         $h = PersistentArrayMap::empty(new ModuloHasher(), new SimpleEqualizer());
         for ($i = 0; $i < PersistentArrayMap::MAX_SIZE + 1; $i++) {
@@ -110,7 +110,7 @@ class PersistentArrayMapTest extends TestCase
         $this->assertInstanceOf(PersistentHashMap::class, $h);
     }
 
-    public function testRemoveExistingNullKey(): void
+    public function test_remove_existing_null_key(): void
     {
         $h = PersistentArrayMap::empty(new ModuloHasher(), new SimpleEqualizer())
             ->put(null, 'test')
@@ -121,7 +121,7 @@ class PersistentArrayMapTest extends TestCase
         self::assertNull($h->find(null));
     }
 
-    public function testRemoveNonExistingNullKey(): void
+    public function test_remove_non_existing_null_key(): void
     {
         $h = PersistentArrayMap::empty(new ModuloHasher(), new SimpleEqualizer())
             ->remove(null);
@@ -131,7 +131,7 @@ class PersistentArrayMapTest extends TestCase
         self::assertNull($h->find(null));
     }
 
-    public function testRemoveNonExistingKey(): void
+    public function test_remove_non_existing_key(): void
     {
         $h = PersistentArrayMap::empty(new ModuloHasher(), new SimpleEqualizer())
             ->remove(1);
@@ -141,7 +141,7 @@ class PersistentArrayMapTest extends TestCase
         self::assertNull($h->find(1));
     }
 
-    public function testRemoveNonExistingKeyInChild(): void
+    public function test_remove_non_existing_key_in_child(): void
     {
         $h = PersistentArrayMap::empty(new ModuloHasher(), new SimpleEqualizer())
             ->put(2, 'test')
@@ -154,7 +154,7 @@ class PersistentArrayMapTest extends TestCase
         self::assertNull($h->find(1));
     }
 
-    public function testRemoveExistingKey(): void
+    public function test_remove_existing_key(): void
     {
         $h = PersistentArrayMap::empty(new ModuloHasher(), new SimpleEqualizer())
             ->put(1, 'test')
@@ -165,7 +165,7 @@ class PersistentArrayMapTest extends TestCase
         self::assertNull($h->find(1));
     }
 
-    public function testEquals(): void
+    public function test_equals(): void
     {
         $h1 = PersistentArrayMap::empty(new ModuloHasher(), new SimpleEqualizer())
             ->put(1, 'foo')
@@ -179,7 +179,7 @@ class PersistentArrayMapTest extends TestCase
         $this->assertTrue($h2->equals($h1));
     }
 
-    public function testEqualsDifferentKeys(): void
+    public function test_equals_different_keys(): void
     {
         $h1 = PersistentArrayMap::empty(new ModuloHasher(), new SimpleEqualizer())
             ->put(1, 'foo')
@@ -193,7 +193,7 @@ class PersistentArrayMapTest extends TestCase
         $this->assertFalse($h2->equals($h1));
     }
 
-    public function testEqualsDifferentLength(): void
+    public function test_equals_different_length(): void
     {
         $h1 = PersistentArrayMap::empty(new ModuloHasher(), new SimpleEqualizer())
             ->put(1, 'foo')
@@ -208,7 +208,7 @@ class PersistentArrayMapTest extends TestCase
         $this->assertFalse($h2->equals($h1));
     }
 
-    public function testEqualsDifferentValues(): void
+    public function test_equals_different_values(): void
     {
         $h1 = PersistentArrayMap::empty(new ModuloHasher(), new SimpleEqualizer())
             ->put(1, 'foo')
@@ -222,7 +222,7 @@ class PersistentArrayMapTest extends TestCase
         $this->assertFalse($h2->equals($h1));
     }
 
-    public function testEqualsDifferentType(): void
+    public function test_equals_different_type(): void
     {
         $h1 = PersistentArrayMap::empty(new ModuloHasher(), new SimpleEqualizer())
             ->put(1, 'foo')
@@ -231,7 +231,7 @@ class PersistentArrayMapTest extends TestCase
         $this->assertFalse($h1->equals([1 => 'foo', 2 => 'bar']));
     }
 
-    public function testIteratable(): void
+    public function test_iteratable(): void
     {
         $h = PersistentArrayMap::empty(new ModuloHasher(), new SimpleEqualizer())
             ->put(1, 'foo')
@@ -246,7 +246,7 @@ class PersistentArrayMapTest extends TestCase
         $this->assertEquals([1 => 'foo', 2 => 'bar', 3 => 'foobar'], $result);
     }
 
-    public function testIteratableOnEmpty(): void
+    public function test_iteratable_on_empty(): void
     {
         $h = PersistentArrayMap::empty(new ModuloHasher(), new SimpleEqualizer());
 
@@ -258,14 +258,14 @@ class PersistentArrayMapTest extends TestCase
         $this->assertEquals([], $result);
     }
 
-    public function testHashOnEmptyMap(): void
+    public function test_hash_on_empty_map(): void
     {
         $h = PersistentArrayMap::empty(new ModuloHasher(), new SimpleEqualizer());
 
         $this->assertEquals(1, $h->hash());
     }
 
-    public function testHashOnSingleEntryyMap(): void
+    public function test_hash_on_single_entryy_map(): void
     {
         $h = PersistentArrayMap::empty(new ModuloHasher(), new SimpleEqualizer())
             ->put(1, 10);
@@ -273,7 +273,7 @@ class PersistentArrayMapTest extends TestCase
         $this->assertEquals(1 + (1 ^ 10), $h->hash());
     }
 
-    public function testAddMetaData(): void
+    public function test_add_meta_data(): void
     {
         $meta = PersistentArrayMap::empty(new ModuloHasher(), new SimpleEqualizer());
         $h = PersistentArrayMap::empty(new ModuloHasher(), new SimpleEqualizer())

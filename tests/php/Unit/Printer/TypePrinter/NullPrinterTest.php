@@ -9,7 +9,7 @@ use PHPUnit\Framework\TestCase;
 
 final class NullPrinterTest extends TestCase
 {
-    public function testPrint(): void
+    public function test_print(): void
     {
         self::assertSame('nil', (new NullPrinter())->print(null));
     }

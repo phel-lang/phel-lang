@@ -12,7 +12,7 @@ use PHPUnit\Framework\TestCase;
 
 class ArrayNodeIteratorTest extends TestCase
 {
-    public function testIterateOnEmptyNode(): void
+    public function test_iterate_on_empty_node(): void
     {
         $node = ArrayNode::empty(new ModuloHasher(), new SimpleEqualizer());
 
@@ -24,7 +24,7 @@ class ArrayNodeIteratorTest extends TestCase
         $this->assertEmpty($result);
     }
 
-    public function testIterateOnSingleEntryNode(): void
+    public function test_iterate_on_single_entry_node(): void
     {
         $node = ArrayNode::empty(new ModuloHasher(), new SimpleEqualizer())
             ->put(0, 1, 1, 'foo', new Box(false));
@@ -37,7 +37,7 @@ class ArrayNodeIteratorTest extends TestCase
         $this->assertEquals([1 => 'foo'], $result);
     }
 
-    public function testIterateOnTwoEntryNode(): void
+    public function test_iterate_on_two_entry_node(): void
     {
         $node = ArrayNode::empty(new ModuloHasher(), new SimpleEqualizer())
             ->put(0, 1, 1, 'foo', new Box(false))
