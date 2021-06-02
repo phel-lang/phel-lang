@@ -52,11 +52,11 @@ class PersistentHashSet extends AbstractType implements PersistentHashSetInterfa
     }
 
     /**
-     * @param V $value
+     * @param V $key
      */
-    public function contains($value): bool
+    public function contains($key): bool
     {
-        return $this->map->contains($value);
+        return $this->map->contains($key);
     }
 
     /**

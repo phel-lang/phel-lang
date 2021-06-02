@@ -30,10 +30,11 @@ class TransientHashSet implements TransientHashSetInterface
 
     /**
      * @param V $value
+     * @param mixed $key
      */
-    public function contains($value): bool
+    public function contains($key): bool
     {
-        return $this->transientMap->contains($value);
+        return $this->transientMap->contains($key);
     }
 
     /**
