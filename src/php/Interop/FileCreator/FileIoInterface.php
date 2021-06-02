@@ -6,7 +6,7 @@ namespace Phel\Interop\FileCreator;
 
 interface FileIoInterface
 {
-    public function createDirectory(string $dir): void;
+    public function createDirectory(string $directory): void;
 
     public function filePutContents(string $filename, string $content): void;
 }

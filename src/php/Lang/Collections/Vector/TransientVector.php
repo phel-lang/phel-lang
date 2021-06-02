@@ -304,8 +304,8 @@ class TransientVector implements TransientVectorInterface
         throw new MethodNotSupportedException('Method offsetUnset is not supported on VectorSequence');
     }
 
-    public function contains($index): bool
+    public function contains($key): bool
     {
-        return $this->offsetExists($index);
+        return $this->offsetExists($key);
     }
 }

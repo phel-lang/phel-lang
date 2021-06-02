@@ -244,8 +244,8 @@ class PersistentList extends AbstractType implements PersistentListInterface
         throw new \Exception('offsetUnset not supported on lists');
     }
 
-    public function contains($index): bool
+    public function contains($key): bool
     {
-        return $this->offsetExists($index);
+        return $this->offsetExists($key);
     }
 }
