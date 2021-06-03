@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace Phel\Lang\Collections\Vector;
 
-use Exception;
 use Iterator;
 
 class RangeIterator implements Iterator
@@ -37,14 +36,12 @@ class RangeIterator implements Iterator
 
     public function next(): void
     {
+        $this->currentIndex++;
         if ($this->currentIndex < $this->end) {
-            $this->currentIndex++;
             if ($this->currentIndex - $this->base === 32) {
                 $this->currentArray = $this->vector->getArrayForIndex($this->currentIndex);
                 $this->base += 32;
             }
-        } else {
-            throw new Exception('No such element');
         }
     }
 
