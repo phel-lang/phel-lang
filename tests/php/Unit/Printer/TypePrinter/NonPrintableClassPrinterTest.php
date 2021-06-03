@@ -17,7 +17,7 @@ final class NonPrintableClassPrinterTest extends TestCase
      *
      * @param mixed $form
      */
-    public function testPrint($form, string $expected): void
+    public function test_print($form, string $expected): void
     {
         self::assertSame($expected, (new NonPrintableClassPrinter())->print($form));
     }

@@ -25,7 +25,7 @@ final class AnalyzeSymbolTest extends TestCase
         $this->symbolAnalyzer = new AnalyzeSymbol(new Analyzer(new GlobalEnvironment()));
     }
 
-    public function testPhpSymbol(): void
+    public function test_php_symbol(): void
     {
         $env = NodeEnvironment::empty();
         self::assertEquals(
@@ -34,7 +34,7 @@ final class AnalyzeSymbolTest extends TestCase
         );
     }
 
-    public function testLocalVar(): void
+    public function test_local_var(): void
     {
         $env = NodeEnvironment::empty()->withLocals([Symbol::create('a')]);
         self::assertEquals(
@@ -43,7 +43,7 @@ final class AnalyzeSymbolTest extends TestCase
         );
     }
 
-    public function testLocalShadowedVar(): void
+    public function test_local_shadowed_var(): void
     {
         $env = NodeEnvironment::empty()
             ->withLocals([Symbol::create('a')])
@@ -55,7 +55,7 @@ final class AnalyzeSymbolTest extends TestCase
         );
     }
 
-    public function testGlobalVar(): void
+    public function test_global_var(): void
     {
         $globalEnv = new GlobalEnvironment();
         $globalEnv->setNs('test');
@@ -69,7 +69,7 @@ final class AnalyzeSymbolTest extends TestCase
         );
     }
 
-    public function testUndefinedGlobalVar(): void
+    public function test_undefined_global_var(): void
     {
         $this->expectException(AnalyzerException::class);
         $this->expectExceptionMessage("Cannot resolve symbol 'a'");
@@ -78,7 +78,7 @@ final class AnalyzeSymbolTest extends TestCase
         $this->symbolAnalyzer->analyze(Symbol::create('a'), $env);
     }
 
-    public function testLocalVarWinsOverGlobalVar(): void
+    public function test_local_var_wins_over_global_var(): void
     {
         $globalEnv = new GlobalEnvironment();
         $globalEnv->setNs('test');

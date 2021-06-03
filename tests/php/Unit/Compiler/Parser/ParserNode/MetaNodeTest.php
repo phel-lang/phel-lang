@@ -15,7 +15,7 @@ use PHPUnit\Framework\TestCase;
 
 final class MetaNodeTest extends TestCase
 {
-    public function testGetCode(): void
+    public function test_get_code(): void
     {
         self::assertEquals(
             '^:test test',
@@ -31,7 +31,7 @@ final class MetaNodeTest extends TestCase
         );
     }
 
-    public function testGetStartLocation(): void
+    public function test_get_start_location(): void
     {
         self::assertEquals(
             $this->loc(1, 0),
@@ -47,7 +47,7 @@ final class MetaNodeTest extends TestCase
         );
     }
 
-    public function testGetEndLocation(): void
+    public function test_get_end_location(): void
     {
         self::assertEquals(
             $this->loc(1, 11),
@@ -63,7 +63,7 @@ final class MetaNodeTest extends TestCase
         );
     }
 
-    public function testGetChildren(): void
+    public function test_get_children(): void
     {
         self::assertEquals(
             [

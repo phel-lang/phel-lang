@@ -13,14 +13,14 @@ use PHPUnit\Framework\TestCase;
 
 class IndexedNodeTest extends TestCase
 {
-    public function testEmpty(): void
+    public function test_empty(): void
     {
         $hasher = new ModuloHasher();
         $h = IndexedNode::empty($hasher, new SimpleEqualizer());
         self::assertNull($h->find(0, $hasher->hash(1), 1, null));
     }
 
-    public function testPutKey(): void
+    public function test_put_key(): void
     {
         $hasher = new ModuloHasher();
         $box = new Box(null);
@@ -31,7 +31,7 @@ class IndexedNodeTest extends TestCase
         self::assertEquals('test', $node->find(0, $hasher->hash(1), 1, null));
     }
 
-    public function testSplitNode(): void
+    public function test_split_node(): void
     {
         $hasher = new ModuloHasher();
         $node = IndexedNode::empty($hasher, new SimpleEqualizer());
@@ -43,7 +43,7 @@ class IndexedNodeTest extends TestCase
         self::assertInstanceOf(ArrayNode::class, $node);
     }
 
-    public function testPutSameKeyValuePairTwice(): void
+    public function test_put_same_key_value_pair_twice(): void
     {
         $hasher = new ModuloHasher();
         $box = new Box(null);
@@ -55,7 +55,7 @@ class IndexedNodeTest extends TestCase
         self::assertEquals('test', $node->find(0, $hasher->hash(1), 1, null));
     }
 
-    public function testPutSameKeyWithDifferentValue(): void
+    public function test_put_same_key_with_different_value(): void
     {
         $hasher = new ModuloHasher();
         $box = new Box(null);
@@ -67,7 +67,7 @@ class IndexedNodeTest extends TestCase
         self::assertEquals('bar', $node->find(0, $hasher->hash(1), 1, null));
     }
 
-    public function testPutSameHash(): void
+    public function test_put_same_hash(): void
     {
         $hasher = new ModuloHasher(2);
         $box = new Box(null);
@@ -80,7 +80,7 @@ class IndexedNodeTest extends TestCase
         self::assertEquals('bar', $node->find(0, $hasher->hash(3), 3, null));
     }
 
-    public function testPutSameIndex(): void
+    public function test_put_same_index(): void
     {
         $hasher = new ModuloHasher();
         $box = new Box(null);
@@ -93,7 +93,7 @@ class IndexedNodeTest extends TestCase
         self::assertEquals('bar', $node->find(0, $hasher->hash(33), 33, null));
     }
 
-    public function testAddToChild(): void
+    public function test_add_to_child(): void
     {
         $hasher = new ModuloHasher(64);
         $node = IndexedNode::empty($hasher, new SimpleEqualizer())
@@ -106,7 +106,7 @@ class IndexedNodeTest extends TestCase
         self::assertEquals('foobar', $node->find(0, $hasher->hash(33), 33, null));
     }
 
-    public function testAddExistingKeyValuePairToChild(): void
+    public function test_add_existing_key_value_pair_to_child(): void
     {
         $hasher = new ModuloHasher(64);
         $node = IndexedNode::empty($hasher, new SimpleEqualizer())
@@ -118,7 +118,7 @@ class IndexedNodeTest extends TestCase
         self::assertEquals('bar', $node->find(0, $hasher->hash(65), 65, null));
     }
 
-    public function testRemoveAllExistingKeys(): void
+    public function test_remove_all_existing_keys(): void
     {
         $hasher = new ModuloHasher();
         $node = IndexedNode::empty($hasher, new SimpleEqualizer())
@@ -128,7 +128,7 @@ class IndexedNodeTest extends TestCase
         self::assertNull($node);
     }
 
-    public function testRemoveExistingKey(): void
+    public function test_remove_existing_key(): void
     {
         $hasher = new ModuloHasher();
         $node = IndexedNode::empty($hasher, new SimpleEqualizer())
@@ -140,7 +140,7 @@ class IndexedNodeTest extends TestCase
         self::assertNull($node->find(0, $hasher->hash(2), 2, null));
     }
 
-    public function testRemoveNonExistingKey(): void
+    public function test_remove_non_existing_key(): void
     {
         $hasher = new ModuloHasher();
         $node1 = IndexedNode::empty($hasher, new SimpleEqualizer())
@@ -151,7 +151,7 @@ class IndexedNodeTest extends TestCase
         self::assertTrue($node1 === $node2);
     }
 
-    public function testRemoveNonExistingKeyOnSameIndex(): void
+    public function test_remove_non_existing_key_on_same_index(): void
     {
         $hasher = new ModuloHasher();
         $node1 = IndexedNode::empty($hasher, new SimpleEqualizer())
@@ -162,7 +162,7 @@ class IndexedNodeTest extends TestCase
         self::assertTrue($node1 === $node2);
     }
 
-    public function testRemoveExistingKeyOnChildNode(): void
+    public function test_remove_existing_key_on_child_node(): void
     {
         $hasher = new ModuloHasher();
         $node = IndexedNode::empty($hasher, new SimpleEqualizer())
@@ -174,7 +174,7 @@ class IndexedNodeTest extends TestCase
         self::assertNull($node->find(0, $hasher->hash(33), 33, null));
     }
 
-    public function testRemoveAllExistingKeysWithChildNodes(): void
+    public function test_remove_all_existing_keys_with_child_nodes(): void
     {
         $hasher = new ModuloHasher();
         $node = IndexedNode::empty($hasher, new SimpleEqualizer())
@@ -186,7 +186,7 @@ class IndexedNodeTest extends TestCase
         self::assertNull($node);
     }
 
-    public function testRemoveAllExistingKeysOnChildNode(): void
+    public function test_remove_all_existing_keys_on_child_node(): void
     {
         $hasher = new ModuloHasher();
         $node = IndexedNode::empty($hasher, new SimpleEqualizer())
@@ -200,7 +200,7 @@ class IndexedNodeTest extends TestCase
         self::assertNull($node->find(0, $hasher->hash(33), 33, null));
     }
 
-    public function testRemoveNonExistingKeysOnChildNode(): void
+    public function test_remove_non_existing_keys_on_child_node(): void
     {
         $hasher = new ModuloHasher();
         $node1 = IndexedNode::empty($hasher, new SimpleEqualizer())

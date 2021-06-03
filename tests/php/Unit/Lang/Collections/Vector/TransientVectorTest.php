@@ -13,7 +13,7 @@ use RuntimeException;
 
 final class TransientVectorTest extends TestCase
 {
-    public function testAppendToTail(): void
+    public function test_append_to_tail(): void
     {
         $vEmpty = TransientVector::empty(new ModuloHasher(), new SimpleEqualizer());
         $v1 = $vEmpty->append('a');
@@ -23,7 +23,7 @@ final class TransientVectorTest extends TestCase
         $this->assertEquals('a', $v1->get(0));
     }
 
-    public function testAppendTailIsFull(): void
+    public function test_append_tail_is_full(): void
     {
         $v1 = TransientVector::fromArray(new ModuloHasher(), new SimpleEqualizer(), range(0, 31));
         $v2 = $v1->append(32);
@@ -33,7 +33,7 @@ final class TransientVectorTest extends TestCase
         $this->assertEquals(32, $v2->get(32));
     }
 
-    public function testAppendOverflowRoot(): void
+    public function test_append_overflow_root(): void
     {
         $initialLength = 32 + (32 * 32) - 1;
         $v1 = TransientVector::fromArray(new ModuloHasher(), new SimpleEqualizer(), range(0, $initialLength));
@@ -44,7 +44,7 @@ final class TransientVectorTest extends TestCase
         $this->assertEquals(1056, $v2->get(1056));
     }
 
-    public function testAppendTailIsFullSecondLevel(): void
+    public function test_append_tail_is_full_second_level(): void
     {
         $initialLength = 32 + (32 * 32) + 32 - 1;
         $v1 = TransientVector::fromArray(new ModuloHasher(), new SimpleEqualizer(), range(0, $initialLength));
@@ -55,7 +55,7 @@ final class TransientVectorTest extends TestCase
         $this->assertEquals($initialLength + 1, $v2->get($initialLength + 1));
     }
 
-    public function testAppendTailIsFullThirdLevel(): void
+    public function test_append_tail_is_full_third_level(): void
     {
         $initialLength = 32 + (32 * 32) + (32 * 32 * 32) - 1;
         $v1 = TransientVector::fromArray(new ModuloHasher(), new SimpleEqualizer(), range(0, $initialLength));
@@ -66,7 +66,7 @@ final class TransientVectorTest extends TestCase
         $this->assertEquals($initialLength + 1, $v2->get($initialLength + 1));
     }
 
-    public function testUpdateOutOfRange(): void
+    public function test_update_out_of_range(): void
     {
         $this->expectException(IndexOutOfBoundsException::class);
         $v = TransientVector::empty(new ModuloHasher(), new SimpleEqualizer());
@@ -74,7 +74,7 @@ final class TransientVectorTest extends TestCase
         $v->update(1, 10);
     }
 
-    public function testUpdateAppend(): void
+    public function test_update_append(): void
     {
         $vEmpty = TransientVector::empty(new ModuloHasher(), new SimpleEqualizer());
         $v1 = $vEmpty->update(0, 10);
@@ -85,7 +85,7 @@ final class TransientVectorTest extends TestCase
         $this->assertEquals(10, $v1->get(0));
     }
 
-    public function testUpdateInTail(): void
+    public function test_update_in_tail(): void
     {
         $v1 = TransientVector::fromArray(new ModuloHasher(), new SimpleEqualizer(), [10]);
         $v2 = $v1->update(0, 20);
@@ -96,7 +96,7 @@ final class TransientVectorTest extends TestCase
         $this->assertEquals(20, $v2->get(0));
     }
 
-    public function testUpdateInLevelTree(): void
+    public function test_update_in_level_tree(): void
     {
         $v1 = TransientVector::fromArray(new ModuloHasher(), new SimpleEqualizer(), range(0, 32));
         $v2 = $v1->update(0, 20);
@@ -107,7 +107,7 @@ final class TransientVectorTest extends TestCase
         $this->assertEquals(20, $v2->get(0));
     }
 
-    public function testGetOutOfRange(): void
+    public function test_get_out_of_range(): void
     {
         $this->expectException(IndexOutOfBoundsException::class);
         $vEmpty = TransientVector::empty(new ModuloHasher(), new SimpleEqualizer());
@@ -115,7 +115,7 @@ final class TransientVectorTest extends TestCase
         $vEmpty->get(0);
     }
 
-    public function testPopOnEmptyVector(): void
+    public function test_pop_on_empty_vector(): void
     {
         $this->expectException(RuntimeException::class);
         $vEmpty = TransientVector::empty(new ModuloHasher(), new SimpleEqualizer());
@@ -123,7 +123,7 @@ final class TransientVectorTest extends TestCase
         $vEmpty->pop();
     }
 
-    public function testPopOnOneElementVector(): void
+    public function test_pop_on_one_element_vector(): void
     {
         $v1 = TransientVector::fromArray(new ModuloHasher(), new SimpleEqualizer(), [1]);
         $vEmpty = $v1->pop();
@@ -132,7 +132,7 @@ final class TransientVectorTest extends TestCase
         $this->assertEquals(0, $vEmpty->count());
     }
 
-    public function testPopFromTail(): void
+    public function test_pop_from_tail(): void
     {
         $v1 = TransientVector::fromArray(new ModuloHasher(), new SimpleEqualizer(), [1, 2]);
         $v2 = $v1->pop();
@@ -142,7 +142,7 @@ final class TransientVectorTest extends TestCase
         $this->assertEquals(1, $v2->get(0));
     }
 
-    public function testPopFromTreeLevelOne(): void
+    public function test_pop_from_tree_level_one(): void
     {
         $v1 = TransientVector::fromArray(new ModuloHasher(), new SimpleEqualizer(), range(0, 32));
         $v2 = $v1->pop();
@@ -151,7 +151,7 @@ final class TransientVectorTest extends TestCase
         $this->assertEquals(32, $v2->count());
     }
 
-    public function testPopFromTreeLevelTwo(): void
+    public function test_pop_from_tree_level_two(): void
     {
         $length = 32 + (32 * 32);
         $v1 = TransientVector::fromArray(new ModuloHasher(), new SimpleEqualizer(), range(0, $length));
@@ -161,7 +161,7 @@ final class TransientVectorTest extends TestCase
         $this->assertEquals($length, $v2->count());
     }
 
-    public function testPopFromTreeLevelTwo2(): void
+    public function test_pop_from_tree_level_two2(): void
     {
         $length = (32 * 32);
         $v1 = TransientVector::fromArray(new ModuloHasher(), new SimpleEqualizer(), range(0, $length));
@@ -171,7 +171,7 @@ final class TransientVectorTest extends TestCase
         $this->assertEquals($length, $v2->count());
     }
 
-    public function testPopFromTreeLevelThree(): void
+    public function test_pop_from_tree_level_three(): void
     {
         $length = (32 * 32) + (32 * 32 * 31) + 32;
         $v1 = TransientVector::fromArray(new ModuloHasher(), new SimpleEqualizer(), range(0, $length));

@@ -24,7 +24,7 @@ final class DoSymbolTest extends TestCase
         $this->analyzer = new Analyzer(new GlobalEnvironment());
     }
 
-    public function testWrongSymbolName(): void
+    public function test_wrong_symbol_name(): void
     {
         $this->expectException(AbstractLocatedException::class);
         $this->expectExceptionMessage("This is not a 'do.");
@@ -34,7 +34,7 @@ final class DoSymbolTest extends TestCase
         (new DoSymbol($this->analyzer))->analyze($list, $env);
     }
 
-    public function testEmptyList(): void
+    public function test_empty_list(): void
     {
         $env = NodeEnvironment::empty();
         $list = TypeFactory::getInstance()->persistentListFromArray([
@@ -52,7 +52,7 @@ final class DoSymbolTest extends TestCase
         self::assertEquals($expected, $actual);
     }
 
-    public function testWithOneScalarValue(): void
+    public function test_with_one_scalar_value(): void
     {
         $env = NodeEnvironment::empty();
 
@@ -72,7 +72,7 @@ final class DoSymbolTest extends TestCase
         self::assertEquals($expected, $actual);
     }
 
-    public function testWithTwoScalarValue(): void
+    public function test_with_two_scalar_value(): void
     {
         $env = NodeEnvironment::empty();
 

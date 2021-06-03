@@ -13,7 +13,7 @@ use PHPUnit\Framework\TestCase;
 
 class HashCollisionNodeTest extends TestCase
 {
-    public function testFindOnSingleCollisionNode(): void
+    public function test_find_on_single_collision_node(): void
     {
         $hasher = new ModuloHasher();
         $node = new HashCollisionNode($hasher, new SimpleEqualizer(), $hasher->hash(1), 1, [1, 'test']);
@@ -22,7 +22,7 @@ class HashCollisionNodeTest extends TestCase
         $this->assertEquals(null, $node->find(0, $hasher->hash(2), 2, null));
     }
 
-    public function testFindWithMultipleEntries(): void
+    public function test_find_with_multiple_entries(): void
     {
         $hasher = new ModuloHasher(2);
         $node = new HashCollisionNode(
@@ -38,7 +38,7 @@ class HashCollisionNodeTest extends TestCase
         $this->assertEquals(null, $node->find(0, $hasher->hash(2), 2, null));
     }
 
-    public function testPutAnotherKeyWithSameHash(): void
+    public function test_put_another_key_with_same_hash(): void
     {
         $hasher = new ModuloHasher(2);
         $box = new Box(null);
@@ -51,7 +51,7 @@ class HashCollisionNodeTest extends TestCase
         $this->assertEquals(null, $node->find(0, $hasher->hash(2), 2, null));
     }
 
-    public function testUpdateExistingKey(): void
+    public function test_update_existing_key(): void
     {
         $hasher = new ModuloHasher(2);
         $box = new Box(null);
@@ -63,7 +63,7 @@ class HashCollisionNodeTest extends TestCase
         $this->assertEquals(null, $node->find(0, $hasher->hash(2), 2, null));
     }
 
-    public function testUpdateExistingKeyWithSameValue(): void
+    public function test_update_existing_key_with_same_value(): void
     {
         $hasher = new ModuloHasher(2);
         $box = new Box(false);
@@ -75,7 +75,7 @@ class HashCollisionNodeTest extends TestCase
         $this->assertEquals(null, $node->find(0, $hasher->hash(2), 2, null));
     }
 
-    public function testPutAnotherHash(): void
+    public function test_put_another_hash(): void
     {
         $hasher = new ModuloHasher(2);
         $box = new Box(null);
@@ -89,7 +89,7 @@ class HashCollisionNodeTest extends TestCase
         $this->assertEquals(null, $node->find(0, $hasher->hash(3), 3, null));
     }
 
-    public function testRemoveOnlyInsertedKey(): void
+    public function test_remove_only_inserted_key(): void
     {
         $hasher = new ModuloHasher(2);
         $node = (new HashCollisionNode($hasher, new SimpleEqualizer(), $hasher->hash(1), 1, [1, 'foo']))
@@ -98,7 +98,7 @@ class HashCollisionNodeTest extends TestCase
         $this->assertNull($node);
     }
 
-    public function testRemoveNonExistingKey(): void
+    public function test_remove_non_existing_key(): void
     {
         $hasher = new ModuloHasher(2);
         $node = (new HashCollisionNode($hasher, new SimpleEqualizer(), $hasher->hash(1), 1, [1, 'foo']))
@@ -108,7 +108,7 @@ class HashCollisionNodeTest extends TestCase
         $this->assertNull($node->find(0, $hasher->hash(2), 2, null));
     }
 
-    public function testRemoveOneCollisionKey(): void
+    public function test_remove_one_collision_key(): void
     {
         $hasher = new ModuloHasher(2);
         $node = (new HashCollisionNode(

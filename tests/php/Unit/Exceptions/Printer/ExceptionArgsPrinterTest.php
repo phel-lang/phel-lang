@@ -11,7 +11,7 @@ use PHPUnit\Framework\TestCase;
 
 final class ExceptionArgsPrinterTest extends TestCase
 {
-    public function testParseArgsAsString(): void
+    public function test_parse_args_as_string(): void
     {
         $argsPrinter = $this->createExceptionArgsPrinter();
         $actual = $argsPrinter->parseArgsAsString(['1', '2']);
@@ -21,7 +21,7 @@ final class ExceptionArgsPrinterTest extends TestCase
     /**
      * @dataProvider providerBuildPhpArgsString
      */
-    public function testBuildPhpArgsString(array $args, string $expected): void
+    public function test_build_php_args_string(array $args, string $expected): void
     {
         $argsPrinter = $this->createExceptionArgsPrinter();
         $actual = $argsPrinter->buildPhpArgsString($args);

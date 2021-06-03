@@ -9,52 +9,52 @@ use PHPUnit\Framework\TestCase;
 
 final class VLQTest extends TestCase
 {
-    public function testEncode1(): void
+    public function test_encode1(): void
     {
         self::assertEquals('AAAA', $this->encode([0, 0, 0, 0]));
     }
 
-    public function testEncode2(): void
+    public function test_encode2(): void
     {
         self::assertEquals('AAgBC', $this->encode([0, 0, 16, 1]));
     }
 
-    public function testEncode3(): void
+    public function test_encode3(): void
     {
         self::assertEquals('D', $this->encode([-1]));
     }
 
-    public function testEncode4(): void
+    public function test_encode4(): void
     {
         self::assertEquals('B', $this->encode([-2147483648]));
     }
 
-    public function testEncode5(): void
+    public function test_encode5(): void
     {
         self::assertEquals('+/////D', $this->encode([2147483647]));
     }
 
-    public function testDecode1(): void
+    public function test_decode1(): void
     {
         self::assertEquals([0, 0, 0, 0], $this->decode('AAAA'));
     }
 
-    public function testDecode2(): void
+    public function test_decode2(): void
     {
         self::assertEquals([0, 0, 16, 1], $this->decode('AAgBC'));
     }
 
-    public function testDecode3(): void
+    public function test_decode3(): void
     {
         self::assertEquals([-1], $this->decode('D'));
     }
 
-    public function testDecode4(): void
+    public function test_decode4(): void
     {
         self::assertEquals([-2147483648], $this->decode('B'));
     }
 
-    public function testDecode5(): void
+    public function test_decode5(): void
     {
         self::assertEquals([2147483647], $this->decode('+/////D'));
     }

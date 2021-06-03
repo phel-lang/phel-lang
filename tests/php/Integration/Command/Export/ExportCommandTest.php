@@ -16,7 +16,7 @@ final class ExportCommandTest extends AbstractCommandTest
         Config::setApplicationRootDir(__DIR__);
     }
 
-    public function testExportCommandMultiple(): void
+    public function test_export_command_multiple(): void
     {
         $command = $this
             ->createCommandFactory()

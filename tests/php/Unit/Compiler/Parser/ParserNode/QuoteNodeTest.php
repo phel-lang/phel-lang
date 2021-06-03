@@ -14,7 +14,7 @@ use RuntimeException;
 
 final class QuoteNodeTest extends TestCase
 {
-    public function testGetCodeQuote(): void
+    public function test_get_code_quote(): void
     {
         self::assertEquals(
             "'a",
@@ -27,7 +27,7 @@ final class QuoteNodeTest extends TestCase
         );
     }
 
-    public function testGetCodeUnquote(): void
+    public function test_get_code_unquote(): void
     {
         self::assertEquals(
             ',a',
@@ -40,7 +40,7 @@ final class QuoteNodeTest extends TestCase
         );
     }
 
-    public function testGetCodeUnquoteSplicing(): void
+    public function test_get_code_unquote_splicing(): void
     {
         self::assertEquals(
             ',@a',
@@ -53,7 +53,7 @@ final class QuoteNodeTest extends TestCase
         );
     }
 
-    public function testGetCodeQuasiquote(): void
+    public function test_get_code_quasiquote(): void
     {
         self::assertEquals(
             '`a',
@@ -68,7 +68,7 @@ final class QuoteNodeTest extends TestCase
 
 
 
-    public function testUndefinedToken(): void
+    public function test_undefined_token(): void
     {
         $this->expectException(RuntimeException::class);
         (new QuoteNode(
@@ -79,7 +79,7 @@ final class QuoteNodeTest extends TestCase
         ))->getCode();
     }
 
-    public function testGetChildren(): void
+    public function test_get_children(): void
     {
         self::assertEquals(
             [new SymbolNode('a', $this->loc(1, 1), $this->loc(1, 2), Symbol::create('a'))],
@@ -92,7 +92,7 @@ final class QuoteNodeTest extends TestCase
         );
     }
 
-    public function testGetStartLocation(): void
+    public function test_get_start_location(): void
     {
         self::assertEquals(
             $this->loc(1, 0),
@@ -105,7 +105,7 @@ final class QuoteNodeTest extends TestCase
         );
     }
 
-    public function testGetEndLocation(): void
+    public function test_get_end_location(): void
     {
         self::assertEquals(
             $this->loc(1, 2),

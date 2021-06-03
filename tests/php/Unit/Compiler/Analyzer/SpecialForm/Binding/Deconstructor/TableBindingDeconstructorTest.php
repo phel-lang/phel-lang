@@ -28,7 +28,7 @@ final class TableBindingDeconstructorTest extends TestCase
         );
     }
 
-    public function testDeconstructTable(): void
+    public function test_deconstruct_table(): void
     {
         // Test for binding like this (let [@{:key a} x])
         // This will be destructured to this:
@@ -67,7 +67,7 @@ final class TableBindingDeconstructorTest extends TestCase
         ], $bindings);
     }
 
-    public function testDeconstructTableNestedVector(): void
+    public function test_deconstruct_table_nested_vector(): void
     {
         // Test for binding like this (let [@{:key [a]} x])
         // This will be destructured to this:

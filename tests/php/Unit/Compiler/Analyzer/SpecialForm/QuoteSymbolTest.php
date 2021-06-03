@@ -13,7 +13,7 @@ use PHPUnit\Framework\TestCase;
 
 final class QuoteSymbolTest extends TestCase
 {
-    public function testListWithWrongSymbol(): void
+    public function test_list_with_wrong_symbol(): void
     {
         $this->expectException(AbstractLocatedException::class);
         $this->expectExceptionMessage("This is not a 'quote.");
@@ -22,7 +22,7 @@ final class QuoteSymbolTest extends TestCase
         (new QuoteSymbol())->analyze($list, NodeEnvironment::empty());
     }
 
-    public function testListWithoutArgument(): void
+    public function test_list_without_argument(): void
     {
         $this->expectException(AbstractLocatedException::class);
         $this->expectExceptionMessage("Exactly one argument is required for 'quote");
@@ -31,7 +31,7 @@ final class QuoteSymbolTest extends TestCase
         (new QuoteSymbol())->analyze($list, NodeEnvironment::empty());
     }
 
-    public function testQuoteListWithAnyText(): void
+    public function test_quote_list_with_any_text(): void
     {
         $list = TypeFactory::getInstance()->persistentListFromArray([Symbol::create(Symbol::NAME_QUOTE), 'any text']);
         $symbol = (new QuoteSymbol())->analyze($list, NodeEnvironment::empty());

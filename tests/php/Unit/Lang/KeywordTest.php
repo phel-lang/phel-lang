@@ -10,19 +10,19 @@ use PHPUnit\Framework\TestCase;
 
 final class KeywordTest extends TestCase
 {
-    public function testGetName(): void
+    public function test_get_name(): void
     {
         $keyword = new Keyword('test');
         $this->assertEquals('test', $keyword->getName());
     }
 
-    public function testGetHash(): void
+    public function test_get_hash(): void
     {
         $keyword = new Keyword('test');
         $this->assertEquals(crc32(':test'), $keyword->hash());
     }
 
-    public function testEquals(): void
+    public function test_equals(): void
     {
         $keyword1 = new Keyword('test');
         $keyword2 = new Keyword('test');
@@ -31,7 +31,7 @@ final class KeywordTest extends TestCase
         $this->assertTrue($keyword2->equals($keyword1));
     }
 
-    public function testNotEquals(): void
+    public function test_not_equals(): void
     {
         $keyword1 = new Keyword('test');
         $keyword2 = new Keyword('test1');
@@ -41,7 +41,7 @@ final class KeywordTest extends TestCase
         $this->assertFalse($keyword1->equals(':test'));
     }
 
-    public function testIdentical(): void
+    public function test_identical(): void
     {
         $keyword1 = new Keyword('test');
         $keyword2 = new Keyword('test');
@@ -50,13 +50,13 @@ final class KeywordTest extends TestCase
         $this->assertTrue($keyword2->identical($keyword1));
     }
 
-    public function testToString(): void
+    public function test_to_string(): void
     {
         $keyword = new Keyword('test');
         $this->assertEquals(':test', $keyword->__toString());
     }
 
-    public function testInvoke(): void
+    public function test_invoke(): void
     {
         $keyword1 = new Keyword('test1');
         $keyword2 = new Keyword('test2');

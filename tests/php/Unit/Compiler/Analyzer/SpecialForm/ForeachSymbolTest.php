@@ -23,7 +23,7 @@ use PHPUnit\Framework\TestCase;
 
 final class ForeachSymbolTest extends TestCase
 {
-    public function testRequiresAtLeastTwoArg(): void
+    public function test_requires_at_least_two_arg(): void
     {
         $this->expectException(AbstractLocatedException::class);
         $this->expectExceptionMessage("At least two arguments are required for 'foreach");
@@ -36,7 +36,7 @@ final class ForeachSymbolTest extends TestCase
         $this->analyze($list);
     }
 
-    public function testFirstArgMustBeAVector(): void
+    public function test_first_arg_must_be_a_vector(): void
     {
         $this->expectException(AbstractLocatedException::class);
         $this->expectExceptionMessage("First argument of 'foreach must be a vector.");
@@ -50,7 +50,7 @@ final class ForeachSymbolTest extends TestCase
         $this->analyze($list);
     }
 
-    public function testArgForVectorCanNotBe1(): void
+    public function test_arg_for_vector_can_not_be1(): void
     {
         $this->expectException(AbstractLocatedException::class);
         $this->expectExceptionMessage("Vector of 'foreach must have exactly two or three elements.");
@@ -66,7 +66,7 @@ final class ForeachSymbolTest extends TestCase
         $this->analyze($list);
     }
 
-    public function testValueSymbolFromVectorWith2Args(): void
+    public function test_value_symbol_from_vector_with2_args(): void
     {
         // (foreach [x []])
         $list = TypeFactory::getInstance()->persistentListFromArray([
@@ -95,7 +95,7 @@ final class ForeachSymbolTest extends TestCase
         );
     }
 
-    public function testDeconstrutionWithTwoArgs(): void
+    public function test_deconstrution_with_two_args(): void
     {
         // (foreach [[x] []])
         $list = TypeFactory::getInstance()->persistentListFromArray([
@@ -111,7 +111,7 @@ final class ForeachSymbolTest extends TestCase
         self::assertInstanceOf(LetNode::class, $node->getBodyExpr());
     }
 
-    public function testValueSymbolVectorWith3Args(): void
+    public function test_value_symbol_vector_with3_args(): void
     {
         // (foreach [key value @{}])
         $list = TypeFactory::getInstance()->persistentListFromArray([
@@ -142,7 +142,7 @@ final class ForeachSymbolTest extends TestCase
         );
     }
 
-    public function testDeconstrutionWithThreeArgs(): void
+    public function test_deconstrution_with_three_args(): void
     {
         // (foreach [[key] [value] []])
         $list = TypeFactory::getInstance()->persistentListFromArray([
@@ -159,7 +159,7 @@ final class ForeachSymbolTest extends TestCase
         self::assertInstanceOf(LetNode::class, $node->getBodyExpr());
     }
 
-    public function testArgForVectorCanNotBe4(): void
+    public function test_arg_for_vector_can_not_be4(): void
     {
         $this->expectException(AbstractLocatedException::class);
         $this->expectExceptionMessage("Vector of 'foreach must have exactly two or three elements.");

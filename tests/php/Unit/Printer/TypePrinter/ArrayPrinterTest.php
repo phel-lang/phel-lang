@@ -14,7 +14,7 @@ final class ArrayPrinterTest extends TestCase
     /**
      * @dataProvider providerPrint
      */
-    public function testPrint(array $form, string $expected): void
+    public function test_print(array $form, string $expected): void
     {
         $printer = new class() implements PrinterInterface {
             public function print($form): string

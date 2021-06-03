@@ -16,7 +16,7 @@ use RuntimeException;
 
 final class QuasiquoteTest extends TestCase
 {
-    public function testTransformUnquote(): void
+    public function test_transform_unquote(): void
     {
         $q = new QuasiquoteTransformer(new GlobalEnvironment());
         self::assertEquals(
@@ -25,14 +25,14 @@ final class QuasiquoteTest extends TestCase
         );
     }
 
-    public function testTransformUnquoteSplicing(): void
+    public function test_transform_unquote_splicing(): void
     {
         $this->expectException(RuntimeException::class);
         $q = new QuasiquoteTransformer(new GlobalEnvironment());
         $q->transform(TypeFactory::getInstance()->persistentListFromArray([Symbol::create(Symbol::NAME_UNQUOTE_SPLICING), 1]));
     }
 
-    public function testTransformCreateList(): void
+    public function test_transform_create_list(): void
     {
         $q = new QuasiquoteTransformer(new GlobalEnvironment());
         self::assertEquals(
@@ -49,7 +49,7 @@ final class QuasiquoteTest extends TestCase
         );
     }
 
-    public function testTransformCreateListWithUnquoteSplicing(): void
+    public function test_transform_create_list_with_unquote_splicing(): void
     {
         $q = new QuasiquoteTransformer(new GlobalEnvironment());
         self::assertEquals(
@@ -72,7 +72,7 @@ final class QuasiquoteTest extends TestCase
         );
     }
 
-    public function testTransformCreateListWithUnquote(): void
+    public function test_transform_create_list_with_unquote(): void
     {
         $q = new QuasiquoteTransformer(new GlobalEnvironment());
         self::assertEquals(
@@ -95,7 +95,7 @@ final class QuasiquoteTest extends TestCase
         );
     }
 
-    public function testTransformCreateVector(): void
+    public function test_transform_create_vector(): void
     {
         $q = new QuasiquoteTransformer(new GlobalEnvironment());
         self::assertEquals(
@@ -112,7 +112,7 @@ final class QuasiquoteTest extends TestCase
         );
     }
 
-    public function testTransformCreateMap(): void
+    public function test_transform_create_map(): void
     {
         $q = new QuasiquoteTransformer(new GlobalEnvironment());
         self::assertEquals(
@@ -131,7 +131,7 @@ final class QuasiquoteTest extends TestCase
         );
     }
 
-    public function testTransformCreateTable(): void
+    public function test_transform_create_table(): void
     {
         $q = new QuasiquoteTransformer(new GlobalEnvironment());
         self::assertEquals(
@@ -150,7 +150,7 @@ final class QuasiquoteTest extends TestCase
         );
     }
 
-    public function testTransformCreatePhelArray(): void
+    public function test_transform_create_phel_array(): void
     {
         $q = new QuasiquoteTransformer(new GlobalEnvironment());
         self::assertEquals(
@@ -167,7 +167,7 @@ final class QuasiquoteTest extends TestCase
         );
     }
 
-    public function testTransformInt(): void
+    public function test_transform_int(): void
     {
         $q = new QuasiquoteTransformer(new GlobalEnvironment());
         self::assertEquals(
@@ -176,7 +176,7 @@ final class QuasiquoteTest extends TestCase
         );
     }
 
-    public function testTransformString(): void
+    public function test_transform_string(): void
     {
         $q = new QuasiquoteTransformer(new GlobalEnvironment());
         self::assertEquals(
@@ -185,7 +185,7 @@ final class QuasiquoteTest extends TestCase
         );
     }
 
-    public function testTransformFloat(): void
+    public function test_transform_float(): void
     {
         $q = new QuasiquoteTransformer(new GlobalEnvironment());
         self::assertEquals(
@@ -194,7 +194,7 @@ final class QuasiquoteTest extends TestCase
         );
     }
 
-    public function testTransformBoolean(): void
+    public function test_transform_boolean(): void
     {
         $q = new QuasiquoteTransformer(new GlobalEnvironment());
         self::assertEquals(
@@ -203,7 +203,7 @@ final class QuasiquoteTest extends TestCase
         );
     }
 
-    public function testTransformNull(): void
+    public function test_transform_null(): void
     {
         $q = new QuasiquoteTransformer(new GlobalEnvironment());
         self::assertEquals(
@@ -212,7 +212,7 @@ final class QuasiquoteTest extends TestCase
         );
     }
 
-    public function testTransformKeyword(): void
+    public function test_transform_keyword(): void
     {
         $q = new QuasiquoteTransformer(new GlobalEnvironment());
         self::assertEquals(
@@ -221,7 +221,7 @@ final class QuasiquoteTest extends TestCase
         );
     }
 
-    public function testTransformUnknownSymbol(): void
+    public function test_transform_unknown_symbol(): void
     {
         $q = new QuasiquoteTransformer(new GlobalEnvironment());
         self::assertEquals(
@@ -233,7 +233,7 @@ final class QuasiquoteTest extends TestCase
         );
     }
 
-    public function testTransformGlobalSymbol(): void
+    public function test_transform_global_symbol(): void
     {
         $env = new GlobalEnvironment();
         $env->addDefinition('test', Symbol::create('abc'), TypeFactory::getInstance()->emptyPersistentMap());

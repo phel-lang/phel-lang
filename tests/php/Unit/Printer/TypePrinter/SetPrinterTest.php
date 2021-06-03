@@ -15,7 +15,7 @@ final class SetPrinterTest extends TestCase
     /**
      * @dataProvider printerDataProvider
      */
-    public function testPrint(string $expected, Set $set): void
+    public function test_print(string $expected, Set $set): void
     {
         self::assertSame(
             $expected,

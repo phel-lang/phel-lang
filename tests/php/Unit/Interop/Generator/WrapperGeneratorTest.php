@@ -15,7 +15,7 @@ use PHPUnit\Framework\TestCase;
 
 final class WrapperGeneratorTest extends TestCase
 {
-    public function testGenerateCompiledPhp(): void
+    public function test_generate_compiled_php(): void
     {
         $generator = $this->createWrapperGenerator();
         $phelNs = 'custom_namespace\\file_name_example';

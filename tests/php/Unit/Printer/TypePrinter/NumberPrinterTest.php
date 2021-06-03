@@ -15,7 +15,7 @@ final class NumberPrinterTest extends TestCase
      *
      * @param int|float $number
      */
-    public function testPrint(string $expected, $number): void
+    public function test_print(string $expected, $number): void
     {
         self::assertSame(
             $expected,

@@ -14,7 +14,7 @@ use PHPUnit\Framework\TestCase;
 
 final class SubVectorTest extends TestCase
 {
-    public function testCdr(): void
+    public function test_cdr(): void
     {
         $subVector = PersistentVector::fromArray(new ModuloHasher(), new SimpleEqualizer(), [1, 2, 3, 4])
             ->slice(1, 2);
@@ -22,7 +22,7 @@ final class SubVectorTest extends TestCase
         $this->assertEquals([3], $subVector->cdr()->toArray());
     }
 
-    public function testToArray(): void
+    public function test_to_array(): void
     {
         $subVector = PersistentVector::fromArray(new ModuloHasher(), new SimpleEqualizer(), [1, 2, 3, 4])
             ->slice(1, 2);
@@ -30,7 +30,7 @@ final class SubVectorTest extends TestCase
         $this->assertEquals([2, 3], $subVector->toArray());
     }
 
-    public function testWithMeta(): void
+    public function test_with_meta(): void
     {
         $meta = PersistentHashMap::empty(new ModuloHasher(), new SimpleEqualizer());
         $subVector = PersistentVector::fromArray(new ModuloHasher(), new SimpleEqualizer(), [1, 2, 3, 4])
@@ -41,7 +41,7 @@ final class SubVectorTest extends TestCase
         $this->assertEquals($meta, $subVectorWithMeta->getMeta());
     }
 
-    public function testGetIterator(): void
+    public function test_get_iterator(): void
     {
         $subVector = PersistentVector::fromArray(new ModuloHasher(), new SimpleEqualizer(), [1, 2, 3, 4])
             ->slice(1, 2);
@@ -54,7 +54,7 @@ final class SubVectorTest extends TestCase
         $this->assertEquals([2, 3], $result);
     }
 
-    public function testAppend(): void
+    public function test_append(): void
     {
         $subVector = PersistentVector::fromArray(new ModuloHasher(), new SimpleEqualizer(), [1, 2, 3, 4])
             ->slice(1, 2);
@@ -66,7 +66,7 @@ final class SubVectorTest extends TestCase
         $this->assertEquals(10, $subVectorAppended->get(2));
     }
 
-    public function testUpdateOutOfRange(): void
+    public function test_update_out_of_range(): void
     {
         $this->expectException(IndexOutOfBoundsException::class);
         $subVector = PersistentVector::fromArray(new ModuloHasher(), new SimpleEqualizer(), [1, 2, 3, 4])
@@ -75,7 +75,7 @@ final class SubVectorTest extends TestCase
         $subVector->update(3, 10);
     }
 
-    public function testUpdateAsAppend(): void
+    public function test_update_as_append(): void
     {
         $subVector = PersistentVector::fromArray(new ModuloHasher(), new SimpleEqualizer(), [1, 2, 3, 4])
             ->slice(1, 2);
@@ -86,7 +86,7 @@ final class SubVectorTest extends TestCase
         $this->assertEquals(10, $subVectorAppended->get(2));
     }
 
-    public function testUpdate(): void
+    public function test_update(): void
     {
         $subVector = PersistentVector::fromArray(new ModuloHasher(), new SimpleEqualizer(), [1, 2, 3, 4])
             ->slice(1, 2);
@@ -97,7 +97,7 @@ final class SubVectorTest extends TestCase
         $this->assertEquals(10, $subVectorUpdated->get(0));
     }
 
-    public function testGet(): void
+    public function test_get(): void
     {
         $subVector = PersistentVector::fromArray(new ModuloHasher(), new SimpleEqualizer(), [1, 2, 3, 4])
             ->slice(1, 2);
@@ -106,7 +106,7 @@ final class SubVectorTest extends TestCase
         $this->assertEquals(3, $subVector->get(1));
     }
 
-    public function testGetOutOfBound(): void
+    public function test_get_out_of_bound(): void
     {
         $this->expectException(IndexOutOfBoundsException::class);
         $subVector = PersistentVector::fromArray(new ModuloHasher(), new SimpleEqualizer(), [1, 2, 3, 4])
@@ -115,7 +115,7 @@ final class SubVectorTest extends TestCase
         $subVector->get(2);
     }
 
-    public function testPopOnEmptySubVector(): void
+    public function test_pop_on_empty_sub_vector(): void
     {
         $subVector = new SubVector(
             new ModuloHasher(),
@@ -132,7 +132,7 @@ final class SubVectorTest extends TestCase
         );
     }
 
-    public function testPop(): void
+    public function test_pop(): void
     {
         $subVector = PersistentVector::fromArray(new ModuloHasher(), new SimpleEqualizer(), [1, 2, 3, 4])
             ->slice(1, 2);
@@ -142,7 +142,7 @@ final class SubVectorTest extends TestCase
         $this->assertEquals(1, count($subVectorPopped));
     }
 
-    public function testSlice(): void
+    public function test_slice(): void
     {
         $vector = PersistentVector::fromArray(new ModuloHasher(), new SimpleEqualizer(), [1, 2, 3, 4])
             ->slice(1, 2)

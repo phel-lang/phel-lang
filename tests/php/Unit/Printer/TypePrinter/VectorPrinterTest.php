@@ -16,7 +16,7 @@ final class VectorPrinterTest extends TestCase
     /**
      * @dataProvider printerDataProvider
      */
-    public function testPrint(string $expected, PersistentVectorInterface $vector): void
+    public function test_print(string $expected, PersistentVectorInterface $vector): void
     {
         self::assertSame(
             $expected,

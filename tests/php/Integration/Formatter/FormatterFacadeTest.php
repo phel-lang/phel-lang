@@ -24,7 +24,7 @@ final class FormatterFacadeTest extends TestCase
      * @dataProvider providerReformatted
      * @dataProvider providerRemoveTrailingWhitespaceRule
      */
-    public function testFormat(array $actualLines, array $expectedLines): void
+    public function test_format(array $actualLines, array $expectedLines): void
     {
         $formatted = $this->formatterFacade->format(implode("\n", $actualLines));
 

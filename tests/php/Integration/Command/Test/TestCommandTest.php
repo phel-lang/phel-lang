@@ -15,7 +15,7 @@ final class TestCommandTest extends AbstractCommandTest
         Config::setApplicationRootDir(__DIR__);
     }
 
-    public function testAllInProject(): void
+    public function test_all_in_project(): void
     {
         $currentDir = __DIR__ . '/Fixtures/test-cmd-project-success/';
 
@@ -33,7 +33,7 @@ final class TestCommandTest extends AbstractCommandTest
         $command->run($this->stubInput([]), $this->stubOutput());
     }
 
-    public function testOneFileInProject(): void
+    public function test_one_file_in_project(): void
     {
         $currentDir = __DIR__ . '/Fixtures/test-cmd-project-success/';
 
@@ -54,7 +54,7 @@ final class TestCommandTest extends AbstractCommandTest
         );
     }
 
-    public function testAllInFailedProject(): void
+    public function test_all_in_failed_project(): void
     {
         $currentDir = __DIR__ . '/Fixtures/test-cmd-project-failure/';
 

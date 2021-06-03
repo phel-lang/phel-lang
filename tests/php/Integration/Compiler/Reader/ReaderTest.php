@@ -38,7 +38,7 @@ final class ReaderTest extends TestCase
         $this->compilerFacade = new CompilerFacade();
     }
 
-    public function testReadNumber(): void
+    public function test_read_number(): void
     {
         self::assertEquals(1, $this->read('1'));
         self::assertEquals(10, $this->read('10'));
@@ -61,7 +61,7 @@ final class ReaderTest extends TestCase
         self::assertEquals(7E-10, $this->read('7E-10'));
     }
 
-    public function testReadKeyword(): void
+    public function test_read_keyword(): void
     {
         self::assertEquals(
             $this->loc(new Keyword('test'), 1, 0, 1, 5),
@@ -69,20 +69,20 @@ final class ReaderTest extends TestCase
         );
     }
 
-    public function testReadBoolean(): void
+    public function test_read_boolean(): void
     {
         self::assertEquals(true, $this->read('true'));
         self::assertEquals(false, $this->read('false'));
     }
 
-    public function testReadNil(): void
+    public function test_read_nil(): void
     {
         self::assertNull(
             $this->read('nil')
         );
     }
 
-    public function testReadSymbol(): void
+    public function test_read_symbol(): void
     {
         self::assertEquals(
             $this->loc(Symbol::create('test'), 1, 0, 1, 4),
@@ -90,7 +90,7 @@ final class ReaderTest extends TestCase
         );
     }
 
-    public function testReadList(): void
+    public function test_read_list(): void
     {
         self::assertEquals(
             $this->loc(TypeFactory::getInstance()->emptyPersistentList(), 1, 0, 1, 2),
@@ -119,7 +119,7 @@ final class ReaderTest extends TestCase
         );
     }
 
-    public function testReadVector(): void
+    public function test_read_vector(): void
     {
         self::assertEquals(
             $this->loc(TypeFactory::getInstance()->emptyPersistentVector(), 1, 0, 1, 2),
@@ -148,7 +148,7 @@ final class ReaderTest extends TestCase
         );
     }
 
-    public function testQuote(): void
+    public function test_quote(): void
     {
         self::assertEquals(
             $this->loc(TypeFactory::getInstance()->persistentListFromArray([
@@ -159,7 +159,7 @@ final class ReaderTest extends TestCase
         );
     }
 
-    public function testUnquote(): void
+    public function test_unquote(): void
     {
         self::assertEquals(
             $this->loc(TypeFactory::getInstance()->persistentListFromArray([
@@ -170,7 +170,7 @@ final class ReaderTest extends TestCase
         );
     }
 
-    public function testUnquoteSplice(): void
+    public function test_unquote_splice(): void
     {
         self::assertEquals(
             $this->loc(TypeFactory::getInstance()->persistentListFromArray([
@@ -181,7 +181,7 @@ final class ReaderTest extends TestCase
         );
     }
 
-    public function testQuasiquote1(): void
+    public function test_quasiquote1(): void
     {
         self::assertEquals(
             $this->loc(TypeFactory::getInstance()->persistentListFromArray([
@@ -192,7 +192,7 @@ final class ReaderTest extends TestCase
         );
     }
 
-    public function testQuasiquote2(): void
+    public function test_quasiquote2(): void
     {
         self::assertEquals(
             $this->loc(TypeFactory::getInstance()->persistentListFromArray([
@@ -203,49 +203,49 @@ final class ReaderTest extends TestCase
         );
     }
 
-    public function testQuasiquote3(): void
+    public function test_quasiquote3(): void
     {
         $l1 = $this->read('(apply list (concat (list (quote foo)) (list bar)))', true);
         $l2 = $this->read('`(foo ,bar)', true);
         self::assertTrue($l1->equals($l2));
     }
 
-    public function testQuasiquote4(): void
+    public function test_quasiquote4(): void
     {
         $l1 = $this->read('\'a', true);
         $l2 = $this->read('``,a', true);
         self::assertTrue($l1->equals($l2));
     }
 
-    public function testQuasiquote5(): void
+    public function test_quasiquote5(): void
     {
         $l1 = $this->read('(apply list (concat (list (quote foo)) bar))', true);
         $l2 = $this->read('`(foo ,@bar)', true);
         self::assertTrue($l1->equals($l2));
     }
 
-    public function testQuasiquote6(): void
+    public function test_quasiquote6(): void
     {
         $l1 = $this->read('(apply list (concat (list foo) bar))', true);
         $l2 = $this->read('`(,foo ,@bar)', true);
         self::assertTrue($l1->equals($l2));
     }
 
-    public function testQuasiquote7(): void
+    public function test_quasiquote7(): void
     {
         $l1 = $this->read('(apply list (concat foo bar))', true);
         $l2 = $this->read('`(,@foo ,@bar)', true);
         self::assertTrue($l1->equals($l2));
     }
 
-    public function testQuasiquote8(): void
+    public function test_quasiquote8(): void
     {
         $l1 = $this->read('(apply list (concat foo bar (list 1) (list "string") (list :keyword) (list true) (list nil)))', true);
         $l2 = $this->read('`(,@foo ,@bar 1 "string" :keyword true nil)', true);
         self::assertTrue($l1->equals($l2));
     }
 
-    public function testReadString(): void
+    public function test_read_string(): void
     {
         self::assertEquals(
             'abc',
@@ -298,7 +298,7 @@ final class ReaderTest extends TestCase
         );
     }
 
-    public function testReadEmptyArray(): void
+    public function test_read_empty_array(): void
     {
         self::assertEquals(
             $this->loc(PhelArray::create(), 1, 0, 1, 3),
@@ -306,7 +306,7 @@ final class ReaderTest extends TestCase
         );
     }
 
-    public function testReadArray1(): void
+    public function test_read_array1(): void
     {
         self::assertEquals(
             $this->loc(PhelArray::create(1), 1, 0, 1, 4),
@@ -314,7 +314,7 @@ final class ReaderTest extends TestCase
         );
     }
 
-    public function testReadArray2(): void
+    public function test_read_array2(): void
     {
         self::assertEquals(
             $this->loc(PhelArray::create(1, 2), 1, 0, 1, 6),
@@ -322,7 +322,7 @@ final class ReaderTest extends TestCase
         );
     }
 
-    public function testReadEmptyMap(): void
+    public function test_read_empty_map(): void
     {
         self::assertEquals(
             $this->loc(TypeFactory::getInstance()->emptyPersistentMap(), 1, 0, 1, 2),
@@ -330,7 +330,7 @@ final class ReaderTest extends TestCase
         );
     }
 
-    public function testMapTable1(): void
+    public function test_map_table1(): void
     {
         self::assertEquals(
             $this->loc(
@@ -347,7 +347,7 @@ final class ReaderTest extends TestCase
         );
     }
 
-    public function testMapTable2(): void
+    public function test_map_table2(): void
     {
         self::assertEquals(
             $this->loc(TypeFactory::getInstance()->persistentMapFromKVs(
@@ -360,13 +360,13 @@ final class ReaderTest extends TestCase
         );
     }
 
-    public function testMapUneven(): void
+    public function test_map_uneven(): void
     {
         $this->expectException(ReaderException::class);
         $this->read('{:a}');
     }
 
-    public function testReadEmptyTable(): void
+    public function test_read_empty_table(): void
     {
         self::assertEquals(
             $this->loc(Table::fromKVs(), 1, 0, 1, 3),
@@ -374,7 +374,7 @@ final class ReaderTest extends TestCase
         );
     }
 
-    public function testReadTable1(): void
+    public function test_read_table1(): void
     {
         self::assertEquals(
             $this->loc(Table::fromKVs($this->loc(new Keyword('a'), 1, 2, 1, 4), 1), 1, 0, 1, 7),
@@ -382,7 +382,7 @@ final class ReaderTest extends TestCase
         );
     }
 
-    public function testReadTable2(): void
+    public function test_read_table2(): void
     {
         self::assertEquals(
             $this->loc(Table::fromKVs(
@@ -395,13 +395,13 @@ final class ReaderTest extends TestCase
         );
     }
 
-    public function testTableUneven(): void
+    public function test_table_uneven(): void
     {
         $this->expectException(ReaderException::class);
         $this->read('@{:a}');
     }
 
-    public function testMetaKeyword(): void
+    public function test_meta_keyword(): void
     {
         self::assertEquals(
             $this->loc(
@@ -421,7 +421,7 @@ final class ReaderTest extends TestCase
         );
     }
 
-    public function testMetaString(): void
+    public function test_meta_string(): void
     {
         self::assertEquals(
             $this->loc(
@@ -441,7 +441,7 @@ final class ReaderTest extends TestCase
         );
     }
 
-    public function testMetaSymbol(): void
+    public function test_meta_symbol(): void
     {
         self::assertEquals(
             $this->loc(
@@ -461,7 +461,7 @@ final class ReaderTest extends TestCase
         );
     }
 
-    public function testMetaTable(): void
+    public function test_meta_table(): void
     {
         self::assertEquals(
             $this->loc(
@@ -483,7 +483,7 @@ final class ReaderTest extends TestCase
         );
     }
 
-    public function testConcatMeta(): void
+    public function test_concat_meta(): void
     {
         self::assertEquals(
             $this->loc(
@@ -505,21 +505,21 @@ final class ReaderTest extends TestCase
         );
     }
 
-    public function testVectorMeta(): void
+    public function test_vector_meta(): void
     {
         $this->expectException(ReaderException::class);
         $this->expectExceptionMessage('Metadata must be a Symbol, String, Keyword or Map');
         $this->read('^[:a] test');
     }
 
-    public function testMetaOnString(): void
+    public function test_meta_on_string(): void
     {
         $this->expectException(ReaderException::class);
         $this->expectExceptionMessage('Metadata can only applied to classes that implement MetaInterface');
         $this->read('^a "test"');
     }
 
-    public function testReadShortFnZeroArgs(): void
+    public function test_read_short_fn_zero_args(): void
     {
         self::assertEquals(
             $this->loc(
@@ -545,7 +545,7 @@ final class ReaderTest extends TestCase
         );
     }
 
-    public function testReadShortFnOneArg(): void
+    public function test_read_short_fn_one_arg(): void
     {
         self::assertEquals(
             $this->loc(
@@ -574,7 +574,7 @@ final class ReaderTest extends TestCase
         );
     }
 
-    public function testReadShortFnOneArgTwoTimes(): void
+    public function test_read_short_fn_one_arg_two_times(): void
     {
         self::assertEquals(
             $this->loc(
@@ -604,7 +604,7 @@ final class ReaderTest extends TestCase
         );
     }
 
-    public function testReadShortFnTwoArguments(): void
+    public function test_read_short_fn_two_arguments(): void
     {
         self::assertEquals(
             $this->loc(
@@ -635,7 +635,7 @@ final class ReaderTest extends TestCase
         );
     }
 
-    public function testReadShortFnArgumentsTwice(): void
+    public function test_read_short_fn_arguments_twice(): void
     {
         self::assertEquals(
             $this->loc(
@@ -665,7 +665,7 @@ final class ReaderTest extends TestCase
         );
     }
 
-    public function testReadShortFnMissingArgument(): void
+    public function test_read_short_fn_missing_argument(): void
     {
         self::assertEquals(
             $this->loc(
@@ -697,7 +697,7 @@ final class ReaderTest extends TestCase
         );
     }
 
-    public function testReadShortFnRestArguments(): void
+    public function test_read_short_fn_rest_arguments(): void
     {
         self::assertEquals(
             $this->loc(
@@ -729,7 +729,7 @@ final class ReaderTest extends TestCase
         );
     }
 
-    public function testShortFnRestArgumentMultipleTimes(): void
+    public function test_short_fn_rest_argument_multiple_times(): void
     {
         $this->assertEquals(
             $this->loc(

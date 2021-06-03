@@ -22,7 +22,7 @@ final class AnalyzeTableTest extends TestCase
         $this->tableAnalyzer = new AnalyzeTable(new Analyzer(new GlobalEnvironment()));
     }
 
-    public function testEmptyTable(): void
+    public function test_empty_table(): void
     {
         $env = NodeEnvironment::empty();
         self::assertEquals(
@@ -31,7 +31,7 @@ final class AnalyzeTableTest extends TestCase
         );
     }
 
-    public function testTable(): void
+    public function test_table(): void
     {
         $env = NodeEnvironment::empty();
         self::assertEquals(

@@ -26,7 +26,7 @@ final class PhpObjectCallSymbolTest extends TestCase
         $this->analyzer = new Analyzer(new GlobalEnvironment());
     }
 
-    public function testListWithoutArgument(): void
+    public function test_list_without_argument(): void
     {
         $this->expectException(AbstractLocatedException::class);
         $this->expectExceptionMessage("Exactly two arguments are expected for 'php/::");
@@ -40,7 +40,7 @@ final class PhpObjectCallSymbolTest extends TestCase
             ->analyze($list, NodeEnvironment::empty());
     }
 
-    public function testListWithWrongSymbol(): void
+    public function test_list_with_wrong_symbol(): void
     {
         $this->expectException(AbstractLocatedException::class);
         $this->expectExceptionMessage("Second argument of 'php/-> must be a List or a Symbol");
@@ -54,7 +54,7 @@ final class PhpObjectCallSymbolTest extends TestCase
             ->analyze($list, NodeEnvironment::empty());
     }
 
-    public function testIsStatic(): void
+    public function test_is_static(): void
     {
         $list = TypeFactory::getInstance()->persistentListFromArray([
             Symbol::create(Symbol::NAME_PHP_OBJECT_CALL),
@@ -68,7 +68,7 @@ final class PhpObjectCallSymbolTest extends TestCase
         self::assertInstanceOf(PropertyOrConstantAccessNode::class, $objCallNode->getCallExpr());
     }
 
-    public function testIsNotStatic(): void
+    public function test_is_not_static(): void
     {
         $list = TypeFactory::getInstance()->persistentListFromArray([
             Symbol::create(Symbol::NAME_PHP_OBJECT_CALL),
@@ -84,7 +84,7 @@ final class PhpObjectCallSymbolTest extends TestCase
         self::assertInstanceOf(PropertyOrConstantAccessNode::class, $objCallNode->getCallExpr());
     }
 
-    public function testList2ndElemIsList(): void
+    public function test_list2nd_elem_is_list(): void
     {
         $list = TypeFactory::getInstance()->persistentListFromArray([
             Symbol::create(Symbol::NAME_PHP_OBJECT_STATIC_CALL),
@@ -100,7 +100,7 @@ final class PhpObjectCallSymbolTest extends TestCase
         self::assertInstanceOf(MethodCallNode::class, $objCallNode->getCallExpr());
     }
 
-    public function testList2ndElemIsSymbol(): void
+    public function test_list2nd_elem_is_symbol(): void
     {
         $list = TypeFactory::getInstance()->persistentListFromArray([
             Symbol::create(Symbol::NAME_PHP_OBJECT_CALL),

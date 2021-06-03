@@ -13,7 +13,7 @@ use PHPUnit\Framework\TestCase;
 
 class ArrayNodeTest extends TestCase
 {
-    public function testEmpty(): void
+    public function test_empty(): void
     {
         $hasher = new ModuloHasher();
         $node = ArrayNode::empty($hasher, new SimpleEqualizer());
@@ -21,7 +21,7 @@ class ArrayNodeTest extends TestCase
         self::assertNull($node->find(0, $hasher->hash(1), 1, null));
     }
 
-    public function testPutNonExistingKey(): void
+    public function test_put_non_existing_key(): void
     {
         $hasher = new ModuloHasher();
         $node = ArrayNode::empty($hasher, new SimpleEqualizer())
@@ -31,7 +31,7 @@ class ArrayNodeTest extends TestCase
         self::assertEquals('test', $node->find(0, $hasher->hash(1), 1, null));
     }
 
-    public function testPutSameKeyTwice(): void
+    public function test_put_same_key_twice(): void
     {
         $hasher = new ModuloHasher();
         $node = ArrayNode::empty($hasher, new SimpleEqualizer())
@@ -42,7 +42,7 @@ class ArrayNodeTest extends TestCase
         self::assertEquals('bar', $node->find(0, $hasher->hash(1), 1, null));
     }
 
-    public function testPutSameKeyValueTwice(): void
+    public function test_put_same_key_value_twice(): void
     {
         $hasher = new ModuloHasher();
         $node = ArrayNode::empty($hasher, new SimpleEqualizer())
@@ -53,7 +53,7 @@ class ArrayNodeTest extends TestCase
         self::assertEquals('foo', $node->find(0, $hasher->hash(1), 1, null));
     }
 
-    public function testRemoveNonExistingKey(): void
+    public function test_remove_non_existing_key(): void
     {
         $hasher = new ModuloHasher();
         $node = ArrayNode::empty($hasher, new SimpleEqualizer())
@@ -62,7 +62,7 @@ class ArrayNodeTest extends TestCase
         self::assertInstanceOf(ArrayNode::class, $node);
     }
 
-    public function testPackToIndexNode(): void
+    public function test_pack_to_index_node(): void
     {
         $hasher = new ModuloHasher();
         /** @var IndexedNode $node */
@@ -79,7 +79,7 @@ class ArrayNodeTest extends TestCase
         self::assertNull($node->find(0, $hasher->hash(33), 33, null));
     }
 
-    public function testRemoveKeyNoPacking(): void
+    public function test_remove_key_no_packing(): void
     {
         $hasher = new ModuloHasher();
         $node = ArrayNode::empty($hasher, new SimpleEqualizer())

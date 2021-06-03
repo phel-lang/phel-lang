@@ -42,7 +42,7 @@ final class AnalyzePersistentListTest extends TestCase
         $this->listAnalyzer = new AnalyzePersistentList(new Analyzer(new GlobalEnvironment()));
     }
 
-    public function testSymbolWithNameDef(): void
+    public function test_symbol_with_name_def(): void
     {
         $list = TypeFactory::getInstance()->persistentListFromArray([
             Symbol::create(Symbol::NAME_DEF),
@@ -52,7 +52,7 @@ final class AnalyzePersistentListTest extends TestCase
         self::assertInstanceOf(DefNode::class, $this->listAnalyzer->analyze($list, NodeEnvironment::empty()));
     }
 
-    public function testSymbolWithNameNs(): void
+    public function test_symbol_with_name_ns(): void
     {
         $list = TypeFactory::getInstance()->persistentListFromArray([
             Symbol::create(Symbol::NAME_NS),
@@ -61,7 +61,7 @@ final class AnalyzePersistentListTest extends TestCase
         self::assertInstanceOf(NsNode::class, $this->listAnalyzer->analyze($list, NodeEnvironment::empty()));
     }
 
-    public function testSymbolWithNameFn(): void
+    public function test_symbol_with_name_fn(): void
     {
         $list = TypeFactory::getInstance()->persistentListFromArray([
             Symbol::create(Symbol::NAME_FN),
@@ -70,7 +70,7 @@ final class AnalyzePersistentListTest extends TestCase
         self::assertInstanceOf(FnNode::class, $this->listAnalyzer->analyze($list, NodeEnvironment::empty()));
     }
 
-    public function testSymbolWithNameQuote(): void
+    public function test_symbol_with_name_quote(): void
     {
         $list = TypeFactory::getInstance()->persistentListFromArray([
             Symbol::create(Symbol::NAME_QUOTE),
@@ -79,7 +79,7 @@ final class AnalyzePersistentListTest extends TestCase
         self::assertInstanceOf(QuoteNode::class, $this->listAnalyzer->analyze($list, NodeEnvironment::empty()));
     }
 
-    public function testSymbolWithNameDo(): void
+    public function test_symbol_with_name_do(): void
     {
         $list = TypeFactory::getInstance()->persistentListFromArray([
             Symbol::create(Symbol::NAME_DO), 1,
@@ -87,7 +87,7 @@ final class AnalyzePersistentListTest extends TestCase
         self::assertInstanceOf(DoNode::class, $this->listAnalyzer->analyze($list, NodeEnvironment::empty()));
     }
 
-    public function testSymbolWithNameIf(): void
+    public function test_symbol_with_name_if(): void
     {
         $list = TypeFactory::getInstance()->persistentListFromArray([
             Symbol::create(Symbol::NAME_IF),
@@ -97,7 +97,7 @@ final class AnalyzePersistentListTest extends TestCase
         self::assertInstanceOf(IfNode::class, $this->listAnalyzer->analyze($list, NodeEnvironment::empty()));
     }
 
-    public function testSymbolWithNameApply(): void
+    public function test_symbol_with_name_apply(): void
     {
         $list = TypeFactory::getInstance()->persistentListFromArray([
             Symbol::create(Symbol::NAME_APPLY), '+', TypeFactory::getInstance()->persistentVectorFromArray(['']),
@@ -105,7 +105,7 @@ final class AnalyzePersistentListTest extends TestCase
         self::assertInstanceOf(ApplyNode::class, $this->listAnalyzer->analyze($list, NodeEnvironment::empty()));
     }
 
-    public function testSymbolWithNameLet(): void
+    public function test_symbol_with_name_let(): void
     {
         $list = TypeFactory::getInstance()->persistentListFromArray([
             Symbol::create(Symbol::NAME_LET),
@@ -115,7 +115,7 @@ final class AnalyzePersistentListTest extends TestCase
         self::assertInstanceOf(LetNode::class, $this->listAnalyzer->analyze($list, NodeEnvironment::empty()));
     }
 
-    public function testSymbolWithNamePhpNew(): void
+    public function test_symbol_with_name_php_new(): void
     {
         $list = TypeFactory::getInstance()->persistentListFromArray([
             Symbol::create(Symbol::NAME_PHP_NEW), '',
@@ -123,7 +123,7 @@ final class AnalyzePersistentListTest extends TestCase
         self::assertInstanceOf(PhpNewNode::class, $this->listAnalyzer->analyze($list, NodeEnvironment::empty()));
     }
 
-    public function testSymbolWithNamePhpObjectCall(): void
+    public function test_symbol_with_name_php_object_call(): void
     {
         $list = TypeFactory::getInstance()->persistentListFromArray([
             Symbol::create(Symbol::NAME_PHP_OBJECT_CALL), '', Symbol::create(''),
@@ -134,7 +134,7 @@ final class AnalyzePersistentListTest extends TestCase
         );
     }
 
-    public function testSymbolWithNamePhpObjectStaticCall(): void
+    public function test_symbol_with_name_php_object_static_call(): void
     {
         $list = TypeFactory::getInstance()->persistentListFromArray([
             Symbol::create(Symbol::NAME_PHP_OBJECT_STATIC_CALL), '', Symbol::create(''),
@@ -145,7 +145,7 @@ final class AnalyzePersistentListTest extends TestCase
         );
     }
 
-    public function testSymbolWithNamePhpArrayGet(): void
+    public function test_symbol_with_name_php_array_get(): void
     {
         $list = TypeFactory::getInstance()->persistentListFromArray([
             Symbol::create(Symbol::NAME_PHP_ARRAY_GET),
@@ -158,7 +158,7 @@ final class AnalyzePersistentListTest extends TestCase
         );
     }
 
-    public function testSymbolWithNamePhpArraySet(): void
+    public function test_symbol_with_name_php_array_set(): void
     {
         $list = TypeFactory::getInstance()->persistentListFromArray([
             Symbol::create(Symbol::NAME_PHP_ARRAY_SET),
@@ -172,7 +172,7 @@ final class AnalyzePersistentListTest extends TestCase
         );
     }
 
-    public function testSymbolWithNamePhpArrayPush(): void
+    public function test_symbol_with_name_php_array_push(): void
     {
         $list = TypeFactory::getInstance()->persistentListFromArray([
             Symbol::create(Symbol::NAME_PHP_ARRAY_PUSH),
@@ -185,7 +185,7 @@ final class AnalyzePersistentListTest extends TestCase
         );
     }
 
-    public function testSymbolWithNamePhpArrayUnset(): void
+    public function test_symbol_with_name_php_array_unset(): void
     {
         $list = TypeFactory::getInstance()->persistentListFromArray([
             Symbol::create(Symbol::NAME_PHP_ARRAY_UNSET),
@@ -198,7 +198,7 @@ final class AnalyzePersistentListTest extends TestCase
         );
     }
 
-    public function testSymbolWithNameRecur(): void
+    public function test_symbol_with_name_recur(): void
     {
         $list = TypeFactory::getInstance()->persistentListFromArray([
             Symbol::create(Symbol::NAME_RECUR), 1,
@@ -208,7 +208,7 @@ final class AnalyzePersistentListTest extends TestCase
         self::assertInstanceOf(RecurNode::class, $this->listAnalyzer->analyze($list, $nodeEnv));
     }
 
-    public function testSymbolWithNameTry(): void
+    public function test_symbol_with_name_try(): void
     {
         $list = TypeFactory::getInstance()->persistentListFromArray([
             Symbol::create(Symbol::NAME_TRY),
@@ -216,7 +216,7 @@ final class AnalyzePersistentListTest extends TestCase
         self::assertInstanceOf(TryNode::class, $this->listAnalyzer->analyze($list, NodeEnvironment::empty()));
     }
 
-    public function testSymbolWithNameThrow(): void
+    public function test_symbol_with_name_throw(): void
     {
         $list = TypeFactory::getInstance()->persistentListFromArray([
             Symbol::create(Symbol::NAME_THROW), '',
@@ -224,7 +224,7 @@ final class AnalyzePersistentListTest extends TestCase
         self::assertInstanceOf(ThrowNode::class, $this->listAnalyzer->analyze($list, NodeEnvironment::empty()));
     }
 
-    public function testSymbolWithNameLoop(): void
+    public function test_symbol_with_name_loop(): void
     {
         $list = TypeFactory::getInstance()->persistentListFromArray([
             Symbol::create(Symbol::NAME_LOOP),
@@ -234,7 +234,7 @@ final class AnalyzePersistentListTest extends TestCase
         self::assertInstanceOf(LetNode::class, $this->listAnalyzer->analyze($list, NodeEnvironment::empty()));
     }
 
-    public function testSymbolWithNameForeach(): void
+    public function test_symbol_with_name_foreach(): void
     {
         $list = TypeFactory::getInstance()->persistentListFromArray([
             Symbol::create(Symbol::NAME_FOREACH),
@@ -246,7 +246,7 @@ final class AnalyzePersistentListTest extends TestCase
         self::assertInstanceOf(ForeachNode::class, $this->listAnalyzer->analyze($list, NodeEnvironment::empty()));
     }
 
-    public function testSymbolWithNameDefStruct(): void
+    public function test_symbol_with_name_def_struct(): void
     {
         $list = TypeFactory::getInstance()->persistentListFromArray([
             Symbol::create(Symbol::NAME_DEF_STRUCT),

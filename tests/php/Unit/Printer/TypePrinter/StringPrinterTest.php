@@ -10,7 +10,7 @@ use PHPUnit\Framework\TestCase;
 
 final class StringPrinterTest extends TestCase
 {
-    public function testPrintNoReadable(): void
+    public function test_print_no_readable(): void
     {
         self::assertSame('str', (new StringPrinter(false))->print('str'));
     }
@@ -18,7 +18,7 @@ final class StringPrinterTest extends TestCase
     /**
      * @dataProvider printerDataProvider
      */
-    public function testPrintReadable(string $expected, string $string): void
+    public function test_print_readable(string $expected, string $string): void
     {
         self::assertSame(
             $expected,

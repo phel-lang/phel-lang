@@ -12,7 +12,7 @@ use PHPUnit\Framework\TestCase;
 
 class IndexedNodeIteratorTest extends TestCase
 {
-    public function testIterateOnEmptyNode(): void
+    public function test_iterate_on_empty_node(): void
     {
         $node = IndexedNode::empty(new ModuloHasher(), new SimpleEqualizer());
 
@@ -24,7 +24,7 @@ class IndexedNodeIteratorTest extends TestCase
         $this->assertEmpty($result);
     }
 
-    public function testIterateOnSingleEntryNode(): void
+    public function test_iterate_on_single_entry_node(): void
     {
         $node = IndexedNode::empty(new ModuloHasher(), new SimpleEqualizer())
             ->put(0, 1, 1, 'foo', new Box(false));
@@ -37,7 +37,7 @@ class IndexedNodeIteratorTest extends TestCase
         $this->assertEquals([1 => 'foo'], $result);
     }
 
-    public function testIterateOnTwoEntryNode(): void
+    public function test_iterate_on_two_entry_node(): void
     {
         $node = IndexedNode::empty(new ModuloHasher(), new SimpleEqualizer())
             ->put(0, 1, 1, 'foo', new Box(false))
@@ -51,7 +51,7 @@ class IndexedNodeIteratorTest extends TestCase
         $this->assertEquals([1 => 'foo', 2 => 'bar'], $result);
     }
 
-    public function testIterateOnThreeEntryNodeWithHashCollision(): void
+    public function test_iterate_on_three_entry_node_with_hash_collision(): void
     {
         $node = IndexedNode::empty(new ModuloHasher(), new SimpleEqualizer())
             ->put(0, 1, 1, 'foo', new Box(false))
@@ -66,7 +66,7 @@ class IndexedNodeIteratorTest extends TestCase
         $this->assertEquals([1 => 'foo', 2 => 'bar', 3 => 'foobar'], $result);
     }
 
-    public function testIterateOnMultipleChildNodes(): void
+    public function test_iterate_on_multiple_child_nodes(): void
     {
         $node = IndexedNode::empty(new ModuloHasher(), new SimpleEqualizer())
             ->put(0, 1, 1, 'foo', new Box(false))

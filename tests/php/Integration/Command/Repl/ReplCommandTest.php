@@ -34,7 +34,7 @@ final class ReplCommandTest extends AbstractCommandTest
     /**
      * @dataProvider providerIntegration
      */
-    public function testIntegration(string $expectedOutput, InputLine ...$inputs): void
+    public function test_integration(string $expectedOutput, InputLine ...$inputs): void
     {
         $io = $this->createReplTestIo();
         $io->setInputs(...$inputs);

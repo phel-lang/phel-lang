@@ -28,7 +28,7 @@ final class RuntimeTest extends TestCase
         $this->runtime->addPath('Foo\\Bar\\Baz\\Dib\\Zim\\Gir\\', ['/vendor/foo.bar.baz.dib.zim.gir/src']);
     }
 
-    public function testExistingFile(): void
+    public function test_existing_file(): void
     {
         $this->runtime->loadNs('Foo\Bar\Core');
         self::assertEquals(
@@ -43,12 +43,12 @@ final class RuntimeTest extends TestCase
         );
     }
 
-    public function testMissing(): void
+    public function test_missing(): void
     {
         self::assertFalse($this->runtime->loadNs('No_Vendor\No_Package\NoClass'));
     }
 
-    public function testDeepFile(): void
+    public function test_deep_file(): void
     {
         $this->runtime->loadNs('Foo\Bar\Baz\Dib\Zim\Gir\Core');
         self::assertEquals(
@@ -57,7 +57,7 @@ final class RuntimeTest extends TestCase
         );
     }
 
-    public function testConfusion(): void
+    public function test_confusion(): void
     {
         $this->runtime->loadNs('Foo\Bar\Doom');
         self::assertEquals(

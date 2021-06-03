@@ -16,7 +16,7 @@ final class StructPrinterTest extends TestCase
     /**
      * @dataProvider printerDataProvider
      */
-    public function testPrint(string $actual, AbstractPersistentStruct $struct): void
+    public function test_print(string $actual, AbstractPersistentStruct $struct): void
     {
         self::assertSame(
             $actual,

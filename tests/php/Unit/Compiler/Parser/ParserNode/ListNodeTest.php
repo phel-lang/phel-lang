@@ -13,7 +13,7 @@ use RuntimeException;
 
 final class ListNodeTest extends TestCase
 {
-    public function testGetCodeList(): void
+    public function test_get_code_list(): void
     {
         self::assertEquals(
             '(1)',
@@ -23,7 +23,7 @@ final class ListNodeTest extends TestCase
         );
     }
 
-    public function testGetCodeBracket(): void
+    public function test_get_code_bracket(): void
     {
         self::assertEquals(
             '[1]',
@@ -33,7 +33,7 @@ final class ListNodeTest extends TestCase
         );
     }
 
-    public function testGetCodeBrace(): void
+    public function test_get_code_brace(): void
     {
         self::assertEquals(
             '{1}',
@@ -43,7 +43,7 @@ final class ListNodeTest extends TestCase
         );
     }
 
-    public function testGetCodeFn(): void
+    public function test_get_code_fn(): void
     {
         self::assertEquals(
             '|(1)',
@@ -53,7 +53,7 @@ final class ListNodeTest extends TestCase
         );
     }
 
-    public function testGetCodeTable(): void
+    public function test_get_code_table(): void
     {
         self::assertEquals(
             '@{1}',
@@ -63,7 +63,7 @@ final class ListNodeTest extends TestCase
         );
     }
 
-    public function testGetCodeArray(): void
+    public function test_get_code_array(): void
     {
         self::assertEquals(
             '@[1]',
@@ -73,7 +73,7 @@ final class ListNodeTest extends TestCase
         );
     }
 
-    public function testUndefinedToken(): void
+    public function test_undefined_token(): void
     {
         $this->expectException(RuntimeException::class);
         (new ListNode(300, $this->loc(1, 0), $this->loc(1, 4), [
@@ -81,7 +81,7 @@ final class ListNodeTest extends TestCase
         ]))->getCode();
     }
 
-    public function testGetChildren(): void
+    public function test_get_children(): void
     {
         self::assertEquals(
             [new NumberNode('1', $this->loc(1, 1), $this->loc(1, 2), 1)],
@@ -91,7 +91,7 @@ final class ListNodeTest extends TestCase
         );
     }
 
-    public function testGetStartLocation(): void
+    public function test_get_start_location(): void
     {
         self::assertEquals(
             $this->loc(1, 0),
@@ -101,7 +101,7 @@ final class ListNodeTest extends TestCase
         );
     }
 
-    public function testGetEndLocation(): void
+    public function test_get_end_location(): void
     {
         self::assertEquals(
             $this->loc(1, 3),

@@ -13,7 +13,7 @@ final class BooleanPrinterTest extends TestCase
     /**
      * @dataProvider printerDataProvider
      */
-    public function testPrint(string $expected, bool $boolean): void
+    public function test_print(string $expected, bool $boolean): void
     {
         self::assertSame(
             $expected,

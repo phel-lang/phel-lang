@@ -13,7 +13,7 @@ final class WrapperRelativeFilenamePathBuilderTest extends TestCase
     /**
      * @dataProvider providerBuild
      */
-    public function testBuild(string $phelNs, string $expected): void
+    public function test_build(string $phelNs, string $expected): void
     {
         $builder = new WrapperRelativeFilenamePathBuilder();
 

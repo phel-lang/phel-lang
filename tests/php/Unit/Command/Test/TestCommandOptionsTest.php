@@ -9,14 +9,14 @@ use PHPUnit\Framework\TestCase;
 
 final class TestCommandOptionsTest extends TestCase
 {
-    public function testEmptyFilter(): void
+    public function test_empty_filter(): void
     {
         $options = TestCommandOptions::empty();
 
         self::assertSame('{:filter nil}', $options->asPhelHashMap());
     }
 
-    public function testRandomFilter(): void
+    public function test_random_filter(): void
     {
         $options = TestCommandOptions::fromArray(['filter' => 'example']);
 

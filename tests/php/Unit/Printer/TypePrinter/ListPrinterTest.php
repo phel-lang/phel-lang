@@ -16,7 +16,7 @@ final class ListPrinterTest extends TestCase
     /**
      * @dataProvider printerDataProvider
      */
-    public function testPrint(string $expected, PersistentListInterface $list): void
+    public function test_print(string $expected, PersistentListInterface $list): void
     {
         self::assertSame(
             $expected,

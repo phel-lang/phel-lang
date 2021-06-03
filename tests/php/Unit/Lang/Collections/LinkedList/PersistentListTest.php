@@ -14,7 +14,7 @@ use PHPUnit\Framework\TestCase;
 
 final class PersistentListTest extends TestCase
 {
-    public function testConsOnEmptyList(): void
+    public function test_cons_on_empty_list(): void
     {
         $list = PersistentList::empty(new ModuloHasher(), new SimpleEqualizer())->cons('foo');
 
@@ -23,7 +23,7 @@ final class PersistentListTest extends TestCase
         $this->assertEquals('foo', $list->get(0));
     }
 
-    public function testConsOnList(): void
+    public function test_cons_on_list(): void
     {
         $list = PersistentList::empty(new ModuloHasher(), new SimpleEqualizer())
             ->cons('foo')
@@ -35,7 +35,7 @@ final class PersistentListTest extends TestCase
         $this->assertEquals('foo', $list->get(1));
     }
 
-    public function testFromEmptyArray(): void
+    public function test_from_empty_array(): void
     {
         $list = PersistentList::fromArray(new ModuloHasher(), new SimpleEqualizer(), []);
 
@@ -43,7 +43,7 @@ final class PersistentListTest extends TestCase
         $this->assertTrue($list instanceof EmptyList);
     }
 
-    public function testFromArray(): void
+    public function test_from_array(): void
     {
         $list = PersistentList::fromArray(new ModuloHasher(), new SimpleEqualizer(), ['foo', 'bar']);
 
@@ -52,7 +52,7 @@ final class PersistentListTest extends TestCase
         $this->assertEquals('bar', $list->get(1));
     }
 
-    public function testPopWithRest(): void
+    public function test_pop_with_rest(): void
     {
         $list = PersistentList::fromArray(new ModuloHasher(), new SimpleEqualizer(), ['foo', 'bar'])
             ->pop();
@@ -61,7 +61,7 @@ final class PersistentListTest extends TestCase
         $this->assertEquals('bar', $list->get(0));
     }
 
-    public function testPopWithoutRest(): void
+    public function test_pop_without_rest(): void
     {
         $list = PersistentList::fromArray(new ModuloHasher(), new SimpleEqualizer(), ['foo'])
             ->pop();
@@ -70,14 +70,14 @@ final class PersistentListTest extends TestCase
         $this->assertEquals(0, $list->count());
     }
 
-    public function testGet(): void
+    public function test_get(): void
     {
         $list = PersistentList::fromArray(new ModuloHasher(), new SimpleEqualizer(), ['foo', 'bar', 'foobar']);
 
         $this->assertEquals('bar', $list->get(1));
     }
 
-    public function testGetNegativeNumber(): void
+    public function test_get_negative_number(): void
     {
         $this->expectException(IndexOutOfBoundsException::class);
 
@@ -85,7 +85,7 @@ final class PersistentListTest extends TestCase
         $list->get(-1);
     }
 
-    public function testGetOutOfBound(): void
+    public function test_get_out_of_bound(): void
     {
         $this->expectException(IndexOutOfBoundsException::class);
 
@@ -93,14 +93,14 @@ final class PersistentListTest extends TestCase
         $list->get(3);
     }
 
-    public function testEqualsOtherType(): void
+    public function test_equals_other_type(): void
     {
         $list = PersistentList::fromArray(new ModuloHasher(), new SimpleEqualizer(), ['foo', 'bar', 'foobar']);
 
         $this->assertFalse($list->equals(['foo', 'bar', 'foobar']));
     }
 
-    public function testEqualsDifferentLength(): void
+    public function test_equals_different_length(): void
     {
         $a = PersistentList::fromArray(new ModuloHasher(), new SimpleEqualizer(), ['foo', 'bar', 'foobar']);
         $b = PersistentList::fromArray(new ModuloHasher(), new SimpleEqualizer(), ['foo', 'bar']);
@@ -109,7 +109,7 @@ final class PersistentListTest extends TestCase
         $this->assertFalse($b->equals($a));
     }
 
-    public function testEqualsDifferentValues(): void
+    public function test_equals_different_values(): void
     {
         $a = PersistentList::fromArray(new ModuloHasher(), new SimpleEqualizer(), ['foo', 'bar', 'foobar']);
         $b = PersistentList::fromArray(new ModuloHasher(), new SimpleEqualizer(), ['foo', 'foobar', 'bar']);
@@ -118,7 +118,7 @@ final class PersistentListTest extends TestCase
         $this->assertFalse($b->equals($a));
     }
 
-    public function testEqualsSameValues(): void
+    public function test_equals_same_values(): void
     {
         $a = PersistentList::fromArray(new ModuloHasher(), new SimpleEqualizer(), ['foo', 'bar', 'foobar']);
         $b = PersistentList::fromArray(new ModuloHasher(), new SimpleEqualizer(), ['foo', 'bar', 'foobar']);
@@ -127,14 +127,14 @@ final class PersistentListTest extends TestCase
         $this->assertTrue($b->equals($a));
     }
 
-    public function testHash(): void
+    public function test_hash(): void
     {
         $list = PersistentList::fromArray(new ModuloHasher(), new SimpleEqualizer(), [2]);
 
         $this->assertEquals(33, $list->hash());
     }
 
-    public function testIterator(): void
+    public function test_iterator(): void
     {
         $xs = ['foo', 'bar', 'foobar'];
         $list = PersistentList::fromArray(new ModuloHasher(), new SimpleEqualizer(), $xs);
@@ -147,35 +147,35 @@ final class PersistentListTest extends TestCase
         $this->assertEquals($xs, $result);
     }
 
-    public function testFirst(): void
+    public function test_first(): void
     {
         $list = PersistentList::fromArray(new ModuloHasher(), new SimpleEqualizer(), ['foo']);
 
         $this->assertEquals('foo', $list->first());
     }
 
-    public function testRest(): void
+    public function test_rest(): void
     {
         $list = PersistentList::fromArray(new ModuloHasher(), new SimpleEqualizer(), ['foo']);
 
         $this->assertEquals(PersistentList::empty(new ModuloHasher(), new SimpleEqualizer()), $list->rest());
     }
 
-    public function testCdr(): void
+    public function test_cdr(): void
     {
         $list = PersistentList::fromArray(new ModuloHasher(), new SimpleEqualizer(), ['foo']);
 
         $this->assertNull($list->cdr());
     }
 
-    public function testCdr2(): void
+    public function test_cdr2(): void
     {
         $list = PersistentList::fromArray(new ModuloHasher(), new SimpleEqualizer(), ['foo', 'bar']);
 
         $this->assertEquals(PersistentList::fromArray(new ModuloHasher(), new SimpleEqualizer(), ['bar']), $list->cdr());
     }
 
-    public function testAddMetaData(): void
+    public function test_add_meta_data(): void
     {
         $meta = TypeFactory::getInstance()->emptyPersistentMap();
         $list = PersistentList::fromArray(new ModuloHasher(), new SimpleEqualizer(), ['foo', 'bar']);
@@ -185,7 +185,7 @@ final class PersistentListTest extends TestCase
         $this->assertEquals($meta, $listWithMeta->getMeta());
     }
 
-    public function testConcat(): void
+    public function test_concat(): void
     {
         $list1 = PersistentList::fromArray(new ModuloHasher(), new SimpleEqualizer(), ['foo', 'bar']);
         $list2 = PersistentList::fromArray(new ModuloHasher(), new SimpleEqualizer(), ['foobar']);
@@ -194,7 +194,7 @@ final class PersistentListTest extends TestCase
         $this->assertEquals(['foo', 'bar', 'foobar'], $list->toArray());
     }
 
-    public function testOffsetExists(): void
+    public function test_offset_exists(): void
     {
         $list = PersistentList::fromArray(new ModuloHasher(), new SimpleEqualizer(), ['foo', 'bar']);
 
@@ -204,7 +204,7 @@ final class PersistentListTest extends TestCase
         $this->assertFalse(isset($list[2]));
     }
 
-    public function testOffsetGet(): void
+    public function test_offset_get(): void
     {
         $list = PersistentList::fromArray(new ModuloHasher(), new SimpleEqualizer(), ['foo', 'bar']);
 
@@ -212,7 +212,7 @@ final class PersistentListTest extends TestCase
         $this->assertEquals('bar', $list[1]);
     }
 
-    public function testContains(): void
+    public function test_contains(): void
     {
         $list = PersistentList::fromArray(new ModuloHasher(), new SimpleEqualizer(), ['foo', 'bar']);
 

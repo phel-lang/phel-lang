@@ -9,7 +9,7 @@ use PHPUnit\Framework\TestCase;
 
 final class ColorStyleTest extends TestCase
 {
-    public function testCustomColor(): void
+    public function test_custom_color(): void
     {
         $color = 'custom';
         $format = 'begin %s end';
@@ -22,7 +22,7 @@ final class ColorStyleTest extends TestCase
         );
     }
 
-    public function testDefaultColors(): void
+    public function test_default_colors(): void
     {
         $style = ColorStyle::withStyles();
         $anyText = 'any text';

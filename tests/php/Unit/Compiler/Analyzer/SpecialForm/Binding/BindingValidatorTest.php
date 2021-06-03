@@ -23,28 +23,28 @@ final class BindingValidatorTest extends TestCase
         $this->validator = new BindingValidator();
     }
 
-    public function testIntegerType(): void
+    public function test_integer_type(): void
     {
         $this->expectExceptionMessage('Cannot destructure integer');
 
         $this->validator->assertSupportedBinding(1);
     }
 
-    public function testFloatType(): void
+    public function test_float_type(): void
     {
         $this->expectExceptionMessage('Cannot destructure double');
 
         $this->validator->assertSupportedBinding(1.99);
     }
 
-    public function testStringType(): void
+    public function test_string_type(): void
     {
         $this->expectExceptionMessage('Cannot destructure string');
 
         $this->validator->assertSupportedBinding('');
     }
 
-    public function testKeywordType(): void
+    public function test_keyword_type(): void
     {
         $this->expectExceptionMessage('Cannot destructure Phel\Lang\Keyword');
 
@@ -56,7 +56,7 @@ final class BindingValidatorTest extends TestCase
      *
      * @param AbstractType $type
      */
-    public function testValidTypes($type): void
+    public function test_valid_types($type): void
     {
         $this->validator->assertSupportedBinding($type);
         self::assertTrue(true); // this assertion ensures that no exception was thrown

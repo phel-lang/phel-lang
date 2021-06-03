@@ -24,7 +24,7 @@ final class DefStructSymbolTest extends TestCase
         $this->analyzer = new Analyzer(new GlobalEnvironment());
     }
 
-    public function testWithWrongNumberOfArguments(): void
+    public function test_with_wrong_number_of_arguments(): void
     {
         $this->expectException(AbstractLocatedException::class);
         $this->expectExceptionMessage("Exactly two arguments are required for 'defstruct. Got 1");
@@ -37,7 +37,7 @@ final class DefStructSymbolTest extends TestCase
             ->analyze($list, NodeEnvironment::empty());
     }
 
-    public function testFirstArgIsNotSymbol(): void
+    public function test_first_arg_is_not_symbol(): void
     {
         $this->expectException(AbstractLocatedException::class);
         $this->expectExceptionMessage("First argument of 'defstruct must be a Symbol.");
@@ -52,7 +52,7 @@ final class DefStructSymbolTest extends TestCase
             ->analyze($list, NodeEnvironment::empty());
     }
 
-    public function testSecondArgIsNotVector(): void
+    public function test_second_arg_is_not_vector(): void
     {
         $this->expectException(AbstractLocatedException::class);
         $this->expectExceptionMessage("Second argument of 'defstruct must be a vector.");
@@ -67,7 +67,7 @@ final class DefStructSymbolTest extends TestCase
             ->analyze($list, NodeEnvironment::empty());
     }
 
-    public function testVectorElemsAreNotSymbols(): void
+    public function test_vector_elems_are_not_symbols(): void
     {
         $this->expectException(AbstractLocatedException::class);
         $this->expectExceptionMessage('Defstruct field elements must be Symbols.');
@@ -82,7 +82,7 @@ final class DefStructSymbolTest extends TestCase
             ->analyze($list, NodeEnvironment::empty());
     }
 
-    public function testDefStructSymbol(): void
+    public function test_def_struct_symbol(): void
     {
         $list = TypeFactory::getInstance()->persistentListFromArray([
             Symbol::create(Symbol::NAME_DEF_STRUCT),
