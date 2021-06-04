@@ -2,18 +2,16 @@
 
 declare(strict_types=1);
 
-namespace Phel\Compiler\Compiler;
-
-use Phel\Compiler\Analyzer\Ast\NsNode;
+namespace Phel\NamespaceExtractor\Extractor;
 
 interface NamespaceExtractorInterface
 {
-    public function getNamespaceFromFile(string $path): NsNode;
+    public function getNamespaceFromFile(string $path): NamespaceInformation;
 
     /**
      * @param list<string> $directories
      *
-     * @return NsNode[]
+     * @return NamespaceInformation[]
      */
     public function getNamespacesFromDirectories(array $directories): array;
 }

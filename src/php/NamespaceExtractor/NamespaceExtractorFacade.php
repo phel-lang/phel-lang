@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Phel\NamespaceExtractor;
 
 use Gacela\Framework\AbstractFacade;
-use Phel\Compiler\Analyzer\Ast\NsNode;
+use Phel\NamespaceExtractor\Extractor\NamespaceInformation;
 
 /**
  * @method NamespaceExtractorFactory getFactory()
@@ -18,9 +18,9 @@ final class NamespaceExtractorFacade extends AbstractFacade implements Namespace
      *
      * @param string $filename The path to the file
      *
-     * @return NsNode
+     * @return NamespaceInformation
      */
-    public function getNamespaceFromFile(string $filename): NsNode
+    public function getNamespaceFromFile(string $filename): NamespaceInformation
     {
         return $this->getFactory()
             ->createNamespaceExtractor()
@@ -33,7 +33,7 @@ final class NamespaceExtractorFacade extends AbstractFacade implements Namespace
      *
      * @param string[] $directories The list of the directories
      *
-     * @return NsNode[]
+     * @return NamespaceInformation[]
      */
     public function getNamespaceFromDirectories(array $directories): array
     {

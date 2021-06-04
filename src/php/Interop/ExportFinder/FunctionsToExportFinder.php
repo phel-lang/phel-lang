@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace Phel\Interop\ExportFinder;
 
-use Phel\Compiler\Compiler\ExtractorException;
 use Phel\Compiler\Evaluator\Exceptions\CompiledCodeIsMalformedException;
 use Phel\Compiler\Evaluator\Exceptions\FileException;
 use Phel\Compiler\Exceptions\CompilerException;
@@ -12,6 +11,7 @@ use Phel\Interop\ReadModel\FunctionToExport;
 use Phel\Lang\Collections\Map\PersistentMapInterface;
 use Phel\Lang\Keyword;
 use Phel\Lang\TypeFactory;
+use Phel\NamespaceExtractor\Extractor\ExtractorException;
 use Phel\NamespaceExtractor\NamespaceExtractorFacadeInterface;
 use Phel\Runtime\RuntimeFacadeInterface;
 
