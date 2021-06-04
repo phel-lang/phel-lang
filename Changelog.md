@@ -6,6 +6,11 @@ All notable changes to this project will be documented in this file.
 
 * Removed `load` function in `phel\core`
 
+## 0.3.3 (2021-06-04)
+
+* Removed `load` function.
+* Fixed `RangeIterator` for Vectors (#302)
+
 ## 0.3.2 (2021-05-16)
 
 * Transient Maps can grow bigger than 16 elements (#289)
