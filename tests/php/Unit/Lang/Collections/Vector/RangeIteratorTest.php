@@ -10,7 +10,7 @@ use PHPUnit\Framework\TestCase;
 
 final class RangeIteratorTest extends TestCase
 {
-    public function testRangeIteratorWith32Elements(): void
+    public function test_range_iterator_with32_elements(): void
     {
         $it = new RangeIterator(
             TypeFactory::getInstance()->persistentVectorFromArray(range(0, 31)),
@@ -18,6 +18,6 @@ final class RangeIteratorTest extends TestCase
             32
         );
 
-        $this->assertEquals(range(0, 31), iterator_to_array($it));
+        self::assertEquals(range(0, 31), iterator_to_array($it));
     }
 }
