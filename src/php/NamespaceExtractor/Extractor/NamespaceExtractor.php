@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Phel\Compiler\Compiler;
+namespace Phel\NamespaceExtractor\Extractor;
 
 use Phel\Compiler\Analyzer\Ast\NsNode;
 use Phel\Compiler\Analyzer\Environment\NodeEnvironment;
@@ -11,6 +11,7 @@ use Phel\Compiler\Lexer\Exceptions\LexerValueException;
 use Phel\Compiler\Parser\Exceptions\AbstractParserException;
 use Phel\Compiler\Parser\ParserNode\TriviaNodeInterface;
 use Phel\Compiler\Reader\Exceptions\ReaderException;
+use Phel\Lang\Symbol;
 use RecursiveDirectoryIterator;
 use RecursiveIteratorIterator;
 use RecursiveRegexIterator;
@@ -29,7 +30,7 @@ final class NamespaceExtractor implements NamespaceExtractorInterface
      * @throws ExtractorException
      * @throws LexerValueException
      */
-    public function getNamespaceFromFile(string $path): NsNode
+    public function getNamespaceFromFile(string $path): NamespaceInformation
     {
         $content = file_get_contents($path);
 
@@ -48,7 +49,14 @@ final class NamespaceExtractor implements NamespaceExtractorInterface
             $node = $this->compilerFacade->analyze($ast, NodeEnvironment::empty());
 
             if ($node instanceof NsNode) {
-                return $node;
+                return new NamespaceInformation(
+                    realpath($path),
+                    $node->getNamespace(),
+                    array_map(
+                        fn (Symbol $s) => $s->getFullName(),
+                        $node->getRequireNs()
+                    )
+                );
             }
 
             throw ExtractorException::cannotExtractNamespaceFromPath($path);
@@ -62,7 +70,7 @@ final class NamespaceExtractor implements NamespaceExtractorInterface
      *
      * @throws ExtractorException
      *
-     * @return NsNode[]
+     * @return NamespaceInformation[]
      */
     public function getNamespacesFromDirectories(array $directories): array
     {
