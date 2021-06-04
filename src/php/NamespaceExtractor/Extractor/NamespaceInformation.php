@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Phel\NamespaceExtractor\Extractor;
 
-class NamespaceInformation
+final class NamespaceInformation
 {
     private string $file;
     private string $namespace;
