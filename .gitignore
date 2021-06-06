@@ -4,7 +4,7 @@ data
 var
 doc/public
 .phel-repl-history
-.php_cs.cache
+.php-cs-fixer.cache
 .idea/
 src/phel/local.phel
 infection.json

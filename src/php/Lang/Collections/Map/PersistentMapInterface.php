@@ -24,7 +24,6 @@ use Phel\Lang\TypeInterface;
  */
 interface PersistentMapInterface extends TypeInterface, Countable, IteratorAggregate, ArrayAccess, AsTransientInterface, FnInterface, ContainsInterface
 {
-
     /**
      * @param K $key
      * @param V $value

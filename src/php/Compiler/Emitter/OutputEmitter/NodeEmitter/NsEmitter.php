@@ -4,11 +4,11 @@ declare(strict_types=1);
 
 namespace Phel\Compiler\Emitter\OutputEmitter\NodeEmitter;
 
-use function addslashes;
 use Phel\Compiler\Analyzer\Ast\AbstractNode;
 use Phel\Compiler\Analyzer\Ast\NsNode;
 use Phel\Compiler\Emitter\OutputEmitter\NodeEmitterInterface;
 use Phel\Lang\Symbol;
+use function addslashes;
 
 final class NsEmitter implements NodeEmitterInterface
 {
