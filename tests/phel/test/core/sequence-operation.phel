@@ -18,6 +18,13 @@
     (php/apush x 1)
     (is (= (php/array 1) x) "native push on PHP array"))
 
+  (let [x (php/array)]
+    (is (= (php/array 1) (push x 1)) "push on PHP array"))
+
+  (let [x (php/array)]
+    (push x 1)
+    (is (= (php/array) x) "push on PHP array, keeps initial state because it's immutable"))
+
   (let [x []]
     (push x 1)
     (is (= [] x) "push on existing vector, keeps initial state because it's immutable"))

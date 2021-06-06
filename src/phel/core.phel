@@ -724,6 +724,7 @@ Calling the and function without arguments returns true."
   "Inserts `x` at the end of the sequence `xs`."
   [xs x]
   (cond
+    (php-array? xs) (do (php/apush xs x) xs)
     (or (vector? xs) (php/instanceof xs TransientVectorInterface)) (php/-> xs (append x))
     (or (set? xs) (php/instanceof xs TransientHashSetInterface)) (php/-> xs (add x))
     (php/instanceof xs PushInterface) (php/-> xs (push x))
