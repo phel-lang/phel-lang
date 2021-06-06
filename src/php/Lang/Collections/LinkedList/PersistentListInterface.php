@@ -27,7 +27,6 @@ use Phel\Lang\TypeInterface;
  */
 interface PersistentListInterface extends TypeInterface, SeqInterface, IteratorAggregate, Countable, ConsInterface, ArrayAccess, ConcatInterface, ContainsInterface
 {
-
     /**
      * @param TValue $value
      *

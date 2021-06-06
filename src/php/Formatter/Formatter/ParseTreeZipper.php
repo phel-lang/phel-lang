@@ -17,7 +17,6 @@ use Phel\Formatter\Exceptions\ZipperException;
  */
 final class ParseTreeZipper extends AbstractZipper
 {
-
     /**
      * @param NodeInterface $root
      *

@@ -10,7 +10,6 @@ use Phel\Compiler\Parser\ReadModel\CodeSnippet;
 
 final class TokenStream implements Iterator
 {
-
     /** @var Generator<Token> */
     private Generator $tokenGenerator;
 
