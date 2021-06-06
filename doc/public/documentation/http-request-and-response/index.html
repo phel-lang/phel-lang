@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <title>Request and Response | The Phel Language </title>
+
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="The offical website of the Phel language. Phel is a functional programming language that compiles to PHP.">
+
+  <link rel="stylesheet" href="https:&#x2F;&#x2F;phel-lang.org&#x2F;site.css"/>
+  <link rel="alternate icon" type="image/png" href="/favicon-32.png">
+
+  <meta property="og:description" content="The offical website of the Phel language. Phel is a functional programming language that compiles to PHP." />
+  <meta property="og:title" content="The Phel Language" />
+  <meta property="og:type" content="website" />
+  <meta property="og:url" content="https://phel-lang.org/" />
+  <meta property="og:image" content="https://phel-lang.org/favicon-512.png" />
+  <meta property="og:image:width" content="512" />
+  <meta property="og:image:height" content="512" />
+</head>
+
+<body>
+  
+<div class="documentation">
+    <aside class="documentation__sidebar">
+        <div class="logo">
+            <a href="/">
+    <svg class="phel-logo" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200.3 167.7"><path d="M6 66l95 96h36V93l-36-74H42L6 56v106h36l24-35"/><path d="M137 93l58-3-12-58-32-26h-34l-16 13-23 9-12 22 46 52z"/><path d="M195 90l-12 57h-13l-2-56M170 147l-13-11h12"/></svg>
+</a>
+        </div>
+
+        <input type="checkbox" id="menu_checkbox">
+        <label for="menu_checkbox">
+            <svg viewBox="0 0 32 32">
+                <path d="M3,3 29,3 M3,16 29,16 M3,29 29,29"></path>
+            </svg>
+            Menu
+        </label>
+        <nav>
+            <ol>
+                <li class="">
+                    <a href="/">About Phel</a>
+                </li>
+                
+                
+                    <li class="">
+                        <a href="https:&#x2F;&#x2F;phel-lang.org&#x2F;documentation&#x2F;getting-started&#x2F;">Getting started</a>
+                    </li>
+                
+                    <li class="">
+                        <a href="https:&#x2F;&#x2F;phel-lang.org&#x2F;documentation&#x2F;basic-types&#x2F;">Basic Types</a>
+                    </li>
+                
+                    <li class="">
+                        <a href="https:&#x2F;&#x2F;phel-lang.org&#x2F;documentation&#x2F;numbers-and-arithmetic&#x2F;">Numbers and Arithmetic</a>
+                    </li>
+                
+                    <li class="">
+                        <a href="https:&#x2F;&#x2F;phel-lang.org&#x2F;documentation&#x2F;truth-and-boolean-operations&#x2F;">Truth and Boolean operations</a>
+                    </li>
+                
+                    <li class="">
+                        <a href="https:&#x2F;&#x2F;phel-lang.org&#x2F;documentation&#x2F;control-flow&#x2F;">Control flow</a>
+                    </li>
+                
+                    <li class="">
+                        <a href="https:&#x2F;&#x2F;phel-lang.org&#x2F;documentation&#x2F;global-and-local-bindings&#x2F;">Global and local bindings</a>
+                    </li>
+                
+                    <li class="">
+                        <a href="https:&#x2F;&#x2F;phel-lang.org&#x2F;documentation&#x2F;functions-and-recursion&#x2F;">Functions and Recursion</a>
+                    </li>
+                
+                    <li class="">
+                        <a href="https:&#x2F;&#x2F;phel-lang.org&#x2F;documentation&#x2F;tuple&#x2F;">Tuple</a>
+                    </li>
+                
+                    <li class="">
+                        <a href="https:&#x2F;&#x2F;phel-lang.org&#x2F;documentation&#x2F;array-table-and-struct&#x2F;">Array, Table, Struct and Set</a>
+                    </li>
+                
+                    <li class="">
+                        <a href="https:&#x2F;&#x2F;phel-lang.org&#x2F;documentation&#x2F;destructuring&#x2F;">Destructuring</a>
+                    </li>
+                
+                    <li class="">
+                        <a href="https:&#x2F;&#x2F;phel-lang.org&#x2F;documentation&#x2F;macros&#x2F;">Macros</a>
+                    </li>
+                
+                    <li class="">
+                        <a href="https:&#x2F;&#x2F;phel-lang.org&#x2F;documentation&#x2F;namespaces&#x2F;">Namespaces</a>
+                    </li>
+                
+                    <li class="">
+                        <a href="https:&#x2F;&#x2F;phel-lang.org&#x2F;documentation&#x2F;php-interop&#x2F;">PHP Interop</a>
+                    </li>
+                
+                    <li class="active">
+                        <a href="https:&#x2F;&#x2F;phel-lang.org&#x2F;documentation&#x2F;http-request-and-response&#x2F;">Request and Response</a>
+                    </li>
+                
+                    <li class="">
+                        <a href="https:&#x2F;&#x2F;phel-lang.org&#x2F;documentation&#x2F;html-rendering&#x2F;">HTML Rendering</a>
+                    </li>
+                
+                    <li class="">
+                        <a href="https:&#x2F;&#x2F;phel-lang.org&#x2F;documentation&#x2F;testing&#x2F;">Testing</a>
+                    </li>
+                
+                    <li class="">
+                        <a href="https:&#x2F;&#x2F;phel-lang.org&#x2F;documentation&#x2F;configuration&#x2F;">Configuration</a>
+                    </li>
+                
+                    <li class="">
+                        <a href="https:&#x2F;&#x2F;phel-lang.org&#x2F;documentation&#x2F;repl&#x2F;">REPL</a>
+                    </li>
+                
+                    <li class="">
+                        <a href="https:&#x2F;&#x2F;phel-lang.org&#x2F;documentation&#x2F;api&#x2F;">API</a>
+                    </li>
+                
+            </ol>
+
+            <ul>
+                <li><a href="https://github.com/phel-lang/phel-lang">Source on Github</a></li>
+            </ul>
+        </nav>
+    </aside>
+    <div class="documentation__content">
+        
+    <h1>Request and Response</h1>
+    <h2 id="http-request">HTTP Request</h2>
+<p>Phel provides an easy method to access the current HTTP request. While in PHP the request is distribute in different globals variables (<code>$_GET</code>, <code>$_POST</code>, <code>$_SERVER</code>, <code>$_COOKIES</code> and <code>$_FILES</code>) Phel normalizes them into a single struct. All functions and structs are defined in the <code>phel\http</code> module.</p>
+<p>The request struct is defined like this:</p>
+<pre style="background-color:#ffffff;">
+<code><span style="color:#4d4d4c;">(</span><span style="color:#8959a8;">defstruct</span><span style="color:#4d4d4c;"> request [
+  method            </span><span style="color:#999999;"># HTTP Method (&quot;GET&quot;, &quot;POST&quot;, ...)
+</span><span style="color:#4d4d4c;">  uri               </span><span style="color:#999999;"># the &#39;uri&#39; struct (see below)
+</span><span style="color:#4d4d4c;">  headers           </span><span style="color:#999999;"># Table of all headers. Keys are keywords, Values are string
+</span><span style="color:#4d4d4c;">  parsed-body       </span><span style="color:#999999;"># The parsed body ($_POST), when availabe otherwise nil
+</span><span style="color:#4d4d4c;">  query-params      </span><span style="color:#999999;"># Table with all query parameters ($_GET)
+</span><span style="color:#4d4d4c;">  cookie-params     </span><span style="color:#999999;"># Table with all cookie parameters ($_COOKIE)
+</span><span style="color:#4d4d4c;">  server-params     </span><span style="color:#999999;"># Table with all server parameters ($_SERVER)
+</span><span style="color:#4d4d4c;">  uploaded-files    </span><span style="color:#999999;"># Table of &#39;uploaded-file&#39; structs (see below)
+</span><span style="color:#4d4d4c;">  version           </span><span style="color:#999999;"># The HTTP Version
+</span><span style="color:#4d4d4c;">])
+
+(</span><span style="color:#8959a8;">defstruct</span><span style="color:#4d4d4c;"> uri [
+  scheme            </span><span style="color:#999999;"># Scheme of the URI (&quot;http&quot;, &quot;https&quot;)
+</span><span style="color:#4d4d4c;">  userinfo          </span><span style="color:#999999;"># User info string
+</span><span style="color:#4d4d4c;">  host              </span><span style="color:#999999;"># Hostname of the URI
+</span><span style="color:#4d4d4c;">  port              </span><span style="color:#999999;"># Port of the URI
+</span><span style="color:#4d4d4c;">  path              </span><span style="color:#999999;"># Path of the URI
+</span><span style="color:#4d4d4c;">  query             </span><span style="color:#999999;"># Query string of the URI
+</span><span style="color:#4d4d4c;">  fragment          </span><span style="color:#999999;"># Fragement string of the URI
+</span><span style="color:#4d4d4c;">])
+
+(</span><span style="color:#8959a8;">defstruct</span><span style="color:#4d4d4c;"> uploaded-file [
+  tmp-file          </span><span style="color:#999999;"># The location of the temporary file
+</span><span style="color:#4d4d4c;">  size              </span><span style="color:#999999;"># The file size
+</span><span style="color:#4d4d4c;">  error-status      </span><span style="color:#999999;"># The upload error status
+</span><span style="color:#4d4d4c;">  client-filename   </span><span style="color:#999999;"># The client filename
+</span><span style="color:#4d4d4c;">  client-media-type </span><span style="color:#999999;"># The client media type
+</span><span style="color:#4d4d4c;">])
+</span></code></pre>
+<p>To create a request struct the <code>phel\http</code> module must be imported. Then the <code>request-from-globals</code> function can be called.</p>
+<pre style="background-color:#ffffff;">
+<code><span style="color:#4d4d4c;">(</span><span style="color:#8959a8;">ns</span><span style="color:#4d4d4c;"> my-namepace
+  (</span><span style="color:#3e999f;">:require</span><span style="color:#4d4d4c;"> phel\http))
+
+(http/request-from-globals) </span><span style="color:#999999;"># Evaluates to a request struct
+</span></code></pre><h2 id="http-response">HTTP Response</h2>
+<p>The <code>phel\http</code> module also contains a response struct. This struct can be used to send HTTP responses to the client. The response struct takes the following values.</p>
+<pre style="background-color:#ffffff;">
+<code><span style="color:#4d4d4c;">(</span><span style="color:#8959a8;">defstruct</span><span style="color:#4d4d4c;"> response [
+  status    </span><span style="color:#999999;"># The HTTP status code
+</span><span style="color:#4d4d4c;">  headers   </span><span style="color:#999999;"># A table of headers
+</span><span style="color:#4d4d4c;">  body      </span><span style="color:#999999;"># The body of the response (string)
+</span><span style="color:#4d4d4c;">  version   </span><span style="color:#999999;"># The HTTP protocol version
+</span><span style="color:#4d4d4c;">  reason    </span><span style="color:#999999;"># The HTTP status code reason text
+</span><span style="color:#4d4d4c;">])
+</span></code></pre>
+<p>To make it easier to create responses. Phel has two helpers methods to create a response.</p>
+<pre style="background-color:#ffffff;">
+<code><span style="color:#4d4d4c;">(</span><span style="color:#8959a8;">ns</span><span style="color:#4d4d4c;"> my-namepace
+  (</span><span style="color:#3e999f;">:require</span><span style="color:#4d4d4c;"> phel\http))
+
+</span><span style="color:#999999;"># Create response from table
+</span><span style="color:#4d4d4c;">(http/create-response-from-table @{</span><span style="color:#3e999f;">:status </span><span style="color:#f5871f;">200 </span><span style="color:#3e999f;">:body </span><span style="color:#718c00;">&quot;Test&quot;</span><span style="color:#4d4d4c;">})
+</span><span style="color:#999999;"># Evaluates to (response 200 @{} &quot;Test&quot; &quot;1.1&quot; &quot;OK&quot;)
+
+# Create response from string
+</span><span style="color:#4d4d4c;">(http/create-response-from-string </span><span style="color:#718c00;">&quot;Hello World&quot;</span><span style="color:#4d4d4c;">)
+</span><span style="color:#999999;"># Evaluates to (response 200 @{} &quot;Hello World&quot; &quot;1.1&quot; &quot;OK&quot;)
+</span></code></pre>
+<p>To send the response to the client the <code>emit-response</code> function can be used.</p>
+<pre style="background-color:#ffffff;">
+<code><span style="color:#4d4d4c;">(</span><span style="color:#8959a8;">ns</span><span style="color:#4d4d4c;"> my-namepace
+  (</span><span style="color:#3e999f;">:require</span><span style="color:#4d4d4c;"> phel\http))
+
+(</span><span style="color:#8959a8;">let </span><span style="color:#4d4d4c;">[rsp (http/create-response-from-table
+            @{</span><span style="color:#3e999f;">:status </span><span style="color:#f5871f;">404 </span><span style="color:#3e999f;">:body </span><span style="color:#718c00;">&quot;Page not found&quot;</span><span style="color:#4d4d4c;">})]
+  (http/emit-response rsp))
+</span></code></pre>
+
+
+        <footer>
+    &copy; <time datetime="2020">2020</time> Jens Haase
+    <a href="https:&#x2F;&#x2F;phel-lang.org&#x2F;legal&#x2F;disclosure&#x2F;">Legal Disclosure</a> | <a href="https:&#x2F;&#x2F;phel-lang.org&#x2F;legal&#x2F;data-protection&#x2F;">Data protection</a>
+</footer>
+    </div>
+</div>
+
+</body>
+
+</html>

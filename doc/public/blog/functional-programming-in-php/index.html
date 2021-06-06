@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <title>My attempt on functional programming in PHP | The Phel Language </title>
+
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="The offical website of the Phel language. Phel is a functional programming language that compiles to PHP.">
+
+  <link rel="stylesheet" href="https:&#x2F;&#x2F;phel-lang.org&#x2F;site.css"/>
+  <link rel="alternate icon" type="image/png" href="/favicon-32.png">
+
+  <meta property="og:description" content="The offical website of the Phel language. Phel is a functional programming language that compiles to PHP." />
+  <meta property="og:title" content="The Phel Language" />
+  <meta property="og:type" content="website" />
+  <meta property="og:url" content="https://phel-lang.org/" />
+  <meta property="og:image" content="https://phel-lang.org/favicon-512.png" />
+  <meta property="og:image:width" content="512" />
+  <meta property="og:image:height" content="512" />
+</head>
+
+<body>
+  
+<div class="blog">
+    <div class="logo">
+        <a href="/">
+    <svg class="phel-logo" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200.3 167.7"><path d="M6 66l95 96h36V93l-36-74H42L6 56v106h36l24-35"/><path d="M137 93l58-3-12-58-32-26h-34l-16 13-23 9-12 22 46 52z"/><path d="M195 90l-12 57h-13l-2-56M170 147l-13-11h12"/></svg>
+</a>
+    </div>
+    <div class="nav">
+        <a href="/">The Phel Language</a>
+    </div>
+
+    <div class="blog__content">
+        <h1>My attempt on functional programming in PHP</h1>
+        <p>PHP was one of my first languages I learned. Even so, this dates back over 10 years, I still use PHP every day at work. However, in the meantime I also learned a lot of other languages like Java, Clojure, Scala, Python, Javascript and Scheme. By learning all the languages and their concepts, the concept of functional programming always was my favorite and so I tried to make my PHP programming style more functional. In the following article you can read some approaches I tried.</p>
+<h2 id="functions-as-arguments">Functions as arguments</h2>
+<p>Defining a function in PHP is quite easy</p>
+<pre style="background-color:#ffffff;">
+<code><span style="color:#f5871f;">&lt;?php
+
+</span><span style="color:#8959a8;">function </span><span style="color:#4271ae;">inc</span><span style="color:#4d4d4c;">(</span><span style="color:#f5871f;">$number</span><span style="color:#4d4d4c;">) {
+    </span><span style="color:#8959a8;">return </span><span style="color:#c82829;">$number </span><span style="color:#3e999f;">+ </span><span style="color:#f5871f;">1</span><span style="color:#4d4d4c;">;
+}
+</span></code></pre>
+<p>However, one of the most common things you do in functional programming is to pass a function as argument to another function. If you try that, PHP will response to you with an error message.</p>
+<pre style="background-color:#ffffff;">
+<code><span style="color:#f5871f;">&lt;?php
+
+</span><span style="color:#c82829;">$x </span><span style="color:#3e999f;">= </span><span style="color:#4d4d4c;">[</span><span style="color:#f5871f;">1</span><span style="color:#4d4d4c;">, </span><span style="color:#f5871f;">2</span><span style="color:#4d4d4c;">, </span><span style="color:#f5871f;">3</span><span style="color:#4d4d4c;">, </span><span style="color:#f5871f;">4</span><span style="color:#4d4d4c;">];
+</span><span style="color:#4271ae;">array_map(</span><span style="color:#666969;">inc</span><span style="color:#4271ae;">, </span><span style="color:#c82829;">$x</span><span style="color:#4271ae;">)</span><span style="color:#4d4d4c;">;
+</span><span style="color:#999999;">// PHP Warning:  Use of undefined constant inc
+</span></code></pre>
+<p>PHP has no direct support for this. To fix the problem we must convert the symbol <code>inc</code> into a string.</p>
+<pre style="background-color:#ffffff;">
+<code><span style="color:#f5871f;">&lt;?php
+
+</span><span style="color:#c82829;">$x </span><span style="color:#3e999f;">= </span><span style="color:#4d4d4c;">[</span><span style="color:#f5871f;">1</span><span style="color:#4d4d4c;">, </span><span style="color:#f5871f;">2</span><span style="color:#4d4d4c;">, </span><span style="color:#f5871f;">3</span><span style="color:#4d4d4c;">, </span><span style="color:#f5871f;">4</span><span style="color:#4d4d4c;">];
+</span><span style="color:#4271ae;">array_map(</span><span style="color:#718c00;">&#39;inc&#39;</span><span style="color:#4271ae;">, </span><span style="color:#c82829;">$x</span><span style="color:#4271ae;">)</span><span style="color:#4d4d4c;">;
+</span></code></pre>
+<p>A more common way is to define a constant for each function and use the constant as parameter to the function.</p>
+<pre style="background-color:#ffffff;">
+<code><span style="color:#f5871f;">&lt;?php
+
+</span><span style="color:#8959a8;">function </span><span style="color:#4271ae;">inc</span><span style="color:#4d4d4c;">(</span><span style="color:#f5871f;">$number</span><span style="color:#4d4d4c;">) {
+    </span><span style="color:#8959a8;">return </span><span style="color:#c82829;">$number </span><span style="color:#3e999f;">+ </span><span style="color:#f5871f;">1</span><span style="color:#4d4d4c;">;
+}
+</span><span style="color:#8959a8;">const </span><span style="color:#666969;">inc </span><span style="color:#3e999f;">= </span><span style="color:#718c00;">&#39;inc&#39;</span><span style="color:#4d4d4c;">;
+
+</span><span style="color:#c82829;">$x </span><span style="color:#3e999f;">= </span><span style="color:#4d4d4c;">[</span><span style="color:#f5871f;">1</span><span style="color:#4d4d4c;">, </span><span style="color:#f5871f;">2</span><span style="color:#4d4d4c;">, </span><span style="color:#f5871f;">3</span><span style="color:#4d4d4c;">, </span><span style="color:#f5871f;">4</span><span style="color:#4d4d4c;">];
+</span><span style="color:#4271ae;">array_map(</span><span style="color:#666969;">inc</span><span style="color:#4271ae;">, </span><span style="color:#c82829;">$x</span><span style="color:#4271ae;">)</span><span style="color:#4d4d4c;">;
+</span></code></pre>
+<p>The disadvantage of such an approach is, that refactoring is more challenging and the chance of missing a constant definition is very high.</p>
+<h2 id="class-modules">Class modules</h2>
+<p>Another common concept in functional programming it the possibility to group a set of function to a module. A module can have a few public accessible functions and some private functions that are not accessible to the outside world. In PHP this can be accomplished by creating a class using only static members.</p>
+<pre style="background-color:#ffffff;">
+<code><span style="color:#f5871f;">&lt;?php
+
+</span><span style="color:#8959a8;">class </span><span style="color:#c99e00;">MyStaticModule </span><span style="color:#4d4d4c;">{
+    </span><span style="color:#8959a8;">private static function </span><span style="color:#4271ae;">add</span><span style="color:#4d4d4c;">(</span><span style="color:#f5871f;">$a</span><span style="color:#4d4d4c;">, </span><span style="color:#f5871f;">$b</span><span style="color:#4d4d4c;">) {
+        </span><span style="color:#8959a8;">return </span><span style="color:#c82829;">$a </span><span style="color:#3e999f;">+ </span><span style="color:#c82829;">$b</span><span style="color:#4d4d4c;">;
+    }
+
+    </span><span style="color:#8959a8;">public static function </span><span style="color:#4271ae;">inc</span><span style="color:#4d4d4c;">(</span><span style="color:#f5871f;">$number</span><span style="color:#4d4d4c;">) {
+        </span><span style="color:#8959a8;">return </span><span style="color:#c82829;">self</span><span style="color:#4271ae;">::</span><span style="color:#c82829;">add</span><span style="color:#4271ae;">(</span><span style="color:#c82829;">$number</span><span style="color:#4271ae;">, </span><span style="color:#f5871f;">1</span><span style="color:#4271ae;">)</span><span style="color:#4d4d4c;">;
+    }
+}
+</span></code></pre>
+<p>This approach gives us all the flexibility in terms of modularity. However, the problem of passing functions as arguments for another function hasn't been solved.</p>
+<h2 id="trait-modules">Trait modules</h2>
+<p>A second approach on modularity is to use traits.</p>
+<pre style="background-color:#ffffff;">
+<code><span style="color:#f5871f;">&lt;?php
+
+</span><span style="color:#8959a8;">trait </span><span style="color:#4d4d4c;">MyTraitModule {
+
+    </span><span style="color:#8959a8;">public function </span><span style="color:#4271ae;">inc</span><span style="color:#4d4d4c;">(</span><span style="color:#f5871f;">$number</span><span style="color:#4d4d4c;">) {
+        </span><span style="color:#8959a8;">return </span><span style="color:#c82829;">$number </span><span style="color:#3e999f;">+ </span><span style="color:#f5871f;">1</span><span style="color:#4d4d4c;">;
+    }
+}
+</span></code></pre>
+<p>After defining all traits you have to create a class that uses these traits.</p>
+<pre style="background-color:#ffffff;">
+<code><span style="color:#f5871f;">&lt;?php
+
+</span><span style="color:#8959a8;">class </span><span style="color:#c99e00;">MyProgram </span><span style="color:#4d4d4c;">{
+    </span><span style="color:#8959a8;">use </span><span style="color:#718c00;">MyTraitModule</span><span style="color:#4d4d4c;">;
+    </span><span style="color:#999999;">// use Other Traits here
+
+    </span><span style="color:#8959a8;">public function </span><span style="color:#4271ae;">main</span><span style="color:#4d4d4c;">() {
+        </span><span style="color:#8959a8;">return </span><span style="color:#c82829;">$this</span><span style="color:#4271ae;">-&gt;</span><span style="color:#c82829;">inc</span><span style="color:#4271ae;">(</span><span style="color:#c82829;">$number</span><span style="color:#4271ae;">)</span><span style="color:#4d4d4c;">;
+    }
+}
+</span></code></pre>
+<p>A benefit of this approach is that we can solve our first problem. Therefore, we just need to define the magic method <code>__get</code>.</p>
+<pre style="background-color:#ffffff;">
+<code><span style="color:#f5871f;">&lt;?php
+
+</span><span style="color:#8959a8;">trait </span><span style="color:#4d4d4c;">FPMagic {
+    </span><span style="color:#8959a8;">public function </span><span style="color:#4271ae;">__get</span><span style="color:#4d4d4c;">(</span><span style="color:#f5871f;">$name</span><span style="color:#4d4d4c;">) {
+        </span><span style="color:#8959a8;">if </span><span style="color:#4d4d4c;">(</span><span style="color:#4271ae;">method_exists(</span><span style="color:#c82829;">$this</span><span style="color:#4271ae;">, </span><span style="color:#c82829;">$name</span><span style="color:#4271ae;">)</span><span style="color:#4d4d4c;">) {
+            </span><span style="color:#8959a8;">return </span><span style="color:#4d4d4c;">[</span><span style="color:#c82829;">$this</span><span style="color:#4d4d4c;">, </span><span style="color:#c82829;">$name</span><span style="color:#4d4d4c;">]; </span><span style="color:#999999;">// This is callable
+        </span><span style="color:#4d4d4c;">} </span><span style="color:#8959a8;">else </span><span style="color:#4d4d4c;">{
+            </span><span style="color:#8959a8;">throw new </span><span style="color:#4d4d4c;">\</span><span style="color:#c99e00;">Exception</span><span style="color:#4d4d4c;">(</span><span style="color:#718c00;">&#39;Method does not exists: &#39; </span><span style="color:#3e999f;">. </span><span style="color:#c82829;">$name</span><span style="color:#4d4d4c;">);
+        }
+    }
+}
+
+</span><span style="color:#8959a8;">class </span><span style="color:#c99e00;">MyProgram </span><span style="color:#4d4d4c;">{
+    </span><span style="color:#8959a8;">use </span><span style="color:#718c00;">FPMagic</span><span style="color:#4d4d4c;">;
+    </span><span style="color:#8959a8;">use </span><span style="color:#718c00;">MyTraitModule</span><span style="color:#4d4d4c;">;
+
+    </span><span style="color:#8959a8;">public function </span><span style="color:#4271ae;">main</span><span style="color:#4d4d4c;">() {
+        </span><span style="color:#c82829;">$x </span><span style="color:#3e999f;">= </span><span style="color:#4d4d4c;">[</span><span style="color:#f5871f;">1</span><span style="color:#4d4d4c;">, </span><span style="color:#f5871f;">2</span><span style="color:#4d4d4c;">, </span><span style="color:#f5871f;">3</span><span style="color:#4d4d4c;">, </span><span style="color:#f5871f;">4</span><span style="color:#4d4d4c;">];
+        </span><span style="color:#8959a8;">return </span><span style="color:#4271ae;">array_map(</span><span style="color:#c82829;">$this</span><span style="color:#4271ae;">-&gt;</span><span style="color:#c82829;">inc</span><span style="color:#4271ae;">, </span><span style="color:#c82829;">$x</span><span style="color:#4271ae;">)</span><span style="color:#4d4d4c;">; </span><span style="color:#999999;">// Works using the magic method __get
+    </span><span style="color:#4d4d4c;">}
+}
+</span></code></pre>
+<p>A big disadvantage of this approach is, that we have to resolve all conflicting function names ourself. Not only for public methods but also for private methods. This becomes next to impossible if the program grows.</p>
+<p>A combination of the class module approach and the trait module approach would be a good solution to get started with functional programming in PHP. However, the trick with the magic method <code>_get</code> cannot be used for the class module approach, since PHP has no magic method for static properties.</p>
+<h2 id="alternatives">Alternatives</h2>
+<p>One last alternative is to use a language that is functional and compiles to PHP. In recent years, there have been a few attempts on this (e.g. <a href="https://haxe.org/">Haxe</a> and <a href="http://www.pharen.org/">Pharen</a>). While Pharen looked very promising, it hasn't seen any commits for a few years now and is still based on PHP 5.</p>
+<h2 id="introducing-phel">Introducing Phel</h2>
+<p>Since I didn't found a good solution for this problem, I used my coronavirus spare time to solve it by myself. This is what turns out to be Phel. Phel is a functional programming language that compiles to PHP. It is a dialect of Lisp inspired by <a href="https://clojure.org/">Clojure</a> and <a href="https://janet-lang.org/">Janet</a>. While the status of Phel is currently alpha, it is fairly complete. If you want to try it, go ahead and read the <a href="/documentation/getting-started/">Getting started guide</a>. I'm looking for your feedback.</p>
+
+    </div>
+
+    <footer>
+    &copy; <time datetime="2020">2020</time> Jens Haase
+    <a href="https:&#x2F;&#x2F;phel-lang.org&#x2F;legal&#x2F;disclosure&#x2F;">Legal Disclosure</a> | <a href="https:&#x2F;&#x2F;phel-lang.org&#x2F;legal&#x2F;data-protection&#x2F;">Data protection</a>
+</footer>
+</div>
+
+</body>
+
+</html>

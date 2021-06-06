@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <title>Global and local bindings | The Phel Language </title>
+
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="The offical website of the Phel language. Phel is a functional programming language that compiles to PHP.">
+
+  <link rel="stylesheet" href="https:&#x2F;&#x2F;phel-lang.org&#x2F;site.css"/>
+  <link rel="alternate icon" type="image/png" href="/favicon-32.png">
+
+  <meta property="og:description" content="The offical website of the Phel language. Phel is a functional programming language that compiles to PHP." />
+  <meta property="og:title" content="The Phel Language" />
+  <meta property="og:type" content="website" />
+  <meta property="og:url" content="https://phel-lang.org/" />
+  <meta property="og:image" content="https://phel-lang.org/favicon-512.png" />
+  <meta property="og:image:width" content="512" />
+  <meta property="og:image:height" content="512" />
+</head>
+
+<body>
+  
+<div class="documentation">
+    <aside class="documentation__sidebar">
+        <div class="logo">
+            <a href="/">
+    <svg class="phel-logo" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200.3 167.7"><path d="M6 66l95 96h36V93l-36-74H42L6 56v106h36l24-35"/><path d="M137 93l58-3-12-58-32-26h-34l-16 13-23 9-12 22 46 52z"/><path d="M195 90l-12 57h-13l-2-56M170 147l-13-11h12"/></svg>
+</a>
+        </div>
+
+        <input type="checkbox" id="menu_checkbox">
+        <label for="menu_checkbox">
+            <svg viewBox="0 0 32 32">
+                <path d="M3,3 29,3 M3,16 29,16 M3,29 29,29"></path>
+            </svg>
+            Menu
+        </label>
+        <nav>
+            <ol>
+                <li class="">
+                    <a href="/">About Phel</a>
+                </li>
+                
+                
+                    <li class="">
+                        <a href="https:&#x2F;&#x2F;phel-lang.org&#x2F;documentation&#x2F;getting-started&#x2F;">Getting started</a>
+                    </li>
+                
+                    <li class="">
+                        <a href="https:&#x2F;&#x2F;phel-lang.org&#x2F;documentation&#x2F;basic-types&#x2F;">Basic Types</a>
+                    </li>
+                
+                    <li class="">
+                        <a href="https:&#x2F;&#x2F;phel-lang.org&#x2F;documentation&#x2F;numbers-and-arithmetic&#x2F;">Numbers and Arithmetic</a>
+                    </li>
+                
+                    <li class="">
+                        <a href="https:&#x2F;&#x2F;phel-lang.org&#x2F;documentation&#x2F;truth-and-boolean-operations&#x2F;">Truth and Boolean operations</a>
+                    </li>
+                
+                    <li class="">
+                        <a href="https:&#x2F;&#x2F;phel-lang.org&#x2F;documentation&#x2F;control-flow&#x2F;">Control flow</a>
+                    </li>
+                
+                    <li class="active">
+                        <a href="https:&#x2F;&#x2F;phel-lang.org&#x2F;documentation&#x2F;global-and-local-bindings&#x2F;">Global and local bindings</a>
+                    </li>
+                
+                    <li class="">
+                        <a href="https:&#x2F;&#x2F;phel-lang.org&#x2F;documentation&#x2F;functions-and-recursion&#x2F;">Functions and Recursion</a>
+                    </li>
+                
+                    <li class="">
+                        <a href="https:&#x2F;&#x2F;phel-lang.org&#x2F;documentation&#x2F;tuple&#x2F;">Tuple</a>
+                    </li>
+                
+                    <li class="">
+                        <a href="https:&#x2F;&#x2F;phel-lang.org&#x2F;documentation&#x2F;array-table-and-struct&#x2F;">Array, Table, Struct and Set</a>
+                    </li>
+                
+                    <li class="">
+                        <a href="https:&#x2F;&#x2F;phel-lang.org&#x2F;documentation&#x2F;destructuring&#x2F;">Destructuring</a>
+                    </li>
+                
+                    <li class="">
+                        <a href="https:&#x2F;&#x2F;phel-lang.org&#x2F;documentation&#x2F;macros&#x2F;">Macros</a>
+                    </li>
+                
+                    <li class="">
+                        <a href="https:&#x2F;&#x2F;phel-lang.org&#x2F;documentation&#x2F;namespaces&#x2F;">Namespaces</a>
+                    </li>
+                
+                    <li class="">
+                        <a href="https:&#x2F;&#x2F;phel-lang.org&#x2F;documentation&#x2F;php-interop&#x2F;">PHP Interop</a>
+                    </li>
+                
+                    <li class="">
+                        <a href="https:&#x2F;&#x2F;phel-lang.org&#x2F;documentation&#x2F;http-request-and-response&#x2F;">Request and Response</a>
+                    </li>
+                
+                    <li class="">
+                        <a href="https:&#x2F;&#x2F;phel-lang.org&#x2F;documentation&#x2F;html-rendering&#x2F;">HTML Rendering</a>
+                    </li>
+                
+                    <li class="">
+                        <a href="https:&#x2F;&#x2F;phel-lang.org&#x2F;documentation&#x2F;testing&#x2F;">Testing</a>
+                    </li>
+                
+                    <li class="">
+                        <a href="https:&#x2F;&#x2F;phel-lang.org&#x2F;documentation&#x2F;configuration&#x2F;">Configuration</a>
+                    </li>
+                
+                    <li class="">
+                        <a href="https:&#x2F;&#x2F;phel-lang.org&#x2F;documentation&#x2F;repl&#x2F;">REPL</a>
+                    </li>
+                
+                    <li class="">
+                        <a href="https:&#x2F;&#x2F;phel-lang.org&#x2F;documentation&#x2F;api&#x2F;">API</a>
+                    </li>
+                
+            </ol>
+
+            <ul>
+                <li><a href="https://github.com/phel-lang/phel-lang">Source on Github</a></li>
+            </ul>
+        </nav>
+    </aside>
+    <div class="documentation__content">
+        
+    <h1>Global and local bindings</h1>
+    <h2 id="definition-def">Definition (def)</h2>
+<pre style="background-color:#ffffff;">
+<code><span style="color:#4d4d4c;">(</span><span style="color:#8959a8;">def</span><span style="color:#4d4d4c;"> name meta? value)
+</span></code></pre>
+<p>This special form binds a value to a global symbol. A definition cannot be redefined at a later point.</p>
+<pre style="background-color:#ffffff;">
+<code><span style="color:#4d4d4c;">(</span><span style="color:#8959a8;">def</span><span style="color:#4d4d4c;"> my-name </span><span style="color:#718c00;">&quot;phel&quot;</span><span style="color:#4d4d4c;">)
+(</span><span style="color:#8959a8;">def</span><span style="color:#4d4d4c;"> sum-of-three (+ </span><span style="color:#f5871f;">1 2 3</span><span style="color:#4d4d4c;">))
+</span></code></pre>
+<p>To each definition metadata can be attached. Metadata is either a Keyword, a String or a Table.</p>
+<pre style="background-color:#ffffff;">
+<code><span style="color:#4d4d4c;">(</span><span style="color:#8959a8;">def</span><span style="color:#4d4d4c;"> my-private-variable </span><span style="color:#3e999f;">:private </span><span style="color:#f5871f;">12</span><span style="color:#4d4d4c;">)
+(</span><span style="color:#8959a8;">def</span><span style="color:#4d4d4c;"> my-name </span><span style="color:#718c00;">&quot;Stores the name of this language&quot; &quot;Phel&quot;</span><span style="color:#4d4d4c;">)
+(</span><span style="color:#8959a8;">def</span><span style="color:#4d4d4c;"> my-other-name @{</span><span style="color:#3e999f;">:private </span><span style="color:#f5871f;">true </span><span style="color:#3e999f;">:doc </span><span style="color:#718c00;">&quot;This is my doc&quot;</span><span style="color:#4d4d4c;">} </span><span style="color:#718c00;">&quot;My value&quot;</span><span style="color:#4d4d4c;">)
+</span></code></pre><h2 id="local-bindings-let">Local bindings (let)</h2>
+<pre style="background-color:#ffffff;">
+<code><span style="color:#4d4d4c;">(</span><span style="color:#8959a8;">let </span><span style="color:#4d4d4c;">[bindings*] expr*)
+</span></code></pre>
+<p>Creates a new lexical context with variables defined in bindings. Afterwards the list of expressions is evaluated and the value of the last expression is returned. If no expression is given <code>nil</code> is returned.</p>
+<pre style="background-color:#ffffff;">
+<code><span style="color:#4d4d4c;">(</span><span style="color:#8959a8;">let </span><span style="color:#4d4d4c;">[x </span><span style="color:#f5871f;">1
+</span><span style="color:#4d4d4c;">      y </span><span style="color:#f5871f;">2</span><span style="color:#4d4d4c;">]
+  (+ x y)) </span><span style="color:#999999;"># Evaluates to 3
+
+</span><span style="color:#4d4d4c;">(</span><span style="color:#8959a8;">let </span><span style="color:#4d4d4c;">[x </span><span style="color:#f5871f;">1
+</span><span style="color:#4d4d4c;">      y (+ x </span><span style="color:#f5871f;">2</span><span style="color:#4d4d4c;">)]) </span><span style="color:#999999;"># Evaluates to nil
+</span></code></pre>
+<p>All variables defined in <em>bindings</em> are immutable and cannot be changed.</p>
+
+
+
+        <footer>
+    &copy; <time datetime="2020">2020</time> Jens Haase
+    <a href="https:&#x2F;&#x2F;phel-lang.org&#x2F;legal&#x2F;disclosure&#x2F;">Legal Disclosure</a> | <a href="https:&#x2F;&#x2F;phel-lang.org&#x2F;legal&#x2F;data-protection&#x2F;">Data protection</a>
+</footer>
+    </div>
+</div>
+
+</body>
+
+</html>

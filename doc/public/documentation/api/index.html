@@ -1,0 +1,2072 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <title>API | The Phel Language </title>
+
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="The offical website of the Phel language. Phel is a functional programming language that compiles to PHP.">
+
+  <link rel="stylesheet" href="https:&#x2F;&#x2F;phel-lang.org&#x2F;site.css"/>
+  <link rel="alternate icon" type="image/png" href="/favicon-32.png">
+
+  <meta property="og:description" content="The offical website of the Phel language. Phel is a functional programming language that compiles to PHP." />
+  <meta property="og:title" content="The Phel Language" />
+  <meta property="og:type" content="website" />
+  <meta property="og:url" content="https://phel-lang.org/" />
+  <meta property="og:image" content="https://phel-lang.org/favicon-512.png" />
+  <meta property="og:image:width" content="512" />
+  <meta property="og:image:height" content="512" />
+</head>
+
+<body>
+  
+<div class="documentation">
+    <aside class="documentation__sidebar">
+        <div class="logo">
+            <a href="/">
+    <svg class="phel-logo" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200.3 167.7"><path d="M6 66l95 96h36V93l-36-74H42L6 56v106h36l24-35"/><path d="M137 93l58-3-12-58-32-26h-34l-16 13-23 9-12 22 46 52z"/><path d="M195 90l-12 57h-13l-2-56M170 147l-13-11h12"/></svg>
+</a>
+        </div>
+
+        <input type="checkbox" id="menu_checkbox">
+        <label for="menu_checkbox">
+            <svg viewBox="0 0 32 32">
+                <path d="M3,3 29,3 M3,16 29,16 M3,29 29,29"></path>
+            </svg>
+            Menu
+        </label>
+        <nav>
+            <ol>
+                <li class="">
+                    <a href="/">About Phel</a>
+                </li>
+                
+                
+                    <li class="">
+                        <a href="https:&#x2F;&#x2F;phel-lang.org&#x2F;documentation&#x2F;getting-started&#x2F;">Getting started</a>
+                    </li>
+                
+                    <li class="">
+                        <a href="https:&#x2F;&#x2F;phel-lang.org&#x2F;documentation&#x2F;basic-types&#x2F;">Basic Types</a>
+                    </li>
+                
+                    <li class="">
+                        <a href="https:&#x2F;&#x2F;phel-lang.org&#x2F;documentation&#x2F;numbers-and-arithmetic&#x2F;">Numbers and Arithmetic</a>
+                    </li>
+                
+                    <li class="">
+                        <a href="https:&#x2F;&#x2F;phel-lang.org&#x2F;documentation&#x2F;truth-and-boolean-operations&#x2F;">Truth and Boolean operations</a>
+                    </li>
+                
+                    <li class="">
+                        <a href="https:&#x2F;&#x2F;phel-lang.org&#x2F;documentation&#x2F;control-flow&#x2F;">Control flow</a>
+                    </li>
+                
+                    <li class="">
+                        <a href="https:&#x2F;&#x2F;phel-lang.org&#x2F;documentation&#x2F;global-and-local-bindings&#x2F;">Global and local bindings</a>
+                    </li>
+                
+                    <li class="">
+                        <a href="https:&#x2F;&#x2F;phel-lang.org&#x2F;documentation&#x2F;functions-and-recursion&#x2F;">Functions and Recursion</a>
+                    </li>
+                
+                    <li class="">
+                        <a href="https:&#x2F;&#x2F;phel-lang.org&#x2F;documentation&#x2F;tuple&#x2F;">Tuple</a>
+                    </li>
+                
+                    <li class="">
+                        <a href="https:&#x2F;&#x2F;phel-lang.org&#x2F;documentation&#x2F;array-table-and-struct&#x2F;">Array, Table, Struct and Set</a>
+                    </li>
+                
+                    <li class="">
+                        <a href="https:&#x2F;&#x2F;phel-lang.org&#x2F;documentation&#x2F;destructuring&#x2F;">Destructuring</a>
+                    </li>
+                
+                    <li class="">
+                        <a href="https:&#x2F;&#x2F;phel-lang.org&#x2F;documentation&#x2F;macros&#x2F;">Macros</a>
+                    </li>
+                
+                    <li class="">
+                        <a href="https:&#x2F;&#x2F;phel-lang.org&#x2F;documentation&#x2F;namespaces&#x2F;">Namespaces</a>
+                    </li>
+                
+                    <li class="">
+                        <a href="https:&#x2F;&#x2F;phel-lang.org&#x2F;documentation&#x2F;php-interop&#x2F;">PHP Interop</a>
+                    </li>
+                
+                    <li class="">
+                        <a href="https:&#x2F;&#x2F;phel-lang.org&#x2F;documentation&#x2F;http-request-and-response&#x2F;">Request and Response</a>
+                    </li>
+                
+                    <li class="">
+                        <a href="https:&#x2F;&#x2F;phel-lang.org&#x2F;documentation&#x2F;html-rendering&#x2F;">HTML Rendering</a>
+                    </li>
+                
+                    <li class="">
+                        <a href="https:&#x2F;&#x2F;phel-lang.org&#x2F;documentation&#x2F;testing&#x2F;">Testing</a>
+                    </li>
+                
+                    <li class="">
+                        <a href="https:&#x2F;&#x2F;phel-lang.org&#x2F;documentation&#x2F;configuration&#x2F;">Configuration</a>
+                    </li>
+                
+                    <li class="">
+                        <a href="https:&#x2F;&#x2F;phel-lang.org&#x2F;documentation&#x2F;repl&#x2F;">REPL</a>
+                    </li>
+                
+                    <li class="active">
+                        <a href="https:&#x2F;&#x2F;phel-lang.org&#x2F;documentation&#x2F;api&#x2F;">API</a>
+                    </li>
+                
+            </ol>
+
+            <ul>
+                <li><a href="https://github.com/phel-lang/phel-lang">Source on Github</a></li>
+            </ul>
+        </nav>
+    </aside>
+    <div class="documentation__content">
+        
+    <h1>API</h1>
+
+    <ul class="api-index">
+    
+        <li>
+            <a href="https://phel-lang.org/documentation/api/#">%</a>
+        </li>
+    
+        <li>
+            <a href="https://phel-lang.org/documentation/api/#-1">*</a>
+        </li>
+    
+        <li>
+            <a href="https://phel-lang.org/documentation/api/#-2">**</a>
+        </li>
+    
+        <li>
+            <a href="https://phel-lang.org/documentation/api/#ns">*ns*</a>
+        </li>
+    
+        <li>
+            <a href="https://phel-lang.org/documentation/api/#-3">+</a>
+        </li>
+    
+        <li>
+            <a href="https://phel-lang.org/documentation/api/#-4">-</a>
+        </li>
+    
+        <li>
+            <a href="https://phel-lang.org/documentation/api/#-5">-&gt;</a>
+        </li>
+    
+        <li>
+            <a href="https://phel-lang.org/documentation/api/#-6">-&gt;&gt;</a>
+        </li>
+    
+        <li>
+            <a href="https://phel-lang.org/documentation/api/#-7">&#x2F;</a>
+        </li>
+    
+        <li>
+            <a href="https://phel-lang.org/documentation/api/#-8">&lt;</a>
+        </li>
+    
+        <li>
+            <a href="https://phel-lang.org/documentation/api/#-9">&lt;=</a>
+        </li>
+    
+        <li>
+            <a href="https://phel-lang.org/documentation/api/#-10">=</a>
+        </li>
+    
+        <li>
+            <a href="https://phel-lang.org/documentation/api/#-11">&gt;</a>
+        </li>
+    
+        <li>
+            <a href="https://phel-lang.org/documentation/api/#-12">&gt;=</a>
+        </li>
+    
+        <li>
+            <a href="https://phel-lang.org/documentation/api/#nan">NAN</a>
+        </li>
+    
+        <li>
+            <a href="https://phel-lang.org/documentation/api/#all">all?</a>
+        </li>
+    
+        <li>
+            <a href="https://phel-lang.org/documentation/api/#and">and</a>
+        </li>
+    
+        <li>
+            <a href="https://phel-lang.org/documentation/api/#argv">argv</a>
+        </li>
+    
+        <li>
+            <a href="https://phel-lang.org/documentation/api/#array">array</a>
+        </li>
+    
+        <li>
+            <a href="https://phel-lang.org/documentation/api/#array-1">array?</a>
+        </li>
+    
+        <li>
+            <a href="https://phel-lang.org/documentation/api/#as">as-&gt;</a>
+        </li>
+    
+        <li>
+            <a href="https://phel-lang.org/documentation/api/#bit-and">bit-and</a>
+        </li>
+    
+        <li>
+            <a href="https://phel-lang.org/documentation/api/#bit-clear">bit-clear</a>
+        </li>
+    
+        <li>
+            <a href="https://phel-lang.org/documentation/api/#bit-flip">bit-flip</a>
+        </li>
+    
+        <li>
+            <a href="https://phel-lang.org/documentation/api/#bit-not">bit-not</a>
+        </li>
+    
+        <li>
+            <a href="https://phel-lang.org/documentation/api/#bit-or">bit-or</a>
+        </li>
+    
+        <li>
+            <a href="https://phel-lang.org/documentation/api/#bit-set">bit-set</a>
+        </li>
+    
+        <li>
+            <a href="https://phel-lang.org/documentation/api/#bit-shift-left">bit-shift-left</a>
+        </li>
+    
+        <li>
+            <a href="https://phel-lang.org/documentation/api/#bit-shift-right">bit-shift-right</a>
+        </li>
+    
+        <li>
+            <a href="https://phel-lang.org/documentation/api/#bit-test">bit-test</a>
+        </li>
+    
+        <li>
+            <a href="https://phel-lang.org/documentation/api/#bit-xor">bit-xor</a>
+        </li>
+    
+        <li>
+            <a href="https://phel-lang.org/documentation/api/#boolean">boolean?</a>
+        </li>
+    
+        <li>
+            <a href="https://phel-lang.org/documentation/api/#case">case</a>
+        </li>
+    
+        <li>
+            <a href="https://phel-lang.org/documentation/api/#comment">comment</a>
+        </li>
+    
+        <li>
+            <a href="https://phel-lang.org/documentation/api/#comp">comp</a>
+        </li>
+    
+        <li>
+            <a href="https://phel-lang.org/documentation/api/#compare">compare</a>
+        </li>
+    
+        <li>
+            <a href="https://phel-lang.org/documentation/api/#complement">complement</a>
+        </li>
+    
+        <li>
+            <a href="https://phel-lang.org/documentation/api/#concat">concat</a>
+        </li>
+    
+        <li>
+            <a href="https://phel-lang.org/documentation/api/#cond">cond</a>
+        </li>
+    
+        <li>
+            <a href="https://phel-lang.org/documentation/api/#cons">cons</a>
+        </li>
+    
+        <li>
+            <a href="https://phel-lang.org/documentation/api/#count">count</a>
+        </li>
+    
+        <li>
+            <a href="https://phel-lang.org/documentation/api/#dec">dec</a>
+        </li>
+    
+        <li>
+            <a href="https://phel-lang.org/documentation/api/#declare">declare</a>
+        </li>
+    
+        <li>
+            <a href="https://phel-lang.org/documentation/api/#def">def-</a>
+        </li>
+    
+        <li>
+            <a href="https://phel-lang.org/documentation/api/#defmacro">defmacro</a>
+        </li>
+    
+        <li>
+            <a href="https://phel-lang.org/documentation/api/#defmacro-1">defmacro-</a>
+        </li>
+    
+        <li>
+            <a href="https://phel-lang.org/documentation/api/#defn">defn</a>
+        </li>
+    
+        <li>
+            <a href="https://phel-lang.org/documentation/api/#defn-1">defn-</a>
+        </li>
+    
+        <li>
+            <a href="https://phel-lang.org/documentation/api/#defstruct">defstruct</a>
+        </li>
+    
+        <li>
+            <a href="https://phel-lang.org/documentation/api/#difference">difference</a>
+        </li>
+    
+        <li>
+            <a href="https://phel-lang.org/documentation/api/#distinct">distinct</a>
+        </li>
+    
+        <li>
+            <a href="https://phel-lang.org/documentation/api/#dofor">dofor</a>
+        </li>
+    
+        <li>
+            <a href="https://phel-lang.org/documentation/api/#drop">drop</a>
+        </li>
+    
+        <li>
+            <a href="https://phel-lang.org/documentation/api/#drop-while">drop-while</a>
+        </li>
+    
+        <li>
+            <a href="https://phel-lang.org/documentation/api/#empty">empty?</a>
+        </li>
+    
+        <li>
+            <a href="https://phel-lang.org/documentation/api/#even">even?</a>
+        </li>
+    
+        <li>
+            <a href="https://phel-lang.org/documentation/api/#extreme">extreme</a>
+        </li>
+    
+        <li>
+            <a href="https://phel-lang.org/documentation/api/#false">false?</a>
+        </li>
+    
+        <li>
+            <a href="https://phel-lang.org/documentation/api/#ffirst">ffirst</a>
+        </li>
+    
+        <li>
+            <a href="https://phel-lang.org/documentation/api/#filter">filter</a>
+        </li>
+    
+        <li>
+            <a href="https://phel-lang.org/documentation/api/#find">find</a>
+        </li>
+    
+        <li>
+            <a href="https://phel-lang.org/documentation/api/#find-index">find-index</a>
+        </li>
+    
+        <li>
+            <a href="https://phel-lang.org/documentation/api/#first">first</a>
+        </li>
+    
+        <li>
+            <a href="https://phel-lang.org/documentation/api/#flatten">flatten</a>
+        </li>
+    
+        <li>
+            <a href="https://phel-lang.org/documentation/api/#float">float?</a>
+        </li>
+    
+        <li>
+            <a href="https://phel-lang.org/documentation/api/#for">for</a>
+        </li>
+    
+        <li>
+            <a href="https://phel-lang.org/documentation/api/#format">format</a>
+        </li>
+    
+        <li>
+            <a href="https://phel-lang.org/documentation/api/#frequencies">frequencies</a>
+        </li>
+    
+        <li>
+            <a href="https://phel-lang.org/documentation/api/#function">function?</a>
+        </li>
+    
+        <li>
+            <a href="https://phel-lang.org/documentation/api/#gensym">gensym</a>
+        </li>
+    
+        <li>
+            <a href="https://phel-lang.org/documentation/api/#get">get</a>
+        </li>
+    
+        <li>
+            <a href="https://phel-lang.org/documentation/api/#get-in">get-in</a>
+        </li>
+    
+        <li>
+            <a href="https://phel-lang.org/documentation/api/#group-by">group-by</a>
+        </li>
+    
+        <li>
+            <a href="https://phel-lang.org/documentation/api/#http-create-response-from-string">http&#x2F;create-response-from-string</a>
+        </li>
+    
+        <li>
+            <a href="https://phel-lang.org/documentation/api/#http-create-response-from-table">http&#x2F;create-response-from-table</a>
+        </li>
+    
+        <li>
+            <a href="https://phel-lang.org/documentation/api/#http-emit-response">http&#x2F;emit-response</a>
+        </li>
+    
+        <li>
+            <a href="https://phel-lang.org/documentation/api/#http-files-from-globals">http&#x2F;files-from-globals</a>
+        </li>
+    
+        <li>
+            <a href="https://phel-lang.org/documentation/api/#http-headers-from-server">http&#x2F;headers-from-server</a>
+        </li>
+    
+        <li>
+            <a href="https://phel-lang.org/documentation/api/#http-request">http&#x2F;request</a>
+        </li>
+    
+        <li>
+            <a href="https://phel-lang.org/documentation/api/#http-request-from-globals">http&#x2F;request-from-globals</a>
+        </li>
+    
+        <li>
+            <a href="https://phel-lang.org/documentation/api/#http-request-from-globals-args">http&#x2F;request-from-globals-args</a>
+        </li>
+    
+        <li>
+            <a href="https://phel-lang.org/documentation/api/#http-request-1">http&#x2F;request?</a>
+        </li>
+    
+        <li>
+            <a href="https://phel-lang.org/documentation/api/#http-response">http&#x2F;response</a>
+        </li>
+    
+        <li>
+            <a href="https://phel-lang.org/documentation/api/#http-response-1">http&#x2F;response?</a>
+        </li>
+    
+        <li>
+            <a href="https://phel-lang.org/documentation/api/#http-uploaded-file">http&#x2F;uploaded-file</a>
+        </li>
+    
+        <li>
+            <a href="https://phel-lang.org/documentation/api/#http-uploaded-file-1">http&#x2F;uploaded-file?</a>
+        </li>
+    
+        <li>
+            <a href="https://phel-lang.org/documentation/api/#http-uri">http&#x2F;uri</a>
+        </li>
+    
+        <li>
+            <a href="https://phel-lang.org/documentation/api/#http-uri-from-globals">http&#x2F;uri-from-globals</a>
+        </li>
+    
+        <li>
+            <a href="https://phel-lang.org/documentation/api/#http-uri-1">http&#x2F;uri?</a>
+        </li>
+    
+        <li>
+            <a href="https://phel-lang.org/documentation/api/#id">id</a>
+        </li>
+    
+        <li>
+            <a href="https://phel-lang.org/documentation/api/#identity">identity</a>
+        </li>
+    
+        <li>
+            <a href="https://phel-lang.org/documentation/api/#if-not">if-not</a>
+        </li>
+    
+        <li>
+            <a href="https://phel-lang.org/documentation/api/#inc">inc</a>
+        </li>
+    
+        <li>
+            <a href="https://phel-lang.org/documentation/api/#indexed">indexed?</a>
+        </li>
+    
+        <li>
+            <a href="https://phel-lang.org/documentation/api/#int">int?</a>
+        </li>
+    
+        <li>
+            <a href="https://phel-lang.org/documentation/api/#interleave">interleave</a>
+        </li>
+    
+        <li>
+            <a href="https://phel-lang.org/documentation/api/#interpose">interpose</a>
+        </li>
+    
+        <li>
+            <a href="https://phel-lang.org/documentation/api/#intersection">intersection</a>
+        </li>
+    
+        <li>
+            <a href="https://phel-lang.org/documentation/api/#invert">invert</a>
+        </li>
+    
+        <li>
+            <a href="https://phel-lang.org/documentation/api/#juxt">juxt</a>
+        </li>
+    
+        <li>
+            <a href="https://phel-lang.org/documentation/api/#keep">keep</a>
+        </li>
+    
+        <li>
+            <a href="https://phel-lang.org/documentation/api/#keep-indexed">keep-indexed</a>
+        </li>
+    
+        <li>
+            <a href="https://phel-lang.org/documentation/api/#keys">keys</a>
+        </li>
+    
+        <li>
+            <a href="https://phel-lang.org/documentation/api/#keyword">keyword</a>
+        </li>
+    
+        <li>
+            <a href="https://phel-lang.org/documentation/api/#keyword-1">keyword?</a>
+        </li>
+    
+        <li>
+            <a href="https://phel-lang.org/documentation/api/#kvs">kvs</a>
+        </li>
+    
+        <li>
+            <a href="https://phel-lang.org/documentation/api/#load">load</a>
+        </li>
+    
+        <li>
+            <a href="https://phel-lang.org/documentation/api/#map">map</a>
+        </li>
+    
+        <li>
+            <a href="https://phel-lang.org/documentation/api/#map-indexed">map-indexed</a>
+        </li>
+    
+        <li>
+            <a href="https://phel-lang.org/documentation/api/#mapcat">mapcat</a>
+        </li>
+    
+        <li>
+            <a href="https://phel-lang.org/documentation/api/#max">max</a>
+        </li>
+    
+        <li>
+            <a href="https://phel-lang.org/documentation/api/#mean">mean</a>
+        </li>
+    
+        <li>
+            <a href="https://phel-lang.org/documentation/api/#merge">merge</a>
+        </li>
+    
+        <li>
+            <a href="https://phel-lang.org/documentation/api/#merge-into">merge-into</a>
+        </li>
+    
+        <li>
+            <a href="https://phel-lang.org/documentation/api/#min">min</a>
+        </li>
+    
+        <li>
+            <a href="https://phel-lang.org/documentation/api/#nan-1">nan?</a>
+        </li>
+    
+        <li>
+            <a href="https://phel-lang.org/documentation/api/#neg">neg?</a>
+        </li>
+    
+        <li>
+            <a href="https://phel-lang.org/documentation/api/#next">next</a>
+        </li>
+    
+        <li>
+            <a href="https://phel-lang.org/documentation/api/#nfirst">nfirst</a>
+        </li>
+    
+        <li>
+            <a href="https://phel-lang.org/documentation/api/#nil">nil?</a>
+        </li>
+    
+        <li>
+            <a href="https://phel-lang.org/documentation/api/#nnext">nnext</a>
+        </li>
+    
+        <li>
+            <a href="https://phel-lang.org/documentation/api/#not">not</a>
+        </li>
+    
+        <li>
+            <a href="https://phel-lang.org/documentation/api/#not-1">not=</a>
+        </li>
+    
+        <li>
+            <a href="https://phel-lang.org/documentation/api/#number">number?</a>
+        </li>
+    
+        <li>
+            <a href="https://phel-lang.org/documentation/api/#odd">odd?</a>
+        </li>
+    
+        <li>
+            <a href="https://phel-lang.org/documentation/api/#one">one?</a>
+        </li>
+    
+        <li>
+            <a href="https://phel-lang.org/documentation/api/#or">or</a>
+        </li>
+    
+        <li>
+            <a href="https://phel-lang.org/documentation/api/#pairs">pairs</a>
+        </li>
+    
+        <li>
+            <a href="https://phel-lang.org/documentation/api/#partial">partial</a>
+        </li>
+    
+        <li>
+            <a href="https://phel-lang.org/documentation/api/#partition">partition</a>
+        </li>
+    
+        <li>
+            <a href="https://phel-lang.org/documentation/api/#peek">peek</a>
+        </li>
+    
+        <li>
+            <a href="https://phel-lang.org/documentation/api/#php-array-to-table">php-array-to-table</a>
+        </li>
+    
+        <li>
+            <a href="https://phel-lang.org/documentation/api/#php-array">php-array?</a>
+        </li>
+    
+        <li>
+            <a href="https://phel-lang.org/documentation/api/#php-associative-array">php-associative-array</a>
+        </li>
+    
+        <li>
+            <a href="https://phel-lang.org/documentation/api/#php-indexed-array">php-indexed-array</a>
+        </li>
+    
+        <li>
+            <a href="https://phel-lang.org/documentation/api/#php-object">php-object?</a>
+        </li>
+    
+        <li>
+            <a href="https://phel-lang.org/documentation/api/#php-resource">php-resource?</a>
+        </li>
+    
+        <li>
+            <a href="https://phel-lang.org/documentation/api/#pop">pop</a>
+        </li>
+    
+        <li>
+            <a href="https://phel-lang.org/documentation/api/#pos">pos?</a>
+        </li>
+    
+        <li>
+            <a href="https://phel-lang.org/documentation/api/#print">print</a>
+        </li>
+    
+        <li>
+            <a href="https://phel-lang.org/documentation/api/#print-str">print-str</a>
+        </li>
+    
+        <li>
+            <a href="https://phel-lang.org/documentation/api/#printf">printf</a>
+        </li>
+    
+        <li>
+            <a href="https://phel-lang.org/documentation/api/#println">println</a>
+        </li>
+    
+        <li>
+            <a href="https://phel-lang.org/documentation/api/#push">push</a>
+        </li>
+    
+        <li>
+            <a href="https://phel-lang.org/documentation/api/#put">put</a>
+        </li>
+    
+        <li>
+            <a href="https://phel-lang.org/documentation/api/#put-in">put-in</a>
+        </li>
+    
+        <li>
+            <a href="https://phel-lang.org/documentation/api/#rand">rand</a>
+        </li>
+    
+        <li>
+            <a href="https://phel-lang.org/documentation/api/#rand-int">rand-int</a>
+        </li>
+    
+        <li>
+            <a href="https://phel-lang.org/documentation/api/#rand-nth">rand-nth</a>
+        </li>
+    
+        <li>
+            <a href="https://phel-lang.org/documentation/api/#range">range</a>
+        </li>
+    
+        <li>
+            <a href="https://phel-lang.org/documentation/api/#reduce">reduce</a>
+        </li>
+    
+        <li>
+            <a href="https://phel-lang.org/documentation/api/#reduce2">reduce2</a>
+        </li>
+    
+        <li>
+            <a href="https://phel-lang.org/documentation/api/#remove">remove</a>
+        </li>
+    
+        <li>
+            <a href="https://phel-lang.org/documentation/api/#repeat">repeat</a>
+        </li>
+    
+        <li>
+            <a href="https://phel-lang.org/documentation/api/#rest">rest</a>
+        </li>
+    
+        <li>
+            <a href="https://phel-lang.org/documentation/api/#reverse">reverse</a>
+        </li>
+    
+        <li>
+            <a href="https://phel-lang.org/documentation/api/#second">second</a>
+        </li>
+    
+        <li>
+            <a href="https://phel-lang.org/documentation/api/#set">set</a>
+        </li>
+    
+        <li>
+            <a href="https://phel-lang.org/documentation/api/#set-1">set?</a>
+        </li>
+    
+        <li>
+            <a href="https://phel-lang.org/documentation/api/#shuffle">shuffle</a>
+        </li>
+    
+        <li>
+            <a href="https://phel-lang.org/documentation/api/#slice">slice</a>
+        </li>
+    
+        <li>
+            <a href="https://phel-lang.org/documentation/api/#some">some?</a>
+        </li>
+    
+        <li>
+            <a href="https://phel-lang.org/documentation/api/#sort">sort</a>
+        </li>
+    
+        <li>
+            <a href="https://phel-lang.org/documentation/api/#sort-by">sort-by</a>
+        </li>
+    
+        <li>
+            <a href="https://phel-lang.org/documentation/api/#split-at">split-at</a>
+        </li>
+    
+        <li>
+            <a href="https://phel-lang.org/documentation/api/#split-with">split-with</a>
+        </li>
+    
+        <li>
+            <a href="https://phel-lang.org/documentation/api/#str">str</a>
+        </li>
+    
+        <li>
+            <a href="https://phel-lang.org/documentation/api/#str-contains">str-contains?</a>
+        </li>
+    
+        <li>
+            <a href="https://phel-lang.org/documentation/api/#string">string?</a>
+        </li>
+    
+        <li>
+            <a href="https://phel-lang.org/documentation/api/#struct">struct?</a>
+        </li>
+    
+        <li>
+            <a href="https://phel-lang.org/documentation/api/#sum">sum</a>
+        </li>
+    
+        <li>
+            <a href="https://phel-lang.org/documentation/api/#symbol">symbol?</a>
+        </li>
+    
+        <li>
+            <a href="https://phel-lang.org/documentation/api/#symmetric-difference">symmetric-difference</a>
+        </li>
+    
+        <li>
+            <a href="https://phel-lang.org/documentation/api/#table">table</a>
+        </li>
+    
+        <li>
+            <a href="https://phel-lang.org/documentation/api/#table-1">table?</a>
+        </li>
+    
+        <li>
+            <a href="https://phel-lang.org/documentation/api/#take">take</a>
+        </li>
+    
+        <li>
+            <a href="https://phel-lang.org/documentation/api/#take-while">take-while</a>
+        </li>
+    
+        <li>
+            <a href="https://phel-lang.org/documentation/api/#test-deftest">test&#x2F;deftest</a>
+        </li>
+    
+        <li>
+            <a href="https://phel-lang.org/documentation/api/#test-is">test&#x2F;is</a>
+        </li>
+    
+        <li>
+            <a href="https://phel-lang.org/documentation/api/#test-print-summary">test&#x2F;print-summary</a>
+        </li>
+    
+        <li>
+            <a href="https://phel-lang.org/documentation/api/#test-report">test&#x2F;report</a>
+        </li>
+    
+        <li>
+            <a href="https://phel-lang.org/documentation/api/#test-run-tests">test&#x2F;run-tests</a>
+        </li>
+    
+        <li>
+            <a href="https://phel-lang.org/documentation/api/#test-successful">test&#x2F;successful?</a>
+        </li>
+    
+        <li>
+            <a href="https://phel-lang.org/documentation/api/#to-php-array">to-php-array</a>
+        </li>
+    
+        <li>
+            <a href="https://phel-lang.org/documentation/api/#tree-seq">tree-seq</a>
+        </li>
+    
+        <li>
+            <a href="https://phel-lang.org/documentation/api/#true">true?</a>
+        </li>
+    
+        <li>
+            <a href="https://phel-lang.org/documentation/api/#truthy">truthy?</a>
+        </li>
+    
+        <li>
+            <a href="https://phel-lang.org/documentation/api/#tuple">tuple</a>
+        </li>
+    
+        <li>
+            <a href="https://phel-lang.org/documentation/api/#tuple-brackets">tuple-brackets</a>
+        </li>
+    
+        <li>
+            <a href="https://phel-lang.org/documentation/api/#tuple-brackets-1">tuple-brackets?</a>
+        </li>
+    
+        <li>
+            <a href="https://phel-lang.org/documentation/api/#tuple-parens">tuple-parens?</a>
+        </li>
+    
+        <li>
+            <a href="https://phel-lang.org/documentation/api/#tuple-1">tuple?</a>
+        </li>
+    
+        <li>
+            <a href="https://phel-lang.org/documentation/api/#type">type</a>
+        </li>
+    
+        <li>
+            <a href="https://phel-lang.org/documentation/api/#union">union</a>
+        </li>
+    
+        <li>
+            <a href="https://phel-lang.org/documentation/api/#unset">unset</a>
+        </li>
+    
+        <li>
+            <a href="https://phel-lang.org/documentation/api/#update">update</a>
+        </li>
+    
+        <li>
+            <a href="https://phel-lang.org/documentation/api/#update-in">update-in</a>
+        </li>
+    
+        <li>
+            <a href="https://phel-lang.org/documentation/api/#values">values</a>
+        </li>
+    
+        <li>
+            <a href="https://phel-lang.org/documentation/api/#when">when</a>
+        </li>
+    
+        <li>
+            <a href="https://phel-lang.org/documentation/api/#when-not">when-not</a>
+        </li>
+    
+        <li>
+            <a href="https://phel-lang.org/documentation/api/#with-output-buffer">with-output-buffer</a>
+        </li>
+    
+        <li>
+            <a href="https://phel-lang.org/documentation/api/#zero">zero?</a>
+        </li>
+    
+        <li>
+            <a href="https://phel-lang.org/documentation/api/#zipcoll">zipcoll</a>
+        </li>
+    
+    </ul>
+
+    <h2 id=""><code>%</code></h2>
+<pre style="background-color:#ffffff;">
+<code><span style="color:#4d4d4c;">(% dividend divisor)
+</span></code></pre>
+<p>Return the remainder of <code>dividend</code> / <code>divisor</code>.</p>
+<h2 id="-1"><code>*</code></h2>
+<pre style="background-color:#ffffff;">
+<code><span style="color:#4d4d4c;">(* &amp; xs)
+</span></code></pre>
+<p>Returns the product of all elements in <code>xs</code>. All elements in <code>xs</code> must be
+numbers. If <code>xs</code> is empty, return 1.</p>
+<h2 id="-2"><code>**</code></h2>
+<pre style="background-color:#ffffff;">
+<code><span style="color:#4d4d4c;">(** a x)
+</span></code></pre>
+<p>Return <code>a</code> to the power of <code>x</code>.</p>
+<h2 id="ns"><code>*ns*</code></h2>
+<p>Returns the namespace in the current scope.</p>
+<h2 id="-3"><code>+</code></h2>
+<pre style="background-color:#ffffff;">
+<code><span style="color:#4d4d4c;">(+ &amp; xs)
+</span></code></pre>
+<p>Returns the sum of all elements in <code>xs</code>. All elements <code>xs</code> must be numbers.
+If <code>xs</code> is empty, return 0.</p>
+<h2 id="-4"><code>-</code></h2>
+<pre style="background-color:#ffffff;">
+<code><span style="color:#4d4d4c;">(- &amp; xs)
+</span></code></pre>
+<p>Returns the difference of all elements in <code>xs</code>. If <code>xs</code> is empty, return 0. If <code>xs</code>
+has one element, return the negative value of that element.</p>
+<h2 id="-5"><code>-&gt;</code></h2>
+<pre style="background-color:#ffffff;">
+<code><span style="color:#4d4d4c;">(-&gt; x &amp; forms)
+</span></code></pre>
+<p>Threads the expr through the forms. Inserts <code>x</code> as the second item
+in the first from, making a tuple of it if it is not a tuple already.
+If there are more froms, inserts the first form as the second item in
+the second form, etc.</p>
+<h2 id="-6"><code>-&gt;&gt;</code></h2>
+<pre style="background-color:#ffffff;">
+<code><span style="color:#4d4d4c;">(-&gt;&gt; x &amp; forms)
+</span></code></pre>
+<p>Threads the expr through the forms. Inserts <code>x</code> as the
+last item in the first form, making a tuple of it if it is not a
+tuple already. If there are more forms, inserts the first form as the
+last item in second form, etc.</p>
+<h2 id="-7"><code>/</code></h2>
+<pre style="background-color:#ffffff;">
+<code><span style="color:#4d4d4c;">(/ &amp; xs)
+</span></code></pre>
+<p>Returns the nominator divided by all the denominators. If <code>xs</code> is empty,
+returns 1. If <code>xs</code> has one value, returns the reciprocal of x.</p>
+<h2 id="-8"><code>&lt;</code></h2>
+<pre style="background-color:#ffffff;">
+<code><span style="color:#4d4d4c;">(&lt; a &amp; more)
+</span></code></pre>
+<p>Checks if each argument is strictly less than the following argument. Returns a boolean.</p>
+<h2 id="-9"><code>&lt;=</code></h2>
+<pre style="background-color:#ffffff;">
+<code><span style="color:#4d4d4c;">(&lt;= a &amp; more)
+</span></code></pre>
+<p>Checks if each argument is less than or equal to the following argument. Returns a boolean.</p>
+<h2 id="-10"><code>=</code></h2>
+<pre style="background-color:#ffffff;">
+<code><span style="color:#4d4d4c;">(= a &amp; more)
+</span></code></pre>
+<p>Checks if all values are equal. Same as <code>a == b</code> in PHP.</p>
+<h2 id="-11"><code>&gt;</code></h2>
+<pre style="background-color:#ffffff;">
+<code><span style="color:#4d4d4c;">(&gt; a &amp; more)
+</span></code></pre>
+<p>Checks if each argument is strictly greater than the following argument. Returns a boolean.</p>
+<h2 id="-12"><code>&gt;=</code></h2>
+<pre style="background-color:#ffffff;">
+<code><span style="color:#4d4d4c;">(&gt;= a &amp; more)
+</span></code></pre>
+<p>Checks if each argument is greater than or equal to the following argument. Returns a boolean.</p>
+<h2 id="nan"><code>NAN</code></h2>
+<p>Constant for Not a Number (NAN) values.</p>
+<h2 id="all"><code>all?</code></h2>
+<pre style="background-color:#ffffff;">
+<code><span style="color:#4d4d4c;">(all? pred xs)
+</span></code></pre>
+<p>Returns true if <code>(pred x)</code> is logical true for every <code>x</code> in <code>xs</code>, else false.</p>
+<h2 id="and"><code>and</code></h2>
+<pre style="background-color:#ffffff;">
+<code><span style="color:#4d4d4c;">(and &amp; args)
+</span></code></pre>
+<p>Evaluates each expression one at a time, from left to right. If a form
+returns logical false, and returns that value and doesn't evaluate any of the
+other expressions, otherwise it returns the value of the last expression.
+Calling the and function without arguments returns true.</p>
+<h2 id="argv"><code>argv</code></h2>
+<p>Array of arguments passed to script.</p>
+<h2 id="array"><code>array</code></h2>
+<pre style="background-color:#ffffff;">
+<code><span style="color:#4d4d4c;">(array &amp; xs)
+</span></code></pre>
+<p>Creates a new Array. If no argument is provided, an empty Array is created.</p>
+<h2 id="array-1"><code>array?</code></h2>
+<pre style="background-color:#ffffff;">
+<code><span style="color:#4d4d4c;">(array? x)
+</span></code></pre>
+<p>Returns true if <code>x</code> is a array, false otherwise.</p>
+<h2 id="as"><code>as-&gt;</code></h2>
+<pre style="background-color:#ffffff;">
+<code><span style="color:#4d4d4c;">(as-&gt; expr name &amp; forms)
+</span></code></pre>
+<p>Binds <code>name</code> to <code>expr</code>, evaluates the first form in the lexical context
+of that binding, then binds name to that result, repeating for each
+successive form, returning the result of the last form.</p>
+<h2 id="bit-and"><code>bit-and</code></h2>
+<pre style="background-color:#ffffff;">
+<code><span style="color:#4d4d4c;">(bit-and x y &amp; args)
+</span></code></pre>
+<p>Bitwise and</p>
+<h2 id="bit-clear"><code>bit-clear</code></h2>
+<pre style="background-color:#ffffff;">
+<code><span style="color:#4d4d4c;">(bit-clear x n)
+</span></code></pre>
+<p>Clear bit an index <code>n</code></p>
+<h2 id="bit-flip"><code>bit-flip</code></h2>
+<pre style="background-color:#ffffff;">
+<code><span style="color:#4d4d4c;">(bit-flip x n)
+</span></code></pre>
+<p>Flip bit at index <code>n</code></p>
+<h2 id="bit-not"><code>bit-not</code></h2>
+<pre style="background-color:#ffffff;">
+<code><span style="color:#4d4d4c;">(bit-not x)
+</span></code></pre>
+<p>Bitwise complement</p>
+<h2 id="bit-or"><code>bit-or</code></h2>
+<pre style="background-color:#ffffff;">
+<code><span style="color:#4d4d4c;">(bit-or x y &amp; args)
+</span></code></pre>
+<p>Bitwise or</p>
+<h2 id="bit-set"><code>bit-set</code></h2>
+<pre style="background-color:#ffffff;">
+<code><span style="color:#4d4d4c;">(bit-set x n)
+</span></code></pre>
+<p>Set bit an index <code>n</code></p>
+<h2 id="bit-shift-left"><code>bit-shift-left</code></h2>
+<pre style="background-color:#ffffff;">
+<code><span style="color:#4d4d4c;">(bit-shift-left x n)
+</span></code></pre>
+<p>Bitwise shift left</p>
+<h2 id="bit-shift-right"><code>bit-shift-right</code></h2>
+<pre style="background-color:#ffffff;">
+<code><span style="color:#4d4d4c;">(bit-shift-right x n)
+</span></code></pre>
+<p>Bitwise shift right</p>
+<h2 id="bit-test"><code>bit-test</code></h2>
+<pre style="background-color:#ffffff;">
+<code><span style="color:#4d4d4c;">(bit-test x n)
+</span></code></pre>
+<p>Test bit at index <code>n</code></p>
+<h2 id="bit-xor"><code>bit-xor</code></h2>
+<pre style="background-color:#ffffff;">
+<code><span style="color:#4d4d4c;">(bit-xor x y &amp; args)
+</span></code></pre>
+<p>Bitwise xor</p>
+<h2 id="boolean"><code>boolean?</code></h2>
+<pre style="background-color:#ffffff;">
+<code><span style="color:#4d4d4c;">(boolean? x)
+</span></code></pre>
+<p>Returns true if <code>x</code> is a boolean, false otherwise.</p>
+<h2 id="case"><code>case</code></h2>
+<pre style="background-color:#ffffff;">
+<code><span style="color:#4d4d4c;">(</span><span style="color:#8959a8;">case</span><span style="color:#4d4d4c;"> e &amp; pairs)
+</span></code></pre>
+<p>Takes an expression <code>e</code> and a set of test-content/expression pairs. First
+evaluates <code>e</code> and the then finds the first pair where the test-constant matches
+the result of <code>e</code>. The associated expression is then evaluated and returned.
+If no matches can be found a final last expression can be provided that is
+than evaluated and return. Otherwise, nil is returned.</p>
+<h2 id="comment"><code>comment</code></h2>
+<pre style="background-color:#ffffff;">
+<code><span style="color:#4d4d4c;">(comment &amp;)
+</span></code></pre>
+<p>Ignores the body of the comment.</p>
+<h2 id="comp"><code>comp</code></h2>
+<pre style="background-color:#ffffff;">
+<code><span style="color:#4d4d4c;">(comp &amp; fs)
+</span></code></pre>
+<p>Takes a list of functions and returns a function that is the composition
+of those functions.</p>
+<h2 id="compare"><code>compare</code></h2>
+<pre style="background-color:#ffffff;">
+<code><span style="color:#4d4d4c;">(compare x y)
+</span></code></pre>
+<p>An integer less than, equal to, or greater than zero when <code>x</code> is less than,
+equal to, or greater than <code>y</code>, respectively.</p>
+<h2 id="complement"><code>complement</code></h2>
+<pre style="background-color:#ffffff;">
+<code><span style="color:#4d4d4c;">(complement f)
+</span></code></pre>
+<p>Returns a function that takes the same arguments as <code>f</code> and returns the opposite truth value.</p>
+<h2 id="concat"><code>concat</code></h2>
+<pre style="background-color:#ffffff;">
+<code><span style="color:#4d4d4c;">(concat arr &amp; xs)
+</span></code></pre>
+<p>Concatenates multiple sequential data structures.</p>
+<h2 id="cond"><code>cond</code></h2>
+<pre style="background-color:#ffffff;">
+<code><span style="color:#4d4d4c;">(</span><span style="color:#8959a8;">cond</span><span style="color:#4d4d4c;"> &amp; pairs)
+</span></code></pre>
+<p>Takes a set of test/expression pairs. Evaluates each test one at a time.
+If a test returns logically true, the expression is evaluated and return.
+If no test matches a final last expression can be provided that is than
+evaluated and return. Otherwise, nil is returned.</p>
+<h2 id="cons"><code>cons</code></h2>
+<pre style="background-color:#ffffff;">
+<code><span style="color:#4d4d4c;">(cons x xs)
+</span></code></pre>
+<p>Prepends <code>x</code> to the beginning of <code>xs</code>.</p>
+<h2 id="count"><code>count</code></h2>
+<pre style="background-color:#ffffff;">
+<code><span style="color:#4d4d4c;">(count xs)
+</span></code></pre>
+<p>Counts the number of elements in a sequence. Can be used on everything that
+implement the PHP Countable interface.</p>
+<h2 id="dec"><code>dec</code></h2>
+<pre style="background-color:#ffffff;">
+<code><span style="color:#4d4d4c;">(dec x)
+</span></code></pre>
+<p>Decrements <code>x</code> by one.</p>
+<h2 id="declare"><code>declare</code></h2>
+<pre style="background-color:#ffffff;">
+<code><span style="color:#4d4d4c;">(declare name)
+</span></code></pre>
+<p>Declare a global symbol before it is defined.</p>
+<h2 id="def"><code>def-</code></h2>
+<pre style="background-color:#ffffff;">
+<code><span style="color:#4d4d4c;">(</span><span style="color:#8959a8;">def-</span><span style="color:#4d4d4c;"> name value)
+</span></code></pre>
+<p>Define a private value that will not be exported.</p>
+<h2 id="defmacro"><code>defmacro</code></h2>
+<pre style="background-color:#ffffff;">
+<code><span style="color:#4d4d4c;">(</span><span style="color:#8959a8;">defmacro</span><span style="color:#4d4d4c;"> name &amp; fdecl)
+</span></code></pre>
+<p>Define a macro.</p>
+<h2 id="defmacro-1"><code>defmacro-</code></h2>
+<pre style="background-color:#ffffff;">
+<code><span style="color:#4d4d4c;">(</span><span style="color:#8959a8;">defmacro-</span><span style="color:#4d4d4c;"> name &amp; fdecl)
+</span></code></pre>
+<p>Define a private macro that will not be exported.</p>
+<h2 id="defn"><code>defn</code></h2>
+<pre style="background-color:#ffffff;">
+<code><span style="color:#4d4d4c;">(</span><span style="color:#8959a8;">defn</span><span style="color:#4d4d4c;"> name &amp; fdecl)
+</span></code></pre>
+<p>Define a new global function.</p>
+<h2 id="defn-1"><code>defn-</code></h2>
+<pre style="background-color:#ffffff;">
+<code><span style="color:#4d4d4c;">(</span><span style="color:#8959a8;">defn-</span><span style="color:#4d4d4c;"> name &amp; fdecl)
+</span></code></pre>
+<p>Define a private function that will not be exported.</p>
+<h2 id="defstruct"><code>defstruct</code></h2>
+<pre style="background-color:#ffffff;">
+<code><span style="color:#4d4d4c;">(</span><span style="color:#8959a8;">defstruct</span><span style="color:#4d4d4c;"> name keys)
+</span></code></pre>
+<p>Define a new struct.</p>
+<h2 id="difference"><code>difference</code></h2>
+<pre style="background-color:#ffffff;">
+<code><span style="color:#4d4d4c;">(difference set &amp; sets)
+</span></code></pre>
+<p>Difference between multiple sets into a new one.</p>
+<h2 id="distinct"><code>distinct</code></h2>
+<pre style="background-color:#ffffff;">
+<code><span style="color:#4d4d4c;">(distinct xs)
+</span></code></pre>
+<p>Returns an array with duplicated values removed in <code>xs</code>.</p>
+<h2 id="dofor"><code>dofor</code></h2>
+<pre style="background-color:#ffffff;">
+<code><span style="color:#4d4d4c;">(</span><span style="color:#8959a8;">dofor</span><span style="color:#4d4d4c;"> head &amp; body)
+</span></code></pre>
+<p>Repeatedly executes body for side effects with bindings and modifiers as
+provided by for. Returns nil.</p>
+<h2 id="drop"><code>drop</code></h2>
+<pre style="background-color:#ffffff;">
+<code><span style="color:#4d4d4c;">(drop n xs)
+</span></code></pre>
+<p>Drops the first <code>n</code> elements of <code>xs</code>.</p>
+<h2 id="drop-while"><code>drop-while</code></h2>
+<pre style="background-color:#ffffff;">
+<code><span style="color:#4d4d4c;">(drop-while pred xs)
+</span></code></pre>
+<p>Drops all elements at the front <code>xs</code> where <code>(pred x)</code> is true.</p>
+<h2 id="empty"><code>empty?</code></h2>
+<pre style="background-color:#ffffff;">
+<code><span style="color:#4d4d4c;">(empty? x)
+</span></code></pre>
+<p>Returns true if <code>(count x)</code> is zero, false otherwise.</p>
+<h2 id="even"><code>even?</code></h2>
+<pre style="background-color:#ffffff;">
+<code><span style="color:#4d4d4c;">(even? x)
+</span></code></pre>
+<p>Checks if <code>x</code> is even.</p>
+<h2 id="extreme"><code>extreme</code></h2>
+<pre style="background-color:#ffffff;">
+<code><span style="color:#4d4d4c;">(extreme order args)
+</span></code></pre>
+<p>Returns the most extreme value in <code>args</code> based on the binary <code>order</code> function.</p>
+<h2 id="false"><code>false?</code></h2>
+<pre style="background-color:#ffffff;">
+<code><span style="color:#4d4d4c;">(false? x)
+</span></code></pre>
+<p>Checks if <code>x</code> is false. Same as <code>x === false</code> in PHP.</p>
+<h2 id="ffirst"><code>ffirst</code></h2>
+<pre style="background-color:#ffffff;">
+<code><span style="color:#4d4d4c;">(ffirst xs)
+</span></code></pre>
+<p>Same as <code>(first (first xs))</code></p>
+<h2 id="filter"><code>filter</code></h2>
+<pre style="background-color:#ffffff;">
+<code><span style="color:#4d4d4c;">(filter pred xs)
+</span></code></pre>
+<p>Returns all elements of <code>xs</code> wher <code>(pred x)</code> is true.</p>
+<h2 id="find"><code>find</code></h2>
+<pre style="background-color:#ffffff;">
+<code><span style="color:#4d4d4c;">(find pred xs)
+</span></code></pre>
+<p>Returns the first item in <code>xs</code> where <code>(pred item)</code> evaluates to true.</p>
+<h2 id="find-index"><code>find-index</code></h2>
+<pre style="background-color:#ffffff;">
+<code><span style="color:#4d4d4c;">(find-index pred xs)
+</span></code></pre>
+<p>Returns the first item in <code>xs</code> where <code>(pred index item)</code> evaluates to true.</p>
+<h2 id="first"><code>first</code></h2>
+<pre style="background-color:#ffffff;">
+<code><span style="color:#4d4d4c;">(first xs)
+</span></code></pre>
+<p>Returns the first element of an indexed sequence or nil.</p>
+<h2 id="flatten"><code>flatten</code></h2>
+<pre style="background-color:#ffffff;">
+<code><span style="color:#4d4d4c;">(flatten xs)
+</span></code></pre>
+<p>Takes a nested sequential data structure (tree), and returns their contents
+as a single, flat array.</p>
+<h2 id="float"><code>float?</code></h2>
+<pre style="background-color:#ffffff;">
+<code><span style="color:#4d4d4c;">(float? x)
+</span></code></pre>
+<p>Returns true if <code>x</code> is float point number, false otherwise.</p>
+<h2 id="for"><code>for</code></h2>
+<pre style="background-color:#ffffff;">
+<code><span style="color:#4d4d4c;">(</span><span style="color:#8959a8;">for</span><span style="color:#4d4d4c;"> head &amp; body)
+</span></code></pre>
+<p>List comprehension. The head of the loop is a tuple that contains a
+sequence of bindings and modifiers. A binding is a sequence of three
+values <code>binding :verb expr</code>. Where <code>binding</code> is a binding as
+in let and <code>:verb</code> is one of the following keywords:</p>
+<ul>
+<li>:range loop over a range by using the range function.</li>
+<li>:in loops over all values of a collection.</li>
+<li>:keys loops over all keys/indexes of a collection.</li>
+<li>:pairs loops over all key value pairs of a collection.</li>
+</ul>
+<p>After each loop binding additional modifiers can be applied. Modifiers
+have the form <code>:modifier argument</code>. The following modifiers are supported:</p>
+<ul>
+<li>:while breaks the loop if the expression is falsy.</li>
+<li>:let defines additional bindings.</li>
+<li>:when only evaluates the loop body if the condition is true.</li>
+</ul>
+<p>The for loops returns a array with all evaluated elements of the body.</p>
+<h2 id="format"><code>format</code></h2>
+<pre style="background-color:#ffffff;">
+<code><span style="color:#4d4d4c;">(format fmt &amp; xs)
+</span></code></pre>
+<p>Returns a formatted string. See PHP's <a href="https://www.php.net/manual/en/function.sprintf.php">sprintf</a> for more information.</p>
+<h2 id="frequencies"><code>frequencies</code></h2>
+<pre style="background-color:#ffffff;">
+<code><span style="color:#4d4d4c;">(frequencies xs)
+</span></code></pre>
+<p>Returns a table from distinct items in <code>xs</code> to the number of times they appear.</p>
+<h2 id="function"><code>function?</code></h2>
+<pre style="background-color:#ffffff;">
+<code><span style="color:#4d4d4c;">(function? x)
+</span></code></pre>
+<p>Returns true if <code>x</code> is a function, false otherwise.</p>
+<h2 id="gensym"><code>gensym</code></h2>
+<pre style="background-color:#ffffff;">
+<code><span style="color:#4d4d4c;">(gensym )
+</span></code></pre>
+<p>Generates a new unique symbol.</p>
+<h2 id="get"><code>get</code></h2>
+<pre style="background-color:#ffffff;">
+<code><span style="color:#4d4d4c;">(get ds k &amp; [opt])
+</span></code></pre>
+<p>Get the value mapped to <code>key</code> from the datastructure <code>ds</code>.
+Returns <code>opt</code> or nil if the value cannot be found.</p>
+<h2 id="get-in"><code>get-in</code></h2>
+<pre style="background-color:#ffffff;">
+<code><span style="color:#4d4d4c;">(get-in ds ks &amp; [opt])
+</span></code></pre>
+<p>Access a value in a nested data structure. Looks into the data structure via a sequence of keys.</p>
+<h2 id="group-by"><code>group-by</code></h2>
+<pre style="background-color:#ffffff;">
+<code><span style="color:#4d4d4c;">(group-by f xs)
+</span></code></pre>
+<p>Returns a table of the elements of xs keyed by the result of
+f on each element.</p>
+<h2 id="http-create-response-from-string"><code>http/create-response-from-string</code></h2>
+<pre style="background-color:#ffffff;">
+<code><span style="color:#4d4d4c;">(create-response-from-string s)
+</span></code></pre>
+<p>Create a response from a string.</p>
+<h2 id="http-create-response-from-table"><code>http/create-response-from-table</code></h2>
+<pre style="background-color:#ffffff;">
+<code><span style="color:#4d4d4c;">(create-response-from-table @{</span><span style="color:#3e999f;">:status</span><span style="color:#4d4d4c;"> status </span><span style="color:#3e999f;">:headers</span><span style="color:#4d4d4c;"> headers </span><span style="color:#3e999f;">:body</span><span style="color:#4d4d4c;"> body </span><span style="color:#3e999f;">:version</span><span style="color:#4d4d4c;"> version </span><span style="color:#3e999f;">:reason</span><span style="color:#4d4d4c;"> reason})
+</span></code></pre>
+<p>Creates a response struct from a table. The table can have the following keys:</p>
+<ul>
+<li><code>:status</code> The HTTP Status (default 200)</li>
+<li><code>:headers</code> A table of HTTP Headers (default: empty table)</li>
+<li><code>:body</code> The body of the response (default: empty string)</li>
+<li><code>:version</code> The HTTP Version (default: 1.1)</li>
+<li><code>:reason</code> The HTTP status reason. If not provided a common status reason is taken</li>
+</ul>
+<h2 id="http-emit-response"><code>http/emit-response</code></h2>
+<pre style="background-color:#ffffff;">
+<code><span style="color:#4d4d4c;">(emit-response response)
+</span></code></pre>
+<p>Emits the response.</p>
+<h2 id="http-files-from-globals"><code>http/files-from-globals</code></h2>
+<pre style="background-color:#ffffff;">
+<code><span style="color:#4d4d4c;">(files-from-globals &amp; [files])
+</span></code></pre>
+<p>Extracts the files from <code>$_FILES</code> and normalizes them to a table of &quot;uploaded-file&quot;.</p>
+<h2 id="http-headers-from-server"><code>http/headers-from-server</code></h2>
+<pre style="background-color:#ffffff;">
+<code><span style="color:#4d4d4c;">(headers-from-server &amp; [server])
+</span></code></pre>
+<p>Extracts all headers from the <code>$_SERVER</code> variable.</p>
+<h2 id="http-request"><code>http/request</code></h2>
+<pre style="background-color:#ffffff;">
+<code><span style="color:#4d4d4c;">(request method uri headers parsed-body query-params cookie-params server-params uploaded-files version)
+</span></code></pre>
+<p>Creates a new request struct</p>
+<h2 id="http-request-from-globals"><code>http/request-from-globals</code></h2>
+<pre style="background-color:#ffffff;">
+<code><span style="color:#4d4d4c;">(request-from-globals )
+</span></code></pre>
+<p>Extracts a request from <code>$_SERVER</code>, <code>$_GET</code>, <code>$_POST</code>, <code>$_COOKIE</code> and <code>$_FILES</code>.</p>
+<h2 id="http-request-from-globals-args"><code>http/request-from-globals-args</code></h2>
+<pre style="background-color:#ffffff;">
+<code><span style="color:#4d4d4c;">(request-from-globals-args server get-parameter post-parameter cookies files)
+</span></code></pre>
+<p>Extracts a request from args.</p>
+<h2 id="http-request-1"><code>http/request?</code></h2>
+<pre style="background-color:#ffffff;">
+<code><span style="color:#4d4d4c;">(request? x)
+</span></code></pre>
+<p>Checks if <code>x</code> is an instance of the request struct</p>
+<h2 id="http-response"><code>http/response</code></h2>
+<pre style="background-color:#ffffff;">
+<code><span style="color:#4d4d4c;">(response status headers body version reason)
+</span></code></pre>
+<p>Creates a new response struct</p>
+<h2 id="http-response-1"><code>http/response?</code></h2>
+<pre style="background-color:#ffffff;">
+<code><span style="color:#4d4d4c;">(response? x)
+</span></code></pre>
+<p>Checks if <code>x</code> is an instance of the response struct</p>
+<h2 id="http-uploaded-file"><code>http/uploaded-file</code></h2>
+<pre style="background-color:#ffffff;">
+<code><span style="color:#4d4d4c;">(uploaded-file tmp-file size error-status client-filename client-media-type)
+</span></code></pre>
+<p>Creates a new uploaded-file struct</p>
+<h2 id="http-uploaded-file-1"><code>http/uploaded-file?</code></h2>
+<pre style="background-color:#ffffff;">
+<code><span style="color:#4d4d4c;">(uploaded-file? x)
+</span></code></pre>
+<p>Checks if <code>x</code> is an instance of the uploaded-file struct</p>
+<h2 id="http-uri"><code>http/uri</code></h2>
+<pre style="background-color:#ffffff;">
+<code><span style="color:#4d4d4c;">(uri scheme userinfo host port path query fragment)
+</span></code></pre>
+<p>Creates a new uri struct</p>
+<h2 id="http-uri-from-globals"><code>http/uri-from-globals</code></h2>
+<pre style="background-color:#ffffff;">
+<code><span style="color:#4d4d4c;">(uri-from-globals &amp; [server])
+</span></code></pre>
+<p>Extracts the URI from the <code>$_SERVER</code> variable.</p>
+<h2 id="http-uri-1"><code>http/uri?</code></h2>
+<pre style="background-color:#ffffff;">
+<code><span style="color:#4d4d4c;">(uri? x)
+</span></code></pre>
+<p>Checks if <code>x</code> is an instance of the uri struct</p>
+<h2 id="id"><code>id</code></h2>
+<pre style="background-color:#ffffff;">
+<code><span style="color:#4d4d4c;">(id a &amp; more)
+</span></code></pre>
+<p>Checks if all values are identically. Same as <code>a === b</code> in PHP.</p>
+<h2 id="identity"><code>identity</code></h2>
+<pre style="background-color:#ffffff;">
+<code><span style="color:#4d4d4c;">(identity x)
+</span></code></pre>
+<p>Returns its argument</p>
+<h2 id="if-not"><code>if-not</code></h2>
+<pre style="background-color:#ffffff;">
+<code><span style="color:#4d4d4c;">(</span><span style="color:#8959a8;">if-not</span><span style="color:#4d4d4c;"> test then &amp; [else])
+</span></code></pre>
+<p>Shorthand for <code>(if (not condition) else then)</code>.</p>
+<h2 id="inc"><code>inc</code></h2>
+<pre style="background-color:#ffffff;">
+<code><span style="color:#4d4d4c;">(inc x)
+</span></code></pre>
+<p>Increments <code>x</code> by one.</p>
+<h2 id="indexed"><code>indexed?</code></h2>
+<pre style="background-color:#ffffff;">
+<code><span style="color:#4d4d4c;">(indexed? x)
+</span></code></pre>
+<p>Returns true if <code>x</code> is indexed sequence, false otherwise.</p>
+<h2 id="int"><code>int?</code></h2>
+<pre style="background-color:#ffffff;">
+<code><span style="color:#4d4d4c;">(int? x)
+</span></code></pre>
+<p>Returns true if <code>x</code> is an integer number, false otherwise.</p>
+<h2 id="interleave"><code>interleave</code></h2>
+<pre style="background-color:#ffffff;">
+<code><span style="color:#4d4d4c;">(interleave &amp; xs)
+</span></code></pre>
+<p>Returns a array with the first items of each col, than the second items etc.</p>
+<h2 id="interpose"><code>interpose</code></h2>
+<pre style="background-color:#ffffff;">
+<code><span style="color:#4d4d4c;">(interpose sep xs)
+</span></code></pre>
+<p>Returns an array of elements separated by <code>sep</code></p>
+<h2 id="intersection"><code>intersection</code></h2>
+<pre style="background-color:#ffffff;">
+<code><span style="color:#4d4d4c;">(intersection set &amp; sets)
+</span></code></pre>
+<p>Intersect multiple sets into a new one.</p>
+<h2 id="invert"><code>invert</code></h2>
+<pre style="background-color:#ffffff;">
+<code><span style="color:#4d4d4c;">(invert table)
+</span></code></pre>
+<p>Returns a new table where the keys and values are swapped. If table has
+duplicated values, some keys will be ignored.</p>
+<h2 id="juxt"><code>juxt</code></h2>
+<pre style="background-color:#ffffff;">
+<code><span style="color:#4d4d4c;">(juxt &amp; fs)
+</span></code></pre>
+<p>Takes a list of functions and returns a new function that is the juxtaposition of those functions.
+<code>((juxt a b c) x) =&gt; [(a x) (b x) (c x)]</code></p>
+<h2 id="keep"><code>keep</code></h2>
+<pre style="background-color:#ffffff;">
+<code><span style="color:#4d4d4c;">(keep pred xs)
+</span></code></pre>
+<p>Returns a list of non-nil results of <code>(pred x)</code>.</p>
+<h2 id="keep-indexed"><code>keep-indexed</code></h2>
+<pre style="background-color:#ffffff;">
+<code><span style="color:#4d4d4c;">(keep-indexed pred xs)
+</span></code></pre>
+<p>Returns a list of non-nil results of <code>(pred i x)</code>.</p>
+<h2 id="keys"><code>keys</code></h2>
+<pre style="background-color:#ffffff;">
+<code><span style="color:#4d4d4c;">(keys xs)
+</span></code></pre>
+<p>Gets the keys of an associative data structure.</p>
+<h2 id="keyword"><code>keyword</code></h2>
+<pre style="background-color:#ffffff;">
+<code><span style="color:#4d4d4c;">(keyword x)
+</span></code></pre>
+<p>Creates a new Keyword from a given string.</p>
+<h2 id="keyword-1"><code>keyword?</code></h2>
+<pre style="background-color:#ffffff;">
+<code><span style="color:#4d4d4c;">(keyword? x)
+</span></code></pre>
+<p>Returns true if <code>x</code> is a keyword, false otherwise.</p>
+<h2 id="kvs"><code>kvs</code></h2>
+<pre style="background-color:#ffffff;">
+<code><span style="color:#4d4d4c;">(kvs xs)
+</span></code></pre>
+<p>Returns an array of key value pairs like @[k1 v1 k2 v2 k3 v3 ...].</p>
+<h2 id="load"><code>load</code></h2>
+<pre style="background-color:#ffffff;">
+<code><span style="color:#4d4d4c;">(load path)
+</span></code></pre>
+<p>Loads a file into the current namespace. It can be used to split large namespaces into multiple files.</p>
+<h2 id="map"><code>map</code></h2>
+<pre style="background-color:#ffffff;">
+<code><span style="color:#4d4d4c;">(map f &amp; xs)
+</span></code></pre>
+<p>Returns an array consisting of the result of applying <code>f</code> to all of the first items in each <code>xs</code>,
+followed by applying <code>f</code> to all the second items in each <code>xs</code> until anyone of the <code>xs</code> is exhausted.</p>
+<h2 id="map-indexed"><code>map-indexed</code></h2>
+<pre style="background-color:#ffffff;">
+<code><span style="color:#4d4d4c;">(map-indexed f xs)
+</span></code></pre>
+<p>Applies <code>f</code> to each element in <code>xs</code>. <code>f</code> is a two argument function. The first
+argument is index of the element in the sequence and the second element is the
+element itself.</p>
+<h2 id="mapcat"><code>mapcat</code></h2>
+<pre style="background-color:#ffffff;">
+<code><span style="color:#4d4d4c;">(mapcat f &amp; xs)
+</span></code></pre>
+<p>Applies <code>f</code> on all <code>xs</code> and concatenate the result.</p>
+<h2 id="max"><code>max</code></h2>
+<pre style="background-color:#ffffff;">
+<code><span style="color:#4d4d4c;">(max &amp; numbers)
+</span></code></pre>
+<p>Returns the numeric maximum of all numbers.</p>
+<h2 id="mean"><code>mean</code></h2>
+<pre style="background-color:#ffffff;">
+<code><span style="color:#4d4d4c;">(mean xs)
+</span></code></pre>
+<p>Returns the mean of <code>xs</code>.</p>
+<h2 id="merge"><code>merge</code></h2>
+<pre style="background-color:#ffffff;">
+<code><span style="color:#4d4d4c;">(merge &amp; tables)
+</span></code></pre>
+<p>Merges multiple tables into one new table. If a key appears in more than one
+collection, then later values replace any previous ones.</p>
+<h2 id="merge-into"><code>merge-into</code></h2>
+<pre style="background-color:#ffffff;">
+<code><span style="color:#4d4d4c;">(merge-into tab &amp; tables)
+</span></code></pre>
+<p>Merges multiple tables into first table. If a key appears in more than one
+collection, then later values replace any previous ones.</p>
+<h2 id="min"><code>min</code></h2>
+<pre style="background-color:#ffffff;">
+<code><span style="color:#4d4d4c;">(min &amp; numbers)
+</span></code></pre>
+<p>Returns the numeric minimum of all numbers.</p>
+<h2 id="nan-1"><code>nan?</code></h2>
+<pre style="background-color:#ffffff;">
+<code><span style="color:#4d4d4c;">(nan? x)
+</span></code></pre>
+<p>Checks if <code>x</code> is not a number.</p>
+<h2 id="neg"><code>neg?</code></h2>
+<pre style="background-color:#ffffff;">
+<code><span style="color:#4d4d4c;">(neg? x)
+</span></code></pre>
+<p>Checks if <code>x</code> is smaller than zero.</p>
+<h2 id="next"><code>next</code></h2>
+<pre style="background-color:#ffffff;">
+<code><span style="color:#4d4d4c;">(next xs)
+</span></code></pre>
+<p>Returns the sequence of elements after the first element. If there are no
+elements, returns nil.</p>
+<h2 id="nfirst"><code>nfirst</code></h2>
+<pre style="background-color:#ffffff;">
+<code><span style="color:#4d4d4c;">(nfirst xs)
+</span></code></pre>
+<p>Same as <code>(next (first xs))</code>.</p>
+<h2 id="nil"><code>nil?</code></h2>
+<pre style="background-color:#ffffff;">
+<code><span style="color:#4d4d4c;">(nil? x)
+</span></code></pre>
+<p>Returns true if <code>x</code> is nil, false otherwise.</p>
+<h2 id="nnext"><code>nnext</code></h2>
+<pre style="background-color:#ffffff;">
+<code><span style="color:#4d4d4c;">(nnext xs)
+</span></code></pre>
+<p>Same as <code>(next (next xs))</code></p>
+<h2 id="not"><code>not</code></h2>
+<pre style="background-color:#ffffff;">
+<code><span style="color:#4d4d4c;">(not x)
+</span></code></pre>
+<p>The <code>not</code> function returns <code>true</code> if the given value is logical false and
+<code>false</code> otherwise.</p>
+<h2 id="not-1"><code>not=</code></h2>
+<pre style="background-color:#ffffff;">
+<code><span style="color:#4d4d4c;">(not= a &amp; more)
+</span></code></pre>
+<p>Checks if all values are unequal. Same as <code>a != b</code> in PHP.</p>
+<h2 id="number"><code>number?</code></h2>
+<pre style="background-color:#ffffff;">
+<code><span style="color:#4d4d4c;">(number? x)
+</span></code></pre>
+<p>Returns true if <code>x</code> is a number, false otherwise.</p>
+<h2 id="odd"><code>odd?</code></h2>
+<pre style="background-color:#ffffff;">
+<code><span style="color:#4d4d4c;">(odd? x)
+</span></code></pre>
+<p>Checks if <code>x</code> is odd.</p>
+<h2 id="one"><code>one?</code></h2>
+<pre style="background-color:#ffffff;">
+<code><span style="color:#4d4d4c;">(one? x)
+</span></code></pre>
+<p>Checks if <code>x</code> is one.</p>
+<h2 id="or"><code>or</code></h2>
+<pre style="background-color:#ffffff;">
+<code><span style="color:#4d4d4c;">(or &amp; args)
+</span></code></pre>
+<p>Evaluates each expression one at a time, from left to right. If a form
+returns a logical true value, or returns that value and doesn't evaluate any of
+the other expressions, otherwise it returns the value of the last expression.
+Calling or without arguments, returns nil.</p>
+<h2 id="pairs"><code>pairs</code></h2>
+<pre style="background-color:#ffffff;">
+<code><span style="color:#4d4d4c;">(pairs xs)
+</span></code></pre>
+<p>Gets the pairs of an associative data structure.</p>
+<h2 id="partial"><code>partial</code></h2>
+<pre style="background-color:#ffffff;">
+<code><span style="color:#4d4d4c;">(partial f &amp; args)
+</span></code></pre>
+<p>Takes a function <code>f</code> and fewer than normal arguments of <code>f</code> and returns a function
+that a variable number of additional arguments. When call <code>f</code> will be called
+with <code>args</code> and the additional arguments</p>
+<h2 id="partition"><code>partition</code></h2>
+<pre style="background-color:#ffffff;">
+<code><span style="color:#4d4d4c;">(partition n xs)
+</span></code></pre>
+<p>Partition an indexed data structure into tuples of size n. Returns a new array.</p>
+<h2 id="peek"><code>peek</code></h2>
+<pre style="background-color:#ffffff;">
+<code><span style="color:#4d4d4c;">(peek xs)
+</span></code></pre>
+<p>Returns the last element of a sequence.</p>
+<h2 id="php-array-to-table"><code>php-array-to-table</code></h2>
+<pre style="background-color:#ffffff;">
+<code><span style="color:#4d4d4c;">(php-array-to-table arr)
+</span></code></pre>
+<p>Converts a PHP Array to a tables.</p>
+<h2 id="php-array"><code>php-array?</code></h2>
+<pre style="background-color:#ffffff;">
+<code><span style="color:#4d4d4c;">(php-array? x)
+</span></code></pre>
+<p>Returns true if <code>x</code> is a PHP Array, false otherwise.</p>
+<h2 id="php-associative-array"><code>php-associative-array</code></h2>
+<pre style="background-color:#ffffff;">
+<code><span style="color:#4d4d4c;">(php-associative-array &amp; xs)
+</span></code></pre>
+<p>Creates a PHP associative array. An even number of parameters must be provided.</p>
+<h2 id="php-indexed-array"><code>php-indexed-array</code></h2>
+<pre style="background-color:#ffffff;">
+<code><span style="color:#4d4d4c;">(php-indexed-array &amp; xs)
+</span></code></pre>
+<p>Creates an PHP indexed array from the given values.</p>
+<h2 id="php-object"><code>php-object?</code></h2>
+<pre style="background-color:#ffffff;">
+<code><span style="color:#4d4d4c;">(php-object? x)
+</span></code></pre>
+<p>Returns true if <code>x</code> is a PHP object, false otherwise.</p>
+<h2 id="php-resource"><code>php-resource?</code></h2>
+<pre style="background-color:#ffffff;">
+<code><span style="color:#4d4d4c;">(php-resource? x)
+</span></code></pre>
+<p>Returns true if <code>x</code> is a PHP resource, false otherwise.</p>
+<h2 id="pop"><code>pop</code></h2>
+<pre style="background-color:#ffffff;">
+<code><span style="color:#4d4d4c;">(pop xs)
+</span></code></pre>
+<p>Removes the last element of the array <code>xs</code>. If the array is empty
+returns nil.</p>
+<h2 id="pos"><code>pos?</code></h2>
+<pre style="background-color:#ffffff;">
+<code><span style="color:#4d4d4c;">(pos? x)
+</span></code></pre>
+<p>Checks if <code>x</code> is greater than zero.</p>
+<h2 id="print"><code>print</code></h2>
+<pre style="background-color:#ffffff;">
+<code><span style="color:#4d4d4c;">(print &amp; xs)
+</span></code></pre>
+<p>Prints the given values to the default output stream. Returns nil.</p>
+<h2 id="print-str"><code>print-str</code></h2>
+<pre style="background-color:#ffffff;">
+<code><span style="color:#4d4d4c;">(print-str &amp; xs)
+</span></code></pre>
+<p>Same as print. But instead of writing it to a output stream,
+The resulting string is returned.</p>
+<h2 id="printf"><code>printf</code></h2>
+<pre style="background-color:#ffffff;">
+<code><span style="color:#4d4d4c;">(printf fmt &amp; xs)
+</span></code></pre>
+<p>Output a formatted string. See PHP's <a href="https://www.php.net/manual/en/function.printf.php">printf</a> for more information.</p>
+<h2 id="println"><code>println</code></h2>
+<pre style="background-color:#ffffff;">
+<code><span style="color:#4d4d4c;">(println &amp; xs)
+</span></code></pre>
+<p>Same as print followed by a newline.</p>
+<h2 id="push"><code>push</code></h2>
+<pre style="background-color:#ffffff;">
+<code><span style="color:#4d4d4c;">(push xs x)
+</span></code></pre>
+<p>Inserts <code>x</code> at the end of the sequence <code>xs</code>.</p>
+<h2 id="put"><code>put</code></h2>
+<pre style="background-color:#ffffff;">
+<code><span style="color:#4d4d4c;">(put ds key value)
+</span></code></pre>
+<p>Puts <code>value</code> mapped to <code>key</code> on the datastructure <code>ds</code>. Returns <code>ds</code>.</p>
+<h2 id="put-in"><code>put-in</code></h2>
+<pre style="background-color:#ffffff;">
+<code><span style="color:#4d4d4c;">(put-in ds [k &amp; ks] v)
+</span></code></pre>
+<p>Puts a value into a nested data structure.</p>
+<h2 id="rand"><code>rand</code></h2>
+<pre style="background-color:#ffffff;">
+<code><span style="color:#4d4d4c;">(rand )
+</span></code></pre>
+<p>Returns a random number between 0 and 1.</p>
+<h2 id="rand-int"><code>rand-int</code></h2>
+<pre style="background-color:#ffffff;">
+<code><span style="color:#4d4d4c;">(rand-int n)
+</span></code></pre>
+<p>Returns a random number between 0 and <code>n</code>.</p>
+<h2 id="rand-nth"><code>rand-nth</code></h2>
+<pre style="background-color:#ffffff;">
+<code><span style="color:#4d4d4c;">(rand-nth xs)
+</span></code></pre>
+<p>Returns a random item from xs.</p>
+<h2 id="range"><code>range</code></h2>
+<pre style="background-color:#ffffff;">
+<code><span style="color:#4d4d4c;">(range a &amp; rest)
+</span></code></pre>
+<p>Create an array of values [start, end). If the function has one argument the
+the range [0, end) is returned. With two arguments, returns [start, end).
+The third argument is an optional step width (default 1).</p>
+<h2 id="reduce"><code>reduce</code></h2>
+<pre style="background-color:#ffffff;">
+<code><span style="color:#4d4d4c;">(reduce f init xs)
+</span></code></pre>
+<p>Transforms an collection <code>xs</code> with a function <code>f</code> to produce a value by applying <code>f</code> to each element in order.
+<code>f</code> is a function with two arguments. The first argument is the initial value and the second argument is
+the element of <code>xs</code>. <code>f</code> returns a value that will be used as the initial value of the next call to <code>f</code>. The final
+value of <code>f</code> is returned.</p>
+<h2 id="reduce2"><code>reduce2</code></h2>
+<pre style="background-color:#ffffff;">
+<code><span style="color:#4d4d4c;">(reduce2 f [x &amp; xs])
+</span></code></pre>
+<p>The 2-argument version of reduce that does not take a initialization value.
+Instead the first argument of the list is used as initialization value.</p>
+<h2 id="remove"><code>remove</code></h2>
+<pre style="background-color:#ffffff;">
+<code><span style="color:#4d4d4c;">(remove xs offset &amp; [n])
+</span></code></pre>
+<p>Removes up to <code>n</code> element from array <code>xs</code> starting at index <code>offset</code>.</p>
+<h2 id="repeat"><code>repeat</code></h2>
+<pre style="background-color:#ffffff;">
+<code><span style="color:#4d4d4c;">(repeat n x)
+</span></code></pre>
+<p>Returns an array of length n where every element is x.</p>
+<h2 id="rest"><code>rest</code></h2>
+<pre style="background-color:#ffffff;">
+<code><span style="color:#4d4d4c;">(rest xs)
+</span></code></pre>
+<p>Returns the sequence of elements after the first element. If there are no
+elements, returns an empty sequence.</p>
+<h2 id="reverse"><code>reverse</code></h2>
+<pre style="background-color:#ffffff;">
+<code><span style="color:#4d4d4c;">(reverse xs)
+</span></code></pre>
+<p>Reverses the order of the elements in the given sequence.</p>
+<h2 id="second"><code>second</code></h2>
+<pre style="background-color:#ffffff;">
+<code><span style="color:#4d4d4c;">(second xs)
+</span></code></pre>
+<p>Returns the second element of an indexed sequence or nil.</p>
+<h2 id="set"><code>set</code></h2>
+<pre style="background-color:#ffffff;">
+<code><span style="color:#4d4d4c;">(set &amp; xs)
+</span></code></pre>
+<p>Creates a new Set. If no argument is provided, an empty Set is created.</p>
+<h2 id="set-1"><code>set?</code></h2>
+<pre style="background-color:#ffffff;">
+<code><span style="color:#4d4d4c;">(set? x)
+</span></code></pre>
+<p>Returns true if <code>x</code> is a set, false otherwise.</p>
+<h2 id="shuffle"><code>shuffle</code></h2>
+<pre style="background-color:#ffffff;">
+<code><span style="color:#4d4d4c;">(shuffle xs)
+</span></code></pre>
+<p>Returns a random permutation of xs.</p>
+<h2 id="slice"><code>slice</code></h2>
+<pre style="background-color:#ffffff;">
+<code><span style="color:#4d4d4c;">(slice xs &amp; [offset &amp; [length]])
+</span></code></pre>
+<p>Extract a slice of <code>xs</code>.</p>
+<h2 id="some"><code>some?</code></h2>
+<pre style="background-color:#ffffff;">
+<code><span style="color:#4d4d4c;">(some? pred xs)
+</span></code></pre>
+<p>Returns true if <code>(pred x)</code> is logical true for at least one <code>x</code> in <code>xs</code>, else false.</p>
+<h2 id="sort"><code>sort</code></h2>
+<pre style="background-color:#ffffff;">
+<code><span style="color:#4d4d4c;">(sort xs &amp; [comp])
+</span></code></pre>
+<p>Returns a sorted array. If no comparator is supplied compare is used.</p>
+<h2 id="sort-by"><code>sort-by</code></h2>
+<pre style="background-color:#ffffff;">
+<code><span style="color:#4d4d4c;">(sort-by keyfn xs &amp; [comp])
+</span></code></pre>
+<p>Returns a sorted array where the sort order is determined by comparing
+(keyfn item). If no comparator is supplied compare is used.</p>
+<h2 id="split-at"><code>split-at</code></h2>
+<pre style="background-color:#ffffff;">
+<code><span style="color:#4d4d4c;">(split-at n xs)
+</span></code></pre>
+<p>Returns a tuple of [(take n coll) (drop n coll)].</p>
+<h2 id="split-with"><code>split-with</code></h2>
+<pre style="background-color:#ffffff;">
+<code><span style="color:#4d4d4c;">(split-with f xs)
+</span></code></pre>
+<p>Returns a tuple of [(take-while pred coll) (drop-while pred coll)].</p>
+<h2 id="str"><code>str</code></h2>
+<pre style="background-color:#ffffff;">
+<code><span style="color:#4d4d4c;">(str &amp; args)
+</span></code></pre>
+<p>Creates a string by concatenating values together. If no arguments are
+provided an empty string is returned. Nil and false are represented as empty
+string. True is represented as 1. Otherwise it tries to call <code>__toString</code>.
+This is PHP equivalent to <code>$args[0] . $args[1] . $args[2] ...</code></p>
+<h2 id="str-contains"><code>str-contains?</code></h2>
+<pre style="background-color:#ffffff;">
+<code><span style="color:#4d4d4c;">(str-contains? str s)
+</span></code></pre>
+<p>True if str contains s.</p>
+<h2 id="string"><code>string?</code></h2>
+<pre style="background-color:#ffffff;">
+<code><span style="color:#4d4d4c;">(string? x)
+</span></code></pre>
+<p>Returns true if <code>x</code> is a string, false otherwise.</p>
+<h2 id="struct"><code>struct?</code></h2>
+<pre style="background-color:#ffffff;">
+<code><span style="color:#4d4d4c;">(struct? x)
+</span></code></pre>
+<p>Returns true if <code>x</code> is a struct, false otherwise.</p>
+<h2 id="sum"><code>sum</code></h2>
+<pre style="background-color:#ffffff;">
+<code><span style="color:#4d4d4c;">(sum xs)
+</span></code></pre>
+<p>Returns the sum of all elements is <code>xs</code>.</p>
+<h2 id="symbol"><code>symbol?</code></h2>
+<pre style="background-color:#ffffff;">
+<code><span style="color:#4d4d4c;">(symbol? x)
+</span></code></pre>
+<p>Returns true if <code>x</code> is a symbol, false otherwise.</p>
+<h2 id="symmetric-difference"><code>symmetric-difference</code></h2>
+<pre style="background-color:#ffffff;">
+<code><span style="color:#4d4d4c;">(symmetric-difference set &amp; sets)
+</span></code></pre>
+<p>Symmetric difference between multiple sets into a new one.</p>
+<h2 id="table"><code>table</code></h2>
+<pre style="background-color:#ffffff;">
+<code><span style="color:#4d4d4c;">(table &amp; xs)
+</span></code></pre>
+<p>Creates a new Table. If no argument is provided, an empty Table is created.
+The number of parameters must be even.</p>
+<h2 id="table-1"><code>table?</code></h2>
+<pre style="background-color:#ffffff;">
+<code><span style="color:#4d4d4c;">(table? x)
+</span></code></pre>
+<p>Returns true if <code>x</code> is a table, false otherwise.</p>
+<h2 id="take"><code>take</code></h2>
+<pre style="background-color:#ffffff;">
+<code><span style="color:#4d4d4c;">(take n xs)
+</span></code></pre>
+<p>Takes the first <code>n</code> elements of <code>xs</code>.</p>
+<h2 id="take-while"><code>take-while</code></h2>
+<pre style="background-color:#ffffff;">
+<code><span style="color:#4d4d4c;">(take-while pred xs)
+</span></code></pre>
+<p>Takes alle elements at the front of <code>xs</code> where <code>(pred x)</code> is true.</p>
+<h2 id="test-deftest"><code>test/deftest</code></h2>
+<pre style="background-color:#ffffff;">
+<code><span style="color:#4d4d4c;">(deftest name &amp; body)
+</span></code></pre>
+<p>Defines a test function with no arguments</p>
+<h2 id="test-is"><code>test/is</code></h2>
+<pre style="background-color:#ffffff;">
+<code><span style="color:#4d4d4c;">(is form &amp; [message])
+</span></code></pre>
+<p>Generic assertion macro.</p>
+<h2 id="test-print-summary"><code>test/print-summary</code></h2>
+<pre style="background-color:#ffffff;">
+<code><span style="color:#4d4d4c;">(print-summary )
+</span></code></pre>
+<p>Prints the summary of the test suite</p>
+<h2 id="test-report"><code>test/report</code></h2>
+<pre style="background-color:#ffffff;">
+<code><span style="color:#4d4d4c;">(report data)
+</span></code></pre><h2 id="test-run-tests"><code>test/run-tests</code></h2>
+<pre style="background-color:#ffffff;">
+<code><span style="color:#4d4d4c;">(run-tests &amp; namespaces)
+</span></code></pre>
+<p>Runs all test functions in the given namespaces</p>
+<h2 id="test-successful"><code>test/successful?</code></h2>
+<pre style="background-color:#ffffff;">
+<code><span style="color:#4d4d4c;">(successful? )
+</span></code></pre>
+<p>Checks if all tests have passed.</p>
+<h2 id="to-php-array"><code>to-php-array</code></h2>
+<pre style="background-color:#ffffff;">
+<code><span style="color:#4d4d4c;">(to-php-array xs)
+</span></code></pre>
+<p>Create a PHP Array from a sequential data structure.</p>
+<h2 id="tree-seq"><code>tree-seq</code></h2>
+<pre style="background-color:#ffffff;">
+<code><span style="color:#4d4d4c;">(tree-seq branch? children root)
+</span></code></pre>
+<p>Returns an array of the nodes in the tree, via a depth first walk.
+branch? is a function with one argument that returns true if the given node
+has children.
+children must be a function with one argument that returns the children of the node.
+root the root node of the tree.</p>
+<h2 id="true"><code>true?</code></h2>
+<pre style="background-color:#ffffff;">
+<code><span style="color:#4d4d4c;">(true? x)
+</span></code></pre>
+<p>Checks if <code>x</code> is true. Same as <code>x === true</code> in PHP.</p>
+<h2 id="truthy"><code>truthy?</code></h2>
+<pre style="background-color:#ffffff;">
+<code><span style="color:#4d4d4c;">(truthy? x)
+</span></code></pre>
+<p>Checks if <code>x</code> is truthy. Same as <code>x == true</code> in PHP.</p>
+<h2 id="tuple"><code>tuple</code></h2>
+<pre style="background-color:#ffffff;">
+<code><span style="color:#4d4d4c;">(tuple &amp; xs)
+</span></code></pre>
+<p>Creates a new Tuple. If no argument is provided, an empty Tuple is created.</p>
+<h2 id="tuple-brackets"><code>tuple-brackets</code></h2>
+<pre style="background-color:#ffffff;">
+<code><span style="color:#4d4d4c;">(tuple-brackets &amp; xs)
+</span></code></pre>
+<p>Creates a new Bracket-Tuple. If no argument is provided,
+an empty Braket-Tuple is created.</p>
+<h2 id="tuple-brackets-1"><code>tuple-brackets?</code></h2>
+<pre style="background-color:#ffffff;">
+<code><span style="color:#4d4d4c;">(tuple-brackets? x)
+</span></code></pre>
+<p>Returns true if <code>x</code> is a bracket tuple, false otherwise</p>
+<h2 id="tuple-parens"><code>tuple-parens?</code></h2>
+<pre style="background-color:#ffffff;">
+<code><span style="color:#4d4d4c;">(tuple-parens? x)
+</span></code></pre>
+<p>Returns true if <code>x</code> is a parens tuple, false otherwise</p>
+<h2 id="tuple-1"><code>tuple?</code></h2>
+<pre style="background-color:#ffffff;">
+<code><span style="color:#4d4d4c;">(tuple? x)
+</span></code></pre>
+<p>Returns true if <code>x</code> is a tuple, false otherwise.</p>
+<h2 id="type"><code>type</code></h2>
+<pre style="background-color:#ffffff;">
+<code><span style="color:#4d4d4c;">(type x)
+</span></code></pre>
+<p>Returns the type of <code>x</code>. Following types can be returned:</p>
+<ul>
+<li><code>:tuple</code></li>
+<li><code>:set</code></li>
+<li><code>:array</code></li>
+<li><code>:struct</code></li>
+<li><code>:table</code></li>
+<li><code>:keyword</code></li>
+<li><code>:symbol</code></li>
+<li><code>:int</code></li>
+<li><code>:float</code></li>
+<li><code>:string</code></li>
+<li><code>:nil</code></li>
+<li><code>:boolean</code></li>
+<li><code>:function</code></li>
+<li><code>:php/array</code></li>
+<li><code>:php/resource</code></li>
+<li><code>:php/object</code></li>
+<li><code>:unknown</code></li>
+</ul>
+<h2 id="union"><code>union</code></h2>
+<pre style="background-color:#ffffff;">
+<code><span style="color:#4d4d4c;">(union &amp; sets)
+</span></code></pre>
+<p>Union multiple sets into a new one.</p>
+<h2 id="unset"><code>unset</code></h2>
+<pre style="background-color:#ffffff;">
+<code><span style="color:#4d4d4c;">(unset ds key)
+</span></code></pre>
+<p>Returns <code>ds</code> without <code>key</code>.</p>
+<h2 id="update"><code>update</code></h2>
+<pre style="background-color:#ffffff;">
+<code><span style="color:#4d4d4c;">(update ds k f &amp; args)
+</span></code></pre>
+<p>Updates a value in a datastructure by applying <code>f</code> to the current element and replacing it with the result of <code>f</code>.</p>
+<h2 id="update-in"><code>update-in</code></h2>
+<pre style="background-color:#ffffff;">
+<code><span style="color:#4d4d4c;">(update-in ds [k &amp; ks] f &amp; args)
+</span></code></pre>
+<p>Updates a value into a nested data structure.</p>
+<h2 id="values"><code>values</code></h2>
+<pre style="background-color:#ffffff;">
+<code><span style="color:#4d4d4c;">(values xs)
+</span></code></pre>
+<p>Gets the values of an associative data structure.</p>
+<h2 id="when"><code>when</code></h2>
+<pre style="background-color:#ffffff;">
+<code><span style="color:#4d4d4c;">(</span><span style="color:#8959a8;">when</span><span style="color:#4d4d4c;"> test &amp; body)
+</span></code></pre>
+<p>Evaluates <code>test</code> and if that is logical true, evaluates <code>body</code>.</p>
+<h2 id="when-not"><code>when-not</code></h2>
+<pre style="background-color:#ffffff;">
+<code><span style="color:#4d4d4c;">(</span><span style="color:#8959a8;">when-not</span><span style="color:#4d4d4c;"> test &amp; body)
+</span></code></pre>
+<p>Evaluates <code>test</code> and if that is logical false, evaluates <code>body</code>.</p>
+<h2 id="with-output-buffer"><code>with-output-buffer</code></h2>
+<pre style="background-color:#ffffff;">
+<code><span style="color:#4d4d4c;">(with-output-buffer &amp; body)
+</span></code></pre>
+<p>Everything that is printed inside the body will be stored in a buffer.
+The result of the buffer is returned.</p>
+<h2 id="zero"><code>zero?</code></h2>
+<pre style="background-color:#ffffff;">
+<code><span style="color:#4d4d4c;">(zero? x)
+</span></code></pre>
+<p>Checks if <code>x</code> is zero.</p>
+<h2 id="zipcoll"><code>zipcoll</code></h2>
+<pre style="background-color:#ffffff;">
+<code><span style="color:#4d4d4c;">(zipcoll a b)
+</span></code></pre>
+<p>Creates a table from two sequential data structures. Return a new table.</p>
+
+
+
+        <footer>
+    &copy; <time datetime="2020">2020</time> Jens Haase
+    <a href="https:&#x2F;&#x2F;phel-lang.org&#x2F;legal&#x2F;disclosure&#x2F;">Legal Disclosure</a> | <a href="https:&#x2F;&#x2F;phel-lang.org&#x2F;legal&#x2F;data-protection&#x2F;">Data protection</a>
+</footer>
+    </div>
+</div>
+
+</body>
+
+</html>
