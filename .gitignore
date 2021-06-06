@@ -2,7 +2,6 @@
 .phpunit.*
 data
 var
-doc/public
 .phel-repl-history
 .php-cs-fixer.cache
 .idea/

@@ -90,13 +90,3 @@ composer test-all      # csrun, psalm, compiler & core tests after each other
 ### Git Hooks
 
 Enable the git hooks with `./tools/git-hooks/init.sh`
-
-### Build the documentation
-
-The documentation is build with [Zola](https://www.getzola.org/).
-
-```bash
-cd doc
-zola serve # build & serve
-zola build # build & publish
-```
