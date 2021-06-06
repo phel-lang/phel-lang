@@ -7,7 +7,7 @@ namespace Phel\Command\Repl;
 final class InputResult
 {
     private const NO_VALUE = 'no_value';
-    private const LAST_RESULT_PLACEHOLDER = '_';
+    private const LAST_RESULT_PLACEHOLDER = '$_';
 
     /** @var ?mixed */
     private $lastResult;
