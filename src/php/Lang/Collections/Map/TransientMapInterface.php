@@ -16,7 +16,6 @@ use Phel\Lang\ContainsInterface;
  */
 interface TransientMapInterface extends Countable, ArrayAccess, ContainsInterface
 {
-
     /**
      * @param K $key
      * @param V $value
