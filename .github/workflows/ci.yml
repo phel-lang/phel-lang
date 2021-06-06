@@ -26,7 +26,7 @@ jobs:
         run: composer install --no-interaction --no-ansi --no-progress
 
       - name: Run friendsofphp/php-cs-fixer
-        run: ./vendor/bin/php-cs-fixer fix --allow-risky=yes --diff-format=udiff --dry-run --show-progress=dots --using-cache=no --verbose
+        run: ./vendor/bin/php-cs-fixer fix --allow-risky=yes --dry-run --show-progress=dots --using-cache=no --verbose
 
   type-checker:
     name: Type Checker
