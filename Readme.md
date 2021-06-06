@@ -1,6 +1,6 @@
 <p align="center">
   <a href="https://phel-lang.org/" title="Phel Lang Website">
-    <img src="doc/static/logo.svg" width="350" alt="Phel logo"/>
+    <img src="logo_readme.svg" width="350" alt="Phel logo"/>
   </a>
 </p>
 
