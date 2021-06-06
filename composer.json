@@ -24,7 +24,6 @@
         "phpunit/phpunit": "^9.5",
         "vimeo/psalm": "^4.7.0",
         "friendsofphp/php-cs-fixer": "^2.18",
-        "infection/infection": "^0.21",
         "symfony/var-dumper": "^5.2",
         "phpmetrics/phpmetrics": "^2.7",
         "phpbench/phpbench": "^1.0"
@@ -51,7 +50,6 @@
         ],
         "test-compiler": "./vendor/bin/phpunit --testsuite=integration,unit",
         "test-compiler:coverage": "XDEBUG_MODE=coverage ./vendor/bin/phpunit --testsuite=integration,unit --coverage-html=data/coverage-html --coverage-xml=data/coverage-xml --log-junit=data/coverage-xml/junit.xml",
-        "test-infection": "XDEBUG_MODE=coverage ./vendor/bin/infection --threads=4 --only-covered --coverage=data/coverage-xml",
         "test-core": "./phel test",
         "psalm": "./vendor/bin/psalm --no-cache",
         "csfix": "./vendor/bin/php-cs-fixer fix --allow-risky=yes",
