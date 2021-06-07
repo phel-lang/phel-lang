@@ -15,8 +15,27 @@
     (is (= @[1] x) "push on array"))
 
   (let [x (php/array)]
+    (php/apush x 1)
+    (is (= (php/array 1) x) "native push on PHP array"))
+
+  (let [x (php/array)]
+    (is (= (php/array 1) (push x 1)) "push on PHP array"))
+
+  (let [x (php/array)]
     (push x 1)
-    (is (= (php/array 1) x) "push on PHP array")))
+    (is (= (php/array) x) "push on PHP array, keeps initial state because it's immutable"))
+
+  (let [x []]
+    (push x 1)
+    (is (= [] x) "push on existing vector, keeps initial state because it's immutable"))
+
+  (is (= [1] (push [] 1)) "push on vector")
+
+  (let [x (set)]
+    (push x 1)
+    (is (= (set) x) "push on existing set, keeps initial state because it's immutable"))
+
+  (is (= (set 1) (push (set) 1)) "push on set"))
 
 (deftest test-pop
   (let [x @[1 2]

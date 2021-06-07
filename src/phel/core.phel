@@ -722,7 +722,7 @@ Calling the and function without arguments returns true."
 
 (defn push
   "Inserts `x` at the end of the sequence `xs`."
-  [^:reference xs x]
+  [xs x]
   (cond
     (php-array? xs) (do (php/apush xs x) xs)
     (or (vector? xs) (php/instanceof xs TransientVectorInterface)) (php/-> xs (append x))
@@ -791,8 +791,7 @@ arrays. Use (php/aunset ds key)"))
 
     (let [x ds]
       (php/aunset x key)
-      x)
-    ))
+      x)))
 
 # --------
 # For loop

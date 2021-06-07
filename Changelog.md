@@ -5,6 +5,7 @@ All notable changes to this project will be documented in this file.
 ## Unreleased
 
 * Removed `load` function in `phel\core`
+* Pass by value the array (1st argument) to `push` (#306)
 
 ## 0.3.3 (2021-06-04)
 
