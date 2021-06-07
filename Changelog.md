@@ -5,7 +5,8 @@ All notable changes to this project will be documented in this file.
 ## Unreleased
 
 * Removed `load` function in `phel\core`
-* Added `$_` to read the last result from the `REPL`
+* Pass by value the array (1st argument) to `push` (#306)
+* Added `__` to read the last result from the `REPL`
 
 ## 0.3.3 (2021-06-04)
 
