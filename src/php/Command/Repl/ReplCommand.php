@@ -144,7 +144,7 @@ final class ReplCommand extends Command
 
         try {
             $result = $this->compilerFacade->eval($fullInput, $this->lineNumber - count($this->inputBuffer));
-            $this->previousResult = InputResult::fromEval($result);
+            $this->previousResult = InputResult::fromAny($result);
 
             $this->addHistory($fullInput);
             $this->io->writeln($this->printer->print($result));

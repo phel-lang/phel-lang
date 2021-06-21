@@ -7,7 +7,7 @@ namespace Phel\Command\Repl;
 final class InputResult
 {
     private const NO_VALUE = 'no_value';
-    private const LAST_RESULT_PLACEHOLDER = '$_';
+    private const LAST_RESULT_PLACEHOLDER = '__';
 
     /** @var ?mixed */
     private $lastResult;
@@ -15,7 +15,7 @@ final class InputResult
     /**
      * @param ?mixed $result
      */
-    public static function fromEval($result): self
+    public static function fromAny($result): self
     {
         return new self($result);
     }
@@ -43,8 +43,8 @@ final class InputResult
             return $fullInput;
         }
 
-        return str_replace(
-            self::LAST_RESULT_PLACEHOLDER,
+        return preg_replace(
+            '#".*?"(*SKIP)(*FAIL)|\b' . self::LAST_RESULT_PLACEHOLDER . '\b#s',
             $this->formattedLastResult(),
             $fullInput
         );
