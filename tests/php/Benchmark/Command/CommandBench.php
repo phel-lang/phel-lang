@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace PhelTest\Benchmark\Command;
 
 use Phel\Command\CommandFactory;
-use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\StringInput;
 use Symfony\Component\Console\Output\NullOutput;
 
@@ -23,26 +22,23 @@ final class CommandBench
 
     public function bench_run_command(): void
     {
-        $this->runCommand($this->commandFactory->createRunCommand());
+        $this->commandFactory
+            ->createRunCommand()
+            ->run(
+                new StringInput(__DIR__ . '/fixtures/run-command.phel'),
+                new NullOutput()
+            );
     }
 
     public function bench_test_command(): void
     {
-        $this->runCommand($this->commandFactory->createTestCommand());
-    }
-
-    public function bench_format_command(): void
-    {
-        $this->runCommand($this->commandFactory->createFormatCommand());
-    }
-
-    private function runCommand(Command $command): void
-    {
         ob_start();
-        $command->run(
-            new StringInput(__DIR__ . '/src/fixture.phel'),
-            new NullOutput()
-        );
+        $this->commandFactory
+            ->createTestCommand()
+            ->run(
+                new StringInput(__DIR__ . '/fixtures/test-command.phel'),
+                new NullOutput()
+            );
         ob_clean();
     }
 }

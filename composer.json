@@ -67,7 +67,7 @@
             },
             "loader-dev": {
                 "phel\\": "tests/phel/",
-                "phpbench-fixtures\\": "tests/php/Benchmark/Command/src"
+                "tests-phpbench\\": "tests/php/Benchmark/"
             },
             "tests": [
                 "tests/phel/"
