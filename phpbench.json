@@ -5,7 +5,7 @@
     "runner.iterations": 3,
     "runner.revs": 10,
     "runner.time_unit": "time",
-    "runner.assert": "mode(variant.time.avg) as ms <= mode(baseline.time.avg) as ms +/- 10%",
+    "runner.assert": ["mode(variant.time.avg) <= mode(baseline.time.avg) +/- 17%"],
     "report.generators": {
         "all": {
             "generator": "composite",
