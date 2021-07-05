@@ -15,7 +15,7 @@
         "ext-json": "*",
         "php": ">=7.4",
         "phel-lang/phel-composer-plugin": "^0.2",
-        "gacela-project/gacela": "^0.2.0",
+        "gacela-project/gacela": "^0.3.0",
         "symfony/console": "^5.2",
         "phpunit/php-timer": "^5.0"
     },
