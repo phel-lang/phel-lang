@@ -486,6 +486,16 @@ Calling the and function without arguments returns true."
       (recur (first more) (next more))
       false)))
 
+(defn <=>
+  "Alias for the spaceship PHP operator in ascending order. Returns an int."
+  [a b]
+  (php/<=> a b))
+
+(defn >=<
+  "Alias for the spaceship PHP operator in descending order. Returns an int."
+  [a b]
+  (php/<=> b a))
+
 (defn all?
   "Returns true if `(pred x)` is logical true for every `x` in `xs`, else false."
   [pred xs]
