@@ -7,7 +7,7 @@ namespace Phel\Command\Repl;
 final class InputResult
 {
     private const NO_VALUE = 'no_value';
-    private const LAST_RESULT_PLACEHOLDER = '__';
+    private const LAST_RESULT_PLACEHOLDER = '$_';
 
     /** @var ?mixed */
     private $lastResult;
@@ -44,7 +44,7 @@ final class InputResult
         }
 
         return preg_replace(
-            '#".*?"(*SKIP)(*FAIL)|\b' . self::LAST_RESULT_PLACEHOLDER . '\b#s',
+            '/"[^\\"]*(?:\\.|[^\\"]*)*"(*SKIP)(*F)|' . preg_quote(self::LAST_RESULT_PLACEHOLDER, '/') . '/',
             $this->formattedLastResult(),
             $fullInput
         );
