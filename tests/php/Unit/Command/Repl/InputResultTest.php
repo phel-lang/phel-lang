@@ -12,15 +12,15 @@ final class InputResultTest extends TestCase
     public function test_empty(): void
     {
         $result = InputResult::empty();
-        $actual = $result->readBuffer(['__']);
+        $actual = $result->readBuffer(['$_']);
 
-        self::assertSame('__', $actual);
+        self::assertSame('$_', $actual);
     }
 
     public function test_buffer_boolean(): void
     {
         $result = InputResult::fromAny(true);
-        $actual = $result->readBuffer(['__']);
+        $actual = $result->readBuffer(['$_']);
 
         self::assertSame('true', $actual);
     }
@@ -28,7 +28,7 @@ final class InputResultTest extends TestCase
     public function test_buffer_null(): void
     {
         $result = InputResult::fromAny(null);
-        $actual = $result->readBuffer(['__']);
+        $actual = $result->readBuffer(['$_']);
 
         self::assertSame('nil', $actual);
     }
@@ -36,7 +36,7 @@ final class InputResultTest extends TestCase
     public function test_buffer_numerical(): void
     {
         $result = InputResult::fromAny(2.3);
-        $actual = $result->readBuffer(['(+ 1 __)']);
+        $actual = $result->readBuffer(['(+ 1 $_)']);
 
         self::assertSame('(+ 1 2.3)', $actual);
     }
@@ -44,7 +44,7 @@ final class InputResultTest extends TestCase
     public function test_buffer_string(): void
     {
         $result = InputResult::fromAny('hello');
-        $actual = $result->readBuffer(['(concat __ __)']);
+        $actual = $result->readBuffer(['(concat $_ $_)']);
 
         self::assertSame('(concat "hello" "hello")', $actual);
     }
@@ -52,7 +52,7 @@ final class InputResultTest extends TestCase
     public function test_buffer_multiline(): void
     {
         $result = InputResult::fromAny('str');
-        $actual = $result->readBuffer(['(concat', '__', '__)']);
+        $actual = $result->readBuffer(['(concat', '$_', '$_)']);
         $expected = <<<TXT
 (concat
 "str"
@@ -64,7 +64,7 @@ TXT;
     public function test_buffer_with_normal_underscore(): void
     {
         $result = InputResult::fromAny(true);
-        $actual = $result->readBuffer(['(let [a __ _ 20] a)']);
+        $actual = $result->readBuffer(['(let [a $_ _ 20] a)']);
 
         self::assertSame('(let [a true _ 20] a)', $actual);
     }
@@ -72,8 +72,8 @@ TXT;
     public function test_buffer_inside_string(): void
     {
         $result = InputResult::fromAny(1);
-        $actual = $result->readBuffer(['"__" __']);
+        $actual = $result->readBuffer(['"$_" $_']);
 
-        self::assertSame('"__" 1', $actual);
+        self::assertSame('"$_" 1', $actual);
     }
 }
