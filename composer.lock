@@ -4,20 +4,20 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "dc6d5469916dd7fd92a6f7b7401b8860",
+    "content-hash": "6ff8f3144cd62d4815a9abdebf185a80",
     "packages": [
         {
             "name": "gacela-project/gacela",
-            "version": "0.3.0",
+            "version": "0.6.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/gacela-project/gacela.git",
-                "reference": "1707579dc202123e6730485f5320cc980c4499ab"
+                "reference": "889c24d949fd981376f2c2c0e6d70a0c5ebd320d"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/gacela-project/gacela/zipball/1707579dc202123e6730485f5320cc980c4499ab",
-                "reference": "1707579dc202123e6730485f5320cc980c4499ab",
+                "url": "https://api.github.com/repos/gacela-project/gacela/zipball/889c24d949fd981376f2c2c0e6d70a0c5ebd320d",
+                "reference": "889c24d949fd981376f2c2c0e6d70a0c5ebd320d",
                 "shasum": ""
             },
             "require": {
@@ -27,10 +27,14 @@
             },
             "require-dev": {
                 "friendsofphp/php-cs-fixer": "^2.19",
+                "phpbench/phpbench": "^1.0",
                 "phpstan/phpstan": "^0.12.90",
                 "phpunit/phpunit": "^9.5",
                 "symfony/var-dumper": "^5.3",
                 "vimeo/psalm": "^4.6"
+            },
+            "suggest": {
+                "gacela-project/gacela-yaml-config-reader": "Allows to read yml/yaml config files"
             },
             "bin": [
                 "gacela"
@@ -63,9 +67,9 @@
             ],
             "support": {
                 "issues": "https://github.com/gacela-project/gacela/issues",
-                "source": "https://github.com/gacela-project/gacela/tree/0.3.0"
+                "source": "https://github.com/gacela-project/gacela/tree/0.6.0"
             },
-            "time": "2021-07-04T14:06:20+00:00"
+            "time": "2021-07-27T19:34:38+00:00"
         },
         {
             "name": "phel-lang/phel-composer-plugin",
@@ -4978,16 +4982,16 @@
         },
         {
             "name": "vimeo/psalm",
-            "version": "4.9.1",
+            "version": "4.9.2",
             "source": {
                 "type": "git",
                 "url": "https://github.com/vimeo/psalm.git",
-                "reference": "7e137f5b95f7394607f5d0631172ff4c2da46781"
+                "reference": "00c062267d6e3229d91a1939992987e2d46f2393"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/vimeo/psalm/zipball/7e137f5b95f7394607f5d0631172ff4c2da46781",
-                "reference": "7e137f5b95f7394607f5d0631172ff4c2da46781",
+                "url": "https://api.github.com/repos/vimeo/psalm/zipball/00c062267d6e3229d91a1939992987e2d46f2393",
+                "reference": "00c062267d6e3229d91a1939992987e2d46f2393",
                 "shasum": ""
             },
             "require": {
@@ -5077,9 +5081,9 @@
             ],
             "support": {
                 "issues": "https://github.com/vimeo/psalm/issues",
-                "source": "https://github.com/vimeo/psalm/tree/4.9.1"
+                "source": "https://github.com/vimeo/psalm/tree/4.9.2"
             },
-            "time": "2021-07-31T13:19:20+00:00"
+            "time": "2021-08-01T01:15:26+00:00"
         },
         {
             "name": "webmozart/assert",
@@ -5202,5 +5206,5 @@
     "platform-dev": {
         "ext-readline": "*"
     },
-    "plugin-api-version": "2.0.0"
+    "plugin-api-version": "2.1.0"
 }

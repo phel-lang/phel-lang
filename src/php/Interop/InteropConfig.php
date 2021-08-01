@@ -32,6 +32,6 @@ final class InteropConfig extends AbstractPhelConfig
 
     public function getApplicationRootDir(): string
     {
-        return Config::getApplicationRootDir();
+        return Config::getInstance()->getApplicationRootDir();
     }
 }

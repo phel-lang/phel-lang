@@ -31,7 +31,7 @@ abstract class AbstractPhelConfig extends AbstractConfig
 
     private function readComposerJson(): array
     {
-        $composerJsonPath = Config::getApplicationRootDir() . DIRECTORY_SEPARATOR . 'composer.json';
+        $composerJsonPath = Config::getInstance()->getApplicationRootDir() . DIRECTORY_SEPARATOR . 'composer.json';
         if (!file_exists($composerJsonPath)) {
             throw new RuntimeException('composer.json not found?');
         }

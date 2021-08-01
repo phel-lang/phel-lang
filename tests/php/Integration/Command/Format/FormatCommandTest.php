@@ -14,7 +14,7 @@ final class FormatCommandTest extends AbstractCommandTest
 
     public static function setUpBeforeClass(): void
     {
-        Config::setApplicationRootDir(__DIR__);
+        Config::getInstance()->setApplicationRootDir(__DIR__);
     }
 
     public function test_good_format(): void
