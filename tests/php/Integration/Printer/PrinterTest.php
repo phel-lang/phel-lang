@@ -17,7 +17,7 @@ final class PrinterTest extends TestCase
 
     public static function setUpBeforeClass(): void
     {
-        Config::setApplicationRootDir(__DIR__);
+        Config::getInstance()->setApplicationRootDir(__DIR__);
         RuntimeSingleton::reset();
     }
 

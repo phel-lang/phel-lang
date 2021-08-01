@@ -13,7 +13,7 @@ final class ExportCommandTest extends AbstractCommandTest
 {
     public static function setUpBeforeClass(): void
     {
-        Config::setApplicationRootDir(__DIR__);
+        Config::getInstance()->setApplicationRootDir(__DIR__);
     }
 
     public function test_export_command_multiple(): void

@@ -11,6 +11,6 @@ final class RuntimeConfig extends AbstractConfig
 {
     public function getApplicationRootDir(): string
     {
-        return Config::getApplicationRootDir();
+        return Config::getInstance()->getApplicationRootDir();
     }
 }
