@@ -19,8 +19,8 @@ final class ExportCommandTest extends AbstractCommandTest
     public function test_export_command_multiple(): void
     {
         $command = $this
-            ->createCommandFactory()
-            ->createExportCommand()
+            ->createCommandFacade()
+            ->getExportCommand()
             ->addRuntimePath('test-cmd-export-multiple\\', [__DIR__ . '/src/test-cmd-export-multiple/']);
 
         $this->expectOutputRegex('~Exported namespaces:~');

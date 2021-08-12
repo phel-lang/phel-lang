@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace PhelTest\Integration\Command;
 
-use Phel\Command\CommandFactory;
+use Phel\Command\CommandFacade;
 use Phel\Runtime\RuntimeSingleton;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\Console\Output\OutputInterface;
@@ -16,9 +16,9 @@ abstract class AbstractCommandTest extends TestCase
         RuntimeSingleton::reset();
     }
 
-    protected function createCommandFactory(): CommandFactory
+    protected function createCommandFacade(): CommandFacade
     {
-        return new CommandFactory();
+        return new CommandFacade();
     }
 
     protected function stubOutput(): OutputInterface

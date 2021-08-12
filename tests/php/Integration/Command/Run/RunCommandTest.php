@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace PhelTest\Integration\Command\Run;
 
 use Gacela\Framework\Config;
+use Phel\Command\Run\RunCommand;
 use PhelTest\Integration\Command\AbstractCommandTest;
 use Symfony\Component\Console\Input\InputInterface;
 
@@ -19,8 +20,7 @@ final class RunCommandTest extends AbstractCommandTest
     {
         $this->expectOutputRegex('~hello world~');
 
-        $this->createCommandFactory()
-            ->createRunCommand()
+        $this->getRunCommand()
             ->addRuntimePath('test\\', [__DIR__ . '/Fixtures'])
             ->run(
                 $this->stubInput('test\\test-script'),
@@ -32,8 +32,7 @@ final class RunCommandTest extends AbstractCommandTest
     {
         $this->expectOutputRegex('~hello world~');
 
-        $this->createCommandFactory()
-            ->createRunCommand()
+        $this->getRunCommand()
             ->addRuntimePath('test\\', [__DIR__ . '/Fixtures'])
             ->run(
                 $this->stubInput(__DIR__ . '/Fixtures/test-script.phel'),
@@ -46,8 +45,7 @@ final class RunCommandTest extends AbstractCommandTest
         $filename = __DIR__ . '/Fixtures/test-script-not-parsable.phel';
         $this->expectOutputRegex(sprintf('~Cannot parse file: %s~', $filename));
 
-        $this->createCommandFactory()
-            ->createRunCommand()
+        $this->getRunCommand()
             ->run($this->stubInput($filename), $this->stubOutput());
     }
 
@@ -56,8 +54,7 @@ final class RunCommandTest extends AbstractCommandTest
         $filename = __DIR__ . '/Fixtures/this-file-does-not-exist.phel';
         $this->expectOutputRegex(sprintf('~Cannot load namespace: %s~', $filename));
 
-        $this->createCommandFactory()
-            ->createRunCommand()
+        $this->getRunCommand()
             ->run($this->stubInput($filename), $this->stubOutput());
     }
 
@@ -66,9 +63,13 @@ final class RunCommandTest extends AbstractCommandTest
         $filename = __DIR__ . '/Fixtures/test-script-without-ns.phel';
         $this->expectOutputRegex(sprintf('~Cannot extract namespace from file: %s~', $filename));
 
-        $this->createCommandFactory()
-            ->createRunCommand()
+        $this->getRunCommand()
             ->run($this->stubInput($filename), $this->stubOutput());
+    }
+
+    private function getRunCommand(): RunCommand
+    {
+        return $this->createCommandFacade()->getRunCommand();
     }
 
     private function stubInput(string $path): InputInterface
