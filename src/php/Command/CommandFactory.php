@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace Phel\Command;
 
 use Gacela\Framework\AbstractFactory;
+use Phel\Command\Compile\CompileCommand;
+use Phel\Command\Compile\TopologicalSorting;
 use Phel\Command\Export\ExportCommand;
 use Phel\Command\Format\FormatCommand;
 use Phel\Command\Format\PathFilterInterface;
@@ -83,6 +85,16 @@ final class CommandFactory extends AbstractFactory
             $this->createCommandExceptionWriter(),
             $this->getRuntimeFacade(),
             $this->getInteropFacade()
+        );
+    }
+
+    public function createCompileCommand(): CompileCommand
+    {
+        return new CompileCommand(
+            $this->getCompilerFacade(),
+            $this->getNamespaceExtractorFacade(),
+            $this->getRuntimeFacade(),
+            new TopologicalSorting()
         );
     }
 

@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Phel\Command;
 
 use Gacela\Framework\AbstractFacade;
+use Phel\Command\Compile\CompileCommand;
 use Phel\Command\Export\ExportCommand;
 use Phel\Command\Format\FormatCommand;
 use Phel\Command\Repl\ReplCommand;
@@ -39,5 +40,10 @@ final class CommandFacade extends AbstractFacade
     public function getExportCommand(): ExportCommand
     {
         return $this->getFactory()->createExportCommand();
+    }
+
+    public function getCompileCommand(): CompileCommand
+    {
+        return $this->getFactory()->createCompileCommand();
     }
 }

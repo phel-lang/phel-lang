@@ -69,6 +69,14 @@ class Runtime implements RuntimeInterface
         }
     }
 
+    /**
+     * @return array<string, array<int, string>>
+     */
+    public function getPaths(): array
+    {
+        return $this->paths;
+    }
+
     public function exceptionHandler(Throwable $exception): void
     {
         if ($exception instanceof CompilerException) {

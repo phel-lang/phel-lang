@@ -20,6 +20,11 @@ interface RuntimeInterface
     public function addPath(string $namespacePrefix, array $path): void;
 
     /**
+     * @return array<string, array<int, string>>
+     */
+    public function getPaths(): array;
+
+    /**
      * @throws CompilerException
      * @throws CompiledCodeIsMalformedException
      * @throws FileException
