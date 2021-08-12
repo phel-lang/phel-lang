@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace PhelTest\Integration\Command\Format;
 
 use Gacela\Framework\Config;
+use Phel\Command\Format\FormatCommand;
 use PhelTest\Integration\Command\AbstractCommandTest;
 use Symfony\Component\Console\Input\InputInterface;
 
@@ -22,9 +23,7 @@ final class FormatCommandTest extends AbstractCommandTest
         $path = self::FIXTURES_DIR . 'good-format.phel';
         $oldContent = file_get_contents($path);
 
-        $command = $this
-            ->createCommandFactory()
-            ->createFormatCommand();
+        $command = $this->getFormatCommand();
 
         $this->expectOutputRegex('/No files were formatted+/s');
 
@@ -43,9 +42,7 @@ final class FormatCommandTest extends AbstractCommandTest
         $path = self::FIXTURES_DIR . 'bad-format.phel';
         $oldContent = file_get_contents($path);
 
-        $command = $this
-            ->createCommandFactory()
-            ->createFormatCommand();
+        $command = $this->getFormatCommand();
 
         $this->expectOutputString(<<<TXT
 Formatted files:
@@ -60,6 +57,11 @@ TXT);
         } finally {
             file_put_contents($path, $oldContent);
         }
+    }
+
+    private function getFormatCommand(): FormatCommand
+    {
+        return $this->createCommandFacade()->getFormatCommand();
     }
 
     private function stubInput(array $paths): InputInterface

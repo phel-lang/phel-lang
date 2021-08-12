@@ -1,26 +1,26 @@
 #!/usr/bin/env php
 <?php
 
-$slash = DIRECTORY_SEPARATOR;
+declare(strict_types=1);
 
-use Phel\Command\CommandFactory;
+use Phel\Command\CommandFacade;
 use Symfony\Component\Console\Application;
 
-$projectRootDir = getcwd() . $slash;
-$autoloadPath = $projectRootDir . 'vendor' . $slash . 'autoload.php';
+$projectRootDir = getcwd() . DIRECTORY_SEPARATOR;
+$autoloadPath = $projectRootDir . 'vendor' . DIRECTORY_SEPARATOR . 'autoload.php';
 
 if (!file_exists($autoloadPath)) {
-    exit("Cannot load composer's autoload file: " . $autoloadPath);
+    exit("Cannot load composer's autoload file: $autoloadPath\n");
 }
 
 require $autoloadPath;
 
-$commandFactory = new CommandFactory();
+$commandFacade = new CommandFacade();
 
 $application = new Application();
-$application->add($commandFactory->createExportCommand());
-$application->add($commandFactory->createFormatCommand());
-$application->add($commandFactory->createReplCommand());
-$application->add($commandFactory->createRunCommand());
-$application->add($commandFactory->createTestCommand());
+$application->add($commandFacade->getExportCommand());
+$application->add($commandFacade->getFormatCommand());
+$application->add($commandFacade->getReplCommand());
+$application->add($commandFacade->getRunCommand());
+$application->add($commandFacade->getTestCommand());
 $application->run();

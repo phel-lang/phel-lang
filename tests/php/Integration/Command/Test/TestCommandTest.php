@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace PhelTest\Integration\Command\Test;
 
 use Gacela\Framework\Config;
+use Phel\Command\Test\TestCommand;
 use PhelTest\Integration\Command\AbstractCommandTest;
 use Symfony\Component\Console\Input\InputInterface;
 
@@ -19,9 +20,7 @@ final class TestCommandTest extends AbstractCommandTest
     {
         $currentDir = __DIR__ . '/Fixtures/test-cmd-project-success/';
 
-        $command = $this
-            ->createCommandFactory()
-            ->createTestCommand()
+        $command = $this->getTestCommand()
             ->addRuntimePath('test-cmd-project-success\\', [$currentDir]);
 
         $this->expectOutputRegex('/\.\..*/');
@@ -37,9 +36,7 @@ final class TestCommandTest extends AbstractCommandTest
     {
         $currentDir = __DIR__ . '/Fixtures/test-cmd-project-success/';
 
-        $command = $this
-            ->createCommandFactory()
-            ->createTestCommand()
+        $command = $this->getTestCommand()
             ->addRuntimePath('test-cmd-project-success\\', [$currentDir]);
 
         $this->expectOutputRegex('/\..*/');
@@ -58,9 +55,7 @@ final class TestCommandTest extends AbstractCommandTest
     {
         $currentDir = __DIR__ . '/Fixtures/test-cmd-project-failure/';
 
-        $command = $this
-            ->createCommandFactory()
-            ->createTestCommand()
+        $command = $this->getTestCommand()
             ->addRuntimePath('test-cmd-project-failure\\', [$currentDir]);
 
         $this->expectOutputRegex('/E.*/');
@@ -70,6 +65,11 @@ final class TestCommandTest extends AbstractCommandTest
         $this->expectOutputRegex('/.*Total: 1.*/');
 
         $command->run($this->stubInput([]), $this->stubOutput());
+    }
+
+    private function getTestCommand(): TestCommand
+    {
+        return $this->createCommandFacade()->getTestCommand();
     }
 
     private function stubInput(array $paths): InputInterface
