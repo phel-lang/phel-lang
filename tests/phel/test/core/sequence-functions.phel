@@ -162,7 +162,8 @@
 
 (deftest test-sort
   (is (= @[1 2 3] (sort @[3 2 1])) "sort")
-  (is (= @[3 3 2 2 1] (sort @[3 2 1 2 3] <)) "sort descending order")
+  (is (= @[1 2 2 3 3] (sort @[3 2 1 2 3] <=>)) "sort ascending order")
+  (is (= @[3 3 2 2 1] (sort @[3 2 1 2 3] >=<)) "sort descending order")
   (is (= @[1 2 3] (sort-by identity @[3 2 1])) "sort-by identity")
   (is (= @[3 2 1] (sort-by - @[3 2 1])) "sort-by reversed"))
 
