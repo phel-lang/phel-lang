@@ -50,10 +50,13 @@ jobs:
         run: ./vendor/bin/psalm --config=psalm.xml --no-progress --shepherd --show-info=false --stats
 
   tests:
-    name: Tests
-
     runs-on: ubuntu-latest
-
+    strategy:
+      fail-fast: false
+      matrix:
+        operating-system: [ 'ubuntu-latest', 'windows-latest', 'macos-latest' ]
+        php: [ '7.4', '8.0' ]
+    name: Tests on PHP ${{ matrix.php }} - ${{ matrix.operating-system }}
     steps:
       - name: Checkout
         uses: actions/checkout@v2
