@@ -4,34 +4,34 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "6ff8f3144cd62d4815a9abdebf185a80",
+    "content-hash": "647b24118551d6f559f0082c89971278",
     "packages": [
         {
             "name": "gacela-project/gacela",
-            "version": "0.6.0",
+            "version": "0.8.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/gacela-project/gacela.git",
-                "reference": "889c24d949fd981376f2c2c0e6d70a0c5ebd320d"
+                "reference": "114848326b7664aa22cd9d2a4573a36ba3b5afa0"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/gacela-project/gacela/zipball/889c24d949fd981376f2c2c0e6d70a0c5ebd320d",
-                "reference": "889c24d949fd981376f2c2c0e6d70a0c5ebd320d",
+                "url": "https://api.github.com/repos/gacela-project/gacela/zipball/114848326b7664aa22cd9d2a4573a36ba3b5afa0",
+                "reference": "114848326b7664aa22cd9d2a4573a36ba3b5afa0",
                 "shasum": ""
             },
             "require": {
                 "ext-json": "*",
                 "php": ">=7.4",
-                "symfony/console": "^5.2"
+                "symfony/console": "^5.3"
             },
             "require-dev": {
-                "friendsofphp/php-cs-fixer": "^2.19",
-                "phpbench/phpbench": "^1.0",
-                "phpstan/phpstan": "^0.12.90",
+                "friendsofphp/php-cs-fixer": "^3.0",
+                "phpbench/phpbench": "^1.1",
+                "phpstan/phpstan": "^0.12",
                 "phpunit/phpunit": "^9.5",
                 "symfony/var-dumper": "^5.3",
-                "vimeo/psalm": "^4.6"
+                "vimeo/psalm": "^4.9"
             },
             "suggest": {
                 "gacela-project/gacela-yaml-config-reader": "Allows to read yml/yaml config files"
@@ -67,9 +67,9 @@
             ],
             "support": {
                 "issues": "https://github.com/gacela-project/gacela/issues",
-                "source": "https://github.com/gacela-project/gacela/tree/0.6.0"
+                "source": "https://github.com/gacela-project/gacela/tree/0.8.0"
             },
-            "time": "2021-07-27T19:34:38+00:00"
+            "time": "2021-08-16T18:29:55+00:00"
         },
         {
             "name": "phel-lang/phel-composer-plugin",
@@ -5206,5 +5206,5 @@
     "platform-dev": {
         "ext-readline": "*"
     },
-    "plugin-api-version": "2.1.0"
+    "plugin-api-version": "2.0.0"
 }

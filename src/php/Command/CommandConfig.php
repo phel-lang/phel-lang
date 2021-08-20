@@ -10,23 +10,28 @@ use Phel\AbstractPhelConfig;
 final class CommandConfig extends AbstractPhelConfig
 {
     /**
-     * @return string[]
+     * @return list<string>
      */
     public function getTestDirectories(): array
     {
         return array_map(
-            static fn (string $dir): string => Config::getInstance()->getApplicationRootDir() . '/' . $dir,
+            fn (string $dir): string => $this->getApplicationRootDir() . '/' . $dir,
             $this->get('tests', [])
         );
     }
 
     public function getPhelReplHistory(): string
     {
-        return Config::getInstance()->getApplicationRootDir() . '/.phel-repl-history';
+        return $this->getApplicationRootDir() . '/.phel-repl-history';
     }
 
     public function getReplStartupPhel(): string
     {
         return __DIR__ . '/Repl/startup.phel';
+    }
+
+    private function getApplicationRootDir(): string
+    {
+        return Config::getInstance()->getApplicationRootDir();
     }
 }
