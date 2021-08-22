@@ -10,3 +10,4 @@ infection.json
 .vscode
 PhelGenerated/
 .phpbench/
+config/local.php
