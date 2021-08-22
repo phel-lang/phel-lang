@@ -3,6 +3,7 @@
 
 declare(strict_types=1);
 
+use Gacela\Framework\Gacela;
 use Phel\Command\CommandFacade;
 use Symfony\Component\Console\Application;
 
@@ -14,6 +15,8 @@ if (!file_exists($autoloadPath)) {
 }
 
 require $autoloadPath;
+
+Gacela::bootstrap($projectRootDir);
 
 $commandFacade = new CommandFacade();
 
