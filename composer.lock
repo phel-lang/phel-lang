@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "647b24118551d6f559f0082c89971278",
+    "content-hash": "228e9978da04e194169e53d5ac1c773e",
     "packages": [
         {
             "name": "gacela-project/gacela",
@@ -1476,16 +1476,16 @@
         },
         {
             "name": "doctrine/annotations",
-            "version": "1.13.1",
+            "version": "1.13.2",
             "source": {
                 "type": "git",
                 "url": "https://github.com/doctrine/annotations.git",
-                "reference": "e6e7b7d5b45a2f2abc5460cc6396480b2b1d321f"
+                "reference": "5b668aef16090008790395c02c893b1ba13f7e08"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/doctrine/annotations/zipball/e6e7b7d5b45a2f2abc5460cc6396480b2b1d321f",
-                "reference": "e6e7b7d5b45a2f2abc5460cc6396480b2b1d321f",
+                "url": "https://api.github.com/repos/doctrine/annotations/zipball/5b668aef16090008790395c02c893b1ba13f7e08",
+                "reference": "5b668aef16090008790395c02c893b1ba13f7e08",
                 "shasum": ""
             },
             "require": {
@@ -1542,9 +1542,9 @@
             ],
             "support": {
                 "issues": "https://github.com/doctrine/annotations/issues",
-                "source": "https://github.com/doctrine/annotations/tree/1.13.1"
+                "source": "https://github.com/doctrine/annotations/tree/1.13.2"
             },
-            "time": "2021-05-16T18:07:53+00:00"
+            "time": "2021-08-05T19:00:23+00:00"
         },
         {
             "name": "doctrine/instantiator",
@@ -1798,16 +1798,16 @@
         },
         {
             "name": "friendsofphp/php-cs-fixer",
-            "version": "v3.0.0",
+            "version": "v3.0.2",
             "source": {
                 "type": "git",
                 "url": "https://github.com/FriendsOfPHP/PHP-CS-Fixer.git",
-                "reference": "c15377bdfa8d1ecf186f1deadec39c89984e1167"
+                "reference": "990b979379502feb7f393d6c9aa36cc9b9765f24"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/FriendsOfPHP/PHP-CS-Fixer/zipball/c15377bdfa8d1ecf186f1deadec39c89984e1167",
-                "reference": "c15377bdfa8d1ecf186f1deadec39c89984e1167",
+                "url": "https://api.github.com/repos/FriendsOfPHP/PHP-CS-Fixer/zipball/990b979379502feb7f393d6c9aa36cc9b9765f24",
+                "reference": "990b979379502feb7f393d6c9aa36cc9b9765f24",
                 "shasum": ""
             },
             "require": {
@@ -1874,7 +1874,7 @@
             "description": "A tool to automatically fix PHP code style",
             "support": {
                 "issues": "https://github.com/FriendsOfPHP/PHP-CS-Fixer/issues",
-                "source": "https://github.com/FriendsOfPHP/PHP-CS-Fixer/tree/v3.0.0"
+                "source": "https://github.com/FriendsOfPHP/PHP-CS-Fixer/tree/v3.0.2"
             },
             "funding": [
                 {
@@ -1882,7 +1882,7 @@
                     "type": "github"
                 }
             ],
-            "time": "2021-05-03T21:51:58+00:00"
+            "time": "2021-08-04T19:28:19+00:00"
         },
         {
             "name": "myclabs/deep-copy",
@@ -2369,16 +2369,16 @@
         },
         {
             "name": "phpbench/phpbench",
-            "version": "1.0.4",
+            "version": "1.1.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/phpbench/phpbench.git",
-                "reference": "52cb206677ef235d4f26317a25db8791a64cda12"
+                "reference": "e1ba6761baf776515b0e2aec8cfa2ba921926735"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/phpbench/phpbench/zipball/52cb206677ef235d4f26317a25db8791a64cda12",
-                "reference": "52cb206677ef235d4f26317a25db8791a64cda12",
+                "url": "https://api.github.com/repos/phpbench/phpbench/zipball/e1ba6761baf776515b0e2aec8cfa2ba921926735",
+                "reference": "e1ba6761baf776515b0e2aec8cfa2ba921926735",
                 "shasum": ""
             },
             "require": {
@@ -2403,7 +2403,7 @@
             },
             "require-dev": {
                 "dantleech/invoke": "^2.0",
-                "friendsofphp/php-cs-fixer": "^2.13.1",
+                "friendsofphp/php-cs-fixer": "^3.0",
                 "jangregor/phpstan-prophecy": "^0.8.1",
                 "phpspec/prophecy": "^1.12",
                 "phpstan/phpstan": "^0.12.7",
@@ -2420,10 +2420,13 @@
             "type": "library",
             "extra": {
                 "branch-alias": {
-                    "dev-master": "1.0-dev"
+                    "dev-master": "1.1-dev"
                 }
             },
             "autoload": {
+                "files": [
+                    "lib/Report/Func/functions.php"
+                ],
                 "psr-4": {
                     "PhpBench\\": "lib/",
                     "PhpBench\\Extensions\\XDebug\\": "extensions/xdebug/lib/",
@@ -2443,7 +2446,7 @@
             "description": "PHP Benchmarking Framework",
             "support": {
                 "issues": "https://github.com/phpbench/phpbench/issues",
-                "source": "https://github.com/phpbench/phpbench/tree/1.0.4"
+                "source": "https://github.com/phpbench/phpbench/tree/1.1.0"
             },
             "funding": [
                 {
@@ -2451,7 +2454,7 @@
                     "type": "github"
                 }
             ],
-            "time": "2021-07-18T14:07:54+00:00"
+            "time": "2021-08-15T10:55:27+00:00"
         },
         {
             "name": "phpdocumentor/reflection-common",
@@ -4109,7 +4112,6 @@
                     "type": "github"
                 }
             ],
-            "abandoned": true,
             "time": "2020-09-28T06:45:17+00:00"
         },
         {
@@ -4982,16 +4984,16 @@
         },
         {
             "name": "vimeo/psalm",
-            "version": "4.9.2",
+            "version": "4.9.3",
             "source": {
                 "type": "git",
                 "url": "https://github.com/vimeo/psalm.git",
-                "reference": "00c062267d6e3229d91a1939992987e2d46f2393"
+                "reference": "4c262932602b9bbab5020863d1eb22d49de0dbf4"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/vimeo/psalm/zipball/00c062267d6e3229d91a1939992987e2d46f2393",
-                "reference": "00c062267d6e3229d91a1939992987e2d46f2393",
+                "url": "https://api.github.com/repos/vimeo/psalm/zipball/4c262932602b9bbab5020863d1eb22d49de0dbf4",
+                "reference": "4c262932602b9bbab5020863d1eb22d49de0dbf4",
                 "shasum": ""
             },
             "require": {
@@ -5033,7 +5035,6 @@
                 "slevomat/coding-standard": "^7.0",
                 "squizlabs/php_codesniffer": "^3.5",
                 "symfony/process": "^4.3 || ^5.0",
-                "weirdan/phpunit-appveyor-reporter": "^1.0.0",
                 "weirdan/prophecy-shim": "^1.0 || ^2.0"
             },
             "suggest": {
@@ -5081,9 +5082,9 @@
             ],
             "support": {
                 "issues": "https://github.com/vimeo/psalm/issues",
-                "source": "https://github.com/vimeo/psalm/tree/4.9.2"
+                "source": "https://github.com/vimeo/psalm/tree/4.9.3"
             },
-            "time": "2021-08-01T01:15:26+00:00"
+            "time": "2021-08-14T16:19:38+00:00"
         },
         {
             "name": "webmozart/assert",
@@ -5206,5 +5207,8 @@
     "platform-dev": {
         "ext-readline": "*"
     },
-    "plugin-api-version": "2.0.0"
+    "platform-overrides": {
+        "php": "7.4"
+    },
+    "plugin-api-version": "2.1.0"
 }
