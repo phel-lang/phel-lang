@@ -45,6 +45,11 @@ final class RunCommand extends Command
                 'path',
                 InputArgument::REQUIRED,
                 'The file path that you want to run.'
+            )->addArgument(
+                'argv',
+                InputArgument::IS_ARRAY | InputArgument::OPTIONAL,
+                'Optional arguments',
+                []
             )->addOption(
                 'with-time',
                 't',
