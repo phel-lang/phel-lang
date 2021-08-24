@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace PhelTest\Integration\Command\Run;
 
-use Gacela\Framework\Config;
+use Gacela\Framework\Gacela;
 use Phel\Command\Run\RunCommand;
 use PhelTest\Integration\Command\AbstractCommandTest;
 use Symfony\Component\Console\Input\InputInterface;
@@ -13,7 +13,7 @@ final class RunCommandTest extends AbstractCommandTest
 {
     public static function setUpBeforeClass(): void
     {
-        Config::getInstance()->setApplicationRootDir(__DIR__);
+        Gacela::bootstrap(__DIR__);
     }
 
     public function test_run_by_namespace(): void

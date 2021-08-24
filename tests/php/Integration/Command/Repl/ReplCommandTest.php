@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace PhelTest\Integration\Command\Repl;
 
+use Gacela\Framework\Gacela;
 use Generator;
 use Phel\Command\Repl\ColorStyle;
 use Phel\Command\Repl\ReplCommand;
@@ -28,6 +29,7 @@ final class ReplCommandTest extends AbstractCommandTest
 {
     public function setUp(): void
     {
+        Gacela::bootstrap(__DIR__);
         RuntimeSingleton::initializeNew(new GlobalEnvironment());
     }
 

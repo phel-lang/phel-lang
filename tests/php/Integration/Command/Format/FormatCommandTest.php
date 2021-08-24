@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace PhelTest\Integration\Command\Format;
 
-use Gacela\Framework\Config;
+use Gacela\Framework\Gacela;
 use Phel\Command\Format\FormatCommand;
 use PhelTest\Integration\Command\AbstractCommandTest;
 use Symfony\Component\Console\Input\InputInterface;
@@ -15,7 +15,7 @@ final class FormatCommandTest extends AbstractCommandTest
 
     public static function setUpBeforeClass(): void
     {
-        Config::getInstance()->setApplicationRootDir(__DIR__);
+        Gacela::bootstrap(__DIR__);
     }
 
     public function test_good_format(): void
