@@ -2,12 +2,12 @@
 
 declare(strict_types=1);
 
-use Phel\Interop\InteropConfig;
-
 return [
-    InteropConfig::EXPORT_DIRECTORIES => [
-        'src',
+    'export' => [
+        'directories' => [
+            'src',
+        ],
+        'target-directory' => './tests/php/Integration/Command/Export/PhelGenerated',
+        'namespace-prefix' => 'PhelGenerated',
     ],
-    InteropConfig::EXPORT_NAMESPACE_PREFIX => 'PhelGenerated',
-    InteropConfig::EXPORT_TARGET_DIRECTORY => './tests/php/Integration/Command/Export/PhelGenerated',
 ];

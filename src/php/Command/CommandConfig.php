@@ -4,13 +4,11 @@ declare(strict_types=1);
 
 namespace Phel\Command;
 
-use Gacela\Framework\AbstractConfig;
 use Gacela\Framework\Config;
+use Phel\AbstractPhelConfig;
 
-final class CommandConfig extends AbstractConfig
+final class CommandConfig extends AbstractPhelConfig
 {
-    public const TEST_DIRECTORIES = 'CommandConfig::TEST';
-
     /**
      * @return list<string>
      */
@@ -18,7 +16,7 @@ final class CommandConfig extends AbstractConfig
     {
         return array_map(
             fn (string $dir): string => $this->getApplicationRootDir() . '/' . $dir,
-            $this->get(self::TEST_DIRECTORIES, [])
+            $this->get('tests', [])
         );
     }
 
