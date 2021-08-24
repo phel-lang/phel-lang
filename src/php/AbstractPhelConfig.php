@@ -16,11 +16,26 @@ abstract class AbstractPhelConfig extends AbstractConfig
     private array $composerJson = [];
 
     /**
-     * @override to load the config from the composer.json
+     * @override to load the config from the composer.json as fallback
      *
      * @param null|mixed $default
      */
     protected function get(string $key, $default = null)
+    {
+        $gacelaConfigValue = parent::get($key, '');
+        if ($gacelaConfigValue) {
+            return $gacelaConfigValue;
+        }
+
+        return $this->readFromComposerJson($key, $default);
+    }
+
+    /**
+     * @param null|mixed $default
+     *
+     * @return mixed
+     */
+    private function readFromComposerJson(string $key, $default)
     {
         if (empty($this->composerJson)) {
             $this->composerJson = $this->readComposerJson();
