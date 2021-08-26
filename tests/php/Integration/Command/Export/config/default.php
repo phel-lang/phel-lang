@@ -2,12 +2,10 @@
 
 declare(strict_types=1);
 
-return [
-    'export' => [
-        'directories' => [
-            'src',
-        ],
-        'target-directory' => './tests/php/Integration/Command/Export/PhelGenerated',
-        'namespace-prefix' => 'PhelGenerated',
-    ],
-];
+use Phel\ProjectConfiguration;
+
+return (new ProjectConfiguration())
+    ->setExportDirectories('src')
+    ->setExportNamespacePrefix('PhelGenerated')
+    ->setExportTargetDirectory('./tests/php/Integration/Command/Export/PhelGenerated')
+    ->toArray();

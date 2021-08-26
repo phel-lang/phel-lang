@@ -2,8 +2,8 @@
 
 declare(strict_types=1);
 
-return [
-    'tests' => [
-        'Fixtures',
-    ],
-];
+use Phel\ProjectConfiguration;
+
+return (new ProjectConfiguration())
+    ->setTestsDirectories('Fixtures')
+    ->toArray();
