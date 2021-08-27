@@ -4,7 +4,9 @@ declare(strict_types=1);
 
 namespace Phel;
 
-final class ProjectConfiguration
+use JsonSerializable;
+
+final class ProjectConfiguration implements JsonSerializable
 {
     private array $testsDirectories = [];
     private array $exportDirectories = [];
@@ -53,7 +55,7 @@ final class ProjectConfiguration
         return $this;
     }
 
-    public function toArray(): array
+    public function jsonSerialize(): array
     {
         return [
             'tests' => $this->testsDirectories,

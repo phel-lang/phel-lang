@@ -4,20 +4,20 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "228e9978da04e194169e53d5ac1c773e",
+    "content-hash": "4eff3642b17d521111c61d2deb543ec4",
     "packages": [
         {
             "name": "gacela-project/gacela",
-            "version": "0.8.0",
+            "version": "0.9.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/gacela-project/gacela.git",
-                "reference": "114848326b7664aa22cd9d2a4573a36ba3b5afa0"
+                "reference": "0ce8751f096f1bf245727ad117ad062b09bba61e"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/gacela-project/gacela/zipball/114848326b7664aa22cd9d2a4573a36ba3b5afa0",
-                "reference": "114848326b7664aa22cd9d2a4573a36ba3b5afa0",
+                "url": "https://api.github.com/repos/gacela-project/gacela/zipball/0ce8751f096f1bf245727ad117ad062b09bba61e",
+                "reference": "0ce8751f096f1bf245727ad117ad062b09bba61e",
                 "shasum": ""
             },
             "require": {
@@ -67,9 +67,9 @@
             ],
             "support": {
                 "issues": "https://github.com/gacela-project/gacela/issues",
-                "source": "https://github.com/gacela-project/gacela/tree/0.8.0"
+                "source": "https://github.com/gacela-project/gacela/tree/0.9.0"
             },
-            "time": "2021-08-16T18:29:55+00:00"
+            "time": "2021-08-27T15:32:11+00:00"
         },
         {
             "name": "phel-lang/phel-composer-plugin",
@@ -5210,5 +5210,5 @@
     "platform-overrides": {
         "php": "7.4"
     },
-    "plugin-api-version": "2.1.0"
+    "plugin-api-version": "2.0.0"
 }
