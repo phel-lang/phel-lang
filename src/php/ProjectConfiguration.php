@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace Phel;
 
 use JsonSerializable;
+use Phel\Command\CommandConfig;
+use Phel\Interop\InteropConfig;
 
 final class ProjectConfiguration implements JsonSerializable
 {
@@ -58,11 +60,11 @@ final class ProjectConfiguration implements JsonSerializable
     public function jsonSerialize(): array
     {
         return [
-            'tests' => $this->testsDirectories,
-            'export' => [
-                'directories' => $this->exportDirectories,
-                'namespace-prefix' => $this->exportNamespacePrefix,
-                'target-directory' => $this->exportTargetDirectory,
+            CommandConfig::TESTS => $this->testsDirectories,
+            InteropConfig::EXPORT => [
+                InteropConfig::EXPORT_DIRECTORIES => $this->exportDirectories,
+                InteropConfig::EXPORT_NAMESPACE_PREFIX => $this->exportNamespacePrefix,
+                InteropConfig::EXPORT_TARGET_DIRECTORY => $this->exportTargetDirectory,
             ],
         ];
     }

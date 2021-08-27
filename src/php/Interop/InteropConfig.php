@@ -9,14 +9,20 @@ use Phel\AbstractPhelConfig;
 
 final class InteropConfig extends AbstractPhelConfig
 {
+    public const EXPORT = 'export';
+
+    public const EXPORT_NAMESPACE_PREFIX = 'namespace-prefix';
+    public const EXPORT_TARGET_DIRECTORY = 'target-directory';
+    public const EXPORT_DIRECTORIES = 'directories';
+
     public function prefixNamespace(): string
     {
-        return (string)$this->get('export')['namespace-prefix'];
+        return (string)$this->get(self::EXPORT)[self::EXPORT_NAMESPACE_PREFIX];
     }
 
     public function getExportTargetDirectory(): string
     {
-        return (string)($this->get('export')['target-directory'] ?? 'PhelGenerated');
+        return (string)($this->get(self::EXPORT)[self::EXPORT_TARGET_DIRECTORY] ?? 'PhelGenerated');
     }
 
     /**
@@ -26,7 +32,7 @@ final class InteropConfig extends AbstractPhelConfig
     {
         return array_map(
             fn (string $dir): string => $this->getApplicationRootDir() . '/' . $dir,
-            $this->get('export')['directories'] ?? []
+            $this->get(self::EXPORT)[self::EXPORT_DIRECTORIES] ?? []
         );
     }
 
