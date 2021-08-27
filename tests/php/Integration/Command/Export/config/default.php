@@ -2,9 +2,11 @@
 
 declare(strict_types=1);
 
-use Phel\ProjectConfiguration;
+use Phel\Config\ExportConfiguration;
+use Phel\Config\ProjectConfiguration;
 
 return (new ProjectConfiguration())
-    ->setExportDirectories('src')
-    ->setExportNamespacePrefix('PhelGenerated')
-    ->setExportTargetDirectory('./tests/php/Integration/Command/Export/PhelGenerated');
+    ->setExportConfiguration((new ExportConfiguration())
+        ->setDirectories('src')
+        ->setNamespacePrefix('PhelGenerated')
+        ->setTargetDirectory('./tests/php/Integration/Command/Export/PhelGenerated'));

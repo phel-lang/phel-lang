@@ -2,7 +2,9 @@
 
 declare(strict_types=1);
 
-use Phel\ProjectConfiguration;
+use Phel\Config\ProjectConfiguration;
+use Phel\Config\TestConfiguration;
 
 return (new ProjectConfiguration())
-    ->setTestsDirectories('Fixtures');
+    ->setTestConfiguration((new TestConfiguration())
+        ->setDirectories('Fixtures'));
