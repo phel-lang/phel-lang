@@ -6,20 +6,20 @@ namespace Phel\Interop;
 
 use Gacela\Framework\AbstractDependencyProvider;
 use Gacela\Framework\Container\Container;
-use Phel\NamespaceExtractor\NamespaceExtractorFacade;
-use Phel\NamespaceExtractor\NamespaceExtractorFacadeInterface;
+use Phel\Build\BuildFacade;
+use Phel\Build\BuildFacadeInterface;
 use Phel\Runtime\RuntimeFacade;
 use Phel\Runtime\RuntimeFacadeInterface;
 
 final class InteropDependencyProvider extends AbstractDependencyProvider
 {
     public const FACADE_RUNTIME = 'FACADE_RUNTIME';
-    public const FACADE_NAMESPACE_EXTRACTOR = 'FACADE_NAMESPACE_EXTRACTOR';
+    public const FACADE_BUILD = 'FACADE_BUILD';
 
     public function provideModuleDependencies(Container $container): void
     {
         $this->addFacadeRuntime($container);
-        $this->addFacadeNamespaceExtractor($container);
+        $this->addFacadeBuild($container);
     }
 
     private function addFacadeRuntime(Container $container): void
@@ -29,10 +29,10 @@ final class InteropDependencyProvider extends AbstractDependencyProvider
         });
     }
 
-    private function addFacadeNamespaceExtractor(Container $container): void
+    private function addFacadeBuild(Container $container): void
     {
-        $container->set(self::FACADE_NAMESPACE_EXTRACTOR, function (Container $container): NamespaceExtractorFacadeInterface {
-            return $container->getLocator()->get(NamespaceExtractorFacade::class);
+        $container->set(self::FACADE_BUILD, function (Container $container): BuildFacadeInterface {
+            return $container->getLocator()->get(BuildFacade::class);
         });
     }
 }

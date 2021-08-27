@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Phel\NamespaceExtractor\Extractor;
+namespace Phel\Build\Extractor;
 
 final class NamespaceInformation
 {
