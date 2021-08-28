@@ -20,10 +20,12 @@ use RegexIterator;
 final class NamespaceExtractor implements NamespaceExtractorInterface
 {
     private CompilerFacadeInterface $compilerFacade;
+    private TopologicalSorting $topologicalSorting;
 
-    public function __construct(CompilerFacadeInterface $compilerFacade)
+    public function __construct(CompilerFacadeInterface $compilerFacade, TopologicalSorting $topologicalSorting)
     {
         $this->compilerFacade = $compilerFacade;
+        $this->topologicalSorting = $topologicalSorting;
     }
 
     /**
@@ -74,13 +76,57 @@ final class NamespaceExtractor implements NamespaceExtractorInterface
      */
     public function getNamespacesFromDirectories(array $directories): array
     {
+        /** @var array<NamespaceInformation[]> $namespaces */
         $namespaces = [];
         foreach ($directories as $directory) {
             $allNamespacesInDir = $this->findAllNs($directory);
             $namespaces[] = $allNamespacesInDir;
         }
 
-        return array_values(array_merge(...array_values($namespaces)));
+        // Combine all nested namespaces and check for duplicates
+        $result = [];
+        $seen = [];
+        foreach ($namespaces as $namespaceInformationList) {
+            foreach ($namespaceInformationList as $info) {
+                if (isset($seen[$info->getNamespace()])) {
+                    $firstFile = $seen[$info->getNamespace()]->getFile();
+                    $secondFile = $info->getFile();
+                    $namespace = $info->getNamespace();
+                    throw new ExtractorException("Two files have the same namespace: $namespace: $firstFile and $secondFile");
+                }
+
+                $result[] = $info;
+                $seen[$info->getNamespace()] = $info;
+            }
+        }
+
+        return $this->sortNamespaceInformations($result);
+    }
+
+    /**
+     * @param NamespaceInformation[] $namespaceInformation
+     *
+     * @return NamespaceInformation[]
+     */
+    private function sortNamespaceInformations(array $namespaceInformation): array
+    {
+        $dependencyIndex = [];
+        $infoIndex = [];
+        foreach ($namespaceInformation as $info) {
+            $dependencyIndex[$info->getNamespace()] = $info->getDependencies();
+            $infoIndex[$info->getNamespace()] = $info;
+        }
+
+        $orderedNamespaces = $this->topologicalSorting->sort(array_keys($dependencyIndex), $dependencyIndex);
+
+        $result = [];
+        foreach ($orderedNamespaces as $namespace) {
+            if (isset($infoIndex[$namespace])) {
+                $result[] = $infoIndex[$namespace];
+            }
+        }
+
+        return $result;
     }
 
     /**
