@@ -2,14 +2,14 @@
 
 declare(strict_types=1);
 
-namespace Phel\NamespaceExtractor;
+namespace Phel\Build;
 
 use Gacela\Framework\AbstractDependencyProvider;
 use Gacela\Framework\Container\Container;
 use Phel\Compiler\CompilerFacade;
 use Phel\Compiler\CompilerFacadeInterface;
 
-final class NamespaceExtractorDependencyProvider extends AbstractDependencyProvider
+final class BuildDependencyProvider extends AbstractDependencyProvider
 {
     public const FACADE_COMPILER = 'FACADE_COMPILER';
 

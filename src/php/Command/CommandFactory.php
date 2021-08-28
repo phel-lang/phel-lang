@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Phel\Command;
 
 use Gacela\Framework\AbstractFactory;
+use Phel\Build\BuildFacadeInterface;
 use Phel\Command\Export\ExportCommand;
 use Phel\Command\Format\FormatCommand;
 use Phel\Command\Format\PathFilterInterface;
@@ -21,7 +22,6 @@ use Phel\Command\Test\TestCommand;
 use Phel\Compiler\CompilerFacadeInterface;
 use Phel\Formatter\FormatterFacadeInterface;
 use Phel\Interop\InteropFacadeInterface;
-use Phel\NamespaceExtractor\NamespaceExtractorFacadeInterface;
 use Phel\Printer\Printer;
 use Phel\Printer\PrinterInterface;
 use Phel\Runtime\Exceptions\ExceptionPrinterInterface;
@@ -53,7 +53,7 @@ final class CommandFactory extends AbstractFactory
         return new RunCommand(
             $this->createCommandExceptionWriter(),
             $this->getRuntimeFacade(),
-            $this->getNamespaceExtractorFacade()
+            $this->getBuildFacade()
         );
     }
 
@@ -63,7 +63,7 @@ final class CommandFactory extends AbstractFactory
             $this->createCommandExceptionWriter(),
             $this->getRuntimeFacade(),
             $this->getCompilerFacade(),
-            $this->getNamespaceExtractorFacade(),
+            $this->getBuildFacade(),
             $this->getConfig()->getTestDirectories()
         );
     }
@@ -141,8 +141,8 @@ final class CommandFactory extends AbstractFactory
         return $this->getProvidedDependency(CommandDependencyProvider::FACADE_RUNTIME);
     }
 
-    private function getNamespaceExtractorFacade(): NamespaceExtractorFacadeInterface
+    private function getBuildFacade(): BuildFacadeInterface
     {
-        return $this->getProvidedDependency(CommandDependencyProvider::FACADE_NAMESPACE_EXTRACTOR);
+        return $this->getProvidedDependency(CommandDependencyProvider::FACADE_BUILD);
     }
 }

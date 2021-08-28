@@ -2,11 +2,11 @@
 
 declare(strict_types=1);
 
-namespace Phel\NamespaceExtractor;
+namespace Phel\Build;
 
-use Phel\NamespaceExtractor\Extractor\NamespaceInformation;
+use Phel\Build\Extractor\NamespaceInformation;
 
-interface NamespaceExtractorFacadeInterface
+interface BuildFacadeInterface
 {
     /**
      * Extracts the namespace from a given file. It expects that the

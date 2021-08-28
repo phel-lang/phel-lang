@@ -2,13 +2,13 @@
 
 declare(strict_types=1);
 
-namespace Phel\NamespaceExtractor;
+namespace Phel\Build;
 
 use Gacela\Framework\AbstractFactory;
+use Phel\Build\Extractor\NamespaceExtractor;
 use Phel\Compiler\CompilerFacadeInterface;
-use Phel\NamespaceExtractor\Extractor\NamespaceExtractor;
 
-final class NamespaceExtractorFactory extends AbstractFactory
+final class BuildFactory extends AbstractFactory
 {
     public function createNamespaceExtractor(): NamespaceExtractor
     {
@@ -19,6 +19,6 @@ final class NamespaceExtractorFactory extends AbstractFactory
 
     private function getCompilerFacade(): CompilerFacadeInterface
     {
-        return $this->getProvidedDependency(NamespaceExtractorDependencyProvider::FACADE_COMPILER);
+        return $this->getProvidedDependency(BuildDependencyProvider::FACADE_COMPILER);
     }
 }
