@@ -4,12 +4,19 @@ declare(strict_types=1);
 
 namespace PhelTest\Unit\Build\Extractor;
 
-use Phel\Build\Extractor\TopologicalSorting;
+use Phel\Build\Extractor\TopologicalNamespaceSorter;
 use PHPUnit\Framework\TestCase;
 use RuntimeException;
 
 final class TopologicalSortingTest extends TestCase
 {
+    private TopologicalNamespaceSorter $sorter;
+
+    public function setUp(): void
+    {
+        $this->sorter = new TopologicalNamespaceSorter();
+    }
+
     public function test_circular_exception(): void
     {
         $this->expectException(RuntimeException::class);
@@ -19,8 +26,8 @@ final class TopologicalSortingTest extends TestCase
             'car' => ['owner'],
             'owner' => ['car'],
         ];
-        $sorter = new TopologicalSorting();
-        $sorter->sort($data, $dependencies);
+
+        $this->sorter->sort($data, $dependencies);
     }
 
     public function test_simplesort(): void
@@ -30,10 +37,10 @@ final class TopologicalSortingTest extends TestCase
             'car' => ['owner'],
             'owner' => [],
         ];
-        $sorter = new TopologicalSorting();
-        $sorted = $sorter->sort($data, $dependencies);
 
-        $this->assertEquals(['owner', 'car'], $sorted);
+        $sorted = $this->sorter->sort($data, $dependencies);
+
+        self::assertEquals(['owner', 'car'], $sorted);
     }
 
     public function test_multiple_dependencies(): void
@@ -43,10 +50,10 @@ final class TopologicalSortingTest extends TestCase
             'car' => ['owner', 'brand'],
             'owner' => ['brand'],
         ];
-        $sorter = new TopologicalSorting();
-        $sorted = $sorter->sort($data, $dependencies);
 
-        $this->assertEquals(['brand', 'owner', 'car'], $sorted);
+        $sorted = $this->sorter->sort($data, $dependencies);
+
+        self::assertEquals(['brand', 'owner', 'car'], $sorted);
     }
 
     public function test_duplicated_data_entries(): void
@@ -56,9 +63,9 @@ final class TopologicalSortingTest extends TestCase
             'car' => ['owner', 'brand'],
             'owner' => ['brand'],
         ];
-        $sorter = new TopologicalSorting();
-        $sorted = $sorter->sort($data, $dependencies);
 
-        $this->assertEquals(['brand', 'owner', 'car'], $sorted);
+        $sorted = $this->sorter->sort($data, $dependencies);
+
+        self::assertEquals(['brand', 'owner', 'car'], $sorted);
     }
 }

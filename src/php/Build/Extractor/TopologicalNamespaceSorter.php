@@ -6,19 +6,19 @@ namespace Phel\Build\Extractor;
 
 use RuntimeException;
 
-class TopologicalSorting
+final class TopologicalNamespaceSorter implements NamespaceSorterInterface
 {
     /**
      * @param list<string> $data the data array that should be sorted
-     * @param array<string, string[]> $dependencies a map of dependencies for each data node
+     * @param array<string, list<string>> $dependencies a map of dependencies for each data node
      *
-     * @return list<string> The storted array
+     * @return list<string> The sorted array
      */
     public function sort(array $data, array $dependencies): array
     {
-        /** @var string[] $order */
+        /** @var list<string> $order */
         $order = [];
-        /** @var string[] $seen */
+        /** @var list<string> $seen */
         $seen = [];
         foreach ($data as $item) {
             $this->process($item, $dependencies, $order, $seen);
@@ -29,7 +29,7 @@ class TopologicalSorting
 
     /**
      * @param string $item
-     * @param array<string, string[]> $dependencies
+     * @param array<string, list<string>> $dependencies
      * @param string[] $order
      * @param array<int, string> $seen
      */
@@ -46,22 +46,22 @@ class TopologicalSorting
                     $this->process($master, $dependencies, $order, $seen);
                 }
 
-                if (!in_array($master, $order)) {
+                if (!in_array($master, $order, true)) {
                     $order[] = $master;
                 }
 
-                $index = array_search($master, $seen);
+                $index = array_search($master, $seen, true);
                 if ($index !== false) {
                     unset($seen[$index]);
                 }
             }
         }
 
-        if (!in_array($item, $order)) {
+        if (!in_array($item, $order, true)) {
             $order[] = $item;
         }
 
-        $index = array_search($item, $seen);
+        $index = array_search($item, $seen, true);
         if ($index !== false) {
             unset($seen[$index]);
         }
