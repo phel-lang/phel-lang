@@ -4,12 +4,12 @@ declare(strict_types=1);
 
 namespace Phel\Command\Run;
 
+use Phel\Build\BuildFacadeInterface;
 use Phel\Command\Run\Exceptions\CannotLoadNamespaceException;
 use Phel\Command\Shared\CommandExceptionWriterInterface;
 use Phel\Compiler\Evaluator\Exceptions\CompiledCodeIsMalformedException;
 use Phel\Compiler\Evaluator\Exceptions\FileException;
 use Phel\Compiler\Exceptions\CompilerException;
-use Phel\NamespaceExtractor\NamespaceExtractorFacadeInterface;
 use Phel\Runtime\RuntimeFacadeInterface;
 use SebastianBergmann\Timer\ResourceUsageFormatter;
 use Symfony\Component\Console\Command\Command;
@@ -25,17 +25,17 @@ final class RunCommand extends Command
 
     private CommandExceptionWriterInterface $exceptionWriter;
     private RuntimeFacadeInterface $runtimeFacade;
-    private NamespaceExtractorFacadeInterface $namespaceExtractorFacade;
+    private BuildFacadeInterface $buildFacade;
 
     public function __construct(
         CommandExceptionWriterInterface $exceptionWriter,
         RuntimeFacadeInterface $runtimeFacade,
-        NamespaceExtractorFacadeInterface $namespaceExtractorFacade
+        BuildFacadeInterface $buildFacade
     ) {
         parent::__construct(self::COMMAND_NAME);
         $this->exceptionWriter = $exceptionWriter;
         $this->runtimeFacade = $runtimeFacade;
-        $this->namespaceExtractorFacade = $namespaceExtractorFacade;
+        $this->buildFacade = $buildFacade;
     }
 
     protected function configure(): void
@@ -95,7 +95,7 @@ final class RunCommand extends Command
     private function loadNamespace(string $fileOrPath): void
     {
         $ns = file_exists($fileOrPath)
-            ? $this->namespaceExtractorFacade->getNamespaceFromFile($fileOrPath)->getNamespace()
+            ? $this->buildFacade->getNamespaceFromFile($fileOrPath)->getNamespace()
             : $fileOrPath;
 
         $result = $this->runtimeFacade->getRuntime()->loadNs($ns);

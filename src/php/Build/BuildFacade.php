@@ -2,15 +2,15 @@
 
 declare(strict_types=1);
 
-namespace Phel\NamespaceExtractor;
+namespace Phel\Build;
 
 use Gacela\Framework\AbstractFacade;
-use Phel\NamespaceExtractor\Extractor\NamespaceInformation;
+use Phel\Build\Extractor\NamespaceInformation;
 
 /**
- * @method NamespaceExtractorFactory getFactory()
+ * @method BuildFactory getFactory()
  */
-final class NamespaceExtractorFacade extends AbstractFacade implements NamespaceExtractorFacadeInterface
+final class BuildFacade extends AbstractFacade implements BuildFacadeInterface
 {
     /**
      * Extracts the namespace from a given file. It expects that the

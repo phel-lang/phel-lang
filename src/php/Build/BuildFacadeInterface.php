@@ -2,11 +2,11 @@
 
 declare(strict_types=1);
 
-namespace Phel\NamespaceExtractor;
+namespace Phel\Build;
 
-use Phel\NamespaceExtractor\Extractor\NamespaceInformation;
+use Phel\Build\Extractor\NamespaceInformation;
 
-interface NamespaceExtractorFacadeInterface
+interface BuildFacadeInterface
 {
     /**
      * Extracts the namespace from a given file. It expects that the
@@ -21,6 +21,9 @@ interface NamespaceExtractorFacadeInterface
     /**
      * Extracts all namespaces from all Phel files in the given directories.
      * It expects that the first statement in the file is the 'ns statement.
+     *
+     * The result is topologically sorted. That means that file that have dependencies
+     * to other files are sorted behind the files that have no dependecies.
      *
      * @param string[] $directories The list of the directories
      *

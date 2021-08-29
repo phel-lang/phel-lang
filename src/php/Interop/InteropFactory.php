@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Phel\Interop;
 
 use Gacela\Framework\AbstractFactory;
+use Phel\Build\BuildFacadeInterface;
 use Phel\Interop\DirectoryRemover\DirectoryRemover;
 use Phel\Interop\DirectoryRemover\DirectoryRemoverInterface;
 use Phel\Interop\ExportFinder\FunctionsToExportFinder;
@@ -17,7 +18,6 @@ use Phel\Interop\Generator\Builder\CompiledPhpClassBuilder;
 use Phel\Interop\Generator\Builder\CompiledPhpMethodBuilder;
 use Phel\Interop\Generator\Builder\WrapperRelativeFilenamePathBuilder;
 use Phel\Interop\Generator\WrapperGenerator;
-use Phel\NamespaceExtractor\NamespaceExtractorFacadeInterface;
 use Phel\Runtime\RuntimeFacade;
 
 /**
@@ -37,7 +37,7 @@ final class InteropFactory extends AbstractFactory
     {
         return new FunctionsToExportFinder(
             $this->getRuntimeFacade(),
-            $this->getNamespaceExtractorFacade(),
+            $this->getBuildFacade(),
             $this->getConfig()->getExportDirectories()
         );
     }
@@ -75,8 +75,8 @@ final class InteropFactory extends AbstractFactory
         return $this->getProvidedDependency(InteropDependencyProvider::FACADE_RUNTIME);
     }
 
-    private function getNamespaceExtractorFacade(): NamespaceExtractorFacadeInterface
+    private function getBuildFacade(): BuildFacadeInterface
     {
-        return $this->getProvidedDependency(InteropDependencyProvider::FACADE_NAMESPACE_EXTRACTOR);
+        return $this->getProvidedDependency(InteropDependencyProvider::FACADE_BUILD);
     }
 }
