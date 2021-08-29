@@ -6,6 +6,8 @@ namespace Phel\Build;
 
 use Gacela\Framework\AbstractFactory;
 use Phel\Build\Extractor\NamespaceExtractor;
+use Phel\Build\Extractor\NamespaceSorterInterface;
+use Phel\Build\Extractor\TopologicalNamespaceSorter;
 use Phel\Compiler\CompilerFacadeInterface;
 
 final class BuildFactory extends AbstractFactory
@@ -13,12 +15,18 @@ final class BuildFactory extends AbstractFactory
     public function createNamespaceExtractor(): NamespaceExtractor
     {
         return new NamespaceExtractor(
-            $this->getCompilerFacade()
+            $this->getCompilerFacade(),
+            $this->createNamespaceSorter()
         );
     }
 
     private function getCompilerFacade(): CompilerFacadeInterface
     {
         return $this->getProvidedDependency(BuildDependencyProvider::FACADE_COMPILER);
+    }
+
+    private function createNamespaceSorter(): NamespaceSorterInterface
+    {
+        return new TopologicalNamespaceSorter();
     }
 }

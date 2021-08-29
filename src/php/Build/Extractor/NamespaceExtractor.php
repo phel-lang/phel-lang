@@ -20,10 +20,14 @@ use RegexIterator;
 final class NamespaceExtractor implements NamespaceExtractorInterface
 {
     private CompilerFacadeInterface $compilerFacade;
+    private NamespaceSorterInterface $namespaceSorter;
 
-    public function __construct(CompilerFacadeInterface $compilerFacade)
-    {
+    public function __construct(
+        CompilerFacadeInterface $compilerFacade,
+        NamespaceSorterInterface $namespaceSorter
+    ) {
         $this->compilerFacade = $compilerFacade;
+        $this->namespaceSorter = $namespaceSorter;
     }
 
     /**
@@ -74,13 +78,59 @@ final class NamespaceExtractor implements NamespaceExtractorInterface
      */
     public function getNamespacesFromDirectories(array $directories): array
     {
+        /** @var list<list<NamespaceInformation>> $namespaces */
         $namespaces = [];
         foreach ($directories as $directory) {
             $allNamespacesInDir = $this->findAllNs($directory);
             $namespaces[] = $allNamespacesInDir;
         }
 
-        return array_values(array_merge(...array_values($namespaces)));
+        // Combine all nested namespaces and check for duplicates
+        /** @var list<NamespaceInformation> $result */
+        $result = [];
+        /** @var array<string, NamespaceInformation> $seen */
+        $seen = [];
+        foreach ($namespaces as $namespaceInformationList) {
+            foreach ($namespaceInformationList as $info) {
+                if (isset($seen[$info->getNamespace()])) {
+                    $firstFile = $seen[$info->getNamespace()]->getFile();
+                    $secondFile = $info->getFile();
+                    $namespace = $info->getNamespace();
+                    throw new ExtractorException("Two files have the same namespace: $namespace: $firstFile and $secondFile");
+                }
+
+                $result[] = $info;
+                $seen[$info->getNamespace()] = $info;
+            }
+        }
+
+        return $this->sortNamespaceInformationList($result);
+    }
+
+    /**
+     * @param list<NamespaceInformation> $namespaceInformationList
+     *
+     * @return list<NamespaceInformation>
+     */
+    private function sortNamespaceInformationList(array $namespaceInformationList): array
+    {
+        $dependencyIndex = [];
+        $infoIndex = [];
+        foreach ($namespaceInformationList as $info) {
+            $dependencyIndex[$info->getNamespace()] = $info->getDependencies();
+            $infoIndex[$info->getNamespace()] = $info;
+        }
+
+        $orderedNamespaces = $this->namespaceSorter->sort(array_keys($dependencyIndex), $dependencyIndex);
+
+        $result = [];
+        foreach ($orderedNamespaces as $namespace) {
+            if (isset($infoIndex[$namespace])) {
+                $result[] = $infoIndex[$namespace];
+            }
+        }
+
+        return $result;
     }
 
     /**
