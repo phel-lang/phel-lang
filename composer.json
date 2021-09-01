@@ -15,7 +15,7 @@
         "ext-json": "*",
         "php": ">=7.4",
         "phel-lang/phel-composer-plugin": "^0.2",
-        "gacela-project/gacela": "^0.8",
+        "gacela-project/gacela": "^0.9",
         "symfony/console": "^5.3",
         "phpunit/php-timer": "^5.0"
     },
@@ -23,7 +23,7 @@
         "ext-readline": "*",
         "phpunit/phpunit": "^9.5",
         "vimeo/psalm": "^4.9",
-        "friendsofphp/php-cs-fixer": "^3.0",
+        "friendsofphp/php-cs-fixer": "^3.1",
         "symfony/var-dumper": "^5.3",
         "phpmetrics/phpmetrics": "^2.7",
         "phpbench/phpbench": "^1.1"
