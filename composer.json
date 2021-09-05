@@ -23,7 +23,7 @@
         "ext-readline": "*",
         "phpunit/phpunit": "^9.5",
         "vimeo/psalm": "^4.9",
-        "friendsofphp/php-cs-fixer": "^3.0",
+        "friendsofphp/php-cs-fixer": "^3.1",
         "symfony/var-dumper": "^5.3",
         "phpmetrics/phpmetrics": "^2.7",
         "phpbench/phpbench": "^1.1"
