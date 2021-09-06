@@ -9,6 +9,8 @@ use Phel\AbstractPhelConfig;
 
 final class CommandConfig extends AbstractPhelConfig
 {
+    public const TESTS = 'tests';
+
     /**
      * @return list<string>
      */
@@ -16,7 +18,7 @@ final class CommandConfig extends AbstractPhelConfig
     {
         return array_map(
             fn (string $dir): string => $this->getApplicationRootDir() . '/' . $dir,
-            $this->get('tests', [])
+            $this->get(self::TESTS, [])
         );
     }
 
