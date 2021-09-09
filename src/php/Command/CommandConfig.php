@@ -27,7 +27,7 @@ final class CommandConfig extends AbstractPhelConfig
         return $this->getApplicationRootDir() . '/.phel-repl-history';
     }
 
-    public function getReplStartupPhel(): string
+    public function getReplStartupFile(): string
     {
         return __DIR__ . '/Repl/startup.phel';
     }
