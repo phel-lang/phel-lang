@@ -6,6 +6,7 @@ namespace Phel\Config;
 
 final class TestConfiguration
 {
+    /** @var list<string> */
     private array $directories = [];
 
     public static function empty(): self
@@ -14,21 +15,17 @@ final class TestConfiguration
     }
 
     /**
-     * @param string|array $directories
+     * @return list<string>
      */
-    public function setDirectories($directories): self
-    {
-        if (is_string($directories)) {
-            $directories = [$directories];
-        }
-
-        $this->directories = $directories;
-
-        return $this;
-    }
-
     public function getDirectories(): array
     {
         return $this->directories;
+    }
+
+    public function setDirectories(string ...$directories): self
+    {
+        $this->directories = $directories;
+
+        return $this;
     }
 }
