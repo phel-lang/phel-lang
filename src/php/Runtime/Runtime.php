@@ -52,18 +52,28 @@ class Runtime implements RuntimeInterface
     }
 
     /**
+     * @return array<string, array<int, string>>
+     */
+    public function getPaths(): array
+    {
+        return $this->paths;
+    }
+
+    /**
      * @param string $namespacePrefix
      * @param array<int, string> $path
      */
     public function addPath(string $namespacePrefix, array $path): void
     {
+        /** @var array<int, string> $path */
+        $path = array_map(fn ($p) => realpath($p), $path);
         $length = strlen($namespacePrefix);
         if ('\\' !== $namespacePrefix[$length - 1]) {
             throw new InvalidArgumentException('A non-empty prefix must end with a namespace separator.');
         }
 
         if (isset($this->paths[$namespacePrefix])) {
-            $this->paths[$namespacePrefix] = [...$this->paths[$namespacePrefix], ...$path];
+            $this->paths[$namespacePrefix] = array_unique([...$this->paths[$namespacePrefix], ...$path]);
         } else {
             $this->paths[$namespacePrefix] = $path;
         }
@@ -85,6 +95,9 @@ class Runtime implements RuntimeInterface
      */
     public function loadNs(string $ns): bool
     {
+        return true;
+
+
         if (in_array($ns, $this->loadedNs, true)) {
             return false;
         }

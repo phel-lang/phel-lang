@@ -9,6 +9,7 @@ use Phel\Compiler\Analyzer\Environment\NodeEnvironmentInterface;
 use Phel\Compiler\Emitter\OutputEmitter\LiteralEmitter;
 use Phel\Compiler\Emitter\OutputEmitter\MungeInterface;
 use Phel\Compiler\Emitter\OutputEmitter\NodeEmitterFactory;
+use Phel\Compiler\Emitter\OutputEmitter\OutputEmitterOptions;
 use Phel\Compiler\Emitter\OutputEmitter\SourceMap\SourceMapState;
 use Phel\Lang\SourceLocation;
 use Phel\Lang\Symbol;
@@ -21,6 +22,7 @@ final class OutputEmitter implements OutputEmitterInterface
     private NodeEmitterFactory $nodeEmitterFactory;
     private MungeInterface $munge;
     private PrinterInterface $printer;
+    private OutputEmitterOptions $options;
 
     private int $indentLevel = 0;
     private SourceMapState $sourceMapState;
@@ -30,13 +32,20 @@ final class OutputEmitter implements OutputEmitterInterface
         NodeEmitterFactory $nodeEmitterFactory,
         MungeInterface $munge,
         PrinterInterface $printer,
-        SourceMapState $sourceMapState
+        SourceMapState $sourceMapState,
+        OutputEmitterOptions $options
     ) {
         $this->enableSourceMaps = $enableSourceMaps;
         $this->nodeEmitterFactory = $nodeEmitterFactory;
         $this->munge = $munge;
         $this->printer = $printer;
         $this->sourceMapState = $sourceMapState;
+        $this->options = $options;
+    }
+
+    public function getOptions(): OutputEmitterOptions
+    {
+        return $this->options;
     }
 
     public function resetIndentLevel(): void

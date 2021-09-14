@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Phel\Build;
 
+use Phel\Build\Compile\CompiledFile;
 use Phel\Build\Extractor\NamespaceInformation;
 
 interface BuildFacadeInterface
@@ -30,4 +31,46 @@ interface BuildFacadeInterface
      * @return NamespaceInformation[]
      */
     public function getNamespaceFromDirectories(array $directories): array;
+
+    /**
+     * Gets a list of all dependencies for a given list of namespaces. It first extracts all
+     * namespaces from all Phel files in the give directories and then return a
+     * topoloigcal sorted subset of these namespace information.
+     *
+     * @param string[] $directories The list of the directories
+     * @param string[] $ns A list of namespace for which we should find the subset
+     *
+     * @return NamespaceInformation[]
+     */
+    public function getDependenciesForNamespace(array $directories, array $ns): array;
+
+    /**
+     * Compiles a phel file and saves it to the give destination.
+     *
+     * @param string $src The source file
+     * @param string $dest The destination
+     *
+     * @return CompiledFile
+     */
+    public function compileFile(string $src, string $dest): CompiledFile;
+
+    /**
+     * Same as `compileFile`. However, the generated code is not written to a destination.
+     *
+     * @param string $src The source file
+     *
+     * @return CompiledFile
+     */
+    public function evalFile(string $src): CompiledFile;
+
+    /**
+     * Compiles all Phel files that can be found in the give source directories
+     * and saves them into the target directory.
+     *
+     * @param string[] $srcDirectories The list of source directories
+     * @param string $dest the target dir that should contain the generated code
+     *
+     * @return CompiledFile[] A list of compiled files
+     */
+    public function compileProject(array $srcDirectories, string $dest): array;
 }

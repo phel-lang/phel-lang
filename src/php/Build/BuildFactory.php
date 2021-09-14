@@ -20,7 +20,7 @@ final class BuildFactory extends AbstractFactory
         );
     }
 
-    private function getCompilerFacade(): CompilerFacadeInterface
+    public function getCompilerFacade(): CompilerFacadeInterface
     {
         return $this->getProvidedDependency(BuildDependencyProvider::FACADE_COMPILER);
     }

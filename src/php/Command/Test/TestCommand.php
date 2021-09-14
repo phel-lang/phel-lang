@@ -9,8 +9,6 @@ use Phel\Build\Extractor\NamespaceInformation;
 use Phel\Command\Shared\CommandExceptionWriterInterface;
 use Phel\Command\Test\Exceptions\CannotFindAnyTestsException;
 use Phel\Compiler\CompilerFacadeInterface;
-use Phel\Compiler\Evaluator\Exceptions\CompiledCodeIsMalformedException;
-use Phel\Compiler\Evaluator\Exceptions\FileException;
 use Phel\Compiler\Exceptions\CompilerException;
 use Phel\Runtime\RuntimeFacadeInterface;
 use SebastianBergmann\Timer\ResourceUsageFormatter;
@@ -73,13 +71,31 @@ final class TestCommand extends Command
     public function execute(InputInterface $input, OutputInterface $output): int
     {
         try {
-            /** @var list<string> $paths */
+            /** @var array<string> $paths */
             $paths = (array)$input->getArgument('paths');
 
-            /** @psalm-suppress PossiblyInvalidCast */
-            $result = $this->evalNamespaces($paths, TestCommandOptions::fromArray([
-                TestCommandOptions::FILTER => (string)$input->getOption('filter'),
-            ]));
+            $namespaces = $this->getNamespacesFromPaths($paths);
+            if (empty($namespaces)) {
+                throw CannotFindAnyTestsException::inPaths($paths);
+            }
+            $namespaces[] = 'phel\\test';
+
+            $srcDirectories = array_merge(...array_values($this->runtimeFacade->getRuntime()->getPaths()));
+            $namespaceInformation = $this->buildFacade->getDependenciesForNamespace($srcDirectories, $namespaces);
+
+            foreach ($namespaceInformation as $info) {
+                $this->buildFacade->evalFile($info->getFile());
+            }
+
+            $phelCode = sprintf(
+                '(do (phel\test/run-tests %s %s) (phel\test/successful?))',
+                TestCommandOptions::fromArray([
+                    TestCommandOptions::FILTER => (string)$input->getOption('filter'),
+                ])->asPhelHashMap(),
+                $this->namespacesAsString($namespaces),
+            );
+
+            $result = $this->compilerFacade->eval($phelCode);
 
             $output->writeln((new ResourceUsageFormatter())->resourceUsageSinceStartOfRequest());
 
@@ -91,35 +107,6 @@ final class TestCommand extends Command
         }
 
         return self::FAILURE;
-    }
-
-    /**
-     * @param list<string> $paths
-     *
-     * @throws CannotFindAnyTestsException
-     * @throws CompilerException
-     * @throws CompiledCodeIsMalformedException
-     * @throws FileException
-     *
-     * @return bool true if all tests were successful. False otherwise.
-     */
-    private function evalNamespaces(array $paths, TestCommandOptions $options): bool
-    {
-        $namespaces = $this->getNamespacesFromPaths($paths);
-
-        if (empty($namespaces)) {
-            throw CannotFindAnyTestsException::inPaths($paths);
-        }
-
-        $this->runtimeFacade->getRuntime()->loadNs('phel\test');
-
-        $phelCode = sprintf(
-            '(do (phel\test/run-tests %s %s) (successful?))',
-            $options->asPhelHashMap(),
-            $this->namespacesAsString($namespaces),
-        );
-
-        return $this->compilerFacade->eval($phelCode);
     }
 
     /**

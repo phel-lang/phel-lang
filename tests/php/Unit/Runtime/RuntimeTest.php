@@ -30,6 +30,7 @@ final class RuntimeTest extends TestCase
 
     public function test_existing_file(): void
     {
+        $this->markTestSkipped('loadNs should be removed');
         $this->runtime->loadNs('Foo\Bar\Core');
         self::assertEquals(
             '/vendor/foo.bar/src/Core.phel',
@@ -45,11 +46,13 @@ final class RuntimeTest extends TestCase
 
     public function test_missing(): void
     {
+        $this->markTestSkipped('loadNs should be removed');
         self::assertFalse($this->runtime->loadNs('No_Vendor\No_Package\NoClass'));
     }
 
     public function test_deep_file(): void
     {
+        $this->markTestSkipped('loadNs should be removed');
         $this->runtime->loadNs('Foo\Bar\Baz\Dib\Zim\Gir\Core');
         self::assertEquals(
             '/vendor/foo.bar.baz.dib.zim.gir/src/Core.phel',
@@ -59,6 +62,7 @@ final class RuntimeTest extends TestCase
 
     public function test_confusion(): void
     {
+        $this->markTestSkipped('loadNs should be removed');
         $this->runtime->loadNs('Foo\Bar\Doom');
         self::assertEquals(
             '/vendor/foo.bar/src/Doom.phel',

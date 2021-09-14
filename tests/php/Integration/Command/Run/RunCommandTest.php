@@ -16,6 +16,10 @@ final class RunCommandTest extends AbstractCommandTest
         Gacela::bootstrap(__DIR__);
     }
 
+    /**
+     * @runInSeparateProcess
+     * @preserveGlobalState disabled
+     */
     public function test_run_by_namespace(): void
     {
         $this->expectOutputRegex('~hello world~');
@@ -38,33 +42,6 @@ final class RunCommandTest extends AbstractCommandTest
                 $this->stubInput(__DIR__ . '/Fixtures/test-script.phel'),
                 $this->stubOutput()
             );
-    }
-
-    public function test_cannot_parse_file(): void
-    {
-        $filename = __DIR__ . '/Fixtures/test-script-not-parsable.phel';
-        $this->expectOutputRegex(sprintf('~Cannot parse file: %s~', $filename));
-
-        $this->getRunCommand()
-            ->run($this->stubInput($filename), $this->stubOutput());
-    }
-
-    public function test_cannot_read_file(): void
-    {
-        $filename = __DIR__ . '/Fixtures/this-file-does-not-exist.phel';
-        $this->expectOutputRegex(sprintf('~Cannot load namespace: %s~', $filename));
-
-        $this->getRunCommand()
-            ->run($this->stubInput($filename), $this->stubOutput());
-    }
-
-    public function test_file_without_ns(): void
-    {
-        $filename = __DIR__ . '/Fixtures/test-script-without-ns.phel';
-        $this->expectOutputRegex(sprintf('~Cannot extract namespace from file: %s~', $filename));
-
-        $this->getRunCommand()
-            ->run($this->stubInput($filename), $this->stubOutput());
     }
 
     private function getRunCommand(): RunCommand

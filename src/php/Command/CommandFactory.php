@@ -35,9 +35,9 @@ final class CommandFactory extends AbstractFactory
 {
     public function createReplCommand(): ReplCommand
     {
-        $this->getRuntimeFacade()
+        /*$this->getRuntimeFacade()
             ->getRuntime()
-            ->loadFileIntoNamespace('user', $this->getConfig()->getReplStartupPhel());
+            ->loadFileIntoNamespace('user', $this->getConfig()->getReplStartupPhel());*/
 
         return new ReplCommand(
             $this->getRuntimeFacade(),

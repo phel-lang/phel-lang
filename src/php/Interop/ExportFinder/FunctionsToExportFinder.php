@@ -6,6 +6,7 @@ namespace Phel\Interop\ExportFinder;
 
 use Phel\Build\BuildFacadeInterface;
 use Phel\Build\Extractor\ExtractorException;
+use Phel\Build\Extractor\NamespaceInformation;
 use Phel\Compiler\Evaluator\Exceptions\CompiledCodeIsMalformedException;
 use Phel\Compiler\Evaluator\Exceptions\FileException;
 use Phel\Compiler\Exceptions\CompilerException;
@@ -55,13 +56,16 @@ final class FunctionsToExportFinder implements FunctionsToExportFinderInterface
      */
     private function loadAllNsFromPaths(): void
     {
-        $runtime = $this->runtimeFacade->getRuntime();
-
         $namespaceFromDirectories = $this->buildFacade
             ->getNamespaceFromDirectories($this->exportDirectories);
 
-        foreach ($namespaceFromDirectories as $namespaceNode) {
-            $runtime->loadNs($namespaceNode->getNamespace());
+        $namespaces = array_values(array_map(fn (NamespaceInformation $info) => $info->getNamespace(), $namespaceFromDirectories));
+
+        $srcDirectories = array_merge(...array_values($this->runtimeFacade->getRuntime()->getPaths()));
+
+        $namespaceInformation = $this->buildFacade->getDependenciesForNamespace($srcDirectories, [...$namespaces, 'phel\\core']);
+        foreach ($namespaceInformation as $info) {
+            $this->buildFacade->evalFile($info->getFile());
         }
     }
 

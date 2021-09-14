@@ -6,7 +6,7 @@ namespace Phel\Compiler\Emitter;
 
 use Phel\Compiler\Analyzer\Ast\AbstractNode;
 
-interface EmitterInterface
+interface StatementEmitterInterface
 {
-    public function emitNode(AbstractNode $node): string;
+    public function emitNode(AbstractNode $node): EmitterResult;
 }
