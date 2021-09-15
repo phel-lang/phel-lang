@@ -6,8 +6,11 @@ namespace Phel\Config;
 
 final class ExportConfiguration
 {
+    /** @var list<string> */
     private array $directories = [];
+
     private string $namespacePrefix = '';
+
     private string $targetDirectory = '';
 
     public static function empty(): self
@@ -15,20 +18,16 @@ final class ExportConfiguration
         return new self();
     }
 
+    /**
+     * @return list<string>
+     */
     public function getDirectories(): array
     {
         return $this->directories;
     }
 
-    /**
-     * @param string|array $directories
-     */
-    public function setDirectories($directories): self
+    public function setDirectories(string ...$directories): self
     {
-        if (is_string($directories)) {
-            $directories = [$directories];
-        }
-
         $this->directories = $directories;
 
         return $this;

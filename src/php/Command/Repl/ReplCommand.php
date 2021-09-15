@@ -30,6 +30,7 @@ final class ReplCommand extends Command
     private CompilerFacadeInterface $compilerFacade;
     private ColorStyleInterface $style;
     private PrinterInterface $printer;
+    private string $replStartupFile;
 
     /** @var string[] */
     private array $inputBuffer = [];
@@ -41,7 +42,8 @@ final class ReplCommand extends Command
         ReplCommandIoInterface $io,
         CompilerFacadeInterface $compilerFacade,
         ColorStyleInterface $style,
-        PrinterInterface $printer
+        PrinterInterface $printer,
+        string $replStartupFile = ''
     ) {
         parent::__construct(self::COMMAND_NAME);
         $this->runtimeFacade = $runtimeFacade;
@@ -49,6 +51,7 @@ final class ReplCommand extends Command
         $this->compilerFacade = $compilerFacade;
         $this->style = $style;
         $this->printer = $printer;
+        $this->replStartupFile = $replStartupFile;
         $this->previousResult = InputResult::empty();
     }
 
@@ -69,6 +72,11 @@ final class ReplCommand extends Command
         $this->io->readHistory();
         $this->io->writeln($this->style->yellow('Welcome to the Phel Repl'));
         $this->io->writeln('Type "exit" or press Ctrl-D to exit.');
+
+        if ($this->replStartupFile) {
+            $this->runtimeFacade->getRuntime()
+                ->loadFileIntoNamespace('user', $this->replStartupFile);
+        }
 
         $this->loopReadLineAndAnalyze();
 

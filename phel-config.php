@@ -10,6 +10,6 @@ return (new ProjectConfiguration())
     ->setTestConfiguration((new TestConfiguration())
         ->setDirectories('tests/phel/'))
     ->setExportConfiguration((new ExportConfiguration())
-        ->setDirectories(['src/phel'])
+        ->setDirectories('src/phel')
         ->setNamespacePrefix('PhelGenerated')
         ->setTargetDirectory('src/PhelGenerated'));
