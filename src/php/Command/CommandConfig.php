@@ -18,7 +18,7 @@ final class CommandConfig extends AbstractPhelConfig
     {
         return array_map(
             fn (string $dir): string => $this->getApplicationRootDir() . '/' . $dir,
-            $this->get(self::TESTS, [])
+            $this->get('tests', [])
         );
     }
 
