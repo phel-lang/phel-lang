@@ -71,7 +71,7 @@ final class TestCommand extends Command
     public function execute(InputInterface $input, OutputInterface $output): int
     {
         try {
-            /** @var array<string> $paths */
+            /** @var list<string> $paths */
             $paths = (array)$input->getArgument('paths');
 
             $namespaces = $this->getNamespacesFromPaths($paths);

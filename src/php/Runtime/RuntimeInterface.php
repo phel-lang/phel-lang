@@ -25,6 +25,11 @@ interface RuntimeInterface
     public function getPaths(): array;
 
     /**
+     * @return list<string>
+     */
+    public function getSourceDirectories(): array;
+
+    /**
      * @throws CompilerException
      * @throws CompiledCodeIsMalformedException
      * @throws FileException

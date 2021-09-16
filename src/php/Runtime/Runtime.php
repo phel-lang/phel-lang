@@ -228,4 +228,9 @@ class Runtime implements RuntimeInterface
             );
         }
     }
+
+    public function getSourceDirectories(): array
+    {
+        return array_merge(...array_values($this->getPaths()));
+    }
 }

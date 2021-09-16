@@ -1,8 +1,11 @@
 (ns phel\repl
   (:use Phel\Lang\Symbol)
+  (:use Phel\Build\BuildFacade)
   (:use Phel\Runtime\RuntimeSingleton)
   (:use Phel\Compiler\Analyzer\Environment\NodeEnvironment)
   (:use Phel\Printer\Printer))
+
+(def build-facade (php/new BuildFacade))
 
 (defn- get-runtime []
   (php/:: RuntimeSingleton (getInstance)))
@@ -10,6 +13,19 @@
 (defn- get-global-env []
   (-> (get-runtime)
       (php/-> (getEnv))))
+
+(defn- loaded-namespaces []
+  (php/array_keys (php/aget php/$GLOBALS "__phel")))
+
+(defn- eval-file [file]
+  (php/-> build-facade (evalFile file)))
+
+(defn- eval-namespace [namespace]
+  (let [src-dirs (php/-> (get-runtime) (getSourceDirectories))
+        dependecies (php/-> build-facade (getDependenciesForNamespace src-dirs (php/array namespace)))]
+    (foreach [dep dependecies]
+      (when-not (php/in_array (php/-> dep (getNamespace)) (loaded-namespaces))
+        (eval-file (php/-> dep (getFile)))))))
 
 (defn resolve
   "Resolves the given symbol in the current environment and returns a
@@ -58,7 +74,8 @@
     (php/-> env (addRequireAlias current-ns alias namespace))
     (foreach [r refers]
       (php/-> env (addRefer current-ns r namespace)))
-    (php/-> (get-runtime) (loadNs namespace))
+    # (php/-> (get-runtime) (loadNs namespace))
+    (eval-namespace namespace)
     (php/-> (get-global-env) (setNs current-ns))
     (set-ns current-ns)
     namespace))
