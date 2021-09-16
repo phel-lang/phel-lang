@@ -74,7 +74,6 @@
     (php/-> env (addRequireAlias current-ns alias namespace))
     (foreach [r refers]
       (php/-> env (addRefer current-ns r namespace)))
-    # (php/-> (get-runtime) (loadNs namespace))
     (eval-namespace namespace)
     (php/-> (get-global-env) (setNs current-ns))
     (set-ns current-ns)

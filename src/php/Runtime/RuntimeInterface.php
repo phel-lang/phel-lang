@@ -35,8 +35,8 @@ interface RuntimeInterface
      * @throws FileException
      *
      * @return bool true if the namespace was successfully loaded; false otherwise
+     *
+     * @deprecated this function only exists because the phel composer plugin is using it
      */
     public function loadNs(string $ns): bool;
-
-    public function loadFileIntoNamespace(string $ns, string $file): void;
 }
