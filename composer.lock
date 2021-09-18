@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "efd4e74dadbc7e77e506706c94d58eca",
+    "content-hash": "57853197b159a21121046dc410e3bc2f",
     "packages": [
         {
             "name": "gacela-project/gacela",
@@ -70,65 +70,6 @@
                 "source": "https://github.com/gacela-project/gacela/tree/0.9.0"
             },
             "time": "2021-08-27T15:32:11+00:00"
-        },
-        {
-            "name": "phel-lang/phel-composer-plugin",
-            "version": "v0.2.0",
-            "source": {
-                "type": "git",
-                "url": "https://github.com/phel-lang/phel-composer-plugin.git",
-                "reference": "ffc3a251dc0937fc3bd9c7d427d4e903be90692a"
-            },
-            "dist": {
-                "type": "zip",
-                "url": "https://api.github.com/repos/phel-lang/phel-composer-plugin/zipball/ffc3a251dc0937fc3bd9c7d427d4e903be90692a",
-                "reference": "ffc3a251dc0937fc3bd9c7d427d4e903be90692a",
-                "shasum": ""
-            },
-            "require": {
-                "composer-plugin-api": "^1.1.0 || ^2.0",
-                "php": ">=7.4"
-            },
-            "require-dev": {
-                "composer/composer": "^1.10.0",
-                "friendsofphp/php-cs-fixer": "^2.16",
-                "phpunit/phpunit": "^9",
-                "vimeo/psalm": "^3.11"
-            },
-            "type": "composer-plugin",
-            "extra": {
-                "class": "Phel\\Composer\\Plugin"
-            },
-            "autoload": {
-                "psr-4": {
-                    "Phel\\Composer\\": "src"
-                }
-            },
-            "notification-url": "https://packagist.org/downloads/",
-            "license": [
-                "MIT"
-            ],
-            "authors": [
-                {
-                    "name": "Jens Haase",
-                    "email": "je.haase@gmail.com"
-                }
-            ],
-            "description": "A composer plugin for the Phel language.",
-            "homepage": "https://phel-lang.org/",
-            "keywords": [
-                "composer",
-                "functional",
-                "language",
-                "lisp",
-                "phel",
-                "plugin"
-            ],
-            "support": {
-                "issues": "https://github.com/phel-lang/phel-composer-plugin/issues",
-                "source": "https://github.com/phel-lang/phel-composer-plugin/tree/v0.2.0"
-            },
-            "time": "2021-05-12T18:25:31+00:00"
         },
         {
             "name": "phpunit/php-timer",

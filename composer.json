@@ -14,7 +14,6 @@
     "require": {
         "ext-json": "*",
         "php": ">=7.4",
-        "phel-lang/phel-composer-plugin": "^0.2",
         "gacela-project/gacela": "^0.9",
         "symfony/console": "^5.3",
         "phpunit/php-timer": "^5.0"
@@ -65,17 +64,6 @@
     "config": {
         "platform": {
             "php": "7.4"
-        }
-    },
-    "extra": {
-        "phel": {
-            "loader": {
-                "phel\\": "src/phel/"
-            },
-            "loader-dev": {
-                "phel\\": "tests/phel/",
-                "tests-phpbench\\": "tests/php/Benchmark/"
-            }
         }
     }
 }
