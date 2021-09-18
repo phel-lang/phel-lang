@@ -11,7 +11,7 @@ final class ConfigNormalizer
      *
      * @return array<string, list<string>>
      */
-    public function normalize(array $result, array $configLoader, string $pathPrefix): array
+    public function normalize(array $result, array $configLoader, string $pathPrefix = ''): array
     {
         foreach ($configLoader as $ns => $pathList) {
             if (!isset($result[$ns])) {
