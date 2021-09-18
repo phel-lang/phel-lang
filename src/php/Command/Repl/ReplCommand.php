@@ -79,10 +79,10 @@ final class ReplCommand extends Command
 
         if ($this->replStartupFile && file_exists($this->replStartupFile)) {
             $namespace = $this->buildFacade->getNamespaceFromFile($this->replStartupFile)->getNamespace();
-            $srcDirectories = array_merge(
-                [dirname($this->replStartupFile)],
-                ...array_values($this->runtimeFacade->getRuntime()->getPaths())
-            );
+            $srcDirectories = [
+                dirname($this->replStartupFile),
+                ...$this->runtimeFacade->getRuntime()->getSourceDirectories(),
+            ];
             $namespaceInformation = $this->buildFacade->getDependenciesForNamespace($srcDirectories, [$namespace, 'phel\\core']);
 
             foreach ($namespaceInformation as $info) {

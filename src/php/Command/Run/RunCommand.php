@@ -99,7 +99,7 @@ final class RunCommand extends Command
             $namespace = $this->buildFacade->getNamespaceFromFile($fileOrPath)->getNamespace();
         }
 
-        $srcDirectories = array_merge(...array_values($this->runtimeFacade->getRuntime()->getPaths()));
+        $srcDirectories = $this->runtimeFacade->getRuntime()->getSourceDirectories();
         $namespaceInformation = $this->buildFacade->getDependenciesForNamespace($srcDirectories, [$namespace, 'phel\\core']);
 
         foreach ($namespaceInformation as $info) {

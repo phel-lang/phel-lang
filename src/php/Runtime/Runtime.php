@@ -35,14 +35,6 @@ class Runtime implements RuntimeInterface
     }
 
     /**
-     * @return array<string, array<int, string>>
-     */
-    public function getPaths(): array
-    {
-        return $this->paths;
-    }
-
-    /**
      * @param string $namespacePrefix
      * @param array<int, string> $path
      */
@@ -78,7 +70,7 @@ class Runtime implements RuntimeInterface
 
     public function getSourceDirectories(): array
     {
-        return array_merge(...array_values($this->getPaths()));
+        return array_merge(...array_values($this->paths));
     }
 
     public function loadNs(string $ns): bool

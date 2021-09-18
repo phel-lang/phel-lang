@@ -80,7 +80,7 @@ final class TestCommand extends Command
             }
             $namespaces[] = 'phel\\test';
 
-            $srcDirectories = array_merge(...array_values($this->runtimeFacade->getRuntime()->getPaths()));
+            $srcDirectories = $this->runtimeFacade->getRuntime()->getSourceDirectories();
             $namespaceInformation = $this->buildFacade->getDependenciesForNamespace($srcDirectories, $namespaces);
 
             foreach ($namespaceInformation as $info) {
