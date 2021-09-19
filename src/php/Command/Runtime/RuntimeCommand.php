@@ -12,12 +12,22 @@ final class RuntimeCommand extends Command
 {
     private const COMMAND_NAME = 'runtime';
     private const PHEL_CONFIG_FILE_NAME = 'phel-config.php';
+    public const DEFAULT_VENDOR_DIR = 'vendor';
 
     private string $applicationRootDir;
 
     private ConfigNormalizer $configNormalizer;
 
     private RuntimeFileGenerator $runtimeFileGenerator;
+
+    /**
+     * @var null|array{
+     *     loader:array|null,
+     *     loader-dev:array|null,
+     *     vendor-dir:string|null,
+     * }
+     */
+    private ?array $rootPhelConfig = null;
 
     public function __construct(
         string $applicationRootDir,
@@ -57,38 +67,68 @@ final class RuntimeCommand extends Command
     }
 
     /**
+     * Uses 'loader' and 'loader-dev' from the phel config.
+     *
      * @return array<string, list<string>>
      */
     private function loadRootConfig(): array
     {
-        $rootPhelConfigPath = $this->applicationRootDir . self::PHEL_CONFIG_FILE_NAME;
         $result = [];
+        $pathPrefix = '/..';
+        $config = $this->getRootPhelConfig();
 
-        if (is_file($rootPhelConfigPath)) {
-            $pathPrefix = '/..';
-            $rootPhelConfig = require $rootPhelConfigPath;
-            $result[] = $this->configNormalizer->normalize($rootPhelConfig['loader'] ?? [], $pathPrefix);
-            $result[] = $this->configNormalizer->normalize($rootPhelConfig['loader-dev'] ?? [], $pathPrefix);
-        }
+        $result[] = $this->configNormalizer->normalize($config['loader'] ?? [], $pathPrefix);
+        $result[] = $this->configNormalizer->normalize($config['loader-dev'] ?? [], $pathPrefix);
 
         return array_merge(...$result);
     }
 
     /**
+     * Uses only 'loader' from the phel config.
+     *
      * @return array<string, list<string>>
      */
     private function loadVendorConfig(): array
     {
-        $pattern = $this->applicationRootDir . 'vendor/*/*/' . self::PHEL_CONFIG_FILE_NAME;
+        $pattern = $this->applicationRootDir
+            . $this->getVendorDir()
+            . '/*/*/'
+            . self::PHEL_CONFIG_FILE_NAME;
+
         $result = [];
 
         foreach (glob($pattern) as $phelConfigPath) {
             $pathPrefix = '/' . basename(dirname($phelConfigPath));
             /** @psalm-suppress UnresolvableInclude */
-            $configLoader = (require $phelConfigPath)['loader'] ?? [];
-            $result[] = $this->configNormalizer->normalize($configLoader, $pathPrefix);
+            $config = (require $phelConfigPath)['loader'] ?? [];
+            $result[] = $this->configNormalizer->normalize($config, $pathPrefix);
         }
 
         return array_merge(...$result);
+    }
+
+    private function getVendorDir(): string
+    {
+        return $this->getRootPhelConfig()['vendor-dir'] ?? self::DEFAULT_VENDOR_DIR;
+    }
+
+    /**
+     * @return array{
+     *     loader:array|null,
+     *     loader-dev:array|null,
+     *     vendor-dir:string|null,
+     * }
+     */
+    private function getRootPhelConfig(): array
+    {
+        $rootPhelConfigPath = $this->applicationRootDir . self::PHEL_CONFIG_FILE_NAME;
+
+        if ($this->rootPhelConfig === null) {
+            $this->rootPhelConfig = is_file($rootPhelConfigPath)
+                ? require $rootPhelConfigPath
+                : [];
+        }
+
+        return $this->rootPhelConfig;
     }
 }
