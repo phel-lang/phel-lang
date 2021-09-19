@@ -7,9 +7,9 @@ namespace Phel\Command\Runtime;
 final class RuntimeFileGenerator
 {
     /**
-     * @param array<string, list<string>> $loaderConfig [ns => [path1, path2, ...]]
+     * @param array<string, list<string>> $config [ns => [path1, path2, ...]]
      */
-    public function generate(array $loaderConfig): string
+    public function generate(array $config): string
     {
         $template = <<<'EOF'
 <?php
@@ -20,16 +20,16 @@ use Phel\Runtime\RuntimeSingleton;
 require __DIR__ .'/autoload.php';
 
 $rt = RuntimeSingleton::initialize();
+$rt->loadNs("phel\\core");
 
 EOF;
 
-        foreach ($loaderConfig as $ns => $paths) {
+        foreach ($config as $ns => $paths) {
             $encodedNs = addslashes($ns);
             $pathString = implode("', __DIR__ . '", array_map('addslashes', $paths));
             $template .= "\$rt->addPath(\"$encodedNs\", [__DIR__ . '$pathString']);\n";
         }
 
-        $template .= "\$rt->loadNs(\"phel\\\\core\");\n";
         $template .= "return \$rt;\n";
 
         return $template;

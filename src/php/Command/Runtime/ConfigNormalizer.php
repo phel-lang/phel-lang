@@ -7,12 +7,17 @@ namespace Phel\Command\Runtime;
 final class ConfigNormalizer
 {
     /**
-     * @param array<string, list<string>> $result [ns => [path1, path2, ...]]
+     * It normalizes the structure from the loader|loader-dev config file.
      *
-     * @return array<string, list<string>>
+     * @param array<string, string|list<string>> $configLoader the loader|loader-dev from the phel-config file
+     *
+     * @return array<string, list<string>> [ns => [path1, path2, ...]]
      */
-    public function normalize(array $result, array $configLoader, string $pathPrefix = ''): array
+    public function normalize(array $configLoader, string $pathPrefix = ''): array
     {
+        /** @var array<string, list<string>> $result */
+        $result = [];
+
         foreach ($configLoader as $ns => $pathList) {
             if (!isset($result[$ns])) {
                 $result[$ns] = [];

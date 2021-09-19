@@ -20,7 +20,7 @@ final class ConfigNormalizerTest extends TestCase
     {
         $phelConfig = [];
 
-        $result = $this->configLoader->normalize([], $phelConfig);
+        $result = $this->configLoader->normalize($phelConfig);
 
         self::assertSame([], $result);
     }
@@ -31,7 +31,7 @@ final class ConfigNormalizerTest extends TestCase
             'key-1' => [],
         ];
 
-        $result = $this->configLoader->normalize([], $phelConfig);
+        $result = $this->configLoader->normalize($phelConfig);
 
         self::assertSame(['key-1' => []], $result);
     }
@@ -42,7 +42,7 @@ final class ConfigNormalizerTest extends TestCase
             'key-1' => 'value-1',
         ];
 
-        $result = $this->configLoader->normalize([], $phelConfig, 'prefix');
+        $result = $this->configLoader->normalize($phelConfig, 'prefix');
 
         self::assertSame([
             'key-1' => [
@@ -59,7 +59,7 @@ final class ConfigNormalizerTest extends TestCase
             ],
         ];
 
-        $result = $this->configLoader->normalize([], $phelConfig, 'prefix');
+        $result = $this->configLoader->normalize($phelConfig, 'prefix');
 
         self::assertSame([
             'key-1' => [
@@ -77,7 +77,7 @@ final class ConfigNormalizerTest extends TestCase
             ],
         ];
 
-        $result = $this->configLoader->normalize([], $phelConfig, 'prefix');
+        $result = $this->configLoader->normalize($phelConfig, 'prefix');
 
         self::assertSame([
             'key-1' => [

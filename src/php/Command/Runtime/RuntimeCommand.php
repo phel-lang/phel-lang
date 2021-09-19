@@ -38,14 +38,17 @@ final class RuntimeCommand extends Command
 
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
-        /** @var array<string, list<string>> $loaderConfig [ns => [path1, path2, ...]] */
-        $loaderConfig = [];
-        $loaderConfig = $this->loadRootConfig($loaderConfig);
-        $loaderConfig = $this->loadVendorConfig($loaderConfig);
+        $loaderConfig = [
+            $this->loadRootConfig(),
+            $this->loadVendorConfig(),
+        ];
+
+        /** @var array<string, list<string>> $flatConfig [ns => [path1, path2, ...]] */
+        $flatConfig = array_merge(...$loaderConfig);
 
         file_put_contents(
             $this->applicationRootDir . 'vendor/PhelRuntime.php',
-            $this->runtimeFileGenerator->generate($loaderConfig)
+            $this->runtimeFileGenerator->generate($flatConfig)
         );
 
         $output->writeln('<info>PhelRuntime created/updated successfully!</info>');
@@ -56,34 +59,36 @@ final class RuntimeCommand extends Command
     /**
      * @return array<string, list<string>>
      */
-    private function loadRootConfig(array $result): array
+    private function loadRootConfig(): array
     {
         $rootPhelConfigPath = $this->applicationRootDir . self::PHEL_CONFIG_FILE_NAME;
+        $result = [];
 
         if (is_file($rootPhelConfigPath)) {
             $pathPrefix = '/..';
             $rootPhelConfig = require $rootPhelConfigPath;
-            $result = $this->configNormalizer->normalize($result, $rootPhelConfig['loader'] ?? [], $pathPrefix);
-            $result = $this->configNormalizer->normalize($result, $rootPhelConfig['loader-dev'] ?? [], $pathPrefix);
+            $result[] = $this->configNormalizer->normalize($rootPhelConfig['loader'] ?? [], $pathPrefix);
+            $result[] = $this->configNormalizer->normalize($rootPhelConfig['loader-dev'] ?? [], $pathPrefix);
         }
 
-        return $result;
+        return array_merge(...$result);
     }
 
     /**
      * @return array<string, list<string>>
      */
-    private function loadVendorConfig(array $result): array
+    private function loadVendorConfig(): array
     {
         $pattern = $this->applicationRootDir . 'vendor/*/*/' . self::PHEL_CONFIG_FILE_NAME;
+        $result = [];
 
         foreach (glob($pattern) as $phelConfigPath) {
             $pathPrefix = '/' . basename(dirname($phelConfigPath));
             /** @psalm-suppress UnresolvableInclude */
             $configLoader = (require $phelConfigPath)['loader'] ?? [];
-            $result = $this->configNormalizer->normalize($result, $configLoader, $pathPrefix);
+            $result[] = $this->configNormalizer->normalize($configLoader, $pathPrefix);
         }
 
-        return $result;
+        return array_merge(...$result);
     }
 }
