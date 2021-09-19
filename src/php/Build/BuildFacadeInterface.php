@@ -28,19 +28,19 @@ interface BuildFacadeInterface
      *
      * @param string[] $directories The list of the directories
      *
-     * @return NamespaceInformation[]
+     * @return list<NamespaceInformation>
      */
     public function getNamespaceFromDirectories(array $directories): array;
 
     /**
      * Gets a list of all dependencies for a given list of namespaces. It first extracts all
      * namespaces from all Phel files in the give directories and then return a
-     * topoloigcal sorted subset of these namespace information.
+     * topological sorted subset of these namespace information.
      *
      * @param string[] $directories The list of the directories
      * @param string[] $ns A list of namespace for which we should find the subset
      *
-     * @return NamespaceInformation[]
+     * @return list<NamespaceInformation>
      */
     public function getDependenciesForNamespace(array $directories, array $ns): array;
 
@@ -70,7 +70,7 @@ interface BuildFacadeInterface
      * @param string[] $srcDirectories The list of source directories
      * @param string $dest the target dir that should contain the generated code
      *
-     * @return CompiledFile[] A list of compiled files
+     * @return list<CompiledFile>
      */
     public function compileProject(array $srcDirectories, string $dest): array;
 }
