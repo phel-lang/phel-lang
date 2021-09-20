@@ -72,9 +72,4 @@ class Runtime implements RuntimeInterface
     {
         return array_merge(...array_values($this->paths));
     }
-
-    public function loadNs(string $ns): bool
-    {
-        return true;
-    }
 }
