@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Phel\Build\Compile;
 
-class CompiledFile
+final class CompiledFile
 {
     private string $sourceFile;
     private string $targetFile;
