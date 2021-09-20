@@ -11,14 +11,15 @@ use Phel\Compiler\Compiler\CodeCompiler;
 use Phel\Compiler\Compiler\CodeCompilerInterface;
 use Phel\Compiler\Compiler\EvalCompiler;
 use Phel\Compiler\Compiler\EvalCompilerInterface;
-use Phel\Compiler\Emitter\Emitter;
-use Phel\Compiler\Emitter\EmitterInterface;
 use Phel\Compiler\Emitter\OutputEmitter;
 use Phel\Compiler\Emitter\OutputEmitter\Munge;
 use Phel\Compiler\Emitter\OutputEmitter\NodeEmitterFactory;
+use Phel\Compiler\Emitter\OutputEmitter\OutputEmitterOptions;
 use Phel\Compiler\Emitter\OutputEmitter\SourceMap\SourceMapGenerator;
 use Phel\Compiler\Emitter\OutputEmitter\SourceMap\SourceMapState;
 use Phel\Compiler\Emitter\OutputEmitterInterface;
+use Phel\Compiler\Emitter\StatementEmitter;
+use Phel\Compiler\Emitter\StatementEmitterInterface;
 use Phel\Compiler\Evaluator\EvaluatorInterface;
 use Phel\Compiler\Evaluator\RequireEvaluator;
 use Phel\Compiler\Lexer\Lexer;
@@ -88,9 +89,9 @@ final class CompilerFactory extends AbstractFactory
         return new Analyzer($runtime->getEnv());
     }
 
-    public function createEmitter(bool $enableSourceMaps = true): EmitterInterface
+    public function createEmitter(bool $enableSourceMaps = true): StatementEmitterInterface
     {
-        return new Emitter(
+        return new StatementEmitter(
             $enableSourceMaps,
             new SourceMapGenerator(),
             $this->createOutputEmitter($enableSourceMaps)
@@ -104,7 +105,8 @@ final class CompilerFactory extends AbstractFactory
             new NodeEmitterFactory(),
             new Munge(),
             Printer::readable(),
-            new SourceMapState()
+            new SourceMapState(),
+            new OutputEmitterOptions(OutputEmitterOptions::EMIT_MODE_STATEMENT)
         );
     }
 

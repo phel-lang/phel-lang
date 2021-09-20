@@ -9,7 +9,7 @@ use Phel\Compiler\Analyzer\Ast\AbstractNode;
 use Phel\Compiler\Analyzer\Environment\NodeEnvironment;
 use Phel\Compiler\Analyzer\Environment\NodeEnvironmentInterface;
 use Phel\Compiler\Analyzer\Exceptions\AnalyzerException;
-use Phel\Compiler\Emitter\EmitterInterface;
+use Phel\Compiler\Emitter\StatementEmitterInterface;
 use Phel\Compiler\Evaluator\EvaluatorInterface;
 use Phel\Compiler\Evaluator\Exceptions\CompiledCodeIsMalformedException;
 use Phel\Compiler\Evaluator\Exceptions\FileException;
@@ -30,7 +30,7 @@ final class EvalCompiler implements EvalCompilerInterface
     private ParserInterface $parser;
     private ReaderInterface $reader;
     private AnalyzerInterface $analyzer;
-    private EmitterInterface $emitter;
+    private StatementEmitterInterface $emitter;
     private EvaluatorInterface $evaluator;
 
     public function __construct(
@@ -38,7 +38,7 @@ final class EvalCompiler implements EvalCompilerInterface
         ParserInterface $parser,
         ReaderInterface $reader,
         AnalyzerInterface $analyzer,
-        EmitterInterface $emitter,
+        StatementEmitterInterface $emitter,
         EvaluatorInterface $evaluator
     ) {
         $this->lexer = $lexer;
@@ -104,7 +104,7 @@ final class EvalCompiler implements EvalCompilerInterface
      */
     private function evalNode(AbstractNode $node)
     {
-        $code = $this->emitter->emitNode($node);
+        $code = $this->emitter->emitNode($node)->getCodeWithSourceMap();
 
         return $this->evaluator->eval($code);
     }

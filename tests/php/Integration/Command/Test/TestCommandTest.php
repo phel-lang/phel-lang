@@ -16,6 +16,10 @@ final class TestCommandTest extends AbstractCommandTest
         Gacela::bootstrap(__DIR__);
     }
 
+    /**
+     * @runInSeparateProcess
+     * @preserveGlobalState disabled
+     */
     public function test_all_in_project(): void
     {
         $currentDir = __DIR__ . '/Fixtures/test-cmd-project-success/';
@@ -32,6 +36,10 @@ final class TestCommandTest extends AbstractCommandTest
         $command->run($this->stubInput([]), $this->stubOutput());
     }
 
+    /**
+     * @runInSeparateProcess
+     * @preserveGlobalState disabled
+     */
     public function test_one_file_in_project(): void
     {
         $currentDir = __DIR__ . '/Fixtures/test-cmd-project-success/';
@@ -51,6 +59,10 @@ final class TestCommandTest extends AbstractCommandTest
         );
     }
 
+    /**
+     * @runInSeparateProcess
+     * @preserveGlobalState disabled
+     */
     public function test_all_in_failed_project(): void
     {
         $currentDir = __DIR__ . '/Fixtures/test-cmd-project-failure/';

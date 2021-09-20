@@ -94,14 +94,16 @@ final class RunCommand extends Command
      */
     private function loadNamespace(string $fileOrPath): void
     {
-        $ns = file_exists($fileOrPath)
-            ? $this->buildFacade->getNamespaceFromFile($fileOrPath)->getNamespace()
-            : $fileOrPath;
+        $namespace = $fileOrPath;
+        if (file_exists($fileOrPath)) {
+            $namespace = $this->buildFacade->getNamespaceFromFile($fileOrPath)->getNamespace();
+        }
 
-        $result = $this->runtimeFacade->getRuntime()->loadNs($ns);
+        $srcDirectories = $this->runtimeFacade->getRuntime()->getSourceDirectories();
+        $namespaceInformation = $this->buildFacade->getDependenciesForNamespace($srcDirectories, [$namespace, 'phel\\core']);
 
-        if (!$result) {
-            throw CannotLoadNamespaceException::withName($ns);
+        foreach ($namespaceInformation as $info) {
+            $this->buildFacade->evalFile($info->getFile());
         }
     }
 }

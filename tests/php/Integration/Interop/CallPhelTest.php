@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace PhelTest\Integration\Interop;
 
+use Phel\Build\BuildFacade;
 use Phel\Compiler\Analyzer\Environment\GlobalEnvironment;
 use Phel\Runtime\RuntimeSingleton;
 use PHPUnit\Framework\TestCase;
@@ -16,6 +17,10 @@ final class CallPhelTest extends TestCase
     {
         RuntimeSingleton::initializeNew(new GlobalEnvironment());
 
+        (new BuildFacade())->compileFile(
+            __DIR__ . '/../../../../src/phel/core.phel',
+            tempnam(sys_get_temp_dir(), 'phel-core')
+        );
         $this->wrapper = new ExampleWrapper();
     }
 

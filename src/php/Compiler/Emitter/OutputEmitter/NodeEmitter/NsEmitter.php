@@ -18,17 +18,34 @@ final class NsEmitter implements NodeEmitterInterface
     {
         assert($node instanceof NsNode);
 
+        $this->emitNamespace($node);
         $this->emitRequiredNamespaces($node);
         $this->emitCurrentNamespace($node);
     }
 
+    private function emitNamespace(NsNode $node): void
+    {
+        if ($this->outputEmitter->getOptions()->isFileEmitMode()) {
+            $this->outputEmitter->emitStr('namespace ', $node->getStartSourceLocation());
+            $this->outputEmitter->emitStr($this->outputEmitter->mungeEncodeNs($node->getNamespace()), $node->getStartSourceLocation());
+            $this->outputEmitter->emitLine(';', $node->getStartSourceLocation());
+        }
+    }
+
     private function emitRequiredNamespaces(NsNode $node): void
     {
-        foreach ($node->getRequireNs() as $i => $ns) {
-            $this->outputEmitter->emitLine(
-                '\Phel\Runtime\RuntimeSingleton::getInstance()->loadNs("' . addslashes($ns->getName()) . '");',
-                $ns->getStartLocation()
-            );
+        if ($this->outputEmitter->getOptions()->isFileEmitMode()) {
+            foreach ($node->getRequireNs() as $i => $ns) {
+                $depth = count(explode('\\', $node->getNamespace()));
+                $filename = str_replace('\\', '/', $this->outputEmitter->mungeEncodeNs($ns->getName()));
+                $relativePath = str_repeat('/..', $depth) . '/' . $filename . '.php';
+                $absolutePath = '__DIR__ . \'' . $relativePath . '\'';
+
+                $this->outputEmitter->emitLine(
+                    'require_once ' . $absolutePath . ';',
+                    $ns->getStartLocation()
+                );
+            }
         }
     }
 

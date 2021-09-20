@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace PhelTest\Integration;
 
 use Generator;
+use Phel\Build\BuildFacade;
 use Phel\Compiler\Analyzer\Environment\GlobalEnvironment;
 use Phel\Compiler\CompilerFacade;
 use Phel\Lang\Symbol;
@@ -26,7 +27,10 @@ final class IntegrationTest extends TestCase
         $globalEnv = new GlobalEnvironment();
         $rt = RuntimeSingleton::initializeNew($globalEnv);
         $rt->addPath('phel\\', [__DIR__ . '/../../src/phel/']);
-        $rt->loadNs('phel\core');
+        (new BuildFacade())->compileFile(
+            __DIR__ . '/../../../src/phel/core.phel',
+            tempnam(sys_get_temp_dir(), 'phel-core')
+        );
         self::$globalEnv = $globalEnv;
     }
 

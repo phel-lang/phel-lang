@@ -6,6 +6,7 @@ namespace PhelTest\Integration\Command\Repl;
 
 use Gacela\Framework\Gacela;
 use Generator;
+use Phel\Build\BuildFacade;
 use Phel\Command\Repl\ColorStyle;
 use Phel\Command\Repl\ReplCommand;
 use Phel\Compiler\Analyzer\Environment\GlobalEnvironment;
@@ -84,7 +85,8 @@ final class ReplCommandTest extends AbstractCommandTest
             $io,
             new CompilerFacade(),
             ColorStyle::noStyles(),
-            Printer::nonReadable()
+            Printer::nonReadable(),
+            new BuildFacade()
         );
 
         $command->addRuntimePath('phel\\', [__DIR__ . '/../../../../src/phel/']);

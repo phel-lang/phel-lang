@@ -7,7 +7,6 @@
 
 (defstruct abc [a])
 --PHP--
-\Phel\Runtime\RuntimeSingleton::getInstance()->loadNs("my-namespace\\core");
 \Phel\Runtime\RuntimeSingleton::getInstance()->getEnv()->setNs("hello-world");
 $GLOBALS["__phel"]["phel\\core"]["*ns*"] = "hello_world";
 $GLOBALS["__phel"]["hello_world"]["x"] = 10;

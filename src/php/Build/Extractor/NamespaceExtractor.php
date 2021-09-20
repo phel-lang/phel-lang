@@ -74,7 +74,7 @@ final class NamespaceExtractor implements NamespaceExtractorInterface
      *
      * @throws ExtractorException
      *
-     * @return NamespaceInformation[]
+     * @return list<NamespaceInformation>
      */
     public function getNamespacesFromDirectories(array $directories): array
     {

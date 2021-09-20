@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Phel\Command\Repl;
 
+use Phel\Build\BuildFacadeInterface;
 use Phel\Command\Repl\Exceptions\ExitException;
 use Phel\Compiler\CompilerFacadeInterface;
 use Phel\Compiler\Exceptions\CompilerException;
@@ -30,6 +31,7 @@ final class ReplCommand extends Command
     private CompilerFacadeInterface $compilerFacade;
     private ColorStyleInterface $style;
     private PrinterInterface $printer;
+    private BuildFacadeInterface $buildFacade;
     private string $replStartupFile;
 
     /** @var string[] */
@@ -43,6 +45,7 @@ final class ReplCommand extends Command
         CompilerFacadeInterface $compilerFacade,
         ColorStyleInterface $style,
         PrinterInterface $printer,
+        BuildFacadeInterface $buildFacade,
         string $replStartupFile = ''
     ) {
         parent::__construct(self::COMMAND_NAME);
@@ -51,6 +54,7 @@ final class ReplCommand extends Command
         $this->compilerFacade = $compilerFacade;
         $this->style = $style;
         $this->printer = $printer;
+        $this->buildFacade = $buildFacade;
         $this->replStartupFile = $replStartupFile;
         $this->previousResult = InputResult::empty();
     }
@@ -73,9 +77,17 @@ final class ReplCommand extends Command
         $this->io->writeln($this->style->yellow('Welcome to the Phel Repl'));
         $this->io->writeln('Type "exit" or press Ctrl-D to exit.');
 
-        if ($this->replStartupFile) {
-            $this->runtimeFacade->getRuntime()
-                ->loadFileIntoNamespace('user', $this->replStartupFile);
+        if ($this->replStartupFile && file_exists($this->replStartupFile)) {
+            $namespace = $this->buildFacade->getNamespaceFromFile($this->replStartupFile)->getNamespace();
+            $srcDirectories = [
+                dirname($this->replStartupFile),
+                ...$this->runtimeFacade->getRuntime()->getSourceDirectories(),
+            ];
+            $namespaceInformation = $this->buildFacade->getDependenciesForNamespace($srcDirectories, [$namespace, 'phel\\core']);
+
+            foreach ($namespaceInformation as $info) {
+                $this->buildFacade->evalFile($info->getFile());
+            }
         }
 
         $this->loopReadLineAndAnalyze();

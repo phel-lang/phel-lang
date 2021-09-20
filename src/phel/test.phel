@@ -308,9 +308,7 @@
       (get-in php/$GLOBALS ["__phel" munge-ns fn-name]))))
 
 (defn- run-test [options ns]
-  (let [rt (php/:: \Phel\Runtime\RuntimeSingleton (getInstance))
-        _ (php/-> rt (loadNs ns))
-        tests (find-test-fns ns options)]
+  (let [tests (find-test-fns ns options)]
     (dofor [test :in tests]
       (test))))
 

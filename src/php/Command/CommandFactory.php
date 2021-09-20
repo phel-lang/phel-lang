@@ -41,6 +41,7 @@ final class CommandFactory extends AbstractFactory
             $this->getCompilerFacade(),
             $this->createColorStyle(),
             $this->createPrinter(),
+            $this->getBuildFacade(),
             $this->getConfig()->getReplStartupFile()
         );
     }

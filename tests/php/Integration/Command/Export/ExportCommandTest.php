@@ -16,6 +16,10 @@ final class ExportCommandTest extends AbstractCommandTest
         Gacela::bootstrap(__DIR__);
     }
 
+    /**
+     * @runInSeparateProcess
+     * @preserveGlobalState disabled
+     */
     public function test_export_command_multiple(): void
     {
         $command = $this

@@ -6,7 +6,6 @@ namespace Phel\Runtime;
 
 use Phel\Compiler\Analyzer\Environment\GlobalEnvironment;
 use Phel\Compiler\Analyzer\Environment\GlobalEnvironmentInterface;
-use Phel\Compiler\CompilerFacade;
 use Phel\Runtime\Exceptions\ExceptionPrinterInterface;
 use Phel\Runtime\Exceptions\HtmlExceptionPrinter;
 use Phel\Runtime\Exceptions\RuntimeAlreadyInitializedException;
@@ -43,8 +42,7 @@ final class RuntimeSingleton
      * @throws RuntimeAlreadyInitializedException
      */
     public static function initialize(
-        ?GlobalEnvironmentInterface $globalEnv = null,
-        ?string $cacheDirectory = null
+        ?GlobalEnvironmentInterface $globalEnv = null
     ): RuntimeInterface {
         if (self::$instance !== null) {
             throw new RuntimeAlreadyInitializedException();
@@ -52,9 +50,7 @@ final class RuntimeSingleton
 
         self::$instance = new Runtime(
             $globalEnv ?? new GlobalEnvironment(),
-            self::createExceptionPrinter(),
-            self::createCompilerFacade(),
-            $cacheDirectory
+            self::createExceptionPrinter()
         );
 
         return self::$instance;
@@ -64,15 +60,12 @@ final class RuntimeSingleton
      * @interal
      */
     public static function initializeNew(
-        GlobalEnvironmentInterface $globalEnv,
-        string $cacheDirectory = null
+        GlobalEnvironmentInterface $globalEnv
     ): RuntimeInterface {
         unset($GLOBALS['__phel']);
         self::$instance = new Runtime(
             $globalEnv,
-            self::createExceptionPrinter(),
-            self::createCompilerFacade(),
-            $cacheDirectory
+            self::createExceptionPrinter()
         );
 
         return self::$instance;
@@ -85,13 +78,5 @@ final class RuntimeSingleton
         }
 
         return HtmlExceptionPrinter::create();
-    }
-
-    /**
-     * We cannot use the dependencyProvider here because the Singleton needs the static instance.
-     */
-    private static function createCompilerFacade(): CompilerFacade
-    {
-        return new CompilerFacade();
     }
 }

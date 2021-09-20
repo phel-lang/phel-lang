@@ -7,11 +7,13 @@ namespace Phel\Compiler\Emitter;
 use Phel\Compiler\Analyzer\Ast\AbstractNode;
 use Phel\Compiler\Emitter\OutputEmitter\SourceMap\SourceMapGenerator;
 
-final class Emitter implements EmitterInterface
+final class FileEmitter implements FileEmitterInterface
 {
     private bool $enableSourceMaps;
     private SourceMapGenerator $sourceMapGenerator;
     private OutputEmitterInterface $outputEmitter;
+    private string $code = '';
+    private string $source = '';
 
     public function __construct(
         bool $enableSourceMaps,
@@ -23,31 +25,32 @@ final class Emitter implements EmitterInterface
         $this->outputEmitter = $outputEmitter;
     }
 
-    public function emitNode(AbstractNode $node): string
+    public function startFile(string $source): void
     {
         $this->outputEmitter->resetIndentLevel();
         $this->outputEmitter->resetSourceMapState();
+        $this->source = $source;
+        $this->code = '';
+    }
 
+    public function emitNode(AbstractNode $node): void
+    {
         ob_start();
         $this->outputEmitter->emitNode($node);
-        $code = ob_get_clean();
+        $this->code .= ob_get_clean();
+    }
 
-        if (!$this->enableSourceMaps) {
-            return $code;
-        }
-
+    public function endFile(): EmitterResult
+    {
         $sourceMap = $this->sourceMapGenerator->encode(
             $this->outputEmitter->getSourceMapState()->getMappings()
         );
-        $sourceLocation = $node->getStartSourceLocation();
-        $file = $sourceLocation
-            ? $sourceLocation->getFile()
-            : 'string';
 
-        return (
-            '// ' . $file . "\n"
-            . '// ;;' . $sourceMap . "\n"
-            . $code
+        return new EmitterResult(
+            $this->enableSourceMaps,
+            $this->code,
+            $sourceMap,
+            $this->source
         );
     }
 }

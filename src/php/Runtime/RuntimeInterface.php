@@ -20,13 +20,18 @@ interface RuntimeInterface
     public function addPath(string $namespacePrefix, array $path): void;
 
     /**
+     * @return list<string>
+     */
+    public function getSourceDirectories(): array;
+
+    /**
      * @throws CompilerException
      * @throws CompiledCodeIsMalformedException
      * @throws FileException
      *
      * @return bool true if the namespace was successfully loaded; false otherwise
+     *
+     * @deprecated this function only exists because the phel composer plugin is using it
      */
     public function loadNs(string $ns): bool;
-
-    public function loadFileIntoNamespace(string $ns, string $file): void;
 }

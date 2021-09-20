@@ -31,10 +31,12 @@ final class DefStructEmitter implements NodeEmitterInterface
 
     private function emitClassBegin(DefStructNode $node): void
     {
-        $this->outputEmitter->emitLine(
-            'namespace ' . $this->outputEmitter->mungeEncodeNs($node->getNamespace()) . ';',
-            $node->getStartSourceLocation()
-        );
+        if ($this->outputEmitter->getOptions()->isStatementEmitMode()) {
+            $this->outputEmitter->emitLine(
+                'namespace ' . $this->outputEmitter->mungeEncodeNs($node->getNamespace()) . ';',
+                $node->getStartSourceLocation()
+            );
+        }
         $this->outputEmitter->emitLine(
             'class ' . $this->outputEmitter->mungeEncode($node->getName()->getName()) . ' extends \Phel\Lang\Collections\Struct\AbstractPersistentStruct {',
             $node->getStartSourceLocation()
