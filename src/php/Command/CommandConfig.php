@@ -32,7 +32,7 @@ final class CommandConfig extends AbstractPhelConfig
         return __DIR__ . '/Repl/startup.phel';
     }
 
-    private function getApplicationRootDir(): string
+    public function getApplicationRootDir(): string
     {
         return Config::getInstance()->getApplicationRootDir();
     }

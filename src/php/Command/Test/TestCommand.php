@@ -51,7 +51,7 @@ final class TestCommand extends Command
             ->addArgument(
                 'paths',
                 InputArgument::IS_ARRAY | InputArgument::OPTIONAL,
-                'The file paths that you want to format.',
+                'The file paths that you want to test.',
                 []
             )->addOption(
                 'filter',
