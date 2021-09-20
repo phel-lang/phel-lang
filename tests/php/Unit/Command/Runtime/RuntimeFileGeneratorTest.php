@@ -29,7 +29,6 @@ use Phel\Runtime\RuntimeSingleton;
 require __DIR__ .'/autoload.php';
 
 $rt = RuntimeSingleton::initialize();
-$rt->loadNs("phel\\core");
 $rt->addPath("my-namespace\\", [__DIR__ . '/src/']);
 $rt->addPath("my-other-namespace\\", [__DIR__ . '/lib/', __DIR__ . '/other/']);
 $rt->addPath("my-test-namespace\\", [__DIR__ . '/tests/']);

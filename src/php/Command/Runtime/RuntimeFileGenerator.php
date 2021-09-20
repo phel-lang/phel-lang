@@ -20,7 +20,6 @@ use Phel\Runtime\RuntimeSingleton;
 require __DIR__ .'/autoload.php';
 
 $rt = RuntimeSingleton::initialize();
-$rt->loadNs("phel\\core");
 
 EOF;
 
