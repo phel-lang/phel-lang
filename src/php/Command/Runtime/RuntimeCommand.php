@@ -57,7 +57,7 @@ final class RuntimeCommand extends Command
         $flatConfig = array_merge(...$loaderConfig);
 
         file_put_contents(
-            $this->applicationRootDir . 'vendor/PhelRuntime.php',
+            $this->getVendorDir() . '/PhelRuntime.php',
             $this->runtimeFileGenerator->generate($flatConfig)
         );
 
@@ -90,10 +90,7 @@ final class RuntimeCommand extends Command
      */
     private function loadVendorConfig(): array
     {
-        $pattern = $this->applicationRootDir
-            . $this->getVendorDir()
-            . '/*/*/'
-            . self::PHEL_CONFIG_FILE_NAME;
+        $pattern = $this->getVendorDir() . '/*/*/' . self::PHEL_CONFIG_FILE_NAME;
 
         $result = [];
 
@@ -109,7 +106,9 @@ final class RuntimeCommand extends Command
 
     private function getVendorDir(): string
     {
-        return $this->getRootPhelConfig()['vendor-dir'] ?? self::DEFAULT_VENDOR_DIR;
+        $vendorDir = $this->getRootPhelConfig()['vendor-dir'] ?? self::DEFAULT_VENDOR_DIR;
+
+        return $this->applicationRootDir . $vendorDir;
     }
 
     /**
