@@ -59,12 +59,14 @@ final class ConfigLoader
      */
     private function loadVendorConfig(): array
     {
-        $pattern = $this->vendorDir->getVendorDir() . '/*/*/' . self::PHEL_CONFIG_FILE_NAME;
+        $vendorDir = $this->vendorDir->getVendorDir();
+        $pattern = $vendorDir . '/*/*/' . self::PHEL_CONFIG_FILE_NAME;
 
         $result = [];
 
         foreach (glob($pattern) as $phelConfigPath) {
-            $pathPrefix = '/' . basename(dirname($phelConfigPath));
+            $relativeVendorConfigPath = substr($phelConfigPath, strlen($vendorDir) - strlen($phelConfigPath));
+            $pathPrefix = dirname($relativeVendorConfigPath);
             /** @psalm-suppress UnresolvableInclude */
             $config = (require $phelConfigPath)['loader'] ?? [];
             $result[] = $this->configNormalizer->normalize($config, $pathPrefix);

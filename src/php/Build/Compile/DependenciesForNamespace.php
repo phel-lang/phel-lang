@@ -36,6 +36,9 @@ final class DependenciesForNamespace
         while (count($queue) > 0) {
             $currentNs = array_shift($queue);
             if (!isset($requiredNamespaces[$currentNs])) {
+                if (empty($index[$currentNs])) {
+                    continue;
+                }
                 foreach ($index[$currentNs]->getDependencies() as $depNs) {
                     $queue[] = $depNs;
                 }

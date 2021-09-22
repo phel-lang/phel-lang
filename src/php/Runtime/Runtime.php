@@ -36,21 +36,22 @@ class Runtime implements RuntimeInterface
 
     /**
      * @param string $namespacePrefix
-     * @param array<int, string> $path
+     * @param array<int, string> $paths
      */
-    public function addPath(string $namespacePrefix, array $path): void
+    public function addPath(string $namespacePrefix, array $paths): void
     {
-        /** @var array<int, string> $path */
-        $path = array_map(fn ($p) => realpath($p), $path);
+        /** @var array<int, string> $paths */
+        $realpaths = array_map(fn ($p) => realpath($p), $paths);
         $length = strlen($namespacePrefix);
         if ('\\' !== $namespacePrefix[$length - 1]) {
             throw new InvalidArgumentException('A non-empty prefix must end with a namespace separator.');
         }
 
         if (isset($this->paths[$namespacePrefix])) {
-            $this->paths[$namespacePrefix] = array_unique([...$this->paths[$namespacePrefix], ...$path]);
+            /** @psalm-suppress InvalidPropertyAssignmentValue */
+            $this->paths[$namespacePrefix] = array_unique([...$this->paths[$namespacePrefix], ...$realpaths]);
         } else {
-            $this->paths[$namespacePrefix] = $path;
+            $this->paths[$namespacePrefix] = $realpaths;
         }
     }
 
