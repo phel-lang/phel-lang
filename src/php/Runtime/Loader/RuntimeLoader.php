@@ -10,16 +10,18 @@ use Phel\Runtime\RuntimeSingleton;
 
 final class RuntimeLoader
 {
-    private VendorDir $vendorDir;
     private ConfigLoader $configLoader;
 
+    private VendorDir $vendorDir;
+
     public function __construct(
-        VendorDir $vendorDir,
-        ConfigLoader $configLoader
+        ConfigLoader $configLoader,
+        VendorDir $vendorDir
     ) {
-        $this->vendorDir = $vendorDir;
         $this->configLoader = $configLoader;
+        $this->vendorDir = $vendorDir;
     }
+
     /**
      * @throws PhelRuntimeException
      */

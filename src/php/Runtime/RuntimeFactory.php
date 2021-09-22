@@ -19,12 +19,12 @@ final class RuntimeFactory extends AbstractFactory
     public function createRuntimeLoader(): RuntimeLoader
     {
         return new RuntimeLoader(
-            $this->createVendorDir(),
-            $this->createConfigLoader()
+            $this->createConfigLoader(),
+            $this->createVendorDir()
         );
     }
 
-    public function createConfigLoader(): ConfigLoader
+    private function createConfigLoader(): ConfigLoader
     {
         return new ConfigLoader(
             $this->createRootPhelConfig(),
@@ -33,7 +33,7 @@ final class RuntimeFactory extends AbstractFactory
         );
     }
 
-    public function createVendorDir(): VendorDir
+    private function createVendorDir(): VendorDir
     {
         return new VendorDir(
             $this->getConfig()->getApplicationRootDir(),

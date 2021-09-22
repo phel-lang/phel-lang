@@ -22,6 +22,9 @@ final class ConfigLoader
         $this->configNormalizer = $configNormalizer;
     }
 
+    /**
+     * @return array<string, list<string>>
+     */
     public function loadConfig(): array
     {
         $loaderConfig = [

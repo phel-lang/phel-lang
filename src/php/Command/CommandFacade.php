@@ -9,7 +9,6 @@ use Phel\Command\Export\ExportCommand;
 use Phel\Command\Format\FormatCommand;
 use Phel\Command\Repl\ReplCommand;
 use Phel\Command\Run\RunCommand;
-use Phel\Command\Runtime\RuntimeCommand;
 use Phel\Command\Test\TestCommand;
 
 /**
@@ -25,11 +24,6 @@ final class CommandFacade extends AbstractFacade
     public function getRunCommand(): RunCommand
     {
         return $this->getFactory()->createRunCommand();
-    }
-
-    public function getRuntimeCommand(): RuntimeCommand
-    {
-        return $this->getFactory()->createRuntimeCommand();
     }
 
     public function getTestCommand(): TestCommand

@@ -25,6 +25,5 @@ $application->add($commandFacade->getExportCommand());
 $application->add($commandFacade->getFormatCommand());
 $application->add($commandFacade->getReplCommand());
 $application->add($commandFacade->getRunCommand());
-$application->add($commandFacade->getRuntimeCommand());
 $application->add($commandFacade->getTestCommand());
 $application->run();
