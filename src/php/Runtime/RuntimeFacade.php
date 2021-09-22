@@ -20,4 +20,21 @@ final class RuntimeFacade extends AbstractFacade implements RuntimeFacadeInterfa
     {
         $this->getRuntime()->addPath($namespacePrefix, $path);
     }
+
+    /**
+     * @return array<string, list<string>> [ns => [path1, path2, ...]]
+     */
+    public function loadConfig(): array
+    {
+        return $this->getFactory()
+            ->createConfigLoader()
+            ->loadConfig();
+    }
+
+    public function getVendorDir(): string
+    {
+        return $this->getFactory()
+            ->createVendorDir()
+            ->getVendorDir();
+    }
 }

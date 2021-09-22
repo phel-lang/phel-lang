@@ -9,4 +9,8 @@ interface RuntimeFacadeInterface
     public function getRuntime(): RuntimeInterface;
 
     public function addPath(string $namespacePrefix, array $path): void;
+
+    public function loadConfig(): array;
+
+    public function getVendorDir(): string;
 }

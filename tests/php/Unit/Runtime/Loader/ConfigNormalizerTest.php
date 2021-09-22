@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace PhelTest\Unit\Command\Runtime;
+namespace PhelTest\Unit\Runtime\Loader;
 
-use Phel\Command\Runtime\ConfigNormalizer;
+use Phel\Runtime\Loader\ConfigNormalizer;
 use PHPUnit\Framework\TestCase;
 
 final class ConfigNormalizerTest extends TestCase

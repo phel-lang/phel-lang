@@ -16,7 +16,6 @@ use Phel\Command\Repl\ReplCommand;
 use Phel\Command\Repl\ReplCommandIoInterface;
 use Phel\Command\Repl\ReplCommandSystemIo;
 use Phel\Command\Run\RunCommand;
-use Phel\Command\Runtime\ConfigNormalizer;
 use Phel\Command\Runtime\RuntimeCommand;
 use Phel\Command\Runtime\RuntimeFileGenerator;
 use Phel\Command\Shared\CommandExceptionWriter;
@@ -90,9 +89,8 @@ final class CommandFactory extends AbstractFactory
     public function createRuntimeCommand(): RuntimeCommand
     {
         return new RuntimeCommand(
-            $this->getConfig()->getApplicationRootDir(),
-            $this->createConfigNormalizer(),
-            $this->createRuntimeFileGenerator()
+            $this->createRuntimeFileGenerator(),
+            $this->getRuntimeFacade()
         );
     }
 
@@ -119,11 +117,6 @@ final class CommandFactory extends AbstractFactory
     private function createPathFilter(): PathFilterInterface
     {
         return new PhelPathFilter();
-    }
-
-    private function createConfigNormalizer(): ConfigNormalizer
-    {
-        return new ConfigNormalizer();
     }
 
     private function createRuntimeFileGenerator(): RuntimeFileGenerator

@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Phel\Command\Runtime;
+namespace Phel\Runtime\Loader;
 
 final class ConfigNormalizer
 {
