@@ -58,6 +58,9 @@ final class RunCommand extends Command
             );
     }
 
+    /**
+     * @internal for testing
+     */
     public function addRuntimePath(string $namespacePrefix, array $path): self
     {
         $this->runtimeFacade->addPath($namespacePrefix, $path);

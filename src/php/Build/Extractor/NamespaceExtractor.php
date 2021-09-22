@@ -96,7 +96,7 @@ final class NamespaceExtractor implements NamespaceExtractorInterface
                     $firstFile = $seen[$info->getNamespace()]->getFile();
                     $secondFile = $info->getFile();
                     $namespace = $info->getNamespace();
-                    throw new ExtractorException("Two files have the same namespace: $namespace: $firstFile and $secondFile");
+                    throw ExtractorException::duplicateNamespace($namespace, $firstFile, $secondFile);
                 }
 
                 $result[] = $info;

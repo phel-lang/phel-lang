@@ -9,6 +9,9 @@ use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 
+/**
+ * @deprecated
+ */
 final class RuntimeCommand extends Command
 {
     private const COMMAND_NAME = 'runtime';

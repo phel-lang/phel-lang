@@ -13,9 +13,14 @@ final class RuntimeFacade extends AbstractFacade implements RuntimeFacadeInterfa
 {
     public function getRuntime(): RuntimeInterface
     {
-        return $this->getFactory()->getRuntime();
+        return $this->getFactory()
+            ->createRuntimeLoader()
+            ->loadRuntime();
     }
 
+    /**
+     * @internal for testing
+     */
     public function addPath(string $namespacePrefix, array $path): void
     {
         $this->getRuntime()->addPath($namespacePrefix, $path);
@@ -23,6 +28,8 @@ final class RuntimeFacade extends AbstractFacade implements RuntimeFacadeInterfa
 
     /**
      * @return array<string, list<string>> [ns => [path1, path2, ...]]
+     *
+     * @deprecated No replacement. Used only in RuntimeCommand, which is deprecated.
      */
     public function loadConfig(): array
     {
@@ -31,6 +38,9 @@ final class RuntimeFacade extends AbstractFacade implements RuntimeFacadeInterfa
             ->loadConfig();
     }
 
+    /**
+     * @deprecated No replacement. Used only in RuntimeCommand, which is deprecated.
+     */
     public function getVendorDir(): string
     {
         return $this->getFactory()

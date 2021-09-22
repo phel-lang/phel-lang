@@ -33,6 +33,9 @@ final class ExportCommand extends Command
         $this->interopFacade = $interopFacade;
     }
 
+    /**
+     * @internal for testing
+     */
     public function addRuntimePath(string $namespacePrefix, array $path): self
     {
         $this->runtimeFacade->addPath($namespacePrefix, $path);

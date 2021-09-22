@@ -64,6 +64,9 @@ final class ReplCommand extends Command
         $this->setDescription('Start a Repl.');
     }
 
+    /**
+     * @internal for testing
+     */
     public function addRuntimePath(string $namespacePrefix, array $path): self
     {
         $this->runtimeFacade->addPath($namespacePrefix, $path);
