@@ -1,4 +1,4 @@
-(ns phel\test\core\type-operation
+(ns phel-test\test\core\type-operation
   (:use DateTime)
   (:require phel\test :refer [deftest is]))
 

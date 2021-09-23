@@ -1,4 +1,4 @@
-(ns phel\test\core
+(ns phel-test\test\core
   (:require phel\test :refer [deftest is]))
 
 # -------------

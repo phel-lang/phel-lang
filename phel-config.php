@@ -8,7 +8,7 @@ return [
         'phel\\' => 'src/phel/',
     ],
     'loader-dev' => [
-        'phel\\' => 'tests/phel/',
+        'phel-test\\' => 'tests/phel/',
         'tests-phpbench\\' => 'tests/php/Benchmark/',
     ],
     'tests' => [

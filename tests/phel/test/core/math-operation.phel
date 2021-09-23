@@ -1,4 +1,4 @@
-(ns phel\test\core\math-operation
+(ns phel-test\test\core\math-operation
   (:require phel\test :refer [deftest is]))
 
 (deftest test-+

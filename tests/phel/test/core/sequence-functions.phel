@@ -1,4 +1,4 @@
-(ns phel\test\core\sequence-functions
+(ns phel-test\test\core\sequence-functions
   (:require phel\test :refer [deftest is]))
 
 (deftest test-map

@@ -1,4 +1,4 @@
-(ns phel\test\core\function-operation
+(ns phel-test\test\core\function-operation
   (:require phel\test :refer [deftest is]))
 
 (deftest test-identity

@@ -1,4 +1,4 @@
-(ns phel\test\html
+(ns phel-test\test\html
   (:require phel\html :refer [html raw-string doctype])
   (:require phel\test :refer [deftest is]))
 

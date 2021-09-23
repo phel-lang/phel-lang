@@ -1,4 +1,4 @@
-(ns phel\test\core\print-operation
+(ns phel-test\test\core\print-operation
   (:require phel\test :refer [deftest is]))
 
 (deftest test-str

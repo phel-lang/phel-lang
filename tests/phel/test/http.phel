@@ -1,4 +1,4 @@
-(ns phel\test\http
+(ns phel-test\test\http
   (:require phel\http :as h)
   (:require phel\test :refer [deftest is]))
 

@@ -1,4 +1,4 @@
-(ns phel\test\core\boolean-operation
+(ns phel-test\test\core\boolean-operation
   (:require phel\test :refer [deftest is]))
 
 (deftest test-or

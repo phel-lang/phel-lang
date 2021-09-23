@@ -1,4 +1,4 @@
-(ns phel\test\core\for-loop
+(ns phel-test\test\core\for-loop
   (:require phel\test :refer [deftest is]))
 
 (deftest test-range
