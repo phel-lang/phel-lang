@@ -1,4 +1,4 @@
-(ns phel\test\core\sequence-operation
+(ns phel-test\test\core\sequence-operation
   (:require phel\test :refer [deftest is]))
 
 (deftest test-peek

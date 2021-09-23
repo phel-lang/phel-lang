@@ -1,4 +1,4 @@
-(ns phel\test\special-forms
+(ns phel-test\test\special-forms
   (:require phel\test :refer [deftest is]))
 
 (deftest test-set-object-property

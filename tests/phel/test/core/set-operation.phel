@@ -1,4 +1,4 @@
-(ns phel\test\core\set-operation
+(ns phel-test\test\core\set-operation
   (:require phel\test :refer [deftest is]))
 
 (deftest test-set-union

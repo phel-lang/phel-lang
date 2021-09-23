@@ -1,4 +1,4 @@
-(ns phel\test\core\regex-functions
+(ns phel-test\test\core\regex-functions
   (:require phel\test :refer [deftest is]))
 
 (deftest test-re-seq

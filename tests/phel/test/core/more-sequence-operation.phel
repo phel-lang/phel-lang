@@ -1,4 +1,4 @@
-(ns phel\test\core\more-sequence-operation
+(ns phel-test\test\core\more-sequence-operation
   (:require phel\test :refer [deftest is]))
 
 (deftest test-tree-seq

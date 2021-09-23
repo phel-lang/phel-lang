@@ -1,4 +1,4 @@
-(ns phel\test\core\control-structures
+(ns phel-test\test\core\control-structures
   (:require phel\test :refer [deftest is]))
 
 (deftest test-if-not

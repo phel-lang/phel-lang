@@ -1,4 +1,4 @@
-(ns phel\test\core\basic-sequence-operation
+(ns phel-test\test\core\basic-sequence-operation
   (:require phel\test :refer [deftest is]))
 
 (deftest test-cons

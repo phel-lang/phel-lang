@@ -1,4 +1,4 @@
-(ns phel\test\core\bitwise-operation
+(ns phel-test\test\core\bitwise-operation
   (:require phel\test :refer [deftest is]))
 
 (deftest test-bit-and
