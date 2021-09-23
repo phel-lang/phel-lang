@@ -8,6 +8,11 @@ use Phel\Compiler\Analyzer\Environment\GlobalEnvironmentInterface;
 
 interface RuntimeInterface
 {
+    /**
+     * @return list<string>
+     */
+    public function getSourceDirectories(): array;
+
     public function getEnv(): GlobalEnvironmentInterface;
 
     /**
@@ -15,9 +20,4 @@ interface RuntimeInterface
      * @param array<int, string> $paths
      */
     public function addPath(string $namespacePrefix, array $paths): void;
-
-    /**
-     * @return list<string>
-     */
-    public function getSourceDirectories(): array;
 }

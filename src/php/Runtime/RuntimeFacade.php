@@ -5,17 +5,24 @@ declare(strict_types=1);
 namespace Phel\Runtime;
 
 use Gacela\Framework\AbstractFacade;
+use Phel\Compiler\Analyzer\Environment\GlobalEnvironmentInterface;
 
 /**
  * @method RuntimeFactory getFactory()
  */
 final class RuntimeFacade extends AbstractFacade implements RuntimeFacadeInterface
 {
-    public function getRuntime(): RuntimeInterface
+    /**
+     * @return list<string>
+     */
+    public function getSourceDirectories(): array
     {
-        return $this->getFactory()
-            ->createRuntimeLoader()
-            ->loadRuntime();
+        return $this->getRuntime()->getSourceDirectories();
+    }
+
+    public function getEnv(): GlobalEnvironmentInterface
+    {
+        return $this->getRuntime()->getEnv();
     }
 
     /**
@@ -24,5 +31,12 @@ final class RuntimeFacade extends AbstractFacade implements RuntimeFacadeInterfa
     public function addPath(string $namespacePrefix, array $path): void
     {
         $this->getRuntime()->addPath($namespacePrefix, $path);
+    }
+
+    private function getRuntime(): RuntimeInterface
+    {
+        return $this->getFactory()
+            ->createRuntimeLoader()
+            ->loadRuntime();
     }
 }

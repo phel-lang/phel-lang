@@ -67,11 +67,9 @@ final class CompilerFactory extends AbstractFactory
 
     public function createReader(): ReaderInterface
     {
-        $runtime = $this->getRuntimeFacade()->getRuntime();
-
         return new Reader(
             new ExpressionReaderFactory(),
-            new QuasiquoteTransformer($runtime->getEnv())
+            new QuasiquoteTransformer($this->getRuntimeFacade()->getEnv())
         );
     }
 
@@ -84,9 +82,7 @@ final class CompilerFactory extends AbstractFactory
 
     public function createAnalyzer(): AnalyzerInterface
     {
-        $runtime = $this->getRuntimeFacade()->getRuntime();
-
-        return new Analyzer($runtime->getEnv());
+        return new Analyzer($this->getRuntimeFacade()->getEnv());
     }
 
     public function createEmitter(bool $enableSourceMaps = true): StatementEmitterInterface

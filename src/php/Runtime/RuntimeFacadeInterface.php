@@ -4,9 +4,16 @@ declare(strict_types=1);
 
 namespace Phel\Runtime;
 
+use Phel\Compiler\Analyzer\Environment\GlobalEnvironmentInterface;
+
 interface RuntimeFacadeInterface
 {
-    public function getRuntime(): RuntimeInterface;
+    /**
+     * @return list<string>
+     */
+    public function getSourceDirectories(): array;
+
+    public function getEnv(): GlobalEnvironmentInterface;
 
     /**
      * @internal for testing
