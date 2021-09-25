@@ -8,6 +8,9 @@ use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 
+/**
+ * @deprecated without replacement
+ */
 final class RuntimeCommand extends Command
 {
     private const COMMAND_NAME = 'runtime';
@@ -67,7 +70,7 @@ final class RuntimeCommand extends Command
     }
 
     /**
-     * Uses 'src-dir' and 'test-dirs' from the phel config.
+     * Uses 'src-dirs' and 'test-dirs' from the phel config.
      *
      * @return array<string, list<string>>
      */
@@ -77,14 +80,14 @@ final class RuntimeCommand extends Command
         $pathPrefix = '/..';
         $config = $this->getRootPhelConfig();
 
-        $result[] = $this->configNormalizer->normalize($config['src-dir'] ?? [], $pathPrefix);
+        $result[] = $this->configNormalizer->normalize($config['src-dirs'] ?? [], $pathPrefix);
         $result[] = $this->configNormalizer->normalize($config['test-dirs'] ?? [], $pathPrefix);
 
         return array_merge(...$result);
     }
 
     /**
-     * Uses only 'src-dir' from the phel config.
+     * Uses only 'src-dirs' from the phel config.
      *
      * @return array<string, list<string>>
      */

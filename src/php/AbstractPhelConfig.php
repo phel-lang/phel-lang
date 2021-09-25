@@ -34,6 +34,8 @@ abstract class AbstractPhelConfig extends AbstractConfig
      * @param null|mixed $default
      *
      * @return mixed
+     *
+     * @deprecated use phel-config.php instead.
      */
     private function readFromComposerJson(string $key, $default)
     {
@@ -44,6 +46,9 @@ abstract class AbstractPhelConfig extends AbstractConfig
         return $this->composerJson['extra']['phel'][$key] ?? $default;
     }
 
+    /**
+     * @deprecated use phel-config.php instead.
+     */
     private function readComposerJson(): array
     {
         $composerJsonPath = Config::getInstance()->getApplicationRootDir() . DIRECTORY_SEPARATOR . 'composer.json';

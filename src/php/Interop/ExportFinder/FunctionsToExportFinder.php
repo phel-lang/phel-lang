@@ -10,7 +10,6 @@ use Phel\Build\Extractor\NamespaceInformation;
 use Phel\Compiler\Evaluator\Exceptions\CompiledCodeIsMalformedException;
 use Phel\Compiler\Evaluator\Exceptions\FileException;
 use Phel\Compiler\Exceptions\CompilerException;
-use Phel\Config\ConfigFacadeInterface;
 use Phel\Interop\ReadModel\FunctionToExport;
 use Phel\Lang\Collections\Map\PersistentMapInterface;
 use Phel\Lang\Keyword;
@@ -19,21 +18,24 @@ use Phel\Lang\TypeFactory;
 final class FunctionsToExportFinder implements FunctionsToExportFinderInterface
 {
     private BuildFacadeInterface $buildFacade;
-    private ConfigFacadeInterface $configFacade;
+    private array $sourceDirs;
+    private array $exportDirs;
 
     public function __construct(
         BuildFacadeInterface $buildFacade,
-        ConfigFacadeInterface $configFacade
+        array $sourceDirs,
+        array $exportDirs
     ) {
         $this->buildFacade = $buildFacade;
-        $this->configFacade = $configFacade;
+        $this->sourceDirs = $sourceDirs;
+        $this->exportDirs = $exportDirs;
     }
 
     /**
-     * @throws CompiledCodeIsMalformedException
      * @throws ExtractorException
      * @throws FileException
      * @throws CompilerException
+     * @throws CompiledCodeIsMalformedException
      *
      * @return array<string, list<FunctionToExport>>
      */
@@ -53,12 +55,12 @@ final class FunctionsToExportFinder implements FunctionsToExportFinderInterface
     private function loadAllNsFromPaths(): void
     {
         $namespaceFromDirectories = $this->buildFacade
-            ->getNamespaceFromDirectories($this->configFacade->getExportDirectories());
+            ->getNamespaceFromDirectories($this->exportDirs);
 
         $namespaces = array_values(array_map(fn (NamespaceInformation $info) => $info->getNamespace(), $namespaceFromDirectories));
 
         $namespaceInformation = $this->buildFacade->getDependenciesForNamespace(
-            $this->configFacade->getSourceDirectories(),
+            $this->sourceDirs,
             [...$namespaces, 'phel\\core']
         );
         foreach ($namespaceInformation as $info) {

@@ -6,7 +6,6 @@ namespace Phel\Interop;
 
 use Gacela\Framework\AbstractFactory;
 use Phel\Build\BuildFacadeInterface;
-use Phel\Config\ConfigFacadeInterface;
 use Phel\Interop\DirectoryRemover\DirectoryRemover;
 use Phel\Interop\DirectoryRemover\DirectoryRemoverInterface;
 use Phel\Interop\ExportFinder\FunctionsToExportFinder;
@@ -29,7 +28,7 @@ final class InteropFactory extends AbstractFactory
     {
         return new WrapperGenerator(
             $this->createCompiledPhpClassBuilder(),
-            new WrapperRelativeFilenamePathBuilder()
+            $this->createWrapperPathBuilder()
         );
     }
 
@@ -37,7 +36,8 @@ final class InteropFactory extends AbstractFactory
     {
         return new FunctionsToExportFinder(
             $this->getBuildFacade(),
-            $this->getConfigFacade()
+            $this->getConfig()->getSourceDirectories(),
+            $this->getConfig()->getExportDirectories()
         );
     }
 
@@ -60,8 +60,13 @@ final class InteropFactory extends AbstractFactory
     {
         return new CompiledPhpClassBuilder(
             $this->getConfig()->prefixNamespace(),
-            new CompiledPhpMethodBuilder()
+            $this->createCompiledPhpMethodBuilder()
         );
+    }
+
+    private function createWrapperPathBuilder(): WrapperRelativeFilenamePathBuilder
+    {
+        return new WrapperRelativeFilenamePathBuilder();
     }
 
     private function createFileSystemIo(): FileIoInterface
@@ -69,9 +74,9 @@ final class InteropFactory extends AbstractFactory
         return new FileSystemIo();
     }
 
-    private function getConfigFacade(): ConfigFacadeInterface
+    private function createCompiledPhpMethodBuilder(): CompiledPhpMethodBuilder
     {
-        return $this->getProvidedDependency(InteropDependencyProvider::FACADE_CONFIG);
+        return new CompiledPhpMethodBuilder();
     }
 
     private function getBuildFacade(): BuildFacadeInterface

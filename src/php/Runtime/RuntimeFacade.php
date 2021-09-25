@@ -7,6 +7,8 @@ namespace Phel\Runtime;
 use Gacela\Framework\AbstractFacade;
 
 /**
+ * @deprecated without replacement
+ *
  * @method RuntimeFactory getFactory()
  */
 final class RuntimeFacade extends AbstractFacade implements RuntimeFacadeInterface

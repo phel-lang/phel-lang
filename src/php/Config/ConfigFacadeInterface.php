@@ -55,31 +55,12 @@ interface ConfigFacadeInterface
     public function getVendorSourceDirectories(): array;
 
     /**
-     * Returns a iterator of all phel files in the project's source directories and vendor source directories.
+     * Returns an iterator of all phel files in the project's source directories and vendor source directories.
      */
     public function getAllSourceFiles(): Iterator;
 
     /**
-     * Returns a iterator of all phel files in the project's source directories, test directories and vendor source directories.
+     * Returns an iterator of all phel files in the project's source directories, test directories and vendor source directories.
      */
     public function getAllFiles(): Iterator;
-
-    /**
-     * Returns a list of all export directories that contain exported definitions.
-     *
-     * All path are absolute
-     *
-     * @return list<string>
-     */
-    public function getExportDirectories(): array;
-
-    /**
-     * Returns the namespace prefix for all exported functions.
-     */
-    public function getExportNamespacePrefix(): string;
-
-    /**
-     * Returns the directory where all exported command should be written to.
-     */
-    public function getExportTargetDirectory(): string;
 }

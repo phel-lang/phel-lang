@@ -21,8 +21,8 @@ final class ConfigFacade extends AbstractFacade implements ConfigFacadeInterface
     public function getSourceDirectories(): array
     {
         return $this->getFactory()
-            ->getPhelConfig()
-            ->getSourceDirectories();
+            ->createDirectoryFinder()
+            ->getAbsoluteSourceDirectories();
     }
 
     /**
@@ -44,8 +44,8 @@ final class ConfigFacade extends AbstractFacade implements ConfigFacadeInterface
     public function getTestDirectories(): array
     {
         return $this->getFactory()
-            ->getPhelConfig()
-            ->getTestDirectories();
+            ->createDirectoryFinder()
+            ->getAbsoluteTestDirectories();
     }
 
     /**
@@ -67,8 +67,8 @@ final class ConfigFacade extends AbstractFacade implements ConfigFacadeInterface
     public function getVendorDirectory(): string
     {
         return $this->getFactory()
-            ->getPhelConfig()
-            ->getVendorDir();
+            ->createDirectoryFinder()
+            ->getAbsoluteVendorDir();
     }
 
     /**
@@ -118,38 +118,5 @@ final class ConfigFacade extends AbstractFacade implements ConfigFacadeInterface
                 ...$this->getTestDirectories(),
                 ...$this->getVendorSourceDirectories(),
             ]);
-    }
-
-    /**
-     * Returns a list of all export directories that contain exported definitions.
-     * All path are absolute.
-     *
-     * @return list<string>
-     */
-    public function getExportDirectories(): array
-    {
-        return $this->getFactory()
-            ->getPhelConfig()
-            ->getExportDirectories();
-    }
-
-    /**
-     * Returns the namespace prefix for all exported functions.
-     */
-    public function getExportNamespacePrefix(): string
-    {
-        return $this->getFactory()
-            ->getPhelConfig()
-            ->getExportNamespacePrefix();
-    }
-
-    /**
-     * Returns the directory where all exported command should be written to.
-     */
-    public function getExportTargetDirectory(): string
-    {
-        return $this->getFactory()
-            ->getPhelConfig()
-            ->getExportTargetDirectory();
     }
 }
