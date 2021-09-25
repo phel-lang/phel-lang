@@ -10,7 +10,7 @@ use Phel\Command\Shared\CommandExceptionWriterInterface;
 use Phel\Command\Test\Exceptions\CannotFindAnyTestsException;
 use Phel\Compiler\CompilerFacadeInterface;
 use Phel\Compiler\Exceptions\CompilerException;
-use Phel\Runtime\RuntimeFacadeInterface;
+use Phel\Config\ConfigFacadeInterface;
 use SebastianBergmann\Timer\ResourceUsageFormatter;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputArgument;
@@ -24,25 +24,21 @@ final class TestCommand extends Command
     public const COMMAND_NAME = 'test';
 
     private CommandExceptionWriterInterface $exceptionWriter;
-    private RuntimeFacadeInterface $runtimeFacade;
     private CompilerFacadeInterface $compilerFacade;
     private BuildFacadeInterface $buildFacade;
-    /** @var list<string> */
-    private array $defaultTestDirectories;
+    private ConfigFacadeInterface $configFacade;
 
     public function __construct(
         CommandExceptionWriterInterface $exceptionWriter,
-        RuntimeFacadeInterface $runtimeFacade,
         CompilerFacadeInterface $compilerFacade,
         BuildFacadeInterface $buildFacade,
-        array $testDirectories
+        ConfigFacadeInterface $configFacade
     ) {
         parent::__construct(self::COMMAND_NAME);
         $this->exceptionWriter = $exceptionWriter;
-        $this->runtimeFacade = $runtimeFacade;
         $this->compilerFacade = $compilerFacade;
         $this->buildFacade = $buildFacade;
-        $this->defaultTestDirectories = $testDirectories;
+        $this->configFacade = $configFacade;
     }
 
     protected function configure(): void
@@ -61,13 +57,6 @@ final class TestCommand extends Command
             );
     }
 
-    public function addRuntimePath(string $namespacePrefix, array $path): self
-    {
-        $this->runtimeFacade->addPath($namespacePrefix, $path);
-
-        return $this;
-    }
-
     public function execute(InputInterface $input, OutputInterface $output): int
     {
         try {
@@ -80,8 +69,14 @@ final class TestCommand extends Command
             }
             $namespaces[] = 'phel\\test';
 
-            $srcDirectories = $this->runtimeFacade->getRuntime()->getSourceDirectories();
-            $namespaceInformation = $this->buildFacade->getDependenciesForNamespace($srcDirectories, $namespaces);
+            $namespaceInformation = $this->buildFacade->getDependenciesForNamespace(
+                [
+                    ...$this->configFacade->getSourceDirectories(),
+                    ...$this->configFacade->getTestDirectories(),
+                    ...$this->configFacade->getVendorSourceDirectories(),
+                ],
+                $namespaces
+            );
 
             foreach ($namespaceInformation as $info) {
                 $this->buildFacade->evalFile($info->getFile());
@@ -119,7 +114,7 @@ final class TestCommand extends Command
         if (empty($paths)) {
             return array_map(
                 static fn (NamespaceInformation $info): string => $info->getNamespace(),
-                $this->buildFacade->getNamespaceFromDirectories($this->defaultTestDirectories)
+                $this->buildFacade->getNamespaceFromDirectories($this->configFacade->getTestDirectories())
             );
         }
 

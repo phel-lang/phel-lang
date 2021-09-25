@@ -23,13 +23,13 @@ use Phel\Command\Shared\CommandExceptionWriter;
 use Phel\Command\Shared\CommandExceptionWriterInterface;
 use Phel\Command\Test\TestCommand;
 use Phel\Compiler\CompilerFacadeInterface;
+use Phel\Config\ConfigFacadeInterface;
 use Phel\Formatter\FormatterFacadeInterface;
 use Phel\Interop\InteropFacadeInterface;
 use Phel\Printer\Printer;
 use Phel\Printer\PrinterInterface;
 use Phel\Runtime\Exceptions\ExceptionPrinterInterface;
 use Phel\Runtime\Exceptions\TextExceptionPrinter;
-use Phel\Runtime\RuntimeFacadeInterface;
 
 /**
  * @method CommandConfig getConfig()
@@ -39,12 +39,12 @@ final class CommandFactory extends AbstractFactory
     public function createReplCommand(): ReplCommand
     {
         return new ReplCommand(
-            $this->getRuntimeFacade(),
             $this->createReplCommandIo(),
             $this->getCompilerFacade(),
             $this->createColorStyle(),
             $this->createPrinter(),
             $this->getBuildFacade(),
+            $this->getConfigFacade(),
             $this->getConfig()->getReplStartupFile()
         );
     }
@@ -53,8 +53,8 @@ final class CommandFactory extends AbstractFactory
     {
         return new RunCommand(
             $this->createCommandExceptionWriter(),
-            $this->getRuntimeFacade(),
-            $this->getBuildFacade()
+            $this->getBuildFacade(),
+            $this->getConfigFacade()
         );
     }
 
@@ -62,10 +62,9 @@ final class CommandFactory extends AbstractFactory
     {
         return new TestCommand(
             $this->createCommandExceptionWriter(),
-            $this->getRuntimeFacade(),
             $this->getCompilerFacade(),
             $this->getBuildFacade(),
-            $this->getConfig()->getTestDirectories()
+            $this->getConfigFacade()
         );
     }
 
@@ -82,7 +81,6 @@ final class CommandFactory extends AbstractFactory
     {
         return new ExportCommand(
             $this->createCommandExceptionWriter(),
-            $this->getRuntimeFacade(),
             $this->getInteropFacade()
         );
     }
@@ -156,13 +154,13 @@ final class CommandFactory extends AbstractFactory
         return $this->getProvidedDependency(CommandDependencyProvider::FACADE_INTEROP);
     }
 
-    private function getRuntimeFacade(): RuntimeFacadeInterface
-    {
-        return $this->getProvidedDependency(CommandDependencyProvider::FACADE_RUNTIME);
-    }
-
     private function getBuildFacade(): BuildFacadeInterface
     {
         return $this->getProvidedDependency(CommandDependencyProvider::FACADE_BUILD);
+    }
+
+    private function getConfigFacade(): ConfigFacadeInterface
+    {
+        return $this->getProvidedDependency(CommandDependencyProvider::FACADE_CONFIG);
     }
 }

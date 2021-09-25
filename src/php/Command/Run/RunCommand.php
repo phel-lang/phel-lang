@@ -10,7 +10,7 @@ use Phel\Command\Shared\CommandExceptionWriterInterface;
 use Phel\Compiler\Evaluator\Exceptions\CompiledCodeIsMalformedException;
 use Phel\Compiler\Evaluator\Exceptions\FileException;
 use Phel\Compiler\Exceptions\CompilerException;
-use Phel\Runtime\RuntimeFacadeInterface;
+use Phel\Config\ConfigFacadeInterface;
 use SebastianBergmann\Timer\ResourceUsageFormatter;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputArgument;
@@ -24,18 +24,18 @@ final class RunCommand extends Command
     public const COMMAND_NAME = 'run';
 
     private CommandExceptionWriterInterface $exceptionWriter;
-    private RuntimeFacadeInterface $runtimeFacade;
     private BuildFacadeInterface $buildFacade;
+    private ConfigFacadeInterface $configFacade;
 
     public function __construct(
         CommandExceptionWriterInterface $exceptionWriter,
-        RuntimeFacadeInterface $runtimeFacade,
-        BuildFacadeInterface $buildFacade
+        BuildFacadeInterface $buildFacade,
+        ConfigFacadeInterface $configFacade
     ) {
         parent::__construct(self::COMMAND_NAME);
         $this->exceptionWriter = $exceptionWriter;
-        $this->runtimeFacade = $runtimeFacade;
         $this->buildFacade = $buildFacade;
+        $this->configFacade = $configFacade;
     }
 
     protected function configure(): void
@@ -56,13 +56,6 @@ final class RunCommand extends Command
                 InputOption::VALUE_NONE,
                 'With time awareness'
             );
-    }
-
-    public function addRuntimePath(string $namespacePrefix, array $path): self
-    {
-        $this->runtimeFacade->addPath($namespacePrefix, $path);
-
-        return $this;
     }
 
     protected function execute(InputInterface $input, OutputInterface $output): int
@@ -99,8 +92,13 @@ final class RunCommand extends Command
             $namespace = $this->buildFacade->getNamespaceFromFile($fileOrPath)->getNamespace();
         }
 
-        $srcDirectories = $this->runtimeFacade->getRuntime()->getSourceDirectories();
-        $namespaceInformation = $this->buildFacade->getDependenciesForNamespace($srcDirectories, [$namespace, 'phel\\core']);
+        $namespaceInformation = $this->buildFacade->getDependenciesForNamespace(
+            [
+                ...$this->configFacade->getSourceDirectories(),
+                ...$this->configFacade->getVendorSourceDirectories(),
+            ],
+            [$namespace, 'phel\\core']
+        );
 
         foreach ($namespaceInformation as $info) {
             $this->buildFacade->evalFile($info->getFile());

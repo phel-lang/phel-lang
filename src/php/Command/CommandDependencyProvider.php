@@ -10,19 +10,19 @@ use Phel\Build\BuildFacade;
 use Phel\Build\BuildFacadeInterface;
 use Phel\Compiler\CompilerFacade;
 use Phel\Compiler\CompilerFacadeInterface;
+use Phel\Config\ConfigFacade;
+use Phel\Config\ConfigFacadeInterface;
 use Phel\Formatter\FormatterFacade;
 use Phel\Formatter\FormatterFacadeInterface;
 use Phel\Interop\InteropFacade;
 use Phel\Interop\InteropFacadeInterface;
-use Phel\Runtime\RuntimeFacade;
-use Phel\Runtime\RuntimeFacadeInterface;
 
 final class CommandDependencyProvider extends AbstractDependencyProvider
 {
     public const FACADE_COMPILER = 'FACADE_COMPILER';
     public const FACADE_FORMATTER = 'FACADE_FORMATTER';
     public const FACADE_INTEROP = 'FACADE_INTEROP';
-    public const FACADE_RUNTIME = 'FACADE_RUNTIME';
+    public const FACADE_CONFIG = 'FACADE_CONFIG';
     public const FACADE_BUILD = 'FACADE_BUILD';
 
     public function provideModuleDependencies(Container $container): void
@@ -30,7 +30,7 @@ final class CommandDependencyProvider extends AbstractDependencyProvider
         $this->addFacadeCompiler($container);
         $this->addFacadeFormatter($container);
         $this->addFacadeInterop($container);
-        $this->addFacadeRuntime($container);
+        $this->addFacadeConfig($container);
         $this->addFacadeBuild($container);
     }
 
@@ -55,10 +55,10 @@ final class CommandDependencyProvider extends AbstractDependencyProvider
         });
     }
 
-    private function addFacadeRuntime(Container $container): void
+    private function addFacadeConfig(Container $container): void
     {
-        $container->set(self::FACADE_RUNTIME, function (Container $container): RuntimeFacadeInterface {
-            return $container->getLocator()->get(RuntimeFacade::class);
+        $container->set(self::FACADE_CONFIG, function (Container $container): ConfigFacadeInterface {
+            return $container->getLocator()->get(ConfigFacade::class);
         });
     }
 

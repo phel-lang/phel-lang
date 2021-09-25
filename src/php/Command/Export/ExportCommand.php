@@ -7,7 +7,6 @@ namespace Phel\Command\Export;
 use Phel\Command\Shared\CommandExceptionWriterInterface;
 use Phel\Compiler\Exceptions\CompilerException;
 use Phel\Interop\InteropFacadeInterface;
-use Phel\Runtime\RuntimeFacadeInterface;
 use RuntimeException;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
@@ -19,25 +18,15 @@ final class ExportCommand extends Command
     public const COMMAND_NAME = 'export';
 
     private CommandExceptionWriterInterface $exceptionWriter;
-    private RuntimeFacadeInterface $runtimeFacade;
     private InteropFacadeInterface $interopFacade;
 
     public function __construct(
         CommandExceptionWriterInterface $exceptionWriter,
-        RuntimeFacadeInterface $runtimeFacade,
         InteropFacadeInterface $interopFacade
     ) {
         parent::__construct(self::COMMAND_NAME);
         $this->exceptionWriter = $exceptionWriter;
-        $this->runtimeFacade = $runtimeFacade;
         $this->interopFacade = $interopFacade;
-    }
-
-    public function addRuntimePath(string $namespacePrefix, array $path): self
-    {
-        $this->runtimeFacade->addPath($namespacePrefix, $path);
-
-        return $this;
     }
 
     protected function configure(): void

@@ -12,12 +12,12 @@ use Phel\Command\Repl\ReplCommand;
 use Phel\Compiler\Analyzer\Environment\GlobalEnvironment;
 use Phel\Compiler\CompilerFacade;
 use Phel\Compiler\Emitter\OutputEmitter\Munge;
+use Phel\Config\ConfigFacadeInterface;
 use Phel\Printer\Printer;
 use Phel\Runtime\Exceptions\ExceptionArgsPrinter;
 use Phel\Runtime\Exceptions\Extractor\FilePositionExtractor;
 use Phel\Runtime\Exceptions\Extractor\SourceMapExtractor;
 use Phel\Runtime\Exceptions\TextExceptionPrinter;
-use Phel\Runtime\RuntimeFacade;
 use Phel\Runtime\RuntimeSingleton;
 use PhelTest\Integration\Command\AbstractCommandTest;
 use RecursiveDirectoryIterator;
@@ -80,16 +80,19 @@ final class ReplCommandTest extends AbstractCommandTest
 
     private function createReplCommand(ReplTestIo $io): ReplCommand
     {
+        $configFacadeMock = $this->createMock(ConfigFacadeInterface::class);
+        $configFacadeMock->method('getSourceDirectories')->willReturn([__DIR__ . '/../../../../src/phel/']);
+        $configFacadeMock->method('getTestDirectories')->willReturn([]);
+        $configFacadeMock->method('getVendorSourceDirectories')->willReturn([]);
+
         $command = new ReplCommand(
-            new RuntimeFacade(),
             $io,
             new CompilerFacade(),
             ColorStyle::noStyles(),
             Printer::nonReadable(),
-            new BuildFacade()
+            new BuildFacade(),
+            $configFacadeMock
         );
-
-        $command->addRuntimePath('phel\\', [__DIR__ . '/../../../../src/phel/']);
 
         return $command;
     }

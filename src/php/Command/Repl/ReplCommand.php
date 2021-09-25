@@ -9,8 +9,8 @@ use Phel\Command\Repl\Exceptions\ExitException;
 use Phel\Compiler\CompilerFacadeInterface;
 use Phel\Compiler\Exceptions\CompilerException;
 use Phel\Compiler\Parser\Exceptions\UnfinishedParserException;
+use Phel\Config\ConfigFacadeInterface;
 use Phel\Printer\PrinterInterface;
-use Phel\Runtime\RuntimeFacadeInterface;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
@@ -26,12 +26,12 @@ final class ReplCommand extends Command
     private const OPEN_PROMPT = '....:%d> ';
     private const EXIT_REPL = 'exit';
 
-    private RuntimeFacadeInterface $runtimeFacade;
     private ReplCommandIoInterface $io;
     private CompilerFacadeInterface $compilerFacade;
     private ColorStyleInterface $style;
     private PrinterInterface $printer;
     private BuildFacadeInterface $buildFacade;
+    private ConfigFacadeInterface $configFacade;
     private string $replStartupFile;
 
     /** @var string[] */
@@ -40,21 +40,21 @@ final class ReplCommand extends Command
     private InputResult $previousResult;
 
     public function __construct(
-        RuntimeFacadeInterface $runtimeFacade,
         ReplCommandIoInterface $io,
         CompilerFacadeInterface $compilerFacade,
         ColorStyleInterface $style,
         PrinterInterface $printer,
         BuildFacadeInterface $buildFacade,
+        ConfigFacadeInterface $configFacade,
         string $replStartupFile = ''
     ) {
         parent::__construct(self::COMMAND_NAME);
-        $this->runtimeFacade = $runtimeFacade;
         $this->io = $io;
         $this->compilerFacade = $compilerFacade;
         $this->style = $style;
         $this->printer = $printer;
         $this->buildFacade = $buildFacade;
+        $this->configFacade = $configFacade;
         $this->replStartupFile = $replStartupFile;
         $this->previousResult = InputResult::empty();
     }
@@ -62,13 +62,6 @@ final class ReplCommand extends Command
     protected function configure(): void
     {
         $this->setDescription('Start a Repl.');
-    }
-
-    public function addRuntimePath(string $namespacePrefix, array $path): self
-    {
-        $this->runtimeFacade->addPath($namespacePrefix, $path);
-
-        return $this;
     }
 
     public function execute(InputInterface $input, OutputInterface $output): int
@@ -81,7 +74,9 @@ final class ReplCommand extends Command
             $namespace = $this->buildFacade->getNamespaceFromFile($this->replStartupFile)->getNamespace();
             $srcDirectories = [
                 dirname($this->replStartupFile),
-                ...$this->runtimeFacade->getRuntime()->getSourceDirectories(),
+                ...$this->configFacade->getSourceDirectories(),
+                ...$this->configFacade->getTestDirectories(),
+                ...$this->configFacade->getVendorSourceDirectories(),
             ];
             $namespaceInformation = $this->buildFacade->getDependenciesForNamespace($srcDirectories, [$namespace, 'phel\\core']);
 

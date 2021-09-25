@@ -8,24 +8,24 @@ use Gacela\Framework\AbstractDependencyProvider;
 use Gacela\Framework\Container\Container;
 use Phel\Build\BuildFacade;
 use Phel\Build\BuildFacadeInterface;
-use Phel\Runtime\RuntimeFacade;
-use Phel\Runtime\RuntimeFacadeInterface;
+use Phel\Config\ConfigFacade;
+use Phel\Config\ConfigFacadeInterface;
 
 final class InteropDependencyProvider extends AbstractDependencyProvider
 {
-    public const FACADE_RUNTIME = 'FACADE_RUNTIME';
+    public const FACADE_CONFIG = 'FACADE_CONFIG';
     public const FACADE_BUILD = 'FACADE_BUILD';
 
     public function provideModuleDependencies(Container $container): void
     {
-        $this->addFacadeRuntime($container);
+        $this->addFacadeConfig($container);
         $this->addFacadeBuild($container);
     }
 
-    private function addFacadeRuntime(Container $container): void
+    private function addFacadeConfig(Container $container): void
     {
-        $container->set(self::FACADE_RUNTIME, function (Container $container): RuntimeFacadeInterface {
-            return $container->getLocator()->get(RuntimeFacade::class);
+        $container->set(self::FACADE_CONFIG, function (Container $container): ConfigFacadeInterface {
+            return $container->getLocator()->get(ConfigFacade::class);
         });
     }
 
