@@ -26,7 +26,7 @@ use Symfony\Component\Console\Output\OutputInterface;
 
 final class ReplCommandTest extends AbstractCommandTest
 {
-    public function setUp(): void
+    public static function setUpBeforeClass(): void
     {
         Gacela::bootstrap(__DIR__);
     }

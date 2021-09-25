@@ -5,11 +5,11 @@ declare(strict_types=1);
 return [
     'src-dirs' => ['../../../../../../src/phel/'],
     'test-dirs' => ['Fixtures'],
-    'vendor-dir' => 'empty',
+    'vendor-dir' => '',
 
     'export' => [
-        'directories' => ['empty'],
-        'namespace-prefix' => 'empty',
-        'target-directory' => 'empty',
+        'directories' => [],
+        'namespace-prefix' => '',
+        'target-directory' => '',
     ],
 ];

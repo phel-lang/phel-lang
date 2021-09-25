@@ -51,16 +51,16 @@ final class ConfigConfig extends AbstractPhelConfig
         return $this->toAbsoluteDirectories($this->get(self::EXPORT)[self::EXPORT_DIRECTORIES] ?? []);
     }
 
-    public function getApplicationRootDir(): string
-    {
-        return Config::getInstance()->getApplicationRootDir();
-    }
-
     private function toAbsoluteDirectories(array $relativeDirectories): array
     {
         return array_map(
             fn (string $dir): string => $this->getApplicationRootDir() . '/' . $dir,
             $relativeDirectories
         );
+    }
+
+    private function getApplicationRootDir(): string
+    {
+        return Config::getInstance()->getApplicationRootDir();
     }
 }

@@ -7,8 +7,8 @@ return [
         '/../../../../../src/phel/',
         'src',
     ],
-    'test-dirs' => ['empty'],
-    'vendor-dir' => 'empty',
+    'test-dirs' => [],
+    'vendor-dir' => '',
 
     'export' => [
         'directories' => ['src'],

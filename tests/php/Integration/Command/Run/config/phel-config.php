@@ -7,12 +7,12 @@ return [
         '/../../../../../src/phel/',
         'Fixtures',
     ],
-    'test-dirs' => ['empty'],
-    'vendor-dir' => 'empty',
+    'test-dirs' => [],
+    'vendor-dir' => '',
 
     'export' => [
-        'directories' => ['empty'],
-        'namespace-prefix' => 'empty',
-        'target-directory' => 'empty',
+        'directories' => [],
+        'namespace-prefix' => '',
+        'target-directory' => '',
     ],
 ];

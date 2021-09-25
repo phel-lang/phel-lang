@@ -8,7 +8,6 @@ use AppendIterator;
 use Iterator;
 use RecursiveDirectoryIterator;
 use RecursiveIteratorIterator;
-use RecursiveRegexIterator;
 use RegexIterator;
 
 final class PhelFileFinder implements PhelFileFinderInterface
@@ -16,7 +15,7 @@ final class PhelFileFinder implements PhelFileFinderInterface
     private const PHEL_EXTENSION_REGEX = '/^.+\.phel$/i';
 
     /**
-     * Finds a list of all phel files in the given directoies.
+     * Finds a list of all phel files in the given directories.
      *
      * @param list<string> $directories The list of directories
      *
@@ -31,6 +30,6 @@ final class PhelFileFinder implements PhelFileFinderInterface
             );
         }
 
-        return new RegexIterator($appendIterator, self::PHEL_EXTENSION_REGEX, RecursiveRegexIterator::GET_MATCH);
+        return new RegexIterator($appendIterator, self::PHEL_EXTENSION_REGEX, RegexIterator::GET_MATCH);
     }
 }
