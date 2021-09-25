@@ -10,9 +10,9 @@ use Phel\AbstractPhelConfig;
 final class ConfigConfig extends AbstractPhelConfig
 {
     public const EXPORT = 'export';
-    public const SRC_DIRS = 'src_dirs';
-    public const TEST_DIRS = 'test_dirs';
-    public const VENDOR_DIR = 'vendor_dir';
+    public const SRC_DIRS = 'src-dirs';
+    public const TEST_DIRS = 'test-dirs';
+    public const VENDOR_DIR = 'vendor-dir';
 
     public const EXPORT_NAMESPACE_PREFIX = 'namespace-prefix';
     public const EXPORT_TARGET_DIRECTORY = 'target-directory';

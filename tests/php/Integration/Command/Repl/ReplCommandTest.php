@@ -9,7 +9,6 @@ use Generator;
 use Phel\Build\BuildFacade;
 use Phel\Command\Repl\ColorStyle;
 use Phel\Command\Repl\ReplCommand;
-use Phel\Compiler\Analyzer\Environment\GlobalEnvironment;
 use Phel\Compiler\CompilerFacade;
 use Phel\Compiler\Emitter\OutputEmitter\Munge;
 use Phel\Config\ConfigFacadeInterface;
@@ -18,7 +17,6 @@ use Phel\Runtime\Exceptions\ExceptionArgsPrinter;
 use Phel\Runtime\Exceptions\Extractor\FilePositionExtractor;
 use Phel\Runtime\Exceptions\Extractor\SourceMapExtractor;
 use Phel\Runtime\Exceptions\TextExceptionPrinter;
-use Phel\Runtime\RuntimeSingleton;
 use PhelTest\Integration\Command\AbstractCommandTest;
 use RecursiveDirectoryIterator;
 use RecursiveIteratorIterator;
@@ -31,7 +29,6 @@ final class ReplCommandTest extends AbstractCommandTest
     public function setUp(): void
     {
         Gacela::bootstrap(__DIR__);
-        RuntimeSingleton::initializeNew(new GlobalEnvironment());
     }
 
     /**
@@ -80,21 +77,19 @@ final class ReplCommandTest extends AbstractCommandTest
 
     private function createReplCommand(ReplTestIo $io): ReplCommand
     {
-        $configFacadeMock = $this->createMock(ConfigFacadeInterface::class);
-        $configFacadeMock->method('getSourceDirectories')->willReturn([__DIR__ . '/../../../../src/phel/']);
-        $configFacadeMock->method('getTestDirectories')->willReturn([]);
-        $configFacadeMock->method('getVendorSourceDirectories')->willReturn([]);
+        $configFacade = $this->createMock(ConfigFacadeInterface::class);
+        $configFacade->method('getSourceDirectories')->willReturn([__DIR__ . '/../../../../src/phel/']);
+        $configFacade->method('getTestDirectories')->willReturn([]);
+        $configFacade->method('getVendorSourceDirectories')->willReturn([]);
 
-        $command = new ReplCommand(
+        return new ReplCommand(
             $io,
             new CompilerFacade(),
             ColorStyle::noStyles(),
             Printer::nonReadable(),
             new BuildFacade(),
-            $configFacadeMock
+            $configFacade
         );
-
-        return $command;
     }
 
     /**

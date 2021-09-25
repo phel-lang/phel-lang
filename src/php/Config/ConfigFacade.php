@@ -14,14 +14,15 @@ final class ConfigFacade extends AbstractFacade implements ConfigFacadeInterface
 {
     /**
      * Returns a list of all source directories in the project.
-     *
-     * All path are absolute
+     * All path are absolute.
      *
      * @return list<string>
      */
     public function getSourceDirectories(): array
     {
-        return $this->getFactory()->getPhelConfig()->getSourceDirectories();
+        return $this->getFactory()
+            ->getPhelConfig()
+            ->getSourceDirectories();
     }
 
     /**
@@ -29,20 +30,22 @@ final class ConfigFacade extends AbstractFacade implements ConfigFacadeInterface
      */
     public function getSourceFiles(): Iterator
     {
-        return $this->getFactory()->getPhelFileFinder()
+        return $this->getFactory()
+            ->getPhelFileFinder()
             ->findPhelFiles($this->getSourceDirectories());
     }
 
     /**
      * Returns a list of all test directories in the project.
-     *
-     * All path are absoulte
+     * All path are absolute.
      *
      * @return list<string>
      */
     public function getTestDirectories(): array
     {
-        return $this->getFactory()->getPhelConfig()->getTestDirectories();
+        return $this->getFactory()
+            ->getPhelConfig()
+            ->getTestDirectories();
     }
 
     /**
@@ -50,26 +53,27 @@ final class ConfigFacade extends AbstractFacade implements ConfigFacadeInterface
      */
     public function getTestFiles(): Iterator
     {
-        return $this->getFactory()->getPhelFileFinder()
+        return $this->getFactory()
+            ->getPhelFileFinder()
             ->findPhelFiles($this->getTestDirectories());
     }
 
     /**
      * Return the path of the vendor directory.
-     *
-     * The path is absolute
+     * The path is absolute.
      *
      * @return string
      */
     public function getVendorDirectory(): string
     {
-        return $this->getFactory()->getPhelConfig()->getVendorDir();
+        return $this->getFactory()
+            ->getPhelConfig()
+            ->getVendorDir();
     }
 
     /**
      * Returns a list of all source directories is the vendor folder.
-     *
-     * All path are absolute
+     * All path are absolute.
      *
      * @return list<string>
      */
@@ -85,7 +89,8 @@ final class ConfigFacade extends AbstractFacade implements ConfigFacadeInterface
      */
     public function getVendorSourceFiles(): Iterator
     {
-        return $this->getFactory()->getPhelFileFinder()
+        return $this->getFactory()
+            ->getPhelFileFinder()
             ->findPhelFiles($this->getVendorSourceDirectories());
     }
 
@@ -94,7 +99,8 @@ final class ConfigFacade extends AbstractFacade implements ConfigFacadeInterface
      */
     public function getAllSourceFiles(): Iterator
     {
-        return $this->getFactory()->getPhelFileFinder()
+        return $this->getFactory()
+            ->getPhelFileFinder()
             ->findPhelFiles([
                 ...$this->getSourceDirectories(),
                 ...$this->getVendorSourceDirectories(),
@@ -116,14 +122,15 @@ final class ConfigFacade extends AbstractFacade implements ConfigFacadeInterface
 
     /**
      * Returns a list of all export directories that contain exported definitions.
-     *
-     * All path are absolute
+     * All path are absolute.
      *
      * @return list<string>
      */
     public function getExportDirectories(): array
     {
-        return $this->getFactory()->getPhelConfig()->getExportDirectories();
+        return $this->getFactory()
+            ->getPhelConfig()
+            ->getExportDirectories();
     }
 
     /**
@@ -131,14 +138,18 @@ final class ConfigFacade extends AbstractFacade implements ConfigFacadeInterface
      */
     public function getExportNamespacePrefix(): string
     {
-        return $this->getFactory()->getPhelConfig()->getExportNamespacePrefix();
+        return $this->getFactory()
+            ->getPhelConfig()
+            ->getExportNamespacePrefix();
     }
 
     /**
      * Returns the directory where all exported command should be written to.
      */
-    public function getExporTargetDirectory(): string
+    public function getExportTargetDirectory(): string
     {
-        return $this->getFactory()->getPhelConfig()->getExportTargetDirectory();
+        return $this->getFactory()
+            ->getPhelConfig()
+            ->getExportTargetDirectory();
     }
 }

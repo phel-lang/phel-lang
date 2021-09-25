@@ -24,24 +24,20 @@ final class RunCommandTest extends AbstractCommandTest
     {
         $this->expectOutputRegex('~hello world~');
 
-        $this->getRunCommand()
-            ->addRuntimePath('test\\', [__DIR__ . '/Fixtures'])
-            ->run(
-                $this->stubInput('test\\test-script'),
-                $this->stubOutput()
-            );
+        $this->getRunCommand()->run(
+            $this->stubInput('test\\test-script'),
+            $this->stubOutput()
+        );
     }
 
     public function test_run_by_filename(): void
     {
         $this->expectOutputRegex('~hello world~');
 
-        $this->getRunCommand()
-            ->addRuntimePath('test\\', [__DIR__ . '/Fixtures'])
-            ->run(
-                $this->stubInput(__DIR__ . '/Fixtures/test-script.phel'),
-                $this->stubOutput()
-            );
+        $this->getRunCommand()->run(
+            $this->stubInput(__DIR__ . '/Fixtures/test-script.phel'),
+            $this->stubOutput()
+        );
     }
 
     private function getRunCommand(): RunCommand

@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Phel\Runtime;
 
 use Gacela\Framework\AbstractFactory;
+use Phel\Compiler\Analyzer\Environment\GlobalEnvironment;
 use Phel\Runtime\Exceptions\PhelRuntimeException;
 
 /**
@@ -17,18 +18,19 @@ final class RuntimeFactory extends AbstractFactory
      */
     public function getRuntime(): RuntimeInterface
     {
-        if (RuntimeSingleton::isInitialized()) {
-            return RuntimeSingleton::getInstance();
+        if (!RuntimeSingleton::isInitialized()) {
+            return RuntimeSingleton::initializeNew(new GlobalEnvironment());
         }
-
-        $runtimePath = $this->getConfig()->getApplicationRootDir()
-            . DIRECTORY_SEPARATOR . 'vendor'
-            . DIRECTORY_SEPARATOR . 'PhelRuntime.php';
-
-        if (!file_exists($runtimePath)) {
-            throw PhelRuntimeException::couldNotBeLoadedFrom($runtimePath);
-        }
-
-        return require $runtimePath;
+        return RuntimeSingleton::getInstance();
+//
+//        $runtimePath = $this->getConfig()->getApplicationRootDir()
+//            . DIRECTORY_SEPARATOR . 'vendor'
+//            . DIRECTORY_SEPARATOR . 'PhelRuntime.php';
+//
+//        if (!file_exists($runtimePath)) {
+//            throw PhelRuntimeException::couldNotBeLoadedFrom($runtimePath);
+//        }
+//
+//        return require $runtimePath;
     }
 }

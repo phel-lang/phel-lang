@@ -67,7 +67,7 @@ final class RuntimeCommand extends Command
     }
 
     /**
-     * Uses 'loader' and 'loader-dev' from the phel config.
+     * Uses 'src-dir' and 'test-dirs' from the phel config.
      *
      * @return array<string, list<string>>
      */
@@ -77,14 +77,14 @@ final class RuntimeCommand extends Command
         $pathPrefix = '/..';
         $config = $this->getRootPhelConfig();
 
-        $result[] = $this->configNormalizer->normalize($config['loader'] ?? [], $pathPrefix);
-        $result[] = $this->configNormalizer->normalize($config['loader-dev'] ?? [], $pathPrefix);
+        $result[] = $this->configNormalizer->normalize($config['src-dir'] ?? [], $pathPrefix);
+        $result[] = $this->configNormalizer->normalize($config['test-dirs'] ?? [], $pathPrefix);
 
         return array_merge(...$result);
     }
 
     /**
-     * Uses only 'loader' from the phel config.
+     * Uses only 'src-dir' from the phel config.
      *
      * @return array<string, list<string>>
      */
@@ -97,7 +97,7 @@ final class RuntimeCommand extends Command
         foreach (glob($pattern) as $phelConfigPath) {
             $pathPrefix = '/' . basename(dirname($phelConfigPath));
             /** @psalm-suppress UnresolvableInclude */
-            $config = (require $phelConfigPath)['loader'] ?? [];
+            $config = (require $phelConfigPath)['src-dirs'] ?? [];
             $result[] = $this->configNormalizer->normalize($config, $pathPrefix);
         }
 

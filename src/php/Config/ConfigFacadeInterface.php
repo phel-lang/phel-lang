@@ -81,5 +81,5 @@ interface ConfigFacadeInterface
     /**
      * Returns the directory where all exported command should be written to.
      */
-    public function getExporTargetDirectory(): string;
+    public function getExportTargetDirectory(): string;
 }
