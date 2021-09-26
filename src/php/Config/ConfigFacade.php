@@ -25,15 +25,16 @@ final class ConfigFacade extends AbstractFacade implements ConfigFacadeInterface
             ->getAbsoluteSourceDirectories();
     }
 
-    /**
-     * Returns an iterator of all phel files in the project's source directories.
-     */
-    public function getSourceFiles(): Iterator
-    {
-        return $this->getFactory()
-            ->getPhelFileFinder()
-            ->findPhelFiles($this->getSourceDirectories());
-    }
+//    /**
+//     * Returns an iterator of all phel files in the project's source directories.
+//     */
+//    public function getSourceFiles(): Iterator
+//    {
+//        return null; // TODO: Avoid using logic in the Facade
+    ////        return $this->getFactory()
+    ////            ->getPhelFileFinder()
+    ////            ->findPhelFiles($this->getSourceDirectories());
+//    }
 
     /**
      * Returns a list of all test directories in the project.
@@ -48,15 +49,16 @@ final class ConfigFacade extends AbstractFacade implements ConfigFacadeInterface
             ->getAbsoluteTestDirectories();
     }
 
-    /**
-     * Returns an iterator of all phel files in the project's test directories.
-     */
-    public function getTestFiles(): Iterator
-    {
-        return $this->getFactory()
-            ->getPhelFileFinder()
-            ->findPhelFiles($this->getTestDirectories());
-    }
+//    /**
+//     * Returns an iterator of all phel files in the project's test directories.
+//     */
+//    public function getTestFiles(): Iterator
+//    {
+//        return null;// TODO: Avoid using logic in the Facade
+    ////        return $this->getFactory()
+    ////            ->getPhelFileFinder()
+    ////            ->findPhelFiles($this->getTestDirectories());
+//    }
 
     /**
      * Return the path of the vendor directory.
@@ -84,39 +86,43 @@ final class ConfigFacade extends AbstractFacade implements ConfigFacadeInterface
             ->findPhelSourceDirectories();
     }
 
-    /**
-     * Returns an iterator of all phel files in the project's vendor source directories.
-     */
-    public function getVendorSourceFiles(): Iterator
-    {
-        return $this->getFactory()
-            ->getPhelFileFinder()
-            ->findPhelFiles($this->getVendorSourceDirectories());
-    }
-
-    /**
-     * Returns a iterator of all phel files in the project's source directories and vendor source directories.
-     */
-    public function getAllSourceFiles(): Iterator
-    {
-        return $this->getFactory()
-            ->getPhelFileFinder()
-            ->findPhelFiles([
-                ...$this->getSourceDirectories(),
-                ...$this->getVendorSourceDirectories(),
-            ]);
-    }
-
-    /**
-     * Returns a iterator of all phel files in the project's source directories, test directories and vendor source directories.
-     */
-    public function getAllFiles(): Iterator
-    {
-        return $this->getFactory()->getPhelFileFinder()
-            ->findPhelFiles([
-                ...$this->getSourceDirectories(),
-                ...$this->getTestDirectories(),
-                ...$this->getVendorSourceDirectories(),
-            ]);
-    }
+//    /**
+//     * Returns an iterator of all phel files in the project's vendor source directories.
+//     */
+//    public function getVendorSourceFiles(): Iterator
+//    {
+//        return null;// TODO: Avoid using logic in the Facade
+////        return $this->getFactory()
+////            ->getPhelFileFinder()
+////            ->findPhelFiles($this->getVendorSourceDirectories());
+//    }
+//
+//    /**
+//     * Returns a iterator of all phel files in the project's source directories and vendor source directories.
+//     */
+//    public function getAllSourceFiles(): Iterator
+//    {
+//        return null;// TODO: Avoid using logic in the Facade
+////        return $this->getFactory()
+////            ->getPhelFileFinder()
+////            ->findPhelFiles([
+////                ...$this->getSourceDirectories(),
+////                ...$this->getVendorSourceDirectories(),
+////            ]);
+//    }
+//
+//    /**
+//     * Returns a iterator of all phel files in the project's source directories, test directories and vendor source directories.
+//     */
+//    public function getAllFiles(): Iterator
+//    {
+//        return null;// TODO: Avoid using logic in the Facade
+////        return $this->getFactory()
+////            ->getPhelFileFinder()
+////            ->findPhelFiles([
+////                ...$this->getSourceDirectories(),
+////                ...$this->getTestDirectories(),
+////                ...$this->getVendorSourceDirectories(),
+////            ]);
+//    }
 }

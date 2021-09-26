@@ -17,9 +17,4 @@ final class RuntimeFacade extends AbstractFacade implements RuntimeFacadeInterfa
     {
         return $this->getFactory()->getRuntime();
     }
-
-    public function addPath(string $namespacePrefix, array $path): void
-    {
-        $this->getRuntime()->addPath($namespacePrefix, $path);
-    }
 }

@@ -10,6 +10,4 @@ namespace Phel\Runtime;
 interface RuntimeFacadeInterface
 {
     public function getRuntime(): RuntimeInterface;
-
-    public function addPath(string $namespacePrefix, array $path): void;
 }

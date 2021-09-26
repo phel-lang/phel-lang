@@ -22,15 +22,5 @@ final class RuntimeFactory extends AbstractFactory
             return RuntimeSingleton::initializeNew(new GlobalEnvironment());
         }
         return RuntimeSingleton::getInstance();
-//
-//        $runtimePath = $this->getConfig()->getApplicationRootDir()
-//            . DIRECTORY_SEPARATOR . 'vendor'
-//            . DIRECTORY_SEPARATOR . 'PhelRuntime.php';
-//
-//        if (!file_exists($runtimePath)) {
-//            throw PhelRuntimeException::couldNotBeLoadedFrom($runtimePath);
-//        }
-//
-//        return require $runtimePath;
     }
 }

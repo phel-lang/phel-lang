@@ -17,10 +17,10 @@ interface ConfigFacadeInterface
      */
     public function getSourceDirectories(): array;
 
-    /**
-     * Returns an iterator of all phel files in the project's source directories.
-     */
-    public function getSourceFiles(): Iterator;
+//    /**
+//     * Returns an iterator of all phel files in the project's source directories.
+//     */
+//    public function getSourceFiles(): Iterator;
 
     /**
      * Returns a list of all test directories in the project.
@@ -31,10 +31,10 @@ interface ConfigFacadeInterface
      */
     public function getTestDirectories(): array;
 
-    /**
-     * Returns an iterator of all phel files in the project's test directories.
-     */
-    public function getTestFiles(): Iterator;
+//    /**
+//     * Returns an iterator of all phel files in the project's test directories.
+//     */
+//    public function getTestFiles(): Iterator;
 
     /**
      * Return the path of the vendor directory.
@@ -54,13 +54,13 @@ interface ConfigFacadeInterface
      */
     public function getVendorSourceDirectories(): array;
 
-    /**
-     * Returns an iterator of all phel files in the project's source directories and vendor source directories.
-     */
-    public function getAllSourceFiles(): Iterator;
-
-    /**
-     * Returns an iterator of all phel files in the project's source directories, test directories and vendor source directories.
-     */
-    public function getAllFiles(): Iterator;
+//    /**
+//     * Returns an iterator of all phel files in the project's source directories and vendor source directories.
+//     */
+//    public function getAllSourceFiles(): Iterator;
+//
+//    /**
+//     * Returns an iterator of all phel files in the project's source directories, test directories and vendor source directories.
+//     */
+//    public function getAllFiles(): Iterator;
 }

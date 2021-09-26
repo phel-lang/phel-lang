@@ -23,10 +23,10 @@ final class ConfigFactory extends AbstractFactory
         );
     }
 
-    public function getPhelFileFinder(): PhelFileFinderInterface
-    {
-        return new PhelFileFinder();
-    }
+//    public function getPhelFileFinder(): PhelFileFinderInterface
+//    {
+//        return new PhelFileFinder();
+//    }
 
     public function createDirectoryFinder(): DirectoryFinder
     {
@@ -36,10 +36,5 @@ final class ConfigFactory extends AbstractFactory
             $this->getConfig()->getTestDirectories(),
             $this->getConfig()->getVendorDir()
         );
-    }
-
-    public function getPhelConfig(): ConfigConfig
-    {
-        return $this->getConfig();
     }
 }

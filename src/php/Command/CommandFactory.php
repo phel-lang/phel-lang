@@ -16,9 +16,6 @@ use Phel\Command\Repl\ReplCommand;
 use Phel\Command\Repl\ReplCommandIoInterface;
 use Phel\Command\Repl\ReplCommandSystemIo;
 use Phel\Command\Run\RunCommand;
-use Phel\Command\Runtime\ConfigNormalizer;
-use Phel\Command\Runtime\RuntimeCommand;
-use Phel\Command\Runtime\RuntimeFileGenerator;
 use Phel\Command\Shared\CommandExceptionWriter;
 use Phel\Command\Shared\CommandExceptionWriterInterface;
 use Phel\Command\Test\TestCommand;
@@ -85,15 +82,6 @@ final class CommandFactory extends AbstractFactory
         );
     }
 
-    public function createRuntimeCommand(): RuntimeCommand
-    {
-        return new RuntimeCommand(
-            $this->getConfig()->getApplicationRootDir(),
-            $this->createConfigNormalizer(),
-            $this->createRuntimeFileGenerator()
-        );
-    }
-
     private function createReplCommandIo(): ReplCommandIoInterface
     {
         return new ReplCommandSystemIo(
@@ -117,16 +105,6 @@ final class CommandFactory extends AbstractFactory
     private function createPathFilter(): PathFilterInterface
     {
         return new PhelPathFilter();
-    }
-
-    private function createConfigNormalizer(): ConfigNormalizer
-    {
-        return new ConfigNormalizer();
-    }
-
-    private function createRuntimeFileGenerator(): RuntimeFileGenerator
-    {
-        return new RuntimeFileGenerator();
     }
 
     private function createColorStyle(): ColorStyleInterface
