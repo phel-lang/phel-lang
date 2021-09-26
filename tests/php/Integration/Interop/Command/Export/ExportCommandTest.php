@@ -7,11 +7,12 @@ namespace PhelTest\Integration\Interop\Command\Export;
 use Gacela\Framework\Gacela;
 use Phel\Interop\InteropFacade;
 use Phel\Interop\InteropFacadeInterface;
-use PhelTest\Integration\Command\AbstractCommandTest;
 use PhelTest\Integration\Util\DirectoryUtil;
+use PHPUnit\Framework\TestCase;
 use Symfony\Component\Console\Input\InputInterface;
+use Symfony\Component\Console\Output\OutputInterface;
 
-final class ExportCommandTest extends AbstractCommandTest
+final class ExportCommandTest extends TestCase
 {
     public static function setUpBeforeClass(): void
     {
@@ -44,5 +45,14 @@ final class ExportCommandTest extends AbstractCommandTest
     private function createInteropFacade(): InteropFacadeInterface
     {
         return new InteropFacade();
+    }
+
+    private function stubOutput(): OutputInterface
+    {
+        $output = $this->createStub(OutputInterface::class);
+        $output->method('writeln')
+            ->willReturnCallback(fn (string $str) => print $str . PHP_EOL);
+
+        return $output;
     }
 }

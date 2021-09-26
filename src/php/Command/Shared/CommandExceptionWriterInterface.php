@@ -18,4 +18,8 @@ interface CommandExceptionWriterInterface
         AbstractLocatedException $e,
         CodeSnippet $codeSnippet
     ): void;
+
+    public function getExceptionString(AbstractLocatedException $e, CodeSnippet $codeSnippet): string;
+
+    public function getStackTraceString(Throwable $e): string;
 }

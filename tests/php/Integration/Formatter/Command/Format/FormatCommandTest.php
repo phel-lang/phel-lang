@@ -8,10 +8,11 @@ use Gacela\Framework\Gacela;
 use Phel\Formatter\Command\FormatCommand;
 use Phel\Formatter\FormatterFacade;
 use Phel\Formatter\FormatterFacadeInterface;
-use PhelTest\Integration\Command\AbstractCommandTest;
+use PHPUnit\Framework\TestCase;
 use Symfony\Component\Console\Input\InputInterface;
+use Symfony\Component\Console\Output\OutputInterface;
 
-final class FormatCommandTest extends AbstractCommandTest
+final class FormatCommandTest extends TestCase
 {
     private const FIXTURES_DIR = __DIR__ . '/Fixtures/';
 
@@ -46,11 +47,13 @@ final class FormatCommandTest extends AbstractCommandTest
 
         $command = $this->getFormatCommand();
 
-        $this->expectOutputString(<<<TXT
+        $this->expectOutputString(
+            <<<TXT
 Formatted files:
   1) $path
 
-TXT);
+TXT
+        );
         try {
             $command->run(
                 $this->stubInput([$path]),
@@ -66,6 +69,11 @@ TXT);
         return $this->createFormatterFacade()->getFormatCommand();
     }
 
+    private function createFormatterFacade(): FormatterFacadeInterface
+    {
+        return new FormatterFacade();
+    }
+
     private function stubInput(array $paths): InputInterface
     {
         $input = $this->createStub(InputInterface::class);
@@ -74,8 +82,12 @@ TXT);
         return $input;
     }
 
-    private function createFormatterFacade(): FormatterFacadeInterface
+    private function stubOutput(): OutputInterface
     {
-        return new FormatterFacade();
+        $output = $this->createStub(OutputInterface::class);
+        $output->method('writeln')
+            ->willReturnCallback(fn (string $str) => print $str . PHP_EOL);
+
+        return $output;
     }
 }

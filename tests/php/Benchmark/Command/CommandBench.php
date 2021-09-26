@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace PhelTest\Benchmark\Command;
 
-use Phel\Command\CommandFactory;
+use Phel\Run\RunFactory;
 use Symfony\Component\Console\Input\StringInput;
 use Symfony\Component\Console\Output\NullOutput;
 
@@ -13,11 +13,11 @@ use Symfony\Component\Console\Output\NullOutput;
  */
 final class CommandBench
 {
-    private CommandFactory $commandFactory;
+    private RunFactory $commandFactory;
 
     public function setUp(): void
     {
-        $this->commandFactory = new CommandFactory();
+        $this->commandFactory = new RunFactory();
     }
 
     public function bench_run_command(): void
