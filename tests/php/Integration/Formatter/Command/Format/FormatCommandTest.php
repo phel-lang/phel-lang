@@ -2,10 +2,12 @@
 
 declare(strict_types=1);
 
-namespace PhelTest\Integration\Command\Format;
+namespace PhelTest\Integration\Formatter\Command\Format;
 
 use Gacela\Framework\Gacela;
-use Phel\Command\Format\FormatCommand;
+use Phel\Formatter\Command\FormatCommand;
+use Phel\Formatter\FormatterFacade;
+use Phel\Formatter\FormatterFacadeInterface;
 use PhelTest\Integration\Command\AbstractCommandTest;
 use Symfony\Component\Console\Input\InputInterface;
 
@@ -61,7 +63,7 @@ TXT);
 
     private function getFormatCommand(): FormatCommand
     {
-        return $this->createCommandFacade()->getFormatCommand();
+        return $this->createFormatterFacade()->getFormatCommand();
     }
 
     private function stubInput(array $paths): InputInterface
@@ -70,5 +72,10 @@ TXT);
         $input->method('getArgument')->willReturn($paths);
 
         return $input;
+    }
+
+    private function createFormatterFacade(): FormatterFacadeInterface
+    {
+        return new FormatterFacade();
     }
 }

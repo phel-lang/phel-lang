@@ -5,6 +5,7 @@ declare(strict_types=1);
 
 use Gacela\Framework\Gacela;
 use Phel\Command\CommandFacade;
+use Phel\Formatter\FormatterFacade;
 use Phel\Interop\InteropFacade;
 use Symfony\Component\Console\Application;
 
@@ -20,11 +21,12 @@ require $autoloadPath;
 Gacela::bootstrap($projectRootDir);
 
 $interopFacade = new InteropFacade();
+$formatterFacade = new FormatterFacade();
 $commandFacade = new CommandFacade();
 
 $application = new Application();
 $application->add($interopFacade->getExportCommand());
-$application->add($commandFacade->getFormatCommand());
+$application->add($formatterFacade->getFormatCommand());
 $application->add($commandFacade->getReplCommand());
 $application->add($commandFacade->getRunCommand());
 $application->add($commandFacade->getTestCommand());

@@ -2,13 +2,13 @@
 
 declare(strict_types=1);
 
-namespace Phel\Command\Format;
+namespace Phel\Formatter\Command;
 
-use Phel\Command\Shared\CommandExceptionWriterInterface;
+use Phel\Command\CommandFacadeInterface;
 use Phel\Compiler\Lexer\Exceptions\LexerValueException;
 use Phel\Compiler\Parser\Exceptions\AbstractParserException;
 use Phel\Formatter\Exceptions\ZipperException;
-use Phel\Formatter\FormatterFacadeInterface;
+use Phel\Formatter\Formatter\FormatterInterface;
 use RuntimeException;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputArgument;
@@ -20,21 +20,21 @@ final class FormatCommand extends Command
 {
     public const COMMAND_NAME = 'format';
 
-    private CommandExceptionWriterInterface $exceptionWriter;
-    private FormatterFacadeInterface $formatterFacade;
+    private CommandFacadeInterface $commandFacade;
+    private FormatterInterface $formatter;
     private PathFilterInterface $pathFilter;
 
     /** @var list<string> */
     private array $successfulFormattedFilePaths = [];
 
     public function __construct(
-        CommandExceptionWriterInterface $exceptionWriter,
-        FormatterFacadeInterface $formatterFacade,
+        CommandFacadeInterface $commandFacade,
+        FormatterInterface $formatter,
         PathFilterInterface $pathFilter
     ) {
         parent::__construct(self::COMMAND_NAME);
-        $this->exceptionWriter = $exceptionWriter;
-        $this->formatterFacade = $formatterFacade;
+        $this->commandFacade = $commandFacade;
+        $this->formatter = $formatter;
         $this->pathFilter = $pathFilter;
     }
 
@@ -59,9 +59,9 @@ final class FormatCommand extends Command
                     $this->successfulFormattedFilePaths[] = $path;
                 }
             } catch (AbstractParserException $e) {
-                $this->exceptionWriter->writeLocatedException($output, $e, $e->getCodeSnippet());
+                $this->commandFacade->writeLocatedException($output, $e, $e->getCodeSnippet());
             } catch (Throwable $e) {
-                $this->exceptionWriter->writeStackTrace($output, $e);
+                $this->commandFacade->writeStackTrace($output, $e);
             }
         }
 
@@ -88,7 +88,7 @@ final class FormatCommand extends Command
         }
 
         $code = file_get_contents($filename);
-        $formattedCode = $this->formatterFacade->format($code, $filename);
+        $formattedCode = $this->formatter->format($code, $filename);
         file_put_contents($filename, $formattedCode);
 
         return (bool)strcmp($formattedCode, $code);

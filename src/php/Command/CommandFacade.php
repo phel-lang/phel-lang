@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace Phel\Command;
 
 use Gacela\Framework\AbstractFacade;
-use Phel\Command\Format\FormatCommand;
 use Phel\Command\Repl\ReplCommand;
 use Phel\Command\Run\RunCommand;
 use Phel\Command\Test\TestCommand;
@@ -49,10 +48,5 @@ final class CommandFacade extends AbstractFacade implements CommandFacadeInterfa
     public function getTestCommand(): TestCommand
     {
         return $this->getFactory()->createTestCommand();
-    }
-
-    public function getFormatCommand(): FormatCommand
-    {
-        return $this->getFactory()->createFormatCommand();
     }
 }

@@ -7,6 +7,7 @@ namespace Phel\Formatter;
 use Gacela\Framework\AbstractFacade;
 use Phel\Compiler\Lexer\Exceptions\LexerValueException;
 use Phel\Compiler\Parser\Exceptions\AbstractParserException;
+use Phel\Formatter\Command\FormatCommand;
 use Phel\Formatter\Exceptions\ZipperException;
 
 /**
@@ -14,6 +15,11 @@ use Phel\Formatter\Exceptions\ZipperException;
  */
 final class FormatterFacade extends AbstractFacade implements FormatterFacadeInterface
 {
+    public function getFormatCommand(): FormatCommand
+    {
+        return $this->getFactory()->createFormatCommand();
+    }
+
     /**
      * @throws AbstractParserException
      * @throws LexerValueException
