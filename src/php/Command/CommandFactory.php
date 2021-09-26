@@ -6,9 +6,6 @@ namespace Phel\Command;
 
 use Gacela\Framework\AbstractFactory;
 use Phel\Build\BuildFacadeInterface;
-use Phel\Command\Format\FormatCommand;
-use Phel\Command\Format\PathFilterInterface;
-use Phel\Command\Format\PhelPathFilter;
 use Phel\Command\Repl\ColorStyle;
 use Phel\Command\Repl\ColorStyleInterface;
 use Phel\Command\Repl\ReplCommand;
@@ -20,7 +17,6 @@ use Phel\Command\Shared\CommandExceptionWriterInterface;
 use Phel\Command\Test\TestCommand;
 use Phel\Compiler\CompilerFacadeInterface;
 use Phel\Config\ConfigFacadeInterface;
-use Phel\Formatter\FormatterFacadeInterface;
 use Phel\Printer\Printer;
 use Phel\Printer\PrinterInterface;
 use Phel\Runtime\Exceptions\ExceptionPrinterInterface;
@@ -63,15 +59,6 @@ final class CommandFactory extends AbstractFactory
         );
     }
 
-    public function createFormatCommand(): FormatCommand
-    {
-        return new FormatCommand(
-            $this->createCommandExceptionWriter(),
-            $this->getFormatterFacade(),
-            $this->createPathFilter()
-        );
-    }
-
     private function createReplCommandIo(): ReplCommandIoInterface
     {
         return new ReplCommandSystemIo(
@@ -92,11 +79,6 @@ final class CommandFactory extends AbstractFactory
         return TextExceptionPrinter::create();
     }
 
-    private function createPathFilter(): PathFilterInterface
-    {
-        return new PhelPathFilter();
-    }
-
     private function createColorStyle(): ColorStyleInterface
     {
         return ColorStyle::withStyles();
@@ -110,11 +92,6 @@ final class CommandFactory extends AbstractFactory
     private function getCompilerFacade(): CompilerFacadeInterface
     {
         return $this->getProvidedDependency(CommandDependencyProvider::FACADE_COMPILER);
-    }
-
-    private function getFormatterFacade(): FormatterFacadeInterface
-    {
-        return $this->getProvidedDependency(CommandDependencyProvider::FACADE_FORMATTER);
     }
 
     private function getBuildFacade(): BuildFacadeInterface

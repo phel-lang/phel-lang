@@ -4,7 +4,9 @@ declare(strict_types=1);
 
 namespace Phel\Formatter;
 
+use Phel\Formatter\Command\FormatCommand;
+
 interface FormatterFacadeInterface
 {
-    public function format(string $string, string $source = 'string'): string;
+    public function getFormatCommand(): FormatCommand;
 }
