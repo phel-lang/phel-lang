@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 return [
     'src-dirs' => [
-        '/../../../../../src/phel/',
+        '/../../../../../../src/phel/',
         'src',
     ],
     'test-dirs' => [],
@@ -13,6 +13,6 @@ return [
     'export' => [
         'directories' => ['src'],
         'namespace-prefix' => 'PhelGenerated',
-        'target-directory' => './tests/php/Integration/Command/Export/PhelGenerated',
+        'target-directory' => __DIR__ . '/../PhelGenerated',
     ],
 ];

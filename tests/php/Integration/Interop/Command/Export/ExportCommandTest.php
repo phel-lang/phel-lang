@@ -2,9 +2,11 @@
 
 declare(strict_types=1);
 
-namespace PhelTest\Integration\Command\Export;
+namespace PhelTest\Integration\Interop\Command\Export;
 
 use Gacela\Framework\Gacela;
+use Phel\Interop\InteropFacade;
+use Phel\Interop\InteropFacadeInterface;
 use PhelTest\Integration\Command\AbstractCommandTest;
 use PhelTest\Integration\Util\DirectoryUtil;
 use Symfony\Component\Console\Input\InputInterface;
@@ -22,7 +24,7 @@ final class ExportCommandTest extends AbstractCommandTest
      */
     public function test_export_command_multiple(): void
     {
-        $command = $this->createCommandFacade()->getExportCommand();
+        $command = $this->createInteropFacade()->getExportCommand();
 
         $this->expectOutputRegex('~Exported namespaces:~');
         $this->expectOutputRegex('~TestCmdExportMultiple/Adder~');
@@ -37,5 +39,10 @@ final class ExportCommandTest extends AbstractCommandTest
         self::assertFileExists(__DIR__ . '/PhelGenerated/TestCmdExportMultiple/Multiplier.php');
 
         DirectoryUtil::removeDir(__DIR__ . '/PhelGenerated/');
+    }
+
+    private function createInteropFacade(): InteropFacadeInterface
+    {
+        return new InteropFacade();
     }
 }
