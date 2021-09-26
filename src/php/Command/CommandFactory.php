@@ -6,7 +6,6 @@ namespace Phel\Command;
 
 use Gacela\Framework\AbstractFactory;
 use Phel\Build\BuildFacadeInterface;
-use Phel\Command\Export\ExportCommand;
 use Phel\Command\Format\FormatCommand;
 use Phel\Command\Format\PathFilterInterface;
 use Phel\Command\Format\PhelPathFilter;
@@ -22,7 +21,6 @@ use Phel\Command\Test\TestCommand;
 use Phel\Compiler\CompilerFacadeInterface;
 use Phel\Config\ConfigFacadeInterface;
 use Phel\Formatter\FormatterFacadeInterface;
-use Phel\Interop\InteropFacadeInterface;
 use Phel\Printer\Printer;
 use Phel\Printer\PrinterInterface;
 use Phel\Runtime\Exceptions\ExceptionPrinterInterface;
@@ -74,14 +72,6 @@ final class CommandFactory extends AbstractFactory
         );
     }
 
-    public function createExportCommand(): ExportCommand
-    {
-        return new ExportCommand(
-            $this->createCommandExceptionWriter(),
-            $this->getInteropFacade()
-        );
-    }
-
     private function createReplCommandIo(): ReplCommandIoInterface
     {
         return new ReplCommandSystemIo(
@@ -90,7 +80,7 @@ final class CommandFactory extends AbstractFactory
         );
     }
 
-    private function createCommandExceptionWriter(): CommandExceptionWriterInterface
+    public function createCommandExceptionWriter(): CommandExceptionWriterInterface
     {
         return new CommandExceptionWriter(
             $this->createExceptionPrinter()
@@ -125,11 +115,6 @@ final class CommandFactory extends AbstractFactory
     private function getFormatterFacade(): FormatterFacadeInterface
     {
         return $this->getProvidedDependency(CommandDependencyProvider::FACADE_FORMATTER);
-    }
-
-    private function getInteropFacade(): InteropFacadeInterface
-    {
-        return $this->getProvidedDependency(CommandDependencyProvider::FACADE_INTEROP);
     }
 
     private function getBuildFacade(): BuildFacadeInterface
