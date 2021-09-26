@@ -8,9 +8,9 @@ use Phel\Build\BuildFacadeInterface;
 use Phel\Compiler\CompilerFacadeInterface;
 use Phel\Compiler\Exceptions\CompilerException;
 use Phel\Compiler\Parser\Exceptions\UnfinishedParserException;
-use Phel\Config\ConfigFacadeInterface;
 use Phel\Printer\PrinterInterface;
 use Phel\Run\Command\Repl\Exceptions\ExitException;
+use Phel\Run\Finder\DirectoryFinderInterface;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
@@ -31,8 +31,8 @@ final class ReplCommand extends Command
     private ColorStyleInterface $style;
     private PrinterInterface $printer;
     private BuildFacadeInterface $buildFacade;
-    private ConfigFacadeInterface $configFacade;
     private string $replStartupFile;
+    private DirectoryFinderInterface $directoryFinder;
 
     /** @var string[] */
     private array $inputBuffer = [];
@@ -45,7 +45,7 @@ final class ReplCommand extends Command
         ColorStyleInterface $style,
         PrinterInterface $printer,
         BuildFacadeInterface $buildFacade,
-        ConfigFacadeInterface $configFacade,
+        DirectoryFinderInterface $directoryFinder,
         string $replStartupFile = ''
     ) {
         parent::__construct(self::COMMAND_NAME);
@@ -54,7 +54,7 @@ final class ReplCommand extends Command
         $this->style = $style;
         $this->printer = $printer;
         $this->buildFacade = $buildFacade;
-        $this->configFacade = $configFacade;
+        $this->directoryFinder = $directoryFinder;
         $this->replStartupFile = $replStartupFile;
         $this->previousResult = InputResult::empty();
     }
@@ -74,9 +74,9 @@ final class ReplCommand extends Command
             $namespace = $this->buildFacade->getNamespaceFromFile($this->replStartupFile)->getNamespace();
             $srcDirectories = [
                 dirname($this->replStartupFile),
-                ...$this->configFacade->getSourceDirectories(),
-                ...$this->configFacade->getTestDirectories(),
-                ...$this->configFacade->getVendorSourceDirectories(),
+                ...$this->directoryFinder->getAbsoluteSourceDirectories(),
+                ...$this->directoryFinder->getAbsoluteTestDirectories(),
+                ...$this->directoryFinder->getAbsoluteVendorSourceDirectories(),
             ];
             $namespaceInformation = $this->buildFacade->getDependenciesForNamespace($srcDirectories, [$namespace, 'phel\\core']);
 

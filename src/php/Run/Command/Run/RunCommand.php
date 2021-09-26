@@ -9,8 +9,8 @@ use Phel\Command\CommandFacadeInterface;
 use Phel\Compiler\Evaluator\Exceptions\CompiledCodeIsMalformedException;
 use Phel\Compiler\Evaluator\Exceptions\FileException;
 use Phel\Compiler\Exceptions\CompilerException;
-use Phel\Config\ConfigFacadeInterface;
 use Phel\Run\Command\Run\Exceptions\CannotLoadNamespaceException;
+use Phel\Run\Finder\DirectoryFinder;
 use SebastianBergmann\Timer\ResourceUsageFormatter;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputArgument;
@@ -25,19 +25,17 @@ final class RunCommand extends Command
 
     private CommandFacadeInterface $commandFacade;
     private BuildFacadeInterface $buildFacade;
-
-    # TODO: move this config thing inside this Run module
-    private ConfigFacadeInterface $configFacade;
+    private DirectoryFinder $directoryFinder;
 
     public function __construct(
         CommandFacadeInterface $commandFacade,
         BuildFacadeInterface $buildFacade,
-        ConfigFacadeInterface $configFacade
+        DirectoryFinder $directoryFinder
     ) {
         parent::__construct(self::COMMAND_NAME);
         $this->commandFacade = $commandFacade;
         $this->buildFacade = $buildFacade;
-        $this->configFacade = $configFacade;
+        $this->directoryFinder = $directoryFinder;
     }
 
     protected function configure(): void
@@ -96,8 +94,8 @@ final class RunCommand extends Command
 
         $namespaceInformation = $this->buildFacade->getDependenciesForNamespace(
             [
-                ...$this->configFacade->getSourceDirectories(),
-                ...$this->configFacade->getVendorSourceDirectories(),
+                ...$this->directoryFinder->getAbsoluteSourceDirectories(),
+                ...$this->directoryFinder->getAbsoluteVendorSourceDirectories(),
             ],
             [$namespace, 'phel\\core']
         );

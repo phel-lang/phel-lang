@@ -9,18 +9,9 @@ use Gacela\Framework\Config;
 
 final class RunConfig extends AbstractConfig
 {
-    public const TESTS = 'tests';
-
-    /**
-     * @return list<string>
-     */
-    public function getTestDirectories(): array
-    {
-        return array_map(
-            fn (string $dir): string => $this->getApplicationRootDir() . '/' . $dir,
-            $this->get('tests', [])
-        );
-    }
+    public const SRC_DIRS = 'src-dirs';
+    public const TEST_DIRS = 'test-dirs';
+    public const VENDOR_DIR = 'vendor-dir';
 
     public function getPhelReplHistory(): string
     {
@@ -35,5 +26,20 @@ final class RunConfig extends AbstractConfig
     public function getApplicationRootDir(): string
     {
         return Config::getInstance()->getApplicationRootDir();
+    }
+
+    public function getSourceDirectories(): array
+    {
+        return (array)$this->get(self::SRC_DIRS);
+    }
+
+    public function getTestDirectories(): array
+    {
+        return (array)$this->get(self::TEST_DIRS);
+    }
+
+    public function getVendorDir(): string
+    {
+        return (string)$this->get(self::VENDOR_DIR);
     }
 }

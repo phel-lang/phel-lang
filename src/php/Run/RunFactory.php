@@ -8,7 +8,6 @@ use Gacela\Framework\AbstractFactory;
 use Phel\Build\BuildFacadeInterface;
 use Phel\Command\CommandFacadeInterface;
 use Phel\Compiler\CompilerFacadeInterface;
-use Phel\Config\ConfigFacadeInterface;
 use Phel\Printer\Printer;
 use Phel\Printer\PrinterInterface;
 use Phel\Run\Command\Repl\ColorStyle;
@@ -18,12 +17,32 @@ use Phel\Run\Command\Repl\ReplCommandIoInterface;
 use Phel\Run\Command\Repl\ReplCommandSystemIo;
 use Phel\Run\Command\Run\RunCommand;
 use Phel\Run\Command\Test\TestCommand;
+use Phel\Run\Finder\ComposerVendorDirectoriesFinder;
+use Phel\Run\Finder\DirectoryFinder;
+use Phel\Run\Finder\VendorDirectoriesFinderInterface;
 
 /**
  * @method RunConfig getConfig()
  */
 final class RunFactory extends AbstractFactory
 {
+    public function createDirectoryFinder(): DirectoryFinder
+    {
+        return new DirectoryFinder(
+            $this->getConfig()->getApplicationRootDir(),
+            $this->getConfig()->getSourceDirectories(),
+            $this->getConfig()->getTestDirectories(),
+            $this->createComposerVendorDirectoriesFinder()
+        );
+    }
+
+    public function createComposerVendorDirectoriesFinder(): VendorDirectoriesFinderInterface
+    {
+        return new ComposerVendorDirectoriesFinder(
+            $this->getConfig()->getVendorDir()
+        );
+    }
+
     public function createReplCommand(): ReplCommand
     {
         return new ReplCommand(
@@ -32,7 +51,7 @@ final class RunFactory extends AbstractFactory
             $this->createColorStyle(),
             $this->createPrinter(),
             $this->getBuildFacade(),
-            $this->getConfigFacade(),
+            $this->createDirectoryFinder(),
             $this->getConfig()->getReplStartupFile()
         );
     }
@@ -42,7 +61,7 @@ final class RunFactory extends AbstractFactory
         return new RunCommand(
             $this->getCommandFacade(),
             $this->getBuildFacade(),
-            $this->getConfigFacade()
+            $this->createDirectoryFinder(),
         );
     }
 
@@ -52,7 +71,7 @@ final class RunFactory extends AbstractFactory
             $this->getCommandFacade(),
             $this->getCompilerFacade(),
             $this->getBuildFacade(),
-            $this->getConfigFacade()
+            $this->createDirectoryFinder()
         );
     }
 
@@ -82,11 +101,6 @@ final class RunFactory extends AbstractFactory
     private function getBuildFacade(): BuildFacadeInterface
     {
         return $this->getProvidedDependency(RunDependencyProvider::FACADE_BUILD);
-    }
-
-    private function getConfigFacade(): ConfigFacadeInterface
-    {
-        return $this->getProvidedDependency(RunDependencyProvider::FACADE_CONFIG);
     }
 
     private function getCommandFacade(): CommandFacadeInterface

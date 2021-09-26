@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Phel\Config\Finder;
+namespace Phel\Run\Finder;
 
 use AppendIterator;
 use Iterator;

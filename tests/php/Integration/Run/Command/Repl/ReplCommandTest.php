@@ -9,10 +9,10 @@ use Generator;
 use Phel\Build\BuildFacade;
 use Phel\Compiler\CompilerFacade;
 use Phel\Compiler\Emitter\OutputEmitter\Munge;
-use Phel\Config\ConfigFacadeInterface;
 use Phel\Printer\Printer;
 use Phel\Run\Command\Repl\ColorStyle;
 use Phel\Run\Command\Repl\ReplCommand;
+use Phel\Run\Finder\DirectoryFinderInterface;
 use Phel\Runtime\Exceptions\ExceptionArgsPrinter;
 use Phel\Runtime\Exceptions\Extractor\FilePositionExtractor;
 use Phel\Runtime\Exceptions\Extractor\SourceMapExtractor;
@@ -77,10 +77,10 @@ final class ReplCommandTest extends AbstractCommandTest
 
     private function createReplCommand(ReplTestIo $io): ReplCommand
     {
-        $configFacade = $this->createMock(ConfigFacadeInterface::class);
-        $configFacade->method('getSourceDirectories')->willReturn([__DIR__ . '/../../../../src/phel/']);
-        $configFacade->method('getTestDirectories')->willReturn([]);
-        $configFacade->method('getVendorSourceDirectories')->willReturn([]);
+        $directoryFinder = $this->createMock(DirectoryFinderInterface::class);
+        $directoryFinder->method('getAbsoluteSourceDirectories')->willReturn([__DIR__ . '/../../../../src/phel/']);
+        $directoryFinder->method('getAbsoluteTestDirectories')->willReturn([]);
+        $directoryFinder->method('getAbsoluteVendorSourceDirectories')->willReturn([]);
 
         return new ReplCommand(
             $io,
@@ -88,7 +88,7 @@ final class ReplCommandTest extends AbstractCommandTest
             ColorStyle::noStyles(),
             Printer::nonReadable(),
             new BuildFacade(),
-            $configFacade
+            $directoryFinder
         );
     }
 

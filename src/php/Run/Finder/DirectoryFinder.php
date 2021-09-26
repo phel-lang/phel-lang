@@ -2,26 +2,25 @@
 
 declare(strict_types=1);
 
-namespace Phel\Config\Finder;
+namespace Phel\Run\Finder;
 
-final class DirectoryFinder
+final class DirectoryFinder implements DirectoryFinderInterface
 {
     private string $applicationRootDir;
-
     private array $srcDirs;
     private array $testDirs;
-    private string $vendorDir;
+    private VendorDirectoriesFinderInterface $vendorDirectoriesFinder;
 
     public function __construct(
         string $applicationRootDir,
         array $srcDirs,
         array $testDirs,
-        string $vendorDir
+        VendorDirectoriesFinderInterface $vendorDirectoriesFinder
     ) {
         $this->applicationRootDir = $applicationRootDir;
         $this->srcDirs = $srcDirs;
         $this->testDirs = $testDirs;
-        $this->vendorDir = $vendorDir;
+        $this->vendorDirectoriesFinder = $vendorDirectoriesFinder;
     }
 
     /**
@@ -40,9 +39,12 @@ final class DirectoryFinder
         return $this->toAbsoluteDirectories($this->testDirs);
     }
 
-    public function getAbsoluteVendorDir(): string
+    /**
+     * @return list<string>
+     */
+    public function getAbsoluteVendorSourceDirectories(): array
     {
-        return $this->applicationRootDir . '/' . $this->vendorDir;
+        return $this->vendorDirectoriesFinder->findPhelSourceDirectories();
     }
 
     /**

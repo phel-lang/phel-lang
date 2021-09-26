@@ -9,8 +9,8 @@ use Phel\Build\Extractor\NamespaceInformation;
 use Phel\Command\CommandFacadeInterface;
 use Phel\Compiler\CompilerFacadeInterface;
 use Phel\Compiler\Exceptions\CompilerException;
-use Phel\Config\ConfigFacadeInterface;
 use Phel\Run\Command\Test\Exceptions\CannotFindAnyTestsException;
+use Phel\Run\Finder\DirectoryFinder;
 use SebastianBergmann\Timer\ResourceUsageFormatter;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputArgument;
@@ -26,21 +26,19 @@ final class TestCommand extends Command
     private CommandFacadeInterface $commandFacade;
     private CompilerFacadeInterface $compilerFacade;
     private BuildFacadeInterface $buildFacade;
-
-    # TODO: move this config thing inside this Run module
-    private ConfigFacadeInterface $configFacade;
+    private DirectoryFinder $directoryFinder;
 
     public function __construct(
         CommandFacadeInterface $commandFacade,
         CompilerFacadeInterface $compilerFacade,
         BuildFacadeInterface $buildFacade,
-        ConfigFacadeInterface $configFacade
+        DirectoryFinder $directoryFinder
     ) {
         parent::__construct(self::COMMAND_NAME);
         $this->commandFacade = $commandFacade;
         $this->compilerFacade = $compilerFacade;
         $this->buildFacade = $buildFacade;
-        $this->configFacade = $configFacade;
+        $this->directoryFinder = $directoryFinder;
     }
 
     protected function configure(): void
@@ -73,9 +71,9 @@ final class TestCommand extends Command
 
             $namespaceInformation = $this->buildFacade->getDependenciesForNamespace(
                 [
-                    ...$this->configFacade->getSourceDirectories(),
-                    ...$this->configFacade->getTestDirectories(),
-                    ...$this->configFacade->getVendorSourceDirectories(),
+                    ...$this->directoryFinder->getAbsoluteSourceDirectories(),
+                    ...$this->directoryFinder->getAbsoluteTestDirectories(),
+                    ...$this->directoryFinder->getAbsoluteVendorSourceDirectories(),
                 ],
                 $namespaces
             );
@@ -114,9 +112,13 @@ final class TestCommand extends Command
     private function getNamespacesFromPaths(array $paths): array
     {
         if (empty($paths)) {
+            $namespaces = $this->buildFacade->getNamespaceFromDirectories(
+                $this->directoryFinder->getAbsoluteTestDirectories()
+            );
+
             return array_map(
                 static fn (NamespaceInformation $info): string => $info->getNamespace(),
-                $this->buildFacade->getNamespaceFromDirectories($this->configFacade->getTestDirectories())
+                $namespaces
             );
         }
 

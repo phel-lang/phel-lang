@@ -2,11 +2,11 @@
 
 declare(strict_types=1);
 
-namespace Phel\Config\Finder;
+namespace Phel\Run\Finder;
 
-use Phel\Config\ConfigConfig;
+use Phel\Run\RunConfig;
 
-class ComposerVendorDirectoriesFinder implements VendorDirectoriesFinderInterface
+final class ComposerVendorDirectoriesFinder implements VendorDirectoriesFinderInterface
 {
     private const PHEL_CONFIG_FILE_NAME = 'phel-config.php';
 
@@ -28,7 +28,7 @@ class ComposerVendorDirectoriesFinder implements VendorDirectoriesFinderInterfac
             $relativeVendorConfigPath = substr($phelConfigPath, strlen($vendorDir) - strlen($phelConfigPath));
             $pathPrefix = dirname($relativeVendorConfigPath);
             /** @psalm-suppress UnresolvableInclude */
-            $sourceDirectories = (require $phelConfigPath)[ConfigConfig::SRC_DIRS] ?? [];
+            $sourceDirectories = (require $phelConfigPath)[RunConfig::SRC_DIRS] ?? [];
 
             foreach ($sourceDirectories as $directory) {
                 $result[] = $pathPrefix . '/' . $directory;
