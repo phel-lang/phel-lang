@@ -6,6 +6,7 @@ namespace Phel\Run;
 
 use Gacela\Framework\AbstractConfig;
 use Gacela\Framework\Config;
+use Phel\Run\Domain\CodeDirectories;
 
 final class RunConfig extends AbstractConfig
 {
@@ -28,14 +29,12 @@ final class RunConfig extends AbstractConfig
         return Config::getInstance()->getApplicationRootDir();
     }
 
-    public function getSourceDirectories(): array
+    public function getConfigDirectories(): CodeDirectories
     {
-        return (array)$this->get(self::SRC_DIRS);
-    }
-
-    public function getTestDirectories(): array
-    {
-        return (array)$this->get(self::TEST_DIRS);
+        return new CodeDirectories(
+            (array)$this->get(self::SRC_DIRS),
+            (array)$this->get(self::TEST_DIRS)
+        );
     }
 
     public function getVendorDir(): string

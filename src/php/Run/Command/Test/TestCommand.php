@@ -71,9 +71,9 @@ final class TestCommand extends Command
 
             $namespaceInformation = $this->buildFacade->getDependenciesForNamespace(
                 [
-                    ...$this->directoryFinder->getAbsoluteSourceDirectories(),
-                    ...$this->directoryFinder->getAbsoluteTestDirectories(),
-                    ...$this->directoryFinder->getAbsoluteVendorSourceDirectories(),
+                    ...$this->directoryFinder->getSourceDirectories(),
+                    ...$this->directoryFinder->getTestDirectories(),
+                    ...$this->directoryFinder->getVendorSourceDirectories(),
                 ],
                 $namespaces
             );
@@ -113,7 +113,7 @@ final class TestCommand extends Command
     {
         if (empty($paths)) {
             $namespaces = $this->buildFacade->getNamespaceFromDirectories(
-                $this->directoryFinder->getAbsoluteTestDirectories()
+                $this->directoryFinder->getTestDirectories()
             );
 
             return array_map(

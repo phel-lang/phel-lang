@@ -17,6 +17,9 @@ final class ComposerVendorDirectoriesFinder implements VendorDirectoriesFinderIn
         $this->vendorDirectory = $vendorDirectory;
     }
 
+    /**
+     * @return list<string>
+     */
     public function findPhelSourceDirectories(): array
     {
         $vendorDir = $this->vendorDirectory;

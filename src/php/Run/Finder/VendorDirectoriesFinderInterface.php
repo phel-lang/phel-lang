@@ -6,5 +6,8 @@ namespace Phel\Run\Finder;
 
 interface VendorDirectoriesFinderInterface
 {
+    /**
+     * @return list<string>
+     */
     public function findPhelSourceDirectories(): array;
 }

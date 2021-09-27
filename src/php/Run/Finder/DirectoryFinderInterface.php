@@ -9,15 +9,15 @@ interface DirectoryFinderInterface
     /**
      * @return list<string>
      */
-    public function getAbsoluteSourceDirectories(): array;
+    public function getSourceDirectories(): array;
 
     /**
      * @return list<string>
      */
-    public function getAbsoluteTestDirectories(): array;
+    public function getTestDirectories(): array;
 
     /**
      * @return list<string>
      */
-    public function getAbsoluteVendorSourceDirectories(): array;
+    public function getVendorSourceDirectories(): array;
 }

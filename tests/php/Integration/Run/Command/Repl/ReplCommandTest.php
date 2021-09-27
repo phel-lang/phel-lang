@@ -78,9 +78,9 @@ final class ReplCommandTest extends AbstractCommandTest
     private function createReplCommand(ReplTestIo $io): ReplCommand
     {
         $directoryFinder = $this->createMock(DirectoryFinderInterface::class);
-        $directoryFinder->method('getAbsoluteSourceDirectories')->willReturn([__DIR__ . '/../../../../src/phel/']);
-        $directoryFinder->method('getAbsoluteTestDirectories')->willReturn([]);
-        $directoryFinder->method('getAbsoluteVendorSourceDirectories')->willReturn([]);
+        $directoryFinder->method('getSourceDirectories')->willReturn([__DIR__ . '/../../../../src/phel/']);
+        $directoryFinder->method('getTestDirectories')->willReturn([]);
+        $directoryFinder->method('getVendorSourceDirectories')->willReturn([]);
 
         return new ReplCommand(
             $io,

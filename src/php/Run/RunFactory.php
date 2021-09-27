@@ -26,23 +26,6 @@ use Phel\Run\Finder\VendorDirectoriesFinderInterface;
  */
 final class RunFactory extends AbstractFactory
 {
-    public function createDirectoryFinder(): DirectoryFinder
-    {
-        return new DirectoryFinder(
-            $this->getConfig()->getApplicationRootDir(),
-            $this->getConfig()->getSourceDirectories(),
-            $this->getConfig()->getTestDirectories(),
-            $this->createComposerVendorDirectoriesFinder()
-        );
-    }
-
-    public function createComposerVendorDirectoriesFinder(): VendorDirectoriesFinderInterface
-    {
-        return new ComposerVendorDirectoriesFinder(
-            $this->getConfig()->getVendorDir()
-        );
-    }
-
     public function createReplCommand(): ReplCommand
     {
         return new ReplCommand(
@@ -91,6 +74,22 @@ final class RunFactory extends AbstractFactory
     private function createPrinter(): PrinterInterface
     {
         return Printer::nonReadableWithColor();
+    }
+
+    private function createDirectoryFinder(): DirectoryFinder
+    {
+        return new DirectoryFinder(
+            $this->getConfig()->getApplicationRootDir(),
+            $this->getConfig()->getConfigDirectories(),
+            $this->createComposerVendorDirectoriesFinder()
+        );
+    }
+
+    private function createComposerVendorDirectoriesFinder(): VendorDirectoriesFinderInterface
+    {
+        return new ComposerVendorDirectoriesFinder(
+            $this->getConfig()->getVendorDir()
+        );
     }
 
     private function getCompilerFacade(): CompilerFacadeInterface

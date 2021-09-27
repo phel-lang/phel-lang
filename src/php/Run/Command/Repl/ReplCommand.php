@@ -74,9 +74,9 @@ final class ReplCommand extends Command
             $namespace = $this->buildFacade->getNamespaceFromFile($this->replStartupFile)->getNamespace();
             $srcDirectories = [
                 dirname($this->replStartupFile),
-                ...$this->directoryFinder->getAbsoluteSourceDirectories(),
-                ...$this->directoryFinder->getAbsoluteTestDirectories(),
-                ...$this->directoryFinder->getAbsoluteVendorSourceDirectories(),
+                ...$this->directoryFinder->getSourceDirectories(),
+                ...$this->directoryFinder->getTestDirectories(),
+                ...$this->directoryFinder->getVendorSourceDirectories(),
             ];
             $namespaceInformation = $this->buildFacade->getDependenciesForNamespace($srcDirectories, [$namespace, 'phel\\core']);
 

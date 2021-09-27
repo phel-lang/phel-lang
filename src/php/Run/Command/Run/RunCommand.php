@@ -94,8 +94,8 @@ final class RunCommand extends Command
 
         $namespaceInformation = $this->buildFacade->getDependenciesForNamespace(
             [
-                ...$this->directoryFinder->getAbsoluteSourceDirectories(),
-                ...$this->directoryFinder->getAbsoluteVendorSourceDirectories(),
+                ...$this->directoryFinder->getSourceDirectories(),
+                ...$this->directoryFinder->getVendorSourceDirectories(),
             ],
             [$namespace, 'phel\\core']
         );
