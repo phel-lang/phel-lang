@@ -5,9 +5,6 @@ declare(strict_types=1);
 namespace Phel\Command;
 
 use Gacela\Framework\AbstractFacade;
-use Phel\Command\Repl\ReplCommand;
-use Phel\Command\Run\RunCommand;
-use Phel\Command\Test\TestCommand;
 use Phel\Compiler\Exceptions\AbstractLocatedException;
 use Phel\Compiler\Parser\ReadModel\CodeSnippet;
 use Symfony\Component\Console\Output\OutputInterface;
@@ -35,18 +32,17 @@ final class CommandFacade extends AbstractFacade implements CommandFacadeInterfa
             ->writeStackTrace($output, $e);
     }
 
-    public function getReplCommand(): ReplCommand
+    public function getExceptionString(AbstractLocatedException $e, CodeSnippet $codeSnippet): string
     {
-        return $this->getFactory()->createReplCommand();
+        return $this->getFactory()
+            ->createCommandExceptionWriter()
+            ->getExceptionString($e, $codeSnippet);
     }
 
-    public function getRunCommand(): RunCommand
+    public function getStackTraceString(Throwable $e): string
     {
-        return $this->getFactory()->createRunCommand();
-    }
-
-    public function getTestCommand(): TestCommand
-    {
-        return $this->getFactory()->createTestCommand();
+        return $this->getFactory()
+            ->createCommandExceptionWriter()
+            ->getStackTraceString($e);
     }
 }

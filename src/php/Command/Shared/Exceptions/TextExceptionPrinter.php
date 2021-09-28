@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Phel\Runtime\Exceptions;
+namespace Phel\Command\Shared\Exceptions;
 
 use Phel\Compiler\Emitter\OutputEmitter\Munge;
 use Phel\Compiler\Emitter\OutputEmitter\MungeInterface;

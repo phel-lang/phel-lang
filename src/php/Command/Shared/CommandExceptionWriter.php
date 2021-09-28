@@ -39,4 +39,14 @@ final class CommandExceptionWriter implements CommandExceptionWriterInterface
     ): void {
         $output->writeln($this->exceptionPrinter->getExceptionString($e, $codeSnippet));
     }
+
+    public function getExceptionString(AbstractLocatedException $e, CodeSnippet $codeSnippet): string
+    {
+        return $this->exceptionPrinter->getExceptionString($e, $codeSnippet);
+    }
+
+    public function getStackTraceString(Throwable $e): string
+    {
+        return $this->exceptionPrinter->getStackTraceString($e);
+    }
 }

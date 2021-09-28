@@ -18,4 +18,8 @@ interface CommandFacadeInterface
     ): void;
 
     public function writeStackTrace(OutputInterface $output, Throwable $e): void;
+
+    public function getExceptionString(AbstractLocatedException $e, CodeSnippet $codeSnippet): string;
+
+    public function getStackTraceString(Throwable $e): string;
 }
