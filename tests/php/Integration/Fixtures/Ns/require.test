@@ -3,5 +3,5 @@
   (:require xzy\core)
   (:require xyz\foo :as f))
 --PHP--
-\Phel\Runtime\RuntimeSingleton::getInstance()->getEnv()->setNs("test");
+\Phel\Compiler\Analyzer\Environment\GlobalEnvironmentSingleton::getInstance()->setNs("test");
 $GLOBALS["__phel"]["phel\\core"]["*ns*"] = "test";

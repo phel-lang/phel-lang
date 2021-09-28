@@ -1,6 +1,5 @@
 (ns phel\test
   (:use Phel\Lang\Symbol)
-  (:use Phel\Runtime\RuntimeSingleton)
   (:use Phel\Compiler\Emitter\OutputEmitter\Munge)
   (:use Phel\Runtime\Exceptions\TextExceptionPrinter)
   (:use Throwable))

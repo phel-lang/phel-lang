@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace PhelTest\Integration\Compiler\Reader;
 
+use Phel\Compiler\Analyzer\Environment\GlobalEnvironmentSingleton;
 use Phel\Compiler\CompilerFacade;
 use Phel\Compiler\CompilerFacadeInterface;
 use Phel\Compiler\Lexer\Lexer;
@@ -16,7 +17,6 @@ use Phel\Lang\Symbol;
 use Phel\Lang\Table;
 use Phel\Lang\TypeFactory;
 use Phel\Lang\TypeInterface;
-use Phel\Runtime\RuntimeSingleton;
 use PHPUnit\Framework\TestCase;
 
 final class ReaderTest extends TestCase
@@ -25,11 +25,11 @@ final class ReaderTest extends TestCase
 
     public static function setUpBeforeClass(): void
     {
-        // Reset Singleton and initalize a new empty runtime.
-        // We initialize the runtime here because we don't want to let
-        // others define the runtime for us.
-        RuntimeSingleton::reset();
-        RuntimeSingleton::initialize();
+        // Reset global environment and initalize a new empty environment.
+        // We initialize the environment here because we don't want to let
+        // others define the environment for us.
+        GlobalEnvironmentSingleton::reset();
+        GlobalEnvironmentSingleton::initialize();
     }
 
     public function setUp(): void

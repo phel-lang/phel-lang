@@ -5,8 +5,7 @@ declare(strict_types=1);
 namespace PhelTest\Integration\Interop;
 
 use Phel\Build\BuildFacade;
-use Phel\Compiler\Analyzer\Environment\GlobalEnvironment;
-use Phel\Runtime\RuntimeSingleton;
+use Phel\Compiler\Analyzer\Environment\GlobalEnvironmentSingleton;
 use PHPUnit\Framework\TestCase;
 
 final class CallPhelTest extends TestCase
@@ -15,7 +14,7 @@ final class CallPhelTest extends TestCase
 
     public function setUp(): void
     {
-        RuntimeSingleton::initializeNew(new GlobalEnvironment());
+        GlobalEnvironmentSingleton::initializeNew();
 
         (new BuildFacade())->compileFile(
             __DIR__ . '/../../../../src/phel/core.phel',

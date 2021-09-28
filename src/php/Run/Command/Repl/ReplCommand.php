@@ -83,6 +83,9 @@ final class ReplCommand extends Command
             foreach ($namespaceInformation as $info) {
                 $this->buildFacade->evalFile($info->getFile());
             }
+
+            // Ugly Hack: Set source directories for the repl
+            $GLOBALS['__phel']['phel\\repl']['src-dirs'] = $srcDirectories;
         }
 
         $this->loopReadLineAndAnalyze();
