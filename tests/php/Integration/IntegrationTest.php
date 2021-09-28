@@ -7,9 +7,9 @@ namespace PhelTest\Integration;
 use Generator;
 use Phel\Build\BuildFacade;
 use Phel\Compiler\Analyzer\Environment\GlobalEnvironment;
+use Phel\Compiler\Analyzer\Environment\GlobalEnvironmentSingleton;
 use Phel\Compiler\CompilerFacade;
 use Phel\Lang\Symbol;
-use Phel\Runtime\RuntimeSingleton;
 use PHPUnit\Framework\TestCase;
 use RecursiveDirectoryIterator;
 use RecursiveIteratorIterator;
@@ -24,9 +24,7 @@ final class IntegrationTest extends TestCase
     public static function setUpBeforeClass(): void
     {
         Symbol::resetGen();
-        $globalEnv = new GlobalEnvironment();
-        $rt = RuntimeSingleton::initializeNew($globalEnv);
-        $rt->addPath('phel\\', [__DIR__ . '/../../src/phel/']);
+        $globalEnv = GlobalEnvironmentSingleton::initializeNew();
         (new BuildFacade())->compileFile(
             __DIR__ . '/../../../src/phel/core.phel',
             tempnam(sys_get_temp_dir(), 'phel-core')

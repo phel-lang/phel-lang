@@ -1,18 +1,16 @@
 (ns phel\repl
   (:use Phel\Lang\Symbol)
   (:use Phel\Build\BuildFacade)
-  (:use Phel\Runtime\RuntimeSingleton)
+  (:use Phel\Compiler\Analyzer\Environment\GlobalEnvironmentSingleton)
   (:use Phel\Compiler\Analyzer\Environment\NodeEnvironment)
   (:use Phel\Printer\Printer))
 
 (def build-facade (php/new BuildFacade))
 
-(defn- get-runtime []
-  (php/:: RuntimeSingleton (getInstance)))
+(def- src-dirs (php/array)) # Will be set by the repl command
 
 (defn- get-global-env []
-  (-> (get-runtime)
-      (php/-> (getEnv))))
+  (php/:: GlobalEnvironmentSingleton (getInstance)))
 
 (defn- loaded-namespaces []
   (php/array_keys (php/aget php/$GLOBALS "__phel")))
@@ -21,8 +19,7 @@
   (php/-> build-facade (evalFile file)))
 
 (defn- eval-namespace [namespace]
-  (let [src-dirs (php/-> (get-runtime) (getSourceDirectories))
-        dependecies (php/-> build-facade (getDependenciesForNamespace src-dirs (php/array namespace)))]
+  (let [dependecies (php/-> build-facade (getDependenciesForNamespace src-dirs (php/array namespace)))]
     (foreach [dep dependecies]
       (when-not (php/in_array (php/-> dep (getNamespace)) (loaded-namespaces))
         (eval-file (php/-> dep (getFile)))))))
