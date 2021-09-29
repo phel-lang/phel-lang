@@ -6,6 +6,19 @@ All notable changes to this project will be documented in this file.
 
 * Removed `load` function in `phel\core`
 * Pass by value the array (1st argument) to `push` (#306)
+* Configuration will no be loaded from `phel-config.php` and not from `composer.json`
+  * The `loader` config parameter has been removed. Please use `src-dirs` now.
+  * The `loader-dev` config parameter has been removed. Please use `test-dirs` now.
+  * The `tests` config parameter has been removed. Please use `test-dirs` now.
+  * A `vendors-dir` config parameter has been introduced. Default value is `vendor`.
+* **Breaking**: Dependencies in vendor will only be recognized if the vendor project has a `phel-config.php` file. All old projet that have the configuration inside the `composer.json` will not be detected anymore.
+* The `phel-composer-plugin` is obsolete.
+* The way code in Phel is compiled has changed:
+  * Before it was bottom up: If a phel file was evaluated it continued only after all dependencies have been evaluated.
+  * Now it is top down: The compile first creates a dependencies graph and start to evaluate files with no dependencies before others.
+* `PhelRuntime` was removed and is not needed anymore
+* Internal refactoring:
+  * All commands have been moved to their associated modules.
 
 ## 0.3.3 (2021-06-04)
 
