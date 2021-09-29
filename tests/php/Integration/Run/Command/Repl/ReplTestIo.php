@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace PhelTest\Integration\Run\Command\Repl;
 
+use Phel\Command\Shared\Exceptions\ExceptionPrinterInterface;
 use Phel\Compiler\Exceptions\AbstractLocatedException;
 use Phel\Compiler\Parser\ReadModel\CodeSnippet;
 use Phel\Run\Command\Repl\ReplCommandIoInterface;
-use Phel\Runtime\Exceptions\ExceptionPrinterInterface;
 use Throwable;
 
 final class ReplTestIo implements ReplCommandIoInterface

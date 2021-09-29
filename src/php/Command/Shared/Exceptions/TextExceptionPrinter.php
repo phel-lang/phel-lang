@@ -4,6 +4,9 @@ declare(strict_types=1);
 
 namespace Phel\Command\Shared\Exceptions;
 
+use Phel\Command\Shared\Exceptions\Extractor\FilePositionExtractor;
+use Phel\Command\Shared\Exceptions\Extractor\FilePositionExtractorInterface;
+use Phel\Command\Shared\Exceptions\Extractor\SourceMapExtractor;
 use Phel\Compiler\Emitter\OutputEmitter\Munge;
 use Phel\Compiler\Emitter\OutputEmitter\MungeInterface;
 use Phel\Compiler\Exceptions\AbstractLocatedException;
@@ -13,9 +16,6 @@ use Phel\Lang\SourceLocation;
 use Phel\Printer\Printer;
 use Phel\Run\Command\Repl\ColorStyle;
 use Phel\Run\Command\Repl\ColorStyleInterface;
-use Phel\Runtime\Exceptions\Extractor\FilePositionExtractor;
-use Phel\Runtime\Exceptions\Extractor\FilePositionExtractorInterface;
-use Phel\Runtime\Exceptions\Extractor\SourceMapExtractor;
 use ReflectionClass;
 use Throwable;
 

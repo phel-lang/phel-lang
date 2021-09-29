@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace Phel\Command\Shared;
 
+use Phel\Command\Shared\Exceptions\ExceptionPrinterInterface;
 use Phel\Compiler\Exceptions\AbstractLocatedException;
 use Phel\Compiler\Parser\ReadModel\CodeSnippet;
-use Phel\Runtime\Exceptions\ExceptionPrinterInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 use Throwable;
 
