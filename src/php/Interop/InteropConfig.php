@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace Phel\Interop;
 
+use Gacela\Framework\AbstractConfig;
 use Gacela\Framework\Config;
-use Phel\AbstractPhelConfig;
 
-final class InteropConfig extends AbstractPhelConfig
+final class InteropConfig extends AbstractConfig
 {
     public const EXPORT = 'export';
 
