@@ -50,10 +50,40 @@ final class ReplCommandTest extends AbstractCommandTest
         self::assertEquals(trim($expectedOutput), trim($replOutput));
     }
 
+    /**
+     * This is doing the same as the test above except that it will load the core lib before.
+     * We splitted it because it takes some time to load the core lib before every test.
+     *
+     * @dataProvider providerIntegrationWithCoreLib
+     */
+    public function test_integration_with_core_lib(string $expectedOutput, InputLine ...$inputs): void
+    {
+        $io = $this->createReplTestIo();
+        $io->setInputs(...$inputs);
+
+        $repl = $this->createReplCommandWithCoreLib($io);
+        $repl->run(
+            $this->createStub(InputInterface::class),
+            $this->createStub(OutputInterface::class)
+        );
+
+        $replOutput = $io->getOutputString();
+
+        self::assertEquals(trim($expectedOutput), trim($replOutput));
+    }
+
     public function providerIntegration(): Generator
     {
-        $fixturesDir = realpath(__DIR__ . '/Fixtures');
+        return $this->buildDataProviderFromDirectory(realpath(__DIR__ . '/Fixtures'));
+    }
 
+    public function providerIntegrationWithCoreLib(): Generator
+    {
+        return $this->buildDataProviderFromDirectory(realpath(__DIR__ . '/FixturesWithCoreLib'));
+    }
+
+    private function buildDataProviderFromDirectory(string $fixturesDir): Generator
+    {
         $iterator = new RecursiveIteratorIterator(
             new RecursiveDirectoryIterator($fixturesDir),
             RecursiveIteratorIterator::LEAVES_ONLY
@@ -89,6 +119,24 @@ final class ReplCommandTest extends AbstractCommandTest
             Printer::nonReadable(),
             new BuildFacade(),
             $directoryFinder
+        );
+    }
+
+    private function createReplCommandWithCoreLib(ReplTestIo $io): ReplCommand
+    {
+        $directoryFinder = $this->createMock(DirectoryFinderInterface::class);
+        $directoryFinder->method('getSourceDirectories')->willReturn([__DIR__ . '/../../../../../../src/phel/']);
+        $directoryFinder->method('getTestDirectories')->willReturn([]);
+        $directoryFinder->method('getVendorSourceDirectories')->willReturn([]);
+
+        return new ReplCommand(
+            $io,
+            new CompilerFacade(),
+            ColorStyle::noStyles(),
+            Printer::nonReadable(),
+            new BuildFacade(),
+            $directoryFinder,
+            __DIR__ . '/../../../../../../src/php/Run/Command/Repl/startup.phel'
         );
     }
 
