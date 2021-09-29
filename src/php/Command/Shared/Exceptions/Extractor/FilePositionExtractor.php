@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace Phel\Command\Shared\Exceptions\Extractor;
 
+use Phel\Command\Shared\Exceptions\Extractor\ReadModel\FilePosition;
+use Phel\Command\Shared\Exceptions\Extractor\ReadModel\SourceMapInformation;
 use Phel\Compiler\Emitter\OutputEmitter\SourceMap\SourceMapConsumer;
-use Phel\Runtime\Exceptions\Extractor\ReadModel\FilePosition;
-use Phel\Runtime\Exceptions\Extractor\ReadModel\SourceMapInformation;
 
 final class FilePositionExtractor implements FilePositionExtractorInterface
 {

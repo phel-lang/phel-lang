@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Phel\Command\Shared\Exceptions\Extractor;
 
-use Phel\Runtime\Exceptions\Extractor\ReadModel\FilePosition;
+use Phel\Command\Shared\Exceptions\Extractor\ReadModel\FilePosition;
 
 interface FilePositionExtractorInterface
 {
