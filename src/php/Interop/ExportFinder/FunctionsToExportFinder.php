@@ -14,30 +14,28 @@ use Phel\Interop\ReadModel\FunctionToExport;
 use Phel\Lang\Collections\Map\PersistentMapInterface;
 use Phel\Lang\Keyword;
 use Phel\Lang\TypeFactory;
-use Phel\Runtime\RuntimeFacadeInterface;
 
 final class FunctionsToExportFinder implements FunctionsToExportFinderInterface
 {
-    private RuntimeFacadeInterface $runtimeFacade;
     private BuildFacadeInterface $buildFacade;
-    /** @var list<string> */
-    private array $exportDirectories;
+    private array $sourceDirs;
+    private array $exportDirs;
 
     public function __construct(
-        RuntimeFacadeInterface $runtimeFacade,
         BuildFacadeInterface $buildFacade,
-        array $exportDirectories
+        array $sourceDirs,
+        array $exportDirs
     ) {
-        $this->runtimeFacade = $runtimeFacade;
         $this->buildFacade = $buildFacade;
-        $this->exportDirectories = $exportDirectories;
+        $this->sourceDirs = $sourceDirs;
+        $this->exportDirs = $exportDirs;
     }
 
     /**
-     * @throws CompiledCodeIsMalformedException
      * @throws ExtractorException
      * @throws FileException
      * @throws CompilerException
+     * @throws CompiledCodeIsMalformedException
      *
      * @return array<string, list<FunctionToExport>>
      */
@@ -57,13 +55,14 @@ final class FunctionsToExportFinder implements FunctionsToExportFinderInterface
     private function loadAllNsFromPaths(): void
     {
         $namespaceFromDirectories = $this->buildFacade
-            ->getNamespaceFromDirectories($this->exportDirectories);
+            ->getNamespaceFromDirectories($this->exportDirs);
 
         $namespaces = array_values(array_map(fn (NamespaceInformation $info) => $info->getNamespace(), $namespaceFromDirectories));
 
-        $srcDirectories = $this->runtimeFacade->getRuntime()->getSourceDirectories();
-
-        $namespaceInformation = $this->buildFacade->getDependenciesForNamespace($srcDirectories, [...$namespaces, 'phel\\core']);
+        $namespaceInformation = $this->buildFacade->getDependenciesForNamespace(
+            $this->sourceDirs,
+            [...$namespaces, 'phel\\core']
+        );
         foreach ($namespaceInformation as $info) {
             $this->buildFacade->evalFile($info->getFile());
         }

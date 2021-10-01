@@ -5,6 +5,9 @@ declare(strict_types=1);
 
 use Gacela\Framework\Gacela;
 use Phel\Command\CommandFacade;
+use Phel\Formatter\FormatterFacade;
+use Phel\Interop\InteropFacade;
+use Phel\Run\RunFacade;
 use Symfony\Component\Console\Application;
 
 $projectRootDir = getcwd() . DIRECTORY_SEPARATOR;
@@ -18,13 +21,14 @@ require $autoloadPath;
 
 Gacela::bootstrap($projectRootDir);
 
-$commandFacade = new CommandFacade();
+$interopFacade = new InteropFacade();
+$formatterFacade = new FormatterFacade();
+$runFacade = new RunFacade();
 
 $application = new Application();
-$application->add($commandFacade->getExportCommand());
-$application->add($commandFacade->getFormatCommand());
-$application->add($commandFacade->getReplCommand());
-$application->add($commandFacade->getRunCommand());
-$application->add($commandFacade->getRuntimeCommand());
-$application->add($commandFacade->getTestCommand());
+$application->add($interopFacade->getExportCommand());
+$application->add($formatterFacade->getFormatCommand());
+$application->add($runFacade->getReplCommand());
+$application->add($runFacade->getRunCommand());
+$application->add($runFacade->getTestCommand());
 $application->run();

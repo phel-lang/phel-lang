@@ -5,7 +5,11 @@ declare(strict_types=1);
 namespace Phel\Formatter;
 
 use Gacela\Framework\AbstractFactory;
+use Phel\Command\CommandFacadeInterface;
 use Phel\Compiler\CompilerFacade;
+use Phel\Formatter\Command\FormatCommand;
+use Phel\Formatter\Command\PathFilterInterface;
+use Phel\Formatter\Command\PhelPathFilter;
 use Phel\Formatter\Formatter\Formatter;
 use Phel\Formatter\Formatter\FormatterInterface;
 use Phel\Formatter\Rules\Indenter\BlockIndenter;
@@ -17,6 +21,15 @@ use Phel\Formatter\Rules\UnindentRule;
 
 final class FormatterFactory extends AbstractFactory
 {
+    public function createFormatCommand(): FormatCommand
+    {
+        return new FormatCommand(
+            $this->getCommandFacade(),
+            $this->createFormatter(),
+            $this->createPathFilter()
+        );
+    }
+
     public function createFormatter(): FormatterInterface
     {
         return new Formatter(
@@ -30,7 +43,7 @@ final class FormatterFactory extends AbstractFactory
         );
     }
 
-    public function createRemoveSurroundingWhitespaceRule(): RemoveSurroundingWhitespaceRule
+    private function createRemoveSurroundingWhitespaceRule(): RemoveSurroundingWhitespaceRule
     {
         return new RemoveSurroundingWhitespaceRule();
     }
@@ -76,8 +89,18 @@ final class FormatterFactory extends AbstractFactory
         return new RemoveTrailingWhitespaceRule();
     }
 
+    private function createPathFilter(): PathFilterInterface
+    {
+        return new PhelPathFilter();
+    }
+
     private function getFacadeCompiler(): CompilerFacade
     {
         return $this->getProvidedDependency(FormatterDependencyProvider::FACADE_COMPILER);
+    }
+
+    private function getCommandFacade(): CommandFacadeInterface
+    {
+        return $this->getProvidedDependency(FormatterDependencyProvider::FACADE_COMMAND);
     }
 }

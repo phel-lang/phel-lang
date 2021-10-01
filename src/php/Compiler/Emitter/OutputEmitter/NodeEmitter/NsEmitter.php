@@ -52,7 +52,7 @@ final class NsEmitter implements NodeEmitterInterface
     private function emitCurrentNamespace(NsNode $node): void
     {
         $this->outputEmitter->emitLine(
-            '\Phel\Runtime\RuntimeSingleton::getInstance()->getEnv()->setNs("' . addslashes($node->getNamespace()) . '");',
+            '\Phel\Compiler\Analyzer\Environment\GlobalEnvironmentSingleton::getInstance()->setNs("' . addslashes($node->getNamespace()) . '");',
             $node->getStartSourceLocation()
         );
 

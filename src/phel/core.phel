@@ -30,7 +30,6 @@
   (:use Phel\Lang\Collections\HashSet\TransientHashSetInterface)
   (:use Phel\Compiler\Emitter\OutputEmitter\Munge)
   (:use Phel\Printer\Printer)
-  (:use Phel\Runtime\RuntimeSingleton)
   (:use Countable)
   (:use Exception)
   (:use InvalidArgumentException))

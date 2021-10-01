@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace PhelTest\Unit\Exceptions\Extractor;
 
-use Phel\Runtime\Exceptions\Extractor\FilePositionExtractor;
-use Phel\Runtime\Exceptions\Extractor\ReadModel\FilePosition;
-use Phel\Runtime\Exceptions\Extractor\ReadModel\SourceMapInformation;
-use Phel\Runtime\Exceptions\Extractor\SourceMapExtractorInterface;
+use Phel\Command\Shared\Exceptions\Extractor\FilePositionExtractor;
+use Phel\Command\Shared\Exceptions\Extractor\ReadModel\FilePosition;
+use Phel\Command\Shared\Exceptions\Extractor\ReadModel\SourceMapInformation;
+use Phel\Command\Shared\Exceptions\Extractor\SourceMapExtractorInterface;
 use PHPUnit\Framework\TestCase;
 
 final class FilePositionExtractorTest extends TestCase

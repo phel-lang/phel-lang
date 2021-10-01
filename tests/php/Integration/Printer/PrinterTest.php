@@ -5,10 +5,10 @@ declare(strict_types=1);
 namespace PhelTest\Integration\Printer;
 
 use Gacela\Framework\Config;
+use Phel\Compiler\Analyzer\Environment\GlobalEnvironmentSingleton;
 use Phel\Compiler\CompilerFacade;
 use Phel\Compiler\CompilerFacadeInterface;
 use Phel\Printer\Printer;
-use Phel\Runtime\RuntimeSingleton;
 use PHPUnit\Framework\TestCase;
 
 final class PrinterTest extends TestCase
@@ -18,7 +18,7 @@ final class PrinterTest extends TestCase
     public static function setUpBeforeClass(): void
     {
         Config::getInstance()->setApplicationRootDir(__DIR__);
-        RuntimeSingleton::reset();
+        GlobalEnvironmentSingleton::reset();
     }
 
     public function setUp(): void

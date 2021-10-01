@@ -3,7 +3,7 @@
 
 (def x 1)
 --PHP--
-\Phel\Runtime\RuntimeSingleton::getInstance()->getEnv()->setNs("my\\ns");
+\Phel\Compiler\Analyzer\Environment\GlobalEnvironmentSingleton::getInstance()->setNs("my\\ns");
 $GLOBALS["__phel"]["phel\\core"]["*ns*"] = "my\\ns";
 $GLOBALS["__phel"]["my\\ns"]["x"] = 1;
 $GLOBALS["__phel_meta"]["my\\ns"]["x"] = \Phel\Lang\TypeFactory::getInstance()->persistentMapFromKVs(

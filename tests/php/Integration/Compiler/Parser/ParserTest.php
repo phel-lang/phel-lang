@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace PhelTest\Integration\Compiler\Parser;
 
+use Phel\Compiler\Analyzer\Environment\GlobalEnvironmentSingleton;
 use Phel\Compiler\CompilerFacade;
 use Phel\Compiler\CompilerFacadeInterface;
 use Phel\Compiler\Lexer\Token;
@@ -24,7 +25,6 @@ use Phel\Compiler\Parser\ParserNode\WhitespaceNode;
 use Phel\Lang\Keyword;
 use Phel\Lang\SourceLocation;
 use Phel\Lang\Symbol;
-use Phel\Runtime\RuntimeSingleton;
 use PHPUnit\Framework\TestCase;
 
 final class ParserTest extends TestCase
@@ -33,7 +33,7 @@ final class ParserTest extends TestCase
 
     public static function setUpBeforeClass(): void
     {
-        RuntimeSingleton::reset();
+        GlobalEnvironmentSingleton::reset();
     }
 
     public function setUp(): void

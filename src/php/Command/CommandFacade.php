@@ -5,45 +5,58 @@ declare(strict_types=1);
 namespace Phel\Command;
 
 use Gacela\Framework\AbstractFacade;
-use Phel\Command\Export\ExportCommand;
-use Phel\Command\Format\FormatCommand;
-use Phel\Command\Repl\ReplCommand;
-use Phel\Command\Run\RunCommand;
-use Phel\Command\Runtime\RuntimeCommand;
-use Phel\Command\Test\TestCommand;
+use Phel\Compiler\Exceptions\AbstractLocatedException;
+use Phel\Compiler\Exceptions\CompilerException;
+use Phel\Compiler\Parser\ReadModel\CodeSnippet;
+use Symfony\Component\Console\Output\OutputInterface;
+use Throwable;
 
 /**
  * @method CommandFactory getFactory()
  */
-final class CommandFacade extends AbstractFacade
+final class CommandFacade extends AbstractFacade implements CommandFacadeInterface
 {
-    public function getReplCommand(): ReplCommand
-    {
-        return $this->getFactory()->createReplCommand();
+    public function writeLocatedException(
+        OutputInterface $output,
+        AbstractLocatedException $locatedException,
+        CodeSnippet $snippet
+    ): void {
+        $this->getFactory()
+            ->createCommandExceptionWriter()
+            ->writeLocatedException($output, $locatedException, $snippet);
     }
 
-    public function getRunCommand(): RunCommand
+    public function writeStackTrace(OutputInterface $output, Throwable $e): void
     {
-        return $this->getFactory()->createRunCommand();
+        $this->getFactory()
+            ->createCommandExceptionWriter()
+            ->writeStackTrace($output, $e);
     }
 
-    public function getRuntimeCommand(): RuntimeCommand
+    public function getExceptionString(AbstractLocatedException $e, CodeSnippet $codeSnippet): string
     {
-        return $this->getFactory()->createRuntimeCommand();
+        return $this->getFactory()
+            ->createCommandExceptionWriter()
+            ->getExceptionString($e, $codeSnippet);
     }
 
-    public function getTestCommand(): TestCommand
+    public function getStackTraceString(Throwable $e): string
     {
-        return $this->getFactory()->createTestCommand();
+        return $this->getFactory()
+            ->createCommandExceptionWriter()
+            ->getStackTraceString($e);
     }
 
-    public function getFormatCommand(): FormatCommand
+    public function registerExceptionHandler(): void
     {
-        return $this->getFactory()->createFormatCommand();
-    }
+        $exceptionPrinter = $this->getFactory()->createExceptionPrinter();
 
-    public function getExportCommand(): ExportCommand
-    {
-        return $this->getFactory()->createExportCommand();
+        set_exception_handler(function (Throwable $exception) use ($exceptionPrinter): void {
+            if ($exception instanceof CompilerException) {
+                $exceptionPrinter->printException($exception->getNestedException(), $exception->getCodeSnippet());
+            } else {
+                $exceptionPrinter->printStackTrace($exception);
+            }
+        });
     }
 }

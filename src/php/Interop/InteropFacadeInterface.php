@@ -4,16 +4,9 @@ declare(strict_types=1);
 
 namespace Phel\Interop;
 
-use Phel\Interop\ReadModel\Wrapper;
+use Phel\Interop\Command\ExportCommand;
 
 interface InteropFacadeInterface
 {
-    public function removeDestinationDir(): void;
-
-    public function createFileFromWrapper(Wrapper $wrapper): void;
-
-    /**
-     * @return list<Wrapper>
-     */
-    public function generateWrappers(): array;
+    public function getExportCommand(): ExportCommand;
 }

@@ -6,6 +6,8 @@ namespace Phel\Interop;
 
 use Gacela\Framework\AbstractFactory;
 use Phel\Build\BuildFacadeInterface;
+use Phel\Command\CommandFacadeInterface;
+use Phel\Interop\Command\ExportCommand;
 use Phel\Interop\DirectoryRemover\DirectoryRemover;
 use Phel\Interop\DirectoryRemover\DirectoryRemoverInterface;
 use Phel\Interop\ExportFinder\FunctionsToExportFinder;
@@ -18,27 +20,20 @@ use Phel\Interop\Generator\Builder\CompiledPhpClassBuilder;
 use Phel\Interop\Generator\Builder\CompiledPhpMethodBuilder;
 use Phel\Interop\Generator\Builder\WrapperRelativeFilenamePathBuilder;
 use Phel\Interop\Generator\WrapperGenerator;
-use Phel\Runtime\RuntimeFacade;
 
 /**
  * @method InteropConfig getConfig()
  */
 final class InteropFactory extends AbstractFactory
 {
-    public function createWrapperGenerator(): WrapperGenerator
+    public function createExportCommand(): ExportCommand
     {
-        return new WrapperGenerator(
-            $this->createCompiledPhpClassBuilder(),
-            new WrapperRelativeFilenamePathBuilder()
-        );
-    }
-
-    public function createFunctionsToExportFinder(): FunctionsToExportFinderInterface
-    {
-        return new FunctionsToExportFinder(
-            $this->getRuntimeFacade(),
-            $this->getBuildFacade(),
-            $this->getConfig()->getExportDirectories()
+        return new ExportCommand(
+            $this->createDirectoryRemover(),
+            $this->createWrapperGenerator(),
+            $this->createFunctionsToExportFinder(),
+            $this->createFileCreator(),
+            $this->getCommandFacade(),
         );
     }
 
@@ -49,6 +44,46 @@ final class InteropFactory extends AbstractFactory
         );
     }
 
+    private function createWrapperGenerator(): WrapperGenerator
+    {
+        return new WrapperGenerator(
+            $this->createCompiledPhpClassBuilder(),
+            $this->createWrapperPathBuilder()
+        );
+    }
+
+    private function createCompiledPhpClassBuilder(): CompiledPhpClassBuilder
+    {
+        return new CompiledPhpClassBuilder(
+            $this->getConfig()->prefixNamespace(),
+            $this->createCompiledPhpMethodBuilder()
+        );
+    }
+
+    private function createCompiledPhpMethodBuilder(): CompiledPhpMethodBuilder
+    {
+        return new CompiledPhpMethodBuilder();
+    }
+
+    private function createWrapperPathBuilder(): WrapperRelativeFilenamePathBuilder
+    {
+        return new WrapperRelativeFilenamePathBuilder();
+    }
+
+    private function createFunctionsToExportFinder(): FunctionsToExportFinderInterface
+    {
+        return new FunctionsToExportFinder(
+            $this->getBuildFacade(),
+            $this->getConfig()->getSourceDirectories(),
+            $this->getConfig()->getExportDirectories()
+        );
+    }
+
+    private function getBuildFacade(): BuildFacadeInterface
+    {
+        return $this->getProvidedDependency(InteropDependencyProvider::FACADE_BUILD);
+    }
+
     public function createFileCreator(): FileCreatorInterface
     {
         return new FileCreator(
@@ -57,26 +92,13 @@ final class InteropFactory extends AbstractFactory
         );
     }
 
-    private function createCompiledPhpClassBuilder(): CompiledPhpClassBuilder
-    {
-        return new CompiledPhpClassBuilder(
-            $this->getConfig()->prefixNamespace(),
-            new CompiledPhpMethodBuilder()
-        );
-    }
-
     private function createFileSystemIo(): FileIoInterface
     {
         return new FileSystemIo();
     }
 
-    private function getRuntimeFacade(): RuntimeFacade
+    private function getCommandFacade(): CommandFacadeInterface
     {
-        return $this->getProvidedDependency(InteropDependencyProvider::FACADE_RUNTIME);
-    }
-
-    private function getBuildFacade(): BuildFacadeInterface
-    {
-        return $this->getProvidedDependency(InteropDependencyProvider::FACADE_BUILD);
+        return $this->getProvidedDependency(InteropDependencyProvider::FACADE_COMMAND);
     }
 }

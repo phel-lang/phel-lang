@@ -1,0 +1,3 @@
+phel:1> (require phel\html :as h)
+phel\htmlphel:2> (h/html [:div])
+<div></div>

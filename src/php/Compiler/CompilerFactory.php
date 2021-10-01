@@ -7,6 +7,8 @@ namespace Phel\Compiler;
 use Gacela\Framework\AbstractFactory;
 use Phel\Compiler\Analyzer\Analyzer;
 use Phel\Compiler\Analyzer\AnalyzerInterface;
+use Phel\Compiler\Analyzer\Environment\GlobalEnvironmentInterface;
+use Phel\Compiler\Analyzer\Environment\GlobalEnvironmentSingleton;
 use Phel\Compiler\Compiler\CodeCompiler;
 use Phel\Compiler\Compiler\CodeCompilerInterface;
 use Phel\Compiler\Compiler\EvalCompiler;
@@ -32,7 +34,6 @@ use Phel\Compiler\Reader\QuasiquoteTransformer;
 use Phel\Compiler\Reader\Reader;
 use Phel\Compiler\Reader\ReaderInterface;
 use Phel\Printer\Printer;
-use Phel\Runtime\RuntimeFacadeInterface;
 
 final class CompilerFactory extends AbstractFactory
 {
@@ -67,11 +68,9 @@ final class CompilerFactory extends AbstractFactory
 
     public function createReader(): ReaderInterface
     {
-        $runtime = $this->getRuntimeFacade()->getRuntime();
-
         return new Reader(
             new ExpressionReaderFactory(),
-            new QuasiquoteTransformer($runtime->getEnv())
+            new QuasiquoteTransformer($this->getGlobalEnvironment())
         );
     }
 
@@ -84,9 +83,7 @@ final class CompilerFactory extends AbstractFactory
 
     public function createAnalyzer(): AnalyzerInterface
     {
-        $runtime = $this->getRuntimeFacade()->getRuntime();
-
-        return new Analyzer($runtime->getEnv());
+        return new Analyzer($this->getGlobalEnvironment());
     }
 
     public function createEmitter(bool $enableSourceMaps = true): StatementEmitterInterface
@@ -115,8 +112,11 @@ final class CompilerFactory extends AbstractFactory
         return new RequireEvaluator();
     }
 
-    private function getRuntimeFacade(): RuntimeFacadeInterface
+    private function getGlobalEnvironment(): GlobalEnvironmentInterface
     {
-        return $this->getProvidedDependency(CompilerDependencyProvider::FACADE_RUNTIME);
+        if (!GlobalEnvironmentSingleton::isInitialized()) {
+            return GlobalEnvironmentSingleton::initializeNew();
+        }
+        return GlobalEnvironmentSingleton::getInstance();
     }
 }
