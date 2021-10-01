@@ -20,6 +20,8 @@ use Phel\Run\Command\Test\TestCommand;
 use Phel\Run\Finder\ComposerVendorDirectoriesFinder;
 use Phel\Run\Finder\DirectoryFinder;
 use Phel\Run\Finder\VendorDirectoriesFinderInterface;
+use Phel\Run\Runner\NamespaceRunner;
+use Phel\Run\Runner\NamespaceRunnerInterface;
 
 /**
  * @method RunConfig getConfig()
@@ -44,8 +46,8 @@ final class RunFactory extends AbstractFactory
     {
         return new RunCommand(
             $this->getCommandFacade(),
+            $this->createNamespaceRunner(),
             $this->getBuildFacade(),
-            $this->createDirectoryFinder(),
         );
     }
 
@@ -54,6 +56,15 @@ final class RunFactory extends AbstractFactory
         return new TestCommand(
             $this->getCommandFacade(),
             $this->getCompilerFacade(),
+            $this->getBuildFacade(),
+            $this->createDirectoryFinder()
+        );
+    }
+
+    public function createNamespaceRunner(): NamespaceRunnerInterface
+    {
+        return new NamespaceRunner(
+            $this->getCommandFacade(),
             $this->getBuildFacade(),
             $this->createDirectoryFinder()
         );

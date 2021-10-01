@@ -28,4 +28,11 @@ final class RunFacade extends AbstractFacade implements RunFacadeInterface
     {
         return $this->getFactory()->createTestCommand();
     }
+
+    public function runNamespace(string $namespace): void
+    {
+        $this->getFactory()
+            ->createNamespaceRunner()
+            ->run($namespace);
+    }
 }

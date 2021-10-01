@@ -15,4 +15,6 @@ interface RunFacadeInterface
     public function getRunCommand(): RunCommand;
 
     public function getTestCommand(): TestCommand;
+
+    public function runNamespace(string $namespace): void;
 }
