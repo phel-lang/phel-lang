@@ -28,8 +28,7 @@ final class ComposerVendorDirectoriesFinder implements VendorDirectoriesFinderIn
         $result = [];
 
         foreach (glob($pattern) as $phelConfigPath) {
-            $relativeVendorConfigPath = substr($phelConfigPath, strlen($vendorDir) - strlen($phelConfigPath));
-            $pathPrefix = dirname($relativeVendorConfigPath);
+            $pathPrefix = dirname($phelConfigPath);
             /** @psalm-suppress UnresolvableInclude */
             $sourceDirectories = (require $phelConfigPath)[RunConfig::SRC_DIRS] ?? [];
 
