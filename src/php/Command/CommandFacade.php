@@ -6,6 +6,7 @@ namespace Phel\Command;
 
 use Gacela\Framework\AbstractFacade;
 use Phel\Compiler\Exceptions\AbstractLocatedException;
+use Phel\Compiler\Exceptions\CompilerException;
 use Phel\Compiler\Parser\ReadModel\CodeSnippet;
 use Symfony\Component\Console\Output\OutputInterface;
 use Throwable;
@@ -44,5 +45,18 @@ final class CommandFacade extends AbstractFacade implements CommandFacadeInterfa
         return $this->getFactory()
             ->createCommandExceptionWriter()
             ->getStackTraceString($e);
+    }
+
+    public function registerExceptionHandler(): void
+    {
+        $exceptionPrinter = $this->getFactory()->createExceptionPrinter();
+
+        set_exception_handler(function (Throwable $exception) use ($exceptionPrinter): void {
+            if ($exception instanceof CompilerException) {
+                $exceptionPrinter->printException($exception->getNestedException(), $exception->getCodeSnippet());
+            } else {
+                $exceptionPrinter->printStackTrace($exception);
+            }
+        });
     }
 }

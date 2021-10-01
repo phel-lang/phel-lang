@@ -7,6 +7,7 @@ namespace PhelTest\Integration\Run\Command\Repl;
 use Gacela\Framework\Gacela;
 use Generator;
 use Phel\Build\BuildFacade;
+use Phel\Command\CommandFacade;
 use Phel\Command\Shared\Exceptions\ExceptionArgsPrinter;
 use Phel\Command\Shared\Exceptions\Extractor\FilePositionExtractor;
 use Phel\Command\Shared\Exceptions\Extractor\SourceMapExtractor;
@@ -118,7 +119,8 @@ final class ReplCommandTest extends AbstractCommandTest
             ColorStyle::noStyles(),
             Printer::nonReadable(),
             new BuildFacade(),
-            $directoryFinder
+            $directoryFinder,
+            new CommandFacade()
         );
     }
 
@@ -136,6 +138,7 @@ final class ReplCommandTest extends AbstractCommandTest
             Printer::nonReadable(),
             new BuildFacade(),
             $directoryFinder,
+            new CommandFacade(),
             __DIR__ . '/../../../../../../src/php/Run/Command/Repl/startup.phel'
         );
     }

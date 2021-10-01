@@ -35,6 +35,7 @@ final class RunFactory extends AbstractFactory
             $this->createPrinter(),
             $this->getBuildFacade(),
             $this->createDirectoryFinder(),
+            $this->getCommandFacade(),
             $this->getConfig()->getReplStartupFile()
         );
     }

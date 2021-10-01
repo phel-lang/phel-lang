@@ -22,4 +22,6 @@ interface CommandFacadeInterface
     public function getExceptionString(AbstractLocatedException $e, CodeSnippet $codeSnippet): string;
 
     public function getStackTraceString(Throwable $e): string;
+
+    public function registerExceptionHandler(): void;
 }

@@ -78,6 +78,8 @@ final class TestCommand extends Command
                 $namespaces
             );
 
+            $this->commandFacade->registerExceptionHandler();
+
             foreach ($namespaceInformation as $info) {
                 $this->buildFacade->evalFile($info->getFile());
             }

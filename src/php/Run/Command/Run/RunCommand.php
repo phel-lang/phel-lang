@@ -61,6 +61,7 @@ final class RunCommand extends Command
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
         try {
+            $this->commandFacade->registerExceptionHandler();
             /** @var string $fileOrPath */
             $fileOrPath = $input->getArgument('path');
             $this->loadNamespace($fileOrPath);

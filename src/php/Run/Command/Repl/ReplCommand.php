@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Phel\Run\Command\Repl;
 
 use Phel\Build\BuildFacadeInterface;
+use Phel\Command\CommandFacadeInterface;
 use Phel\Compiler\CompilerFacadeInterface;
 use Phel\Compiler\Exceptions\CompilerException;
 use Phel\Compiler\Parser\Exceptions\UnfinishedParserException;
@@ -33,6 +34,7 @@ final class ReplCommand extends Command
     private BuildFacadeInterface $buildFacade;
     private string $replStartupFile;
     private DirectoryFinderInterface $directoryFinder;
+    private CommandFacadeInterface $commandFacade;
 
     /** @var string[] */
     private array $inputBuffer = [];
@@ -46,6 +48,7 @@ final class ReplCommand extends Command
         PrinterInterface $printer,
         BuildFacadeInterface $buildFacade,
         DirectoryFinderInterface $directoryFinder,
+        CommandFacadeInterface $commandFacade,
         string $replStartupFile = ''
     ) {
         parent::__construct(self::COMMAND_NAME);
@@ -56,6 +59,7 @@ final class ReplCommand extends Command
         $this->buildFacade = $buildFacade;
         $this->directoryFinder = $directoryFinder;
         $this->replStartupFile = $replStartupFile;
+        $this->commandFacade = $commandFacade;
         $this->previousResult = InputResult::empty();
     }
 
@@ -69,6 +73,8 @@ final class ReplCommand extends Command
         $this->io->readHistory();
         $this->io->writeln($this->style->yellow('Welcome to the Phel Repl'));
         $this->io->writeln('Type "exit" or press Ctrl-D to exit.');
+
+        $this->commandFacade->registerExceptionHandler();
 
         if ($this->replStartupFile && file_exists($this->replStartupFile)) {
             $namespace = $this->buildFacade->getNamespaceFromFile($this->replStartupFile)->getNamespace();

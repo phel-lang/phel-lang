@@ -19,7 +19,7 @@ final class CommandFactory extends AbstractFactory
         );
     }
 
-    private function createExceptionPrinter(): ExceptionPrinterInterface
+    public function createExceptionPrinter(): ExceptionPrinterInterface
     {
         return TextExceptionPrinter::create();
     }
