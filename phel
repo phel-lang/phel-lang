@@ -4,7 +4,6 @@
 declare(strict_types=1);
 
 use Gacela\Framework\Gacela;
-use Phel\Command\CommandFacade;
 use Phel\Formatter\FormatterFacade;
 use Phel\Interop\InteropFacade;
 use Phel\Run\RunFacade;
