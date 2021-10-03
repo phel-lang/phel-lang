@@ -65,20 +65,16 @@ final class FunctionsToExportFinder implements FunctionsToExportFinderInterface
             $namespaceFromDirectories
         ));
 
-        $dependenciesForNamespace = [];
-        foreach ($namespaces as $namespace) {
-            $dependenciesForNamespace[] = $this->buildFacade->getDependenciesForNamespace(
-                [
-                    ...$this->commandFacade->getSourceDirectories(),
-                    ...$this->commandFacade->getVendorSourceDirectories(),
-                ],
-                [$namespace, 'phel\\core']
-            );
-        }
-        $allNamespaces = array_merge(...$dependenciesForNamespace);
+        $namespaceInformation = $this->buildFacade->getDependenciesForNamespace(
+            [
+                ...$this->commandFacade->getSourceDirectories(),
+                ...$this->commandFacade->getVendorSourceDirectories(),
+            ],
+            [...$namespaces, 'phel\\core']
+        );
 
-        foreach ($allNamespaces as $ns) {
-            $this->buildFacade->evalFile($ns->getFile());
+        foreach ($namespaceInformation as $info) {
+            $this->buildFacade->evalFile($info->getFile());
         }
     }
 
