@@ -87,8 +87,10 @@ final class ExportCommand extends Command
      */
     public function generateWrappers(): array
     {
+        $allFunctionsToExport = $this->functionsToExportFinder->findInPaths();
         $wrappers = [];
-        foreach ($this->functionsToExportFinder->findInPaths() as $ns => $functionsToExport) {
+
+        foreach ($allFunctionsToExport as $ns => $functionsToExport) {
             $wrappers[] = $this->wrapperGenerator->generateCompiledPhp($ns, $functionsToExport);
         }
 

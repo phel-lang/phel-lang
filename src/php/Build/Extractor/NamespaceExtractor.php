@@ -16,6 +16,7 @@ use RecursiveDirectoryIterator;
 use RecursiveIteratorIterator;
 use RecursiveRegexIterator;
 use RegexIterator;
+use RuntimeException;
 
 final class NamespaceExtractor implements NamespaceExtractorInterface
 {
@@ -138,7 +139,11 @@ final class NamespaceExtractor implements NamespaceExtractorInterface
      */
     private function findAllNs(string $directory): array
     {
-        $iterator = new RecursiveIteratorIterator(new RecursiveDirectoryIterator($directory));
+        $realpath = realpath($directory);
+        if (!$realpath) {
+            throw new RuntimeException("Directory '$directory' not found");
+        }
+        $iterator = new RecursiveIteratorIterator(new RecursiveDirectoryIterator($realpath));
         $phelIterator = new RegexIterator($iterator, '/^.+\.phel$/i', RecursiveRegexIterator::GET_MATCH);
 
         return array_map(

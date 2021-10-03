@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace Phel\Run\Finder;
+namespace Phel\Command\Finder;
 
-use Phel\Run\Domain\CodeDirectories;
+use Phel\Command\Domain\CodeDirectories;
 
 final class DirectoryFinder implements DirectoryFinderInterface
 {

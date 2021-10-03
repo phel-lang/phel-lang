@@ -17,9 +17,6 @@ use Phel\Run\Command\Repl\ReplCommandIoInterface;
 use Phel\Run\Command\Repl\ReplCommandSystemIo;
 use Phel\Run\Command\Run\RunCommand;
 use Phel\Run\Command\Test\TestCommand;
-use Phel\Run\Finder\ComposerVendorDirectoriesFinder;
-use Phel\Run\Finder\DirectoryFinder;
-use Phel\Run\Finder\VendorDirectoriesFinderInterface;
 use Phel\Run\Runner\NamespaceRunner;
 use Phel\Run\Runner\NamespaceRunnerInterface;
 
@@ -36,7 +33,6 @@ final class RunFactory extends AbstractFactory
             $this->createColorStyle(),
             $this->createPrinter(),
             $this->getBuildFacade(),
-            $this->createDirectoryFinder(),
             $this->getCommandFacade(),
             $this->getConfig()->getReplStartupFile()
         );
@@ -56,8 +52,7 @@ final class RunFactory extends AbstractFactory
         return new TestCommand(
             $this->getCommandFacade(),
             $this->getCompilerFacade(),
-            $this->getBuildFacade(),
-            $this->createDirectoryFinder()
+            $this->getBuildFacade()
         );
     }
 
@@ -65,8 +60,7 @@ final class RunFactory extends AbstractFactory
     {
         return new NamespaceRunner(
             $this->getCommandFacade(),
-            $this->getBuildFacade(),
-            $this->createDirectoryFinder()
+            $this->getBuildFacade()
         );
     }
 
@@ -86,22 +80,6 @@ final class RunFactory extends AbstractFactory
     private function createPrinter(): PrinterInterface
     {
         return Printer::nonReadableWithColor();
-    }
-
-    private function createDirectoryFinder(): DirectoryFinder
-    {
-        return new DirectoryFinder(
-            $this->getConfig()->getApplicationRootDir(),
-            $this->getConfig()->getConfigDirectories(),
-            $this->createComposerVendorDirectoriesFinder()
-        );
-    }
-
-    private function createComposerVendorDirectoriesFinder(): VendorDirectoriesFinderInterface
-    {
-        return new ComposerVendorDirectoriesFinder(
-            $this->getConfig()->getVendorDir()
-        );
     }
 
     private function getCompilerFacade(): CompilerFacadeInterface

@@ -35,7 +35,7 @@ interface BuildFacadeInterface
     /**
      * Gets a list of all dependencies for a given list of namespaces. It first extracts all
      * namespaces from all Phel files in the give directories and then return a
-     * topological sorted subset of these namespace information.
+     * topological sorted subset of these namespaces' information.
      *
      * @param string[] $directories The list of the directories
      * @param string[] $ns A list of namespace for which we should find the subset

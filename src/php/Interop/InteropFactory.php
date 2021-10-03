@@ -74,7 +74,7 @@ final class InteropFactory extends AbstractFactory
     {
         return new FunctionsToExportFinder(
             $this->getBuildFacade(),
-            $this->getConfig()->getSourceDirectories(),
+            $this->getCommandFacade(),
             $this->getConfig()->getExportDirectories()
         );
     }

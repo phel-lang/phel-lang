@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace Phel\Run\Finder;
+namespace Phel\Command\Finder;
 
-use Phel\Run\RunConfig;
+use Phel\Command\CommandConfig;
 
 final class ComposerVendorDirectoriesFinder implements VendorDirectoriesFinderInterface
 {
@@ -30,7 +30,7 @@ final class ComposerVendorDirectoriesFinder implements VendorDirectoriesFinderIn
         foreach (glob($pattern) as $phelConfigPath) {
             $pathPrefix = dirname($phelConfigPath);
             /** @psalm-suppress UnresolvableInclude */
-            $sourceDirectories = (require $phelConfigPath)[RunConfig::SRC_DIRS] ?? [];
+            $sourceDirectories = (require $phelConfigPath)[CommandConfig::SRC_DIRS] ?? [];
 
             foreach ($sourceDirectories as $directory) {
                 $result[] = $pathPrefix . '/' . $directory;

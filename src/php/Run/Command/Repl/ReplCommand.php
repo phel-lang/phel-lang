@@ -11,7 +11,6 @@ use Phel\Compiler\Exceptions\CompilerException;
 use Phel\Compiler\Parser\Exceptions\UnfinishedParserException;
 use Phel\Printer\PrinterInterface;
 use Phel\Run\Command\Repl\Exceptions\ExitException;
-use Phel\Run\Finder\DirectoryFinderInterface;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
@@ -32,9 +31,8 @@ final class ReplCommand extends Command
     private ColorStyleInterface $style;
     private PrinterInterface $printer;
     private BuildFacadeInterface $buildFacade;
-    private string $replStartupFile;
-    private DirectoryFinderInterface $directoryFinder;
     private CommandFacadeInterface $commandFacade;
+    private string $replStartupFile;
 
     /** @var string[] */
     private array $inputBuffer = [];
@@ -47,7 +45,6 @@ final class ReplCommand extends Command
         ColorStyleInterface $style,
         PrinterInterface $printer,
         BuildFacadeInterface $buildFacade,
-        DirectoryFinderInterface $directoryFinder,
         CommandFacadeInterface $commandFacade,
         string $replStartupFile = ''
     ) {
@@ -57,9 +54,8 @@ final class ReplCommand extends Command
         $this->style = $style;
         $this->printer = $printer;
         $this->buildFacade = $buildFacade;
-        $this->directoryFinder = $directoryFinder;
-        $this->replStartupFile = $replStartupFile;
         $this->commandFacade = $commandFacade;
+        $this->replStartupFile = $replStartupFile;
         $this->previousResult = InputResult::empty();
     }
 
@@ -77,12 +73,15 @@ final class ReplCommand extends Command
         $this->commandFacade->registerExceptionHandler();
 
         if ($this->replStartupFile && file_exists($this->replStartupFile)) {
-            $namespace = $this->buildFacade->getNamespaceFromFile($this->replStartupFile)->getNamespace();
+            $namespace = $this->buildFacade
+                ->getNamespaceFromFile($this->replStartupFile)
+                ->getNamespace();
+
             $srcDirectories = [
                 dirname($this->replStartupFile),
-                ...$this->directoryFinder->getSourceDirectories(),
-                ...$this->directoryFinder->getTestDirectories(),
-                ...$this->directoryFinder->getVendorSourceDirectories(),
+                ...$this->commandFacade->getSourceDirectories(),
+                ...$this->commandFacade->getTestDirectories(),
+                ...$this->commandFacade->getVendorSourceDirectories(),
             ];
             $namespaceInformation = $this->buildFacade->getDependenciesForNamespace($srcDirectories, [$namespace, 'phel\\core']);
 

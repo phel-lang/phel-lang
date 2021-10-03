@@ -7,6 +7,7 @@ namespace Phel\Interop\ExportFinder;
 use Phel\Build\BuildFacadeInterface;
 use Phel\Build\Extractor\ExtractorException;
 use Phel\Build\Extractor\NamespaceInformation;
+use Phel\Command\CommandFacadeInterface;
 use Phel\Compiler\Evaluator\Exceptions\CompiledCodeIsMalformedException;
 use Phel\Compiler\Evaluator\Exceptions\FileException;
 use Phel\Compiler\Exceptions\CompilerException;
@@ -18,16 +19,16 @@ use Phel\Lang\TypeFactory;
 final class FunctionsToExportFinder implements FunctionsToExportFinderInterface
 {
     private BuildFacadeInterface $buildFacade;
-    private array $sourceDirs;
+    private CommandFacadeInterface $commandFacade;
     private array $exportDirs;
 
     public function __construct(
         BuildFacadeInterface $buildFacade,
-        array $sourceDirs,
+        CommandFacadeInterface $commandFacade,
         array $exportDirs
     ) {
         $this->buildFacade = $buildFacade;
-        $this->sourceDirs = $sourceDirs;
+        $this->commandFacade = $commandFacade;
         $this->exportDirs = $exportDirs;
     }
 
@@ -54,17 +55,30 @@ final class FunctionsToExportFinder implements FunctionsToExportFinderInterface
      */
     private function loadAllNsFromPaths(): void
     {
+        $this->commandFacade->registerExceptionHandler();
+
         $namespaceFromDirectories = $this->buildFacade
             ->getNamespaceFromDirectories($this->exportDirs);
 
-        $namespaces = array_values(array_map(fn (NamespaceInformation $info) => $info->getNamespace(), $namespaceFromDirectories));
+        $namespaces = array_values(array_map(
+            static fn (NamespaceInformation $info) => $info->getNamespace(),
+            $namespaceFromDirectories
+        ));
 
-        $namespaceInformation = $this->buildFacade->getDependenciesForNamespace(
-            $this->sourceDirs,
-            [...$namespaces, 'phel\\core']
-        );
-        foreach ($namespaceInformation as $info) {
-            $this->buildFacade->evalFile($info->getFile());
+        $dependenciesForNamespace = [];
+        foreach ($namespaces as $namespace) {
+            $dependenciesForNamespace[] = $this->buildFacade->getDependenciesForNamespace(
+                [
+                    ...$this->commandFacade->getSourceDirectories(),
+                    ...$this->commandFacade->getVendorSourceDirectories(),
+                ],
+                [$namespace, 'phel\\core']
+            );
+        }
+        $allNamespaces = array_merge(...$dependenciesForNamespace);
+
+        foreach ($allNamespaces as $ns) {
+            $this->buildFacade->evalFile($ns->getFile());
         }
     }
 
