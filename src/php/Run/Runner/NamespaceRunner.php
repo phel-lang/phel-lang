@@ -6,22 +6,18 @@ namespace Phel\Run\Runner;
 
 use Phel\Build\BuildFacadeInterface;
 use Phel\Command\CommandFacadeInterface;
-use Phel\Run\Finder\DirectoryFinder;
 
 class NamespaceRunner implements NamespaceRunnerInterface
 {
     private CommandFacadeInterface $commandFacade;
     private BuildFacadeInterface $buildFacade;
-    private DirectoryFinder $directoryFinder;
 
     public function __construct(
         CommandFacadeInterface $commandFacade,
-        BuildFacadeInterface $buildFacade,
-        DirectoryFinder $directoryFinder
+        BuildFacadeInterface $buildFacade
     ) {
         $this->commandFacade = $commandFacade;
         $this->buildFacade = $buildFacade;
-        $this->directoryFinder = $directoryFinder;
     }
 
     public function run(string $namespace): void
@@ -30,8 +26,8 @@ class NamespaceRunner implements NamespaceRunnerInterface
 
         $namespaceInformation = $this->buildFacade->getDependenciesForNamespace(
             [
-                ...$this->directoryFinder->getSourceDirectories(),
-                ...$this->directoryFinder->getVendorSourceDirectories(),
+                ...$this->commandFacade->getSourceDirectories(),
+                ...$this->commandFacade->getVendorSourceDirectories(),
             ],
             [$namespace, 'phel\\core']
         );

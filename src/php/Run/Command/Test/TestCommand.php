@@ -10,7 +10,6 @@ use Phel\Command\CommandFacadeInterface;
 use Phel\Compiler\CompilerFacadeInterface;
 use Phel\Compiler\Exceptions\CompilerException;
 use Phel\Run\Command\Test\Exceptions\CannotFindAnyTestsException;
-use Phel\Run\Finder\DirectoryFinder;
 use SebastianBergmann\Timer\ResourceUsageFormatter;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputArgument;
@@ -26,19 +25,16 @@ final class TestCommand extends Command
     private CommandFacadeInterface $commandFacade;
     private CompilerFacadeInterface $compilerFacade;
     private BuildFacadeInterface $buildFacade;
-    private DirectoryFinder $directoryFinder;
 
     public function __construct(
         CommandFacadeInterface $commandFacade,
         CompilerFacadeInterface $compilerFacade,
-        BuildFacadeInterface $buildFacade,
-        DirectoryFinder $directoryFinder
+        BuildFacadeInterface $buildFacade
     ) {
         parent::__construct(self::COMMAND_NAME);
         $this->commandFacade = $commandFacade;
         $this->compilerFacade = $compilerFacade;
         $this->buildFacade = $buildFacade;
-        $this->directoryFinder = $directoryFinder;
     }
 
     protected function configure(): void
@@ -71,9 +67,9 @@ final class TestCommand extends Command
 
             $namespaceInformation = $this->buildFacade->getDependenciesForNamespace(
                 [
-                    ...$this->directoryFinder->getSourceDirectories(),
-                    ...$this->directoryFinder->getTestDirectories(),
-                    ...$this->directoryFinder->getVendorSourceDirectories(),
+                    ...$this->commandFacade->getSourceDirectories(),
+                    ...$this->commandFacade->getTestDirectories(),
+                    ...$this->commandFacade->getVendorSourceDirectories(),
                 ],
                 $namespaces
             );
@@ -115,7 +111,7 @@ final class TestCommand extends Command
     {
         if (empty($paths)) {
             $namespaces = $this->buildFacade->getNamespaceFromDirectories(
-                $this->directoryFinder->getTestDirectories()
+                $this->commandFacade->getTestDirectories()
             );
 
             return array_map(

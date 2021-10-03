@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Phel\Run\Domain;
+namespace Phel\Command\Domain;
 
 final class CodeDirectories
 {

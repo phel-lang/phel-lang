@@ -5,6 +5,7 @@ data/
 PhelGenerated/
 var/
 .phpbench/
+!PhelGenerated/.gitkeep
 .php-cs-fixer.cache
 .phel-repl-history
 .phpunit.*

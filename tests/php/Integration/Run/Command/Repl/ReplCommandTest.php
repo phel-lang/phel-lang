@@ -17,7 +17,6 @@ use Phel\Compiler\Emitter\OutputEmitter\Munge;
 use Phel\Printer\Printer;
 use Phel\Run\Command\Repl\ColorStyle;
 use Phel\Run\Command\Repl\ReplCommand;
-use Phel\Run\Finder\DirectoryFinderInterface;
 use PhelTest\Integration\Run\Command\AbstractCommandTest;
 use RecursiveDirectoryIterator;
 use RecursiveIteratorIterator;
@@ -53,7 +52,7 @@ final class ReplCommandTest extends AbstractCommandTest
 
     /**
      * This is doing the same as the test above except that it will load the core lib before.
-     * We splitted it because it takes some time to load the core lib before every test.
+     * We split it because it takes some time to load the core lib before every test.
      *
      * @dataProvider providerIntegrationWithCoreLib
      */
@@ -108,28 +107,19 @@ final class ReplCommandTest extends AbstractCommandTest
 
     private function createReplCommand(ReplTestIo $io): ReplCommand
     {
-        $directoryFinder = $this->createMock(DirectoryFinderInterface::class);
-        $directoryFinder->method('getSourceDirectories')->willReturn([__DIR__ . '/../../../../src/phel/']);
-        $directoryFinder->method('getTestDirectories')->willReturn([]);
-        $directoryFinder->method('getVendorSourceDirectories')->willReturn([]);
-
         return new ReplCommand(
             $io,
             new CompilerFacade(),
             ColorStyle::noStyles(),
             Printer::nonReadable(),
             new BuildFacade(),
-            $directoryFinder,
             new CommandFacade()
         );
     }
 
     private function createReplCommandWithCoreLib(ReplTestIo $io): ReplCommand
     {
-        $directoryFinder = $this->createMock(DirectoryFinderInterface::class);
-        $directoryFinder->method('getSourceDirectories')->willReturn([__DIR__ . '/../../../../../../src/phel/']);
-        $directoryFinder->method('getTestDirectories')->willReturn([]);
-        $directoryFinder->method('getVendorSourceDirectories')->willReturn([]);
+        $replStartupFile =  __DIR__ . '/../../../../../../src/php/Run/Command/Repl/startup.phel';
 
         return new ReplCommand(
             $io,
@@ -137,9 +127,8 @@ final class ReplCommandTest extends AbstractCommandTest
             ColorStyle::noStyles(),
             Printer::nonReadable(),
             new BuildFacade(),
-            $directoryFinder,
             new CommandFacade(),
-            __DIR__ . '/../../../../../../src/php/Run/Command/Repl/startup.phel'
+            $replStartupFile
         );
     }
 

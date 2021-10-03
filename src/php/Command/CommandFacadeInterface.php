@@ -24,4 +24,19 @@ interface CommandFacadeInterface
     public function getStackTraceString(Throwable $e): string;
 
     public function registerExceptionHandler(): void;
+
+    /**
+     * @return list<string>
+     */
+    public function getSourceDirectories(): array;
+
+    /**
+     * @return list<string>
+     */
+    public function getTestDirectories(): array;
+
+    /**
+     * @return list<string>
+     */
+    public function getVendorSourceDirectories(): array;
 }

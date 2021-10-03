@@ -59,4 +59,25 @@ final class CommandFacade extends AbstractFacade implements CommandFacadeInterfa
             }
         });
     }
+
+    public function getSourceDirectories(): array
+    {
+        return $this->getFactory()
+            ->createDirectoryFinder()
+            ->getSourceDirectories();
+    }
+
+    public function getTestDirectories(): array
+    {
+        return $this->getFactory()
+            ->createDirectoryFinder()
+            ->getTestDirectories();
+    }
+
+    public function getVendorSourceDirectories(): array
+    {
+        return $this->getFactory()
+            ->createDirectoryFinder()
+            ->getVendorSourceDirectories();
+    }
 }
