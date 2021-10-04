@@ -43,7 +43,7 @@ final class CommandFactory extends AbstractFactory
     private function createComposerVendorDirectoriesFinder(): VendorDirectoriesFinderInterface
     {
         return new ComposerVendorDirectoriesFinder(
-            $this->getConfig()->getVendorDir()
+            $this->getConfig()->getApplicationRootDir() . '/' . $this->getConfig()->getVendorDir()
         );
     }
 }
