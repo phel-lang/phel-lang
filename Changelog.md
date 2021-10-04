@@ -6,7 +6,7 @@ All notable changes to this project will be documented in this file.
 
 * Removed `load` function in `phel\core`
 * Pass by value the array (1st argument) to `push` (#306)
-* Configuration will be loaded from `phel-config.php` and not from `composer.json`
+* **Breaking**: Configuration will be loaded from `phel-config.php` and not from `composer.json`
   * The `loader` config parameter has been removed. Please use `src-dirs` now.
   * The `loader-dev` config parameter has been removed. Please use `test-dirs` now.
   * The `tests` config parameter has been removed. Please use `test-dirs` now.
