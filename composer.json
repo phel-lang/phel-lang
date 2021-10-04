@@ -14,7 +14,7 @@
     "require": {
         "ext-json": "*",
         "php": ">=7.4",
-        "gacela-project/gacela": "^0.9",
+        "gacela-project/gacela": "^0.10",
         "symfony/console": "^5.3",
         "phpunit/php-timer": "^5.0"
     },
