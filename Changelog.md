@@ -4,6 +4,8 @@ All notable changes to this project will be documented in this file.
 
 ## Unreleased
 
+## 0.4.0 (2021-10-05)
+
 * Removed `load` function in `phel\core`
 * Pass by value the array (1st argument) to `push` (#306)
 * **Breaking**: Configuration will be loaded from `phel-config.php` and not from `composer.json`
