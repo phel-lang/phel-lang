@@ -12,7 +12,7 @@ final class ListNode implements InnerNodeInterface
     private int $tokenType;
     private SourceLocation $startLocation;
     private SourceLocation $endLocation;
-    /** @var NodeInterface[] */
+    /** @var list<NodeInterface> */
     private array $children;
 
     public function __construct(
@@ -28,7 +28,7 @@ final class ListNode implements InnerNodeInterface
     }
 
     /**
-     * @return NodeInterface[] $children
+     * @return list<NodeInterface>
      */
     public function getChildren(): array
     {
@@ -36,7 +36,7 @@ final class ListNode implements InnerNodeInterface
     }
 
     /**
-     * @param NodeInterface[] $children
+     * @param list<NodeInterface> $children
      */
     public function replaceChildren(array $children): InnerNodeInterface
     {

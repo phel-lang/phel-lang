@@ -286,7 +286,7 @@ final class ZipperTest extends TestCase
 
         $this->assertEquals(
             [3, [4, 5]],
-            $zipper->down()->remove(0)->root()
+            $zipper->down()->remove()->root()
         );
     }
 
@@ -294,7 +294,7 @@ final class ZipperTest extends TestCase
     {
         $this->expectExceptionObject(ZipperException::cannotRemoveOnRootNode());
 
-        $tree = [[1, 2], 3, [4, 5]];
+        $tree = [[1, 2], [3], [4, 5]];
         $zipper = ArrayZipper::createRoot($tree);
         $zipper->remove();
     }
