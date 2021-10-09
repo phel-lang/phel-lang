@@ -62,4 +62,9 @@ final class ZipperException extends RuntimeException
     {
         return new self('Cannot go left on the root node');
     }
+
+    public static function cannotGoLeftOnTheLeftmostNode(): self
+    {
+        return new self('Cannot go left on the leftmost node');
+    }
 }
