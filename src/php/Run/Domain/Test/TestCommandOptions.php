@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Phel\Run\Command\Test;
+namespace Phel\Run\Domain\Test;
 
 use Phel\Lang\TypeFactory;
 use Phel\Printer\Printer;

@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace PhelTest\Unit\Run\Command\Test;
+namespace PhelTest\Unit\Run\Domain\Test;
 
-use Phel\Run\Command\Test\TestCommandOptions;
+use Phel\Run\Domain\Test\TestCommandOptions;
 use PHPUnit\Framework\TestCase;
 
 final class TestCommandOptionsTest extends TestCase

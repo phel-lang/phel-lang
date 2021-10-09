@@ -2,14 +2,15 @@
 
 declare(strict_types=1);
 
-namespace Phel\Run\Command\Test;
+namespace Phel\Run\Command;
 
 use Phel\Build\BuildFacadeInterface;
 use Phel\Build\Extractor\NamespaceInformation;
 use Phel\Command\CommandFacadeInterface;
 use Phel\Compiler\CompilerFacadeInterface;
 use Phel\Compiler\Exceptions\CompilerException;
-use Phel\Run\Command\Test\Exceptions\CannotFindAnyTestsException;
+use Phel\Run\Domain\Test\CannotFindAnyTestsException;
+use Phel\Run\Domain\Test\TestCommandOptions;
 use SebastianBergmann\Timer\ResourceUsageFormatter;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputArgument;

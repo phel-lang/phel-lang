@@ -6,7 +6,7 @@ namespace Phel\Run;
 
 use Phel\Run\Command\Repl\ReplCommand;
 use Phel\Run\Command\RunCommand;
-use Phel\Run\Command\Test\TestCommand;
+use Phel\Run\Command\TestCommand;
 
 interface RunFacadeInterface
 {

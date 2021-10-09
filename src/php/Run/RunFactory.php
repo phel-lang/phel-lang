@@ -16,7 +16,7 @@ use Phel\Run\Command\Repl\ReplCommand;
 use Phel\Run\Command\Repl\ReplCommandIoInterface;
 use Phel\Run\Command\Repl\ReplCommandSystemIo;
 use Phel\Run\Command\RunCommand;
-use Phel\Run\Command\Test\TestCommand;
+use Phel\Run\Command\TestCommand;
 use Phel\Run\Runner\NamespaceRunner;
 use Phel\Run\Runner\NamespaceRunnerInterface;
 
