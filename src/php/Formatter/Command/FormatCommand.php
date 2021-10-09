@@ -7,6 +7,7 @@ namespace Phel\Formatter\Command;
 use Phel\Command\CommandFacadeInterface;
 use Phel\Compiler\Lexer\Exceptions\LexerValueException;
 use Phel\Compiler\Parser\Exceptions\AbstractParserException;
+use Phel\Formatter\Domain\PathFilterInterface;
 use Phel\Formatter\Exceptions\ZipperException;
 use Phel\Formatter\Formatter\FormatterInterface;
 use RuntimeException;

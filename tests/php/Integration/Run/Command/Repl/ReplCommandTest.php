@@ -15,8 +15,8 @@ use Phel\Command\Shared\Exceptions\TextExceptionPrinter;
 use Phel\Compiler\CompilerFacade;
 use Phel\Compiler\Emitter\OutputEmitter\Munge;
 use Phel\Printer\Printer;
-use Phel\Run\Command\Repl\ColorStyle;
-use Phel\Run\Command\Repl\ReplCommand;
+use Phel\Run\Command\ReplCommand;
+use Phel\Run\Domain\Repl\ColorStyle;
 use PhelTest\Integration\Run\Command\AbstractCommandTest;
 use RecursiveDirectoryIterator;
 use RecursiveIteratorIterator;
@@ -119,7 +119,7 @@ final class ReplCommandTest extends AbstractCommandTest
 
     private function createReplCommandWithCoreLib(ReplTestIo $io): ReplCommand
     {
-        $replStartupFile =  __DIR__ . '/../../../../../../src/php/Run/Command/Repl/startup.phel';
+        $replStartupFile = __DIR__ . '/../../../../../../src/php/Run/Domain/Repl/startup.phel';
 
         return new ReplCommand(
             $io,

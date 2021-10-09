@@ -4,18 +4,13 @@ declare(strict_types=1);
 
 namespace Phel\Command\Shared\Exceptions;
 
-use Phel\Command\Shared\Exceptions\Extractor\FilePositionExtractor;
 use Phel\Command\Shared\Exceptions\Extractor\FilePositionExtractorInterface;
-use Phel\Command\Shared\Exceptions\Extractor\SourceMapExtractor;
-use Phel\Compiler\Emitter\OutputEmitter\Munge;
 use Phel\Compiler\Emitter\OutputEmitter\MungeInterface;
 use Phel\Compiler\Exceptions\AbstractLocatedException;
 use Phel\Compiler\Parser\ReadModel\CodeSnippet;
 use Phel\Lang\FnInterface;
 use Phel\Lang\SourceLocation;
-use Phel\Printer\Printer;
-use Phel\Run\Command\Repl\ColorStyle;
-use Phel\Run\Command\Repl\ColorStyleInterface;
+use Phel\Run\Domain\Repl\ColorStyleInterface;
 use ReflectionClass;
 use Throwable;
 
@@ -36,16 +31,6 @@ final class TextExceptionPrinter implements ExceptionPrinterInterface
         $this->style = $style;
         $this->munge = $munge;
         $this->filePositionExtractor = $filePositionExtractor;
-    }
-
-    public static function create(): self
-    {
-        return new self(
-            new ExceptionArgsPrinter(Printer::readable()),
-            ColorStyle::withStyles(),
-            new Munge(),
-            new FilePositionExtractor(new SourceMapExtractor())
-        );
     }
 
     public function printException(AbstractLocatedException $e, CodeSnippet $codeSnippet): void

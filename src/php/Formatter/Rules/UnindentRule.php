@@ -5,12 +5,11 @@ declare(strict_types=1);
 namespace Phel\Formatter\Rules;
 
 use Phel\Compiler\Parser\ParserNode\NodeInterface;
-use Phel\Formatter\Exceptions\CanNotRemoveAtTheTopException;
 use Phel\Formatter\Exceptions\ZipperException;
 use Phel\Formatter\Formatter\ParseTreeZipper;
 
 /**
- * This rule removes all identions. If is used a preprocessor for the IndentRule.
+ * This rule removes all indentations. It is used as a preprocessor for the IndentRule.
  */
 final class UnindentRule implements RuleInterface
 {
@@ -20,7 +19,7 @@ final class UnindentRule implements RuleInterface
     }
 
     /**
-     * @throws CanNotRemoveAtTheTopException
+     * @throws ZipperException
      */
     private function unident(ParseTreeZipper $form): NodeInterface
     {

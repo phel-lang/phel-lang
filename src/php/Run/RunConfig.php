@@ -16,7 +16,7 @@ final class RunConfig extends AbstractConfig
 
     public function getReplStartupFile(): string
     {
-        return __DIR__ . '/Command/Repl/startup.phel';
+        return __DIR__ . '/Domain/Repl/startup.phel';
     }
 
     private function getApplicationRootDir(): string
