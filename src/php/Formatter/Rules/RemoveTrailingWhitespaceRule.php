@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Phel\Formatter\Rules;
 
 use Phel\Compiler\Parser\ParserNode\NodeInterface;
-use Phel\Formatter\Exceptions\CanNotRemoveAtTheTopException;
+use Phel\Formatter\Exceptions\ZipperException;
 use Phel\Formatter\Formatter\ParseTreeZipper;
 
 final class RemoveTrailingWhitespaceRule implements RuleInterface
@@ -16,7 +16,7 @@ final class RemoveTrailingWhitespaceRule implements RuleInterface
     }
 
     /**
-     * @throws CanNotRemoveAtTheTopException
+     * @throws ZipperException
      */
     private function removeTrailingWhitespace(ParseTreeZipper $loc): NodeInterface
     {

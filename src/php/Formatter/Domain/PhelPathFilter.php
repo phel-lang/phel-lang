@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Phel\Formatter\Command;
+namespace Phel\Formatter\Domain;
 
 use RecursiveDirectoryIterator;
 use RecursiveIteratorIterator;

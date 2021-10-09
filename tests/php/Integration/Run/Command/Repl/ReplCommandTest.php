@@ -119,7 +119,7 @@ final class ReplCommandTest extends AbstractCommandTest
 
     private function createReplCommandWithCoreLib(ReplTestIo $io): ReplCommand
     {
-        $replStartupFile =  __DIR__ . '/../../../../../../src/php/Run/Domain/Repl/startup.phel';
+        $replStartupFile = __DIR__ . '/../../../../../../src/php/Run/Domain/Repl/startup.phel';
 
         return new ReplCommand(
             $io,
