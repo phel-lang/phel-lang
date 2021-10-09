@@ -6,7 +6,7 @@ namespace Phel\Run;
 
 use Gacela\Framework\AbstractFacade;
 use Phel\Run\Command\Repl\ReplCommand;
-use Phel\Run\Command\Run\RunCommand;
+use Phel\Run\Command\RunCommand;
 use Phel\Run\Command\Test\TestCommand;
 
 /**
