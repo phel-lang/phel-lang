@@ -10,13 +10,13 @@ use Phel\Command\CommandFacadeInterface;
 use Phel\Compiler\CompilerFacadeInterface;
 use Phel\Printer\Printer;
 use Phel\Printer\PrinterInterface;
-use Phel\Run\Command\Repl\ColorStyle;
-use Phel\Run\Command\Repl\ColorStyleInterface;
-use Phel\Run\Command\Repl\ReplCommand;
-use Phel\Run\Command\Repl\ReplCommandIoInterface;
-use Phel\Run\Command\Repl\ReplCommandSystemIo;
+use Phel\Run\Command\ReplCommand;
 use Phel\Run\Command\RunCommand;
 use Phel\Run\Command\TestCommand;
+use Phel\Run\Domain\Repl\ColorStyle;
+use Phel\Run\Domain\Repl\ColorStyleInterface;
+use Phel\Run\Domain\Repl\ReplCommandIoInterface;
+use Phel\Run\Domain\Repl\ReplCommandSystemIo;
 use Phel\Run\Runner\NamespaceRunner;
 use Phel\Run\Runner\NamespaceRunnerInterface;
 

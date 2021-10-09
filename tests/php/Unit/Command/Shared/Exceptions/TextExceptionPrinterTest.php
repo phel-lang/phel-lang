@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace PhelTest\Unit\Exceptions;
+namespace PhelTest\Unit\Command\Shared\Exceptions;
 
 use Phel\Command\Shared\Exceptions\ExceptionArgsPrinterInterface;
 use Phel\Command\Shared\Exceptions\Extractor\FilePositionExtractorInterface;
@@ -12,7 +12,7 @@ use Phel\Compiler\Emitter\OutputEmitter\MungeInterface;
 use Phel\Compiler\Parser\ReadModel\CodeSnippet;
 use Phel\Lang\AbstractType;
 use Phel\Lang\SourceLocation;
-use Phel\Run\Command\Repl\ColorStyleInterface;
+use Phel\Run\Domain\Repl\ColorStyleInterface;
 use PHPUnit\Framework\TestCase;
 
 final class TextExceptionPrinterTest extends TestCase

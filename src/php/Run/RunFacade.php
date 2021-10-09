@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Phel\Run;
 
 use Gacela\Framework\AbstractFacade;
-use Phel\Run\Command\Repl\ReplCommand;
+use Phel\Run\Command\ReplCommand;
 use Phel\Run\Command\RunCommand;
 use Phel\Run\Command\TestCommand;
 

@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Phel\Run\Command\Repl\Exceptions;
+namespace Phel\Run\Domain\Repl;
 
 use RuntimeException;
 

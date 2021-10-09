@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace PhelTest\Unit\Run\Command\Repl;
+namespace PhelTest\Unit\Run\Domain\Repl;
 
-use Phel\Run\Command\Repl\InputResult;
+use Phel\Run\Domain\Repl\InputResult;
 use PHPUnit\Framework\TestCase;
 
 final class InputResultTest extends TestCase

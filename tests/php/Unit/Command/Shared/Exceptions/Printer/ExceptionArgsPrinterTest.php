@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace PhelTest\Unit\Exceptions\Printer;
+namespace PhelTest\Unit\Command\Shared\Exceptions\Printer;
 
 use Generator;
 use Phel\Command\Shared\Exceptions\ExceptionArgsPrinter;

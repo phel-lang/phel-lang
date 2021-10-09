@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Phel\Run\Command\Repl;
+namespace Phel\Run\Command;
 
 use Phel\Build\BuildFacadeInterface;
 use Phel\Command\CommandFacadeInterface;
@@ -10,7 +10,10 @@ use Phel\Compiler\CompilerFacadeInterface;
 use Phel\Compiler\Exceptions\CompilerException;
 use Phel\Compiler\Parser\Exceptions\UnfinishedParserException;
 use Phel\Printer\PrinterInterface;
-use Phel\Run\Command\Repl\Exceptions\ExitException;
+use Phel\Run\Domain\Repl\ColorStyleInterface;
+use Phel\Run\Domain\Repl\ExitException;
+use Phel\Run\Domain\Repl\InputResult;
+use Phel\Run\Domain\Repl\ReplCommandIoInterface;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;

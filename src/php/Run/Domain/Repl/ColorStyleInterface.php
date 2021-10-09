@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Phel\Run\Command\Repl;
+namespace Phel\Run\Domain\Repl;
 
 interface ColorStyleInterface
 {

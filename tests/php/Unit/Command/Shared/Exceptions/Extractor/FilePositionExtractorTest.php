@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace PhelTest\Unit\Exceptions\Extractor;
+namespace PhelTest\Unit\Command\Shared\Exceptions\Extractor;
 
 use Phel\Command\Shared\Exceptions\Extractor\FilePositionExtractor;
 use Phel\Command\Shared\Exceptions\Extractor\ReadModel\FilePosition;
