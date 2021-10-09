@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace PhelTest\Unit\Formatter;
+namespace PhelTest\Unit\Formatter\Domain\Rules\Zipper;
 
 use Exception;
-use Phel\Formatter\Exceptions\ZipperException;
+use Phel\Formatter\Domain\Rules\Zipper\ZipperException;
 use PHPUnit\Framework\TestCase;
 
 final class ZipperTest extends TestCase

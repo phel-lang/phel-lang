@@ -8,7 +8,7 @@ use Gacela\Framework\AbstractFacade;
 use Phel\Compiler\Lexer\Exceptions\LexerValueException;
 use Phel\Compiler\Parser\Exceptions\AbstractParserException;
 use Phel\Formatter\Command\FormatCommand;
-use Phel\Formatter\Exceptions\ZipperException;
+use Phel\Formatter\Domain\Rules\Zipper\ZipperException;
 
 /**
  * @method FormatterFactory getFactory()

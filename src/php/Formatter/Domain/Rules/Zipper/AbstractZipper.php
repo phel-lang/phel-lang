@@ -2,9 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Phel\Formatter\Formatter;
-
-use Phel\Formatter\Exceptions\ZipperException;
+namespace Phel\Formatter\Domain\Rules\Zipper;
 
 /**
  * @template T

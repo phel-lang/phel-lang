@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace PhelTest\Unit\Formatter;
+namespace PhelTest\Unit\Formatter\Domain\Rules\Zipper;
 
-use Phel\Formatter\Formatter\AbstractZipper;
+use Phel\Formatter\Domain\Rules\Zipper\AbstractZipper;
 
 /** @extends AbstractZipper<array<int>> */
 final class ArrayZipper extends AbstractZipper

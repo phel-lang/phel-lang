@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Phel\Formatter\Exceptions;
+namespace Phel\Formatter\Domain\Rules\Zipper;
 
 use RuntimeException;
 

@@ -8,16 +8,16 @@ use Gacela\Framework\AbstractFactory;
 use Phel\Command\CommandFacadeInterface;
 use Phel\Compiler\CompilerFacade;
 use Phel\Formatter\Command\FormatCommand;
+use Phel\Formatter\Domain\Formatter;
+use Phel\Formatter\Domain\FormatterInterface;
 use Phel\Formatter\Domain\PathFilterInterface;
 use Phel\Formatter\Domain\PhelPathFilter;
-use Phel\Formatter\Formatter\Formatter;
-use Phel\Formatter\Formatter\FormatterInterface;
-use Phel\Formatter\Rules\Indenter\BlockIndenter;
-use Phel\Formatter\Rules\Indenter\InnerIndenter;
-use Phel\Formatter\Rules\IndentRule;
-use Phel\Formatter\Rules\RemoveSurroundingWhitespaceRule;
-use Phel\Formatter\Rules\RemoveTrailingWhitespaceRule;
-use Phel\Formatter\Rules\UnindentRule;
+use Phel\Formatter\Domain\Rules\Indenter\BlockIndenter;
+use Phel\Formatter\Domain\Rules\Indenter\InnerIndenter;
+use Phel\Formatter\Domain\Rules\IndentRule;
+use Phel\Formatter\Domain\Rules\RemoveSurroundingWhitespaceRule;
+use Phel\Formatter\Domain\Rules\RemoveTrailingWhitespaceRule;
+use Phel\Formatter\Domain\Rules\UnindentRule;
 
 final class FormatterFactory extends AbstractFactory
 {

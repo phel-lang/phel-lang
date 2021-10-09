@@ -2,17 +2,17 @@
 
 declare(strict_types=1);
 
-namespace Phel\Formatter\Rules;
+namespace Phel\Formatter\Domain\Rules;
 
 use Phel\Compiler\Lexer\Token;
 use Phel\Compiler\Parser\ParserNode\ListNode;
 use Phel\Compiler\Parser\ParserNode\MetaNode;
 use Phel\Compiler\Parser\ParserNode\NodeInterface;
 use Phel\Compiler\Parser\ParserNode\WhitespaceNode;
-use Phel\Formatter\Formatter\ParseTreeZipper;
-use Phel\Formatter\Rules\Indenter\IndenterInterface;
-use Phel\Formatter\Rules\Indenter\LineIndenter;
-use Phel\Formatter\Rules\Indenter\ListIndenter;
+use Phel\Formatter\Domain\Rules\Indenter\IndenterInterface;
+use Phel\Formatter\Domain\Rules\Indenter\LineIndenter;
+use Phel\Formatter\Domain\Rules\Indenter\ListIndenter;
+use Phel\Formatter\Domain\Rules\Zipper\ParseTreeZipper;
 use Phel\Lang\SourceLocation;
 
 final class IndentRule implements RuleInterface
