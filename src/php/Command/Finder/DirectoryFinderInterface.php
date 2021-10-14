@@ -20,4 +20,6 @@ interface DirectoryFinderInterface
      * @return list<string>
      */
     public function getVendorSourceDirectories(): array;
+
+    public function getOutputDirectory(): string;
 }

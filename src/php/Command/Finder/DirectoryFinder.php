@@ -11,15 +11,18 @@ final class DirectoryFinder implements DirectoryFinderInterface
     private string $applicationRootDir;
     private CodeDirectories $codeDirectories;
     private VendorDirectoriesFinderInterface $vendorDirectoriesFinder;
+    private string $outputDirectory;
 
     public function __construct(
         string $applicationRootDir,
         CodeDirectories $configDirectories,
-        VendorDirectoriesFinderInterface $vendorDirectoriesFinder
+        VendorDirectoriesFinderInterface $vendorDirectoriesFinder,
+        string $outputDirectory
     ) {
         $this->applicationRootDir = $applicationRootDir;
         $this->codeDirectories = $configDirectories;
         $this->vendorDirectoriesFinder = $vendorDirectoriesFinder;
+        $this->outputDirectory = $outputDirectory;
     }
 
     /**
@@ -44,6 +47,11 @@ final class DirectoryFinder implements DirectoryFinderInterface
     public function getVendorSourceDirectories(): array
     {
         return $this->vendorDirectoriesFinder->findPhelSourceDirectories();
+    }
+
+    public function getOutputDirectory(): string
+    {
+        return $this->applicationRootDir . '/' . $this->outputDirectory;
     }
 
     /**

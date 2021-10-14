@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Phel\Build;
 
+use Phel\Build\Command\CompileCommand;
 use Phel\Build\Compile\CompiledFile;
 use Phel\Build\Extractor\NamespaceInformation;
 
@@ -73,4 +74,6 @@ interface BuildFacadeInterface
      * @return list<CompiledFile>
      */
     public function compileProject(array $srcDirectories, string $dest): array;
+
+    public function getCompileCommand(): CompileCommand;
 }

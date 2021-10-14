@@ -12,3 +12,4 @@ var/
 infection.json
 phel-config-local.php
 src/phel/local.phel
+out/

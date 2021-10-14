@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Phel\Build;
 
 use Gacela\Framework\AbstractFacade;
+use Phel\Build\Command\CompileCommand;
 use Phel\Build\Compile\CompiledFile;
 use Phel\Build\Extractor\NamespaceInformation;
 
@@ -103,5 +104,11 @@ final class BuildFacade extends AbstractFacade implements BuildFacadeInterface
         return $this->getFactory()
             ->createProjectCompiler()
             ->compileProject($srcDirectories, $dest);
+    }
+
+    public function getCompileCommand(): CompileCommand
+    {
+        return $this->getFactory()
+            ->createCompileCommand();
     }
 }

@@ -13,6 +13,7 @@ final class CommandConfig extends AbstractConfig
     public const SRC_DIRS = 'src-dirs';
     public const TEST_DIRS = 'test-dirs';
     public const VENDOR_DIR = 'vendor-dir';
+    public const OUTPUT_DIR = 'out-dir';
 
     public function getPhelReplHistory(): string
     {
@@ -40,5 +41,10 @@ final class CommandConfig extends AbstractConfig
     public function getVendorDir(): string
     {
         return (string)$this->get(self::VENDOR_DIR);
+    }
+
+    public function getOutputDir(): string
+    {
+        return (string)$this->get(self::OUTPUT_DIR, 'out');
     }
 }

@@ -23,11 +23,12 @@ final class FileCompiler
 
     public function compileFile(string $src, string $dest): CompiledFile
     {
-        $this->compilerFacade->compile(
-            file_get_contents($src),
-            $src,
-            true
-        );
+        $phelCode = file_get_contents($src);
+        $result = $this->compilerFacade->compile($phelCode, $src, true);
+
+        file_put_contents($dest, "<?php\n" . $result->getCode());
+        file_put_contents($dest . '.map', $result->getSourceMap());
+        file_put_contents(str_replace('.php', '.phel', $dest), $phelCode);
 
         $namespaceInfo = $this->namespaceExtractor->getNamespaceFromFile($src);
 
