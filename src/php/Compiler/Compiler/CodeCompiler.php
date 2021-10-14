@@ -75,12 +75,12 @@ final class CodeCompiler implements CodeCompilerInterface
                     $readerResult = $this->reader->read($parseTree);
                     $node = $this->analyze($readerResult);
 
+                    $this->fileEmitter->emitNode($node);
+
                     // We need to evaluate every statement because we may need
-                    // it for macros
+                    // it for macros.
                     $code = $this->statementEmitter->emitNode($node)->getCodeWithSourceMap();
                     $this->evaluator->eval($code);
-
-                    $this->fileEmitter->emitNode($node);
                 }
             } catch (AbstractParserException|ReaderException $e) {
                 throw new CompilerException($e, $e->getCodeSnippet());
