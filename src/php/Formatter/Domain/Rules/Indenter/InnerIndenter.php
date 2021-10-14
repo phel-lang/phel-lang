@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace Phel\Formatter\Rules\Indenter;
+namespace Phel\Formatter\Domain\Rules\Indenter;
 
 use Phel\Compiler\Parser\ParserNode\SymbolNode;
-use Phel\Formatter\Formatter\ParseTreeZipper;
+use Phel\Formatter\Domain\Rules\Zipper\ParseTreeZipper;
 use Phel\Lang\Symbol;
 
 final class InnerIndenter implements IndenterInterface

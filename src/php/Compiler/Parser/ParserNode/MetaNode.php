@@ -27,7 +27,7 @@ final class MetaNode implements InnerNodeInterface
     }
 
     /**
-     * @return NodeInterface[] $children
+     * @return list<NodeInterface>
      */
     public function getChildren(): array
     {
@@ -35,7 +35,7 @@ final class MetaNode implements InnerNodeInterface
     }
 
     /**
-     * @param NodeInterface[] $children
+     * @param list<NodeInterface> $children
      */
     public function replaceChildren(array $children): InnerNodeInterface
     {

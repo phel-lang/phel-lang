@@ -9,12 +9,12 @@ interface InnerNodeInterface extends NodeInterface
     /**
      * Returns all children of this node.
      *
-     * @return NodeInterface[]
+     * @return list<NodeInterface>
      */
     public function getChildren(): array;
 
     /**
-     * @param NodeInterface[] $children
+     * @param list<NodeInterface> $children
      */
     public function replaceChildren(array $children): self;
 

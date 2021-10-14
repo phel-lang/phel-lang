@@ -2,9 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Phel\Formatter\Formatter;
-
-use Phel\Formatter\Exceptions\ZipperException;
+namespace Phel\Formatter\Domain\Rules\Zipper;
 
 /**
  * @template T
@@ -17,18 +15,18 @@ abstract class AbstractZipper
     protected $node;
     /** @var ?AbstractZipper<T> */
     protected ?AbstractZipper $parent;
-    /** @var array<int, T> */
-    protected array $leftSiblings;
-    /** @var array<int, T> */
-    protected array $rightSiblings;
+    /** @var list<T> */
+    protected array $leftSiblings = [];
+    /** @var list<T> */
+    protected array $rightSiblings = [];
     protected bool $hasChanged = false;
     protected bool $isEnd = false;
 
     /**
      * @param T $node
      * @param ?AbstractZipper<T> $parent
-     * @param T[] $leftSiblings
-     * @param T[] $rightSiblings
+     * @param list<T> $leftSiblings
+     * @param list<T> $rightSiblings
      */
     final public function __construct(
         $node,
@@ -49,8 +47,8 @@ abstract class AbstractZipper
     /**
      * @param T $node
      * @param ?AbstractZipper<T> $parent
-     * @param T[] $leftSiblings
-     * @param T[] $rightSiblings
+     * @param list<T> $leftSiblings
+     * @param list<T> $rightSiblings
      *
      * @return static
      */
@@ -64,15 +62,15 @@ abstract class AbstractZipper
     );
 
     /**
-     * @return array<int, T>
+     * @return list<T>
      */
-    abstract public function getChildren();
+    abstract public function getChildren(): array;
 
     abstract public function isBranch(): bool;
 
     /**
      * @param T $node
-     * @param T[] $children
+     * @param list<T> $children
      *
      * @return T
      */
@@ -90,7 +88,7 @@ abstract class AbstractZipper
         }
 
         if ($this->isFirst()) {
-            throw new ZipperException('Cannot go left on the leftmost node');
+            throw ZipperException::cannotGoLeftOnTheLeftmostNode();
         }
 
         $leftSiblings = $this->leftSiblings;
@@ -119,7 +117,7 @@ abstract class AbstractZipper
     }
 
     /**
-     * @return T[]
+     * @return list<T>
      */
     public function lefts(): array
     {
@@ -165,7 +163,7 @@ abstract class AbstractZipper
     }
 
     /**
-     * @return T[]
+     * @return list<T>
      */
     public function rights(): array
     {
@@ -197,7 +195,7 @@ abstract class AbstractZipper
             );
         }
 
-        /** @var static<T> */
+        /** @var static<T> $parent */
         $parent = clone $this->parent;
         return $parent;
     }
@@ -229,7 +227,7 @@ abstract class AbstractZipper
         }
 
         $children = $this->getChildren();
-        if (count($children) == 0) {
+        if (count($children) === 0) {
             throw ZipperException::cannotGoDownOnNodeWithZeroChildren();
         }
 
@@ -451,9 +449,6 @@ abstract class AbstractZipper
         return $this->parent === null;
     }
 
-    /**
-     * @psalm-assert non-empty-list $this->leftSiblings
-     */
     public function isFirst(): bool
     {
         return empty($this->leftSiblings);

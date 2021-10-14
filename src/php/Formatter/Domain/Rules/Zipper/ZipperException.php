@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Phel\Formatter\Exceptions;
+namespace Phel\Formatter\Domain\Rules\Zipper;
 
 use RuntimeException;
 
@@ -61,5 +61,10 @@ final class ZipperException extends RuntimeException
     public static function cannotGoLeftOnRootNode(): self
     {
         return new self('Cannot go left on the root node');
+    }
+
+    public static function cannotGoLeftOnTheLeftmostNode(): self
+    {
+        return new self('Cannot go left on the leftmost node');
     }
 }

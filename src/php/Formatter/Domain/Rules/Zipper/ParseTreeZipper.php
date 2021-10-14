@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Phel\Formatter\Formatter;
+namespace Phel\Formatter\Domain\Rules\Zipper;
 
 use Phel\Compiler\Parser\ParserNode\CommentNode;
 use Phel\Compiler\Parser\ParserNode\InnerNodeInterface;
@@ -10,19 +10,13 @@ use Phel\Compiler\Parser\ParserNode\NewlineNode;
 use Phel\Compiler\Parser\ParserNode\NodeInterface;
 use Phel\Compiler\Parser\ParserNode\TriviaNodeInterface;
 use Phel\Compiler\Parser\ParserNode\WhitespaceNode;
-use Phel\Formatter\Exceptions\ZipperException;
 
 /**
  * @extends AbstractZipper<NodeInterface>
  */
 final class ParseTreeZipper extends AbstractZipper
 {
-    /**
-     * @param NodeInterface $root
-     *
-     * @return ParseTreeZipper
-     */
-    public static function createRoot($root): ParseTreeZipper
+    public static function createRoot(NodeInterface $root): self
     {
         return new self($root, null, [], [], false, false);
     }
@@ -30,10 +24,8 @@ final class ParseTreeZipper extends AbstractZipper
     /**
      * @param NodeInterface $node
      * @param ?AbstractZipper<NodeInterface> $parent
-     * @param NodeInterface[] $leftSiblings
-     * @param NodeInterface[] $rightSiblings
-     *
-     * @return static
+     * @param list<NodeInterface> $leftSiblings
+     * @param list<NodeInterface> $rightSiblings
      */
     protected function createNewInstance(
         $node,
@@ -42,7 +34,7 @@ final class ParseTreeZipper extends AbstractZipper
         array $rightSiblings,
         bool $hasChanged,
         bool $isEnd
-    ) {
+    ): self {
         return new self($node, $parent, $leftSiblings, $rightSiblings, $hasChanged, $isEnd);
     }
 
@@ -54,7 +46,7 @@ final class ParseTreeZipper extends AbstractZipper
         return $this->node instanceof InnerNodeInterface;
     }
 
-    public function getChildren()
+    public function getChildren(): array
     {
         if (!$this->isBranch()) {
             throw ZipperException::calledChildrenOnLeafNode();

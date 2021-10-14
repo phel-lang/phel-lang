@@ -2,11 +2,11 @@
 
 declare(strict_types=1);
 
-namespace Phel\Formatter\Formatter;
+namespace Phel\Formatter\Domain;
 
 use Phel\Compiler\Lexer\Exceptions\LexerValueException;
 use Phel\Compiler\Parser\Exceptions\AbstractParserException;
-use Phel\Formatter\Exceptions\ZipperException;
+use Phel\Formatter\Domain\Rules\Zipper\ZipperException;
 
 interface FormatterInterface
 {

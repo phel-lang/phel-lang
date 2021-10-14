@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace Phel\Formatter\Rules;
+namespace Phel\Formatter\Domain\Rules;
 
 use Phel\Compiler\Parser\ParserNode\NodeInterface;
-use Phel\Formatter\Exceptions\ZipperException;
+use Phel\Formatter\Domain\Rules\Zipper\ZipperException;
 
 interface RuleInterface
 {
