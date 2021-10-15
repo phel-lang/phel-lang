@@ -23,7 +23,7 @@ final class ProjectCompiler
     /**
      * @return list<CompiledFile>
      */
-    public function compileProject(array $srcDirectories, string $dest): array
+    public function compileProject(array $srcDirectories, string $dest, bool $enableCache, bool $enableSourceMap): array
     {
         $namespaceInformation = $this->namespaceExtractor->getNamespacesFromDirectories($srcDirectories);
 
@@ -35,7 +35,14 @@ final class ProjectCompiler
                 mkdir($targetDir, 0777, true);
             }
 
-            $result[] = $this->fileCompiler->compileFile($info->getFile(), $targetFile);
+            if ($enableCache) {
+                if (file_exists($targetFile) && filemtime($targetFile) === filemtime($info->getFile())) {
+                    continue;
+                }
+            }
+
+            $result[] = $this->fileCompiler->compileFile($info->getFile(), $targetFile, $enableSourceMap);
+            touch($targetFile, filemtime($info->getFile()));
         }
 
         return $result;

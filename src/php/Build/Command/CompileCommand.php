@@ -8,11 +8,14 @@ use Phel\Build\Compile\ProjectCompiler;
 use Phel\Command\CommandFacadeInterface;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
+use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 
 final class CompileCommand extends Command
 {
     public const COMMAND_NAME = 'compile';
+    private const OPTION_NO_CACHE = 'no-cache';
+    private const OPTION_NO_SOURCE_MAP = 'no-source-map';
 
     private ProjectCompiler $projectCompiler;
     private CommandFacadeInterface $commandFacade;
@@ -28,17 +31,24 @@ final class CompileCommand extends Command
 
     protected function configure(): void
     {
-        $this->setDescription('Compile the current project');
+        $this->setDescription('Compile the current project')
+            ->addOption(self::OPTION_NO_CACHE, null, InputOption::VALUE_NONE, 'Disables cache')
+            ->addOption(self::OPTION_NO_SOURCE_MAP, null, InputOption::VALUE_NONE, 'Disables source maps');
     }
 
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
+        $enableCache = $input->getOption(self::OPTION_NO_CACHE) !== true;
+        $enableSourceMap = $input->getOption(self::OPTION_NO_SOURCE_MAP) !== true;
+
         $this->projectCompiler->compileProject(
             [
                 ...$this->commandFacade->getSourceDirectories(),
                 ...$this->commandFacade->getVendorSourceDirectories(),
             ],
-            $this->commandFacade->getOutputDirectory()
+            $this->commandFacade->getOutputDirectory(),
+            $enableCache,
+            $enableSourceMap
         );
 
         return self::SUCCESS;
