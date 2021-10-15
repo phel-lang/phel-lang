@@ -103,7 +103,14 @@ final class CompilerFactory extends AbstractFactory
         return new FileEmitter(
             $enableSourceMaps,
             new SourceMapGenerator(),
-            $this->createOutputEmitter($enableSourceMaps)
+            new OutputEmitter(
+                $enableSourceMaps,
+                new NodeEmitterFactory(),
+                new Munge(),
+                Printer::readable(),
+                new SourceMapState(),
+                new OutputEmitterOptions(OutputEmitterOptions::EMIT_MODE_FILE)
+            )
         );
     }
 

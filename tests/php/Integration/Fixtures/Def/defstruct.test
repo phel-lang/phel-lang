@@ -1,7 +1,6 @@
 --PHEL--
 (defstruct* my-type [a b c?])
 --PHP--
-namespace user;
 class my_type extends \Phel\Lang\Collections\Struct\AbstractPersistentStruct {
 
   protected const ALLOWED_KEYS = ['a', 'b', 'c?'];
