@@ -73,7 +73,7 @@ final class BuildFacade extends AbstractFacade implements BuildFacadeInterface
     {
         return $this->getFactory()
             ->createFileCompiler()
-            ->compileFile($src, $dest);
+            ->compileFile($src, $dest, true);
     }
 
     /**
@@ -103,7 +103,7 @@ final class BuildFacade extends AbstractFacade implements BuildFacadeInterface
     {
         return $this->getFactory()
             ->createProjectCompiler()
-            ->compileProject($srcDirectories, $dest);
+            ->compileProject($srcDirectories, $dest, false, true);
     }
 
     public function getCompileCommand(): CompileCommand
