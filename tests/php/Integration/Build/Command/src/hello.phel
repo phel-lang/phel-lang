@@ -1,0 +1,5 @@
+(ns hello
+  (:require phel\html :as h))
+
+(defn hello-world []
+  (h/html [:div "hello-world"]))
