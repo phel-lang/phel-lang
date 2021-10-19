@@ -15,6 +15,10 @@ final class CommandConfig extends AbstractConfig
     public const VENDOR_DIR = 'vendor-dir';
     public const OUTPUT_DIR = 'out-dir';
 
+    private const DEFAULT_VENDOR_DIR = 'vendor';
+    private const DEFAULT_SRC_DIRS = ['src'];
+    private const DEFAULT_TEST_DIRS = ['tests'];
+
     public function getPhelReplHistory(): string
     {
         return $this->getApplicationRootDir() . '.phel-repl-history';
@@ -33,14 +37,14 @@ final class CommandConfig extends AbstractConfig
     public function getConfigDirectories(): CodeDirectories
     {
         return new CodeDirectories(
-            (array)$this->get(self::SRC_DIRS),
-            (array)$this->get(self::TEST_DIRS)
+            (array)$this->get(self::SRC_DIRS, self::DEFAULT_SRC_DIRS),
+            (array)$this->get(self::TEST_DIRS, self::DEFAULT_TEST_DIRS)
         );
     }
 
     public function getVendorDir(): string
     {
-        return (string)$this->get(self::VENDOR_DIR);
+        return (string)$this->get(self::VENDOR_DIR, self::DEFAULT_VENDOR_DIR);
     }
 
     public function getOutputDir(): string
