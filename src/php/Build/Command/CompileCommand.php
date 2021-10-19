@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Phel\Build\Command;
 
+use Phel\Build\Compile\BuildOptions;
 use Phel\Build\Compile\ProjectCompiler;
 use Phel\Command\CommandFacadeInterface;
 use Symfony\Component\Console\Command\Command;
@@ -38,8 +39,7 @@ final class CompileCommand extends Command
 
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
-        $enableCache = $input->getOption(self::OPTION_NO_CACHE) !== true;
-        $enableSourceMap = $input->getOption(self::OPTION_NO_SOURCE_MAP) !== true;
+        $buildOptions = $this->getBuildOptions($input);
 
         $this->projectCompiler->compileProject(
             [
@@ -47,10 +47,17 @@ final class CompileCommand extends Command
                 ...$this->commandFacade->getVendorSourceDirectories(),
             ],
             $this->commandFacade->getOutputDirectory(),
-            $enableCache,
-            $enableSourceMap
+            $buildOptions
         );
 
         return self::SUCCESS;
+    }
+
+    private function getBuildOptions(InputInterface $input): BuildOptions
+    {
+        $enableCache = $input->getOption(self::OPTION_NO_CACHE) !== true;
+        $enableSourceMap = $input->getOption(self::OPTION_NO_SOURCE_MAP) !== true;
+
+        return new BuildOptions($enableCache, $enableSourceMap);
     }
 }
