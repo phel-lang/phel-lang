@@ -37,10 +37,6 @@ final class CompileCommandTest extends TestCase
         self::assertFileExists(__DIR__ . '/out/phel/core.php');
         self::assertFileExists(__DIR__ . '/out/hello.phel');
         self::assertFileExists(__DIR__ . '/out/hello.php');
-        self::assertFileEqualsCanonicalizing(
-            __DIR__ . '/Fixtures/hello.php.txt',
-            __DIR__ . '/out/hello.php',
-        );
     }
 
     private function createBuildFacade(): BuildFacadeInterface
