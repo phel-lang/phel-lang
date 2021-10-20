@@ -29,6 +29,7 @@ use Phel\Compiler\Analyzer\TypeAnalyzer\SpecialForm\PhpObjectCallSymbol;
 use Phel\Compiler\Analyzer\TypeAnalyzer\SpecialForm\PhpOSetSymbol;
 use Phel\Compiler\Analyzer\TypeAnalyzer\SpecialForm\QuoteSymbol;
 use Phel\Compiler\Analyzer\TypeAnalyzer\SpecialForm\RecurSymbol;
+use Phel\Compiler\Analyzer\TypeAnalyzer\SpecialForm\SetVarSymbol;
 use Phel\Compiler\Analyzer\TypeAnalyzer\SpecialForm\SpecialFormAnalyzerInterface;
 use Phel\Compiler\Analyzer\TypeAnalyzer\SpecialForm\ThrowSymbol;
 use Phel\Compiler\Analyzer\TypeAnalyzer\SpecialForm\TrySymbol;
@@ -108,6 +109,8 @@ final class AnalyzePersistentList
                 return new DefStructSymbol($this->analyzer);
             case Symbol::NAME_PHP_OBJECT_SET:
                 return new PhpOSetSymbol($this->analyzer);
+            case Symbol::NAME_SET_VAR:
+                return new SetVarSymbol($this->analyzer);
             default:
                 return new InvokeSymbol($this->analyzer);
         }

@@ -40,6 +40,7 @@ final class Symbol extends AbstractType implements IdenticalInterface
     public const NAME_LIST = 'list';
     public const NAME_VECTOR = 'vector';
     public const NAME_MAP = 'hash-map';
+    public const NAME_SET_VAR = 'set-var';
 
     private static int $symGenCounter = 1;
 

@@ -77,6 +77,8 @@ final class NodeEmitterFactory
                 return new NodeEmitter\PhpObjectSetEmitter($outputEmitter);
             case Ast\MapNode::class:
                 return new NodeEmitter\MapEmitter($outputEmitter);
+            case Ast\SetVarNode::class:
+                return new NodeEmitter\SetVarEmitter($outputEmitter);
             default:
                 throw NotSupportedAstException::withClassName($astNodeClassName);
         }

@@ -1,0 +1,8 @@
+(ns phel-test\test\core\binding
+  (:require phel\test :refer [deftest is]))
+
+(def *my-binding-var* 1)
+
+(deftest test-binding
+  (is (= 3 (binding [*my-binding-var* 2] (inc *my-binding-var*))) "binding inc")
+  (is (= 1 *my-binding-var*) "binding is not changing the value"))

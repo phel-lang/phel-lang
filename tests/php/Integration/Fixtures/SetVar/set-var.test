@@ -1,0 +1,18 @@
+--PHEL--
+(def x 1)
+(set-var x 2)
+--PHP--
+$GLOBALS["__phel"]["user"]["x"] = 1;
+$GLOBALS["__phel_meta"]["user"]["x"] = \Phel\Lang\TypeFactory::getInstance()->persistentMapFromKVs(
+  new \Phel\Lang\Keyword("start-location"), \Phel\Lang\TypeFactory::getInstance()->persistentMapFromKVs(
+    new \Phel\Lang\Keyword("file"), "SetVar/set-var.test",
+    new \Phel\Lang\Keyword("line"), 1,
+    new \Phel\Lang\Keyword("column"), 0
+  ),
+  new \Phel\Lang\Keyword("end-location"), \Phel\Lang\TypeFactory::getInstance()->persistentMapFromKVs(
+    new \Phel\Lang\Keyword("file"), "SetVar/set-var.test",
+    new \Phel\Lang\Keyword("line"), 1,
+    new \Phel\Lang\Keyword("column"), 9
+  )
+);
+$GLOBALS["__phel"]["user"]["x"] = 2;

@@ -999,6 +999,15 @@ collection in map"))
   [pred xs]
   (for [x :in xs :while (pred x)] x))
 
+(defn take-nth
+  "Returns every nth item in `xs`"
+  [n xs]
+  (when (< n 1)
+    (throw (php/new InvalidArgumentException "First argument of 'take-nth must be greater then 0")))
+  (for [[i x] :pairs xs
+        :when (= (php/% i n) 0)]
+    x))
+
 (defn filter
   "Returns all elements of `xs` wher `(pred x)` is true."
   [pred xs]
@@ -1657,3 +1666,27 @@ returns 1. If `xs` has one value, returns the reciprocal of x."
   (let [matches (php/array)
         match-result (php/preg_match_all re s matches)]
     (apply vector (php/aget matches 0))))
+
+# -------
+# Binding
+# -------
+
+# inspired by clojure's with-redefs
+(defmacro binding
+  "Temporary redefines definitions while executing the body.
+  The value will be reset after the body was executed."
+  [bindings & body]
+  (let [names (take-nth 2 bindings)
+        vals (take-nth 2 (drop 1 bindings))
+        orig-val-syms (map gensym names)
+        temp-val-syms (map gensym names)
+        binds (map vector names temp-val-syms)
+        resets (reverse (map vector names orig-val-syms))
+        bind-value (fn [[k v]] (list 'set-var k v))]
+    `(let [,@(interleave orig-val-syms names)
+           ,@(interleave temp-val-syms vals)]
+        ,@(map bind-value binds)
+        (try
+          ,@body
+          (finally
+            ,@(map bind-value resets))))))

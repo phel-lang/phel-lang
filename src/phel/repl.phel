@@ -57,11 +57,7 @@
       (php/:: Symbol (create last)))))
 
 (defn- set-ns [namespace]
-  (let [var-data (php/aget (php/aget php/$GLOBALS "__phel") "phel\\core")
-        _ (php/aset var-data "*ns*" namespace)
-        ns-data (php/aget php/$GLOBALS "__phel")
-        _ (php/aset ns-data "phel\\core" var-data)
-        _ (php/aset php/$GLOBALS "__phel" ns-data)]))
+  (set-var *ns* namespace))
 
 (defn- require-namespace
   [namespace alias refers]
