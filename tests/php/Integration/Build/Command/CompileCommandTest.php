@@ -2,15 +2,13 @@
 
 declare(strict_types=1);
 
-namespace PhelTest\Integration\Run\Command\Run;
+namespace PhelTest\Integration\Build\Command;
 
 use Gacela\Framework\Gacela;
 use Phel\Build\BuildFacade;
 use Phel\Build\BuildFacadeInterface;
-use Phel\Build\Compile\BuildOptions;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\Console\Input\ArrayInput;
-use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 
 final class CompileCommandTest extends TestCase
@@ -29,7 +27,10 @@ final class CompileCommandTest extends TestCase
         $command = $this->createBuildFacade()->getCompileCommand();
 
         $command->run(
-            $this->stubInput(new BuildOptions(false, false)),
+            new ArrayInput([
+                '--no-source-map' => true,
+                '--no-cache' => true,
+            ]),
             $this->stubOutput()
         );
 
@@ -51,18 +52,5 @@ final class CompileCommandTest extends TestCase
             ->willReturnCallback(fn (string $str) => print $str . PHP_EOL);
 
         return $output;
-    }
-
-    private function stubInput(BuildOptions $buildOptions): InputInterface
-    {
-        $input = [];
-        if (!$buildOptions->getEnableSourceMap()) {
-            $input['--no-source-map'] = true;
-        }
-        if (!$buildOptions->getEnableCache()) {
-            $input['--no-cache'] = true;
-        }
-
-        return new ArrayInput($input);
     }
 }

@@ -6,8 +6,8 @@ namespace Phel\Build\Compile;
 
 class BuildOptions
 {
-    private bool $enableCache = true;
-    private bool $enableSourceMap = true;
+    private bool $enableCache;
+    private bool $enableSourceMap;
 
     public function __construct(bool $enableCache, bool $enableSourceMap)
     {
@@ -15,12 +15,12 @@ class BuildOptions
         $this->enableSourceMap = $enableSourceMap;
     }
 
-    public function getEnableCache(): bool
+    public function isCacheEnabled(): bool
     {
         return $this->enableCache;
     }
 
-    public function getEnableSourceMap(): bool
+    public function isSourceMapEnabled(): bool
     {
         return $this->enableSourceMap;
     }
