@@ -4,18 +4,18 @@ declare(strict_types=1);
 
 namespace Phel\Build\Compile;
 
-use Phel\Build\Extractor\NamespaceExtractor;
+use Phel\Build\Extractor\NamespaceExtractorInterface;
 use Phel\Compiler\CompilerFacadeInterface;
 
 final class FileCompiler
 {
     private CompilerFacadeInterface $compilerFacade;
 
-    private NamespaceExtractor $namespaceExtractor;
+    private NamespaceExtractorInterface $namespaceExtractor;
 
     public function __construct(
         CompilerFacadeInterface $compilerFacade,
-        NamespaceExtractor $namespaceExtractor
+        NamespaceExtractorInterface $namespaceExtractor
     ) {
         $this->compilerFacade = $compilerFacade;
         $this->namespaceExtractor = $namespaceExtractor;
