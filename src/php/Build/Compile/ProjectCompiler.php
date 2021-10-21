@@ -35,10 +35,11 @@ final class ProjectCompiler
                 mkdir($targetDir, 0777, true);
             }
 
-            if ($buildOptions->isCacheEnabled()) {
-                if (file_exists($targetFile) && filemtime($targetFile) === filemtime($info->getFile())) {
-                    continue;
-                }
+            if ($buildOptions->isCacheEnabled()
+                && file_exists($targetFile)
+                && filemtime($targetFile) === filemtime($info->getFile())
+            ) {
+                continue;
             }
 
             $result[] = $this->fileCompiler->compileFile($info->getFile(), $targetFile, $buildOptions->isSourceMapEnabled());

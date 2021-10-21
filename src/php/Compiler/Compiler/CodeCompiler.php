@@ -74,13 +74,8 @@ final class CodeCompiler implements CodeCompilerInterface
                 if (!$parseTree instanceof TriviaNodeInterface) {
                     $readerResult = $this->reader->read($parseTree);
                     $node = $this->analyze($readerResult);
-
-                    $this->fileEmitter->emitNode($node);
-
-                    // We need to evaluate every statement because we may need
-                    // it for macros.
-                    $code = $this->statementEmitter->emitNode($node)->getCodeWithSourceMap();
-                    $this->evaluator->eval($code);
+                    // We need to evaluate every statement because we may need it for macros.
+                    $this->emitNode($node);
                 }
             } catch (AbstractParserException|ReaderException $e) {
                 throw new CompilerException($e, $e->getCodeSnippet());
@@ -111,6 +106,8 @@ final class CodeCompiler implements CodeCompilerInterface
      */
     private function emitNode(AbstractNode $node): string
     {
+        $this->fileEmitter->emitNode($node);
+
         $code = $this->statementEmitter->emitNode($node)->getCodeWithSourceMap();
         $this->evaluator->eval($code);
 
