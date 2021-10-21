@@ -13,6 +13,8 @@ use Phel\Compiler\Compiler\CodeCompiler;
 use Phel\Compiler\Compiler\CodeCompilerInterface;
 use Phel\Compiler\Compiler\EvalCompiler;
 use Phel\Compiler\Compiler\EvalCompilerInterface;
+use Phel\Compiler\Emitter\FileEmitter;
+use Phel\Compiler\Emitter\FileEmitterInterface;
 use Phel\Compiler\Emitter\OutputEmitter;
 use Phel\Compiler\Emitter\OutputEmitter\Munge;
 use Phel\Compiler\Emitter\OutputEmitter\NodeEmitterFactory;
@@ -44,7 +46,7 @@ final class CompilerFactory extends AbstractFactory
             $this->createParser(),
             $this->createReader(),
             $this->createAnalyzer(),
-            $this->createEmitter(),
+            $this->createStatementEmitter(),
             $this->createEvaluator()
         );
     }
@@ -56,7 +58,8 @@ final class CompilerFactory extends AbstractFactory
             $this->createParser(),
             $this->createReader(),
             $this->createAnalyzer(),
-            $this->createEmitter($enableSourceMaps),
+            $this->createStatementEmitter($enableSourceMaps),
+            $this->createFileEmitter($enableSourceMaps),
             $this->createEvaluator()
         );
     }
@@ -86,12 +89,28 @@ final class CompilerFactory extends AbstractFactory
         return new Analyzer($this->getGlobalEnvironment());
     }
 
-    public function createEmitter(bool $enableSourceMaps = true): StatementEmitterInterface
+    public function createStatementEmitter(bool $enableSourceMaps = true): StatementEmitterInterface
     {
         return new StatementEmitter(
             $enableSourceMaps,
             new SourceMapGenerator(),
             $this->createOutputEmitter($enableSourceMaps)
+        );
+    }
+
+    public function createFileEmitter(bool $enableSourceMaps = true): FileEmitterInterface
+    {
+        return new FileEmitter(
+            $enableSourceMaps,
+            new SourceMapGenerator(),
+            new OutputEmitter(
+                $enableSourceMaps,
+                new NodeEmitterFactory(),
+                new Munge(),
+                Printer::readable(),
+                new SourceMapState(),
+                new OutputEmitterOptions(OutputEmitterOptions::EMIT_MODE_FILE)
+            )
         );
     }
 

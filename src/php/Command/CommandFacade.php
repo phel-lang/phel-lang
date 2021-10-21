@@ -80,4 +80,11 @@ final class CommandFacade extends AbstractFacade implements CommandFacadeInterfa
             ->createDirectoryFinder()
             ->getVendorSourceDirectories();
     }
+
+    public function getOutputDirectory(): string
+    {
+        return $this->getFactory()
+            ->createDirectoryFinder()
+            ->getOutputDirectory();
+    }
 }

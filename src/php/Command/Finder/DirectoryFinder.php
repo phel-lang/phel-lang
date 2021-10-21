@@ -46,6 +46,11 @@ final class DirectoryFinder implements DirectoryFinderInterface
         return $this->vendorDirectoriesFinder->findPhelSourceDirectories();
     }
 
+    public function getOutputDirectory(): string
+    {
+        return $this->applicationRootDir . '/' . $this->codeDirectories->getOutputDirectory();
+    }
+
     /**
      * @return list<string>
      */

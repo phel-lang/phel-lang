@@ -49,7 +49,7 @@ final class IntegrationTest extends TestCase
         $globalEnv->setNs('user');
         Symbol::resetGen();
 
-        $compiledCode = $this->compilerFacade->compile($phelCode, $filename);
+        $compiledCode = $this->compilerFacade->compile($phelCode, $filename)->getCode();
 
         self::assertSame(
             trim($expectedGeneratedCode),

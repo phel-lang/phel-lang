@@ -9,6 +9,7 @@ use Phel\Compiler\Analyzer\Ast\AbstractNode;
 use Phel\Compiler\Analyzer\Environment\NodeEnvironmentInterface;
 use Phel\Compiler\Analyzer\Exceptions\AnalyzerException;
 use Phel\Compiler\Compiler\CodeCompiler;
+use Phel\Compiler\Emitter\EmitterResult;
 use Phel\Compiler\Evaluator\Exceptions\CompiledCodeIsMalformedException;
 use Phel\Compiler\Evaluator\Exceptions\FileException;
 use Phel\Compiler\Exceptions\CompilerException;
@@ -61,7 +62,7 @@ final class CompilerFacade extends AbstractFacade implements CompilerFacadeInter
         string $phelCode,
         string $source = CodeCompiler::DEFAULT_SOURCE,
         bool $enableSourceMaps = false
-    ): string {
+    ): EmitterResult {
         return $this->getFactory()
             ->createCodeCompiler($enableSourceMaps)
             ->compile($phelCode, $source);

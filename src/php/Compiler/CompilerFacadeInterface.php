@@ -8,6 +8,7 @@ use Phel\Compiler\Analyzer\Ast\AbstractNode;
 use Phel\Compiler\Analyzer\Environment\NodeEnvironmentInterface;
 use Phel\Compiler\Analyzer\Exceptions\AnalyzerException;
 use Phel\Compiler\Compiler\CodeCompiler;
+use Phel\Compiler\Emitter\EmitterResult;
 use Phel\Compiler\Evaluator\Exceptions\CompiledCodeIsMalformedException;
 use Phel\Compiler\Evaluator\Exceptions\FileException;
 use Phel\Compiler\Exceptions\CompilerException;
@@ -43,7 +44,7 @@ interface CompilerFacadeInterface
      * @throws CompiledCodeIsMalformedException
      * @throws FileException
      */
-    public function compile(string $phelCode, string $source = CodeCompiler::DEFAULT_SOURCE, bool $enableSourceMaps = false): string;
+    public function compile(string $phelCode, string $source = CodeCompiler::DEFAULT_SOURCE, bool $enableSourceMaps = false): EmitterResult;
 
     /**
      * @throws LexerValueException

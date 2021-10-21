@@ -2,13 +2,14 @@
 
 declare(strict_types=1);
 
-use PhpCsFixer\Finder;
 use PhpCsFixer\Config;
+use PhpCsFixer\Finder;
 
 $finder = Finder::create()
     ->files()
     ->in(__DIR__ . '/src/php')
-    ->in(__DIR__ . '/tests/php');
+    ->in(__DIR__ . '/tests/php')
+    ->exclude('out');
 
 return (new Config())
   ->setFinder($finder)

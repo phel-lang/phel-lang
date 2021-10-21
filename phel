@@ -4,6 +4,7 @@
 declare(strict_types=1);
 
 use Gacela\Framework\Gacela;
+use Phel\Build\BuildFacade;
 use Phel\Formatter\FormatterFacade;
 use Phel\Interop\InteropFacade;
 use Phel\Run\RunFacade;
@@ -29,6 +30,7 @@ Gacela::bootstrap($projectRootDir, [
 $interopFacade = new InteropFacade();
 $formatterFacade = new FormatterFacade();
 $runFacade = new RunFacade();
+$buildFacade = new BuildFacade();
 
 $application = new Application();
 $application->add($interopFacade->getExportCommand());
@@ -36,4 +38,5 @@ $application->add($formatterFacade->getFormatCommand());
 $application->add($runFacade->getReplCommand());
 $application->add($runFacade->getRunCommand());
 $application->add($runFacade->getTestCommand());
+$application->add($buildFacade->getCompileCommand());
 $application->run();

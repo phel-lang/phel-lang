@@ -10,11 +10,11 @@ final class ProjectCompiler
 {
     private NamespaceExtractorInterface $namespaceExtractor;
 
-    private FileCompiler $fileCompiler;
+    private FileCompilerInterface $fileCompiler;
 
     public function __construct(
         NamespaceExtractorInterface $namespaceExtractor,
-        FileCompiler $fileCompiler
+        FileCompilerInterface $fileCompiler
     ) {
         $this->namespaceExtractor = $namespaceExtractor;
         $this->fileCompiler = $fileCompiler;
@@ -23,7 +23,7 @@ final class ProjectCompiler
     /**
      * @return list<CompiledFile>
      */
-    public function compileProject(array $srcDirectories, string $dest): array
+    public function compileProject(array $srcDirectories, string $dest, BuildOptions $buildOptions): array
     {
         $namespaceInformation = $this->namespaceExtractor->getNamespacesFromDirectories($srcDirectories);
 
@@ -35,7 +35,20 @@ final class ProjectCompiler
                 mkdir($targetDir, 0777, true);
             }
 
-            $result[] = $this->fileCompiler->compileFile($info->getFile(), $targetFile);
+            if ($buildOptions->isCacheEnabled()
+                && file_exists($targetFile)
+                && filemtime($targetFile) === filemtime($info->getFile())
+            ) {
+                continue;
+            }
+
+            $result[] = $this->fileCompiler->compileFile(
+                $info->getFile(),
+                $targetFile,
+                $buildOptions->isSourceMapEnabled()
+            );
+
+            touch($targetFile, filemtime($info->getFile()));
         }
 
         return $result;

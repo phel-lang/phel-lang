@@ -7,6 +7,9 @@
 
 (defstruct abc [a])
 --PHP--
+namespace hello_world;
+require_once __DIR__ . '/../my_namespace/core.php';
+require_once __DIR__ . '/../phel/core.php';
 \Phel\Compiler\Analyzer\Environment\GlobalEnvironmentSingleton::getInstance()->setNs("hello-world");
 $GLOBALS["__phel"]["phel\\core"]["*ns*"] = "hello_world";
 $GLOBALS["__phel"]["hello_world"]["x"] = 10;
@@ -23,7 +26,6 @@ $GLOBALS["__phel_meta"]["hello_world"]["x"] = \Phel\Lang\TypeFactory::getInstanc
     new \Phel\Lang\Keyword("column"), 19
   )
 );
-namespace hello_world;
 class abc extends \Phel\Lang\Collections\Struct\AbstractPersistentStruct {
 
   protected const ALLOWED_KEYS = ['a'];

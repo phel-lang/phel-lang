@@ -4,30 +4,35 @@ declare(strict_types=1);
 
 namespace Phel\Build\Compile;
 
-use Phel\Build\Extractor\NamespaceExtractor;
+use Phel\Build\Extractor\NamespaceExtractorInterface;
 use Phel\Compiler\CompilerFacadeInterface;
 
-final class FileCompiler
+final class FileCompiler implements FileCompilerInterface
 {
     private CompilerFacadeInterface $compilerFacade;
 
-    private NamespaceExtractor $namespaceExtractor;
+    private NamespaceExtractorInterface $namespaceExtractor;
 
     public function __construct(
         CompilerFacadeInterface $compilerFacade,
-        NamespaceExtractor $namespaceExtractor
+        NamespaceExtractorInterface $namespaceExtractor
     ) {
         $this->compilerFacade = $compilerFacade;
         $this->namespaceExtractor = $namespaceExtractor;
     }
 
-    public function compileFile(string $src, string $dest): CompiledFile
+    public function compileFile(string $src, string $dest, bool $enableSourceMaps): CompiledFile
     {
-        $this->compilerFacade->compile(
-            file_get_contents($src),
-            $src,
-            true
-        );
+        $phelCode = file_get_contents($src);
+        $result = $this->compilerFacade->compile($phelCode, $src, $enableSourceMaps);
+
+        file_put_contents($dest, "<?php\n" . $result->getCode());
+        file_put_contents(str_replace('.php', '.phel', $dest), $phelCode);
+        if ($enableSourceMaps) {
+            file_put_contents($dest . '.map', $result->getSourceMap());
+        } elseif (file_exists($dest . '.map')) {
+            @unlink($dest . '.map');
+        }
 
         $namespaceInfo = $this->namespaceExtractor->getNamespaceFromFile($src);
 

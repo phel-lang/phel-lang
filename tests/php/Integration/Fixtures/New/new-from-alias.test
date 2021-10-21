@@ -4,6 +4,8 @@
 
 (php/new DateTimeImmutable "2020-03-22")
 --PHP--
+namespace test\abc;
+require_once __DIR__ . '/../../phel/core.php';
 \Phel\Compiler\Analyzer\Environment\GlobalEnvironmentSingleton::getInstance()->setNs("test\\abc");
 $GLOBALS["__phel"]["phel\\core"]["*ns*"] = "test\\abc";
 (new \DateTimeImmutable("2020-03-22"));

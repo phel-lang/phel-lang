@@ -3,6 +3,8 @@
 
 (def x 1)
 --PHP--
+namespace my\ns;
+require_once __DIR__ . '/../../phel/core.php';
 \Phel\Compiler\Analyzer\Environment\GlobalEnvironmentSingleton::getInstance()->setNs("my\\ns");
 $GLOBALS["__phel"]["phel\\core"]["*ns*"] = "my\\ns";
 $GLOBALS["__phel"]["my\\ns"]["x"] = 1;

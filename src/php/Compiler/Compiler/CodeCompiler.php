@@ -8,6 +8,8 @@ use Phel\Compiler\Analyzer\AnalyzerInterface;
 use Phel\Compiler\Analyzer\Ast\AbstractNode;
 use Phel\Compiler\Analyzer\Environment\NodeEnvironment;
 use Phel\Compiler\Analyzer\Exceptions\AnalyzerException;
+use Phel\Compiler\Emitter\EmitterResult;
+use Phel\Compiler\Emitter\FileEmitterInterface;
 use Phel\Compiler\Emitter\StatementEmitterInterface;
 use Phel\Compiler\Evaluator\EvaluatorInterface;
 use Phel\Compiler\Evaluator\Exceptions\CompiledCodeIsMalformedException;
@@ -28,7 +30,8 @@ final class CodeCompiler implements CodeCompilerInterface
     private ParserInterface $parser;
     private ReaderInterface $reader;
     private AnalyzerInterface $analyzer;
-    private StatementEmitterInterface $emitter;
+    private StatementEmitterInterface $statementEmitter;
+    private FileEmitterInterface $fileEmitter;
     private EvaluatorInterface $evaluator;
 
     public function __construct(
@@ -36,14 +39,16 @@ final class CodeCompiler implements CodeCompilerInterface
         ParserInterface $parser,
         ReaderInterface $reader,
         AnalyzerInterface $analyzer,
-        StatementEmitterInterface $emitter,
+        StatementEmitterInterface $statementEmitter,
+        FileEmitterInterface $fileEmitter,
         EvaluatorInterface $evaluator
     ) {
         $this->lexer = $lexer;
         $this->parser = $parser;
         $this->reader = $reader;
         $this->analyzer = $analyzer;
-        $this->emitter = $emitter;
+        $this->statementEmitter = $statementEmitter;
+        $this->fileEmitter = $fileEmitter;
         $this->evaluator = $evaluator;
     }
 
@@ -53,11 +58,11 @@ final class CodeCompiler implements CodeCompilerInterface
      * @throws FileException
      * @throws LexerValueException
      */
-    public function compile(string $phelCode, string $source = self::DEFAULT_SOURCE): string
+    public function compile(string $phelCode, string $source = self::DEFAULT_SOURCE): EmitterResult
     {
         $tokenStream = $this->lexer->lexString($phelCode, $source);
-        $phpCode = '';
 
+        $this->fileEmitter->startFile($source);
         while (true) {
             try {
                 $parseTree = $this->parser->parseNext($tokenStream);
@@ -69,14 +74,15 @@ final class CodeCompiler implements CodeCompilerInterface
                 if (!$parseTree instanceof TriviaNodeInterface) {
                     $readerResult = $this->reader->read($parseTree);
                     $node = $this->analyze($readerResult);
-                    $phpCode .= $this->emitNode($node);
+                    // We need to evaluate every statement because we may need it for macros.
+                    $this->emitNode($node);
                 }
             } catch (AbstractParserException|ReaderException $e) {
                 throw new CompilerException($e, $e->getCodeSnippet());
             }
         }
 
-        return $phpCode;
+        return $this->fileEmitter->endFile();
     }
 
     /**
@@ -100,7 +106,9 @@ final class CodeCompiler implements CodeCompilerInterface
      */
     private function emitNode(AbstractNode $node): string
     {
-        $code = $this->emitter->emitNode($node)->getCodeWithSourceMap();
+        $this->fileEmitter->emitNode($node);
+
+        $code = $this->statementEmitter->emitNode($node)->getCodeWithSourceMap();
         $this->evaluator->eval($code);
 
         return $code;
