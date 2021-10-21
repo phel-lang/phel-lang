@@ -8,6 +8,7 @@ use Gacela\Framework\AbstractFactory;
 use Phel\Build\Command\CompileCommand;
 use Phel\Build\Compile\DependenciesForNamespace;
 use Phel\Build\Compile\FileCompiler;
+use Phel\Build\Compile\FileCompilerInterface;
 use Phel\Build\Compile\FileEvaluator;
 use Phel\Build\Compile\ProjectCompiler;
 use Phel\Build\Extractor\NamespaceExtractor;
@@ -33,7 +34,7 @@ final class BuildFactory extends AbstractFactory
         );
     }
 
-    public function createFileCompiler(): FileCompiler
+    public function createFileCompiler(): FileCompilerInterface
     {
         return new FileCompiler(
             $this->getCompilerFacade(),

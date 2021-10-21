@@ -10,11 +10,11 @@ final class ProjectCompiler
 {
     private NamespaceExtractorInterface $namespaceExtractor;
 
-    private FileCompiler $fileCompiler;
+    private FileCompilerInterface $fileCompiler;
 
     public function __construct(
         NamespaceExtractorInterface $namespaceExtractor,
-        FileCompiler $fileCompiler
+        FileCompilerInterface $fileCompiler
     ) {
         $this->namespaceExtractor = $namespaceExtractor;
         $this->fileCompiler = $fileCompiler;
@@ -42,7 +42,12 @@ final class ProjectCompiler
                 continue;
             }
 
-            $result[] = $this->fileCompiler->compileFile($info->getFile(), $targetFile, $buildOptions->isSourceMapEnabled());
+            $result[] = $this->fileCompiler->compileFile(
+                $info->getFile(),
+                $targetFile,
+                $buildOptions->isSourceMapEnabled()
+            );
+
             touch($targetFile, filemtime($info->getFile()));
         }
 

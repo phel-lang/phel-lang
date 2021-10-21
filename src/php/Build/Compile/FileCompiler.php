@@ -7,7 +7,7 @@ namespace Phel\Build\Compile;
 use Phel\Build\Extractor\NamespaceExtractorInterface;
 use Phel\Compiler\CompilerFacadeInterface;
 
-final class FileCompiler
+final class FileCompiler implements FileCompilerInterface
 {
     private CompilerFacadeInterface $compilerFacade;
 
