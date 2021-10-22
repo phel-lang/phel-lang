@@ -9,8 +9,6 @@ namespace Phel\Printer\TypePrinter;
  */
 final class AnonymousClassPrinter implements TypePrinterInterface
 {
-    use WithColorTrait;
-
     /**
      * @param object $form
      */
