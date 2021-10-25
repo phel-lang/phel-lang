@@ -8,7 +8,7 @@ use Gacela\Framework\AbstractFacade;
 use Phel\Compiler\Analyzer\Ast\AbstractNode;
 use Phel\Compiler\Analyzer\Environment\NodeEnvironmentInterface;
 use Phel\Compiler\Analyzer\Exceptions\AnalyzerException;
-use Phel\Compiler\Compiler\CodeCompiler;
+use Phel\Compiler\Compiler\CompileOptions;
 use Phel\Compiler\Emitter\EmitterResult;
 use Phel\Compiler\Evaluator\Exceptions\CompiledCodeIsMalformedException;
 use Phel\Compiler\Evaluator\Exceptions\FileException;
@@ -46,11 +46,11 @@ final class CompilerFacade extends AbstractFacade implements CompilerFacadeInter
      *
      * @return mixed The result of the executed code
      */
-    public function eval(string $phelCode, int $startingLine = 1)
+    public function eval(string $phelCode, CompileOptions $compileOptions)
     {
         return $this->getFactory()
             ->createEvalCompiler()
-            ->eval($phelCode, $startingLine);
+            ->eval($phelCode, $compileOptions);
     }
 
     /**
@@ -58,14 +58,11 @@ final class CompilerFacade extends AbstractFacade implements CompilerFacadeInter
      * @throws CompiledCodeIsMalformedException
      * @throws FileException
      */
-    public function compile(
-        string $phelCode,
-        string $source = CodeCompiler::DEFAULT_SOURCE,
-        bool $enableSourceMaps = false
-    ): EmitterResult {
+    public function compile(string $phelCode, CompileOptions $compileOptions): EmitterResult
+    {
         return $this->getFactory()
-            ->createCodeCompiler($enableSourceMaps)
-            ->compile($phelCode, $source);
+            ->createCodeCompiler($compileOptions)
+            ->compile($phelCode, $compileOptions);
     }
 
     /**

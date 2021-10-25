@@ -18,5 +18,5 @@ interface CodeCompilerInterface
      * @throws CompiledCodeIsMalformedException
      * @throws FileException
      */
-    public function compile(string $phelCode, string $source = self::DEFAULT_SOURCE): EmitterResult;
+    public function compile(string $phelCode, CompileOptions $compileOptions): EmitterResult;
 }

@@ -9,21 +9,18 @@ use Phel\Compiler\Emitter\OutputEmitter\SourceMap\SourceMapGenerator;
 
 final class StatementEmitter implements StatementEmitterInterface
 {
-    private bool $enableSourceMaps;
     private SourceMapGenerator $sourceMapGenerator;
     private OutputEmitterInterface $outputEmitter;
 
     public function __construct(
-        bool $enableSourceMaps,
         SourceMapGenerator $sourceMapGenerator,
         OutputEmitterInterface $outputEmitter
     ) {
-        $this->enableSourceMaps = $enableSourceMaps;
         $this->sourceMapGenerator = $sourceMapGenerator;
         $this->outputEmitter = $outputEmitter;
     }
 
-    public function emitNode(AbstractNode $node): EmitterResult
+    public function emitNode(AbstractNode $node, bool $enableSourceMaps): EmitterResult
     {
         $this->outputEmitter->resetIndentLevel();
         $this->outputEmitter->resetSourceMapState();
@@ -37,9 +34,9 @@ final class StatementEmitter implements StatementEmitterInterface
         $this->outputEmitter->emitNode($node);
         $code = ob_get_clean();
 
-        if (!$this->enableSourceMaps) {
+        if (!$enableSourceMaps) {
             return new EmitterResult(
-                $this->enableSourceMaps,
+                $enableSourceMaps,
                 $code,
                 '',
                 $file
@@ -51,7 +48,7 @@ final class StatementEmitter implements StatementEmitterInterface
         );
 
         return new EmitterResult(
-            $this->enableSourceMaps,
+            $enableSourceMaps,
             $code,
             $sourceMap,
             $file

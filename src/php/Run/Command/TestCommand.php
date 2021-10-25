@@ -7,6 +7,7 @@ namespace Phel\Run\Command;
 use Phel\Build\BuildFacadeInterface;
 use Phel\Build\Extractor\NamespaceInformation;
 use Phel\Command\CommandFacadeInterface;
+use Phel\Compiler\Compiler\CompileOptions;
 use Phel\Compiler\CompilerFacadeInterface;
 use Phel\Compiler\Exceptions\CompilerException;
 use Phel\Run\Domain\Test\CannotFindAnyTestsException;
@@ -89,7 +90,7 @@ final class TestCommand extends Command
                 $this->namespacesAsString($namespaces),
             );
 
-            $result = $this->compilerFacade->eval($phelCode);
+            $result = $this->compilerFacade->eval($phelCode, new CompileOptions());
 
             $output->writeln((new ResourceUsageFormatter())->resourceUsageSinceStartOfRequest());
 

@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Phel\Build\Compile;
 
 use Phel\Build\Extractor\NamespaceExtractor;
+use Phel\Compiler\Compiler\CompileOptions;
 use Phel\Compiler\CompilerFacadeInterface;
 
 final class FileEvaluator
@@ -23,11 +24,10 @@ final class FileEvaluator
 
     public function evalFile(string $src): CompiledFile
     {
-        $this->compilerFacade->compile(
-            file_get_contents($src),
-            $src,
-            true
-        );
+        $options = new CompileOptions();
+        $options->setSource($src)->setEnabledSourceMaps(true);
+
+        $this->compilerFacade->eval(file_get_contents($src), $options);
 
         $namespaceInfo = $this->namespaceExtractor->getNamespaceFromFile($src);
 

@@ -11,6 +11,7 @@ use Phel\Compiler\Analyzer\Environment\GlobalEnvironmentInterface;
 use Phel\Compiler\Analyzer\Environment\GlobalEnvironmentSingleton;
 use Phel\Compiler\Compiler\CodeCompiler;
 use Phel\Compiler\Compiler\CodeCompilerInterface;
+use Phel\Compiler\Compiler\CompileOptions;
 use Phel\Compiler\Compiler\EvalCompiler;
 use Phel\Compiler\Compiler\EvalCompilerInterface;
 use Phel\Compiler\Emitter\FileEmitter;
@@ -51,15 +52,15 @@ final class CompilerFactory extends AbstractFactory
         );
     }
 
-    public function createCodeCompiler(bool $enableSourceMaps = true): CodeCompilerInterface
+    public function createCodeCompiler(CompileOptions $compileOptions): CodeCompilerInterface
     {
         return new CodeCompiler(
             $this->createLexer(),
             $this->createParser(),
             $this->createReader(),
             $this->createAnalyzer(),
-            $this->createStatementEmitter($enableSourceMaps),
-            $this->createFileEmitter($enableSourceMaps),
+            $this->createStatementEmitter($compileOptions->isSourceMapsEnabled()),
+            $this->createFileEmitter($compileOptions->isSourceMapsEnabled()),
             $this->createEvaluator()
         );
     }
@@ -92,7 +93,6 @@ final class CompilerFactory extends AbstractFactory
     public function createStatementEmitter(bool $enableSourceMaps = true): StatementEmitterInterface
     {
         return new StatementEmitter(
-            $enableSourceMaps,
             new SourceMapGenerator(),
             $this->createOutputEmitter($enableSourceMaps)
         );
@@ -101,7 +101,6 @@ final class CompilerFactory extends AbstractFactory
     public function createFileEmitter(bool $enableSourceMaps = true): FileEmitterInterface
     {
         return new FileEmitter(
-            $enableSourceMaps,
             new SourceMapGenerator(),
             new OutputEmitter(
                 $enableSourceMaps,

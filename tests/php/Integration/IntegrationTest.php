@@ -8,6 +8,7 @@ use Generator;
 use Phel\Build\BuildFacade;
 use Phel\Compiler\Analyzer\Environment\GlobalEnvironment;
 use Phel\Compiler\Analyzer\Environment\GlobalEnvironmentSingleton;
+use Phel\Compiler\Compiler\CompileOptions;
 use Phel\Compiler\CompilerFacade;
 use Phel\Lang\Symbol;
 use PHPUnit\Framework\TestCase;
@@ -49,7 +50,10 @@ final class IntegrationTest extends TestCase
         $globalEnv->setNs('user');
         Symbol::resetGen();
 
-        $compiledCode = $this->compilerFacade->compile($phelCode, $filename)->getCode();
+        $options = new CompileOptions();
+        $options->setSource($filename);
+
+        $compiledCode = $this->compilerFacade->compile($phelCode, $options)->getCode();
 
         self::assertSame(
             trim($expectedGeneratedCode),

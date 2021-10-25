@@ -12,5 +12,5 @@ interface FileEmitterInterface
 
     public function emitNode(AbstractNode $node): void;
 
-    public function endFile(): EmitterResult;
+    public function endFile(bool $enableSourceMaps): EmitterResult;
 }

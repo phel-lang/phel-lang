@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Phel\Build\Compile;
 
 use Phel\Build\Extractor\NamespaceExtractorInterface;
+use Phel\Compiler\Compiler\CompileOptions;
 use Phel\Compiler\CompilerFacadeInterface;
 
 final class FileCompiler implements FileCompilerInterface
@@ -24,7 +25,10 @@ final class FileCompiler implements FileCompilerInterface
     public function compileFile(string $src, string $dest, bool $enableSourceMaps): CompiledFile
     {
         $phelCode = file_get_contents($src);
-        $result = $this->compilerFacade->compile($phelCode, $src, $enableSourceMaps);
+
+        $options = new CompileOptions();
+        $options->setSource($src)->setEnabledSourceMaps($enableSourceMaps);
+        $result = $this->compilerFacade->compile($phelCode, $options);
 
         file_put_contents($dest, "<?php\n" . $result->getCode());
         file_put_contents(str_replace('.php', '.phel', $dest), $phelCode);
