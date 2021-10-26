@@ -170,8 +170,8 @@ final class ReplCommand extends Command
         $fullInput = $this->previousResult->readBuffer($this->inputBuffer);
 
         try {
-            $options = new CompileOptions();
-            $options->setStartingLine($this->lineNumber - count($this->inputBuffer));
+            $options = (new CompileOptions())
+                ->setStartingLine($this->lineNumber - count($this->inputBuffer));
 
             $result = $this->compilerFacade->eval($fullInput, $options);
             $this->previousResult = InputResult::fromAny($result);

@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Phel\Compiler\Compiler;
 
-class CompileOptions
+final class CompileOptions
 {
     public const DEFAULT_SOURCE = 'string';
     public const DEFAULT_STARTING_LINE = 1;
@@ -12,7 +12,7 @@ class CompileOptions
 
     private string $source = self::DEFAULT_SOURCE;
     private int $startingLine = self::DEFAULT_STARTING_LINE;
-    private bool $enableSourceMaps = self::DEFAULT_ENABLE_SOURCE_MAPS;
+    private bool $isEnableSourceMaps = self::DEFAULT_ENABLE_SOURCE_MAPS;
 
     public function getSource(): string
     {
@@ -40,12 +40,12 @@ class CompileOptions
 
     public function isSourceMapsEnabled(): bool
     {
-        return $this->enableSourceMaps;
+        return $this->isEnableSourceMaps;
     }
 
-    public function setEnabledSourceMaps(bool $enableSourceMaps): self
+    public function setIsEnabledSourceMaps(bool $isEnableSourceMaps): self
     {
-        $this->enableSourceMaps = $enableSourceMaps;
+        $this->isEnableSourceMaps = $isEnableSourceMaps;
 
         return $this;
     }

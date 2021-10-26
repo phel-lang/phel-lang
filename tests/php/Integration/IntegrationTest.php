@@ -50,8 +50,8 @@ final class IntegrationTest extends TestCase
         $globalEnv->setNs('user');
         Symbol::resetGen();
 
-        $options = new CompileOptions();
-        $options->setSource($filename);
+        $options = (new CompileOptions())
+            ->setSource($filename);
 
         $compiledCode = $this->compilerFacade->compile($phelCode, $options)->getCode();
 

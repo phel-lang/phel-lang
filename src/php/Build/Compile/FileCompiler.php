@@ -26,8 +26,10 @@ final class FileCompiler implements FileCompilerInterface
     {
         $phelCode = file_get_contents($src);
 
-        $options = new CompileOptions();
-        $options->setSource($src)->setEnabledSourceMaps($enableSourceMaps);
+        $options = (new CompileOptions())
+            ->setSource($src)
+            ->setIsEnabledSourceMaps($enableSourceMaps);
+
         $result = $this->compilerFacade->compile($phelCode, $options);
 
         file_put_contents($dest, "<?php\n" . $result->getCode());

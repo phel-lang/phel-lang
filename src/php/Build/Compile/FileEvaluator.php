@@ -24,8 +24,9 @@ final class FileEvaluator
 
     public function evalFile(string $src): CompiledFile
     {
-        $options = new CompileOptions();
-        $options->setSource($src)->setEnabledSourceMaps(true);
+        $options = (new CompileOptions())
+            ->setSource($src)
+            ->setIsEnabledSourceMaps(true);
 
         $this->compilerFacade->eval(file_get_contents($src), $options);
 

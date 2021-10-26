@@ -11,8 +11,6 @@ use Phel\Compiler\Exceptions\CompilerException;
 
 interface CodeCompilerInterface
 {
-    public const DEFAULT_SOURCE = 'string';
-
     /**
      * @throws CompilerException
      * @throws CompiledCodeIsMalformedException
