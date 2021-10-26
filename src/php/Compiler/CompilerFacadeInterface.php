@@ -7,7 +7,7 @@ namespace Phel\Compiler;
 use Phel\Compiler\Analyzer\Ast\AbstractNode;
 use Phel\Compiler\Analyzer\Environment\NodeEnvironmentInterface;
 use Phel\Compiler\Analyzer\Exceptions\AnalyzerException;
-use Phel\Compiler\Compiler\CodeCompiler;
+use Phel\Compiler\Compiler\CompileOptions;
 use Phel\Compiler\Emitter\EmitterResult;
 use Phel\Compiler\Evaluator\Exceptions\CompiledCodeIsMalformedException;
 use Phel\Compiler\Evaluator\Exceptions\FileException;
@@ -33,18 +33,29 @@ interface CompilerFacadeInterface
     public function analyze($x, NodeEnvironmentInterface $env): AbstractNode;
 
     /**
+     * Evaluates all expression in the given phel code. Returns the result
+     * of the last expression.
+     *
+     * @param string $phelCode The phel code that should be evaluated
+     * @param CompileOptions $evalOptions The evaluation options
+     *
      * @throws CompilerException|UnfinishedParserException
      *
      * @return mixed The result of the executed code
      */
-    public function eval(string $phelCode, int $startingLine = 1);
+    public function eval(string $phelCode, CompileOptions $compileOptions);
 
     /**
+     * Compiles the given phel code to PHP code.
+     *
+     * @param string $phelCode The phel code that should be compiled
+     * @param CompileOptions $compileOptions The compilation options
+     *
      * @throws CompilerException
      * @throws CompiledCodeIsMalformedException
      * @throws FileException
      */
-    public function compile(string $phelCode, string $source = CodeCompiler::DEFAULT_SOURCE, bool $enableSourceMaps = false): EmitterResult;
+    public function compile(string $phelCode, CompileOptions $compileOptions): EmitterResult;
 
     /**
      * @throws LexerValueException

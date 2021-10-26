@@ -58,11 +58,11 @@ final class CodeCompiler implements CodeCompilerInterface
      * @throws FileException
      * @throws LexerValueException
      */
-    public function compile(string $phelCode, string $source = self::DEFAULT_SOURCE): EmitterResult
+    public function compile(string $phelCode, CompileOptions $compileOptions): EmitterResult
     {
-        $tokenStream = $this->lexer->lexString($phelCode, $source);
+        $tokenStream = $this->lexer->lexString($phelCode, $compileOptions->getSource(), $compileOptions->getStartingLine());
 
-        $this->fileEmitter->startFile($source);
+        $this->fileEmitter->startFile($compileOptions->getSource());
         while (true) {
             try {
                 $parseTree = $this->parser->parseNext($tokenStream);
@@ -75,14 +75,14 @@ final class CodeCompiler implements CodeCompilerInterface
                     $readerResult = $this->reader->read($parseTree);
                     $node = $this->analyze($readerResult);
                     // We need to evaluate every statement because we may need it for macros.
-                    $this->emitNode($node);
+                    $this->emitNode($node, $compileOptions);
                 }
             } catch (AbstractParserException|ReaderException $e) {
                 throw new CompilerException($e, $e->getCodeSnippet());
             }
         }
 
-        return $this->fileEmitter->endFile();
+        return $this->fileEmitter->endFile($compileOptions->isSourceMapsEnabled());
     }
 
     /**
@@ -104,11 +104,11 @@ final class CodeCompiler implements CodeCompilerInterface
      * @throws CompiledCodeIsMalformedException
      * @throws FileException
      */
-    private function emitNode(AbstractNode $node): string
+    private function emitNode(AbstractNode $node, CompileOptions $compileOptions): string
     {
         $this->fileEmitter->emitNode($node);
 
-        $code = $this->statementEmitter->emitNode($node)->getCodeWithSourceMap();
+        $code = $this->statementEmitter->emitNode($node, $compileOptions->isSourceMapsEnabled())->getCodeWithSourceMap();
         $this->evaluator->eval($code);
 
         return $code;

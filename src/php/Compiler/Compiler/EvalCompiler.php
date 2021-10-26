@@ -60,25 +60,33 @@ final class EvalCompiler implements EvalCompilerInterface
      *
      * @return mixed The result of the executed code
      */
-    public function eval(string $phelCode, int $startingLine = 1)
+    public function eval(string $phelCode, CompileOptions $compileOptions)
     {
-        try {
-            $tokenStream = $this->lexer->lexString($phelCode, LexerInterface::DEFAULT_SOURCE, $startingLine);
-            $parseTree = $this->parser->parseNext($tokenStream);
+        $tokenStream = $this->lexer->lexString($phelCode, $compileOptions->getSource(), $compileOptions->getStartingLine());
 
-            if (!$parseTree || $parseTree instanceof TriviaNodeInterface) {
-                return null;
+        $result = null;
+        while (true) {
+            try {
+                $parseTree = $this->parser->parseNext($tokenStream);
+
+                if (!$parseTree) {
+                    return $result;
+                }
+
+                if (!$parseTree instanceof TriviaNodeInterface) {
+                    $readerResult = $this->reader->read($parseTree);
+                    $node = $this->analyze($readerResult);
+
+                    $result = $this->evalNode($node, $compileOptions);
+                }
+            } catch (UnfinishedParserException $e) {
+                throw $e;
+            } catch (AbstractParserException|ReaderException $e) {
+                throw new CompilerException($e, $e->getCodeSnippet());
             }
-
-            $readerResult = $this->reader->read($parseTree);
-            $node = $this->analyze($readerResult);
-
-            return $this->evalNode($node);
-        } catch (UnfinishedParserException $e) {
-            throw $e;
-        } catch (AbstractParserException|ReaderException $e) {
-            throw new CompilerException($e, $e->getCodeSnippet());
         }
+
+        return $result;
     }
 
     /**
@@ -102,9 +110,9 @@ final class EvalCompiler implements EvalCompilerInterface
      *
      * @return mixed The result of the executed code
      */
-    private function evalNode(AbstractNode $node)
+    private function evalNode(AbstractNode $node, CompileOptions $compileOptions)
     {
-        $code = $this->emitter->emitNode($node)->getCodeWithSourceMap();
+        $code = $this->emitter->emitNode($node, $compileOptions->isSourceMapsEnabled())->getCodeWithSourceMap();
 
         return $this->evaluator->eval($code);
     }

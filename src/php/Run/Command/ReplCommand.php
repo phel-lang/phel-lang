@@ -6,6 +6,7 @@ namespace Phel\Run\Command;
 
 use Phel\Build\BuildFacadeInterface;
 use Phel\Command\CommandFacadeInterface;
+use Phel\Compiler\Compiler\CompileOptions;
 use Phel\Compiler\CompilerFacadeInterface;
 use Phel\Compiler\Exceptions\CompilerException;
 use Phel\Compiler\Parser\Exceptions\UnfinishedParserException;
@@ -169,7 +170,10 @@ final class ReplCommand extends Command
         $fullInput = $this->previousResult->readBuffer($this->inputBuffer);
 
         try {
-            $result = $this->compilerFacade->eval($fullInput, $this->lineNumber - count($this->inputBuffer));
+            $options = (new CompileOptions())
+                ->setStartingLine($this->lineNumber - count($this->inputBuffer));
+
+            $result = $this->compilerFacade->eval($fullInput, $options);
             $this->previousResult = InputResult::fromAny($result);
 
             $this->addHistory($fullInput);

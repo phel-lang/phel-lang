@@ -9,18 +9,15 @@ use Phel\Compiler\Emitter\OutputEmitter\SourceMap\SourceMapGenerator;
 
 final class FileEmitter implements FileEmitterInterface
 {
-    private bool $enableSourceMaps;
     private SourceMapGenerator $sourceMapGenerator;
     private OutputEmitterInterface $outputEmitter;
     private string $code = '';
     private string $source = '';
 
     public function __construct(
-        bool $enableSourceMaps,
         SourceMapGenerator $sourceMapGenerator,
         OutputEmitterInterface $outputEmitter
     ) {
-        $this->enableSourceMaps = $enableSourceMaps;
         $this->sourceMapGenerator = $sourceMapGenerator;
         $this->outputEmitter = $outputEmitter;
     }
@@ -40,14 +37,14 @@ final class FileEmitter implements FileEmitterInterface
         $this->code .= ob_get_clean();
     }
 
-    public function endFile(): EmitterResult
+    public function endFile(bool $enableSourceMaps): EmitterResult
     {
         $sourceMap = $this->sourceMapGenerator->encode(
             $this->outputEmitter->getSourceMapState()->getMappings()
         );
 
         return new EmitterResult(
-            $this->enableSourceMaps,
+            $enableSourceMaps,
             $this->code,
             $sourceMap,
             $this->source

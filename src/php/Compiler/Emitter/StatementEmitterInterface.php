@@ -8,5 +8,5 @@ use Phel\Compiler\Analyzer\Ast\AbstractNode;
 
 interface StatementEmitterInterface
 {
-    public function emitNode(AbstractNode $node): EmitterResult;
+    public function emitNode(AbstractNode $node, bool $enableSourceMaps): EmitterResult;
 }

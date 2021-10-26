@@ -11,12 +11,10 @@ use Phel\Compiler\Exceptions\CompilerException;
 
 interface CodeCompilerInterface
 {
-    public const DEFAULT_SOURCE = 'string';
-
     /**
      * @throws CompilerException
      * @throws CompiledCodeIsMalformedException
      * @throws FileException
      */
-    public function compile(string $phelCode, string $source = self::DEFAULT_SOURCE): EmitterResult;
+    public function compile(string $phelCode, CompileOptions $compileOptions): EmitterResult;
 }
