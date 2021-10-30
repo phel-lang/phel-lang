@@ -13,6 +13,7 @@ use Phel\Lang\Keyword;
 use Phel\Lang\SourceLocation;
 use Phel\Lang\Symbol;
 use Phel\Lang\TypeFactory;
+use Phel\Lang\TypeInterface;
 use RuntimeException;
 
 final class GlobalEnvironment implements GlobalEnvironmentInterface
