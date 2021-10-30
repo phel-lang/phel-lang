@@ -26,6 +26,8 @@ final class CompileCommandTest extends TestCase
     {
         $command = $this->createBuildFacade()->getCompileCommand();
 
+        $this->expectOutputString("This is printed\n");
+
         $command->run(
             new ArrayInput([
                 '--no-source-map' => true,

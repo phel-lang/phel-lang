@@ -3,3 +3,8 @@
 
 (defn hello-world []
   (h/html [:div "hello-world"]))
+
+(println "This is printed")
+
+(when-not *compile-mode*
+  (println "This is not printed"))
