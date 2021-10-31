@@ -36,7 +36,6 @@ final class GlobalEnvironment implements GlobalEnvironmentInterface
 
     public function __construct()
     {
-        // Add internal definition
         $this->addInternalDefinition('phel\core', Symbol::create('*compile-mode*'), false);
     }
 
