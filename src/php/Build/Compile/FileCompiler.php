@@ -30,7 +30,9 @@ final class FileCompiler implements FileCompilerInterface
             ->setSource($src)
             ->setIsEnabledSourceMaps($enableSourceMaps);
 
+        $GLOBALS['__phel']['phel\core']['*compile-mode*'] = true;
         $result = $this->compilerFacade->compile($phelCode, $options);
+        $GLOBALS['__phel']['phel\core']['*compile-mode*'] = false;
 
         file_put_contents($dest, "<?php\n" . $result->getCode());
         file_put_contents(str_replace('.php', '.phel', $dest), $phelCode);

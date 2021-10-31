@@ -12,6 +12,8 @@ use Phel\Lang\Collections\Map\PersistentMapInterface;
 use Phel\Lang\Keyword;
 use Phel\Lang\SourceLocation;
 use Phel\Lang\Symbol;
+use Phel\Lang\TypeFactory;
+use Phel\Lang\TypeInterface;
 use RuntimeException;
 
 final class GlobalEnvironment implements GlobalEnvironmentInterface
@@ -31,6 +33,11 @@ final class GlobalEnvironment implements GlobalEnvironmentInterface
     private array $useAliases = [];
 
     private bool $allowPrivateAccess = false;
+
+    public function __construct()
+    {
+        $this->addInternalDefinition('phel\core', Symbol::create('*compile-mode*'), false);
+    }
 
     public function getNs(): string
     {
@@ -241,5 +248,17 @@ final class GlobalEnvironment implements GlobalEnvironmentInterface
     public function setAllowPrivateAccess(bool $allowPrivateAccess): void
     {
         $this->allowPrivateAccess = $allowPrivateAccess;
+    }
+
+    /**
+     * @param TypeInterface|string|float|int|bool|null $value The inital value
+     */
+    private function addInternalDefinition(string $namespace, Symbol $symbol, $value): void
+    {
+        $GLOBALS['__phel'][$namespace][$symbol->getName()] = $value;
+        $this->addDefinition($namespace, $symbol, TypeFactory::getInstance()->persistentMapFromKVs(
+            new Keyword('doc'),
+            'Set to true when a file is compiled, false otherwise',
+        ));
     }
 }
