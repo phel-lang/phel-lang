@@ -4,7 +4,9 @@ declare(strict_types=1);
 
 namespace Phel\Compiler\Parser\ExpressionParser;
 
+use Phel\Compiler\Analyzer\Environment\GlobalEnvironmentInterface;
 use Phel\Compiler\Lexer\Token;
+use Phel\Compiler\Parser\Exceptions\KeywordParserException;
 use Phel\Compiler\Parser\ParserNode\AbstractAtomNode;
 use Phel\Compiler\Parser\ParserNode\BooleanNode;
 use Phel\Compiler\Parser\ParserNode\KeywordNode;
@@ -16,6 +18,15 @@ use Phel\Lang\Symbol;
 
 final class AtomParser
 {
+    private const KEYWORD_REGEX = '/:(:?)(([^\/]+)\/)?([^\/]+)/';
+
+    private GlobalEnvironmentInterface $globalEnvironment;
+
+    public function __construct(GlobalEnvironmentInterface $globalEnvironment)
+    {
+        $this->globalEnvironment = $globalEnvironment;
+    }
+
     public function parse(Token $token): AbstractAtomNode
     {
         $word = $token->getCode();
@@ -33,12 +44,7 @@ final class AtomParser
         }
 
         if (strpos($word, ':') === 0) {
-            return new KeywordNode(
-                $word,
-                $token->getStartLocation(),
-                $token->getEndLocation(),
-                new Keyword(substr($word, 1))
-            );
+            return $this->parseKeyword($token);
         }
 
         if (preg_match('/^([+-])?0[bB][01]+(_[01]+)*$/', $word, $matches)) {
@@ -79,5 +85,48 @@ final class AtomParser
         }
 
         return new SymbolNode($word, $token->getStartLocation(), $token->getEndLocation(), Symbol::create($word));
+    }
+
+    private function parseKeyword(Token $token): KeywordNode
+    {
+        $word = $token->getCode();
+        $isValid = preg_match(self::KEYWORD_REGEX, $word, $matches);
+
+        if (!$isValid) {
+            throw new KeywordParserException('This is not a valid keyword');
+        }
+
+        $isDualColon = $matches[1] === ':';
+        $hasNamespace = strlen($matches[3]) > 0;
+
+        $namespace = null;
+        if ($isDualColon && $hasNamespace) {
+            // First case is a dual colon with a namespace alias
+            // like ::foo/bar
+            $alias = $matches[3];
+            $namespace = $this->globalEnvironment->resolveAlias($alias);
+            if (!$namespace) {
+                throw new KeywordParserException("Can not resolve alias '$alias' in keyword: $word");
+            }
+        } elseif ($isDualColon) {
+            // Second case is a dual colon without a namespace alias
+            // like ::bar
+            $namespace = $this->globalEnvironment->getNs();
+        } elseif ($hasNamespace) {
+            // Second case is a single colon with a absolute namespace
+            // like :foo/bar
+            $namespace = $matches[3];
+        }
+
+        $keyword = $namespace
+          ? Keyword::createForNamespace($namespace, $matches[4])
+          : Keyword::create($matches[4]);
+
+        return new KeywordNode(
+            $word,
+            $token->getStartLocation(),
+            $token->getEndLocation(),
+            $keyword
+        );
     }
 }

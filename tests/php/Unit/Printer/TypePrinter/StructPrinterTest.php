@@ -33,7 +33,7 @@ final class StructPrinterTest extends TestCase
 
         yield 'struct with multiple values' => [
             'actual' => '(PhelTest\Unit\Printer\TypePrinter\StubStruct nil nil)',
-            'struct' => new StubStruct([new Keyword('a'), new Keyword('b')]),
+            'struct' => new StubStruct([Keyword::create('a'), Keyword::create('b')]),
         ];
     }
 }

@@ -36,7 +36,7 @@ final class TableBindingDeconstructorTest extends TestCase
         //       __phel 2 (get __phel_1 :key)
         //       a __phel_2])
 
-        $key = new Keyword('key');
+        $key = Keyword::create('key');
         $bindTo = Symbol::create('a');
         $value = Symbol::create('x');
         $binding = Table::fromKVs($key, $bindTo);
@@ -79,7 +79,7 @@ final class TableBindingDeconstructorTest extends TestCase
         //       __phel_5 (next __phel_3)
         //       a __phel_4])
 
-        $key = new Keyword('key');
+        $key = Keyword::create('key');
         $bindTo = Symbol::create('a');
         $value = Symbol::create('x');
         $binding = Table::fromKVs($key, TypeFactory::getInstance()->persistentVectorFromArray([$bindTo]));

@@ -216,8 +216,8 @@ final class QuasiquoteTest extends TestCase
     {
         $q = new QuasiquoteTransformer(new GlobalEnvironment());
         self::assertEquals(
-            new Keyword('test'),
-            $q->transform(new Keyword('test'))
+            Keyword::create('test'),
+            $q->transform(Keyword::create('test'))
         );
     }
 

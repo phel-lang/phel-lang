@@ -11,25 +11,32 @@ final class Keyword extends AbstractType implements IdenticalInterface, FnInterf
 {
     use MetaTrait;
 
+    private ?string $namespace;
     private string $name;
     private int $hash;
 
     /** @var array<string, Keyword> */
     private static $refStore = [];
 
-    public function __construct(string $name)
+    public function __construct(?string $namespace, string $name)
     {
         $this->name = $name;
-        $this->hash = crc32(':' . $name);
+        $this->namespace = $namespace;
+        if ($namespace) {
+            $this->hash = crc32(':' . $namespace . '/' . $name);
+        } else {
+            $this->hash = crc32(':' . $name);
+        }
     }
 
     public static function create(string $name): Keyword
     {
-        if (!isset(self::$refStore[$name])) {
-            self::$refStore[$name] = new Keyword($name);
-        }
+        return new Keyword(null, $name);
+    }
 
-        return self::$refStore[$name];
+    public static function createForNamespace(string $namespace, string $name): Keyword
+    {
+        return new Keyword($namespace, $name);
     }
 
     /**
@@ -46,6 +53,11 @@ final class Keyword extends AbstractType implements IdenticalInterface, FnInterf
         return $this->name;
     }
 
+    public function getNamespace(): ?string
+    {
+        return $this->namespace;
+    }
+
     public function hash(): int
     {
         return $this->hash;
@@ -53,12 +65,14 @@ final class Keyword extends AbstractType implements IdenticalInterface, FnInterf
 
     public function equals($other): bool
     {
-        return $other instanceof self && $this->name === $other->getName();
+        return $this->identical($other);
     }
 
     public function identical($other): bool
     {
-        return $other instanceof self && $this->name == $other->getName();
+        return $other instanceof self
+            && $this->name == $other->getName()
+            && $this->namespace == $other->getNamespace();
     }
 
     public function __toString(): string

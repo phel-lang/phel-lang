@@ -48,7 +48,7 @@ final class BindingValidatorTest extends TestCase
     {
         $this->expectExceptionMessage('Cannot destructure Phel\Lang\Keyword');
 
-        $this->validator->assertSupportedBinding(new Keyword('any'));
+        $this->validator->assertSupportedBinding(Keyword::create('any'));
     }
 
     /**

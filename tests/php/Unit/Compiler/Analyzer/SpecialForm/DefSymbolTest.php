@@ -128,7 +128,7 @@ final class DefSymbolTest extends TestCase
                 'user',
                 Symbol::create('name'),
                 TypeFactory::getInstance()->persistentMapFromKVs(
-                    new Keyword('doc'),
+                    Keyword::create('doc'),
                     'my docstring'
                 ),
                 new LiteralNode(
@@ -149,7 +149,7 @@ final class DefSymbolTest extends TestCase
         $list = TypeFactory::getInstance()->persistentListFromArray([
             Symbol::create(Symbol::NAME_DEF),
             Symbol::create('name'),
-            new Keyword('private'),
+            Keyword::create('private'),
             'any value',
         ]);
         $env = NodeEnvironment::empty();
@@ -161,7 +161,7 @@ final class DefSymbolTest extends TestCase
                 'user',
                 Symbol::create('name'),
                 TypeFactory::getInstance()->persistentMapFromKVs(
-                    new Keyword('private'),
+                    Keyword::create('private'),
                     true
                 ),
                 new LiteralNode(
@@ -182,7 +182,7 @@ final class DefSymbolTest extends TestCase
         $list = TypeFactory::getInstance()->persistentListFromArray([
             Symbol::create(Symbol::NAME_DEF),
             Symbol::create('name'),
-            TypeFactory::getInstance()->persistentMapFromKVs(new Keyword('private'), true),
+            TypeFactory::getInstance()->persistentMapFromKVs(Keyword::create('private'), true),
             'any value',
         ]);
         $env = NodeEnvironment::empty();
@@ -194,7 +194,7 @@ final class DefSymbolTest extends TestCase
                 'user',
                 Symbol::create('name'),
                 TypeFactory::getInstance()->persistentMapFromKVs(
-                    new Keyword('private'),
+                    Keyword::create('private'),
                     true
                 ),
                 new LiteralNode(
