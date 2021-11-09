@@ -98,24 +98,24 @@ final class DefSymbol implements SpecialFormAnalyzerInterface
 
         $startLocation = $list->getStartLocation();
         if ($startLocation) {
-            $meta = $meta->put(new Keyword('start-location'), TypeFactory::getInstance()->persistentMapFromKVs(
-                new Keyword('file'),
+            $meta = $meta->put(Keyword::create('start-location'), TypeFactory::getInstance()->persistentMapFromKVs(
+                Keyword::create('file'),
                 $startLocation->getFile(),
-                new Keyword('line'),
+                Keyword::create('line'),
                 $startLocation->getLine(),
-                new Keyword('column'),
+                Keyword::create('column'),
                 $startLocation->getColumn(),
             ));
         }
 
         $endLocation = $list->getEndLocation();
         if ($endLocation) {
-            $meta = $meta->put(new Keyword('end-location'), TypeFactory::getInstance()->persistentMapFromKVs(
-                new Keyword('file'),
+            $meta = $meta->put(Keyword::create('end-location'), TypeFactory::getInstance()->persistentMapFromKVs(
+                Keyword::create('file'),
                 $endLocation->getFile(),
-                new Keyword('line'),
+                Keyword::create('line'),
                 $endLocation->getLine(),
-                new Keyword('column'),
+                Keyword::create('column'),
                 $endLocation->getColumn(),
             ));
         }
@@ -129,7 +129,7 @@ final class DefSymbol implements SpecialFormAnalyzerInterface
     private function normalizeMeta($meta, PersistentListInterface $list): PersistentMapInterface
     {
         if (is_string($meta)) {
-            $key = (new Keyword('doc'))->copyLocationFrom($list);
+            $key = (Keyword::create('doc'))->copyLocationFrom($list);
 
             return TypeFactory::getInstance()
                 ->persistentMapFromKVs($key, $meta)

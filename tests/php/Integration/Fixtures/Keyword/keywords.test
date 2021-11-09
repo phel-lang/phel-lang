@@ -1,0 +1,65 @@
+--PHEL--
+(ns test
+  (:require xyz\foo :as foo))
+(def a :bar)
+(def b ::bar)
+(def c ::foo/bar)
+(def d :xyz\foo/bar)
+--PHP--
+namespace test;
+require_once __DIR__ . '/../xyz/foo.php';
+require_once __DIR__ . '/../phel/core.php';
+\Phel\Compiler\Analyzer\Environment\GlobalEnvironmentSingleton::getInstance()->setNs("test");
+$GLOBALS["__phel"]["phel\\core"]["*ns*"] = "test";
+$GLOBALS["__phel"]["test"]["a"] = \Phel\Lang\Keyword::create("bar");
+$GLOBALS["__phel_meta"]["test"]["a"] = \Phel\Lang\TypeFactory::getInstance()->persistentMapFromKVs(
+  \Phel\Lang\Keyword::create("start-location"), \Phel\Lang\TypeFactory::getInstance()->persistentMapFromKVs(
+    \Phel\Lang\Keyword::create("file"), "Keyword/keywords.test",
+    \Phel\Lang\Keyword::create("line"), 3,
+    \Phel\Lang\Keyword::create("column"), 0
+  ),
+  \Phel\Lang\Keyword::create("end-location"), \Phel\Lang\TypeFactory::getInstance()->persistentMapFromKVs(
+    \Phel\Lang\Keyword::create("file"), "Keyword/keywords.test",
+    \Phel\Lang\Keyword::create("line"), 3,
+    \Phel\Lang\Keyword::create("column"), 12
+  )
+);
+$GLOBALS["__phel"]["test"]["b"] = \Phel\Lang\Keyword::createForNamespace("test", "bar");
+$GLOBALS["__phel_meta"]["test"]["b"] = \Phel\Lang\TypeFactory::getInstance()->persistentMapFromKVs(
+  \Phel\Lang\Keyword::create("start-location"), \Phel\Lang\TypeFactory::getInstance()->persistentMapFromKVs(
+    \Phel\Lang\Keyword::create("file"), "Keyword/keywords.test",
+    \Phel\Lang\Keyword::create("line"), 4,
+    \Phel\Lang\Keyword::create("column"), 0
+  ),
+  \Phel\Lang\Keyword::create("end-location"), \Phel\Lang\TypeFactory::getInstance()->persistentMapFromKVs(
+    \Phel\Lang\Keyword::create("file"), "Keyword/keywords.test",
+    \Phel\Lang\Keyword::create("line"), 4,
+    \Phel\Lang\Keyword::create("column"), 13
+  )
+);
+$GLOBALS["__phel"]["test"]["c"] = \Phel\Lang\Keyword::createForNamespace("xyz\\foo", "bar");
+$GLOBALS["__phel_meta"]["test"]["c"] = \Phel\Lang\TypeFactory::getInstance()->persistentMapFromKVs(
+  \Phel\Lang\Keyword::create("start-location"), \Phel\Lang\TypeFactory::getInstance()->persistentMapFromKVs(
+    \Phel\Lang\Keyword::create("file"), "Keyword/keywords.test",
+    \Phel\Lang\Keyword::create("line"), 5,
+    \Phel\Lang\Keyword::create("column"), 0
+  ),
+  \Phel\Lang\Keyword::create("end-location"), \Phel\Lang\TypeFactory::getInstance()->persistentMapFromKVs(
+    \Phel\Lang\Keyword::create("file"), "Keyword/keywords.test",
+    \Phel\Lang\Keyword::create("line"), 5,
+    \Phel\Lang\Keyword::create("column"), 17
+  )
+);
+$GLOBALS["__phel"]["test"]["d"] = \Phel\Lang\Keyword::createForNamespace("xyz\\foo", "bar");
+$GLOBALS["__phel_meta"]["test"]["d"] = \Phel\Lang\TypeFactory::getInstance()->persistentMapFromKVs(
+  \Phel\Lang\Keyword::create("start-location"), \Phel\Lang\TypeFactory::getInstance()->persistentMapFromKVs(
+    \Phel\Lang\Keyword::create("file"), "Keyword/keywords.test",
+    \Phel\Lang\Keyword::create("line"), 6,
+    \Phel\Lang\Keyword::create("column"), 0
+  ),
+  \Phel\Lang\Keyword::create("end-location"), \Phel\Lang\TypeFactory::getInstance()->persistentMapFromKVs(
+    \Phel\Lang\Keyword::create("file"), "Keyword/keywords.test",
+    \Phel\Lang\Keyword::create("line"), 6,
+    \Phel\Lang\Keyword::create("column"), 20
+  )
+);

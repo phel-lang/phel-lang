@@ -46,6 +46,6 @@ final class GlobalVarNode extends AbstractNode
 
     public function isMacro(): bool
     {
-        return $this->meta[new Keyword('macro')] === true;
+        return $this->meta[Keyword::create('macro')] === true;
     }
 }

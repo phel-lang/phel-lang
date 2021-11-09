@@ -11,15 +11,15 @@ $GLOBALS["__phel"]["user"]["reduce"] = new class() extends \Phel\Lang\AbstractFn
   }
 };
 $GLOBALS["__phel_meta"]["user"]["reduce"] = \Phel\Lang\TypeFactory::getInstance()->persistentMapFromKVs(
-  new \Phel\Lang\Keyword("start-location"), \Phel\Lang\TypeFactory::getInstance()->persistentMapFromKVs(
-    new \Phel\Lang\Keyword("file"), "Call/php-fn-reference.test",
-    new \Phel\Lang\Keyword("line"), 1,
-    new \Phel\Lang\Keyword("column"), 0
+  \Phel\Lang\Keyword::create("start-location"), \Phel\Lang\TypeFactory::getInstance()->persistentMapFromKVs(
+    \Phel\Lang\Keyword::create("file"), "Call/php-fn-reference.test",
+    \Phel\Lang\Keyword::create("line"), 1,
+    \Phel\Lang\Keyword::create("column"), 0
   ),
-  new \Phel\Lang\Keyword("end-location"), \Phel\Lang\TypeFactory::getInstance()->persistentMapFromKVs(
-    new \Phel\Lang\Keyword("file"), "Call/php-fn-reference.test",
-    new \Phel\Lang\Keyword("line"), 1,
-    new \Phel\Lang\Keyword("column"), 37
+  \Phel\Lang\Keyword::create("end-location"), \Phel\Lang\TypeFactory::getInstance()->persistentMapFromKVs(
+    \Phel\Lang\Keyword::create("file"), "Call/php-fn-reference.test",
+    \Phel\Lang\Keyword::create("line"), 1,
+    \Phel\Lang\Keyword::create("column"), 37
   )
 );
 ($GLOBALS["__phel"]["user"]["reduce"])((function(...$args) { return array(...$args);}), \Phel\Lang\TypeFactory::getInstance()->persistentVectorFromArray([1, 2, 3]));

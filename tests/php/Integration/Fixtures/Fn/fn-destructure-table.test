@@ -6,9 +6,9 @@ new class() extends \Phel\Lang\AbstractFn {
 
   public function __invoke($__phel_1) {
     $__phel_2_5 = $__phel_1;
-    $__phel_3_6 = (($__phel_2_5)[(new \Phel\Lang\Keyword("a"))] ?? null);
+    $__phel_3_6 = (($__phel_2_5)[(\Phel\Lang\Keyword::create("a"))] ?? null);
     $a_7 = $__phel_3_6;
-    $__phel_4_8 = (($__phel_2_5)[(new \Phel\Lang\Keyword("b"))] ?? null);
+    $__phel_4_8 = (($__phel_2_5)[(\Phel\Lang\Keyword::create("b"))] ?? null);
     $b_9 = $__phel_4_8;
     return 1;
   }

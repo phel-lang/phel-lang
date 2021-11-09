@@ -102,7 +102,7 @@ final class NsSymbol implements SpecialFormAnalyzerInterface
 
     private function extractAlias(PersistentMapInterface $requireData, PersistentListInterface $import, string $type): Symbol
     {
-        $alias = $requireData[new Keyword('as')];
+        $alias = $requireData[Keyword::create('as')];
 
         if ($alias) {
             if (!($alias instanceof Symbol)) {
@@ -111,7 +111,7 @@ final class NsSymbol implements SpecialFormAnalyzerInterface
             return $alias;
         }
 
-        $alias2 = $requireData[new Keyword($type)];
+        $alias2 = $requireData[Keyword::create($type)];
 
         if ($alias2) {
             if (!($alias2 instanceof Symbol)) {
@@ -129,7 +129,7 @@ final class NsSymbol implements SpecialFormAnalyzerInterface
      */
     private function extractRefer(PersistentMapInterface $requireData, PersistentListInterface $import): array
     {
-        $refer = $requireData[new Keyword('refer')];
+        $refer = $requireData[Keyword::create('refer')];
 
         if ($refer === null) {
             return [];

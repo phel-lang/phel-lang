@@ -53,7 +53,7 @@ final class DefStructNode extends AbstractNode
     {
         $result = [];
         foreach ($this->params as $param) {
-            $keyword = new Keyword($param->getName());
+            $keyword = Keyword::create($param->getName());
             $keyword->setStartLocation($this->getStartSourceLocation());
             $result[] = $keyword;
         }

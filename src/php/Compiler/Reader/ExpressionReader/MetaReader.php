@@ -36,7 +36,7 @@ final class MetaReader
 
         $meta = $this->reader->readExpression($metaExpression, $root);
         if (is_string($meta) || $meta instanceof Symbol) {
-            $meta = TypeFactory::getInstance()->persistentMapFromKVs(new Keyword('tag'), $meta);
+            $meta = TypeFactory::getInstance()->persistentMapFromKVs(Keyword::create('tag'), $meta);
         } elseif ($meta instanceof Keyword) {
             $meta = TypeFactory::getInstance()->persistentMapFromKVs($meta, true);
         } elseif (!$meta instanceof PersistentMapInterface) {

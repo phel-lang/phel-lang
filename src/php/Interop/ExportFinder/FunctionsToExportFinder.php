@@ -102,6 +102,6 @@ final class FunctionsToExportFinder implements FunctionsToExportFinderInterface
         /** @var PersistentMapInterface $meta */
         $meta = $GLOBALS['__phel_meta'][$ns][$fnName] ?? TypeFactory::getInstance()->emptyPersistentList();
 
-        return (bool)($meta[new Keyword('export')] ?? false);
+        return (bool)($meta[Keyword::create('export')] ?? false);
     }
 }

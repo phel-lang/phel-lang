@@ -100,10 +100,17 @@ final class LiteralEmitter
 
     private function emitKeyword(Keyword $x): void
     {
-        $this->outputEmitter->emitStr(
-            'new \Phel\Lang\Keyword("' . addslashes($x->getName()) . '")',
-            $x->getStartLocation()
-        );
+        if ($x->getNamespace()) {
+            $this->outputEmitter->emitStr(
+                '\Phel\Lang\Keyword::createForNamespace("' . addslashes($x->getNamespace()) . '", "' . addslashes($x->getName()) . '")',
+                $x->getStartLocation()
+            );
+        } else {
+            $this->outputEmitter->emitStr(
+                '\Phel\Lang\Keyword::create("' . addslashes($x->getName()) . '")',
+                $x->getStartLocation()
+            );
+        }
     }
 
     private function emitSymbol(Symbol $x): void

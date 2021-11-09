@@ -32,6 +32,8 @@ interface GlobalEnvironmentInterface
 
     public function resolve(Symbol $name, NodeEnvironmentInterface $env): ?AbstractNode;
 
+    public function resolveAlias(string $alias): ?string;
+
     public function resolveAsSymbol(Symbol $name, NodeEnvironment $env): ?Symbol;
 
     public function setAllowPrivateAccess(bool $allowPrivateAccess): void;

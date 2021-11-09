@@ -14,16 +14,16 @@ require_once __DIR__ . '/../phel/core.php';
 $GLOBALS["__phel"]["phel\\core"]["*ns*"] = "hello_world";
 $GLOBALS["__phel"]["hello_world"]["x"] = 10;
 $GLOBALS["__phel_meta"]["hello_world"]["x"] = \Phel\Lang\TypeFactory::getInstance()->persistentMapFromKVs(
-  new \Phel\Lang\Keyword("private"), true,
-  new \Phel\Lang\Keyword("start-location"), \Phel\Lang\TypeFactory::getInstance()->persistentMapFromKVs(
-    new \Phel\Lang\Keyword("file"), "Ns/munge-ns.test",
-    new \Phel\Lang\Keyword("line"), 5,
-    new \Phel\Lang\Keyword("column"), 0
+  \Phel\Lang\Keyword::create("private"), true,
+  \Phel\Lang\Keyword::create("start-location"), \Phel\Lang\TypeFactory::getInstance()->persistentMapFromKVs(
+    \Phel\Lang\Keyword::create("file"), "Ns/munge-ns.test",
+    \Phel\Lang\Keyword::create("line"), 5,
+    \Phel\Lang\Keyword::create("column"), 0
   ),
-  new \Phel\Lang\Keyword("end-location"), \Phel\Lang\TypeFactory::getInstance()->persistentMapFromKVs(
-    new \Phel\Lang\Keyword("file"), "Ns/munge-ns.test",
-    new \Phel\Lang\Keyword("line"), 5,
-    new \Phel\Lang\Keyword("column"), 19
+  \Phel\Lang\Keyword::create("end-location"), \Phel\Lang\TypeFactory::getInstance()->persistentMapFromKVs(
+    \Phel\Lang\Keyword::create("file"), "Ns/munge-ns.test",
+    \Phel\Lang\Keyword::create("line"), 5,
+    \Phel\Lang\Keyword::create("column"), 19
   )
 );
 class abc extends \Phel\Lang\Collections\Struct\AbstractPersistentStruct {
@@ -50,16 +50,16 @@ $GLOBALS["__phel"]["hello_world"]["abc"] = new class() extends \Phel\Lang\Abstra
   }
 };
 $GLOBALS["__phel_meta"]["hello_world"]["abc"] = \Phel\Lang\TypeFactory::getInstance()->persistentMapFromKVs(
-  new \Phel\Lang\Keyword("doc"), "```phel\n(abc a)\n```\nCreates a new abc struct",
-  new \Phel\Lang\Keyword("start-location"), \Phel\Lang\TypeFactory::getInstance()->persistentMapFromKVs(
-    new \Phel\Lang\Keyword("file"), "Ns/munge-ns.test",
-    new \Phel\Lang\Keyword("line"), 7,
-    new \Phel\Lang\Keyword("column"), 0
+  \Phel\Lang\Keyword::create("doc"), "```phel\n(abc a)\n```\nCreates a new abc struct",
+  \Phel\Lang\Keyword::create("start-location"), \Phel\Lang\TypeFactory::getInstance()->persistentMapFromKVs(
+    \Phel\Lang\Keyword::create("file"), "Ns/munge-ns.test",
+    \Phel\Lang\Keyword::create("line"), 7,
+    \Phel\Lang\Keyword::create("column"), 0
   ),
-  new \Phel\Lang\Keyword("end-location"), \Phel\Lang\TypeFactory::getInstance()->persistentMapFromKVs(
-    new \Phel\Lang\Keyword("file"), "Ns/munge-ns.test",
-    new \Phel\Lang\Keyword("line"), 7,
-    new \Phel\Lang\Keyword("column"), 19
+  \Phel\Lang\Keyword::create("end-location"), \Phel\Lang\TypeFactory::getInstance()->persistentMapFromKVs(
+    \Phel\Lang\Keyword::create("file"), "Ns/munge-ns.test",
+    \Phel\Lang\Keyword::create("line"), 7,
+    \Phel\Lang\Keyword::create("column"), 19
   )
 );
 
@@ -71,15 +71,15 @@ $GLOBALS["__phel"]["hello_world"]["abc?"] = new class() extends \Phel\Lang\Abstr
   }
 };
 $GLOBALS["__phel_meta"]["hello_world"]["abc?"] = \Phel\Lang\TypeFactory::getInstance()->persistentMapFromKVs(
-  new \Phel\Lang\Keyword("doc"), "```phel\n(abc? x)\n```\nChecks if `x` is an instance of the abc struct",
-  new \Phel\Lang\Keyword("start-location"), \Phel\Lang\TypeFactory::getInstance()->persistentMapFromKVs(
-    new \Phel\Lang\Keyword("file"), "Ns/munge-ns.test",
-    new \Phel\Lang\Keyword("line"), 7,
-    new \Phel\Lang\Keyword("column"), 0
+  \Phel\Lang\Keyword::create("doc"), "```phel\n(abc? x)\n```\nChecks if `x` is an instance of the abc struct",
+  \Phel\Lang\Keyword::create("start-location"), \Phel\Lang\TypeFactory::getInstance()->persistentMapFromKVs(
+    \Phel\Lang\Keyword::create("file"), "Ns/munge-ns.test",
+    \Phel\Lang\Keyword::create("line"), 7,
+    \Phel\Lang\Keyword::create("column"), 0
   ),
-  new \Phel\Lang\Keyword("end-location"), \Phel\Lang\TypeFactory::getInstance()->persistentMapFromKVs(
-    new \Phel\Lang\Keyword("file"), "Ns/munge-ns.test",
-    new \Phel\Lang\Keyword("line"), 7,
-    new \Phel\Lang\Keyword("column"), 19
+  \Phel\Lang\Keyword::create("end-location"), \Phel\Lang\TypeFactory::getInstance()->persistentMapFromKVs(
+    \Phel\Lang\Keyword::create("file"), "Ns/munge-ns.test",
+    \Phel\Lang\Keyword::create("line"), 7,
+    \Phel\Lang\Keyword::create("column"), 19
   )
 );
