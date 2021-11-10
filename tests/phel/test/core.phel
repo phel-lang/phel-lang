@@ -72,3 +72,12 @@
 
 (deftest test-__DIR__
   (is (true? (and (false? (php/strpos __DIR__ "tests/phel/test/core.phel")) (>= (php/strpos __DIR__ "tests/phel/test") 0))) "__DIR__"))
+
+
+(deftest test-var
+  (is (= :var (type (var 10))) "type of var is :var")
+  (is (= 10 (deref (var 10))) "deref variable")
+  (is (true? (var? (var 10))) "var? return true if x is a variable")
+  (is (false? (var? 10)) "var? return false if x is a number")
+  (is (= 20 (let [x (var 10)] (set! x 20) (deref x))) "set new value to variable")
+  (is (= 11 (let [x (var 10)] (swap! x + 1) (deref x))) "swap a value by incrementing the number"))
