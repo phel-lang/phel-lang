@@ -94,6 +94,18 @@ class TypeFactory
         return PersistentVector::fromArray($this->hasher, $this->equalizer, $values);
     }
 
+    /**
+     * @template T
+     *
+     * @param T $value The initial value of the variable
+     *
+     * @return Variable<T>
+     */
+    public function variable($value): Variable
+    {
+        return new Variable(null, $value);
+    }
+
     public function symbol(string $name): Symbol
     {
         return Symbol::create($name);
