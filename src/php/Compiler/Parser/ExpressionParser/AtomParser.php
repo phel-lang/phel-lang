@@ -18,7 +18,7 @@ use Phel\Lang\Symbol;
 
 final class AtomParser
 {
-    private const KEYWORD_REGEX = '/:(:?)(([^\/]+)\/)?([^\/]+)/';
+    private const KEYWORD_REGEX = '/:(?<second_colon>:?)((?<namespace>[^\/]+)\/)?(?<keyword>[^\/]+)/';
 
     private GlobalEnvironmentInterface $globalEnvironment;
 
@@ -96,14 +96,14 @@ final class AtomParser
             throw new KeywordParserException('This is not a valid keyword');
         }
 
-        $isDualColon = $matches[1] === ':';
-        $hasNamespace = strlen($matches[3]) > 0;
+        $isDualColon = $matches['second_colon'] === ':';
+        $hasNamespace = $matches['namespace'] !== '';
 
         $namespace = null;
         if ($isDualColon && $hasNamespace) {
             // First case is a dual colon with a namespace alias
             // like ::foo/bar
-            $alias = $matches[3];
+            $alias = $matches['namespace'];
             $namespace = $this->globalEnvironment->resolveAlias($alias);
             if (!$namespace) {
                 throw new KeywordParserException("Can not resolve alias '$alias' in keyword: $word");
@@ -115,12 +115,12 @@ final class AtomParser
         } elseif ($hasNamespace) {
             // Second case is a single colon with a absolute namespace
             // like :foo/bar
-            $namespace = $matches[3];
+            $namespace = $matches['namespace'];
         }
 
         $keyword = $namespace
-          ? Keyword::createForNamespace($namespace, $matches[4])
-          : Keyword::create($matches[4]);
+          ? Keyword::createForNamespace($namespace, $matches['keyword'])
+          : Keyword::create($matches['keyword']);
 
         return new KeywordNode(
             $word,

@@ -18,7 +18,7 @@ final class Keyword extends AbstractType implements IdenticalInterface, FnInterf
     /** @var array<string, Keyword> */
     private static $refStore = [];
 
-    public function __construct(?string $namespace, string $name)
+    private function __construct(?string $namespace, string $name)
     {
         $this->name = $name;
         $this->namespace = $namespace;
