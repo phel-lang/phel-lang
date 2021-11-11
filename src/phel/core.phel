@@ -28,6 +28,7 @@
   (:use Phel\Lang\Collections\Map\TransientMapInterface)
   (:use Phel\Lang\Collections\HashSet\PersistentHashSetInterface)
   (:use Phel\Lang\Collections\HashSet\TransientHashSetInterface)
+  (:use Phel\Lang\Variable)
   (:use Phel\Compiler\Emitter\OutputEmitter\Munge)
   (:use Phel\Printer\Printer)
   (:use Countable)
@@ -565,6 +566,7 @@ Calling the and function without arguments returns true."
 * `:table`
 * `:keyword`
 * `:symbol`
+* `:var`
 * `:int`
 * `:float`
 * `:string`
@@ -586,6 +588,7 @@ Calling the and function without arguments returns true."
     (php/instanceof x Table)                      :table
     (php/instanceof x Keyword)                    :keyword
     (php/instanceof x Symbol)                     :symbol
+    (php/instanceof x Variable)                   :var
     (php/is_int x)                                :int
     (php/is_float x)                              :float
     (php/is_string x)                             :string
@@ -1690,3 +1693,31 @@ returns 1. If `xs` has one value, returns the reciprocal of x."
           ,@body
           (finally
             ,@(map bind-value resets))))))
+
+(defn var
+  "Creates a new variable with the give value"
+  [value]
+  (php/-> (php/:: TypeFactory (getInstance)) (variable value)))
+
+(defn var?
+  "Checks if the given value is a variable"
+  [x]
+  (php/instanceof x Variable))
+
+(defn set!
+  "Sets a new value to the given variable"
+  [variable value]
+  (php/-> variable (set value)))
+
+(defn deref
+  "Return the value inside the variable"
+  [variable]
+  (php/-> variable (deref)))
+
+(defn swap!
+  "Swaps the value of the variable to (apply f current-value args). Returns the values that is swapped in."
+  [variable f & args]
+  (let [current (deref variable)
+        next (apply f current args)]
+    (set! variable next)
+    next))

@@ -4,6 +4,7 @@ All notable changes to this project will be documented in this file.
 
 ## Unreleased
 
+* Support for variables.
 * Support for namespaced keywords.
 
 ## 0.4.0 (2021-10-05)
