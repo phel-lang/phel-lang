@@ -8,11 +8,11 @@
 # Report
 # ------
 
-(def- stats @{:failed []
-              :counts {:failed 0
-                       :error 0
-                       :pass 0
-                       :total 0}})
+(def- stats (var {:failed []
+                  :counts {:failed 0
+                           :error 0
+                           :pass 0
+                           :total 0}}))
 
 (defn- print-report-state [state]
   (print (case state
@@ -21,18 +21,18 @@
            :error "E")))
 
 (defn- should-report-println? [total-columns]
-  (= (% (get-in stats [:counts :total]) total-columns) 0))
+  (= (% (get-in (deref stats) [:counts :total]) total-columns) 0))
 
 (defn report [data]
   (let [{:state state :type type} data
         ok (= state :pass)
         total-columns 80]
     (print-report-state state)
-    (update-in stats [:counts :total] inc)
-    (update-in stats [:counts state] inc)
+    (swap! stats update-in [:counts :total] inc)
+    (swap! stats update-in [:counts state] inc)
     (when (should-report-println? total-columns) (println))
     (when-not ok
-      (update-in stats [:failed] push data))))
+      (swap! stats update-in [:failed] push data))))
 
 
 # ---------------------------
@@ -280,14 +280,14 @@
   []
   (println)
   (println)
-  (for [data :in (get stats :failed)]
+  (for [data :in (get (deref stats) :failed)]
     (println "~~~~~~~~~~")
     (print-failure-or-error data))
 
   (println)
   (println)
 
-  (let [{:failed failed :error error :pass pass} (get stats :counts)
+  (let [{:failed failed :error error :pass pass} (get (deref stats) :counts)
         total (+ failed error pass)]
     (println "Passed:" pass)
     (println "Failed:" failed)
@@ -322,5 +322,5 @@
 (defn successful?
   "Checks if all tests have passed."
   []
-  (let [{:failed failed :error error} (get stats :counts)]
+  (let [{:failed failed :error error} (get (deref stats) :counts)]
     (zero? (+ failed error))))
