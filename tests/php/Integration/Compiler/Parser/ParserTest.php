@@ -68,7 +68,7 @@ final class ParserTest extends TestCase
     public function test_read_keyword(): void
     {
         self::assertEquals(
-            new KeywordNode(':test', $this->loc(1, 0), $this->loc(1, 5), new Keyword('test')),
+            new KeywordNode(':test', $this->loc(1, 0), $this->loc(1, 5), Keyword::create('test')),
             $this->parse(':test')
         );
     }
@@ -321,7 +321,7 @@ final class ParserTest extends TestCase
     {
         self::assertEquals(
             new ListNode(Token::T_OPEN_BRACE, $this->loc(1, 0), $this->loc(1, 6), [
-                new KeywordNode(':a', $this->loc(1, 1), $this->loc(1, 3), new Keyword('a')),
+                new KeywordNode(':a', $this->loc(1, 1), $this->loc(1, 3), Keyword::create('a')),
                 new WhitespaceNode(' ', $this->loc(1, 3), $this->loc(1, 4)),
                 new NumberNode('1', $this->loc(1, 4), $this->loc(1, 5), 1),
             ]),
@@ -333,11 +333,11 @@ final class ParserTest extends TestCase
     {
         self::assertEquals(
             new ListNode(Token::T_OPEN_BRACE, $this->loc(1, 0), $this->loc(1, 11), [
-                new KeywordNode(':a', $this->loc(1, 1), $this->loc(1, 3), new Keyword('a')),
+                new KeywordNode(':a', $this->loc(1, 1), $this->loc(1, 3), Keyword::create('a')),
                 new WhitespaceNode(' ', $this->loc(1, 3), $this->loc(1, 4)),
                 new NumberNode('1', $this->loc(1, 4), $this->loc(1, 5), 1),
                 new WhitespaceNode(' ', $this->loc(1, 5), $this->loc(1, 6)),
-                new KeywordNode(':b', $this->loc(1, 6), $this->loc(1, 8), new Keyword('b')),
+                new KeywordNode(':b', $this->loc(1, 6), $this->loc(1, 8), Keyword::create('b')),
                 new WhitespaceNode(' ', $this->loc(1, 8), $this->loc(1, 9)),
                 new NumberNode('2', $this->loc(1, 9), $this->loc(1, 10), 2),
             ]),
@@ -357,7 +357,7 @@ final class ParserTest extends TestCase
     {
         self::assertEquals(
             new ListNode(Token::T_TABLE, $this->loc(1, 0), $this->loc(1, 7), [
-                new KeywordNode(':a', $this->loc(1, 2), $this->loc(1, 4), new Keyword('a')),
+                new KeywordNode(':a', $this->loc(1, 2), $this->loc(1, 4), Keyword::create('a')),
                 new WhitespaceNode(' ', $this->loc(1, 4), $this->loc(1, 5)),
                 new NumberNode('1', $this->loc(1, 5), $this->loc(1, 6), 1),
             ]),
@@ -369,11 +369,11 @@ final class ParserTest extends TestCase
     {
         self::assertEquals(
             new ListNode(Token::T_TABLE, $this->loc(1, 0), $this->loc(1, 12), [
-                new KeywordNode(':a', $this->loc(1, 2), $this->loc(1, 4), new Keyword('a')),
+                new KeywordNode(':a', $this->loc(1, 2), $this->loc(1, 4), Keyword::create('a')),
                 new WhitespaceNode(' ', $this->loc(1, 4), $this->loc(1, 5)),
                 new NumberNode('1', $this->loc(1, 5), $this->loc(1, 6), 1),
                 new WhitespaceNode(' ', $this->loc(1, 6), $this->loc(1, 7)),
-                new KeywordNode(':b', $this->loc(1, 7), $this->loc(1, 9), new Keyword('b')),
+                new KeywordNode(':b', $this->loc(1, 7), $this->loc(1, 9), Keyword::create('b')),
                 new WhitespaceNode(' ', $this->loc(1, 9), $this->loc(1, 10)),
                 new NumberNode('2', $this->loc(1, 10), $this->loc(1, 11), 2),
             ]),
@@ -385,7 +385,7 @@ final class ParserTest extends TestCase
     {
         self::assertEquals(
             new MetaNode(
-                new KeywordNode(':test', $this->loc(1, 1), $this->loc(1, 6), new Keyword('test')),
+                new KeywordNode(':test', $this->loc(1, 1), $this->loc(1, 6), Keyword::create('test')),
                 $this->loc(1, 0),
                 $this->loc(1, 11),
                 [
@@ -434,11 +434,11 @@ final class ParserTest extends TestCase
         self::assertEquals(
             new MetaNode(
                 new ListNode(Token::T_TABLE, $this->loc(1, 1), $this->loc(1, 13), [
-                    new KeywordNode(':a', $this->loc(1, 3), $this->loc(1, 5), new Keyword('a')),
+                    new KeywordNode(':a', $this->loc(1, 3), $this->loc(1, 5), Keyword::create('a')),
                     new WhitespaceNode(' ', $this->loc(1, 5), $this->loc(1, 6)),
                     new NumberNode('1', $this->loc(1, 6), $this->loc(1, 7), 1),
                     new WhitespaceNode(' ', $this->loc(1, 7), $this->loc(1, 8)),
-                    new KeywordNode(':b', $this->loc(1, 8), $this->loc(1, 10), new Keyword('b')),
+                    new KeywordNode(':b', $this->loc(1, 8), $this->loc(1, 10), Keyword::create('b')),
                     new WhitespaceNode(' ', $this->loc(1, 10), $this->loc(1, 11)),
                     new NumberNode('2', $this->loc(1, 11), $this->loc(1, 12), 2),
                 ]),
@@ -457,13 +457,13 @@ final class ParserTest extends TestCase
     {
         self::assertEquals(
             new MetaNode(
-                new KeywordNode(':a', $this->loc(1, 1), $this->loc(1, 3), new Keyword('a')),
+                new KeywordNode(':a', $this->loc(1, 1), $this->loc(1, 3), Keyword::create('a')),
                 $this->loc(1, 0),
                 $this->loc(1, 12),
                 [
                     new WhitespaceNode(' ', $this->loc(1, 3), $this->loc(1, 4)),
                     new MetaNode(
-                        new KeywordNode(':b', $this->loc(1, 5), $this->loc(1, 7), new Keyword('b')),
+                        new KeywordNode(':b', $this->loc(1, 5), $this->loc(1, 7), Keyword::create('b')),
                         $this->loc(1, 4),
                         $this->loc(1, 12),
                         [

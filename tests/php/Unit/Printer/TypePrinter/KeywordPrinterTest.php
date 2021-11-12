@@ -26,12 +26,12 @@ final class KeywordPrinterTest extends TestCase
     {
         yield 'string name' => [
             'expected' => ':name',
-            'keyboard' => new Keyword('name'),
+            'keyboard' => Keyword::create('name'),
         ];
 
         yield 'special chars string' => [
             'expected' => ':\\?#__\|\/',
-            'keyboard' => new Keyword('\\?#__\|\/'),
+            'keyboard' => Keyword::create('\\?#__\|\/'),
         ];
     }
 }

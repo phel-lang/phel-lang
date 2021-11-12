@@ -20,7 +20,7 @@ final class MetaNodeTest extends TestCase
         self::assertEquals(
             '^:test test',
             (new MetaNode(
-                new KeywordNode(':test', $this->loc(1, 1), $this->loc(1, 6), new Keyword('test')),
+                new KeywordNode(':test', $this->loc(1, 1), $this->loc(1, 6), Keyword::create('test')),
                 $this->loc(1, 0),
                 $this->loc(1, 11),
                 [
@@ -36,7 +36,7 @@ final class MetaNodeTest extends TestCase
         self::assertEquals(
             $this->loc(1, 0),
             (new MetaNode(
-                new KeywordNode(':test', $this->loc(1, 1), $this->loc(1, 6), new Keyword('test')),
+                new KeywordNode(':test', $this->loc(1, 1), $this->loc(1, 6), Keyword::create('test')),
                 $this->loc(1, 0),
                 $this->loc(1, 11),
                 [
@@ -52,7 +52,7 @@ final class MetaNodeTest extends TestCase
         self::assertEquals(
             $this->loc(1, 11),
             (new MetaNode(
-                new KeywordNode(':test', $this->loc(1, 1), $this->loc(1, 6), new Keyword('test')),
+                new KeywordNode(':test', $this->loc(1, 1), $this->loc(1, 6), Keyword::create('test')),
                 $this->loc(1, 0),
                 $this->loc(1, 11),
                 [
@@ -67,12 +67,12 @@ final class MetaNodeTest extends TestCase
     {
         self::assertEquals(
             [
-                new KeywordNode(':test', $this->loc(1, 1), $this->loc(1, 6), new Keyword('test')),
+                new KeywordNode(':test', $this->loc(1, 1), $this->loc(1, 6), Keyword::create('test')),
                 new WhitespaceNode(' ', $this->loc(1, 6), $this->loc(1, 7)),
                 new SymbolNode('test', $this->loc(1, 7), $this->loc(1, 11), Symbol::create('test')),
             ],
             (new MetaNode(
-                new KeywordNode(':test', $this->loc(1, 1), $this->loc(1, 6), new Keyword('test')),
+                new KeywordNode(':test', $this->loc(1, 1), $this->loc(1, 6), Keyword::create('test')),
                 $this->loc(1, 0),
                 $this->loc(1, 11),
                 [

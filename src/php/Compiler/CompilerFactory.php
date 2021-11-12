@@ -81,7 +81,8 @@ final class CompilerFactory extends AbstractFactory
     public function createParser(): ParserInterface
     {
         return new Parser(
-            new ExpressionParserFactory()
+            new ExpressionParserFactory(),
+            $this->getGlobalEnvironment()
         );
     }
 

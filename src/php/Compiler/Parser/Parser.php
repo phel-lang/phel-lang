@@ -4,8 +4,10 @@ declare(strict_types=1);
 
 namespace Phel\Compiler\Parser;
 
+use Phel\Compiler\Analyzer\Environment\GlobalEnvironmentInterface;
 use Phel\Compiler\Lexer\Token;
 use Phel\Compiler\Lexer\TokenStream;
+use Phel\Compiler\Parser\Exceptions\KeywordParserException;
 use Phel\Compiler\Parser\Exceptions\StringParserException;
 use Phel\Compiler\Parser\Exceptions\UnexpectedParserException;
 use Phel\Compiler\Parser\Exceptions\UnfinishedParserException;
@@ -23,10 +25,14 @@ use Phel\Compiler\Parser\ParserNode\WhitespaceNode;
 final class Parser implements ParserInterface
 {
     private ExpressionParserFactoryInterface $parserFactory;
+    private GlobalEnvironmentInterface $globalEnvironment;
 
-    public function __construct(ExpressionParserFactoryInterface $parserFactory)
-    {
+    public function __construct(
+        ExpressionParserFactoryInterface $parserFactory,
+        GlobalEnvironmentInterface $globalEnvironment
+    ) {
         $this->parserFactory = $parserFactory;
+        $this->globalEnvironment = $globalEnvironment;
     }
 
     /**
@@ -94,7 +100,7 @@ final class Parser implements ParserInterface
 
                 case Token::T_ATOM:
                     $tokenStream->next();
-                    return $this->parseAtomNode($token);
+                    return $this->parseAtomNode($token, $tokenStream);
 
                 case Token::T_STRING:
                     $tokenStream->next();
@@ -146,11 +152,15 @@ final class Parser implements ParserInterface
         );
     }
 
-    private function parseAtomNode(Token $token): AbstractAtomNode
+    private function parseAtomNode(Token $token, TokenStream $tokenStream): AbstractAtomNode
     {
-        return $this->parserFactory
-            ->createAtomParser()
-            ->parse($token);
+        try {
+            return $this->parserFactory
+                ->createAtomParser($this->globalEnvironment)
+                ->parse($token);
+        } catch (KeywordParserException $e) {
+            throw $this->createUnexceptedParserException($tokenStream, $token, $e->getMessage());
+        }
     }
 
     /**

@@ -3,14 +3,14 @@
 --PHP--
 $GLOBALS["__phel"]["user"]["x"] = 1;
 $GLOBALS["__phel_meta"]["user"]["x"] = \Phel\Lang\TypeFactory::getInstance()->persistentMapFromKVs(
-  new \Phel\Lang\Keyword("start-location"), \Phel\Lang\TypeFactory::getInstance()->persistentMapFromKVs(
-    new \Phel\Lang\Keyword("file"), "Def/basic-def.test",
-    new \Phel\Lang\Keyword("line"), 1,
-    new \Phel\Lang\Keyword("column"), 0
+  \Phel\Lang\Keyword::create("start-location"), \Phel\Lang\TypeFactory::getInstance()->persistentMapFromKVs(
+    \Phel\Lang\Keyword::create("file"), "Def/basic-def.test",
+    \Phel\Lang\Keyword::create("line"), 1,
+    \Phel\Lang\Keyword::create("column"), 0
   ),
-  new \Phel\Lang\Keyword("end-location"), \Phel\Lang\TypeFactory::getInstance()->persistentMapFromKVs(
-    new \Phel\Lang\Keyword("file"), "Def/basic-def.test",
-    new \Phel\Lang\Keyword("line"), 1,
-    new \Phel\Lang\Keyword("column"), 9
+  \Phel\Lang\Keyword::create("end-location"), \Phel\Lang\TypeFactory::getInstance()->persistentMapFromKVs(
+    \Phel\Lang\Keyword::create("file"), "Def/basic-def.test",
+    \Phel\Lang\Keyword::create("line"), 1,
+    \Phel\Lang\Keyword::create("column"), 9
   )
 );

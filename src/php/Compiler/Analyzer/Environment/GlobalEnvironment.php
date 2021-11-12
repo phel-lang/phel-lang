@@ -195,6 +195,15 @@ final class GlobalEnvironment implements GlobalEnvironmentInterface
         return null;
     }
 
+    public function resolveAlias(string $alias): ?string
+    {
+        if (isset($this->requireAliases[$this->ns][$alias])) {
+            return $this->requireAliases[$this->ns][$alias]->getName();
+        }
+
+        return null;
+    }
+
     private function resolveWithAlias(Symbol $name, NodeEnvironmentInterface $env): ?GlobalVarNode
     {
         $alias = $name->getNamespace();
@@ -204,10 +213,7 @@ final class GlobalEnvironment implements GlobalEnvironmentInterface
             throw new RuntimeException('resolveWithAlias called with a Symbol without namespace');
         }
 
-        $namespace = $alias;
-        if (isset($this->requireAliases[$this->ns][$alias])) {
-            $namespace = $this->requireAliases[$this->ns][$alias]->getName();
-        }
+        $namespace = $this->resolveAlias($alias) ?? $alias;
 
         $def = $this->getDefinition($namespace, $finalName);
         if ($def && ($this->allowPrivateAccess || !$this->isDefinitionPrivate($def))) {
@@ -242,7 +248,7 @@ final class GlobalEnvironment implements GlobalEnvironmentInterface
 
     private function isDefinitionPrivate(PersistentMapInterface $meta): bool
     {
-        return $meta[new Keyword('private')] === true;
+        return $meta[Keyword::create('private')] === true;
     }
 
     public function setAllowPrivateAccess(bool $allowPrivateAccess): void
@@ -257,7 +263,7 @@ final class GlobalEnvironment implements GlobalEnvironmentInterface
     {
         $GLOBALS['__phel'][$namespace][$symbol->getName()] = $value;
         $this->addDefinition($namespace, $symbol, TypeFactory::getInstance()->persistentMapFromKVs(
-            new Keyword('doc'),
+            Keyword::create('doc'),
             'Set to true when a file is compiled, false otherwise',
         ));
     }

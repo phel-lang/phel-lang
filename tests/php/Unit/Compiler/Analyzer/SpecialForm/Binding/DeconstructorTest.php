@@ -118,7 +118,7 @@ final class DeconstructorTest extends TestCase
         //       a __phel_2])
         $bindings = $this->deconstructor->deconstruct(
             TypeFactory::getInstance()->persistentVectorFromArray([
-                Table::fromKVs(new Keyword('key'), Symbol::create('a')),
+                Table::fromKVs(Keyword::create('key'), Symbol::create('a')),
                 Symbol::create('x'),
             ])
         );
@@ -133,7 +133,7 @@ final class DeconstructorTest extends TestCase
                 TypeFactory::getInstance()->persistentListFromArray([
                     Symbol::create(Symbol::NAME_PHP_ARRAY_GET),
                     Symbol::create('__phel_1'),
-                    new Keyword('key'),
+                    Keyword::create('key'),
                 ]),
             ],
             [

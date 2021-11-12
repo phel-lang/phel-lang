@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Phel\Compiler\Parser;
 
+use Phel\Compiler\Analyzer\Environment\GlobalEnvironmentInterface;
 use Phel\Compiler\Parser\ExpressionParser\AtomParser;
 use Phel\Compiler\Parser\ExpressionParser\ListParser;
 use Phel\Compiler\Parser\ExpressionParser\MetaParser;
@@ -12,9 +13,9 @@ use Phel\Compiler\Parser\ExpressionParser\StringParser;
 
 final class ExpressionParserFactory implements ExpressionParserFactoryInterface
 {
-    public function createAtomParser(): AtomParser
+    public function createAtomParser(GlobalEnvironmentInterface $globalEnvironment): AtomParser
     {
-        return new AtomParser();
+        return new AtomParser($globalEnvironment);
     }
 
     public function createStringParser(): StringParser

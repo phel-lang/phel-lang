@@ -86,7 +86,7 @@ final class DefStructEmitter implements NodeEmitterInterface
         $this->outputEmitter->emitLine('parent::__construct();');
 
         foreach ($node->getParams() as $i => $param) {
-            $keyword = new Keyword($param->getName());
+            $keyword = Keyword::create($param->getName());
             $keyword->setStartLocation($node->getStartSourceLocation());
 
             $propertyName = $this->outputEmitter->mungeEncode($param->getName());

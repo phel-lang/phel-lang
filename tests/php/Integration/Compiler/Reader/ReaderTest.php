@@ -64,7 +64,7 @@ final class ReaderTest extends TestCase
     public function test_read_keyword(): void
     {
         self::assertEquals(
-            $this->loc(new Keyword('test'), 1, 0, 1, 5),
+            $this->loc(Keyword::create('test'), 1, 0, 1, 5),
             $this->read(':test')
         );
     }
@@ -335,7 +335,7 @@ final class ReaderTest extends TestCase
         self::assertEquals(
             $this->loc(
                 TypeFactory::getInstance()->persistentMapFromKVs(
-                    $this->loc(new Keyword('a'), 1, 1, 1, 3),
+                    $this->loc(Keyword::create('a'), 1, 1, 1, 3),
                     1
                 ),
                 1,
@@ -351,9 +351,9 @@ final class ReaderTest extends TestCase
     {
         self::assertEquals(
             $this->loc(TypeFactory::getInstance()->persistentMapFromKVs(
-                $this->loc(new Keyword('a'), 1, 1, 1, 3),
+                $this->loc(Keyword::create('a'), 1, 1, 1, 3),
                 1,
-                $this->loc(new Keyword('b'), 1, 6, 1, 8),
+                $this->loc(Keyword::create('b'), 1, 6, 1, 8),
                 2
             ), 1, 0, 1, 11),
             $this->read('{:a 1 :b 2}')
@@ -377,7 +377,7 @@ final class ReaderTest extends TestCase
     public function test_read_table1(): void
     {
         self::assertEquals(
-            $this->loc(Table::fromKVs($this->loc(new Keyword('a'), 1, 2, 1, 4), 1), 1, 0, 1, 7),
+            $this->loc(Table::fromKVs($this->loc(Keyword::create('a'), 1, 2, 1, 4), 1), 1, 0, 1, 7),
             $this->read('@{:a 1}')
         );
     }
@@ -386,9 +386,9 @@ final class ReaderTest extends TestCase
     {
         self::assertEquals(
             $this->loc(Table::fromKVs(
-                $this->loc(new Keyword('a'), 1, 2, 1, 4),
+                $this->loc(Keyword::create('a'), 1, 2, 1, 4),
                 1,
-                $this->loc(new Keyword('b'), 1, 7, 1, 9),
+                $this->loc(Keyword::create('b'), 1, 7, 1, 9),
                 2
             ), 1, 0, 1, 12),
             $this->read('@{:a 1 :b 2}')
@@ -408,7 +408,7 @@ final class ReaderTest extends TestCase
                 $this->withMeta(
                     Symbol::create('test'),
                     TypeFactory::getInstance()->persistentMapFromKVs(
-                        $this->loc(new Keyword('test'), 1, 1, 1, 6),
+                        $this->loc(Keyword::create('test'), 1, 1, 1, 6),
                         true
                     )
                 ),
@@ -428,7 +428,7 @@ final class ReaderTest extends TestCase
                 $this->withMeta(
                     Symbol::create('test'),
                     TypeFactory::getInstance()->persistentMapFromKVs(
-                        new Keyword('tag'),
+                        Keyword::create('tag'),
                         'test'
                     )
                 ),
@@ -448,7 +448,7 @@ final class ReaderTest extends TestCase
                 $this->withMeta(
                     Symbol::create('test'),
                     TypeFactory::getInstance()->persistentMapFromKVs(
-                        new Keyword('tag'),
+                        Keyword::create('tag'),
                         $this->loc(Symbol::create('String'), 1, 1, 1, 7)
                     )
                 ),
@@ -468,9 +468,9 @@ final class ReaderTest extends TestCase
                 $this->withMeta(
                     Symbol::create('test'),
                     TypeFactory::getInstance()->persistentMapFromKVs(
-                        $this->loc(new Keyword('a'), 1, 2, 1, 4),
+                        $this->loc(Keyword::create('a'), 1, 2, 1, 4),
                         1,
-                        $this->loc(new Keyword('b'), 1, 7, 1, 9),
+                        $this->loc(Keyword::create('b'), 1, 7, 1, 9),
                         2
                     )
                 ),
@@ -490,9 +490,9 @@ final class ReaderTest extends TestCase
                 $this->withMeta(
                     Symbol::create('test'),
                     TypeFactory::getInstance()->persistentMapFromKVs(
-                        $this->loc(new Keyword('b'), 1, 5, 1, 7),
+                        $this->loc(Keyword::create('b'), 1, 5, 1, 7),
                         true,
-                        $this->loc(new Keyword('a'), 1, 1, 1, 3),
+                        $this->loc(Keyword::create('a'), 1, 1, 1, 3),
                         true
                     )
                 ),
