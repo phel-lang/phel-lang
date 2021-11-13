@@ -79,6 +79,8 @@ final class NodeEmitterFactory
                 return new NodeEmitter\MapEmitter($outputEmitter);
             case Ast\SetVarNode::class:
                 return new NodeEmitter\SetVarEmitter($outputEmitter);
+            case Ast\DefInterfaceNode::class:
+                return new NodeEmitter\DefInterfaceEmitter($outputEmitter);
             default:
                 throw NotSupportedAstException::withClassName($astNodeClassName);
         }

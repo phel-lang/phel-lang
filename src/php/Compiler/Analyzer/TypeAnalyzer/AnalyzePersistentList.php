@@ -10,6 +10,7 @@ use Phel\Compiler\Analyzer\Exceptions\AnalyzerException;
 use Phel\Compiler\Analyzer\TypeAnalyzer\SpecialForm\ApplySymbol;
 use Phel\Compiler\Analyzer\TypeAnalyzer\SpecialForm\Binding\BindingValidator;
 use Phel\Compiler\Analyzer\TypeAnalyzer\SpecialForm\Binding\Deconstructor;
+use Phel\Compiler\Analyzer\TypeAnalyzer\SpecialForm\DefInterfaceSymbol;
 use Phel\Compiler\Analyzer\TypeAnalyzer\SpecialForm\DefStructSymbol;
 use Phel\Compiler\Analyzer\TypeAnalyzer\SpecialForm\DefSymbol;
 use Phel\Compiler\Analyzer\TypeAnalyzer\SpecialForm\DoSymbol;
@@ -111,6 +112,8 @@ final class AnalyzePersistentList
                 return new PhpOSetSymbol($this->analyzer);
             case Symbol::NAME_SET_VAR:
                 return new SetVarSymbol($this->analyzer);
+            case Symbol::NAME_DEF_INTERFACE:
+                return new DefInterfaceSymbol($this->analyzer);
             default:
                 return new InvokeSymbol($this->analyzer);
         }
