@@ -11,6 +11,7 @@ use Iterator;
 use Phel\Printer\Printer;
 
 /**
+ * @deprecated in favor of PersistentList|PersistentVector
  * @template T
  * @template-implements ArrayAccess<int, T>
  * @template-implements Iterator<int, T>

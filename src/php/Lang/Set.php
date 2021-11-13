@@ -9,6 +9,7 @@ use Iterator;
 use Phel\Printer\Printer;
 
 /**
+ * @deprecated in favor of PersistentHashSet
  * @template T
  * @template-implements SeqInterface<T, PhelArray>
  */
