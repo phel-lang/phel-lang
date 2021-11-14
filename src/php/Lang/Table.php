@@ -12,6 +12,7 @@ use Phel\Printer\Printer;
 use RuntimeException;
 
 /**
+ * @deprecated in favor of PersistentHashMap
  * @template-implements SeqInterface<\Phel\Lang\Collections\Vector\PersistentVectorInterface, PhelArray>
  */
 class Table extends AbstractType implements ArrayAccess, Countable, Iterator, SeqInterface
