@@ -27,7 +27,7 @@ final class DefStructSymbolTest extends TestCase
     public function test_with_wrong_number_of_arguments(): void
     {
         $this->expectException(AbstractLocatedException::class);
-        $this->expectExceptionMessage("Exactly two arguments are required for 'defstruct. Got 1");
+        $this->expectExceptionMessage("At least two arguments are required for 'defstruct. Got 1");
 
         $list = TypeFactory::getInstance()->persistentListFromArray([
             Symbol::create(Symbol::NAME_DEF_STRUCT),
@@ -101,7 +101,8 @@ final class DefStructSymbolTest extends TestCase
                 [
                     Symbol::create('method'),
                     Symbol::create('uri'),
-                ]
+                ],
+                []
             ),
             $defStructNode
         );

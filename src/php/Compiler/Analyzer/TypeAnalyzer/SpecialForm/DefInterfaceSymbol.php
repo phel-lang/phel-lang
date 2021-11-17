@@ -23,7 +23,7 @@ final class DefInterfaceSymbol implements SpecialFormAnalyzerInterface
         if (!($interfaceSymbol instanceof Symbol)) {
             throw AnalyzerException::withLocation("First argument of 'definterace must be a Symbol.", $list);
         }
-        $this->analyzer->addUseAlias($this->analyzer->getNamespace(), $interfaceSymbol, $interfaceSymbol);
+        $this->analyzer->addInterface($this->analyzer->getNamespace(), $interfaceSymbol);
 
         $result = new DefInterfaceNode(
             $env,

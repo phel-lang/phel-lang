@@ -73,6 +73,11 @@ final class Analyzer implements AnalyzerInterface
         $this->globalEnvironment->addDefinition($ns, $symbol, $meta);
     }
 
+    public function addInterface(string $ns, Symbol $name): void
+    {
+        $this->globalEnvironment->addInterface($ns, $name);
+    }
+
     /**
      * @param TypeInterface|string|float|int|bool|null $x
      *

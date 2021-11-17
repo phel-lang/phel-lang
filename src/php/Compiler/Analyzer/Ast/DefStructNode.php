@@ -18,20 +18,26 @@ final class DefStructNode extends AbstractNode
     /** @var Symbol[] */
     private array $params;
 
+    /** @var list<DefStructInterface> */
+    private array $interfaces;
+
     /**
      * @param Symbol[] $params
+     * @param list<DefStructInterface> $interfaces
      */
     public function __construct(
         NodeEnvironmentInterface $env,
         string $namespace,
         Symbol $name,
         array $params,
+        array $interfaces,
         ?SourceLocation $sourceLocation = null
     ) {
         parent::__construct($env, $sourceLocation);
         $this->namespace = $namespace;
         $this->name = $name;
         $this->params = $params;
+        $this->interfaces = $interfaces;
     }
 
     public function getNamespace(): string
@@ -59,5 +65,13 @@ final class DefStructNode extends AbstractNode
         }
 
         return $result;
+    }
+
+    /**
+     * @return list<DefStructInterface>
+     */
+    public function getInterfaces(): array
+    {
+        return $this->interfaces;
     }
 }

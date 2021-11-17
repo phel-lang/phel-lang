@@ -1,0 +1,20 @@
+--PHEL--
+(definterface* MyInterfaceWithoutMethods)
+
+(defstruct* my-type-with-one-interface-without-methods [v]
+  MyInterfaceWithoutMethods)
+--PHP--
+interface MyInterfaceWithoutMethods {
+}
+class my_type_with_one_interface_without_methods extends \Phel\Lang\Collections\Struct\AbstractPersistentStruct implements \user\MyInterfaceWithoutMethods {
+
+  protected const ALLOWED_KEYS = ['v'];
+
+  protected $v;
+
+  public function __construct($v, $meta = null) {
+    parent::__construct();
+    $this->v = $v;
+    $this->meta = $meta;
+  }
+}

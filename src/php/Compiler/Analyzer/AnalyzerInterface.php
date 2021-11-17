@@ -41,4 +41,6 @@ interface AnalyzerInterface
     public function addRefers(string $ns, array $referSymbols, Symbol $nsSymbol): void;
 
     public function addDefinition(string $ns, Symbol $symbol, PersistentMapInterface $meta): void;
+
+    public function addInterface(string $ns, Symbol $name): void;
 }
