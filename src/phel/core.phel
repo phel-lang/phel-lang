@@ -1743,7 +1743,7 @@ returns 1. If `xs` has one value, returns the reciprocal of x."
                `(defn ,fn-name {:doc ,doc} ,args
                   (if (php/is_a ,(first args) ,class-name-str)
                     (php/-> ,(first args) (,munged-fn-symbol ,@(rest args)))
-                    (php/throw (php/new \InvalidArgumentException ,(str "Value doesn't implement interface " name)))
+                    (throw (php/new \InvalidArgumentException ,(str "Value doesn't implement interface " name)))
                     )))]
   `(do
      (definterface* ,name ,@fns)

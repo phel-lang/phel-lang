@@ -24,7 +24,7 @@ $GLOBALS["__phel"]["user"]["choose"] = new class() extends \Phel\Lang\AbstractFn
         return $target_1->choose();
       })();
     } else {
-      return throw((new \InvalidArgumentException("Value doesn't implement interface IPlayer")));
+      throw (new \InvalidArgumentException("Value doesn't implement interface IPlayer"));
     }
 
   }
@@ -53,7 +53,7 @@ $GLOBALS["__phel"]["user"]["update-strategy"] = new class() extends \Phel\Lang\A
         return $target_2->update_strategy($me, $you);
       })();
     } else {
-      return throw((new \InvalidArgumentException("Value doesn't implement interface IPlayer")));
+      throw (new \InvalidArgumentException("Value doesn't implement interface IPlayer"));
     }
 
   }
