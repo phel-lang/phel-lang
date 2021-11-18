@@ -38,7 +38,6 @@ final class DefStructEmitter implements NodeEmitterInterface
         foreach ($node->getInterfaces() as $interface) {
             $this->emitInterfaceImplementation($interface);
         }
-        //$this->emitGetAllowedKeysFunction($node);
         $this->emitClassEnd($node);
     }
 
@@ -128,28 +127,6 @@ final class DefStructEmitter implements NodeEmitterInterface
         $this->outputEmitter->emitPhpVariable(Symbol::create('meta'));
         $this->outputEmitter->emitLine(';', $node->getStartSourceLocation());
 
-        $this->outputEmitter->decreaseIndentLevel();
-        $this->outputEmitter->emitLine('}', $node->getStartSourceLocation());
-    }
-
-    private function emitGetAllowedKeysFunction(DefStructNode $node): void
-    {
-        $paramCount = count($node->getParams());
-
-        $this->outputEmitter->emitStr('public function getAllowedKeys(', $node->getStartSourceLocation());
-        $this->outputEmitter->emitLine('): array {', $node->getStartSourceLocation());
-        $this->outputEmitter->increaseIndentLevel();
-        $this->outputEmitter->emitStr('return [', $node->getStartSourceLocation());
-
-        foreach ($node->getParamsAsKeywords() as $i => $keyword) {
-            $this->outputEmitter->emitLiteral($keyword);
-
-            if ($i < $paramCount - 1) {
-                $this->outputEmitter->emitStr(', ', $node->getStartSourceLocation());
-            }
-        }
-
-        $this->outputEmitter->emitLine('];', $node->getStartSourceLocation());
         $this->outputEmitter->decreaseIndentLevel();
         $this->outputEmitter->emitLine('}', $node->getStartSourceLocation());
     }

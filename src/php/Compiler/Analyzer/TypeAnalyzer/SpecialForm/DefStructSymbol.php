@@ -183,9 +183,4 @@ final class DefStructSymbol implements SpecialFormAnalyzerInterface
             $fnNode
         );
     }
-
-    private function getExpectedMethodsForInterface(): int
-    {
-        return 0;
-    }
 }

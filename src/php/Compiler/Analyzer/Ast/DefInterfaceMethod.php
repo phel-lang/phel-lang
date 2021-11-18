@@ -32,12 +32,12 @@ final class DefInterfaceMethod
 
     public function getArgumentCount(): int
     {
-        return count($this->arguments);
+        return count($this->getArguments());
     }
 
     public function getArgumentsWithoutFirst(): array
     {
-        return array_slice($this->arguments, 1);
+        return array_slice($this->getArguments(), 1);
     }
 
     public function getComment(): ?string
