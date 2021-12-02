@@ -110,7 +110,7 @@ final class PhelArrayTest extends TestCase
 
     public function test_not_equals_when_other_instance_is_being_compared(): void
     {
-        $class = new class () {
+        $class = new class() {
             public array $data = [1,2,3];
         };
 

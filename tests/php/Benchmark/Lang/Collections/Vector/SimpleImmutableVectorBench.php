@@ -13,7 +13,7 @@ final class SimpleImmutableVectorBench
 
     public function setUp(): void
     {
-        $this->vector = new class ([]) {
+        $this->vector = new class([]) {
             private array $data;
 
             public function __construct(array $data)
