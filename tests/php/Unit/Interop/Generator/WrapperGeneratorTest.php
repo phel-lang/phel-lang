@@ -20,7 +20,7 @@ final class WrapperGeneratorTest extends TestCase
         $generator = $this->createWrapperGenerator();
         $phelNs = 'custom_namespace\\file_name_example';
 
-        $functionToExport = new FunctionToExport(new class() implements FnInterface {
+        $functionToExport = new FunctionToExport(new class () implements FnInterface {
             public const BOUND_TO = 'custom_namespace\\file_name_example\\phel_function_example';
 
             public function __invoke(int $a, int ...$b)

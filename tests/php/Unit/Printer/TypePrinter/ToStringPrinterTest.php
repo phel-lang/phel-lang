@@ -11,7 +11,7 @@ final class ToStringPrinterTest extends TestCase
 {
     public function test_print(): void
     {
-        $class = new class() {
+        $class = new class () {
             public function __toString(): string
             {
                 return 'toString method';
