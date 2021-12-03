@@ -36,5 +36,7 @@ interface GlobalEnvironmentInterface
 
     public function resolveAsSymbol(Symbol $name, NodeEnvironment $env): ?Symbol;
 
+    public function addInterface(string $namespace, Symbol $name): void;
+
     public function setAllowPrivateAccess(bool $allowPrivateAccess): void;
 }

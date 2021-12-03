@@ -5,14 +5,24 @@ declare(strict_types=1);
 namespace Phel\Compiler\Emitter\OutputEmitter\NodeEmitter;
 
 use Phel\Compiler\Analyzer\Ast\AbstractNode;
+use Phel\Compiler\Analyzer\Ast\DefStructInterface;
+use Phel\Compiler\Analyzer\Ast\DefStructMethod;
 use Phel\Compiler\Analyzer\Ast\DefStructNode;
 use Phel\Compiler\Emitter\OutputEmitter\NodeEmitterInterface;
+use Phel\Compiler\Emitter\OutputEmitterInterface;
 use Phel\Lang\Keyword;
 use Phel\Lang\Symbol;
 
 final class DefStructEmitter implements NodeEmitterInterface
 {
-    use WithOutputEmitterTrait;
+    private OutputEmitterInterface $outputEmitter;
+    private MethodEmitter $methodEmitter;
+
+    public function __construct(OutputEmitterInterface $emitter, MethodEmitter $methodEmitter)
+    {
+        $this->outputEmitter = $emitter;
+        $this->methodEmitter = $methodEmitter;
+    }
 
     public function emit(AbstractNode $node): void
     {
@@ -25,7 +35,9 @@ final class DefStructEmitter implements NodeEmitterInterface
         $this->emitProperties($node);
         $this->outputEmitter->emitLine();
         $this->emitConstructor($node);
-        //$this->emitGetAllowedKeysFunction($node);
+        foreach ($node->getInterfaces() as $interface) {
+            $this->emitInterfaceImplementation($interface);
+        }
         $this->emitClassEnd($node);
     }
 
@@ -37,10 +49,25 @@ final class DefStructEmitter implements NodeEmitterInterface
                 $node->getStartSourceLocation()
             );
         }
-        $this->outputEmitter->emitLine(
-            'class ' . $this->outputEmitter->mungeEncode($node->getName()->getName()) . ' extends \Phel\Lang\Collections\Struct\AbstractPersistentStruct {',
+        $this->outputEmitter->emitStr(
+            'class ' . $this->outputEmitter->mungeEncode($node->getName()->getName()) . ' extends \Phel\Lang\Collections\Struct\AbstractPersistentStruct',
             $node->getStartSourceLocation()
         );
+
+        if (count($node->getInterfaces()) > 0) {
+            $this->outputEmitter->emitStr(' implements ');
+        }
+
+        /** @var DefStructInterface $interface */
+        foreach ($node->getInterfaces() as $i => $interface) {
+            $this->outputEmitter->emitStr($interface->getAbsoluteInterfaceName());
+            if ($i < count($node->getInterfaces()) - 1) {
+                $this->outputEmitter->emitStr(', ');
+            }
+        }
+
+        $this->outputEmitter->emitLine(' {');
+
         $this->outputEmitter->increaseIndentLevel();
     }
 
@@ -104,26 +131,13 @@ final class DefStructEmitter implements NodeEmitterInterface
         $this->outputEmitter->emitLine('}', $node->getStartSourceLocation());
     }
 
-    private function emitGetAllowedKeysFunction(DefStructNode $node): void
+    private function emitInterfaceImplementation(DefStructInterface $interface): void
     {
-        $paramCount = count($node->getParams());
-
-        $this->outputEmitter->emitStr('public function getAllowedKeys(', $node->getStartSourceLocation());
-        $this->outputEmitter->emitLine('): array {', $node->getStartSourceLocation());
-        $this->outputEmitter->increaseIndentLevel();
-        $this->outputEmitter->emitStr('return [', $node->getStartSourceLocation());
-
-        foreach ($node->getParamsAsKeywords() as $i => $keyword) {
-            $this->outputEmitter->emitLiteral($keyword);
-
-            if ($i < $paramCount - 1) {
-                $this->outputEmitter->emitStr(', ', $node->getStartSourceLocation());
-            }
+        /** @var DefStructMethod $method */
+        foreach ($interface->getMethods() as $method) {
+            $this->outputEmitter->emitLine();
+            $this->methodEmitter->emit($method->getName()->getName(), $method->getFnNode());
         }
-
-        $this->outputEmitter->emitLine('];', $node->getStartSourceLocation());
-        $this->outputEmitter->decreaseIndentLevel();
-        $this->outputEmitter->emitLine('}', $node->getStartSourceLocation());
     }
 
     private function emitClassEnd(DefStructNode $node): void

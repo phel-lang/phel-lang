@@ -6,6 +6,7 @@ namespace Phel\Compiler\Emitter\OutputEmitter;
 
 use Phel\Compiler\Analyzer\Ast;
 use Phel\Compiler\Emitter\Exceptions\NotSupportedAstException;
+use Phel\Compiler\Emitter\OutputEmitter\NodeEmitter\MethodEmitter;
 use Phel\Compiler\Emitter\OutputEmitterInterface;
 
 final class NodeEmitterFactory
@@ -24,7 +25,7 @@ final class NodeEmitterFactory
             case Ast\QuoteNode::class:
                 return new NodeEmitter\QuoteEmitter($outputEmitter);
             case Ast\FnNode::class:
-                return new NodeEmitter\FnAsClassEmitter($outputEmitter);
+                return new NodeEmitter\FnAsClassEmitter($outputEmitter, new MethodEmitter($outputEmitter));
             case Ast\DoNode::class:
                 return new NodeEmitter\DoEmitter($outputEmitter);
             case Ast\LetNode::class:
@@ -72,13 +73,15 @@ final class NodeEmitterFactory
             case Ast\TableNode::class:
                 return new NodeEmitter\TableEmitter($outputEmitter);
             case Ast\DefStructNode::class:
-                return new NodeEmitter\DefStructEmitter($outputEmitter);
+                return new NodeEmitter\DefStructEmitter($outputEmitter, new MethodEmitter($outputEmitter));
             case Ast\PhpObjectSetNode::class:
                 return new NodeEmitter\PhpObjectSetEmitter($outputEmitter);
             case Ast\MapNode::class:
                 return new NodeEmitter\MapEmitter($outputEmitter);
             case Ast\SetVarNode::class:
                 return new NodeEmitter\SetVarEmitter($outputEmitter);
+            case Ast\DefInterfaceNode::class:
+                return new NodeEmitter\DefInterfaceEmitter($outputEmitter);
             default:
                 throw NotSupportedAstException::withClassName($astNodeClassName);
         }

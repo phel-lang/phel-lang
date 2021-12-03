@@ -1,0 +1,55 @@
+--PHEL--
+(definterface* MyFirstInterface
+  (foo [this])
+  (bar [this a b]))
+
+(definterface* MySecondInterface
+  (foobar [this]))
+
+(defstruct* my-type-with-two-interfaces [v]
+  MyFirstInterface
+  (foo [this] v)
+  (bar [this a b] (+ a b v))
+  MySecondInterface
+  (foobar [this] (php/-> this (foo))))
+--PHP--
+interface MyFirstInterface {
+  public function foo();
+  public function bar($a, $b);
+}
+interface MySecondInterface {
+  public function foobar();
+}
+class my_type_with_two_interfaces extends \Phel\Lang\Collections\Struct\AbstractPersistentStruct implements \user\MyFirstInterface, \user\MySecondInterface {
+
+  protected const ALLOWED_KEYS = ['v'];
+
+  protected $v;
+
+  public function __construct($v, $meta = null) {
+    parent::__construct();
+    $this->v = $v;
+    $this->meta = $meta;
+  }
+
+  public function foo() {
+    $v = $this->v;
+    $this_1 = $this;
+    return $v;
+  }
+
+  public function bar($a, $b) {
+    $v = $this->v;
+    $this_2 = $this;
+    return ($GLOBALS["__phel"]["phel\\core"]["+"])($a, $b, $v);
+  }
+
+  public function foobar() {
+    $v = $this->v;
+    $this_3 = $this;
+    return (function() use($v,$this_3) {
+      $target_4 = $this_3;
+      return $target_4->foo();
+    })();
+  }
+}

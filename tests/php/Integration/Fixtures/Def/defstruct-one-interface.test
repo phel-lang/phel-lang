@@ -1,0 +1,38 @@
+--PHEL--
+(definterface* MyInterface
+  (foo [this])
+  (bar [this a b]))
+
+(defstruct* my-type-with-one-interface [v]
+  MyInterface
+  (foo [this] v)
+  (bar [this a b] (+ a b v)))
+--PHP--
+interface MyInterface {
+  public function foo();
+  public function bar($a, $b);
+}
+class my_type_with_one_interface extends \Phel\Lang\Collections\Struct\AbstractPersistentStruct implements \user\MyInterface {
+
+  protected const ALLOWED_KEYS = ['v'];
+
+  protected $v;
+
+  public function __construct($v, $meta = null) {
+    parent::__construct();
+    $this->v = $v;
+    $this->meta = $meta;
+  }
+
+  public function foo() {
+    $v = $this->v;
+    $this_1 = $this;
+    return $v;
+  }
+
+  public function bar($a, $b) {
+    $v = $this->v;
+    $this_2 = $this;
+    return ($GLOBALS["__phel"]["phel\\core"]["+"])($a, $b, $v);
+  }
+}

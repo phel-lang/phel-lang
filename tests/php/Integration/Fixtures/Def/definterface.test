@@ -1,0 +1,73 @@
+--PHEL--
+(ns user)
+
+(definterface IPlayer
+  (choose [p] "Choose docs")
+  (update-strategy [p me you]))
+--PHP--
+namespace user;
+require_once __DIR__ . '/../phel/core.php';
+\Phel\Compiler\Analyzer\Environment\GlobalEnvironmentSingleton::getInstance()->setNs("user");
+$GLOBALS["__phel"]["phel\\core"]["*ns*"] = "user";
+interface IPlayer {
+  public function choose();
+  public function update_strategy($me, $you);
+}
+
+$GLOBALS["__phel"]["user"]["choose"] = new class() extends \Phel\Lang\AbstractFn {
+  public const BOUND_TO = "user\\choose";
+
+  public function __invoke($p) {
+    if (\Phel\Lang\Truthy::isTruthy(is_a($p, "user\\IPlayer"))) {
+      return (function() use($p) {
+        $target_1 = $p;
+        return $target_1->choose();
+      })();
+    } else {
+      throw (new \InvalidArgumentException("Value doesn't implement interface IPlayer"));
+    }
+
+  }
+};
+$GLOBALS["__phel_meta"]["user"]["choose"] = \Phel\Lang\TypeFactory::getInstance()->persistentMapFromKVs(
+  \Phel\Lang\Keyword::create("doc"), "```phel\n(choose p)\n```\nChoose docs",
+  \Phel\Lang\Keyword::create("start-location"), \Phel\Lang\TypeFactory::getInstance()->persistentMapFromKVs(
+    \Phel\Lang\Keyword::create("file"), "Def/definterface.test",
+    \Phel\Lang\Keyword::create("line"), 3,
+    \Phel\Lang\Keyword::create("column"), 0
+  ),
+  \Phel\Lang\Keyword::create("end-location"), \Phel\Lang\TypeFactory::getInstance()->persistentMapFromKVs(
+    \Phel\Lang\Keyword::create("file"), "Def/definterface.test",
+    \Phel\Lang\Keyword::create("line"), 5,
+    \Phel\Lang\Keyword::create("column"), 31
+  )
+);
+
+$GLOBALS["__phel"]["user"]["update-strategy"] = new class() extends \Phel\Lang\AbstractFn {
+  public const BOUND_TO = "user\\update_strategy";
+
+  public function __invoke($p, $me, $you) {
+    if (\Phel\Lang\Truthy::isTruthy(is_a($p, "user\\IPlayer"))) {
+      return (function() use($p,$me,$you) {
+        $target_2 = $p;
+        return $target_2->update_strategy($me, $you);
+      })();
+    } else {
+      throw (new \InvalidArgumentException("Value doesn't implement interface IPlayer"));
+    }
+
+  }
+};
+$GLOBALS["__phel_meta"]["user"]["update-strategy"] = \Phel\Lang\TypeFactory::getInstance()->persistentMapFromKVs(
+  \Phel\Lang\Keyword::create("doc"), "```phel\n(update-strategy p me you)\n```\n",
+  \Phel\Lang\Keyword::create("start-location"), \Phel\Lang\TypeFactory::getInstance()->persistentMapFromKVs(
+    \Phel\Lang\Keyword::create("file"), "Def/definterface.test",
+    \Phel\Lang\Keyword::create("line"), 3,
+    \Phel\Lang\Keyword::create("column"), 0
+  ),
+  \Phel\Lang\Keyword::create("end-location"), \Phel\Lang\TypeFactory::getInstance()->persistentMapFromKVs(
+    \Phel\Lang\Keyword::create("file"), "Def/definterface.test",
+    \Phel\Lang\Keyword::create("line"), 5,
+    \Phel\Lang\Keyword::create("column"), 31
+  )
+);

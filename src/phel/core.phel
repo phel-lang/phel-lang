@@ -1694,6 +1694,10 @@ returns 1. If `xs` has one value, returns the reciprocal of x."
           (finally
             ,@(map bind-value resets))))))
 
+# --------
+# Variable
+# --------
+
 (defn var
   "Creates a new variable with the give value"
   [value]
@@ -1721,3 +1725,26 @@ returns 1. If `xs` has one value, returns the reciprocal of x."
         next (apply f current args)]
     (set! variable next)
     next))
+
+# ----------
+# Interfaces
+# ----------
+
+(defmacro definterface
+  "Defines a interface"
+  [name & fns]
+  (let [name-str (php/-> name (getName))
+        munge (php/new Munge)
+        class-name-str (php/. *ns* "\\" (php/-> munge (encode name-str)))
+        defs (for [[fn-name args doc] :in fns
+                   :let [fn-name-str (php/-> fn-name (getName))
+                         munged-fn-name (php/-> munge (encode fn-name-str))
+                         munged-fn-symbol (php/:: Symbol (create munged-fn-name))]]
+               `(defn ,fn-name {:doc ,doc} ,args
+                  (if (php/is_a ,(first args) ,class-name-str)
+                    (php/-> ,(first args) (,munged-fn-symbol ,@(rest args)))
+                    (throw (php/new \InvalidArgumentException ,(str "Value doesn't implement interface " name)))
+                    )))]
+  `(do
+     (definterface* ,name ,@fns)
+     ,@defs)))

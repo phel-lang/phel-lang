@@ -32,6 +32,9 @@ final class GlobalEnvironment implements GlobalEnvironmentInterface
     /** @var array<string, array<string, Symbol>> */
     private array $useAliases = [];
 
+    /** @var array<string, array<string, Symbol>> */
+    private array $interfaces = [];
+
     private bool $allowPrivateAccess = false;
 
     public function __construct()
@@ -204,7 +207,7 @@ final class GlobalEnvironment implements GlobalEnvironmentInterface
         return null;
     }
 
-    private function resolveWithAlias(Symbol $name, NodeEnvironmentInterface $env): ?GlobalVarNode
+    private function resolveWithAlias(Symbol $name, NodeEnvironmentInterface $env): ?AbstractNode
     {
         $alias = $name->getNamespace();
         $finalName = Symbol::create($name->getName());
@@ -215,6 +218,10 @@ final class GlobalEnvironment implements GlobalEnvironmentInterface
 
         $namespace = $this->resolveAlias($alias) ?? $alias;
 
+        if (isset($this->interfaces[$namespace][$name->getName()])) {
+            return new PhpClassNameNode($env, Symbol::createForNamespace($namespace, $name->getName()), $name->getStartLocation());
+        }
+
         $def = $this->getDefinition($namespace, $finalName);
         if ($def && ($this->allowPrivateAccess || !$this->isDefinitionPrivate($def))) {
             return new GlobalVarNode($env, $namespace, $finalName, $def, $name->getStartLocation());
@@ -223,14 +230,19 @@ final class GlobalEnvironment implements GlobalEnvironmentInterface
         return null;
     }
 
-    private function resolveWithoutAlias(Symbol $name, NodeEnvironmentInterface $env): ?GlobalVarNode
+    private function resolveWithoutAlias(Symbol $name, NodeEnvironmentInterface $env): ?AbstractNode
     {
         $ns = $this->getNs();
         if (isset($this->refers[$this->ns][$name->getName()])) {
             $ns = $this->refers[$this->ns][$name->getName()]->getName();
         }
 
-        // Try to resolve in current namespace
+        // Try to resolve interfaces in current namespace
+        if (isset($this->interfaces[$ns][$name->getName()])) {
+            return new PhpClassNameNode($env, Symbol::createForNamespace($ns, $name->getName()), $name->getStartLocation());
+        }
+
+        // Try to resolve in definitions current namespace
         $def = $this->getDefinition($ns, $name);
         if ($def) {
             return new GlobalVarNode($env, $ns, $name, $def, $name->getStartLocation());
@@ -238,6 +250,13 @@ final class GlobalEnvironment implements GlobalEnvironmentInterface
 
         // Try to resolve in phel.core namespace
         $ns = 'phel\core';
+
+        // Try to resolve interfaces in phel.core
+        if (isset($this->interfaces[$ns][$name->getName()])) {
+            return new PhpClassNameNode($env, Symbol::createForNamespace($ns, $name->getName()), $name->getStartLocation());
+        }
+
+        // Try to resolve definitions in phel.core
         $def = $this->getDefinition($ns, $name);
         if ($def && ($this->allowPrivateAccess || !$this->isDefinitionPrivate($def))) {
             return new GlobalVarNode($env, $ns, $name, $def, $name->getStartLocation());
@@ -266,5 +285,14 @@ final class GlobalEnvironment implements GlobalEnvironmentInterface
             Keyword::create('doc'),
             'Set to true when a file is compiled, false otherwise',
         ));
+    }
+
+    public function addInterface(string $namespace, Symbol $name): void
+    {
+        if (!array_key_exists($namespace, $this->interfaces)) {
+            $this->interfaces[$namespace] = [];
+        }
+
+        $this->interfaces[$namespace][$name->getName()] = $name;
     }
 }

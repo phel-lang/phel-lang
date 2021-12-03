@@ -1,0 +1,10 @@
+--PHEL--
+(fn [this] 1)
+--PHP--
+new class() extends \Phel\Lang\AbstractFn {
+  public const BOUND_TO = "";
+
+  public function __invoke($__phel_this) {
+    return 1;
+  }
+};
