@@ -13,6 +13,7 @@ $finder = Finder::create()
 
 return (new Config())
   ->setFinder($finder)
+  ->setRiskyAllowed(true)
   ->setRules([
     '@PSR12' => true,
     'array_syntax' => ['syntax' => 'short'],

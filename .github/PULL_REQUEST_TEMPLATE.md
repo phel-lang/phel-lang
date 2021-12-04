@@ -1,7 +1,11 @@
-## 📚 Description
+### 🤔 Background
 
-Replace this text with a short description of your feature/bugfix. 
+<!-- Provide some context to the reviewer before going to any code. -->
 
-## 🔖 Changes
+### 💡 Goal
 
-- List individual changes in more detail
+<!-- The goal of this PR. -->
+
+### 🔖 Changes
+
+<!-- List individual changes in more detail as you might consider them important. -->
