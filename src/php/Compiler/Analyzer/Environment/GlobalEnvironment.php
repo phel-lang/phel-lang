@@ -210,24 +210,14 @@ final class GlobalEnvironment implements GlobalEnvironmentInterface
     private function resolveWithAlias(Symbol $name, NodeEnvironmentInterface $env): ?AbstractNode
     {
         $alias = $name->getNamespace();
-        $finalName = Symbol::create($name->getName());
-
         if ($alias === null) {
             throw new RuntimeException('resolveWithAlias called with a Symbol without namespace');
         }
 
-        $namespace = $this->resolveAlias($alias) ?? $alias;
+        $finalName = Symbol::create($name->getName());
+        $ns = $this->resolveAlias($alias) ?? $alias;
 
-        if (isset($this->interfaces[$namespace][$name->getName()])) {
-            return new PhpClassNameNode($env, Symbol::createForNamespace($namespace, $name->getName()), $name->getStartLocation());
-        }
-
-        $def = $this->getDefinition($namespace, $finalName);
-        if ($def && ($this->allowPrivateAccess || !$this->isDefinitionPrivate($def))) {
-            return new GlobalVarNode($env, $namespace, $finalName, $def, $name->getStartLocation());
-        }
-
-        return null;
+        return $this->resolveInterfaceOrDefinition($finalName, $env, $ns);
     }
 
     private function resolveWithoutAlias(Symbol $name, NodeEnvironmentInterface $env): ?AbstractNode
@@ -251,12 +241,17 @@ final class GlobalEnvironment implements GlobalEnvironmentInterface
         // Try to resolve in phel.core namespace
         $ns = 'phel\core';
 
-        // Try to resolve interfaces in phel.core
+        return $this->resolveInterfaceOrDefinition($name, $env, $ns);
+    }
+
+    private function resolveInterfaceOrDefinition(Symbol $name, NodeEnvironmentInterface $env, string $ns): ?AbstractNode
+    {
+        // Try to resolve interfaces in namespace
         if (isset($this->interfaces[$ns][$name->getName()])) {
             return new PhpClassNameNode($env, Symbol::createForNamespace($ns, $name->getName()), $name->getStartLocation());
         }
 
-        // Try to resolve definitions in phel.core
+        // Try to resolve definitions in namespace
         $def = $this->getDefinition($ns, $name);
         if ($def && ($this->allowPrivateAccess || !$this->isDefinitionPrivate($def))) {
             return new GlobalVarNode($env, $ns, $name, $def, $name->getStartLocation());
