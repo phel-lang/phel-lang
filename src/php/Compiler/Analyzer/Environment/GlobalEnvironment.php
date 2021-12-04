@@ -40,10 +40,10 @@ final class GlobalEnvironment implements GlobalEnvironmentInterface
 
     public function __construct()
     {
-        $this->addInternalDefinitionCompileMode();
+        $this->addInternalCompileModeDefinition();
     }
 
-    private function addInternalDefinitionCompileMode(): void
+    private function addInternalCompileModeDefinition(): void
     {
         $symbol = Symbol::create('*compile-mode*');
         $GLOBALS['__phel'][self::PHEL_CORE_NAMESPACE][$symbol->getName()] = false;
@@ -88,11 +88,9 @@ final class GlobalEnvironment implements GlobalEnvironmentInterface
     }
 
     /**
-     * Adds an require alias.
-     *
      * @param string $inNamespace The namespace in which the alias exist
      * @param Symbol $name The alias name
-     * @param Symbol $fullName The namespace that will be resolve
+     * @param Symbol $fullName The namespace that will be resolved
      */
     public function addRequireAlias(string $inNamespace, Symbol $name, Symbol $fullName): void
     {
@@ -100,8 +98,6 @@ final class GlobalEnvironment implements GlobalEnvironmentInterface
     }
 
     /**
-     * Checks if an require alias exists.
-     *
      * @param string $inNamespace The namespace in which the alias should exist
      * @param Symbol $name The alias name
      */
@@ -111,11 +107,9 @@ final class GlobalEnvironment implements GlobalEnvironmentInterface
     }
 
     /**
-     * Adds an use alias.
-     *
      * @param string $inNamespace The namespace in which the alias exist
      * @param Symbol $alias The alias name
-     * @param Symbol $fullName The namespace that will be resolve
+     * @param Symbol $fullName The namespace that will be resolved
      */
     public function addUseAlias(string $inNamespace, Symbol $alias, Symbol $fullName): void
     {
@@ -123,8 +117,6 @@ final class GlobalEnvironment implements GlobalEnvironmentInterface
     }
 
     /**
-     * Checks if an use alias exists.
-     *
      * @param string $inNamespace The namespace in which the alias should exist
      * @param Symbol $alias The alias name
      */
