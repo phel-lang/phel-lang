@@ -227,42 +227,47 @@ final class GlobalEnvironment implements GlobalEnvironmentInterface
             $ns = $this->refers[$this->ns][$name->getName()]->getName();
         }
 
-        // Try to resolve interfaces in current namespace
-        if (isset($this->interfaces[$ns][$name->getName()])) {
-            return new PhpClassNameNode($env, Symbol::createForNamespace($ns, $name->getName()), $name->getStartLocation());
-        }
-
-        // Try to resolve in definitions current namespace
-        $def = $this->getDefinition($ns, $name);
-        if ($def) {
-            return new GlobalVarNode($env, $ns, $name, $def, $name->getStartLocation());
-        }
-
-        // Try to resolve in phel.core namespace
-        $ns = 'phel\core';
-
-        return $this->resolveInterfaceOrDefinition($name, $env, $ns);
+        return $this->resolveInterfaceOrDefinitionForCurrentNs($name, $env, $ns)
+            ?? $this->resolveInterfaceOrDefinition($name, $env, 'phel\core');
     }
 
-    private function resolveInterfaceOrDefinition(Symbol $name, NodeEnvironmentInterface $env, string $ns): ?AbstractNode
+    /**
+     * It also includes private definitions from the current namespace.
+     */
+    private function resolveInterfaceOrDefinitionForCurrentNs(Symbol $name, NodeEnvironmentInterface $env, string $ns): ?AbstractNode
     {
-        // Try to resolve interfaces in namespace
         if (isset($this->interfaces[$ns][$name->getName()])) {
             return new PhpClassNameNode($env, Symbol::createForNamespace($ns, $name->getName()), $name->getStartLocation());
         }
 
-        // Try to resolve definitions in namespace
         $def = $this->getDefinition($ns, $name);
-        if ($def && ($this->allowPrivateAccess || !$this->isDefinitionPrivate($def))) {
+        if ($def) {
             return new GlobalVarNode($env, $ns, $name, $def, $name->getStartLocation());
         }
 
         return null;
     }
 
-    private function isDefinitionPrivate(PersistentMapInterface $meta): bool
+    /**
+     * It ignores private definitions (if they're not allowed) from the namespace.
+     */
+    private function resolveInterfaceOrDefinition(Symbol $name, NodeEnvironmentInterface $env, string $ns): ?AbstractNode
     {
-        return $meta[Keyword::create('private')] === true;
+        if (isset($this->interfaces[$ns][$name->getName()])) {
+            return new PhpClassNameNode($env, Symbol::createForNamespace($ns, $name->getName()), $name->getStartLocation());
+        }
+
+        $def = $this->getDefinition($ns, $name);
+        if ($def && $this->isPrivateDefinitionAllowed($def)) {
+            return new GlobalVarNode($env, $ns, $name, $def, $name->getStartLocation());
+        }
+
+        return null;
+    }
+
+    private function isPrivateDefinitionAllowed(PersistentMapInterface $meta): bool
+    {
+        return $this->allowPrivateAccess || !$meta[Keyword::create('private')] === true;
     }
 
     public function setAllowPrivateAccess(bool $allowPrivateAccess): void
@@ -271,7 +276,7 @@ final class GlobalEnvironment implements GlobalEnvironmentInterface
     }
 
     /**
-     * @param TypeInterface|string|float|int|bool|null $value The inital value
+     * @param TypeInterface|string|float|int|bool|null $value The initial value
      */
     private function addInternalDefinition(string $namespace, Symbol $symbol, $value): void
     {
