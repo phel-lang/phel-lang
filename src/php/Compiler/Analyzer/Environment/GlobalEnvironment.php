@@ -13,11 +13,12 @@ use Phel\Lang\Keyword;
 use Phel\Lang\SourceLocation;
 use Phel\Lang\Symbol;
 use Phel\Lang\TypeFactory;
-use Phel\Lang\TypeInterface;
 use RuntimeException;
 
 final class GlobalEnvironment implements GlobalEnvironmentInterface
 {
+    private const PHEL_CORE_NAMESPACE = 'phel\core';
+
     private string $ns = 'user';
 
     /** @var array<string, array<string, PersistentMapInterface>> */
@@ -39,7 +40,18 @@ final class GlobalEnvironment implements GlobalEnvironmentInterface
 
     public function __construct()
     {
-        $this->addInternalDefinition('phel\core', Symbol::create('*compile-mode*'), false);
+        $this->addInternalCompileModeDefinition();
+    }
+
+    private function addInternalCompileModeDefinition(): void
+    {
+        $symbol = Symbol::create('*compile-mode*');
+        $GLOBALS['__phel'][self::PHEL_CORE_NAMESPACE][$symbol->getName()] = false;
+
+        $this->addDefinition(self::PHEL_CORE_NAMESPACE, $symbol, TypeFactory::getInstance()->persistentMapFromKVs(
+            Keyword::create('doc'),
+            'Set to true when a file is compiled, false otherwise',
+        ));
     }
 
     public function getNs(): string
@@ -76,11 +88,9 @@ final class GlobalEnvironment implements GlobalEnvironmentInterface
     }
 
     /**
-     * Adds an require alias.
-     *
      * @param string $inNamespace The namespace in which the alias exist
      * @param Symbol $name The alias name
-     * @param Symbol $fullName The namespace that will be resolve
+     * @param Symbol $fullName The namespace that will be resolved
      */
     public function addRequireAlias(string $inNamespace, Symbol $name, Symbol $fullName): void
     {
@@ -88,8 +98,6 @@ final class GlobalEnvironment implements GlobalEnvironmentInterface
     }
 
     /**
-     * Checks if an require alias exists.
-     *
      * @param string $inNamespace The namespace in which the alias should exist
      * @param Symbol $name The alias name
      */
@@ -99,11 +107,9 @@ final class GlobalEnvironment implements GlobalEnvironmentInterface
     }
 
     /**
-     * Adds an use alias.
-     *
      * @param string $inNamespace The namespace in which the alias exist
      * @param Symbol $alias The alias name
-     * @param Symbol $fullName The namespace that will be resolve
+     * @param Symbol $fullName The namespace that will be resolved
      */
     public function addUseAlias(string $inNamespace, Symbol $alias, Symbol $fullName): void
     {
@@ -111,8 +117,6 @@ final class GlobalEnvironment implements GlobalEnvironmentInterface
     }
 
     /**
-     * Checks if an use alias exists.
-     *
      * @param string $inNamespace The namespace in which the alias should exist
      * @param Symbol $alias The alias name
      */
@@ -165,37 +169,36 @@ final class GlobalEnvironment implements GlobalEnvironmentInterface
             return new PhpClassNameNode($env, $alias, $name->getStartLocation());
         }
 
-        if ($name->getNamespace() !== null) {
-            return $this->resolveWithAlias($name, $env);
-        }
-
-        return $this->resolveWithoutAlias($name, $env);
+        return ($name->getNamespace() !== null)
+            ? $this->resolveWithAlias($name, $env)
+            : $this->resolveWithoutAlias($name, $env);
     }
 
     private function resolveMagicFile(?SourceLocation $sl): ?string
     {
-        if ($sl && $sl->getFile() === 'string') {
-            return 'string';
-        }
-
-        if ($sl) {
-            return realpath($sl->getFile());
-        }
-
-        return null;
+        return $this->resolveMagicSourceString($sl)
+            ?? $this->resolveRealpath($sl);
     }
 
     private function resolveMagicDir(?SourceLocation $sl): ?string
     {
-        if ($sl && $sl->getFile() === 'string') {
-            return 'string';
-        }
+        return $this->resolveMagicSourceString($sl)
+            ?? $this->resolveRealpathDirname($sl);
+    }
 
-        if ($sl) {
-            return realpath(dirname($sl->getFile()));
-        }
+    private function resolveMagicSourceString(?SourceLocation $sl): ?string
+    {
+        return ($sl && $sl->getFile() === 'string') ? 'string' : null;
+    }
 
-        return null;
+    private function resolveRealpath(?SourceLocation $sl): ?string
+    {
+        return ($sl) ? realpath($sl->getFile()) : null;
+    }
+
+    private function resolveRealpathDirname(?SourceLocation $sl): ?string
+    {
+        return ($sl) ? realpath(dirname($sl->getFile())) : null;
     }
 
     public function resolveAlias(string $alias): ?string
@@ -210,81 +213,69 @@ final class GlobalEnvironment implements GlobalEnvironmentInterface
     private function resolveWithAlias(Symbol $name, NodeEnvironmentInterface $env): ?AbstractNode
     {
         $alias = $name->getNamespace();
-        $finalName = Symbol::create($name->getName());
-
         if ($alias === null) {
             throw new RuntimeException('resolveWithAlias called with a Symbol without namespace');
         }
 
-        $namespace = $this->resolveAlias($alias) ?? $alias;
+        $finalName = Symbol::create($name->getName());
+        $ns = $this->resolveAlias($alias) ?? $alias;
 
-        if (isset($this->interfaces[$namespace][$name->getName()])) {
-            return new PhpClassNameNode($env, Symbol::createForNamespace($namespace, $name->getName()), $name->getStartLocation());
-        }
-
-        $def = $this->getDefinition($namespace, $finalName);
-        if ($def && ($this->allowPrivateAccess || !$this->isDefinitionPrivate($def))) {
-            return new GlobalVarNode($env, $namespace, $finalName, $def, $name->getStartLocation());
-        }
-
-        return null;
+        return $this->resolveInterfaceOrDefinition($finalName, $env, $ns);
     }
 
     private function resolveWithoutAlias(Symbol $name, NodeEnvironmentInterface $env): ?AbstractNode
     {
-        $ns = $this->getNs();
+        $currentNs = $this->getNs();
         if (isset($this->refers[$this->ns][$name->getName()])) {
-            $ns = $this->refers[$this->ns][$name->getName()]->getName();
+            $currentNs = $this->refers[$this->ns][$name->getName()]->getName();
         }
 
-        // Try to resolve interfaces in current namespace
+        return $this->resolveInterfaceOrDefinitionForCurrentNs($name, $env, $currentNs)
+            ?? $this->resolveInterfaceOrDefinition($name, $env, self::PHEL_CORE_NAMESPACE);
+    }
+
+    /**
+     * It also includes private definitions from the current namespace.
+     */
+    private function resolveInterfaceOrDefinitionForCurrentNs(Symbol $name, NodeEnvironmentInterface $env, string $ns): ?AbstractNode
+    {
         if (isset($this->interfaces[$ns][$name->getName()])) {
             return new PhpClassNameNode($env, Symbol::createForNamespace($ns, $name->getName()), $name->getStartLocation());
         }
 
-        // Try to resolve in definitions current namespace
         $def = $this->getDefinition($ns, $name);
         if ($def) {
             return new GlobalVarNode($env, $ns, $name, $def, $name->getStartLocation());
         }
 
-        // Try to resolve in phel.core namespace
-        $ns = 'phel\core';
+        return null;
+    }
 
-        // Try to resolve interfaces in phel.core
+    /**
+     * It ignores private definitions (if they're not allowed) from the namespace.
+     */
+    private function resolveInterfaceOrDefinition(Symbol $name, NodeEnvironmentInterface $env, string $ns): ?AbstractNode
+    {
         if (isset($this->interfaces[$ns][$name->getName()])) {
             return new PhpClassNameNode($env, Symbol::createForNamespace($ns, $name->getName()), $name->getStartLocation());
         }
 
-        // Try to resolve definitions in phel.core
         $def = $this->getDefinition($ns, $name);
-        if ($def && ($this->allowPrivateAccess || !$this->isDefinitionPrivate($def))) {
+        if ($def && $this->isPrivateDefinitionAllowed($def)) {
             return new GlobalVarNode($env, $ns, $name, $def, $name->getStartLocation());
         }
 
         return null;
     }
 
-    private function isDefinitionPrivate(PersistentMapInterface $meta): bool
+    private function isPrivateDefinitionAllowed(PersistentMapInterface $meta): bool
     {
-        return $meta[Keyword::create('private')] === true;
+        return $this->allowPrivateAccess || !$meta[Keyword::create('private')] === true;
     }
 
     public function setAllowPrivateAccess(bool $allowPrivateAccess): void
     {
         $this->allowPrivateAccess = $allowPrivateAccess;
-    }
-
-    /**
-     * @param TypeInterface|string|float|int|bool|null $value The inital value
-     */
-    private function addInternalDefinition(string $namespace, Symbol $symbol, $value): void
-    {
-        $GLOBALS['__phel'][$namespace][$symbol->getName()] = $value;
-        $this->addDefinition($namespace, $symbol, TypeFactory::getInstance()->persistentMapFromKVs(
-            Keyword::create('doc'),
-            'Set to true when a file is compiled, false otherwise',
-        ));
     }
 
     public function addInterface(string $namespace, Symbol $name): void
