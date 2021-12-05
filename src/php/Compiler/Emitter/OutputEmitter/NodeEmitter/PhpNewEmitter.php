@@ -18,6 +18,13 @@ final class PhpNewEmitter implements NodeEmitterInterface
     {
         assert($node instanceof PhpNewNode);
 
+        $this->emitPhpNewBegin($node);
+        $this->emitPhpNewArgs($node);
+        $this->emitPhpNewEnd($node);
+    }
+
+    private function emitPhpNewBegin(PhpNewNode $node): void
+    {
         $this->outputEmitter->emitContextPrefix($node->getEnv(), $node->getStartSourceLocation());
         $classExpr = $node->getClassExpr();
 
@@ -36,9 +43,16 @@ final class PhpNewEmitter implements NodeEmitterInterface
 
             $this->outputEmitter->emitStr('return new $' . $targetSym->getName() . '(', $node->getStartSourceLocation());
         }
+    }
 
-        // Args
+    private function emitPhpNewArgs(PhpNewNode $node): void
+    {
         $this->outputEmitter->emitArgList($node->getArgs(), $node->getStartSourceLocation());
+    }
+
+    private function emitPhpNewEnd(PhpNewNode $node): void
+    {
+        $classExpr = $node->getClassExpr();
 
         if ($classExpr instanceof PhpClassNameNode) {
             $this->outputEmitter->emitStr('))', $node->getStartSourceLocation());
