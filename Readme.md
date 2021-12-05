@@ -22,15 +22,13 @@
   </a>
 </p>
 
-#
+---
 
 Phel is a functional programming language that compiles to PHP. It is a dialect of Lisp inspired by [Clojure](https://clojure.org/) and [Janet](https://janet-lang.org/).
 
 ## Documentation
 
-The documentation for Phel can be found on Phel's website
-
-[Read the documentation](https://phel-lang.org)
+The documentation for Phel can be found on the Phel's website: [https://phel-lang.org](https://phel-lang.org).
 
 ## Community
 
@@ -38,55 +36,4 @@ Feel free to ask questions and join discussions on the [Phel Gitter channel](htt
 
 ## Contribute
 
-You are more than welcome to contribute to Phel. You can do so by either:
-
-* reporting bugs
-* contributing changes
-* enrich the documentation
-
-### Substantial changes
-
-Substantial changes are architecture decisions, documentation restructuring, breaking changes, etc.
-But not Bug Reports, Bug Fixes, Unit Tests, etc.
-
-#### How to contribute a substantial change
-
-In order to make a substantial change it is a good practice to discuss the idea before implementing it.
-
-- An Architecture Decision Record (ADR) or Request for Comments (RFC) can be proposed with an issue.
-- The issue is the place to discuss everything.
-- The result of the issue can be an ADR file (under the [adrs](./adrs) directory), but also just as CS Fixer rule to check then during CI.
-
-## Development
-
-### Requirements
-
-Phel requires PHP 7.4 or higher and Composer.
-
-### Testing
-
-Phel has two test suites. The first test suite runs PHPUnit to test the compiler itself. The second test suite runs tests against Phel's core library.
-
-These are the composer scripts that might help you to run the all test suites:
-
-```bash
-composer psalm         # Run Psalm
-> vendor/bin/psalm
-
-composer test-compiler # test the compiler
-> vendor/bin/phpunit --testsuite unit
-> vendor/bin/phpunit --testsuite integration
-
-composer test-core     # test core library
-> ./phel test
-
-composer test-all      # csrun, psalm, compiler & core tests after each other
-> composer csrun
-> composer psalm
-> composer test-compiler
-> composer test-core
-```
-
-### Git Hooks
-
-Enable the git hooks with `./tools/git-hooks/init.sh`
+Please refer to [CONTRIBUTING.md](https://github.com/phel-lang/phel-lang/blob/master/.github/CONTRIBUTING.md) for information on how to contribute to Phel.
