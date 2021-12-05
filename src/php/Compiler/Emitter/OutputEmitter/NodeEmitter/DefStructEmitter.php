@@ -6,7 +6,6 @@ namespace Phel\Compiler\Emitter\OutputEmitter\NodeEmitter;
 
 use Phel\Compiler\Analyzer\Ast\AbstractNode;
 use Phel\Compiler\Analyzer\Ast\DefStructInterface;
-use Phel\Compiler\Analyzer\Ast\DefStructMethod;
 use Phel\Compiler\Analyzer\Ast\DefStructNode;
 use Phel\Compiler\Emitter\OutputEmitter\NodeEmitterInterface;
 use Phel\Compiler\Emitter\OutputEmitterInterface;
@@ -29,15 +28,10 @@ final class DefStructEmitter implements NodeEmitterInterface
         assert($node instanceof DefStructNode);
 
         $this->emitClassBegin($node);
-        $this->outputEmitter->emitLine();
         $this->emitAllowedKeys($node);
-        $this->outputEmitter->emitLine();
         $this->emitProperties($node);
-        $this->outputEmitter->emitLine();
         $this->emitConstructor($node);
-        foreach ($node->getInterfaces() as $interface) {
-            $this->emitInterfaceImplementation($interface);
-        }
+        $this->emitInterfaces($node);
         $this->emitClassEnd($node);
     }
 
@@ -69,15 +63,7 @@ final class DefStructEmitter implements NodeEmitterInterface
         $this->outputEmitter->emitLine(' {');
 
         $this->outputEmitter->increaseIndentLevel();
-    }
-
-    private function emitProperties(DefStructNode $node): void
-    {
-        foreach ($node->getParams() as $i => $param) {
-            $this->outputEmitter->emitStr('protected ');
-            $this->outputEmitter->emitPhpVariable($param);
-            $this->outputEmitter->emitLine(';');
-        }
+        $this->outputEmitter->emitLine();
     }
 
     private function emitAllowedKeys(DefStructNode $node): void
@@ -93,6 +79,18 @@ final class DefStructEmitter implements NodeEmitterInterface
         }
 
         $this->outputEmitter->emitLine('];', $node->getStartSourceLocation());
+        $this->outputEmitter->emitLine();
+    }
+
+    private function emitProperties(DefStructNode $node): void
+    {
+        foreach ($node->getParams() as $param) {
+            $this->outputEmitter->emitStr('protected ');
+            $this->outputEmitter->emitPhpVariable($param);
+            $this->outputEmitter->emitLine(';');
+        }
+
+        $this->outputEmitter->emitLine();
     }
 
     private function emitConstructor(DefStructNode $node): void
@@ -131,12 +129,13 @@ final class DefStructEmitter implements NodeEmitterInterface
         $this->outputEmitter->emitLine('}', $node->getStartSourceLocation());
     }
 
-    private function emitInterfaceImplementation(DefStructInterface $interface): void
+    private function emitInterfaces(DefStructNode $node): void
     {
-        /** @var DefStructMethod $method */
-        foreach ($interface->getMethods() as $method) {
-            $this->outputEmitter->emitLine();
-            $this->methodEmitter->emit($method->getName()->getName(), $method->getFnNode());
+        foreach ($node->getInterfaces() as $interface) {
+            foreach ($interface->getMethods() as $method) {
+                $this->outputEmitter->emitLine();
+                $this->methodEmitter->emit($method->getName()->getName(), $method->getFnNode());
+            }
         }
     }
 
