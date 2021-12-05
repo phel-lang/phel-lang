@@ -39,26 +39,30 @@ final class DefInterfaceEmitter implements NodeEmitterInterface
 
     private function emitMethods(DefInterfaceNode $node): void
     {
-        /** @var DefInterfaceMethod $method */
         foreach ($node->getMethods() as $method) {
-            $this->outputEmitter->emitStr('public function ', $node->getStartSourceLocation());
-            $this->outputEmitter->emitStr(
-                $this->outputEmitter->mungeEncode($method->getName()->getName()),
-                $node->getStartSourceLocation()
-            );
-            $this->outputEmitter->emitStr('(', $node->getStartSourceLocation());
-
-            foreach ($method->getArgumentsWithoutFirst() as $i => $argument) {
-                $this->outputEmitter->emitPhpVariable($argument, $node->getStartSourceLocation());
-
-                if ($i < $method->getArgumentCount() - 2) {
-                    $this->outputEmitter->emitStr(', ', $node->getStartSourceLocation());
-                }
-            }
-
-            $this->outputEmitter->emitStr(')', $node->getStartSourceLocation());
-            $this->outputEmitter->emitLine(';');
+            $this->emitMethod($node, $method);
         }
+    }
+
+    private function emitMethod(DefInterfaceNode $node, DefInterfaceMethod $method): void
+    {
+        $this->outputEmitter->emitStr('public function ', $node->getStartSourceLocation());
+        $this->outputEmitter->emitStr(
+            $this->outputEmitter->mungeEncode($method->getName()->getName()),
+            $node->getStartSourceLocation()
+        );
+        $this->outputEmitter->emitStr('(', $node->getStartSourceLocation());
+
+        foreach ($method->getArgumentsWithoutFirst() as $i => $argument) {
+            $this->outputEmitter->emitPhpVariable($argument, $node->getStartSourceLocation());
+
+            if ($i < $method->getArgumentCount() - 2) {
+                $this->outputEmitter->emitStr(', ', $node->getStartSourceLocation());
+            }
+        }
+
+        $this->outputEmitter->emitStr(')', $node->getStartSourceLocation());
+        $this->outputEmitter->emitLine(';');
     }
 
     private function emitClassEnd(DefInterfaceNode $node): void
