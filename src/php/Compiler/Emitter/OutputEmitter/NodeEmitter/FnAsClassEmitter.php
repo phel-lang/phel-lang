@@ -27,8 +27,7 @@ final class FnAsClassEmitter implements NodeEmitterInterface
         $this->emitClassBegin($node);
         $this->emitProperties($node);
         $this->emitConstructor($node);
-        $this->outputEmitter->emitLine();
-        $this->methodEmitter->emit('__invoke', $node);
+        $this->emitInvoke($node);
         $this->emitClassEnd($node);
     }
 
@@ -38,14 +37,10 @@ final class FnAsClassEmitter implements NodeEmitterInterface
         $this->outputEmitter->emitStr('new class(', $node->getStartSourceLocation());
 
         $usesCount = count($node->getUses());
-        foreach ($node->getUses() as $i => $u) {
-            $loc = $u->getStartLocation();
-            $shadowed = $node->getEnv()->getShadowed($u);
-            if ($shadowed) {
-                $u = $shadowed;
-            }
-
-            $this->outputEmitter->emitPhpVariable($u, $loc);
+        foreach ($node->getUses() as $i => $use) {
+            $loc = $use->getStartLocation();
+            $normalizedUse = $node->getEnv()->getShadowed($use) ?: $use;
+            $this->outputEmitter->emitPhpVariable($normalizedUse, $loc);
 
             if ($i < $usesCount - 1) {
                 $this->outputEmitter->emitStr(', ', $node->getStartSourceLocation());
@@ -61,14 +56,11 @@ final class FnAsClassEmitter implements NodeEmitterInterface
         $ns = addslashes($this->outputEmitter->mungeEncodeNs($node->getEnv()->getBoundTo()));
         $this->outputEmitter->emitLine('public const BOUND_TO = "' . $ns . '";', $node->getStartSourceLocation());
 
-        foreach ($node->getUses() as $i => $u) {
-            $shadowed = $node->getEnv()->getShadowed($u);
-            if ($shadowed) {
-                $u = $shadowed;
-            }
+        foreach ($node->getUses() as $use) {
+            $normalizedUse = $node->getEnv()->getShadowed($use) ?: $use;
 
             $this->outputEmitter->emitLine(
-                'private $' . $this->outputEmitter->mungeEncode($u->getName()) . ';',
+                'private $' . $this->outputEmitter->mungeEncode($normalizedUse->getName()) . ';',
                 $node->getStartSourceLocation()
             );
         }
@@ -83,13 +75,10 @@ final class FnAsClassEmitter implements NodeEmitterInterface
             $this->outputEmitter->emitStr('public function __construct(', $node->getStartSourceLocation());
 
             // Constructor parameter
-            foreach ($node->getUses() as $i => $u) {
-                $shadowed = $node->getEnv()->getShadowed($u);
-                if ($shadowed) {
-                    $u = $shadowed;
-                }
+            foreach ($node->getUses() as $i => $use) {
+                $normalizedUse = $node->getEnv()->getShadowed($use) ?: $use;
 
-                $this->outputEmitter->emitPhpVariable($u, $node->getStartSourceLocation());
+                $this->outputEmitter->emitPhpVariable($normalizedUse, $node->getStartSourceLocation());
 
                 if ($i < $usesCount - 1) {
                     $this->outputEmitter->emitStr(', ', $node->getStartSourceLocation());
@@ -100,13 +89,10 @@ final class FnAsClassEmitter implements NodeEmitterInterface
             $this->outputEmitter->increaseIndentLevel();
 
             // Constructor assignment
-            foreach ($node->getUses() as $i => $u) {
-                $shadowed = $node->getEnv()->getShadowed($u);
-                if ($shadowed) {
-                    $u = $shadowed;
-                }
+            foreach ($node->getUses() as $use) {
+                $normalizedUse = $node->getEnv()->getShadowed($use) ?: $use;
+                $varName = $this->outputEmitter->mungeEncode($normalizedUse->getName());
 
-                $varName = $this->outputEmitter->mungeEncode($u->getName());
                 $this->outputEmitter->emitLine(
                     '$this->' . $varName . ' = $' . $varName . ';',
                     $node->getStartSourceLocation()
@@ -116,6 +102,13 @@ final class FnAsClassEmitter implements NodeEmitterInterface
             $this->outputEmitter->decreaseIndentLevel();
             $this->outputEmitter->emitLine('}', $node->getStartSourceLocation());
         }
+
+        $this->outputEmitter->emitLine();
+    }
+
+    private function emitInvoke(FnNode $node): void
+    {
+        $this->methodEmitter->emit('__invoke', $node);
     }
 
     private function emitClassEnd(FnNode $node): void
