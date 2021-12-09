@@ -8,6 +8,19 @@ We look forward to your contributions! Here are some examples how you can contri
 * [Propose a new feature](https://github.com/phel-lang/phel/issues/new?labels=enhancement&template=FEATURE_REQUEST.md)
 * [Send a pull request](https://github.com/phel-lang/phel/pulls)
 
+### Substantial changes
+
+Substantial changes are architecture decisions, documentation restructuring, breaking changes, etc.
+But not Bug Reports, Bug Fixes, Unit Tests, etc.
+
+#### How to contribute a substantial change
+
+In order to make a substantial change it is a good practice to discuss the idea before implementing it.
+
+- An Architecture Decision Record (ADR) or Request for Comments (RFC) can be proposed with an issue.
+- The issue is the place to discuss everything.
+- The result of the issue can be an ADR file (under the [adrs](../adrs) directory), but also just as CS Fixer rule to check then during CI.
+
 ## We have a Code of Conduct
 
 Please note that this project is released with a [Contributor Code of Conduct](CODE_OF_CONDUCT.md).
@@ -62,11 +75,17 @@ $ ./vendor/bin/php-cs-fixer fix
 
 Please understand that we will not accept a pull request when its changes violate this project's coding guidelines.
 
-## Running Phel's test suites
+## Development
+
+### Requirements
+
+Phel requires PHP 7.4 or higher and Composer.
+
+### Running Phel's test suites
 
 Phel has two test suites. The first test suite runs PHPUnit to test the compiler itself. The second test suite runs tests against Phel's core library.
 
-### Testing the PHP compiler
+#### Testing the PHP compiler
 
 Phel uses PHPUnit to test its compiler.
 
@@ -75,7 +94,7 @@ $ vendor/bin/phpunit --testsuite unit
 $ vendor/bin/phpunit --testsuite integration
 ```
 
-### Testing the core library
+#### Testing the core library
 
 Phel has its own [testing framework](https://phel-lang.org/documentation/testing/).
 
@@ -83,7 +102,7 @@ Phel has its own [testing framework](https://phel-lang.org/documentation/testing
 ./phel test
 ```
 
-## Coding Guidelines and Tests
+### Coding Guidelines and Tests
 
 These are the composer scripts that might help you to run the all test suites:
 
@@ -104,3 +123,7 @@ composer test-all      # csrun, psalm, compiler & core tests after each other
 > composer test-compiler
 > composer test-core
 ```
+
+### Git Hooks
+
+Enable the git hooks with `./tools/git-hooks/init.sh`
