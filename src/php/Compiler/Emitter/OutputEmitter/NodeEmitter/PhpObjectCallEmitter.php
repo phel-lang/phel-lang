@@ -21,9 +21,15 @@ final class PhpObjectCallEmitter implements NodeEmitterInterface
     {
         assert($node instanceof PhpObjectCallNode);
 
+        $this->emitPhpObjectCallBegin($node);
+        $this->emitPhpObjectCallArguments($node);
+        $this->emitPhpObjectCallEnd($node);
+    }
+
+    private function emitPhpObjectCallBegin(PhpObjectCallNode $node): void
+    {
         $fnCode = $node->isStatic() ? '::' : '->';
         $targetExpr = $node->getTargetExpr();
-        $callExpr = $node->getCallExpr();
 
         $this->outputEmitter->emitContextPrefix($node->getEnv(), $node->getStartSourceLocation());
 
@@ -44,8 +50,12 @@ final class PhpObjectCallEmitter implements NodeEmitterInterface
             $this->outputEmitter->emitPhpVariable($targetSym, $node->getStartSourceLocation());
             $this->outputEmitter->emitStr($fnCode, $node->getStartSourceLocation());
         }
+    }
 
-        // Method/Property and Arguments
+    private function emitPhpObjectCallArguments(PhpObjectCallNode $node): void
+    {
+        $callExpr = $node->getCallExpr();
+
         if ($callExpr instanceof MethodCallNode) {
             $this->outputEmitter->emitStr($callExpr->getFn()->getName(), $callExpr->getFn()->getStartLocation());
             $this->outputEmitter->emitStr('(', $node->getStartSourceLocation());
@@ -56,8 +66,12 @@ final class PhpObjectCallEmitter implements NodeEmitterInterface
         } else {
             throw new RuntimeException('Not supported ' . get_class($callExpr));
         }
+    }
 
-        // Close Expression
+    private function emitPhpObjectCallEnd(PhpObjectCallNode $node): void
+    {
+        $targetExpr = $node->getTargetExpr();
+
         if ($targetExpr instanceof PhpClassNameNode && $node->isStatic()) {
             $this->outputEmitter->emitStr(')', $node->getStartSourceLocation());
         } else {

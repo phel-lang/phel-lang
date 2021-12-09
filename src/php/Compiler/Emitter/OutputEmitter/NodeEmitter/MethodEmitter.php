@@ -6,6 +6,7 @@ namespace Phel\Compiler\Emitter\OutputEmitter\NodeEmitter;
 
 use Phel\Compiler\Analyzer\Ast\FnNode;
 use Phel\Lang\Keyword;
+use Phel\Lang\Symbol;
 
 final class MethodEmitter
 {
@@ -13,28 +14,28 @@ final class MethodEmitter
 
     public function emit(string $methodName, FnNode $node): void
     {
-        $this->emitInvokeFunctionBegin($methodName, $node);
-        $this->emitInvokeFunctionParameters($node);
-        $this->emitInvokeFunctionBody($node);
-        $this->emitInvokeFunctionEnd($node);
+        $this->emitMethodBegin($methodName, $node);
+        $this->emitMethodParameters($node);
+        $this->emitMethodBody($node);
+        $this->emitMethodEnd($node);
     }
 
-    private function emitInvokeFunctionBegin(string $methodName, FnNode $node): void
+    private function emitMethodBegin(string $methodName, FnNode $node): void
     {
         $this->outputEmitter->emitStr('public function ' . $methodName . '(', $node->getStartSourceLocation());
     }
 
-    private function emitInvokeFunctionParameters(FnNode $node): void
+    private function emitMethodParameters(FnNode $node): void
     {
         $paramsCount = count($node->getParams());
 
         foreach ($node->getParams() as $i => $p) {
             if ($i === $paramsCount - 1 && $node->isVariadic()) {
-                $this->outputEmitter->emitPhpVariable($p, null, false, true);
+                $this->outputEmitter->emitPhpVariable($p, $loc = null, $asReference = false, $isVariadic = true);
             } else {
                 $meta = $p->getMeta();
                 $isReference = $meta && $meta->find(Keyword::create('reference')) === true;
-                $this->outputEmitter->emitPhpVariable($p, null, $isReference);
+                $this->outputEmitter->emitPhpVariable($p, $loc = null, $isReference);
             }
 
             if ($i < $paramsCount - 1) {
@@ -45,34 +46,42 @@ final class MethodEmitter
         $this->outputEmitter->emitLine(') {', $node->getStartSourceLocation());
         $this->outputEmitter->increaseIndentLevel();
 
-        // Use Parameter extraction
-        foreach ($node->getUses() as $i => $u) {
-            $shadowed = $node->getEnv()->getShadowed($u);
-            if ($shadowed) {
-                $u = $shadowed;
-            }
+        $this->emitMethodParametersExtraction($node);
+        $this->emitMethodVariadicParameters($node);
+    }
 
-            $varName = $this->outputEmitter->mungeEncode($u->getName());
+    private function emitMethodParametersExtraction(FnNode $node): void
+    {
+        foreach ($node->getUses() as $use) {
+            $normalizedUse = $node->getEnv()->getShadowed($use) ?: $use;
+            $varName = $this->munge($normalizedUse);
 
             $this->outputEmitter->emitLine(
                 '$' . $varName . ' = $this->' . $varName . ';',
                 $node->getStartSourceLocation()
             );
         }
+    }
 
-        // Variadic Parameter
+    private function emitMethodVariadicParameters(FnNode $node): void
+    {
         if ($node->isVariadic()) {
             $p = $node->getParams()[count($node->getParams()) - 1];
+            $varName = $this->munge($p);
 
             $this->outputEmitter->emitLine(
-                '$' . $this->outputEmitter->mungeEncode($p->getName())
-                . ' = new \Phel\Lang\PhelArray($' . $this->outputEmitter->mungeEncode($p->getName()) . ');',
+                '$' . $varName . ' = new \Phel\Lang\PhelArray($' . $varName . ');',
                 $node->getStartSourceLocation()
             );
         }
     }
 
-    private function emitInvokeFunctionBody(FnNode $node): void
+    private function munge(Symbol $symbol): string
+    {
+        return $this->outputEmitter->mungeEncode($symbol->getName());
+    }
+
+    private function emitMethodBody(FnNode $node): void
     {
         if ($node->getRecurs()) {
             $this->outputEmitter->emitLine('while (true) {', $node->getStartSourceLocation());
@@ -88,7 +97,7 @@ final class MethodEmitter
         }
     }
 
-    private function emitInvokeFunctionEnd(FnNode $node): void
+    private function emitMethodEnd(FnNode $node): void
     {
         $this->outputEmitter->decreaseIndentLevel();
         $this->outputEmitter->emitLine();

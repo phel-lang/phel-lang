@@ -17,12 +17,8 @@ final class RecurEmitter implements NodeEmitterInterface
     {
         assert($node instanceof RecurNode);
 
-        $params = $node->getFrame()->getParams();
-        $exprs = $node->getExpressions();
-        $env = $node->getEnv();
-
         $tempSyms = [];
-        foreach ($exprs as $i => $expr) {
+        foreach ($node->getExpressions() as $expr) {
             $tempSym = Symbol::gen();
             $tempSyms[] = $tempSym;
 
@@ -32,15 +28,14 @@ final class RecurEmitter implements NodeEmitterInterface
             $this->outputEmitter->emitLine(';', $node->getStartSourceLocation());
         }
 
+        $params = $node->getFrame()->getParams();
+
         foreach ($tempSyms as $i => $tempSym) {
             $paramSym = $params[$i];
             $loc = $paramSym->getStartLocation();
-            $shadowedSym = $env->getShadowed($paramSym);
-            if ($shadowedSym) {
-                $paramSym = $shadowedSym;
-            }
+            $normalizedParam = $node->getEnv()->getShadowed($paramSym) ?: $paramSym;
 
-            $this->outputEmitter->emitPhpVariable($paramSym, $loc);
+            $this->outputEmitter->emitPhpVariable($normalizedParam, $loc);
             $this->outputEmitter->emitStr(' = ', $node->getStartSourceLocation());
             $this->outputEmitter->emitPhpVariable($tempSym, $node->getStartSourceLocation());
             $this->outputEmitter->emitLine(';', $node->getStartSourceLocation());

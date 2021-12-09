@@ -25,15 +25,13 @@ final class DefInterfaceSymbol implements SpecialFormAnalyzerInterface
         }
         $this->analyzer->addInterface($this->analyzer->getNamespace(), $interfaceSymbol);
 
-        $result = new DefInterfaceNode(
+        return new DefInterfaceNode(
             $env,
             $this->analyzer->getNamespace(),
             $interfaceSymbol,
             $this->methods($list->rest()->cdr()),
             $list->getStartLocation()
         );
-
-        return $result;
     }
 
     /**
@@ -46,44 +44,49 @@ final class DefInterfaceSymbol implements SpecialFormAnalyzerInterface
         }
 
         $methods = [];
-        for ($forms = $list; $forms != null; $forms = $forms->cdr()) {
-            $method = $forms->first();
+        for ($forms = $list; $forms !== null; $forms = $forms->cdr()) {
+            $first = $forms->first();
 
-            if (!$method instanceof PersistentListInterface) {
+            if (!$first instanceof PersistentListInterface) {
                 throw AnalyzerException::withLocation('Methods in definterface must be lists', $list);
             }
 
-            $name = $method->get(0);
-            if (!$name instanceof Symbol) {
-                throw AnalyzerException::withLocation('Method names must be symbols', $method);
-            }
-
-            $arguments = $method->get(1);
-            if (!$arguments instanceof PersistentVectorInterface) {
-                throw AnalyzerException::withLocation('Method arguments must be vectors', $method);
-            }
-
-            foreach ($arguments as $argument) {
-                if (!$argument instanceof Symbol) {
-                    throw AnalyzerException::withLocation('A method argument must be symbol', $arguments);
-                }
-            }
-
-            $comment = null;
-            if (count($method) > 2) {
-                $comment = $method->get(2);
-                if (!is_string($comment)) {
-                    throw AnalyzerException::withLocation('Method comments must be strings', $method);
-                }
-            }
-
-            $methods[] = new DefInterfaceMethod(
-                $name,
-                $arguments->toArray(),
-                $comment
-            );
+            $methods[] = $this->createDefInterfaceMethod($first);
         }
 
         return $methods;
+    }
+
+    private function createDefInterfaceMethod(PersistentListInterface $method): DefInterfaceMethod
+    {
+        $name = $method->get(0);
+        if (!$name instanceof Symbol) {
+            throw AnalyzerException::withLocation('Method names must be symbols', $method);
+        }
+
+        $arguments = $method->get(1);
+        if (!$arguments instanceof PersistentVectorInterface) {
+            throw AnalyzerException::withLocation('Method arguments must be vectors', $method);
+        }
+
+        foreach ($arguments as $argument) {
+            if (!$argument instanceof Symbol) {
+                throw AnalyzerException::withLocation('A method argument must be symbol', $arguments);
+            }
+        }
+
+        $comment = null;
+        if (count($method) > 2) {
+            $comment = $method->get(2);
+            if (!is_string($comment)) {
+                throw AnalyzerException::withLocation('Method comments must be strings', $method);
+            }
+        }
+
+        return new DefInterfaceMethod(
+            $name,
+            $arguments->toArray(),
+            $comment
+        );
     }
 }
