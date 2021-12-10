@@ -6,6 +6,8 @@ All notable changes to this project will be documented in this file.
 
 * Support for variables.
 * Support for namespaced keywords.
+* Support for interfaces and their usage in structs.
+* A compile command
 
 ## 0.4.0 (2021-10-05)
 
