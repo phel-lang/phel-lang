@@ -34,6 +34,7 @@ use Phel\Compiler\Analyzer\TypeAnalyzer\SpecialForm\SetVarSymbol;
 use Phel\Compiler\Analyzer\TypeAnalyzer\SpecialForm\SpecialFormAnalyzerInterface;
 use Phel\Compiler\Analyzer\TypeAnalyzer\SpecialForm\ThrowSymbol;
 use Phel\Compiler\Analyzer\TypeAnalyzer\SpecialForm\TrySymbol;
+use Phel\Compiler\Emitter\OutputEmitter\Munge;
 use Phel\Compiler\Exceptions\AbstractLocatedException;
 use Phel\Lang\Collections\LinkedList\PersistentListInterface;
 use Phel\Lang\Symbol;
@@ -107,7 +108,7 @@ final class AnalyzePersistentList
             case Symbol::NAME_FOREACH:
                 return new ForeachSymbol($this->analyzer);
             case Symbol::NAME_DEF_STRUCT:
-                return new DefStructSymbol($this->analyzer);
+                return new DefStructSymbol($this->analyzer, new Munge());
             case Symbol::NAME_PHP_OBJECT_SET:
                 return new PhpOSetSymbol($this->analyzer);
             case Symbol::NAME_SET_VAR:

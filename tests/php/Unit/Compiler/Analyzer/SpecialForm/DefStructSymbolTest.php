@@ -10,6 +10,7 @@ use Phel\Compiler\Analyzer\Ast\DefStructNode;
 use Phel\Compiler\Analyzer\Environment\GlobalEnvironment;
 use Phel\Compiler\Analyzer\Environment\NodeEnvironment;
 use Phel\Compiler\Analyzer\TypeAnalyzer\SpecialForm\DefStructSymbol;
+use Phel\Compiler\Emitter\OutputEmitter\Munge;
 use Phel\Compiler\Exceptions\AbstractLocatedException;
 use Phel\Lang\Symbol;
 use Phel\Lang\TypeFactory;
@@ -33,7 +34,7 @@ final class DefStructSymbolTest extends TestCase
             Symbol::create(Symbol::NAME_DEF_STRUCT),
         ]);
 
-        (new DefStructSymbol($this->analyzer))
+        (new DefStructSymbol($this->analyzer, new Munge()))
             ->analyze($list, NodeEnvironment::empty());
     }
 
@@ -48,7 +49,7 @@ final class DefStructSymbolTest extends TestCase
             TypeFactory::getInstance()->persistentVectorFromArray([]),
         ]);
 
-        (new DefStructSymbol($this->analyzer))
+        (new DefStructSymbol($this->analyzer, new Munge()))
             ->analyze($list, NodeEnvironment::empty());
     }
 
@@ -63,7 +64,7 @@ final class DefStructSymbolTest extends TestCase
             '',
         ]);
 
-        (new DefStructSymbol($this->analyzer))
+        (new DefStructSymbol($this->analyzer, new Munge()))
             ->analyze($list, NodeEnvironment::empty());
     }
 
@@ -78,7 +79,7 @@ final class DefStructSymbolTest extends TestCase
             TypeFactory::getInstance()->persistentVectorFromArray(['method']),
         ]);
 
-        (new DefStructSymbol($this->analyzer))
+        (new DefStructSymbol($this->analyzer, new Munge()))
             ->analyze($list, NodeEnvironment::empty());
     }
 
@@ -90,7 +91,7 @@ final class DefStructSymbolTest extends TestCase
             TypeFactory::getInstance()->persistentVectorFromArray([Symbol::create('method'), Symbol::create('uri')]),
         ]);
 
-        $defStructNode = (new DefStructSymbol($this->analyzer))
+        $defStructNode = (new DefStructSymbol($this->analyzer, new Munge()))
             ->analyze($list, NodeEnvironment::empty());
 
         self::assertEquals(

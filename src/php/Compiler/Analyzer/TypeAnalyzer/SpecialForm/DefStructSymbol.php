@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Phel\Compiler\Analyzer\TypeAnalyzer\SpecialForm;
 
+use Phel\Compiler\Analyzer\AnalyzerInterface;
 use Phel\Compiler\Analyzer\Ast\DefStructInterface;
 use Phel\Compiler\Analyzer\Ast\DefStructMethod;
 use Phel\Compiler\Analyzer\Ast\DefStructNode;
@@ -11,7 +12,7 @@ use Phel\Compiler\Analyzer\Ast\FnNode;
 use Phel\Compiler\Analyzer\Ast\PhpClassNameNode;
 use Phel\Compiler\Analyzer\Environment\NodeEnvironmentInterface;
 use Phel\Compiler\Analyzer\Exceptions\AnalyzerException;
-use Phel\Compiler\Analyzer\TypeAnalyzer\WithAnalyzerTrait;
+use Phel\Compiler\Emitter\OutputEmitter\MungeInterface;
 use Phel\Lang\Collections\LinkedList\PersistentListInterface;
 use Phel\Lang\Collections\Vector\PersistentVectorInterface;
 use Phel\Lang\Symbol;
@@ -19,7 +20,14 @@ use Phel\Lang\TypeFactory;
 
 final class DefStructSymbol implements SpecialFormAnalyzerInterface
 {
-    use WithAnalyzerTrait;
+    private AnalyzerInterface $analyzer;
+    private MungeInterface $munge;
+
+    public function __construct(AnalyzerInterface $analyzer, MungeInterface $munge)
+    {
+        $this->analyzer = $analyzer;
+        $this->munge = $munge;
+    }
 
     public function analyze(PersistentListInterface $list, NodeEnvironmentInterface $env): DefStructNode
     {
@@ -145,11 +153,12 @@ final class DefStructSymbol implements SpecialFormAnalyzerInterface
     private function analyzeInterfaceMethod(PersistentListInterface $list, NodeEnvironmentInterface $env, array $expectedMethodIndex, $structParams): DefStructMethod
     {
         $methodName = $list->get(0);
+        $mungedMethodName = $this->munge->encode($methodName->getName());
         if (!$methodName instanceof Symbol) {
             throw AnalyzerException::withLocation('Method name must be a Symbol', $list);
         }
 
-        if (!isset($expectedMethodIndex[$methodName->getName()])) {
+        if (!isset($expectedMethodIndex[$mungedMethodName])) {
             throw AnalyzerException::withLocation('The interface doesn\'t support this method: ' . $methodName->getName(), $list);
         }
 

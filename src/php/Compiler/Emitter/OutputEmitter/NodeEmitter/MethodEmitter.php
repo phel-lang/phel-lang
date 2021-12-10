@@ -22,7 +22,7 @@ final class MethodEmitter
 
     private function emitMethodBegin(string $methodName, FnNode $node): void
     {
-        $this->outputEmitter->emitStr('public function ' . $methodName . '(', $node->getStartSourceLocation());
+        $this->outputEmitter->emitStr('public function ' . $this->outputEmitter->mungeEncode($methodName) . '(', $node->getStartSourceLocation());
     }
 
     private function emitMethodParameters(FnNode $node): void
