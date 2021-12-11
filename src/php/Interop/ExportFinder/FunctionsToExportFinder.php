@@ -60,10 +60,10 @@ final class FunctionsToExportFinder implements FunctionsToExportFinderInterface
         $namespaceFromDirectories = $this->buildFacade
             ->getNamespaceFromDirectories($this->exportDirs);
 
-        $namespaces = array_values(array_map(
+        $namespaces = array_map(
             static fn (NamespaceInformation $info) => $info->getNamespace(),
             $namespaceFromDirectories
-        ));
+        );
 
         $namespaceInformation = $this->buildFacade->getDependenciesForNamespace(
             [
