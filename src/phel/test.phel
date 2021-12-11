@@ -1,7 +1,7 @@
 (ns phel\test
   (:use Phel\Lang\Symbol)
   (:use Phel\Compiler\Emitter\OutputEmitter\Munge)
-  (:use Phel\Command\Shared\Exceptions\TextExceptionPrinter)
+  (:use Phel\Command\CommandFacade)
   (:use Throwable))
 
 # ------
@@ -214,7 +214,8 @@
 (defn- print-error [data]
   (print-error-headline data)
   (let [{:exception exception :form form} data
-        printer (php/:: TextExceptionPrinter (create))]
+        command-facade (php/new CommandFacade)
+        printer (php/-> command-facade (getExceptionPrinter))]
     (println "              Test:" form)
     (println "   threw exception:" (php/get_class exception))
     (println)
