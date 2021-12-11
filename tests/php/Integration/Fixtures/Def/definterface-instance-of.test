@@ -1,0 +1,76 @@
+--PHEL--
+(ns interface-instance)
+
+(definterface IPlayer
+  (choose [p] "Choose docs")
+  (update-strategy [p me you]))
+
+(php/instanceof "foo" IPlayer)
+--PHP--
+namespace interface_instance;
+require_once __DIR__ . '/../phel/core.php';
+\Phel\Compiler\Analyzer\Environment\GlobalEnvironmentSingleton::getInstance()->setNs("interface-instance");
+$GLOBALS["__phel"]["phel\\core"]["*ns*"] = "interface_instance";
+interface IPlayer {
+  public function choose();
+  public function update_strategy($me, $you);
+}
+
+$GLOBALS["__phel"]["interface_instance"]["choose"] = new class() extends \Phel\Lang\AbstractFn {
+  public const BOUND_TO = "interface_instance\\choose";
+
+  public function __invoke($p) {
+    if (\Phel\Lang\Truthy::isTruthy(is_a($p, "interface_instance\\IPlayer"))) {
+      return (function() use($p) {
+        $target_1 = $p;
+        return $target_1->choose();
+      })();
+    } else {
+      throw (new \InvalidArgumentException("Value doesn't implement interface IPlayer"));
+    }
+
+  }
+};
+$GLOBALS["__phel_meta"]["interface_instance"]["choose"] = \Phel\Lang\TypeFactory::getInstance()->persistentMapFromKVs(
+  \Phel\Lang\Keyword::create("doc"), "```phel\n(choose p)\n```\nChoose docs",
+  \Phel\Lang\Keyword::create("start-location"), \Phel\Lang\TypeFactory::getInstance()->persistentMapFromKVs(
+    \Phel\Lang\Keyword::create("file"), "Def/definterface-instance-of.test",
+    \Phel\Lang\Keyword::create("line"), 3,
+    \Phel\Lang\Keyword::create("column"), 0
+  ),
+  \Phel\Lang\Keyword::create("end-location"), \Phel\Lang\TypeFactory::getInstance()->persistentMapFromKVs(
+    \Phel\Lang\Keyword::create("file"), "Def/definterface-instance-of.test",
+    \Phel\Lang\Keyword::create("line"), 5,
+    \Phel\Lang\Keyword::create("column"), 31
+  )
+);
+
+$GLOBALS["__phel"]["interface_instance"]["update-strategy"] = new class() extends \Phel\Lang\AbstractFn {
+  public const BOUND_TO = "interface_instance\\update_strategy";
+
+  public function __invoke($p, $me, $you) {
+    if (\Phel\Lang\Truthy::isTruthy(is_a($p, "interface_instance\\IPlayer"))) {
+      return (function() use($p,$me,$you) {
+        $target_2 = $p;
+        return $target_2->update_strategy($me, $you);
+      })();
+    } else {
+      throw (new \InvalidArgumentException("Value doesn't implement interface IPlayer"));
+    }
+
+  }
+};
+$GLOBALS["__phel_meta"]["interface_instance"]["update-strategy"] = \Phel\Lang\TypeFactory::getInstance()->persistentMapFromKVs(
+  \Phel\Lang\Keyword::create("doc"), "```phel\n(update-strategy p me you)\n```\n",
+  \Phel\Lang\Keyword::create("start-location"), \Phel\Lang\TypeFactory::getInstance()->persistentMapFromKVs(
+    \Phel\Lang\Keyword::create("file"), "Def/definterface-instance-of.test",
+    \Phel\Lang\Keyword::create("line"), 3,
+    \Phel\Lang\Keyword::create("column"), 0
+  ),
+  \Phel\Lang\Keyword::create("end-location"), \Phel\Lang\TypeFactory::getInstance()->persistentMapFromKVs(
+    \Phel\Lang\Keyword::create("file"), "Def/definterface-instance-of.test",
+    \Phel\Lang\Keyword::create("line"), 5,
+    \Phel\Lang\Keyword::create("column"), 31
+  )
+);
+("foo" instanceof \interface_instance\IPlayer);
