@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Phel\Command;
 
 use Gacela\Framework\AbstractFacade;
+use Phel\Command\Shared\Exceptions\ExceptionPrinterInterface;
 use Phel\Compiler\Exceptions\AbstractLocatedException;
 use Phel\Compiler\Exceptions\CompilerException;
 use Phel\Compiler\Parser\ReadModel\CodeSnippet;
@@ -49,7 +50,7 @@ final class CommandFacade extends AbstractFacade implements CommandFacadeInterfa
 
     public function registerExceptionHandler(): void
     {
-        $exceptionPrinter = $this->getFactory()->createExceptionPrinter();
+        $exceptionPrinter = $this->getExceptionPrinter();
 
         set_exception_handler(function (Throwable $exception) use ($exceptionPrinter): void {
             if ($exception instanceof CompilerException) {
@@ -58,6 +59,14 @@ final class CommandFacade extends AbstractFacade implements CommandFacadeInterfa
                 $exceptionPrinter->printStackTrace($exception);
             }
         });
+    }
+
+    /**
+     * We want to expose the ExceptionPrinter to `src/phel/test.phel` to be able to print the stack trace.
+     */
+    public function getExceptionPrinter(): ExceptionPrinterInterface
+    {
+        return $this->getFactory()->createExceptionPrinter();
     }
 
     public function getSourceDirectories(): array
