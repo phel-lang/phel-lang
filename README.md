@@ -22,7 +22,25 @@
 
 ---
 
-Phel is a functional programming language that compiles to PHP. It is a dialect of Lisp inspired by [Clojure](https://clojure.org/) and [Janet](https://janet-lang.org/).
+[Phel](https://phel-lang.org/) is an [FP](https://en.wikipedia.org/wiki/Functional_programming) language that compiles to PHP.
+It is a dialect of Lisp inspired by [Clojure](https://clojure.org/) and [Janet](https://janet-lang.org/).
+
+#### Example
+<!-- using "clojure" here is just for the md coloring -->
+```clojure
+# Define a namespace
+(ns my\example)
+
+# Define a variable with name "my-name" and value "world"
+(def my-name "world")
+
+# Define a function with name "print-name" and one argument "your-name"
+(defn print-name [your-name]
+  (print "hello" your-name))
+
+# Call the function
+(print-name my-name)
+```
 
 ## Documentation
 
