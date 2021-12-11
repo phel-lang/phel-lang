@@ -22,8 +22,8 @@
 
 ---
 
-[Phel](https://phel-lang.org/) is an [FP](https://en.wikipedia.org/wiki/Functional_programming) language that compiles to PHP.
-It is a dialect of Lisp inspired by [Clojure](https://clojure.org/) and [Janet](https://janet-lang.org/).
+[Phel](https://phel-lang.org/) is a functional programming language that compiles to PHP.
+It is a dialect of [Lisp](https://en.wikipedia.org/wiki/Lisp_(programming_language)) inspired by [Clojure](https://clojure.org/) and [Janet](https://janet-lang.org/).
 
 #### Example
 <!-- using "clojure" here is just for the md coloring -->
