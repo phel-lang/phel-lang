@@ -9,9 +9,7 @@ name: CI
 jobs:
   coding-guidelines:
     name: Coding Guidelines
-
     runs-on: ubuntu-latest
-
     steps:
       - name: Checkout
         uses: actions/checkout@v2
@@ -30,9 +28,7 @@ jobs:
 
   type-checker:
     name: Type Checker
-
     runs-on: ubuntu-latest
-
     steps:
       - name: Checkout
         uses: actions/checkout@v2
@@ -49,14 +45,13 @@ jobs:
       - name: Run vimeo/psalm on internal code
         run: ./vendor/bin/psalm --config=psalm.xml --no-progress --shepherd --show-info=false --stats
 
-  tests:
+  compiler-tests:
+    name: Compiler tests on PHP ${{ matrix.php }}
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
       matrix:
-        operating-system: [ 'ubuntu-latest', 'windows-latest', 'macos-latest' ]
         php: [ '7.4', '8.0' ]
-    name: Tests on PHP ${{ matrix.php }} - ${{ matrix.operating-system }}
     steps:
       - name: Checkout
         uses: actions/checkout@v2
@@ -76,8 +71,48 @@ jobs:
       - name: Run integration tests to the compiler itself
         run: vendor/bin/phpunit --testsuite integration
 
+  core-tests:
+    name: Core tests on PHP ${{ matrix.php }}
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        php: [ '7.4', '8.0' ]
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - name: Install PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ matrix.php }}
+          coverage: none
+
+      - name: Install dependencies
+        run: composer install --no-interaction --no-ansi --no-progress
+
       - name: Run tests to the core library
         run: composer run-script test-core
+
+  bench-tests:
+    name: Bench tests on PHP ${{ matrix.php }}
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        php: [ '7.4', '8.0' ]
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - name: Install PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ matrix.php }}
+          coverage: none
+
+      - name: Install dependencies
+        run: composer install --no-interaction --no-ansi --no-progress
 
       - name: Run PHPBench
         run: vendor/bin/phpbench run --iterations=3 --warmup=1 --report=aggregate
