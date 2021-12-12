@@ -9,66 +9,69 @@ name: CI
 jobs:
   coding-guidelines:
     name: Coding Guidelines
-
     runs-on: ubuntu-latest
-
+    strategy:
+      fail-fast: false
+      matrix:
+        php: [ '7.4' ]
     steps:
-      - name: Checkout
-        uses: actions/checkout@v2
+      - uses: actions/checkout@v2
 
-      - name: Install PHP
-        uses: shivammathur/setup-php@v2
+      - name: Cache Composer dependencies
+        uses: actions/cache@v2
         with:
-          php-version: 7.4
-          coverage: none
+          path: /tmp/composer-cache
+          key: ${{ runner.os }}-${{ matrix.php }}-${{ hashFiles('**/composer.lock') }}
 
-      - name: Install dependencies
-        run: composer install --no-interaction --no-ansi --no-progress
+      - uses: php-actions/composer@v6
+        with:
+          php_version: ${{ matrix.php }}
 
       - name: Run friendsofphp/php-cs-fixer
         run: ./vendor/bin/php-cs-fixer fix --allow-risky=yes --dry-run --show-progress=dots --using-cache=no --verbose
 
   type-checker:
     name: Type Checker
-
-    runs-on: ubuntu-latest
-
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v2
-
-      - name: Install PHP
-        uses: shivammathur/setup-php@v2
-        with:
-          php-version: 7.4
-          coverage: none
-
-      - name: Install dependencies
-        run: composer install --no-interaction --no-ansi --no-progress
-
-      - name: Run vimeo/psalm on internal code
-        run: ./vendor/bin/psalm --config=psalm.xml --no-progress --shepherd --show-info=false --stats
-
-  tests:
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
       matrix:
-        operating-system: [ 'ubuntu-latest', 'windows-latest', 'macos-latest' ]
-        php: [ '7.4', '8.0' ]
-    name: Tests on PHP ${{ matrix.php }} - ${{ matrix.operating-system }}
+        php: [ '7.4' ]
     steps:
-      - name: Checkout
-        uses: actions/checkout@v2
+      - uses: actions/checkout@v2
 
-      - name: Install PHP
-        uses: shivammathur/setup-php@v2
+      - name: Cache Composer dependencies
+        uses: actions/cache@v2
         with:
-          php-version: ${{ matrix.php }}
-          coverage: none
+          path: /tmp/composer-cache
+          key: ${{ runner.os }}-${{ matrix.php }}-${{ hashFiles('**/composer.lock') }}
 
-      - name: Install dependencies
-        run: composer install --no-interaction --no-ansi --no-progress
+      - uses: php-actions/composer@v6
+        with:
+          php_version: ${{ matrix.php }}
+
+      - name: Run vimeo/psalm on internal code
+        run: ./vendor/bin/psalm --config=psalm.xml --no-progress --shepherd --show-info=false --stats
+
+  compiler-tests:
+    name: Compiler tests on PHP ${{ matrix.php }}
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        php: [ '7.4', '8.0' ]
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Cache Composer dependencies
+        uses: actions/cache@v2
+        with:
+          path: /tmp/composer-cache
+          key: ${{ runner.os }}-${{ matrix.php }}-${{ hashFiles('**/composer.lock') }}
+
+      - uses: php-actions/composer@v6
+        with:
+          php_version: ${{ matrix.php }}
 
       - name: Run unit tests to the compiler itself
         run: vendor/bin/phpunit --testsuite unit
@@ -76,8 +79,48 @@ jobs:
       - name: Run integration tests to the compiler itself
         run: vendor/bin/phpunit --testsuite integration
 
+  core-tests:
+    name: Core tests on PHP ${{ matrix.php }}
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        php: [ '7.4', '8.0' ]
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Cache Composer dependencies
+        uses: actions/cache@v2
+        with:
+          path: /tmp/composer-cache
+          key: ${{ runner.os }}-${{ matrix.php }}-${{ hashFiles('**/composer.lock') }}
+
+      - uses: php-actions/composer@v6
+        with:
+          php_version: ${{ matrix.php }}
+
       - name: Run tests to the core library
         run: composer run-script test-core
+
+  bench-tests:
+    name: Bench tests on PHP ${{ matrix.php }}
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        php: [ '7.4', '8.0' ]
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Cache Composer dependencies
+        uses: actions/cache@v2
+        with:
+          path: /tmp/composer-cache
+          key: ${{ runner.os }}-${{ matrix.php }}-${{ hashFiles('**/composer.lock') }}
+
+      - uses: php-actions/composer@v6
+        with:
+          php_version: ${{ matrix.php }}
 
       - name: Run PHPBench
         run: vendor/bin/phpbench run --iterations=3 --warmup=1 --report=aggregate
