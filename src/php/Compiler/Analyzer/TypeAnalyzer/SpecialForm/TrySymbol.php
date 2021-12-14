@@ -86,6 +86,12 @@ final class TrySymbol implements SpecialFormAnalyzerInterface
                 throw AnalyzerException::withLocation("Second argument of 'catch must be a Symbol", $catch);
             }
 
+            $resolvedType = $this->analyzer->resolve($type, $env);
+
+            if (!$resolvedType) {
+                throw AnalyzerException::withLocation('Can not resolve type ' . $type->getName(), $catch);
+            }
+
             $exprs = [Symbol::create(Symbol::NAME_DO), ...$catch->rest()->rest()->rest()->toArray()];
 
             $catchBody = $this->analyzer->analyze(
@@ -97,7 +103,7 @@ final class TrySymbol implements SpecialFormAnalyzerInterface
 
             $catchNodes[] = new CatchNode(
                 $env,
-                $type,
+                $resolvedType,
                 $name,
                 $catchBody,
                 $catch->getStartLocation()

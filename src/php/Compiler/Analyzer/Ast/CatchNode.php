@@ -10,13 +10,13 @@ use Phel\Lang\Symbol;
 
 final class CatchNode extends AbstractNode
 {
-    private Symbol $type;
+    private AbstractNode $type;
     private Symbol $name;
     private AbstractNode $body;
 
     public function __construct(
         NodeEnvironmentInterface $env,
-        Symbol $type,
+        AbstractNode $type,
         Symbol $name,
         AbstractNode $body,
         ?SourceLocation $sourceLocation = null
@@ -27,7 +27,7 @@ final class CatchNode extends AbstractNode
         $this->body = $body;
     }
 
-    public function getType(): Symbol
+    public function getType(): AbstractNode
     {
         return $this->type;
     }

@@ -95,6 +95,10 @@ final class NsSymbol implements SpecialFormAnalyzerInterface
             throw AnalyzerException::withLocation('First argument in :use must be a symbol.', $import);
         }
 
+        if ($useSymbol->getName()[0] !== '\\') {
+            $useSymbol = Symbol::createForNamespace($useSymbol->getNamespace(), '\\' . $useSymbol->getName());
+        }
+
         $useData = TypeFactory::getInstance()->persistentMapFromKVs(...$import->toArray());
         $alias = $this->extractAlias($useData, $import, 'use');
         $this->analyzer->addUseAlias($ns, $alias, $useSymbol);

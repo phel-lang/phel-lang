@@ -10,4 +10,4 @@ namespace test;
 require_once __DIR__ . '/../phel/core.php';
 \Phel\Compiler\Analyzer\Environment\GlobalEnvironmentSingleton::getInstance()->setNs("test");
 $GLOBALS["__phel"]["phel\\core"]["*ns*"] = "test";
-(new DateTimeImmutable());(new DateTime());
+(new \DateTimeImmutable());(new \DateTime());

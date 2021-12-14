@@ -17,7 +17,7 @@ final class CatchEmitter implements NodeEmitterInterface
         assert($node instanceof CatchNode);
 
         $this->outputEmitter->emitStr(' catch (', $node->getStartSourceLocation());
-        $this->outputEmitter->emitStr($node->getType()->getName(), $node->getType()->getStartLocation());
+        $this->outputEmitter->emitNode($node->getType());
         $this->outputEmitter->emitStr(
             ' $' . $this->outputEmitter->mungeEncode($node->getName()->getName()),
             $node->getName()->getStartLocation()

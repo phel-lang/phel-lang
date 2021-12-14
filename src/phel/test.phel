@@ -1,8 +1,7 @@
 (ns phel\test
   (:use Phel\Lang\Symbol)
   (:use Phel\Compiler\Emitter\OutputEmitter\Munge)
-  (:use Phel\Command\CommandFacade)
-  (:use Throwable))
+  (:use Phel\Command\CommandFacade))
 
 # ------
 # Report
@@ -176,7 +175,7 @@
   [form & [message]]
   (let [loc (location form) e (gensym)]
     `(try ,(assert-expr form message)
-          (catch Throwable ,e
+          (catch \Throwable ,e
             (report {:state :error
                      :location ,loc
                      :message ,message
