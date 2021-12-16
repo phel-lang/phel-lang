@@ -17,15 +17,25 @@ jobs:
     steps:
       - uses: actions/checkout@v2
 
-      - name: Cache Composer dependencies
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ matrix.php }}
+          coverage: none
+          tools: composer
+      
+      - name: Get composer cache directory
+        id: composer-cache
+        run: echo "::set-output name=dir::$(composer config cache-files-dir)"
+
+      - name: Cache dependencies
         uses: actions/cache@v2
         with:
-          path: /tmp/composer-cache
-          key: ${{ runner.os }}-${{ matrix.php }}-${{ hashFiles('**/composer.lock') }}
-
-      - uses: php-actions/composer@v6
-        with:
-          php_version: ${{ matrix.php }}
+          path: ${{ steps.composer-cache.outputs.dir }}
+          key: ${{ runner.os }}-composer-${{ hashFiles('**/composer.lock') }}
+          restore-keys: ${{ runner.os }}-composer-
+          
+      - name: Install dependencies
+        run: composer install --no-interaction --no-ansi --no-progress
 
       - name: Run friendsofphp/php-cs-fixer
         run: ./vendor/bin/php-cs-fixer fix --allow-risky=yes --dry-run --show-progress=dots --using-cache=no --verbose
@@ -40,15 +50,25 @@ jobs:
     steps:
       - uses: actions/checkout@v2
 
-      - name: Cache Composer dependencies
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ matrix.php }}
+          coverage: none
+          tools: composer
+      
+      - name: Get composer cache directory
+        id: composer-cache
+        run: echo "::set-output name=dir::$(composer config cache-files-dir)"
+
+      - name: Cache dependencies
         uses: actions/cache@v2
         with:
-          path: /tmp/composer-cache
-          key: ${{ runner.os }}-${{ matrix.php }}-${{ hashFiles('**/composer.lock') }}
-
-      - uses: php-actions/composer@v6
-        with:
-          php_version: ${{ matrix.php }}
+          path: ${{ steps.composer-cache.outputs.dir }}
+          key: ${{ runner.os }}-composer-${{ hashFiles('**/composer.lock') }}
+          restore-keys: ${{ runner.os }}-composer-
+          
+      - name: Install dependencies
+        run: composer install --no-interaction --no-ansi --no-progress
 
       - name: Run vimeo/psalm on internal code
         run: ./vendor/bin/psalm --config=psalm.xml --no-progress --shepherd --show-info=false --stats
@@ -63,15 +83,25 @@ jobs:
     steps:
       - uses: actions/checkout@v2
 
-      - name: Cache Composer dependencies
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ matrix.php }}
+          coverage: none
+          tools: composer
+      
+      - name: Get composer cache directory
+        id: composer-cache
+        run: echo "::set-output name=dir::$(composer config cache-files-dir)"
+
+      - name: Cache dependencies
         uses: actions/cache@v2
         with:
-          path: /tmp/composer-cache
-          key: ${{ runner.os }}-${{ matrix.php }}-${{ hashFiles('**/composer.lock') }}
-
-      - uses: php-actions/composer@v6
-        with:
-          php_version: ${{ matrix.php }}
+          path: ${{ steps.composer-cache.outputs.dir }}
+          key: ${{ runner.os }}-composer-${{ hashFiles('**/composer.lock') }}
+          restore-keys: ${{ runner.os }}-composer-
+          
+      - name: Install dependencies
+        run: composer install --no-interaction --no-ansi --no-progress
 
       - name: Run unit tests to the compiler itself
         run: vendor/bin/phpunit --testsuite unit
@@ -89,15 +119,25 @@ jobs:
     steps:
       - uses: actions/checkout@v2
 
-      - name: Cache Composer dependencies
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ matrix.php }}
+          coverage: none
+          tools: composer
+      
+      - name: Get composer cache directory
+        id: composer-cache
+        run: echo "::set-output name=dir::$(composer config cache-files-dir)"
+
+      - name: Cache dependencies
         uses: actions/cache@v2
         with:
-          path: /tmp/composer-cache
-          key: ${{ runner.os }}-${{ matrix.php }}-${{ hashFiles('**/composer.lock') }}
-
-      - uses: php-actions/composer@v6
-        with:
-          php_version: ${{ matrix.php }}
+          path: ${{ steps.composer-cache.outputs.dir }}
+          key: ${{ runner.os }}-composer-${{ hashFiles('**/composer.lock') }}
+          restore-keys: ${{ runner.os }}-composer-
+          
+      - name: Install dependencies
+        run: composer install --no-interaction --no-ansi --no-progress
 
       - name: Run tests to the core library
         run: composer run-script test-core
@@ -112,15 +152,25 @@ jobs:
     steps:
       - uses: actions/checkout@v2
 
-      - name: Cache Composer dependencies
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ matrix.php }}
+          coverage: none
+          tools: composer
+      
+      - name: Get composer cache directory
+        id: composer-cache
+        run: echo "::set-output name=dir::$(composer config cache-files-dir)"
+
+      - name: Cache dependencies
         uses: actions/cache@v2
         with:
-          path: /tmp/composer-cache
-          key: ${{ runner.os }}-${{ matrix.php }}-${{ hashFiles('**/composer.lock') }}
-
-      - uses: php-actions/composer@v6
-        with:
-          php_version: ${{ matrix.php }}
+          path: ${{ steps.composer-cache.outputs.dir }}
+          key: ${{ runner.os }}-composer-${{ hashFiles('**/composer.lock') }}
+          restore-keys: ${{ runner.os }}-composer-
+          
+      - name: Install dependencies
+        run: composer install --no-interaction --no-ansi --no-progress
 
       - name: Run PHPBench
         run: vendor/bin/phpbench run --iterations=3 --warmup=1 --report=aggregate
