@@ -4,10 +4,12 @@ All notable changes to this project will be documented in this file.
 
 ## Unreleased
 
-* Support for variables.
-* Support for namespaced keywords.
-* Support for interfaces and their usage in structs.
-* A compile command
+## 0.5.0 (2021-12-17)
+
+* Added variables.
+* Added namespaced keywords.
+* Added interfaces and their usage in structs.
+* Added a compile command
 
 ## 0.4.0 (2021-10-05)
 
