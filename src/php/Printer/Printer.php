@@ -9,6 +9,7 @@ use Phel\Lang\Collections\LinkedList\PersistentListInterface;
 use Phel\Lang\Collections\Map\PersistentMapInterface;
 use Phel\Lang\Collections\Struct\AbstractPersistentStruct;
 use Phel\Lang\Collections\Vector\PersistentVectorInterface;
+use Phel\Lang\FnInterface;
 use Phel\Lang\Keyword;
 use Phel\Lang\PhelArray;
 use Phel\Lang\Set;
@@ -17,7 +18,7 @@ use Phel\Lang\Table;
 use Phel\Printer\TypePrinter\AnonymousClassPrinter;
 use Phel\Printer\TypePrinter\ArrayPrinter;
 use Phel\Printer\TypePrinter\BooleanPrinter;
-use Phel\Printer\TypePrinter\CallablePrinter;
+use Phel\Printer\TypePrinter\FnPrinter;
 use Phel\Printer\TypePrinter\KeywordPrinter;
 use Phel\Printer\TypePrinter\NonPrintableClassPrinter;
 use Phel\Printer\TypePrinter\NullPrinter;
@@ -127,8 +128,8 @@ final class Printer implements PrinterInterface
         if (method_exists($form, '__toString')) {
             return new ToStringPrinter();
         }
-        if (is_callable($form)) {
-            return new CallablePrinter();
+        if ($form instanceof FnInterface) {
+            return new FnPrinter();
         }
         if ((new ReflectionClass($form))->isAnonymous()) {
             return new AnonymousClassPrinter();

@@ -7,7 +7,7 @@ namespace Phel\Printer\TypePrinter;
 /**
  * @implements TypePrinterInterface<object>
  */
-final class CallablePrinter implements TypePrinterInterface
+final class FnPrinter implements TypePrinterInterface
 {
     /**
      * @param object $form
