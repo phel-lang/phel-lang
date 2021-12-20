@@ -34,3 +34,7 @@
     {0 0 1 1 2 2 3 3 4 4 5 5 6 6 7 7 8 8 9 9 10 10 11 11 12 12 13 13 14 14 15 15 16 16 17 17 18 18 19 19}
     (let [x (transient {})] (for [i :range [0 20]] (put x i i)) (persistent x)))
     "for loop with transient map"))
+
+(deftest test-reduce
+  (is (= 6 (for [x :in [1 2 3] :reduce [acc 0]] (+ acc x))) "for loop reduce sum")
+  (is (= "123" (for [x :in [1 2 3] :reduce [acc ""]] (str acc x))) "for loop reduce str"))

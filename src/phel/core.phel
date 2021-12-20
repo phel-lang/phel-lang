@@ -806,6 +806,38 @@ arrays. Use (php/aunset ds key)"))
       x)))
 
 # --------
+# Variable
+# --------
+
+(defn var
+  "Creates a new variable with the give value"
+  [value]
+  (php/-> (php/:: TypeFactory (getInstance)) (variable value)))
+
+(defn var?
+  "Checks if the given value is a variable"
+  [x]
+  (php/instanceof x Variable))
+
+(defn set!
+  "Sets a new value to the given variable"
+  [variable value]
+  (php/-> variable (set value)))
+
+(defn deref
+  "Return the value inside the variable"
+  [variable]
+  (php/-> variable (deref)))
+
+(defn swap!
+  "Swaps the value of the variable to (apply f current-value args). Returns the values that is swapped in."
+  [variable f & args]
+  (let [current (deref variable)
+        next (apply f current args)]
+    (set! variable next)
+    next))
+
+# --------
 # For loop
 # --------
 
@@ -830,6 +862,18 @@ arrays. Use (php/aunset ds key)"))
             (persistent res))))
     (throw (php/new InvalidArgumentException "Range function expects one, two or three arguments"))))
 
+(def- for-options (set :reduce))
+
+(defn- for-builder-options [head i initial-options]
+  (if (<= (count head) i)
+    initial-options
+    (let [@[i binding (php/+ i 1) verb] head]
+      (if (keyword? binding)
+        (case binding
+          :reduce (for-builder-options head (php/+ i 2) (put initial-options :reduce verb))
+          (for-builder-options head (php/+ i 2) initial-options))
+        (for-builder-options head (php/+ i 3) initial-options)))))
+
 (defn- for-builder [body head i]
   (if (<= (count head) i)
     # No more heads, return the body
@@ -837,8 +881,13 @@ arrays. Use (php/aunset ds key)"))
 
     # Handle heads
     (let [@[i binding (php/+ i 1) verb] head]
-      (if (keyword? binding)
-        # Case 1: Modifiers
+      (cond
+        # Case 1: Options
+        (and (keyword? binding) (contains? for-options binding))
+        (for-builder body head (php/+ i 2))
+
+        # Case 2: Modifiers
+        (keyword? binding)
         (let [rest (for-builder body head (php/+ i 2))]
           (case binding
             :while  `(if ,verb ,rest php/break)
@@ -846,7 +895,7 @@ arrays. Use (php/aunset ds key)"))
             :when   `(when ,verb ,rest)
             (throw (php/new InvalidArgumentException (str "This modifier is not supported in for loop: " verb)))))
 
-        # Case 2: Verbs
+        # Case 3: Verbs
         (let [@[(php/+ i 2) object] head
               rest (for-builder body head (php/+ i 3))
               value-sym (gensym)]
@@ -862,29 +911,42 @@ arrays. Use (php/aunset ds key)"))
 
 (defmacro for
   "List comprehension. The head of the loop is a vector that contains a
-  sequence of bindings and modifiers. A binding is a sequence of three
+  sequence of bindings modifiers and options. A binding is a sequence of three
   values `binding :verb expr`. Where `binding` is a binding as
   in let and `:verb` is one of the following keywords:
 
-  * :range loop over a range by using the range function.
-  * :in loops over all values of a collection.
-  * :keys loops over all keys/indexes of a collection.
-  * :pairs loops over all key value pairs of a collection.
+  * `:range` loop over a range by using the range function.
+  * `:in` loops over all values of a collection.
+  * `:keys` loops over all keys/indexes of a collection.
+  * `:pairs` loops over all key value pairs of a collection.
 
   After each loop binding additional modifiers can be applied. Modifiers
   have the form `:modifier argument`. The following modifiers are supported:
 
-  * :while breaks the loop if the expression is falsy.
-  * :let defines additional bindings.
-  * :when only evaluates the loop body if the condition is true.
+  * `:while` breaks the loop if the expression is falsy.
+  * `:let` defines additional bindings.
+  * `:when` only evaluates the loop body if the condition is true.
 
-  The for loops returns a array with all evaluated elements of the body."
+  Finally, additional options can be set:
+
+  * `:reduce [accumlator initial-value]` Instead of returning a list
+     it reduces the the values into `accumlator`. Initialially `accumlator`
+     is bound to `inital-value`."
   [head & body]
   (let [res-sym (gensym "res__")
-        loop-body (for-builder `(push ,res-sym (do ,@body)) head 0)]
-    `(let [,res-sym (transient [])]
+        acc-sym (gensym "acc__")
+        options (for-builder-options head 0 {})
+        swap-body (if (:reduce options)
+                    (let [[sym _] (:reduce options)]
+                      `(swap! ,res-sym (fn [,sym] (do ,@body))))
+                    `(swap! ,res-sym (fn [,acc-sym] (push ,acc-sym (do ,@body)))))
+        init (if (:reduce options)
+              (second (:reduce options))
+              [])
+        loop-body (for-builder swap-body head 0)]
+    `(let [,res-sym (var ,init)]
        ,loop-body
-       (persistent ,res-sym))))
+       (deref ,res-sym))))
 
 (defmacro dofor
   "Repeatedly executes body for side effects with bindings and modifiers as
@@ -930,9 +992,8 @@ collection in map"))
   the element of `xs`. `f` returns a value that will be used as the initial value of the next call to `f`. The final
   value of `f` is returned."
   [f init xs]
-  (if (= (count xs) 0)
-    init
-    (recur f (f init (first xs)) (next xs))))
+  (for [x :in xs :reduce [acc init]]
+    (f acc x)))
 
 (defn reduce2
   "The 2-argument version of reduce that does not take a initialization value.
@@ -1067,10 +1128,9 @@ collection in map"))
 (defn reverse
   "Reverses the order of the elements in the given sequence."
   [xs]
-  (let [ret (transient [])]
-    (dofor [i :range [(php/- (count xs) 1) -1 -1]]
-      (push ret (get xs i)))
-    (persistent ret)))
+  (for [i :range [(php/- (count xs) 1) -1 -1]
+        :reduce [ret []]]
+    (push ret (get xs i))))
 
 (defn interleave
   "Returns a array with the first items of each col, than the second items etc."
@@ -1085,20 +1145,20 @@ collection in map"))
 (defn interpose
   "Returns an array of elements separated by `sep`"
   [sep xs]
-  (let [res (transient [])]
-    (dofor [[k v] :pairs xs]
+  (persistent
+    (for [[k v] :pairs xs
+          :reduce [res (transient [])]]
       (when (> k 0)
-        (push res sep))
-      (push res v))
-    (persistent res)))
+        (push res sep v))
+      (push res v))))
 
 (defn frequencies
   "Returns a table from distinct items in `xs` to the number of times they appear."
   [xs]
-  (let [res (transient {})]
-    (dofor [x :in xs :let [n (get res x)]]
-      (put res x (php/+ 1 (or n 0))))
-    (persistent res)))
+  (for [x :in xs
+        :reduce [res {}]]
+    (let [n (get res x 0)]
+      (put res x (php/+ 1 n)))))
 
 (defn keys
   "Gets the keys of an associative data structure."
@@ -1118,11 +1178,11 @@ collection in map"))
 (defn kvs
   "Returns an array of key value pairs like [k1 v1 k2 v2 k3 v3 ...]."
   [xs]
-  (let [res (transient [])]
-    (dofor [[k v] :pairs xs]
-      (push res k)
-      (push res v))
-    (persistent res)))
+  (persistent
+   (for [[k v] :pairs xs
+         :reduce [res (transient [])]]
+     (push res k)
+     (push res v))))
 
 (defn to-php-array
   "Create a PHP Array from a sequential data structure."
@@ -1177,12 +1237,13 @@ collection in map"))
   "Returns a table of the elements of xs keyed by the result of
   f on each element."
   [f xs]
-  (let [res (transient {})]
-    (dofor [x :in xs :let [k (f x)]]
+  (persistent
+    (for [x :in xs
+          :let [k (f x)]
+          :reduce [res (transient {})]]
       (when-not (get res k)
         (put res k []))
-      (update-in res [k] push x))
-    (persistent res)))
+      (update-in res [k] push x))))
 
 (defn zipcoll
   "Creates a table from two sequential data structures. Return a new table."
@@ -1202,13 +1263,18 @@ collection in map"))
   "Merges multiple tables into one new table. If a key appears in more than one
   collection, then later values replace any previous ones."
   [& tables]
-  (persistent (apply merge-into (transient {}) tables)))
+  (for [table :in tables
+        [k v] :pairs table
+        :reduce [res {}]]
+    (put res k v)))
 
 (defn invert
   "Returns a new table where the keys and values are swapped. If table has
   duplicated values, some keys will be ignored."
   [table]
-  (zipcoll (values table) (keys table)))
+  (for [[k v] :pairs table
+        :reduce [res {}]]
+    (put res v k)))
 
 (defn split-at
   "Returns a vector of [(take n coll) (drop n coll)]."
@@ -1693,38 +1759,6 @@ returns 1. If `xs` has one value, returns the reciprocal of x."
           ,@body
           (finally
             ,@(map bind-value resets))))))
-
-# --------
-# Variable
-# --------
-
-(defn var
-  "Creates a new variable with the give value"
-  [value]
-  (php/-> (php/:: TypeFactory (getInstance)) (variable value)))
-
-(defn var?
-  "Checks if the given value is a variable"
-  [x]
-  (php/instanceof x Variable))
-
-(defn set!
-  "Sets a new value to the given variable"
-  [variable value]
-  (php/-> variable (set value)))
-
-(defn deref
-  "Return the value inside the variable"
-  [variable]
-  (php/-> variable (deref)))
-
-(defn swap!
-  "Swaps the value of the variable to (apply f current-value args). Returns the values that is swapped in."
-  [variable f & args]
-  (let [current (deref variable)
-        next (apply f current args)]
-    (set! variable next)
-    next))
 
 # ----------
 # Interfaces
