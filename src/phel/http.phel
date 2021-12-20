@@ -34,7 +34,7 @@
                  (get server "REQUEST_SCHEME") (get server "REQUEST_SCHEME")
                  (get server "HTTPS") (if (= "on" (get server "HTTPS")) "https" "http"))
         path   (when (get server "REQUEST_URI")
-                 (first (php/explode "?" (get server "REQUEST_URI"))))
+                 (first (php/explode "?" (get server "REQUEST_URI" ""))))
         query  (get server "QUERY_STRING")
         [h p]  (host-and-port-from-globals server)]
     (uri scheme nil h p path query nil)))
@@ -137,7 +137,7 @@
       (throw (php/new InvalidArgumentException "cannot determine HTTP Method")))))
 
 (defn- post-global-valid [method headers]
-  (let [content-type (get headers :content-type)
+  (let [content-type (get headers :content-type "")
         types (php/strtolower (php/trim (first (php/explode ";" content-type 2))))]
     (and
      (= method "POST")

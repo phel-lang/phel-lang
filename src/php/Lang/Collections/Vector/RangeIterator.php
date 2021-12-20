@@ -28,7 +28,7 @@ class RangeIterator implements Iterator
         }
     }
 
-    public function current()
+    public function current(): mixed
     {
         assert($this->currentArray !== null);
         return $this->currentArray[$this->currentIndex & 0x01f];
@@ -55,7 +55,7 @@ class RangeIterator implements Iterator
         $this->currentIndex = $this->start;
     }
 
-    public function key()
+    public function key(): mixed
     {
         return $this->currentIndex;
     }

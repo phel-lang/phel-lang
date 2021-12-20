@@ -22,7 +22,7 @@ jobs:
           php-version: ${{ matrix.php }}
           coverage: none
           tools: composer
-      
+
       - name: Get composer cache directory
         id: composer-cache
         run: echo "::set-output name=dir::$(composer config cache-files-dir)"
@@ -33,7 +33,7 @@ jobs:
           path: ${{ steps.composer-cache.outputs.dir }}
           key: ${{ runner.os }}-composer-${{ hashFiles('**/composer.lock') }}
           restore-keys: ${{ runner.os }}-composer-
-          
+
       - name: Install dependencies
         run: composer install --no-interaction --no-ansi --no-progress
 
@@ -46,7 +46,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        php: [ '8.0' ]
+        php: [ '8.0', '8.1' ]
     steps:
       - uses: actions/checkout@v2
 
@@ -55,7 +55,7 @@ jobs:
           php-version: ${{ matrix.php }}
           coverage: none
           tools: composer
-      
+
       - name: Get composer cache directory
         id: composer-cache
         run: echo "::set-output name=dir::$(composer config cache-files-dir)"
@@ -66,12 +66,12 @@ jobs:
           path: ${{ steps.composer-cache.outputs.dir }}
           key: ${{ runner.os }}-composer-${{ hashFiles('**/composer.lock') }}
           restore-keys: ${{ runner.os }}-composer-
-          
+
       - name: Install dependencies
         run: composer install --no-interaction --no-ansi --no-progress
 
       - name: Run vimeo/psalm on internal code
-        run: ./vendor/bin/psalm --config=psalm.xml --no-progress --shepherd --show-info=false --stats
+        run: ./vendor/bin/psalm --config=psalm.xml --no-progress --shepherd --show-info=false --stats --php-version=${{ matrix.php }}
 
   compiler-tests:
     name: Compiler tests on PHP ${{ matrix.php }}
@@ -79,7 +79,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        php: [ '8.0' ]
+        php: [ '8.0', '8.1' ]
     steps:
       - uses: actions/checkout@v2
 
@@ -88,7 +88,7 @@ jobs:
           php-version: ${{ matrix.php }}
           coverage: none
           tools: composer
-      
+
       - name: Get composer cache directory
         id: composer-cache
         run: echo "::set-output name=dir::$(composer config cache-files-dir)"
@@ -99,7 +99,7 @@ jobs:
           path: ${{ steps.composer-cache.outputs.dir }}
           key: ${{ runner.os }}-composer-${{ hashFiles('**/composer.lock') }}
           restore-keys: ${{ runner.os }}-composer-
-          
+
       - name: Install dependencies
         run: composer install --no-interaction --no-ansi --no-progress
 
@@ -115,7 +115,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        php: [ '8.0' ]
+        php: [ '8.0', '8.1' ]
     steps:
       - uses: actions/checkout@v2
 
@@ -124,7 +124,7 @@ jobs:
           php-version: ${{ matrix.php }}
           coverage: none
           tools: composer
-      
+
       - name: Get composer cache directory
         id: composer-cache
         run: echo "::set-output name=dir::$(composer config cache-files-dir)"
@@ -135,7 +135,7 @@ jobs:
           path: ${{ steps.composer-cache.outputs.dir }}
           key: ${{ runner.os }}-composer-${{ hashFiles('**/composer.lock') }}
           restore-keys: ${{ runner.os }}-composer-
-          
+
       - name: Install dependencies
         run: composer install --no-interaction --no-ansi --no-progress
 
@@ -148,7 +148,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        php: [ '8.0' ]
+        php: [ '8.0', '8.1' ]
     steps:
       - uses: actions/checkout@v2
 
@@ -157,7 +157,7 @@ jobs:
           php-version: ${{ matrix.php }}
           coverage: none
           tools: composer
-      
+
       - name: Get composer cache directory
         id: composer-cache
         run: echo "::set-output name=dir::$(composer config cache-files-dir)"
@@ -168,7 +168,7 @@ jobs:
           path: ${{ steps.composer-cache.outputs.dir }}
           key: ${{ runner.os }}-composer-${{ hashFiles('**/composer.lock') }}
           restore-keys: ${{ runner.os }}-composer-
-          
+
       - name: Install dependencies
         run: composer install --no-interaction --no-ansi --no-progress
 

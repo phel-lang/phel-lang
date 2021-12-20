@@ -28,7 +28,7 @@ class ArrayNodeIterator implements Iterator
     /**
      * @return V
      */
-    public function current()
+    public function current(): mixed
     {
         if ($this->nestedIterator) {
             return $this->nestedIterator->current();
@@ -81,7 +81,7 @@ class ArrayNodeIterator implements Iterator
     /**
      * @return K
      */
-    public function key()
+    public function key(): mixed
     {
         if ($this->nestedIterator) {
             return $this->nestedIterator->key();

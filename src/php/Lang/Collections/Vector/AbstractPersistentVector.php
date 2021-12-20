@@ -106,7 +106,7 @@ abstract class AbstractPersistentVector extends AbstractType implements Persiste
      *
      * @return mixed|null
      */
-    public function offsetGet($offset)
+    public function offsetGet($offset): mixed
     {
         return $this->get($offset);
     }

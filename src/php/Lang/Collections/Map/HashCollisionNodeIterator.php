@@ -26,7 +26,7 @@ class HashCollisionNodeIterator implements Iterator
     /**
      * @return V
      */
-    public function current()
+    public function current(): mixed
     {
         /** @var V $result */
         $result = $this->entries[$this->index + 1];
@@ -51,7 +51,7 @@ class HashCollisionNodeIterator implements Iterator
     /**
      * @return K
      */
-    public function key()
+    public function key(): mixed
     {
         /** @var K $result */
         $result = $this->entries[$this->index];

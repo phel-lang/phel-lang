@@ -36,7 +36,7 @@ class ArrayNode implements HashMapNodeInterface, Countable
         return new self($hasher, $equalizer, 0, []);
     }
 
-    public function count()
+    public function count(): int
     {
         return $this->count;
     }

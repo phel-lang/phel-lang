@@ -45,7 +45,7 @@ final class Set extends AbstractType implements
         return count($this->data);
     }
 
-    public function current()
+    public function current(): mixed
     {
         return current($this->data);
     }
@@ -56,7 +56,7 @@ final class Set extends AbstractType implements
         next($this->data);
     }
 
-    public function key()
+    public function key(): mixed
     {
         return $this->currentIndex;
     }

@@ -119,7 +119,7 @@ class TransientArrayMap implements TransientMapInterface
      *
      * @return V|null
      */
-    public function offsetGet($offset)
+    public function offsetGet($offset): mixed
     {
         return $this->find($offset);
     }

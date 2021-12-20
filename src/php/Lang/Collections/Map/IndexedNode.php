@@ -6,6 +6,7 @@ namespace Phel\Lang\Collections\Map;
 
 use Phel\Lang\EqualizerInterface;
 use Phel\Lang\HasherInterface;
+use Traversable;
 
 /**
  * @template K
@@ -264,7 +265,7 @@ class IndexedNode implements HashMapNodeInterface
         return $hash >> $shift & 0x01f;
     }
 
-    public function getIterator()
+    public function getIterator(): Traversable
     {
         return new IndexedNodeIterator($this->objects);
     }

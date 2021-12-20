@@ -78,7 +78,7 @@ class Table extends AbstractType implements ArrayAccess, Countable, Iterator, Se
      *
      * @return mixed|null
      */
-    public function offsetGet($offset)
+    public function offsetGet($offset): mixed
     {
         $hash = $this->offsetHash($offset);
 
@@ -90,7 +90,7 @@ class Table extends AbstractType implements ArrayAccess, Countable, Iterator, Se
         return count($this->data);
     }
 
-    public function current()
+    public function current(): mixed
     {
         return current($this->data);
     }
@@ -98,7 +98,7 @@ class Table extends AbstractType implements ArrayAccess, Countable, Iterator, Se
     /**
      * @return mixed|null
      */
-    public function key()
+    public function key(): mixed
     {
         $key = key($this->data);
 
