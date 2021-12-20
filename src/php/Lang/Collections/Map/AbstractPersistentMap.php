@@ -95,7 +95,7 @@ abstract class AbstractPersistentMap extends AbstractType implements PersistentM
      *
      * @return V|null
      */
-    public function offsetGet($offset)
+    public function offsetGet($offset): mixed
     {
         return $this->find($offset);
     }

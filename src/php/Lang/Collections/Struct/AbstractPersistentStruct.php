@@ -14,6 +14,7 @@ use Phel\Lang\Collections\Map\TransientMapInterface;
 use Phel\Lang\Keyword;
 use Phel\Lang\TypeFactory;
 use Phel\Printer\Printer;
+use Traversable;
 
 /**
  * @template V
@@ -65,7 +66,7 @@ abstract class AbstractPersistentStruct extends AbstractPersistentMap
         return $newInstance;
     }
 
-    public function count()
+    public function count(): int
     {
         return count(static::ALLOWED_KEYS);
     }
@@ -76,7 +77,7 @@ abstract class AbstractPersistentStruct extends AbstractPersistentMap
         return $this->{$stringKey};
     }
 
-    public function getIterator()
+    public function getIterator(): Traversable
     {
         foreach (static::ALLOWED_KEYS as $key) {
             yield TypeFactory::getInstance()->keyword($key) => $this->{$this->munge->encode($key)};

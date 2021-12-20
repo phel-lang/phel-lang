@@ -28,7 +28,7 @@ final class TokenStream implements Iterator
         $this->readTokens[] = $this->tokenGenerator->current();
     }
 
-    public function key()
+    public function key(): mixed
     {
         return $this->tokenGenerator->key();
     }
@@ -38,7 +38,10 @@ final class TokenStream implements Iterator
         $this->tokenGenerator->rewind();
     }
 
-    public function current(): Token
+    /**
+     * @return Token
+     */
+    public function current(): mixed
     {
         return $this->tokenGenerator->current();
     }

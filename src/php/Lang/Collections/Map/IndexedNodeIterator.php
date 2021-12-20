@@ -27,7 +27,7 @@ class IndexedNodeIterator implements Iterator
     /**
      * @return V
      */
-    public function current()
+    public function current(): mixed
     {
         if ($this->nestedIterator) {
             return $this->nestedIterator->current();
@@ -71,7 +71,7 @@ class IndexedNodeIterator implements Iterator
     /**
      * @return K
      */
-    public function key()
+    public function key(): mixed
     {
         if ($this->nestedIterator) {
             return $this->nestedIterator->key();

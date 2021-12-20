@@ -90,7 +90,7 @@ final class PhelArray extends AbstractType implements
      *
      * @return mixed|null
      */
-    public function offsetGet($offset)
+    public function offsetGet($offset): mixed
     {
         return $this->data[$offset] ?? null;
     }
@@ -103,12 +103,12 @@ final class PhelArray extends AbstractType implements
     /**
      * @return mixed
      */
-    public function current()
+    public function current(): mixed
     {
         return current($this->data);
     }
 
-    public function key()
+    public function key(): mixed
     {
         return (int) key($this->data);
     }

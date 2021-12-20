@@ -23,7 +23,7 @@ class TransientHashSet implements TransientHashSetInterface
         $this->transientMap = $transientMap;
     }
 
-    public function count()
+    public function count(): int
     {
         return $this->transientMap->count();
     }
