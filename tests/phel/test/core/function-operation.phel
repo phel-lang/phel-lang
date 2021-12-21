@@ -13,7 +13,7 @@
   (is (false? ((complement and) true true)) "complement of and"))
 
 (deftest test-juxt
-  (is (= @[2 1] ((juxt second first) @[1 2])) "juxt"))
+  (is (= [2 1] ((juxt second first) [1 2])) "juxt"))
 
 (deftest test-partial
   (is (= 3 ((partial + 2) 1)) "partial of add"))

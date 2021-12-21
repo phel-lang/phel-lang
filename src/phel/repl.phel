@@ -75,7 +75,7 @@
 (defmacro require
   "Requires a Phel module into the environment"
   [sym & args]
-  (let [options (apply table args)
+  (let [options (apply hash-map args)
         alias (extract-alias sym options)
         refers (or (:refer options) [])]
     `(require-namespace ',sym ',alias ',refers)))
@@ -88,7 +88,7 @@
 (defmacro use
   "Adds a use statement to the environment"
   [sym & args]
-  (let [options (apply table args)
+  (let [options (apply hash-map args)
         alias (extract-alias sym options)]
     `(use-namespace ',sym ',alias)))
 

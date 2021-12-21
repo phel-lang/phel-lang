@@ -68,10 +68,6 @@ final class NodeEmitterFactory
                 return new NodeEmitter\PhpArrayPushEmitter($outputEmitter);
             case Ast\ForeachNode::class:
                 return new NodeEmitter\ForeachEmitter($outputEmitter);
-            case Ast\ArrayNode::class:
-                return new NodeEmitter\ArrayEmitter($outputEmitter);
-            case Ast\TableNode::class:
-                return new NodeEmitter\TableEmitter($outputEmitter);
             case Ast\DefStructNode::class:
                 return new NodeEmitter\DefStructEmitter($outputEmitter, new MethodEmitter($outputEmitter));
             case Ast\PhpObjectSetNode::class:

@@ -7,7 +7,6 @@ namespace PhelTest\Unit\Compiler\Analyzer\SpecialForm;
 use Exception;
 use Phel\Compiler\Analyzer\Analyzer;
 use Phel\Compiler\Analyzer\AnalyzerInterface;
-use Phel\Compiler\Analyzer\Ast\ArrayNode;
 use Phel\Compiler\Analyzer\Ast\CallNode;
 use Phel\Compiler\Analyzer\Ast\LiteralNode;
 use Phel\Compiler\Analyzer\Ast\PhpVarNode;
@@ -17,7 +16,6 @@ use Phel\Compiler\Analyzer\Environment\NodeEnvironment;
 use Phel\Compiler\Analyzer\Exceptions\AnalyzerException;
 use Phel\Compiler\Analyzer\TypeAnalyzer\SpecialForm\InvokeSymbol;
 use Phel\Lang\Keyword;
-use Phel\Lang\PhelArray;
 use Phel\Lang\Symbol;
 use Phel\Lang\TypeFactory;
 use PHPUnit\Framework\TestCase;
@@ -85,7 +83,9 @@ final class InvokeSymbolTest extends TestCase
     {
         $list = TypeFactory::getInstance()->persistentListFromArray([
             Symbol::createForNamespace('user', 'my-macro'),
-            TypeFactory::getInstance()->persistentVectorFromArray([PhelArray::create(1)]),
+            TypeFactory::getInstance()->persistentVectorFromArray([
+                TypeFactory::getInstance()->persistentVectorFromArray([1]),
+            ]),
         ]);
         $env = NodeEnvironment::empty();
         $node = (new InvokeSymbol($this->analyzer))->analyze($list, $env);
@@ -94,10 +94,10 @@ final class InvokeSymbolTest extends TestCase
             new VectorNode(
                 $env,
                 [
-                    new ArrayNode(
+                    new VectorNode(
                         $env->withContext(NodeEnvironment::CONTEXT_EXPRESSION)->withDisallowRecurFrame(),
                         [
-                            new LiteralNode($env->withContext(NodeEnvironment::CONTEXT_EXPRESSION)->withDisallowRecurFrame(), 1),
+                            new LiteralNode($env->withContext(NodeEnvironment::CONTEXT_EXPRESSION)->withDisallowRecurFrame()->withDisallowRecurFrame(), 1),
                         ]
                     ),
 

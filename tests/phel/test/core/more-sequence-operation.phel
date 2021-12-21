@@ -2,14 +2,14 @@
   (:require phel\test :refer [deftest is]))
 
 (deftest test-tree-seq
-  (is (= @[[[1 2 [3]] [4]]
-           [1 2 [3]]
-           1
-           2
-           [3]
-           3
-           [4]
-           4] (tree-seq indexed? identity [[1 2 [3]] [4]])) "tree-seq"))
+  (is (= [[[1 2 [3]] [4]]
+          [1 2 [3]]
+          1
+          2
+          [3]
+          3
+          [4]
+          4] (tree-seq indexed? identity [[1 2 [3]] [4]])) "tree-seq"))
 
 (deftest test-flatten
   (is (= [1 2 3 4 5 6 7] (flatten [1 [2 [3 4 [5]] 6 [7]]])) "flatten")

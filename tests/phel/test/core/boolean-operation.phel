@@ -32,8 +32,7 @@
   (is (true? (id :test :test)) "keywords are always identical")
   (is (true? (id 'test 'test)) "symbol are always identical")
   (is (false? (id [] [])) "two empty vectors are not identical")
-  (is (false? (id @[] @[])) "two empty arrays are not identical")
-  (is (false? (id @{} @{})) "two empty tables are not identical"))
+  (is (false? (id {} {})) "two empty maps are not identical"))
 
 (deftest test-=
   (is (true? (= false)) "(= false)")
@@ -55,16 +54,6 @@
   (is (false? (= [:a ["1"]] [:a [1]])) "nested vectors with different types are not equal")
   (is (false? (= [1] [1 2])) "vectors with different size are not equals"))
 
-(deftest test-=-on-array
-  (is (true? (= @[] @[])) "two empty arrays are equal")
-  (is (true? (= @["hello"] @["hello"])) "two arrays with the same values")
-  (is (false? (= @["hello"] @[0])) "two arrays with different values")
-  (is (false? (= @["1"] @[1])) "two arrays with the same value but different types")
-  (is (true? (= @[:a :b] @[:a :b])) "two arrays with keywords are equal")
-  (is (true? (= @[1 @[:b]] @[1 @[:b]])) "nested arrays are equal")
-  (is (false? (= @[:a @["1"]] @[:a @[1]])) "nested arrays with different types are not equal")
-  (is (false? (= @[1] @[1 2])) "arrays with different size are not equals"))
-
 (deftest test-=-set
   (is (true? (= (set) (set))) "two empty sets are equal")
   (is (true? (= (set "hello") (set "hello"))) "two sets with the same values")
@@ -81,21 +70,11 @@
   (is (true? (= {} {})) "two empty hash maps are equal")
   (is (true? (= {:key "value"} {:key "value"})) "two hash maps with the same values")
   (is (false? (= {:key "value"} {:key 0})) "two hash maps with same keys but different values")
-  (is (true? (= {:key @{:k "v"}} {:key @{:k "v"}})) "nested hash maps are equal")
-  (is (false? (= {:key @{:k "v"}} {:key @{:k 0}})) "nested hash maps with different types are not equal")
+  (is (true? (= {:key {:k "v"}} {:key {:k "v"}})) "nested hash maps are equal")
+  (is (false? (= {:key {:k "v"}} {:key {:k 0}})) "nested hash maps with different types are not equal")
   (is (false? (= {:key "value"} {})) "two hash maps with different values")
   (is (true? (= {:k1 "v1" :k2 "v2"} {:k1 "v1" :k2 "v2"})) "two keys with same value")
   (is (true? (= {:k1 "v1" :k2 "v2"} {:k2 "v2" :k1 "v1"})) "two keys with same value but different order"))
-
-(deftest test-=-on-table
-  (is (true? (= @{} @{})) "two empty tables are equal")
-  (is (true? (= @{:key "value"} @{:key "value"})) "two tables with the same values")
-  (is (false? (= @{:key "value"} @{:key 0})) "two tables with same keys but different values")
-  (is (true? (= @{:key @{:k "v"}} @{:key @{:k "v"}})) "nested tables are equal")
-  (is (false? (= @{:key @{:k "v"}} @{:key @{:k 0}})) "nested tables with different types are not equal")
-  (is (false? (= @{:key "value"} @{})) "two tables with different values")
-  (is (true? (= @{:k1 "v1" :k2 "v2"} @{:k1 "v1" :k2 "v2"})) "two keys with same value")
-  (is (true? (= @{:k1 "v1" :k2 "v2"} @{:k2 "v2" :k1 "v1"})) "two keys with same value but different order"))
 
 (deftest test-not
   (is (false? (not true)) "(not true)")
@@ -148,15 +127,15 @@
   (is (true? (>= 20 20 10)) "(>= 20 20 10)"))
 
 (deftest test-all?
-  (is (true? (all? pos? @[1 2 3])) "all pos? in list")
-  (is (true? (all? pos? @[])) "all pos? in empty list")
-  (is (false? (all? pos? @[1 -1 3])) "all pos? in list"))
+  (is (true? (all? pos? [1 2 3])) "all pos? in list")
+  (is (true? (all? pos? [])) "all pos? in empty list")
+  (is (false? (all? pos? [1 -1 3])) "all pos? in list"))
 
 (deftest test-some?
-  (is (true? (some? pos? @[1 2 3])) "some pos? in list")
-  (is (false? (some? pos? @[])) "some pos? in empty list")
-  (is (true? (some? pos? @[1 -1 3])) "some pos? in list")
-  (is (false? (some? pos? @[-1 -1 -3])) "some pos? in list"))
+  (is (true? (some? pos? [1 2 3])) "some pos? in list")
+  (is (false? (some? pos? [])) "some pos? in empty list")
+  (is (true? (some? pos? [1 -1 3])) "some pos? in list")
+  (is (false? (some? pos? [-1 -1 -3])) "some pos? in list"))
 
 (deftest test-true?
   (is (true? (true? true)) "(true? true)")

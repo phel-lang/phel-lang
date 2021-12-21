@@ -2,8 +2,6 @@
   (:use Phel\Lang\AbstractType)
   (:use Phel\Lang\Collections\Struct\AbstractPersistentStruct)
   (:use Phel\Lang\Keyword)
-  (:use Phel\Lang\PhelArray)
-  (:use Phel\Lang\Table)
   (:use Phel\Lang\Set)
   (:use Phel\Lang\SliceInterface)
   (:use Phel\Lang\CdrInterface)
@@ -49,24 +47,15 @@
 
 (def list
   "```phel\n(list & xs)\n```\nCreates a new list. If no argument is provided, an empty list is created."
-  (fn [& xs] (php/-> (php/:: TypeFactory (getInstance)) (persistentListFromArray (php/-> xs (toPhpArray))))))
+  (fn [& xs] (php/-> (php/:: TypeFactory (getInstance)) (persistentListFromArray (apply php/array xs)))))
 
 (def vector
   "```phel\n(vetcor & xs)\n```\nCreates a new vector. If no argument is provided, an empty list is created."
-  (fn [& xs] (php/-> (php/:: TypeFactory (getInstance)) (persistentVectorFromArray (php/-> xs (toPhpArray))))))
+  (fn [& xs] (php/-> (php/:: TypeFactory (getInstance)) (persistentVectorFromArray (apply php/array xs)))))
 
 (def hash-map
   "```phel\n(hash-map & xs)\n```\nCreates a new hash map. If no argument is provided, an empty hash map is created. The number of parameters must be even."
-  (fn [& xs] (php/-> (php/:: TypeFactory (getInstance)) (persistentMapFromArray (php/-> xs (toPhpArray))))))
-
-(def array
-  "```phel\n(array & xs)\n```\nCreates a new Array. If no argument is provided, an empty Array is created."
-  (fn [& xs] xs))
-
-(def table
-  "```phel\n(table & xs)\n```\nCreates a new Table. If no argument is provided, an empty Table is created.
-The number of parameters must be even."
-  (fn [& xs] (php/:: Table (fromKVArray (php/-> xs (toPhpArray))))))
+  (fn [& xs] (php/-> (php/:: TypeFactory (getInstance)) (persistentMapFromArray (apply php/array xs)))))
 
 (def next
   "```phel\n(next xs)\n```\nReturns the sequence of elements after the first element. If there are no
@@ -236,7 +225,7 @@ This is PHP equivalent to `$args[0] . $args[1] . $args[2] ...`"
 (defn set
   "Creates a new Set. If no argument is provided, an empty Set is created."
   [& xs]
-  (php/-> (php/:: TypeFactory (getInstance)) (persistentHashSetFromArray (php/-> xs (toPhpArray)))))
+  (php/-> (php/:: TypeFactory (getInstance)) (persistentHashSetFromArray (apply php/array xs))))
 
 (defn keyword
   "Creates a new Keyword from a given string."
@@ -281,7 +270,7 @@ This is PHP equivalent to `$args[0] . $args[1] . $args[2] ...`"
     (if (php/instanceof xs ConsInterface)
       (php/-> xs (cons x))
       (if (php/=== xs nil)
-        @[x]
+        [x]
         (throw (php/new InvalidArgumentException
                         (php/. "cannot do cons " (php/print_r x true))))))))
 
@@ -562,8 +551,6 @@ Calling the and function without arguments returns true."
 * `:struct`
 * `:hash-map`
 * `:set`
-* `:array`
-* `:table`
 * `:keyword`
 * `:symbol`
 * `:var`
@@ -584,8 +571,6 @@ Calling the and function without arguments returns true."
     (php/instanceof x AbstractPersistentStruct)   :struct
     (php/instanceof x PersistentMapInterface)     :hash-map
     (php/instanceof x PersistentHashSetInterface) :set
-    (php/instanceof x PhelArray)                  :array
-    (php/instanceof x Table)                      :table
     (php/instanceof x Keyword)                    :keyword
     (php/instanceof x Symbol)                     :symbol
     (php/instanceof x Variable)                   :var
@@ -640,20 +625,10 @@ Calling the and function without arguments returns true."
   [x]
   (= (type x) :struct))
 
-(defn table?
-  "Returns true if `x` is a table, false otherwise."
-  [x]
-  (= (type x) :table))
-
 (defn hash-map?
   "Returns true if `x` is a hash map, false otherwise."
   [x]
   (= (type x) :hash-map))
-
-(defn array?
-  "Returns true if `x` is a array, false otherwise."
-  [x]
-  (= (type x) :array))
 
 (defn vector?
   "Returns true if `x` is a vector, false otherwise."
@@ -703,7 +678,6 @@ Calling the and function without arguments returns true."
   [x]
   (let [t (type x)]
     (or
-     (= t :array)
      (= t :list)
      (= t :vector)
      (indexed-php-array? x))))
@@ -713,7 +687,6 @@ Calling the and function without arguments returns true."
   [x]
   (let [t (type x)]
     (or
-     (= t :table)
      (= t :hash-map)
      (= t :struct)
      (and (= t :php/array) (not (indexed-php-array? x))))))
@@ -867,7 +840,8 @@ arrays. Use (php/aunset ds key)"))
 (defn- for-builder-options [head i initial-options]
   (if (<= (count head) i)
     initial-options
-    (let [@[i binding (php/+ i 1) verb] head]
+    (let [binding (php/aget head i)
+          verb (php/aget head (php/+ i 1))]
       (if (keyword? binding)
         (case binding
           :reduce (for-builder-options head (php/+ i 2) (put initial-options :reduce verb))
@@ -880,7 +854,8 @@ arrays. Use (php/aunset ds key)"))
     body
 
     # Handle heads
-    (let [@[i binding (php/+ i 1) verb] head]
+    (let [binding (php/aget head i)
+          verb (php/aget head (php/+ i 1))]
       (cond
         # Case 1: Options
         (and (keyword? binding) (contains? for-options binding))
@@ -896,7 +871,7 @@ arrays. Use (php/aunset ds key)"))
             (throw (php/new InvalidArgumentException (str "This modifier is not supported in for loop: " verb)))))
 
         # Case 3: Verbs
-        (let [@[(php/+ i 2) object] head
+        (let [object (php/aget head (php/+ i 2))
               rest (for-builder body head (php/+ i 3))
               value-sym (gensym)]
           (case verb
@@ -1115,7 +1090,7 @@ collection in map"))
       nil)))
 
 (defn distinct
-  "Returns an array with duplicated values removed in `xs`."
+  "Returns an vector with duplicated values removed in `xs`."
   [xs]
   (let [seen (transient {})
         ret (transient [])]
@@ -1133,7 +1108,7 @@ collection in map"))
     (push ret (get xs i))))
 
 (defn interleave
-  "Returns a array with the first items of each col, than the second items etc."
+  "Returns a vector with the first items of each col, than the second items etc."
   [& xs]
   (loop [i 0
          res []]
@@ -1143,7 +1118,7 @@ collection in map"))
         (recur (php/+ i 1) (concat res nths))))))
 
 (defn interpose
-  "Returns an array of elements separated by `sep`"
+  "Returns an vector of elements separated by `sep`"
   [sep xs]
   (persistent
     (for [[k v] :pairs xs
@@ -1153,7 +1128,7 @@ collection in map"))
       (push res v))))
 
 (defn frequencies
-  "Returns a table from distinct items in `xs` to the number of times they appear."
+  "Returns a map from distinct items in `xs` to the number of times they appear."
   [xs]
   (for [x :in xs
         :reduce [res {}]]
@@ -1176,7 +1151,7 @@ collection in map"))
   (for [p :pairs xs] p))
 
 (defn kvs
-  "Returns an array of key value pairs like [k1 v1 k2 v2 k3 v3 ...]."
+  "Returns an vector of key value pairs like [k1 v1 k2 v2 k3 v3 ...]."
   [xs]
   (persistent
    (for [[k v] :pairs xs
@@ -1189,16 +1164,8 @@ collection in map"))
   [xs]
   (apply php/array xs))
 
-(defn php-array-to-table
-  "Converts a PHP Array to a tables."
-  [arr]
-  (let [res @{}]
-    (foreach [k v arr]
-      (put res k v))
-    res))
-
 (defn php-array-to-map
-  "Converts a PHP Array to a tables."
+  "Converts a PHP Array to a map."
   [arr]
   (let [res (transient {})]
     (foreach [k v arr]
@@ -1206,35 +1173,35 @@ collection in map"))
     (persistent res)))
 
 (defn sort
-  "Returns a sorted array. If no comparator is supplied compare is used."
+  "Returns a sorted vector. If no comparator is supplied compare is used."
   [xs & [comp]]
   (let [php-array (to-php-array xs)]
     (php/usort php-array (or comp compare))
-    (apply array php-array)))
+    (apply vector php-array)))
 
 (defn sort-by
-  "Returns a sorted array where the sort order is determined by comparing
+  "Returns a sorted vector where the sort order is determined by comparing
   (keyfn item). If no comparator is supplied compare is used."
   [keyfn xs & [comp]]
   (let [php-array (to-php-array xs)
         cmp (or comp compare)]
     (php/usort php-array |(cmp (keyfn $1) (keyfn $2)))
-    (apply array php-array)))
+    (apply vector php-array)))
 
 (defn shuffle
   "Returns a random permutation of xs."
   [xs]
   (let [php-array (to-php-array xs)]
     (php/shuffle php-array)
-    (apply array php-array)))
+    (apply vector php-array)))
 
 (defn repeat
-  "Returns an array of length n where every element is x."
+  "Returns a vector of length n where every element is x."
   [n x]
   (for [i :range [n]] x))
 
 (defn group-by
-  "Returns a table of the elements of xs keyed by the result of
+  "Returns a map of the elements of xs keyed by the result of
   f on each element."
   [f xs]
   (persistent
@@ -1246,33 +1213,24 @@ collection in map"))
       (update-in res [k] push x))))
 
 (defn zipcoll
-  "Creates a table from two sequential data structures. Return a new table."
+  "Creates a map from two sequential data structures. Return a new map."
   [a b]
   (apply hash-map (interleave a b)))
 
-(defn merge-into
-  "Merges multiple tables into first table. If a key appears in more than one
-  collection, then later values replace any previous ones."
-  [tab & tables]
-  (foreach [table tables]
-    (foreach [k v table]
-      (put tab k v)))
-  tab)
-
 (defn merge
-  "Merges multiple tables into one new table. If a key appears in more than one
+  "Merges multiple maps into one new map. If a key appears in more than one
   collection, then later values replace any previous ones."
-  [& tables]
-  (for [table :in tables
-        [k v] :pairs table
+  [& maps]
+  (for [map :in maps
+        [k v] :pairs map
         :reduce [res {}]]
     (put res k v)))
 
 (defn invert
-  "Returns a new table where the keys and values are swapped. If table has
+  "Returns a new map where the keys and values are swapped. If map has
   duplicated values, some keys will be ignored."
-  [table]
-  (for [[k v] :pairs table
+  [map]
+  (for [[k v] :pairs map
         :reduce [res {}]]
     (put res v k)))
 
@@ -1386,7 +1344,7 @@ collection in map"))
   (fn [& args]
     (reduce
      |(push $1 (apply $2 args))
-     @[]
+     []
      fs)))
 
 (defn partial
@@ -1394,32 +1352,32 @@ collection in map"))
   that a variable number of additional arguments. When call `f` will be called
   with `args` and the additional arguments"
   [f & args]
-  |(apply f (concat @[] args $&)))
+  |(apply f (concat [] args $&)))
 
 # -----------------------
 # More sequence operation
 # -----------------------
 
 (defn tree-seq
-  "Returns an array of the nodes in the tree, via a depth first walk.
+  "Returns an vector of the nodes in the tree, via a depth first walk.
   branch? is a function with one argument that returns true if the given node
   has children.
   children must be a function with one argument that returns the children of the node.
   root the root node of the tree."
   [branch? children root]
-  (let [ret @[]]
-    (loop [stack @[root]]
+  (let [ret (transient [])]
+    (loop [stack (php/array root)]
       (if (> (count stack) 0)
         (let [node (pop stack)]
           (push ret node)
           (if (branch? node)
             (recur (concat stack (reverse (children node))))
             (recur stack)))
-        ret))))
+        (persistent ret)))))
 
 (defn flatten
   "Takes a nested sequential data structure (tree), and returns their contents
-  as a single, flat array."
+  as a single, flat vector."
   [xs]
   (filter
    (complement indexed?)

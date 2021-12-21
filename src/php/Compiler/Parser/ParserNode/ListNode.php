@@ -64,12 +64,8 @@ final class ListNode implements InnerNodeInterface
                 return '|(';
             case Token::T_OPEN_BRACKET:
                 return '[';
-            case Token::T_ARRAY:
-                return '@[';
             case Token::T_OPEN_BRACE:
                 return '{';
-            case Token::T_TABLE:
-                return '@{';
             default:
                 throw new \RuntimeException('Cannot find code prefix for token type: ' . $this->tokenType);
         }
@@ -82,10 +78,8 @@ final class ListNode implements InnerNodeInterface
             case Token::T_FN:
                 return ')';
             case Token::T_OPEN_BRACKET:
-            case Token::T_ARRAY:
                 return ']';
             case Token::T_OPEN_BRACE:
-            case Token::T_TABLE:
                 return '}';
             default:
                 throw new \RuntimeException('Cannot find code prefix for token type: ' . $this->tokenType);

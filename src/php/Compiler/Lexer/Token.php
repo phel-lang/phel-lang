@@ -22,11 +22,9 @@ final class Token
     public const T_UNQUOTE = 13;
     public const T_QUASIQUOTE = 14;
     public const T_CARET = 15;
-    public const T_ARRAY = 16;
-    public const T_TABLE = 17;
-    public const T_FN = 18;
-    public const T_STRING = 19;
-    public const T_ATOM = 20;
+    public const T_FN = 16;
+    public const T_STRING = 17;
+    public const T_ATOM = 18;
     public const T_EOF = 100;
 
     private string $code;

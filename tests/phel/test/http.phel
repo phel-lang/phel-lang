@@ -76,8 +76,8 @@
                                    "text/plain"))
     {"file" (h/uploaded-file "/tmp/my-file.txt" 123 0 "my-file.txt" "text/plain")}]
    ["already converted array"
-    (php-associative-array "file" @[(h/uploaded-file "/tmp/my-file1.txt" 123 0 "my-file1.txt" "text/plain")
-                                    (h/uploaded-file "/tmp/my-file2.txt" 321 0 "my-file2.txt" "text/plain")])
+    (php-associative-array "file" [(h/uploaded-file "/tmp/my-file1.txt" 123 0 "my-file1.txt" "text/plain")
+                                   (h/uploaded-file "/tmp/my-file2.txt" 321 0 "my-file2.txt" "text/plain")])
     {"file" {0 (h/uploaded-file "/tmp/my-file1.txt" 123 0 "my-file1.txt" "text/plain")
              1 (h/uploaded-file "/tmp/my-file2.txt" 321 0 "my-file2.txt" "text/plain")}}]
    ["multiple files"
@@ -279,9 +279,9 @@
        (h/response 200 {} "test" "1.1" "OK")
        (h/create-response-from-string "test")) "create-response-from-string"))
 
-(def send-response-examples @[["send body"
-                               (h/response 200 {:content-type "text/plain"} "Content!" nil nil)
-                               "Content!"]])
+(def send-response-examples [["send body"
+                              (h/response 200 {:content-type "text/plain"} "Content!" nil nil)
+                              "Content!"]])
 
 (deftest test-send-response
   (foreach [[name response result] send-response-examples]

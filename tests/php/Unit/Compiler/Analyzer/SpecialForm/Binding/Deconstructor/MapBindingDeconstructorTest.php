@@ -6,39 +6,39 @@ namespace PhelTest\Unit\Compiler\Analyzer\SpecialForm\Binding\Deconstructor;
 
 use Phel\Compiler\Analyzer\TypeAnalyzer\SpecialForm\Binding\BindingValidatorInterface;
 use Phel\Compiler\Analyzer\TypeAnalyzer\SpecialForm\Binding\Deconstructor;
-use Phel\Compiler\Analyzer\TypeAnalyzer\SpecialForm\Binding\Deconstructor\PhelArrayBindingDeconstructor;
-use Phel\Lang\PhelArray;
+use Phel\Compiler\Analyzer\TypeAnalyzer\SpecialForm\Binding\Deconstructor\MapBindingDeconstructor;
+use Phel\Lang\Keyword;
 use Phel\Lang\Symbol;
 use Phel\Lang\TypeFactory;
 use PHPUnit\Framework\TestCase;
 
-final class PhelArrayBindingDeconstructorTest extends TestCase
+final class MapBindingDeconstructorTest extends TestCase
 {
-    private PhelArrayBindingDeconstructor $deconstructor;
+    private MapBindingDeconstructor $deconstructor;
 
     public function setUp(): void
     {
         Symbol::resetGen();
 
-        $this->deconstructor = new PhelArrayBindingDeconstructor(
+        $this->deconstructor = new MapBindingDeconstructor(
             new Deconstructor(
                 $this->createMock(BindingValidatorInterface::class)
             )
         );
     }
 
-    public function test_deconstruct_symbol(): void
+    public function test_deconstruct_table(): void
     {
-        // Test for binding like this (let [@[0 a] x])
+        // Test for binding like this (let [{:key a} x])
         // This will be destructured to this:
         // (let [__phel_1 x
-        //       __phel 2 (get __phel_1 0)
+        //       __phel 2 (get __phel_1 :key)
         //       a __phel_2])
 
-        $index = 0;
+        $key = Keyword::create('key');
         $bindTo = Symbol::create('a');
-        $binding = PhelArray::create($index, $bindTo); // @[0 a]
         $value = Symbol::create('x');
+        $binding = TypeFactory::getInstance()->persistentMapFromKVs($key, $bindTo);
 
         $bindings = [];
         $this->deconstructor->deconstruct($bindings, $binding, $value);
@@ -49,13 +49,13 @@ final class PhelArrayBindingDeconstructorTest extends TestCase
                 Symbol::create('__phel_1'),
                 $value,
             ],
-            // __phel_2 (get __phel_1 0)
+            // __phel 2 (get __phel_1 :key)
             [
                 Symbol::create('__phel_2'),
                 TypeFactory::getInstance()->persistentListFromArray([
                     Symbol::create(Symbol::NAME_PHP_ARRAY_GET),
                     Symbol::create('__phel_1'),
-                    $index,
+                    $key,
                 ]),
             ],
             // a __phel_2
@@ -66,22 +66,22 @@ final class PhelArrayBindingDeconstructorTest extends TestCase
         ], $bindings);
     }
 
-    public function test_deconstruct_nested_vector(): void
+    public function test_deconstruct_table_nested_vector(): void
     {
-        // Test for binding like this (let [@[0 [a]] x])
+        // Test for binding like this (let [{:key [a]} x])
         // This will be destructured to this:
         // (let [__phel_1 x
-        //       __phel 2 (get __phel_1 0)
+        //       __phel 2 (get __phel_1 :key)
+        //       __phel_3 __phel_2
         //       __phel_3 __phel_2
         //       __phel_4 (first __phel_3)
         //       __phel_5 (next __phel_3)
         //       a __phel_4])
 
-
-        $value = Symbol::create('x');
+        $key = Keyword::create('key');
         $bindTo = Symbol::create('a');
-        $index = 0;
-        $binding = PhelArray::create($index, TypeFactory::getInstance()->persistentVectorFromArray([$bindTo]));
+        $value = Symbol::create('x');
+        $binding = TypeFactory::getInstance()->persistentMapFromKVs($key, TypeFactory::getInstance()->persistentVectorFromArray([$bindTo]));
 
         $bindings = [];
         $this->deconstructor->deconstruct($bindings, $binding, $value);
@@ -92,13 +92,13 @@ final class PhelArrayBindingDeconstructorTest extends TestCase
                 Symbol::create('__phel_1'),
                 $value,
             ],
-            // __phel 2 (get __phel 0)
+            // __phel 2 (get __phel_1 :key)
             [
                 Symbol::create('__phel_2'),
                 TypeFactory::getInstance()->persistentListFromArray([
                     Symbol::create(Symbol::NAME_PHP_ARRAY_GET),
                     Symbol::create('__phel_1'),
-                    $index,
+                    $key,
                 ]),
             ],
             // __phel_3 __phel_2

@@ -11,10 +11,8 @@ use Phel\Compiler\Lexer\Lexer;
 use Phel\Compiler\Reader\Exceptions\ReaderException;
 use Phel\Lang\Collections\Map\PersistentMapInterface;
 use Phel\Lang\Keyword;
-use Phel\Lang\PhelArray;
 use Phel\Lang\SourceLocation;
 use Phel\Lang\Symbol;
-use Phel\Lang\Table;
 use Phel\Lang\TypeFactory;
 use Phel\Lang\TypeInterface;
 use PHPUnit\Framework\TestCase;
@@ -298,30 +296,6 @@ final class ReaderTest extends TestCase
         );
     }
 
-    public function test_read_empty_array(): void
-    {
-        self::assertEquals(
-            $this->loc(PhelArray::create(), 1, 0, 1, 3),
-            $this->read('@[]')
-        );
-    }
-
-    public function test_read_array1(): void
-    {
-        self::assertEquals(
-            $this->loc(PhelArray::create(1), 1, 0, 1, 4),
-            $this->read('@[1]')
-        );
-    }
-
-    public function test_read_array2(): void
-    {
-        self::assertEquals(
-            $this->loc(PhelArray::create(1, 2), 1, 0, 1, 6),
-            $this->read('@[1 2]')
-        );
-    }
-
     public function test_read_empty_map(): void
     {
         self::assertEquals(
@@ -364,41 +338,6 @@ final class ReaderTest extends TestCase
     {
         $this->expectException(ReaderException::class);
         $this->read('{:a}');
-    }
-
-    public function test_read_empty_table(): void
-    {
-        self::assertEquals(
-            $this->loc(Table::fromKVs(), 1, 0, 1, 3),
-            $this->read('@{}')
-        );
-    }
-
-    public function test_read_table1(): void
-    {
-        self::assertEquals(
-            $this->loc(Table::fromKVs($this->loc(Keyword::create('a'), 1, 2, 1, 4), 1), 1, 0, 1, 7),
-            $this->read('@{:a 1}')
-        );
-    }
-
-    public function test_read_table2(): void
-    {
-        self::assertEquals(
-            $this->loc(Table::fromKVs(
-                $this->loc(Keyword::create('a'), 1, 2, 1, 4),
-                1,
-                $this->loc(Keyword::create('b'), 1, 7, 1, 9),
-                2
-            ), 1, 0, 1, 12),
-            $this->read('@{:a 1 :b 2}')
-        );
-    }
-
-    public function test_table_uneven(): void
-    {
-        $this->expectException(ReaderException::class);
-        $this->read('@{:a}');
     }
 
     public function test_meta_keyword(): void

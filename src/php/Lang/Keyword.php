@@ -40,7 +40,7 @@ final class Keyword extends AbstractType implements IdenticalInterface, FnInterf
     }
 
     /**
-     * @param PersistentMapInterface|Table $obj
+     * @param PersistentMapInterface $obj
      * @param TypeInterface|string|float|int|bool|null $default
      */
     public function __invoke($obj, $default = null)

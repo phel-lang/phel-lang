@@ -25,11 +25,9 @@ final class Lexer implements LexerInterface
         '(,)', // unquote (index: 13)
         '(`)', // quasiquote (index: 14)
         "(\^)", // caret (index: 15)
-        "(@\[)", // array (index: 16)
-        "(@\{)", // table (index: 17)
-        "(\|\()", // short fn (index: 18)
-        '("(?:[^"\\\\]++|\\\\.)*+")', // String (index: 19)
-        "([^\(\)\[\]\{\}',`@ \n\r\t\#]+)", // Atom (index: 20)
+        "(\|\()", // short fn (index: 16)
+        '("(?:[^"\\\\]++|\\\\.)*+")', // String (index: 17)
+        "([^\(\)\[\]\{\}',`@ \n\r\t\#]+)", // Atom (index: 18)
     ];
 
     private int $cursor = 0;
@@ -83,7 +81,7 @@ final class Lexer implements LexerInterface
 
                 $startLocation = $endLocation;
             } else {
-                throw LexerValueException::unexpectedLexerState();
+                throw LexerValueException::unexpectedLexerState($source, $this->line, $this->column);
             }
         }
 

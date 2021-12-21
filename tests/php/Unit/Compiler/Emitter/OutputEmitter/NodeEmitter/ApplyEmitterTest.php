@@ -87,7 +87,7 @@ final class ApplyEmitterTest extends TestCase
   public const BOUND_TO = "";
 
   public function __invoke(...$x) {
-    $x = new \Phel\Lang\PhelArray($x);
+    $x = \Phel\Lang\TypeFactory::getInstance()->persistentVectorFromArray($x);
     return x;
   }
 };)(...((\Phel\Lang\TypeFactory::getInstance()->persistentVectorFromArray([1])) ?? []));');

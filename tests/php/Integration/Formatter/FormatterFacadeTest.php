@@ -168,26 +168,26 @@ final class FormatterFacadeTest extends TestCase
             ],
         ];
 
-        yield 'Table' => [
+        yield 'Map' => [
             [
-                '@{:x 1',
+                '{:x 1',
                 ':y 2}',
             ],
             [
-                '@{:x 1',
+                '{:x 1',
                 '  :y 2}',
             ],
         ];
 
         yield 'LetNested' => [
             [
-                '(let [a @{:x 1',
+                '(let [a {:x 1',
                 ':y 2}]',
                 '(:x a))',
             ],
             [
-                '(let [a @{:x 1',
-                '          :y 2}]',
+                '(let [a {:x 1',
+                '         :y 2}]',
                 '  (:x a))',
             ],
         ];
@@ -213,19 +213,14 @@ final class FormatterFacadeTest extends TestCase
             'expectedLines' => ['(1 2 3)'],
         ];
 
-        yield 'BracketList' => [
+        yield 'Vector' => [
             'actualLines' => ['[ 1 2 3 ]'],
             'expectedLines' => ['[1 2 3]'],
         ];
 
-        yield 'Array' => [
-            'actualLines' => ['@[ 1 2 3 ]'],
-            'expectedLines' => ['@[1 2 3]'],
-        ];
-
-        yield 'Table' => [
-            'actualLines' => ['@{ :a 1 :b 2 }'],
-            'expectedLines' => ['@{:a 1 :b 2}'],
+        yield 'Map' => [
+            'actualLines' => ['{ :a 1 :b 2 }'],
+            'expectedLines' => ['{:a 1 :b 2}'],
         ];
 
         yield 'RemoveNewlines 1' => [

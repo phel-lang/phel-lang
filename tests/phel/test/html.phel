@@ -22,7 +22,6 @@
 (deftest void-tags
   (is (= "<br />" (html [:br])))
   (is (= "<link />" (html [:link])))
-  (is (= "<colgroup span=\"2\"></colgroup>" (html [:colgroup @{:span 2}])))
   (is (= "<colgroup span=\"2\"></colgroup>" (html [:colgroup {:span 2}])))
   (is (= "<colgroup><col /></colgroup>" (html [:colgroup [:col]]))))
 
@@ -37,40 +36,26 @@
 
 (deftest arrays
   (is (= "<p>a</p><p>b</p>" (html [:p "a"] [:p "b"])))
-  (is (= "<body>foobar</body>" (html [:body @["foo" "bar"]])))
-  (is (= "<p>a</p><p>b</p>" (html @[[:p "a"] [:p "b"]]))))
+  # (is (= "<body>foobar</body>" (html [:body ["foo" "bar"]])))
+  # (is (= "<p>a</p><p>b</p>" (html [[:p "a"] [:p "b"]])))
+  )
 
 (deftest tags-with-keyword-content
   (is (= "<text>foo</text>" (html [:text :foo]))))
 
 (deftest tag-attributes
-  (is (= "<div></div>" (html [:div @{}])))
   (is (= "<div></div>" (html [:div {}])))
-  (is (= "<div id=\"foo\"></div>" (html [:div @{:id "foo"}])))
   (is (= "<div id=\"foo\"></div>" (html [:div {:id "foo"}])))
-  (is (= "<div id=\"foo\"></div>" (html [:div @{"id" :foo}])))
   (is (= "<div id=\"foo\"></div>" (html [:div {"id" :foo}])))
-  (is (= "<div id=\"&quot;\"></div>" (html [:div @{"id" "\""}])))
   (is (= "<div id=\"&quot;\"></div>" (html [:div {"id" "\""}])))
-  (is (= "<input type=\"checkbox\" checked=\"checked\" />" (html [:input @{:type "checkbox" :checked true}])))
   (is (= "<input type=\"checkbox\" checked=\"checked\" />" (html [:input {:type "checkbox" :checked true}])))
-  (is (= "<input type=\"checkbox\" />" (html [:input @{:type "checkbox" :checked false}])))
   (is (= "<input type=\"checkbox\" />" (html [:input {:type "checkbox" :checked false}])))
-  (is (= "<div></div>" (html [:div @{:id nil}])))
   (is (= "<div></div>" (html [:div {:id nil}])))
-  (is (= "<div class=\"a\"></div>" (html [:div @{:class [:a]}])))
   (is (= "<div class=\"a\"></div>" (html [:div {:class [:a]}])))
-  (is (= "<div class=\"a b\"></div>" (html [:div @{:class [:a "b"]}])))
   (is (= "<div class=\"a b\"></div>" (html [:div {:class [:a "b"]}])))
-  (is (= "<div class=\"a b\"></div>" (html [:div @{:class @[:a "b"]}])))
-  (is (= "<div class=\"a b\"></div>" (html [:div {:class @[:a "b"]}])))
-  (is (= "<div class=\"a\"></div>" (html [:div @{:class @{:a true :b false}}])))
   (is (= "<div class=\"a\"></div>" (html [:div {:class {:a true :b false}}]))))
 
 (deftest css-styles
-  (is (=
-       "<div style=\"background:green;color:red;\">bar</div>"
-       (html [:div @{:style @{:color "red" :background "green"}} "bar"])))
   (is (=
        "<div style=\"background:green;color:red;\">bar</div>"
        (html [:div {:style {:color "red" :background "green"}} "bar"]))))
@@ -78,15 +63,11 @@
 (deftest compiled-tags
   (let [x "foo"]
     (is (= "<span>foo</span>" (html [:span x])))
-    (is (= "<span x=\"foo\"></span>" (html [:span @{:x x}])))
     (is (= "<span x=\"foo\"></span>" (html [:span {:x x}])))
-    (is (= "<span foo=\"x\"></span>" (html [:span @{x "x"}])))
     (is (= "<span foo=\"x\"></span>" (html [:span {x "x"}])))
-    (is (= "<span x=\"foo\">bar</span>" (html [:span @{:x x} "bar"])))
     (is (= "<span x=\"foo\">bar</span>" (html [:span {:x x} "bar"]))))
 
   (is (= "<span>2</span>" (html [:span (+ 1 1)])))
-  (is (= "<span x=\"2\"></span>" (html [:span @{:x (+ 1 1)}])))
   (is (= "<span x=\"2\"></span>" (html [:span {:x (+ 1 1)}])))
 
   (is (= "<div><p>a</p><p>b</p></div>" (html [:div [:p "a"] (if true [:p "b"] [:p "c"])])))
