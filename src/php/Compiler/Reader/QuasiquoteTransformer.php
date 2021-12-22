@@ -13,9 +13,7 @@ use Phel\Lang\Collections\LinkedList\PersistentListInterface;
 use Phel\Lang\Collections\Map\PersistentMapInterface;
 use Phel\Lang\Collections\Vector\PersistentVector;
 use Phel\Lang\Keyword;
-use Phel\Lang\PhelArray;
 use Phel\Lang\Symbol;
-use Phel\Lang\Table;
 use Phel\Lang\TypeFactory;
 use Phel\Lang\TypeInterface;
 
@@ -56,14 +54,6 @@ final class QuasiquoteTransformer implements QuasiquoteTransformerInterface
 
         if ($form instanceof PersistentMapInterface && count($form) > 0) {
             return $this->createFromMap($form);
-        }
-
-        if ($form instanceof Table && count($form) > 0) {
-            return $this->createFromTable($form);
-        }
-
-        if ($form instanceof PhelArray && count($form) > 0) {
-            return $this->createFromPhelArray($form);
         }
 
         if ($this->isLiteral($form)) {
@@ -127,30 +117,6 @@ final class QuasiquoteTransformer implements QuasiquoteTransformerInterface
             TypeFactory::getInstance()->persistentListFromArray([
                 (Symbol::create(Symbol::NAME_CONCAT))->copyLocationFrom($form),
                 ...$this->expandList($kvs),
-            ])->copyLocationFrom($form),
-        ])->copyLocationFrom($form);
-    }
-
-    private function createFromTable(Table $form): PersistentListInterface
-    {
-        return TypeFactory::getInstance()->persistentListFromArray([
-            (Symbol::create(Symbol::NAME_APPLY))->copyLocationFrom($form),
-            (Symbol::create(Symbol::NAME_TABLE))->copyLocationFrom($form),
-            TypeFactory::getInstance()->persistentListFromArray([
-                (Symbol::create(Symbol::NAME_CONCAT))->copyLocationFrom($form),
-                ...$this->expandList($form->toKeyValueList()),
-            ])->copyLocationFrom($form),
-        ])->copyLocationFrom($form);
-    }
-
-    private function createFromPhelArray(PhelArray $form): PersistentListInterface
-    {
-        return TypeFactory::getInstance()->persistentListFromArray([
-            (Symbol::create(Symbol::NAME_APPLY))->copyLocationFrom($form),
-            (Symbol::create(Symbol::NAME_ARRAY))->copyLocationFrom($form),
-            TypeFactory::getInstance()->persistentListFromArray([
-                (Symbol::create(Symbol::NAME_CONCAT))->copyLocationFrom($form),
-                ...$this->expandList($form),
             ])->copyLocationFrom($form),
         ])->copyLocationFrom($form);
     }

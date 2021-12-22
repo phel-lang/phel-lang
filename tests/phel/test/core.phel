@@ -6,24 +6,14 @@
 # -------------
 
 (deftest destructure-vector
-  (is (= 3 (let [[a b] @[1 2]] (+ a b))) "from array")
   (is (= 3 (let [[a b] [1 2]] (+ a b))) "from vector")
   (is (= 3 (let [[a b] (php/array 1 2)] (+ a b))) "from php array")
-  (is (= 10 (let [[a [c d] b] @[1 (list 4 3) 2]] (+ a b c d))) "nested")
-  (is (= 4 (let [[a _ b] @[1 2 3]] (+ a b))) "ignore value"))
+  (is (= 10 (let [[a [c d] b] [1 (list 4 3) 2]] (+ a b c d))) "nested")
+  (is (= 4 (let [[a _ b] [1 2 3]] (+ a b))) "ignore value"))
 
 (deftest destructure-hash-map
   (is (= 3 (let [{:a a :b b} {:a 1 :b 2}] (+ a b))) "destructure hash map")
   (is (= 6 (let [{:a [a1 a2] :b b} {:a [1 3] :b 2}] (+ a1 a2 b))) "nested destructure hash map"))
-
-(deftest destructure-array
-  (is (= 3 (let [@[0 a 1 b] @[1 2]] (+ a b))) "destructure array")
-  (is (= 3 (let [@[0 a 1 b] (php/array 1 2)] (+ a b))) "destructure array on PHP arrays")
-  (is (= 6 (let [@[0 [a1 a2] 1 b] @[[1 3] 2]] (+ a1 a2 b))) "nested destructure array"))
-
-(deftest destructure-table
-  (is (= 3 (let [@{:a a :b b} @{:a 1 :b 2}] (+ a b))) "destructure table")
-  (is (= 6 (let [@{:a [a1 a2] :b b} @{:a [1 3] :b 2}] (+ a1 a2 b))) "nested destructure table"))
 
 # ----------------------------
 # Basic methods for quasiquote
@@ -35,9 +25,9 @@
   (is (= [2] (next [1 2])) "next of two element vector"))
 
 (deftest test-concat
-  (is (= @[1 2] (concat @[1 2])) "concat one argument")
-  (is (= @[1 2 3 4] (concat @[1] @[2 3] @[4])) "concat three arguments")
-  (is (= [1 2 3 4] (concat [1 2] [3 4])) "concat vectors")
+  (is (= [1 2] (concat [1 2])) "concat one argument")
+  (is (= [1 2 3 4] (concat [1 2] [3 4])) "concat two arguments")
+  (is (= [1 2 3 4] (concat [1] [2 3] [4])) "concat three arguments")
   (is (= '() (concat nil)) "concat nil")
   (is (= '() (concat nil nil)) "concat two nil")
   (is (= [1 2 3 4 5 6] (concat [1 2 3] nil [4 5 6])) "concat vectors and nil"))
@@ -51,8 +41,8 @@
     (is (= (set 1 2) s2) "set push existing value")))
 
 (deftest test-set-concat
-  (is (= (set 0 1 2 3) (concat (set 1 2) @[0 3])) "set concat array")
-  (is (= (set 0 1 2 3) (concat (set 1 2) @[0 1 2 3])) "set concat array with common values")
+  (is (= (set 0 1 2 3) (concat (set 1 2) [0 3])) "set concat vector")
+  (is (= (set 0 1 2 3) (concat (set 1 2) [0 1 2 3])) "set concat vector with common values")
   (is (= (set 0 1 2) (concat (set 1 2) (set 0 1))) "set concat"))
 
 (defstruct my-struct [a b c])
@@ -61,7 +51,6 @@
   (let [x (my-struct 1 2 3)]
     (is (= :struct (type x)) "struct: common type")
     (is (true? (struct? x)) "struct: common type test")
-    (is (false? (table? x)) "struct is not a table")
     (is (= 1 (get x :a)) "struct: get value from struct")
     (is (= (my-struct 12 2 3) (put x :a 12)) "struct: put value on struct")
     (is (true? (my-struct? x)) "struct: correct type")

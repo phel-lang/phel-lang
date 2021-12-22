@@ -5,10 +5,8 @@ declare(strict_types=1);
 namespace Phel\Compiler\Reader;
 
 use Phel\Compiler\Reader\ExpressionReader\AtomReader;
-use Phel\Compiler\Reader\ExpressionReader\ListArrayReader;
 use Phel\Compiler\Reader\ExpressionReader\ListFnReader;
 use Phel\Compiler\Reader\ExpressionReader\ListReader;
-use Phel\Compiler\Reader\ExpressionReader\ListTableReader;
 use Phel\Compiler\Reader\ExpressionReader\MapReader;
 use Phel\Compiler\Reader\ExpressionReader\MetaReader;
 use Phel\Compiler\Reader\ExpressionReader\QuoasiquoteReader;
@@ -36,16 +34,6 @@ final class ExpressionReaderFactory implements ExpressionReaderFactoryInterface
     public function createVectorReader(Reader $reader): VectorReader
     {
         return new VectorReader($reader);
-    }
-
-    public function createListArrayReader(Reader $reader): ListArrayReader
-    {
-        return new ListArrayReader($reader);
-    }
-
-    public function createListTableReader(Reader $reader): ListTableReader
-    {
-        return new ListTableReader($reader);
     }
 
     public function createListFnReader(Reader $reader): ListFnReader

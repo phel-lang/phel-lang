@@ -34,7 +34,7 @@
           elem (first content)
           map-attrs (if (associative? elem) elem {})
           content (if (associative? elem) (next content) content)
-          content-arr (if (nil? content) nil (apply array content))]
+          content-arr (if (nil? content) nil (apply list content))]
       [tag map-attrs content-arr])))
 
 #---------------

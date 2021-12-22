@@ -5,10 +5,8 @@ declare(strict_types=1);
 namespace Phel\Compiler\Reader;
 
 use Phel\Compiler\Reader\ExpressionReader\AtomReader;
-use Phel\Compiler\Reader\ExpressionReader\ListArrayReader;
 use Phel\Compiler\Reader\ExpressionReader\ListFnReader;
 use Phel\Compiler\Reader\ExpressionReader\ListReader;
-use Phel\Compiler\Reader\ExpressionReader\ListTableReader;
 use Phel\Compiler\Reader\ExpressionReader\MapReader;
 use Phel\Compiler\Reader\ExpressionReader\MetaReader;
 use Phel\Compiler\Reader\ExpressionReader\QuoasiquoteReader;
@@ -27,10 +25,6 @@ interface ExpressionReaderFactoryInterface
     public function createVectorReader(Reader $reader): VectorReader;
 
     public function createMapReader(Reader $reader): MapReader;
-
-    public function createListArrayReader(Reader $reader): ListArrayReader;
-
-    public function createListTableReader(Reader $reader): ListTableReader;
 
     public function createListFnReader(Reader $reader): ListFnReader;
 

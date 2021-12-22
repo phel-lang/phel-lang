@@ -9,9 +9,7 @@ use Phel\Lang\Collections\LinkedList\PersistentListInterface;
 use Phel\Lang\Collections\Map\PersistentMapInterface;
 use Phel\Lang\Collections\Vector\PersistentVector;
 use Phel\Lang\Keyword;
-use Phel\Lang\PhelArray;
 use Phel\Lang\Symbol;
-use Phel\Lang\Table;
 use Phel\Lang\TypeInterface;
 use Phel\Printer\PrinterInterface;
 use RuntimeException;
@@ -48,10 +46,6 @@ final class LiteralEmitter
             $this->emitKeyword($x);
         } elseif ($x instanceof Symbol) {
             $this->emitSymbol($x);
-        } elseif ($x instanceof PhelArray) {
-            $this->emitPhelArray($x);
-        } elseif ($x instanceof Table) {
-            $this->emitTable($x);
         } elseif ($x instanceof PersistentMapInterface) {
             $this->emitMap($x);
         } elseif ($x instanceof PersistentVector) {
@@ -119,54 +113,6 @@ final class LiteralEmitter
             '(\Phel\Lang\Symbol::create("' . addslashes($x->getFullName()) . '"))',
             $x->getStartLocation()
         );
-    }
-
-    private function emitPhelArray(PhelArray $x): void
-    {
-        $this->outputEmitter->emitStr('\Phel\Lang\PhelArray::create(', $x->getStartLocation());
-        if (count($x) > 0) {
-            $this->outputEmitter->increaseIndentLevel();
-            $this->outputEmitter->emitLine();
-        }
-
-        foreach ($x as $i => $value) {
-            $this->outputEmitter->emitLiteral($value);
-            if ($i < count($x) - 1) {
-                $this->outputEmitter->emitStr(',', $x->getStartLocation());
-            }
-            $this->outputEmitter->emitLine();
-        }
-
-        if (count($x) > 0) {
-            $this->outputEmitter->decreaseIndentLevel();
-        }
-        $this->outputEmitter->emitStr(')', $x->getStartLocation());
-    }
-
-    private function emitTable(Table $x): void
-    {
-        $this->outputEmitter->emitStr('\Phel\Lang\Table::fromKVs(', $x->getStartLocation());
-        if (count($x) > 0) {
-            $this->outputEmitter->increaseIndentLevel();
-            $this->outputEmitter->emitLine();
-        }
-
-        $i = 0;
-        foreach ($x as $key => $value) {
-            $this->outputEmitter->emitLiteral($key);
-            $this->outputEmitter->emitStr(', ', $x->getStartLocation());
-            $this->outputEmitter->emitLiteral($value);
-            if ($i < count($x) - 1) {
-                $this->outputEmitter->emitStr(',', $x->getStartLocation());
-            }
-            $this->outputEmitter->emitLine();
-            $i++;
-        }
-
-        if (count($x) > 0) {
-            $this->outputEmitter->decreaseIndentLevel();
-        }
-        $this->outputEmitter->emitStr(')', $x->getStartLocation());
     }
 
     private function emitMap(PersistentMapInterface $x): void

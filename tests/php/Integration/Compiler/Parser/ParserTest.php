@@ -279,36 +279,6 @@ final class ParserTest extends TestCase
         );
     }
 
-    public function test_read_empty_array(): void
-    {
-        self::assertEquals(
-            new ListNode(Token::T_ARRAY, $this->loc(1, 0), $this->loc(1, 3), []),
-            $this->parse('@[]')
-        );
-    }
-
-    public function test_read_array1(): void
-    {
-        self::assertEquals(
-            new ListNode(Token::T_ARRAY, $this->loc(1, 0), $this->loc(1, 4), [
-                new NumberNode('1', $this->loc(1, 2), $this->loc(1, 3), 1),
-            ]),
-            $this->parse('@[1]')
-        );
-    }
-
-    public function test_read_array2(): void
-    {
-        self::assertEquals(
-            new ListNode(Token::T_ARRAY, $this->loc(1, 0), $this->loc(1, 6), [
-                new NumberNode('1', $this->loc(1, 2), $this->loc(1, 3), 1),
-                new WhitespaceNode(' ', $this->loc(1, 3), $this->loc(1, 4)),
-                new NumberNode('2', $this->loc(1, 4), $this->loc(1, 5), 2),
-            ]),
-            $this->parse('@[1 2]')
-        );
-    }
-
     public function test_read_empty_map(): void
     {
         self::assertEquals(
@@ -342,42 +312,6 @@ final class ParserTest extends TestCase
                 new NumberNode('2', $this->loc(1, 9), $this->loc(1, 10), 2),
             ]),
             $this->parse('{:a 1 :b 2}')
-        );
-    }
-
-    public function test_read_empty_table(): void
-    {
-        self::assertEquals(
-            new ListNode(Token::T_TABLE, $this->loc(1, 0), $this->loc(1, 3), []),
-            $this->parse('@{}')
-        );
-    }
-
-    public function test_read_table1(): void
-    {
-        self::assertEquals(
-            new ListNode(Token::T_TABLE, $this->loc(1, 0), $this->loc(1, 7), [
-                new KeywordNode(':a', $this->loc(1, 2), $this->loc(1, 4), Keyword::create('a')),
-                new WhitespaceNode(' ', $this->loc(1, 4), $this->loc(1, 5)),
-                new NumberNode('1', $this->loc(1, 5), $this->loc(1, 6), 1),
-            ]),
-            $this->parse('@{:a 1}')
-        );
-    }
-
-    public function test_read_table2(): void
-    {
-        self::assertEquals(
-            new ListNode(Token::T_TABLE, $this->loc(1, 0), $this->loc(1, 12), [
-                new KeywordNode(':a', $this->loc(1, 2), $this->loc(1, 4), Keyword::create('a')),
-                new WhitespaceNode(' ', $this->loc(1, 4), $this->loc(1, 5)),
-                new NumberNode('1', $this->loc(1, 5), $this->loc(1, 6), 1),
-                new WhitespaceNode(' ', $this->loc(1, 6), $this->loc(1, 7)),
-                new KeywordNode(':b', $this->loc(1, 7), $this->loc(1, 9), Keyword::create('b')),
-                new WhitespaceNode(' ', $this->loc(1, 9), $this->loc(1, 10)),
-                new NumberNode('2', $this->loc(1, 10), $this->loc(1, 11), 2),
-            ]),
-            $this->parse('@{:a 1 :b 2}')
         );
     }
 
@@ -429,27 +363,27 @@ final class ParserTest extends TestCase
         );
     }
 
-    public function test_meta_table(): void
+    public function test_meta_map(): void
     {
         self::assertEquals(
             new MetaNode(
-                new ListNode(Token::T_TABLE, $this->loc(1, 1), $this->loc(1, 13), [
-                    new KeywordNode(':a', $this->loc(1, 3), $this->loc(1, 5), Keyword::create('a')),
-                    new WhitespaceNode(' ', $this->loc(1, 5), $this->loc(1, 6)),
-                    new NumberNode('1', $this->loc(1, 6), $this->loc(1, 7), 1),
-                    new WhitespaceNode(' ', $this->loc(1, 7), $this->loc(1, 8)),
-                    new KeywordNode(':b', $this->loc(1, 8), $this->loc(1, 10), Keyword::create('b')),
-                    new WhitespaceNode(' ', $this->loc(1, 10), $this->loc(1, 11)),
-                    new NumberNode('2', $this->loc(1, 11), $this->loc(1, 12), 2),
+                new ListNode(Token::T_OPEN_BRACE, $this->loc(1, 1), $this->loc(1, 12), [
+                    new KeywordNode(':a', $this->loc(1, 2), $this->loc(1, 4), Keyword::create('a')),
+                    new WhitespaceNode(' ', $this->loc(1, 4), $this->loc(1, 5)),
+                    new NumberNode('1', $this->loc(1, 5), $this->loc(1, 6), 1),
+                    new WhitespaceNode(' ', $this->loc(1, 6), $this->loc(1, 7)),
+                    new KeywordNode(':b', $this->loc(1, 7), $this->loc(1, 9), Keyword::create('b')),
+                    new WhitespaceNode(' ', $this->loc(1, 9), $this->loc(1, 10)),
+                    new NumberNode('2', $this->loc(1, 10), $this->loc(1, 11), 2),
                 ]),
                 $this->loc(1, 0),
-                $this->loc(1, 18),
+                $this->loc(1, 17),
                 [
-                    new WhitespaceNode(' ', $this->loc(1, 13), $this->loc(1, 14)),
-                    new SymbolNode('test', $this->loc(1, 14), $this->loc(1, 18), Symbol::create('test')),
+                    new WhitespaceNode(' ', $this->loc(1, 12), $this->loc(1, 13)),
+                    new SymbolNode('test', $this->loc(1, 13), $this->loc(1, 17), Symbol::create('test')),
                 ]
             ),
-            $this->parse('^@{:a 1 :b 2} test')
+            $this->parse('^{:a 1 :b 2} test')
         );
     }
 

@@ -11,7 +11,6 @@ final class Symbol extends AbstractType implements IdenticalInterface
     use MetaTrait;
 
     public const NAME_APPLY = 'apply';
-    public const NAME_ARRAY = 'array';
     public const NAME_CONCAT = 'concat';
     public const NAME_DEF = 'def';
     public const NAME_DEF_STRUCT = 'defstruct*';
@@ -33,7 +32,6 @@ final class Symbol extends AbstractType implements IdenticalInterface
     public const NAME_RECUR = 'recur';
     public const NAME_UNQUOTE = 'unquote';
     public const NAME_UNQUOTE_SPLICING = 'unquote-splicing';
-    public const NAME_TABLE = 'table';
     public const NAME_THROW = 'throw';
     public const NAME_TRY = 'try';
     public const NAME_PHP_OBJECT_SET = 'php/oset';

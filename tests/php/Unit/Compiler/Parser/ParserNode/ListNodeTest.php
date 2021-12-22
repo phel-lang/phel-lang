@@ -53,26 +53,6 @@ final class ListNodeTest extends TestCase
         );
     }
 
-    public function test_get_code_table(): void
-    {
-        self::assertEquals(
-            '@{1}',
-            (new ListNode(Token::T_TABLE, $this->loc(1, 0), $this->loc(1, 4), [
-                new NumberNode('1', $this->loc(1, 2), $this->loc(1, 3), 1),
-            ]))->getCode()
-        );
-    }
-
-    public function test_get_code_array(): void
-    {
-        self::assertEquals(
-            '@[1]',
-            (new ListNode(Token::T_ARRAY, $this->loc(1, 0), $this->loc(1, 4), [
-                new NumberNode('1', $this->loc(1, 2), $this->loc(1, 3), 1),
-            ]))->getCode()
-        );
-    }
-
     public function test_undefined_token(): void
     {
         $this->expectException(RuntimeException::class);

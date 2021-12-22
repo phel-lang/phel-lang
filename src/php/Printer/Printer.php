@@ -11,10 +11,7 @@ use Phel\Lang\Collections\Struct\AbstractPersistentStruct;
 use Phel\Lang\Collections\Vector\PersistentVectorInterface;
 use Phel\Lang\FnInterface;
 use Phel\Lang\Keyword;
-use Phel\Lang\PhelArray;
-use Phel\Lang\Set;
 use Phel\Lang\Symbol;
-use Phel\Lang\Table;
 use Phel\Printer\TypePrinter\AnonymousClassPrinter;
 use Phel\Printer\TypePrinter\ArrayPrinter;
 use Phel\Printer\TypePrinter\BooleanPrinter;
@@ -28,13 +25,10 @@ use Phel\Printer\TypePrinter\PersistentHashSetPrinter;
 use Phel\Printer\TypePrinter\PersistentListPrinter;
 use Phel\Printer\TypePrinter\PersistentMapPrinter;
 use Phel\Printer\TypePrinter\PersistentVectorPrinter;
-use Phel\Printer\TypePrinter\PhelArrayPrinter;
 use Phel\Printer\TypePrinter\ResourcePrinter;
-use Phel\Printer\TypePrinter\SetPrinter;
 use Phel\Printer\TypePrinter\StringPrinter;
 use Phel\Printer\TypePrinter\StructPrinter;
 use Phel\Printer\TypePrinter\SymbolPrinter;
-use Phel\Printer\TypePrinter\TablePrinter;
 use Phel\Printer\TypePrinter\ToStringPrinter;
 use Phel\Printer\TypePrinter\TypePrinterInterface;
 use ReflectionClass;
@@ -112,15 +106,6 @@ final class Printer implements PrinterInterface
         }
         if ($form instanceof Symbol) {
             return new SymbolPrinter($this->withColor);
-        }
-        if ($form instanceof Set) {
-            return new SetPrinter($this);
-        }
-        if ($form instanceof PhelArray) {
-            return new PhelArrayPrinter($this);
-        }
-        if ($form instanceof Table) {
-            return new TablePrinter($this);
         }
         if ($form instanceof AbstractPersistentStruct) {
             return new StructPrinter($this);

@@ -7,9 +7,7 @@ namespace PhelTest\Unit\Compiler\Analyzer\SpecialForm\Binding;
 use Phel\Compiler\Analyzer\TypeAnalyzer\SpecialForm\Binding\BindingValidatorInterface;
 use Phel\Compiler\Analyzer\TypeAnalyzer\SpecialForm\Binding\Deconstructor;
 use Phel\Lang\Keyword;
-use Phel\Lang\PhelArray;
 use Phel\Lang\Symbol;
-use Phel\Lang\Table;
 use Phel\Lang\TypeFactory;
 use PHPUnit\Framework\TestCase;
 
@@ -111,14 +109,14 @@ final class DeconstructorTest extends TestCase
 
     public function test_table_binding(): void
     {
-        // Test for binding like this (let [@{:key a} x])
+        // Test for binding like this (let [{:key a} x])
         // This will be destructured to this:
         // (let [__phel_1 x
         //       __phel 2 (get __phel_1 :key)
         //       a __phel_2])
         $bindings = $this->deconstructor->deconstruct(
             TypeFactory::getInstance()->persistentVectorFromArray([
-                Table::fromKVs(Keyword::create('key'), Symbol::create('a')),
+                TypeFactory::getInstance()->persistentMapFromKVs(Keyword::create('key'), Symbol::create('a')),
                 Symbol::create('x'),
             ])
         );
@@ -138,44 +136,6 @@ final class DeconstructorTest extends TestCase
             ],
             [
                 Symbol::create('a'),
-                Symbol::create('__phel_2'),
-            ],
-        ], $bindings);
-    }
-
-    public function test_array_binding(): void
-    {
-        // Test for binding like this (let [@[0 a] x])
-        // This will be destructured to this:
-        // (let [__phel_1 x
-        //       __phel 2 (get __phel_1 0)
-        //       a __phel_2])
-
-        $index = 0;
-        $bindTo = Symbol::create('a');
-        $binding = PhelArray::create($index, $bindTo); // @[0 a]
-        $value = Symbol::create('x');
-
-        $bindings = $this->deconstructor->deconstruct(TypeFactory::getInstance()->persistentVectorFromArray([$binding, $value]));
-
-        self::assertEquals([
-            // __phel_1 x
-            [
-                Symbol::create('__phel_1'),
-                $value,
-            ],
-            // __phel_2 (get __phel_1 0)
-            [
-                Symbol::create('__phel_2'),
-                TypeFactory::getInstance()->persistentListFromArray([
-                    Symbol::create(Symbol::NAME_PHP_ARRAY_GET),
-                    Symbol::create('__phel_1'),
-                    $index,
-                ]),
-            ],
-            // a __phel_2
-            [
-                $bindTo,
                 Symbol::create('__phel_2'),
             ],
         ], $bindings);

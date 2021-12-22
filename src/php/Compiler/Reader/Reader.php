@@ -124,18 +124,6 @@ final class Reader implements ReaderInterface
                 ->read($node, $root);
         }
 
-        if ($node->getTokenType() === Token::T_ARRAY) {
-            return $this->readerFactory
-                ->createListArrayReader($this)
-                ->read($node, $root);
-        }
-
-        if ($node->getTokenType() === Token::T_TABLE) {
-            return $this->readerFactory
-                ->createListTableReader($this)
-                ->read($node, $root);
-        }
-
         if ($node->getTokenType() === Token::T_FN) {
             $this->fnArgs = [];
 

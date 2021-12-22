@@ -7,9 +7,7 @@ namespace PhelTest\Unit\Compiler\Reader;
 use Phel\Compiler\Analyzer\Environment\GlobalEnvironment;
 use Phel\Compiler\Reader\QuasiquoteTransformer;
 use Phel\Lang\Keyword;
-use Phel\Lang\PhelArray;
 use Phel\Lang\Symbol;
-use Phel\Lang\Table;
 use Phel\Lang\TypeFactory;
 use PHPUnit\Framework\TestCase;
 use RuntimeException;
@@ -128,42 +126,6 @@ final class QuasiquoteTest extends TestCase
                 ]),
             ]),
             $q->transform(TypeFactory::getInstance()->persistentMapFromKVs('a', 1, 'b', 2))
-        );
-    }
-
-    public function test_transform_create_table(): void
-    {
-        $q = new QuasiquoteTransformer(new GlobalEnvironment());
-        self::assertEquals(
-            TypeFactory::getInstance()->persistentListFromArray([
-                Symbol::create(Symbol::NAME_APPLY),
-                Symbol::create(Symbol::NAME_TABLE),
-                TypeFactory::getInstance()->persistentListFromArray([
-                    Symbol::create(Symbol::NAME_CONCAT),
-                    TypeFactory::getInstance()->persistentListFromArray([Symbol::create(Symbol::NAME_LIST), 'a']),
-                    TypeFactory::getInstance()->persistentListFromArray([Symbol::create(Symbol::NAME_LIST), 1]),
-                    TypeFactory::getInstance()->persistentListFromArray([Symbol::create(Symbol::NAME_LIST), 'b']),
-                    TypeFactory::getInstance()->persistentListFromArray([Symbol::create(Symbol::NAME_LIST), 2]),
-                ]),
-            ]),
-            $q->transform(Table::fromKVs('a', 1, 'b', 2))
-        );
-    }
-
-    public function test_transform_create_phel_array(): void
-    {
-        $q = new QuasiquoteTransformer(new GlobalEnvironment());
-        self::assertEquals(
-            TypeFactory::getInstance()->persistentListFromArray([
-                Symbol::create(Symbol::NAME_APPLY),
-                Symbol::create(Symbol::NAME_ARRAY),
-                TypeFactory::getInstance()->persistentListFromArray([
-                    Symbol::create(Symbol::NAME_CONCAT),
-                    TypeFactory::getInstance()->persistentListFromArray([Symbol::create(Symbol::NAME_LIST), 1]),
-                    TypeFactory::getInstance()->persistentListFromArray([Symbol::create(Symbol::NAME_LIST), 2]),
-                ]),
-            ]),
-            $q->transform(PhelArray::create(1, 2))
         );
     }
 

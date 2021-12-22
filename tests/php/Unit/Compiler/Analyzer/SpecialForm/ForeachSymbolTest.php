@@ -9,7 +9,7 @@ use Phel\Compiler\Analyzer\Ast\DoNode;
 use Phel\Compiler\Analyzer\Ast\ForeachNode;
 use Phel\Compiler\Analyzer\Ast\LetNode;
 use Phel\Compiler\Analyzer\Ast\LocalVarNode;
-use Phel\Compiler\Analyzer\Ast\TableNode;
+use Phel\Compiler\Analyzer\Ast\MapNode;
 use Phel\Compiler\Analyzer\Ast\VectorNode;
 use Phel\Compiler\Analyzer\Environment\GlobalEnvironment;
 use Phel\Compiler\Analyzer\Environment\NodeEnvironment;
@@ -17,7 +17,6 @@ use Phel\Compiler\Analyzer\TypeAnalyzer\SpecialForm\ForeachSymbol;
 use Phel\Compiler\Exceptions\AbstractLocatedException;
 use Phel\Lang\Collections\LinkedList\PersistentListInterface;
 use Phel\Lang\Symbol;
-use Phel\Lang\Table;
 use Phel\Lang\TypeFactory;
 use PHPUnit\Framework\TestCase;
 
@@ -113,13 +112,13 @@ final class ForeachSymbolTest extends TestCase
 
     public function test_value_symbol_vector_with3_args(): void
     {
-        // (foreach [key value @{}])
+        // (foreach [key value {}])
         $list = TypeFactory::getInstance()->persistentListFromArray([
             Symbol::create(Symbol::NAME_FOREACH),
             TypeFactory::getInstance()->persistentVectorFromArray([
                 Symbol::create('key'),
                 Symbol::create('value'),
-                Table::empty(),
+                TypeFactory::getInstance()->emptyPersistentMap(),
             ]),
             Symbol::create('key'),
         ]);
@@ -134,7 +133,7 @@ final class ForeachSymbolTest extends TestCase
                     [],
                     new LocalVarNode($env->withLocals([Symbol::create('value'), Symbol::create('key')]), Symbol::create('key'))
                 ),
-                new TableNode($env->withContext(NodeEnvironment::CONTEXT_EXPRESSION), []),
+                new MapNode($env->withContext(NodeEnvironment::CONTEXT_EXPRESSION), []),
                 Symbol::create('value'),
                 Symbol::create('key')
             ),
@@ -171,7 +170,7 @@ final class ForeachSymbolTest extends TestCase
                 Symbol::create('x'),
                 Symbol::create('y'),
                 Symbol::create('z'),
-                Table::empty(),
+                TypeFactory::getInstance()->emptyPersistentMap(),
             ]),
         ]);
 

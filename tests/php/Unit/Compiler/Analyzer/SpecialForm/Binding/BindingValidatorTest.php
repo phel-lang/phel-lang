@@ -8,9 +8,7 @@ use Generator;
 use Phel\Compiler\Analyzer\TypeAnalyzer\SpecialForm\Binding\BindingValidator;
 use Phel\Lang\AbstractType;
 use Phel\Lang\Keyword;
-use Phel\Lang\PhelArray;
 use Phel\Lang\Symbol;
-use Phel\Lang\Table;
 use Phel\Lang\TypeFactory;
 use PHPUnit\Framework\TestCase;
 
@@ -72,12 +70,8 @@ final class BindingValidatorTest extends TestCase
             'type' => TypeFactory::getInstance()->persistentVectorFromArray([]),
         ];
 
-        yield 'Table type' => [
-            'type' => Table::fromKVs(),
-        ];
-
-        yield 'PhelArray type' => [
-            'type' => PhelArray::create(''),
+        yield 'Map type' => [
+            'type' => TypeFactory::getInstance()->emptyPersistentMap(),
         ];
     }
 }

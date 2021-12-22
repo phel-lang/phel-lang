@@ -11,8 +11,7 @@
 
 (deftest test-mapcat
   (is (= [1 2 3 4 5 6] (mapcat reverse [[3 2 1] [6 5 4]])) "mapcat")
-  (is (= [] (mapcat identity [])) "mapcat on empty vector")
-  (is (= [] (mapcat identity @[])) "mapcat on empty array"))
+  (is (= [] (mapcat identity [])) "mapcat on empty vector"))
 
 (deftest test-reduce
   (is (= "abc" (reduce str "" ["a" "b" "c"])) "reduce three elements vector")
@@ -28,9 +27,9 @@
   (is (= 6 (reduce2 + (for [x :in (set 1 2 3)] x))) "reduce2 on set vector"))
 
 (deftest test-put-in
-  (is (= @{:a @{:b {:c 1}}} (put-in @{:a @{}} @[:a :b :c] 1)) "put-in: autocreate tables")
-  (is (= @{:a @{:b @{:c 2}}} (put-in @{:a @{:b @{:c 1}}} @[:a :b :c] 2)) "put-in: update value of table")
-  (is (= @{:a @{:b @[2]}} (put-in @{:a @{:b @[1]}} @[:a :b 0] 2)) "put-in: update value of array"))
+  (is (= {:a {:b {:c 1}}} (put-in {:a {}} [:a :b :c] 1)) "put-in: autocreate tables")
+  (is (= {:a {:b {:c 2}}} (put-in {:a {:b {:c 1}}} [:a :b :c] 2)) "put-in: update value of table")
+  (is (= {:a {:b [2]}} (put-in {:a {:b [1]}} [:a :b 0] 2)) "put-in: update value of array"))
 
 (deftest test-put-in-map
   (is (= {:a {:b {:c 1}}} (put-in {:a {}} [:a :b :c] 1)) "put-in (map): autocreate tables")
@@ -38,45 +37,45 @@
   (is (= {:a {:b [2]}} (put-in {:a {:b [1]}} [:a :b 0] 2)) "put-in (map): update value of array"))
 
 (deftest test-update-in
-  (is (= @{:a 2} (update-in @{:a 1} @[:a] inc)) "update-in: update value of table")
-  (is (= @{:a @{:b {:c 1}}} (update-in @{:a @{}} @[:a :b :c] inc)) "update-in: autocreate tables")
-  (is (= @{:a @{:b @[2]}} (update-in @{:a @{:b @[1]}} @[:a :b 0] inc)) "update-in: update value of array"))
+  (is (= {:a 2} (update-in {:a 1} [:a] inc)) "update-in: update value of table")
+  (is (= {:a {:b {:c 1}}} (update-in {:a {}} [:a :b :c] inc)) "update-in: autocreate tables")
+  (is (= {:a {:b [2]}} (update-in {:a {:b [1]}} [:a :b 0] inc)) "update-in: update value of array"))
 
 (deftest test-drop
-  (is (= @["a" "b" "c"] (drop 0 @["a" "b" "c"])) "drop two elements")
-  (is (= @["c"] (drop 2 @["a" "b" "c"])) "drop two elements")
-  (is (= @[] (drop 3 @["a" "b" "c"])) "drop three elements")
-  (is (= @[] (drop 4 @["a" "b" "c"])) "drop four elements")
-  (is (= @["a" "b" "c"] (drop -1 @["a" "b" "c"])) "drop with negative number")
+  (is (= ["a" "b" "c"] (drop 0 ["a" "b" "c"])) "drop zero elements")
+  (is (= ["c"] (drop 2 ["a" "b" "c"])) "drop two elements")
+  (is (= [] (drop 3 ["a" "b" "c"])) "drop three elements")
+  (is (= [] (drop 4 ["a" "b" "c"])) "drop four elements")
+  (is (= ["a" "b" "c"] (drop -1 ["a" "b" "c"])) "drop with negative number")
   (is (= ["c"] (drop 2 ["a" "b" "c"])) "drop on vector")
   (is (= (php/array "c") (drop 2 (php/array "a" "b" "c"))) "drop on php array"))
 
 (deftest test-drop-while
-  (is (= @[1 2 3 4 -1 -2 -3] (drop-while neg? @[-1 -2 -3 1 2 3 4 -1 -2 -3])) "drop-while: first three element")
-  (is (= [] (drop-while neg? @[-1 -2 -3])) "drop-while: everything")
-  (is (= @[] (drop-while neg? @[])) "drop-while: empty array")
-  (is (= @[1 2 3 4] (drop-while neg? @[1 2 3 4])) "drop-while: nothing")
+  (is (= [1 2 3 4 -1 -2 -3] (drop-while neg? [-1 -2 -3 1 2 3 4 -1 -2 -3])) "drop-while: first three element")
+  (is (= [] (drop-while neg? [-1 -2 -3])) "drop-while: everything")
+  (is (= [] (drop-while neg? [])) "drop-while: empty array")
+  (is (= [1 2 3 4] (drop-while neg? [1 2 3 4])) "drop-while: nothing")
   (is (= [1 2 3 4 -1 -2 -3] (drop-while neg? [-1 -2 -3 1 2 3 4 -1 -2 -3])) "drop-while: vector")
   (is (= (php/array 1 2 3 4 -1 -2 -3) (drop-while neg? (php/array -1 -2 -3 1 2 3 4 -1 -2 -3))) "drop-while: php array"))
 
 (deftest test-take
-  (is (= @["a" "b"] (take 2 @["a" "b" "c"])) "take two elements")
-  (is (= @["a" "b" "c"] (take 3 @["a" "b" "c"])) "take three elements")
-  (is (= @["a" "b" "c"] (take 4 @["a" "b" "c"])) "take four elements")
-  (is (= @[] (take 0 @["a" "b" "c"])) "take zero elements")
-  (is (= @[] (take -1 @["a" "b" "c"])) "take with negative number")
+  (is (= ["a" "b"] (take 2 ["a" "b" "c"])) "take two elements")
+  (is (= ["a" "b" "c"] (take 3 ["a" "b" "c"])) "take three elements")
+  (is (= ["a" "b" "c"] (take 4 ["a" "b" "c"])) "take four elements")
+  (is (= [] (take 0 ["a" "b" "c"])) "take zero elements")
+  (is (= [] (take -1 ["a" "b" "c"])) "take with negative number")
   (is (= ["a" "b"] (take 2 ["a" "b" "c"])) "take on vector")
   (is (= [] (take -1 ["a" "b" "c"])) "take on vector")
   (is (= (php/array "a" "b") (take 2 (php/array "a" "b" "c"))) "take on php array")
   (is (= (php/array) (take -1 (php/array "a" "b" "c"))) "take on php array"))
 
 (deftest test-take-last
-  (is (= @["c"] (take-last 1 @["a" "b" "c"])) "take-last element")
-  (is (= @["b" "c"] (take-last 2 @["a" "b" "c"])) "take-last two elements")
-  (is (= @["a" "b" "c"] (take-last 3 @["a" "b" "c"])) "take-last three elements")
-  (is (= @["a" "b" "c"] (take-last 4 @["a" "b" "c"])) "take-last four elements")
-  (is (= [] (take-last 0 @["a" "b" "c"])) "take-last zero elements")
-  (is (= [] (take-last -1 @["a" "b" "c"])) "take-last with negative number")
+  (is (= ["c"] (take-last 1 ["a" "b" "c"])) "take-last element")
+  (is (= ["b" "c"] (take-last 2 ["a" "b" "c"])) "take-last two elements")
+  (is (= ["a" "b" "c"] (take-last 3 ["a" "b" "c"])) "take-last three elements")
+  (is (= ["a" "b" "c"] (take-last 4 ["a" "b" "c"])) "take-last four elements")
+  (is (= [] (take-last 0 ["a" "b" "c"])) "take-last zero elements")
+  (is (= [] (take-last -1 ["a" "b" "c"])) "take-last with negative number")
   (is (= ["b" "c"] (take-last 2 ["a" "b" "c"])) "take-last on vector")
   (is (= [] (take-last 1 [])) "take-last on empty vector")
   (is (= [] (take-last -1 ["a" "b" "c"])) "take-last with negative number on vector")
@@ -85,42 +84,41 @@
   (is (= [] (take-last -1 (php/array "a" "b" "c"))) "take-last with negative number on php array"))
 
 (deftest test-take-while
-  (is (= [-1 -2 -3] (take-while neg? @[-1 -2 -3 1 2 3 4 -4 -5 -6])) "take-while: first three element")
-  (is (= [-1 -2 -3] (take-while neg? @[-1 -2 -3])) "take-while: everything")
-  (is (= [] (take-while neg? @[1 2 3 4])) "take-while: nothing")
-  (is (= [] (take-while neg? @[])) "take-while: empty array")
+  (is (= [-1 -2 -3] (take-while neg? [-1 -2 -3 1 2 3 4 -4 -5 -6])) "take-while: first three element")
+  (is (= [-1 -2 -3] (take-while neg? [-1 -2 -3])) "take-while: everything")
+  (is (= [] (take-while neg? [1 2 3 4])) "take-while: nothing")
+  (is (= [] (take-while neg? [])) "take-while: empty array")
   (is (= [-1 -2 -3] (take-while neg? [-1 -2 -3 1 2 3 4 -4 -5 -6])) "take-while on vector")
   (is (= [-1 -2 -3] (take-while neg? (php/array -1 -2 -3 1 2 3 4 -4 -5 -6))) "take-while on php array"))
 
 (deftest test-filter
-  (is (= [-1 -2 -3] (filter neg? @[-1 2 3 -2 -3 4 5])) "filter: neg?")
+  (is (= [-1 -2 -3] (filter neg? [-1 2 3 -2 -3 4 5])) "filter: neg?")
   (is (= [-1 -2 -3] (filter neg? [-1 2 3 -2 -3 4 5])) "filter on vector")
   (is (= [-1 -2 -3] (filter neg? (php/array -1 2 3 -2 -3 4 5))) "filter on php array"))
 
 (deftest test-keep
-  (is (= [true false false true true false false] (keep neg? @[-1 2 3 -2 -3 4 5])) "keep: neg?")
-  (is (= [-1 -2 -3] (keep (fn [x] (if (neg? x) x nil)) @[-1 2 3 -2 -3 4 5])) "keep: filter nil"))
+  (is (= [true false false true true false false] (keep neg? [-1 2 3 -2 -3 4 5])) "keep: neg?")
+  (is (= [-1 -2 -3] (keep (fn [x] (if (neg? x) x nil)) [-1 2 3 -2 -3 4 5])) "keep: filter nil"))
 
 (deftest test-keep-indexed
-  (is (= [:b :d] (keep-indexed (fn [idx x] (if (odd? idx) x)) @[:a :b :c :d :e])) "keep-indexed"))
+  (is (= [:b :d] (keep-indexed (fn [idx x] (if (odd? idx) x)) [:a :b :c :d :e])) "keep-indexed"))
 
 (deftest test-neg?
-  (is (= -1 (find neg? @[1 2 3 -1 2 3])) "find first neg number")
-  (is (nil? (find neg? @[1 2 3 2 3])) "find: nothing to find")
-  (is (nil? (find neg? @[])) "find on empty array"))
+  (is (= -1 (find neg? [1 2 3 -1 2 3])) "find first neg number")
+  (is (nil? (find neg? [1 2 3 2 3])) "find: nothing to find")
+  (is (nil? (find neg? [])) "find on empty array"))
 
 (deftest test-find-index?
-  (is (= 3 (find-index neg? @[1 2 3 -1 2 3])) "find-index first neg number")
-  (is (nil? (find-index neg? @[1 2 3 2 3])) "find-index: nothing to find")
-  (is (nil? (find-index neg? @[])) "find-index on empty array"))
+  (is (= 3 (find-index neg? [1 2 3 -1 2 3])) "find-index first neg number")
+  (is (nil? (find-index neg? [1 2 3 2 3])) "find-index: nothing to find")
+  (is (nil? (find-index neg? [])) "find-index on empty array"))
 
 (deftest test-distinct
-  (is (= [1 2 3] (distinct @[1 1 2 3 2 2 3 1])) "distinct: array")
+  (is (= [1 2 3] (distinct [1 1 2 3 2 2 3 1])) "distinct: array")
   (is (= [1 2 3] (distinct (php/array 1 1 2 3 2 2 3 1))) "distinct: php array"))
 
 (deftest test-reverse
   (is (= [3 2 1] (reverse [1 2 3])) "reverse: vector")
-  (is (= [3 2 1] (reverse @[1 2 3])) "reverse: array")
   (is (= [] (reverse nil)) "reverse: nil"))
 
 (deftest test-interleave
@@ -134,38 +132,30 @@
   (is (= {1 2 2 3 3 2 4 1} (frequencies [1 1 2 3 2 2 3 4])) "frequencies"))
 
 (deftest test-keys
-  (is (= [:a :b :c] (keys @{:a 1 :b 2 :c 3})) "keys of tables")
   (is (= [:a :b :c] (keys {:a 1 :b 2 :c 3})) "keys of map")
-  (is (= [0 1 2] (keys @[3 2 1])) "keys of array")
   (is (= [0 1 2] (keys [3 2 1])) "keys of vector"))
 
 (deftest test-values
-  (is (= [1 2 3] (values @{:a 1 :b 2 :c 3})) "values of tables")
   (is (= [1 2 3] (values {:a 1 :b 2 :c 3})) "values of map")
-  (is (= [3 2 1] (values @[3 2 1])) "values of array")
   (is (= [3 2 1] (values [3 2 1])) "values of vector"))
 
 (deftest test-pairs
-  (is (= [[:a 1] [:b 2] [:c 3]] (pairs @{:a 1 :b 2 :c 3})) "pairs of tables")
   (is (= [[:a 1] [:b 2] [:c 3]] (pairs {:a 1 :b 2 :c 3})) "pairs of maps")
-  (is (= [[0 3] [1 2] [2 1]] (pairs @[3 2 1])) "pairs of array")
   (is (= [[0 3] [1 2] [2 1]] (pairs [3 2 1])) "pairs of vector"))
 
 (deftest test-kvs
-  (is (= [:a 1 :b 2 :c 3] (kvs @{:a 1 :b 2 :c 3})) "kvs of tables")
   (is (= [:a 1 :b 2 :c 3] (kvs {:a 1 :b 2 :c 3})) "kvs of maps")
-  (is (= [0 3 1 2 2 1] (kvs @[3 2 1])) "kvs of array")
   (is (= [0 3 1 2 2 1] (kvs [3 2 1])) "kvs of vector"))
 
 (deftest test-to-php-array
-  (is (= (php/array 3 2 1) (to-php-array @[3 2 1])) "to-php-array"))
+  (is (= (php/array 3 2 1) (to-php-array [3 2 1])) "to-php-array"))
 
 (deftest test-sort
-  (is (= @[1 2 3] (sort @[3 2 1])) "sort")
-  (is (= @[1 2 2 3 3] (sort @[3 2 1 2 3] <=>)) "sort ascending order")
-  (is (= @[3 3 2 2 1] (sort @[3 2 1 2 3] >=<)) "sort descending order")
-  (is (= @[1 2 3] (sort-by identity @[3 2 1])) "sort-by identity")
-  (is (= @[3 2 1] (sort-by - @[3 2 1])) "sort-by reversed"))
+  (is (= [1 2 3] (sort [3 2 1])) "sort")
+  (is (= [1 2 2 3 3] (sort [3 2 1 2 3] <=>)) "sort ascending order")
+  (is (= [3 3 2 2 1] (sort [3 2 1 2 3] >=<)) "sort descending order")
+  (is (= [1 2 3] (sort-by identity [3 2 1])) "sort-by identity")
+  (is (= [3 2 1] (sort-by - [3 2 1])) "sort-by reversed"))
 
 (deftest test-group-by
   (is (= {1 ["a"] 2 ["as" "aa"] 3 ["asd"] 4 ["asdf" "qwer"]}
