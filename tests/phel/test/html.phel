@@ -36,9 +36,8 @@
 
 (deftest arrays
   (is (= "<p>a</p><p>b</p>" (html [:p "a"] [:p "b"])))
-  # (is (= "<body>foobar</body>" (html [:body ["foo" "bar"]])))
-  # (is (= "<p>a</p><p>b</p>" (html [[:p "a"] [:p "b"]])))
-  )
+  (is (= "<body>foobar</body>" (html [:body (list "foo" "bar")])))
+  (is (= "<p>a</p><p>b</p>" (html (list [:p "a"] [:p "b"])))))
 
 (deftest tags-with-keyword-content
   (is (= "<text>foo</text>" (html [:text :foo]))))
