@@ -7,8 +7,8 @@
 (def d :xyz\foo/bar)
 --PHP--
 namespace test;
-require_once __DIR__ . '/../xyz/foo.php';
-require_once __DIR__ . '/../phel/core.php';
+require_once __DIR__ . '/xyz/foo.php';
+require_once __DIR__ . '/phel/core.php';
 \Phel\Compiler\Analyzer\Environment\GlobalEnvironmentSingleton::getInstance()->setNs("test");
 $GLOBALS["__phel"]["phel\\core"]["*ns*"] = "test";
 $GLOBALS["__phel"]["test"]["a"] = \Phel\Lang\Keyword::create("bar");
