@@ -4,8 +4,8 @@
   (:require xyz\foo :as f))
 --PHP--
 namespace test;
-require_once __DIR__ . '/../xzy/core.php';
-require_once __DIR__ . '/../xyz/foo.php';
-require_once __DIR__ . '/../phel/core.php';
+require_once __DIR__ . '/xzy/core.php';
+require_once __DIR__ . '/xyz/foo.php';
+require_once __DIR__ . '/phel/core.php';
 \Phel\Compiler\Analyzer\Environment\GlobalEnvironmentSingleton::getInstance()->setNs("test");
 $GLOBALS["__phel"]["phel\\core"]["*ns*"] = "test";
