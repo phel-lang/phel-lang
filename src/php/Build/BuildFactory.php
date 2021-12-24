@@ -16,6 +16,7 @@ use Phel\Build\Extractor\NamespaceSorterInterface;
 use Phel\Build\Extractor\TopologicalNamespaceSorter;
 use Phel\Command\CommandFacadeInterface;
 use Phel\Compiler\CompilerFacadeInterface;
+use Phel\Compiler\Emitter\OutputEmitter\Munge;
 
 final class BuildFactory extends AbstractFactory
 {
@@ -23,7 +24,8 @@ final class BuildFactory extends AbstractFactory
     {
         return new ProjectCompiler(
             $this->createNamespaceExtractor(),
-            $this->createFileCompiler()
+            $this->createFileCompiler(),
+            new Munge()
         );
     }
 
