@@ -21,9 +21,9 @@
     "require-dev": {
         "ext-readline": "*",
         "phpunit/phpunit": "^9.5",
-        "vimeo/psalm": "^4.10",
+        "vimeo/psalm": "^4.15",
         "symfony/var-dumper": "^5.4",
-        "friendsofphp/php-cs-fixer": "^3.3",
+        "friendsofphp/php-cs-fixer": "^3.4",
         "phpmetrics/phpmetrics": "^2.7",
         "phpbench/phpbench": "^1.2"
     },
