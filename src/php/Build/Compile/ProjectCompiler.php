@@ -5,24 +5,26 @@ declare(strict_types=1);
 namespace Phel\Build\Compile;
 
 use Phel\Build\Extractor\NamespaceExtractorInterface;
-use Phel\Compiler\Emitter\OutputEmitter\MungeInterface;
+use Phel\Compiler\CompilerFacadeInterface;
 
 final class ProjectCompiler
 {
+    private const TARGET_FILE_EXTENSION = '.php';
+
     private NamespaceExtractorInterface $namespaceExtractor;
 
     private FileCompilerInterface $fileCompiler;
 
-    private MungeInterface $munge;
+    private CompilerFacadeInterface $compilerFacade;
 
     public function __construct(
         NamespaceExtractorInterface $namespaceExtractor,
         FileCompilerInterface $fileCompiler,
-        MungeInterface $munge
+        CompilerFacadeInterface $compilerFacade
     ) {
         $this->namespaceExtractor = $namespaceExtractor;
         $this->fileCompiler = $fileCompiler;
-        $this->munge = $munge;
+        $this->compilerFacade = $compilerFacade;
     }
 
     /**
@@ -61,7 +63,8 @@ final class ProjectCompiler
 
     private function getTargetFileFromNamespace(string $namespace): string
     {
-        $mungedNamespace = $this->munge->encodeNs($namespace);
-        return implode(DIRECTORY_SEPARATOR, explode('\\', $mungedNamespace)) . '.php';
+        $mungedNamespace = $this->compilerFacade->encodeNs($namespace);
+
+        return implode(DIRECTORY_SEPARATOR, explode('\\', $mungedNamespace)) . self::TARGET_FILE_EXTENSION;
     }
 }
