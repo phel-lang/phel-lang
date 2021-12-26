@@ -218,7 +218,7 @@ final class FormatterFacadeTest extends TestCase
             'expectedLines' => ['[1 2 3]'],
         ];
 
-        yield 'Map' => [
+        yield 'One liner Map' => [
             'actualLines' => ['{ :a 1 :b 2 }'],
             'expectedLines' => ['{:a 1 :b 2}'],
         ];
