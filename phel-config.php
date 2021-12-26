@@ -11,4 +11,5 @@ return [
         'namespace-prefix' => 'PhelGenerated',
         'target-directory' => 'src/PhelGenerated',
     ],
+    'out-dir' => 'out',
 ];
