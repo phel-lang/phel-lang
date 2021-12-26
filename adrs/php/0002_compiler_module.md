@@ -2,7 +2,7 @@
 
 ## Motivation
 
-Describe the responsibilities of the compiler module.
+Describe the responsibilities of the Compiler module.
 
 ## Compiler sub-modules
 

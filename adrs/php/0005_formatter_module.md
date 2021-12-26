@@ -6,4 +6,4 @@ Describe the responsibilities of the Formatter module.
 
 ## Decision
 
-This module is the place for the format command.
+This module is the place for the `format` command.
