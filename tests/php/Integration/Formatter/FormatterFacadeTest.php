@@ -175,7 +175,7 @@ final class FormatterFacadeTest extends TestCase
             ],
             [
                 '{:x 1',
-                '  :y 2}',
+                ' :y 2}',
             ],
         ];
 
