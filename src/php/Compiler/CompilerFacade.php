@@ -115,4 +115,11 @@ final class CompilerFacade extends AbstractFacade implements CompilerFacadeInter
             ->createReader()
             ->read($parseTree);
     }
+
+    public function encodeNs(string $namespace): string
+    {
+        return $this->getFactory()
+            ->createMunge()
+            ->encodeNs($namespace);
+    }
 }

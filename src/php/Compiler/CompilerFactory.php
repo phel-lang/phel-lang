@@ -18,6 +18,7 @@ use Phel\Compiler\Emitter\FileEmitter;
 use Phel\Compiler\Emitter\FileEmitterInterface;
 use Phel\Compiler\Emitter\OutputEmitter;
 use Phel\Compiler\Emitter\OutputEmitter\Munge;
+use Phel\Compiler\Emitter\OutputEmitter\MungeInterface;
 use Phel\Compiler\Emitter\OutputEmitter\NodeEmitterFactory;
 use Phel\Compiler\Emitter\OutputEmitter\OutputEmitterOptions;
 use Phel\Compiler\Emitter\OutputEmitter\SourceMap\SourceMapGenerator;
@@ -106,7 +107,7 @@ final class CompilerFactory extends AbstractFactory
             new OutputEmitter(
                 $enableSourceMaps,
                 new NodeEmitterFactory(),
-                new Munge(),
+                $this->createMunge(),
                 Printer::readable(),
                 new SourceMapState(),
                 new OutputEmitterOptions(OutputEmitterOptions::EMIT_MODE_FILE)
@@ -119,7 +120,7 @@ final class CompilerFactory extends AbstractFactory
         return new OutputEmitter(
             $enableSourceMaps,
             new NodeEmitterFactory(),
-            new Munge(),
+            $this->createMunge(),
             Printer::readable(),
             new SourceMapState(),
             new OutputEmitterOptions(OutputEmitterOptions::EMIT_MODE_STATEMENT)
@@ -129,6 +130,11 @@ final class CompilerFactory extends AbstractFactory
     public function createEvaluator(): EvaluatorInterface
     {
         return new RequireEvaluator();
+    }
+
+    public function createMunge(): MungeInterface
+    {
+        return new Munge();
     }
 
     private function getGlobalEnvironment(): GlobalEnvironmentInterface

@@ -78,4 +78,6 @@ interface CompilerFacadeInterface
      * @throws UnfinishedParserException
      */
     public function parseAll(TokenStream $tokenStream): FileNode;
+
+    public function encodeNs(string $namespace): string;
 }
