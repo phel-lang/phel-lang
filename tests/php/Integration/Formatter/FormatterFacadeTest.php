@@ -33,7 +33,7 @@ final class FormatterFacadeTest extends TestCase
 
     public function providerIndent(): Generator
     {
-        yield 'ListIndention1' => [
+        yield 'Indent list with two variables' => [
             [
                 '(x a',
                 'b',
@@ -46,7 +46,7 @@ final class FormatterFacadeTest extends TestCase
             ],
         ];
 
-        yield 'ListIndention2' => [
+        yield 'Indent list with one variable' => [
             [
                 '(x',
                 'b',
@@ -59,7 +59,7 @@ final class FormatterFacadeTest extends TestCase
             ],
         ];
 
-        yield 'BlockIndentionIf' => [
+        yield 'Indent if block' => [
             [
                 '(if (= x 1)',
                 'true',
@@ -72,7 +72,7 @@ final class FormatterFacadeTest extends TestCase
             ],
         ];
 
-        yield 'BlockIndentionDo' => [
+        yield 'Indent do block' => [
             [
                 '(do',
                 '(foo)',
@@ -85,7 +85,7 @@ final class FormatterFacadeTest extends TestCase
             ],
         ];
 
-        yield 'BlockIndentionDo2' => [
+        yield 'Indent do block 2' => [
             [
                 '(do (foo)',
                 '(bar))',
@@ -96,7 +96,7 @@ final class FormatterFacadeTest extends TestCase
             ],
         ];
 
-        yield 'BlockIndentionCase' => [
+        yield 'Indent case block' => [
             [
                 '(case (+ 7 5)',
                 '3 :small',
@@ -109,7 +109,7 @@ final class FormatterFacadeTest extends TestCase
             ],
         ];
 
-        yield 'DefIndention' => [
+        yield 'Indent def block' => [
             [
                 '(def foo',
                 '1)',
@@ -120,18 +120,7 @@ final class FormatterFacadeTest extends TestCase
             ],
         ];
 
-        yield 'Indent' => [
-            [
-                '(def foo',
-                '1)',
-            ],
-            [
-                '(def foo',
-                '  1)',
-            ],
-        ];
-
-        yield 'DefnIndention1' => [
+        yield 'Indent defn block' => [
             [
                 '(defn foo [x]',
                 '(+ x 1))',
@@ -142,7 +131,7 @@ final class FormatterFacadeTest extends TestCase
             ],
         ];
 
-        yield 'DefnIndention2' => [
+        yield 'Indent defn block 2' => [
             [
                 '(defn foo',
                 '[x]',
@@ -155,7 +144,7 @@ final class FormatterFacadeTest extends TestCase
             ],
         ];
 
-        yield 'Let' => [
+        yield 'Indent let block' => [
             [
                 '(let [x 1',
                 'y 2]',
@@ -168,18 +157,18 @@ final class FormatterFacadeTest extends TestCase
             ],
         ];
 
-        yield 'Map' => [
+        yield 'Indent map block' => [
             [
                 '{:x 1',
                 ':y 2}',
             ],
             [
                 '{:x 1',
-                '  :y 2}',
+                ' :y 2}',
             ],
         ];
 
-        yield 'LetNested' => [
+        yield 'Indent let nested block' => [
             [
                 '(let [a {:x 1',
                 ':y 2}]',
@@ -192,7 +181,7 @@ final class FormatterFacadeTest extends TestCase
             ],
         ];
 
-        yield 'NestedDef' => [
+        yield 'Indent nested def block' => [
             [
                 '(def foo',
                 '(fn [bar]',
@@ -208,22 +197,22 @@ final class FormatterFacadeTest extends TestCase
 
     public function providerReformatted(): Generator
     {
-        yield 'list' => [
+        yield 'One liner List' => [
             'actualLines' => ['( 1 2 3 )'],
             'expectedLines' => ['(1 2 3)'],
         ];
 
-        yield 'Vector' => [
+        yield 'One liner Vector' => [
             'actualLines' => ['[ 1 2 3 ]'],
             'expectedLines' => ['[1 2 3]'],
         ];
 
-        yield 'Map' => [
+        yield 'One liner Map' => [
             'actualLines' => ['{ :a 1 :b 2 }'],
             'expectedLines' => ['{:a 1 :b 2}'],
         ];
 
-        yield 'RemoveNewlines 1' => [
+        yield 'Remove new lines without empty spaces' => [
             'actualLines' => [
                 '(',
                 'foo',
@@ -232,7 +221,7 @@ final class FormatterFacadeTest extends TestCase
             'expectedLines' => ['(foo)'],
         ];
 
-        yield 'RemoveNewlines 2' => [
+        yield 'Remove new lines with empty space in the beginning at the middle string' => [
             'actualLines' => [
                 '(',
                 '  foo',
@@ -241,7 +230,7 @@ final class FormatterFacadeTest extends TestCase
             'expectedLines' => ['(foo)'],
         ];
 
-        yield 'RemoveNewlines 3' => [
+        yield 'Remove new lines with empty space at the end of the first string' => [
             'actualLines' => [
                 '(foo ',
                 ')',
@@ -249,7 +238,7 @@ final class FormatterFacadeTest extends TestCase
             'expectedLines' => ['(foo)'],
         ];
 
-        yield 'RemoveNewlines 4' => [
+        yield 'Remove new lines with empty space at the beginning of the second string' => [
             'actualLines' => [
                 '(foo',
                 '  )',
@@ -260,17 +249,17 @@ final class FormatterFacadeTest extends TestCase
 
     public function providerRemoveTrailingWhitespaceRule(): Generator
     {
-        yield 'Reformatted' => [
+        yield 'Remove basic trailing whitespace' => [
             ['  '],
             [''],
         ];
 
-        yield 'AfterList' => [
+        yield 'Remove trailing whitespace after list' => [
             ['(foo bar) '],
             ['(foo bar)'],
         ];
 
-        yield 'BetweenList' => [
+        yield 'Remove trailing whitespace between list' => [
             [
                 '(foo bar) ',
                 '(foo bar)',
@@ -281,7 +270,7 @@ final class FormatterFacadeTest extends TestCase
             ],
         ];
 
-        yield 'InsideList' => [
+        yield 'Remove trailing whitespace inside list' => [
             [
                 '(a',
                 ' ',
