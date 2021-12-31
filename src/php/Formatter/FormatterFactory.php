@@ -30,7 +30,7 @@ final class FormatterFactory extends AbstractFactory
         );
     }
 
-    public function createFormatter(): FormatterInterface
+    private function createFormatter(): FormatterInterface
     {
         return new Formatter(
             $this->getFacadeCompiler(),
