@@ -26,7 +26,10 @@ final class FormatterFacadeTest extends TestCase
      */
     public function test_format(array $actualLines, array $expectedLines): void
     {
-        $formatted = $this->formatterFacade->format(implode("\n", $actualLines));
+        $formatted = $this->formatterFacade
+            ->getFormatCommand()
+            ->getFormatter()
+            ->format(implode("\n", $actualLines));
 
         self::assertEquals($expectedLines, explode("\n", $formatted));
     }

@@ -39,6 +39,14 @@ final class FormatCommand extends Command
         $this->pathFilter = $pathFilter;
     }
 
+    /**
+     * @internal Public method for test purposes
+     */
+    public function getFormatter(): FormatterInterface
+    {
+        return $this->formatter;
+    }
+
     protected function configure(): void
     {
         $this->setDescription('Formats the given files.')

@@ -5,10 +5,7 @@ declare(strict_types=1);
 namespace Phel\Formatter;
 
 use Gacela\Framework\AbstractFacade;
-use Phel\Compiler\Lexer\Exceptions\LexerValueException;
-use Phel\Compiler\Parser\Exceptions\AbstractParserException;
 use Phel\Formatter\Command\FormatCommand;
-use Phel\Formatter\Domain\Rules\Zipper\ZipperException;
 
 /**
  * @method FormatterFactory getFactory()
@@ -18,19 +15,5 @@ final class FormatterFacade extends AbstractFacade implements FormatterFacadeInt
     public function getFormatCommand(): FormatCommand
     {
         return $this->getFactory()->createFormatCommand();
-    }
-
-    /**
-     * @throws AbstractParserException
-     * @throws LexerValueException
-     * @throws ZipperException
-     *
-     * @return string The formatted file result
-     */
-    public function format(string $string, string $source = 'string'): string
-    {
-        return $this->getFactory()
-            ->createFormatter()
-            ->format($string, $source);
     }
 }
