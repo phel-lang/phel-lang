@@ -13,24 +13,29 @@ final class NsNode extends AbstractNode
     /** @var Symbol[] */
     private array $requireNs;
 
+    /** @var string[] */
+    private array $requireFiles;
+
     private string $namespace;
 
     /**
-     * @param Symbol[] $requireNs
+     * @param list<Symbol> $requireNs
+     * @param list<string> $requireFiles
      */
-    public function __construct(string $namespace, array $requireNs, ?SourceLocation $sourceLocation = null)
+    public function __construct(string $namespace, array $requireNs, array $requireFiles, ?SourceLocation $sourceLocation = null)
     {
         parent::__construct(NodeEnvironment::empty(), $sourceLocation);
         $this->requireNs = $requireNs;
         if ($namespace !== 'phel\\core') {
             // All other files implicitly depend on phel\core
-            $this->requireNs[] = Symbol::create('phel\\core');
+            $this->requireNs = [Symbol::create('phel\\core'), ...$requireNs];
         }
+        $this->requireFiles = $requireFiles;
         $this->namespace = $namespace;
     }
 
     /**
-     * @return Symbol[]
+     * @return list<Symbol>
      */
     public function getRequireNs(): array
     {
@@ -40,5 +45,13 @@ final class NsNode extends AbstractNode
     public function getNamespace(): string
     {
         return $this->namespace;
+    }
+
+    /**
+     * @return list<string>
+     */
+    public function getRequireFiles(): array
+    {
+        return $this->requireFiles;
     }
 }

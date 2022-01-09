@@ -50,6 +50,7 @@ final class NsSymbol implements SpecialFormAnalyzerInterface
         $this->analyzer->setNamespace($ns);
 
         $requireNs = [];
+        $requireFiles = [];
         for ($forms = $list->rest()->cdr(); $forms != null; $forms = $forms->cdr()) {
             $import = $forms->first();
 
@@ -64,6 +65,8 @@ final class NsSymbol implements SpecialFormAnalyzerInterface
                 $this->analyzeUse($ns, $import);
             } elseif ($this->isKeywordWithName($value, 'require')) {
                 $requireNs[] = $this->analyzeRequire($ns, $import);
+            } elseif ($this->isKeywordWithName($value, 'require-file')) {
+                $requireFiles[] = $this->analyzeRequireFile($import);
             } elseif ($value instanceof Keyword) {
                 throw AnalyzerException::withLocation(
                     "Unexpected keyword {$value->getName()} encountered in 'ns. Expected :use or :require.",
@@ -72,7 +75,7 @@ final class NsSymbol implements SpecialFormAnalyzerInterface
             }
         }
 
-        return new NsNode($ns, $requireNs, $list->getStartLocation());
+        return new NsNode($ns, $requireNs, $requireFiles, $list->getStartLocation());
     }
 
     private function isPHPKeyword(string $w): bool
@@ -171,5 +174,15 @@ final class NsSymbol implements SpecialFormAnalyzerInterface
         $this->analyzer->addRefers($ns, $referSymbols, $requireSymbol);
 
         return $requireSymbol;
+    }
+
+    private function analyzeRequireFile(PersistentListInterface $import): string
+    {
+        $file = $import->get(1);
+        if (!is_string($file)) {
+            throw AnalyzerException::withLocation('First argument in :require-file must be a string.', $import);
+        }
+
+        return $file;
     }
 }
