@@ -19,6 +19,7 @@ final class NsEmitter implements NodeEmitterInterface
         assert($node instanceof NsNode);
 
         $this->emitNamespace($node);
+        $this->emitRequireFiles($node);
         $this->emitRequiredNamespaces($node);
         $this->emitCurrentNamespace($node);
     }
@@ -29,6 +30,17 @@ final class NsEmitter implements NodeEmitterInterface
             $this->outputEmitter->emitStr('namespace ', $node->getStartSourceLocation());
             $this->outputEmitter->emitStr($this->outputEmitter->mungeEncodeNs($node->getNamespace()), $node->getStartSourceLocation());
             $this->outputEmitter->emitLine(';', $node->getStartSourceLocation());
+        }
+    }
+
+    private function emitRequireFiles(NsNode $node): void
+    {
+        if ($this->outputEmitter->getOptions()->isFileEmitMode()) {
+            foreach ($node->getRequireFiles() as $path) {
+                $this->outputEmitter->emitStr('require_once ', $node->getStartSourceLocation());
+                $this->outputEmitter->emitLiteral($path);
+                $this->outputEmitter->emitLine(';', $node->getStartSourceLocation());
+            }
         }
     }
 
