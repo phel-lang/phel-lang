@@ -9,7 +9,6 @@
 --PHP--
 namespace interface_instance;
 require_once __DIR__ . '/phel/core.php';
-\Phel\Compiler\Analyzer\Environment\GlobalEnvironmentSingleton::getInstance()->setNs("interface-instance");
 $GLOBALS["__phel"]["phel\\core"]["*ns*"] = "interface_instance";
 interface IPlayer {
   public function choose();

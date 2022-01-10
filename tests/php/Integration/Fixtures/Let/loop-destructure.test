@@ -9,7 +9,6 @@
 --PHP--
 namespace test;
 require_once __DIR__ . '/phel/core.php';
-\Phel\Compiler\Analyzer\Environment\GlobalEnvironmentSingleton::getInstance()->setNs("test");
 $GLOBALS["__phel"]["phel\\core"]["*ns*"] = "test";
 $__phel_1_2 = \Phel\Lang\TypeFactory::getInstance()->persistentVectorFromArray([1, 2, 3, 4]);
 $sum_3 = 0;
