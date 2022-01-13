@@ -1,18 +1,22 @@
 --PHEL--
 (def x {:private true :export true} 1)
 --PHP--
-$GLOBALS["__phel"]["user"]["x"] = 1;
-$GLOBALS["__phel_meta"]["user"]["x"] = \Phel\Lang\TypeFactory::getInstance()->persistentMapFromKVs(
-  \Phel\Lang\Keyword::create("private"), true,
-  \Phel\Lang\Keyword::create("export"), true,
-  \Phel\Lang\Keyword::create("start-location"), \Phel\Lang\TypeFactory::getInstance()->persistentMapFromKVs(
-    \Phel\Lang\Keyword::create("file"), "Def/private-def-meta.test",
-    \Phel\Lang\Keyword::create("line"), 1,
-    \Phel\Lang\Keyword::create("column"), 0
-  ),
-  \Phel\Lang\Keyword::create("end-location"), \Phel\Lang\TypeFactory::getInstance()->persistentMapFromKVs(
-    \Phel\Lang\Keyword::create("file"), "Def/private-def-meta.test",
-    \Phel\Lang\Keyword::create("line"), 1,
-    \Phel\Lang\Keyword::create("column"), 38
+\Phel\Lang\Registry::getInstance()->addDefinition(
+  "user",
+  "x",
+  1,
+  \Phel\Lang\TypeFactory::getInstance()->persistentMapFromKVs(
+    \Phel\Lang\Keyword::create("private"), true,
+    \Phel\Lang\Keyword::create("export"), true,
+    \Phel\Lang\Keyword::create("start-location"), \Phel\Lang\TypeFactory::getInstance()->persistentMapFromKVs(
+      \Phel\Lang\Keyword::create("file"), "Def/private-def-meta.test",
+      \Phel\Lang\Keyword::create("line"), 1,
+      \Phel\Lang\Keyword::create("column"), 0
+    ),
+    \Phel\Lang\Keyword::create("end-location"), \Phel\Lang\TypeFactory::getInstance()->persistentMapFromKVs(
+      \Phel\Lang\Keyword::create("file"), "Def/private-def-meta.test",
+      \Phel\Lang\Keyword::create("line"), 1,
+      \Phel\Lang\Keyword::create("column"), 38
+    )
   )
 );

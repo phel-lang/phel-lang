@@ -16,6 +16,7 @@ use Phel\Compiler\Analyzer\Environment\NodeEnvironment;
 use Phel\Compiler\Analyzer\Exceptions\AnalyzerException;
 use Phel\Compiler\Analyzer\TypeAnalyzer\SpecialForm\InvokeSymbol;
 use Phel\Lang\Keyword;
+use Phel\Lang\Registry;
 use Phel\Lang\Symbol;
 use Phel\Lang\TypeFactory;
 use PHPUnit\Framework\TestCase;
@@ -28,14 +29,14 @@ final class InvokeSymbolTest extends TestCase
     {
         $env = new GlobalEnvironment();
         $env->addDefinition('user', Symbol::create('my-macro'), TypeFactory::getInstance()->persistentMapFromKVs(Keyword::create('macro'), true));
-        $GLOBALS['__phel']['user']['my-macro'] = function ($a) {
+        Registry::getInstance()->addDefinition('user', 'my-macro', function ($a) {
             return $a;
-        };
+        });
 
         $env->addDefinition('user', Symbol::create('my-failed-macro'), TypeFactory::getInstance()->persistentMapFromKVs(Keyword::create('macro'), true));
-        $GLOBALS['__phel']['user']['my-failed-macro'] = function ($a): void {
+        Registry::getInstance()->addDefinition('user', 'my-failed-macro', function ($a): void {
             throw new Exception('my-failed-macro message');
-        };
+        });
 
         $this->analyzer = new Analyzer($env);
     }

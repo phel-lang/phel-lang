@@ -6,6 +6,7 @@ namespace Phel\Compiler\Analyzer\Environment;
 
 use Phel\Compiler\Analyzer\Exceptions\GlobalEnvironmentAlreadyInitializedException;
 use Phel\Compiler\Analyzer\Exceptions\GlobalEnvironmentNotInitializedException;
+use Phel\Lang\Registry;
 
 final class GlobalEnvironmentSingleton
 {
@@ -52,7 +53,7 @@ final class GlobalEnvironmentSingleton
      */
     public static function initializeNew(): GlobalEnvironmentInterface
     {
-        unset($GLOBALS['__phel']);
+        Registry::getInstance()->clear();
         self::$instance = new GlobalEnvironment();
 
         return self::$instance;

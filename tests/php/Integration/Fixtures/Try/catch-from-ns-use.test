@@ -5,7 +5,11 @@
 --PHP--
 namespace catch_from_ns_use;
 require_once __DIR__ . '/phel/core.php';
-$GLOBALS["__phel"]["phel\\core"]["*ns*"] = "catch_from_ns_use";
+\Phel\Lang\Registry::getInstance()->addDefinition(
+  "phel\\core",
+  "*ns*",
+  "catch_from_ns_use"
+);
 try {
   (1 + 1);
 } catch (\Exception $e) {

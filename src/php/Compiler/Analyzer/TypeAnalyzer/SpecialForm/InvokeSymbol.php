@@ -12,6 +12,7 @@ use Phel\Compiler\Analyzer\Environment\NodeEnvironmentInterface;
 use Phel\Compiler\Analyzer\Exceptions\AnalyzerException;
 use Phel\Compiler\Analyzer\TypeAnalyzer\WithAnalyzerTrait;
 use Phel\Lang\Collections\LinkedList\PersistentListInterface;
+use Phel\Lang\Registry;
 use Phel\Lang\TypeFactory;
 use Phel\Lang\TypeInterface;
 
@@ -51,7 +52,7 @@ final class InvokeSymbol implements SpecialFormAnalyzerInterface
         $listCount = count($list);
         /** @psalm-suppress PossiblyNullArgument */
         $nodeName = $macroNode->getName()->getName();
-        $fn = $GLOBALS['__phel'][$macroNode->getNamespace()][$nodeName];
+        $fn = Registry::getInstance()->getDefinition($macroNode->getNamespace(), $nodeName);
 
         $arguments = $list->rest()->toArray();
 

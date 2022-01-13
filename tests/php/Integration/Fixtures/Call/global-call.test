@@ -3,23 +3,27 @@
 
 (x 1)
 --PHP--
-$GLOBALS["__phel"]["user"]["x"] = new class() extends \Phel\Lang\AbstractFn {
-  public const BOUND_TO = "user\\x";
+\Phel\Lang\Registry::getInstance()->addDefinition(
+  "user",
+  "x",
+  new class() extends \Phel\Lang\AbstractFn {
+    public const BOUND_TO = "user\\x";
 
-  public function __invoke($x) {
-    return 1;
-  }
-};
-$GLOBALS["__phel_meta"]["user"]["x"] = \Phel\Lang\TypeFactory::getInstance()->persistentMapFromKVs(
-  \Phel\Lang\Keyword::create("start-location"), \Phel\Lang\TypeFactory::getInstance()->persistentMapFromKVs(
-    \Phel\Lang\Keyword::create("file"), "Call/global-call.test",
-    \Phel\Lang\Keyword::create("line"), 1,
-    \Phel\Lang\Keyword::create("column"), 0
-  ),
-  \Phel\Lang\Keyword::create("end-location"), \Phel\Lang\TypeFactory::getInstance()->persistentMapFromKVs(
-    \Phel\Lang\Keyword::create("file"), "Call/global-call.test",
-    \Phel\Lang\Keyword::create("line"), 1,
-    \Phel\Lang\Keyword::create("column"), 18
+    public function __invoke($x) {
+      return 1;
+    }
+  },
+  \Phel\Lang\TypeFactory::getInstance()->persistentMapFromKVs(
+    \Phel\Lang\Keyword::create("start-location"), \Phel\Lang\TypeFactory::getInstance()->persistentMapFromKVs(
+      \Phel\Lang\Keyword::create("file"), "Call/global-call.test",
+      \Phel\Lang\Keyword::create("line"), 1,
+      \Phel\Lang\Keyword::create("column"), 0
+    ),
+    \Phel\Lang\Keyword::create("end-location"), \Phel\Lang\TypeFactory::getInstance()->persistentMapFromKVs(
+      \Phel\Lang\Keyword::create("file"), "Call/global-call.test",
+      \Phel\Lang\Keyword::create("line"), 1,
+      \Phel\Lang\Keyword::create("column"), 18
+    )
   )
 );
-($GLOBALS["__phel"]["user"]["x"])(1);
+(\Phel\Lang\Registry::getInstance()->getDefinition("user", "x"))(1);

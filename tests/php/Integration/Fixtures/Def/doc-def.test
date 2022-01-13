@@ -1,17 +1,21 @@
 --PHEL--
 (def x "my number" 1)
 --PHP--
-$GLOBALS["__phel"]["user"]["x"] = 1;
-$GLOBALS["__phel_meta"]["user"]["x"] = \Phel\Lang\TypeFactory::getInstance()->persistentMapFromKVs(
-  \Phel\Lang\Keyword::create("doc"), "my number",
-  \Phel\Lang\Keyword::create("start-location"), \Phel\Lang\TypeFactory::getInstance()->persistentMapFromKVs(
-    \Phel\Lang\Keyword::create("file"), "Def/doc-def.test",
-    \Phel\Lang\Keyword::create("line"), 1,
-    \Phel\Lang\Keyword::create("column"), 0
-  ),
-  \Phel\Lang\Keyword::create("end-location"), \Phel\Lang\TypeFactory::getInstance()->persistentMapFromKVs(
-    \Phel\Lang\Keyword::create("file"), "Def/doc-def.test",
-    \Phel\Lang\Keyword::create("line"), 1,
-    \Phel\Lang\Keyword::create("column"), 21
+\Phel\Lang\Registry::getInstance()->addDefinition(
+  "user",
+  "x",
+  1,
+  \Phel\Lang\TypeFactory::getInstance()->persistentMapFromKVs(
+    \Phel\Lang\Keyword::create("doc"), "my number",
+    \Phel\Lang\Keyword::create("start-location"), \Phel\Lang\TypeFactory::getInstance()->persistentMapFromKVs(
+      \Phel\Lang\Keyword::create("file"), "Def/doc-def.test",
+      \Phel\Lang\Keyword::create("line"), 1,
+      \Phel\Lang\Keyword::create("column"), 0
+    ),
+    \Phel\Lang\Keyword::create("end-location"), \Phel\Lang\TypeFactory::getInstance()->persistentMapFromKVs(
+      \Phel\Lang\Keyword::create("file"), "Def/doc-def.test",
+      \Phel\Lang\Keyword::create("line"), 1,
+      \Phel\Lang\Keyword::create("column"), 21
+    )
   )
 );

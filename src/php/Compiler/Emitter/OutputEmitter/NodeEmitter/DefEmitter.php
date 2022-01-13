@@ -16,16 +16,21 @@ final class DefEmitter implements NodeEmitterInterface
     {
         assert($node instanceof DefNode);
 
-        $this->outputEmitter->emitGlobalBase($node->getNamespace(), $node->getName());
-        $this->outputEmitter->emitStr(' = ', $node->getStartSourceLocation());
+        $this->outputEmitter->emitLine('\\Phel\\Lang\\Registry::getInstance()->addDefinition(');
+        $this->outputEmitter->increaseIndentLevel();
+        $this->outputEmitter->emitStr('"');
+        $this->outputEmitter->emitStr(addslashes($this->outputEmitter->mungeEncodeNs($node->getNamespace())));
+        $this->outputEmitter->emitLine('",');
+        $this->outputEmitter->emitStr('"');
+        $this->outputEmitter->emitStr(addslashes($node->getName()->getName()));
+        $this->outputEmitter->emitLine('",');
         $this->outputEmitter->emitNode($node->getInit());
-        $this->outputEmitter->emitLine(';', $node->getStartSourceLocation());
-
         if (count($node->getMeta()) > 0) {
-            $this->outputEmitter->emitGlobalBaseMeta($node->getNamespace(), $node->getName());
-            $this->outputEmitter->emitStr(' = ', $node->getStartSourceLocation());
+            $this->outputEmitter->emitLine(',');
             $this->outputEmitter->emitLiteral($node->getMeta());
-            $this->outputEmitter->emitLine(';', $node->getStartSourceLocation());
         }
+        $this->outputEmitter->emitLine();
+        $this->outputEmitter->decreaseIndentLevel();
+        $this->outputEmitter->emitLine(');');
     }
 }

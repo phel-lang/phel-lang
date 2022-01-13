@@ -6,11 +6,11 @@ new class() extends \Phel\Lang\AbstractFn {
 
   public function __invoke($__phel_1) {
     $__phel_2_7 = $__phel_1;
-    $__phel_3_8 = ($GLOBALS["__phel"]["phel\\core"]["first"])($__phel_2_7);
-    $__phel_4_9 = ($GLOBALS["__phel"]["phel\\core"]["next"])($__phel_2_7);
+    $__phel_3_8 = (\Phel\Lang\Registry::getInstance()->getDefinition("phel\\core", "first"))($__phel_2_7);
+    $__phel_4_9 = (\Phel\Lang\Registry::getInstance()->getDefinition("phel\\core", "next"))($__phel_2_7);
     $x_10 = $__phel_3_8;
-    $__phel_5_11 = ($GLOBALS["__phel"]["phel\\core"]["first"])($__phel_4_9);
-    $__phel_6_12 = ($GLOBALS["__phel"]["phel\\core"]["next"])($__phel_4_9);
+    $__phel_5_11 = (\Phel\Lang\Registry::getInstance()->getDefinition("phel\\core", "first"))($__phel_4_9);
+    $__phel_6_12 = (\Phel\Lang\Registry::getInstance()->getDefinition("phel\\core", "next"))($__phel_4_9);
     $y_13 = $__phel_5_11;
     return 1;
   }

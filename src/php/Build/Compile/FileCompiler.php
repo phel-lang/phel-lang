@@ -7,6 +7,7 @@ namespace Phel\Build\Compile;
 use Phel\Build\Extractor\NamespaceExtractorInterface;
 use Phel\Compiler\Compiler\CompileOptions;
 use Phel\Compiler\CompilerFacadeInterface;
+use Phel\Lang\Registry;
 
 final class FileCompiler implements FileCompilerInterface
 {
@@ -30,9 +31,9 @@ final class FileCompiler implements FileCompilerInterface
             ->setSource($src)
             ->setIsEnabledSourceMaps($enableSourceMaps);
 
-        $GLOBALS['__phel']['phel\core']['*compile-mode*'] = true;
+        Registry::getInstance()->addDefinition("phel\core", '*compile-mode*', true);
         $result = $this->compilerFacade->compile($phelCode, $options);
-        $GLOBALS['__phel']['phel\core']['*compile-mode*'] = false;
+        Registry::getInstance()->addDefinition("phel\core", '*compile-mode*', false);
 
         file_put_contents($dest, "<?php\n" . $result->getCode());
         file_put_contents(str_replace('.php', '.phel', $dest), $phelCode);

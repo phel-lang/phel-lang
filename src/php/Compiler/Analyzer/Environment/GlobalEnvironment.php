@@ -10,6 +10,7 @@ use Phel\Compiler\Analyzer\Ast\LiteralNode;
 use Phel\Compiler\Analyzer\Ast\PhpClassNameNode;
 use Phel\Lang\Collections\Map\PersistentMapInterface;
 use Phel\Lang\Keyword;
+use Phel\Lang\Registry;
 use Phel\Lang\SourceLocation;
 use Phel\Lang\Symbol;
 use Phel\Lang\TypeFactory;
@@ -46,12 +47,12 @@ final class GlobalEnvironment implements GlobalEnvironmentInterface
     private function addInternalCompileModeDefinition(): void
     {
         $symbol = Symbol::create('*compile-mode*');
-        $GLOBALS['__phel'][self::PHEL_CORE_NAMESPACE][$symbol->getName()] = false;
-
-        $this->addDefinition(self::PHEL_CORE_NAMESPACE, $symbol, TypeFactory::getInstance()->persistentMapFromKVs(
+        $meta = TypeFactory::getInstance()->persistentMapFromKVs(
             Keyword::create('doc'),
             'Set to true when a file is compiled, false otherwise',
-        ));
+        );
+        Registry::getInstance()->addDefinition(self::PHEL_CORE_NAMESPACE, $symbol->getName(), false, $meta);
+        $this->addDefinition(self::PHEL_CORE_NAMESPACE, $symbol, $meta);
     }
 
     public function getNs(): string

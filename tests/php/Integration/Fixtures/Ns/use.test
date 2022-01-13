@@ -8,5 +8,9 @@
 --PHP--
 namespace test;
 require_once __DIR__ . '/phel/core.php';
-$GLOBALS["__phel"]["phel\\core"]["*ns*"] = "test";
+\Phel\Lang\Registry::getInstance()->addDefinition(
+  "phel\\core",
+  "*ns*",
+  "test"
+);
 (new \DateTimeImmutable());(new \DateTime());
