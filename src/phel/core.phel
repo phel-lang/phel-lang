@@ -1571,6 +1571,13 @@ returns 1. If `xs` has one value, returns the reciprocal of x."
   [& numbers]
   (extreme > numbers))
 
+(defn coerce-in
+  "Returns `v` if it is in the range, or `min` if `v` is less than `min`, or `max` if `v` is greater than `max`."
+  [v min max]
+  (when (< max min)
+    (throw (php/new \InvalidArgumentException "Max values is bigger than min value")))
+  (php/max (php/min v max) min))
+
 (defn sum
   "Returns the sum of all elements is `xs`."
   [xs]

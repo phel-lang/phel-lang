@@ -89,6 +89,12 @@
 (deftest test-max
   (is (= 3 (max 1 2 3)) "(max 1 2 3)"))
 
+(deftest test-coerce-in
+  (is (= 0.5 (coerce-in 0.5 0 1)) "(coerce-in 0.5 0 1)")
+  (is (= 1 (coerce-in 1.5 0 1)) "(coerce-in 1.5 0 1)")
+  (is (= 0 (coerce-in -0.5 0 1)) "(coerce-in -0.5 0 1)")
+  (is (thrown? \InvalidArgumentException (coerce-in 0.5 1 0)) "(coerce-in 0.5 1 0)"))
+
 (deftest test-sum
   (is (= 6 (sum [1 2 3])) "(sum [1 2 3])")
   (is (= 0 (sum [])) "(sum [])"))
