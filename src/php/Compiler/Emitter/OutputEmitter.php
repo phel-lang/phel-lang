@@ -121,22 +121,6 @@ final class OutputEmitter implements OutputEmitterInterface
         }
     }
 
-    public function emitGlobalBase(string $namespace, Symbol $name): void
-    {
-        $this->emitStr(
-            '$GLOBALS["__phel"]["' . addslashes($this->mungeEncodeNs($namespace)) . '"]["' . addslashes($name->getName()) . '"]',
-            $name->getStartLocation()
-        );
-    }
-
-    public function emitGlobalBaseMeta(string $namespace, Symbol $name): void
-    {
-        $this->emitStr(
-            '$GLOBALS["__phel_meta"]["' . addslashes($this->mungeEncodeNs($namespace)) . '"]["' . addslashes($name->getName()) . '"]',
-            $name->getStartLocation()
-        );
-    }
-
     public function emitContextPrefix(NodeEnvironmentInterface $env, ?SourceLocation $sl = null): void
     {
         if ($env->getContext() === NodeEnvironmentInterface::CONTEXT_RETURN) {

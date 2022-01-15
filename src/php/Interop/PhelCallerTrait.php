@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Phel\Interop;
 
+use Phel\Lang\Registry;
+
 trait PhelCallerTrait
 {
     /**
@@ -25,6 +27,6 @@ trait PhelCallerTrait
     {
         $phelNs = str_replace('-', '_', $namespace);
 
-        return $GLOBALS['__phel'][$phelNs][$definitionName];
+        return Registry::getInstance()->getDefinition($phelNs, $definitionName);
     }
 }

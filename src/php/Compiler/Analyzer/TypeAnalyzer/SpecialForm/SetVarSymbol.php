@@ -22,8 +22,6 @@ final class SetVarSymbol implements SpecialFormAnalyzerInterface
             throw AnalyzerException::withLocation("First argument of 'def must be a Symbol.", $list);
         }
 
-
-
         return new SetVarNode(
             $env,
             $this->analyzer->analyze($nameSymbol, $env->withContext(NodeEnvironmentInterface::CONTEXT_EXPRESSION)),

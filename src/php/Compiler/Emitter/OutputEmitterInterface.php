@@ -30,10 +30,6 @@ interface OutputEmitterInterface
 
     public function emitArgList(array $nodes, ?SourceLocation $sepLoc, string $sep = ', '): void;
 
-    public function emitGlobalBase(string $namespace, Symbol $name): void;
-
-    public function emitGlobalBaseMeta(string $namespace, Symbol $name): void;
-
     public function emitContextPrefix(NodeEnvironmentInterface $env, ?SourceLocation $sl = null): void;
 
     public function emitContextSuffix(NodeEnvironmentInterface $env, ?SourceLocation $sl = null): void;

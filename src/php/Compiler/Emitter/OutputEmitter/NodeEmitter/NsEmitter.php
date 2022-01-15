@@ -7,7 +7,6 @@ namespace Phel\Compiler\Emitter\OutputEmitter\NodeEmitter;
 use Phel\Compiler\Analyzer\Ast\AbstractNode;
 use Phel\Compiler\Analyzer\Ast\NsNode;
 use Phel\Compiler\Emitter\OutputEmitter\NodeEmitterInterface;
-use Phel\Lang\Symbol;
 use function addslashes;
 
 final class NsEmitter implements NodeEmitterInterface
@@ -70,11 +69,17 @@ final class NsEmitter implements NodeEmitterInterface
             );
         }
 
-        $nsSym = Symbol::create('*ns*');
-        $nsSym->setStartLocation($node->getStartSourceLocation());
-        $this->outputEmitter->emitGlobalBase('phel\\core', $nsSym);
-        $this->outputEmitter->emitStr(' = ', $node->getStartSourceLocation());
+        $this->outputEmitter->emitLine('\\Phel\\Lang\\Registry::getInstance()->addDefinition(');
+        $this->outputEmitter->increaseIndentLevel();
+        $this->outputEmitter->emitStr('"');
+        $this->outputEmitter->emitStr(addslashes($this->outputEmitter->mungeEncodeNs('phel\\core')));
+        $this->outputEmitter->emitLine('",');
+        $this->outputEmitter->emitStr('"');
+        $this->outputEmitter->emitStr(addslashes('*ns*'));
+        $this->outputEmitter->emitLine('",');
         $this->outputEmitter->emitLiteral($this->outputEmitter->mungeEncodeNs($node->getNamespace()));
-        $this->outputEmitter->emitLine(';', $node->getStartSourceLocation());
+        $this->outputEmitter->emitLine();
+        $this->outputEmitter->decreaseIndentLevel();
+        $this->outputEmitter->emitLine(');');
     }
 }

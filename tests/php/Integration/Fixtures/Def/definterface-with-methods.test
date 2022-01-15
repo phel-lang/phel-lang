@@ -5,6 +5,10 @@
 --PHP--
 namespace user;
 require_once __DIR__ . '/phel/core.php';
-$GLOBALS["__phel"]["phel\\core"]["*ns*"] = "user";
+\Phel\Lang\Registry::getInstance()->addDefinition(
+  "phel\\core",
+  "*ns*",
+  "user"
+);
 interface IFoo {
 }

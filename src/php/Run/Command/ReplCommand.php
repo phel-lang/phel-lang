@@ -10,6 +10,7 @@ use Phel\Compiler\Compiler\CompileOptions;
 use Phel\Compiler\CompilerFacadeInterface;
 use Phel\Compiler\Exceptions\CompilerException;
 use Phel\Compiler\Parser\Exceptions\UnfinishedParserException;
+use Phel\Lang\Registry;
 use Phel\Printer\PrinterInterface;
 use Phel\Run\Domain\Repl\ColorStyleInterface;
 use Phel\Run\Domain\Repl\ExitException;
@@ -94,7 +95,7 @@ final class ReplCommand extends Command
             }
 
             // Ugly Hack: Set source directories for the repl
-            $GLOBALS['__phel']['phel\\repl']['src-dirs'] = $srcDirectories;
+            Registry::getInstance()->addDefinition('phel\\repl', 'src-dirs', $srcDirectories);
         }
 
         $this->loopReadLineAndAnalyze();

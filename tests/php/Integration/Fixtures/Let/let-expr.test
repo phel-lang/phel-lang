@@ -1,20 +1,24 @@
 --PHEL--
 (def x (let [x 1 y 2] (php/+ x y)))
 --PHP--
-$GLOBALS["__phel"]["user"]["x"] = (function() {
-  $x_1 = 1;
-  $y_2 = 2;
-  return ($x_1 + $y_2);
-})();
-$GLOBALS["__phel_meta"]["user"]["x"] = \Phel\Lang\TypeFactory::getInstance()->persistentMapFromKVs(
-  \Phel\Lang\Keyword::create("start-location"), \Phel\Lang\TypeFactory::getInstance()->persistentMapFromKVs(
-    \Phel\Lang\Keyword::create("file"), "Let/let-expr.test",
-    \Phel\Lang\Keyword::create("line"), 1,
-    \Phel\Lang\Keyword::create("column"), 0
-  ),
-  \Phel\Lang\Keyword::create("end-location"), \Phel\Lang\TypeFactory::getInstance()->persistentMapFromKVs(
-    \Phel\Lang\Keyword::create("file"), "Let/let-expr.test",
-    \Phel\Lang\Keyword::create("line"), 1,
-    \Phel\Lang\Keyword::create("column"), 35
+\Phel\Lang\Registry::getInstance()->addDefinition(
+  "user",
+  "x",
+  (function() {
+    $x_1 = 1;
+    $y_2 = 2;
+    return ($x_1 + $y_2);
+  })(),
+  \Phel\Lang\TypeFactory::getInstance()->persistentMapFromKVs(
+    \Phel\Lang\Keyword::create("start-location"), \Phel\Lang\TypeFactory::getInstance()->persistentMapFromKVs(
+      \Phel\Lang\Keyword::create("file"), "Let/let-expr.test",
+      \Phel\Lang\Keyword::create("line"), 1,
+      \Phel\Lang\Keyword::create("column"), 0
+    ),
+    \Phel\Lang\Keyword::create("end-location"), \Phel\Lang\TypeFactory::getInstance()->persistentMapFromKVs(
+      \Phel\Lang\Keyword::create("file"), "Let/let-expr.test",
+      \Phel\Lang\Keyword::create("line"), 1,
+      \Phel\Lang\Keyword::create("column"), 35
+    )
   )
 );

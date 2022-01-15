@@ -3,27 +3,31 @@
   (foreach [v [1 2 3]]
     (php/+ v v))))
 --PHP--
-$GLOBALS["__phel"]["user"]["x"] = new class() extends \Phel\Lang\AbstractFn {
-  public const BOUND_TO = "user\\x";
+\Phel\Lang\Registry::getInstance()->addDefinition(
+  "user",
+  "x",
+  new class() extends \Phel\Lang\AbstractFn {
+    public const BOUND_TO = "user\\x";
 
-  public function __invoke() {
-    return (function() {
-      foreach ((\Phel\Lang\TypeFactory::getInstance()->persistentVectorFromArray([1, 2, 3]) ?? []) as $v) {
-        ($v + $v);
-      }
-      return null;
-    })();
-  }
-};
-$GLOBALS["__phel_meta"]["user"]["x"] = \Phel\Lang\TypeFactory::getInstance()->persistentMapFromKVs(
-  \Phel\Lang\Keyword::create("start-location"), \Phel\Lang\TypeFactory::getInstance()->persistentMapFromKVs(
-    \Phel\Lang\Keyword::create("file"), "Foreach/foreach-expr.test",
-    \Phel\Lang\Keyword::create("line"), 1,
-    \Phel\Lang\Keyword::create("column"), 0
-  ),
-  \Phel\Lang\Keyword::create("end-location"), \Phel\Lang\TypeFactory::getInstance()->persistentMapFromKVs(
-    \Phel\Lang\Keyword::create("file"), "Foreach/foreach-expr.test",
-    \Phel\Lang\Keyword::create("line"), 3,
-    \Phel\Lang\Keyword::create("column"), 18
+    public function __invoke() {
+      return (function() {
+        foreach ((\Phel\Lang\TypeFactory::getInstance()->persistentVectorFromArray([1, 2, 3]) ?? []) as $v) {
+          ($v + $v);
+        }
+        return null;
+      })();
+    }
+  },
+  \Phel\Lang\TypeFactory::getInstance()->persistentMapFromKVs(
+    \Phel\Lang\Keyword::create("start-location"), \Phel\Lang\TypeFactory::getInstance()->persistentMapFromKVs(
+      \Phel\Lang\Keyword::create("file"), "Foreach/foreach-expr.test",
+      \Phel\Lang\Keyword::create("line"), 1,
+      \Phel\Lang\Keyword::create("column"), 0
+    ),
+    \Phel\Lang\Keyword::create("end-location"), \Phel\Lang\TypeFactory::getInstance()->persistentMapFromKVs(
+      \Phel\Lang\Keyword::create("file"), "Foreach/foreach-expr.test",
+      \Phel\Lang\Keyword::create("line"), 3,
+      \Phel\Lang\Keyword::create("column"), 18
+    )
   )
 );

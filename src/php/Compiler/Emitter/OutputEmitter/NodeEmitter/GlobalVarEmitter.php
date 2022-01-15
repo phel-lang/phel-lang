@@ -17,7 +17,11 @@ final class GlobalVarEmitter implements NodeEmitterInterface
         assert($node instanceof GlobalVarNode);
 
         $this->outputEmitter->emitContextPrefix($node->getEnv(), $node->getStartSourceLocation());
-        $this->outputEmitter->emitGlobalBase($node->getNamespace(), $node->getName());
+        $this->outputEmitter->emitStr('\\Phel\\Lang\\Registry::getInstance()->getDefinition("');
+        $this->outputEmitter->emitStr(addslashes($this->outputEmitter->mungeEncodeNs($node->getNamespace())));
+        $this->outputEmitter->emitStr('", "');
+        $this->outputEmitter->emitStr(addslashes($node->getName()->getName()));
+        $this->outputEmitter->emitStr('")');
         $this->outputEmitter->emitContextSuffix($node->getEnv(), $node->getStartSourceLocation());
     }
 }

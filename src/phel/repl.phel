@@ -1,5 +1,6 @@
 (ns phel\repl
   (:use Phel\Lang\Symbol)
+  (:use Phel\Lang\Registry)
   (:use Phel\Build\BuildFacade)
   (:use Phel\Compiler\Analyzer\Environment\GlobalEnvironmentSingleton)
   (:use Phel\Compiler\Analyzer\Environment\NodeEnvironment)
@@ -13,7 +14,7 @@
   (php/:: GlobalEnvironmentSingleton (getInstance)))
 
 (defn- loaded-namespaces []
-  (php/array_keys (php/aget php/$GLOBALS "__phel")))
+  (php/-> (php/:: Registry (getInstance)) (getNamespaces)))
 
 (defn- eval-file [file]
   (php/-> build-facade (evalFile file)))
@@ -35,12 +36,10 @@
   (php/trim (php/str_replace (php/array "```phel\n" "```") "" str)))
 
 (defn- find-doc [namespace name]
-  (-> php/$GLOBALS
-      (php/aget "__phel_meta")
-      (php/aget namespace)
-      (php/aget name)
-      (get :doc)
-      (clean-doc)))
+  (let [registry (php/:: Registry (getInstance))
+        meta (php/-> registry (getDefintionMetaData namespace name))]
+    (when meta
+      (clean-doc (get meta :doc)))))
 
 (defmacro doc
   "Prints the documentation for the given symbol"
@@ -62,8 +61,7 @@
 (defn- require-namespace
   [namespace alias refers]
   (let [env (get-global-env)
-        current-ns *ns*
-        ns-var-array (php/aget (php/aget php/$GLOBALS "__phel") "phel\\core")]
+        current-ns *ns*]
     (php/-> env (addRequireAlias current-ns alias namespace))
     (foreach [r refers]
       (php/-> env (addRefer current-ns r namespace)))
