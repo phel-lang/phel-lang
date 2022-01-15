@@ -37,7 +37,7 @@
 
 (defn- find-doc [namespace name]
   (let [registry (php/:: Registry (getInstance))
-        meta (php/-> registry (getDefintionMetaData namespace name))]
+        meta (php/-> registry (getDefinitionMetaData namespace name))]
     (when meta
       (clean-doc (get meta :doc)))))
 

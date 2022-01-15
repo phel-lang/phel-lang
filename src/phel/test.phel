@@ -304,7 +304,7 @@
         munge-ns (php/-> munge (encodeNs ns))
         registry (php/:: Registry (getInstance))]
     (for [fn-name :keys (php/-> registry (getDefinitionInNamespace munge-ns))
-          :let [meta (php/-> registry (getDefintionMetaData munge-ns fn-name))]
+          :let [meta (php/-> registry (getDefinitionMetaData munge-ns fn-name))]
           :when (and (:test meta) (or (nil? filter) (str-contains? (:test-name meta) filter)))]
       (php/-> registry (getDefinition munge-ns fn-name)))))
 
