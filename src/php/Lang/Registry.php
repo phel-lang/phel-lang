@@ -50,7 +50,7 @@ final class Registry
         return $this->definitions[$ns][$name] ?? null;
     }
 
-    public function getDefintionMetaData(string $ns, string $name): ?PersistentMapInterface
+    public function getDefinitionMetaData(string $ns, string $name): ?PersistentMapInterface
     {
         return $this->definitionsMetaData[$ns][$name] ?? null;
     }
