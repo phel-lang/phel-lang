@@ -9,23 +9,19 @@ use Phel\Lang\Collections\Map\PersistentMapInterface;
 final class Registry
 {
     /** @var array<string, array<string, mixed>> */
-    private $definitions;
+    private array $definitions = [];
 
     /** @var array<string, array<string, mixed>> */
-    private $definitionsMetaData;
+    private array $definitionsMetaData = [];
 
-    /** @var ?self */
-    private static $instance = null;
+    private static ?Registry $instance = null;
 
-    public function __construct()
+    private function __construct()
     {
         $this->clear();
     }
 
-    /**
-     * @return self
-     */
-    public static function getInstance()
+    public static function getInstance(): self
     {
         if (self::$instance === null) {
             self::$instance = new Registry();

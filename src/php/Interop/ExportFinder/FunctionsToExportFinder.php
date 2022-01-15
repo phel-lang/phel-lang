@@ -101,7 +101,8 @@ final class FunctionsToExportFinder implements FunctionsToExportFinderInterface
     private function isExport(string $ns, string $fnName): bool
     {
         /** @var PersistentMapInterface $meta */
-        $meta = Registry::getInstance()->getDefintionMetaData($ns, $fnName) ?? TypeFactory::getInstance()->emptyPersistentList();
+        $meta = Registry::getInstance()->getDefintionMetaData($ns, $fnName)
+            ?? TypeFactory::getInstance()->emptyPersistentList();
 
         return (bool)($meta[Keyword::create('export')] ?? false);
     }

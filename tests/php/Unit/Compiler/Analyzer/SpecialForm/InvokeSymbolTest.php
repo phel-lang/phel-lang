@@ -29,14 +29,10 @@ final class InvokeSymbolTest extends TestCase
     {
         $env = new GlobalEnvironment();
         $env->addDefinition('user', Symbol::create('my-macro'), TypeFactory::getInstance()->persistentMapFromKVs(Keyword::create('macro'), true));
-        Registry::getInstance()->addDefinition('user', 'my-macro', function ($a) {
-            return $a;
-        });
+        Registry::getInstance()->addDefinition('user', 'my-macro', fn ($a) => $a);
 
         $env->addDefinition('user', Symbol::create('my-failed-macro'), TypeFactory::getInstance()->persistentMapFromKVs(Keyword::create('macro'), true));
-        Registry::getInstance()->addDefinition('user', 'my-failed-macro', function ($a): void {
-            throw new Exception('my-failed-macro message');
-        });
+        Registry::getInstance()->addDefinition('user', 'my-failed-macro', fn ($a) => throw new Exception('my-failed-macro message'));
 
         $this->analyzer = new Analyzer($env);
     }
