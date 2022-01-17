@@ -14,7 +14,7 @@ interface GlobalEnvironmentInterface
 
     public function setNs(string $ns): void;
 
-    public function addDefinition(string $namespace, Symbol $name, PersistentMapInterface $meta): void;
+    public function addDefinition(string $namespace, Symbol $name): void;
 
     public function hasDefinition(string $namespace, Symbol $name): bool;
 

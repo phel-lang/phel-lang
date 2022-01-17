@@ -10,6 +10,7 @@ use Phel\Compiler\Analyzer\Ast\PhpClassNameNode;
 use Phel\Compiler\Analyzer\Environment\GlobalEnvironment;
 use Phel\Compiler\Analyzer\Environment\NodeEnvironment;
 use Phel\Lang\Keyword;
+use Phel\Lang\Registry;
 use Phel\Lang\SourceLocation;
 use Phel\Lang\Symbol;
 use Phel\Lang\TypeFactory;
@@ -17,6 +18,11 @@ use PHPUnit\Framework\TestCase;
 
 final class GlobalEnvironmentTest extends TestCase
 {
+    public function setUp(): void
+    {
+        Registry::getInstance()->clear();
+    }
+
     public function test_set_ns(): void
     {
         $env = new GlobalEnvironment();
@@ -29,7 +35,7 @@ final class GlobalEnvironmentTest extends TestCase
     {
         $env = new GlobalEnvironment();
         $meta = TypeFactory::getInstance()->emptyPersistentMap();
-        $env->addDefinition('foo', Symbol::create('bar'), $meta);
+        $env->addDefinition('foo', Symbol::create('bar'));
 
         $this->assertTrue($env->hasDefinition('foo', Symbol::create('bar')));
         $this->assertFalse($env->hasDefinition('bar', Symbol::create('bar')));
@@ -118,7 +124,7 @@ final class GlobalEnvironmentTest extends TestCase
     public function test_resolve_refer_definition(): void
     {
         $env = new GlobalEnvironment();
-        $env->addDefinition('foo', Symbol::create('x'), TypeFactory::getInstance()->emptyPersistentMap());
+        $env->addDefinition('foo', Symbol::create('x'));
         $env->setNs('bar');
         $env->addRefer('bar', Symbol::create('x'), Symbol::create('foo'));
         $nodeEnv = NodeEnvironment::empty();
@@ -138,7 +144,7 @@ final class GlobalEnvironmentTest extends TestCase
     {
         $env = new GlobalEnvironment();
         $env->setNs('bar');
-        $env->addDefinition('bar', Symbol::create('x'), TypeFactory::getInstance()->emptyPersistentMap());
+        $env->addDefinition('bar', Symbol::create('x'));
         $nodeEnv = NodeEnvironment::empty();
 
         $this->assertEquals(
@@ -171,7 +177,7 @@ final class GlobalEnvironmentTest extends TestCase
     public function test_resolve_definition_in_phel_core(): void
     {
         $env = new GlobalEnvironment();
-        $env->addDefinition('phel\\core', Symbol::create('x'), TypeFactory::getInstance()->emptyPersistentMap());
+        $env->addDefinition('phel\\core', Symbol::create('x'));
         $env->setNs('bar');
         $nodeEnv = NodeEnvironment::empty();
 
@@ -189,7 +195,8 @@ final class GlobalEnvironmentTest extends TestCase
     public function test_resolve_private_definition_in_phel_core(): void
     {
         $env = new GlobalEnvironment();
-        $env->addDefinition('phel\\core', Symbol::create('x'), TypeFactory::getInstance()->persistentMapFromKVs(Keyword::create('private'), true));
+        $env->addDefinition('phel\\core', Symbol::create('x'));
+        Registry::getInstance()->addDefinition('phel\\core', 'x', null, TypeFactory::getInstance()->persistentMapFromKVs(Keyword::create('private'), true));
         $env->setNs('bar');
         $nodeEnv = NodeEnvironment::empty();
 
@@ -228,7 +235,7 @@ final class GlobalEnvironmentTest extends TestCase
     public function test_resolve_absolute_definition_name(): void
     {
         $env = new GlobalEnvironment();
-        $env->addDefinition('bar', Symbol::create('x'), TypeFactory::getInstance()->emptyPersistentMap());
+        $env->addDefinition('bar', Symbol::create('x'));
         $env->setNs('foo');
         $nodeEnv = NodeEnvironment::empty();
 
@@ -246,7 +253,7 @@ final class GlobalEnvironmentTest extends TestCase
     public function test_resolve_absolute_definition_from_alias(): void
     {
         $env = new GlobalEnvironment();
-        $env->addDefinition('bar', Symbol::create('x'), TypeFactory::getInstance()->emptyPersistentMap());
+        $env->addDefinition('bar', Symbol::create('x'));
         $env->setNs('foo');
         $env->addRequireAlias('foo', Symbol::create('b'), Symbol::create('bar'));
         $nodeEnv = NodeEnvironment::empty();
@@ -265,7 +272,8 @@ final class GlobalEnvironmentTest extends TestCase
     public function test_resolve_private_absolute_definition_name(): void
     {
         $env = new GlobalEnvironment();
-        $env->addDefinition('bar', Symbol::create('x'), TypeFactory::getInstance()->persistentMapFromKVs(Keyword::create('private'), true));
+        $env->addDefinition('bar', Symbol::create('x'));
+        Registry::getInstance()->addDefinition('bar', 'x', null, TypeFactory::getInstance()->persistentMapFromKVs(Keyword::create('private'), true));
         $env->setNs('foo');
         $nodeEnv = NodeEnvironment::empty();
 
@@ -311,7 +319,7 @@ final class GlobalEnvironmentTest extends TestCase
     {
         $env = new GlobalEnvironment();
         $env->setNs('bar');
-        $env->addDefinition('bar', Symbol::create('x'), TypeFactory::getInstance()->emptyPersistentMap());
+        $env->addDefinition('bar', Symbol::create('x'));
         $nodeEnv = NodeEnvironment::empty();
 
         $this->assertEquals(

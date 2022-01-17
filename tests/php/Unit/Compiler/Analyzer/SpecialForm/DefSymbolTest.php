@@ -8,6 +8,7 @@ use Phel\Compiler\Analyzer\Analyzer;
 use Phel\Compiler\Analyzer\AnalyzerInterface;
 use Phel\Compiler\Analyzer\Ast\DefNode;
 use Phel\Compiler\Analyzer\Ast\LiteralNode;
+use Phel\Compiler\Analyzer\Ast\MapNode;
 use Phel\Compiler\Analyzer\Environment\GlobalEnvironment;
 use Phel\Compiler\Analyzer\Environment\NodeEnvironment;
 use Phel\Compiler\Analyzer\Exceptions\AnalyzerException;
@@ -97,7 +98,10 @@ final class DefSymbolTest extends TestCase
                 $env,
                 'user',
                 Symbol::create('name'),
-                TypeFactory::getInstance()->emptyPersistentMap(),
+                new MapNode(
+                    $env->withContext(NodeEnvironment::CONTEXT_EXPRESSION),
+                    []
+                ),
                 new LiteralNode(
                     $env
                         ->withContext(NodeEnvironment::CONTEXT_EXPRESSION)
@@ -127,9 +131,18 @@ final class DefSymbolTest extends TestCase
                 $env,
                 'user',
                 Symbol::create('name'),
-                TypeFactory::getInstance()->persistentMapFromKVs(
-                    Keyword::create('doc'),
-                    'my docstring'
+                new MapNode(
+                    $env->withContext(NodeEnvironment::CONTEXT_EXPRESSION),
+                    [
+                        new LiteralNode(
+                            $env->withContext(NodeEnvironment::CONTEXT_EXPRESSION),
+                            Keyword::create('doc')
+                        ),
+                        new LiteralNode(
+                            $env->withContext(NodeEnvironment::CONTEXT_EXPRESSION),
+                            'my docstring'
+                        ),
+                    ]
                 ),
                 new LiteralNode(
                     $env
@@ -160,9 +173,18 @@ final class DefSymbolTest extends TestCase
                 $env,
                 'user',
                 Symbol::create('name'),
-                TypeFactory::getInstance()->persistentMapFromKVs(
-                    Keyword::create('private'),
-                    true
+                new MapNode(
+                    $env->withContext(NodeEnvironment::CONTEXT_EXPRESSION),
+                    [
+                        new LiteralNode(
+                            $env->withContext(NodeEnvironment::CONTEXT_EXPRESSION),
+                            Keyword::create('private')
+                        ),
+                        new LiteralNode(
+                            $env->withContext(NodeEnvironment::CONTEXT_EXPRESSION),
+                            true
+                        ),
+                    ]
                 ),
                 new LiteralNode(
                     $env
@@ -193,9 +215,20 @@ final class DefSymbolTest extends TestCase
                 $env,
                 'user',
                 Symbol::create('name'),
-                TypeFactory::getInstance()->persistentMapFromKVs(
-                    Keyword::create('private'),
-                    true
+                new MapNode(
+                    $env->withContext(NodeEnvironment::CONTEXT_EXPRESSION),
+                    [
+                        new LiteralNode(
+                            $env->withContext(NodeEnvironment::CONTEXT_EXPRESSION),
+                            Keyword::create('private'),
+                            null
+                        ),
+                        new LiteralNode(
+                            $env->withContext(NodeEnvironment::CONTEXT_EXPRESSION),
+                            true,
+                            null
+                        ),
+                    ]
                 ),
                 new LiteralNode(
                     $env

@@ -6,6 +6,7 @@ namespace Phel\Compiler\Analyzer\TypeAnalyzer\SpecialForm;
 
 use Phel\Compiler\Analyzer\Ast\AbstractNode;
 use Phel\Compiler\Analyzer\Ast\DefNode;
+use Phel\Compiler\Analyzer\Ast\MapNode;
 use Phel\Compiler\Analyzer\Environment\NodeEnvironmentInterface;
 use Phel\Compiler\Analyzer\Exceptions\AnalyzerException;
 use Phel\Compiler\Analyzer\TypeAnalyzer\WithAnalyzerTrait;
@@ -38,15 +39,17 @@ final class DefSymbol implements SpecialFormAnalyzerInterface
 
         $namespace = $this->analyzer->getNamespace();
 
-        [$metaMap, $init] = $this->createMetaMapAndInit($list);
+        $this->analyzer->addDefinition($namespace, $nameSymbol);
 
-        $this->analyzer->addDefinition($namespace, $nameSymbol, $metaMap);
+        [$metaMap, $init] = $this->createMetaMapAndInit($list);
+        $meta = $this->analyzer->analyze($metaMap, $env->withContext(NodeEnvironmentInterface::CONTEXT_EXPRESSION));
+        assert($meta instanceof MapNode);
 
         return new DefNode(
             $env,
             $namespace,
             $nameSymbol,
-            $metaMap,
+            $meta,
             $this->analyzeInit($init, $env, $namespace, $nameSymbol),
             $list->getStartLocation()
         );
