@@ -1,0 +1,6 @@
+--PHEL--
+(str)
+(str "a")
+(str "a" "b")
+--PHP--
+(\Phel\Lang\Registry::getInstance()->getDefinition("phel\\core", "str"))();("" . "a");("" . "a" . "b");

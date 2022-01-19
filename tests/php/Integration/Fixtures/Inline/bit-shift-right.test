@@ -1,0 +1,4 @@
+--PHEL--
+(bit-shift-right 2 1)
+--PHP--
+(2 >> 1);

@@ -8,6 +8,7 @@ use Exception;
 use Phel\Compiler\Analyzer\Analyzer;
 use Phel\Compiler\Analyzer\AnalyzerInterface;
 use Phel\Compiler\Analyzer\Ast\CallNode;
+use Phel\Compiler\Analyzer\Ast\GlobalVarNode;
 use Phel\Compiler\Analyzer\Ast\LiteralNode;
 use Phel\Compiler\Analyzer\Ast\PhpVarNode;
 use Phel\Compiler\Analyzer\Ast\VectorNode;
@@ -27,6 +28,7 @@ final class InvokeSymbolTest extends TestCase
 
     public function setUp(): void
     {
+        Registry::getInstance()->clear();
         $env = new GlobalEnvironment();
         $env->addDefinition('user', Symbol::create('my-macro'));
         Registry::getInstance()->addDefinition(
@@ -42,6 +44,30 @@ final class InvokeSymbolTest extends TestCase
             'my-failed-macro',
             fn ($a) => throw new Exception('my-failed-macro message'),
             TypeFactory::getInstance()->persistentMapFromKVs(Keyword::create('macro'), true)
+        );
+
+        $env->addDefinition('user', Symbol::create('my-inline-fn'));
+        Registry::getInstance()->addDefinition(
+            'user',
+            'my-inline-fn',
+            fn ($a) => 1,
+            TypeFactory::getInstance()->persistentMapFromKVs(
+                Keyword::create('inline'),
+                fn ($a) => 2
+            )
+        );
+
+        $env->addDefinition('user', Symbol::create('my-inline-fn-with-arity'));
+        Registry::getInstance()->addDefinition(
+            'user',
+            'my-inline-fn-with-arity',
+            fn ($a, $b) => 1,
+            TypeFactory::getInstance()->persistentMapFromKVs(
+                Keyword::create('inline'),
+                fn ($a, $b) => 2,
+                Keyword::create('inline-arity'),
+                fn ($n) => $n === 2
+            )
         );
 
         $this->analyzer = new Analyzer($env);
@@ -138,5 +164,66 @@ final class InvokeSymbolTest extends TestCase
         ]);
         $env = NodeEnvironment::empty();
         $node = (new InvokeSymbol($this->analyzer))->analyze($list, $env);
+    }
+
+    public function test_inline_expand(): void
+    {
+        $list = TypeFactory::getInstance()->persistentListFromArray([
+            Symbol::createForNamespace('user', 'my-inline-fn'),
+            'foo',
+        ]);
+        $env = NodeEnvironment::empty();
+        $node = (new InvokeSymbol($this->analyzer))->analyze($list, $env);
+
+        $this->assertEquals(
+            new LiteralNode($env->withContext(NodeEnvironment::CONTEXT_STATEMENT), 2),
+            $node
+        );
+    }
+
+    public function test_inline_expand_with_arity_check(): void
+    {
+        $list = TypeFactory::getInstance()->persistentListFromArray([
+            Symbol::createForNamespace('user', 'my-inline-fn-with-arity'),
+            'foo', 'bar',
+        ]);
+        $env = NodeEnvironment::empty();
+        $node = (new InvokeSymbol($this->analyzer))->analyze($list, $env);
+
+        $this->assertEquals(
+            new LiteralNode($env->withContext(NodeEnvironment::CONTEXT_STATEMENT), 2),
+            $node
+        );
+    }
+
+    public function test_inline_expand_with_arity_check_failed(): void
+    {
+        $list = TypeFactory::getInstance()->persistentListFromArray([
+            Symbol::createForNamespace('user', 'my-inline-fn-with-arity'),
+            'foo',
+        ]);
+        $env = NodeEnvironment::empty();
+        $node = (new InvokeSymbol($this->analyzer))->analyze($list, $env);
+
+        $this->assertEquals(
+            new CallNode(
+                $env,
+                new GlobalVarNode(
+                    $env->withContext(NodeEnvironment::CONTEXT_EXPRESSION)->withDisallowRecurFrame(),
+                    'user',
+                    Symbol::create('my-inline-fn-with-arity'),
+                    TypeFactory::getInstance()->persistentMapFromKVs(
+                        Keyword::create('inline'),
+                        fn ($a, $b) => 2,
+                        Keyword::create('inline-arity'),
+                        fn ($n) => $n === 2
+                    )
+                ),
+                [
+                    new LiteralNode($env->withContext(NodeEnvironment::CONTEXT_EXPRESSION)->withDisallowRecurFrame(), 'foo'),
+                ]
+            ),
+            $node
+        );
     }
 }
