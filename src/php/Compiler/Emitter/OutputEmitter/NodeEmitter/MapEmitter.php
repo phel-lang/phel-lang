@@ -16,12 +16,6 @@ final class MapEmitter implements NodeEmitterInterface
     {
         assert($node instanceof MapNode);
 
-        /*$this->outputEmitter->emitContextPrefix($node->getEnv(), $node->getStartSourceLocation());
-        $this->outputEmitter->emitStr('\Phel\Lang\TypeFactory::getInstance()->persistentMapFromKVs(', $node->getStartSourceLocation());
-        $this->outputEmitter->emitArgList($node->getKeyValues(), $node->getStartSourceLocation());
-        $this->outputEmitter->emitStr(')', $node->getStartSourceLocation());
-        $this->outputEmitter->emitContextSuffix($node->getEnv(), $node->getStartSourceLocation());*/
-
         $keyValues = $node->getKeyValues();
         $countKeyValues = count($keyValues);
 
