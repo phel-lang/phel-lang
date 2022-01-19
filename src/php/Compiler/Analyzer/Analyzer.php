@@ -64,9 +64,9 @@ final class Analyzer implements AnalyzerInterface
         }
     }
 
-    public function addDefinition(string $ns, Symbol $symbol, PersistentMapInterface $meta): void
+    public function addDefinition(string $ns, Symbol $symbol): void
     {
-        $this->globalEnvironment->addDefinition($ns, $symbol, $meta);
+        $this->globalEnvironment->addDefinition($ns, $symbol);
     }
 
     public function addInterface(string $ns, Symbol $name): void

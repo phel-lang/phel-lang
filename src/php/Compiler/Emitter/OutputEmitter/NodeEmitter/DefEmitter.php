@@ -25,9 +25,9 @@ final class DefEmitter implements NodeEmitterInterface
         $this->outputEmitter->emitStr(addslashes($node->getName()->getName()));
         $this->outputEmitter->emitLine('",');
         $this->outputEmitter->emitNode($node->getInit());
-        if (count($node->getMeta()) > 0) {
+        if (count($node->getMeta()->getKeyValues()) > 0) {
             $this->outputEmitter->emitLine(',');
-            $this->outputEmitter->emitLiteral($node->getMeta());
+            $this->outputEmitter->emitNode($node->getMeta());
         }
         $this->outputEmitter->emitLine();
         $this->outputEmitter->decreaseIndentLevel();

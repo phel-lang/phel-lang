@@ -190,7 +190,7 @@
 (defmacro deftest
   "Defines a test function with no arguments"
   [name & body]
-  `(defn ,name {:test true :test-name ,name} []
+  `(defn ,name {:test true :test-name ,(php/-> name (getName))} []
      ,@body))
 
 # ---------------------

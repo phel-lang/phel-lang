@@ -52,7 +52,11 @@ final class Registry
 
     public function getDefinitionMetaData(string $ns, string $name): ?PersistentMapInterface
     {
-        return $this->definitionsMetaData[$ns][$name] ?? null;
+        if (array_key_exists($ns, $this->definitions) && array_key_exists($name, $this->definitions[$ns])) {
+            return $this->definitionsMetaData[$ns][$name] ?? TypeFactory::getInstance()->emptyPersistentMap();
+        }
+
+        return null;
     }
 
     /**

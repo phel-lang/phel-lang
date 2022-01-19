@@ -22,7 +22,7 @@ final class GlobalEnvironment implements GlobalEnvironmentInterface
 
     private string $ns = 'user';
 
-    /** @var array<string, array<string, PersistentMapInterface>> */
+    /** @var array<string, array<string, bool>> */
     private array $definitions = [];
 
     /** @var array<string, array<string, Symbol>> */
@@ -52,7 +52,7 @@ final class GlobalEnvironment implements GlobalEnvironmentInterface
             'Set to true when a file is compiled, false otherwise',
         );
         Registry::getInstance()->addDefinition(self::PHEL_CORE_NAMESPACE, $symbol->getName(), false, $meta);
-        $this->addDefinition(self::PHEL_CORE_NAMESPACE, $symbol, $meta);
+        $this->addDefinition(self::PHEL_CORE_NAMESPACE, $symbol);
     }
 
     public function getNs(): string
@@ -65,13 +65,13 @@ final class GlobalEnvironment implements GlobalEnvironmentInterface
         $this->ns = $ns;
     }
 
-    public function addDefinition(string $namespace, Symbol $name, PersistentMapInterface $meta): void
+    public function addDefinition(string $namespace, Symbol $name): void
     {
         if (!array_key_exists($namespace, $this->definitions)) {
             $this->definitions[$namespace] = [];
         }
 
-        $this->definitions[$namespace][$name->getName()] = $meta;
+        $this->definitions[$namespace][$name->getName()] = true;
     }
 
     public function hasDefinition(string $namespace, Symbol $name): bool
@@ -82,7 +82,7 @@ final class GlobalEnvironment implements GlobalEnvironmentInterface
     public function getDefinition(string $namespace, Symbol $name): ?PersistentMapInterface
     {
         if ($this->hasDefinition($namespace, $name)) {
-            return $this->definitions[$namespace][$name->getName()];
+            return Registry::getInstance()->getDefinitionMetaData($namespace, $name->getName()) ?? TypeFactory::getInstance()->emptyPersistentMap();
         }
 
         return null;
