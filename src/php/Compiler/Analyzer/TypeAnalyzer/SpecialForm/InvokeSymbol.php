@@ -28,8 +28,6 @@ final class InvokeSymbol implements SpecialFormAnalyzerInterface
             $env->withContext(NodeEnvironmentInterface::CONTEXT_EXPRESSION)->withDisallowRecurFrame()
         );
 
-        /*var_dump(gettype($f));
-        var_dump($this->isInline($f, count($list) - 1));*/
         if ($f instanceof GlobalVarNode && $this->isInline($f, count($list) - 1)) {
             return $this->inlineMacro($list, $f, $env);
         }
