@@ -2,5 +2,6 @@
 (str)
 (str "a")
 (str "a" "b")
+(str "a" "b" "c")
 --PHP--
-(\Phel\Lang\Registry::getInstance()->getDefinition("phel\\core", "str"))();("" . "a");("" . "a" . "b");
+(\Phel\Lang\Registry::getInstance()->getDefinition("phel\\core", "str"))();("" . "a");("" . "a" . "b");("" . "a" . "b" . "c");
