@@ -203,10 +203,12 @@ elements, returns nil."
 provided an empty string is returned. Nil and false are represented as empty
 string. True is represented as 1. Otherwise it tries to call `__toString`.
 This is PHP equivalent to `$args[0] . $args[1] . $args[2] ...`"
+  {:inline (fn [& args] `(php/. "" ,@args))
+   :inline-arity (fn [n] (php/> n 0))}
   [& args]
   (if (php/== (php/count args) 0)
     ""
-    (apply php/. args)))
+    (apply php/. "" args)))
 
 (defn transient
   "Converts a persistent collection to a transient collection"
@@ -437,6 +439,8 @@ Calling the and function without arguments returns true."
 
 (defn <
   "Checks if each argument is strictly less than the following argument. Returns a boolean."
+  {:inline (fn [a b] `(php/< ,a ,b))
+   :inline-arity (fn [n] (php/=== n 2))}
   [a & more]
   (case (count more)
     0 true
@@ -447,6 +451,8 @@ Calling the and function without arguments returns true."
 
 (defn <=
   "Checks if each argument is less than or equal to the following argument. Returns a boolean."
+  {:inline (fn [a b] `(php/<= ,a ,b))
+   :inline-arity (fn [n] (php/=== n 2))}
   [a & more]
   (case (count more)
     0 true
@@ -457,6 +463,8 @@ Calling the and function without arguments returns true."
 
 (defn >
   "Checks if each argument is strictly greater than the following argument. Returns a boolean."
+  {:inline (fn [a b] `(php/> ,a ,b))
+   :inline-arity (fn [n] (php/=== n 2))}
   [a & more]
   (case (count more)
     0 true
@@ -467,6 +475,8 @@ Calling the and function without arguments returns true."
 
 (defn >=
   "Checks if each argument is greater than or equal to the following argument. Returns a boolean."
+  {:inline (fn [a b] `(php/>= ,a ,b))
+   :inline-arity (fn [n] (php/=== n 2))}
   [a & more]
   (case (count more)
     0 true
@@ -477,11 +487,13 @@ Calling the and function without arguments returns true."
 
 (defn <=>
   "Alias for the spaceship PHP operator in ascending order. Returns an int."
+  {:inline (fn [a b] `(php/<=> ,a ,b))}
   [a b]
   (php/<=> a b))
 
 (defn >=<
   "Alias for the spaceship PHP operator in descending order. Returns an int."
+  {:inline (fn [a b] `(php/<=> ,b ,a))}
   [a b]
   (php/<=> b a))
 
@@ -536,6 +548,7 @@ Calling the and function without arguments returns true."
 (defn compare
   "An integer less than, equal to, or greater than zero when `x` is less than,
   equal to, or greater than `y`, respectively."
+  {:inline (fn [x y] `(php/<=> ,x ,y))}
   [x y]
   (php/<=> x y))
 
@@ -1389,34 +1402,40 @@ collection in map"))
 
 (defn bit-and
   "Bitwise and"
+  {:inline (fn [x y & args] `(php/& ,x ,y ,@args))}
   [x y & args]
   (let [all (concat [x y] args)]
     (reduce2 |(php/& $1 $2) all)))
 
 (defn bit-or
   "Bitwise or"
+  {:inline (fn [x y & args] `(php/| ,x ,y ,@args))}
   [x y & args]
   (let [all (concat [x y] args)]
     (reduce2 |(php/| $1 $2) all)))
 
 (defn bit-xor
   "Bitwise xor"
+  {:inline (fn [x y & args] `(php/^ ,x ,y ,@args))}
   [x y & args]
   (let [all (concat [x y] args)]
     (reduce2 |(php/^ $1 $2) all)))
 
 (defn bit-not
   "Bitwise complement"
+  {:inline (fn [x] `(php/~ ,x))}
   [x]
   (php/~ x))
 
 (defn bit-shift-left
   "Bitwise shift left"
+  {:inline (fn [x n] `(php/<< ,x ,n))}
   [x n]
   (php/<< x n))
 
 (defn bit-shift-right
   "Bitwise shift right"
+  {:inline (fn [x n] `(php/>> ,x ,n))}
   [x n]
   (php/>> x n))
 
@@ -1451,6 +1470,8 @@ collection in map"))
 (defn +
   "Returns the sum of all elements in `xs`. All elements `xs` must be numbers.
   If `xs` is empty, return 0."
+  {:inline (fn [& xs] `(php/+ ,@xs))
+   :inline-arity (fn [n] (> n 0))}
   [& xs]
   (if (empty? xs)
     0
@@ -1459,6 +1480,8 @@ collection in map"))
 (defn -
   "Returns the difference of all elements in `xs`. If `xs` is empty, return 0. If `xs`
   has one element, return the negative value of that element."
+  {:inline (fn [& xs] `(php/- ,@xs))
+   :inline-arity (fn [n] (> n 1))}
   [& xs]
   (case (count xs)
     0 0
@@ -1469,6 +1492,8 @@ collection in map"))
 (defn *
   "Returns the product of all elements in `xs`. All elements in `xs` must be
 numbers. If `xs` is empty, return 1."
+  {:inline (fn [& xs] `(php/* ,@xs))
+   :inline-arity (fn [n] (> n 0))}
   [& xs]
   (case (count xs)
     0 1
@@ -1479,6 +1504,8 @@ numbers. If `xs` is empty, return 1."
 (defn /
   "Returns the nominator divided by all the denominators. If `xs` is empty,
 returns 1. If `xs` has one value, returns the reciprocal of x."
+  {:inline (fn [& xs] `(php// ,@xs))
+   :inline-arity (fn [n] (> n 1))}
   [& xs]
   (case (count xs)
     0 1
@@ -1488,21 +1515,25 @@ returns 1. If `xs` has one value, returns the reciprocal of x."
 
 (defn %
   "Return the remainder of `dividend` / `divisor`."
+  {:inline (fn [dividend divisor] `(php/% ,dividend ,divisor))}
   [dividend divisor]
   (php/% dividend divisor))
 
 (defn **
   "Return `a` to the power of `x`."
+  {:inline (fn [a x] `(php/** ,a ,x))}
   [a x]
   (php/** a x))
 
 (defn inc
   "Increments `x` by one."
+  {:inline (fn [x] `(php/+ ,x 1))}
   [x]
   (+ x 1))
 
 (defn dec
   "Decrements `x` by one."
+  {:inline (fn [x] `(php/- ,x 1))}
   [x]
   (- x 1))
 

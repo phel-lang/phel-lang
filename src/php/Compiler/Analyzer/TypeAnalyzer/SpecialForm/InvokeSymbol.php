@@ -12,6 +12,7 @@ use Phel\Compiler\Analyzer\Environment\NodeEnvironmentInterface;
 use Phel\Compiler\Analyzer\Exceptions\AnalyzerException;
 use Phel\Compiler\Analyzer\TypeAnalyzer\WithAnalyzerTrait;
 use Phel\Lang\Collections\LinkedList\PersistentListInterface;
+use Phel\Lang\Keyword;
 use Phel\Lang\Registry;
 use Phel\Lang\TypeFactory;
 use Phel\Lang\TypeInterface;
@@ -27,6 +28,10 @@ final class InvokeSymbol implements SpecialFormAnalyzerInterface
             $env->withContext(NodeEnvironmentInterface::CONTEXT_EXPRESSION)->withDisallowRecurFrame()
         );
 
+        if ($f instanceof GlobalVarNode && $this->isInline($f, count($list) - 1)) {
+            return $this->inlineMacro($list, $f, $env);
+        }
+
         if ($f instanceof GlobalVarNode && $f->isMacro()) {
             return $this->globalMacro($list, $f, $env);
         }
@@ -39,6 +44,28 @@ final class InvokeSymbol implements SpecialFormAnalyzerInterface
         );
     }
 
+    private function inlineMacro(PersistentListInterface $list, GlobalVarNode $f, NodeEnvironmentInterface $env): AbstractNode
+    {
+        return $this->analyzer->analyzeMacro($this->inlineExpand($list, $f), $env);
+    }
+
+    private function isInline(GlobalVarNode $node, int $arity): bool
+    {
+        $meta = $node->getMeta();
+
+        if (!$meta[Keyword::create('inline')]) {
+            return false;
+        }
+
+        $arityFn = $meta[Keyword::create('inline-arity')];
+
+        if (!$arityFn) {
+            return true;
+        }
+
+        return $arityFn($arity);
+    }
+
     private function globalMacro(PersistentListInterface $list, GlobalVarNode $f, NodeEnvironmentInterface $env): AbstractNode
     {
         return $this->analyzer->analyzeMacro($this->macroExpand($list, $f), $env);
@@ -47,18 +74,33 @@ final class InvokeSymbol implements SpecialFormAnalyzerInterface
     /**
      * @return TypeInterface|string|float|int|bool|null
      */
+    private function inlineExpand(PersistentListInterface $list, GlobalVarNode $node)
+    {
+        $meta = $node->getMeta();
+        $fn = $meta[Keyword::create('inline')];
+
+        try {
+            return $this->callMacroFn($fn, $list);
+        } catch (Exception $e) {
+            throw AnalyzerException::withLocation(
+                'Error in expanding inline function of "' . $node->getNamespace() . '\\' . $node->getName()->getName() . '": ' . $e->getMessage(),
+                $list,
+                $e
+            );
+        }
+    }
+
+    /**
+     * @return TypeInterface|string|float|int|bool|null
+     */
     private function macroExpand(PersistentListInterface $list, GlobalVarNode $macroNode)
     {
-        $listCount = count($list);
         /** @psalm-suppress PossiblyNullArgument */
         $nodeName = $macroNode->getName()->getName();
         $fn = Registry::getInstance()->getDefinition($macroNode->getNamespace(), $nodeName);
 
-        $arguments = $list->rest()->toArray();
-
         try {
-            $result = $fn(...$arguments);
-            return $this->enrichLocation($result, $list);
+            return $this->callMacroFn($fn, $list);
         } catch (Exception $e) {
             throw AnalyzerException::withLocation(
                 'Error in expanding macro "' . $macroNode->getNamespace() . '\\' . $nodeName . '": ' . $e->getMessage(),
@@ -66,6 +108,17 @@ final class InvokeSymbol implements SpecialFormAnalyzerInterface
                 $e
             );
         }
+    }
+
+    /**
+     * @return TypeInterface|string|float|int|bool|null
+     */
+    private function callMacroFn(callable $fn, PersistentListInterface $list)
+    {
+        $arguments = $list->rest()->toArray();
+
+        $result = $fn(...$arguments);
+        return $this->enrichLocation($result, $list);
     }
 
     /**
