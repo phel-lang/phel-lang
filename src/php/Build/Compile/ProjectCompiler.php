@@ -46,6 +46,8 @@ final class ProjectCompiler
                 && file_exists($targetFile)
                 && filemtime($targetFile) === filemtime($info->getFile())
             ) {
+                /** @psalm-suppress UnresolvableInclude */
+                require_once $targetFile;
                 continue;
             }
 

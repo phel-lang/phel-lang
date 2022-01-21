@@ -42,6 +42,33 @@ final class CompileCommandTest extends TestCase
         self::assertFileExists(__DIR__ . '/out/hello.php');
     }
 
+    /**
+     * @runInSeparateProcess
+     * @preserveGlobalState disabled
+     * @depends test_compile_project
+     */
+    public function test_compile_project_cached(): void
+    {
+        // Mark file cache invalid by setting the modification time to 0
+        touch(__DIR__ . '/out/hello.php', 1);
+
+        $command = $this->createBuildFacade()->getCompileCommand();
+
+        $this->expectOutputString("This is printed\n");
+
+        $command->run(
+            new ArrayInput([
+                '--no-source-map' => true,
+            ]),
+            $this->stubOutput()
+        );
+
+        self::assertFileExists(__DIR__ . '/out/phel/core.phel');
+        self::assertFileExists(__DIR__ . '/out/phel/core.php');
+        self::assertFileExists(__DIR__ . '/out/hello.phel');
+        self::assertFileExists(__DIR__ . '/out/hello.php');
+    }
+
     private function createBuildFacade(): BuildFacadeInterface
     {
         return new BuildFacade();
