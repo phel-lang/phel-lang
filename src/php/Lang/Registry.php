@@ -45,6 +45,11 @@ final class Registry
         $this->definitionsMetaData[$ns][$name] = $metaData;
     }
 
+    public function hasDefinition(string $ns, string $name): bool
+    {
+        return isset($this->definitions[$ns][$name]);
+    }
+
     public function getDefinition(string $ns, string $name): mixed
     {
         return $this->definitions[$ns][$name] ?? null;

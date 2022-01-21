@@ -46,6 +46,7 @@ final class ProjectCompiler
                 && file_exists($targetFile)
                 && filemtime($targetFile) === filemtime($info->getFile())
             ) {
+                require_once $targetFile;
                 continue;
             }
 

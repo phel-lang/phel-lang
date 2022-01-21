@@ -76,7 +76,10 @@ final class GlobalEnvironment implements GlobalEnvironmentInterface
 
     public function hasDefinition(string $namespace, Symbol $name): bool
     {
-        return (isset($this->definitions[$namespace][$name->getName()]));
+        return (
+            isset($this->definitions[$namespace][$name->getName()])
+            || Registry::getInstance()->hasDefinition($namespace, $name->getName())
+        );
     }
 
     public function getDefinition(string $namespace, Symbol $name): ?PersistentMapInterface
