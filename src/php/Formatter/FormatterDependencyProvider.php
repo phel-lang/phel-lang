@@ -7,9 +7,7 @@ namespace Phel\Formatter;
 use Gacela\Framework\AbstractDependencyProvider;
 use Gacela\Framework\Container\Container;
 use Phel\Command\CommandFacade;
-use Phel\Command\CommandFacadeInterface;
 use Phel\Compiler\CompilerFacade;
-use Phel\Compiler\CompilerFacadeInterface;
 
 final class FormatterDependencyProvider extends AbstractDependencyProvider
 {
@@ -24,14 +22,14 @@ final class FormatterDependencyProvider extends AbstractDependencyProvider
 
     private function addFacadeCompiler(Container $container): void
     {
-        $container->set(self::FACADE_COMPILER, function (Container $container): CompilerFacadeInterface {
+        $container->set(self::FACADE_COMPILER, function (Container $container) {
             return $container->getLocator()->get(CompilerFacade::class);
         });
     }
 
     private function addFacadeCommand(Container $container): void
     {
-        $container->set(self::FACADE_COMMAND, function (Container $container): CommandFacadeInterface {
+        $container->set(self::FACADE_COMMAND, function (Container $container) {
             return $container->getLocator()->get(CommandFacade::class);
         });
     }

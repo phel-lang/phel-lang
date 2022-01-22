@@ -11,6 +11,7 @@ use Phel\Compiler\Lexer\Lexer;
 use Phel\Compiler\Reader\Exceptions\ReaderException;
 use Phel\Lang\Collections\Map\PersistentMapInterface;
 use Phel\Lang\Keyword;
+use Phel\Lang\Registry;
 use Phel\Lang\SourceLocation;
 use Phel\Lang\Symbol;
 use Phel\Lang\TypeFactory;
@@ -28,6 +29,7 @@ final class ReaderTest extends TestCase
         // others define the environment for us.
         GlobalEnvironmentSingleton::reset();
         GlobalEnvironmentSingleton::initialize();
+        Registry::getInstance()->clear();
     }
 
     public function setUp(): void
