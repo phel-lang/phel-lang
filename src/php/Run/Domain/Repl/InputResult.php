@@ -38,7 +38,7 @@ final class InputResult
         $fullInput = implode(PHP_EOL, $buffer);
 
         if (self::NO_VALUE === $this->lastResult
-            || false === strpos($fullInput, self::LAST_RESULT_PLACEHOLDER)
+            || !str_contains($fullInput, self::LAST_RESULT_PLACEHOLDER)
         ) {
             return $fullInput;
         }

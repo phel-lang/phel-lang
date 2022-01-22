@@ -29,7 +29,7 @@ final class FilePositionExtractor implements FilePositionExtractorInterface
 
     private function extractOriginalFilename(SourceMapInformation $sourceMapInfo, string $filename): string
     {
-        if (false === strpos($sourceMapInfo->filename(), '// ')) {
+        if (!str_contains($sourceMapInfo->filename(), '// ')) {
             return $filename;
         }
 
@@ -38,8 +38,8 @@ final class FilePositionExtractor implements FilePositionExtractorInterface
 
     private function extractOriginalLine(SourceMapInformation $sourceMapInfo, int $line): int
     {
-        if (false === strpos($sourceMapInfo->filename(), '// ')
-            || false === strpos($sourceMapInfo->sourceMap(), '// ')
+        if (!str_contains($sourceMapInfo->filename(), '// ')
+            || !str_contains($sourceMapInfo->sourceMap(), '// ')
         ) {
             return $line;
         }

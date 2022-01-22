@@ -24,7 +24,7 @@ final class LineIndenter implements IndenterInterface
                 $s = $loc->getNode()->getCode();
                 $str = $s . $str;
 
-                if (strpos($s, "\n") !== false) {
+                if (str_contains($s, "\n")) {
                     return $str;
                 }
             } else {

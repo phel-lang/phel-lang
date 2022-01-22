@@ -43,7 +43,7 @@ final class AtomParser
             return new NilNode($word, $token->getStartLocation(), $token->getEndLocation(), null);
         }
 
-        if (strpos($word, ':') === 0) {
+        if (str_starts_with($word, ':')) {
             return $this->parseKeyword($token);
         }
 
