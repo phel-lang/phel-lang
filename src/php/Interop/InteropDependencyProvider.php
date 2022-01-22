@@ -7,9 +7,7 @@ namespace Phel\Interop;
 use Gacela\Framework\AbstractDependencyProvider;
 use Gacela\Framework\Container\Container;
 use Phel\Build\BuildFacade;
-use Phel\Build\BuildFacadeInterface;
 use Phel\Command\CommandFacade;
-use Phel\Command\CommandFacadeInterface;
 
 final class InteropDependencyProvider extends AbstractDependencyProvider
 {
@@ -24,14 +22,14 @@ final class InteropDependencyProvider extends AbstractDependencyProvider
 
     private function addFacadeCommand(Container $container): void
     {
-        $container->set(self::FACADE_COMMAND, function (Container $container): CommandFacadeInterface {
+        $container->set(self::FACADE_COMMAND, function (Container $container) {
             return $container->getLocator()->get(CommandFacade::class);
         });
     }
 
     private function addFacadeBuild(Container $container): void
     {
-        $container->set(self::FACADE_BUILD, function (Container $container): BuildFacadeInterface {
+        $container->set(self::FACADE_BUILD, function (Container $container) {
             return $container->getLocator()->get(BuildFacade::class);
         });
     }

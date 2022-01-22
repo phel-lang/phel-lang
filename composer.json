@@ -14,16 +14,16 @@
     "require": {
         "ext-json": "*",
         "php": ">=8.0",
-        "gacela-project/gacela": "^0.10",
+        "gacela-project/gacela": "^0.11",
         "symfony/console": "^5.4",
         "phpunit/php-timer": "^5.0"
     },
     "require-dev": {
         "ext-readline": "*",
         "phpunit/phpunit": "^9.5",
-        "vimeo/psalm": "^4.15",
+        "vimeo/psalm": "^4.16",
         "symfony/var-dumper": "^5.4",
-        "friendsofphp/php-cs-fixer": "^3.4",
+        "friendsofphp/php-cs-fixer": "^3.5",
         "phpmetrics/phpmetrics": "^2.7",
         "phpbench/phpbench": "^1.2"
     },
@@ -64,6 +64,9 @@
     "config": {
         "platform": {
             "php": "8.0"
+        },
+        "allow-plugins": {
+            "composer/package-versions-deprecated": true
         }
     }
 }
