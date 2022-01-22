@@ -535,7 +535,7 @@ Calling the and function without arguments returns true."
 (defn str-contains?
   "True if str contains s."
   [str s]
-  (not (false? (php/strpos str s))))
+  (php/str_contains str s))
 
 (defn contains?
   "Returns true if key is present in the given collection, otherwise returns false."
