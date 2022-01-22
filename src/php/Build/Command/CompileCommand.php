@@ -7,10 +7,12 @@ namespace Phel\Build\Command;
 use Phel\Build\Compile\BuildOptions;
 use Phel\Build\Compile\ProjectCompiler;
 use Phel\Command\CommandFacadeInterface;
+use Phel\Compiler\Exceptions\CompilerException;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
+use Throwable;
 
 final class CompileCommand extends Command
 {
@@ -40,16 +42,24 @@ final class CompileCommand extends Command
 
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
+        $this->commandFacade->registerExceptionHandler();
+
         $buildOptions = $this->getBuildOptions($input);
 
-        $this->projectCompiler->compileProject(
-            [
+        try {
+            $this->projectCompiler->compileProject(
+                [
                 ...$this->commandFacade->getSourceDirectories(),
                 ...$this->commandFacade->getVendorSourceDirectories(),
             ],
-            $this->commandFacade->getOutputDirectory(),
-            $buildOptions
-        );
+                $this->commandFacade->getOutputDirectory(),
+                $buildOptions
+            );
+        } catch (CompilerException $e) {
+            $this->commandFacade->writeLocatedException($output, $e->getNestedException(), $e->getCodeSnippet());
+        } catch (Throwable $e) {
+            $this->commandFacade->writeStackTrace($output, $e);
+        }
 
         return self::SUCCESS;
     }
