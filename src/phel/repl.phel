@@ -29,7 +29,7 @@
 
 (defn resolve
   "Resolves the given symbol in the current environment and returns a
-   resolved Symbol with the absolute namespace or nil if it cannot be resolved"
+   resolved Symbol with the absolute namespace or nil if it cannot be resolved."
   [sym]
   (-> (get-global-env)
       (php/-> (resolveAsSymbol sym (php/:: NodeEnvironment (empty))))))
@@ -44,7 +44,7 @@
       (clean-doc (get meta :doc)))))
 
 (defmacro doc
-  "Prints the documentation for the given symbol"
+  "Prints the documentation for the given symbol."
   [sym]
   (let [resolved-sym (resolve sym)]
     (when resolved-sym
@@ -73,7 +73,7 @@
     namespace))
 
 (defmacro require
-  "Requires a Phel module into the environment"
+  "Requires a Phel module into the environment."
   [sym & args]
   (let [options (apply hash-map args)
         alias (extract-alias sym options)
@@ -86,7 +86,7 @@
   namespace)
 
 (defmacro use
-  "Adds a use statement to the environment"
+  "Adds a use statement to the environment."
   [sym & args]
   (let [options (apply hash-map args)
         alias (extract-alias sym options)]

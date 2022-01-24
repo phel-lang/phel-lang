@@ -49,7 +49,7 @@ final class GlobalEnvironment implements GlobalEnvironmentInterface
         $symbol = Symbol::create('*compile-mode*');
         $meta = TypeFactory::getInstance()->persistentMapFromKVs(
             Keyword::create('doc'),
-            'Set to true when a file is compiled, false otherwise',
+            'Set to true when a file is compiled, false otherwise.',
         );
         Registry::getInstance()->addDefinition(self::PHEL_CORE_NAMESPACE, $symbol->getName(), false, $meta);
         $this->addDefinition(self::PHEL_CORE_NAMESPACE, $symbol);
