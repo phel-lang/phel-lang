@@ -186,8 +186,8 @@ elements, returns nil."
         is-name (php/:: Symbol (create (php/. name-str "?")))]
     `(do
        (defstruct* ,name ,keys ,@implementations)
-       (defn ,name ,(php/. "Creates a new " name " struct") ,keys (php/new ,class-name-str ,@keys))
-       (defn ,is-name ,(php/. "Checks if `x` is an instance of the " name " struct") [x] (php/is_a x ,class-name-str)))))
+       (defn ,name ,(php/. "Creates a new " name " struct.") ,keys (php/new ,class-name-str ,@keys))
+       (defn ,is-name ,(php/. "Checks if `x` is an instance of the " name " struct.") [x] (php/is_a x ,class-name-str)))))
 
 (defmacro comment
   "Ignores the body of the comment."
@@ -202,7 +202,7 @@ elements, returns nil."
   "Creates a string by concatenating values together. If no arguments are
 provided an empty string is returned. Nil and false are represented as empty
 string. True is represented as 1. Otherwise it tries to call `__toString`.
-This is PHP equivalent to `$args[0] . $args[1] . $args[2] ...`"
+This is PHP equivalent to `$args[0] . $args[1] . $args[2] ...`."
   {:inline (fn [& args] `(php/. "" ,@args))
    :inline-arity (fn [n] (php/> n 0))}
   [& args]
