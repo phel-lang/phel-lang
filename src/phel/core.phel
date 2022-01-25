@@ -112,12 +112,12 @@ elements, returns nil."
 # ------------
 
 (def meta
-  "```phel\n(meta obj)\n```\nGets the meta of the give object"
+  "```phel\n(meta obj)\n```\nGets the meta of the give object."
   (fn [obj]
     (php/-> obj (getMeta))))
 
 (def set-meta!
-  "```phel\n(set-meta! obj)\n```\nSets the meta data to a given object"
+  "```phel\n(set-meta! obj)\n```\nSets the meta data to a given object."
   (fn [obj meta]
     (php/-> obj (withMeta meta))))
 
@@ -186,8 +186,8 @@ elements, returns nil."
         is-name (php/:: Symbol (create (php/. name-str "?")))]
     `(do
        (defstruct* ,name ,keys ,@implementations)
-       (defn ,name ,(php/. "Creates a new " name " struct") ,keys (php/new ,class-name-str ,@keys))
-       (defn ,is-name ,(php/. "Checks if `x` is an instance of the " name " struct") [x] (php/is_a x ,class-name-str)))))
+       (defn ,name ,(php/. "Creates a new " name " struct.") ,keys (php/new ,class-name-str ,@keys))
+       (defn ,is-name ,(php/. "Checks if `x` is an instance of the " name " struct.") [x] (php/is_a x ,class-name-str)))))
 
 (defmacro comment
   "Ignores the body of the comment."
@@ -202,7 +202,7 @@ elements, returns nil."
   "Creates a string by concatenating values together. If no arguments are
 provided an empty string is returned. Nil and false are represented as empty
 string. True is represented as 1. Otherwise it tries to call `__toString`.
-This is PHP equivalent to `$args[0] . $args[1] . $args[2] ...`"
+This is PHP equivalent to `$args[0] . $args[1] . $args[2] ...`."
   {:inline (fn [& args] `(php/. "" ,@args))
    :inline-arity (fn [n] (php/> n 0))}
   [& args]
@@ -211,12 +211,12 @@ This is PHP equivalent to `$args[0] . $args[1] . $args[2] ...`"
     (apply php/. "" args)))
 
 (defn transient
-  "Converts a persistent collection to a transient collection"
+  "Converts a persistent collection to a transient collection."
   [coll]
   (php/-> coll (asTransient)))
 
 (defn persistent
-  "Converts a transient collection to a persistent collection"
+  "Converts a transient collection to a persistent collection."
   [coll]
   (php/-> coll (persistent)))
 
@@ -277,7 +277,7 @@ This is PHP equivalent to `$args[0] . $args[1] . $args[2] ...`"
                         (php/. "cannot do cons " (php/print_r x true))))))))
 
 (defn ffirst
-  "Same as `(first (first xs))`"
+  "Same as `(first (first xs))`."
   [xs]
   (first (first xs)))
 
@@ -302,7 +302,7 @@ elements, returns an empty sequence."
   (next (first xs)))
 
 (defn nnext
-  "Same as `(next (next xs))`"
+  "Same as `(next (next xs))`."
   [xs]
   (next (next xs)))
 
@@ -796,27 +796,27 @@ arrays. Use (php/aunset ds key)"))
 # --------
 
 (defn var
-  "Creates a new variable with the give value"
+  "Creates a new variable with the give value."
   [value]
   (php/-> (php/:: TypeFactory (getInstance)) (variable value)))
 
 (defn var?
-  "Checks if the given value is a variable"
+  "Checks if the given value is a variable."
   [x]
   (php/instanceof x Variable))
 
 (defn set!
-  "Sets a new value to the given variable"
+  "Sets a new value to the given variable."
   [variable value]
   (php/-> variable (set value)))
 
 (defn deref
-  "Return the value inside the variable"
+  "Return the value inside the variable."
   [variable]
   (php/-> variable (deref)))
 
 (defn swap!
-  "Swaps the value of the variable to (apply f current-value args). Returns the values that is swapped in."
+  "Swaps the value of the variable to `(apply f current-value args)`. Returns the values that is swapped in."
   [variable f & args]
   (let [current (deref variable)
         next (apply f current args)]
@@ -828,8 +828,8 @@ arrays. Use (php/aunset ds key)"))
 # --------
 
 (defn range
-  "Create an array of values [start, end). If the function has one argument the
-  the range [0, end) is returned. With two arguments, returns [start, end).
+  "Create an array of values `[start, end)`. If the function has one argument the
+  the range `[0, end)` is returned. With two arguments, returns `[start, end)`.
   The third argument is an optional step width (default 1)."
   [a & rest]
   (case (count rest)
@@ -1052,7 +1052,7 @@ collection in map"))
   (for [x :in xs :while (pred x)] x))
 
 (defn take-nth
-  "Returns every nth item in `xs`"
+  "Returns every nth item in `xs`."
   [n xs]
   (when (< n 1)
     (throw (php/new InvalidArgumentException "First argument of 'take-nth must be greater then 0")))
@@ -1131,7 +1131,7 @@ collection in map"))
         (recur (php/+ i 1) (concat res nths))))))
 
 (defn interpose
-  "Returns an vector of elements separated by `sep`"
+  "Returns an vector of elements separated by `sep`."
   [sep xs]
   (persistent
     (for [[k v] :pairs xs
@@ -1164,7 +1164,7 @@ collection in map"))
   (for [p :pairs xs] p))
 
 (defn kvs
-  "Returns an vector of key value pairs like [k1 v1 k2 v2 k3 v3 ...]."
+  "Returns an vector of key value pairs like `[k1 v1 k2 v2 k3 v3 ...]`."
   [xs]
   (persistent
    (for [[k v] :pairs xs
@@ -1194,7 +1194,7 @@ collection in map"))
 
 (defn sort-by
   "Returns a sorted vector where the sort order is determined by comparing
-  (keyfn item). If no comparator is supplied compare is used."
+  `(keyfn item)`. If no comparator is supplied compare is used."
   [keyfn xs & [comp]]
   (let [php-array (to-php-array xs)
         cmp (or comp compare)]
@@ -1248,12 +1248,12 @@ collection in map"))
     (put res v k)))
 
 (defn split-at
-  "Returns a vector of [(take n coll) (drop n coll)]."
+  "Returns a vector of `[(take n coll) (drop n coll)]`."
   [n xs]
   [(take n xs) (drop n xs)])
 
 (defn split-with
-  "Returns a vector of [(take-while pred coll) (drop-while pred coll)]."
+  "Returns a vector of `[(take-while pred coll) (drop-while pred coll)]`."
   [f xs]
   [(take-while f xs) (drop-while f xs)])
 
@@ -1331,13 +1331,12 @@ collection in map"))
 # ------------------
 
 (defn identity
-  "Returns its argument"
+  "Returns its argument."
   [x]
   x)
 
 (defn comp
-  "Takes a list of functions and returns a function that is the composition
-  of those functions."
+  "Takes a list of functions and returns a function that is the composition of those functions."
   [& fs]
   (case (count fs)
     0 identity
@@ -1352,7 +1351,7 @@ collection in map"))
 
 (defn juxt
   "Takes a list of functions and returns a new function that is the juxtaposition of those functions.
-  `((juxt a b c) x) => [(a x) (b x) (c x)]`"
+  `((juxt a b c) x) => [(a x) (b x) (c x)]`."
   [& fs]
   (fn [& args]
     (reduce
@@ -1363,7 +1362,7 @@ collection in map"))
 (defn partial
   "Takes a function `f` and fewer than normal arguments of `f` and returns a function
   that a variable number of additional arguments. When call `f` will be called
-  with `args` and the additional arguments"
+  with `args` and the additional arguments."
   [f & args]
   |(apply f (concat [] args $&)))
 
@@ -1389,7 +1388,7 @@ collection in map"))
         (persistent ret)))))
 
 (defn flatten
-  "Takes a nested sequential data structure (tree), and returns their contents
+  "Takes a nested sequential data structure `(tree)`, and returns their contents
   as a single, flat vector."
   [xs]
   (filter
@@ -1401,61 +1400,61 @@ collection in map"))
 # -----------------
 
 (defn bit-and
-  "Bitwise and"
+  "Bitwise and."
   {:inline (fn [x y & args] `(php/& ,x ,y ,@args))}
   [x y & args]
   (let [all (concat [x y] args)]
     (reduce2 |(php/& $1 $2) all)))
 
 (defn bit-or
-  "Bitwise or"
+  "Bitwise or."
   {:inline (fn [x y & args] `(php/| ,x ,y ,@args))}
   [x y & args]
   (let [all (concat [x y] args)]
     (reduce2 |(php/| $1 $2) all)))
 
 (defn bit-xor
-  "Bitwise xor"
+  "Bitwise xor."
   {:inline (fn [x y & args] `(php/^ ,x ,y ,@args))}
   [x y & args]
   (let [all (concat [x y] args)]
     (reduce2 |(php/^ $1 $2) all)))
 
 (defn bit-not
-  "Bitwise complement"
+  "Bitwise complement."
   {:inline (fn [x] `(php/~ ,x))}
   [x]
   (php/~ x))
 
 (defn bit-shift-left
-  "Bitwise shift left"
+  "Bitwise shift left."
   {:inline (fn [x n] `(php/<< ,x ,n))}
   [x n]
   (php/<< x n))
 
 (defn bit-shift-right
-  "Bitwise shift right"
+  "Bitwise shift right."
   {:inline (fn [x n] `(php/>> ,x ,n))}
   [x n]
   (php/>> x n))
 
 (defn bit-set
-  "Set bit an index `n`"
+  "Set bit an index `n`."
   [x n]
   (bit-or x (bit-shift-left 1 n)))
 
 (defn bit-clear
-  "Clear bit an index `n`"
+  "Clear bit an index `n`."
   [x n]
   (bit-and x (bit-not (bit-shift-left 1 n))))
 
 (defn bit-flip
-  "Flip bit at index `n`"
+  "Flip bit at index `n`."
   [x n]
   (bit-xor x (bit-shift-left 1 n)))
 
 (defn bit-test
-  "Test bit at index `n`"
+  "Test bit at index `n`."
   [x n]
   (php/!= 0 (bit-and x (bit-shift-left 1 n))))
 
@@ -1761,7 +1760,7 @@ returns 1. If `xs` has one value, returns the reciprocal of x."
 # ----------
 
 (defmacro definterface
-  "Defines a interface"
+  "Defines an interface."
   [name & fns]
   (let [name-str (php/-> name (getName))
         munge (php/new Munge)

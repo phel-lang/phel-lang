@@ -60,7 +60,7 @@ class abc extends \Phel\Lang\Collections\Struct\AbstractPersistentStruct {
     }
   },
   \Phel\Lang\TypeFactory::getInstance()->persistentMapFromKVs(
-    \Phel\Lang\Keyword::create("doc"), "```phel\n(abc a)\n```\nCreates a new abc struct",
+    \Phel\Lang\Keyword::create("doc"), "```phel\n(abc a)\n```\nCreates a new abc struct.",
     \Phel\Lang\Keyword::create("start-location"), \Phel\Lang\TypeFactory::getInstance()->persistentMapFromKVs(
       \Phel\Lang\Keyword::create("file"), "Ns/munge-ns.test",
       \Phel\Lang\Keyword::create("line"), 7,
@@ -85,7 +85,7 @@ class abc extends \Phel\Lang\Collections\Struct\AbstractPersistentStruct {
     }
   },
   \Phel\Lang\TypeFactory::getInstance()->persistentMapFromKVs(
-    \Phel\Lang\Keyword::create("doc"), "```phel\n(abc? x)\n```\nChecks if `x` is an instance of the abc struct",
+    \Phel\Lang\Keyword::create("doc"), "```phel\n(abc? x)\n```\nChecks if `x` is an instance of the abc struct.",
     \Phel\Lang\Keyword::create("start-location"), \Phel\Lang\TypeFactory::getInstance()->persistentMapFromKVs(
       \Phel\Lang\Keyword::create("file"), "Ns/munge-ns.test",
       \Phel\Lang\Keyword::create("line"), 7,

@@ -4,7 +4,7 @@
 (defstruct raw-string [s])
 
 (defn escape-html
-  "Escapes the string that may contain HTML"
+  "Escapes the string that may contain HTML."
   [s]
   (php/htmlspecialchars s (bit-or php/ENT_QUOTES php/ENT_SUBSTITUTE)))
 
@@ -73,7 +73,7 @@
   (apply str (map-indexed render-attribute attrs)))
 
 (defn- render-element
-  "Renders a Element"
+  "Renders a Element."
   [element]
   (let [[tag attrs content] (normalize-element element)]
     (if (container-tag? tag content)
@@ -114,7 +114,7 @@
     (render-attrs attrs)))
 
 (defn- compile-element
-  "Compiles a element"
+  "Compiles a element."
   [element]
   (let [[tag attrs content] (normalize-element element)]
     (if (container-tag? tag content)
