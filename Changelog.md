@@ -4,6 +4,21 @@ All notable changes to this project will be documented in this file.
 
 ## Unreleased
 
+* Drop support for PHP 7.4. (#403)
+* Support for PHP 8.0 and 8.1. (#406)
+* Printer: render `<function>` when printing a function and not `<PHP-AnonymousClass>`. (#404)
+* Add a `:reduce` option for the for-loop. (#405)
+* Removed deprecated table, array and set mutable data structures. (#407)
+* Add feature to require php files in ns statement. (#421)
+* Remove all calls to GlobalEnvironmentSingleton in the compiled code. (#408)
+* Add a new phel core function: `coerce-in` (#424)
+* Introduce a registry class to store the definitions instead of `$GLOABLS`. (#423)
+* Evaluate meta data in the special form `def` (#426)
+* Add support for inline optimization. (#427)
+* Fixed bug in compile command (#428, #410)
+* Improved documentation (#432)
+
+
 ## 0.5.0 (2021-12-17)
 
 * Added variables.
