@@ -62,7 +62,7 @@ abstract class AbstractType implements TypeInterface
         return $this;
     }
 
-    public function __toString()
+    public function __toString(): string
     {
         return Printer::readable()->print($this);
     }

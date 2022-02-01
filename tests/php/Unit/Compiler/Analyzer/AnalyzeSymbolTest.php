@@ -12,6 +12,7 @@ use Phel\Compiler\Analyzer\Environment\GlobalEnvironment;
 use Phel\Compiler\Analyzer\Environment\NodeEnvironment;
 use Phel\Compiler\Analyzer\Exceptions\AnalyzerException;
 use Phel\Compiler\Analyzer\TypeAnalyzer\AnalyzeSymbol;
+use Phel\Lang\Registry;
 use Phel\Lang\Symbol;
 use Phel\Lang\TypeFactory;
 use PHPUnit\Framework\TestCase;
@@ -23,6 +24,7 @@ final class AnalyzeSymbolTest extends TestCase
     public function setUp(): void
     {
         $this->symbolAnalyzer = new AnalyzeSymbol(new Analyzer(new GlobalEnvironment()));
+        Registry::getInstance()->clear();
     }
 
     public function test_php_symbol(): void
