@@ -1,0 +1,8 @@
+{
+    "name": "phel-lang/repl",
+    "homepage": "https://phel-lang.org/",
+    "license": "MIT",
+    "require": {
+      "phel-lang/phel-lang": "dev-master"
+    }
+  }
