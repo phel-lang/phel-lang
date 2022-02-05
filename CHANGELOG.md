@@ -2,7 +2,7 @@
 
 All notable changes to this project will be documented in this file.
 
-## Unreleased
+## 0.6.0 (2022-02-02)
 
 * Drop support for PHP 7.4. (#403)
 * Support for PHP 8.0 and 8.1. (#406)
@@ -17,7 +17,6 @@ All notable changes to this project will be documented in this file.
 * Add support for inline optimization. (#427)
 * Fixed bug in compile command (#428, #410)
 * Improved documentation (#432)
-
 
 ## 0.5.0 (2021-12-17)
 
@@ -49,7 +48,7 @@ All notable changes to this project will be documented in this file.
 * Removed `load` function.
 * Fixed `RangeIterator` for Vectors (#302)
 
-## 0.3.2 (2021-05-16)
+## 0.3.2 (2021-05-25)
 
 * Transient Maps can grow bigger than 16 elements (#289)
 * Added a filter option to the test command. (#285)
@@ -71,12 +70,11 @@ All notable changes to this project will be documented in this file.
 * `partition` now returns remaining items if the size of the remaining array is lower than given size n. (#246)
 * Added new function `contains?` (#267)
 
-
 ## 0.2.0 (2021-02-22)
 
 * Call Phel functions from PHP (#209)
 * Set PHP object properties from Phel (#235)
 
-## 0.1.0 (2021-31-01)
+## 0.1.0 (2021-01-31)
 
 Initial release
