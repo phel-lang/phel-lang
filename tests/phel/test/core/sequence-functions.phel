@@ -167,6 +167,45 @@
 (deftest test-merge
   (is (= {:a -1 :b 2 :c 3 :d 4} (merge {:a 1 :b 2} {:a -1 :c 3} {:d 4})) "merge"))
 
+(deftest test-merge-with-zero-args
+  (is (= {} (merge-with identity))))
+
+(deftest test-merge-with-one-args
+  (is (= {:a 1} (merge-with identity {:a 1}))))
+
+(deftest test-merge-with-sum
+  (is (= {:a 1 :b 5 :c 4} (merge-with + {:a 1 :b 2} {:b 3 :c 4}))))
+
+(deftest test-merge-with-mulitple-maps
+  (is (= {:a 3 :b 2 :c 3} (merge-with + {:a 1} {:a 1 :b 2} {:a 1 :c 3}))))
+
+(deftest test-simple-deep-merge
+  (is (= {:a 1 :b 3 :c 4} (deep-merge {:a 1 :b 2} {:b 3 :c 4}))))
+
+(deftest test-inner-map-deep-merge
+  (is (= {:a {:b 1 :c 3}} (deep-merge {:a {:b 1 :c 2}} {:a {:c 3}}))))
+
+(deftest test-inner-set-deep-merge
+  (is (= {:a (set :b :c :d)} (deep-merge {:a (set :b :c)} {:a (set :c :d)}))))
+
+(deftest test-inner-vector-deep-merge
+  (is (= {:a [:b :c :d]} (deep-merge {:a [:b :c]} {:a [:d]}))))
+
+(deftest test-deep-inner-merge
+  (is (= {:a {:b {:c [:d :e] :f :g}}} (deep-merge {:a {:b {:c [:d]}}} {:a {:b {:c [:e] :f :g}}}))))
+
+(deftest test-collection-stay-the-same-in-deep-merge
+  (is (hash-map? (deep-merge {:a :b} {:c :d})))
+  (is (vector? (deep-merge [:a :b] [:c])))
+  (is (set? (deep-merge (set :a :b) (set :c))))
+  (is (list? (deep-merge '(:a :b) '(:c)))))
+
+(deftest test-different-args-in-deep-merge
+  (is (= {} (deep-merge)))
+  (is (= {:a :b} (deep-merge {:a :b})))
+  (is (= {:a :d :x 1 :y 2} (deep-merge {:a :b :x 1} {:a :c :y 2} {:a :d})))
+  (is (= {:a :d :x 1 :y 4 :z 3} (deep-merge {:a :b :x 1} {:a :c :y 2} {:a :d} {:y 4 :z 3}))))
+
 (deftest test-invert
   (is (= {1 :a 2 :b} (invert {:a 1 :b 2})) "invert")
   (is (= {1 :a 2 :c} (invert {:a 1 :b 2 :c 2})) "invert duplicate values"))

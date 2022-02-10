@@ -1395,6 +1395,43 @@ collection in map"))
    (complement indexed?)
    (rest (tree-seq indexed? identity xs))))
 
+(defn- merge-with-2 [f left right]
+  (for [[k v] :pairs right
+        :reduce [acc left]]
+    (if (contains? acc k)
+      (put acc k (f (get acc k) v))
+      (put acc k v))))
+
+(defn merge-with
+  "Merges multiple maps into one new map. If a key appears in more than one
+   collection, the result of `(f current-val next-val)` is used."
+  [f & hash-maps]
+  (case (count hash-maps)
+    0 {}
+    1 (first hash-maps)
+    2 (merge-with-2 f (first hash-maps) (second hash-maps))
+      (reduce (partial merge-with f) (first hash-maps) (rest hash-maps))))
+
+(declare deep-merge)
+
+(defn- deep-merge-2 [left right]
+  (cond
+    (nil? left) right
+    (nil? right) left
+    (and (hash-map? left) (hash-map? right)) (merge-with deep-merge left right)
+    (and (set? left) (set? right)) (union left right)
+    (and (vector? left) (vector? right)) (concat left right)
+    right))
+
+(defn deep-merge
+  "Recursivly merges data structures."
+  [& args]
+  (case (count args)
+    0 {}
+    1 (first args)
+    2 (deep-merge-2 (first args) (second args))
+      (reduce deep-merge (first args) (rest args))))
+
 # -----------------
 # Bitwise operation
 # -----------------
