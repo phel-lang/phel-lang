@@ -2,6 +2,11 @@
 
 All notable changes to this project will be documented in this file.
 
+## Unreleased
+
+* Added: `merge-with` function
+* Added: `deep-merge` function
+
 ## 0.6.0 (2022-02-02)
 
 * Drop support for PHP 7.4. (#403)
