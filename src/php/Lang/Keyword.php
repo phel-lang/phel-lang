@@ -7,7 +7,7 @@ namespace Phel\Lang;
 use Phel\Lang\Collections\Map\PersistentMapInterface;
 use Phel\Printer\Printer;
 
-final class Keyword extends AbstractType implements IdenticalInterface, FnInterface
+final class Keyword extends AbstractType implements IdenticalInterface, FnInterface, NamedInterface
 {
     use MetaTrait;
 
@@ -56,6 +56,15 @@ final class Keyword extends AbstractType implements IdenticalInterface, FnInterf
     public function getNamespace(): ?string
     {
         return $this->namespace;
+    }
+
+    public function getFullName(): string
+    {
+        if ($this->namespace) {
+            return $this->namespace . '/' . $this->name;
+        }
+
+        return $this->name;
     }
 
     public function hash(): int

@@ -11,7 +11,7 @@
 (defn- to-str [x]
   (cond
     (string? x)  x
-    (keyword? x) (php/-> x (getName))
+    (keyword? x) (name x)
     (nil? x)     ""
     (str x)))
 
@@ -126,7 +126,7 @@
 
 (defn- compile-form [form]
   (let [form-name (if (and (list? form) (symbol? (first form)))
-                    (php/-> (first form) (getName)))]
+                    (name (first form)))]
     (case form-name
       "for" (let [[_ bindings body] form]
               `(apply str (for ,bindings ,(compile-html body))))
@@ -138,7 +138,7 @@
   (for [element :in content]
     (cond
       (vector? element)         (compile-element element)
-      (keyword? element)        (escape-html (php/-> element (getName)))
+      (keyword? element)        (escape-html (name element))
       (raw-string? element)     (get element :s)
       (string? element)         (escape-html element)
       (indexed? element)        (compile-form element)

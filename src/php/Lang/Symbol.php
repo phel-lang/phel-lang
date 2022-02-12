@@ -6,7 +6,7 @@ namespace Phel\Lang;
 
 use Phel\Printer\Printer;
 
-final class Symbol extends AbstractType implements IdenticalInterface
+final class Symbol extends AbstractType implements IdenticalInterface, NamedInterface
 {
     use MetaTrait;
 

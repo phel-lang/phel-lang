@@ -189,8 +189,8 @@
 
 (defmacro deftest
   "Defines a test function with no arguments."
-  [name & body]
-  `(defn ,name {:test true :test-name ,(php/-> name (getName))} []
+  [test-name & body]
+  `(defn ,test-name {:test true :test-name ,(name test-name)} []
      ,@body))
 
 # ---------------------
@@ -317,7 +317,7 @@
   "Runs all test functions in the given namespaces."
   [options & namespaces]
   (dofor [namespace :in namespaces
-          :let [ns-name (php/-> namespace (getName))]]
+          :let [ns-name (name namespace)]]
     (run-test options ns-name))
   (print-summary))
 
