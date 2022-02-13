@@ -6,6 +6,10 @@ All notable changes to this project will be documented in this file.
 
 * Added: `merge-with` function
 * Added: `deep-merge` function
+* Added: `NamedInterface` interface for Symbol and Keyword
+* Added: `name` function
+* Added: `namespace` function
+* Added: `full-name` function
 
 ## 0.6.0 (2022-02-02)
 

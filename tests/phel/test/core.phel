@@ -1,5 +1,6 @@
 (ns phel-test\test\core
-  (:require phel\test :refer [deftest is]))
+  (:require phel\test :refer [deftest is])
+  (:use Phel\Lang\Symbol))
 
 # -------------
 # Destructuring
@@ -70,3 +71,22 @@
   (is (false? (var? 10)) "var? return false if x is a number")
   (is (= 20 (let [x (var 10)] (set! x 20) (deref x))) "set new value to variable")
   (is (= 11 (let [x (var 10)] (swap! x + 1) (deref x))) "swap a value by incrementing the number"))
+
+
+(deftest test-name
+  (is (= "string" (name "string")) "name on string")
+  (is (= "symbol" (name 'symbol)) "name on symbol")
+  (is (= "keyword" (name :keyword)) "name of keyword"))
+
+(deftest test-namespace
+  (is (= nil (namespace 'symbol)) "namespace on symbol without ns")
+  (is (= nil (namespace :keyword)) "namespace of keyword without ns")
+  (is (= "test" (namespace (php/:: Symbol (createForNamespace "test" "symbol")))) "namespace on symbol with ns")
+  (is (= "phel-test\\test\\core" (namespace ::keyword)) "namespace of keyword with ns"))
+
+(deftest test-full-name
+  (is (= "string" (name "string")) "full-name on string")
+  (is (= "symbol" (full-name 'symbol)) "full-name on symbol without ns")
+  (is (= "keyword" (full-name :keyword)) "full-name of keyword without ns")
+  (is (= "test/symbol" (full-name (php/:: Symbol (createForNamespace "test" "symbol")))) "full-name on symbol with ns")
+  (is (= "phel-test\\test\\core/keyword" (full-name ::keyword)) "full-name of keyword with ns"))

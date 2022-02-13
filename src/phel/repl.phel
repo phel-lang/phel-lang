@@ -48,12 +48,12 @@
   [sym]
   (let [resolved-sym (resolve sym)]
     (when resolved-sym
-      `(println (find-doc ,(php/-> resolved-sym (getNamespace)) ,(php/-> resolved-sym (getName)))))))
+      `(println (find-doc ,(namespace resolved-sym) ,(name resolved-sym))))))
 
 (defn- extract-alias [sym options]
   (if (:as options)
     (:as options)
-    (let [parts (php/explode "\\" (php/-> sym (getName)))
+    (let [parts (php/explode "\\" (name sym))
           last (pop parts)]
       (php/:: Symbol (create last)))))
 

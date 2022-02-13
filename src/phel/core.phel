@@ -1814,3 +1814,19 @@ returns 1. If `xs` has one value, returns the reciprocal of x."
   `(do
      (definterface* ,name ,@fns)
      ,@defs)))
+
+
+(defn name
+  "Returns the name string of a string, keyword or symbol."
+  [x]
+  (if (string? x) x (php/-> x (getName))))
+
+(defn namespace
+  "Return the namespace string of a symbol or keyword. Nil if not present."
+  [x]
+  (php/-> x (getNamespace)))
+
+(defn full-name
+  "Return the namespace and name string of a string, keyword or symbol."
+  [x]
+  (if (string? x) x (php/-> x (getFullName))))
