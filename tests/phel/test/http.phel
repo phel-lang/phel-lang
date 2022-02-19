@@ -286,31 +286,31 @@
 (deftest test-response
   (is (=
        (h/response 200 {} "" "1.1" "OK")
-       (h/create-response-from-map {})) "create-response-from-map empty")
+       (h/response-from-map {})) "response-from-map empty")
 
   (is (=
        (h/response 201 {} "" "1.1" "Created")
-       (h/create-response-from-map {:status 201})) "create-response-from-map status")
+       (h/response-from-map {:status 201})) "response-from-map status")
 
   (is (=
        (h/response 200 {:content-type "text/plain"} "" "1.1" "OK")
-       (h/create-response-from-map {:headers {:content-type "text/plain"}})) "create-response-from-map headers")
+       (h/response-from-map {:headers {:content-type "text/plain"}})) "response-from-map headers")
 
   (is (=
        (h/response 200 {} "hello" "1.1" "OK")
-       (h/create-response-from-map {:body "hello"})) "create-response-from-map body")
+       (h/response-from-map {:body "hello"})) "response-from-map body")
 
   (is (=
        (h/response 200 {} "" "2.0" "OK")
-       (h/create-response-from-map {:version "2.0"})) "create-response-from-map version")
+       (h/response-from-map {:version "2.0"})) "response-from-map version")
 
   (is (=
        (h/response 200 {} "" "1.1" "Yes!")
-       (h/create-response-from-map {:reason "Yes!"})) "create-response-from-map reason")
+       (h/response-from-map {:reason "Yes!"})) "response-from-map reason")
 
   (is (=
        (h/response 200 {} "test" "1.1" "OK")
-       (h/create-response-from-string "test")) "create-response-from-string"))
+       (h/response-from-string "test")) "response-from-string"))
 
 (def send-response-examples [["send body"
                               (h/response 200 {:content-type "text/plain"} "Content!" nil nil)

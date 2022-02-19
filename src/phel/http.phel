@@ -295,7 +295,7 @@
                         510 "Not Extended"
                         511 "Network Authentication Required"})
 
-(defn create-response-from-map
+(defn response-from-map
   "Creates a response struct from a map. The map can have the following keys:
   * `:status` The HTTP Status (default 200)
   * `:headers` A map of HTTP Headers (default: empty map)
@@ -310,10 +310,14 @@
         reason (or reason (get response-phrases status) "")]
     (response status headers body version reason)))
 
-(defn create-response-from-string
+(def create-response-from-map {:deprecated "Use response-from-map"} response-from-map)
+
+(defn response-from-string
   "Create a response from a string."
   [s]
   (create-response-from-map {:body s}))
+
+(def create-response-from-string {:deprecated "Use response-from-string"} response-from-string)
 
 (defn- emit-status-line [{:status status :reason reason :version version}]
   (when-not (php/headers_sent)
