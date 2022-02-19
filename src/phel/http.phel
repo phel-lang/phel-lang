@@ -182,6 +182,7 @@
                     server-params # Map with alle server parameters ($_SERVER)
                     uploaded-files # Array of normalized uploaded files ($_FILES)
                     version # HTTP Version
+                    attributes # consumer specific data to enrich the request
 ])
 
 
@@ -219,7 +220,8 @@
      (php-array-to-map cookies)
      (php-array-to-map server)
      (normalize-files files)
-     version)))
+     version
+     {})))
 
 (defn request-from-globals
   "Extracts a request from `$_SERVER`, `$_GET`, `$_POST`, `$_COOKIE` and `$_FILES`."
