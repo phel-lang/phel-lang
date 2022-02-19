@@ -1,11 +1,36 @@
 (ns phel\http
-  (:use InvalidArgumentException))
+  (:use InvalidArgumentException)
+  (:use Stringable))
 
 # ---
 # URI
 # ---
 
-(defstruct uri [scheme userinfo host port path query fragment])
+(defstruct uri [scheme userinfo host port path query fragment]
+  Stringable
+  (__toString [this]
+    (let [authority (str host)
+          authority (if (and userinfo (not= userinfo ""))
+                      (str userinfo "@" authority)
+                      authority)
+          authority (if port
+                      (str authority ":" port)
+                      authority)
+          res ""
+          res (if (and scheme (not= scheme ""))
+                (str res scheme ":")
+                res)
+          res (if (or (not= authority "") (= scheme "file"))
+                (str res "//" authority)
+                res)
+          res (str res path)
+          res (if (and query (not= query ""))
+                (str res "?" query)
+                res)
+          res (if (and fragment (not= fragment ""))
+                (str res "#" fragment)
+                res)]
+      res)))
 
 (def- uri-host-port-regex "/^(.+)\:(\d+)$/")
 
@@ -38,6 +63,38 @@
         query  (get server "QUERY_STRING")
         [h p]  (host-and-port-from-globals server)]
     (uri scheme nil h p path query nil)))
+
+# See: https://www.php.net/manual/en/function.parse-url.php#114817
+(defn- encode-utf-8-url
+  "Prepares utf-8 urls form php/parse-url."
+  [url]
+  (php/preg_replace_callback
+   "%[^:/@?&=#]+%usD"
+   (fn [matches] (php/urlencode (php/aget matches 0)))
+   url))
+
+(defn uri-from-string
+  "Create a uri struct from a string"
+  [url]
+  (let [matches (php/array)
+        [prefix url] (if (one? (php/preg_match "%^(.*://\\[[0-9:a-f]+\\])(.*?)$%" url matches))
+                       [(php/aget matches 1) (php/aget matches 2)]
+                       ["" url])
+        encodedUrl (encode-utf-8-url url)
+        parts (php/parse_url (str prefix encodedUrl))
+        parts (php/array_map php/urldecode parts)]
+    (when-not parts
+      (throw (php/new InvalidArgumentException (str "This is not a valid uri: " url))))
+    (uri
+     (php/aget parts "scheme")
+     (if (php/aget parts "pass")
+       (str (php/aget parts "user") ":" (php/aget parts "pass"))
+       (php/aget parts "user"))
+     (php/aget parts "host")
+     (when (php/aget parts "port") (php/intval (php/aget parts "port")))
+     (php/aget parts "path")
+     (php/aget parts "query")
+     (php/aget parts "fragment"))))
 
 # -----
 # Files

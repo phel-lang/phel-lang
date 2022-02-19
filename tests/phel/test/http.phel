@@ -53,6 +53,39 @@
   (foreach [[name uri server] uri-examples]
     (is (= uri (h/uri-from-globals server)) name)))
 
+(deftest uri-to-string
+  (is (= "https://user:pass@example.com:8080/path/123?q=abc#test"
+         (str (h/uri "https" "user:pass" "example.com" 8080 "/path/123" "q=abc" "test")))))
+
+(deftest parse-uri-from-string
+  (is (= (h/uri "https" "user:pass" "example.com" 8080 "/path/123" "q=abc" "test")
+         (h/uri-from-string "https://user:pass@example.com:8080/path/123?q=abc#test"))
+      "basic url")
+  (is (= (h/uri "http" nil "[2a00:f48:1008::212:183:10]" 56 nil "foo=bar" nil)
+         (h/uri-from-string "http://[2a00:f48:1008::212:183:10]:56?foo=bar"))
+      "IPv6 uri")
+  (is (= (h/uri "https" nil "яндекс.рф" nil nil nil nil)
+         (h/uri-from-string "https://яндекс.рф"))
+      "internaltional domain names"))
+
+(deftest test-parse-and-stringify-urls
+  (foreach [url ["urn:path-rootless"
+                 "urn:path:with:colon"
+                 "urn:/path-absolute"
+                 "urn:/"
+                 "urn:"
+                 "/"
+                 "relative/"
+                 "0"
+                 ""
+                 "//example.org"
+                 "//example.org/"
+                 "//example.org?q#h"
+                 "?q"
+                 "?q=abc&foo=bar"
+                 "#fragment"
+                 "./foo/../bar"]]
+    (is (= url (str (h/uri-from-string url))) url)))
 
 # -----
 # FILES
