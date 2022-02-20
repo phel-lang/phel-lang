@@ -275,6 +275,34 @@
         :version))
       "server protocol 2.0"))
 
+(deftest request-from-map
+  (is (= (h/request nil nil {} nil {} {} {} [] "1.1" {})
+         (h/request-from-map {})))
+  (is (= (h/request nil (h/uri "http" nil "example.com" nil nil nil nil) {} nil {} {} {} [] "1.1" {})
+         (h/request-from-map {:uri "http://example.com"})))
+  (is (= (h/request
+          "GET"
+          (h/uri "http" nil "example.com" nil nil nil nil)
+          {:content-type "application/json"}
+          {:foo "bar"}
+          {:foobar "foobar"}
+          {:session "xyz"}
+          {:param "str"}
+          []
+          "1.0"
+          {:route "my-route"})
+        (h/request-from-map
+         {:method "GET"
+          :uri (h/uri "http" nil "example.com" nil nil nil nil)
+          :headers {:content-type "application/json"}
+          :parsed-body {:foo "bar"}
+          :query-params {:foobar "foobar"}
+          :cookie-params {:session "xyz"}
+          :server-params {:param "str"}
+          :uploded-files []
+          :version "1.0"
+          :attributes {:route "my-route"}}))))
+
 # --------
 # Response
 # --------

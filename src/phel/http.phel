@@ -185,7 +185,6 @@
                     attributes # consumer specific data to enrich the request
 ])
 
-
 (defn- get-method-from-globals
   "Extracts the request method from `$_SERVER`."
   [& [server]]
@@ -227,6 +226,33 @@
   "Extracts a request from `$_SERVER`, `$_GET`, `$_POST`, `$_COOKIE` and `$_FILES`."
   []
   (request-from-globals-args php/$_SERVER php/$_GET php/$_POST php/$_COOKIE php/$_FILES))
+
+(defn request-from-map
+  [{:method method
+    :uri uri
+    :headers headers
+    :parsed-body parsed-body
+    :query-params query-params
+    :cookie-params cookie-params
+    :server-params server-params
+    :uploded-files uploaded-files
+    :version version
+    :attributes attributes}]
+  (request
+   method
+   (cond
+     (string? uri) (uri-from-string uri)
+     (uri? uri) uri
+     (nil? uri) nil
+     (throw (php/new InvalidArgumentException "Invalid :uri provided. Must be nil, string or uri")))
+   (or headers {})
+   parsed-body
+   (or query-params {})
+   (or cookie-params {})
+   (or server-params {})
+   (or uploaded-files [])
+   (or version "1.1")
+   (or attributes {})))
 
 # --------
 # Response
