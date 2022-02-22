@@ -10,6 +10,14 @@ All notable changes to this project will be documented in this file.
 * Added: `name` function
 * Added: `namespace` function
 * Added: `full-name` function
+* Added: `http/uri-from-string` function
+* Added: Uri structs implements `Stringable` interface
+* Added: `http/response-from-map` function
+* Deprecated: `http/create-response-from-map` in favor of `http/response-from-map`
+* Added: `http/response-from-string` function
+* Deprecated: `http/create-response-from-string` in favor of `http/response-from-string`
+* Added: `attributes` field to `request` struct. Allows developers to enrich the request with custom data
+* Added: `http/request-from-map` function
 
 ## 0.6.0 (2022-02-02)
 
