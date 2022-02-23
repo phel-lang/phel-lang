@@ -1,11 +1,36 @@
 (ns phel\http
-  (:use InvalidArgumentException))
+  (:use InvalidArgumentException)
+  (:use Stringable))
 
 # ---
 # URI
 # ---
 
-(defstruct uri [scheme userinfo host port path query fragment])
+(defstruct uri [scheme userinfo host port path query fragment]
+  Stringable
+  (__toString [this]
+    (let [authority (str host)
+          authority (if (and userinfo (not= userinfo ""))
+                      (str userinfo "@" authority)
+                      authority)
+          authority (if port
+                      (str authority ":" port)
+                      authority)
+          res ""
+          res (if (and scheme (not= scheme ""))
+                (str res scheme ":")
+                res)
+          res (if (or (not= authority "") (= scheme "file"))
+                (str res "//" authority)
+                res)
+          res (str res path)
+          res (if (and query (not= query ""))
+                (str res "?" query)
+                res)
+          res (if (and fragment (not= fragment ""))
+                (str res "#" fragment)
+                res)]
+      res)))
 
 (def- uri-host-port-regex "/^(.+)\:(\d+)$/")
 
@@ -38,6 +63,38 @@
         query  (get server "QUERY_STRING")
         [h p]  (host-and-port-from-globals server)]
     (uri scheme nil h p path query nil)))
+
+# See: https://www.php.net/manual/en/function.parse-url.php#114817
+(defn- encode-utf-8-url
+  "Prepares utf-8 urls form php/parse-url."
+  [url]
+  (php/preg_replace_callback
+   "%[^:/@?&=#]+%usD"
+   (fn [matches] (php/urlencode (php/aget matches 0)))
+   url))
+
+(defn uri-from-string
+  "Create a uri struct from a string"
+  [url]
+  (let [matches (php/array)
+        [prefix url] (if (one? (php/preg_match "%^(.*://\\[[0-9:a-f]+\\])(.*?)$%" url matches))
+                       [(php/aget matches 1) (php/aget matches 2)]
+                       ["" url])
+        encodedUrl (encode-utf-8-url url)
+        parts (php/parse_url (str prefix encodedUrl))
+        parts (php/array_map php/urldecode parts)]
+    (when-not parts
+      (throw (php/new InvalidArgumentException (str "This is not a valid uri: " url))))
+    (uri
+     (php/aget parts "scheme")
+     (if (php/aget parts "pass")
+       (str (php/aget parts "user") ":" (php/aget parts "pass"))
+       (php/aget parts "user"))
+     (php/aget parts "host")
+     (when (php/aget parts "port") (php/intval (php/aget parts "port")))
+     (php/aget parts "path")
+     (php/aget parts "query")
+     (php/aget parts "fragment"))))
 
 # -----
 # Files
@@ -125,8 +182,8 @@
                     server-params # Map with alle server parameters ($_SERVER)
                     uploaded-files # Array of normalized uploaded files ($_FILES)
                     version # HTTP Version
+                    attributes # consumer specific data to enrich the request
 ])
-
 
 (defn- get-method-from-globals
   "Extracts the request method from `$_SERVER`."
@@ -162,12 +219,40 @@
      (php-array-to-map cookies)
      (php-array-to-map server)
      (normalize-files files)
-     version)))
+     version
+     {})))
 
 (defn request-from-globals
   "Extracts a request from `$_SERVER`, `$_GET`, `$_POST`, `$_COOKIE` and `$_FILES`."
   []
   (request-from-globals-args php/$_SERVER php/$_GET php/$_POST php/$_COOKIE php/$_FILES))
+
+(defn request-from-map
+  [{:method method
+    :uri uri
+    :headers headers
+    :parsed-body parsed-body
+    :query-params query-params
+    :cookie-params cookie-params
+    :server-params server-params
+    :uploded-files uploaded-files
+    :version version
+    :attributes attributes}]
+  (request
+   method
+   (cond
+     (string? uri) (uri-from-string uri)
+     (uri? uri) uri
+     (nil? uri) nil
+     (throw (php/new InvalidArgumentException "Invalid :uri provided. Must be nil, string or uri")))
+   (or headers {})
+   parsed-body
+   (or query-params {})
+   (or cookie-params {})
+   (or server-params {})
+   (or uploaded-files [])
+   (or version "1.1")
+   (or attributes {})))
 
 # --------
 # Response
@@ -238,7 +323,7 @@
                         510 "Not Extended"
                         511 "Network Authentication Required"})
 
-(defn create-response-from-map
+(defn response-from-map
   "Creates a response struct from a map. The map can have the following keys:
   * `:status` The HTTP Status (default 200)
   * `:headers` A map of HTTP Headers (default: empty map)
@@ -253,10 +338,14 @@
         reason (or reason (get response-phrases status) "")]
     (response status headers body version reason)))
 
-(defn create-response-from-string
+(def create-response-from-map {:deprecated "Use response-from-map"} response-from-map)
+
+(defn response-from-string
   "Create a response from a string."
   [s]
   (create-response-from-map {:body s}))
+
+(def create-response-from-string {:deprecated "Use response-from-string"} response-from-string)
 
 (defn- emit-status-line [{:status status :reason reason :version version}]
   (when-not (php/headers_sent)

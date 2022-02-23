@@ -53,6 +53,39 @@
   (foreach [[name uri server] uri-examples]
     (is (= uri (h/uri-from-globals server)) name)))
 
+(deftest uri-to-string
+  (is (= "https://user:pass@example.com:8080/path/123?q=abc#test"
+         (str (h/uri "https" "user:pass" "example.com" 8080 "/path/123" "q=abc" "test")))))
+
+(deftest parse-uri-from-string
+  (is (= (h/uri "https" "user:pass" "example.com" 8080 "/path/123" "q=abc" "test")
+         (h/uri-from-string "https://user:pass@example.com:8080/path/123?q=abc#test"))
+      "basic url")
+  (is (= (h/uri "http" nil "[2a00:f48:1008::212:183:10]" 56 nil "foo=bar" nil)
+         (h/uri-from-string "http://[2a00:f48:1008::212:183:10]:56?foo=bar"))
+      "IPv6 uri")
+  (is (= (h/uri "https" nil "яндекс.рф" nil nil nil nil)
+         (h/uri-from-string "https://яндекс.рф"))
+      "internaltional domain names"))
+
+(deftest test-parse-and-stringify-urls
+  (foreach [url ["urn:path-rootless"
+                 "urn:path:with:colon"
+                 "urn:/path-absolute"
+                 "urn:/"
+                 "urn:"
+                 "/"
+                 "relative/"
+                 "0"
+                 ""
+                 "//example.org"
+                 "//example.org/"
+                 "//example.org?q#h"
+                 "?q"
+                 "?q=abc&foo=bar"
+                 "#fragment"
+                 "./foo/../bar"]]
+    (is (= url (str (h/uri-from-string url))) url)))
 
 # -----
 # FILES
@@ -242,6 +275,34 @@
         :version))
       "server protocol 2.0"))
 
+(deftest request-from-map
+  (is (= (h/request nil nil {} nil {} {} {} [] "1.1" {})
+         (h/request-from-map {})))
+  (is (= (h/request nil (h/uri "http" nil "example.com" nil nil nil nil) {} nil {} {} {} [] "1.1" {})
+         (h/request-from-map {:uri "http://example.com"})))
+  (is (= (h/request
+          "GET"
+          (h/uri "http" nil "example.com" nil nil nil nil)
+          {:content-type "application/json"}
+          {:foo "bar"}
+          {:foobar "foobar"}
+          {:session "xyz"}
+          {:param "str"}
+          []
+          "1.0"
+          {:route "my-route"})
+        (h/request-from-map
+         {:method "GET"
+          :uri (h/uri "http" nil "example.com" nil nil nil nil)
+          :headers {:content-type "application/json"}
+          :parsed-body {:foo "bar"}
+          :query-params {:foobar "foobar"}
+          :cookie-params {:session "xyz"}
+          :server-params {:param "str"}
+          :uploded-files []
+          :version "1.0"
+          :attributes {:route "my-route"}}))))
+
 # --------
 # Response
 # --------
@@ -253,31 +314,31 @@
 (deftest test-response
   (is (=
        (h/response 200 {} "" "1.1" "OK")
-       (h/create-response-from-map {})) "create-response-from-map empty")
+       (h/response-from-map {})) "response-from-map empty")
 
   (is (=
        (h/response 201 {} "" "1.1" "Created")
-       (h/create-response-from-map {:status 201})) "create-response-from-map status")
+       (h/response-from-map {:status 201})) "response-from-map status")
 
   (is (=
        (h/response 200 {:content-type "text/plain"} "" "1.1" "OK")
-       (h/create-response-from-map {:headers {:content-type "text/plain"}})) "create-response-from-map headers")
+       (h/response-from-map {:headers {:content-type "text/plain"}})) "response-from-map headers")
 
   (is (=
        (h/response 200 {} "hello" "1.1" "OK")
-       (h/create-response-from-map {:body "hello"})) "create-response-from-map body")
+       (h/response-from-map {:body "hello"})) "response-from-map body")
 
   (is (=
        (h/response 200 {} "" "2.0" "OK")
-       (h/create-response-from-map {:version "2.0"})) "create-response-from-map version")
+       (h/response-from-map {:version "2.0"})) "response-from-map version")
 
   (is (=
        (h/response 200 {} "" "1.1" "Yes!")
-       (h/create-response-from-map {:reason "Yes!"})) "create-response-from-map reason")
+       (h/response-from-map {:reason "Yes!"})) "response-from-map reason")
 
   (is (=
        (h/response 200 {} "test" "1.1" "OK")
-       (h/create-response-from-string "test")) "create-response-from-string"))
+       (h/response-from-string "test")) "response-from-string"))
 
 (def send-response-examples [["send body"
                               (h/response 200 {:content-type "text/plain"} "Content!" nil nil)
