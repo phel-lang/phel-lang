@@ -4,20 +4,20 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "68a39e7334b66dfb70b4f8cfb46f5694",
+    "content-hash": "d18bfa483a12dc2dfd65bb036d071b9b",
     "packages": [
         {
             "name": "gacela-project/gacela",
-            "version": "0.11.0",
+            "version": "0.12.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/gacela-project/gacela.git",
-                "reference": "90055fbe869c931fa96f7a96122019ac557fd3f5"
+                "reference": "8a03add918e546f0945b5dccf5cdd0311ae9f1c4"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/gacela-project/gacela/zipball/90055fbe869c931fa96f7a96122019ac557fd3f5",
-                "reference": "90055fbe869c931fa96f7a96122019ac557fd3f5",
+                "url": "https://api.github.com/repos/gacela-project/gacela/zipball/8a03add918e546f0945b5dccf5cdd0311ae9f1c4",
+                "reference": "8a03add918e546f0945b5dccf5cdd0311ae9f1c4",
                 "shasum": ""
             },
             "require": {
@@ -26,14 +26,16 @@
                 "symfony/console": "^5.4"
             },
             "require-dev": {
-                "friendsofphp/php-cs-fixer": "^3.5",
-                "phpbench/phpbench": "^1.1",
+                "friendsofphp/php-cs-fixer": "^3.6",
+                "phpbench/phpbench": "^1.2",
+                "phpmetrics/phpmetrics": "^2.7",
                 "phpstan/phpstan": "^1.4",
                 "phpunit/phpunit": "^9.5",
-                "symfony/var-dumper": "^5.3",
-                "vimeo/psalm": "^4.10"
+                "symfony/var-dumper": "^5.4",
+                "vimeo/psalm": "^4.20"
             },
             "suggest": {
+                "gacela-project/gacela-env-config-reader": "Allows to read .env config files",
                 "gacela-project/gacela-yaml-config-reader": "Allows to read yml/yaml config files"
             },
             "bin": [
@@ -60,6 +62,7 @@
                 }
             ],
             "description": "Gacela Framework",
+            "homepage": "https://gacela-project.com/",
             "keywords": [
                 "kernel",
                 "modular",
@@ -67,9 +70,9 @@
             ],
             "support": {
                 "issues": "https://github.com/gacela-project/gacela/issues",
-                "source": "https://github.com/gacela-project/gacela/tree/0.11.0"
+                "source": "https://github.com/gacela-project/gacela/tree/0.12.0"
             },
-            "time": "2022-01-18T21:14:47+00:00"
+            "time": "2022-02-13T18:34:10+00:00"
         },
         {
             "name": "phpunit/php-timer",
@@ -180,16 +183,16 @@
         },
         {
             "name": "symfony/console",
-            "version": "v5.4.3",
+            "version": "v5.4.5",
             "source": {
                 "type": "git",
                 "url": "https://github.com/symfony/console.git",
-                "reference": "a2a86ec353d825c75856c6fd14fac416a7bdb6b8"
+                "reference": "d8111acc99876953f52fe16d4c50eb60940d49ad"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/symfony/console/zipball/a2a86ec353d825c75856c6fd14fac416a7bdb6b8",
-                "reference": "a2a86ec353d825c75856c6fd14fac416a7bdb6b8",
+                "url": "https://api.github.com/repos/symfony/console/zipball/d8111acc99876953f52fe16d4c50eb60940d49ad",
+                "reference": "d8111acc99876953f52fe16d4c50eb60940d49ad",
                 "shasum": ""
             },
             "require": {
@@ -259,7 +262,7 @@
                 "terminal"
             ],
             "support": {
-                "source": "https://github.com/symfony/console/tree/v5.4.3"
+                "source": "https://github.com/symfony/console/tree/v5.4.5"
             },
             "funding": [
                 {
@@ -275,7 +278,7 @@
                     "type": "tidelift"
                 }
             ],
-            "time": "2022-01-26T16:28:35+00:00"
+            "time": "2022-02-24T12:45:35+00:00"
         },
         {
             "name": "symfony/deprecation-contracts",
@@ -378,12 +381,12 @@
                 }
             },
             "autoload": {
-                "psr-4": {
-                    "Symfony\\Polyfill\\Ctype\\": ""
-                },
                 "files": [
                     "bootstrap.php"
-                ]
+                ],
+                "psr-4": {
+                    "Symfony\\Polyfill\\Ctype\\": ""
+                }
             },
             "notification-url": "https://packagist.org/downloads/",
             "license": [
@@ -457,12 +460,12 @@
                 }
             },
             "autoload": {
-                "psr-4": {
-                    "Symfony\\Polyfill\\Intl\\Grapheme\\": ""
-                },
                 "files": [
                     "bootstrap.php"
-                ]
+                ],
+                "psr-4": {
+                    "Symfony\\Polyfill\\Intl\\Grapheme\\": ""
+                }
             },
             "notification-url": "https://packagist.org/downloads/",
             "license": [
@@ -538,12 +541,12 @@
                 }
             },
             "autoload": {
-                "psr-4": {
-                    "Symfony\\Polyfill\\Intl\\Normalizer\\": ""
-                },
                 "files": [
                     "bootstrap.php"
                 ],
+                "psr-4": {
+                    "Symfony\\Polyfill\\Intl\\Normalizer\\": ""
+                },
                 "classmap": [
                     "Resources/stubs"
                 ]
@@ -625,12 +628,12 @@
                 }
             },
             "autoload": {
-                "psr-4": {
-                    "Symfony\\Polyfill\\Mbstring\\": ""
-                },
                 "files": [
                     "bootstrap.php"
-                ]
+                ],
+                "psr-4": {
+                    "Symfony\\Polyfill\\Mbstring\\": ""
+                }
             },
             "notification-url": "https://packagist.org/downloads/",
             "license": [
@@ -702,12 +705,12 @@
                 }
             },
             "autoload": {
-                "psr-4": {
-                    "Symfony\\Polyfill\\Php73\\": ""
-                },
                 "files": [
                     "bootstrap.php"
                 ],
+                "psr-4": {
+                    "Symfony\\Polyfill\\Php73\\": ""
+                },
                 "classmap": [
                     "Resources/stubs"
                 ]
@@ -781,12 +784,12 @@
                 }
             },
             "autoload": {
-                "psr-4": {
-                    "Symfony\\Polyfill\\Php80\\": ""
-                },
                 "files": [
                     "bootstrap.php"
                 ],
+                "psr-4": {
+                    "Symfony\\Polyfill\\Php80\\": ""
+                },
                 "classmap": [
                     "Resources/stubs"
                 ]
@@ -952,12 +955,12 @@
             },
             "type": "library",
             "autoload": {
-                "psr-4": {
-                    "Symfony\\Component\\String\\": ""
-                },
                 "files": [
                     "Resources/functions.php"
                 ],
+                "psr-4": {
+                    "Symfony\\Component\\String\\": ""
+                },
                 "exclude-from-classmap": [
                     "/Tests/"
                 ]
@@ -5244,5 +5247,5 @@
     "platform-overrides": {
         "php": "8.0"
     },
-    "plugin-api-version": "2.0.0"
+    "plugin-api-version": "2.2.0"
 }
