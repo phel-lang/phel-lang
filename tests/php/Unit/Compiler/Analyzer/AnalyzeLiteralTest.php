@@ -38,4 +38,13 @@ final class AnalyzeLiteralTest extends TestCase
             $this->literalAnalzyer->analyze(2, $env)
         );
     }
+
+    public function test_array_literal(): void
+    {
+        $env = NodeEnvironment::empty();
+        self::assertEquals(
+            new LiteralNode($env, [1, 2], null),
+            $this->literalAnalzyer->analyze([1, 2], $env)
+        );
+    }
 }

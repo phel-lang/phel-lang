@@ -119,7 +119,7 @@ final class Analyzer implements AnalyzerInterface
     }
 
     /**
-     * @param TypeInterface|string|float|int|bool|null $x
+     * @param TypeInterface|string|float|int|bool|null|array $x
      */
     private function isLiteral($x): bool
     {
@@ -128,6 +128,7 @@ final class Analyzer implements AnalyzerInterface
             || is_int($x)
             || is_bool($x)
             || $x === null
-            || $x instanceof Keyword;
+            || $x instanceof Keyword
+            || is_array($x);
     }
 }
