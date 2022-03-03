@@ -18,6 +18,7 @@ All notable changes to this project will be documented in this file.
 * Deprecated: `http/create-response-from-string` in favor of `http/response-from-string`
 * Added: `attributes` field to `request` struct. Allows developers to enrich the request with custom data
 * Added: `http/request-from-map` function
+* Bugfix: #443
 
 ## 0.6.0 (2022-02-02)
 

@@ -90,6 +90,6 @@ final class FnSymbol implements SpecialFormAnalyzerInterface
 
     private function buildUsesFromEnv(NodeEnvironmentInterface $env, FnSymbolTuple $fnSymbolTuple): array
     {
-        return array_diff($env->getLocals(), $fnSymbolTuple->params());
+        return array_values(array_diff($env->getLocals(), $fnSymbolTuple->params()));
     }
 }
