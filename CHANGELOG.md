@@ -19,6 +19,7 @@ All notable changes to this project will be documented in this file.
 * Added: `attributes` field to `request` struct. Allows developers to enrich the request with custom data
 * Added: `http/request-from-map` function
 * Bugfix: #443
+* Added: Support for PHP Array literals (#451)
 
 ## 0.6.0 (2022-02-02)
 

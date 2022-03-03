@@ -28,7 +28,7 @@ final class LiteralEmitter
     }
 
     /**
-     * @param TypeInterface|string|float|int|bool|null $x The value
+     * @param TypeInterface|string|float|int|bool|null|array $x The value
      */
     public function emitLiteral($x): void
     {
@@ -52,6 +52,8 @@ final class LiteralEmitter
             $this->emitVector($x);
         } elseif ($x instanceof PersistentListInterface) {
             $this->emitList($x);
+        } elseif (is_array($x)) {
+            $this->emitArray($x);
         } else {
             $typeName = gettype($x);
             if ($typeName === 'object') {
@@ -185,5 +187,23 @@ final class LiteralEmitter
             $this->outputEmitter->decreaseIndentLevel();
         }
         $this->outputEmitter->emitStr('])', $x->getStartLocation());
+    }
+
+    private function emitArray(array $x): void
+    {
+        $this->outputEmitter->emitStr('[');
+        $count = count($x);
+        $index = 0;
+        foreach ($x as $key => $value) {
+            $this->outputEmitter->emitLiteral($key);
+            $this->outputEmitter->emitStr(' => ');
+            $this->outputEmitter->emitLiteral($value);
+            if ($index < $count - 1) {
+                $this->outputEmitter->emitStr(', ');
+            }
+
+            $index++;
+        }
+        $this->outputEmitter->emitStr(']');
     }
 }
