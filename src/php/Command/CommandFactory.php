@@ -45,7 +45,7 @@ final class CommandFactory extends AbstractFactory
     public function createDirectoryFinder(): DirectoryFinderInterface
     {
         return new DirectoryFinder(
-            $this->getConfig()->getApplicationRootDir(),
+            $this->getConfig()->getAppRootDir(),
             $this->getConfig()->getConfigDirectories(),
             $this->createComposerVendorDirectoriesFinder()
         );
@@ -54,7 +54,7 @@ final class CommandFactory extends AbstractFactory
     private function createComposerVendorDirectoriesFinder(): VendorDirectoriesFinderInterface
     {
         return new ComposerVendorDirectoriesFinder(
-            $this->getConfig()->getApplicationRootDir() . '/' . $this->getConfig()->getVendorDir()
+            $this->getConfig()->getAppRootDir() . '/' . $this->getConfig()->getVendorDir()
         );
     }
 }

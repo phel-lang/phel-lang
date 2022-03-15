@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace Phel\Command;
 
 use Gacela\Framework\AbstractConfig;
-use Gacela\Framework\Config;
 use Phel\Command\Domain\CodeDirectories;
 
 final class CommandConfig extends AbstractConfig
@@ -22,17 +21,12 @@ final class CommandConfig extends AbstractConfig
 
     public function getPhelReplHistory(): string
     {
-        return $this->getApplicationRootDir() . '.phel-repl-history';
+        return $this->getAppRootDir() . '.phel-repl-history';
     }
 
     public function getReplStartupFile(): string
     {
         return __DIR__ . '/Domain/Repl/startup.phel';
-    }
-
-    public function getApplicationRootDir(): string
-    {
-        return Config::getInstance()->getAppRootDir();
     }
 
     public function getConfigDirectories(): CodeDirectories
