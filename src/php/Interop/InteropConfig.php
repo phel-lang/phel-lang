@@ -48,7 +48,7 @@ final class InteropConfig extends AbstractConfig
 
     public function getApplicationRootDir(): string
     {
-        return Config::getInstance()->getApplicationRootDir();
+        return Config::getInstance()->getAppRootDir();
     }
 
     private function getExport(): array

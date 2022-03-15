@@ -32,7 +32,7 @@ final class CommandConfig extends AbstractConfig
 
     public function getApplicationRootDir(): string
     {
-        return Config::getInstance()->getApplicationRootDir();
+        return Config::getInstance()->getAppRootDir();
     }
 
     public function getConfigDirectories(): CodeDirectories

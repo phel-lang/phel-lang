@@ -17,7 +17,7 @@ final class PrinterTest extends TestCase
 
     public static function setUpBeforeClass(): void
     {
-        Config::getInstance()->setApplicationRootDir(__DIR__);
+        Config::getInstance()->setAppRootDir(__DIR__);
         GlobalEnvironmentSingleton::reset();
     }
 
@@ -50,7 +50,7 @@ final class PrinterTest extends TestCase
         );
     }
 
-    public function test_print_escaped_hexdecimal_chars(): void
+    public function test_print_escaped_hexadecimal_chars(): void
     {
         self::assertEquals(
             '"\x07"',
