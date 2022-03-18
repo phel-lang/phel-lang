@@ -79,6 +79,9 @@ final class Printer implements PrinterInterface
 
     private function createObjectTypePrinter(mixed $form): TypePrinterInterface
     {
+        if ($form instanceof AbstractPersistentStruct) {
+            return new StructPrinter($this);
+        }
         if ($form instanceof PersistentListInterface) {
             return new PersistentListPrinter($this);
         }
@@ -96,9 +99,6 @@ final class Printer implements PrinterInterface
         }
         if ($form instanceof Symbol) {
             return new SymbolPrinter($this->withColor);
-        }
-        if ($form instanceof AbstractPersistentStruct) {
-            return new StructPrinter($this);
         }
         if (method_exists($form, '__toString')) {
             return new ToStringPrinter();
