@@ -14,7 +14,7 @@
     "require": {
         "ext-json": "*",
         "php": ">=8.0",
-        "gacela-project/gacela": "^0.11",
+        "gacela-project/gacela": "^0.14",
         "symfony/console": "^5.4",
         "phpunit/php-timer": "^5.0"
     },
@@ -23,7 +23,7 @@
         "phpunit/phpunit": "^9.5",
         "vimeo/psalm": "^4.22",
         "symfony/var-dumper": "^5.4",
-        "friendsofphp/php-cs-fixer": "^3.6",
+        "friendsofphp/php-cs-fixer": "^3.7",
         "phpmetrics/phpmetrics": "^2.7",
         "phpbench/phpbench": "^1.2"
     },
@@ -53,9 +53,9 @@
         "psalm": "./vendor/bin/psalm --no-cache",
         "csfix": "./vendor/bin/php-cs-fixer fix",
         "csrun": "./vendor/bin/php-cs-fixer fix --dry-run",
-        "phpbench": "vendor/bin/phpbench run --report=aggregate --ansi",
-        "phpbench-base": "vendor/bin/phpbench run --tag=baseline --report=aggregate --progress=plain --ansi",
-        "phpbench-ref": "vendor/bin/phpbench run --ref=baseline --report=aggregate --progress=plain --ansi",
+        "phpbench": "./vendor/bin/phpbench run --report=aggregate --ansi",
+        "phpbench-base": "./vendor/bin/phpbench run --tag=baseline --report=aggregate --progress=plain --ansi",
+        "phpbench-ref": "./vendor/bin/phpbench run --ref=baseline --report=aggregate --progress=plain --ansi",
         "metrics-report": "./vendor/bin/phpmetrics --report-html=data/metrics-report src/php"
     },
     "bin": [

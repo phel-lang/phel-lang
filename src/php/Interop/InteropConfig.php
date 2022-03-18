@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace Phel\Interop;
 
 use Gacela\Framework\AbstractConfig;
-use Gacela\Framework\Config;
 
 final class InteropConfig extends AbstractConfig
 {
@@ -41,14 +40,9 @@ final class InteropConfig extends AbstractConfig
     public function getExportDirectories(): array
     {
         return array_map(
-            fn (string $dir): string => $this->getApplicationRootDir() . '/' . $dir,
+            fn (string $dir): string => $this->getAppRootDir() . '/' . $dir,
             $this->getExport()[self::EXPORT_DIRECTORIES] ?? self::DEFAULT_EXPORT_DIRECTORIES
         );
-    }
-
-    public function getApplicationRootDir(): string
-    {
-        return Config::getInstance()->getApplicationRootDir();
     }
 
     private function getExport(): array
