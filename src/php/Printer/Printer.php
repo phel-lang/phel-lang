@@ -62,20 +62,13 @@ final class Printer implements PrinterInterface
 
     /**
      * Converts a form to a printable string.
-     *
-     * @param mixed $form The form to print
      */
-    public function print($form): string
+    public function print(mixed $form): string
     {
-        $printer = $this->createTypePrinter($form);
-
-        return $printer->print($form);
+        return $this->createTypePrinter($form)->print($form);
     }
 
-    /**
-     * @param mixed $form The form to print
-     */
-    private function createTypePrinter($form): TypePrinterInterface
+    private function createTypePrinter(mixed $form): TypePrinterInterface
     {
         if (is_object($form)) {
             return $this->createObjectTypePrinter($form);
@@ -84,10 +77,7 @@ final class Printer implements PrinterInterface
         return $this->creatScalarTypePrinter($form);
     }
 
-    /**
-     * @param mixed $form The form to print
-     */
-    private function createObjectTypePrinter($form): TypePrinterInterface
+    private function createObjectTypePrinter(mixed $form): TypePrinterInterface
     {
         if ($form instanceof PersistentListInterface) {
             return new PersistentListPrinter($this);

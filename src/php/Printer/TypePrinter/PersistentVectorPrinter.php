@@ -22,7 +22,7 @@ final class PersistentVectorPrinter implements TypePrinterInterface
     /**
      * @param PersistentVectorInterface $form
      */
-    public function print($form): string
+    public function print(mixed $form): string
     {
         $prefix = '[';
         $suffix = ']';

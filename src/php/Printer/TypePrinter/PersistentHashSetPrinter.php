@@ -22,7 +22,7 @@ final class PersistentHashSetPrinter implements TypePrinterInterface
     /**
      * @param PersistentHashSetInterface $form
      */
-    public function print($form): string
+    public function print(mixed $form): string
     {
         $values = array_map(
             fn ($elem): string => $this->printer->print($elem),

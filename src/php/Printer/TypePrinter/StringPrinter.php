@@ -30,11 +30,7 @@ final class StringPrinter implements TypePrinterInterface
         $this->withColor = $withColor;
     }
 
-    /**
-     * @param string $str
-     * @param mixed $form
-     */
-    public function print($form): string
+    public function print(mixed $form): string
     {
         $str = $this->parseString($form);
 

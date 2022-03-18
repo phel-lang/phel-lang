@@ -14,7 +14,7 @@ final class BooleanPrinter implements TypePrinterInterface
     /**
      * @param bool $form
      */
-    public function print($form): string
+    public function print(mixed $form): string
     {
         $str = ($form === true) ? 'true' : 'false';
 

@@ -6,6 +6,8 @@ namespace Phel\Printer\TypePrinter;
 
 use Phel\Printer\PrinterInterface;
 
+use function array_is_list;
+
 /**
  * @implements TypePrinterInterface<array>
  */
@@ -23,18 +25,13 @@ final class ArrayPrinter implements TypePrinterInterface
     /**
      * @param array $form
      */
-    public function print($form): string
+    public function print(mixed $form): string
     {
-        $arr = $this->isList($form)
+        $arr = array_is_list($form)
             ? $this->formatValuesFromList($form)
             : $this->formatKeyValuesFromDict($form);
 
         return sprintf('<PHP-Array [%s]>', $this->color(implode(', ', $arr)));
-    }
-
-    private function isList(array $form): bool
-    {
-        return array_keys($form) === range(0, count($form) - 1);
     }
 
     private function formatValuesFromList(array $form): array

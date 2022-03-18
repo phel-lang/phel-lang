@@ -8,8 +8,6 @@ interface PrinterInterface
 {
     /**
      * Converts a form to a printable string.
-     *
-     * @param mixed $form The form to print
      */
-    public function print($form): string;
+    public function print(mixed $form): string;
 }

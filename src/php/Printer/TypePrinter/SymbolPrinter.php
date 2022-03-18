@@ -16,7 +16,7 @@ final class SymbolPrinter implements TypePrinterInterface
     /**
      * @param Symbol $form
      */
-    public function print($form): string
+    public function print(mixed $form): string
     {
         return $this->color($form->getName());
     }

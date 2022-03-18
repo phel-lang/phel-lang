@@ -22,7 +22,7 @@ final class StructPrinter implements TypePrinterInterface
     /**
      * @param AbstractPersistentStruct $form
      */
-    public function print($form): string
+    public function print(mixed $form): string
     {
         $values = array_map(
             fn ($key): string => $this->printer->print($form[$key]),

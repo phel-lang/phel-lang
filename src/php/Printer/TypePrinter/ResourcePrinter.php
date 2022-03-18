@@ -12,7 +12,7 @@ final class ResourcePrinter implements TypePrinterInterface
     /**
      * @param resource $form
      */
-    public function print($form): string
+    public function print(mixed $form): string
     {
         return '<PHP Resource id #' . (string)$form . '>';
     }

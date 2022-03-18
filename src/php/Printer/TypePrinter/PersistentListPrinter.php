@@ -22,7 +22,7 @@ final class PersistentListPrinter implements TypePrinterInterface
     /**
      * @param PersistentListInterface $form
      */
-    public function print($form): string
+    public function print(mixed $form): string
     {
         $prefix = '(';
         $suffix = ')';

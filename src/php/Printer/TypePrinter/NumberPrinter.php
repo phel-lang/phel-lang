@@ -14,7 +14,7 @@ final class NumberPrinter implements TypePrinterInterface
     /**
      * @param int|float $form
      */
-    public function print($form): string
+    public function print(mixed $form): string
     {
         return $this->color((string)$form);
     }

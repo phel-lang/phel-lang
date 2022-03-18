@@ -8,10 +8,7 @@ final class NullPrinter implements TypePrinterInterface
 {
     use WithColorTrait;
 
-    /**
-     * @param mixed $form
-     */
-    public function print($form): string
+    public function print(mixed $form): string
     {
         return $this->color('nil');
     }
