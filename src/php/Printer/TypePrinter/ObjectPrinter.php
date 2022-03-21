@@ -12,7 +12,7 @@ final class ObjectPrinter implements TypePrinterInterface
     /**
      * @param object $form
      */
-    public function print($form): string
+    public function print(mixed $form): string
     {
         return '<PHP-Object(' . get_class($form) . ')>';
     }

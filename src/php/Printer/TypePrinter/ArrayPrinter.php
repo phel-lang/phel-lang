@@ -23,7 +23,7 @@ final class ArrayPrinter implements TypePrinterInterface
     /**
      * @param array $form
      */
-    public function print($form): string
+    public function print(mixed $form): string
     {
         $arr = $this->isList($form)
             ? $this->formatValuesFromList($form)

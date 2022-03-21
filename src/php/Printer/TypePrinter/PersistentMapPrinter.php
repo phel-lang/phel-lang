@@ -22,7 +22,7 @@ final class PersistentMapPrinter implements TypePrinterInterface
     /**
      * @param PersistentMapInterface $form
      */
-    public function print($form): string
+    public function print(mixed $form): string
     {
         $prefix = '{';
         $suffix = '}';

@@ -16,7 +16,7 @@ final class KeywordPrinter implements TypePrinterInterface
     /**
      * @param Keyword $form
      */
-    public function print($form): string
+    public function print(mixed $form): string
     {
         if ($form->getNamespace()) {
             return $this->color(':' . $form->getNamespace() . '/' . $form->getName());
