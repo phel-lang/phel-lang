@@ -9,6 +9,7 @@ use Phel\Compiler\Analyzer\Ast\PhpClassNameNode;
 use Phel\Compiler\Analyzer\Ast\PhpNewNode;
 use Phel\Compiler\Emitter\OutputEmitter\NodeEmitterInterface;
 use Phel\Lang\Symbol;
+use function assert;
 
 final class PhpNewEmitter implements NodeEmitterInterface
 {

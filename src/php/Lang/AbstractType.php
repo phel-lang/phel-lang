@@ -16,6 +16,11 @@ abstract class AbstractType implements TypeInterface
     private ?SourceLocation $startLocation = null;
     private ?SourceLocation $endLocation = null;
 
+    public function __toString(): string
+    {
+        return Printer::readable()->print($this);
+    }
+
     /**
      * @return static
      */
@@ -60,10 +65,5 @@ abstract class AbstractType implements TypeInterface
         }
 
         return $this;
-    }
-
-    public function __toString(): string
-    {
-        return Printer::readable()->print($this);
     }
 }

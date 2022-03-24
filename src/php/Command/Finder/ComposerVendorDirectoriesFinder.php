@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Phel\Command\Finder;
 
 use Phel\Command\CommandConfig;
+use function dirname;
 
 final class ComposerVendorDirectoriesFinder implements VendorDirectoriesFinderInterface
 {

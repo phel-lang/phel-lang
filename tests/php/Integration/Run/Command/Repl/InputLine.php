@@ -15,6 +15,11 @@ final class InputLine
         $this->content = $content;
     }
 
+    public function __toString(): string
+    {
+        return $this->prompt . $this->content;
+    }
+
     public function getContent(): string
     {
         return $this->content;
@@ -23,10 +28,5 @@ final class InputLine
     public function isCtrlD(): bool
     {
         return $this->content === '<CTRL-D>';
-    }
-
-    public function __toString(): string
-    {
-        return $this->prompt . $this->content;
     }
 }

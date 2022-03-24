@@ -7,6 +7,8 @@ namespace Phel\Lang\Collections\Map;
 use Phel\Lang\EqualizerInterface;
 use Phel\Lang\HasherInterface;
 use Traversable;
+use function array_key_exists;
+use function count;
 
 /**
  * @template K
@@ -61,125 +63,10 @@ class IndexedNode implements HashMapNodeInterface
             /** @var V $currentValue */
             $newObjects[$index] = [null, $this->createNode($shift + 5, $currentKey, $currentValue, $hash, $key, $value)];
 
-            return new IndexedNode($this->hasher, $this->equalizer, $newObjects);
+            return new self($this->hasher, $this->equalizer, $newObjects);
         }
 
         return $this->insertNewKey($index, $shift, $hash, $key, $value, $addedLeaf);
-    }
-
-    /**
-     * @param K $key1
-     * @param V $value1
-     * @param K $key2
-     * @param V $value2
-     *
-     * @return HashMapNodeInterface<K, V>
-     */
-    private function createNode(int $shift, $key1, $value1, int $key2Hash, $key2, $value2): HashMapNodeInterface
-    {
-        $key1Hash = $this->hasher->hash($key1);
-        if ($key1Hash === $key2Hash) {
-            return new HashCollisionNode($this->hasher, $this->equalizer, $key1Hash, 2, [$key1, $value1, $key2, $value2]);
-        }
-
-        $addedLeaf = new Box(null);
-        return IndexedNode::empty($this->hasher, $this->equalizer)
-            ->put($shift, $key1Hash, $key1, $value1, $addedLeaf)
-            ->put($shift, $key2Hash, $key2, $value2, $addedLeaf);
-    }
-
-    /**
-     * @param V $currentValue
-     * @param V $newValue
-     *
-     * @return HashMapNodeInterface<K, V>
-     */
-    private function updateKey(int $index, $currentValue, $newValue): HashMapNodeInterface
-    {
-        if ($this->equalizer->equals($newValue, $currentValue)) {
-            return $this;
-        }
-
-        $newObjects = $this->objects;
-        $newObjects[$index][1] = $newValue;
-        return new IndexedNode($this->hasher, $this->equalizer, $newObjects);
-    }
-
-    /**
-     * @param K $key
-     * @param V $value
-     *
-     * @return HashMapNodeInterface<K, V>
-     */
-    private function addToChild(int $idx, int $shift, int $hash, $key, $value, Box $addedLeaf): HashMapNodeInterface
-    {
-        /** @var HashMapNodeInterface $node */
-        $childNode = $this->objects[$idx][1];
-        $newChild = $childNode->put($shift + 5, $hash, $key, $value, $addedLeaf);
-        if ($childNode === $newChild) {
-            // Nothing changed
-            return $this;
-        }
-
-        $newObjects = $this->objects;
-        $newObjects[$idx][1] = $newChild;
-        return new IndexedNode($this->hasher, $this->equalizer, $newObjects);
-    }
-
-    /**
-     * @param K $key
-     * @param V $value
-     *
-     * @return HashMapNodeInterface<K, V>
-     */
-    private function insertNewKey(int $idx, int $shift, int $hash, $key, $value, Box $addedLeaf): HashMapNodeInterface
-    {
-        if (count($this->objects) >= 16) {
-            return $this->splitNode($idx, $shift, $hash, $key, $value, $addedLeaf);
-        }
-
-        return $this->addNewKeyToNode($idx, $key, $value, $addedLeaf);
-    }
-
-    /**
-     * @param K $key
-     * @param V $value
-     *
-     * @return HashMapNodeInterface<K, V>
-     */
-    private function splitNode(int $idx, int $shift, int $hash, $key, $value, Box $addedLeaf): HashMapNodeInterface
-    {
-        $nodes = []; //array_fill(0, 32, null);
-        $empty = IndexedNode::empty($this->hasher, $this->equalizer);
-        $nodes[$idx] = $empty->put($shift + 5, $hash, $key, $value, $addedLeaf);
-        for ($i = 0; $i < 32; $i++) {
-            if (array_key_exists($i, $this->objects)) {
-                [$k, $v] = $this->objects[$i];
-                if ($k === null) {
-                    /** @var HashMapNodeInterface<K, V> $v */
-                    $nodes[$i] = $v;
-                } else {
-                    /** @var V $v */
-                    $nodes[$i] = $empty->put($shift + 5, $this->hasher->hash($k), $k, $v, $addedLeaf);
-                }
-            }
-        }
-
-        return new ArrayNode($this->hasher, $this->equalizer, count($this->objects) + 1, $nodes);
-    }
-
-    /**
-     * @param K $key
-     * @param V $value
-     *
-     * @return IndexedNode<K, V>
-     */
-    private function addNewKeyToNode(int $idx, $key, $value, Box $addedLeaf): IndexedNode
-    {
-        $newObjects = $this->objects;
-        $newObjects[$idx] = [$key, $value];
-        $addedLeaf->setValue(true);
-        return new IndexedNode($this->hasher, $this->equalizer, $newObjects);
     }
 
     /**
@@ -206,7 +93,7 @@ class IndexedNode implements HashMapNodeInterface
             if ($n !== null) {
                 $newObjects = $this->objects;
                 $newObjects[$index][1] = $n;
-                return new IndexedNode($this->hasher, $this->equalizer, $newObjects);
+                return new self($this->hasher, $this->equalizer, $newObjects);
             }
 
             if (count($this->objects) === 1) {
@@ -215,7 +102,7 @@ class IndexedNode implements HashMapNodeInterface
 
             $newObjects = $this->objects;
             unset($newObjects[$index]);
-            return new IndexedNode($this->hasher, $this->equalizer, $newObjects);
+            return new self($this->hasher, $this->equalizer, $newObjects);
         }
 
         if ($this->equalizer->equals($key, $currentKey)) {
@@ -225,7 +112,7 @@ class IndexedNode implements HashMapNodeInterface
 
             $newObjects = $this->objects;
             unset($newObjects[$index]);
-            return new IndexedNode($this->hasher, $this->equalizer, $newObjects);
+            return new self($this->hasher, $this->equalizer, $newObjects);
         }
 
         return $this;
@@ -260,13 +147,128 @@ class IndexedNode implements HashMapNodeInterface
         return $notFound;
     }
 
-    private function mask(int $hash, int $shift): int
-    {
-        return $hash >> $shift & 0x01f;
-    }
-
     public function getIterator(): Traversable
     {
         return new IndexedNodeIterator($this->objects);
+    }
+
+    /**
+     * @param K $key1
+     * @param V $value1
+     * @param K $key2
+     * @param V $value2
+     *
+     * @return HashMapNodeInterface<K, V>
+     */
+    private function createNode(int $shift, $key1, $value1, int $key2Hash, $key2, $value2): HashMapNodeInterface
+    {
+        $key1Hash = $this->hasher->hash($key1);
+        if ($key1Hash === $key2Hash) {
+            return new HashCollisionNode($this->hasher, $this->equalizer, $key1Hash, 2, [$key1, $value1, $key2, $value2]);
+        }
+
+        $addedLeaf = new Box(null);
+        return self::empty($this->hasher, $this->equalizer)
+            ->put($shift, $key1Hash, $key1, $value1, $addedLeaf)
+            ->put($shift, $key2Hash, $key2, $value2, $addedLeaf);
+    }
+
+    /**
+     * @param V $currentValue
+     * @param V $newValue
+     *
+     * @return HashMapNodeInterface<K, V>
+     */
+    private function updateKey(int $index, $currentValue, $newValue): HashMapNodeInterface
+    {
+        if ($this->equalizer->equals($newValue, $currentValue)) {
+            return $this;
+        }
+
+        $newObjects = $this->objects;
+        $newObjects[$index][1] = $newValue;
+        return new self($this->hasher, $this->equalizer, $newObjects);
+    }
+
+    /**
+     * @param K $key
+     * @param V $value
+     *
+     * @return HashMapNodeInterface<K, V>
+     */
+    private function addToChild(int $idx, int $shift, int $hash, $key, $value, Box $addedLeaf): HashMapNodeInterface
+    {
+        /** @var HashMapNodeInterface $node */
+        $childNode = $this->objects[$idx][1];
+        $newChild = $childNode->put($shift + 5, $hash, $key, $value, $addedLeaf);
+        if ($childNode === $newChild) {
+            // Nothing changed
+            return $this;
+        }
+
+        $newObjects = $this->objects;
+        $newObjects[$idx][1] = $newChild;
+        return new self($this->hasher, $this->equalizer, $newObjects);
+    }
+
+    /**
+     * @param K $key
+     * @param V $value
+     *
+     * @return HashMapNodeInterface<K, V>
+     */
+    private function insertNewKey(int $idx, int $shift, int $hash, $key, $value, Box $addedLeaf): HashMapNodeInterface
+    {
+        if (count($this->objects) >= 16) {
+            return $this->splitNode($idx, $shift, $hash, $key, $value, $addedLeaf);
+        }
+
+        return $this->addNewKeyToNode($idx, $key, $value, $addedLeaf);
+    }
+
+    /**
+     * @param K $key
+     * @param V $value
+     *
+     * @return HashMapNodeInterface<K, V>
+     */
+    private function splitNode(int $idx, int $shift, int $hash, $key, $value, Box $addedLeaf): HashMapNodeInterface
+    {
+        $nodes = []; //array_fill(0, 32, null);
+        $empty = self::empty($this->hasher, $this->equalizer);
+        $nodes[$idx] = $empty->put($shift + 5, $hash, $key, $value, $addedLeaf);
+        for ($i = 0; $i < 32; ++$i) {
+            if (array_key_exists($i, $this->objects)) {
+                [$k, $v] = $this->objects[$i];
+                if ($k === null) {
+                    /** @var HashMapNodeInterface<K, V> $v */
+                    $nodes[$i] = $v;
+                } else {
+                    /** @var V $v */
+                    $nodes[$i] = $empty->put($shift + 5, $this->hasher->hash($k), $k, $v, $addedLeaf);
+                }
+            }
+        }
+
+        return new ArrayNode($this->hasher, $this->equalizer, count($this->objects) + 1, $nodes);
+    }
+
+    /**
+     * @param K $key
+     * @param V $value
+     *
+     * @return IndexedNode<K, V>
+     */
+    private function addNewKeyToNode(int $idx, $key, $value, Box $addedLeaf): self
+    {
+        $newObjects = $this->objects;
+        $newObjects[$idx] = [$key, $value];
+        $addedLeaf->setValue(true);
+        return new self($this->hasher, $this->equalizer, $newObjects);
+    }
+
+    private function mask(int $hash, int $shift): int
+    {
+        return $hash >> $shift & 0x01f;
     }
 }

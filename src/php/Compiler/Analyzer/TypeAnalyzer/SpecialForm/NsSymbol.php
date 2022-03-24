@@ -15,6 +15,9 @@ use Phel\Lang\Collections\Vector\PersistentVectorInterface;
 use Phel\Lang\Keyword;
 use Phel\Lang\Symbol;
 use Phel\Lang\TypeFactory;
+use function count;
+use function in_array;
+use function is_string;
 
 final class NsSymbol implements SpecialFormAnalyzerInterface
 {
@@ -122,7 +125,7 @@ final class NsSymbol implements SpecialFormAnalyzerInterface
 
         if ($alias2) {
             if (!($alias2 instanceof Symbol)) {
-                throw AnalyzerException::withLocation("First argument in :$type must be a symbol.", $import);
+                throw AnalyzerException::withLocation("First argument in :{$type} must be a symbol.", $import);
             }
             $parts = explode('\\', $alias2->getName());
             return Symbol::create($parts[count($parts) - 1]);

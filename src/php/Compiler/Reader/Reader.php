@@ -19,6 +19,7 @@ use Phel\Compiler\Reader\Exceptions\ReaderException;
 use Phel\Lang\Symbol;
 use Phel\Lang\TypeInterface;
 use RuntimeException;
+use function get_class;
 
 final class Reader implements ReaderInterface
 {

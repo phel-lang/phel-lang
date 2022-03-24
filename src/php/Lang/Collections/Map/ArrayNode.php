@@ -57,7 +57,7 @@ class ArrayNode implements HashMapNodeInterface, Countable
                 return $this;
             }
 
-            return new ArrayNode(
+            return new self(
                 $this->hasher,
                 $this->equalizer,
                 $this->count,
@@ -65,20 +65,12 @@ class ArrayNode implements HashMapNodeInterface, Countable
             );
         }
 
-        return new ArrayNode(
+        return new self(
             $this->hasher,
             $this->equalizer,
             $this->count + 1,
             $this->cloneAndSet($index, IndexedNode::empty($this->hasher, $this->equalizer)->put($shift + 5, $hash, $key, $value, $addedLeaf))
         );
-    }
-
-    private function cloneAndSet(int $index, ?HashMapNodeInterface $node): array
-    {
-        $newChildNodes = $this->childNodes;
-        $newChildNodes[$index] = $node;
-
-        return $newChildNodes;
     }
 
     public function remove(int $shift, int $hash, $key): ?HashMapNodeInterface
@@ -101,22 +93,10 @@ class ArrayNode implements HashMapNodeInterface, Countable
                 return $this->pack($index);
             }
 
-            return new ArrayNode($this->hasher, $this->equalizer, $this->count - 1, $this->cloneAndSet($index, $n));
+            return new self($this->hasher, $this->equalizer, $this->count - 1, $this->cloneAndSet($index, $n));
         }
 
-        return new ArrayNode($this->hasher, $this->equalizer, $this->count, $this->cloneAndSet($index, $n));
-    }
-
-    private function pack(int $index): HashMapNodeInterface
-    {
-        $objects = [];
-        foreach ($this->childNodes as $i => $node) {
-            if ($i !== $index && $node !== null) {
-                $objects[$i] = [null, $node];
-            }
-        }
-
-        return new IndexedNode($this->hasher, $this->equalizer, $objects);
+        return new self($this->hasher, $this->equalizer, $this->count, $this->cloneAndSet($index, $n));
     }
 
     /**
@@ -137,13 +117,33 @@ class ArrayNode implements HashMapNodeInterface, Countable
         return $node->find($shift + 5, $hash, $key, $notFound);
     }
 
-    private function mask(int $hash, int $shift): int
-    {
-        return $hash >> $shift & 0x01f;
-    }
-
     public function getIterator(): Traversable
     {
         return new ArrayNodeIterator($this->childNodes);
+    }
+
+    private function cloneAndSet(int $index, ?HashMapNodeInterface $node): array
+    {
+        $newChildNodes = $this->childNodes;
+        $newChildNodes[$index] = $node;
+
+        return $newChildNodes;
+    }
+
+    private function pack(int $index): HashMapNodeInterface
+    {
+        $objects = [];
+        foreach ($this->childNodes as $i => $node) {
+            if ($i !== $index && $node !== null) {
+                $objects[$i] = [null, $node];
+            }
+        }
+
+        return new IndexedNode($this->hasher, $this->equalizer, $objects);
+    }
+
+    private function mask(int $hash, int $shift): int
+    {
+        return $hash >> $shift & 0x01f;
     }
 }

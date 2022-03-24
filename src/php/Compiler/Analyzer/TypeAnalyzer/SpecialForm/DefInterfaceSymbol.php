@@ -12,6 +12,8 @@ use Phel\Compiler\Analyzer\TypeAnalyzer\WithAnalyzerTrait;
 use Phel\Lang\Collections\LinkedList\PersistentListInterface;
 use Phel\Lang\Collections\Vector\PersistentVectorInterface;
 use Phel\Lang\Symbol;
+use function count;
+use function is_string;
 
 final class DefInterfaceSymbol implements SpecialFormAnalyzerInterface
 {

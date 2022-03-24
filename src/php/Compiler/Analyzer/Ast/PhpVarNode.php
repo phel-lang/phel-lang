@@ -7,6 +7,8 @@ namespace Phel\Compiler\Analyzer\Ast;
 use Phel\Compiler\Analyzer\Environment\NodeEnvironment;
 use Phel\Compiler\Analyzer\Environment\NodeEnvironmentInterface;
 use Phel\Lang\SourceLocation;
+use function in_array;
+use function is_callable;
 
 final class PhpVarNode extends AbstractNode
 {
@@ -48,18 +50,18 @@ final class PhpVarNode extends AbstractNode
 
     private string $name;
 
+    public function __construct(NodeEnvironmentInterface $env, string $name, ?SourceLocation $sourceLocation = null)
+    {
+        parent::__construct($env, $sourceLocation);
+        $this->name = $name;
+    }
+
     public static function withReturnContext(string $name, ?SourceLocation $sourceLocation = null): self
     {
         $returnEnv = NodeEnvironment::empty()
             ->withContext(NodeEnvironmentInterface::CONTEXT_RETURN);
 
         return new self($returnEnv, $name, $sourceLocation);
-    }
-
-    public function __construct(NodeEnvironmentInterface $env, string $name, ?SourceLocation $sourceLocation = null)
-    {
-        parent::__construct($env, $sourceLocation);
-        $this->name = $name;
     }
 
     public function getName(): string
@@ -74,6 +76,6 @@ final class PhpVarNode extends AbstractNode
 
     public function isCallable(): bool
     {
-        return \is_callable($this->name) || in_array($this->name, self::CALLABLE_KEYWORDS);
+        return is_callable($this->name) || in_array($this->name, self::CALLABLE_KEYWORDS);
     }
 }

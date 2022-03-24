@@ -8,6 +8,7 @@ use Phel\Compiler\Analyzer\Ast\AbstractNode;
 use Phel\Compiler\Analyzer\Ast\RecurNode;
 use Phel\Compiler\Emitter\OutputEmitter\NodeEmitterInterface;
 use Phel\Lang\Symbol;
+use function assert;
 
 final class RecurEmitter implements NodeEmitterInterface
 {

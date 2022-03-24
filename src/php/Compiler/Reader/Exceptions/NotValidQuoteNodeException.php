@@ -6,6 +6,7 @@ namespace Phel\Compiler\Reader\Exceptions;
 
 use Phel\Compiler\Parser\ParserNode\QuoteNode;
 use RuntimeException;
+use function get_class;
 
 final class NotValidQuoteNodeException extends RuntimeException
 {

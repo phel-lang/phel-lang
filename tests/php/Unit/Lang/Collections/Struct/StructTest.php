@@ -68,7 +68,7 @@ final class StructTest extends TestCase
     public function test_count(): void
     {
         $s = FakeStruct::fromKVs(Keyword::create('a'), 1, Keyword::create('b'), 2);
-        self::assertEquals(2, count($s));
+        self::assertCount(2, $s);
     }
 
     public function test_equals_other_type(): void
@@ -114,7 +114,7 @@ final class StructTest extends TestCase
         $s = FakeStruct::fromKVs(Keyword::create('a'), 1, Keyword::create('b'), 2);
         $sWithMeta = $s->withMeta($meta);
 
-        $this->assertEquals(null, $s->getMeta());
+        $this->assertNull($s->getMeta());
         $this->assertEquals($meta, $sWithMeta->getMeta());
     }
 

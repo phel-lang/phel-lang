@@ -48,7 +48,7 @@ class PersistentHashSet extends AbstractType implements PersistentHashSetInterfa
 
     public function withMeta(?PersistentMapInterface $meta)
     {
-        return new PersistentHashSet($this->hasher, $meta, $this->map);
+        return new self($this->hasher, $meta, $this->map);
     }
 
     /**
@@ -68,7 +68,7 @@ class PersistentHashSet extends AbstractType implements PersistentHashSetInterfa
             return $this;
         }
 
-        return new PersistentHashSet($this->hasher, $this->meta, $this->map->put($value, $value));
+        return new self($this->hasher, $this->meta, $this->map->put($value, $value));
     }
 
     /**
@@ -77,7 +77,7 @@ class PersistentHashSet extends AbstractType implements PersistentHashSetInterfa
     public function remove($value): PersistentHashSetInterface
     {
         if ($this->contains($value)) {
-            return new PersistentHashSet($this->hasher, $this->meta, $this->map->remove($value));
+            return new self($this->hasher, $this->meta, $this->map->remove($value));
         }
 
         return $this;
@@ -90,7 +90,7 @@ class PersistentHashSet extends AbstractType implements PersistentHashSetInterfa
 
     public function equals($other): bool
     {
-        if (!$other instanceof PersistentHashSet) {
+        if (!$other instanceof self) {
             return false;
         }
 

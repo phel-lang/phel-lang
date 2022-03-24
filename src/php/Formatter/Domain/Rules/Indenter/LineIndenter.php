@@ -6,6 +6,7 @@ namespace Phel\Formatter\Domain\Rules\Indenter;
 
 use Phel\Compiler\Parser\ParserNode\InnerNodeInterface;
 use Phel\Formatter\Domain\Rules\Zipper\ParseTreeZipper;
+use function strlen;
 
 final class LineIndenter implements IndenterInterface
 {

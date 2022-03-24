@@ -16,6 +16,7 @@ use Phel\Lang\Keyword;
 use Phel\Lang\Registry;
 use Phel\Lang\TypeFactory;
 use Phel\Lang\TypeInterface;
+use function count;
 
 final class InvokeSymbol implements SpecialFormAnalyzerInterface
 {

@@ -32,7 +32,7 @@ interface PersistentListInterface extends TypeInterface, SeqInterface, IteratorA
      *
      * @return PersistentListInterface<TValue>
      */
-    public function prepend($value): PersistentListInterface;
+    public function prepend($value): self;
 
     /**
      * @throws IndexOutOfBoundsException
@@ -44,5 +44,5 @@ interface PersistentListInterface extends TypeInterface, SeqInterface, IteratorA
     /**
      * @return PersistentListInterface<TValue>
      */
-    public function pop(): PersistentListInterface;
+    public function pop(): self;
 }

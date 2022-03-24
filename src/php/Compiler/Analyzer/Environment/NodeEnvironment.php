@@ -6,6 +6,9 @@ namespace Phel\Compiler\Analyzer\Environment;
 
 use Phel\Compiler\Analyzer\Ast\RecurFrame;
 use Phel\Lang\Symbol;
+use function array_key_exists;
+use function count;
+use function in_array;
 
 final class NodeEnvironment implements NodeEnvironmentInterface
 {
@@ -62,7 +65,7 @@ final class NodeEnvironment implements NodeEnvironmentInterface
 
     public static function empty(): NodeEnvironmentInterface
     {
-        return new NodeEnvironment([], self::CONTEXT_STATEMENT, [], []);
+        return new self([], self::CONTEXT_STATEMENT, [], []);
     }
 
     /**
@@ -107,7 +110,7 @@ final class NodeEnvironment implements NodeEnvironmentInterface
         $allLocalSymbols = array_merge(
             $this->locals,
             array_map(
-                fn (Symbol $s) => Symbol::create($s->getName()),
+                static fn (Symbol $s) => Symbol::create($s->getName()),
                 $locals
             )
         );

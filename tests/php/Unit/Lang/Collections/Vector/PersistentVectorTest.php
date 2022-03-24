@@ -243,7 +243,7 @@ final class PersistentVectorTest extends TestCase
         $vector = PersistentVector::empty(new ModuloHasher(), new SimpleEqualizer());
         $vectorWithMeta = $vector->withMeta($meta);
 
-        $this->assertEquals(null, $vector->getMeta());
+        $this->assertNull($vector->getMeta());
         $this->assertEquals($meta, $vectorWithMeta->getMeta());
     }
 
@@ -276,7 +276,7 @@ final class PersistentVectorTest extends TestCase
             ->slice(1, 2);
 
         $this->assertInstanceOf(SubVector::class, $vector);
-        $this->assertEquals(2, count($vector));
+        $this->assertCount(2, $vector);
     }
 
     public function test_slice_to_empty(): void
@@ -285,7 +285,7 @@ final class PersistentVectorTest extends TestCase
             ->slice(1, 0);
 
         $this->assertInstanceOf(PersistentVector::class, $vector);
-        $this->assertEquals(0, count($vector));
+        $this->assertCount(0, $vector);
     }
 
     public function test_slice_without_length(): void
@@ -294,7 +294,7 @@ final class PersistentVectorTest extends TestCase
             ->slice(1);
 
         $this->assertInstanceOf(SubVector::class, $vector);
-        $this->assertEquals(3, count($vector));
+        $this->assertCount(3, $vector);
     }
 
     public function test_as_transient(): void
@@ -303,7 +303,7 @@ final class PersistentVectorTest extends TestCase
             ->asTransient();
 
         $this->assertInstanceOf(TransientVector::class, $vector);
-        $this->assertEquals(4, count($vector));
+        $this->assertCount(4, $vector);
     }
 
     public function test_first_on_empty(): void
@@ -416,8 +416,8 @@ final class PersistentVectorTest extends TestCase
         $vector1 = PersistentVector::fromArray(new ModuloHasher(), new SimpleEqualizer(), [1, 2]);
         $vector2 = $vector1->push(3);
 
-        $this->assertEquals(2, count($vector1));
-        $this->assertEquals(3, count($vector2));
+        $this->assertCount(2, $vector1);
+        $this->assertCount(3, $vector2);
         $this->assertEquals(3, $vector2->get(2));
     }
 
@@ -426,8 +426,8 @@ final class PersistentVectorTest extends TestCase
         $vector1 = PersistentVector::fromArray(new ModuloHasher(), new SimpleEqualizer(), [1, 2]);
         $vector2 = $vector1->concat([3, 4]);
 
-        $this->assertEquals(2, count($vector1));
-        $this->assertEquals(4, count($vector2));
+        $this->assertCount(2, $vector1);
+        $this->assertCount(4, $vector2);
         $this->assertEquals(3, $vector2->get(2));
         $this->assertEquals(4, $vector2->get(3));
     }

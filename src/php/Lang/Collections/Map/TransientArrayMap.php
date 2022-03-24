@@ -7,6 +7,7 @@ namespace Phel\Lang\Collections\Map;
 use Phel\Lang\Collections\Exceptions\MethodNotSupportedException;
 use Phel\Lang\EqualizerInterface;
 use Phel\Lang\HasherInterface;
+use function count;
 
 /**
  * @template K
@@ -66,7 +67,7 @@ class TransientArrayMap implements TransientMapInterface
         return $this;
     }
 
-    public function remove($key): TransientArrayMap
+    public function remove($key): self
     {
         $index = $this->findIndex($key);
 
@@ -89,24 +90,6 @@ class TransientArrayMap implements TransientMapInterface
         }
 
         return $this->array[$index + 1];
-    }
-
-
-    /**
-     * @param K $key
-     *
-     * @return int|false
-     */
-    private function findIndex($key)
-    {
-        for ($i = 0, $cnt = count($this->array); $i < $cnt; $i += 2) {
-            $k = $this->array[$i];
-            if ($this->equalizer->equals($k, $key)) {
-                return $i;
-            }
-        }
-
-        return false;
     }
 
     public function count(): int
@@ -145,5 +128,23 @@ class TransientArrayMap implements TransientMapInterface
     public function persistent(): PersistentMapInterface
     {
         return new PersistentArrayMap($this->hasher, $this->equalizer, null, $this->array);
+    }
+
+
+    /**
+     * @param K $key
+     *
+     * @return int|false
+     */
+    private function findIndex($key)
+    {
+        for ($i = 0, $cnt = count($this->array); $i < $cnt; $i += 2) {
+            $k = $this->array[$i];
+            if ($this->equalizer->equals($k, $key)) {
+                return $i;
+            }
+        }
+
+        return false;
     }
 }

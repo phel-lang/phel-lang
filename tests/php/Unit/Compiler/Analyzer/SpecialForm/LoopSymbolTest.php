@@ -163,7 +163,7 @@ final class LoopSymbolTest extends TestCase
         $node = $this->analyzer->analyze($list, $env);
         $this->assertInstanceOf(LetNode::class, $node);
         $this->assertFalse($node->isLoop());
-        $this->assertEquals(1, count($node->getBindings()));
+        $this->assertCount(1, $node->getBindings());
 
         /** @var DoNode $bodyNode */
         $bodyNode = $node->getBodyExpr();

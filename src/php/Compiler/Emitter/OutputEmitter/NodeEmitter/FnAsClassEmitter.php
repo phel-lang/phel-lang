@@ -8,6 +8,8 @@ use Phel\Compiler\Analyzer\Ast\AbstractNode;
 use Phel\Compiler\Analyzer\Ast\FnNode;
 use Phel\Compiler\Emitter\OutputEmitter\NodeEmitterInterface;
 use Phel\Compiler\Emitter\OutputEmitterInterface;
+use function assert;
+use function count;
 
 final class FnAsClassEmitter implements NodeEmitterInterface
 {

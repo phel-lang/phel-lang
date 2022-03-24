@@ -37,17 +37,17 @@ interface PersistentVectorInterface extends TypeInterface, SeqInterface, Iterato
     /**
      * @param T $value
      */
-    public function append($value): PersistentVectorInterface;
+    public function append($value): self;
 
     /**
      * @param T $value
      */
-    public function update(int $i, $value): PersistentVectorInterface;
+    public function update(int $i, $value): self;
 
     /**
      * @return T
      */
     public function get(int $i);
 
-    public function pop(): PersistentVectorInterface;
+    public function pop(): self;
 }

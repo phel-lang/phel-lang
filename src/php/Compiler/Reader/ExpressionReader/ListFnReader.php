@@ -41,7 +41,7 @@ final class ListFnReader
 
         $params = [];
 
-        for ($i = 1, $maxParams = max(array_keys($fnArgs)); $i <= $maxParams; $i++) {
+        for ($i = 1, $maxParams = max(array_keys($fnArgs)); $i <= $maxParams; ++$i) {
             if (isset($fnArgs[$i])) {
                 $params[] = Symbol::create($fnArgs[$i]->getName());
             } else {

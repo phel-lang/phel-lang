@@ -8,6 +8,8 @@ use Phel\Compiler\Analyzer\Ast\AbstractNode;
 use Phel\Compiler\Analyzer\Ast\NsNode;
 use Phel\Compiler\Emitter\OutputEmitter\NodeEmitterInterface;
 use function addslashes;
+use function assert;
+use function count;
 
 final class NsEmitter implements NodeEmitterInterface
 {

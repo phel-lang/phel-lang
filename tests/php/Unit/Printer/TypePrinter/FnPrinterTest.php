@@ -12,7 +12,7 @@ final class FnPrinterTest extends TestCase
 {
     public function test_print(): void
     {
-        $class = new class () implements FnInterface {
+        $class = new class() implements FnInterface {
             public function __invoke(): string
             {
                 return 'invoke method';

@@ -159,8 +159,7 @@ final class QuasiquoteTest extends TestCase
     public function test_transform_boolean(): void
     {
         $q = new QuasiquoteTransformer(new GlobalEnvironment());
-        self::assertEquals(
-            true,
+        self::assertTrue(
             $q->transform(true)
         );
     }
@@ -168,8 +167,7 @@ final class QuasiquoteTest extends TestCase
     public function test_transform_null(): void
     {
         $q = new QuasiquoteTransformer(new GlobalEnvironment());
-        self::assertEquals(
-            null,
+        self::assertNull(
             $q->transform(null)
         );
     }

@@ -5,6 +5,14 @@ declare(strict_types=1);
 namespace Phel\Command\Shared\Exceptions;
 
 use Phel\Printer\PrinterInterface;
+use function count;
+use function get_class;
+use function is_array;
+use function is_bool;
+use function is_object;
+use function is_resource;
+use function is_string;
+use function strlen;
 
 final class ExceptionArgsPrinter implements ExceptionArgsPrinterInterface
 {
@@ -77,7 +85,7 @@ final class ExceptionArgsPrinter implements ExceptionArgsPrinterInterface
             /**
              * @psalm-suppress UndefinedFunction
              */
-            return 'Resource id #' . \get_resource_id($arg);
+            return 'Resource id #' . get_resource_id($arg);
         }
 
         return (string)$arg;

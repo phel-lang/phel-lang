@@ -7,6 +7,8 @@ namespace Phel\Compiler\Lexer;
 use Generator;
 use Iterator;
 use Phel\Compiler\Parser\ReadModel\CodeSnippet;
+use function count;
+use function in_array;
 
 final class TokenStream implements Iterator
 {

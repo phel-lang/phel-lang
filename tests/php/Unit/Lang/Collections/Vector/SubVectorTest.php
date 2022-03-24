@@ -37,7 +37,7 @@ final class SubVectorTest extends TestCase
             ->slice(1, 2);
         $subVectorWithMeta = $subVector->withMeta($meta);
 
-        $this->assertEquals(null, $subVector->getMeta());
+        $this->assertNull($subVector->getMeta());
         $this->assertEquals($meta, $subVectorWithMeta->getMeta());
     }
 
@@ -61,8 +61,8 @@ final class SubVectorTest extends TestCase
 
         $subVectorAppended = $subVector->append(10);
 
-        $this->assertEquals(2, count($subVector));
-        $this->assertEquals(3, count($subVectorAppended));
+        $this->assertCount(2, $subVector);
+        $this->assertCount(3, $subVectorAppended);
         $this->assertEquals(10, $subVectorAppended->get(2));
     }
 
@@ -81,8 +81,8 @@ final class SubVectorTest extends TestCase
             ->slice(1, 2);
         $subVectorAppended = $subVector->update(2, 10);
 
-        $this->assertEquals(2, count($subVector));
-        $this->assertEquals(3, count($subVectorAppended));
+        $this->assertCount(2, $subVector);
+        $this->assertCount(3, $subVectorAppended);
         $this->assertEquals(10, $subVectorAppended->get(2));
     }
 
@@ -92,8 +92,8 @@ final class SubVectorTest extends TestCase
             ->slice(1, 2);
         $subVectorUpdated = $subVector->update(0, 10);
 
-        $this->assertEquals(2, count($subVector));
-        $this->assertEquals(2, count($subVectorUpdated));
+        $this->assertCount(2, $subVector);
+        $this->assertCount(2, $subVectorUpdated);
         $this->assertEquals(10, $subVectorUpdated->get(0));
     }
 
@@ -138,8 +138,8 @@ final class SubVectorTest extends TestCase
             ->slice(1, 2);
         $subVectorPopped = $subVector->pop();
 
-        $this->assertEquals(2, count($subVector));
-        $this->assertEquals(1, count($subVectorPopped));
+        $this->assertCount(2, $subVector);
+        $this->assertCount(1, $subVectorPopped);
     }
 
     public function test_slice(): void
@@ -149,6 +149,6 @@ final class SubVectorTest extends TestCase
             ->slice(0, 1);
 
         $this->assertInstanceOf(SubVector::class, $vector);
-        $this->assertEquals(1, count($vector));
+        $this->assertCount(1, $vector);
     }
 }

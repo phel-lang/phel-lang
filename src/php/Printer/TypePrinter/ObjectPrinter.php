@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Phel\Printer\TypePrinter;
 
+use function get_class;
+
 /**
  * @implements TypePrinterInterface<object>
  */

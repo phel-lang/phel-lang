@@ -59,11 +59,6 @@ final class BuildFactory extends AbstractFactory
         );
     }
 
-    private function createNamespaceSorter(): NamespaceSorterInterface
-    {
-        return new TopologicalNamespaceSorter();
-    }
-
     public function getCompilerFacade(): CompilerFacadeInterface
     {
         return $this->getProvidedDependency(BuildDependencyProvider::FACADE_COMPILER);
@@ -80,5 +75,10 @@ final class BuildFactory extends AbstractFactory
             $this->createProjectCompiler(),
             $this->getCommandFacade()
         );
+    }
+
+    private function createNamespaceSorter(): NamespaceSorterInterface
+    {
+        return new TopologicalNamespaceSorter();
     }
 }

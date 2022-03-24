@@ -5,6 +5,11 @@ declare(strict_types=1);
 namespace Phel\Lang;
 
 use RuntimeException;
+use function gettype;
+use function is_float;
+use function is_int;
+use function is_object;
+use function is_string;
 
 /**
  * This Hasher is inspired by the Clojurescript implementation.

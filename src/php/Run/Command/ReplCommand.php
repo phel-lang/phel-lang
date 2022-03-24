@@ -20,6 +20,8 @@ use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 use Throwable;
+use function count;
+use function dirname;
 
 final class ReplCommand extends Command
 {
@@ -64,11 +66,6 @@ final class ReplCommand extends Command
         $this->previousResult = InputResult::empty();
     }
 
-    protected function configure(): void
-    {
-        $this->setDescription('Start a Repl.');
-    }
-
     public function execute(InputInterface $input, OutputInterface $output): int
     {
         $this->io->readHistory();
@@ -101,6 +98,11 @@ final class ReplCommand extends Command
         $this->loopReadLineAndAnalyze();
 
         return self::SUCCESS;
+    }
+
+    protected function configure(): void
+    {
+        $this->setDescription('Start a Repl.');
     }
 
     private function loopReadLineAndAnalyze(): void
@@ -136,7 +138,7 @@ final class ReplCommand extends Command
             $this->io->write(self::DISABLE_BRACKETED_PASTE);
         }
 
-        $this->lineNumber++;
+        ++$this->lineNumber;
 
         if ($input === null && $isInitialInput) {
             // Ctrl+D will exit the repl

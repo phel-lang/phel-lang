@@ -82,7 +82,7 @@ class TransientArrayMapTest extends TestCase
     public function test_convert_to_transient_hash_map(): void
     {
         $h = TransientArrayMap::empty(new ModuloHasher(), new SimpleEqualizer());
-        for ($i = 0; $i < PersistentArrayMap::MAX_SIZE + 1; $i++) {
+        for ($i = 0; $i < PersistentArrayMap::MAX_SIZE + 1; ++$i) {
             $h = $h->put($i, 'foo');
         }
 

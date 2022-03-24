@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Phel\Build\Extractor;
 
 use RuntimeException;
+use function in_array;
 
 final class TopologicalNamespaceSorter implements NamespaceSorterInterface
 {

@@ -18,12 +18,12 @@ interface TransientHashSetInterface extends Countable, ContainsInterface
     /**
      * @param V $value
      */
-    public function add($value): TransientHashSetInterface;
+    public function add($value): self;
 
     /**
      * @param V $value
      */
-    public function remove($value): TransientHashSetInterface;
+    public function remove($value): self;
 
     public function persistent(): PersistentHashSetInterface;
 }

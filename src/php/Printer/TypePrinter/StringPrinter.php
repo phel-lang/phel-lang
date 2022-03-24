@@ -4,6 +4,9 @@ declare(strict_types=1);
 
 namespace Phel\Printer\TypePrinter;
 
+use function ord;
+use function strlen;
+
 /**
  * @implements TypePrinterInterface<string>
  */
@@ -65,7 +68,7 @@ final class StringPrinter implements TypePrinterInterface
             if ($this->isMask110XXXXX($asciiChar)) {
                 $hex = $this->utf8ToUnicodePoint(substr($str, $index, 2));
                 $return .= sprintf('\u{%04s}', $hex);
-                $index++;
+                ++$index;
                 continue;
             }
 

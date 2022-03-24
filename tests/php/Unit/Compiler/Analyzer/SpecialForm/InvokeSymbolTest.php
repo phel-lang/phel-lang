@@ -34,7 +34,7 @@ final class InvokeSymbolTest extends TestCase
         Registry::getInstance()->addDefinition(
             'user',
             'my-macro',
-            fn ($a) => $a,
+            static fn ($a) => $a,
             TypeFactory::getInstance()->persistentMapFromKVs(Keyword::create('macro'), true)
         );
 
@@ -42,7 +42,7 @@ final class InvokeSymbolTest extends TestCase
         Registry::getInstance()->addDefinition(
             'user',
             'my-failed-macro',
-            fn ($a) => throw new Exception('my-failed-macro message'),
+            static fn ($a) => throw new Exception('my-failed-macro message'),
             TypeFactory::getInstance()->persistentMapFromKVs(Keyword::create('macro'), true)
         );
 
@@ -50,10 +50,10 @@ final class InvokeSymbolTest extends TestCase
         Registry::getInstance()->addDefinition(
             'user',
             'my-inline-fn',
-            fn ($a) => 1,
+            static fn ($a) => 1,
             TypeFactory::getInstance()->persistentMapFromKVs(
                 Keyword::create('inline'),
-                fn ($a) => 2
+                static fn ($a) => 2
             )
         );
 
@@ -61,12 +61,12 @@ final class InvokeSymbolTest extends TestCase
         Registry::getInstance()->addDefinition(
             'user',
             'my-inline-fn-with-arity',
-            fn ($a, $b) => 1,
+            static fn ($a, $b) => 1,
             TypeFactory::getInstance()->persistentMapFromKVs(
                 Keyword::create('inline'),
-                fn ($a, $b) => 2,
+                static fn ($a, $b) => 2,
                 Keyword::create('inline-arity'),
-                fn ($n) => $n === 2
+                static fn ($n) => $n === 2
             )
         );
 
@@ -214,9 +214,9 @@ final class InvokeSymbolTest extends TestCase
                     Symbol::create('my-inline-fn-with-arity'),
                     TypeFactory::getInstance()->persistentMapFromKVs(
                         Keyword::create('inline'),
-                        fn ($a, $b) => 2,
+                        static fn ($a, $b) => 2,
                         Keyword::create('inline-arity'),
-                        fn ($n) => $n === 2
+                        static fn ($n) => $n === 2
                     )
                 ),
                 [

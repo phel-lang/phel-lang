@@ -167,7 +167,7 @@ final class ZipperTest extends TestCase
         $zipper = ArrayZipper::createRoot($tree);
 
         $next = $zipper;
-        for ($i = 0; $i < 7; $i++) {
+        for ($i = 0; $i < 7; ++$i) {
             $next = $next->next();
         }
         self::assertTrue(!$next->isEnd());

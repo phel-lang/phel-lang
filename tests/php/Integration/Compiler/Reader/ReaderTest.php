@@ -71,8 +71,8 @@ final class ReaderTest extends TestCase
 
     public function test_read_boolean(): void
     {
-        self::assertEquals(true, $this->read('true'));
-        self::assertEquals(false, $this->read('false'));
+        self::assertTrue($this->read('true'));
+        self::assertFalse($this->read('false'));
     }
 
     public function test_read_nil(): void

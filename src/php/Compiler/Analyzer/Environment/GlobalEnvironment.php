@@ -15,6 +15,8 @@ use Phel\Lang\SourceLocation;
 use Phel\Lang\Symbol;
 use Phel\Lang\TypeFactory;
 use RuntimeException;
+use function array_key_exists;
+use function dirname;
 
 final class GlobalEnvironment implements GlobalEnvironmentInterface
 {
@@ -42,17 +44,6 @@ final class GlobalEnvironment implements GlobalEnvironmentInterface
     public function __construct()
     {
         $this->addInternalCompileModeDefinition();
-    }
-
-    private function addInternalCompileModeDefinition(): void
-    {
-        $symbol = Symbol::create('*compile-mode*');
-        $meta = TypeFactory::getInstance()->persistentMapFromKVs(
-            Keyword::create('doc'),
-            'Set to true when a file is compiled, false otherwise.',
-        );
-        Registry::getInstance()->addDefinition(self::PHEL_CORE_NAMESPACE, $symbol->getName(), false, $meta);
-        $this->addDefinition(self::PHEL_CORE_NAMESPACE, $symbol);
     }
 
     public function getNs(): string
@@ -178,6 +169,40 @@ final class GlobalEnvironment implements GlobalEnvironmentInterface
             : $this->resolveWithoutAlias($name, $env);
     }
 
+    public function resolveAlias(string $alias): ?string
+    {
+        if (isset($this->requireAliases[$this->ns][$alias])) {
+            return $this->requireAliases[$this->ns][$alias]->getName();
+        }
+
+        return null;
+    }
+
+    public function setAllowPrivateAccess(bool $allowPrivateAccess): void
+    {
+        $this->allowPrivateAccess = $allowPrivateAccess;
+    }
+
+    public function addInterface(string $namespace, Symbol $name): void
+    {
+        if (!array_key_exists($namespace, $this->interfaces)) {
+            $this->interfaces[$namespace] = [];
+        }
+
+        $this->interfaces[$namespace][$name->getName()] = $name;
+    }
+
+    private function addInternalCompileModeDefinition(): void
+    {
+        $symbol = Symbol::create('*compile-mode*');
+        $meta = TypeFactory::getInstance()->persistentMapFromKVs(
+            Keyword::create('doc'),
+            'Set to true when a file is compiled, false otherwise.',
+        );
+        Registry::getInstance()->addDefinition(self::PHEL_CORE_NAMESPACE, $symbol->getName(), false, $meta);
+        $this->addDefinition(self::PHEL_CORE_NAMESPACE, $symbol);
+    }
+
     private function resolveMagicFile(?SourceLocation $sl): ?string
     {
         return $this->resolveMagicSourceString($sl)
@@ -203,15 +228,6 @@ final class GlobalEnvironment implements GlobalEnvironmentInterface
     private function resolveRealpathDirname(?SourceLocation $sl): ?string
     {
         return ($sl) ? realpath(dirname($sl->getFile())) : null;
-    }
-
-    public function resolveAlias(string $alias): ?string
-    {
-        if (isset($this->requireAliases[$this->ns][$alias])) {
-            return $this->requireAliases[$this->ns][$alias]->getName();
-        }
-
-        return null;
     }
 
     private function resolveWithAlias(Symbol $name, NodeEnvironmentInterface $env): ?AbstractNode
@@ -275,19 +291,5 @@ final class GlobalEnvironment implements GlobalEnvironmentInterface
     private function isPrivateDefinitionAllowed(PersistentMapInterface $meta): bool
     {
         return $this->allowPrivateAccess || !$meta[Keyword::create('private')] === true;
-    }
-
-    public function setAllowPrivateAccess(bool $allowPrivateAccess): void
-    {
-        $this->allowPrivateAccess = $allowPrivateAccess;
-    }
-
-    public function addInterface(string $namespace, Symbol $name): void
-    {
-        if (!array_key_exists($namespace, $this->interfaces)) {
-            $this->interfaces[$namespace] = [];
-        }
-
-        $this->interfaces[$namespace][$name->getName()] = $name;
     }
 }

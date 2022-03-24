@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Phel\Compiler\Parser\ParserNode;
 
 use Phel\Lang\SourceLocation;
+use function count;
 
 final class FileNode implements InnerNodeInterface
 {

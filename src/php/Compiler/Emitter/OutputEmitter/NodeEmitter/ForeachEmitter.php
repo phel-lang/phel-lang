@@ -8,6 +8,7 @@ use Phel\Compiler\Analyzer\Ast\AbstractNode;
 use Phel\Compiler\Analyzer\Ast\ForeachNode;
 use Phel\Compiler\Analyzer\Environment\NodeEnvironmentInterface;
 use Phel\Compiler\Emitter\OutputEmitter\NodeEmitterInterface;
+use function assert;
 
 final class ForeachEmitter implements NodeEmitterInterface
 {

@@ -69,12 +69,6 @@ final class Parser implements ParserInterface
         return FileNode::createFromChildren($result);
     }
 
-    private function canParseToken(TokenStream $tokenStream): bool
-    {
-        return $tokenStream->valid()
-            && $tokenStream->current()->getType() !== Token::T_EOF;
-    }
-
     /**
      * @throws UnexpectedParserException
      * @throws UnfinishedParserException
@@ -146,6 +140,12 @@ final class Parser implements ParserInterface
             $snippet->getStartLocation(),
             $snippet->getEndLocation()
         );
+    }
+
+    private function canParseToken(TokenStream $tokenStream): bool
+    {
+        return $tokenStream->valid()
+            && $tokenStream->current()->getType() !== Token::T_EOF;
     }
 
     private function parseAtomNode(Token $token, TokenStream $tokenStream): AbstractAtomNode

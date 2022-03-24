@@ -14,6 +14,8 @@ use Phel\Lang\MetaInterface;
 use Phel\Lang\Symbol;
 use Phel\Lang\TypeFactory;
 use Phel\Lang\TypeInterface;
+use function count;
+use function is_string;
 
 final class MetaReader
 {

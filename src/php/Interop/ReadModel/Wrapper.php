@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Phel\Interop\ReadModel;
 
+use function dirname;
+
 final class Wrapper
 {
     private string $relativeFilenamePath;

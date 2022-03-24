@@ -6,6 +6,7 @@ namespace Phel\Printer\TypePrinter;
 
 use Phel\Lang\Collections\HashSet\PersistentHashSetInterface;
 use Phel\Printer\PrinterInterface;
+use function count;
 
 /**
  * @implements TypePrinterInterface<PersistentHashSetInterface>

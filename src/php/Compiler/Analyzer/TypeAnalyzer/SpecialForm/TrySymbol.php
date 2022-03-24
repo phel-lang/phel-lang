@@ -12,6 +12,7 @@ use Phel\Compiler\Analyzer\TypeAnalyzer\WithAnalyzerTrait;
 use Phel\Lang\Collections\LinkedList\PersistentListInterface;
 use Phel\Lang\Symbol;
 use Phel\Lang\TypeFactory;
+use function count;
 
 final class TrySymbol implements SpecialFormAnalyzerInterface
 {

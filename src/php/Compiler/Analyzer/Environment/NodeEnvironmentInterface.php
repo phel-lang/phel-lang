@@ -34,24 +34,24 @@ interface NodeEnvironmentInterface
     /**
      * @param Symbol[] $locals
      */
-    public function withMergedLocals(array $locals): NodeEnvironmentInterface;
+    public function withMergedLocals(array $locals): self;
 
-    public function withShadowedLocal(Symbol $local, Symbol $shadow): NodeEnvironmentInterface;
+    public function withShadowedLocal(Symbol $local, Symbol $shadow): self;
 
     /**
      * @param Symbol[] $locals
      */
-    public function withLocals(array $locals): NodeEnvironmentInterface;
+    public function withLocals(array $locals): self;
 
-    public function withContext(string $context): NodeEnvironmentInterface;
+    public function withContext(string $context): self;
 
-    public function withAddedRecurFrame(RecurFrame $frame): NodeEnvironmentInterface;
+    public function withAddedRecurFrame(RecurFrame $frame): self;
 
-    public function withDisallowRecurFrame(): NodeEnvironmentInterface;
+    public function withDisallowRecurFrame(): self;
 
-    public function withBoundTo(string $boundTo): NodeEnvironmentInterface;
+    public function withBoundTo(string $boundTo): self;
 
-    public function withDefAllowed(bool $defAllowed): NodeEnvironmentInterface;
+    public function withDefAllowed(bool $defAllowed): self;
 
     public function getCurrentRecurFrame(): ?RecurFrame;
 

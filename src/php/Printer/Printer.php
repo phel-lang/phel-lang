@@ -33,11 +33,19 @@ use Phel\Printer\TypePrinter\ToStringPrinter;
 use Phel\Printer\TypePrinter\TypePrinterInterface;
 use ReflectionClass;
 use RuntimeException;
+use function gettype;
+use function is_object;
 
 final class Printer implements PrinterInterface
 {
     private bool $readable;
     private bool $withColor;
+
+    public function __construct(bool $readable, bool $withColor = false)
+    {
+        $this->readable = $readable;
+        $this->withColor = $withColor;
+    }
 
     public static function readable(): self
     {
@@ -52,12 +60,6 @@ final class Printer implements PrinterInterface
     public static function nonReadableWithColor(): self
     {
         return new self($readable = false, $withColor = true);
-    }
-
-    public function __construct(bool $readable, bool $withColor = false)
-    {
-        $this->readable = $readable;
-        $this->withColor = $withColor;
     }
 
     /**

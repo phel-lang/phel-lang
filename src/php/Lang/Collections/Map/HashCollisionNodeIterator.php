@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Phel\Lang\Collections\Map;
 
 use Iterator;
+use function count;
 
 /**
  * @template K

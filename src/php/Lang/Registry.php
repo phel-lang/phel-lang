@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Phel\Lang;
 
 use Phel\Lang\Collections\Map\PersistentMapInterface;
+use function array_key_exists;
 
 final class Registry
 {
@@ -24,7 +25,7 @@ final class Registry
     public static function getInstance(): self
     {
         if (self::$instance === null) {
-            self::$instance = new Registry();
+            self::$instance = new self();
         }
 
         return self::$instance;

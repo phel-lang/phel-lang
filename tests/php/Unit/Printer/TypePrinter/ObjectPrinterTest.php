@@ -7,6 +7,7 @@ namespace PhelTest\Unit\Printer\TypePrinter;
 use Generator;
 use Phel\Printer\TypePrinter\ObjectPrinter;
 use PHPUnit\Framework\TestCase;
+use stdClass;
 
 final class ObjectPrinterTest extends TestCase
 {
@@ -25,7 +26,7 @@ final class ObjectPrinterTest extends TestCase
     {
         yield 'stdClass' => [
             'expected' => '<PHP-Object(stdClass)>',
-            'object' => new \stdClass(),
+            'object' => new stdClass(),
         ];
 
         yield 'array to object cast' => [

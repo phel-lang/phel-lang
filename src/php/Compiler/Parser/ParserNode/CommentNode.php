@@ -13,15 +13,6 @@ final class CommentNode implements TriviaNodeInterface
     private SourceLocation $startLocation;
     private SourceLocation $endLocation;
 
-    public static function createWithToken(Token $token): self
-    {
-        return new self(
-            $token->getCode(),
-            $token->getStartLocation(),
-            $token->getEndLocation()
-        );
-    }
-
     public function __construct(
         string $code,
         SourceLocation $startLocation,
@@ -30,6 +21,15 @@ final class CommentNode implements TriviaNodeInterface
         $this->code = $code;
         $this->startLocation = $startLocation;
         $this->endLocation = $endLocation;
+    }
+
+    public static function createWithToken(Token $token): self
+    {
+        return new self(
+            $token->getCode(),
+            $token->getStartLocation(),
+            $token->getEndLocation()
+        );
     }
 
     public function getCode(): string

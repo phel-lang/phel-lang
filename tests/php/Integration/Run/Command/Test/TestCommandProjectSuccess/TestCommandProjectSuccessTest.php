@@ -53,16 +53,16 @@ final class TestCommandProjectSuccessTest extends AbstractCommandTest
         );
     }
 
-    private function getTestCommand(): TestCommand
-    {
-        return $this->createRunFacade()->getTestCommand();
-    }
-
     protected function stubInput(array $paths = []): InputInterface
     {
         $input = $this->createStub(InputInterface::class);
         $input->method('getArgument')->willReturn($paths);
 
         return $input;
+    }
+
+    private function getTestCommand(): TestCommand
+    {
+        return $this->createRunFacade()->getTestCommand();
     }
 }

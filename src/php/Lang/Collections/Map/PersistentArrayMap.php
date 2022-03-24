@@ -8,6 +8,7 @@ use Phel\Lang\EqualizerInterface;
 use Phel\Lang\HasherInterface;
 use RuntimeException;
 use Traversable;
+use function count;
 
 /**
  * Map implementation based on a single array. The array stores the key value pair directly.
@@ -52,7 +53,7 @@ class PersistentArrayMap extends AbstractPersistentMap
 
     public function withMeta(?PersistentMapInterface $meta)
     {
-        return new PersistentArrayMap($this->hasher, $this->equalizer, $meta, $this->array);
+        return new self($this->hasher, $this->equalizer, $meta, $this->array);
     }
 
     public function contains($key): bool
@@ -80,10 +81,10 @@ class PersistentArrayMap extends AbstractPersistentMap
             $newArray[$index + 1] = $value;
         }
 
-        return new PersistentArrayMap($this->hasher, $this->equalizer, $this->meta, $newArray);
+        return new self($this->hasher, $this->equalizer, $this->meta, $newArray);
     }
 
-    public function remove($key): PersistentArrayMap
+    public function remove($key): self
     {
         $index = $this->findIndex($key);
 
@@ -94,7 +95,7 @@ class PersistentArrayMap extends AbstractPersistentMap
         $newArray = $this->array;
         array_splice($newArray, $index, 2);
 
-        return new PersistentArrayMap($this->hasher, $this->equalizer, $this->meta, $newArray);
+        return new self($this->hasher, $this->equalizer, $this->meta, $newArray);
     }
 
     public function find($key)
@@ -105,23 +106,6 @@ class PersistentArrayMap extends AbstractPersistentMap
         }
 
         return $this->array[$index + 1];
-    }
-
-    /**
-     * @param K $key
-     *
-     * @return int|false
-     */
-    private function findIndex($key)
-    {
-        for ($i = 0, $cnt = count($this->array); $i < $cnt; $i += 2) {
-            $k = $this->array[$i];
-            if ($this->equalizer->equals($k, $key)) {
-                return $i;
-            }
-        }
-
-        return false;
     }
 
     public function count(): int
@@ -145,5 +129,22 @@ class PersistentArrayMap extends AbstractPersistentMap
                 $this->array
             )
         );
+    }
+
+    /**
+     * @param K $key
+     *
+     * @return int|false
+     */
+    private function findIndex($key)
+    {
+        for ($i = 0, $cnt = count($this->array); $i < $cnt; $i += 2) {
+            $k = $this->array[$i];
+            if ($this->equalizer->equals($k, $key)) {
+                return $i;
+            }
+        }
+
+        return false;
     }
 }

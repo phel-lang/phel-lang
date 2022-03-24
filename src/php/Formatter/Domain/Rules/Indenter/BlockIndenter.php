@@ -8,6 +8,7 @@ use Phel\Compiler\Parser\ParserNode\SymbolNode;
 use Phel\Formatter\Domain\Rules\Zipper\ParseTreeZipper;
 use Phel\Formatter\Domain\Rules\Zipper\ZipperException;
 use Phel\Lang\Symbol;
+use function is_null;
 
 final class BlockIndenter implements IndenterInterface
 {
@@ -40,7 +41,7 @@ final class BlockIndenter implements IndenterInterface
     {
         try {
             $x = $loc->leftMostSkipWhitespace();
-            for ($i = 0; $i < $n; $i++) {
+            for ($i = 0; $i < $n; ++$i) {
                 $x = $x->rightSkipWhitespace();
             }
 

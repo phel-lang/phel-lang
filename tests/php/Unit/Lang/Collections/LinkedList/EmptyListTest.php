@@ -19,7 +19,7 @@ final class EmptyListTest extends TestCase
     {
         $list = (new EmptyList(new ModuloHasher(), new SimpleEqualizer(), null))->prepend('foo');
 
-        $this->assertTrue($list instanceof PersistentList);
+        $this->assertInstanceOf(PersistentList::class, $list);
         $this->assertEquals(1, $list->count());
         $this->assertEquals('foo', $list->get(0));
     }
@@ -115,7 +115,7 @@ final class EmptyListTest extends TestCase
     {
         $list = (new EmptyList(new ModuloHasher(), new SimpleEqualizer(), null))->cons('foo');
 
-        $this->assertTrue($list instanceof PersistentList);
+        $this->assertInstanceOf(PersistentList::class, $list);
         $this->assertEquals(1, $list->count());
         $this->assertEquals('foo', $list->get(0));
     }
@@ -146,7 +146,7 @@ final class EmptyListTest extends TestCase
         $list = new EmptyList(new ModuloHasher(), new SimpleEqualizer(), null);
         $listWithMeta = $list->withMeta($meta);
 
-        $this->assertEquals(null, $list->getMeta());
+        $this->assertNull($list->getMeta());
         $this->assertEquals($meta, $listWithMeta->getMeta());
     }
 }

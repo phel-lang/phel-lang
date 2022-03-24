@@ -7,6 +7,7 @@ namespace Phel\Compiler\Emitter\OutputEmitter\NodeEmitter;
 use Phel\Compiler\Analyzer\Ast\AbstractNode;
 use Phel\Compiler\Analyzer\Ast\PhpArrayPushNode;
 use Phel\Compiler\Emitter\OutputEmitter\NodeEmitterInterface;
+use function assert;
 
 final class PhpArrayPushEmitter implements NodeEmitterInterface
 {

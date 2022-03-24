@@ -22,14 +22,14 @@ final class InteropDependencyProvider extends AbstractDependencyProvider
 
     private function addFacadeCommand(Container $container): void
     {
-        $container->set(self::FACADE_COMMAND, function (Container $container) {
+        $container->set(self::FACADE_COMMAND, static function (Container $container) {
             return $container->getLocator()->get(CommandFacade::class);
         });
     }
 
     private function addFacadeBuild(Container $container): void
     {
-        $container->set(self::FACADE_BUILD, function (Container $container) {
+        $container->set(self::FACADE_BUILD, static function (Container $container) {
             return $container->getLocator()->get(BuildFacade::class);
         });
     }

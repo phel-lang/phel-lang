@@ -42,6 +42,21 @@ final class ExportCommand extends Command
         $this->commandFacade = $commandFacade;
     }
 
+    /**
+     * @return list<Wrapper>
+     */
+    public function generateWrappers(): array
+    {
+        $allFunctionsToExport = $this->functionsToExportFinder->findInPaths();
+        $wrappers = [];
+
+        foreach ($allFunctionsToExport as $ns => $functionsToExport) {
+            $wrappers[] = $this->wrapperGenerator->generateCompiledPhp($ns, $functionsToExport);
+        }
+
+        return $wrappers;
+    }
+
     protected function configure(): void
     {
         $this->setDescription('Export all definitions with the meta data `@{:export true}` as PHP classes.');
@@ -80,20 +95,5 @@ final class ExportCommand extends Command
             $this->fileCreator->createFromWrapper($wrapper);
             $output->writeln(sprintf('  %d) %s', $i + 1, $wrapper->relativeFilenamePath()));
         }
-    }
-
-    /**
-     * @return list<Wrapper>
-     */
-    public function generateWrappers(): array
-    {
-        $allFunctionsToExport = $this->functionsToExportFinder->findInPaths();
-        $wrappers = [];
-
-        foreach ($allFunctionsToExport as $ns => $functionsToExport) {
-            $wrappers[] = $this->wrapperGenerator->generateCompiledPhp($ns, $functionsToExport);
-        }
-
-        return $wrappers;
     }
 }

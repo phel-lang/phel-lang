@@ -22,23 +22,6 @@ final class ParseTreeZipper extends AbstractZipper
     }
 
     /**
-     * @param NodeInterface $node
-     * @param ?AbstractZipper<NodeInterface> $parent
-     * @param list<NodeInterface> $leftSiblings
-     * @param list<NodeInterface> $rightSiblings
-     */
-    protected function createNewInstance(
-        $node,
-        ?AbstractZipper $parent,
-        array $leftSiblings,
-        array $rightSiblings,
-        bool $hasChanged,
-        bool $isEnd
-    ): self {
-        return new self($node, $parent, $leftSiblings, $rightSiblings, $hasChanged, $isEnd);
-    }
-
-    /**
      * @psalm-assert-if-true InnerNodeInterface $this->node
      */
     public function isBranch(): bool
@@ -90,12 +73,12 @@ final class ParseTreeZipper extends AbstractZipper
         return $this->getNode() instanceof CommentNode;
     }
 
-    public function leftSkipWhitespace(): ParseTreeZipper
+    public function leftSkipWhitespace(): self
     {
         return $this->left()->skipWhitespaceLeft();
     }
 
-    public function skipWhitespaceLeft(): ParseTreeZipper
+    public function skipWhitespaceLeft(): self
     {
         $loc = $this;
         while ($loc->getNode() instanceof TriviaNodeInterface) {
@@ -105,12 +88,12 @@ final class ParseTreeZipper extends AbstractZipper
         return $loc;
     }
 
-    public function rightSkipWhitespace(): ParseTreeZipper
+    public function rightSkipWhitespace(): self
     {
         return $this->right()->skipWhitespaceRight();
     }
 
-    public function skipWhitespaceRight(): ParseTreeZipper
+    public function skipWhitespaceRight(): self
     {
         $loc = $this;
         while ($loc->getNode() instanceof TriviaNodeInterface) {
@@ -120,27 +103,27 @@ final class ParseTreeZipper extends AbstractZipper
         return $loc;
     }
 
-    public function upSkipWhitespace(): ParseTreeZipper
+    public function upSkipWhitespace(): self
     {
         return $this->up()->skipWhitespaceLeft();
     }
 
-    public function downSkipWhitespace(): ParseTreeZipper
+    public function downSkipWhitespace(): self
     {
         return $this->down()->skipWhitespaceRight();
     }
 
-    public function leftMostSkipWhitespace(): ParseTreeZipper
+    public function leftMostSkipWhitespace(): self
     {
         return $this->leftMost()->skipWhitespaceRight();
     }
 
-    public function rightMostSkipWhitespace(): ParseTreeZipper
+    public function rightMostSkipWhitespace(): self
     {
         return $this->rightMost()->skipWhitespaceLeft();
     }
 
-    public function nextSkipWhitespace(): ParseTreeZipper
+    public function nextSkipWhitespace(): self
     {
         $loc = $this->next();
         while (!$loc->isEnd() && $loc->getNode() instanceof TriviaNodeInterface) {
@@ -154,5 +137,22 @@ final class ParseTreeZipper extends AbstractZipper
         }
 
         return $loc;
+    }
+
+    /**
+     * @param NodeInterface $node
+     * @param ?AbstractZipper<NodeInterface> $parent
+     * @param list<NodeInterface> $leftSiblings
+     * @param list<NodeInterface> $rightSiblings
+     */
+    protected function createNewInstance(
+        $node,
+        ?AbstractZipper $parent,
+        array $leftSiblings,
+        array $rightSiblings,
+        bool $hasChanged,
+        bool $isEnd
+    ): self {
+        return new self($node, $parent, $leftSiblings, $rightSiblings, $hasChanged, $isEnd);
     }
 }

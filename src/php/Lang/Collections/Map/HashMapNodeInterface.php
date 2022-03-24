@@ -16,12 +16,12 @@ interface HashMapNodeInterface extends IteratorAggregate
      * @param TKey $key
      * @param TValue $value
      */
-    public function put(int $shift, int $hash, $key, $value, Box $addedLeaf): HashMapNodeInterface;
+    public function put(int $shift, int $hash, $key, $value, Box $addedLeaf): self;
 
     /**
      * @param TKey $key
      */
-    public function remove(int $shift, int $hash, $key): ?HashMapNodeInterface;
+    public function remove(int $shift, int $hash, $key): ?self;
 
     /**
      * @template TDefault

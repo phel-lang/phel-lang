@@ -7,6 +7,7 @@ namespace Phel\Compiler\Parser\ExpressionParser;
 use Phel\Compiler\Lexer\Token;
 use Phel\Compiler\Parser\Exceptions\StringParserException;
 use Phel\Compiler\Parser\ParserNode\StringNode;
+use function chr;
 
 final class StringParser
 {
@@ -41,24 +42,24 @@ final class StringParser
         return preg_replace_callback(
             '~\\\\([\\\\$nrtfve]|[xX][0-9a-fA-F]{1,2}|[0-7]{1,3}|u\{([0-9a-fA-F]+)\})~',
             function (array $matches): string {
-                $str = $matches[1];
+                 $str = $matches[1];
 
-                if (isset(self::STRING_REPLACEMENTS[$str])) {
-                    return self::STRING_REPLACEMENTS[$str];
-                }
+                 if (isset(self::STRING_REPLACEMENTS[$str])) {
+                     return self::STRING_REPLACEMENTS[$str];
+                 }
 
-                if ('x' === $str[0] || 'X' === $str[0]) {
-                    return chr(hexdec(substr($str, 1)));
-                }
+                 if ('x' === $str[0] || 'X' === $str[0]) {
+                     return chr(hexdec(substr($str, 1)));
+                 }
 
-                if ('u' === $str[0]) {
-                    return self::codePointToUtf8(hexdec($matches[2]));
-                }
+                 if ('u' === $str[0]) {
+                     return $this->codePointToUtf8(hexdec($matches[2]));
+                 }
 
-                /** @var int $n */
-                $n = octdec($str);
-                return chr($n);
-            },
+                 /** @var int $n */
+                 $n = octdec($str);
+                 return chr($n);
+             },
             $str
         );
     }

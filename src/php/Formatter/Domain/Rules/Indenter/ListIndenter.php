@@ -32,7 +32,7 @@ final class ListIndenter implements IndenterInterface
         $i = 0;
         foreach ($lefts as $left) {
             if (!$left instanceof TriviaNodeInterface) {
-                $i++;
+                ++$i;
             }
         }
 

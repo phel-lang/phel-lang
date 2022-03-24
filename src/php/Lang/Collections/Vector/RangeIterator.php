@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace Phel\Lang\Collections\Vector;
 
 use Iterator;
+use function assert;
+use function count;
 
 class RangeIterator implements Iterator
 {
@@ -36,7 +38,7 @@ class RangeIterator implements Iterator
 
     public function next(): void
     {
-        $this->currentIndex++;
+        ++$this->currentIndex;
         if ($this->currentIndex < $this->end) {
             if ($this->currentIndex - $this->base === 32) {
                 $this->currentArray = $this->vector->getArrayForIndex($this->currentIndex);

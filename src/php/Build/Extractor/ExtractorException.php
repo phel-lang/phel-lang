@@ -25,6 +25,6 @@ final class ExtractorException extends RuntimeException
 
     public static function duplicateNamespace(string $namespace, string $firstFile, string $secondFile): self
     {
-        return new self("Two files have the same namespace: '$namespace'\n1st) '$firstFile'\n2nd) '$secondFile'");
+        return new self("Two files have the same namespace: '{$namespace}'\n1st) '{$firstFile}'\n2nd) '{$secondFile}'");
     }
 }

@@ -58,16 +58,16 @@ final class ReplCommandSystemIo implements ReplCommandIoInterface
 
     public function write(string $string = ''): void
     {
-        print $string;
+        echo $string;
     }
 
     public function writeln(string $string = ''): void
     {
-        print $string . PHP_EOL;
+        echo $string . PHP_EOL;
     }
 
     public function isBracketedPasteSupported(): bool
     {
-        return \stripos(\readline_info('library_version'), 'editline') === false;
+        return stripos(readline_info('library_version'), 'editline') === false;
     }
 }
