@@ -6,6 +6,7 @@ namespace Phel;
 
 use Gacela\Framework\Config\GacelaConfigBuilder\ConfigBuilder;
 use Gacela\Framework\Gacela;
+use Gacela\Framework\Setup\SetupGacela;
 use Phel\Run\RunFacade;
 
 final class Phel
@@ -15,11 +16,12 @@ final class Phel
      */
     public static function run(string $projectRootDir, string $namespace): void
     {
-        Gacela::bootstrap($projectRootDir, [
-            'config' => static function (ConfigBuilder $configBuilder): void {
+        $setupGacela = (new SetupGacela())
+            ->setConfig(static function (ConfigBuilder $configBuilder): void {
                 $configBuilder->add('phel-config.php', 'phel-config-local.php');
-            },
-        ]);
+            });
+
+        Gacela::bootstrap($projectRootDir, $setupGacela);
 
         $runFacade = new RunFacade();
         $runFacade->runNamespace($namespace);
