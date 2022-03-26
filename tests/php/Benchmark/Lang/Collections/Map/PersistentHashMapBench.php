@@ -20,10 +20,6 @@ final class PersistentHashMapBench
         $this->map = PersistentHashMap::empty(new SimpleHasher(), new SimpleEqualizer());
     }
 
-    /**
-     * @Iterations(5)
-     * @Revs(1000)
-     */
     public function bench_hash_map_put(): void
     {
         $i = random_int(1, PHP_INT_MAX);

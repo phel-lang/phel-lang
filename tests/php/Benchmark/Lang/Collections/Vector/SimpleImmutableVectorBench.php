@@ -35,19 +35,11 @@ final class SimpleImmutableVectorBench
         };
     }
 
-    /**
-     * @Iterations(5)
-     * @Revs(1000)
-     */
     public function bench_append(): void
     {
         $this->vector->append(1);
     }
 
-    /**
-     * @Iterations(5)
-     * @Revs(1000)
-     */
     public function bench_update(): void
     {
         $this->vector->update(0, 'new-value');
