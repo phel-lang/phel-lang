@@ -8,6 +8,7 @@ use Phel\Compiler\Analyzer\Exceptions\AnalyzerException;
 use Phel\Lang\Collections\LinkedList\PersistentListInterface;
 use Phel\Lang\Collections\Vector\PersistentVectorInterface;
 use Phel\Lang\Symbol;
+use function array_slice;
 
 final class FnSymbolTuple
 {
@@ -23,6 +24,11 @@ final class FnSymbolTuple
     private bool $hasVariadicForm = false;
     private string $buildParamsState = self::STATE_START;
 
+    private function __construct(PersistentListInterface $parentList)
+    {
+        $this->parentList = $parentList;
+    }
+
     public static function createWithTuple(PersistentListInterface $list): self
     {
         /** @var PersistentVectorInterface $params */
@@ -37,11 +43,6 @@ final class FnSymbolTuple
         $self->checkAllVariablesStartWithALetterOrUnderscore();
 
         return $self;
-    }
-
-    private function __construct(PersistentListInterface $parentList)
-    {
-        $this->parentList = $parentList;
     }
 
     public function params(): array

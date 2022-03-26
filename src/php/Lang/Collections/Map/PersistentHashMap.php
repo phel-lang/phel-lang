@@ -8,7 +8,9 @@ use EmptyIterator;
 use Phel\Lang\EqualizerInterface;
 use Phel\Lang\HasherInterface;
 use RuntimeException;
+use stdclass;
 use Traversable;
+use function count;
 
 /**
  * @template K
@@ -25,7 +27,7 @@ class PersistentHashMap extends AbstractPersistentMap
     /** @var V */
     private $nullValue;
 
-    /** @var \stdclass|null */
+    /** @var stdclass|null */
     private static $NOT_FOUND;
 
     /**
@@ -58,10 +60,10 @@ class PersistentHashMap extends AbstractPersistentMap
         return $result->persistent();
     }
 
-    public static function getNotFound(): \stdclass
+    public static function getNotFound(): stdclass
     {
         if (!self::$NOT_FOUND) {
-            self::$NOT_FOUND = new \stdclass();
+            self::$NOT_FOUND = new stdclass();
         }
 
         return self::$NOT_FOUND;
@@ -69,7 +71,7 @@ class PersistentHashMap extends AbstractPersistentMap
 
     public function withMeta(?PersistentMapInterface $meta)
     {
-        return new PersistentHashMap($this->hasher, $this->equalizer, $meta, $this->count, $this->root, $this->hasNull, $this->nullValue);
+        return new self($this->hasher, $this->equalizer, $meta, $this->count, $this->root, $this->hasNull, $this->nullValue);
     }
 
     public function contains($key): bool
@@ -85,14 +87,14 @@ class PersistentHashMap extends AbstractPersistentMap
         return $this->root->find(0, $this->hasher->hash($key), $key, self::getNotFound()) !== self::getNotFound();
     }
 
-    public function put($key, $value): PersistentHashMap
+    public function put($key, $value): self
     {
         if ($key === null) {
             if ($this->hasNull && $this->equalizer->equals($value, $this->nullValue)) {
                 return $this;
             }
 
-            return new PersistentHashMap($this->hasher, $this->equalizer, $this->meta, $this->hasNull ? $this->count : $this->count + 1, $this->root, true, $value);
+            return new self($this->hasher, $this->equalizer, $this->meta, $this->hasNull ? $this->count : $this->count + 1, $this->root, true, $value);
         }
 
         $addedLeaf = new Box(false);
@@ -103,13 +105,13 @@ class PersistentHashMap extends AbstractPersistentMap
             return $this;
         }
 
-        return new PersistentHashMap($this->hasher, $this->equalizer, $this->meta, $addedLeaf->getValue() === false ? $this->count : $this->count + 1, $newRoot, $this->hasNull, $this->nullValue);
+        return new self($this->hasher, $this->equalizer, $this->meta, $addedLeaf->getValue() === false ? $this->count : $this->count + 1, $newRoot, $this->hasNull, $this->nullValue);
     }
 
-    public function remove($key): PersistentHashMap
+    public function remove($key): self
     {
         if ($key === null) {
-            return $this->hasNull ? new PersistentHashMap($this->hasher, $this->equalizer, $this->meta, $this->count - 1, $this->root, false, null) : $this;
+            return $this->hasNull ? new self($this->hasher, $this->equalizer, $this->meta, $this->count - 1, $this->root, false, null) : $this;
         }
 
         if ($this->root === null) {
@@ -122,7 +124,7 @@ class PersistentHashMap extends AbstractPersistentMap
             return $this;
         }
 
-        return new PersistentHashMap($this->hasher, $this->equalizer, $this->meta, $this->count - 1, $newRoot, $this->hasNull, $this->nullValue);
+        return new self($this->hasher, $this->equalizer, $this->meta, $this->count - 1, $newRoot, $this->hasNull, $this->nullValue);
     }
 
     public function find($key)

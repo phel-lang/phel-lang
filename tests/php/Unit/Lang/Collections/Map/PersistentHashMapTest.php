@@ -26,7 +26,7 @@ class PersistentHashMapTest extends TestCase
         $h = PersistentHashMap::empty(new ModuloHasher(), new SimpleEqualizer());
         $h2 = $h->put(null, 'test');
 
-        self::assertEquals(null, $h->find(null));
+        self::assertNull($h->find(null));
         self::assertEquals(0, $h->count());
         self::assertFalse($h->contains(null));
         self::assertEquals('test', $h2->find(null));

@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Phel\Lang\Collections\LinkedList;
 
 use EmptyIterator;
+use Exception;
 use Phel\Lang\AbstractType;
 use Phel\Lang\Collections\Exceptions\IndexOutOfBoundsException;
 use Phel\Lang\Collections\Map\PersistentMapInterface;
@@ -38,7 +39,7 @@ class EmptyList extends AbstractType implements PersistentListInterface
 
     public function withMeta(?PersistentMapInterface $meta)
     {
-        return new EmptyList($this->hasher, $this->equalizer, $meta);
+        return new self($this->hasher, $this->equalizer, $meta);
     }
 
     /**
@@ -73,7 +74,7 @@ class EmptyList extends AbstractType implements PersistentListInterface
 
     public function equals($other): bool
     {
-        return $other instanceof EmptyList;
+        return $other instanceof self;
     }
 
     public function hash(): int
@@ -151,12 +152,12 @@ class EmptyList extends AbstractType implements PersistentListInterface
 
     public function offsetSet($offset, $value): void
     {
-        throw new \Exception('offsetSet not supported on lists');
+        throw new Exception('offsetSet not supported on lists');
     }
 
     public function offsetUnset($offset): void
     {
-        throw new \Exception('offsetUnset not supported on lists');
+        throw new Exception('offsetUnset not supported on lists');
     }
 
     public function contains($key): bool

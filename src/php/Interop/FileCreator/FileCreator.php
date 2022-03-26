@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Phel\Interop\FileCreator;
 
 use Phel\Interop\ReadModel\Wrapper;
+use function dirname;
 
 final class FileCreator implements FileCreatorInterface
 {

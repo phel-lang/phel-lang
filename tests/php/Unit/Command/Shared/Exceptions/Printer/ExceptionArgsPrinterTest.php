@@ -8,6 +8,7 @@ use Generator;
 use Phel\Command\Shared\Exceptions\ExceptionArgsPrinter;
 use Phel\Printer\PrinterInterface;
 use PHPUnit\Framework\TestCase;
+use stdClass;
 
 final class ExceptionArgsPrinterTest extends TestCase
 {
@@ -56,7 +57,7 @@ final class ExceptionArgsPrinterTest extends TestCase
         ];
 
         yield 'object' => [
-            'args' => [new \stdClass()],
+            'args' => [new stdClass()],
             'expected' => 'Object(stdClass)',
         ];
 
@@ -75,7 +76,7 @@ final class ExceptionArgsPrinterTest extends TestCase
     private function stubPrinter(): PrinterInterface
     {
         $printer = $this->createMock(PrinterInterface::class);
-        $printer->method('print')->willReturnCallback(fn ($arg) => $arg);
+        $printer->method('print')->willReturnCallback(static fn ($arg) => $arg);
 
         return $printer;
     }

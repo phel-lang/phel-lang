@@ -10,6 +10,7 @@ use Phel\Lang\Collections\Map\PersistentMapInterface;
 use Phel\Lang\EqualizerInterface;
 use Phel\Lang\HasherInterface;
 use Traversable;
+use function array_slice;
 
 /**
  * @template T
@@ -40,7 +41,7 @@ class SubVector extends AbstractPersistentVector
     public function cdr()
     {
         if ($this->start + 1 < $this->end) {
-            return new SubVector($this->hasher, $this->equalizer, $this->meta, $this->vector, $this->start + 1, $this->end);
+            return new self($this->hasher, $this->equalizer, $this->meta, $this->vector, $this->start + 1, $this->end);
         }
 
         return null;
@@ -56,7 +57,7 @@ class SubVector extends AbstractPersistentVector
 
     public function withMeta(?PersistentMapInterface $meta)
     {
-        return new SubVector($this->hasher, $this->equalizer, $meta, $this->vector, $this->start, $this->end);
+        return new self($this->hasher, $this->equalizer, $meta, $this->vector, $this->start, $this->end);
     }
 
     /**
@@ -77,7 +78,7 @@ class SubVector extends AbstractPersistentVector
      */
     public function append($value): PersistentVectorInterface
     {
-        return new SubVector($this->hasher, $this->equalizer, $this->meta, $this->vector->update($this->end, $value), $this->start, $this->end + 1);
+        return new self($this->hasher, $this->equalizer, $this->meta, $this->vector->update($this->end, $value), $this->start, $this->end + 1);
     }
 
     /**
@@ -87,14 +88,14 @@ class SubVector extends AbstractPersistentVector
     {
         if ($this->start + $i > $this->end) {
             $count = $this->count();
-            throw new IndexOutOfBoundsException("Cannot update index $i. Length of vector is $count");
+            throw new IndexOutOfBoundsException("Cannot update index {$i}. Length of vector is {$count}");
         }
 
         if ($this->start + $i === $this->end) {
             return $this->append($value);
         }
 
-        return new SubVector($this->hasher, $this->equalizer, $this->meta, $this->vector->update($this->start + $i, $value), $this->start, $this->end);
+        return new self($this->hasher, $this->equalizer, $this->meta, $this->vector->update($this->start + $i, $value), $this->start, $this->end);
     }
 
     /**
@@ -106,7 +107,7 @@ class SubVector extends AbstractPersistentVector
             return $this->vector->get($i + $this->start);
         }
 
-        throw new IndexOutOfBoundsException("Cannot access value at index $i.");
+        throw new IndexOutOfBoundsException("Cannot access value at index {$i}.");
     }
 
     public function pop(): PersistentVectorInterface
@@ -115,12 +116,12 @@ class SubVector extends AbstractPersistentVector
             return PersistentVector::empty($this->hasher, $this->equalizer);
         }
 
-        return new SubVector($this->hasher, $this->equalizer, $this->meta, $this->vector, $this->start, $this->end - 1);
+        return new self($this->hasher, $this->equalizer, $this->meta, $this->vector, $this->start, $this->end - 1);
     }
 
     public function sliceNormalized(int $start, int $end): PersistentVectorInterface
     {
-        return new SubVector($this->hasher, $this->equalizer, $this->meta, $this->vector, $this->start + $start, $this->start + $end);
+        return new self($this->hasher, $this->equalizer, $this->meta, $this->vector, $this->start + $start, $this->start + $end);
     }
 
     public function asTransient(): void

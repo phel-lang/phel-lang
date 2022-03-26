@@ -8,6 +8,8 @@ use Phel\Compiler\Analyzer\Ast\AbstractNode;
 use Phel\Compiler\Analyzer\Ast\DoNode;
 use Phel\Compiler\Analyzer\Environment\NodeEnvironmentInterface;
 use Phel\Compiler\Emitter\OutputEmitter\NodeEmitterInterface;
+use function assert;
+use function count;
 
 final class DoEmitter implements NodeEmitterInterface
 {

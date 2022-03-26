@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace Phel\Compiler\Analyzer\Ast;
 
 use Phel\Lang\Symbol;
+use function array_slice;
+use function count;
 
 final class DefInterfaceMethod
 {

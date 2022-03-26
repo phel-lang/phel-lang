@@ -17,6 +17,11 @@ use Phel\Lang\Keyword;
 use Phel\Lang\Symbol;
 use Phel\Lang\TypeFactory;
 use Phel\Lang\TypeInterface;
+use function assert;
+use function count;
+use function in_array;
+use function is_scalar;
+use function is_string;
 
 final class DefSymbol implements SpecialFormAnalyzerInterface
 {

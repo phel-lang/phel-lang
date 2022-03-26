@@ -4,6 +4,10 @@ declare(strict_types=1);
 
 namespace Phel\Run\Domain\Repl;
 
+use function is_bool;
+use function is_null;
+use function is_string;
+
 final class InputResult
 {
     private const NO_VALUE = 'no_value';
@@ -11,6 +15,14 @@ final class InputResult
 
     /** @var ?mixed */
     private $lastResult;
+
+    /**
+     * @param ?mixed $result
+     */
+    private function __construct($result)
+    {
+        $this->lastResult = $result;
+    }
 
     /**
      * @param ?mixed $result
@@ -25,19 +37,11 @@ final class InputResult
         return new self(self::NO_VALUE);
     }
 
-    /**
-     * @param ?mixed $result
-     */
-    private function __construct($result)
-    {
-        $this->lastResult = $result;
-    }
-
     public function readBuffer(array $buffer): string
     {
         $fullInput = implode(PHP_EOL, $buffer);
 
-        if (self::NO_VALUE === $this->lastResult
+        if ($this->lastResult === self::NO_VALUE
             || !str_contains($fullInput, self::LAST_RESULT_PLACEHOLDER)
         ) {
             return $fullInput;

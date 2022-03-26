@@ -41,7 +41,7 @@ interface OutputEmitterInterface
         ?SourceLocation $loc = null,
         bool $asReference = false,
         bool $isVariadic = false
-    ): void ;
+    ): void;
 
     public function mungeEncode(string $str): string;
 

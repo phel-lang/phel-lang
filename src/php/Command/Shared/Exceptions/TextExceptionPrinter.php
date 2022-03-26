@@ -13,6 +13,8 @@ use Phel\Lang\SourceLocation;
 use Phel\Run\Domain\Repl\ColorStyleInterface;
 use ReflectionClass;
 use Throwable;
+use function get_class;
+use function strlen;
 
 final class TextExceptionPrinter implements ExceptionPrinterInterface
 {
@@ -92,8 +94,8 @@ final class TextExceptionPrinter implements ExceptionPrinterInterface
         $errorLine = $e->getLine();
         $pos = $this->filePositionExtractor->getOriginal($errorFile, $errorLine);
 
-        $str .= $this->style->blue("$type: $msg" . PHP_EOL);
-        $str .= "in {$pos->filename()}:{$pos->line()} (gen: $errorFile:$errorLine)" . PHP_EOL . PHP_EOL;
+        $str .= $this->style->blue("{$type}: {$msg}" . PHP_EOL);
+        $str .= "in {$pos->filename()}:{$pos->line()} (gen: {$errorFile}:{$errorLine})" . PHP_EOL . PHP_EOL;
 
         foreach ($e->getTrace() as $i => $frame) {
             $class = $frame['class'] ?? null;
@@ -107,7 +109,7 @@ final class TextExceptionPrinter implements ExceptionPrinterInterface
                     $fnName = $boundTo !== false ? $this->munge->decodeNs($boundTo) : '__invoke';
                     $argString = $this->exceptionArgsPrinter->parseArgsAsString($frame['args'] ?? []);
                     $pos = $this->filePositionExtractor->getOriginal($file, $line);
-                    $str .= "#$i {$pos->filename()}:{$pos->line()} (gen: $file:$line) : ($fnName$argString)" . PHP_EOL;
+                    $str .= "#{$i} {$pos->filename()}:{$pos->line()} (gen: {$file}:{$line}) : ({$fnName}{$argString})" . PHP_EOL;
 
                     continue;
                 }
@@ -117,7 +119,7 @@ final class TextExceptionPrinter implements ExceptionPrinterInterface
             $type = $frame['type'] ?? '';
             $fn = $frame['function'];
             $argString = $this->exceptionArgsPrinter->buildPhpArgsString($frame['args'] ?? []);
-            $str .= "#$i $file($line): $class$type$fn($argString)" . PHP_EOL;
+            $str .= "#{$i} {$file}({$line}): {$class}{$type}{$fn}({$argString})" . PHP_EOL;
         }
 
         return $str;

@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Phel\Lang\Collections\Map;
 
 use Iterator;
+use function count;
 
 /**
  * @template K
@@ -82,7 +83,7 @@ class IndexedNodeIterator implements Iterator
 
     private function nextIndex(): void
     {
-        $this->index++;
+        ++$this->index;
         if ($this->index < count($this->entries) && $this->entries[$this->index][0] === null) {
             $this->initializeNestedIterator($this->index);
         } else {

@@ -5,16 +5,16 @@ declare(strict_types=1);
 namespace Phel\Compiler\Emitter\OutputEmitter\SourceMap;
 
 use Exception;
+use function strlen;
 
 final class VLQ
 {
+    private const CHARS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/=';
     /** @var array<int, string> */
     private array $integerToChar = [];
 
     /** @var array<string, int> */
     private array $charToInteger = [];
-
-    private const CHARS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/=';
 
     /**
      * Cache with precomputed values.
@@ -47,7 +47,7 @@ final class VLQ
     public function __construct()
     {
         $charLength = strlen(self::CHARS);
-        for ($i = 0; $i < $charLength; $i++) {
+        for ($i = 0; $i < $charLength; ++$i) {
             $c = self::CHARS[$i];
             $this->integerToChar[$i] = $c;
             $this->charToInteger[$c] = $i;
@@ -68,7 +68,7 @@ final class VLQ
         $value = 0;
         $strlen = strlen($string);
 
-        for ($i = 0; $i < $strlen; $i++) {
+        for ($i = 0; $i < $strlen; ++$i) {
             $char = $string[$i];
             if (!isset($this->charToInteger[$char])) {
                 throw new Exception('Invalid character: ' . $char);

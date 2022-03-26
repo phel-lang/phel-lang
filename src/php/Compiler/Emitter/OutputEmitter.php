@@ -15,6 +15,10 @@ use Phel\Lang\SourceLocation;
 use Phel\Lang\Symbol;
 use Phel\Lang\TypeInterface;
 use Phel\Printer\PrinterInterface;
+use function count;
+use function get_class;
+use function is_null;
+use function strlen;
 
 final class OutputEmitter implements OutputEmitterInterface
 {
@@ -71,7 +75,7 @@ final class OutputEmitter implements OutputEmitterInterface
 
     public function emitLine(string $str = '', ?SourceLocation $sl = null): void
     {
-        if ('' !== $str) {
+        if ($str !== '') {
             $this->emitStr($str, $sl);
         }
 
@@ -201,11 +205,11 @@ final class OutputEmitter implements OutputEmitterInterface
 
     public function increaseIndentLevel(): void
     {
-        $this->indentLevel++;
+        ++$this->indentLevel;
     }
 
     public function decreaseIndentLevel(): void
     {
-        $this->indentLevel--;
+        --$this->indentLevel;
     }
 }

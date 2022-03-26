@@ -6,6 +6,7 @@ namespace PhelTest\Unit\Formatter\Domain\Rules\Zipper;
 
 use Phel\Formatter\Domain\Rules\Zipper\AbstractZipper;
 use Phel\Formatter\Domain\Rules\Zipper\ZipperException;
+use function is_array;
 
 /**
  * @extends AbstractZipper<list<int>>
@@ -18,25 +19,6 @@ final class ArrayZipper extends AbstractZipper
     public static function createRoot(array $root): self
     {
         return new self($root, null, [], [], false, false);
-    }
-
-    /**
-     * @param list<int|list<int>> $node
-     * @param ?AbstractZipper<list<int>> $parent
-     * @param list<int|list<int>> $leftSiblings
-     * @param list<int|list<int>> $rightSiblings
-     *
-     * @return static
-     */
-    protected function createNewInstance(
-        $node,
-        ?AbstractZipper $parent,
-        array $leftSiblings,
-        array $rightSiblings,
-        bool $hasChanged,
-        bool $isEnd
-    ) {
-        return new self($node, $parent, $leftSiblings, $rightSiblings, $hasChanged, $isEnd);
     }
 
     public function isBranch(): bool
@@ -67,5 +49,24 @@ final class ArrayZipper extends AbstractZipper
     public function makeNode($node, $children): array
     {
         return $children;
+    }
+
+    /**
+     * @param list<int|list<int>> $node
+     * @param ?AbstractZipper<list<int>> $parent
+     * @param list<int|list<int>> $leftSiblings
+     * @param list<int|list<int>> $rightSiblings
+     *
+     * @return static
+     */
+    protected function createNewInstance(
+        $node,
+        ?AbstractZipper $parent,
+        array $leftSiblings,
+        array $rightSiblings,
+        bool $hasChanged,
+        bool $isEnd
+    ) {
+        return new self($node, $parent, $leftSiblings, $rightSiblings, $hasChanged, $isEnd);
     }
 }

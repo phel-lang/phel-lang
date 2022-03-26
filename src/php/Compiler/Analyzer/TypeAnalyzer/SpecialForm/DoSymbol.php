@@ -10,6 +10,8 @@ use Phel\Compiler\Analyzer\Exceptions\AnalyzerException;
 use Phel\Compiler\Analyzer\TypeAnalyzer\WithAnalyzerTrait;
 use Phel\Lang\Collections\LinkedList\PersistentListInterface;
 use Phel\Lang\Symbol;
+use function array_slice;
+use function count;
 
 final class DoSymbol implements SpecialFormAnalyzerInterface
 {

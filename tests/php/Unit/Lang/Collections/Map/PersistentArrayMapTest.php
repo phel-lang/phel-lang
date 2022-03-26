@@ -34,7 +34,7 @@ class PersistentArrayMapTest extends TestCase
         $h = PersistentArrayMap::empty(new ModuloHasher(), new SimpleEqualizer());
         $h2 = $h->put(null, 'test');
 
-        self::assertEquals(null, $h->find(null));
+        self::assertNull($h->find(null));
         self::assertEquals(0, $h->count());
         self::assertFalse($h->contains(null));
         self::assertEquals('test', $h2->find(null));
@@ -103,7 +103,7 @@ class PersistentArrayMapTest extends TestCase
     public function test_convert_to_persistent_hash_map(): void
     {
         $h = PersistentArrayMap::empty(new ModuloHasher(), new SimpleEqualizer());
-        for ($i = 0; $i < PersistentArrayMap::MAX_SIZE + 1; $i++) {
+        for ($i = 0; $i < PersistentArrayMap::MAX_SIZE + 1; ++$i) {
             $h = $h->put($i, 'foo');
         }
 

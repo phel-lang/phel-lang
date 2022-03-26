@@ -106,7 +106,7 @@ final class AtomParser
             $alias = $matches['namespace'];
             $namespace = $this->globalEnvironment->resolveAlias($alias);
             if (!$namespace) {
-                throw new KeywordParserException("Can not resolve alias '$alias' in keyword: $word");
+                throw new KeywordParserException("Can not resolve alias '{$alias}' in keyword: {$word}");
             }
         } elseif ($isDualColon) {
             // Second case is a dual colon without a namespace alias

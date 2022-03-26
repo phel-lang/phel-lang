@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Phel\Compiler\Emitter\OutputEmitter\SourceMap;
 
+use function count;
+
 final class SourceMapGenerator
 {
     private VLQ $vlq;
@@ -22,7 +24,7 @@ final class SourceMapGenerator
         $result = '';
 
         $totalMappings = count($mappings);
-        for ($i = 0; $i < $totalMappings; $i++) {
+        for ($i = 0; $i < $totalMappings; ++$i) {
             $mapping = $mappings[$i];
 
             if ($mapping['generated']['line'] !== $previousGeneratedLine) {

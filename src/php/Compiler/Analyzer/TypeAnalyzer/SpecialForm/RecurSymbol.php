@@ -10,6 +10,7 @@ use Phel\Compiler\Analyzer\Exceptions\AnalyzerException;
 use Phel\Compiler\Analyzer\TypeAnalyzer\WithAnalyzerTrait;
 use Phel\Lang\Collections\LinkedList\PersistentListInterface;
 use Phel\Lang\Symbol;
+use function count;
 
 final class RecurSymbol implements SpecialFormAnalyzerInterface
 {
@@ -46,12 +47,6 @@ final class RecurSymbol implements SpecialFormAnalyzerInterface
         );
     }
 
-    private function isValidRecurTuple(PersistentListInterface $list): bool
-    {
-        return $list->get(0) instanceof Symbol
-            && $list->get(0)->getName() === Symbol::NAME_RECUR;
-    }
-
     public function expressions(PersistentListInterface $list, NodeEnvironmentInterface $env): array
     {
         $expressions = [];
@@ -63,5 +58,11 @@ final class RecurSymbol implements SpecialFormAnalyzerInterface
         }
 
         return $expressions;
+    }
+
+    private function isValidRecurTuple(PersistentListInterface $list): bool
+    {
+        return $list->get(0) instanceof Symbol
+            && $list->get(0)->getName() === Symbol::NAME_RECUR;
     }
 }

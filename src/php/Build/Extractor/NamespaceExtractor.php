@@ -58,7 +58,7 @@ final class NamespaceExtractor implements NamespaceExtractorInterface
                     realpath($path),
                     $node->getNamespace(),
                     array_map(
-                        fn (Symbol $s) => $s->getFullName(),
+                        static fn (Symbol $s) => $s->getFullName(),
                         $node->getRequireNs()
                     )
                 );
@@ -141,7 +141,7 @@ final class NamespaceExtractor implements NamespaceExtractorInterface
     {
         $realpath = realpath($directory);
         if (!$realpath) {
-            throw new RuntimeException("Directory '$directory' not found");
+            throw new RuntimeException("Directory '{$directory}' not found");
         }
         $iterator = new RecursiveIteratorIterator(new RecursiveDirectoryIterator($realpath));
         $phelIterator = new RegexIterator($iterator, '/^.+\.phel$/i', RecursiveRegexIterator::GET_MATCH);

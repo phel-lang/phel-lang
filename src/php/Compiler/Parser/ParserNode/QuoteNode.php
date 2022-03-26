@@ -6,6 +6,7 @@ namespace Phel\Compiler\Parser\ParserNode;
 
 use Phel\Compiler\Lexer\Token;
 use Phel\Lang\SourceLocation;
+use RuntimeException;
 
 final class QuoteNode implements InnerNodeInterface
 {
@@ -61,7 +62,7 @@ final class QuoteNode implements InnerNodeInterface
             case Token::T_QUASIQUOTE:
                 return '`';
             default:
-                throw new \RuntimeException('Cannot find code prefix for token type: ' . $this->tokenType);
+                throw new RuntimeException('Cannot find code prefix for token type: ' . $this->tokenType);
         }
     }
 

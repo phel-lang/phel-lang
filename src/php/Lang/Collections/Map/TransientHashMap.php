@@ -7,6 +7,7 @@ namespace Phel\Lang\Collections\Map;
 use Phel\Lang\Collections\Exceptions\MethodNotSupportedException;
 use Phel\Lang\EqualizerInterface;
 use Phel\Lang\HasherInterface;
+use stdclass;
 
 /**
  * @template K
@@ -25,7 +26,7 @@ class TransientHashMap implements TransientMapInterface
     /** @var ?V */
     private $nullValue;
 
-    /** @var \stdclass|null */
+    /** @var stdclass|null */
     private static $NOT_FOUND;
 
     /**
@@ -41,15 +42,15 @@ class TransientHashMap implements TransientMapInterface
         $this->nullValue = $nullValue;
     }
 
-    public static function empty(HasherInterface $hasher, EqualizerInterface $equalizer): TransientHashMap
+    public static function empty(HasherInterface $hasher, EqualizerInterface $equalizer): self
     {
         return new self($hasher, $equalizer, 0, null, false, null);
     }
 
-    public static function getNotFound(): \stdclass
+    public static function getNotFound(): stdclass
     {
         if (!self::$NOT_FOUND) {
-            self::$NOT_FOUND = new \stdclass();
+            self::$NOT_FOUND = new stdclass();
         }
 
         return self::$NOT_FOUND;
@@ -76,7 +77,7 @@ class TransientHashMap implements TransientMapInterface
             }
 
             if (!$this->hasNull) {
-                $this->count++;
+                ++$this->count;
                 $this->hasNull = true;
             }
 
@@ -92,7 +93,7 @@ class TransientHashMap implements TransientMapInterface
         }
 
         if ($addedLeaf->getValue() === true) {
-            $this->count++;
+            ++$this->count;
         }
 
         return $this;
@@ -107,7 +108,7 @@ class TransientHashMap implements TransientMapInterface
 
             $this->hasNull = false;
             $this->nullValue = null;
-            $this->count--;
+            --$this->count;
 
             return $this;
         }
@@ -120,7 +121,7 @@ class TransientHashMap implements TransientMapInterface
 
         if ($newRoot != $this->root) {
             $this->root = $newRoot;
-            $this->count--;
+            --$this->count;
         }
 
         return $this;

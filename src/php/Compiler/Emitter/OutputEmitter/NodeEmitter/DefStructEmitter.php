@@ -11,6 +11,8 @@ use Phel\Compiler\Emitter\OutputEmitter\NodeEmitterInterface;
 use Phel\Compiler\Emitter\OutputEmitterInterface;
 use Phel\Lang\Keyword;
 use Phel\Lang\Symbol;
+use function assert;
+use function count;
 
 final class DefStructEmitter implements NodeEmitterInterface
 {

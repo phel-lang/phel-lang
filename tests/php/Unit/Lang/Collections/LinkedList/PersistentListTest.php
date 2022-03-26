@@ -18,7 +18,7 @@ final class PersistentListTest extends TestCase
     {
         $list = PersistentList::empty(new ModuloHasher(), new SimpleEqualizer())->cons('foo');
 
-        $this->assertTrue($list instanceof PersistentList);
+        $this->assertInstanceOf(PersistentList::class, $list);
         $this->assertEquals(1, $list->count());
         $this->assertEquals('foo', $list->get(0));
     }
@@ -29,7 +29,7 @@ final class PersistentListTest extends TestCase
             ->cons('foo')
             ->cons('bar');
 
-        $this->assertTrue($list instanceof PersistentList);
+        $this->assertInstanceOf(PersistentList::class, $list);
         $this->assertEquals(2, $list->count());
         $this->assertEquals('bar', $list->get(0));
         $this->assertEquals('foo', $list->get(1));
@@ -40,7 +40,7 @@ final class PersistentListTest extends TestCase
         $list = PersistentList::fromArray(new ModuloHasher(), new SimpleEqualizer(), []);
 
         $this->assertEquals(0, $list->count());
-        $this->assertTrue($list instanceof EmptyList);
+        $this->assertInstanceOf(EmptyList::class, $list);
     }
 
     public function test_from_array(): void
@@ -181,7 +181,7 @@ final class PersistentListTest extends TestCase
         $list = PersistentList::fromArray(new ModuloHasher(), new SimpleEqualizer(), ['foo', 'bar']);
         $listWithMeta = $list->withMeta($meta);
 
-        $this->assertEquals(null, $list->getMeta());
+        $this->assertNull($list->getMeta());
         $this->assertEquals($meta, $listWithMeta->getMeta());
     }
 

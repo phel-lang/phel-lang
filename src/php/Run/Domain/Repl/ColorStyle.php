@@ -18,6 +18,11 @@ final class ColorStyle implements ColorStyleInterface
 
     private array $styles;
 
+    private function __construct(array $styles)
+    {
+        $this->styles = $styles;
+    }
+
     public static function withStyles(array $styles = []): self
     {
         return new self(array_merge(self::DEFAULT_STYLES, $styles));
@@ -26,11 +31,6 @@ final class ColorStyle implements ColorStyleInterface
     public static function noStyles(): self
     {
         return new self([]);
-    }
-
-    private function __construct(array $styles)
-    {
-        $this->styles = $styles;
     }
 
     public function green(string $str): string

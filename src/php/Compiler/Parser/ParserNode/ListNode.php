@@ -6,6 +6,7 @@ namespace Phel\Compiler\Parser\ParserNode;
 
 use Phel\Compiler\Lexer\Token;
 use Phel\Lang\SourceLocation;
+use RuntimeException;
 
 final class ListNode implements InnerNodeInterface
 {
@@ -67,7 +68,7 @@ final class ListNode implements InnerNodeInterface
             case Token::T_OPEN_BRACE:
                 return '{';
             default:
-                throw new \RuntimeException('Cannot find code prefix for token type: ' . $this->tokenType);
+                throw new RuntimeException('Cannot find code prefix for token type: ' . $this->tokenType);
         }
     }
 
@@ -82,7 +83,7 @@ final class ListNode implements InnerNodeInterface
             case Token::T_OPEN_BRACE:
                 return '}';
             default:
-                throw new \RuntimeException('Cannot find code prefix for token type: ' . $this->tokenType);
+                throw new RuntimeException('Cannot find code prefix for token type: ' . $this->tokenType);
         }
     }
 

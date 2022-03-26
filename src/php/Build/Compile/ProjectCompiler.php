@@ -6,6 +6,7 @@ namespace Phel\Build\Compile;
 
 use Phel\Build\Extractor\NamespaceExtractorInterface;
 use Phel\Compiler\CompilerFacadeInterface;
+use function dirname;
 
 final class ProjectCompiler
 {

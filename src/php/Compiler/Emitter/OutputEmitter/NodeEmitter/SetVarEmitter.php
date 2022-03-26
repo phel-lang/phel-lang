@@ -8,6 +8,7 @@ use Phel\Compiler\Analyzer\Ast\AbstractNode;
 use Phel\Compiler\Analyzer\Ast\GlobalVarNode;
 use Phel\Compiler\Analyzer\Ast\SetVarNode;
 use Phel\Compiler\Emitter\OutputEmitter\NodeEmitterInterface;
+use function assert;
 
 final class SetVarEmitter implements NodeEmitterInterface
 {

@@ -8,6 +8,7 @@ use Phel\Compiler\Analyzer\Ast\AbstractNode;
 use Phel\Compiler\Analyzer\Ast\CallNode;
 use Phel\Compiler\Analyzer\Ast\PhpVarNode;
 use Phel\Compiler\Emitter\OutputEmitter\NodeEmitterInterface;
+use function assert;
 
 final class CallEmitter implements NodeEmitterInterface
 {

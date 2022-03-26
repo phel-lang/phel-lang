@@ -11,7 +11,7 @@ final class AnonymousClassPrinterTest extends TestCase
 {
     public function test_print(): void
     {
-        $class = new class () {
+        $class = new class() {
         };
 
         self::assertSame(

@@ -179,10 +179,10 @@ abstract class AbstractPersistentVector extends AbstractType implements Persiste
         return $this->sliceNormalized($start, $end);
     }
 
-    abstract protected function sliceNormalized(int $start, int $end): PersistentVectorInterface;
-
     public function contains($key): bool
     {
         return $this->offsetExists($key);
     }
+
+    abstract protected function sliceNormalized(int $start, int $end): PersistentVectorInterface;
 }

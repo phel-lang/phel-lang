@@ -15,6 +15,8 @@ use Phel\Lang\Keyword;
 use Phel\Lang\TypeFactory;
 use Phel\Printer\Printer;
 use Traversable;
+use function count;
+use function in_array;
 
 /**
  * @template V
@@ -101,6 +103,14 @@ abstract class AbstractPersistentStruct extends AbstractPersistentMap
         return parent::equals($other);
     }
 
+    public function getAllowedKeys(): array
+    {
+        return array_map(
+            static fn (string $k): Keyword => TypeFactory::getInstance()->keyword($k),
+            static::ALLOWED_KEYS
+        );
+    }
+
     /**
      * @param Keyword $key
      */
@@ -112,14 +122,6 @@ abstract class AbstractPersistentStruct extends AbstractPersistentMap
 
         $keyName = Printer::nonReadable()->print($key);
         $structName = static::class;
-        throw new InvalidArgumentException("This key '$keyName' is not allowed for struct $structName");
-    }
-
-    public function getAllowedKeys(): array
-    {
-        return array_map(
-            fn (string $k): Keyword => TypeFactory::getInstance()->keyword($k),
-            static::ALLOWED_KEYS
-        );
+        throw new InvalidArgumentException("This key '{$keyName}' is not allowed for struct {$structName}");
     }
 }

@@ -36,7 +36,7 @@ class IndexedNodeTest extends TestCase
         $hasher = new ModuloHasher();
         $node = IndexedNode::empty($hasher, new SimpleEqualizer());
 
-        for ($i = 0; $i <= 16; $i++) {
+        for ($i = 0; $i <= 16; ++$i) {
             $node = $node->put(0, $hasher->hash($i), $i, 'test' . $i, new Box(null));
         }
 

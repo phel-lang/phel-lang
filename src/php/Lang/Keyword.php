@@ -29,16 +29,6 @@ final class Keyword extends AbstractType implements IdenticalInterface, FnInterf
         }
     }
 
-    public static function create(string $name): Keyword
-    {
-        return new Keyword(null, $name);
-    }
-
-    public static function createForNamespace(string $namespace, string $name): Keyword
-    {
-        return new Keyword($namespace, $name);
-    }
-
     /**
      * @param PersistentMapInterface $obj
      * @param TypeInterface|string|float|int|bool|null $default
@@ -46,6 +36,21 @@ final class Keyword extends AbstractType implements IdenticalInterface, FnInterf
     public function __invoke($obj, $default = null)
     {
         return $obj[$this] ?? $default;
+    }
+
+    public function __toString(): string
+    {
+        return Printer::readable()->print($this);
+    }
+
+    public static function create(string $name): self
+    {
+        return new self(null, $name);
+    }
+
+    public static function createForNamespace(string $namespace, string $name): self
+    {
+        return new self($namespace, $name);
     }
 
     public function getName(): string
@@ -82,10 +87,5 @@ final class Keyword extends AbstractType implements IdenticalInterface, FnInterf
         return $other instanceof self
             && $this->name == $other->getName()
             && $this->namespace == $other->getNamespace();
-    }
-
-    public function __toString(): string
-    {
-        return Printer::readable()->print($this);
     }
 }

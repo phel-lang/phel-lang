@@ -22,14 +22,14 @@ final class FormatterDependencyProvider extends AbstractDependencyProvider
 
     private function addFacadeCompiler(Container $container): void
     {
-        $container->set(self::FACADE_COMPILER, function (Container $container) {
+        $container->set(self::FACADE_COMPILER, static function (Container $container) {
             return $container->getLocator()->get(CompilerFacade::class);
         });
     }
 
     private function addFacadeCommand(Container $container): void
     {
-        $container->set(self::FACADE_COMMAND, function (Container $container) {
+        $container->set(self::FACADE_COMMAND, static function (Container $container) {
             return $container->getLocator()->get(CommandFacade::class);
         });
     }

@@ -9,6 +9,7 @@ use Phel\Compiler\Analyzer\Environment\NodeEnvironmentInterface;
 use Phel\Compiler\Analyzer\Exceptions\AnalyzerException;
 use Phel\Lang\Collections\LinkedList\PersistentListInterface;
 use Phel\Lang\Symbol;
+use function count;
 
 final class QuoteSymbol implements SpecialFormAnalyzerInterface
 {

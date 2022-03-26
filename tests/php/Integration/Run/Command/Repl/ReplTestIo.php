@@ -9,6 +9,8 @@ use Phel\Compiler\Exceptions\AbstractLocatedException;
 use Phel\Compiler\Parser\ReadModel\CodeSnippet;
 use Phel\Run\Domain\Repl\ReplCommandIoInterface;
 use Throwable;
+use function array_slice;
+use function count;
 
 final class ReplTestIo implements ReplCommandIoInterface
 {
@@ -41,7 +43,7 @@ final class ReplTestIo implements ReplCommandIoInterface
         if ($this->currentIndex < count($this->inputs)) {
             $inputLine = $this->inputs[$this->currentIndex];
             $this->writeln($inputLine->__toString() . PHP_EOL);
-            $this->currentIndex++;
+            ++$this->currentIndex;
 
             if ($inputLine->isCtrlD()) {
                 return null;

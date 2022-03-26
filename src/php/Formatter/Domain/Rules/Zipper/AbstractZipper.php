@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Phel\Formatter\Domain\Rules\Zipper;
 
+use function count;
+
 /**
  * @template T
  *
@@ -30,7 +32,7 @@ abstract class AbstractZipper
      */
     final public function __construct(
         $node,
-        ?AbstractZipper $parent,
+        ?self $parent,
         array $leftSiblings,
         array $rightSiblings,
         bool $hasChanged,
@@ -43,23 +45,6 @@ abstract class AbstractZipper
         $this->hasChanged = $hasChanged;
         $this->isEnd = $isEnd;
     }
-
-    /**
-     * @param T $node
-     * @param ?AbstractZipper<T> $parent
-     * @param list<T> $leftSiblings
-     * @param list<T> $rightSiblings
-     *
-     * @return static
-     */
-    abstract protected function createNewInstance(
-        $node,
-        ?AbstractZipper $parent,
-        array $leftSiblings,
-        array $rightSiblings,
-        bool $hasChanged,
-        bool $isEnd
-    );
 
     /**
      * @return list<T>
@@ -81,7 +66,7 @@ abstract class AbstractZipper
      *
      * @return static<T>
      */
-    public function left(): AbstractZipper
+    public function left(): self
     {
         if ($this->isTop()) {
             throw ZipperException::cannotGoLeftOnRootNode();
@@ -106,7 +91,7 @@ abstract class AbstractZipper
     /**
      * @return static<T>
      */
-    public function leftMost(): AbstractZipper
+    public function leftMost(): self
     {
         $loc = $this;
         while (!$loc->isFirst()) {
@@ -127,7 +112,7 @@ abstract class AbstractZipper
     /**
      * @return static<T>
      */
-    public function right(): AbstractZipper
+    public function right(): self
     {
         if ($this->isTop()) {
             throw ZipperException::cannotGoRightOnRootNode();
@@ -152,7 +137,7 @@ abstract class AbstractZipper
     /**
      * @return static<T>
      */
-    public function rightMost(): AbstractZipper
+    public function rightMost(): self
     {
         $loc = $this;
         while (!$loc->isLast()) {
@@ -173,7 +158,7 @@ abstract class AbstractZipper
     /**
      * @return static<T>
      */
-    public function up(): AbstractZipper
+    public function up(): self
     {
         if ($this->isTop()) {
             throw ZipperException::cannotGoUpOnRootNode();
@@ -220,7 +205,7 @@ abstract class AbstractZipper
     /**
      * @return static<T>
      */
-    public function down(): AbstractZipper
+    public function down(): self
     {
         if (!$this->isBranch()) {
             throw ZipperException::cannotGoDownOnLeafNode();
@@ -246,7 +231,7 @@ abstract class AbstractZipper
     /**
      * @return static<T>
      */
-    public function next(): AbstractZipper
+    public function next(): self
     {
         if ($this->isEnd()) {
             return $this;
@@ -276,7 +261,7 @@ abstract class AbstractZipper
     /**
      * @return static<T>
      */
-    public function prev(): AbstractZipper
+    public function prev(): self
     {
         if (!$this->isFirst()) {
             $loc = $this->left();
@@ -396,7 +381,7 @@ abstract class AbstractZipper
      *
      * @return static<T>
      */
-    public function remove(): AbstractZipper
+    public function remove(): self
     {
         if ($this->isTop()) {
             throw ZipperException::cannotRemoveOnRootNode();
@@ -461,4 +446,21 @@ abstract class AbstractZipper
     {
         return empty($this->rightSiblings);
     }
+
+    /**
+     * @param T $node
+     * @param ?AbstractZipper<T> $parent
+     * @param list<T> $leftSiblings
+     * @param list<T> $rightSiblings
+     *
+     * @return static
+     */
+    abstract protected function createNewInstance(
+        $node,
+        ?self $parent,
+        array $leftSiblings,
+        array $rightSiblings,
+        bool $hasChanged,
+        bool $isEnd
+    );
 }

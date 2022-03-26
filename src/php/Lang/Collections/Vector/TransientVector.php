@@ -8,6 +8,8 @@ use Phel\Lang\Collections\Exceptions\IndexOutOfBoundsException;
 use Phel\Lang\Collections\Exceptions\MethodNotSupportedException;
 use Phel\Lang\EqualizerInterface;
 use Phel\Lang\HasherInterface;
+use RuntimeException;
+use function count;
 
 /**
  * @template T
@@ -51,7 +53,7 @@ class TransientVector implements TransientVectorInterface
         );
     }
 
-    public static function fromArray(HasherInterface $hasher, EqualizerInterface $equalizer, array $array): TransientVector
+    public static function fromArray(HasherInterface $hasher, EqualizerInterface $equalizer, array $array): self
     {
         $v = self::empty($hasher, $equalizer);
         foreach ($array as $a) {
@@ -79,7 +81,7 @@ class TransientVector implements TransientVectorInterface
         if (count($this->tail) < self::BRANCH_FACTOR) {
             // There is room for a new value in the tail.
             $this->tail[] = $value;
-            $this->count++;
+            ++$this->count;
 
             return $this;
         }
@@ -95,12 +97,115 @@ class TransientVector implements TransientVectorInterface
             $newRoot = $this->pushTail($this->shift, $this->root, $tailNode);
         }
 
-        $this->count += 1;
+        ++$this->count;
         $this->shift = $newShift;
         $this->root = $newRoot;
         $this->tail = [$value];
 
         return $this;
+    }
+
+    /**
+     * @param T $value
+     */
+    public function update(int $i, $value): TransientVectorInterface
+    {
+        if ($i >= 0 && $i < $this->count) {
+            if ($i >= $this->tailOffset()) {
+                $this->tail[$i & self::INDEX_MASK] = $value;
+                return $this;
+            }
+
+            $this->root = $this->doUpdate($this->shift, $this->root, $i, $value);
+            return $this;
+        }
+
+        if ($i === $this->count) {
+            return $this->append($value);
+        }
+
+        throw new IndexOutOfBoundsException('Index out of bounds');
+    }
+
+    /**
+     * @return T
+     */
+    public function get(int $i)
+    {
+        $arr = $this->getArrayForIndex($i);
+        return $arr[$i & self::INDEX_MASK];
+    }
+
+    public function pop(): TransientVectorInterface
+    {
+        if ($this->count === 0) {
+            throw new RuntimeException("Can't pop on empty vector");
+        }
+
+        if ($this->count === 1) {
+            $this->count = 0;
+            return $this;
+        }
+
+        $i = $this->count - 1;
+
+        if (($i & self::INDEX_MASK) > 1) {
+            --$this->count;
+            return $this;
+        }
+
+        $newTail = $this->getArrayForIndex($this->count - 2);
+
+        $newRoot = $this->popTail($this->shift, $this->root);
+        $newShift = $this->shift;
+        if ($newRoot === null) {
+            $newRoot = [];
+        }
+
+        if ($this->shift > self::SHIFT && $newRoot[1] === null) {
+            $newRoot = $newRoot[0];
+            $newShift -= self::SHIFT;
+        }
+
+        $this->root = $newRoot;
+        $this->shift = $newShift;
+        --$this->count;
+        $this->tail = $newTail;
+
+        return $this;
+    }
+
+    /**
+     * @param int $offset
+     *
+     * @return mixed|null
+     */
+    public function offsetGet($offset): mixed
+    {
+        return $this->get($offset);
+    }
+
+    /**
+     * @param int $offset
+     */
+    public function offsetExists($offset): bool
+    {
+        return $offset >= 0 && $offset < $this->count();
+    }
+
+    public function offsetSet($offset, $value): void
+    {
+        throw new MethodNotSupportedException('Method offsetSet is not supported on VectorSequence');
+    }
+
+    public function offsetUnset($offset): void
+    {
+        throw new MethodNotSupportedException('Method offsetUnset is not supported on VectorSequence');
+    }
+
+    public function contains($key): bool
+    {
+        return $this->offsetExists($key);
     }
 
     private function pushTail(int $level, array $parent, array $tailNode): array
@@ -135,28 +240,6 @@ class TransientVector implements TransientVectorInterface
     /**
      * @param T $value
      */
-    public function update(int $i, $value): TransientVectorInterface
-    {
-        if ($i >= 0 && $i < $this->count) {
-            if ($i >= $this->tailOffset()) {
-                $this->tail[$i & self::INDEX_MASK] = $value;
-                return $this;
-            }
-
-            $this->root = $this->doUpdate($this->shift, $this->root, $i, $value);
-            return $this;
-        }
-
-        if ($i === $this->count) {
-            return $this->append($value);
-        }
-
-        throw new IndexOutOfBoundsException('Index out of bounds');
-    }
-
-    /**
-     * @param T $value
-     */
     private function doUpdate(int $level, array $node, int $i, $value): array
     {
         $ret = $node;
@@ -168,54 +251,6 @@ class TransientVector implements TransientVectorInterface
         }
 
         return $ret;
-    }
-
-    /**
-     * @return T
-     */
-    public function get(int $i)
-    {
-        $arr = $this->getArrayForIndex($i);
-        return $arr[$i & self::INDEX_MASK];
-    }
-
-    public function pop(): TransientVectorInterface
-    {
-        if ($this->count === 0) {
-            throw new \RuntimeException("Can't pop on empty vector");
-        }
-
-        if ($this->count === 1) {
-            $this->count = 0;
-            return $this;
-        }
-
-        $i = $this->count - 1;
-
-        if (($i & self::INDEX_MASK) > 1) {
-            $this->count -= 1;
-            return $this;
-        }
-
-        $newTail = $this->getArrayForIndex($this->count - 2);
-
-        $newRoot = $this->popTail($this->shift, $this->root);
-        $newShift = $this->shift;
-        if ($newRoot === null) {
-            $newRoot = [];
-        }
-
-        if ($this->shift > self::SHIFT && $newRoot[1] === null) {
-            $newRoot = $newRoot[0];
-            $newShift -= self::SHIFT;
-        }
-
-        $this->root = $newRoot;
-        $this->shift = $newShift;
-        $this->count -= 1;
-        $this->tail = $newTail;
-
-        return $this;
     }
 
     private function popTail(int $level, array $node): ?array
@@ -274,38 +309,5 @@ class TransientVector implements TransientVectorInterface
         }
 
         return $this->count - count($this->tail);
-    }
-
-    /**
-     * @param int $offset
-     *
-     * @return mixed|null
-     */
-    public function offsetGet($offset): mixed
-    {
-        return $this->get($offset);
-    }
-
-    /**
-     * @param int $offset
-     */
-    public function offsetExists($offset): bool
-    {
-        return $offset >= 0 && $offset < $this->count();
-    }
-
-    public function offsetSet($offset, $value): void
-    {
-        throw new MethodNotSupportedException('Method offsetSet is not supported on VectorSequence');
-    }
-
-    public function offsetUnset($offset): void
-    {
-        throw new MethodNotSupportedException('Method offsetUnset is not supported on VectorSequence');
-    }
-
-    public function contains($key): bool
-    {
-        return $this->offsetExists($key);
     }
 }

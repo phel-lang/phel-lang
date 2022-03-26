@@ -53,20 +53,25 @@ final class Symbol extends AbstractType implements IdenticalInterface, NamedInte
         $this->name = $name;
     }
 
-    public static function create(string $name): Symbol
+    public function __toString(): string
+    {
+        return Printer::readable()->print($this);
+    }
+
+    public static function create(string $name): self
     {
         $pos = strpos($name, '/');
 
         if ($pos === false || $name === '/') {
-            return new Symbol(null, $name);
+            return new self(null, $name);
         }
 
-        return new Symbol(substr($name, 0, $pos), substr($name, $pos + 1));
+        return new self(substr($name, 0, $pos), substr($name, $pos + 1));
     }
 
-    public static function createForNamespace(?string $namespace, string $name): Symbol
+    public static function createForNamespace(?string $namespace, string $name): self
     {
-        return new Symbol($namespace, $name);
+        return new self($namespace, $name);
     }
 
     public function getName(): string
@@ -88,12 +93,7 @@ final class Symbol extends AbstractType implements IdenticalInterface, NamedInte
         return $this->name;
     }
 
-    public function __toString(): string
-    {
-        return Printer::readable()->print($this);
-    }
-
-    public static function gen(string $prefix = '__phel_'): Symbol
+    public static function gen(string $prefix = '__phel_'): self
     {
         return self::create($prefix . (self::$symGenCounter++));
     }

@@ -14,6 +14,7 @@ use Phel\Lang\Collections\Map\PersistentMapInterface;
 use Phel\Lang\Collections\Vector\PersistentVectorInterface;
 use Phel\Lang\Symbol;
 use Phel\Lang\TypeInterface;
+use function count;
 
 final class Deconstructor implements DeconstructorInterface
 {

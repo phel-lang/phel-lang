@@ -7,6 +7,7 @@ namespace Phel\Compiler\Emitter\OutputEmitter\NodeEmitter;
 use Phel\Compiler\Analyzer\Ast\FnNode;
 use Phel\Lang\Keyword;
 use Phel\Lang\Symbol;
+use function count;
 
 final class MethodEmitter
 {

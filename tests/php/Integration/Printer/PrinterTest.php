@@ -76,7 +76,7 @@ final class PrinterTest extends TestCase
 
     public function test_print_to_string_from_object(): void
     {
-        $class = new class () {
+        $class = new class() {
             public function __toString(): string
             {
                 return 'toString method';

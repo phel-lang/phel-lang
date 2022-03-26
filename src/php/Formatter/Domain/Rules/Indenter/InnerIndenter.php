@@ -24,7 +24,7 @@ final class InnerIndenter implements IndenterInterface
     public function getMargin(ParseTreeZipper $loc, int $indentWidth): ?int
     {
         $top = $loc;
-        for ($i = 0; $i < $this->depth; $i++) {
+        for ($i = 0; $i < $this->depth; ++$i) {
             $top = $top->upSkipWhitespace();
         }
 

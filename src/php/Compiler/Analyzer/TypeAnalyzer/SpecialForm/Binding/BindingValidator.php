@@ -9,6 +9,9 @@ use Phel\Lang\Collections\Map\PersistentMapInterface;
 use Phel\Lang\Collections\Vector\PersistentVectorInterface;
 use Phel\Lang\Symbol;
 use Phel\Lang\TypeInterface;
+use function get_class;
+use function gettype;
+use function is_object;
 
 final class BindingValidator implements BindingValidatorInterface
 {

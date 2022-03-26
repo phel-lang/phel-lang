@@ -6,6 +6,7 @@ namespace Phel\Lang\Collections\Map;
 
 use Iterator;
 use RuntimeException;
+use function count;
 
 /**
  * @template K
@@ -50,17 +51,6 @@ class ArrayNodeIterator implements Iterator
         }
     }
 
-    private function nextIndex(): void
-    {
-        $this->index++;
-
-        if ($this->index < count($this->childNodes)) {
-            $this->initializeNestedIterator($this->index);
-        } else {
-            $this->nestedIterator = null;
-        }
-    }
-
     public function valid(): bool
     {
         if ($this->nestedIterator) {
@@ -88,6 +78,17 @@ class ArrayNodeIterator implements Iterator
         }
 
         throw new RuntimeException('Nested iterator is not initialized');
+    }
+
+    private function nextIndex(): void
+    {
+        ++$this->index;
+
+        if ($this->index < count($this->childNodes)) {
+            $this->initializeNestedIterator($this->index);
+        } else {
+            $this->nestedIterator = null;
+        }
     }
 
     private function initializeNestedIterator(int $index): void

@@ -78,7 +78,7 @@ final class CompileCommandTest extends TestCase
     {
         $output = $this->createStub(OutputInterface::class);
         $output->method('writeln')
-            ->willReturnCallback(fn (string $str) => print $str . PHP_EOL);
+            ->willReturnCallback(static fn (string $str) => print $str . PHP_EOL);
 
         return $output;
     }

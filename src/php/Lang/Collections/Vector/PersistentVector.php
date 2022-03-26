@@ -8,7 +8,10 @@ use Phel\Lang\Collections\Exceptions\IndexOutOfBoundsException;
 use Phel\Lang\Collections\Map\PersistentMapInterface;
 use Phel\Lang\EqualizerInterface;
 use Phel\Lang\HasherInterface;
+use RuntimeException;
 use Traversable;
+use function array_slice;
+use function count;
 
 /**
  * An implementation of a persistent vector inspiered
@@ -63,7 +66,7 @@ class PersistentVector extends AbstractPersistentVector
 
     public function withMeta(?PersistentMapInterface $meta)
     {
-        return new PersistentVector($this->hasher, $this->equalizer, $meta, $this->count, $this->shift, $this->root, $this->tail);
+        return new self($this->hasher, $this->equalizer, $meta, $this->count, $this->shift, $this->root, $this->tail);
     }
 
     /**
@@ -91,11 +94,11 @@ class PersistentVector extends AbstractPersistentVector
      *
      * @return PersistentVector
      */
-    public function append($value): PersistentVector
+    public function append($value): self
     {
         if (count($this->tail) < self::BRANCH_FACTOR) {
             // There is room for a new value in the tail.
-            return new PersistentVector(
+            return new self(
                 $this->hasher,
                 $this->equalizer,
                 $this->meta,
@@ -117,7 +120,7 @@ class PersistentVector extends AbstractPersistentVector
             $newRoot = $this->pushTail($this->shift, $this->root, $tailNode);
         }
 
-        return new PersistentVector(
+        return new self(
             $this->hasher,
             $this->equalizer,
             $this->meta,
@@ -125,6 +128,196 @@ class PersistentVector extends AbstractPersistentVector
             $newShift,
             $newRoot,
             [$value]
+        );
+    }
+
+    /**
+     * Updates the value at position $i with new new value.
+     *
+     * To update an element, we would have to walk the tree down
+     * to the leaf node where the element is placed. While we walk down,
+     * we copy the nodes on our path to ensure persistence. When we’ve gotten
+     * down to the leaf node, we copy it and replace the value we wanted to
+     * replace with the new value. We then return the new vector with the modified path.
+     * (Source: https://hypirion.com/musings/understanding-persistent-vector-pt-1)
+     *
+     * @param int $i the index in the vector
+     * @param T $value The new value
+     *
+     * @return PersistentVector
+     */
+    public function update(int $i, $value): self
+    {
+        if ($i >= 0 && $i < $this->count) {
+            if ($i >= $this->tailOffset()) {
+                $newTail = $this->tail;
+                $newTail[$i & self::INDEX_MASK] = $value;
+
+                return new self(
+                    $this->hasher,
+                    $this->equalizer,
+                    $this->meta,
+                    $this->count,
+                    $this->shift,
+                    $this->root,
+                    $newTail
+                );
+            }
+
+            return new self(
+                $this->hasher,
+                $this->equalizer,
+                $this->meta,
+                $this->count,
+                $this->shift,
+                $this->doUpdate($this->shift, $this->root, $i, $value),
+                $this->tail
+            );
+        }
+
+        if ($i === $this->count) {
+            return $this->append($value);
+        }
+
+        throw new IndexOutOfBoundsException('Index out of bounds');
+    }
+
+    /**
+     * Gets the value at index $i.
+     *
+     * @param int $i The index
+     *
+     * @return T
+     */
+    public function get(int $i)
+    {
+        $arr = $this->getArrayForIndex($i);
+        return $arr[$i & self::INDEX_MASK];
+    }
+
+    public function getArrayForIndex(int $i): array
+    {
+        if ($i >= 0 && $i < $this->count) {
+            if ($i >= $this->tailOffset()) {
+                return $this->tail;
+            }
+
+            $node = $this->root;
+            for ($level = $this->shift; $level > 0; $level -= self::SHIFT) {
+                $node = $node[($i >> $level) & self::INDEX_MASK];
+            }
+
+            return $node;
+        }
+
+        throw new IndexOutOfBoundsException("Index {$i} is not in interval [0, {$this->count})");
+    }
+
+    /**
+     * Removes the last element from the vector and returns the new vector.
+     *
+     * The solutions for popping isn’t that difficult to grasp either. Popping
+     * is similar to appending in that there are three cases:
+     * 1. The tail contains more than one element.
+     * 2. The tail contains exactly one element (zero after popping).
+     * 3. The root node contains exactly one element after popping.
+     *
+     * @return PersistentVector
+     */
+    public function pop(): self
+    {
+        if ($this->count === 0) {
+            throw new RuntimeException("Can't pop on empty vector");
+        }
+
+        if ($this->count === 1) {
+            return self::empty(
+                $this->hasher,
+                $this->equalizer,
+            );
+        }
+
+        if ($this->count - $this->tailOffset() > 1) {
+            $newTail = array_slice($this->tail, 0, -1);
+            return new self(
+                $this->hasher,
+                $this->equalizer,
+                $this->meta,
+                $this->count - 1,
+                $this->shift,
+                $this->root,
+                $newTail
+            );
+        }
+
+        $newTail = $this->getArrayForIndex($this->count - 2);
+
+        $newRoot = $this->popTail($this->shift, $this->root);
+        $newShift = $this->shift;
+        if ($newRoot === null) {
+            $newRoot = [];
+        }
+
+        if ($this->shift > self::SHIFT && $newRoot[1] === null) {
+            $newRoot = $newRoot[0];
+            $newShift -= self::SHIFT;
+        }
+
+        return new self(
+            $this->hasher,
+            $this->equalizer,
+            $this->meta,
+            $this->count - 1,
+            $newShift,
+            $newRoot,
+            $newTail
+        );
+    }
+
+    public function toArray(): array
+    {
+        $result = [];
+        $this->fillArray($this->root, $this->shift, $result);
+        $result[] = $this->tail;
+        return array_merge(...$result);
+    }
+
+    public function getIterator(): Traversable
+    {
+        return $this->getRangeIterator(0, $this->count);
+    }
+
+    public function getRangeIterator(int $start, int $end): Traversable
+    {
+        return new RangeIterator($this, $start, $end);
+    }
+
+    /**
+     * @return PersistentVectorInterface|null
+     */
+    public function cdr()
+    {
+        if ($this->count() <= 1) {
+            return null;
+        }
+
+        return new SubVector($this->hasher, $this->equalizer, $this->meta, $this, 1, $this->count());
+    }
+
+    public function sliceNormalized(int $start, int $end): PersistentVectorInterface
+    {
+        return new SubVector($this->hasher, $this->equalizer, $this->meta, $this, $start, $end);
+    }
+
+    public function asTransient(): TransientVector
+    {
+        return new TransientVector(
+            $this->hasher,
+            $this->equalizer,
+            $this->count,
+            $this->shift,
+            $this->root,
+            $this->tail
         );
     }
 
@@ -158,57 +351,6 @@ class PersistentVector extends AbstractPersistentVector
     }
 
     /**
-     * Updates the value at position $i with new new value.
-     *
-     * To update an element, we would have to walk the tree down
-     * to the leaf node where the element is placed. While we walk down,
-     * we copy the nodes on our path to ensure persistence. When we’ve gotten
-     * down to the leaf node, we copy it and replace the value we wanted to
-     * replace with the new value. We then return the new vector with the modified path.
-     * (Source: https://hypirion.com/musings/understanding-persistent-vector-pt-1)
-     *
-     * @param int $i the index in the vector
-     * @param T $value The new value
-     *
-     * @return PersistentVector
-     */
-    public function update(int $i, $value): PersistentVector
-    {
-        if ($i >= 0 && $i < $this->count) {
-            if ($i >= $this->tailOffset()) {
-                $newTail = $this->tail;
-                $newTail[$i & self::INDEX_MASK] = $value;
-
-                return new PersistentVector(
-                    $this->hasher,
-                    $this->equalizer,
-                    $this->meta,
-                    $this->count,
-                    $this->shift,
-                    $this->root,
-                    $newTail
-                );
-            }
-
-            return new PersistentVector(
-                $this->hasher,
-                $this->equalizer,
-                $this->meta,
-                $this->count,
-                $this->shift,
-                $this->doUpdate($this->shift, $this->root, $i, $value),
-                $this->tail
-            );
-        }
-
-        if ($i === $this->count) {
-            return $this->append($value);
-        }
-
-        throw new IndexOutOfBoundsException('Index out of bounds');
-    }
-
-    /**
      * @param T $value
      */
     private function doUpdate(int $level, array $node, int $i, $value): array
@@ -222,98 +364,6 @@ class PersistentVector extends AbstractPersistentVector
         }
 
         return $ret;
-    }
-
-    /**
-     * Gets the value at index $i.
-     *
-     * @param int $i The index
-     *
-     * @return T
-     */
-    public function get(int $i)
-    {
-        $arr = $this->getArrayForIndex($i);
-        return $arr[$i & self::INDEX_MASK];
-    }
-
-    public function getArrayForIndex(int $i): array
-    {
-        if ($i >= 0 && $i < $this->count) {
-            if ($i >= $this->tailOffset()) {
-                return $this->tail;
-            }
-
-            $node = $this->root;
-            for ($level = $this->shift; $level > 0; $level -= self::SHIFT) {
-                $node = $node[($i >> $level) & self::INDEX_MASK];
-            }
-
-            return $node;
-        }
-
-        throw new IndexOutOfBoundsException("Index $i is not in interval [0, {$this->count})");
-    }
-
-    /**
-     * Removes the last element from the vector and returns the new vector.
-     *
-     * The solutions for popping isn’t that difficult to grasp either. Popping
-     * is similar to appending in that there are three cases:
-     * 1. The tail contains more than one element.
-     * 2. The tail contains exactly one element (zero after popping).
-     * 3. The root node contains exactly one element after popping.
-     *
-     * @return PersistentVector
-     */
-    public function pop(): PersistentVector
-    {
-        if ($this->count === 0) {
-            throw new \RuntimeException("Can't pop on empty vector");
-        }
-
-        if ($this->count === 1) {
-            return self::empty(
-                $this->hasher,
-                $this->equalizer,
-            );
-        }
-
-        if ($this->count - $this->tailOffset() > 1) {
-            $newTail = array_slice($this->tail, 0, -1);
-            return new PersistentVector(
-                $this->hasher,
-                $this->equalizer,
-                $this->meta,
-                $this->count - 1,
-                $this->shift,
-                $this->root,
-                $newTail
-            );
-        }
-
-        $newTail = $this->getArrayForIndex($this->count - 2);
-
-        $newRoot = $this->popTail($this->shift, $this->root);
-        $newShift = $this->shift;
-        if ($newRoot === null) {
-            $newRoot = [];
-        }
-
-        if ($this->shift > self::SHIFT && $newRoot[1] === null) {
-            $newRoot = $newRoot[0];
-            $newShift -= self::SHIFT;
-        }
-
-        return new PersistentVector(
-            $this->hasher,
-            $this->equalizer,
-            $this->meta,
-            $this->count - 1,
-            $newShift,
-            $newRoot,
-            $newTail
-        );
     }
 
     private function popTail(int $level, array $node): ?array
@@ -340,14 +390,6 @@ class PersistentVector extends AbstractPersistentVector
         return $ret;
     }
 
-    public function toArray(): array
-    {
-        $result = [];
-        $this->fillArray($this->root, $this->shift, $result);
-        $result[] = $this->tail;
-        return array_merge(...$result);
-    }
-
     private function fillArray(array $node, int $shift, array &$targetArr = []): void
     {
         if ($shift) {
@@ -360,16 +402,6 @@ class PersistentVector extends AbstractPersistentVector
         }
     }
 
-    public function getIterator(): Traversable
-    {
-        return $this->getRangeIterator(0, $this->count);
-    }
-
-    public function getRangeIterator(int $start, int $end): Traversable
-    {
-        return new RangeIterator($this, $start, $end);
-    }
-
     /**
      * Computes the tail offset of this vector based on the count.
      */
@@ -380,34 +412,5 @@ class PersistentVector extends AbstractPersistentVector
         }
 
         return $this->count - count($this->tail);
-    }
-
-    /**
-     * @return PersistentVectorInterface|null
-     */
-    public function cdr()
-    {
-        if ($this->count() <= 1) {
-            return null;
-        }
-
-        return new SubVector($this->hasher, $this->equalizer, $this->meta, $this, 1, $this->count());
-    }
-
-    public function sliceNormalized(int $start, int $end): PersistentVectorInterface
-    {
-        return new SubVector($this->hasher, $this->equalizer, $this->meta, $this, $start, $end);
-    }
-
-    public function asTransient(): TransientVector
-    {
-        return new TransientVector(
-            $this->hasher,
-            $this->equalizer,
-            $this->count,
-            $this->shift,
-            $this->root,
-            $this->tail
-        );
     }
 }

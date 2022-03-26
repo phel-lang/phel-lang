@@ -7,6 +7,8 @@ namespace Phel\Compiler\Lexer;
 use Generator;
 use Phel\Compiler\Lexer\Exceptions\LexerValueException;
 use Phel\Lang\SourceLocation;
+use function count;
+use function strlen;
 
 final class Lexer implements LexerInterface
 {

@@ -8,6 +8,7 @@ use Phel\Compiler\Analyzer\Ast\AbstractNode;
 use Phel\Compiler\Analyzer\Ast\DefInterfaceMethod;
 use Phel\Compiler\Analyzer\Ast\DefInterfaceNode;
 use Phel\Compiler\Emitter\OutputEmitter\NodeEmitterInterface;
+use function assert;
 
 final class DefInterfaceEmitter implements NodeEmitterInterface
 {

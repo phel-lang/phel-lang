@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace PhelTest\Unit\Compiler\Lexer;
 
+use Exception;
 use Phel\Compiler\CompilerFactory;
 use Phel\Compiler\Lexer\Token;
 use Phel\Lang\SourceLocation;
@@ -161,7 +162,7 @@ final class LexerTest extends TestCase
 
     public function test_unexpected_state(): void
     {
-        $this->expectException(\Exception::class);
+        $this->expectException(Exception::class);
 
         $this->lex('@');
     }

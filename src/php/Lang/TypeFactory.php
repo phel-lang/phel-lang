@@ -15,6 +15,7 @@ use Phel\Lang\Collections\Map\PersistentHashMap;
 use Phel\Lang\Collections\Map\PersistentMapInterface;
 use Phel\Lang\Collections\Vector\PersistentVector;
 use Phel\Lang\Collections\Vector\PersistentVectorInterface;
+use function count;
 
 class TypeFactory
 {
@@ -28,10 +29,10 @@ class TypeFactory
         $this->equalizer = new Equalizer();
     }
 
-    public static function getInstance(): TypeFactory
+    public static function getInstance(): self
     {
         if (self::$instance === null) {
-            self::$instance = new TypeFactory();
+            self::$instance = new self();
         }
 
         return self::$instance;

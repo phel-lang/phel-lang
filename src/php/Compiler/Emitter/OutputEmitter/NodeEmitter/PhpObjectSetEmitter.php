@@ -9,6 +9,7 @@ use Phel\Compiler\Analyzer\Ast\PhpObjectSetNode;
 use Phel\Compiler\Analyzer\Ast\PropertyOrConstantAccessNode;
 use Phel\Compiler\Emitter\OutputEmitter\NodeEmitterInterface;
 use Phel\Lang\Symbol;
+use function assert;
 
 final class PhpObjectSetEmitter implements NodeEmitterInterface
 {

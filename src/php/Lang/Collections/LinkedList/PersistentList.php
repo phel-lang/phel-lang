@@ -4,12 +4,14 @@ declare(strict_types=1);
 
 namespace Phel\Lang\Collections\LinkedList;
 
+use Exception;
 use Phel\Lang\AbstractType;
 use Phel\Lang\Collections\Exceptions\IndexOutOfBoundsException;
 use Phel\Lang\Collections\Map\PersistentMapInterface;
 use Phel\Lang\EqualizerInterface;
 use Phel\Lang\HasherInterface;
 use Traversable;
+use function count;
 
 /**
  * @template T
@@ -55,7 +57,7 @@ class PersistentList extends AbstractType implements PersistentListInterface
     public static function fromArray(HasherInterface $hasher, EqualizerInterface $equalizer, array $values): PersistentListInterface
     {
         $result = self::empty($hasher, $equalizer);
-        for ($i = count($values) - 1; $i >= 0; $i--) {
+        for ($i = count($values) - 1; $i >= 0; --$i) {
             $result = $result->prepend($values[$i]);
         }
 
@@ -69,7 +71,7 @@ class PersistentList extends AbstractType implements PersistentListInterface
 
     public function withMeta(?PersistentMapInterface $meta)
     {
-        return new PersistentList($this->hasher, $this->equalizer, $meta, $this->first, $this->rest, $this->count);
+        return new self($this->hasher, $this->equalizer, $meta, $this->first, $this->rest, $this->count);
     }
 
     /**
@@ -103,7 +105,7 @@ class PersistentList extends AbstractType implements PersistentListInterface
     public function get(int $i)
     {
         $list = $this;
-        for ($j = 0; $j < $this->count; $j++) {
+        for ($j = 0; $j < $this->count; ++$j) {
             if ($j === $i) {
                 /** @var T $result */
                 $result = $list->first();
@@ -118,7 +120,7 @@ class PersistentList extends AbstractType implements PersistentListInterface
 
     public function equals($other): bool
     {
-        if (!$other instanceof PersistentList) {
+        if (!$other instanceof self) {
             return false;
         }
 
@@ -236,12 +238,12 @@ class PersistentList extends AbstractType implements PersistentListInterface
 
     public function offsetSet($offset, $value): void
     {
-        throw new \Exception('offsetSet not supported on lists');
+        throw new Exception('offsetSet not supported on lists');
     }
 
     public function offsetUnset($offset): void
     {
-        throw new \Exception('offsetUnset not supported on lists');
+        throw new Exception('offsetUnset not supported on lists');
     }
 
     public function contains($key): bool

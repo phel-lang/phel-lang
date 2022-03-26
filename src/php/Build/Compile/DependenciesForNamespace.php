@@ -6,6 +6,8 @@ namespace Phel\Build\Compile;
 
 use Phel\Build\Extractor\NamespaceExtractor;
 use Phel\Build\Extractor\NamespaceInformation;
+use function count;
+use function in_array;
 
 final class DependenciesForNamespace
 {

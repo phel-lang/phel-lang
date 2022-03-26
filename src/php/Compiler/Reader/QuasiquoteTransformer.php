@@ -16,6 +16,11 @@ use Phel\Lang\Keyword;
 use Phel\Lang\Symbol;
 use Phel\Lang\TypeFactory;
 use Phel\Lang\TypeInterface;
+use function count;
+use function is_bool;
+use function is_float;
+use function is_int;
+use function is_string;
 
 final class QuasiquoteTransformer implements QuasiquoteTransformerInterface
 {

@@ -7,6 +7,7 @@ namespace Phel\Lang\Collections\Map;
 use Phel\Lang\EqualizerInterface;
 use Phel\Lang\HasherInterface;
 use Traversable;
+use function array_slice;
 
 /**
  * @template K
@@ -45,15 +46,47 @@ class HashCollisionNode implements HashMapNodeInterface
                     return $this;
                 }
 
-                return new HashCollisionNode($this->hasher, $this->equalizer, $this->hash, $this->count, $this->cloneAndSet($index + 1, $value));
+                return new self($this->hasher, $this->equalizer, $this->hash, $this->count, $this->cloneAndSet($index + 1, $value));
             }
 
             $addedLeaf->setValue(true);
-            return new HashCollisionNode($this->hasher, $this->equalizer, $this->hash, $this->count + 1, $this->cloneAndAdd($key, $value));
+            return new self($this->hasher, $this->equalizer, $this->hash, $this->count + 1, $this->cloneAndAdd($key, $value));
         }
 
         $node = new IndexedNode($this->hasher, $this->equalizer, [$this->mask($this->hash, $shift) => [null, $this]]);
         return $node->put($shift, $hash, $key, $value, $addedLeaf);
+    }
+
+    public function remove(int $shift, int $hash, $key): ?HashMapNodeInterface
+    {
+        $index = $this->findIndex($key);
+        if ($index === -1) {
+            return $this;
+        }
+
+        if ($this->count === 1) {
+            return null;
+        }
+
+        return new self($this->hasher, $this->equalizer, $this->hash, $this->count - 1, $this->removePair($index));
+    }
+
+    public function find(int $shift, int $hash, $key, $notFound)
+    {
+        $index = $this->findIndex($key);
+        if ($index === -1) {
+            return $notFound;
+        }
+
+        /** @var V $value */
+        $value = $this->objects[$index + 1];
+
+        return $value;
+    }
+
+    public function getIterator(): Traversable
+    {
+        return new HashCollisionNodeIterator($this->objects);
     }
 
     /**
@@ -94,45 +127,13 @@ class HashCollisionNode implements HashMapNodeInterface
         return $newObjects;
     }
 
-    public function remove(int $shift, int $hash, $key): ?HashMapNodeInterface
-    {
-        $index = $this->findIndex($key);
-        if ($index === -1) {
-            return $this;
-        }
-
-        if ($this->count === 1) {
-            return null;
-        }
-
-        return new HashCollisionNode($this->hasher, $this->equalizer, $this->hash, $this->count - 1, $this->removePair($index));
-    }
-
     private function removePair(int $index): array
     {
         return [...array_slice($this->objects, 0, $index), ...array_slice($this->objects, $index + 2)];
     }
 
-    public function find(int $shift, int $hash, $key, $notFound)
-    {
-        $index = $this->findIndex($key);
-        if ($index === -1) {
-            return $notFound;
-        }
-
-        /** @var V $value */
-        $value = $this->objects[$index + 1];
-
-        return $value;
-    }
-
     private function mask(int $hash, int $shift): int
     {
         return $hash >> $shift & 0x01f;
-    }
-
-    public function getIterator(): Traversable
-    {
-        return new HashCollisionNodeIterator($this->objects);
     }
 }

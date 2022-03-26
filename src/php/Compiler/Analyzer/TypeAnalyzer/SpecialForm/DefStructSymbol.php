@@ -17,6 +17,8 @@ use Phel\Lang\Collections\LinkedList\PersistentListInterface;
 use Phel\Lang\Collections\Vector\PersistentVectorInterface;
 use Phel\Lang\Symbol;
 use Phel\Lang\TypeFactory;
+use ReflectionMethod;
+use function count;
 
 final class DefStructSymbol implements SpecialFormAnalyzerInterface
 {
@@ -119,7 +121,7 @@ final class DefStructSymbol implements SpecialFormAnalyzerInterface
             }
 
             $methods = [];
-            for ($i = 0; $i < count($expectedMethods); $i++) {
+            for ($i = 0; $i < count($expectedMethods); ++$i) {
                 $forms = $forms->cdr();
                 if ($forms === null) {
                     throw AnalyzerException::withLocation('Missing method for interface ' . $absoluteInterfaceName . ' in defstruct', $list);
@@ -147,7 +149,7 @@ final class DefStructSymbol implements SpecialFormAnalyzerInterface
     }
 
     /**
-     * @param array<string, \ReflectionMethod> $expectedMethodIndex
+     * @param array<string, ReflectionMethod> $expectedMethodIndex
      * @param list<Symbol> $structParams
      */
     private function analyzeInterfaceMethod(PersistentListInterface $list, NodeEnvironmentInterface $env, array $expectedMethodIndex, $structParams): DefStructMethod

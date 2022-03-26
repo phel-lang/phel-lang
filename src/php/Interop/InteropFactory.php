@@ -44,6 +44,14 @@ final class InteropFactory extends AbstractFactory
         );
     }
 
+    public function createFileCreator(): FileCreatorInterface
+    {
+        return new FileCreator(
+            $this->getConfig()->getExportTargetDirectory(),
+            $this->createFileSystemIo()
+        );
+    }
+
     private function createWrapperGenerator(): WrapperGenerator
     {
         return new WrapperGenerator(
@@ -82,14 +90,6 @@ final class InteropFactory extends AbstractFactory
     private function getBuildFacade(): BuildFacadeInterface
     {
         return $this->getProvidedDependency(InteropDependencyProvider::FACADE_BUILD);
-    }
-
-    public function createFileCreator(): FileCreatorInterface
-    {
-        return new FileCreator(
-            $this->getConfig()->getExportTargetDirectory(),
-            $this->createFileSystemIo()
-        );
     }
 
     private function createFileSystemIo(): FileIoInterface

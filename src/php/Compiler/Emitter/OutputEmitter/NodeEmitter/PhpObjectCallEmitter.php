@@ -12,6 +12,8 @@ use Phel\Compiler\Analyzer\Ast\PropertyOrConstantAccessNode;
 use Phel\Compiler\Emitter\OutputEmitter\NodeEmitterInterface;
 use Phel\Lang\Symbol;
 use RuntimeException;
+use function assert;
+use function get_class;
 
 final class PhpObjectCallEmitter implements NodeEmitterInterface
 {

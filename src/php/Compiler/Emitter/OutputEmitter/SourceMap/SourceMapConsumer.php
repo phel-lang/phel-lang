@@ -15,6 +15,15 @@ final class SourceMapConsumer
         $this->lineMapping = $this->decodeMapping($mapping);
     }
 
+    public function getOriginalLine(int $generatedLine): ?int
+    {
+        if (isset($this->lineMapping[$generatedLine])) {
+            return min($this->lineMapping[$generatedLine]);
+        }
+
+        return null;
+    }
+
     private function decodeMapping(string $mapping): array
     {
         $lines = explode(';', $mapping);
@@ -43,14 +52,5 @@ final class SourceMapConsumer
         }
 
         return $lineMapping;
-    }
-
-    public function getOriginalLine(int $generatedLine): ?int
-    {
-        if (isset($this->lineMapping[$generatedLine])) {
-            return min($this->lineMapping[$generatedLine]);
-        }
-
-        return null;
     }
 }

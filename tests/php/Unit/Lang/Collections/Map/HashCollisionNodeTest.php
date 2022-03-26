@@ -19,7 +19,7 @@ class HashCollisionNodeTest extends TestCase
         $node = new HashCollisionNode($hasher, new SimpleEqualizer(), $hasher->hash(1), 1, [1, 'test']);
 
         $this->assertEquals('test', $node->find(0, $hasher->hash(1), 1, null));
-        $this->assertEquals(null, $node->find(0, $hasher->hash(2), 2, null));
+        $this->assertNull($node->find(0, $hasher->hash(2), 2, null));
     }
 
     public function test_find_with_multiple_entries(): void
@@ -35,7 +35,7 @@ class HashCollisionNodeTest extends TestCase
 
         $this->assertEquals('foo', $node->find(0, $hasher->hash(1), 1, null));
         $this->assertEquals('bar', $node->find(0, $hasher->hash(3), 3, null));
-        $this->assertEquals(null, $node->find(0, $hasher->hash(2), 2, null));
+        $this->assertNull($node->find(0, $hasher->hash(2), 2, null));
     }
 
     public function test_put_another_key_with_same_hash(): void
@@ -48,7 +48,7 @@ class HashCollisionNodeTest extends TestCase
         $this->assertTrue($box->getValue());
         $this->assertEquals('foo', $node->find(0, $hasher->hash(1), 1, null));
         $this->assertEquals('bar', $node->find(0, $hasher->hash(3), 3, null));
-        $this->assertEquals(null, $node->find(0, $hasher->hash(2), 2, null));
+        $this->assertNull($node->find(0, $hasher->hash(2), 2, null));
     }
 
     public function test_update_existing_key(): void
@@ -60,7 +60,7 @@ class HashCollisionNodeTest extends TestCase
 
         $this->assertNull($box->getValue());
         $this->assertEquals('bar', $node->find(0, $hasher->hash(1), 1, null));
-        $this->assertEquals(null, $node->find(0, $hasher->hash(2), 2, null));
+        $this->assertNull($node->find(0, $hasher->hash(2), 2, null));
     }
 
     public function test_update_existing_key_with_same_value(): void
@@ -72,7 +72,7 @@ class HashCollisionNodeTest extends TestCase
 
         $this->assertFalse($box->getValue());
         $this->assertEquals('foo', $node->find(0, $hasher->hash(1), 1, null));
-        $this->assertEquals(null, $node->find(0, $hasher->hash(2), 2, null));
+        $this->assertNull($node->find(0, $hasher->hash(2), 2, null));
     }
 
     public function test_put_another_hash(): void
@@ -86,7 +86,7 @@ class HashCollisionNodeTest extends TestCase
         $this->assertInstanceOf(IndexedNode::class, $node);
         $this->assertEquals('foo', $node->find(0, $hasher->hash(1), 1, null));
         $this->assertEquals('bar', $node->find(0, $hasher->hash(2), 2, null));
-        $this->assertEquals(null, $node->find(0, $hasher->hash(3), 3, null));
+        $this->assertNull($node->find(0, $hasher->hash(3), 3, null));
     }
 
     public function test_remove_only_inserted_key(): void

@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Phel\Printer\TypePrinter;
 
 use Phel\Printer\PrinterInterface;
+use function count;
 
 /**
  * @implements TypePrinterInterface<array>
