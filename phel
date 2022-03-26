@@ -5,6 +5,7 @@ declare(strict_types=1);
 
 use Gacela\Framework\Config\GacelaConfigBuilder\ConfigBuilder;
 use Gacela\Framework\Gacela;
+use Gacela\Framework\Setup\SetupGacela;
 use Phel\Build\BuildFacade;
 use Phel\Formatter\FormatterFacade;
 use Phel\Interop\InteropFacade;
@@ -20,11 +21,12 @@ if (!file_exists($autoloadPath)) {
 
 require $autoloadPath;
 
-Gacela::bootstrap($projectRootDir, [
-    'config' => static function (ConfigBuilder $configBuilder): void {
+$setupGacela = (new SetupGacela())
+    ->setConfig(static function (ConfigBuilder $configBuilder): void {
         $configBuilder->add('phel-config.php', 'phel-config-local.php');
-    },
-]);
+    });
+
+Gacela::bootstrap($projectRootDir, $setupGacela);
 
 $interopFacade = new InteropFacade();
 $formatterFacade = new FormatterFacade();

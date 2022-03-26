@@ -14,7 +14,7 @@
     "require": {
         "ext-json": "*",
         "php": ">=8.0",
-        "gacela-project/gacela": "^0.14",
+        "gacela-project/gacela": "^0.15",
         "symfony/console": "^5.4",
         "phpunit/php-timer": "^5.0"
     },
@@ -23,8 +23,8 @@
         "phpunit/phpunit": "^9.5",
         "vimeo/psalm": "^4.22",
         "symfony/var-dumper": "^5.4",
-        "friendsofphp/php-cs-fixer": "^3.7",
-        "phpmetrics/phpmetrics": "^2.7",
+        "friendsofphp/php-cs-fixer": "^3.8",
+        "phpmetrics/phpmetrics": "^2.8",
         "phpbench/phpbench": "^1.2"
     },
     "autoload": {
