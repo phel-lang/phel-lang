@@ -1,11 +1,14 @@
 {
     "runner.bootstrap": "vendor/autoload.php",
-    "runner.path": "tests/php/Benchmark",
+    "runner.path": "tests/php/Benchmark/",
     "runner.retry_threshold": 5,
     "runner.iterations": 3,
     "runner.revs": 10,
     "runner.time_unit": "time",
-    "runner.assert": ["mode(variant.time.avg) <= mode(baseline.time.avg) +/- 17%"],
+    "runner.file_pattern": "*Bench.php",
+    "runner.assert": [
+        "mode(variant.time.avg) <= mode(baseline.time.avg) +/- 17%"
+    ],
     "report.generators": {
         "all": {
             "generator": "composite",
