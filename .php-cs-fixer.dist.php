@@ -120,7 +120,7 @@ return (new Config())
         'visibility_required' => true,
         'void_return' => true,
         'yoda_style' => [
-            'equal' => true,
+            'equal' => false,
             'identical' => false,
             'less_and_greater' => null,
         ],

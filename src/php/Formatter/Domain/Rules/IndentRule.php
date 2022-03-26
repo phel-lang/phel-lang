@@ -90,7 +90,7 @@ final class IndentRule implements RuleInterface
             return $this->indentAmount($form->up());
         }
 
-        if ($parentNode instanceof ListNode && Token::T_OPEN_PARENTHESIS == $parentNode->getTokenType()) {
+        if ($parentNode instanceof ListNode && $parentNode->getTokenType() == Token::T_OPEN_PARENTHESIS) {
             return $this->customIndent($form);
         }
 
