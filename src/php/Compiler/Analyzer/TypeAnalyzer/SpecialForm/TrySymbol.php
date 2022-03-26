@@ -25,7 +25,7 @@ final class TrySymbol implements SpecialFormAnalyzerInterface
         $catches = [];
         /** @var PersistentListInterface|null $finally */
         $finally = null;
-        for ($forms = $list->cdr(); $forms != null; $forms = $forms->cdr()) {
+        for ($forms = $list->cdr(); null != $forms; $forms = $forms->cdr()) {
             /** @var mixed $form */
             $form = $forms->first();
 

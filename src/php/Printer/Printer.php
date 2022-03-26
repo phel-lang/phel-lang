@@ -122,22 +122,22 @@ final class Printer implements PrinterInterface
     {
         $printerName = gettype($form);
 
-        if ('string' === $printerName) {
+        if ($printerName === 'string') {
             return new StringPrinter($this->readable, $this->withColor);
         }
-        if ('integer' === $printerName || 'double' === $printerName) {
+        if ($printerName === 'integer' || $printerName === 'double') {
             return new NumberPrinter($this->withColor);
         }
-        if ('boolean' === $printerName) {
+        if ($printerName === 'boolean') {
             return new BooleanPrinter($this->withColor);
         }
-        if ('NULL' === $printerName) {
+        if ($printerName === 'NULL') {
             return new NullPrinter($this->withColor);
         }
-        if ('array' === $printerName && !$this->readable) {
+        if ($printerName === 'array' && !$this->readable) {
             return new ArrayPrinter($this, $this->withColor);
         }
-        if ('resource' === $printerName && !$this->readable) {
+        if ($printerName === 'resource' && !$this->readable) {
             return new ResourcePrinter();
         }
         if (!$this->readable) {

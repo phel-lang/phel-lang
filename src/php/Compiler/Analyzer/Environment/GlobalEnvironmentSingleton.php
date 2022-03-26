@@ -27,7 +27,7 @@ final class GlobalEnvironmentSingleton
      */
     public static function getInstance(): GlobalEnvironmentInterface
     {
-        if (null === self::$instance) {
+        if (self::$instance === null) {
             throw new GlobalEnvironmentNotInitializedException();
         }
 

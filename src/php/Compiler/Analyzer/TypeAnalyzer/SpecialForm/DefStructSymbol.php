@@ -96,7 +96,7 @@ final class DefStructSymbol implements SpecialFormAnalyzerInterface
         }
 
         $interfaces = [];
-        for ($forms = $list; $forms != null; $forms = $forms->cdr()) {
+        for ($forms = $list; null != $forms; $forms = $forms->cdr()) {
             $first = $forms->first();
 
             if (!$first instanceof Symbol) {

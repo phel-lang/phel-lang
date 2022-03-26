@@ -26,11 +26,11 @@ final class DoSymbol implements SpecialFormAnalyzerInterface
 
         $forms = $list->cdr();
         $stmts = [];
-        for (; $forms != null; $forms = $forms->cdr()) {
-            if ($forms->cdr() == null && count($stmts) === 0) {
+        for (; null != $forms; $forms = $forms->cdr()) {
+            if (null == $forms->cdr() && count($stmts) === 0) {
                 // Only one statement?
                 $envStmt = $env;
-            } elseif ($forms->cdr() == null && count($stmts) > 0) {
+            } elseif (null == $forms->cdr() && count($stmts) > 0) {
                 // Return statement
                 $envStmt = $env->getContext() === NodeEnvironmentInterface::CONTEXT_STATEMENT
                     ? $env->withContext(NodeEnvironmentInterface::CONTEXT_STATEMENT)

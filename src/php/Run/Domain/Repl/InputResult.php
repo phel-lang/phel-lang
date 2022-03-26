@@ -41,7 +41,7 @@ final class InputResult
     {
         $fullInput = implode(PHP_EOL, $buffer);
 
-        if (self::NO_VALUE === $this->lastResult
+        if ($this->lastResult === self::NO_VALUE
             || !str_contains($fullInput, self::LAST_RESULT_PLACEHOLDER)
         ) {
             return $fullInput;

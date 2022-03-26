@@ -159,7 +159,7 @@ final class ReplCommand extends Command
     {
         $firstInput = $this->inputBuffer[0] ?? '';
 
-        if (self::EXIT_REPL === $firstInput) {
+        if ($firstInput === self::EXIT_REPL) {
             throw ExitException::fromRepl();
         }
     }
@@ -198,7 +198,7 @@ final class ReplCommand extends Command
 
     private function addHistory(string $input): void
     {
-        if ('' !== $input) {
+        if ($input !== '') {
             $this->io->addHistory($input);
         }
     }

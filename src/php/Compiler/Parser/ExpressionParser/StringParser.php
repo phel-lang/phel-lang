@@ -45,11 +45,11 @@ final class StringParser
                 return self::STRING_REPLACEMENTS[$str];
             }
 
-            if ('x' === $str[0] || 'X' === $str[0]) {
+            if ($str[0] === 'x' || $str[0] === 'X') {
                 return chr(hexdec(substr($str, 1)));
             }
 
-            if ('u' === $str[0]) {
+            if ($str[0] === 'u') {
                 return $this->codePointToUtf8(hexdec($matches[2]));
             }
 

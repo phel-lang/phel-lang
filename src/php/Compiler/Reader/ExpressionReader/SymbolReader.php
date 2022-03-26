@@ -27,7 +27,7 @@ final class SymbolReader
      */
     private function createSymbol(SymbolNode $node, ?array &$fnArgs): Symbol
     {
-        if (null === $fnArgs) {
+        if ($fnArgs === null) {
             return $node->getValue();
         }
 

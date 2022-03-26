@@ -75,7 +75,7 @@ final class OutputEmitter implements OutputEmitterInterface
 
     public function emitLine(string $str = '', ?SourceLocation $sl = null): void
     {
-        if ('' !== $str) {
+        if ($str !== '') {
             $this->emitStr($str, $sl);
         }
 

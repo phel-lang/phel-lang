@@ -119,5 +119,9 @@ return (new Config())
         'types_spaces' => true,
         'visibility_required' => true,
         'void_return' => true,
-        'yoda_style' => false,
+        'yoda_style' => [
+            'equal' => true,
+            'identical' => false,
+            'less_and_greater' => null,
+        ],
     ]);

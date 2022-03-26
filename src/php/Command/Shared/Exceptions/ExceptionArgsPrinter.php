@@ -56,7 +56,7 @@ final class ExceptionArgsPrinter implements ExceptionArgsPrinterInterface
      */
     private function buildPhpArg($arg): string
     {
-        if (null === $arg) {
+        if ($arg === null) {
             return 'NULL';
         }
 
