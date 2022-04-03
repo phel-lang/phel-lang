@@ -90,3 +90,13 @@
   (is (= "keyword" (full-name :keyword)) "full-name of keyword without ns")
   (is (= "test/symbol" (full-name (php/:: Symbol (createForNamespace "test" "symbol")))) "full-name on symbol with ns")
   (is (= "phel-test\\test\\core/keyword" (full-name ::keyword)) "full-name of keyword with ns"))
+
+(deftest test-read-string
+  (is (= '(+ 1 1) (read-string "(+ 1 1)")) "read simple expression")
+  (is (= nil (read-string "")) "read empty string"))
+
+(deftest test-eval-form
+  (is (= 2 (eval '(+ 1 1))) "eval simple expression"))
+
+(deftest test-compile-form
+  (is (= "(1 + 1);" (compile '(+ 1 1))) "compile simple expression"))

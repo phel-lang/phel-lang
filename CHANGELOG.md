@@ -20,6 +20,9 @@ All notable changes to this project will be documented in this file.
 * Added: `http/request-from-map` function
 * Bugfix: #443
 * Added: Support for PHP Array literals (#451)
+* Added: `read-string` function
+* Added: `eval` function
+* Added: `compile` function
 
 ## 0.6.0 (2022-02-02)
 

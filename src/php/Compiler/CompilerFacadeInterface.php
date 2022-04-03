@@ -43,7 +43,17 @@ interface CompilerFacadeInterface
      *
      * @return mixed The result of the executed code
      */
-    public function eval(string $phelCode, CompileOptions $compileOptions);
+    public function eval(string $phelCode, CompileOptions $compileOptions): mixed;
+
+    /**
+     * @param TypeInterface|string|float|int|bool|null $form The phel form to evaluate
+     * @param CompileOptions $evalOptions The evaluation options
+     *
+     * @throws CompilerException
+     *
+     * @return mixed The evaluated result
+     */
+    public function evalForm($form, CompileOptions $compileOptions): mixed;
 
     /**
      * Compiles the given phel code to PHP code.
