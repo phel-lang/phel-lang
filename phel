@@ -6,17 +6,13 @@ declare(strict_types=1);
 use Gacela\Framework\Config\GacelaConfigBuilder\ConfigBuilder;
 use Gacela\Framework\Gacela;
 use Gacela\Framework\Setup\SetupGacela;
-use Phel\Build\BuildFacade;
-use Phel\Formatter\FormatterFacade;
-use Phel\Interop\InteropFacade;
-use Phel\Run\RunFacade;
-use Symfony\Component\Console\Application;
+use Phel\Console\Infrastructure\ConsoleBootstrap;
 
 $projectRootDir = getcwd() . DIRECTORY_SEPARATOR;
 $autoloadPath = $projectRootDir . 'vendor' . DIRECTORY_SEPARATOR . 'autoload.php';
 
 if (!file_exists($autoloadPath)) {
-    exit("Cannot load composer's autoload file: $autoloadPath\n");
+    exit("Cannot load composer's autoload file: {$autoloadPath}\n");
 }
 
 require $autoloadPath;
@@ -28,16 +24,5 @@ $setupGacela = (new SetupGacela())
 
 Gacela::bootstrap($projectRootDir, $setupGacela);
 
-$interopFacade = new InteropFacade();
-$formatterFacade = new FormatterFacade();
-$runFacade = new RunFacade();
-$buildFacade = new BuildFacade();
-
-$application = new Application();
-$application->add($interopFacade->getExportCommand());
-$application->add($formatterFacade->getFormatCommand());
-$application->add($runFacade->getReplCommand());
-$application->add($runFacade->getRunCommand());
-$application->add($runFacade->getTestCommand());
-$application->add($buildFacade->getCompileCommand());
-$application->run();
+$bootstrap = new ConsoleBootstrap();
+$bootstrap->run();
