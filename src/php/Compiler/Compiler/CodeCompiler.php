@@ -58,7 +58,7 @@ final class CodeCompiler implements CodeCompilerInterface
      * @throws FileException
      * @throws LexerValueException
      */
-    public function compile(string $phelCode, CompileOptions $compileOptions): EmitterResult
+    public function compileString(string $phelCode, CompileOptions $compileOptions): EmitterResult
     {
         $tokenStream = $this->lexer->lexString($phelCode, $compileOptions->getSource(), $compileOptions->getStartingLine());
 
@@ -82,6 +82,14 @@ final class CodeCompiler implements CodeCompilerInterface
             }
         }
 
+        return $this->fileEmitter->endFile($compileOptions->isSourceMapsEnabled());
+    }
+
+    public function compileForm($form, CompileOptions $compileOptions): EmitterResult
+    {
+        $this->fileEmitter->startFile($compileOptions->getSource());
+        $node = $this->analyzer->analyze($form, NodeEnvironment::empty());
+        $this->emitNode($node, $compileOptions);
         return $this->fileEmitter->endFile($compileOptions->isSourceMapsEnabled());
     }
 

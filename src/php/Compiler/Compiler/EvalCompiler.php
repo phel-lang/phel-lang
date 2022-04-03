@@ -60,7 +60,7 @@ final class EvalCompiler implements EvalCompilerInterface
      *
      * @return mixed The result of the executed code
      */
-    public function eval(string $phelCode, CompileOptions $compileOptions)
+    public function evalString(string $phelCode, CompileOptions $compileOptions): mixed
     {
         $tokenStream = $this->lexer->lexString($phelCode, $compileOptions->getSource(), $compileOptions->getStartingLine());
 
@@ -89,6 +89,11 @@ final class EvalCompiler implements EvalCompilerInterface
         return $result;
     }
 
+    public function evalForm($form, CompileOptions $compileOptions): mixed
+    {
+        $node = $this->analyzer->analyze($form, NodeEnvironment::empty()->withContext(NodeEnvironmentInterface::CONTEXT_RETURN));
+        return $this->evalNode($node, $compileOptions);
+    }
     /**
      * @throws CompilerException
      */

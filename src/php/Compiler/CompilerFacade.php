@@ -46,11 +46,18 @@ final class CompilerFacade extends AbstractFacade implements CompilerFacadeInter
      *
      * @return mixed The result of the executed code
      */
-    public function eval(string $phelCode, CompileOptions $compileOptions)
+    public function eval(string $phelCode, CompileOptions $compileOptions): mixed
     {
         return $this->getFactory()
             ->createEvalCompiler()
-            ->eval($phelCode, $compileOptions);
+            ->evalString($phelCode, $compileOptions);
+    }
+
+    public function evalForm($form, CompileOptions $compileOptions): mixed
+    {
+        return $this->getFactory()
+            ->createEvalCompiler()
+            ->evalForm($form, $compileOptions);
     }
 
     /**
@@ -62,7 +69,21 @@ final class CompilerFacade extends AbstractFacade implements CompilerFacadeInter
     {
         return $this->getFactory()
             ->createCodeCompiler($compileOptions)
-            ->compile($phelCode, $compileOptions);
+            ->compileString($phelCode, $compileOptions);
+    }
+
+    /**
+     * @param TypeInterface|string|float|int|bool|null $form
+     *
+     * @throws CompilerException
+     * @throws CompiledCodeIsMalformedException
+     * @throws FileException
+     */
+    public function compileForm($form, CompileOptions $compileOptions): EmitterResult
+    {
+        return $this->getFactory()
+            ->createCodeCompiler($compileOptions)
+            ->compileForm($form, $compileOptions);
     }
 
     /**
