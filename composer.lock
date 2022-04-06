@@ -4,20 +4,20 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "6994a3c63e5482e0e934cd640e40ea94",
+    "content-hash": "31b1acd28da92088d9fea085e90cfac5",
     "packages": [
         {
             "name": "gacela-project/gacela",
-            "version": "0.15.0",
+            "version": "dev-master",
             "source": {
                 "type": "git",
                 "url": "https://github.com/gacela-project/gacela.git",
-                "reference": "4247559443b41f2c5b332b28c95ce8a624f4889a"
+                "reference": "027bef5f8b018e46d4bcdee8c6ac43f9858e734d"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/gacela-project/gacela/zipball/4247559443b41f2c5b332b28c95ce8a624f4889a",
-                "reference": "4247559443b41f2c5b332b28c95ce8a624f4889a",
+                "url": "https://api.github.com/repos/gacela-project/gacela/zipball/027bef5f8b018e46d4bcdee8c6ac43f9858e734d",
+                "reference": "027bef5f8b018e46d4bcdee8c6ac43f9858e734d",
                 "shasum": ""
             },
             "require": {
@@ -38,6 +38,7 @@
                 "gacela-project/gacela-env-config-reader": "Allows to read .env config files",
                 "gacela-project/gacela-yaml-config-reader": "Allows to read yml/yaml config files"
             },
+            "default-branch": true,
             "bin": [
                 "gacela"
             ],
@@ -70,9 +71,9 @@
             ],
             "support": {
                 "issues": "https://github.com/gacela-project/gacela/issues",
-                "source": "https://github.com/gacela-project/gacela/tree/0.15.0"
+                "source": "https://github.com/gacela-project/gacela/tree/master"
             },
-            "time": "2022-03-26T17:19:41+00:00"
+            "time": "2022-04-06T12:58:48+00:00"
         },
         {
             "name": "phpunit/php-timer",
@@ -183,16 +184,16 @@
         },
         {
             "name": "symfony/console",
-            "version": "v5.4.5",
+            "version": "v5.4.7",
             "source": {
                 "type": "git",
                 "url": "https://github.com/symfony/console.git",
-                "reference": "d8111acc99876953f52fe16d4c50eb60940d49ad"
+                "reference": "900275254f0a1a2afff1ab0e11abd5587a10e1d6"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/symfony/console/zipball/d8111acc99876953f52fe16d4c50eb60940d49ad",
-                "reference": "d8111acc99876953f52fe16d4c50eb60940d49ad",
+                "url": "https://api.github.com/repos/symfony/console/zipball/900275254f0a1a2afff1ab0e11abd5587a10e1d6",
+                "reference": "900275254f0a1a2afff1ab0e11abd5587a10e1d6",
                 "shasum": ""
             },
             "require": {
@@ -262,7 +263,7 @@
                 "terminal"
             ],
             "support": {
-                "source": "https://github.com/symfony/console/tree/v5.4.5"
+                "source": "https://github.com/symfony/console/tree/v5.4.7"
             },
             "funding": [
                 {
@@ -278,20 +279,20 @@
                     "type": "tidelift"
                 }
             ],
-            "time": "2022-02-24T12:45:35+00:00"
+            "time": "2022-03-31T17:09:19+00:00"
         },
         {
             "name": "symfony/deprecation-contracts",
-            "version": "v2.5.0",
+            "version": "v2.5.1",
             "source": {
                 "type": "git",
                 "url": "https://github.com/symfony/deprecation-contracts.git",
-                "reference": "6f981ee24cf69ee7ce9736146d1c57c2780598a8"
+                "reference": "e8b495ea28c1d97b5e0c121748d6f9b53d075c66"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/symfony/deprecation-contracts/zipball/6f981ee24cf69ee7ce9736146d1c57c2780598a8",
-                "reference": "6f981ee24cf69ee7ce9736146d1c57c2780598a8",
+                "url": "https://api.github.com/repos/symfony/deprecation-contracts/zipball/e8b495ea28c1d97b5e0c121748d6f9b53d075c66",
+                "reference": "e8b495ea28c1d97b5e0c121748d6f9b53d075c66",
                 "shasum": ""
             },
             "require": {
@@ -329,7 +330,7 @@
             "description": "A generic function and convention to trigger deprecation notices",
             "homepage": "https://symfony.com",
             "support": {
-                "source": "https://github.com/symfony/deprecation-contracts/tree/v2.5.0"
+                "source": "https://github.com/symfony/deprecation-contracts/tree/v2.5.1"
             },
             "funding": [
                 {
@@ -345,7 +346,7 @@
                     "type": "tidelift"
                 }
             ],
-            "time": "2021-07-12T14:48:14+00:00"
+            "time": "2022-01-02T09:53:40+00:00"
         },
         {
             "name": "symfony/polyfill-ctype",
@@ -841,22 +842,22 @@
         },
         {
             "name": "symfony/service-contracts",
-            "version": "v2.5.0",
+            "version": "v2.5.1",
             "source": {
                 "type": "git",
                 "url": "https://github.com/symfony/service-contracts.git",
-                "reference": "1ab11b933cd6bc5464b08e81e2c5b07dec58b0fc"
+                "reference": "24d9dc654b83e91aa59f9d167b131bc3b5bea24c"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/symfony/service-contracts/zipball/1ab11b933cd6bc5464b08e81e2c5b07dec58b0fc",
-                "reference": "1ab11b933cd6bc5464b08e81e2c5b07dec58b0fc",
+                "url": "https://api.github.com/repos/symfony/service-contracts/zipball/24d9dc654b83e91aa59f9d167b131bc3b5bea24c",
+                "reference": "24d9dc654b83e91aa59f9d167b131bc3b5bea24c",
                 "shasum": ""
             },
             "require": {
                 "php": ">=7.2.5",
                 "psr/container": "^1.1",
-                "symfony/deprecation-contracts": "^2.1"
+                "symfony/deprecation-contracts": "^2.1|^3"
             },
             "conflict": {
                 "ext-psr": "<1.1|>=2"
@@ -904,7 +905,7 @@
                 "standards"
             ],
             "support": {
-                "source": "https://github.com/symfony/service-contracts/tree/v2.5.0"
+                "source": "https://github.com/symfony/service-contracts/tree/v2.5.1"
             },
             "funding": [
                 {
@@ -920,7 +921,7 @@
                     "type": "tidelift"
                 }
             ],
-            "time": "2021-11-04T16:48:04+00:00"
+            "time": "2022-03-13T20:07:29+00:00"
         },
         {
             "name": "symfony/string",
@@ -5236,8 +5237,10 @@
         }
     ],
     "aliases": [],
-    "minimum-stability": "stable",
-    "stability-flags": [],
+    "minimum-stability": "dev",
+    "stability-flags": {
+        "gacela-project/gacela": 20
+    },
     "prefer-stable": false,
     "prefer-lowest": false,
     "platform": {

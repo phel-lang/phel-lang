@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace Phel\Build;
 
-use Phel\Build\Command\CompileCommand;
 use Phel\Build\Compile\CompiledFile;
 use Phel\Build\Extractor\NamespaceInformation;
 
@@ -63,17 +62,4 @@ interface BuildFacadeInterface
      * @return CompiledFile
      */
     public function evalFile(string $src): CompiledFile;
-
-    /**
-     * Compiles all Phel files that can be found in the give source directories
-     * and saves them into the target directory.
-     *
-     * @param string[] $srcDirectories The list of source directories
-     * @param string $dest the target dir that should contain the generated code
-     *
-     * @return list<CompiledFile>
-     */
-    public function compileProject(array $srcDirectories, string $dest): array;
-
-    public function getCompileCommand(): CompileCommand;
 }

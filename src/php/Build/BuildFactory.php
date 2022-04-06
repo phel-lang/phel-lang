@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace Phel\Build;
 
 use Gacela\Framework\AbstractFactory;
-use Phel\Build\Command\CompileCommand;
 use Phel\Build\Compile\DependenciesForNamespace;
 use Phel\Build\Compile\FileCompiler;
 use Phel\Build\Compile\FileCompilerInterface;
@@ -25,6 +24,7 @@ final class BuildFactory extends AbstractFactory
             $this->createNamespaceExtractor(),
             $this->createFileCompiler(),
             $this->getCompilerFacade(),
+            $this->getCommandFacade()
         );
     }
 
@@ -67,14 +67,6 @@ final class BuildFactory extends AbstractFactory
     public function getCommandFacade(): CommandFacadeInterface
     {
         return $this->getProvidedDependency(BuildDependencyProvider::FACADE_COMMAND);
-    }
-
-    public function createCompileCommand(): CompileCommand
-    {
-        return new CompileCommand(
-            $this->createProjectCompiler(),
-            $this->getCommandFacade()
-        );
     }
 
     private function createNamespaceSorter(): NamespaceSorterInterface

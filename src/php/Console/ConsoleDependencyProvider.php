@@ -6,7 +6,7 @@ namespace Phel\Console;
 
 use Gacela\Framework\AbstractDependencyProvider;
 use Gacela\Framework\Container\Container;
-use Phel\Build\BuildFacade;
+use Phel\Build\Command\CompileCommand;
 use Phel\Formatter\FormatterFacade;
 use Phel\Interop\InteropFacade;
 use Phel\Run\RunFacade;
@@ -20,7 +20,6 @@ final class ConsoleDependencyProvider extends AbstractDependencyProvider
         $interopFacade = new InteropFacade();
         $formatterFacade = new FormatterFacade();
         $runFacade = new RunFacade();
-        $buildFacade = new BuildFacade();
 
         $container->set(self::COMMANDS, static fn () => [
             $interopFacade->getExportCommand(),
@@ -28,7 +27,7 @@ final class ConsoleDependencyProvider extends AbstractDependencyProvider
             $runFacade->getReplCommand(),
             $runFacade->getRunCommand(),
             $runFacade->getTestCommand(),
-            $buildFacade->getCompileCommand(),
+            new CompileCommand(),
         ]);
     }
 }
