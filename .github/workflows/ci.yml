@@ -70,8 +70,11 @@ jobs:
       - name: Install dependencies
         run: composer install --no-interaction --no-ansi --no-progress
 
-      - name: Run vimeo/psalm on internal code
+      - name: Run Psalm on internal code
         run: ./vendor/bin/psalm --config=psalm.xml --no-progress --shepherd --show-info=false --stats --php-version=${{ matrix.php }}
+
+      - name: Run PHPStan on internal code
+        run: ./vendor/bin/phpstan --memory-limit=516M --debug -vvv
 
   compiler-tests:
     name: Compiler tests on PHP ${{ matrix.php }}
