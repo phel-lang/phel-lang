@@ -45,9 +45,7 @@ class PersistentList extends AbstractType implements PersistentListInterface
     }
 
     /**
-     * @template TT
-     *
-     * @return EmptyList<TT>
+     * @return EmptyList<T>
      */
     public static function empty(HasherInterface $hasher, EqualizerInterface $equalizer): PersistentListInterface
     {
