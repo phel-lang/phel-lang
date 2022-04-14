@@ -1,0 +1,17 @@
+{
+  "includes": [
+    "src/php"
+  ],
+  "excludes": [
+    "tests"
+  ],
+  "report": {
+    "html": "data/metrics-report",
+    "violations": "data/metrics-report/violations.xml"
+  },
+  "plugins": {
+    "git": {
+      "binary": "git"
+    }
+  }
+}

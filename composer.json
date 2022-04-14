@@ -53,7 +53,7 @@
             "vendor/bin/psalm --clear-cache",
             "vendor/bin/phpstan clear-result-cache"
         ],
-        "test-compiler": "./vendor/bin/phpunit --testsuite=integration,unit",
+        "test-compiler": "./vendor/bin/phpunit --testsuite=integration,unit --log-junit=data/log-junit.xml",
         "test-compiler:coverage": "XDEBUG_MODE=coverage ./vendor/bin/phpunit --testsuite=integration,unit --coverage-html=data/coverage-html --coverage-xml=data/coverage-xml --log-junit=data/coverage-xml/junit.xml",
         "test-core": "./phel test",
         "psalm": "./vendor/bin/psalm --no-cache",
@@ -63,7 +63,10 @@
         "phpbench": "./vendor/bin/phpbench run --report=aggregate --ansi",
         "phpbench-base": "./vendor/bin/phpbench run --tag=baseline --report=aggregate --progress=plain --ansi",
         "phpbench-ref": "./vendor/bin/phpbench run --ref=baseline --report=aggregate --progress=plain --ansi",
-        "metrics-report": "./vendor/bin/phpmetrics --report-html=data/metrics-report src/php"
+        "metrics-report": [
+            "@test-compiler",
+            "./vendor/bin/phpmetrics --config=phpmetrics-config.json --junit=data/log-junit.xml"
+        ]
     },
     "bin": [
         "phel"
