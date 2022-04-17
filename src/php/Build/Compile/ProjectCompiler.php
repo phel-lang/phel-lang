@@ -5,7 +5,9 @@ declare(strict_types=1);
 namespace Phel\Build\Compile;
 
 use Phel\Build\Extractor\NamespaceExtractorInterface;
+use Phel\Command\CommandFacadeInterface;
 use Phel\Compiler\CompilerFacadeInterface;
+
 use function dirname;
 
 final class ProjectCompiler
@@ -18,23 +20,49 @@ final class ProjectCompiler
 
     private CompilerFacadeInterface $compilerFacade;
 
+    private CommandFacadeInterface $commandFacade;
+
     public function __construct(
         NamespaceExtractorInterface $namespaceExtractor,
         FileCompilerInterface $fileCompiler,
-        CompilerFacadeInterface $compilerFacade
+        CompilerFacadeInterface $compilerFacade,
+        CommandFacadeInterface $commandFacade
     ) {
         $this->namespaceExtractor = $namespaceExtractor;
         $this->fileCompiler = $fileCompiler;
         $this->compilerFacade = $compilerFacade;
+        $this->commandFacade = $commandFacade;
     }
 
     /**
      * @return list<CompiledFile>
      */
-    public function compileProject(array $srcDirectories, string $dest, BuildOptions $buildOptions): array
+    public function compileProject(BuildOptions $buildOptions): array
+    {
+        $srcDirectories = [
+            ...$this->commandFacade->getSourceDirectories(),
+            ...$this->commandFacade->getVendorSourceDirectories(),
+        ];
+
+        $dest = $this->commandFacade->getOutputDirectory();
+
+        return $this->compileFromTo($srcDirectories, $dest, $buildOptions);
+    }
+
+    private function getTargetFileFromNamespace(string $namespace): string
+    {
+        $mungedNamespace = $this->compilerFacade->encodeNs($namespace);
+
+        return implode(DIRECTORY_SEPARATOR, explode('\\', $mungedNamespace)) . self::TARGET_FILE_EXTENSION;
+    }
+
+    /**
+     * @return list<CompiledFile>
+     */
+    private function compileFromTo(array $srcDirectories, string $dest, BuildOptions $buildOptions): array
     {
         $namespaceInformation = $this->namespaceExtractor->getNamespacesFromDirectories($srcDirectories);
-
+        /** @var list<CompiledFile> $result */
         $result = [];
         foreach ($namespaceInformation as $info) {
             $targetFile = $dest . '/' . $this->getTargetFileFromNamespace($info->getNamespace());
@@ -62,12 +90,5 @@ final class ProjectCompiler
         }
 
         return $result;
-    }
-
-    private function getTargetFileFromNamespace(string $namespace): string
-    {
-        $mungedNamespace = $this->compilerFacade->encodeNs($namespace);
-
-        return implode(DIRECTORY_SEPARATOR, explode('\\', $mungedNamespace)) . self::TARGET_FILE_EXTENSION;
     }
 }

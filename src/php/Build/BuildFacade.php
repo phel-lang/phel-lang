@@ -5,10 +5,12 @@ declare(strict_types=1);
 namespace Phel\Build;
 
 use Gacela\Framework\AbstractFacade;
-use Phel\Build\Command\CompileCommand;
 use Phel\Build\Compile\BuildOptions;
 use Phel\Build\Compile\CompiledFile;
 use Phel\Build\Extractor\NamespaceInformation;
+use Phel\Compiler\Exceptions\CompilerException;
+use Symfony\Component\Console\Output\OutputInterface;
+use Throwable;
 
 /**
  * @method BuildFactory getFactory()
@@ -92,27 +94,38 @@ final class BuildFacade extends AbstractFacade implements BuildFacadeInterface
     }
 
     /**
-     * Compiles all Phel files that can be found in the give source directories
-     * and saves them into the target directory.
-     *
-     * @param string[] $srcDirectories The list of source directories
-     * @param string $dest the target dir that should contain the generated code
-     *
      * @return list<CompiledFile>
      */
-    public function compileProject(array $srcDirectories, string $dest): array
+    public function compileProject(BuildOptions $options): array
     {
-        $enableCache = false;
-        $enableSourceMap = true;
-
         return $this->getFactory()
             ->createProjectCompiler()
-            ->compileProject($srcDirectories, $dest, new BuildOptions($enableCache, $enableSourceMap));
+            ->compileProject($options);
     }
 
-    public function getCompileCommand(): CompileCommand
+
+    public function registerExceptionHandler(): void
     {
-        return $this->getFactory()
-            ->createCompileCommand();
+        $this->getFactory()
+            ->getCommandFacade()
+            ->registerExceptionHandler();
+    }
+
+    public function writeLocatedException(OutputInterface $output, CompilerException $e): void
+    {
+        $this->getFactory()
+            ->getCommandFacade()
+            ->writeLocatedException(
+                $output,
+                $e->getNestedException(),
+                $e->getCodeSnippet()
+            );
+    }
+
+    public function writeStackTrace(OutputInterface $output, Throwable $e): void
+    {
+        $this->getFactory()
+            ->getCommandFacade()
+            ->writeStackTrace($output, $e);
     }
 }
