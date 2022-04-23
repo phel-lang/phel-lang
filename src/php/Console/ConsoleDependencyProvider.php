@@ -7,7 +7,7 @@ namespace Phel\Console;
 use Gacela\Framework\AbstractDependencyProvider;
 use Gacela\Framework\Container\Container;
 use Phel\Build\Command\CompileCommand;
-use Phel\Formatter\Command\FormatCommand;
+use Phel\Formatter\Infrastructure\Command\FormatCommand;
 use Phel\Interop\InteropFacade;
 use Phel\Run\RunFacade;
 

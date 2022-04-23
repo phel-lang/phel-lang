@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Phel\Formatter\Command;
+namespace Phel\Formatter\Infrastructure\Command;
 
 use Gacela\Framework\FacadeResolverAwareTrait;
 use Phel\Formatter\FormatterFacade;

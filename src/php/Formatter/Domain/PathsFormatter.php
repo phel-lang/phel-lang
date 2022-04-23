@@ -68,6 +68,7 @@ final class PathsFormatter
             throw new RuntimeException(sprintf('File path "%s" not found', $filename));
         }
 
+        // TODO: Consider creating some `FileIoInterface` to do this IO actions
         $code = file_get_contents($filename);
         $formattedCode = $this->formatter->format($code, $filename);
         file_put_contents($filename, $formattedCode);

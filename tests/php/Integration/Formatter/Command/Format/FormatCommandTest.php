@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace PhelTest\Integration\Formatter\Command\Format;
 
 use Gacela\Framework\Gacela;
-use Phel\Formatter\Command\FormatCommand;
+use Phel\Formatter\Infrastructure\Command\FormatCommand;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
