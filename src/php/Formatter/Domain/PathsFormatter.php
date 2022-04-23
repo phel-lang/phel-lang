@@ -56,6 +56,7 @@ final class PathsFormatter
     }
 
     /**
+     * @throws FilePathException
      * @throws LexerValueException
      * @throws ZipperException
      * @throws AbstractParserException
@@ -64,13 +65,7 @@ final class PathsFormatter
      */
     private function formatFile(string $filename): bool
     {
-        if (is_dir($filename)) {
-            throw FilePathException::directoryFound($filename);
-        }
-
-        if (!is_file($filename)) {
-            throw FilePathException::notFound($filename);
-        }
+        $this->fileIo->checkIfValid($filename);
 
         $code = $this->fileIo->getContents($filename);
         $formattedCode = $this->formatter->format($code, $filename);
