@@ -7,8 +7,9 @@ namespace Phel\Formatter\Domain;
 use Phel\Command\CommandFacadeInterface;
 use Phel\Compiler\Lexer\Exceptions\LexerValueException;
 use Phel\Compiler\Parser\Exceptions\AbstractParserException;
+use Phel\Formatter\Domain\Exception\FilePathException;
 use Phel\Formatter\Domain\Rules\Zipper\ZipperException;
-use RuntimeException;
+use Phel\Formatter\Infrastructure\IO\FileIoInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 use Throwable;
 
@@ -17,29 +18,32 @@ final class PathsFormatter
     private CommandFacadeInterface $commandFacade;
     private FormatterInterface $formatter;
     private PathFilterInterface $pathFilter;
+    private FileIoInterface $fileIo;
 
     public function __construct(
         CommandFacadeInterface $commandFacade,
         FormatterInterface $formatter,
-        PathFilterInterface $pathFilter
+        PathFilterInterface $pathFilter,
+        FileIoInterface $fileIo
     ) {
         $this->commandFacade = $commandFacade;
         $this->formatter = $formatter;
         $this->pathFilter = $pathFilter;
+        $this->fileIo = $fileIo;
     }
 
     /**
-     * @return list<string>
+     * @return list<string> successful formatted file paths
      */
     public function format(array $paths, OutputInterface $output): array
     {
-        $successfulFormattedFilePaths = [];
+        $formattedFilePaths = [];
 
         foreach ($this->pathFilter->filterPaths($paths) as $path) {
             try {
                 $wasFormatted = $this->formatFile($path);
                 if ($wasFormatted) {
-                    $successfulFormattedFilePaths[] = $path;
+                    $formattedFilePaths[] = $path;
                 }
             } catch (AbstractParserException $e) {
                 $this->commandFacade->writeLocatedException($output, $e, $e->getCodeSnippet());
@@ -48,7 +52,7 @@ final class PathsFormatter
             }
         }
 
-        return $successfulFormattedFilePaths;
+        return $formattedFilePaths;
     }
 
     /**
@@ -61,17 +65,16 @@ final class PathsFormatter
     private function formatFile(string $filename): bool
     {
         if (is_dir($filename)) {
-            throw new RuntimeException(sprintf('"%s" is a directory but needs to be a file path', $filename));
+            throw FilePathException::directoryFound($filename);
         }
 
         if (!is_file($filename)) {
-            throw new RuntimeException(sprintf('File path "%s" not found', $filename));
+            throw FilePathException::notFound($filename);
         }
 
-        // TODO: Consider creating some `FileIoInterface` to do this IO actions
-        $code = file_get_contents($filename);
+        $code = $this->fileIo->getContents($filename);
         $formattedCode = $this->formatter->format($code, $filename);
-        file_put_contents($filename, $formattedCode);
+        $this->fileIo->putContents($filename, $formattedCode);
 
         return (bool)strcmp($formattedCode, $code);
     }

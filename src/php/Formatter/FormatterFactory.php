@@ -18,6 +18,8 @@ use Phel\Formatter\Domain\Rules\IndentRule;
 use Phel\Formatter\Domain\Rules\RemoveSurroundingWhitespaceRule;
 use Phel\Formatter\Domain\Rules\RemoveTrailingWhitespaceRule;
 use Phel\Formatter\Domain\Rules\UnindentRule;
+use Phel\Formatter\Infrastructure\IO\FileIoInterface;
+use Phel\Formatter\Infrastructure\IO\SystemFileIo;
 
 final class FormatterFactory extends AbstractFactory
 {
@@ -26,7 +28,8 @@ final class FormatterFactory extends AbstractFactory
         return new PathsFormatter(
             $this->getCommandFacade(),
             $this->createFormatter(),
-            $this->createPathFilter()
+            $this->createPathFilter(),
+            $this->createFileIo()
         );
     }
 
@@ -102,5 +105,10 @@ final class FormatterFactory extends AbstractFactory
     private function getCommandFacade(): CommandFacadeInterface
     {
         return $this->getProvidedDependency(FormatterDependencyProvider::FACADE_COMMAND);
+    }
+
+    private function createFileIo(): FileIoInterface
+    {
+        return new SystemFileIo();
     }
 }
