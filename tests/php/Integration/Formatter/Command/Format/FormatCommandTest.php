@@ -6,8 +6,6 @@ namespace PhelTest\Integration\Formatter\Command\Format;
 
 use Gacela\Framework\Gacela;
 use Phel\Formatter\Command\FormatCommand;
-use Phel\Formatter\FormatterFacade;
-use Phel\Formatter\FormatterFacadeInterface;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
@@ -26,7 +24,7 @@ final class FormatCommandTest extends TestCase
         $path = self::FIXTURES_DIR . 'good-format.phel';
         $oldContent = file_get_contents($path);
 
-        $command = $this->getFormatCommand();
+        $command = $this->createFormatCommand();
 
         $this->expectOutputRegex('/No files were formatted+/s');
 
@@ -45,7 +43,7 @@ final class FormatCommandTest extends TestCase
         $path = self::FIXTURES_DIR . 'bad-format.phel';
         $oldContent = file_get_contents($path);
 
-        $command = $this->getFormatCommand();
+        $command = $this->createFormatCommand();
 
         $this->expectOutputString(
             <<<TXT
@@ -64,14 +62,9 @@ TXT
         }
     }
 
-    private function getFormatCommand(): FormatCommand
+    private function createFormatCommand(): FormatCommand
     {
-        return $this->createFormatterFacade()->getFormatCommand();
-    }
-
-    private function createFormatterFacade(): FormatterFacadeInterface
-    {
-        return new FormatterFacade();
+        return new FormatCommand();
     }
 
     private function stubInput(array $paths): InputInterface

@@ -5,18 +5,18 @@ declare(strict_types=1);
 namespace PhelTest\Integration\Formatter;
 
 use Generator;
-use Phel\Formatter\FormatterFacade;
+use Phel\Formatter\FormatterFactory;
 use Phel\Lang\Symbol;
 use PHPUnit\Framework\TestCase;
 
 final class FormatterFacadeTest extends TestCase
 {
-    private FormatterFacade $formatterFacade;
+    private FormatterFactory $formatterFactory;
 
     public function setUp(): void
     {
         Symbol::resetGen();
-        $this->formatterFacade = new FormatterFacade();
+        $this->formatterFactory = new FormatterFactory();
     }
 
     /**
@@ -26,9 +26,8 @@ final class FormatterFacadeTest extends TestCase
      */
     public function test_format(array $actualLines, array $expectedLines): void
     {
-        $formatted = $this->formatterFacade
-            ->getFormatCommand()
-            ->getFormatter()
+        $formatted = $this->formatterFactory
+            ->createFormatter()
             ->format(implode("\n", $actualLines));
 
         self::assertEquals($expectedLines, explode("\n", $formatted));
