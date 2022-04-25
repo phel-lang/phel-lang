@@ -43,6 +43,6 @@ final class TestCommandProjectFailureTest extends AbstractCommandTest
 
     private function getTestCommand(): TestCommand
     {
-        return $this->createRunFacade()->getTestCommand();
+        return new TestCommand();
     }
 }

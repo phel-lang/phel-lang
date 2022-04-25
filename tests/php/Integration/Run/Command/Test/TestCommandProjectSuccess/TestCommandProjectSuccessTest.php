@@ -22,7 +22,7 @@ final class TestCommandProjectSuccessTest extends AbstractCommandTest
      */
     public function test_all_in_project(): void
     {
-        $command = $this->getTestCommand();
+        $command = new TestCommand();
 
         $this->expectOutputRegex('/\.\..*/');
         $this->expectOutputRegex('/.*Passed: 2.*/');
@@ -39,7 +39,7 @@ final class TestCommandProjectSuccessTest extends AbstractCommandTest
      */
     public function test_one_file_in_project(): void
     {
-        $command = $this->getTestCommand();
+        $command = new TestCommand();
 
         $this->expectOutputRegex('/\..*/');
         $this->expectOutputRegex('/.*Passed: 1.*/');
@@ -59,10 +59,5 @@ final class TestCommandProjectSuccessTest extends AbstractCommandTest
         $input->method('getArgument')->willReturn($paths);
 
         return $input;
-    }
-
-    private function getTestCommand(): TestCommand
-    {
-        return $this->createRunFacade()->getTestCommand();
     }
 }
