@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace Phel\Formatter;
 
-use Phel\Formatter\Command\FormatCommand;
+use Symfony\Component\Console\Output\OutputInterface;
 
 interface FormatterFacadeInterface
 {
-    public function getFormatCommand(): FormatCommand;
+    public function format(array $paths, OutputInterface $output): array;
 }

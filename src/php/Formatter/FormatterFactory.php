@@ -7,10 +7,10 @@ namespace Phel\Formatter;
 use Gacela\Framework\AbstractFactory;
 use Phel\Command\CommandFacadeInterface;
 use Phel\Compiler\CompilerFacade;
-use Phel\Formatter\Command\FormatCommand;
 use Phel\Formatter\Domain\Formatter;
 use Phel\Formatter\Domain\FormatterInterface;
 use Phel\Formatter\Domain\PathFilterInterface;
+use Phel\Formatter\Domain\PathsFormatter;
 use Phel\Formatter\Domain\PhelPathFilter;
 use Phel\Formatter\Domain\Rules\Indenter\BlockIndenter;
 use Phel\Formatter\Domain\Rules\Indenter\InnerIndenter;
@@ -18,19 +18,22 @@ use Phel\Formatter\Domain\Rules\IndentRule;
 use Phel\Formatter\Domain\Rules\RemoveSurroundingWhitespaceRule;
 use Phel\Formatter\Domain\Rules\RemoveTrailingWhitespaceRule;
 use Phel\Formatter\Domain\Rules\UnindentRule;
+use Phel\Formatter\Infrastructure\IO\FileIoInterface;
+use Phel\Formatter\Infrastructure\IO\SystemFileIo;
 
 final class FormatterFactory extends AbstractFactory
 {
-    public function createFormatCommand(): FormatCommand
+    public function createPathsFormatter(): PathsFormatter
     {
-        return new FormatCommand(
+        return new PathsFormatter(
             $this->getCommandFacade(),
             $this->createFormatter(),
-            $this->createPathFilter()
+            $this->createPathFilter(),
+            $this->createFileIo()
         );
     }
 
-    private function createFormatter(): FormatterInterface
+    public function createFormatter(): FormatterInterface
     {
         return new Formatter(
             $this->getFacadeCompiler(),
@@ -102,5 +105,10 @@ final class FormatterFactory extends AbstractFactory
     private function getCommandFacade(): CommandFacadeInterface
     {
         return $this->getProvidedDependency(FormatterDependencyProvider::FACADE_COMMAND);
+    }
+
+    private function createFileIo(): FileIoInterface
+    {
+        return new SystemFileIo();
     }
 }
