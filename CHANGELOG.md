@@ -23,6 +23,7 @@ All notable changes to this project will be documented in this file.
 * Added: `read-string` function
 * Added: `eval` function
 * Added: `compile` function
+* Bugfix: #467 Failed to run a REPL on Windows
 
 ## 0.6.0 (2022-02-02)
 

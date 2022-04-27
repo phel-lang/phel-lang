@@ -68,6 +68,8 @@ final class ReplCommandSystemIo implements ReplCommandIoInterface
 
     public function isBracketedPasteSupported(): bool
     {
-        return stripos(readline_info('library_version'), 'editline') === false;
+        $haystack = readline_info('library_version') ?? '';
+
+        return stripos($haystack, 'editline') === false;
     }
 }
