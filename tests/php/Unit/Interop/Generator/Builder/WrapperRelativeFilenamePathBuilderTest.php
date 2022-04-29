@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace PhelTest\Unit\Interop\Generator\Builder;
 
 use Generator;
-use Phel\Interop\Generator\Builder\WrapperRelativeFilenamePathBuilder;
+use Phel\Interop\Domain\Generator\Builder\WrapperRelativeFilenamePathBuilder;
 use PHPUnit\Framework\TestCase;
 
 final class WrapperRelativeFilenamePathBuilderTest extends TestCase

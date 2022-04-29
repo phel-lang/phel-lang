@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Phel\Interop;
 
-use Phel\Interop\Command\ExportCommand;
+use Phel\Interop\Infrastructure\Command\ExportCommand;
 
 interface InteropFacadeInterface
 {

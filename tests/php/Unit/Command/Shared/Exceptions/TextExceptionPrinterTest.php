@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace PhelTest\Unit\Command\Shared\Exceptions;
 
-use Phel\Command\Shared\Exceptions\ExceptionArgsPrinterInterface;
-use Phel\Command\Shared\Exceptions\Extractor\FilePositionExtractorInterface;
-use Phel\Command\Shared\Exceptions\TextExceptionPrinter;
+use Phel\Command\Domain\Shared\Exceptions\ExceptionArgsPrinterInterface;
+use Phel\Command\Domain\Shared\Exceptions\Extractor\FilePositionExtractorInterface;
+use Phel\Command\Domain\Shared\Exceptions\TextExceptionPrinter;
 use Phel\Compiler\Analyzer\Exceptions\AnalyzerException;
 use Phel\Compiler\Emitter\OutputEmitter\MungeInterface;
 use Phel\Compiler\Parser\ReadModel\CodeSnippet;

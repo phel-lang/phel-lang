@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace Phel\Run;
 
-use Phel\Run\Command\ReplCommand;
-use Phel\Run\Command\RunCommand;
+use Phel\Run\Infrastructure\Command\ReplCommand;
+use Phel\Run\Infrastructure\Command\RunCommand;
 
 interface RunFacadeInterface
 {

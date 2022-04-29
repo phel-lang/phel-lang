@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace PhelTest\Benchmark\Command;
 
-use Phel\Run\Command\TestCommand;
+use Phel\Run\Infrastructure\Command\TestCommand;
 use Phel\Run\RunFactory;
 use Symfony\Component\Console\Input\StringInput;
 use Symfony\Component\Console\Output\NullOutput;

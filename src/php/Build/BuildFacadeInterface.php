@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace Phel\Build;
 
-use Phel\Build\Compile\CompiledFile;
-use Phel\Build\Extractor\NamespaceInformation;
+use Phel\Build\Domain\Compile\CompiledFile;
+use Phel\Build\Domain\Extractor\NamespaceInformation;
 
 interface BuildFacadeInterface
 {
