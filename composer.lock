@@ -4,20 +4,20 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "8b57e27e3643489b1c61c21e0eb3eeef",
+    "content-hash": "ad61cf7d48748fe9ad8c18d588c5d8b0",
     "packages": [
         {
             "name": "gacela-project/gacela",
-            "version": "0.16.0",
+            "version": "0.17.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/gacela-project/gacela.git",
-                "reference": "2918162f7406100106021c18fe67379fe7c5d60e"
+                "reference": "577ab3538db63da85cc3ebf315bbfe9c3492f62e"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/gacela-project/gacela/zipball/2918162f7406100106021c18fe67379fe7c5d60e",
-                "reference": "2918162f7406100106021c18fe67379fe7c5d60e",
+                "url": "https://api.github.com/repos/gacela-project/gacela/zipball/577ab3538db63da85cc3ebf315bbfe9c3492f62e",
+                "reference": "577ab3538db63da85cc3ebf315bbfe9c3492f62e",
                 "shasum": ""
             },
             "require": {
@@ -70,9 +70,9 @@
             ],
             "support": {
                 "issues": "https://github.com/gacela-project/gacela/issues",
-                "source": "https://github.com/gacela-project/gacela/tree/0.16.0"
+                "source": "https://github.com/gacela-project/gacela/tree/0.17.0"
             },
-            "time": "2022-04-14T15:47:04+00:00"
+            "time": "2022-04-29T10:41:54+00:00"
         },
         {
             "name": "phpunit/php-timer",
