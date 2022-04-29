@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Phel\Run\Command;
 
-use Gacela\Framework\FacadeResolverAwareTrait;
+use Gacela\Framework\DocBlockResolverAwareTrait;
 use Phel\Build\Extractor\NamespaceInformation;
 use Phel\Compiler\Exceptions\CompilerException;
 use Phel\Run\Domain\Test\TestCommandOptions;
@@ -22,7 +22,7 @@ use Throwable;
  */
 final class TestCommand extends Command
 {
-    use FacadeResolverAwareTrait;
+    use DocBlockResolverAwareTrait;
 
     public const COMMAND_NAME = 'test';
 
@@ -78,11 +78,6 @@ final class TestCommand extends Command
         }
 
         return self::FAILURE;
-    }
-
-    protected function facadeClass(): string
-    {
-        return RunFacade::class;
     }
 
     /**

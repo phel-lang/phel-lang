@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Phel\Formatter\Infrastructure\Command;
 
-use Gacela\Framework\FacadeResolverAwareTrait;
+use Gacela\Framework\DocBlockResolverAwareTrait;
 use Phel\Formatter\FormatterFacade;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputArgument;
@@ -16,7 +16,7 @@ use Symfony\Component\Console\Output\OutputInterface;
  */
 final class FormatCommand extends Command
 {
-    use FacadeResolverAwareTrait;
+    use DocBlockResolverAwareTrait;
 
     protected function configure(): void
     {
@@ -49,10 +49,5 @@ final class FormatCommand extends Command
         }
 
         return self::SUCCESS;
-    }
-
-    protected function facadeClass(): string
-    {
-        return FormatterFacade::class;
     }
 }
