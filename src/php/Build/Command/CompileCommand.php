@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Phel\Build\Command;
 
-use Gacela\Framework\FacadeResolverAwareTrait;
+use Gacela\Framework\DocBlockResolverAwareTrait;
 use Phel\Build\BuildFacade;
 use Phel\Build\Compile\BuildOptions;
 use Phel\Compiler\Exceptions\CompilerException;
@@ -19,7 +19,7 @@ use Throwable;
  */
 final class CompileCommand extends Command
 {
-    use FacadeResolverAwareTrait;
+    use DocBlockResolverAwareTrait;
 
     private const OPTION_CACHE = 'cache';
     private const OPTION_SOURCE_MAP = 'source-map';
@@ -47,11 +47,6 @@ final class CompileCommand extends Command
         }
 
         return self::SUCCESS;
-    }
-
-    protected function facadeClass(): string
-    {
-        return BuildFacade::class;
     }
 
     private function getBuildOptions(InputInterface $input): BuildOptions
