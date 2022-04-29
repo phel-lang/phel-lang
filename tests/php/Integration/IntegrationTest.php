@@ -6,10 +6,10 @@ namespace PhelTest\Integration;
 
 use Generator;
 use Phel\Build\BuildFacade;
-use Phel\Compiler\Analyzer\Environment\GlobalEnvironment;
-use Phel\Compiler\Analyzer\Environment\GlobalEnvironmentSingleton;
-use Phel\Compiler\Compiler\CompileOptions;
 use Phel\Compiler\CompilerFacade;
+use Phel\Compiler\Domain\Analyzer\Environment\GlobalEnvironment;
+use Phel\Compiler\Infrastructure\CompileOptions;
+use Phel\Compiler\Infrastructure\GlobalEnvironmentSingleton;
 use Phel\Lang\Symbol;
 use PHPUnit\Framework\TestCase;
 use RecursiveDirectoryIterator;

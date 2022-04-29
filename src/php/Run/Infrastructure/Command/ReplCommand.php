@@ -6,10 +6,10 @@ namespace Phel\Run\Infrastructure\Command;
 
 use Phel\Build\BuildFacadeInterface;
 use Phel\Command\CommandFacadeInterface;
-use Phel\Compiler\Compiler\CompileOptions;
 use Phel\Compiler\CompilerFacadeInterface;
-use Phel\Compiler\Exceptions\CompilerException;
-use Phel\Compiler\Parser\Exceptions\UnfinishedParserException;
+use Phel\Compiler\Domain\Exceptions\CompilerException;
+use Phel\Compiler\Domain\Parser\Exceptions\UnfinishedParserException;
+use Phel\Compiler\Infrastructure\CompileOptions;
 use Phel\Lang\Registry;
 use Phel\Printer\PrinterInterface;
 use Phel\Run\Domain\Repl\ColorStyleInterface;

@@ -6,7 +6,7 @@ namespace PhelTest\Unit\Compiler\Lexer;
 
 use Exception;
 use Phel\Compiler\CompilerFactory;
-use Phel\Compiler\Lexer\Token;
+use Phel\Compiler\Domain\Lexer\Token;
 use Phel\Lang\SourceLocation;
 use PHPUnit\Framework\TestCase;
 

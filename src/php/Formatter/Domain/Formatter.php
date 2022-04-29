@@ -5,9 +5,9 @@ declare(strict_types=1);
 namespace Phel\Formatter\Domain;
 
 use Phel\Compiler\CompilerFacadeInterface;
-use Phel\Compiler\Lexer\Exceptions\LexerValueException;
-use Phel\Compiler\Parser\Exceptions\AbstractParserException;
-use Phel\Compiler\Parser\ParserNode\NodeInterface;
+use Phel\Compiler\Domain\Lexer\Exceptions\LexerValueException;
+use Phel\Compiler\Domain\Parser\Exceptions\AbstractParserException;
+use Phel\Compiler\Domain\Parser\ParserNode\NodeInterface;
 use Phel\Formatter\Domain\Rules\RuleInterface;
 use Phel\Formatter\Domain\Rules\Zipper\ZipperException;
 

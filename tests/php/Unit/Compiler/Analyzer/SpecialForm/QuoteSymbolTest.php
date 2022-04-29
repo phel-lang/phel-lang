@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace PhelTest\Unit\Compiler\Analyzer\SpecialForm;
 
-use Phel\Compiler\Analyzer\Environment\NodeEnvironment;
-use Phel\Compiler\Analyzer\TypeAnalyzer\SpecialForm\QuoteSymbol;
-use Phel\Compiler\Exceptions\AbstractLocatedException;
+use Phel\Compiler\Domain\Analyzer\Environment\NodeEnvironment;
+use Phel\Compiler\Domain\Analyzer\TypeAnalyzer\SpecialForm\QuoteSymbol;
+use Phel\Compiler\Domain\Exceptions\AbstractLocatedException;
 use Phel\Lang\Symbol;
 use Phel\Lang\TypeFactory;
 use PHPUnit\Framework\TestCase;

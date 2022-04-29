@@ -4,13 +4,13 @@ declare(strict_types=1);
 
 namespace Phel\Build\Domain\Extractor;
 
-use Phel\Compiler\Analyzer\Ast\NsNode;
-use Phel\Compiler\Analyzer\Environment\NodeEnvironment;
 use Phel\Compiler\CompilerFacadeInterface;
-use Phel\Compiler\Lexer\Exceptions\LexerValueException;
-use Phel\Compiler\Parser\Exceptions\AbstractParserException;
-use Phel\Compiler\Parser\ParserNode\TriviaNodeInterface;
-use Phel\Compiler\Reader\Exceptions\ReaderException;
+use Phel\Compiler\Domain\Analyzer\Ast\NsNode;
+use Phel\Compiler\Domain\Analyzer\Environment\NodeEnvironment;
+use Phel\Compiler\Domain\Lexer\Exceptions\LexerValueException;
+use Phel\Compiler\Domain\Parser\Exceptions\AbstractParserException;
+use Phel\Compiler\Domain\Parser\ParserNode\TriviaNodeInterface;
+use Phel\Compiler\Domain\Reader\Exceptions\ReaderException;
 use Phel\Lang\Symbol;
 use RecursiveDirectoryIterator;
 use RecursiveIteratorIterator;

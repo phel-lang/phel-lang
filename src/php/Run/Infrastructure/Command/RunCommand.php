@@ -6,7 +6,7 @@ namespace Phel\Run\Infrastructure\Command;
 
 use Phel\Build\BuildFacadeInterface;
 use Phel\Command\CommandFacadeInterface;
-use Phel\Compiler\Exceptions\CompilerException;
+use Phel\Compiler\Domain\Exceptions\CompilerException;
 use Phel\Run\Domain\Runner\NamespaceRunnerInterface;
 use SebastianBergmann\Timer\ResourceUsageFormatter;
 use Symfony\Component\Console\Command\Command;

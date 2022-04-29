@@ -6,7 +6,7 @@ namespace Phel\Run\Infrastructure\Command;
 
 use Gacela\Framework\DocBlockResolverAwareTrait;
 use Phel\Build\Domain\Extractor\NamespaceInformation;
-use Phel\Compiler\Exceptions\CompilerException;
+use Phel\Compiler\Domain\Exceptions\CompilerException;
 use Phel\Run\Domain\Test\TestCommandOptions;
 use Phel\Run\RunFacade;
 use SebastianBergmann\Timer\ResourceUsageFormatter;

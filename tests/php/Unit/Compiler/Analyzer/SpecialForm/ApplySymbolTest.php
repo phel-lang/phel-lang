@@ -4,16 +4,16 @@ declare(strict_types=1);
 
 namespace PhelTest\Unit\Compiler\Analyzer\SpecialForm;
 
-use Phel\Compiler\Analyzer\Analyzer;
-use Phel\Compiler\Analyzer\AnalyzerInterface;
-use Phel\Compiler\Analyzer\Ast\ApplyNode;
-use Phel\Compiler\Analyzer\Ast\LiteralNode;
-use Phel\Compiler\Analyzer\Ast\PhpVarNode;
-use Phel\Compiler\Analyzer\Ast\VectorNode;
-use Phel\Compiler\Analyzer\Environment\GlobalEnvironment;
-use Phel\Compiler\Analyzer\Environment\NodeEnvironment;
-use Phel\Compiler\Analyzer\TypeAnalyzer\SpecialForm\ApplySymbol;
-use Phel\Compiler\Exceptions\AbstractLocatedException;
+use Phel\Compiler\Domain\Analyzer\Analyzer;
+use Phel\Compiler\Domain\Analyzer\AnalyzerInterface;
+use Phel\Compiler\Domain\Analyzer\Ast\ApplyNode;
+use Phel\Compiler\Domain\Analyzer\Ast\LiteralNode;
+use Phel\Compiler\Domain\Analyzer\Ast\PhpVarNode;
+use Phel\Compiler\Domain\Analyzer\Ast\VectorNode;
+use Phel\Compiler\Domain\Analyzer\Environment\GlobalEnvironment;
+use Phel\Compiler\Domain\Analyzer\Environment\NodeEnvironment;
+use Phel\Compiler\Domain\Analyzer\TypeAnalyzer\SpecialForm\ApplySymbol;
+use Phel\Compiler\Domain\Exceptions\AbstractLocatedException;
 use Phel\Lang\Symbol;
 use Phel\Lang\TypeFactory;
 use PHPUnit\Framework\TestCase;

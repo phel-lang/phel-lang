@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Phel\Interop\Infrastructure\Command;
 
 use Phel\Command\CommandFacadeInterface;
-use Phel\Compiler\Exceptions\CompilerException;
+use Phel\Compiler\Domain\Exceptions\CompilerException;
 use Phel\Interop\Domain\DirectoryRemover\DirectoryRemoverInterface;
 use Phel\Interop\Domain\ExportFinder\FunctionsToExportFinderInterface;
 use Phel\Interop\Domain\FileCreator\FileCreatorInterface;

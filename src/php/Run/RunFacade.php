@@ -6,8 +6,8 @@ namespace Phel\Run;
 
 use Gacela\Framework\AbstractFacade;
 use Phel\Build\Domain\Extractor\NamespaceInformation;
-use Phel\Compiler\Compiler\CompileOptions;
-use Phel\Compiler\Exceptions\CompilerException;
+use Phel\Compiler\Domain\Exceptions\CompilerException;
+use Phel\Compiler\Infrastructure\CompileOptions;
 use Phel\Run\Infrastructure\Command\ReplCommand;
 use Phel\Run\Infrastructure\Command\RunCommand;
 use Symfony\Component\Console\Output\OutputInterface;

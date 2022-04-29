@@ -4,14 +4,14 @@ declare(strict_types=1);
 
 namespace PhelTest\Unit\Compiler\Analyzer\SpecialForm;
 
-use Phel\Compiler\Analyzer\Analyzer;
-use Phel\Compiler\Analyzer\AnalyzerInterface;
-use Phel\Compiler\Analyzer\Ast\DefStructNode;
-use Phel\Compiler\Analyzer\Environment\GlobalEnvironment;
-use Phel\Compiler\Analyzer\Environment\NodeEnvironment;
-use Phel\Compiler\Analyzer\TypeAnalyzer\SpecialForm\DefStructSymbol;
-use Phel\Compiler\Emitter\OutputEmitter\Munge;
-use Phel\Compiler\Exceptions\AbstractLocatedException;
+use Phel\Compiler\Domain\Analyzer\Analyzer;
+use Phel\Compiler\Domain\Analyzer\AnalyzerInterface;
+use Phel\Compiler\Domain\Analyzer\Ast\DefStructNode;
+use Phel\Compiler\Domain\Analyzer\Environment\GlobalEnvironment;
+use Phel\Compiler\Domain\Analyzer\Environment\NodeEnvironment;
+use Phel\Compiler\Domain\Analyzer\TypeAnalyzer\SpecialForm\DefStructSymbol;
+use Phel\Compiler\Domain\Exceptions\AbstractLocatedException;
+use Phel\Compiler\Infrastructure\Munge;
 use Phel\Lang\Symbol;
 use Phel\Lang\TypeFactory;
 use PHPUnit\Framework\TestCase;

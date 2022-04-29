@@ -4,12 +4,12 @@ declare(strict_types=1);
 
 namespace PhelTest\Unit\Compiler\Analyzer;
 
-use Phel\Compiler\Analyzer\Analyzer;
-use Phel\Compiler\Analyzer\Ast\LiteralNode;
-use Phel\Compiler\Analyzer\Ast\MapNode;
-use Phel\Compiler\Analyzer\Environment\GlobalEnvironment;
-use Phel\Compiler\Analyzer\Environment\NodeEnvironment;
-use Phel\Compiler\Analyzer\TypeAnalyzer\AnalyzePersistentMap;
+use Phel\Compiler\Domain\Analyzer\Analyzer;
+use Phel\Compiler\Domain\Analyzer\Ast\LiteralNode;
+use Phel\Compiler\Domain\Analyzer\Ast\MapNode;
+use Phel\Compiler\Domain\Analyzer\Environment\GlobalEnvironment;
+use Phel\Compiler\Domain\Analyzer\Environment\NodeEnvironment;
+use Phel\Compiler\Domain\Analyzer\TypeAnalyzer\AnalyzePersistentMap;
 use Phel\Lang\TypeFactory;
 use PHPUnit\Framework\TestCase;
 

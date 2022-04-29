@@ -16,7 +16,7 @@ use Phel\Command\Domain\Shared\Exceptions\ExceptionPrinterInterface;
 use Phel\Command\Domain\Shared\Exceptions\Extractor\FilePositionExtractor;
 use Phel\Command\Domain\Shared\Exceptions\Extractor\SourceMapExtractor;
 use Phel\Command\Domain\Shared\Exceptions\TextExceptionPrinter;
-use Phel\Compiler\Emitter\OutputEmitter\Munge;
+use Phel\Compiler\Infrastructure\Munge;
 use Phel\Printer\Printer;
 use Phel\Run\Domain\Repl\ColorStyle;
 

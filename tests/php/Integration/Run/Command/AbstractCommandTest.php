@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace PhelTest\Integration\Run\Command;
 
-use Phel\Compiler\Analyzer\Environment\GlobalEnvironmentSingleton;
+use Phel\Compiler\Infrastructure\GlobalEnvironmentSingleton;
 use Phel\Run\RunFacade;
 use Phel\Run\RunFacadeInterface;
 use PHPUnit\Framework\TestCase;

@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Phel\Formatter\Domain\Rules\Indenter;
 
-use Phel\Compiler\Parser\ParserNode\SymbolNode;
+use Phel\Compiler\Domain\Parser\ParserNode\SymbolNode;
 use Phel\Formatter\Domain\Rules\Zipper\ParseTreeZipper;
 use Phel\Lang\Symbol;
 

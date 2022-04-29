@@ -5,9 +5,9 @@ declare(strict_types=1);
 namespace Phel\Command\Domain\Shared\Exceptions;
 
 use Phel\Command\Domain\Shared\Exceptions\Extractor\FilePositionExtractorInterface;
-use Phel\Compiler\Emitter\OutputEmitter\MungeInterface;
-use Phel\Compiler\Exceptions\AbstractLocatedException;
-use Phel\Compiler\Parser\ReadModel\CodeSnippet;
+use Phel\Compiler\Domain\Emitter\OutputEmitter\MungeInterface;
+use Phel\Compiler\Domain\Exceptions\AbstractLocatedException;
+use Phel\Compiler\Domain\Parser\ReadModel\CodeSnippet;
 use Phel\Lang\FnInterface;
 use Phel\Lang\SourceLocation;
 use Phel\Run\Domain\Repl\ColorStyleInterface;

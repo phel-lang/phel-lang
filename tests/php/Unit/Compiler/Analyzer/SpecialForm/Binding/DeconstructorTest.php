@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace PhelTest\Unit\Compiler\Analyzer\SpecialForm\Binding;
 
-use Phel\Compiler\Analyzer\TypeAnalyzer\SpecialForm\Binding\BindingValidatorInterface;
-use Phel\Compiler\Analyzer\TypeAnalyzer\SpecialForm\Binding\Deconstructor;
+use Phel\Compiler\Domain\Analyzer\TypeAnalyzer\SpecialForm\Binding\BindingValidatorInterface;
+use Phel\Compiler\Domain\Analyzer\TypeAnalyzer\SpecialForm\Binding\Deconstructor;
 use Phel\Lang\Keyword;
 use Phel\Lang\Symbol;
 use Phel\Lang\TypeFactory;

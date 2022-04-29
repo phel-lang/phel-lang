@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace PhelTest\Integration\Run\Command\Repl;
 
 use Phel\Command\Domain\Shared\Exceptions\ExceptionPrinterInterface;
-use Phel\Compiler\Exceptions\AbstractLocatedException;
-use Phel\Compiler\Parser\ReadModel\CodeSnippet;
+use Phel\Compiler\Domain\Exceptions\AbstractLocatedException;
+use Phel\Compiler\Domain\Parser\ReadModel\CodeSnippet;
 use Phel\Run\Domain\Repl\ReplCommandIoInterface;
 use Throwable;
 

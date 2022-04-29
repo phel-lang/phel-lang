@@ -4,11 +4,11 @@ declare(strict_types=1);
 
 namespace PhelTest\Integration\Compiler\Reader;
 
-use Phel\Compiler\Analyzer\Environment\GlobalEnvironmentSingleton;
 use Phel\Compiler\CompilerFacade;
 use Phel\Compiler\CompilerFacadeInterface;
-use Phel\Compiler\Lexer\Lexer;
-use Phel\Compiler\Reader\Exceptions\ReaderException;
+use Phel\Compiler\Domain\Lexer\Lexer;
+use Phel\Compiler\Domain\Reader\Exceptions\ReaderException;
+use Phel\Compiler\Infrastructure\GlobalEnvironmentSingleton;
 use Phel\Lang\Collections\Map\PersistentMapInterface;
 use Phel\Lang\Keyword;
 use Phel\Lang\Registry;

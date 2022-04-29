@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace PhelTest\Unit\Compiler\Analyzer\SpecialForm\Binding\Deconstructor;
 
-use Phel\Compiler\Analyzer\TypeAnalyzer\SpecialForm\Binding\BindingValidatorInterface;
-use Phel\Compiler\Analyzer\TypeAnalyzer\SpecialForm\Binding\Deconstructor;
-use Phel\Compiler\Analyzer\TypeAnalyzer\SpecialForm\Binding\Deconstructor\MapBindingDeconstructor;
+use Phel\Compiler\Domain\Analyzer\TypeAnalyzer\SpecialForm\Binding\BindingValidatorInterface;
+use Phel\Compiler\Domain\Analyzer\TypeAnalyzer\SpecialForm\Binding\Deconstructor;
+use Phel\Compiler\Domain\Analyzer\TypeAnalyzer\SpecialForm\Binding\Deconstructor\MapBindingDeconstructor;
 use Phel\Lang\Keyword;
 use Phel\Lang\Symbol;
 use Phel\Lang\TypeFactory;

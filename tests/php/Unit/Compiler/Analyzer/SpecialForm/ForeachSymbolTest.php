@@ -4,17 +4,17 @@ declare(strict_types=1);
 
 namespace PhelTest\Unit\Compiler\Analyzer\SpecialForm;
 
-use Phel\Compiler\Analyzer\Analyzer;
-use Phel\Compiler\Analyzer\Ast\DoNode;
-use Phel\Compiler\Analyzer\Ast\ForeachNode;
-use Phel\Compiler\Analyzer\Ast\LetNode;
-use Phel\Compiler\Analyzer\Ast\LocalVarNode;
-use Phel\Compiler\Analyzer\Ast\MapNode;
-use Phel\Compiler\Analyzer\Ast\VectorNode;
-use Phel\Compiler\Analyzer\Environment\GlobalEnvironment;
-use Phel\Compiler\Analyzer\Environment\NodeEnvironment;
-use Phel\Compiler\Analyzer\TypeAnalyzer\SpecialForm\ForeachSymbol;
-use Phel\Compiler\Exceptions\AbstractLocatedException;
+use Phel\Compiler\Domain\Analyzer\Analyzer;
+use Phel\Compiler\Domain\Analyzer\Ast\DoNode;
+use Phel\Compiler\Domain\Analyzer\Ast\ForeachNode;
+use Phel\Compiler\Domain\Analyzer\Ast\LetNode;
+use Phel\Compiler\Domain\Analyzer\Ast\LocalVarNode;
+use Phel\Compiler\Domain\Analyzer\Ast\MapNode;
+use Phel\Compiler\Domain\Analyzer\Ast\VectorNode;
+use Phel\Compiler\Domain\Analyzer\Environment\GlobalEnvironment;
+use Phel\Compiler\Domain\Analyzer\Environment\NodeEnvironment;
+use Phel\Compiler\Domain\Analyzer\TypeAnalyzer\SpecialForm\ForeachSymbol;
+use Phel\Compiler\Domain\Exceptions\AbstractLocatedException;
 use Phel\Lang\Collections\LinkedList\PersistentListInterface;
 use Phel\Lang\Symbol;
 use Phel\Lang\TypeFactory;

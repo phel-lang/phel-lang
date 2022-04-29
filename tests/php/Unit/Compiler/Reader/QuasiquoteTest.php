@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace PhelTest\Unit\Compiler\Reader;
 
-use Phel\Compiler\Analyzer\Environment\GlobalEnvironment;
-use Phel\Compiler\Reader\QuasiquoteTransformer;
+use Phel\Compiler\Domain\Analyzer\Environment\GlobalEnvironment;
+use Phel\Compiler\Domain\Reader\QuasiquoteTransformer;
 use Phel\Lang\Keyword;
 use Phel\Lang\Symbol;
 use Phel\Lang\TypeFactory;
