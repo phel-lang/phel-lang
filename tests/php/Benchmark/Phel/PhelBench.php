@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace PhelTest\Benchmark\Phel;
 
 use Phel\Build\BuildFacade;
-use Phel\Compiler\Analyzer\Environment\GlobalEnvironmentSingleton;
+use Phel\Compiler\Infrastructure\GlobalEnvironmentSingleton;
 use Phel\Lang\Symbol;
 use Phel\Phel;
 

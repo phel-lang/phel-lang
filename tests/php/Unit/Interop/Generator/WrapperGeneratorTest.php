@@ -4,12 +4,12 @@ declare(strict_types=1);
 
 namespace PhelTest\Unit\Interop\Generator;
 
-use Phel\Interop\Generator\Builder\CompiledPhpClassBuilder;
-use Phel\Interop\Generator\Builder\CompiledPhpMethodBuilder;
-use Phel\Interop\Generator\Builder\WrapperRelativeFilenamePathBuilder;
-use Phel\Interop\Generator\WrapperGenerator;
-use Phel\Interop\Generator\WrapperGeneratorInterface;
-use Phel\Interop\ReadModel\FunctionToExport;
+use Phel\Interop\Domain\Generator\Builder\CompiledPhpClassBuilder;
+use Phel\Interop\Domain\Generator\Builder\CompiledPhpMethodBuilder;
+use Phel\Interop\Domain\Generator\Builder\WrapperRelativeFilenamePathBuilder;
+use Phel\Interop\Domain\Generator\WrapperGenerator;
+use Phel\Interop\Domain\Generator\WrapperGeneratorInterface;
+use Phel\Interop\Domain\ReadModel\FunctionToExport;
 use Phel\Lang\FnInterface;
 use PHPUnit\Framework\TestCase;
 

@@ -5,10 +5,10 @@ declare(strict_types=1);
 namespace Phel\Command;
 
 use Gacela\Framework\AbstractFacade;
-use Phel\Command\Shared\Exceptions\ExceptionPrinterInterface;
-use Phel\Compiler\Exceptions\AbstractLocatedException;
-use Phel\Compiler\Exceptions\CompilerException;
-use Phel\Compiler\Parser\ReadModel\CodeSnippet;
+use Phel\Command\Domain\Shared\Exceptions\ExceptionPrinterInterface;
+use Phel\Compiler\Domain\Exceptions\AbstractLocatedException;
+use Phel\Compiler\Domain\Exceptions\CompilerException;
+use Phel\Compiler\Domain\Parser\ReadModel\CodeSnippet;
 use Symfony\Component\Console\Output\OutputInterface;
 use Throwable;
 

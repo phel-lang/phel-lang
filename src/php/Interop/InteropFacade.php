@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Phel\Interop;
 
 use Gacela\Framework\AbstractFacade;
-use Phel\Interop\Command\ExportCommand;
+use Phel\Interop\Infrastructure\Command\ExportCommand;
 
 /**
  * @method InteropFactory getFactory()

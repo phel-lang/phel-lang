@@ -4,12 +4,12 @@ declare(strict_types=1);
 
 namespace PhelTest\Unit\Compiler\Emitter\OutputEmitter\NodeEmitter;
 
-use Phel\Compiler\Analyzer\Ast\FnNode;
-use Phel\Compiler\Analyzer\Ast\PhpVarNode;
-use Phel\Compiler\Analyzer\Environment\NodeEnvironment;
 use Phel\Compiler\CompilerFactory;
-use Phel\Compiler\Emitter\OutputEmitter\NodeEmitter\FnAsClassEmitter;
-use Phel\Compiler\Emitter\OutputEmitter\NodeEmitter\MethodEmitter;
+use Phel\Compiler\Domain\Analyzer\Ast\FnNode;
+use Phel\Compiler\Domain\Analyzer\Ast\PhpVarNode;
+use Phel\Compiler\Domain\Analyzer\Environment\NodeEnvironment;
+use Phel\Compiler\Domain\Emitter\OutputEmitter\NodeEmitter\FnAsClassEmitter;
+use Phel\Compiler\Domain\Emitter\OutputEmitter\NodeEmitter\MethodEmitter;
 use Phel\Lang\Symbol;
 use PHPUnit\Framework\TestCase;
 

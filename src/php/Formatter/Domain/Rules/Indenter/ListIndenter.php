@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Phel\Formatter\Domain\Rules\Indenter;
 
-use Phel\Compiler\Parser\ParserNode\TriviaNodeInterface;
+use Phel\Compiler\Domain\Parser\ParserNode\TriviaNodeInterface;
 use Phel\Formatter\Domain\Rules\Zipper\ParseTreeZipper;
 
 final class ListIndenter implements IndenterInterface

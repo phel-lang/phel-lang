@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace PhelTest\Unit\Compiler\Parser\ParserNode;
 
-use Phel\Compiler\Parser\ParserNode\KeywordNode;
-use Phel\Compiler\Parser\ParserNode\MetaNode;
-use Phel\Compiler\Parser\ParserNode\SymbolNode;
-use Phel\Compiler\Parser\ParserNode\WhitespaceNode;
+use Phel\Compiler\Domain\Parser\ParserNode\KeywordNode;
+use Phel\Compiler\Domain\Parser\ParserNode\MetaNode;
+use Phel\Compiler\Domain\Parser\ParserNode\SymbolNode;
+use Phel\Compiler\Domain\Parser\ParserNode\WhitespaceNode;
 use Phel\Lang\Keyword;
 use Phel\Lang\SourceLocation;
 use Phel\Lang\Symbol;

@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace PhelTest\Unit\Build\Extractor;
 
-use Phel\Build\Extractor\TopologicalNamespaceSorter;
+use Phel\Build\Domain\Extractor\TopologicalNamespaceSorter;
 use PHPUnit\Framework\TestCase;
 use RuntimeException;
 

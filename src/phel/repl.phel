@@ -3,8 +3,8 @@
   (:use Phel\Lang\Registry)
   (:use Phel\Build\BuildFacade)
   (:use Phel\Compiler\CompilerFacade)
-  (:use Phel\Compiler\Compiler\CompileOptions)
-  (:use Phel\Compiler\Analyzer\Environment\GlobalEnvironmentSingleton)
+  (:use Phel\Compiler\Infrastructure\CompileOptions)
+  (:use Phel\Compiler\Infrastructure\GlobalEnvironmentSingleton)
   (:use Phel\Compiler\Analyzer\Environment\NodeEnvironment)
   (:use Phel\Printer\Printer))
 

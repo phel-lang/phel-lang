@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace PhelTest\Unit\Command\Shared\Exceptions\Printer;
 
 use Generator;
-use Phel\Command\Shared\Exceptions\ExceptionArgsPrinter;
+use Phel\Command\Domain\Shared\Exceptions\ExceptionArgsPrinter;
 use Phel\Printer\PrinterInterface;
 use PHPUnit\Framework\TestCase;
 use stdClass;

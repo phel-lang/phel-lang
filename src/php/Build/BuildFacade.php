@@ -5,10 +5,10 @@ declare(strict_types=1);
 namespace Phel\Build;
 
 use Gacela\Framework\AbstractFacade;
-use Phel\Build\Compile\BuildOptions;
-use Phel\Build\Compile\CompiledFile;
-use Phel\Build\Extractor\NamespaceInformation;
-use Phel\Compiler\Exceptions\CompilerException;
+use Phel\Build\Domain\Compile\BuildOptions;
+use Phel\Build\Domain\Compile\CompiledFile;
+use Phel\Build\Domain\Extractor\NamespaceInformation;
+use Phel\Compiler\Domain\Exceptions\CompilerException;
 use Symfony\Component\Console\Output\OutputInterface;
 use Throwable;
 

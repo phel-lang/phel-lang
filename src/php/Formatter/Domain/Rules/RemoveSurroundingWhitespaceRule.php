@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Phel\Formatter\Domain\Rules;
 
-use Phel\Compiler\Parser\ParserNode\NodeInterface;
+use Phel\Compiler\Domain\Parser\ParserNode\NodeInterface;
 use Phel\Formatter\Domain\Rules\Zipper\ParseTreeZipper;
 use Phel\Formatter\Domain\Rules\Zipper\ZipperException;
 
