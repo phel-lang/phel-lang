@@ -5,9 +5,9 @@ declare(strict_types=1);
 namespace PhelTest\Integration\Printer;
 
 use Gacela\Framework\Config;
-use Phel\Compiler\Analyzer\Environment\GlobalEnvironmentSingleton;
 use Phel\Compiler\CompilerFacade;
 use Phel\Compiler\CompilerFacadeInterface;
+use Phel\Compiler\Infrastructure\GlobalEnvironmentSingleton;
 use Phel\Printer\Printer;
 use PHPUnit\Framework\TestCase;
 

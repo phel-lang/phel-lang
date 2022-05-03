@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace PhelTest\Integration;
 
 use Phel\Compiler\CompilerFactory;
-use Phel\Compiler\Parser\ParserNode\NodeInterface;
+use Phel\Compiler\Domain\Parser\ParserNode\NodeInterface;
 use Phel\Lang\Symbol;
 use PHPUnit\Framework\TestCase;
 

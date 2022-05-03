@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace PhelTest\Unit\Build\Extractor;
 
-use Phel\Build\Extractor\ExtractorException;
-use Phel\Build\Extractor\NamespaceExtractor;
-use Phel\Build\Extractor\NamespaceInformation;
-use Phel\Build\Extractor\TopologicalNamespaceSorter;
+use Phel\Build\Domain\Extractor\ExtractorException;
+use Phel\Build\Domain\Extractor\NamespaceExtractor;
+use Phel\Build\Domain\Extractor\NamespaceInformation;
+use Phel\Build\Domain\Extractor\TopologicalNamespaceSorter;
 use Phel\Compiler\CompilerFacade;
 use PHPUnit\Framework\TestCase;
 

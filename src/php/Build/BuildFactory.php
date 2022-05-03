@@ -5,14 +5,14 @@ declare(strict_types=1);
 namespace Phel\Build;
 
 use Gacela\Framework\AbstractFactory;
-use Phel\Build\Compile\DependenciesForNamespace;
-use Phel\Build\Compile\FileCompiler;
-use Phel\Build\Compile\FileCompilerInterface;
-use Phel\Build\Compile\FileEvaluator;
-use Phel\Build\Compile\ProjectCompiler;
-use Phel\Build\Extractor\NamespaceExtractor;
-use Phel\Build\Extractor\NamespaceSorterInterface;
-use Phel\Build\Extractor\TopologicalNamespaceSorter;
+use Phel\Build\Domain\Compile\DependenciesForNamespace;
+use Phel\Build\Domain\Compile\FileCompiler;
+use Phel\Build\Domain\Compile\FileCompilerInterface;
+use Phel\Build\Domain\Compile\FileEvaluator;
+use Phel\Build\Domain\Compile\ProjectCompiler;
+use Phel\Build\Domain\Extractor\NamespaceExtractor;
+use Phel\Build\Domain\Extractor\NamespaceSorterInterface;
+use Phel\Build\Domain\Extractor\TopologicalNamespaceSorter;
 use Phel\Command\CommandFacadeInterface;
 use Phel\Compiler\CompilerFacadeInterface;
 

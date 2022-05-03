@@ -4,15 +4,15 @@ declare(strict_types=1);
 
 namespace PhelTest\Unit\Compiler\Parser\ExpressionParser;
 
-use Phel\Compiler\Analyzer\Environment\GlobalEnvironment;
-use Phel\Compiler\Lexer\Token;
-use Phel\Compiler\Parser\Exceptions\KeywordParserException;
-use Phel\Compiler\Parser\ExpressionParser\AtomParser;
-use Phel\Compiler\Parser\ParserNode\BooleanNode;
-use Phel\Compiler\Parser\ParserNode\KeywordNode;
-use Phel\Compiler\Parser\ParserNode\NilNode;
-use Phel\Compiler\Parser\ParserNode\NumberNode;
-use Phel\Compiler\Parser\ParserNode\SymbolNode;
+use Phel\Compiler\Domain\Analyzer\Environment\GlobalEnvironment;
+use Phel\Compiler\Domain\Lexer\Token;
+use Phel\Compiler\Domain\Parser\Exceptions\KeywordParserException;
+use Phel\Compiler\Domain\Parser\ExpressionParser\AtomParser;
+use Phel\Compiler\Domain\Parser\ParserNode\BooleanNode;
+use Phel\Compiler\Domain\Parser\ParserNode\KeywordNode;
+use Phel\Compiler\Domain\Parser\ParserNode\NilNode;
+use Phel\Compiler\Domain\Parser\ParserNode\NumberNode;
+use Phel\Compiler\Domain\Parser\ParserNode\SymbolNode;
 use Phel\Lang\Keyword;
 use Phel\Lang\SourceLocation;
 use Phel\Lang\Symbol;

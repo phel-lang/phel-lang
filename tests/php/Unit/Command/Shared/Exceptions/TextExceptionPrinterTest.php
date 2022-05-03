@@ -4,12 +4,12 @@ declare(strict_types=1);
 
 namespace PhelTest\Unit\Command\Shared\Exceptions;
 
-use Phel\Command\Shared\Exceptions\ExceptionArgsPrinterInterface;
-use Phel\Command\Shared\Exceptions\Extractor\FilePositionExtractorInterface;
-use Phel\Command\Shared\Exceptions\TextExceptionPrinter;
-use Phel\Compiler\Analyzer\Exceptions\AnalyzerException;
-use Phel\Compiler\Emitter\OutputEmitter\MungeInterface;
-use Phel\Compiler\Parser\ReadModel\CodeSnippet;
+use Phel\Command\Domain\Shared\Exceptions\ExceptionArgsPrinterInterface;
+use Phel\Command\Domain\Shared\Exceptions\Extractor\FilePositionExtractorInterface;
+use Phel\Command\Domain\Shared\Exceptions\TextExceptionPrinter;
+use Phel\Compiler\Domain\Analyzer\Exceptions\AnalyzerException;
+use Phel\Compiler\Domain\Emitter\OutputEmitter\MungeInterface;
+use Phel\Compiler\Domain\Parser\ReadModel\CodeSnippet;
 use Phel\Lang\AbstractType;
 use Phel\Lang\SourceLocation;
 use Phel\Run\Domain\Repl\ColorStyleInterface;

@@ -22,6 +22,6 @@ parameters:
         - '%currentWorkingDirectory%/src/php/Lang/Collections/Vector/PersistentVector.php'
         - '%currentWorkingDirectory%/src/php/Lang/Collections/Vector/AbstractPersistentVector.php'
         - '%currentWorkingDirectory%/src/php/Lang/Collections/Vector/SubVector.php'
-        - '%currentWorkingDirectory%/src/php/Compiler/Reader/QuasiquoteTransformer.php'
-        - '%currentWorkingDirectory%/src/php/Compiler/Emitter/OutputEmitter/LiteralEmitter.php'
+        - '%currentWorkingDirectory%/src/php/Compiler/Domain/Reader/QuasiquoteTransformer.php'
+        - '%currentWorkingDirectory%/src/php/Compiler/Domain/Emitter/OutputEmitter/LiteralEmitter.php'
 

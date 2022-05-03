@@ -7,19 +7,19 @@ namespace Phel\Interop;
 use Gacela\Framework\AbstractFactory;
 use Phel\Build\BuildFacadeInterface;
 use Phel\Command\CommandFacadeInterface;
-use Phel\Interop\Command\ExportCommand;
-use Phel\Interop\DirectoryRemover\DirectoryRemover;
-use Phel\Interop\DirectoryRemover\DirectoryRemoverInterface;
-use Phel\Interop\ExportFinder\FunctionsToExportFinder;
-use Phel\Interop\ExportFinder\FunctionsToExportFinderInterface;
-use Phel\Interop\FileCreator\FileCreator;
-use Phel\Interop\FileCreator\FileCreatorInterface;
-use Phel\Interop\FileCreator\FileIoInterface;
-use Phel\Interop\FileCreator\FileSystemIo;
-use Phel\Interop\Generator\Builder\CompiledPhpClassBuilder;
-use Phel\Interop\Generator\Builder\CompiledPhpMethodBuilder;
-use Phel\Interop\Generator\Builder\WrapperRelativeFilenamePathBuilder;
-use Phel\Interop\Generator\WrapperGenerator;
+use Phel\Interop\Domain\DirectoryRemover\DirectoryRemover;
+use Phel\Interop\Domain\DirectoryRemover\DirectoryRemoverInterface;
+use Phel\Interop\Domain\ExportFinder\FunctionsToExportFinder;
+use Phel\Interop\Domain\ExportFinder\FunctionsToExportFinderInterface;
+use Phel\Interop\Domain\FileCreator\FileCreator;
+use Phel\Interop\Domain\FileCreator\FileCreatorInterface;
+use Phel\Interop\Domain\FileCreator\FileIoInterface;
+use Phel\Interop\Domain\FileCreator\FileSystemIo;
+use Phel\Interop\Domain\Generator\Builder\CompiledPhpClassBuilder;
+use Phel\Interop\Domain\Generator\Builder\CompiledPhpMethodBuilder;
+use Phel\Interop\Domain\Generator\Builder\WrapperRelativeFilenamePathBuilder;
+use Phel\Interop\Domain\Generator\WrapperGenerator;
+use Phel\Interop\Infrastructure\Command\ExportCommand;
 
 /**
  * @method InteropConfig getConfig()

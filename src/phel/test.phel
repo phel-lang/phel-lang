@@ -1,7 +1,7 @@
 (ns phel\test
   (:use Phel\Lang\Symbol)
   (:use Phel\Lang\Registry)
-  (:use Phel\Compiler\Emitter\OutputEmitter\Munge)
+  (:use Phel\Compiler\Infrastructure\Munge)
   (:use Phel\Command\CommandFacade))
 
 # ------

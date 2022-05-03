@@ -10,15 +10,15 @@ use Phel\Command\CommandFacadeInterface;
 use Phel\Compiler\CompilerFacadeInterface;
 use Phel\Printer\Printer;
 use Phel\Printer\PrinterInterface;
-use Phel\Run\Command\ReplCommand;
-use Phel\Run\Command\RunCommand;
 use Phel\Run\Domain\Repl\ColorStyle;
 use Phel\Run\Domain\Repl\ColorStyleInterface;
 use Phel\Run\Domain\Repl\ReplCommandIoInterface;
 use Phel\Run\Domain\Repl\ReplCommandSystemIo;
-use Phel\Run\Runner\NamespaceCollector;
-use Phel\Run\Runner\NamespaceRunner;
-use Phel\Run\Runner\NamespaceRunnerInterface;
+use Phel\Run\Domain\Runner\NamespaceCollector;
+use Phel\Run\Domain\Runner\NamespaceRunner;
+use Phel\Run\Domain\Runner\NamespaceRunnerInterface;
+use Phel\Run\Infrastructure\Command\ReplCommand;
+use Phel\Run\Infrastructure\Command\RunCommand;
 
 /**
  * @method RunConfig getConfig()

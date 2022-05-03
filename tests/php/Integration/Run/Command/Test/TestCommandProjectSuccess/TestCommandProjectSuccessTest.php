@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace PhelTest\Integration\Run\Command\Test\TestCommandProjectSuccess;
 
 use Gacela\Framework\Gacela;
-use Phel\Run\Command\TestCommand;
+use Phel\Run\Infrastructure\Command\TestCommand;
 use PhelTest\Integration\Run\Command\AbstractCommandTest;
 use Symfony\Component\Console\Input\InputInterface;
 

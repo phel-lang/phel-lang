@@ -6,10 +6,10 @@ namespace Phel\Console;
 
 use Gacela\Framework\AbstractDependencyProvider;
 use Gacela\Framework\Container\Container;
-use Phel\Build\Command\CompileCommand;
+use Phel\Build\Infrastructure\Command\CompileCommand;
 use Phel\Formatter\Infrastructure\Command\FormatCommand;
 use Phel\Interop\InteropFacade;
-use Phel\Run\Command\TestCommand;
+use Phel\Run\Infrastructure\Command\TestCommand;
 use Phel\Run\RunFacade;
 
 final class ConsoleDependencyProvider extends AbstractDependencyProvider
