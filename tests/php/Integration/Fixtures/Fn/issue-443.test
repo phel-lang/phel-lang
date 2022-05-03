@@ -39,6 +39,6 @@ $f_14 = new class($__phel_1_7, $__phel_2_8, $__phel_3_9, $a_10, $__phel_4_11, $_
     $__phel_4_11 = $this->__phel_4_11;
     $__phel_5_12 = $this->__phel_5_12;
     $b_13 = $this->b_13;
-    return $matches_6;
+    return $matches;
   }
 };

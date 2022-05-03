@@ -1,0 +1,19 @@
+--PHEL--
+(fn []
+  (let [b 10]
+    (foreach [b [1 2 3]]
+      (println b))))
+--PHP--
+new class() extends \Phel\Lang\AbstractFn {
+  public const BOUND_TO = "";
+
+  public function __invoke() {
+    $b_1 = 10;
+    return (function() use($b_1) {
+      foreach ((\Phel\Lang\TypeFactory::getInstance()->persistentVectorFromArray([1, 2, 3]) ?? []) as $b) {
+        (\Phel\Lang\Registry::getInstance()->getDefinition("phel\\core", "println"))($b);
+      }
+      return null;
+    })();
+  }
+};
