@@ -24,6 +24,7 @@ All notable changes to this project will be documented in this file.
 * Added: `eval` function
 * Added: `compile` function
 * Bugfix: #467 Failed to run a REPL on Windows
+* Bugfix: #471 Reusing a local variable in a function fails.
 
 ## 0.6.0 (2022-02-02)
 
