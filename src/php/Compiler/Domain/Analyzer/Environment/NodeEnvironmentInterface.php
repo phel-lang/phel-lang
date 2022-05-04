@@ -41,6 +41,11 @@ interface NodeEnvironmentInterface
     /**
      * @param Symbol[] $locals
      */
+    public function withoutShadowedLocals(array $locals): self;
+
+    /**
+     * @param Symbol[] $locals
+     */
     public function withLocals(array $locals): self;
 
     public function withContext(string $context): self;

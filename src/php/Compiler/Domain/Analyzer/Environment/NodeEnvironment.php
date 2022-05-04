@@ -116,13 +116,28 @@ final class NodeEnvironment implements NodeEnvironmentInterface
             )
         );
 
-        return $this->withLocals(array_unique($allLocalSymbols));
+        return $this
+            ->withLocals(array_unique($allLocalSymbols))
+            ->withoutShadowedLocals($locals);
     }
 
     public function withShadowedLocal(Symbol $local, Symbol $shadow): NodeEnvironmentInterface
     {
         $result = clone $this;
         $result->shadowed = array_merge($this->shadowed, [$local->getName() => $shadow]);
+
+        return $result;
+    }
+
+    /**
+     * @param Symbol[] $locals
+     */
+    public function withoutShadowedLocals(array $locals): self
+    {
+        $result = clone $this;
+        foreach ($locals as $local) {
+            unset($result->shadowed[$local->getName()]);
+        }
 
         return $result;
     }
