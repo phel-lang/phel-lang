@@ -4,6 +4,8 @@ All notable changes to this project will be documented in this file.
 
 ## Unreleased
 
+## 0.7.0 (2022-05-05)
+
 * Added: `merge-with` function
 * Added: `deep-merge` function
 * Added: `NamedInterface` interface for Symbol and Keyword
