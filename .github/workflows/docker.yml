@@ -21,4 +21,4 @@ jobs:
       run: cd docker/repl && docker build . --file Dockerfile --tag phellang/repl:${{github.ref_name}} && docker tag phellang/repl:${{github.ref_name}} phellang/repl:latest
 
     - name: Docker Push
-      run: docker push phellang/repl
+      run: docker push -a phellang/repl
