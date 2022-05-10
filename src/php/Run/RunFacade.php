@@ -9,7 +9,6 @@ use Phel\Build\Domain\Extractor\NamespaceInformation;
 use Phel\Compiler\Domain\Exceptions\CompilerException;
 use Phel\Compiler\Infrastructure\CompileOptions;
 use Phel\Run\Infrastructure\Command\ReplCommand;
-use Phel\Run\Infrastructure\Command\RunCommand;
 use Symfony\Component\Console\Output\OutputInterface;
 use Throwable;
 
@@ -26,19 +25,18 @@ final class RunFacade extends AbstractFacade implements RunFacadeInterface
         return $this->getFactory()->createReplCommand();
     }
 
-    /**
-     * TODO: Refactor and make the RunCommand instantiable.
-     */
-    public function getRunCommand(): RunCommand
-    {
-        return $this->getFactory()->createRunCommand();
-    }
-
     public function runNamespace(string $namespace): void
     {
         $this->getFactory()
             ->createNamespaceRunner()
             ->run($namespace);
+    }
+
+    public function getNamespaceFromFile(string $fileOrPath): NamespaceInformation
+    {
+        return $this->getFactory()
+            ->getBuildFacade()
+            ->getNamespaceFromFile($fileOrPath);
     }
 
     public function registerExceptionHandler(): void
