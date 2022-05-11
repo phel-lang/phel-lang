@@ -6,6 +6,7 @@ namespace Phel\Interop;
 
 use Gacela\Framework\AbstractFacade;
 use Phel\Compiler\Domain\Exceptions\CompilerException;
+use Phel\Interop\Domain\ReadModel\Wrapper;
 use Symfony\Component\Console\Output\OutputInterface;
 use Throwable;
 
@@ -14,6 +15,16 @@ use Throwable;
  */
 final class InteropFacade extends AbstractFacade implements InteropFacadeInterface
 {
+    /**
+     * @return list<Wrapper>
+     */
+    public function generateExportCode(): array
+    {
+        return $this->getFactory()
+            ->createExportCodeGenerator()
+            ->generateExportCode();
+    }
+
     public function writeLocatedException(OutputInterface $output, CompilerException $e): void
     {
         $this->getFactory()
@@ -30,12 +41,5 @@ final class InteropFacade extends AbstractFacade implements InteropFacadeInterfa
         $this->getFactory()
             ->getCommandFacade()
             ->writeStackTrace($output, $e);
-    }
-
-    public function generateExportCode(OutputInterface $output): void
-    {
-        $this->getFactory()
-            ->createExportCodeGenerator()
-            ->generateExportCode($output);
     }
 }

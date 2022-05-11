@@ -11,7 +11,6 @@ use Phel\Interop\Domain\FileCreator\FileCreatorInterface;
 use Phel\Interop\Domain\Generator\WrapperGeneratorInterface;
 use Phel\Interop\Domain\ReadModel\Wrapper;
 use RuntimeException;
-use Symfony\Component\Console\Output\OutputInterface;
 
 final class ExportCodeGenerator
 {
@@ -35,21 +34,19 @@ final class ExportCodeGenerator
     /**
      * @throws CompilerException
      * @throws RuntimeException
+     *
+     * @return list<Wrapper>
      */
-    public function generateExportCode(OutputInterface $output): void
+    public function generateExportCode(): array
     {
         $this->directoryRemover->removeDir();
-        $output->writeln('Exported namespaces:');
         $wrappers = $this->generateWrappers();
 
-        if (empty($wrappers)) {
-            $output->writeln('No functions were found to be exported');
+        foreach ($wrappers as $wrapper) {
+            $this->fileCreator->createFromWrapper($wrapper);
         }
 
-        foreach ($wrappers as $i => $wrapper) {
-            $this->fileCreator->createFromWrapper($wrapper);
-            $output->writeln(sprintf('  %d) %s', $i + 1, $wrapper->relativeFilenamePath()));
-        }
+        return $wrappers;
     }
 
     /**

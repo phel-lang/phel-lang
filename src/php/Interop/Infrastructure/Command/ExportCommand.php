@@ -28,7 +28,7 @@ final class ExportCommand extends Command
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
         try {
-            $this->getFacade()->generateExportCode($output);
+            $this->generateExportCode($output);
 
             return self::SUCCESS;
         } catch (CompilerException $e) {
@@ -38,5 +38,23 @@ final class ExportCommand extends Command
         }
 
         return self::FAILURE;
+    }
+
+    private function generateExportCode(OutputInterface $output): void
+    {
+        $output->writeln('Exported namespaces:');
+        $wrappers = $this->getFacade()->generateExportCode();
+
+        if (empty($wrappers)) {
+            $output->writeln('No functions were found to be exported');
+        }
+
+        foreach ($wrappers as $i => $wrapper) {
+            $output->writeln(sprintf(
+                '  %d) %s',
+                $i + 1,
+                $wrapper->relativeFilenamePath()
+            ));
+        }
     }
 }
