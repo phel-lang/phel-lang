@@ -24,7 +24,7 @@ final class RunCommandTest extends AbstractCommandTest
     {
         $this->expectOutputRegex('~hello world~');
 
-        $this->getRunCommand()->run(
+        $this->createRunCommand()->run(
             $this->stubInput('test\\test-script'),
             $this->stubOutput()
         );
@@ -34,15 +34,15 @@ final class RunCommandTest extends AbstractCommandTest
     {
         $this->expectOutputRegex('~hello world~');
 
-        $this->getRunCommand()->run(
+        $this->createRunCommand()->run(
             $this->stubInput(__DIR__ . '/Fixtures/test-script.phel'),
             $this->stubOutput()
         );
     }
 
-    private function getRunCommand(): RunCommand
+    private function createRunCommand(): RunCommand
     {
-        return $this->createRunFacade()->getRunCommand();
+        return new RunCommand();
     }
 
     private function stubInput(string $path): InputInterface
