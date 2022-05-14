@@ -18,7 +18,6 @@ use Phel\Run\Domain\Runner\NamespaceCollector;
 use Phel\Run\Domain\Runner\NamespaceRunner;
 use Phel\Run\Domain\Runner\NamespaceRunnerInterface;
 use Phel\Run\Infrastructure\Command\ReplCommand;
-use Phel\Run\Infrastructure\Command\RunCommand;
 
 /**
  * @method RunConfig getConfig()
@@ -35,15 +34,6 @@ final class RunFactory extends AbstractFactory
             $this->getBuildFacade(),
             $this->getCommandFacade(),
             $this->getConfig()->getReplStartupFile()
-        );
-    }
-
-    public function createRunCommand(): RunCommand
-    {
-        return new RunCommand(
-            $this->getCommandFacade(),
-            $this->createNamespaceRunner(),
-            $this->getBuildFacade(),
         );
     }
 

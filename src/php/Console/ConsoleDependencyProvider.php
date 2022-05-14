@@ -9,6 +9,7 @@ use Gacela\Framework\Container\Container;
 use Phel\Build\Infrastructure\Command\CompileCommand;
 use Phel\Formatter\Infrastructure\Command\FormatCommand;
 use Phel\Interop\Infrastructure\Command\ExportCommand;
+use Phel\Run\Infrastructure\Command\RunCommand;
 use Phel\Run\Infrastructure\Command\TestCommand;
 use Phel\Run\RunFacade;
 
@@ -24,7 +25,7 @@ final class ConsoleDependencyProvider extends AbstractDependencyProvider
             new ExportCommand(),
             new FormatCommand(),
             $runFacade->getReplCommand(),
-            $runFacade->getRunCommand(),
+            new RunCommand(),
             new TestCommand(),
             new CompileCommand(),
         ]);
