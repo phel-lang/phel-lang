@@ -4,9 +4,12 @@ declare(strict_types=1);
 
 namespace Phel\Interop;
 
-use Phel\Interop\Infrastructure\Command\ExportCommand;
+use Phel\Interop\Domain\ReadModel\Wrapper;
 
 interface InteropFacadeInterface
 {
-    public function getExportCommand(): ExportCommand;
+    /**
+     * @return list<Wrapper>
+     */
+    public function generateExportCode(): array;
 }

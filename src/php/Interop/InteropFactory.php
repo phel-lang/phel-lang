@@ -9,6 +9,7 @@ use Phel\Build\BuildFacadeInterface;
 use Phel\Command\CommandFacadeInterface;
 use Phel\Interop\Domain\DirectoryRemover\DirectoryRemover;
 use Phel\Interop\Domain\DirectoryRemover\DirectoryRemoverInterface;
+use Phel\Interop\Domain\ExportCodeGenerator;
 use Phel\Interop\Domain\ExportFinder\FunctionsToExportFinder;
 use Phel\Interop\Domain\ExportFinder\FunctionsToExportFinderInterface;
 use Phel\Interop\Domain\FileCreator\FileCreator;
@@ -19,32 +20,35 @@ use Phel\Interop\Domain\Generator\Builder\CompiledPhpClassBuilder;
 use Phel\Interop\Domain\Generator\Builder\CompiledPhpMethodBuilder;
 use Phel\Interop\Domain\Generator\Builder\WrapperRelativeFilenamePathBuilder;
 use Phel\Interop\Domain\Generator\WrapperGenerator;
-use Phel\Interop\Infrastructure\Command\ExportCommand;
 
 /**
  * @method InteropConfig getConfig()
  */
 final class InteropFactory extends AbstractFactory
 {
-    public function createExportCommand(): ExportCommand
+    public function createExportCodeGenerator(): ExportCodeGenerator
     {
-        return new ExportCommand(
+        return new ExportCodeGenerator(
             $this->createDirectoryRemover(),
             $this->createWrapperGenerator(),
             $this->createFunctionsToExportFinder(),
             $this->createFileCreator(),
-            $this->getCommandFacade(),
         );
     }
 
-    public function createDirectoryRemover(): DirectoryRemoverInterface
+    public function getCommandFacade(): CommandFacadeInterface
+    {
+        return $this->getProvidedDependency(InteropDependencyProvider::FACADE_COMMAND);
+    }
+
+    private function createDirectoryRemover(): DirectoryRemoverInterface
     {
         return new DirectoryRemover(
             $this->getConfig()->getExportTargetDirectory()
         );
     }
 
-    public function createFileCreator(): FileCreatorInterface
+    private function createFileCreator(): FileCreatorInterface
     {
         return new FileCreator(
             $this->getConfig()->getExportTargetDirectory(),
@@ -95,10 +99,5 @@ final class InteropFactory extends AbstractFactory
     private function createFileSystemIo(): FileIoInterface
     {
         return new FileSystemIo();
-    }
-
-    private function getCommandFacade(): CommandFacadeInterface
-    {
-        return $this->getProvidedDependency(InteropDependencyProvider::FACADE_COMMAND);
     }
 }

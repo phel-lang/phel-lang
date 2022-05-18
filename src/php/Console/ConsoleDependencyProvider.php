@@ -8,7 +8,7 @@ use Gacela\Framework\AbstractDependencyProvider;
 use Gacela\Framework\Container\Container;
 use Phel\Build\Infrastructure\Command\CompileCommand;
 use Phel\Formatter\Infrastructure\Command\FormatCommand;
-use Phel\Interop\InteropFacade;
+use Phel\Interop\Infrastructure\Command\ExportCommand;
 use Phel\Run\Infrastructure\Command\RunCommand;
 use Phel\Run\Infrastructure\Command\TestCommand;
 use Phel\Run\RunFacade;
@@ -19,11 +19,10 @@ final class ConsoleDependencyProvider extends AbstractDependencyProvider
 
     public function provideModuleDependencies(Container $container): void
     {
-        $interopFacade = new InteropFacade();
         $runFacade = new RunFacade();
 
         $container->set(self::COMMANDS, static fn () => [
-            $interopFacade->getExportCommand(),
+            new ExportCommand(),
             new FormatCommand(),
             $runFacade->getReplCommand(),
             new RunCommand(),
