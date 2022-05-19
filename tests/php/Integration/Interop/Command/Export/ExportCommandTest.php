@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace PhelTest\Integration\Interop\Command\Export;
 
+use Gacela\Framework\Bootstrap\GacelaConfig;
 use Gacela\Framework\Gacela;
 use Phel\Interop\Infrastructure\Command\ExportCommand;
 use PhelTest\Integration\Util\DirectoryUtil;
@@ -15,7 +16,11 @@ final class ExportCommandTest extends TestCase
 {
     public static function setUpBeforeClass(): void
     {
-        Gacela::bootstrap(__DIR__);
+        $configFn = static function (GacelaConfig $config): void {
+            $config->addAppConfig('config/*.php');
+        };
+
+        Gacela::bootstrap(__DIR__, $configFn);
     }
 
     /**

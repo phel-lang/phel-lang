@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace PhelTest\Integration\Build\Command;
 
+use Gacela\Framework\Bootstrap\GacelaConfig;
 use Gacela\Framework\Gacela;
 use Phel\Build\Infrastructure\Command\CompileCommand;
 use PHPUnit\Framework\TestCase;
@@ -16,7 +17,11 @@ final class CompileCommandTest extends TestCase
 
     public static function setUpBeforeClass(): void
     {
-        Gacela::bootstrap(__DIR__);
+        $configFn = static function (GacelaConfig $config): void {
+            $config->addAppConfig('config/*.php');
+        };
+
+        Gacela::bootstrap(__DIR__, $configFn);
     }
 
     protected function setUp(): void
