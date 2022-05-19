@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace PhelTest\Integration\Run\Command\Repl;
 
+use Gacela\Framework\Bootstrap\GacelaConfig;
 use Gacela\Framework\Gacela;
 use Generator;
 use Phel\Build\BuildFacade;
@@ -28,7 +29,11 @@ final class ReplCommandTest extends AbstractCommandTest
 {
     public static function setUpBeforeClass(): void
     {
-        Gacela::bootstrap(__DIR__);
+        $configFn = static function (GacelaConfig $config): void {
+            $config->addAppConfig('config/*.php');
+        };
+
+        Gacela::bootstrap(__DIR__, $configFn);
     }
 
     /**

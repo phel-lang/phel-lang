@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace PhelTest\Integration\Run\Command\Test\TestCommandProjectFailure;
 
+use Gacela\Framework\Bootstrap\GacelaConfig;
 use Gacela\Framework\Gacela;
 use Phel\Run\Infrastructure\Command\TestCommand;
 use PhelTest\Integration\Run\Command\AbstractCommandTest;
@@ -13,7 +14,11 @@ final class TestCommandProjectFailureTest extends AbstractCommandTest
 {
     public static function setUpBeforeClass(): void
     {
-        Gacela::bootstrap(__DIR__);
+        $configFn = static function (GacelaConfig $config): void {
+            $config->addAppConfig('config/*.php');
+        };
+
+        Gacela::bootstrap(__DIR__, $configFn);
     }
 
     /**
