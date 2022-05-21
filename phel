@@ -3,9 +3,9 @@
 
 declare(strict_types=1);
 
-use Gacela\Framework\Bootstrap\GacelaConfig;
 use Gacela\Framework\Gacela;
 use Phel\Console\Infrastructure\ConsoleBootstrap;
+use Phel\Phel;
 
 $projectRootDir = getcwd() . DIRECTORY_SEPARATOR;
 $autoloadPath = $projectRootDir . 'vendor' . DIRECTORY_SEPARATOR . 'autoload.php';
@@ -16,11 +16,7 @@ if (!file_exists($autoloadPath)) {
 
 require $autoloadPath;
 
-$configFn = static function (GacelaConfig $config): void {
-    $config->addAppConfig('phel-config.php', 'phel-config-local.php');
-};
-
-Gacela::bootstrap($projectRootDir, $configFn);
+Gacela::bootstrap($projectRootDir, Phel::configFn());
 
 $bootstrap = new ConsoleBootstrap();
 $bootstrap->run();
