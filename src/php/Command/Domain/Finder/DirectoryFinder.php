@@ -14,11 +14,11 @@ final class DirectoryFinder implements DirectoryFinderInterface
 
     public function __construct(
         string $applicationRootDir,
-        CodeDirectories $configDirectories,
+        CodeDirectories $codeDirectories,
         VendorDirectoriesFinderInterface $vendorDirectoriesFinder
     ) {
         $this->applicationRootDir = $applicationRootDir;
-        $this->codeDirectories = $configDirectories;
+        $this->codeDirectories = $codeDirectories;
         $this->vendorDirectoriesFinder = $vendorDirectoriesFinder;
     }
 

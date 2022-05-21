@@ -19,7 +19,7 @@ final class CommandConfig extends AbstractConfig
     private const DEFAULT_TEST_DIRS = ['tests'];
     private const DEFAULT_OUT_DIR = 'out';
 
-    public function getConfigDirectories(): CodeDirectories
+    public function getCodeDirs(): CodeDirectories
     {
         return new CodeDirectories(
             (array)$this->get(self::SRC_DIRS, self::DEFAULT_SRC_DIRS),
