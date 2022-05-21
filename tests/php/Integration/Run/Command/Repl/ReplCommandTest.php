@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace PhelTest\Integration\Run\Command\Repl;
 
 use Gacela\Framework\Bootstrap\GacelaConfig;
+use Gacela\Framework\ClassResolver\AbstractClassResolver;
 use Gacela\Framework\ClassResolver\GlobalInstance\AnonymousGlobal;
-use Gacela\Framework\Container\Container;
 use Gacela\Framework\Gacela;
 use Generator;
 use Phel\Command\Domain\Shared\Exceptions\ExceptionArgsPrinter;
@@ -15,10 +15,14 @@ use Phel\Command\Domain\Shared\Exceptions\Extractor\SourceMapExtractor;
 use Phel\Command\Domain\Shared\Exceptions\TextExceptionPrinter;
 use Phel\Compiler\Infrastructure\Munge;
 use Phel\Printer\Printer;
+use Phel\Printer\PrinterInterface;
 use Phel\Run\Domain\Repl\ColorStyle;
+use Phel\Run\Domain\Repl\ColorStyleInterface;
 use Phel\Run\Domain\Repl\ReplCommandIoInterface;
 use Phel\Run\Infrastructure\Command\ReplCommand;
+use Phel\Run\RunConfig;
 use Phel\Run\RunDependencyProvider;
+use Phel\Run\RunFactory;
 use PhelTest\Integration\Run\Command\AbstractCommandTest;
 use RecursiveDirectoryIterator;
 use RecursiveIteratorIterator;
@@ -28,7 +32,7 @@ use Symfony\Component\Console\Output\OutputInterface;
 
 final class ReplCommandTest extends AbstractCommandTest
 {
-    public static function setUpBeforeClass(): void
+    public function setUp(): void
     {
         $configFn = static function (GacelaConfig $config): void {
             $config->addAppConfig('config/*.php');
@@ -158,28 +162,41 @@ final class ReplCommandTest extends AbstractCommandTest
 
     private function prepareRunDependencyProvider(ReplCommandIoInterface $io): void
     {
+        AbstractClassResolver::resetCache();
+
         AnonymousGlobal::overrideExistingResolvedClass(
-            RunDependencyProvider::class,
-            new class($io) extends RunDependencyProvider {
+            '\module-name@anonymous\ReplCommandTest\Config',
+            new RunConfig()
+        );
+
+        AnonymousGlobal::overrideExistingResolvedClass(
+            '\module-name@anonymous\ReplCommandTest\DependencyProvider',
+            new RunDependencyProvider()
+        );
+
+        AnonymousGlobal::overrideExistingResolvedClass(
+            RunFactory::class,
+            new class($io) extends RunFactory {
                 private ReplCommandIoInterface $io;
+
                 public function __construct(ReplCommandIoInterface $io)
                 {
                     $this->io = $io;
                 }
 
-                protected function addColorStyle(Container $container): void
+                public function createColorStyle(): ColorStyleInterface
                 {
-                    $container->set(self::COLOR_STYLE, static fn () => ColorStyle::noStyles());
+                    return ColorStyle::noStyles();
                 }
 
-                protected function addPrinter(Container $container): void
+                public function createPrinter(): PrinterInterface
                 {
-                    $container->set(self::PRINTER, static fn () => Printer::nonReadable());
+                    return Printer::nonReadable();
                 }
 
-                protected function addReplCommandIo(Container $container): void
+                public function createReplCommandIo(): ReplCommandIoInterface
                 {
-                    $container->set(self::REPL_COMMAND_IO, $this->io);
+                    return $this->io;
                 }
             }
         );
