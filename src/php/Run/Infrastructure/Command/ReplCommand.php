@@ -4,18 +4,14 @@ declare(strict_types=1);
 
 namespace Phel\Run\Infrastructure\Command;
 
-use Phel\Build\BuildFacadeInterface;
-use Phel\Command\CommandFacadeInterface;
-use Phel\Compiler\CompilerFacadeInterface;
+use Gacela\Framework\DocBlockResolverAwareTrait;
 use Phel\Compiler\Domain\Exceptions\CompilerException;
 use Phel\Compiler\Domain\Parser\Exceptions\UnfinishedParserException;
 use Phel\Compiler\Infrastructure\CompileOptions;
 use Phel\Lang\Registry;
-use Phel\Printer\PrinterInterface;
-use Phel\Run\Domain\Repl\ColorStyleInterface;
 use Phel\Run\Domain\Repl\ExitException;
 use Phel\Run\Domain\Repl\InputResult;
-use Phel\Run\Domain\Repl\ReplCommandIoInterface;
+use Phel\Run\RunFacade;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
@@ -24,9 +20,12 @@ use Throwable;
 use function count;
 use function dirname;
 
+/**
+ * @method RunFacade getFacade()
+ */
 final class ReplCommand extends Command
 {
-    public const COMMAND_NAME = 'repl';
+    use DocBlockResolverAwareTrait;
 
     private const ENABLE_BRACKETED_PASTE = "\e[?2004h";
     private const DISABLE_BRACKETED_PASTE = "\e[?2004l";
@@ -34,62 +33,59 @@ final class ReplCommand extends Command
     private const OPEN_PROMPT = '....:%d> ';
     private const EXIT_REPL = 'exit';
 
-    private ReplCommandIoInterface $io;
-    private CompilerFacadeInterface $compilerFacade;
-    private ColorStyleInterface $style;
-    private PrinterInterface $printer;
-    private BuildFacadeInterface $buildFacade;
-    private CommandFacadeInterface $commandFacade;
-    private string $replStartupFile;
+    private ?string $replStartupFile = null;
 
     /** @var string[] */
     private array $inputBuffer = [];
     private int $lineNumber = 1;
-    private InputResult $previousResult;
+    private ?InputResult $previousResult = null;
 
-    public function __construct(
-        ReplCommandIoInterface $io,
-        CompilerFacadeInterface $compilerFacade,
-        ColorStyleInterface $style,
-        PrinterInterface $printer,
-        BuildFacadeInterface $buildFacade,
-        CommandFacadeInterface $commandFacade,
-        string $replStartupFile = ''
-    ) {
-        parent::__construct(self::COMMAND_NAME);
-        $this->io = $io;
-        $this->compilerFacade = $compilerFacade;
-        $this->style = $style;
-        $this->printer = $printer;
-        $this->buildFacade = $buildFacade;
-        $this->commandFacade = $commandFacade;
+    public function setReplStartupFile(string $replStartupFile): self
+    {
         $this->replStartupFile = $replStartupFile;
-        $this->previousResult = InputResult::empty();
+
+        return $this;
     }
 
-    public function execute(InputInterface $input, OutputInterface $output): int
+    public function getReplStartupFile(): string
     {
-        $this->io->readHistory();
-        $this->io->writeln($this->style->yellow('Welcome to the Phel Repl'));
-        $this->io->writeln('Type "exit" or press Ctrl-D to exit.');
+        return $this->replStartupFile ?? $this->getFacade()->getReplStartupFile();
+    }
 
-        $this->commandFacade->registerExceptionHandler();
+    protected function configure(): void
+    {
+        $this->setName('repl')
+            ->setDescription('Start a Repl.');
+    }
+
+    protected function execute(InputInterface $input, OutputInterface $output): int
+    {
+        $this->previousResult = InputResult::empty();
+        $this->replStartupFile = $this->getReplStartupFile();
+
+        $this->getFacade()->getReplCommandIo()->readHistory();
+        $this->getFacade()->getReplCommandIo()->writeln(
+            $this->getFacade()->getColorStyle()->yellow('Welcome to the Phel Repl')
+        );
+        $this->getFacade()->getReplCommandIo()->writeln('Type "exit" or press Ctrl-D to exit.');
+
+        $this->getFacade()->registerExceptionHandler();
 
         if ($this->replStartupFile && file_exists($this->replStartupFile)) {
-            $namespace = $this->buildFacade
+            $namespace = $this->getFacade()
                 ->getNamespaceFromFile($this->replStartupFile)
                 ->getNamespace();
 
             $srcDirectories = [
                 dirname($this->replStartupFile),
-                ...$this->commandFacade->getSourceDirectories(),
-                ...$this->commandFacade->getTestDirectories(),
-                ...$this->commandFacade->getVendorSourceDirectories(),
+                ...$this->getFacade()->getSourceDirectories(),
+                ...$this->getFacade()->getTestDirectories(),
+                ...$this->getFacade()->getVendorSourceDirectories(),
             ];
-            $namespaceInformation = $this->buildFacade->getDependenciesForNamespace($srcDirectories, [$namespace, 'phel\\core']);
+            $namespaceInformation = $this->getFacade()->getDependenciesForNamespace($srcDirectories, [$namespace, 'phel\\core']);
 
             foreach ($namespaceInformation as $info) {
-                $this->buildFacade->evalFile($info->getFile());
+                $this->getFacade()->evalFile($info);
             }
 
             // Ugly Hack: Set source directories for the repl
@@ -99,11 +95,6 @@ final class ReplCommand extends Command
         $this->loopReadLineAndAnalyze();
 
         return self::SUCCESS;
-    }
-
-    protected function configure(): void
-    {
-        $this->setDescription('Start a Repl.');
     }
 
     private function loopReadLineAndAnalyze(): void
@@ -117,26 +108,26 @@ final class ReplCommand extends Command
                 break;
             } catch (Throwable $e) {
                 $this->inputBuffer = [];
-                $this->io->writeln($this->style->red($e->getMessage()));
-                $this->io->writeln($e->getTraceAsString());
+                $this->getFacade()->getReplCommandIo()->writeln($this->getFacade()->getColorStyle()->red($e->getMessage()));
+                $this->getFacade()->getReplCommandIo()->writeln($e->getTraceAsString());
             }
         }
 
-        $this->io->writeln($this->style->yellow('Bye!'));
+        $this->getFacade()->getReplCommandIo()->writeln($this->getFacade()->getColorStyle()->yellow('Bye!'));
     }
 
     private function addLineFromPromptToBuffer(): void
     {
-        if ($this->io->isBracketedPasteSupported()) {
-            $this->io->write(self::ENABLE_BRACKETED_PASTE);
+        if ($this->getFacade()->getReplCommandIo()->isBracketedPasteSupported()) {
+            $this->getFacade()->getReplCommandIo()->write(self::ENABLE_BRACKETED_PASTE);
         }
 
         $isInitialInput = empty($this->inputBuffer);
         $prompt = $isInitialInput ? self::INITIAL_PROMPT : self::OPEN_PROMPT;
-        $input = $this->io->readline(sprintf($prompt, $this->lineNumber));
+        $input = $this->getFacade()->getReplCommandIo()->readline(sprintf($prompt, $this->lineNumber));
 
-        if ($this->io->isBracketedPasteSupported()) {
-            $this->io->write(self::DISABLE_BRACKETED_PASTE);
+        if ($this->getFacade()->getReplCommandIo()->isBracketedPasteSupported()) {
+            $this->getFacade()->getReplCommandIo()->write(self::DISABLE_BRACKETED_PASTE);
         }
 
         ++$this->lineNumber;
@@ -147,7 +138,7 @@ final class ReplCommand extends Command
         } elseif ($input === null && !$isInitialInput) {
             // Ctrl+D will empty the buffer
             $this->inputBuffer = [];
-            $this->io->writeln();
+            $this->getFacade()->getReplCommandIo()->writeln();
         } else {
             $this->inputBuffer[] = $input;
         }
@@ -171,27 +162,28 @@ final class ReplCommand extends Command
             return;
         }
 
+        /** @psalm-suppress PossiblyNullReference */
         $fullInput = $this->previousResult->readBuffer($this->inputBuffer);
 
         try {
             $options = (new CompileOptions())
                 ->setStartingLine($this->lineNumber - count($this->inputBuffer));
 
-            $result = $this->compilerFacade->eval($fullInput, $options);
+            $result = $this->getFacade()->eval($fullInput, $options);
             $this->previousResult = InputResult::fromAny($result);
 
             $this->addHistory($fullInput);
-            $this->io->writeln($this->printer->print($result));
+            $this->getFacade()->getReplCommandIo()->writeln($this->getFacade()->getPrinter()->print($result));
 
             $this->inputBuffer = [];
         } catch (UnfinishedParserException $e) {
             // The input is valid but more input is missing to finish the parsing.
         } catch (CompilerException $e) {
-            $this->io->writeLocatedException($e->getNestedException(), $e->getCodeSnippet());
+            $this->getFacade()->getReplCommandIo()->writeLocatedException($e->getNestedException(), $e->getCodeSnippet());
             $this->addHistory($fullInput);
             $this->inputBuffer = [];
         } catch (Throwable $e) {
-            $this->io->writeStackTrace($e);
+            $this->getFacade()->getReplCommandIo()->writeStackTrace($e);
             $this->addHistory($fullInput);
             $this->inputBuffer = [];
         }
@@ -200,7 +192,7 @@ final class ReplCommand extends Command
     private function addHistory(string $input): void
     {
         if ($input !== '') {
-            $this->io->addHistory($input);
+            $this->getFacade()->getReplCommandIo()->addHistory($input);
         }
     }
 }

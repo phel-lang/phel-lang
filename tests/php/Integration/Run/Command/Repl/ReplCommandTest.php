@@ -5,19 +5,20 @@ declare(strict_types=1);
 namespace PhelTest\Integration\Run\Command\Repl;
 
 use Gacela\Framework\Bootstrap\GacelaConfig;
+use Gacela\Framework\ClassResolver\GlobalInstance\AnonymousGlobal;
+use Gacela\Framework\Container\Container;
 use Gacela\Framework\Gacela;
 use Generator;
-use Phel\Build\BuildFacade;
-use Phel\Command\CommandFacade;
 use Phel\Command\Domain\Shared\Exceptions\ExceptionArgsPrinter;
 use Phel\Command\Domain\Shared\Exceptions\Extractor\FilePositionExtractor;
 use Phel\Command\Domain\Shared\Exceptions\Extractor\SourceMapExtractor;
 use Phel\Command\Domain\Shared\Exceptions\TextExceptionPrinter;
-use Phel\Compiler\CompilerFacade;
 use Phel\Compiler\Infrastructure\Munge;
 use Phel\Printer\Printer;
 use Phel\Run\Domain\Repl\ColorStyle;
+use Phel\Run\Domain\Repl\ReplCommandIoInterface;
 use Phel\Run\Infrastructure\Command\ReplCommand;
+use Phel\Run\RunDependencyProvider;
 use PhelTest\Integration\Run\Command\AbstractCommandTest;
 use RecursiveDirectoryIterator;
 use RecursiveIteratorIterator;
@@ -43,8 +44,9 @@ final class ReplCommandTest extends AbstractCommandTest
     {
         $io = $this->createReplTestIo();
         $io->setInputs(...$inputs);
+        $this->prepareRunDependencyProvider($io);
 
-        $repl = $this->createReplCommand($io);
+        $repl = $this->createReplCommand();
         $repl->run(
             $this->createStub(InputInterface::class),
             $this->createStub(OutputInterface::class)
@@ -65,8 +67,9 @@ final class ReplCommandTest extends AbstractCommandTest
     {
         $io = $this->createReplTestIo();
         $io->setInputs(...$inputs);
+        $this->prepareRunDependencyProvider($io);
 
-        $repl = $this->createReplCommandWithCoreLib($io);
+        $repl = $this->createReplCommandWithCoreLib();
         $repl->run(
             $this->createStub(InputInterface::class),
             $this->createStub(OutputInterface::class)
@@ -110,31 +113,16 @@ final class ReplCommandTest extends AbstractCommandTest
         }
     }
 
-    private function createReplCommand(ReplTestIo $io): ReplCommand
+    private function createReplCommand(): ReplCommand
     {
-        return new ReplCommand(
-            $io,
-            new CompilerFacade(),
-            ColorStyle::noStyles(),
-            Printer::nonReadable(),
-            new BuildFacade(),
-            new CommandFacade()
-        );
+        return new ReplCommand();
     }
 
-    private function createReplCommandWithCoreLib(ReplTestIo $io): ReplCommand
+    private function createReplCommandWithCoreLib(): ReplCommand
     {
         $replStartupFile = __DIR__ . '/../../../../../../src/php/Run/Domain/Repl/startup.phel';
 
-        return new ReplCommand(
-            $io,
-            new CompilerFacade(),
-            ColorStyle::noStyles(),
-            Printer::nonReadable(),
-            new BuildFacade(),
-            new CommandFacade(),
-            $replStartupFile
-        );
+        return (new ReplCommand())->setReplStartupFile($replStartupFile);
     }
 
     /**
@@ -166,5 +154,34 @@ final class ReplCommandTest extends AbstractCommandTest
         );
 
         return new ReplTestIo($exceptionPrinter);
+    }
+
+    private function prepareRunDependencyProvider(ReplCommandIoInterface $io): void
+    {
+        AnonymousGlobal::overrideExistingResolvedClass(
+            RunDependencyProvider::class,
+            new class($io) extends RunDependencyProvider {
+                private ReplCommandIoInterface $io;
+                public function __construct(ReplCommandIoInterface $io)
+                {
+                    $this->io = $io;
+                }
+
+                protected function addColorStyle(Container $container): void
+                {
+                    $container->set(self::COLOR_STYLE, static fn () => ColorStyle::noStyles());
+                }
+
+                protected function addPrinter(Container $container): void
+                {
+                    $container->set(self::PRINTER, static fn () => Printer::nonReadable());
+                }
+
+                protected function addReplCommandIo(Container $container): void
+                {
+                    $container->set(self::REPL_COMMAND_IO, $this->io);
+                }
+            }
+        );
     }
 }
