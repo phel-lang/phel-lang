@@ -58,7 +58,7 @@ final class TextExceptionPrinter implements ExceptionPrinterInterface
 
         foreach ($lines as $index => $line) {
             $str .= str_pad((string)($codeFirstLine + $index), $padLength, ' ', STR_PAD_LEFT);
-            if (strlen($line) > 0) {
+            if ($line !== '') {
                 $str .= '| ' . $line . PHP_EOL;
             } else {
                 $str .= '|' . PHP_EOL;
@@ -118,7 +118,7 @@ final class TextExceptionPrinter implements ExceptionPrinterInterface
 
             $class = $class ?? '';
             $type = $frame['type'] ?? '';
-            $fn = $frame['function'];
+            $fn = $frame['function'] ?? '';
             $argString = $this->exceptionArgsPrinter->buildPhpArgsString($frame['args'] ?? []);
             $str .= "#{$i} {$file}({$line}): {$class}{$type}{$fn}({$argString})" . PHP_EOL;
         }
