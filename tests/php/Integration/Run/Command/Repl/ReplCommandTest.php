@@ -20,8 +20,6 @@ use Phel\Run\Domain\Repl\ColorStyle;
 use Phel\Run\Domain\Repl\ColorStyleInterface;
 use Phel\Run\Domain\Repl\ReplCommandIoInterface;
 use Phel\Run\Infrastructure\Command\ReplCommand;
-use Phel\Run\RunConfig;
-use Phel\Run\RunDependencyProvider;
 use Phel\Run\RunFactory;
 use PhelTest\Integration\Run\Command\AbstractCommandTest;
 use RecursiveDirectoryIterator;
@@ -163,16 +161,6 @@ final class ReplCommandTest extends AbstractCommandTest
     private function prepareRunDependencyProvider(ReplCommandIoInterface $io): void
     {
         AbstractClassResolver::resetCache();
-
-        AnonymousGlobal::overrideExistingResolvedClass(
-            '\module-name@anonymous\ReplCommandTest\Config',
-            new RunConfig()
-        );
-
-        AnonymousGlobal::overrideExistingResolvedClass(
-            '\module-name@anonymous\ReplCommandTest\DependencyProvider',
-            new RunDependencyProvider()
-        );
 
         AnonymousGlobal::overrideExistingResolvedClass(
             RunFactory::class,
