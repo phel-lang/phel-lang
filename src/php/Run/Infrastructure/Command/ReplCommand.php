@@ -9,6 +9,7 @@ use Phel\Compiler\Domain\Exceptions\CompilerException;
 use Phel\Compiler\Domain\Parser\Exceptions\UnfinishedParserException;
 use Phel\Compiler\Infrastructure\CompileOptions;
 use Phel\Lang\Registry;
+use Phel\Run\Domain\Repl\ColorStyleInterface;
 use Phel\Run\Domain\Repl\ExitException;
 use Phel\Run\Domain\Repl\InputResult;
 use Phel\Run\Domain\Repl\ReplCommandIoInterface;
@@ -36,8 +37,9 @@ final class ReplCommand extends Command
 
     private ReplCommandIoInterface $io;
 
-    private ?string $replStartupFile = null;
+    private ColorStyleInterface $colorStyle;
 
+    private ?string $replStartupFile = null;
     /** @var string[] */
     private array $inputBuffer = [];
     private int $lineNumber = 1;
@@ -48,6 +50,7 @@ final class ReplCommand extends Command
         parent::__construct('repl');
 
         $this->io = $this->getFacade()->getReplCommandIo();
+        $this->colorStyle = $this->getFacade()->getColorStyle();
     }
 
     public function setReplStartupFile(string $replStartupFile): self
@@ -73,38 +76,40 @@ final class ReplCommand extends Command
         $this->replStartupFile = $this->getReplStartupFile();
 
         $this->io->readHistory();
-        $this->io->writeln(
-            $this->getFacade()->getColorStyle()->yellow('Welcome to the Phel Repl')
-        );
+        $this->io->writeln($this->colorStyle->yellow('Welcome to the Phel Repl'));
         $this->io->writeln('Type "exit" or press Ctrl-D to exit.');
 
         $this->getFacade()->registerExceptionHandler();
-
-        if ($this->replStartupFile && file_exists($this->replStartupFile)) {
-            $namespace = $this->getFacade()
-                ->getNamespaceFromFile($this->replStartupFile)
-                ->getNamespace();
-
-            $srcDirectories = [
-                dirname($this->replStartupFile),
-                ...$this->getFacade()->getAllPhelDirectories(),
-            ];
-            $namespaceInformation = $this->getFacade()->getDependenciesForNamespace(
-                $srcDirectories,
-                [$namespace, 'phel\\core']
-            );
-
-            foreach ($namespaceInformation as $info) {
-                $this->getFacade()->evalFile($info);
-            }
-
-            // Ugly Hack: Set source directories for the repl
-            Registry::getInstance()->addDefinition('phel\\repl', 'src-dirs', $srcDirectories);
-        }
-
+        $this->loadAllPhelNamespaces();
         $this->loopReadLineAndAnalyze();
 
         return self::SUCCESS;
+    }
+
+    private function loadAllPhelNamespaces(): void
+    {
+        if (!$this->replStartupFile || !file_exists($this->replStartupFile)) {
+            return;
+        }
+        $namespace = $this->getFacade()
+            ->getNamespaceFromFile($this->replStartupFile)
+            ->getNamespace();
+
+        $srcDirectories = [
+            dirname($this->replStartupFile),
+            ...$this->getFacade()->getAllPhelDirectories(),
+        ];
+        $namespaceInformation = $this->getFacade()->getDependenciesForNamespace(
+            $srcDirectories,
+            [$namespace, 'phel\\core']
+        );
+
+        foreach ($namespaceInformation as $info) {
+            $this->getFacade()->evalFile($info);
+        }
+
+        // Ugly Hack: Set source directories for the repl
+        Registry::getInstance()->addDefinition('phel\\repl', 'src-dirs', $srcDirectories);
     }
 
     private function loopReadLineAndAnalyze(): void
@@ -118,12 +123,12 @@ final class ReplCommand extends Command
                 break;
             } catch (Throwable $e) {
                 $this->inputBuffer = [];
-                $this->io->writeln($this->getFacade()->getColorStyle()->red($e->getMessage()));
+                $this->io->writeln($this->colorStyle->red($e->getMessage()));
                 $this->io->writeln($e->getTraceAsString());
             }
         }
 
-        $this->io->writeln($this->getFacade()->getColorStyle()->yellow('Bye!'));
+        $this->io->writeln($this->colorStyle->yellow('Bye!'));
     }
 
     private function addLineFromPromptToBuffer(): void
