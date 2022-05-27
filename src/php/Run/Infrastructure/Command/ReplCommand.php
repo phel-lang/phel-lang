@@ -9,6 +9,7 @@ use Phel\Compiler\Domain\Exceptions\CompilerException;
 use Phel\Compiler\Domain\Parser\Exceptions\UnfinishedParserException;
 use Phel\Compiler\Infrastructure\CompileOptions;
 use Phel\Lang\Registry;
+use Phel\Printer\PrinterInterface;
 use Phel\Run\Domain\Repl\ColorStyleInterface;
 use Phel\Run\Domain\Repl\ExitException;
 use Phel\Run\Domain\Repl\InputResult;
@@ -42,10 +43,13 @@ final class ReplCommand extends Command
 
     private ColorStyleInterface $colorStyle;
 
+    private PrinterInterface $printer;
+
     private ?string $replStartupFile = null;
 
     /** @var string[] */
     private array $inputBuffer = [];
+
     private int $lineNumber = 1;
 
     public function __construct()
@@ -55,18 +59,17 @@ final class ReplCommand extends Command
         $this->previousResult = InputResult::empty();
         $this->io = $this->getFacade()->getReplCommandIo();
         $this->colorStyle = $this->getFacade()->getColorStyle();
+        $this->printer = $this->getFacade()->getPrinter();
     }
 
+    /**
+     * @interal for testing purposes
+     */
     public function setReplStartupFile(string $replStartupFile): self
     {
         $this->replStartupFile = $replStartupFile;
 
         return $this;
-    }
-
-    public function getReplStartupFile(): string
-    {
-        return $this->replStartupFile ?? $this->getFacade()->getReplStartupFile();
     }
 
     protected function configure(): void
@@ -87,6 +90,11 @@ final class ReplCommand extends Command
         $this->loopReadLineAndAnalyze();
 
         return self::SUCCESS;
+    }
+
+    private function getReplStartupFile(): string
+    {
+        return $this->replStartupFile ?? $this->getFacade()->getReplStartupFile();
     }
 
     private function loadAllPhelNamespaces(): void
@@ -179,7 +187,6 @@ final class ReplCommand extends Command
         if (empty($this->inputBuffer)) {
             return;
         }
-        /** @psalm-suppress PossiblyNullReference */
         $fullInput = $this->previousResult->readBuffer($this->inputBuffer);
 
         try {
@@ -190,7 +197,7 @@ final class ReplCommand extends Command
             $this->previousResult = InputResult::fromAny($result);
 
             $this->addHistory($fullInput);
-            $this->io->writeln($this->getFacade()->getPrinter()->print($result));
+            $this->io->writeln($this->printer->print($result));
 
             $this->inputBuffer = [];
         } catch (UnfinishedParserException $e) {
