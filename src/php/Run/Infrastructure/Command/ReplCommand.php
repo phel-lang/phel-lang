@@ -21,6 +21,7 @@ use Throwable;
 
 use function count;
 use function dirname;
+use function is_string;
 
 /**
  * @method RunFacade getFacade()
@@ -35,20 +36,23 @@ final class ReplCommand extends Command
     private const OPEN_PROMPT = '....:%d> ';
     private const EXIT_REPL = 'exit';
 
+    private InputResult $previousResult;
+
     private ReplCommandIoInterface $io;
 
     private ColorStyleInterface $colorStyle;
 
     private ?string $replStartupFile = null;
+
     /** @var string[] */
     private array $inputBuffer = [];
     private int $lineNumber = 1;
-    private ?InputResult $previousResult = null;
 
     public function __construct()
     {
         parent::__construct('repl');
 
+        $this->previousResult = InputResult::empty();
         $this->io = $this->getFacade()->getReplCommandIo();
         $this->colorStyle = $this->getFacade()->getColorStyle();
     }
@@ -72,7 +76,6 @@ final class ReplCommand extends Command
 
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
-        $this->previousResult = InputResult::empty();
         $this->replStartupFile = $this->getReplStartupFile();
 
         $this->io->readHistory();
@@ -88,7 +91,7 @@ final class ReplCommand extends Command
 
     private function loadAllPhelNamespaces(): void
     {
-        if (!$this->replStartupFile || !file_exists($this->replStartupFile)) {
+        if (!is_string($this->replStartupFile) || !file_exists($this->replStartupFile)) {
             return;
         }
         $namespace = $this->getFacade()
@@ -137,7 +140,7 @@ final class ReplCommand extends Command
             $this->io->write(self::ENABLE_BRACKETED_PASTE);
         }
 
-        $isInitialInput = empty($this->inputBuffer);
+        $isInitialInput = $this->inputBuffer === [];
         $prompt = $isInitialInput ? self::INITIAL_PROMPT : self::OPEN_PROMPT;
         $input = $this->io->readline(sprintf($prompt, $this->lineNumber));
 
