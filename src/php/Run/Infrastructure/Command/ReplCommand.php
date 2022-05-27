@@ -79,9 +79,7 @@ final class ReplCommand extends Command
 
             $srcDirectories = [
                 dirname($this->replStartupFile),
-                ...$this->getFacade()->getSourceDirectories(),
-                ...$this->getFacade()->getTestDirectories(),
-                ...$this->getFacade()->getVendorSourceDirectories(),
+                ...$this->getFacade()->getAllPhelDirectories(),
             ];
             $namespaceInformation = $this->getFacade()->getDependenciesForNamespace(
                 $srcDirectories,

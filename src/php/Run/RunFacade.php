@@ -123,30 +123,10 @@ final class RunFacade extends AbstractFacade implements RunFacadeInterface
     /**
      * @return list<string>
      */
-    public function getSourceDirectories(): array
+    public function getAllPhelDirectories(): array
     {
         return $this->getFactory()
             ->getCommandFacade()
-            ->getSourceDirectories();
-    }
-
-    /**
-     * @return list<string>
-     */
-    public function getTestDirectories(): array
-    {
-        return $this->getFactory()
-            ->getCommandFacade()
-            ->getTestDirectories();
-    }
-
-    /**
-     * @return list<string>
-     */
-    public function getVendorSourceDirectories(): array
-    {
-        return $this->getFactory()
-            ->getCommandFacade()
-            ->getVendorSourceDirectories();
+            ->getAllPhelDirectories();
     }
 }

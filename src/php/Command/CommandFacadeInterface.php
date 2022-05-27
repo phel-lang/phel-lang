@@ -26,6 +26,13 @@ interface CommandFacadeInterface
     public function registerExceptionHandler(): void;
 
     /**
+     * All src, tests, and vendor directories.
+     *
+     * @return list<string>
+     */
+    public function getAllPhelDirectories(): array;
+
+    /**
      * @return list<string>
      */
     public function getSourceDirectories(): array;
