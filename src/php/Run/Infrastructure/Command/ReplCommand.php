@@ -11,6 +11,7 @@ use Phel\Compiler\Infrastructure\CompileOptions;
 use Phel\Lang\Registry;
 use Phel\Run\Domain\Repl\ExitException;
 use Phel\Run\Domain\Repl\InputResult;
+use Phel\Run\Domain\Repl\ReplCommandIoInterface;
 use Phel\Run\RunFacade;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
@@ -33,12 +34,21 @@ final class ReplCommand extends Command
     private const OPEN_PROMPT = '....:%d> ';
     private const EXIT_REPL = 'exit';
 
+    private ReplCommandIoInterface $io;
+
     private ?string $replStartupFile = null;
 
     /** @var string[] */
     private array $inputBuffer = [];
     private int $lineNumber = 1;
     private ?InputResult $previousResult = null;
+
+    public function __construct()
+    {
+        parent::__construct('repl');
+
+        $this->io = $this->getFacade()->getReplCommandIo();
+    }
 
     public function setReplStartupFile(string $replStartupFile): self
     {
@@ -54,8 +64,7 @@ final class ReplCommand extends Command
 
     protected function configure(): void
     {
-        $this->setName('repl')
-            ->setDescription('Start a Repl.');
+        $this->setDescription('Start a Repl.');
     }
 
     protected function execute(InputInterface $input, OutputInterface $output): int
@@ -63,12 +72,11 @@ final class ReplCommand extends Command
         $this->previousResult = InputResult::empty();
         $this->replStartupFile = $this->getReplStartupFile();
 
-        $io = $this->getFacade()->getReplCommandIo();
-        $io->readHistory();
-        $io->writeln(
+        $this->io->readHistory();
+        $this->io->writeln(
             $this->getFacade()->getColorStyle()->yellow('Welcome to the Phel Repl')
         );
-        $io->writeln('Type "exit" or press Ctrl-D to exit.');
+        $this->io->writeln('Type "exit" or press Ctrl-D to exit.');
 
         $this->getFacade()->registerExceptionHandler();
 
@@ -101,8 +109,6 @@ final class ReplCommand extends Command
 
     private function loopReadLineAndAnalyze(): void
     {
-        $io = $this->getFacade()->getReplCommandIo();
-
         while (true) {
             try {
                 $this->addLineFromPromptToBuffer();
@@ -112,28 +118,26 @@ final class ReplCommand extends Command
                 break;
             } catch (Throwable $e) {
                 $this->inputBuffer = [];
-                $io->writeln($this->getFacade()->getColorStyle()->red($e->getMessage()));
-                $io->writeln($e->getTraceAsString());
+                $this->io->writeln($this->getFacade()->getColorStyle()->red($e->getMessage()));
+                $this->io->writeln($e->getTraceAsString());
             }
         }
 
-        $io->writeln($this->getFacade()->getColorStyle()->yellow('Bye!'));
+        $this->io->writeln($this->getFacade()->getColorStyle()->yellow('Bye!'));
     }
 
     private function addLineFromPromptToBuffer(): void
     {
-        $io = $this->getFacade()->getReplCommandIo();
-
-        if ($io->isBracketedPasteSupported()) {
-            $io->write(self::ENABLE_BRACKETED_PASTE);
+        if ($this->io->isBracketedPasteSupported()) {
+            $this->io->write(self::ENABLE_BRACKETED_PASTE);
         }
 
         $isInitialInput = empty($this->inputBuffer);
         $prompt = $isInitialInput ? self::INITIAL_PROMPT : self::OPEN_PROMPT;
-        $input = $io->readline(sprintf($prompt, $this->lineNumber));
+        $input = $this->io->readline(sprintf($prompt, $this->lineNumber));
 
-        if ($io->isBracketedPasteSupported()) {
-            $io->write(self::DISABLE_BRACKETED_PASTE);
+        if ($this->io->isBracketedPasteSupported()) {
+            $this->io->write(self::DISABLE_BRACKETED_PASTE);
         }
 
         ++$this->lineNumber;
@@ -144,7 +148,7 @@ final class ReplCommand extends Command
         } elseif ($input === null && !$isInitialInput) {
             // Ctrl+D will empty the buffer
             $this->inputBuffer = [];
-            $io->writeln();
+            $this->io->writeln();
         } else {
             $this->inputBuffer[] = $input;
         }
@@ -167,8 +171,6 @@ final class ReplCommand extends Command
         if (empty($this->inputBuffer)) {
             return;
         }
-        $io = $this->getFacade()->getReplCommandIo();
-
         /** @psalm-suppress PossiblyNullReference */
         $fullInput = $this->previousResult->readBuffer($this->inputBuffer);
 
@@ -180,17 +182,17 @@ final class ReplCommand extends Command
             $this->previousResult = InputResult::fromAny($result);
 
             $this->addHistory($fullInput);
-            $io->writeln($this->getFacade()->getPrinter()->print($result));
+            $this->io->writeln($this->getFacade()->getPrinter()->print($result));
 
             $this->inputBuffer = [];
         } catch (UnfinishedParserException $e) {
             // The input is valid but more input is missing to finish the parsing.
         } catch (CompilerException $e) {
-            $io->writeLocatedException($e->getNestedException(), $e->getCodeSnippet());
+            $this->io->writeLocatedException($e->getNestedException(), $e->getCodeSnippet());
             $this->addHistory($fullInput);
             $this->inputBuffer = [];
         } catch (Throwable $e) {
-            $io->writeStackTrace($e);
+            $this->io->writeStackTrace($e);
             $this->addHistory($fullInput);
             $this->inputBuffer = [];
         }
@@ -199,8 +201,7 @@ final class ReplCommand extends Command
     private function addHistory(string $input): void
     {
         if ($input !== '') {
-            $io = $this->getFacade()->getReplCommandIo();
-            $io->addHistory($input);
+            $this->io->addHistory($input);
         }
     }
 }
