@@ -6,12 +6,12 @@ namespace Phel\Command\Domain\Finder;
 
 use Phel\Command\CommandConfig;
 
+use Phel\Phel;
+
 use function dirname;
 
 final class ComposerVendorDirectoriesFinder implements VendorDirectoriesFinderInterface
 {
-    private const PHEL_CONFIG_FILE_NAME = 'phel-config.php';
-
     private string $vendorDirectory;
 
     public function __construct(string $vendorDirectory)
@@ -25,7 +25,7 @@ final class ComposerVendorDirectoriesFinder implements VendorDirectoriesFinderIn
     public function findPhelSourceDirectories(): array
     {
         $vendorDir = $this->vendorDirectory;
-        $pattern = $vendorDir . '/*/*/' . self::PHEL_CONFIG_FILE_NAME;
+        $pattern = $vendorDir . '/*/*/' . Phel::PHEL_CONFIG_FILE_NAME;
 
         $result = [];
 
