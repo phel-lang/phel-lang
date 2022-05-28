@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace PhelTest\Integration\Run\Command\Repl;
 
 use Gacela\Framework\Bootstrap\GacelaConfig;
-use Gacela\Framework\ClassResolver\AbstractClassResolver;
 use Gacela\Framework\ClassResolver\GlobalInstance\AnonymousGlobal;
 use Gacela\Framework\Gacela;
 use Generator;
@@ -32,7 +31,11 @@ final class ReplCommandTest extends AbstractCommandTest
 {
     public function setUp(): void
     {
-        Gacela::bootstrap(__DIR__, GacelaConfig::withPhpConfigDefault());
+        $configFn = static function (GacelaConfig $config): void {
+            $config->addAppConfig('config/*.php', 'config/local.php');
+            $config->setClassResolverCached(false);
+        };
+        Gacela::bootstrap(__DIR__, $configFn);
     }
 
     /**
@@ -156,8 +159,6 @@ final class ReplCommandTest extends AbstractCommandTest
 
     private function prepareRunDependencyProvider(ReplCommandIoInterface $io): void
     {
-        AbstractClassResolver::resetCache();
-
         AnonymousGlobal::overrideExistingResolvedClass(
             RunFactory::class,
             new class($io) extends RunFactory {

@@ -4,20 +4,20 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "cb00bf8b8f4aba106813be9c721acad5",
+    "content-hash": "694cfa1fb005fbd1bad50030aa55e26d",
     "packages": [
         {
             "name": "gacela-project/gacela",
-            "version": "0.20.0",
+            "version": "dev-master",
             "source": {
                 "type": "git",
                 "url": "https://github.com/gacela-project/gacela.git",
-                "reference": "4ba7c4ba1d672d3aaf09783a90f32f9653b3b4af"
+                "reference": "95870eafd4670c4d8b98dd5b8460df18297f896d"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/gacela-project/gacela/zipball/4ba7c4ba1d672d3aaf09783a90f32f9653b3b4af",
-                "reference": "4ba7c4ba1d672d3aaf09783a90f32f9653b3b4af",
+                "url": "https://api.github.com/repos/gacela-project/gacela/zipball/95870eafd4670c4d8b98dd5b8460df18297f896d",
+                "reference": "95870eafd4670c4d8b98dd5b8460df18297f896d",
                 "shasum": ""
             },
             "require": {
@@ -38,6 +38,7 @@
                 "gacela-project/gacela-env-config-reader": "Allows to read .env config files",
                 "gacela-project/gacela-yaml-config-reader": "Allows to read yml/yaml config files"
             },
+            "default-branch": true,
             "type": "library",
             "autoload": {
                 "psr-4": {
@@ -67,9 +68,9 @@
             ],
             "support": {
                 "issues": "https://github.com/gacela-project/gacela/issues",
-                "source": "https://github.com/gacela-project/gacela/tree/0.20.0"
+                "source": "https://github.com/gacela-project/gacela/tree/master"
             },
-            "time": "2022-05-27T15:50:06+00:00"
+            "time": "2022-05-28T14:40:10+00:00"
         },
         {
             "name": "phpunit/php-timer",
@@ -5295,7 +5296,9 @@
     ],
     "aliases": [],
     "minimum-stability": "stable",
-    "stability-flags": [],
+    "stability-flags": {
+        "gacela-project/gacela": 20
+    },
     "prefer-stable": false,
     "prefer-lowest": false,
     "platform": {
