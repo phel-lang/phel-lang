@@ -41,7 +41,7 @@ final class ReplCommand extends Command
 
     private ReplCommandIoInterface $io;
 
-    private ColorStyleInterface $colorStyle;
+    private ColorStyleInterface $style;
 
     private PrinterInterface $printer;
 
@@ -58,7 +58,7 @@ final class ReplCommand extends Command
 
         $this->previousResult = InputResult::empty();
         $this->io = $this->getFacade()->getReplCommandIo();
-        $this->colorStyle = $this->getFacade()->getColorStyle();
+        $this->style = $this->getFacade()->getColorStyle();
         $this->printer = $this->getFacade()->getPrinter();
     }
 
@@ -82,7 +82,7 @@ final class ReplCommand extends Command
         $this->replStartupFile = $this->getReplStartupFile();
 
         $this->io->readHistory();
-        $this->io->writeln($this->colorStyle->yellow('Welcome to the Phel Repl'));
+        $this->io->writeln($this->style->yellow('Welcome to the Phel Repl'));
         $this->io->writeln('Type "exit" or press Ctrl-D to exit.');
 
         $this->getFacade()->registerExceptionHandler();
@@ -134,12 +134,12 @@ final class ReplCommand extends Command
                 break;
             } catch (Throwable $e) {
                 $this->inputBuffer = [];
-                $this->io->writeln($this->colorStyle->red($e->getMessage()));
+                $this->io->writeln($this->style->red($e->getMessage()));
                 $this->io->writeln($e->getTraceAsString());
             }
         }
 
-        $this->io->writeln($this->colorStyle->yellow('Bye!'));
+        $this->io->writeln($this->style->yellow('Bye!'));
     }
 
     private function addLineFromPromptToBuffer(): void
