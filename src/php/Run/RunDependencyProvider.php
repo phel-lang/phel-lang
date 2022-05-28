@@ -12,10 +12,7 @@ use Phel\Compiler\CompilerFacade;
 use Phel\Formatter\FormatterFacade;
 use Phel\Interop\InteropFacade;
 
-/**
- * @method RunConfig getConfig()
- */
-class RunDependencyProvider extends AbstractDependencyProvider
+final class RunDependencyProvider extends AbstractDependencyProvider
 {
     public const FACADE_COMMAND = 'FACADE_COMMAND';
     public const FACADE_COMPILER = 'FACADE_COMPILER';
