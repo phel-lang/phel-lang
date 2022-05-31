@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Phel;
 
+use Closure;
 use Gacela\Framework\Bootstrap\GacelaConfig;
 use Gacela\Framework\Gacela;
 use Phel\Run\RunFacade;
@@ -26,7 +27,7 @@ final class Phel
     }
 
     /**
-     * @return callable(GacelaConfig):void
+     * @return Closure(GacelaConfig):void
      */
     public static function configFn(): callable
     {

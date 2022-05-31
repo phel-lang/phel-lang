@@ -8,7 +8,9 @@ use Gacela\Framework\AbstractFacade;
 use Phel\Build\Domain\Extractor\NamespaceInformation;
 use Phel\Compiler\Domain\Exceptions\CompilerException;
 use Phel\Compiler\Infrastructure\CompileOptions;
-use Phel\Run\Infrastructure\Command\ReplCommand;
+use Phel\Printer\PrinterInterface;
+use Phel\Run\Domain\Repl\ColorStyleInterface;
+use Phel\Run\Domain\Repl\ReplCommandIoInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 use Throwable;
 
@@ -17,12 +19,24 @@ use Throwable;
  */
 final class RunFacade extends AbstractFacade implements RunFacadeInterface
 {
-    /**
-     * TODO: Refactor and make the ReplCommand instantiable.
-     */
-    public function getReplCommand(): ReplCommand
+    public function getReplStartupFile(): string
     {
-        return $this->getFactory()->createReplCommand();
+        return $this->getFactory()->getReplStartupFile();
+    }
+
+    public function getReplCommandIo(): ReplCommandIoInterface
+    {
+        return $this->getFactory()->createReplCommandIo();
+    }
+
+    public function getColorStyle(): ColorStyleInterface
+    {
+        return $this->getFactory()->createColorStyle();
+    }
+
+    public function getPrinter(): PrinterInterface
+    {
+        return $this->getFactory()->createPrinter();
     }
 
     public function runNamespace(string $namespace): void
@@ -58,6 +72,19 @@ final class RunFacade extends AbstractFacade implements RunFacadeInterface
             ->getDependenciesFromPaths($paths);
     }
 
+    /**
+     * @param list<string> $directories
+     * @param list<string> $ns
+     *
+     * @return list<NamespaceInformation>
+     */
+    public function getDependenciesForNamespace(array $directories, array $ns): array
+    {
+        return $this->getFactory()
+            ->getBuildFacade()
+            ->getDependenciesForNamespace($directories, $ns);
+    }
+
     public function evalFile(NamespaceInformation $info): void
     {
         $this->getFactory()
@@ -68,11 +95,11 @@ final class RunFacade extends AbstractFacade implements RunFacadeInterface
     /**
      * @return mixed The result of the executed code
      */
-    public function eval(string $phelCode): mixed
+    public function eval(string $phelCode, CompileOptions $compileOptions): mixed
     {
         return $this->getFactory()
             ->getCompilerFacade()
-            ->eval($phelCode, new CompileOptions());
+            ->eval($phelCode, $compileOptions);
     }
 
     public function writeLocatedException(OutputInterface $output, CompilerException $e): void
@@ -91,5 +118,15 @@ final class RunFacade extends AbstractFacade implements RunFacadeInterface
         $this->getFactory()
             ->getCommandFacade()
             ->writeStackTrace($output, $e);
+    }
+
+    /**
+     * @return list<string>
+     */
+    public function getAllPhelDirectories(): array
+    {
+        return $this->getFactory()
+            ->getCommandFacade()
+            ->getAllPhelDirectories();
     }
 }

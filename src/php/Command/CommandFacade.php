@@ -69,6 +69,20 @@ final class CommandFacade extends AbstractFacade implements CommandFacadeInterfa
         return $this->getFactory()->createExceptionPrinter();
     }
 
+    /**
+     * All src, tests, and vendor directories.
+     *
+     * @return list<string>
+     */
+    public function getAllPhelDirectories(): array
+    {
+        return [
+            ...$this->getSourceDirectories(),
+            ...$this->getTestDirectories(),
+            ...$this->getVendorSourceDirectories(),
+        ];
+    }
+
     public function getSourceDirectories(): array
     {
         return $this->getFactory()

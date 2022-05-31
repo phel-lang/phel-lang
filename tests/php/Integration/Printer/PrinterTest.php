@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace PhelTest\Integration\Printer;
 
-use Gacela\Framework\Config;
+use Gacela\Framework\Gacela;
 use Phel\Compiler\CompilerFacade;
 use Phel\Compiler\CompilerFacadeInterface;
 use Phel\Compiler\Infrastructure\GlobalEnvironmentSingleton;
@@ -17,7 +17,7 @@ final class PrinterTest extends TestCase
 
     public static function setUpBeforeClass(): void
     {
-        Config::getInstance()->setAppRootDir(__DIR__);
+        Gacela::bootstrap(__DIR__);
         GlobalEnvironmentSingleton::reset();
     }
 

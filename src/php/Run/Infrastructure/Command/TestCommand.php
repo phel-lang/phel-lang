@@ -7,6 +7,7 @@ namespace Phel\Run\Infrastructure\Command;
 use Gacela\Framework\DocBlockResolverAwareTrait;
 use Phel\Build\Domain\Extractor\NamespaceInformation;
 use Phel\Compiler\Domain\Exceptions\CompilerException;
+use Phel\Compiler\Infrastructure\CompileOptions;
 use Phel\Run\Domain\Test\TestCommandOptions;
 use Phel\Run\RunFacade;
 use SebastianBergmann\Timer\ResourceUsageFormatter;
@@ -66,7 +67,7 @@ final class TestCommand extends Command
                 $this->namespacesAsString($namespacesInformation),
             );
 
-            $result = $this->getFacade()->eval($phelCode);
+            $result = $this->getFacade()->eval($phelCode, new CompileOptions());
 
             $output->writeln((new ResourceUsageFormatter())->resourceUsageSinceStartOfRequest());
 

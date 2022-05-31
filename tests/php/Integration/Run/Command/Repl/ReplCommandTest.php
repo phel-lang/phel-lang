@@ -5,19 +5,21 @@ declare(strict_types=1);
 namespace PhelTest\Integration\Run\Command\Repl;
 
 use Gacela\Framework\Bootstrap\GacelaConfig;
+use Gacela\Framework\ClassResolver\GlobalInstance\AnonymousGlobal;
 use Gacela\Framework\Gacela;
 use Generator;
-use Phel\Build\BuildFacade;
-use Phel\Command\CommandFacade;
 use Phel\Command\Domain\Shared\Exceptions\ExceptionArgsPrinter;
 use Phel\Command\Domain\Shared\Exceptions\Extractor\FilePositionExtractor;
 use Phel\Command\Domain\Shared\Exceptions\Extractor\SourceMapExtractor;
 use Phel\Command\Domain\Shared\Exceptions\TextExceptionPrinter;
-use Phel\Compiler\CompilerFacade;
 use Phel\Compiler\Infrastructure\Munge;
 use Phel\Printer\Printer;
+use Phel\Printer\PrinterInterface;
 use Phel\Run\Domain\Repl\ColorStyle;
+use Phel\Run\Domain\Repl\ColorStyleInterface;
+use Phel\Run\Domain\Repl\ReplCommandIoInterface;
 use Phel\Run\Infrastructure\Command\ReplCommand;
+use Phel\Run\RunFactory;
 use PhelTest\Integration\Run\Command\AbstractCommandTest;
 use RecursiveDirectoryIterator;
 use RecursiveIteratorIterator;
@@ -27,12 +29,12 @@ use Symfony\Component\Console\Output\OutputInterface;
 
 final class ReplCommandTest extends AbstractCommandTest
 {
-    public static function setUpBeforeClass(): void
+    public function setUp(): void
     {
         $configFn = static function (GacelaConfig $config): void {
-            $config->addAppConfig('config/*.php');
+            $config->addAppConfig('config/*.php', 'config/local.php');
+            $config->setResetCache(true);
         };
-
         Gacela::bootstrap(__DIR__, $configFn);
     }
 
@@ -43,8 +45,9 @@ final class ReplCommandTest extends AbstractCommandTest
     {
         $io = $this->createReplTestIo();
         $io->setInputs(...$inputs);
+        $this->prepareRunDependencyProvider($io);
 
-        $repl = $this->createReplCommand($io);
+        $repl = $this->createReplCommand();
         $repl->run(
             $this->createStub(InputInterface::class),
             $this->createStub(OutputInterface::class)
@@ -65,8 +68,9 @@ final class ReplCommandTest extends AbstractCommandTest
     {
         $io = $this->createReplTestIo();
         $io->setInputs(...$inputs);
+        $this->prepareRunDependencyProvider($io);
 
-        $repl = $this->createReplCommandWithCoreLib($io);
+        $repl = $this->createReplCommandWithCoreLib();
         $repl->run(
             $this->createStub(InputInterface::class),
             $this->createStub(OutputInterface::class)
@@ -110,31 +114,16 @@ final class ReplCommandTest extends AbstractCommandTest
         }
     }
 
-    private function createReplCommand(ReplTestIo $io): ReplCommand
+    private function createReplCommand(): ReplCommand
     {
-        return new ReplCommand(
-            $io,
-            new CompilerFacade(),
-            ColorStyle::noStyles(),
-            Printer::nonReadable(),
-            new BuildFacade(),
-            new CommandFacade()
-        );
+        return new ReplCommand();
     }
 
-    private function createReplCommandWithCoreLib(ReplTestIo $io): ReplCommand
+    private function createReplCommandWithCoreLib(): ReplCommand
     {
         $replStartupFile = __DIR__ . '/../../../../../../src/php/Run/Domain/Repl/startup.phel';
 
-        return new ReplCommand(
-            $io,
-            new CompilerFacade(),
-            ColorStyle::noStyles(),
-            Printer::nonReadable(),
-            new BuildFacade(),
-            new CommandFacade(),
-            $replStartupFile
-        );
+        return (new ReplCommand())->setReplStartupFile($replStartupFile);
     }
 
     /**
@@ -166,5 +155,35 @@ final class ReplCommandTest extends AbstractCommandTest
         );
 
         return new ReplTestIo($exceptionPrinter);
+    }
+
+    private function prepareRunDependencyProvider(ReplCommandIoInterface $io): void
+    {
+        AnonymousGlobal::overrideExistingResolvedClass(
+            RunFactory::class,
+            new class($io) extends RunFactory {
+                private ReplCommandIoInterface $io;
+
+                public function __construct(ReplCommandIoInterface $io)
+                {
+                    $this->io = $io;
+                }
+
+                public function createColorStyle(): ColorStyleInterface
+                {
+                    return ColorStyle::noStyles();
+                }
+
+                public function createPrinter(): PrinterInterface
+                {
+                    return Printer::nonReadable();
+                }
+
+                public function createReplCommandIo(): ReplCommandIoInterface
+                {
+                    return $this->io;
+                }
+            }
+        );
     }
 }

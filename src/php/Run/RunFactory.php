@@ -17,26 +17,12 @@ use Phel\Run\Domain\Repl\ReplCommandSystemIo;
 use Phel\Run\Domain\Runner\NamespaceCollector;
 use Phel\Run\Domain\Runner\NamespaceRunner;
 use Phel\Run\Domain\Runner\NamespaceRunnerInterface;
-use Phel\Run\Infrastructure\Command\ReplCommand;
 
 /**
  * @method RunConfig getConfig()
  */
-final class RunFactory extends AbstractFactory
+class RunFactory extends AbstractFactory
 {
-    public function createReplCommand(): ReplCommand
-    {
-        return new ReplCommand(
-            $this->createReplCommandIo(),
-            $this->getCompilerFacade(),
-            $this->createColorStyle(),
-            $this->createPrinter(),
-            $this->getBuildFacade(),
-            $this->getCommandFacade(),
-            $this->getConfig()->getReplStartupFile()
-        );
-    }
-
     public function createNamespaceRunner(): NamespaceRunnerInterface
     {
         return new NamespaceRunner(
@@ -45,19 +31,24 @@ final class RunFactory extends AbstractFactory
         );
     }
 
+    public function getReplStartupFile(): string
+    {
+        return $this->getConfig()->getReplStartupFile();
+    }
+
     public function getCommandFacade(): CommandFacadeInterface
     {
         return $this->getProvidedDependency(RunDependencyProvider::FACADE_COMMAND);
     }
 
-    public function getCompilerFacade(): CompilerFacadeInterface
-    {
-        return $this->getProvidedDependency(RunDependencyProvider::FACADE_COMPILER);
-    }
-
     public function getBuildFacade(): BuildFacadeInterface
     {
         return $this->getProvidedDependency(RunDependencyProvider::FACADE_BUILD);
+    }
+
+    public function getCompilerFacade(): CompilerFacadeInterface
+    {
+        return $this->getProvidedDependency(RunDependencyProvider::FACADE_COMPILER);
     }
 
     public function createNamespaceCollector(): NamespaceCollector
@@ -68,21 +59,21 @@ final class RunFactory extends AbstractFactory
         );
     }
 
-    private function createReplCommandIo(): ReplCommandIoInterface
+    public function createColorStyle(): ColorStyleInterface
+    {
+        return ColorStyle::withStyles();
+    }
+
+    public function createPrinter(): PrinterInterface
+    {
+        return Printer::nonReadableWithColor();
+    }
+
+    public function createReplCommandIo(): ReplCommandIoInterface
     {
         return new ReplCommandSystemIo(
             $this->getConfig()->getPhelReplHistory(),
             $this->getCommandFacade()
         );
-    }
-
-    private function createColorStyle(): ColorStyleInterface
-    {
-        return ColorStyle::withStyles();
-    }
-
-    private function createPrinter(): PrinterInterface
-    {
-        return Printer::nonReadableWithColor();
     }
 }

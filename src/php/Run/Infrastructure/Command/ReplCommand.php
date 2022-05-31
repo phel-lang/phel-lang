@@ -4,9 +4,7 @@ declare(strict_types=1);
 
 namespace Phel\Run\Infrastructure\Command;
 
-use Phel\Build\BuildFacadeInterface;
-use Phel\Command\CommandFacadeInterface;
-use Phel\Compiler\CompilerFacadeInterface;
+use Gacela\Framework\DocBlockResolverAwareTrait;
 use Phel\Compiler\Domain\Exceptions\CompilerException;
 use Phel\Compiler\Domain\Parser\Exceptions\UnfinishedParserException;
 use Phel\Compiler\Infrastructure\CompileOptions;
@@ -16,6 +14,7 @@ use Phel\Run\Domain\Repl\ColorStyleInterface;
 use Phel\Run\Domain\Repl\ExitException;
 use Phel\Run\Domain\Repl\InputResult;
 use Phel\Run\Domain\Repl\ReplCommandIoInterface;
+use Phel\Run\RunFacade;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
@@ -23,10 +22,14 @@ use Throwable;
 
 use function count;
 use function dirname;
+use function is_string;
 
+/**
+ * @method RunFacade getFacade()
+ */
 final class ReplCommand extends Command
 {
-    public const COMMAND_NAME = 'repl';
+    use DocBlockResolverAwareTrait;
 
     private const ENABLE_BRACKETED_PASTE = "\e[?2004h";
     private const DISABLE_BRACKETED_PASTE = "\e[?2004l";
@@ -34,76 +37,90 @@ final class ReplCommand extends Command
     private const OPEN_PROMPT = '....:%d> ';
     private const EXIT_REPL = 'exit';
 
+    private InputResult $previousResult;
+
     private ReplCommandIoInterface $io;
-    private CompilerFacadeInterface $compilerFacade;
+
     private ColorStyleInterface $style;
+
     private PrinterInterface $printer;
-    private BuildFacadeInterface $buildFacade;
-    private CommandFacadeInterface $commandFacade;
-    private string $replStartupFile;
+
+    private ?string $replStartupFile = null;
 
     /** @var string[] */
     private array $inputBuffer = [];
-    private int $lineNumber = 1;
-    private InputResult $previousResult;
 
-    public function __construct(
-        ReplCommandIoInterface $io,
-        CompilerFacadeInterface $compilerFacade,
-        ColorStyleInterface $style,
-        PrinterInterface $printer,
-        BuildFacadeInterface $buildFacade,
-        CommandFacadeInterface $commandFacade,
-        string $replStartupFile = ''
-    ) {
-        parent::__construct(self::COMMAND_NAME);
-        $this->io = $io;
-        $this->compilerFacade = $compilerFacade;
-        $this->style = $style;
-        $this->printer = $printer;
-        $this->buildFacade = $buildFacade;
-        $this->commandFacade = $commandFacade;
-        $this->replStartupFile = $replStartupFile;
+    private int $lineNumber = 1;
+
+    public function __construct()
+    {
+        parent::__construct('repl');
+
         $this->previousResult = InputResult::empty();
+        $this->io = $this->getFacade()->getReplCommandIo();
+        $this->style = $this->getFacade()->getColorStyle();
+        $this->printer = $this->getFacade()->getPrinter();
     }
 
-    public function execute(InputInterface $input, OutputInterface $output): int
+    /**
+     * @interal for testing purposes
+     */
+    public function setReplStartupFile(string $replStartupFile): self
     {
-        $this->io->readHistory();
-        $this->io->writeln($this->style->yellow('Welcome to the Phel Repl'));
-        $this->io->writeln('Type "exit" or press Ctrl-D to exit.');
+        $this->replStartupFile = $replStartupFile;
 
-        $this->commandFacade->registerExceptionHandler();
-
-        if ($this->replStartupFile && file_exists($this->replStartupFile)) {
-            $namespace = $this->buildFacade
-                ->getNamespaceFromFile($this->replStartupFile)
-                ->getNamespace();
-
-            $srcDirectories = [
-                dirname($this->replStartupFile),
-                ...$this->commandFacade->getSourceDirectories(),
-                ...$this->commandFacade->getTestDirectories(),
-                ...$this->commandFacade->getVendorSourceDirectories(),
-            ];
-            $namespaceInformation = $this->buildFacade->getDependenciesForNamespace($srcDirectories, [$namespace, 'phel\\core']);
-
-            foreach ($namespaceInformation as $info) {
-                $this->buildFacade->evalFile($info->getFile());
-            }
-
-            // Ugly Hack: Set source directories for the repl
-            Registry::getInstance()->addDefinition('phel\\repl', 'src-dirs', $srcDirectories);
-        }
-
-        $this->loopReadLineAndAnalyze();
-
-        return self::SUCCESS;
+        return $this;
     }
 
     protected function configure(): void
     {
         $this->setDescription('Start a Repl.');
+    }
+
+    protected function execute(InputInterface $input, OutputInterface $output): int
+    {
+        $this->replStartupFile = $this->getReplStartupFile();
+
+        $this->io->readHistory();
+        $this->io->writeln($this->style->yellow('Welcome to the Phel Repl'));
+        $this->io->writeln('Type "exit" or press Ctrl-D to exit.');
+
+        $this->getFacade()->registerExceptionHandler();
+        $this->loadAllPhelNamespaces();
+        $this->loopReadLineAndAnalyze();
+
+        return self::SUCCESS;
+    }
+
+    private function getReplStartupFile(): string
+    {
+        return $this->replStartupFile ?? $this->getFacade()->getReplStartupFile();
+    }
+
+    private function loadAllPhelNamespaces(): void
+    {
+        if (!is_string($this->replStartupFile) || !file_exists($this->replStartupFile)) {
+            return;
+        }
+        $namespace = $this->getFacade()
+            ->getNamespaceFromFile($this->replStartupFile)
+            ->getNamespace();
+
+        $srcDirectories = [
+            dirname($this->replStartupFile),
+            ...$this->getFacade()->getAllPhelDirectories(),
+        ];
+        $namespaceInformation = $this->getFacade()->getDependenciesForNamespace(
+            $srcDirectories,
+            [$namespace, 'phel\\core']
+        );
+
+        foreach ($namespaceInformation as $info) {
+            $this->getFacade()->evalFile($info);
+        }
+
+        // Ugly Hack: Set source directories for the repl
+        Registry::getInstance()->addDefinition('phel\\repl', 'src-dirs', $srcDirectories);
     }
 
     private function loopReadLineAndAnalyze(): void
@@ -131,7 +148,7 @@ final class ReplCommand extends Command
             $this->io->write(self::ENABLE_BRACKETED_PASTE);
         }
 
-        $isInitialInput = empty($this->inputBuffer);
+        $isInitialInput = $this->inputBuffer === [];
         $prompt = $isInitialInput ? self::INITIAL_PROMPT : self::OPEN_PROMPT;
         $input = $this->io->readline(sprintf($prompt, $this->lineNumber));
 
@@ -170,14 +187,13 @@ final class ReplCommand extends Command
         if (empty($this->inputBuffer)) {
             return;
         }
-
         $fullInput = $this->previousResult->readBuffer($this->inputBuffer);
 
         try {
             $options = (new CompileOptions())
                 ->setStartingLine($this->lineNumber - count($this->inputBuffer));
 
-            $result = $this->compilerFacade->eval($fullInput, $options);
+            $result = $this->getFacade()->eval($fullInput, $options);
             $this->previousResult = InputResult::fromAny($result);
 
             $this->addHistory($fullInput);

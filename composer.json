@@ -14,19 +14,19 @@
     "require": {
         "ext-json": "*",
         "php": ">=8.0",
-        "gacela-project/gacela": "^0.19",
+        "gacela-project/gacela": "^0.21",
         "symfony/console": "^5.4",
         "phpunit/php-timer": "^5.0"
     },
     "require-dev": {
         "ext-readline": "*",
         "phpunit/phpunit": "^9.5",
-        "vimeo/psalm": "^4.22",
+        "vimeo/psalm": "^4.23",
         "symfony/var-dumper": "^5.4",
         "friendsofphp/php-cs-fixer": "^3.8",
         "phpmetrics/phpmetrics": "^2.8",
         "phpbench/phpbench": "^1.2",
-        "phpstan/phpstan": "^1.6"
+        "phpstan/phpstan": "^1.7"
     },
     "autoload": {
         "psr-4": {
