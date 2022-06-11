@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace PhelTest\Benchmark\Phel;
 
-use Phel\Build\BuildFacade;
 use Phel\Compiler\Infrastructure\GlobalEnvironmentSingleton;
 use Phel\Lang\Symbol;
 use Phel\Phel;
@@ -20,11 +19,6 @@ final class PhelBench
     {
         Symbol::resetGen();
         GlobalEnvironmentSingleton::initializeNew();
-
-        (new BuildFacade())->compileFile(
-            __DIR__ . '/../../../../src/phel/core.phel',
-            tempnam(sys_get_temp_dir(), 'phel-core')
-        );
     }
 
     public function bench_phel_run(): void
