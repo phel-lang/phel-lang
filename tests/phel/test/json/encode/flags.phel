@@ -1,0 +1,32 @@
+(ns phel-test\test\json\encode\flags
+  (:require phel\json)
+  (:require phel\test :refer [deftest is])
+  (:use \JSON_HEX_TAG)
+  (:use \JSON_HEX_AMP))
+
+(deftest invalid-flag
+  (is
+   (thrown-with-msg?
+    \Exception "Flags must be an integer."
+    (json/encode
+     {:and "a & b"}
+     {:flags "flags"}))
+   "It tests if flags parameter is an integer."))
+
+(deftest flag
+  (is
+   (=
+    "{\"and\":\"a \u0026 b\"}"
+    (json/encode
+     {:and "a & b"}
+     {:flags JSON_HEX_AMP}))
+   "It tests flags parameter with one flag."))
+
+(deftest flags
+  (is
+   (=
+    "{\"comparison\":\"a \u003E b\",\"and\":\"a \u0026 b\"}"
+    (json/encode
+     {:comparison "a > b"  :and "a & b"}
+     {:flags (bit-or JSON_HEX_AMP JSON_HEX_TAG)}))
+   "It tests flags parameter with two flags."))
