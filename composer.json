@@ -52,8 +52,7 @@
         ],
         "static-clear-cache": [
             "vendor/bin/psalm --clear-cache",
-            "vendor/bin/phpstan clear-result-cache",
-            "find . -type f -name '.gacela*.cache' -exec rm {} \\;"
+            "vendor/bin/phpstan clear-result-cache"
         ],
         "test-compiler": "./vendor/bin/phpunit --testsuite=integration,unit --log-junit=data/log-junit.xml",
         "test-compiler:coverage": "XDEBUG_MODE=coverage ./vendor/bin/phpunit --testsuite=integration,unit --coverage-html=data/coverage-html --coverage-xml=data/coverage-xml --log-junit=data/coverage-xml/junit.xml",
