@@ -9,18 +9,13 @@ use Phel\Lang\SourceLocation;
 
 final class PhpArrayGetNode extends AbstractNode
 {
-    private AbstractNode $arrayExpr;
-    private AbstractNode $accessExpr;
-
     public function __construct(
         NodeEnvironmentInterface $env,
-        AbstractNode $arrayExpr,
-        AbstractNode $accessExpr,
-        ?SourceLocation $sourceLocation = null
+        private AbstractNode $arrayExpr,
+        private AbstractNode $accessExpr,
+        ?SourceLocation $sourceLocation = null,
     ) {
         parent::__construct($env, $sourceLocation);
-        $this->arrayExpr = $arrayExpr;
-        $this->accessExpr = $accessExpr;
     }
 
     public function getArrayExpr(): AbstractNode

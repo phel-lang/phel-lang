@@ -13,11 +13,8 @@ use Phel\Lang\TypeFactory;
 
 final class ListFnReader
 {
-    private Reader $reader;
-
-    public function __construct(Reader $reader)
+    public function __construct(private Reader $reader)
     {
-        $this->reader = $reader;
     }
 
     public function read(ListNode $node, ?array &$fnArgs, NodeInterface $root): PersistentListInterface

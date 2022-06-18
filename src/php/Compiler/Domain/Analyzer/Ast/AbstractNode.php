@@ -9,13 +9,10 @@ use Phel\Lang\SourceLocation;
 
 abstract class AbstractNode
 {
-    private NodeEnvironmentInterface $env;
-    private ?SourceLocation $startSourceLocation;
-
-    public function __construct(NodeEnvironmentInterface $env, ?SourceLocation $startSourceLocation = null)
-    {
-        $this->env = $env;
-        $this->startSourceLocation = $startSourceLocation;
+    public function __construct(
+        private NodeEnvironmentInterface $env,
+        private ?SourceLocation $startSourceLocation = null,
+    ) {
     }
 
     public function getEnv(): NodeEnvironmentInterface

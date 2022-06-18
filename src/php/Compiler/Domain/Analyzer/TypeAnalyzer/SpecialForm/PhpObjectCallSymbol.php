@@ -17,14 +17,10 @@ use function count;
 
 final class PhpObjectCallSymbol implements SpecialFormAnalyzerInterface
 {
-    private AnalyzerInterface $analyzer;
-
-    private bool $isStatic;
-
-    public function __construct(AnalyzerInterface $analyzer, bool $isStatic)
-    {
-        $this->analyzer = $analyzer;
-        $this->isStatic = $isStatic;
+    public function __construct(
+        private AnalyzerInterface $analyzer,
+        private bool $isStatic,
+    ) {
     }
 
     public function analyze(PersistentListInterface $list, NodeEnvironmentInterface $env): PhpObjectCallNode

@@ -13,15 +13,15 @@ use function in_array;
 
 final class TokenStream implements Iterator
 {
-    /** @var Generator<Token> */
-    private Generator $tokenGenerator;
-
-    /** @var Token[] */
+    /** @var list<Token> */
     private array $readTokens;
 
-    public function __construct(Generator $tokenGenerator)
-    {
-        $this->tokenGenerator = $tokenGenerator;
+    /**
+     * @param Generator<Token> $tokenGenerator
+     */
+    public function __construct(
+        private Generator $tokenGenerator,
+    ) {
         $this->readTokens = [$tokenGenerator->current()];
     }
 
@@ -41,10 +41,7 @@ final class TokenStream implements Iterator
         $this->tokenGenerator->rewind();
     }
 
-    /**
-     * @return Token
-     */
-    public function current(): mixed
+    public function current(): Token
     {
         return $this->tokenGenerator->current();
     }
@@ -77,7 +74,7 @@ final class TokenStream implements Iterator
     }
 
     /**
-     * @param Token[] $readTokens
+     * @param list<Token> $readTokens
      */
     private function removeLeadingWhitespace(array $readTokens): array
     {
@@ -97,7 +94,7 @@ final class TokenStream implements Iterator
     /**
      * Concatenates all Tokens to a string.
      *
-     * @param Token[] $readTokens The tokens read so far
+     * @param list<Token> $readTokens The tokens read so far
      */
     private function getCode(array $readTokens): string
     {

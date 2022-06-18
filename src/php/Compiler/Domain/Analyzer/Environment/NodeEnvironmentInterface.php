@@ -14,7 +14,7 @@ interface NodeEnvironmentInterface
     public const CONTEXT_RETURN = 'return';
 
     /**
-     * @return Symbol[]
+     * @return array<int, Symbol>
      */
     public function getLocals(): array;
 
@@ -32,19 +32,19 @@ interface NodeEnvironmentInterface
     public function getContext(): string;
 
     /**
-     * @param Symbol[] $locals
+     * @param array<int, Symbol> $locals
      */
     public function withMergedLocals(array $locals): self;
 
     public function withShadowedLocal(Symbol $local, Symbol $shadow): self;
 
     /**
-     * @param Symbol[] $locals
+     * @param array<int, Symbol> $locals
      */
     public function withoutShadowedLocals(array $locals): self;
 
     /**
-     * @param Symbol[] $locals
+     * @param array<int, Symbol> $locals
      */
     public function withLocals(array $locals): self;
 

@@ -24,30 +24,18 @@ use Phel\Compiler\Domain\Parser\ReadModel\ReaderResult;
 use Phel\Compiler\Domain\Reader\Exceptions\ReaderException;
 use Phel\Compiler\Domain\Reader\ReaderInterface;
 use Phel\Compiler\Infrastructure\CompileOptions;
+use Phel\Lang\TypeInterface;
 
 final class EvalCompiler implements EvalCompilerInterface
 {
-    private LexerInterface $lexer;
-    private ParserInterface $parser;
-    private ReaderInterface $reader;
-    private AnalyzerInterface $analyzer;
-    private StatementEmitterInterface $emitter;
-    private EvaluatorInterface $evaluator;
-
     public function __construct(
-        LexerInterface $lexer,
-        ParserInterface $parser,
-        ReaderInterface $reader,
-        AnalyzerInterface $analyzer,
-        StatementEmitterInterface $emitter,
-        EvaluatorInterface $evaluator
+        private LexerInterface $lexer,
+        private ParserInterface $parser,
+        private ReaderInterface $reader,
+        private AnalyzerInterface $analyzer,
+        private StatementEmitterInterface $emitter,
+        private EvaluatorInterface $evaluator
     ) {
-        $this->lexer = $lexer;
-        $this->parser = $parser;
-        $this->reader = $reader;
-        $this->analyzer = $analyzer;
-        $this->emitter = $emitter;
-        $this->evaluator = $evaluator;
     }
 
     /**
@@ -86,11 +74,9 @@ final class EvalCompiler implements EvalCompilerInterface
                 throw new CompilerException($e, $e->getCodeSnippet());
             }
         }
-
-        return $result;
     }
 
-    public function evalForm($form, CompileOptions $compileOptions): mixed
+    public function evalForm(float|bool|int|string|TypeInterface|null $form, CompileOptions $compileOptions): mixed
     {
         $node = $this->analyzer->analyze($form, NodeEnvironment::empty()->withContext(NodeEnvironmentInterface::CONTEXT_RETURN));
         return $this->evalNode($node, $compileOptions);
@@ -116,7 +102,7 @@ final class EvalCompiler implements EvalCompilerInterface
      *
      * @return mixed The result of the executed code
      */
-    private function evalNode(AbstractNode $node, CompileOptions $compileOptions)
+    private function evalNode(AbstractNode $node, CompileOptions $compileOptions): mixed
     {
         $code = $this->emitter->emitNode($node, $compileOptions->isSourceMapsEnabled())->getCodeWithSourceMap();
 

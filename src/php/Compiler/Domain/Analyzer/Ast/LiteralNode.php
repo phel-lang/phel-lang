@@ -10,22 +10,15 @@ use Phel\Lang\TypeInterface;
 
 final class LiteralNode extends AbstractNode
 {
-    /** @var TypeInterface|string|float|int|bool|null */
-    private $value;
-
-    /**
-     * @param TypeInterface|string|float|int|bool|null $value
-     */
-    public function __construct(NodeEnvironmentInterface $env, $value, ?SourceLocation $sourceLocation = null)
-    {
+    public function __construct(
+        NodeEnvironmentInterface $env,
+        private TypeInterface|array|string|float|int|bool|null $value,
+        ?SourceLocation $sourceLocation = null,
+    ) {
         parent::__construct($env, $sourceLocation);
-        $this->value = $value;
     }
 
-    /**
-     * @return TypeInterface|string|float|int|bool|null
-     */
-    public function getValue()
+    public function getValue(): TypeInterface|array|string|float|int|bool|null
     {
         return $this->value;
     }

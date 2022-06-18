@@ -12,12 +12,12 @@ use ReflectionClass;
 
 final class PhpClassNameNode extends AbstractNode
 {
-    private Symbol $name;
-
-    public function __construct(NodeEnvironmentInterface $env, Symbol $name, ?SourceLocation $sourceLocation = null)
-    {
+    public function __construct(
+        NodeEnvironmentInterface $env,
+        private Symbol $name,
+        ?SourceLocation $sourceLocation = null,
+    ) {
         parent::__construct($env, $sourceLocation);
-        $this->name = $name;
     }
 
     public function getName(): Symbol

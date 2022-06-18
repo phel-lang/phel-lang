@@ -37,12 +37,10 @@ final class Lexer implements LexerInterface
     private int $line = 1;
     private int $column = 0;
     private string $combinedRegex;
-    private bool $withLocation;
 
-    public function __construct(bool $withLocation = true)
+    public function __construct(private bool $withLocation = true)
     {
         $this->combinedRegex = '/(?:' . implode('|', self::REGEXPS) . ')/mA';
-        $this->withLocation = $withLocation;
     }
 
     /**

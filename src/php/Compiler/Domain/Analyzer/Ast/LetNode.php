@@ -9,31 +9,21 @@ use Phel\Lang\SourceLocation;
 
 final class LetNode extends AbstractNode
 {
-    /** @var BindingNode[] */
-    private array $bindings;
-
-    private AbstractNode $bodyExpr;
-
-    private bool $isLoop;
-
     /**
-     * @param BindingNode[] $bindings
+     * @param list<BindingNode> $bindings
      */
     public function __construct(
         NodeEnvironmentInterface $env,
-        array $bindings,
-        AbstractNode $bodyExpr,
-        bool $isLoop,
-        ?SourceLocation $sourceLocation = null
+        private array $bindings,
+        private AbstractNode $bodyExpr,
+        private bool $isLoop,
+        ?SourceLocation $sourceLocation = null,
     ) {
         parent::__construct($env, $sourceLocation);
-        $this->bindings = $bindings;
-        $this->bodyExpr = $bodyExpr;
-        $this->isLoop = $isLoop;
     }
 
     /**
-     * @return BindingNode[]
+     * @return list<BindingNode>
      */
     public function getBindings(): array
     {

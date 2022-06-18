@@ -39,13 +39,8 @@ final class ApplySymbol implements SpecialFormAnalyzerInterface
 
     /**
      * Analyze the function expression of the apply special form.
-     *
-     * @param TypeInterface|string|float|int|bool|null $x
-     * @param NodeEnvironmentInterface $env
-     *
-     * @return AbstractNode
      */
-    private function fnExpr($x, NodeEnvironmentInterface $env): AbstractNode
+    private function fnExpr(float|bool|int|string|TypeInterface|null $x, NodeEnvironmentInterface $env): AbstractNode
     {
         return $this->analyzer->analyze(
             $x,

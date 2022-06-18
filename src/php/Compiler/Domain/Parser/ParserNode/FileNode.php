@@ -10,23 +10,18 @@ use function count;
 
 final class FileNode implements InnerNodeInterface
 {
-    private SourceLocation $startLocation;
-    private SourceLocation $endLocation;
-    /** @var list<NodeInterface> */
-    private array $children;
-
+    /**
+     * @param list<NodeInterface> $children
+     */
     public function __construct(
-        SourceLocation $startLocation,
-        SourceLocation $endLocation,
-        array $children
+        private SourceLocation $startLocation,
+        private SourceLocation $endLocation,
+        private array $children,
     ) {
-        $this->startLocation = $startLocation;
-        $this->endLocation = $endLocation;
-        $this->children = $children;
     }
 
     /**
-     * @param NodeInterface[] $children
+     * @param list<NodeInterface> $children
      */
     public static function createFromChildren(array $children): self
     {

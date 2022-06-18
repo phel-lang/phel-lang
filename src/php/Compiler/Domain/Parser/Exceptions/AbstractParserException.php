@@ -10,16 +10,13 @@ use Phel\Lang\SourceLocation;
 
 abstract class AbstractParserException extends AbstractLocatedException
 {
-    private CodeSnippet $codeSnippet;
-
     public function __construct(
         string $message,
-        CodeSnippet $codeSnippet,
+        private CodeSnippet $codeSnippet,
         SourceLocation $startLocation,
-        SourceLocation $endLocation
+        SourceLocation $endLocation,
     ) {
         parent::__construct($message, $startLocation, $endLocation);
-        $this->codeSnippet = $codeSnippet;
     }
 
     public function getCodeSnippet(): CodeSnippet

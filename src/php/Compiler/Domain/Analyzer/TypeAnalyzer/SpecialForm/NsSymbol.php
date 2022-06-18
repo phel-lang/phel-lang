@@ -26,7 +26,6 @@ final class NsSymbol implements SpecialFormAnalyzerInterface
 
     public function analyze(PersistentListInterface $list, NodeEnvironmentInterface $env): NsNode
     {
-        $listCount = count($list);
         $nsSymbol = $list->get(1);
         if (!($nsSymbol instanceof Symbol)) {
             throw AnalyzerException::withLocation("First argument of 'ns must be a Symbol", $list);
@@ -87,10 +86,7 @@ final class NsSymbol implements SpecialFormAnalyzerInterface
         return in_array($w, PhpKeywords::KEYWORDS, true);
     }
 
-    /**
-     * @param mixed $x
-     */
-    private function isKeywordWithName($x, string $name): bool
+    private function isKeywordWithName(mixed $x, string $name): bool
     {
         return $x instanceof Keyword && $x->getName() === $name;
     }
@@ -136,7 +132,7 @@ final class NsSymbol implements SpecialFormAnalyzerInterface
     }
 
     /**
-     * @return Symbol[]
+     * @return list<Symbol>
      */
     private function extractRefer(PersistentMapInterface $requireData, PersistentListInterface $import): array
     {

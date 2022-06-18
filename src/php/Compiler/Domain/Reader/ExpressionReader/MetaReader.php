@@ -20,19 +20,14 @@ use function is_string;
 
 final class MetaReader
 {
-    private Reader $reader;
-
-    public function __construct(Reader $reader)
+    public function __construct(private Reader $reader)
     {
-        $this->reader = $reader;
     }
 
     /**
      * @throws ReaderException
-     *
-     * @return TypeInterface|string|float|int|bool
      */
-    public function read(MetaNode $node, NodeInterface $root)
+    public function read(MetaNode $node, NodeInterface $root): float|bool|int|string|TypeInterface
     {
         $metaExpression = $node->getMetaNode();
         $objectExpression = $node->getObjectNode();

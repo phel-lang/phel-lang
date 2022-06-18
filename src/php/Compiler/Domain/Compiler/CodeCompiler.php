@@ -24,33 +24,19 @@ use Phel\Compiler\Domain\Parser\ReadModel\ReaderResult;
 use Phel\Compiler\Domain\Reader\Exceptions\ReaderException;
 use Phel\Compiler\Domain\Reader\ReaderInterface;
 use Phel\Compiler\Infrastructure\CompileOptions;
+use Phel\Lang\TypeInterface;
 
 final class CodeCompiler implements CodeCompilerInterface
 {
-    private LexerInterface $lexer;
-    private ParserInterface $parser;
-    private ReaderInterface $reader;
-    private AnalyzerInterface $analyzer;
-    private StatementEmitterInterface $statementEmitter;
-    private FileEmitterInterface $fileEmitter;
-    private EvaluatorInterface $evaluator;
-
     public function __construct(
-        LexerInterface $lexer,
-        ParserInterface $parser,
-        ReaderInterface $reader,
-        AnalyzerInterface $analyzer,
-        StatementEmitterInterface $statementEmitter,
-        FileEmitterInterface $fileEmitter,
-        EvaluatorInterface $evaluator
+        private LexerInterface $lexer,
+        private ParserInterface $parser,
+        private ReaderInterface $reader,
+        private AnalyzerInterface $analyzer,
+        private StatementEmitterInterface $statementEmitter,
+        private FileEmitterInterface $fileEmitter,
+        private EvaluatorInterface $evaluator
     ) {
-        $this->lexer = $lexer;
-        $this->parser = $parser;
-        $this->reader = $reader;
-        $this->analyzer = $analyzer;
-        $this->statementEmitter = $statementEmitter;
-        $this->fileEmitter = $fileEmitter;
-        $this->evaluator = $evaluator;
     }
 
     /**
@@ -86,7 +72,7 @@ final class CodeCompiler implements CodeCompilerInterface
         return $this->fileEmitter->endFile($compileOptions->isSourceMapsEnabled());
     }
 
-    public function compileForm($form, CompileOptions $compileOptions): EmitterResult
+    public function compileForm(float|bool|int|string|TypeInterface|null $form, CompileOptions $compileOptions): EmitterResult
     {
         $this->fileEmitter->startFile($compileOptions->getSource());
         $node = $this->analyzer->analyze($form, NodeEnvironment::empty());
@@ -113,13 +99,11 @@ final class CodeCompiler implements CodeCompilerInterface
      * @throws CompiledCodeIsMalformedException
      * @throws FileException
      */
-    private function emitNode(AbstractNode $node, CompileOptions $compileOptions): string
+    private function emitNode(AbstractNode $node, CompileOptions $compileOptions): void
     {
         $this->fileEmitter->emitNode($node);
 
         $code = $this->statementEmitter->emitNode($node, $compileOptions->isSourceMapsEnabled())->getCodeWithSourceMap();
         $this->evaluator->eval($code);
-
-        return $code;
     }
 }

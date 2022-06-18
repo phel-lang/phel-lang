@@ -9,23 +9,16 @@ use Phel\Lang\SourceLocation;
 
 final class RecurNode extends AbstractNode
 {
-    private RecurFrame $frame;
-
-    /** @var AbstractNode[] */
-    private array $expressions;
-
     /**
-     * @param AbstractNode[] $expressions
+     * @param list<AbstractNode> $expressions
      */
     public function __construct(
         NodeEnvironmentInterface $env,
-        RecurFrame $frame,
-        array $expressions,
-        ?SourceLocation $sourceLocation = null
+        private RecurFrame $frame,
+        private array $expressions,
+        ?SourceLocation $sourceLocation = null,
     ) {
         parent::__construct($env, $sourceLocation);
-        $this->frame = $frame;
-        $this->expressions = $expressions;
     }
 
     public function getFrame(): RecurFrame
@@ -34,7 +27,7 @@ final class RecurNode extends AbstractNode
     }
 
     /**
-     * @return AbstractNode[]
+     * @return list<AbstractNode>
      */
     public function getExpressions(): array
     {

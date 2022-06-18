@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace Phel\Compiler\Domain\Reader\Exceptions;
 
-use Exception;
 use Phel\Compiler\Domain\Exceptions\AbstractLocatedException;
 use Phel\Compiler\Domain\Parser\ParserNode\NodeInterface;
 use Phel\Compiler\Domain\Parser\ReadModel\CodeSnippet;
@@ -12,17 +11,13 @@ use Phel\Lang\SourceLocation;
 
 final class ReaderException extends AbstractLocatedException
 {
-    private CodeSnippet $codeSnippet;
-
     private function __construct(
         string $message,
         SourceLocation $startLocation,
         SourceLocation $endLocation,
-        CodeSnippet $codeSnippet,
-        ?Exception $nestedException = null
+        private CodeSnippet $codeSnippet,
     ) {
-        parent::__construct($message, $startLocation, $endLocation, $nestedException);
-        $this->codeSnippet = $codeSnippet;
+        parent::__construct($message, $startLocation, $endLocation);
     }
 
     public static function forNode(NodeInterface $node, NodeInterface $root, string $message): self

@@ -23,13 +23,10 @@ use function count;
 
 final class DefStructSymbol implements SpecialFormAnalyzerInterface
 {
-    private AnalyzerInterface $analyzer;
-    private MungeInterface $munge;
-
-    public function __construct(AnalyzerInterface $analyzer, MungeInterface $munge)
-    {
-        $this->analyzer = $analyzer;
-        $this->munge = $munge;
+    public function __construct(
+        private AnalyzerInterface $analyzer,
+        private MungeInterface $munge,
+    ) {
     }
 
     public function analyze(PersistentListInterface $list, NodeEnvironmentInterface $env): DefStructNode
@@ -60,8 +57,7 @@ final class DefStructSymbol implements SpecialFormAnalyzerInterface
             $params,
             $this->interfaces(
                 $list->rest()->rest()->rest(),
-                $env->withMergedLocals($params),
-                $params
+                $env->withMergedLocals($params)
             ),
             $list->getStartLocation()
         );
@@ -86,11 +82,9 @@ final class DefStructSymbol implements SpecialFormAnalyzerInterface
     }
 
     /**
-     * @param list<Symbol> $structParams
-     *
      * @return list<DefStructInterface>
      */
-    private function interfaces(PersistentListInterface $list, NodeEnvironmentInterface $env, array $structParams): array
+    private function interfaces(PersistentListInterface $list, NodeEnvironmentInterface $env): array
     {
         if ($list->count() === 0) {
             return [];
@@ -122,7 +116,8 @@ final class DefStructSymbol implements SpecialFormAnalyzerInterface
             }
 
             $methods = [];
-            for ($i = 0; $i < count($expectedMethods); ++$i) {
+            $countExpectedMethods = count($expectedMethods);
+            for ($i = 0; $i < $countExpectedMethods; ++$i) {
                 $forms = $forms->cdr();
                 if ($forms === null) {
                     throw AnalyzerException::withLocation('Missing method for interface ' . $absoluteInterfaceName . ' in defstruct', $list);
@@ -133,7 +128,7 @@ final class DefStructSymbol implements SpecialFormAnalyzerInterface
                     throw AnalyzerException::withLocation('Missing method for interface ' . $absoluteInterfaceName . ' in defstruct', $list);
                 }
 
-                $methods[] = $this->analyzeInterfaceMethod($method, $env, $expectedMethodIndex, $structParams);
+                $methods[] = $this->analyzeInterfaceMethod($method, $env, $expectedMethodIndex);
             }
 
             if (count($methods) !== count($expectedMethods)) {
@@ -151,10 +146,12 @@ final class DefStructSymbol implements SpecialFormAnalyzerInterface
 
     /**
      * @param array<string, ReflectionMethod> $expectedMethodIndex
-     * @param list<Symbol> $structParams
      */
-    private function analyzeInterfaceMethod(PersistentListInterface $list, NodeEnvironmentInterface $env, array $expectedMethodIndex, $structParams): DefStructMethod
-    {
+    private function analyzeInterfaceMethod(
+        PersistentListInterface $list,
+        NodeEnvironmentInterface $env,
+        array $expectedMethodIndex,
+    ): DefStructMethod {
         $methodName = $list->get(0);
         $mungedMethodName = $this->munge->encode($methodName->getName());
         if (!$methodName instanceof Symbol) {
@@ -178,7 +175,8 @@ final class DefStructSymbol implements SpecialFormAnalyzerInterface
                 TypeFactory::getInstance()->persistentListFromArray([
                     Symbol::create('let'),
                     TypeFactory::getInstance()->persistentVectorFromArray([
-                        $arguments->first(), Symbol::createForNamespace('php', '$this'),
+                        $arguments->first(),
+                        Symbol::createForNamespace('php', '$this'),
                     ]),
                     ...($list->rest()->rest()->toArray()),
                 ]),

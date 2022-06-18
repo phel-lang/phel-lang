@@ -18,16 +18,14 @@ final class FnSymbolTuple
     private const STATE_DONE = 'done';
     private const PARENT_TUPLE_BODY_OFFSET = 2;
 
-    private PersistentListInterface $parentList;
     private array $params = [];
     private array $lets = [];
     private bool $isVariadic = false;
     private bool $hasVariadicForm = false;
     private string $buildParamsState = self::STATE_START;
 
-    private function __construct(PersistentListInterface $parentList)
+    private function __construct(private PersistentListInterface $parentList)
     {
-        $this->parentList = $parentList;
     }
 
     public static function createWithTuple(PersistentListInterface $list): self
@@ -88,10 +86,7 @@ final class FnSymbolTuple
         }
     }
 
-    /**
-     * @param mixed $param
-     */
-    private function buildParamsByState($param): void
+    private function buildParamsByState(mixed $param): void
     {
         switch ($this->buildParamsState) {
             case self::STATE_START:
@@ -105,10 +100,7 @@ final class FnSymbolTuple
         }
     }
 
-    /**
-     * @param mixed $param
-     */
-    private function buildParamsStart($param): void
+    private function buildParamsStart(mixed $param): void
     {
         if ($param instanceof Symbol) {
             if ($this->isSymWithName($param, '&')) {
@@ -127,18 +119,12 @@ final class FnSymbolTuple
         }
     }
 
-    /**
-     * @param mixed $x
-     */
-    private function isSymWithName($x, string $name): bool
+    private function isSymWithName(mixed $x, string $name): bool
     {
         return $x instanceof Symbol && $x->getName() === $name;
     }
 
-    /**
-     * @param mixed $param
-     */
-    private function buildParamsRest($param): void
+    private function buildParamsRest(mixed $param): void
     {
         $this->buildParamsState = self::STATE_DONE;
         $this->hasVariadicForm = true;

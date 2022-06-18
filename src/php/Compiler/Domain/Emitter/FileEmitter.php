@@ -9,17 +9,13 @@ use Phel\Compiler\Domain\Emitter\OutputEmitter\SourceMap\SourceMapGenerator;
 
 final class FileEmitter implements FileEmitterInterface
 {
-    private SourceMapGenerator $sourceMapGenerator;
-    private OutputEmitterInterface $outputEmitter;
     private string $code = '';
     private string $source = '';
 
     public function __construct(
-        SourceMapGenerator $sourceMapGenerator,
-        OutputEmitterInterface $outputEmitter
+        private SourceMapGenerator $sourceMapGenerator,
+        private OutputEmitterInterface $outputEmitter,
     ) {
-        $this->sourceMapGenerator = $sourceMapGenerator;
-        $this->outputEmitter = $outputEmitter;
     }
 
     public function startFile(string $source): void

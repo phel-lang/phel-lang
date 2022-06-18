@@ -28,11 +28,8 @@ use function is_string;
 
 final class Analyzer implements AnalyzerInterface
 {
-    private GlobalEnvironmentInterface $globalEnvironment;
-
-    public function __construct(GlobalEnvironmentInterface $globalEnvironment)
+    public function __construct(private GlobalEnvironmentInterface $globalEnvironment)
     {
-        $this->globalEnvironment = $globalEnvironment;
     }
 
     public function resolve(Symbol $name, NodeEnvironmentInterface $env): ?AbstractNode
@@ -61,7 +58,7 @@ final class Analyzer implements AnalyzerInterface
     }
 
     /**
-     * @param Symbol[] $referSymbols
+     * @param list<Symbol> $referSymbols
      */
     public function addRefers(string $ns, array $referSymbols, Symbol $nsSymbol): void
     {
@@ -81,11 +78,9 @@ final class Analyzer implements AnalyzerInterface
     }
 
     /**
-     * @param TypeInterface|string|float|int|bool|null $x
-     *
      * @throws AnalyzerException
      */
-    public function analyzeMacro($x, NodeEnvironmentInterface $env): AbstractNode
+    public function analyzeMacro(TypeInterface|array|string|float|int|bool|null $x, NodeEnvironmentInterface $env): AbstractNode
     {
         $this->globalEnvironment->setAllowPrivateAccess(true);
         $result = $this->analyze($x, $env);
@@ -95,11 +90,9 @@ final class Analyzer implements AnalyzerInterface
     }
 
     /**
-     * @param TypeInterface|string|float|int|bool|null $x
-     *
      * @throws AnalyzerException
      */
-    public function analyze($x, NodeEnvironmentInterface $env): AbstractNode
+    public function analyze(TypeInterface|array|string|float|int|bool|null $x, NodeEnvironmentInterface $env): AbstractNode
     {
         if ($this->isLiteral($x)) {
             return (new AnalyzeLiteral())->analyze($x, $env);
@@ -124,10 +117,7 @@ final class Analyzer implements AnalyzerInterface
         throw new AnalyzerException('Unhandled type: ' . var_export($x, true));
     }
 
-    /**
-     * @param TypeInterface|string|float|int|bool|null|array $x
-     */
-    private function isLiteral($x): bool
+    private function isLiteral(float|array|bool|int|string|TypeInterface|null $x): bool
     {
         return is_string($x)
             || is_float($x)

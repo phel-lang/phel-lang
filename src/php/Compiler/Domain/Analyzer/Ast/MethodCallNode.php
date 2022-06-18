@@ -10,18 +10,16 @@ use Phel\Lang\Symbol;
 
 final class MethodCallNode extends AbstractNode
 {
-    private Symbol $fn;
-    /** @var AbstractNode[] */
-    private array $args;
-
     /**
-     * @param AbstractNode[] $args
+     * @param list<AbstractNode> $args
      */
-    public function __construct(NodeEnvironmentInterface $env, Symbol $fn, array $args, ?SourceLocation $sourceLocation = null)
-    {
+    public function __construct(
+        NodeEnvironmentInterface $env,
+        private Symbol $fn,
+        private array $args,
+        ?SourceLocation $sourceLocation = null,
+    ) {
         parent::__construct($env, $sourceLocation);
-        $this->fn = $fn;
-        $this->args = $args;
     }
 
     public function getFn(): Symbol
@@ -30,7 +28,7 @@ final class MethodCallNode extends AbstractNode
     }
 
     /**
-     * @return AbstractNode[]
+     * @return list<AbstractNode>
      */
     public function getArgs(): array
     {

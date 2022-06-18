@@ -16,13 +16,11 @@ use Phel\Lang\TypeInterface;
  */
 final class MapBindingDeconstructor implements BindingDeconstructorInterface
 {
-    private Deconstructor $deconstructor;
     /** @psalm-suppress PropertyNotSetInConstructor */
     private Symbol $mapSymbol;
 
-    public function __construct(Deconstructor $deconstructor)
+    public function __construct(private Deconstructor $deconstructor)
     {
-        $this->deconstructor = $deconstructor;
     }
 
     /**
@@ -39,12 +37,12 @@ final class MapBindingDeconstructor implements BindingDeconstructorInterface
         }
     }
 
-    /**
-     * @param TypeInterface|string|float|int|bool|null $key
-     * @param TypeInterface|string|float|int|bool|null $bindTo
-     */
-    private function bindingIteration(array &$bindings, PersistentMapInterface $binding, $key, $bindTo): void
-    {
+    private function bindingIteration(
+        array &$bindings,
+        PersistentMapInterface $binding,
+        TypeInterface|string|float|int|bool|null $key,
+        TypeInterface|string|float|int|bool|null $bindTo,
+    ): void {
         $accessSymbol = Symbol::gen()->copyLocationFrom($binding);
         $accessValue = $this->createAccessValue($binding, $key);
         $bindings[] = [$accessSymbol, $accessValue];
@@ -52,11 +50,10 @@ final class MapBindingDeconstructor implements BindingDeconstructorInterface
         $this->deconstructor->deconstructBindings($bindings, $bindTo, $accessSymbol);
     }
 
-    /**
-     * @param TypeInterface|string|float|int|bool|null $key
-     */
-    private function createAccessValue(PersistentMapInterface $binding, $key): PersistentListInterface
-    {
+    private function createAccessValue(
+        PersistentMapInterface $binding,
+        float|bool|int|string|TypeInterface|null $key,
+    ): PersistentListInterface {
         return TypeFactory::getInstance()->persistentListFromArray([
             (Symbol::create(Symbol::NAME_PHP_ARRAY_GET))->copyLocationFrom($binding),
             $this->mapSymbol,

@@ -10,15 +10,12 @@ final class RecurFrame
 {
     private bool $isActive = false;
 
-    /** @var Symbol[] */
-    private array $params;
-
     /**
-     * @param Symbol[] $params
+     * @param list<Symbol> $params
      */
-    public function __construct(array $params)
-    {
-        $this->params = $params;
+    public function __construct(
+        private array $params,
+    ) {
     }
 
     public function setIsActive(bool $isActive): void
@@ -32,7 +29,7 @@ final class RecurFrame
     }
 
     /**
-     * @return Symbol[]
+     * @return list<Symbol>
      */
     public function getParams(): array
     {

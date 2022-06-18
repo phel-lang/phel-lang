@@ -20,11 +20,8 @@ final class AtomParser
 {
     private const KEYWORD_REGEX = '/:(?<second_colon>:?)((?<namespace>[^\/]+)\/)?(?<keyword>[^\/]+)/';
 
-    private GlobalEnvironmentInterface $globalEnvironment;
-
-    public function __construct(GlobalEnvironmentInterface $globalEnvironment)
+    public function __construct(private GlobalEnvironmentInterface $globalEnvironment)
     {
-        $this->globalEnvironment = $globalEnvironment;
     }
 
     public function parse(Token $token): AbstractAtomNode

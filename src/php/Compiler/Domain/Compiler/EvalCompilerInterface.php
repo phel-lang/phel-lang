@@ -29,5 +29,5 @@ interface EvalCompilerInterface
      *
      * @return mixed The result of the executed code
      */
-    public function evalForm($form, CompileOptions $compileOptions): mixed;
+    public function evalForm(float|bool|int|string|TypeInterface|null $form, CompileOptions $compileOptions): mixed;
 }

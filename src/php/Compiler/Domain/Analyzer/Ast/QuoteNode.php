@@ -10,22 +10,15 @@ use Phel\Lang\TypeInterface;
 
 final class QuoteNode extends AbstractNode
 {
-    /** @var mixed */
-    private $value;
-
-    /**
-     * @param TypeInterface|string|float|int|bool|null $value
-     */
-    public function __construct(NodeEnvironmentInterface $env, $value, ?SourceLocation $sourceLocation = null)
-    {
+    public function __construct(
+        NodeEnvironmentInterface $env,
+        private TypeInterface|array|string|float|int|bool|null $value,
+        ?SourceLocation $sourceLocation = null
+    ) {
         parent::__construct($env, $sourceLocation);
-        $this->value = $value;
     }
 
-    /**
-     * @return mixed
-     */
-    public function getValue()
+    public function getValue(): TypeInterface|array|string|float|int|bool|null
     {
         return $this->value;
     }

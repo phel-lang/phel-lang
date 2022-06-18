@@ -17,13 +17,10 @@ use function count;
 
 final class DefStructEmitter implements NodeEmitterInterface
 {
-    private OutputEmitterInterface $outputEmitter;
-    private MethodEmitter $methodEmitter;
-
-    public function __construct(OutputEmitterInterface $emitter, MethodEmitter $methodEmitter)
-    {
-        $this->outputEmitter = $emitter;
-        $this->methodEmitter = $methodEmitter;
+    public function __construct(
+        private OutputEmitterInterface $outputEmitter,
+        private MethodEmitter $methodEmitter,
+    ) {
     }
 
     public function emit(AbstractNode $node): void

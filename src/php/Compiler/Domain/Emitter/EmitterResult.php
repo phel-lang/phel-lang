@@ -6,17 +6,12 @@ namespace Phel\Compiler\Domain\Emitter;
 
 final class EmitterResult
 {
-    private bool $enableSourceMaps;
-    private string $code;
-    private string $sourceMap;
-    private string $source;
-
-    public function __construct(bool $enableSourceMaps, string $code, string $sourceMap, string $source)
-    {
-        $this->enableSourceMaps = $enableSourceMaps;
-        $this->code = $code;
-        $this->sourceMap = $sourceMap;
-        $this->source = $source;
+    public function __construct(
+        private bool $enableSourceMaps,
+        private string $code,
+        private string $sourceMap,
+        private string $source,
+    ) {
     }
 
     public function getCode(): string

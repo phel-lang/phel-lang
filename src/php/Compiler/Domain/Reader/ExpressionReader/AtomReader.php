@@ -9,10 +9,7 @@ use Phel\Lang\TypeInterface;
 
 final class AtomReader
 {
-    /**
-     * @return TypeInterface|string|float|int|bool|null
-     */
-    public function read(AbstractAtomNode $node)
+    public function read(AbstractAtomNode $node): float|bool|int|string|TypeInterface|null
     {
         $value = $node->getValue();
 

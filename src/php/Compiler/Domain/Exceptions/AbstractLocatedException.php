@@ -10,18 +10,13 @@ use RuntimeException;
 
 abstract class AbstractLocatedException extends RuntimeException
 {
-    private ?SourceLocation $startLocation;
-    private ?SourceLocation $endLocation;
-
     public function __construct(
         string $message,
-        ?SourceLocation $startLocation = null,
-        ?SourceLocation $endLocation = null,
-        ?Exception $nestedException = null
+        private ?SourceLocation $startLocation = null,
+        private ?SourceLocation $endLocation = null,
+        ?Exception $nestedException = null,
     ) {
         parent::__construct($message, 0, $nestedException);
-        $this->startLocation = $startLocation;
-        $this->endLocation = $endLocation;
     }
 
     public function getStartLocation(): ?SourceLocation

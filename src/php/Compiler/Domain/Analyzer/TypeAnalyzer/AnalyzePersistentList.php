@@ -59,64 +59,39 @@ final class AnalyzePersistentList
     private function getSymbolName(PersistentListInterface $list): string
     {
         $first = $list->first();
-        return $first && $first instanceof Symbol
+        return $first instanceof Symbol
             ? $first->getFullName()
             : self::EMPTY_SYMBOL_NAME;
     }
 
     private function createSymbolAnalyzerByName(string $symbolName): SpecialFormAnalyzerInterface
     {
-        switch ($symbolName) {
-            case Symbol::NAME_DEF:
-                return new DefSymbol($this->analyzer);
-            case Symbol::NAME_NS:
-                return new NsSymbol($this->analyzer);
-            case Symbol::NAME_FN:
-                return new FnSymbol($this->analyzer);
-            case Symbol::NAME_QUOTE:
-                return new QuoteSymbol();
-            case Symbol::NAME_DO:
-                return new DoSymbol($this->analyzer);
-            case Symbol::NAME_IF:
-                return new IfSymbol($this->analyzer);
-            case Symbol::NAME_APPLY:
-                return new ApplySymbol($this->analyzer);
-            case Symbol::NAME_LET:
-                return new LetSymbol($this->analyzer, new Deconstructor(new BindingValidator()));
-            case Symbol::NAME_PHP_NEW:
-                return new PhpNewSymbol($this->analyzer);
-            case Symbol::NAME_PHP_OBJECT_CALL:
-                return new PhpObjectCallSymbol($this->analyzer, $isStatic = false);
-            case Symbol::NAME_PHP_OBJECT_STATIC_CALL:
-                return new PhpObjectCallSymbol($this->analyzer, $isStatic = true);
-            case Symbol::NAME_PHP_ARRAY_GET:
-                return new PhpAGetSymbol($this->analyzer);
-            case Symbol::NAME_PHP_ARRAY_SET:
-                return new PhpASetSymbol($this->analyzer);
-            case Symbol::NAME_PHP_ARRAY_PUSH:
-                return new PhpAPushSymbol($this->analyzer);
-            case Symbol::NAME_PHP_ARRAY_UNSET:
-                return new PhpAUnsetSymbol($this->analyzer);
-            case Symbol::NAME_RECUR:
-                return new RecurSymbol($this->analyzer);
-            case Symbol::NAME_TRY:
-                return new TrySymbol($this->analyzer);
-            case Symbol::NAME_THROW:
-                return new ThrowSymbol($this->analyzer);
-            case Symbol::NAME_LOOP:
-                return new LoopSymbol($this->analyzer, new BindingValidator());
-            case Symbol::NAME_FOREACH:
-                return new ForeachSymbol($this->analyzer);
-            case Symbol::NAME_DEF_STRUCT:
-                return new DefStructSymbol($this->analyzer, new Munge());
-            case Symbol::NAME_PHP_OBJECT_SET:
-                return new PhpOSetSymbol($this->analyzer);
-            case Symbol::NAME_SET_VAR:
-                return new SetVarSymbol($this->analyzer);
-            case Symbol::NAME_DEF_INTERFACE:
-                return new DefInterfaceSymbol($this->analyzer);
-            default:
-                return new InvokeSymbol($this->analyzer);
-        }
+        return match ($symbolName) {
+            Symbol::NAME_DEF => new DefSymbol($this->analyzer),
+            Symbol::NAME_NS => new NsSymbol($this->analyzer),
+            Symbol::NAME_FN => new FnSymbol($this->analyzer),
+            Symbol::NAME_QUOTE => new QuoteSymbol(),
+            Symbol::NAME_DO => new DoSymbol($this->analyzer),
+            Symbol::NAME_IF => new IfSymbol($this->analyzer),
+            Symbol::NAME_APPLY => new ApplySymbol($this->analyzer),
+            Symbol::NAME_LET => new LetSymbol($this->analyzer, new Deconstructor(new BindingValidator())),
+            Symbol::NAME_PHP_NEW => new PhpNewSymbol($this->analyzer),
+            Symbol::NAME_PHP_OBJECT_CALL => new PhpObjectCallSymbol($this->analyzer, isStatic: false),
+            Symbol::NAME_PHP_OBJECT_STATIC_CALL => new PhpObjectCallSymbol($this->analyzer, isStatic: true),
+            Symbol::NAME_PHP_ARRAY_GET => new PhpAGetSymbol($this->analyzer),
+            Symbol::NAME_PHP_ARRAY_SET => new PhpASetSymbol($this->analyzer),
+            Symbol::NAME_PHP_ARRAY_PUSH => new PhpAPushSymbol($this->analyzer),
+            Symbol::NAME_PHP_ARRAY_UNSET => new PhpAUnsetSymbol($this->analyzer),
+            Symbol::NAME_RECUR => new RecurSymbol($this->analyzer),
+            Symbol::NAME_TRY => new TrySymbol($this->analyzer),
+            Symbol::NAME_THROW => new ThrowSymbol($this->analyzer),
+            Symbol::NAME_LOOP => new LoopSymbol($this->analyzer, new BindingValidator()),
+            Symbol::NAME_FOREACH => new ForeachSymbol($this->analyzer),
+            Symbol::NAME_DEF_STRUCT => new DefStructSymbol($this->analyzer, new Munge()),
+            Symbol::NAME_PHP_OBJECT_SET => new PhpOSetSymbol($this->analyzer),
+            Symbol::NAME_SET_VAR => new SetVarSymbol($this->analyzer),
+            Symbol::NAME_DEF_INTERFACE => new DefInterfaceSymbol($this->analyzer),
+            default => new InvokeSymbol($this->analyzer),
+        };
     }
 }

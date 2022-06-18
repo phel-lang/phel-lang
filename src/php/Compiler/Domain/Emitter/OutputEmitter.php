@@ -23,29 +23,16 @@ use function strlen;
 
 final class OutputEmitter implements OutputEmitterInterface
 {
-    private bool $enableSourceMaps;
-    private NodeEmitterFactory $nodeEmitterFactory;
-    private MungeInterface $munge;
-    private PrinterInterface $printer;
-    private OutputEmitterOptions $options;
-
     private int $indentLevel = 0;
-    private SourceMapState $sourceMapState;
 
     public function __construct(
-        bool $enableSourceMaps,
-        NodeEmitterFactory $nodeEmitterFactory,
-        MungeInterface $munge,
-        PrinterInterface $printer,
-        SourceMapState $sourceMapState,
-        OutputEmitterOptions $options
+        private bool $enableSourceMaps,
+        private NodeEmitterFactory $nodeEmitterFactory,
+        private MungeInterface $munge,
+        private PrinterInterface $printer,
+        private SourceMapState $sourceMapState,
+        private OutputEmitterOptions $options,
     ) {
-        $this->enableSourceMaps = $enableSourceMaps;
-        $this->nodeEmitterFactory = $nodeEmitterFactory;
-        $this->munge = $munge;
-        $this->printer = $printer;
-        $this->sourceMapState = $sourceMapState;
-        $this->options = $options;
     }
 
     public function getOptions(): OutputEmitterOptions
@@ -196,10 +183,7 @@ final class OutputEmitter implements OutputEmitterInterface
         $this->emitStr('})()', $sl);
     }
 
-    /**
-     * @param TypeInterface|string|float|int|bool|null $value
-     */
-    public function emitLiteral($value): void
+    public function emitLiteral(array|bool|float|int|TypeInterface|string|null $value): void
     {
         (new LiteralEmitter($this, $this->printer))->emitLiteral($value);
     }

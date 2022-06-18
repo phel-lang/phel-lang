@@ -9,18 +9,11 @@ use Phel\Lang\SourceLocation;
 
 final class CodeSnippet
 {
-    private SourceLocation $startLocation;
-    private SourceLocation $endLocation;
-    private string $code;
-
     public function __construct(
-        SourceLocation $startLocation,
-        SourceLocation $endLocation,
-        string $code
+        private SourceLocation $startLocation,
+        private SourceLocation $endLocation,
+        private string $code,
     ) {
-        $this->startLocation = $startLocation;
-        $this->endLocation = $endLocation;
-        $this->code = $code;
     }
 
     public static function fromNode(NodeInterface $node): self

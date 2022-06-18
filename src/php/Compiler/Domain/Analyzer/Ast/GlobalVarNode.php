@@ -12,21 +12,14 @@ use Phel\Lang\Symbol;
 
 final class GlobalVarNode extends AbstractNode
 {
-    private string $namespace;
-    private Symbol $name;
-    private PersistentMapInterface $meta;
-
     public function __construct(
         NodeEnvironmentInterface $env,
-        string $namespace,
-        Symbol $name,
-        PersistentMapInterface $meta,
-        ?SourceLocation $sourceLocation = null
+        private string $namespace,
+        private Symbol $name,
+        private PersistentMapInterface $meta,
+        ?SourceLocation $sourceLocation = null,
     ) {
         parent::__construct($env, $sourceLocation);
-        $this->namespace = $namespace;
-        $this->name = $name;
-        $this->meta = $meta;
     }
 
     public function getNamespace(): string
