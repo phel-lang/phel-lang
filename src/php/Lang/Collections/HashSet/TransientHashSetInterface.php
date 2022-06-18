@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace Phel\Lang\Collections\HashSet;
 
 use Countable;
+use Phel\Lang\Collections\AsTransientInterface;
+use Phel\Lang\Collections\Map\TransientMapInterface;
 use Phel\Lang\ContainsInterface;
 
 /**

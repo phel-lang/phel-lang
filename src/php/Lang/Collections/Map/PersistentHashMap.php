@@ -20,25 +20,28 @@ use function count;
  */
 class PersistentHashMap extends AbstractPersistentMap
 {
-    private int $count;
     /** @var ?HashMapNodeInterface<K, V> */
     private ?HashMapNodeInterface $root;
-    private bool $hasNull;
+
     /** @var V */
     private $nullValue;
 
-    /** @var stdclass|null */
-    private static $NOT_FOUND;
+    private static ?stdclass $NOT_FOUND = null;
 
     /**
      * @param V $nullValue
      */
-    public function __construct(HasherInterface $hasher, EqualizerInterface $equalizer, ?PersistentMapInterface $meta, int $count, ?HashMapNodeInterface $root, bool $hasNull, $nullValue)
-    {
+    public function __construct(
+        HasherInterface $hasher,
+        EqualizerInterface $equalizer,
+        ?PersistentMapInterface $meta,
+        private int $count,
+        ?HashMapNodeInterface $root,
+        private bool $hasNull,
+        $nullValue,
+    ) {
         parent::__construct($hasher, $equalizer, $meta);
-        $this->count = $count;
         $this->root = $root;
-        $this->hasNull = $hasNull;
         $this->nullValue = $nullValue;
     }
 
@@ -98,7 +101,7 @@ class PersistentHashMap extends AbstractPersistentMap
         }
 
         $addedLeaf = new Box(false);
-        $newRoot = ($this->root === null) ? IndexedNode::empty($this->hasher, $this->equalizer) : $this->root;
+        $newRoot = $this->root ?? IndexedNode::empty($this->hasher, $this->equalizer);
         $newRoot = $newRoot->put(0, $this->hasher->hash($key), $key, $value, $addedLeaf);
 
         if ($newRoot === $this->root) {

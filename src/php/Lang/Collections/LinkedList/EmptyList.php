@@ -21,15 +21,11 @@ use Traversable;
  */
 class EmptyList extends AbstractType implements PersistentListInterface
 {
-    private EqualizerInterface $equalizer;
-    private HasherInterface $hasher;
-    private ?PersistentMapInterface $meta;
-
-    public function __construct(HasherInterface $hasher, EqualizerInterface $equalizer, ?PersistentMapInterface $meta)
-    {
-        $this->hasher = $hasher;
-        $this->equalizer = $equalizer;
-        $this->meta = $meta;
+    public function __construct(
+        private HasherInterface $hasher,
+        private EqualizerInterface $equalizer,
+        private ?PersistentMapInterface $meta,
+    ) {
     }
 
     public function getMeta(): ?PersistentMapInterface
@@ -72,7 +68,7 @@ class EmptyList extends AbstractType implements PersistentListInterface
         throw new IndexOutOfBoundsException('Index out of bounds');
     }
 
-    public function equals($other): bool
+    public function equals(mixed $other): bool
     {
         return $other instanceof self;
     }
@@ -113,7 +109,7 @@ class EmptyList extends AbstractType implements PersistentListInterface
     /**
      * Concatenates a value to the data structure.
      *
-     * @param mixed[] $xs The value to concatenate
+     * @param array<int, mixed> $xs The value to concatenate
      *
      * @return PersistentListInterface
      */
@@ -123,11 +119,9 @@ class EmptyList extends AbstractType implements PersistentListInterface
     }
 
     /**
-     * @param mixed $x
-     *
      * @return PersistentListInterface
      */
-    public function cons($x)
+    public function cons(mixed $x)
     {
         return $this->prepend($x);
     }

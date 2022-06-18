@@ -11,5 +11,5 @@ interface IdenticalInterface
      *
      * @param mixed $other The value to compare
      */
-    public function identical($other): bool;
+    public function identical(mixed $other): bool;
 }

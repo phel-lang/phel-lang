@@ -8,8 +8,6 @@ interface PopInterface
 {
     /**
      * Removes the value at the beginning of a sequence and return this removed value.
-     *
-     * @return mixed
      */
-    public function pop();
+    public function pop(): mixed;
 }

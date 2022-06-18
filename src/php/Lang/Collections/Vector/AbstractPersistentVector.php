@@ -17,21 +17,16 @@ use Phel\Lang\HasherInterface;
  */
 abstract class AbstractPersistentVector extends AbstractType implements PersistentVectorInterface
 {
-    protected EqualizerInterface $equalizer;
-    protected HasherInterface $hasher;
-    protected ?PersistentMapInterface $meta;
     private int $hashCache = 0;
 
-    public function __construct(HasherInterface $hasher, EqualizerInterface $equalizer, ?PersistentMapInterface $meta)
-    {
-        $this->equalizer = $equalizer;
-        $this->hasher = $hasher;
-        $this->meta = $meta;
+    public function __construct(
+        protected HasherInterface $hasher,
+        protected EqualizerInterface $equalizer,
+        protected ?PersistentMapInterface $meta,
+    ) {
     }
 
     /**
-     * @param int $index
-     *
      * @return T
      */
     public function __invoke(int $index)
@@ -54,11 +49,8 @@ abstract class AbstractPersistentVector extends AbstractType implements Persiste
     public function rest()
     {
         $cdr = $this->cdr();
-        if ($cdr === null) {
-            return PersistentVector::empty($this->hasher, $this->equalizer);
-        }
 
-        return $cdr;
+        return $cdr ?? PersistentVector::empty($this->hasher, $this->equalizer);
     }
 
     public function getMeta(): ?PersistentMapInterface
@@ -78,7 +70,7 @@ abstract class AbstractPersistentVector extends AbstractType implements Persiste
         return $this->hashCache;
     }
 
-    public function equals($other): bool
+    public function equals(mixed $other): bool
     {
         if (!$other instanceof PersistentVectorInterface) {
             return false;
@@ -88,7 +80,6 @@ abstract class AbstractPersistentVector extends AbstractType implements Persiste
             return false;
         }
 
-        $s = $this;
         $ms = $other;
         for ($s = $this; $s != null; $s = $s->cdr(), $ms = $ms->cdr()) {
             /** @var PersistentVectorInterface $s */
@@ -129,7 +120,7 @@ abstract class AbstractPersistentVector extends AbstractType implements Persiste
         throw new MethodNotSupportedException('Method offsetUnset is not supported on VectorSequence');
     }
 
-    public function push($x)
+    public function push(mixed $x)
     {
         return $this->append($x);
     }

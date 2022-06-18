@@ -12,15 +12,11 @@ namespace Phel\Lang\Collections\Map;
  */
 class TransientMapWrapper implements TransientMapInterface
 {
-    /** @var TransientMapInterface<K, V> */
-    private $internal;
-
     /**
-     * @param V $nullValue
+     * @param TransientMapInterface<K, V> $internal
      */
-    public function __construct(TransientMapInterface $internal)
+    public function __construct(private TransientMapInterface $internal)
     {
-        $this->internal = $internal;
     }
 
     public function contains($key): bool

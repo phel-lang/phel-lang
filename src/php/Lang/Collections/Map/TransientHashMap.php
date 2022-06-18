@@ -17,28 +17,23 @@ use stdclass;
  */
 class TransientHashMap implements TransientMapInterface
 {
-    private EqualizerInterface $equalizer;
-    private HasherInterface $hasher;
-    private int $count;
-    /** @var ?HashMapNodeInterface<K, V> */
-    private ?HashMapNodeInterface $root;
-    private bool $hasNull;
     /** @var ?V */
     private $nullValue;
 
-    /** @var stdclass|null */
-    private static $NOT_FOUND;
+    private static ?stdclass $NOT_FOUND = null;
 
     /**
+     * @param ?HashMapNodeInterface<K, V> $root
      * @param V $nullValue
      */
-    public function __construct(HasherInterface $hasher, EqualizerInterface $equalizer, int $count, ?HashMapNodeInterface $root, bool $hasNull, $nullValue)
-    {
-        $this->hasher = $hasher;
-        $this->equalizer = $equalizer;
-        $this->count = $count;
-        $this->root = $root;
-        $this->hasNull = $hasNull;
+    public function __construct(
+        private HasherInterface $hasher,
+        private EqualizerInterface $equalizer,
+        private int $count,
+        private ?HashMapNodeInterface $root,
+        private bool $hasNull,
+        $nullValue
+    ) {
         $this->nullValue = $nullValue;
     }
 
@@ -85,7 +80,7 @@ class TransientHashMap implements TransientMapInterface
         }
 
         $addedLeaf = new Box(false);
-        $newRoot = ($this->root === null) ? IndexedNode::empty($this->hasher, $this->equalizer) : $this->root;
+        $newRoot = $this->root ?? IndexedNode::empty($this->hasher, $this->equalizer);
         $newRoot = $newRoot->put(0, $this->hasher->hash($key), $key, $value, $addedLeaf);
 
         if ($newRoot !== $this->root) {

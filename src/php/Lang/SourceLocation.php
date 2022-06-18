@@ -6,15 +6,11 @@ namespace Phel\Lang;
 
 final class SourceLocation
 {
-    private string $file;
-    private int $line;
-    private int $column;
-
-    public function __construct(string $file, int $line, int $column)
-    {
-        $this->file = $file;
-        $this->line = $line;
-        $this->column = $column;
+    public function __construct(
+        private string $file,
+        private int $line,
+        private int $column,
+    ) {
     }
 
     public function getFile(): string

@@ -21,19 +21,13 @@ abstract class AbstractType implements TypeInterface
         return Printer::readable()->print($this);
     }
 
-    /**
-     * @return static
-     */
-    public function setStartLocation(?SourceLocation $startLocation)
+    public function setStartLocation(?SourceLocation $startLocation): static
     {
         $this->startLocation = $startLocation;
         return $this;
     }
 
-    /**
-     * @return static
-     */
-    public function setEndLocation(?SourceLocation $endLocation)
+    public function setEndLocation(?SourceLocation $endLocation): static
     {
         $this->endLocation = $endLocation;
         return $this;
@@ -53,12 +47,10 @@ abstract class AbstractType implements TypeInterface
      * Copies the start and end location from $other.
      *
      * @param mixed $other The object to copy from
-     *
-     * @return static
      */
-    public function copyLocationFrom($other): self
+    public function copyLocationFrom(mixed $other): static
     {
-        if ($other && $other instanceof SourceLocationInterface) {
+        if ($other instanceof SourceLocationInterface) {
             return $this
                 ->setStartLocation($other->getStartLocation())
                 ->setEndLocation($other->getEndLocation());

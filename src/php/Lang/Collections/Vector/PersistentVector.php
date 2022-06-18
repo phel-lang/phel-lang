@@ -32,21 +32,21 @@ use function count;
  */
 class PersistentVector extends AbstractPersistentVector
 {
-    /** @var int The number of elements stored in this vector */
-    private int $count;
-    private int $shift;
-    /** @var array<array> The root node of this vector */
-    private array $root;
-    /** @var array<int, T> The tail of the vector. This is an optimization */
-    private array $tail;
-
-    public function __construct(HasherInterface $hasher, EqualizerInterface $equalizer, ?PersistentMapInterface $meta, int $count, int $shift, array $root, array $tail)
-    {
+    /**
+     * @param int $count The number of elements stored in this vector
+     * @param array<array> $root The root node of this vector
+     * @param array<int, T> $tail The tail of the vector. This is an optimization
+     */
+    public function __construct(
+        HasherInterface $hasher,
+        EqualizerInterface $equalizer,
+        ?PersistentMapInterface $meta,
+        private int $count,
+        private int $shift,
+        private array $root,
+        private array $tail,
+    ) {
         parent::__construct($hasher, $equalizer, $meta);
-        $this->count = $count;
-        $this->shift = $shift;
-        $this->root = $root;
-        $this->tail = $tail;
     }
 
     public static function empty(HasherInterface $hasher, EqualizerInterface $equalizer): self
@@ -71,8 +71,6 @@ class PersistentVector extends AbstractPersistentVector
 
     /**
      * Return the number of elements in this vector.
-     *
-     * @return int
      */
     public function count(): int
     {
@@ -91,8 +89,6 @@ class PersistentVector extends AbstractPersistentVector
      * (Source: https://hypirion.com/musings/understanding-persistent-vector-pt-1)
      *
      * @param T $value
-     *
-     * @return PersistentVector
      */
     public function append($value): self
     {
@@ -143,8 +139,6 @@ class PersistentVector extends AbstractPersistentVector
      *
      * @param int $i the index in the vector
      * @param T $value The new value
-     *
-     * @return PersistentVector
      */
     public function update(int $i, $value): self
     {
@@ -221,8 +215,6 @@ class PersistentVector extends AbstractPersistentVector
      * 1. The tail contains more than one element.
      * 2. The tail contains exactly one element (zero after popping).
      * 3. The root node contains exactly one element after popping.
-     *
-     * @return PersistentVector
      */
     public function pop(): self
     {

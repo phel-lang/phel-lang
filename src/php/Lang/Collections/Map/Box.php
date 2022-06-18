@@ -6,29 +6,16 @@ namespace Phel\Lang\Collections\Map;
 
 class Box
 {
-    /** @var mixed */
-    private $value;
-
-    /**
-     * @param mixed $value
-     */
-    public function __construct($value)
+    public function __construct(private mixed $value)
     {
-        $this->value = $value;
     }
 
-    /**
-     * @return mixed
-     */
-    public function getValue()
+    public function getValue(): mixed
     {
         return $this->value;
     }
 
-    /**
-     * @param mixed $value
-     */
-    public function setValue($value): void
+    public function setValue(mixed $value): void
     {
         $this->value = $value;
     }

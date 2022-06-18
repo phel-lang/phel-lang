@@ -18,17 +18,16 @@ use Traversable;
  */
 class PersistentHashSet extends AbstractType implements PersistentHashSetInterface, IteratorAggregate
 {
-    private HasherInterface $hasher;
-    private ?PersistentMapInterface $meta;
-    /** @var PersistentMapInterface<V, V> */
-    private PersistentMapInterface $map;
     private int $hashCache = 0;
 
-    public function __construct(HasherInterface $hasher, ?PersistentMapInterface $meta, PersistentMapInterface $map)
-    {
-        $this->hasher = $hasher;
-        $this->meta = $meta;
-        $this->map = $map;
+    /**
+     * @param PersistentMapInterface<V, V> $map
+     */
+    public function __construct(
+        private HasherInterface $hasher,
+        private ?PersistentMapInterface $meta,
+        private PersistentMapInterface $map
+    ) {
     }
 
     /**
@@ -88,7 +87,7 @@ class PersistentHashSet extends AbstractType implements PersistentHashSetInterfa
         return $this->map->count();
     }
 
-    public function equals($other): bool
+    public function equals(mixed $other): bool
     {
         if (!$other instanceof self) {
             return false;

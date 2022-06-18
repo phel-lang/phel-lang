@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Phel\Lang\Collections\Map;
 
 use Iterator;
+
 use function count;
 
 /**
@@ -15,13 +16,13 @@ use function count;
  */
 class HashCollisionNodeIterator implements Iterator
 {
-    /** @var array<K|V> */
-    private array $entries;
     private int $index = 0;
 
-    public function __construct(array $entries)
+    /**
+     * @param array<K|V> $entries
+     */
+    public function __construct(private array $entries)
     {
-        $this->entries = $entries;
     }
 
     /**

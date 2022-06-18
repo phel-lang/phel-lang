@@ -23,7 +23,7 @@ use Phel\Lang\TypeInterface;
  * @extends ConsInterface<PersistentListInterface<TValue>>
  * @extends ArrayAccess<TValue>
  * @extends ConcatInterface<PersistentListInterface<TValue>>
- * @extends ContainsInferace<int>
+ * @extends ContainsInterface<int>
  */
 interface PersistentListInterface extends TypeInterface, SeqInterface, IteratorAggregate, Countable, ConsInterface, ArrayAccess, ConcatInterface, ContainsInterface
 {

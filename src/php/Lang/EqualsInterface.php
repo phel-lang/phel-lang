@@ -7,9 +7,7 @@ namespace Phel\Lang;
 interface EqualsInterface
 {
     /**
-     * @param mixed $other
-     *
      * @return bool True, if this is equals $other
      */
-    public function equals($other): bool;
+    public function equals(mixed $other): bool;
 }

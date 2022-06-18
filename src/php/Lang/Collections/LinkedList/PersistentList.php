@@ -20,28 +20,26 @@ use function count;
  */
 class PersistentList extends AbstractType implements PersistentListInterface
 {
-    private EqualizerInterface $equalizer;
-    private HasherInterface $hasher;
-    private ?PersistentMapInterface $meta;
     /** @var T */
     private $first;
     /** @var PersistentListInterface<T> */
     private $rest;
-    private int $count;
     private int $hashCache = 0;
 
     /**
      * @param T $first
      * @param PersistentListInterface<T> $rest
      */
-    public function __construct(HasherInterface $hasher, EqualizerInterface $equalizer, ?PersistentMapInterface $meta, $first, $rest, int $count)
-    {
-        $this->hasher = $hasher;
-        $this->equalizer = $equalizer;
-        $this->meta = $meta;
+    public function __construct(
+        private HasherInterface $hasher,
+        private EqualizerInterface $equalizer,
+        private ?PersistentMapInterface $meta,
+        $first,
+        $rest,
+        private int $count,
+    ) {
         $this->first = $first;
         $this->rest = $rest;
-        $this->count = $count;
     }
 
     /**
@@ -116,7 +114,7 @@ class PersistentList extends AbstractType implements PersistentListInterface
         throw new IndexOutOfBoundsException('Index out of bounds');
     }
 
-    public function equals($other): bool
+    public function equals(mixed $other): bool
     {
         if (!$other instanceof self) {
             return false;
@@ -207,11 +205,9 @@ class PersistentList extends AbstractType implements PersistentListInterface
     }
 
     /**
-     * @param mixed $x
-     *
      * @return PersistentListInterface
      */
-    public function cons($x)
+    public function cons(mixed $x)
     {
         return $this->prepend($x);
     }
