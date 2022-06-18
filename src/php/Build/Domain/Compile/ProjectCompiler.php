@@ -7,6 +7,7 @@ namespace Phel\Build\Domain\Compile;
 use Phel\Build\Domain\Extractor\NamespaceExtractorInterface;
 use Phel\Command\CommandFacadeInterface;
 use Phel\Compiler\CompilerFacadeInterface;
+use RuntimeException;
 
 use function dirname;
 
@@ -14,24 +15,12 @@ final class ProjectCompiler
 {
     private const TARGET_FILE_EXTENSION = '.php';
 
-    private NamespaceExtractorInterface $namespaceExtractor;
-
-    private FileCompilerInterface $fileCompiler;
-
-    private CompilerFacadeInterface $compilerFacade;
-
-    private CommandFacadeInterface $commandFacade;
-
     public function __construct(
-        NamespaceExtractorInterface $namespaceExtractor,
-        FileCompilerInterface $fileCompiler,
-        CompilerFacadeInterface $compilerFacade,
-        CommandFacadeInterface $commandFacade
+        private NamespaceExtractorInterface $namespaceExtractor,
+        private FileCompilerInterface $fileCompiler,
+        private CompilerFacadeInterface $compilerFacade,
+        private CommandFacadeInterface $commandFacade,
     ) {
-        $this->namespaceExtractor = $namespaceExtractor;
-        $this->fileCompiler = $fileCompiler;
-        $this->compilerFacade = $compilerFacade;
-        $this->commandFacade = $commandFacade;
     }
 
     /**
@@ -67,8 +56,8 @@ final class ProjectCompiler
         foreach ($namespaceInformation as $info) {
             $targetFile = $dest . '/' . $this->getTargetFileFromNamespace($info->getNamespace());
             $targetDir = dirname($targetFile);
-            if (!file_exists($targetDir)) {
-                mkdir($targetDir, 0777, true);
+            if (!file_exists($targetDir) && !mkdir($targetDir, 0777, true) && !is_dir($targetDir)) {
+                throw new RuntimeException(sprintf('Directory "%s" was not created', $targetDir));
             }
 
             if ($buildOptions->isCacheEnabled()

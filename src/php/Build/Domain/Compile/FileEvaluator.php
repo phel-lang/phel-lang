@@ -10,16 +10,10 @@ use Phel\Compiler\Infrastructure\CompileOptions;
 
 final class FileEvaluator
 {
-    private CompilerFacadeInterface $compilerFacade;
-
-    private NamespaceExtractor $namespaceExtractor;
-
     public function __construct(
-        CompilerFacadeInterface $compilerFacade,
-        NamespaceExtractor $namespaceExtractor
+        private CompilerFacadeInterface $compilerFacade,
+        private NamespaceExtractor $namespaceExtractor,
     ) {
-        $this->compilerFacade = $compilerFacade;
-        $this->namespaceExtractor = $namespaceExtractor;
     }
 
     public function evalFile(string $src): CompiledFile

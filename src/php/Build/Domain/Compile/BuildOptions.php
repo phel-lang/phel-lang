@@ -6,13 +6,10 @@ namespace Phel\Build\Domain\Compile;
 
 class BuildOptions
 {
-    private bool $enableCache;
-    private bool $enableSourceMap;
-
-    public function __construct(bool $enableCache, bool $enableSourceMap)
-    {
-        $this->enableCache = $enableCache;
-        $this->enableSourceMap = $enableSourceMap;
+    public function __construct(
+        private bool $enableCache,
+        private bool $enableSourceMap,
+    ) {
     }
 
     public function isCacheEnabled(): bool

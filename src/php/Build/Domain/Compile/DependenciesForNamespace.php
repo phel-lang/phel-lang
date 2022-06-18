@@ -12,11 +12,8 @@ use function in_array;
 
 final class DependenciesForNamespace
 {
-    private NamespaceExtractor $namespaceExtractor;
-
-    public function __construct(NamespaceExtractor $namespaceExtractor)
+    public function __construct(private NamespaceExtractor $namespaceExtractor)
     {
-        $this->namespaceExtractor = $namespaceExtractor;
     }
 
     /**

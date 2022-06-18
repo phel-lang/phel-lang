@@ -11,16 +11,10 @@ use Phel\Lang\Registry;
 
 final class FileCompiler implements FileCompilerInterface
 {
-    private CompilerFacadeInterface $compilerFacade;
-
-    private NamespaceExtractorInterface $namespaceExtractor;
-
     public function __construct(
-        CompilerFacadeInterface $compilerFacade,
-        NamespaceExtractorInterface $namespaceExtractor
+        private CompilerFacadeInterface $compilerFacade,
+        private NamespaceExtractorInterface $namespaceExtractor,
     ) {
-        $this->compilerFacade = $compilerFacade;
-        $this->namespaceExtractor = $namespaceExtractor;
     }
 
     public function compileFile(string $src, string $dest, bool $enableSourceMaps): CompiledFile
