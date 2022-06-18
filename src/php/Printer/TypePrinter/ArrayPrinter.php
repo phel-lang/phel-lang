@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Phel\Printer\TypePrinter;
 
 use Phel\Printer\PrinterInterface;
+
 use function count;
 
 /**
@@ -12,13 +13,10 @@ use function count;
  */
 final class ArrayPrinter implements TypePrinterInterface
 {
-    private PrinterInterface $printer;
-    private bool $withColor;
-
-    public function __construct(PrinterInterface $printer, bool $withColor = false)
-    {
-        $this->printer = $printer;
-        $this->withColor = $withColor;
+    public function __construct(
+        private PrinterInterface $printer,
+        private bool $withColor = false,
+    ) {
     }
 
     /**

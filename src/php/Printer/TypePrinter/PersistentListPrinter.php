@@ -12,11 +12,8 @@ use Phel\Printer\PrinterInterface;
  */
 final class PersistentListPrinter implements TypePrinterInterface
 {
-    private PrinterInterface $printer;
-
-    public function __construct(PrinterInterface $printer)
+    public function __construct(private PrinterInterface $printer)
     {
-        $this->printer = $printer;
     }
 
     /**

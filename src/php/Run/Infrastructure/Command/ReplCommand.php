@@ -47,7 +47,7 @@ final class ReplCommand extends Command
 
     private ?string $replStartupFile = null;
 
-    /** @var string[] */
+    /** @var list<string> */
     private array $inputBuffer = [];
 
     private int $lineNumber = 1;
@@ -130,7 +130,7 @@ final class ReplCommand extends Command
                 $this->addLineFromPromptToBuffer();
                 $this->checkExitInputBuffer();
                 $this->analyzeInputBuffer();
-            } catch (ExitException $e) {
+            } catch (ExitException) {
                 break;
             } catch (Throwable $e) {
                 $this->inputBuffer = [];

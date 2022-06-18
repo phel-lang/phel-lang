@@ -11,16 +11,10 @@ use Phel\Run\Domain\Test\CannotFindAnyTestsException;
 
 final class NamespaceCollector
 {
-    private BuildFacadeInterface $buildFacade;
-
-    private CommandFacadeInterface $commandFacade;
-
     public function __construct(
-        BuildFacadeInterface $buildFacade,
-        CommandFacadeInterface $commandFacade
+        private BuildFacadeInterface $buildFacade,
+        private CommandFacadeInterface $commandFacade,
     ) {
-        $this->buildFacade = $buildFacade;
-        $this->commandFacade = $commandFacade;
     }
 
     /**

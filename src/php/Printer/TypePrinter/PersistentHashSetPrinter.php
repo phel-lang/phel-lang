@@ -6,6 +6,7 @@ namespace Phel\Printer\TypePrinter;
 
 use Phel\Lang\Collections\HashSet\PersistentHashSetInterface;
 use Phel\Printer\PrinterInterface;
+
 use function count;
 
 /**
@@ -13,11 +14,8 @@ use function count;
  */
 final class PersistentHashSetPrinter implements TypePrinterInterface
 {
-    private PrinterInterface $printer;
-
-    public function __construct(PrinterInterface $printer)
+    public function __construct(private PrinterInterface $printer)
     {
-        $this->printer = $printer;
     }
 
     /**
