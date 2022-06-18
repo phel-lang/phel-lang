@@ -14,21 +14,12 @@ use RuntimeException;
 
 final class ExportCodeGenerator
 {
-    private DirectoryRemoverInterface $directoryRemover;
-    private WrapperGeneratorInterface $wrapperGenerator;
-    private FunctionsToExportFinderInterface $functionsToExportFinder;
-    private FileCreatorInterface $fileCreator;
-
     public function __construct(
-        DirectoryRemoverInterface $directoryRemover,
-        WrapperGeneratorInterface $wrapperGenerator,
-        FunctionsToExportFinderInterface $functionsToExportFinder,
-        FileCreatorInterface $fileCreator,
+        private DirectoryRemoverInterface $directoryRemover,
+        private WrapperGeneratorInterface $wrapperGenerator,
+        private FunctionsToExportFinderInterface $functionsToExportFinder,
+        private FileCreatorInterface $fileCreator,
     ) {
-        $this->directoryRemover = $directoryRemover;
-        $this->wrapperGenerator = $wrapperGenerator;
-        $this->functionsToExportFinder = $functionsToExportFinder;
-        $this->fileCreator = $fileCreator;
     }
 
     /**

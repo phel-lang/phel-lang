@@ -15,14 +15,6 @@ abstract class AbstractZipper
 {
     /** @var T */
     protected $node;
-    /** @var ?AbstractZipper<T> */
-    protected ?AbstractZipper $parent;
-    /** @var list<T> */
-    protected array $leftSiblings = [];
-    /** @var list<T> */
-    protected array $rightSiblings = [];
-    protected bool $hasChanged = false;
-    protected bool $isEnd = false;
 
     /**
      * @param T $node
@@ -32,18 +24,13 @@ abstract class AbstractZipper
      */
     final public function __construct(
         $node,
-        ?self $parent,
-        array $leftSiblings,
-        array $rightSiblings,
-        bool $hasChanged,
-        bool $isEnd
+        protected ?self $parent,
+        protected array $leftSiblings = [],
+        protected array $rightSiblings = [],
+        protected bool $hasChanged = false,
+        protected bool $isEnd = false,
     ) {
         $this->node = $node;
-        $this->parent = $parent;
-        $this->leftSiblings = $leftSiblings;
-        $this->rightSiblings = $rightSiblings;
-        $this->hasChanged = $hasChanged;
-        $this->isEnd = $isEnd;
     }
 
     /**
@@ -59,7 +46,7 @@ abstract class AbstractZipper
      *
      * @return T
      */
-    abstract public function makeNode($node, $children);
+    abstract public function makeNode($node, array $children);
 
     /**
      * @throws ZipperException

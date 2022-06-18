@@ -8,13 +8,10 @@ use Phel\Interop\Domain\ReadModel\FunctionToExport;
 
 final class CompiledPhpClassBuilder
 {
-    private string $prefixNamespace;
-    private CompiledPhpMethodBuilder $methodBuilder;
-
-    public function __construct(string $prefixNamespace, CompiledPhpMethodBuilder $methodBuilder)
-    {
-        $this->prefixNamespace = $prefixNamespace;
-        $this->methodBuilder = $methodBuilder;
+    public function __construct(
+        private string $prefixNamespace,
+        private CompiledPhpMethodBuilder $methodBuilder,
+    ) {
     }
 
     /**

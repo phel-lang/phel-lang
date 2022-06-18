@@ -38,13 +38,12 @@ final class ParseTreeZipper extends AbstractZipper
         return $this->node->getChildren();
     }
 
-    public function makeNode($node, $children)
+    public function makeNode(mixed $node, array $children)
     {
         if (!$node instanceof InnerNodeInterface) {
             throw ZipperException::cannotReplaceChildrenOnLeafNode();
         }
 
-        /** @var InnerNodeInterface $node */
         return $node->replaceChildren($children);
     }
 

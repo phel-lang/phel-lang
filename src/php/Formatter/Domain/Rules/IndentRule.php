@@ -19,7 +19,7 @@ final class IndentRule implements RuleInterface
 {
     private const INDENT_WIDTH = 2;
 
-    /** @var IndenterInterface[] */
+    /** @var list<IndenterInterface> */
     private $indenters;
     private ListIndenter $listIndenter;
     private LineIndenter $lineIndenter;
@@ -90,7 +90,7 @@ final class IndentRule implements RuleInterface
             return $this->indentAmount($form->up());
         }
 
-        if ($parentNode instanceof ListNode && $parentNode->getTokenType() == Token::T_OPEN_PARENTHESIS) {
+        if ($parentNode instanceof ListNode && $parentNode->getTokenType() === Token::T_OPEN_PARENTHESIS) {
             return $this->customIndent($form);
         }
 
@@ -99,7 +99,7 @@ final class IndentRule implements RuleInterface
 
     private function customIndent(ParseTreeZipper $form): ?int
     {
-        foreach ($this->indenters as $idx => $indenter) {
+        foreach ($this->indenters as $indenter) {
             $margin = $indenter->getMargin($form, self::INDENT_WIDTH);
             if ($margin) {
                 return $margin;

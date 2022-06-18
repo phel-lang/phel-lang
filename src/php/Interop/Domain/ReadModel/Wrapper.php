@@ -8,15 +8,11 @@ use function dirname;
 
 final class Wrapper
 {
-    private string $relativeFilenamePath;
-    private string $compiledPhp;
-
-    public function __construct(string $relativeFilenamePath, string $compiledPhp)
-    {
-        $this->relativeFilenamePath = $relativeFilenamePath;
-        $this->compiledPhp = $compiledPhp;
+    public function __construct(
+        private string $relativeFilenamePath,
+        private string $compiledPhp,
+    ) {
     }
-
 
     public function compiledPhp(): string
     {
