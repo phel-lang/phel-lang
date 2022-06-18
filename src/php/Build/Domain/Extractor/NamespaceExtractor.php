@@ -59,7 +59,7 @@ final class NamespaceExtractor implements NamespaceExtractorInterface
             }
 
             throw ExtractorException::cannotExtractNamespaceFromPath($path);
-        } catch (AbstractParserException|ReaderException $e) {
+        } catch (AbstractParserException|ReaderException) {
             throw ExtractorException::cannotParseFile($path);
         }
     }

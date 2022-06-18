@@ -13,10 +13,6 @@ use PHPUnit\Framework\TestCase;
 
 final class DeconstructorTest extends TestCase
 {
-    private const EXAMPLE_KEY_1 = 'example key 1';
-    private const EXAMPLE_KEY_2 = 'example key 2';
-    private const EXAMPLE_KEY_3 = 'example key 3';
-
     private Deconstructor $deconstructor;
 
     public function setUp(): void

@@ -200,7 +200,7 @@ final class ReplCommand extends Command
             $this->io->writeln($this->printer->print($result));
 
             $this->inputBuffer = [];
-        } catch (UnfinishedParserException $e) {
+        } catch (UnfinishedParserException) {
             // The input is valid but more input is missing to finish the parsing.
         } catch (CompilerException $e) {
             $this->io->writeLocatedException($e->getNestedException(), $e->getCodeSnippet());

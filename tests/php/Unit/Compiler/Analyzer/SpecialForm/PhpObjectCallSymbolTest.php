@@ -36,7 +36,7 @@ final class PhpObjectCallSymbolTest extends TestCase
             Symbol::create('\\'),
         ]);
 
-        (new PhpObjectCallSymbol($this->analyzer, $isStatic = true))
+        (new PhpObjectCallSymbol($this->analyzer, isStatic: true))
             ->analyze($list, NodeEnvironment::empty());
     }
 
@@ -50,7 +50,7 @@ final class PhpObjectCallSymbolTest extends TestCase
             Symbol::create('\\'),
             '',
         ]);
-        (new PhpObjectCallSymbol($this->analyzer, $isStatic = false))
+        (new PhpObjectCallSymbol($this->analyzer, isStatic: false))
             ->analyze($list, NodeEnvironment::empty());
     }
 
@@ -92,7 +92,7 @@ final class PhpObjectCallSymbolTest extends TestCase
             TypeFactory::getInstance()->persistentListFromArray([Symbol::create(''), '', '']),
         ]);
 
-        $objCallNode = (new PhpObjectCallSymbol($this->analyzer, $isStatic = true))
+        $objCallNode = (new PhpObjectCallSymbol($this->analyzer, isStatic: true))
             ->analyze($list, NodeEnvironment::empty());
 
         self::assertTrue($objCallNode->isMethodCall());
@@ -108,7 +108,7 @@ final class PhpObjectCallSymbolTest extends TestCase
             Symbol::create(''),
         ]);
 
-        $objCallNode = (new PhpObjectCallSymbol($this->analyzer, $isStatic = true))
+        $objCallNode = (new PhpObjectCallSymbol($this->analyzer, isStatic: true))
             ->analyze($list, NodeEnvironment::empty());
 
         self::assertFalse($objCallNode->isMethodCall());

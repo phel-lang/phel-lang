@@ -4,9 +4,7 @@ declare(strict_types=1);
 
 namespace PhelTest\Unit\Compiler\Analyzer;
 
-use Phel\Compiler\Domain\Analyzer\Analyzer;
 use Phel\Compiler\Domain\Analyzer\Ast\LiteralNode;
-use Phel\Compiler\Domain\Analyzer\Environment\GlobalEnvironment;
 use Phel\Compiler\Domain\Analyzer\Environment\NodeEnvironment;
 use Phel\Compiler\Domain\Analyzer\TypeAnalyzer\AnalyzeLiteral;
 use Phel\Lang\Symbol;
@@ -14,11 +12,11 @@ use PHPUnit\Framework\TestCase;
 
 final class AnalyzeLiteralTest extends TestCase
 {
-    private AnalyzeLiteral $literalAnalzyer;
+    private AnalyzeLiteral $literalAnalyzer;
 
     public function setUp(): void
     {
-        $this->literalAnalzyer = new AnalyzeLiteral(new Analyzer(new GlobalEnvironment()));
+        $this->literalAnalyzer = new AnalyzeLiteral();
     }
 
     public function test_symbol_literal(): void
@@ -26,7 +24,7 @@ final class AnalyzeLiteralTest extends TestCase
         $env = NodeEnvironment::empty();
         self::assertEquals(
             new LiteralNode($env, Symbol::create('test'), null),
-            $this->literalAnalzyer->analyze(Symbol::create('test'), $env)
+            $this->literalAnalyzer->analyze(Symbol::create('test'), $env)
         );
     }
 
@@ -35,7 +33,7 @@ final class AnalyzeLiteralTest extends TestCase
         $env = NodeEnvironment::empty();
         self::assertEquals(
             new LiteralNode($env, 2, null),
-            $this->literalAnalzyer->analyze(2, $env)
+            $this->literalAnalyzer->analyze(2, $env)
         );
     }
 
@@ -44,7 +42,7 @@ final class AnalyzeLiteralTest extends TestCase
         $env = NodeEnvironment::empty();
         self::assertEquals(
             new LiteralNode($env, [1, 2], null),
-            $this->literalAnalzyer->analyze([1, 2], $env)
+            $this->literalAnalyzer->analyze([1, 2], $env)
         );
     }
 }

@@ -29,11 +29,11 @@ final class FnAsClassEmitterTest extends TestCase
     {
         $fnNode = new FnNode(
             NodeEnvironment::empty(),
-            $params = [Symbol::create('x')],
-            $body = PhpVarNode::withReturnContext('$x'),
-            $uses = [],
-            $isVariadic = false,
-            $recurs = false
+            params: [Symbol::create('x')],
+            body: PhpVarNode::withReturnContext('$x'),
+            uses: [],
+            isVariadic: false,
+            recurs: false
         );
 
         $this->fnAsClassEmitter->emit($fnNode);
@@ -51,11 +51,11 @@ final class FnAsClassEmitterTest extends TestCase
     {
         $fnNode = new FnNode(
             NodeEnvironment::empty(),
-            $params = [],
-            $body = PhpVarNode::withReturnContext('$x'),
-            $uses = [],
-            $isVariadic = false,
-            $recurs = false
+            params: [],
+            body: PhpVarNode::withReturnContext('$x'),
+            uses: [],
+            isVariadic: false,
+            recurs: false
         );
 
         $this->fnAsClassEmitter->emit($fnNode);
@@ -73,11 +73,11 @@ final class FnAsClassEmitterTest extends TestCase
     {
         $fnNode = new FnNode(
             NodeEnvironment::empty(),
-            $params = [Symbol::create('x')],
-            $body = PhpVarNode::withReturnContext('$x'),
-            $uses = [Symbol::create('use1'), Symbol::create('use2')],
-            $isVariadic = false,
-            $recurs = false
+            params: [Symbol::create('x')],
+            body: PhpVarNode::withReturnContext('$x'),
+            uses: [Symbol::create('use1'), Symbol::create('use2')],
+            isVariadic: false,
+            recurs: false
         );
 
         $this->fnAsClassEmitter->emit($fnNode);
@@ -104,11 +104,11 @@ final class FnAsClassEmitterTest extends TestCase
     {
         $fnNode = new FnNode(
             NodeEnvironment::empty(),
-            $params = [Symbol::create('x')],
-            $body = PhpVarNode::withReturnContext('$x'),
-            $uses = [],
-            $isVariadic = true,
-            $recurs = false
+            params: [Symbol::create('x')],
+            body: PhpVarNode::withReturnContext('$x'),
+            uses: [],
+            isVariadic: true,
+            recurs: false
         );
 
         $this->fnAsClassEmitter->emit($fnNode);
@@ -127,11 +127,11 @@ final class FnAsClassEmitterTest extends TestCase
     {
         $fnNode = new FnNode(
             NodeEnvironment::empty(),
-            $params = [Symbol::create('x')],
-            $body = PhpVarNode::withReturnContext('$x'),
-            $uses = [],
-            $isVariadic = false,
-            $recurs = true
+            params: [Symbol::create('x')],
+            body: PhpVarNode::withReturnContext('$x'),
+            uses: [],
+            isVariadic: false,
+            recurs: true
         );
 
         $this->fnAsClassEmitter->emit($fnNode);
@@ -151,11 +151,11 @@ final class FnAsClassEmitterTest extends TestCase
     {
         $fnNode = new FnNode(
             NodeEnvironment::empty(),
-            $params = [Symbol::create('x')],
-            $body = PhpVarNode::withReturnContext('$x'),
-            $uses = [],
-            $isVariadic = true,
-            $recurs = true
+            params: [Symbol::create('x')],
+            body: PhpVarNode::withReturnContext('$x'),
+            uses: [],
+            isVariadic: true,
+            recurs: true
         );
 
         $this->fnAsClassEmitter->emit($fnNode);

@@ -701,10 +701,7 @@ final class ReaderTest extends TestCase
         );
     }
 
-    /**
-     * @return TypeInterface|string|float|int|bool|null
-     */
-    private function read(string $string, bool $withLocation = true)
+    private function read(string $string, bool $withLocation = true): float|bool|int|string|TypeInterface|null
     {
         Symbol::resetGen();
         $tokenStream = $this->compilerFacade->lexString($string, Lexer::DEFAULT_SOURCE, $withLocation);
@@ -713,12 +710,7 @@ final class ReaderTest extends TestCase
         return $this->compilerFacade->read($parseTree)->getAst();
     }
 
-    /**
-     * @param mixed $x
-     *
-     * @return mixed
-     */
-    private function withMeta($x, PersistentMapInterface $t)
+    private function withMeta(mixed $x, PersistentMapInterface $t): mixed
     {
         return $x->withMeta($t);
     }

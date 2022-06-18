@@ -46,7 +46,7 @@ final class ArrayZipper extends AbstractZipper
      *
      * @return list<int>
      */
-    public function makeNode($node, $children): array
+    public function makeNode(mixed $node, array $children): array
     {
         return $children;
     }
@@ -66,7 +66,7 @@ final class ArrayZipper extends AbstractZipper
         array $rightSiblings,
         bool $hasChanged,
         bool $isEnd
-    ) {
+    ): self {
         return new self($node, $parent, $leftSiblings, $rightSiblings, $hasChanged, $isEnd);
     }
 }

@@ -8,7 +8,7 @@ use Phel\Lang\HasherInterface;
 
 final class SimpleHasher implements HasherInterface
 {
-    public function hash($value): int
+    public function hash(mixed $value): int
     {
         return $value;
     }

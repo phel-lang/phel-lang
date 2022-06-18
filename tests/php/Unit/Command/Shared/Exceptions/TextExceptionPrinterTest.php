@@ -22,14 +22,14 @@ final class TextExceptionPrinterTest extends TestCase
         $file = 'example-file.phel';
 
         $codeSnippet = new CodeSnippet(
-            $startLocation = new SourceLocation($file, $line = 1, $column = 1),
-            $endLocation = new SourceLocation($file, $line = 1, $column = 3),
-            '(+ 1 2 3 unknown-symbol)'
+            startLocation: new SourceLocation($file, line: 1, column: 1),
+            endLocation: new SourceLocation($file, line: 1, column: 3),
+            code: '(+ 1 2 3 unknown-symbol)'
         );
 
         $type = $this->createStub(AbstractType::class);
-        $type->method('getStartLocation')->willReturn(new SourceLocation($file, $line = 1, $column = 9));
-        $type->method('getEndLocation')->willReturn(new SourceLocation($file, $line = 1, $column = 23));
+        $type->method('getStartLocation')->willReturn(new SourceLocation($file, line: 1, column: 9));
+        $type->method('getEndLocation')->willReturn(new SourceLocation($file, line: 1, column: 23));
 
         $exception = AnalyzerException::withLocation('Example code exception message', $type);
 

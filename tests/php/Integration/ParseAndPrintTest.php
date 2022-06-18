@@ -48,7 +48,7 @@ final class ParseAndPrintTest extends TestCase
     }
 
     /**
-     * @param NodeInterface[] $parseTrees
+     * @param list<NodeInterface> $parseTrees
      */
     private function printTrees(array $parseTrees): string
     {

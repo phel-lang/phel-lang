@@ -45,7 +45,7 @@ final class BlockIndenter implements IndenterInterface
             }
 
             return $x;
-        } catch (ZipperException $e) {
+        } catch (ZipperException) {
             return null;
         }
     }

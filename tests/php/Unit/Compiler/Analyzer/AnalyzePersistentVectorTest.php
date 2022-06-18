@@ -9,6 +9,7 @@ use Phel\Compiler\Domain\Analyzer\Ast\LiteralNode;
 use Phel\Compiler\Domain\Analyzer\Ast\VectorNode;
 use Phel\Compiler\Domain\Analyzer\Environment\GlobalEnvironment;
 use Phel\Compiler\Domain\Analyzer\Environment\NodeEnvironment;
+use Phel\Compiler\Domain\Analyzer\Environment\NodeEnvironmentInterface;
 use Phel\Compiler\Domain\Analyzer\TypeAnalyzer\AnalyzePersistentVector;
 use Phel\Lang\TypeFactory;
 use PHPUnit\Framework\TestCase;
@@ -36,7 +37,7 @@ final class AnalyzePersistentVectorTest extends TestCase
         $env = NodeEnvironment::empty();
         self::assertEquals(
             new VectorNode($env, [
-                new LiteralNode($env->withDisallowRecurFrame()->withContext(NodeEnvironment::CONTEXT_EXPRESSION), 1, null),
+                new LiteralNode($env->withDisallowRecurFrame()->withContext(NodeEnvironmentInterface::CONTEXT_EXPRESSION), 1, null),
             ], null),
             $this->vectorAnalzyer->analyze(TypeFactory::getInstance()->persistentVectorFromArray([1]), $env)
         );

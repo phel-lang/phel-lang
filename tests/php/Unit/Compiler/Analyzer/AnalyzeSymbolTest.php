@@ -61,7 +61,7 @@ final class AnalyzeSymbolTest extends TestCase
     {
         $globalEnv = new GlobalEnvironment();
         $globalEnv->setNs('test');
-        $globalEnv->addDefinition('test', Symbol::create('a'), TypeFactory::getInstance()->emptyPersistentMap());
+        $globalEnv->addDefinition('test', Symbol::create('a'));
         $symbolAnalyzer = new AnalyzeSymbol(new Analyzer($globalEnv));
 
         $env = NodeEnvironment::empty();
@@ -84,7 +84,7 @@ final class AnalyzeSymbolTest extends TestCase
     {
         $globalEnv = new GlobalEnvironment();
         $globalEnv->setNs('test');
-        $globalEnv->addDefinition('test', Symbol::create('a'), TypeFactory::getInstance()->emptyPersistentMap());
+        $globalEnv->addDefinition('test', Symbol::create('a'));
         $symbolAnalyzer = new AnalyzeSymbol(new Analyzer($globalEnv));
 
         $env = NodeEnvironment::empty()->withLocals([Symbol::create('a')]);
