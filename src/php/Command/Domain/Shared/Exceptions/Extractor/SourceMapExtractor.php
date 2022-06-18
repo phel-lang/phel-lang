@@ -10,7 +10,7 @@ final class SourceMapExtractor implements SourceMapExtractorInterface
 {
     public function extractFromFile(string $filename): SourceMapInformation
     {
-        $f = fopen($filename, 'r');
+        $f = fopen($filename, 'rb');
         $phpPrefix = fgets($f);
         $filenameComment = fgets($f);
         $sourceMapComment = fgets($f);

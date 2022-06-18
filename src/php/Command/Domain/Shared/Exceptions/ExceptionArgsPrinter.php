@@ -17,18 +17,14 @@ use function strlen;
 
 final class ExceptionArgsPrinter implements ExceptionArgsPrinterInterface
 {
-    private PrinterInterface $printer;
-
-    public function __construct(PrinterInterface $printer)
+    public function __construct(private PrinterInterface $printer)
     {
-        $this->printer = $printer;
     }
 
     public function parseArgsAsString(array $frameArgs): string
     {
         $argParts = array_map(
-            /** @param mixed $arg */
-            fn ($arg) => $this->printer->print($arg),
+            fn (mixed $arg) => $this->printer->print($arg),
             $frameArgs
         );
 
@@ -52,10 +48,8 @@ final class ExceptionArgsPrinter implements ExceptionArgsPrinterInterface
 
     /**
      * Converts a PHP type to a string.
-     *
-     * @param mixed $arg The argument
      */
-    private function buildPhpArg($arg): string
+    private function buildPhpArg(mixed $arg): string
     {
         if ($arg === null) {
             return 'NULL';

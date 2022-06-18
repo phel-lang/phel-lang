@@ -12,11 +12,8 @@ use Throwable;
 
 final class CommandExceptionWriter implements CommandExceptionWriterInterface
 {
-    private ExceptionPrinterInterface $exceptionPrinter;
-
-    public function __construct(ExceptionPrinterInterface $exceptionPrinter)
+    public function __construct(private ExceptionPrinterInterface $exceptionPrinter)
     {
-        $this->exceptionPrinter = $exceptionPrinter;
     }
 
     public function writeStackTrace(

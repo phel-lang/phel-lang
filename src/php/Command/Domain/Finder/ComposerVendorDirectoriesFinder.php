@@ -12,11 +12,8 @@ use function dirname;
 
 final class ComposerVendorDirectoriesFinder implements VendorDirectoriesFinderInterface
 {
-    private string $vendorDirectory;
-
-    public function __construct(string $vendorDirectory)
+    public function __construct(private string $vendorDirectory)
     {
-        $this->vendorDirectory = $vendorDirectory;
     }
 
     /**

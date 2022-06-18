@@ -6,26 +6,28 @@ namespace Phel\Command\Domain;
 
 final class CodeDirectories
 {
-    /** @var list<string> */
-    private array $srcDirs;
-
-    /** @var list<string> */
-    private array $testDirs;
-
-    private string $outputDirectory;
-
-    public function __construct(array $srcDirs, array $testDirs, string $outputDirectory)
-    {
-        $this->srcDirs = $srcDirs;
-        $this->testDirs = $testDirs;
-        $this->outputDirectory = $outputDirectory;
+    /**
+     * @param list<string> $srcDirs
+     * @param list<string> $testDirs
+     */
+    public function __construct(
+        private array $srcDirs,
+        private array $testDirs,
+        private string $outputDirectory,
+    ) {
     }
 
+    /**
+     * @return list<string>
+     */
     public function getSourceDirectories(): array
     {
         return $this->srcDirs;
     }
 
+    /**
+     * @return list<string>
+     */
     public function getTestDirectories(): array
     {
         return $this->testDirs;
