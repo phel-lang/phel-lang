@@ -33,7 +33,7 @@ final class ReplCommandTest extends AbstractCommandTest
     {
         $configFn = static function (GacelaConfig $config): void {
             $config->addAppConfig('config/*.php', 'config/local.php');
-            $config->setResetCache(true);
+            $config->setCacheEnabled(false);
         };
         Gacela::bootstrap(__DIR__, $configFn);
     }
