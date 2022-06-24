@@ -4,20 +4,20 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "a848b5f33ce3a1a9533ad1c24c767719",
+    "content-hash": "3edb4b943bbfa212d95bf37c1cd61ede",
     "packages": [
         {
             "name": "gacela-project/gacela",
-            "version": "0.23.0",
+            "version": "dev-bugfix/custom-cache-dir",
             "source": {
                 "type": "git",
                 "url": "https://github.com/gacela-project/gacela.git",
-                "reference": "e75f257264c3b4ebd7ce5c12811643c619c13beb"
+                "reference": "d183b6cc0246c7e509fefbec35dafbe3fe530d05"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/gacela-project/gacela/zipball/e75f257264c3b4ebd7ce5c12811643c619c13beb",
-                "reference": "e75f257264c3b4ebd7ce5c12811643c619c13beb",
+                "url": "https://api.github.com/repos/gacela-project/gacela/zipball/d183b6cc0246c7e509fefbec35dafbe3fe530d05",
+                "reference": "d183b6cc0246c7e509fefbec35dafbe3fe530d05",
                 "shasum": ""
             },
             "require": {
@@ -71,7 +71,7 @@
             ],
             "support": {
                 "issues": "https://github.com/gacela-project/gacela/issues",
-                "source": "https://github.com/gacela-project/gacela/tree/0.23.0"
+                "source": "https://github.com/gacela-project/gacela/tree/bugfix/custom-cache-dir"
             },
             "funding": [
                 {
@@ -79,7 +79,7 @@
                     "type": "github"
                 }
             ],
-            "time": "2022-06-24T15:58:57+00:00"
+            "time": "2022-06-24T20:36:24+00:00"
         },
         {
             "name": "phpunit/php-timer",
@@ -5303,8 +5303,10 @@
         }
     ],
     "aliases": [],
-    "minimum-stability": "stable",
-    "stability-flags": [],
+    "minimum-stability": "dev",
+    "stability-flags": {
+        "gacela-project/gacela": 20
+    },
     "prefer-stable": false,
     "prefer-lowest": false,
     "platform": {

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace PhelTest\Integration\Compiler\Reader;
 
+use Gacela\Framework\Gacela;
 use Phel\Compiler\CompilerFacade;
 use Phel\Compiler\CompilerFacadeInterface;
 use Phel\Compiler\Domain\Lexer\Lexer;
@@ -16,6 +17,7 @@ use Phel\Lang\SourceLocation;
 use Phel\Lang\Symbol;
 use Phel\Lang\TypeFactory;
 use Phel\Lang\TypeInterface;
+use Phel\Phel;
 use PHPUnit\Framework\TestCase;
 
 final class ReaderTest extends TestCase
@@ -34,6 +36,7 @@ final class ReaderTest extends TestCase
 
     public function setUp(): void
     {
+        Gacela::bootstrap(__DIR__, Phel::configFn());
         Symbol::resetGen();
         $this->compilerFacade = new CompilerFacade();
     }

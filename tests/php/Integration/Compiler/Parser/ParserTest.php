@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace PhelTest\Integration\Compiler\Parser;
 
+use Gacela\Framework\Gacela;
 use Phel\Compiler\CompilerFacade;
 use Phel\Compiler\CompilerFacadeInterface;
 use Phel\Compiler\Domain\Lexer\Token;
@@ -25,6 +26,7 @@ use Phel\Compiler\Infrastructure\GlobalEnvironmentSingleton;
 use Phel\Lang\Keyword;
 use Phel\Lang\SourceLocation;
 use Phel\Lang\Symbol;
+use Phel\Phel;
 use PHPUnit\Framework\TestCase;
 
 final class ParserTest extends TestCase
@@ -38,6 +40,7 @@ final class ParserTest extends TestCase
 
     public function setUp(): void
     {
+        Gacela::bootstrap(__DIR__, Phel::configFn());
         Symbol::resetGen();
         $this->compilerFacade = new CompilerFacade();
     }
@@ -51,16 +54,31 @@ final class ParserTest extends TestCase
         self::assertEquals(new NumberNode('1.1', $this->loc(1, 0), $this->loc(1, 3), 1.1), $this->parse('1.1'));
         self::assertEquals(new NumberNode('10.11', $this->loc(1, 0), $this->loc(1, 5), 10.11), $this->parse('10.11'));
         self::assertEquals(new NumberNode('0x539', $this->loc(1, 0), $this->loc(1, 5), 1337), $this->parse('0x539'));
-        self::assertEquals(new NumberNode('0x5_3_9', $this->loc(1, 0), $this->loc(1, 7), 1337), $this->parse('0x5_3_9'));
+        self::assertEquals(
+            new NumberNode('0x5_3_9', $this->loc(1, 0), $this->loc(1, 7), 1337),
+            $this->parse('0x5_3_9')
+        );
         self::assertEquals(new NumberNode('02471', $this->loc(1, 0), $this->loc(1, 5), 1337), $this->parse('02471'));
         self::assertEquals(new NumberNode('024_71', $this->loc(1, 0), $this->loc(1, 6), 1337), $this->parse('024_71'));
-        self::assertEquals(new NumberNode('0b10100111001', $this->loc(1, 0), $this->loc(1, 13), 1337), $this->parse('0b10100111001'));
-        self::assertEquals(new NumberNode('0b0101_0011_1001', $this->loc(1, 0), $this->loc(1, 16), 1337), $this->parse('0b0101_0011_1001'));
+        self::assertEquals(
+            new NumberNode('0b10100111001', $this->loc(1, 0), $this->loc(1, 13), 1337),
+            $this->parse('0b10100111001')
+        );
+        self::assertEquals(
+            new NumberNode('0b0101_0011_1001', $this->loc(1, 0), $this->loc(1, 16), 1337),
+            $this->parse('0b0101_0011_1001')
+        );
         self::assertEquals(new NumberNode('1337e0', $this->loc(1, 0), $this->loc(1, 6), 1337), $this->parse('1337e0'));
         self::assertEquals(new NumberNode('-1337', $this->loc(1, 0), $this->loc(1, 5), -1337), $this->parse('-1337'));
-        self::assertEquals(new NumberNode('-1337.0', $this->loc(1, 0), $this->loc(1, 7), -1337.0), $this->parse('-1337.0'));
+        self::assertEquals(
+            new NumberNode('-1337.0', $this->loc(1, 0), $this->loc(1, 7), -1337.0),
+            $this->parse('-1337.0')
+        );
         self::assertEquals(new NumberNode('+1337', $this->loc(1, 0), $this->loc(1, 5), 1337), $this->parse('+1337'));
-        self::assertEquals(new NumberNode('+1337.0', $this->loc(1, 0), $this->loc(1, 7), 1337), $this->parse('+1337.0'));
+        self::assertEquals(
+            new NumberNode('+1337.0', $this->loc(1, 0), $this->loc(1, 7), 1337),
+            $this->parse('+1337.0')
+        );
         self::assertEquals(new NumberNode('1.2e3', $this->loc(1, 0), $this->loc(1, 5), 1.2e3), $this->parse('1.2e3'));
         self::assertEquals(new NumberNode('7E-10', $this->loc(1, 0), $this->loc(1, 5), 7E-10), $this->parse('7E-10'));
     }
