@@ -17,10 +17,7 @@ final class CompileCommandTest extends TestCase
 
     public static function setUpBeforeClass(): void
     {
-        Gacela::bootstrap(__DIR__, static function (GacelaConfig $config): void {
-            $config->addAppConfig('config/*.php', 'config/local.php');
-            $config->setCacheDirectory('data/cache');
-        });
+        Gacela::bootstrap(__DIR__, GacelaConfig::withPhpConfigDefault());
     }
 
     protected function setUp(): void
