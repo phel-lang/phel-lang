@@ -12,12 +12,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/gacela-project/gacela.git",
-                "reference": "0b60aae9283748736e2907cb12df6a4942a41c05"
+                "reference": "65c0fbb9a70c3160a4e46dd10f4a2071129341b8"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/gacela-project/gacela/zipball/0b60aae9283748736e2907cb12df6a4942a41c05",
-                "reference": "0b60aae9283748736e2907cb12df6a4942a41c05",
+                "url": "https://api.github.com/repos/gacela-project/gacela/zipball/65c0fbb9a70c3160a4e46dd10f4a2071129341b8",
+                "reference": "65c0fbb9a70c3160a4e46dd10f4a2071129341b8",
                 "shasum": ""
             },
             "require": {
@@ -79,7 +79,7 @@
                     "type": "github"
                 }
             ],
-            "time": "2022-06-25T08:30:53+00:00"
+            "time": "2022-06-25T09:32:09+00:00"
         },
         {
             "name": "phpunit/php-timer",
