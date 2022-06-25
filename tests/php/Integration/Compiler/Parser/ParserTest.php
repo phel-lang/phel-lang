@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace PhelTest\Integration\Compiler\Parser;
 
+use Gacela\Framework\Gacela;
 use Phel\Compiler\CompilerFacade;
 use Phel\Compiler\CompilerFacadeInterface;
 use Phel\Compiler\Domain\Lexer\Token;
@@ -25,6 +26,7 @@ use Phel\Compiler\Infrastructure\GlobalEnvironmentSingleton;
 use Phel\Lang\Keyword;
 use Phel\Lang\SourceLocation;
 use Phel\Lang\Symbol;
+use Phel\Phel;
 use PHPUnit\Framework\TestCase;
 
 final class ParserTest extends TestCase
@@ -38,6 +40,7 @@ final class ParserTest extends TestCase
 
     public function setUp(): void
     {
+        Gacela::bootstrap(__DIR__, Phel::configFn());
         Symbol::resetGen();
         $this->compilerFacade = new CompilerFacade();
     }

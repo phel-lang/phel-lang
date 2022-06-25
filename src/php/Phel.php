@@ -14,6 +14,7 @@ final class Phel
     public const PHEL_CONFIG_FILE_NAME = 'phel-config.php';
 
     private const PHEL_CONFIG_LOCAL_FILE_NAME = 'phel-config-local.php';
+    private const PHEL_CACHE_DIRECTORY = 'data/cache';
 
     /**
      * This function helps to unify the running execution for a custom phel project.
@@ -33,6 +34,7 @@ final class Phel
     {
         return static function (GacelaConfig $config): void {
             $config->addAppConfig(self::PHEL_CONFIG_FILE_NAME, self::PHEL_CONFIG_LOCAL_FILE_NAME);
+            $config->setCacheDirectory(self::PHEL_CACHE_DIRECTORY);
         };
     }
 }

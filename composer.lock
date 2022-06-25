@@ -4,20 +4,20 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "a91137ef14565546bfa6bd5da559aa7c",
+    "content-hash": "a848b5f33ce3a1a9533ad1c24c767719",
     "packages": [
         {
             "name": "gacela-project/gacela",
-            "version": "0.22.0",
+            "version": "0.23.1",
             "source": {
                 "type": "git",
                 "url": "https://github.com/gacela-project/gacela.git",
-                "reference": "528ba03f7e2e070100e5a7b7a0afb1a6bad70887"
+                "reference": "65c0fbb9a70c3160a4e46dd10f4a2071129341b8"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/gacela-project/gacela/zipball/528ba03f7e2e070100e5a7b7a0afb1a6bad70887",
-                "reference": "528ba03f7e2e070100e5a7b7a0afb1a6bad70887",
+                "url": "https://api.github.com/repos/gacela-project/gacela/zipball/65c0fbb9a70c3160a4e46dd10f4a2071129341b8",
+                "reference": "65c0fbb9a70c3160a4e46dd10f4a2071129341b8",
                 "shasum": ""
             },
             "require": {
@@ -30,14 +30,18 @@
                 "phpmetrics/phpmetrics": "^2.8",
                 "phpstan/phpstan": "^1.7",
                 "phpunit/phpunit": "^9.5",
+                "symfony/console": "^5.4",
                 "symfony/var-dumper": "^5.4",
                 "vimeo/psalm": "^4.23"
             },
             "suggest": {
-                "gacela-project/gacela-cli": "Gacela cli util",
                 "gacela-project/gacela-env-config-reader": "Allows to read .env config files",
-                "gacela-project/gacela-yaml-config-reader": "Allows to read yml/yaml config files"
+                "gacela-project/gacela-yaml-config-reader": "Allows to read yml/yaml config files",
+                "symfony/console": "Allows to use vendor/bin/gacela script"
             },
+            "bin": [
+                "gacela"
+            ],
             "type": "library",
             "autoload": {
                 "psr-4": {
@@ -67,9 +71,15 @@
             ],
             "support": {
                 "issues": "https://github.com/gacela-project/gacela/issues",
-                "source": "https://github.com/gacela-project/gacela/tree/0.22.0"
+                "source": "https://github.com/gacela-project/gacela/tree/0.23.1"
             },
-            "time": "2022-06-10T17:06:52+00:00"
+            "funding": [
+                {
+                    "url": "https://github.com/Chemaclass",
+                    "type": "github"
+                }
+            ],
+            "time": "2022-06-25T09:32:09+00:00"
         },
         {
             "name": "phpunit/php-timer",
@@ -2778,16 +2788,16 @@
         },
         {
             "name": "phpstan/phpstan",
-            "version": "1.7.12",
+            "version": "1.7.15",
             "source": {
                 "type": "git",
                 "url": "https://github.com/phpstan/phpstan.git",
-                "reference": "32f10779d9cd88a9cbd972ec611a4148a3cbbc7e"
+                "reference": "cd0202ea1b1fc6d1bbe156c6e2e18a03e0ff160a"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/phpstan/phpstan/zipball/32f10779d9cd88a9cbd972ec611a4148a3cbbc7e",
-                "reference": "32f10779d9cd88a9cbd972ec611a4148a3cbbc7e",
+                "url": "https://api.github.com/repos/phpstan/phpstan/zipball/cd0202ea1b1fc6d1bbe156c6e2e18a03e0ff160a",
+                "reference": "cd0202ea1b1fc6d1bbe156c6e2e18a03e0ff160a",
                 "shasum": ""
             },
             "require": {
@@ -2813,7 +2823,7 @@
             "description": "PHPStan - PHP Static Analysis Tool",
             "support": {
                 "issues": "https://github.com/phpstan/phpstan/issues",
-                "source": "https://github.com/phpstan/phpstan/tree/1.7.12"
+                "source": "https://github.com/phpstan/phpstan/tree/1.7.15"
             },
             "funding": [
                 {
@@ -2833,7 +2843,7 @@
                     "type": "tidelift"
                 }
             ],
-            "time": "2022-06-09T12:39:36+00:00"
+            "time": "2022-06-20T08:29:01+00:00"
         },
         {
             "name": "phpunit/php-code-coverage",
@@ -3096,16 +3106,16 @@
         },
         {
             "name": "phpunit/phpunit",
-            "version": "9.5.20",
+            "version": "9.5.21",
             "source": {
                 "type": "git",
                 "url": "https://github.com/sebastianbergmann/phpunit.git",
-                "reference": "12bc8879fb65aef2138b26fc633cb1e3620cffba"
+                "reference": "0e32b76be457de00e83213528f6bb37e2a38fcb1"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/sebastianbergmann/phpunit/zipball/12bc8879fb65aef2138b26fc633cb1e3620cffba",
-                "reference": "12bc8879fb65aef2138b26fc633cb1e3620cffba",
+                "url": "https://api.github.com/repos/sebastianbergmann/phpunit/zipball/0e32b76be457de00e83213528f6bb37e2a38fcb1",
+                "reference": "0e32b76be457de00e83213528f6bb37e2a38fcb1",
                 "shasum": ""
             },
             "require": {
@@ -3139,7 +3149,6 @@
                 "sebastian/version": "^3.0.2"
             },
             "require-dev": {
-                "ext-pdo": "*",
                 "phpspec/prophecy-phpunit": "^2.0.1"
             },
             "suggest": {
@@ -3183,7 +3192,7 @@
             ],
             "support": {
                 "issues": "https://github.com/sebastianbergmann/phpunit/issues",
-                "source": "https://github.com/sebastianbergmann/phpunit/tree/9.5.20"
+                "source": "https://github.com/sebastianbergmann/phpunit/tree/9.5.21"
             },
             "funding": [
                 {
@@ -3195,7 +3204,7 @@
                     "type": "github"
                 }
             ],
-            "time": "2022-04-01T12:37:26+00:00"
+            "time": "2022-06-19T12:14:25+00:00"
         },
         {
             "name": "psr/cache",
