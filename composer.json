@@ -14,11 +14,10 @@
     "require": {
         "ext-json": "*",
         "php": ">=8.0",
-        "gacela-project/gacela": "dev-bugfix/custom-cache-dir",
+        "gacela-project/gacela": "^0.23",
         "symfony/console": "^5.4",
         "phpunit/php-timer": "^5.0"
     },
-    "minimum-stability": "dev",
     "require-dev": {
         "ext-readline": "*",
         "phpunit/phpunit": "^9.5",
