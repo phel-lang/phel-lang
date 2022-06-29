@@ -6,13 +6,10 @@ namespace Phel\Command\Domain\Shared\Exceptions\Extractor\ReadModel;
 
 final class FilePosition
 {
-    private string $filename;
-    private int $line;
-
-    public function __construct(string $filename, int $line)
-    {
-        $this->filename = $filename;
-        $this->line = $line;
+    public function __construct(
+        private string $filename,
+        private int $line,
+    ) {
     }
 
     public function filename(): string

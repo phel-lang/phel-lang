@@ -19,21 +19,12 @@ use function strlen;
 
 final class TextExceptionPrinter implements ExceptionPrinterInterface
 {
-    private ExceptionArgsPrinterInterface $exceptionArgsPrinter;
-    private ColorStyleInterface $style;
-    private MungeInterface $munge;
-    private FilePositionExtractorInterface $filePositionExtractor;
-
     public function __construct(
-        ExceptionArgsPrinterInterface $exceptionArgsPrinter,
-        ColorStyleInterface $style,
-        MungeInterface $munge,
-        FilePositionExtractorInterface $filePositionExtractor
+        private ExceptionArgsPrinterInterface $exceptionArgsPrinter,
+        private ColorStyleInterface $style,
+        private MungeInterface $munge,
+        private FilePositionExtractorInterface $filePositionExtractor,
     ) {
-        $this->exceptionArgsPrinter = $exceptionArgsPrinter;
-        $this->style = $style;
-        $this->munge = $munge;
-        $this->filePositionExtractor = $filePositionExtractor;
     }
 
     public function printException(AbstractLocatedException $e, CodeSnippet $codeSnippet): void

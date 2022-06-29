@@ -16,5 +16,5 @@ interface ConsInterface
      *
      * @return T
      */
-    public function cons($x);
+    public function cons(mixed $x);
 }

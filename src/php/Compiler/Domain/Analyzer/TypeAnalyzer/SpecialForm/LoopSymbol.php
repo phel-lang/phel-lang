@@ -95,7 +95,6 @@ final class LoopSymbol implements SpecialFormAnalyzerInterface
 
     private function analyzeLetOrLoop(PersistentListInterface $list, NodeEnvironmentInterface $env): LetNode
     {
-        $listCount = count($list);
         $exprs = $list->rest()->rest()->toArray();
 
         /** @psalm-suppress PossiblyNullArgument */

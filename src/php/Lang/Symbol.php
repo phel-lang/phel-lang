@@ -4,8 +4,6 @@ declare(strict_types=1);
 
 namespace Phel\Lang;
 
-use Phel\Printer\Printer;
-
 final class Symbol extends AbstractType implements IdenticalInterface, NamedInterface
 {
     use MetaTrait;
@@ -51,11 +49,6 @@ final class Symbol extends AbstractType implements IdenticalInterface, NamedInte
     {
         $this->namespace = $namespace;
         $this->name = $name;
-    }
-
-    public function __toString(): string
-    {
-        return Printer::readable()->print($this);
     }
 
     public static function create(string $name): self
@@ -108,14 +101,14 @@ final class Symbol extends AbstractType implements IdenticalInterface, NamedInte
         return crc32($this->getName());
     }
 
-    public function equals($other): bool
+    public function equals(mixed $other): bool
     {
         return $other instanceof self
             && $this->name === $other->getName()
             && $this->namespace === $other->getNamespace();
     }
 
-    public function identical($other): bool
+    public function identical(mixed $other): bool
     {
         return $this->equals($other);
     }

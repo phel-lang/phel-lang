@@ -9,27 +9,17 @@ use Phel\Lang\SourceLocation;
 
 final class TryNode extends AbstractNode
 {
-    private AbstractNode $body;
-
-    /** @var CatchNode[] */
-    private array $catches;
-
-    private ?AbstractNode $finally;
-
     /**
-     * @param CatchNode[] $catches
+     * @param list<CatchNode> $catches
      */
     public function __construct(
         NodeEnvironmentInterface $env,
-        AbstractNode $body,
-        array $catches,
-        ?AbstractNode $finally = null,
+        private AbstractNode $body,
+        private array $catches,
+        private ?AbstractNode $finally = null,
         ?SourceLocation $sourceLocation = null
     ) {
         parent::__construct($env, $sourceLocation);
-        $this->body = $body;
-        $this->catches = $catches;
-        $this->finally = $finally;
     }
 
     public function getBody(): AbstractNode
@@ -38,7 +28,7 @@ final class TryNode extends AbstractNode
     }
 
     /**
-     * @return CatchNode[]
+     * @return list<CatchNode>
      */
     public function getCatches(): array
     {

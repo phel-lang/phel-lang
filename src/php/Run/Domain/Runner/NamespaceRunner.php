@@ -9,15 +9,10 @@ use Phel\Command\CommandFacadeInterface;
 
 class NamespaceRunner implements NamespaceRunnerInterface
 {
-    private CommandFacadeInterface $commandFacade;
-    private BuildFacadeInterface $buildFacade;
-
     public function __construct(
-        CommandFacadeInterface $commandFacade,
-        BuildFacadeInterface $buildFacade
+        private CommandFacadeInterface $commandFacade,
+        private BuildFacadeInterface $buildFacade,
     ) {
-        $this->commandFacade = $commandFacade;
-        $this->buildFacade = $buildFacade;
     }
 
     public function run(string $namespace): void

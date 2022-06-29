@@ -13,16 +13,11 @@ use Phel\Lang\TypeInterface;
 interface AnalyzerInterface
 {
     /**
-     * @param TypeInterface|string|float|int|bool|null $x
-     *
      * @throws AnalyzerException
      */
-    public function analyze($x, NodeEnvironmentInterface $env): AbstractNode;
+    public function analyze(TypeInterface|array|string|float|int|bool|null $x, NodeEnvironmentInterface $env): AbstractNode;
 
-    /**
-     * @param TypeInterface|string|float|int|bool|null $x
-     */
-    public function analyzeMacro($x, NodeEnvironmentInterface $env): AbstractNode;
+    public function analyzeMacro(TypeInterface|array|string|float|int|bool|null $x, NodeEnvironmentInterface $env): AbstractNode;
 
     public function resolve(Symbol $name, NodeEnvironmentInterface $env): ?AbstractNode;
 
@@ -35,7 +30,7 @@ interface AnalyzerInterface
     public function addRequireAlias(string $ns, Symbol $alias, Symbol $nsSymbol): void;
 
     /**
-     * @param Symbol[] $referSymbols
+     * @param list<Symbol> $referSymbols
      */
     public function addRefers(string $ns, array $referSymbols, Symbol $nsSymbol): void;
 

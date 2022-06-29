@@ -8,7 +8,7 @@ use Phel\Lang\EqualizerInterface;
 
 final class SimpleEqualizer implements EqualizerInterface
 {
-    public function equals($a, $b): bool
+    public function equals(mixed $a, mixed $b): bool
     {
         return $a === $b;
     }

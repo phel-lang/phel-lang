@@ -8,10 +8,8 @@ final class Truthy
 {
     /**
      * Check if the given value evaluates to true.
-     *
-     * @param mixed $value
      */
-    public static function isTruthy($value): bool
+    public static function isTruthy(mixed $value): bool
     {
         return $value !== null && $value !== false;
     }

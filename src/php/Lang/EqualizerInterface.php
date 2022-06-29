@@ -12,5 +12,5 @@ interface EqualizerInterface
      *
      * @return bool True, if $a is equals $b
      */
-    public function equals($a, $b): bool;
+    public function equals(mixed $a, mixed $b): bool;
 }

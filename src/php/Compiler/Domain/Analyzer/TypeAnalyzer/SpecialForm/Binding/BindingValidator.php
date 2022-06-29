@@ -22,11 +22,9 @@ final class BindingValidator implements BindingValidatorInterface
      *
      * @psalm-assert !null $form
      *
-     * @param mixed $form The form to check
-     *
      * @throws AnalyzerException
      */
-    public function assertSupportedBinding($form): void
+    public function assertSupportedBinding(mixed $form): void
     {
         if ($this->isSupportedBinding($form)) {
             return;
@@ -48,7 +46,7 @@ final class BindingValidator implements BindingValidatorInterface
      *
      * @param mixed $form The form to check
      */
-    private function isSupportedBinding($form): bool
+    private function isSupportedBinding(mixed $form): bool
     {
         return $form instanceof Symbol
             || $form instanceof PersistentVectorInterface

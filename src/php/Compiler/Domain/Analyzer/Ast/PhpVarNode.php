@@ -49,12 +49,12 @@ final class PhpVarNode extends AbstractNode
         'isset',
     ];
 
-    private string $name;
-
-    public function __construct(NodeEnvironmentInterface $env, string $name, ?SourceLocation $sourceLocation = null)
-    {
+    public function __construct(
+        NodeEnvironmentInterface $env,
+        private string $name,
+        ?SourceLocation $sourceLocation = null,
+    ) {
         parent::__construct($env, $sourceLocation);
-        $this->name = $name;
     }
 
     public static function withReturnContext(string $name, ?SourceLocation $sourceLocation = null): self

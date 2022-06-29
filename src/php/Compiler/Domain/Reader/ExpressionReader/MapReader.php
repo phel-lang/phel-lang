@@ -13,11 +13,8 @@ use Phel\Lang\TypeFactory;
 
 final class MapReader
 {
-    private Reader $reader;
-
-    public function __construct(Reader $reader)
+    public function __construct(private Reader $reader)
     {
-        $this->reader = $reader;
     }
 
     public function read(ListNode $node, NodeInterface $root): PersistentMapInterface

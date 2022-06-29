@@ -49,10 +49,7 @@ interface OutputEmitterInterface
 
     public function emitFnWrapSuffix(?SourceLocation $sl = null): void;
 
-    /**
-     * @param TypeInterface|string|float|int|bool|null $value
-     */
-    public function emitLiteral($value): void;
+    public function emitLiteral(array|bool|float|int|TypeInterface|string|null $value): void;
 
     public function increaseIndentLevel(): void;
 

@@ -24,13 +24,10 @@ final class StringPrinter implements TypePrinterInterface
         92 => '\\\\',
     ];
 
-    private bool $readable;
-    private bool $withColor;
-
-    public function __construct(bool $readable, bool $withColor = false)
-    {
-        $this->readable = $readable;
-        $this->withColor = $withColor;
+    public function __construct(
+        private bool $readable,
+        private bool $withColor = false,
+    ) {
     }
 
     public function print(mixed $form): string

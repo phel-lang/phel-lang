@@ -24,18 +24,13 @@ use function get_class;
 
 final class Reader implements ReaderInterface
 {
-    /** @var Symbol[]|null */
+    /** @var array<int,Symbol>|null */
     private ?array $fnArgs = null;
 
-    private ExpressionReaderFactoryInterface $readerFactory;
-    private QuasiquoteTransformerInterface $quasiquoteTransformer;
-
     public function __construct(
-        ExpressionReaderFactoryInterface $readerFactory,
-        QuasiquoteTransformerInterface $quasiquoteTransformer
+        private ExpressionReaderFactoryInterface $readerFactory,
+        private QuasiquoteTransformerInterface $quasiquoteTransformer,
     ) {
-        $this->readerFactory = $readerFactory;
-        $this->quasiquoteTransformer = $quasiquoteTransformer;
     }
 
     /**
@@ -61,10 +56,8 @@ final class Reader implements ReaderInterface
 
     /**
      * @throws ReaderException
-     *
-     * @return TypeInterface|string|float|int|bool|null
      */
-    public function readExpression(NodeInterface $node, NodeInterface $root)
+    public function readExpression(NodeInterface $node, NodeInterface $root): Symbol|float|bool|int|string|TypeInterface|null
     {
         if ($node instanceof SymbolNode) {
             return $this->readSymbolNode($node);
@@ -96,10 +89,7 @@ final class Reader implements ReaderInterface
             ->read($node, $this->fnArgs);
     }
 
-    /**
-     * @return TypeInterface|string|float|int|bool|null
-     */
-    private function readAtomNode(AbstractAtomNode $node)
+    private function readAtomNode(AbstractAtomNode $node): float|bool|int|string|TypeInterface|null
     {
         return $this->readerFactory
             ->createAtomReader()
@@ -139,10 +129,8 @@ final class Reader implements ReaderInterface
 
     /**
      * @throws NotValidQuoteNodeException
-     *
-     * @return TypeInterface|string|float|int|bool|null
      */
-    private function readQuoteNode(QuoteNode $node, NodeInterface $root)
+    private function readQuoteNode(QuoteNode $node, NodeInterface $root): float|bool|int|string|TypeInterface|null
     {
         if ($node->getTokenType() === Token::T_QUOTE) {
             return $this->readerFactory
@@ -173,10 +161,8 @@ final class Reader implements ReaderInterface
 
     /**
      * @throws ReaderException
-     *
-     * @return TypeInterface|string|float|int|bool
      */
-    private function readMetaNode(MetaNode $node, NodeInterface $root)
+    private function readMetaNode(MetaNode $node, NodeInterface $root): float|bool|int|string|TypeInterface
     {
         return $this->readerFactory
             ->createMetaReader($this)

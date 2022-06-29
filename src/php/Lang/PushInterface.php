@@ -16,5 +16,5 @@ interface PushInterface
      *
      * @return TSelf
      */
-    public function push($x);
+    public function push(mixed $x);
 }

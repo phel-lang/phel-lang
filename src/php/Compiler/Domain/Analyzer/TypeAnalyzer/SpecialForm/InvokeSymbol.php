@@ -73,10 +73,7 @@ final class InvokeSymbol implements SpecialFormAnalyzerInterface
         return $this->analyzer->analyzeMacro($this->macroExpand($list, $f), $env);
     }
 
-    /**
-     * @return TypeInterface|string|float|int|bool|null
-     */
-    private function inlineExpand(PersistentListInterface $list, GlobalVarNode $node)
+    private function inlineExpand(PersistentListInterface $list, GlobalVarNode $node): float|bool|int|string|TypeInterface|array|null
     {
         $meta = $node->getMeta();
         $fn = $meta[Keyword::create('inline')];
@@ -92,10 +89,7 @@ final class InvokeSymbol implements SpecialFormAnalyzerInterface
         }
     }
 
-    /**
-     * @return TypeInterface|string|float|int|bool|null
-     */
-    private function macroExpand(PersistentListInterface $list, GlobalVarNode $macroNode)
+    private function macroExpand(PersistentListInterface $list, GlobalVarNode $macroNode): float|bool|int|string|TypeInterface|array|null
     {
         /** @psalm-suppress PossiblyNullArgument */
         $nodeName = $macroNode->getName()->getName();
@@ -112,10 +106,7 @@ final class InvokeSymbol implements SpecialFormAnalyzerInterface
         }
     }
 
-    /**
-     * @return TypeInterface|string|float|int|bool|null
-     */
-    private function callMacroFn(callable $fn, PersistentListInterface $list)
+    private function callMacroFn(callable $fn, PersistentListInterface $list): float|bool|int|string|TypeInterface|array|null
     {
         $arguments = $list->rest()->toArray();
 
@@ -123,13 +114,10 @@ final class InvokeSymbol implements SpecialFormAnalyzerInterface
         return $this->enrichLocation($result, $list);
     }
 
-    /**
-     * @param TypeInterface|string|float|int|bool|null $x
-     *
-     * @return TypeInterface|string|float|int|bool|null
-     */
-    private function enrichLocation($x, TypeInterface $parent)
-    {
+    private function enrichLocation(
+        float|bool|int|string|TypeInterface|array|null $x,
+        TypeInterface $parent,
+    ): float|bool|int|string|TypeInterface|array|null {
         if ($x instanceof PersistentListInterface) {
             return $this->enrichLocationForList($x, $parent);
         }

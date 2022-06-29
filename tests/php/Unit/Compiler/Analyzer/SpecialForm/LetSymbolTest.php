@@ -12,6 +12,7 @@ use Phel\Compiler\Domain\Analyzer\Ast\LetNode;
 use Phel\Compiler\Domain\Analyzer\Ast\LiteralNode;
 use Phel\Compiler\Domain\Analyzer\Environment\GlobalEnvironment;
 use Phel\Compiler\Domain\Analyzer\Environment\NodeEnvironment;
+use Phel\Compiler\Domain\Analyzer\Environment\NodeEnvironmentInterface;
 use Phel\Compiler\Domain\Analyzer\Exceptions\AnalyzerException;
 use Phel\Compiler\Domain\Analyzer\TypeAnalyzer\SpecialForm\Binding\DeconstructorInterface;
 use Phel\Compiler\Domain\Analyzer\TypeAnalyzer\SpecialForm\LetSymbol;
@@ -111,7 +112,7 @@ final class LetSymbolTest extends TestCase
                         Symbol::create('a'),
                         Symbol::create('a_1'),
                         new LiteralNode(
-                            $env->withContext(NodeEnvironment::CONTEXT_EXPRESSION)->withDisallowRecurFrame()->withDisallowRecurFrame()->withBoundTo('.a'),
+                            $env->withContext(NodeEnvironmentInterface::CONTEXT_EXPRESSION)->withDisallowRecurFrame()->withDisallowRecurFrame()->withBoundTo('.a'),
                             1
                         )
                     ),
@@ -162,16 +163,16 @@ final class LetSymbolTest extends TestCase
             1,
             2,
         ]);
-        $env = NodeEnvironment::empty()->withContext(NodeEnvironment::CONTEXT_EXPRESSION);
+        $env = NodeEnvironment::empty()->withContext(NodeEnvironmentInterface::CONTEXT_EXPRESSION);
 
         $this->assertEquals(
             new LetNode(
                 $env,
                 [],
                 new DoNode(
-                    $env->withContext(NodeEnvironment::CONTEXT_RETURN),
-                    [new LiteralNode($env->withContext(NodeEnvironment::CONTEXT_STATEMENT)->withDisallowRecurFrame(), 1)],
-                    new LiteralNode($env->withContext(NodeEnvironment::CONTEXT_RETURN), 2)
+                    $env->withContext(NodeEnvironmentInterface::CONTEXT_RETURN),
+                    [new LiteralNode($env->withContext(NodeEnvironmentInterface::CONTEXT_STATEMENT)->withDisallowRecurFrame(), 1)],
+                    new LiteralNode($env->withContext(NodeEnvironmentInterface::CONTEXT_RETURN), 2)
                 ),
                 false
             ),

@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace Phel\Lang;
 
-use Phel\Lang\Collections\HashSet\PersistentHashSet;
 use Phel\Lang\Collections\HashSet\PersistentHashSetInterface;
 use Phel\Lang\Collections\HashSet\TransientHashSet;
 use Phel\Lang\Collections\LinkedList\EmptyList;
@@ -44,7 +43,7 @@ class TypeFactory
     }
 
     /**
-     * @param mixed[] $kvs
+     * @param list<mixed> $kvs
      */
     public function persistentMapFromKVs(...$kvs): PersistentMapInterface
     {
@@ -58,11 +57,6 @@ class TypeFactory
         }
 
         return PersistentHashMap::fromArray($this->hasher, $this->equalizer, $kvs);
-    }
-
-    public function emptyPersistentHashSet(): PersistentHashSetInterface
-    {
-        return new PersistentHashSet($this->hasher, null, $this->emptyPersistentMap());
     }
 
     public function persistentHashSetFromArray(array $values): PersistentHashSetInterface
@@ -110,11 +104,6 @@ class TypeFactory
     public function symbol(string $name): Symbol
     {
         return Symbol::create($name);
-    }
-
-    public function symbolForNamespace(?string $namespace, string $name): Symbol
-    {
-        return Symbol::createForNamespace($namespace, $name);
     }
 
     public function keyword(string $name): Keyword

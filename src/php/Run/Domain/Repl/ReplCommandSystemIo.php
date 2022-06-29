@@ -11,15 +11,10 @@ use Throwable;
 
 final class ReplCommandSystemIo implements ReplCommandIoInterface
 {
-    private string $historyFile;
-    private CommandFacadeInterface $commandFacade;
-
     public function __construct(
-        string $historyFile,
-        CommandFacadeInterface $commandFacade
+        private string $historyFile,
+        private CommandFacadeInterface $commandFacade,
     ) {
-        $this->historyFile = $historyFile;
-        $this->commandFacade = $commandFacade;
     }
 
     public function readHistory(): void

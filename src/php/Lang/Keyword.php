@@ -5,23 +5,20 @@ declare(strict_types=1);
 namespace Phel\Lang;
 
 use Phel\Lang\Collections\Map\PersistentMapInterface;
-use Phel\Printer\Printer;
 
 final class Keyword extends AbstractType implements IdenticalInterface, FnInterface, NamedInterface
 {
     use MetaTrait;
 
-    private ?string $namespace;
-    private string $name;
     private int $hash;
 
     /** @var array<string, Keyword> */
-    private static $refStore = [];
+    private static array $refStore = [];
 
-    private function __construct(?string $namespace, string $name)
-    {
-        $this->name = $name;
-        $this->namespace = $namespace;
+    private function __construct(
+        private ?string $namespace,
+        private string $name,
+    ) {
         if ($namespace) {
             $this->hash = crc32(':' . $namespace . '/' . $name);
         } else {
@@ -29,18 +26,9 @@ final class Keyword extends AbstractType implements IdenticalInterface, FnInterf
         }
     }
 
-    /**
-     * @param PersistentMapInterface $obj
-     * @param TypeInterface|string|float|int|bool|null $default
-     */
-    public function __invoke($obj, $default = null)
+    public function __invoke(PersistentMapInterface $obj, float|bool|int|string|TypeInterface $default = null)
     {
         return $obj[$this] ?? $default;
-    }
-
-    public function __toString(): string
-    {
-        return Printer::readable()->print($this);
     }
 
     public static function create(string $name): self
@@ -77,12 +65,12 @@ final class Keyword extends AbstractType implements IdenticalInterface, FnInterf
         return $this->hash;
     }
 
-    public function equals($other): bool
+    public function equals(mixed $other): bool
     {
         return $this->identical($other);
     }
 
-    public function identical($other): bool
+    public function identical(mixed $other): bool
     {
         return $other instanceof self
             && $this->name == $other->getName()

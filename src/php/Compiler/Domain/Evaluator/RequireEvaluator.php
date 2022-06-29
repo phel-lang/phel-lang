@@ -15,10 +15,8 @@ final class RequireEvaluator implements EvaluatorInterface
      *
      * @throws CompiledCodeIsMalformedException
      * @throws FileException
-     *
-     * @return mixed
      */
-    public function eval(string $code)
+    public function eval(string $code): mixed
     {
         $filename = tempnam(sys_get_temp_dir(), '__phel');
         if (!$filename) {

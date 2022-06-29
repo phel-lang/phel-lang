@@ -14,8 +14,6 @@ interface EvaluatorInterface
      *
      * @throws CompiledCodeIsMalformedException
      * @throws FileException
-     *
-     * @return mixed
      */
-    public function eval(string $code);
+    public function eval(string $code): mixed;
 }

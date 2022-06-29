@@ -38,28 +38,25 @@ use function is_object;
 
 final class Printer implements PrinterInterface
 {
-    private bool $readable;
-    private bool $withColor;
-
-    public function __construct(bool $readable, bool $withColor = false)
-    {
-        $this->readable = $readable;
-        $this->withColor = $withColor;
+    public function __construct(
+        private bool $readable,
+        private bool $withColor = false,
+    ) {
     }
 
     public static function readable(): self
     {
-        return new self($readable = true);
+        return new self(readable: true);
     }
 
     public static function nonReadable(): self
     {
-        return new self($readable = false);
+        return new self(readable: false);
     }
 
     public static function nonReadableWithColor(): self
     {
-        return new self($readable = false, $withColor = true);
+        return new self(readable: false, withColor: true);
     }
 
     /**
@@ -118,7 +115,7 @@ final class Printer implements PrinterInterface
     /**
      * @param mixed $form The form to print
      */
-    private function creatScalarTypePrinter($form): TypePrinterInterface
+    private function creatScalarTypePrinter(mixed $form): TypePrinterInterface
     {
         $printerName = gettype($form);
 

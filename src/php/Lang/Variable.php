@@ -41,7 +41,7 @@ final class Variable extends AbstractType
         return $this->value;
     }
 
-    public function equals($other): bool
+    public function equals(mixed $other): bool
     {
         return $this === $other;
     }

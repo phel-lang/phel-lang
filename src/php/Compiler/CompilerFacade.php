@@ -30,11 +30,9 @@ use Phel\Lang\TypeInterface;
 final class CompilerFacade extends AbstractFacade implements CompilerFacadeInterface
 {
     /**
-     * @param TypeInterface|string|float|int|bool|null $x
-     *
      * @throws AnalyzerException
      */
-    public function analyze($x, NodeEnvironmentInterface $env): AbstractNode
+    public function analyze(TypeInterface|string|float|int|bool|null $x, NodeEnvironmentInterface $env): AbstractNode
     {
         return $this->getFactory()
             ->createAnalyzer()
@@ -53,7 +51,7 @@ final class CompilerFacade extends AbstractFacade implements CompilerFacadeInter
             ->evalString($phelCode, $compileOptions);
     }
 
-    public function evalForm($form, CompileOptions $compileOptions): mixed
+    public function evalForm(TypeInterface|string|float|int|bool|null $form, CompileOptions $compileOptions): mixed
     {
         return $this->getFactory()
             ->createEvalCompiler()
@@ -73,13 +71,11 @@ final class CompilerFacade extends AbstractFacade implements CompilerFacadeInter
     }
 
     /**
-     * @param TypeInterface|string|float|int|bool|null $form
-     *
      * @throws CompilerException
      * @throws CompiledCodeIsMalformedException
      * @throws FileException
      */
-    public function compileForm($form, CompileOptions $compileOptions): EmitterResult
+    public function compileForm(float|bool|int|string|TypeInterface|null $form, CompileOptions $compileOptions): EmitterResult
     {
         return $this->getFactory()
             ->createCodeCompiler($compileOptions)

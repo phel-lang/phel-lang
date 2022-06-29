@@ -17,17 +17,15 @@ use Traversable;
  */
 class ArrayNode implements HashMapNodeInterface, Countable
 {
-    private HasherInterface $hasher;
-    private EqualizerInterface $equalizer;
-    private int $count;
     /** @var array<int, ?HashMapNodeInterface<K, V>> A fixed size array of nodes */
     private array $childNodes;
 
-    public function __construct(HasherInterface $hasher, EqualizerInterface $equalizer, int $count, array $childNodes)
-    {
-        $this->hasher = $hasher;
-        $this->equalizer = $equalizer;
-        $this->count = $count;
+    public function __construct(
+        private HasherInterface $hasher,
+        private EqualizerInterface $equalizer,
+        private int $count,
+        array $childNodes,
+    ) {
         $this->childNodes = $childNodes;
     }
 

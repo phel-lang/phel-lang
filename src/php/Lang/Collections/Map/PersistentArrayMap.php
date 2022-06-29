@@ -25,12 +25,13 @@ class PersistentArrayMap extends AbstractPersistentMap
 {
     public const MAX_SIZE = 16;
 
-    private array $array;
-
-    public function __construct(HasherInterface $hasher, EqualizerInterface $equalizer, ?PersistentMapInterface $meta, array $array)
-    {
+    public function __construct(
+        HasherInterface $hasher,
+        EqualizerInterface $equalizer,
+        ?PersistentMapInterface $meta,
+        private array $array,
+    ) {
         parent::__construct($hasher, $equalizer, $meta);
-        $this->array = $array;
     }
 
     public static function empty(HasherInterface $hasher, EqualizerInterface $equalizer): self

@@ -12,6 +12,7 @@ use Phel\Compiler\Domain\Analyzer\Ast\PhpVarNode;
 use Phel\Compiler\Domain\Analyzer\Ast\VectorNode;
 use Phel\Compiler\Domain\Analyzer\Environment\GlobalEnvironment;
 use Phel\Compiler\Domain\Analyzer\Environment\NodeEnvironment;
+use Phel\Compiler\Domain\Analyzer\Environment\NodeEnvironmentInterface;
 use Phel\Compiler\Domain\Analyzer\TypeAnalyzer\SpecialForm\ApplySymbol;
 use Phel\Compiler\Domain\Exceptions\AbstractLocatedException;
 use Phel\Lang\Symbol;
@@ -49,16 +50,16 @@ final class ApplySymbolTest extends TestCase
         $applyNode = (new ApplySymbol($this->analyzer))->analyze($list, NodeEnvironment::empty());
 
         $envLiteral = NodeEnvironment::empty()
-            ->withContext(NodeEnvironment::CONTEXT_EXPRESSION)
+            ->withContext(NodeEnvironmentInterface::CONTEXT_EXPRESSION)
             ->withDisallowRecurFrame()
             ->withDisallowRecurFrame();
 
         self::assertEquals(
             new ApplyNode(
                 NodeEnvironment::empty(),
-                new PhpVarNode(NodeEnvironment::empty()->withContext(NodeEnvironment::CONTEXT_EXPRESSION)->withDisallowRecurFrame(), '+'),
+                new PhpVarNode(NodeEnvironment::empty()->withContext(NodeEnvironmentInterface::CONTEXT_EXPRESSION)->withDisallowRecurFrame(), '+'),
                 [new VectorNode(
-                    NodeEnvironment::empty()->withContext(NodeEnvironment::CONTEXT_EXPRESSION)->withDisallowRecurFrame(),
+                    NodeEnvironment::empty()->withContext(NodeEnvironmentInterface::CONTEXT_EXPRESSION)->withDisallowRecurFrame(),
                     [
                         new LiteralNode($envLiteral, 1),
                         new LiteralNode($envLiteral, 2),

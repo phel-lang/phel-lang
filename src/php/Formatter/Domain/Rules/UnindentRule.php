@@ -58,7 +58,7 @@ final class UnindentRule implements RuleInterface
     {
         try {
             return $form->prev()->isLineBreak() && $form->isWhitespace();
-        } catch (ZipperException $e) {
+        } catch (ZipperException) {
             return false;
         }
     }

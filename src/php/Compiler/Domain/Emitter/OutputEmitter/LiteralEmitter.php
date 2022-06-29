@@ -25,21 +25,13 @@ use function is_string;
 
 final class LiteralEmitter
 {
-    private OutputEmitterInterface $outputEmitter;
-    private PrinterInterface $printer;
-
     public function __construct(
-        OutputEmitterInterface $outputEmitter,
-        PrinterInterface $printer
+        private OutputEmitterInterface $outputEmitter,
+        private PrinterInterface $printer,
     ) {
-        $this->outputEmitter = $outputEmitter;
-        $this->printer = $printer;
     }
 
-    /**
-     * @param TypeInterface|string|float|int|bool|null|array $x The value
-     */
-    public function emitLiteral($x): void
+    public function emitLiteral(TypeInterface|array|string|float|bool|int|null $x): void
     {
         if (is_float($x)) {
             $this->emitFloat($x);

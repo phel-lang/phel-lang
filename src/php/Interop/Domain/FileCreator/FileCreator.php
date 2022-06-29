@@ -10,14 +10,10 @@ use function dirname;
 
 final class FileCreator implements FileCreatorInterface
 {
-    private string $destinationDir;
-
-    private FileIoInterface $io;
-
-    public function __construct(string $destinationDir, FileIoInterface $io)
-    {
-        $this->destinationDir = $destinationDir;
-        $this->io = $io;
+    public function __construct(
+        private string $destinationDir,
+        private FileIoInterface $io,
+    ) {
     }
 
     public function createFromWrapper(Wrapper $wrapper): void

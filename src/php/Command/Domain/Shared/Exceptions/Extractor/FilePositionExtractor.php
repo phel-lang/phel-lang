@@ -10,11 +10,8 @@ use Phel\Compiler\Domain\Emitter\OutputEmitter\SourceMap\SourceMapConsumer;
 
 final class FilePositionExtractor implements FilePositionExtractorInterface
 {
-    private SourceMapExtractorInterface $sourceMapExtractor;
-
-    public function __construct(SourceMapExtractorInterface $sourceMapExtractor)
+    public function __construct(private SourceMapExtractorInterface $sourceMapExtractor)
     {
-        $this->sourceMapExtractor = $sourceMapExtractor;
     }
 
     public function getOriginal(string $filename, int $line): FilePosition

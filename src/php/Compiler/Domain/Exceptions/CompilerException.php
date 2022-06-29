@@ -9,15 +9,11 @@ use RuntimeException;
 
 final class CompilerException extends RuntimeException
 {
-    private CodeSnippet $codeSnippet;
-
-    private AbstractLocatedException $nestedException;
-
-    public function __construct(AbstractLocatedException $nestedException, CodeSnippet $codeSnippet)
-    {
+    public function __construct(
+        private AbstractLocatedException $nestedException,
+        private CodeSnippet $codeSnippet,
+    ) {
         parent::__construct($nestedException->getMessage());
-        $this->nestedException = $nestedException;
-        $this->codeSnippet = $codeSnippet;
     }
 
     public function getNestedException(): AbstractLocatedException

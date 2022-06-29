@@ -17,28 +17,20 @@ use function count;
  */
 class TransientVector implements TransientVectorInterface
 {
-    private EqualizerInterface $equalizer;
-    private HasherInterface $hasher;
-    private int $count;
-    private int $shift;
-    /** @var array<array> The root node of this vector */
-    private array $root;
-    /** @var T[] The tail of the vector. This is an optimization */
-    private array $tail;
-
     /**
      * @param int $count The number of elements inside this vector
      * @param int $shift The shift value
-     * @param array $root The root node
+     * @param array<array> $root The root node of this vector
+     * @param T[] $tail The tail of the vector. This is an optimization
      */
-    public function __construct(HasherInterface $hasher, EqualizerInterface $equalizer, int $count, int $shift, array $root, array $tail)
-    {
-        $this->hasher = $hasher;
-        $this->equalizer = $equalizer;
-        $this->count = $count;
-        $this->shift = $shift;
-        $this->root = $root;
-        $this->tail = $tail;
+    public function __construct(
+        private HasherInterface $hasher,
+        private EqualizerInterface $equalizer,
+        private int $count,
+        private int $shift,
+        private array $root,
+        private array $tail,
+    ) {
     }
 
     public static function empty(HasherInterface $hasher, EqualizerInterface $equalizer): self
@@ -212,18 +204,18 @@ class TransientVector implements TransientVectorInterface
     {
         $ret = $parent;
 
-        if ($level === PersistentVector::SHIFT) {
+        if ($level === PersistentVectorInterface::SHIFT) {
             $ret[] = $tailNode;
             return $ret;
         }
 
-        $subIndex = $this->count - 1 >> $level & PersistentVector::INDEX_MASK;
+        $subIndex = $this->count - 1 >> $level & PersistentVectorInterface::INDEX_MASK;
         if (count($parent) > $subIndex) {
-            $ret[$subIndex] = $this->pushTail($level - PersistentVector::SHIFT, $parent[$subIndex], $tailNode);
+            $ret[$subIndex] = $this->pushTail($level - PersistentVectorInterface::SHIFT, $parent[$subIndex], $tailNode);
             return $ret;
         }
 
-        $ret[] = $this->newPath($level - PersistentVector::SHIFT, $tailNode);
+        $ret[] = $this->newPath($level - PersistentVectorInterface::SHIFT, $tailNode);
 
         return $ret;
     }
@@ -279,7 +271,7 @@ class TransientVector implements TransientVectorInterface
     }
 
     /**
-     * @return T[]
+     * @return list<T>
      */
     private function getArrayForIndex(int $i): array
     {

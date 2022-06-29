@@ -11,11 +11,8 @@ use Phel\Compiler\Domain\Parser\ParserNode\ListNode;
 
 final class ListParser
 {
-    private Parser $parser;
-
-    public function __construct(Parser $parser)
+    public function __construct(private Parser $parser)
     {
-        $this->parser = $parser;
     }
 
     /**

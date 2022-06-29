@@ -64,8 +64,8 @@ TXT;
     {
         return new WrapperGenerator(
             new CompiledPhpClassBuilder(
-                $prefixNamespace = 'PhelGenerated',
-                new CompiledPhpMethodBuilder()
+                prefixNamespace: 'PhelGenerated',
+                methodBuilder: new CompiledPhpMethodBuilder()
             ),
             new WrapperRelativeFilenamePathBuilder()
         );

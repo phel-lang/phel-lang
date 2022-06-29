@@ -17,15 +17,11 @@ use function count;
  */
 class TransientArrayMap implements TransientMapInterface
 {
-    private EqualizerInterface $equalizer;
-    private HasherInterface $hasher;
-    private array $array;
-
-    public function __construct(HasherInterface $hasher, EqualizerInterface $equalizer, array $array)
-    {
-        $this->hasher = $hasher;
-        $this->equalizer = $equalizer;
-        $this->array = $array;
+    public function __construct(
+        private HasherInterface $hasher,
+        private EqualizerInterface $equalizer,
+        private array $array,
+    ) {
     }
 
     public static function empty(HasherInterface $hasher, EqualizerInterface $equalizer): self

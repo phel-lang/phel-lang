@@ -10,21 +10,12 @@ use RuntimeException;
 
 final class QuoteNode implements InnerNodeInterface
 {
-    private int $tokenType;
-    private SourceLocation $startLocation;
-    private SourceLocation $endLocation;
-    private NodeInterface $expression;
-
     public function __construct(
-        int $tokenType,
-        SourceLocation $startLocation,
-        SourceLocation $endLocation,
-        NodeInterface $expression
+        private int $tokenType,
+        private SourceLocation $startLocation,
+        private SourceLocation $endLocation,
+        private NodeInterface $expression,
     ) {
-        $this->tokenType = $tokenType;
-        $this->startLocation = $startLocation;
-        $this->endLocation = $endLocation;
-        $this->expression = $expression;
     }
 
     /**
@@ -52,18 +43,13 @@ final class QuoteNode implements InnerNodeInterface
 
     public function getCodePrefix(): string
     {
-        switch ($this->tokenType) {
-            case Token::T_QUOTE:
-                return "'";
-            case Token::T_UNQUOTE:
-                return ',';
-            case Token::T_UNQUOTE_SPLICING:
-                return ',@';
-            case Token::T_QUASIQUOTE:
-                return '`';
-            default:
-                throw new RuntimeException('Cannot find code prefix for token type: ' . $this->tokenType);
-        }
+        return match ($this->tokenType) {
+            Token::T_QUOTE => "'",
+            Token::T_UNQUOTE => ',',
+            Token::T_UNQUOTE_SPLICING => ',@',
+            Token::T_QUASIQUOTE => '`',
+            default => throw new RuntimeException('Cannot find code prefix for token type: ' . $this->tokenType),
+        };
     }
 
     public function getCodePostfix(): ?string

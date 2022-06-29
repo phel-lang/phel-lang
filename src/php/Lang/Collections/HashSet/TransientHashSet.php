@@ -14,13 +14,10 @@ use Phel\Lang\HasherInterface;
  */
 class TransientHashSet implements TransientHashSetInterface
 {
-    private TransientMapInterface $transientMap;
-    private HasherInterface $hasher;
-
-    public function __construct(HasherInterface $hasher, TransientMapInterface $transientMap)
-    {
-        $this->hasher = $hasher;
-        $this->transientMap = $transientMap;
+    public function __construct(
+        private HasherInterface $hasher,
+        private TransientMapInterface $transientMap,
+    ) {
     }
 
     public function count(): int
@@ -29,7 +26,6 @@ class TransientHashSet implements TransientHashSetInterface
     }
 
     /**
-     * @param V $value
      * @param mixed $key
      */
     public function contains($key): bool

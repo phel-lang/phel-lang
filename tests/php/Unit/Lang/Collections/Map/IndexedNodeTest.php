@@ -148,7 +148,7 @@ class IndexedNodeTest extends TestCase
         $node2 = $node1->remove(0, $hasher->hash(2), 2);
 
         self::assertEquals('foo', $node2->find(0, $hasher->hash(1), 1, null));
-        self::assertTrue($node1 === $node2);
+        self::assertSame($node1, $node2);
     }
 
     public function test_remove_non_existing_key_on_same_index(): void
@@ -159,7 +159,7 @@ class IndexedNodeTest extends TestCase
         $node2 = $node1->remove(0, $hasher->hash(33), 33);
 
         self::assertEquals('foo', $node2->find(0, $hasher->hash(1), 1, null));
-        self::assertTrue($node1 === $node2);
+        self::assertSame($node1, $node2);
     }
 
     public function test_remove_existing_key_on_child_node(): void
@@ -208,6 +208,6 @@ class IndexedNodeTest extends TestCase
             ->put(0, $hasher->hash(33), 33, 'bar', new Box(null));
         $node2 = $node1->remove(0, $hasher->hash(65), 65);
 
-        self::assertTrue($node1 === $node2);
+        self::assertSame($node1, $node2);
     }
 }

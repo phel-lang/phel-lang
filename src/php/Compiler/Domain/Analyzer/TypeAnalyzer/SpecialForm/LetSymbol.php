@@ -20,13 +20,10 @@ use function gettype;
 
 final class LetSymbol implements SpecialFormAnalyzerInterface
 {
-    private AnalyzerInterface $analyzer;
-    private DeconstructorInterface $deconstructor;
-
-    public function __construct(AnalyzerInterface $analyzer, DeconstructorInterface $deconstructor)
-    {
-        $this->analyzer = $analyzer;
-        $this->deconstructor = $deconstructor;
+    public function __construct(
+        private AnalyzerInterface $analyzer,
+        private DeconstructorInterface $deconstructor,
+    ) {
     }
 
     public function analyze(PersistentListInterface $list, NodeEnvironmentInterface $env): LetNode
@@ -91,7 +88,8 @@ final class LetSymbol implements SpecialFormAnalyzerInterface
         $exprs = $list->rest()->rest()->toArray();
         $bodyExpr = $this->analyzer->analyze(
             TypeFactory::getInstance()->persistentListFromArray([
-                Symbol::create(Symbol::NAME_DO), ...$exprs,
+                Symbol::create(Symbol::NAME_DO),
+                ...$exprs,
             ]),
             $bodyEnv
         );
@@ -106,7 +104,7 @@ final class LetSymbol implements SpecialFormAnalyzerInterface
     }
 
     /**
-     * @return BindingNode[]
+     * @return list<BindingNode>
      */
     private function analyzeBindings(PersistentVectorInterface $vector, NodeEnvironmentInterface $env): array
     {

@@ -9,20 +9,19 @@ use Phel\Lang\SourceLocation;
 
 final class VectorNode extends AbstractNode
 {
-    /** @var AbstractNode[] */
-    private array $args;
-
     /**
-     * @param AbstractNode[] $args
+     * @param list<AbstractNode> $args
      */
-    public function __construct(NodeEnvironmentInterface $env, array $args, ?SourceLocation $sourceLocation = null)
-    {
+    public function __construct(
+        NodeEnvironmentInterface $env,
+        private array $args,
+        ?SourceLocation $sourceLocation = null,
+    ) {
         parent::__construct($env, $sourceLocation);
-        $this->args = $args;
     }
 
     /**
-     * @return AbstractNode[]
+     * @return list<AbstractNode>
      */
     public function getArgs(): array
     {

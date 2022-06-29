@@ -132,10 +132,7 @@ final class DefSymbol implements SpecialFormAnalyzerInterface
         return [$meta, $init];
     }
 
-    /**
-     * @param mixed $meta
-     */
-    private function normalizeMeta($meta, PersistentListInterface $list): PersistentMapInterface
+    private function normalizeMeta(mixed $meta, PersistentListInterface $list): PersistentMapInterface
     {
         if (is_string($meta)) {
             $key = (Keyword::create('doc'))->copyLocationFrom($list);
@@ -167,11 +164,12 @@ final class DefSymbol implements SpecialFormAnalyzerInterface
         return [$list->get(2), $list->get(3)];
     }
 
-    /**
-     * @param TypeInterface|string|float|int|bool|null $init
-     */
-    private function analyzeInit($init, NodeEnvironmentInterface $env, string $namespace, Symbol $nameSymbol): AbstractNode
-    {
+    private function analyzeInit(
+        float|bool|int|string|TypeInterface|null $init,
+        NodeEnvironmentInterface $env,
+        string $namespace,
+        Symbol $nameSymbol,
+    ): AbstractNode {
         $initEnv = $env
             ->withBoundTo($namespace . '\\' . $nameSymbol)
             ->withContext(NodeEnvironmentInterface::CONTEXT_EXPRESSION)

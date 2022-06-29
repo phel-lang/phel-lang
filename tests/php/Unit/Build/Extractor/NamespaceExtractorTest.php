@@ -22,7 +22,7 @@ final class NamespaceExtractorTest extends TestCase
         $this->assertEquals(['phel\core'], $result->getDependencies());
     }
 
-    public function test_get_namespace_from_file_with_dependecies(): void
+    public function test_get_namespace_from_file_with_dependencies(): void
     {
         $fileContent = '(ns get\\ns\\from\\file (:require phel\html))';
         $result = $this->extractNamespace($fileContent);
@@ -52,7 +52,7 @@ final class NamespaceExtractorTest extends TestCase
         $this->extractNamespace($fileContent);
     }
 
-    private function extractNamespace($code): NamespaceInformation
+    private function extractNamespace(string $code): NamespaceInformation
     {
         $filePath = tempnam(sys_get_temp_dir(), self::class);
         file_put_contents($filePath, $code);

@@ -15,21 +15,12 @@ use Throwable;
 
 final class PathsFormatter
 {
-    private CommandFacadeInterface $commandFacade;
-    private FormatterInterface $formatter;
-    private PathFilterInterface $pathFilter;
-    private FileIoInterface $fileIo;
-
     public function __construct(
-        CommandFacadeInterface $commandFacade,
-        FormatterInterface $formatter,
-        PathFilterInterface $pathFilter,
-        FileIoInterface $fileIo
+        private CommandFacadeInterface $commandFacade,
+        private FormatterInterface $formatter,
+        private PathFilterInterface $pathFilter,
+        private FileIoInterface $fileIo,
     ) {
-        $this->commandFacade = $commandFacade;
-        $this->formatter = $formatter;
-        $this->pathFilter = $pathFilter;
-        $this->fileIo = $fileIo;
     }
 
     /**

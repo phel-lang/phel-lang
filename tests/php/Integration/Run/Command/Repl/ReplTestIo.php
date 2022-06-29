@@ -15,20 +15,17 @@ use function count;
 
 final class ReplTestIo implements ReplCommandIoInterface
 {
-    private ExceptionPrinterInterface $exceptionPrinter;
-
-    /** @var array string[] */
+    /** @var list<string> */
     private array $outputs = [];
 
-    /** @var InputLine[] */
+    /** @var list<InputLine> */
     private array $inputs = [];
 
     private int $currentIndex = 0;
 
 
-    public function __construct(ExceptionPrinterInterface $exceptionPrinter)
+    public function __construct(private ExceptionPrinterInterface $exceptionPrinter)
     {
-        $this->exceptionPrinter = $exceptionPrinter;
     }
 
     public function readHistory(): void
@@ -83,7 +80,7 @@ final class ReplTestIo implements ReplCommandIoInterface
     }
 
     /**
-     * @return string[]
+     * @return list<string>
      */
     public function getOutputs(): array
     {

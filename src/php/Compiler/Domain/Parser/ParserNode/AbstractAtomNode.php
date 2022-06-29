@@ -11,9 +11,6 @@ use Phel\Lang\SourceLocation;
  */
 abstract class AbstractAtomNode implements NodeInterface
 {
-    private string $code;
-    private SourceLocation $startLocation;
-    private SourceLocation $endLocation;
     /** @var T */
     private $value;
 
@@ -24,17 +21,13 @@ abstract class AbstractAtomNode implements NodeInterface
      * @param T $value The value of the atom
      */
     public function __construct(
-        string $code,
-        SourceLocation $startLocation,
-        SourceLocation $endLocation,
+        private string $code,
+        private SourceLocation $startLocation,
+        private SourceLocation $endLocation,
         $value
     ) {
-        $this->code = $code;
-        $this->startLocation = $startLocation;
-        $this->endLocation = $endLocation;
         $this->value = $value;
     }
-
 
     public function getCode(): string
     {

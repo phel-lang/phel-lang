@@ -18,16 +18,13 @@ use Phel\Lang\HasherInterface;
  */
 abstract class AbstractPersistentMap extends AbstractType implements PersistentMapInterface
 {
-    protected EqualizerInterface $equalizer;
-    protected HasherInterface $hasher;
-    protected ?PersistentMapInterface $meta;
     private int $hashCache = 0;
 
-    public function __construct(HasherInterface $hasher, EqualizerInterface $equalizer, ?PersistentMapInterface $meta)
-    {
-        $this->equalizer = $equalizer;
-        $this->hasher = $hasher;
-        $this->meta = $meta;
+    public function __construct(
+        protected HasherInterface $hasher,
+        protected EqualizerInterface $equalizer,
+        protected ?PersistentMapInterface $meta,
+    ) {
     }
 
     /**
@@ -57,7 +54,7 @@ abstract class AbstractPersistentMap extends AbstractType implements PersistentM
         return $this->hashCache;
     }
 
-    public function equals($other): bool
+    public function equals(mixed $other): bool
     {
         if (!$other instanceof PersistentMapInterface) {
             return false;

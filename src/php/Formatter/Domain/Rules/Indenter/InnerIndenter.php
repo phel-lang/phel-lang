@@ -10,14 +10,12 @@ use Phel\Lang\Symbol;
 
 final class InnerIndenter implements IndenterInterface
 {
-    private int $depth;
-    private string $symbol;
     private LineIndenter $lineIndenter;
 
-    public function __construct(string $symbol, int $depth)
-    {
-        $this->depth = $depth;
-        $this->symbol = $symbol;
+    public function __construct(
+        private string $symbol,
+        private int $depth,
+    ) {
         $this->lineIndenter = new LineIndenter();
     }
 

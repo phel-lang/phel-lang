@@ -10,24 +10,15 @@ use Phel\Lang\Symbol;
 
 final class DefNode extends AbstractNode
 {
-    private string $namespace;
-    private Symbol $name;
-    private MapNode $meta;
-    private AbstractNode $init;
-
     public function __construct(
         NodeEnvironmentInterface $env,
-        string $namespace,
-        Symbol $name,
-        MapNode $meta,
-        AbstractNode $init,
-        ?SourceLocation $sourceLocation = null
+        private string $namespace,
+        private Symbol $name,
+        private MapNode $meta,
+        private AbstractNode $init,
+        ?SourceLocation $sourceLocation = null,
     ) {
         parent::__construct($env, $sourceLocation);
-        $this->namespace = $namespace;
-        $this->name = $name;
-        $this->meta = $meta;
-        $this->init = $init;
     }
 
     public function getNamespace(): string

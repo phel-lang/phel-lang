@@ -13,19 +13,13 @@ use Phel\Formatter\Domain\Rules\Zipper\ZipperException;
 
 final class Formatter implements FormatterInterface
 {
-    private CompilerFacadeInterface $compilerFacade;
-    /** @var RuleInterface[] */
-    private array $rules;
-
     /**
-     * @param RuleInterface[] $rules
+     * @param list<RuleInterface> $rules
      */
     public function __construct(
-        CompilerFacadeInterface $compilerFacade,
-        array $rules
+        private CompilerFacadeInterface $compilerFacade,
+        private array $rules,
     ) {
-        $this->compilerFacade = $compilerFacade;
-        $this->rules = $rules;
     }
 
     /**
@@ -37,9 +31,8 @@ final class Formatter implements FormatterInterface
     {
         $tokenStream = $this->compilerFacade->lexString($string, $source);
         $fileNode = $this->compilerFacade->parseAll($tokenStream);
-        $formattedNode = $this->formatNode($fileNode);
 
-        return $formattedNode->getCode();
+        return $this->formatNode($fileNode)->getCode();
     }
 
     /**

@@ -11,16 +11,14 @@ use function count;
 
 final class DefInterfaceMethod
 {
-    private Symbol $name;
-    /** @var list<string> */
-    private array $arguments;
-    private ?string $comment;
-
-    public function __construct(Symbol $name, array $arguments, ?string $comment = null)
-    {
-        $this->name = $name;
-        $this->arguments = $arguments;
-        $this->comment = $comment;
+    /**
+     * @param list<string> $arguments
+     */
+    public function __construct(
+        private Symbol $name,
+        private array $arguments,
+        private ?string $comment = null,
+    ) {
     }
 
     public function getName(): Symbol

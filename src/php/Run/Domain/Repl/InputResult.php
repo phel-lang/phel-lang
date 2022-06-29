@@ -13,21 +13,11 @@ final class InputResult
     private const NO_VALUE = 'no_value';
     private const LAST_RESULT_PLACEHOLDER = '$_';
 
-    /** @var ?mixed */
-    private $lastResult;
-
-    /**
-     * @param ?mixed $result
-     */
-    private function __construct($result)
+    private function __construct(private mixed $lastResult)
     {
-        $this->lastResult = $result;
     }
 
-    /**
-     * @param ?mixed $result
-     */
-    public static function fromAny($result): self
+    public static function fromAny(mixed $result): self
     {
         return new self($result);
     }

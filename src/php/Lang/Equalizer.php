@@ -12,7 +12,7 @@ class Equalizer implements EqualizerInterface
      *
      * @return bool True, if $a is equals $b
      */
-    public function equals($a, $b): bool
+    public function equals(mixed $a, mixed $b): bool
     {
         if ($a instanceof EqualsInterface) {
             return $a->equals($b);

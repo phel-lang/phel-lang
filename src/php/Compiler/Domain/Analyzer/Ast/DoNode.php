@@ -9,23 +9,20 @@ use Phel\Lang\SourceLocation;
 
 final class DoNode extends AbstractNode
 {
-    /** @var AbstractNode[] */
-    private array $stmts;
-
-    private AbstractNode $ret;
-
     /**
-     * @param AbstractNode[] $stmts
+     * @param list<AbstractNode> $stmts
      */
-    public function __construct(NodeEnvironmentInterface $env, array $stmts, AbstractNode $ret, ?SourceLocation $sourceLocation = null)
-    {
+    public function __construct(
+        NodeEnvironmentInterface $env,
+        private array $stmts,
+        private AbstractNode $ret,
+        ?SourceLocation $sourceLocation = null,
+    ) {
         parent::__construct($env, $sourceLocation);
-        $this->stmts = $stmts;
-        $this->ret = $ret;
     }
 
     /**
-     * @return AbstractNode[]
+     * @return list<AbstractNode>
      */
     public function getStmts(): array
     {

@@ -10,41 +10,24 @@ use Phel\Lang\Symbol;
 
 final class FnNode extends AbstractNode
 {
-    /** @var Symbol[] */
-    private array $params;
-
-    private AbstractNode $body;
-
-    /** @var Symbol[] */
-    private array $uses;
-
-    private bool $isVariadic;
-
-    private bool $recurs;
-
     /**
-     * @param Symbol[] $params
-     * @param Symbol[] $uses
+     * @param list<Symbol> $params
+     * @param list<Symbol> $uses
      */
     public function __construct(
         NodeEnvironmentInterface $env,
-        array $params,
-        AbstractNode $body,
-        array $uses,
-        bool $isVariadic,
-        bool $recurs,
-        ?SourceLocation $sourceLocation = null
+        private array $params,
+        private AbstractNode $body,
+        private array $uses,
+        private bool $isVariadic,
+        private bool $recurs,
+        ?SourceLocation $sourceLocation = null,
     ) {
         parent::__construct($env, $sourceLocation);
-        $this->params = $params;
-        $this->body = $body;
-        $this->uses = $uses;
-        $this->isVariadic = $isVariadic;
-        $this->recurs = $recurs;
     }
 
     /**
-     * @return Symbol[]
+     * @return list<Symbol>
      */
     public function getParams(): array
     {
@@ -57,7 +40,7 @@ final class FnNode extends AbstractNode
     }
 
     /**
-     * @return Symbol[]
+     * @return list<Symbol>
      */
     public function getUses(): array
     {

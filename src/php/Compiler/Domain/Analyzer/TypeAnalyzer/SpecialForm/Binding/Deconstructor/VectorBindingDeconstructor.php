@@ -25,14 +25,12 @@ final class VectorBindingDeconstructor implements BindingDeconstructorInterface
     private const STATE_REST = 'rest';
     private const STATE_DONE = 'done';
 
-    private Deconstructor $deconstructor;
     private string $currentState = self::STATE_START;
     /** @psalm-suppress PropertyNotSetInConstructor */
     private Symbol $currentListSymbol;
 
-    public function __construct(Deconstructor $deconstructor)
+    public function __construct(private Deconstructor $deconstructor)
     {
-        $this->deconstructor = $deconstructor;
     }
 
     /**
@@ -61,10 +59,7 @@ final class VectorBindingDeconstructor implements BindingDeconstructorInterface
         }
     }
 
-    /**
-     * @param mixed $current
-     */
-    private function stateStart(array &$bindings, $current): void
+    private function stateStart(array &$bindings, mixed $current): void
     {
         if ($this->isRest($current)) {
             $this->currentState = self::STATE_REST;
@@ -82,10 +77,7 @@ final class VectorBindingDeconstructor implements BindingDeconstructorInterface
         $this->deconstructor->deconstructBindings($bindings, $current, $accessSymbol);
     }
 
-    /**
-     * @param mixed $current
-     */
-    private function stateRest(array &$bindings, $current): void
+    private function stateRest(array &$bindings, mixed $current): void
     {
         $this->currentState = self::STATE_DONE;
         $accessSymbol = Symbol::gen()->copyLocationFrom($current);
@@ -94,19 +86,13 @@ final class VectorBindingDeconstructor implements BindingDeconstructorInterface
         $this->deconstructor->deconstructBindings($bindings, $current, $accessSymbol);
     }
 
-    /**
-     * @param mixed $current
-     */
-    private function isRest($current): bool
+    private function isRest(mixed $current): bool
     {
         return $current instanceof Symbol
             && $current->getName() === self::REST_SYMBOL_NAME;
     }
 
-    /**
-     * @param mixed $current
-     */
-    private function createBindingValue(string $symbolName, $current): PersistentListInterface
+    private function createBindingValue(string $symbolName, mixed $current): PersistentListInterface
     {
         return TypeFactory::getInstance()->persistentListFromArray([
             (Symbol::create($symbolName))->copyLocationFrom($current),

@@ -9,24 +9,15 @@ use Phel\Lang\SourceLocation;
 
 final class PhpObjectCallNode extends AbstractNode
 {
-    private AbstractNode $targetExpr;
-    private AbstractNode $callExpr;
-    private bool $static;
-    private bool $methodCall;
-
     public function __construct(
         NodeEnvironmentInterface $env,
-        AbstractNode $targetExpr,
-        AbstractNode $callExpr,
-        bool $isStatic,
-        bool $isMethodCall,
-        ?SourceLocation $sourceLocation = null
+        private AbstractNode $targetExpr,
+        private AbstractNode $callExpr,
+        private bool $isStatic,
+        private bool $isMethodCall,
+        ?SourceLocation $sourceLocation = null,
     ) {
         parent::__construct($env, $sourceLocation);
-        $this->targetExpr = $targetExpr;
-        $this->callExpr = $callExpr;
-        $this->static = $isStatic;
-        $this->methodCall = $isMethodCall;
     }
 
     public function getTargetExpr(): AbstractNode
@@ -41,11 +32,11 @@ final class PhpObjectCallNode extends AbstractNode
 
     public function isStatic(): bool
     {
-        return $this->static;
+        return $this->isStatic;
     }
 
     public function isMethodCall(): bool
     {
-        return $this->methodCall;
+        return $this->isMethodCall;
     }
 }

@@ -95,7 +95,7 @@ abstract class AbstractPersistentStruct extends AbstractPersistentMap
         throw new MethodNotSupportedException('Structs don\'t support transients');
     }
 
-    public function equals($other): bool
+    public function equals(mixed $other): bool
     {
         if (!$other instanceof static) {
             return false;
@@ -112,9 +112,6 @@ abstract class AbstractPersistentStruct extends AbstractPersistentMap
         );
     }
 
-    /**
-     * @param Keyword $key
-     */
     protected function validateKey(Keyword $key): string
     {
         if (in_array($key->getName(), static::ALLOWED_KEYS)) {

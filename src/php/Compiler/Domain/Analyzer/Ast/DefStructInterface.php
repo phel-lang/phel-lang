@@ -6,17 +6,13 @@ namespace Phel\Compiler\Domain\Analyzer\Ast;
 
 final class DefStructInterface
 {
-    private string $absoluteInterfaceName;
-    /** @var list<DefStructMethod> */
-    private array $methods;
-
     /**
-     * @param list<DefStructMethod> $methods;
+     * @param list<DefStructMethod> $methods ;
      */
-    public function __construct(string $absoluteInterfaceName, array $methods)
-    {
-        $this->absoluteInterfaceName = $absoluteInterfaceName;
-        $this->methods = $methods;
+    public function __construct(
+        private string $absoluteInterfaceName,
+        private array $methods,
+    ) {
     }
 
     public function getAbsoluteInterfaceName(): string

@@ -19,18 +19,11 @@ use Phel\Lang\TypeFactory;
 
 final class FunctionsToExportFinder implements FunctionsToExportFinderInterface
 {
-    private BuildFacadeInterface $buildFacade;
-    private CommandFacadeInterface $commandFacade;
-    private array $exportDirs;
-
     public function __construct(
-        BuildFacadeInterface $buildFacade,
-        CommandFacadeInterface $commandFacade,
-        array $exportDirs
+        private BuildFacadeInterface $buildFacade,
+        private CommandFacadeInterface $commandFacade,
+        private array $exportDirs,
     ) {
-        $this->buildFacade = $buildFacade;
-        $this->commandFacade = $commandFacade;
-        $this->exportDirs = $exportDirs;
     }
 
     /**

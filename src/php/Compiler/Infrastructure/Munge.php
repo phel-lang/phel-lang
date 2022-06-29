@@ -40,15 +40,10 @@ final class Munge implements MungeInterface
         '?' => '_QMARK_',
     ];
 
-    private array $mapping;
-    private array $nsMapping;
-
     public function __construct(
-        array $mapping = self::DEFAULT_MAPPING,
-        array $nsMapping = self::DEFAULT_NS_MAPPING
+        private array $mapping = self::DEFAULT_MAPPING,
+        private array $nsMapping = self::DEFAULT_NS_MAPPING,
     ) {
-        $this->mapping = $mapping;
-        $this->nsMapping = $nsMapping;
     }
 
     public function encode(string $str): string

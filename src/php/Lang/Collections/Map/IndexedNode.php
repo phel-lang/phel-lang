@@ -7,6 +7,7 @@ namespace Phel\Lang\Collections\Map;
 use Phel\Lang\EqualizerInterface;
 use Phel\Lang\HasherInterface;
 use Traversable;
+
 use function array_key_exists;
 use function count;
 
@@ -18,15 +19,14 @@ use function count;
  */
 class IndexedNode implements HashMapNodeInterface
 {
-    private EqualizerInterface $equalizer;
-    private HasherInterface $hasher;
     /** @var array<int, array{0: K|null, 1: V|HashMapNodeInterface<K, V>}> */
     private array $objects;
 
-    public function __construct(HasherInterface $hasher, EqualizerInterface $equalizer, array $objects)
-    {
-        $this->hasher = $hasher;
-        $this->equalizer = $equalizer;
+    public function __construct(
+        private HasherInterface $hasher,
+        private EqualizerInterface $equalizer,
+        array $objects,
+    ) {
         $this->objects = $objects;
     }
 
@@ -234,7 +234,7 @@ class IndexedNode implements HashMapNodeInterface
      */
     private function splitNode(int $idx, int $shift, int $hash, $key, $value, Box $addedLeaf): HashMapNodeInterface
     {
-        $nodes = []; //array_fill(0, 32, null);
+        $nodes = []; // array_fill(0, 32, null);
         $empty = self::empty($this->hasher, $this->equalizer);
         $nodes[$idx] = $empty->put($shift + 5, $hash, $key, $value, $addedLeaf);
         for ($i = 0; $i < 32; ++$i) {

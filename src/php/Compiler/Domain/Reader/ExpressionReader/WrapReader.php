@@ -13,11 +13,8 @@ use Phel\Lang\TypeFactory;
 
 final class WrapReader
 {
-    private Reader $reader;
-
-    public function __construct(Reader $reader)
+    public function __construct(private Reader $reader)
     {
-        $this->reader = $reader;
     }
 
     public function read(QuoteNode $node, string $wrapFn, NodeInterface $root): PersistentListInterface

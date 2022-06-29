@@ -10,21 +10,14 @@ use Phel\Lang\Symbol;
 
 final class BindingNode extends AbstractNode
 {
-    private Symbol $symbol;
-    private Symbol $shadow;
-    private AbstractNode $initExpr;
-
     public function __construct(
         NodeEnvironmentInterface $env,
-        Symbol $symbol,
-        Symbol $shadow,
-        AbstractNode $initExpr,
-        ?SourceLocation $sourceLocation = null
+        private Symbol $symbol,
+        private Symbol $shadow,
+        private AbstractNode $initExpr,
+        ?SourceLocation $sourceLocation = null,
     ) {
         parent::__construct($env, $sourceLocation);
-        $this->symbol = $symbol;
-        $this->shadow = $shadow;
-        $this->initExpr = $initExpr;
     }
 
     public function getSymbol(): Symbol

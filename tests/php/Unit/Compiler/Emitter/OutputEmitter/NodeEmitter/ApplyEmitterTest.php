@@ -70,8 +70,8 @@ final class ApplyEmitterTest extends TestCase
             [Symbol::create('x')],
             new PhpVarNode(NodeEnvironment::empty()->withContext(NodeEnvironmentInterface::CONTEXT_RETURN), 'x'),
             [],
-            $isVariadic = true,
-            $recurs = false
+            isVariadic: true,
+            recurs: false
         );
 
         $args = [

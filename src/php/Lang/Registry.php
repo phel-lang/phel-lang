@@ -37,10 +37,7 @@ final class Registry
         $this->definitionsMetaData = [];
     }
 
-    /**
-     * @param mixed $value
-     */
-    public function addDefinition(string $ns, string $name, $value, ?PersistentMapInterface $metaData = null): void
+    public function addDefinition(string $ns, string $name, mixed $value, ?PersistentMapInterface $metaData = null): void
     {
         $this->definitions[$ns][$name] = $value;
         $this->definitionsMetaData[$ns][$name] = $metaData;

@@ -29,7 +29,6 @@ final class MapEmitter implements NodeEmitterInterface
             $this->outputEmitter->emitLine();
         }
 
-        $i = 0;
         for ($i = 0; $i < $countKeyValues; $i+=2) {
             $key = $keyValues[$i];
             $value = $keyValues[$i+1];

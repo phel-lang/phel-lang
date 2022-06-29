@@ -27,21 +27,12 @@ final class Token
     public const T_ATOM = 18;
     public const T_EOF = 100;
 
-    private string $code;
-    private int $type;
-    private SourceLocation $startLocation;
-    private SourceLocation $endLocation;
-
     public function __construct(
-        int $type,
-        string $code,
-        SourceLocation $startLocation,
-        SourceLocation $endLocation
+        private int $type,
+        private string $code,
+        private SourceLocation $startLocation,
+        private SourceLocation $endLocation,
     ) {
-        $this->type = $type;
-        $this->code = $code;
-        $this->startLocation = $startLocation;
-        $this->endLocation = $endLocation;
     }
 
     public function getCode(): string

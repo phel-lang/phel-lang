@@ -11,6 +11,7 @@ use function strlen;
 final class VLQ
 {
     private const CHARS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/=';
+
     /** @var array<int, string> */
     private array $integerToChar = [];
 
@@ -60,7 +61,7 @@ final class VLQ
      *
      * @param string $string The encoded string
      *
-     * @return int[]
+     * @return list<int>
      */
     public function decode(string $string): array
     {
@@ -103,7 +104,7 @@ final class VLQ
     /**
      * Encodes a list of number to a VLQ-base64 encoded string.
      *
-     * @param int[] $numbers A list of numbers to encode
+     * @param list<int> $numbers A list of numbers to encode
      */
     public function encodeIntegers(array $numbers): string
     {

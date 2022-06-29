@@ -11,22 +11,15 @@ use function count;
 
 final class MetaNode implements InnerNodeInterface
 {
-    private NodeInterface $meta;
-    private SourceLocation $startLocation;
-    private SourceLocation $endLocation;
-    /** @var array<int, NodeInterface> */
-    private array $children;
-
+    /**
+     * @param list<NodeInterface> $children
+     */
     public function __construct(
-        NodeInterface $meta,
-        SourceLocation $startLocation,
-        SourceLocation $endLocation,
-        array $children
+        private NodeInterface $meta,
+        private SourceLocation $startLocation,
+        private SourceLocation $endLocation,
+        private array $children
     ) {
-        $this->meta = $meta;
-        $this->startLocation = $startLocation;
-        $this->endLocation = $endLocation;
-        $this->children = $children;
     }
 
     /**

@@ -13,14 +13,12 @@ use function is_null;
 
 final class BlockIndenter implements IndenterInterface
 {
-    private int $index;
-    private string $symbol;
     private ListIndenter $listIndenter;
 
-    public function __construct(string $symbol, int $index)
-    {
-        $this->index = $index;
-        $this->symbol = $symbol;
+    public function __construct(
+        private string $symbol,
+        private int $index,
+    ) {
         $this->listIndenter = new ListIndenter();
     }
 
@@ -47,7 +45,7 @@ final class BlockIndenter implements IndenterInterface
             }
 
             return $x;
-        } catch (ZipperException $e) {
+        } catch (ZipperException) {
             return null;
         }
     }

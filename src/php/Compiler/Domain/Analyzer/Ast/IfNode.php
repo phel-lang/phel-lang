@@ -9,21 +9,14 @@ use Phel\Lang\SourceLocation;
 
 final class IfNode extends AbstractNode
 {
-    private AbstractNode $testExpr;
-    private AbstractNode $thenExpr;
-    private AbstractNode $elseExpr;
-
     public function __construct(
         NodeEnvironmentInterface $env,
-        AbstractNode $testExpr,
-        AbstractNode $thenExpr,
-        AbstractNode $elseExpr,
-        ?SourceLocation $sourceLocation = null
+        private AbstractNode $testExpr,
+        private AbstractNode $thenExpr,
+        private AbstractNode $elseExpr,
+        ?SourceLocation $sourceLocation = null,
     ) {
         parent::__construct($env, $sourceLocation);
-        $this->testExpr = $testExpr;
-        $this->thenExpr = $thenExpr;
-        $this->elseExpr = $elseExpr;
     }
 
     public function getTestExpr(): AbstractNode

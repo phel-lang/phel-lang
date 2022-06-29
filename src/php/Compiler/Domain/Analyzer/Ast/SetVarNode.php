@@ -9,18 +9,13 @@ use Phel\Lang\SourceLocation;
 
 final class SetVarNode extends AbstractNode
 {
-    private AbstractNode $symbol;
-    private AbstractNode $valueExpr;
-
     public function __construct(
         NodeEnvironmentInterface $env,
-        AbstractNode $symbol,
-        AbstractNode $valueExpr,
-        ?SourceLocation $sourceLocation = null
+        private AbstractNode $symbol,
+        private AbstractNode $valueExpr,
+        ?SourceLocation $sourceLocation = null,
     ) {
         parent::__construct($env, $sourceLocation);
-        $this->symbol = $symbol;
-        $this->valueExpr = $valueExpr;
     }
 
     public function getSymbol(): AbstractNode

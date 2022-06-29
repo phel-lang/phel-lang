@@ -9,23 +9,16 @@ use Phel\Lang\SourceLocation;
 
 final class PhpNewNode extends AbstractNode
 {
-    private AbstractNode $classExpr;
-
-    /** @var AbstractNode[] */
-    private array $args;
-
     /**
-     * @param AbstractNode[] $args
+     * @param list<AbstractNode> $args
      */
     public function __construct(
         NodeEnvironmentInterface $env,
-        AbstractNode $classExpr,
-        array $args,
-        ?SourceLocation $sourceLocation = null
+        private AbstractNode $classExpr,
+        private array $args,
+        ?SourceLocation $sourceLocation = null,
     ) {
         parent::__construct($env, $sourceLocation);
-        $this->classExpr = $classExpr;
-        $this->args = $args;
     }
 
     public function getClassExpr(): AbstractNode
@@ -34,7 +27,7 @@ final class PhpNewNode extends AbstractNode
     }
 
     /**
-     * @return AbstractNode[]
+     * @return list<AbstractNode>
      */
     public function getArgs(): array
     {

@@ -19,11 +19,9 @@ use function count;
 
 final class Deconstructor implements DeconstructorInterface
 {
-    private BindingValidatorInterface $bindingValidator;
-
-    public function __construct(BindingValidatorInterface $bindingChecker)
-    {
-        $this->bindingValidator = $bindingChecker;
+    public function __construct(
+        private BindingValidatorInterface $bindingValidator,
+    ) {
     }
 
     public function deconstruct(PersistentVectorInterface $form): array
@@ -41,13 +39,16 @@ final class Deconstructor implements DeconstructorInterface
      * Destructure a $binding $value pair and add the result to $bindings.
      *
      * @param array $bindings A reference to already defined bindings
-     * @param TypeInterface|string|float|int|bool|null $binding The binding form
-     * @param TypeInterface|string|float|int|bool|null $value The value form
+     * @param float|bool|int|string|TypeInterface|null $binding The binding form
+     * @param float|bool|int|string|TypeInterface|null $value The value form
      *
      * @throws AnalyzerException
      */
-    public function deconstructBindings(array &$bindings, $binding, $value): void
-    {
+    public function deconstructBindings(
+        array &$bindings,
+        float|bool|int|string|TypeInterface|null $binding,
+        float|bool|int|string|TypeInterface|null $value,
+    ): void {
         $this->bindingValidator->assertSupportedBinding($binding);
 
         $this->createDeconstructorForBinding($binding)
@@ -55,9 +56,9 @@ final class Deconstructor implements DeconstructorInterface
     }
 
     /**
-     * @param TypeInterface|string|float|int|bool|null $binding The binding form
+     * @param float|bool|int|string|TypeInterface|null $binding The binding form
      */
-    private function createDeconstructorForBinding($binding): BindingDeconstructorInterface
+    private function createDeconstructorForBinding(float|bool|int|string|TypeInterface|null $binding): BindingDeconstructorInterface
     {
         if ($binding instanceof Symbol) {
             return new SymbolBindingDeconstructor();

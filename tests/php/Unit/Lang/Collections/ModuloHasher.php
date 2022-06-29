@@ -15,7 +15,7 @@ class ModuloHasher implements HasherInterface
         $this->modulo = $modulo;
     }
 
-    public function hash($value): int
+    public function hash(mixed $value): int
     {
         return $value % $this->modulo;
     }

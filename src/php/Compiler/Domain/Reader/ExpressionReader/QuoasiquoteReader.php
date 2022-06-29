@@ -14,22 +14,17 @@ use Phel\Lang\TypeInterface;
 
 final class QuoasiquoteReader
 {
-    private Reader $reader;
-    private QuasiquoteTransformerInterface $quasiquoteTransformer;
-
-    public function __construct(Reader $reader, QuasiquoteTransformerInterface $quasiquoteTransformer)
-    {
-        $this->reader = $reader;
-        $this->quasiquoteTransformer = $quasiquoteTransformer;
+    public function __construct(
+        private Reader $reader,
+        private QuasiquoteTransformerInterface $quasiquoteTransformer,
+    ) {
     }
 
     /**
      * @throws ReaderException
      * @throws SpliceNotInListException
-     *
-     * @return TypeInterface|string|float|int|bool|null
      */
-    public function read(QuoteNode $node, NodeInterface $root)
+    public function read(QuoteNode $node, NodeInterface $root): float|bool|int|string|TypeInterface|null
     {
         $expression = $this->reader->readExpression($node->getExpression(), $root);
         $result = $this->quasiquoteTransformer->transform($expression);

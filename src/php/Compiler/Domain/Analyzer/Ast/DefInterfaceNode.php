@@ -10,22 +10,17 @@ use Phel\Lang\Symbol;
 
 final class DefInterfaceNode extends AbstractNode
 {
-    private string $namespace;
-    private Symbol $name;
-    /** @var list<DefInterfaceMethod> */
-    private array $methods;
-
+    /**
+     * @param list<DefInterfaceMethod> $methods
+     */
     public function __construct(
         NodeEnvironmentInterface $env,
-        string $namespace,
-        Symbol $name,
-        array $methods,
-        ?SourceLocation $startSourceLocation = null
+        private string $namespace,
+        private Symbol $name,
+        private array $methods,
+        ?SourceLocation $startSourceLocation = null,
     ) {
         parent::__construct($env, $startSourceLocation);
-        $this->namespace = $namespace;
-        $this->name = $name;
-        $this->methods = $methods;
     }
 
     public function getNamespace(): string

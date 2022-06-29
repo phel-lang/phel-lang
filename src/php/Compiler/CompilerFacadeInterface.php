@@ -26,18 +26,16 @@ use Phel\Lang\TypeInterface;
 interface CompilerFacadeInterface
 {
     /**
-     * @param TypeInterface|string|float|int|bool|null $x
-     *
      * @throws AnalyzerException
      */
-    public function analyze($x, NodeEnvironmentInterface $env): AbstractNode;
+    public function analyze(TypeInterface|string|float|int|bool|null $x, NodeEnvironmentInterface $env): AbstractNode;
 
     /**
      * Evaluates all expression in the given phel code. Returns the result
      * of the last expression.
      *
      * @param string $phelCode The phel code that should be evaluated
-     * @param CompileOptions $evalOptions The evaluation options
+     * @param CompileOptions $compileOptions The compile options
      *
      * @throws CompilerException|UnfinishedParserException
      *
@@ -47,13 +45,13 @@ interface CompilerFacadeInterface
 
     /**
      * @param TypeInterface|string|float|int|bool|null $form The phel form to evaluate
-     * @param CompileOptions $evalOptions The evaluation options
+     * @param CompileOptions $compileOptions The compile options
      *
      * @throws CompilerException
      *
      * @return mixed The evaluated result
      */
-    public function evalForm($form, CompileOptions $compileOptions): mixed;
+    public function evalForm(TypeInterface|string|float|int|bool|null $form, CompileOptions $compileOptions): mixed;
 
     /**
      * Compiles the given phel code to PHP code.

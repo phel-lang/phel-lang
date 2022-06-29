@@ -25,11 +25,8 @@ use function is_string;
 
 final class QuasiquoteTransformer implements QuasiquoteTransformerInterface
 {
-    private GlobalEnvironmentInterface $env;
-
-    public function __construct(GlobalEnvironmentInterface $env)
+    public function __construct(private GlobalEnvironmentInterface $env)
     {
-        $this->env = $env;
     }
 
     /**

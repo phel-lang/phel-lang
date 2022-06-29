@@ -8,18 +8,11 @@ use Phel\Command\Domain\CodeDirectories;
 
 final class DirectoryFinder implements DirectoryFinderInterface
 {
-    private string $applicationRootDir;
-    private CodeDirectories $codeDirectories;
-    private VendorDirectoriesFinderInterface $vendorDirectoriesFinder;
-
     public function __construct(
-        string $applicationRootDir,
-        CodeDirectories $codeDirectories,
-        VendorDirectoriesFinderInterface $vendorDirectoriesFinder
+        private string $applicationRootDir,
+        private CodeDirectories $codeDirectories,
+        private VendorDirectoriesFinderInterface $vendorDirectoriesFinder,
     ) {
-        $this->applicationRootDir = $applicationRootDir;
-        $this->codeDirectories = $codeDirectories;
-        $this->vendorDirectoriesFinder = $vendorDirectoriesFinder;
     }
 
     /**

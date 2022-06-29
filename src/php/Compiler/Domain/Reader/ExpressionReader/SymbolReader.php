@@ -10,7 +10,7 @@ use Phel\Lang\Symbol;
 final class SymbolReader
 {
     /**
-     * @param Symbol[]|null &$fnArgs
+     * @param array<int,Symbol>|null &$fnArgs
      */
     public function read(SymbolNode $node, ?array &$fnArgs): Symbol
     {
@@ -23,7 +23,7 @@ final class SymbolReader
     }
 
     /**
-     * @param Symbol[]|null &$fnArgs
+     * @param array<int,Symbol>|null &$fnArgs
      */
     private function createSymbol(SymbolNode $node, ?array &$fnArgs): Symbol
     {
@@ -52,7 +52,7 @@ final class SymbolReader
             return $sym;
         }
 
-        if (preg_match('/\$([1-9][0-9]*)/', $word, $matches)) {
+        if (preg_match('/\$([1-9]\d*)/', $word, $matches)) {
             $number = (int)$matches[1];
             if (isset($fnArgs[$number])) {
                 return Symbol::create($fnArgs[$number]->getName());

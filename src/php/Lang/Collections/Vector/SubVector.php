@@ -6,6 +6,7 @@ namespace Phel\Lang\Collections\Vector;
 
 use Phel\Lang\Collections\Exceptions\IndexOutOfBoundsException;
 use Phel\Lang\Collections\Exceptions\MethodNotSupportedException;
+use Phel\Lang\Collections\LinkedList\PersistentList;
 use Phel\Lang\Collections\Map\PersistentMapInterface;
 use Phel\Lang\EqualizerInterface;
 use Phel\Lang\HasherInterface;
@@ -18,16 +19,15 @@ use function array_slice;
  */
 class SubVector extends AbstractPersistentVector
 {
-    private PersistentVectorInterface $vector;
-    private int $start;
-    private int $end;
-
-    public function __construct(HasherInterface $hasher, EqualizerInterface $equalizer, ?PersistentMapInterface $meta, PersistentVectorInterface $vector, int $start, int $end)
-    {
+    public function __construct(
+        HasherInterface $hasher,
+        EqualizerInterface $equalizer,
+        ?PersistentMapInterface $meta,
+        private PersistentVectorInterface $vector,
+        private int $start,
+        private int $end,
+    ) {
         parent::__construct($hasher, $equalizer, $meta);
-        $this->vector = $vector;
-        $this->start = $start;
-        $this->end = $end;
     }
 
     public function count(): int

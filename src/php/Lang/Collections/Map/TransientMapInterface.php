@@ -12,7 +12,7 @@ use Phel\Lang\ContainsInterface;
  * @template K
  * @template V
  *
- * @extends ContainsInferface<K>
+ * @extends ContainsInterface<K>
  */
 interface TransientMapInterface extends Countable, ArrayAccess, ContainsInterface
 {

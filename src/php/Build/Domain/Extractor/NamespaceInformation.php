@@ -6,16 +6,14 @@ namespace Phel\Build\Domain\Extractor;
 
 final class NamespaceInformation
 {
-    private string $file;
-    private string $namespace;
-    /** @var string[] */
-    private array $dependencies;
-
-    public function __construct(string $file, string $namespace, array $dependencies)
-    {
-        $this->file = $file;
-        $this->namespace = $namespace;
-        $this->dependencies = $dependencies;
+    /**
+     * @param list<string> $dependencies
+     */
+    public function __construct(
+        private string $file,
+        private string $namespace,
+        private array $dependencies,
+    ) {
     }
 
     public function getFile(): string
@@ -28,6 +26,9 @@ final class NamespaceInformation
         return $this->namespace;
     }
 
+    /**
+     * @return list<string>
+     */
     public function getDependencies(): array
     {
         return $this->dependencies;

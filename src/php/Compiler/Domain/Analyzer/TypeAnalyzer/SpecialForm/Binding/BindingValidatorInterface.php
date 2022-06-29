@@ -18,5 +18,5 @@ interface BindingValidatorInterface
      *
      * @throws AnalyzerException
      */
-    public function assertSupportedBinding($form): void;
+    public function assertSupportedBinding(mixed $form): void;
 }

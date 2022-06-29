@@ -127,10 +127,7 @@ final class TrySymbol implements SpecialFormAnalyzerInterface
         );
     }
 
-    /**
-     * @param mixed $x
-     */
-    private function isSymWithName($x, string $name): bool
+    private function isSymWithName(mixed $x, string $name): bool
     {
         return $x instanceof Symbol && $x->getName() === $name;
     }

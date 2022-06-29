@@ -13,55 +13,23 @@ use function in_array;
 
 final class NodeEnvironment implements NodeEnvironmentInterface
 {
-    /**
-     * A list of local symbols.
-     *
-     * @var Symbol[]
-     */
-    private array $locals;
-
-    /** The current context (Expression, Statement or Return). */
-    private string $context;
-
-    /**
-     * A mapping of local variables to shadowed names.
-     *
-     * @var Symbol[]
-     */
-    private array $shadowed;
-
-    /**
-     * A list of RecurFrame.
-     *
-     * @var array<RecurFrame|null>
-     */
-    private array $recurFrames;
-
-    /** A variable this is bound to. */
-    private string $boundTo;
-
     /** Def inside of def should not work. This flag help us to keep track of this. */
     private bool $defAllowed = true;
 
     /**
-     * @param Symbol[] $locals A list of local symbols
+     * @param array<int, Symbol> $locals A list of local symbols
      * @param string $context The current context (Expression, Statement or Return)
-     * @param Symbol[] $shadowed A list of shadowed variables
+     * @param array<string, Symbol> $shadowed A mapping list of local variables to shadowed names
      * @param array<RecurFrame|null> $recurFrames A list of RecurFrame
-     * @param string|null $boundTo A variable this is bound to
+     * @param string $boundTo A variable this is bound to
      */
     public function __construct(
-        array $locals,
-        string $context,
-        array $shadowed,
-        array $recurFrames,
-        ?string $boundTo = null
+        private array $locals,
+        private string $context,
+        private array $shadowed,
+        private array $recurFrames,
+        private string $boundTo = '',
     ) {
-        $this->locals = $locals;
-        $this->context = $context;
-        $this->shadowed = $shadowed;
-        $this->recurFrames = $recurFrames;
-        $this->boundTo = $boundTo ?? '';
     }
 
     public static function empty(): NodeEnvironmentInterface
@@ -70,7 +38,7 @@ final class NodeEnvironment implements NodeEnvironmentInterface
     }
 
     /**
-     * @return Symbol[]
+     * @return array<int, Symbol>
      */
     public function getLocals(): array
     {
@@ -130,7 +98,7 @@ final class NodeEnvironment implements NodeEnvironmentInterface
     }
 
     /**
-     * @param Symbol[] $locals
+     * @param array<int, Symbol> $locals
      */
     public function withoutShadowedLocals(array $locals): self
     {

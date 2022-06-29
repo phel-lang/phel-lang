@@ -27,5 +27,5 @@ interface CodeCompilerInterface
      * @throws CompiledCodeIsMalformedException
      * @throws FileException
      */
-    public function compileForm($form, CompileOptions $compileOptions): EmitterResult;
+    public function compileForm(float|bool|int|string|TypeInterface|null $form, CompileOptions $compileOptions): EmitterResult;
 }

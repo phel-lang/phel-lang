@@ -75,8 +75,7 @@ final class Parser implements ParserInterface
      */
     public function readExpression(TokenStream $tokenStream): NodeInterface
     {
-        while ($tokenStream->valid()) {
-            /** @var Token $token */
+        if ($tokenStream->valid()) {
             $token = $tokenStream->current();
 
             switch ($token->getType()) {

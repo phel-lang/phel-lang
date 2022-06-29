@@ -14,6 +14,7 @@ use Phel\Compiler\Domain\Analyzer\Ast\PhpVarNode;
 use Phel\Compiler\Domain\Analyzer\Ast\VectorNode;
 use Phel\Compiler\Domain\Analyzer\Environment\GlobalEnvironment;
 use Phel\Compiler\Domain\Analyzer\Environment\NodeEnvironment;
+use Phel\Compiler\Domain\Analyzer\Environment\NodeEnvironmentInterface;
 use Phel\Compiler\Domain\Analyzer\Exceptions\AnalyzerException;
 use Phel\Compiler\Domain\Analyzer\TypeAnalyzer\SpecialForm\InvokeSymbol;
 use Phel\Lang\Keyword;
@@ -84,7 +85,7 @@ final class InvokeSymbolTest extends TestCase
         $this->assertEquals(
             new CallNode(
                 $env,
-                new PhpVarNode($env->withContext(NodeEnvironment::CONTEXT_EXPRESSION)->withDisallowRecurFrame(), '+'),
+                new PhpVarNode($env->withContext(NodeEnvironmentInterface::CONTEXT_EXPRESSION)->withDisallowRecurFrame(), '+'),
                 []
             ),
             $node
@@ -103,9 +104,9 @@ final class InvokeSymbolTest extends TestCase
         $this->assertEquals(
             new CallNode(
                 $env,
-                new PhpVarNode($env->withContext(NodeEnvironment::CONTEXT_EXPRESSION)->withDisallowRecurFrame(), '+'),
+                new PhpVarNode($env->withContext(NodeEnvironmentInterface::CONTEXT_EXPRESSION)->withDisallowRecurFrame(), '+'),
                 [
-                    new LiteralNode($env->withContext(NodeEnvironment::CONTEXT_EXPRESSION)->withDisallowRecurFrame(), 1),
+                    new LiteralNode($env->withContext(NodeEnvironmentInterface::CONTEXT_EXPRESSION)->withDisallowRecurFrame(), 1),
                 ]
             ),
             $node
@@ -128,9 +129,9 @@ final class InvokeSymbolTest extends TestCase
                 $env,
                 [
                     new VectorNode(
-                        $env->withContext(NodeEnvironment::CONTEXT_EXPRESSION)->withDisallowRecurFrame(),
+                        $env->withContext(NodeEnvironmentInterface::CONTEXT_EXPRESSION)->withDisallowRecurFrame(),
                         [
-                            new LiteralNode($env->withContext(NodeEnvironment::CONTEXT_EXPRESSION)->withDisallowRecurFrame()->withDisallowRecurFrame(), 1),
+                            new LiteralNode($env->withContext(NodeEnvironmentInterface::CONTEXT_EXPRESSION)->withDisallowRecurFrame()->withDisallowRecurFrame(), 1),
                         ]
                     ),
 
@@ -176,7 +177,7 @@ final class InvokeSymbolTest extends TestCase
         $node = (new InvokeSymbol($this->analyzer))->analyze($list, $env);
 
         $this->assertEquals(
-            new LiteralNode($env->withContext(NodeEnvironment::CONTEXT_STATEMENT), 2),
+            new LiteralNode($env->withContext(NodeEnvironmentInterface::CONTEXT_STATEMENT), 2),
             $node
         );
     }
@@ -191,7 +192,7 @@ final class InvokeSymbolTest extends TestCase
         $node = (new InvokeSymbol($this->analyzer))->analyze($list, $env);
 
         $this->assertEquals(
-            new LiteralNode($env->withContext(NodeEnvironment::CONTEXT_STATEMENT), 2),
+            new LiteralNode($env->withContext(NodeEnvironmentInterface::CONTEXT_STATEMENT), 2),
             $node
         );
     }
@@ -209,7 +210,7 @@ final class InvokeSymbolTest extends TestCase
             new CallNode(
                 $env,
                 new GlobalVarNode(
-                    $env->withContext(NodeEnvironment::CONTEXT_EXPRESSION)->withDisallowRecurFrame(),
+                    $env->withContext(NodeEnvironmentInterface::CONTEXT_EXPRESSION)->withDisallowRecurFrame(),
                     'user',
                     Symbol::create('my-inline-fn-with-arity'),
                     TypeFactory::getInstance()->persistentMapFromKVs(
@@ -220,7 +221,7 @@ final class InvokeSymbolTest extends TestCase
                     )
                 ),
                 [
-                    new LiteralNode($env->withContext(NodeEnvironment::CONTEXT_EXPRESSION)->withDisallowRecurFrame(), 'foo'),
+                    new LiteralNode($env->withContext(NodeEnvironmentInterface::CONTEXT_EXPRESSION)->withDisallowRecurFrame(), 'foo'),
                 ]
             ),
             $node

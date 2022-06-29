@@ -61,15 +61,11 @@ final class VLQTest extends TestCase
 
     private function encode(array $xs): string
     {
-        $service = new VLQ();
-
-        return $service->encodeIntegers($xs);
+        return (new VLQ())->encodeIntegers($xs);
     }
 
     private function decode(string $s): array
     {
-        $service = new VLQ();
-
-        return $service->decode($s);
+        return (new VLQ())->decode($s);
     }
 }
