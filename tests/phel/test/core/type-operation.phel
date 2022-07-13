@@ -90,9 +90,11 @@
   (is (true? (empty? [])) "empty? on empty vector")
   (is (true? (empty? (php/array))) "empty? on empty php array")
   (is (true? (empty? {})) "empty? on empty map")
+  (is (true? (empty? "")) "empty? on one empty string")
   (is (false? (empty? [1])) "empty? on one element vector")
   (is (false? (empty? (php/array 1))) "empty? on one element php array")
-  (is (false? (empty? {:a 1})) "empty? on one element map"))
+  (is (false? (empty? {:a 1})) "empty? on one element map")
+  (is (false? (empty? "a")) "empty? on one string"))
 
 (deftest test-indexed?
   (is (false? (indexed? {})) "indexed? on map")

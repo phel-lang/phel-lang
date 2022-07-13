@@ -316,9 +316,11 @@ implement the PHP Countable interface."
     (php/-> xs (count))
     (if (php/is_array xs)
       (php/count xs)
-      (if (php/=== xs nil)
-        0
-        (throw (php/new InvalidArgumentException (str "object is not countable: " xs)))))))
+      (if (php/is_string xs)
+        (throw (php/new InvalidArgumentException "strings are not supported. Consider using native PHP functions like `php/strlen` or `php/mb_strlen`."))
+        (if (php/=== xs nil)
+          0
+          (throw (php/new InvalidArgumentException (str "object is not countable: " xs))))))))
 
 # ------------------
 # Control structures
@@ -678,7 +680,9 @@ Calling the and function without arguments returns true."
 (defn empty?
   "Returns true if `(count x)` is zero, false otherwise."
   [x]
-  (= 0 (count x)))
+  (if (php/is_string x)
+    (true? (php/empty x))
+    (= 0 (count x))))
 
 (defn- indexed-php-array?
   [x]

@@ -4,6 +4,9 @@ All notable changes to this project will be documented in this file.
 
 ## Unreleased
 
+* Allow strings on `empty?` (#492)
+* Improved error message when using strings on `count` (#492)
+
 ## 0.7.0 (2022-05-05)
 
 * Added: `merge-with` function
