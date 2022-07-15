@@ -6,6 +6,7 @@ namespace PhelTest\Unit\Formatter\Domain\Rules\Zipper;
 
 use Phel\Formatter\Domain\Rules\Zipper\AbstractZipper;
 use Phel\Formatter\Domain\Rules\Zipper\ZipperException;
+
 use function is_array;
 
 /**

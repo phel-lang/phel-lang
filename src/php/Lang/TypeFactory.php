@@ -14,6 +14,7 @@ use Phel\Lang\Collections\Map\PersistentHashMap;
 use Phel\Lang\Collections\Map\PersistentMapInterface;
 use Phel\Lang\Collections\Vector\PersistentVector;
 use Phel\Lang\Collections\Vector\PersistentVectorInterface;
+
 use function count;
 
 class TypeFactory

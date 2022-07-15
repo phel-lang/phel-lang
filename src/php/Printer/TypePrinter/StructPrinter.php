@@ -6,6 +6,7 @@ namespace Phel\Printer\TypePrinter;
 
 use Phel\Lang\Collections\Struct\AbstractPersistentStruct;
 use Phel\Printer\PrinterInterface;
+
 use function get_class;
 
 /**

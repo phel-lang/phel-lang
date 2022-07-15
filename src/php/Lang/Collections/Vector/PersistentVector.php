@@ -10,6 +10,7 @@ use Phel\Lang\EqualizerInterface;
 use Phel\Lang\HasherInterface;
 use RuntimeException;
 use Traversable;
+
 use function array_slice;
 use function count;
 

@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Phel\Lang;
 
 use Phel\Lang\Collections\Map\PersistentMapInterface;
+
 use function array_key_exists;
 
 final class Registry
