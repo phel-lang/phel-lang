@@ -55,10 +55,10 @@ final class TrySymbol implements SpecialFormAnalyzerInterface
                     break;
 
                 case 'done':
-                   throw AnalyzerException::withLocation("Unexpected form after 'finally", $list);
+                    throw AnalyzerException::withLocation("Unexpected form after 'finally", $list);
 
                 default:
-                   throw AnalyzerException::withLocation("Unexpected parser state in 'try", $list);
+                    throw AnalyzerException::withLocation("Unexpected parser state in 'try", $list);
             }
         }
 

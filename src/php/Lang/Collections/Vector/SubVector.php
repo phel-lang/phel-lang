@@ -11,6 +11,7 @@ use Phel\Lang\Collections\Map\PersistentMapInterface;
 use Phel\Lang\EqualizerInterface;
 use Phel\Lang\HasherInterface;
 use Traversable;
+
 use function array_slice;
 
 /**

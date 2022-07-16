@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Phel\Lang\Collections\Vector;
 
 use Iterator;
+
 use function assert;
 use function count;
 

@@ -8,6 +8,7 @@ use Phel\Lang\EqualizerInterface;
 use Phel\Lang\HasherInterface;
 use RuntimeException;
 use Traversable;
+
 use function count;
 
 /**

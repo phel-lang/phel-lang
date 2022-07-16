@@ -10,6 +10,7 @@ use Phel\Lang\HasherInterface;
 use RuntimeException;
 use stdclass;
 use Traversable;
+
 use function count;
 
 /**
