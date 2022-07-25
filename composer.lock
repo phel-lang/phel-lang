@@ -4,20 +4,20 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "4dc610aa16fb3f86a9a9f76c9a025dff",
+    "content-hash": "1613d5290103d8b1cbdc5c4d0a499cb8",
     "packages": [
         {
             "name": "gacela-project/gacela",
-            "version": "0.23.1",
+            "version": "0.24.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/gacela-project/gacela.git",
-                "reference": "65c0fbb9a70c3160a4e46dd10f4a2071129341b8"
+                "reference": "e69bbbba62205fd23bb54d543fe0ec721d220408"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/gacela-project/gacela/zipball/65c0fbb9a70c3160a4e46dd10f4a2071129341b8",
-                "reference": "65c0fbb9a70c3160a4e46dd10f4a2071129341b8",
+                "url": "https://api.github.com/repos/gacela-project/gacela/zipball/e69bbbba62205fd23bb54d543fe0ec721d220408",
+                "reference": "e69bbbba62205fd23bb54d543fe0ec721d220408",
                 "shasum": ""
             },
             "require": {
@@ -25,14 +25,15 @@
                 "php": ">=7.4"
             },
             "require-dev": {
-                "friendsofphp/php-cs-fixer": "^3.8",
+                "friendsofphp/php-cs-fixer": "^3.9",
                 "phpbench/phpbench": "^1.2",
                 "phpmetrics/phpmetrics": "^2.8",
-                "phpstan/phpstan": "^1.7",
+                "phpstan/phpstan": "^1.8",
                 "phpunit/phpunit": "^9.5",
+                "psalm/plugin-phpunit": "^0.17.0",
                 "symfony/console": "^5.4",
                 "symfony/var-dumper": "^5.4",
-                "vimeo/psalm": "^4.23"
+                "vimeo/psalm": "^4.24"
             },
             "suggest": {
                 "gacela-project/gacela-env-config-reader": "Allows to read .env config files",
@@ -71,7 +72,7 @@
             ],
             "support": {
                 "issues": "https://github.com/gacela-project/gacela/issues",
-                "source": "https://github.com/gacela-project/gacela/tree/0.23.1"
+                "source": "https://github.com/gacela-project/gacela/tree/0.24.0"
             },
             "funding": [
                 {
@@ -79,7 +80,7 @@
                     "type": "github"
                 }
             ],
-            "time": "2022-06-25T09:32:09+00:00"
+            "time": "2022-07-23T16:37:11+00:00"
         },
         {
             "name": "phpunit/php-timer",
@@ -5317,5 +5318,5 @@
     "platform-overrides": {
         "php": "8.0"
     },
-    "plugin-api-version": "2.1.0"
+    "plugin-api-version": "2.3.0"
 }
