@@ -2,7 +2,12 @@
     "name": "phel-lang/phel-lang",
     "type": "library",
     "description": "Phel is a functional programming language that compiles to PHP",
-    "keywords": ["phel","lisp","functional","language"],
+    "keywords": [
+        "phel",
+        "lisp",
+        "functional",
+        "language"
+    ],
     "homepage": "https://phel-lang.org/",
     "license": "MIT",
     "authors": [
