@@ -73,7 +73,7 @@ final class Munge implements MungeInterface
         return str_replace(
             array_keys($mapping),
             array_values($mapping),
-            $str
+            $str,
         );
     }
 }

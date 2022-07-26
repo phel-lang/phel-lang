@@ -27,7 +27,7 @@ final class RunCommandTest extends AbstractCommandTest
 
         $this->createRunCommand()->run(
             $this->stubInput('test\\test-script'),
-            $this->stubOutput()
+            $this->stubOutput(),
         );
     }
 
@@ -37,7 +37,7 @@ final class RunCommandTest extends AbstractCommandTest
 
         $this->createRunCommand()->run(
             $this->stubInput(__DIR__ . '/Fixtures/test-script.phel'),
-            $this->stubOutput()
+            $this->stubOutput(),
         );
     }
 

@@ -23,7 +23,7 @@ final class PhpVarEmitter implements NodeEmitterInterface
         if ($node->isCallable()) {
             $this->outputEmitter->emitStr(
                 '(function(...$args) { return ' . $node->getName() . '(...$args);' . '})',
-                $node->getStartSourceLocation()
+                $node->getStartSourceLocation(),
             );
         } else {
             $this->outputEmitter->emitStr($node->getName(), $node->getStartSourceLocation());

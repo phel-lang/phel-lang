@@ -25,13 +25,13 @@ final class PhpNewSymbol implements SpecialFormAnalyzerInterface
 
         $classExpr = $this->analyzer->analyze(
             $list->get(1),
-            $env->withContext(NodeEnvironmentInterface::CONTEXT_EXPRESSION)->withDisallowRecurFrame()
+            $env->withContext(NodeEnvironmentInterface::CONTEXT_EXPRESSION)->withDisallowRecurFrame(),
         );
         $args = [];
         for ($forms = $list->rest()->cdr(); $forms != null; $forms = $forms->cdr()) {
             $args[] = $this->analyzer->analyze(
                 $forms->first(),
-                $env->withContext(NodeEnvironmentInterface::CONTEXT_EXPRESSION)->withDisallowRecurFrame()
+                $env->withContext(NodeEnvironmentInterface::CONTEXT_EXPRESSION)->withDisallowRecurFrame(),
             );
         }
 
@@ -39,7 +39,7 @@ final class PhpNewSymbol implements SpecialFormAnalyzerInterface
             $env,
             $classExpr,
             $args,
-            $list->getStartLocation()
+            $list->getStartLocation(),
         );
     }
 }

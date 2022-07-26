@@ -20,7 +20,7 @@ final class PhpClassNameEmitter implements NodeEmitterInterface
 
         $this->outputEmitter->emitStr(
             $node->getAbsolutePhpName(),
-            $node->getName()->getStartLocation()
+            $node->getName()->getStartLocation(),
         );
     }
 }

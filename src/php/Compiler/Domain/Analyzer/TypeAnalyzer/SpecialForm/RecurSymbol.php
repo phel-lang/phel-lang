@@ -34,7 +34,7 @@ final class RecurSymbol implements SpecialFormAnalyzerInterface
             throw AnalyzerException::withLocation(
                 "Wrong number of arguments for 'recur. Expected: "
                 . count($currentFrame->getParams()) . ' args, got: ' . (count($list) - 1),
-                $list
+                $list,
             );
         }
 
@@ -44,7 +44,7 @@ final class RecurSymbol implements SpecialFormAnalyzerInterface
             $env,
             $currentFrame,
             $this->expressions($list, $env),
-            $list->getStartLocation()
+            $list->getStartLocation(),
         );
     }
 
@@ -54,7 +54,7 @@ final class RecurSymbol implements SpecialFormAnalyzerInterface
         for ($forms = $list->cdr(); $forms != null; $forms = $forms->cdr()) {
             $expressions[] = $this->analyzer->analyze(
                 $forms->first(),
-                $env->withContext(NodeEnvironmentInterface::CONTEXT_EXPRESSION)->withDisallowRecurFrame()
+                $env->withContext(NodeEnvironmentInterface::CONTEXT_EXPRESSION)->withDisallowRecurFrame(),
             );
         }
 

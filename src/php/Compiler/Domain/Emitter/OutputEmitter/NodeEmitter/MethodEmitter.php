@@ -60,7 +60,7 @@ final class MethodEmitter
 
             $this->outputEmitter->emitLine(
                 '$' . $varName . ' = $this->' . $varName . ';',
-                $node->getStartSourceLocation()
+                $node->getStartSourceLocation(),
             );
         }
     }
@@ -73,7 +73,7 @@ final class MethodEmitter
 
             $this->outputEmitter->emitLine(
                 '$' . $varName . ' = \Phel\Lang\TypeFactory::getInstance()->persistentVectorFromArray($' . $varName . ');',
-                $node->getStartSourceLocation()
+                $node->getStartSourceLocation(),
             );
         }
     }

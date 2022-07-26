@@ -24,7 +24,7 @@ final class TextExceptionPrinterTest extends TestCase
         $codeSnippet = new CodeSnippet(
             startLocation: new SourceLocation($file, line: 1, column: 1),
             endLocation: new SourceLocation($file, line: 1, column: 3),
-            code: '(+ 1 2 3 unknown-symbol)'
+            code: '(+ 1 2 3 unknown-symbol)',
         );
 
         $type = $this->createStub(AbstractType::class);
@@ -53,7 +53,7 @@ MSG
             $this->stubExceptionArgsPrinter(),
             $this->stubColorStyle(),
             $this->stubMunge(),
-            $this->stubFilePositionExtractor()
+            $this->stubFilePositionExtractor(),
         );
     }
 

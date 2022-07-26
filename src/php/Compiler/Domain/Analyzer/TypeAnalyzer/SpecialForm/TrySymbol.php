@@ -69,7 +69,7 @@ final class TrySymbol implements SpecialFormAnalyzerInterface
             ])->copyLocationFrom($finally);
             $finally = $this->analyzer->analyze(
                 $finally,
-                $env->withContext(NodeEnvironmentInterface::CONTEXT_STATEMENT)->withDisallowRecurFrame()
+                $env->withContext(NodeEnvironmentInterface::CONTEXT_STATEMENT)->withDisallowRecurFrame(),
             );
         }
 
@@ -100,7 +100,7 @@ final class TrySymbol implements SpecialFormAnalyzerInterface
                 TypeFactory::getInstance()->persistentListFromArray($exprs),
                 $env->withContext($catchCtx)
                     ->withMergedLocals([$name])
-                    ->withDisallowRecurFrame()
+                    ->withDisallowRecurFrame(),
             );
 
             $catchNodes[] = new CatchNode(
@@ -108,14 +108,14 @@ final class TrySymbol implements SpecialFormAnalyzerInterface
                 $resolvedType,
                 $name,
                 $catchBody,
-                $catch->getStartLocation()
+                $catch->getStartLocation(),
             );
         }
 
         $body = $this->analyzer->analyze(
             TypeFactory::getInstance()->persistentListFromArray(array_merge([Symbol::create(Symbol::NAME_DO)], $body)),
             $env->withContext(count($catchNodes) > 0 || $finally ? $catchCtx : $env->getContext())
-                ->withDisallowRecurFrame()
+                ->withDisallowRecurFrame(),
         );
 
         return new TryNode(
@@ -123,7 +123,7 @@ final class TrySymbol implements SpecialFormAnalyzerInterface
             $body,
             $catchNodes,
             $finally,
-            $list->getStartLocation()
+            $list->getStartLocation(),
         );
     }
 

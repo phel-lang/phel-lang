@@ -29,7 +29,7 @@ final class FileEvaluator
         return new CompiledFile(
             $src,
             '',
-            $namespaceInfo->getNamespace()
+            $namespaceInfo->getNamespace(),
         );
     }
 }

@@ -40,7 +40,7 @@ interface OutputEmitterInterface
         Symbol $symbol,
         ?SourceLocation $loc = null,
         bool $asReference = false,
-        bool $isVariadic = false
+        bool $isVariadic = false,
     ): void;
 
     public function mungeEncode(string $str): string;

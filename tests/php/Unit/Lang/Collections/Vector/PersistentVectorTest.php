@@ -330,7 +330,7 @@ final class PersistentVectorTest extends TestCase
         $vector = PersistentVector::empty(new ModuloHasher(), new SimpleEqualizer());
         $this->assertEquals(
             PersistentVector::empty(new ModuloHasher(), new SimpleEqualizer()),
-            $vector->rest()
+            $vector->rest(),
         );
     }
 
@@ -339,7 +339,7 @@ final class PersistentVectorTest extends TestCase
         $vector = PersistentVector::fromArray(new ModuloHasher(), new SimpleEqualizer(), [1]);
         $this->assertEquals(
             PersistentVector::empty(new ModuloHasher(), new SimpleEqualizer()),
-            $vector->rest()
+            $vector->rest(),
         );
     }
 

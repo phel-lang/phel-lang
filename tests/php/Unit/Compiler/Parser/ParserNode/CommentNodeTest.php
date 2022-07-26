@@ -14,7 +14,7 @@ final class CommentNodeTest extends TestCase
     {
         self::assertEquals(
             '# Test',
-            (new CommentNode('# Test', $this->loc(1, 0), $this->loc(1, 6)))->getCode()
+            (new CommentNode('# Test', $this->loc(1, 0), $this->loc(1, 6)))->getCode(),
         );
     }
 
@@ -22,7 +22,7 @@ final class CommentNodeTest extends TestCase
     {
         self::assertEquals(
             $this->loc(1, 0),
-            (new CommentNode('# Test', $this->loc(1, 0), $this->loc(1, 6)))->getStartLocation()
+            (new CommentNode('# Test', $this->loc(1, 0), $this->loc(1, 6)))->getStartLocation(),
         );
     }
 
@@ -30,7 +30,7 @@ final class CommentNodeTest extends TestCase
     {
         self::assertEquals(
             $this->loc(1, 6),
-            (new CommentNode('# Test', $this->loc(1, 0), $this->loc(1, 6)))->getEndLocation()
+            (new CommentNode('# Test', $this->loc(1, 0), $this->loc(1, 6)))->getEndLocation(),
         );
     }
 

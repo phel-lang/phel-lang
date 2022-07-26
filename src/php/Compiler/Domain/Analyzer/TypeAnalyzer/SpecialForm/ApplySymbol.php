@@ -33,7 +33,7 @@ final class ApplySymbol implements SpecialFormAnalyzerInterface
             $env,
             $this->fnExpr($fnExpr, $env),
             $this->arguments($args, $env),
-            $list->getStartLocation()
+            $list->getStartLocation(),
         );
     }
 
@@ -44,7 +44,7 @@ final class ApplySymbol implements SpecialFormAnalyzerInterface
     {
         return $this->analyzer->analyze(
             $x,
-            $env->withContext(NodeEnvironmentInterface::CONTEXT_EXPRESSION)->withDisallowRecurFrame()
+            $env->withContext(NodeEnvironmentInterface::CONTEXT_EXPRESSION)->withDisallowRecurFrame(),
         );
     }
 

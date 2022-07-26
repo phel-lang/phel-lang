@@ -32,7 +32,7 @@ class TransientHashMap implements TransientMapInterface
         private int $count,
         private ?HashMapNodeInterface $root,
         private bool $hasNull,
-        $nullValue
+        $nullValue,
     ) {
         $this->nullValue = $nullValue;
     }

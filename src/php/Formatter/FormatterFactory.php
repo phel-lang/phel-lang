@@ -29,7 +29,7 @@ final class FormatterFactory extends AbstractFactory
             $this->getCommandFacade(),
             $this->createFormatter(),
             $this->createPathFilter(),
-            $this->createFileIo()
+            $this->createFileIo(),
         );
     }
 
@@ -42,7 +42,7 @@ final class FormatterFactory extends AbstractFactory
                 $this->createUnindentRule(),
                 $this->createIndentRule(),
                 $this->createRemoveTrailingWhitespaceRule(),
-            ]
+            ],
         );
     }
 

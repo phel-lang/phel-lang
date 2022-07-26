@@ -40,7 +40,7 @@ final class InputResult
         return preg_replace(
             '/"[^\\"]*(?:\\.|[^\\"]*)*"(*SKIP)(*F)|' . preg_quote(self::LAST_RESULT_PLACEHOLDER, '/') . '/',
             $this->formattedLastResult(),
-            $fullInput
+            $fullInput,
         );
     }
 

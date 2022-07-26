@@ -40,7 +40,7 @@ final class ArrayPrinter implements TypePrinterInterface
     {
         return array_map(
             fn ($v) => $this->printer->print($v),
-            $form
+            $form,
         );
     }
 
@@ -49,7 +49,7 @@ final class ArrayPrinter implements TypePrinterInterface
         return array_map(
             fn ($k, $v) => sprintf('%s:%s', $this->printer->print($k), $this->printer->print($v)),
             array_keys($form),
-            $form
+            $form,
         );
     }
 

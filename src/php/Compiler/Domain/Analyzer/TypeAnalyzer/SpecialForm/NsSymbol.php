@@ -36,7 +36,7 @@ final class NsSymbol implements SpecialFormAnalyzerInterface
             throw AnalyzerException::withLocation(
                 'The namespace is not valid. A valid namespace name starts with a letter,
                 followed by any number of letters, numbers, or dashes. Elements are splitted by a backslash.',
-                $nsSymbol
+                $nsSymbol,
             );
         }
 
@@ -45,7 +45,7 @@ final class NsSymbol implements SpecialFormAnalyzerInterface
             if ($this->isPHPKeyword($part)) {
                 throw AnalyzerException::withLocation(
                     "The namespace is not valid. The part '{$part}' cannot be used because it is a reserved keyword.",
-                    $list
+                    $list,
                 );
             }
         }
@@ -73,7 +73,7 @@ final class NsSymbol implements SpecialFormAnalyzerInterface
             } elseif ($value instanceof Keyword) {
                 throw AnalyzerException::withLocation(
                     "Unexpected keyword {$value->getName()} encountered in 'ns. Expected :use or :require.",
-                    $value
+                    $value,
                 );
             }
         }

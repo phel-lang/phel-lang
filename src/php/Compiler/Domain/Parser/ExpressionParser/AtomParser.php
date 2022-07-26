@@ -51,7 +51,7 @@ final class AtomParser
                 $word,
                 $token->getStartLocation(),
                 $token->getEndLocation(),
-                $sign * bindec(str_replace('_', '', $word))
+                $sign * bindec(str_replace('_', '', $word)),
             );
         }
 
@@ -62,7 +62,7 @@ final class AtomParser
                 $word,
                 $token->getStartLocation(),
                 $token->getEndLocation(),
-                $sign * hexdec(str_replace('_', '', $word))
+                $sign * hexdec(str_replace('_', '', $word)),
             );
         }
 
@@ -73,7 +73,7 @@ final class AtomParser
                 $word,
                 $token->getStartLocation(),
                 $token->getEndLocation(),
-                $sign * octdec(str_replace('_', '', $word))
+                $sign * octdec(str_replace('_', '', $word)),
             );
         }
 
@@ -123,7 +123,7 @@ final class AtomParser
             $word,
             $token->getStartLocation(),
             $token->getEndLocation(),
-            $keyword
+            $keyword,
         );
     }
 }

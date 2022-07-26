@@ -24,14 +24,14 @@ final class BuildFactory extends AbstractFactory
             $this->createNamespaceExtractor(),
             $this->createFileCompiler(),
             $this->getCompilerFacade(),
-            $this->getCommandFacade()
+            $this->getCommandFacade(),
         );
     }
 
     public function createDependenciesForNamespace(): DependenciesForNamespace
     {
         return new DependenciesForNamespace(
-            $this->createNamespaceExtractor()
+            $this->createNamespaceExtractor(),
         );
     }
 
@@ -39,7 +39,7 @@ final class BuildFactory extends AbstractFactory
     {
         return new FileCompiler(
             $this->getCompilerFacade(),
-            $this->createNamespaceExtractor()
+            $this->createNamespaceExtractor(),
         );
     }
 
@@ -47,7 +47,7 @@ final class BuildFactory extends AbstractFactory
     {
         return new FileEvaluator(
             $this->getCompilerFacade(),
-            $this->createNamespaceExtractor()
+            $this->createNamespaceExtractor(),
         );
     }
 
@@ -55,7 +55,7 @@ final class BuildFactory extends AbstractFactory
     {
         return new NamespaceExtractor(
             $this->getCompilerFacade(),
-            $this->createNamespaceSorter()
+            $this->createNamespaceSorter(),
         );
     }
 

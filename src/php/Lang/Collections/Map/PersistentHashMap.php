@@ -171,8 +171,8 @@ class PersistentHashMap extends AbstractPersistentMap
                 $this->count,
                 $this->root,
                 $this->hasNull,
-                $this->nullValue
-            )
+                $this->nullValue,
+            ),
         );
     }
 }

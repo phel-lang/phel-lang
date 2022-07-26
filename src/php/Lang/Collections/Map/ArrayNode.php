@@ -59,7 +59,7 @@ class ArrayNode implements HashMapNodeInterface, Countable
                 $this->hasher,
                 $this->equalizer,
                 $this->count,
-                $this->cloneAndSet($index, $n)
+                $this->cloneAndSet($index, $n),
             );
         }
 
@@ -67,7 +67,7 @@ class ArrayNode implements HashMapNodeInterface, Countable
             $this->hasher,
             $this->equalizer,
             $this->count + 1,
-            $this->cloneAndSet($index, IndexedNode::empty($this->hasher, $this->equalizer)->put($shift + 5, $hash, $key, $value, $addedLeaf))
+            $this->cloneAndSet($index, IndexedNode::empty($this->hasher, $this->equalizer)->put($shift + 5, $hash, $key, $value, $addedLeaf)),
         );
     }
 

@@ -34,7 +34,7 @@ final class TestCommandOptions
 
         $optionsMap = $typeFactory->persistentMapFromKVs(
             $typeFactory->keyword(self::FILTER),
-            $filter
+            $filter,
         );
 
         return Printer::readable()->print($optionsMap);

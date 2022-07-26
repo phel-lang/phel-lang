@@ -28,7 +28,7 @@ final class IntegrationTest extends TestCase
         $globalEnv = GlobalEnvironmentSingleton::initializeNew();
         (new BuildFacade())->compileFile(
             __DIR__ . '/../../../src/phel/core.phel',
-            tempnam(sys_get_temp_dir(), 'phel-core')
+            tempnam(sys_get_temp_dir(), 'phel-core'),
         );
         self::$globalEnv = $globalEnv;
     }
@@ -44,7 +44,7 @@ final class IntegrationTest extends TestCase
     public function test_integration(
         string $filename,
         string $phelCode,
-        string $expectedGeneratedCode
+        string $expectedGeneratedCode,
     ): void {
         $globalEnv = self::$globalEnv;
         $globalEnv->setNs('user');
@@ -58,7 +58,7 @@ final class IntegrationTest extends TestCase
         self::assertSame(
             trim($expectedGeneratedCode),
             trim($compiledCode),
-            'in ' . $filename
+            'in ' . $filename,
         );
     }
 
@@ -68,7 +68,7 @@ final class IntegrationTest extends TestCase
 
         $iterator = new RecursiveIteratorIterator(
             new RecursiveDirectoryIterator($fixturesDir),
-            RecursiveIteratorIterator::LEAVES_ONLY
+            RecursiveIteratorIterator::LEAVES_ONLY,
         );
 
         /** @var SplFileInfo $file */

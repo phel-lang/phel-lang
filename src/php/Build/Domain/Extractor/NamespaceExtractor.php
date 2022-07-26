@@ -53,8 +53,8 @@ final class NamespaceExtractor implements NamespaceExtractorInterface
                     $node->getNamespace(),
                     array_map(
                         static fn (Symbol $s) => $s->getFullName(),
-                        $node->getRequireNs()
-                    )
+                        $node->getRequireNs(),
+                    ),
                 );
             }
 
@@ -142,7 +142,7 @@ final class NamespaceExtractor implements NamespaceExtractorInterface
 
         return array_map(
             fn ($file) => $this->getNamespaceFromFile($file[0]),
-            iterator_to_array($phelIterator)
+            iterator_to_array($phelIterator),
         );
     }
 }

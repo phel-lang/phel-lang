@@ -114,7 +114,7 @@ final class LoopSymbol implements SpecialFormAnalyzerInterface
             ->withContext(
                 $env->getContext() === NodeEnvironmentInterface::CONTEXT_EXPRESSION
                     ? NodeEnvironmentInterface::CONTEXT_RETURN
-                    : $env->getContext()
+                    : $env->getContext(),
             );
 
         $bodyEnv = $bodyEnv->withAddedRecurFrame($recurFrame);
@@ -128,7 +128,7 @@ final class LoopSymbol implements SpecialFormAnalyzerInterface
                 Symbol::create(Symbol::NAME_DO),
                 ...$exprs,
             ]),
-            $bodyEnv
+            $bodyEnv,
         );
 
         return new LetNode(
@@ -136,7 +136,7 @@ final class LoopSymbol implements SpecialFormAnalyzerInterface
             $bindings,
             $bodyExpr,
             $recurFrame->isActive(),
-            $list->getStartLocation()
+            $list->getStartLocation(),
         );
     }
 
@@ -165,7 +165,7 @@ final class LoopSymbol implements SpecialFormAnalyzerInterface
                 $sym,
                 $shadowSym,
                 $expr,
-                $sym->getStartLocation()
+                $sym->getStartLocation(),
             );
 
             $initEnv = $initEnv->withMergedLocals([$sym])->withShadowedLocal($sym, $shadowSym);

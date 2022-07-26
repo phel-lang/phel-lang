@@ -72,7 +72,7 @@ final class ParserTest extends TestCase
     {
         self::assertEquals(
             new KeywordNode(':test', $this->loc(1, 0), $this->loc(1, 5), Keyword::create('test')),
-            $this->parse(':test')
+            $this->parse(':test'),
         );
     }
 
@@ -80,11 +80,11 @@ final class ParserTest extends TestCase
     {
         self::assertEquals(
             new BooleanNode('true', $this->loc(1, 0), $this->loc(1, 4), true),
-            $this->parse('true')
+            $this->parse('true'),
         );
         self::assertEquals(
             new BooleanNode('false', $this->loc(1, 0), $this->loc(1, 5), false),
-            $this->parse('false')
+            $this->parse('false'),
         );
     }
 
@@ -92,7 +92,7 @@ final class ParserTest extends TestCase
     {
         self::assertEquals(
             new NilNode('nil', $this->loc(1, 0), $this->loc(1, 3), null),
-            $this->parse('nil')
+            $this->parse('nil'),
         );
     }
 
@@ -100,7 +100,7 @@ final class ParserTest extends TestCase
     {
         self::assertEquals(
             new SymbolNode('test', $this->loc(1, 0), $this->loc(1, 4), Symbol::create('test')),
-            $this->parse('test')
+            $this->parse('test'),
         );
     }
 
@@ -108,20 +108,20 @@ final class ParserTest extends TestCase
     {
         self::assertEquals(
             new ListNode(Token::T_OPEN_PARENTHESIS, $this->loc(1, 0), $this->loc(1, 2), []),
-            $this->parse('()')
+            $this->parse('()'),
         );
         self::assertEquals(
             new ListNode(Token::T_OPEN_PARENTHESIS, $this->loc(1, 0), $this->loc(1, 4), [
                 new ListNode(Token::T_OPEN_PARENTHESIS, $this->loc(1, 1), $this->loc(1, 3), []),
             ]),
-            $this->parse('(())')
+            $this->parse('(())'),
         );
 
         self::assertEquals(
             new ListNode(Token::T_OPEN_PARENTHESIS, $this->loc(1, 0), $this->loc(1, 3), [
                 new SymbolNode('a', $this->loc(1, 1), $this->loc(1, 2), Symbol::create('a')),
             ]),
-            $this->parse('(a)')
+            $this->parse('(a)'),
         );
 
         self::assertEquals(
@@ -130,7 +130,7 @@ final class ParserTest extends TestCase
                 new WhitespaceNode(' ', $this->loc(1, 2), $this->loc(1, 3)),
                 new SymbolNode('b', $this->loc(1, 3), $this->loc(1, 4), Symbol::create('b')),
             ]),
-            $this->parse('(a b)')
+            $this->parse('(a b)'),
         );
     }
 
@@ -138,20 +138,20 @@ final class ParserTest extends TestCase
     {
         self::assertEquals(
             new ListNode(Token::T_OPEN_BRACKET, $this->loc(1, 0), $this->loc(1, 2), []),
-            $this->parse('[]')
+            $this->parse('[]'),
         );
         self::assertEquals(
             new ListNode(Token::T_OPEN_BRACKET, $this->loc(1, 0), $this->loc(1, 4), [
                 new ListNode(Token::T_OPEN_BRACKET, $this->loc(1, 1), $this->loc(1, 3), []),
             ]),
-            $this->parse('[[]]')
+            $this->parse('[[]]'),
         );
 
         self::assertEquals(
             new ListNode(Token::T_OPEN_BRACKET, $this->loc(1, 0), $this->loc(1, 3), [
                 new SymbolNode('a', $this->loc(1, 1), $this->loc(1, 2), Symbol::create('a')),
             ]),
-            $this->parse('[a]')
+            $this->parse('[a]'),
         );
 
         self::assertEquals(
@@ -160,7 +160,7 @@ final class ParserTest extends TestCase
                 new WhitespaceNode(' ', $this->loc(1, 2), $this->loc(1, 3)),
                 new SymbolNode('b', $this->loc(1, 3), $this->loc(1, 4), Symbol::create('b')),
             ]),
-            $this->parse('[a b]')
+            $this->parse('[a b]'),
         );
     }
 
@@ -171,9 +171,9 @@ final class ParserTest extends TestCase
                 Token::T_QUOTE,
                 $this->loc(1, 0),
                 $this->loc(1, 2),
-                new SymbolNode('a', $this->loc(1, 1), $this->loc(1, 2), Symbol::create('a'))
+                new SymbolNode('a', $this->loc(1, 1), $this->loc(1, 2), Symbol::create('a')),
             ),
-            $this->parse('\'a')
+            $this->parse('\'a'),
         );
     }
 
@@ -184,9 +184,9 @@ final class ParserTest extends TestCase
                 Token::T_UNQUOTE,
                 $this->loc(1, 0),
                 $this->loc(1, 2),
-                new SymbolNode('a', $this->loc(1, 1), $this->loc(1, 2), Symbol::create('a'))
+                new SymbolNode('a', $this->loc(1, 1), $this->loc(1, 2), Symbol::create('a')),
             ),
-            $this->parse(',a')
+            $this->parse(',a'),
         );
     }
 
@@ -197,9 +197,9 @@ final class ParserTest extends TestCase
                 Token::T_UNQUOTE_SPLICING,
                 $this->loc(1, 0),
                 $this->loc(1, 3),
-                new SymbolNode('a', $this->loc(1, 2), $this->loc(1, 3), Symbol::create('a'))
+                new SymbolNode('a', $this->loc(1, 2), $this->loc(1, 3), Symbol::create('a')),
             ),
-            $this->parse(',@a')
+            $this->parse(',@a'),
         );
     }
 
@@ -210,9 +210,9 @@ final class ParserTest extends TestCase
                 Token::T_QUASIQUOTE,
                 $this->loc(1, 0),
                 $this->loc(1, 8),
-                new SymbolNode('unquote', $this->loc(1, 1), $this->loc(1, 8), Symbol::create('unquote'))
+                new SymbolNode('unquote', $this->loc(1, 1), $this->loc(1, 8), Symbol::create('unquote')),
             ),
-            $this->parse(sprintf('`%s', Symbol::NAME_UNQUOTE))
+            $this->parse(sprintf('`%s', Symbol::NAME_UNQUOTE)),
         );
     }
 
@@ -223,9 +223,9 @@ final class ParserTest extends TestCase
                 Token::T_QUASIQUOTE,
                 $this->loc(1, 0),
                 $this->loc(1, 2),
-                new SymbolNode('a', $this->loc(1, 1), $this->loc(1, 2), Symbol::create('a'))
+                new SymbolNode('a', $this->loc(1, 1), $this->loc(1, 2), Symbol::create('a')),
             ),
-            $this->parse('`a')
+            $this->parse('`a'),
         );
     }
 
@@ -233,17 +233,17 @@ final class ParserTest extends TestCase
     {
         self::assertEquals(
             new StringNode('"abc"', $this->loc(1, 0), $this->loc(1, 5), 'abc'),
-            $this->parse('"abc"')
+            $this->parse('"abc"'),
         );
 
         self::assertEquals(
             new StringNode('"ab\"c"', $this->loc(1, 0), $this->loc(1, 7), 'ab"c'),
-            $this->parse('"ab\"c"')
+            $this->parse('"ab\"c"'),
         );
 
         self::assertEquals(
             new StringNode('"\\\\\r\n\t\f\v\e\$"', $this->loc(1, 0), $this->loc(1, 18), "\\\r\n\t\f\v\e\$"),
-            $this->parse('"\\\\\r\n\t\f\v\e\$"')
+            $this->parse('"\\\\\r\n\t\f\v\e\$"'),
         );
 
         self::assertEquals(
@@ -253,32 +253,32 @@ final class ParserTest extends TestCase
 
         self::assertEquals(
             new StringNode('"\x41"', $this->loc(1, 0), $this->loc(1, 6), "\x41"),
-            $this->parse('"\x41"')
+            $this->parse('"\x41"'),
         );
 
         self::assertEquals(
             new StringNode('"\u{65}"', $this->loc(1, 0), $this->loc(1, 8), "\u{65}"),
-            $this->parse('"\u{65}"')
+            $this->parse('"\u{65}"'),
         );
 
         self::assertEquals(
             new StringNode('"\u{129}"', $this->loc(1, 0), $this->loc(1, 9), "\u{129}"),
-            $this->parse('"\u{129}"')
+            $this->parse('"\u{129}"'),
         );
 
         self::assertEquals(
             new StringNode('"\u{1000}"', $this->loc(1, 0), $this->loc(1, 10), "\u{1000}"),
-            $this->parse('"\u{1000}"')
+            $this->parse('"\u{1000}"'),
         );
 
         self::assertEquals(
             new StringNode('"\u{10000}"', $this->loc(1, 0), $this->loc(1, 11), "\u{10000}"),
-            $this->parse('"\u{10000}"')
+            $this->parse('"\u{10000}"'),
         );
 
         self::assertEquals(
             new StringNode('"\77"', $this->loc(1, 0), $this->loc(1, 5), "\77"),
-            $this->parse('"\77"')
+            $this->parse('"\77"'),
         );
     }
 
@@ -286,7 +286,7 @@ final class ParserTest extends TestCase
     {
         self::assertEquals(
             new ListNode(Token::T_OPEN_BRACE, $this->loc(1, 0), $this->loc(1, 2), []),
-            $this->parse('{}')
+            $this->parse('{}'),
         );
     }
 
@@ -298,7 +298,7 @@ final class ParserTest extends TestCase
                 new WhitespaceNode(' ', $this->loc(1, 3), $this->loc(1, 4)),
                 new NumberNode('1', $this->loc(1, 4), $this->loc(1, 5), 1),
             ]),
-            $this->parse('{:a 1}')
+            $this->parse('{:a 1}'),
         );
     }
 
@@ -314,7 +314,7 @@ final class ParserTest extends TestCase
                 new WhitespaceNode(' ', $this->loc(1, 8), $this->loc(1, 9)),
                 new NumberNode('2', $this->loc(1, 9), $this->loc(1, 10), 2),
             ]),
-            $this->parse('{:a 1 :b 2}')
+            $this->parse('{:a 1 :b 2}'),
         );
     }
 
@@ -328,9 +328,9 @@ final class ParserTest extends TestCase
                 [
                     new WhitespaceNode(' ', $this->loc(1, 6), $this->loc(1, 7)),
                     new SymbolNode('test', $this->loc(1, 7), $this->loc(1, 11), Symbol::create('test')),
-                ]
+                ],
             ),
-            $this->parse('^:test test')
+            $this->parse('^:test test'),
         );
     }
 
@@ -344,9 +344,9 @@ final class ParserTest extends TestCase
                 [
                     new WhitespaceNode(' ', $this->loc(1, 7), $this->loc(1, 8)),
                     new SymbolNode('test', $this->loc(1, 8), $this->loc(1, 12), Symbol::create('test')),
-                ]
+                ],
             ),
-            $this->parse('^"test" test')
+            $this->parse('^"test" test'),
         );
     }
 
@@ -360,9 +360,9 @@ final class ParserTest extends TestCase
                 [
                     new WhitespaceNode(' ', $this->loc(1, 7), $this->loc(1, 8)),
                     new SymbolNode('test', $this->loc(1, 8), $this->loc(1, 12), Symbol::create('test')),
-                ]
+                ],
             ),
-            $this->parse('^String test')
+            $this->parse('^String test'),
         );
     }
 
@@ -384,9 +384,9 @@ final class ParserTest extends TestCase
                 [
                     new WhitespaceNode(' ', $this->loc(1, 12), $this->loc(1, 13)),
                     new SymbolNode('test', $this->loc(1, 13), $this->loc(1, 17), Symbol::create('test')),
-                ]
+                ],
             ),
-            $this->parse('^{:a 1 :b 2} test')
+            $this->parse('^{:a 1 :b 2} test'),
         );
     }
 
@@ -406,11 +406,11 @@ final class ParserTest extends TestCase
                         [
                             new WhitespaceNode(' ', $this->loc(1, 7), $this->loc(1, 8)),
                             new SymbolNode('test', $this->loc(1, 8), $this->loc(1, 12), Symbol::create('test')),
-                        ]
+                        ],
                     ),
-                ]
+                ],
             ),
-            $this->parse('^:a ^:b test')
+            $this->parse('^:a ^:b test'),
         );
     }
 
@@ -420,7 +420,7 @@ final class ParserTest extends TestCase
             new ListNode(Token::T_FN, $this->loc(1, 0), $this->loc(1, 6), [
                 new SymbolNode('add', $this->loc(1, 2), $this->loc(1, 5), Symbol::create('add')),
             ]),
-            $this->parse('|(add)')
+            $this->parse('|(add)'),
         );
     }
 
@@ -432,7 +432,7 @@ final class ParserTest extends TestCase
                 new WhitespaceNode(' ', $this->loc(1, 5), $this->loc(1, 6)),
                 new SymbolNode('$', $this->loc(1, 6), $this->loc(1, 7), Symbol::create('$')),
             ]),
-            $this->parse('|(add $)')
+            $this->parse('|(add $)'),
         );
     }
 
@@ -476,7 +476,7 @@ final class ParserTest extends TestCase
     {
         self::assertEquals(
             new CommentNode('# Test', $this->loc(1, 0), $this->loc(1, 6)),
-            $this->parse('# Test')
+            $this->parse('# Test'),
         );
     }
 
@@ -484,7 +484,7 @@ final class ParserTest extends TestCase
     {
         self::assertEquals(
             new WhitespaceNode(" \t", $this->loc(1, 0), $this->loc(1, 2)),
-            $this->parse(" \t")
+            $this->parse(" \t"),
         );
     }
 
@@ -492,7 +492,7 @@ final class ParserTest extends TestCase
     {
         self::assertEquals(
             new NewlineNode("\n", $this->loc(1, 0), $this->loc(2, 0)),
-            $this->parse("\n")
+            $this->parse("\n"),
         );
     }
 

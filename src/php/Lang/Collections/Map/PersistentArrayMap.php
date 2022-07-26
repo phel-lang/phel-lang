@@ -128,8 +128,8 @@ class PersistentArrayMap extends AbstractPersistentMap
             new TransientArrayMap(
                 $this->hasher,
                 $this->equalizer,
-                $this->array
-            )
+                $this->array,
+            ),
         );
     }
 

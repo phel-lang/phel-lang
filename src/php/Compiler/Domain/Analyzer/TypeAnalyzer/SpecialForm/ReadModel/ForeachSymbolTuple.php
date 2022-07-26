@@ -15,7 +15,7 @@ final class ForeachSymbolTuple
         private NodeEnvironmentInterface $bodyEnv,
         private AbstractNode $listExpr,
         private Symbol $valueSymbol,
-        private ?Symbol $keySymbol = null
+        private ?Symbol $keySymbol = null,
     ) {
     }
 

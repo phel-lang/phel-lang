@@ -44,7 +44,7 @@ final class InteropFactory extends AbstractFactory
     private function createDirectoryRemover(): DirectoryRemoverInterface
     {
         return new DirectoryRemover(
-            $this->getConfig()->getExportTargetDirectory()
+            $this->getConfig()->getExportTargetDirectory(),
         );
     }
 
@@ -52,7 +52,7 @@ final class InteropFactory extends AbstractFactory
     {
         return new FileCreator(
             $this->getConfig()->getExportTargetDirectory(),
-            $this->createFileSystemIo()
+            $this->createFileSystemIo(),
         );
     }
 
@@ -60,7 +60,7 @@ final class InteropFactory extends AbstractFactory
     {
         return new WrapperGenerator(
             $this->createCompiledPhpClassBuilder(),
-            $this->createWrapperPathBuilder()
+            $this->createWrapperPathBuilder(),
         );
     }
 
@@ -68,7 +68,7 @@ final class InteropFactory extends AbstractFactory
     {
         return new CompiledPhpClassBuilder(
             $this->getConfig()->prefixNamespace(),
-            $this->createCompiledPhpMethodBuilder()
+            $this->createCompiledPhpMethodBuilder(),
         );
     }
 
@@ -87,7 +87,7 @@ final class InteropFactory extends AbstractFactory
         return new FunctionsToExportFinder(
             $this->getBuildFacade(),
             $this->getCommandFacade(),
-            $this->getConfig()->getExportDirectories()
+            $this->getConfig()->getExportDirectories(),
         );
     }
 

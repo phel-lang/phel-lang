@@ -61,7 +61,7 @@ final class FnAsClassEmitter implements NodeEmitterInterface
 
             $this->outputEmitter->emitLine(
                 'private $' . $this->outputEmitter->mungeEncode($normalizedUse->getName()) . ';',
-                $node->getStartSourceLocation()
+                $node->getStartSourceLocation(),
             );
         }
     }
@@ -95,7 +95,7 @@ final class FnAsClassEmitter implements NodeEmitterInterface
 
                 $this->outputEmitter->emitLine(
                     '$this->' . $varName . ' = $' . $varName . ';',
-                    $node->getStartSourceLocation()
+                    $node->getStartSourceLocation(),
                 );
             }
 

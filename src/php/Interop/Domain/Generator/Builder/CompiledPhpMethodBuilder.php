@@ -53,7 +53,7 @@ final class CompiledPhpMethodBuilder
 
                 return $variadic . $param;
             },
-            $refInvoke->getParameters()
+            $refInvoke->getParameters(),
         );
 
 

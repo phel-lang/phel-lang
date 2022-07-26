@@ -49,7 +49,7 @@ final class CompilerFactory extends AbstractFactory
             $this->createReader(),
             $this->createAnalyzer(),
             $this->createStatementEmitter(),
-            $this->createEvaluator()
+            $this->createEvaluator(),
         );
     }
 
@@ -62,7 +62,7 @@ final class CompilerFactory extends AbstractFactory
             $this->createAnalyzer(),
             $this->createStatementEmitter($compileOptions->isSourceMapsEnabled()),
             $this->createFileEmitter($compileOptions->isSourceMapsEnabled()),
-            $this->createEvaluator()
+            $this->createEvaluator(),
         );
     }
 
@@ -75,7 +75,7 @@ final class CompilerFactory extends AbstractFactory
     {
         return new Reader(
             new ExpressionReaderFactory(),
-            new QuasiquoteTransformer($this->getGlobalEnvironment())
+            new QuasiquoteTransformer($this->getGlobalEnvironment()),
         );
     }
 
@@ -83,7 +83,7 @@ final class CompilerFactory extends AbstractFactory
     {
         return new Parser(
             new ExpressionParserFactory(),
-            $this->getGlobalEnvironment()
+            $this->getGlobalEnvironment(),
         );
     }
 
@@ -96,7 +96,7 @@ final class CompilerFactory extends AbstractFactory
     {
         return new StatementEmitter(
             new SourceMapGenerator(),
-            $this->createOutputEmitter($enableSourceMaps)
+            $this->createOutputEmitter($enableSourceMaps),
         );
     }
 
@@ -110,8 +110,8 @@ final class CompilerFactory extends AbstractFactory
                 $this->createMunge(),
                 Printer::readable(),
                 new SourceMapState(),
-                new OutputEmitterOptions(OutputEmitterOptions::EMIT_MODE_FILE)
-            )
+                new OutputEmitterOptions(OutputEmitterOptions::EMIT_MODE_FILE),
+            ),
         );
     }
 
@@ -123,7 +123,7 @@ final class CompilerFactory extends AbstractFactory
             $this->createMunge(),
             Printer::readable(),
             new SourceMapState(),
-            new OutputEmitterOptions(OutputEmitterOptions::EMIT_MODE_STATEMENT)
+            new OutputEmitterOptions(OutputEmitterOptions::EMIT_MODE_STATEMENT),
         );
     }
 

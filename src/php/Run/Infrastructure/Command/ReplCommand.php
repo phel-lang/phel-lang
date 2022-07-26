@@ -112,7 +112,7 @@ final class ReplCommand extends Command
         ];
         $namespaceInformation = $this->getFacade()->getDependenciesForNamespace(
             $srcDirectories,
-            [$namespace, 'phel\\core']
+            [$namespace, 'phel\\core'],
         );
 
         foreach ($namespaceInformation as $info) {

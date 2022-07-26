@@ -57,7 +57,7 @@ final class NsEmitter implements NodeEmitterInterface
 
                 $this->outputEmitter->emitLine(
                     'require_once ' . $absolutePath . ';',
-                    $ns->getStartLocation()
+                    $ns->getStartLocation(),
                 );
             }
         }
@@ -68,7 +68,7 @@ final class NsEmitter implements NodeEmitterInterface
         if (!$this->outputEmitter->getOptions()->isFileEmitMode()) {
             $this->outputEmitter->emitLine(
                 '\Phel\Compiler\Infrastructure\GlobalEnvironmentSingleton::getInstance()->setNs("' . addslashes($node->getNamespace()) . '");',
-                $node->getStartSourceLocation()
+                $node->getStartSourceLocation(),
             );
         }
 

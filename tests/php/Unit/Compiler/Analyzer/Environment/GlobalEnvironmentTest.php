@@ -72,7 +72,7 @@ final class GlobalEnvironmentTest extends TestCase
 
         $this->assertEquals(
             new LiteralNode($nodeEnv, __DIR__),
-            $env->resolve($sym, $nodeEnv)
+            $env->resolve($sym, $nodeEnv),
         );
     }
 
@@ -85,7 +85,7 @@ final class GlobalEnvironmentTest extends TestCase
 
         $this->assertEquals(
             new LiteralNode($nodeEnv, __FILE__),
-            $env->resolve($sym, $nodeEnv)
+            $env->resolve($sym, $nodeEnv),
         );
     }
 
@@ -98,9 +98,9 @@ final class GlobalEnvironmentTest extends TestCase
             new PhpClassNameNode(
                 $nodeEnv,
                 Symbol::create('\\Exception'),
-                null
+                null,
             ),
-            $env->resolve(Symbol::create('\\Exception'), $nodeEnv)
+            $env->resolve(Symbol::create('\\Exception'), $nodeEnv),
         );
     }
 
@@ -115,9 +115,9 @@ final class GlobalEnvironmentTest extends TestCase
             new PhpClassNameNode(
                 $nodeEnv,
                 Symbol::create('bar'),
-                null
+                null,
             ),
-            $env->resolve(Symbol::create('b'), $nodeEnv)
+            $env->resolve(Symbol::create('b'), $nodeEnv),
         );
     }
 
@@ -134,9 +134,9 @@ final class GlobalEnvironmentTest extends TestCase
                 $nodeEnv,
                 'foo',
                 Symbol::create('x'),
-                TypeFactory::getInstance()->emptyPersistentMap()
+                TypeFactory::getInstance()->emptyPersistentMap(),
             ),
-            $env->resolve(Symbol::create('x'), $nodeEnv)
+            $env->resolve(Symbol::create('x'), $nodeEnv),
         );
     }
 
@@ -152,9 +152,9 @@ final class GlobalEnvironmentTest extends TestCase
                 $nodeEnv,
                 'bar',
                 Symbol::create('x'),
-                TypeFactory::getInstance()->emptyPersistentMap()
+                TypeFactory::getInstance()->emptyPersistentMap(),
             ),
-            $env->resolve(Symbol::create('x'), $nodeEnv)
+            $env->resolve(Symbol::create('x'), $nodeEnv),
         );
     }
 
@@ -168,9 +168,9 @@ final class GlobalEnvironmentTest extends TestCase
         $this->assertEquals(
             new PhpClassNameNode(
                 $nodeEnv,
-                Symbol::createForNamespace('bar', 'x')
+                Symbol::createForNamespace('bar', 'x'),
             ),
-            $env->resolve(Symbol::create('x'), $nodeEnv)
+            $env->resolve(Symbol::create('x'), $nodeEnv),
         );
     }
 
@@ -186,9 +186,9 @@ final class GlobalEnvironmentTest extends TestCase
                 $nodeEnv,
                 'phel\\core',
                 Symbol::create('x'),
-                TypeFactory::getInstance()->emptyPersistentMap()
+                TypeFactory::getInstance()->emptyPersistentMap(),
             ),
-            $env->resolve(Symbol::create('x'), $nodeEnv)
+            $env->resolve(Symbol::create('x'), $nodeEnv),
         );
     }
 
@@ -201,7 +201,7 @@ final class GlobalEnvironmentTest extends TestCase
         $nodeEnv = NodeEnvironment::empty();
 
         $this->assertNull(
-            $env->resolve(Symbol::create('x'), $nodeEnv)
+            $env->resolve(Symbol::create('x'), $nodeEnv),
         );
     }
 
@@ -215,9 +215,9 @@ final class GlobalEnvironmentTest extends TestCase
         $this->assertEquals(
             new PhpClassNameNode(
                 $nodeEnv,
-                Symbol::createForNamespace('phel\\core', 'x')
+                Symbol::createForNamespace('phel\\core', 'x'),
             ),
-            $env->resolve(Symbol::create('x'), $nodeEnv)
+            $env->resolve(Symbol::create('x'), $nodeEnv),
         );
     }
 
@@ -225,7 +225,7 @@ final class GlobalEnvironmentTest extends TestCase
     {
         $env = new GlobalEnvironment();
         $this->assertNull(
-            $env->resolve(Symbol::create('foo'), NodeEnvironment::empty())
+            $env->resolve(Symbol::create('foo'), NodeEnvironment::empty()),
         );
     }
 
@@ -244,9 +244,9 @@ final class GlobalEnvironmentTest extends TestCase
                 $nodeEnv,
                 'bar',
                 Symbol::create('x'),
-                TypeFactory::getInstance()->emptyPersistentMap()
+                TypeFactory::getInstance()->emptyPersistentMap(),
             ),
-            $env->resolve(Symbol::createForNamespace('bar', 'x'), $nodeEnv)
+            $env->resolve(Symbol::createForNamespace('bar', 'x'), $nodeEnv),
         );
     }
 
@@ -263,9 +263,9 @@ final class GlobalEnvironmentTest extends TestCase
                 $nodeEnv,
                 'bar',
                 Symbol::create('x'),
-                TypeFactory::getInstance()->emptyPersistentMap()
+                TypeFactory::getInstance()->emptyPersistentMap(),
             ),
-            $env->resolve(Symbol::createForNamespace('b', 'x'), $nodeEnv)
+            $env->resolve(Symbol::createForNamespace('b', 'x'), $nodeEnv),
         );
     }
 
@@ -278,7 +278,7 @@ final class GlobalEnvironmentTest extends TestCase
         $nodeEnv = NodeEnvironment::empty();
 
         $this->assertNull(
-            $env->resolve(Symbol::createForNamespace('bar', 'x'), $nodeEnv)
+            $env->resolve(Symbol::createForNamespace('bar', 'x'), $nodeEnv),
         );
     }
 
@@ -292,9 +292,9 @@ final class GlobalEnvironmentTest extends TestCase
         $this->assertEquals(
             new PhpClassNameNode(
                 $nodeEnv,
-                Symbol::createForNamespace('bar', 'x')
+                Symbol::createForNamespace('bar', 'x'),
             ),
-            $env->resolve(Symbol::createForNamespace('bar', 'x'), $nodeEnv)
+            $env->resolve(Symbol::createForNamespace('bar', 'x'), $nodeEnv),
         );
     }
 
@@ -309,9 +309,9 @@ final class GlobalEnvironmentTest extends TestCase
         $this->assertEquals(
             new PhpClassNameNode(
                 $nodeEnv,
-                Symbol::createForNamespace('bar', 'x')
+                Symbol::createForNamespace('bar', 'x'),
             ),
-            $env->resolve(Symbol::createForNamespace('b', 'x'), $nodeEnv)
+            $env->resolve(Symbol::createForNamespace('b', 'x'), $nodeEnv),
         );
     }
 
@@ -324,7 +324,7 @@ final class GlobalEnvironmentTest extends TestCase
 
         $this->assertEquals(
             Symbol::createForNamespace('bar', 'x'),
-            $env->resolveAsSymbol(Symbol::create('x'), $nodeEnv)
+            $env->resolveAsSymbol(Symbol::create('x'), $nodeEnv),
         );
     }
 
@@ -335,7 +335,7 @@ final class GlobalEnvironmentTest extends TestCase
         $nodeEnv = NodeEnvironment::empty();
 
         $this->assertNull(
-            $env->resolveAsSymbol(Symbol::create('x'), $nodeEnv)
+            $env->resolveAsSymbol(Symbol::create('x'), $nodeEnv),
         );
     }
 }

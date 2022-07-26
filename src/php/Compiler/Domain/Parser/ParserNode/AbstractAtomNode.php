@@ -24,7 +24,7 @@ abstract class AbstractAtomNode implements NodeInterface
         private string $code,
         private SourceLocation $startLocation,
         private SourceLocation $endLocation,
-        $value
+        $value,
     ) {
         $this->value = $value;
     }

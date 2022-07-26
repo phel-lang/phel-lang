@@ -31,18 +31,18 @@ final class TestCommand extends Command
     {
         $this->setName(self::COMMAND_NAME)
             ->setDescription(
-                'Tests the given files. If no filenames are provided all tests in the "tests" directory are executed.'
+                'Tests the given files. If no filenames are provided all tests in the "tests" directory are executed.',
             )
             ->addArgument(
                 'paths',
                 InputArgument::IS_ARRAY | InputArgument::OPTIONAL,
                 'The file paths that you want to test.',
-                []
+                [],
             )->addOption(
                 'filter',
                 'f',
                 InputOption::VALUE_OPTIONAL,
-                'Filter by test names.'
+                'Filter by test names.',
             );
     }
 

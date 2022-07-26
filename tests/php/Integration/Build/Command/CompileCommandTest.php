@@ -38,7 +38,7 @@ final class CompileCommandTest extends TestCase
                 '--no-source-map' => true,
                 '--no-cache' => true,
             ]),
-            $this->createStub(OutputInterface::class)
+            $this->createStub(OutputInterface::class),
         );
 
         self::assertFileExists(__DIR__ . '/out/phel/core.phel');
@@ -63,7 +63,7 @@ final class CompileCommandTest extends TestCase
             new ArrayInput([
                 '--no-source-map' => true,
             ]),
-            $this->createStub(OutputInterface::class)
+            $this->createStub(OutputInterface::class),
         );
 
         self::assertFileExists(__DIR__ . '/out/phel/core.phel');

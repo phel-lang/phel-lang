@@ -22,7 +22,7 @@ final class StringPrinterTest extends TestCase
     {
         self::assertSame(
             $expected,
-            (new StringPrinter(true))->print($string)
+            (new StringPrinter(true))->print($string),
         );
     }
 

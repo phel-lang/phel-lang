@@ -50,7 +50,7 @@ final class ReplCommandTest extends AbstractCommandTest
         $repl = $this->createReplCommand();
         $repl->run(
             $this->createStub(InputInterface::class),
-            $this->createStub(OutputInterface::class)
+            $this->createStub(OutputInterface::class),
         );
 
         $replOutput = $io->getOutputString();
@@ -73,7 +73,7 @@ final class ReplCommandTest extends AbstractCommandTest
         $repl = $this->createReplCommandWithCoreLib();
         $repl->run(
             $this->createStub(InputInterface::class),
-            $this->createStub(OutputInterface::class)
+            $this->createStub(OutputInterface::class),
         );
 
         $replOutput = $io->getOutputString();
@@ -95,7 +95,7 @@ final class ReplCommandTest extends AbstractCommandTest
     {
         $iterator = new RecursiveIteratorIterator(
             new RecursiveDirectoryIterator($fixturesDir),
-            RecursiveIteratorIterator::LEAVES_ONLY
+            RecursiveIteratorIterator::LEAVES_ONLY,
         );
 
         /** @var SplFileInfo $file */
@@ -151,7 +151,7 @@ final class ReplCommandTest extends AbstractCommandTest
             new ExceptionArgsPrinter(Printer::readable()),
             ColorStyle::noStyles(),
             new Munge(),
-            new FilePositionExtractor(new SourceMapExtractor())
+            new FilePositionExtractor(new SourceMapExtractor()),
         );
 
         return new ReplTestIo($exceptionPrinter);
@@ -183,7 +183,7 @@ final class ReplCommandTest extends AbstractCommandTest
                 {
                     return $this->io;
                 }
-            }
+            },
         );
     }
 }

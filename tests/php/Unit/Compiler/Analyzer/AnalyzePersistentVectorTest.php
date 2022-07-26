@@ -28,7 +28,7 @@ final class AnalyzePersistentVectorTest extends TestCase
         $env = NodeEnvironment::empty();
         self::assertEquals(
             new VectorNode($env, [], null),
-            $this->vectorAnalzyer->analyze(TypeFactory::getInstance()->emptyPersistentVector(), $env)
+            $this->vectorAnalzyer->analyze(TypeFactory::getInstance()->emptyPersistentVector(), $env),
         );
     }
 
@@ -39,7 +39,7 @@ final class AnalyzePersistentVectorTest extends TestCase
             new VectorNode($env, [
                 new LiteralNode($env->withDisallowRecurFrame()->withContext(NodeEnvironmentInterface::CONTEXT_EXPRESSION), 1, null),
             ], null),
-            $this->vectorAnalzyer->analyze(TypeFactory::getInstance()->persistentVectorFromArray([1]), $env)
+            $this->vectorAnalzyer->analyze(TypeFactory::getInstance()->persistentVectorFromArray([1]), $env),
         );
     }
 }

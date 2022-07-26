@@ -25,7 +25,7 @@ final class StructPrinter implements TypePrinterInterface
     {
         $values = array_map(
             fn ($key): string => $this->printer->print($form[$key]),
-            $form->getAllowedKeys()
+            $form->getAllowedKeys(),
         );
 
         return '(' . get_class($form) . ' ' . implode(' ', $values) . ')';

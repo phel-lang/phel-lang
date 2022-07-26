@@ -53,7 +53,7 @@ final class ExportCommand extends Command
             $output->writeln(sprintf(
                 '  %d) %s',
                 $i + 1,
-                $wrapper->relativeFilenamePath()
+                $wrapper->relativeFilenamePath(),
             ));
         }
     }

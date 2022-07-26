@@ -25,7 +25,7 @@ final class ExceptionArgsPrinter implements ExceptionArgsPrinterInterface
     {
         $argParts = array_map(
             fn (mixed $arg) => $this->printer->print($arg),
-            $frameArgs
+            $frameArgs,
         );
 
         $argString = implode(' ', $argParts);
@@ -40,7 +40,7 @@ final class ExceptionArgsPrinter implements ExceptionArgsPrinterInterface
     {
         $result = array_map(
             fn ($arg) => $this->buildPhpArg($arg),
-            $args
+            $args,
         );
 
         return implode(', ', $result);

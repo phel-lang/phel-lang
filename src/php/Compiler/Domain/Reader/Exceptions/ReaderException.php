@@ -28,7 +28,7 @@ final class ReaderException extends AbstractLocatedException
             $message,
             $node->getStartLocation(),
             $node->getEndLocation(),
-            $codeSnippet
+            $codeSnippet,
         );
     }
 

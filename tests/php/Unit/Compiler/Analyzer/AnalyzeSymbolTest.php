@@ -32,7 +32,7 @@ final class AnalyzeSymbolTest extends TestCase
         $env = NodeEnvironment::empty();
         self::assertEquals(
             new PhpVarNode($env, 'is_array', null),
-            $this->symbolAnalyzer->analyze(Symbol::createForNamespace('php', 'is_array'), $env)
+            $this->symbolAnalyzer->analyze(Symbol::createForNamespace('php', 'is_array'), $env),
         );
     }
 
@@ -41,7 +41,7 @@ final class AnalyzeSymbolTest extends TestCase
         $env = NodeEnvironment::empty()->withLocals([Symbol::create('a')]);
         self::assertEquals(
             new LocalVarNode($env, Symbol::create('a'), null),
-            $this->symbolAnalyzer->analyze(Symbol::create('a'), $env)
+            $this->symbolAnalyzer->analyze(Symbol::create('a'), $env),
         );
     }
 
@@ -53,7 +53,7 @@ final class AnalyzeSymbolTest extends TestCase
 
         self::assertEquals(
             new LocalVarNode($env, Symbol::create('b'), null),
-            $this->symbolAnalyzer->analyze(Symbol::create('a'), $env)
+            $this->symbolAnalyzer->analyze(Symbol::create('a'), $env),
         );
     }
 
@@ -67,7 +67,7 @@ final class AnalyzeSymbolTest extends TestCase
         $env = NodeEnvironment::empty();
         self::assertEquals(
             new GlobalVarNode($env, 'test', Symbol::create('a'), TypeFactory::getInstance()->emptyPersistentMap(), null),
-            $symbolAnalyzer->analyze(Symbol::create('a'), $env)
+            $symbolAnalyzer->analyze(Symbol::create('a'), $env),
         );
     }
 
@@ -90,7 +90,7 @@ final class AnalyzeSymbolTest extends TestCase
         $env = NodeEnvironment::empty()->withLocals([Symbol::create('a')]);
         self::assertEquals(
             new LocalVarNode($env, Symbol::create('a'), null),
-            $symbolAnalyzer->analyze(Symbol::create('a'), $env)
+            $symbolAnalyzer->analyze(Symbol::create('a'), $env),
         );
     }
 }

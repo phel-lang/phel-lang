@@ -12,7 +12,7 @@ final class NodeEmitterFactory
 {
     public function createNodeEmitter(
         OutputEmitterInterface $outputEmitter,
-        string $astNodeClassName
+        string $astNodeClassName,
     ): NodeEmitterInterface {
         return match ($astNodeClassName) {
             Ast\NsNode::class => new NodeEmitter\NsEmitter($outputEmitter),

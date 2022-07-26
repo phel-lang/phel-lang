@@ -27,7 +27,7 @@ final class InvokeSymbol implements SpecialFormAnalyzerInterface
     {
         $f = $this->analyzer->analyze(
             $list->first(),
-            $env->withContext(NodeEnvironmentInterface::CONTEXT_EXPRESSION)->withDisallowRecurFrame()
+            $env->withContext(NodeEnvironmentInterface::CONTEXT_EXPRESSION)->withDisallowRecurFrame(),
         );
 
         if ($f instanceof GlobalVarNode && $this->isInline($f, count($list) - 1)) {
@@ -42,7 +42,7 @@ final class InvokeSymbol implements SpecialFormAnalyzerInterface
             $env,
             $f,
             $this->arguments($list->rest(), $env),
-            $list->getStartLocation()
+            $list->getStartLocation(),
         );
     }
 
@@ -84,7 +84,7 @@ final class InvokeSymbol implements SpecialFormAnalyzerInterface
             throw AnalyzerException::withLocation(
                 'Error in expanding inline function of "' . $node->getNamespace() . '\\' . $node->getName()->getName() . '": ' . $e->getMessage(),
                 $list,
-                $e
+                $e,
             );
         }
     }
@@ -101,7 +101,7 @@ final class InvokeSymbol implements SpecialFormAnalyzerInterface
             throw AnalyzerException::withLocation(
                 'Error in expanding macro "' . $macroNode->getNamespace() . '\\' . $nodeName . '": ' . $e->getMessage(),
                 $list,
-                $e
+                $e,
             );
         }
     }
@@ -138,7 +138,7 @@ final class InvokeSymbol implements SpecialFormAnalyzerInterface
 
         return $this->enrichLocationForAbstractType(
             TypeFactory::getInstance()->persistentListFromArray($result)->withMeta($list->getMeta()),
-            $parent
+            $parent,
         );
     }
 
@@ -161,7 +161,7 @@ final class InvokeSymbol implements SpecialFormAnalyzerInterface
         foreach ($argsList as $element) {
             $arguments[] = $this->analyzer->analyze(
                 $element,
-                $env->withContext(NodeEnvironmentInterface::CONTEXT_EXPRESSION)->withDisallowRecurFrame()
+                $env->withContext(NodeEnvironmentInterface::CONTEXT_EXPRESSION)->withDisallowRecurFrame(),
             );
         }
 

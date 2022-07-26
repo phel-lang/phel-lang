@@ -26,7 +26,7 @@ final class PhelFileFinder implements PhelFileFinderInterface
         $appendIterator = new AppendIterator();
         foreach ($directories as $directory) {
             $appendIterator->append(
-                new RecursiveIteratorIterator(new RecursiveDirectoryIterator($directory))
+                new RecursiveIteratorIterator(new RecursiveDirectoryIterator($directory)),
             );
         }
 

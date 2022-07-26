@@ -65,9 +65,9 @@ TXT;
         return new WrapperGenerator(
             new CompiledPhpClassBuilder(
                 prefixNamespace: 'PhelGenerated',
-                methodBuilder: new CompiledPhpMethodBuilder()
+                methodBuilder: new CompiledPhpMethodBuilder(),
             ),
-            new WrapperRelativeFilenamePathBuilder()
+            new WrapperRelativeFilenamePathBuilder(),
         );
     }
 }

@@ -103,9 +103,9 @@ final class DefStructSymbolTest extends TestCase
                     Symbol::create('method'),
                     Symbol::create('uri'),
                 ],
-                []
+                [],
             ),
-            $defStructNode
+            $defStructNode,
         );
     }
 }

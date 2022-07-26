@@ -32,7 +32,7 @@ final class PhpOSetSymbol implements SpecialFormAnalyzerInterface
             $env,
             $left,
             $right,
-            $list->getStartLocation()
+            $list->getStartLocation(),
         );
     }
 }

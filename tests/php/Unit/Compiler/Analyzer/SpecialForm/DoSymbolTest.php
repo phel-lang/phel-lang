@@ -45,7 +45,7 @@ final class DoSymbolTest extends TestCase
             $env,
             $stmts = [],
             $this->analyzer->analyze(null, $env),
-            $list->getStartLocation()
+            $list->getStartLocation(),
         );
 
         $actual = (new DoSymbol($this->analyzer))->analyze($list, $env);
@@ -65,7 +65,7 @@ final class DoSymbolTest extends TestCase
             $env,
             $stmts = [],
             $this->analyzer->analyze(1, $env),
-            $list->getStartLocation()
+            $list->getStartLocation(),
         );
 
         $actual = (new DoSymbol($this->analyzer))->analyze($list, $env);
@@ -88,7 +88,7 @@ final class DoSymbolTest extends TestCase
                 $this->analyzer->analyze(1, $env->withDisallowRecurFrame()),
             ],
             $this->analyzer->analyze(2, $env),
-            $list->getStartLocation()
+            $list->getStartLocation(),
         );
 
         $actual = (new DoSymbol($this->analyzer))->analyze($list, $env);

@@ -33,7 +33,7 @@ final class FnAsClassEmitterTest extends TestCase
             body: PhpVarNode::withReturnContext('$x'),
             uses: [],
             isVariadic: false,
-            recurs: false
+            recurs: false,
         );
 
         $this->fnAsClassEmitter->emit($fnNode);
@@ -55,7 +55,7 @@ final class FnAsClassEmitterTest extends TestCase
             body: PhpVarNode::withReturnContext('$x'),
             uses: [],
             isVariadic: false,
-            recurs: false
+            recurs: false,
         );
 
         $this->fnAsClassEmitter->emit($fnNode);
@@ -77,7 +77,7 @@ final class FnAsClassEmitterTest extends TestCase
             body: PhpVarNode::withReturnContext('$x'),
             uses: [Symbol::create('use1'), Symbol::create('use2')],
             isVariadic: false,
-            recurs: false
+            recurs: false,
         );
 
         $this->fnAsClassEmitter->emit($fnNode);
@@ -108,7 +108,7 @@ final class FnAsClassEmitterTest extends TestCase
             body: PhpVarNode::withReturnContext('$x'),
             uses: [],
             isVariadic: true,
-            recurs: false
+            recurs: false,
         );
 
         $this->fnAsClassEmitter->emit($fnNode);
@@ -131,7 +131,7 @@ final class FnAsClassEmitterTest extends TestCase
             body: PhpVarNode::withReturnContext('$x'),
             uses: [],
             isVariadic: false,
-            recurs: true
+            recurs: true,
         );
 
         $this->fnAsClassEmitter->emit($fnNode);
@@ -155,7 +155,7 @@ final class FnAsClassEmitterTest extends TestCase
             body: PhpVarNode::withReturnContext('$x'),
             uses: [],
             isVariadic: true,
-            recurs: true
+            recurs: true,
         );
 
         $this->fnAsClassEmitter->emit($fnNode);

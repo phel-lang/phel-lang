@@ -28,7 +28,7 @@ final class CommandFactory extends AbstractFactory
     public function createCommandExceptionWriter(): CommandExceptionWriterInterface
     {
         return new CommandExceptionWriter(
-            $this->createExceptionPrinter()
+            $this->createExceptionPrinter(),
         );
     }
 
@@ -38,7 +38,7 @@ final class CommandFactory extends AbstractFactory
             new ExceptionArgsPrinter(Printer::readable()),
             ColorStyle::withStyles(),
             new Munge(),
-            new FilePositionExtractor(new SourceMapExtractor())
+            new FilePositionExtractor(new SourceMapExtractor()),
         );
     }
 
@@ -47,14 +47,14 @@ final class CommandFactory extends AbstractFactory
         return new DirectoryFinder(
             $this->getConfig()->getAppRootDir(),
             $this->getConfig()->getCodeDirs(),
-            $this->createComposerVendorDirectoriesFinder()
+            $this->createComposerVendorDirectoriesFinder(),
         );
     }
 
     private function createComposerVendorDirectoriesFinder(): VendorDirectoriesFinderInterface
     {
         return new ComposerVendorDirectoriesFinder(
-            $this->getConfig()->getAppRootDir() . '/' . $this->getConfig()->getVendorDir()
+            $this->getConfig()->getAppRootDir() . '/' . $this->getConfig()->getVendorDir(),
         );
     }
 }

@@ -35,7 +35,7 @@ final class CodeCompiler implements CodeCompilerInterface
         private AnalyzerInterface $analyzer,
         private StatementEmitterInterface $statementEmitter,
         private FileEmitterInterface $fileEmitter,
-        private EvaluatorInterface $evaluator
+        private EvaluatorInterface $evaluator,
     ) {
     }
 
@@ -88,7 +88,7 @@ final class CodeCompiler implements CodeCompilerInterface
         try {
             return $this->analyzer->analyze(
                 $readerResult->getAst(),
-                NodeEnvironment::empty()
+                NodeEnvironment::empty(),
             );
         } catch (AnalyzerException $e) {
             throw new CompilerException($e, $readerResult->getCodeSnippet());

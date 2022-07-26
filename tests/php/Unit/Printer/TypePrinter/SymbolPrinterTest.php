@@ -18,7 +18,7 @@ final class SymbolPrinterTest extends TestCase
     {
         self::assertSame(
             $expected,
-            (new SymbolPrinter())->print($symbol)
+            (new SymbolPrinter())->print($symbol),
         );
     }
 

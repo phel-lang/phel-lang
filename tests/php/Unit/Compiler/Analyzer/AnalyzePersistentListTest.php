@@ -130,7 +130,7 @@ final class AnalyzePersistentListTest extends TestCase
         ]);
         self::assertInstanceOf(
             PhpObjectCallNode::class,
-            $this->listAnalyzer->analyze($list, NodeEnvironment::empty())
+            $this->listAnalyzer->analyze($list, NodeEnvironment::empty()),
         );
     }
 
@@ -141,7 +141,7 @@ final class AnalyzePersistentListTest extends TestCase
         ]);
         self::assertInstanceOf(
             PhpObjectCallNode::class,
-            $this->listAnalyzer->analyze($list, NodeEnvironment::empty())
+            $this->listAnalyzer->analyze($list, NodeEnvironment::empty()),
         );
     }
 
@@ -154,7 +154,7 @@ final class AnalyzePersistentListTest extends TestCase
         ]);
         self::assertInstanceOf(
             PhpArrayGetNode::class,
-            $this->listAnalyzer->analyze($list, NodeEnvironment::empty())
+            $this->listAnalyzer->analyze($list, NodeEnvironment::empty()),
         );
     }
 
@@ -168,7 +168,7 @@ final class AnalyzePersistentListTest extends TestCase
         ]);
         self::assertInstanceOf(
             PhpArraySetNode::class,
-            $this->listAnalyzer->analyze($list, NodeEnvironment::empty())
+            $this->listAnalyzer->analyze($list, NodeEnvironment::empty()),
         );
     }
 
@@ -181,7 +181,7 @@ final class AnalyzePersistentListTest extends TestCase
         ]);
         self::assertInstanceOf(
             PhpArrayPushNode::class,
-            $this->listAnalyzer->analyze($list, NodeEnvironment::empty())
+            $this->listAnalyzer->analyze($list, NodeEnvironment::empty()),
         );
     }
 
@@ -194,7 +194,7 @@ final class AnalyzePersistentListTest extends TestCase
         ]);
         self::assertInstanceOf(
             PhpArrayUnsetNode::class,
-            $this->listAnalyzer->analyze($list, NodeEnvironment::empty())
+            $this->listAnalyzer->analyze($list, NodeEnvironment::empty()),
         );
     }
 

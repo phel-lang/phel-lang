@@ -40,12 +40,12 @@ final class DefStructEmitter implements NodeEmitterInterface
         if ($this->outputEmitter->getOptions()->isStatementEmitMode()) {
             $this->outputEmitter->emitLine(
                 'namespace ' . $this->outputEmitter->mungeEncodeNs($node->getNamespace()) . ';',
-                $node->getStartSourceLocation()
+                $node->getStartSourceLocation(),
             );
         }
         $this->outputEmitter->emitStr(
             'class ' . $this->outputEmitter->mungeEncode($node->getName()->getName()) . ' extends \Phel\Lang\Collections\Struct\AbstractPersistentStruct',
-            $node->getStartSourceLocation()
+            $node->getStartSourceLocation(),
         );
 
         if (count($node->getInterfaces()) > 0) {

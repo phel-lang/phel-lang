@@ -32,7 +32,7 @@ interface ExpressionReaderFactoryInterface
 
     public function createQuoasiquoteReader(
         Reader $reader,
-        QuasiquoteTransformerInterface $quasiquoteTransformer
+        QuasiquoteTransformerInterface $quasiquoteTransformer,
     ): QuoasiquoteReader;
 
     public function createMetaReader(Reader $reader): MetaReader;

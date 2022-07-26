@@ -30,11 +30,11 @@ final class AtomParserTest extends TestCase
                 'true',
                 $start,
                 $end,
-                true
+                true,
             ),
             $parser->parse(
-                new Token(Token::T_ATOM, 'true', $start, $end)
-            )
+                new Token(Token::T_ATOM, 'true', $start, $end),
+            ),
         );
     }
 
@@ -48,11 +48,11 @@ final class AtomParserTest extends TestCase
                 'false',
                 $start,
                 $end,
-                false
+                false,
             ),
             $parser->parse(
-                new Token(Token::T_ATOM, 'false', $start, $end)
-            )
+                new Token(Token::T_ATOM, 'false', $start, $end),
+            ),
         );
     }
 
@@ -66,11 +66,11 @@ final class AtomParserTest extends TestCase
                 'nil',
                 $start,
                 $end,
-                null
+                null,
             ),
             $parser->parse(
-                new Token(Token::T_ATOM, 'nil', $start, $end)
-            )
+                new Token(Token::T_ATOM, 'nil', $start, $end),
+            ),
         );
     }
 
@@ -84,11 +84,11 @@ final class AtomParserTest extends TestCase
                 ':foo',
                 $start,
                 $end,
-                Keyword::create('foo')
+                Keyword::create('foo'),
             ),
             $parser->parse(
-                new Token(Token::T_ATOM, ':foo', $start, $end)
-            )
+                new Token(Token::T_ATOM, ':foo', $start, $end),
+            ),
         );
     }
 
@@ -105,11 +105,11 @@ final class AtomParserTest extends TestCase
                 '::bar/foo',
                 $start,
                 $end,
-                Keyword::createForNamespace('foobar', 'foo')
+                Keyword::createForNamespace('foobar', 'foo'),
             ),
             $parser->parse(
-                new Token(Token::T_ATOM, '::bar/foo', $start, $end)
-            )
+                new Token(Token::T_ATOM, '::bar/foo', $start, $end),
+            ),
         );
     }
 
@@ -126,11 +126,11 @@ final class AtomParserTest extends TestCase
                 '::foo',
                 $start,
                 $end,
-                Keyword::createForNamespace('user', 'foo')
+                Keyword::createForNamespace('user', 'foo'),
             ),
             $parser->parse(
-                new Token(Token::T_ATOM, '::foo', $start, $end)
-            )
+                new Token(Token::T_ATOM, '::foo', $start, $end),
+            ),
         );
     }
 
@@ -144,11 +144,11 @@ final class AtomParserTest extends TestCase
                 ':xyz\bar/foo',
                 $start,
                 $end,
-                Keyword::createForNamespace('xyz\bar', 'foo')
+                Keyword::createForNamespace('xyz\bar', 'foo'),
             ),
             $parser->parse(
-                new Token(Token::T_ATOM, ':xyz\bar/foo', $start, $end)
-            )
+                new Token(Token::T_ATOM, ':xyz\bar/foo', $start, $end),
+            ),
         );
     }
 
@@ -160,7 +160,7 @@ final class AtomParserTest extends TestCase
         $start = new SourceLocation('string', 0, 0);
         $end = new SourceLocation('string', 0, 5);
         $parser->parse(
-            new Token(Token::T_ATOM, ':/', $start, $end)
+            new Token(Token::T_ATOM, ':/', $start, $end),
         );
     }
 
@@ -174,11 +174,11 @@ final class AtomParserTest extends TestCase
                 '0b001',
                 $start,
                 $end,
-                1
+                1,
             ),
             $parser->parse(
-                new Token(Token::T_ATOM, '0b001', $start, $end)
-            )
+                new Token(Token::T_ATOM, '0b001', $start, $end),
+            ),
         );
     }
 
@@ -192,11 +192,11 @@ final class AtomParserTest extends TestCase
                 '0x001',
                 $start,
                 $end,
-                1
+                1,
             ),
             $parser->parse(
-                new Token(Token::T_ATOM, '0x001', $start, $end)
-            )
+                new Token(Token::T_ATOM, '0x001', $start, $end),
+            ),
         );
     }
 
@@ -210,11 +210,11 @@ final class AtomParserTest extends TestCase
                 '1.2',
                 $start,
                 $end,
-                1.2
+                1.2,
             ),
             $parser->parse(
-                new Token(Token::T_ATOM, '1.2', $start, $end)
-            )
+                new Token(Token::T_ATOM, '1.2', $start, $end),
+            ),
         );
     }
 
@@ -228,11 +228,11 @@ final class AtomParserTest extends TestCase
                 '01',
                 $start,
                 $end,
-                1
+                1,
             ),
             $parser->parse(
-                new Token(Token::T_ATOM, '01', $start, $end)
-            )
+                new Token(Token::T_ATOM, '01', $start, $end),
+            ),
         );
     }
 
@@ -246,11 +246,11 @@ final class AtomParserTest extends TestCase
                 'x',
                 $start,
                 $end,
-                Symbol::create('x')
+                Symbol::create('x'),
             ),
             $parser->parse(
-                new Token(Token::T_ATOM, 'x', $start, $end)
-            )
+                new Token(Token::T_ATOM, 'x', $start, $end),
+            ),
         );
     }
 }

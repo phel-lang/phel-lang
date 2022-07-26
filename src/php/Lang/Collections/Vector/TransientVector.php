@@ -42,7 +42,7 @@ class TransientVector implements TransientVectorInterface
             0,
             self::SHIFT,
             [],
-            []
+            [],
         );
     }
 

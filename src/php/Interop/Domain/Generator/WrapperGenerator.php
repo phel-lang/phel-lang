@@ -16,7 +16,7 @@ final class WrapperGenerator implements WrapperGeneratorInterface
 
     public function __construct(
         CompiledPhpClassBuilder $classBuilder,
-        WrapperRelativeFilenamePathBuilder $relativeFilenamePathBuilder
+        WrapperRelativeFilenamePathBuilder $relativeFilenamePathBuilder,
     ) {
         $this->classBuilder = $classBuilder;
         $this->relativeFilenamePathBuilder = $relativeFilenamePathBuilder;

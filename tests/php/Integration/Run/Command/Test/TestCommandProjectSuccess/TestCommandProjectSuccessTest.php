@@ -50,7 +50,7 @@ final class TestCommandProjectSuccessTest extends AbstractCommandTest
 
         $command->run(
             $this->stubInput([__DIR__ . '/Fixtures/test1.phel']),
-            $this->stubOutput()
+            $this->stubOutput(),
         );
     }
 

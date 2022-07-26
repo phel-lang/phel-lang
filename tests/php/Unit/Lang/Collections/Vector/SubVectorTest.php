@@ -123,12 +123,12 @@ final class SubVectorTest extends TestCase
             null,
             PersistentVector::empty(new ModuloHasher(), new SimpleEqualizer()),
             0,
-            0
+            0,
         );
 
         $this->assertEquals(
             PersistentVector::empty(new ModuloHasher(), new SimpleEqualizer()),
-            $subVector->pop()
+            $subVector->pop(),
         );
     }
 

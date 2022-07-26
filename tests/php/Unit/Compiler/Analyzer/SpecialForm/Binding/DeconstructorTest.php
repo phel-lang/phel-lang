@@ -20,14 +20,14 @@ final class DeconstructorTest extends TestCase
         Symbol::resetGen();
 
         $this->deconstructor = new Deconstructor(
-            $this->createStub(BindingValidatorInterface::class)
+            $this->createStub(BindingValidatorInterface::class),
         );
     }
 
     public function test_empty_vector(): void
     {
         $bindings = $this->deconstructor->deconstruct(
-            TypeFactory::getInstance()->persistentVectorFromArray([])
+            TypeFactory::getInstance()->persistentVectorFromArray([]),
         );
 
         self::assertEquals([], $bindings);
@@ -114,7 +114,7 @@ final class DeconstructorTest extends TestCase
             TypeFactory::getInstance()->persistentVectorFromArray([
                 TypeFactory::getInstance()->persistentMapFromKVs(Keyword::create('key'), Symbol::create('a')),
                 Symbol::create('x'),
-            ])
+            ]),
         );
 
         self::assertEquals([

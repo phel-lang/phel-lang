@@ -100,12 +100,12 @@ final class LiteralEmitter
         if ($x->getNamespace()) {
             $this->outputEmitter->emitStr(
                 '\Phel\Lang\Keyword::createForNamespace("' . addslashes($x->getNamespace()) . '", "' . addslashes($x->getName()) . '")',
-                $x->getStartLocation()
+                $x->getStartLocation(),
             );
         } else {
             $this->outputEmitter->emitStr(
                 '\Phel\Lang\Keyword::create("' . addslashes($x->getName()) . '")',
-                $x->getStartLocation()
+                $x->getStartLocation(),
             );
         }
     }
@@ -114,7 +114,7 @@ final class LiteralEmitter
     {
         $this->outputEmitter->emitStr(
             '(\Phel\Lang\Symbol::create("' . addslashes($x->getFullName()) . '"))',
-            $x->getStartLocation()
+            $x->getStartLocation(),
         );
     }
 

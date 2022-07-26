@@ -41,7 +41,7 @@ final class InteropConfig extends AbstractConfig
     {
         return array_map(
             fn (string $dir): string => $this->getAppRootDir() . '/' . $dir,
-            $this->getExport()[self::EXPORT_DIRECTORIES] ?? self::DEFAULT_EXPORT_DIRECTORIES
+            $this->getExport()[self::EXPORT_DIRECTORIES] ?? self::DEFAULT_EXPORT_DIRECTORIES,
         );
     }
 

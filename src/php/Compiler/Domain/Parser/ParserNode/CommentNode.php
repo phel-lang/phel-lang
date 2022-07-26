@@ -12,7 +12,7 @@ final class CommentNode implements TriviaNodeInterface
     public function __construct(
         private string $code,
         private SourceLocation $startLocation,
-        private SourceLocation $endLocation
+        private SourceLocation $endLocation,
     ) {
     }
 
@@ -21,7 +21,7 @@ final class CommentNode implements TriviaNodeInterface
         return new self(
             $token->getCode(),
             $token->getStartLocation(),
-            $token->getEndLocation()
+            $token->getEndLocation(),
         );
     }
 

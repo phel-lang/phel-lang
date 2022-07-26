@@ -95,11 +95,11 @@ final class LoopSymbolTest extends TestCase
                 new DoNode(
                     $env->withAddedRecurFrame(new RecurFrame([])),
                     [],
-                    new LiteralNode($env->withAddedRecurFrame(new RecurFrame([])), null)
+                    new LiteralNode($env->withAddedRecurFrame(new RecurFrame([])), null),
                 ),
-                false
+                false,
             ),
-            $this->analyzer->analyze($list, $env)
+            $this->analyzer->analyze($list, $env),
         );
     }
 
@@ -125,8 +125,8 @@ final class LoopSymbolTest extends TestCase
                         Symbol::create('a_1'),
                         new LiteralNode(
                             $env->withContext(NodeEnvironmentInterface::CONTEXT_EXPRESSION)->withDisallowRecurFrame()->withDisallowRecurFrame()->withBoundTo('.a'),
-                            1
-                        )
+                            1,
+                        ),
                     ),
                 ],
                 new DoNode(
@@ -138,12 +138,12 @@ final class LoopSymbolTest extends TestCase
                         $env->withAddedRecurFrame(new RecurFrame([Symbol::create('a')]))
                             ->withLocals([Symbol::create('a')])
                             ->withShadowedLocal(Symbol::create('a'), Symbol::create('a_1')),
-                        null
-                    )
+                        null,
+                    ),
                 ),
-                false
+                false,
             ),
-            $this->analyzer->analyze($list, $env)
+            $this->analyzer->analyze($list, $env),
         );
     }
 

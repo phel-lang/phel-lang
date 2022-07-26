@@ -34,7 +34,7 @@ final class DefStructSymbol implements SpecialFormAnalyzerInterface
         if (count($list) < 3) {
             throw AnalyzerException::withLocation(
                 "At least two arguments are required for 'defstruct. Got " . count($list),
-                $list
+                $list,
             );
         }
 
@@ -57,9 +57,9 @@ final class DefStructSymbol implements SpecialFormAnalyzerInterface
             $params,
             $this->interfaces(
                 $list->rest()->rest()->rest(),
-                $env->withMergedLocals($params)
+                $env->withMergedLocals($params),
             ),
-            $list->getStartLocation()
+            $list->getStartLocation(),
         );
     }
 
@@ -137,7 +137,7 @@ final class DefStructSymbol implements SpecialFormAnalyzerInterface
 
             $interfaces[] = new DefStructInterface(
                 $absoluteInterfaceName,
-                $methods
+                $methods,
             );
         }
 
@@ -181,7 +181,7 @@ final class DefStructSymbol implements SpecialFormAnalyzerInterface
                     ...($list->rest()->rest()->toArray()),
                 ]),
             ]),
-            $env
+            $env,
         );
 
         if (!$fnNode instanceof FnNode) {
@@ -190,7 +190,7 @@ final class DefStructSymbol implements SpecialFormAnalyzerInterface
 
         return new DefStructMethod(
             $methodName,
-            $fnNode
+            $fnNode,
         );
     }
 }

@@ -66,7 +66,7 @@ final class ArrayZipper extends AbstractZipper
         array $leftSiblings,
         array $rightSiblings,
         bool $hasChanged,
-        bool $isEnd
+        bool $isEnd,
     ): self {
         return new self($node, $parent, $leftSiblings, $rightSiblings, $hasChanged, $isEnd);
     }

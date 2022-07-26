@@ -48,7 +48,7 @@ final class ExpressionReaderFactory implements ExpressionReaderFactoryInterface
 
     public function createQuoasiquoteReader(
         Reader $reader,
-        QuasiquoteTransformerInterface $quasiquoteTransformer
+        QuasiquoteTransformerInterface $quasiquoteTransformer,
     ): QuoasiquoteReader {
         return new QuoasiquoteReader($reader, $quasiquoteTransformer);
     }

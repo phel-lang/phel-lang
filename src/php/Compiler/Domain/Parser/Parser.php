@@ -29,7 +29,7 @@ final class Parser implements ParserInterface
 
     public function __construct(
         ExpressionParserFactoryInterface $parserFactory,
-        GlobalEnvironmentInterface $globalEnvironment
+        GlobalEnvironmentInterface $globalEnvironment,
     ) {
         $this->parserFactory = $parserFactory;
         $this->globalEnvironment = $globalEnvironment;
@@ -137,7 +137,7 @@ final class Parser implements ParserInterface
             'Unterminated list',
             $snippet,
             $snippet->getStartLocation(),
-            $snippet->getEndLocation()
+            $snippet->getEndLocation(),
         );
     }
 

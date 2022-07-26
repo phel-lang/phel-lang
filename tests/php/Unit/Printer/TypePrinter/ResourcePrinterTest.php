@@ -13,7 +13,7 @@ final class ResourcePrinterTest extends TestCase
     {
         self::assertMatchesRegularExpression(
             '<PHP Resource id #Resource id #\d+>',
-            (new ResourcePrinter())->print($this->getResource())
+            (new ResourcePrinter())->print($this->getResource()),
         );
     }
 

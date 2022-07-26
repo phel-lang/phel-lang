@@ -26,8 +26,8 @@ final class MetaNodeTest extends TestCase
                 [
                     new WhitespaceNode(' ', $this->loc(1, 6), $this->loc(1, 7)),
                     new SymbolNode('test', $this->loc(1, 7), $this->loc(1, 11), Symbol::create('test')),
-                ]
-            ))->getCode()
+                ],
+            ))->getCode(),
         );
     }
 
@@ -42,8 +42,8 @@ final class MetaNodeTest extends TestCase
                 [
                     new WhitespaceNode(' ', $this->loc(1, 6), $this->loc(1, 7)),
                     new SymbolNode('test', $this->loc(1, 7), $this->loc(1, 11), Symbol::create('test')),
-                ]
-            ))->getStartLocation()
+                ],
+            ))->getStartLocation(),
         );
     }
 
@@ -58,8 +58,8 @@ final class MetaNodeTest extends TestCase
                 [
                     new WhitespaceNode(' ', $this->loc(1, 6), $this->loc(1, 7)),
                     new SymbolNode('test', $this->loc(1, 7), $this->loc(1, 11), Symbol::create('test')),
-                ]
-            ))->getEndLocation()
+                ],
+            ))->getEndLocation(),
         );
     }
 
@@ -78,8 +78,8 @@ final class MetaNodeTest extends TestCase
                 [
                     new WhitespaceNode(' ', $this->loc(1, 6), $this->loc(1, 7)),
                     new SymbolNode('test', $this->loc(1, 7), $this->loc(1, 11), Symbol::create('test')),
-                ]
-            ))->getChildren()
+                ],
+            ))->getChildren(),
         );
     }
 

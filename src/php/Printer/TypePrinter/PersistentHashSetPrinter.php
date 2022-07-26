@@ -25,7 +25,7 @@ final class PersistentHashSetPrinter implements TypePrinterInterface
     {
         $values = array_map(
             fn ($elem): string => $this->printer->print($elem),
-            $form->toPhpArray()
+            $form->toPhpArray(),
         );
 
         return '(set' . (count($values) > 0 ? ' ' : '') . implode(' ', $values) . ')';

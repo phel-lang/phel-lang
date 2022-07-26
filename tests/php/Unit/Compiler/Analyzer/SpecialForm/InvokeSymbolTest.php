@@ -36,7 +36,7 @@ final class InvokeSymbolTest extends TestCase
             'user',
             'my-macro',
             static fn ($a) => $a,
-            TypeFactory::getInstance()->persistentMapFromKVs(Keyword::create('macro'), true)
+            TypeFactory::getInstance()->persistentMapFromKVs(Keyword::create('macro'), true),
         );
 
         $env->addDefinition('user', Symbol::create('my-failed-macro'));
@@ -44,7 +44,7 @@ final class InvokeSymbolTest extends TestCase
             'user',
             'my-failed-macro',
             static fn ($a) => throw new Exception('my-failed-macro message'),
-            TypeFactory::getInstance()->persistentMapFromKVs(Keyword::create('macro'), true)
+            TypeFactory::getInstance()->persistentMapFromKVs(Keyword::create('macro'), true),
         );
 
         $env->addDefinition('user', Symbol::create('my-inline-fn'));
@@ -54,8 +54,8 @@ final class InvokeSymbolTest extends TestCase
             static fn ($a) => 1,
             TypeFactory::getInstance()->persistentMapFromKVs(
                 Keyword::create('inline'),
-                static fn ($a) => 2
-            )
+                static fn ($a) => 2,
+            ),
         );
 
         $env->addDefinition('user', Symbol::create('my-inline-fn-with-arity'));
@@ -67,8 +67,8 @@ final class InvokeSymbolTest extends TestCase
                 Keyword::create('inline'),
                 static fn ($a, $b) => 2,
                 Keyword::create('inline-arity'),
-                static fn ($n) => $n === 2
-            )
+                static fn ($n) => $n === 2,
+            ),
         );
 
         $this->analyzer = new Analyzer($env);
@@ -86,9 +86,9 @@ final class InvokeSymbolTest extends TestCase
             new CallNode(
                 $env,
                 new PhpVarNode($env->withContext(NodeEnvironmentInterface::CONTEXT_EXPRESSION)->withDisallowRecurFrame(), '+'),
-                []
+                [],
             ),
-            $node
+            $node,
         );
     }
 
@@ -107,9 +107,9 @@ final class InvokeSymbolTest extends TestCase
                 new PhpVarNode($env->withContext(NodeEnvironmentInterface::CONTEXT_EXPRESSION)->withDisallowRecurFrame(), '+'),
                 [
                     new LiteralNode($env->withContext(NodeEnvironmentInterface::CONTEXT_EXPRESSION)->withDisallowRecurFrame(), 1),
-                ]
+                ],
             ),
-            $node
+            $node,
         );
     }
 
@@ -132,12 +132,12 @@ final class InvokeSymbolTest extends TestCase
                         $env->withContext(NodeEnvironmentInterface::CONTEXT_EXPRESSION)->withDisallowRecurFrame(),
                         [
                             new LiteralNode($env->withContext(NodeEnvironmentInterface::CONTEXT_EXPRESSION)->withDisallowRecurFrame()->withDisallowRecurFrame(), 1),
-                        ]
+                        ],
                     ),
 
-                ]
+                ],
             ),
-            $node
+            $node,
         );
     }
 
@@ -178,7 +178,7 @@ final class InvokeSymbolTest extends TestCase
 
         $this->assertEquals(
             new LiteralNode($env->withContext(NodeEnvironmentInterface::CONTEXT_STATEMENT), 2),
-            $node
+            $node,
         );
     }
 
@@ -193,7 +193,7 @@ final class InvokeSymbolTest extends TestCase
 
         $this->assertEquals(
             new LiteralNode($env->withContext(NodeEnvironmentInterface::CONTEXT_STATEMENT), 2),
-            $node
+            $node,
         );
     }
 
@@ -217,14 +217,14 @@ final class InvokeSymbolTest extends TestCase
                         Keyword::create('inline'),
                         static fn ($a, $b) => 2,
                         Keyword::create('inline-arity'),
-                        static fn ($n) => $n === 2
-                    )
+                        static fn ($n) => $n === 2,
+                    ),
                 ),
                 [
                     new LiteralNode($env->withContext(NodeEnvironmentInterface::CONTEXT_EXPRESSION)->withDisallowRecurFrame(), 'foo'),
-                ]
+                ],
             ),
-            $node
+            $node,
         );
     }
 }

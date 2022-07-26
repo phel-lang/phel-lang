@@ -88,7 +88,7 @@ final class LetSymbolTest extends TestCase
 
         $this->assertEquals(
             new LetNode($env, [], new DoNode($env, [], new LiteralNode($env, null)), false),
-            $this->analyzer->analyze($list, $env)
+            $this->analyzer->analyze($list, $env),
         );
     }
 
@@ -113,8 +113,8 @@ final class LetSymbolTest extends TestCase
                         Symbol::create('a_1'),
                         new LiteralNode(
                             $env->withContext(NodeEnvironmentInterface::CONTEXT_EXPRESSION)->withDisallowRecurFrame()->withDisallowRecurFrame()->withBoundTo('.a'),
-                            1
-                        )
+                            1,
+                        ),
                     ),
                 ],
                 new DoNode(
@@ -122,12 +122,12 @@ final class LetSymbolTest extends TestCase
                     [],
                     new LiteralNode(
                         $env->withLocals([Symbol::create('a')])->withShadowedLocal(Symbol::create('a'), Symbol::create('a_1')),
-                        null
-                    )
+                        null,
+                    ),
                 ),
-                false
+                false,
             ),
-            $this->analyzer->analyze($list, $env)
+            $this->analyzer->analyze($list, $env),
         );
     }
 
@@ -147,11 +147,11 @@ final class LetSymbolTest extends TestCase
                 new DoNode(
                     $env,
                     [],
-                    new LiteralNode($env, 1)
+                    new LiteralNode($env, 1),
                 ),
-                false
+                false,
             ),
-            $this->analyzer->analyze($list, $env)
+            $this->analyzer->analyze($list, $env),
         );
     }
 
@@ -172,11 +172,11 @@ final class LetSymbolTest extends TestCase
                 new DoNode(
                     $env->withContext(NodeEnvironmentInterface::CONTEXT_RETURN),
                     [new LiteralNode($env->withContext(NodeEnvironmentInterface::CONTEXT_STATEMENT)->withDisallowRecurFrame(), 1)],
-                    new LiteralNode($env->withContext(NodeEnvironmentInterface::CONTEXT_RETURN), 2)
+                    new LiteralNode($env->withContext(NodeEnvironmentInterface::CONTEXT_RETURN), 2),
                 ),
-                false
+                false,
             ),
-            $this->analyzer->analyze($list, $env)
+            $this->analyzer->analyze($list, $env),
         );
     }
 }

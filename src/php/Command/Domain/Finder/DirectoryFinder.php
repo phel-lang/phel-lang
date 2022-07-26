@@ -51,7 +51,7 @@ final class DirectoryFinder implements DirectoryFinderInterface
     {
         return array_map(
             fn (string $dir): string => $this->applicationRootDir . '/' . $dir,
-            $relativeDirectories
+            $relativeDirectories,
         );
     }
 }

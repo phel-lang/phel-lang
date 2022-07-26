@@ -30,7 +30,7 @@ final class PrinterTest extends TestCase
     {
         self::assertEquals(
             '"test"',
-            $this->print('test')
+            $this->print('test'),
         );
     }
 
@@ -38,7 +38,7 @@ final class PrinterTest extends TestCase
     {
         self::assertEquals(
             '"\n\r\t\v\f\e\"\$\\\\"',
-            $this->print("\n\r\t\v\f\e\"\$\\")
+            $this->print("\n\r\t\v\f\e\"\$\\"),
         );
     }
 
@@ -46,7 +46,7 @@ final class PrinterTest extends TestCase
     {
         self::assertEquals(
             '"\$ \$abc"',
-            $this->print($this->read('"$ $abc"'))
+            $this->print($this->read('"$ $abc"')),
         );
     }
 
@@ -54,7 +54,7 @@ final class PrinterTest extends TestCase
     {
         self::assertEquals(
             '"\x07"',
-            $this->print("\x07")
+            $this->print("\x07"),
         );
     }
 
@@ -62,7 +62,7 @@ final class PrinterTest extends TestCase
     {
         self::assertEquals(
             '"\u{1000}"',
-            $this->print("\u{1000}")
+            $this->print("\u{1000}"),
         );
     }
 
@@ -70,7 +70,7 @@ final class PrinterTest extends TestCase
     {
         self::assertEquals(
             '0',
-            $this->print(0)
+            $this->print(0),
         );
     }
 
