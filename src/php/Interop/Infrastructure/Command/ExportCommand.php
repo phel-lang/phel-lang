@@ -22,7 +22,7 @@ final class ExportCommand extends Command
     protected function configure(): void
     {
         $this->setName('export')
-            ->setDescription('Export all definitions with the meta data `@{:export true}` as PHP classes.');
+            ->setDescription('Export all definitions with the meta data `{:export true}` as PHP classes.');
     }
 
     protected function execute(InputInterface $input, OutputInterface $output): int
