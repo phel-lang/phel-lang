@@ -21,7 +21,7 @@ final class CodeSnippet
         return new self(
             $node->getStartLocation(),
             $node->getEndLocation(),
-            $node->getCode()
+            $node->getCode(),
         );
     }
 

@@ -15,7 +15,7 @@ final class FilePositionExtractorTest extends TestCase
     public function test_get_original(): void
     {
         $extractor = new FilePositionExtractor(
-            $this->stubSourceMapExtractor()
+            $this->stubSourceMapExtractor(),
         );
 
         $filename = '/example-module-name/file-name.phel';
@@ -23,7 +23,7 @@ final class FilePositionExtractorTest extends TestCase
 
         self::assertEquals(
             new FilePosition($filename, $line),
-            $extractor->getOriginal($filename, $line)
+            $extractor->getOriginal($filename, $line),
         );
     }
 
@@ -31,8 +31,8 @@ final class FilePositionExtractorTest extends TestCase
     {
         $extractor = new FilePositionExtractor(
             $this->stubSourceMapExtractor(
-                '// file-name/comment'
-            )
+                '// file-name/comment',
+            ),
         );
 
         $filename = '/example-module-name/file-name.phel';
@@ -40,13 +40,13 @@ final class FilePositionExtractorTest extends TestCase
 
         self::assertEquals(
             new FilePosition('file-name/comment', $line),
-            $extractor->getOriginal($filename, $line)
+            $extractor->getOriginal($filename, $line),
         );
     }
 
     private function stubSourceMapExtractor(
         string $filename = '',
-        string $sourceMap = ''
+        string $sourceMap = '',
     ): SourceMapExtractorInterface {
         $sourceMapExtractor = $this->createMock(SourceMapExtractorInterface::class);
         $sourceMapExtractor

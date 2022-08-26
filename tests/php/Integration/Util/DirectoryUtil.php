@@ -19,7 +19,7 @@ final class DirectoryUtil
 
         $files = new RecursiveIteratorIterator(
             new RecursiveDirectoryIterator($target, FilesystemIterator::SKIP_DOTS),
-            RecursiveIteratorIterator::CHILD_FIRST
+            RecursiveIteratorIterator::CHILD_FIRST,
         );
 
         /** @var SplFileInfo $file */

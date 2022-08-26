@@ -18,7 +18,7 @@ final class CallPhelTest extends TestCase
 
         (new BuildFacade())->compileFile(
             __DIR__ . '/../../../../src/phel/core.phel',
-            tempnam(sys_get_temp_dir(), 'phel-core')
+            tempnam(sys_get_temp_dir(), 'phel-core'),
         );
         $this->wrapper = new ExampleWrapper();
     }

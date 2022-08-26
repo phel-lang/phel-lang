@@ -68,7 +68,7 @@ final class ReaderTest extends TestCase
     {
         self::assertEquals(
             $this->loc(Keyword::create('test'), 1, 0, 1, 5),
-            $this->read(':test')
+            $this->read(':test'),
         );
     }
 
@@ -81,7 +81,7 @@ final class ReaderTest extends TestCase
     public function test_read_nil(): void
     {
         self::assertNull(
-            $this->read('nil')
+            $this->read('nil'),
         );
     }
 
@@ -89,7 +89,7 @@ final class ReaderTest extends TestCase
     {
         self::assertEquals(
             $this->loc(Symbol::create('test'), 1, 0, 1, 4),
-            $this->read('test')
+            $this->read('test'),
         );
     }
 
@@ -97,20 +97,20 @@ final class ReaderTest extends TestCase
     {
         self::assertEquals(
             $this->loc(TypeFactory::getInstance()->emptyPersistentList(), 1, 0, 1, 2),
-            $this->read('()')
+            $this->read('()'),
         );
         self::assertEquals(
             $this->loc(TypeFactory::getInstance()->persistentListFromArray([
                 $this->loc(TypeFactory::getInstance()->emptyPersistentList(), 1, 1, 1, 3),
             ]), 1, 0, 1, 4),
-            $this->read('(())')
+            $this->read('(())'),
         );
 
         self::assertEquals(
             $this->loc(TypeFactory::getInstance()->persistentListFromArray([
                 $this->loc(Symbol::create('a'), 1, 1, 1, 2),
             ]), 1, 0, 1, 3),
-            $this->read('(a)')
+            $this->read('(a)'),
         );
 
         self::assertEquals(
@@ -118,7 +118,7 @@ final class ReaderTest extends TestCase
                 $this->loc(Symbol::create('a'), 1, 1, 1, 2),
                 $this->loc(Symbol::create('b'), 1, 3, 1, 4),
             ]), 1, 0, 1, 5),
-            $this->read('(a b)')
+            $this->read('(a b)'),
         );
     }
 
@@ -126,20 +126,20 @@ final class ReaderTest extends TestCase
     {
         self::assertEquals(
             $this->loc(TypeFactory::getInstance()->emptyPersistentVector(), 1, 0, 1, 2),
-            $this->read('[]')
+            $this->read('[]'),
         );
         self::assertEquals(
             $this->loc(TypeFactory::getInstance()->persistentVectorFromArray([
                 $this->loc(TypeFactory::getInstance()->emptyPersistentVector(), 1, 1, 1, 3),
             ]), 1, 0, 1, 4),
-            $this->read('[[]]')
+            $this->read('[[]]'),
         );
 
         self::assertEquals(
             $this->loc(TypeFactory::getInstance()->persistentVectorFromArray([
                 $this->loc(Symbol::create('a'), 1, 1, 1, 2),
             ]), 1, 0, 1, 3),
-            $this->read('[a]')
+            $this->read('[a]'),
         );
 
         self::assertEquals(
@@ -147,7 +147,7 @@ final class ReaderTest extends TestCase
                 $this->loc(Symbol::create('a'), 1, 1, 1, 2),
                 $this->loc(Symbol::create('b'), 1, 3, 1, 4),
             ]), 1, 0, 1, 5),
-            $this->read('[a b]')
+            $this->read('[a b]'),
         );
     }
 
@@ -158,7 +158,7 @@ final class ReaderTest extends TestCase
                 Symbol::create(Symbol::NAME_QUOTE),
                 $this->loc(Symbol::create('a'), 1, 1, 1, 2),
             ]), 1, 0, 1, 2),
-            $this->read('\'a')
+            $this->read('\'a'),
         );
     }
 
@@ -169,7 +169,7 @@ final class ReaderTest extends TestCase
                 Symbol::create(Symbol::NAME_UNQUOTE),
                 $this->loc(Symbol::create('a'), 1, 1, 1, 2),
             ]), 1, 0, 1, 2),
-            $this->read(',a')
+            $this->read(',a'),
         );
     }
 
@@ -180,7 +180,7 @@ final class ReaderTest extends TestCase
                 Symbol::create(Symbol::NAME_UNQUOTE_SPLICING),
                 $this->loc(Symbol::create('a'), 1, 2, 1, 3),
             ]), 1, 0, 1, 3),
-            $this->read(',@a')
+            $this->read(',@a'),
         );
     }
 
@@ -191,7 +191,7 @@ final class ReaderTest extends TestCase
                 $this->loc(Symbol::create(Symbol::NAME_QUOTE), 1, 1, 1, 8),
                 $this->loc(Symbol::create(Symbol::NAME_UNQUOTE), 1, 1, 1, 8),
             ]), 1, 0, 1, 8),
-            $this->read(sprintf('`%s', Symbol::NAME_UNQUOTE))
+            $this->read(sprintf('`%s', Symbol::NAME_UNQUOTE)),
         );
     }
 
@@ -202,7 +202,7 @@ final class ReaderTest extends TestCase
                 $this->loc(Symbol::create(Symbol::NAME_QUOTE), 1, 1, 1, 2),
                 $this->loc(Symbol::create('a'), 1, 1, 1, 2),
             ]), 1, 0, 1, 2),
-            $this->read('`a')
+            $this->read('`a'),
         );
     }
 
@@ -252,52 +252,52 @@ final class ReaderTest extends TestCase
     {
         self::assertEquals(
             'abc',
-            $this->read('"abc"')
+            $this->read('"abc"'),
         );
 
         self::assertEquals(
             'ab"c',
-            $this->read('"ab\"c"')
+            $this->read('"ab\"c"'),
         );
 
         self::assertEquals(
             "\\\r\n\t\f\v\e\$",
-            $this->read('"\\\\\r\n\t\f\v\e\$"')
+            $this->read('"\\\\\r\n\t\f\v\e\$"'),
         );
 
         self::assertEquals(
             'read $abc sign',
-            $this->read('"read $abc sign"')
+            $this->read('"read $abc sign"'),
         );
 
         self::assertEquals(
             "\x41",
-            $this->read('"\x41"')
+            $this->read('"\x41"'),
         );
 
         self::assertEquals(
             "\u{65}",
-            $this->read('"\u{65}"')
+            $this->read('"\u{65}"'),
         );
 
         self::assertEquals(
             "\u{129}",
-            $this->read('"\u{129}"')
+            $this->read('"\u{129}"'),
         );
 
         self::assertEquals(
             "\u{1000}",
-            $this->read('"\u{1000}"')
+            $this->read('"\u{1000}"'),
         );
 
         self::assertEquals(
             "\u{10000}",
-            $this->read('"\u{10000}"')
+            $this->read('"\u{10000}"'),
         );
 
         self::assertEquals(
             "\77",
-            $this->read('"\77"')
+            $this->read('"\77"'),
         );
     }
 
@@ -305,7 +305,7 @@ final class ReaderTest extends TestCase
     {
         self::assertEquals(
             $this->loc(TypeFactory::getInstance()->emptyPersistentMap(), 1, 0, 1, 2),
-            $this->read('{}')
+            $this->read('{}'),
         );
     }
 
@@ -315,14 +315,14 @@ final class ReaderTest extends TestCase
             $this->loc(
                 TypeFactory::getInstance()->persistentMapFromKVs(
                     $this->loc(Keyword::create('a'), 1, 1, 1, 3),
-                    1
+                    1,
                 ),
                 1,
                 0,
                 1,
-                6
+                6,
             ),
-            $this->read('{:a 1}')
+            $this->read('{:a 1}'),
         );
     }
 
@@ -333,9 +333,9 @@ final class ReaderTest extends TestCase
                 $this->loc(Keyword::create('a'), 1, 1, 1, 3),
                 1,
                 $this->loc(Keyword::create('b'), 1, 6, 1, 8),
-                2
+                2,
             ), 1, 0, 1, 11),
-            $this->read('{:a 1 :b 2}')
+            $this->read('{:a 1 :b 2}'),
         );
     }
 
@@ -353,15 +353,15 @@ final class ReaderTest extends TestCase
                     Symbol::create('test'),
                     TypeFactory::getInstance()->persistentMapFromKVs(
                         $this->loc(Keyword::create('test'), 1, 1, 1, 6),
-                        true
-                    )
+                        true,
+                    ),
                 ),
                 1,
                 7,
                 1,
-                11
+                11,
             ),
-            $this->read('^:test test')
+            $this->read('^:test test'),
         );
     }
 
@@ -373,15 +373,15 @@ final class ReaderTest extends TestCase
                     Symbol::create('test'),
                     TypeFactory::getInstance()->persistentMapFromKVs(
                         Keyword::create('tag'),
-                        'test'
-                    )
+                        'test',
+                    ),
                 ),
                 1,
                 8,
                 1,
-                12
+                12,
             ),
-            $this->read('^"test" test')
+            $this->read('^"test" test'),
         );
     }
 
@@ -393,15 +393,15 @@ final class ReaderTest extends TestCase
                     Symbol::create('test'),
                     TypeFactory::getInstance()->persistentMapFromKVs(
                         Keyword::create('tag'),
-                        $this->loc(Symbol::create('String'), 1, 1, 1, 7)
-                    )
+                        $this->loc(Symbol::create('String'), 1, 1, 1, 7),
+                    ),
                 ),
                 1,
                 8,
                 1,
-                12
+                12,
             ),
-            $this->read('^String test')
+            $this->read('^String test'),
         );
     }
 
@@ -415,15 +415,15 @@ final class ReaderTest extends TestCase
                         $this->loc(Keyword::create('a'), 1, 2, 1, 4),
                         1,
                         $this->loc(Keyword::create('b'), 1, 7, 1, 9),
-                        2
-                    )
+                        2,
+                    ),
                 ),
                 1,
                 13,
                 1,
-                17
+                17,
             ),
-            $this->read('^{:a 1 :b 2} test')
+            $this->read('^{:a 1 :b 2} test'),
         );
     }
 
@@ -437,15 +437,15 @@ final class ReaderTest extends TestCase
                         $this->loc(Keyword::create('b'), 1, 5, 1, 7),
                         true,
                         $this->loc(Keyword::create('a'), 1, 1, 1, 3),
-                        true
-                    )
+                        true,
+                    ),
                 ),
                 1,
                 8,
                 1,
-                12
+                12,
             ),
-            $this->read('^:a ^:b test')
+            $this->read('^:a ^:b test'),
         );
     }
 
@@ -477,15 +477,15 @@ final class ReaderTest extends TestCase
                         1,
                         0,
                         1,
-                        6
+                        6,
                     ),
                 ]),
                 1,
                 0,
                 1,
-                6
+                6,
             ),
-            $this->read('|(add)')
+            $this->read('|(add)'),
         );
     }
 
@@ -506,15 +506,15 @@ final class ReaderTest extends TestCase
                         1,
                         0,
                         1,
-                        8
+                        8,
                     ),
                 ]),
                 1,
                 0,
                 1,
-                8
+                8,
             ),
-            $this->read('|(add $)')
+            $this->read('|(add $)'),
         );
     }
 
@@ -536,15 +536,15 @@ final class ReaderTest extends TestCase
                         1,
                         0,
                         1,
-                        10
+                        10,
                     ),
                 ]),
                 1,
                 0,
                 1,
-                10
+                10,
             ),
-            $this->read('|(add $ $)')
+            $this->read('|(add $ $)'),
         );
     }
 
@@ -567,15 +567,15 @@ final class ReaderTest extends TestCase
                         1,
                         0,
                         1,
-                        12
+                        12,
                     ),
                 ]),
                 1,
                 0,
                 1,
-                12
+                12,
             ),
-            $this->read('|(add $1 $2)')
+            $this->read('|(add $1 $2)'),
         );
     }
 
@@ -597,15 +597,15 @@ final class ReaderTest extends TestCase
                         1,
                         0,
                         1,
-                        12
+                        12,
                     ),
                 ]),
                 1,
                 0,
                 1,
-                12
+                12,
             ),
-            $this->read('|(add $1 $1)')
+            $this->read('|(add $1 $1)'),
         );
     }
 
@@ -629,15 +629,15 @@ final class ReaderTest extends TestCase
                         1,
                         0,
                         1,
-                        12
+                        12,
                     ),
                 ]),
                 1,
                 0,
                 1,
-                12
+                12,
             ),
-            $this->read('|(add $1 $3)')
+            $this->read('|(add $1 $3)'),
         );
     }
 
@@ -661,15 +661,15 @@ final class ReaderTest extends TestCase
                         1,
                         0,
                         1,
-                        12
+                        12,
                     ),
                 ]),
                 1,
                 0,
                 1,
-                12
+                12,
             ),
-            $this->read('|(add $1 $&)')
+            $this->read('|(add $1 $&)'),
         );
     }
 
@@ -692,15 +692,15 @@ final class ReaderTest extends TestCase
                         1,
                         0,
                         1,
-                        15
+                        15,
                     ),
                 ]),
                 1,
                 0,
                 1,
-                15
+                15,
             ),
-            $this->read('|(concat $& $&)')
+            $this->read('|(concat $& $&)'),
         );
     }
 

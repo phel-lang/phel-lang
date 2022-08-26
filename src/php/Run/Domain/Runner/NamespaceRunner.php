@@ -24,7 +24,7 @@ class NamespaceRunner implements NamespaceRunnerInterface
                 ...$this->commandFacade->getSourceDirectories(),
                 ...$this->commandFacade->getVendorSourceDirectories(),
             ],
-            [$namespace, 'phel\\core']
+            [$namespace, 'phel\\core'],
         );
 
         foreach ($namespaceInformation as $info) {

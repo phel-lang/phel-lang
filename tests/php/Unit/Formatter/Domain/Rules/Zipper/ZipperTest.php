@@ -197,7 +197,7 @@ final class ZipperTest extends TestCase
 
         self::assertEquals(
             [0, [1, 2], 3, [4, 5]],
-            $zipper->down()->insertLeft(0)->root()
+            $zipper->down()->insertLeft(0)->root(),
         );
     }
 
@@ -217,7 +217,7 @@ final class ZipperTest extends TestCase
 
         self::assertEquals(
             [[1, 2], 0, 3, [4, 5]],
-            $zipper->down()->insertRight(0)->root()
+            $zipper->down()->insertRight(0)->root(),
         );
     }
 
@@ -237,7 +237,7 @@ final class ZipperTest extends TestCase
 
         self::assertEquals(
             [0, 3, [4, 5]],
-            $zipper->down()->replace(0)->root()
+            $zipper->down()->replace(0)->root(),
         );
     }
 
@@ -248,7 +248,7 @@ final class ZipperTest extends TestCase
 
         self::assertEquals(
             [[0, 1, 2], 3, [4, 5]],
-            $zipper->down()->insertChild(0)->root()
+            $zipper->down()->insertChild(0)->root(),
         );
     }
 
@@ -259,7 +259,7 @@ final class ZipperTest extends TestCase
 
         self::assertEquals(
             [[1, 2, 0], 3, [4, 5]],
-            $zipper->down()->appendChild(0)->root()
+            $zipper->down()->appendChild(0)->root(),
         );
     }
 
@@ -270,7 +270,7 @@ final class ZipperTest extends TestCase
 
         self::assertEquals(
             [[1, 2], [4, 5]],
-            $zipper->down()->right()->remove()->root()
+            $zipper->down()->right()->remove()->root(),
         );
     }
 
@@ -281,7 +281,7 @@ final class ZipperTest extends TestCase
 
         self::assertEquals(
             [3, [4, 5]],
-            $zipper->down()->remove()->root()
+            $zipper->down()->remove()->root(),
         );
     }
 

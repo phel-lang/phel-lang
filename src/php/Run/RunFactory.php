@@ -27,7 +27,7 @@ class RunFactory extends AbstractFactory
     {
         return new NamespaceRunner(
             $this->getCommandFacade(),
-            $this->getBuildFacade()
+            $this->getBuildFacade(),
         );
     }
 
@@ -55,7 +55,7 @@ class RunFactory extends AbstractFactory
     {
         return new NamespaceCollector(
             $this->getBuildFacade(),
-            $this->getCommandFacade()
+            $this->getCommandFacade(),
         );
     }
 
@@ -73,7 +73,7 @@ class RunFactory extends AbstractFactory
     {
         return new ReplCommandSystemIo(
             $this->getConfig()->getPhelReplHistory(),
-            $this->getCommandFacade()
+            $this->getCommandFacade(),
         );
     }
 }

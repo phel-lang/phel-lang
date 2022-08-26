@@ -18,7 +18,7 @@ final class ColorStyleTest extends TestCase
 
         self::assertEquals(
             sprintf($format, $anyText),
-            $style->color($anyText, $color)
+            $style->color($anyText, $color),
         );
     }
 

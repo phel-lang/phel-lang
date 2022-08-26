@@ -27,7 +27,7 @@ final class QuoteSymbol implements SpecialFormAnalyzerInterface
         return new QuoteNode(
             $env,
             $list->get(1),
-            $list->getStartLocation()
+            $list->getStartLocation(),
         );
     }
 }

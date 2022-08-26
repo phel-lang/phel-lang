@@ -92,7 +92,7 @@ final class OutputEmitter implements OutputEmitterInterface
                         'line' => $this->sourceMapState->getGeneratedLines(),
                         'column' => $this->sourceMapState->getGeneratedColumns(),
                     ],
-                ]
+                ],
             );
         }
 
@@ -156,7 +156,7 @@ final class OutputEmitter implements OutputEmitterInterface
         Symbol $symbol,
         ?SourceLocation $loc = null,
         bool $asReference = false,
-        bool $isVariadic = false
+        bool $isVariadic = false,
     ): void {
         if (is_null($loc)) {
             $loc = $symbol->getStartLocation();

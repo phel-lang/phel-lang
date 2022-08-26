@@ -20,7 +20,7 @@ final class FilePositionExtractor implements FilePositionExtractorInterface
 
         return new FilePosition(
             $this->extractOriginalFilename($sourceMapInfo, $filename),
-            $this->extractOriginalLine($sourceMapInfo, $line)
+            $this->extractOriginalLine($sourceMapInfo, $line),
         );
     }
 

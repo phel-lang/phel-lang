@@ -143,14 +143,14 @@ final class GlobalEnvironment implements GlobalEnvironmentInterface
         if ($strName === '__DIR__') {
             return new LiteralNode(
                 $env,
-                $this->resolveMagicDir($name->getStartLocation())
+                $this->resolveMagicDir($name->getStartLocation()),
             );
         }
 
         if ($strName === '__FILE__') {
             return new LiteralNode(
                 $env,
-                $this->resolveMagicFile($name->getStartLocation())
+                $this->resolveMagicFile($name->getStartLocation()),
             );
         }
 

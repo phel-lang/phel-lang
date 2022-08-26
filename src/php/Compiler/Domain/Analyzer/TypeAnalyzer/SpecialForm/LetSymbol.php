@@ -78,7 +78,7 @@ final class LetSymbol implements SpecialFormAnalyzerInterface
             ->withContext(
                 $env->getContext() === NodeEnvironmentInterface::CONTEXT_EXPRESSION
                     ? NodeEnvironmentInterface::CONTEXT_RETURN
-                    : $env->getContext()
+                    : $env->getContext(),
             );
 
         foreach ($bindings as $binding) {
@@ -91,7 +91,7 @@ final class LetSymbol implements SpecialFormAnalyzerInterface
                 Symbol::create(Symbol::NAME_DO),
                 ...$exprs,
             ]),
-            $bodyEnv
+            $bodyEnv,
         );
 
         return new LetNode(
@@ -99,7 +99,7 @@ final class LetSymbol implements SpecialFormAnalyzerInterface
             $bindings,
             $bodyExpr,
             $isLoop = false,
-            $list->getStartLocation()
+            $list->getStartLocation(),
         );
     }
 
@@ -128,7 +128,7 @@ final class LetSymbol implements SpecialFormAnalyzerInterface
                 $sym,
                 $shadowSym,
                 $expr,
-                $sym->getStartLocation()
+                $sym->getStartLocation(),
             );
 
             $initEnv = $initEnv->withMergedLocals([$sym])->withShadowedLocal($sym, $shadowSym);

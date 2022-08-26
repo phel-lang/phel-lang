@@ -56,7 +56,7 @@ final class FunctionsToExportFinder implements FunctionsToExportFinderInterface
 
         $namespaces = array_map(
             static fn (NamespaceInformation $info) => $info->getNamespace(),
-            $namespaceFromDirectories
+            $namespaceFromDirectories,
         );
 
         $namespaceInformation = $this->buildFacade->getDependenciesForNamespace(
@@ -64,7 +64,7 @@ final class FunctionsToExportFinder implements FunctionsToExportFinderInterface
                 ...$this->commandFacade->getSourceDirectories(),
                 ...$this->commandFacade->getVendorSourceDirectories(),
             ],
-            [...$namespaces, 'phel\\core']
+            [...$namespaces, 'phel\\core'],
         );
 
         foreach ($namespaceInformation as $info) {

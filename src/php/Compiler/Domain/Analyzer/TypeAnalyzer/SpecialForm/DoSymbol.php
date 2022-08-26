@@ -53,7 +53,7 @@ final class DoSymbol implements SpecialFormAnalyzerInterface
             $env,
             array_slice($stmts, 0, -1),
             $stmts[count($stmts) - 1],
-            $list->getStartLocation()
+            $list->getStartLocation(),
         );
     }
 }

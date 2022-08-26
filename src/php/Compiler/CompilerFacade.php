@@ -89,7 +89,7 @@ final class CompilerFacade extends AbstractFacade implements CompilerFacadeInter
         string $code,
         string $source = Lexer::DEFAULT_SOURCE,
         bool $withLocation = true,
-        int $startingLine = 1
+        int $startingLine = 1,
     ): TokenStream {
         return $this->getFactory()
             ->createLexer($withLocation)

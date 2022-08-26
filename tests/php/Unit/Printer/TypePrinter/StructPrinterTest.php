@@ -20,7 +20,7 @@ final class StructPrinterTest extends TestCase
     {
         self::assertSame(
             $actual,
-            (new StructPrinter(Printer::readable()))->print($struct)
+            (new StructPrinter(Printer::readable()))->print($struct),
         );
     }
 

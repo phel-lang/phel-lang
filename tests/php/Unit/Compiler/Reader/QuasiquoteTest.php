@@ -19,7 +19,7 @@ final class QuasiquoteTest extends TestCase
         $q = new QuasiquoteTransformer(new GlobalEnvironment());
         self::assertEquals(
             1,
-            $q->transform(TypeFactory::getInstance()->persistentListFromArray([Symbol::create(Symbol::NAME_UNQUOTE), 1]))
+            $q->transform(TypeFactory::getInstance()->persistentListFromArray([Symbol::create(Symbol::NAME_UNQUOTE), 1])),
         );
     }
 
@@ -43,7 +43,7 @@ final class QuasiquoteTest extends TestCase
                     TypeFactory::getInstance()->persistentListFromArray([Symbol::create(Symbol::NAME_LIST), 2]),
                 ]),
             ]),
-            $q->transform(TypeFactory::getInstance()->persistentListFromArray([1, 2]))
+            $q->transform(TypeFactory::getInstance()->persistentListFromArray([1, 2])),
         );
     }
 
@@ -66,7 +66,7 @@ final class QuasiquoteTest extends TestCase
                     Symbol::create(Symbol::NAME_UNQUOTE_SPLICING),
                     2,
                 ]),
-            ]))
+            ])),
         );
     }
 
@@ -89,7 +89,7 @@ final class QuasiquoteTest extends TestCase
                     Symbol::create(Symbol::NAME_UNQUOTE),
                     2,
                 ]),
-            ]))
+            ])),
         );
     }
 
@@ -106,7 +106,7 @@ final class QuasiquoteTest extends TestCase
                     TypeFactory::getInstance()->persistentListFromArray([Symbol::create(Symbol::NAME_LIST), 2]),
                 ]),
             ]),
-            $q->transform(TypeFactory::getInstance()->persistentVectorFromArray([1, 2]))
+            $q->transform(TypeFactory::getInstance()->persistentVectorFromArray([1, 2])),
         );
     }
 
@@ -125,7 +125,7 @@ final class QuasiquoteTest extends TestCase
                     TypeFactory::getInstance()->persistentListFromArray([Symbol::create(Symbol::NAME_LIST), 2]),
                 ]),
             ]),
-            $q->transform(TypeFactory::getInstance()->persistentMapFromKVs('a', 1, 'b', 2))
+            $q->transform(TypeFactory::getInstance()->persistentMapFromKVs('a', 1, 'b', 2)),
         );
     }
 
@@ -134,7 +134,7 @@ final class QuasiquoteTest extends TestCase
         $q = new QuasiquoteTransformer(new GlobalEnvironment());
         self::assertEquals(
             1,
-            $q->transform(1)
+            $q->transform(1),
         );
     }
 
@@ -143,7 +143,7 @@ final class QuasiquoteTest extends TestCase
         $q = new QuasiquoteTransformer(new GlobalEnvironment());
         self::assertEquals(
             'a',
-            $q->transform('a')
+            $q->transform('a'),
         );
     }
 
@@ -152,7 +152,7 @@ final class QuasiquoteTest extends TestCase
         $q = new QuasiquoteTransformer(new GlobalEnvironment());
         self::assertEquals(
             1.1,
-            $q->transform(1.1)
+            $q->transform(1.1),
         );
     }
 
@@ -160,7 +160,7 @@ final class QuasiquoteTest extends TestCase
     {
         $q = new QuasiquoteTransformer(new GlobalEnvironment());
         self::assertTrue(
-            $q->transform(true)
+            $q->transform(true),
         );
     }
 
@@ -168,7 +168,7 @@ final class QuasiquoteTest extends TestCase
     {
         $q = new QuasiquoteTransformer(new GlobalEnvironment());
         self::assertNull(
-            $q->transform(null)
+            $q->transform(null),
         );
     }
 
@@ -177,7 +177,7 @@ final class QuasiquoteTest extends TestCase
         $q = new QuasiquoteTransformer(new GlobalEnvironment());
         self::assertEquals(
             Keyword::create('test'),
-            $q->transform(Keyword::create('test'))
+            $q->transform(Keyword::create('test')),
         );
     }
 
@@ -189,7 +189,7 @@ final class QuasiquoteTest extends TestCase
                 Symbol::create(Symbol::NAME_QUOTE),
                 Symbol::create('test'),
             ]),
-            $q->transform(Symbol::create('test'))
+            $q->transform(Symbol::create('test')),
         );
     }
 
@@ -204,7 +204,7 @@ final class QuasiquoteTest extends TestCase
                 Symbol::create(Symbol::NAME_QUOTE),
                 Symbol::createForNamespace('test', 'abc'),
             ]),
-            $q->transform(Symbol::createForNamespace('test', 'abc'))
+            $q->transform(Symbol::createForNamespace('test', 'abc')),
         );
     }
 }

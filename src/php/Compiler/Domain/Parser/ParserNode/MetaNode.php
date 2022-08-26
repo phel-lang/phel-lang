@@ -18,7 +18,7 @@ final class MetaNode implements InnerNodeInterface
         private NodeInterface $meta,
         private SourceLocation $startLocation,
         private SourceLocation $endLocation,
-        private array $children
+        private array $children,
     ) {
     }
 

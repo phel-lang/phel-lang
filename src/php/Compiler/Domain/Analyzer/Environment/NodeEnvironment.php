@@ -80,8 +80,8 @@ final class NodeEnvironment implements NodeEnvironmentInterface
             $this->locals,
             array_map(
                 static fn (Symbol $s) => Symbol::create($s->getName()),
-                $locals
-            )
+                $locals,
+            ),
         );
 
         return $this

@@ -18,7 +18,7 @@ final class KeywordPrinterTest extends TestCase
     {
         self::assertSame(
             $expected,
-            (new KeywordPrinter())->print($keyword)
+            (new KeywordPrinter())->print($keyword),
         );
     }
 

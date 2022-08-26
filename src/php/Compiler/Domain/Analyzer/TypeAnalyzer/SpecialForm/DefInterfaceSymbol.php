@@ -33,7 +33,7 @@ final class DefInterfaceSymbol implements SpecialFormAnalyzerInterface
             $this->analyzer->getNamespace(),
             $interfaceSymbol,
             $this->methods($list->rest()->cdr()),
-            $list->getStartLocation()
+            $list->getStartLocation(),
         );
     }
 
@@ -89,7 +89,7 @@ final class DefInterfaceSymbol implements SpecialFormAnalyzerInterface
         return new DefInterfaceMethod(
             $name,
             $arguments->toArray(),
-            $comment
+            $comment,
         );
     }
 }

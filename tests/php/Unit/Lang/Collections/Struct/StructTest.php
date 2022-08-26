@@ -77,7 +77,7 @@ final class StructTest extends TestCase
         $map = PersistentHashMap::fromArray(
             TypeFactory::getInstance()->getHasher(),
             TypeFactory::getInstance()->getEqualizer(),
-            [Keyword::create('a'), 1, Keyword::create('b'), 2]
+            [Keyword::create('a'), 1, Keyword::create('b'), 2],
         );
 
         self::assertFalse($s->equals($map));

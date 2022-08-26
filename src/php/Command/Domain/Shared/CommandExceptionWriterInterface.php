@@ -16,7 +16,7 @@ interface CommandExceptionWriterInterface
     public function writeLocatedException(
         OutputInterface $output,
         AbstractLocatedException $e,
-        CodeSnippet $codeSnippet
+        CodeSnippet $codeSnippet,
     ): void;
 
     public function getExceptionString(AbstractLocatedException $e, CodeSnippet $codeSnippet): string;

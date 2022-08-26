@@ -10,7 +10,7 @@ final class ReaderResult
 {
     public function __construct(
         private float|bool|int|string|TypeInterface|null $ast,
-        private CodeSnippet $codeSnippet
+        private CodeSnippet $codeSnippet,
     ) {
     }
 

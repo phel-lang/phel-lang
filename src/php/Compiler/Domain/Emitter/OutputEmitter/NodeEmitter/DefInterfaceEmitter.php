@@ -29,12 +29,12 @@ final class DefInterfaceEmitter implements NodeEmitterInterface
         if ($this->outputEmitter->getOptions()->isStatementEmitMode()) {
             $this->outputEmitter->emitLine(
                 'namespace ' . $this->outputEmitter->mungeEncodeNs($node->getNamespace()) . ';',
-                $node->getStartSourceLocation()
+                $node->getStartSourceLocation(),
             );
         }
         $this->outputEmitter->emitLine(
             'interface ' . $this->outputEmitter->mungeEncode($node->getName()->getName()) . ' {',
-            $node->getStartSourceLocation()
+            $node->getStartSourceLocation(),
         );
         $this->outputEmitter->increaseIndentLevel();
     }
@@ -51,7 +51,7 @@ final class DefInterfaceEmitter implements NodeEmitterInterface
         $this->outputEmitter->emitStr('public function ', $node->getStartSourceLocation());
         $this->outputEmitter->emitStr(
             $this->outputEmitter->mungeEncode($method->getName()->getName()),
-            $node->getStartSourceLocation()
+            $node->getStartSourceLocation(),
         );
         $this->outputEmitter->emitStr('(', $node->getStartSourceLocation());
 

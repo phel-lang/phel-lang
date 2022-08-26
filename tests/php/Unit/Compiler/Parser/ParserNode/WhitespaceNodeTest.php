@@ -14,7 +14,7 @@ final class WhitespaceNodeTest extends TestCase
     {
         self::assertEquals(
             ' ',
-            (new WhitespaceNode(' ', $this->loc(1, 0), $this->loc(1, 1)))->getCode()
+            (new WhitespaceNode(' ', $this->loc(1, 0), $this->loc(1, 1)))->getCode(),
         );
     }
 
@@ -22,7 +22,7 @@ final class WhitespaceNodeTest extends TestCase
     {
         self::assertEquals(
             $this->loc(1, 0),
-            (new WhitespaceNode(' ', $this->loc(1, 0), $this->loc(1, 1)))->getStartLocation()
+            (new WhitespaceNode(' ', $this->loc(1, 0), $this->loc(1, 1)))->getStartLocation(),
         );
     }
 
@@ -30,7 +30,7 @@ final class WhitespaceNodeTest extends TestCase
     {
         self::assertEquals(
             $this->loc(1, 1),
-            (new WhitespaceNode(' ', $this->loc(1, 0), $this->loc(1, 1)))->getEndLocation()
+            (new WhitespaceNode(' ', $this->loc(1, 0), $this->loc(1, 1)))->getEndLocation(),
         );
     }
 

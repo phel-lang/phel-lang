@@ -20,7 +20,7 @@ final class CommandFacade extends AbstractFacade implements CommandFacadeInterfa
     public function writeLocatedException(
         OutputInterface $output,
         AbstractLocatedException $locatedException,
-        CodeSnippet $snippet
+        CodeSnippet $snippet,
     ): void {
         $this->getFactory()
             ->createCommandExceptionWriter()

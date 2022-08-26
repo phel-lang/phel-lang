@@ -14,7 +14,7 @@ final class StatementEmitter implements StatementEmitterInterface
 
     public function __construct(
         SourceMapGenerator $sourceMapGenerator,
-        OutputEmitterInterface $outputEmitter
+        OutputEmitterInterface $outputEmitter,
     ) {
         $this->sourceMapGenerator = $sourceMapGenerator;
         $this->outputEmitter = $outputEmitter;
@@ -39,19 +39,19 @@ final class StatementEmitter implements StatementEmitterInterface
                 $enableSourceMaps,
                 $code,
                 '',
-                $file
+                $file,
             );
         }
 
         $sourceMap = $this->sourceMapGenerator->encode(
-            $this->outputEmitter->getSourceMapState()->getMappings()
+            $this->outputEmitter->getSourceMapState()->getMappings(),
         );
 
         return new EmitterResult(
             $enableSourceMaps,
             $code,
             $sourceMap,
-            $file
+            $file,
         );
     }
 }

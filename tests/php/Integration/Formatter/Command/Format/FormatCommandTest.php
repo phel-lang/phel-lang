@@ -31,7 +31,7 @@ final class FormatCommandTest extends TestCase
         try {
             $command->run(
                 $this->stubInput([$path]),
-                $this->stubOutput()
+                $this->stubOutput(),
             );
         } finally {
             file_put_contents($path, $oldContent);
@@ -55,7 +55,7 @@ TXT
         try {
             $command->run(
                 $this->stubInput([$path]),
-                $this->stubOutput()
+                $this->stubOutput(),
             );
         } finally {
             file_put_contents($path, $oldContent);

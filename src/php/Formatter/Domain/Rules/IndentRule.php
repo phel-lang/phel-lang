@@ -74,7 +74,7 @@ final class IndentRule implements RuleInterface
         $width = $this->indentAmount($form);
         if ($width && $width > 0) {
             return $form->insertRight(
-                new WhitespaceNode(str_repeat(' ', $width), new SourceLocation('', 0, 0), new SourceLocation('', 0, 0))
+                new WhitespaceNode(str_repeat(' ', $width), new SourceLocation('', 0, 0), new SourceLocation('', 0, 0)),
             );
         }
 

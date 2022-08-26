@@ -64,10 +64,10 @@ final class ApplySymbolTest extends TestCase
                         new LiteralNode($envLiteral, 1),
                         new LiteralNode($envLiteral, 2),
                         new LiteralNode($envLiteral, 3),
-                    ]
-                )]
+                    ],
+                )],
             ),
-            $applyNode
+            $applyNode,
         );
     }
 }

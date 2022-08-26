@@ -71,7 +71,7 @@ abstract class AbstractZipper
             $leftSiblings,
             [$this->node, ...$this->rightSiblings],
             $this->hasChanged,
-            false
+            false,
         );
     }
 
@@ -117,7 +117,7 @@ abstract class AbstractZipper
             [...$this->leftSiblings, $this->node],
             $rightSiblings,
             $this->hasChanged,
-            false
+            false,
         );
     }
 
@@ -154,7 +154,7 @@ abstract class AbstractZipper
         if ($this->hasChanged) {
             $newParent = $this->makeNode(
                 $this->parent->getNode(),
-                [...$this->leftSiblings, $this->node, ...$this->rightSiblings]
+                [...$this->leftSiblings, $this->node, ...$this->rightSiblings],
             );
 
             return $this->createNewInstance(
@@ -163,7 +163,7 @@ abstract class AbstractZipper
                 $this->parent->lefts(),
                 $this->parent->rights(),
                 true,
-                $this->parent->isEnd()
+                $this->parent->isEnd(),
             );
         }
 
@@ -211,7 +211,7 @@ abstract class AbstractZipper
             [],
             $children,
             false,
-            false
+            false,
         );
     }
 
@@ -347,7 +347,7 @@ abstract class AbstractZipper
     public function insertChild($node)
     {
         return $this->replace(
-            $this->makeNode($this->node, [$node, ...$this->getChildren()])
+            $this->makeNode($this->node, [$node, ...$this->getChildren()]),
         );
     }
 
@@ -359,7 +359,7 @@ abstract class AbstractZipper
     public function appendChild($node)
     {
         return $this->replace(
-            $this->makeNode($this->node, [...$this->getChildren(), $node])
+            $this->makeNode($this->node, [...$this->getChildren(), $node]),
         );
     }
 
@@ -383,7 +383,7 @@ abstract class AbstractZipper
                 $leftSiblings,
                 $this->rightSiblings,
                 true,
-                false
+                false,
             );
             while ($loc->isBranch() && $loc->hasChildren() && ($child = $loc->down())) {
                 $loc = $child->rightMost();
@@ -399,7 +399,7 @@ abstract class AbstractZipper
             $this->parent->lefts(),
             $this->parent->rights(),
             true,
-            $this->parent->isEnd()
+            $this->parent->isEnd(),
         );
     }
 
@@ -448,6 +448,6 @@ abstract class AbstractZipper
         array $leftSiblings,
         array $rightSiblings,
         bool $hasChanged,
-        bool $isEnd
+        bool $isEnd,
     );
 }

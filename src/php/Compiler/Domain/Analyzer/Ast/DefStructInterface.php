@@ -7,7 +7,7 @@ namespace Phel\Compiler\Domain\Analyzer\Ast;
 final class DefStructInterface
 {
     /**
-     * @param list<DefStructMethod> $methods ;
+     * @param list<DefStructMethod> $methods
      */
     public function __construct(
         private string $absoluteInterfaceName,

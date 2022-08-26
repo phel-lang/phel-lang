@@ -39,7 +39,7 @@ final class PhpObjectCallSymbol implements SpecialFormAnalyzerInterface
 
         $targetExpr = $this->analyzer->analyze(
             $list->get(1),
-            $env->withContext(NodeEnvironmentInterface::CONTEXT_EXPRESSION)->withDisallowRecurFrame()
+            $env->withContext(NodeEnvironmentInterface::CONTEXT_EXPRESSION)->withDisallowRecurFrame(),
         );
 
         if ($list->get(2) instanceof PersistentListInterface) {
@@ -56,7 +56,7 @@ final class PhpObjectCallSymbol implements SpecialFormAnalyzerInterface
             $callExpr,
             $this->isStatic,
             $methodCall,
-            $list->getStartLocation()
+            $list->getStartLocation(),
         );
     }
 
@@ -68,7 +68,7 @@ final class PhpObjectCallSymbol implements SpecialFormAnalyzerInterface
         for ($forms = $list2->cdr(); $forms != null; $forms = $forms->cdr()) {
             $args[] = $this->analyzer->analyze(
                 $forms->first(),
-                $env->withContext(NodeEnvironmentInterface::CONTEXT_EXPRESSION)->withDisallowRecurFrame()
+                $env->withContext(NodeEnvironmentInterface::CONTEXT_EXPRESSION)->withDisallowRecurFrame(),
             );
         }
 

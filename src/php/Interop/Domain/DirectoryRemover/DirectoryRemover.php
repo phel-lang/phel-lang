@@ -23,7 +23,7 @@ final class DirectoryRemover implements DirectoryRemoverInterface
 
         $files = new RecursiveIteratorIterator(
             new RecursiveDirectoryIterator($this->targetDir, FilesystemIterator::SKIP_DOTS),
-            RecursiveIteratorIterator::CHILD_FIRST
+            RecursiveIteratorIterator::CHILD_FIRST,
         );
 
         /** @var SplFileInfo $file */

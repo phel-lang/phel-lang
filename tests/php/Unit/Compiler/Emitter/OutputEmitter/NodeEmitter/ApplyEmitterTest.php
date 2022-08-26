@@ -43,7 +43,7 @@ final class ApplyEmitterTest extends TestCase
         $this->applyEmitter->emit($applyNode);
 
         $this->expectOutputString(
-            'array_reduce([...((\Phel\Lang\TypeFactory::getInstance()->persistentVectorFromArray([2, 3, 4])) ?? [])], function($a, $b) { return ($a + $b); });'
+            'array_reduce([...((\Phel\Lang\TypeFactory::getInstance()->persistentVectorFromArray([2, 3, 4])) ?? [])], function($a, $b) { return ($a + $b); });',
         );
     }
 
@@ -71,7 +71,7 @@ final class ApplyEmitterTest extends TestCase
             new PhpVarNode(NodeEnvironment::empty()->withContext(NodeEnvironmentInterface::CONTEXT_RETURN), 'x'),
             [],
             isVariadic: true,
-            recurs: false
+            recurs: false,
         );
 
         $args = [

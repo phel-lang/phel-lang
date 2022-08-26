@@ -100,7 +100,7 @@ final class DefSymbolTest extends TestCase
                 Symbol::create('name'),
                 new MapNode(
                     $env->withContext(NodeEnvironment::CONTEXT_EXPRESSION),
-                    []
+                    [],
                 ),
                 new LiteralNode(
                     $env
@@ -108,10 +108,10 @@ final class DefSymbolTest extends TestCase
                         ->withDisallowRecurFrame()
                         ->withBoundTo('user\name')
                         ->withDefAllowed(false),
-                    'any value'
-                )
+                    'any value',
+                ),
             ),
-            $defNode
+            $defNode,
         );
     }
 
@@ -136,13 +136,13 @@ final class DefSymbolTest extends TestCase
                     [
                         new LiteralNode(
                             $env->withContext(NodeEnvironment::CONTEXT_EXPRESSION),
-                            Keyword::create('doc')
+                            Keyword::create('doc'),
                         ),
                         new LiteralNode(
                             $env->withContext(NodeEnvironment::CONTEXT_EXPRESSION),
-                            'my docstring'
+                            'my docstring',
                         ),
-                    ]
+                    ],
                 ),
                 new LiteralNode(
                     $env
@@ -150,10 +150,10 @@ final class DefSymbolTest extends TestCase
                         ->withDisallowRecurFrame()
                         ->withBoundTo('user\name')
                         ->withDefAllowed(false),
-                    'any value'
-                )
+                    'any value',
+                ),
             ),
-            $defNode
+            $defNode,
         );
     }
 
@@ -178,13 +178,13 @@ final class DefSymbolTest extends TestCase
                     [
                         new LiteralNode(
                             $env->withContext(NodeEnvironment::CONTEXT_EXPRESSION),
-                            Keyword::create('private')
+                            Keyword::create('private'),
                         ),
                         new LiteralNode(
                             $env->withContext(NodeEnvironment::CONTEXT_EXPRESSION),
-                            true
+                            true,
                         ),
-                    ]
+                    ],
                 ),
                 new LiteralNode(
                     $env
@@ -192,10 +192,10 @@ final class DefSymbolTest extends TestCase
                         ->withDisallowRecurFrame()
                         ->withBoundTo('user\name')
                         ->withDefAllowed(false),
-                    'any value'
-                )
+                    'any value',
+                ),
             ),
-            $defNode
+            $defNode,
         );
     }
 
@@ -221,14 +221,14 @@ final class DefSymbolTest extends TestCase
                         new LiteralNode(
                             $env->withContext(NodeEnvironment::CONTEXT_EXPRESSION),
                             Keyword::create('private'),
-                            null
+                            null,
                         ),
                         new LiteralNode(
                             $env->withContext(NodeEnvironment::CONTEXT_EXPRESSION),
                             true,
-                            null
+                            null,
                         ),
-                    ]
+                    ],
                 ),
                 new LiteralNode(
                     $env
@@ -236,10 +236,10 @@ final class DefSymbolTest extends TestCase
                         ->withDisallowRecurFrame()
                         ->withBoundTo('user\name')
                         ->withDefAllowed(false),
-                    'any value'
-                )
+                    'any value',
+                ),
             ),
-            $defNode
+            $defNode,
         );
     }
 

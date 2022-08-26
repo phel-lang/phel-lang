@@ -34,7 +34,7 @@ final class EvalCompiler implements EvalCompilerInterface
         private ReaderInterface $reader,
         private AnalyzerInterface $analyzer,
         private StatementEmitterInterface $emitter,
-        private EvaluatorInterface $evaluator
+        private EvaluatorInterface $evaluator,
     ) {
     }
 
@@ -89,7 +89,7 @@ final class EvalCompiler implements EvalCompilerInterface
         try {
             return $this->analyzer->analyze(
                 $readerResult->getAst(),
-                NodeEnvironment::empty()->withContext(NodeEnvironmentInterface::CONTEXT_RETURN)
+                NodeEnvironment::empty()->withContext(NodeEnvironmentInterface::CONTEXT_RETURN),
             );
         } catch (AnalyzerException $e) {
             throw new CompilerException($e, $readerResult->getCodeSnippet());

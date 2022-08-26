@@ -15,7 +15,7 @@ class UnfinishedParserException extends AbstractParserException
             $message,
             $snippet,
             $token->getStartLocation(),
-            $token->getEndLocation()
+            $token->getEndLocation(),
         );
     }
 }

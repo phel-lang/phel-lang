@@ -17,7 +17,7 @@ final class TryNode extends AbstractNode
         private AbstractNode $body,
         private array $catches,
         private ?AbstractNode $finally = null,
-        ?SourceLocation $sourceLocation = null
+        ?SourceLocation $sourceLocation = null,
     ) {
         parent::__construct($env, $sourceLocation);
     }

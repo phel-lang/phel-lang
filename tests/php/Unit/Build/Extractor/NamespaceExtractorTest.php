@@ -59,7 +59,7 @@ final class NamespaceExtractorTest extends TestCase
 
         $nsExtractor = new NamespaceExtractor(
             new CompilerFacade(),
-            new TopologicalNamespaceSorter()
+            new TopologicalNamespaceSorter(),
         );
 
         return $nsExtractor->getNamespaceFromFile($filePath);

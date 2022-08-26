@@ -86,12 +86,12 @@ final class ForeachSymbolTest extends TestCase
                 new DoNode(
                     $env->withLocals([Symbol::create('x')]),
                     [],
-                    new LocalVarNode($env->withLocals([Symbol::create('x')]), Symbol::create('x'))
+                    new LocalVarNode($env->withLocals([Symbol::create('x')]), Symbol::create('x')),
                 ),
                 new VectorNode($env->withContext(NodeEnvironmentInterface::CONTEXT_EXPRESSION), []),
-                Symbol::create('x')
+                Symbol::create('x'),
             ),
-            $this->analyze($list)
+            $this->analyze($list),
         );
     }
 
@@ -132,13 +132,13 @@ final class ForeachSymbolTest extends TestCase
                 new DoNode(
                     $env->withLocals([Symbol::create('value'), Symbol::create('key')]),
                     [],
-                    new LocalVarNode($env->withLocals([Symbol::create('value'), Symbol::create('key')]), Symbol::create('key'))
+                    new LocalVarNode($env->withLocals([Symbol::create('value'), Symbol::create('key')]), Symbol::create('key')),
                 ),
                 new MapNode($env->withContext(NodeEnvironment::CONTEXT_EXPRESSION), []),
                 Symbol::create('value'),
-                Symbol::create('key')
+                Symbol::create('key'),
             ),
-            $this->analyze($list)
+            $this->analyze($list),
         );
     }
 

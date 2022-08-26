@@ -33,7 +33,7 @@ final class ExportCommandTest extends TestCase
 
         $command->run(
             $this->createStub(InputInterface::class),
-            $this->stubOutput()
+            $this->stubOutput(),
         );
 
         self::assertFileExists(__DIR__ . '/PhelGenerated/TestCmdExportMultiple/Adder.php');

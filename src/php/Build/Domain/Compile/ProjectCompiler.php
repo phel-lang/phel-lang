@@ -72,7 +72,7 @@ final class ProjectCompiler
             $result[] = $this->fileCompiler->compileFile(
                 $info->getFile(),
                 $targetFile,
-                $buildOptions->isSourceMapEnabled()
+                $buildOptions->isSourceMapEnabled(),
             );
 
             touch($targetFile, filemtime($info->getFile()));

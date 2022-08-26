@@ -34,7 +34,7 @@ final class NamespaceCollector
                 ...$this->commandFacade->getTestDirectories(),
                 ...$this->commandFacade->getVendorSourceDirectories(),
             ],
-            $namespaces
+            $namespaces,
         );
     }
 
@@ -47,18 +47,18 @@ final class NamespaceCollector
     {
         if (empty($paths)) {
             $namespaces = $this->buildFacade->getNamespaceFromDirectories(
-                $this->commandFacade->getTestDirectories()
+                $this->commandFacade->getTestDirectories(),
             );
 
             return array_map(
                 static fn (NamespaceInformation $info): string => $info->getNamespace(),
-                $namespaces
+                $namespaces,
             );
         }
 
         return array_map(
             fn (string $filename): string => $this->buildFacade->getNamespaceFromFile($filename)->getNamespace(),
-            $paths
+            $paths,
         );
     }
 }

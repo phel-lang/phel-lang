@@ -16,7 +16,7 @@ final class AnalyzerException extends AbstractLocatedException
             $message,
             $type->getStartLocation(),
             $type->getEndLocation(),
-            $nested
+            $nested,
         );
     }
 }

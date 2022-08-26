@@ -34,7 +34,7 @@ abstract class AbstractPersistentStruct extends AbstractPersistentMap
         parent::__construct(
             TypeFactory::getInstance()->getHasher(),
             TypeFactory::getInstance()->getEqualizer(),
-            null
+            null,
         );
         $this->munge = new Munge();
     }
@@ -108,7 +108,7 @@ abstract class AbstractPersistentStruct extends AbstractPersistentMap
     {
         return array_map(
             static fn (string $k): Keyword => TypeFactory::getInstance()->keyword($k),
-            static::ALLOWED_KEYS
+            static::ALLOWED_KEYS,
         );
     }
 

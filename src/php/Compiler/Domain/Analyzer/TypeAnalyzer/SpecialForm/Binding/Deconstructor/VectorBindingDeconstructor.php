@@ -108,9 +108,9 @@ final class VectorBindingDeconstructor implements BindingDeconstructorInterface
         throw AnalyzerException::withLocation(
             sprintf(
                 'Unsupported binding form, only one symbol can follow the %s parameter',
-                self::REST_SYMBOL_NAME
+                self::REST_SYMBOL_NAME,
             ),
-            $binding
+            $binding,
         );
     }
 }

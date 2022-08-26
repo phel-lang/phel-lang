@@ -36,14 +36,14 @@ final class FileEmitter implements FileEmitterInterface
     public function endFile(bool $enableSourceMaps): EmitterResult
     {
         $sourceMap = $this->sourceMapGenerator->encode(
-            $this->outputEmitter->getSourceMapState()->getMappings()
+            $this->outputEmitter->getSourceMapState()->getMappings(),
         );
 
         return new EmitterResult(
             $enableSourceMaps,
             $this->code,
             $sourceMap,
-            $this->source
+            $this->source,
         );
     }
 }

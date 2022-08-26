@@ -15,7 +15,7 @@ final class RangeIteratorTest extends TestCase
         $it = new RangeIterator(
             TypeFactory::getInstance()->persistentVectorFromArray(range(0, 31)),
             0,
-            32
+            32,
         );
 
         self::assertEquals(range(0, 31), iterator_to_array($it));

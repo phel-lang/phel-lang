@@ -50,7 +50,7 @@ final class Reader implements ReaderInterface
 
         return new ReaderResult(
             $this->readExpression($parseTree, $parseTree),
-            CodeSnippet::fromNode($parseTree)
+            CodeSnippet::fromNode($parseTree),
         );
     }
 

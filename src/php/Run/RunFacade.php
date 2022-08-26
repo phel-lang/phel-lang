@@ -109,7 +109,7 @@ final class RunFacade extends AbstractFacade implements RunFacadeInterface
             ->writeLocatedException(
                 $output,
                 $e->getNestedException(),
-                $e->getCodeSnippet()
+                $e->getCodeSnippet(),
             );
     }
 

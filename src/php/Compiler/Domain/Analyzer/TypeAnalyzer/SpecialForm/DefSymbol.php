@@ -57,7 +57,7 @@ final class DefSymbol implements SpecialFormAnalyzerInterface
             $nameSymbol,
             $meta,
             $this->analyzeInit($init, $env, $namespace, $nameSymbol),
-            $list->getStartLocation()
+            $list->getStartLocation(),
         );
     }
 
@@ -75,7 +75,7 @@ final class DefSymbol implements SpecialFormAnalyzerInterface
         if (!in_array($listSize, self::POSSIBLE_TUPLE_SIZES)) {
             throw AnalyzerException::withLocation(
                 "Two or three arguments are required for 'def. Got " . $listSize,
-                $list
+                $list,
             );
         }
     }

@@ -42,7 +42,7 @@ final class FileCompiler implements FileCompilerInterface
         return new CompiledFile(
             $src,
             $dest,
-            $namespaceInfo->getNamespace()
+            $namespaceInfo->getNamespace(),
         );
     }
 }

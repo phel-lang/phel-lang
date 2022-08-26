@@ -21,7 +21,7 @@ final class WhitespaceNode implements TriviaNodeInterface
         return new self(
             $token->getCode(),
             $token->getStartLocation(),
-            $token->getEndLocation()
+            $token->getEndLocation(),
         );
     }
 

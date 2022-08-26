@@ -20,7 +20,7 @@ final class PhpASetSymbol implements SpecialFormAnalyzerInterface
             $this->analyzer->analyze($list->get(1), $env->withContext(NodeEnvironmentInterface::CONTEXT_EXPRESSION)),
             $this->analyzer->analyze($list->get(2), $env->withContext(NodeEnvironmentInterface::CONTEXT_EXPRESSION)),
             $this->analyzer->analyze($list->get(3), $env->withContext(NodeEnvironmentInterface::CONTEXT_EXPRESSION)),
-            $list->getStartLocation()
+            $list->getStartLocation(),
         );
     }
 }

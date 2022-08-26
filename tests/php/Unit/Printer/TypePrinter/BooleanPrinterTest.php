@@ -17,7 +17,7 @@ final class BooleanPrinterTest extends TestCase
     {
         self::assertSame(
             $expected,
-            (new BooleanPrinter())->print($boolean)
+            (new BooleanPrinter())->print($boolean),
         );
     }
 

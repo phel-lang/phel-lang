@@ -24,7 +24,7 @@ final class CommandConfig extends AbstractConfig
         return new CodeDirectories(
             (array)$this->get(self::SRC_DIRS, self::DEFAULT_SRC_DIRS),
             (array)$this->get(self::TEST_DIRS, self::DEFAULT_TEST_DIRS),
-            (string)$this->get(self::OUTPUT_DIR, self::DEFAULT_OUT_DIR)
+            (string)$this->get(self::OUTPUT_DIR, self::DEFAULT_OUT_DIR),
         );
     }
 

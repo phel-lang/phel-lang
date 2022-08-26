@@ -118,7 +118,7 @@ final class BuildFacade extends AbstractFacade implements BuildFacadeInterface
             ->writeLocatedException(
                 $output,
                 $e->getNestedException(),
-                $e->getCodeSnippet()
+                $e->getCodeSnippet(),
             );
     }
 

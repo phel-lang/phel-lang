@@ -30,7 +30,7 @@ class HashCollisionNodeTest extends TestCase
             new SimpleEqualizer(),
             $hasher->hash(1),
             2,
-            [1, 'foo', 3, 'bar']
+            [1, 'foo', 3, 'bar'],
         );
 
         $this->assertEquals('foo', $node->find(0, $hasher->hash(1), 1, null));
@@ -116,7 +116,7 @@ class HashCollisionNodeTest extends TestCase
             new SimpleEqualizer(),
             $hasher->hash(1),
             2,
-            [1, 'foo', 3, 'bar']
+            [1, 'foo', 3, 'bar'],
         ))->remove(0, $hasher->hash(3), 3);
 
         $this->assertEquals('foo', $node->find(0, $hasher->hash(1), 1, null));

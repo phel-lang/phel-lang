@@ -17,7 +17,7 @@ final class NumberPrinterTest extends TestCase
     {
         self::assertSame(
             $expected,
-            (new NumberPrinter())->print($number)
+            (new NumberPrinter())->print($number),
         );
     }
 

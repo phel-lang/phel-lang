@@ -14,7 +14,7 @@ final class NewlineNodeTest extends TestCase
     {
         self::assertEquals(
             '\n',
-            (new NewlineNode('\n', $this->loc(1, 0), $this->loc(2, 0)))->getCode()
+            (new NewlineNode('\n', $this->loc(1, 0), $this->loc(2, 0)))->getCode(),
         );
     }
 
@@ -22,7 +22,7 @@ final class NewlineNodeTest extends TestCase
     {
         self::assertEquals(
             $this->loc(1, 0),
-            (new NewlineNode('\n', $this->loc(1, 0), $this->loc(2, 0)))->getStartLocation()
+            (new NewlineNode('\n', $this->loc(1, 0), $this->loc(2, 0)))->getStartLocation(),
         );
     }
 
@@ -30,7 +30,7 @@ final class NewlineNodeTest extends TestCase
     {
         self::assertEquals(
             $this->loc(2, 0),
-            (new NewlineNode('\n', $this->loc(1, 0), $this->loc(2, 0)))->getEndLocation()
+            (new NewlineNode('\n', $this->loc(1, 0), $this->loc(2, 0)))->getEndLocation(),
         );
     }
 

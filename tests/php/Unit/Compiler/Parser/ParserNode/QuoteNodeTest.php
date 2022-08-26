@@ -22,8 +22,8 @@ final class QuoteNodeTest extends TestCase
                 Token::T_QUOTE,
                 $this->loc(1, 0),
                 $this->loc(1, 2),
-                new SymbolNode('a', $this->loc(1, 1), $this->loc(1, 2), Symbol::create('a'))
-            ))->getCode()
+                new SymbolNode('a', $this->loc(1, 1), $this->loc(1, 2), Symbol::create('a')),
+            ))->getCode(),
         );
     }
 
@@ -35,8 +35,8 @@ final class QuoteNodeTest extends TestCase
                 Token::T_UNQUOTE,
                 $this->loc(1, 0),
                 $this->loc(1, 2),
-                new SymbolNode('a', $this->loc(1, 1), $this->loc(1, 2), Symbol::create('a'))
-            ))->getCode()
+                new SymbolNode('a', $this->loc(1, 1), $this->loc(1, 2), Symbol::create('a')),
+            ))->getCode(),
         );
     }
 
@@ -48,8 +48,8 @@ final class QuoteNodeTest extends TestCase
                 Token::T_UNQUOTE_SPLICING,
                 $this->loc(1, 0),
                 $this->loc(1, 3),
-                new SymbolNode('a', $this->loc(1, 2), $this->loc(1, 3), Symbol::create('a'))
-            ))->getCode()
+                new SymbolNode('a', $this->loc(1, 2), $this->loc(1, 3), Symbol::create('a')),
+            ))->getCode(),
         );
     }
 
@@ -61,8 +61,8 @@ final class QuoteNodeTest extends TestCase
                 Token::T_QUASIQUOTE,
                 $this->loc(1, 0),
                 $this->loc(1, 2),
-                new SymbolNode('a', $this->loc(1, 1), $this->loc(1, 2), Symbol::create('a'))
-            ))->getCode()
+                new SymbolNode('a', $this->loc(1, 1), $this->loc(1, 2), Symbol::create('a')),
+            ))->getCode(),
         );
     }
 
@@ -75,7 +75,7 @@ final class QuoteNodeTest extends TestCase
             3000,
             $this->loc(1, 0),
             $this->loc(1, 2),
-            new SymbolNode('a', $this->loc(1, 1), $this->loc(1, 2), Symbol::create('a'))
+            new SymbolNode('a', $this->loc(1, 1), $this->loc(1, 2), Symbol::create('a')),
         ))->getCode();
     }
 
@@ -87,8 +87,8 @@ final class QuoteNodeTest extends TestCase
                 Token::T_QUASIQUOTE,
                 $this->loc(1, 0),
                 $this->loc(1, 2),
-                new SymbolNode('a', $this->loc(1, 1), $this->loc(1, 2), Symbol::create('a'))
-            ))->getChildren()
+                new SymbolNode('a', $this->loc(1, 1), $this->loc(1, 2), Symbol::create('a')),
+            ))->getChildren(),
         );
     }
 
@@ -100,8 +100,8 @@ final class QuoteNodeTest extends TestCase
                 Token::T_QUASIQUOTE,
                 $this->loc(1, 0),
                 $this->loc(1, 2),
-                new SymbolNode('a', $this->loc(1, 1), $this->loc(1, 2), Symbol::create('a'))
-            ))->getStartLocation()
+                new SymbolNode('a', $this->loc(1, 1), $this->loc(1, 2), Symbol::create('a')),
+            ))->getStartLocation(),
         );
     }
 
@@ -113,8 +113,8 @@ final class QuoteNodeTest extends TestCase
                 Token::T_QUASIQUOTE,
                 $this->loc(1, 0),
                 $this->loc(1, 2),
-                new SymbolNode('a', $this->loc(1, 1), $this->loc(1, 2), Symbol::create('a'))
-            ))->getEndLocation()
+                new SymbolNode('a', $this->loc(1, 1), $this->loc(1, 2), Symbol::create('a')),
+            ))->getEndLocation(),
         );
     }
 

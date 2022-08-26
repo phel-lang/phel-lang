@@ -54,7 +54,7 @@ final class ParseAndPrintTest extends TestCase
     {
         return implode(array_map(
             static fn (NodeInterface $t) => $t->getCode(),
-            $parseTrees
+            $parseTrees,
         ));
     }
 }

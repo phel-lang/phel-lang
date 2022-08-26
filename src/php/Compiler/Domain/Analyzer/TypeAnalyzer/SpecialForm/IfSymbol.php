@@ -29,7 +29,7 @@ final class IfSymbol implements SpecialFormAnalyzerInterface
             $this->testExpression($list, $env),
             $this->thenExpression($list, $env),
             $this->elseExpression($list, $env),
-            $list->getStartLocation()
+            $list->getStartLocation(),
         );
     }
 

@@ -32,7 +32,7 @@ final class InteropFacade extends AbstractFacade implements InteropFacadeInterfa
             ->writeLocatedException(
                 $output,
                 $e->getNestedException(),
-                $e->getCodeSnippet()
+                $e->getCodeSnippet(),
             );
     }
 

@@ -29,17 +29,17 @@ final class RunCommand extends Command
             ->addArgument(
                 'path',
                 InputArgument::REQUIRED,
-                'The file path that you want to run.'
+                'The file path that you want to run.',
             )->addArgument(
                 'argv',
                 InputArgument::IS_ARRAY | InputArgument::OPTIONAL,
                 'Optional arguments',
-                []
+                [],
             )->addOption(
                 'with-time',
                 't',
                 InputOption::VALUE_NONE,
-                'With time awareness'
+                'With time awareness',
             );
     }
 

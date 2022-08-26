@@ -25,7 +25,7 @@ final class FormatCommand extends Command
             ->addArgument(
                 'paths',
                 InputArgument::IS_ARRAY | InputArgument::REQUIRED,
-                'The file paths that you want to format.'
+                'The file paths that you want to format.',
             );
     }
 

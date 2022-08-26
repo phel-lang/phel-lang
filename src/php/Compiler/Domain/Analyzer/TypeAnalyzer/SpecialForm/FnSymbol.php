@@ -36,7 +36,7 @@ final class FnSymbol implements SpecialFormAnalyzerInterface
             $this->buildUsesFromEnv($env, $fnSymbolTuple),
             $fnSymbolTuple->isVariadic(),
             $recurFrame->isActive(),
-            $list->getStartLocation()
+            $list->getStartLocation(),
         );
     }
 

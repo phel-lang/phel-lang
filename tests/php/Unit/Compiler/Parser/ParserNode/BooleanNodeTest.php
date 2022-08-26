@@ -14,7 +14,7 @@ final class BooleanNodeTest extends TestCase
     {
         self::assertEquals(
             'true',
-            (new BooleanNode('true', $this->loc(1, 0), $this->loc(1, 4), true))->getCode()
+            (new BooleanNode('true', $this->loc(1, 0), $this->loc(1, 4), true))->getCode(),
         );
     }
 
@@ -22,7 +22,7 @@ final class BooleanNodeTest extends TestCase
     {
         self::assertEquals(
             $this->loc(1, 0),
-            (new BooleanNode('true', $this->loc(1, 0), $this->loc(1, 4), true))->getStartLocation()
+            (new BooleanNode('true', $this->loc(1, 0), $this->loc(1, 4), true))->getStartLocation(),
         );
     }
 
@@ -30,14 +30,14 @@ final class BooleanNodeTest extends TestCase
     {
         self::assertEquals(
             $this->loc(1, 4),
-            (new BooleanNode('true', $this->loc(1, 0), $this->loc(1, 4), true))->getEndLocation()
+            (new BooleanNode('true', $this->loc(1, 0), $this->loc(1, 4), true))->getEndLocation(),
         );
     }
 
     public function test_value(): void
     {
         self::assertTrue(
-            (new BooleanNode('true', $this->loc(1, 0), $this->loc(1, 4), true))->getValue()
+            (new BooleanNode('true', $this->loc(1, 0), $this->loc(1, 4), true))->getValue(),
         );
     }
 

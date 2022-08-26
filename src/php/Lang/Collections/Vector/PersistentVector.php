@@ -102,7 +102,7 @@ class PersistentVector extends AbstractPersistentVector
                 $this->count + 1,
                 $this->shift,
                 $this->root,
-                [...$this->tail, $value]
+                [...$this->tail, $value],
             );
         }
 
@@ -124,7 +124,7 @@ class PersistentVector extends AbstractPersistentVector
             $this->count + 1,
             $newShift,
             $newRoot,
-            [$value]
+            [$value],
         );
     }
 
@@ -155,7 +155,7 @@ class PersistentVector extends AbstractPersistentVector
                     $this->count,
                     $this->shift,
                     $this->root,
-                    $newTail
+                    $newTail,
                 );
             }
 
@@ -166,7 +166,7 @@ class PersistentVector extends AbstractPersistentVector
                 $this->count,
                 $this->shift,
                 $this->doUpdate($this->shift, $this->root, $i, $value),
-                $this->tail
+                $this->tail,
             );
         }
 
@@ -239,7 +239,7 @@ class PersistentVector extends AbstractPersistentVector
                 $this->count - 1,
                 $this->shift,
                 $this->root,
-                $newTail
+                $newTail,
             );
         }
 
@@ -263,7 +263,7 @@ class PersistentVector extends AbstractPersistentVector
             $this->count - 1,
             $newShift,
             $newRoot,
-            $newTail
+            $newTail,
         );
     }
 
@@ -310,7 +310,7 @@ class PersistentVector extends AbstractPersistentVector
             $this->count,
             $this->shift,
             $this->root,
-            $this->tail
+            $this->tail,
         );
     }
 

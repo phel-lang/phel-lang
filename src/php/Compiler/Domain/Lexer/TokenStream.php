@@ -69,7 +69,7 @@ final class TokenStream implements Iterator
         return new CodeSnippet(
             $tokens[0]->getStartLocation(),
             $tokens[count($tokens) - 1]->getEndLocation(),
-            $code
+            $code,
         );
     }
 
@@ -100,7 +100,7 @@ final class TokenStream implements Iterator
     {
         return implode(array_map(
             static fn (Token $t) => $t->getCode(),
-            $readTokens
+            $readTokens,
         ));
     }
 }

@@ -63,7 +63,7 @@ final class FnSymbolTuple
     {
         return array_slice(
             $this->parentList->toArray(),
-            self::PARENT_TUPLE_BODY_OFFSET
+            self::PARENT_TUPLE_BODY_OFFSET,
         );
     }
 
@@ -80,7 +80,7 @@ final class FnSymbolTuple
             if (!preg_match("/^[a-zA-Z_\x80-\xff].*$/", $param->getName())) {
                 throw AnalyzerException::withLocation(
                     "Variable names must start with a letter or underscore: {$param->getName()}",
-                    $this->parentList
+                    $this->parentList,
                 );
             }
         }
@@ -145,7 +145,7 @@ final class FnSymbolTuple
     {
         throw AnalyzerException::withLocation(
             'Unsupported parameter form, only one symbol can follow the & parameter',
-            $this->parentList
+            $this->parentList,
         );
     }
 }

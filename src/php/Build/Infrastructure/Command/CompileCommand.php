@@ -53,7 +53,7 @@ final class CompileCommand extends Command
     {
         return new BuildOptions(
             $input->getOption(self::OPTION_CACHE) === true,
-            $input->getOption(self::OPTION_SOURCE_MAP) === true
+            $input->getOption(self::OPTION_SOURCE_MAP) === true,
         );
     }
 
@@ -67,7 +67,7 @@ final class CompileCommand extends Command
                     $compiledFile->getNamespace(),
                     $compiledFile->getSourceFile(),
                     $compiledFile->getTargetFile(),
-                )
+                ),
             );
         }
     }

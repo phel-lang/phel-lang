@@ -22,7 +22,7 @@ final class CatchEmitter implements NodeEmitterInterface
         $this->outputEmitter->emitNode($node->getType());
         $this->outputEmitter->emitStr(
             ' $' . $this->outputEmitter->mungeEncode($node->getName()->getName()),
-            $node->getName()->getStartLocation()
+            $node->getName()->getStartLocation(),
         );
         $this->outputEmitter->emitLine(') {', $node->getStartSourceLocation());
         $this->outputEmitter->increaseIndentLevel();

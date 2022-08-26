@@ -22,8 +22,8 @@ final class MapBindingDeconstructorTest extends TestCase
 
         $this->deconstructor = new MapBindingDeconstructor(
             new Deconstructor(
-                $this->createMock(BindingValidatorInterface::class)
-            )
+                $this->createMock(BindingValidatorInterface::class),
+            ),
         );
     }
 

@@ -14,7 +14,7 @@ interface CommandFacadeInterface
     public function writeLocatedException(
         OutputInterface $output,
         AbstractLocatedException $locatedException,
-        CodeSnippet $snippet
+        CodeSnippet $snippet,
     ): void;
 
     public function writeStackTrace(OutputInterface $output, Throwable $e): void;
