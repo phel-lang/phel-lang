@@ -12,7 +12,9 @@ use Phel\Lang\HasherInterface;
 
 /**
  * @template T
+ *
  * @implements PersistentVectorInterface<T>
+ *
  * @extends AbstractType<PersistentVector<T>>
  */
 abstract class AbstractPersistentVector extends AbstractType implements PersistentVectorInterface

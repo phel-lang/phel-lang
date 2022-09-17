@@ -14,6 +14,7 @@ use Phel\Lang\HasherInterface;
  * @template V
  *
  * @implements PersistentMapInterface<K, V>
+ *
  * @extends AbstractType<AbstractPersistentMap<K, V>>
  */
 abstract class AbstractPersistentMap extends AbstractType implements PersistentMapInterface

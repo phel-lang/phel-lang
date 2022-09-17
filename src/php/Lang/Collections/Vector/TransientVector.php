@@ -14,6 +14,7 @@ use function count;
 
 /**
  * @template T
+ *
  * @implements TransientVectorInterface<T>
  */
 class TransientVector implements TransientVectorInterface

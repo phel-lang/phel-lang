@@ -27,6 +27,7 @@ final class CompileCommandTest extends TestCase
 
     /**
      * @runInSeparateProcess
+     *
      * @preserveGlobalState disabled
      */
     public function test_compile_project(): void
@@ -49,7 +50,9 @@ final class CompileCommandTest extends TestCase
 
     /**
      * @runInSeparateProcess
+     *
      * @preserveGlobalState disabled
+     *
      * @depends test_compile_project
      */
     public function test_compile_project_cached(): void

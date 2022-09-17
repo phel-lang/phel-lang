@@ -16,6 +16,7 @@ use function array_slice;
 
 /**
  * @template T
+ *
  * @extends AbstractPersistentVector<T>
  */
 class SubVector extends AbstractPersistentVector

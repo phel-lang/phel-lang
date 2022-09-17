@@ -21,6 +21,7 @@ final class ExportCommandTest extends TestCase
 
     /**
      * @runInSeparateProcess
+     *
      * @preserveGlobalState disabled
      */
     public function test_export_command_multiple(): void

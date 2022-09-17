@@ -16,7 +16,9 @@ use Traversable;
 
 /**
  * @template T
+ *
  * @implements PersistentListInterface<T>
+ *
  * @extends AbstractType<PersistentList<T>>
  */
 class EmptyList extends AbstractType implements PersistentListInterface

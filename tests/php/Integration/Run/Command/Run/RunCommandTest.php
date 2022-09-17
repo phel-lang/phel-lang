@@ -19,6 +19,7 @@ final class RunCommandTest extends AbstractCommandTest
 
     /**
      * @runInSeparateProcess
+     *
      * @preserveGlobalState disabled
      */
     public function test_run_by_namespace(): void

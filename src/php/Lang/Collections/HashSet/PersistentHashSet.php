@@ -14,6 +14,7 @@ use Traversable;
  * @template V
  *
  * @implements PersistentHashSetInterface<V>
+ *
  * @extends AbstractType<PersistentHashSet<V>>
  */
 class PersistentHashSet extends AbstractType implements PersistentHashSetInterface, IteratorAggregate

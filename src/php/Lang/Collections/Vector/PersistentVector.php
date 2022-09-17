@@ -29,6 +29,7 @@ use function count;
  * * https://hypirion.com/musings/persistent-vector-performance-summarised
  *
  * @template T
+ *
  * @extends AbstractPersistentVector<T>
  */
 class PersistentVector extends AbstractPersistentVector

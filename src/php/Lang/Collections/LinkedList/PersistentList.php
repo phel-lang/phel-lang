@@ -16,7 +16,9 @@ use function count;
 
 /**
  * @template T
+ *
  * @implements PersistentListInterface<T>
+ *
  * @extends AbstractType<PersistentListInterface<T>>
  */
 class PersistentList extends AbstractType implements PersistentListInterface
