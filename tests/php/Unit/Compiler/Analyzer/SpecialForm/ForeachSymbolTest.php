@@ -164,7 +164,7 @@ final class ForeachSymbolTest extends TestCase
         $this->expectException(AbstractLocatedException::class);
         $this->expectExceptionMessage("Vector of 'foreach must have exactly two or three elements.");
 
-        // (foreach [x y z @{}])
+        // (foreach [x y z {}])
         $list = TypeFactory::getInstance()->persistentListFromArray([
             Symbol::create(Symbol::NAME_FOREACH),
             TypeFactory::getInstance()->persistentVectorFromArray([
