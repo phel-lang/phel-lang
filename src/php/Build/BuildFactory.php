@@ -13,6 +13,8 @@ use Phel\Build\Domain\Compile\ProjectCompiler;
 use Phel\Build\Domain\Extractor\NamespaceExtractor;
 use Phel\Build\Domain\Extractor\NamespaceSorterInterface;
 use Phel\Build\Domain\Extractor\TopologicalNamespaceSorter;
+use Phel\Build\Domain\IO\FileIoInterface;
+use Phel\Build\Infrastructure\IO\SystemFileIo;
 use Phel\Command\CommandFacadeInterface;
 use Phel\Compiler\CompilerFacadeInterface;
 
@@ -40,6 +42,7 @@ final class BuildFactory extends AbstractFactory
         return new FileCompiler(
             $this->getCompilerFacade(),
             $this->createNamespaceExtractor(),
+            $this->createFileIo(),
         );
     }
 
@@ -56,6 +59,7 @@ final class BuildFactory extends AbstractFactory
         return new NamespaceExtractor(
             $this->getCompilerFacade(),
             $this->createNamespaceSorter(),
+            $this->createFileIo(),
         );
     }
 
@@ -72,5 +76,10 @@ final class BuildFactory extends AbstractFactory
     private function createNamespaceSorter(): NamespaceSorterInterface
     {
         return new TopologicalNamespaceSorter();
+    }
+
+    private function createFileIo(): FileIoInterface
+    {
+        return new SystemFileIo();
     }
 }
