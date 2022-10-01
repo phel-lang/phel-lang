@@ -187,11 +187,6 @@
   (is (false? (contains-value? (php-indexed-array 1) 2)))
   (is (true? (contains-value? (php-indexed-array 1) 1))))
 
-(deftest test-contains-value?-php-associative-array
-  (is (false? (contains-value? (php-associative-array) 1)))
-  (is (false? (contains-value? (php-associative-array "a" 1) 2)))
-  (is (true? (contains-value? (php-associative-array "b" 1) 1))))
-
 (deftest test-contains-value?-list
   (is (false? (contains-value? '() 1)))
   (is (false? (contains-value? '(1) 2)))
