@@ -10,6 +10,8 @@ use Gacela\Framework\Gacela;
 use Phel\Run\RunFacade;
 
 use function in_array;
+use function is_array;
+use function is_string;
 
 final class Phel
 {
@@ -19,10 +21,14 @@ final class Phel
 
     /**
      * This function helps to unify the running execution for a custom phel project.
+     *
+     * @param list<string>|string|null $argv
      */
-    public static function run(string $projectRootDir, string $namespace, string $argv = ''): void
+    public static function run(string $projectRootDir, string $namespace, array|string $argv = null): void
     {
-        self::updateGlobalArgv($argv);
+        if ($argv !== null) {
+            self::updateGlobalArgv($argv);
+        }
 
         Gacela::bootstrap($projectRootDir, self::configFn());
 
@@ -40,14 +46,23 @@ final class Phel
         };
     }
 
-    private static function updateGlobalArgv(string $argv): void
+    /**
+     * @param list<string>|string $argv
+     */
+    private static function updateGlobalArgv(array|string $argv): void
     {
-        if ($argv !== '') {
-            foreach (array_filter(explode(' ', $argv)) as $value) {
+        $updateGlobals = static function (array $list): void {
+            foreach (array_filter($list) as $value) {
                 if (!in_array($value, $GLOBALS['argv'], true)) {
                     $GLOBALS['argv'][] = $value;
                 }
             }
+        };
+
+        if (is_string($argv) && $argv !== '') {
+            $updateGlobals(explode(' ', $argv));
+        } elseif (is_array($argv) && $argv !== []) {
+            $updateGlobals($argv);
         }
     }
 }
