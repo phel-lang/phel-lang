@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Phel\Build\Domain\Extractor;
 
+use Phel\Build\Domain\IO\FileIoInterface;
 use Phel\Compiler\CompilerFacadeInterface;
 use Phel\Compiler\Domain\Analyzer\Ast\NsNode;
 use Phel\Compiler\Domain\Analyzer\Environment\NodeEnvironment;
@@ -22,6 +23,7 @@ final class NamespaceExtractor implements NamespaceExtractorInterface
     public function __construct(
         private CompilerFacadeInterface $compilerFacade,
         private NamespaceSorterInterface $namespaceSorter,
+        private FileIoInterface $fileIo,
     ) {
     }
 
@@ -31,7 +33,7 @@ final class NamespaceExtractor implements NamespaceExtractorInterface
      */
     public function getNamespaceFromFile(string $path): NamespaceInformation
     {
-        $content = file_get_contents($path);
+        $content = $this->fileIo->getContents($path);
 
         try {
             $tokenStream = $this->compilerFacade->lexString($content);

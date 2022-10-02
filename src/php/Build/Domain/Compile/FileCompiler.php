@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Phel\Build\Domain\Compile;
 
 use Phel\Build\Domain\Extractor\NamespaceExtractorInterface;
+use Phel\Build\Domain\IO\FileIoInterface;
 use Phel\Compiler\CompilerFacadeInterface;
 use Phel\Compiler\Infrastructure\CompileOptions;
 use Phel\Lang\Registry;
@@ -14,12 +15,13 @@ final class FileCompiler implements FileCompilerInterface
     public function __construct(
         private CompilerFacadeInterface $compilerFacade,
         private NamespaceExtractorInterface $namespaceExtractor,
+        private FileIoInterface $fileIo,
     ) {
     }
 
     public function compileFile(string $src, string $dest, bool $enableSourceMaps): CompiledFile
     {
-        $phelCode = file_get_contents($src);
+        $phelCode = $this->fileIo->getContents($src);
 
         $options = (new CompileOptions())
             ->setSource($src)
