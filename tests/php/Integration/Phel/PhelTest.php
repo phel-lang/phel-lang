@@ -21,11 +21,19 @@ final class PhelTest extends TestCase
         $GLOBALS['argv'] = self::$originalArgv;
     }
 
-    public function test_globals_argv_via_run(): void
+    public function test_globals_argv_as_string_via_run(): void
     {
-        Phel::run(__DIR__ . '/../../../../', 'phel\\testing-argv', 'foo=bar baz');
+        Phel::run(__DIR__ . '/../../../../', 'phel\\testing-argv', 'k1=v1 additional');
 
-        self::assertContains('foo=bar', $GLOBALS['argv']);
-        self::assertContains('baz', $GLOBALS['argv']);
+        self::assertContains('k1=v1', $GLOBALS['argv']);
+        self::assertContains('additional', $GLOBALS['argv']);
+    }
+
+    public function test_globals_argv_as_array_via_run(): void
+    {
+        Phel::run(__DIR__ . '/../../../../', 'phel\\testing-argv', ['a', 'b']);
+
+        self::assertContains('a', $GLOBALS['argv']);
+        self::assertContains('b', $GLOBALS['argv']);
     }
 }
