@@ -6,6 +6,7 @@ All notable changes to this project will be documented in this file.
 
 * Allow strings on `empty?` (#492)
 * Improved error message when using strings on `count` (#492)
+* Add __MAIN_NS__ global constant (#524)
 
 ## 0.7.0 (2022-05-05)
 
