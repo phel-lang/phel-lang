@@ -17,6 +17,7 @@ use Phel\Lang\TypeFactory;
 use RuntimeException;
 
 use function array_key_exists;
+use function defined;
 use function dirname;
 
 final class GlobalEnvironment implements GlobalEnvironmentInterface
@@ -154,6 +155,13 @@ final class GlobalEnvironment implements GlobalEnvironmentInterface
             );
         }
 
+        if ($strName === '__MAIN_NS__') {
+            return new LiteralNode(
+                $env,
+                $this->resolveMagicMainNs($name->getStartLocation()),
+            );
+        }
+
         if ($strName[0] === '\\') {
             return new PhpClassNameNode($env, $name, $name->getStartLocation());
         }
@@ -216,6 +224,12 @@ final class GlobalEnvironment implements GlobalEnvironmentInterface
             ?? $this->resolveRealpathDirname($sl);
     }
 
+    private function resolveMagicMainNs(?SourceLocation $sl): ?string
+    {
+        return $this->resolveMagicSourceString($sl)
+            ?? $this->resolveMainNs();
+    }
+
     private function resolveMagicSourceString(?SourceLocation $sl): ?string
     {
         return ($sl && $sl->getFile() === 'string') ? 'string' : null;
@@ -229,6 +243,11 @@ final class GlobalEnvironment implements GlobalEnvironmentInterface
     private function resolveRealpathDirname(?SourceLocation $sl): ?string
     {
         return ($sl) ? realpath(dirname($sl->getFile())) : null;
+    }
+
+    private function resolveMainNs(): ?string
+    {
+        return defined('__MAIN_NS__') ? __MAIN_NS__ : null;
     }
 
     private function resolveWithAlias(Symbol $name, NodeEnvironmentInterface $env): ?AbstractNode

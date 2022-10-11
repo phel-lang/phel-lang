@@ -104,7 +104,9 @@ final class EvalCompiler implements EvalCompilerInterface
      */
     private function evalNode(AbstractNode $node, CompileOptions $compileOptions): mixed
     {
-        $code = $this->emitter->emitNode($node, $compileOptions->isSourceMapsEnabled())->getCodeWithSourceMap();
+        $code = $this->emitter
+            ->emitNode($node, $compileOptions->isSourceMapsEnabled())
+            ->getCodeWithSourceMap();
 
         return $this->evaluator->eval($code);
     }

@@ -15,6 +15,8 @@ use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 use Throwable;
 
+use function define;
+
 /**
  * @method RunFacade getFacade()
  */
@@ -53,6 +55,7 @@ final class RunCommand extends Command
             if (file_exists($fileOrPath)) {
                 $namespace = $this->getFacade()->getNamespaceFromFile($fileOrPath)->getNamespace();
             }
+            define('__MAIN_NS__', $namespace);
             $this->getFacade()->runNamespace($namespace);
 
             if ($input->getOption('with-time')) {
