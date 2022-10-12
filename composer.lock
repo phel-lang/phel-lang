@@ -4,20 +4,20 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "5f1386cdebce55ee07c0ebb42ceed995",
+    "content-hash": "7048a356dcd67d3804b3626ef20aaa55",
     "packages": [
         {
             "name": "gacela-project/gacela",
-            "version": "0.26.0",
+            "version": "0.27.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/gacela-project/gacela.git",
-                "reference": "27818eab30445ebfe21cc6dfa42e512c29a66d71"
+                "reference": "a08c152beb9a358ca4c923d085c37de8994297ff"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/gacela-project/gacela/zipball/27818eab30445ebfe21cc6dfa42e512c29a66d71",
-                "reference": "27818eab30445ebfe21cc6dfa42e512c29a66d71",
+                "url": "https://api.github.com/repos/gacela-project/gacela/zipball/a08c152beb9a358ca4c923d085c37de8994297ff",
+                "reference": "a08c152beb9a358ca4c923d085c37de8994297ff",
                 "shasum": ""
             },
             "require": {
@@ -72,15 +72,15 @@
             ],
             "support": {
                 "issues": "https://github.com/gacela-project/gacela/issues",
-                "source": "https://github.com/gacela-project/gacela/tree/0.26.0"
+                "source": "https://github.com/gacela-project/gacela/tree/0.27.0"
             },
             "funding": [
                 {
-                    "url": "https://github.com/Chemaclass",
-                    "type": "github"
+                    "url": "https://www.paypal.me/chemaclass",
+                    "type": "custom"
                 }
             ],
-            "time": "2022-10-01T16:58:55+00:00"
+            "time": "2022-10-12T12:20:00+00:00"
         },
         {
             "name": "phpunit/php-timer",
