@@ -17,12 +17,13 @@ use Phel\Lang\TypeFactory;
 use RuntimeException;
 
 use function array_key_exists;
-use function defined;
 use function dirname;
 
 final class GlobalEnvironment implements GlobalEnvironmentInterface
 {
     private const PHEL_CORE_NAMESPACE = 'phel\core';
+
+    private static ?string $mainNamespace = null;
 
     private string $ns = 'user';
 
@@ -46,6 +47,11 @@ final class GlobalEnvironment implements GlobalEnvironmentInterface
     public function __construct()
     {
         $this->addInternalCompileModeDefinition();
+    }
+
+    public static function setMainNamespace(string $namespace): void
+    {
+        self::$mainNamespace = $namespace;
     }
 
     public function getNs(): string
@@ -156,10 +162,7 @@ final class GlobalEnvironment implements GlobalEnvironmentInterface
         }
 
         if ($strName === '__MAIN_NS__') {
-            return new LiteralNode(
-                $env,
-                $this->resolveMagicMainNs($name->getStartLocation()),
-            );
+            return new LiteralNode($env, self::$mainNamespace);
         }
 
         if ($strName[0] === '\\') {
@@ -224,12 +227,6 @@ final class GlobalEnvironment implements GlobalEnvironmentInterface
             ?? $this->resolveRealpathDirname($sl);
     }
 
-    private function resolveMagicMainNs(?SourceLocation $sl): ?string
-    {
-        return $this->resolveMagicSourceString($sl)
-            ?? $this->resolveMainNs();
-    }
-
     private function resolveMagicSourceString(?SourceLocation $sl): ?string
     {
         return ($sl && $sl->getFile() === 'string') ? 'string' : null;
@@ -243,11 +240,6 @@ final class GlobalEnvironment implements GlobalEnvironmentInterface
     private function resolveRealpathDirname(?SourceLocation $sl): ?string
     {
         return ($sl) ? realpath(dirname($sl->getFile())) : null;
-    }
-
-    private function resolveMainNs(): ?string
-    {
-        return defined('__MAIN_NS__') ? __MAIN_NS__ : null;
     }
 
     private function resolveWithAlias(Symbol $name, NodeEnvironmentInterface $env): ?AbstractNode

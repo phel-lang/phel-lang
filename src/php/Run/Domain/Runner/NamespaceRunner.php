@@ -6,6 +6,7 @@ namespace Phel\Run\Domain\Runner;
 
 use Phel\Build\BuildFacadeInterface;
 use Phel\Command\CommandFacadeInterface;
+use Phel\Compiler\Domain\Analyzer\Environment\GlobalEnvironment;
 
 class NamespaceRunner implements NamespaceRunnerInterface
 {
@@ -17,6 +18,8 @@ class NamespaceRunner implements NamespaceRunnerInterface
 
     public function run(string $namespace): void
     {
+        GlobalEnvironment::setMainNamespace($namespace);
+
         $this->commandFacade->registerExceptionHandler();
 
         $namespaceInformation = $this->buildFacade->getDependenciesForNamespace(
