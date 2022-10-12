@@ -9,6 +9,7 @@ class BuildOptions
     public function __construct(
         private bool $enableCache,
         private bool $enableSourceMap,
+        private ?string $mainNamespace,
     ) {
     }
 
@@ -20,5 +21,10 @@ class BuildOptions
     public function isSourceMapEnabled(): bool
     {
         return $this->enableSourceMap;
+    }
+
+    public function getMainNamespace(): ?string
+    {
+        return $this->mainNamespace;
     }
 }

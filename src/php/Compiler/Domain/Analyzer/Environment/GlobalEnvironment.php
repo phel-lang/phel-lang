@@ -49,7 +49,7 @@ final class GlobalEnvironment implements GlobalEnvironmentInterface
         $this->addInternalCompileModeDefinition();
     }
 
-    public static function setMainNamespace(string $namespace): void
+    public static function setMainNamespace(?string $namespace): void
     {
         self::$mainNamespace = $namespace;
     }

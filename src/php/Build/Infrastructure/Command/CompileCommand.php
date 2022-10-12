@@ -24,19 +24,21 @@ final class CompileCommand extends Command
 
     private const OPTION_CACHE = 'cache';
     private const OPTION_SOURCE_MAP = 'source-map';
+    private const OPTION_MAIN_NS = 'main-ns';
 
     protected function configure(): void
     {
         $this->setName('compile')
             ->setDescription('Compile the current project')
             ->addOption(self::OPTION_CACHE, null, InputOption::VALUE_NEGATABLE, 'Enable cache', true)
-            ->addOption(self::OPTION_SOURCE_MAP, null, InputOption::VALUE_NEGATABLE, 'Enable source maps', true);
+            ->addOption(self::OPTION_SOURCE_MAP, null, InputOption::VALUE_NEGATABLE, 'Enable source maps', true)
+            ->addOption(self::OPTION_MAIN_NS, null, InputOption::VALUE_OPTIONAL, 'Define the main namespace');
     }
 
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
         $this->getFacade()->registerExceptionHandler();
-        $buildOptions = $this->getBuildOptions($input);
+        $buildOptions = $this->createBuildOptions($input);
 
         try {
             $compiledProject = $this->getFacade()->compileProject($buildOptions);
@@ -50,11 +52,12 @@ final class CompileCommand extends Command
         return self::SUCCESS;
     }
 
-    private function getBuildOptions(InputInterface $input): BuildOptions
+    private function createBuildOptions(InputInterface $input): BuildOptions
     {
         return new BuildOptions(
             $input->getOption(self::OPTION_CACHE) === true,
             $input->getOption(self::OPTION_SOURCE_MAP) === true,
+            $input->getOption(self::OPTION_MAIN_NS),
         );
     }
 

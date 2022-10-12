@@ -7,6 +7,7 @@ namespace Phel\Build\Domain\Compile;
 use Phel\Build\Domain\Extractor\NamespaceExtractorInterface;
 use Phel\Command\CommandFacadeInterface;
 use Phel\Compiler\CompilerFacadeInterface;
+use Phel\Compiler\Domain\Analyzer\Environment\GlobalEnvironment;
 use RuntimeException;
 
 use function dirname;
@@ -50,6 +51,8 @@ final class ProjectCompiler
      */
     private function compileFromTo(array $srcDirectories, string $dest, BuildOptions $buildOptions): array
     {
+        GlobalEnvironment::setMainNamespace($buildOptions->getMainNamespace());
+
         $namespaceInformation = $this->namespaceExtractor->getNamespacesFromDirectories($srcDirectories);
         /** @var list<CompiledFile> $result */
         $result = [];
