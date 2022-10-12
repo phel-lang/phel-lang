@@ -61,8 +61,12 @@
   (is (true? (>= (php/strpos __FILE__ "tests/phel/test/core.phel") 0)) "__FILE__"))
 
 (deftest test-__DIR__
-  (is (true? (and (false? (php/strpos __DIR__ "tests/phel/test/core.phel")) (>= (php/strpos __DIR__ "tests/phel/test") 0))) "__DIR__"))
+  (is (true? (and (false? (php/strpos __DIR__ "tests/phel/test/core.phel"))
+             (>= (php/strpos __DIR__ "tests/phel/test") 0)))
+       "__DIR__"))
 
+(deftest test-__MAIN_NS__
+  (is (nil? __MAIN_NS__)) "__MAIN_NS__")
 
 (deftest test-var
   (is (= :var (type (var 10))) "type of var is :var")
