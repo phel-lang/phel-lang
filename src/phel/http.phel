@@ -7,30 +7,30 @@
 # ---
 
 (defstruct uri [scheme userinfo host port path query fragment]
-  Stringable
-  (__toString [this]
-    (let [authority (str host)
-          authority (if (and userinfo (not= userinfo ""))
-                      (str userinfo "@" authority)
-                      authority)
-          authority (if port
-                      (str authority ":" port)
-                      authority)
-          res ""
-          res (if (and scheme (not= scheme ""))
-                (str res scheme ":")
-                res)
-          res (if (or (not= authority "") (= scheme "file"))
-                (str res "//" authority)
-                res)
-          res (str res path)
-          res (if (and query (not= query ""))
-                (str res "?" query)
-                res)
-          res (if (and fragment (not= fragment ""))
-                (str res "#" fragment)
-                res)]
-      res)))
+           Stringable
+           (__toString [this]
+                       (let [authority (str host)
+                             authority (if (and userinfo (not= userinfo ""))
+                                         (str userinfo "@" authority)
+                                         authority)
+                             authority (if port
+                                         (str authority ":" port)
+                                         authority)
+                             res ""
+                             res (if (and scheme (not= scheme ""))
+                                   (str res scheme ":")
+                                   res)
+                             res (if (or (not= authority "") (= scheme "file"))
+                                   (str res "//" authority)
+                                   res)
+                             res (str res path)
+                             res (if (and query (not= query ""))
+                                   (str res "?" query)
+                                   res)
+                             res (if (and fragment (not= fragment ""))
+                                   (str res "#" fragment)
+                                   res)]
+                         res)))
 
 (def- uri-host-port-regex "/^(.+)\:(\d+)$/")
 

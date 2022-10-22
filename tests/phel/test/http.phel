@@ -155,9 +155,9 @@
                        "b" (php/array "32" "0"))))
     {"files" {0 (h/uploaded-file "/tmp/my-file.txt" 123 0 "my-file.txt" "text/plain")
               1 (h/uploaded-file "/tmp/my-image.png" 4321 1 "Image.png" "image/png")}
-      "nested" {"a" (h/uploaded-file "/tmp/a.txt" 421 0 "a.txt" "text/plain")
-                "b" {0 (h/uploaded-file "/tmp/b1.txt" 32 0 "b.txt" "text/plain")
-                     1 (h/uploaded-file "/tmp/b2.txt" 0 4 "" "")}}}]])
+     "nested" {"a" (h/uploaded-file "/tmp/a.txt" 421 0 "a.txt" "text/plain")
+               "b" {0 (h/uploaded-file "/tmp/b1.txt" 32 0 "b.txt" "text/plain")
+                    1 (h/uploaded-file "/tmp/b2.txt" 0 4 "" "")}}}]])
 
 (deftest test-files-from-globals
   (foreach [[name files result] file-examples]
@@ -291,17 +291,17 @@
           []
           "1.0"
           {:route "my-route"})
-        (h/request-from-map
-         {:method "GET"
-          :uri (h/uri "http" nil "example.com" nil nil nil nil)
-          :headers {:content-type "application/json"}
-          :parsed-body {:foo "bar"}
-          :query-params {:foobar "foobar"}
-          :cookie-params {:session "xyz"}
-          :server-params {:param "str"}
-          :uploded-files []
-          :version "1.0"
-          :attributes {:route "my-route"}}))))
+         (h/request-from-map
+          {:method "GET"
+           :uri (h/uri "http" nil "example.com" nil nil nil nil)
+           :headers {:content-type "application/json"}
+           :parsed-body {:foo "bar"}
+           :query-params {:foobar "foobar"}
+           :cookie-params {:session "xyz"}
+           :server-params {:param "str"}
+           :uploded-files []
+           :version "1.0"
+           :attributes {:route "my-route"}}))))
 
 # --------
 # Response
