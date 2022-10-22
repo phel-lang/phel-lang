@@ -202,6 +202,11 @@
   (is (false? (contains-value? (set 1) 2)))
   (is (true? (contains-value? (set 1) 1))))
 
+(deftest test-contains-value?-hash-map
+  (is (false? (contains-value? {} 1)))
+  (is (false? (contains-value? {:a 1} 2)))
+  (is (true? (contains-value? {:a 1} 1))))
+
 (deftest test-compare
   (is (= -1 (compare 1 2)) "(compare 1 2)")
   (is (= 1 (compare 2 1)) "(compare 2 1)")
