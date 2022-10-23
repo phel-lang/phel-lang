@@ -177,7 +177,7 @@
   (is (true? (contains? [1] 0)))
   (is (false? (contains? [1] 1))))
 
-  (deftest test-contains?-set
+(deftest test-contains?-set
   (is (false? (contains? (set) 1)))
   (is (true? (contains? (set 1) 1)))
   (is (false? (contains? (set 1) 2))))

@@ -935,8 +935,8 @@ arrays. Use (php/aunset ds key)"))
                       `(swap! ,res-sym (fn [,sym] (do ,@body))))
                     `(swap! ,res-sym (fn [,acc-sym] (push ,acc-sym (do ,@body)))))
         init (if (:reduce options)
-              (second (:reduce options))
-              [])
+               (second (:reduce options))
+               [])
         loop-body (for-builder swap-body head 0)]
     `(let [,res-sym (var ,init)]
        ,loop-body
@@ -1140,11 +1140,11 @@ collection in map"))
   "Returns an vector of elements separated by `sep`."
   [sep xs]
   (persistent
-    (for [[k v] :pairs xs
-          :reduce [res (transient [])]]
-      (when (> k 0)
-        (push res sep v))
-      (push res v))))
+   (for [[k v] :pairs xs
+         :reduce [res (transient [])]]
+     (when (> k 0)
+       (push res sep v))
+     (push res v))))
 
 (defn frequencies
   "Returns a map from distinct items in `xs` to the number of times they appear."
@@ -1224,12 +1224,12 @@ collection in map"))
   f on each element."
   [f xs]
   (persistent
-    (for [x :in xs
-          :let [k (f x)]
-          :reduce [res (transient {})]]
-      (when-not (get res k)
-        (put res k []))
-      (update-in res [k] push x))))
+   (for [x :in xs
+         :let [k (f x)]
+         :reduce [res (transient {})]]
+     (when-not (get res k)
+       (put res k []))
+     (update-in res [k] push x))))
 
 (defn zipcoll
   "Creates a map from two sequential data structures. Return a new map."
@@ -1416,7 +1416,7 @@ collection in map"))
     0 {}
     1 (first hash-maps)
     2 (merge-with-2 f (first hash-maps) (second hash-maps))
-      (reduce (partial merge-with f) (first hash-maps) (rest hash-maps))))
+    (reduce (partial merge-with f) (first hash-maps) (rest hash-maps))))
 
 (declare deep-merge)
 
@@ -1436,7 +1436,7 @@ collection in map"))
     0 {}
     1 (first args)
     2 (deep-merge-2 (first args) (second args))
-      (reduce deep-merge (first args) (rest args))))
+    (reduce deep-merge (first args) (rest args))))
 
 # -----------------
 # Bitwise operation
@@ -1792,11 +1792,11 @@ returns 1. If `xs` has one value, returns the reciprocal of x."
         bind-value (fn [[k v]] (list 'set-var k v))]
     `(let [,@(interleave orig-val-syms names)
            ,@(interleave temp-val-syms vals)]
-        ,@(map bind-value binds)
-        (try
-          ,@body
-          (finally
-            ,@(map bind-value resets))))))
+       ,@(map bind-value binds)
+       (try
+         ,@body
+         (finally
+           ,@(map bind-value resets))))))
 
 # ----------
 # Interfaces
@@ -1815,11 +1815,10 @@ returns 1. If `xs` has one value, returns the reciprocal of x."
                `(defn ,fn-name {:doc ,doc} ,args
                   (if (php/is_a ,(first args) ,class-name-str)
                     (php/-> ,(first args) (,munged-fn-symbol ,@(rest args)))
-                    (throw (php/new \InvalidArgumentException ,(str "Value doesn't implement interface " name)))
-                    )))]
-  `(do
-     (definterface* ,name ,@fns)
-     ,@defs)))
+                    (throw (php/new \InvalidArgumentException ,(str "Value doesn't implement interface " name))))))]
+    `(do
+       (definterface* ,name ,@fns)
+       ,@defs)))
 
 
 (defn name
