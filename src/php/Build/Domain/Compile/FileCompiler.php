@@ -31,7 +31,7 @@ final class FileCompiler implements FileCompilerInterface
         $result = $this->compilerFacade->compile($phelCode, $options);
         Registry::getInstance()->addDefinition("phel\core", '*compile-mode*', false);
 
-        $this->fileIo->putContents($dest, "<?php\n" . $result->getCode());
+        $this->fileIo->putContents($dest, "<?php\n" . $result->getPhpCode());
         $this->fileIo->putContents(str_replace('.php', '.phel', $dest), $phelCode);
 
         if ($enableSourceMaps) {

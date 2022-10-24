@@ -8,15 +8,15 @@ final class EmitterResult
 {
     public function __construct(
         private bool $enableSourceMaps,
-        private string $code,
+        private string $phpCode,
         private string $sourceMap,
         private string $source,
     ) {
     }
 
-    public function getCode(): string
+    public function getPhpCode(): string
     {
-        return $this->code;
+        return $this->phpCode;
     }
 
     public function getSourceMap(): string
@@ -35,10 +35,10 @@ final class EmitterResult
             return (
                 '// ' . $this->source . "\n"
                 . '// ;;' . $this->sourceMap . "\n"
-                . $this->code
+                . $this->phpCode
             );
         }
 
-        return $this->code;
+        return $this->phpCode;
     }
 }

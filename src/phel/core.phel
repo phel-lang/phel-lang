@@ -1864,4 +1864,4 @@ returns 1. If `xs` has one value, returns the reciprocal of x."
   [form]
   (let [cf (php/new CompilerFacade)
         opts (php/new CompileOptions)]
-    (php/-> (php/-> cf (compileForm form opts)) (getCode))))
+    (php/-> (php/-> cf (compileForm form opts)) (getPhpCode))))

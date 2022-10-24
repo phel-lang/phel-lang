@@ -26,32 +26,25 @@ final class StatementEmitter implements StatementEmitterInterface
         $this->outputEmitter->resetSourceMapState();
 
         $sourceLocation = $node->getStartSourceLocation();
-        $file = $sourceLocation
-            ? $sourceLocation->getFile()
-            : 'string';
+        $file = $sourceLocation ? $sourceLocation->getFile() : 'string';
 
         ob_start();
         $this->outputEmitter->emitNode($node);
-        $code = ob_get_clean();
-
-        if (!$enableSourceMaps) {
-            return new EmitterResult(
-                $enableSourceMaps,
-                $code,
-                '',
-                $file,
-            );
-        }
-
-        $sourceMap = $this->sourceMapGenerator->encode(
-            $this->outputEmitter->getSourceMapState()->getMappings(),
-        );
+        $phpCode = ob_get_clean();
+        $sourceMap = $enableSourceMaps ? $this->generateSourceMap() : '';
 
         return new EmitterResult(
             $enableSourceMaps,
-            $code,
+            $phpCode,
             $sourceMap,
             $file,
+        );
+    }
+
+    private function generateSourceMap(): string
+    {
+        return $this->sourceMapGenerator->encode(
+            $this->outputEmitter->getSourceMapState()->getMappings(),
         );
     }
 }
