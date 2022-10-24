@@ -31,12 +31,13 @@ final class FileCompiler implements FileCompilerInterface
         $result = $this->compilerFacade->compile($phelCode, $options);
         Registry::getInstance()->addDefinition("phel\core", '*compile-mode*', false);
 
-        file_put_contents($dest, "<?php\n" . $result->getCode());
-        file_put_contents(str_replace('.php', '.phel', $dest), $phelCode);
+        $this->fileIo->putContents($dest, "<?php\n" . $result->getCode());
+        $this->fileIo->putContents(str_replace('.php', '.phel', $dest), $phelCode);
+
         if ($enableSourceMaps) {
-            file_put_contents($dest . '.map', $result->getSourceMap());
-        } elseif (file_exists($dest . '.map')) {
-            @unlink($dest . '.map');
+            $this->fileIo->putContents($dest . '.map', $result->getSourceMap());
+        } else {
+            $this->fileIo->removeFile($dest . '.map');
         }
 
         $namespaceInfo = $this->namespaceExtractor->getNamespaceFromFile($src);

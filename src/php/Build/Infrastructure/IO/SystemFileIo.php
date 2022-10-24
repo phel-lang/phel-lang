@@ -12,4 +12,16 @@ final class SystemFileIo implements FileIoInterface
     {
         return file_get_contents($filename);
     }
+
+    public function putContents(string $filename, string $content): void
+    {
+        file_put_contents($filename, $content);
+    }
+
+    public function removeFile(string $filename): void
+    {
+        if (file_exists($filename)) {
+            @unlink($filename);
+        }
+    }
 }
