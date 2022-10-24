@@ -182,6 +182,33 @@
   (is (true? (contains? (set 1) 1)))
   (is (false? (contains? (set 1) 2))))
 
+(deftest test-contains-value?-php-indexed-array
+  (is (false? (contains-value? (php-indexed-array) 1)))
+  (is (false? (contains-value? (php-indexed-array 1) 2)))
+  (is (true? (contains-value? (php-indexed-array 1) 1))))
+
+(deftest test-contains-value?-list
+  (is (false? (contains-value? '() 1)))
+  (is (false? (contains-value? '(1) 0)))
+  (is (true? (contains-value? '(1) 1))))
+
+(deftest test-contains-value?-vector
+  (is (false? (contains-value? [] 1)))
+  (is (false? (contains-value? [1] 0)))
+  (is (true? (contains-value? [1] 1))))
+
+(deftest test-contains-value?-set
+  (is (false? (contains-value? (set) 1)))
+  (is (false? (contains-value? (set 1) 0)))
+  (is (true? (contains-value? (set 1) 1))))
+
+(deftest test-contains-value?-map
+  (let [full-name {:first-name "Marco" :last-name "Polo" :street nil}]
+    (is (true? (contains-value? full-name "Marco")))
+    (is (true? (contains-value? full-name "Polo")))
+    (is (false? (contains-value? full-name nil)))
+    (is (false? (contains-value? full-name "unknown")))))
+
 (deftest test-compare
   (is (= -1 (compare 1 2)) "(compare 1 2)")
   (is (= 1 (compare 2 1)) "(compare 2 1)")

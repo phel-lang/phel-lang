@@ -1191,6 +1191,13 @@ collection in map"))
       (put res k v))
     (persistent res)))
 
+(defn contains-value?
+  "Returns true if value is present in the given collection, otherwise returns false."
+  [coll val]
+  (if (empty? coll)
+    false
+    (not (nil? (find |(= $ val) (values coll))))))
+
 (defn sort
   "Returns a sorted vector. If no comparator is supplied compare is used."
   [xs & [comp]]
