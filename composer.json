@@ -18,16 +18,16 @@
     ],
     "require": {
         "php": ">=8.0",
-        "gacela-project/gacela": "^0.27",
+        "gacela-project/gacela": "^0.28",
         "symfony/console": "^5.4",
         "phpunit/php-timer": "^5.0"
     },
     "require-dev": {
         "ext-readline": "*",
         "phpunit/phpunit": "^9.5",
-        "vimeo/psalm": "^4.26",
+        "vimeo/psalm": "^4.29",
         "symfony/var-dumper": "^5.4",
-        "friendsofphp/php-cs-fixer": "^3.9",
+        "friendsofphp/php-cs-fixer": "^3.12",
         "phpmetrics/phpmetrics": "^2.8",
         "phpbench/phpbench": "^1.2",
         "phpstan/phpstan": "^1.8"

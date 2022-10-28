@@ -7,7 +7,7 @@ namespace Phel\Lang\Collections\Map;
 use Phel\Lang\Collections\Exceptions\MethodNotSupportedException;
 use Phel\Lang\EqualizerInterface;
 use Phel\Lang\HasherInterface;
-use stdclass;
+use stdClass;
 
 /**
  * @template K
@@ -20,7 +20,7 @@ class TransientHashMap implements TransientMapInterface
     /** @var ?V */
     private $nullValue;
 
-    private static ?stdclass $NOT_FOUND = null;
+    private static ?stdClass $NOT_FOUND = null;
 
     /**
      * @param ?HashMapNodeInterface<K, V> $root
@@ -42,10 +42,10 @@ class TransientHashMap implements TransientMapInterface
         return new self($hasher, $equalizer, 0, null, false, null);
     }
 
-    public static function getNotFound(): stdclass
+    public static function getNotFound(): stdClass
     {
         if (!self::$NOT_FOUND) {
-            self::$NOT_FOUND = new stdclass();
+            self::$NOT_FOUND = new stdClass();
         }
 
         return self::$NOT_FOUND;
