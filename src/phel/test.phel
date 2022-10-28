@@ -36,7 +36,7 @@
 
 
 # ---------------------------
-# `is` macro and it's asserts
+# `is` macro and its asserts
 # ---------------------------
 
 (defn- location [form]
