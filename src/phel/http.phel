@@ -66,7 +66,7 @@
 
 # See: https://www.php.net/manual/en/function.parse-url.php#114817
 (defn- encode-utf-8-url
-  "Prepares utf-8 urls form php/parse-url."
+  "Prepares utf-8 urls from php/parse-url."
   [url]
   (php/preg_replace_callback
    "%[^:/@?&=#]+%usD"
@@ -179,10 +179,10 @@
                     parsed-body # parsed body ($_POST)
                     query-params # Map with all query parameters ($_GET)
                     cookie-params # Map with all cookie parameters ($_COOKIE)
-                    server-params # Map with alle server parameters ($_SERVER)
+                    server-params # Map with all server parameters ($_SERVER)
                     uploaded-files # Array of normalized uploaded files ($_FILES)
                     version # HTTP Version
-                    attributes # consumer specific data to enrich the request
+                    attributes # consumer-specific data to enrich the request
 ])
 
 (defn- get-method-from-globals

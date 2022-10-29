@@ -73,7 +73,7 @@
   (apply str (map-indexed render-attribute attrs)))
 
 (defn- render-element
-  "Renders a Element."
+  "Renders an Element."
   [element]
   (let [[tag attrs content] (normalize-element element)]
     (if (container-tag? tag content)

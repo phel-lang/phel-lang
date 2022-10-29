@@ -22,8 +22,8 @@
   (php/-> build-facade (evalFile file)))
 
 (defn- eval-namespace [namespace]
-  (let [dependecies (php/-> build-facade (getDependenciesForNamespace src-dirs (php/array namespace)))]
-    (foreach [dep dependecies]
+  (let [dependencies (php/-> build-facade (getDependenciesForNamespace src-dirs (php/array namespace)))]
+    (foreach [dep dependencies]
       (when-not (php/in_array (php/-> dep (getNamespace)) (loaded-namespaces))
         (eval-file (php/-> dep (getFile)))))))
 
