@@ -1846,13 +1846,11 @@ returns 1. If `xs` has one value, returns the reciprocal of x."
 (defn eval
   "Evaluates a form and return the evaluated results."
   [form]
-  (let [cf (php/new CompilerFacade)
-        opts (php/new CompileOptions)]
-    (php/-> cf (evalForm form opts))))
+  (let [cf (php/new CompilerFacade)]
+    (php/-> cf (evalForm form))))
 
 (defn compile
   "Returns the compiled PHP code string for the given form."
   [form]
-  (let [cf (php/new CompilerFacade)
-        opts (php/new CompileOptions)]
-    (php/-> (php/-> cf (compileForm form opts)) (getCode))))
+  (let [cf (php/new CompilerFacade)]
+    (php/-> (php/-> cf (compileForm form)) (getPhpCode))))

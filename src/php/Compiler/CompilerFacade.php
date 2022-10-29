@@ -44,15 +44,27 @@ final class CompilerFacade extends AbstractFacade implements CompilerFacadeInter
      *
      * @return mixed The result of the executed code
      */
-    public function eval(string $phelCode, CompileOptions $compileOptions): mixed
-    {
+    public function eval(
+        string $phelCode,
+        ?CompileOptions $compileOptions = null,
+    ): mixed {
+        if ($compileOptions === null) {
+            $compileOptions = new CompileOptions();
+        }
+
         return $this->getFactory()
             ->createEvalCompiler()
             ->evalString($phelCode, $compileOptions);
     }
 
-    public function evalForm(TypeInterface|string|float|int|bool|null $form, CompileOptions $compileOptions): mixed
-    {
+    public function evalForm(
+        TypeInterface|string|float|int|bool|null $form,
+        ?CompileOptions $compileOptions = null,
+    ): mixed {
+        if ($compileOptions === null) {
+            $compileOptions = new CompileOptions();
+        }
+
         return $this->getFactory()
             ->createEvalCompiler()
             ->evalForm($form, $compileOptions);
@@ -63,8 +75,14 @@ final class CompilerFacade extends AbstractFacade implements CompilerFacadeInter
      * @throws CompiledCodeIsMalformedException
      * @throws FileException
      */
-    public function compile(string $phelCode, CompileOptions $compileOptions): EmitterResult
-    {
+    public function compile(
+        string $phelCode,
+        ?CompileOptions $compileOptions = null,
+    ): EmitterResult {
+        if ($compileOptions === null) {
+            $compileOptions = new CompileOptions();
+        }
+
         return $this->getFactory()
             ->createCodeCompiler($compileOptions)
             ->compileString($phelCode, $compileOptions);
@@ -75,8 +93,14 @@ final class CompilerFacade extends AbstractFacade implements CompilerFacadeInter
      * @throws CompiledCodeIsMalformedException
      * @throws FileException
      */
-    public function compileForm(float|bool|int|string|TypeInterface|null $form, CompileOptions $compileOptions): EmitterResult
-    {
+    public function compileForm(
+        float|bool|int|string|TypeInterface|null $form,
+        ?CompileOptions $compileOptions = null,
+    ): EmitterResult {
+        if ($compileOptions === null) {
+            $compileOptions = new CompileOptions();
+        }
+
         return $this->getFactory()
             ->createCodeCompiler($compileOptions)
             ->compileForm($form, $compileOptions);

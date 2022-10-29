@@ -53,7 +53,7 @@ final class IntegrationTest extends TestCase
         $options = (new CompileOptions())
             ->setSource($filename);
 
-        $compiledCode = $this->compilerFacade->compile($phelCode, $options)->getCode();
+        $compiledCode = $this->compilerFacade->compile($phelCode, $options)->getPhpCode();
 
         self::assertSame(
             trim($expectedGeneratedCode),

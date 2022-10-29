@@ -9,7 +9,7 @@ use Phel\Compiler\Domain\Emitter\OutputEmitter\SourceMap\SourceMapGenerator;
 
 final class FileEmitter implements FileEmitterInterface
 {
-    private string $code = '';
+    private string $phpCode = '';
     private string $source = '';
 
     public function __construct(
@@ -23,14 +23,14 @@ final class FileEmitter implements FileEmitterInterface
         $this->outputEmitter->resetIndentLevel();
         $this->outputEmitter->resetSourceMapState();
         $this->source = $source;
-        $this->code = '';
+        $this->phpCode = '';
     }
 
     public function emitNode(AbstractNode $node): void
     {
         ob_start();
         $this->outputEmitter->emitNode($node);
-        $this->code .= ob_get_clean();
+        $this->phpCode .= ob_get_clean();
     }
 
     public function endFile(bool $enableSourceMaps): EmitterResult
@@ -41,7 +41,7 @@ final class FileEmitter implements FileEmitterInterface
 
         return new EmitterResult(
             $enableSourceMaps,
-            $this->code,
+            $this->phpCode,
             $sourceMap,
             $this->source,
         );
