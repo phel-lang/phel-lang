@@ -8,7 +8,7 @@ use EmptyIterator;
 use Phel\Lang\EqualizerInterface;
 use Phel\Lang\HasherInterface;
 use RuntimeException;
-use stdclass;
+use stdClass;
 use Traversable;
 
 use function count;
@@ -27,7 +27,7 @@ class PersistentHashMap extends AbstractPersistentMap
     /** @var V */
     private $nullValue;
 
-    private static ?stdclass $NOT_FOUND = null;
+    private static ?stdClass $NOT_FOUND = null;
 
     /**
      * @param V $nullValue
@@ -64,10 +64,10 @@ class PersistentHashMap extends AbstractPersistentMap
         return $result->persistent();
     }
 
-    public static function getNotFound(): stdclass
+    public static function getNotFound(): stdClass
     {
         if (!self::$NOT_FOUND) {
-            self::$NOT_FOUND = new stdclass();
+            self::$NOT_FOUND = new stdClass();
         }
 
         return self::$NOT_FOUND;
