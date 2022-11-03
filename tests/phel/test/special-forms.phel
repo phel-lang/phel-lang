@@ -2,4 +2,4 @@
   (:require phel\test :refer [deftest is]))
 
 (deftest test-set-object-property
-  (is (= "foo" (php/-> (php/oset (php/-> (php/new \stdclass) name) "foo") name)) "set value to stdclass"))
+  (is (= "foo" (php/-> (php/oset (php/-> (php/new \stdClass) name) "foo") name)) "set value to stdClass"))

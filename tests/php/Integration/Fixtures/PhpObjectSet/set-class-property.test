@@ -1,11 +1,11 @@
 --PHEL--
-(def a (php/new \stdclass))
+(def a (php/new \stdClass))
 (php/oset (php/-> a name) "test")
 --PHP--
 \Phel\Lang\Registry::getInstance()->addDefinition(
   "user",
   "a",
-  (new \stdclass()),
+  (new \stdClass()),
   \Phel\Lang\TypeFactory::getInstance()->persistentMapFromKVs(
     \Phel\Lang\Keyword::create("start-location"), \Phel\Lang\TypeFactory::getInstance()->persistentMapFromKVs(
       \Phel\Lang\Keyword::create("file"), "PhpObjectSet/set-class-property.test",

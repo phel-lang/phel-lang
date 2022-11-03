@@ -27,10 +27,10 @@
         "phpunit/phpunit": "^9.5",
         "vimeo/psalm": "^4.29",
         "symfony/var-dumper": "^5.4",
-        "friendsofphp/php-cs-fixer": "^3.12",
+        "friendsofphp/php-cs-fixer": "^3.13",
         "phpmetrics/phpmetrics": "^2.8",
         "phpbench/phpbench": "^1.2",
-        "phpstan/phpstan": "^1.8"
+        "phpstan/phpstan": "^1.9"
     },
     "autoload": {
         "psr-4": {
