@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace PhelTest\Integration\Formatter;
 
+use Gacela\Framework\Gacela;
 use Generator;
 use Phel\Formatter\FormatterFactory;
 use Phel\Lang\Symbol;
@@ -15,6 +16,7 @@ final class FormatterFacadeTest extends TestCase
 
     public function setUp(): void
     {
+        Gacela::bootstrap(__DIR__);
         Symbol::resetGen();
         $this->formatterFactory = new FormatterFactory();
     }
