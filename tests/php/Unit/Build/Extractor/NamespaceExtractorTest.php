@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace PhelTest\Unit\Build\Extractor;
 
+use Gacela\Framework\Gacela;
 use Phel\Build\Domain\Extractor\ExtractorException;
 use Phel\Build\Domain\Extractor\NamespaceExtractor;
 use Phel\Build\Domain\Extractor\NamespaceInformation;
@@ -14,6 +15,11 @@ use PHPUnit\Framework\TestCase;
 
 final class NamespaceExtractorTest extends TestCase
 {
+    protected function setUp(): void
+    {
+        Gacela::bootstrap(__DIR__);
+    }
+
     public function test_get_namespace_from_file(): void
     {
         $fileContent = '(ns get\\ns\\from\\file)';
