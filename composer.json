@@ -18,14 +18,14 @@
     ],
     "require": {
         "php": ">=8.0",
-        "gacela-project/gacela": "^0.29",
+        "gacela-project/gacela": "^0.30",
         "symfony/console": "^5.4",
         "phpunit/php-timer": "^5.0"
     },
     "require-dev": {
         "ext-readline": "*",
         "phpunit/phpunit": "^9.5",
-        "vimeo/psalm": "^4.29",
+        "vimeo/psalm": "^4.30",
         "symfony/var-dumper": "^5.4",
         "friendsofphp/php-cs-fixer": "^3.13",
         "phpmetrics/phpmetrics": "^2.8",
