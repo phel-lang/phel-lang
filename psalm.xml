@@ -14,6 +14,10 @@
         </ignoreFiles>
     </projectFiles>
 
+    <plugins>
+        <pluginClass class="Psalm\PhpUnitPlugin\Plugin"/>
+    </plugins>
+
     <issueHandlers>
         <DeprecatedClass errorLevel="suppress" />
         <DeprecatedInterface errorLevel="suppress" />
