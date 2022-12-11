@@ -11,6 +11,9 @@ use Phel\Compiler\Domain\Parser\ReadModel\CodeSnippet;
 use function count;
 use function in_array;
 
+/**
+ * @template-implements Iterator<mixed, Token>
+ */
 final class TokenStream implements Iterator
 {
     /** @var list<Token> */

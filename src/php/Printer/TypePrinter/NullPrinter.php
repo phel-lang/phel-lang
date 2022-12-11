@@ -4,6 +4,9 @@ declare(strict_types=1);
 
 namespace Phel\Printer\TypePrinter;
 
+/**
+ * @template-implements TypePrinterInterface<null>
+ */
 final class NullPrinter implements TypePrinterInterface
 {
     use WithColorTrait;
