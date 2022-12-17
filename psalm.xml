@@ -22,5 +22,6 @@
         <DeprecatedClass errorLevel="suppress" />
         <DeprecatedInterface errorLevel="suppress" />
         <DeprecatedMethod errorLevel="suppress" />
+        <MissingTemplateParam errorLevel="suppress" />
     </issueHandlers>
 </psalm>
