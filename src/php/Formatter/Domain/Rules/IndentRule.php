@@ -62,8 +62,12 @@ final class IndentRule implements RuleInterface
     private function skipWhitespace(ParseTreeZipper $form): ParseTreeZipper
     {
         $node = $form;
-        while ($node && $node->isWhitespace()) {
-            $node = $node->next();
+        while ($node->isWhitespace()) {
+            $nextNode = $node->next();
+            if (!$nextNode instanceof ParseTreeZipper) {
+                break;
+            }
+            $node = $nextNode;
         }
 
         return $node;

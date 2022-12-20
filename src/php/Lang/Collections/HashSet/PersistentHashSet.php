@@ -46,7 +46,7 @@ class PersistentHashSet extends AbstractType implements PersistentHashSetInterfa
         return $this->meta;
     }
 
-    public function withMeta(?PersistentMapInterface $meta)
+    public function withMeta(?PersistentMapInterface $meta): static
     {
         return new self($this->hasher, $meta, $this->map);
     }

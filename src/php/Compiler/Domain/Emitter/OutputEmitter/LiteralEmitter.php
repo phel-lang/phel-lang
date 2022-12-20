@@ -66,9 +66,10 @@ final class LiteralEmitter
 
     private function emitFloat(float $x): void
     {
+        /** @psalm-suppress InvalidCast */
         $float = ((int)$x == $x)
             // (string) 10.0 will return 10 and not 10.0
-            // so we just add a .0 at the end
+            // so, we just add a .0 at the end
             ? ((string)$x) . '.0'
             : ((string)$x);
 

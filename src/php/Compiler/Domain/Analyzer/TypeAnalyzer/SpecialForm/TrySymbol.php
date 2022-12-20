@@ -26,7 +26,7 @@ final class TrySymbol implements SpecialFormAnalyzerInterface
         $catches = [];
         /** @var PersistentListInterface|null $finally */
         $finally = null;
-        for ($forms = $list->cdr(); $forms != null; $forms = $forms->cdr()) {
+        for ($forms = $list->cdr(); $forms !== null; $forms = $forms->cdr()) {
             /** @var mixed $form */
             $form = $forms->first();
 
@@ -62,11 +62,13 @@ final class TrySymbol implements SpecialFormAnalyzerInterface
             }
         }
 
-        if ($finally) {
+        if ($finally instanceof PersistentListInterface) {
+            /** @psalm-suppress InvalidOperand */
             $finally = TypeFactory::getInstance()->persistentListFromArray([
                 Symbol::create(Symbol::NAME_DO),
                 ...$finally->rest(),
             ])->copyLocationFrom($finally);
+
             $finally = $this->analyzer->analyze(
                 $finally,
                 $env->withContext(NodeEnvironmentInterface::CONTEXT_STATEMENT)->withDisallowRecurFrame(),

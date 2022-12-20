@@ -7,9 +7,9 @@ namespace Phel\Lang;
 use Phel\Printer\Printer;
 
 /**
- * @template TSelf
+ * @template T
  *
- * @implements TypeInterface<TSelf>
+ * @implements TypeInterface<T>
  */
 abstract class AbstractType implements TypeInterface
 {
