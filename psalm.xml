@@ -23,5 +23,10 @@
         <DeprecatedInterface errorLevel="suppress" />
         <DeprecatedMethod errorLevel="suppress" />
         <MissingTemplateParam errorLevel="suppress" />
+        <ArgumentTypeCoercion errorLevel="suppress" />
+        <LessSpecificReturnStatement errorLevel="suppress" />
+        <NamedArgumentNotAllowed errorLevel="suppress" />
+        <MoreSpecificReturnType errorLevel="suppress" />
+        <InvalidArrayOffset errorLevel="suppress" />
     </issueHandlers>
 </psalm>

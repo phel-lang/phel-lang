@@ -26,7 +26,7 @@ final class TopologicalNamespaceSorter implements NamespaceSorterInterface
             $this->process($item, $dependencies, $order, $seen);
         }
 
-        return $order;
+        return array_values($order);
     }
 
     /**

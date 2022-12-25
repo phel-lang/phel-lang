@@ -20,10 +20,13 @@ final class IndentRule implements RuleInterface
     private const INDENT_WIDTH = 2;
 
     /** @var list<IndenterInterface> */
-    private $indenters;
+    private array $indenters;
     private ListIndenter $listIndenter;
     private LineIndenter $lineIndenter;
 
+    /**
+     * @param list<IndenterInterface> $indenters
+     */
     public function __construct(array $indenters)
     {
         $this->indenters = $indenters;
