@@ -36,7 +36,7 @@ final class BuildFacade extends AbstractFacade implements BuildFacadeInterface
      * Extracts all namespaces from all Phel files in the given directories.
      * It expects that the first statement in the file is the 'ns statement.
      *
-     * @param string[] $directories The list of the directories
+     * @param list<string> $directories The list of the directories
      *
      * @return list<NamespaceInformation>
      */

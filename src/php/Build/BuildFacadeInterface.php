@@ -24,9 +24,9 @@ interface BuildFacadeInterface
      * It expects that the first statement in the file is the 'ns statement.
      *
      * The result is topologically sorted. That means that file that have dependencies
-     * to other files are sorted behind the files that have no dependecies.
+     * to other files are sorted behind the files that have no dependencies.
      *
-     * @param string[] $directories The list of the directories
+     * @param list<string> $directories The list of the directories
      *
      * @return list<NamespaceInformation>
      */
