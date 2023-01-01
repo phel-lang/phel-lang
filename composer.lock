@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "68a384cf9c93fd1fc62b5054d081bfd6",
+    "content-hash": "38f8aeda278860e4c7e2f94a51c58774",
     "packages": [
         {
             "name": "gacela-project/gacela",
@@ -4929,16 +4929,16 @@
         },
         {
             "name": "symfony/var-dumper",
-            "version": "v6.0.14",
+            "version": "v6.0.17",
             "source": {
                 "type": "git",
                 "url": "https://github.com/symfony/var-dumper.git",
-                "reference": "72af925ddd41ca0372d166d004bc38a00c4608cc"
+                "reference": "7d8e7c3c67c77790425ebe33691419dada154e65"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/symfony/var-dumper/zipball/72af925ddd41ca0372d166d004bc38a00c4608cc",
-                "reference": "72af925ddd41ca0372d166d004bc38a00c4608cc",
+                "url": "https://api.github.com/repos/symfony/var-dumper/zipball/7d8e7c3c67c77790425ebe33691419dada154e65",
+                "reference": "7d8e7c3c67c77790425ebe33691419dada154e65",
                 "shasum": ""
             },
             "require": {
@@ -4997,7 +4997,7 @@
                 "dump"
             ],
             "support": {
-                "source": "https://github.com/symfony/var-dumper/tree/v6.0.14"
+                "source": "https://github.com/symfony/var-dumper/tree/v6.0.17"
             },
             "funding": [
                 {
@@ -5013,7 +5013,7 @@
                     "type": "tidelift"
                 }
             ],
-            "time": "2022-10-07T08:02:12+00:00"
+            "time": "2022-12-22T17:53:58+00:00"
         },
         {
             "name": "theseer/tokenizer",
