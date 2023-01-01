@@ -4,39 +4,40 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "68a384cf9c93fd1fc62b5054d081bfd6",
+    "content-hash": "b4a47200a3b9328e591464585f96f2cd",
     "packages": [
         {
             "name": "gacela-project/gacela",
-            "version": "0.32.0",
+            "version": "1.0.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/gacela-project/gacela.git",
-                "reference": "ec7e6595d05b4e5a6ab90614f8e4d24767c2d4cd"
+                "reference": "1f283059d64e5351128b35e3d3c53b2ff261b7f5"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/gacela-project/gacela/zipball/ec7e6595d05b4e5a6ab90614f8e4d24767c2d4cd",
-                "reference": "ec7e6595d05b4e5a6ab90614f8e4d24767c2d4cd",
+                "url": "https://api.github.com/repos/gacela-project/gacela/zipball/1f283059d64e5351128b35e3d3c53b2ff261b7f5",
+                "reference": "1f283059d64e5351128b35e3d3c53b2ff261b7f5",
                 "shasum": ""
             },
             "require": {
-                "php": ">=7.4"
+                "php": "^8.0, <8.3"
             },
             "require-dev": {
                 "friendsofphp/php-cs-fixer": "^3.13",
                 "phpbench/phpbench": "^1.2",
                 "phpmetrics/phpmetrics": "^2.8",
-                "phpstan/phpstan": "^1.8",
+                "phpstan/phpstan": "^1.9",
                 "phpunit/phpunit": "^9.5",
-                "psalm/plugin-phpunit": "^0.17",
+                "psalm/plugin-phpunit": "^0.18",
                 "symfony/console": "^5.4",
                 "symfony/var-dumper": "^5.4",
-                "vimeo/psalm": "^4.29"
+                "vimeo/psalm": "^5.4"
             },
             "suggest": {
                 "gacela-project/gacela-env-config-reader": "Allows to read .env config files",
                 "gacela-project/gacela-yaml-config-reader": "Allows to read yml/yaml config files",
+                "gacela-project/phpstan-extension": "A set of phpstan rules for Gacela",
                 "symfony/console": "Allows to use vendor/bin/gacela script"
             },
             "bin": [
@@ -55,23 +56,25 @@
             "authors": [
                 {
                     "name": "Jose Maria Valera Reales",
-                    "email": "chemaclass@outlook.es"
+                    "email": "chemaclass@outlook.es",
+                    "homepage": "https://chemaclass.com"
                 },
                 {
                     "name": "Jesus Valera Reales",
                     "email": "jesus1902@outlook.com"
                 }
             ],
-            "description": "Gacela Framework",
-            "homepage": "https://gacela-project.com/",
+            "description": "Gacela helps you separate your project into modules",
+            "homepage": "https://gacela-project.com",
             "keywords": [
+                "framework",
                 "kernel",
                 "modular",
                 "php"
             ],
             "support": {
                 "issues": "https://github.com/gacela-project/gacela/issues",
-                "source": "https://github.com/gacela-project/gacela/tree/0.32.0"
+                "source": "https://github.com/gacela-project/gacela/tree/1.0.0"
             },
             "funding": [
                 {
@@ -79,7 +82,7 @@
                     "type": "custom"
                 }
             ],
-            "time": "2022-11-21T09:25:37+00:00"
+            "time": "2023-01-01T09:55:05+00:00"
         },
         {
             "name": "phpunit/php-timer",
