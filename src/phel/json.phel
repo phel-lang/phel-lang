@@ -2,7 +2,7 @@
   (:use \RuntimeException))
 
 (defn valid-key?
-  "Check if v is a valid json key."
+  "Checks if `v` is a valid JSON key or can be converted to a JSON key."
   [v]
   (or (int? v) (float? v) (symbol? v) (keyword? v) (string? v)))
 
