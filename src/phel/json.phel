@@ -1,0 +1,48 @@
+(ns phel\json
+  (:use \Exception))
+
+(defn valid-key? [v]
+  (or (int? v) (float? v) (symbol? v) (keyword? v) (string? v)))
+
+(defn encode-value [x]
+  (cond
+    (php/is_iterable x)
+    (let [arr (php/array)]
+      (foreach [k v x]
+        (when-not (valid-key? k)
+          (throw (php/new Exception "Key can only be an integer, float, symbol, keyword or a string.")))
+        (php/aset arr (encode-value k) (encode-value v)))
+      arr)
+    (symbol? x) (str (php/-> x (getName)))
+    (keyword? x) (str (php/-> x (getName)))
+    (float? x) (str x)
+    true x))
+
+(defn encode [value & [{:flags flags :depth depth}]]
+  (let [flags (or flags 0)
+        depth (or depth 512)]
+    (when (php/is_resource value) (throw (php/new Exception "Value can be any type except a resource.")))
+    (when-not (int? flags) (throw (php/new Exception "Flags must be an integer.")))
+    (when-not (int? depth) (throw (php/new Exception "Depth must be an integer.")))
+    (when-not (> depth 0) (throw (php/new Exception "Depth must be greater than zero.")))
+    (php/json_encode (encode-value value) flags depth)))
+
+(defn decode-value [x]
+  (cond
+    (indexed? x)
+    (for [v :in x] (decode-value v))
+    (php-array? x)
+    (let [hashmap (transient {})]
+      (foreach [k v x]
+        (put hashmap (keyword k) (decode-value v)))
+      (persistent hashmap))
+    true x))
+
+(defn decode [json & [{:flags flags :depth depth}]]
+  (let [flags (or flags 0)
+        depth (or depth 512)]
+    (when-not (string? json) (throw (php/new Exception "Json must be a string.")))
+    (when-not (int? flags) (throw (php/new Exception "Flags must be an integer.")))
+    (when-not (int? depth) (throw (php/new Exception "Depth must be an integer.")))
+    (when-not (> depth 0) (throw (php/new Exception "Depth must be greater than zero.")))
+    (decode-value (php/json_decode json true depth flags))))
