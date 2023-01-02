@@ -20,7 +20,7 @@
   (str (php/-> x (getName))))
 
 (defn encode-value [x]
-  "Convert a phel data structure to a 'json compatible' value."
+  "Convert a Phel data type to a 'json compatible' value."
   (cond
     (php/is_iterable x) (encode-value-iterable x)
     (symbol? x) (encode-value-with-name x)
