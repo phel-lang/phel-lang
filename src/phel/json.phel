@@ -1,7 +1,9 @@
 (ns phel\json
   (:use \RuntimeException))
 
-(defn valid-key? [v]
+(defn valid-key?
+  "Check if v is a valid json key."
+  [v]
   (or (int? v) (float? v) (symbol? v) (keyword? v) (string? v)))
 
 (declare encode-value [x])
@@ -18,6 +20,7 @@
   (str (php/-> x (getName))))
 
 (defn encode-value [x]
+  "Convert a phel data structure to a 'json compatible' value."
   (cond
     (php/is_iterable x) (encode-value-iterable x)
     (symbol? x) (encode-value-with-name x)
@@ -26,6 +29,7 @@
     true x))
 
 (defn encode [value & [{:flags flags :depth depth}]]
+  "Returns the JSON representation of a value."
   (let [flags (or flags 0)
         depth (or depth 512)]
     (when (php/is_resource value) (throw (php/new RuntimeException "Value can be any type except a resource.")))
@@ -35,6 +39,7 @@
     (php/json_encode (encode-value value) flags depth)))
 
 (defn decode-value [x]
+  "Convert a json data structure to a 'phel compatible' value."
   (cond
     (indexed? x)
     (for [v :in x] (decode-value v))
@@ -46,6 +51,7 @@
     true x))
 
 (defn decode [json & [{:flags flags :depth depth}]]
+  "Decodes a JSON string."
   (let [flags (or flags 0)
         depth (or depth 512)]
     (when-not (string? json) (throw (php/new RuntimeException "Json must be a string.")))
