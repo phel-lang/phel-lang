@@ -2,31 +2,31 @@
   (:require phel\json)
   (:require phel\test :refer [deftest is]))
 
-(deftest test-nil
+(deftest test-json-encode-nil
   (is (= "null" (json/encode nil))))
 
-(deftest test-true
+(deftest test-json-encode-true
   (is (= "true" (json/encode true))))
 
-(deftest test-false
+(deftest test-json-encode-false
   (is (= "false" (json/encode false))))
 
-(deftest test-integer
+(deftest test-json-encode-integer
   (is (= "1" (json/encode 1))))
 
-(deftest test-float
+(deftest test-json-encode-float
   (is (= "\"3.14\"" (json/encode 3.14))))
 
-(deftest test-string
+(deftest test-json-encode-string
   (is (= "\"string\"" (json/encode "string"))))
 
-(deftest test-keyword
+(deftest test-json-encode-keyword
   (is (= "\"keyword\"" (json/encode :keyword))))
 
-(deftest test-symbol
+(deftest test-json-encode-symbol
   (is (= "\"symbol\"" (json/encode 'symbol))))
 
-(deftest test-list
+(deftest test-json-encode-list
   (is (=
        "[1,2,3]"
        (json/encode (list 1 2 3))))
@@ -52,66 +52,56 @@
                                "planet" "Earth"
                                "list" (list "multi" "ple")})))))
 
-(deftest test-vector
+(deftest test-json-encode-vector
   (is (= "[1,2,3]" (json/encode [1 2 3])))
   (is (= "[1,2,[1,2]]" (json/encode [1 2 [1 2]]))))
 
-(deftest test-set
+(deftest test-json-encode-set
   (is (= "[1,2,3]" (json/encode (set 1 2 3))))
   (is (= "[1,2,[1,2]]" (json/encode (set 1 2 (set 1 2))))))
 
 (defstruct book [title pages year])
 
-(deftest test-hash-map
-  (is
-   (=
-    "{\"first_name\":\"Mario\",\"last_name\":\"Basic\"}"
-    (json/encode {"first_name" "Mario"
-                  "last_name" "Basic"})))
-  (is
-   (=
-    "{\"first_name\":\"Mario\",\"last_name\":\"Basic\",\"set\":[1,2]}"
-    (json/encode {"first_name" "Mario"
-                  "last_name" "Basic"
-                  "set" (set 1 2)})))
-  (is
-   (=
-    "{\"first_name\":\"Mario\",\"last_name\":\"Basic\",\"set\":[1,2,[3,4]]}"
-    (json/encode {"first_name" "Mario"
-                  "last_name" "Basic"
-                  "set" (set 1 2 (set 3 4))})))
-  (is
-   (=
-    "{\"first_name\":\"Mario\",\"last_name\":\"Basic\",\"set\":[1,2,[\"three\",4]]}"
-    (json/encode {"first_name" "Mario"
-                  "last_name" "Basic"
-                  "set" (set 1 2 (set 'three 4))})))
-  (is
-   (=
-    "{\"first_name\":[\"Super\",\"mario\"],\"last_name\":\"Basic\"}"
-    (json/encode {"first_name" ["Super"
-                                :mario]
-                  "last_name" "Basic"})))
-  (is
-   (=
-    "{\"first_name\":[\"Super\",\"mario\"],\"last_name\":\"Basic\",\"3.14\":\"Value of PI.\"}"
-    (json/encode {"first_name" ["Super"
-                                :mario]
-                  "last_name" "Basic"
-                  3.14 "Value of PI."})))
+(deftest test-json-encode-hash-map
+  (is (=
+       "{\"key1\":\"value1\",\"key2\":\"value2\"}"
+       (json/encode {"key1" "value1"
+                     "key2" "value2"})))
+  (is (=
+       "{\"key1\":\"value1\",\"key2\":\"value2\",\"set\":[1,2]}"
+       (json/encode {"key1" "value1"
+                     "key2" "value2"
+                     "set" (set 1 2)})))
+  (is (=
+       "{\"key1\":\"value1\",\"key2\":\"value2\",\"set\":[1,2,[3,4]]}"
+       (json/encode {"key1" "value1"
+                     "key2" "value2"
+                     "set" (set 1 2 (set 3 4))})))
+  (is (=
+       "{\"key1\":\"value1\",\"key2\":\"value2\",\"set\":[1,2,[\"three\",4]]}"
+       (json/encode {"key1" "value1"
+                     "key2" "value2"
+                     "set" (set 1 2 (set 'three 4))})))
+  (is (=
+       "{\"key1\":[\"value0\",\"value1\"],\"key2\":\"value2\"}"
+       (json/encode {"key1" ["value0" :value1]
+                     "key2" "value2"})))
+  (is (=
+       "{\"key1\":[\"value0\",\"value1\"],\"key2\":\"value2\",\"3.14\":\"Value of PI.\"}"
+       (json/encode {"key1" ["value0" :value1]
+                     "key2" "value2"
+                     3.14 "Value of PI."})))
   (let [dictionary (book "Dictionary" 100 2020)]
-    (is
-     (=
-      "{\"first_name\":\"Mario\",\"last_name\":\"Basic\",\"authored\":{\"title\":\"Dictionary\",\"pages\":100,\"year\":2020}}"
-      (json/encode {"first_name" "Mario"
-                    "last_name" "Basic"
-                    :authored dictionary})))))
+    (is (=
+         "{\"key1\":\"value1\",\"key2\":\"value2\",\"authored\":{\"title\":\"Dictionary\",\"pages\":100,\"year\":2020}}"
+         (json/encode {"key1" "value1"
+                       "key2" "value2"
+                       :authored dictionary})))))
 
 (defstruct person [first_name last_name age])
 
-(deftest test-struct
-  (let [me (person "Mario" "Basic" 30)]
-    (is
-     (=
-      "{\"first_name\":\"Mario\",\"last_name\":\"Basic\",\"age\":30}"
-      (json/encode me)))))
+(deftest test-json-encode-struct
+  (let [p (person "FirstName" "LastName" 30)]
+    (is (=
+         "{\"first_name\":\"FirstName\",\"last_name\":\"LastName\",\"age\":30}"
+         (json/encode p)))))

@@ -6,25 +6,22 @@
 
 (def sample-data (php/file_get_contents (str __DIR__ "/sample-flags.json")))
 
-(deftest invalid-flag
-  (is
-   (thrown-with-msg?
-    \Exception "Flags must be an integer."
-    (json/decode sample-data {:flags "flags"}))
-   "It tests if flags parameter is an integer."))
+(deftest test-json-invalid-flag
+  (is (thrown-with-msg?
+       \RuntimeException "Flags must be an integer."
+       (json/decode sample-data {:flags "flags"}))
+      "It tests if flags parameter is an integer."))
 
-(deftest flag
-  (is
-   (=
-    {:employee {:name "sonoo 0xC0" :salary 56000 :married true}}
-    (json/decode sample-data {:flags JSON_INVALID_UTF8_IGNORE}))
-   "It tests flags parameter with one flag."))
+(deftest test-json-flag
+  (is (=
+       {:employee {:name "sonoo 0xC0" :salary 56000 :married true}}
+       (json/decode sample-data {:flags JSON_INVALID_UTF8_IGNORE}))
+      "It tests flags parameter with one flag."))
 
-(deftest flags
-  (is
-   (=
-    {:employee {:name "sonoo 0xC0" :salary 56000 :married true}}
-    (json/decode sample-data {:flags (bit-or
-                                      JSON_INVALID_UTF8_IGNORE
-                                      JSON_INVALID_UTF8_SUBSTITUTE)}))
-   "It tests flags parameter with two flags."))
+(deftest test-json-flags
+  (is (=
+       {:employee {:name "sonoo 0xC0" :salary 56000 :married true}}
+       (json/decode sample-data {:flags (bit-or
+                                         JSON_INVALID_UTF8_IGNORE
+                                         JSON_INVALID_UTF8_SUBSTITUTE)}))
+      "It tests flags parameter with two flags."))

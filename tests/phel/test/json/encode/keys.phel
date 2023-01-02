@@ -3,7 +3,7 @@
   (:require phel\test :refer [deftest is])
   (:use \Exception))
 
-(deftest valid-keys
+(deftest test-json-valid-keys
   (is
    (= "{\"string\":\"String\"}" (json/encode {"string" "String"}))
    "It tests if string is a valid key.")
@@ -20,7 +20,7 @@
    (= "{\"symbol\":\"Symbol\"}" (json/encode {'symbol "Symbol"}))
    "It tests if symbol is a valid key."))
 
-(deftest invalid-keys
+(deftest test-json-invalid-keys
   (is
    (thrown-with-msg?
     Exception "Key can only be an integer, float, symbol, keyword or a string."
