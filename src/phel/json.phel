@@ -4,17 +4,24 @@
 (defn valid-key? [v]
   (or (int? v) (float? v) (symbol? v) (keyword? v) (string? v)))
 
+(declare encode-value [x])
+
+(defn- encode-value-iterable [x]
+  (let [arr (php/array)]
+    (foreach [k v x]
+      (when-not (valid-key? k)
+        (throw (php/new RuntimeException "Key can only be an integer, float, symbol, keyword or a string.")))
+      (php/aset arr (encode-value k) (encode-value v)))
+    arr))
+
+(defn- encode-value-with-name [x]
+  (str (php/-> x (getName))))
+
 (defn encode-value [x]
   (cond
-    (php/is_iterable x)
-    (let [arr (php/array)]
-      (foreach [k v x]
-        (when-not (valid-key? k)
-          (throw (php/new RuntimeException "Key can only be an integer, float, symbol, keyword or a string.")))
-        (php/aset arr (encode-value k) (encode-value v)))
-      arr)
-    (symbol? x) (str (php/-> x (getName)))
-    (keyword? x) (str (php/-> x (getName)))
+    (php/is_iterable x) (encode-value-iterable x)
+    (symbol? x) (encode-value-with-name x)
+    (keyword? x) (encode-value-with-name x)
     (float? x) (str x)
     true x))
 
