@@ -2,7 +2,7 @@
   (:require phel\json)
   (:require phel\test :refer [deftest is]))
 
-(deftest test-json-sample-value
+(deftest test-json-decode-sample-value
   (let [sample-data (php/file_get_contents (str __DIR__ "/sample-value.json"))]
     (is (=
          {:firstName "Rack"
@@ -17,7 +17,7 @@
                           :number "7383627627"}]}
          (json/decode sample-data)))))
 
-(deftest test-json-sample-value-2
+(deftest test-json-decode-sample-value-2
   (let [sample-data (php/file_get_contents (str __DIR__ "/sample-value-2.json"))]
     (is (=
          {:address "Street Address 1"

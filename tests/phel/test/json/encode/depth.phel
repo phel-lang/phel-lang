@@ -2,7 +2,7 @@
   (:require phel\json)
   (:require phel\test :refer [deftest is]))
 
-(deftest test-json-depth
+(deftest test-json-encode-encode-depth
   (let [sample-data [1 [2] [[3]]]]
     (is (=
          "[1,[2],[[3]]]"
@@ -12,7 +12,7 @@
          (json/encode sample-data {:depth 2}))
         "It returns false if data depth is higher than entered depth.")))
 
-(deftest test-json-invalid-depth
+(deftest test-json-encode-invalid-depth
   (is (thrown-with-msg?
        \Exception "Depth must be an integer."
        (json/encode
