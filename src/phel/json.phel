@@ -16,15 +16,12 @@
       (php/aset arr (encode-value k) (encode-value v)))
     arr))
 
-(defn- encode-value-with-name [x]
-  (str (php/-> x (getName))))
-
 (defn encode-value [x]
   "Convert a Phel data type to a 'json compatible' value."
   (cond
     (php/is_iterable x) (encode-value-iterable x)
-    (symbol? x) (encode-value-with-name x)
-    (keyword? x) (encode-value-with-name x)
+    (symbol? x) (name x)
+    (keyword? x) (name x)
     (float? x) (str x)
     true x))
 
