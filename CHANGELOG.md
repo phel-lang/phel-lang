@@ -7,6 +7,7 @@ All notable changes to this project will be documented in this file.
 * Allow strings on `empty?` (#492)
 * Improved error message when using strings on `count` (#492)
 * Added `contains-value?` function (#520)
+* Added `phel/json` library (#489)
 
 ## 0.7.0 (2022-05-05)
 
