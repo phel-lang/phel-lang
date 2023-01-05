@@ -2,31 +2,26 @@
   (:require phel\json)
   (:require phel\test :refer [deftest is]))
 
-(deftest depth
+(deftest test-json-encode-encode-depth
   (let [sample-data [1 [2] [[3]]]]
-    (is
-     (=
-      "[1,[2],[[3]]]"
-      (json/encode sample-data {:depth 3}))
-     "It returns a string containing the JSON representation of the supplied value if depth is equal to or higher than entered depth.")
-    (is
-     (=
-      false
-      (json/encode sample-data {:depth 2}))
-     "It returns false if data depth is higher than entered depth.")))
+    (is (=
+         "[1,[2],[[3]]]"
+         (json/encode sample-data {:depth 3}))
+        "It returns a string containing the JSON representation of the supplied value if depth is equal to or higher than entered depth.")
+    (is (false?
+         (json/encode sample-data {:depth 2}))
+        "It returns false if data depth is higher than entered depth.")))
 
-(deftest invalid-depth
-  (is
-   (thrown-with-msg?
-    \Exception "Depth must be an integer."
-    (json/encode
-     {:and "a & b"}
-     {:depth "depth"}))
-   "It tests if depth parameter is an integer.")
-  (is
-   (thrown-with-msg?
-    \Exception "Depth must be greater than zero."
-    (json/encode
-     {:and "a & b"}
-     {:depth 0}))
-   "It tests if depth parameter is greater than zero."))
+(deftest test-json-encode-invalid-depth
+  (is (thrown-with-msg?
+       \Exception "Depth must be an integer."
+       (json/encode
+        {:and "a & b"}
+        {:depth "depth"}))
+      "It tests if depth parameter is an integer.")
+  (is  (thrown-with-msg?
+        \Exception "Depth must be greater than zero."
+        (json/encode
+         {:and "a & b"}
+         {:depth 0}))
+       "It tests if depth parameter is greater than zero."))
