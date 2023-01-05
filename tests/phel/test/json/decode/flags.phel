@@ -8,7 +8,7 @@
 
 (deftest test-json-decode-invalid-flag
   (is (thrown-with-msg?
-       \RuntimeException "Flags must be an integer."
+       \JsonException "Flags must be an integer."
        (json/decode sample-data {:flags "flags"}))
       "It tests if flags parameter is an integer."))
 

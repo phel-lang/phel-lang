@@ -1,5 +1,5 @@
 (ns phel\json
-  (:use \RuntimeException))
+  (:use \JsonException))
 
 (defn valid-key?
   "Checks if `v` is a valid JSON key or can be converted to a JSON key."
@@ -12,7 +12,7 @@
   (let [arr (php/array)]
     (foreach [k v x]
       (when-not (valid-key? k)
-        (throw (php/new RuntimeException "Key can only be an integer, float, symbol, keyword or a string.")))
+        (throw (php/new JsonException "Key can only be an integer, float, symbol, keyword or a string.")))
       (php/aset arr (encode-value k) (encode-value v)))
     arr))
 
@@ -29,10 +29,10 @@
   "Returns the JSON representation of a value."
   (let [flags (or flags 0)
         depth (or depth 512)]
-    (when (php/is_resource value) (throw (php/new RuntimeException "Value can be any type except a resource.")))
-    (when-not (int? flags) (throw (php/new RuntimeException "Flags must be an integer.")))
-    (when-not (int? depth) (throw (php/new RuntimeException "Depth must be an integer.")))
-    (when-not (> depth 0) (throw (php/new RuntimeException "Depth must be greater than zero.")))
+    (when (php/is_resource value) (throw (php/new JsonException "Value can be any type except a resource.")))
+    (when-not (int? flags) (throw (php/new JsonException "Flags must be an integer.")))
+    (when-not (int? depth) (throw (php/new JsonException "Depth must be an integer.")))
+    (when-not (> depth 0) (throw (php/new JsonException "Depth must be greater than zero.")))
     (php/json_encode (encode-value value) flags depth)))
 
 (defn decode-value [x]
@@ -51,8 +51,8 @@
   "Decodes a JSON string."
   (let [flags (or flags 0)
         depth (or depth 512)]
-    (when-not (string? json) (throw (php/new RuntimeException "Json must be a string.")))
-    (when-not (int? flags) (throw (php/new RuntimeException "Flags must be an integer.")))
-    (when-not (int? depth) (throw (php/new RuntimeException "Depth must be an integer.")))
-    (when-not (> depth 0) (throw (php/new RuntimeException "Depth must be greater than zero.")))
+    (when-not (string? json) (throw (php/new JsonException "Json must be a string.")))
+    (when-not (int? flags) (throw (php/new JsonException "Flags must be an integer.")))
+    (when-not (int? depth) (throw (php/new JsonException "Depth must be an integer.")))
+    (when-not (> depth 0) (throw (php/new JsonException "Depth must be greater than zero.")))
     (decode-value (php/json_decode json true depth flags))))
