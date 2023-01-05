@@ -38,13 +38,11 @@
 (defn decode-value [x]
   "Convert a json data structure to a 'phel compatible' value."
   (cond
-    (indexed? x)
-    (for [v :in x] (decode-value v))
-    (php-array? x)
-    (let [hashmap (transient {})]
-      (foreach [k v x]
-        (put hashmap (keyword k) (decode-value v)))
-      (persistent hashmap))
+    (indexed? x) (for [v :in x] (decode-value v))
+    (php-array? x) (let [hashmap (transient {})]
+                     (foreach [k v x]
+                       (put hashmap (keyword k) (decode-value v)))
+                     (persistent hashmap))
     true x))
 
 (defn decode [json & [{:flags flags :depth depth}]]
