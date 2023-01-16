@@ -57,6 +57,10 @@
     (is (true? (my-struct? x)) "struct: correct type")
     (is (false? (my-struct? :a)) "struct: incorrect type")))
 
+(deftest test-struct-with-types
+  (let [x (my-struct true 1 "str" {:a 1} [:b :c])]
+    (is (= x (my-struct true 1 "str" {:a 1} [:b :c])) "structs with same data")))
+
 (deftest test-__FILE__
   (is (true? (>= (php/strpos __FILE__ "tests/phel/test/core.phel") 0)) "__FILE__"))
 
