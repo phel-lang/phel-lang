@@ -2,7 +2,7 @@
 
 All notable changes to this project will be documented in this file.
 
-## 0.8.0 (2023-01-15)
+## 0.8.0 (2023-01-16)
 
 * Allow strings on `empty?` (#492)
 * Improved error message when using strings on `count` (#492)
