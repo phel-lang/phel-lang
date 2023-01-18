@@ -2,13 +2,13 @@
 
 declare(strict_types=1);
 
-namespace Phel\Internal;
+namespace Phel\Api;
 
 use Gacela\Framework\AbstractDependencyProvider;
 use Gacela\Framework\Container\Container;
 use Phel\Run\RunFacade;
 
-final class InternalDependencyProvider extends AbstractDependencyProvider
+final class ApiDependencyProvider extends AbstractDependencyProvider
 {
     public const FACADE_RUN = 'FACADE_RUN';
 

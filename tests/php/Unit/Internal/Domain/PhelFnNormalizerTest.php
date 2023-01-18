@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace PhelTest\Unit\Internal\Domain;
 
-use Phel\Internal\Domain\PhelFnNormalizer;
-use Phel\Internal\Infrastructure\PhelFnLoaderInterface;
-use Phel\Internal\Transfer\NormalizedPhelFunction;
+use Phel\Api\Domain\PhelFnNormalizer;
+use Phel\Api\Infrastructure\PhelFnLoaderInterface;
+use Phel\Api\Transfer\NormalizedPhelFunction;
 use Phel\Lang\Collections\Map\PersistentMapInterface;
 use PHPUnit\Framework\TestCase;
 

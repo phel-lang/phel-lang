@@ -2,15 +2,15 @@
 
 declare(strict_types=1);
 
-namespace Phel\Internal;
+namespace Phel\Api;
 
 use Gacela\Framework\AbstractFacade;
-use Phel\Internal\Transfer\NormalizedPhelFunction;
+use Phel\Api\Transfer\NormalizedPhelFunction;
 
 /**
- * @method InternalFactory getFactory()
+ * @method ApiFactory getFactory()
  */
-final class InternalFacade extends AbstractFacade implements InternalFacadeInterface
+final class ApiFacade extends AbstractFacade implements ApiFacadeInterface
 {
     /**
      * @return array<string,list<NormalizedPhelFunction>>

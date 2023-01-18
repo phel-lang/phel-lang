@@ -2,15 +2,15 @@
 
 declare(strict_types=1);
 
-namespace Phel\Internal;
+namespace Phel\Api;
 
 use Gacela\Framework\AbstractFactory;
-use Phel\Internal\Domain\PhelFnNormalizer;
-use Phel\Internal\Domain\PhelFnNormalizerInterface;
-use Phel\Internal\Infrastructure\PhelFnLoader;
-use Phel\Internal\Infrastructure\PhelFnLoaderInterface;
+use Phel\Api\Domain\PhelFnNormalizer;
+use Phel\Api\Domain\PhelFnNormalizerInterface;
+use Phel\Api\Infrastructure\PhelFnLoader;
+use Phel\Api\Infrastructure\PhelFnLoaderInterface;
 
-final class InternalFactory extends AbstractFactory
+final class ApiFactory extends AbstractFactory
 {
     public function createPhelFnNormalizer(): PhelFnNormalizerInterface
     {
@@ -22,7 +22,7 @@ final class InternalFactory extends AbstractFactory
     private function createPhelFnLoader(): PhelFnLoaderInterface
     {
         return new PhelFnLoader(
-            $this->getProvidedDependency(InternalDependencyProvider::FACADE_RUN),
+            $this->getProvidedDependency(ApiDependencyProvider::FACADE_RUN),
         );
     }
 }

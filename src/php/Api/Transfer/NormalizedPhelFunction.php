@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Phel\Internal\Transfer;
+namespace Phel\Api\Transfer;
 
 final class NormalizedPhelFunction
 {

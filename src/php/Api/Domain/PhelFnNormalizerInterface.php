@@ -2,11 +2,11 @@
 
 declare(strict_types=1);
 
-namespace Phel\Internal;
+namespace Phel\Api\Domain;
 
-use Phel\Internal\Transfer\NormalizedPhelFunction;
+use Phel\Api\Transfer\NormalizedPhelFunction;
 
-interface InternalFacadeInterface
+interface PhelFnNormalizerInterface
 {
     /**
      * @return array<string,list<NormalizedPhelFunction>>

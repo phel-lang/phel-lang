@@ -2,16 +2,14 @@
 
 declare(strict_types=1);
 
-namespace PhelTest\Integration\Internal;
+namespace PhelTest\Integration\Api;
 
 use Gacela\Framework\Bootstrap\GacelaConfig;
 use Gacela\Framework\Gacela;
-use Phel\Internal\InternalFacade;
+use Phel\Api\ApiFacade;
 use PHPUnit\Framework\TestCase;
 
-use function Phel\Internal\Infrastructure\loadAllPhelFunctions;
-
-final class InternalFacadeTest extends TestCase
+final class ApiFacadeTest extends TestCase
 {
     public static function setUpBeforeClass(): void
     {
@@ -24,7 +22,7 @@ final class InternalFacadeTest extends TestCase
         // because the IntegrationTest loads already the core and all internal code, which
         // it crashes when it tries to load all phel funcs again. See: `PhelFnLoader::loadAllPhelFunctions()`
         $this->markTestSkipped('Useful to debug the facade, but useless to keep it in the CI');
-        $facade = new InternalFacade();
+        $facade = new ApiFacade();
         $groupedFns = $facade->getNormalizedGroupedFunctions();
 
         self::assertCount(212, $groupedFns);
