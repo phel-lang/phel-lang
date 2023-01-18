@@ -16,8 +16,9 @@
       (php/aset arr (encode-value k) (encode-value v)))
     arr))
 
-(defn encode-value [x]
+(defn encode-value
   "Convert a Phel data type to a 'json compatible' value."
+  [x]
   (cond
     (php/is_iterable x) (encode-value-iterable x)
     (symbol? x) (name x)
@@ -25,8 +26,9 @@
     (float? x) (str x)
     true x))
 
-(defn encode [value & [{:flags flags :depth depth}]]
+(defn encode
   "Returns the JSON representation of a value."
+  [value & [{:flags flags :depth depth}]]
   (let [flags (or flags 0)
         depth (or depth 512)]
     (when (php/is_resource value) (throw (php/new JsonException "Value can be any type except a resource.")))
@@ -35,8 +37,9 @@
     (when-not (> depth 0) (throw (php/new JsonException "Depth must be greater than zero.")))
     (php/json_encode (encode-value value) flags depth)))
 
-(defn decode-value [x]
+(defn decode-value
   "Convert a json data structure to a 'phel compatible' value."
+  [x]
   (cond
     (indexed? x) (for [v :in x] (decode-value v))
     (php-array? x) (let [hashmap (transient {})]
@@ -45,8 +48,9 @@
                      (persistent hashmap))
     true x))
 
-(defn decode [json & [{:flags flags :depth depth}]]
+(defn decode
   "Decodes a JSON string."
+  [json & [{:flags flags :depth depth}]]
   (let [flags (or flags 0)
         depth (or depth 512)]
     (when-not (string? json) (throw (php/new JsonException "Json must be a string.")))
