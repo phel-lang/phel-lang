@@ -1,0 +1,6 @@
+# Simply require all namespaces that should be documented
+(ns phel-internal\doc
+  (:require phel\http)
+  (:require phel\html)
+  (:require phel\test)
+  (:require phel\json))
