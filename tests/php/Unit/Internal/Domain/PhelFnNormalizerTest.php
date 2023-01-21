@@ -183,9 +183,10 @@ final class PhelFnNormalizerTest extends TestCase
     {
         $symbol = $this->createStub(PersistentMapInterface::class);
         $symbol->method('offsetExists')->willReturn(true);
-        // false -> relates to `isPrivate`
-        // null  -> relates to `doc`
-        $symbol->method('offsetGet')->willReturnOnConsecutiveCalls(false, null);
+        $symbol->method('offsetGet')->willReturnOnConsecutiveCalls(
+            false, // relates to 'isPrivate'
+            null, // relates to 'doc'
+        );
 
         $phelFnLoader = $this->createMock(PhelFnLoaderInterface::class);
         $phelFnLoader->method('getNormalizedPhelFunctions')->willReturn([
@@ -213,11 +214,9 @@ final class PhelFnNormalizerTest extends TestCase
     {
         $symbol = $this->createStub(PersistentMapInterface::class);
         $symbol->method('offsetExists')->willReturn(true);
-        // false -> relates to `isPrivate`
-        // '...' -> relates to `doc`
         $symbol->method('offsetGet')->willReturnOnConsecutiveCalls(
-            false,
-            'Constant for Not a Number (NAN) values.',
+            false, // relates to 'isPrivate'
+            'Constant for Not a Number (NAN) values.', // relates to 'doc'
         );
 
         $phelFnLoader = $this->createMock(PhelFnLoaderInterface::class);
@@ -246,11 +245,9 @@ final class PhelFnNormalizerTest extends TestCase
     {
         $symbol = $this->createStub(PersistentMapInterface::class);
         $symbol->method('offsetExists')->willReturn(true);
-        // false -> relates to `isPrivate`
-        // '...' -> relates to `doc`
         $symbol->method('offsetGet')->willReturnOnConsecutiveCalls(
-            false,
-            "```phel\n(array & xs)\n```\nCreates a new Array.",
+            false, // relates to 'isPrivate'
+            "```phel\n(array & xs)\n```\nCreates a new Array.", // relates to 'doc'
         );
 
         $phelFnLoader = $this->createMock(PhelFnLoaderInterface::class);
@@ -282,8 +279,8 @@ final class PhelFnNormalizerTest extends TestCase
         // false -> relates to `isPrivate`
         // '...' -> relates to `doc`
         $symbol->method('offsetGet')->willReturnOnConsecutiveCalls(
-            false,
-            "Returns a formatted string. See PHP's [sprintf](http://...) for more information.",
+            false, // relates to 'isPrivate'
+            "Returns a formatted string. See PHP's [sprintf](http://...) for more information.", // relates to 'doc'
         );
 
         $phelFnLoader = $this->createMock(PhelFnLoaderInterface::class);

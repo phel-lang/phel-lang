@@ -7,14 +7,13 @@ namespace Phel\Api\Infrastructure;
 use Phel\Lang\Collections\Map\PersistentMapInterface;
 use Phel\Lang\Registry;
 use Phel\Lang\TypeFactory;
-use Phel\Run\RunFacade;
 use Phel\Run\RunFacadeInterface;
 
 use function dirname;
 
 final class PhelFnLoader implements PhelFnLoaderInterface
 {
-    /** Prevent executing the RunCommand multiple times */
+    /** Prevent executing the internal doc multiple times. */
     private static bool $phelInternalDocLoaded = false;
 
     public function __construct(
@@ -53,7 +52,7 @@ final class PhelFnLoader implements PhelFnLoaderInterface
         }
 
         $phelFile = __DIR__ . '/phel/doc.phel';
-        $this->runFacade = new RunFacade();
+
         $namespace = $this->runFacade
             ->getNamespaceFromFile($phelFile)
             ->getNamespace();

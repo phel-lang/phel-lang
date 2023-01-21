@@ -13,8 +13,9 @@ final class NormalizedPhelFunction
         private string $description,
     ) {
     }
+
     /**
-     * @param array{fnName:string, doc:string, fnSignature:string, desc:string} $array
+     * @param array{fnName?:string, doc?:string, fnSignature?:string, desc?:string} $array
      */
     public static function fromArray(array $array): self
     {
