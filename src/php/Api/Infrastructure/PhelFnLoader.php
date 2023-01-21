@@ -4,8 +4,10 @@ declare(strict_types=1);
 
 namespace Phel\Api\Infrastructure;
 
+use Phel\Compiler\Infrastructure\GlobalEnvironmentSingleton;
 use Phel\Lang\Collections\Map\PersistentMapInterface;
 use Phel\Lang\Registry;
+use Phel\Lang\Symbol;
 use Phel\Lang\TypeFactory;
 use Phel\Run\RunFacadeInterface;
 
@@ -13,9 +15,6 @@ use function dirname;
 
 final class PhelFnLoader implements PhelFnLoaderInterface
 {
-    /** Prevent executing the internal doc multiple times. */
-    private static bool $phelInternalDocLoaded = false;
-
     public function __construct(
         private RunFacadeInterface $runFacade,
     ) {
@@ -47,15 +46,11 @@ final class PhelFnLoader implements PhelFnLoaderInterface
         return $normalizedData;
     }
 
-    /**
-     * TODO: instead of using a bool `$phelInternalDocLoaded`, we can optimize this by saving
-     * which ns where loaded, ignore them and trigger the ones that were not yet generated.
-     */
     private function loadAllPhelFunctions(array $namespaces): void
     {
-        if (self::$phelInternalDocLoaded) {
-            return;
-        }
+        Registry::getInstance()->clear();
+        Symbol::resetGen();
+        GlobalEnvironmentSingleton::initializeNew();
 
         $template = <<<EOF
 # Simply require all namespaces that should be documented
@@ -90,7 +85,6 @@ EOF;
         }
 
         unlink($phelFile);
-        self::$phelInternalDocLoaded = true;
     }
 
     /**
