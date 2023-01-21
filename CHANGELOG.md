@@ -4,7 +4,7 @@ All notable changes to this project will be documented in this file.
 
 ## Unreleased
 
-* Added `ApiFacade` which exposes 
+* New Api module which exposes (via the `ApiFacade`) the internal functions of phel for PHP (#551)
 
 ## 0.8.0 (2023-01-16)
 
