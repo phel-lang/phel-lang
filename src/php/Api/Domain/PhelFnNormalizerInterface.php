@@ -4,14 +4,14 @@ declare(strict_types=1);
 
 namespace Phel\Api\Domain;
 
-use Phel\Api\Transfer\NormalizedPhelFunction;
+use Phel\Api\Transfer\PhelFunction;
 
 interface PhelFnNormalizerInterface
 {
     /**
      * @param list<string> $namespaces
      *
-     * @return array<string,list<NormalizedPhelFunction>>
+     * @return array<string,list<PhelFunction>>
      */
-    public function getNormalizedGroupedFunctions(array $namespaces = []): array;
+    public function getGroupedFunctions(array $namespaces = []): array;
 }

@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Phel\Api\Domain;
 
 use Phel\Api\Infrastructure\PhelFnLoaderInterface;
-use Phel\Api\Transfer\NormalizedPhelFunction;
+use Phel\Api\Transfer\PhelFunction;
 use Phel\Lang\Keyword;
 
 final class PhelFnNormalizer implements PhelFnNormalizerInterface
@@ -18,9 +18,9 @@ final class PhelFnNormalizer implements PhelFnNormalizerInterface
     /**
      * @param list<string> $namespaces
      *
-     * @return array<string,list<NormalizedPhelFunction>>
+     * @return array<string,list<PhelFunction>>
      */
-    public function getNormalizedGroupedFunctions(array $namespaces = []): array
+    public function getGroupedFunctions(array $namespaces = []): array
     {
         $normalizedData = $this->phelFnLoader->getNormalizedPhelFunctions($namespaces);
 
@@ -35,7 +35,7 @@ final class PhelFnNormalizer implements PhelFnNormalizerInterface
             $pattern = '#(```phel\n(?<fnSignature>.*)\n```\n)?(?<desc>.*)#s';
             preg_match($pattern, $doc, $matches);
 
-            $result[$this->groupKey($fnName)][] = new NormalizedPhelFunction(
+            $result[$this->groupKey($fnName)][] = new PhelFunction(
                 $fnName,
                 $doc,
                 $matches['fnSignature'] ?? '',
@@ -63,7 +63,7 @@ final class PhelFnNormalizer implements PhelFnNormalizerInterface
 
     private function sortingPhelFunctionsCallback(): callable
     {
-        return static function (NormalizedPhelFunction $a, NormalizedPhelFunction $b): int {
+        return static function (PhelFunction $a, PhelFunction $b): int {
             return $a->fnName() <=> $b->fnName();
         };
     }
