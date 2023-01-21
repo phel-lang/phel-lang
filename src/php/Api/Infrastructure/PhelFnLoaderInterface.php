@@ -13,5 +13,5 @@ interface PhelFnLoaderInterface
      *
      * @return array<string,PersistentMapInterface>
      */
-    public function getNormalizedPhelFunctions(array $namespaces): array;
+    public function getNormalizedPhelFunctions(array $namespaces = []): array;
 }

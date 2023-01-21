@@ -13,5 +13,5 @@ interface PhelFnNormalizerInterface
      *
      * @return array<string,list<NormalizedPhelFunction>>
      */
-    public function getNormalizedGroupedFunctions(array $namespaces): array;
+    public function getNormalizedGroupedFunctions(array $namespaces = []): array;
 }
