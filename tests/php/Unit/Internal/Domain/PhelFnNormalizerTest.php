@@ -276,11 +276,9 @@ final class PhelFnNormalizerTest extends TestCase
     {
         $symbol = $this->createStub(PersistentMapInterface::class);
         $symbol->method('offsetExists')->willReturn(true);
-        // false -> relates to `isPrivate`
-        // '...' -> relates to `doc`
         $symbol->method('offsetGet')->willReturnOnConsecutiveCalls(
             false, // relates to 'isPrivate'
-            "Returns a formatted string. See PHP's [sprintf](http://...) for more information.", // relates to 'doc'
+            "Returns a formatted string. See PHP's [sprintf](https://example.com) for more information.", // relates to 'doc'
         );
 
         $phelFnLoader = $this->createMock(PhelFnLoaderInterface::class);
@@ -295,9 +293,9 @@ final class PhelFnNormalizerTest extends TestCase
             'format' => [
                 NormalizedPhelFunction::fromArray([
                     'fnName' => 'format',
-                    'doc' => "Returns a formatted string. See PHP's [sprintf](http://...) for more information.",
+                    'doc' => "Returns a formatted string. See PHP's [sprintf](https://example.com) for more information.",
                     'fnSignature' => '',
-                    'desc' => "Returns a formatted string. See PHP's <i>sprintf</i> for more information.",
+                    'desc' => "Returns a formatted string. See PHP's <a href=\"https://example.com\">sprintf</a> for more information.",
                 ]),
             ],
         ];

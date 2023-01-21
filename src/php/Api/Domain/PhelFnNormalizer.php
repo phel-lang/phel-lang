@@ -60,15 +60,12 @@ final class PhelFnNormalizer implements PhelFnNormalizerInterface
     }
 
     /**
-     * The $desc is in Markdown format, the regex transforms links `[printf](https://...)` into `<i>printf</i>`.
+     * The $desc is in Markdown format, the regex transforms links `[printf](https://...)`
+     * into `<a href="https://...">printf</a>`.
      */
     private function formatDescription(string $desc): string
     {
-        return preg_replace(
-            '#\[([^\]]+)\]\(([^\)]+)\)#',
-            '<i>\1</i>',
-            $desc,
-        );
+        return preg_replace('/\[(.*?)\]\((.*?)\)/', '<a href="$2">$1</a>', $desc);
     }
 
     private function sortingPhelFunctionsCallback(): callable
