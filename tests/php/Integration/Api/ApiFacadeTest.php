@@ -7,11 +7,19 @@ namespace PhelTest\Integration\Api;
 use Gacela\Framework\Bootstrap\GacelaConfig;
 use Gacela\Framework\Gacela;
 use Phel\Api\ApiFacade;
+use Phel\Compiler\Infrastructure\GlobalEnvironmentSingleton;
+use Phel\Lang\Symbol;
 use PHPUnit\Framework\TestCase;
 
 final class ApiFacadeTest extends TestCase
 {
     public static function setUpBeforeClass(): void
+    {
+        Symbol::resetGen();
+        GlobalEnvironmentSingleton::initializeNew();
+    }
+
+    protected function setUp(): void
     {
         Gacela::bootstrap(__DIR__, GacelaConfig::withPhpConfigDefault());
     }
@@ -23,7 +31,12 @@ final class ApiFacadeTest extends TestCase
         // it crashes when it tries to load all phel funcs again. See: `PhelFnLoader::loadAllPhelFunctions()`
         $this->markTestSkipped('Useful to debug the facade, but useless to keep it in the CI');
         $facade = new ApiFacade();
-        $groupedFns = $facade->getNormalizedGroupedFunctions();
+        $groupedFns = $facade->getNormalizedGroupedFunctions([
+            'phel\\http',
+            'phel\\html',
+            'phel\\test',
+            'phel\\json',
+        ]);
 
         self::assertCount(212, $groupedFns);
     }

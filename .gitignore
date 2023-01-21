@@ -13,3 +13,4 @@ vendor/
 .phel-repl-history
 local.phel
 phel-config-local.php
+src/php/Api/Infrastructure/phel/doc.phel

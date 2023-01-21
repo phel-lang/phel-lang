@@ -22,11 +22,13 @@ final class PhelFnLoader implements PhelFnLoaderInterface
     }
 
     /**
+     * @param list<string> $namespaces
+     *
      * @return array<string,PersistentMapInterface>
      */
-    public function getNormalizedPhelFunctions(): array
+    public function getNormalizedPhelFunctions(array $namespaces = []): array
     {
-        $this->loadAllPhelFunctions();
+        $this->loadAllPhelFunctions($namespaces);
 
         /** @var array<string,PersistentMapInterface> $normalizedData */
         $normalizedData = [];
@@ -45,13 +47,29 @@ final class PhelFnLoader implements PhelFnLoaderInterface
         return $normalizedData;
     }
 
-    private function loadAllPhelFunctions(): void
+    /**
+     * TODO: instead of using a bool `$phelInternalDocLoaded`, we can optimize this by saving
+     * which ns where loaded, ignore them and trigger the ones that were not yet generated.
+     */
+    private function loadAllPhelFunctions(array $namespaces): void
     {
         if (self::$phelInternalDocLoaded) {
             return;
         }
 
+        $template = <<<EOF
+# Simply require all namespaces that should be documented
+(ns phel-internal\doc
+  %REQUIRES%
+)
+EOF;
+        $requireNamespaces = '';
+        foreach ($namespaces as $ns) {
+            $requireNamespaces .= "(:require {$ns})";
+        }
+        $docPhelContent = str_replace('%REQUIRES%', $requireNamespaces, $template);
         $phelFile = __DIR__ . '/phel/doc.phel';
+        file_put_contents($phelFile, $docPhelContent);
 
         $namespace = $this->runFacade
             ->getNamespaceFromFile($phelFile)
@@ -71,6 +89,7 @@ final class PhelFnLoader implements PhelFnLoaderInterface
             $this->runFacade->evalFile($info);
         }
 
+        unlink($phelFile);
         self::$phelInternalDocLoaded = true;
     }
 

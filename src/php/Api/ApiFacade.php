@@ -13,12 +13,14 @@ use Phel\Api\Transfer\NormalizedPhelFunction;
 final class ApiFacade extends AbstractFacade implements ApiFacadeInterface
 {
     /**
+     * @param list<string> $namespaces
+     *
      * @return array<string,list<NormalizedPhelFunction>>
      */
-    public function getNormalizedGroupedFunctions(): array
+    public function getNormalizedGroupedFunctions(array $namespaces = []): array
     {
         return $this->getFactory()
             ->createPhelFnNormalizer()
-            ->getNormalizedGroupedFunctions();
+            ->getNormalizedGroupedFunctions($namespaces);
     }
 }

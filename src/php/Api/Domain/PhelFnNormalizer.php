@@ -16,11 +16,13 @@ final class PhelFnNormalizer implements PhelFnNormalizerInterface
     }
 
     /**
+     * @param list<string> $namespaces
+     *
      * @return array<string,list<NormalizedPhelFunction>>
      */
-    public function getNormalizedGroupedFunctions(): array
+    public function getNormalizedGroupedFunctions(array $namespaces = []): array
     {
-        $normalizedData = $this->phelFnLoader->getNormalizedPhelFunctions();
+        $normalizedData = $this->phelFnLoader->getNormalizedPhelFunctions($namespaces);
 
         $result = [];
         foreach ($normalizedData as $fnName => $meta) {
