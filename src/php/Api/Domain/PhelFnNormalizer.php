@@ -37,7 +37,7 @@ final class PhelFnNormalizer implements PhelFnNormalizerInterface
                 $fnName,
                 $doc,
                 $matches['fnSignature'] ?? '',
-                $this->formatDescription($matches['desc'] ?? ''),
+                $matches['desc'] ?? '',
             );
         }
 
@@ -57,15 +57,6 @@ final class PhelFnNormalizer implements PhelFnNormalizerInterface
         );
 
         return strtolower(rtrim($key, '-'));
-    }
-
-    /**
-     * The $desc is in Markdown format, the regex transforms links `[printf](https://...)`
-     * into `<a href="https://...">printf</a>`.
-     */
-    private function formatDescription(string $desc): string
-    {
-        return preg_replace('/\[(.*?)\]\((.*?)\)/', '<a href="$2">$1</a>', $desc);
     }
 
     private function sortingPhelFunctionsCallback(): callable

@@ -278,7 +278,7 @@ final class PhelFnNormalizerTest extends TestCase
         $symbol->method('offsetExists')->willReturn(true);
         $symbol->method('offsetGet')->willReturnOnConsecutiveCalls(
             false, // relates to 'isPrivate'
-            "Returns a formatted string. See PHP's [sprintf](https://example.com) for more information.", // relates to 'doc'
+            "```phel\n(array & xs)\n```\nReturns a formatted string. See PHP's [sprintf](https://example.com) for more information.", // relates to 'doc'
         );
 
         $phelFnLoader = $this->createMock(PhelFnLoaderInterface::class);
@@ -293,9 +293,9 @@ final class PhelFnNormalizerTest extends TestCase
             'format' => [
                 NormalizedPhelFunction::fromArray([
                     'fnName' => 'format',
-                    'doc' => "Returns a formatted string. See PHP's [sprintf](https://example.com) for more information.",
-                    'fnSignature' => '',
-                    'desc' => "Returns a formatted string. See PHP's <a href=\"https://example.com\">sprintf</a> for more information.",
+                    'doc' => "```phel\n(array & xs)\n```\nReturns a formatted string. See PHP's [sprintf](https://example.com) for more information.",
+                    'fnSignature' => '(array & xs)',
+                    'desc' => "Returns a formatted string. See PHP's [sprintf](https://example.com) for more information.",
                 ]),
             ],
         ];
