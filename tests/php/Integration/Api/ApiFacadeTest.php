@@ -29,6 +29,7 @@ final class ApiFacadeTest extends TestCase
 
         $facade = new ApiFacade();
         $groupedFns = $facade->getGroupedFunctions([
+            'phel\\core',
             'phel\\http',
             'phel\\html',
             'phel\\test',

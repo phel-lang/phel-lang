@@ -12,6 +12,7 @@ use Phel\Lang\TypeFactory;
 use Phel\Run\RunFacadeInterface;
 
 use function dirname;
+use function in_array;
 
 final class PhelFnLoader implements PhelFnLoaderInterface
 {
@@ -28,10 +29,14 @@ final class PhelFnLoader implements PhelFnLoaderInterface
     public function getNormalizedPhelFunctions(array $namespaces = []): array
     {
         $this->loadAllPhelFunctions($namespaces);
+        $containsCoreFunctions = in_array('phel\\core', $namespaces, true);
 
         /** @var array<string,PersistentMapInterface> $normalizedData */
         $normalizedData = [];
         foreach ($this->getNamespaces() as $ns) {
+            if (!$containsCoreFunctions && $ns === 'phel\\core') {
+                continue;
+            }
             $normalizedNs = str_replace('phel\\', '', $ns);
             $moduleName = $normalizedNs === 'core' ? '' : $normalizedNs . '/';
 
