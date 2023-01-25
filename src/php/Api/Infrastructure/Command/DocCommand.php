@@ -28,13 +28,13 @@ final class DocCommand extends Command
     {
         $this->setName('doc')
             ->setDescription('Display the docs for any/all phel functions.')
-            ->addArgument('search', InputArgument::OPTIONAL, 'Search input', '')
+            ->addArgument('search', InputArgument::OPTIONAL, 'Search input that look for a similar function name', '')
             ->addOption(
                 self::OPTION_NAMESPACES,
                 null,
                 InputOption::VALUE_OPTIONAL,
-                'Specify which namespaces to load (comma separated)',
-                'phel\\core',
+                'Specify which namespaces to load (comma separated). All by default.',
+                'phel\\core,phel\\http,phel\\html,phel\\test,phel\\json',
             );
     }
 
@@ -42,7 +42,6 @@ final class DocCommand extends Command
     {
         $search = $input->getArgument('search');
         $namespaces = explode(',', $input->getOption(self::OPTION_NAMESPACES));
-
         $groupedFunctions = $this->getFacade()->getGroupedFunctions($namespaces);
         $this->printFunctions($output, $groupedFunctions, $search);
 
@@ -59,8 +58,7 @@ final class DocCommand extends Command
         foreach ($normalized as $func) {
             $output->writeln(
                 sprintf(
-                    '%d || %s: %s - %s',
-                    $func['percent'],
+                    '  %s: %s - %s',
                     str_pad($func['name'], $longestFuncNameLength),
                     $func['signature'],
                     $func['description'],
@@ -106,7 +104,7 @@ final class DocCommand extends Command
                 ];
             }
         }
-        usort($normalized, fn($a, $b) => $b['percent'] <=> $a['percent']);
+        usort($normalized, static fn ($a, $b) => $b['percent'] <=> $a['percent']);
 
         return [$normalized, $longestFuncNameLength];
     }
