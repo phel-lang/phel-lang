@@ -8,6 +8,7 @@ use Gacela\Framework\DocBlockResolverAwareTrait;
 use Phel\Api\ApiFacade;
 use Phel\Api\Transfer\PhelFunction;
 use Symfony\Component\Console\Command\Command;
+use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
@@ -27,6 +28,7 @@ final class DocCommand extends Command
     {
         $this->setName('doc')
             ->setDescription('Display the docs for any/all phel functions.')
+            ->addArgument('search', InputArgument::OPTIONAL, 'Search input', '')
             ->addOption(
                 self::OPTION_NAMESPACES,
                 null,
@@ -38,10 +40,11 @@ final class DocCommand extends Command
 
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
+        $search = $input->getArgument('search');
         $namespaces = explode(',', $input->getOption(self::OPTION_NAMESPACES));
 
         $groupedFunctions = $this->getFacade()->getGroupedFunctions($namespaces);
-        $this->printFunctions($output, $groupedFunctions);
+        $this->printFunctions($output, $groupedFunctions, $search);
 
         return self::SUCCESS;
     }
@@ -49,14 +52,15 @@ final class DocCommand extends Command
     /**
      * @param array<string,list<PhelFunction>> $groupedFunctions
      */
-    private function printFunctions(OutputInterface $output, array $groupedFunctions): void
+    private function printFunctions(OutputInterface $output, array $groupedFunctions, string $search): void
     {
-        [$normalized, $longestFuncNameLength] = $this->normalizeGroupedFunctions($groupedFunctions);
+        [$normalized, $longestFuncNameLength] = $this->normalizeGroupedFunctions($groupedFunctions, $search);
 
         foreach ($normalized as $func) {
             $output->writeln(
                 sprintf(
-                    '  %s: %s - %s',
+                    '%d || %s: %s - %s',
+                    $func['percent'],
                     str_pad($func['name'], $longestFuncNameLength),
                     $func['signature'],
                     $func['description'],
@@ -68,6 +72,7 @@ final class DocCommand extends Command
     /**
      * @return array{
      *   0: list<array{
+     *     percent: int,
      *     name: string,
      *     signature: string,
      *     doc: string,
@@ -76,23 +81,33 @@ final class DocCommand extends Command
      *   1: int
      * }
      */
-    private function normalizeGroupedFunctions(array $groupedFunctions): array
+    private function normalizeGroupedFunctions(array $groupedFunctions, string $search): array
     {
         $longestFuncNameLength = 5;
         $normalized = [];
+
         foreach ($groupedFunctions as $functions) {
             foreach ($functions as $function) {
-                if (strlen($function->fnName()) > $longestFuncNameLength) {
-                    $longestFuncNameLength = strlen($function->fnName());
+                $fnName = $function->fnName();
+                similar_text($fnName, $search, $percent);
+                if ($search && $percent < 40) {
+                    continue;
+                }
+
+                if (strlen($fnName) > $longestFuncNameLength) {
+                    $longestFuncNameLength = strlen($fnName);
                 }
                 $normalized[] = [
-                    'name' => $function->fnName(),
+                    'percent' => round($percent),
+                    'name' => $fnName,
                     'signature' => $function->fnSignature(),
                     'doc' => $function->doc(),
                     'description' => preg_replace('/\r?\n/', '', $function->description()),
                 ];
             }
         }
+        usort($normalized, fn($a, $b) => $b['percent'] <=> $a['percent']);
+
         return [$normalized, $longestFuncNameLength];
     }
 }
