@@ -33,21 +33,32 @@ final class DocCommand extends Command
             ->addOption(
                 self::OPTION_NAMESPACES,
                 null,
-                InputOption::VALUE_OPTIONAL,
-                'Specify which namespaces to load (comma separated). All by default.',
-                'phel\\core,phel\\http,phel\\html,phel\\test,phel\\json',
+                InputOption::VALUE_OPTIONAL | InputOption::VALUE_IS_ARRAY,
+                'Specify which namespaces to load.',
+                ['phel\\core', 'phel\\http', 'phel\\html', 'phel\\test', 'phel\\json'],
             );
     }
 
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
-        $namespaces = $this->normalizeNamespaces(explode(',', $input->getOption(self::OPTION_NAMESPACES)));
+        $namespaces = $this->normalizeNamespaces($input->getOption(self::OPTION_NAMESPACES));
         $groupedFunctions = $this->getFacade()->getGroupedFunctions($namespaces);
 
         $search = $input->getArgument('search');
         $this->printFunctions($output, $groupedFunctions, $search);
 
         return self::SUCCESS;
+    }
+
+    private function normalizeNamespaces(array $namespaces): array
+    {
+        array_walk($namespaces, static function (string &$ns): void {
+            if (in_array($ns, ['core', 'http', 'html', 'test', 'json']) && !str_starts_with($ns, 'phel\\')) {
+                $ns = 'phel\\' . $ns;
+            }
+        });
+
+        return $namespaces;
     }
 
     /**
@@ -109,16 +120,5 @@ final class DocCommand extends Command
         usort($normalized, static fn ($a, $b) => $b['percent'] <=> $a['percent']);
 
         return [$normalized, $longestFuncNameLength];
-    }
-
-    private function normalizeNamespaces(array $namespaces): array
-    {
-        array_walk($namespaces, static function (string &$ns): void {
-            if (in_array($ns, ['core', 'http', 'html', 'test', 'json']) && !str_starts_with($ns, 'phel\\')) {
-                $ns = 'phel\\' . $ns;
-            }
-        });
-
-        return $namespaces;
     }
 }
