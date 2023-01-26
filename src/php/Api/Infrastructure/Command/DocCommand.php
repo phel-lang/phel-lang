@@ -13,6 +13,7 @@ use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 
+use function in_array;
 use function strlen;
 
 /**
@@ -40,9 +41,10 @@ final class DocCommand extends Command
 
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
-        $search = $input->getArgument('search');
-        $namespaces = explode(',', $input->getOption(self::OPTION_NAMESPACES));
+        $namespaces = $this->normalizeNamespaces(explode(',', $input->getOption(self::OPTION_NAMESPACES)));
         $groupedFunctions = $this->getFacade()->getGroupedFunctions($namespaces);
+
+        $search = $input->getArgument('search');
         $this->printFunctions($output, $groupedFunctions, $search);
 
         return self::SUCCESS;
@@ -107,5 +109,16 @@ final class DocCommand extends Command
         usort($normalized, static fn ($a, $b) => $b['percent'] <=> $a['percent']);
 
         return [$normalized, $longestFuncNameLength];
+    }
+
+    private function normalizeNamespaces(array $namespaces): array
+    {
+        array_walk($namespaces, static function (string &$ns): void {
+            if (in_array($ns, ['core', 'http', 'html', 'test', 'json']) && !str_starts_with($ns, 'phel\\')) {
+                $ns = 'phel\\' . $ns;
+            }
+        });
+
+        return $namespaces;
     }
 }
