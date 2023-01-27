@@ -4,24 +4,33 @@ declare(strict_types=1);
 
 namespace PhelTest\Integration\Filesystem;
 
+use Gacela\Framework\Gacela;
 use Phel\Filesystem\FilesystemFacade;
+use Phel\Filesystem\Infrastructure\FilesystemSingleton;
 use PHPUnit\Framework\TestCase;
 
 final class FilesystemTest extends TestCase
 {
+    private FilesystemFacade $filesystem;
+
     public static function setUpBeforeClass(): void
     {
-        FilesystemFacade::reset();
+        Gacela::bootstrap(__DIR__);
+        FilesystemSingleton::reset();
+    }
+
+    public function setUp(): void
+    {
+        $this->filesystem = new FilesystemFacade();
     }
 
     public function test_clear_all(): void
     {
-        $filesystem = FilesystemFacade::getInstance();
         $filename = tempnam(sys_get_temp_dir(), '__test');
-        $filesystem->addFile($filename);
+        $this->filesystem->addFile($filename);
 
         self::assertFileExists($filename);
-        $filesystem->clearAll();
+        $this->filesystem->clearAll();
         self::assertFileDoesNotExist($filename);
     }
 }
