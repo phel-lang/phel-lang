@@ -7,6 +7,7 @@ All notable changes to this project will be documented in this file.
 * New Api module which exposes (via the `ApiFacade`) the functions documentation of Phel (#551)
 * Rename command `phel compile` to `phel build` (#555)
 * Add new config parameter `ignore-when-building` (#557)
+* Added config parameter `keep-generated-temp-files` (#553)
 
 ## 0.8.0 (2023-01-16)
 
