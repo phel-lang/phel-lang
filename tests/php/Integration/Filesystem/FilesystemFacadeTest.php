@@ -21,6 +21,18 @@ final class FilesystemFacadeTest extends TestCase
         $this->filesystem = new FilesystemFacade();
     }
 
+    public function test_remove_generated_files_after_clear_all_by_default(): void
+    {
+        Gacela::bootstrap(__DIR__);
+
+        $filename = tempnam(sys_get_temp_dir(), '__test');
+        $this->filesystem->addFile($filename);
+
+        self::assertFileExists($filename);
+        $this->filesystem->clearAll();
+        self::assertFileDoesNotExist($filename);
+    }
+
     public function test_remove_generated_files_after_clear_all(): void
     {
         Gacela::bootstrap(__DIR__, static function (GacelaConfig $config): void {
@@ -47,17 +59,5 @@ final class FilesystemFacadeTest extends TestCase
         self::assertFileExists($filename);
         $this->filesystem->clearAll();
         self::assertFileExists($filename);
-    }
-
-    public function test_remove_generated_files_after_clear_all_by_default(): void
-    {
-        Gacela::bootstrap(__DIR__);
-
-        $filename = tempnam(sys_get_temp_dir(), '__test');
-        $this->filesystem->addFile($filename);
-
-        self::assertFileExists($filename);
-        $this->filesystem->clearAll();
-        self::assertFileDoesNotExist($filename);
     }
 }

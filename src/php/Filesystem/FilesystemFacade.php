@@ -18,12 +18,9 @@ final class FilesystemFacade extends AbstractFacade implements FilesystemFacadeI
             ->addFile($file);
     }
 
-    /**
-     * @return list<string> List of removed files
-     */
-    public function clearAll(): array
+    public function clearAll(): void
     {
-        return $this->getFactory()
+        $this->getFactory()
             ->createFilesystem()
             ->clearAll();
     }

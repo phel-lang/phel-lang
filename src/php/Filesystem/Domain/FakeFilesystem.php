@@ -10,8 +10,7 @@ final class FakeFilesystem implements FilesystemInterface
     {
     }
 
-    public function clearAll(): array
+    public function clearAll(): void
     {
-        return [];
     }
 }

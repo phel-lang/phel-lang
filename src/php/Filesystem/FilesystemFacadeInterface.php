@@ -8,8 +8,5 @@ interface FilesystemFacadeInterface
 {
     public function addFile(string $file): void;
 
-    /**
-     * @return list<string>
-     */
-    public function clearAll(): array;
+    public function clearAll(): void;
 }

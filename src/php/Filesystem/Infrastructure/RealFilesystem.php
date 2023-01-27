@@ -19,14 +19,10 @@ final class RealFilesystem implements FilesystemInterface
         Files::addFile($file);
     }
 
-    public function clearAll(): array
+    public function clearAll(): void
     {
-        $files = [];
         foreach (Files::readAll() as $file) {
-            $files[] = $file;
             unlink($file);
         }
-
-        return $files;
     }
 }
