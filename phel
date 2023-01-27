@@ -21,6 +21,8 @@ Gacela::bootstrap($projectRootDir, Phel::configFn());
 
 $bootstrap = new ConsoleBootstrap();
 $bootstrap->setAutoExit(false);
-$bootstrap->run();
+$exitCode = $bootstrap->run();
 
 (new FilesystemFacade())->clearAll();
+
+exit($exitCode);
