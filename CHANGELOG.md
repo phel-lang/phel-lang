@@ -2,6 +2,10 @@
 
 All notable changes to this project will be documented in this file.
 
+## Unreleased
+
+* New Api module which exposes (via the `ApiFacade`) the functions documentation of Phel (#551)
+
 ## 0.8.0 (2023-01-16)
 
 * Allow strings on `empty?` (#492)
