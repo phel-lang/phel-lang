@@ -13,4 +13,5 @@ return [
     ],
     'out-dir' => 'out',
     'ignore-when-building' => ['src/phel/local.phel'],
+    'keep-generated-temp-files' => false,
 ];
