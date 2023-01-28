@@ -199,6 +199,11 @@
   []
   (php/:: Symbol (gen)))
 
+(defn parse-int
+  "Coerce to int"
+  [x]
+  (php/intval x))
+
 (defn str
   "Creates a string by concatenating values together. If no arguments are
 provided an empty string is returned. Nil and false are represented as an empty

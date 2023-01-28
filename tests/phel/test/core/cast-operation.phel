@@ -1,0 +1,12 @@
+(ns phel-test\test\core\cast-operation
+  (:require phel\test :refer [deftest is]))
+
+(deftest test-parse-int
+  (is (thrown? \ArgumentCountError (parse-int)) "parse-int with no arg")
+  (is (= 1 (parse-int 1)) "parse-int with one int")
+  (is (= 1 (parse-int 1.23)) "parse-int with one float")
+  (is (= 1 (parse-int true)) "parse-int with true")
+  (is (= 0 (parse-int false)) "parse-int with false")
+  (is (= 1 (parse-int "1")) "parse-int with one numeric string")
+  (is (= 1 (parse-int "1.23")) "parse-int with one float string")
+  (is (= 0 (parse-int "string")) "parse-int with no numeric string"))
