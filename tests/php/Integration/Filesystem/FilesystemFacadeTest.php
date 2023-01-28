@@ -59,5 +59,6 @@ final class FilesystemFacadeTest extends TestCase
         self::assertFileExists($filename);
         $this->filesystem->clearAll();
         self::assertFileExists($filename);
+        unlink($filename);
     }
 }
