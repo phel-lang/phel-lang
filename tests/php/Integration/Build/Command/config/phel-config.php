@@ -9,4 +9,5 @@ return [
     ],
     'out-dir' => 'out',
     'vendor-dir' => '',
+    'ignore-when-compiling' => ['local.phel'],
 ];
