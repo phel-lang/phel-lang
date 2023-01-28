@@ -6,14 +6,14 @@ namespace PhelTest\Integration\Build\Command;
 
 use Gacela\Framework\Bootstrap\GacelaConfig;
 use Gacela\Framework\Gacela;
-use Phel\Build\Infrastructure\Command\CompileCommand;
+use Phel\Build\Infrastructure\Command\BuildCommand;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\Console\Input\ArrayInput;
 use Symfony\Component\Console\Output\OutputInterface;
 
-final class CompileCommandTest extends TestCase
+final class BuildCommandTest extends TestCase
 {
-    private CompileCommand $command;
+    private BuildCommand $command;
 
     public static function setUpBeforeClass(): void
     {
@@ -22,7 +22,7 @@ final class CompileCommandTest extends TestCase
 
     protected function setUp(): void
     {
-        $this->command = new CompileCommand();
+        $this->command = new BuildCommand();
     }
 
     /**
@@ -30,7 +30,7 @@ final class CompileCommandTest extends TestCase
      *
      * @preserveGlobalState disabled
      */
-    public function test_compile_project(): void
+    public function test_build_project(): void
     {
         $this->expectOutputString("This is printed\n");
 
@@ -53,9 +53,9 @@ final class CompileCommandTest extends TestCase
      *
      * @preserveGlobalState disabled
      *
-     * @depends test_compile_project
+     * @depends test_build_project
      */
-    public function test_compile_project_cached(): void
+    public function test_build_project_cached(): void
     {
         // Mark file cache invalid by setting the modification time to 0
         touch(__DIR__ . '/out/hello.php', 1);
