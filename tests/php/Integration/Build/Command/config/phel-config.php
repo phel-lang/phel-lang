@@ -9,5 +9,8 @@ return [
     ],
     'out-dir' => 'out',
     'vendor-dir' => '',
-    'ignore-when-compiling' => ['local.phel'],
+    'ignore-when-compiling' => [
+        'local.phel',
+        'failing.phel',
+    ],
 ];
