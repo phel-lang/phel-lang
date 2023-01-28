@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Phel\Build;
 
+use Gacela\Framework\AbstractConfig;
 use Gacela\Framework\AbstractFactory;
 use Phel\Build\Domain\Compile\DependenciesForNamespace;
 use Phel\Build\Domain\Compile\FileCompiler;
@@ -18,6 +19,9 @@ use Phel\Build\Infrastructure\IO\SystemFileIo;
 use Phel\Command\CommandFacadeInterface;
 use Phel\Compiler\CompilerFacadeInterface;
 
+/**
+ * @method BuildConfig getConfig()
+ */
 final class BuildFactory extends AbstractFactory
 {
     public function createProjectCompiler(): ProjectCompiler
@@ -27,6 +31,7 @@ final class BuildFactory extends AbstractFactory
             $this->createFileCompiler(),
             $this->getCompilerFacade(),
             $this->getCommandFacade(),
+            $this->getConfig()->getPathsToIgnoreWhenCompiling()
         );
     }
 
