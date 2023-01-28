@@ -5,7 +5,6 @@ declare(strict_types=1);
 
 use Gacela\Framework\Gacela;
 use Phel\Console\Infrastructure\ConsoleBootstrap;
-use Phel\Filesystem\FilesystemFacade;
 use Phel\Phel;
 
 $projectRootDir = getcwd() . DIRECTORY_SEPARATOR;
@@ -20,9 +19,4 @@ require $autoloadPath;
 Gacela::bootstrap($projectRootDir, Phel::configFn());
 
 $bootstrap = new ConsoleBootstrap();
-$bootstrap->setAutoExit(false);
-$exitCode = $bootstrap->run();
-
-(new FilesystemFacade())->clearAll();
-
-exit($exitCode);
+$bootstrap->run();
