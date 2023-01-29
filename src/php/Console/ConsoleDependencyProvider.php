@@ -6,6 +6,7 @@ namespace Phel\Console;
 
 use Gacela\Framework\AbstractDependencyProvider;
 use Gacela\Framework\Container\Container;
+use Phel\Api\Infrastructure\Command\DocCommand;
 use Phel\Build\Infrastructure\Command\BuildCommand;
 use Phel\Filesystem\FilesystemFacade;
 use Phel\Formatter\Infrastructure\Command\FormatCommand;
@@ -40,6 +41,7 @@ final class ConsoleDependencyProvider extends AbstractDependencyProvider
             new ReplCommand(),
             new RunCommand(),
             new TestCommand(),
+            new DocCommand(),
             new BuildCommand(),
         ]);
     }
