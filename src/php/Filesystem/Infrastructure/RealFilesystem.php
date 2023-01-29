@@ -4,25 +4,28 @@ declare(strict_types=1);
 
 namespace Phel\Filesystem\Infrastructure;
 
-use Phel\Filesystem\Domain\Files;
 use Phel\Filesystem\Domain\FilesystemInterface;
 
 final class RealFilesystem implements FilesystemInterface
 {
+    /** @var list<string> */
+    private static array $files = [];
+
     public static function reset(): void
     {
-        Files::reset();
+        self::$files = [];
     }
 
     public function addFile(string $file): void
     {
-        Files::addFile($file);
+        self::$files[] = $file;
     }
 
     public function clearAll(): void
     {
-        foreach (Files::readAll() as $file) {
+        foreach (self::$files as $file) {
             unlink($file);
         }
+        self::$files = [];
     }
 }
