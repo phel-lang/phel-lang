@@ -37,6 +37,7 @@ use Phel\Compiler\Domain\Reader\ReaderInterface;
 use Phel\Compiler\Infrastructure\CompileOptions;
 use Phel\Compiler\Infrastructure\GlobalEnvironmentSingleton;
 use Phel\Compiler\Infrastructure\Munge;
+use Phel\Filesystem\FilesystemFacadeInterface;
 use Phel\Printer\Printer;
 
 final class CompilerFactory extends AbstractFactory
@@ -129,12 +130,19 @@ final class CompilerFactory extends AbstractFactory
 
     public function createEvaluator(): EvaluatorInterface
     {
-        return new RequireEvaluator();
+        return new RequireEvaluator(
+            $this->getFilesystemFacade(),
+        );
     }
 
     public function createMunge(): MungeInterface
     {
         return new Munge();
+    }
+
+    private function getFilesystemFacade(): FilesystemFacadeInterface
+    {
+        return $this->getProvidedDependency(CompilerDependencyProvider::FACADE_FILESYSTEM);
     }
 
     private function getGlobalEnvironment(): GlobalEnvironmentInterface

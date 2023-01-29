@@ -6,10 +6,16 @@ namespace Phel\Compiler\Domain\Evaluator;
 
 use Phel\Compiler\Domain\Evaluator\Exceptions\CompiledCodeIsMalformedException;
 use Phel\Compiler\Domain\Evaluator\Exceptions\FileException;
+use Phel\Filesystem\FilesystemFacadeInterface;
 use Throwable;
 
 final class RequireEvaluator implements EvaluatorInterface
 {
+    public function __construct(
+        private FilesystemFacadeInterface $filesystemFacade,
+    ) {
+    }
+
     /**
      * Evaluates the code and returns the evaluated value.
      *
@@ -22,6 +28,8 @@ final class RequireEvaluator implements EvaluatorInterface
         if (!$filename) {
             throw FileException::canNotCreateTempFile();
         }
+
+        $this->filesystemFacade->addFile($filename);
 
         try {
             file_put_contents($filename, "<?php\n" . $code);
