@@ -30,7 +30,7 @@ final class BuildFactory extends AbstractFactory
             $this->createFileCompiler(),
             $this->getCompilerFacade(),
             $this->getCommandFacade(),
-            $this->getConfig()->getPathsToIgnoreWhenCompiling(),
+            $this->getConfig()->getPathsToIgnore(),
         );
     }
 

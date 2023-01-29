@@ -12,5 +12,5 @@ return [
         'target-directory' => 'src/PhelGenerated',
     ],
     'out-dir' => 'out',
-    'ignore-when-compiling' => ['src/phel/local.phel'],
+    'ignore-when-building' => ['src/phel/local.phel'],
 ];

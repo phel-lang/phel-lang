@@ -11,13 +11,13 @@ use Gacela\Framework\AbstractConfig;
  */
 final class BuildConfig extends AbstractConfig
 {
-    public const IGNORE_WHEN_COMPILING = 'ignore-when-compiling';
+    public const IGNORE_WHEN_BUILDING = 'ignore-when-building';
 
     /**
      * @return list<string>
      */
-    public function getPathsToIgnoreWhenCompiling(): array
+    public function getPathsToIgnore(): array
     {
-        return $this->get(self::IGNORE_WHEN_COMPILING, []);
+        return $this->get(self::IGNORE_WHEN_BUILDING, []);
     }
 }

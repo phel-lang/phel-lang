@@ -9,7 +9,7 @@ return [
     ],
     'out-dir' => 'out',
     'vendor-dir' => '',
-    'ignore-when-compiling' => [
+    'ignore-when-building' => [
         'local.phel',
         'failing.phel',
     ],
