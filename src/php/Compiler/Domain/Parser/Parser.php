@@ -26,6 +26,14 @@ use function in_array;
 
 final class Parser implements ParserInterface
 {
+    private const TOKENS_THAT_SHOULD_STREAM_NEXT = [
+        Token::T_WHITESPACE,
+        Token::T_NEWLINE,
+        Token::T_COMMENT,
+        Token::T_ATOM,
+        Token::T_STRING,
+    ];
+
     private ExpressionParserFactoryInterface $parserFactory;
     private GlobalEnvironmentInterface $globalEnvironment;
 
@@ -88,35 +96,23 @@ final class Parser implements ParserInterface
 
             return match ($tokenType) {
                 Token::T_WHITESPACE => WhitespaceNode::createWithToken($token),
-
                 Token::T_NEWLINE => NewlineNode::createWithToken($token),
-
                 Token::T_COMMENT => CommentNode::createWithToken($token),
-
                 Token::T_ATOM => $this->parseAtomNode($token, $tokenStream),
-
                 Token::T_STRING => $this->parseStringNode($token, $tokenStream),
-
                 Token::T_FN,
                 Token::T_OPEN_PARENTHESIS => $this->parseFnListNode($token, $tokenStream),
-
                 Token::T_OPEN_BRACKET => $this->parseArrayListNode($token, $tokenStream),
-
                 Token::T_OPEN_BRACE => $this->parseMapListNode($token, $tokenStream),
-
                 Token::T_CLOSE_PARENTHESIS,
                 Token::T_CLOSE_BRACKET,
                 Token::T_CLOSE_BRACE => throw $this->createUnexceptedParserException($tokenStream, $token, 'Unterminated list (BRACKETS)'),
-
                 Token::T_UNQUOTE_SPLICING,
                 Token::T_UNQUOTE,
                 Token::T_QUASIQUOTE,
                 Token::T_QUOTE => $this->parseQuoteNode($token, $tokenStream),
-
                 Token::T_CARET => $this->parseMetaNode($tokenStream),
-
                 Token::T_EOF => throw $this->createUnfinishedParserException($tokenStream, $token, 'Unterminated list (EOF)'),
-
                 default => throw $this->createUnexceptedParserException($tokenStream, $token, 'Unhandled syntax token: ' . $token->getCode()),
             };
         }
@@ -133,9 +129,7 @@ final class Parser implements ParserInterface
 
     private function shouldTokenStreamGoNext(int $tokenType): bool
     {
-        $tokenTypes = [Token::T_WHITESPACE, Token::T_NEWLINE, Token::T_COMMENT, Token::T_ATOM, Token::T_STRING];
-
-        return in_array($tokenType, $tokenTypes, true);
+        return in_array($tokenType, self::TOKENS_THAT_SHOULD_STREAM_NEXT, true);
     }
 
     private function canParseToken(TokenStream $tokenStream): bool
