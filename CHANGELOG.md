@@ -5,6 +5,8 @@ All notable changes to this project will be documented in this file.
 ## Unreleased
 
 * New Api module which exposes (via the `ApiFacade`) the functions documentation of Phel (#551)
+* Add new config parameter `ignore-when-compiling`
+  *  Ignore these paths when running `phel build` command
 
 ## 0.8.0 (2023-01-16)
 
