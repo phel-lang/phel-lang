@@ -13,7 +13,7 @@ final class SourceMapExtractor implements SourceMapExtractorInterface
         $f = fopen($filename, 'rb');
         $phpPrefix = fgets($f);
         $filenameComment = fgets($f);
-        $sourceMapComment = fgets($f);
+        $sourceMapComment = fgets($f) ?: '';
 
         return new SourceMapInformation($filenameComment, $sourceMapComment);
     }

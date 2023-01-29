@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Phel\Build\Domain\Compile;
 
 use Phel\Build\Domain\Extractor\NamespaceExtractorInterface;
+use Phel\Build\Domain\Extractor\NamespaceInformation;
 use Phel\Command\CommandFacadeInterface;
 use Phel\Compiler\CompilerFacadeInterface;
 use RuntimeException;
@@ -15,11 +16,15 @@ final class ProjectCompiler
 {
     private const TARGET_FILE_EXTENSION = '.php';
 
+    /**
+     * @param list<string> $pathsToIgnore
+     */
     public function __construct(
         private NamespaceExtractorInterface $namespaceExtractor,
         private FileCompilerInterface $fileCompiler,
         private CompilerFacadeInterface $compilerFacade,
         private CommandFacadeInterface $commandFacade,
+        private array $pathsToIgnore,
     ) {
     }
 
@@ -38,13 +43,6 @@ final class ProjectCompiler
         return $this->compileFromTo($srcDirectories, $dest, $buildOptions);
     }
 
-    private function getTargetFileFromNamespace(string $namespace): string
-    {
-        $mungedNamespace = $this->compilerFacade->encodeNs($namespace);
-
-        return implode(DIRECTORY_SEPARATOR, explode('\\', $mungedNamespace)) . self::TARGET_FILE_EXTENSION;
-    }
-
     /**
      * @return list<CompiledFile>
      */
@@ -54,6 +52,9 @@ final class ProjectCompiler
         /** @var list<CompiledFile> $result */
         $result = [];
         foreach ($namespaceInformation as $info) {
+            if ($this->shouldIgnoreNs($info)) {
+                continue;
+            }
             $targetFile = $dest . '/' . $this->getTargetFileFromNamespace($info->getNamespace());
             $targetDir = dirname($targetFile);
             if (!file_exists($targetDir) && !mkdir($targetDir, 0777, true) && !is_dir($targetDir)) {
@@ -79,5 +80,23 @@ final class ProjectCompiler
         }
 
         return $result;
+    }
+
+    private function shouldIgnoreNs(NamespaceInformation $info): bool
+    {
+        foreach ($this->pathsToIgnore as $path) {
+            if (str_contains($info->getFile(), $path)) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    private function getTargetFileFromNamespace(string $namespace): string
+    {
+        $mungedNamespace = $this->compilerFacade->encodeNs($namespace);
+
+        return implode(DIRECTORY_SEPARATOR, explode('\\', $mungedNamespace)) . self::TARGET_FILE_EXTENSION;
     }
 }
