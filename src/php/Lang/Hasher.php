@@ -7,9 +7,9 @@ namespace Phel\Lang;
 use RuntimeException;
 
 use function gettype;
-use function is_float;
 use function is_int;
 use function is_object;
+use function is_scalar;
 use function is_string;
 
 /**
@@ -32,14 +32,27 @@ class Hasher implements HasherInterface
      */
     public function hash(mixed $value): int
     {
-        if ($value instanceof HashableInterface) {
-            return $value->hash();
-        }
-
         if ($value === null) {
             return self::NULL_HASH_VALUE;
         }
 
+        if ($value instanceof HashableInterface) {
+            return $value->hash();
+        }
+
+        if (is_scalar($value)) {
+            return $this->hashScalar($value);
+        }
+
+        if (is_object($value)) {
+            return crc32(spl_object_hash($value));
+        }
+
+        throw new RuntimeException('This type is not hashable: ' . gettype($value));
+    }
+
+    private function hashScalar(float|bool|int|string $value): int
+    {
         if ($value === true) {
             return self::TRUE_HASH_VALUE;
         }
@@ -56,15 +69,7 @@ class Hasher implements HasherInterface
             return $value;
         }
 
-        if (is_float($value)) {
-            return $this->hashFloat($value);
-        }
-
-        if (is_object($value)) {
-            return crc32(spl_object_hash($value));
-        }
-
-        throw new RuntimeException('This type is not hashable: ' . gettype($value));
+        return $this->hashFloat((float)$value);
     }
 
     private function hashFloat(float $value): int
