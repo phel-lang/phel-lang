@@ -49,19 +49,7 @@ class Hasher implements HasherInterface
         }
 
         if (is_float($value)) {
-            if (is_finite($value)) {
-                return (int)($value);
-            }
-
-            if ($value === INF) {
-                return 2146435072; // Same hash value as in clojure
-            }
-
-            if ($value === -INF) {
-                return -1048576; // Same hash value as in clojure
-            }
-
-            return 2146959360; // Same hash value as in clojure
+            return $this->hashFloat($value);
         }
 
         if (is_object($value)) {
@@ -69,5 +57,22 @@ class Hasher implements HasherInterface
         }
 
         throw new RuntimeException('This type is not hashable: ' . gettype($value));
+    }
+
+    private function hashFloat(float $value): int
+    {
+        if (is_finite($value)) {
+            return (int)($value);
+        }
+
+        if ($value === INF) {
+            return 2146435072; // Same hash value as in clojure
+        }
+
+        if ($value === -INF) {
+            return -1048576; // Same hash value as in clojure
+        }
+
+        return 2146959360; // Same hash value as in clojure
     }
 }
