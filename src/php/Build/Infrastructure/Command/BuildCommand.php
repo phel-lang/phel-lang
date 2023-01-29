@@ -19,7 +19,7 @@ use Throwable;
 /**
  * @method BuildFacade getFacade()
  */
-final class CompileCommand extends Command
+final class BuildCommand extends Command
 {
     use DocBlockResolverAwareTrait;
 
@@ -28,8 +28,9 @@ final class CompileCommand extends Command
 
     protected function configure(): void
     {
-        $this->setName('compile')
-            ->setDescription('Compile the current project')
+        $this->setName('build')
+            ->setAliases(['compile'])
+            ->setDescription('Build the current project')
             ->addOption(self::OPTION_CACHE, null, InputOption::VALUE_NEGATABLE, 'Enable cache', true)
             ->addOption(self::OPTION_SOURCE_MAP, null, InputOption::VALUE_NEGATABLE, 'Enable source maps', true);
     }
