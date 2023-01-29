@@ -7,16 +7,24 @@ namespace Phel\Lang;
 use RuntimeException;
 
 use function gettype;
-use function is_float;
 use function is_int;
 use function is_object;
+use function is_scalar;
 use function is_string;
 
 /**
  * This Hasher is inspired by the Clojurescript implementation.
+ * These constants are the same hash value as in clojure.
  */
 class Hasher implements HasherInterface
 {
+    private const NULL_HASH_VALUE = 0;
+    private const TRUE_HASH_VALUE = 1231;
+    private const FALSE_HASH_VALUE = 1237;
+    private const POSITIVE_INF_HASH_VALUE = 2146435072;
+    private const NEGATIVE_INF_HASH_VALUE = -1048576;
+    private const DEFAULT_FLOAT_HASH_VALUE = 2146959360;
+
     /**
      * @param mixed $value The value to hash
      *
@@ -24,44 +32,16 @@ class Hasher implements HasherInterface
      */
     public function hash(mixed $value): int
     {
+        if ($value === null) {
+            return self::NULL_HASH_VALUE;
+        }
+
         if ($value instanceof HashableInterface) {
             return $value->hash();
         }
 
-        if ($value === true) {
-            return 1231; // Same hash value as in clojure
-        }
-
-        if ($value === false) {
-            return 1237; // Same hash value as in clojure
-        }
-
-        if (is_string($value)) {
-            return crc32($value);
-        }
-
-        if ($value === null) {
-            return 0;
-        }
-
-        if (is_int($value)) {
-            return $value;
-        }
-
-        if (is_float($value)) {
-            if (is_finite($value)) {
-                return (int)($value);
-            }
-
-            if ($value === INF) {
-                return 2146435072; // Same hash value as in clojure
-            }
-
-            if ($value === -INF) {
-                return -1048576; // Same hash value as in clojure
-            }
-
-            return 2146959360; // Same hash value as in clojure
+        if (is_scalar($value)) {
+            return $this->hashScalar($value);
         }
 
         if (is_object($value)) {
@@ -69,5 +49,43 @@ class Hasher implements HasherInterface
         }
 
         throw new RuntimeException('This type is not hashable: ' . gettype($value));
+    }
+
+    private function hashScalar(float|bool|int|string $value): int
+    {
+        if ($value === true) {
+            return self::TRUE_HASH_VALUE;
+        }
+
+        if ($value === false) {
+            return self::FALSE_HASH_VALUE;
+        }
+
+        if (is_string($value)) {
+            return crc32($value);
+        }
+
+        if (is_int($value)) {
+            return $value;
+        }
+
+        return $this->hashFloat((float)$value);
+    }
+
+    private function hashFloat(float $value): int
+    {
+        if (is_finite($value)) {
+            return (int)($value);
+        }
+
+        if ($value === INF) {
+            return self::POSITIVE_INF_HASH_VALUE;
+        }
+
+        if ($value === -INF) {
+            return self::NEGATIVE_INF_HASH_VALUE;
+        }
+
+        return self::DEFAULT_FLOAT_HASH_VALUE;
     }
 }
