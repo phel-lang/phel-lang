@@ -22,8 +22,18 @@ use Phel\Compiler\Domain\Parser\ParserNode\QuoteNode;
 use Phel\Compiler\Domain\Parser\ParserNode\StringNode;
 use Phel\Compiler\Domain\Parser\ParserNode\WhitespaceNode;
 
+use function in_array;
+
 final class Parser implements ParserInterface
 {
+    private const TOKENS_THAT_SHOULD_STREAM_NEXT = [
+        Token::T_WHITESPACE,
+        Token::T_NEWLINE,
+        Token::T_COMMENT,
+        Token::T_ATOM,
+        Token::T_STRING,
+    ];
+
     private ExpressionParserFactoryInterface $parserFactory;
     private GlobalEnvironmentInterface $globalEnvironment;
 
@@ -78,57 +88,33 @@ final class Parser implements ParserInterface
         if ($tokenStream->valid()) {
             $token = $tokenStream->current();
 
-            switch ($token->getType()) {
-                case Token::T_WHITESPACE:
-                    $tokenStream->next();
-                    return WhitespaceNode::createWithToken($token);
+            $tokenType = $token->getType();
 
-                case Token::T_NEWLINE:
-                    $tokenStream->next();
-                    return NewlineNode::createWithToken($token);
-
-                case Token::T_COMMENT:
-                    $tokenStream->next();
-                    return CommentNode::createWithToken($token);
-
-                case Token::T_ATOM:
-                    $tokenStream->next();
-                    return $this->parseAtomNode($token, $tokenStream);
-
-                case Token::T_STRING:
-                    $tokenStream->next();
-                    return $this->parseStringNode($token, $tokenStream);
-
-                case Token::T_FN:
-                case Token::T_OPEN_PARENTHESIS:
-                    return $this->parseFnListNode($token, $tokenStream);
-
-                case Token::T_OPEN_BRACKET:
-                    return $this->parseArrayListNode($token, $tokenStream);
-
-                case Token::T_OPEN_BRACE:
-                    return $this->parseMapListNode($token, $tokenStream);
-
-                case Token::T_CLOSE_PARENTHESIS:
-                case Token::T_CLOSE_BRACKET:
-                case Token::T_CLOSE_BRACE:
-                    throw $this->createUnexceptedParserException($tokenStream, $token, 'Unterminated list (BRACKETS)');
-
-                case Token::T_UNQUOTE_SPLICING:
-                case Token::T_UNQUOTE:
-                case Token::T_QUASIQUOTE:
-                case Token::T_QUOTE:
-                    return $this->parseQuoteNode($token, $tokenStream);
-
-                case Token::T_CARET:
-                    return $this->parseMetaNode($tokenStream);
-
-                case Token::T_EOF:
-                    throw $this->createUnfinishedParserException($tokenStream, $token, 'Unterminated list (EOF)');
-
-                default:
-                    throw $this->createUnexceptedParserException($tokenStream, $token, 'Unhandled syntax token: ' . $token->getCode());
+            if ($this->shouldTokenStreamGoNext($tokenType)) {
+                $tokenStream->next();
             }
+
+            return match ($tokenType) {
+                Token::T_WHITESPACE => WhitespaceNode::createWithToken($token),
+                Token::T_NEWLINE => NewlineNode::createWithToken($token),
+                Token::T_COMMENT => CommentNode::createWithToken($token),
+                Token::T_ATOM => $this->parseAtomNode($token, $tokenStream),
+                Token::T_STRING => $this->parseStringNode($token, $tokenStream),
+                Token::T_FN,
+                Token::T_OPEN_PARENTHESIS => $this->parseFnListNode($token, $tokenStream),
+                Token::T_OPEN_BRACKET => $this->parseArrayListNode($token, $tokenStream),
+                Token::T_OPEN_BRACE => $this->parseMapListNode($token, $tokenStream),
+                Token::T_CLOSE_PARENTHESIS,
+                Token::T_CLOSE_BRACKET,
+                Token::T_CLOSE_BRACE => throw $this->createUnexceptedParserException($tokenStream, $token, 'Unterminated list (BRACKETS)'),
+                Token::T_UNQUOTE_SPLICING,
+                Token::T_UNQUOTE,
+                Token::T_QUASIQUOTE,
+                Token::T_QUOTE => $this->parseQuoteNode($token, $tokenStream),
+                Token::T_CARET => $this->parseMetaNode($tokenStream),
+                Token::T_EOF => throw $this->createUnfinishedParserException($tokenStream, $token, 'Unterminated list (EOF)'),
+                default => throw $this->createUnexceptedParserException($tokenStream, $token, 'Unhandled syntax token: ' . $token->getCode()),
+            };
         }
 
         // Throw exception differently because we may have not $token
@@ -139,6 +125,11 @@ final class Parser implements ParserInterface
             $snippet->getStartLocation(),
             $snippet->getEndLocation(),
         );
+    }
+
+    private function shouldTokenStreamGoNext(int $tokenType): bool
+    {
+        return in_array($tokenType, self::TOKENS_THAT_SHOULD_STREAM_NEXT, true);
     }
 
     private function canParseToken(TokenStream $tokenStream): bool
