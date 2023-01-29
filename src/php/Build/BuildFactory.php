@@ -18,6 +18,9 @@ use Phel\Build\Infrastructure\IO\SystemFileIo;
 use Phel\Command\CommandFacadeInterface;
 use Phel\Compiler\CompilerFacadeInterface;
 
+/**
+ * @method BuildConfig getConfig()
+ */
 final class BuildFactory extends AbstractFactory
 {
     public function createProjectCompiler(): ProjectCompiler
@@ -27,6 +30,7 @@ final class BuildFactory extends AbstractFactory
             $this->createFileCompiler(),
             $this->getCompilerFacade(),
             $this->getCommandFacade(),
+            $this->getConfig()->getPathsToIgnore(),
         );
     }
 

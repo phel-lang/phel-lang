@@ -12,4 +12,6 @@ return [
         'target-directory' => 'src/PhelGenerated',
     ],
     'out-dir' => 'out',
+    'ignore-when-building' => ['src/phel/local.phel'],
+    'keep-generated-temp-files' => false,
 ];
