@@ -56,7 +56,7 @@ final class Lexer implements LexerInterface
      *
      * @return Generator<Token>
      */
-    private function lexStringGenerator(string $code, string $source = self::DEFAULT_SOURCE, int $startingLine = 1): Generator
+    private function lexStringGenerator(string $code, string $source, int $startingLine): Generator
     {
         $this->cursor = 0;
         $this->line = $startingLine;

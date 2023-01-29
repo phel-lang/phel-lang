@@ -35,14 +35,14 @@ final class Token
     ) {
     }
 
-    public function getCode(): string
-    {
-        return $this->code;
-    }
-
     public function getType(): int
     {
         return $this->type;
+    }
+
+    public function getCode(): string
+    {
+        return $this->code;
     }
 
     public function getStartLocation(): SourceLocation
