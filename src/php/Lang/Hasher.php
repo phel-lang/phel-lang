@@ -14,9 +14,17 @@ use function is_string;
 
 /**
  * This Hasher is inspired by the Clojurescript implementation.
+ * These constants are the same hash value as in clojure.
  */
 class Hasher implements HasherInterface
 {
+    private const NULL_HASH_VALUE = 0;
+    private const TRUE_HASH_VALUE = 1231;
+    private const FALSE_HASH_VALUE = 1237;
+    private const POSITIVE_INF_HASH_VALUE = 2146435072;
+    private const NEGATIVE_INF_HASH_VALUE = -1048576;
+    private const DEFAULT_FLOAT_HASH_VALUE = 2146959360;
+
     /**
      * @param mixed $value The value to hash
      *
@@ -28,20 +36,20 @@ class Hasher implements HasherInterface
             return $value->hash();
         }
 
+        if ($value === null) {
+            return self::NULL_HASH_VALUE;
+        }
+
         if ($value === true) {
-            return 1231; // Same hash value as in clojure
+            return self::TRUE_HASH_VALUE;
         }
 
         if ($value === false) {
-            return 1237; // Same hash value as in clojure
+            return self::FALSE_HASH_VALUE;
         }
 
         if (is_string($value)) {
             return crc32($value);
-        }
-
-        if ($value === null) {
-            return 0;
         }
 
         if (is_int($value)) {
@@ -66,13 +74,13 @@ class Hasher implements HasherInterface
         }
 
         if ($value === INF) {
-            return 2146435072; // Same hash value as in clojure
+            return self::POSITIVE_INF_HASH_VALUE;
         }
 
         if ($value === -INF) {
-            return -1048576; // Same hash value as in clojure
+            return self::NEGATIVE_INF_HASH_VALUE;
         }
 
-        return 2146959360; // Same hash value as in clojure
+        return self::DEFAULT_FLOAT_HASH_VALUE;
     }
 }
