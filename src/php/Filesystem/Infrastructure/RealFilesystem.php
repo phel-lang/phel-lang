@@ -26,6 +26,6 @@ final class RealFilesystem implements FilesystemInterface
         foreach (self::$files as $file) {
             unlink($file);
         }
-        self::$files = [];
+        self::reset();
     }
 }
