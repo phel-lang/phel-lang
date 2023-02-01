@@ -101,3 +101,8 @@
 
 (deftest test-mean
   (is (= 2 (mean [1 2 3])) "(mean [1 2 3])"))
+
+(deftest test-numbers-with-underscore
+  (is (= 1337 0b101_0011_1001) "binary number with underscores")
+  (is (= -1337 -0x5_39) "hexadecimal number with underscores")
+  (is (= 1337 024_71) "octal number with underscores"))
