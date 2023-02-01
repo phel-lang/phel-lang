@@ -19,6 +19,10 @@ use Phel\Lang\Symbol;
 final class AtomParser
 {
     private const KEYWORD_REGEX = '/:(?<second_colon>:?)((?<namespace>[^\/]+)\/)?(?<keyword>[^\/]+)/';
+    private const REGEX_BINARY_NUMBER = '/^([+-])?0[bB][01]+(_[01]+)*$/';
+    private const REGEX_HEXADECIMAL_NUMBER = '/^([+-])?0[xX][0-9a-fA-F]+(_[0-9a-fA-F]+)*$/';
+    private const REGEX_OCTAL_NUMBER = '/^([+-])?0[0-7]+(_[0-7]+)*$/';
+    private const REGEX_DECIMAL_NUMBER = '/^([+-])?[0-9]+(_[0-9]+)*$/';
 
     public function __construct(private GlobalEnvironmentInterface $globalEnvironment)
     {
@@ -44,9 +48,9 @@ final class AtomParser
             return $this->parseKeyword($token);
         }
 
-        if (preg_match('/^([+-])?0[bB][01]+(_[01]+)*$/', $word, $matches)) {
-            // binary numbers
+        if (preg_match(self::REGEX_BINARY_NUMBER, $word, $matches)) {
             $sign = (isset($matches[1]) && $matches[1] === '-') ? -1 : 1;
+
             return new NumberNode(
                 $word,
                 $token->getStartLocation(),
@@ -55,9 +59,9 @@ final class AtomParser
             );
         }
 
-        if (preg_match('/^([+-])?0[xX][0-9a-fA-F]+(_[0-9a-fA-F]+)*$/', $word, $matches)) {
-            // hexdecimal numbers
+        if (preg_match(self::REGEX_HEXADECIMAL_NUMBER, $word, $matches)) {
             $sign = (isset($matches[1]) && $matches[1] === '-') ? -1 : 1;
+
             return new NumberNode(
                 $word,
                 $token->getStartLocation(),
@@ -66,9 +70,9 @@ final class AtomParser
             );
         }
 
-        if (preg_match('/^([+-])?0[0-7]+(_[0-7]+)*$/', $word, $matches)) {
-            // octal numbers
+        if (preg_match(self::REGEX_OCTAL_NUMBER, $word, $matches)) {
             $sign = (isset($matches[1]) && $matches[1] === '-') ? -1 : 1;
+
             return new NumberNode(
                 $word,
                 $token->getStartLocation(),
@@ -79,6 +83,17 @@ final class AtomParser
 
         if (is_numeric($word)) {
             return new NumberNode($word, $token->getStartLocation(), $token->getEndLocation(), $word + 0);
+        }
+
+        if (preg_match(self::REGEX_DECIMAL_NUMBER, $word, $matches)) {
+            $sign = (isset($matches[1]) && $matches[1] === '-') ? -1 : 1;
+
+            return new NumberNode(
+                $word,
+                $token->getStartLocation(),
+                $token->getEndLocation(),
+                $sign * (int)str_replace('_', '', $word),
+            );
         }
 
         return new SymbolNode($word, $token->getStartLocation(), $token->getEndLocation(), Symbol::create($word));
@@ -116,8 +131,8 @@ final class AtomParser
         }
 
         $keyword = $namespace
-          ? Keyword::createForNamespace($namespace, $matches['keyword'])
-          : Keyword::create($matches['keyword']);
+            ? Keyword::createForNamespace($namespace, $matches['keyword'])
+            : Keyword::create($matches['keyword']);
 
         return new KeywordNode(
             $word,
