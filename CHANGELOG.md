@@ -9,6 +9,7 @@ All notable changes to this project will be documented in this file.
 * Rename command `phel compile` to `phel build` (#555)
 * Added config parameter `ignore-when-building` (#557)
 * Added config parameter `keep-generated-temp-files` (#553)
+* Allow underscores in decimal numbers (#564)
 
 ## 0.8.0 (2023-01-16)
 
