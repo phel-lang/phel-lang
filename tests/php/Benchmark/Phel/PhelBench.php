@@ -12,7 +12,9 @@ use Phel\Phel;
 
 /**
  * @BeforeMethods("setUp")
+ *
  * @Iterations(2)
+ *
  * @Revs(5)
  */
 final class PhelBench

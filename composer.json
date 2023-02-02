@@ -24,7 +24,7 @@
     },
     "require-dev": {
         "ext-readline": "*",
-        "friendsofphp/php-cs-fixer": "^3.13",
+        "friendsofphp/php-cs-fixer": "^3.14",
         "phpbench/phpbench": "^1.2",
         "phpmetrics/phpmetrics": "^2.8",
         "phpstan/phpstan": "^1.9",
