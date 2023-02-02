@@ -60,11 +60,7 @@ final class AtomParser
             return $this->parseOctalNumber($matches, $word, $token);
         }
 
-        if (is_numeric($word)) {
-            return new NumberNode($word, $token->getStartLocation(), $token->getEndLocation(), $word + 0);
-        }
-
-        if (preg_match(self::REGEX_DECIMAL_NUMBER, $word, $matches)) {
+        if (is_numeric($word) || preg_match(self::REGEX_DECIMAL_NUMBER, $word)) {
             return $this->parseDecimalNumber($matches, $word, $token);
         }
 
