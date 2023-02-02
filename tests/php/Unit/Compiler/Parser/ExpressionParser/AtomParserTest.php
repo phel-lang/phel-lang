@@ -182,7 +182,7 @@ final class AtomParserTest extends TestCase
         );
     }
 
-    public function test_parse_hexdecimal_number(): void
+    public function test_parse_hexadecimal_number(): void
     {
         $parser = new AtomParser(new GlobalEnvironment());
         $start = new SourceLocation('string', 0, 0);
@@ -218,7 +218,7 @@ final class AtomParserTest extends TestCase
         );
     }
 
-    public function test_parse_otcal_number(): void
+    public function test_parse_octal_number(): void
     {
         $parser = new AtomParser(new GlobalEnvironment());
         $start = new SourceLocation('string', 0, 0);

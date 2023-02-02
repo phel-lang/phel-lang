@@ -22,7 +22,8 @@ final class AtomParser
     private const REGEX_BINARY_NUMBER = '/^([+-])?0[bB][01]+(_[01]+)*$/';
     private const REGEX_HEXADECIMAL_NUMBER = '/^([+-])?0[xX][0-9a-fA-F]+(_[0-9a-fA-F]+)*$/';
     private const REGEX_OCTAL_NUMBER = '/^([+-])?0[0-7]+(_[0-7]+)*$/';
-    private const REGEX_DECIMAL_NUMBER = '/^([+-])?[0-9]+(_[0-9]+)*$/';
+    private const REGEX_DECIMAL_NUMBER = '/^([+-])?[0-9]+(_[0-9]+)*[\.(_[0-9]+]?|0$/';
+//    private const REGEX_DECIMAL_NUMBER = '/^([+-])?[0-9]+(_[0-9]+)*|0$/';
 
     public function __construct(private GlobalEnvironmentInterface $globalEnvironment)
     {
@@ -60,7 +61,11 @@ final class AtomParser
             return $this->parseOctalNumber($matches, $word, $token);
         }
 
-        if (is_numeric($word) || preg_match(self::REGEX_DECIMAL_NUMBER, $word)) {
+        if (is_numeric($word)) {
+            return new NumberNode($word, $token->getStartLocation(), $token->getEndLocation(), $word + 0);
+        }
+
+        if (preg_match(self::REGEX_DECIMAL_NUMBER, $word, $matches)) {
             return $this->parseDecimalNumber($matches, $word, $token);
         }
 
