@@ -15,12 +15,12 @@ final class ApiFacade extends AbstractFacade implements ApiFacadeInterface
     /**
      * @param list<string> $namespaces
      *
-     * @return array<string,list<PhelFunction>>
+     * @return list<PhelFunction>
      */
-    public function getGroupedFunctions(array $namespaces = []): array
+    public function getPhelFunctions(array $namespaces = []): array
     {
         return $this->getFactory()
             ->createPhelFnNormalizer()
-            ->getGroupedFunctions($namespaces);
+            ->getPhelFunctions($namespaces);
     }
 }

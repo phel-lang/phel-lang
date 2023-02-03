@@ -14,9 +14,7 @@ use Symfony\Component\Console\Output\NullOutput;
 
 /**
  * @BeforeMethods("setUp")
- *
  * @Iterations(3)
- *
  * @Revs(1)
  */
 final class CommandBench

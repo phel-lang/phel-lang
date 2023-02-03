@@ -42,10 +42,10 @@ final class DocCommand extends Command
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
         $namespaces = $this->normalizeNamespaces($input->getOption(self::OPTION_NAMESPACES));
-        $groupedFunctions = $this->getFacade()->getGroupedFunctions($namespaces);
+        $phelFunctions = $this->getFacade()->getPhelFunctions($namespaces);
 
         $search = $input->getArgument('search');
-        $this->printFunctions($output, $groupedFunctions, $search);
+        $this->printFunctions($output, $phelFunctions, $search);
 
         return self::SUCCESS;
     }
@@ -62,11 +62,11 @@ final class DocCommand extends Command
     }
 
     /**
-     * @param array<string,list<PhelFunction>> $groupedFunctions
+     * @param list<PhelFunction> $phelFunctions
      */
-    private function printFunctions(OutputInterface $output, array $groupedFunctions, string $search): void
+    private function printFunctions(OutputInterface $output, array $phelFunctions, string $search): void
     {
-        [$normalized, $longestFuncNameLength] = $this->normalizeGroupedFunctions($groupedFunctions, $search);
+        [$normalized, $longestFuncNameLength] = $this->normalizeGroupedFunctions($phelFunctions, $search);
 
         foreach ($normalized as $func) {
             $output->writeln(
@@ -81,6 +81,8 @@ final class DocCommand extends Command
     }
 
     /**
+     * @param list<PhelFunction> $phelFunctions
+     *
      * @return array{
      *   0: list<array{
      *     percent: int,
@@ -92,30 +94,28 @@ final class DocCommand extends Command
      *   1: int
      * }
      */
-    private function normalizeGroupedFunctions(array $groupedFunctions, string $search): array
+    private function normalizeGroupedFunctions(array $phelFunctions, string $search): array
     {
         $longestFuncNameLength = 5;
         $normalized = [];
 
-        foreach ($groupedFunctions as $functions) {
-            foreach ($functions as $function) {
-                $fnName = $function->fnName();
-                similar_text($fnName, $search, $percent);
-                if ($search && $percent < 40) {
-                    continue;
-                }
-
-                if (strlen($fnName) > $longestFuncNameLength) {
-                    $longestFuncNameLength = strlen($fnName);
-                }
-                $normalized[] = [
-                    'percent' => round($percent),
-                    'name' => $fnName,
-                    'signature' => $function->fnSignature(),
-                    'doc' => $function->doc(),
-                    'description' => preg_replace('/\r?\n/', '', $function->description()),
-                ];
+        foreach ($phelFunctions as $function) {
+            $fnName = $function->fnName();
+            similar_text($fnName, $search, $percent);
+            if ($search && $percent < 40) {
+                continue;
             }
+
+            if (strlen($fnName) > $longestFuncNameLength) {
+                $longestFuncNameLength = strlen($fnName);
+            }
+            $normalized[] = [
+                'percent' => round($percent),
+                'name' => $fnName,
+                'signature' => $function->fnSignature(),
+                'doc' => $function->doc(),
+                'description' => preg_replace('/\r?\n/', '', $function->description()),
+            ];
         }
         usort($normalized, static fn ($a, $b) => $b['percent'] <=> $a['percent']);
 
