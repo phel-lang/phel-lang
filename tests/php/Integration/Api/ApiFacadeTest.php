@@ -28,7 +28,7 @@ final class ApiFacadeTest extends TestCase
         GlobalEnvironmentSingleton::initializeNew();
 
         $facade = new ApiFacade();
-        $groupedFns = $facade->getGroupedFunctions([
+        $groupedFns = $facade->getPhelFunctions([
             'phel\\core',
             'phel\\http',
             'phel\\html',
@@ -36,6 +36,6 @@ final class ApiFacadeTest extends TestCase
             'phel\\json',
         ]);
 
-        self::assertCount(212, $groupedFns);
+        self::assertCount(242, $groupedFns);
     }
 }

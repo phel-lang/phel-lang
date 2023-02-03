@@ -9,9 +9,11 @@ use Phel\Api\Transfer\PhelFunction;
 interface ApiFacadeInterface
 {
     /**
+     * Get all public phel functions in the namespaces.
+     *
      * @param list<string> $namespaces
      *
-     * @return array<string,list<PhelFunction>>
+     * @return list<PhelFunction>
      */
-    public function getGroupedFunctions(array $namespaces = []): array;
+    public function getPhelFunctions(array $namespaces = []): array;
 }

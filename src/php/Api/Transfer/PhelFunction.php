@@ -11,11 +11,18 @@ final class PhelFunction
         private string $doc,
         private string $fnSignature,
         private string $description,
+        private string $groupKey = '',
     ) {
     }
 
     /**
-     * @param array{fnName?:string, doc?:string, fnSignature?:string, desc?:string} $array
+     * @param array{
+     *     fnName?: string,
+     *     doc?: string,
+     *     fnSignature?: string,
+     *     desc?: string,
+     *     groupKey?: string,
+     * } $array
      */
     public static function fromArray(array $array): self
     {
@@ -24,6 +31,7 @@ final class PhelFunction
             $array['doc'] ?? '',
             $array['fnSignature'] ?? '',
             $array['desc'] ?? '',
+            $array['groupKey'] ?? '',
         );
     }
 
@@ -45,5 +53,10 @@ final class PhelFunction
     public function description(): string
     {
         return $this->description;
+    }
+
+    public function groupKey(): string
+    {
+        return $this->groupKey;
     }
 }

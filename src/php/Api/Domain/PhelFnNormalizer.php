@@ -18,9 +18,9 @@ final class PhelFnNormalizer implements PhelFnNormalizerInterface
     /**
      * @param list<string> $namespaces
      *
-     * @return array<string,list<PhelFunction>>
+     * @return list<PhelFunction>
      */
-    public function getGroupedFunctions(array $namespaces = []): array
+    public function getPhelFunctions(array $namespaces = []): array
     {
         $normalizedData = $this->phelFnLoader->getNormalizedPhelFunctions($namespaces);
 
@@ -34,12 +34,14 @@ final class PhelFnNormalizer implements PhelFnNormalizerInterface
             $doc = $meta[Keyword::create('doc')] ?? '';
             $pattern = '#(```phel\n(?<fnSignature>.*)\n```\n)?(?<desc>.*)#s';
             preg_match($pattern, $doc, $matches);
+            $groupKey = $this->groupKey($fnName);
 
-            $result[$this->groupKey($fnName)][] = new PhelFunction(
+            $result[$groupKey][] = new PhelFunction(
                 $fnName,
                 $doc,
                 $matches['fnSignature'] ?? '',
                 $matches['desc'] ?? '',
+                $groupKey,
             );
         }
 
@@ -47,7 +49,7 @@ final class PhelFnNormalizer implements PhelFnNormalizerInterface
             usort($values, $this->sortingPhelFunctionsCallback());
         }
 
-        return $result;
+        return array_merge(...array_values($result));
     }
 
     private function groupKey(string $fnName): string
