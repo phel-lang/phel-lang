@@ -18,7 +18,11 @@ use Phel\Lang\Symbol;
 
 final class AtomParser
 {
-    private const KEYWORD_REGEX = '/:(?<second_colon>:?)((?<namespace>[^\/]+)\/)?(?<keyword>[^\/]+)/';
+    private const REGEX_KEYWORD = '/:(?<second_colon>:?)((?<namespace>[^\/]+)\/)?(?<keyword>[^\/]+)/';
+    private const REGEX_BINARY_NUMBER = '/^([+-])?0[bB][01]+(_[01]+)*$/';
+    private const REGEX_HEXADECIMAL_NUMBER = '/^([+-])?0[xX][0-9a-fA-F]+(_[0-9a-fA-F]+)*$/';
+    private const REGEX_OCTAL_NUMBER = '/^([+-])?0[0-7]+(_[0-7]+)*$/';
+    private const REGEX_DECIMAL_NUMBER = '/^([+-])?[0-9]+(_[0-9]+)*[\.(_[0-9]+]?|0$/';
 
     public function __construct(private GlobalEnvironmentInterface $globalEnvironment)
     {
@@ -44,41 +48,24 @@ final class AtomParser
             return $this->parseKeyword($token);
         }
 
-        if (preg_match('/^([+-])?0[bB][01]+(_[01]+)*$/', $word, $matches)) {
-            // binary numbers
-            $sign = (isset($matches[1]) && $matches[1] === '-') ? -1 : 1;
-            return new NumberNode(
-                $word,
-                $token->getStartLocation(),
-                $token->getEndLocation(),
-                $sign * bindec(str_replace('_', '', $word)),
-            );
+        if (preg_match(self::REGEX_BINARY_NUMBER, $word, $matches)) {
+            return $this->parseBinaryNumber($matches, $word, $token);
         }
 
-        if (preg_match('/^([+-])?0[xX][0-9a-fA-F]+(_[0-9a-fA-F]+)*$/', $word, $matches)) {
-            // hexdecimal numbers
-            $sign = (isset($matches[1]) && $matches[1] === '-') ? -1 : 1;
-            return new NumberNode(
-                $word,
-                $token->getStartLocation(),
-                $token->getEndLocation(),
-                $sign * hexdec(str_replace('_', '', $word)),
-            );
+        if (preg_match(self::REGEX_HEXADECIMAL_NUMBER, $word, $matches)) {
+            return $this->parseHexadecimalNumber($matches, $word, $token);
         }
 
-        if (preg_match('/^([+-])?0[0-7]+(_[0-7]+)*$/', $word, $matches)) {
-            // octal numbers
-            $sign = (isset($matches[1]) && $matches[1] === '-') ? -1 : 1;
-            return new NumberNode(
-                $word,
-                $token->getStartLocation(),
-                $token->getEndLocation(),
-                $sign * octdec(str_replace('_', '', $word)),
-            );
+        if (preg_match(self::REGEX_OCTAL_NUMBER, $word, $matches)) {
+            return $this->parseOctalNumber($matches, $word, $token);
         }
 
         if (is_numeric($word)) {
             return new NumberNode($word, $token->getStartLocation(), $token->getEndLocation(), $word + 0);
+        }
+
+        if (preg_match(self::REGEX_DECIMAL_NUMBER, $word, $matches)) {
+            return $this->parseDecimalNumber($matches, $word, $token);
         }
 
         return new SymbolNode($word, $token->getStartLocation(), $token->getEndLocation(), Symbol::create($word));
@@ -87,7 +74,7 @@ final class AtomParser
     private function parseKeyword(Token $token): KeywordNode
     {
         $word = $token->getCode();
-        $isValid = preg_match(self::KEYWORD_REGEX, $word, $matches);
+        $isValid = preg_match(self::REGEX_KEYWORD, $word, $matches);
 
         if (!$isValid) {
             throw new KeywordParserException('This is not a valid keyword');
@@ -116,14 +103,62 @@ final class AtomParser
         }
 
         $keyword = $namespace
-          ? Keyword::createForNamespace($namespace, $matches['keyword'])
-          : Keyword::create($matches['keyword']);
+            ? Keyword::createForNamespace($namespace, $matches['keyword'])
+            : Keyword::create($matches['keyword']);
 
         return new KeywordNode(
             $word,
             $token->getStartLocation(),
             $token->getEndLocation(),
             $keyword,
+        );
+    }
+
+    private function parseBinaryNumber(array $matches, string $word, Token $token): NumberNode
+    {
+        $sign = (isset($matches[1]) && $matches[1] === '-') ? -1 : 1;
+
+        return new NumberNode(
+            $word,
+            $token->getStartLocation(),
+            $token->getEndLocation(),
+            $sign * bindec(str_replace('_', '', $word)),
+        );
+    }
+
+    private function parseHexadecimalNumber(array $matches, string $word, Token $token): NumberNode
+    {
+        $sign = (isset($matches[1]) && $matches[1] === '-') ? -1 : 1;
+
+        return new NumberNode(
+            $word,
+            $token->getStartLocation(),
+            $token->getEndLocation(),
+            $sign * hexdec(str_replace('_', '', $word)),
+        );
+    }
+
+    private function parseOctalNumber(array $matches, string $word, Token $token): NumberNode
+    {
+        $sign = (isset($matches[1]) && $matches[1] === '-') ? -1 : 1;
+
+        return new NumberNode(
+            $word,
+            $token->getStartLocation(),
+            $token->getEndLocation(),
+            $sign * octdec(str_replace('_', '', $word)),
+        );
+    }
+
+    private function parseDecimalNumber(array $matches, string $word, Token $token): NumberNode
+    {
+        $sign = (isset($matches[1]) && $matches[1] === '-') ? -1 : 1;
+
+        return new NumberNode(
+            $word,
+            $token->getStartLocation(),
+            $token->getEndLocation(),
+            $sign * (int)str_replace('_', '', $word),
         );
     }
 }
