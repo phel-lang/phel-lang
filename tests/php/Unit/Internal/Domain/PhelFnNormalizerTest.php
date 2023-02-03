@@ -12,6 +12,17 @@ use PHPUnit\Framework\TestCase;
 
 final class PhelFnNormalizerTest extends TestCase
 {
+    public function test_no_functions_found(): void
+    {
+        $phelFnLoader = $this->createMock(PhelFnLoaderInterface::class);
+        $phelFnLoader->method('getNormalizedPhelFunctions')->willReturn([]);
+
+        $normalizer = new PhelFnNormalizer($phelFnLoader);
+        $actual = $normalizer->getPhelFunctions();
+
+        self::assertEquals([], $actual);
+    }
+
     public function test_group_key_one_function(): void
     {
         $phelFnLoader = $this->createMock(PhelFnLoaderInterface::class);
