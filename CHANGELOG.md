@@ -2,7 +2,7 @@
 
 All notable changes to this project will be documented in this file.
 
-## Unreleased
+## 0.9.0 (2023-02-05)
 
 * New Api module which exposes (via the `ApiFacade`) the functions documentation of Phel (#551)
 * New `phel doc` command (#552)
