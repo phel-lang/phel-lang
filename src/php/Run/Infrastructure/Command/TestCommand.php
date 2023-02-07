@@ -43,6 +43,11 @@ final class TestCommand extends Command
                 'f',
                 InputOption::VALUE_OPTIONAL,
                 'Filter by test names.',
+            )->addOption(
+                'testdox',
+                null,
+                InputOption::VALUE_NONE,
+                'Report test execution progress in TestDox format.',
             );
     }
 
@@ -55,17 +60,11 @@ final class TestCommand extends Command
             $paths = (array)$input->getArgument('paths');
             $namespacesInformation = $this->getFacade()->getDependenciesFromPaths($paths);
 
+            $phelCode = $this->generatePhelCode($input, $namespacesInformation);
+
             foreach ($namespacesInformation as $info) {
                 $this->getFacade()->evalFile($info);
             }
-
-            $phelCode = sprintf(
-                '(do (phel\test/run-tests %s %s) (phel\test/successful?))',
-                TestCommandOptions::fromArray([
-                    TestCommandOptions::FILTER => (string)$input->getOption('filter'),
-                ])->asPhelHashMap(),
-                $this->namespacesAsString($namespacesInformation),
-            );
 
             $result = $this->getFacade()->eval($phelCode, new CompileOptions());
 
@@ -79,6 +78,18 @@ final class TestCommand extends Command
         }
 
         return self::FAILURE;
+    }
+
+    private function generatePhelCode(InputInterface $input, array $namespacesInformation): string
+    {
+        return sprintf(
+            '(do (phel\test/run-tests %s %s) (phel\test/successful?))',
+            TestCommandOptions::fromArray([
+                TestCommandOptions::FILTER => (string)$input->getOption('filter'),
+                TestCommandOptions::TESTDOX => (bool)$input->getOption('testdox'),
+            ])->asPhelHashMap(),
+            $this->namespacesAsString($namespacesInformation),
+        );
     }
 
     /**
