@@ -8,17 +8,21 @@
 # Report
 # ------
 
+(def- testdox? (var false))
+
 (def- stats (var {:failed []
                   :counts {:failed 0
                            :error 0
                            :pass 0
                            :total 0}}))
 
+(defn- print-report-testdox-state [data state]
+  (let [s (case state :failed "✘" :pass "✔" :error "E")
+        message (or (:message data) "no test message found")]
+    (println s message)))
+
 (defn- print-report-state [state]
-  (print (case state
-           :failed "F"
-           :pass "."
-           :error "E")))
+  (print (case state :failed "F" :pass "." :error "E")))
 
 (defn- should-report-println? [total-columns]
   (= (% (get-in (deref stats) [:counts :total]) total-columns) 0))
@@ -27,7 +31,9 @@
   (let [{:state state :type type} data
         ok (= state :pass)
         total-columns 80]
-    (print-report-state state)
+    (if (deref testdox?)
+      (print-report-testdox-state data state)
+      (print-report-state state))
     (swap! stats update-in [:counts :total] inc)
     (swap! stats update-in [:counts state] inc)
     (when (should-report-println? total-columns) (println))
@@ -316,6 +322,7 @@
 (defn run-tests
   "Runs all test functions in the given namespaces."
   [options & namespaces]
+  (set! testdox? (:testdox options))
   (dofor [namespace :in namespaces
           :let [ns-name (name namespace)]]
     (run-test options ns-name))
