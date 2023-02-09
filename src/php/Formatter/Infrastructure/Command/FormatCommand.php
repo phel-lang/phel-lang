@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Phel\Formatter\Infrastructure\Command;
 
 use Gacela\Framework\DocBlockResolverAwareTrait;
+use Phel\Formatter\FormatterConfig;
 use Phel\Formatter\FormatterFacade;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputArgument;
@@ -13,6 +14,7 @@ use Symfony\Component\Console\Output\OutputInterface;
 
 /**
  * @method FormatterFacade getFacade()
+ * @method FormatterConfig getConfig()
  */
 final class FormatCommand extends Command
 {
@@ -24,8 +26,9 @@ final class FormatCommand extends Command
             ->setDescription('Formats the given files.')
             ->addArgument(
                 'paths',
-                InputArgument::IS_ARRAY | InputArgument::REQUIRED,
-                'The file paths that you want to format.',
+                InputArgument::IS_ARRAY,
+                'The file paths that you want to format. The default value is ["src", "test"].',
+                $this->getConfig()->getFormatDirs(),
             );
     }
 
