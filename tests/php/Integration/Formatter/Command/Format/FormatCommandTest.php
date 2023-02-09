@@ -4,11 +4,12 @@ declare(strict_types=1);
 
 namespace PhelTest\Integration\Formatter\Command\Format;
 
+use Gacela\Framework\Bootstrap\GacelaConfig;
 use Gacela\Framework\Gacela;
+use Phel\Formatter\FormatterConfig;
 use Phel\Formatter\Infrastructure\Command\FormatCommand;
 use PHPUnit\Framework\TestCase;
-use Symfony\Component\Console\Input\InputInterface;
-use Symfony\Component\Console\Output\OutputInterface;
+use Symfony\Component\Console\Tester\CommandTester;
 
 final class FormatCommandTest extends TestCase
 {
@@ -24,15 +25,38 @@ final class FormatCommandTest extends TestCase
         $path = self::FIXTURES_DIR . 'good-format.phel';
         $oldContent = file_get_contents($path);
 
-        $command = $this->createFormatCommand();
-
-        $this->expectOutputRegex('/No files were formatted+/s');
+        $tester = new CommandTester($this->createFormatCommand());
 
         try {
-            $command->run(
-                $this->stubInput([$path]),
-                $this->stubOutput(),
-            );
+            $tester->execute(['paths' => [$path]]);
+
+            $this->assertMatchesRegularExpression('/No files were formatted+/s', $tester->getDisplay());
+        } finally {
+            file_put_contents($path, $oldContent);
+        }
+    }
+
+    public function test_command_uses_default_paths(): void
+    {
+        $path = self::FIXTURES_DIR . 'bad-format.phel';
+        $oldContent = file_get_contents($path);
+
+        Gacela::bootstrap(__DIR__, static function (GacelaConfig $config) use ($path): void {
+            $config->addAppConfigKeyValue(FormatterConfig::FORMAT_DIRS, [$path]);
+        });
+
+        $tester = new CommandTester($this->createFormatCommand());
+
+        $expectedOutput = <<<TXT
+Formatted files:
+  1) {$path}
+
+TXT;
+
+        try {
+            $tester->execute([]);
+
+            $this->assertSame($expectedOutput, $tester->getDisplay());
         } finally {
             file_put_contents($path, $oldContent);
         }
@@ -43,20 +67,20 @@ final class FormatCommandTest extends TestCase
         $path = self::FIXTURES_DIR . 'bad-format.phel';
         $oldContent = file_get_contents($path);
 
-        $command = $this->createFormatCommand();
+        $tester = new CommandTester($this->createFormatCommand());
 
-        $this->expectOutputString(
-            <<<TXT
+        $expectedOutput = <<<TXT
 Formatted files:
   1) {$path}
 
-TXT
-        );
+TXT;
+
         try {
-            $command->run(
-                $this->stubInput([$path]),
-                $this->stubOutput(),
-            );
+            $tester->execute([
+                'paths' => [$path],
+            ]);
+
+            $this->assertSame($expectedOutput, $tester->getDisplay());
         } finally {
             file_put_contents($path, $oldContent);
         }
@@ -65,22 +89,5 @@ TXT
     private function createFormatCommand(): FormatCommand
     {
         return new FormatCommand();
-    }
-
-    private function stubInput(array $paths): InputInterface
-    {
-        $input = $this->createStub(InputInterface::class);
-        $input->method('getArgument')->willReturn($paths);
-
-        return $input;
-    }
-
-    private function stubOutput(): OutputInterface
-    {
-        $output = $this->createStub(OutputInterface::class);
-        $output->method('writeln')
-            ->willReturnCallback(static fn (string $str) => print $str . PHP_EOL);
-
-        return $output;
     }
 }
