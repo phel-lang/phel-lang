@@ -13,5 +13,5 @@ interface ReaderInterface
     /**
      * @throws ReaderException
      */
-    public function read(NodeInterface $parseTree): ReaderResult;
+    public function read(NodeInterface $node): ReaderResult;
 }

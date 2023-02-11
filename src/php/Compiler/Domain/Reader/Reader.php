@@ -38,19 +38,19 @@ final class Reader implements ReaderInterface
      *
      * If the token stream reaches the end, null is returned.
      *
-     * @param NodeInterface $tokenStream The token stream to read
+     * @param NodeInterface $node The token stream to read
      *
      * @throws ReaderException
      */
-    public function read(NodeInterface $parseTree): ReaderResult
+    public function read(NodeInterface $node): ReaderResult
     {
-        if ($parseTree instanceof TriviaNodeInterface) {
-            throw ReaderException::forNode($parseTree, $parseTree, 'Cannot read from whitespace or comments');
+        if ($node instanceof TriviaNodeInterface) {
+            throw ReaderException::forNode($node, $node, 'Cannot read from whitespace or comments');
         }
 
         return new ReaderResult(
-            $this->readExpression($parseTree, $parseTree),
-            CodeSnippet::fromNode($parseTree),
+            $this->readExpression($node, $node),
+            CodeSnippet::fromNode($node),
         );
     }
 
