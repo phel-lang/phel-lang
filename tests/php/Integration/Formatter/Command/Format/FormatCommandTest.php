@@ -15,48 +15,18 @@ final class FormatCommandTest extends TestCase
 {
     private const FIXTURES_DIR = __DIR__ . '/Fixtures/';
 
-    public static function setUpBeforeClass(): void
-    {
-        Gacela::bootstrap(__DIR__);
-    }
-
     public function test_good_format(): void
     {
+        Gacela::bootstrap(__DIR__);
+
         $path = self::FIXTURES_DIR . 'good-format.phel';
         $oldContent = file_get_contents($path);
 
-        $tester = new CommandTester($this->createFormatCommand());
-
         try {
+            $tester = $this->createCommandTester();
             $tester->execute(['paths' => [$path]]);
 
             $this->assertMatchesRegularExpression('/No files were formatted+/s', $tester->getDisplay());
-        } finally {
-            file_put_contents($path, $oldContent);
-        }
-    }
-
-    public function test_command_uses_default_paths(): void
-    {
-        $path = self::FIXTURES_DIR . 'bad-format.phel';
-        $oldContent = file_get_contents($path);
-
-        Gacela::bootstrap(__DIR__, static function (GacelaConfig $config) use ($path): void {
-            $config->addAppConfigKeyValue(FormatterConfig::FORMAT_DIRS, [$path]);
-        });
-
-        $tester = new CommandTester($this->createFormatCommand());
-
-        $expectedOutput = <<<TXT
-Formatted files:
-  1) {$path}
-
-TXT;
-
-        try {
-            $tester->execute([]);
-
-            $this->assertSame($expectedOutput, $tester->getDisplay());
         } finally {
             file_put_contents($path, $oldContent);
         }
@@ -67,27 +37,49 @@ TXT;
         $path = self::FIXTURES_DIR . 'bad-format.phel';
         $oldContent = file_get_contents($path);
 
-        $tester = new CommandTester($this->createFormatCommand());
+        Gacela::bootstrap(__DIR__, static function (GacelaConfig $config) use ($path): void {
+            $config->addAppConfigKeyValue(FormatterConfig::FORMAT_DIRS, [$path]);
+        });
 
         $expectedOutput = <<<TXT
 Formatted files:
   1) {$path}
 
 TXT;
-
         try {
-            $tester->execute([
-                'paths' => [$path],
-            ]);
+            $tester = $this->createCommandTester();
+            $tester->execute([]);
 
-            $this->assertSame($expectedOutput, $tester->getDisplay());
+            self::assertSame($expectedOutput, $tester->getDisplay());
         } finally {
             file_put_contents($path, $oldContent);
         }
     }
 
-    private function createFormatCommand(): FormatCommand
+    public function test_command_uses_default_paths(): void
     {
-        return new FormatCommand();
+        Gacela::bootstrap(__DIR__);
+
+        $path = self::FIXTURES_DIR . 'bad-format.phel';
+        $oldContent = file_get_contents($path);
+
+        $expectedOutput = <<<TXT
+Formatted files:
+  1) {$path}
+
+TXT;
+        try {
+            $tester = $this->createCommandTester();
+            $tester->execute(['paths' => [$path]]);
+
+            self::assertSame($expectedOutput, $tester->getDisplay());
+        } finally {
+            file_put_contents($path, $oldContent);
+        }
+    }
+
+    private function createCommandTester(): CommandTester
+    {
+        return new CommandTester(new FormatCommand());
     }
 }
