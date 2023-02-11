@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Phel\Build\Domain\Compile;
 
+use Phel\Build\BuildConstants;
 use Phel\Build\Domain\Extractor\NamespaceExtractorInterface;
 use Phel\Build\Domain\IO\FileIoInterface;
 use Phel\Compiler\CompilerFacadeInterface;
@@ -27,9 +28,9 @@ final class FileCompiler implements FileCompilerInterface
             ->setSource($src)
             ->setIsEnabledSourceMaps($enableSourceMaps);
 
-        Registry::getInstance()->addDefinition("phel\core", '*compile-mode*', true);
+        Registry::getInstance()->addDefinition("phel\core", BuildConstants::BUILD_MODE, true);
         $result = $this->compilerFacade->compile($phelCode, $options);
-        Registry::getInstance()->addDefinition("phel\core", '*compile-mode*', false);
+        Registry::getInstance()->addDefinition("phel\core", BuildConstants::BUILD_MODE, false);
 
         $this->fileIo->putContents($dest, "<?php\n" . $result->getPhpCode());
         $this->fileIo->putContents(str_replace('.php', '.phel', $dest), $phelCode);

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Phel\Compiler\Domain\Analyzer\Environment;
 
+use Phel\Build\BuildConstants;
 use Phel\Compiler\Domain\Analyzer\Ast\AbstractNode;
 use Phel\Compiler\Domain\Analyzer\Ast\GlobalVarNode;
 use Phel\Compiler\Domain\Analyzer\Ast\LiteralNode;
@@ -195,7 +196,7 @@ final class GlobalEnvironment implements GlobalEnvironmentInterface
 
     private function addInternalCompileModeDefinition(): void
     {
-        $symbol = Symbol::create('*compile-mode*');
+        $symbol = Symbol::create(BuildConstants::BUILD_MODE);
         $meta = TypeFactory::getInstance()->persistentMapFromKVs(
             Keyword::create('doc'),
             'Set to true when a file is compiled, false otherwise.',
