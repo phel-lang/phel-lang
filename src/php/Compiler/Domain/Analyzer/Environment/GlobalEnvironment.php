@@ -44,6 +44,7 @@ final class GlobalEnvironment implements GlobalEnvironmentInterface
 
     public function __construct()
     {
+        $this->addInternalCompileModeDefinition();
         $this->addInternalBuildModeDefinition();
     }
 
@@ -190,6 +191,20 @@ final class GlobalEnvironment implements GlobalEnvironmentInterface
         }
 
         $this->interfaces[$namespace][$name->getName()] = $name;
+    }
+
+    /**
+     * @deprecated remove when `BuildConstants::COMPILE_MODE` is also removed
+     */
+    private function addInternalCompileModeDefinition(): void
+    {
+        $symbol = Symbol::create(BuildConstants::COMPILE_MODE);
+        $meta = TypeFactory::getInstance()->persistentMapFromKVs(
+            Keyword::create('doc'),
+            'Deprecated! Use *build-mode* instead. Set to true when a file is compiled, false otherwise.',
+        );
+        Registry::getInstance()->addDefinition(CompilerConstants::PHEL_CORE_NAMESPACE, $symbol->getName(), false, $meta);
+        $this->addDefinition(CompilerConstants::PHEL_CORE_NAMESPACE, $symbol);
     }
 
     private function addInternalBuildModeDefinition(): void

@@ -28,8 +28,10 @@ final class FileCompiler implements FileCompilerInterface
             ->setSource($src)
             ->setIsEnabledSourceMaps($enableSourceMaps);
 
+        Registry::getInstance()->addDefinition("phel\core", BuildConstants::COMPILE_MODE, true);
         Registry::getInstance()->addDefinition("phel\core", BuildConstants::BUILD_MODE, true);
         $result = $this->compilerFacade->compile($phelCode, $options);
+        Registry::getInstance()->addDefinition("phel\core", BuildConstants::COMPILE_MODE, false);
         Registry::getInstance()->addDefinition("phel\core", BuildConstants::BUILD_MODE, false);
 
         $this->fileIo->putContents($dest, "<?php\n" . $result->getPhpCode());

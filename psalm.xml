@@ -19,6 +19,7 @@
     </plugins>
 
     <issueHandlers>
+        <DeprecatedConstant errorLevel="suppress" />
         <DeprecatedClass errorLevel="suppress" />
         <DeprecatedInterface errorLevel="suppress" />
         <DeprecatedMethod errorLevel="suppress" />
