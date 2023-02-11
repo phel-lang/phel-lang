@@ -2,6 +2,10 @@
 
 All notable changes to this project will be documented in this file.
 
+## Unreleased
+
+* Added default format paths: 'src', 'tests' (#569)
+
 ## 0.9.0 (2023-02-05)
 
 * New Api module which exposes (via the `ApiFacade`) the functions documentation of Phel (#551)
