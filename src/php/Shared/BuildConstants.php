@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Phel\Build;
+namespace Phel\Shared;
 
 interface BuildConstants
 {
