@@ -6,5 +6,5 @@ namespace Phel\Build;
 
 interface BuildConstants
 {
-    public const BUILD_MODE = '*compile-mode*';
+    public const BUILD_MODE = '*build-mode*';
 }
