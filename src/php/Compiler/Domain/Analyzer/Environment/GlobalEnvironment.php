@@ -14,6 +14,8 @@ use Phel\Lang\Registry;
 use Phel\Lang\SourceLocation;
 use Phel\Lang\Symbol;
 use Phel\Lang\TypeFactory;
+use Phel\Shared\BuildConstants;
+use Phel\Shared\CompilerConstants;
 use RuntimeException;
 
 use function array_key_exists;
@@ -21,8 +23,6 @@ use function dirname;
 
 final class GlobalEnvironment implements GlobalEnvironmentInterface
 {
-    private const PHEL_CORE_NAMESPACE = 'phel\core';
-
     private string $ns = 'user';
 
     /** @var array<string, array<string, bool>> */
@@ -45,6 +45,7 @@ final class GlobalEnvironment implements GlobalEnvironmentInterface
     public function __construct()
     {
         $this->addInternalCompileModeDefinition();
+        $this->addInternalBuildModeDefinition();
     }
 
     public function getNs(): string
@@ -159,7 +160,6 @@ final class GlobalEnvironment implements GlobalEnvironmentInterface
         }
 
         if (isset($this->useAliases[$this->ns][$strName])) {
-            /** @var Symbol $alias */
             $alias = $this->useAliases[$this->ns][$strName];
             $alias->copyLocationFrom($name);
             return new PhpClassNameNode($env, $alias, $name->getStartLocation());
@@ -193,15 +193,29 @@ final class GlobalEnvironment implements GlobalEnvironmentInterface
         $this->interfaces[$namespace][$name->getName()] = $name;
     }
 
+    /**
+     * @deprecated remove when `BuildConstants::COMPILE_MODE` is also removed
+     */
     private function addInternalCompileModeDefinition(): void
     {
-        $symbol = Symbol::create('*compile-mode*');
+        $symbol = Symbol::create(BuildConstants::COMPILE_MODE);
+        $meta = TypeFactory::getInstance()->persistentMapFromKVs(
+            Keyword::create('doc'),
+            'Deprecated! Use *build-mode* instead. Set to true when a file is compiled, false otherwise.',
+        );
+        Registry::getInstance()->addDefinition(CompilerConstants::PHEL_CORE_NAMESPACE, $symbol->getName(), false, $meta);
+        $this->addDefinition(CompilerConstants::PHEL_CORE_NAMESPACE, $symbol);
+    }
+
+    private function addInternalBuildModeDefinition(): void
+    {
+        $symbol = Symbol::create(BuildConstants::BUILD_MODE);
         $meta = TypeFactory::getInstance()->persistentMapFromKVs(
             Keyword::create('doc'),
             'Set to true when a file is compiled, false otherwise.',
         );
-        Registry::getInstance()->addDefinition(self::PHEL_CORE_NAMESPACE, $symbol->getName(), false, $meta);
-        $this->addDefinition(self::PHEL_CORE_NAMESPACE, $symbol);
+        Registry::getInstance()->addDefinition(CompilerConstants::PHEL_CORE_NAMESPACE, $symbol->getName(), false, $meta);
+        $this->addDefinition(CompilerConstants::PHEL_CORE_NAMESPACE, $symbol);
     }
 
     private function resolveMagicFile(?SourceLocation $sl): ?string
@@ -252,7 +266,7 @@ final class GlobalEnvironment implements GlobalEnvironmentInterface
         }
 
         return $this->resolveInterfaceOrDefinitionForCurrentNs($name, $env, $currentNs)
-            ?? $this->resolveInterfaceOrDefinition($name, $env, self::PHEL_CORE_NAMESPACE);
+            ?? $this->resolveInterfaceOrDefinition($name, $env, CompilerConstants::PHEL_CORE_NAMESPACE);
     }
 
     /**

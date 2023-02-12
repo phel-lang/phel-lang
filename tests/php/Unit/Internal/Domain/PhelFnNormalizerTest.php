@@ -198,7 +198,7 @@ final class PhelFnNormalizerTest extends TestCase
 
         $phelFnLoader = $this->createMock(PhelFnLoaderInterface::class);
         $phelFnLoader->method('getNormalizedPhelFunctions')->willReturn([
-            '*compile-mode*' => $symbol,
+            '*build-mode*' => $symbol,
         ]);
 
         $normalizer = new PhelFnNormalizer($phelFnLoader);
@@ -206,11 +206,11 @@ final class PhelFnNormalizerTest extends TestCase
 
         $expected = [
             PhelFunction::fromArray([
-                'fnName' => '*compile-mode*',
+                'fnName' => '*build-mode*',
                 'doc' => '',
                 'fnSignature' => '',
                 'desc' => '',
-                'groupKey' => 'compile-mode',
+                'groupKey' => 'build-mode',
             ]),
         ];
 

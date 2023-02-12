@@ -6,5 +6,5 @@
 
 (println "This is printed")
 
-(when-not *compile-mode*
+(when-not *build-mode*
   (println "This is not printed"))
