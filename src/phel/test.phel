@@ -10,6 +10,8 @@
 
 (def- testdox? (var false))
 
+(def- *current-test-name* nil)
+
 (def- stats (var {:failed []
                   :counts {:failed 0
                            :error 0
@@ -18,7 +20,7 @@
 
 (defn- print-report-testdox-state [data state]
   (let [s (case state :failed "✘" :pass "✔" :error "E")
-        message (or (:message data) "no test message found")]
+        message (str *current-test-name* ": " (or (:message data) "no test message found"))]
     (println s message)))
 
 (defn- print-report-state [state]
@@ -197,7 +199,8 @@
   "Defines a test function with no arguments."
   [test-name & body]
   `(defn ,test-name {:test true :test-name ,(name test-name)} []
-     ,@body))
+     (binding [*current-test-name* ,(name test-name)]
+       ,@body)))
 
 # ---------------------
 # error/failure printer
