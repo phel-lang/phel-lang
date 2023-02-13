@@ -2,17 +2,16 @@
 
 declare(strict_types=1);
 
-return [
-    'src-dirs' => ['src/phel'],
-    'test-dirs' => ['tests/phel'],
-    'vendor-dir' => 'vendor',
-    'export' => [
-        'directories' => ['src/phel'],
-        'namespace-prefix' => 'PhelGenerated',
-        'target-directory' => 'src/PhelGenerated',
-    ],
-    'out-dir' => 'out',
-    'ignore-when-building' => ['src/phel/local.phel'],
-    'keep-generated-temp-files' => false,
-    'format-dirs' => ['src', 'tests'],
-];
+return (new \Phel\Config\PhelConfig())
+    ->setSrcDirs(['src/phel'])
+    ->setTestDirs(['tests/phel'])
+    ->setVendorDir('vendor')
+    ->setOutDir('out')
+    ->setExport((new \Phel\Config\PhelExportConfig())
+        ->setDirectories(['src/phel'])
+        ->setNamespacePrefix('PhelGenerated')
+        ->setTargetDirectory('src/PhelGenerated'))
+    ->setIgnoreWhenBuilding(['src/phel/local.phel'])
+    ->setKeepGeneratedTempFiles(false)
+    ->setFormatDirs(['src', 'tests'])
+;
