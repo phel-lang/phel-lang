@@ -4,7 +4,14 @@ declare(strict_types=1);
 
 namespace Phel\Config;
 
-final class PhelConfig
+use JsonSerializable;
+use Phel\Build\BuildConfig;
+use Phel\Command\CommandConfig;
+use Phel\Filesystem\FilesystemConfig;
+use Phel\Formatter\FormatterConfig;
+use Phel\Interop\InteropConfig;
+
+final class PhelConfig implements JsonSerializable
 {
     private array $srcDirs = ['src/phel'];
     private array $testDirs = ['tests/phel'];
@@ -114,5 +121,23 @@ final class PhelConfig
         $this->formatDirs = $formatDirs;
 
         return $this;
+    }
+
+    public function jsonSerialize(): array
+    {
+        return [
+            CommandConfig::SRC_DIRS => $this->getSrcDirs(),
+            CommandConfig::TEST_DIRS => $this->getTestDirs(),
+            CommandConfig::VENDOR_DIR => $this->getVendorDir(),
+            CommandConfig::OUTPUT_DIR => $this->getOutDir(),
+            InteropConfig::EXPORT => [
+                InteropConfig::EXPORT_TARGET_DIRECTORY => $this->getExport()->getTargetDirectory(),
+                InteropConfig::EXPORT_DIRECTORIES => $this->getExport()->getDirectories(),
+                InteropConfig::EXPORT_NAMESPACE_PREFIX => $this->getExport()->getNamespacePrefix(),
+            ],
+            BuildConfig::IGNORE_WHEN_BUILDING => $this->getIgnoreWhenBuilding(),
+            FilesystemConfig::KEEP_GENERATED_TEMP_FILES => $this->isKeepGeneratedTempFiles(),
+            FormatterConfig::FORMAT_DIRS => $this->getFormatDirs(),
+        ];
     }
 }

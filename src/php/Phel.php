@@ -7,7 +7,6 @@ namespace Phel;
 use Closure;
 use Gacela\Framework\Bootstrap\GacelaConfig;
 use Gacela\Framework\Gacela;
-use Phel\Config\ConfigReader;
 use Phel\Run\RunFacade;
 
 use function in_array;
@@ -43,7 +42,7 @@ final class Phel
     public static function configFn(): callable
     {
         return static function (GacelaConfig $config): void {
-            $config->addAppConfig(self::PHEL_CONFIG_FILE_NAME, self::PHEL_CONFIG_LOCAL_FILE_NAME, new ConfigReader());
+            $config->addAppConfig(self::PHEL_CONFIG_FILE_NAME, self::PHEL_CONFIG_LOCAL_FILE_NAME);
         };
     }
 
