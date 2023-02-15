@@ -6,6 +6,7 @@ All notable changes to this project will be documented in this file.
 
 * Added default format paths: 'src', 'tests' (#569)
 * Deprecate `*compile-mode*` in favor of `*build-mode*` (#570)
+* Added `--testdox` argument to `phel test` command (#567)
 
 ## 0.9.0 (2023-02-05)
 

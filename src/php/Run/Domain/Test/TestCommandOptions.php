@@ -10,31 +10,36 @@ use Phel\Printer\Printer;
 final class TestCommandOptions
 {
     public const FILTER = 'filter';
+    public const TESTDOX = 'testdox';
 
-    private string $filter = '';
+    private function __construct(
+        private ?string $filter,
+        private bool $testdox,
+    ) {
+    }
 
     public static function empty(): self
     {
-        return new self();
+        return self::fromArray([self::FILTER => null]);
     }
 
     public static function fromArray(array $options): self
     {
-        $self = new self();
-        $self->filter = $options[self::FILTER] ?? '';
-
-        return $self;
+        return new self(
+            $options[self::FILTER] ?? null,
+            !empty($options[self::TESTDOX]),
+        );
     }
 
     public function asPhelHashMap(): string
     {
-        $filter = empty($this->filter) ? null : $this->filter;
-
         $typeFactory = TypeFactory::getInstance();
 
         $optionsMap = $typeFactory->persistentMapFromKVs(
             $typeFactory->keyword(self::FILTER),
-            $filter,
+            $this->filter,
+            $typeFactory->keyword(self::TESTDOX),
+            $this->testdox,
         );
 
         return Printer::readable()->print($optionsMap);
