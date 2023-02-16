@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace Phel\Command\Domain\Finder;
 
 use Phel\Command\CommandConfig;
-
 use Phel\Phel;
 
 use function dirname;
