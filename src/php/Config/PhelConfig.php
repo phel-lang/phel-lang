@@ -13,13 +13,20 @@ use Phel\Interop\InteropConfig;
 
 final class PhelConfig implements JsonSerializable
 {
+    /** @var list<string> */
     private array $srcDirs = ['src/phel'];
+
+    /** @var list<string> */
     private array $testDirs = ['tests/phel'];
     private string $vendorDir = 'vendor';
     private string $outDir = 'out';
     private PhelExportConfig $export;
+
+    /** @var list<string> */
     private array $ignoreWhenBuilding = ['src/phel/local.phel'];
     private bool $keepGeneratedTempFiles = false;
+
+    /** @var list<string> */
     private array $formatDirs = ['src', 'tests'];
 
     public function __construct()
@@ -32,6 +39,9 @@ final class PhelConfig implements JsonSerializable
         return $this->srcDirs;
     }
 
+    /**
+     * @param list<string> $srcDirs
+     */
     public function setSrcDirs(array $srcDirs): self
     {
         $this->srcDirs = $srcDirs;
@@ -44,6 +54,9 @@ final class PhelConfig implements JsonSerializable
         return $this->testDirs;
     }
 
+    /**
+     * @param list<string> $testDirs
+     */
     public function setTestDirs(array $testDirs): self
     {
         $this->testDirs = $testDirs;
@@ -92,6 +105,9 @@ final class PhelConfig implements JsonSerializable
         return $this->ignoreWhenBuilding;
     }
 
+    /**
+     * @param list<string> $ignoreWhenBuilding
+     */
     public function setIgnoreWhenBuilding(array $ignoreWhenBuilding): self
     {
         $this->ignoreWhenBuilding = $ignoreWhenBuilding;
@@ -116,6 +132,9 @@ final class PhelConfig implements JsonSerializable
         return $this->formatDirs;
     }
 
+    /**
+     * @param list<string> $formatDirs
+     */
     public function setFormatDirs(array $formatDirs): self
     {
         $this->formatDirs = $formatDirs;
@@ -130,11 +149,7 @@ final class PhelConfig implements JsonSerializable
             CommandConfig::TEST_DIRS => $this->getTestDirs(),
             CommandConfig::VENDOR_DIR => $this->getVendorDir(),
             CommandConfig::OUTPUT_DIR => $this->getOutDir(),
-            InteropConfig::EXPORT => [
-                InteropConfig::EXPORT_TARGET_DIRECTORY => $this->getExport()->getTargetDirectory(),
-                InteropConfig::EXPORT_DIRECTORIES => $this->getExport()->getDirectories(),
-                InteropConfig::EXPORT_NAMESPACE_PREFIX => $this->getExport()->getNamespacePrefix(),
-            ],
+            InteropConfig::EXPORT => $this->getExport()->jsonSerialize(),
             BuildConfig::IGNORE_WHEN_BUILDING => $this->getIgnoreWhenBuilding(),
             FilesystemConfig::KEEP_GENERATED_TEMP_FILES => $this->isKeepGeneratedTempFiles(),
             FormatterConfig::FORMAT_DIRS => $this->getFormatDirs(),

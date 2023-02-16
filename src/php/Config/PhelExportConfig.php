@@ -4,8 +4,12 @@ declare(strict_types=1);
 
 namespace Phel\Config;
 
-final class PhelExportConfig
+use JsonSerializable;
+use Phel\Interop\InteropConfig;
+
+final class PhelExportConfig implements JsonSerializable
 {
+    /** @var list<string> */
     private array $directories = ['src/phel'];
     private string $namespacePrefix = 'PhelGenerated';
     private string $targetDirectory = 'src/PhelGenerated';
@@ -15,6 +19,9 @@ final class PhelExportConfig
         return $this->directories;
     }
 
+    /**
+     * @param list<string> $directories
+     */
     public function setDirectories(array $directories): self
     {
         $this->directories = $directories;
@@ -44,5 +51,14 @@ final class PhelExportConfig
         $this->targetDirectory = $targetDirectory;
 
         return $this;
+    }
+
+    public function jsonSerialize(): array
+    {
+        return [
+            InteropConfig::EXPORT_TARGET_DIRECTORY => $this->getTargetDirectory(),
+            InteropConfig::EXPORT_DIRECTORIES => $this->getDirectories(),
+            InteropConfig::EXPORT_NAMESPACE_PREFIX => $this->getNamespacePrefix(),
+        ];
     }
 }
