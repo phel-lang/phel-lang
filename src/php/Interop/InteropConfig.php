@@ -10,9 +10,9 @@ final class InteropConfig extends AbstractConfig
 {
     public const EXPORT = 'export';
 
-    private const EXPORT_DIRECTORIES = 'directories';
-    private const EXPORT_NAMESPACE_PREFIX = 'namespace-prefix';
-    private const EXPORT_TARGET_DIRECTORY = 'target-directory';
+    public const EXPORT_DIRECTORIES = 'directories';
+    public const EXPORT_NAMESPACE_PREFIX = 'namespace-prefix';
+    public const EXPORT_TARGET_DIRECTORY = 'target-directory';
 
     private const DEFAULT_EXPORT_DIRECTORIES = ['src'];
     private const DEFAULT_EXPORT_NAMESPACE_PREFIX = 'PhelGenerated';
