@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Phel\Command;
 
 use Gacela\Framework\AbstractFactory;
+use Gacela\Framework\Config\ConfigReader\PhpConfigReader;
 use Phel\Command\Domain\Finder\ComposerVendorDirectoriesFinder;
 use Phel\Command\Domain\Finder\DirectoryFinder;
 use Phel\Command\Domain\Finder\DirectoryFinderInterface;
@@ -49,6 +50,11 @@ final class CommandFactory extends AbstractFactory
             $this->getConfig()->getCodeDirs(),
             $this->createComposerVendorDirectoriesFinder(),
         );
+    }
+
+    public function getPhpConfigReader(): PhpConfigReader
+    {
+        return $this->getProvidedDependency(CommandDependencyProvider::PHP_CONFIG_READER);
     }
 
     private function createComposerVendorDirectoriesFinder(): VendorDirectoriesFinderInterface

@@ -4,16 +4,20 @@ declare(strict_types=1);
 
 namespace Phel\Command\Domain\Finder;
 
+use Gacela\Framework\DocBlockResolverAwareTrait;
 use Phel\Command\CommandConfig;
-use Phel\Config\PhelConfig;
-use Phel\Config\PhelConfigException;
+use Phel\Command\CommandFacade;
 use Phel\Phel;
 
 use function dirname;
-use function is_array;
 
+/**
+ * @method CommandFacade getFacade()
+ */
 final class ComposerVendorDirectoriesFinder implements VendorDirectoriesFinderInterface
 {
+    use DocBlockResolverAwareTrait;
+
     public function __construct(private string $vendorDirectory)
     {
     }
@@ -29,34 +33,15 @@ final class ComposerVendorDirectoriesFinder implements VendorDirectoriesFinderIn
         $result = [];
 
         foreach (glob($pattern) as $phelConfigPath) {
-            $pathPrefix = dirname($phelConfigPath);
-            $phelConfig = $this->parsePhelConfigAsArray($phelConfigPath);
-            $sourceDirectories = $phelConfig[CommandConfig::SRC_DIRS] ?? [];
+            $config = $this->getFacade()->readPhelConfig($phelConfigPath);
+
+            $sourceDirectories = $config[CommandConfig::SRC_DIRS] ?? [];
 
             foreach ($sourceDirectories as $directory) {
-                $result[] = $pathPrefix . '/' . $directory;
+                $result[] = dirname($phelConfigPath) . '/' . $directory;
             }
         }
 
         return $result;
-    }
-
-    private function parsePhelConfigAsArray(string $phelConfigPath): array
-    {
-        /**
-         * @psalm-suppress UnresolvableInclude
-         *
-         * @var array|PhelConfig|mixed $phelConfig
-         */
-        $phelConfig = require $phelConfigPath;
-        if ($phelConfig instanceof PhelConfig) {
-            return $phelConfig->jsonSerialize();
-        }
-
-        if (!is_array($phelConfig)) {
-            throw PhelConfigException::wrongType();
-        }
-
-        return $phelConfig;
     }
 }
