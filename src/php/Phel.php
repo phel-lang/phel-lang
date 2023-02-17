@@ -43,6 +43,7 @@ final class Phel
     {
         return static function (GacelaConfig $config): void {
             $config->addAppConfig(self::PHEL_CONFIG_FILE_NAME, self::PHEL_CONFIG_LOCAL_FILE_NAME);
+            $config->setFileCacheEnabled(true);
         };
     }
 
