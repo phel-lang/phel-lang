@@ -48,4 +48,9 @@ interface CommandFacadeInterface
     public function getVendorSourceDirectories(): array;
 
     public function getOutputDirectory(): string;
+
+    /**
+     * @return array<string,mixed>
+     */
+    public function readPhelConfig(string $absolutePath): array;
 }
