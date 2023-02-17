@@ -7,7 +7,6 @@ namespace Phel\Command\Domain\Finder;
 use Gacela\Framework\DocBlockResolverAwareTrait;
 use Phel\Command\CommandConfig;
 use Phel\Command\CommandFacade;
-use Phel\Config\WrongPhelConfigType;
 use Phel\Phel;
 use RuntimeException;
 
@@ -38,7 +37,7 @@ final class ComposerVendorDirectoriesFinder implements VendorDirectoriesFinderIn
             try {
                 $config = $this->getFacade()->readPhelConfig($phelConfigPath);
             } catch (RuntimeException $e) {
-                WrongPhelConfigType::warning($phelConfigPath);
+                $this->triggerNotice($phelConfigPath);
                 continue;
             }
 
@@ -50,5 +49,16 @@ final class ComposerVendorDirectoriesFinder implements VendorDirectoriesFinderIn
         }
 
         return $result;
+    }
+
+    public function triggerNotice(string $phelConfigPath): void
+    {
+        $message = sprintf(
+            'The "%s" must return an array or a PhelConfig object. Path: %s',
+            Phel::PHEL_CONFIG_FILE_NAME,
+            $phelConfigPath,
+        );
+
+        trigger_error($message);
     }
 }
