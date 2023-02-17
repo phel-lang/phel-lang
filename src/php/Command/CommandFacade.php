@@ -113,6 +113,8 @@ final class CommandFacade extends AbstractFacade implements CommandFacadeInterfa
 
     public function readPhelConfig(string $absolutePath): array
     {
-        return $this->getFactory()->getPhpConfigReader()->read($absolutePath);
+        return $this->getFactory()
+            ->getPhpConfigReader()
+            ->read($absolutePath);
     }
 }

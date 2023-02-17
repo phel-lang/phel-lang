@@ -6,6 +6,7 @@ namespace PhelTest\Integration\Command\Domain\DirectoryFinder;
 
 use Gacela\Framework\Gacela;
 use Phel\Command\Domain\Finder\ComposerVendorDirectoriesFinder;
+use Phel\Config\PhelConfigException;
 use Phel\Phel;
 use PHPUnit\Framework\TestCase;
 
@@ -14,6 +15,14 @@ final class ComposerVendorDirectoriesFinderTest extends TestCase
     protected function setUp(): void
     {
         Gacela::bootstrap(__DIR__, Phel::configFn());
+    }
+
+    public function test_exception_when_wrong_type(): void
+    {
+        $this->expectExceptionObject(PhelConfigException::wrongType());
+
+        $finder = new ComposerVendorDirectoriesFinder(vendorDirectory: __DIR__ . '/wrong-testing-vendor');
+        $finder->findPhelSourceDirectories();
     }
 
     public function test_find_phel_source_directories(): void
