@@ -7,7 +7,7 @@ namespace Phel\Command\Domain\Finder;
 use Gacela\Framework\DocBlockResolverAwareTrait;
 use Phel\Command\CommandConfig;
 use Phel\Command\CommandFacade;
-use Phel\Config\PhelConfigException;
+use Phel\Config\WrongPhelConfigType;
 use Phel\Phel;
 use RuntimeException;
 
@@ -38,7 +38,8 @@ final class ComposerVendorDirectoriesFinder implements VendorDirectoriesFinderIn
             try {
                 $config = $this->getFacade()->readPhelConfig($phelConfigPath);
             } catch (RuntimeException $e) {
-                throw PhelConfigException::wrongType($phelConfigPath);
+                WrongPhelConfigType::warning($phelConfigPath);
+                continue;
             }
 
             $sourceDirectories = $config[CommandConfig::SRC_DIRS] ?? [];
