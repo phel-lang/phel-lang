@@ -19,7 +19,8 @@ final class ComposerVendorDirectoriesFinderTest extends TestCase
 
     public function test_exception_when_wrong_type(): void
     {
-        $this->expectExceptionObject(PhelConfigException::wrongType());
+        $phelConfigPath = __DIR__ . '/wrong-testing-vendor/root-1/root-2/phel-config.php';
+        $this->expectExceptionObject(PhelConfigException::wrongType($phelConfigPath));
 
         $finder = new ComposerVendorDirectoriesFinder(vendorDirectory: __DIR__ . '/wrong-testing-vendor');
         $finder->findPhelSourceDirectories();
