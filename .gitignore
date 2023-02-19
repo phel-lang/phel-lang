@@ -1,7 +1,6 @@
 .idea/
 .phpbench/
 .vscode/
-.gacela/
 data/
 out/
 PhelGenerated/
@@ -14,5 +13,5 @@ vendor/
 .phel-repl-history
 local.phel
 phel-config-local.php
-gacela.php
+gacela*.php
 src/php/Api/Infrastructure/phel/doc.phel
