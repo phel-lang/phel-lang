@@ -24,7 +24,7 @@ final class ComposerVendorDirectoriesFinderTest extends TestCase
         set_error_handler(static function (int $errno, string $errstr) use (&$errors): void {
             $errors[] = [
                 'errno' => $errno,
-                'errstr' => $errstr
+                'errstr' => $errstr,
             ];
         }, E_USER_NOTICE);
 
