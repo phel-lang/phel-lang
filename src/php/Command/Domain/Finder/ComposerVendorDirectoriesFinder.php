@@ -36,7 +36,7 @@ final class ComposerVendorDirectoriesFinder implements VendorDirectoriesFinderIn
         foreach (glob($pattern) as $phelConfigPath) {
             try {
                 $config = $this->getFacade()->readPhelConfig($phelConfigPath);
-            } catch (RuntimeException $e) {
+            } catch (RuntimeException) {
                 $this->triggerNotice($phelConfigPath);
                 continue;
             }
