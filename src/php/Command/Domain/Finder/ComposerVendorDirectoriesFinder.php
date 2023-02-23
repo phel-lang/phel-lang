@@ -8,6 +8,7 @@ use Gacela\Framework\DocBlockResolverAwareTrait;
 use Phel\Command\CommandConfig;
 use Phel\Command\CommandFacade;
 use Phel\Phel;
+use RuntimeException;
 
 use function dirname;
 
@@ -33,7 +34,12 @@ final class ComposerVendorDirectoriesFinder implements VendorDirectoriesFinderIn
         $result = [];
 
         foreach (glob($pattern) as $phelConfigPath) {
-            $config = $this->getFacade()->readPhelConfig($phelConfigPath);
+            try {
+                $config = $this->getFacade()->readPhelConfig($phelConfigPath);
+            } catch (RuntimeException) {
+                $this->triggerNotice($phelConfigPath);
+                continue;
+            }
 
             $sourceDirectories = $config[CommandConfig::SRC_DIRS] ?? [];
 
@@ -43,5 +49,16 @@ final class ComposerVendorDirectoriesFinder implements VendorDirectoriesFinderIn
         }
 
         return $result;
+    }
+
+    public function triggerNotice(string $phelConfigPath): void
+    {
+        $message = sprintf(
+            'The "%s" must return an array or a PhelConfig object. Path: %s',
+            Phel::PHEL_CONFIG_FILE_NAME,
+            $phelConfigPath,
+        );
+
+        trigger_error($message);
     }
 }

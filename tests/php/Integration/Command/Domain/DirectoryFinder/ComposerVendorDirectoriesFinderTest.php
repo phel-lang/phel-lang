@@ -16,6 +16,31 @@ final class ComposerVendorDirectoriesFinderTest extends TestCase
         Gacela::bootstrap(__DIR__, Phel::configFn());
     }
 
+    public function test_trigger_notice_when_wrong_type(): void
+    {
+        $errors = [];
+
+        // @see https://github.com/sebastianbergmann/phpunit/issues/5062#issuecomment-1416362657
+        set_error_handler(static function (int $errno, string $errstr) use (&$errors): void {
+            $errors[] = [
+                'errno' => $errno,
+                'errstr' => $errstr,
+            ];
+        }, E_USER_NOTICE);
+
+        $finder = new ComposerVendorDirectoriesFinder(vendorDirectory: __DIR__ . '/wrong-testing-vendor');
+        $dirs = $finder->findPhelSourceDirectories();
+
+        self::assertCount(1, $errors);
+        self::assertMatchesRegularExpression('#The ".*" must return an array or a PhelConfig object. Path: .*#', $errors[0]['errstr']);
+        self::assertSame(1024, $errors[0]['errno']);
+
+        self::assertCount(1, $dirs);
+        self::assertMatchesRegularExpression('#.*/wrong-testing-vendor/root-1/root-3/custom-src-3#', $dirs[0]);
+
+        restore_error_handler();
+    }
+
     public function test_find_phel_source_directories(): void
     {
         $finder = new ComposerVendorDirectoriesFinder(vendorDirectory: __DIR__ . '/testing-vendor');
