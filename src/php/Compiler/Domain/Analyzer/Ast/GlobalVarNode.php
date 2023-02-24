@@ -41,4 +41,9 @@ final class GlobalVarNode extends AbstractNode
     {
         return $this->meta[Keyword::create('macro')] === true;
     }
+
+    public function useReference(): bool
+    {
+        return $this->getEnv()->useGlobalReference();
+    }
 }

@@ -50,6 +50,8 @@ interface NodeEnvironmentInterface
 
     public function withContext(string $context): self;
 
+    public function withUseGlobalReference(bool $useGlobalReference): self;
+
     public function withAddedRecurFrame(RecurFrame $frame): self;
 
     public function withDisallowRecurFrame(): self;
@@ -63,4 +65,6 @@ interface NodeEnvironmentInterface
     public function getBoundTo(): string;
 
     public function isDefAllowed(): bool;
+
+    public function useGlobalReference(): bool;
 }

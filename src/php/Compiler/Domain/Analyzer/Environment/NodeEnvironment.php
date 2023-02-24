@@ -16,6 +16,9 @@ final class NodeEnvironment implements NodeEnvironmentInterface
     /** Def inside of def should not work. This flag help us to keep track of this. */
     private bool $defAllowed = true;
 
+    /** Use Registery::getDefinitionReference() instead of Registry::getDefinition() */
+    private bool $globalReference = false;
+
     /**
      * @param array<int, Symbol> $locals A list of local symbols
      * @param string $context The current context (Expression, Statement or Return)
@@ -126,6 +129,14 @@ final class NodeEnvironment implements NodeEnvironmentInterface
         return $result;
     }
 
+    public function withUseGlobalReference(bool $useGlobalReference): NodeEnvironmentInterface
+    {
+        $result = clone $this;
+        $result->globalReference = $useGlobalReference;
+
+        return $result;
+    }
+
     public function withAddedRecurFrame(RecurFrame $frame): NodeEnvironmentInterface
     {
         $result = clone $this;
@@ -175,5 +186,10 @@ final class NodeEnvironment implements NodeEnvironmentInterface
     public function isDefAllowed(): bool
     {
         return $this->defAllowed;
+    }
+
+    public function useGlobalReference(): bool
+    {
+        return $this->globalReference;
     }
 }

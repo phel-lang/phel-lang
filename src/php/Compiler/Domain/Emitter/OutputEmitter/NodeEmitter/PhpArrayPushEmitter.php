@@ -19,10 +19,11 @@ final class PhpArrayPushEmitter implements NodeEmitterInterface
         assert($node instanceof PhpArrayPushNode);
 
         $this->outputEmitter->emitContextPrefix($node->getEnv(), $node->getStartSourceLocation());
-        $this->outputEmitter->emitStr('(', $node->getStartSourceLocation());
+        $this->outputEmitter->emitStr('array_push(', $node->getStartSourceLocation());
         $this->outputEmitter->emitNode($node->getArrayExpr());
-        $this->outputEmitter->emitStr(')[] = ', $node->getStartSourceLocation());
+        $this->outputEmitter->emitStr(', ', $node->getStartSourceLocation());
         $this->outputEmitter->emitNode($node->getValueExpr());
+        $this->outputEmitter->emitStr(')', $node->getStartSourceLocation());
         $this->outputEmitter->emitContextSuffix($node->getEnv(), $node->getStartSourceLocation());
     }
 }
