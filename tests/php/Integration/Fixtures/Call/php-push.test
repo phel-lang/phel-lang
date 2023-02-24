@@ -3,4 +3,4 @@
   (php/apush arr 4))
 --PHP--
 $arr_1 = array(1, 2, 3);
-array_push($arr_1, 4);
+($arr_1)[] = 4;

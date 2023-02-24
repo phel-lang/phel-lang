@@ -19,4 +19,4 @@
     )
   )
 );
-array_push(\Phel\Lang\Registry::getInstance()->getDefinitionReference("user", "arr"), 4);
+(\Phel\Lang\Registry::getInstance()->getDefinitionReference("user", "arr"))[] = 4;
