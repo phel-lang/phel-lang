@@ -33,9 +33,9 @@ final class RegistryTest extends TestCase
     {
         $this->registry->addDefinition('ns', 'array', [1, 2, 3]);
         $this->registry->getDefinition('ns', 'array')[] = 4;
-        $a = $this->registry->getDefinition('ns', 'array');
+        $actual = $this->registry->getDefinition('ns', 'array');
 
-        self::assertSame([1, 2, 3], $a);
+        self::assertSame([1, 2, 3], $actual);
     }
 
     public function test_error_when_non_existing_definition_by_reference(): void
@@ -49,8 +49,8 @@ final class RegistryTest extends TestCase
     {
         $this->registry->addDefinition('ns', 'array', [1, 2, 3]);
         $this->registry->getDefinitionReference('ns', 'array')[] = 4;
-        $b = $this->registry->getDefinition('ns', 'array');
+        $actual = $this->registry->getDefinition('ns', 'array');
 
-        self::assertSame([1, 2, 3, 4], $b);
+        self::assertSame([1, 2, 3, 4], $actual);
     }
 }
