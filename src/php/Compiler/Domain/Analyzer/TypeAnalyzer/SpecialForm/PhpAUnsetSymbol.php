@@ -17,7 +17,7 @@ final class PhpAUnsetSymbol implements SpecialFormAnalyzerInterface
 
     public function analyze(PersistentListInterface $list, NodeEnvironmentInterface $env): PhpArrayUnsetNode
     {
-        if ($env->getContext() !== NodeEnvironment::CONTEXT_STATEMENT) {
+        if (!$env->isContext(NodeEnvironment::CONTEXT_STATEMENT)) {
             throw AnalyzerException::withLocation("'php/unset can only be called as Statement and not as Expression", $list);
         }
 

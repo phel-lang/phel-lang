@@ -19,8 +19,8 @@ final class LetEmitter implements NodeEmitterInterface
     {
         assert($node instanceof LetNode);
 
-        $wrapFn = $node->getEnv()->getContext() === NodeEnvironment::CONTEXT_EXPRESSION;
-        if ($wrapFn) {
+        $isWrapFn = $node->getEnv()->isContext(NodeEnvironment::CONTEXT_EXPRESSION);
+        if ($isWrapFn) {
             $this->outputEmitter->emitFnWrapPrefix($node->getEnv(), $node->getStartSourceLocation());
         }
 
@@ -44,7 +44,7 @@ final class LetEmitter implements NodeEmitterInterface
             $this->outputEmitter->emitStr('}', $node->getStartSourceLocation());
         }
 
-        if ($wrapFn) {
+        if ($isWrapFn) {
             $this->outputEmitter->emitFnWrapSuffix($node->getStartSourceLocation());
         }
     }

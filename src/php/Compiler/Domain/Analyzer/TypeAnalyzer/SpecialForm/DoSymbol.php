@@ -34,7 +34,7 @@ final class DoSymbol implements SpecialFormAnalyzerInterface
                 $envStmt = $env;
             } elseif ($forms->cdr() == null && count($stmts) > 0) {
                 // Return statement
-                $envStmt = $env->getContext() === NodeEnvironment::CONTEXT_STATEMENT
+                $envStmt = $env->isContext(NodeEnvironment::CONTEXT_STATEMENT)
                     ? $env->withStatementContext()
                     : $env->withreturnContext();
             } else {

@@ -116,14 +116,14 @@ final class OutputEmitter implements OutputEmitterInterface
 
     public function emitContextPrefix(NodeEnvironmentInterface $env, ?SourceLocation $sl = null): void
     {
-        if ($env->getContext() === NodeEnvironment::CONTEXT_RETURN) {
+        if ($env->isContext(NodeEnvironment::CONTEXT_RETURN)) {
             $this->emitStr('return ', $sl);
         }
     }
 
     public function emitContextSuffix(NodeEnvironmentInterface $env, ?SourceLocation $sl = null): void
     {
-        if ($env->getContext() !== NodeEnvironment::CONTEXT_EXPRESSION) {
+        if (!$env->isContext(NodeEnvironment::CONTEXT_EXPRESSION)) {
             $this->emitStr(';', $sl);
         }
     }

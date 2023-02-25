@@ -8,6 +8,8 @@ interface ContextualEnvironmentInterface
 {
     public function getContext(): string;
 
+    public function isContext(string $context): bool;
+
     public function withReturnContext(): static;
 
     public function withStatementContext(): static;

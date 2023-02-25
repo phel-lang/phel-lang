@@ -81,6 +81,11 @@ final class NodeEnvironment implements NodeEnvironmentInterface
         return $this->context;
     }
 
+    public function isContext(string $context): bool
+    {
+        return $this->context === $context;
+    }
+
     public function withMergedLocals(array $locals): NodeEnvironmentInterface
     {
         $allLocalSymbols = array_merge(

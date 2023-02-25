@@ -19,7 +19,7 @@ final class LiteralEmitter implements NodeEmitterInterface
     {
         assert($node instanceof LiteralNode);
 
-        if (!($node->getEnv()->getContext() === NodeEnvironment::CONTEXT_STATEMENT)) {
+        if (!$node->getEnv()->isContext(NodeEnvironment::CONTEXT_STATEMENT)) {
             $this->outputEmitter->emitContextPrefix($node->getEnv(), $node->getStartSourceLocation());
             $this->outputEmitter->emitLiteral($node->getValue());
             $this->outputEmitter->emitContextSuffix($node->getEnv(), $node->getStartSourceLocation());

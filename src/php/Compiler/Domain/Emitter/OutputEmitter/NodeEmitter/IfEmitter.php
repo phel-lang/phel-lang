@@ -19,7 +19,7 @@ final class IfEmitter implements NodeEmitterInterface
     {
         assert($node instanceof IfNode);
 
-        if ($node->getEnv()->getContext() === NodeEnvironment::CONTEXT_EXPRESSION) {
+        if ($node->getEnv()->isContext(NodeEnvironment::CONTEXT_EXPRESSION)) {
             $this->emitTernaryCondition($node);
         } else {
             $this->emitIfElseCondition($node);

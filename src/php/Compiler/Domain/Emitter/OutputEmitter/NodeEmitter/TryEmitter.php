@@ -25,7 +25,7 @@ final class TryEmitter implements NodeEmitterInterface
             return;
         }
 
-        if ($node->getEnv()->getContext() === NodeEnvironment::CONTEXT_EXPRESSION) {
+        if ($node->getEnv()->isContext(NodeEnvironment::CONTEXT_EXPRESSION)) {
             $this->outputEmitter->emitFnWrapPrefix($node->getEnv(), $node->getStartSourceLocation());
         }
 
@@ -33,7 +33,7 @@ final class TryEmitter implements NodeEmitterInterface
         $this->emitCatch($node);
         $this->emitFinally($node);
 
-        if ($node->getEnv()->getContext() === NodeEnvironment::CONTEXT_EXPRESSION) {
+        if ($node->getEnv()->isContext(NodeEnvironment::CONTEXT_EXPRESSION)) {
             $this->outputEmitter->emitFnWrapSuffix($node->getStartSourceLocation());
         }
     }

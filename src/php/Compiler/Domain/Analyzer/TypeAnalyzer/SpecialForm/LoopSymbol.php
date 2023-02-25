@@ -113,7 +113,7 @@ final class LoopSymbol implements SpecialFormAnalyzerInterface
         $bodyEnv = $env
             ->withMergedLocals($locals)
             ->withContext(
-                $env->getContext() === NodeEnvironment::CONTEXT_EXPRESSION
+                $env->isContext(NodeEnvironment::CONTEXT_EXPRESSION)
                     ? NodeEnvironment::CONTEXT_RETURN
                     : $env->getContext(),
             );

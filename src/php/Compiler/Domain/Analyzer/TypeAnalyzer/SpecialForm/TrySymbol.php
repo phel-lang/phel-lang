@@ -76,7 +76,10 @@ final class TrySymbol implements SpecialFormAnalyzerInterface
             );
         }
 
-        $catchCtx = $env->getContext() === NodeEnvironment::CONTEXT_EXPRESSION ? NodeEnvironment::CONTEXT_RETURN : $env->getContext();
+        $catchCtx = $env->isContext(NodeEnvironment::CONTEXT_EXPRESSION)
+            ? NodeEnvironment::CONTEXT_RETURN
+            : $env->getContext();
+
         $catchNodes = [];
         /** @var PersistentListInterface $catch */
         foreach ($catches as $catch) {
