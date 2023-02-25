@@ -110,13 +110,10 @@ final class LoopSymbol implements SpecialFormAnalyzerInterface
 
         $recurFrame = new RecurFrame($locals);
 
-        $bodyEnv = $env
-            ->withMergedLocals($locals)
-            ->withContext(
-                $env->isContext(NodeEnvironment::CONTEXT_EXPRESSION)
-                    ? NodeEnvironment::CONTEXT_RETURN
-                    : $env->getContext(),
-            );
+        $bodyEnv = $env->withMergedLocals($locals);
+        $bodyEnv = ($env->isContext(NodeEnvironment::CONTEXT_EXPRESSION))
+            ? $bodyEnv->withReturnContext()
+            : $bodyEnv->withEnvContext($env);
 
         $bodyEnv = $bodyEnv->withAddedRecurFrame($recurFrame);
 

@@ -76,14 +76,14 @@ final class NodeEnvironment implements NodeEnvironmentInterface
         return array_key_exists($local->getName(), $this->shadowed);
     }
 
-    public function getContext(): string
-    {
-        return $this->context;
-    }
-
     public function isContext(string $context): bool
     {
         return $this->context === $context;
+    }
+
+    public function getContext(): string
+    {
+        return $this->context;
     }
 
     public function withMergedLocals(array $locals): NodeEnvironmentInterface
@@ -130,19 +130,24 @@ final class NodeEnvironment implements NodeEnvironmentInterface
         return $result;
     }
 
-    public function withReturnContext(): static
+    public function withReturnContext(): self
     {
         return $this->withContext(self::CONTEXT_RETURN);
     }
 
-    public function withStatementContext(): static
+    public function withStatementContext(): self
     {
         return $this->withContext(self::CONTEXT_STATEMENT);
     }
 
-    public function withExpressionContext(): static
+    public function withExpressionContext(): self
     {
         return $this->withContext(self::CONTEXT_EXPRESSION);
+    }
+
+    public function withEnvContext(ContextualEnvironmentInterface $env): self
+    {
+        return $this->withContext($env->getContext());
     }
 
     public function withContext(string $context): static

@@ -65,4 +65,6 @@ interface NodeEnvironmentInterface extends ContextualEnvironmentInterface
     public function withStatementContext(): self;
 
     public function withExpressionContext(): self;
+
+    public function withEnvContext(ContextualEnvironmentInterface $env): self;
 }

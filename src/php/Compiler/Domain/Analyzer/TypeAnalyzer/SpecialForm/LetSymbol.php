@@ -74,13 +74,10 @@ final class LetSymbol implements SpecialFormAnalyzerInterface
             $locals[] = $binding->getSymbol();
         }
 
-        $bodyEnv = $env
-            ->withMergedLocals($locals)
-            ->withContext(
-                $env->isContext(NodeEnvironment::CONTEXT_EXPRESSION)
-                    ? NodeEnvironment::CONTEXT_RETURN
-                    : $env->getContext(),
-            );
+        $bodyEnv = $env->withMergedLocals($locals);
+        $bodyEnv = ($env->isContext(NodeEnvironment::CONTEXT_EXPRESSION))
+            ? $bodyEnv->withReturnContext()
+            : $bodyEnv->withEnvContext($env);
 
         foreach ($bindings as $binding) {
             $bodyEnv = $bodyEnv->withShadowedLocal($binding->getSymbol(), $binding->getShadow());
