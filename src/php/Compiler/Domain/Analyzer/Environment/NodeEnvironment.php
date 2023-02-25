@@ -125,22 +125,22 @@ final class NodeEnvironment implements NodeEnvironmentInterface
         return $result;
     }
 
-    public function withReturnContext(): NodeEnvironmentInterface
+    public function withReturnContext(): static
     {
         return $this->withContext(self::CONTEXT_RETURN);
     }
 
-    public function withStatementContext(): NodeEnvironmentInterface
+    public function withStatementContext(): static
     {
         return $this->withContext(self::CONTEXT_STATEMENT);
     }
 
-    public function withExpressionContext(): NodeEnvironmentInterface
+    public function withExpressionContext(): static
     {
         return $this->withContext(self::CONTEXT_EXPRESSION);
     }
 
-    public function withContext(string $context): NodeEnvironmentInterface
+    public function withContext(string $context): static
     {
         $result = clone $this;
         $result->context = $context;
