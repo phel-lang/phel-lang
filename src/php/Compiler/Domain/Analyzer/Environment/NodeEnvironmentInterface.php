@@ -59,4 +59,10 @@ interface NodeEnvironmentInterface extends ContextualEnvironmentInterface
     public function isDefAllowed(): bool;
 
     public function useGlobalReference(): bool;
+
+    public function withReturnContext(): self;
+
+    public function withStatementContext(): self;
+
+    public function withExpressionContext(): self;
 }

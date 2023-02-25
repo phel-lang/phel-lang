@@ -10,11 +10,5 @@ interface ContextualEnvironmentInterface
 
     public function isContext(string $context): bool;
 
-    public function withReturnContext(): static;
-
-    public function withStatementContext(): static;
-
-    public function withExpressionContext(): static;
-
     public function withContext(string $context): static;
 }
