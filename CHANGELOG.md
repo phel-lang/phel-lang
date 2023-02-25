@@ -9,6 +9,7 @@ All notable changes to this project will be documented in this file.
 * Added `--testdox` argument to `phel test` command (#567)
 * Added support for fluid configuration in `phel-config.php` (#494)
 * Enable gacela cache filesystem by default (#576)
+* Fix `php/apush`, `php/aset` and `php/aunset` for global php arrays (#579)
 
 ## 0.9.0 (2023-02-05)
 
