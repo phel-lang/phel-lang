@@ -7,6 +7,24 @@
   (is (= 3 (peek (php/array 1 2 3))) "peek on php array")
   (is (nil? (peek (php/array))) "peek on empty php array"))
 
+(def- testing-set-global-array (php/array 1 2 3))
+
+(deftest test-native-global-array-set
+  (php/aset testing-set-global-array 0 4)
+  (is (= (php/array 4 2 3) testing-set-global-array) "native global set on PHP array"))
+
+(def- testing-unset-global-array (php/array 1 2 3))
+
+(deftest test-native-global-array-unset
+  (php/aunset testing-unset-global-array 2)
+  (is (= (php/array 1 2) testing-unset-global-array) "native global unset on PHP array"))
+
+(def- testing-push-global-array (php/array 1 2 3))
+
+(deftest test-native-global-array-push
+  (php/apush testing-push-global-array 4)
+  (is (= (php/array 1 2 3 4) testing-push-global-array) "native global push on PHP array"))
+
 (deftest test-push
   (let [x (php/array)]
     (php/apush x 1)

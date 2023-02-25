@@ -6,6 +6,8 @@ namespace Phel\Lang;
 
 use Phel\Lang\Collections\Map\PersistentMapInterface;
 
+use RuntimeException;
+
 use function array_key_exists;
 
 final class Registry
@@ -52,6 +54,16 @@ final class Registry
     public function getDefinition(string $ns, string $name): mixed
     {
         return $this->definitions[$ns][$name] ?? null;
+    }
+
+    public function &getDefinitionReference(string $ns, string $name): mixed
+    {
+        if (isset($this->definitions[$ns][$name])) {
+            $value = &$this->definitions[$ns][$name];
+            return $value;
+        }
+
+        throw new RuntimeException('Only variables can be returned by reference');
     }
 
     public function getDefinitionMetaData(string $ns, string $name): ?PersistentMapInterface
