@@ -6,6 +6,8 @@ namespace Phel\Lang;
 
 use Phel\Lang\Collections\Map\PersistentMapInterface;
 
+use RuntimeException;
+
 use function array_key_exists;
 
 final class Registry
@@ -61,7 +63,7 @@ final class Registry
             return $value;
         }
 
-        return null;
+        throw new RuntimeException('Only variables can be returned by reference');
     }
 
     public function getDefinitionMetaData(string $ns, string $name): ?PersistentMapInterface
