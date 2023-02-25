@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace Phel\Compiler\Domain\Analyzer\TypeAnalyzer\SpecialForm;
 
 use Phel\Compiler\Domain\Analyzer\Ast\SetVarNode;
-use Phel\Compiler\Domain\Analyzer\Environment\NodeEnvironment;
 use Phel\Compiler\Domain\Analyzer\Environment\NodeEnvironmentInterface;
 use Phel\Compiler\Domain\Analyzer\Exceptions\AnalyzerException;
 use Phel\Compiler\Domain\Analyzer\TypeAnalyzer\WithAnalyzerTrait;
@@ -25,8 +24,8 @@ final class SetVarSymbol implements SpecialFormAnalyzerInterface
 
         return new SetVarNode(
             $env,
-            $this->analyzer->analyze($nameSymbol, $env->withContext(NodeEnvironment::CONTEXT_EXPRESSION)),
-            $this->analyzer->analyze($list->get(2), $env->withContext(NodeEnvironment::CONTEXT_EXPRESSION)),
+            $this->analyzer->analyze($nameSymbol, $env->withExpressionContext()),
+            $this->analyzer->analyze($list->get(2), $env->withExpressionContext()),
             $list->getStartLocation(),
         );
     }

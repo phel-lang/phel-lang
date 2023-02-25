@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace Phel\Compiler\Domain\Analyzer\TypeAnalyzer\SpecialForm;
 
 use Phel\Compiler\Domain\Analyzer\Ast\RecurNode;
-use Phel\Compiler\Domain\Analyzer\Environment\NodeEnvironment;
 use Phel\Compiler\Domain\Analyzer\Environment\NodeEnvironmentInterface;
 use Phel\Compiler\Domain\Analyzer\Exceptions\AnalyzerException;
 use Phel\Compiler\Domain\Analyzer\TypeAnalyzer\WithAnalyzerTrait;
@@ -55,7 +54,7 @@ final class RecurSymbol implements SpecialFormAnalyzerInterface
         for ($forms = $list->cdr(); $forms != null; $forms = $forms->cdr()) {
             $expressions[] = $this->analyzer->analyze(
                 $forms->first(),
-                $env->withContext(NodeEnvironment::CONTEXT_EXPRESSION)->withDisallowRecurFrame(),
+                $env->withExpressionContext()->withDisallowRecurFrame(),
             );
         }
 

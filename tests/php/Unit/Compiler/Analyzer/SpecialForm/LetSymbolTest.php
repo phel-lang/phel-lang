@@ -111,7 +111,7 @@ final class LetSymbolTest extends TestCase
                         Symbol::create('a'),
                         Symbol::create('a_1'),
                         new LiteralNode(
-                            $env->withContext(NodeEnvironment::CONTEXT_EXPRESSION)->withDisallowRecurFrame()->withDisallowRecurFrame()->withBoundTo('.a'),
+                            $env->withExpressionContext()->withDisallowRecurFrame()->withDisallowRecurFrame()->withBoundTo('.a'),
                             1,
                         ),
                     ),
@@ -162,16 +162,16 @@ final class LetSymbolTest extends TestCase
             1,
             2,
         ]);
-        $env = NodeEnvironment::empty()->withContext(NodeEnvironment::CONTEXT_EXPRESSION);
+        $env = NodeEnvironment::empty()->withExpressionContext();
 
         $this->assertEquals(
             new LetNode(
                 $env,
                 [],
                 new DoNode(
-                    $env->withContext(NodeEnvironment::CONTEXT_RETURN),
-                    [new LiteralNode($env->withContext(NodeEnvironment::CONTEXT_STATEMENT)->withDisallowRecurFrame(), 1)],
-                    new LiteralNode($env->withContext(NodeEnvironment::CONTEXT_RETURN), 2),
+                    $env->withReturnContext(),
+                    [new LiteralNode($env->withStatementContext()->withDisallowRecurFrame(), 1)],
+                    new LiteralNode($env->withReturnContext(), 2),
                 ),
                 false,
             ),

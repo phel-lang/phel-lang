@@ -23,8 +23,8 @@ final class PhpAUnsetSymbol implements SpecialFormAnalyzerInterface
 
         return new PhpArrayUnsetNode(
             $env,
-            $this->analyzer->analyze($list->get(1), $env->withContext(NodeEnvironment::CONTEXT_EXPRESSION)->withUseGlobalReference(true)),
-            $this->analyzer->analyze($list->get(2), $env->withContext(NodeEnvironment::CONTEXT_EXPRESSION)),
+            $this->analyzer->analyze($list->get(1), $env->withExpressionContext()->withUseGlobalReference(true)),
+            $this->analyzer->analyze($list->get(2), $env->withExpressionContext()),
             $list->getStartLocation(),
         );
     }

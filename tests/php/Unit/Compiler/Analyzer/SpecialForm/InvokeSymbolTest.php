@@ -84,7 +84,7 @@ final class InvokeSymbolTest extends TestCase
         $this->assertEquals(
             new CallNode(
                 $env,
-                new PhpVarNode($env->withContext(NodeEnvironment::CONTEXT_EXPRESSION)->withDisallowRecurFrame(), '+'),
+                new PhpVarNode($env->withExpressionContext()->withDisallowRecurFrame(), '+'),
                 [],
             ),
             $node,
@@ -103,9 +103,9 @@ final class InvokeSymbolTest extends TestCase
         $this->assertEquals(
             new CallNode(
                 $env,
-                new PhpVarNode($env->withContext(NodeEnvironment::CONTEXT_EXPRESSION)->withDisallowRecurFrame(), '+'),
+                new PhpVarNode($env->withExpressionContext()->withDisallowRecurFrame(), '+'),
                 [
-                    new LiteralNode($env->withContext(NodeEnvironment::CONTEXT_EXPRESSION)->withDisallowRecurFrame(), 1),
+                    new LiteralNode($env->withExpressionContext()->withDisallowRecurFrame(), 1),
                 ],
             ),
             $node,
@@ -128,9 +128,9 @@ final class InvokeSymbolTest extends TestCase
                 $env,
                 [
                     new VectorNode(
-                        $env->withContext(NodeEnvironment::CONTEXT_EXPRESSION)->withDisallowRecurFrame(),
+                        $env->withExpressionContext()->withDisallowRecurFrame(),
                         [
-                            new LiteralNode($env->withContext(NodeEnvironment::CONTEXT_EXPRESSION)->withDisallowRecurFrame()->withDisallowRecurFrame(), 1),
+                            new LiteralNode($env->withExpressionContext()->withDisallowRecurFrame()->withDisallowRecurFrame(), 1),
                         ],
                     ),
 
@@ -176,7 +176,7 @@ final class InvokeSymbolTest extends TestCase
         $node = (new InvokeSymbol($this->analyzer))->analyze($list, $env);
 
         $this->assertEquals(
-            new LiteralNode($env->withContext(NodeEnvironment::CONTEXT_STATEMENT), 2),
+            new LiteralNode($env->withStatementContext(), 2),
             $node,
         );
     }
@@ -191,7 +191,7 @@ final class InvokeSymbolTest extends TestCase
         $node = (new InvokeSymbol($this->analyzer))->analyze($list, $env);
 
         $this->assertEquals(
-            new LiteralNode($env->withContext(NodeEnvironment::CONTEXT_STATEMENT), 2),
+            new LiteralNode($env->withStatementContext(), 2),
             $node,
         );
     }
@@ -209,7 +209,7 @@ final class InvokeSymbolTest extends TestCase
             new CallNode(
                 $env,
                 new GlobalVarNode(
-                    $env->withContext(NodeEnvironment::CONTEXT_EXPRESSION)->withDisallowRecurFrame(),
+                    $env->withExpressionContext()->withDisallowRecurFrame(),
                     'user',
                     Symbol::create('my-inline-fn-with-arity'),
                     TypeFactory::getInstance()->persistentMapFromKVs(
@@ -220,7 +220,7 @@ final class InvokeSymbolTest extends TestCase
                     ),
                 ),
                 [
-                    new LiteralNode($env->withContext(NodeEnvironment::CONTEXT_EXPRESSION)->withDisallowRecurFrame(), 'foo'),
+                    new LiteralNode($env->withExpressionContext()->withDisallowRecurFrame(), 'foo'),
                 ],
             ),
             $node,

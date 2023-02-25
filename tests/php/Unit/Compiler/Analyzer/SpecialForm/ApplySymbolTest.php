@@ -49,16 +49,16 @@ final class ApplySymbolTest extends TestCase
         $applyNode = (new ApplySymbol($this->analyzer))->analyze($list, NodeEnvironment::empty());
 
         $envLiteral = NodeEnvironment::empty()
-            ->withContext(NodeEnvironment::CONTEXT_EXPRESSION)
+            ->withExpressionContext()
             ->withDisallowRecurFrame()
             ->withDisallowRecurFrame();
 
         self::assertEquals(
             new ApplyNode(
                 NodeEnvironment::empty(),
-                new PhpVarNode(NodeEnvironment::empty()->withContext(NodeEnvironment::CONTEXT_EXPRESSION)->withDisallowRecurFrame(), '+'),
+                new PhpVarNode(NodeEnvironment::empty()->withExpressionContext()->withDisallowRecurFrame(), '+'),
                 [new VectorNode(
-                    NodeEnvironment::empty()->withContext(NodeEnvironment::CONTEXT_EXPRESSION)->withDisallowRecurFrame(),
+                    NodeEnvironment::empty()->withExpressionContext()->withDisallowRecurFrame(),
                     [
                         new LiteralNode($envLiteral, 1),
                         new LiteralNode($envLiteral, 2),

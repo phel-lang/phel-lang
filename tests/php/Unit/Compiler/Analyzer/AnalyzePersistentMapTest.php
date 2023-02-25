@@ -36,8 +36,8 @@ final class AnalyzePersistentMapTest extends TestCase
         $env = NodeEnvironment::empty();
         self::assertEquals(
             new MapNode($env, [
-                new LiteralNode($env->withContext(NodeEnvironment::CONTEXT_EXPRESSION), 'a', null),
-                new LiteralNode($env->withContext(NodeEnvironment::CONTEXT_EXPRESSION), 1, null),
+                new LiteralNode($env->withExpressionContext(), 'a', null),
+                new LiteralNode($env->withExpressionContext(), 1, null),
             ], null),
             $this->mapAnalyzer->analyze(TypeFactory::getInstance()->persistentMapFromKVs('a', 1), $env),
         );

@@ -44,6 +44,12 @@ interface NodeEnvironmentInterface
      */
     public function withLocals(array $locals): self;
 
+    public function withReturnContext(): self;
+
+    public function withStatementContext(): self;
+
+    public function withExpressionContext(): self;
+
     public function withContext(string $context): self;
 
     public function withUseGlobalReference(bool $useGlobalReference): self;

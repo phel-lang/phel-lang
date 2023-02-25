@@ -125,6 +125,21 @@ final class NodeEnvironment implements NodeEnvironmentInterface
         return $result;
     }
 
+    public function withReturnContext(): NodeEnvironmentInterface
+    {
+        return $this->withContext(self::CONTEXT_RETURN);
+    }
+
+    public function withStatementContext(): NodeEnvironmentInterface
+    {
+        return $this->withContext(self::CONTEXT_STATEMENT);
+    }
+
+    public function withExpressionContext(): NodeEnvironmentInterface
+    {
+        return $this->withContext(self::CONTEXT_EXPRESSION);
+    }
+
     public function withContext(string $context): NodeEnvironmentInterface
     {
         $result = clone $this;

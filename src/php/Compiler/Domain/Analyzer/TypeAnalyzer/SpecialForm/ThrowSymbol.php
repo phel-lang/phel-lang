@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace Phel\Compiler\Domain\Analyzer\TypeAnalyzer\SpecialForm;
 
 use Phel\Compiler\Domain\Analyzer\Ast\ThrowNode;
-use Phel\Compiler\Domain\Analyzer\Environment\NodeEnvironment;
 use Phel\Compiler\Domain\Analyzer\Environment\NodeEnvironmentInterface;
 use Phel\Compiler\Domain\Analyzer\Exceptions\AnalyzerException;
 use Phel\Compiler\Domain\Analyzer\TypeAnalyzer\WithAnalyzerTrait;
@@ -25,7 +24,7 @@ final class ThrowSymbol implements SpecialFormAnalyzerInterface
 
         return new ThrowNode(
             $env,
-            $this->analyzer->analyze($list->get(1), $env->withContext(NodeEnvironment::CONTEXT_EXPRESSION)->withDisallowRecurFrame()),
+            $this->analyzer->analyze($list->get(1), $env->withExpressionContext()->withDisallowRecurFrame()),
             $list->getStartLocation(),
         );
     }

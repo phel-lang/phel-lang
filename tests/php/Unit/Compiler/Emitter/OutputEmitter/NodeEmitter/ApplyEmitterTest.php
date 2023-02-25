@@ -31,10 +31,10 @@ final class ApplyEmitterTest extends TestCase
     {
         $node = new PhpVarNode(NodeEnvironment::empty(), '+');
         $args = [
-            new VectorNode(NodeEnvironment::empty()->withContext(NodeEnvironment::CONTEXT_EXPRESSION), [
-                new LiteralNode(NodeEnvironment::empty()->withContext(NodeEnvironment::CONTEXT_EXPRESSION), 2),
-                new LiteralNode(NodeEnvironment::empty()->withContext(NodeEnvironment::CONTEXT_EXPRESSION), 3),
-                new LiteralNode(NodeEnvironment::empty()->withContext(NodeEnvironment::CONTEXT_EXPRESSION), 4),
+            new VectorNode(NodeEnvironment::empty()->withExpressionContext(), [
+                new LiteralNode(NodeEnvironment::empty()->withExpressionContext(), 2),
+                new LiteralNode(NodeEnvironment::empty()->withExpressionContext(), 3),
+                new LiteralNode(NodeEnvironment::empty()->withExpressionContext(), 4),
             ]),
         ];
 
@@ -50,9 +50,9 @@ final class ApplyEmitterTest extends TestCase
     {
         $node = new PhpVarNode(NodeEnvironment::empty(), 'str');
         $args = [
-            new LiteralNode(NodeEnvironment::empty()->withContext(NodeEnvironment::CONTEXT_EXPRESSION), 'abc'),
-            new VectorNode(NodeEnvironment::empty()->withContext(NodeEnvironment::CONTEXT_EXPRESSION), [
-                new LiteralNode(NodeEnvironment::empty()->withContext(NodeEnvironment::CONTEXT_EXPRESSION), 'def'),
+            new LiteralNode(NodeEnvironment::empty()->withExpressionContext(), 'abc'),
+            new VectorNode(NodeEnvironment::empty()->withExpressionContext(), [
+                new LiteralNode(NodeEnvironment::empty()->withExpressionContext(), 'def'),
             ]),
         ];
 
@@ -67,15 +67,15 @@ final class ApplyEmitterTest extends TestCase
         $fnNode = new FnNode(
             NodeEnvironment::empty(),
             [Symbol::create('x')],
-            new PhpVarNode(NodeEnvironment::empty()->withContext(NodeEnvironment::CONTEXT_RETURN), 'x'),
+            new PhpVarNode(NodeEnvironment::empty()->withReturnContext(), 'x'),
             [],
             isVariadic: true,
             recurs: false,
         );
 
         $args = [
-            new VectorNode(NodeEnvironment::empty()->withContext(NodeEnvironment::CONTEXT_EXPRESSION), [
-                new LiteralNode(NodeEnvironment::empty()->withContext(NodeEnvironment::CONTEXT_EXPRESSION), 1),
+            new VectorNode(NodeEnvironment::empty()->withExpressionContext(), [
+                new LiteralNode(NodeEnvironment::empty()->withExpressionContext(), 1),
             ]),
         ];
 

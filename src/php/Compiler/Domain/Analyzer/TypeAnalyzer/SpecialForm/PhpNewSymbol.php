@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace Phel\Compiler\Domain\Analyzer\TypeAnalyzer\SpecialForm;
 
 use Phel\Compiler\Domain\Analyzer\Ast\PhpNewNode;
-use Phel\Compiler\Domain\Analyzer\Environment\NodeEnvironment;
 use Phel\Compiler\Domain\Analyzer\Environment\NodeEnvironmentInterface;
 use Phel\Compiler\Domain\Analyzer\Exceptions\AnalyzerException;
 use Phel\Compiler\Domain\Analyzer\TypeAnalyzer\WithAnalyzerTrait;
@@ -26,13 +25,13 @@ final class PhpNewSymbol implements SpecialFormAnalyzerInterface
 
         $classExpr = $this->analyzer->analyze(
             $list->get(1),
-            $env->withContext(NodeEnvironment::CONTEXT_EXPRESSION)->withDisallowRecurFrame(),
+            $env->withExpressionContext()->withDisallowRecurFrame(),
         );
         $args = [];
         for ($forms = $list->rest()->cdr(); $forms != null; $forms = $forms->cdr()) {
             $args[] = $this->analyzer->analyze(
                 $forms->first(),
-                $env->withContext(NodeEnvironment::CONTEXT_EXPRESSION)->withDisallowRecurFrame(),
+                $env->withExpressionContext()->withDisallowRecurFrame(),
             );
         }
 

@@ -123,7 +123,7 @@ final class LoopSymbolTest extends TestCase
                         Symbol::create('a'),
                         Symbol::create('a_1'),
                         new LiteralNode(
-                            $env->withContext(NodeEnvironment::CONTEXT_EXPRESSION)->withDisallowRecurFrame()->withDisallowRecurFrame()->withBoundTo('.a'),
+                            $env->withExpressionContext()->withDisallowRecurFrame()->withDisallowRecurFrame()->withBoundTo('.a'),
                             1,
                         ),
                     ),
@@ -157,7 +157,7 @@ final class LoopSymbolTest extends TestCase
             ]),
             1,
         ]);
-        $env = NodeEnvironment::empty()->withContext(NodeEnvironment::CONTEXT_EXPRESSION);
+        $env = NodeEnvironment::empty()->withExpressionContext();
 
         /** @var LetNode $node */
         $node = $this->analyzer->analyze($list, $env);

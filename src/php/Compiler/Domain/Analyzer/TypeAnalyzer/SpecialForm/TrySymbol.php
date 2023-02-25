@@ -72,7 +72,7 @@ final class TrySymbol implements SpecialFormAnalyzerInterface
 
             $finally = $this->analyzer->analyze(
                 $finally,
-                $env->withContext(NodeEnvironment::CONTEXT_STATEMENT)->withDisallowRecurFrame(),
+                $env->withStatementContext()->withDisallowRecurFrame(),
             );
         }
 

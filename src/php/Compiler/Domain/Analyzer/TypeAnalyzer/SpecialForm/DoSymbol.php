@@ -35,11 +35,11 @@ final class DoSymbol implements SpecialFormAnalyzerInterface
             } elseif ($forms->cdr() == null && count($stmts) > 0) {
                 // Return statement
                 $envStmt = $env->getContext() === NodeEnvironment::CONTEXT_STATEMENT
-                    ? $env->withContext(NodeEnvironment::CONTEXT_STATEMENT)
-                    : $env->withContext(NodeEnvironment::CONTEXT_RETURN);
+                    ? $env->withStatementContext()
+                    : $env->withreturnContext();
             } else {
                 // Inner statement
-                $envStmt = $env->withContext(NodeEnvironment::CONTEXT_STATEMENT)->withDisallowRecurFrame();
+                $envStmt = $env->withStatementContext()->withDisallowRecurFrame();
             }
 
             $stmts[] = $this->analyzer->analyze($forms->first(), $envStmt);

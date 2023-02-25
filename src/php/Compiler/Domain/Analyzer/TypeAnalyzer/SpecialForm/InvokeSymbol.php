@@ -8,7 +8,6 @@ use Exception;
 use Phel\Compiler\Domain\Analyzer\Ast\AbstractNode;
 use Phel\Compiler\Domain\Analyzer\Ast\CallNode;
 use Phel\Compiler\Domain\Analyzer\Ast\GlobalVarNode;
-use Phel\Compiler\Domain\Analyzer\Environment\NodeEnvironment;
 use Phel\Compiler\Domain\Analyzer\Environment\NodeEnvironmentInterface;
 use Phel\Compiler\Domain\Analyzer\Exceptions\AnalyzerException;
 use Phel\Compiler\Domain\Analyzer\TypeAnalyzer\WithAnalyzerTrait;
@@ -28,7 +27,7 @@ final class InvokeSymbol implements SpecialFormAnalyzerInterface
     {
         $f = $this->analyzer->analyze(
             $list->first(),
-            $env->withContext(NodeEnvironment::CONTEXT_EXPRESSION)->withDisallowRecurFrame(),
+            $env->withExpressionContext()->withDisallowRecurFrame(),
         );
 
         if ($f instanceof GlobalVarNode && $this->isInline($f, count($list) - 1)) {
@@ -162,7 +161,7 @@ final class InvokeSymbol implements SpecialFormAnalyzerInterface
         foreach ($argsList as $element) {
             $arguments[] = $this->analyzer->analyze(
                 $element,
-                $env->withContext(NodeEnvironment::CONTEXT_EXPRESSION)->withDisallowRecurFrame(),
+                $env->withExpressionContext()->withDisallowRecurFrame(),
             );
         }
 

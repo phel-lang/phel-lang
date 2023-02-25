@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace Phel\Compiler\Domain\Analyzer\TypeAnalyzer\SpecialForm;
 
 use Phel\Compiler\Domain\Analyzer\Ast\PhpArraySetNode;
-use Phel\Compiler\Domain\Analyzer\Environment\NodeEnvironment;
 use Phel\Compiler\Domain\Analyzer\Environment\NodeEnvironmentInterface;
 use Phel\Compiler\Domain\Analyzer\TypeAnalyzer\WithAnalyzerTrait;
 use Phel\Lang\Collections\LinkedList\PersistentListInterface;
@@ -18,9 +17,9 @@ final class PhpASetSymbol implements SpecialFormAnalyzerInterface
     {
         return new PhpArraySetNode(
             $env,
-            $this->analyzer->analyze($list->get(1), $env->withContext(NodeEnvironment::CONTEXT_EXPRESSION)->withUseGlobalReference(true)),
-            $this->analyzer->analyze($list->get(2), $env->withContext(NodeEnvironment::CONTEXT_EXPRESSION)),
-            $this->analyzer->analyze($list->get(3), $env->withContext(NodeEnvironment::CONTEXT_EXPRESSION)),
+            $this->analyzer->analyze($list->get(1), $env->withExpressionContext()->withUseGlobalReference(true)),
+            $this->analyzer->analyze($list->get(2), $env->withExpressionContext()),
+            $this->analyzer->analyze($list->get(3), $env->withExpressionContext()),
             $list->getStartLocation(),
         );
     }

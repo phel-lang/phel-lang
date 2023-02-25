@@ -110,7 +110,7 @@ final class LetSymbol implements SpecialFormAnalyzerInterface
     private function analyzeBindings(PersistentVectorInterface $vector, NodeEnvironmentInterface $env): array
     {
         $vectorCount = count($vector);
-        $initEnv = $env->withContext(NodeEnvironment::CONTEXT_EXPRESSION)->withDisallowRecurFrame();
+        $initEnv = $env->withExpressionContext()->withDisallowRecurFrame();
         $nodes = [];
         for ($i = 0; $i < $vectorCount; $i += 2) {
             $sym = $vector->get($i);
