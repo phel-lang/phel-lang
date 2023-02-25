@@ -7,6 +7,7 @@ namespace Phel\Compiler\Domain\Analyzer\TypeAnalyzer\SpecialForm;
 use Phel\Compiler\Domain\Analyzer\Ast\AbstractNode;
 use Phel\Compiler\Domain\Analyzer\Ast\FnNode;
 use Phel\Compiler\Domain\Analyzer\Ast\RecurFrame;
+use Phel\Compiler\Domain\Analyzer\Environment\NodeEnvironment;
 use Phel\Compiler\Domain\Analyzer\Environment\NodeEnvironmentInterface;
 use Phel\Compiler\Domain\Analyzer\Exceptions\AnalyzerException;
 use Phel\Compiler\Domain\Analyzer\TypeAnalyzer\SpecialForm\ReadModel\FnSymbolTuple;
@@ -61,7 +62,7 @@ final class FnSymbol implements SpecialFormAnalyzerInterface
 
         $bodyEnv = $env
             ->withMergedLocals($fnSymbolTuple->params())
-            ->withContext(NodeEnvironmentInterface::CONTEXT_RETURN)
+            ->withContext(NodeEnvironment::CONTEXT_RETURN)
             ->withAddedRecurFrame($recurFrame);
 
         return $this->analyzer->analyze($body, $bodyEnv);

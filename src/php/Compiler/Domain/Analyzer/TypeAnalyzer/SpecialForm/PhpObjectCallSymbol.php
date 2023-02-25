@@ -8,6 +8,7 @@ use Phel\Compiler\Domain\Analyzer\AnalyzerInterface;
 use Phel\Compiler\Domain\Analyzer\Ast\MethodCallNode;
 use Phel\Compiler\Domain\Analyzer\Ast\PhpObjectCallNode;
 use Phel\Compiler\Domain\Analyzer\Ast\PropertyOrConstantAccessNode;
+use Phel\Compiler\Domain\Analyzer\Environment\NodeEnvironment;
 use Phel\Compiler\Domain\Analyzer\Environment\NodeEnvironmentInterface;
 use Phel\Compiler\Domain\Analyzer\Exceptions\AnalyzerException;
 use Phel\Lang\Collections\LinkedList\PersistentListInterface;
@@ -39,7 +40,7 @@ final class PhpObjectCallSymbol implements SpecialFormAnalyzerInterface
 
         $targetExpr = $this->analyzer->analyze(
             $list->get(1),
-            $env->withContext(NodeEnvironmentInterface::CONTEXT_EXPRESSION)->withDisallowRecurFrame(),
+            $env->withContext(NodeEnvironment::CONTEXT_EXPRESSION)->withDisallowRecurFrame(),
         );
 
         if ($list->get(2) instanceof PersistentListInterface) {
@@ -68,7 +69,7 @@ final class PhpObjectCallSymbol implements SpecialFormAnalyzerInterface
         for ($forms = $list2->cdr(); $forms != null; $forms = $forms->cdr()) {
             $args[] = $this->analyzer->analyze(
                 $forms->first(),
-                $env->withContext(NodeEnvironmentInterface::CONTEXT_EXPRESSION)->withDisallowRecurFrame(),
+                $env->withContext(NodeEnvironment::CONTEXT_EXPRESSION)->withDisallowRecurFrame(),
             );
         }
 

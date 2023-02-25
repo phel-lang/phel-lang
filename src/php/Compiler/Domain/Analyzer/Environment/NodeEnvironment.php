@@ -13,6 +13,10 @@ use function in_array;
 
 final class NodeEnvironment implements NodeEnvironmentInterface
 {
+    public const CONTEXT_EXPRESSION = 'expression';
+    public const CONTEXT_STATEMENT = 'statement';
+    public const CONTEXT_RETURN = 'return';
+
     /** Def inside of def should not work. This flag help us to keep track of this. */
     private bool $defAllowed = true;
 

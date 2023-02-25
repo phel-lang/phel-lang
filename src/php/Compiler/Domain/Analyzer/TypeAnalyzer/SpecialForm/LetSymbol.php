@@ -7,6 +7,7 @@ namespace Phel\Compiler\Domain\Analyzer\TypeAnalyzer\SpecialForm;
 use Phel\Compiler\Domain\Analyzer\AnalyzerInterface;
 use Phel\Compiler\Domain\Analyzer\Ast\BindingNode;
 use Phel\Compiler\Domain\Analyzer\Ast\LetNode;
+use Phel\Compiler\Domain\Analyzer\Environment\NodeEnvironment;
 use Phel\Compiler\Domain\Analyzer\Environment\NodeEnvironmentInterface;
 use Phel\Compiler\Domain\Analyzer\Exceptions\AnalyzerException;
 use Phel\Compiler\Domain\Analyzer\TypeAnalyzer\SpecialForm\Binding\DeconstructorInterface;
@@ -76,8 +77,8 @@ final class LetSymbol implements SpecialFormAnalyzerInterface
         $bodyEnv = $env
             ->withMergedLocals($locals)
             ->withContext(
-                $env->getContext() === NodeEnvironmentInterface::CONTEXT_EXPRESSION
-                    ? NodeEnvironmentInterface::CONTEXT_RETURN
+                $env->getContext() === NodeEnvironment::CONTEXT_EXPRESSION
+                    ? NodeEnvironment::CONTEXT_RETURN
                     : $env->getContext(),
             );
 
@@ -109,7 +110,7 @@ final class LetSymbol implements SpecialFormAnalyzerInterface
     private function analyzeBindings(PersistentVectorInterface $vector, NodeEnvironmentInterface $env): array
     {
         $vectorCount = count($vector);
-        $initEnv = $env->withContext(NodeEnvironmentInterface::CONTEXT_EXPRESSION)->withDisallowRecurFrame();
+        $initEnv = $env->withContext(NodeEnvironment::CONTEXT_EXPRESSION)->withDisallowRecurFrame();
         $nodes = [];
         for ($i = 0; $i < $vectorCount; $i += 2) {
             $sym = $vector->get($i);

@@ -9,7 +9,6 @@ use Phel\Compiler\Domain\Analyzer\Ast\LiteralNode;
 use Phel\Compiler\Domain\Analyzer\Ast\MapNode;
 use Phel\Compiler\Domain\Analyzer\Environment\GlobalEnvironment;
 use Phel\Compiler\Domain\Analyzer\Environment\NodeEnvironment;
-use Phel\Compiler\Domain\Analyzer\Environment\NodeEnvironmentInterface;
 use Phel\Compiler\Domain\Analyzer\TypeAnalyzer\AnalyzePersistentMap;
 use Phel\Lang\TypeFactory;
 use PHPUnit\Framework\TestCase;
@@ -37,8 +36,8 @@ final class AnalyzePersistentMapTest extends TestCase
         $env = NodeEnvironment::empty();
         self::assertEquals(
             new MapNode($env, [
-                new LiteralNode($env->withContext(NodeEnvironmentInterface::CONTEXT_EXPRESSION), 'a', null),
-                new LiteralNode($env->withContext(NodeEnvironmentInterface::CONTEXT_EXPRESSION), 1, null),
+                new LiteralNode($env->withContext(NodeEnvironment::CONTEXT_EXPRESSION), 'a', null),
+                new LiteralNode($env->withContext(NodeEnvironment::CONTEXT_EXPRESSION), 1, null),
             ], null),
             $this->mapAnalyzer->analyze(TypeFactory::getInstance()->persistentMapFromKVs('a', 1), $env),
         );

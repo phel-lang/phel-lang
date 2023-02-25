@@ -60,7 +60,7 @@ final class PhpVarNode extends AbstractNode
     public static function withReturnContext(string $name, ?SourceLocation $sourceLocation = null): self
     {
         $returnEnv = NodeEnvironment::empty()
-            ->withContext(NodeEnvironmentInterface::CONTEXT_RETURN);
+            ->withContext(NodeEnvironment::CONTEXT_RETURN);
 
         return new self($returnEnv, $name, $sourceLocation);
     }

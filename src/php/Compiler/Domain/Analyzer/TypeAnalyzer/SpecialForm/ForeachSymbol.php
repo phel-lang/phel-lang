@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Phel\Compiler\Domain\Analyzer\TypeAnalyzer\SpecialForm;
 
 use Phel\Compiler\Domain\Analyzer\Ast\ForeachNode;
+use Phel\Compiler\Domain\Analyzer\Environment\NodeEnvironment;
 use Phel\Compiler\Domain\Analyzer\Environment\NodeEnvironmentInterface;
 use Phel\Compiler\Domain\Analyzer\Exceptions\AnalyzerException;
 use Phel\Compiler\Domain\Analyzer\TypeAnalyzer\SpecialForm\ReadModel\ForeachSymbolTuple;
@@ -30,7 +31,7 @@ final class ForeachSymbol implements SpecialFormAnalyzerInterface
 
         $bodyExpr = $this->analyzer->analyze(
             $this->buildTupleBody($foreachSymbolTuple->lets(), $list),
-            $foreachSymbolTuple->bodyEnv()->withContext(NodeEnvironmentInterface::CONTEXT_STATEMENT),
+            $foreachSymbolTuple->bodyEnv()->withContext(NodeEnvironment::CONTEXT_STATEMENT),
         );
 
         return new ForeachNode(
@@ -83,7 +84,7 @@ final class ForeachSymbol implements SpecialFormAnalyzerInterface
         $bodyEnv = $env->withMergedLocals([$valueSymbol]);
         $listExpr = $this->analyzer->analyze(
             $foreachTuple->get(1),
-            $env->withContext(NodeEnvironmentInterface::CONTEXT_EXPRESSION),
+            $env->withContext(NodeEnvironment::CONTEXT_EXPRESSION),
         );
 
         return new ForeachSymbolTuple($lets, $bodyEnv, $listExpr, $valueSymbol);
@@ -112,7 +113,7 @@ final class ForeachSymbol implements SpecialFormAnalyzerInterface
         $bodyEnv = $env->withMergedLocals([$valueSymbol, $keySymbol]);
         $listExpr = $this->analyzer->analyze(
             $foreachTuple->get(2),
-            $env->withContext(NodeEnvironmentInterface::CONTEXT_EXPRESSION),
+            $env->withContext(NodeEnvironment::CONTEXT_EXPRESSION),
         );
 
         return new ForeachSymbolTuple($lets, $bodyEnv, $listExpr, $valueSymbol, $keySymbol);

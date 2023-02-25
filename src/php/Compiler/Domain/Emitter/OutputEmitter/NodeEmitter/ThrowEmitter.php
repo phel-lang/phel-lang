@@ -6,7 +6,7 @@ namespace Phel\Compiler\Domain\Emitter\OutputEmitter\NodeEmitter;
 
 use Phel\Compiler\Domain\Analyzer\Ast\AbstractNode;
 use Phel\Compiler\Domain\Analyzer\Ast\ThrowNode;
-use Phel\Compiler\Domain\Analyzer\Environment\NodeEnvironmentInterface;
+use Phel\Compiler\Domain\Analyzer\Environment\NodeEnvironment;
 use Phel\Compiler\Domain\Emitter\OutputEmitter\NodeEmitterInterface;
 
 use function assert;
@@ -19,7 +19,7 @@ final class ThrowEmitter implements NodeEmitterInterface
     {
         assert($node instanceof ThrowNode);
 
-        if ($node->getEnv()->getContext() === NodeEnvironmentInterface::CONTEXT_EXPRESSION) {
+        if ($node->getEnv()->getContext() === NodeEnvironment::CONTEXT_EXPRESSION) {
             $this->outputEmitter->emitFnWrapPrefix($node->getEnv(), $node->getStartSourceLocation());
         }
 
@@ -27,7 +27,7 @@ final class ThrowEmitter implements NodeEmitterInterface
         $this->outputEmitter->emitNode($node->getExceptionExpr());
         $this->outputEmitter->emitStr(';', $node->getStartSourceLocation());
 
-        if ($node->getEnv()->getContext() === NodeEnvironmentInterface::CONTEXT_EXPRESSION) {
+        if ($node->getEnv()->getContext() === NodeEnvironment::CONTEXT_EXPRESSION) {
             $this->outputEmitter->emitFnWrapSuffix($node->getStartSourceLocation());
         }
     }

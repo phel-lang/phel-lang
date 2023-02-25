@@ -6,6 +6,7 @@ namespace Phel\Compiler\Domain\Analyzer\TypeAnalyzer\SpecialForm;
 
 use Phel\Compiler\Domain\Analyzer\Ast\AbstractNode;
 use Phel\Compiler\Domain\Analyzer\Ast\IfNode;
+use Phel\Compiler\Domain\Analyzer\Environment\NodeEnvironment;
 use Phel\Compiler\Domain\Analyzer\Environment\NodeEnvironmentInterface;
 use Phel\Compiler\Domain\Analyzer\Exceptions\AnalyzerException;
 use Phel\Compiler\Domain\Analyzer\TypeAnalyzer\WithAnalyzerTrait;
@@ -45,7 +46,7 @@ final class IfSymbol implements SpecialFormAnalyzerInterface
     private function testExpression(PersistentListInterface $list, NodeEnvironmentInterface $env): AbstractNode
     {
         $envWithDisallowRecurFrame = $env
-            ->withContext(NodeEnvironmentInterface::CONTEXT_EXPRESSION)
+            ->withContext(NodeEnvironment::CONTEXT_EXPRESSION)
             ->withDisallowRecurFrame();
 
         return $this->analyzer->analyze($list->get(1), $envWithDisallowRecurFrame);

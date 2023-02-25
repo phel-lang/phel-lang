@@ -9,10 +9,6 @@ use Phel\Lang\Symbol;
 
 interface NodeEnvironmentInterface
 {
-    public const CONTEXT_EXPRESSION = 'expression';
-    public const CONTEXT_STATEMENT = 'statement';
-    public const CONTEXT_RETURN = 'return';
-
     /**
      * @return array<int, Symbol>
      */

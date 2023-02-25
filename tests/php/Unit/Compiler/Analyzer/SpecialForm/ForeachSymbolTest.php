@@ -13,7 +13,6 @@ use Phel\Compiler\Domain\Analyzer\Ast\MapNode;
 use Phel\Compiler\Domain\Analyzer\Ast\VectorNode;
 use Phel\Compiler\Domain\Analyzer\Environment\GlobalEnvironment;
 use Phel\Compiler\Domain\Analyzer\Environment\NodeEnvironment;
-use Phel\Compiler\Domain\Analyzer\Environment\NodeEnvironmentInterface;
 use Phel\Compiler\Domain\Analyzer\TypeAnalyzer\SpecialForm\ForeachSymbol;
 use Phel\Compiler\Domain\Exceptions\AbstractLocatedException;
 use Phel\Lang\Collections\LinkedList\PersistentListInterface;
@@ -88,7 +87,7 @@ final class ForeachSymbolTest extends TestCase
                     [],
                     new LocalVarNode($env->withLocals([Symbol::create('x')]), Symbol::create('x')),
                 ),
-                new VectorNode($env->withContext(NodeEnvironmentInterface::CONTEXT_EXPRESSION), []),
+                new VectorNode($env->withContext(NodeEnvironment::CONTEXT_EXPRESSION), []),
                 Symbol::create('x'),
             ),
             $this->analyze($list),

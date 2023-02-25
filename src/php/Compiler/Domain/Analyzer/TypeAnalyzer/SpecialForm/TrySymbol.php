@@ -6,6 +6,7 @@ namespace Phel\Compiler\Domain\Analyzer\TypeAnalyzer\SpecialForm;
 
 use Phel\Compiler\Domain\Analyzer\Ast\CatchNode;
 use Phel\Compiler\Domain\Analyzer\Ast\TryNode;
+use Phel\Compiler\Domain\Analyzer\Environment\NodeEnvironment;
 use Phel\Compiler\Domain\Analyzer\Environment\NodeEnvironmentInterface;
 use Phel\Compiler\Domain\Analyzer\Exceptions\AnalyzerException;
 use Phel\Compiler\Domain\Analyzer\TypeAnalyzer\WithAnalyzerTrait;
@@ -71,11 +72,11 @@ final class TrySymbol implements SpecialFormAnalyzerInterface
 
             $finally = $this->analyzer->analyze(
                 $finally,
-                $env->withContext(NodeEnvironmentInterface::CONTEXT_STATEMENT)->withDisallowRecurFrame(),
+                $env->withContext(NodeEnvironment::CONTEXT_STATEMENT)->withDisallowRecurFrame(),
             );
         }
 
-        $catchCtx = $env->getContext() === NodeEnvironmentInterface::CONTEXT_EXPRESSION ? NodeEnvironmentInterface::CONTEXT_RETURN : $env->getContext();
+        $catchCtx = $env->getContext() === NodeEnvironment::CONTEXT_EXPRESSION ? NodeEnvironment::CONTEXT_RETURN : $env->getContext();
         $catchNodes = [];
         /** @var PersistentListInterface $catch */
         foreach ($catches as $catch) {
