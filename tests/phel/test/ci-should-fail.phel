@@ -1,0 +1,5 @@
+(ns phel-test\test\ci-should-fail
+  (:require phel\test :refer [deftest is]))
+
+(deftest test-ci
+  (is (= 1 2)))

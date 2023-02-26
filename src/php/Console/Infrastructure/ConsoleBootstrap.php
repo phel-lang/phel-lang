@@ -24,7 +24,7 @@ final class ConsoleBootstrap extends Application
         $exitCode = parent::run($input, $output);
         $this->getFactory()->getFilesystemFacade()->clearAll();
 
-        return $exitCode;
+        exit($exitCode);
     }
 
     /**
