@@ -61,7 +61,7 @@ final class FnSymbol implements SpecialFormAnalyzerInterface
 
         $bodyEnv = $env
             ->withMergedLocals($fnSymbolTuple->params())
-            ->withContext(NodeEnvironmentInterface::CONTEXT_RETURN)
+            ->withReturnContext()
             ->withAddedRecurFrame($recurFrame);
 
         return $this->analyzer->analyze($body, $bodyEnv);

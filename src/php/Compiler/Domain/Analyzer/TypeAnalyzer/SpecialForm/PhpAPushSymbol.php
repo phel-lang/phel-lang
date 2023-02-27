@@ -17,8 +17,8 @@ final class PhpAPushSymbol implements SpecialFormAnalyzerInterface
     {
         return new PhpArrayPushNode(
             $env,
-            $this->analyzer->analyze($list->get(1), $env->withContext(NodeEnvironmentInterface::CONTEXT_EXPRESSION)->withUseGlobalReference(true)),
-            $this->analyzer->analyze($list->get(2), $env->withContext(NodeEnvironmentInterface::CONTEXT_EXPRESSION)),
+            $this->analyzer->analyze($list->get(1), $env->withExpressionContext()->withUseGlobalReference(true)),
+            $this->analyzer->analyze($list->get(2), $env->withExpressionContext()),
             $list->getStartLocation(),
         );
     }

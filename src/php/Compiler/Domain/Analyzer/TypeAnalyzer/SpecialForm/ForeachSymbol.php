@@ -30,7 +30,7 @@ final class ForeachSymbol implements SpecialFormAnalyzerInterface
 
         $bodyExpr = $this->analyzer->analyze(
             $this->buildTupleBody($foreachSymbolTuple->lets(), $list),
-            $foreachSymbolTuple->bodyEnv()->withContext(NodeEnvironmentInterface::CONTEXT_STATEMENT),
+            $foreachSymbolTuple->bodyEnv()->withStatementContext(),
         );
 
         return new ForeachNode(
@@ -83,7 +83,7 @@ final class ForeachSymbol implements SpecialFormAnalyzerInterface
         $bodyEnv = $env->withMergedLocals([$valueSymbol]);
         $listExpr = $this->analyzer->analyze(
             $foreachTuple->get(1),
-            $env->withContext(NodeEnvironmentInterface::CONTEXT_EXPRESSION),
+            $env->withExpressionContext(),
         );
 
         return new ForeachSymbolTuple($lets, $bodyEnv, $listExpr, $valueSymbol);
@@ -112,7 +112,7 @@ final class ForeachSymbol implements SpecialFormAnalyzerInterface
         $bodyEnv = $env->withMergedLocals([$valueSymbol, $keySymbol]);
         $listExpr = $this->analyzer->analyze(
             $foreachTuple->get(2),
-            $env->withContext(NodeEnvironmentInterface::CONTEXT_EXPRESSION),
+            $env->withExpressionContext(),
         );
 
         return new ForeachSymbolTuple($lets, $bodyEnv, $listExpr, $valueSymbol, $keySymbol);

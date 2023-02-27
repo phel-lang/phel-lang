@@ -7,12 +7,8 @@ namespace Phel\Compiler\Domain\Analyzer\Environment;
 use Phel\Compiler\Domain\Analyzer\Ast\RecurFrame;
 use Phel\Lang\Symbol;
 
-interface NodeEnvironmentInterface
+interface NodeEnvironmentInterface extends ContextualEnvironmentInterface
 {
-    public const CONTEXT_EXPRESSION = 'expression';
-    public const CONTEXT_STATEMENT = 'statement';
-    public const CONTEXT_RETURN = 'return';
-
     /**
      * @return array<int, Symbol>
      */
@@ -28,8 +24,6 @@ interface NodeEnvironmentInterface
     public function getShadowed(Symbol $local): ?Symbol;
 
     public function isShadowed(Symbol $local): bool;
-
-    public function getContext(): string;
 
     /**
      * @param array<int, Symbol> $locals
@@ -48,8 +42,6 @@ interface NodeEnvironmentInterface
      */
     public function withLocals(array $locals): self;
 
-    public function withContext(string $context): self;
-
     public function withUseGlobalReference(bool $useGlobalReference): self;
 
     public function withAddedRecurFrame(RecurFrame $frame): self;
@@ -67,4 +59,12 @@ interface NodeEnvironmentInterface
     public function isDefAllowed(): bool;
 
     public function useGlobalReference(): bool;
+
+    public function withReturnContext(): self;
+
+    public function withStatementContext(): self;
+
+    public function withExpressionContext(): self;
+
+    public function withEnvContext(ContextualEnvironmentInterface $env): self;
 }

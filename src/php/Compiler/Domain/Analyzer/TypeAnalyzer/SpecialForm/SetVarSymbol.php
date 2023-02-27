@@ -24,8 +24,8 @@ final class SetVarSymbol implements SpecialFormAnalyzerInterface
 
         return new SetVarNode(
             $env,
-            $this->analyzer->analyze($nameSymbol, $env->withContext(NodeEnvironmentInterface::CONTEXT_EXPRESSION)),
-            $this->analyzer->analyze($list->get(2), $env->withContext(NodeEnvironmentInterface::CONTEXT_EXPRESSION)),
+            $this->analyzer->analyze($nameSymbol, $env->withExpressionContext()),
+            $this->analyzer->analyze($list->get(2), $env->withExpressionContext()),
             $list->getStartLocation(),
         );
     }

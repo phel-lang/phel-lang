@@ -13,7 +13,6 @@ use Phel\Compiler\Domain\Analyzer\Ast\LiteralNode;
 use Phel\Compiler\Domain\Analyzer\Ast\RecurFrame;
 use Phel\Compiler\Domain\Analyzer\Environment\GlobalEnvironment;
 use Phel\Compiler\Domain\Analyzer\Environment\NodeEnvironment;
-use Phel\Compiler\Domain\Analyzer\Environment\NodeEnvironmentInterface;
 use Phel\Compiler\Domain\Analyzer\Exceptions\AnalyzerException;
 use Phel\Compiler\Domain\Analyzer\TypeAnalyzer\SpecialForm\Binding\BindingValidator;
 use Phel\Compiler\Domain\Analyzer\TypeAnalyzer\SpecialForm\LoopSymbol;
@@ -124,7 +123,7 @@ final class LoopSymbolTest extends TestCase
                         Symbol::create('a'),
                         Symbol::create('a_1'),
                         new LiteralNode(
-                            $env->withContext(NodeEnvironmentInterface::CONTEXT_EXPRESSION)->withDisallowRecurFrame()->withDisallowRecurFrame()->withBoundTo('.a'),
+                            $env->withExpressionContext()->withDisallowRecurFrame()->withDisallowRecurFrame()->withBoundTo('.a'),
                             1,
                         ),
                     ),
@@ -158,7 +157,7 @@ final class LoopSymbolTest extends TestCase
             ]),
             1,
         ]);
-        $env = NodeEnvironment::empty()->withContext(NodeEnvironmentInterface::CONTEXT_EXPRESSION);
+        $env = NodeEnvironment::empty()->withExpressionContext();
 
         /** @var LetNode $node */
         $node = $this->analyzer->analyze($list, $env);

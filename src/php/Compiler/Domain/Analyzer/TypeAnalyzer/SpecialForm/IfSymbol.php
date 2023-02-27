@@ -45,7 +45,7 @@ final class IfSymbol implements SpecialFormAnalyzerInterface
     private function testExpression(PersistentListInterface $list, NodeEnvironmentInterface $env): AbstractNode
     {
         $envWithDisallowRecurFrame = $env
-            ->withContext(NodeEnvironmentInterface::CONTEXT_EXPRESSION)
+            ->withExpressionContext()
             ->withDisallowRecurFrame();
 
         return $this->analyzer->analyze($list->get(1), $envWithDisallowRecurFrame);

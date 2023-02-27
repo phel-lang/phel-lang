@@ -54,7 +54,7 @@ final class RecurSymbol implements SpecialFormAnalyzerInterface
         for ($forms = $list->cdr(); $forms != null; $forms = $forms->cdr()) {
             $expressions[] = $this->analyzer->analyze(
                 $forms->first(),
-                $env->withContext(NodeEnvironmentInterface::CONTEXT_EXPRESSION)->withDisallowRecurFrame(),
+                $env->withExpressionContext()->withDisallowRecurFrame(),
             );
         }
 

@@ -7,7 +7,6 @@ namespace Phel\Compiler\Domain\Compiler;
 use Phel\Compiler\Domain\Analyzer\AnalyzerInterface;
 use Phel\Compiler\Domain\Analyzer\Ast\AbstractNode;
 use Phel\Compiler\Domain\Analyzer\Environment\NodeEnvironment;
-use Phel\Compiler\Domain\Analyzer\Environment\NodeEnvironmentInterface;
 use Phel\Compiler\Domain\Analyzer\Exceptions\AnalyzerException;
 use Phel\Compiler\Domain\Emitter\StatementEmitterInterface;
 use Phel\Compiler\Domain\Evaluator\EvaluatorInterface;
@@ -78,7 +77,7 @@ final class EvalCompiler implements EvalCompilerInterface
 
     public function evalForm(float|bool|int|string|TypeInterface|null $form, CompileOptions $compileOptions): mixed
     {
-        $node = $this->analyzer->analyze($form, NodeEnvironment::empty()->withContext(NodeEnvironmentInterface::CONTEXT_RETURN));
+        $node = $this->analyzer->analyze($form, NodeEnvironment::empty()->withReturnContext());
         return $this->evalNode($node, $compileOptions);
     }
     /**
@@ -89,7 +88,7 @@ final class EvalCompiler implements EvalCompilerInterface
         try {
             return $this->analyzer->analyze(
                 $readerResult->getAst(),
-                NodeEnvironment::empty()->withContext(NodeEnvironmentInterface::CONTEXT_RETURN),
+                NodeEnvironment::empty()->withReturnContext(),
             );
         } catch (AnalyzerException $e) {
             throw new CompilerException($e, $readerResult->getCodeSnippet());

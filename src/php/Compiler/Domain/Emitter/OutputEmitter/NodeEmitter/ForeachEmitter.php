@@ -6,7 +6,7 @@ namespace Phel\Compiler\Domain\Emitter\OutputEmitter\NodeEmitter;
 
 use Phel\Compiler\Domain\Analyzer\Ast\AbstractNode;
 use Phel\Compiler\Domain\Analyzer\Ast\ForeachNode;
-use Phel\Compiler\Domain\Analyzer\Environment\NodeEnvironmentInterface;
+use Phel\Compiler\Domain\Analyzer\Environment\NodeEnvironment;
 use Phel\Compiler\Domain\Emitter\OutputEmitter\NodeEmitterInterface;
 
 use function assert;
@@ -19,7 +19,7 @@ final class ForeachEmitter implements NodeEmitterInterface
     {
         assert($node instanceof ForeachNode);
 
-        if ($node->getEnv()->getContext() !== NodeEnvironmentInterface::CONTEXT_STATEMENT) {
+        if (!$node->getEnv()->isContext(NodeEnvironment::CONTEXT_STATEMENT)) {
             $this->outputEmitter->emitContextPrefix($node->getEnv(), $node->getStartSourceLocation());
             $this->outputEmitter->emitFnWrapPrefix($node->getEnv(), $node->getStartSourceLocation());
         }
@@ -39,7 +39,7 @@ final class ForeachEmitter implements NodeEmitterInterface
         $this->outputEmitter->emitLine();
         $this->outputEmitter->emitStr('}', $node->getStartSourceLocation());
 
-        if ($node->getEnv()->getContext() !== NodeEnvironmentInterface::CONTEXT_STATEMENT) {
+        if (!$node->getEnv()->isContext(NodeEnvironment::CONTEXT_STATEMENT)) {
             $this->outputEmitter->emitLine();
             $this->outputEmitter->emitStr('return null;', $node->getStartSourceLocation());
             $this->outputEmitter->emitFnWrapSuffix($node->getStartSourceLocation());

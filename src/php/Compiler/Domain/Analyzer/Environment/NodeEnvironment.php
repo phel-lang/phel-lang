@@ -13,6 +13,10 @@ use function in_array;
 
 final class NodeEnvironment implements NodeEnvironmentInterface
 {
+    public const CONTEXT_EXPRESSION = 'expression';
+    public const CONTEXT_STATEMENT = 'statement';
+    public const CONTEXT_RETURN = 'return';
+
     /** Def inside of def should not work. This flag help us to keep track of this. */
     private bool $defAllowed = true;
 
@@ -72,6 +76,11 @@ final class NodeEnvironment implements NodeEnvironmentInterface
         return array_key_exists($local->getName(), $this->shadowed);
     }
 
+    public function isContext(string $context): bool
+    {
+        return $this->context === $context;
+    }
+
     public function getContext(): string
     {
         return $this->context;
@@ -121,7 +130,27 @@ final class NodeEnvironment implements NodeEnvironmentInterface
         return $result;
     }
 
-    public function withContext(string $context): NodeEnvironmentInterface
+    public function withReturnContext(): self
+    {
+        return $this->withContext(self::CONTEXT_RETURN);
+    }
+
+    public function withStatementContext(): self
+    {
+        return $this->withContext(self::CONTEXT_STATEMENT);
+    }
+
+    public function withExpressionContext(): self
+    {
+        return $this->withContext(self::CONTEXT_EXPRESSION);
+    }
+
+    public function withEnvContext(ContextualEnvironmentInterface $env): self
+    {
+        return $this->withContext($env->getContext());
+    }
+
+    public function withContext(string $context): static
     {
         $result = clone $this;
         $result->context = $context;

@@ -19,7 +19,7 @@ final class AnalyzePersistentVector
 
         /** @var TypeInterface|string|float|int|bool|null $arg */
         foreach ($vector->getIterator() as $arg) {
-            $envDisallowRecur = $env->withContext(NodeEnvironmentInterface::CONTEXT_EXPRESSION)->withDisallowRecurFrame();
+            $envDisallowRecur = $env->withExpressionContext()->withDisallowRecurFrame();
             $args[] = $this->analyzer->analyze($arg, $envDisallowRecur);
         }
 

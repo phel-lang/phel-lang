@@ -44,7 +44,7 @@ final class ApplySymbol implements SpecialFormAnalyzerInterface
     {
         return $this->analyzer->analyze(
             $x,
-            $env->withContext(NodeEnvironmentInterface::CONTEXT_EXPRESSION)->withDisallowRecurFrame(),
+            $env->withExpressionContext()->withDisallowRecurFrame(),
         );
     }
 

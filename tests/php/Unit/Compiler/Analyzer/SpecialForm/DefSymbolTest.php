@@ -99,12 +99,12 @@ final class DefSymbolTest extends TestCase
                 'user',
                 Symbol::create('name'),
                 new MapNode(
-                    $env->withContext(NodeEnvironment::CONTEXT_EXPRESSION),
+                    $env->withExpressionContext(),
                     [],
                 ),
                 new LiteralNode(
                     $env
-                        ->withContext(NodeEnvironment::CONTEXT_EXPRESSION)
+                        ->withExpressionContext()
                         ->withDisallowRecurFrame()
                         ->withBoundTo('user\name')
                         ->withDefAllowed(false),
@@ -132,21 +132,21 @@ final class DefSymbolTest extends TestCase
                 'user',
                 Symbol::create('name'),
                 new MapNode(
-                    $env->withContext(NodeEnvironment::CONTEXT_EXPRESSION),
+                    $env->withExpressionContext(),
                     [
                         new LiteralNode(
-                            $env->withContext(NodeEnvironment::CONTEXT_EXPRESSION),
+                            $env->withExpressionContext(),
                             Keyword::create('doc'),
                         ),
                         new LiteralNode(
-                            $env->withContext(NodeEnvironment::CONTEXT_EXPRESSION),
+                            $env->withExpressionContext(),
                             'my docstring',
                         ),
                     ],
                 ),
                 new LiteralNode(
                     $env
-                        ->withContext(NodeEnvironment::CONTEXT_EXPRESSION)
+                        ->withExpressionContext()
                         ->withDisallowRecurFrame()
                         ->withBoundTo('user\name')
                         ->withDefAllowed(false),
@@ -174,21 +174,21 @@ final class DefSymbolTest extends TestCase
                 'user',
                 Symbol::create('name'),
                 new MapNode(
-                    $env->withContext(NodeEnvironment::CONTEXT_EXPRESSION),
+                    $env->withExpressionContext(),
                     [
                         new LiteralNode(
-                            $env->withContext(NodeEnvironment::CONTEXT_EXPRESSION),
+                            $env->withExpressionContext(),
                             Keyword::create('private'),
                         ),
                         new LiteralNode(
-                            $env->withContext(NodeEnvironment::CONTEXT_EXPRESSION),
+                            $env->withExpressionContext(),
                             true,
                         ),
                     ],
                 ),
                 new LiteralNode(
                     $env
-                        ->withContext(NodeEnvironment::CONTEXT_EXPRESSION)
+                        ->withExpressionContext()
                         ->withDisallowRecurFrame()
                         ->withBoundTo('user\name')
                         ->withDefAllowed(false),
@@ -216,15 +216,15 @@ final class DefSymbolTest extends TestCase
                 'user',
                 Symbol::create('name'),
                 new MapNode(
-                    $env->withContext(NodeEnvironment::CONTEXT_EXPRESSION),
+                    $env->withExpressionContext(),
                     [
                         new LiteralNode(
-                            $env->withContext(NodeEnvironment::CONTEXT_EXPRESSION),
+                            $env->withExpressionContext(),
                             Keyword::create('private'),
                             null,
                         ),
                         new LiteralNode(
-                            $env->withContext(NodeEnvironment::CONTEXT_EXPRESSION),
+                            $env->withExpressionContext(),
                             true,
                             null,
                         ),
@@ -232,7 +232,7 @@ final class DefSymbolTest extends TestCase
                 ),
                 new LiteralNode(
                     $env
-                        ->withContext(NodeEnvironment::CONTEXT_EXPRESSION)
+                        ->withExpressionContext()
                         ->withDisallowRecurFrame()
                         ->withBoundTo('user\name')
                         ->withDefAllowed(false),

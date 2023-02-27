@@ -16,7 +16,7 @@ final class AnalyzePersistentMap
     public function analyze(PersistentMapInterface $map, NodeEnvironmentInterface $env): MapNode
     {
         $keyValues = [];
-        $kvEnv = $env->withContext(NodeEnvironmentInterface::CONTEXT_EXPRESSION);
+        $kvEnv = $env->withExpressionContext();
 
         /** @var TypeInterface|string|float|int|bool|null $value */
         foreach ($map as $key => $value) {

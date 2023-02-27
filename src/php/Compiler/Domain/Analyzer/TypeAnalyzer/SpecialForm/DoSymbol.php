@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Phel\Compiler\Domain\Analyzer\TypeAnalyzer\SpecialForm;
 
 use Phel\Compiler\Domain\Analyzer\Ast\DoNode;
+use Phel\Compiler\Domain\Analyzer\Environment\NodeEnvironment;
 use Phel\Compiler\Domain\Analyzer\Environment\NodeEnvironmentInterface;
 use Phel\Compiler\Domain\Analyzer\Exceptions\AnalyzerException;
 use Phel\Compiler\Domain\Analyzer\TypeAnalyzer\WithAnalyzerTrait;
@@ -33,12 +34,12 @@ final class DoSymbol implements SpecialFormAnalyzerInterface
                 $envStmt = $env;
             } elseif ($forms->cdr() == null && count($stmts) > 0) {
                 // Return statement
-                $envStmt = $env->getContext() === NodeEnvironmentInterface::CONTEXT_STATEMENT
-                    ? $env->withContext(NodeEnvironmentInterface::CONTEXT_STATEMENT)
-                    : $env->withContext(NodeEnvironmentInterface::CONTEXT_RETURN);
+                $envStmt = $env->isContext(NodeEnvironment::CONTEXT_STATEMENT)
+                    ? $env->withStatementContext()
+                    : $env->withreturnContext();
             } else {
                 // Inner statement
-                $envStmt = $env->withContext(NodeEnvironmentInterface::CONTEXT_STATEMENT)->withDisallowRecurFrame();
+                $envStmt = $env->withStatementContext()->withDisallowRecurFrame();
             }
 
             $stmts[] = $this->analyzer->analyze($forms->first(), $envStmt);

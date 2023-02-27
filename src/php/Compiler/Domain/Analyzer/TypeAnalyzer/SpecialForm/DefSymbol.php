@@ -48,7 +48,7 @@ final class DefSymbol implements SpecialFormAnalyzerInterface
         $this->analyzer->addDefinition($namespace, $nameSymbol);
 
         [$metaMap, $init] = $this->createMetaMapAndInit($list);
-        $meta = $this->analyzer->analyze($metaMap, $env->withContext(NodeEnvironmentInterface::CONTEXT_EXPRESSION));
+        $meta = $this->analyzer->analyze($metaMap, $env->withExpressionContext());
         assert($meta instanceof MapNode);
 
         return new DefNode(
@@ -172,7 +172,7 @@ final class DefSymbol implements SpecialFormAnalyzerInterface
     ): AbstractNode {
         $initEnv = $env
             ->withBoundTo($namespace . '\\' . $nameSymbol)
-            ->withContext(NodeEnvironmentInterface::CONTEXT_EXPRESSION)
+            ->withExpressionContext()
             ->withDisallowRecurFrame()
             ->withDefAllowed(false);
 

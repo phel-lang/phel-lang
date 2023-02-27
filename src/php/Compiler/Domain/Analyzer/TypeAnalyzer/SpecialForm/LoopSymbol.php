@@ -8,6 +8,7 @@ use Phel\Compiler\Domain\Analyzer\AnalyzerInterface;
 use Phel\Compiler\Domain\Analyzer\Ast\BindingNode;
 use Phel\Compiler\Domain\Analyzer\Ast\LetNode;
 use Phel\Compiler\Domain\Analyzer\Ast\RecurFrame;
+use Phel\Compiler\Domain\Analyzer\Environment\NodeEnvironment;
 use Phel\Compiler\Domain\Analyzer\Environment\NodeEnvironmentInterface;
 use Phel\Compiler\Domain\Analyzer\Exceptions\AnalyzerException;
 use Phel\Compiler\Domain\Analyzer\TypeAnalyzer\SpecialForm\Binding\BindingValidator;
@@ -109,13 +110,10 @@ final class LoopSymbol implements SpecialFormAnalyzerInterface
 
         $recurFrame = new RecurFrame($locals);
 
-        $bodyEnv = $env
-            ->withMergedLocals($locals)
-            ->withContext(
-                $env->getContext() === NodeEnvironmentInterface::CONTEXT_EXPRESSION
-                    ? NodeEnvironmentInterface::CONTEXT_RETURN
-                    : $env->getContext(),
-            );
+        $bodyEnv = $env->withMergedLocals($locals);
+        $bodyEnv = ($env->isContext(NodeEnvironment::CONTEXT_EXPRESSION))
+            ? $bodyEnv->withReturnContext()
+            : $bodyEnv->withEnvContext($env);
 
         $bodyEnv = $bodyEnv->withAddedRecurFrame($recurFrame);
 
@@ -146,7 +144,7 @@ final class LoopSymbol implements SpecialFormAnalyzerInterface
     private function analyzeBindings(PersistentVectorInterface $vector, NodeEnvironmentInterface $env): array
     {
         $vectorCount = count($vector);
-        $initEnv = $env->withContext(NodeEnvironmentInterface::CONTEXT_EXPRESSION)->withDisallowRecurFrame();
+        $initEnv = $env->withExpressionContext()->withDisallowRecurFrame();
         $nodes = [];
         for ($i = 0; $i < $vectorCount; $i += 2) {
             $sym = $vector->get($i);

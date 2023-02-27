@@ -17,8 +17,8 @@ final class PhpAGetSymbol implements SpecialFormAnalyzerInterface
     {
         return new PhpArrayGetNode(
             $env,
-            $this->analyzer->analyze($list->get(1), $env->withContext(NodeEnvironmentInterface::CONTEXT_EXPRESSION)),
-            $this->analyzer->analyze($list->get(2), $env->withContext(NodeEnvironmentInterface::CONTEXT_EXPRESSION)),
+            $this->analyzer->analyze($list->get(1), $env->withExpressionContext()),
+            $this->analyzer->analyze($list->get(2), $env->withExpressionContext()),
             $list->getStartLocation(),
         );
     }

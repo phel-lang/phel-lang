@@ -24,7 +24,7 @@ final class ThrowSymbol implements SpecialFormAnalyzerInterface
 
         return new ThrowNode(
             $env,
-            $this->analyzer->analyze($list->get(1), $env->withContext(NodeEnvironmentInterface::CONTEXT_EXPRESSION)->withDisallowRecurFrame()),
+            $this->analyzer->analyze($list->get(1), $env->withExpressionContext()->withDisallowRecurFrame()),
             $list->getStartLocation(),
         );
     }

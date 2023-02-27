@@ -17,8 +17,8 @@ final class PhpOSetSymbol implements SpecialFormAnalyzerInterface
 
     public function analyze(PersistentListInterface $list, NodeEnvironmentInterface $env): PhpObjectSetNode
     {
-        $left = $this->analyzer->analyze($list->get(1), $env->withContext(NodeEnvironmentInterface::CONTEXT_EXPRESSION));
-        $right = $this->analyzer->analyze($list->get(2), $env->withContext(NodeEnvironmentInterface::CONTEXT_EXPRESSION));
+        $left = $this->analyzer->analyze($list->get(1), $env->withExpressionContext());
+        $right = $this->analyzer->analyze($list->get(2), $env->withExpressionContext());
 
         if (!$left instanceof PhpObjectCallNode) {
             throw AnalyzerException::withLocation('First argument of php/oget must be a property access', $list);

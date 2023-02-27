@@ -27,7 +27,6 @@ use Phel\Compiler\Domain\Analyzer\Ast\ThrowNode;
 use Phel\Compiler\Domain\Analyzer\Ast\TryNode;
 use Phel\Compiler\Domain\Analyzer\Environment\GlobalEnvironment;
 use Phel\Compiler\Domain\Analyzer\Environment\NodeEnvironment;
-use Phel\Compiler\Domain\Analyzer\Environment\NodeEnvironmentInterface;
 use Phel\Compiler\Domain\Analyzer\TypeAnalyzer\AnalyzePersistentList;
 use Phel\Lang\Symbol;
 use Phel\Lang\TypeFactory;
@@ -204,7 +203,7 @@ final class AnalyzePersistentListTest extends TestCase
             Symbol::create(Symbol::NAME_RECUR), 1,
         ]);
         $recurFrames = [new RecurFrame([Symbol::create(Symbol::NAME_FOREACH)])];
-        $nodeEnv = new NodeEnvironment([], NodeEnvironmentInterface::CONTEXT_STATEMENT, [], $recurFrames);
+        $nodeEnv = new NodeEnvironment([], NodeEnvironment::CONTEXT_STATEMENT, [], $recurFrames);
         self::assertInstanceOf(RecurNode::class, $this->listAnalyzer->analyze($list, $nodeEnv));
     }
 

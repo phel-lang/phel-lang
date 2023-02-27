@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Phel\Compiler\Domain\Emitter;
 
 use Phel\Compiler\Domain\Analyzer\Ast\AbstractNode;
+use Phel\Compiler\Domain\Analyzer\Environment\NodeEnvironment;
 use Phel\Compiler\Domain\Analyzer\Environment\NodeEnvironmentInterface;
 use Phel\Compiler\Domain\Emitter\OutputEmitter\LiteralEmitter;
 use Phel\Compiler\Domain\Emitter\OutputEmitter\MungeInterface;
@@ -115,14 +116,14 @@ final class OutputEmitter implements OutputEmitterInterface
 
     public function emitContextPrefix(NodeEnvironmentInterface $env, ?SourceLocation $sl = null): void
     {
-        if ($env->getContext() === NodeEnvironmentInterface::CONTEXT_RETURN) {
+        if ($env->isContext(NodeEnvironment::CONTEXT_RETURN)) {
             $this->emitStr('return ', $sl);
         }
     }
 
     public function emitContextSuffix(NodeEnvironmentInterface $env, ?SourceLocation $sl = null): void
     {
-        if ($env->getContext() !== NodeEnvironmentInterface::CONTEXT_EXPRESSION) {
+        if (!$env->isContext(NodeEnvironment::CONTEXT_EXPRESSION)) {
             $this->emitStr(';', $sl);
         }
     }

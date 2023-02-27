@@ -27,7 +27,7 @@ final class InvokeSymbol implements SpecialFormAnalyzerInterface
     {
         $f = $this->analyzer->analyze(
             $list->first(),
-            $env->withContext(NodeEnvironmentInterface::CONTEXT_EXPRESSION)->withDisallowRecurFrame(),
+            $env->withExpressionContext()->withDisallowRecurFrame(),
         );
 
         if ($f instanceof GlobalVarNode && $this->isInline($f, count($list) - 1)) {
@@ -161,7 +161,7 @@ final class InvokeSymbol implements SpecialFormAnalyzerInterface
         foreach ($argsList as $element) {
             $arguments[] = $this->analyzer->analyze(
                 $element,
-                $env->withContext(NodeEnvironmentInterface::CONTEXT_EXPRESSION)->withDisallowRecurFrame(),
+                $env->withExpressionContext()->withDisallowRecurFrame(),
             );
         }
 
