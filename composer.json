@@ -24,14 +24,14 @@
     },
     "require-dev": {
         "ext-readline": "*",
-        "friendsofphp/php-cs-fixer": "^3.14",
+        "friendsofphp/php-cs-fixer": "^3.15",
         "phpbench/phpbench": "^1.2",
         "phpmetrics/phpmetrics": "^2.8",
         "phpstan/phpstan": "^1.10",
         "phpunit/phpunit": "^9.6",
         "psalm/plugin-phpunit": "^0.18",
         "symfony/var-dumper": "^6.0",
-        "vimeo/psalm": "^5.7"
+        "vimeo/psalm": "5.7.7"
     },
     "autoload": {
         "psr-4": {
