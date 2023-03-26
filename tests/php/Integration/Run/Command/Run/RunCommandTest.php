@@ -14,7 +14,10 @@ final class RunCommandTest extends AbstractCommandTest
 {
     public static function setUpBeforeClass(): void
     {
-        Gacela::bootstrap(__DIR__, GacelaConfig::withPhpConfigDefault());
+        Gacela::bootstrap(__DIR__, static function (GacelaConfig $config): void {
+            $config->resetInMemoryCache();
+            $config->addAppConfig('config/*.php', 'config/local.php');
+        });
     }
 
     /**
