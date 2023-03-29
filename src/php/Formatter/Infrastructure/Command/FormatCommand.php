@@ -27,7 +27,7 @@ final class FormatCommand extends Command
             ->addArgument(
                 'paths',
                 InputArgument::IS_ARRAY,
-                'The file paths that you want to format. The default value is ["src", "test"].',
+                'The file paths that you want to format.',
                 $this->getConfig()->getFormatDirs(),
             );
     }
