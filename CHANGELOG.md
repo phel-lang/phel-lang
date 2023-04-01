@@ -2,7 +2,7 @@
 
 All notable changes to this project will be documented in this file.
 
-## Unreleased
+## 0.10.0 (2023-04-01)
 
 * Added default format paths: 'src', 'tests' (#569)
 * Deprecate `*compile-mode*` in favor of `*build-mode*` (#570)
