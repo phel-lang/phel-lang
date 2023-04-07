@@ -31,7 +31,9 @@ final class TokenStream implements Iterator
     public function next(): void
     {
         $this->tokenGenerator->next();
-        $this->readTokens[] = $this->tokenGenerator->current();
+        /** @var Token $currentToken */
+        $currentToken = $this->tokenGenerator->current();
+        $this->readTokens[] = $currentToken;
     }
 
     public function key(): mixed

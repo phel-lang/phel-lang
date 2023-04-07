@@ -6,8 +6,6 @@ namespace Phel\Lang;
 
 /**
  * @template TSelf
- *
- * @implements MetaInterface<TSelf>
  */
 interface TypeInterface extends MetaInterface, SourceLocationInterface, EqualsInterface, HashableInterface
 {
