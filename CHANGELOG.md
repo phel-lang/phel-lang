@@ -2,6 +2,10 @@
 
 All notable changes to this project will be documented in this file.
 
+## Unreleased
+
+* Fixed the `phel\repl\doc` function.
+
 ## 0.10.0 (2023-04-01)
 
 * Added default format paths: 'src', 'tests' (#569)
