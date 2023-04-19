@@ -5,7 +5,7 @@
   (:use Phel\Compiler\CompilerFacade)
   (:use Phel\Compiler\Infrastructure\CompileOptions)
   (:use Phel\Compiler\Infrastructure\GlobalEnvironmentSingleton)
-  (:use Phel\Compiler\Analyzer\Environment\NodeEnvironment)
+  (:use Phel\Compiler\Domain\Analyzer\Environment\NodeEnvironment)
   (:use Phel\Printer\Printer))
 
 (def build-facade (php/new BuildFacade))
