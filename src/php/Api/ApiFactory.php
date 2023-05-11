@@ -10,12 +10,16 @@ use Phel\Api\Domain\PhelFnNormalizerInterface;
 use Phel\Api\Infrastructure\PhelFnLoader;
 use Phel\Api\Infrastructure\PhelFnLoaderInterface;
 
+/**
+ * @method ApiConfig getConfig()
+ */
 final class ApiFactory extends AbstractFactory
 {
     public function createPhelFnNormalizer(): PhelFnNormalizerInterface
     {
         return new PhelFnNormalizer(
             $this->createPhelFnLoader(),
+            $this->getConfig()->allNamespaces(),
         );
     }
 

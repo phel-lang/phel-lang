@@ -21,7 +21,7 @@ final class ApiFacadeTest extends TestCase
         // it crashes when it tries to load all phel funcs again. See: `PhelFnLoader::loadAllPhelFunctions()`
         $this->markTestSkipped('Useful to debug the facade, but useless to keep it in the CI');
 
-        Gacela::bootstrap(__DIR__, GacelaConfig::withPhpConfigDefault());
+        Gacela::bootstrap(__DIR__, GacelaConfig::defaultPhpConfig());
 
         Registry::getInstance()->clear();
         Symbol::resetGen();
