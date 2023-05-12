@@ -2,9 +2,10 @@
 
 All notable changes to this project will be documented in this file.
 
-## Unreleased
+## 0.10.1 (2023-05-12)
 
 * Fixed the `phel\repl\doc` function.
+* Use all ns by default on Api's `PhelFnNormalizer`.
 
 ## 0.10.0 (2023-04-01)
 
