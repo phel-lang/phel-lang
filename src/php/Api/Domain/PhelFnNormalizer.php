@@ -12,6 +12,7 @@ final class PhelFnNormalizer implements PhelFnNormalizerInterface
 {
     public function __construct(
         private PhelFnLoaderInterface $phelFnLoader,
+        private array $allNamespaces = [],
     ) {
     }
 
@@ -22,6 +23,10 @@ final class PhelFnNormalizer implements PhelFnNormalizerInterface
      */
     public function getPhelFunctions(array $namespaces = []): array
     {
+        if ($namespaces === []) {
+            $namespaces = $this->allNamespaces;
+        }
+
         $normalizedData = $this->phelFnLoader->getNormalizedPhelFunctions($namespaces);
 
         $result = [];

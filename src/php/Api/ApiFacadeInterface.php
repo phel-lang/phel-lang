@@ -11,7 +11,7 @@ interface ApiFacadeInterface
     /**
      * Get all public phel functions in the namespaces.
      *
-     * @param list<string> $namespaces
+     * @param list<string> $namespaces If empty then it will get all
      *
      * @return list<PhelFunction>
      */
