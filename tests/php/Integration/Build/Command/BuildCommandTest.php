@@ -17,7 +17,7 @@ final class BuildCommandTest extends TestCase
 
     public static function setUpBeforeClass(): void
     {
-        Gacela::bootstrap(__DIR__, GacelaConfig::withPhpConfigDefault());
+        Gacela::bootstrap(__DIR__, GacelaConfig::defaultPhpConfig());
     }
 
     protected function setUp(): void

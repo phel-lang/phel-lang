@@ -14,7 +14,7 @@ final class TestCommandProjectSuccessTest extends AbstractCommandTest
 {
     public static function setUpBeforeClass(): void
     {
-        Gacela::bootstrap(__DIR__, GacelaConfig::withPhpConfigDefault());
+        Gacela::bootstrap(__DIR__, GacelaConfig::defaultPhpConfig());
     }
 
     /**
