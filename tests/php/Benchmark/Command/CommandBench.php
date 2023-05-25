@@ -23,7 +23,7 @@ final class CommandBench
 {
     public function setUp(): void
     {
-        Gacela::bootstrap(__DIR__, GacelaConfig::withPhpConfigDefault());
+        Gacela::bootstrap(__DIR__, GacelaConfig::defaultPhpConfig());
     }
 
     public function bench_run_command(): void

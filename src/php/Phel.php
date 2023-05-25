@@ -18,6 +18,7 @@ final class Phel
     public const PHEL_CONFIG_FILE_NAME = 'phel-config.php';
 
     private const PHEL_CONFIG_LOCAL_FILE_NAME = 'phel-config-local.php';
+    private const FILE_CACHE_DIR = 'data/.cache';
 
     /**
      * This function helps to unify the running execution for a custom phel project.
@@ -42,8 +43,8 @@ final class Phel
     public static function configFn(): callable
     {
         return static function (GacelaConfig $config): void {
+            $config->enableFileCache(self::FILE_CACHE_DIR);
             $config->addAppConfig(self::PHEL_CONFIG_FILE_NAME, self::PHEL_CONFIG_LOCAL_FILE_NAME);
-            $config->setFileCache(true, 'data/.cache');
         };
     }
 
