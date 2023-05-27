@@ -35,7 +35,7 @@ final class DocCommand extends Command
                 null,
                 InputOption::VALUE_OPTIONAL | InputOption::VALUE_IS_ARRAY,
                 'Specify which namespaces to load.',
-                ['phel\\core', 'phel\\http', 'phel\\html', 'phel\\test', 'phel\\json'],
+                [],
             );
     }
 
