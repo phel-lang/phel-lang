@@ -160,6 +160,10 @@
   (is (true? (str-contains? "abc" "a")))
   (is (false? (str-contains? "abc" "d"))))
 
+(deftest test-contains?-str
+  (is (true? (contains? "abc" "a")))
+  (is (false? (contains? "abc" "d"))))
+
 (deftest test-contains?-map
   (let [full-name {:first-name "Marco" :last-name "Polo" :street nil}]
     (is (true? (contains? full-name :first-name)))
