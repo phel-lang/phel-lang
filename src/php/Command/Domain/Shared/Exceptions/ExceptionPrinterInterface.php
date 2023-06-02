@@ -10,6 +10,8 @@ use Throwable;
 
 interface ExceptionPrinterInterface
 {
+    public function logError(string $error): void;
+
     public function printException(AbstractLocatedException $e, CodeSnippet $codeSnippet): void;
 
     public function getExceptionString(AbstractLocatedException $e, CodeSnippet $codeSnippet): string;

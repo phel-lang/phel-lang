@@ -32,10 +32,10 @@ final class TextExceptionPrinterTest extends TestCase
         $type->method('getStartLocation')->willReturn(new SourceLocation($file, line: 1, column: 9));
         $type->method('getEndLocation')->willReturn(new SourceLocation($file, line: 1, column: 23));
 
-        $exception = AnalyzerException::withLocation('Example code exception message', $type);
+        $exception = AnalyzerException::withLocation('.', $type);
 
         $expectedOutput = <<<'MSG'
-Example code exception message
+.
 in example-file.phel:1
 
 1| (+ 1 2 3 unknown-symbol)

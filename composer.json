@@ -64,8 +64,8 @@
             "vendor/bin/psalm --clear-cache",
             "vendor/bin/phpstan clear-result-cache"
         ],
-        "test-compiler": "./vendor/bin/phpunit --testsuite=integration,unit --log-junit=data/log-junit.xml",
-        "test-compiler:coverage": "XDEBUG_MODE=coverage ./vendor/bin/phpunit --testsuite=integration,unit --coverage-html=data/coverage-html --coverage-xml=data/coverage-xml --log-junit=data/coverage-xml/junit.xml",
+        "test-compiler": "./vendor/bin/phpunit --testsuite=unit,integration --log-junit=data/log-junit.xml",
+        "test-compiler:coverage": "XDEBUG_MODE=coverage ./vendor/bin/phpunit --testsuite=unit,integration --coverage-html=data/coverage-html --coverage-xml=data/coverage-xml --log-junit=data/coverage-xml/junit.xml",
         "test-core": "./phel test",
         "psalm": "./vendor/bin/psalm --no-cache",
         "phpstan": "./vendor/bin/phpstan --memory-limit=516M",

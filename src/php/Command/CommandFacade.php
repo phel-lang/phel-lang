@@ -59,6 +59,27 @@ final class CommandFacade extends AbstractFacade implements CommandFacadeInterfa
                 $exceptionPrinter->printStackTrace($exception);
             }
         });
+
+        set_error_handler(static function (
+            int $errno,
+            string $errstr,
+            string $errfile = '',
+            int $errline = 0,
+            array $errcontext = [],
+        ) use ($exceptionPrinter): bool {
+            $exceptionPrinter->logError(
+                sprintf(
+                    "NOTICE found! (%s)\nerrno: %s, message: '%s'\nfile: %s:%d\ncontext: %s",
+                    date(DATE_ATOM),
+                    $errno,
+                    $errstr,
+                    $errfile,
+                    $errline,
+                    json_encode($errcontext),
+                ),
+            );
+            return true;
+        }, E_NOTICE);
     }
 
     /**
