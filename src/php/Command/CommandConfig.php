@@ -19,7 +19,7 @@ final class CommandConfig extends AbstractConfig
     private const DEFAULT_SRC_DIRS = ['src'];
     private const DEFAULT_TEST_DIRS = ['tests'];
     private const DEFAULT_OUT_DIR = 'out';
-    private const DEFAULT_ERROR_LOG_FILE = 'data/error_log.txt';
+    private const DEFAULT_ERROR_LOG_FILE = 'data/error.log';
 
     public function getCodeDirs(): CodeDirectories
     {
