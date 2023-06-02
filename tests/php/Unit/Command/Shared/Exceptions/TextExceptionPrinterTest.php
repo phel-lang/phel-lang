@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace PhelTest\Unit\Command\Shared\Exceptions;
 
+use Phel\Command\Domain\Shared\ErrorLog\ErrorLogInterface;
 use Phel\Command\Domain\Shared\Exceptions\ExceptionArgsPrinterInterface;
 use Phel\Command\Domain\Shared\Exceptions\Extractor\FilePositionExtractorInterface;
 use Phel\Command\Domain\Shared\Exceptions\TextExceptionPrinter;
@@ -54,6 +55,7 @@ MSG
             $this->stubColorStyle(),
             $this->stubMunge(),
             $this->stubFilePositionExtractor(),
+            $this->stubErrorLog(),
         );
     }
 
@@ -79,5 +81,10 @@ MSG
     private function stubFilePositionExtractor(): FilePositionExtractorInterface
     {
         return $this->createStub(FilePositionExtractorInterface::class);
+    }
+
+    private function stubErrorLog(): ErrorLogInterface
+    {
+        return $this->createStub(ErrorLogInterface::class);
     }
 }

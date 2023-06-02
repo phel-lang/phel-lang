@@ -52,7 +52,7 @@ final class CommandFacade extends AbstractFacade implements CommandFacadeInterfa
     {
         $exceptionPrinter = $this->getExceptionPrinter();
 
-        set_exception_handler(static function (Throwable $exception) use ($exceptionPrinter): void {
+        set_error_handler(static function (Throwable $exception) use ($exceptionPrinter): void {
             if ($exception instanceof CompilerException) {
                 $exceptionPrinter->printException($exception->getNestedException(), $exception->getCodeSnippet());
             } else {

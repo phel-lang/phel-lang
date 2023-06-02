@@ -8,6 +8,7 @@ use Gacela\Framework\Bootstrap\GacelaConfig;
 use Gacela\Framework\ClassResolver\GlobalInstance\AnonymousGlobal;
 use Gacela\Framework\Gacela;
 use Generator;
+use Phel\Command\Domain\Shared\ErrorLog\ErrorLogInterface;
 use Phel\Command\Domain\Shared\Exceptions\ExceptionArgsPrinter;
 use Phel\Command\Domain\Shared\Exceptions\Extractor\FilePositionExtractor;
 use Phel\Command\Domain\Shared\Exceptions\Extractor\SourceMapExtractor;
@@ -31,11 +32,10 @@ final class ReplCommandTest extends AbstractCommandTest
 {
     public function setUp(): void
     {
-        $configFn = static function (GacelaConfig $config): void {
+        Gacela::bootstrap(__DIR__, static function (GacelaConfig $config): void {
             $config->resetInMemoryCache();
             $config->addAppConfig('config/*.php', 'config/local.php');
-        };
-        Gacela::bootstrap(__DIR__, $configFn);
+        });
     }
 
     /**
@@ -152,6 +152,7 @@ final class ReplCommandTest extends AbstractCommandTest
             ColorStyle::noStyles(),
             new Munge(),
             new FilePositionExtractor(new SourceMapExtractor()),
+            $this->createStub(ErrorLogInterface::class)
         );
 
         return new ReplTestIo($exceptionPrinter);

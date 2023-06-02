@@ -20,6 +20,7 @@ final class PhelConfig implements JsonSerializable
     private array $testDirs = ['tests/phel'];
     private string $vendorDir = 'vendor';
     private string $outDir = 'out';
+    private string $errorLogFile = 'data/error_log.txt';
     private PhelExportConfig $export;
 
     /** @var list<string> */
@@ -93,6 +94,18 @@ final class PhelConfig implements JsonSerializable
         return $this->outDir;
     }
 
+    public function getErrorLogFile(): string
+    {
+        return $this->errorLogFile;
+    }
+
+    public function setErrorLogFile(string $file): self
+    {
+        $this->errorLogFile = $file;
+
+        return $this;
+    }
+
     public function setOutDir(string $outDir): self
     {
         $this->outDir = $outDir;
@@ -149,6 +162,7 @@ final class PhelConfig implements JsonSerializable
             CommandConfig::TEST_DIRS => $this->getTestDirs(),
             CommandConfig::VENDOR_DIR => $this->getVendorDir(),
             CommandConfig::OUTPUT_DIR => $this->getOutDir(),
+            CommandConfig::ERROR_LOG_FILE => $this->getErrorLogFile(),
             InteropConfig::EXPORT => $this->getExport()->jsonSerialize(),
             BuildConfig::IGNORE_WHEN_BUILDING => $this->getIgnoreWhenBuilding(),
             FilesystemConfig::KEEP_GENERATED_TEMP_FILES => $this->isKeepGeneratedTempFiles(),
