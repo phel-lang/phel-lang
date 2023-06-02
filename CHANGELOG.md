@@ -4,7 +4,8 @@ All notable changes to this project will be documented in this file.
 
 ## Unreleased
 
-* Hide PHP Notices, instead save them in the `error.log` file
+* Improve the error display for PHP Notice messages
+* Save all errors in a temp `error.log` file
   * You can change the error.log file path with `PhelConfig::setErrorLogFile(str)`
 
 ## 0.10.1 (2023-05-12)

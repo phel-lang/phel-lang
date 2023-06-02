@@ -10,6 +10,8 @@ use Throwable;
 
 final class ExceptionHandler
 {
+    private static string $previousNotice = '';
+
     public function __construct(
         private ExceptionPrinterInterface $exceptionPrinter,
     ) {
@@ -41,16 +43,21 @@ final class ExceptionHandler
             int $errline = 0,
             array $errcontext = [],
         ): bool {
-            $this->exceptionPrinter->logError(
-                sprintf(
-                    "[%s] NOTICE found!\nmessage: \"%s\"\nfile: %s:%d\ncontext: %s",
-                    date(DATE_ATOM),
-                    $errstr,
-                    $errfile,
-                    $errline,
-                    json_encode(array_merge($errcontext, ['errno' => $errno])),
-                ),
+            $text = sprintf(
+                "[%s] NOTICE found!\nmessage: \"%s\"\nfile: %s:%d\ncontext: %s",
+                date(DATE_ATOM),
+                $errstr,
+                $errfile,
+                $errline,
+                json_encode(array_merge($errcontext, ['errno' => $errno])),
             );
+            if (self::$previousNotice !== $text) {
+                $this->exceptionPrinter->printError($text);
+            } else {
+                $this->exceptionPrinter->printError('and again');
+            }
+
+            self::$previousNotice = $text;
             return true;
         }, E_NOTICE);
     }

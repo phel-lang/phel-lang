@@ -29,15 +29,16 @@ final class TextExceptionPrinter implements ExceptionPrinterInterface
     ) {
     }
 
-    public function logError(string $error): void
+    public function printError(string $error): void
     {
+        echo $error . PHP_EOL;
         $this->errorLog->writeln($error);
     }
 
     public function printException(AbstractLocatedException $e, CodeSnippet $codeSnippet): void
     {
         echo $e->getMessage() . PHP_EOL;
-        $this->logError($this->getExceptionString($e, $codeSnippet));
+        $this->errorLog->writeln($this->getExceptionString($e, $codeSnippet));
     }
 
     public function getExceptionString(AbstractLocatedException $e, CodeSnippet $codeSnippet): string
@@ -77,7 +78,7 @@ final class TextExceptionPrinter implements ExceptionPrinterInterface
     public function printStackTrace(Throwable $e): void
     {
         echo $e->getMessage() . PHP_EOL;
-        $this->logError($this->getStackTraceString($e));
+        $this->errorLog->writeln($this->getStackTraceString($e));
     }
 
     public function getStackTraceString(Throwable $e): string
