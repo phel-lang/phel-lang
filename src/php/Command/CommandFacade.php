@@ -5,9 +5,9 @@ declare(strict_types=1);
 namespace Phel\Command;
 
 use Gacela\Framework\AbstractFacade;
+use Phel\Command\Domain\Handler\ExceptionHandler;
 use Phel\Command\Domain\Shared\Exceptions\ExceptionPrinterInterface;
 use Phel\Compiler\Domain\Exceptions\AbstractLocatedException;
-use Phel\Compiler\Domain\Exceptions\CompilerException;
 use Phel\Compiler\Domain\Parser\ReadModel\CodeSnippet;
 use Symfony\Component\Console\Output\OutputInterface;
 use Throwable;
@@ -50,35 +50,7 @@ final class CommandFacade extends AbstractFacade implements CommandFacadeInterfa
 
     public function registerExceptionHandler(): void
     {
-        $exceptionPrinter = $this->getExceptionPrinter();
-
-        set_exception_handler(static function (Throwable $exception) use ($exceptionPrinter): void {
-            if ($exception instanceof CompilerException) {
-                $exceptionPrinter->printException($exception->getNestedException(), $exception->getCodeSnippet());
-            } else {
-                $exceptionPrinter->printStackTrace($exception);
-            }
-        });
-
-        set_error_handler(static function (
-            int $errno,
-            string $errstr,
-            string $errfile = '',
-            int $errline = 0,
-            array $errcontext = [],
-        ) use ($exceptionPrinter): bool {
-            $exceptionPrinter->logError(
-                sprintf(
-                    "[%s] NOTICE found!\nmessage: \"%s\"\nfile: %s:%d\ncontext: %s",
-                    date(DATE_ATOM),
-                    $errstr,
-                    $errfile,
-                    $errline,
-                    json_encode(array_merge($errcontext, ['errno' => $errno])),
-                ),
-            );
-            return true;
-        }, E_NOTICE);
+        $this->createExceptionHandler()->register();
     }
 
     /**
@@ -136,5 +108,12 @@ final class CommandFacade extends AbstractFacade implements CommandFacadeInterfa
         return $this->getFactory()
             ->getPhpConfigReader()
             ->read($absolutePath);
+    }
+
+    private function createExceptionHandler(): ExceptionHandler
+    {
+        return new ExceptionHandler(
+            $this->getExceptionPrinter(),
+        );
     }
 }
