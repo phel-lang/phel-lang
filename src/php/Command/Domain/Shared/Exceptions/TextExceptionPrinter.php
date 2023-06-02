@@ -66,12 +66,6 @@ final class TextExceptionPrinter implements ExceptionPrinterInterface
             }
         }
 
-        if ($e->getPrevious()) {
-            $str .= PHP_EOL . PHP_EOL . 'Caused by:' . PHP_EOL;
-            $str .= $e->getPrevious()->getTraceAsString();
-            $str .= PHP_EOL;
-        }
-
         return $str;
     }
 

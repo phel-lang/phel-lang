@@ -108,7 +108,7 @@ final class BuildFacade extends AbstractFacade implements BuildFacadeInterface
     {
         $this->getFactory()
             ->getCommandFacade()
-            ->registerExceptionHandler();
+            ->registerErrorHandler();
     }
 
     public function writeLocatedException(OutputInterface $output, CompilerException $e): void

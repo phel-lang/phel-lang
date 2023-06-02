@@ -48,7 +48,7 @@ final class CommandFacade extends AbstractFacade implements CommandFacadeInterfa
             ->getStackTraceString($e);
     }
 
-    public function registerExceptionHandler(): void
+    public function registerErrorHandler(): void
     {
         $exceptionPrinter = $this->getExceptionPrinter();
 

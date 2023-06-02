@@ -25,12 +25,6 @@ final class CommandExceptionWriter implements CommandExceptionWriterInterface
     ): void {
         $output->writeln($e->getMessage());
 
-        if ($e->getPrevious()) {
-            $output->writeln('');
-            $output->writeln('Caused by');
-            $output->writeln($e->getPrevious()->getMessage());
-        }
-
         $this->errorLog->writeln($this->getStackTraceString($e));
     }
 

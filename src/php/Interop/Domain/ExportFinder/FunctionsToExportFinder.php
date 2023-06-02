@@ -49,7 +49,7 @@ final class FunctionsToExportFinder implements FunctionsToExportFinderInterface
      */
     private function loadAllNsFromPaths(): void
     {
-        $this->commandFacade->registerExceptionHandler();
+        $this->commandFacade->registerErrorHandler();
 
         $namespaceFromDirectories = $this->buildFacade
             ->getNamespaceFromDirectories($this->exportDirs);

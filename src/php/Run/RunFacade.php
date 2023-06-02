@@ -57,7 +57,7 @@ final class RunFacade extends AbstractFacade implements RunFacadeInterface
     {
         $this->getFactory()
             ->getCommandFacade()
-            ->registerExceptionHandler();
+            ->registerErrorHandler();
     }
 
     /**
