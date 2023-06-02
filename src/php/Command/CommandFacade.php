@@ -69,13 +69,12 @@ final class CommandFacade extends AbstractFacade implements CommandFacadeInterfa
         ) use ($exceptionPrinter): bool {
             $exceptionPrinter->logError(
                 sprintf(
-                    "NOTICE found! (%s)\nerrno: %s, message: '%s'\nfile: %s:%d\ncontext: %s",
+                    "[%s] NOTICE found!\nmessage: \"%s\"\nfile: %s:%d\ncontext: %s",
                     date(DATE_ATOM),
-                    $errno,
                     $errstr,
                     $errfile,
                     $errline,
-                    json_encode($errcontext),
+                    json_encode(array_merge($errcontext, ['errno' => $errno])),
                 ),
             );
             return true;

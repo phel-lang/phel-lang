@@ -20,7 +20,7 @@ final class PhelConfig implements JsonSerializable
     private array $testDirs = ['tests/phel'];
     private string $vendorDir = 'vendor';
     private string $outDir = 'out';
-    private string $errorLogFile = 'data/error_log.txt';
+    private string $errorLogFile = 'data/error.log';
     private PhelExportConfig $export;
 
     /** @var list<string> */
