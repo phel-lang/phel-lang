@@ -23,7 +23,7 @@ interface CommandFacadeInterface
 
     public function getStackTraceString(Throwable $e): string;
 
-    public function registerErrorHandler(): void;
+    public function registerExceptionHandler(): void;
 
     /**
      * All src, tests, and vendor directories.

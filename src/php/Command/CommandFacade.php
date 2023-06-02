@@ -48,11 +48,11 @@ final class CommandFacade extends AbstractFacade implements CommandFacadeInterfa
             ->getStackTraceString($e);
     }
 
-    public function registerErrorHandler(): void
+    public function registerExceptionHandler(): void
     {
         $exceptionPrinter = $this->getExceptionPrinter();
 
-        set_error_handler(static function (Throwable $exception) use ($exceptionPrinter): void {
+        set_exception_handler(static function (Throwable $exception) use ($exceptionPrinter): void {
             if ($exception instanceof CompilerException) {
                 $exceptionPrinter->printException($exception->getNestedException(), $exception->getCodeSnippet());
             } else {

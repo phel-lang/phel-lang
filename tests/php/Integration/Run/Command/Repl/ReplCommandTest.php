@@ -152,7 +152,7 @@ final class ReplCommandTest extends AbstractCommandTest
             ColorStyle::noStyles(),
             new Munge(),
             new FilePositionExtractor(new SourceMapExtractor()),
-            $this->createStub(ErrorLogInterface::class)
+            $this->createStub(ErrorLogInterface::class),
         );
 
         return new ReplTestIo($exceptionPrinter);

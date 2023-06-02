@@ -17,7 +17,7 @@ class NamespaceRunner implements NamespaceRunnerInterface
 
     public function run(string $namespace): void
     {
-        $this->commandFacade->registerErrorHandler();
+        $this->commandFacade->registerExceptionHandler();
 
         $namespaceInformation = $this->buildFacade->getDependenciesForNamespace(
             [
