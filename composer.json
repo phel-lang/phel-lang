@@ -30,6 +30,7 @@
     "require-dev": {
         "ext-readline": "*",
         "friendsofphp/php-cs-fixer": "^3.16",
+        "infection/infection": "^0.26",
         "phpbench/phpbench": "^1.2",
         "phpmetrics/phpmetrics": "^2.8",
         "phpstan/phpstan": "^1.10",
@@ -71,6 +72,7 @@
         "phpstan": "./vendor/bin/phpstan --memory-limit=516M",
         "csfix": "./vendor/bin/php-cs-fixer fix",
         "csrun": "./vendor/bin/php-cs-fixer fix --dry-run",
+        "infection": "XDEBUG_MODE=coverage php -d memory_limit=-1 ./vendor/bin/infection --show-mutations --threads=max --min-msi=50 --min-covered-msi=40",
         "phpbench": "./vendor/bin/phpbench run --report=aggregate --ansi",
         "phpbench-base": "./vendor/bin/phpbench run --tag=baseline --report=aggregate --progress=plain --ansi",
         "phpbench-ref": "./vendor/bin/phpbench run --ref=baseline --report=aggregate --progress=plain --ansi",
@@ -87,7 +89,8 @@
             "php": "8.0.2"
         },
         "allow-plugins": {
-            "composer/package-versions-deprecated": true
+            "composer/package-versions-deprecated": true,
+            "infection/extension-installer": true
         }
     }
 }
