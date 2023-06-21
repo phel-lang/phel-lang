@@ -9,7 +9,7 @@ return (new \Phel\Config\PhelConfig())
     ->setVendorDir('')
     ->setOut((new PhelOutConfig())
         ->setDestDir('out')
-        ->setMainNs('test-ns\hello')
+        ->setMainNamespace('test-ns\hello')
         ->setMainFilename('main'))
     ->setIgnoreWhenBuilding(['local.phel', 'failing.phel'])
 ;

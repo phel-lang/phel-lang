@@ -49,7 +49,7 @@ interface CommandFacadeInterface
 
     public function getOutputDirectory(): string;
 
-    public function getOutputMainNsPath(): string;
+    public function getOutputMainNamespacePath(): string;
 
     public function getOutputMainFilename(): string;
 

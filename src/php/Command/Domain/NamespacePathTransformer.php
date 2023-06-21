@@ -4,19 +4,19 @@ declare(strict_types=1);
 
 namespace Phel\Command\Domain;
 
-final class MainNsPathTransformer
+final class NamespacePathTransformer
 {
     public function __construct(
-        private string $outputMainNs,
+        private string $outputMainNamespace,
     ) {
     }
 
-    public function getOutputMainNsPath(): string
+    public function getOutputMainNamespacePath(): string
     {
         return str_replace(
             ['\\', '-'],
             ['/', '_'],
-            $this->outputMainNs,
+            $this->outputMainNamespace,
         );
     }
 }

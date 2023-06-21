@@ -9,11 +9,11 @@ use JsonSerializable;
 final class PhelOutConfig implements JsonSerializable
 {
     public const DEST_DIR = 'dir';
-    public const MAIN_NS = 'main-namespace';
+    public const MAIN_NAMESPACE = 'main-namespace';
     public const MAIN_FILENAME = 'main-filename';
 
     private string $destDir = 'out';
-    private string $mainNs = '';
+    private string $mainNamespace = '';
     private string $mainFilename = 'main';
 
     public static function fromArray(array $array): self
@@ -22,8 +22,8 @@ final class PhelOutConfig implements JsonSerializable
         if (isset($array[self::DEST_DIR])) {
             $self->destDir = $array[self::DEST_DIR];
         }
-        if (isset($array[self::MAIN_NS])) {
-            $self->mainNs = $array[self::MAIN_NS];
+        if (isset($array[self::MAIN_NAMESPACE])) {
+            $self->mainNamespace = $array[self::MAIN_NAMESPACE];
         }
         if (isset($array[self::MAIN_FILENAME])) {
             $self->mainFilename = $array[self::MAIN_FILENAME];
@@ -43,14 +43,14 @@ final class PhelOutConfig implements JsonSerializable
         return $this;
     }
 
-    public function getMainNs(): string
+    public function getMainNamespace(): string
     {
-        return $this->mainNs;
+        return $this->mainNamespace;
     }
 
-    public function setMainNs(string $mainNs): self
+    public function setMainNamespace(string $mainNs): self
     {
-        $this->mainNs = $mainNs;
+        $this->mainNamespace = $mainNs;
         return $this;
     }
 
@@ -69,7 +69,7 @@ final class PhelOutConfig implements JsonSerializable
     {
         return [
             self::DEST_DIR => $this->getDestDir(),
-            self::MAIN_NS => $this->getMainNs(),
+            self::MAIN_NAMESPACE => $this->getMainNamespace(),
             self::MAIN_FILENAME => $this->getMainFilename(),
         ];
     }

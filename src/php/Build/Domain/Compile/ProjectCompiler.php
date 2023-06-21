@@ -121,7 +121,7 @@ if (!file_exists($compiledFile)) {
 
 require_once $compiledFile;
 TXT;
-        $mainNsPath = $this->commandFacade->getOutputMainNsPath();
+        $mainNsPath = $this->commandFacade->getOutputMainNamespacePath();
         $finalMainContent = str_replace(
             ['{{OUTPUT_MAIN_NS}}'],
             [$mainNsPath],

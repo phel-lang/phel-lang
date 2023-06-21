@@ -20,7 +20,7 @@ final class PhelConfigTest extends TestCase
             ->setOut(
                 (new PhelOutConfig())
                     ->setDestDir('out')
-                    ->setMainNs('test-ns/boot')
+                    ->setMainNamespace('test-ns/boot')
                     ->setMainFilename('custom-main'),
             )
             ->setExport(

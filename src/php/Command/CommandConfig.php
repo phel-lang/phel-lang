@@ -37,7 +37,7 @@ final class CommandConfig extends AbstractConfig
 
     public function getOutputMainNs(): string
     {
-        return $this->getOut()->getMainNs();
+        return $this->getOut()->getMainNamespace();
     }
 
     public function getOutputMainFilename(): string
