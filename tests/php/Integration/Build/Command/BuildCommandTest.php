@@ -44,8 +44,8 @@ final class BuildCommandTest extends TestCase
 
         self::assertFileExists(__DIR__ . '/out/phel/core.phel');
         self::assertFileExists(__DIR__ . '/out/phel/core.php');
-        self::assertFileExists(__DIR__ . '/out/hello.phel');
-        self::assertFileExists(__DIR__ . '/out/hello.php');
+        self::assertFileExists(__DIR__ . '/out/test/hello.phel');
+        self::assertFileExists(__DIR__ . '/out/test/hello.php');
     }
 
     /**
@@ -58,7 +58,7 @@ final class BuildCommandTest extends TestCase
     public function test_build_project_cached(): void
     {
         // Mark file cache invalid by setting the modification time to 0
-        touch(__DIR__ . '/out/hello.php', 1);
+        touch(__DIR__ . '/out/test/hello.php', 1);
 
         $this->expectOutputString("This is printed\n");
 
@@ -71,7 +71,7 @@ final class BuildCommandTest extends TestCase
 
         self::assertFileExists(__DIR__ . '/out/phel/core.phel');
         self::assertFileExists(__DIR__ . '/out/phel/core.php');
-        self::assertFileExists(__DIR__ . '/out/hello.phel');
-        self::assertFileExists(__DIR__ . '/out/hello.php');
+        self::assertFileExists(__DIR__ . '/out/test/hello.phel');
+        self::assertFileExists(__DIR__ . '/out/test/hello.php');
     }
 }

@@ -1,4 +1,4 @@
-(ns hello
+(ns test\hello
   (:require phel\html :as h))
 
 (defn hello-world []
