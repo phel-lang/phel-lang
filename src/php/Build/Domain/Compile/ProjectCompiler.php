@@ -104,16 +104,17 @@ final class ProjectCompiler
 
     private function createMainFile(): void
     {
-        //        $mainNs = $this->commandFacade->getOutputMainNs(); # TODO
+        $mainNsPath = $this->commandFacade->getOutputMainNsPath();
 
         $dest = $this->commandFacade->getOutputDirectory();
         $mainFilePath = "{$dest}/main.php";
-        $expected = <<<'TXT'
+
+        $template = <<<'TXT'
 <?php declare(strict_types=1);
 
 require_once dirname(__DIR__) . "/vendor/autoload.php";
 
-$compiledFile = __DIR__ . "/out/test/hello/main.php";
+$compiledFile = __DIR__ . "/out/{{OUTPUT_MAIN_NS}}/main.php";
 if (!file_exists($compiledFile)) {
     echo 'Building the project...';
     exec('vendor/bin/phel build --no-cache');
@@ -121,6 +122,8 @@ if (!file_exists($compiledFile)) {
 
 require_once $compiledFile;
 TXT;
-        file_put_contents($mainFilePath, $expected);
+        $finalMainContent = str_replace('{{OUTPUT_MAIN_NS}}', $mainNsPath, $template);
+
+        file_put_contents($mainFilePath, $finalMainContent);
     }
 }

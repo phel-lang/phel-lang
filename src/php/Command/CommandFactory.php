@@ -10,6 +10,7 @@ use Phel\Command\Domain\Finder\ComposerVendorDirectoriesFinder;
 use Phel\Command\Domain\Finder\DirectoryFinder;
 use Phel\Command\Domain\Finder\DirectoryFinderInterface;
 use Phel\Command\Domain\Finder\VendorDirectoriesFinderInterface;
+use Phel\Command\Domain\MainNsPathTransformer;
 use Phel\Command\Domain\Shared\CommandExceptionWriter;
 use Phel\Command\Domain\Shared\CommandExceptionWriterInterface;
 use Phel\Command\Domain\Shared\Exceptions\ExceptionArgsPrinter;
@@ -55,6 +56,13 @@ final class CommandFactory extends AbstractFactory
     public function getPhpConfigReader(): PhpConfigReader
     {
         return $this->getProvidedDependency(CommandDependencyProvider::PHP_CONFIG_READER);
+    }
+
+    public function createMainNsPathTransformer(): MainNsPathTransformer
+    {
+        return new MainNsPathTransformer(
+            $this->getConfig()->getOutputMainNs(),
+        );
     }
 
     private function createComposerVendorDirectoriesFinder(): VendorDirectoriesFinderInterface

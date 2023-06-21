@@ -49,6 +49,8 @@ interface CommandFacadeInterface
 
     public function getOutputDirectory(): string;
 
+    public function getOutputMainNsPath(): string;
+
     /**
      * @return array<string,mixed>
      */
