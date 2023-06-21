@@ -14,12 +14,14 @@ final class CommandConfig extends AbstractConfig
     public const VENDOR_DIR = 'vendor-dir';
     public const OUTPUT_DIR = 'out-dir';
     public const OUTPUT_MAIN_NS = 'out-main-ns';
+    public const OUTPUT_MAIN_FILENAME = 'out-main-filename';
 
     private const DEFAULT_VENDOR_DIR = 'vendor';
     private const DEFAULT_SRC_DIRS = ['src'];
     private const DEFAULT_TEST_DIRS = ['tests'];
     private const DEFAULT_OUT_DIR = 'out';
     private const DEFAULT_OUTPUT_MAIN_NS = '';
+    private const DEFAULT_OUTPUT_MAIN_FILENAME = 'main';
 
     public function getCodeDirs(): CodeDirectories
     {
@@ -38,5 +40,10 @@ final class CommandConfig extends AbstractConfig
     public function getOutputMainNs(): string
     {
         return (string)$this->get(self::OUTPUT_MAIN_NS, self::DEFAULT_OUTPUT_MAIN_NS);
+    }
+
+    public function getOutputMainFilename(): string
+    {
+        return (string)$this->get(self::OUTPUT_MAIN_FILENAME, self::DEFAULT_OUTPUT_MAIN_FILENAME);
     }
 }

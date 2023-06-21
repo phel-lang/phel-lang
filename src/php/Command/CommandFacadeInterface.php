@@ -51,6 +51,8 @@ interface CommandFacadeInterface
 
     public function getOutputMainNsPath(): string;
 
+    public function getOutputMainFilename(): string;
+
     /**
      * @return array<string,mixed>
      */

@@ -17,7 +17,8 @@ final class PhelConfigTest extends TestCase
             ->setTestDirs(['another/directory'])
             ->setVendorDir('vendor')
             ->setOutDir('out')
-            ->setOutMainNs('test-ns/main')
+            ->setOutMainNs('test-ns/boot')
+            ->setOutMainFilename('custom-main')
             ->setExport(
                 (new PhelExportConfig())
                     ->setDirectories(['some/other/dir'])
@@ -34,7 +35,8 @@ final class PhelConfigTest extends TestCase
             'test-dirs' => ['another/directory'],
             'vendor-dir' => 'vendor',
             'out-dir' => 'out',
-            'out-main-ns' => 'test-ns/main',
+            'out-main-ns' => 'test-ns/boot',
+            'out-main-filename' => 'custom-main',
             'export' => [
                 'target-directory' => 'src/Generated',
                 'directories' => ['some/other/dir'],
