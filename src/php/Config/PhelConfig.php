@@ -19,10 +19,8 @@ final class PhelConfig implements JsonSerializable
     /** @var list<string> */
     private array $testDirs = ['tests/phel'];
     private string $vendorDir = 'vendor';
-    private string $outDir = 'out';
-    private string $outMainNs = '';
-    private string $outMainFilename = 'main';
     private PhelExportConfig $export;
+    private PhelOutConfig $out;
 
     /** @var list<string> */
     private array $ignoreWhenBuilding = ['src/phel/local.phel'];
@@ -34,6 +32,7 @@ final class PhelConfig implements JsonSerializable
     public function __construct()
     {
         $this->export = new PhelExportConfig();
+        $this->out = new PhelOutConfig();
     }
 
     public function getSrcDirs(): array
@@ -90,38 +89,14 @@ final class PhelConfig implements JsonSerializable
         return $this;
     }
 
-    public function getOutDir(): string
+    public function getOut(): PhelOutConfig
     {
-        return $this->outDir;
+        return $this->out;
     }
 
-    public function setOutDir(string $outDir): self
+    public function setOut(PhelOutConfig $out): self
     {
-        $this->outDir = $outDir;
-
-        return $this;
-    }
-
-    public function getOutMainNs(): string
-    {
-        return $this->outMainNs;
-    }
-
-    public function setOutMainNs(string $ns): self
-    {
-        $this->outMainNs = $ns;
-
-        return $this;
-    }
-
-    public function getOutMainFilename(): string
-    {
-        return $this->outMainFilename;
-    }
-
-    public function setOutMainFilename(string $name): self
-    {
-        $this->outMainFilename = $name;
+        $this->out = $out;
 
         return $this;
     }
@@ -174,9 +149,7 @@ final class PhelConfig implements JsonSerializable
             CommandConfig::SRC_DIRS => $this->getSrcDirs(),
             CommandConfig::TEST_DIRS => $this->getTestDirs(),
             CommandConfig::VENDOR_DIR => $this->getVendorDir(),
-            CommandConfig::OUTPUT_DIR => $this->getOutDir(),
-            CommandConfig::OUTPUT_MAIN_NS => $this->getOutMainNs(),
-            CommandConfig::OUTPUT_MAIN_FILENAME => $this->getOutMainFilename(),
+            CommandConfig::OUTPUT => $this->getOut()->jsonSerialize(),
             InteropConfig::EXPORT => $this->getExport()->jsonSerialize(),
             BuildConfig::IGNORE_WHEN_BUILDING => $this->getIgnoreWhenBuilding(),
             FilesystemConfig::KEEP_GENERATED_TEMP_FILES => $this->isKeepGeneratedTempFiles(),

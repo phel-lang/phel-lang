@@ -6,6 +6,7 @@ namespace PhelTest\Unit\Compiler\Config;
 
 use Phel\Config\PhelConfig;
 use Phel\Config\PhelExportConfig;
+use Phel\Config\PhelOutConfig;
 use PHPUnit\Framework\TestCase;
 
 final class PhelConfigTest extends TestCase
@@ -16,9 +17,12 @@ final class PhelConfigTest extends TestCase
             ->setSrcDirs(['some/directory'])
             ->setTestDirs(['another/directory'])
             ->setVendorDir('vendor')
-            ->setOutDir('out')
-            ->setOutMainNs('test-ns/boot')
-            ->setOutMainFilename('custom-main')
+            ->setOut(
+                (new PhelOutConfig())
+                    ->setDestDir('out')
+                    ->setMainNs('test-ns/boot')
+                    ->setMainFilename('custom-main'),
+            )
             ->setExport(
                 (new PhelExportConfig())
                     ->setDirectories(['some/other/dir'])
@@ -34,9 +38,11 @@ final class PhelConfigTest extends TestCase
             'src-dirs' => ['some/directory'],
             'test-dirs' => ['another/directory'],
             'vendor-dir' => 'vendor',
-            'out-dir' => 'out',
-            'out-main-ns' => 'test-ns/boot',
-            'out-main-filename' => 'custom-main',
+            'out' => [
+                'dir' => 'out',
+                'main-namespace' => 'test-ns/boot',
+                'main-filename' => 'custom-main',
+            ],
             'export' => [
                 'target-directory' => 'src/Generated',
                 'directories' => ['some/other/dir'],

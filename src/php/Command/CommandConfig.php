@@ -6,29 +6,27 @@ namespace Phel\Command;
 
 use Gacela\Framework\AbstractConfig;
 use Phel\Command\Domain\CodeDirectories;
+use Phel\Config\PhelOutConfig;
 
 final class CommandConfig extends AbstractConfig
 {
     public const SRC_DIRS = 'src-dirs';
     public const TEST_DIRS = 'test-dirs';
     public const VENDOR_DIR = 'vendor-dir';
-    public const OUTPUT_DIR = 'out-dir';
-    public const OUTPUT_MAIN_NS = 'out-main-ns';
-    public const OUTPUT_MAIN_FILENAME = 'out-main-filename';
+    public const OUTPUT = 'out';
 
     private const DEFAULT_VENDOR_DIR = 'vendor';
     private const DEFAULT_SRC_DIRS = ['src'];
     private const DEFAULT_TEST_DIRS = ['tests'];
-    private const DEFAULT_OUT_DIR = 'out';
-    private const DEFAULT_OUTPUT_MAIN_NS = '';
-    private const DEFAULT_OUTPUT_MAIN_FILENAME = 'main';
+
+    private static ?PhelOutConfig $outConfig = null;
 
     public function getCodeDirs(): CodeDirectories
     {
         return new CodeDirectories(
             (array)$this->get(self::SRC_DIRS, self::DEFAULT_SRC_DIRS),
             (array)$this->get(self::TEST_DIRS, self::DEFAULT_TEST_DIRS),
-            (string)$this->get(self::OUTPUT_DIR, self::DEFAULT_OUT_DIR),
+            $this->getOut()->getDestDir(),
         );
     }
 
@@ -39,11 +37,16 @@ final class CommandConfig extends AbstractConfig
 
     public function getOutputMainNs(): string
     {
-        return (string)$this->get(self::OUTPUT_MAIN_NS, self::DEFAULT_OUTPUT_MAIN_NS);
+        return $this->getOut()->getMainNs();
     }
 
     public function getOutputMainFilename(): string
     {
-        return (string)$this->get(self::OUTPUT_MAIN_FILENAME, self::DEFAULT_OUTPUT_MAIN_FILENAME);
+        return $this->getOut()->getMainFilename();
+    }
+
+    public function getOut(): PhelOutConfig
+    {
+        return self::$outConfig ??= PhelOutConfig::fromArray((array)$this->get('out', []));
     }
 }

@@ -2,13 +2,16 @@
 
 declare(strict_types=1);
 
+use Phel\Config\PhelOutConfig;
+
 return (new \Phel\Config\PhelConfig())
     ->setSrcDirs(['src/phel'])
     ->setTestDirs(['tests/phel'])
     ->setVendorDir('vendor')
-    ->setOutDir('out')
-    ->setOutMainNs('')
-    ->setOutMainFilename('')
+    ->setOut((new PhelOutConfig())
+        ->setDestDir('out')
+        ->setMainNs('')
+        ->setMainFilename('main'))
     ->setExport((new \Phel\Config\PhelExportConfig())
         ->setDirectories(['src/phel'])
         ->setNamespacePrefix('PhelGenerated')

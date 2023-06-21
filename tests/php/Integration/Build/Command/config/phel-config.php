@@ -2,17 +2,14 @@
 
 declare(strict_types=1);
 
-return [
-    'src-dirs' => [
-        '../../../../../src/phel/',
-        'src',
-    ],
-    'out-dir' => 'out',
-    'out-main-ns' => 'test-ns\hello',
-    'out-main-filename' => 'main',
-    'vendor-dir' => '',
-    'ignore-when-building' => [
-        'local.phel',
-        'failing.phel',
-    ],
-];
+use Phel\Config\PhelOutConfig;
+
+return (new \Phel\Config\PhelConfig())
+    ->setSrcDirs(['../../../../../src/phel/', 'src'])
+    ->setVendorDir('')
+    ->setOut((new PhelOutConfig())
+        ->setDestDir('out')
+        ->setMainNs('test-ns\hello')
+        ->setMainFilename('main'))
+    ->setIgnoreWhenBuilding(['local.phel', 'failing.phel'])
+;
