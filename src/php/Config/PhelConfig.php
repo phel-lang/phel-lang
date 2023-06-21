@@ -20,6 +20,7 @@ final class PhelConfig implements JsonSerializable
     private array $testDirs = ['tests/phel'];
     private string $vendorDir = 'vendor';
     private string $outDir = 'out';
+    private string $outMainNs = '';
     private PhelExportConfig $export;
 
     /** @var list<string> */
@@ -100,6 +101,18 @@ final class PhelConfig implements JsonSerializable
         return $this;
     }
 
+    public function getOutMainNs(): string
+    {
+        return $this->outMainNs;
+    }
+
+    public function setOutMainNs(string $ns): self
+    {
+        $this->outMainNs = $ns;
+
+        return $this;
+    }
+
     public function getIgnoreWhenBuilding(): array
     {
         return $this->ignoreWhenBuilding;
@@ -149,6 +162,7 @@ final class PhelConfig implements JsonSerializable
             CommandConfig::TEST_DIRS => $this->getTestDirs(),
             CommandConfig::VENDOR_DIR => $this->getVendorDir(),
             CommandConfig::OUTPUT_DIR => $this->getOutDir(),
+            CommandConfig::OUTPUT_MAIN_NS => $this->getOutMainNs(),
             InteropConfig::EXPORT => $this->getExport()->jsonSerialize(),
             BuildConfig::IGNORE_WHEN_BUILDING => $this->getIgnoreWhenBuilding(),
             FilesystemConfig::KEEP_GENERATED_TEMP_FILES => $this->isKeepGeneratedTempFiles(),
