@@ -74,4 +74,36 @@ final class BuildCommandTest extends TestCase
         self::assertFileExists(__DIR__ . '/out/test/hello.phel');
         self::assertFileExists(__DIR__ . '/out/test/hello.php');
     }
+
+    /**
+     * @runInSeparateProcess
+     *
+     * @preserveGlobalState disabled
+     */
+    public function test_out_main_file(): void
+    {
+        $this->command->run(
+            new ArrayInput([
+                '--no-source-map' => true,
+                '--no-cache' => true,
+            ]),
+            $this->createStub(OutputInterface::class),
+        );
+
+        $mainContent = file_get_contents(__DIR__ . '/out/main.php');
+        $expected = <<<'TXT'
+<?php declare(strict_types=1);
+
+require_once dirname(__DIR__) . "/vendor/autoload.php";
+
+$compiledFile = __DIR__ . "/out/test/hello/main.php";
+if (!file_exists($compiledFile)) {
+    echo 'Building the project...';
+    exec('vendor/bin/phel build --no-cache');
+}
+
+require_once $compiledFile;
+TXT;
+        self::assertSame($expected, $mainContent);
+    }
 }

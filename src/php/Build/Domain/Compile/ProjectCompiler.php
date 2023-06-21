@@ -79,6 +79,8 @@ final class ProjectCompiler
             touch($targetFile, filemtime($info->getFile()));
         }
 
+        $this->createMainFile();
+
         return $result;
     }
 
@@ -98,5 +100,27 @@ final class ProjectCompiler
         $mungedNamespace = $this->compilerFacade->encodeNs($namespace);
 
         return implode(DIRECTORY_SEPARATOR, explode('\\', $mungedNamespace)) . self::TARGET_FILE_EXTENSION;
+    }
+
+    private function createMainFile(): void
+    {
+        //        $mainNs = $this->commandFacade->getOutputMainNs(); # TODO
+
+        $dest = $this->commandFacade->getOutputDirectory();
+        $mainFilePath = "{$dest}/main.php";
+        $expected = <<<'TXT'
+<?php declare(strict_types=1);
+
+require_once dirname(__DIR__) . "/vendor/autoload.php";
+
+$compiledFile = __DIR__ . "/out/test/hello/main.php";
+if (!file_exists($compiledFile)) {
+    echo 'Building the project...';
+    exec('vendor/bin/phel build --no-cache');
+}
+
+require_once $compiledFile;
+TXT;
+        file_put_contents($mainFilePath, $expected);
     }
 }

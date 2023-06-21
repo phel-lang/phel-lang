@@ -8,7 +8,7 @@ return [
         'src',
     ],
     'out-dir' => 'out',
-    'out-main-ns' => 'out',
+    'out-main-ns' => 'test\hello',
     'vendor-dir' => '',
     'ignore-when-building' => [
         'local.phel',
