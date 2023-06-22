@@ -100,10 +100,6 @@ final class BuildCommandTest extends TestCase
 require_once dirname(__DIR__) . "/vendor/autoload.php";
 
 $compiledFile = __DIR__ . "/test_ns/hello.php";
-if (!file_exists($compiledFile)) {
-    echo 'Building the project...';
-    exec('vendor/bin/phel build --no-cache');
-}
 
 require_once $compiledFile;
 TXT;
