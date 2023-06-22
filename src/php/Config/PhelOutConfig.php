@@ -11,6 +11,7 @@ final class PhelOutConfig implements JsonSerializable
     public const DEST_DIR = 'dir';
     public const MAIN_PHEL_NAMESPACE = 'main-phel-namespace';
     public const MAIN_PHP_FILENAME = 'main-php-filename';
+    public const MAIN_PHP_PATH = 'main-php-path';
 
     private string $destDir = 'out';
     private string $mainPhelNamespace = '';
@@ -54,9 +55,9 @@ final class PhelOutConfig implements JsonSerializable
         return $this;
     }
 
-    public function getMainPhpFilename(): string
+    public function getMainPhpPath(): string
     {
-        return $this->mainPhpFilename;
+        return "{$this->destDir}/{$this->mainPhpFilename}.php";
     }
 
     public function setMainPhpFilename(string $name): self
@@ -70,7 +71,8 @@ final class PhelOutConfig implements JsonSerializable
         return [
             self::DEST_DIR => $this->getDestDir(),
             self::MAIN_PHEL_NAMESPACE => $this->getMainPhelNamespace(),
-            self::MAIN_PHP_FILENAME => $this->getMainPhpFilename(),
+            self::MAIN_PHP_FILENAME => $this->mainPhpFilename,
+            self::MAIN_PHP_PATH => $this->getMainPhpPath(),
         ];
     }
 }

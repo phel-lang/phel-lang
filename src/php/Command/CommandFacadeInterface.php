@@ -51,7 +51,7 @@ interface CommandFacadeInterface
 
     public function getOutputMainPhelPath(): string;
 
-    public function getOutputMainPhpFilename(): string;
+    public function getOutputMainPhpPath(): string;
 
     /**
      * @return array<string,mixed>

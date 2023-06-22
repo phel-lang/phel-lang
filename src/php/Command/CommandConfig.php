@@ -40,9 +40,9 @@ final class CommandConfig extends AbstractConfig
         return $this->getOut()->getMainPhelNamespace();
     }
 
-    public function getOutputMainFilename(): string
+    public function getOutputMainPhpPath(): string
     {
-        return $this->getOut()->getMainPhpFilename();
+        return $this->getOut()->getMainPhpPath();
     }
 
     public function getOut(): PhelOutConfig

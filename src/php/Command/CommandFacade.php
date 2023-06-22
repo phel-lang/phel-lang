@@ -118,11 +118,11 @@ final class CommandFacade extends AbstractFacade implements CommandFacadeInterfa
             ->getOutputMainNamespacePath();
     }
 
-    public function getOutputMainPhpFilename(): string
+    public function getOutputMainPhpPath(): string
     {
         return $this->getFactory()
             ->getConfig()
-            ->getOutputMainFilename();
+            ->getOutputMainPhpPath();
     }
 
     public function readPhelConfig(string $absolutePath): array

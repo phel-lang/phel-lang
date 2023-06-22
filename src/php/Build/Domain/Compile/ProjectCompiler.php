@@ -79,7 +79,7 @@ final class ProjectCompiler
             touch($targetFile, filemtime($info->getFile()));
         }
 
-        $this->createMainFile();
+        $this->createMainPhpEntryPointFile();
 
         return $result;
     }
@@ -102,12 +102,8 @@ final class ProjectCompiler
         return implode(DIRECTORY_SEPARATOR, explode('\\', $mungedNamespace)) . self::TARGET_FILE_EXTENSION;
     }
 
-    private function createMainFile(): void
+    private function createMainPhpEntryPointFile(): void
     {
-        $outputDirectory = $this->commandFacade->getOutputDirectory();
-        $phpFilename = $this->commandFacade->getOutputMainPhpFilename();
-        $outPhpPath = "{$outputDirectory}/{$phpFilename}.php";
-
         $template = <<<'TXT'
 <?php declare(strict_types=1);
 
@@ -124,6 +120,7 @@ TXT;
         $mainNsPath = $this->commandFacade->getOutputMainPhelPath();
         $finalMainContent = str_replace('{{OUTPUT_MAIN_NS}}', $mainNsPath, $template);
 
+        $outPhpPath = $this->commandFacade->getOutputMainPhpPath();
         file_put_contents($outPhpPath, $finalMainContent);
     }
 }
