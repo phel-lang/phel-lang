@@ -61,7 +61,7 @@ final class CommandFactory extends AbstractFactory
     public function createMainNsPathTransformer(): NamespacePathTransformer
     {
         return new NamespacePathTransformer(
-            $this->getConfig()->getOutputMainNs(),
+            $this->getConfig()->getMainPhelNamespace(),
         );
     }
 

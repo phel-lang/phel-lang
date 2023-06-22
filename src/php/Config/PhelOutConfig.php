@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Phel\Config;
 
+use Gacela\Framework\Gacela;
 use JsonSerializable;
 
 final class PhelOutConfig implements JsonSerializable
@@ -57,7 +58,7 @@ final class PhelOutConfig implements JsonSerializable
 
     public function getMainPhpPath(): string
     {
-        return "{$this->destDir}/{$this->mainPhpFilename}.php";
+        return Gacela::rootDir() . "/{$this->destDir}/{$this->mainPhpFilename}.php";
     }
 
     public function setMainPhpFilename(string $name): self

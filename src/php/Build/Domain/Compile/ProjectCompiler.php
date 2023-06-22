@@ -121,6 +121,7 @@ TXT;
         $finalMainContent = str_replace('{{OUTPUT_MAIN_NS}}', $mainNsPath, $template);
 
         $outPhpPath = $this->commandFacade->getOutputMainPhpPath();
+
         file_put_contents($outPhpPath, $finalMainContent);
     }
 }

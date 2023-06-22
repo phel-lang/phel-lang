@@ -35,7 +35,7 @@ final class CommandConfig extends AbstractConfig
         return (string)$this->get(self::VENDOR_DIR, self::DEFAULT_VENDOR_DIR);
     }
 
-    public function getOutputMainNs(): string
+    public function getMainPhelNamespace(): string
     {
         return $this->getOut()->getMainPhelNamespace();
     }
