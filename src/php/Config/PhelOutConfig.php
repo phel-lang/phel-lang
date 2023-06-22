@@ -16,7 +16,7 @@ final class PhelOutConfig implements JsonSerializable
 
     private string $destDir = 'out';
     private string $mainPhelNamespace = '';
-    private string $mainPhpFilename = 'main';
+    private string $mainPhpFilename = 'index';
 
     public static function fromArray(array $array): self
     {
