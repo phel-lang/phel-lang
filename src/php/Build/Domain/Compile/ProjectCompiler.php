@@ -104,9 +104,9 @@ final class ProjectCompiler
 
     private function createMainFile(): void
     {
-        $dest = $this->commandFacade->getOutputDirectory();
-        $mainFilename = $this->commandFacade->getOutputMainFilename();
-        $mainFilePath = "{$dest}/{$mainFilename}.php";
+        $outputDirectory = $this->commandFacade->getOutputDirectory();
+        $phpFilename = $this->commandFacade->getOutputMainPhpFilename();
+        $outPhpPath = "{$outputDirectory}/{$phpFilename}.php";
 
         $template = <<<'TXT'
 <?php declare(strict_types=1);
@@ -121,13 +121,9 @@ if (!file_exists($compiledFile)) {
 
 require_once $compiledFile;
 TXT;
-        $mainNsPath = $this->commandFacade->getOutputMainNamespacePath();
-        $finalMainContent = str_replace(
-            ['{{OUTPUT_MAIN_NS}}'],
-            [$mainNsPath],
-            $template,
-        );
+        $mainNsPath = $this->commandFacade->getOutputMainPhelPath();
+        $finalMainContent = str_replace('{{OUTPUT_MAIN_NS}}', $mainNsPath, $template);
 
-        file_put_contents($mainFilePath, $finalMainContent);
+        file_put_contents($outPhpPath, $finalMainContent);
     }
 }

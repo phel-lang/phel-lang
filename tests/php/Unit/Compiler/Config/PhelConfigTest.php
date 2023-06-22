@@ -20,8 +20,8 @@ final class PhelConfigTest extends TestCase
             ->setOut(
                 (new PhelOutConfig())
                     ->setDestDir('out')
-                    ->setMainNamespace('test-ns/boot')
-                    ->setMainFilename('custom-main'),
+                    ->setMainPhelNamespace('test-ns/boot')
+                    ->setMainPhpFilename('custom-main'),
             )
             ->setExport(
                 (new PhelExportConfig())
@@ -40,8 +40,8 @@ final class PhelConfigTest extends TestCase
             'vendor-dir' => 'vendor',
             'out' => [
                 'dir' => 'out',
-                'main-namespace' => 'test-ns/boot',
-                'main-filename' => 'custom-main',
+                'main-phel-namespace' => 'test-ns/boot',
+                'main-php-filename' => 'custom-main',
             ],
             'export' => [
                 'target-directory' => 'src/Generated',

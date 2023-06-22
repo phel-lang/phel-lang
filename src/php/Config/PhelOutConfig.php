@@ -9,12 +9,12 @@ use JsonSerializable;
 final class PhelOutConfig implements JsonSerializable
 {
     public const DEST_DIR = 'dir';
-    public const MAIN_NAMESPACE = 'main-namespace';
-    public const MAIN_FILENAME = 'main-filename';
+    public const MAIN_PHEL_NAMESPACE = 'main-phel-namespace';
+    public const MAIN_PHP_FILENAME = 'main-php-filename';
 
     private string $destDir = 'out';
-    private string $mainNamespace = '';
-    private string $mainFilename = 'main';
+    private string $mainPhelNamespace = '';
+    private string $mainPhpFilename = 'main';
 
     public static function fromArray(array $array): self
     {
@@ -22,11 +22,11 @@ final class PhelOutConfig implements JsonSerializable
         if (isset($array[self::DEST_DIR])) {
             $self->destDir = $array[self::DEST_DIR];
         }
-        if (isset($array[self::MAIN_NAMESPACE])) {
-            $self->mainNamespace = $array[self::MAIN_NAMESPACE];
+        if (isset($array[self::MAIN_PHEL_NAMESPACE])) {
+            $self->mainPhelNamespace = $array[self::MAIN_PHEL_NAMESPACE];
         }
-        if (isset($array[self::MAIN_FILENAME])) {
-            $self->mainFilename = $array[self::MAIN_FILENAME];
+        if (isset($array[self::MAIN_PHP_FILENAME])) {
+            $self->mainPhpFilename = $array[self::MAIN_PHP_FILENAME];
         }
 
         return $self;
@@ -43,25 +43,25 @@ final class PhelOutConfig implements JsonSerializable
         return $this;
     }
 
-    public function getMainNamespace(): string
+    public function getMainPhelNamespace(): string
     {
-        return $this->mainNamespace;
+        return $this->mainPhelNamespace;
     }
 
-    public function setMainNamespace(string $mainNs): self
+    public function setMainPhelNamespace(string $namespace): self
     {
-        $this->mainNamespace = $mainNs;
+        $this->mainPhelNamespace = $namespace;
         return $this;
     }
 
-    public function getMainFilename(): string
+    public function getMainPhpFilename(): string
     {
-        return $this->mainFilename;
+        return $this->mainPhpFilename;
     }
 
-    public function setMainFilename(string $mainFilename): self
+    public function setMainPhpFilename(string $name): self
     {
-        $this->mainFilename = $mainFilename;
+        $this->mainPhpFilename = $name;
         return $this;
     }
 
@@ -69,8 +69,8 @@ final class PhelOutConfig implements JsonSerializable
     {
         return [
             self::DEST_DIR => $this->getDestDir(),
-            self::MAIN_NAMESPACE => $this->getMainNamespace(),
-            self::MAIN_FILENAME => $this->getMainFilename(),
+            self::MAIN_PHEL_NAMESPACE => $this->getMainPhelNamespace(),
+            self::MAIN_PHP_FILENAME => $this->getMainPhpFilename(),
         ];
     }
 }

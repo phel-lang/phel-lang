@@ -37,12 +37,12 @@ final class CommandConfig extends AbstractConfig
 
     public function getOutputMainNs(): string
     {
-        return $this->getOut()->getMainNamespace();
+        return $this->getOut()->getMainPhelNamespace();
     }
 
     public function getOutputMainFilename(): string
     {
-        return $this->getOut()->getMainFilename();
+        return $this->getOut()->getMainPhpFilename();
     }
 
     public function getOut(): PhelOutConfig
