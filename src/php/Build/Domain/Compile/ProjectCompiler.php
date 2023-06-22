@@ -109,12 +109,12 @@ final class ProjectCompiler
 
 require_once dirname(__DIR__) . "/vendor/autoload.php";
 
-$compiledFile = __DIR__ . "/{{OUTPUT_MAIN_NS}}.php";
+$compiledFile = __DIR__ . "/{{OUTPUT_MAIN_PHEL_PATH}}.php";
 
 require_once $compiledFile;
 TXT;
         $mainNsPath = $this->commandFacade->getOutputMainPhelPath();
-        $finalMainContent = str_replace('{{OUTPUT_MAIN_NS}}', $mainNsPath, $template);
+        $finalMainContent = str_replace('{{OUTPUT_MAIN_PHEL_PATH}}', $mainNsPath, $template);
 
         $outPhpPath = $this->commandFacade->getOutputMainPhpPath();
 
