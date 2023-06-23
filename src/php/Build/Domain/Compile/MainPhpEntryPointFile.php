@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace Phel\Build\Domain\Compile;
 
-use Gacela\Framework\Gacela;
 use Phel\Build\Domain\Compile\Output\NamespacePathTransformer;
 use Phel\Config\PhelOutConfig;
 
@@ -13,6 +12,7 @@ final class MainPhpEntryPointFile
     public function __construct(
         private PhelOutConfig $phelOutConfig,
         private NamespacePathTransformer $namespacePathTransformer,
+        private string $appRootDir
     ) {
     }
 
@@ -27,22 +27,25 @@ $compiledFile = __DIR__ . "/{{OUTPUT_MAIN_PHEL_PATH}}.php";
 
 require_once $compiledFile;
 TXT;
-        $outputMainPhelPath = $this->namespacePathTransformer->getOutputMainNamespacePath(
-            $this->phelOutConfig->getMainPhelNamespace(),
-        );
-
         $outPhpContent = str_replace(
             '{{OUTPUT_MAIN_PHEL_PATH}}',
-            $outputMainPhelPath,
+            $this->outputMainPhelPath(),
             $template,
         );
 
         $outPhpPath = sprintf(
             '%s/%s',
-            Gacela::rootDir(),
+            $this->appRootDir,
             $this->phelOutConfig->getMainPhpPath(),
         );
 
         file_put_contents($outPhpPath, $outPhpContent);
+    }
+
+    private function outputMainPhelPath(): string
+    {
+        return $this->namespacePathTransformer->getOutputMainNamespacePath(
+            $this->phelOutConfig->getMainPhelNamespace(),
+        );
     }
 }

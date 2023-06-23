@@ -85,6 +85,7 @@ final class BuildFactory extends AbstractFactory
         return new MainPhpEntryPointFile(
             $this->getConfig()->getPhelOutConfig(),
             $this->createNamespacePathTransformer(),
+            $this->getConfig()->getAppRootDir(),
         );
     }
 
