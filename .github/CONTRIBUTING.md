@@ -49,7 +49,7 @@ Do not post screenshots of code or output.
 ## Workflow for Pull Requests
 
 1. Fork the repository.
-2. Create your branch from `master` if you plan to implement new functionality or change existing code significantly;
+2. Create your branch from `main` if you plan to implement new functionality or change existing code significantly;
    create your branch from the oldest branch that is affected by the bug if you plan to fix a bug.
 3. Implement your change and add tests for it.
 4. Ensure the test suite passes.
@@ -61,13 +61,14 @@ Strings such as `silly nick name <root@localhost>` look really stupid in the com
 
 ## Coding Guidelines
 
-This project comes with a configuration file (located at `/psalm.xml` in the repository) that you can use to perform static analysis (with a focus on type checking):
+This project comes with configuration files (located at `/psalm.xml` and `/phpstan.neon` in the repository) that you can use to perform static analysis (with a focus on type checking):
 
 ```bash
 $ ./vendor/bin/psalm
+$ ./vendor/bin/phpstan
 ```
 
-This project comes with a configuration file (located at `/.php_cs.dist` in the repository) that you can use to (re)format your source code for compliance with this project's coding guidelines:
+This project comes with a configuration file (located at `/.php-cs-fixer.dist.php` in the repository) that you can use to (re)format your source code for compliance with this project's coding guidelines:
 
 ```bash
 $ ./vendor/bin/php-cs-fixer fix
@@ -79,7 +80,7 @@ Please understand that we will not accept a pull request when its changes violat
 
 ### Requirements
 
-Phel requires PHP 7.4 or higher and Composer.
+Phel requires PHP 8.0.2 or higher and Composer.
 
 ### Running Phel's test suites
 
@@ -110,6 +111,9 @@ These are the composer scripts that might help you to run the all test suites:
 composer psalm         # Run Psalm
 > vendor/bin/psalm
 
+composer phpstan       # Run PhpStan
+> vendor/bin/phpstan
+
 composer test-compiler # test the compiler
 > vendor/bin/phpunit --testsuite unit
 > vendor/bin/phpunit --testsuite integration
@@ -117,9 +121,11 @@ composer test-compiler # test the compiler
 composer test-core     # test core library
 > ./phel test
 
-composer test-all      # csrun, psalm, compiler & core tests after each other
+composer test-all      # clear cache, php-cs-fixer, psalm, phpstan, compiler & core tests after each other
+> composer static-clear-cache
 > composer csrun
 > composer psalm
+> composer phpstan
 > composer test-compiler
 > composer test-core
 ```
