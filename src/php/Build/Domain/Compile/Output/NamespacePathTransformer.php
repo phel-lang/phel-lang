@@ -6,12 +6,12 @@ namespace Phel\Build\Domain\Compile\Output;
 
 final class NamespacePathTransformer
 {
-    public function getOutputMainNamespacePath(string $outputMainNamespace): string
+    public function transform(string $namespace): string
     {
         return str_replace(
             ['\\', '-'],
             ['/', '_'],
-            $outputMainNamespace,
+            $namespace,
         );
     }
 }

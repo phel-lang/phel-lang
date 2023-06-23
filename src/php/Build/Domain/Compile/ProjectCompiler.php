@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Phel\Build\Domain\Compile;
 
+use Phel\Build\Domain\Compile\Output\EntryPointPhpFileInterface;
 use Phel\Build\Domain\Extractor\NamespaceExtractorInterface;
 use Phel\Build\Domain\Extractor\NamespaceInformation;
 use Phel\Command\CommandFacadeInterface;
@@ -24,7 +25,7 @@ final class ProjectCompiler
         private FileCompilerInterface $fileCompiler,
         private CompilerFacadeInterface $compilerFacade,
         private CommandFacadeInterface $commandFacade,
-        private MainPhpEntryPointFile $mainPhpEntryPointFile,
+        private EntryPointPhpFileInterface $entryPointPhpFile,
         private array $pathsToIgnore,
     ) {
     }
@@ -80,7 +81,7 @@ final class ProjectCompiler
             touch($targetFile, filemtime($info->getFile()));
         }
 
-        $this->mainPhpEntryPointFile->createFile();
+        $this->entryPointPhpFile->createFile();
 
         return $result;
     }

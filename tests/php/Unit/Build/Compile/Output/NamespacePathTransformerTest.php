@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace PhelTest\Unit\Command\Domain;
+namespace PhelTest\Unit\Build\Compile\Output;
 
 use Phel\Build\Domain\Compile\Output\NamespacePathTransformer;
 use PHPUnit\Framework\TestCase;
@@ -20,7 +20,7 @@ final class NamespacePathTransformerTest extends TestCase
     {
         self::assertSame(
             '',
-            $this->transformer->getOutputMainNamespacePath(''),
+            $this->transformer->transform(''),
         );
     }
 
@@ -28,7 +28,7 @@ final class NamespacePathTransformerTest extends TestCase
     {
         self::assertSame(
             'test',
-            $this->transformer->getOutputMainNamespacePath('test'),
+            $this->transformer->transform('test'),
         );
     }
 
@@ -36,7 +36,7 @@ final class NamespacePathTransformerTest extends TestCase
     {
         self::assertSame(
             'test/ns',
-            $this->transformer->getOutputMainNamespacePath('test\ns'),
+            $this->transformer->transform('test\ns'),
         );
     }
 
@@ -44,7 +44,7 @@ final class NamespacePathTransformerTest extends TestCase
     {
         self::assertSame(
             'test_ns',
-            $this->transformer->getOutputMainNamespacePath('test-ns'),
+            $this->transformer->transform('test-ns'),
         );
     }
 
@@ -52,7 +52,7 @@ final class NamespacePathTransformerTest extends TestCase
     {
         self::assertSame(
             'test_ns/hello',
-            $this->transformer->getOutputMainNamespacePath('test-ns\hello'),
+            $this->transformer->transform('test-ns\hello'),
         );
     }
 }

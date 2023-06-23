@@ -7,7 +7,6 @@ namespace PhelTest\Integration\Build\Command;
 use Gacela\Framework\Bootstrap\GacelaConfig;
 use Gacela\Framework\Gacela;
 use Phel\Build\Infrastructure\Command\BuildCommand;
-use PhelTest\Integration\Util\DirectoryUtil;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\Console\Input\ArrayInput;
 use Symfony\Component\Console\Output\OutputInterface;
@@ -18,8 +17,6 @@ final class BuildCommandTest extends TestCase
 
     public static function setUpBeforeClass(): void
     {
-        //        DirectoryUtil::removeDir(__DIR__ . '/out');
-
         Gacela::bootstrap(__DIR__, GacelaConfig::defaultPhpConfig());
     }
 

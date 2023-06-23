@@ -9,7 +9,8 @@ use Phel\Build\Domain\Compile\DependenciesForNamespace;
 use Phel\Build\Domain\Compile\FileCompiler;
 use Phel\Build\Domain\Compile\FileCompilerInterface;
 use Phel\Build\Domain\Compile\FileEvaluator;
-use Phel\Build\Domain\Compile\MainPhpEntryPointFile;
+use Phel\Build\Domain\Compile\Output\EntryPointPhpFile;
+use Phel\Build\Domain\Compile\Output\EntryPointPhpFileInterface;
 use Phel\Build\Domain\Compile\Output\NamespacePathTransformer;
 use Phel\Build\Domain\Compile\ProjectCompiler;
 use Phel\Build\Domain\Extractor\NamespaceExtractor;
@@ -80,9 +81,9 @@ final class BuildFactory extends AbstractFactory
         return $this->getProvidedDependency(BuildDependencyProvider::FACADE_COMMAND);
     }
 
-    private function createMainPhpEntryPointFile(): MainPhpEntryPointFile
+    private function createMainPhpEntryPointFile(): EntryPointPhpFileInterface
     {
-        return new MainPhpEntryPointFile(
+        return new EntryPointPhpFile(
             $this->getConfig()->getPhelOutConfig(),
             $this->createNamespacePathTransformer(),
             $this->getConfig()->getAppRootDir(),
