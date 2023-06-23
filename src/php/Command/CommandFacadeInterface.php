@@ -47,10 +47,19 @@ interface CommandFacadeInterface
      */
     public function getVendorSourceDirectories(): array;
 
+    /**
+     * Relative path to the output directory result of the build command.
+     */
     public function getOutputDirectory(): string;
 
+    /**
+     * Relative path to the "phel entry point" file that will be executed by the "output php file".
+     */
     public function getOutputMainPhelPath(): string;
 
+    /**
+     * Relative path to the "output php file" as entry point of the build result.
+     */
     public function getOutputMainPhpPath(): string;
 
     /**
