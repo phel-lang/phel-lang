@@ -6,6 +6,7 @@ namespace PhelTest\Unit\Compiler\Config;
 
 use Phel\Config\PhelConfig;
 use Phel\Config\PhelExportConfig;
+use Phel\Config\PhelOutConfig;
 use PHPUnit\Framework\TestCase;
 
 final class PhelConfigTest extends TestCase
@@ -16,8 +17,13 @@ final class PhelConfigTest extends TestCase
             ->setSrcDirs(['some/directory'])
             ->setTestDirs(['another/directory'])
             ->setVendorDir('vendor')
-            ->setOutDir('out')
             ->setErrorLogFile('error-log.file')
+            ->setOut(
+                (new PhelOutConfig())
+                    ->setDestDir('out')
+                    ->setMainPhelNamespace('test-ns/boot')
+                    ->setMainPhpFilename('custom-index'),
+            )
             ->setExport(
                 (new PhelExportConfig())
                     ->setDirectories(['some/other/dir'])
@@ -26,15 +32,19 @@ final class PhelConfigTest extends TestCase
             )
             ->setIgnoreWhenBuilding(['src/ignore.me'])
             ->setKeepGeneratedTempFiles(true)
-            ->setFormatDirs(['src', 'tests', 'phel'])
-        ;
+            ->setFormatDirs(['src', 'tests', 'phel']);
 
         $expected = [
             'src-dirs' => ['some/directory'],
             'test-dirs' => ['another/directory'],
             'vendor-dir' => 'vendor',
-            'out-dir' => 'out',
             'error-log-file' => 'error-log.file',
+            'out' => [
+                'dir' => 'out',
+                'main-phel-namespace' => 'test-ns/boot',
+                'main-php-filename' => 'custom-index',
+                'main-php-path' => 'out/custom-index.php',
+            ],
             'export' => [
                 'target-directory' => 'src/Generated',
                 'directories' => ['some/other/dir'],

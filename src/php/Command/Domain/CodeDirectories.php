@@ -13,14 +13,14 @@ final class CodeDirectories
     public function __construct(
         private array $srcDirs,
         private array $testDirs,
-        private string $outputDirectory,
+        private string $outputDir,
     ) {
     }
 
     /**
      * @return list<string>
      */
-    public function getSourceDirectories(): array
+    public function getSourceDirs(): array
     {
         return $this->srcDirs;
     }
@@ -28,13 +28,13 @@ final class CodeDirectories
     /**
      * @return list<string>
      */
-    public function getTestDirectories(): array
+    public function getTestDirs(): array
     {
         return $this->testDirs;
     }
 
-    public function getOutputDirectory(): string
+    public function getOutputDir(): string
     {
-        return $this->outputDirectory;
+        return $this->outputDir;
     }
 }

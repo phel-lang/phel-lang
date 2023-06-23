@@ -9,6 +9,9 @@ use Phel\Build\Domain\Compile\DependenciesForNamespace;
 use Phel\Build\Domain\Compile\FileCompiler;
 use Phel\Build\Domain\Compile\FileCompilerInterface;
 use Phel\Build\Domain\Compile\FileEvaluator;
+use Phel\Build\Domain\Compile\Output\EntryPointPhpFile;
+use Phel\Build\Domain\Compile\Output\EntryPointPhpFileInterface;
+use Phel\Build\Domain\Compile\Output\NamespacePathTransformer;
 use Phel\Build\Domain\Compile\ProjectCompiler;
 use Phel\Build\Domain\Extractor\NamespaceExtractor;
 use Phel\Build\Domain\Extractor\NamespaceSorterInterface;
@@ -30,6 +33,7 @@ final class BuildFactory extends AbstractFactory
             $this->createFileCompiler(),
             $this->getCompilerFacade(),
             $this->getCommandFacade(),
+            $this->createMainPhpEntryPointFile(),
             $this->getConfig()->getPathsToIgnore(),
         );
     }
@@ -77,6 +81,15 @@ final class BuildFactory extends AbstractFactory
         return $this->getProvidedDependency(BuildDependencyProvider::FACADE_COMMAND);
     }
 
+    private function createMainPhpEntryPointFile(): EntryPointPhpFileInterface
+    {
+        return new EntryPointPhpFile(
+            $this->getConfig()->getPhelOutConfig(),
+            $this->createNamespacePathTransformer(),
+            $this->getConfig()->getAppRootDir(),
+        );
+    }
+
     private function createNamespaceSorter(): NamespaceSorterInterface
     {
         return new TopologicalNamespaceSorter();
@@ -85,5 +98,10 @@ final class BuildFactory extends AbstractFactory
     private function createFileIo(): FileIoInterface
     {
         return new SystemFileIo();
+    }
+
+    private function createNamespacePathTransformer(): NamespacePathTransformer
+    {
+        return new NamespacePathTransformer();
     }
 }

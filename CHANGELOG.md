@@ -4,6 +4,7 @@ All notable changes to this project will be documented in this file.
 
 ## Unreleased
 
+* Extract building "out" settings into `PhelOutConfig`
 * Improve the error display for PHP Notice messages
 * Save all errors in a temp `error.log` file
   * You can change the error.log file path with `PhelConfig::setErrorLogFile(str)`
