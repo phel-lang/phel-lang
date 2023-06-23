@@ -53,16 +53,6 @@ interface CommandFacadeInterface
     public function getOutputDirectory(): string;
 
     /**
-     * Relative path to the "phel entry point" file that will be executed by the "output php file".
-     */
-    public function getOutputMainPhelPath(): string;
-
-    /**
-     * Relative path to the "output php file" as entry point of the build result.
-     */
-    public function getOutputMainPhpPath(): string;
-
-    /**
      * @return array<string,mixed>
      */
     public function readPhelConfig(string $absolutePath): array;

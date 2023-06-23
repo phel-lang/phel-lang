@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace Phel\Build\Domain\Compile;
 
-use Gacela\Framework\Gacela;
 use Phel\Build\Domain\Extractor\NamespaceExtractorInterface;
 use Phel\Build\Domain\Extractor\NamespaceInformation;
 use Phel\Command\CommandFacadeInterface;
@@ -25,6 +24,7 @@ final class ProjectCompiler
         private FileCompilerInterface $fileCompiler,
         private CompilerFacadeInterface $compilerFacade,
         private CommandFacadeInterface $commandFacade,
+        private MainPhpEntryPointFile $mainPhpEntryPointFile,
         private array $pathsToIgnore,
     ) {
     }
@@ -80,7 +80,7 @@ final class ProjectCompiler
             touch($targetFile, filemtime($info->getFile()));
         }
 
-        $this->createMainPhpEntryPointFile();
+        $this->mainPhpEntryPointFile->createFile();
 
         return $result;
     }
@@ -101,24 +101,5 @@ final class ProjectCompiler
         $mungedNamespace = $this->compilerFacade->encodeNs($namespace);
 
         return implode(DIRECTORY_SEPARATOR, explode('\\', $mungedNamespace)) . self::TARGET_FILE_EXTENSION;
-    }
-
-    private function createMainPhpEntryPointFile(): void
-    {
-        $template = <<<'TXT'
-<?php declare(strict_types=1);
-
-require_once dirname(__DIR__) . "/vendor/autoload.php";
-
-$compiledFile = __DIR__ . "/{{OUTPUT_MAIN_PHEL_PATH}}.php";
-
-require_once $compiledFile;
-TXT;
-        $mainNsPath = $this->commandFacade->getOutputMainPhelPath();
-        $finalMainContent = str_replace('{{OUTPUT_MAIN_PHEL_PATH}}', $mainNsPath, $template);
-
-        $outPhpPath = sprintf('%s/%s', Gacela::rootDir(), $this->commandFacade->getOutputMainPhpPath());
-
-        file_put_contents($outPhpPath, $finalMainContent);
     }
 }

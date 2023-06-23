@@ -18,35 +18,21 @@ final class CommandConfig extends AbstractConfig
     private const DEFAULT_VENDOR_DIR = 'vendor';
     private const DEFAULT_SRC_DIRS = ['src'];
     private const DEFAULT_TEST_DIRS = ['tests'];
-
-    private static ?PhelOutConfig $outConfig = null;
+    private const DEFAULT_OUTPUT_DIR = 'out';
 
     public function getCodeDirs(): CodeDirectories
     {
+        $out = $this->get(self::OUTPUT, []);
+
         return new CodeDirectories(
             (array)$this->get(self::SRC_DIRS, self::DEFAULT_SRC_DIRS),
             (array)$this->get(self::TEST_DIRS, self::DEFAULT_TEST_DIRS),
-            $this->getOut()->getDestDir(),
+            (string)($out[PhelOutConfig::DEST_DIR] ?? self::DEFAULT_OUTPUT_DIR),
         );
     }
 
     public function getVendorDir(): string
     {
         return (string)$this->get(self::VENDOR_DIR, self::DEFAULT_VENDOR_DIR);
-    }
-
-    public function getMainPhelNamespace(): string
-    {
-        return $this->getOut()->getMainPhelNamespace();
-    }
-
-    public function getOutputMainPhpPath(): string
-    {
-        return $this->getOut()->getMainPhpPath();
-    }
-
-    public function getOut(): PhelOutConfig
-    {
-        return self::$outConfig ??= PhelOutConfig::fromArray((array)$this->get('out', []));
     }
 }
