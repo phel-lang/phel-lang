@@ -2,6 +2,10 @@
 
 All notable changes to this project will be documented in this file.
 
+## Unreleased
+
+* Extract building "out" settings into `PhelOutConfig`
+
 ## 0.10.1 (2023-05-12)
 
 * Fixed the `phel\repl\doc` function.

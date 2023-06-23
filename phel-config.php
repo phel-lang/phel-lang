@@ -2,11 +2,16 @@
 
 declare(strict_types=1);
 
+use Phel\Config\PhelOutConfig;
+
 return (new \Phel\Config\PhelConfig())
     ->setSrcDirs(['src/phel'])
     ->setTestDirs(['tests/phel'])
     ->setVendorDir('vendor')
-    ->setOutDir('out')
+    ->setOut((new PhelOutConfig())
+        ->setDestDir('out')
+        ->setMainPhelNamespace('phel\core')
+        ->setMainPhpFilename('index'))
     ->setExport((new \Phel\Config\PhelExportConfig())
         ->setDirectories(['src/phel'])
         ->setNamespacePrefix('PhelGenerated')

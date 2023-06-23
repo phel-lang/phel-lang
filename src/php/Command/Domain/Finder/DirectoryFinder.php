@@ -20,7 +20,7 @@ final class DirectoryFinder implements DirectoryFinderInterface
      */
     public function getSourceDirectories(): array
     {
-        return $this->toAbsoluteDirectories($this->codeDirectories->getSourceDirectories());
+        return $this->toAbsoluteDirectories($this->codeDirectories->getSourceDirs());
     }
 
     /**
@@ -28,7 +28,7 @@ final class DirectoryFinder implements DirectoryFinderInterface
      */
     public function getTestDirectories(): array
     {
-        return $this->toAbsoluteDirectories($this->codeDirectories->getTestDirectories());
+        return $this->toAbsoluteDirectories($this->codeDirectories->getTestDirs());
     }
 
     /**
@@ -41,7 +41,7 @@ final class DirectoryFinder implements DirectoryFinderInterface
 
     public function getOutputDirectory(): string
     {
-        return $this->applicationRootDir . '/' . $this->codeDirectories->getOutputDirectory();
+        return $this->applicationRootDir . '/' . $this->codeDirectories->getOutputDir();
     }
 
     /**

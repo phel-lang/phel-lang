@@ -47,6 +47,9 @@ interface CommandFacadeInterface
      */
     public function getVendorSourceDirectories(): array;
 
+    /**
+     * Relative path to the output directory result of the build command.
+     */
     public function getOutputDirectory(): string;
 
     /**
