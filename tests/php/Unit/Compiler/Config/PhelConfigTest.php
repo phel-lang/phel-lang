@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace PhelTest\Unit\Compiler\Config;
 
-use Gacela\Framework\Gacela;
 use Phel\Config\PhelConfig;
 use Phel\Config\PhelExportConfig;
 use Phel\Config\PhelOutConfig;
@@ -12,11 +11,6 @@ use PHPUnit\Framework\TestCase;
 
 final class PhelConfigTest extends TestCase
 {
-    protected function setUp(): void
-    {
-        Gacela::bootstrap(__DIR__);
-    }
-
     public function test_json_serialize(): void
     {
         $config = (new PhelConfig())
@@ -37,8 +31,7 @@ final class PhelConfigTest extends TestCase
             )
             ->setIgnoreWhenBuilding(['src/ignore.me'])
             ->setKeepGeneratedTempFiles(true)
-            ->setFormatDirs(['src', 'tests', 'phel'])
-        ;
+            ->setFormatDirs(['src', 'tests', 'phel']);
 
         $expected = [
             'src-dirs' => ['some/directory'],
