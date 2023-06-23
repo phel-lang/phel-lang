@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Phel\Build\Domain\Compile;
 
+use Gacela\Framework\Gacela;
 use Phel\Build\Domain\Extractor\NamespaceExtractorInterface;
 use Phel\Build\Domain\Extractor\NamespaceInformation;
 use Phel\Command\CommandFacadeInterface;
@@ -116,7 +117,7 @@ TXT;
         $mainNsPath = $this->commandFacade->getOutputMainPhelPath();
         $finalMainContent = str_replace('{{OUTPUT_MAIN_PHEL_PATH}}', $mainNsPath, $template);
 
-        $outPhpPath = $this->commandFacade->getOutputMainPhpPath();
+        $outPhpPath = sprintf('%s/%s', Gacela::rootDir(), $this->commandFacade->getOutputMainPhpPath());
 
         file_put_contents($outPhpPath, $finalMainContent);
     }

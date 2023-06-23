@@ -48,7 +48,7 @@ final class PhelConfigTest extends TestCase
                 'dir' => 'out',
                 'main-phel-namespace' => 'test-ns/boot',
                 'main-php-filename' => 'custom-main',
-                'main-php-path' => __DIR__ . '/out/custom-main.php',
+                'main-php-path' => 'out/custom-main.php',
             ],
             'export' => [
                 'target-directory' => 'src/Generated',
