@@ -126,4 +126,4 @@ composer test-all      # csrun, psalm, compiler & core tests after each other
 
 ### Git Hooks
 
-Enable the git hooks with `./tools/git-hooks/init.sh`
+Enable the git hooks with `./.github/git-hooks/init.sh`
