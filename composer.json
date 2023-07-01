@@ -23,7 +23,7 @@
     ],
     "require": {
         "php": ">=8.0.2",
-        "gacela-project/gacela": "^1.4",
+        "gacela-project/gacela": "^1.5",
         "phpunit/php-timer": "^5.0",
         "symfony/console": "^6.0"
     },
