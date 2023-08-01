@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Phel\Command\Domain\Shared\Exceptions;
 
+use Phel\Command\Domain\Shared\ErrorLog\ErrorLogInterface;
 use Phel\Command\Domain\Shared\Exceptions\Extractor\FilePositionExtractorInterface;
 use Phel\Compiler\Domain\Emitter\OutputEmitter\MungeInterface;
 use Phel\Compiler\Domain\Exceptions\AbstractLocatedException;
@@ -24,12 +25,20 @@ final class TextExceptionPrinter implements ExceptionPrinterInterface
         private ColorStyleInterface $style,
         private MungeInterface $munge,
         private FilePositionExtractorInterface $filePositionExtractor,
+        private ErrorLogInterface $errorLog,
     ) {
+    }
+
+    public function printError(string $error): void
+    {
+        echo $error . PHP_EOL;
+        $this->errorLog->writeln($error);
     }
 
     public function printException(AbstractLocatedException $e, CodeSnippet $codeSnippet): void
     {
-        echo $this->getExceptionString($e, $codeSnippet);
+        echo $e->getMessage() . PHP_EOL;
+        $this->errorLog->writeln($this->getExceptionString($e, $codeSnippet));
     }
 
     public function getExceptionString(AbstractLocatedException $e, CodeSnippet $codeSnippet): string
@@ -63,18 +72,13 @@ final class TextExceptionPrinter implements ExceptionPrinterInterface
             }
         }
 
-        if ($e->getPrevious()) {
-            $str .= PHP_EOL . PHP_EOL . 'Caused by:' . PHP_EOL;
-            $str .= $e->getPrevious()->getTraceAsString();
-            $str .= PHP_EOL;
-        }
-
         return $str;
     }
 
     public function printStackTrace(Throwable $e): void
     {
-        echo $this->getStackTraceString($e);
+        echo $e->getMessage() . PHP_EOL;
+        $this->errorLog->writeln($this->getStackTraceString($e));
     }
 
     public function getStackTraceString(Throwable $e): string

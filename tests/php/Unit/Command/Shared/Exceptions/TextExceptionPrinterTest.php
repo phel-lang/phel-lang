@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace PhelTest\Unit\Command\Shared\Exceptions;
 
+use Phel\Command\Domain\Shared\ErrorLog\ErrorLogInterface;
 use Phel\Command\Domain\Shared\Exceptions\ExceptionArgsPrinterInterface;
 use Phel\Command\Domain\Shared\Exceptions\Extractor\FilePositionExtractorInterface;
 use Phel\Command\Domain\Shared\Exceptions\TextExceptionPrinter;
@@ -31,35 +32,30 @@ final class TextExceptionPrinterTest extends TestCase
         $type->method('getStartLocation')->willReturn(new SourceLocation($file, line: 1, column: 9));
         $type->method('getEndLocation')->willReturn(new SourceLocation($file, line: 1, column: 23));
 
-        $exception = AnalyzerException::withLocation('Example code exception message', $type);
+        $exception = AnalyzerException::withLocation('.', $type);
 
-        $this->expectOutputString(
-            <<<'MSG'
-Example code exception message
+        $expectedOutput = <<<'MSG'
+.
 in example-file.phel:1
 
 1| (+ 1 2 3 unknown-symbol)
             ^^^^^^^^^^^^^^
 
-MSG
-        );
-        $exceptionPrinter = $this->createTextExceptionPrinter();
-        $exceptionPrinter->printException($exception, $codeSnippet);
-    }
+MSG;
+        $errorLog = $this->createMock(ErrorLogInterface::class);
+        $errorLog->expects(self::once())
+            ->method('writeln')
+            ->with($expectedOutput);
 
-    private function createTextExceptionPrinter(): TextExceptionPrinter
-    {
-        return new TextExceptionPrinter(
-            $this->stubExceptionArgsPrinter(),
+        $exceptionPrinter = new TextExceptionPrinter(
+            $this->createStub(ExceptionArgsPrinterInterface::class),
             $this->stubColorStyle(),
-            $this->stubMunge(),
-            $this->stubFilePositionExtractor(),
+            $this->createStub(MungeInterface::class),
+            $this->createStub(FilePositionExtractorInterface::class),
+            $errorLog,
         );
-    }
 
-    private function stubExceptionArgsPrinter(): ExceptionArgsPrinterInterface
-    {
-        return $this->createStub(ExceptionArgsPrinterInterface::class);
+        $exceptionPrinter->printException($exception, $codeSnippet);
     }
 
     private function stubColorStyle(): ColorStyleInterface
@@ -69,15 +65,5 @@ MSG
         $colorStyle->method('red')->willReturnCallback(static fn (string $msg) => $msg);
 
         return $colorStyle;
-    }
-
-    private function stubMunge(): MungeInterface
-    {
-        return $this->createStub(MungeInterface::class);
-    }
-
-    private function stubFilePositionExtractor(): FilePositionExtractorInterface
-    {
-        return $this->createStub(FilePositionExtractorInterface::class);
     }
 }

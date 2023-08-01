@@ -12,6 +12,7 @@ use Phel\Command\Domain\Finder\DirectoryFinderInterface;
 use Phel\Command\Domain\Finder\VendorDirectoriesFinderInterface;
 use Phel\Command\Domain\Shared\CommandExceptionWriter;
 use Phel\Command\Domain\Shared\CommandExceptionWriterInterface;
+use Phel\Command\Domain\Shared\ErrorLog\ErrorLog;
 use Phel\Command\Domain\Shared\Exceptions\ExceptionArgsPrinter;
 use Phel\Command\Domain\Shared\Exceptions\ExceptionPrinterInterface;
 use Phel\Command\Domain\Shared\Exceptions\Extractor\FilePositionExtractor;
@@ -30,6 +31,7 @@ final class CommandFactory extends AbstractFactory
     {
         return new CommandExceptionWriter(
             $this->createExceptionPrinter(),
+            new ErrorLog($this->getConfig()->getErrorLogFile()),
         );
     }
 
@@ -40,6 +42,7 @@ final class CommandFactory extends AbstractFactory
             ColorStyle::withStyles(),
             new Munge(),
             new FilePositionExtractor(new SourceMapExtractor()),
+            new ErrorLog($this->getConfig()->getErrorLogFile()),
         );
     }
 

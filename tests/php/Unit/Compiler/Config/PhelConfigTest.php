@@ -17,6 +17,7 @@ final class PhelConfigTest extends TestCase
             ->setSrcDirs(['some/directory'])
             ->setTestDirs(['another/directory'])
             ->setVendorDir('vendor')
+            ->setErrorLogFile('error-log.file')
             ->setOut(
                 (new PhelOutConfig())
                     ->setDestDir('out')
@@ -37,6 +38,7 @@ final class PhelConfigTest extends TestCase
             'src-dirs' => ['some/directory'],
             'test-dirs' => ['another/directory'],
             'vendor-dir' => 'vendor',
+            'error-log-file' => 'error-log.file',
             'out' => [
                 'dir' => 'out',
                 'main-phel-namespace' => 'test-ns/boot',

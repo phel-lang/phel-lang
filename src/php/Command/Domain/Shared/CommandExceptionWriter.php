@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Phel\Command\Domain\Shared;
 
+use Phel\Command\Domain\Shared\ErrorLog\ErrorLogInterface;
 use Phel\Command\Domain\Shared\Exceptions\ExceptionPrinterInterface;
 use Phel\Compiler\Domain\Exceptions\AbstractLocatedException;
 use Phel\Compiler\Domain\Parser\ReadModel\CodeSnippet;
@@ -12,21 +13,19 @@ use Throwable;
 
 final class CommandExceptionWriter implements CommandExceptionWriterInterface
 {
-    public function __construct(private ExceptionPrinterInterface $exceptionPrinter)
-    {
+    public function __construct(
+        private ExceptionPrinterInterface $exceptionPrinter,
+        private ErrorLogInterface $errorLog,
+    ) {
     }
 
     public function writeStackTrace(
         OutputInterface $output,
         Throwable $e,
     ): void {
-        $output->writeln($this->exceptionPrinter->getStackTraceString($e));
+        $output->writeln($e->getMessage());
 
-        if ($e->getPrevious()) {
-            $output->writeln('');
-            $output->writeln('Caused by');
-            $this->writeStackTrace($output, $e->getPrevious());
-        }
+        $this->errorLog->writeln($this->getStackTraceString($e));
     }
 
     public function writeLocatedException(
@@ -34,7 +33,7 @@ final class CommandExceptionWriter implements CommandExceptionWriterInterface
         AbstractLocatedException $e,
         CodeSnippet $codeSnippet,
     ): void {
-        $output->writeln($this->exceptionPrinter->getExceptionString($e, $codeSnippet));
+        $output->writeln($this->getExceptionString($e, $codeSnippet));
     }
 
     public function getExceptionString(AbstractLocatedException $e, CodeSnippet $codeSnippet): string
