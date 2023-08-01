@@ -15,6 +15,7 @@ use Phel\Run\Domain\Repl\ExitException;
 use Phel\Run\Domain\Repl\InputResult;
 use Phel\Run\Domain\Repl\ReplCommandIoInterface;
 use Phel\Run\RunFacade;
+use Phel\Run\RunFactory;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
@@ -26,6 +27,7 @@ use function is_string;
 
 /**
  * @method RunFacade getFacade()
+ * @method RunFactory getFactory()
  */
 final class ReplCommand extends Command
 {
@@ -57,9 +59,9 @@ final class ReplCommand extends Command
         parent::__construct('repl');
 
         $this->previousResult = InputResult::empty();
-        $this->io = $this->getFacade()->getReplCommandIo();
-        $this->style = $this->getFacade()->getColorStyle();
-        $this->printer = $this->getFacade()->getPrinter();
+        $this->io = $this->getFactory()->createReplCommandIo();
+        $this->style = $this->getFactory()->createColorStyle();
+        $this->printer = $this->getFactory()->createPrinter();
     }
 
     /**

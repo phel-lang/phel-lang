@@ -8,9 +8,6 @@ use Gacela\Framework\AbstractFacade;
 use Phel\Build\Domain\Extractor\NamespaceInformation;
 use Phel\Compiler\Domain\Exceptions\CompilerException;
 use Phel\Compiler\Infrastructure\CompileOptions;
-use Phel\Printer\PrinterInterface;
-use Phel\Run\Domain\Repl\ColorStyleInterface;
-use Phel\Run\Domain\Repl\ReplCommandIoInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 use Throwable;
 
@@ -22,21 +19,6 @@ final class RunFacade extends AbstractFacade implements RunFacadeInterface
     public function getReplStartupFile(): string
     {
         return $this->getFactory()->getReplStartupFile();
-    }
-
-    public function getReplCommandIo(): ReplCommandIoInterface
-    {
-        return $this->getFactory()->createReplCommandIo();
-    }
-
-    public function getColorStyle(): ColorStyleInterface
-    {
-        return $this->getFactory()->createColorStyle();
-    }
-
-    public function getPrinter(): PrinterInterface
-    {
-        return $this->getFactory()->createPrinter();
     }
 
     public function runNamespace(string $namespace): void
