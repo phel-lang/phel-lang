@@ -10,6 +10,7 @@ use Phel\Command\Domain\Finder\ComposerVendorDirectoriesFinder;
 use Phel\Command\Domain\Finder\DirectoryFinder;
 use Phel\Command\Domain\Finder\DirectoryFinderInterface;
 use Phel\Command\Domain\Finder\VendorDirectoriesFinderInterface;
+use Phel\Command\Domain\Handler\ExceptionHandler;
 use Phel\Command\Domain\Shared\CommandExceptionWriter;
 use Phel\Command\Domain\Shared\CommandExceptionWriterInterface;
 use Phel\Command\Domain\Shared\ErrorLog\ErrorLog;
@@ -52,6 +53,13 @@ final class CommandFactory extends AbstractFactory
             $this->getConfig()->getAppRootDir(),
             $this->getConfig()->getCodeDirs(),
             $this->createComposerVendorDirectoriesFinder(),
+        );
+    }
+
+    public function createExceptionHandler(): ExceptionHandler
+    {
+        return new ExceptionHandler(
+            $this->createExceptionPrinter(),
         );
     }
 

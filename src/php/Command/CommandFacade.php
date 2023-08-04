@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace Phel\Command;
 
 use Gacela\Framework\AbstractFacade;
-use Phel\Command\Domain\Handler\ExceptionHandler;
 use Phel\Command\Domain\Shared\Exceptions\ExceptionPrinterInterface;
 use Phel\Compiler\Domain\Exceptions\AbstractLocatedException;
 use Phel\Compiler\Domain\Parser\ReadModel\CodeSnippet;
@@ -50,7 +49,9 @@ final class CommandFacade extends AbstractFacade implements CommandFacadeInterfa
 
     public function registerExceptionHandler(): void
     {
-        $this->createExceptionHandler()->register();
+        $this->getFactory()
+            ->createExceptionHandler()
+            ->register();
     }
 
     /**
@@ -108,12 +109,5 @@ final class CommandFacade extends AbstractFacade implements CommandFacadeInterfa
         return $this->getFactory()
             ->getPhpConfigReader()
             ->read($absolutePath);
-    }
-
-    private function createExceptionHandler(): ExceptionHandler
-    {
-        return new ExceptionHandler(
-            $this->getExceptionPrinter(),
-        );
     }
 }

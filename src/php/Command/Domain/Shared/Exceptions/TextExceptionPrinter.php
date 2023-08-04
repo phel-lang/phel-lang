@@ -16,7 +16,10 @@ use ReflectionClass;
 use Throwable;
 
 use function get_class;
+use function sprintf;
 use function strlen;
+
+use const PHP_EOL;
 
 final class TextExceptionPrinter implements ExceptionPrinterInterface
 {
@@ -31,13 +34,13 @@ final class TextExceptionPrinter implements ExceptionPrinterInterface
 
     public function printError(string $error): void
     {
-        echo $error . PHP_EOL;
+        echo sprintf('%s', $error) . PHP_EOL;
         $this->errorLog->writeln($error);
     }
 
     public function printException(AbstractLocatedException $e, CodeSnippet $codeSnippet): void
     {
-        echo $e->getMessage() . PHP_EOL;
+        echo sprintf('%s: %s', $e::class, $e->getMessage()) . PHP_EOL;
         $this->errorLog->writeln($this->getExceptionString($e, $codeSnippet));
     }
 
@@ -77,7 +80,7 @@ final class TextExceptionPrinter implements ExceptionPrinterInterface
 
     public function printStackTrace(Throwable $e): void
     {
-        echo $e->getMessage() . PHP_EOL;
+        echo sprintf('%s: %s', $e::class, $e->getMessage()) . PHP_EOL;
         $this->errorLog->writeln($this->getStackTraceString($e));
     }
 
