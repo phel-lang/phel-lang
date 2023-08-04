@@ -14,6 +14,7 @@ use Phel\Run\Domain\Repl\ColorStyleInterface;
 use Phel\Run\Domain\Repl\ExitException;
 use Phel\Run\Domain\Repl\InputResult;
 use Phel\Run\Domain\Repl\ReplCommandIoInterface;
+use Phel\Run\RunConfig;
 use Phel\Run\RunFacade;
 use Phel\Run\RunFactory;
 use Symfony\Component\Console\Command\Command;
@@ -28,6 +29,7 @@ use function is_string;
 /**
  * @method RunFacade getFacade()
  * @method RunFactory getFactory()
+ * @method RunConfig getConfig()
  */
 final class ReplCommand extends Command
 {
@@ -96,7 +98,7 @@ final class ReplCommand extends Command
 
     private function getReplStartupFile(): string
     {
-        return $this->replStartupFile ?? $this->getFacade()->getReplStartupFile();
+        return $this->replStartupFile ?? $this->getConfig()->getReplStartupFile();
     }
 
     private function loadAllPhelNamespaces(): void

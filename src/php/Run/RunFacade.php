@@ -16,11 +16,6 @@ use Throwable;
  */
 final class RunFacade extends AbstractFacade implements RunFacadeInterface
 {
-    public function getReplStartupFile(): string
-    {
-        return $this->getFactory()->getReplStartupFile();
-    }
-
     public function runNamespace(string $namespace): void
     {
         $this->getFactory()

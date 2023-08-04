@@ -31,11 +31,6 @@ class RunFactory extends AbstractFactory
         );
     }
 
-    public function getReplStartupFile(): string
-    {
-        return $this->getConfig()->getReplStartupFile();
-    }
-
     public function getCommandFacade(): CommandFacadeInterface
     {
         return $this->getProvidedDependency(RunDependencyProvider::FACADE_COMMAND);
