@@ -2,9 +2,10 @@
 
 All notable changes to this project will be documented in this file.
 
-## Unreleased
+## 0.11.0 (2023-08-26)
 
-* Extract building "out" settings into `PhelOutConfig`
+* Create a PHP entry point when using `phel build`
+  * Extract building "out" settings into `PhelOutConfig`
 * Improve the error display for PHP Notice messages
 * Save all errors in a temp `error.log` file
   * You can change the error.log file path with `PhelConfig::setErrorLogFile(str)`
