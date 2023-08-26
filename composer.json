@@ -50,7 +50,7 @@
         }
     },
     "scripts": {
-        "post-install-cmd": ".github/git-hooks/init.sh",
+        "post-install-cmd": "tools/git-hooks/init.sh",
         "test-all": [
             "@static-clear-cache",
             "@test-quality",

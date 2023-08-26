@@ -132,4 +132,4 @@ composer test-all      # clear cache, php-cs-fixer, psalm, phpstan, compiler & c
 
 ### Git Hooks
 
-Enable the git hooks with `./.github/git-hooks/init.sh`
+Enable the git hooks with `tools/git-hooks/init.sh`
