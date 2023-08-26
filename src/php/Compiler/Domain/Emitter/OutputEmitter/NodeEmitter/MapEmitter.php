@@ -29,9 +29,9 @@ final class MapEmitter implements NodeEmitterInterface
             $this->outputEmitter->emitLine();
         }
 
-        for ($i = 0; $i < $countKeyValues; $i+=2) {
+        for ($i = 0; $i < $countKeyValues; $i += 2) {
             $key = $keyValues[$i];
-            $value = $keyValues[$i+1];
+            $value = $keyValues[$i + 1];
 
             $this->outputEmitter->emitNode($key);
             $this->outputEmitter->emitStr(', ', $node->getStartSourceLocation());
