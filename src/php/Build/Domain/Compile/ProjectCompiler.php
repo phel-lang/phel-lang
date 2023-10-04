@@ -27,6 +27,7 @@ final class ProjectCompiler
         private CommandFacadeInterface $commandFacade,
         private EntryPointPhpFileInterface $entryPointPhpFile,
         private array $pathsToIgnore,
+        private bool $shouldCreateEntryPointPhpFile,
     ) {
     }
 
@@ -81,7 +82,9 @@ final class ProjectCompiler
             touch($targetFile, filemtime($info->getFile()));
         }
 
-        $this->entryPointPhpFile->createFile();
+        if ($this->shouldCreateEntryPointPhpFile) {
+            $this->entryPointPhpFile->createFile();
+        }
 
         return $result;
     }
