@@ -66,6 +66,11 @@ final class PhelOutConfig implements JsonSerializable
         return $this;
     }
 
+    public function shouldCreateEntryPointPhpFile(): bool
+    {
+        return (bool) $this->getMainPhelNamespace();
+    }
+
     public function jsonSerialize(): array
     {
         return [

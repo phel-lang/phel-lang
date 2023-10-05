@@ -15,11 +15,6 @@ final class BuildCommandTest extends TestCase
 {
     private BuildCommand $command;
 
-    public static function setUpBeforeClass(): void
-    {
-        Gacela::bootstrap(__DIR__, GacelaConfig::defaultPhpConfig());
-    }
-
     protected function setUp(): void
     {
         $this->command = new BuildCommand();
@@ -32,6 +27,10 @@ final class BuildCommandTest extends TestCase
      */
     public function test_build_project(): void
     {
+        Gacela::bootstrap(__DIR__, static function (GacelaConfig $config): void {
+            $config->addAppConfig('config/phel-config.php');
+        });
+
         $this->expectOutputString("This is printed\n");
 
         $this->command->run(
@@ -57,6 +56,10 @@ final class BuildCommandTest extends TestCase
      */
     public function test_build_project_cached(): void
     {
+        Gacela::bootstrap(__DIR__, static function (GacelaConfig $config): void {
+            $config->addAppConfig('config/phel-config.php');
+        });
+
         // Mark file cache invalid by setting the modification time to 0
         touch(__DIR__ . '/out/test_ns/hello.php', 1);
 
@@ -82,6 +85,10 @@ final class BuildCommandTest extends TestCase
      */
     public function test_out_main_file(): void
     {
+        Gacela::bootstrap(__DIR__, static function (GacelaConfig $config): void {
+            $config->addAppConfig('config/phel-config.php');
+        });
+
         $this->command->run(
             new ArrayInput([
                 '--no-source-map' => true,
@@ -101,5 +108,31 @@ $compiledFile = __DIR__ . "/test_ns/hello.php";
 require_once $compiledFile;
 TXT;
         self::assertSame($expected, $actual);
+    }
+
+    /**
+     * @runInSeparateProcess
+     *
+     * @preserveGlobalState disabled
+     */
+    public function test_no_entrypoint_when_namespace_is_not_set(): void
+    {
+        Gacela::bootstrap(__DIR__, static function (GacelaConfig $config): void {
+            $config->addAppConfig('config/phel-config-no-namespace.php');
+        });
+
+        if (file_exists(__DIR__ . '/out/main.php')) {
+            unlink(__DIR__ . '/out/main.php');
+        }
+
+        $this->command->run(
+            new ArrayInput([
+                '--no-source-map' => true,
+                '--no-cache' => true,
+            ]),
+            $this->createStub(OutputInterface::class),
+        );
+
+        $this->assertFileDoesNotExist(__DIR__ . '/out/main.php');
     }
 }
