@@ -253,4 +253,25 @@ final class AtomParserTest extends TestCase
             ),
         );
     }
+
+    /**
+     * Regression test for https://github.com/phel-lang/phel-lang/issues/616
+     */
+    public function test_parse_symbol_ending_in_zero(): void
+    {
+        $parser = new AtomParser(new GlobalEnvironment());
+        $start = new SourceLocation('string', 0, 0);
+        $end = new SourceLocation('string', 0, 2);
+        $this->assertEquals(
+            new SymbolNode(
+                'x0',
+                $start,
+                $end,
+                Symbol::create('x0'),
+            ),
+            $parser->parse(
+                new Token(Token::T_ATOM, 'x0', $start, $end),
+            ),
+        );
+    }
 }
