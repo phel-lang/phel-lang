@@ -2,6 +2,11 @@
 
 All notable changes to this project will be documented in this file.
 
+## Unreleased
+
+* Fix do not create the entrypoint when namespace isn't set
+* Fix AtomParser decimal regex
+
 ## 0.11.0 (2023-08-26)
 
 * Create a PHP entry point when using `phel build`
