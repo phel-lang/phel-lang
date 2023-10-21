@@ -51,7 +51,9 @@
     },
     "scripts": {
         "post-install-cmd": [
-            "tools/git-hooks/init.sh",
+            "tools/git-hooks/init.sh"
+        ],
+        "post-package-install": [
             "tools/cp-phel-config.sh"
         ],
         "test-all": [
