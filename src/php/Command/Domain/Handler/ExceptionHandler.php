@@ -11,6 +11,7 @@ use Throwable;
 final class ExceptionHandler
 {
     private static string $previousNotice = '';
+    private static string $previousDeprecated = '';
 
     public function __construct(
         private ExceptionPrinterInterface $exceptionPrinter,
@@ -21,6 +22,7 @@ final class ExceptionHandler
     {
         $this->registerExceptionHandler();
         $this->registerNoticeHandler();
+        $this->registerDeprecatedHandler();
     }
 
     private function registerExceptionHandler(): void
@@ -60,5 +62,34 @@ final class ExceptionHandler
             self::$previousNotice = $text;
             return true;
         }, E_NOTICE);
+    }
+
+    private function registerDeprecatedHandler(): void
+    {
+        set_error_handler(function (
+            int $errno,
+            string $errstr,
+            string $errfile = '',
+            int $errline = 0,
+            array $errcontext = [],
+        ): bool {
+            $text = sprintf(
+                "[%s] DEPRECATED found!\nmessage: \"%s\"\nfile: %s:%d\ncontext: %s",
+                date(DATE_ATOM),
+                $errstr,
+                $errfile,
+                $errline,
+                json_encode(array_merge($errcontext, ['errno' => $errno])),
+            );
+
+            if (self::$previousDeprecated !== $text) {
+                $this->exceptionPrinter->printError($text);
+            } else {
+                $this->exceptionPrinter->printError('and again');
+            }
+
+            self::$previousDeprecated = $text;
+            return true;
+        }, E_DEPRECATED);
     }
 }

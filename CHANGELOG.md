@@ -6,6 +6,7 @@ All notable changes to this project will be documented in this file.
 
 * Fix do not create the entrypoint when namespace isn't set
 * Fix AtomParser decimal regex
+* Improve deprecated notes output
 
 ## 0.11.0 (2023-08-26)
 
