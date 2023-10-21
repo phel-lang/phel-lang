@@ -50,7 +50,10 @@
         }
     },
     "scripts": {
-        "post-install-cmd": "tools/git-hooks/init.sh",
+        "post-install-cmd": [
+            "tools/git-hooks/init.sh",
+            "tools/cp-phel-config.sh"
+        ],
         "test-all": [
             "@static-clear-cache",
             "@test-quality",
