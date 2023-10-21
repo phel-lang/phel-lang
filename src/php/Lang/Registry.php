@@ -59,6 +59,7 @@ final class Registry
     public function &getDefinitionReference(string $ns, string $name): mixed
     {
         if (isset($this->definitions[$ns][$name])) {
+            /** @psalm-suppress UnsupportedPropertyReferenceUsage */
             $value = &$this->definitions[$ns][$name];
             return $value;
         }
