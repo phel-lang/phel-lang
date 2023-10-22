@@ -78,7 +78,7 @@ final class ReplCommand extends Command
 
     protected function configure(): void
     {
-        $this->setDescription('Start a Repl.');
+        $this->setDescription('Start a Repl');
     }
 
     protected function execute(InputInterface $input, OutputInterface $output): int

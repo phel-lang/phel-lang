@@ -31,7 +31,7 @@ final class TestCommand extends Command
     {
         $this->setName(self::COMMAND_NAME)
             ->setDescription(
-                'Tests the given files. If no filenames are provided all tests in the "tests" directory are executed.',
+                'Tests the given files. If no filenames are provided all tests in the "tests" directory are executed',
             )
             ->addArgument(
                 'paths',

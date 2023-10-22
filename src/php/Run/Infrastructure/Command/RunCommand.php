@@ -25,7 +25,7 @@ final class RunCommand extends Command
     protected function configure(): void
     {
         $this->setName('run')
-            ->setDescription('Runs a script.')
+            ->setDescription('Runs a script')
             ->addArgument(
                 'path',
                 InputArgument::REQUIRED,
