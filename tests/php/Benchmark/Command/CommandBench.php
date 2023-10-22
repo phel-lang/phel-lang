@@ -26,13 +26,13 @@ final class CommandBench
         Gacela::bootstrap(__DIR__, GacelaConfig::defaultPhpConfig());
     }
 
-    //    public function bench_run_command(): void
-    //    {
-    //        (new RunCommand())->run(
-    //            new StringInput(__DIR__ . '/fixtures/run-command.phel'),
-    //            new NullOutput(),
-    //        );
-    //    }
+    public function bench_run_command(): void
+    {
+        (new RunCommand())->run(
+            new StringInput(__DIR__ . '/fixtures/run-command.phel'),
+            new NullOutput(),
+        );
+    }
 
     public function bench_test_command(): void
     {
