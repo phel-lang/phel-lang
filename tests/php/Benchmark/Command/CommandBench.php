@@ -28,10 +28,12 @@ final class CommandBench
 
     public function bench_run_command(): void
     {
+        ob_start();
         (new RunCommand())->run(
             new StringInput(__DIR__ . '/fixtures/run-command.phel'),
             new NullOutput(),
         );
+        ob_clean();
     }
 
     public function bench_test_command(): void
