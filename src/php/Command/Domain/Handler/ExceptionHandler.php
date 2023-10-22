@@ -10,8 +10,26 @@ use Throwable;
 
 final class ExceptionHandler
 {
-    private static string $previousNotice = '';
-    private static string $previousDeprecated = '';
+    private const ERROR_TYPES = [
+        E_ALL => 'E_ALL',
+        E_ERROR => 'E_ERROR',
+        E_WARNING => 'E_WARNING',
+        E_PARSE => 'E_PARSE',
+        E_NOTICE => 'E_NOTICE',
+        E_CORE_ERROR => 'E_CORE_ERROR',
+        E_CORE_WARNING => 'E_CORE_WARNING',
+        E_COMPILE_ERROR => 'E_COMPILE_ERROR',
+        E_COMPILE_WARNING => 'E_COMPILE_WARNING',
+        E_USER_ERROR => 'E_USER_ERROR',
+        E_USER_WARNING => 'E_USER_WARNING',
+        E_USER_NOTICE => 'E_USER_NOTICE',
+        E_STRICT => 'E_STRICT',
+        E_RECOVERABLE_ERROR => 'E_RECOVERABLE_ERROR',
+        E_DEPRECATED => 'E_DEPRECATED',
+        E_USER_DEPRECATED => 'E_USER_DEPRECATED',
+    ];
+
+    private static string $previousTextError = '';
 
     public function __construct(
         private ExceptionPrinterInterface $exceptionPrinter,
@@ -21,8 +39,7 @@ final class ExceptionHandler
     public function register(): void
     {
         $this->registerExceptionHandler();
-        $this->registerNoticeHandler();
-        $this->registerDeprecatedHandler();
+        $this->registerCustomErrorHandler();
     }
 
     private function registerExceptionHandler(): void
@@ -36,7 +53,7 @@ final class ExceptionHandler
         });
     }
 
-    private function registerNoticeHandler(): void
+    private function registerCustomErrorHandler(): void
     {
         set_error_handler(function (
             int $errno,
@@ -45,51 +62,26 @@ final class ExceptionHandler
             int $errline = 0,
             array $errcontext = [],
         ): bool {
+            $errorNumber = error_reporting();
             $text = sprintf(
-                "[%s] NOTICE found!\nmessage: \"%s\"\nfile: %s:%d\ncontext: %s",
+                "[%s] Error %s(%d) found!\nmessage: \"%s\"\nfile: %s:%d\ncontext: %s",
                 date(DATE_ATOM),
-                $errstr,
-                $errfile,
-                $errline,
-                json_encode(array_merge($errcontext, ['errno' => $errno])),
-            );
-            if (self::$previousNotice !== $text) {
-                $this->exceptionPrinter->printError($text);
-            } else {
-                $this->exceptionPrinter->printError('and again');
-            }
-
-            self::$previousNotice = $text;
-            return true;
-        }, E_NOTICE);
-    }
-
-    private function registerDeprecatedHandler(): void
-    {
-        set_error_handler(function (
-            int $errno,
-            string $errstr,
-            string $errfile = '',
-            int $errline = 0,
-            array $errcontext = [],
-        ): bool {
-            $text = sprintf(
-                "[%s] DEPRECATED found!\nmessage: \"%s\"\nfile: %s:%d\ncontext: %s",
-                date(DATE_ATOM),
+                self::ERROR_TYPES[$errorNumber] ?? 'Unknown',
+                $errorNumber,
                 $errstr,
                 $errfile,
                 $errline,
                 json_encode(array_merge($errcontext, ['errno' => $errno])),
             );
 
-            if (self::$previousDeprecated !== $text) {
+            if (self::$previousTextError !== $text) {
                 $this->exceptionPrinter->printError($text);
             } else {
                 $this->exceptionPrinter->printError('and again');
             }
 
-            self::$previousDeprecated = $text;
+            self::$previousTextError = $text;
             return true;
-        }, E_DEPRECATED);
+        }, E_ALL);
     }
 }
