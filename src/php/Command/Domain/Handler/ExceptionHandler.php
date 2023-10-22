@@ -62,10 +62,12 @@ final class ExceptionHandler
             int $errline = 0,
             array $errcontext = [],
         ): bool {
+            $errorNumber = error_reporting();
             $text = sprintf(
-                "[%s] Error %s found!\nmessage: \"%s\"\nfile: %s:%d\ncontext: %s",
+                "[%s] Error %s(%d) found!\nmessage: \"%s\"\nfile: %s:%d\ncontext: %s",
                 date(DATE_ATOM),
-                self::ERROR_TYPES[error_reporting()] ?? 'Unknown',
+                self::ERROR_TYPES[$errorNumber] ?? 'Unknown',
+                $errorNumber,
                 $errstr,
                 $errfile,
                 $errline,
