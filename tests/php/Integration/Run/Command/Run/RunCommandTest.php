@@ -25,12 +25,12 @@ final class RunCommandTest extends AbstractCommandTest
      *
      * @preserveGlobalState disabled
      */
-    public function test_run_by_namespace(): void
+    public function test_file_not_found(): void
     {
-        $this->expectOutputRegex('~hello world~');
+        $this->expectOutputString('File "non-existing-file.phel" not found' . PHP_EOL);
 
         $this->createRunCommand()->run(
-            $this->stubInput('test\\test-script'),
+            $this->stubInput('non-existing-file.phel'),
             $this->stubOutput(),
         );
     }

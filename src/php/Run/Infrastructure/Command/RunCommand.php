@@ -6,6 +6,7 @@ namespace Phel\Run\Infrastructure\Command;
 
 use Gacela\Framework\DocBlockResolverAwareTrait;
 use Phel\Compiler\Domain\Exceptions\CompilerException;
+use Phel\Run\Domain\Exceptions\FileNotFoundException;
 use Phel\Run\RunFacade;
 use SebastianBergmann\Timer\ResourceUsageFormatter;
 use Symfony\Component\Console\Command\Command;
@@ -49,10 +50,11 @@ final class RunCommand extends Command
             /** @var string $fileOrPath */
             $fileOrPath = $input->getArgument('path');
 
-            $namespace = $fileOrPath;
-            if (file_exists($fileOrPath)) {
-                $namespace = $this->getFacade()->getNamespaceFromFile($fileOrPath)->getNamespace();
+            if (!file_exists($fileOrPath)) {
+                throw new FileNotFoundException($fileOrPath);
             }
+
+            $namespace = $this->getFacade()->getNamespaceFromFile($fileOrPath)->getNamespace();
             $this->getFacade()->runNamespace($namespace);
 
             if ($input->getOption('with-time')) {
