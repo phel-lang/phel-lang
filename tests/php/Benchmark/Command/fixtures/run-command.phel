@@ -3,5 +3,3 @@
 (defn my-adder-function
   [a b]
   (+ a b))
-
-(def result (str "(4 + 5) = " (my-adder-function 4 5)))
