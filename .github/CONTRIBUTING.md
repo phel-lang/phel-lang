@@ -43,7 +43,7 @@ In your bug report, please provide the following:
 * What actually happens.
 * Notes (possibly including why you think this might be happening, or stuff you tried that didn't work).
 
-Please post code and output as text ([using proper markup](https://guides.github.com/features/mastering-markdown/)). 
+Please post code and output as text ([using proper markup](https://guides.github.com/features/mastering-markdown/)).
 Do not post screenshots of code or output.
 
 ## Workflow for Pull Requests
@@ -56,7 +56,7 @@ Do not post screenshots of code or output.
 5. Ensure the code complies with our coding guidelines (see below).
 6. Send that pull request!
 
-Please make sure you have [set up your username and email address](https://git-scm.com/book/en/v2/Getting-Started-First-Time-Git-Setup) for use with Git. 
+Please make sure you have [set up your username and email address](https://git-scm.com/book/en/v2/Getting-Started-First-Time-Git-Setup) for use with Git.
 Strings such as `silly nick name <root@localhost>` look really stupid in the commit history of a project.
 
 ## Coding Guidelines
@@ -100,7 +100,7 @@ $ vendor/bin/phpunit --testsuite integration
 Phel has its own [testing framework](https://phel-lang.org/documentation/testing/).
 
 ```bash
-./phel test
+./bin/phel test
 ```
 
 ### Coding Guidelines and Tests
@@ -119,7 +119,7 @@ composer test-compiler # test the compiler
 > vendor/bin/phpunit --testsuite integration
 
 composer test-core     # test core library
-> ./phel test
+> ./bin/phel test
 
 composer test-all      # clear cache, php-cs-fixer, psalm, phpstan, compiler & core tests after each other
 > composer static-clear-cache
