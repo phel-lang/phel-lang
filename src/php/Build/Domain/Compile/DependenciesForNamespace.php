@@ -7,7 +7,7 @@ namespace Phel\Build\Domain\Compile;
 use Phel\Build\Domain\Extractor\NamespaceExtractor;
 use Phel\Build\Domain\Extractor\NamespaceInformation;
 
-use function count;
+use function array_key_exists;
 use function in_array;
 
 final class DependenciesForNamespace
@@ -33,13 +33,17 @@ final class DependenciesForNamespace
         }
 
         $requiredNamespaces = [];
-        while (count($queue) > 0) {
+        while ($queue !== []) {
             $currentNs = array_shift($queue);
-            if (!isset($requiredNamespaces[$currentNs])) {
-                foreach ($index[$currentNs]->getDependencies() as $depNs) {
-                    $queue[] = $depNs;
+
+            if (array_key_exists($currentNs, $requiredNamespaces) === false) {
+                if (array_key_exists($currentNs, $index)) {
+                    foreach ($index[$currentNs]->getDependencies() as $depNs) {
+                        $queue[] = $depNs;
+                    }
                 }
             }
+
             $requiredNamespaces[$currentNs] = true;
         }
 
