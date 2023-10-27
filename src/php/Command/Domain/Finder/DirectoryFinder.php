@@ -50,7 +50,11 @@ final class DirectoryFinder implements DirectoryFinderInterface
     private function toAbsoluteDirectories(array $relativeDirectories): array
     {
         return array_map(
-            fn (string $dir): string => $this->applicationRootDir . '/' . $dir,
+            function (string $dir): string {
+                return realpath($dir) !== false
+                    ? $dir
+                    : $this->applicationRootDir . '/' . $dir;
+            },
             $relativeDirectories,
         );
     }
