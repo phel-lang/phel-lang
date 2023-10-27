@@ -23,7 +23,7 @@ final class NamespaceCollector
     public function getDependenciesFromPaths(array $paths): array
     {
         $namespaces = $this->getNamespacesFromPaths($paths);
-        if (empty($namespaces)) {
+        if ($namespaces === []) {
             throw CannotFindAnyTestsException::inPaths($paths);
         }
         $namespaces[] = 'phel\\test';
