@@ -1,0 +1,47 @@
+#!/usr/bin/env php
+<?php
+
+declare(strict_types=1);
+
+use Gacela\Framework\Gacela;
+use Phel\Console\Infrastructure\ConsoleBootstrap;
+use Phel\Phel;
+
+(function () {
+    $appRootDir = array_reduce(
+        [
+            [getcwd(),  '/vendor/autoload.php'],
+            [__DIR__, '/../vendor/autoload.php'],
+            [__DIR__, '/../../vendor/autoload.php'],
+            [__DIR__, '/../../../autoload.php'],
+        ],
+        static function (?string $loaded, array $file): ?string {
+            $file = sprintf('%s%s', ...$file);
+
+            if (($loaded !== null) || (is_file($file) === false)) {
+                return $loaded;
+            }
+
+            require_once($file);
+
+            return $file[0];
+        },
+        null
+    );
+
+    if ($appRootDir === null) {
+        fwrite(
+            STDERR,
+            'You must set up the project dependencies, run the following commands:'.PHP_EOL.
+            'curl -s http://getcomposer.org/installer | php'.PHP_EOL.
+            'php composer.phar install'.PHP_EOL
+        );
+
+        exit(1);
+    }
+
+    Gacela::bootstrap($appRootDir, Phel::configFn());
+
+    $bootstrap = new ConsoleBootstrap();
+    $bootstrap->run();
+})();
