@@ -75,33 +75,20 @@ final class NamespaceExtractor implements NamespaceExtractorInterface
      */
     public function getNamespacesFromDirectories(array $directories): array
     {
-        /** @var list<list<NamespaceInformation>> $namespaces */
-        $namespaces = [];
-        foreach ($directories as $directory) {
-            $allNamespacesInDir = $this->findAllNs($directory);
-            $namespaces[] = $allNamespacesInDir;
-        }
-
-        // Combine all nested namespaces and check for duplicates
-        /** @var list<NamespaceInformation> $result */
-        $result = [];
-        /** @var array<string, NamespaceInformation> $seen */
-        $seen = [];
-        foreach ($namespaces as $namespaceInformationList) {
-            foreach ($namespaceInformationList as $info) {
-                if (isset($seen[$info->getNamespace()])) {
-                    $firstFile = $seen[$info->getNamespace()]->getFile();
-                    $secondFile = $info->getFile();
-                    $namespace = $info->getNamespace();
-                    throw ExtractorException::duplicateNamespace($namespace, $firstFile, $secondFile);
+        /** @var array<string, NamespaceInformation> $namespaces */
+        $namespaces = array_reduce(
+            $directories,
+            function (array $namespaces, string $directory): array {
+                foreach ($this->findAllNs($directory) as $ns) {
+                    $namespaces += [$ns->getNamespace() => $ns];
                 }
 
-                $result[] = $info;
-                $seen[$info->getNamespace()] = $info;
-            }
-        }
+                return $namespaces;
+            },
+            [],
+        );
 
-        return $this->sortNamespaceInformationList($result);
+        return $this->sortNamespaceInformationList($namespaces);
     }
 
     /**
@@ -136,14 +123,18 @@ final class NamespaceExtractor implements NamespaceExtractorInterface
     private function findAllNs(string $directory): array
     {
         $realpath = realpath($directory);
+
         if (!$realpath) {
-            throw new RuntimeException("Directory '{$directory}' not found");
+            return [];
+            //            throw new RuntimeException("Directory '{$directory}' not found");
         }
         $iterator = new RecursiveIteratorIterator(new RecursiveDirectoryIterator($realpath));
         $phelIterator = new RegexIterator($iterator, '/^.+\.phel$/i', RegexIterator::GET_MATCH);
 
         return array_map(
-            fn ($file) => $this->getNamespaceFromFile($file[0]),
+            function (array $file) {
+                return $this->getNamespaceFromFile($file[0]);
+            },
             iterator_to_array($phelIterator),
         );
     }

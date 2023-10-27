@@ -4,8 +4,7 @@ declare(strict_types=1);
 
 return [
     'src-dirs' => [
-        '../../../../../../src/phel/',
-        'src',
+        __DIR__ . '/../',
     ],
     'test-dirs' => [],
     'vendor-dir' => '',
