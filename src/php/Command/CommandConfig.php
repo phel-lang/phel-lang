@@ -27,7 +27,7 @@ final class CommandConfig extends AbstractConfig
         $out = $this->get(self::OUTPUT, []);
 
         return new CodeDirectories(
-            (array)$this->get(self::SRC_DIRS, self::DEFAULT_SRC_DIRS),
+            array_merge([__DIR__ . '/../../'], (array)$this->get(self::SRC_DIRS, self::DEFAULT_SRC_DIRS)),
             (array)$this->get(self::TEST_DIRS, self::DEFAULT_TEST_DIRS),
             (string)($out[PhelOutConfig::DEST_DIR] ?? self::DEFAULT_OUTPUT_DIR),
         );
