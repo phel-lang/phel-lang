@@ -27,6 +27,8 @@ abstract class AbstractCommandTest extends TestCase
         $output = $this->createStub(OutputInterface::class);
         $output->method('writeln')
             ->willReturnCallback(static fn (string $str) => print $str . PHP_EOL);
+        $output->method('write')
+            ->willReturnCallback(static fn (string $str) => print $str);
 
         return $output;
     }

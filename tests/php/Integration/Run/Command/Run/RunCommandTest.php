@@ -16,7 +16,7 @@ final class RunCommandTest extends AbstractCommandTest
     {
         Gacela::bootstrap(__DIR__, static function (GacelaConfig $config): void {
             $config->resetInMemoryCache();
-            $config->addAppConfig('config/*.php', 'config/local.php');
+            $config->addAppConfig('config/*.php');
         });
     }
 
@@ -27,7 +27,7 @@ final class RunCommandTest extends AbstractCommandTest
      */
     public function test_file_not_found(): void
     {
-        $this->expectOutputString('File "non-existing-file.phel" not found' . PHP_EOL);
+        $this->expectOutputRegex('~No rendered output after running namespace: "non-existing-file.phel"~');
 
         $this->createRunCommand()->run(
             $this->stubInput('non-existing-file.phel'),
@@ -35,6 +35,26 @@ final class RunCommandTest extends AbstractCommandTest
         );
     }
 
+    /**
+     * @runInSeparateProcess
+     *
+     * @preserveGlobalState disabled
+     */
+    public function test_run_by_namespace(): void
+    {
+        $this->expectOutputRegex('~hello world~');
+
+        $this->createRunCommand()->run(
+            $this->stubInput('test\\test-script'),
+            $this->stubOutput(),
+        );
+    }
+
+    /**
+     * @runInSeparateProcess
+     *
+     * @preserveGlobalState disabled
+     */
     public function test_run_by_filename(): void
     {
         $this->expectOutputRegex('~hello world~');

@@ -6,7 +6,6 @@ namespace Phel\Run\Infrastructure\Command;
 
 use Gacela\Framework\DocBlockResolverAwareTrait;
 use Phel\Compiler\Domain\Exceptions\CompilerException;
-use Phel\Run\Domain\Exceptions\FileNotFoundException;
 use Phel\Run\RunFacade;
 use SebastianBergmann\Timer\ResourceUsageFormatter;
 use Symfony\Component\Console\Command\Command;
@@ -30,7 +29,7 @@ final class RunCommand extends Command
             ->addArgument(
                 'path',
                 InputArgument::REQUIRED,
-                'The file path that you want to run.',
+                'The file path or namespace to execute',
             )->addArgument(
                 'argv',
                 InputArgument::IS_ARRAY | InputArgument::OPTIONAL,
@@ -47,15 +46,14 @@ final class RunCommand extends Command
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
         try {
-            /** @var string $fileOrPath */
-            $fileOrPath = $input->getArgument('path');
+            $namespace = $this->getNamespace($input);
+            $result = $this->executeNamespace($namespace);
 
-            if (!file_exists($fileOrPath)) {
-                throw new FileNotFoundException($fileOrPath);
+            if ($result === '') {
+                $this->renderNoResultOutput($output, $namespace);
+            } else {
+                $output->write($result);
             }
-
-            $namespace = $this->getFacade()->getNamespaceFromFile($fileOrPath)->getNamespace();
-            $this->getFacade()->runNamespace($namespace);
 
             if ($input->getOption('with-time')) {
                 $output->writeln((new ResourceUsageFormatter())->resourceUsageSinceStartOfRequest());
@@ -69,5 +67,43 @@ final class RunCommand extends Command
         }
 
         return self::FAILURE;
+    }
+
+    private function getNamespace(InputInterface $input): string
+    {
+        /** @var string $fileOrNamespace */
+        $fileOrNamespace = $input->getArgument('path');
+        $namespace = $fileOrNamespace;
+
+        if (file_exists($fileOrNamespace)) {
+            $namespace = $this->getFacade()
+                ->getNamespaceFromFile($fileOrNamespace)
+                ->getNamespace();
+        }
+
+        return $namespace;
+    }
+
+    private function executeNamespace(string $namespace): string
+    {
+        ob_start();
+        $this->getFacade()->runNamespace($namespace);
+
+        return ob_get_clean();
+    }
+
+    private function renderNoResultOutput(OutputInterface $output, string $namespace): void
+    {
+        $output->writeln(
+            <<<EOF
+            <error>No rendered output after running namespace: "{$namespace}"</> 
+            
+            <comment>Please verify that at least one of the following applies:
+            - The file exists
+            - The namespace exists</>
+            
+            You can ignore this message with `-q|--quiet`
+            EOF
+        );
     }
 }
