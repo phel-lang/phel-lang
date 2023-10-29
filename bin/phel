@@ -7,7 +7,7 @@ use Gacela\Framework\Gacela;
 use Phel\Console\Infrastructure\ConsoleBootstrap;
 use Phel\Phel;
 
-(function () {
+(static function () {
     $appRootDir = array_reduce(
         [
             [getcwd(),  '/vendor/autoload.php'],
@@ -42,6 +42,6 @@ use Phel\Phel;
 
     Gacela::bootstrap($appRootDir, Phel::configFn());
 
-    $bootstrap = new ConsoleBootstrap();
+    $bootstrap = new ConsoleBootstrap(name: 'Phel', version: 'v0.11.0');
     $bootstrap->run();
 })();
