@@ -42,6 +42,6 @@ use Phel\Phel;
 
     Gacela::bootstrap($appRootDir, Phel::configFn());
 
-    $bootstrap = new ConsoleBootstrap(name: 'Phel', version: 'v0.11.0');
+    $bootstrap = new ConsoleBootstrap(name: 'Phel', version: 'v0.12.0');
     $bootstrap->run();
 })();
