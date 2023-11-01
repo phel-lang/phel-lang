@@ -4,11 +4,12 @@ All notable changes to this project will be documented in this file.
 
 ## Unreleased
 
-* Fix do not create the entrypoint when namespace isn't set
-* Fix AtomParser decimal regex
+* Do not create the entrypoint when namespace isn't set
+* Fix `AtomParser` decimal regex
 * Improve output for all PHP errors 
-* Move phel to bin/phel 
-* Add phel --version option
+* Move `phel` to `bin/phel` 
+* Add `phel --version` option
+* Notify user when running a non-existing file or namespace
 
 ## [0.11.0](https://github.com/phel-lang/phel-lang/compare/v0.10.1...v0.11.0) - 2023-08-26
 

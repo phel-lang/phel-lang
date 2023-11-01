@@ -23,7 +23,7 @@ final class FormatCommand extends Command
     protected function configure(): void
     {
         $this->setName('format')
-            ->setDescription('Formats the given files.')
+            ->setDescription('Formats the given files')
             ->addArgument(
                 'paths',
                 InputArgument::IS_ARRAY,

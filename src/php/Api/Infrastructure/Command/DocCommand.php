@@ -28,7 +28,7 @@ final class DocCommand extends Command
     protected function configure(): void
     {
         $this->setName('doc')
-            ->setDescription('Display the docs for any/all phel functions.')
+            ->setDescription('Display the docs for any/all phel functions')
             ->addArgument('search', InputArgument::OPTIONAL, 'Search input that look for a similar function name', '')
             ->addOption(
                 self::OPTION_NAMESPACES,
