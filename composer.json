@@ -23,13 +23,13 @@
     ],
     "require": {
         "php": ">=8.0.2",
-        "gacela-project/gacela": "^1.5",
+        "gacela-project/gacela": "^1.6",
         "phpunit/php-timer": "^5.0",
         "symfony/console": "^6.0"
     },
     "require-dev": {
         "ext-readline": "*",
-        "friendsofphp/php-cs-fixer": "^3.35",
+        "friendsofphp/php-cs-fixer": "^3.40",
         "infection/infection": "^0.26",
         "phpbench/phpbench": "^1.2",
         "phpmetrics/phpmetrics": "^2.8",
@@ -37,7 +37,7 @@
         "phpunit/phpunit": "^9.6",
         "psalm/plugin-phpunit": "^0.18",
         "symfony/var-dumper": "^6.0",
-        "vimeo/psalm": "^5.15"
+        "vimeo/psalm": "^5.16"
     },
     "autoload": {
         "psr-4": {
