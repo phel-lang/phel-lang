@@ -22,7 +22,7 @@
         }
     ],
     "require": {
-        "php": ">=8.0.2",
+        "php": ">=8.2",
         "gacela-project/gacela": "^1.6",
         "phpunit/php-timer": "^5.0",
         "symfony/console": "^6.0"
@@ -88,7 +88,7 @@
     ],
     "config": {
         "platform": {
-            "php": "8.0.2"
+            "php": "8.2"
         },
         "allow-plugins": {
             "composer/package-versions-deprecated": true,
