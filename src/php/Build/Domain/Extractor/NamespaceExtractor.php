@@ -10,6 +10,7 @@ use Phel\Compiler\Domain\Analyzer\Ast\NsNode;
 use Phel\Compiler\Domain\Analyzer\Environment\NodeEnvironment;
 use Phel\Compiler\Domain\Lexer\Exceptions\LexerValueException;
 use Phel\Compiler\Domain\Parser\Exceptions\AbstractParserException;
+use Phel\Compiler\Domain\Parser\ParserNode\NodeInterface;
 use Phel\Compiler\Domain\Parser\ParserNode\TriviaNodeInterface;
 use Phel\Compiler\Domain\Reader\Exceptions\ReaderException;
 use Phel\Lang\Symbol;
@@ -40,7 +41,7 @@ final readonly class NamespaceExtractor implements NamespaceExtractorInterface
                 $parseTree = $this->compilerFacade->parseNext($tokenStream);
             } while ($parseTree instanceof TriviaNodeInterface);
 
-            if (!$parseTree) {
+            if (!$parseTree instanceof NodeInterface) {
                 throw ExtractorException::cannotReadFile($path);
             }
 

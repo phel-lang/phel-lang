@@ -18,6 +18,7 @@ use Phel\Compiler\Domain\Lexer\LexerInterface;
 use Phel\Compiler\Domain\Parser\Exceptions\AbstractParserException;
 use Phel\Compiler\Domain\Parser\Exceptions\UnfinishedParserException;
 use Phel\Compiler\Domain\Parser\ParserInterface;
+use Phel\Compiler\Domain\Parser\ParserNode\NodeInterface;
 use Phel\Compiler\Domain\Parser\ParserNode\TriviaNodeInterface;
 use Phel\Compiler\Domain\Parser\ReadModel\ReaderResult;
 use Phel\Compiler\Domain\Reader\Exceptions\ReaderException;
@@ -57,7 +58,7 @@ final readonly class EvalCompiler implements EvalCompilerInterface
             try {
                 $parseTree = $this->parser->parseNext($tokenStream);
 
-                if (!$parseTree) {
+                if (!$parseTree instanceof NodeInterface) {
                     return $result;
                 }
 

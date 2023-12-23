@@ -36,11 +36,11 @@ final readonly class DependenciesForNamespace
         while ($queue !== []) {
             $currentNs = array_shift($queue);
 
-            if (array_key_exists($currentNs, $requiredNamespaces) === false) {
-                if (array_key_exists($currentNs, $index)) {
-                    foreach ($index[$currentNs]->getDependencies() as $depNs) {
-                        $queue[] = $depNs;
-                    }
+            if (array_key_exists($currentNs, $requiredNamespaces) === false
+                && array_key_exists($currentNs, $index)
+            ) {
+                foreach ($index[$currentNs]->getDependencies() as $depNs) {
+                    $queue[] = $depNs;
                 }
             }
 

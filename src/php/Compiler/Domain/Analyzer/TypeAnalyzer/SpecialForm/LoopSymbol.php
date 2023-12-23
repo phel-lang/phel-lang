@@ -71,7 +71,7 @@ final readonly class LoopSymbol implements SpecialFormAnalyzerInterface
             }
         }
 
-        if (count($lets) > 0) {
+        if ($lets !== []) {
             $bodyExpr = $list->rest()->rest()->toArray();
             $letSym = Symbol::create(Symbol::NAME_LET)->copyLocationFrom($list->get(0));
             $letExpr = TypeFactory::getInstance()->persistentListFromArray([

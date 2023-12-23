@@ -14,6 +14,7 @@ use Phel\Compiler\Domain\Analyzer\TypeAnalyzer\WithAnalyzerTrait;
 use Phel\Lang\Collections\LinkedList\PersistentListInterface;
 use Phel\Lang\Keyword;
 use Phel\Lang\Registry;
+use Phel\Lang\SourceLocation;
 use Phel\Lang\TypeFactory;
 use Phel\Lang\TypeInterface;
 
@@ -144,11 +145,11 @@ final class InvokeSymbol implements SpecialFormAnalyzerInterface
 
     private function enrichLocationForAbstractType(TypeInterface $type, TypeInterface $parent): TypeInterface
     {
-        if (!$type->getStartLocation()) {
+        if (!$type->getStartLocation() instanceof SourceLocation) {
             $type = $type->setStartLocation($parent->getStartLocation());
         }
 
-        if (!$type->getEndLocation()) {
+        if (!$type->getEndLocation() instanceof SourceLocation) {
             $type = $type->setEndLocation($parent->getEndLocation());
         }
 

@@ -14,6 +14,7 @@ use Phel\Compiler\Domain\Exceptions\AbstractLocatedException;
 use Phel\Lang\Collections\LinkedList\PersistentListInterface;
 use Phel\Lang\Collections\Map\PersistentMapInterface;
 use Phel\Lang\Keyword;
+use Phel\Lang\SourceLocation;
 use Phel\Lang\Symbol;
 use Phel\Lang\TypeFactory;
 use Phel\Lang\TypeInterface;
@@ -97,7 +98,7 @@ final class DefSymbol implements SpecialFormAnalyzerInterface
         $meta = $this->normalizeMeta($meta, $list);
 
         $listMeta = $list->getMeta();
-        if ($listMeta) {
+        if ($listMeta instanceof PersistentMapInterface) {
             foreach ($listMeta->getIterator() as $key => $value) {
                 if ($key !== null) {
                     $meta = $meta->put($key, $value);
@@ -106,7 +107,7 @@ final class DefSymbol implements SpecialFormAnalyzerInterface
         }
 
         $startLocation = $list->getStartLocation();
-        if ($startLocation) {
+        if ($startLocation instanceof SourceLocation) {
             $meta = $meta->put(Keyword::create('start-location'), TypeFactory::getInstance()->persistentMapFromKVs(
                 Keyword::create('file'),
                 $startLocation->getFile(),
@@ -118,7 +119,7 @@ final class DefSymbol implements SpecialFormAnalyzerInterface
         }
 
         $endLocation = $list->getEndLocation();
-        if ($endLocation) {
+        if ($endLocation instanceof SourceLocation) {
             $meta = $meta->put(Keyword::create('end-location'), TypeFactory::getInstance()->persistentMapFromKVs(
                 Keyword::create('file'),
                 $endLocation->getFile(),

@@ -42,7 +42,7 @@ final class DefInterfaceSymbol implements SpecialFormAnalyzerInterface
      */
     private function methods(?PersistentListInterface $list): array
     {
-        if ($list === null) {
+        if (!$list instanceof PersistentListInterface) {
             return [];
         }
 

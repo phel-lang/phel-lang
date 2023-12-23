@@ -45,7 +45,7 @@ final readonly class NamespaceCollector
      */
     private function getNamespacesFromPaths(array $paths): array
     {
-        if (empty($paths)) {
+        if ($paths === []) {
             $namespaces = $this->buildFacade->getNamespaceFromDirectories(
                 $this->commandFacade->getTestDirectories(),
             );

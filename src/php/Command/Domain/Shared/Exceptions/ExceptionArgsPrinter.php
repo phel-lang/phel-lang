@@ -6,7 +6,6 @@ namespace Phel\Command\Domain\Shared\Exceptions;
 
 use Phel\Printer\PrinterInterface;
 
-use function count;
 use function is_array;
 use function is_bool;
 use function is_object;
@@ -29,7 +28,7 @@ final readonly class ExceptionArgsPrinter implements ExceptionArgsPrinterInterfa
         );
 
         $argString = implode(' ', $argParts);
-        if (count($argParts) > 0) {
+        if ($argParts !== []) {
             $argString = ' ' . $argString;
         }
 

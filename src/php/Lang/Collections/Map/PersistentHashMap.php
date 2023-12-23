@@ -59,7 +59,7 @@ class PersistentHashMap extends AbstractPersistentMap
 
     public static function getNotFound(): stdClass
     {
-        if (!self::$NOT_FOUND) {
+        if (!self::$NOT_FOUND instanceof stdClass) {
             self::$NOT_FOUND = new stdClass();
         }
 
@@ -77,7 +77,7 @@ class PersistentHashMap extends AbstractPersistentMap
             return $this->hasNull;
         }
 
-        if ($this->root === null) {
+        if (!$this->root instanceof HashMapNodeInterface) {
             return false;
         }
 
@@ -111,7 +111,7 @@ class PersistentHashMap extends AbstractPersistentMap
             return $this->hasNull ? new self($this->hasher, $this->equalizer, $this->meta, $this->count - 1, $this->root, false, null) : $this;
         }
 
-        if ($this->root === null) {
+        if (!$this->root instanceof HashMapNodeInterface) {
             return $this;
         }
 
@@ -134,7 +134,7 @@ class PersistentHashMap extends AbstractPersistentMap
             return null;
         }
 
-        if ($this->root === null) {
+        if (!$this->root instanceof HashMapNodeInterface) {
             return null;
         }
 
@@ -148,7 +148,7 @@ class PersistentHashMap extends AbstractPersistentMap
 
     public function getIterator(): Traversable
     {
-        if ($this->root) {
+        if ($this->root instanceof HashMapNodeInterface) {
             return $this->root->getIterator();
         }
 

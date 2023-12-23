@@ -19,6 +19,7 @@ use Phel\Compiler\Domain\Lexer\Exceptions\LexerValueException;
 use Phel\Compiler\Domain\Lexer\LexerInterface;
 use Phel\Compiler\Domain\Parser\Exceptions\AbstractParserException;
 use Phel\Compiler\Domain\Parser\ParserInterface;
+use Phel\Compiler\Domain\Parser\ParserNode\NodeInterface;
 use Phel\Compiler\Domain\Parser\ParserNode\TriviaNodeInterface;
 use Phel\Compiler\Domain\Parser\ReadModel\ReaderResult;
 use Phel\Compiler\Domain\Reader\Exceptions\ReaderException;
@@ -54,7 +55,7 @@ final readonly class CodeCompiler implements CodeCompilerInterface
             try {
                 $parseTree = $this->parser->parseNext($tokenStream);
                 // If we reached the end exit this loop
-                if (!$parseTree) {
+                if (!$parseTree instanceof NodeInterface) {
                     break;
                 }
 

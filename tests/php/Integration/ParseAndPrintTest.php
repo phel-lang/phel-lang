@@ -37,7 +37,7 @@ final class ParseAndPrintTest extends TestCase
         $parseTrees = [];
         while (true) {
             $parseTree = $parser->parseNext($tokenStream);
-            if (!$parseTree) {
+            if (!$parseTree instanceof NodeInterface) {
                 break;
             }
 

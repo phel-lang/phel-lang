@@ -32,7 +32,7 @@ final readonly class ListFnReader
 
     private function extractParams(?array $fnArgs): array
     {
-        if (empty($fnArgs)) {
+        if ($fnArgs === null || $fnArgs === []) {
             return [];
         }
 

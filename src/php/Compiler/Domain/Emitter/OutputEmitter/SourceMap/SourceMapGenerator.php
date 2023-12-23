@@ -33,7 +33,7 @@ final readonly class SourceMapGenerator
                 $result .= str_repeat(';', $mapping['generated']['line'] - $previousGeneratedLine);
                 $previousGeneratedLine = $mapping['generated']['line'];
             } elseif ($i > 0) {
-                if (!$this->compareByGeneratedPositionsInflated($mapping, $mappings[$i - 1])) {
+                if ($this->compareByGeneratedPositionsInflated($mapping, $mappings[$i - 1]) === 0) {
                     continue;
                 }
                 $result .= ',';

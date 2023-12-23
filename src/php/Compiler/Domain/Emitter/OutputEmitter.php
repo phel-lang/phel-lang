@@ -130,12 +130,12 @@ final class OutputEmitter implements OutputEmitterInterface
     public function emitFnWrapPrefix(NodeEnvironmentInterface $env, ?SourceLocation $sl = null): void
     {
         $this->emitStr('(function()', $sl);
-        if (count($env->getLocals()) > 0) {
+        if ($env->getLocals() !== []) {
             $this->emitStr(' use(', $sl);
 
             foreach (array_values($env->getLocals()) as $i => $l) {
                 $shadowed = $env->getShadowed($l);
-                if ($shadowed) {
+                if ($shadowed instanceof Symbol) {
                     $this->emitPhpVariable($shadowed, $sl);
                 } else {
                     $this->emitPhpVariable($l, $sl);

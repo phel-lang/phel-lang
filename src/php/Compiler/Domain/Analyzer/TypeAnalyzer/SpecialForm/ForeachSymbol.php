@@ -122,7 +122,7 @@ final class ForeachSymbol implements SpecialFormAnalyzerInterface
     {
         $bodys = $list->rest()->rest()->toArray();
 
-        if (!empty($lets)) {
+        if ($lets !== []) {
             return TypeFactory::getInstance()->persistentListFromArray([
                 Symbol::create(Symbol::NAME_LET),
                 TypeFactory::getInstance()->persistentVectorFromArray($lets),

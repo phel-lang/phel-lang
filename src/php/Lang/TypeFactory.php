@@ -31,7 +31,7 @@ class TypeFactory
 
     public static function getInstance(): self
     {
-        if (self::$instance === null) {
+        if (!self::$instance instanceof self) {
             self::$instance = new self();
         }
 

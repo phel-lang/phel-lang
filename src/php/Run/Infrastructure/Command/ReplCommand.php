@@ -189,7 +189,7 @@ final class ReplCommand extends Command
 
     private function analyzeInputBuffer(): void
     {
-        if (empty($this->inputBuffer)) {
+        if ($this->inputBuffer === []) {
             return;
         }
         $fullInput = $this->previousResult->readBuffer($this->inputBuffer);

@@ -24,7 +24,7 @@ final class PhpOSetSymbol implements SpecialFormAnalyzerInterface
             throw AnalyzerException::withLocation('First argument of php/oget must be a property access', $list);
         }
 
-        if ($left->isMethodCall() === true) {
+        if ($left->isMethodCall()) {
             throw AnalyzerException::withLocation('First argument of php/oget must be a property access', $list);
         }
 

@@ -40,7 +40,7 @@ class TransientHashMap implements TransientMapInterface
 
     public static function getNotFound(): stdClass
     {
-        if (!self::$NOT_FOUND) {
+        if (!self::$NOT_FOUND instanceof stdClass) {
             self::$NOT_FOUND = new stdClass();
         }
 
@@ -53,7 +53,7 @@ class TransientHashMap implements TransientMapInterface
             return $this->hasNull;
         }
 
-        if ($this->root === null) {
+        if (!$this->root instanceof HashMapNodeInterface) {
             return false;
         }
 
@@ -104,7 +104,7 @@ class TransientHashMap implements TransientMapInterface
             return $this;
         }
 
-        if ($this->root === null) {
+        if (!$this->root instanceof HashMapNodeInterface) {
             return $this;
         }
 
@@ -128,7 +128,7 @@ class TransientHashMap implements TransientMapInterface
             return null;
         }
 
-        if ($this->root === null) {
+        if (!$this->root instanceof HashMapNodeInterface) {
             return null;
         }
 

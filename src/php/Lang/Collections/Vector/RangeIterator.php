@@ -37,11 +37,9 @@ class RangeIterator implements Iterator
     public function next(): void
     {
         ++$this->currentIndex;
-        if ($this->currentIndex < $this->end) {
-            if ($this->currentIndex - $this->base === 32) {
-                $this->currentArray = $this->vector->getArrayForIndex($this->currentIndex);
-                $this->base += 32;
-            }
+        if ($this->currentIndex < $this->end && $this->currentIndex - $this->base === 32) {
+            $this->currentArray = $this->vector->getArrayForIndex($this->currentIndex);
+            $this->base += 32;
         }
     }
 

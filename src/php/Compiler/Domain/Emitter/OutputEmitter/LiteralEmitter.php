@@ -92,7 +92,7 @@ final readonly class LiteralEmitter
 
     private function emitBool(bool $x): void
     {
-        $this->outputEmitter->emitStr($x === true ? 'true' : 'false');
+        $this->outputEmitter->emitStr($x ? 'true' : 'false');
     }
 
     private function emitKeyword(Keyword $x): void

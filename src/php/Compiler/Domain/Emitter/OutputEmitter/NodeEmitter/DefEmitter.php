@@ -9,7 +9,6 @@ use Phel\Compiler\Domain\Analyzer\Ast\DefNode;
 use Phel\Compiler\Domain\Emitter\OutputEmitter\NodeEmitterInterface;
 
 use function assert;
-use function count;
 
 final class DefEmitter implements NodeEmitterInterface
 {
@@ -28,7 +27,7 @@ final class DefEmitter implements NodeEmitterInterface
         $this->outputEmitter->emitStr(addslashes($node->getName()->getName()));
         $this->outputEmitter->emitLine('",');
         $this->outputEmitter->emitNode($node->getInit());
-        if (count($node->getMeta()->getKeyValues()) > 0) {
+        if ($node->getMeta()->getKeyValues() !== []) {
             $this->outputEmitter->emitLine(',');
             $this->outputEmitter->emitNode($node->getMeta());
         }

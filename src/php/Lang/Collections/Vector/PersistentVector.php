@@ -386,7 +386,7 @@ class PersistentVector extends AbstractPersistentVector
 
     private function fillArray(array $node, int $shift, array &$targetArr = []): void
     {
-        if ($shift) {
+        if ($shift !== 0) {
             $shift -= self::SHIFT;
             foreach ($node as $x) {
                 $this->fillArray($x, $shift, $targetArr);

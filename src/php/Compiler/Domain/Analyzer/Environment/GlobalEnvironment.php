@@ -237,12 +237,12 @@ final class GlobalEnvironment implements GlobalEnvironmentInterface
 
     private function resolveRealpath(?SourceLocation $sl): ?string
     {
-        return ($sl) ? realpath($sl->getFile()) : null;
+        return ($sl instanceof SourceLocation) ? realpath($sl->getFile()) : null;
     }
 
     private function resolveRealpathDirname(?SourceLocation $sl): ?string
     {
-        return ($sl) ? realpath(dirname($sl->getFile())) : null;
+        return ($sl instanceof SourceLocation) ? realpath(dirname($sl->getFile())) : null;
     }
 
     private function resolveWithAlias(Symbol $name, NodeEnvironmentInterface $env): ?AbstractNode
@@ -279,7 +279,7 @@ final class GlobalEnvironment implements GlobalEnvironmentInterface
         }
 
         $def = $this->getDefinition($ns, $name);
-        if ($def) {
+        if ($def instanceof PersistentMapInterface) {
             return new GlobalVarNode($env, $ns, $name, $def, $name->getStartLocation());
         }
 
@@ -305,6 +305,6 @@ final class GlobalEnvironment implements GlobalEnvironmentInterface
 
     private function isPrivateDefinitionAllowed(PersistentMapInterface $meta): bool
     {
-        return $this->allowPrivateAccess || !$meta[Keyword::create('private')] === true;
+        return $this->allowPrivateAccess || !$meta[Keyword::create('private')];
     }
 }

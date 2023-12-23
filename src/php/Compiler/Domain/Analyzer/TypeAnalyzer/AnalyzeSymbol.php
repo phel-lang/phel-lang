@@ -32,7 +32,7 @@ final class AnalyzeSymbol
     {
         $shadowedVar = $env->getShadowed($symbol);
 
-        if ($shadowedVar) {
+        if ($shadowedVar instanceof Symbol) {
             $shadowedVar->copyLocationFrom($symbol);
 
             return new LocalVarNode($env, $shadowedVar, $symbol->getStartLocation());
@@ -45,7 +45,7 @@ final class AnalyzeSymbol
     {
         $globalResolve = $this->analyzer->resolve($symbol, $env);
 
-        if (!$globalResolve) {
+        if (!$globalResolve instanceof AbstractNode) {
             throw AnalyzerException::withLocation("Cannot resolve symbol '{$symbol->getFullName()}'", $symbol);
         }
 

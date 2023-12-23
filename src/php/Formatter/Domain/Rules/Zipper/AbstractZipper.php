@@ -4,8 +4,6 @@ declare(strict_types=1);
 
 namespace Phel\Formatter\Domain\Rules\Zipper;
 
-use function count;
-
 /**
  * @template T
  *
@@ -195,7 +193,7 @@ abstract class AbstractZipper
         }
 
         $children = $this->getChildren();
-        if (count($children) === 0) {
+        if ($children === []) {
             throw ZipperException::cannotGoDownOnNodeWithZeroChildren();
         }
 
@@ -406,7 +404,7 @@ abstract class AbstractZipper
 
     public function hasChildren(): bool
     {
-        return $this->isBranch() && count($this->getChildren()) > 0;
+        return $this->isBranch() && $this->getChildren() !== [];
     }
 
     /**
@@ -414,12 +412,12 @@ abstract class AbstractZipper
      */
     public function isTop(): bool
     {
-        return $this->parent === null;
+        return !$this->parent instanceof self;
     }
 
     public function isFirst(): bool
     {
-        return empty($this->leftSiblings);
+        return $this->leftSiblings === [];
     }
 
     /**
@@ -427,7 +425,7 @@ abstract class AbstractZipper
      */
     public function isLast(): bool
     {
-        return empty($this->rightSiblings);
+        return $this->rightSiblings === [];
     }
 
     /**

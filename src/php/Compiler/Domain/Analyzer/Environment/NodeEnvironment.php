@@ -200,7 +200,7 @@ final class NodeEnvironment implements NodeEnvironmentInterface
 
     public function getCurrentRecurFrame(): ?RecurFrame
     {
-        if (empty($this->recurFrames)) {
+        if ($this->recurFrames === []) {
             return null;
         }
 

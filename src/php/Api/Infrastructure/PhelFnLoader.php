@@ -40,7 +40,7 @@ final readonly class PhelFnLoader implements PhelFnLoaderInterface
             $normalizedNs = str_replace('phel\\', '', $ns);
             $moduleName = $normalizedNs === 'core' ? '' : $normalizedNs . '/';
 
-            foreach ($this->getDefinitionsInNamespace($ns) as $fnName => $fn) {
+            foreach (array_keys($this->getDefinitionsInNamespace($ns)) as $fnName) {
                 $fullFnName = $moduleName . $fnName;
 
                 $normalizedData[$fullFnName] = $this->getPhelMeta($ns, $fnName);

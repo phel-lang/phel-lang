@@ -31,7 +31,7 @@ class IndexedNodeIterator implements Iterator
      */
     public function current(): mixed
     {
-        if ($this->nestedIterator) {
+        if ($this->nestedIterator instanceof Iterator) {
             return $this->nestedIterator->current();
         }
 
@@ -55,7 +55,7 @@ class IndexedNodeIterator implements Iterator
 
     public function valid(): bool
     {
-        if ($this->nestedIterator) {
+        if ($this->nestedIterator instanceof Iterator) {
             return $this->nestedIterator->valid();
         }
 
@@ -65,7 +65,7 @@ class IndexedNodeIterator implements Iterator
     public function rewind(): void
     {
         $this->index = 0;
-        if (count($this->entries) > 0 && $this->entries[$this->index][0] === null) {
+        if ($this->entries !== [] && $this->entries[$this->index][0] === null) {
             $this->initializeNestedIterator($this->index);
         }
     }
@@ -75,7 +75,7 @@ class IndexedNodeIterator implements Iterator
      */
     public function key(): mixed
     {
-        if ($this->nestedIterator) {
+        if ($this->nestedIterator instanceof Iterator) {
             return $this->nestedIterator->key();
         }
 

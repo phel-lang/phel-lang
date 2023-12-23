@@ -48,7 +48,7 @@ final readonly class DefStructEmitter implements NodeEmitterInterface
             $node->getStartSourceLocation(),
         );
 
-        if (count($node->getInterfaces()) > 0) {
+        if ($node->getInterfaces() !== []) {
             $this->outputEmitter->emitStr(' implements ');
         }
 

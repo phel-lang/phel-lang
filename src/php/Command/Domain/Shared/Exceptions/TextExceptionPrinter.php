@@ -33,7 +33,7 @@ final readonly class TextExceptionPrinter implements ExceptionPrinterInterface
 
     public function printError(string $error): void
     {
-        echo sprintf('%s', $error) . PHP_EOL;
+        echo $error . PHP_EOL;
         $this->errorLog->writeln($error);
     }
 

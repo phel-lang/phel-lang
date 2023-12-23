@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Phel\Compiler\Domain\Analyzer\TypeAnalyzer\SpecialForm;
 
+use Phel\Compiler\Domain\Analyzer\Ast\RecurFrame;
 use Phel\Compiler\Domain\Analyzer\Ast\RecurNode;
 use Phel\Compiler\Domain\Analyzer\Environment\NodeEnvironmentInterface;
 use Phel\Compiler\Domain\Analyzer\Exceptions\AnalyzerException;
@@ -25,7 +26,7 @@ final class RecurSymbol implements SpecialFormAnalyzerInterface
 
         $currentFrame = $env->getCurrentRecurFrame();
 
-        if (!$currentFrame) {
+        if (!$currentFrame instanceof RecurFrame) {
             /** @psalm-suppress PossiblyNullArgument */
             throw AnalyzerException::withLocation("Can't call 'recur here", $list->get(0));
         }

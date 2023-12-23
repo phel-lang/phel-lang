@@ -55,7 +55,7 @@ final class FnSymbol implements SpecialFormAnalyzerInterface
     {
         $listBody = $fnSymbolTuple->parentListBody();
 
-        $body = empty($fnSymbolTuple->lets())
+        $body = $fnSymbolTuple->lets() === []
             ? $this->createDoTupleWithBody($listBody)
             : $this->createLetTupleWithBody($fnSymbolTuple, $listBody);
 
