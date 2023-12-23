@@ -74,7 +74,8 @@ class Hasher implements HasherInterface
             return $value;
         }
 
-        return $this->hashFloat((float)$value);
+        /** @var float $value */
+        return $this->hashFloat($value);
     }
 
     private function hashFloat(float $value): int

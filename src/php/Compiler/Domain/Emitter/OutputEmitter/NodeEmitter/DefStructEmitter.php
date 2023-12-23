@@ -98,7 +98,7 @@ final readonly class DefStructEmitter implements NodeEmitterInterface
     {
         $this->outputEmitter->emitStr('public function __construct(', $node->getStartSourceLocation());
 
-        foreach ($node->getParams() as $i => $param) {
+        foreach ($node->getParams() as $param) {
             $this->outputEmitter->emitPhpVariable($param);
             $this->outputEmitter->emitStr(', ', $node->getStartSourceLocation());
         }
@@ -111,7 +111,7 @@ final readonly class DefStructEmitter implements NodeEmitterInterface
 
         $this->outputEmitter->emitLine('parent::__construct();');
 
-        foreach ($node->getParams() as $i => $param) {
+        foreach ($node->getParams() as $param) {
             $keyword = Keyword::create($param->getName());
             $keyword->setStartLocation($node->getStartSourceLocation());
 

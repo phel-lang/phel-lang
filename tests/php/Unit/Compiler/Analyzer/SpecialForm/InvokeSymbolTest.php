@@ -150,7 +150,7 @@ final class InvokeSymbolTest extends TestCase
             TypeFactory::getInstance()->persistentVectorFromArray([1]),
         ]);
         $env = NodeEnvironment::empty();
-        $node = (new InvokeSymbol($this->analyzer))->analyze($list, $env);
+        (new InvokeSymbol($this->analyzer))->analyze($list, $env);
     }
 
     public function test_macro_undefined_macro(): void
@@ -163,7 +163,7 @@ final class InvokeSymbolTest extends TestCase
             TypeFactory::getInstance()->persistentVectorFromArray([1]),
         ]);
         $env = NodeEnvironment::empty();
-        $node = (new InvokeSymbol($this->analyzer))->analyze($list, $env);
+        (new InvokeSymbol($this->analyzer))->analyze($list, $env);
     }
 
     public function test_inline_expand(): void

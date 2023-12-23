@@ -49,7 +49,7 @@ final class NsEmitter implements NodeEmitterInterface
     private function emitRequiredNamespaces(NsNode $node): void
     {
         if ($this->outputEmitter->getOptions()->isFileEmitMode()) {
-            foreach ($node->getRequireNs() as $i => $ns) {
+            foreach ($node->getRequireNs() as $ns) {
                 $depth = count(explode('\\', $node->getNamespace())) - 1;
                 $filename = str_replace('\\', '/', $this->outputEmitter->mungeEncodeNs($ns->getName()));
                 $relativePath = str_repeat('/..', $depth) . '/' . $filename . '.php';

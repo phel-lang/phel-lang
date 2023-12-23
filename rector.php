@@ -3,7 +3,6 @@
 declare(strict_types=1);
 
 use Rector\CodeQuality\Rector\If_\SimplifyIfElseToTernaryRector;
-use Rector\CodingStyle\Rector\Encapsed\EncapsedStringsToSprintfRector;
 use Rector\CodingStyle\Rector\String_\UseClassKeywordForClassNameResolutionRector;
 use Rector\Config\RectorConfig;
 use Rector\Set\ValueObject\LevelSetList;
@@ -42,6 +41,7 @@ return static function (RectorConfig $rectorConfig): void {
     $rectorConfig->sets([
         SetList::CODE_QUALITY,
         SetList::CODING_STYLE,
+        SetList::DEAD_CODE,
         LevelSetList::UP_TO_PHP_82,
     ]);
 };

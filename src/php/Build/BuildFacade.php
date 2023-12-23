@@ -22,8 +22,6 @@ final class BuildFacade extends AbstractFacade implements BuildFacadeInterface
      * first statement in the file is the 'ns statement.
      *
      * @param string $filename The path to the file
-     *
-     * @return NamespaceInformation
      */
     public function getNamespaceFromFile(string $filename): NamespaceInformation
     {
@@ -69,8 +67,6 @@ final class BuildFacade extends AbstractFacade implements BuildFacadeInterface
      *
      * @param string $src The source file
      * @param string $dest The destination
-     *
-     * @return CompiledFile
      */
     public function compileFile(string $src, string $dest): CompiledFile
     {
@@ -83,8 +79,6 @@ final class BuildFacade extends AbstractFacade implements BuildFacadeInterface
      * Same as `compileFile`. However, the generated code is not written to a destination.
      *
      * @param string $src The source file
-     *
-     * @return CompiledFile
      */
     public function evalFile(string $src): CompiledFile
     {

@@ -55,10 +55,8 @@ final readonly class LiteralEmitter
         } elseif (is_array($x)) {
             $this->emitArray($x);
         } else {
-            $typeName = gettype($x);
-            if ($typeName === 'object') {
-                $typeName = $x::class;
-            }
+            //            $typeName = gettype($x);
+            $typeName = $x::class;
 
             throw new RuntimeException('literal not supported: ' . $typeName);
         }
@@ -70,7 +68,7 @@ final readonly class LiteralEmitter
         $float = ((int)$x == $x)
             // (string) 10.0 will return 10 and not 10.0
             // so, we just add a .0 at the end
-            ? ((string)$x) . '.0'
+            ? ($x) . '.0'
             : ((string)$x);
 
         $this->outputEmitter->emitStr($float);

@@ -25,7 +25,7 @@ final class DoEmitter implements NodeEmitterInterface
             $this->outputEmitter->emitFnWrapPrefix($node->getEnv(), $node->getStartSourceLocation());
         }
 
-        foreach ($node->getStmts() as $i => $stmt) {
+        foreach ($node->getStmts() as $stmt) {
             $this->outputEmitter->emitNode($stmt);
             $this->outputEmitter->emitLine();
         }

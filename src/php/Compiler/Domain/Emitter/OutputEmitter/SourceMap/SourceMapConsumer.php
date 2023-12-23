@@ -34,7 +34,7 @@ final class SourceMapConsumer
         foreach ($lines as $i => $line) {
             $segments = explode(',', $line);
 
-            foreach ($segments as $j => $segment) {
+            foreach ($segments as $segment) {
                 if ($segment !== '') {
                     $relMapping = $this->vlq->decode($segment);
 

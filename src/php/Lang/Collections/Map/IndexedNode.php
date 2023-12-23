@@ -197,7 +197,7 @@ class IndexedNode implements HashMapNodeInterface
      */
     private function addToChild(int $idx, int $shift, int $hash, $key, $value, Box $addedLeaf): HashMapNodeInterface
     {
-        /** @var HashMapNodeInterface $node */
+        /** @var HashMapNodeInterface $childNode */
         $childNode = $this->objects[$idx][1];
         $newChild = $childNode->put($shift + 5, $hash, $key, $value, $addedLeaf);
         if ($childNode === $newChild) {

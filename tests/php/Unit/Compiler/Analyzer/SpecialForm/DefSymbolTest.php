@@ -255,6 +255,6 @@ final class DefSymbolTest extends TestCase
             'any value',
         ]);
         $env = NodeEnvironment::empty();
-        $defNode = (new DefSymbol($this->analyzer))->analyze($list, $env);
+        (new DefSymbol($this->analyzer))->analyze($list, $env);
     }
 }

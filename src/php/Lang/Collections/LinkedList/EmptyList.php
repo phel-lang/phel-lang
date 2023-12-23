@@ -62,8 +62,6 @@ class EmptyList extends AbstractType implements PersistentListInterface
 
     /**
      * @throws IndexOutOfBoundsException
-     *
-     * @return T
      */
     public function get(int $i): never
     {
@@ -143,7 +141,7 @@ class EmptyList extends AbstractType implements PersistentListInterface
      */
     public function offsetGet($offset): mixed
     {
-        return $this->get($offset);
+        $this->get($offset);
     }
 
     public function offsetSet($offset, $value): void
