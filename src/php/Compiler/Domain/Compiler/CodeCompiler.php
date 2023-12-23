@@ -91,8 +91,8 @@ final readonly class CodeCompiler implements CodeCompilerInterface
                 $readerResult->getAst(),
                 NodeEnvironment::empty(),
             );
-        } catch (AnalyzerException $e) {
-            throw new CompilerException($e, $readerResult->getCodeSnippet());
+        } catch (AnalyzerException $analyzerException) {
+            throw new CompilerException($analyzerException, $readerResult->getCodeSnippet());
         }
     }
 

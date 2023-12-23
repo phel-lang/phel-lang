@@ -15,9 +15,13 @@ use Phel\Interop\InteropFacade;
 final class RunDependencyProvider extends AbstractDependencyProvider
 {
     public const FACADE_COMMAND = 'FACADE_COMMAND';
+
     public const FACADE_COMPILER = 'FACADE_COMPILER';
+
     public const FACADE_FORMATTER = 'FACADE_FORMATTER';
+
     public const FACADE_INTEROP = 'FACADE_INTEROP';
+
     public const FACADE_BUILD = 'FACADE_BUILD';
 
     public function provideModuleDependencies(Container $container): void

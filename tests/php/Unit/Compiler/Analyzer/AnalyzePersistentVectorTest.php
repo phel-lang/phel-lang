@@ -17,7 +17,7 @@ final class AnalyzePersistentVectorTest extends TestCase
 {
     private AnalyzePersistentVector $vectorAnalzyer;
 
-    public function setUp(): void
+    protected function setUp(): void
     {
         $this->vectorAnalzyer = new AnalyzePersistentVector(new Analyzer(new GlobalEnvironment()));
     }

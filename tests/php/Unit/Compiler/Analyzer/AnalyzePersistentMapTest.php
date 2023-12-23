@@ -17,7 +17,7 @@ final class AnalyzePersistentMapTest extends TestCase
 {
     private AnalyzePersistentMap $mapAnalyzer;
 
-    public function setUp(): void
+    protected function setUp(): void
     {
         $this->mapAnalyzer = new AnalyzePersistentMap(new Analyzer(new GlobalEnvironment()));
     }

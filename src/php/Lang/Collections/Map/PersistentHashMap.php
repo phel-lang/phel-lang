@@ -54,6 +54,7 @@ class PersistentHashMap extends AbstractPersistentMap
         for ($i = 0, $l = count($kvs); $i < $l; $i += 2) {
             $result->put($kvs[$i], $kvs[$i + 1]);
         }
+
         return $result->persistent();
     }
 

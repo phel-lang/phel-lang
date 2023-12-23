@@ -148,6 +148,7 @@ final class OutputEmitter implements OutputEmitterInterface
 
             $this->emitStr(')', $sl);
         }
+
         $this->emitLine(' {', $sl);
         $this->increaseIndentLevel();
     }
@@ -161,6 +162,7 @@ final class OutputEmitter implements OutputEmitterInterface
         if (is_null($loc)) {
             $loc = $symbol->getStartLocation();
         }
+
         $refPrefix = $asReference ? '&' : '';
         $variadicPrefix = $isVariadic ? '...' : '';
         $this->emitStr($variadicPrefix . $refPrefix . '$' . $this->mungeEncode($symbol->getName()), $loc);

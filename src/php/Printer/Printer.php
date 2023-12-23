@@ -82,30 +82,39 @@ final readonly class Printer implements PrinterInterface
         if ($form instanceof AbstractPersistentStruct) {
             return new StructPrinter($this);
         }
+
         if ($form instanceof PersistentListInterface) {
             return new PersistentListPrinter($this);
         }
+
         if ($form instanceof PersistentVectorInterface) {
             return new PersistentVectorPrinter($this);
         }
+
         if ($form instanceof PersistentMapInterface) {
             return new PersistentMapPrinter($this);
         }
+
         if ($form instanceof PersistentHashSetInterface) {
             return new PersistentHashSetPrinter($this);
         }
+
         if ($form instanceof Keyword) {
             return new KeywordPrinter($this->withColor);
         }
+
         if ($form instanceof Symbol) {
             return new SymbolPrinter($this->withColor);
         }
+
         if (method_exists($form, '__toString')) {
             return new ToStringPrinter();
         }
+
         if ($form instanceof FnInterface) {
             return new FnPrinter();
         }
+
         if ((new ReflectionClass($form))->isAnonymous()) {
             return new AnonymousClassPrinter();
         }
@@ -123,21 +132,27 @@ final readonly class Printer implements PrinterInterface
         if ($printerName === 'string') {
             return new StringPrinter($this->readable, $this->withColor);
         }
+
         if ($printerName === 'integer' || $printerName === 'double') {
             return new NumberPrinter($this->withColor);
         }
+
         if ($printerName === 'boolean') {
             return new BooleanPrinter($this->withColor);
         }
+
         if ($printerName === 'NULL') {
             return new NullPrinter($this->withColor);
         }
+
         if ($printerName === 'array' && !$this->readable) {
             return new ArrayPrinter($this, $this->withColor);
         }
+
         if ($printerName === 'resource' && !$this->readable) {
             return new ResourcePrinter();
         }
+
         if (!$this->readable) {
             return new ObjectPrinter();
         }

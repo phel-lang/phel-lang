@@ -21,7 +21,7 @@ final class PrinterTest extends TestCase
         GlobalEnvironmentSingleton::reset();
     }
 
-    public function setUp(): void
+    protected function setUp(): void
     {
         $this->compilerFacade = new CompilerFacade();
     }

@@ -29,6 +29,7 @@ final class DoEmitter implements NodeEmitterInterface
             $this->outputEmitter->emitNode($stmt);
             $this->outputEmitter->emitLine();
         }
+
         $this->outputEmitter->emitNode($node->getRet());
 
         if ($isWrapFn) {

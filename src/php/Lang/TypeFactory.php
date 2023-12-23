@@ -20,7 +20,9 @@ use function count;
 class TypeFactory
 {
     private readonly HasherInterface $hasher;
+
     private readonly EqualizerInterface $equalizer;
+
     private static ?TypeFactory $instance = null;
 
     public function __construct()

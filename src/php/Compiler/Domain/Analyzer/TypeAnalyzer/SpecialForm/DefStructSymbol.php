@@ -75,6 +75,7 @@ final readonly class DefStructSymbol implements SpecialFormAnalyzerInterface
             if (!($element instanceof Symbol)) {
                 throw AnalyzerException::withLocation('Defstruct field elements must be Symbols.', $vector);
             }
+
             $params[] = $element;
         }
 
@@ -159,7 +160,7 @@ final readonly class DefStructSymbol implements SpecialFormAnalyzerInterface
         }
 
         if (!isset($expectedMethodIndex[$mungedMethodName])) {
-            throw AnalyzerException::withLocation('The interface doesn\'t support this method: ' . $methodName->getName(), $list);
+            throw AnalyzerException::withLocation("The interface doesn't support this method: " . $methodName->getName(), $list);
         }
 
         $arguments = $list->get(1);

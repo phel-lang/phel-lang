@@ -34,7 +34,7 @@ final class ReaderTest extends TestCase
         Registry::getInstance()->clear();
     }
 
-    public function setUp(): void
+    protected function setUp(): void
     {
         Gacela::bootstrap(__DIR__, Phel::configFn());
         Symbol::resetGen();
@@ -158,7 +158,7 @@ final class ReaderTest extends TestCase
                 Symbol::create(Symbol::NAME_QUOTE),
                 $this->loc(Symbol::create('a'), 1, 1, 1, 2),
             ]), 1, 0, 1, 2),
-            $this->read('\'a'),
+            $this->read("'a"),
         );
     }
 
@@ -215,7 +215,7 @@ final class ReaderTest extends TestCase
 
     public function test_quasiquote4(): void
     {
-        $l1 = $this->read('\'a', true);
+        $l1 = $this->read("'a", true);
         $l2 = $this->read('``,a', true);
         self::assertTrue($l1->equals($l2));
     }

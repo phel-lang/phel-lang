@@ -139,8 +139,8 @@ final readonly class Parser implements ParserInterface
             return $this->parserFactory
                 ->createAtomParser($this->globalEnvironment)
                 ->parse($token);
-        } catch (KeywordParserException $e) {
-            throw $this->createUnexceptedParserException($tokenStream, $token, $e->getMessage());
+        } catch (KeywordParserException $keywordParserException) {
+            throw $this->createUnexceptedParserException($tokenStream, $token, $keywordParserException->getMessage());
         }
     }
 
@@ -153,8 +153,8 @@ final readonly class Parser implements ParserInterface
             return $this->parserFactory
                 ->createStringParser()
                 ->parse($token);
-        } catch (StringParserException $e) {
-            throw $this->createUnexceptedParserException($tokenStream, $token, $e->getMessage());
+        } catch (StringParserException $stringParserException) {
+            throw $this->createUnexceptedParserException($tokenStream, $token, $stringParserException->getMessage());
         }
     }
 

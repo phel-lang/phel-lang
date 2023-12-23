@@ -72,6 +72,7 @@ final class EmptyListTest extends TestCase
         foreach ($list as $index => $value) {
             $result[$index] = $value;
         }
+
         $this->assertEquals([], $result);
     }
 

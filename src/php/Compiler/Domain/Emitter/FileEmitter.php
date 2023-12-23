@@ -10,6 +10,7 @@ use Phel\Compiler\Domain\Emitter\OutputEmitter\SourceMap\SourceMapGenerator;
 final class FileEmitter implements FileEmitterInterface
 {
     private string $phpCode = '';
+
     private string $source = '';
 
     public function __construct(
@@ -22,6 +23,7 @@ final class FileEmitter implements FileEmitterInterface
     {
         $this->outputEmitter->resetIndentLevel();
         $this->outputEmitter->resetSourceMapState();
+
         $this->source = $source;
         $this->phpCode = '';
     }

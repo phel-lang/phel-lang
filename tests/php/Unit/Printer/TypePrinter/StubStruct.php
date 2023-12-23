@@ -9,7 +9,9 @@ use Phel\Lang\Collections\Struct\AbstractPersistentStruct;
 final class StubStruct extends AbstractPersistentStruct
 {
     protected const ALLOWED_KEYS = ['a', 'b'];
+
     protected $a;
+
     protected $b;
 
     public function __construct(

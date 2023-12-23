@@ -18,14 +18,19 @@ use Phel\Lang\TypeFactory;
 final class VectorBindingDeconstructor implements BindingDeconstructorInterface
 {
     public const FIRST_SYMBOL_NAME = 'first';
+
     public const NEXT_SYMBOL_NAME = 'next';
+
     public const REST_SYMBOL_NAME = '&';
 
     private const STATE_START = 'start';
+
     private const STATE_REST = 'rest';
+
     private const STATE_DONE = 'done';
 
     private string $currentState = self::STATE_START;
+
     /** @psalm-suppress PropertyNotSetInConstructor */
     private Symbol $currentListSymbol;
 
@@ -66,6 +71,7 @@ final class VectorBindingDeconstructor implements BindingDeconstructorInterface
             $this->currentState = self::STATE_REST;
             return;
         }
+
         $accessSymbol = Symbol::gen()->copyLocationFrom($current);
         $accessValue = $this->createBindingValue(self::FIRST_SYMBOL_NAME, $current);
         $bindings[] = [$accessSymbol, $accessValue];

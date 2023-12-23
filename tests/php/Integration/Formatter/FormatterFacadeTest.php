@@ -14,7 +14,7 @@ final class FormatterFacadeTest extends TestCase
 {
     private FormatterFactory $formatterFactory;
 
-    public function setUp(): void
+    protected function setUp(): void
     {
         Gacela::bootstrap(__DIR__);
         Symbol::resetGen();

@@ -12,7 +12,7 @@ final class TopologicalSortingTest extends TestCase
 {
     private TopologicalNamespaceSorter $sorter;
 
-    public function setUp(): void
+    protected function setUp(): void
     {
         $this->sorter = new TopologicalNamespaceSorter();
     }

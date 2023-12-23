@@ -170,7 +170,8 @@ final class ZipperTest extends TestCase
         for ($i = 0; $i < 7; ++$i) {
             $next = $next->next();
         }
-        self::assertTrue(!$next->isEnd());
+
+        self::assertNotTrue($next->isEnd());
         self::assertEquals(5, $next->getNode());
 
         // Now we are in the end and we go back

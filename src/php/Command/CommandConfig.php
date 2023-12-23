@@ -11,15 +11,23 @@ use Phel\Config\PhelOutConfig;
 final class CommandConfig extends AbstractConfig
 {
     public const SRC_DIRS = 'src-dirs';
+
     public const TEST_DIRS = 'test-dirs';
+
     public const VENDOR_DIR = 'vendor-dir';
+
     public const OUTPUT = 'out';
+
     public const ERROR_LOG_FILE = 'error-log-file';
 
     private const DEFAULT_VENDOR_DIR = 'vendor';
+
     private const DEFAULT_SRC_DIRS = ['src'];
+
     private const DEFAULT_TEST_DIRS = ['tests'];
+
     private const DEFAULT_OUTPUT_DIR = 'out';
+
     private const DEFAULT_ERROR_LOG_FILE = 'data/error.log';
 
     public function getCodeDirs(): CodeDirectories
@@ -27,7 +35,7 @@ final class CommandConfig extends AbstractConfig
         $out = $this->get(self::OUTPUT, []);
 
         return new CodeDirectories(
-            array_merge([__DIR__ . '/../../'], (array)$this->get(self::SRC_DIRS, self::DEFAULT_SRC_DIRS)),
+            [__DIR__ . '/../../', ...(array)$this->get(self::SRC_DIRS, self::DEFAULT_SRC_DIRS)],
             (array)$this->get(self::TEST_DIRS, self::DEFAULT_TEST_DIRS),
             (string)($out[PhelOutConfig::DEST_DIR] ?? self::DEFAULT_OUTPUT_DIR),
         );

@@ -10,6 +10,6 @@ final class LexerValueException extends RuntimeException
 {
     public static function unexpectedLexerState(string $file, int $line, int $column): self
     {
-        return new self("Cannot lex string after at column {$column} in {$file}:{$line}");
+        return new self(sprintf('Cannot lex string after at column %d in %s:%d', $column, $file, $line));
     }
 }

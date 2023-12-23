@@ -41,6 +41,7 @@ final class TrySymbol implements SpecialFormAnalyzerInterface
                     } else {
                         $body[] = $form;
                     }
+
                     break;
 
                 case 'catches':
@@ -52,6 +53,7 @@ final class TrySymbol implements SpecialFormAnalyzerInterface
                     } else {
                         throw AnalyzerException::withLocation("Invalid 'try form", $list);
                     }
+
                     break;
 
                 case 'done':
@@ -118,7 +120,7 @@ final class TrySymbol implements SpecialFormAnalyzerInterface
         }
 
         $body = $this->analyzer->analyze(
-            TypeFactory::getInstance()->persistentListFromArray(array_merge([Symbol::create(Symbol::NAME_DO)], $body)),
+            TypeFactory::getInstance()->persistentListFromArray([Symbol::create(Symbol::NAME_DO), ...$body]),
             $env->withContext($catchNodes !== [] || $finally ? $catchCtx : $env->getContext())
                 ->withDisallowRecurFrame(),
         );

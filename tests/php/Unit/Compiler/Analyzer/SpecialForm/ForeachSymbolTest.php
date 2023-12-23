@@ -182,6 +182,7 @@ final class ForeachSymbolTest extends TestCase
         $env = new GlobalEnvironment();
         $env->addDefinition('phel\\core', Symbol::create('first'));
         $env->addDefinition('phel\\core', Symbol::create('next'));
+
         $analyzer = new Analyzer($env);
 
         return (new ForeachSymbol($analyzer))->analyze($list, NodeEnvironment::empty());

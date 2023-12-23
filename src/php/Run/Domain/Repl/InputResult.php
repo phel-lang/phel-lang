@@ -11,6 +11,7 @@ use function is_string;
 final readonly class InputResult
 {
     private const NO_VALUE = 'no_value';
+
     private const LAST_RESULT_PLACEHOLDER = '$_';
 
     private function __construct(private mixed $lastResult)

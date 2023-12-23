@@ -13,7 +13,7 @@ final class CallPhelTest extends TestCase
 {
     private ExampleWrapper $wrapper;
 
-    public function setUp(): void
+    protected function setUp(): void
     {
         Gacela::bootstrap(__DIR__);
 

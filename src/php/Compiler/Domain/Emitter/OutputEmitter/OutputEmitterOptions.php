@@ -7,6 +7,7 @@ namespace Phel\Compiler\Domain\Emitter\OutputEmitter;
 class OutputEmitterOptions
 {
     final public const EMIT_MODE_FILE = 'EMIT_MODE_FILE';
+
     final public const EMIT_MODE_STATEMENT = 'EMIT_MODE_STATEMENT';
 
     public function __construct(

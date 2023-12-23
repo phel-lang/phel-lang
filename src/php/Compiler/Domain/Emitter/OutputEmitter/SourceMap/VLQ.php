@@ -94,7 +94,8 @@ final class VLQ
                     $result[] = $value;
                 }
 
-                $value = $shift = 0;
+                $value = 0;
+                $shift = 0;
             }
         }
 
@@ -112,6 +113,7 @@ final class VLQ
         foreach ($numbers as $number) {
             $result .= $this->encodeInteger($number);
         }
+
         return $result;
     }
 

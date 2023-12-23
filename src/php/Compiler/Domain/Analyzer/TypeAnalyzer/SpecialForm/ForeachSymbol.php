@@ -80,6 +80,7 @@ final class ForeachSymbol implements SpecialFormAnalyzerInterface
             $lets[] = $tmpSym;
             $valueSymbol = $tmpSym;
         }
+
         $bodyEnv = $env->withMergedLocals([$valueSymbol]);
         $listExpr = $this->analyzer->analyze(
             $foreachTuple->get(1),

@@ -60,7 +60,7 @@ final readonly class ExceptionArgsPrinter implements ExceptionArgsPrinterInterfa
                 $s = substr($s, 0, 15) . '...';
             }
 
-            return "'{$s}'";
+            return sprintf("'%s'", $s);
         }
 
         if (is_bool($arg)) {

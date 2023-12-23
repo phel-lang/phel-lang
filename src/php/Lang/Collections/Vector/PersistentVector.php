@@ -206,7 +206,7 @@ class PersistentVector extends AbstractPersistentVector
             return $node;
         }
 
-        throw new IndexOutOfBoundsException("Index {$i} is not in interval [0, {$this->count})");
+        throw new IndexOutOfBoundsException(sprintf('Index %d is not in interval [0, %d)', $i, $this->count));
     }
 
     /**
@@ -298,11 +298,6 @@ class PersistentVector extends AbstractPersistentVector
         return new SubVector($this->hasher, $this->equalizer, $this->meta, $this, 1, $this->count());
     }
 
-    public function sliceNormalized(int $start, int $end): PersistentVectorInterface
-    {
-        return new SubVector($this->hasher, $this->equalizer, $this->meta, $this, $start, $end);
-    }
-
     public function asTransient(): TransientVector
     {
         return new TransientVector(
@@ -313,6 +308,11 @@ class PersistentVector extends AbstractPersistentVector
             $this->root,
             $this->tail,
         );
+    }
+
+    protected function sliceNormalized(int $start, int $end): PersistentVectorInterface
+    {
+        return new SubVector($this->hasher, $this->equalizer, $this->meta, $this, $start, $end);
     }
 
     private function pushTail(int $level, array $parent, array $tailNode): array

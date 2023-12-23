@@ -9,12 +9,17 @@ use JsonSerializable;
 final class PhelOutConfig implements JsonSerializable
 {
     public const DEST_DIR = 'dir';
+
     public const MAIN_PHEL_NAMESPACE = 'main-phel-namespace';
+
     public const MAIN_PHP_FILENAME = 'main-php-filename';
+
     public const MAIN_PHP_PATH = 'main-php-path';
 
     private string $destDir = 'out';
+
     private string $mainPhelNamespace = '';
+
     private string $mainPhpFilename = 'index';
 
     public static function fromArray(array $array): self
@@ -23,9 +28,11 @@ final class PhelOutConfig implements JsonSerializable
         if (isset($array[self::DEST_DIR])) {
             $self->destDir = $array[self::DEST_DIR];
         }
+
         if (isset($array[self::MAIN_PHEL_NAMESPACE])) {
             $self->mainPhelNamespace = $array[self::MAIN_PHEL_NAMESPACE];
         }
+
         if (isset($array[self::MAIN_PHP_FILENAME])) {
             $self->mainPhpFilename = $array[self::MAIN_PHP_FILENAME];
         }
@@ -57,7 +64,7 @@ final class PhelOutConfig implements JsonSerializable
 
     public function getMainPhpPath(): string
     {
-        return "{$this->destDir}/{$this->mainPhpFilename}.php";
+        return sprintf('%s/%s.php', $this->destDir, $this->mainPhpFilename);
     }
 
     public function setMainPhpFilename(string $name): self

@@ -16,7 +16,7 @@ final class MapBindingDeconstructorTest extends TestCase
 {
     private MapBindingDeconstructor $deconstructor;
 
-    public function setUp(): void
+    protected function setUp(): void
     {
         Symbol::resetGen();
 

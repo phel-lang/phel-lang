@@ -40,6 +40,7 @@ final readonly class MetaReader
         } elseif (!$meta instanceof PersistentMapInterface) {
             throw ReaderException::forNode($node, $root, 'Metadata must be a Symbol, String, Keyword or Map');
         }
+
         $object = $this->reader->readExpression($objectExpression, $root);
 
         if (!$object instanceof MetaInterface) {

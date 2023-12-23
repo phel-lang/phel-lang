@@ -43,6 +43,7 @@ final readonly class DefStructEmitter implements NodeEmitterInterface
                 $node->getStartSourceLocation(),
             );
         }
+
         $this->outputEmitter->emitStr(
             'class ' . $this->outputEmitter->mungeEncode($node->getName()->getName()) . ' extends \Phel\Lang\Collections\Struct\AbstractPersistentStruct',
             $node->getStartSourceLocation(),

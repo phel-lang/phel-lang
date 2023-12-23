@@ -10,6 +10,7 @@ use Phel\Printer\Printer;
 final readonly class TestCommandOptions
 {
     public const FILTER = 'filter';
+
     public const TESTDOX = 'testdox';
 
     private function __construct(

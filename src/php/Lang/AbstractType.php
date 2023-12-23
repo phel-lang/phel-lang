@@ -15,6 +15,7 @@ use Stringable;
 abstract class AbstractType implements TypeInterface, Stringable
 {
     private ?SourceLocation $startLocation = null;
+
     private ?SourceLocation $endLocation = null;
 
     public function __toString(): string

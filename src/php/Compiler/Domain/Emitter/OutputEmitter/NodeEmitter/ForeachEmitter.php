@@ -32,6 +32,7 @@ final class ForeachEmitter implements NodeEmitterInterface
             $this->outputEmitter->emitPhpVariable($node->getKeySymbol());
             $this->outputEmitter->emitStr(' => ', $node->getStartSourceLocation());
         }
+
         $this->outputEmitter->emitPhpVariable($node->getValueSymbol());
         $this->outputEmitter->emitLine(') {', $node->getStartSourceLocation());
         $this->outputEmitter->increaseIndentLevel();

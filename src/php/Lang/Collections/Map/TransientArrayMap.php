@@ -49,6 +49,7 @@ class TransientArrayMap implements TransientMapInterface
             for ($i = 0, $cnt = count($this->array); $i < $cnt; $i += 2) {
                 $m->put($this->array[$i], $this->array[$i + 1]);
             }
+
             $m->put($key, $value);
 
             return $m;

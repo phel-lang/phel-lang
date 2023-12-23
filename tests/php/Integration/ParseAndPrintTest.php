@@ -13,7 +13,7 @@ final class ParseAndPrintTest extends TestCase
 {
     private CompilerFactory $compilerFactory;
 
-    public function setUp(): void
+    protected function setUp(): void
     {
         $this->compilerFactory = new CompilerFactory();
     }

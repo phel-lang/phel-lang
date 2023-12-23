@@ -38,7 +38,7 @@ final class ParserTest extends TestCase
         GlobalEnvironmentSingleton::reset();
     }
 
-    public function setUp(): void
+    protected function setUp(): void
     {
         Gacela::bootstrap(__DIR__, Phel::configFn());
         Symbol::resetGen();
@@ -173,7 +173,7 @@ final class ParserTest extends TestCase
                 $this->loc(1, 2),
                 new SymbolNode('a', $this->loc(1, 1), $this->loc(1, 2), Symbol::create('a')),
             ),
-            $this->parse('\'a'),
+            $this->parse("'a"),
         );
     }
 

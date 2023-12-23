@@ -15,7 +15,7 @@ final class DeconstructorTest extends TestCase
 {
     private Deconstructor $deconstructor;
 
-    public function setUp(): void
+    protected function setUp(): void
     {
         Symbol::resetGen();
 

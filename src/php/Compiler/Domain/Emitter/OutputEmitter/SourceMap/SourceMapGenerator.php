@@ -36,6 +36,7 @@ final readonly class SourceMapGenerator
                 if ($this->compareByGeneratedPositionsInflated($mapping, $mappings[$i - 1]) === 0) {
                     continue;
                 }
+
                 $result .= ',';
             }
 

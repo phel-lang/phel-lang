@@ -46,7 +46,7 @@ final class AnalyzeSymbol
         $globalResolve = $this->analyzer->resolve($symbol, $env);
 
         if (!$globalResolve instanceof AbstractNode) {
-            throw AnalyzerException::withLocation("Cannot resolve symbol '{$symbol->getFullName()}'", $symbol);
+            throw AnalyzerException::withLocation(sprintf("Cannot resolve symbol '%s'", $symbol->getFullName()), $symbol);
         }
 
         return $globalResolve;

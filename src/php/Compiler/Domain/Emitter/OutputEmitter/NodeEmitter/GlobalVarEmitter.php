@@ -24,6 +24,7 @@ final class GlobalVarEmitter implements NodeEmitterInterface
         } else {
             $this->outputEmitter->emitStr('\\Phel\\Lang\\Registry::getInstance()->getDefinition("');
         }
+
         $this->outputEmitter->emitStr(addslashes($this->outputEmitter->mungeEncodeNs($node->getNamespace())));
         $this->outputEmitter->emitStr('", "');
         $this->outputEmitter->emitStr(addslashes($node->getName()->getName()));

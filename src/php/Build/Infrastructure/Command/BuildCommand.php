@@ -24,6 +24,7 @@ final class BuildCommand extends Command
     use DocBlockResolverAwareTrait;
 
     private const OPTION_CACHE = 'cache';
+
     private const OPTION_SOURCE_MAP = 'source-map';
 
     protected function configure(): void

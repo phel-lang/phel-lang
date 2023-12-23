@@ -30,7 +30,7 @@ use Symfony\Component\Console\Output\OutputInterface;
 
 final class ReplCommandTest extends AbstractCommandTest
 {
-    public function setUp(): void
+    protected function setUp(): void
     {
         Gacela::bootstrap(__DIR__, static function (GacelaConfig $config): void {
             $config->resetInMemoryCache();

@@ -36,9 +36,13 @@ final class ReplCommand extends Command
     use DocBlockResolverAwareTrait;
 
     private const ENABLE_BRACKETED_PASTE = "\e[?2004h";
+
     private const DISABLE_BRACKETED_PASTE = "\e[?2004l";
+
     private const INITIAL_PROMPT = 'phel:%d> ';
+
     private const OPEN_PROMPT = '....:%d> ';
+
     private const EXIT_REPL = 'exit';
 
     private InputResult $previousResult;
@@ -106,6 +110,7 @@ final class ReplCommand extends Command
         if (!is_string($this->replStartupFile) || !file_exists($this->replStartupFile)) {
             return;
         }
+
         $namespace = $this->getFacade()
             ->getNamespaceFromFile($this->replStartupFile)
             ->getNamespace();
@@ -192,6 +197,7 @@ final class ReplCommand extends Command
         if ($this->inputBuffer === []) {
             return;
         }
+
         $fullInput = $this->previousResult->readBuffer($this->inputBuffer);
 
         try {

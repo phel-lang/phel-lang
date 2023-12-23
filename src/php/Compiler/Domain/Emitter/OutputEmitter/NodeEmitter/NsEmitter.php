@@ -53,7 +53,7 @@ final class NsEmitter implements NodeEmitterInterface
                 $depth = count(explode('\\', $node->getNamespace())) - 1;
                 $filename = str_replace('\\', '/', $this->outputEmitter->mungeEncodeNs($ns->getName()));
                 $relativePath = str_repeat('/..', $depth) . '/' . $filename . '.php';
-                $absolutePath = '__DIR__ . \'' . $relativePath . '\'';
+                $absolutePath = "__DIR__ . '" . $relativePath . "'";
 
                 $this->outputEmitter->emitLine(
                     'require_once ' . $absolutePath . ';',

@@ -30,6 +30,7 @@ final readonly class BlockIndenter implements IndenterInterface
             if (is_null($locAfterIndex) || $this->firstFormInLine($locAfterIndex)) {
                 return (new InnerIndenter($this->symbol, 0))->getMargin($loc, $indentWidth);
             }
+
             return $this->listIndenter->getMargin($loc, $indentWidth);
         }
 

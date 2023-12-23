@@ -24,7 +24,7 @@ final readonly class Munge implements MungeInterface
         '!' => '_BANG_',
         '@' => '_CIRCA_',
         '#' => '_SHARP_',
-        '\'' => '_SINGLEQUOTE_',
+        "'" => '_SINGLEQUOTE_',
         '"' => '_DOUBLEQUOTE_',
         '%' => '_PERCENT_',
         '^' => '_CARET_',

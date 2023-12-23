@@ -90,7 +90,7 @@ class SubVector extends AbstractPersistentVector
     {
         if ($this->start + $i > $this->end) {
             $count = $this->count();
-            throw new IndexOutOfBoundsException("Cannot update index {$i}. Length of vector is {$count}");
+            throw new IndexOutOfBoundsException(sprintf('Cannot update index %d. Length of vector is %d', $i, $count));
         }
 
         if ($this->start + $i === $this->end) {
@@ -109,7 +109,7 @@ class SubVector extends AbstractPersistentVector
             return $this->vector->get($i + $this->start);
         }
 
-        throw new IndexOutOfBoundsException("Cannot access value at index {$i}.");
+        throw new IndexOutOfBoundsException(sprintf('Cannot access value at index %d.', $i));
     }
 
     public function pop(): PersistentVectorInterface
@@ -121,13 +121,13 @@ class SubVector extends AbstractPersistentVector
         return new self($this->hasher, $this->equalizer, $this->meta, $this->vector, $this->start, $this->end - 1);
     }
 
-    public function sliceNormalized(int $start, int $end): PersistentVectorInterface
-    {
-        return new self($this->hasher, $this->equalizer, $this->meta, $this->vector, $this->start + $start, $this->start + $end);
-    }
-
     public function asTransient(): never
     {
         throw new MethodNotSupportedException('asTransient is not supported on SubVector');
+    }
+
+    protected function sliceNormalized(int $start, int $end): PersistentVectorInterface
+    {
+        return new self($this->hasher, $this->equalizer, $this->meta, $this->vector, $this->start + $start, $this->start + $end);
     }
 }

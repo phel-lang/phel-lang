@@ -19,10 +19,15 @@ use function is_string;
 class Hasher implements HasherInterface
 {
     private const NULL_HASH_VALUE = 0;
+
     private const TRUE_HASH_VALUE = 1231;
+
     private const FALSE_HASH_VALUE = 1237;
+
     private const POSITIVE_INF_HASH_VALUE = 2_146_435_072;
+
     private const NEGATIVE_INF_HASH_VALUE = -1_048_576;
+
     private const DEFAULT_FLOAT_HASH_VALUE = 2_146_959_360;
 
     /**

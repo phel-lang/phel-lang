@@ -37,6 +37,7 @@ final readonly class PhelFnLoader implements PhelFnLoaderInterface
             if (!$containsCoreFunctions && $ns === 'phel\\core') {
                 continue;
             }
+
             $normalizedNs = str_replace('phel\\', '', $ns);
             $moduleName = $normalizedNs === 'core' ? '' : $normalizedNs . '/';
 
@@ -46,6 +47,7 @@ final readonly class PhelFnLoader implements PhelFnLoaderInterface
                 $normalizedData[$fullFnName] = $this->getPhelMeta($ns, $fnName);
             }
         }
+
         ksort($normalizedData);
 
         return $normalizedData;
@@ -65,8 +67,9 @@ final readonly class PhelFnLoader implements PhelFnLoaderInterface
 EOF;
         $requireNamespaces = '';
         foreach ($namespaces as $ns) {
-            $requireNamespaces .= "(:require {$ns})";
+            $requireNamespaces .= sprintf('(:require %s)', $ns);
         }
+
         $docPhelContent = str_replace('%REQUIRES%', $requireNamespaces, $template);
         $phelFile = __DIR__ . '/phel/doc.phel';
         file_put_contents($phelFile, $docPhelContent);

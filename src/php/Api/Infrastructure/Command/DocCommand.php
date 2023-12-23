@@ -109,6 +109,7 @@ final class DocCommand extends Command
             if (strlen($fnName) > $longestFuncNameLength) {
                 $longestFuncNameLength = strlen($fnName);
             }
+
             $normalized[] = [
                 'percent' => round($percent),
                 'name' => $fnName,
@@ -117,6 +118,7 @@ final class DocCommand extends Command
                 'description' => preg_replace('/\r?\n/', '', $function->description()),
             ];
         }
+
         usort($normalized, static fn ($a, $b) => $b['percent'] <=> $a['percent']);
 
         return [$normalized, $longestFuncNameLength];

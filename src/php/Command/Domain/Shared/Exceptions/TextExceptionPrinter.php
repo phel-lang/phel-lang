@@ -92,8 +92,8 @@ final readonly class TextExceptionPrinter implements ExceptionPrinterInterface
         $errorLine = $e->getLine();
         $pos = $this->filePositionExtractor->getOriginal($errorFile, $errorLine);
 
-        $str .= $this->style->blue("{$type}: {$msg}" . PHP_EOL);
-        $str .= "in {$pos->filename()}:{$pos->line()} (gen: {$errorFile}:{$errorLine})" . PHP_EOL . PHP_EOL;
+        $str .= $this->style->blue(sprintf('%s: %s', $type, $msg) . PHP_EOL);
+        $str .= sprintf('in %s:%d (gen: %s:%d)', $pos->filename(), $pos->line(), $errorFile, $errorLine) . PHP_EOL . PHP_EOL;
 
         foreach ($e->getTrace() as $i => $frame) {
             $class = $frame['class'] ?? null;
@@ -107,7 +107,7 @@ final readonly class TextExceptionPrinter implements ExceptionPrinterInterface
                     $fnName = $boundTo !== false ? $this->munge->decodeNs($boundTo) : '__invoke';
                     $argString = $this->exceptionArgsPrinter->parseArgsAsString($frame['args'] ?? []);
                     $pos = $this->filePositionExtractor->getOriginal($file, $line);
-                    $str .= "#{$i} {$pos->filename()}:{$pos->line()} (gen: {$file}:{$line}) : ({$fnName}{$argString})" . PHP_EOL;
+                    $str .= sprintf('#%d %s:%d (gen: %s:%d) : (%s%s)', $i, $pos->filename(), $pos->line(), $file, $line, $fnName, $argString) . PHP_EOL;
 
                     continue;
                 }
@@ -117,7 +117,7 @@ final readonly class TextExceptionPrinter implements ExceptionPrinterInterface
             $type = $frame['type'] ?? '';
             $fn = $frame['function'] ?? '';
             $argString = $this->exceptionArgsPrinter->buildPhpArgsString($frame['args'] ?? []);
-            $str .= "#{$i} {$file}({$line}): {$class}{$type}{$fn}({$argString})" . PHP_EOL;
+            $str .= sprintf('#%d %s(%d): %s%s%s(%s)', $i, $file, $line, $class, $type, $fn, $argString) . PHP_EOL;
         }
 
         return $str;

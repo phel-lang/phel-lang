@@ -16,7 +16,7 @@ final class BindingValidatorTest extends TestCase
 {
     private BindingValidator $validator;
 
-    public function setUp(): void
+    protected function setUp(): void
     {
         $this->validator = new BindingValidator();
     }

@@ -128,6 +128,7 @@ final readonly class NamespaceExtractor implements NamespaceExtractorInterface
             return [];
             // throw new RuntimeException("Directory '{$directory}' not found");
         }
+
         $iterator = new RecursiveIteratorIterator(new RecursiveDirectoryIterator($realpath));
         $phelIterator = new RegexIterator($iterator, '/^.+\.phel$/i', RegexIterator::GET_MATCH);
 

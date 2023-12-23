@@ -18,7 +18,9 @@ use Phel\Lang\SourceLocation;
 final readonly class IndentRule implements RuleInterface
 {
     private const INDENT_WIDTH = 2;
+
     private ListIndenter $listIndenter;
+
     private LineIndenter $lineIndenter;
 
     /**
@@ -67,6 +69,7 @@ final readonly class IndentRule implements RuleInterface
             if (!$nextNode instanceof ParseTreeZipper) {
                 break;
             }
+
             $node = $nextNode;
         }
 

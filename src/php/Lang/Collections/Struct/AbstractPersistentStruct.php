@@ -26,6 +26,7 @@ use function in_array;
 abstract class AbstractPersistentStruct extends AbstractPersistentMap
 {
     protected const ALLOWED_KEYS = [];
+
     private MungeInterface $munge;
 
     public function __construct()
@@ -88,7 +89,7 @@ abstract class AbstractPersistentStruct extends AbstractPersistentMap
 
     public function asTransient(): never
     {
-        throw new MethodNotSupportedException('Structs don\'t support transients');
+        throw new MethodNotSupportedException("Structs don't support transients");
     }
 
     public function equals(mixed $other): bool
@@ -116,6 +117,6 @@ abstract class AbstractPersistentStruct extends AbstractPersistentMap
 
         $keyName = Printer::nonReadable()->print($key);
         $structName = static::class;
-        throw new InvalidArgumentException("This key '{$keyName}' is not allowed for struct {$structName}");
+        throw new InvalidArgumentException(sprintf("This key '%s' is not allowed for struct %s", $keyName, $structName));
     }
 }

@@ -35,7 +35,7 @@ final class IntegrationTest extends TestCase
         self::$globalEnv = $globalEnv;
     }
 
-    public function setUp(): void
+    protected function setUp(): void
     {
         $this->compilerFacade = new CompilerFacade();
     }

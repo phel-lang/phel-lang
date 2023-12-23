@@ -23,7 +23,7 @@ final class ColorStyle implements ColorStyleInterface
 
     public static function withStyles(array $styles = []): self
     {
-        return new self(array_merge(self::DEFAULT_STYLES, $styles));
+        return new self([...self::DEFAULT_STYLES, ...$styles]);
     }
 
     public static function noStyles(): self

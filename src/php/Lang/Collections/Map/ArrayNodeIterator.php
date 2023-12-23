@@ -19,7 +19,9 @@ class ArrayNodeIterator implements Iterator
 {
     /** @var array<int, HashMapNodeInterface<K, V>> A fixed size array of nodes */
     private array $childNodes;
+
     private int $index = 0;
+
     private ?Iterator $nestedIterator = null;
 
     public function __construct(array $childNodes)

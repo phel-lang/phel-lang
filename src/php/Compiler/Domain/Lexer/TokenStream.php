@@ -93,6 +93,7 @@ final class TokenStream implements Iterator
                 $result[] = $token;
             }
         }
+
         return $result;
     }
 

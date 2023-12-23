@@ -12,6 +12,7 @@ use Phel\Compiler\CompilerFacade;
 final class FormatterDependencyProvider extends AbstractDependencyProvider
 {
     public const FACADE_COMPILER = 'FACADE_COMPILER';
+
     public const FACADE_COMMAND = 'FACADE_COMMAND';
 
     public function provideModuleDependencies(Container $container): void

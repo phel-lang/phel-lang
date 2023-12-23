@@ -38,8 +38,8 @@ final readonly class RequireEvaluator implements EvaluatorInterface
             }
 
             throw FileException::canNotCreateFile($filename);
-        } catch (Throwable $e) {
-            throw CompiledCodeIsMalformedException::fromThrowable($e);
+        } catch (Throwable $throwable) {
+            throw CompiledCodeIsMalformedException::fromThrowable($throwable);
         }
     }
 }

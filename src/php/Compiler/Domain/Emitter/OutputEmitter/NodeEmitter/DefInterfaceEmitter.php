@@ -32,6 +32,7 @@ final class DefInterfaceEmitter implements NodeEmitterInterface
                 $node->getStartSourceLocation(),
             );
         }
+
         $this->outputEmitter->emitLine(
             'interface ' . $this->outputEmitter->mungeEncode($node->getName()->getName()) . ' {',
             $node->getStartSourceLocation(),

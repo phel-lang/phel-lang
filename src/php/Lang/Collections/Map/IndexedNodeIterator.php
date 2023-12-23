@@ -18,7 +18,9 @@ class IndexedNodeIterator implements Iterator
 {
     /** @var array<int, array{0: K|null, 1: V|HashMapNodeInterface<K, V>}> */
     private array $entries;
+
     private int $index = 0;
+
     private ?Iterator $nestedIterator = null;
 
     public function __construct(array $entries)

@@ -19,7 +19,7 @@ final class ApplyEmitterTest extends TestCase
 {
     private ApplyEmitter $applyEmitter;
 
-    public function setUp(): void
+    protected function setUp(): void
     {
         $outputEmitter = (new CompilerFactory())
             ->createOutputEmitter();

@@ -84,6 +84,7 @@ final class StringParser
             return chr(($num >> 18) + 0xF0) . chr((($num >> 12) & 0x3F) + 0x80)
                 . chr((($num >> 6) & 0x3F) + 0x80) . chr(($num & 0x3F) + 0x80);
         }
+
         throw new StringParserException('Invalid UTF-8 codepoint escape sequence: Codepoint too large');
     }
 }

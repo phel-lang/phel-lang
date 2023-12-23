@@ -18,13 +18,18 @@ final class PhelConfig implements JsonSerializable
 
     /** @var list<string> */
     private array $testDirs = ['tests/phel'];
+
     private string $vendorDir = 'vendor';
+
     private string $errorLogFile = 'data/error.log';
+
     private PhelExportConfig $export;
+
     private PhelOutConfig $out;
 
     /** @var list<string> */
     private array $ignoreWhenBuilding = ['src/phel/local.phel'];
+
     private bool $keepGeneratedTempFiles = false;
 
     /** @var list<string> */

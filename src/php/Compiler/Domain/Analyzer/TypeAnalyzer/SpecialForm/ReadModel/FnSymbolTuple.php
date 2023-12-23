@@ -14,14 +14,21 @@ use function array_slice;
 final class FnSymbolTuple
 {
     private const STATE_START = 'start';
+
     private const STATE_REST = 'rest';
+
     private const STATE_DONE = 'done';
+
     private const PARENT_TUPLE_BODY_OFFSET = 2;
 
     private array $params = [];
+
     private array $lets = [];
+
     private bool $isVariadic = false;
+
     private bool $hasVariadicForm = false;
+
     private string $buildParamsState = self::STATE_START;
 
     private function __construct(
@@ -80,7 +87,7 @@ final class FnSymbolTuple
         foreach ($this->params as $param) {
             if (!preg_match("/^[a-zA-Z_\x80-\xff].*$/", (string) $param->getName())) {
                 throw AnalyzerException::withLocation(
-                    "Variable names must start with a letter or underscore: {$param->getName()}",
+                    'Variable names must start with a letter or underscore: ' . $param->getName(),
                     $this->parentList,
                 );
             }

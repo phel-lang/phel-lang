@@ -23,11 +23,12 @@ final class FnSymbolTest extends TestCase
 {
     private AnalyzerInterface $analyzer;
 
-    public function setUp(): void
+    protected function setUp(): void
     {
         $env = new GlobalEnvironment();
         $env->addDefinition('phel\\core', Symbol::create('first'));
         $env->addDefinition('phel\\core', Symbol::create('next'));
+
         $this->analyzer = new Analyzer($env);
     }
 

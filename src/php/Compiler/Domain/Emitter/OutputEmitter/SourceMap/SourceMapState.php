@@ -7,7 +7,9 @@ namespace Phel\Compiler\Domain\Emitter\OutputEmitter\SourceMap;
 final class SourceMapState
 {
     private int $generatedLines = 0;
+
     private int $generatedColumns = 0;
+
     private array $mappings = [];
 
     public function reset(): self

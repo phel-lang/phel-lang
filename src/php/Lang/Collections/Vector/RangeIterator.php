@@ -12,7 +12,9 @@ use function count;
 class RangeIterator implements Iterator
 {
     private int $currentIndex;
+
     private int $base;
+
     private ?array $currentArray = null;
 
     public function __construct(

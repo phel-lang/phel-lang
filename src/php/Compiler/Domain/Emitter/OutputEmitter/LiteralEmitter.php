@@ -59,6 +59,7 @@ final readonly class LiteralEmitter
             if ($typeName === 'object') {
                 $typeName = $x::class;
             }
+
             throw new RuntimeException('literal not supported: ' . $typeName);
         }
     }
@@ -134,6 +135,7 @@ final readonly class LiteralEmitter
             if ($i < count($x) - 1) {
                 $this->outputEmitter->emitStr(',', $x->getStartLocation());
             }
+
             $this->outputEmitter->emitLine();
             ++$i;
         }
@@ -141,6 +143,7 @@ final readonly class LiteralEmitter
         if (count($x) > 0) {
             $this->outputEmitter->decreaseIndentLevel();
         }
+
         $this->outputEmitter->emitStr(')', $x->getStartLocation());
     }
 
@@ -158,12 +161,14 @@ final readonly class LiteralEmitter
             if ($i < count($x) - 1) {
                 $this->outputEmitter->emitStr(',', $x->getStartLocation());
             }
+
             $this->outputEmitter->emitLine();
         }
 
         if (count($x) > 0) {
             $this->outputEmitter->decreaseIndentLevel();
         }
+
         $this->outputEmitter->emitStr('])', $x->getStartLocation());
     }
 
@@ -181,12 +186,14 @@ final readonly class LiteralEmitter
             if ($i < count($x) - 1) {
                 $this->outputEmitter->emitStr(',', $x->getStartLocation());
             }
+
             $this->outputEmitter->emitLine();
         }
 
         if (count($x) > 0) {
             $this->outputEmitter->decreaseIndentLevel();
         }
+
         $this->outputEmitter->emitStr('])', $x->getStartLocation());
     }
 
@@ -205,6 +212,7 @@ final readonly class LiteralEmitter
 
             ++$index;
         }
+
         $this->outputEmitter->emitStr(']');
     }
 }

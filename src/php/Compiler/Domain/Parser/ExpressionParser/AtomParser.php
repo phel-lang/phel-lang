@@ -19,9 +19,13 @@ use Phel\Lang\Symbol;
 final readonly class AtomParser
 {
     private const REGEX_KEYWORD = '/:(?<second_colon>:?)((?<namespace>[^\/]+)\/)?(?<keyword>[^\/]+)/';
+
     private const REGEX_BINARY_NUMBER = '/^([+-])?0[bB][01]+(_[01]+)*$/';
+
     private const REGEX_HEXADECIMAL_NUMBER = '/^([+-])?0[xX][0-9a-fA-F]+(_[0-9a-fA-F]+)*$/';
+
     private const REGEX_OCTAL_NUMBER = '/^([+-])?0[0-7]+(_[0-7]+)*$/';
+
     private const REGEX_DECIMAL_NUMBER = '/^(?:([+-])?\d+(_\d+)*[\.(_\d+]?|0)$/';
 
     public function __construct(private GlobalEnvironmentInterface $globalEnvironment)
@@ -90,7 +94,7 @@ final readonly class AtomParser
             $alias = $matches['namespace'];
             $namespace = $this->globalEnvironment->resolveAlias($alias);
             if (!$namespace) {
-                throw new KeywordParserException("Can not resolve alias '{$alias}' in keyword: {$word}");
+                throw new KeywordParserException(sprintf("Can not resolve alias '%s' in keyword: %s", $alias, $word));
             }
         } elseif ($isDualColon) {
             // Second case is a dual colon without a namespace alias

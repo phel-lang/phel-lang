@@ -267,6 +267,7 @@ final class PersistentVectorTest extends TestCase
         foreach ($vector->cdr() as $x) {
             $result[] = $x;
         }
+
         $this->assertEquals([2], $result);
     }
 
@@ -351,6 +352,7 @@ final class PersistentVectorTest extends TestCase
         foreach ($vector->rest() as $x) {
             $result[] = $x;
         }
+
         $this->assertEquals([2], $result);
     }
 

@@ -31,6 +31,7 @@ final class DefEmitter implements NodeEmitterInterface
             $this->outputEmitter->emitLine(',');
             $this->outputEmitter->emitNode($node->getMeta());
         }
+
         $this->outputEmitter->emitLine();
         $this->outputEmitter->decreaseIndentLevel();
         $this->outputEmitter->emitLine(');');

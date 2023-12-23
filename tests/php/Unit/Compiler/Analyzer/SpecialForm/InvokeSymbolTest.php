@@ -26,7 +26,7 @@ final class InvokeSymbolTest extends TestCase
 {
     private AnalyzerInterface $analyzer;
 
-    public function setUp(): void
+    protected function setUp(): void
     {
         Registry::getInstance()->clear();
         $env = new GlobalEnvironment();
@@ -156,7 +156,7 @@ final class InvokeSymbolTest extends TestCase
     public function test_macro_undefined_macro(): void
     {
         $this->expectException(AnalyzerException::class);
-        $this->expectExceptionMessage('Cannot resolve symbol \'user/my-undefined-macro\'');
+        $this->expectExceptionMessage("Cannot resolve symbol 'user/my-undefined-macro'");
 
         $list = TypeFactory::getInstance()->persistentListFromArray([
             Symbol::createForNamespace('user', 'my-undefined-macro'),

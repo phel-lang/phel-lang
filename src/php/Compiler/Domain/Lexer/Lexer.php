@@ -34,8 +34,11 @@ final class Lexer implements LexerInterface
     ];
 
     private int $cursor = 0;
+
     private int $line = 1;
+
     private int $column = 0;
+
     private readonly string $combinedRegex;
 
     public function __construct(

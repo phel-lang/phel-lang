@@ -81,6 +81,7 @@ final readonly class EvalCompiler implements EvalCompilerInterface
         $node = $this->analyzer->analyze($form, NodeEnvironment::empty()->withReturnContext());
         return $this->evalNode($node, $compileOptions);
     }
+
     /**
      * @throws CompilerException
      */
@@ -91,8 +92,8 @@ final readonly class EvalCompiler implements EvalCompilerInterface
                 $readerResult->getAst(),
                 NodeEnvironment::empty()->withReturnContext(),
             );
-        } catch (AnalyzerException $e) {
-            throw new CompilerException($e, $readerResult->getCodeSnippet());
+        } catch (AnalyzerException $analyzerException) {
+            throw new CompilerException($analyzerException, $readerResult->getCodeSnippet());
         }
     }
 

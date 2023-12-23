@@ -44,7 +44,7 @@ final class NsSymbol implements SpecialFormAnalyzerInterface
         foreach ($parts as $part) {
             if ($this->isPHPKeyword($part)) {
                 throw AnalyzerException::withLocation(
-                    "The namespace is not valid. The part '{$part}' cannot be used because it is a reserved keyword.",
+                    sprintf("The namespace is not valid. The part '%s' cannot be used because it is a reserved keyword.", $part),
                     $list,
                 );
             }
@@ -72,7 +72,7 @@ final class NsSymbol implements SpecialFormAnalyzerInterface
                 $requireFiles[] = $this->analyzeRequireFile($import);
             } elseif ($value instanceof Keyword) {
                 throw AnalyzerException::withLocation(
-                    "Unexpected keyword {$value->getName()} encountered in 'ns. Expected :use or :require.",
+                    sprintf("Unexpected keyword %s encountered in 'ns. Expected :use or :require.", $value->getName()),
                     $value,
                 );
             }
@@ -115,6 +115,7 @@ final class NsSymbol implements SpecialFormAnalyzerInterface
             if (!($alias instanceof Symbol)) {
                 throw AnalyzerException::withLocation('Alias must be a Symbol', $import);
             }
+
             return $alias;
         }
 
@@ -122,8 +123,9 @@ final class NsSymbol implements SpecialFormAnalyzerInterface
 
         if ($alias2) {
             if (!($alias2 instanceof Symbol)) {
-                throw AnalyzerException::withLocation("First argument in :{$type} must be a symbol.", $import);
+                throw AnalyzerException::withLocation(sprintf('First argument in :%s must be a symbol.', $type), $import);
             }
+
             $parts = explode('\\', $alias2->getName());
             return Symbol::create($parts[count($parts) - 1]);
         }

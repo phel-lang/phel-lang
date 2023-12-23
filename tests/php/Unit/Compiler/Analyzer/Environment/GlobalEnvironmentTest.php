@@ -18,7 +18,7 @@ use PHPUnit\Framework\TestCase;
 
 final class GlobalEnvironmentTest extends TestCase
 {
-    public function setUp(): void
+    protected function setUp(): void
     {
         Registry::getInstance()->clear();
     }
@@ -109,6 +109,7 @@ final class GlobalEnvironmentTest extends TestCase
         $env = new GlobalEnvironment();
         $env->setNs('foo');
         $env->addUseAlias('foo', Symbol::create('b'), Symbol::create('bar'));
+
         $nodeEnv = NodeEnvironment::empty();
 
         $this->assertEquals(
@@ -127,6 +128,7 @@ final class GlobalEnvironmentTest extends TestCase
         $env->addDefinition('foo', Symbol::create('x'));
         $env->setNs('bar');
         $env->addRefer('bar', Symbol::create('x'), Symbol::create('foo'));
+
         $nodeEnv = NodeEnvironment::empty();
 
         $this->assertEquals(
@@ -145,6 +147,7 @@ final class GlobalEnvironmentTest extends TestCase
         $env = new GlobalEnvironment();
         $env->setNs('bar');
         $env->addDefinition('bar', Symbol::create('x'));
+
         $nodeEnv = NodeEnvironment::empty();
 
         $this->assertEquals(
@@ -163,6 +166,7 @@ final class GlobalEnvironmentTest extends TestCase
         $env = new GlobalEnvironment();
         $env->setNs('bar');
         $env->addInterface('bar', Symbol::create('x'));
+
         $nodeEnv = NodeEnvironment::empty();
 
         $this->assertEquals(
@@ -179,6 +183,7 @@ final class GlobalEnvironmentTest extends TestCase
         $env = new GlobalEnvironment();
         $env->addDefinition('phel\\core', Symbol::create('x'));
         $env->setNs('bar');
+
         $nodeEnv = NodeEnvironment::empty();
 
         $this->assertEquals(
@@ -210,6 +215,7 @@ final class GlobalEnvironmentTest extends TestCase
         $env = new GlobalEnvironment();
         $env->addInterface('phel\\core', Symbol::create('x'));
         $env->setNs('bar');
+
         $nodeEnv = NodeEnvironment::empty();
 
         $this->assertEquals(
@@ -237,6 +243,7 @@ final class GlobalEnvironmentTest extends TestCase
         $env = new GlobalEnvironment();
         $env->addDefinition('bar', Symbol::create('x'));
         $env->setNs('foo');
+
         $nodeEnv = NodeEnvironment::empty();
 
         $this->assertEquals(
@@ -256,6 +263,7 @@ final class GlobalEnvironmentTest extends TestCase
         $env->addDefinition('bar', Symbol::create('x'));
         $env->setNs('foo');
         $env->addRequireAlias('foo', Symbol::create('b'), Symbol::create('bar'));
+
         $nodeEnv = NodeEnvironment::empty();
 
         $this->assertEquals(
@@ -287,6 +295,7 @@ final class GlobalEnvironmentTest extends TestCase
         $env = new GlobalEnvironment();
         $env->addInterface('bar', Symbol::create('x'));
         $env->setNs('foo');
+
         $nodeEnv = NodeEnvironment::empty();
 
         $this->assertEquals(
@@ -304,6 +313,7 @@ final class GlobalEnvironmentTest extends TestCase
         $env->addInterface('bar', Symbol::create('x'));
         $env->setNs('foo');
         $env->addRequireAlias('foo', Symbol::create('b'), Symbol::create('bar'));
+
         $nodeEnv = NodeEnvironment::empty();
 
         $this->assertEquals(
@@ -320,6 +330,7 @@ final class GlobalEnvironmentTest extends TestCase
         $env = new GlobalEnvironment();
         $env->setNs('bar');
         $env->addDefinition('bar', Symbol::create('x'));
+
         $nodeEnv = NodeEnvironment::empty();
 
         $this->assertEquals(
@@ -332,6 +343,7 @@ final class GlobalEnvironmentTest extends TestCase
     {
         $env = new GlobalEnvironment();
         $env->setNs('bar');
+
         $nodeEnv = NodeEnvironment::empty();
 
         $this->assertNull(
