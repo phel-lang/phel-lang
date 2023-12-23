@@ -24,9 +24,9 @@ use Traversable;
 class EmptyList extends AbstractType implements PersistentListInterface
 {
     public function __construct(
-        private HasherInterface $hasher,
-        private EqualizerInterface $equalizer,
-        private ?PersistentMapInterface $meta,
+        private readonly HasherInterface $hasher,
+        private readonly EqualizerInterface $equalizer,
+        private readonly ?PersistentMapInterface $meta,
     ) {
     }
 
@@ -65,7 +65,7 @@ class EmptyList extends AbstractType implements PersistentListInterface
      *
      * @return T
      */
-    public function get(int $i)
+    public function get(int $i): never
     {
         throw new IndexOutOfBoundsException('Index out of bounds');
     }

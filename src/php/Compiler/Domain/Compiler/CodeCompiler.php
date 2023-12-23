@@ -26,7 +26,7 @@ use Phel\Compiler\Domain\Reader\ReaderInterface;
 use Phel\Compiler\Infrastructure\CompileOptions;
 use Phel\Lang\TypeInterface;
 
-final class CodeCompiler implements CodeCompilerInterface
+final readonly class CodeCompiler implements CodeCompilerInterface
 {
     public function __construct(
         private LexerInterface $lexer,

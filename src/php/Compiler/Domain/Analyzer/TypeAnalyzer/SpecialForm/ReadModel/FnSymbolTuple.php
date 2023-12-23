@@ -24,8 +24,9 @@ final class FnSymbolTuple
     private bool $hasVariadicForm = false;
     private string $buildParamsState = self::STATE_START;
 
-    private function __construct(private PersistentListInterface $parentList)
-    {
+    private function __construct(
+        private readonly PersistentListInterface $parentList,
+    ) {
     }
 
     public static function createWithTuple(PersistentListInterface $list): self
@@ -77,7 +78,7 @@ final class FnSymbolTuple
     private function checkAllVariablesStartWithALetterOrUnderscore(): void
     {
         foreach ($this->params as $param) {
-            if (!preg_match("/^[a-zA-Z_\x80-\xff].*$/", $param->getName())) {
+            if (!preg_match("/^[a-zA-Z_\x80-\xff].*$/", (string) $param->getName())) {
                 throw AnalyzerException::withLocation(
                     "Variable names must start with a letter or underscore: {$param->getName()}",
                     $this->parentList,
@@ -141,7 +142,7 @@ final class FnSymbolTuple
         }
     }
 
-    private function buildParamsDone(): void
+    private function buildParamsDone(): never
     {
         throw AnalyzerException::withLocation(
             'Unsupported parameter form, only one symbol can follow the & parameter',

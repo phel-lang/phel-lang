@@ -23,10 +23,6 @@ use function count;
  */
 class PersistentList extends AbstractType implements PersistentListInterface
 {
-    /** @var T */
-    private $first;
-    /** @var PersistentListInterface<T> */
-    private $rest;
     private int $hashCache = 0;
 
     /**
@@ -34,15 +30,13 @@ class PersistentList extends AbstractType implements PersistentListInterface
      * @param PersistentListInterface<T> $rest
      */
     public function __construct(
-        private HasherInterface $hasher,
-        private EqualizerInterface $equalizer,
-        private ?PersistentMapInterface $meta,
-        $first,
-        $rest,
-        private int $count,
+        private readonly HasherInterface $hasher,
+        private readonly EqualizerInterface $equalizer,
+        private readonly ?PersistentMapInterface $meta,
+        private $first,
+        private $rest,
+        private readonly int $count,
     ) {
-        $this->first = $first;
-        $this->rest = $rest;
     }
 
     /**

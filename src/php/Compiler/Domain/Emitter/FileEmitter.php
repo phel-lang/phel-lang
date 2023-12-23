@@ -13,8 +13,8 @@ final class FileEmitter implements FileEmitterInterface
     private string $source = '';
 
     public function __construct(
-        private SourceMapGenerator $sourceMapGenerator,
-        private OutputEmitterInterface $outputEmitter,
+        private readonly SourceMapGenerator $sourceMapGenerator,
+        private readonly OutputEmitterInterface $outputEmitter,
     ) {
     }
 

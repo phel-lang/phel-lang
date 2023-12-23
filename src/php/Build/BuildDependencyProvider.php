@@ -22,15 +22,17 @@ final class BuildDependencyProvider extends AbstractDependencyProvider
 
     private function addFacadeCompiler(Container $container): void
     {
-        $container->set(self::FACADE_COMPILER, static function (Container $container) {
-            return $container->getLocator()->get(CompilerFacade::class);
-        });
+        $container->set(
+            self::FACADE_COMPILER,
+            static fn (Container $container) => $container->getLocator()->get(CompilerFacade::class),
+        );
     }
 
     private function addFacadeCommand(Container $container): void
     {
-        $container->set(self::FACADE_COMMAND, static function (Container $container) {
-            return $container->getLocator()->get(CommandFacade::class);
-        });
+        $container->set(
+            self::FACADE_COMMAND,
+            static fn (Container $container) => $container->getLocator()->get(CommandFacade::class),
+        );
     }
 }

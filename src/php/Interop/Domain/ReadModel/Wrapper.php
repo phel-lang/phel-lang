@@ -6,7 +6,7 @@ namespace Phel\Interop\Domain\ReadModel;
 
 use function dirname;
 
-final class Wrapper
+final readonly class Wrapper
 {
     public function __construct(
         private string $relativeFilenamePath,

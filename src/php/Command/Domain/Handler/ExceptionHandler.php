@@ -32,7 +32,7 @@ final class ExceptionHandler
     private static string $previousTextError = '';
 
     public function __construct(
-        private ExceptionPrinterInterface $exceptionPrinter,
+        private readonly ExceptionPrinterInterface $exceptionPrinter,
     ) {
     }
 

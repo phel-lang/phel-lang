@@ -29,8 +29,9 @@ final class VectorBindingDeconstructor implements BindingDeconstructorInterface
     /** @psalm-suppress PropertyNotSetInConstructor */
     private Symbol $currentListSymbol;
 
-    public function __construct(private Deconstructor $deconstructor)
-    {
+    public function __construct(
+        private readonly Deconstructor $deconstructor,
+    ) {
     }
 
     /**
@@ -103,7 +104,7 @@ final class VectorBindingDeconstructor implements BindingDeconstructorInterface
     /**
      * @throws AnalyzerException
      */
-    private function triggerUnsupportedBindingFormException(PersistentVectorInterface $binding): void
+    private function triggerUnsupportedBindingFormException(PersistentVectorInterface $binding): never
     {
         throw AnalyzerException::withLocation(
             sprintf(

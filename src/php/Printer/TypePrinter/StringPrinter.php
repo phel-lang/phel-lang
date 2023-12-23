@@ -10,7 +10,7 @@ use function strlen;
 /**
  * @implements TypePrinterInterface<string>
  */
-final class StringPrinter implements TypePrinterInterface
+final readonly class StringPrinter implements TypePrinterInterface
 {
     private const SPECIAL_CHARACTERS = [
         9 => '\t',

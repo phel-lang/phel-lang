@@ -6,7 +6,7 @@ namespace Phel\Compiler\Domain\Lexer;
 
 use Phel\Lang\SourceLocation;
 
-final class Token
+final readonly class Token
 {
     public const T_WHITESPACE = 2;
     public const T_NEWLINE = 3;

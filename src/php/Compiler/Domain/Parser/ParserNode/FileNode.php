@@ -14,8 +14,8 @@ final class FileNode implements InnerNodeInterface
      * @param list<NodeInterface> $children
      */
     public function __construct(
-        private SourceLocation $startLocation,
-        private SourceLocation $endLocation,
+        private readonly SourceLocation $startLocation,
+        private readonly SourceLocation $endLocation,
         private array $children,
     ) {
     }

@@ -9,7 +9,7 @@ use Phel\Lang\Symbol;
 use function array_slice;
 use function count;
 
-final class DefInterfaceMethod
+final readonly class DefInterfaceMethod
 {
     /**
      * @param list<string> $arguments

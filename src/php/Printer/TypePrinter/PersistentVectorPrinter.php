@@ -10,7 +10,7 @@ use Phel\Printer\PrinterInterface;
 /**
  * @implements TypePrinterInterface<PersistentVectorInterface>
  */
-final class PersistentVectorPrinter implements TypePrinterInterface
+final readonly class PersistentVectorPrinter implements TypePrinterInterface
 {
     public function __construct(private PrinterInterface $printer)
     {

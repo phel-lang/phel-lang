@@ -10,8 +10,8 @@ use Phel\Command\CommandFacadeInterface;
 class NamespaceRunner implements NamespaceRunnerInterface
 {
     public function __construct(
-        private CommandFacadeInterface $commandFacade,
-        private BuildFacadeInterface $buildFacade,
+        private readonly CommandFacadeInterface $commandFacade,
+        private readonly BuildFacadeInterface $buildFacade,
     ) {
     }
 

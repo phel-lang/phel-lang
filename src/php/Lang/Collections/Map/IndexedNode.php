@@ -19,15 +19,14 @@ use function count;
  */
 class IndexedNode implements HashMapNodeInterface
 {
-    /** @var array<int, array{0: K|null, 1: V|HashMapNodeInterface<K, V>}> */
-    private array $objects;
-
+    /**
+     * @param list<array{0: K|null, 1: V|HashMapNodeInterface<K, V>}> $objects
+     */
     public function __construct(
-        private HasherInterface $hasher,
-        private EqualizerInterface $equalizer,
-        array $objects,
+        private readonly HasherInterface $hasher,
+        private readonly EqualizerInterface $equalizer,
+        private array $objects,
     ) {
-        $this->objects = $objects;
     }
 
     public static function empty(HasherInterface $hasher, EqualizerInterface $equalizer): self

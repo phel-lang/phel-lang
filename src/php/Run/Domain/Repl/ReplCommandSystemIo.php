@@ -9,7 +9,7 @@ use Phel\Compiler\Domain\Exceptions\AbstractLocatedException;
 use Phel\Compiler\Domain\Parser\ReadModel\CodeSnippet;
 use Throwable;
 
-final class ReplCommandSystemIo implements ReplCommandIoInterface
+final readonly class ReplCommandSystemIo implements ReplCommandIoInterface
 {
     public function __construct(
         private string $historyFile,

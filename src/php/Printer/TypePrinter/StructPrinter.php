@@ -7,12 +7,10 @@ namespace Phel\Printer\TypePrinter;
 use Phel\Lang\Collections\Struct\AbstractPersistentStruct;
 use Phel\Printer\PrinterInterface;
 
-use function get_class;
-
 /**
  * @implements TypePrinterInterface<AbstractPersistentStruct>
  */
-final class StructPrinter implements TypePrinterInterface
+final readonly class StructPrinter implements TypePrinterInterface
 {
     public function __construct(private PrinterInterface $printer)
     {
@@ -28,6 +26,6 @@ final class StructPrinter implements TypePrinterInterface
             $form->getAllowedKeys(),
         );
 
-        return '(' . get_class($form) . ' ' . implode(' ', $values) . ')';
+        return '(' . $form::class . ' ' . implode(' ', $values) . ')';
     }
 }

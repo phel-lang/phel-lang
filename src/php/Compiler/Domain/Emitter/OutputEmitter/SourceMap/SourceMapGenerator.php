@@ -6,7 +6,7 @@ namespace Phel\Compiler\Domain\Emitter\OutputEmitter\SourceMap;
 
 use function count;
 
-final class SourceMapGenerator
+final readonly class SourceMapGenerator
 {
     private VLQ $vlq;
 

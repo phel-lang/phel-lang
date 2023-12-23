@@ -43,11 +43,11 @@ final class ReplCommand extends Command
 
     private InputResult $previousResult;
 
-    private ReplCommandIoInterface $io;
+    private readonly ReplCommandIoInterface $io;
 
-    private ColorStyleInterface $style;
+    private readonly ColorStyleInterface $style;
 
-    private PrinterInterface $printer;
+    private readonly PrinterInterface $printer;
 
     private ?string $replStartupFile = null;
 

@@ -25,9 +25,9 @@ class SubVector extends AbstractPersistentVector
         HasherInterface $hasher,
         EqualizerInterface $equalizer,
         ?PersistentMapInterface $meta,
-        private PersistentVectorInterface $vector,
-        private int $start,
-        private int $end,
+        private readonly PersistentVectorInterface $vector,
+        private readonly int $start,
+        private readonly int $end,
     ) {
         parent::__construct($hasher, $equalizer, $meta);
     }
@@ -126,7 +126,7 @@ class SubVector extends AbstractPersistentVector
         return new self($this->hasher, $this->equalizer, $this->meta, $this->vector, $this->start + $start, $this->start + $end);
     }
 
-    public function asTransient(): void
+    public function asTransient(): never
     {
         throw new MethodNotSupportedException('asTransient is not supported on SubVector');
     }

@@ -7,7 +7,7 @@ namespace Phel\Compiler\Domain\Parser\ReadModel;
 use Phel\Compiler\Domain\Parser\ParserNode\NodeInterface;
 use Phel\Lang\SourceLocation;
 
-final class CodeSnippet
+final readonly class CodeSnippet
 {
     public function __construct(
         private SourceLocation $startLocation,

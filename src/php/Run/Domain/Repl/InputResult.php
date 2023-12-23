@@ -8,7 +8,7 @@ use function is_bool;
 use function is_null;
 use function is_string;
 
-final class InputResult
+final readonly class InputResult
 {
     private const NO_VALUE = 'no_value';
     private const LAST_RESULT_PLACEHOLDER = '$_';

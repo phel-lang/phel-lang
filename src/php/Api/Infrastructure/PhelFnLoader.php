@@ -14,7 +14,7 @@ use Phel\Run\RunFacadeInterface;
 use function dirname;
 use function in_array;
 
-final class PhelFnLoader implements PhelFnLoaderInterface
+final readonly class PhelFnLoader implements PhelFnLoaderInterface
 {
     public function __construct(
         private RunFacadeInterface $runFacade,

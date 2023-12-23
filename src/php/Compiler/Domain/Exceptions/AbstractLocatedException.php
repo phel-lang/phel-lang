@@ -12,8 +12,8 @@ abstract class AbstractLocatedException extends RuntimeException
 {
     public function __construct(
         string $message,
-        private ?SourceLocation $startLocation = null,
-        private ?SourceLocation $endLocation = null,
+        private readonly ?SourceLocation $startLocation = null,
+        private readonly ?SourceLocation $endLocation = null,
         ?Exception $nestedException = null,
     ) {
         parent::__construct($message, 0, $nestedException);

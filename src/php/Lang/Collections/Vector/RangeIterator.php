@@ -11,18 +11,15 @@ use function count;
 
 class RangeIterator implements Iterator
 {
-    private PersistentVector $vector;
-    private int $start;
-    private int $end;
     private int $currentIndex;
     private int $base;
     private ?array $currentArray = null;
 
-    public function __construct(PersistentVector $vector, int $start, int $end)
-    {
-        $this->vector = $vector;
-        $this->start = $start;
-        $this->end = $end;
+    public function __construct(
+        private readonly PersistentVector $vector,
+        private int $start,
+        private readonly int $end,
+    ) {
         $this->currentIndex = $start;
         $this->base = $this->currentIndex - ($this->currentIndex % 32);
 

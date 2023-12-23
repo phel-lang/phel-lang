@@ -43,7 +43,7 @@ class PersistentVector extends AbstractPersistentVector
         HasherInterface $hasher,
         EqualizerInterface $equalizer,
         ?PersistentMapInterface $meta,
-        private int $count,
+        private readonly int $count,
         private int $shift,
         private array $root,
         private array $tail,

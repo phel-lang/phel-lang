@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Phel\Compiler\Domain\Emitter;
 
-final class EmitterResult
+final readonly class EmitterResult
 {
     public function __construct(
         private bool $enableSourceMaps,

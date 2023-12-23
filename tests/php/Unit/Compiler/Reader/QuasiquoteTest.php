@@ -196,7 +196,7 @@ final class QuasiquoteTest extends TestCase
     public function test_transform_global_symbol(): void
     {
         $env = new GlobalEnvironment();
-        $env->addDefinition('test', Symbol::create('abc'), TypeFactory::getInstance()->emptyPersistentMap());
+        $env->addDefinition('test', Symbol::create('abc'));
 
         $q = new QuasiquoteTransformer($env);
         self::assertEquals(

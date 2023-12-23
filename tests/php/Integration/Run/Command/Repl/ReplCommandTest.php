@@ -163,11 +163,8 @@ final class ReplCommandTest extends AbstractCommandTest
         AnonymousGlobal::overrideExistingResolvedClass(
             RunFactory::class,
             new class($io) extends RunFactory {
-                private ReplCommandIoInterface $io;
-
-                public function __construct(ReplCommandIoInterface $io)
+                public function __construct(private readonly ReplCommandIoInterface $io)
                 {
-                    $this->io = $io;
                 }
 
                 public function createColorStyle(): ColorStyleInterface

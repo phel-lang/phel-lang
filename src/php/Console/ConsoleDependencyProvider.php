@@ -28,9 +28,10 @@ final class ConsoleDependencyProvider extends AbstractDependencyProvider
 
     private function addFilesystemFacade(Container $container): void
     {
-        $container->set(self::FACADE_FILESYSTEM, static function (Container $container) {
-            return $container->getLocator()->get(FilesystemFacade::class);
-        });
+        $container->set(
+            self::FACADE_FILESYSTEM,
+            static fn (Container $container) => $container->getLocator()->get(FilesystemFacade::class),
+        );
     }
 
     private function addCommands(Container $container): void

@@ -7,7 +7,7 @@ namespace Phel\Compiler\Domain\Emitter\OutputEmitter\SourceMap;
 final class SourceMapConsumer
 {
     private array $lineMapping;
-    private VLQ $vlq;
+    private readonly VLQ $vlq;
 
     public function __construct(string $mapping)
     {

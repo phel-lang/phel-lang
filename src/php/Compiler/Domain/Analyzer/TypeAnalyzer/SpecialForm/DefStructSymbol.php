@@ -21,7 +21,7 @@ use ReflectionMethod;
 
 use function count;
 
-final class DefStructSymbol implements SpecialFormAnalyzerInterface
+final readonly class DefStructSymbol implements SpecialFormAnalyzerInterface
 {
     public function __construct(
         private AnalyzerInterface $analyzer,

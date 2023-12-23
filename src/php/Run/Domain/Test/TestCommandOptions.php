@@ -7,7 +7,7 @@ namespace Phel\Run\Domain\Test;
 use Phel\Lang\TypeFactory;
 use Phel\Printer\Printer;
 
-final class TestCommandOptions
+final readonly class TestCommandOptions
 {
     public const FILTER = 'filter';
     public const TESTDOX = 'testdox';

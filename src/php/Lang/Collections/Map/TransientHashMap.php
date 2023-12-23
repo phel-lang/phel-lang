@@ -17,24 +17,20 @@ use stdClass;
  */
 class TransientHashMap implements TransientMapInterface
 {
-    /** @var ?V */
-    private $nullValue;
-
     private static ?stdClass $NOT_FOUND = null;
 
     /**
      * @param ?HashMapNodeInterface<K, V> $root
-     * @param V $nullValue
+     * @param ?V $nullValue
      */
     public function __construct(
-        private HasherInterface $hasher,
-        private EqualizerInterface $equalizer,
+        private readonly HasherInterface $hasher,
+        private readonly EqualizerInterface $equalizer,
         private int $count,
         private ?HashMapNodeInterface $root,
         private bool $hasNull,
-        $nullValue,
+        private $nullValue,
     ) {
-        $this->nullValue = $nullValue;
     }
 
     public static function empty(HasherInterface $hasher, EqualizerInterface $equalizer): self

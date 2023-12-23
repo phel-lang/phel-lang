@@ -25,9 +25,9 @@ class PersistentHashSet extends AbstractType implements PersistentHashSetInterfa
      * @param PersistentMapInterface<V, V> $map
      */
     public function __construct(
-        private HasherInterface $hasher,
-        private ?PersistentMapInterface $meta,
-        private PersistentMapInterface $map,
+        private readonly HasherInterface $hasher,
+        private readonly ?PersistentMapInterface $meta,
+        private readonly PersistentMapInterface $map,
     ) {
     }
 

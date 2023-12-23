@@ -16,11 +16,9 @@ final class ColorStyle implements ColorStyleInterface
         'blue' => "\033[33;34m%s\033[0m",
     ];
 
-    private array $styles;
-
-    private function __construct(array $styles)
-    {
-        $this->styles = $styles;
+    private function __construct(
+        private array $styles,
+    ) {
     }
 
     public static function withStyles(array $styles = []): self

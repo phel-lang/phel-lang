@@ -7,7 +7,6 @@ namespace Phel\Command\Domain\Shared\Exceptions;
 use Phel\Printer\PrinterInterface;
 
 use function count;
-use function get_class;
 use function is_array;
 use function is_bool;
 use function is_object;
@@ -15,10 +14,11 @@ use function is_resource;
 use function is_string;
 use function strlen;
 
-final class ExceptionArgsPrinter implements ExceptionArgsPrinterInterface
+final readonly class ExceptionArgsPrinter implements ExceptionArgsPrinterInterface
 {
-    public function __construct(private PrinterInterface $printer)
-    {
+    public function __construct(
+        private PrinterInterface $printer,
+    ) {
     }
 
     public function parseArgsAsString(array $frameArgs): string
@@ -73,7 +73,7 @@ final class ExceptionArgsPrinter implements ExceptionArgsPrinterInterface
         }
 
         if (is_object($arg)) {
-            return 'Object(' . get_class($arg) . ')';
+            return 'Object(' . $arg::class . ')';
         }
 
         if (is_resource($arg)) {

@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Phel\Command\Domain\Shared\Exceptions\Extractor\ReadModel;
 
-final class SourceMapInformation
+final readonly class SourceMapInformation
 {
     public function __construct(
         private string $filename,

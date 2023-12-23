@@ -23,7 +23,7 @@ final class TokenStream implements Iterator
      * @param Generator<Token> $tokenGenerator
      */
     public function __construct(
-        private Generator $tokenGenerator,
+        private readonly Generator $tokenGenerator,
     ) {
         $this->readTokens = [$tokenGenerator->current()];
     }
@@ -103,7 +103,7 @@ final class TokenStream implements Iterator
      */
     private function getCode(array $readTokens): string
     {
-        return implode(array_map(
+        return implode('', array_map(
             static fn (Token $t) => $t->getCode(),
             $readTokens,
         ));

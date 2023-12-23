@@ -6,7 +6,7 @@ namespace Phel\Build\Domain\Compile\Output;
 
 use Phel\Config\PhelOutConfig;
 
-final class EntryPointPhpFile implements EntryPointPhpFileInterface
+final readonly class EntryPointPhpFile implements EntryPointPhpFileInterface
 {
     public function __construct(
         private PhelOutConfig $phelOutConfig,

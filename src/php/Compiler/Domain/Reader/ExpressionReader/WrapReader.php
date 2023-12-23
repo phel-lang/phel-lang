@@ -11,7 +11,7 @@ use Phel\Lang\Collections\LinkedList\PersistentListInterface;
 use Phel\Lang\Symbol;
 use Phel\Lang\TypeFactory;
 
-final class WrapReader
+final readonly class WrapReader
 {
     public function __construct(private Reader $reader)
     {

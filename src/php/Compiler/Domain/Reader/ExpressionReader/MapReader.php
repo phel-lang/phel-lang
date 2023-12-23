@@ -11,7 +11,7 @@ use Phel\Compiler\Domain\Reader\Reader;
 use Phel\Lang\Collections\Map\PersistentMapInterface;
 use Phel\Lang\TypeFactory;
 
-final class MapReader
+final readonly class MapReader
 {
     public function __construct(private Reader $reader)
     {

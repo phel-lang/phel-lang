@@ -25,7 +25,7 @@ use Phel\Compiler\Domain\Reader\ReaderInterface;
 use Phel\Compiler\Infrastructure\CompileOptions;
 use Phel\Lang\TypeInterface;
 
-final class EvalCompiler implements EvalCompilerInterface
+final readonly class EvalCompiler implements EvalCompilerInterface
 {
     public function __construct(
         private LexerInterface $lexer,

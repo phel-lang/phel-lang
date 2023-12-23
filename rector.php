@@ -13,6 +13,8 @@ return static function (RectorConfig $rectorConfig): void {
 
     $rectorConfig->skip([
         __DIR__ . '/tests/php/*/out/*',
+        __DIR__ . '/tests/php/*/gacela-class-names.php',
+        __DIR__ . '/tests/php/*/gacela-custom-services.php',
     ]);
 
     $rectorConfig->sets([

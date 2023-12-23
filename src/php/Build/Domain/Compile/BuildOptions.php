@@ -7,8 +7,8 @@ namespace Phel\Build\Domain\Compile;
 class BuildOptions
 {
     public function __construct(
-        private bool $enableCache,
-        private bool $enableSourceMap,
+        private readonly bool $enableCache,
+        private readonly bool $enableSourceMap,
     ) {
     }
 

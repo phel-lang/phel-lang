@@ -12,7 +12,7 @@ use function count;
 /**
  * @implements TypePrinterInterface<PersistentHashSetInterface>
  */
-final class PersistentHashSetPrinter implements TypePrinterInterface
+final readonly class PersistentHashSetPrinter implements TypePrinterInterface
 {
     public function __construct(private PrinterInterface $printer)
     {

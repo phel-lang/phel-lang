@@ -8,7 +8,7 @@ use Phel\Interop\Domain\ReadModel\Wrapper;
 
 use function dirname;
 
-final class FileCreator implements FileCreatorInterface
+final readonly class FileCreator implements FileCreatorInterface
 {
     public function __construct(
         private string $destinationDir,

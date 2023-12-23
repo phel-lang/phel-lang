@@ -18,17 +18,16 @@ use function array_slice;
  */
 class HashCollisionNode implements HashMapNodeInterface
 {
-    /** @var array<int, K|V> */
-    private array $objects;
-
+    /**
+     * @param array{K,V,K,V} $objects
+     */
     public function __construct(
-        private HasherInterface $hasher,
-        private EqualizerInterface $equalizer,
-        private int $hash,
-        private int $count,
-        array $objects,
+        private readonly HasherInterface $hasher,
+        private readonly EqualizerInterface $equalizer,
+        private readonly int $hash,
+        private readonly int $count,
+        private array $objects,
     ) {
-        $this->objects = $objects;
     }
 
     /**

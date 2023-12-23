@@ -16,8 +16,8 @@ final class Keyword extends AbstractType implements IdenticalInterface, FnInterf
     private static array $refStore = [];
 
     private function __construct(
-        private ?string $namespace,
-        private string $name,
+        private readonly ?string $namespace,
+        private readonly string $name,
     ) {
         if ($namespace) {
             $this->hash = crc32(':' . $namespace . '/' . $name);

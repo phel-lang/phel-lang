@@ -20,16 +20,14 @@ use Phel\Lang\Symbol;
 use Phel\Lang\TypeInterface;
 use RuntimeException;
 
-use function get_class;
-
 final class Reader implements ReaderInterface
 {
     /** @var array<int,Symbol>|null */
     private ?array $fnArgs = null;
 
     public function __construct(
-        private ExpressionReaderFactoryInterface $readerFactory,
-        private QuasiquoteTransformerInterface $quasiquoteTransformer,
+        private readonly ExpressionReaderFactoryInterface $readerFactory,
+        private readonly QuasiquoteTransformerInterface $quasiquoteTransformer,
     ) {
     }
 
@@ -124,7 +122,7 @@ final class Reader implements ReaderInterface
                 ->read($node, $this->fnArgs, $root);
         }
 
-        throw new RuntimeException('Not a valid ListNode: ' . get_class($node));
+        throw new RuntimeException('Not a valid ListNode: ' . $node::class);
     }
 
     /**

@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Phel\Command\Domain\Shared\Exceptions\Extractor\ReadModel;
 
-final class FilePosition
+final readonly class FilePosition
 {
     public function __construct(
         private string $filename,

@@ -41,14 +41,10 @@ final class Symbol extends AbstractType implements IdenticalInterface, NamedInte
 
     private static int $symGenCounter = 1;
 
-    private ?string $namespace;
-
-    private string $name;
-
-    public function __construct(?string $namespace, string $name)
-    {
-        $this->namespace = $namespace;
-        $this->name = $name;
+    public function __construct(
+        private readonly ?string $namespace,
+        private readonly string $name,
+    ) {
     }
 
     public static function create(string $name): self

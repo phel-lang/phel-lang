@@ -10,7 +10,7 @@ use Phel\Build\Domain\Extractor\NamespaceInformation;
 use function array_key_exists;
 use function in_array;
 
-final class DependenciesForNamespace
+final readonly class DependenciesForNamespace
 {
     public function __construct(private NamespaceExtractor $namespaceExtractor)
     {

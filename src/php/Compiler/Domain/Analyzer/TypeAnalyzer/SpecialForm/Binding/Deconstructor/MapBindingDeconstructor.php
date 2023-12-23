@@ -19,8 +19,9 @@ final class MapBindingDeconstructor implements BindingDeconstructorInterface
     /** @psalm-suppress PropertyNotSetInConstructor */
     private Symbol $mapSymbol;
 
-    public function __construct(private Deconstructor $deconstructor)
-    {
+    public function __construct(
+        private readonly Deconstructor $deconstructor,
+    ) {
     }
 
     /**

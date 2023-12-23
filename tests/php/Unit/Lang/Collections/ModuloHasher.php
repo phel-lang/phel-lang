@@ -8,11 +8,9 @@ use Phel\Lang\HasherInterface;
 
 class ModuloHasher implements HasherInterface
 {
-    private int $modulo;
-
-    public function __construct($modulo = 10000)
-    {
-        $this->modulo = $modulo;
+    public function __construct(
+        private readonly int $modulo = 10000,
+    ) {
     }
 
     public function hash(mixed $value): int

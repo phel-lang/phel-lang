@@ -11,7 +11,7 @@ use function count;
 /**
  * @implements TypePrinterInterface<array>
  */
-final class ArrayPrinter implements TypePrinterInterface
+final readonly class ArrayPrinter implements TypePrinterInterface
 {
     public function __construct(
         private PrinterInterface $printer,

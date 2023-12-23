@@ -16,11 +16,11 @@ final class FnNode extends AbstractNode
      */
     public function __construct(
         NodeEnvironmentInterface $env,
-        private array $params,
-        private AbstractNode $body,
-        private array $uses,
-        private bool $isVariadic,
-        private bool $recurs,
+        private readonly array $params,
+        private readonly AbstractNode $body,
+        private readonly array $uses,
+        private readonly bool $isVariadic,
+        private readonly bool $recurs,
         ?SourceLocation $sourceLocation = null,
     ) {
         parent::__construct($env, $sourceLocation);

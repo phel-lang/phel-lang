@@ -10,7 +10,6 @@ use Phel\Compiler\Infrastructure\Munge;
 use Phel\Lang\Collections\Exceptions\MethodNotSupportedException;
 use Phel\Lang\Collections\Map\AbstractPersistentMap;
 use Phel\Lang\Collections\Map\PersistentMapInterface;
-use Phel\Lang\Collections\Map\TransientMapInterface;
 use Phel\Lang\Keyword;
 use Phel\Lang\TypeFactory;
 use Phel\Printer\Printer;
@@ -87,10 +86,7 @@ abstract class AbstractPersistentStruct extends AbstractPersistentMap
         }
     }
 
-    /**
-     * @return TransientMapInterface
-     */
-    public function asTransient()
+    public function asTransient(): never
     {
         throw new MethodNotSupportedException('Structs don\'t support transients');
     }

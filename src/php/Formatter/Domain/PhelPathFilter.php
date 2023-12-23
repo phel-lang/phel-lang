@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Phel\Formatter\Domain;
 
+use FilesystemIterator;
 use RecursiveDirectoryIterator;
 use RecursiveIteratorIterator;
 
@@ -45,7 +46,7 @@ final class PhelPathFilter implements PathFilterInterface
     private function createRecursiveIterator(string $path): RecursiveIteratorIterator
     {
         return new RecursiveIteratorIterator(
-            new RecursiveDirectoryIterator($path, RecursiveDirectoryIterator::SKIP_DOTS),
+            new RecursiveDirectoryIterator($path, RecursiveDirectoryIterator::SKIP_DOTS | FilesystemIterator::SKIP_DOTS),
             RecursiveIteratorIterator::LEAVES_ONLY,
         );
     }

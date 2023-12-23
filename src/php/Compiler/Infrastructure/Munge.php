@@ -6,7 +6,7 @@ namespace Phel\Compiler\Infrastructure;
 
 use Phel\Compiler\Domain\Emitter\OutputEmitter\MungeInterface;
 
-final class Munge implements MungeInterface
+final readonly class Munge implements MungeInterface
 {
     private const DEFAULT_NS_MAPPING = [
         '-' => '_',

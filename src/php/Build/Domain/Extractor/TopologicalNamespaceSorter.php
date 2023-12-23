@@ -30,7 +30,6 @@ final class TopologicalNamespaceSorter implements NamespaceSorterInterface
     }
 
     /**
-     * @param string $item
      * @param array<string, list<string>> $dependencies
      * @param string[] $order
      * @param array<int, string> $seen

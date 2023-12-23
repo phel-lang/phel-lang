@@ -12,7 +12,7 @@ abstract class AbstractParserException extends AbstractLocatedException
 {
     public function __construct(
         string $message,
-        private CodeSnippet $codeSnippet,
+        private readonly CodeSnippet $codeSnippet,
         SourceLocation $startLocation,
         SourceLocation $endLocation,
     ) {

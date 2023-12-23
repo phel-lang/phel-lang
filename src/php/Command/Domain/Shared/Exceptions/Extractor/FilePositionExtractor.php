@@ -8,7 +8,7 @@ use Phel\Command\Domain\Shared\Exceptions\Extractor\ReadModel\FilePosition;
 use Phel\Command\Domain\Shared\Exceptions\Extractor\ReadModel\SourceMapInformation;
 use Phel\Compiler\Domain\Emitter\OutputEmitter\SourceMap\SourceMapConsumer;
 
-final class FilePositionExtractor implements FilePositionExtractorInterface
+final readonly class FilePositionExtractor implements FilePositionExtractorInterface
 {
     public function __construct(private SourceMapExtractorInterface $sourceMapExtractor)
     {

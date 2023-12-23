@@ -14,7 +14,7 @@ final class VectorNode extends AbstractNode
      */
     public function __construct(
         NodeEnvironmentInterface $env,
-        private array $args,
+        private readonly array $args,
         ?SourceLocation $sourceLocation = null,
     ) {
         parent::__construct($env, $sourceLocation);

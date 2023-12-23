@@ -15,9 +15,9 @@ final class NsNode extends AbstractNode
      * @param list<string> $requireFiles
      */
     public function __construct(
-        private string $namespace,
+        private readonly string $namespace,
         private array $requireNs,
-        private array $requireFiles,
+        private readonly array $requireFiles,
         ?SourceLocation $sourceLocation = null,
     ) {
         parent::__construct(NodeEnvironment::empty(), $sourceLocation);

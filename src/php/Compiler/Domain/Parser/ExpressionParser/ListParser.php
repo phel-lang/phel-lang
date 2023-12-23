@@ -9,7 +9,7 @@ use Phel\Compiler\Domain\Parser\Exceptions\UnfinishedParserException;
 use Phel\Compiler\Domain\Parser\Parser;
 use Phel\Compiler\Domain\Parser\ParserNode\ListNode;
 
-final class ListParser
+final readonly class ListParser
 {
     public function __construct(private Parser $parser)
     {

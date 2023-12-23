@@ -31,36 +31,41 @@ final class RunDependencyProvider extends AbstractDependencyProvider
 
     private function addFacadeCommand(Container $container): void
     {
-        $container->set(self::FACADE_COMMAND, static function (Container $container) {
-            return $container->getLocator()->get(CommandFacade::class);
-        });
+        $container->set(
+            self::FACADE_COMMAND,
+            static fn (Container $container) => $container->getLocator()->get(CommandFacade::class),
+        );
     }
 
     private function addFacadeCompiler(Container $container): void
     {
-        $container->set(self::FACADE_COMPILER, static function (Container $container) {
-            return $container->getLocator()->get(CompilerFacade::class);
-        });
+        $container->set(
+            self::FACADE_COMPILER,
+            static fn (Container $container) => $container->getLocator()->get(CompilerFacade::class),
+        );
     }
 
     private function addFacadeFormatter(Container $container): void
     {
-        $container->set(self::FACADE_FORMATTER, static function (Container $container) {
-            return $container->getLocator()->get(FormatterFacade::class);
-        });
+        $container->set(
+            self::FACADE_FORMATTER,
+            static fn (Container $container) => $container->getLocator()->get(FormatterFacade::class),
+        );
     }
 
     private function addFacadeInterop(Container $container): void
     {
-        $container->set(self::FACADE_INTEROP, static function (Container $container) {
-            return $container->getLocator()->get(InteropFacade::class);
-        });
+        $container->set(
+            self::FACADE_INTEROP,
+            static fn (Container $container) => $container->getLocator()->get(InteropFacade::class),
+        );
     }
 
     private function addFacadeBuild(Container $container): void
     {
-        $container->set(self::FACADE_BUILD, static function (Container $container) {
-            return $container->getLocator()->get(BuildFacade::class);
-        });
+        $container->set(
+            self::FACADE_BUILD,
+            static fn (Container $container) => $container->getLocator()->get(BuildFacade::class),
+        );
     }
 }

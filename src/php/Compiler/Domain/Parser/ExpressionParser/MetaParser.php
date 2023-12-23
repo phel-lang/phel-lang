@@ -9,7 +9,7 @@ use Phel\Compiler\Domain\Parser\Parser;
 use Phel\Compiler\Domain\Parser\ParserNode\MetaNode;
 use Phel\Compiler\Domain\Parser\ParserNode\TriviaNodeInterface;
 
-final class MetaParser
+final readonly class MetaParser
 {
     public function __construct(private Parser $parser)
     {

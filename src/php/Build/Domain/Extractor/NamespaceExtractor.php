@@ -16,9 +16,8 @@ use Phel\Lang\Symbol;
 use RecursiveDirectoryIterator;
 use RecursiveIteratorIterator;
 use RegexIterator;
-use RuntimeException;
 
-final class NamespaceExtractor implements NamespaceExtractorInterface
+final readonly class NamespaceExtractor implements NamespaceExtractorInterface
 {
     public function __construct(
         private CompilerFacadeInterface $compilerFacade,
@@ -126,15 +125,13 @@ final class NamespaceExtractor implements NamespaceExtractorInterface
 
         if (!$realpath) {
             return [];
-            //            throw new RuntimeException("Directory '{$directory}' not found");
+            // throw new RuntimeException("Directory '{$directory}' not found");
         }
         $iterator = new RecursiveIteratorIterator(new RecursiveDirectoryIterator($realpath));
         $phelIterator = new RegexIterator($iterator, '/^.+\.phel$/i', RegexIterator::GET_MATCH);
 
         return array_map(
-            function (array $file) {
-                return $this->getNamespaceFromFile($file[0]);
-            },
+            fn (array $file) => $this->getNamespaceFromFile($file[0]),
             iterator_to_array($phelIterator),
         );
     }

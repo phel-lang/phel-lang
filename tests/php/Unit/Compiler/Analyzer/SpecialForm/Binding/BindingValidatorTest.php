@@ -23,14 +23,14 @@ final class BindingValidatorTest extends TestCase
 
     public function test_integer_type(): void
     {
-        $this->expectExceptionMessage('Cannot destructure integer');
+        $this->expectExceptionMessage('Cannot destructure int');
 
         $this->validator->assertSupportedBinding(1);
     }
 
     public function test_float_type(): void
     {
-        $this->expectExceptionMessage('Cannot destructure double');
+        $this->expectExceptionMessage('Cannot destructure float');
 
         $this->validator->assertSupportedBinding(1.99);
     }

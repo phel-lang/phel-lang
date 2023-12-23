@@ -12,9 +12,9 @@ final class BindingNode extends AbstractNode
 {
     public function __construct(
         NodeEnvironmentInterface $env,
-        private Symbol $symbol,
-        private Symbol $shadow,
-        private AbstractNode $initExpr,
+        private readonly Symbol $symbol,
+        private readonly Symbol $shadow,
+        private readonly AbstractNode $initExpr,
         ?SourceLocation $sourceLocation = null,
     ) {
         parent::__construct($env, $sourceLocation);

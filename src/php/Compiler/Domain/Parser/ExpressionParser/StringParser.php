@@ -46,14 +46,14 @@ final class StringParser
             }
 
             if ($str[0] === 'x' || $str[0] === 'X') {
-                return chr(hexdec(substr($str, 1)));
+                return chr(hexdec(substr((string) $str, 1)));
             }
 
             if ($str[0] === 'u') {
-                return $this->codePointToUtf8(hexdec($matches[2]));
+                return $this->codePointToUtf8(hexdec((string) $matches[2]));
             }
 
-            return chr((int)octdec($str));
+            return chr((int)octdec((string) $str));
         };
 
         return preg_replace_callback(

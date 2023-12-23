@@ -26,7 +26,7 @@ use function is_float;
 use function is_int;
 use function is_string;
 
-final class Analyzer implements AnalyzerInterface
+final readonly class Analyzer implements AnalyzerInterface
 {
     public function __construct(private GlobalEnvironmentInterface $globalEnvironment)
     {

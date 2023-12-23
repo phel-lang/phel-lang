@@ -52,7 +52,7 @@ final class ParseAndPrintTest extends TestCase
      */
     private function printTrees(array $parseTrees): string
     {
-        return implode(array_map(
+        return implode('', array_map(
             static fn (NodeInterface $t) => $t->getCode(),
             $parseTrees,
         ));

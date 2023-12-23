@@ -21,29 +21,22 @@ use function count;
  */
 class PersistentHashMap extends AbstractPersistentMap
 {
-    /** @var ?HashMapNodeInterface<K, V> */
-    private ?HashMapNodeInterface $root;
-
-    /** @var V */
-    private $nullValue;
-
     private static ?stdClass $NOT_FOUND = null;
 
     /**
+     * @param ?HashMapNodeInterface<K, V> $root
      * @param V $nullValue
      */
     public function __construct(
         HasherInterface $hasher,
         EqualizerInterface $equalizer,
         ?PersistentMapInterface $meta,
-        private int $count,
-        ?HashMapNodeInterface $root,
-        private bool $hasNull,
-        $nullValue,
+        private readonly int $count,
+        private readonly ?HashMapNodeInterface $root,
+        private readonly bool $hasNull,
+        private $nullValue,
     ) {
         parent::__construct($hasher, $equalizer, $meta);
-        $this->root = $root;
-        $this->nullValue = $nullValue;
     }
 
     public static function empty(HasherInterface $hasher, EqualizerInterface $equalizer): self

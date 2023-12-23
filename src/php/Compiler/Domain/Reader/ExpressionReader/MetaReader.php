@@ -18,7 +18,7 @@ use Phel\Lang\TypeInterface;
 use function count;
 use function is_string;
 
-final class MetaReader
+final readonly class MetaReader
 {
     public function __construct(private Reader $reader)
     {

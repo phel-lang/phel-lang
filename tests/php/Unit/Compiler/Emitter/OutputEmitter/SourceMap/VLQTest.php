@@ -26,12 +26,12 @@ final class VLQTest extends TestCase
 
     public function test_encode4(): void
     {
-        self::assertEquals('B', $this->encode([-2147483648]));
+        self::assertEquals('B', $this->encode([-2_147_483_648]));
     }
 
     public function test_encode5(): void
     {
-        self::assertEquals('+/////D', $this->encode([2147483647]));
+        self::assertEquals('+/////D', $this->encode([2_147_483_647]));
     }
 
     public function test_decode1(): void
@@ -51,12 +51,12 @@ final class VLQTest extends TestCase
 
     public function test_decode4(): void
     {
-        self::assertEquals([-2147483648], $this->decode('B'));
+        self::assertEquals([-2_147_483_648], $this->decode('B'));
     }
 
     public function test_decode5(): void
     {
-        self::assertEquals([2147483647], $this->decode('+/////D'));
+        self::assertEquals([2_147_483_647], $this->decode('+/////D'));
     }
 
     private function encode(array $xs): string

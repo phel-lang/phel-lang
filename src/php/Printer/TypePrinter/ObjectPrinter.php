@@ -4,8 +4,6 @@ declare(strict_types=1);
 
 namespace Phel\Printer\TypePrinter;
 
-use function get_class;
-
 /**
  * @implements TypePrinterInterface<object>
  */
@@ -16,6 +14,6 @@ final class ObjectPrinter implements TypePrinterInterface
      */
     public function print(mixed $form): string
     {
-        return '<PHP-Object(' . get_class($form) . ')>';
+        return '<PHP-Object(' . $form::class . ')>';
     }
 }

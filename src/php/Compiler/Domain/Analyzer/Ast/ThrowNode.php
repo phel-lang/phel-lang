@@ -11,7 +11,7 @@ final class ThrowNode extends AbstractNode
 {
     public function __construct(
         NodeEnvironmentInterface $env,
-        private AbstractNode $exceptionExpr,
+        private readonly AbstractNode $exceptionExpr,
         ?SourceLocation $sourceLocation = null,
     ) {
         parent::__construct($env, $sourceLocation);

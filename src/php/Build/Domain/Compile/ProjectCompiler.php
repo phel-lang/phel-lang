@@ -13,7 +13,7 @@ use RuntimeException;
 
 use function dirname;
 
-final class ProjectCompiler
+final readonly class ProjectCompiler
 {
     private const TARGET_FILE_EXTENSION = '.php';
 

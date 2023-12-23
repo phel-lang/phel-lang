@@ -11,8 +11,8 @@ final class PhpObjectSetNode extends AbstractNode
 {
     public function __construct(
         NodeEnvironmentInterface $env,
-        private PhpObjectCallNode $leftExpr,
-        private AbstractNode $rightExpr,
+        private readonly PhpObjectCallNode $leftExpr,
+        private readonly AbstractNode $rightExpr,
         ?SourceLocation $sourceLocation = null,
     ) {
         parent::__construct($env, $sourceLocation);

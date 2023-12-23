@@ -14,9 +14,9 @@ final class ListNode implements InnerNodeInterface
      * @param list<NodeInterface> $children
      */
     public function __construct(
-        private int $tokenType,
-        private SourceLocation $startLocation,
-        private SourceLocation $endLocation,
+        private readonly int $tokenType,
+        private readonly SourceLocation $startLocation,
+        private readonly SourceLocation $endLocation,
         private array $children,
     ) {
     }

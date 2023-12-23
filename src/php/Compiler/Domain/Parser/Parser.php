@@ -24,7 +24,7 @@ use Phel\Compiler\Domain\Parser\ParserNode\WhitespaceNode;
 
 use function in_array;
 
-final class Parser implements ParserInterface
+final readonly class Parser implements ParserInterface
 {
     private const TOKENS_THAT_SHOULD_STREAM_NEXT = [
         Token::T_WHITESPACE,
@@ -34,15 +34,10 @@ final class Parser implements ParserInterface
         Token::T_STRING,
     ];
 
-    private ExpressionParserFactoryInterface $parserFactory;
-    private GlobalEnvironmentInterface $globalEnvironment;
-
     public function __construct(
-        ExpressionParserFactoryInterface $parserFactory,
-        GlobalEnvironmentInterface $globalEnvironment,
+        private ExpressionParserFactoryInterface $parserFactory,
+        private GlobalEnvironmentInterface $globalEnvironment,
     ) {
-        $this->parserFactory = $parserFactory;
-        $this->globalEnvironment = $globalEnvironment;
     }
 
     /**

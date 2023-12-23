@@ -13,9 +13,6 @@ use function count;
  */
 abstract class AbstractZipper
 {
-    /** @var T */
-    protected $node;
-
     /**
      * @param T $node
      * @param ?AbstractZipper<T> $parent
@@ -23,14 +20,13 @@ abstract class AbstractZipper
      * @param list<T> $rightSiblings
      */
     final public function __construct(
-        $node,
+        protected $node,
         protected ?self $parent,
         protected array $leftSiblings = [],
         protected array $rightSiblings = [],
         protected bool $hasChanged = false,
         protected bool $isEnd = false,
     ) {
-        $this->node = $node;
     }
 
     /**

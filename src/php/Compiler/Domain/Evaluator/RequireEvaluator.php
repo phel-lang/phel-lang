@@ -9,7 +9,7 @@ use Phel\Compiler\Domain\Evaluator\Exceptions\FileException;
 use Phel\Filesystem\FilesystemFacadeInterface;
 use Throwable;
 
-final class RequireEvaluator implements EvaluatorInterface
+final readonly class RequireEvaluator implements EvaluatorInterface
 {
     public function __construct(
         private FilesystemFacadeInterface $filesystemFacade,

@@ -19,8 +19,8 @@ use function count;
 
 class TypeFactory
 {
-    private HasherInterface $hasher;
-    private EqualizerInterface $equalizer;
+    private readonly HasherInterface $hasher;
+    private readonly EqualizerInterface $equalizer;
     private static ?TypeFactory $instance = null;
 
     public function __construct()

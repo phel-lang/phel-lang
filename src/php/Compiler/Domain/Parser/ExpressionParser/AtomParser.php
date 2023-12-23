@@ -16,7 +16,7 @@ use Phel\Compiler\Domain\Parser\ParserNode\SymbolNode;
 use Phel\Lang\Keyword;
 use Phel\Lang\Symbol;
 
-final class AtomParser
+final readonly class AtomParser
 {
     private const REGEX_KEYWORD = '/:(?<second_colon>:?)((?<namespace>[^\/]+)\/)?(?<keyword>[^\/]+)/';
     private const REGEX_BINARY_NUMBER = '/^([+-])?0[bB][01]+(_[01]+)*$/';

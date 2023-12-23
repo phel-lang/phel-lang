@@ -19,8 +19,8 @@ use function count;
 class TransientArrayMap implements TransientMapInterface
 {
     public function __construct(
-        private HasherInterface $hasher,
-        private EqualizerInterface $equalizer,
+        private readonly HasherInterface $hasher,
+        private readonly EqualizerInterface $equalizer,
         private array $array,
     ) {
     }

@@ -10,8 +10,8 @@ use RuntimeException;
 final class CompilerException extends RuntimeException
 {
     public function __construct(
-        private AbstractLocatedException $nestedException,
-        private CodeSnippet $codeSnippet,
+        private readonly AbstractLocatedException $nestedException,
+        private readonly CodeSnippet $codeSnippet,
     ) {
         parent::__construct($nestedException->getMessage());
     }

@@ -6,7 +6,7 @@ namespace Phel\Compiler\Domain\Analyzer\Ast;
 
 use Phel\Lang\Symbol;
 
-final class DefStructMethod
+final readonly class DefStructMethod
 {
     public function __construct(
         private Symbol $name,

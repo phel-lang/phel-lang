@@ -11,7 +11,7 @@ use Phel\Compiler\Infrastructure\CompileOptions;
 use Phel\Lang\Registry;
 use Phel\Shared\BuildConstants;
 
-final class FileCompiler implements FileCompilerInterface
+final readonly class FileCompiler implements FileCompilerInterface
 {
     public function __construct(
         private CompilerFacadeInterface $compilerFacade,

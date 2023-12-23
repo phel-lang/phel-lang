@@ -15,13 +15,12 @@ use Phel\Run\Domain\Repl\ColorStyleInterface;
 use ReflectionClass;
 use Throwable;
 
-use function get_class;
 use function sprintf;
 use function strlen;
 
 use const PHP_EOL;
 
-final class TextExceptionPrinter implements ExceptionPrinterInterface
+final readonly class TextExceptionPrinter implements ExceptionPrinterInterface
 {
     public function __construct(
         private ExceptionArgsPrinterInterface $exceptionArgsPrinter,
@@ -87,7 +86,7 @@ final class TextExceptionPrinter implements ExceptionPrinterInterface
     public function getStackTraceString(Throwable $e): string
     {
         $str = '';
-        $type = get_class($e);
+        $type = $e::class;
         $msg = $e->getMessage();
         $errorFile = $e->getFile();
         $errorLine = $e->getLine();
@@ -114,7 +113,7 @@ final class TextExceptionPrinter implements ExceptionPrinterInterface
                 }
             }
 
-            $class = $class ?? '';
+            $class ??= '';
             $type = $frame['type'] ?? '';
             $fn = $frame['function'] ?? '';
             $argString = $this->exceptionArgsPrinter->buildPhpArgsString($frame['args'] ?? []);

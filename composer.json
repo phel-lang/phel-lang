@@ -62,7 +62,8 @@
         "test-quality": [
             "@csrun",
             "@psalm",
-            "@phpstan"
+            "@phpstan",
+            "@rectorrun"
         ],
         "static-clear-cache": [
             "vendor/bin/psalm --clear-cache",
@@ -75,6 +76,8 @@
         "phpstan": "./vendor/bin/phpstan --memory-limit=516M",
         "csfix": "./vendor/bin/php-cs-fixer fix",
         "csrun": "./vendor/bin/php-cs-fixer fix --dry-run",
+        "rector": "./vendor/bin/rector process",
+        "rectorrun": "./vendor/bin/rector process --dry-run",
         "infection": "XDEBUG_MODE=coverage php -d memory_limit=-1 ./vendor/bin/infection --show-mutations --threads=max --min-msi=50 --min-covered-msi=40",
         "phpbench": "./vendor/bin/phpbench run --report=aggregate --ansi",
         "phpbench-base": "./vendor/bin/phpbench run --tag=baseline --report=aggregate --progress=plain --ansi",

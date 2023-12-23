@@ -12,7 +12,7 @@ use Phel\Compiler\Domain\Emitter\OutputEmitterInterface;
 use function assert;
 use function count;
 
-final class FnAsClassEmitter implements NodeEmitterInterface
+final readonly class FnAsClassEmitter implements NodeEmitterInterface
 {
     public function __construct(
         private OutputEmitterInterface $outputEmitter,

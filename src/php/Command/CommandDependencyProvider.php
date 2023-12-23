@@ -14,8 +14,9 @@ final class CommandDependencyProvider extends AbstractDependencyProvider
 
     public function provideModuleDependencies(Container $container): void
     {
-        $container->set(self::PHP_CONFIG_READER, static function (Container $container) {
-            return $container->getLocator()->get(PhpConfigReader::class);
-        });
+        $container->set(
+            self::PHP_CONFIG_READER,
+            static fn (Container $container) => $container->getLocator()->get(PhpConfigReader::class),
+        );
     }
 }

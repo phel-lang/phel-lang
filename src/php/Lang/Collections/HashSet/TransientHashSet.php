@@ -15,8 +15,8 @@ use Phel\Lang\HasherInterface;
 class TransientHashSet implements TransientHashSetInterface
 {
     public function __construct(
-        private HasherInterface $hasher,
-        private TransientMapInterface $transientMap,
+        private readonly HasherInterface $hasher,
+        private readonly TransientMapInterface $transientMap,
     ) {
     }
 

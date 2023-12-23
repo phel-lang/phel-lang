@@ -6,7 +6,7 @@ namespace Phel\Interop\Domain\Generator\Builder;
 
 use Phel\Interop\Domain\ReadModel\FunctionToExport;
 
-final class CompiledPhpClassBuilder
+final readonly class CompiledPhpClassBuilder
 {
     public function __construct(
         private string $prefixNamespace,

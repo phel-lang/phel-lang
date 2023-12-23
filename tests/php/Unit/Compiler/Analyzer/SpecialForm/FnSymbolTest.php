@@ -26,8 +26,8 @@ final class FnSymbolTest extends TestCase
     public function setUp(): void
     {
         $env = new GlobalEnvironment();
-        $env->addDefinition('phel\\core', Symbol::create('first'), TypeFactory::getInstance()->emptyPersistentMap());
-        $env->addDefinition('phel\\core', Symbol::create('next'), TypeFactory::getInstance()->emptyPersistentMap());
+        $env->addDefinition('phel\\core', Symbol::create('first'));
+        $env->addDefinition('phel\\core', Symbol::create('next'));
         $this->analyzer = new Analyzer($env);
     }
 

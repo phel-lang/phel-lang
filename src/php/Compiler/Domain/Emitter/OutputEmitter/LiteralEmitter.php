@@ -15,7 +15,6 @@ use Phel\Printer\PrinterInterface;
 use RuntimeException;
 
 use function count;
-use function get_class;
 use function gettype;
 use function is_array;
 use function is_bool;
@@ -23,7 +22,7 @@ use function is_float;
 use function is_int;
 use function is_string;
 
-final class LiteralEmitter
+final readonly class LiteralEmitter
 {
     public function __construct(
         private OutputEmitterInterface $outputEmitter,
@@ -58,7 +57,7 @@ final class LiteralEmitter
         } else {
             $typeName = gettype($x);
             if ($typeName === 'object') {
-                $typeName = get_class($x);
+                $typeName = $x::class;
             }
             throw new RuntimeException('literal not supported: ' . $typeName);
         }

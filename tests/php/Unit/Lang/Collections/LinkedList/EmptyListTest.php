@@ -24,7 +24,7 @@ final class EmptyListTest extends TestCase
         $this->assertEquals('foo', $list->get(0));
     }
 
-    public function test_can_not_pop_on_emtpy_list(): void
+    public function test_can_not_pop_on_empty_list(): void
     {
         $this->expectException(RuntimeException::class);
 
@@ -38,7 +38,7 @@ final class EmptyListTest extends TestCase
         $this->assertEquals(0, $list->count());
     }
 
-    public function test_can_get_on_emtpy_list(): void
+    public function test_can_get_on_empty_list(): never
     {
         $this->expectException(IndexOutOfBoundsException::class);
 

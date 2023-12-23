@@ -11,7 +11,7 @@ use Phel\Lang\Symbol;
 
 use function is_null;
 
-final class BlockIndenter implements IndenterInterface
+final readonly class BlockIndenter implements IndenterInterface
 {
     private ListIndenter $listIndenter;
 

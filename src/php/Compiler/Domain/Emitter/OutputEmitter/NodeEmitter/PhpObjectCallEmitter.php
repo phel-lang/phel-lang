@@ -14,7 +14,6 @@ use Phel\Lang\Symbol;
 use RuntimeException;
 
 use function assert;
-use function get_class;
 
 final class PhpObjectCallEmitter implements NodeEmitterInterface
 {
@@ -67,7 +66,7 @@ final class PhpObjectCallEmitter implements NodeEmitterInterface
         } elseif ($callExpr instanceof PropertyOrConstantAccessNode) {
             $this->outputEmitter->emitStr($callExpr->getName()->getName(), $callExpr->getName()->getStartLocation());
         } else {
-            throw new RuntimeException('Not supported ' . get_class($callExpr));
+            throw new RuntimeException('Not supported ' . $callExpr::class);
         }
     }
 

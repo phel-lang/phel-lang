@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Phel\Api\Transfer;
 
-final class PhelFunction
+final readonly class PhelFunction
 {
     public function __construct(
         private string $fnName,

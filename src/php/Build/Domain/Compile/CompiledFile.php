@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Phel\Build\Domain\Compile;
 
-final class CompiledFile
+final readonly class CompiledFile
 {
     public function __construct(
         private string $sourceFile,

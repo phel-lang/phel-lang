@@ -15,7 +15,7 @@ use Phel\Lang\Symbol;
 use function assert;
 use function count;
 
-final class DefStructEmitter implements NodeEmitterInterface
+final readonly class DefStructEmitter implements NodeEmitterInterface
 {
     public function __construct(
         private OutputEmitterInterface $outputEmitter,

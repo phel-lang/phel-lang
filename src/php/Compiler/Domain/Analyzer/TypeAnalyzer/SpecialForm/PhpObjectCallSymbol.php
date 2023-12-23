@@ -15,7 +15,7 @@ use Phel\Lang\Symbol;
 
 use function count;
 
-final class PhpObjectCallSymbol implements SpecialFormAnalyzerInterface
+final readonly class PhpObjectCallSymbol implements SpecialFormAnalyzerInterface
 {
     public function __construct(
         private AnalyzerInterface $analyzer,

@@ -26,8 +26,8 @@ class TransientVector implements TransientVectorInterface
      * @param T[] $tail The tail of the vector. This is an optimization
      */
     public function __construct(
-        private HasherInterface $hasher,
-        private EqualizerInterface $equalizer,
+        private readonly HasherInterface $hasher,
+        private readonly EqualizerInterface $equalizer,
         private int $count,
         private int $shift,
         private array $root,

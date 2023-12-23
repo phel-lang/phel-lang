@@ -14,7 +14,7 @@ final class MapNode extends AbstractNode
      */
     public function __construct(
         NodeEnvironmentInterface $env,
-        private array $keyValues,
+        private readonly array $keyValues,
         ?SourceLocation $sourceLocation = null,
     ) {
         parent::__construct($env, $sourceLocation);

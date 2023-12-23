@@ -19,8 +19,9 @@ final class ApiDependencyProvider extends AbstractDependencyProvider
 
     private function addRunFacade(Container $container): void
     {
-        $container->set(self::FACADE_RUN, static function (Container $container) {
-            return $container->getLocator()->get(RunFacade::class);
-        });
+        $container->set(
+            self::FACADE_RUN,
+            static fn (Container $container) => $container->getLocator()->get(RunFacade::class),
+        );
     }
 }

@@ -10,10 +10,6 @@ use Phel\Lang\Collections\Vector\PersistentVectorInterface;
 use Phel\Lang\Symbol;
 use Phel\Lang\TypeInterface;
 
-use function get_class;
-use function gettype;
-use function is_object;
-
 final class BindingValidator implements BindingValidatorInterface
 {
     /**
@@ -30,7 +26,7 @@ final class BindingValidator implements BindingValidatorInterface
             return;
         }
 
-        $type = is_object($form) ? get_class($form) : gettype($form);
+        $type = get_debug_type($form);
 
         if ($form instanceof TypeInterface) {
             throw AnalyzerException::withLocation('Cannot destructure ' . $type, $form);
