@@ -22,22 +22,22 @@
         }
     ],
     "require": {
-        "php": ">=8.0.2",
-        "gacela-project/gacela": "^1.6",
+        "php": ">=8.2",
+        "gacela-project/gacela": "^1.7",
         "phpunit/php-timer": "^5.0",
-        "symfony/console": "^6.0"
+        "symfony/console": "^6.4"
     },
     "require-dev": {
         "ext-readline": "*",
-        "friendsofphp/php-cs-fixer": "^3.40",
+        "friendsofphp/php-cs-fixer": "^3.41",
         "infection/infection": "^0.26",
         "phpbench/phpbench": "^1.2",
         "phpmetrics/phpmetrics": "^2.8",
         "phpstan/phpstan": "^1.10",
         "phpunit/phpunit": "^9.6",
         "psalm/plugin-phpunit": "^0.18",
-        "symfony/var-dumper": "^6.0",
-        "vimeo/psalm": "^5.16"
+        "symfony/var-dumper": "^6.4",
+        "vimeo/psalm": "^5.18"
     },
     "autoload": {
         "psr-4": {
@@ -88,7 +88,7 @@
     ],
     "config": {
         "platform": {
-            "php": "8.0.2"
+            "php": "8.2"
         },
         "allow-plugins": {
             "composer/package-versions-deprecated": true,
