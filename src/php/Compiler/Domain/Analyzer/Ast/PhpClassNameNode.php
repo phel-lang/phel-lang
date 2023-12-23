@@ -30,7 +30,7 @@ final class PhpClassNameNode extends AbstractNode
      */
     public function getAbsolutePhpName(): string
     {
-        if ($this->name->getNamespace()) {
+        if ($this->name->getNamespace() !== null && $this->name->getNamespace() !== '' && $this->name->getNamespace() !== '0') {
             $munge = new Munge();
             $mungeNs = $munge->encodeNs($this->name->getNamespace());
             /** @psalm-var class-string $classString */

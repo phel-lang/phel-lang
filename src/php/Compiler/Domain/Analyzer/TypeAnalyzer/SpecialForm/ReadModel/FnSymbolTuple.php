@@ -85,7 +85,7 @@ final class FnSymbolTuple
     private function checkAllVariablesStartWithALetterOrUnderscore(): void
     {
         foreach ($this->params as $param) {
-            if (!preg_match("/^[a-zA-Z_\x80-\xff].*$/", (string) $param->getName())) {
+            if (preg_match("/^[a-zA-Z_\x80-\xff].*$/", (string) $param->getName()) === 0 || preg_match("/^[a-zA-Z_\x80-\xff].*$/", (string) $param->getName()) === 0 || preg_match("/^[a-zA-Z_\x80-\xff].*$/", (string) $param->getName()) === false) {
                 throw AnalyzerException::withLocation(
                     'Variable names must start with a letter or underscore: ' . $param->getName(),
                     $this->parentList,

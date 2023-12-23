@@ -104,7 +104,7 @@ final class Symbol extends AbstractType implements IdenticalInterface, NamedInte
 
     public function getFullName(): string
     {
-        if ($this->namespace) {
+        if ($this->namespace !== null && $this->namespace !== '') {
             return $this->namespace . '/' . $this->name;
         }
 

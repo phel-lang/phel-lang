@@ -32,7 +32,7 @@ final class NsSymbol implements SpecialFormAnalyzerInterface
         }
 
         $ns = $nsSymbol->getName();
-        if (!(preg_match("/^[a-zA-Z\x7f-\xff][a-zA-Z0-9\-\x7f-\xff\\\\]*[a-zA-Z0-9\-\x7f-\xff]*$/", $ns))) {
+        if (preg_match("/^[a-zA-Z\x7f-\xff][a-zA-Z0-9\-\x7f-\xff\\\\]*[a-zA-Z0-9\-\x7f-\xff]*$/", $ns) === 0 || preg_match("/^[a-zA-Z\x7f-\xff][a-zA-Z0-9\-\x7f-\xff\\\\]*[a-zA-Z0-9\-\x7f-\xff]*$/", $ns) === 0 || preg_match("/^[a-zA-Z\x7f-\xff][a-zA-Z0-9\-\x7f-\xff\\\\]*[a-zA-Z0-9\-\x7f-\xff]*$/", $ns) === false) {
             throw AnalyzerException::withLocation(
                 'The namespace is not valid. A valid namespace name starts with a letter,
                 followed by any number of letters, numbers, or dashes. Elements are splitted by a backslash.',

@@ -124,7 +124,7 @@ final readonly class NamespaceExtractor implements NamespaceExtractorInterface
     {
         $realpath = realpath($directory);
 
-        if (!$realpath) {
+        if ($realpath === '' || $realpath === '0' || $realpath === false) {
             return [];
             // throw new RuntimeException("Directory '{$directory}' not found");
         }

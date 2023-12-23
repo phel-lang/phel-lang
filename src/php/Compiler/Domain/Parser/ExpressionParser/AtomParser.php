@@ -80,7 +80,7 @@ final readonly class AtomParser
         $word = $token->getCode();
         $isValid = preg_match(self::REGEX_KEYWORD, $word, $matches);
 
-        if (!$isValid) {
+        if ($isValid === 0 || $isValid === false) {
             throw new KeywordParserException('This is not a valid keyword');
         }
 
@@ -93,7 +93,7 @@ final readonly class AtomParser
             // like ::foo/bar
             $alias = $matches['namespace'];
             $namespace = $this->globalEnvironment->resolveAlias($alias);
-            if (!$namespace) {
+            if ($namespace === null || $namespace === '') {
                 throw new KeywordParserException(sprintf("Can not resolve alias '%s' in keyword: %s", $alias, $word));
             }
         } elseif ($isDualColon) {

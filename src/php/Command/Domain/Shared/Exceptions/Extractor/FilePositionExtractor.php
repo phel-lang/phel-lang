@@ -44,6 +44,8 @@ final readonly class FilePositionExtractor implements FilePositionExtractorInter
         $mapping = trim(substr($sourceMapInfo->sourceMap(), 3));
         $sourceMapConsumer = new SourceMapConsumer($mapping);
 
-        return ($sourceMapConsumer->getOriginalLine($line - 1)) ?: $line;
+        return ($sourceMapConsumer->getOriginalLine($line - 1) !== null && $sourceMapConsumer->getOriginalLine($line - 1) !== 0)
+            ? $sourceMapConsumer->getOriginalLine($line - 1) ?? $line
+            : $line;
     }
 }

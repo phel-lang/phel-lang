@@ -9,6 +9,8 @@ use Phel\Compiler\Domain\Analyzer\Ast\FnNode;
 use Phel\Compiler\Domain\Emitter\OutputEmitter\NodeEmitterInterface;
 use Phel\Compiler\Domain\Emitter\OutputEmitterInterface;
 
+use Phel\Lang\Symbol;
+
 use function assert;
 use function count;
 
@@ -39,7 +41,9 @@ final readonly class FnAsClassEmitter implements NodeEmitterInterface
         $usesCount = count($node->getUses());
         foreach ($node->getUses() as $i => $use) {
             $loc = $use->getStartLocation();
-            $normalizedUse = $node->getEnv()->getShadowed($use) ?: $use;
+            $normalizedUse = $node->getEnv()->getShadowed($use) instanceof Symbol
+                ? $node->getEnv()->getShadowed($use) ?? $use
+                : $use;
             $this->outputEmitter->emitPhpVariable($normalizedUse, $loc);
 
             if ($i < $usesCount - 1) {
@@ -57,7 +61,9 @@ final readonly class FnAsClassEmitter implements NodeEmitterInterface
         $this->outputEmitter->emitLine('public const BOUND_TO = "' . $ns . '";', $node->getStartSourceLocation());
 
         foreach ($node->getUses() as $use) {
-            $normalizedUse = $node->getEnv()->getShadowed($use) ?: $use;
+            $normalizedUse = $node->getEnv()->getShadowed($use) instanceof Symbol
+                ? $node->getEnv()->getShadowed($use) ?? $use
+                : $use;
 
             $this->outputEmitter->emitLine(
                 'private $' . $this->outputEmitter->mungeEncode($normalizedUse->getName()) . ';',
@@ -76,7 +82,9 @@ final readonly class FnAsClassEmitter implements NodeEmitterInterface
 
             // Constructor parameter
             foreach ($node->getUses() as $i => $use) {
-                $normalizedUse = $node->getEnv()->getShadowed($use) ?: $use;
+                $normalizedUse = $node->getEnv()->getShadowed($use) instanceof Symbol
+                    ? $node->getEnv()->getShadowed($use) ?? $use
+                    : $use;
 
                 $this->outputEmitter->emitPhpVariable($normalizedUse, $node->getStartSourceLocation());
 
@@ -90,7 +98,9 @@ final readonly class FnAsClassEmitter implements NodeEmitterInterface
 
             // Constructor assignment
             foreach ($node->getUses() as $use) {
-                $normalizedUse = $node->getEnv()->getShadowed($use) ?: $use;
+                $normalizedUse = $node->getEnv()->getShadowed($use) instanceof Symbol
+                    ? $node->getEnv()->getShadowed($use) ?? $use
+                    : $use;
                 $varName = $this->outputEmitter->mungeEncode($normalizedUse->getName());
 
                 $this->outputEmitter->emitLine(

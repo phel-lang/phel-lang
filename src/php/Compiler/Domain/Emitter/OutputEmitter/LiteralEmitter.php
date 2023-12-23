@@ -96,7 +96,7 @@ final readonly class LiteralEmitter
 
     private function emitKeyword(Keyword $x): void
     {
-        if ($x->getNamespace()) {
+        if ($x->getNamespace() !== null && $x->getNamespace() !== '' && $x->getNamespace() !== '0') {
             $this->outputEmitter->emitStr(
                 '\Phel\Lang\Keyword::createForNamespace("' . addslashes($x->getNamespace()) . '", "' . addslashes($x->getName()) . '")',
                 $x->getStartLocation(),

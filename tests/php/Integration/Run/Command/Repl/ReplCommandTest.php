@@ -100,7 +100,7 @@ final class ReplCommandTest extends AbstractCommandTest
 
         /** @var SplFileInfo $file */
         foreach ($iterator as $file) {
-            if (!preg_match('/\.test$/', $file->getRealPath())) {
+            if (preg_match('/\.test$/', $file->getRealPath()) === 0 || preg_match('/\.test$/', $file->getRealPath()) === 0 || preg_match('/\.test$/', $file->getRealPath()) === false) {
                 continue;
             }
 
