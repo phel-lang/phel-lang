@@ -37,7 +37,8 @@
         "phpunit/phpunit": "^9.6",
         "psalm/plugin-phpunit": "^0.18",
         "symfony/var-dumper": "^6.4",
-        "vimeo/psalm": "^5.18"
+        "vimeo/psalm": "^5.18",
+        "rector/rector": "^0.18.13"
     },
     "autoload": {
         "psr-4": {
