@@ -31,13 +31,13 @@ final class MethodEmitter
     {
         $paramsCount = count($node->getParams());
 
-        foreach ($node->getParams() as $i => $p) {
+        foreach ($node->getParams() as $i => $symbol) {
             if ($i === $paramsCount - 1 && $node->isVariadic()) {
-                $this->outputEmitter->emitPhpVariable($p, $loc = null, $asReference = false, $isVariadic = true);
+                $this->outputEmitter->emitPhpVariable($symbol, $loc = null, $asReference = false, $isVariadic = true);
             } else {
-                $meta = $p->getMeta();
+                $meta = $symbol->getMeta();
                 $isReference = $meta && $meta->find(Keyword::create('reference')) === true;
-                $this->outputEmitter->emitPhpVariable($p, $loc = null, $isReference);
+                $this->outputEmitter->emitPhpVariable($symbol, $loc = null, $isReference);
             }
 
             if ($i < $paramsCount - 1) {

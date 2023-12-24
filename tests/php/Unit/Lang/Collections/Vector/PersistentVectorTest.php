@@ -321,6 +321,7 @@ final class PersistentVectorTest extends TestCase
 
     public function test_invoke(): void
     {
+        /** @var PersistentVector $vector */
         $vector = PersistentVector::fromArray(new ModuloHasher(), new SimpleEqualizer(), [1, 2, 3, 4]);
 
         $this->assertEquals(2, $vector(1));
@@ -349,8 +350,8 @@ final class PersistentVectorTest extends TestCase
         $vector = PersistentVector::fromArray(new ModuloHasher(), new SimpleEqualizer(), [1, 2]);
 
         $result = [];
-        foreach ($vector->rest() as $x) {
-            $result[] = $x;
+        foreach ($vector->rest() as $persistentVector) {
+            $result[] = $persistentVector;
         }
 
         $this->assertEquals([2], $result);

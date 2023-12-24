@@ -99,8 +99,8 @@ final class DocCommand extends Command
         $longestFuncNameLength = 5;
         $normalized = [];
 
-        foreach ($phelFunctions as $function) {
-            $fnName = $function->fnName();
+        foreach ($phelFunctions as $phelFunction) {
+            $fnName = $phelFunction->fnName();
             similar_text($fnName, $search, $percent);
             if ($search && $percent < 40) {
                 continue;
@@ -113,9 +113,9 @@ final class DocCommand extends Command
             $normalized[] = [
                 'percent' => round($percent),
                 'name' => $fnName,
-                'signature' => $function->fnSignature(),
-                'doc' => $function->doc(),
-                'description' => preg_replace('/\r?\n/', '', $function->description()),
+                'signature' => $phelFunction->fnSignature(),
+                'doc' => $phelFunction->doc(),
+                'description' => preg_replace('/\r?\n/', '', $phelFunction->description()),
             ];
         }
 

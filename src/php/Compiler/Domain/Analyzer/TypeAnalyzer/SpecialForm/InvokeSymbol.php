@@ -159,9 +159,9 @@ final class InvokeSymbol implements SpecialFormAnalyzerInterface
     private function arguments(PersistentListInterface $argsList, NodeEnvironmentInterface $env): array
     {
         $arguments = [];
-        foreach ($argsList as $element) {
+        foreach ($argsList as $argList) {
             $arguments[] = $this->analyzer->analyze(
-                $element,
+                $argList,
                 $env->withExpressionContext()->withDisallowRecurFrame(),
             );
         }

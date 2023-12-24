@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace Phel\Compiler\Domain\Emitter\OutputEmitter\NodeEmitter;
 
 use Phel\Compiler\Domain\Analyzer\Ast\AbstractNode;
-use Phel\Compiler\Domain\Analyzer\Ast\DefStructInterface;
 use Phel\Compiler\Domain\Analyzer\Ast\DefStructNode;
 use Phel\Compiler\Domain\Emitter\OutputEmitter\NodeEmitterInterface;
 use Phel\Compiler\Domain\Emitter\OutputEmitterInterface;
@@ -53,9 +52,8 @@ final readonly class DefStructEmitter implements NodeEmitterInterface
             $this->outputEmitter->emitStr(' implements ');
         }
 
-        /** @var DefStructInterface $interface */
-        foreach ($node->getInterfaces() as $i => $interface) {
-            $this->outputEmitter->emitStr($interface->getAbsoluteInterfaceName());
+        foreach ($node->getInterfaces() as $i => $defStruct) {
+            $this->outputEmitter->emitStr($defStruct->getAbsoluteInterfaceName());
             if ($i < count($node->getInterfaces()) - 1) {
                 $this->outputEmitter->emitStr(', ');
             }
@@ -132,8 +130,8 @@ final readonly class DefStructEmitter implements NodeEmitterInterface
 
     private function emitInterfaces(DefStructNode $node): void
     {
-        foreach ($node->getInterfaces() as $interface) {
-            foreach ($interface->getMethods() as $method) {
+        foreach ($node->getInterfaces() as $defStruct) {
+            foreach ($defStruct->getMethods() as $method) {
                 $this->outputEmitter->emitLine();
                 $this->methodEmitter->emit($method->getName()->getName(), $method->getFnNode());
             }
