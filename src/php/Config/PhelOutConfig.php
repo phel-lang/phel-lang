@@ -75,14 +75,14 @@ final class PhelOutConfig implements JsonSerializable
 
     public function shouldCreateEntryPointPhpFile(): bool
     {
-        return (bool) $this->getMainPhelNamespace();
+        return (bool) $this->mainPhelNamespace;
     }
 
     public function jsonSerialize(): array
     {
         return [
-            self::DEST_DIR => $this->getDestDir(),
-            self::MAIN_PHEL_NAMESPACE => $this->getMainPhelNamespace(),
+            self::DEST_DIR => $this->destDir,
+            self::MAIN_PHEL_NAMESPACE => $this->mainPhelNamespace,
             self::MAIN_PHP_FILENAME => $this->mainPhpFilename,
             self::MAIN_PHP_PATH => $this->getMainPhpPath(),
         ];

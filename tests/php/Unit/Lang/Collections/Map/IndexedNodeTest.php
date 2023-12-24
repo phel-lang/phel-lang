@@ -11,7 +11,7 @@ use PhelTest\Unit\Lang\Collections\ModuloHasher;
 use PhelTest\Unit\Lang\Collections\SimpleEqualizer;
 use PHPUnit\Framework\TestCase;
 
-class IndexedNodeTest extends TestCase
+final class IndexedNodeTest extends TestCase
 {
     public function test_empty(): void
     {

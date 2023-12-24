@@ -15,7 +15,7 @@ use Traversable;
  *
  * @implements HashMapNodeInterface<K, V>
  */
-class ArrayNode implements HashMapNodeInterface, Countable
+final class ArrayNode implements HashMapNodeInterface, Countable
 {
     /**
      * @param list<?HashMapNodeInterface<K, V>> $childNodes A fixed size array of nodes

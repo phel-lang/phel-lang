@@ -9,7 +9,7 @@ use Iterator;
 use function assert;
 use function count;
 
-class RangeIterator implements Iterator
+final class RangeIterator implements Iterator
 {
     private int $currentIndex;
 

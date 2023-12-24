@@ -14,7 +14,7 @@ use function count;
  *
  * @implements Iterator<K, V>
  */
-class HashCollisionNodeIterator implements Iterator
+final class HashCollisionNodeIterator implements Iterator
 {
     private int $index = 0;
 

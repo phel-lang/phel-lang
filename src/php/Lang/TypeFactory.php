@@ -17,7 +17,7 @@ use Phel\Lang\Collections\Vector\PersistentVectorInterface;
 
 use function count;
 
-class TypeFactory
+final class TypeFactory
 {
     private readonly HasherInterface $hasher;
 

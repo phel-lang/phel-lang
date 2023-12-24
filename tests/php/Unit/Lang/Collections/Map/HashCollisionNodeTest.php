@@ -11,7 +11,7 @@ use PhelTest\Unit\Lang\Collections\ModuloHasher;
 use PhelTest\Unit\Lang\Collections\SimpleEqualizer;
 use PHPUnit\Framework\TestCase;
 
-class HashCollisionNodeTest extends TestCase
+final class HashCollisionNodeTest extends TestCase
 {
     public function test_find_on_single_collision_node(): void
     {

@@ -58,9 +58,9 @@ final class PhelExportConfig implements JsonSerializable
     public function jsonSerialize(): array
     {
         return [
-            InteropConfig::EXPORT_TARGET_DIRECTORY => $this->getTargetDirectory(),
-            InteropConfig::EXPORT_DIRECTORIES => $this->getDirectories(),
-            InteropConfig::EXPORT_NAMESPACE_PREFIX => $this->getNamespacePrefix(),
+            InteropConfig::EXPORT_TARGET_DIRECTORY => $this->targetDirectory,
+            InteropConfig::EXPORT_DIRECTORIES => $this->directories,
+            InteropConfig::EXPORT_NAMESPACE_PREFIX => $this->namespacePrefix,
         ];
     }
 }

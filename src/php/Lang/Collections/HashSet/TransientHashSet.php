@@ -12,11 +12,11 @@ use Phel\Lang\HasherInterface;
  *
  * @implements TransientHashSetInterface<V>
  */
-class TransientHashSet implements TransientHashSetInterface
+final readonly class TransientHashSet implements TransientHashSetInterface
 {
     public function __construct(
-        private readonly HasherInterface $hasher,
-        private readonly TransientMapInterface $transientMap,
+        private HasherInterface $hasher,
+        private TransientMapInterface $transientMap,
     ) {
     }
 

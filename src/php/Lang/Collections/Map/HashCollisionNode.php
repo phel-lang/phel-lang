@@ -16,7 +16,7 @@ use function array_slice;
  *
  * @implements HashMapNodeInterface<K, V>
  */
-class HashCollisionNode implements HashMapNodeInterface
+final class HashCollisionNode implements HashMapNodeInterface
 {
     /**
      * @param array{K,V,K,V} $objects

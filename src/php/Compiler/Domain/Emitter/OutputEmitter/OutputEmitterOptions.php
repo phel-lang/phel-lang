@@ -4,14 +4,14 @@ declare(strict_types=1);
 
 namespace Phel\Compiler\Domain\Emitter\OutputEmitter;
 
-class OutputEmitterOptions
+final readonly class OutputEmitterOptions
 {
-    final public const EMIT_MODE_FILE = 'EMIT_MODE_FILE';
+    public const EMIT_MODE_FILE = 'EMIT_MODE_FILE';
 
-    final public const EMIT_MODE_STATEMENT = 'EMIT_MODE_STATEMENT';
+    public const EMIT_MODE_STATEMENT = 'EMIT_MODE_STATEMENT';
 
     public function __construct(
-        private readonly string $emitMode = self::EMIT_MODE_STATEMENT,
+        private string $emitMode = self::EMIT_MODE_STATEMENT,
     ) {
     }
 

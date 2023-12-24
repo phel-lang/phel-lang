@@ -10,7 +10,7 @@ use PhelTest\Unit\Lang\Collections\ModuloHasher;
 use PhelTest\Unit\Lang\Collections\SimpleEqualizer;
 use PHPUnit\Framework\TestCase;
 
-class ArrayNodeIteratorTest extends TestCase
+final class ArrayNodeIteratorTest extends TestCase
 {
     public function test_iterate_on_empty_node(): void
     {

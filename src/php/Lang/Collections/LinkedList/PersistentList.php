@@ -21,7 +21,7 @@ use function count;
  *
  * @extends AbstractType<PersistentListInterface<T>>
  */
-class PersistentList extends AbstractType implements PersistentListInterface
+final class PersistentList extends AbstractType implements PersistentListInterface
 {
     private int $hashCache = 0;
 
@@ -214,7 +214,7 @@ class PersistentList extends AbstractType implements PersistentListInterface
      */
     public function offsetExists($offset): bool
     {
-        return $offset >= 0 && $offset < $this->count();
+        return $offset >= 0 && $offset < $this->count;
     }
 
     /**

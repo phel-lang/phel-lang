@@ -17,7 +17,7 @@ use function count;
  *
  * @implements HashMapNodeInterface<K, V>
  */
-class IndexedNode implements HashMapNodeInterface
+final class IndexedNode implements HashMapNodeInterface
 {
     /**
      * @param list<array{0: K|null, 1: V|HashMapNodeInterface<K, V>}> $objects

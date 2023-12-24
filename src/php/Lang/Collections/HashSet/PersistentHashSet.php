@@ -17,7 +17,7 @@ use Traversable;
  *
  * @extends AbstractType<PersistentHashSet<V>>
  */
-class PersistentHashSet extends AbstractType implements PersistentHashSetInterface, IteratorAggregate
+final class PersistentHashSet extends AbstractType implements PersistentHashSetInterface, IteratorAggregate
 {
     private int $hashCache = 0;
 

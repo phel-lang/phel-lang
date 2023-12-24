@@ -16,7 +16,7 @@ use function count;
  *
  * @implements TransientMapInterface<K, V>
  */
-class TransientArrayMap implements TransientMapInterface
+final class TransientArrayMap implements TransientMapInterface
 {
     public function __construct(
         private readonly HasherInterface $hasher,

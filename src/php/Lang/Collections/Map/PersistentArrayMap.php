@@ -22,9 +22,9 @@ use function count;
  *
  * @extends AbstractPersistentMap<K, V>
  */
-class PersistentArrayMap extends AbstractPersistentMap
+final class PersistentArrayMap extends AbstractPersistentMap
 {
-    final public const MAX_SIZE = 16;
+    public const MAX_SIZE = 16;
 
     public function __construct(
         HasherInterface $hasher,

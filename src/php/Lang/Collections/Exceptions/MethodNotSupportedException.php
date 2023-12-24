@@ -6,6 +6,6 @@ namespace Phel\Lang\Collections\Exceptions;
 
 use Exception;
 
-class MethodNotSupportedException extends Exception
+final class MethodNotSupportedException extends Exception
 {
 }

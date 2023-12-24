@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Phel\Lang\Collections\Map;
 
-class Box
+final class Box
 {
     public function __construct(private mixed $value)
     {

@@ -17,7 +17,7 @@ use function count;
  *
  * @implements TransientVectorInterface<T>
  */
-class TransientVector implements TransientVectorInterface
+final class TransientVector implements TransientVectorInterface
 {
     /**
      * @param int $count The number of elements inside this vector
@@ -184,7 +184,7 @@ class TransientVector implements TransientVectorInterface
      */
     public function offsetExists($offset): bool
     {
-        return $offset >= 0 && $offset < $this->count();
+        return $offset >= 0 && $offset < $this->count;
     }
 
     public function offsetSet($offset, $value): void

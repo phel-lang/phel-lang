@@ -15,7 +15,7 @@ use function count;
  *
  * @implements Iterator<K, V>
  */
-class ArrayNodeIterator implements Iterator
+final class ArrayNodeIterator implements Iterator
 {
     /** @var array<int, HashMapNodeInterface<K, V>> A fixed size array of nodes */
     private array $childNodes;

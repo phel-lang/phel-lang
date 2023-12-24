@@ -123,7 +123,7 @@ final class Symbol extends AbstractType implements IdenticalInterface, NamedInte
 
     public function hash(): int
     {
-        return crc32($this->getName());
+        return crc32($this->name);
     }
 
     public function equals(mixed $other): bool

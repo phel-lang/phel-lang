@@ -19,7 +19,7 @@ use function array_slice;
  *
  * @extends AbstractPersistentVector<T>
  */
-class SubVector extends AbstractPersistentVector
+final class SubVector extends AbstractPersistentVector
 {
     public function __construct(
         HasherInterface $hasher,

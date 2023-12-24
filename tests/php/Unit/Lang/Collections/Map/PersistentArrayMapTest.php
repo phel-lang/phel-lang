@@ -11,7 +11,7 @@ use PhelTest\Unit\Lang\Collections\SimpleEqualizer;
 use PHPUnit\Framework\TestCase;
 use RuntimeException;
 
-class PersistentArrayMapTest extends TestCase
+final class PersistentArrayMapTest extends TestCase
 {
     public function test_empty(): void
     {

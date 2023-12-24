@@ -6,10 +6,10 @@ namespace PhelTest\Unit\Lang\Collections;
 
 use Phel\Lang\HasherInterface;
 
-class ModuloHasher implements HasherInterface
+final readonly class ModuloHasher implements HasherInterface
 {
     public function __construct(
-        private readonly int $modulo = 10000,
+        private int $modulo = 10000,
     ) {
     }
 

@@ -16,7 +16,7 @@ use function is_string;
  * This Hasher is inspired by the Clojurescript implementation.
  * These constants are the same hash value as in clojure.
  */
-class Hasher implements HasherInterface
+final class Hasher implements HasherInterface
 {
     private const NULL_HASH_VALUE = 0;
 

@@ -21,7 +21,7 @@ use Traversable;
  *
  * @extends AbstractType<PersistentList<T>>
  */
-class EmptyList extends AbstractType implements PersistentListInterface
+final class EmptyList extends AbstractType implements PersistentListInterface
 {
     public function __construct(
         private readonly HasherInterface $hasher,

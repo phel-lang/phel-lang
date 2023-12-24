@@ -32,7 +32,7 @@ use function count;
  *
  * @extends AbstractPersistentVector<T>
  */
-class PersistentVector extends AbstractPersistentVector
+final class PersistentVector extends AbstractPersistentVector
 {
     /**
      * @param int $count The number of elements stored in this vector
@@ -291,11 +291,11 @@ class PersistentVector extends AbstractPersistentVector
      */
     public function cdr()
     {
-        if ($this->count() <= 1) {
+        if ($this->count <= 1) {
             return null;
         }
 
-        return new SubVector($this->hasher, $this->equalizer, $this->meta, $this, 1, $this->count());
+        return new SubVector($this->hasher, $this->equalizer, $this->meta, $this, 1, $this->count);
     }
 
     public function asTransient(): TransientVector

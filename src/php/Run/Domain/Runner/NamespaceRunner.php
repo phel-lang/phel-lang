@@ -7,11 +7,11 @@ namespace Phel\Run\Domain\Runner;
 use Phel\Build\BuildFacadeInterface;
 use Phel\Command\CommandFacadeInterface;
 
-class NamespaceRunner implements NamespaceRunnerInterface
+final readonly class NamespaceRunner implements NamespaceRunnerInterface
 {
     public function __construct(
-        private readonly CommandFacadeInterface $commandFacade,
-        private readonly BuildFacadeInterface $buildFacade,
+        private CommandFacadeInterface $commandFacade,
+        private BuildFacadeInterface $buildFacade,
     ) {
     }
 

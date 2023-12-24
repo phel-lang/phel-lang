@@ -14,7 +14,7 @@ use function count;
  *
  * @implements Iterator<K, V>
  */
-class IndexedNodeIterator implements Iterator
+final class IndexedNodeIterator implements Iterator
 {
     /** @var array<int, array{0: K|null, 1: V|HashMapNodeInterface<K, V>}> */
     private array $entries;

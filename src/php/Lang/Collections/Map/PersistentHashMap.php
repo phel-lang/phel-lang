@@ -19,7 +19,7 @@ use function count;
  *
  * @extends AbstractPersistentMap<K, V>
  */
-class PersistentHashMap extends AbstractPersistentMap
+final class PersistentHashMap extends AbstractPersistentMap
 {
     private static ?stdClass $NOT_FOUND = null;
 

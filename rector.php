@@ -5,6 +5,9 @@ declare(strict_types=1);
 use Rector\CodeQuality\Rector\If_\SimplifyIfElseToTernaryRector;
 use Rector\CodingStyle\Rector\String_\UseClassKeywordForClassNameResolutionRector;
 use Rector\Config\RectorConfig;
+use Rector\DeadCode\Rector\Property\RemoveUnusedPrivatePropertyRector;
+use Rector\Privatization\Rector\Class_\FinalizeClassesWithoutChildrenRector;
+use Rector\Privatization\Rector\Property\PrivatizeFinalClassPropertyRector;
 use Rector\Set\ValueObject\LevelSetList;
 use Rector\Set\ValueObject\SetList;
 
@@ -36,6 +39,18 @@ return static function (RectorConfig $rectorConfig): void {
             __DIR__ . '/tests/php/Unit/Compiler/Emitter/OutputEmitter/NodeEmitter/ApplyEmitterTest.php',
             __DIR__ . '/tests/php/Unit/Compiler/Emitter/OutputEmitter/NodeEmitter/FnAsClassEmitterTest.php',
         ],
+
+        FinalizeClassesWithoutChildrenRector::class => [
+            __DIR__ . '/src/php/Run/RunFactory.php',
+        ],
+
+        RemoveUnusedPrivatePropertyRector::class => [
+            __DIR__ . '/tests/php/Unit/Printer/TypePrinter/StubStruct.php',
+        ],
+
+        PrivatizeFinalClassPropertyRector::class => [
+            __DIR__ . '/tests/php/Unit/Printer/TypePrinter/StubStruct.php',
+        ],
     ]);
 
     $rectorConfig->sets([
@@ -43,6 +58,7 @@ return static function (RectorConfig $rectorConfig): void {
         SetList::CODING_STYLE,
         SetList::DEAD_CODE,
         SetList::STRICT_BOOLEANS,
+        SetList::PRIVATIZATION,
         LevelSetList::UP_TO_PHP_82,
     ]);
 };

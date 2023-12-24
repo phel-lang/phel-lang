@@ -15,7 +15,7 @@ use stdClass;
  *
  * @implements TransientMapInterface<K, V>
  */
-class TransientHashMap implements TransientMapInterface
+final class TransientHashMap implements TransientMapInterface
 {
     private static ?stdClass $NOT_FOUND = null;
 

@@ -260,7 +260,7 @@ final class GlobalEnvironment implements GlobalEnvironmentInterface
 
     private function resolveWithoutAlias(Symbol $name, NodeEnvironmentInterface $env): ?AbstractNode
     {
-        $currentNs = $this->getNs();
+        $currentNs = $this->ns;
         if (isset($this->refers[$this->ns][$name->getName()])) {
             $currentNs = $this->refers[$this->ns][$name->getName()]->getName();
         }

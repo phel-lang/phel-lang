@@ -9,7 +9,7 @@ use PhelTest\Unit\Lang\Collections\ModuloHasher;
 use PhelTest\Unit\Lang\Collections\SimpleEqualizer;
 use PHPUnit\Framework\TestCase;
 
-class HashCollisionNodeIteratorTest extends TestCase
+final class HashCollisionNodeIteratorTest extends TestCase
 {
     public function test_iterate_on_empty_node(): void
     {

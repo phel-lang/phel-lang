@@ -9,7 +9,7 @@ use PhelTest\Unit\Lang\Collections\ModuloHasher;
 use PhelTest\Unit\Lang\Collections\SimpleEqualizer;
 use PHPUnit\Framework\TestCase;
 
-class TransientHashMapTest extends TestCase
+final class TransientHashMapTest extends TestCase
 {
     public function test_empty(): void
     {
