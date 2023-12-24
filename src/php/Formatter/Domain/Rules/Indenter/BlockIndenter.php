@@ -72,7 +72,7 @@ final readonly class BlockIndenter implements IndenterInterface
 
     private function indentMatches(string $key, ?Symbol $formSymbol): bool
     {
-        return $formSymbol && $key === $formSymbol->getName();
+        return $formSymbol instanceof Symbol && $key === $formSymbol->getName();
     }
 
     private function formSymbol(ParseTreeZipper $loc): ?Symbol

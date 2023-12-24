@@ -80,7 +80,7 @@ final class OutputEmitter implements OutputEmitterInterface
             echo str_repeat(' ', $this->indentLevel * 2);
         }
 
-        if ($this->enableSourceMaps && $sl) {
+        if ($this->enableSourceMaps && $sl instanceof SourceLocation) {
             $this->sourceMapState->addMapping(
                 [
                     'source' => $sl->getFile(),

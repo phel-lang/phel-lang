@@ -67,7 +67,7 @@ final readonly class Parser implements ParserInterface
     public function parseAll(TokenStream $tokenStream): FileNode
     {
         $result = [];
-        while ($node = $this->parseNext($tokenStream)) {
+        while (($node = $this->parseNext($tokenStream)) instanceof NodeInterface) {
             $result[] = $node;
         }
 

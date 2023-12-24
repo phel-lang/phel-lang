@@ -232,7 +232,7 @@ final class GlobalEnvironment implements GlobalEnvironmentInterface
 
     private function resolveMagicSourceString(?SourceLocation $sl): ?string
     {
-        return ($sl && $sl->getFile() === 'string') ? 'string' : null;
+        return ($sl instanceof SourceLocation && $sl->getFile() === 'string') ? 'string' : null;
     }
 
     private function resolveRealpath(?SourceLocation $sl): ?string

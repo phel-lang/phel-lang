@@ -44,7 +44,7 @@ final class IndexedNodeIterator implements Iterator
 
     public function next(): void
     {
-        if ($this->nestedIterator && $this->nestedIterator->valid()) {
+        if ($this->nestedIterator instanceof Iterator && $this->nestedIterator->valid()) {
             $this->nestedIterator->next();
 
             if (!$this->nestedIterator->valid()) {
