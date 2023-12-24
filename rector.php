@@ -60,6 +60,7 @@ return static function (RectorConfig $rectorConfig): void {
         SetList::STRICT_BOOLEANS,
         SetList::PRIVATIZATION,
         SetList::TYPE_DECLARATION,
+        SetList::EARLY_RETURN,
         LevelSetList::UP_TO_PHP_82,
     ]);
 };

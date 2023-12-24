@@ -30,7 +30,7 @@ final readonly class QuoasiquoteReader
         $result = $this->quasiquoteTransformer->transform($expression);
 
         if ($result instanceof TypeInterface) {
-            $result = $result
+            return $result
                 ->setStartLocation($node->getStartLocation())
                 ->setEndLocation($node->getEndLocation());
         }

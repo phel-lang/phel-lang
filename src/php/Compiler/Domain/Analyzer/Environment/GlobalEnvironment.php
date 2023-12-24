@@ -296,11 +296,15 @@ final class GlobalEnvironment implements GlobalEnvironmentInterface
         }
 
         $def = $this->getDefinition($ns, $name);
-        if ($def && $this->isPrivateDefinitionAllowed($def)) {
-            return new GlobalVarNode($env, $ns, $name, $def, $name->getStartLocation());
+        if (!$def instanceof \Phel\Lang\Collections\Map\PersistentMapInterface) {
+            return null;
         }
 
-        return null;
+        if (!$this->isPrivateDefinitionAllowed($def)) {
+            return null;
+        }
+
+        return new GlobalVarNode($env, $ns, $name, $def, $name->getStartLocation());
     }
 
     private function isPrivateDefinitionAllowed(PersistentMapInterface $meta): bool

@@ -150,7 +150,7 @@ final class InvokeSymbol implements SpecialFormAnalyzerInterface
         }
 
         if (!$type->getEndLocation() instanceof SourceLocation) {
-            $type = $type->setEndLocation($parent->getEndLocation());
+            return $type->setEndLocation($parent->getEndLocation());
         }
 
         return $type;

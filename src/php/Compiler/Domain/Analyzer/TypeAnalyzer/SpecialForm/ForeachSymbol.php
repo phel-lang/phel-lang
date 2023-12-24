@@ -55,9 +55,15 @@ final class ForeachSymbol implements SpecialFormAnalyzerInterface
         }
 
         $firstArgCount = count($foreachTuple);
-        if ($firstArgCount !== 2 && $firstArgCount !== 3) {
-            throw AnalyzerException::withLocation("Vector of 'foreach must have exactly two or three elements.", $list);
+        if ($firstArgCount === 2) {
+            return;
         }
+
+        if ($firstArgCount === 3) {
+            return;
+        }
+
+        throw AnalyzerException::withLocation("Vector of 'foreach must have exactly two or three elements.", $list);
     }
 
     private function buildForeachSymbolTuple(PersistentVectorInterface $foreachTuple, NodeEnvironmentInterface $env): ForeachSymbolTuple

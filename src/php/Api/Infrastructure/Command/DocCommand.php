@@ -53,9 +53,15 @@ final class DocCommand extends Command
     private function normalizeNamespaces(array $namespaces): array
     {
         array_walk($namespaces, static function (string &$ns): void {
-            if (in_array($ns, ['core', 'http', 'html', 'test', 'json']) && !str_starts_with($ns, 'phel\\')) {
-                $ns = 'phel\\' . $ns;
+            if (!in_array($ns, ['core', 'http', 'html', 'test', 'json'])) {
+                return;
             }
+
+            if (str_starts_with($ns, 'phel\\')) {
+                return;
+            }
+
+            $ns = 'phel\\' . $ns;
         });
 
         return $namespaces;

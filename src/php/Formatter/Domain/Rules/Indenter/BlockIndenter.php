@@ -63,7 +63,11 @@ final readonly class BlockIndenter implements IndenterInterface
             return $this->firstFormInLine($left);
         }
 
-        return $left->isLineBreak() || $left->isComment();
+        if ($left->isLineBreak()) {
+            return true;
+        }
+
+        return $left->isComment();
     }
 
     private function indentMatches(string $key, ?Symbol $formSymbol): bool

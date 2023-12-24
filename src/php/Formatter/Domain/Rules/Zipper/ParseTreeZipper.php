@@ -59,7 +59,11 @@ final class ParseTreeZipper extends AbstractZipper
 
     public function isWhitespaceOrNewline(): bool
     {
-        return $this->isNewline() || $this->isWhitespace();
+        if ($this->isNewline()) {
+            return true;
+        }
+
+        return $this->isWhitespace();
     }
 
     public function isWhitespace(): bool

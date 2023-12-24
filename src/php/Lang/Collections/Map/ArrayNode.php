@@ -131,9 +131,15 @@ final class ArrayNode implements HashMapNodeInterface, Countable
     {
         $objects = [];
         foreach ($this->childNodes as $i => $node) {
-            if ($i !== $index && $node !== null) {
-                $objects[$i] = [null, $node];
+            if ($i === $index) {
+                continue;
             }
+
+            if ($node === null) {
+                continue;
+            }
+
+            $objects[$i] = [null, $node];
         }
 
         return new IndexedNode($this->hasher, $this->equalizer, $objects);

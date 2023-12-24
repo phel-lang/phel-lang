@@ -67,9 +67,15 @@ final class IndexedNodeIterator implements Iterator
     public function rewind(): void
     {
         $this->index = 0;
-        if ($this->entries !== [] && $this->entries[$this->index][0] === null) {
-            $this->initializeNestedIterator($this->index);
+        if ($this->entries === []) {
+            return;
         }
+
+        if ($this->entries[$this->index][0] !== null) {
+            return;
+        }
+
+        $this->initializeNestedIterator($this->index);
     }
 
     /**

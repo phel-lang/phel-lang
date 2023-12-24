@@ -77,9 +77,15 @@ final class FnSymbolTuple
 
     private function addDummyVariadicSymbol(): void
     {
-        if ($this->isVariadic && !$this->hasVariadicForm) {
-            $this->params[] = Symbol::gen();
+        if (!$this->isVariadic) {
+            return;
         }
+
+        if ($this->hasVariadicForm) {
+            return;
+        }
+
+        $this->params[] = Symbol::gen();
     }
 
     private function checkAllVariablesStartWithALetterOrUnderscore(): void

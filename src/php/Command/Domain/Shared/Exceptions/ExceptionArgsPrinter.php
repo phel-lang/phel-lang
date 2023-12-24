@@ -29,7 +29,7 @@ final readonly class ExceptionArgsPrinter implements ExceptionArgsPrinterInterfa
 
         $argString = implode(' ', $argParts);
         if ($argParts !== []) {
-            $argString = ' ' . $argString;
+            return ' ' . $argString;
         }
 
         return $argString;

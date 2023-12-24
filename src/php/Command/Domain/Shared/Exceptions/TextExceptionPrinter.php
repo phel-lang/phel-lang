@@ -67,11 +67,15 @@ final readonly class TextExceptionPrinter implements ExceptionPrinterInterface
             }
 
             $eStartLine = $errorStartLocation->getLine();
-            if ($eStartLine === $errorEndLocation->getLine()
-                && $eStartLine === $index + $codeSnippet->getStartLocation()->getLine()
-            ) {
-                $str .= $this->underliningErrorPointer($endLineLength, $errorStartLocation, $errorEndLocation);
+            if ($eStartLine !== $errorEndLocation->getLine()) {
+                continue;
             }
+
+            if ($eStartLine !== $index + $codeSnippet->getStartLocation()->getLine()) {
+                continue;
+            }
+
+            $str .= $this->underliningErrorPointer($endLineLength, $errorStartLocation, $errorEndLocation);
         }
 
         return $str;

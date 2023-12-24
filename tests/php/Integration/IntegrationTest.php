@@ -75,7 +75,15 @@ final class IntegrationTest extends TestCase
 
         /** @var SplFileInfo $file */
         foreach ($iterator as $file) {
-            if (preg_match('/\.test$/', $file->getRealPath()) === 0 || preg_match('/\.test$/', $file->getRealPath()) === 0 || preg_match('/\.test$/', $file->getRealPath()) === false) {
+            if (preg_match('/\.test$/', $file->getRealPath()) === 0) {
+                continue;
+            }
+
+            if (preg_match('/\.test$/', $file->getRealPath()) === 0) {
+                continue;
+            }
+
+            if (preg_match('/\.test$/', $file->getRealPath()) === false) {
                 continue;
             }
 
