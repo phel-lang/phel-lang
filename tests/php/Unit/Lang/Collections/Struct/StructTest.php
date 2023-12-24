@@ -6,6 +6,7 @@ namespace PhelTest\Unit\Lang\Collections\Struct;
 
 use InvalidArgumentException;
 use Phel\Lang\Collections\Map\PersistentHashMap;
+use Phel\Lang\Collections\Map\PersistentMapInterface;
 use Phel\Lang\Keyword;
 use Phel\Lang\TypeFactory;
 use PHPUnit\Framework\TestCase;
@@ -118,7 +119,7 @@ final class StructTest extends TestCase
         $this->assertEquals($meta, $sWithMeta->getMeta());
     }
 
-    private function toKeyValueList($struct)
+    private function toKeyValueList(PersistentMapInterface $struct): array
     {
         $result = [];
         foreach ($struct as $k => $v) {

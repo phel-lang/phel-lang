@@ -54,7 +54,7 @@ final class BindingValidatorTest extends TestCase
      *
      * @param AbstractType $type
      */
-    public function test_valid_types($type): void
+    public function test_valid_types(mixed $type): void
     {
         $this->validator->assertSupportedBinding($type);
         self::assertTrue(true); // this assertion ensures that no exception was thrown

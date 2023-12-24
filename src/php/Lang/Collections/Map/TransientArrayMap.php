@@ -134,7 +134,7 @@ final class TransientArrayMap implements TransientMapInterface
      *
      * @return int|false
      */
-    private function findIndex($key)
+    private function findIndex($key): int|bool
     {
         for ($i = 0, $cnt = count($this->array); $i < $cnt; $i += 2) {
             $k = $this->array[$i];

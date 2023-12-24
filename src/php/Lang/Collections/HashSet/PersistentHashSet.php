@@ -139,10 +139,8 @@ final class PersistentHashSet extends AbstractType implements PersistentHashSetI
      * Concatenates a value to the data structure.
      *
      * @param array<int, mixed> $xs The value to concatenate
-     *
-     * @return PersistentHashSetInterface
      */
-    public function concat($xs)
+    public function concat($xs): PersistentHashSetInterface
     {
         $map = $this->asTransient();
         foreach ($xs as $x) {

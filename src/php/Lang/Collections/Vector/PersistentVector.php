@@ -66,7 +66,7 @@ final class PersistentVector extends AbstractPersistentVector
         return $tv->persistent();
     }
 
-    public function withMeta(?PersistentMapInterface $meta)
+    public function withMeta(?PersistentMapInterface $meta): self
     {
         return new self($this->hasher, $this->equalizer, $meta, $this->count, $this->shift, $this->root, $this->tail);
     }
@@ -286,10 +286,7 @@ final class PersistentVector extends AbstractPersistentVector
         return new RangeIterator($this, $start, $end);
     }
 
-    /**
-     * @return PersistentVectorInterface|null
-     */
-    public function cdr()
+    public function cdr(): ?SubVector
     {
         if ($this->count <= 1) {
             return null;

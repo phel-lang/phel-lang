@@ -37,7 +37,7 @@ final class ConsoleDependencyProvider extends AbstractDependencyProvider
 
     private function addCommands(Container $container): void
     {
-        $container->set(self::COMMANDS, static fn () => [
+        $container->set(self::COMMANDS, static fn (): array => [
             new ExportCommand(),
             new FormatCommand(),
             new ReplCommand(),

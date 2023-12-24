@@ -159,7 +159,7 @@ final class IndexedNode implements HashMapNodeInterface
      *
      * @return HashMapNodeInterface<K, V>
      */
-    private function createNode(int $shift, $key1, $value1, int $key2Hash, $key2, $value2): HashMapNodeInterface
+    private function createNode(int $shift, mixed $key1, $value1, int $key2Hash, $key2, $value2): HashMapNodeInterface
     {
         $key1Hash = $this->hasher->hash($key1);
         if ($key1Hash === $key2Hash) {

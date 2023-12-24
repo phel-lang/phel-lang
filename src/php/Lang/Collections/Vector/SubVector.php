@@ -37,10 +37,7 @@ final class SubVector extends AbstractPersistentVector
         return $this->end - $this->start;
     }
 
-    /**
-     * @return PersistentVectorInterface|null
-     */
-    public function cdr()
+    public function cdr(): ?self
     {
         if ($this->start + 1 < $this->end) {
             return new self($this->hasher, $this->equalizer, $this->meta, $this->vector, $this->start + 1, $this->end);
@@ -57,7 +54,7 @@ final class SubVector extends AbstractPersistentVector
         return array_slice($this->vector->toArray(), $this->start, $this->end - $this->start);
     }
 
-    public function withMeta(?PersistentMapInterface $meta)
+    public function withMeta(?PersistentMapInterface $meta): self
     {
         return new self($this->hasher, $this->equalizer, $meta, $this->vector, $this->start, $this->end);
     }

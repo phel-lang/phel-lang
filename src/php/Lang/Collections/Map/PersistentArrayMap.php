@@ -54,7 +54,7 @@ final class PersistentArrayMap extends AbstractPersistentMap
         return $result->persistent();
     }
 
-    public function withMeta(?PersistentMapInterface $meta)
+    public function withMeta(?PersistentMapInterface $meta): self
     {
         return new self($this->hasher, $this->equalizer, $meta, $this->array);
     }
@@ -139,7 +139,7 @@ final class PersistentArrayMap extends AbstractPersistentMap
      *
      * @return int|false
      */
-    private function findIndex($key)
+    private function findIndex($key): int|bool
     {
         for ($i = 0, $cnt = count($this->array); $i < $cnt; $i += 2) {
             $k = $this->array[$i];

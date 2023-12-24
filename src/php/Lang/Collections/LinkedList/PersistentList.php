@@ -62,7 +62,7 @@ final class PersistentList extends AbstractType implements PersistentListInterfa
         return $this->meta;
     }
 
-    public function withMeta(?PersistentMapInterface $meta)
+    public function withMeta(?PersistentMapInterface $meta): self
     {
         return new self($this->hasher, $this->equalizer, $meta, $this->first, $this->rest, $this->count);
     }
@@ -193,18 +193,13 @@ final class PersistentList extends AbstractType implements PersistentListInterfa
      * Concatenates a value to the data structure.
      *
      * @param array<int, mixed> $xs The value to concatenate
-     *
-     * @return PersistentListInterface
      */
-    public function concat($xs)
+    public function concat($xs): PersistentListInterface
     {
         return self::fromArray($this->hasher, $this->equalizer, [...$this->toArray(), ...$xs]);
     }
 
-    /**
-     * @return PersistentListInterface
-     */
-    public function cons(mixed $x)
+    public function cons(mixed $x): PersistentListInterface
     {
         return $this->prepend($x);
     }

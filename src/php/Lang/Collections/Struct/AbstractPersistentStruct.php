@@ -39,7 +39,7 @@ abstract class AbstractPersistentStruct extends AbstractPersistentMap
         $this->munge = new Munge();
     }
 
-    public function withMeta(?PersistentMapInterface $meta)
+    public function withMeta(?PersistentMapInterface $meta): static
     {
         $newInstance = clone $this;
         $newInstance->meta = $meta;

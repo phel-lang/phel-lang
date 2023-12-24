@@ -119,7 +119,7 @@ final class DocCommand extends Command
             ];
         }
 
-        usort($normalized, static fn ($a, $b) => $b['percent'] <=> $a['percent']);
+        usort($normalized, static fn ($a, $b): int => $b['percent'] <=> $a['percent']);
 
         return [$normalized, $longestFuncNameLength];
     }

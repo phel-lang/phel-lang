@@ -67,7 +67,7 @@ final class PersistentHashMap extends AbstractPersistentMap
         return self::$NOT_FOUND;
     }
 
-    public function withMeta(?PersistentMapInterface $meta)
+    public function withMeta(?PersistentMapInterface $meta): self
     {
         return new self($this->hasher, $this->equalizer, $meta, $this->count, $this->root, $this->hasNull, $this->nullValue);
     }

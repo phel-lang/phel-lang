@@ -35,7 +35,7 @@ final class EmptyList extends AbstractType implements PersistentListInterface
         return $this->meta;
     }
 
-    public function withMeta(?PersistentMapInterface $meta)
+    public function withMeta(?PersistentMapInterface $meta): self
     {
         return new self($this->hasher, $this->equalizer, $meta);
     }
@@ -83,20 +83,17 @@ final class EmptyList extends AbstractType implements PersistentListInterface
         return new EmptyIterator();
     }
 
-    public function first()
+    public function first(): null
     {
         return null;
     }
 
-    /**
-     * @return EmptyList
-     */
-    public function rest()
+    public function rest(): self
     {
         return $this;
     }
 
-    public function cdr()
+    public function cdr(): null
     {
         return null;
     }
@@ -110,18 +107,13 @@ final class EmptyList extends AbstractType implements PersistentListInterface
      * Concatenates a value to the data structure.
      *
      * @param array<int, mixed> $xs The value to concatenate
-     *
-     * @return PersistentListInterface
      */
-    public function concat($xs)
+    public function concat($xs): PersistentListInterface
     {
         return PersistentList::fromArray($this->hasher, $this->equalizer, $xs);
     }
 
-    /**
-     * @return PersistentListInterface
-     */
-    public function cons(mixed $x)
+    public function cons(mixed $x): PersistentListInterface
     {
         return $this->prepend($x);
     }

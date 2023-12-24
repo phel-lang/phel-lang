@@ -718,7 +718,7 @@ final class ReaderTest extends TestCase
         return $x->withMeta($t);
     }
 
-    private function loc(TypeInterface $x, $beginLine, $beginColumn, $endLine, $endColumn): TypeInterface
+    private function loc(TypeInterface $x, int $beginLine, int $beginColumn, int $endLine, int $endColumn): TypeInterface
     {
         return $x
             ->setStartLocation(new SourceLocation('string', $beginLine, $beginColumn))

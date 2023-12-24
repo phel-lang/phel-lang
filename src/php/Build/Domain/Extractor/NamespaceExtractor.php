@@ -54,7 +54,7 @@ final readonly class NamespaceExtractor implements NamespaceExtractorInterface
                     realpath($path),
                     $node->getNamespace(),
                     array_map(
-                        static fn (Symbol $s) => $s->getFullName(),
+                        static fn (Symbol $s): string => $s->getFullName(),
                         $node->getRequireNs(),
                     ),
                 );
@@ -133,7 +133,7 @@ final readonly class NamespaceExtractor implements NamespaceExtractorInterface
         $phelIterator = new RegexIterator($iterator, '/^.+\.phel$/i', RegexIterator::GET_MATCH);
 
         return array_map(
-            fn (array $file) => $this->getNamespaceFromFile($file[0]),
+            fn (array $file): NamespaceInformation => $this->getNamespaceFromFile($file[0]),
             iterator_to_array($phelIterator),
         );
     }

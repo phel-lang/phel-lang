@@ -86,7 +86,7 @@ final class PrinterTest extends TestCase
         self::assertSame('toString method', $this->print($class));
     }
 
-    private function print($x): string
+    private function print(mixed $x): string
     {
         return Printer::readable()->print($x);
     }

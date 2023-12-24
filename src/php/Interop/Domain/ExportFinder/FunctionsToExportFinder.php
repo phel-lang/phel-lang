@@ -55,7 +55,7 @@ final readonly class FunctionsToExportFinder implements FunctionsToExportFinderI
             ->getNamespaceFromDirectories($this->exportDirs);
 
         $namespaces = array_map(
-            static fn (NamespaceInformation $info) => $info->getNamespace(),
+            static fn (NamespaceInformation $info): string => $info->getNamespace(),
             $namespaceFromDirectories,
         );
 
