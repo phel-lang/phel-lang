@@ -97,7 +97,6 @@ final class BuildFacade extends AbstractFacade implements BuildFacadeInterface
             ->compileProject($options);
     }
 
-
     public function registerExceptionHandler(): void
     {
         $this->getFactory()

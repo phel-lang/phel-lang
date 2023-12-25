@@ -66,8 +66,6 @@ final class QuoteNodeTest extends TestCase
         );
     }
 
-
-
     public function test_undefined_token(): void
     {
         $this->expectException(RuntimeException::class);

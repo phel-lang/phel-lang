@@ -66,7 +66,6 @@ final class PersistentHashMapTest extends TestCase
         self::assertEquals('test', $h->find(null));
     }
 
-
     public function test_merge(): void
     {
         $h1 = PersistentHashMap::empty(new ModuloHasher(), new SimpleEqualizer())

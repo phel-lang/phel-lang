@@ -128,7 +128,6 @@ final class TransientArrayMap implements TransientMapInterface
         return new PersistentArrayMap($this->hasher, $this->equalizer, null, $this->array);
     }
 
-
     /**
      * @param K $key
      *

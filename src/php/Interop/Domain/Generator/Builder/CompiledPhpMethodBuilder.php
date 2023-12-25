@@ -56,7 +56,6 @@ final class CompiledPhpMethodBuilder
             $refInvoke->getParameters(),
         );
 
-
         return implode(', ', $args);
     }
 
