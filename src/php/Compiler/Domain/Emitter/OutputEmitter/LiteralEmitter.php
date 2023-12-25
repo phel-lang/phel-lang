@@ -15,7 +15,6 @@ use Phel\Printer\PrinterInterface;
 use RuntimeException;
 
 use function count;
-use function gettype;
 use function is_array;
 use function is_bool;
 use function is_float;
@@ -55,7 +54,6 @@ final readonly class LiteralEmitter
         } elseif (is_array($x)) {
             $this->emitArray($x);
         } else {
-            //            $typeName = gettype($x);
             $typeName = $x::class;
 
             throw new RuntimeException('literal not supported: ' . $typeName);
@@ -96,7 +94,7 @@ final readonly class LiteralEmitter
 
     private function emitKeyword(Keyword $x): void
     {
-        if ($x->getNamespace() !== null && $x->getNamespace() !== '' && $x->getNamespace() !== '0') {
+        if ($x->getNamespace() !== null && $x->getNamespace() !== '') {
             $this->outputEmitter->emitStr(
                 '\Phel\Lang\Keyword::createForNamespace("' . addslashes($x->getNamespace()) . '", "' . addslashes($x->getName()) . '")',
                 $x->getStartLocation(),

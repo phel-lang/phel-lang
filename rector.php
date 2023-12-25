@@ -10,6 +10,7 @@ use Rector\Privatization\Rector\Class_\FinalizeClassesWithoutChildrenRector;
 use Rector\Privatization\Rector\Property\PrivatizeFinalClassPropertyRector;
 use Rector\Set\ValueObject\LevelSetList;
 use Rector\Set\ValueObject\SetList;
+use Rector\Strict\Rector\Ternary\DisallowedShortTernaryRuleFixerRector;
 
 return static function (RectorConfig $rectorConfig): void {
     $rectorConfig->paths([
@@ -51,6 +52,8 @@ return static function (RectorConfig $rectorConfig): void {
         PrivatizeFinalClassPropertyRector::class => [
             __DIR__ . '/tests/php/Unit/Printer/TypePrinter/StubStruct.php',
         ],
+
+        DisallowedShortTernaryRuleFixerRector::class,
     ]);
 
     $rectorConfig->sets([

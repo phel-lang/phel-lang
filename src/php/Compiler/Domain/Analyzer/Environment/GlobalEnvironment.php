@@ -296,7 +296,7 @@ final class GlobalEnvironment implements GlobalEnvironmentInterface
         }
 
         $def = $this->getDefinition($ns, $name);
-        if (!$def instanceof \Phel\Lang\Collections\Map\PersistentMapInterface) {
+        if (!$def instanceof PersistentMapInterface) {
             return null;
         }
 

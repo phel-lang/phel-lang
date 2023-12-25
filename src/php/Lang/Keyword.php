@@ -19,7 +19,7 @@ final class Keyword extends AbstractType implements IdenticalInterface, FnInterf
         private readonly ?string $namespace,
         private readonly string $name,
     ) {
-        $this->hash = $namespace !== null && $namespace !== '' && $namespace !== '0'
+        $this->hash = $namespace !== null && $namespace !== ''
             ? crc32(':' . $namespace . '/' . $name)
             : crc32(':' . $name);
     }
@@ -51,7 +51,7 @@ final class Keyword extends AbstractType implements IdenticalInterface, FnInterf
 
     public function getFullName(): string
     {
-        if ($this->namespace !== null && $this->namespace !== '' && $this->namespace !== '0') {
+        if ($this->namespace !== null && $this->namespace !== '') {
             return $this->namespace . '/' . $this->name;
         }
 

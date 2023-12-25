@@ -19,7 +19,7 @@ final class TryEmitter implements NodeEmitterInterface
     {
         assert($node instanceof TryNode);
 
-        if (!$node->getFinally() instanceof \Phel\Compiler\Domain\Analyzer\Ast\AbstractNode && $node->getCatches() === []) {
+        if (!$node->getFinally() instanceof AbstractNode && $node->getCatches() === []) {
             $this->outputEmitter->emitNode($node->getBody());
             return;
         }

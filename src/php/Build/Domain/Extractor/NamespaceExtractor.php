@@ -126,7 +126,6 @@ final readonly class NamespaceExtractor implements NamespaceExtractorInterface
 
         if ($realpath === '' || $realpath === '0' || $realpath === false) {
             return [];
-            // throw new RuntimeException("Directory '{$directory}' not found");
         }
 
         $iterator = new RecursiveIteratorIterator(new RecursiveDirectoryIterator($realpath));

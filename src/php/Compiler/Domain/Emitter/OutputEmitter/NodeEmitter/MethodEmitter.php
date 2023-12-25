@@ -55,9 +55,7 @@ final class MethodEmitter
     private function emitMethodParametersExtraction(FnNode $node): void
     {
         foreach ($node->getUses() as $use) {
-            $normalizedUse = $node->getEnv()->getShadowed($use) instanceof Symbol
-                ? $node->getEnv()->getShadowed($use) ?? $use
-                : $use;
+            $normalizedUse = $node->getEnv()->getShadowed($use) ?: $use;
             $varName = $this->munge($normalizedUse);
 
             $this->outputEmitter->emitLine(
