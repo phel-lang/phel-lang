@@ -30,6 +30,16 @@ final readonly class StringPrinter implements TypePrinterInterface
     ) {
     }
 
+    public static function nonReadable(bool $withColor = false): self
+    {
+        return new self(readable: false, withColor: $withColor);
+    }
+
+    public static function readable(bool $withColor = false): self
+    {
+        return new self(readable: true, withColor: $withColor);
+    }
+
     public function print(mixed $form): string
     {
         $str = $this->parseString($form);
