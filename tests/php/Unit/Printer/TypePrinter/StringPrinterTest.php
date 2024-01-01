@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace PhelTest\Unit\Printer\TypePrinter;
 
-use Generator;
 use Phel\Printer\TypePrinter\StringPrinter;
 use PHPUnit\Framework\TestCase;
 
@@ -15,37 +14,23 @@ final class StringPrinterTest extends TestCase
         self::assertSame('str', (new StringPrinter(false))->print('str'));
     }
 
-    /**
-     * @dataProvider printerDataProvider
-     */
-    public function test_print_readable(string $expected, string $string): void
+    public function test_print_str(): void
     {
-        self::assertSame(
-            $expected,
-            (new StringPrinter(true))->print($string),
-        );
+        self::assertSame('"str"', (new StringPrinter(true))->print('str'));
     }
 
-    public function printerDataProvider(): Generator
+    public function test_mark_110(): void
     {
-        yield 'str' => [
-            'expected' => '"str"',
-            'string' => 'str',
-        ];
+        self::assertSame('"\u{0100}"', (new StringPrinter(true))->print("\u{100}"));
+    }
 
-        yield 'characters U-00000080 - U-000007FF, mask 110XXXXX' => [
-            'expected' => '"\u{0100}"',
-            'string' => "\u{100}",
-        ];
+    public function test_mark_1110(): void
+    {
+        self::assertSame('"\u{1100}"', (new StringPrinter(true))->print("\u{1100}"));
+    }
 
-        yield 'characters U-00000800 - U-0000FFFF, mask 1110XXXX' => [
-            'expected' => '"\u{1100}"',
-            'string' => "\u{1100}",
-        ];
-
-        yield 'characters U-00010000 - U-001FFFFF, mask 11110XXX' => [
-            'expected' => '"\u{11110}"',
-            'string' => "\u{11110}",
-        ];
+    public function test_mark_11110(): void
+    {
+        self::assertSame('"\u{11110}"', (new StringPrinter(true))->print("\u{11110}"));
     }
 }
