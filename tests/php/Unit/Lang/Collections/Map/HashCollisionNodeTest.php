@@ -18,7 +18,7 @@ final class HashCollisionNodeTest extends TestCase
         $hasher = new ModuloHasher();
         $node = new HashCollisionNode($hasher, new SimpleEqualizer(), $hasher->hash(1), 1, [1, 'test']);
 
-        $this->assertEquals('test', $node->find(0, $hasher->hash(1), 1, null));
+        $this->assertSame('test', $node->find(0, $hasher->hash(1), 1, null));
         $this->assertNull($node->find(0, $hasher->hash(2), 2, null));
     }
 
@@ -33,8 +33,8 @@ final class HashCollisionNodeTest extends TestCase
             [1, 'foo', 3, 'bar'],
         );
 
-        $this->assertEquals('foo', $node->find(0, $hasher->hash(1), 1, null));
-        $this->assertEquals('bar', $node->find(0, $hasher->hash(3), 3, null));
+        $this->assertSame('foo', $node->find(0, $hasher->hash(1), 1, null));
+        $this->assertSame('bar', $node->find(0, $hasher->hash(3), 3, null));
         $this->assertNull($node->find(0, $hasher->hash(2), 2, null));
     }
 
@@ -46,8 +46,8 @@ final class HashCollisionNodeTest extends TestCase
             ->put(0, $hasher->hash(3), 3, 'bar', $box);
 
         $this->assertTrue($box->getValue());
-        $this->assertEquals('foo', $node->find(0, $hasher->hash(1), 1, null));
-        $this->assertEquals('bar', $node->find(0, $hasher->hash(3), 3, null));
+        $this->assertSame('foo', $node->find(0, $hasher->hash(1), 1, null));
+        $this->assertSame('bar', $node->find(0, $hasher->hash(3), 3, null));
         $this->assertNull($node->find(0, $hasher->hash(2), 2, null));
     }
 
@@ -59,7 +59,7 @@ final class HashCollisionNodeTest extends TestCase
             ->put(0, $hasher->hash(1), 1, 'bar', $box);
 
         $this->assertNull($box->getValue());
-        $this->assertEquals('bar', $node->find(0, $hasher->hash(1), 1, null));
+        $this->assertSame('bar', $node->find(0, $hasher->hash(1), 1, null));
         $this->assertNull($node->find(0, $hasher->hash(2), 2, null));
     }
 
@@ -71,7 +71,7 @@ final class HashCollisionNodeTest extends TestCase
             ->put(0, $hasher->hash(1), 1, 'foo', $box);
 
         $this->assertFalse($box->getValue());
-        $this->assertEquals('foo', $node->find(0, $hasher->hash(1), 1, null));
+        $this->assertSame('foo', $node->find(0, $hasher->hash(1), 1, null));
         $this->assertNull($node->find(0, $hasher->hash(2), 2, null));
     }
 
@@ -84,8 +84,8 @@ final class HashCollisionNodeTest extends TestCase
 
         $this->assertTrue($box->getValue());
         $this->assertInstanceOf(IndexedNode::class, $node);
-        $this->assertEquals('foo', $node->find(0, $hasher->hash(1), 1, null));
-        $this->assertEquals('bar', $node->find(0, $hasher->hash(2), 2, null));
+        $this->assertSame('foo', $node->find(0, $hasher->hash(1), 1, null));
+        $this->assertSame('bar', $node->find(0, $hasher->hash(2), 2, null));
         $this->assertNull($node->find(0, $hasher->hash(3), 3, null));
     }
 
@@ -104,7 +104,7 @@ final class HashCollisionNodeTest extends TestCase
         $node = (new HashCollisionNode($hasher, new SimpleEqualizer(), $hasher->hash(1), 1, [1, 'foo']))
             ->remove(0, $hasher->hash(2), 2);
 
-        $this->assertEquals('foo', $node->find(0, $hasher->hash(1), 1, null));
+        $this->assertSame('foo', $node->find(0, $hasher->hash(1), 1, null));
         $this->assertNull($node->find(0, $hasher->hash(2), 2, null));
     }
 
@@ -119,7 +119,7 @@ final class HashCollisionNodeTest extends TestCase
             [1, 'foo', 3, 'bar'],
         ))->remove(0, $hasher->hash(3), 3);
 
-        $this->assertEquals('foo', $node->find(0, $hasher->hash(1), 1, null));
+        $this->assertSame('foo', $node->find(0, $hasher->hash(1), 1, null));
         $this->assertNull($node->find(0, $hasher->hash(3), 3, null));
     }
 }

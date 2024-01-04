@@ -28,7 +28,7 @@ final class GlobalEnvironmentTest extends TestCase
         $env = new GlobalEnvironment();
         $env->setNs('foo');
 
-        $this->assertEquals('foo', $env->getNs());
+        $this->assertSame('foo', $env->getNs());
     }
 
     public function test_add_definition(): void

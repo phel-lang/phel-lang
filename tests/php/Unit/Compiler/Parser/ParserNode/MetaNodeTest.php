@@ -17,7 +17,7 @@ final class MetaNodeTest extends TestCase
 {
     public function test_get_code(): void
     {
-        self::assertEquals(
+        self::assertSame(
             '^:test test',
             (new MetaNode(
                 new KeywordNode(':test', $this->loc(1, 1), $this->loc(1, 6), Keyword::create('test')),

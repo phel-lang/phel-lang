@@ -40,7 +40,7 @@ final class TopologicalSortingTest extends TestCase
 
         $sorted = $this->sorter->sort($data, $dependencies);
 
-        self::assertEquals(['owner', 'car'], $sorted);
+        self::assertSame(['owner', 'car'], $sorted);
     }
 
     public function test_multiple_dependencies(): void
@@ -53,7 +53,7 @@ final class TopologicalSortingTest extends TestCase
 
         $sorted = $this->sorter->sort($data, $dependencies);
 
-        self::assertEquals(['brand', 'owner', 'car'], $sorted);
+        self::assertSame(['brand', 'owner', 'car'], $sorted);
     }
 
     public function test_duplicated_data_entries(): void
@@ -66,6 +66,6 @@ final class TopologicalSortingTest extends TestCase
 
         $sorted = $this->sorter->sort($data, $dependencies);
 
-        self::assertEquals(['brand', 'owner', 'car'], $sorted);
+        self::assertSame(['brand', 'owner', 'car'], $sorted);
     }
 }

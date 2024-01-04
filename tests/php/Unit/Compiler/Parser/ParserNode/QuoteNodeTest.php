@@ -16,7 +16,7 @@ final class QuoteNodeTest extends TestCase
 {
     public function test_get_code_quote(): void
     {
-        self::assertEquals(
+        self::assertSame(
             "'a",
             (new QuoteNode(
                 Token::T_QUOTE,
@@ -29,7 +29,7 @@ final class QuoteNodeTest extends TestCase
 
     public function test_get_code_unquote(): void
     {
-        self::assertEquals(
+        self::assertSame(
             ',a',
             (new QuoteNode(
                 Token::T_UNQUOTE,
@@ -42,7 +42,7 @@ final class QuoteNodeTest extends TestCase
 
     public function test_get_code_unquote_splicing(): void
     {
-        self::assertEquals(
+        self::assertSame(
             ',@a',
             (new QuoteNode(
                 Token::T_UNQUOTE_SPLICING,
@@ -55,7 +55,7 @@ final class QuoteNodeTest extends TestCase
 
     public function test_get_code_quasiquote(): void
     {
-        self::assertEquals(
+        self::assertSame(
             '`a',
             (new QuoteNode(
                 Token::T_QUASIQUOTE,

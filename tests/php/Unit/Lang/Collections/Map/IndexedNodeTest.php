@@ -28,7 +28,7 @@ final class IndexedNodeTest extends TestCase
             ->put(0, $hasher->hash(1), 1, 'test', $box);
 
         self::assertTrue($box->getValue());
-        self::assertEquals('test', $node->find(0, $hasher->hash(1), 1, null));
+        self::assertSame('test', $node->find(0, $hasher->hash(1), 1, null));
     }
 
     public function test_split_node(): void
@@ -52,7 +52,7 @@ final class IndexedNodeTest extends TestCase
             ->put(0, $hasher->hash(1), 1, 'test', $box);
 
         self::assertNull($box->getValue());
-        self::assertEquals('test', $node->find(0, $hasher->hash(1), 1, null));
+        self::assertSame('test', $node->find(0, $hasher->hash(1), 1, null));
     }
 
     public function test_put_same_key_with_different_value(): void
@@ -64,7 +64,7 @@ final class IndexedNodeTest extends TestCase
             ->put(0, $hasher->hash(1), 1, 'bar', $box);
 
         self::assertNull($box->getValue());
-        self::assertEquals('bar', $node->find(0, $hasher->hash(1), 1, null));
+        self::assertSame('bar', $node->find(0, $hasher->hash(1), 1, null));
     }
 
     public function test_put_same_hash(): void
@@ -76,8 +76,8 @@ final class IndexedNodeTest extends TestCase
             ->put(0, $hasher->hash(3), 3, 'bar', $box);
 
         self::assertTrue($box->getValue());
-        self::assertEquals('foo', $node->find(0, $hasher->hash(1), 1, null));
-        self::assertEquals('bar', $node->find(0, $hasher->hash(3), 3, null));
+        self::assertSame('foo', $node->find(0, $hasher->hash(1), 1, null));
+        self::assertSame('bar', $node->find(0, $hasher->hash(3), 3, null));
     }
 
     public function test_put_same_index(): void
@@ -89,8 +89,8 @@ final class IndexedNodeTest extends TestCase
             ->put(0, $hasher->hash(33), 33, 'bar', $box);
 
         self::assertTrue($box->getValue());
-        self::assertEquals('foo', $node->find(0, $hasher->hash(1), 1, null));
-        self::assertEquals('bar', $node->find(0, $hasher->hash(33), 33, null));
+        self::assertSame('foo', $node->find(0, $hasher->hash(1), 1, null));
+        self::assertSame('bar', $node->find(0, $hasher->hash(33), 33, null));
     }
 
     public function test_add_to_child(): void
@@ -101,9 +101,9 @@ final class IndexedNodeTest extends TestCase
             ->put(0, $hasher->hash(65), 65, 'bar', new Box(null))
             ->put(0, $hasher->hash(33), 33, 'foobar', new Box(null));
 
-        self::assertEquals('foo', $node->find(0, $hasher->hash(1), 1, null));
-        self::assertEquals('bar', $node->find(0, $hasher->hash(65), 65, null));
-        self::assertEquals('foobar', $node->find(0, $hasher->hash(33), 33, null));
+        self::assertSame('foo', $node->find(0, $hasher->hash(1), 1, null));
+        self::assertSame('bar', $node->find(0, $hasher->hash(65), 65, null));
+        self::assertSame('foobar', $node->find(0, $hasher->hash(33), 33, null));
     }
 
     public function test_add_existing_key_value_pair_to_child(): void
@@ -114,8 +114,8 @@ final class IndexedNodeTest extends TestCase
             ->put(0, $hasher->hash(65), 65, 'bar', new Box(null))
             ->put(0, $hasher->hash(65), 65, 'bar', new Box(null));
 
-        self::assertEquals('foo', $node->find(0, $hasher->hash(1), 1, null));
-        self::assertEquals('bar', $node->find(0, $hasher->hash(65), 65, null));
+        self::assertSame('foo', $node->find(0, $hasher->hash(1), 1, null));
+        self::assertSame('bar', $node->find(0, $hasher->hash(65), 65, null));
     }
 
     public function test_remove_all_existing_keys(): void
@@ -136,7 +136,7 @@ final class IndexedNodeTest extends TestCase
             ->put(0, $hasher->hash(2), 2, 'bar', new Box(null))
             ->remove(0, $hasher->hash(2), 2);
 
-        self::assertEquals('foo', $node->find(0, $hasher->hash(1), 1, null));
+        self::assertSame('foo', $node->find(0, $hasher->hash(1), 1, null));
         self::assertNull($node->find(0, $hasher->hash(2), 2, null));
     }
 
@@ -147,7 +147,7 @@ final class IndexedNodeTest extends TestCase
             ->put(0, $hasher->hash(1), 1, 'foo', new Box(null));
         $node2 = $node1->remove(0, $hasher->hash(2), 2);
 
-        self::assertEquals('foo', $node2->find(0, $hasher->hash(1), 1, null));
+        self::assertSame('foo', $node2->find(0, $hasher->hash(1), 1, null));
         self::assertSame($node1, $node2);
     }
 
@@ -158,7 +158,7 @@ final class IndexedNodeTest extends TestCase
             ->put(0, $hasher->hash(1), 1, 'foo', new Box(null));
         $node2 = $node1->remove(0, $hasher->hash(33), 33);
 
-        self::assertEquals('foo', $node2->find(0, $hasher->hash(1), 1, null));
+        self::assertSame('foo', $node2->find(0, $hasher->hash(1), 1, null));
         self::assertSame($node1, $node2);
     }
 
@@ -170,7 +170,7 @@ final class IndexedNodeTest extends TestCase
             ->put(0, $hasher->hash(33), 33, 'bar', new Box(null))
             ->remove(0, $hasher->hash(33), 33);
 
-        self::assertEquals('foo', $node->find(0, $hasher->hash(1), 1, null));
+        self::assertSame('foo', $node->find(0, $hasher->hash(1), 1, null));
         self::assertNull($node->find(0, $hasher->hash(33), 33, null));
     }
 

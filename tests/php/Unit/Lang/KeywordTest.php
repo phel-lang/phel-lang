@@ -13,22 +13,22 @@ final class KeywordTest extends TestCase
     public function test_get_name(): void
     {
         $keyword = Keyword::create('test');
-        $this->assertEquals('test', $keyword->getName());
+        $this->assertSame('test', $keyword->getName());
     }
 
     public function test_get_hash(): void
     {
         $keyword = Keyword::create('test');
-        $this->assertEquals(crc32(':test'), $keyword->hash());
+        $this->assertSame(crc32(':test'), $keyword->hash());
 
         $keyword = Keyword::createForNamespace('foo', 'test');
-        $this->assertEquals(crc32(':foo/test'), $keyword->hash());
+        $this->assertSame(crc32(':foo/test'), $keyword->hash());
     }
 
     public function test_get_namespace(): void
     {
         $keyword = Keyword::createForNamespace('foo', 'bar');
-        $this->assertEquals('foo', $keyword->getNamespace());
+        $this->assertSame('foo', $keyword->getNamespace());
 
         $keyword = Keyword::create('bar');
         $this->assertNull($keyword->getNamespace());
@@ -96,7 +96,7 @@ final class KeywordTest extends TestCase
     public function test_to_string(): void
     {
         $keyword = Keyword::create('test');
-        $this->assertEquals(':test', $keyword->__toString());
+        $this->assertSame(':test', $keyword->__toString());
     }
 
     public function test_invoke(): void
@@ -104,8 +104,8 @@ final class KeywordTest extends TestCase
         $keyword1 = Keyword::create('test1');
         $keyword2 = Keyword::create('test2');
         $table = TypeFactory::getInstance()->persistentMapFromKVs(Keyword::create('test1'), 'abc');
-        $this->assertEquals('abc', $keyword1($table));
+        $this->assertSame('abc', $keyword1($table));
         $this->assertNull($keyword2($table));
-        $this->assertEquals('xyz', $keyword2($table, 'xyz'));
+        $this->assertSame('xyz', $keyword2($table, 'xyz'));
     }
 }

@@ -30,13 +30,15 @@ final class StructTest extends TestCase
     public function test_offset_exists(): void
     {
         $s = FakeStruct::fromKVs(Keyword::create('a'), 1, Keyword::create('b'), 2);
-        self::assertTrue(isset($s[Keyword::create('a')]));
+        $isset = isset($s[Keyword::create('a')]);
+        self::assertTrue($isset);
     }
 
     public function test_offset_exists_invalid_key(): void
     {
         $s = FakeStruct::fromKVs(Keyword::create('a'), 1, Keyword::create('b'), 2);
-        self::assertFalse(isset($s[Keyword::create('c')]));
+        $isset = isset($s[Keyword::create('c')]);
+        self::assertFalse($isset);
     }
 
     public function test_remove(): void
@@ -56,7 +58,7 @@ final class StructTest extends TestCase
     public function test_offset_get(): void
     {
         $s = FakeStruct::fromKVs(Keyword::create('a'), 1, Keyword::create('b'), 2);
-        self::assertEquals(1, $s[Keyword::create('a')]);
+        self::assertSame(1, $s[Keyword::create('a')]);
     }
 
     public function test_offset_get_invalid_key(): void

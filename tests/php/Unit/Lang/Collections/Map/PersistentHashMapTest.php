@@ -15,7 +15,7 @@ final class PersistentHashMapTest extends TestCase
     {
         $h = PersistentHashMap::empty(new ModuloHasher(), new SimpleEqualizer());
 
-        self::assertEquals(0, $h->count());
+        self::assertSame(0, $h->count());
         self::assertFalse($h->contains('test'));
         self::assertFalse($h->contains(null));
         self::assertNull($h->find('test'));
@@ -27,10 +27,10 @@ final class PersistentHashMapTest extends TestCase
         $h2 = $h->put(null, 'test');
 
         self::assertNull($h->find(null));
-        self::assertEquals(0, $h->count());
+        self::assertSame(0, $h->count());
         self::assertFalse($h->contains(null));
-        self::assertEquals('test', $h2->find(null));
-        self::assertEquals(1, $h2->count());
+        self::assertSame('test', $h2->find(null));
+        self::assertSame(1, $h2->count());
         self::assertTrue($h2->contains(null));
     }
 
@@ -39,9 +39,9 @@ final class PersistentHashMapTest extends TestCase
         $h = PersistentHashMap::empty(new ModuloHasher(), new SimpleEqualizer())
             ->put(1, 'test');
 
-        self::assertEquals(1, $h->count());
+        self::assertSame(1, $h->count());
         self::assertTrue($h->contains(1));
-        self::assertEquals('test', $h->find(1));
+        self::assertSame('test', $h->find(1));
     }
 
     public function test_put_same_key_value_twice(): void
@@ -50,9 +50,9 @@ final class PersistentHashMapTest extends TestCase
             ->put(1, 'test')
             ->put(1, 'test');
 
-        self::assertEquals(1, $h->count());
+        self::assertSame(1, $h->count());
         self::assertTrue($h->contains(1));
-        self::assertEquals('test', $h->find(1));
+        self::assertSame('test', $h->find(1));
     }
 
     public function test_put_null_twice(): void
@@ -61,9 +61,9 @@ final class PersistentHashMapTest extends TestCase
             ->put(null, 'test')
             ->put(null, 'test');
 
-        self::assertEquals(1, $h->count());
+        self::assertSame(1, $h->count());
         self::assertTrue($h->contains(null));
-        self::assertEquals('test', $h->find(null));
+        self::assertSame('test', $h->find(null));
     }
 
     public function test_merge(): void
@@ -87,7 +87,7 @@ final class PersistentHashMapTest extends TestCase
             ->put(null, 'test')
             ->remove(null);
 
-        self::assertEquals(0, $h->count());
+        self::assertSame(0, $h->count());
         self::assertFalse($h->contains(null));
         self::assertNull($h->find(null));
     }
@@ -97,7 +97,7 @@ final class PersistentHashMapTest extends TestCase
         $h = PersistentHashMap::empty(new ModuloHasher(), new SimpleEqualizer())
             ->remove(null);
 
-        self::assertEquals(0, $h->count());
+        self::assertSame(0, $h->count());
         self::assertFalse($h->contains(null));
         self::assertNull($h->find(null));
     }
@@ -107,7 +107,7 @@ final class PersistentHashMapTest extends TestCase
         $h = PersistentHashMap::empty(new ModuloHasher(), new SimpleEqualizer())
             ->remove(1);
 
-        self::assertEquals(0, $h->count());
+        self::assertSame(0, $h->count());
         self::assertFalse($h->contains(1));
         self::assertNull($h->find(1));
     }
@@ -118,9 +118,9 @@ final class PersistentHashMapTest extends TestCase
             ->put(2, 'test')
             ->remove(1);
 
-        self::assertEquals(1, $h->count());
+        self::assertSame(1, $h->count());
         self::assertTrue($h->contains(2));
-        self::assertEquals('test', $h->find(2));
+        self::assertSame('test', $h->find(2));
         self::assertFalse($h->contains(1));
         self::assertNull($h->find(1));
     }
@@ -131,7 +131,7 @@ final class PersistentHashMapTest extends TestCase
             ->put(1, 'test')
             ->remove(1);
 
-        self::assertEquals(0, $h->count());
+        self::assertSame(0, $h->count());
         self::assertFalse($h->contains(1));
         self::assertNull($h->find(1));
     }
@@ -214,7 +214,7 @@ final class PersistentHashMapTest extends TestCase
             $result[$k] = $v;
         }
 
-        $this->assertEquals([1 => 'foo', 2 => 'bar', 3 => 'foobar'], $result);
+        $this->assertSame([1 => 'foo', 2 => 'bar', 3 => 'foobar'], $result);
     }
 
     public function test_iteratable_on_empty(): void
@@ -226,14 +226,14 @@ final class PersistentHashMapTest extends TestCase
             $result[$k] = $v;
         }
 
-        $this->assertEquals([], $result);
+        $this->assertSame([], $result);
     }
 
     public function test_hash_on_empty_map(): void
     {
         $h = PersistentHashMap::empty(new ModuloHasher(), new SimpleEqualizer());
 
-        $this->assertEquals(1, $h->hash());
+        $this->assertSame(1, $h->hash());
     }
 
     public function test_hash_on_single_entryy_map(): void
@@ -241,6 +241,6 @@ final class PersistentHashMapTest extends TestCase
         $h = PersistentHashMap::empty(new ModuloHasher(), new SimpleEqualizer())
             ->put(1, 10);
 
-        $this->assertEquals(1 + (1 ^ 10), $h->hash());
+        $this->assertSame(1 + (1 ^ 10), $h->hash());
     }
 }

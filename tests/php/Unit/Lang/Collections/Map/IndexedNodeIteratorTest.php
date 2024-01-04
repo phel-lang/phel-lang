@@ -34,7 +34,7 @@ final class IndexedNodeIteratorTest extends TestCase
             $result[$k] = $v;
         }
 
-        $this->assertEquals([1 => 'foo'], $result);
+        $this->assertSame([1 => 'foo'], $result);
     }
 
     public function test_iterate_on_two_entry_node(): void
@@ -48,7 +48,7 @@ final class IndexedNodeIteratorTest extends TestCase
             $result[$k] = $v;
         }
 
-        $this->assertEquals([1 => 'foo', 2 => 'bar'], $result);
+        $this->assertSame([1 => 'foo', 2 => 'bar'], $result);
     }
 
     public function test_iterate_on_three_entry_node_with_hash_collision(): void
@@ -63,7 +63,7 @@ final class IndexedNodeIteratorTest extends TestCase
             $result[$k] = $v;
         }
 
-        $this->assertEquals([1 => 'foo', 2 => 'bar', 3 => 'foobar'], $result);
+        $this->assertSame([1 => 'foo', 3 => 'foobar', 2 => 'bar'], $result);
     }
 
     public function test_iterate_on_multiple_child_nodes(): void
@@ -79,6 +79,6 @@ final class IndexedNodeIteratorTest extends TestCase
             $result[$k] = $v;
         }
 
-        $this->assertEquals([1 => 'foo', 2 => 'bar', 3 => 'foobar', 4 => 'barbar'], $result);
+        $this->assertSame([1 => 'foo', 3 => 'foobar', 2 => 'bar', 4 => 'barbar'], $result);
     }
 }

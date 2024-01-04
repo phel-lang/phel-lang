@@ -30,7 +30,7 @@ final class DeconstructorTest extends TestCase
             TypeFactory::getInstance()->persistentVectorFromArray([]),
         );
 
-        self::assertEquals([], $bindings);
+        self::assertSame([], $bindings);
     }
 
     public function test_vector_with_empty_vectors(): void
@@ -144,6 +144,6 @@ final class DeconstructorTest extends TestCase
         // (let [])
         $bindings = $this->deconstructor->deconstruct(TypeFactory::getInstance()->persistentVectorFromArray([null, Symbol::create('x')]));
 
-        self::assertEquals([], $bindings);
+        self::assertSame([], $bindings);
     }
 }

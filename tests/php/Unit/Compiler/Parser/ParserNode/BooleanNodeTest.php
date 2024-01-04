@@ -12,7 +12,7 @@ final class BooleanNodeTest extends TestCase
 {
     public function test_get_code(): void
     {
-        self::assertEquals(
+        self::assertSame(
             'true',
             (new BooleanNode('true', $this->loc(1, 0), $this->loc(1, 4), true))->getCode(),
         );

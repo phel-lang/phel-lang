@@ -55,7 +55,7 @@ final class ReplCommandTest extends AbstractCommandTest
 
         $replOutput = $io->getOutputString();
 
-        self::assertEquals(trim($expectedOutput), trim($replOutput));
+        self::assertSame(trim($expectedOutput), trim($replOutput));
     }
 
     /**
@@ -78,7 +78,7 @@ final class ReplCommandTest extends AbstractCommandTest
 
         $replOutput = $io->getOutputString();
 
-        self::assertEquals(trim($expectedOutput), trim($replOutput));
+        self::assertSame(trim($expectedOutput), trim($replOutput));
     }
 
     public function providerIntegration(): Generator

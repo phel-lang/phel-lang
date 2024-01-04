@@ -15,7 +15,7 @@ final class ListNodeTest extends TestCase
 {
     public function test_get_code_list(): void
     {
-        self::assertEquals(
+        self::assertSame(
             '(1)',
             (new ListNode(Token::T_OPEN_PARENTHESIS, $this->loc(1, 0), $this->loc(1, 3), [
                 new NumberNode('1', $this->loc(1, 1), $this->loc(1, 2), 1),
@@ -25,7 +25,7 @@ final class ListNodeTest extends TestCase
 
     public function test_get_code_bracket(): void
     {
-        self::assertEquals(
+        self::assertSame(
             '[1]',
             (new ListNode(Token::T_OPEN_BRACKET, $this->loc(1, 0), $this->loc(1, 3), [
                 new NumberNode('1', $this->loc(1, 1), $this->loc(1, 2), 1),
@@ -35,7 +35,7 @@ final class ListNodeTest extends TestCase
 
     public function test_get_code_brace(): void
     {
-        self::assertEquals(
+        self::assertSame(
             '{1}',
             (new ListNode(Token::T_OPEN_BRACE, $this->loc(1, 0), $this->loc(1, 3), [
                 new NumberNode('1', $this->loc(1, 1), $this->loc(1, 2), 1),
@@ -45,7 +45,7 @@ final class ListNodeTest extends TestCase
 
     public function test_get_code_fn(): void
     {
-        self::assertEquals(
+        self::assertSame(
             '|(1)',
             (new ListNode(Token::T_FN, $this->loc(1, 0), $this->loc(1, 4), [
                 new NumberNode('1', $this->loc(1, 2), $this->loc(1, 3), 1),

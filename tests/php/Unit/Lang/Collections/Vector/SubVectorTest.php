@@ -19,7 +19,7 @@ final class SubVectorTest extends TestCase
         $subVector = PersistentVector::fromArray(new ModuloHasher(), new SimpleEqualizer(), [1, 2, 3, 4])
             ->slice(1, 2);
 
-        $this->assertEquals([3], $subVector->cdr()->toArray());
+        $this->assertSame([3], $subVector->cdr()->toArray());
     }
 
     public function test_to_array(): void
@@ -27,7 +27,7 @@ final class SubVectorTest extends TestCase
         $subVector = PersistentVector::fromArray(new ModuloHasher(), new SimpleEqualizer(), [1, 2, 3, 4])
             ->slice(1, 2);
 
-        $this->assertEquals([2, 3], $subVector->toArray());
+        $this->assertSame([2, 3], $subVector->toArray());
     }
 
     public function test_with_meta(): void
@@ -51,7 +51,7 @@ final class SubVectorTest extends TestCase
             $result[] = $x;
         }
 
-        $this->assertEquals([2, 3], $result);
+        $this->assertSame([2, 3], $result);
     }
 
     public function test_append(): void
@@ -63,7 +63,7 @@ final class SubVectorTest extends TestCase
 
         $this->assertCount(2, $subVector);
         $this->assertCount(3, $subVectorAppended);
-        $this->assertEquals(10, $subVectorAppended->get(2));
+        $this->assertSame(10, $subVectorAppended->get(2));
     }
 
     public function test_update_out_of_range(): void
@@ -83,7 +83,7 @@ final class SubVectorTest extends TestCase
 
         $this->assertCount(2, $subVector);
         $this->assertCount(3, $subVectorAppended);
-        $this->assertEquals(10, $subVectorAppended->get(2));
+        $this->assertSame(10, $subVectorAppended->get(2));
     }
 
     public function test_update(): void
@@ -94,7 +94,7 @@ final class SubVectorTest extends TestCase
 
         $this->assertCount(2, $subVector);
         $this->assertCount(2, $subVectorUpdated);
-        $this->assertEquals(10, $subVectorUpdated->get(0));
+        $this->assertSame(10, $subVectorUpdated->get(0));
     }
 
     public function test_get(): void
@@ -102,8 +102,8 @@ final class SubVectorTest extends TestCase
         $subVector = PersistentVector::fromArray(new ModuloHasher(), new SimpleEqualizer(), [1, 2, 3, 4])
             ->slice(1, 2);
 
-        $this->assertEquals(2, $subVector->get(0));
-        $this->assertEquals(3, $subVector->get(1));
+        $this->assertSame(2, $subVector->get(0));
+        $this->assertSame(3, $subVector->get(1));
     }
 
     public function test_get_out_of_bound(): void

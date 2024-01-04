@@ -12,7 +12,7 @@ final class CommentNodeTest extends TestCase
 {
     public function test_get_code(): void
     {
-        self::assertEquals(
+        self::assertSame(
             '# Test',
             (new CommentNode('# Test', $this->loc(1, 0), $this->loc(1, 6)))->getCode(),
         );

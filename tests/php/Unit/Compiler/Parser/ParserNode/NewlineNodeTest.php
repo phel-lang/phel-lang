@@ -12,7 +12,7 @@ final class NewlineNodeTest extends TestCase
 {
     public function test_get_code(): void
     {
-        self::assertEquals(
+        self::assertSame(
             '\n',
             (new NewlineNode('\n', $this->loc(1, 0), $this->loc(2, 0)))->getCode(),
         );

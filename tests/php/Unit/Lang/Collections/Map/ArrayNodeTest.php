@@ -17,7 +17,7 @@ final class ArrayNodeTest extends TestCase
     {
         $hasher = new ModuloHasher();
         $node = ArrayNode::empty($hasher, new SimpleEqualizer());
-        self::assertEquals(0, $node->count());
+        self::assertSame(0, $node->count());
         self::assertNull($node->find(0, $hasher->hash(1), 1, null));
     }
 
@@ -28,7 +28,7 @@ final class ArrayNodeTest extends TestCase
             ->put(0, $hasher->hash(1), 1, 'test', new Box(null));
 
         self::assertInstanceOf(ArrayNode::class, $node);
-        self::assertEquals('test', $node->find(0, $hasher->hash(1), 1, null));
+        self::assertSame('test', $node->find(0, $hasher->hash(1), 1, null));
     }
 
     public function test_put_same_key_twice(): void
@@ -39,7 +39,7 @@ final class ArrayNodeTest extends TestCase
             ->put(0, $hasher->hash(1), 1, 'bar', new Box(null));
 
         self::assertInstanceOf(ArrayNode::class, $node);
-        self::assertEquals('bar', $node->find(0, $hasher->hash(1), 1, null));
+        self::assertSame('bar', $node->find(0, $hasher->hash(1), 1, null));
     }
 
     public function test_put_same_key_value_twice(): void
@@ -50,7 +50,7 @@ final class ArrayNodeTest extends TestCase
             ->put(0, $hasher->hash(1), 1, 'foo', new Box(null));
 
         self::assertInstanceOf(ArrayNode::class, $node);
-        self::assertEquals('foo', $node->find(0, $hasher->hash(1), 1, null));
+        self::assertSame('foo', $node->find(0, $hasher->hash(1), 1, null));
     }
 
     public function test_remove_non_existing_key(): void
@@ -74,7 +74,7 @@ final class ArrayNodeTest extends TestCase
             ->remove(0, $hasher->hash(33), 33);
 
         self::assertInstanceOf(IndexedNode::class, $node);
-        self::assertEquals('foobar', $node->find(0, $hasher->hash(2), 2, null));
+        self::assertSame('foobar', $node->find(0, $hasher->hash(2), 2, null));
         self::assertNull($node->find(0, $hasher->hash(1), 1, null));
         self::assertNull($node->find(0, $hasher->hash(33), 33, null));
     }

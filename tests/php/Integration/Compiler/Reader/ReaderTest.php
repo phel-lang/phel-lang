@@ -43,25 +43,25 @@ final class ReaderTest extends TestCase
 
     public function test_read_number(): void
     {
-        self::assertEquals(1, $this->read('1'));
-        self::assertEquals(10, $this->read('10'));
-        self::assertEquals(100, $this->read('100'));
-        self::assertEquals(10.0, $this->read('10.0'));
-        self::assertEquals(1.1, $this->read('1.1'));
-        self::assertEquals(10.11, $this->read('10.11'));
-        self::assertEquals(1337, $this->read('0x539'));
-        self::assertEquals(1337, $this->read('0x5_3_9'));
-        self::assertEquals(1337, $this->read('02471'));
-        self::assertEquals(1337, $this->read('024_71'));
-        self::assertEquals(1337, $this->read('0b10100111001'));
-        self::assertEquals(1337, $this->read('0b0101_0011_1001'));
-        self::assertEquals(1337, $this->read('1337e0'));
-        self::assertEquals(-1337, $this->read('-1337'));
-        self::assertEquals(-1337.0, $this->read('-1337.0'));
-        self::assertEquals(1337, $this->read('+1337'));
-        self::assertEquals(1337, $this->read('+1337.0'));
-        self::assertEquals(1.2e3, $this->read('1.2e3'));
-        self::assertEquals(7E-10, $this->read('7E-10'));
+        self::assertSame(1, $this->read('1'));
+        self::assertSame(10, $this->read('10'));
+        self::assertSame(100, $this->read('100'));
+        self::assertSame(10.0, $this->read('10.0'));
+        self::assertSame(1.1, $this->read('1.1'));
+        self::assertSame(10.11, $this->read('10.11'));
+        self::assertSame(1337, $this->read('0x539'));
+        self::assertSame(1337, $this->read('0x5_3_9'));
+        self::assertSame(1337, $this->read('02471'));
+        self::assertSame(1337, $this->read('024_71'));
+        self::assertSame(1337, $this->read('0b10100111001'));
+        self::assertSame(1337, $this->read('0b0101_0011_1001'));
+        self::assertSame(1337.0, $this->read('1337e0'));
+        self::assertSame(-1337, $this->read('-1337'));
+        self::assertSame(-1337.0, $this->read('-1337.0'));
+        self::assertSame(1337, $this->read('+1337'));
+        self::assertSame(1337.0, $this->read('+1337.0'));
+        self::assertSame(1.2e3, $this->read('1.2e3'));
+        self::assertSame(7E-10, $this->read('7E-10'));
     }
 
     public function test_read_keyword(): void
@@ -250,52 +250,52 @@ final class ReaderTest extends TestCase
 
     public function test_read_string(): void
     {
-        self::assertEquals(
+        self::assertSame(
             'abc',
             $this->read('"abc"'),
         );
 
-        self::assertEquals(
+        self::assertSame(
             'ab"c',
             $this->read('"ab\"c"'),
         );
 
-        self::assertEquals(
+        self::assertSame(
             "\\\r\n\t\f\v\e\$",
             $this->read('"\\\\\r\n\t\f\v\e\$"'),
         );
 
-        self::assertEquals(
+        self::assertSame(
             'read $abc sign',
             $this->read('"read $abc sign"'),
         );
 
-        self::assertEquals(
+        self::assertSame(
             "\x41",
             $this->read('"\x41"'),
         );
 
-        self::assertEquals(
+        self::assertSame(
             "\u{65}",
             $this->read('"\u{65}"'),
         );
 
-        self::assertEquals(
+        self::assertSame(
             "\u{129}",
             $this->read('"\u{129}"'),
         );
 
-        self::assertEquals(
+        self::assertSame(
             "\u{1000}",
             $this->read('"\u{1000}"'),
         );
 
-        self::assertEquals(
+        self::assertSame(
             "\u{10000}",
             $this->read('"\u{10000}"'),
         );
 
-        self::assertEquals(
+        self::assertSame(
             "\77",
             $this->read('"\77"'),
         );
