@@ -5,7 +5,8 @@ declare(strict_types=1);
 use Rector\CodeQuality\Rector\If_\SimplifyIfElseToTernaryRector;
 use Rector\CodingStyle\Rector\String_\UseClassKeywordForClassNameResolutionRector;
 use Rector\Config\RectorConfig;
-use Rector\DeadCode\Rector\Property\RemoveUnusedPrivatePropertyRector;
+use Rector\Core\Collector\MockedClassCollector;
+use Rector\Core\Collector\ParentClassCollector;
 use Rector\PHPUnit\CodeQuality\Rector\Class_\PreferPHPUnitThisCallRector;
 use Rector\PHPUnit\Set\PHPUnitSetList;
 use Rector\Privatization\Rector\Class_\FinalizeClassesWithoutChildrenRector;
@@ -25,10 +26,6 @@ return static function (RectorConfig $rectorConfig): void {
         __DIR__ . '/tests/php/*/gacela-class-names.php',
         __DIR__ . '/tests/php/*/gacela-custom-services.php',
 
-        SimplifyIfElseToTernaryRector::class => [
-            __DIR__ . '/src/php/Lang/Collections/Map/IndexedNode.php',
-        ],
-
         UseClassKeywordForClassNameResolutionRector::class => [
             __DIR__ . '/src/php/Compiler/Domain/Emitter/OutputEmitter/LiteralEmitter.php',
             __DIR__ . '/src/php/Compiler/Domain/Emitter/OutputEmitter/NodeEmitter/DefEmitter',
@@ -43,12 +40,12 @@ return static function (RectorConfig $rectorConfig): void {
             __DIR__ . '/tests/php/Unit/Compiler/Emitter/OutputEmitter/NodeEmitter/FnAsClassEmitterTest.php',
         ],
 
-        FinalizeClassesWithoutChildrenRector::class => [
-            __DIR__ . '/src/php/Run/RunFactory.php',
+        SimplifyIfElseToTernaryRector::class => [
+            __DIR__ . '/src/php/Lang/Collections/Map/IndexedNode.php',
         ],
 
-        RemoveUnusedPrivatePropertyRector::class => [
-            __DIR__ . '/tests/php/Unit/Printer/TypePrinter/StubStruct.php',
+        FinalizeClassesWithoutChildrenRector::class => [
+            __DIR__ . '/src/php/Run/RunFactory.php',
         ],
 
         PrivatizeFinalClassPropertyRector::class => [
@@ -72,4 +69,10 @@ return static function (RectorConfig $rectorConfig): void {
         PHPUnitSetList::PHPUNIT_CODE_QUALITY,
         PHPUnitSetList::PHPUNIT_90,
     ]);
+
+    $rectorConfig->collector(ParentClassCollector::class);
+    $rectorConfig->collector(MockedClassCollector::class);
+
+    $rectorConfig->importNames();
+    $rectorConfig->removeUnusedImports();
 };

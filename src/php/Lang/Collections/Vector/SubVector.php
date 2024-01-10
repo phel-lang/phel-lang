@@ -6,7 +6,6 @@ namespace Phel\Lang\Collections\Vector;
 
 use Phel\Lang\Collections\Exceptions\IndexOutOfBoundsException;
 use Phel\Lang\Collections\Exceptions\MethodNotSupportedException;
-use Phel\Lang\Collections\LinkedList\PersistentList;
 use Phel\Lang\Collections\Map\PersistentMapInterface;
 use Phel\Lang\EqualizerInterface;
 use Phel\Lang\HasherInterface;
@@ -65,7 +64,7 @@ final class SubVector extends AbstractPersistentVector
     public function getIterator(): Traversable
     {
         for ($s = $this; $s != null; $s = $s->cdr()) {
-            /** @var PersistentList<T> $s */
+            /** @var \Phel\Lang\Collections\LinkedList\PersistentList<T> $s */
             /** @var T $first  */
             $first = $s->first();
             yield $first;
