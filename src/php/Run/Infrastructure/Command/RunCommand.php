@@ -73,15 +73,13 @@ final class RunCommand extends Command
     {
         /** @var string $fileOrNamespace */
         $fileOrNamespace = $input->getArgument('path');
-        $namespace = $fileOrNamespace;
-
         if (file_exists($fileOrNamespace)) {
-            $namespace = $this->getFacade()
+            return $this->getFacade()
                 ->getNamespaceFromFile($fileOrNamespace)
                 ->getNamespace();
         }
 
-        return $namespace;
+        return $fileOrNamespace;
     }
 
     private function executeNamespace(string $namespace): string

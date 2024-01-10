@@ -15,15 +15,13 @@ use Phel\Printer\PrinterInterface;
 use RuntimeException;
 
 use function count;
-use function get_class;
-use function gettype;
 use function is_array;
 use function is_bool;
 use function is_float;
 use function is_int;
 use function is_string;
 
-final class LiteralEmitter
+final readonly class LiteralEmitter
 {
     public function __construct(
         private OutputEmitterInterface $outputEmitter,
@@ -56,10 +54,8 @@ final class LiteralEmitter
         } elseif (is_array($x)) {
             $this->emitArray($x);
         } else {
-            $typeName = gettype($x);
-            if ($typeName === 'object') {
-                $typeName = get_class($x);
-            }
+            $typeName = $x::class;
+
             throw new RuntimeException('literal not supported: ' . $typeName);
         }
     }
@@ -70,7 +66,7 @@ final class LiteralEmitter
         $float = ((int)$x == $x)
             // (string) 10.0 will return 10 and not 10.0
             // so, we just add a .0 at the end
-            ? ((string)$x) . '.0'
+            ? ($x) . '.0'
             : ((string)$x);
 
         $this->outputEmitter->emitStr($float);
@@ -93,12 +89,12 @@ final class LiteralEmitter
 
     private function emitBool(bool $x): void
     {
-        $this->outputEmitter->emitStr($x === true ? 'true' : 'false');
+        $this->outputEmitter->emitStr($x ? 'true' : 'false');
     }
 
     private function emitKeyword(Keyword $x): void
     {
-        if ($x->getNamespace()) {
+        if ($x->getNamespace() !== null && $x->getNamespace() !== '') {
             $this->outputEmitter->emitStr(
                 '\Phel\Lang\Keyword::createForNamespace("' . addslashes($x->getNamespace()) . '", "' . addslashes($x->getName()) . '")',
                 $x->getStartLocation(),
@@ -135,6 +131,7 @@ final class LiteralEmitter
             if ($i < count($x) - 1) {
                 $this->outputEmitter->emitStr(',', $x->getStartLocation());
             }
+
             $this->outputEmitter->emitLine();
             ++$i;
         }
@@ -142,6 +139,7 @@ final class LiteralEmitter
         if (count($x) > 0) {
             $this->outputEmitter->decreaseIndentLevel();
         }
+
         $this->outputEmitter->emitStr(')', $x->getStartLocation());
     }
 
@@ -159,12 +157,14 @@ final class LiteralEmitter
             if ($i < count($x) - 1) {
                 $this->outputEmitter->emitStr(',', $x->getStartLocation());
             }
+
             $this->outputEmitter->emitLine();
         }
 
         if (count($x) > 0) {
             $this->outputEmitter->decreaseIndentLevel();
         }
+
         $this->outputEmitter->emitStr('])', $x->getStartLocation());
     }
 
@@ -182,12 +182,14 @@ final class LiteralEmitter
             if ($i < count($x) - 1) {
                 $this->outputEmitter->emitStr(',', $x->getStartLocation());
             }
+
             $this->outputEmitter->emitLine();
         }
 
         if (count($x) > 0) {
             $this->outputEmitter->decreaseIndentLevel();
         }
+
         $this->outputEmitter->emitStr('])', $x->getStartLocation());
     }
 
@@ -206,6 +208,7 @@ final class LiteralEmitter
 
             ++$index;
         }
+
         $this->outputEmitter->emitStr(']');
     }
 }

@@ -11,7 +11,7 @@ use Phel\Compiler\Domain\Reader\Reader;
 use Phel\Lang\Collections\Vector\PersistentVectorInterface;
 use Phel\Lang\TypeFactory;
 
-final class VectorReader
+final readonly class VectorReader
 {
     public function __construct(private Reader $reader)
     {

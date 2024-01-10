@@ -32,7 +32,7 @@ final class ExceptionHandler
     private static string $previousTextError = '';
 
     public function __construct(
-        private ExceptionPrinterInterface $exceptionPrinter,
+        private readonly ExceptionPrinterInterface $exceptionPrinter,
     ) {
     }
 
@@ -71,7 +71,7 @@ final class ExceptionHandler
                 $errstr,
                 $errfile,
                 $errline,
-                json_encode(array_merge($errcontext, ['errno' => $errno])),
+                json_encode([...$errcontext, 'errno' => $errno]),
             );
 
             if (self::$previousTextError !== $text) {

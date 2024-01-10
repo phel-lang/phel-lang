@@ -18,7 +18,7 @@ use Phel\Lang\TypeInterface;
 use function count;
 use function is_string;
 
-final class MetaReader
+final readonly class MetaReader
 {
     public function __construct(private Reader $reader)
     {
@@ -40,6 +40,7 @@ final class MetaReader
         } elseif (!$meta instanceof PersistentMapInterface) {
             throw ReaderException::forNode($node, $root, 'Metadata must be a Symbol, String, Keyword or Map');
         }
+
         $object = $this->reader->readExpression($objectExpression, $root);
 
         if (!$object instanceof MetaInterface) {

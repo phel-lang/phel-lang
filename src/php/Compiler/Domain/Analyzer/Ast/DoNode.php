@@ -14,8 +14,8 @@ final class DoNode extends AbstractNode
      */
     public function __construct(
         NodeEnvironmentInterface $env,
-        private array $stmts,
-        private AbstractNode $ret,
+        private readonly array $stmts,
+        private readonly AbstractNode $ret,
         ?SourceLocation $sourceLocation = null,
     ) {
         parent::__construct($env, $sourceLocation);

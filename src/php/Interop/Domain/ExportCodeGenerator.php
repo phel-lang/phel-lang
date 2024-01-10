@@ -12,7 +12,7 @@ use Phel\Interop\Domain\Generator\WrapperGeneratorInterface;
 use Phel\Interop\Domain\ReadModel\Wrapper;
 use RuntimeException;
 
-final class ExportCodeGenerator
+final readonly class ExportCodeGenerator
 {
     public function __construct(
         private DirectoryRemoverInterface $directoryRemover,

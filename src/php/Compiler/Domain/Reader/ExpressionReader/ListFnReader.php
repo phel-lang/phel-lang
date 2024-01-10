@@ -11,7 +11,7 @@ use Phel\Lang\Collections\LinkedList\PersistentListInterface;
 use Phel\Lang\Symbol;
 use Phel\Lang\TypeFactory;
 
-final class ListFnReader
+final readonly class ListFnReader
 {
     public function __construct(private Reader $reader)
     {
@@ -32,7 +32,7 @@ final class ListFnReader
 
     private function extractParams(?array $fnArgs): array
     {
-        if (empty($fnArgs)) {
+        if ($fnArgs === null || $fnArgs === []) {
             return [];
         }
 

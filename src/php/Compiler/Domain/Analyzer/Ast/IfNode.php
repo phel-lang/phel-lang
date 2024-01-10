@@ -11,9 +11,9 @@ final class IfNode extends AbstractNode
 {
     public function __construct(
         NodeEnvironmentInterface $env,
-        private AbstractNode $testExpr,
-        private AbstractNode $thenExpr,
-        private AbstractNode $elseExpr,
+        private readonly AbstractNode $testExpr,
+        private readonly AbstractNode $thenExpr,
+        private readonly AbstractNode $elseExpr,
         ?SourceLocation $sourceLocation = null,
     ) {
         parent::__construct($env, $sourceLocation);

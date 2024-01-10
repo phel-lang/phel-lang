@@ -12,7 +12,7 @@ use Phel\Lang\HasherInterface;
  *
  * @implements TransientHashSetInterface<V>
  */
-class TransientHashSet implements TransientHashSetInterface
+final readonly class TransientHashSet implements TransientHashSetInterface
 {
     public function __construct(
         private HasherInterface $hasher,

@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Phel\Compiler\Domain\Analyzer\Ast;
 
-final class DefStructInterface
+final readonly class DefStructInterface
 {
     /**
      * @param list<DefStructMethod> $methods

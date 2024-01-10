@@ -10,7 +10,7 @@ use Phel\Build\Domain\Extractor\NamespaceInformation;
 use function array_key_exists;
 use function in_array;
 
-final class DependenciesForNamespace
+final readonly class DependenciesForNamespace
 {
     public function __construct(private NamespaceExtractor $namespaceExtractor)
     {
@@ -36,11 +36,11 @@ final class DependenciesForNamespace
         while ($queue !== []) {
             $currentNs = array_shift($queue);
 
-            if (array_key_exists($currentNs, $requiredNamespaces) === false) {
-                if (array_key_exists($currentNs, $index)) {
-                    foreach ($index[$currentNs]->getDependencies() as $depNs) {
-                        $queue[] = $depNs;
-                    }
+            if (array_key_exists($currentNs, $requiredNamespaces) === false
+                && array_key_exists($currentNs, $index)
+            ) {
+                foreach ($index[$currentNs]->getDependencies() as $depNs) {
+                    $queue[] = $depNs;
                 }
             }
 

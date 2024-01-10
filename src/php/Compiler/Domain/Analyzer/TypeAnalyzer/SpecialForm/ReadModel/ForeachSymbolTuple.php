@@ -8,7 +8,7 @@ use Phel\Compiler\Domain\Analyzer\Ast\AbstractNode;
 use Phel\Compiler\Domain\Analyzer\Environment\NodeEnvironmentInterface;
 use Phel\Lang\Symbol;
 
-final class ForeachSymbolTuple
+final readonly class ForeachSymbolTuple
 {
     public function __construct(
         private array $lets,

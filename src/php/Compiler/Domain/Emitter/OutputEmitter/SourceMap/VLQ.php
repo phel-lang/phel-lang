@@ -82,19 +82,20 @@ final class VLQ
             $integer &= 31;
             $value += $integer << $shift;
 
-            if ($hasContinuationBit) {
+            if ($hasContinuationBit !== 0) {
                 $shift += 5;
             } else {
                 $shouldNegate = $value & 1;
                 $value = $this->bitShiftRightWithZero($value, 1);
 
-                if ($shouldNegate) {
+                if ($shouldNegate !== 0) {
                     $result[] = ($value === 0 ? -0x80000000 : -$value);
                 } else {
                     $result[] = $value;
                 }
 
-                $value = $shift = 0;
+                $value = 0;
+                $shift = 0;
             }
         }
 
@@ -112,6 +113,7 @@ final class VLQ
         foreach ($numbers as $number) {
             $result .= $this->encodeInteger($number);
         }
+
         return $result;
     }
 

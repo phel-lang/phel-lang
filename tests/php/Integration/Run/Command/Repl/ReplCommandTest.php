@@ -30,7 +30,7 @@ use Symfony\Component\Console\Output\OutputInterface;
 
 final class ReplCommandTest extends AbstractCommandTest
 {
-    public function setUp(): void
+    protected function setUp(): void
     {
         Gacela::bootstrap(__DIR__, static function (GacelaConfig $config): void {
             $config->resetInMemoryCache();
@@ -55,7 +55,7 @@ final class ReplCommandTest extends AbstractCommandTest
 
         $replOutput = $io->getOutputString();
 
-        self::assertEquals(trim($expectedOutput), trim($replOutput));
+        self::assertSame(trim($expectedOutput), trim($replOutput));
     }
 
     /**
@@ -78,7 +78,7 @@ final class ReplCommandTest extends AbstractCommandTest
 
         $replOutput = $io->getOutputString();
 
-        self::assertEquals(trim($expectedOutput), trim($replOutput));
+        self::assertSame(trim($expectedOutput), trim($replOutput));
     }
 
     public function providerIntegration(): Generator
@@ -100,7 +100,15 @@ final class ReplCommandTest extends AbstractCommandTest
 
         /** @var SplFileInfo $file */
         foreach ($iterator as $file) {
-            if (!preg_match('/\.test$/', $file->getRealPath())) {
+            if (preg_match('/\.test$/', $file->getRealPath()) === 0) {
+                continue;
+            }
+
+            if (preg_match('/\.test$/', $file->getRealPath()) === 0) {
+                continue;
+            }
+
+            if (preg_match('/\.test$/', $file->getRealPath()) === false) {
                 continue;
             }
 
@@ -163,11 +171,8 @@ final class ReplCommandTest extends AbstractCommandTest
         AnonymousGlobal::overrideExistingResolvedClass(
             RunFactory::class,
             new class($io) extends RunFactory {
-                private ReplCommandIoInterface $io;
-
-                public function __construct(ReplCommandIoInterface $io)
+                public function __construct(private readonly ReplCommandIoInterface $io)
                 {
-                    $this->io = $io;
                 }
 
                 public function createColorStyle(): ColorStyleInterface

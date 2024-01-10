@@ -14,11 +14,13 @@ use function count;
  *
  * @implements Iterator<K, V>
  */
-class IndexedNodeIterator implements Iterator
+final class IndexedNodeIterator implements Iterator
 {
     /** @var array<int, array{0: K|null, 1: V|HashMapNodeInterface<K, V>}> */
     private array $entries;
+
     private int $index = 0;
+
     private ?Iterator $nestedIterator = null;
 
     public function __construct(array $entries)
@@ -31,7 +33,7 @@ class IndexedNodeIterator implements Iterator
      */
     public function current(): mixed
     {
-        if ($this->nestedIterator) {
+        if ($this->nestedIterator instanceof Iterator) {
             return $this->nestedIterator->current();
         }
 
@@ -42,7 +44,7 @@ class IndexedNodeIterator implements Iterator
 
     public function next(): void
     {
-        if ($this->nestedIterator && $this->nestedIterator->valid()) {
+        if ($this->nestedIterator instanceof Iterator && $this->nestedIterator->valid()) {
             $this->nestedIterator->next();
 
             if (!$this->nestedIterator->valid()) {
@@ -55,7 +57,7 @@ class IndexedNodeIterator implements Iterator
 
     public function valid(): bool
     {
-        if ($this->nestedIterator) {
+        if ($this->nestedIterator instanceof Iterator) {
             return $this->nestedIterator->valid();
         }
 
@@ -65,9 +67,15 @@ class IndexedNodeIterator implements Iterator
     public function rewind(): void
     {
         $this->index = 0;
-        if (count($this->entries) > 0 && $this->entries[$this->index][0] === null) {
-            $this->initializeNestedIterator($this->index);
+        if ($this->entries === []) {
+            return;
         }
+
+        if ($this->entries[$this->index][0] !== null) {
+            return;
+        }
+
+        $this->initializeNestedIterator($this->index);
     }
 
     /**
@@ -75,7 +83,7 @@ class IndexedNodeIterator implements Iterator
      */
     public function key(): mixed
     {
-        if ($this->nestedIterator) {
+        if ($this->nestedIterator instanceof Iterator) {
             return $this->nestedIterator->key();
         }
 

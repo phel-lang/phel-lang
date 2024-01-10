@@ -10,8 +10,8 @@ use Phel\Lang\SourceLocation;
 abstract class AbstractNode
 {
     public function __construct(
-        private NodeEnvironmentInterface $env,
-        private ?SourceLocation $startSourceLocation = null,
+        private readonly NodeEnvironmentInterface $env,
+        private readonly ?SourceLocation $startSourceLocation = null,
     ) {
     }
 

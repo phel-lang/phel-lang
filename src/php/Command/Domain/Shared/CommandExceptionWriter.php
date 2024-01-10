@@ -11,7 +11,7 @@ use Phel\Compiler\Domain\Parser\ReadModel\CodeSnippet;
 use Symfony\Component\Console\Output\OutputInterface;
 use Throwable;
 
-final class CommandExceptionWriter implements CommandExceptionWriterInterface
+final readonly class CommandExceptionWriter implements CommandExceptionWriterInterface
 {
     public function __construct(
         private ExceptionPrinterInterface $exceptionPrinter,

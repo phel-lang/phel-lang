@@ -15,18 +15,17 @@ use Traversable;
  *
  * @implements HashMapNodeInterface<K, V>
  */
-class ArrayNode implements HashMapNodeInterface, Countable
+final class ArrayNode implements HashMapNodeInterface, Countable
 {
-    /** @var array<int, ?HashMapNodeInterface<K, V>> A fixed size array of nodes */
-    private array $childNodes;
-
+    /**
+     * @param list<?HashMapNodeInterface<K, V>> $childNodes A fixed size array of nodes
+     */
     public function __construct(
-        private HasherInterface $hasher,
-        private EqualizerInterface $equalizer,
-        private int $count,
-        array $childNodes,
+        private readonly HasherInterface $hasher,
+        private readonly EqualizerInterface $equalizer,
+        private readonly int $count,
+        private array $childNodes,
     ) {
-        $this->childNodes = $childNodes;
     }
 
     public static function empty(HasherInterface $hasher, EqualizerInterface $equalizer): self
@@ -132,9 +131,15 @@ class ArrayNode implements HashMapNodeInterface, Countable
     {
         $objects = [];
         foreach ($this->childNodes as $i => $node) {
-            if ($i !== $index && $node !== null) {
-                $objects[$i] = [null, $node];
+            if ($i === $index) {
+                continue;
             }
+
+            if ($node === null) {
+                continue;
+            }
+
+            $objects[$i] = [null, $node];
         }
 
         return new IndexedNode($this->hasher, $this->equalizer, $objects);

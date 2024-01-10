@@ -15,9 +15,9 @@ final class DefInterfaceNode extends AbstractNode
      */
     public function __construct(
         NodeEnvironmentInterface $env,
-        private string $namespace,
-        private Symbol $name,
-        private array $methods,
+        private readonly string $namespace,
+        private readonly Symbol $name,
+        private readonly array $methods,
         ?SourceLocation $startSourceLocation = null,
     ) {
         parent::__construct($env, $startSourceLocation);

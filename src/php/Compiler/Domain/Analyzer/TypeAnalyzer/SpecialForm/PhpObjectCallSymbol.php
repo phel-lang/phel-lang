@@ -15,7 +15,7 @@ use Phel\Lang\Symbol;
 
 use function count;
 
-final class PhpObjectCallSymbol implements SpecialFormAnalyzerInterface
+final readonly class PhpObjectCallSymbol implements SpecialFormAnalyzerInterface
 {
     public function __construct(
         private AnalyzerInterface $analyzer,
@@ -30,11 +30,11 @@ final class PhpObjectCallSymbol implements SpecialFormAnalyzerInterface
             : Symbol::NAME_PHP_OBJECT_CALL;
 
         if (count($list) !== 3) {
-            throw AnalyzerException::withLocation("Exactly two arguments are expected for '{$fnName}", $list);
+            throw AnalyzerException::withLocation("Exactly two arguments are expected for '" . $fnName, $list);
         }
 
-        if (!($list->get(2) instanceof PersistentListInterface || $list->get(2) instanceof Symbol)) {
-            throw AnalyzerException::withLocation("Second argument of '{$fnName} must be a List or a Symbol", $list);
+        if (!$list->get(2) instanceof PersistentListInterface && !$list->get(2) instanceof Symbol) {
+            throw AnalyzerException::withLocation(sprintf("Second argument of '%s must be a List or a Symbol", $fnName), $list);
         }
 
         $targetExpr = $this->analyzer->analyze(

@@ -31,7 +31,9 @@ use Phel\Lang\TypeInterface;
 interface PersistentVectorInterface extends TypeInterface, SeqInterface, IteratorAggregate, Countable, ArrayAccess, ConcatInterface, PushInterface, SliceInterface, AsTransientInterface, FnInterface, ContainsInterface
 {
     public const BRANCH_FACTOR = 32;
+
     public const INDEX_MASK = self::BRANCH_FACTOR - 1;
+
     public const SHIFT = 5;
 
     /**

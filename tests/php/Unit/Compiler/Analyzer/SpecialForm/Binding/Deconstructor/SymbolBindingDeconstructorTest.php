@@ -14,7 +14,7 @@ final class SymbolBindingDeconstructorTest extends TestCase
 
     private SymbolBindingDeconstructor $deconstructor;
 
-    public function setUp(): void
+    protected function setUp(): void
     {
         Symbol::resetGen();
 

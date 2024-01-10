@@ -40,6 +40,9 @@ jobs:
       - name: Run friendsofphp/php-cs-fixer
         run: ./vendor/bin/php-cs-fixer fix --allow-risky=yes --dry-run --show-progress=dots --using-cache=no --verbose
 
+      - name: Run rector/rector
+        run: ./vendor/bin/php-cs-fixer fix --dry-run --show-progress=dots --using-cache=no --verbose
+
   type-checker:
     name: Type Checker
     runs-on: ubuntu-latest

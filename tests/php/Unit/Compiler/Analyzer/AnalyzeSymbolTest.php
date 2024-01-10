@@ -21,7 +21,7 @@ final class AnalyzeSymbolTest extends TestCase
 {
     private AnalyzeSymbol $symbolAnalyzer;
 
-    public function setUp(): void
+    protected function setUp(): void
     {
         $this->symbolAnalyzer = new AnalyzeSymbol(new Analyzer(new GlobalEnvironment()));
         Registry::getInstance()->clear();
@@ -62,6 +62,7 @@ final class AnalyzeSymbolTest extends TestCase
         $globalEnv = new GlobalEnvironment();
         $globalEnv->setNs('test');
         $globalEnv->addDefinition('test', Symbol::create('a'));
+
         $symbolAnalyzer = new AnalyzeSymbol(new Analyzer($globalEnv));
 
         $env = NodeEnvironment::empty();
@@ -85,6 +86,7 @@ final class AnalyzeSymbolTest extends TestCase
         $globalEnv = new GlobalEnvironment();
         $globalEnv->setNs('test');
         $globalEnv->addDefinition('test', Symbol::create('a'));
+
         $symbolAnalyzer = new AnalyzeSymbol(new Analyzer($globalEnv));
 
         $env = NodeEnvironment::empty()->withLocals([Symbol::create('a')]);

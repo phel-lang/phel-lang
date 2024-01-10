@@ -6,7 +6,7 @@ namespace Phel\Compiler\Domain\Parser\ReadModel;
 
 use Phel\Lang\TypeInterface;
 
-final class ReaderResult
+final readonly class ReaderResult
 {
     public function __construct(
         private float|bool|int|string|TypeInterface|null $ast,

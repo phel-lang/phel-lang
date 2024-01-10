@@ -12,14 +12,14 @@ final class VariableTest extends TestCase
     public function test_deref(): void
     {
         $v = new Variable(null, 10);
-        $this->assertEquals(10, $v->deref());
+        $this->assertSame(10, $v->deref());
     }
 
     public function test_set(): void
     {
         $v = new Variable(null, 10);
         $v->set(20);
-        $this->assertEquals(20, $v->deref());
+        $this->assertSame(20, $v->deref());
     }
 
     public function test_equals(): void
@@ -36,6 +36,6 @@ final class VariableTest extends TestCase
     {
         $v1 = new Variable(null, 10);
 
-        $this->assertEquals(crc32(spl_object_hash($v1)), $v1->hash());
+        $this->assertSame(crc32(spl_object_hash($v1)), $v1->hash());
     }
 }

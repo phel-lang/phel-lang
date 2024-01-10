@@ -8,7 +8,7 @@ use Phel\Command\Domain\Shared\Exceptions\Extractor\ReadModel\FilePosition;
 use Phel\Command\Domain\Shared\Exceptions\Extractor\ReadModel\SourceMapInformation;
 use Phel\Compiler\Domain\Emitter\OutputEmitter\SourceMap\SourceMapConsumer;
 
-final class FilePositionExtractor implements FilePositionExtractorInterface
+final readonly class FilePositionExtractor implements FilePositionExtractorInterface
 {
     public function __construct(private SourceMapExtractorInterface $sourceMapExtractor)
     {
@@ -44,6 +44,8 @@ final class FilePositionExtractor implements FilePositionExtractorInterface
         $mapping = trim(substr($sourceMapInfo->sourceMap(), 3));
         $sourceMapConsumer = new SourceMapConsumer($mapping);
 
-        return ($sourceMapConsumer->getOriginalLine($line - 1)) ?: $line;
+        return ($sourceMapConsumer->getOriginalLine($line - 1) !== null && $sourceMapConsumer->getOriginalLine($line - 1) !== 0)
+            ? $sourceMapConsumer->getOriginalLine($line - 1) ?? $line
+            : $line;
     }
 }

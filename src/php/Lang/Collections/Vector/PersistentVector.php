@@ -32,7 +32,7 @@ use function count;
  *
  * @extends AbstractPersistentVector<T>
  */
-class PersistentVector extends AbstractPersistentVector
+final class PersistentVector extends AbstractPersistentVector
 {
     /**
      * @param int $count The number of elements stored in this vector
@@ -43,7 +43,7 @@ class PersistentVector extends AbstractPersistentVector
         HasherInterface $hasher,
         EqualizerInterface $equalizer,
         ?PersistentMapInterface $meta,
-        private int $count,
+        private readonly int $count,
         private int $shift,
         private array $root,
         private array $tail,
@@ -66,7 +66,7 @@ class PersistentVector extends AbstractPersistentVector
         return $tv->persistent();
     }
 
-    public function withMeta(?PersistentMapInterface $meta)
+    public function withMeta(?PersistentMapInterface $meta): self
     {
         return new self($this->hasher, $this->equalizer, $meta, $this->count, $this->shift, $this->root, $this->tail);
     }
@@ -206,7 +206,7 @@ class PersistentVector extends AbstractPersistentVector
             return $node;
         }
 
-        throw new IndexOutOfBoundsException("Index {$i} is not in interval [0, {$this->count})");
+        throw new IndexOutOfBoundsException(sprintf('Index %d is not in interval [0, %d)', $i, $this->count));
     }
 
     /**
@@ -286,21 +286,13 @@ class PersistentVector extends AbstractPersistentVector
         return new RangeIterator($this, $start, $end);
     }
 
-    /**
-     * @return PersistentVectorInterface|null
-     */
-    public function cdr()
+    public function cdr(): ?SubVector
     {
-        if ($this->count() <= 1) {
+        if ($this->count <= 1) {
             return null;
         }
 
-        return new SubVector($this->hasher, $this->equalizer, $this->meta, $this, 1, $this->count());
-    }
-
-    public function sliceNormalized(int $start, int $end): PersistentVectorInterface
-    {
-        return new SubVector($this->hasher, $this->equalizer, $this->meta, $this, $start, $end);
+        return new SubVector($this->hasher, $this->equalizer, $this->meta, $this, 1, $this->count);
     }
 
     public function asTransient(): TransientVector
@@ -313,6 +305,11 @@ class PersistentVector extends AbstractPersistentVector
             $this->root,
             $this->tail,
         );
+    }
+
+    protected function sliceNormalized(int $start, int $end): PersistentVectorInterface
+    {
+        return new SubVector($this->hasher, $this->equalizer, $this->meta, $this, $start, $end);
     }
 
     private function pushTail(int $level, array $parent, array $tailNode): array
@@ -386,7 +383,7 @@ class PersistentVector extends AbstractPersistentVector
 
     private function fillArray(array $node, int $shift, array &$targetArr = []): void
     {
-        if ($shift) {
+        if ($shift !== 0) {
             $shift -= self::SHIFT;
             foreach ($node as $x) {
                 $this->fillArray($x, $shift, $targetArr);

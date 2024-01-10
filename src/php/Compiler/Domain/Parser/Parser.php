@@ -24,7 +24,7 @@ use Phel\Compiler\Domain\Parser\ParserNode\WhitespaceNode;
 
 use function in_array;
 
-final class Parser implements ParserInterface
+final readonly class Parser implements ParserInterface
 {
     private const TOKENS_THAT_SHOULD_STREAM_NEXT = [
         Token::T_WHITESPACE,
@@ -34,15 +34,10 @@ final class Parser implements ParserInterface
         Token::T_STRING,
     ];
 
-    private ExpressionParserFactoryInterface $parserFactory;
-    private GlobalEnvironmentInterface $globalEnvironment;
-
     public function __construct(
-        ExpressionParserFactoryInterface $parserFactory,
-        GlobalEnvironmentInterface $globalEnvironment,
+        private ExpressionParserFactoryInterface $parserFactory,
+        private GlobalEnvironmentInterface $globalEnvironment,
     ) {
-        $this->parserFactory = $parserFactory;
-        $this->globalEnvironment = $globalEnvironment;
     }
 
     /**
@@ -72,7 +67,7 @@ final class Parser implements ParserInterface
     public function parseAll(TokenStream $tokenStream): FileNode
     {
         $result = [];
-        while ($node = $this->parseNext($tokenStream)) {
+        while (($node = $this->parseNext($tokenStream)) instanceof NodeInterface) {
             $result[] = $node;
         }
 
@@ -144,8 +139,8 @@ final class Parser implements ParserInterface
             return $this->parserFactory
                 ->createAtomParser($this->globalEnvironment)
                 ->parse($token);
-        } catch (KeywordParserException $e) {
-            throw $this->createUnexceptedParserException($tokenStream, $token, $e->getMessage());
+        } catch (KeywordParserException $keywordParserException) {
+            throw $this->createUnexceptedParserException($tokenStream, $token, $keywordParserException->getMessage());
         }
     }
 
@@ -158,8 +153,8 @@ final class Parser implements ParserInterface
             return $this->parserFactory
                 ->createStringParser()
                 ->parse($token);
-        } catch (StringParserException $e) {
-            throw $this->createUnexceptedParserException($tokenStream, $token, $e->getMessage());
+        } catch (StringParserException $stringParserException) {
+            throw $this->createUnexceptedParserException($tokenStream, $token, $stringParserException->getMessage());
         }
     }
 

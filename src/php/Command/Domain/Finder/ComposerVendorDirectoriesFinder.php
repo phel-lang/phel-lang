@@ -43,8 +43,8 @@ final class ComposerVendorDirectoriesFinder implements VendorDirectoriesFinderIn
 
             $sourceDirectories = $config[CommandConfig::SRC_DIRS] ?? [];
 
-            foreach ($sourceDirectories as $directory) {
-                $result[] = dirname($phelConfigPath) . '/' . $directory;
+            foreach ($sourceDirectories as $sourceDirectory) {
+                $result[] = dirname($phelConfigPath) . '/' . $sourceDirectory;
             }
         }
 

@@ -6,18 +6,14 @@ namespace Phel\Compiler\Domain\Emitter;
 
 use Phel\Compiler\Domain\Analyzer\Ast\AbstractNode;
 use Phel\Compiler\Domain\Emitter\OutputEmitter\SourceMap\SourceMapGenerator;
+use Phel\Lang\SourceLocation;
 
-final class StatementEmitter implements StatementEmitterInterface
+final readonly class StatementEmitter implements StatementEmitterInterface
 {
-    private SourceMapGenerator $sourceMapGenerator;
-    private OutputEmitterInterface $outputEmitter;
-
     public function __construct(
-        SourceMapGenerator $sourceMapGenerator,
-        OutputEmitterInterface $outputEmitter,
+        private SourceMapGenerator $sourceMapGenerator,
+        private OutputEmitterInterface $outputEmitter,
     ) {
-        $this->sourceMapGenerator = $sourceMapGenerator;
-        $this->outputEmitter = $outputEmitter;
     }
 
     public function emitNode(AbstractNode $node, bool $enableSourceMaps): EmitterResult
@@ -56,6 +52,8 @@ final class StatementEmitter implements StatementEmitterInterface
     {
         $sourceLocation = $node->getStartSourceLocation();
 
-        return $sourceLocation ? $sourceLocation->getFile() : 'string';
+        return ($sourceLocation instanceof SourceLocation)
+            ? $sourceLocation->getFile()
+            : 'string';
     }
 }

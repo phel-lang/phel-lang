@@ -53,9 +53,15 @@ final class DocCommand extends Command
     private function normalizeNamespaces(array $namespaces): array
     {
         array_walk($namespaces, static function (string &$ns): void {
-            if (in_array($ns, ['core', 'http', 'html', 'test', 'json']) && !str_starts_with($ns, 'phel\\')) {
-                $ns = 'phel\\' . $ns;
+            if (!in_array($ns, ['core', 'http', 'html', 'test', 'json'])) {
+                return;
             }
+
+            if (str_starts_with($ns, 'phel\\')) {
+                return;
+            }
+
+            $ns = 'phel\\' . $ns;
         });
 
         return $namespaces;
@@ -99,8 +105,8 @@ final class DocCommand extends Command
         $longestFuncNameLength = 5;
         $normalized = [];
 
-        foreach ($phelFunctions as $function) {
-            $fnName = $function->fnName();
+        foreach ($phelFunctions as $phelFunction) {
+            $fnName = $phelFunction->fnName();
             similar_text($fnName, $search, $percent);
             if ($search && $percent < 40) {
                 continue;
@@ -109,15 +115,17 @@ final class DocCommand extends Command
             if (strlen($fnName) > $longestFuncNameLength) {
                 $longestFuncNameLength = strlen($fnName);
             }
+
             $normalized[] = [
                 'percent' => round($percent),
                 'name' => $fnName,
-                'signature' => $function->fnSignature(),
-                'doc' => $function->doc(),
-                'description' => preg_replace('/\r?\n/', '', $function->description()),
+                'signature' => $phelFunction->fnSignature(),
+                'doc' => $phelFunction->doc(),
+                'description' => preg_replace('/\r?\n/', '', $phelFunction->description()),
             ];
         }
-        usort($normalized, static fn ($a, $b) => $b['percent'] <=> $a['percent']);
+
+        usort($normalized, static fn ($a, $b): int => $b['percent'] <=> $a['percent']);
 
         return [$normalized, $longestFuncNameLength];
     }

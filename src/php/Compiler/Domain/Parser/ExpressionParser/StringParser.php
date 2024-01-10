@@ -46,14 +46,14 @@ final class StringParser
             }
 
             if ($str[0] === 'x' || $str[0] === 'X') {
-                return chr(hexdec(substr($str, 1)));
+                return chr(hexdec(substr((string) $str, 1)));
             }
 
             if ($str[0] === 'u') {
-                return $this->codePointToUtf8(hexdec($matches[2]));
+                return $this->codePointToUtf8(hexdec((string) $matches[2]));
             }
 
-            return chr((int)octdec($str));
+            return chr((int)octdec((string) $str));
         };
 
         return preg_replace_callback(
@@ -84,6 +84,7 @@ final class StringParser
             return chr(($num >> 18) + 0xF0) . chr((($num >> 12) & 0x3F) + 0x80)
                 . chr((($num >> 6) & 0x3F) + 0x80) . chr(($num & 0x3F) + 0x80);
         }
+
         throw new StringParserException('Invalid UTF-8 codepoint escape sequence: Codepoint too large');
     }
 }

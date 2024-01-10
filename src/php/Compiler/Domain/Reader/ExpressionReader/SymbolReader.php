@@ -38,6 +38,7 @@ final class SymbolReader
             if (isset($fnArgs[1])) {
                 return Symbol::create($fnArgs[1]->getName());
             }
+
             $sym = Symbol::gen('__short_fn_1_');
             $fnArgs[1] = $sym;
             return $sym;
@@ -47,6 +48,7 @@ final class SymbolReader
             if (isset($fnArgs[0])) {
                 return Symbol::create($fnArgs[0]->getName());
             }
+
             $sym = Symbol::gen('__short_fn_rest_');
             $fnArgs[0] = $sym;
             return $sym;
@@ -57,6 +59,7 @@ final class SymbolReader
             if (isset($fnArgs[$number])) {
                 return Symbol::create($fnArgs[$number]->getName());
             }
+
             $sym = Symbol::gen('__short_fn_' . $number . '_');
             $fnArgs[$number] = $sym;
             return $sym;

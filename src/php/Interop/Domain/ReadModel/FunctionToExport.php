@@ -6,7 +6,7 @@ namespace Phel\Interop\Domain\ReadModel;
 
 use Phel\Lang\FnInterface;
 
-final class FunctionToExport
+final readonly class FunctionToExport
 {
     public function __construct(private FnInterface $fn)
     {

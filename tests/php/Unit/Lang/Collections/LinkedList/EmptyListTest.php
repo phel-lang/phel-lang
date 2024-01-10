@@ -20,11 +20,11 @@ final class EmptyListTest extends TestCase
         $list = (new EmptyList(new ModuloHasher(), new SimpleEqualizer(), null))->prepend('foo');
 
         $this->assertInstanceOf(PersistentList::class, $list);
-        $this->assertEquals(1, $list->count());
-        $this->assertEquals('foo', $list->get(0));
+        $this->assertSame(1, $list->count());
+        $this->assertSame('foo', $list->get(0));
     }
 
-    public function test_can_not_pop_on_emtpy_list(): void
+    public function test_can_not_pop_on_empty_list(): void
     {
         $this->expectException(RuntimeException::class);
 
@@ -35,10 +35,10 @@ final class EmptyListTest extends TestCase
     public function test_count(): void
     {
         $list = new EmptyList(new ModuloHasher(), new SimpleEqualizer(), null);
-        $this->assertEquals(0, $list->count());
+        $this->assertSame(0, $list->count());
     }
 
-    public function test_can_get_on_emtpy_list(): void
+    public function test_can_get_on_empty_list(): never
     {
         $this->expectException(IndexOutOfBoundsException::class);
 
@@ -61,7 +61,7 @@ final class EmptyListTest extends TestCase
     public function test_hash(): void
     {
         $list = new EmptyList(new ModuloHasher(), new SimpleEqualizer(), null);
-        $this->assertEquals(1, $list->hash());
+        $this->assertSame(1, $list->hash());
     }
 
     public function test_iterator(): void
@@ -72,7 +72,8 @@ final class EmptyListTest extends TestCase
         foreach ($list as $index => $value) {
             $result[$index] = $value;
         }
-        $this->assertEquals([], $result);
+
+        $this->assertSame([], $result);
     }
 
     public function test_first(): void
@@ -96,19 +97,19 @@ final class EmptyListTest extends TestCase
     public function test_to_array(): void
     {
         $list = new EmptyList(new ModuloHasher(), new SimpleEqualizer(), null);
-        $this->assertEquals([], $list->toArray());
+        $this->assertSame([], $list->toArray());
     }
 
     public function test_concat_empty_array(): void
     {
         $list = new EmptyList(new ModuloHasher(), new SimpleEqualizer(), null);
-        $this->assertEquals([], $list->concat([])->toArray());
+        $this->assertSame([], $list->concat([])->toArray());
     }
 
     public function test_concat_single_entry_array(): void
     {
         $list = new EmptyList(new ModuloHasher(), new SimpleEqualizer(), null);
-        $this->assertEquals([1], $list->concat([1])->toArray());
+        $this->assertSame([1], $list->concat([1])->toArray());
     }
 
     public function test_cons_on_empty_list(): void
@@ -116,14 +117,14 @@ final class EmptyListTest extends TestCase
         $list = (new EmptyList(new ModuloHasher(), new SimpleEqualizer(), null))->cons('foo');
 
         $this->assertInstanceOf(PersistentList::class, $list);
-        $this->assertEquals(1, $list->count());
-        $this->assertEquals('foo', $list->get(0));
+        $this->assertSame(1, $list->count());
+        $this->assertSame('foo', $list->get(0));
     }
 
     public function test_offset_exists(): void
     {
         $list = new EmptyList(new ModuloHasher(), new SimpleEqualizer(), null);
-        $this->assertFalse(isset($list[0]));
+        $this->assertArrayNotHasKey(0, $list);
     }
 
     public function test_contains(): void

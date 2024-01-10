@@ -12,10 +12,10 @@ final class DefNode extends AbstractNode
 {
     public function __construct(
         NodeEnvironmentInterface $env,
-        private string $namespace,
-        private Symbol $name,
-        private MapNode $meta,
-        private AbstractNode $init,
+        private readonly string $namespace,
+        private readonly Symbol $name,
+        private readonly MapNode $meta,
+        private readonly AbstractNode $init,
         ?SourceLocation $sourceLocation = null,
     ) {
         parent::__construct($env, $sourceLocation);

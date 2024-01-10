@@ -7,7 +7,7 @@ namespace Phel\Compiler\Domain\Parser\ParserNode;
 use Phel\Compiler\Domain\Lexer\Token;
 use Phel\Lang\SourceLocation;
 
-final class CommentNode implements TriviaNodeInterface
+final readonly class CommentNode implements TriviaNodeInterface
 {
     public function __construct(
         private string $code,

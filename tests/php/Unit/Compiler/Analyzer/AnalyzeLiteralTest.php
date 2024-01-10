@@ -14,7 +14,7 @@ final class AnalyzeLiteralTest extends TestCase
 {
     private AnalyzeLiteral $literalAnalyzer;
 
-    public function setUp(): void
+    protected function setUp(): void
     {
         $this->literalAnalyzer = new AnalyzeLiteral();
     }

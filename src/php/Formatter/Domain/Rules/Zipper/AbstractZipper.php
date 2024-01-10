@@ -4,8 +4,6 @@ declare(strict_types=1);
 
 namespace Phel\Formatter\Domain\Rules\Zipper;
 
-use function count;
-
 /**
  * @template T
  *
@@ -13,9 +11,6 @@ use function count;
  */
 abstract class AbstractZipper
 {
-    /** @var T */
-    protected $node;
-
     /**
      * @param T $node
      * @param ?AbstractZipper<T> $parent
@@ -23,14 +18,13 @@ abstract class AbstractZipper
      * @param list<T> $rightSiblings
      */
     final public function __construct(
-        $node,
+        protected $node,
         protected ?self $parent,
         protected array $leftSiblings = [],
         protected array $rightSiblings = [],
         protected bool $hasChanged = false,
         protected bool $isEnd = false,
     ) {
-        $this->node = $node;
     }
 
     /**
@@ -199,7 +193,7 @@ abstract class AbstractZipper
         }
 
         $children = $this->getChildren();
-        if (count($children) === 0) {
+        if ($children === []) {
             throw ZipperException::cannotGoDownOnNodeWithZeroChildren();
         }
 
@@ -410,7 +404,7 @@ abstract class AbstractZipper
 
     public function hasChildren(): bool
     {
-        return $this->isBranch() && count($this->getChildren()) > 0;
+        return $this->isBranch() && $this->getChildren() !== [];
     }
 
     /**
@@ -418,12 +412,12 @@ abstract class AbstractZipper
      */
     public function isTop(): bool
     {
-        return $this->parent === null;
+        return !$this->parent instanceof self;
     }
 
     public function isFirst(): bool
     {
-        return empty($this->leftSiblings);
+        return $this->leftSiblings === [];
     }
 
     /**
@@ -431,7 +425,7 @@ abstract class AbstractZipper
      */
     public function isLast(): bool
     {
-        return empty($this->rightSiblings);
+        return $this->rightSiblings === [];
     }
 
     /**

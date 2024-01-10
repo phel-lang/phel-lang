@@ -17,7 +17,7 @@ use Traversable;
  *
  * @extends AbstractType<PersistentHashSet<V>>
  */
-class PersistentHashSet extends AbstractType implements PersistentHashSetInterface, IteratorAggregate
+final class PersistentHashSet extends AbstractType implements PersistentHashSetInterface, IteratorAggregate
 {
     private int $hashCache = 0;
 
@@ -25,9 +25,9 @@ class PersistentHashSet extends AbstractType implements PersistentHashSetInterfa
      * @param PersistentMapInterface<V, V> $map
      */
     public function __construct(
-        private HasherInterface $hasher,
-        private ?PersistentMapInterface $meta,
-        private PersistentMapInterface $map,
+        private readonly HasherInterface $hasher,
+        private readonly ?PersistentMapInterface $meta,
+        private readonly PersistentMapInterface $map,
     ) {
     }
 
@@ -139,10 +139,8 @@ class PersistentHashSet extends AbstractType implements PersistentHashSetInterfa
      * Concatenates a value to the data structure.
      *
      * @param array<int, mixed> $xs The value to concatenate
-     *
-     * @return PersistentHashSetInterface
      */
-    public function concat($xs)
+    public function concat($xs): PersistentHashSetInterface
     {
         $map = $this->asTransient();
         foreach ($xs as $x) {

@@ -17,7 +17,7 @@ use Phel\Lang\Keyword;
 use Phel\Lang\Registry;
 use Phel\Lang\TypeFactory;
 
-final class FunctionsToExportFinder implements FunctionsToExportFinderInterface
+final readonly class FunctionsToExportFinder implements FunctionsToExportFinderInterface
 {
     public function __construct(
         private BuildFacadeInterface $buildFacade,
@@ -55,7 +55,7 @@ final class FunctionsToExportFinder implements FunctionsToExportFinderInterface
             ->getNamespaceFromDirectories($this->exportDirs);
 
         $namespaces = array_map(
-            static fn (NamespaceInformation $info) => $info->getNamespace(),
+            static fn (NamespaceInformation $info): string => $info->getNamespace(),
             $namespaceFromDirectories,
         );
 

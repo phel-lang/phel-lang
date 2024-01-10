@@ -13,7 +13,7 @@ use Phel\Formatter\Infrastructure\IO\FileIoInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 use Throwable;
 
-final class PathsFormatter
+final readonly class PathsFormatter
 {
     public function __construct(
         private CommandFacadeInterface $commandFacade,

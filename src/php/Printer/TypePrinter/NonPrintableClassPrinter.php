@@ -4,8 +4,6 @@ declare(strict_types=1);
 
 namespace Phel\Printer\TypePrinter;
 
-use function get_class;
-
 /**
  * @implements TypePrinterInterface<object>
  */
@@ -18,7 +16,7 @@ final class NonPrintableClassPrinter implements TypePrinterInterface
      */
     public function print(mixed $form): string
     {
-        return 'Printer cannot print this type: ' . $this->color(get_class($form));
+        return 'Printer cannot print this type: ' . $this->color($form::class);
     }
 
     private function color(string $str): string

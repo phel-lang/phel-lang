@@ -14,9 +14,9 @@ final class ZipperTest extends TestCase
         $tree = [[1, 2], 3, [4, 5]];
         $zipper = ArrayZipper::createRoot($tree);
 
-        self::assertEquals($tree, $zipper->getNode());
-        self::assertEquals([], $zipper->lefts());
-        self::assertEquals([], $zipper->rights());
+        self::assertSame($tree, $zipper->getNode());
+        self::assertSame([], $zipper->lefts());
+        self::assertSame([], $zipper->rights());
         self::assertTrue($zipper->isTop());
     }
 
@@ -27,7 +27,7 @@ final class ZipperTest extends TestCase
 
         $down = $zipper->down();
 
-        self::assertEquals([1, 2], $down->getNode());
+        self::assertSame([1, 2], $down->getNode());
     }
 
     public function test_down_leaf(): void
@@ -37,7 +37,7 @@ final class ZipperTest extends TestCase
 
         $down = $zipper->down()->down();
 
-        self::assertEquals(1, $down->getNode());
+        self::assertSame(1, $down->getNode());
     }
 
     public function test_down_no_child(): void
@@ -67,7 +67,7 @@ final class ZipperTest extends TestCase
 
         $down = $zipper->down()->down()->up();
 
-        self::assertEquals([1, 2], $down->getNode());
+        self::assertSame([1, 2], $down->getNode());
     }
 
     public function test_up_on_root(): void
@@ -104,7 +104,7 @@ final class ZipperTest extends TestCase
 
         $leftMost = $zipper->down()->right()->right()->leftMost();
 
-        self::assertEquals([1, 2], $leftMost->getNode());
+        self::assertSame([1, 2], $leftMost->getNode());
     }
 
     public function test_right_on_root(): void
@@ -132,7 +132,7 @@ final class ZipperTest extends TestCase
 
         $rightMost = $zipper->down()->rightMost();
 
-        self::assertEquals([4, 5], $rightMost->getNode());
+        self::assertSame([4, 5], $rightMost->getNode());
     }
 
     public function test_next(): void
@@ -141,24 +141,24 @@ final class ZipperTest extends TestCase
         $zipper = ArrayZipper::createRoot($tree);
 
         $next = $zipper->next();
-        self::assertEquals([1, 2], $next->getNode());
+        self::assertSame([1, 2], $next->getNode());
         $next = $next->next();
-        self::assertEquals(1, $next->getNode());
+        self::assertSame(1, $next->getNode());
         $next = $next->next();
-        self::assertEquals(2, $next->getNode());
+        self::assertSame(2, $next->getNode());
         $next = $next->next();
-        self::assertEquals(3, $next->getNode());
+        self::assertSame(3, $next->getNode());
         $next = $next->next();
-        self::assertEquals([4, 5], $next->getNode());
+        self::assertSame([4, 5], $next->getNode());
         $next = $next->next();
-        self::assertEquals(4, $next->getNode());
+        self::assertSame(4, $next->getNode());
         $next = $next->next();
-        self::assertEquals(5, $next->getNode());
+        self::assertSame(5, $next->getNode());
         $next = $next->next();
-        self::assertEquals([[1, 2], 3, [4, 5]], $next->getNode());
+        self::assertSame([[1, 2], 3, [4, 5]], $next->getNode());
         $next = $next->next();
         self::assertTrue($next->isEnd());
-        self::assertEquals([[1, 2], 3, [4, 5]], $next->getNode());
+        self::assertSame([[1, 2], 3, [4, 5]], $next->getNode());
     }
 
     public function test_prev(): void
@@ -170,24 +170,25 @@ final class ZipperTest extends TestCase
         for ($i = 0; $i < 7; ++$i) {
             $next = $next->next();
         }
-        self::assertTrue(!$next->isEnd());
-        self::assertEquals(5, $next->getNode());
+
+        self::assertNotTrue($next->isEnd());
+        self::assertSame(5, $next->getNode());
 
         // Now we are in the end and we go back
         $prev = $next->prev();
-        self::assertEquals(4, $prev->getNode());
+        self::assertSame(4, $prev->getNode());
         $prev = $prev->prev();
-        self::assertEquals([4, 5], $prev->getNode());
+        self::assertSame([4, 5], $prev->getNode());
         $prev = $prev->prev();
-        self::assertEquals(3, $prev->getNode());
+        self::assertSame(3, $prev->getNode());
         $prev = $prev->prev();
-        self::assertEquals(2, $prev->getNode());
+        self::assertSame(2, $prev->getNode());
         $prev = $prev->prev();
-        self::assertEquals(1, $prev->getNode());
+        self::assertSame(1, $prev->getNode());
         $prev = $prev->prev();
-        self::assertEquals([1, 2], $prev->getNode());
+        self::assertSame([1, 2], $prev->getNode());
         $prev = $prev->prev();
-        self::assertEquals([[1, 2], 3, [4, 5]], $prev->getNode());
+        self::assertSame([[1, 2], 3, [4, 5]], $prev->getNode());
     }
 
     public function test_insert_left(): void
@@ -195,7 +196,7 @@ final class ZipperTest extends TestCase
         $tree = [[1, 2], 3, [4, 5]];
         $zipper = ArrayZipper::createRoot($tree);
 
-        self::assertEquals(
+        self::assertSame(
             [0, [1, 2], 3, [4, 5]],
             $zipper->down()->insertLeft(0)->root(),
         );
@@ -215,7 +216,7 @@ final class ZipperTest extends TestCase
         $tree = [[1, 2], 3, [4, 5]];
         $zipper = ArrayZipper::createRoot($tree);
 
-        self::assertEquals(
+        self::assertSame(
             [[1, 2], 0, 3, [4, 5]],
             $zipper->down()->insertRight(0)->root(),
         );
@@ -235,7 +236,7 @@ final class ZipperTest extends TestCase
         $tree = [[1, 2], 3, [4, 5]];
         $zipper = ArrayZipper::createRoot($tree);
 
-        self::assertEquals(
+        self::assertSame(
             [0, 3, [4, 5]],
             $zipper->down()->replace(0)->root(),
         );
@@ -246,7 +247,7 @@ final class ZipperTest extends TestCase
         $tree = [[1, 2], 3, [4, 5]];
         $zipper = ArrayZipper::createRoot($tree);
 
-        self::assertEquals(
+        self::assertSame(
             [[0, 1, 2], 3, [4, 5]],
             $zipper->down()->insertChild(0)->root(),
         );
@@ -257,7 +258,7 @@ final class ZipperTest extends TestCase
         $tree = [[1, 2], 3, [4, 5]];
         $zipper = ArrayZipper::createRoot($tree);
 
-        self::assertEquals(
+        self::assertSame(
             [[1, 2, 0], 3, [4, 5]],
             $zipper->down()->appendChild(0)->root(),
         );
@@ -268,7 +269,7 @@ final class ZipperTest extends TestCase
         $tree = [[1, 2], 3, [4, 5]];
         $zipper = ArrayZipper::createRoot($tree);
 
-        self::assertEquals(
+        self::assertSame(
             [[1, 2], [4, 5]],
             $zipper->down()->right()->remove()->root(),
         );
@@ -279,7 +280,7 @@ final class ZipperTest extends TestCase
         $tree = [[1, 2], 3, [4, 5]];
         $zipper = ArrayZipper::createRoot($tree);
 
-        self::assertEquals(
+        self::assertSame(
             [3, [4, 5]],
             $zipper->down()->remove()->root(),
         );

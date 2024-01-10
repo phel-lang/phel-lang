@@ -14,7 +14,7 @@ final class PhpClassNameNode extends AbstractNode
 {
     public function __construct(
         NodeEnvironmentInterface $env,
-        private Symbol $name,
+        private readonly Symbol $name,
         ?SourceLocation $sourceLocation = null,
     ) {
         parent::__construct($env, $sourceLocation);
@@ -30,7 +30,7 @@ final class PhpClassNameNode extends AbstractNode
      */
     public function getAbsolutePhpName(): string
     {
-        if ($this->name->getNamespace()) {
+        if ($this->name->getNamespace() !== null && $this->name->getNamespace() !== '') {
             $munge = new Munge();
             $mungeNs = $munge->encodeNs($this->name->getNamespace());
             /** @psalm-var class-string $classString */

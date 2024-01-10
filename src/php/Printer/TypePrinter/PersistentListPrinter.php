@@ -10,7 +10,7 @@ use Phel\Printer\PrinterInterface;
 /**
  * @implements TypePrinterInterface<PersistentListInterface>
  */
-final class PersistentListPrinter implements TypePrinterInterface
+final readonly class PersistentListPrinter implements TypePrinterInterface
 {
     public function __construct(private PrinterInterface $printer)
     {

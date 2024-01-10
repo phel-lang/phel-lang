@@ -12,7 +12,7 @@ use Phel\Compiler\Domain\Reader\QuasiquoteTransformerInterface;
 use Phel\Compiler\Domain\Reader\Reader;
 use Phel\Lang\TypeInterface;
 
-final class QuoasiquoteReader
+final readonly class QuoasiquoteReader
 {
     public function __construct(
         private Reader $reader,
@@ -30,7 +30,7 @@ final class QuoasiquoteReader
         $result = $this->quasiquoteTransformer->transform($expression);
 
         if ($result instanceof TypeInterface) {
-            $result = $result
+            return $result
                 ->setStartLocation($node->getStartLocation())
                 ->setEndLocation($node->getEndLocation());
         }

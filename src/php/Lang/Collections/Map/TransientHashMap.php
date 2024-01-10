@@ -15,26 +15,22 @@ use stdClass;
  *
  * @implements TransientMapInterface<K, V>
  */
-class TransientHashMap implements TransientMapInterface
+final class TransientHashMap implements TransientMapInterface
 {
-    /** @var ?V */
-    private $nullValue;
-
     private static ?stdClass $NOT_FOUND = null;
 
     /**
      * @param ?HashMapNodeInterface<K, V> $root
-     * @param V $nullValue
+     * @param ?V $nullValue
      */
     public function __construct(
-        private HasherInterface $hasher,
-        private EqualizerInterface $equalizer,
+        private readonly HasherInterface $hasher,
+        private readonly EqualizerInterface $equalizer,
         private int $count,
         private ?HashMapNodeInterface $root,
         private bool $hasNull,
-        $nullValue,
+        private $nullValue,
     ) {
-        $this->nullValue = $nullValue;
     }
 
     public static function empty(HasherInterface $hasher, EqualizerInterface $equalizer): self
@@ -44,7 +40,7 @@ class TransientHashMap implements TransientMapInterface
 
     public static function getNotFound(): stdClass
     {
-        if (!self::$NOT_FOUND) {
+        if (!self::$NOT_FOUND instanceof stdClass) {
             self::$NOT_FOUND = new stdClass();
         }
 
@@ -57,7 +53,7 @@ class TransientHashMap implements TransientMapInterface
             return $this->hasNull;
         }
 
-        if ($this->root === null) {
+        if (!$this->root instanceof HashMapNodeInterface) {
             return false;
         }
 
@@ -108,7 +104,7 @@ class TransientHashMap implements TransientMapInterface
             return $this;
         }
 
-        if ($this->root === null) {
+        if (!$this->root instanceof HashMapNodeInterface) {
             return $this;
         }
 
@@ -132,7 +128,7 @@ class TransientHashMap implements TransientMapInterface
             return null;
         }
 
-        if ($this->root === null) {
+        if (!$this->root instanceof HashMapNodeInterface) {
             return null;
         }
 

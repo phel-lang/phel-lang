@@ -14,8 +14,8 @@ final class FileNode implements InnerNodeInterface
      * @param list<NodeInterface> $children
      */
     public function __construct(
-        private SourceLocation $startLocation,
-        private SourceLocation $endLocation,
+        private readonly SourceLocation $startLocation,
+        private readonly SourceLocation $endLocation,
         private array $children,
     ) {
     }
@@ -25,7 +25,7 @@ final class FileNode implements InnerNodeInterface
      */
     public static function createFromChildren(array $children): self
     {
-        if (count($children) > 0) {
+        if ($children !== []) {
             $startLocation = $children[0]->getStartLocation();
             $endLocation = $children[count($children) - 1]->getEndLocation();
         } else {

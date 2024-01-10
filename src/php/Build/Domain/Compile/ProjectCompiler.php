@@ -13,7 +13,7 @@ use RuntimeException;
 
 use function dirname;
 
-final class ProjectCompiler
+final readonly class ProjectCompiler
 {
     private const TARGET_FILE_EXTENSION = '.php';
 
@@ -58,6 +58,7 @@ final class ProjectCompiler
             if ($this->shouldIgnoreNs($info)) {
                 continue;
             }
+
             $targetFile = $dest . '/' . $this->getTargetFileFromNamespace($info->getNamespace());
             $targetDir = dirname($targetFile);
             if (!file_exists($targetDir) && !mkdir($targetDir, 0777, true) && !is_dir($targetDir)) {

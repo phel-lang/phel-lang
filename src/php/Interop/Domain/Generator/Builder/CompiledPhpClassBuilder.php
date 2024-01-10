@@ -6,7 +6,7 @@ namespace Phel\Interop\Domain\Generator\Builder;
 
 use Phel\Interop\Domain\ReadModel\FunctionToExport;
 
-final class CompiledPhpClassBuilder
+final readonly class CompiledPhpClassBuilder
 {
     public function __construct(
         private string $prefixNamespace,
@@ -34,10 +34,10 @@ final class CompiledPhpClassBuilder
     {
         $phelNsWords = explode('\\', $phelNs);
         array_pop($phelNsWords);
-        $pascalWords = array_map(fn (string $w) => $this->underscoreToPascalCase($w), $phelNsWords);
+        $pascalWords = array_map(fn (string $w): string => $this->underscoreToPascalCase($w), $phelNsWords);
         $normalizedNamespace = implode('\\', $pascalWords);
 
-        if (empty($this->prefixNamespace)) {
+        if ($this->prefixNamespace === '' || $this->prefixNamespace === '0') {
             return $normalizedNamespace;
         }
 

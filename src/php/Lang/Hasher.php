@@ -16,14 +16,19 @@ use function is_string;
  * This Hasher is inspired by the Clojurescript implementation.
  * These constants are the same hash value as in clojure.
  */
-class Hasher implements HasherInterface
+final class Hasher implements HasherInterface
 {
     private const NULL_HASH_VALUE = 0;
+
     private const TRUE_HASH_VALUE = 1231;
+
     private const FALSE_HASH_VALUE = 1237;
-    private const POSITIVE_INF_HASH_VALUE = 2146435072;
-    private const NEGATIVE_INF_HASH_VALUE = -1048576;
-    private const DEFAULT_FLOAT_HASH_VALUE = 2146959360;
+
+    private const POSITIVE_INF_HASH_VALUE = 2_146_435_072;
+
+    private const NEGATIVE_INF_HASH_VALUE = -1_048_576;
+
+    private const DEFAULT_FLOAT_HASH_VALUE = 2_146_959_360;
 
     /**
      * @param mixed $value The value to hash
@@ -69,7 +74,8 @@ class Hasher implements HasherInterface
             return $value;
         }
 
-        return $this->hashFloat((float)$value);
+        /** @var float $value */
+        return $this->hashFloat($value);
     }
 
     private function hashFloat(float $value): int

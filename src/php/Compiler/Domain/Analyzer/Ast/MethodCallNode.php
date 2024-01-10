@@ -15,8 +15,8 @@ final class MethodCallNode extends AbstractNode
      */
     public function __construct(
         NodeEnvironmentInterface $env,
-        private Symbol $fn,
-        private array $args,
+        private readonly Symbol $fn,
+        private readonly array $args,
         ?SourceLocation $sourceLocation = null,
     ) {
         parent::__construct($env, $sourceLocation);

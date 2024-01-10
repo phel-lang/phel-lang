@@ -16,21 +16,21 @@ final class BindingValidatorTest extends TestCase
 {
     private BindingValidator $validator;
 
-    public function setUp(): void
+    protected function setUp(): void
     {
         $this->validator = new BindingValidator();
     }
 
     public function test_integer_type(): void
     {
-        $this->expectExceptionMessage('Cannot destructure integer');
+        $this->expectExceptionMessage('Cannot destructure int');
 
         $this->validator->assertSupportedBinding(1);
     }
 
     public function test_float_type(): void
     {
-        $this->expectExceptionMessage('Cannot destructure double');
+        $this->expectExceptionMessage('Cannot destructure float');
 
         $this->validator->assertSupportedBinding(1.99);
     }
@@ -54,7 +54,7 @@ final class BindingValidatorTest extends TestCase
      *
      * @param AbstractType $type
      */
-    public function test_valid_types($type): void
+    public function test_valid_types(mixed $type): void
     {
         $this->validator->assertSupportedBinding($type);
         self::assertTrue(true); // this assertion ensures that no exception was thrown

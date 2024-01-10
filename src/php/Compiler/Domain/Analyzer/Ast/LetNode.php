@@ -14,9 +14,9 @@ final class LetNode extends AbstractNode
      */
     public function __construct(
         NodeEnvironmentInterface $env,
-        private array $bindings,
-        private AbstractNode $bodyExpr,
-        private bool $isLoop,
+        private readonly array $bindings,
+        private readonly AbstractNode $bodyExpr,
+        private readonly bool $isLoop,
         ?SourceLocation $sourceLocation = null,
     ) {
         parent::__construct($env, $sourceLocation);

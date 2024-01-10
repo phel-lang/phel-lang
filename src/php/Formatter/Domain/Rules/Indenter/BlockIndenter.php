@@ -11,7 +11,7 @@ use Phel\Lang\Symbol;
 
 use function is_null;
 
-final class BlockIndenter implements IndenterInterface
+final readonly class BlockIndenter implements IndenterInterface
 {
     private ListIndenter $listIndenter;
 
@@ -30,6 +30,7 @@ final class BlockIndenter implements IndenterInterface
             if (is_null($locAfterIndex) || $this->firstFormInLine($locAfterIndex)) {
                 return (new InnerIndenter($this->symbol, 0))->getMargin($loc, $indentWidth);
             }
+
             return $this->listIndenter->getMargin($loc, $indentWidth);
         }
 
@@ -62,12 +63,16 @@ final class BlockIndenter implements IndenterInterface
             return $this->firstFormInLine($left);
         }
 
-        return $left->isLineBreak() || $left->isComment();
+        if ($left->isLineBreak()) {
+            return true;
+        }
+
+        return $left->isComment();
     }
 
     private function indentMatches(string $key, ?Symbol $formSymbol): bool
     {
-        return $formSymbol && $key === $formSymbol->getName();
+        return $formSymbol instanceof Symbol && $key === $formSymbol->getName();
     }
 
     private function formSymbol(ParseTreeZipper $loc): ?Symbol

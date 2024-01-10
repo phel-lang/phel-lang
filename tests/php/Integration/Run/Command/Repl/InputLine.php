@@ -4,15 +4,14 @@ declare(strict_types=1);
 
 namespace PhelTest\Integration\Run\Command\Repl;
 
-final class InputLine
-{
-    private string $prompt;
-    private string $content;
+use Stringable;
 
-    public function __construct(string $prompt, string $content)
-    {
-        $this->prompt = $prompt;
-        $this->content = $content;
+final readonly class InputLine implements Stringable
+{
+    public function __construct(
+        private string $prompt,
+        private string $content,
+    ) {
     }
 
     public function __toString(): string

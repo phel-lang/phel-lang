@@ -18,7 +18,6 @@ use Phel\Lang\TypeInterface;
 use Phel\Printer\PrinterInterface;
 
 use function count;
-use function get_class;
 use function is_null;
 use function strlen;
 
@@ -27,12 +26,12 @@ final class OutputEmitter implements OutputEmitterInterface
     private int $indentLevel = 0;
 
     public function __construct(
-        private bool $enableSourceMaps,
-        private NodeEmitterFactory $nodeEmitterFactory,
-        private MungeInterface $munge,
-        private PrinterInterface $printer,
-        private SourceMapState $sourceMapState,
-        private OutputEmitterOptions $options,
+        private readonly bool $enableSourceMaps,
+        private readonly NodeEmitterFactory $nodeEmitterFactory,
+        private readonly MungeInterface $munge,
+        private readonly PrinterInterface $printer,
+        private readonly SourceMapState $sourceMapState,
+        private readonly OutputEmitterOptions $options,
     ) {
     }
 
@@ -58,7 +57,7 @@ final class OutputEmitter implements OutputEmitterInterface
 
     public function emitNode(AbstractNode $node): void
     {
-        $nodeEmitter = $this->nodeEmitterFactory->createNodeEmitter($this, get_class($node));
+        $nodeEmitter = $this->nodeEmitterFactory->createNodeEmitter($this, $node::class);
         $nodeEmitter->emit($node);
     }
 
@@ -81,7 +80,7 @@ final class OutputEmitter implements OutputEmitterInterface
             echo str_repeat(' ', $this->indentLevel * 2);
         }
 
-        if ($this->enableSourceMaps && $sl) {
+        if ($this->enableSourceMaps && $sl instanceof SourceLocation) {
             $this->sourceMapState->addMapping(
                 [
                     'source' => $sl->getFile(),
@@ -131,12 +130,12 @@ final class OutputEmitter implements OutputEmitterInterface
     public function emitFnWrapPrefix(NodeEnvironmentInterface $env, ?SourceLocation $sl = null): void
     {
         $this->emitStr('(function()', $sl);
-        if (count($env->getLocals()) > 0) {
+        if ($env->getLocals() !== []) {
             $this->emitStr(' use(', $sl);
 
             foreach (array_values($env->getLocals()) as $i => $l) {
                 $shadowed = $env->getShadowed($l);
-                if ($shadowed) {
+                if ($shadowed instanceof Symbol) {
                     $this->emitPhpVariable($shadowed, $sl);
                 } else {
                     $this->emitPhpVariable($l, $sl);
@@ -149,6 +148,7 @@ final class OutputEmitter implements OutputEmitterInterface
 
             $this->emitStr(')', $sl);
         }
+
         $this->emitLine(' {', $sl);
         $this->increaseIndentLevel();
     }
@@ -162,6 +162,7 @@ final class OutputEmitter implements OutputEmitterInterface
         if (is_null($loc)) {
             $loc = $symbol->getStartLocation();
         }
+
         $refPrefix = $asReference ? '&' : '';
         $variadicPrefix = $isVariadic ? '...' : '';
         $this->emitStr($variadicPrefix . $refPrefix . '$' . $this->mungeEncode($symbol->getName()), $loc);

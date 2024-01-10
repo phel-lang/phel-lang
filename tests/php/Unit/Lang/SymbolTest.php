@@ -12,52 +12,52 @@ final class SymbolTest extends TestCase
     public function test_create_without_ns(): void
     {
         $s = Symbol::create('test');
-        $this->assertEquals('test', $s->getName());
+        $this->assertSame('test', $s->getName());
         $this->assertNull($s->getNamespace());
-        $this->assertEquals('test', $s->getFullName());
+        $this->assertSame('test', $s->getFullName());
     }
 
     public function test_create_with_ns(): void
     {
         $s = Symbol::create('namespace/test');
-        $this->assertEquals('test', $s->getName());
-        $this->assertEquals('namespace', $s->getNamespace());
-        $this->assertEquals('namespace/test', $s->getFullName());
+        $this->assertSame('test', $s->getName());
+        $this->assertSame('namespace', $s->getNamespace());
+        $this->assertSame('namespace/test', $s->getFullName());
     }
 
     public function test_create_for_namespace_without_ns(): void
     {
         $s = Symbol::createForNamespace(null, 'test');
-        $this->assertEquals('test', $s->getName());
+        $this->assertSame('test', $s->getName());
         $this->assertNull($s->getNamespace());
-        $this->assertEquals('test', $s->getFullName());
+        $this->assertSame('test', $s->getFullName());
     }
 
     public function test_create_for_namespace_with_ns(): void
     {
         $s = Symbol::createForNamespace('namespace', 'test');
-        $this->assertEquals('test', $s->getName());
-        $this->assertEquals('namespace', $s->getNamespace());
-        $this->assertEquals('namespace/test', $s->getFullName());
+        $this->assertSame('test', $s->getName());
+        $this->assertSame('namespace', $s->getNamespace());
+        $this->assertSame('namespace/test', $s->getFullName());
     }
 
     public function test_to_string(): void
     {
         $s = Symbol::createForNamespace('namespace', 'test');
-        $this->assertEquals('test', $s->__toString());
+        $this->assertSame('test', $s->__toString());
     }
 
     public function test_gen(): void
     {
         Symbol::resetGen();
-        $this->assertEquals('__phel_1', Symbol::gen());
-        $this->assertEquals('bla2', Symbol::gen('bla'));
+        $this->assertSame('__phel_1', (string) Symbol::gen());
+        $this->assertSame('bla2', (string) Symbol::gen('bla'));
     }
 
     public function test_hash(): void
     {
         $s = Symbol::createForNamespace('namespace', 'test');
-        $this->assertEquals(crc32('test'), $s->hash());
+        $this->assertSame(crc32('test'), $s->hash());
     }
 
     public function test_equals(): void

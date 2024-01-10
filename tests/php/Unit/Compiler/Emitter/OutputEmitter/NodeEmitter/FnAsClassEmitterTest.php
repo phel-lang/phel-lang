@@ -17,7 +17,7 @@ final class FnAsClassEmitterTest extends TestCase
 {
     private FnAsClassEmitter $fnAsClassEmitter;
 
-    public function setUp(): void
+    protected function setUp(): void
     {
         $outputEmitter = (new CompilerFactory())
             ->createOutputEmitter();

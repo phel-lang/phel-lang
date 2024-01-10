@@ -18,13 +18,18 @@ final class PhelConfig implements JsonSerializable
 
     /** @var list<string> */
     private array $testDirs = ['tests/phel'];
+
     private string $vendorDir = 'vendor';
+
     private string $errorLogFile = 'data/error.log';
+
     private PhelExportConfig $export;
+
     private PhelOutConfig $out;
 
     /** @var list<string> */
     private array $ignoreWhenBuilding = ['src/phel/local.phel'];
+
     private bool $keepGeneratedTempFiles = false;
 
     /** @var list<string> */
@@ -159,15 +164,15 @@ final class PhelConfig implements JsonSerializable
     public function jsonSerialize(): array
     {
         return [
-            CommandConfig::SRC_DIRS => $this->getSrcDirs(),
-            CommandConfig::TEST_DIRS => $this->getTestDirs(),
-            CommandConfig::VENDOR_DIR => $this->getVendorDir(),
-            CommandConfig::ERROR_LOG_FILE => $this->getErrorLogFile(),
-            CommandConfig::OUTPUT => $this->getOut()->jsonSerialize(),
-            InteropConfig::EXPORT => $this->getExport()->jsonSerialize(),
-            BuildConfig::IGNORE_WHEN_BUILDING => $this->getIgnoreWhenBuilding(),
-            FilesystemConfig::KEEP_GENERATED_TEMP_FILES => $this->isKeepGeneratedTempFiles(),
-            FormatterConfig::FORMAT_DIRS => $this->getFormatDirs(),
+            CommandConfig::SRC_DIRS => $this->srcDirs,
+            CommandConfig::TEST_DIRS => $this->testDirs,
+            CommandConfig::VENDOR_DIR => $this->vendorDir,
+            CommandConfig::ERROR_LOG_FILE => $this->errorLogFile,
+            CommandConfig::OUTPUT => $this->out->jsonSerialize(),
+            InteropConfig::EXPORT => $this->export->jsonSerialize(),
+            BuildConfig::IGNORE_WHEN_BUILDING => $this->ignoreWhenBuilding,
+            FilesystemConfig::KEEP_GENERATED_TEMP_FILES => $this->keepGeneratedTempFiles,
+            FormatterConfig::FORMAT_DIRS => $this->formatDirs,
         ];
     }
 }

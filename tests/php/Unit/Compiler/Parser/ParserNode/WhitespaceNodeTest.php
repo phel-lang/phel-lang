@@ -12,7 +12,7 @@ final class WhitespaceNodeTest extends TestCase
 {
     public function test_get_code(): void
     {
-        self::assertEquals(
+        self::assertSame(
             ' ',
             (new WhitespaceNode(' ', $this->loc(1, 0), $this->loc(1, 1)))->getCode(),
         );

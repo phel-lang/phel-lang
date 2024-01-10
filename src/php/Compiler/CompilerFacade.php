@@ -48,7 +48,7 @@ final class CompilerFacade extends AbstractFacade implements CompilerFacadeInter
         string $phelCode,
         ?CompileOptions $compileOptions = null,
     ): mixed {
-        if ($compileOptions === null) {
+        if (!$compileOptions instanceof CompileOptions) {
             $compileOptions = new CompileOptions();
         }
 
@@ -61,7 +61,7 @@ final class CompilerFacade extends AbstractFacade implements CompilerFacadeInter
         TypeInterface|string|float|int|bool|null $form,
         ?CompileOptions $compileOptions = null,
     ): mixed {
-        if ($compileOptions === null) {
+        if (!$compileOptions instanceof CompileOptions) {
             $compileOptions = new CompileOptions();
         }
 
@@ -79,7 +79,7 @@ final class CompilerFacade extends AbstractFacade implements CompilerFacadeInter
         string $phelCode,
         ?CompileOptions $compileOptions = null,
     ): EmitterResult {
-        if ($compileOptions === null) {
+        if (!$compileOptions instanceof CompileOptions) {
             $compileOptions = new CompileOptions();
         }
 
@@ -97,7 +97,7 @@ final class CompilerFacade extends AbstractFacade implements CompilerFacadeInter
         float|bool|int|string|TypeInterface|null $form,
         ?CompileOptions $compileOptions = null,
     ): EmitterResult {
-        if ($compileOptions === null) {
+        if (!$compileOptions instanceof CompileOptions) {
             $compileOptions = new CompileOptions();
         }
 

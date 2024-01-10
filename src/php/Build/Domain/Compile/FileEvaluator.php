@@ -8,7 +8,7 @@ use Phel\Build\Domain\Extractor\NamespaceExtractor;
 use Phel\Compiler\CompilerFacadeInterface;
 use Phel\Compiler\Infrastructure\CompileOptions;
 
-final class FileEvaluator
+final readonly class FileEvaluator
 {
     public function __construct(
         private CompilerFacadeInterface $compilerFacade,

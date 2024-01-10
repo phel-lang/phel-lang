@@ -19,31 +19,24 @@ use function count;
  *
  * @extends AbstractPersistentMap<K, V>
  */
-class PersistentHashMap extends AbstractPersistentMap
+final class PersistentHashMap extends AbstractPersistentMap
 {
-    /** @var ?HashMapNodeInterface<K, V> */
-    private ?HashMapNodeInterface $root;
-
-    /** @var V */
-    private $nullValue;
-
     private static ?stdClass $NOT_FOUND = null;
 
     /**
+     * @param ?HashMapNodeInterface<K, V> $root
      * @param V $nullValue
      */
     public function __construct(
         HasherInterface $hasher,
         EqualizerInterface $equalizer,
         ?PersistentMapInterface $meta,
-        private int $count,
-        ?HashMapNodeInterface $root,
-        private bool $hasNull,
-        $nullValue,
+        private readonly int $count,
+        private readonly ?HashMapNodeInterface $root,
+        private readonly bool $hasNull,
+        private $nullValue,
     ) {
         parent::__construct($hasher, $equalizer, $meta);
-        $this->root = $root;
-        $this->nullValue = $nullValue;
     }
 
     public static function empty(HasherInterface $hasher, EqualizerInterface $equalizer): self
@@ -61,19 +54,20 @@ class PersistentHashMap extends AbstractPersistentMap
         for ($i = 0, $l = count($kvs); $i < $l; $i += 2) {
             $result->put($kvs[$i], $kvs[$i + 1]);
         }
+
         return $result->persistent();
     }
 
     public static function getNotFound(): stdClass
     {
-        if (!self::$NOT_FOUND) {
+        if (!self::$NOT_FOUND instanceof stdClass) {
             self::$NOT_FOUND = new stdClass();
         }
 
         return self::$NOT_FOUND;
     }
 
-    public function withMeta(?PersistentMapInterface $meta)
+    public function withMeta(?PersistentMapInterface $meta): self
     {
         return new self($this->hasher, $this->equalizer, $meta, $this->count, $this->root, $this->hasNull, $this->nullValue);
     }
@@ -84,7 +78,7 @@ class PersistentHashMap extends AbstractPersistentMap
             return $this->hasNull;
         }
 
-        if ($this->root === null) {
+        if (!$this->root instanceof HashMapNodeInterface) {
             return false;
         }
 
@@ -118,7 +112,7 @@ class PersistentHashMap extends AbstractPersistentMap
             return $this->hasNull ? new self($this->hasher, $this->equalizer, $this->meta, $this->count - 1, $this->root, false, null) : $this;
         }
 
-        if ($this->root === null) {
+        if (!$this->root instanceof HashMapNodeInterface) {
             return $this;
         }
 
@@ -141,7 +135,7 @@ class PersistentHashMap extends AbstractPersistentMap
             return null;
         }
 
-        if ($this->root === null) {
+        if (!$this->root instanceof HashMapNodeInterface) {
             return null;
         }
 
@@ -155,7 +149,7 @@ class PersistentHashMap extends AbstractPersistentMap
 
     public function getIterator(): Traversable
     {
-        if ($this->root) {
+        if ($this->root instanceof HashMapNodeInterface) {
             return $this->root->getIterator();
         }
 

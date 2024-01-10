@@ -14,7 +14,7 @@ use Phel\Run\RunFacadeInterface;
 use function dirname;
 use function in_array;
 
-final class PhelFnLoader implements PhelFnLoaderInterface
+final readonly class PhelFnLoader implements PhelFnLoaderInterface
 {
     public function __construct(
         private RunFacadeInterface $runFacade,
@@ -37,15 +37,17 @@ final class PhelFnLoader implements PhelFnLoaderInterface
             if (!$containsCoreFunctions && $ns === 'phel\\core') {
                 continue;
             }
+
             $normalizedNs = str_replace('phel\\', '', $ns);
             $moduleName = $normalizedNs === 'core' ? '' : $normalizedNs . '/';
 
-            foreach ($this->getDefinitionsInNamespace($ns) as $fnName => $fn) {
+            foreach (array_keys($this->getDefinitionsInNamespace($ns)) as $fnName) {
                 $fullFnName = $moduleName . $fnName;
 
                 $normalizedData[$fullFnName] = $this->getPhelMeta($ns, $fnName);
             }
         }
+
         ksort($normalizedData);
 
         return $normalizedData;
@@ -65,8 +67,9 @@ final class PhelFnLoader implements PhelFnLoaderInterface
 EOF;
         $requireNamespaces = '';
         foreach ($namespaces as $ns) {
-            $requireNamespaces .= "(:require {$ns})";
+            $requireNamespaces .= sprintf('(:require %s)', $ns);
         }
+
         $docPhelContent = str_replace('%REQUIRES%', $requireNamespaces, $template);
         $phelFile = __DIR__ . '/phel/doc.phel';
         file_put_contents($phelFile, $docPhelContent);

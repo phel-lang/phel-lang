@@ -13,16 +13,14 @@ final class Variable extends AbstractType
 {
     use MetaTrait;
 
-    /** @var T */
-    private $value;
-
     /**
      * @param T $value
      */
-    public function __construct(?PersistentMapInterface $meta, $value)
-    {
+    public function __construct(
+        ?PersistentMapInterface $meta,
+        private $value,
+    ) {
         $this->meta = $meta;
-        $this->value = $value;
     }
 
     /**

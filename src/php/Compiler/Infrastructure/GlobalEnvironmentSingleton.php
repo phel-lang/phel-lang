@@ -21,7 +21,7 @@ final class GlobalEnvironmentSingleton
 
     public static function isInitialized(): bool
     {
-        return self::$instance !== null;
+        return self::$instance instanceof GlobalEnvironmentInterface;
     }
 
     /**
@@ -29,7 +29,7 @@ final class GlobalEnvironmentSingleton
      */
     public static function getInstance(): GlobalEnvironmentInterface
     {
-        if (self::$instance === null) {
+        if (!self::$instance instanceof GlobalEnvironmentInterface) {
             throw new GlobalEnvironmentNotInitializedException();
         }
 
@@ -41,7 +41,7 @@ final class GlobalEnvironmentSingleton
      */
     public static function initialize(): GlobalEnvironmentInterface
     {
-        if (self::$instance !== null) {
+        if (self::$instance instanceof GlobalEnvironmentInterface) {
             throw new GlobalEnvironmentAlreadyInitializedException();
         }
 

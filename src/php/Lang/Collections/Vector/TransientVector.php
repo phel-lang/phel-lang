@@ -17,7 +17,7 @@ use function count;
  *
  * @implements TransientVectorInterface<T>
  */
-class TransientVector implements TransientVectorInterface
+final class TransientVector implements TransientVectorInterface
 {
     /**
      * @param int $count The number of elements inside this vector
@@ -26,8 +26,8 @@ class TransientVector implements TransientVectorInterface
      * @param T[] $tail The tail of the vector. This is an optimization
      */
     public function __construct(
-        private HasherInterface $hasher,
-        private EqualizerInterface $equalizer,
+        private readonly HasherInterface $hasher,
+        private readonly EqualizerInterface $equalizer,
         private int $count,
         private int $shift,
         private array $root,
@@ -184,7 +184,7 @@ class TransientVector implements TransientVectorInterface
      */
     public function offsetExists($offset): bool
     {
-        return $offset >= 0 && $offset < $this->count();
+        return $offset >= 0 && $offset < $this->count;
     }
 
     public function offsetSet($offset, $value): void

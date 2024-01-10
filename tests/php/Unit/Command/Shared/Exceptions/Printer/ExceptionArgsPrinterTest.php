@@ -16,7 +16,7 @@ final class ExceptionArgsPrinterTest extends TestCase
     {
         $argsPrinter = $this->createExceptionArgsPrinter();
         $actual = $argsPrinter->parseArgsAsString(['1', '2']);
-        self::assertEquals(' 1 2', $actual);
+        self::assertSame(' 1 2', $actual);
     }
 
     /**
@@ -26,7 +26,7 @@ final class ExceptionArgsPrinterTest extends TestCase
     {
         $argsPrinter = $this->createExceptionArgsPrinter();
         $actual = $argsPrinter->buildPhpArgsString($args);
-        self::assertEquals($expected, $actual);
+        self::assertSame($expected, $actual);
     }
 
     public function providerBuildPhpArgsString(): Generator

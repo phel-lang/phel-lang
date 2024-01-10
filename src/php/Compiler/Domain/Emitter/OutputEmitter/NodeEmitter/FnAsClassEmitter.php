@@ -12,7 +12,7 @@ use Phel\Compiler\Domain\Emitter\OutputEmitterInterface;
 use function assert;
 use function count;
 
-final class FnAsClassEmitter implements NodeEmitterInterface
+final readonly class FnAsClassEmitter implements NodeEmitterInterface
 {
     public function __construct(
         private OutputEmitterInterface $outputEmitter,
@@ -70,7 +70,7 @@ final class FnAsClassEmitter implements NodeEmitterInterface
     {
         $usesCount = count($node->getUses());
 
-        if ($usesCount) {
+        if ($usesCount !== 0) {
             $this->outputEmitter->emitLine();
             $this->outputEmitter->emitStr('public function __construct(', $node->getStartSourceLocation());
 

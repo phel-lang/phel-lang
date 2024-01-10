@@ -17,7 +17,7 @@ final class QuasiquoteTest extends TestCase
     public function test_transform_unquote(): void
     {
         $q = new QuasiquoteTransformer(new GlobalEnvironment());
-        self::assertEquals(
+        self::assertSame(
             1,
             $q->transform(TypeFactory::getInstance()->persistentListFromArray([Symbol::create(Symbol::NAME_UNQUOTE), 1])),
         );
@@ -132,7 +132,7 @@ final class QuasiquoteTest extends TestCase
     public function test_transform_int(): void
     {
         $q = new QuasiquoteTransformer(new GlobalEnvironment());
-        self::assertEquals(
+        self::assertSame(
             1,
             $q->transform(1),
         );
@@ -141,7 +141,7 @@ final class QuasiquoteTest extends TestCase
     public function test_transform_string(): void
     {
         $q = new QuasiquoteTransformer(new GlobalEnvironment());
-        self::assertEquals(
+        self::assertSame(
             'a',
             $q->transform('a'),
         );
@@ -150,7 +150,7 @@ final class QuasiquoteTest extends TestCase
     public function test_transform_float(): void
     {
         $q = new QuasiquoteTransformer(new GlobalEnvironment());
-        self::assertEquals(
+        self::assertSame(
             1.1,
             $q->transform(1.1),
         );
@@ -196,7 +196,7 @@ final class QuasiquoteTest extends TestCase
     public function test_transform_global_symbol(): void
     {
         $env = new GlobalEnvironment();
-        $env->addDefinition('test', Symbol::create('abc'), TypeFactory::getInstance()->emptyPersistentMap());
+        $env->addDefinition('test', Symbol::create('abc'));
 
         $q = new QuasiquoteTransformer($env);
         self::assertEquals(

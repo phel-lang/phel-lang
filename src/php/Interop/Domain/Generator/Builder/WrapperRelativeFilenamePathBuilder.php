@@ -11,6 +11,6 @@ final class WrapperRelativeFilenamePathBuilder
         $relativePath = str_replace(' ', '/', ucwords(str_replace('\\', ' ', $phelNs)));
         $relativePath = str_replace(' ', '', ucwords(str_replace('_', ' ', $relativePath)));
 
-        return "{$relativePath}.php";
+        return $relativePath . '.php';
     }
 }

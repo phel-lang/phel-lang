@@ -26,6 +26,7 @@ final class DefInterfaceSymbol implements SpecialFormAnalyzerInterface
         if (!($interfaceSymbol instanceof Symbol)) {
             throw AnalyzerException::withLocation("First argument of 'definterace must be a Symbol.", $list);
         }
+
         $this->analyzer->addInterface($this->analyzer->getNamespace(), $interfaceSymbol);
 
         return new DefInterfaceNode(
@@ -42,7 +43,7 @@ final class DefInterfaceSymbol implements SpecialFormAnalyzerInterface
      */
     private function methods(?PersistentListInterface $list): array
     {
-        if ($list === null) {
+        if (!$list instanceof PersistentListInterface) {
             return [];
         }
 

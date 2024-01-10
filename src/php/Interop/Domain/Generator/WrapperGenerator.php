@@ -9,17 +9,12 @@ use Phel\Interop\Domain\Generator\Builder\WrapperRelativeFilenamePathBuilder;
 use Phel\Interop\Domain\ReadModel\FunctionToExport;
 use Phel\Interop\Domain\ReadModel\Wrapper;
 
-final class WrapperGenerator implements WrapperGeneratorInterface
+final readonly class WrapperGenerator implements WrapperGeneratorInterface
 {
-    private CompiledPhpClassBuilder $classBuilder;
-    private WrapperRelativeFilenamePathBuilder $relativeFilenamePathBuilder;
-
     public function __construct(
-        CompiledPhpClassBuilder $classBuilder,
-        WrapperRelativeFilenamePathBuilder $relativeFilenamePathBuilder,
+        private CompiledPhpClassBuilder $classBuilder,
+        private WrapperRelativeFilenamePathBuilder $relativeFilenamePathBuilder,
     ) {
-        $this->classBuilder = $classBuilder;
-        $this->relativeFilenamePathBuilder = $relativeFilenamePathBuilder;
     }
 
     /**

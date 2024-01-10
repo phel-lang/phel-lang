@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Phel\Lang;
 
-class Equalizer implements EqualizerInterface
+final class Equalizer implements EqualizerInterface
 {
     /**
      * @param mixed $a Left value

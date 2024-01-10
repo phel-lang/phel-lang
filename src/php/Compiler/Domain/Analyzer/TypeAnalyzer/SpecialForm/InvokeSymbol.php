@@ -14,6 +14,7 @@ use Phel\Compiler\Domain\Analyzer\TypeAnalyzer\WithAnalyzerTrait;
 use Phel\Lang\Collections\LinkedList\PersistentListInterface;
 use Phel\Lang\Keyword;
 use Phel\Lang\Registry;
+use Phel\Lang\SourceLocation;
 use Phel\Lang\TypeFactory;
 use Phel\Lang\TypeInterface;
 
@@ -80,11 +81,11 @@ final class InvokeSymbol implements SpecialFormAnalyzerInterface
 
         try {
             return $this->callMacroFn($fn, $list);
-        } catch (Exception $e) {
+        } catch (Exception $exception) {
             throw AnalyzerException::withLocation(
-                'Error in expanding inline function of "' . $node->getNamespace() . '\\' . $node->getName()->getName() . '": ' . $e->getMessage(),
+                'Error in expanding inline function of "' . $node->getNamespace() . '\\' . $node->getName()->getName() . '": ' . $exception->getMessage(),
                 $list,
-                $e,
+                $exception,
             );
         }
     }
@@ -97,11 +98,11 @@ final class InvokeSymbol implements SpecialFormAnalyzerInterface
 
         try {
             return $this->callMacroFn($fn, $list);
-        } catch (Exception $e) {
+        } catch (Exception $exception) {
             throw AnalyzerException::withLocation(
-                'Error in expanding macro "' . $macroNode->getNamespace() . '\\' . $nodeName . '": ' . $e->getMessage(),
+                'Error in expanding macro "' . $macroNode->getNamespace() . '\\' . $nodeName . '": ' . $exception->getMessage(),
                 $list,
-                $e,
+                $exception,
             );
         }
     }
@@ -144,12 +145,12 @@ final class InvokeSymbol implements SpecialFormAnalyzerInterface
 
     private function enrichLocationForAbstractType(TypeInterface $type, TypeInterface $parent): TypeInterface
     {
-        if (!$type->getStartLocation()) {
+        if (!$type->getStartLocation() instanceof SourceLocation) {
             $type = $type->setStartLocation($parent->getStartLocation());
         }
 
-        if (!$type->getEndLocation()) {
-            $type = $type->setEndLocation($parent->getEndLocation());
+        if (!$type->getEndLocation() instanceof SourceLocation) {
+            return $type->setEndLocation($parent->getEndLocation());
         }
 
         return $type;
@@ -158,9 +159,9 @@ final class InvokeSymbol implements SpecialFormAnalyzerInterface
     private function arguments(PersistentListInterface $argsList, NodeEnvironmentInterface $env): array
     {
         $arguments = [];
-        foreach ($argsList as $element) {
+        foreach ($argsList as $argList) {
             $arguments[] = $this->analyzer->analyze(
-                $element,
+                $argList,
                 $env->withExpressionContext()->withDisallowRecurFrame(),
             );
         }

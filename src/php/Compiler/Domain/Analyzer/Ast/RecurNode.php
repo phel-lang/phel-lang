@@ -14,8 +14,8 @@ final class RecurNode extends AbstractNode
      */
     public function __construct(
         NodeEnvironmentInterface $env,
-        private RecurFrame $frame,
-        private array $expressions,
+        private readonly RecurFrame $frame,
+        private readonly array $expressions,
         ?SourceLocation $sourceLocation = null,
     ) {
         parent::__construct($env, $sourceLocation);

@@ -14,18 +14,26 @@ use function array_slice;
 final class FnSymbolTuple
 {
     private const STATE_START = 'start';
+
     private const STATE_REST = 'rest';
+
     private const STATE_DONE = 'done';
+
     private const PARENT_TUPLE_BODY_OFFSET = 2;
 
     private array $params = [];
+
     private array $lets = [];
+
     private bool $isVariadic = false;
+
     private bool $hasVariadicForm = false;
+
     private string $buildParamsState = self::STATE_START;
 
-    private function __construct(private PersistentListInterface $parentList)
-    {
+    private function __construct(
+        private readonly PersistentListInterface $parentList,
+    ) {
     }
 
     public static function createWithTuple(PersistentListInterface $list): self
@@ -69,17 +77,23 @@ final class FnSymbolTuple
 
     private function addDummyVariadicSymbol(): void
     {
-        if ($this->isVariadic && !$this->hasVariadicForm) {
-            $this->params[] = Symbol::gen();
+        if (!$this->isVariadic) {
+            return;
         }
+
+        if ($this->hasVariadicForm) {
+            return;
+        }
+
+        $this->params[] = Symbol::gen();
     }
 
     private function checkAllVariablesStartWithALetterOrUnderscore(): void
     {
         foreach ($this->params as $param) {
-            if (!preg_match("/^[a-zA-Z_\x80-\xff].*$/", $param->getName())) {
+            if (preg_match("/^[a-zA-Z_\x80-\xff].*$/", (string) $param->getName()) === 0 || preg_match("/^[a-zA-Z_\x80-\xff].*$/", (string) $param->getName()) === 0 || preg_match("/^[a-zA-Z_\x80-\xff].*$/", (string) $param->getName()) === false) {
                 throw AnalyzerException::withLocation(
-                    "Variable names must start with a letter or underscore: {$param->getName()}",
+                    'Variable names must start with a letter or underscore: ' . $param->getName(),
                     $this->parentList,
                 );
             }
@@ -141,7 +155,7 @@ final class FnSymbolTuple
         }
     }
 
-    private function buildParamsDone(): void
+    private function buildParamsDone(): never
     {
         throw AnalyzerException::withLocation(
             'Unsupported parameter form, only one symbol can follow the & parameter',

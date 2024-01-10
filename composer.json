@@ -29,7 +29,7 @@
     },
     "require-dev": {
         "ext-readline": "*",
-        "friendsofphp/php-cs-fixer": "^3.45",
+        "friendsofphp/php-cs-fixer": "^3.46",
         "infection/infection": "^0.27",
         "phpbench/phpbench": "^1.2",
         "phpmetrics/phpmetrics": "^2.8",
@@ -37,7 +37,8 @@
         "phpunit/phpunit": "^9.6",
         "psalm/plugin-phpunit": "^0.18",
         "symfony/var-dumper": "^7.0",
-        "vimeo/psalm": "^5.18"
+        "vimeo/psalm": "^5.18",
+        "rector/rector": "^0.18"
     },
     "autoload": {
         "psr-4": {
@@ -61,7 +62,8 @@
         "test-quality": [
             "@csrun",
             "@psalm",
-            "@phpstan"
+            "@phpstan",
+            "@rectorrun"
         ],
         "static-clear-cache": [
             "vendor/bin/psalm --clear-cache",
@@ -74,6 +76,8 @@
         "phpstan": "./vendor/bin/phpstan --memory-limit=516M",
         "csfix": "./vendor/bin/php-cs-fixer fix",
         "csrun": "./vendor/bin/php-cs-fixer fix --dry-run",
+        "rector": "./vendor/bin/rector process",
+        "rectorrun": "./vendor/bin/rector process --dry-run",
         "infection": "XDEBUG_MODE=coverage php -d memory_limit=-1 ./vendor/bin/infection --show-mutations --threads=max --min-msi=50 --min-covered-msi=40",
         "phpbench": "./vendor/bin/phpbench run --report=aggregate --ansi",
         "phpbench-base": "./vendor/bin/phpbench run --tag=baseline --report=aggregate --progress=plain --ansi",

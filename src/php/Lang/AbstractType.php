@@ -5,15 +5,17 @@ declare(strict_types=1);
 namespace Phel\Lang;
 
 use Phel\Printer\Printer;
+use Stringable;
 
 /**
  * @template T
  *
  * @implements TypeInterface<T>
  */
-abstract class AbstractType implements TypeInterface
+abstract class AbstractType implements TypeInterface, Stringable
 {
     private ?SourceLocation $startLocation = null;
+
     private ?SourceLocation $endLocation = null;
 
     public function __toString(): string

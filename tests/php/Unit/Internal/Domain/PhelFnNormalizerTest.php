@@ -20,7 +20,7 @@ final class PhelFnNormalizerTest extends TestCase
         $normalizer = new PhelFnNormalizer($phelFnLoader);
         $actual = $normalizer->getPhelFunctions();
 
-        self::assertEquals([], $actual);
+        self::assertSame([], $actual);
     }
 
     public function test_group_key_one_function(): void

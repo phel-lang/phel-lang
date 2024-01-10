@@ -26,7 +26,7 @@ final class InvokeSymbolTest extends TestCase
 {
     private AnalyzerInterface $analyzer;
 
-    public function setUp(): void
+    protected function setUp(): void
     {
         Registry::getInstance()->clear();
         $env = new GlobalEnvironment();
@@ -50,10 +50,10 @@ final class InvokeSymbolTest extends TestCase
         Registry::getInstance()->addDefinition(
             'user',
             'my-inline-fn',
-            static fn ($a) => 1,
+            static fn ($a): int => 1,
             TypeFactory::getInstance()->persistentMapFromKVs(
                 Keyword::create('inline'),
-                static fn ($a) => 2,
+                static fn ($a): int => 2,
             ),
         );
 
@@ -61,12 +61,12 @@ final class InvokeSymbolTest extends TestCase
         Registry::getInstance()->addDefinition(
             'user',
             'my-inline-fn-with-arity',
-            static fn ($a, $b) => 1,
+            static fn ($a, $b): int => 1,
             TypeFactory::getInstance()->persistentMapFromKVs(
                 Keyword::create('inline'),
-                static fn ($a, $b) => 2,
+                static fn ($a, $b): int => 2,
                 Keyword::create('inline-arity'),
-                static fn ($n) => $n === 2,
+                static fn ($n): bool => $n === 2,
             ),
         );
 
@@ -150,20 +150,20 @@ final class InvokeSymbolTest extends TestCase
             TypeFactory::getInstance()->persistentVectorFromArray([1]),
         ]);
         $env = NodeEnvironment::empty();
-        $node = (new InvokeSymbol($this->analyzer))->analyze($list, $env);
+        (new InvokeSymbol($this->analyzer))->analyze($list, $env);
     }
 
     public function test_macro_undefined_macro(): void
     {
         $this->expectException(AnalyzerException::class);
-        $this->expectExceptionMessage('Cannot resolve symbol \'user/my-undefined-macro\'');
+        $this->expectExceptionMessage("Cannot resolve symbol 'user/my-undefined-macro'");
 
         $list = TypeFactory::getInstance()->persistentListFromArray([
             Symbol::createForNamespace('user', 'my-undefined-macro'),
             TypeFactory::getInstance()->persistentVectorFromArray([1]),
         ]);
         $env = NodeEnvironment::empty();
-        $node = (new InvokeSymbol($this->analyzer))->analyze($list, $env);
+        (new InvokeSymbol($this->analyzer))->analyze($list, $env);
     }
 
     public function test_inline_expand(): void
@@ -214,9 +214,9 @@ final class InvokeSymbolTest extends TestCase
                     Symbol::create('my-inline-fn-with-arity'),
                     TypeFactory::getInstance()->persistentMapFromKVs(
                         Keyword::create('inline'),
-                        static fn ($a, $b) => 2,
+                        static fn ($a, $b): int => 2,
                         Keyword::create('inline-arity'),
-                        static fn ($n) => $n === 2,
+                        static fn ($n): bool => $n === 2,
                     ),
                 ),
                 [

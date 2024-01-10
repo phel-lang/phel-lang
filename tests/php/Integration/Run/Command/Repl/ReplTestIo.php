@@ -23,8 +23,9 @@ final class ReplTestIo implements ReplCommandIoInterface
 
     private int $currentIndex = 0;
 
-    public function __construct(private ExceptionPrinterInterface $exceptionPrinter)
-    {
+    public function __construct(
+        private readonly ExceptionPrinterInterface $exceptionPrinter,
+    ) {
     }
 
     public function readHistory(): void

@@ -15,21 +15,20 @@ use Phel\Formatter\Domain\Rules\Indenter\ListIndenter;
 use Phel\Formatter\Domain\Rules\Zipper\ParseTreeZipper;
 use Phel\Lang\SourceLocation;
 
-final class IndentRule implements RuleInterface
+final readonly class IndentRule implements RuleInterface
 {
     private const INDENT_WIDTH = 2;
 
-    /** @var list<IndenterInterface> */
-    private array $indenters;
     private ListIndenter $listIndenter;
+
     private LineIndenter $lineIndenter;
 
     /**
      * @param list<IndenterInterface> $indenters
      */
-    public function __construct(array $indenters)
-    {
-        $this->indenters = $indenters;
+    public function __construct(
+        private array $indenters,
+    ) {
         $this->listIndenter = new ListIndenter();
         $this->lineIndenter = new LineIndenter();
     }
@@ -70,6 +69,7 @@ final class IndentRule implements RuleInterface
             if (!$nextNode instanceof ParseTreeZipper) {
                 break;
             }
+
             $node = $nextNode;
         }
 

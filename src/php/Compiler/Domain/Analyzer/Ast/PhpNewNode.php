@@ -14,8 +14,8 @@ final class PhpNewNode extends AbstractNode
      */
     public function __construct(
         NodeEnvironmentInterface $env,
-        private AbstractNode $classExpr,
-        private array $args,
+        private readonly AbstractNode $classExpr,
+        private readonly array $args,
         ?SourceLocation $sourceLocation = null,
     ) {
         parent::__construct($env, $sourceLocation);

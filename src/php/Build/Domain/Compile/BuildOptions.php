@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Phel\Build\Domain\Compile;
 
-class BuildOptions
+final readonly class BuildOptions
 {
     public function __construct(
         private bool $enableCache,

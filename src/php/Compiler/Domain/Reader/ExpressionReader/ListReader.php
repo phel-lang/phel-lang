@@ -11,7 +11,7 @@ use Phel\Compiler\Domain\Reader\Reader;
 use Phel\Lang\Collections\LinkedList\PersistentListInterface;
 use Phel\Lang\TypeFactory;
 
-final class ListReader
+final readonly class ListReader
 {
     public function __construct(private Reader $reader)
     {

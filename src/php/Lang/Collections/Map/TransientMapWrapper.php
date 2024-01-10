@@ -10,7 +10,7 @@ namespace Phel\Lang\Collections\Map;
  *
  * @implements TransientMapInterface<K, V>
  */
-class TransientMapWrapper implements TransientMapInterface
+final class TransientMapWrapper implements TransientMapInterface
 {
     /**
      * @param TransientMapInterface<K, V> $internal

@@ -36,7 +36,7 @@ final class AnalyzePersistentListTest extends TestCase
 {
     private AnalyzePersistentList $listAnalyzer;
 
-    public function setUp(): void
+    protected function setUp(): void
     {
         $this->listAnalyzer = new AnalyzePersistentList(new Analyzer(new GlobalEnvironment()));
     }

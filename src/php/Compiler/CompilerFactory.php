@@ -150,6 +150,7 @@ final class CompilerFactory extends AbstractFactory
         if (!GlobalEnvironmentSingleton::isInitialized()) {
             return GlobalEnvironmentSingleton::initializeNew();
         }
+
         return GlobalEnvironmentSingleton::getInstance();
     }
 }

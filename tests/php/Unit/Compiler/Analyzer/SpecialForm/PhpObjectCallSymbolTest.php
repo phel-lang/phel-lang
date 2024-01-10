@@ -21,7 +21,7 @@ final class PhpObjectCallSymbolTest extends TestCase
 {
     private AnalyzerInterface $analyzer;
 
-    public function setUp(): void
+    protected function setUp(): void
     {
         $this->analyzer = new Analyzer(new GlobalEnvironment());
     }

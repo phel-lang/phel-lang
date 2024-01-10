@@ -28,7 +28,6 @@ final class ApplySymbol implements SpecialFormAnalyzerInterface
         $fnExpr = $data->first();
         $args = $data->rest();
 
-
         return new ApplyNode(
             $env,
             $this->fnExpr($fnExpr, $env),

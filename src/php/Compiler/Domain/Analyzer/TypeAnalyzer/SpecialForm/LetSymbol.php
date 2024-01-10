@@ -19,7 +19,7 @@ use Phel\Lang\TypeFactory;
 use function count;
 use function gettype;
 
-final class LetSymbol implements SpecialFormAnalyzerInterface
+final readonly class LetSymbol implements SpecialFormAnalyzerInterface
 {
     public function __construct(
         private AnalyzerInterface $analyzer,

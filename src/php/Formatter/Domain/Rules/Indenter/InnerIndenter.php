@@ -8,7 +8,7 @@ use Phel\Compiler\Domain\Parser\ParserNode\SymbolNode;
 use Phel\Formatter\Domain\Rules\Zipper\ParseTreeZipper;
 use Phel\Lang\Symbol;
 
-final class InnerIndenter implements IndenterInterface
+final readonly class InnerIndenter implements IndenterInterface
 {
     private LineIndenter $lineIndenter;
 
@@ -38,7 +38,7 @@ final class InnerIndenter implements IndenterInterface
 
     private function indentMatches(string $key, ?Symbol $formSymbol): bool
     {
-        return $formSymbol && $key === $formSymbol->getName();
+        return $formSymbol instanceof Symbol && $key === $formSymbol->getName();
     }
 
     private function formSymbol(ParseTreeZipper $loc): ?Symbol

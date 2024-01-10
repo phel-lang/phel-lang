@@ -12,9 +12,9 @@ final class CatchNode extends AbstractNode
 {
     public function __construct(
         NodeEnvironmentInterface $env,
-        private AbstractNode $type,
-        private Symbol $name,
-        private AbstractNode $body,
+        private readonly AbstractNode $type,
+        private readonly Symbol $name,
+        private readonly AbstractNode $body,
         ?SourceLocation $sourceLocation = null,
     ) {
         parent::__construct($env, $sourceLocation);

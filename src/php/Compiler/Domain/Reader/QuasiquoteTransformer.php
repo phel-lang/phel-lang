@@ -23,10 +23,11 @@ use function is_float;
 use function is_int;
 use function is_string;
 
-final class QuasiquoteTransformer implements QuasiquoteTransformerInterface
+final readonly class QuasiquoteTransformer implements QuasiquoteTransformerInterface
 {
-    public function __construct(private GlobalEnvironmentInterface $env)
-    {
+    public function __construct(
+        private GlobalEnvironmentInterface $env,
+    ) {
     }
 
     /**

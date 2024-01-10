@@ -12,7 +12,7 @@ final class PropertyOrConstantAccessNode extends AbstractNode
 {
     public function __construct(
         NodeEnvironmentInterface $env,
-        private Symbol $name,
+        private readonly Symbol $name,
         ?SourceLocation $sourceLocation = null,
     ) {
         parent::__construct($env, $sourceLocation);

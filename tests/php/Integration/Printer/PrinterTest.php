@@ -21,14 +21,14 @@ final class PrinterTest extends TestCase
         GlobalEnvironmentSingleton::reset();
     }
 
-    public function setUp(): void
+    protected function setUp(): void
     {
         $this->compilerFacade = new CompilerFacade();
     }
 
     public function test_print_string(): void
     {
-        self::assertEquals(
+        self::assertSame(
             '"test"',
             $this->print('test'),
         );
@@ -36,7 +36,7 @@ final class PrinterTest extends TestCase
 
     public function test_print_escaped_string_chars(): void
     {
-        self::assertEquals(
+        self::assertSame(
             '"\n\r\t\v\f\e\"\$\\\\"',
             $this->print("\n\r\t\v\f\e\"\$\\"),
         );
@@ -44,7 +44,7 @@ final class PrinterTest extends TestCase
 
     public function test_print_dollar_sign_escaped_string_chars(): void
     {
-        self::assertEquals(
+        self::assertSame(
             '"\$ \$abc"',
             $this->print($this->read('"$ $abc"')),
         );
@@ -52,7 +52,7 @@ final class PrinterTest extends TestCase
 
     public function test_print_escaped_hexadecimal_chars(): void
     {
-        self::assertEquals(
+        self::assertSame(
             '"\x07"',
             $this->print("\x07"),
         );
@@ -60,7 +60,7 @@ final class PrinterTest extends TestCase
 
     public function test_print_escaped_unicode_chars(): void
     {
-        self::assertEquals(
+        self::assertSame(
             '"\u{1000}"',
             $this->print("\u{1000}"),
         );
@@ -68,7 +68,7 @@ final class PrinterTest extends TestCase
 
     public function test_print_zero(): void
     {
-        self::assertEquals(
+        self::assertSame(
             '0',
             $this->print(0),
         );
@@ -86,7 +86,7 @@ final class PrinterTest extends TestCase
         self::assertSame('toString method', $this->print($class));
     }
 
-    private function print($x): string
+    private function print(mixed $x): string
     {
         return Printer::readable()->print($x);
     }

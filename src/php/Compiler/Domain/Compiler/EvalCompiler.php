@@ -18,6 +18,7 @@ use Phel\Compiler\Domain\Lexer\LexerInterface;
 use Phel\Compiler\Domain\Parser\Exceptions\AbstractParserException;
 use Phel\Compiler\Domain\Parser\Exceptions\UnfinishedParserException;
 use Phel\Compiler\Domain\Parser\ParserInterface;
+use Phel\Compiler\Domain\Parser\ParserNode\NodeInterface;
 use Phel\Compiler\Domain\Parser\ParserNode\TriviaNodeInterface;
 use Phel\Compiler\Domain\Parser\ReadModel\ReaderResult;
 use Phel\Compiler\Domain\Reader\Exceptions\ReaderException;
@@ -25,7 +26,7 @@ use Phel\Compiler\Domain\Reader\ReaderInterface;
 use Phel\Compiler\Infrastructure\CompileOptions;
 use Phel\Lang\TypeInterface;
 
-final class EvalCompiler implements EvalCompilerInterface
+final readonly class EvalCompiler implements EvalCompilerInterface
 {
     public function __construct(
         private LexerInterface $lexer,
@@ -57,7 +58,7 @@ final class EvalCompiler implements EvalCompilerInterface
             try {
                 $parseTree = $this->parser->parseNext($tokenStream);
 
-                if (!$parseTree) {
+                if (!$parseTree instanceof NodeInterface) {
                     return $result;
                 }
 
@@ -80,6 +81,7 @@ final class EvalCompiler implements EvalCompilerInterface
         $node = $this->analyzer->analyze($form, NodeEnvironment::empty()->withReturnContext());
         return $this->evalNode($node, $compileOptions);
     }
+
     /**
      * @throws CompilerException
      */
@@ -90,8 +92,8 @@ final class EvalCompiler implements EvalCompilerInterface
                 $readerResult->getAst(),
                 NodeEnvironment::empty()->withReturnContext(),
             );
-        } catch (AnalyzerException $e) {
-            throw new CompilerException($e, $readerResult->getCodeSnippet());
+        } catch (AnalyzerException $analyzerException) {
+            throw new CompilerException($analyzerException, $readerResult->getCodeSnippet());
         }
     }
 

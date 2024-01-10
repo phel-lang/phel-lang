@@ -7,7 +7,7 @@ namespace Phel\Compiler\Domain\Parser\Exceptions;
 use Phel\Compiler\Domain\Lexer\Token;
 use Phel\Compiler\Domain\Parser\ReadModel\CodeSnippet;
 
-class UnfinishedParserException extends AbstractParserException
+final class UnfinishedParserException extends AbstractParserException
 {
     public static function forSnippet(CodeSnippet $snippet, Token $token, string $message): self
     {

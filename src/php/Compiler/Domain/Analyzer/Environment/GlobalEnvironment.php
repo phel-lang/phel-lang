@@ -232,17 +232,17 @@ final class GlobalEnvironment implements GlobalEnvironmentInterface
 
     private function resolveMagicSourceString(?SourceLocation $sl): ?string
     {
-        return ($sl && $sl->getFile() === 'string') ? 'string' : null;
+        return ($sl instanceof SourceLocation && $sl->getFile() === 'string') ? 'string' : null;
     }
 
     private function resolveRealpath(?SourceLocation $sl): ?string
     {
-        return ($sl) ? realpath($sl->getFile()) : null;
+        return ($sl instanceof SourceLocation) ? realpath($sl->getFile()) : null;
     }
 
     private function resolveRealpathDirname(?SourceLocation $sl): ?string
     {
-        return ($sl) ? realpath(dirname($sl->getFile())) : null;
+        return ($sl instanceof SourceLocation) ? realpath(dirname($sl->getFile())) : null;
     }
 
     private function resolveWithAlias(Symbol $name, NodeEnvironmentInterface $env): ?AbstractNode
@@ -260,7 +260,7 @@ final class GlobalEnvironment implements GlobalEnvironmentInterface
 
     private function resolveWithoutAlias(Symbol $name, NodeEnvironmentInterface $env): ?AbstractNode
     {
-        $currentNs = $this->getNs();
+        $currentNs = $this->ns;
         if (isset($this->refers[$this->ns][$name->getName()])) {
             $currentNs = $this->refers[$this->ns][$name->getName()]->getName();
         }
@@ -279,7 +279,7 @@ final class GlobalEnvironment implements GlobalEnvironmentInterface
         }
 
         $def = $this->getDefinition($ns, $name);
-        if ($def) {
+        if ($def instanceof PersistentMapInterface) {
             return new GlobalVarNode($env, $ns, $name, $def, $name->getStartLocation());
         }
 
@@ -296,15 +296,19 @@ final class GlobalEnvironment implements GlobalEnvironmentInterface
         }
 
         $def = $this->getDefinition($ns, $name);
-        if ($def && $this->isPrivateDefinitionAllowed($def)) {
-            return new GlobalVarNode($env, $ns, $name, $def, $name->getStartLocation());
+        if (!$def instanceof PersistentMapInterface) {
+            return null;
         }
 
-        return null;
+        if (!$this->isPrivateDefinitionAllowed($def)) {
+            return null;
+        }
+
+        return new GlobalVarNode($env, $ns, $name, $def, $name->getStartLocation());
     }
 
     private function isPrivateDefinitionAllowed(PersistentMapInterface $meta): bool
     {
-        return $this->allowPrivateAccess || !$meta[Keyword::create('private')] === true;
+        return $this->allowPrivateAccess || !$meta[Keyword::create('private')];
     }
 }

@@ -9,7 +9,7 @@ use Phel\Build\Domain\Extractor\NamespaceInformation;
 use Phel\Command\CommandFacadeInterface;
 use Phel\Run\Domain\Test\CannotFindAnyTestsException;
 
-final class NamespaceCollector
+final readonly class NamespaceCollector
 {
     public function __construct(
         private BuildFacadeInterface $buildFacade,
@@ -26,6 +26,7 @@ final class NamespaceCollector
         if ($namespaces === []) {
             throw CannotFindAnyTestsException::inPaths($paths);
         }
+
         $namespaces[] = 'phel\\test';
 
         return $this->buildFacade->getDependenciesForNamespace(
@@ -45,7 +46,7 @@ final class NamespaceCollector
      */
     private function getNamespacesFromPaths(array $paths): array
     {
-        if (empty($paths)) {
+        if ($paths === []) {
             $namespaces = $this->buildFacade->getNamespaceFromDirectories(
                 $this->commandFacade->getTestDirectories(),
             );

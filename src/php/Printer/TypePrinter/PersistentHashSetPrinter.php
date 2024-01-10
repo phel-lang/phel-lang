@@ -7,12 +7,10 @@ namespace Phel\Printer\TypePrinter;
 use Phel\Lang\Collections\HashSet\PersistentHashSetInterface;
 use Phel\Printer\PrinterInterface;
 
-use function count;
-
 /**
  * @implements TypePrinterInterface<PersistentHashSetInterface>
  */
-final class PersistentHashSetPrinter implements TypePrinterInterface
+final readonly class PersistentHashSetPrinter implements TypePrinterInterface
 {
     public function __construct(private PrinterInterface $printer)
     {
@@ -28,6 +26,6 @@ final class PersistentHashSetPrinter implements TypePrinterInterface
             $form->toPhpArray(),
         );
 
-        return '(set' . (count($values) > 0 ? ' ' : '') . implode(' ', $values) . ')';
+        return '(set' . ($values !== [] ? ' ' : '') . implode(' ', $values) . ')';
     }
 }

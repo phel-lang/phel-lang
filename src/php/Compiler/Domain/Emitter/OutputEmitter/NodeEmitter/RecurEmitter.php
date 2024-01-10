@@ -35,8 +35,9 @@ final class RecurEmitter implements NodeEmitterInterface
         foreach ($tempSyms as $i => $tempSym) {
             $paramSym = $params[$i];
             $loc = $paramSym->getStartLocation();
-            $normalizedParam = $node->getEnv()->getShadowed($paramSym) ?: $paramSym;
-
+            $normalizedParam = $node->getEnv()->getShadowed($paramSym) instanceof Symbol
+                ? $node->getEnv()->getShadowed($paramSym) ?? $paramSym
+                : $paramSym;
             $this->outputEmitter->emitPhpVariable($normalizedParam, $loc);
             $this->outputEmitter->emitStr(' = ', $node->getStartSourceLocation());
             $this->outputEmitter->emitPhpVariable($tempSym, $node->getStartSourceLocation());

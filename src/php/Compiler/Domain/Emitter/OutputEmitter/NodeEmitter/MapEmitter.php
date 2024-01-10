@@ -39,12 +39,14 @@ final class MapEmitter implements NodeEmitterInterface
             if ($i < $countKeyValues - 2) {
                 $this->outputEmitter->emitStr(',', $node->getStartSourceLocation());
             }
+
             $this->outputEmitter->emitLine();
         }
 
         if ($countKeyValues > 0) {
             $this->outputEmitter->decreaseIndentLevel();
         }
+
         $this->outputEmitter->emitStr(')', $node->getStartSourceLocation());
         $this->outputEmitter->emitContextSuffix($node->getEnv(), $node->getStartSourceLocation());
     }

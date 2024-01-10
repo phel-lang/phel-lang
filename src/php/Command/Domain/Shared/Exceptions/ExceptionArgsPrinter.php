@@ -6,8 +6,6 @@ namespace Phel\Command\Domain\Shared\Exceptions;
 
 use Phel\Printer\PrinterInterface;
 
-use function count;
-use function get_class;
 use function is_array;
 use function is_bool;
 use function is_object;
@@ -15,22 +13,23 @@ use function is_resource;
 use function is_string;
 use function strlen;
 
-final class ExceptionArgsPrinter implements ExceptionArgsPrinterInterface
+final readonly class ExceptionArgsPrinter implements ExceptionArgsPrinterInterface
 {
-    public function __construct(private PrinterInterface $printer)
-    {
+    public function __construct(
+        private PrinterInterface $printer,
+    ) {
     }
 
     public function parseArgsAsString(array $frameArgs): string
     {
         $argParts = array_map(
-            fn (mixed $arg) => $this->printer->print($arg),
+            fn (mixed $arg): string => $this->printer->print($arg),
             $frameArgs,
         );
 
         $argString = implode(' ', $argParts);
-        if (count($argParts) > 0) {
-            $argString = ' ' . $argString;
+        if ($argParts !== []) {
+            return ' ' . $argString;
         }
 
         return $argString;
@@ -39,7 +38,7 @@ final class ExceptionArgsPrinter implements ExceptionArgsPrinterInterface
     public function buildPhpArgsString(array $args): string
     {
         $result = array_map(
-            fn ($arg) => $this->buildPhpArg($arg),
+            fn ($arg): string => $this->buildPhpArg($arg),
             $args,
         );
 
@@ -61,7 +60,7 @@ final class ExceptionArgsPrinter implements ExceptionArgsPrinterInterface
                 $s = substr($s, 0, 15) . '...';
             }
 
-            return "'{$s}'";
+            return sprintf("'%s'", $s);
         }
 
         if (is_bool($arg)) {
@@ -73,7 +72,7 @@ final class ExceptionArgsPrinter implements ExceptionArgsPrinterInterface
         }
 
         if (is_object($arg)) {
-            return 'Object(' . get_class($arg) . ')';
+            return 'Object(' . $arg::class . ')';
         }
 
         if (is_resource($arg)) {

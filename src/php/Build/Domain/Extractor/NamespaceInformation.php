@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Phel\Build\Domain\Extractor;
 
-final class NamespaceInformation
+final readonly class NamespaceInformation
 {
     /**
      * @param list<string> $dependencies

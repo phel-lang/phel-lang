@@ -7,11 +7,15 @@ namespace Phel\Compiler\Infrastructure;
 final class CompileOptions
 {
     public const DEFAULT_SOURCE = 'string';
+
     public const DEFAULT_STARTING_LINE = 1;
+
     public const DEFAULT_ENABLE_SOURCE_MAPS = true;
 
     private string $source = self::DEFAULT_SOURCE;
+
     private int $startingLine = self::DEFAULT_STARTING_LINE;
+
     private bool $isEnableSourceMaps = self::DEFAULT_ENABLE_SOURCE_MAPS;
 
     public function getSource(): string

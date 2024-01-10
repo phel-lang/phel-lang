@@ -11,7 +11,7 @@ use Phel\Compiler\Domain\Parser\ParserNode\NodeInterface;
 use Phel\Formatter\Domain\Rules\RuleInterface;
 use Phel\Formatter\Domain\Rules\Zipper\ZipperException;
 
-final class Formatter implements FormatterInterface
+final readonly class Formatter implements FormatterInterface
 {
     /**
      * @param list<RuleInterface> $rules

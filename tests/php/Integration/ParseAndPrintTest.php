@@ -13,7 +13,7 @@ final class ParseAndPrintTest extends TestCase
 {
     private CompilerFactory $compilerFactory;
 
-    public function setUp(): void
+    protected function setUp(): void
     {
         $this->compilerFactory = new CompilerFactory();
     }
@@ -37,7 +37,7 @@ final class ParseAndPrintTest extends TestCase
         $parseTrees = [];
         while (true) {
             $parseTree = $parser->parseNext($tokenStream);
-            if (!$parseTree) {
+            if (!$parseTree instanceof NodeInterface) {
                 break;
             }
 
@@ -52,8 +52,8 @@ final class ParseAndPrintTest extends TestCase
      */
     private function printTrees(array $parseTrees): string
     {
-        return implode(array_map(
-            static fn (NodeInterface $t) => $t->getCode(),
+        return implode('', array_map(
+            static fn (NodeInterface $t): string => $t->getCode(),
             $parseTrees,
         ));
     }

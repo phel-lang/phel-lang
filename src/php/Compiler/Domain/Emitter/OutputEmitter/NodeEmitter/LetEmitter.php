@@ -24,10 +24,10 @@ final class LetEmitter implements NodeEmitterInterface
             $this->outputEmitter->emitFnWrapPrefix($node->getEnv(), $node->getStartSourceLocation());
         }
 
-        foreach ($node->getBindings() as $binding) {
-            $this->outputEmitter->emitPhpVariable($binding->getShadow(), $binding->getStartSourceLocation());
+        foreach ($node->getBindings() as $bindingNode) {
+            $this->outputEmitter->emitPhpVariable($bindingNode->getShadow(), $bindingNode->getStartSourceLocation());
             $this->outputEmitter->emitStr(' = ', $node->getStartSourceLocation());
-            $this->outputEmitter->emitNode($binding->getInitExpr());
+            $this->outputEmitter->emitNode($bindingNode->getInitExpr());
             $this->outputEmitter->emitLine(';', $node->getStartSourceLocation());
         }
 

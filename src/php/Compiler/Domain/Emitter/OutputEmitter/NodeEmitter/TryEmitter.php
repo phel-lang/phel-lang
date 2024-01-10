@@ -10,7 +10,6 @@ use Phel\Compiler\Domain\Analyzer\Environment\NodeEnvironment;
 use Phel\Compiler\Domain\Emitter\OutputEmitter\NodeEmitterInterface;
 
 use function assert;
-use function count;
 
 final class TryEmitter implements NodeEmitterInterface
 {
@@ -20,7 +19,7 @@ final class TryEmitter implements NodeEmitterInterface
     {
         assert($node instanceof TryNode);
 
-        if (!$node->getFinally() && count($node->getCatches()) === 0) {
+        if (!$node->getFinally() instanceof AbstractNode && $node->getCatches() === []) {
             $this->outputEmitter->emitNode($node->getBody());
             return;
         }
@@ -58,7 +57,7 @@ final class TryEmitter implements NodeEmitterInterface
     private function emitFinally(TryNode $node): void
     {
         $finally = $node->getFinally();
-        if (!$finally) {
+        if (!$finally instanceof AbstractNode) {
             return;
         }
 

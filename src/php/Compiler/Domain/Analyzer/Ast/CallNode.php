@@ -14,8 +14,8 @@ final class CallNode extends AbstractNode
      */
     public function __construct(
         NodeEnvironmentInterface $env,
-        private AbstractNode $fn,
-        private array $arguments,
+        private readonly AbstractNode $fn,
+        private readonly array $arguments,
         ?SourceLocation $sourceLocation = null,
     ) {
         parent::__construct($env, $sourceLocation);

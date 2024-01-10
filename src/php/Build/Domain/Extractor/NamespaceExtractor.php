@@ -10,15 +10,15 @@ use Phel\Compiler\Domain\Analyzer\Ast\NsNode;
 use Phel\Compiler\Domain\Analyzer\Environment\NodeEnvironment;
 use Phel\Compiler\Domain\Lexer\Exceptions\LexerValueException;
 use Phel\Compiler\Domain\Parser\Exceptions\AbstractParserException;
+use Phel\Compiler\Domain\Parser\ParserNode\NodeInterface;
 use Phel\Compiler\Domain\Parser\ParserNode\TriviaNodeInterface;
 use Phel\Compiler\Domain\Reader\Exceptions\ReaderException;
 use Phel\Lang\Symbol;
 use RecursiveDirectoryIterator;
 use RecursiveIteratorIterator;
 use RegexIterator;
-use RuntimeException;
 
-final class NamespaceExtractor implements NamespaceExtractorInterface
+final readonly class NamespaceExtractor implements NamespaceExtractorInterface
 {
     public function __construct(
         private CompilerFacadeInterface $compilerFacade,
@@ -41,7 +41,7 @@ final class NamespaceExtractor implements NamespaceExtractorInterface
                 $parseTree = $this->compilerFacade->parseNext($tokenStream);
             } while ($parseTree instanceof TriviaNodeInterface);
 
-            if (!$parseTree) {
+            if (!$parseTree instanceof NodeInterface) {
                 throw ExtractorException::cannotReadFile($path);
             }
 
@@ -54,7 +54,7 @@ final class NamespaceExtractor implements NamespaceExtractorInterface
                     realpath($path),
                     $node->getNamespace(),
                     array_map(
-                        static fn (Symbol $s) => $s->getFullName(),
+                        static fn (Symbol $s): string => $s->getFullName(),
                         $node->getRequireNs(),
                     ),
                 );
@@ -124,17 +124,15 @@ final class NamespaceExtractor implements NamespaceExtractorInterface
     {
         $realpath = realpath($directory);
 
-        if (!$realpath) {
+        if ($realpath === '' || $realpath === false) {
             return [];
-            //            throw new RuntimeException("Directory '{$directory}' not found");
         }
+
         $iterator = new RecursiveIteratorIterator(new RecursiveDirectoryIterator($realpath));
         $phelIterator = new RegexIterator($iterator, '/^.+\.phel$/i', RegexIterator::GET_MATCH);
 
         return array_map(
-            function (array $file) {
-                return $this->getNamespaceFromFile($file[0]);
-            },
+            fn (array $file): NamespaceInformation => $this->getNamespaceFromFile($file[0]),
             iterator_to_array($phelIterator),
         );
     }

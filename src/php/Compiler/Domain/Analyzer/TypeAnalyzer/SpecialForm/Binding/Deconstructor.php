@@ -17,7 +17,7 @@ use Phel\Lang\TypeInterface;
 
 use function count;
 
-final class Deconstructor implements DeconstructorInterface
+final readonly class Deconstructor implements DeconstructorInterface
 {
     public function __construct(
         private BindingValidatorInterface $bindingValidator,

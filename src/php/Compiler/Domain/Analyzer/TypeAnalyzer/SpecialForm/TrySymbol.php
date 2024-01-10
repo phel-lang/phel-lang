@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Phel\Compiler\Domain\Analyzer\TypeAnalyzer\SpecialForm;
 
+use Phel\Compiler\Domain\Analyzer\Ast\AbstractNode;
 use Phel\Compiler\Domain\Analyzer\Ast\CatchNode;
 use Phel\Compiler\Domain\Analyzer\Ast\TryNode;
 use Phel\Compiler\Domain\Analyzer\Environment\NodeEnvironment;
@@ -13,8 +14,6 @@ use Phel\Compiler\Domain\Analyzer\TypeAnalyzer\WithAnalyzerTrait;
 use Phel\Lang\Collections\LinkedList\PersistentListInterface;
 use Phel\Lang\Symbol;
 use Phel\Lang\TypeFactory;
-
-use function count;
 
 final class TrySymbol implements SpecialFormAnalyzerInterface
 {
@@ -42,6 +41,7 @@ final class TrySymbol implements SpecialFormAnalyzerInterface
                     } else {
                         $body[] = $form;
                     }
+
                     break;
 
                 case 'catches':
@@ -53,6 +53,7 @@ final class TrySymbol implements SpecialFormAnalyzerInterface
                     } else {
                         throw AnalyzerException::withLocation("Invalid 'try form", $list);
                     }
+
                     break;
 
                 case 'done':
@@ -96,7 +97,7 @@ final class TrySymbol implements SpecialFormAnalyzerInterface
 
             $resolvedType = $this->analyzer->resolve($type, $env);
 
-            if (!$resolvedType) {
+            if (!$resolvedType instanceof AbstractNode) {
                 throw AnalyzerException::withLocation('Can not resolve type ' . $type->getName(), $catch);
             }
 
@@ -119,8 +120,8 @@ final class TrySymbol implements SpecialFormAnalyzerInterface
         }
 
         $body = $this->analyzer->analyze(
-            TypeFactory::getInstance()->persistentListFromArray(array_merge([Symbol::create(Symbol::NAME_DO)], $body)),
-            $env->withContext(count($catchNodes) > 0 || $finally ? $catchCtx : $env->getContext())
+            TypeFactory::getInstance()->persistentListFromArray([Symbol::create(Symbol::NAME_DO), ...$body]),
+            $env->withContext($catchNodes !== [] || $finally ? $catchCtx : $env->getContext())
                 ->withDisallowRecurFrame(),
         );
 

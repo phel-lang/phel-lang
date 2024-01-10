@@ -14,7 +14,7 @@ final class RecurFrame
      * @param list<Symbol> $params
      */
     public function __construct(
-        private array $params,
+        private readonly array $params,
     ) {
     }
 

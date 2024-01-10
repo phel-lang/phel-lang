@@ -51,7 +51,7 @@ final class PhpVarNode extends AbstractNode
 
     public function __construct(
         NodeEnvironmentInterface $env,
-        private string $name,
+        private readonly string $name,
         ?SourceLocation $sourceLocation = null,
     ) {
         parent::__construct($env, $sourceLocation);

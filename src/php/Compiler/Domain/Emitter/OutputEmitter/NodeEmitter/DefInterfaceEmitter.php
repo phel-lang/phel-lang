@@ -32,6 +32,7 @@ final class DefInterfaceEmitter implements NodeEmitterInterface
                 $node->getStartSourceLocation(),
             );
         }
+
         $this->outputEmitter->emitLine(
             'interface ' . $this->outputEmitter->mungeEncode($node->getName()->getName()) . ' {',
             $node->getStartSourceLocation(),
@@ -41,8 +42,8 @@ final class DefInterfaceEmitter implements NodeEmitterInterface
 
     private function emitMethods(DefInterfaceNode $node): void
     {
-        foreach ($node->getMethods() as $method) {
-            $this->emitMethod($node, $method);
+        foreach ($node->getMethods() as $defInterfaceMethod) {
+            $this->emitMethod($node, $defInterfaceMethod);
         }
     }
 

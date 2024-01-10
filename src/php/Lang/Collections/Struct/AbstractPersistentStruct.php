@@ -10,7 +10,6 @@ use Phel\Compiler\Infrastructure\Munge;
 use Phel\Lang\Collections\Exceptions\MethodNotSupportedException;
 use Phel\Lang\Collections\Map\AbstractPersistentMap;
 use Phel\Lang\Collections\Map\PersistentMapInterface;
-use Phel\Lang\Collections\Map\TransientMapInterface;
 use Phel\Lang\Keyword;
 use Phel\Lang\TypeFactory;
 use Phel\Printer\Printer;
@@ -27,6 +26,7 @@ use function in_array;
 abstract class AbstractPersistentStruct extends AbstractPersistentMap
 {
     protected const ALLOWED_KEYS = [];
+
     private MungeInterface $munge;
 
     public function __construct()
@@ -39,7 +39,7 @@ abstract class AbstractPersistentStruct extends AbstractPersistentMap
         $this->munge = new Munge();
     }
 
-    public function withMeta(?PersistentMapInterface $meta)
+    public function withMeta(?PersistentMapInterface $meta): static
     {
         $newInstance = clone $this;
         $newInstance->meta = $meta;
@@ -87,12 +87,9 @@ abstract class AbstractPersistentStruct extends AbstractPersistentMap
         }
     }
 
-    /**
-     * @return TransientMapInterface
-     */
-    public function asTransient()
+    public function asTransient(): never
     {
-        throw new MethodNotSupportedException('Structs don\'t support transients');
+        throw new MethodNotSupportedException("Structs don't support transients");
     }
 
     public function equals(mixed $other): bool
@@ -120,6 +117,6 @@ abstract class AbstractPersistentStruct extends AbstractPersistentMap
 
         $keyName = Printer::nonReadable()->print($key);
         $structName = static::class;
-        throw new InvalidArgumentException("This key '{$keyName}' is not allowed for struct {$structName}");
+        throw new InvalidArgumentException(sprintf("This key '%s' is not allowed for struct %s", $keyName, $structName));
     }
 }

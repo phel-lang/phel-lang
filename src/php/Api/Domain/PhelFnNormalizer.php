@@ -11,7 +11,7 @@ use Phel\Lang\Keyword;
 final class PhelFnNormalizer implements PhelFnNormalizerInterface
 {
     public function __construct(
-        private PhelFnLoaderInterface $phelFnLoader,
+        private readonly PhelFnLoaderInterface $phelFnLoader,
         private array $allNamespaces = [],
     ) {
     }
@@ -38,7 +38,7 @@ final class PhelFnNormalizer implements PhelFnNormalizerInterface
 
             $doc = $meta[Keyword::create('doc')] ?? '';
             $pattern = '#(```phel\n(?<fnSignature>.*)\n```\n)?(?<desc>.*)#s';
-            preg_match($pattern, $doc, $matches);
+            preg_match($pattern, (string) $doc, $matches);
             $groupKey = $this->groupKey($fnName);
 
             $result[$groupKey][] = new PhelFunction(
@@ -70,8 +70,6 @@ final class PhelFnNormalizer implements PhelFnNormalizerInterface
 
     private function sortingPhelFunctionsCallback(): callable
     {
-        return static function (PhelFunction $a, PhelFunction $b): int {
-            return $a->fnName() <=> $b->fnName();
-        };
+        return static fn (PhelFunction $a, PhelFunction $b): int => $a->fnName() <=> $b->fnName();
     }
 }

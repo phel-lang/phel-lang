@@ -14,8 +14,8 @@ final class GlobalVarNode extends AbstractNode
 {
     public function __construct(
         NodeEnvironmentInterface $env,
-        private string $namespace,
-        private Symbol $name,
+        private readonly string $namespace,
+        private readonly Symbol $name,
         private PersistentMapInterface $meta,
         ?SourceLocation $sourceLocation = null,
     ) {

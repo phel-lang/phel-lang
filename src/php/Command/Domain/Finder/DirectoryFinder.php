@@ -6,7 +6,7 @@ namespace Phel\Command\Domain\Finder;
 
 use Phel\Command\Domain\CodeDirectories;
 
-final class DirectoryFinder implements DirectoryFinderInterface
+final readonly class DirectoryFinder implements DirectoryFinderInterface
 {
     public function __construct(
         private string $applicationRootDir,
@@ -50,11 +50,9 @@ final class DirectoryFinder implements DirectoryFinderInterface
     private function toAbsoluteDirectories(array $relativeDirectories): array
     {
         return array_map(
-            function (string $dir): string {
-                return realpath($dir) !== false
-                    ? $dir
-                    : $this->applicationRootDir . '/' . $dir;
-            },
+            fn (string $dir): string => realpath($dir) !== false
+                ? $dir
+                : $this->applicationRootDir . '/' . $dir,
             $relativeDirectories,
         );
     }

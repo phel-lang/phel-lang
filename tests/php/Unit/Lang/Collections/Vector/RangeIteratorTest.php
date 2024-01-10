@@ -18,6 +18,6 @@ final class RangeIteratorTest extends TestCase
             32,
         );
 
-        self::assertEquals(range(0, 31), iterator_to_array($it));
+        self::assertSame(range(0, 31), iterator_to_array($it));
     }
 }

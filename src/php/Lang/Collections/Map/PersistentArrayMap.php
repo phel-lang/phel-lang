@@ -22,7 +22,7 @@ use function count;
  *
  * @extends AbstractPersistentMap<K, V>
  */
-class PersistentArrayMap extends AbstractPersistentMap
+final class PersistentArrayMap extends AbstractPersistentMap
 {
     public const MAX_SIZE = 16;
 
@@ -50,10 +50,11 @@ class PersistentArrayMap extends AbstractPersistentMap
         for ($i = 0, $l = count($kvs); $i < $l; $i += 2) {
             $result->put($kvs[$i], $kvs[$i + 1]);
         }
+
         return $result->persistent();
     }
 
-    public function withMeta(?PersistentMapInterface $meta)
+    public function withMeta(?PersistentMapInterface $meta): self
     {
         return new self($this->hasher, $this->equalizer, $meta, $this->array);
     }
@@ -138,7 +139,7 @@ class PersistentArrayMap extends AbstractPersistentMap
      *
      * @return int|false
      */
-    private function findIndex($key)
+    private function findIndex($key): int|bool
     {
         for ($i = 0, $cnt = count($this->array); $i < $cnt; $i += 2) {
             $k = $this->array[$i];

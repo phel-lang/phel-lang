@@ -17,17 +17,16 @@ use function count;
  *
  * @implements HashMapNodeInterface<K, V>
  */
-class IndexedNode implements HashMapNodeInterface
+final class IndexedNode implements HashMapNodeInterface
 {
-    /** @var array<int, array{0: K|null, 1: V|HashMapNodeInterface<K, V>}> */
-    private array $objects;
-
+    /**
+     * @param list<array{0: K|null, 1: V|HashMapNodeInterface<K, V>}> $objects
+     */
     public function __construct(
-        private HasherInterface $hasher,
-        private EqualizerInterface $equalizer,
-        array $objects,
+        private readonly HasherInterface $hasher,
+        private readonly EqualizerInterface $equalizer,
+        private array $objects,
     ) {
-        $this->objects = $objects;
     }
 
     public static function empty(HasherInterface $hasher, EqualizerInterface $equalizer): self
@@ -160,7 +159,7 @@ class IndexedNode implements HashMapNodeInterface
      *
      * @return HashMapNodeInterface<K, V>
      */
-    private function createNode(int $shift, $key1, $value1, int $key2Hash, $key2, $value2): HashMapNodeInterface
+    private function createNode(int $shift, mixed $key1, $value1, int $key2Hash, $key2, $value2): HashMapNodeInterface
     {
         $key1Hash = $this->hasher->hash($key1);
         if ($key1Hash === $key2Hash) {
@@ -198,7 +197,7 @@ class IndexedNode implements HashMapNodeInterface
      */
     private function addToChild(int $idx, int $shift, int $hash, $key, $value, Box $addedLeaf): HashMapNodeInterface
     {
-        /** @var HashMapNodeInterface $node */
+        /** @var HashMapNodeInterface $childNode */
         $childNode = $this->objects[$idx][1];
         $newChild = $childNode->put($shift + 5, $hash, $key, $value, $addedLeaf);
         if ($childNode === $newChild) {

@@ -12,7 +12,7 @@ final class QuoteNode extends AbstractNode
 {
     public function __construct(
         NodeEnvironmentInterface $env,
-        private TypeInterface|array|string|float|int|bool|null $value,
+        private readonly TypeInterface|array|string|float|int|bool|null $value,
         ?SourceLocation $sourceLocation = null,
     ) {
         parent::__construct($env, $sourceLocation);

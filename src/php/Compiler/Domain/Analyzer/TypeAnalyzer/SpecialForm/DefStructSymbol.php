@@ -21,7 +21,7 @@ use ReflectionMethod;
 
 use function count;
 
-final class DefStructSymbol implements SpecialFormAnalyzerInterface
+final readonly class DefStructSymbol implements SpecialFormAnalyzerInterface
 {
     public function __construct(
         private AnalyzerInterface $analyzer,
@@ -75,6 +75,7 @@ final class DefStructSymbol implements SpecialFormAnalyzerInterface
             if (!($element instanceof Symbol)) {
                 throw AnalyzerException::withLocation('Defstruct field elements must be Symbols.', $vector);
             }
+
             $params[] = $element;
         }
 
@@ -159,7 +160,7 @@ final class DefStructSymbol implements SpecialFormAnalyzerInterface
         }
 
         if (!isset($expectedMethodIndex[$mungedMethodName])) {
-            throw AnalyzerException::withLocation('The interface doesn\'t support this method: ' . $methodName->getName(), $list);
+            throw AnalyzerException::withLocation("The interface doesn't support this method: " . $methodName->getName(), $list);
         }
 
         $arguments = $list->get(1);

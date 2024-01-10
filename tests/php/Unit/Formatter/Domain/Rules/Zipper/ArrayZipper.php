@@ -57,8 +57,6 @@ final class ArrayZipper extends AbstractZipper
      * @param ?AbstractZipper<list<int>> $parent
      * @param list<int|list<int>> $leftSiblings
      * @param list<int|list<int>> $rightSiblings
-     *
-     * @return static
      */
     protected function createNewInstance(
         $node,

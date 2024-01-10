@@ -11,8 +11,8 @@ final class SetVarNode extends AbstractNode
 {
     public function __construct(
         NodeEnvironmentInterface $env,
-        private AbstractNode $symbol,
-        private AbstractNode $valueExpr,
+        private readonly AbstractNode $symbol,
+        private readonly AbstractNode $valueExpr,
         ?SourceLocation $sourceLocation = null,
     ) {
         parent::__construct($env, $sourceLocation);

@@ -14,7 +14,9 @@ use function in_array;
 final class NodeEnvironment implements NodeEnvironmentInterface
 {
     public const CONTEXT_EXPRESSION = 'expression';
+
     public const CONTEXT_STATEMENT = 'statement';
+
     public const CONTEXT_RETURN = 'return';
 
     /** Def inside of def should not work. This flag help us to keep track of this. */
@@ -88,13 +90,10 @@ final class NodeEnvironment implements NodeEnvironmentInterface
 
     public function withMergedLocals(array $locals): NodeEnvironmentInterface
     {
-        $allLocalSymbols = array_merge(
-            $this->locals,
-            array_map(
-                static fn (Symbol $s) => Symbol::create($s->getName()),
-                $locals,
-            ),
-        );
+        $allLocalSymbols = [...$this->locals, ...array_map(
+            static fn (Symbol $s): Symbol => Symbol::create($s->getName()),
+            $locals,
+        )];
 
         return $this
             ->withLocals(array_unique($allLocalSymbols))
@@ -169,7 +168,7 @@ final class NodeEnvironment implements NodeEnvironmentInterface
     public function withAddedRecurFrame(RecurFrame $frame): NodeEnvironmentInterface
     {
         $result = clone $this;
-        $result->recurFrames = array_merge($this->recurFrames, [$frame]);
+        $result->recurFrames = [...$this->recurFrames, $frame];
 
         return $result;
     }
@@ -177,7 +176,7 @@ final class NodeEnvironment implements NodeEnvironmentInterface
     public function withDisallowRecurFrame(): NodeEnvironmentInterface
     {
         $result = clone $this;
-        $result->recurFrames = array_merge($this->recurFrames, [null]);
+        $result->recurFrames = [...$this->recurFrames, null];
 
         return $result;
     }
@@ -200,7 +199,7 @@ final class NodeEnvironment implements NodeEnvironmentInterface
 
     public function getCurrentRecurFrame(): ?RecurFrame
     {
-        if (empty($this->recurFrames)) {
+        if ($this->recurFrames === []) {
             return null;
         }
 

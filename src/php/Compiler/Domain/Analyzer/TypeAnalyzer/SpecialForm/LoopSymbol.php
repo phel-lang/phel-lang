@@ -20,15 +20,12 @@ use Phel\Lang\TypeFactory;
 use function count;
 use function gettype;
 
-final class LoopSymbol implements SpecialFormAnalyzerInterface
+final readonly class LoopSymbol implements SpecialFormAnalyzerInterface
 {
-    private AnalyzerInterface $analyzer;
-    private BindingValidator $bindingValidator;
-
-    public function __construct(AnalyzerInterface $analyzer, BindingValidator $bindingValidator)
-    {
-        $this->analyzer = $analyzer;
-        $this->bindingValidator = $bindingValidator;
+    public function __construct(
+        private AnalyzerInterface $analyzer,
+        private BindingValidator $bindingValidator,
+    ) {
     }
 
     public function analyze(PersistentListInterface $list, NodeEnvironmentInterface $env): LetNode
@@ -74,7 +71,7 @@ final class LoopSymbol implements SpecialFormAnalyzerInterface
             }
         }
 
-        if (count($lets) > 0) {
+        if ($lets !== []) {
             $bodyExpr = $list->rest()->rest()->toArray();
             $letSym = Symbol::create(Symbol::NAME_LET)->copyLocationFrom($list->get(0));
             $letExpr = TypeFactory::getInstance()->persistentListFromArray([

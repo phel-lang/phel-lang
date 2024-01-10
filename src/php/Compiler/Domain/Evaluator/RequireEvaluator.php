@@ -9,7 +9,7 @@ use Phel\Compiler\Domain\Evaluator\Exceptions\FileException;
 use Phel\Filesystem\FilesystemFacadeInterface;
 use Throwable;
 
-final class RequireEvaluator implements EvaluatorInterface
+final readonly class RequireEvaluator implements EvaluatorInterface
 {
     public function __construct(
         private FilesystemFacadeInterface $filesystemFacade,
@@ -25,7 +25,7 @@ final class RequireEvaluator implements EvaluatorInterface
     public function eval(string $code): mixed
     {
         $filename = tempnam(sys_get_temp_dir(), '__phel');
-        if (!$filename) {
+        if ($filename === '' || $filename === false) {
             throw FileException::canNotCreateTempFile();
         }
 
@@ -38,8 +38,8 @@ final class RequireEvaluator implements EvaluatorInterface
             }
 
             throw FileException::canNotCreateFile($filename);
-        } catch (Throwable $e) {
-            throw CompiledCodeIsMalformedException::fromThrowable($e);
+        } catch (Throwable $throwable) {
+            throw CompiledCodeIsMalformedException::fromThrowable($throwable);
         }
     }
 }

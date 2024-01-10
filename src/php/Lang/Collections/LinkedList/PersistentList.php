@@ -21,12 +21,8 @@ use function count;
  *
  * @extends AbstractType<PersistentListInterface<T>>
  */
-class PersistentList extends AbstractType implements PersistentListInterface
+final class PersistentList extends AbstractType implements PersistentListInterface
 {
-    /** @var T */
-    private $first;
-    /** @var PersistentListInterface<T> */
-    private $rest;
     private int $hashCache = 0;
 
     /**
@@ -34,15 +30,13 @@ class PersistentList extends AbstractType implements PersistentListInterface
      * @param PersistentListInterface<T> $rest
      */
     public function __construct(
-        private HasherInterface $hasher,
-        private EqualizerInterface $equalizer,
-        private ?PersistentMapInterface $meta,
-        $first,
-        $rest,
-        private int $count,
+        private readonly HasherInterface $hasher,
+        private readonly EqualizerInterface $equalizer,
+        private readonly ?PersistentMapInterface $meta,
+        private $first,
+        private $rest,
+        private readonly int $count,
     ) {
-        $this->first = $first;
-        $this->rest = $rest;
     }
 
     /**
@@ -68,7 +62,7 @@ class PersistentList extends AbstractType implements PersistentListInterface
         return $this->meta;
     }
 
-    public function withMeta(?PersistentMapInterface $meta)
+    public function withMeta(?PersistentMapInterface $meta): self
     {
         return new self($this->hasher, $this->equalizer, $meta, $this->first, $this->rest, $this->count);
     }
@@ -199,18 +193,13 @@ class PersistentList extends AbstractType implements PersistentListInterface
      * Concatenates a value to the data structure.
      *
      * @param array<int, mixed> $xs The value to concatenate
-     *
-     * @return PersistentListInterface
      */
-    public function concat($xs)
+    public function concat($xs): PersistentListInterface
     {
         return self::fromArray($this->hasher, $this->equalizer, [...$this->toArray(), ...$xs]);
     }
 
-    /**
-     * @return PersistentListInterface
-     */
-    public function cons(mixed $x)
+    public function cons(mixed $x): PersistentListInterface
     {
         return $this->prepend($x);
     }
@@ -220,7 +209,7 @@ class PersistentList extends AbstractType implements PersistentListInterface
      */
     public function offsetExists($offset): bool
     {
-        return $offset >= 0 && $offset < $this->count();
+        return $offset >= 0 && $offset < $this->count;
     }
 
     /**

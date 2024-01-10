@@ -27,7 +27,7 @@ final class Registry
 
     public static function getInstance(): self
     {
-        if (self::$instance === null) {
+        if (!self::$instance instanceof self) {
             self::$instance = new self();
         }
 
@@ -69,11 +69,15 @@ final class Registry
 
     public function getDefinitionMetaData(string $ns, string $name): ?PersistentMapInterface
     {
-        if (array_key_exists($ns, $this->definitions) && array_key_exists($name, $this->definitions[$ns])) {
-            return $this->definitionsMetaData[$ns][$name] ?? TypeFactory::getInstance()->emptyPersistentMap();
+        if (!array_key_exists($ns, $this->definitions)) {
+            return null;
         }
 
-        return null;
+        if (!array_key_exists($name, $this->definitions[$ns])) {
+            return null;
+        }
+
+        return $this->definitionsMetaData[$ns][$name] ?? TypeFactory::getInstance()->emptyPersistentMap();
     }
 
     /**

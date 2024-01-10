@@ -11,8 +11,8 @@ final class PhpArrayGetNode extends AbstractNode
 {
     public function __construct(
         NodeEnvironmentInterface $env,
-        private AbstractNode $arrayExpr,
-        private AbstractNode $accessExpr,
+        private readonly AbstractNode $arrayExpr,
+        private readonly AbstractNode $accessExpr,
         ?SourceLocation $sourceLocation = null,
     ) {
         parent::__construct($env, $sourceLocation);

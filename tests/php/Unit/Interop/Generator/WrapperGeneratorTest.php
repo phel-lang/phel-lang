@@ -23,7 +23,7 @@ final class WrapperGeneratorTest extends TestCase
         $functionToExport = new FunctionToExport(new class() implements FnInterface {
             public const BOUND_TO = 'custom_namespace\\file_name_example\\phel_function_example';
 
-            public function __invoke(int $a, int ...$b)
+            public function __invoke(int $a, int ...$b): int|float
             {
                 return $a + array_sum($b);
             }

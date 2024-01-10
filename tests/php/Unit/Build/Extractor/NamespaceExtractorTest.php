@@ -25,8 +25,8 @@ final class NamespaceExtractorTest extends TestCase
         $fileContent = '(ns get\\ns\\from\\file)';
         $result = $this->extractNamespace($fileContent);
 
-        $this->assertEquals('get\\ns\\from\\file', $result->getNamespace());
-        $this->assertEquals(['phel\core'], $result->getDependencies());
+        $this->assertSame('get\\ns\\from\\file', $result->getNamespace());
+        $this->assertSame(['phel\core'], $result->getDependencies());
     }
 
     public function test_get_namespace_from_file_with_dependencies(): void
@@ -34,8 +34,8 @@ final class NamespaceExtractorTest extends TestCase
         $fileContent = '(ns get\\ns\\from\\file (:require phel\html))';
         $result = $this->extractNamespace($fileContent);
 
-        $this->assertEquals('get\\ns\\from\\file', $result->getNamespace());
-        $this->assertEquals(['phel\core', 'phel\html'], $result->getDependencies());
+        $this->assertSame('get\\ns\\from\\file', $result->getNamespace());
+        $this->assertSame(['phel\core', 'phel\html'], $result->getDependencies());
     }
 
     public function test_get_namespace_from_file_not_parsable(): void

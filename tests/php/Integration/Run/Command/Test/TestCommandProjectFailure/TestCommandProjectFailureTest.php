@@ -35,7 +35,7 @@ final class TestCommandProjectFailureTest extends AbstractCommandTest
         $command->run($this->stubInput([]), $this->stubOutput());
     }
 
-    protected function stubInput(array $paths = []): InputInterface
+    private function stubInput(array $paths = []): InputInterface
     {
         $input = $this->createStub(InputInterface::class);
         $input->method('getArgument')->willReturn($paths);

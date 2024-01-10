@@ -16,10 +16,10 @@ final class DefStructNode extends AbstractNode
      */
     public function __construct(
         NodeEnvironmentInterface $env,
-        private string $namespace,
-        private Symbol $name,
-        private array $params,
-        private array $interfaces,
+        private readonly string $namespace,
+        private readonly Symbol $name,
+        private readonly array $params,
+        private readonly array $interfaces,
         ?SourceLocation $sourceLocation = null,
     ) {
         parent::__construct($env, $sourceLocation);

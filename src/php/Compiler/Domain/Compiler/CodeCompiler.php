@@ -19,6 +19,7 @@ use Phel\Compiler\Domain\Lexer\Exceptions\LexerValueException;
 use Phel\Compiler\Domain\Lexer\LexerInterface;
 use Phel\Compiler\Domain\Parser\Exceptions\AbstractParserException;
 use Phel\Compiler\Domain\Parser\ParserInterface;
+use Phel\Compiler\Domain\Parser\ParserNode\NodeInterface;
 use Phel\Compiler\Domain\Parser\ParserNode\TriviaNodeInterface;
 use Phel\Compiler\Domain\Parser\ReadModel\ReaderResult;
 use Phel\Compiler\Domain\Reader\Exceptions\ReaderException;
@@ -26,7 +27,7 @@ use Phel\Compiler\Domain\Reader\ReaderInterface;
 use Phel\Compiler\Infrastructure\CompileOptions;
 use Phel\Lang\TypeInterface;
 
-final class CodeCompiler implements CodeCompilerInterface
+final readonly class CodeCompiler implements CodeCompilerInterface
 {
     public function __construct(
         private LexerInterface $lexer,
@@ -54,7 +55,7 @@ final class CodeCompiler implements CodeCompilerInterface
             try {
                 $parseTree = $this->parser->parseNext($tokenStream);
                 // If we reached the end exit this loop
-                if (!$parseTree) {
+                if (!$parseTree instanceof NodeInterface) {
                     break;
                 }
 
@@ -90,8 +91,8 @@ final class CodeCompiler implements CodeCompilerInterface
                 $readerResult->getAst(),
                 NodeEnvironment::empty(),
             );
-        } catch (AnalyzerException $e) {
-            throw new CompilerException($e, $readerResult->getCodeSnippet());
+        } catch (AnalyzerException $analyzerException) {
+            throw new CompilerException($analyzerException, $readerResult->getCodeSnippet());
         }
     }
 

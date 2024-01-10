@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Phel\Command\Domain;
 
-final class CodeDirectories
+final readonly class CodeDirectories
 {
     /**
      * @param list<string> $srcDirs

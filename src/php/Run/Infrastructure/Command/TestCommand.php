@@ -99,7 +99,7 @@ final class TestCommand extends Command
     {
         $namespaces = [];
         foreach ($namespacesInfo as $info) {
-            $namespaces[] = "'{$info->getNamespace()}";
+            $namespaces[] = "'" . $info->getNamespace();
         }
 
         return implode(' ', $namespaces);

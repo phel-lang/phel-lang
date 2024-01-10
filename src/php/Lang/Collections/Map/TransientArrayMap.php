@@ -16,11 +16,11 @@ use function count;
  *
  * @implements TransientMapInterface<K, V>
  */
-class TransientArrayMap implements TransientMapInterface
+final class TransientArrayMap implements TransientMapInterface
 {
     public function __construct(
-        private HasherInterface $hasher,
-        private EqualizerInterface $equalizer,
+        private readonly HasherInterface $hasher,
+        private readonly EqualizerInterface $equalizer,
         private array $array,
     ) {
     }
@@ -49,6 +49,7 @@ class TransientArrayMap implements TransientMapInterface
             for ($i = 0, $cnt = count($this->array); $i < $cnt; $i += 2) {
                 $m->put($this->array[$i], $this->array[$i + 1]);
             }
+
             $m->put($key, $value);
 
             return $m;
@@ -127,13 +128,12 @@ class TransientArrayMap implements TransientMapInterface
         return new PersistentArrayMap($this->hasher, $this->equalizer, null, $this->array);
     }
 
-
     /**
      * @param K $key
      *
      * @return int|false
      */
-    private function findIndex($key)
+    private function findIndex($key): int|bool
     {
         for ($i = 0, $cnt = count($this->array); $i < $cnt; $i += 2) {
             $k = $this->array[$i];

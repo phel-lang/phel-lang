@@ -16,7 +16,7 @@ final class ColorStyleTest extends TestCase
         $style = ColorStyle::withStyles([$color => $format]);
         $anyText = 'any text';
 
-        self::assertEquals(
+        self::assertSame(
             sprintf($format, $anyText),
             $style->color($anyText, $color),
         );

@@ -17,10 +17,12 @@ use Phel\Lang\Collections\Vector\PersistentVectorInterface;
 
 use function count;
 
-class TypeFactory
+final class TypeFactory
 {
-    private HasherInterface $hasher;
-    private EqualizerInterface $equalizer;
+    private readonly HasherInterface $hasher;
+
+    private readonly EqualizerInterface $equalizer;
+
     private static ?TypeFactory $instance = null;
 
     public function __construct()
@@ -31,7 +33,7 @@ class TypeFactory
 
     public static function getInstance(): self
     {
-        if (self::$instance === null) {
+        if (!self::$instance instanceof self) {
             self::$instance = new self();
         }
 

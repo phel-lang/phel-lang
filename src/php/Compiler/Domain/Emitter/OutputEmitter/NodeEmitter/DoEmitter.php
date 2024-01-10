@@ -10,7 +10,6 @@ use Phel\Compiler\Domain\Analyzer\Environment\NodeEnvironment;
 use Phel\Compiler\Domain\Emitter\OutputEmitter\NodeEmitterInterface;
 
 use function assert;
-use function count;
 
 final class DoEmitter implements NodeEmitterInterface
 {
@@ -20,16 +19,17 @@ final class DoEmitter implements NodeEmitterInterface
     {
         assert($node instanceof DoNode);
 
-        $isWrapFn = count($node->getStmts()) > 0 && $node->getEnv()->isContext(NodeEnvironment::CONTEXT_EXPRESSION);
+        $isWrapFn = $node->getStmts() !== [] && $node->getEnv()->isContext(NodeEnvironment::CONTEXT_EXPRESSION);
 
         if ($isWrapFn) {
             $this->outputEmitter->emitFnWrapPrefix($node->getEnv(), $node->getStartSourceLocation());
         }
 
-        foreach ($node->getStmts() as $i => $stmt) {
+        foreach ($node->getStmts() as $stmt) {
             $this->outputEmitter->emitNode($stmt);
             $this->outputEmitter->emitLine();
         }
+
         $this->outputEmitter->emitNode($node->getRet());
 
         if ($isWrapFn) {

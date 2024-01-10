@@ -10,7 +10,7 @@ use function strlen;
 /**
  * @implements TypePrinterInterface<string>
  */
-final class StringPrinter implements TypePrinterInterface
+final readonly class StringPrinter implements TypePrinterInterface
 {
     private const SPECIAL_CHARACTERS = [
         9 => '\t',
@@ -132,9 +132,11 @@ final class StringPrinter implements TypePrinterInterface
         if (0xF0 <= $a) {
             return dechex((($a - 0xF0) << 18) + ((((int) $str[2]) - 0x80) << 12) + ((((int) $str[3]) - 0x80) << 6) + ((int) $str[4]) - 0x80);
         }
+
         if (0xE0 <= $a) {
             return dechex((($a - 0xE0) << 12) + ((((int) $str[2]) - 0x80) << 6) + ((int) $str[3]) - 0x80);
         }
+
         if (0xC0 <= $a) {
             return dechex((($a - 0xC0) << 6) + ((int) $str[2]) - 0x80);
         }

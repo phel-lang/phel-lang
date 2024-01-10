@@ -15,7 +15,7 @@ final class FilesystemFacadeTest extends TestCase
 {
     private FilesystemFacade $filesystem;
 
-    public function setUp(): void
+    protected function setUp(): void
     {
         RealFilesystem::reset();
         $this->filesystem = new FilesystemFacade();

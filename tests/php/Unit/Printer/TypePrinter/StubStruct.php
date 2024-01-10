@@ -9,14 +9,15 @@ use Phel\Lang\Collections\Struct\AbstractPersistentStruct;
 final class StubStruct extends AbstractPersistentStruct
 {
     protected const ALLOWED_KEYS = ['a', 'b'];
-    protected $a;
-    protected $b;
-    private $allowedKeys;
 
-    public function __construct(array $allowedKeys)
-    {
+    protected $a;
+
+    protected $b;
+
+    public function __construct(
+        private readonly array $allowedKeys,
+    ) {
         parent::__construct();
-        $this->allowedKeys = $allowedKeys;
     }
 
     public function getAllowedKeys(): array

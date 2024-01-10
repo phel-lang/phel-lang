@@ -15,11 +15,13 @@ use function count;
  *
  * @implements Iterator<K, V>
  */
-class ArrayNodeIterator implements Iterator
+final class ArrayNodeIterator implements Iterator
 {
     /** @var array<int, HashMapNodeInterface<K, V>> A fixed size array of nodes */
     private array $childNodes;
+
     private int $index = 0;
+
     private ?Iterator $nestedIterator = null;
 
     public function __construct(array $childNodes)
@@ -32,7 +34,7 @@ class ArrayNodeIterator implements Iterator
      */
     public function current(): mixed
     {
-        if ($this->nestedIterator) {
+        if ($this->nestedIterator instanceof Iterator) {
             return $this->nestedIterator->current();
         }
 
@@ -41,7 +43,7 @@ class ArrayNodeIterator implements Iterator
 
     public function next(): void
     {
-        if ($this->nestedIterator && $this->nestedIterator->valid()) {
+        if ($this->nestedIterator instanceof Iterator && $this->nestedIterator->valid()) {
             $this->nestedIterator->next();
 
             if (!$this->nestedIterator->valid()) {
@@ -54,7 +56,7 @@ class ArrayNodeIterator implements Iterator
 
     public function valid(): bool
     {
-        if ($this->nestedIterator) {
+        if ($this->nestedIterator instanceof Iterator) {
             return $this->nestedIterator->valid();
         }
 
@@ -64,7 +66,7 @@ class ArrayNodeIterator implements Iterator
     public function rewind(): void
     {
         $this->index = 0;
-        if (count($this->childNodes) > 0) {
+        if ($this->childNodes !== []) {
             $this->initializeNestedIterator($this->index);
         }
     }
@@ -74,7 +76,7 @@ class ArrayNodeIterator implements Iterator
      */
     public function key(): mixed
     {
-        if ($this->nestedIterator) {
+        if ($this->nestedIterator instanceof Iterator) {
             return $this->nestedIterator->key();
         }
 

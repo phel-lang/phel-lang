@@ -10,20 +10,18 @@ final class Keyword extends AbstractType implements IdenticalInterface, FnInterf
 {
     use MetaTrait;
 
-    private int $hash;
+    private readonly int $hash;
 
     /** @var array<string, Keyword> */
     private static array $refStore = [];
 
     private function __construct(
-        private ?string $namespace,
-        private string $name,
+        private readonly ?string $namespace,
+        private readonly string $name,
     ) {
-        if ($namespace) {
-            $this->hash = crc32(':' . $namespace . '/' . $name);
-        } else {
-            $this->hash = crc32(':' . $name);
-        }
+        $this->hash = $namespace !== null && $namespace !== ''
+            ? crc32(':' . $namespace . '/' . $name)
+            : crc32(':' . $name);
     }
 
     public function __invoke(PersistentMapInterface $obj, float|bool|int|string|TypeInterface $default = null)
@@ -53,7 +51,7 @@ final class Keyword extends AbstractType implements IdenticalInterface, FnInterf
 
     public function getFullName(): string
     {
-        if ($this->namespace) {
+        if ($this->namespace !== null && $this->namespace !== '') {
             return $this->namespace . '/' . $this->name;
         }
 
@@ -72,8 +70,8 @@ final class Keyword extends AbstractType implements IdenticalInterface, FnInterf
 
     public function identical(mixed $other): bool
     {
-        return $other instanceof self
-            && $this->name == $other->getName()
-            && $this->namespace == $other->getNamespace();
+        return ($other instanceof self)
+            && $this->name === $other->getName()
+            && $this->namespace === $other->getNamespace();
     }
 }

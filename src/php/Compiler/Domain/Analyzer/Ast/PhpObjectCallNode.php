@@ -11,10 +11,10 @@ final class PhpObjectCallNode extends AbstractNode
 {
     public function __construct(
         NodeEnvironmentInterface $env,
-        private AbstractNode $targetExpr,
-        private AbstractNode $callExpr,
-        private bool $isStatic,
-        private bool $isMethodCall,
+        private readonly AbstractNode $targetExpr,
+        private readonly AbstractNode $callExpr,
+        private readonly bool $isStatic,
+        private readonly bool $isMethodCall,
         ?SourceLocation $sourceLocation = null,
     ) {
         parent::__construct($env, $sourceLocation);

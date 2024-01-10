@@ -18,6 +18,7 @@ use Phel\Run\Infrastructure\Command\TestCommand;
 final class ConsoleDependencyProvider extends AbstractDependencyProvider
 {
     public const COMMANDS = 'COMMANDS';
+
     public const FACADE_FILESYSTEM = 'FACADE_FILESYSTEM';
 
     public function provideModuleDependencies(Container $container): void
@@ -28,14 +29,15 @@ final class ConsoleDependencyProvider extends AbstractDependencyProvider
 
     private function addFilesystemFacade(Container $container): void
     {
-        $container->set(self::FACADE_FILESYSTEM, static function (Container $container) {
-            return $container->getLocator()->get(FilesystemFacade::class);
-        });
+        $container->set(
+            self::FACADE_FILESYSTEM,
+            static fn (Container $container) => $container->getLocator()->get(FilesystemFacade::class),
+        );
     }
 
     private function addCommands(Container $container): void
     {
-        $container->set(self::COMMANDS, static fn () => [
+        $container->set(self::COMMANDS, static fn (): array => [
             new ExportCommand(),
             new FormatCommand(),
             new ReplCommand(),

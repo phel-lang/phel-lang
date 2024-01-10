@@ -12,6 +12,7 @@ use Phel\Command\CommandFacade;
 final class InteropDependencyProvider extends AbstractDependencyProvider
 {
     public const FACADE_COMMAND = 'FACADE_COMMAND';
+
     public const FACADE_BUILD = 'FACADE_BUILD';
 
     public function provideModuleDependencies(Container $container): void
@@ -22,15 +23,17 @@ final class InteropDependencyProvider extends AbstractDependencyProvider
 
     private function addFacadeCommand(Container $container): void
     {
-        $container->set(self::FACADE_COMMAND, static function (Container $container) {
-            return $container->getLocator()->get(CommandFacade::class);
-        });
+        $container->set(
+            self::FACADE_COMMAND,
+            static fn (Container $container) => $container->getLocator()->get(CommandFacade::class),
+        );
     }
 
     private function addFacadeBuild(Container $container): void
     {
-        $container->set(self::FACADE_BUILD, static function (Container $container) {
-            return $container->getLocator()->get(BuildFacade::class);
-        });
+        $container->set(
+            self::FACADE_BUILD,
+            static fn (Container $container) => $container->getLocator()->get(BuildFacade::class),
+        );
     }
 }

@@ -23,7 +23,7 @@ final class DefSymbolTest extends TestCase
 {
     private AnalyzerInterface $analyzer;
 
-    public function setUp(): void
+    protected function setUp(): void
     {
         $this->analyzer = new Analyzer(new GlobalEnvironment());
     }
@@ -255,6 +255,6 @@ final class DefSymbolTest extends TestCase
             'any value',
         ]);
         $env = NodeEnvironment::empty();
-        $defNode = (new DefSymbol($this->analyzer))->analyze($list, $env);
+        (new DefSymbol($this->analyzer))->analyze($list, $env);
     }
 }

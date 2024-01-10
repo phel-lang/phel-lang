@@ -16,13 +16,17 @@ use Phel\Compiler\Domain\Parser\ParserNode\SymbolNode;
 use Phel\Lang\Keyword;
 use Phel\Lang\Symbol;
 
-final class AtomParser
+final readonly class AtomParser
 {
     private const REGEX_KEYWORD = '/:(?<second_colon>:?)((?<namespace>[^\/]+)\/)?(?<keyword>[^\/]+)/';
+
     private const REGEX_BINARY_NUMBER = '/^([+-])?0[bB][01]+(_[01]+)*$/';
+
     private const REGEX_HEXADECIMAL_NUMBER = '/^([+-])?0[xX][0-9a-fA-F]+(_[0-9a-fA-F]+)*$/';
+
     private const REGEX_OCTAL_NUMBER = '/^([+-])?0[0-7]+(_[0-7]+)*$/';
-    private const REGEX_DECIMAL_NUMBER = '/^(?:([+-])?[0-9]+(_[0-9]+)*[\.(_[0-9]+]?|0)$/';
+
+    private const REGEX_DECIMAL_NUMBER = '/^(?:([+-])?\d+(_\d+)*[\.(_\d+]?|0)$/';
 
     public function __construct(private GlobalEnvironmentInterface $globalEnvironment)
     {
@@ -76,7 +80,7 @@ final class AtomParser
         $word = $token->getCode();
         $isValid = preg_match(self::REGEX_KEYWORD, $word, $matches);
 
-        if (!$isValid) {
+        if ($isValid === 0 || $isValid === false) {
             throw new KeywordParserException('This is not a valid keyword');
         }
 
@@ -89,8 +93,8 @@ final class AtomParser
             // like ::foo/bar
             $alias = $matches['namespace'];
             $namespace = $this->globalEnvironment->resolveAlias($alias);
-            if (!$namespace) {
-                throw new KeywordParserException("Can not resolve alias '{$alias}' in keyword: {$word}");
+            if ($namespace === null || $namespace === '') {
+                throw new KeywordParserException(sprintf("Can not resolve alias '%s' in keyword: %s", $alias, $word));
             }
         } elseif ($isDualColon) {
             // Second case is a dual colon without a namespace alias

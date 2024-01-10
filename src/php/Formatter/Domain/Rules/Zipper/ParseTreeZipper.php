@@ -38,7 +38,7 @@ final class ParseTreeZipper extends AbstractZipper
         return $this->node->getChildren();
     }
 
-    public function makeNode(mixed $node, array $children)
+    public function makeNode(mixed $node, array $children): InnerNodeInterface
     {
         if (!$node instanceof InnerNodeInterface) {
             throw ZipperException::cannotReplaceChildrenOnLeafNode();
@@ -59,7 +59,11 @@ final class ParseTreeZipper extends AbstractZipper
 
     public function isWhitespaceOrNewline(): bool
     {
-        return $this->isNewline() || $this->isWhitespace();
+        if ($this->isNewline()) {
+            return true;
+        }
+
+        return $this->isWhitespace();
     }
 
     public function isWhitespace(): bool

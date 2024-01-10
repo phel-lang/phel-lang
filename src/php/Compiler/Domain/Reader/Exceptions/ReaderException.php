@@ -15,7 +15,7 @@ final class ReaderException extends AbstractLocatedException
         string $message,
         SourceLocation $startLocation,
         SourceLocation $endLocation,
-        private CodeSnippet $codeSnippet,
+        private readonly CodeSnippet $codeSnippet,
     ) {
         parent::__construct($message, $startLocation, $endLocation);
     }
