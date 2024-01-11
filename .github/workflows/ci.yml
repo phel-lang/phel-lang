@@ -41,7 +41,7 @@ jobs:
         run: ./vendor/bin/php-cs-fixer fix --allow-risky=yes --dry-run --show-progress=dots --using-cache=no --verbose
 
       - name: Run rector/rector
-        run: ./vendor/bin/php-cs-fixer fix --dry-run --show-progress=dots --using-cache=no --verbose
+        run: ./vendor/bin/rector process src/php
 
   type-checker:
     name: Type Checker
