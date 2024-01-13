@@ -31,6 +31,8 @@ final class ExceptionHandler
 
     private static string $previousTextError = '';
 
+    private static string $previousWarning = '';
+
     public function __construct(
         private readonly ExceptionPrinterInterface $exceptionPrinter,
     ) {
@@ -40,6 +42,7 @@ final class ExceptionHandler
     {
         $this->registerExceptionHandler();
         $this->registerCustomErrorHandler();
+        $this->registerWarningHandler();
     }
 
     private function registerExceptionHandler(): void
@@ -83,5 +86,34 @@ final class ExceptionHandler
             self::$previousTextError = $text;
             return true;
         }, E_ALL);
+    }
+
+    private function registerWarningHandler(): void
+    {
+        set_error_handler(function (
+            int $errno,
+            string $errstr,
+            string $errfile = '',
+            int $errline = 0,
+            array $errcontext = [],
+        ): bool {
+            $text = sprintf(
+                "[%s] WARNING found!\nmessage: \"%s\"\nfile: %s:%d\ncontext: %s",
+                date(DATE_ATOM),
+                $errstr,
+                $errfile,
+                $errline,
+                json_encode(array_merge($errcontext, ['errno' => $errno]), JSON_THROW_ON_ERROR),
+            );
+
+            if (self::$previousWarning !== $text) {
+                $this->exceptionPrinter->printError($text);
+            } else {
+                $this->exceptionPrinter->printError('and again');
+            }
+
+            self::$previousWarning = $text;
+            return true;
+        }, E_WARNING);
     }
 }

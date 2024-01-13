@@ -133,3 +133,5 @@ composer test-all      # clear cache, php-cs-fixer, psalm, phpstan, compiler & c
 ### Git Hooks
 
 Enable the git hooks with `tools/git-hooks/init.sh`
+
+This will help you to trigger all tests before a commit, to make sure you didn't break any existing behaviour. You can use `-n|--no-verify` flag when doing a commit to avoid running the tests, but be aware that you should run `composer test` before pushing something that could be broken.  
