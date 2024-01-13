@@ -89,7 +89,7 @@ final class IndexedNode implements HashMapNodeInterface
                 return $this;
             }
 
-            if ($n !== null) {
+            if ($n instanceof HashMapNodeInterface) {
                 $newObjects = $this->objects;
                 $newObjects[$index][1] = $n;
                 return new self($this->hasher, $this->equalizer, $newObjects);

@@ -104,7 +104,7 @@ final readonly class TextExceptionPrinter implements ExceptionPrinterInterface
             $file = $frame['file'] ?? 'unknown_file';
             $line = $frame['line'] ?? 0;
 
-            if ($class) {
+            if ($class !== null) {
                 $rf = new ReflectionClass($class);
                 if ($rf->implementsInterface(FnInterface::class)) {
                     $boundTo = $rf->getConstant('BOUND_TO');

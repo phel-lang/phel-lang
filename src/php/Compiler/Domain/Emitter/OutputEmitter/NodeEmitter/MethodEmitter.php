@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Phel\Compiler\Domain\Emitter\OutputEmitter\NodeEmitter;
 
 use Phel\Compiler\Domain\Analyzer\Ast\FnNode;
+use Phel\Lang\Collections\Map\PersistentMapInterface;
 use Phel\Lang\Keyword;
 use Phel\Lang\Symbol;
 
@@ -36,7 +37,7 @@ final class MethodEmitter
                 $this->outputEmitter->emitPhpVariable($symbol, $loc = null, $asReference = false, $isVariadic = true);
             } else {
                 $meta = $symbol->getMeta();
-                $isReference = $meta && $meta->find(Keyword::create('reference')) === true;
+                $isReference = $meta instanceof PersistentMapInterface && $meta->find(Keyword::create('reference')) === true;
                 $this->outputEmitter->emitPhpVariable($symbol, $loc = null, $isReference);
             }
 

@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "2ceb507c4f5569398612fdaadb9a4599",
+    "content-hash": "fe57b95a1f3ab28cdc6bf3ac58a39bba",
     "packages": [
         {
             "name": "gacela-project/container",
@@ -3885,21 +3885,21 @@
         },
         {
             "name": "rector/rector",
-            "version": "0.18.13",
+            "version": "0.17.13",
             "source": {
                 "type": "git",
                 "url": "https://github.com/rectorphp/rector.git",
-                "reference": "f8011a76d36aa4f839f60f3b4f97707d97176618"
+                "reference": "e2003ba7c5bda06d7bb419cf4be8dae5f8672132"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/rectorphp/rector/zipball/f8011a76d36aa4f839f60f3b4f97707d97176618",
-                "reference": "f8011a76d36aa4f839f60f3b4f97707d97176618",
+                "url": "https://api.github.com/repos/rectorphp/rector/zipball/e2003ba7c5bda06d7bb419cf4be8dae5f8672132",
+                "reference": "e2003ba7c5bda06d7bb419cf4be8dae5f8672132",
                 "shasum": ""
             },
             "require": {
                 "php": "^7.2|^8.0",
-                "phpstan/phpstan": "^1.10.35"
+                "phpstan/phpstan": "^1.10.26"
             },
             "conflict": {
                 "rector/rector-doctrine": "*",
@@ -3929,7 +3929,7 @@
             ],
             "support": {
                 "issues": "https://github.com/rectorphp/rector/issues",
-                "source": "https://github.com/rectorphp/rector/tree/0.18.13"
+                "source": "https://github.com/rectorphp/rector/tree/0.17.13"
             },
             "funding": [
                 {
@@ -3937,7 +3937,7 @@
                     "type": "github"
                 }
             ],
-            "time": "2023-12-20T16:08:01+00:00"
+            "time": "2023-08-14T16:33:29+00:00"
         },
         {
             "name": "sanmai/later",
@@ -6298,5 +6298,5 @@
     "platform-overrides": {
         "php": "8.2"
     },
-    "plugin-api-version": "2.3.0"
+    "plugin-api-version": "2.6.0"
 }

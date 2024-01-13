@@ -48,7 +48,7 @@ final class DefInterfaceSymbol implements SpecialFormAnalyzerInterface
         }
 
         $methods = [];
-        for ($forms = $list; $forms !== null; $forms = $forms->cdr()) {
+        for ($forms = $list; $forms instanceof PersistentListInterface; $forms = $forms->cdr()) {
             $first = $forms->first();
 
             if (!$first instanceof PersistentListInterface) {
