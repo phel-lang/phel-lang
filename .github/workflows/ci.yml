@@ -40,8 +40,15 @@ jobs:
       - name: Run friendsofphp/php-cs-fixer
         run: ./vendor/bin/php-cs-fixer fix --allow-risky=yes --dry-run --show-progress=dots --using-cache=no --verbose
 
-      - name: Run rector/rector
-        run: ./vendor/bin/rector process src/php
+      - name: Rector Cache
+        uses: actions/cache@v3.3.2
+        with:
+          path: ./var/cache/rector
+          key: ${{ runner.os }}-rector-${{ hashFiles('**/composer.lock') }}
+          restore-keys: ${{ runner.os }}-rector-
+
+      - name: Rector Dry Run
+        run: php vendor/bin/rector process --dry-run --config=rector.php
 
   type-checker:
     name: Type Checker
