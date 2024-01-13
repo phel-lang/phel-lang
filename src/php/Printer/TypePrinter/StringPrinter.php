@@ -138,20 +138,20 @@ final readonly class StringPrinter implements TypePrinterInterface
 
     private function utf8ToUnicodePoint(string $str): string
     {
-        $a = ($str = unpack('C*', $str)) ? ((int)$str[1]) : 0;
+        $a = ($str = unpack('C*', $str)) ? ((int) $str[1]) : 0;
         if (0xF0 <= $a) {
-            return dechex((($a - 0xF0) << 18) + ((((int)$str[2]) - 0x80) << 12) + ((((int)$str[3]) - 0x80) << 6) + ((int)$str[4]) - 0x80);
+            return dechex((($a - 0xF0) << 18) + ((((int) $str[2]) - 0x80) << 12) + ((((int) $str[3]) - 0x80) << 6) + ((int) $str[4]) - 0x80);
         }
 
         if (0xE0 <= $a) {
-            return dechex((($a - 0xE0) << 12) + ((((int)$str[2]) - 0x80) << 6) + ((int)$str[3]) - 0x80);
+            return dechex((($a - 0xE0) << 12) + ((((int) $str[2]) - 0x80) << 6) + ((int) $str[3]) - 0x80);
         }
 
         if (0xC0 <= $a) {
-            return dechex((($a - 0xC0) << 6) + ((int)$str[2]) - 0x80);
+            return dechex((($a - 0xC0) << 6) + ((int) $str[2]) - 0x80);
         }
 
-        return (string)$a;
+        return (string) $a;
     }
 
     private function color(string $str): string

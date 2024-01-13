@@ -13,7 +13,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        php: [ '8.2' ]
+        php: [ '8.3' ]
     steps:
       - uses: actions/checkout@v4
 
@@ -39,13 +39,6 @@ jobs:
 
       - name: Run friendsofphp/php-cs-fixer
         run: ./vendor/bin/php-cs-fixer fix --allow-risky=yes --dry-run --show-progress=dots --using-cache=no --verbose
-
-      - name: Rector Cache
-        uses: actions/cache@v3.3.2
-        with:
-          path: ./var/cache/rector
-          key: ${{ runner.os }}-rector-${{ hashFiles('**/composer.lock') }}
-          restore-keys: ${{ runner.os }}-rector-
 
       - name: Rector Dry Run
         run: php vendor/bin/rector process --dry-run --config=rector.php
