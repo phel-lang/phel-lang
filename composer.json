@@ -62,7 +62,8 @@
         "test-quality": [
             "@csrun",
             "@psalm",
-            "@phpstan"
+            "@phpstan",
+            "@rectorrun"
         ],
         "static-clear-cache": [
             "vendor/bin/psalm --clear-cache",
