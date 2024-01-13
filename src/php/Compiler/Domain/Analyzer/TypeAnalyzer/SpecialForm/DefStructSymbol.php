@@ -120,7 +120,7 @@ final readonly class DefStructSymbol implements SpecialFormAnalyzerInterface
             $countExpectedMethods = count($expectedMethods);
             for ($i = 0; $i < $countExpectedMethods; ++$i) {
                 $forms = $forms->cdr();
-                if ($forms === null) {
+                if (!$forms instanceof PersistentListInterface) {
                     throw AnalyzerException::withLocation('Missing method for interface ' . $absoluteInterfaceName . ' in defstruct', $list);
                 }
 

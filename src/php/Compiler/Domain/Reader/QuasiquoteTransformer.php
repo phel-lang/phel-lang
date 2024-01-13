@@ -159,7 +159,7 @@ final readonly class QuasiquoteTransformer implements QuasiquoteTransformerInter
             || is_float($x)
             || is_int($x)
             || is_bool($x)
-            || $x === null
+            || !$x instanceof TypeInterface
             || $x instanceof Keyword;
     }
 

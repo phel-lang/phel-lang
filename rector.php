@@ -3,10 +3,10 @@
 declare(strict_types=1);
 
 use Rector\CodeQuality\Rector\If_\SimplifyIfElseToTernaryRector;
+use Rector\CodingStyle\Rector\ClassMethod\UnSpreadOperatorRector;
 use Rector\CodingStyle\Rector\String_\UseClassKeywordForClassNameResolutionRector;
 use Rector\Config\RectorConfig;
-use Rector\Core\Collector\MockedClassCollector;
-use Rector\Core\Collector\ParentClassCollector;
+use Rector\Php81\Rector\Property\ReadOnlyPropertyRector;
 use Rector\PHPUnit\CodeQuality\Rector\Class_\PreferPHPUnitThisCallRector;
 use Rector\PHPUnit\Set\PHPUnitSetList;
 use Rector\Privatization\Rector\Class_\FinalizeClassesWithoutChildrenRector;
@@ -52,8 +52,13 @@ return static function (RectorConfig $rectorConfig): void {
             __DIR__ . '/tests/php/Unit/Printer/TypePrinter/StubStruct.php',
         ],
 
+        ReadOnlyPropertyRector::class => [
+            __DIR__ . '/src/php/Lang/Collections/Map/TransientHashMap.php',
+        ],
+
         DisallowedShortTernaryRuleFixerRector::class,
         PreferPHPUnitThisCallRector::class,
+        UnSpreadOperatorRector::class,
     ]);
 
     $rectorConfig->sets([
@@ -69,9 +74,6 @@ return static function (RectorConfig $rectorConfig): void {
         PHPUnitSetList::PHPUNIT_CODE_QUALITY,
         PHPUnitSetList::PHPUNIT_90,
     ]);
-
-    $rectorConfig->collector(ParentClassCollector::class);
-    $rectorConfig->collector(MockedClassCollector::class);
 
     $rectorConfig->importNames();
     $rectorConfig->removeUnusedImports();

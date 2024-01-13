@@ -86,7 +86,7 @@ abstract class AbstractPersistentVector extends AbstractType implements Persiste
         for ($s = $this; $s != null; $s = $s->cdr(), $ms = $ms->cdr()) {
             /** @var PersistentVectorInterface $s */
             /** @var ?PersistentVectorInterface $ms */
-            if ($ms === null || !$this->equalizer->equals($s->first(), $ms->first())) {
+            if (!$ms instanceof PersistentVectorInterface || !$this->equalizer->equals($s->first(), $ms->first())) {
                 return false;
             }
         }

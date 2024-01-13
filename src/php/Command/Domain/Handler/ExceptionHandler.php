@@ -71,7 +71,7 @@ final class ExceptionHandler
                 $errstr,
                 $errfile,
                 $errline,
-                json_encode([...$errcontext, 'errno' => $errno]),
+                json_encode([...$errcontext, 'errno' => $errno], JSON_THROW_ON_ERROR),
             );
 
             if (self::$previousTextError !== $text) {

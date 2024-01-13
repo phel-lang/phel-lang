@@ -75,7 +75,7 @@ final class ArrayNode implements HashMapNodeInterface, Countable
         $index = $this->mask($hash, $shift);
         $node = $this->childNodes[$index] ?? null;
 
-        if ($node === null) {
+        if (!$node instanceof HashMapNodeInterface) {
             return $this;
         }
 
@@ -85,7 +85,7 @@ final class ArrayNode implements HashMapNodeInterface, Countable
             return $this;
         }
 
-        if ($n === null) {
+        if (!$n instanceof HashMapNodeInterface) {
             if ($this->count < 8) {
                 return $this->pack($index);
             }
@@ -107,7 +107,7 @@ final class ArrayNode implements HashMapNodeInterface, Countable
         $index = $this->mask($hash, $shift);
         $node = $this->childNodes[$index] ?? null;
 
-        if ($node === null) {
+        if (!$node instanceof HashMapNodeInterface) {
             return $notFound;
         }
 
@@ -135,7 +135,7 @@ final class ArrayNode implements HashMapNodeInterface, Countable
                 continue;
             }
 
-            if ($node === null) {
+            if (!$node instanceof HashMapNodeInterface) {
                 continue;
             }
 

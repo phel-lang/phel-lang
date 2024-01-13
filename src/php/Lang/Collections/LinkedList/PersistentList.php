@@ -126,7 +126,7 @@ final class PersistentList extends AbstractType implements PersistentListInterfa
         for ($s = $this; $s != null; $s = $s->cdr(), $ms = $ms->cdr()) {
             /** @var PersistentList $s */
             /** @var ?PersistentList $ms */
-            if ($ms === null || !$this->equalizer->equals($s->first(), $ms->first())) {
+            if (!$ms instanceof self || !$this->equalizer->equals($s->first(), $ms->first())) {
                 return false;
             }
         }

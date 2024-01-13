@@ -171,8 +171,8 @@ abstract class AbstractZipper
      */
     public function root()
     {
-        if ($this->isEnd()) {
-            return $this->getNode();
+        if ($this->isEnd) {
+            return $this->node;
         }
 
         $loc = $this;
@@ -214,7 +214,7 @@ abstract class AbstractZipper
      */
     public function next(): self
     {
-        if ($this->isEnd()) {
+        if ($this->isEnd) {
             return $this;
         }
 
@@ -379,7 +379,7 @@ abstract class AbstractZipper
                 true,
                 false,
             );
-            while ($loc->isBranch() && $loc->hasChildren() && ($child = $loc->down())) {
+            while ($loc->isBranch() && $loc->hasChildren() && (($child = $loc->down()) instanceof self)) {
                 $loc = $child->rightMost();
             }
 
