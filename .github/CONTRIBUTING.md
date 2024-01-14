@@ -68,10 +68,11 @@ $ ./vendor/bin/psalm
 $ ./vendor/bin/phpstan
 ```
 
-This project comes with a configuration file (located at `/.php-cs-fixer.dist.php` in the repository) that you can use to (re)format your source code for compliance with this project's coding guidelines:
+This project comes with PHP CS Fixer and Rector, with which you can use to (re)format your source code for compliance with this project's coding guidelines:
 
 ```bash
 $ ./vendor/bin/php-cs-fixer fix
+$ ./vendor/bin/rector process
 ```
 
 Please understand that we will not accept a pull request when its changes violate this project's coding guidelines.
@@ -80,7 +81,7 @@ Please understand that we will not accept a pull request when its changes violat
 
 ### Requirements
 
-Phel requires PHP 8.0.2 or higher and Composer.
+Phel requires PHP 8.2 or higher and Composer.
 
 ### Running Phel's test suites
 
@@ -121,11 +122,12 @@ composer test-compiler # test the compiler
 composer test-core     # test core library
 > ./bin/phel test
 
-composer test-all      # clear cache, php-cs-fixer, psalm, phpstan, compiler & core tests after each other
+composer test-all      # clear cache, php-cs-fixer, psalm, phpstan, rector, compiler & core tests after each other
 > composer static-clear-cache
 > composer csrun
 > composer psalm
 > composer phpstan
+> composer rectorrun
 > composer test-compiler
 > composer test-core
 ```
