@@ -65,7 +65,7 @@ final class PhelFnNormalizer implements PhelFnNormalizerInterface
             str_replace('/', '-', $fnName),
         );
 
-        return strtolower(rtrim($key, '-'));
+        return strtolower(rtrim((string) $key, '-'));
     }
 
     private function sortingPhelFunctionsCallback(): callable

@@ -30,5 +30,6 @@
         <NamedArgumentNotAllowed errorLevel="suppress" />
         <MoreSpecificReturnType errorLevel="suppress" />
         <InvalidArrayOffset errorLevel="suppress" />
+        <RiskyTruthyFalsyComparison errorLevel="suppress" />
     </issueHandlers>
 </psalm>

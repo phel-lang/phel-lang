@@ -3,13 +3,11 @@
 declare(strict_types=1);
 
 use Rector\CodeQuality\Rector\If_\SimplifyIfElseToTernaryRector;
-use Rector\CodingStyle\Rector\ClassMethod\UnSpreadOperatorRector;
 use Rector\CodingStyle\Rector\String_\UseClassKeywordForClassNameResolutionRector;
 use Rector\Config\RectorConfig;
 use Rector\Php81\Rector\Property\ReadOnlyPropertyRector;
 use Rector\PHPUnit\CodeQuality\Rector\Class_\PreferPHPUnitThisCallRector;
 use Rector\PHPUnit\Set\PHPUnitSetList;
-use Rector\Privatization\Rector\Class_\FinalizeClassesWithoutChildrenRector;
 use Rector\Privatization\Rector\Property\PrivatizeFinalClassPropertyRector;
 use Rector\Set\ValueObject\LevelSetList;
 use Rector\Set\ValueObject\SetList;
@@ -44,10 +42,6 @@ return static function (RectorConfig $rectorConfig): void {
             __DIR__ . '/src/php/Lang/Collections/Map/IndexedNode.php',
         ],
 
-        FinalizeClassesWithoutChildrenRector::class => [
-            __DIR__ . '/src/php/Run/RunFactory.php',
-        ],
-
         PrivatizeFinalClassPropertyRector::class => [
             __DIR__ . '/tests/php/Unit/Printer/TypePrinter/StubStruct.php',
         ],
@@ -58,7 +52,6 @@ return static function (RectorConfig $rectorConfig): void {
 
         DisallowedShortTernaryRuleFixerRector::class,
         PreferPHPUnitThisCallRector::class,
-        UnSpreadOperatorRector::class,
     ]);
 
     $rectorConfig->sets([
