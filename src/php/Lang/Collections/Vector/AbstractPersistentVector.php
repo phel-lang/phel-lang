@@ -122,7 +122,7 @@ abstract class AbstractPersistentVector extends AbstractType implements Persiste
         throw new MethodNotSupportedException('Method offsetUnset is not supported on VectorSequence');
     }
 
-    public function push(mixed $x)
+    public function push(mixed $x): PersistentVectorInterface
     {
         return $this->append($x);
     }
@@ -149,10 +149,8 @@ abstract class AbstractPersistentVector extends AbstractType implements Persiste
      *
      * @param int $offset The offset where to start to remove values
      * @param ?int $length The number of how many elements should be removed
-     *
-     * @return PersistentVectorInterface
      */
-    public function slice(int $offset = 0, ?int $length = null)
+    public function slice(int $offset = 0, ?int $length = null): PersistentVectorInterface
     {
         $count = $this->count();
 

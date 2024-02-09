@@ -286,10 +286,8 @@ abstract class AbstractZipper
      * @param T $node
      *
      * @throws ZipperException
-     *
-     * @return static
      */
-    public function insertLeft($node)
+    public function insertLeft($node): static
     {
         if ($this->isTop()) {
             throw ZipperException::cannotInsertLeftOnRootNode();
@@ -305,10 +303,8 @@ abstract class AbstractZipper
      * @param T $node
      *
      * @throws ZipperException
-     *
-     * @return static
      */
-    public function insertRight($node)
+    public function insertRight($node): static
     {
         if ($this->isTop()) {
             throw ZipperException::cannotInsertRightOnRootNode();
@@ -325,7 +321,7 @@ abstract class AbstractZipper
      *
      * @return static<T>
      */
-    public function replace($node)
+    public function replace($node): static
     {
         $this->hasChanged = true;
         $this->node = $node;
@@ -338,7 +334,7 @@ abstract class AbstractZipper
      *
      * @return static<T>
      */
-    public function insertChild($node)
+    public function insertChild($node): static
     {
         return $this->replace(
             $this->makeNode($this->node, [$node, ...$this->getChildren()]),
@@ -350,7 +346,7 @@ abstract class AbstractZipper
      *
      * @return static<T>
      */
-    public function appendChild($node)
+    public function appendChild($node): static
     {
         return $this->replace(
             $this->makeNode($this->node, [...$this->getChildren(), $node]),
