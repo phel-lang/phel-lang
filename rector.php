@@ -2,16 +2,13 @@
 
 declare(strict_types=1);
 
-use Rector\CodeQuality\Rector\If_\SimplifyIfElseToTernaryRector;
 use Rector\CodingStyle\Rector\String_\UseClassKeywordForClassNameResolutionRector;
 use Rector\Config\RectorConfig;
-use Rector\Php81\Rector\Property\ReadOnlyPropertyRector;
 use Rector\PHPUnit\CodeQuality\Rector\Class_\PreferPHPUnitThisCallRector;
 use Rector\PHPUnit\Set\PHPUnitSetList;
 use Rector\Privatization\Rector\Property\PrivatizeFinalClassPropertyRector;
 use Rector\Set\ValueObject\LevelSetList;
 use Rector\Set\ValueObject\SetList;
-use Rector\Strict\Rector\Ternary\DisallowedShortTernaryRuleFixerRector;
 
 return static function (RectorConfig $rectorConfig): void {
     $rectorConfig->paths([
@@ -38,19 +35,10 @@ return static function (RectorConfig $rectorConfig): void {
             __DIR__ . '/tests/php/Unit/Compiler/Emitter/OutputEmitter/NodeEmitter/FnAsClassEmitterTest.php',
         ],
 
-        SimplifyIfElseToTernaryRector::class => [
-            __DIR__ . '/src/php/Lang/Collections/Map/IndexedNode.php',
-        ],
-
         PrivatizeFinalClassPropertyRector::class => [
             __DIR__ . '/tests/php/Unit/Printer/TypePrinter/StubStruct.php',
         ],
 
-        ReadOnlyPropertyRector::class => [
-            __DIR__ . '/src/php/Lang/Collections/Map/TransientHashMap.php',
-        ],
-
-        DisallowedShortTernaryRuleFixerRector::class,
         PreferPHPUnitThisCallRector::class,
     ]);
 
