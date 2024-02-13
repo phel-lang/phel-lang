@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 <psalm
-    errorLevel="2"
+    errorLevel="1"
     findUnusedBaselineEntry="true"
     findUnusedCode="false"
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
@@ -28,6 +28,19 @@
         <ArgumentTypeCoercion errorLevel="suppress" />
         <LessSpecificReturnStatement errorLevel="suppress" />
         <NamedArgumentNotAllowed errorLevel="suppress" />
+        <MixedArgument errorLevel="suppress" />
+        <MixedArgumentTypeCoercion errorLevel="suppress" />
+        <MixedArrayAccess errorLevel="suppress" />
+        <MixedArrayAssignment errorLevel="suppress" />
+        <MixedArrayOffset errorLevel="suppress" />
+        <MixedAssignment errorLevel="suppress" />
+        <MixedFunctionCall errorLevel="suppress" />
+        <MixedInferredReturnType errorLevel="suppress" />
+        <MixedMethodCall errorLevel="suppress" />
+        <MixedOperand errorLevel="suppress" />
+        <MixedPropertyTypeCoercion errorLevel="suppress" />
+        <MixedReturnStatement errorLevel="suppress" />
+        <MixedReturnTypeCoercion errorLevel="suppress" />
         <MoreSpecificReturnType errorLevel="suppress" />
         <InvalidArrayOffset errorLevel="suppress" />
         <RiskyTruthyFalsyComparison errorLevel="suppress" />
