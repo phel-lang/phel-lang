@@ -46,7 +46,7 @@ final class ListNode implements InnerNodeInterface
             $code .= $child->getCode();
         }
 
-        return $this->getCodePrefix() . $code . $this->getCodePostfix();
+        return $this->getCodePrefix() . $code . ($this->getCodePostfix() ?? '');
     }
 
     public function getCodePrefix(): string
