@@ -238,14 +238,9 @@ final class IndexedNode implements HashMapNodeInterface
         $nodes[$idx] = $empty->put($shift + 5, $hash, $key, $value, $addedLeaf);
         for ($i = 0; $i < 32; ++$i) {
             if (array_key_exists($i, $this->objects)) {
+                /** @var V $v */
                 [$k, $v] = $this->objects[$i];
-                if ($k === null) {
-                    /** @var HashMapNodeInterface<K, V> $v */
-                    $nodes[$i] = $v;
-                } else {
-                    /** @var V $v */
-                    $nodes[$i] = $empty->put($shift + 5, $this->hasher->hash($k), $k, $v, $addedLeaf);
-                }
+                $nodes[$i] = ($k === null) ? $v : $empty->put($shift + 5, $this->hasher->hash($k), $k, $v, $addedLeaf);
             }
         }
 
