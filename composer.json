@@ -29,7 +29,7 @@
     },
     "require-dev": {
         "ext-readline": "*",
-        "friendsofphp/php-cs-fixer": "^3.49",
+        "friendsofphp/php-cs-fixer": "^3.51",
         "infection/infection": "^0.27",
         "phpbench/phpbench": "^1.2",
         "phpmetrics/phpmetrics": "^2.8",
@@ -37,7 +37,7 @@
         "phpunit/phpunit": "^9.6",
         "psalm/plugin-phpunit": "^0.18",
         "symfony/var-dumper": "^7.0",
-        "vimeo/psalm": "^5.21",
+        "vimeo/psalm": "^5.22",
         "rector/rector": "^1.0"
     },
     "autoload": {
