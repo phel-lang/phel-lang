@@ -1,0 +1,5 @@
+{
+    "chmod": "0700",
+    "output": "phar/phel",
+    "main": "bin/phel"
+}
