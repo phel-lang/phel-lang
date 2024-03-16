@@ -19,6 +19,10 @@ final class PhelOutConfig implements JsonSerializable
 
     public const MAIN_PHP_PATH = 'main-php-path';
 
+    private const DEST_DIR_DEFAULT = 'out';
+
+    private const PHP_FILENAME_DEFAULT = 'index.php';
+
     private string $mainPhelNamespace = '';
 
     private string $destDir = '';
@@ -120,7 +124,7 @@ final class PhelOutConfig implements JsonSerializable
             return explode('/', $this->mainPhpPath)[0];
         }
 
-        return 'out';
+        return self::DEST_DIR_DEFAULT;
     }
 
     private function getPhpFilename(): string
@@ -133,6 +137,6 @@ final class PhelOutConfig implements JsonSerializable
             return rtrim($this->mainPhpFilename, '.php') . '.php';
         }
 
-        return 'index.php';
+        return self::PHP_FILENAME_DEFAULT;
     }
 }
