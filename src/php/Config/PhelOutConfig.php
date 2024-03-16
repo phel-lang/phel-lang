@@ -77,7 +77,7 @@ final class PhelOutConfig implements JsonSerializable
 
     public function setMainPhpPath(string $path): self
     {
-        $this->mainPhpPath = $path;
+        $this->mainPhpPath = rtrim($path, '.php') . '.php';
         return $this;
     }
 

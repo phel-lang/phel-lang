@@ -99,4 +99,19 @@ final class PhelOutConfigTest extends TestCase
 
         self::assertSame($expected, $config->jsonSerialize());
     }
+
+    public function test_main_php_path_without_ext(): void
+    {
+        $config = (new PhelOutConfig())
+            ->setMainPhpPath('custom-out/custom-index');
+
+        $expected = [
+            PhelOutConfig::MAIN_PHEL_NAMESPACE => '',
+            PhelOutConfig::DEST_DIR => 'custom-out',
+            PhelOutConfig::MAIN_PHP_FILENAME => 'custom-index.php',
+            PhelOutConfig::MAIN_PHP_PATH => 'custom-out/custom-index.php',
+        ];
+
+        self::assertSame($expected, $config->jsonSerialize());
+    }
 }
