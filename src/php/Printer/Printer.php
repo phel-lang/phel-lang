@@ -145,7 +145,7 @@ final readonly class Printer implements PrinterInterface
             return new NullPrinter($this->withColor);
         }
 
-        if ($printerName === 'array' && !$this->readable) {
+        if ($printerName === 'array') {
             return new ArrayPrinter($this, $this->withColor);
         }
 
