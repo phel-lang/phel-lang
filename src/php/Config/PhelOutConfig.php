@@ -112,19 +112,27 @@ final class PhelOutConfig implements JsonSerializable
 
     private function getDestDir(): string
     {
-        return ($this->destDir !== '')
-            ? $this->destDir
-            : ($this->mainPhpPath !== ''
-                ? explode('/', $this->mainPhpPath)[0]
-                : 'out');
+        if ($this->destDir !== '') {
+            return $this->destDir;
+        }
+
+        if ($this->mainPhpPath !== '') {
+            return explode('/', $this->mainPhpPath)[0];
+        }
+
+        return 'out';
     }
 
     private function getPhpFilename(): string
     {
-        return ($this->mainPhpFilename !== '')
-            ? rtrim($this->mainPhpFilename, '.php') . '.php'
-            : ($this->mainPhpPath !== ''
-                ? explode('/', $this->mainPhpPath)[1]
-                : 'index.php');
+        if ($this->mainPhpFilename !== '') {
+            return rtrim($this->mainPhpFilename, '.php') . '.php';
+        }
+
+        if ($this->mainPhpPath !== '') {
+            return explode('/', $this->mainPhpPath)[1];
+        }
+
+        return 'index.php';
     }
 }
