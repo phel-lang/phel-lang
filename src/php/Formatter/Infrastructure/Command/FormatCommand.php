@@ -24,6 +24,7 @@ final class FormatCommand extends Command
     {
         $this->setName('format')
             ->setDescription('Formats the given files')
+            ->setAliases(['fmt'])
             ->addArgument(
                 'paths',
                 InputArgument::IS_ARRAY,
