@@ -51,24 +51,15 @@ final class PhelOutConfig implements JsonSerializable
         return $self;
     }
 
-    /**
-     * @deprecated in favor of setMainPhpPath()
-     */
-    public function setDestDir(string $destDir): self
+    public function setMainPhelNamespace(string $namespace): self
     {
-        $this->destDir = $destDir;
+        $this->mainPhelNamespace = $namespace;
         return $this;
     }
 
     public function getMainPhelNamespace(): string
     {
         return $this->mainPhelNamespace;
-    }
-
-    public function setMainPhelNamespace(string $namespace): self
-    {
-        $this->mainPhelNamespace = $namespace;
-        return $this;
     }
 
     public function setMainPhpPath(string $path): self
@@ -85,9 +76,18 @@ final class PhelOutConfig implements JsonSerializable
 
         return sprintf(
             '%s/%s.php',
-            $this->destDir !== '' && $this->destDir !== '0' ? $this->destDir : 'out',
-            $this->mainPhpFilename !== '' && $this->mainPhpFilename !== '0' ? $this->mainPhpFilename : 'index',
+            $this->destDir !== '' ? $this->destDir : 'out',
+            $this->mainPhpFilename !== '' ? $this->mainPhpFilename : 'index',
         );
+    }
+
+    /**
+     * @deprecated in favor of setMainPhpPath()
+     */
+    public function setDestDir(string $destDir): self
+    {
+        $this->destDir = $destDir;
+        return $this;
     }
 
     /**
