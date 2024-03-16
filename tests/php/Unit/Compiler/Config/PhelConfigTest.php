@@ -40,8 +40,8 @@ final class PhelConfigTest extends TestCase
             'vendor-dir' => 'vendor',
             'error-log-file' => 'error-log.file',
             'out' => [
-                'dir' => 'out',
                 'main-phel-namespace' => 'test-ns/boot',
+                'dir' => 'out',
                 'main-php-filename' => 'custom-index',
                 'main-php-path' => 'out/custom-index.php',
             ],
