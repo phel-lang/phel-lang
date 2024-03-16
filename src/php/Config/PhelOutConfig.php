@@ -108,8 +108,10 @@ final class PhelOutConfig implements JsonSerializable
     {
         return [
             self::MAIN_PHEL_NAMESPACE => $this->mainPhelNamespace,
-            self::DEST_DIR => $this->destDir,
-            self::MAIN_PHP_FILENAME => $this->mainPhpFilename,
+            self::DEST_DIR => $this->destDir !== ''
+                ? $this->destDir : explode('/', $this->mainPhpPath)[0],
+            self::MAIN_PHP_FILENAME => $this->mainPhpFilename !== ''
+                ? $this->mainPhpFilename : explode('/', $this->mainPhpPath)[1],
             self::MAIN_PHP_PATH => $this->getMainPhpPath(),
         ];
     }
