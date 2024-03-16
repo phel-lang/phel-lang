@@ -21,13 +21,12 @@ final class PhelOutConfig implements JsonSerializable
 
     private string $mainPhelNamespace = '';
 
-    /** @deprecated in favor of $mainPhpPath */
     private string $destDir = '';
 
     /** @deprecated in favor of $mainPhpPath */
     private string $mainPhpFilename = '';
 
-    private string $mainPhpPath = 'out/index.php';
+    private string $mainPhpPath = '';
 
     public static function fromArray(array $array): self
     {
@@ -51,6 +50,16 @@ final class PhelOutConfig implements JsonSerializable
         return $self;
     }
 
+    public function jsonSerialize(): array
+    {
+        return [
+            self::MAIN_PHEL_NAMESPACE => $this->mainPhelNamespace,
+            self::DEST_DIR => $this->getDestDir(),
+            self::MAIN_PHP_FILENAME => $this->getPhpFilename(),
+            self::MAIN_PHP_PATH => $this->getMainPhpPath(),
+        ];
+    }
+
     public function setMainPhelNamespace(string $namespace): self
     {
         $this->mainPhelNamespace = $namespace;
@@ -70,24 +79,15 @@ final class PhelOutConfig implements JsonSerializable
 
     public function getMainPhpPath(): string
     {
-        if ($this->destDir === '' && $this->mainPhpFilename === '') {
+        if ($this->mainPhpPath !== '') {
             return $this->mainPhpPath;
         }
 
         return sprintf(
-            '%s/%s.php',
-            $this->destDir !== '' ? $this->destDir : 'out',
-            $this->mainPhpFilename !== '' ? $this->mainPhpFilename : 'index',
+            '%s/%s',
+            $this->getDestDir(),
+            $this->getPhpFilename(),
         );
-    }
-
-    /**
-     * @deprecated in favor of setMainPhpPath()
-     */
-    public function setDestDir(string $destDir): self
-    {
-        $this->destDir = $destDir;
-        return $this;
     }
 
     /**
@@ -99,20 +99,32 @@ final class PhelOutConfig implements JsonSerializable
         return $this;
     }
 
+    public function setDestDir(string $destDir): self
+    {
+        $this->destDir = $destDir;
+        return $this;
+    }
+
     public function shouldCreateEntryPointPhpFile(): bool
     {
         return (bool)$this->mainPhelNamespace;
     }
 
-    public function jsonSerialize(): array
+    private function getDestDir(): string
     {
-        return [
-            self::MAIN_PHEL_NAMESPACE => $this->mainPhelNamespace,
-            self::DEST_DIR => $this->destDir !== ''
-                ? $this->destDir : explode('/', $this->mainPhpPath)[0],
-            self::MAIN_PHP_FILENAME => $this->mainPhpFilename !== ''
-                ? $this->mainPhpFilename : explode('/', $this->mainPhpPath)[1],
-            self::MAIN_PHP_PATH => $this->getMainPhpPath(),
-        ];
+        return ($this->destDir !== '')
+            ? $this->destDir
+            : ($this->mainPhpPath !== ''
+                ? explode('/', $this->mainPhpPath)[0]
+                : 'out');
+    }
+
+    private function getPhpFilename(): string
+    {
+        return ($this->mainPhpFilename !== '')
+            ? rtrim($this->mainPhpFilename, '.php') . '.php'
+            : ($this->mainPhpPath !== ''
+                ? explode('/', $this->mainPhpPath)[1]
+                : 'index.php');
     }
 }
