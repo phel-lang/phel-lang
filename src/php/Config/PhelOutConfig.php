@@ -125,12 +125,12 @@ final class PhelOutConfig implements JsonSerializable
 
     private function getPhpFilename(): string
     {
-        if ($this->mainPhpFilename !== '') {
-            return rtrim($this->mainPhpFilename, '.php') . '.php';
-        }
-
         if ($this->mainPhpPath !== '') {
             return explode('/', $this->mainPhpPath)[1];
+        }
+
+        if ($this->mainPhpFilename !== '') {
+            return rtrim($this->mainPhpFilename, '.php') . '.php';
         }
 
         return 'index.php';
