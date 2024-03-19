@@ -7,6 +7,7 @@ All notable changes to this project will be documented in this file.
 * Require PHP>=8.2
 * Add `PhelOutConfig->setMainPhpPath()`
   * in favor of `->setMainPhpFilename()`
+* Add `phel fmt` alias for format
 
 ## [0.12.0](https://github.com/phel-lang/phel-lang/compare/v0.11.0...v0.12.0) - 2023-11-01
 
