@@ -29,7 +29,7 @@
     },
     "require-dev": {
         "ext-readline": "*",
-        "friendsofphp/php-cs-fixer": "^3.51",
+        "friendsofphp/php-cs-fixer": "^3.52",
         "infection/infection": "^0.27",
         "phpbench/phpbench": "^1.2",
         "phpmetrics/phpmetrics": "^2.8",
