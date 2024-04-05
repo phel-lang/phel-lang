@@ -124,7 +124,7 @@ final readonly class NamespaceExtractor implements NamespaceExtractorInterface
     {
         $realpath = realpath($directory);
 
-        if ($realpath === '' || $realpath === false) {
+        if ($realpath === false) {
             return [];
         }
 
