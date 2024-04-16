@@ -7,6 +7,7 @@ namespace PhelTest\Integration\Build\Command;
 use Gacela\Framework\Bootstrap\GacelaConfig;
 use Gacela\Framework\Gacela;
 use Phel\Build\Infrastructure\Command\BuildCommand;
+use PhelTest\Integration\Util\DirectoryUtil;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\Console\Input\ArrayInput;
 use Symfony\Component\Console\Output\OutputInterface;
@@ -27,11 +28,14 @@ final class BuildCommandTest extends TestCase
      */
     public function test_build_project(): void
     {
+        DirectoryUtil::removeDir(__DIR__ . '/out');
+
         Gacela::bootstrap(__DIR__, static function (GacelaConfig $config): void {
             $config->addAppConfig('config/phel-config.php');
         });
 
-        $this->expectOutputString("This is printed\n");
+        $this->expectOutputRegex('/This is printed from no-cache.phel/');
+        $this->expectOutputRegex('/This is printed from hello.phel/');
 
         $this->command->run(
             new ArrayInput([
@@ -63,7 +67,8 @@ final class BuildCommandTest extends TestCase
         // Mark file cache invalid by setting the modification time to 0
         touch(__DIR__ . '/out/test_ns/hello.php', 1);
 
-        $this->expectOutputString("This is printed\n");
+        $this->expectOutputRegex('/This is printed from no-cache.phel/');
+        $this->expectOutputRegex('/This is printed from hello.phel/');
 
         $this->command->run(
             new ArrayInput([

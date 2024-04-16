@@ -26,6 +26,7 @@ final class PhelConfigTest extends TestCase
                 ->setNamespacePrefix('Generated')
                 ->setTargetDirectory('src/Generated'))
             ->setIgnoreWhenBuilding(['src/ignore.me'])
+            ->setNoCacheWhenBuilding(['should-not-be-cached'])
             ->setKeepGeneratedTempFiles(true)
             ->setFormatDirs(['src', 'tests', 'phel']);
 
@@ -46,6 +47,7 @@ final class PhelConfigTest extends TestCase
                 'namespace-prefix' => 'Generated',
             ],
             'ignore-when-building' => ['src/ignore.me'],
+            'no-cache-when-building' => ['should-not-be-cached'],
             'keep-generated-temp-files' => true,
             'format-dirs' => ['src', 'tests', 'phel'],
         ];

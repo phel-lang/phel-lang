@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Phel\Build\Domain\Compile;
 
+use Phel\Build\BuildConfigInterface;
 use Phel\Build\Domain\Compile\Output\EntryPointPhpFileInterface;
 use Phel\Build\Domain\Extractor\NamespaceExtractorInterface;
 use Phel\Build\Domain\Extractor\NamespaceInformation;
@@ -17,17 +18,13 @@ final readonly class ProjectCompiler
 {
     private const TARGET_FILE_EXTENSION = '.php';
 
-    /**
-     * @param list<string> $pathsToIgnore
-     */
     public function __construct(
         private NamespaceExtractorInterface $namespaceExtractor,
         private FileCompilerInterface $fileCompiler,
         private CompilerFacadeInterface $compilerFacade,
         private CommandFacadeInterface $commandFacade,
         private EntryPointPhpFileInterface $entryPointPhpFile,
-        private array $pathsToIgnore,
-        private bool $shouldCreateEntryPointPhpFile,
+        private BuildConfigInterface $config,
     ) {
     }
 
@@ -65,10 +62,7 @@ final readonly class ProjectCompiler
                 throw new RuntimeException(sprintf('Directory "%s" was not created', $targetDir));
             }
 
-            if ($buildOptions->isCacheEnabled()
-                && file_exists($targetFile)
-                && filemtime($targetFile) === filemtime($info->getFile())
-            ) {
+            if ($this->canUseCache($buildOptions, $targetFile, $info)) {
                 /** @psalm-suppress UnresolvableInclude */
                 require_once $targetFile;
                 continue;
@@ -83,7 +77,7 @@ final readonly class ProjectCompiler
             touch($targetFile, filemtime($info->getFile()));
         }
 
-        if ($this->shouldCreateEntryPointPhpFile) {
+        if ($this->config->shouldCreateEntryPointPhpFile()) {
             $this->entryPointPhpFile->createFile();
         }
 
@@ -92,7 +86,7 @@ final readonly class ProjectCompiler
 
     private function shouldIgnoreNs(NamespaceInformation $info): bool
     {
-        foreach ($this->pathsToIgnore as $path) {
+        foreach ($this->config->getPathsToIgnore() as $path) {
             if (str_contains($info->getFile(), $path)) {
                 return true;
             }
@@ -106,5 +100,26 @@ final readonly class ProjectCompiler
         $mungedNamespace = $this->compilerFacade->encodeNs($namespace);
 
         return implode(DIRECTORY_SEPARATOR, explode('\\', $mungedNamespace)) . self::TARGET_FILE_EXTENSION;
+    }
+
+    private function canUseCache(
+        BuildOptions $buildOptions,
+        string $targetFile,
+        NamespaceInformation $info,
+    ): bool {
+        if (!$buildOptions->isCacheEnabled()
+            || !file_exists($targetFile)
+            || filemtime($targetFile) !== filemtime($info->getFile())
+        ) {
+            return false;
+        }
+
+        foreach ($this->config->getPathsToAvoidCache() as $path) {
+            if (str_contains($targetFile, $path)) {
+                return false;
+            }
+        }
+
+        return true;
     }
 }

@@ -34,8 +34,7 @@ final class BuildFactory extends AbstractFactory
             $this->getCompilerFacade(),
             $this->getCommandFacade(),
             $this->createMainPhpEntryPointFile(),
-            $this->getConfig()->getPathsToIgnore(),
-            $this->getConfig()->getPhelOutConfig()->shouldCreateEntryPointPhpFile(),
+            $this->getConfig(),
         );
     }
 
