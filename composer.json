@@ -35,7 +35,7 @@
         "phpmetrics/phpmetrics": "^2.8",
         "phpstan/phpstan": "^1.10",
         "phpunit/phpunit": "^9.6",
-        "psalm/plugin-phpunit": "^0.18",
+        "psalm/plugin-phpunit": "^0.18 || ^0.19",
         "symfony/var-dumper": "^7.0",
         "vimeo/psalm": "^5.23",
         "rector/rector": "^1.0"
