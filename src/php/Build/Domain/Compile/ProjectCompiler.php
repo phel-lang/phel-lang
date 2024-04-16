@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Phel\Build\Domain\Compile;
 
+use Phel\Build\BuildConfigInterface;
 use Phel\Build\Domain\Compile\Output\EntryPointPhpFileInterface;
 use Phel\Build\Domain\Extractor\NamespaceExtractorInterface;
 use Phel\Build\Domain\Extractor\NamespaceInformation;
@@ -17,18 +18,13 @@ final readonly class ProjectCompiler
 {
     private const TARGET_FILE_EXTENSION = '.php';
 
-    /**
-     * @param list<string> $pathsToIgnore
-     */
     public function __construct(
         private NamespaceExtractorInterface $namespaceExtractor,
         private FileCompilerInterface $fileCompiler,
         private CompilerFacadeInterface $compilerFacade,
         private CommandFacadeInterface $commandFacade,
         private EntryPointPhpFileInterface $entryPointPhpFile,
-        private array $pathsToIgnore,
-        private array $pathsToAvoidCache,
-        private bool $shouldCreateEntryPointPhpFile,
+        private BuildConfigInterface $config,
     ) {
     }
 
@@ -81,7 +77,7 @@ final readonly class ProjectCompiler
             touch($targetFile, filemtime($info->getFile()));
         }
 
-        if ($this->shouldCreateEntryPointPhpFile) {
+        if ($this->config->shouldCreateEntryPointPhpFile()) {
             $this->entryPointPhpFile->createFile();
         }
 
@@ -90,7 +86,7 @@ final readonly class ProjectCompiler
 
     private function shouldIgnoreNs(NamespaceInformation $info): bool
     {
-        foreach ($this->pathsToIgnore as $path) {
+        foreach ($this->config->getPathsToIgnore() as $path) {
             if (str_contains($info->getFile(), $path)) {
                 return true;
             }
@@ -118,8 +114,8 @@ final readonly class ProjectCompiler
             return false;
         }
 
-        foreach ($this->pathsToAvoidCache as $path) {
-            if (str_contains($targetFile, (string) $path)) {
+        foreach ($this->config->getPathsToAvoidCache() as $path) {
+            if (str_contains($targetFile, $path)) {
                 return false;
             }
         }
