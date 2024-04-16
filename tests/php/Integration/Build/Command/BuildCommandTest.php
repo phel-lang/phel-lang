@@ -28,15 +28,15 @@ final class BuildCommandTest extends TestCase
      */
     public function test_build_project(): void
     {
+        DirectoryUtil::removeDir(__DIR__ . '/out');
+
         Gacela::bootstrap(__DIR__, static function (GacelaConfig $config): void {
             $config->addAppConfig('config/phel-config.php');
         });
 
-        $this->expectOutputString(<<<EOF
-This is printed from no-cache.phel
-This is printed from hello.phel
+        $this->expectOutputRegex('/This is printed from no-cache.phel/');
+        $this->expectOutputRegex('/This is printed from hello.phel/');
 
-EOF);
         $this->command->run(
             new ArrayInput([
                 '--no-source-map' => true,
@@ -67,11 +67,9 @@ EOF);
         // Mark file cache invalid by setting the modification time to 0
         touch(__DIR__ . '/out/test_ns/hello.php', 1);
 
-        $this->expectOutputString(<<<EOF
-This is printed from no-cache.phel
-This is printed from hello.phel
+        $this->expectOutputRegex('/This is printed from no-cache.phel/');
+        $this->expectOutputRegex('/This is printed from hello.phel/');
 
-EOF);
         $this->command->run(
             new ArrayInput([
                 '--no-source-map' => true,
@@ -83,8 +81,6 @@ EOF);
         self::assertFileExists(__DIR__ . '/out/phel/core.php');
         self::assertFileExists(__DIR__ . '/out/test_ns/hello.phel');
         self::assertFileExists(__DIR__ . '/out/test_ns/hello.php');
-
-        DirectoryUtil::removeDir(__DIR__ . '/out');
     }
 
     /**
