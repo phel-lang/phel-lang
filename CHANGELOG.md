@@ -10,9 +10,7 @@ All notable changes to this project will be documented in this file.
 * Add `phel fmt` alias for format (#673)
 * Add support for numeric on `empty?` (#683)
 * Fix `interleave` allowing nil keys and values (#682)
-* Add `phel fmt` alias for format
-* Add support for numeric on `empty?`
-* Add `PhelConfig->setNoCacheWhenBuilding()`
+* Add `PhelConfig->setNoCacheWhenBuilding()` (#685)
 
 ## [0.12.0](https://github.com/phel-lang/phel-lang/compare/v0.11.0...v0.12.0) - 2023-11-01
 
