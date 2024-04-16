@@ -4,7 +4,7 @@
 (defn hello-world []
   (h/html [:div "hello-world"]))
 
-(println "This is printed")
+(println "This is printed from hello.phel")
 
 (when-not *build-mode*
   (println "This is not printed"))

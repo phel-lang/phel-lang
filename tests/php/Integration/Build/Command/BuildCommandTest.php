@@ -7,6 +7,7 @@ namespace PhelTest\Integration\Build\Command;
 use Gacela\Framework\Bootstrap\GacelaConfig;
 use Gacela\Framework\Gacela;
 use Phel\Build\Infrastructure\Command\BuildCommand;
+use PhelTest\Integration\Util\DirectoryUtil;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\Console\Input\ArrayInput;
 use Symfony\Component\Console\Output\OutputInterface;
@@ -31,8 +32,11 @@ final class BuildCommandTest extends TestCase
             $config->addAppConfig('config/phel-config.php');
         });
 
-        $this->expectOutputString("This is printed\n");
+        $this->expectOutputString(<<<EOF
+This is printed from no-cache.phel
+This is printed from hello.phel
 
+EOF);
         $this->command->run(
             new ArrayInput([
                 '--no-source-map' => true,
@@ -63,8 +67,11 @@ final class BuildCommandTest extends TestCase
         // Mark file cache invalid by setting the modification time to 0
         touch(__DIR__ . '/out/test_ns/hello.php', 1);
 
-        $this->expectOutputString("This is printed\n");
+        $this->expectOutputString(<<<EOF
+This is printed from no-cache.phel
+This is printed from hello.phel
 
+EOF);
         $this->command->run(
             new ArrayInput([
                 '--no-source-map' => true,
@@ -76,6 +83,8 @@ final class BuildCommandTest extends TestCase
         self::assertFileExists(__DIR__ . '/out/phel/core.php');
         self::assertFileExists(__DIR__ . '/out/test_ns/hello.phel');
         self::assertFileExists(__DIR__ . '/out/test_ns/hello.php');
+
+        DirectoryUtil::removeDir(__DIR__ . '/out');
     }
 
     /**

@@ -12,5 +12,5 @@ return (new PhelConfig())
         ->setMainPhelNamespace('test-ns\hello')
         ->setMainPhpPath('out/main.php'))
     ->setIgnoreWhenBuilding(['local.phel', 'failing.phel'])
-    ->setNoCacheWhenBuilding([])
+    ->setNoCacheWhenBuilding(['no-cache.phel'])
 ;
