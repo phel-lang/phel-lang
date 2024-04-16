@@ -30,6 +30,9 @@ final class PhelConfig implements JsonSerializable
     /** @var list<string> */
     private array $ignoreWhenBuilding = ['src/phel/local.phel'];
 
+    /** @var list<string> */
+    private array $noCacheWhenBuilding = [];
+
     private bool $keepGeneratedTempFiles = false;
 
     /** @var list<string> */
@@ -161,6 +164,15 @@ final class PhelConfig implements JsonSerializable
         return $this;
     }
 
+    /**
+     * @param list<string> $list
+     */
+    public function setNoCacheWhenBuilding(array $list): self
+    {
+        $this->noCacheWhenBuilding = $list;
+        return $this;
+    }
+
     public function jsonSerialize(): array
     {
         return [
@@ -171,6 +183,7 @@ final class PhelConfig implements JsonSerializable
             CommandConfig::OUTPUT => $this->out->jsonSerialize(),
             InteropConfig::EXPORT => $this->export->jsonSerialize(),
             BuildConfig::IGNORE_WHEN_BUILDING => $this->ignoreWhenBuilding,
+            BuildConfig::NO_CACHE_WHEN_BUILDING => $this->noCacheWhenBuilding,
             FilesystemConfig::KEEP_GENERATED_TEMP_FILES => $this->keepGeneratedTempFiles,
             FormatterConfig::FORMAT_DIRS => $this->formatDirs,
         ];

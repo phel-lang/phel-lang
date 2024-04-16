@@ -15,6 +15,7 @@ return (new \Phel\Config\PhelConfig())
         ->setNamespacePrefix('PhelGenerated')
         ->setTargetDirectory('src/PhelGenerated'))
     ->setIgnoreWhenBuilding(['src/phel/local.phel'])
+    ->setNoCacheWhenBuilding([])
     ->setKeepGeneratedTempFiles(false)
     ->setFormatDirs(['src', 'tests'])
 ;

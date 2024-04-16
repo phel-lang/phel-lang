@@ -27,6 +27,7 @@ final readonly class ProjectCompiler
         private CommandFacadeInterface $commandFacade,
         private EntryPointPhpFileInterface $entryPointPhpFile,
         private array $pathsToIgnore,
+        private array $pathsToAvoidCache,
         private bool $shouldCreateEntryPointPhpFile,
     ) {
     }
@@ -65,10 +66,7 @@ final readonly class ProjectCompiler
                 throw new RuntimeException(sprintf('Directory "%s" was not created', $targetDir));
             }
 
-            if ($buildOptions->isCacheEnabled()
-                && file_exists($targetFile)
-                && filemtime($targetFile) === filemtime($info->getFile())
-            ) {
+            if ($this->canUseCache($buildOptions, $targetFile, $info)) {
                 /** @psalm-suppress UnresolvableInclude */
                 require_once $targetFile;
                 continue;
@@ -106,5 +104,26 @@ final readonly class ProjectCompiler
         $mungedNamespace = $this->compilerFacade->encodeNs($namespace);
 
         return implode(DIRECTORY_SEPARATOR, explode('\\', $mungedNamespace)) . self::TARGET_FILE_EXTENSION;
+    }
+
+    private function canUseCache(
+        BuildOptions $buildOptions,
+        string $targetFile,
+        NamespaceInformation $info,
+    ): bool {
+        if (!$buildOptions->isCacheEnabled()
+            || !file_exists($targetFile)
+            || filemtime($targetFile) !== filemtime($info->getFile())
+        ) {
+            return false;
+        }
+
+        foreach ($this->pathsToAvoidCache as $path) {
+            if (str_contains($targetFile, (string) $path)) {
+                return false;
+            }
+        }
+
+        return true;
     }
 }
