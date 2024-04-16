@@ -2,7 +2,7 @@
 
 All notable changes to this project will be documented in this file.
 
-## Unreleased
+## [0.13.0](https://github.com/phel-lang/phel-lang/compare/v0.12.0...v0.13.0) - 2024-04-17
 
 * Require PHP>=8.2
 * Add `PhelOutConfig->setMainPhpPath()`
