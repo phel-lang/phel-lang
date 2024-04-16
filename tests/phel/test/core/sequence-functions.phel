@@ -123,7 +123,8 @@
 
 (deftest test-interleave
   (is (= [:a 1 :b 2 :c 3] (interleave [:a :b :c] [1 2 3])) "interleave equal size")
-  (is (= [:a 1 :b 2] (interleave [:a :b :c] [1 2])) "interleave different size"))
+  (is (= [:a 1 :b 2] (interleave [:a :b :c] [1 2])) "interleave different size")
+  (is (= [:a 1 :b nil] (interleave [:a :b] [1 nil])) "interleave include nil values"))
 
 (deftest test-interpose
   (is (= ["a" "," "b" "," "c"] (interpose "," ["a" "b" "c"])) "interpose"))
