@@ -673,11 +673,13 @@ Calling the `and` function without arguments returns true."
   (= (type x) :php/object))
 
 (defn empty?
-  "Returns true if `(count x)` is zero, false otherwise."
+  "Returns true if x would be 0, \"\" or empty collection, false otherwise."
   [x]
-  (if (php/is_string x)
-    (true? (php/empty x))
-    (= 0 (count x))))
+  (if (php/is_numeric x)
+    (= 0 x)
+    (if (php/is_string x)
+      (true? (php/empty x))
+      (= 0 (count x)))))
 
 (defn- indexed-php-array?
   [x]
