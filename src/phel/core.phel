@@ -1123,12 +1123,13 @@ arrays. Use (php/aunset ds key)"))
 (defn interleave
   "Returns a vector with the first items of each col, then the second items, etc."
   [& xs]
-  (loop [i 0
-         res []]
-    (let [nths (map |(get $ i) xs)]
-      (if (some? nil? nths)
-        res
-        (recur (php/+ i 1) (concat res nths))))))
+  (let [size (count (first xs))]
+    (loop [i 0
+           res []]
+      (let [nths (map |(get $ i) xs)]
+        (if (<= size i)
+          res
+          (recur (php/+ i 1) (concat res nths)))))))
 
 (defn interpose
   "Returns a vector of elements separated by `sep`."
