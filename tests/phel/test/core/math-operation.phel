@@ -64,7 +64,7 @@
   (is (false? (one? 0)) "(one? 0)"))
 
 (deftest test-pos?
-  (is (false? (pos? 0)) "(pos? 1)")
+  (is (false? (pos? 0)) "(pos? 0)")
   (is (true? (pos? 1)) "(pos? 1)")
   (is (true? (pos? 0.1)) "(pos? 0.1)")
   (is (false? (pos? -0.1)) "(pos? -0.1)")

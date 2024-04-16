@@ -94,6 +94,9 @@
   (is (false? (empty? [1])) "empty? on one element vector")
   (is (false? (empty? (php/array 1))) "empty? on one element php array")
   (is (false? (empty? {:a 1})) "empty? on one element map")
+  (is (false? (empty? 1)) "empty? on positive number")
+  (is (true? (empty? 0)) "empty? on zero")
+  (is (false? (empty? -1)) "empty? on negative number")
   (is (false? (empty? "a")) "empty? on one string"))
 
 (deftest test-indexed?
