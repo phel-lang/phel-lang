@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Phel\Build\Domain\Compile;
 
 use Phel\Build\BuildConfigInterface;
+use Phel\Build\BuildFacade;
 use Phel\Build\Domain\Compile\Output\EntryPointPhpFileInterface;
 use Phel\Build\Domain\Extractor\NamespaceExtractorInterface;
 use Phel\Build\Domain\Extractor\NamespaceInformation;
@@ -33,6 +34,7 @@ final readonly class ProjectCompiler
      */
     public function compileProject(BuildOptions $buildOptions): array
     {
+
         $srcDirectories = [
             ...$this->commandFacade->getSourceDirectories(),
             ...$this->commandFacade->getVendorSourceDirectories(),
@@ -63,8 +65,10 @@ final readonly class ProjectCompiler
             }
 
             if ($this->canUseCache($buildOptions, $targetFile, $info)) {
+                BuildFacade::enableBuildMode();
                 /** @psalm-suppress UnresolvableInclude */
                 require_once $targetFile;
+                BuildFacade::disableBuildMode();
                 continue;
             }
 
