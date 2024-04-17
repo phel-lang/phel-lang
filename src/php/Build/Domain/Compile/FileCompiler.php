@@ -4,13 +4,11 @@ declare(strict_types=1);
 
 namespace Phel\Build\Domain\Compile;
 
+use Phel\Build\BuildFacade;
 use Phel\Build\Domain\Extractor\NamespaceExtractorInterface;
 use Phel\Build\Domain\IO\FileIoInterface;
 use Phel\Compiler\CompilerFacadeInterface;
 use Phel\Compiler\Infrastructure\CompileOptions;
-use Phel\Lang\Registry;
-use Phel\Shared\BuildConstants;
-use Phel\Shared\CompilerConstants;
 
 final readonly class FileCompiler implements FileCompilerInterface
 {
@@ -29,13 +27,9 @@ final readonly class FileCompiler implements FileCompilerInterface
             ->setSource($src)
             ->setIsEnabledSourceMaps($enableSourceMaps);
 
-        Registry::getInstance()->addDefinition(CompilerConstants::PHEL_CORE_NAMESPACE, BuildConstants::COMPILE_MODE, true);
-        Registry::getInstance()->addDefinition(CompilerConstants::PHEL_CORE_NAMESPACE, BuildConstants::BUILD_MODE, true);
-
+        BuildFacade::enableBuildMode();
         $result = $this->compilerFacade->compile($phelCode, $options);
-
-        Registry::getInstance()->addDefinition(CompilerConstants::PHEL_CORE_NAMESPACE, BuildConstants::COMPILE_MODE, false);
-        Registry::getInstance()->addDefinition(CompilerConstants::PHEL_CORE_NAMESPACE, BuildConstants::BUILD_MODE, false);
+        BuildFacade::disableBuildMode();
 
         $this->fileIo->putContents($dest, "<?php\n" . $result->getPhpCode());
         $this->fileIo->putContents(str_replace('.php', '.phel', $dest), $phelCode);

@@ -9,6 +9,9 @@ use Phel\Build\Domain\Compile\BuildOptions;
 use Phel\Build\Domain\Compile\CompiledFile;
 use Phel\Build\Domain\Extractor\NamespaceInformation;
 use Phel\Compiler\Domain\Exceptions\CompilerException;
+use Phel\Lang\Registry;
+use Phel\Shared\BuildConstants;
+use Phel\Shared\CompilerConstants;
 use Symfony\Component\Console\Output\OutputInterface;
 use Throwable;
 
@@ -17,6 +20,18 @@ use Throwable;
  */
 final class BuildFacade extends AbstractFacade implements BuildFacadeInterface
 {
+    public static function enableBuildMode(): void
+    {
+        Registry::getInstance()->addDefinition(CompilerConstants::PHEL_CORE_NAMESPACE, BuildConstants::COMPILE_MODE, true);
+        Registry::getInstance()->addDefinition(CompilerConstants::PHEL_CORE_NAMESPACE, BuildConstants::BUILD_MODE, true);
+    }
+
+    public static function disableBuildMode(): void
+    {
+        Registry::getInstance()->addDefinition(CompilerConstants::PHEL_CORE_NAMESPACE, BuildConstants::COMPILE_MODE, false);
+        Registry::getInstance()->addDefinition(CompilerConstants::PHEL_CORE_NAMESPACE, BuildConstants::BUILD_MODE, false);
+    }
+
     /**
      * Extracts the namespace from a given file. It expects that the
      * first statement in the file is the 'ns statement.
