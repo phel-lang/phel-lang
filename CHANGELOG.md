@@ -9,8 +9,9 @@ All notable changes to this project will be documented in this file.
   * in favor of `->setMainPhpFilename()`
 * Add `phel fmt` alias for format (#673)
 * Add support for numeric on `empty?` (#683)
-* Fix `interleave` allowing nil keys and values (#682)
 * Add `PhelConfig->setNoCacheWhenBuilding()` (#685)
+* Fix `interleave` allowing nil keys and values (#682)
+* Fix `**build-mode**` flag when building the project (#686)
 
 ## [0.12.0](https://github.com/phel-lang/phel-lang/compare/v0.11.0...v0.12.0) - 2023-11-01
 
