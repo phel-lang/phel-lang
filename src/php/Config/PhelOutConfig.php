@@ -103,9 +103,9 @@ final class PhelOutConfig implements JsonSerializable
         return $this;
     }
 
-    public function setDestDir(string $destDir): self
+    public function setDestDir(string $dir): self
     {
-        $this->destDir = $destDir;
+        $this->destDir = $dir;
         return $this;
     }
 

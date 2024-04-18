@@ -22,11 +22,11 @@ final class PhelExportConfig implements JsonSerializable
     }
 
     /**
-     * @param list<string> $directories
+     * @param list<string> $list
      */
-    public function setDirectories(array $directories): self
+    public function setDirectories(array $list): self
     {
-        $this->directories = $directories;
+        $this->directories = $list;
 
         return $this;
     }
@@ -36,9 +36,9 @@ final class PhelExportConfig implements JsonSerializable
         return $this->namespacePrefix;
     }
 
-    public function setNamespacePrefix(string $namespacePrefix): self
+    public function setNamespacePrefix(string $prefix): self
     {
-        $this->namespacePrefix = $namespacePrefix;
+        $this->namespacePrefix = $prefix;
 
         return $this;
     }
@@ -48,9 +48,9 @@ final class PhelExportConfig implements JsonSerializable
         return $this->targetDirectory;
     }
 
-    public function setTargetDirectory(string $targetDirectory): self
+    public function setTargetDirectory(string $dir): self
     {
-        $this->targetDirectory = $targetDirectory;
+        $this->targetDirectory = $dir;
 
         return $this;
     }

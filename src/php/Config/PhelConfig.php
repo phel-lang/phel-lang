@@ -50,11 +50,11 @@ final class PhelConfig implements JsonSerializable
     }
 
     /**
-     * @param list<string> $srcDirs
+     * @param list<string> $list
      */
-    public function setSrcDirs(array $srcDirs): self
+    public function setSrcDirs(array $list): self
     {
-        $this->srcDirs = $srcDirs;
+        $this->srcDirs = $list;
 
         return $this;
     }
@@ -65,11 +65,11 @@ final class PhelConfig implements JsonSerializable
     }
 
     /**
-     * @param list<string> $testDirs
+     * @param list<string> $list
      */
-    public function setTestDirs(array $testDirs): self
+    public function setTestDirs(array $list): self
     {
-        $this->testDirs = $testDirs;
+        $this->testDirs = $list;
 
         return $this;
     }
@@ -79,9 +79,9 @@ final class PhelConfig implements JsonSerializable
         return $this->vendorDir;
     }
 
-    public function setVendorDir(string $vendorDir): self
+    public function setVendorDir(string $dir): self
     {
-        $this->vendorDir = $vendorDir;
+        $this->vendorDir = $dir;
 
         return $this;
     }
@@ -103,9 +103,9 @@ final class PhelConfig implements JsonSerializable
         return $this->errorLogFile;
     }
 
-    public function setErrorLogFile(string $file): self
+    public function setErrorLogFile(string $filepath): self
     {
-        $this->errorLogFile = $file;
+        $this->errorLogFile = $filepath;
 
         return $this;
     }
@@ -128,11 +128,11 @@ final class PhelConfig implements JsonSerializable
     }
 
     /**
-     * @param list<string> $ignoreWhenBuilding
+     * @param list<string> $list
      */
-    public function setIgnoreWhenBuilding(array $ignoreWhenBuilding): self
+    public function setIgnoreWhenBuilding(array $list): self
     {
-        $this->ignoreWhenBuilding = $ignoreWhenBuilding;
+        $this->ignoreWhenBuilding = $list;
 
         return $this;
     }
@@ -142,9 +142,9 @@ final class PhelConfig implements JsonSerializable
         return $this->keepGeneratedTempFiles;
     }
 
-    public function setKeepGeneratedTempFiles(bool $keepGeneratedTempFiles): self
+    public function setKeepGeneratedTempFiles(bool $flag): self
     {
-        $this->keepGeneratedTempFiles = $keepGeneratedTempFiles;
+        $this->keepGeneratedTempFiles = $flag;
 
         return $this;
     }
@@ -155,11 +155,11 @@ final class PhelConfig implements JsonSerializable
     }
 
     /**
-     * @param list<string> $formatDirs
+     * @param list<string> $list
      */
-    public function setFormatDirs(array $formatDirs): self
+    public function setFormatDirs(array $list): self
     {
-        $this->formatDirs = $formatDirs;
+        $this->formatDirs = $list;
 
         return $this;
     }
