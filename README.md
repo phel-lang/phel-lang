@@ -6,11 +6,11 @@
   <a href="https://github.com/phel-lang/phel-lang/actions">
     <img src="https://github.com/phel-lang/phel-lang/workflows/CI/badge.svg" alt="GitHub Build Status">
   </a>
-  <a href="https://scrutinizer-ci.com/g/phel-lang/phel-lang/?branch=master">
-    <img src="https://scrutinizer-ci.com/g/phel-lang/phel-lang/badges/quality-score.png?b=master" alt="Scrutinizer Code Quality">
+  <a href="https://scrutinizer-ci.com/g/phel-lang/phel-lang/?branch=main">
+    <img src="https://scrutinizer-ci.com/g/phel-lang/phel-lang/badges/quality-score.png?b=main" alt="Scrutinizer Code Quality">
   </a>
-  <a href="https://scrutinizer-ci.com/g/phel-lang/phel-lang/?branch=master">
-    <img src="https://scrutinizer-ci.com/g/phel-lang/phel-lang/badges/coverage.png?b=master" alt="Scrutinizer Code Coverage">
+  <a href="https://scrutinizer-ci.com/g/phel-lang/phel-lang/?branch=main">
+    <img src="https://scrutinizer-ci.com/g/phel-lang/phel-lang/badges/coverage.png?b=main" alt="Scrutinizer Code Coverage">
   </a>
   <a href="https://shepherd.dev/github/phel-lang/phel-lang">
     <img src="https://shepherd.dev/github/phel-lang/phel-lang/coverage.svg" alt="Psalm Type-coverage Status">
@@ -53,4 +53,4 @@ Feel free to ask questions and join discussions on the [Phel Gitter channel](htt
 
 ## Contribute
 
-Please refer to [CONTRIBUTING.md](https://github.com/phel-lang/phel-lang/blob/master/.github/CONTRIBUTING.md) for information on how to contribute to Phel.
+Please refer to [CONTRIBUTING.md](https://github.com/phel-lang/phel-lang/blob/main/.github/CONTRIBUTING.md) for information on how to contribute to Phel.
