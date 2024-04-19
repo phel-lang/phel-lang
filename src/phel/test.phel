@@ -200,7 +200,7 @@
   [test-name & body]
   `(defn ,test-name {:test true :test-name ,(name test-name)} []
      (binding [*current-test-name* ,(name test-name)]
-       ,@body)))
+              ,@body)))
 
 # ---------------------
 # error/failure printer
