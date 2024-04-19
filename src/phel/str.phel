@@ -1,0 +1,230 @@
+(ns phel\str
+  (:require phel\core))
+
+(defn split
+  "Splits string on a regular expression.  Optional argument limit is
+  the maximum number of parts. Not lazy. Returns vector of the parts.
+  Trailing empty strings are not returned - pass limit of -1 to return all."
+  [s re & [limit]]
+  (values (php-array-to-map (php/preg_split re s (or limit -1)))))
+
+(defn join
+  "Returns a string of all elements in coll, as returned by (seq coll),
+   separated by an optional separator."
+  [separator & [coll]]
+  (let [[coll separator] (if (nil? coll) [separator ""] [coll separator])]
+    (php/implode separator (to-php-array coll))))
+
+(defn reverse
+  "Returns s with its characters reversed."
+  [s]
+  (let [chars (php/mb_str_split s)]
+    (join (core/reverse chars))))
+
+(defn upper-case
+  "Converts string to all upper-case."
+  [s]
+  (php/strtoupper s))
+
+(defn replace
+  "Replaces all instance of match with replacement in s.
+
+   match/replacement can be:
+
+   string / string
+   pattern / (string or function of match).
+
+   See also replace-first.
+
+   The replacement is literal (i.e. none of its characters are treated
+   specially) for all cases above except pattern / string.
+
+   For pattern / string, $1, $2, etc. in the replacement string are
+   substituted with the string that matched the corresponding
+   parenthesized group in the pattern.  If you wish your replacement
+   string r to be used literally, use (re-quote-replacement r) as the
+   replacement argument."
+  [s match replacement]
+  (let [match (if (and
+                    (> (php/mb_strlen match) 1)
+                    (=
+                      (php/substr match 0 1)
+                      (php/substr match -1 1)))
+                match
+                (format "/%s/" (php/preg_quote match "/")))]
+    (if (function? replacement)
+      (php/preg_replace_callback match (fn [x]
+                                         (let [x (values (php-array-to-map x))]
+                                           (apply replacement x))) s)
+      (php/preg_replace match replacement s))))
+
+(defn replace-first
+  "Replaces the first instance of match with replacement in s.
+
+   match/replacement can be:
+
+   char / char
+   string / string
+   pattern / (string or function of match).
+
+   See also replace.
+
+   The replacement is literal (i.e. none of its characters are treated
+   specially) for all cases above except pattern / string.
+
+   For pattern / string, $1, $2, etc. in the replacement string are
+   substituted with the string that matched the corresponding
+   parenthesized group in the pattern.  If you wish your replacement
+   string r to be used literally, use (re-quote-replacement r) as the
+   replacement argument.
+
+   Example:
+   (str/replace-first \"swap first two words\"
+                                 #\"(\\w+)(\\s+)(\\w+)\" \"$3$2$1\")
+   -> \"first swap two words\""
+  [s match replacement]
+  (let [match (if (and
+                    (> (php/mb_strlen match) 1)
+                    (=
+                      (php/substr match 0 1)
+                      (php/substr match -1 1)))
+                match
+                (format "/%s/" (php/preg_quote match "/")))]
+    (if (function? replacement)
+      (php/preg_replace_callback match (fn [x]
+                                         (let [x (values (php-array-to-map x))]
+                                           (apply replacement x))) s 1)
+      (php/preg_replace match replacement s 1))))
+
+(defn trim-newline
+  "Removes all trailing newline \\n or return \\r characters from
+  string.  Similar to Perl's chomp."
+  [s]
+  (loop [index (php/mb_strlen s)]
+    (if (zero? index)
+      ""
+      (let [ch (php/mb_substr s (dec index) 1)]
+        (if (or (= ch "\n") (= ch "\r"))
+          (recur (dec index))
+          (php/mb_substr s 0 index))))))
+
+(defn capitalize
+  "Converts first character of the string to upper-case, all other
+  characters to lower-case."
+  [s]
+  (php/ucfirst (php/strtolower s)))
+
+(defn lower-case
+  "Converts string to all lower-case."
+  [s]
+  (php/strtolower s))
+
+(defn upper-case
+  "Converts string to all upper-case."
+  [s]
+  (php/strtoupper s))
+
+(defn trim
+  "Removes whitespace from both ends of string."
+  [s]
+  (php/preg_replace "/^[\s]+|[\s]+$/u" "" s))
+
+(defn triml
+  "Removes whitespace from the left side of string."
+  [s]
+  (php/preg_replace "/^[\s]+/u" "" s))
+
+(defn trimr
+  "Removes whitespace from the right side of string."
+  [s]
+  (php/preg_replace "/[\s]+$/u" "" s))
+
+(defn blank?
+  "True if s is nil, empty, or contains only whitespace."
+  [s]
+  (if s
+    (loop [index 0]
+      (if (= (php/mb_strlen s) index)
+        true
+        (if (php/preg_match "/^\s$/u" (php/mb_substr s index 1))
+          (recur (inc index))
+          false)))
+    true))
+
+(defn starts-with?
+  "True if s starts with substr."
+  [s substr]
+  (php/str_starts_with s substr))
+
+(defn ends-with?
+  "True if s ends with substr."
+  [s substr]
+  (php/str_ends_with s substr))
+
+(defn includes?
+  "True if s includes substr."
+  [s substr]
+  (php/str_contains s substr))
+
+(defn re-quote-replacement
+  "Given a replacement string that you wish to be a literal
+   replacement for a pattern match in replace or replace-first, do the
+   necessary escaping of special characters in the replacement."
+  [replacement]
+  (php/preg_replace "/([\\\$])/" "\$1" replacement))
+
+(defn escape
+  "Return a new string, using cmap to escape each character ch
+   from s as follows:
+
+   If (cmap ch) is nil, append ch to the new string.
+   If (cmap ch) is non-nil, append (str (cmap ch)) instead."
+  [s cmap]
+  (loop [index 0
+         buffer ""]
+    (if (= (php/mb_strlen s) index)
+      buffer
+      (let [ch (php/mb_substr s index 1)]
+        (let [ch (or (cmap ch) ch)]
+          (recur (inc index) (format "%s%s" buffer ch)))))))
+
+(defn index-of
+  "Return index of value (string or char) in s, optionally searching
+  forward from from-index. Return nil if value not found."
+  [s value & [from-index]]
+  (let [from-index (or from-index 0)
+        from-index (let [abs (php/abs from-index)
+                         v (min abs (dec (php/mb_strlen s)))]
+                     (if (< from-index 0)
+                       (* v -1)
+                       v))
+        result (php/mb_strpos s value from-index)]
+    (if (= result false)
+      nil
+      result)))
+
+(defn last-index-of
+  "Return last index of value (string or char) in s, optionally
+  searching backward from from-index. Return nil if value not found."
+  [s value & [from-index]]
+  (let [max-index (dec (php/mb_strlen s))
+        from-index (or from-index max-index)
+        from-index (let [abs (php/abs from-index)
+                         v (min abs max-index)]
+                     (if (< from-index 0)
+                       (- max-index v)
+                       v))]
+    (loop [s s
+           value value
+           from-index from-index]
+      (if (< from-index 0)
+        nil
+        (let [target (php/mb_substr s from-index)]
+          (if (includes? target value)
+            from-index
+            (recur s value (dec from-index))))))))
+
+(defn split-lines
+  "Splits s on \\n or \\r\\n. Trailing empty lines are not returned."
+  [s]
+  (split s "/\r?\n/"))
