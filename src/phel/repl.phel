@@ -2,10 +2,10 @@
   (:use Phel\Lang\Symbol)
   (:use Phel\Lang\Registry)
   (:use Phel\Build\BuildFacade)
-  (:use Phel\Compiler\CompilerFacade)
-  (:use Phel\Compiler\Infrastructure\CompileOptions)
-  (:use Phel\Compiler\Infrastructure\GlobalEnvironmentSingleton)
-  (:use Phel\Compiler\Domain\Analyzer\Environment\NodeEnvironment)
+  (:use Phel\Transpiler\TranspilerFacade)
+  (:use Phel\Transpiler\Infrastructure\CompileOptions)
+  (:use Phel\Transpiler\Infrastructure\GlobalEnvironmentSingleton)
+  (:use Phel\Transpiler\Domain\Analyzer\Environment\NodeEnvironment)
   (:use Phel\Printer\Printer))
 
 (def build-facade (php/new BuildFacade))
@@ -121,7 +121,7 @@
   nil)
 
 (defn compile-str [s]
-  (let [cf (php/new CompilerFacade)
+  (let [cf (php/new TranspilerFacade)
         opts (php/new CompileOptions)
         res (php/-> cf (compile s opts))]
     (php/-> res (getCode))))

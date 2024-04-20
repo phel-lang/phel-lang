@@ -11,20 +11,20 @@ use Phel\Transpiler\TranspilerFacade;
 
 final class FormatterDependencyProvider extends AbstractDependencyProvider
 {
-    public const FACADE_COMPILER = 'FACADE_COMPILER';
+    public const FACADE_TRANSPILER = 'FACADE_TRANSPILER';
 
     public const FACADE_COMMAND = 'FACADE_COMMAND';
 
     public function provideModuleDependencies(Container $container): void
     {
-        $this->addFacadeCompiler($container);
+        $this->addFacadeTranspiler($container);
         $this->addFacadeCommand($container);
     }
 
-    private function addFacadeCompiler(Container $container): void
+    private function addFacadeTranspiler(Container $container): void
     {
         $container->set(
-            self::FACADE_COMPILER,
+            self::FACADE_TRANSPILER,
             static fn (Container $container) => $container->getLocator()->get(TranspilerFacade::class),
         );
     }

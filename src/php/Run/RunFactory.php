@@ -41,9 +41,9 @@ class RunFactory extends AbstractFactory
         return $this->getProvidedDependency(RunDependencyProvider::FACADE_BUILD);
     }
 
-    public function getCompilerFacade(): TranspilerFacadeInterface
+    public function getTranspilerFacade(): TranspilerFacadeInterface
     {
-        return $this->getProvidedDependency(RunDependencyProvider::FACADE_COMPILER);
+        return $this->getProvidedDependency(RunDependencyProvider::FACADE_TRANSPILER);
     }
 
     public function createNamespaceCollector(): NamespaceCollector

@@ -67,7 +67,7 @@ final class NsEmitter implements NodeEmitterInterface
     {
         if (!$this->outputEmitter->getOptions()->isFileEmitMode()) {
             $this->outputEmitter->emitLine(
-                '\Phel\Compiler\Infrastructure\GlobalEnvironmentSingleton::getInstance()->setNs("' . addslashes($node->getNamespace()) . '");',
+                '\Phel\Transpiler\Infrastructure\GlobalEnvironmentSingleton::getInstance()->setNs("' . addslashes($node->getNamespace()) . '");',
                 $node->getStartSourceLocation(),
             );
         }

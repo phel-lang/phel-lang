@@ -36,7 +36,7 @@ final class FormatterFactory extends AbstractFactory
     public function createFormatter(): FormatterInterface
     {
         return new Formatter(
-            $this->getFacadeCompiler(),
+            $this->getFacadeTranspiler(),
             [
                 $this->createRemoveSurroundingWhitespaceRule(),
                 $this->createUnindentRule(),
@@ -97,9 +97,9 @@ final class FormatterFactory extends AbstractFactory
         return new PhelPathFilter();
     }
 
-    private function getFacadeCompiler(): TranspilerFacade
+    private function getFacadeTranspiler(): TranspilerFacade
     {
-        return $this->getProvidedDependency(FormatterDependencyProvider::FACADE_COMPILER);
+        return $this->getProvidedDependency(FormatterDependencyProvider::FACADE_TRANSPILER);
     }
 
     private function getCommandFacade(): CommandFacadeInterface

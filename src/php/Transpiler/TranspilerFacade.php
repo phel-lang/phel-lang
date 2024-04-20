@@ -40,34 +40,34 @@ final class TranspilerFacade extends AbstractFacade implements TranspilerFacadeI
     }
 
     /**
-     *@throws TranspilerException|UnfinishedParserException
+     * @throws TranspilerException|UnfinishedParserException
      *
      * @return mixed The result of the executed code
      */
     public function eval(
         string $phelCode,
-        ?TranspileOptions $compileOptions = null,
+        ?TranspileOptions $options = null,
     ): mixed {
-        if (!$compileOptions instanceof TranspileOptions) {
-            $compileOptions = new TranspileOptions();
+        if (!$options instanceof TranspileOptions) {
+            $options = new TranspileOptions();
         }
 
         return $this->getFactory()
-            ->createEvalCompiler()
-            ->evalString($phelCode, $compileOptions);
+            ->createEvalTranspiler()
+            ->evalString($phelCode, $options);
     }
 
     public function evalForm(
         TypeInterface|string|float|int|bool|null $form,
-        ?TranspileOptions $compileOptions = null,
+        ?TranspileOptions $options = null,
     ): mixed {
-        if (!$compileOptions instanceof TranspileOptions) {
-            $compileOptions = new TranspileOptions();
+        if (!$options instanceof TranspileOptions) {
+            $options = new TranspileOptions();
         }
 
         return $this->getFactory()
-            ->createEvalCompiler()
-            ->evalForm($form, $compileOptions);
+            ->createEvalTranspiler()
+            ->evalForm($form, $options);
     }
 
     /**
@@ -84,7 +84,7 @@ final class TranspilerFacade extends AbstractFacade implements TranspilerFacadeI
         }
 
         return $this->getFactory()
-            ->createCodeCompiler($options)
+            ->createCodeTranspiler($options)
             ->compileString($phelCode, $options);
     }
 
@@ -102,7 +102,7 @@ final class TranspilerFacade extends AbstractFacade implements TranspilerFacadeI
         }
 
         return $this->getFactory()
-            ->createCodeCompiler($compileOptions)
+            ->createCodeTranspiler($compileOptions)
             ->compileForm($form, $compileOptions);
     }
 

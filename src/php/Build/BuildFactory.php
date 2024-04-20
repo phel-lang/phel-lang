@@ -31,7 +31,7 @@ final class BuildFactory extends AbstractFactory
         return new ProjectCompiler(
             $this->createNamespaceExtractor(),
             $this->createFileCompiler(),
-            $this->getCompilerFacade(),
+            $this->getTranspilerFacade(),
             $this->getCommandFacade(),
             $this->createMainPhpEntryPointFile(),
             $this->getConfig(),
@@ -48,7 +48,7 @@ final class BuildFactory extends AbstractFactory
     public function createFileCompiler(): FileCompilerInterface
     {
         return new FileCompiler(
-            $this->getCompilerFacade(),
+            $this->getTranspilerFacade(),
             $this->createNamespaceExtractor(),
             $this->createFileIo(),
         );
@@ -57,7 +57,7 @@ final class BuildFactory extends AbstractFactory
     public function createFileEvaluator(): FileEvaluator
     {
         return new FileEvaluator(
-            $this->getCompilerFacade(),
+            $this->getTranspilerFacade(),
             $this->createNamespaceExtractor(),
         );
     }
@@ -65,15 +65,15 @@ final class BuildFactory extends AbstractFactory
     public function createNamespaceExtractor(): NamespaceExtractor
     {
         return new NamespaceExtractor(
-            $this->getCompilerFacade(),
+            $this->getTranspilerFacade(),
             $this->createNamespaceSorter(),
             $this->createFileIo(),
         );
     }
 
-    public function getCompilerFacade(): TranspilerFacadeInterface
+    public function getTranspilerFacade(): TranspilerFacadeInterface
     {
-        return $this->getProvidedDependency(BuildDependencyProvider::FACADE_COMPILER);
+        return $this->getProvidedDependency(BuildDependencyProvider::FACADE_TRANSPILER);
     }
 
     public function getCommandFacade(): CommandFacadeInterface

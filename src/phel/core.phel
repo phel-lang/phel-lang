@@ -27,9 +27,9 @@
   (:use Phel\Lang\Collections\HashSet\PersistentHashSetInterface)
   (:use Phel\Lang\Collections\HashSet\TransientHashSetInterface)
   (:use Phel\Lang\Variable)
-  (:use Phel\Compiler\CompilerFacade)
-  (:use Phel\Compiler\Infrastructure\CompileOptions)
-  (:use Phel\Compiler\Infrastructure\Munge)
+  (:use Phel\Transpiler\TranspilerFacade)
+  (:use Phel\Transpiler\Infrastructure\CompileOptions)
+  (:use Phel\Transpiler\Infrastructure\Munge)
   (:use Phel\Printer\Printer)
   (:use Countable)
   (:use Exception)
@@ -1840,7 +1840,7 @@ returns 1. If `xs` has one value, returns the reciprocal of x."
 (defn read-string
   "Reads the first phel expression from the string s."
   [s]
-  (let [cf (php/new CompilerFacade)
+  (let [cf (php/new TranspilerFacade)
         token-stream (php/-> cf (lexString s))
         node (php/-> cf (parseNext token-stream))]
     (when node
@@ -1849,11 +1849,11 @@ returns 1. If `xs` has one value, returns the reciprocal of x."
 (defn eval
   "Evaluates a form and return the evaluated results."
   [form]
-  (let [cf (php/new CompilerFacade)]
+  (let [cf (php/new TranspilerFacade)]
     (php/-> cf (evalForm form))))
 
 (defn compile
   "Returns the compiled PHP code string for the given form."
   [form]
-  (let [cf (php/new CompilerFacade)]
+  (let [cf (php/new TranspilerFacade)]
     (php/-> (php/-> cf (compileForm form)) (getPhpCode))))

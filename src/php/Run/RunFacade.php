@@ -75,7 +75,7 @@ final class RunFacade extends AbstractFacade implements RunFacadeInterface
     public function eval(string $phelCode, TranspileOptions $compileOptions): mixed
     {
         return $this->getFactory()
-            ->getCompilerFacade()
+            ->getTranspilerFacade()
             ->eval($phelCode, $compileOptions);
     }
 

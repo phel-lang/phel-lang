@@ -35,23 +35,23 @@ interface TranspilerFacadeInterface
      * of the last expression.
      *
      * @param string $phelCode The phel code that should be evaluated
-     * @param TranspileOptions $compileOptions The compile options
+     * @param TranspileOptions $options The compile options
      *
      *@throws TranspilerException|UnfinishedParserException
      *
-     * @return mixed The result of the executed code
+     *@return mixed The result of the executed code
      */
-    public function eval(string $phelCode, TranspileOptions $compileOptions): mixed;
+    public function eval(string $phelCode, TranspileOptions $options): mixed;
 
     /**
      * @param TypeInterface|string|float|int|bool|null $form The phel form to evaluate
-     * @param TranspileOptions $compileOptions The compile options
+     * @param TranspileOptions $options The compile options
      *
      *@throws TranspilerException
      *
-     * @return mixed The evaluated result
+     *@return mixed The evaluated result
      */
-    public function evalForm(TypeInterface|string|float|int|bool|null $form, TranspileOptions $compileOptions): mixed;
+    public function evalForm(TypeInterface|string|float|int|bool|null $form, TranspileOptions $options): mixed;
 
     /**
      * Transpiles the given phel code to PHP code.

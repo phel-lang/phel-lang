@@ -16,7 +16,7 @@ final class RunDependencyProvider extends AbstractDependencyProvider
 {
     public const FACADE_COMMAND = 'FACADE_COMMAND';
 
-    public const FACADE_COMPILER = 'FACADE_COMPILER';
+    public const FACADE_TRANSPILER = 'FACADE_TRANSPILER';
 
     public const FACADE_FORMATTER = 'FACADE_FORMATTER';
 
@@ -27,7 +27,7 @@ final class RunDependencyProvider extends AbstractDependencyProvider
     public function provideModuleDependencies(Container $container): void
     {
         $this->addFacadeCommand($container);
-        $this->addFacadeCompiler($container);
+        $this->addFacadeTranspiler($container);
         $this->addFacadeFormatter($container);
         $this->addFacadeInterop($container);
         $this->addFacadeBuild($container);
@@ -41,10 +41,10 @@ final class RunDependencyProvider extends AbstractDependencyProvider
         );
     }
 
-    private function addFacadeCompiler(Container $container): void
+    private function addFacadeTranspiler(Container $container): void
     {
         $container->set(
-            self::FACADE_COMPILER,
+            self::FACADE_TRANSPILER,
             static fn (Container $container) => $container->getLocator()->get(TranspilerFacade::class),
         );
     }

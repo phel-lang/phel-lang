@@ -10,10 +10,10 @@ use Phel\Printer\Printer;
 use Phel\Transpiler\Domain\Analyzer\Analyzer;
 use Phel\Transpiler\Domain\Analyzer\AnalyzerInterface;
 use Phel\Transpiler\Domain\Analyzer\Environment\GlobalEnvironmentInterface;
-use Phel\Transpiler\Domain\Compiler\CodeCompiler;
 use Phel\Transpiler\Domain\Compiler\CodeCompilerInterface;
-use Phel\Transpiler\Domain\Compiler\EvalCompiler;
-use Phel\Transpiler\Domain\Compiler\EvalCompilerInterface;
+use Phel\Transpiler\Domain\Compiler\CodeTranspiler;
+use Phel\Transpiler\Domain\Compiler\EvalTranspiler;
+use Phel\Transpiler\Domain\Compiler\EvalTranspilerInterface;
 use Phel\Transpiler\Domain\Emitter\FileEmitter;
 use Phel\Transpiler\Domain\Emitter\FileEmitterInterface;
 use Phel\Transpiler\Domain\Emitter\OutputEmitter;
@@ -42,9 +42,9 @@ use Phel\Transpiler\Infrastructure\TranspileOptions;
 
 final class TranspilerFactory extends AbstractFactory
 {
-    public function createEvalCompiler(): EvalCompilerInterface
+    public function createEvalTranspiler(): EvalTranspilerInterface
     {
-        return new EvalCompiler(
+        return new EvalTranspiler(
             $this->createLexer(),
             $this->createParser(),
             $this->createReader(),
@@ -54,9 +54,9 @@ final class TranspilerFactory extends AbstractFactory
         );
     }
 
-    public function createCodeCompiler(TranspileOptions $compileOptions): CodeCompilerInterface
+    public function createCodeTranspiler(TranspileOptions $compileOptions): CodeCompilerInterface
     {
-        return new CodeCompiler(
+        return new CodeTranspiler(
             $this->createLexer(),
             $this->createParser(),
             $this->createReader(),
