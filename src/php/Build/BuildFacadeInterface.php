@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Phel\Build;
 
-use Phel\Build\Domain\Compile\CompiledFile;
+use Phel\Build\Domain\Builder\TraspiledFile;
 use Phel\Build\Domain\Extractor\NamespaceInformation;
 
 interface BuildFacadeInterface
@@ -43,17 +43,17 @@ interface BuildFacadeInterface
     public function getDependenciesForNamespace(array $directories, array $ns): array;
 
     /**
-     * Compiles a phel file and saves it to the give destination.
+     * Build a phel file and saves it to the give destination.
      *
      * @param string $src The source file
      * @param string $dest The destination
      */
-    public function compileFile(string $src, string $dest): CompiledFile;
+    public function buildFile(string $src, string $dest): TraspiledFile;
 
     /**
-     * Same as `compileFile`. However, the generated code is not written to a destination.
+     * Same as `buildFile`. However, the generated code is not written to a destination.
      *
      * @param string $src The source file
      */
-    public function evalFile(string $src): CompiledFile;
+    public function evalFile(string $src): TraspiledFile;
 }

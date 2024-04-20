@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace PhelTest\Unit\Build\Compile\Output;
 
-use Phel\Build\Domain\Compile\Output\NamespacePathTransformer;
+use Phel\Build\Domain\Builder\Output\NamespacePathTransformer;
 use PHPUnit\Framework\TestCase;
 
 final class NamespacePathTransformerTest extends TestCase

@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Phel\Build\Domain\Compile;
+namespace Phel\Build\Domain\Builder;
 
 final readonly class BuildOptions
 {

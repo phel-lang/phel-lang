@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Phel\Build\Domain\Compile;
+namespace Phel\Build\Domain\Builder;
 
 use Phel\Build\Domain\Extractor\NamespaceExtractor;
 use Phel\Transpiler\Infrastructure\TranspileOptions;
@@ -16,7 +16,7 @@ final readonly class FileEvaluator
     ) {
     }
 
-    public function evalFile(string $src): CompiledFile
+    public function evalFile(string $src): TraspiledFile
     {
         $options = (new TranspileOptions())
             ->setSource($src)
@@ -26,7 +26,7 @@ final readonly class FileEvaluator
 
         $namespaceInfo = $this->namespaceExtractor->getNamespaceFromFile($src);
 
-        return new CompiledFile(
+        return new TraspiledFile(
             $src,
             '',
             $namespaceInfo->getNamespace(),

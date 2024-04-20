@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Phel\Build\Domain\Compile;
+namespace Phel\Build\Domain\Builder;
 
 use Phel\Build\BuildFacade;
 use Phel\Build\Domain\Extractor\NamespaceExtractorInterface;
@@ -10,7 +10,7 @@ use Phel\Build\Domain\IO\FileIoInterface;
 use Phel\Transpiler\Infrastructure\TranspileOptions;
 use Phel\Transpiler\TranspilerFacadeInterface;
 
-final readonly class FileCompiler implements FileCompilerInterface
+final readonly class FileBuilder implements FileBuilderInterface
 {
     public function __construct(
         private TranspilerFacadeInterface $compilerFacade,
@@ -19,7 +19,7 @@ final readonly class FileCompiler implements FileCompilerInterface
     ) {
     }
 
-    public function compileFile(string $src, string $dest, bool $enableSourceMaps): CompiledFile
+    public function compileFile(string $src, string $dest, bool $enableSourceMaps): TraspiledFile
     {
         $phelCode = $this->fileIo->getContents($src);
 
@@ -42,7 +42,7 @@ final readonly class FileCompiler implements FileCompilerInterface
 
         $namespaceInfo = $this->namespaceExtractor->getNamespaceFromFile($src);
 
-        return new CompiledFile(
+        return new TraspiledFile(
             $src,
             $dest,
             $namespaceInfo->getNamespace(),

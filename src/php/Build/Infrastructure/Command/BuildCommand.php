@@ -6,8 +6,8 @@ namespace Phel\Build\Infrastructure\Command;
 
 use Gacela\Framework\DocBlockResolverAwareTrait;
 use Phel\Build\BuildFacade;
-use Phel\Build\Domain\Compile\BuildOptions;
-use Phel\Build\Domain\Compile\CompiledFile;
+use Phel\Build\Domain\Builder\BuildOptions;
+use Phel\Build\Domain\Builder\TraspiledFile;
 use Phel\Transpiler\Domain\Exceptions\TranspilerException;
 use SebastianBergmann\Timer\ResourceUsageFormatter;
 use Symfony\Component\Console\Command\Command;
@@ -42,7 +42,7 @@ final class BuildCommand extends Command
         $buildOptions = $this->getBuildOptions($input);
 
         try {
-            $compiledProject = $this->getFacade()->compileProject($buildOptions);
+            $compiledProject = $this->getFacade()->buildProject($buildOptions);
             $this->printOutput($output, $compiledProject);
         } catch (TranspilerException $e) {
             $this->getFacade()->writeLocatedException($output, $e);
@@ -64,7 +64,7 @@ final class BuildCommand extends Command
     }
 
     /**
-     * @param list<CompiledFile> $compiledProject
+     * @param list<TraspiledFile> $compiledProject
      */
     private function printOutput(OutputInterface $output, array $compiledProject): void
     {

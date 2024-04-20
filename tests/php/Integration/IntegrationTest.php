@@ -28,7 +28,7 @@ final class IntegrationTest extends TestCase
         Gacela::bootstrap(__DIR__);
         Symbol::resetGen();
         $globalEnv = GlobalEnvironmentSingleton::initializeNew();
-        (new BuildFacade())->compileFile(
+        (new BuildFacade())->buildFile(
             __DIR__ . '/../../../src/phel/core.phel',
             tempnam(sys_get_temp_dir(), 'phel-core'),
         );

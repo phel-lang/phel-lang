@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace Phel\Build\Domain\Compile;
+namespace Phel\Build\Domain\Builder;
 
-final readonly class CompiledFile
+final readonly class TraspiledFile
 {
     public function __construct(
         private string $sourceFile,

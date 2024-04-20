@@ -5,14 +5,14 @@ declare(strict_types=1);
 namespace Phel\Build;
 
 use Gacela\Framework\AbstractFactory;
-use Phel\Build\Domain\Compile\DependenciesForNamespace;
-use Phel\Build\Domain\Compile\FileCompiler;
-use Phel\Build\Domain\Compile\FileCompilerInterface;
-use Phel\Build\Domain\Compile\FileEvaluator;
-use Phel\Build\Domain\Compile\Output\EntryPointPhpFile;
-use Phel\Build\Domain\Compile\Output\EntryPointPhpFileInterface;
-use Phel\Build\Domain\Compile\Output\NamespacePathTransformer;
-use Phel\Build\Domain\Compile\ProjectCompiler;
+use Phel\Build\Domain\Builder\DependenciesForNamespace;
+use Phel\Build\Domain\Builder\FileBuilder;
+use Phel\Build\Domain\Builder\FileBuilderInterface;
+use Phel\Build\Domain\Builder\FileEvaluator;
+use Phel\Build\Domain\Builder\Output\EntryPointPhpFile;
+use Phel\Build\Domain\Builder\Output\EntryPointPhpFileInterface;
+use Phel\Build\Domain\Builder\Output\NamespacePathTransformer;
+use Phel\Build\Domain\Builder\ProjectBuilder;
 use Phel\Build\Domain\Extractor\NamespaceExtractor;
 use Phel\Build\Domain\Extractor\NamespaceSorterInterface;
 use Phel\Build\Domain\Extractor\TopologicalNamespaceSorter;
@@ -26,11 +26,11 @@ use Phel\Transpiler\TranspilerFacadeInterface;
  */
 final class BuildFactory extends AbstractFactory
 {
-    public function createProjectCompiler(): ProjectCompiler
+    public function createProjectBuilder(): ProjectBuilder
     {
-        return new ProjectCompiler(
+        return new ProjectBuilder(
             $this->createNamespaceExtractor(),
-            $this->createFileCompiler(),
+            $this->createFileBuilder(),
             $this->getTranspilerFacade(),
             $this->getCommandFacade(),
             $this->createMainPhpEntryPointFile(),
@@ -45,9 +45,9 @@ final class BuildFactory extends AbstractFactory
         );
     }
 
-    public function createFileCompiler(): FileCompilerInterface
+    public function createFileBuilder(): FileBuilderInterface
     {
-        return new FileCompiler(
+        return new FileBuilder(
             $this->getTranspilerFacade(),
             $this->createNamespaceExtractor(),
             $this->createFileIo(),

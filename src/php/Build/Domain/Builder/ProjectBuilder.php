@@ -2,11 +2,11 @@
 
 declare(strict_types=1);
 
-namespace Phel\Build\Domain\Compile;
+namespace Phel\Build\Domain\Builder;
 
 use Phel\Build\BuildConfigInterface;
 use Phel\Build\BuildFacade;
-use Phel\Build\Domain\Compile\Output\EntryPointPhpFileInterface;
+use Phel\Build\Domain\Builder\Output\EntryPointPhpFileInterface;
 use Phel\Build\Domain\Extractor\NamespaceExtractorInterface;
 use Phel\Build\Domain\Extractor\NamespaceInformation;
 use Phel\Command\CommandFacadeInterface;
@@ -15,13 +15,13 @@ use RuntimeException;
 
 use function dirname;
 
-final readonly class ProjectCompiler
+final readonly class ProjectBuilder
 {
     private const TARGET_FILE_EXTENSION = '.php';
 
     public function __construct(
         private NamespaceExtractorInterface $namespaceExtractor,
-        private FileCompilerInterface $fileCompiler,
+        private FileBuilderInterface $fileCompiler,
         private TranspilerFacadeInterface $compilerFacade,
         private CommandFacadeInterface $commandFacade,
         private EntryPointPhpFileInterface $entryPointPhpFile,
@@ -30,9 +30,9 @@ final readonly class ProjectCompiler
     }
 
     /**
-     * @return list<CompiledFile>
+     * @return list<TraspiledFile>
      */
-    public function compileProject(BuildOptions $buildOptions): array
+    public function buildProject(BuildOptions $buildOptions): array
     {
 
         $srcDirectories = [
@@ -46,12 +46,12 @@ final readonly class ProjectCompiler
     }
 
     /**
-     * @return list<CompiledFile>
+     * @return list<TraspiledFile>
      */
     private function compileFromTo(array $srcDirectories, string $dest, BuildOptions $buildOptions): array
     {
         $namespaceInformation = $this->namespaceExtractor->getNamespacesFromDirectories($srcDirectories);
-        /** @var list<CompiledFile> $result */
+        /** @var list<TraspiledFile> $result */
         $result = [];
         foreach ($namespaceInformation as $info) {
             if ($this->shouldIgnoreNs($info)) {
