@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace Phel\Formatter\Domain\Rules\Indenter;
 
-use Phel\Compiler\Domain\Parser\ParserNode\InnerNodeInterface;
 use Phel\Formatter\Domain\Rules\Zipper\ParseTreeZipper;
+use Phel\Transpiler\Domain\Parser\ParserNode\InnerNodeInterface;
 
 use function strlen;
 

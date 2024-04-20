@@ -4,18 +4,18 @@ declare(strict_types=1);
 
 namespace PhelTest\Unit\Compiler\Analyzer\SpecialForm;
 
-use Phel\Compiler\Domain\Analyzer\Analyzer;
-use Phel\Compiler\Domain\Analyzer\AnalyzerInterface;
-use Phel\Compiler\Domain\Analyzer\Ast\DefNode;
-use Phel\Compiler\Domain\Analyzer\Ast\LiteralNode;
-use Phel\Compiler\Domain\Analyzer\Ast\MapNode;
-use Phel\Compiler\Domain\Analyzer\Environment\GlobalEnvironment;
-use Phel\Compiler\Domain\Analyzer\Environment\NodeEnvironment;
-use Phel\Compiler\Domain\Analyzer\Exceptions\AnalyzerException;
-use Phel\Compiler\Domain\Analyzer\TypeAnalyzer\SpecialForm\DefSymbol;
 use Phel\Lang\Keyword;
 use Phel\Lang\Symbol;
 use Phel\Lang\TypeFactory;
+use Phel\Transpiler\Domain\Analyzer\Analyzer;
+use Phel\Transpiler\Domain\Analyzer\AnalyzerInterface;
+use Phel\Transpiler\Domain\Analyzer\Ast\DefNode;
+use Phel\Transpiler\Domain\Analyzer\Ast\LiteralNode;
+use Phel\Transpiler\Domain\Analyzer\Ast\MapNode;
+use Phel\Transpiler\Domain\Analyzer\Environment\GlobalEnvironment;
+use Phel\Transpiler\Domain\Analyzer\Environment\NodeEnvironment;
+use Phel\Transpiler\Domain\Analyzer\Exceptions\AnalyzerException;
+use Phel\Transpiler\Domain\Analyzer\TypeAnalyzer\SpecialForm\DefSymbol;
 use PHPUnit\Framework\TestCase;
 use stdClass;
 

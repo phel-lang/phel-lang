@@ -19,7 +19,7 @@ use Phel\Build\Domain\Extractor\TopologicalNamespaceSorter;
 use Phel\Build\Domain\IO\FileIoInterface;
 use Phel\Build\Infrastructure\IO\SystemFileIo;
 use Phel\Command\CommandFacadeInterface;
-use Phel\Compiler\CompilerFacadeInterface;
+use Phel\Transpiler\TranspilerFacadeInterface;
 
 /**
  * @method BuildConfig getConfig()
@@ -71,7 +71,7 @@ final class BuildFactory extends AbstractFactory
         );
     }
 
-    public function getCompilerFacade(): CompilerFacadeInterface
+    public function getCompilerFacade(): TranspilerFacadeInterface
     {
         return $this->getProvidedDependency(BuildDependencyProvider::FACADE_COMPILER);
     }

@@ -4,16 +4,16 @@ declare(strict_types=1);
 
 namespace PhelTest\Unit\Compiler\Analyzer\Environment;
 
-use Phel\Compiler\Domain\Analyzer\Ast\GlobalVarNode;
-use Phel\Compiler\Domain\Analyzer\Ast\LiteralNode;
-use Phel\Compiler\Domain\Analyzer\Ast\PhpClassNameNode;
-use Phel\Compiler\Domain\Analyzer\Environment\GlobalEnvironment;
-use Phel\Compiler\Domain\Analyzer\Environment\NodeEnvironment;
 use Phel\Lang\Keyword;
 use Phel\Lang\Registry;
 use Phel\Lang\SourceLocation;
 use Phel\Lang\Symbol;
 use Phel\Lang\TypeFactory;
+use Phel\Transpiler\Domain\Analyzer\Ast\GlobalVarNode;
+use Phel\Transpiler\Domain\Analyzer\Ast\LiteralNode;
+use Phel\Transpiler\Domain\Analyzer\Ast\PhpClassNameNode;
+use Phel\Transpiler\Domain\Analyzer\Environment\GlobalEnvironment;
+use Phel\Transpiler\Domain\Analyzer\Environment\NodeEnvironment;
 use PHPUnit\Framework\TestCase;
 
 final class GlobalEnvironmentTest extends TestCase

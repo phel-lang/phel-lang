@@ -6,9 +6,9 @@ namespace PhelTest\Benchmark\Phel;
 
 use Gacela\Framework\Gacela;
 use Phel\Build\BuildFacade;
-use Phel\Compiler\Infrastructure\GlobalEnvironmentSingleton;
 use Phel\Lang\Symbol;
 use Phel\Phel;
+use Phel\Transpiler\Infrastructure\GlobalEnvironmentSingleton;
 
 /**
  * @BeforeMethods("setUp")

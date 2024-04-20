@@ -7,13 +7,13 @@ namespace Phel\Build\Domain\Compile;
 use Phel\Build\BuildFacade;
 use Phel\Build\Domain\Extractor\NamespaceExtractorInterface;
 use Phel\Build\Domain\IO\FileIoInterface;
-use Phel\Compiler\CompilerFacadeInterface;
-use Phel\Compiler\Infrastructure\CompileOptions;
+use Phel\Transpiler\Infrastructure\CompileOptions;
+use Phel\Transpiler\TranspilerFacadeInterface;
 
 final readonly class FileCompiler implements FileCompilerInterface
 {
     public function __construct(
-        private CompilerFacadeInterface $compilerFacade,
+        private TranspilerFacadeInterface $compilerFacade,
         private NamespaceExtractorInterface $namespaceExtractor,
         private FileIoInterface $fileIo,
     ) {

@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace PhelTest\Unit\Compiler\Analyzer;
 
-use Phel\Compiler\Domain\Analyzer\Ast\LiteralNode;
-use Phel\Compiler\Domain\Analyzer\Environment\NodeEnvironment;
-use Phel\Compiler\Domain\Analyzer\TypeAnalyzer\AnalyzeLiteral;
 use Phel\Lang\Symbol;
+use Phel\Transpiler\Domain\Analyzer\Ast\LiteralNode;
+use Phel\Transpiler\Domain\Analyzer\Environment\NodeEnvironment;
+use Phel\Transpiler\Domain\Analyzer\TypeAnalyzer\AnalyzeLiteral;
 use PHPUnit\Framework\TestCase;
 
 final class AnalyzeLiteralTest extends TestCase

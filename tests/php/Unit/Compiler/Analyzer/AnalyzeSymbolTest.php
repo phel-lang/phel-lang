@@ -4,17 +4,17 @@ declare(strict_types=1);
 
 namespace PhelTest\Unit\Compiler\Analyzer;
 
-use Phel\Compiler\Domain\Analyzer\Analyzer;
-use Phel\Compiler\Domain\Analyzer\Ast\GlobalVarNode;
-use Phel\Compiler\Domain\Analyzer\Ast\LocalVarNode;
-use Phel\Compiler\Domain\Analyzer\Ast\PhpVarNode;
-use Phel\Compiler\Domain\Analyzer\Environment\GlobalEnvironment;
-use Phel\Compiler\Domain\Analyzer\Environment\NodeEnvironment;
-use Phel\Compiler\Domain\Analyzer\Exceptions\AnalyzerException;
-use Phel\Compiler\Domain\Analyzer\TypeAnalyzer\AnalyzeSymbol;
 use Phel\Lang\Registry;
 use Phel\Lang\Symbol;
 use Phel\Lang\TypeFactory;
+use Phel\Transpiler\Domain\Analyzer\Analyzer;
+use Phel\Transpiler\Domain\Analyzer\Ast\GlobalVarNode;
+use Phel\Transpiler\Domain\Analyzer\Ast\LocalVarNode;
+use Phel\Transpiler\Domain\Analyzer\Ast\PhpVarNode;
+use Phel\Transpiler\Domain\Analyzer\Environment\GlobalEnvironment;
+use Phel\Transpiler\Domain\Analyzer\Environment\NodeEnvironment;
+use Phel\Transpiler\Domain\Analyzer\Exceptions\AnalyzerException;
+use Phel\Transpiler\Domain\Analyzer\TypeAnalyzer\AnalyzeSymbol;
 use PHPUnit\Framework\TestCase;
 
 final class AnalyzeSymbolTest extends TestCase

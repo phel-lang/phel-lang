@@ -4,16 +4,16 @@ declare(strict_types=1);
 
 namespace PhelTest\Unit\Compiler\Analyzer\SpecialForm;
 
-use Phel\Compiler\Domain\Analyzer\Analyzer;
-use Phel\Compiler\Domain\Analyzer\AnalyzerInterface;
-use Phel\Compiler\Domain\Analyzer\Ast\DefStructNode;
-use Phel\Compiler\Domain\Analyzer\Environment\GlobalEnvironment;
-use Phel\Compiler\Domain\Analyzer\Environment\NodeEnvironment;
-use Phel\Compiler\Domain\Analyzer\TypeAnalyzer\SpecialForm\DefStructSymbol;
-use Phel\Compiler\Domain\Exceptions\AbstractLocatedException;
-use Phel\Compiler\Infrastructure\Munge;
 use Phel\Lang\Symbol;
 use Phel\Lang\TypeFactory;
+use Phel\Transpiler\Domain\Analyzer\Analyzer;
+use Phel\Transpiler\Domain\Analyzer\AnalyzerInterface;
+use Phel\Transpiler\Domain\Analyzer\Ast\DefStructNode;
+use Phel\Transpiler\Domain\Analyzer\Environment\GlobalEnvironment;
+use Phel\Transpiler\Domain\Analyzer\Environment\NodeEnvironment;
+use Phel\Transpiler\Domain\Analyzer\TypeAnalyzer\SpecialForm\DefStructSymbol;
+use Phel\Transpiler\Domain\Exceptions\AbstractLocatedException;
+use Phel\Transpiler\Infrastructure\Munge;
 use PHPUnit\Framework\TestCase;
 
 final class DefStructSymbolTest extends TestCase

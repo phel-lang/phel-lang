@@ -10,7 +10,7 @@ use Phel\Build\Domain\Compile\Output\EntryPointPhpFileInterface;
 use Phel\Build\Domain\Extractor\NamespaceExtractorInterface;
 use Phel\Build\Domain\Extractor\NamespaceInformation;
 use Phel\Command\CommandFacadeInterface;
-use Phel\Compiler\CompilerFacadeInterface;
+use Phel\Transpiler\TranspilerFacadeInterface;
 use RuntimeException;
 
 use function dirname;
@@ -22,7 +22,7 @@ final readonly class ProjectCompiler
     public function __construct(
         private NamespaceExtractorInterface $namespaceExtractor,
         private FileCompilerInterface $fileCompiler,
-        private CompilerFacadeInterface $compilerFacade,
+        private TranspilerFacadeInterface $compilerFacade,
         private CommandFacadeInterface $commandFacade,
         private EntryPointPhpFileInterface $entryPointPhpFile,
         private BuildConfigInterface $config,

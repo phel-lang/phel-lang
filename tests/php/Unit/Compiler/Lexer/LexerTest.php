@@ -5,18 +5,18 @@ declare(strict_types=1);
 namespace PhelTest\Unit\Compiler\Lexer;
 
 use Exception;
-use Phel\Compiler\CompilerFactory;
-use Phel\Compiler\Domain\Lexer\Token;
 use Phel\Lang\SourceLocation;
+use Phel\Transpiler\Domain\Lexer\Token;
+use Phel\Transpiler\TranspilerFactory;
 use PHPUnit\Framework\TestCase;
 
 final class LexerTest extends TestCase
 {
-    private CompilerFactory $compilerFactory;
+    private TranspilerFactory $compilerFactory;
 
     protected function setUp(): void
     {
-        $this->compilerFactory = new CompilerFactory();
+        $this->compilerFactory = new TranspilerFactory();
     }
 
     public function test_whitespace_with_newline(): void

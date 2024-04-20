@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace Phel\Interop\Infrastructure\Command;
 
 use Gacela\Framework\DocBlockResolverAwareTrait;
-use Phel\Compiler\Domain\Exceptions\CompilerException;
 use Phel\Interop\InteropFacade;
+use Phel\Transpiler\Domain\Exceptions\CompilerException;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;

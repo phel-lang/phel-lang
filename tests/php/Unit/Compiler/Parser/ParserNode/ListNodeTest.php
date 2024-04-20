@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace PhelTest\Unit\Compiler\Parser\ParserNode;
 
-use Phel\Compiler\Domain\Lexer\Token;
-use Phel\Compiler\Domain\Parser\ParserNode\ListNode;
-use Phel\Compiler\Domain\Parser\ParserNode\NumberNode;
 use Phel\Lang\SourceLocation;
+use Phel\Transpiler\Domain\Lexer\Token;
+use Phel\Transpiler\Domain\Parser\ParserNode\ListNode;
+use Phel\Transpiler\Domain\Parser\ParserNode\NumberNode;
 use PHPUnit\Framework\TestCase;
 use RuntimeException;
 

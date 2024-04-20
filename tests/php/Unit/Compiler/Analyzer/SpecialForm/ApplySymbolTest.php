@@ -4,18 +4,18 @@ declare(strict_types=1);
 
 namespace PhelTest\Unit\Compiler\Analyzer\SpecialForm;
 
-use Phel\Compiler\Domain\Analyzer\Analyzer;
-use Phel\Compiler\Domain\Analyzer\AnalyzerInterface;
-use Phel\Compiler\Domain\Analyzer\Ast\ApplyNode;
-use Phel\Compiler\Domain\Analyzer\Ast\LiteralNode;
-use Phel\Compiler\Domain\Analyzer\Ast\PhpVarNode;
-use Phel\Compiler\Domain\Analyzer\Ast\VectorNode;
-use Phel\Compiler\Domain\Analyzer\Environment\GlobalEnvironment;
-use Phel\Compiler\Domain\Analyzer\Environment\NodeEnvironment;
-use Phel\Compiler\Domain\Analyzer\TypeAnalyzer\SpecialForm\ApplySymbol;
-use Phel\Compiler\Domain\Exceptions\AbstractLocatedException;
 use Phel\Lang\Symbol;
 use Phel\Lang\TypeFactory;
+use Phel\Transpiler\Domain\Analyzer\Analyzer;
+use Phel\Transpiler\Domain\Analyzer\AnalyzerInterface;
+use Phel\Transpiler\Domain\Analyzer\Ast\ApplyNode;
+use Phel\Transpiler\Domain\Analyzer\Ast\LiteralNode;
+use Phel\Transpiler\Domain\Analyzer\Ast\PhpVarNode;
+use Phel\Transpiler\Domain\Analyzer\Ast\VectorNode;
+use Phel\Transpiler\Domain\Analyzer\Environment\GlobalEnvironment;
+use Phel\Transpiler\Domain\Analyzer\Environment\NodeEnvironment;
+use Phel\Transpiler\Domain\Analyzer\TypeAnalyzer\SpecialForm\ApplySymbol;
+use Phel\Transpiler\Domain\Exceptions\AbstractLocatedException;
 use PHPUnit\Framework\TestCase;
 
 final class ApplySymbolTest extends TestCase

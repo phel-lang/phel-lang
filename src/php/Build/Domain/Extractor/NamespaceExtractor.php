@@ -5,15 +5,15 @@ declare(strict_types=1);
 namespace Phel\Build\Domain\Extractor;
 
 use Phel\Build\Domain\IO\FileIoInterface;
-use Phel\Compiler\CompilerFacadeInterface;
-use Phel\Compiler\Domain\Analyzer\Ast\NsNode;
-use Phel\Compiler\Domain\Analyzer\Environment\NodeEnvironment;
-use Phel\Compiler\Domain\Lexer\Exceptions\LexerValueException;
-use Phel\Compiler\Domain\Parser\Exceptions\AbstractParserException;
-use Phel\Compiler\Domain\Parser\ParserNode\NodeInterface;
-use Phel\Compiler\Domain\Parser\ParserNode\TriviaNodeInterface;
-use Phel\Compiler\Domain\Reader\Exceptions\ReaderException;
 use Phel\Lang\Symbol;
+use Phel\Transpiler\Domain\Analyzer\Ast\NsNode;
+use Phel\Transpiler\Domain\Analyzer\Environment\NodeEnvironment;
+use Phel\Transpiler\Domain\Lexer\Exceptions\LexerValueException;
+use Phel\Transpiler\Domain\Parser\Exceptions\AbstractParserException;
+use Phel\Transpiler\Domain\Parser\ParserNode\NodeInterface;
+use Phel\Transpiler\Domain\Parser\ParserNode\TriviaNodeInterface;
+use Phel\Transpiler\Domain\Reader\Exceptions\ReaderException;
+use Phel\Transpiler\TranspilerFacadeInterface;
 use RecursiveDirectoryIterator;
 use RecursiveIteratorIterator;
 use RegexIterator;
@@ -21,7 +21,7 @@ use RegexIterator;
 final readonly class NamespaceExtractor implements NamespaceExtractorInterface
 {
     public function __construct(
-        private CompilerFacadeInterface $compilerFacade,
+        private TranspilerFacadeInterface $compilerFacade,
         private NamespaceSorterInterface $namespaceSorter,
         private FileIoInterface $fileIo,
     ) {

@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Phel\Command\Domain\Handler;
 
 use Phel\Command\Domain\Shared\Exceptions\ExceptionPrinterInterface;
-use Phel\Compiler\Domain\Exceptions\CompilerException;
+use Phel\Transpiler\Domain\Exceptions\CompilerException;
 use Throwable;
 
 final class ExceptionHandler

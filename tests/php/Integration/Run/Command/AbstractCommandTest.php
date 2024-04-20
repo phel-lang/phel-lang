@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace PhelTest\Integration\Run\Command;
 
-use Phel\Compiler\Infrastructure\GlobalEnvironmentSingleton;
 use Phel\Run\RunFacade;
 use Phel\Run\RunFacadeInterface;
+use Phel\Transpiler\Infrastructure\GlobalEnvironmentSingleton;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\Console\Output\OutputInterface;
 

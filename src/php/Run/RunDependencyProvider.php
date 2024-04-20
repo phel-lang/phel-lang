@@ -8,9 +8,9 @@ use Gacela\Framework\AbstractDependencyProvider;
 use Gacela\Framework\Container\Container;
 use Phel\Build\BuildFacade;
 use Phel\Command\CommandFacade;
-use Phel\Compiler\CompilerFacade;
 use Phel\Formatter\FormatterFacade;
 use Phel\Interop\InteropFacade;
+use Phel\Transpiler\TranspilerFacade;
 
 final class RunDependencyProvider extends AbstractDependencyProvider
 {
@@ -45,7 +45,7 @@ final class RunDependencyProvider extends AbstractDependencyProvider
     {
         $container->set(
             self::FACADE_COMPILER,
-            static fn (Container $container) => $container->getLocator()->get(CompilerFacade::class),
+            static fn (Container $container) => $container->getLocator()->get(TranspilerFacade::class),
         );
     }
 

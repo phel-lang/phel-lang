@@ -4,13 +4,13 @@ declare(strict_types=1);
 
 namespace PhelTest\Unit\Compiler\Emitter\OutputEmitter\NodeEmitter;
 
-use Phel\Compiler\CompilerFactory;
-use Phel\Compiler\Domain\Analyzer\Ast\FnNode;
-use Phel\Compiler\Domain\Analyzer\Ast\PhpVarNode;
-use Phel\Compiler\Domain\Analyzer\Environment\NodeEnvironment;
-use Phel\Compiler\Domain\Emitter\OutputEmitter\NodeEmitter\FnAsClassEmitter;
-use Phel\Compiler\Domain\Emitter\OutputEmitter\NodeEmitter\MethodEmitter;
 use Phel\Lang\Symbol;
+use Phel\Transpiler\Domain\Analyzer\Ast\FnNode;
+use Phel\Transpiler\Domain\Analyzer\Ast\PhpVarNode;
+use Phel\Transpiler\Domain\Analyzer\Environment\NodeEnvironment;
+use Phel\Transpiler\Domain\Emitter\OutputEmitter\NodeEmitter\FnAsClassEmitter;
+use Phel\Transpiler\Domain\Emitter\OutputEmitter\NodeEmitter\MethodEmitter;
+use Phel\Transpiler\TranspilerFactory;
 use PHPUnit\Framework\TestCase;
 
 final class FnAsClassEmitterTest extends TestCase
@@ -19,7 +19,7 @@ final class FnAsClassEmitterTest extends TestCase
 
     protected function setUp(): void
     {
-        $outputEmitter = (new CompilerFactory())
+        $outputEmitter = (new TranspilerFactory())
             ->createOutputEmitter();
 
         $this->fnAsClassEmitter = new FnAsClassEmitter($outputEmitter, new MethodEmitter($outputEmitter));

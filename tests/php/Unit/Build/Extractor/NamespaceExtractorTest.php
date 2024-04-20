@@ -10,7 +10,7 @@ use Phel\Build\Domain\Extractor\NamespaceExtractor;
 use Phel\Build\Domain\Extractor\NamespaceInformation;
 use Phel\Build\Domain\Extractor\TopologicalNamespaceSorter;
 use Phel\Build\Infrastructure\IO\SystemFileIo;
-use Phel\Compiler\CompilerFacade;
+use Phel\Transpiler\TranspilerFacade;
 use PHPUnit\Framework\TestCase;
 
 final class NamespaceExtractorTest extends TestCase
@@ -65,7 +65,7 @@ final class NamespaceExtractorTest extends TestCase
         file_put_contents($filePath, $code);
 
         $nsExtractor = new NamespaceExtractor(
-            new CompilerFacade(),
+            new TranspilerFacade(),
             new TopologicalNamespaceSorter(),
             new SystemFileIo(),
         );

@@ -4,16 +4,16 @@ declare(strict_types=1);
 
 namespace Phel\Formatter\Domain\Rules;
 
-use Phel\Compiler\Domain\Lexer\Token;
-use Phel\Compiler\Domain\Parser\ParserNode\ListNode;
-use Phel\Compiler\Domain\Parser\ParserNode\MetaNode;
-use Phel\Compiler\Domain\Parser\ParserNode\NodeInterface;
-use Phel\Compiler\Domain\Parser\ParserNode\WhitespaceNode;
 use Phel\Formatter\Domain\Rules\Indenter\IndenterInterface;
 use Phel\Formatter\Domain\Rules\Indenter\LineIndenter;
 use Phel\Formatter\Domain\Rules\Indenter\ListIndenter;
 use Phel\Formatter\Domain\Rules\Zipper\ParseTreeZipper;
 use Phel\Lang\SourceLocation;
+use Phel\Transpiler\Domain\Lexer\Token;
+use Phel\Transpiler\Domain\Parser\ParserNode\ListNode;
+use Phel\Transpiler\Domain\Parser\ParserNode\MetaNode;
+use Phel\Transpiler\Domain\Parser\ParserNode\NodeInterface;
+use Phel\Transpiler\Domain\Parser\ParserNode\WhitespaceNode;
 
 final readonly class IndentRule implements RuleInterface
 {

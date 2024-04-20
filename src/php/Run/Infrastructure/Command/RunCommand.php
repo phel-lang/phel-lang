@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace Phel\Run\Infrastructure\Command;
 
 use Gacela\Framework\DocBlockResolverAwareTrait;
-use Phel\Compiler\Domain\Exceptions\CompilerException;
 use Phel\Run\RunFacade;
+use Phel\Transpiler\Domain\Exceptions\CompilerException;
 use SebastianBergmann\Timer\ResourceUsageFormatter;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputArgument;

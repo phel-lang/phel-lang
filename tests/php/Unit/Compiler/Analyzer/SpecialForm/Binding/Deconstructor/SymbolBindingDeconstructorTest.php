@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace PhelTest\Unit\Compiler\Analyzer\SpecialForm\Binding\Deconstructor;
 
-use Phel\Compiler\Domain\Analyzer\TypeAnalyzer\SpecialForm\Binding\Deconstructor\SymbolBindingDeconstructor;
 use Phel\Lang\Symbol;
+use Phel\Transpiler\Domain\Analyzer\TypeAnalyzer\SpecialForm\Binding\Deconstructor\SymbolBindingDeconstructor;
 use PHPUnit\Framework\TestCase;
 
 final class SymbolBindingDeconstructorTest extends TestCase

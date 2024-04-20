@@ -7,11 +7,11 @@ namespace PhelTest\Integration;
 use Gacela\Framework\Gacela;
 use Generator;
 use Phel\Build\BuildFacade;
-use Phel\Compiler\CompilerFacade;
-use Phel\Compiler\Domain\Analyzer\Environment\GlobalEnvironment;
-use Phel\Compiler\Infrastructure\CompileOptions;
-use Phel\Compiler\Infrastructure\GlobalEnvironmentSingleton;
 use Phel\Lang\Symbol;
+use Phel\Transpiler\Domain\Analyzer\Environment\GlobalEnvironment;
+use Phel\Transpiler\Infrastructure\CompileOptions;
+use Phel\Transpiler\Infrastructure\GlobalEnvironmentSingleton;
+use Phel\Transpiler\TranspilerFacade;
 use PHPUnit\Framework\TestCase;
 use RecursiveDirectoryIterator;
 use RecursiveIteratorIterator;
@@ -21,7 +21,7 @@ final class IntegrationTest extends TestCase
 {
     private static GlobalEnvironment $globalEnv;
 
-    private CompilerFacade $compilerFacade;
+    private TranspilerFacade $compilerFacade;
 
     public static function setUpBeforeClass(): void
     {
@@ -37,7 +37,7 @@ final class IntegrationTest extends TestCase
 
     protected function setUp(): void
     {
-        $this->compilerFacade = new CompilerFacade();
+        $this->compilerFacade = new TranspilerFacade();
     }
 
     /**

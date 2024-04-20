@@ -6,10 +6,10 @@ namespace Phel\Run\Infrastructure\Command;
 
 use Gacela\Framework\DocBlockResolverAwareTrait;
 use Phel\Build\Domain\Extractor\NamespaceInformation;
-use Phel\Compiler\Domain\Exceptions\CompilerException;
-use Phel\Compiler\Infrastructure\CompileOptions;
 use Phel\Run\Domain\Test\TestCommandOptions;
 use Phel\Run\RunFacade;
+use Phel\Transpiler\Domain\Exceptions\CompilerException;
+use Phel\Transpiler\Infrastructure\CompileOptions;
 use SebastianBergmann\Timer\ResourceUsageFormatter;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputArgument;

@@ -4,11 +4,11 @@ declare(strict_types=1);
 
 namespace PhelTest\Unit\Compiler\Reader;
 
-use Phel\Compiler\Domain\Analyzer\Environment\GlobalEnvironment;
-use Phel\Compiler\Domain\Reader\QuasiquoteTransformer;
 use Phel\Lang\Keyword;
 use Phel\Lang\Symbol;
 use Phel\Lang\TypeFactory;
+use Phel\Transpiler\Domain\Analyzer\Environment\GlobalEnvironment;
+use Phel\Transpiler\Domain\Reader\QuasiquoteTransformer;
 use PHPUnit\Framework\TestCase;
 use RuntimeException;
 

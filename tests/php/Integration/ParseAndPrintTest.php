@@ -4,18 +4,18 @@ declare(strict_types=1);
 
 namespace PhelTest\Integration;
 
-use Phel\Compiler\CompilerFactory;
-use Phel\Compiler\Domain\Parser\ParserNode\NodeInterface;
 use Phel\Lang\Symbol;
+use Phel\Transpiler\Domain\Parser\ParserNode\NodeInterface;
+use Phel\Transpiler\TranspilerFactory;
 use PHPUnit\Framework\TestCase;
 
 final class ParseAndPrintTest extends TestCase
 {
-    private CompilerFactory $compilerFactory;
+    private TranspilerFactory $compilerFactory;
 
     protected function setUp(): void
     {
-        $this->compilerFactory = new CompilerFactory();
+        $this->compilerFactory = new TranspilerFactory();
     }
 
     public function test_parse_and_print_core_library(): void

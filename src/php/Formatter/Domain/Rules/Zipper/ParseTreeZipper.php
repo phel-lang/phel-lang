@@ -4,12 +4,12 @@ declare(strict_types=1);
 
 namespace Phel\Formatter\Domain\Rules\Zipper;
 
-use Phel\Compiler\Domain\Parser\ParserNode\CommentNode;
-use Phel\Compiler\Domain\Parser\ParserNode\InnerNodeInterface;
-use Phel\Compiler\Domain\Parser\ParserNode\NewlineNode;
-use Phel\Compiler\Domain\Parser\ParserNode\NodeInterface;
-use Phel\Compiler\Domain\Parser\ParserNode\TriviaNodeInterface;
-use Phel\Compiler\Domain\Parser\ParserNode\WhitespaceNode;
+use Phel\Transpiler\Domain\Parser\ParserNode\CommentNode;
+use Phel\Transpiler\Domain\Parser\ParserNode\InnerNodeInterface;
+use Phel\Transpiler\Domain\Parser\ParserNode\NewlineNode;
+use Phel\Transpiler\Domain\Parser\ParserNode\NodeInterface;
+use Phel\Transpiler\Domain\Parser\ParserNode\TriviaNodeInterface;
+use Phel\Transpiler\Domain\Parser\ParserNode\WhitespaceNode;
 
 /**
  * @extends AbstractZipper<NodeInterface>

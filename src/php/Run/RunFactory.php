@@ -7,7 +7,6 @@ namespace Phel\Run;
 use Gacela\Framework\AbstractFactory;
 use Phel\Build\BuildFacadeInterface;
 use Phel\Command\CommandFacadeInterface;
-use Phel\Compiler\CompilerFacadeInterface;
 use Phel\Printer\Printer;
 use Phel\Printer\PrinterInterface;
 use Phel\Run\Domain\Repl\ColorStyle;
@@ -17,6 +16,7 @@ use Phel\Run\Domain\Repl\ReplCommandSystemIo;
 use Phel\Run\Domain\Runner\NamespaceCollector;
 use Phel\Run\Domain\Runner\NamespaceRunner;
 use Phel\Run\Domain\Runner\NamespaceRunnerInterface;
+use Phel\Transpiler\TranspilerFacadeInterface;
 
 /**
  * @method RunConfig getConfig()
@@ -41,7 +41,7 @@ class RunFactory extends AbstractFactory
         return $this->getProvidedDependency(RunDependencyProvider::FACADE_BUILD);
     }
 
-    public function getCompilerFacade(): CompilerFacadeInterface
+    public function getCompilerFacade(): TranspilerFacadeInterface
     {
         return $this->getProvidedDependency(RunDependencyProvider::FACADE_COMPILER);
     }

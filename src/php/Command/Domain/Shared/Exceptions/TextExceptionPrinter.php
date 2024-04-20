@@ -6,12 +6,12 @@ namespace Phel\Command\Domain\Shared\Exceptions;
 
 use Phel\Command\Domain\Shared\ErrorLog\ErrorLogInterface;
 use Phel\Command\Domain\Shared\Exceptions\Extractor\FilePositionExtractorInterface;
-use Phel\Compiler\Domain\Emitter\OutputEmitter\MungeInterface;
-use Phel\Compiler\Domain\Exceptions\AbstractLocatedException;
-use Phel\Compiler\Domain\Parser\ReadModel\CodeSnippet;
 use Phel\Lang\FnInterface;
 use Phel\Lang\SourceLocation;
 use Phel\Run\Domain\Repl\ColorStyleInterface;
+use Phel\Transpiler\Domain\Emitter\OutputEmitter\MungeInterface;
+use Phel\Transpiler\Domain\Exceptions\AbstractLocatedException;
+use Phel\Transpiler\Domain\Parser\ReadModel\CodeSnippet;
 use ReflectionClass;
 use Throwable;
 

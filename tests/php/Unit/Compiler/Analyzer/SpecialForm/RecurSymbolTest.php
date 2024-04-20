@@ -4,23 +4,23 @@ declare(strict_types=1);
 
 namespace PhelTest\Unit\Compiler\Analyzer\SpecialForm;
 
-use Phel\Compiler\Domain\Analyzer\Analyzer;
-use Phel\Compiler\Domain\Analyzer\AnalyzerInterface;
-use Phel\Compiler\Domain\Analyzer\Ast\CallNode;
-use Phel\Compiler\Domain\Analyzer\Ast\DoNode;
-use Phel\Compiler\Domain\Analyzer\Ast\FnNode;
-use Phel\Compiler\Domain\Analyzer\Ast\IfNode;
-use Phel\Compiler\Domain\Analyzer\Ast\LiteralNode;
-use Phel\Compiler\Domain\Analyzer\Ast\LocalVarNode;
-use Phel\Compiler\Domain\Analyzer\Ast\PhpVarNode;
-use Phel\Compiler\Domain\Analyzer\Ast\RecurFrame;
-use Phel\Compiler\Domain\Analyzer\Ast\RecurNode;
-use Phel\Compiler\Domain\Analyzer\Environment\GlobalEnvironment;
-use Phel\Compiler\Domain\Analyzer\Environment\NodeEnvironment;
-use Phel\Compiler\Domain\Analyzer\Exceptions\AnalyzerException;
-use Phel\Compiler\Domain\Analyzer\TypeAnalyzer\SpecialForm\RecurSymbol;
 use Phel\Lang\Symbol;
 use Phel\Lang\TypeFactory;
+use Phel\Transpiler\Domain\Analyzer\Analyzer;
+use Phel\Transpiler\Domain\Analyzer\AnalyzerInterface;
+use Phel\Transpiler\Domain\Analyzer\Ast\CallNode;
+use Phel\Transpiler\Domain\Analyzer\Ast\DoNode;
+use Phel\Transpiler\Domain\Analyzer\Ast\FnNode;
+use Phel\Transpiler\Domain\Analyzer\Ast\IfNode;
+use Phel\Transpiler\Domain\Analyzer\Ast\LiteralNode;
+use Phel\Transpiler\Domain\Analyzer\Ast\LocalVarNode;
+use Phel\Transpiler\Domain\Analyzer\Ast\PhpVarNode;
+use Phel\Transpiler\Domain\Analyzer\Ast\RecurFrame;
+use Phel\Transpiler\Domain\Analyzer\Ast\RecurNode;
+use Phel\Transpiler\Domain\Analyzer\Environment\GlobalEnvironment;
+use Phel\Transpiler\Domain\Analyzer\Environment\NodeEnvironment;
+use Phel\Transpiler\Domain\Analyzer\Exceptions\AnalyzerException;
+use Phel\Transpiler\Domain\Analyzer\TypeAnalyzer\SpecialForm\RecurSymbol;
 use PHPUnit\Framework\TestCase;
 
 final class RecurSymbolTest extends TestCase

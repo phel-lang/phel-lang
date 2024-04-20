@@ -7,7 +7,7 @@ namespace Phel\Build;
 use Gacela\Framework\AbstractDependencyProvider;
 use Gacela\Framework\Container\Container;
 use Phel\Command\CommandFacade;
-use Phel\Compiler\CompilerFacade;
+use Phel\Transpiler\TranspilerFacade;
 
 final class BuildDependencyProvider extends AbstractDependencyProvider
 {
@@ -25,7 +25,7 @@ final class BuildDependencyProvider extends AbstractDependencyProvider
     {
         $container->set(
             self::FACADE_COMPILER,
-            static fn (Container $container) => $container->getLocator()->get(CompilerFacade::class),
+            static fn (Container $container) => $container->getLocator()->get(TranspilerFacade::class),
         );
     }
 

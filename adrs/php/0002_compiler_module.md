@@ -1,10 +1,10 @@
-# Compiler Module
+# Transpiler Module
 
 ## Motivation
 
-Describe the responsibilities of the Compiler module.
+Describe the responsibilities of the Transpiler module.
 
-## Compiler sub-modules
+## Transpiler sub-modules
 
 - Lexer
 - Parser

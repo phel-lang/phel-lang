@@ -5,15 +5,15 @@ declare(strict_types=1);
 namespace PhelTest\Integration\Printer;
 
 use Gacela\Framework\Gacela;
-use Phel\Compiler\CompilerFacade;
-use Phel\Compiler\CompilerFacadeInterface;
-use Phel\Compiler\Infrastructure\GlobalEnvironmentSingleton;
 use Phel\Printer\Printer;
+use Phel\Transpiler\Infrastructure\GlobalEnvironmentSingleton;
+use Phel\Transpiler\TranspilerFacade;
+use Phel\Transpiler\TranspilerFacadeInterface;
 use PHPUnit\Framework\TestCase;
 
 final class PrinterTest extends TestCase
 {
-    private CompilerFacadeInterface $compilerFacade;
+    private TranspilerFacadeInterface $compilerFacade;
 
     public static function setUpBeforeClass(): void
     {
@@ -23,7 +23,7 @@ final class PrinterTest extends TestCase
 
     protected function setUp(): void
     {
-        $this->compilerFacade = new CompilerFacade();
+        $this->compilerFacade = new TranspilerFacade();
     }
 
     public function test_print_string(): void

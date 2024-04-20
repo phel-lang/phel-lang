@@ -6,7 +6,7 @@ namespace PhelTest\Integration\Interop;
 
 use Gacela\Framework\Gacela;
 use Phel\Build\BuildFacade;
-use Phel\Compiler\Infrastructure\GlobalEnvironmentSingleton;
+use Phel\Transpiler\Infrastructure\GlobalEnvironmentSingleton;
 use PHPUnit\Framework\TestCase;
 
 final class CallPhelTest extends TestCase

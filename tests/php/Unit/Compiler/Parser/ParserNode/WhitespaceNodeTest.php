@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace PhelTest\Unit\Compiler\Parser\ParserNode;
 
-use Phel\Compiler\Domain\Parser\ParserNode\WhitespaceNode;
 use Phel\Lang\SourceLocation;
+use Phel\Transpiler\Domain\Parser\ParserNode\WhitespaceNode;
 use PHPUnit\Framework\TestCase;
 
 final class WhitespaceNodeTest extends TestCase

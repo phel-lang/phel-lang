@@ -4,12 +4,12 @@ declare(strict_types=1);
 
 namespace Phel\Api\Infrastructure;
 
-use Phel\Compiler\Infrastructure\GlobalEnvironmentSingleton;
 use Phel\Lang\Collections\Map\PersistentMapInterface;
 use Phel\Lang\Registry;
 use Phel\Lang\Symbol;
 use Phel\Lang\TypeFactory;
 use Phel\Run\RunFacadeInterface;
+use Phel\Transpiler\Infrastructure\GlobalEnvironmentSingleton;
 
 use function dirname;
 use function in_array;

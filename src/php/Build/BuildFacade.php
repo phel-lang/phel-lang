@@ -8,10 +8,10 @@ use Gacela\Framework\AbstractFacade;
 use Phel\Build\Domain\Compile\BuildOptions;
 use Phel\Build\Domain\Compile\CompiledFile;
 use Phel\Build\Domain\Extractor\NamespaceInformation;
-use Phel\Compiler\Domain\Exceptions\CompilerException;
 use Phel\Lang\Registry;
 use Phel\Shared\BuildConstants;
 use Phel\Shared\CompilerConstants;
+use Phel\Transpiler\Domain\Exceptions\CompilerException;
 use Symfony\Component\Console\Output\OutputInterface;
 use Throwable;
 

@@ -5,33 +5,33 @@ declare(strict_types=1);
 namespace PhelTest\Integration\Compiler\Parser;
 
 use Gacela\Framework\Gacela;
-use Phel\Compiler\CompilerFacade;
-use Phel\Compiler\CompilerFacadeInterface;
-use Phel\Compiler\Domain\Lexer\Token;
-use Phel\Compiler\Domain\Parser\Exceptions\AbstractParserException;
-use Phel\Compiler\Domain\Parser\ParserNode\BooleanNode;
-use Phel\Compiler\Domain\Parser\ParserNode\CommentNode;
-use Phel\Compiler\Domain\Parser\ParserNode\KeywordNode;
-use Phel\Compiler\Domain\Parser\ParserNode\ListNode;
-use Phel\Compiler\Domain\Parser\ParserNode\MetaNode;
-use Phel\Compiler\Domain\Parser\ParserNode\NewlineNode;
-use Phel\Compiler\Domain\Parser\ParserNode\NilNode;
-use Phel\Compiler\Domain\Parser\ParserNode\NodeInterface;
-use Phel\Compiler\Domain\Parser\ParserNode\NumberNode;
-use Phel\Compiler\Domain\Parser\ParserNode\QuoteNode;
-use Phel\Compiler\Domain\Parser\ParserNode\StringNode;
-use Phel\Compiler\Domain\Parser\ParserNode\SymbolNode;
-use Phel\Compiler\Domain\Parser\ParserNode\WhitespaceNode;
-use Phel\Compiler\Infrastructure\GlobalEnvironmentSingleton;
 use Phel\Lang\Keyword;
 use Phel\Lang\SourceLocation;
 use Phel\Lang\Symbol;
 use Phel\Phel;
+use Phel\Transpiler\Domain\Lexer\Token;
+use Phel\Transpiler\Domain\Parser\Exceptions\AbstractParserException;
+use Phel\Transpiler\Domain\Parser\ParserNode\BooleanNode;
+use Phel\Transpiler\Domain\Parser\ParserNode\CommentNode;
+use Phel\Transpiler\Domain\Parser\ParserNode\KeywordNode;
+use Phel\Transpiler\Domain\Parser\ParserNode\ListNode;
+use Phel\Transpiler\Domain\Parser\ParserNode\MetaNode;
+use Phel\Transpiler\Domain\Parser\ParserNode\NewlineNode;
+use Phel\Transpiler\Domain\Parser\ParserNode\NilNode;
+use Phel\Transpiler\Domain\Parser\ParserNode\NodeInterface;
+use Phel\Transpiler\Domain\Parser\ParserNode\NumberNode;
+use Phel\Transpiler\Domain\Parser\ParserNode\QuoteNode;
+use Phel\Transpiler\Domain\Parser\ParserNode\StringNode;
+use Phel\Transpiler\Domain\Parser\ParserNode\SymbolNode;
+use Phel\Transpiler\Domain\Parser\ParserNode\WhitespaceNode;
+use Phel\Transpiler\Infrastructure\GlobalEnvironmentSingleton;
+use Phel\Transpiler\TranspilerFacade;
+use Phel\Transpiler\TranspilerFacadeInterface;
 use PHPUnit\Framework\TestCase;
 
 final class ParserTest extends TestCase
 {
-    private CompilerFacadeInterface $compilerFacade;
+    private TranspilerFacadeInterface $compilerFacade;
 
     public static function setUpBeforeClass(): void
     {
@@ -42,7 +42,7 @@ final class ParserTest extends TestCase
     {
         Gacela::bootstrap(__DIR__, Phel::configFn());
         Symbol::resetGen();
-        $this->compilerFacade = new CompilerFacade();
+        $this->compilerFacade = new TranspilerFacade();
     }
 
     public function test_read_number(): void

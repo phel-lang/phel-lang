@@ -8,14 +8,14 @@ use Phel\Build\BuildFacadeInterface;
 use Phel\Build\Domain\Extractor\ExtractorException;
 use Phel\Build\Domain\Extractor\NamespaceInformation;
 use Phel\Command\CommandFacadeInterface;
-use Phel\Compiler\Domain\Evaluator\Exceptions\CompiledCodeIsMalformedException;
-use Phel\Compiler\Domain\Evaluator\Exceptions\FileException;
-use Phel\Compiler\Domain\Exceptions\CompilerException;
 use Phel\Interop\Domain\ReadModel\FunctionToExport;
 use Phel\Lang\Collections\Map\PersistentMapInterface;
 use Phel\Lang\Keyword;
 use Phel\Lang\Registry;
 use Phel\Lang\TypeFactory;
+use Phel\Transpiler\Domain\Evaluator\Exceptions\CompiledCodeIsMalformedException;
+use Phel\Transpiler\Domain\Evaluator\Exceptions\FileException;
+use Phel\Transpiler\Domain\Exceptions\CompilerException;
 
 final readonly class FunctionsToExportFinder implements FunctionsToExportFinderInterface
 {

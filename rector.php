@@ -22,17 +22,17 @@ return static function (RectorConfig $rectorConfig): void {
         __DIR__ . '/tests/php/*/gacela-custom-services.php',
 
         UseClassKeywordForClassNameResolutionRector::class => [
-            __DIR__ . '/src/php/Compiler/Domain/Emitter/OutputEmitter/LiteralEmitter.php',
-            __DIR__ . '/src/php/Compiler/Domain/Emitter/OutputEmitter/NodeEmitter/DefEmitter',
-            __DIR__ . '/src/php/Compiler/Domain/Emitter/OutputEmitter/NodeEmitter/GlobalVarEmitter.php',
-            __DIR__ . '/src/php/Compiler/Domain/Emitter/OutputEmitter/NodeEmitter/IfEmitter.php',
-            __DIR__ . '/src/php/Compiler/Domain/Emitter/OutputEmitter/NodeEmitter/MapEmitter.php',
-            __DIR__ . '/src/php/Compiler/Domain/Emitter/OutputEmitter/NodeEmitter/MethodEmitter.php',
-            __DIR__ . '/src/php/Compiler/Domain/Emitter/OutputEmitter/NodeEmitter/NsEmitter.php',
-            __DIR__ . '/src/php/Compiler/Domain/Emitter/OutputEmitter/NodeEmitter/SetVarEmitter.php',
-            __DIR__ . '/src/php/Compiler/Domain/Emitter/OutputEmitter/NodeEmitter/VectorEmitter.php',
-            __DIR__ . '/tests/php/Unit/Compiler/Emitter/OutputEmitter/NodeEmitter/ApplyEmitterTest.php',
-            __DIR__ . '/tests/php/Unit/Compiler/Emitter/OutputEmitter/NodeEmitter/FnAsClassEmitterTest.php',
+            __DIR__ . '/src/php/Transpiler/Domain/Emitter/OutputEmitter/LiteralEmitter.php',
+            __DIR__ . '/src/php/Transpiler/Domain/Emitter/OutputEmitter/NodeEmitter/DefEmitter',
+            __DIR__ . '/src/php/Transpiler/Domain/Emitter/OutputEmitter/NodeEmitter/GlobalVarEmitter.php',
+            __DIR__ . '/src/php/Transpiler/Domain/Emitter/OutputEmitter/NodeEmitter/IfEmitter.php',
+            __DIR__ . '/src/php/Transpiler/Domain/Emitter/OutputEmitter/NodeEmitter/MapEmitter.php',
+            __DIR__ . '/src/php/Transpiler/Domain/Emitter/OutputEmitter/NodeEmitter/MethodEmitter.php',
+            __DIR__ . '/src/php/Transpiler/Domain/Emitter/OutputEmitter/NodeEmitter/NsEmitter.php',
+            __DIR__ . '/src/php/Transpiler/Domain/Emitter/OutputEmitter/NodeEmitter/SetVarEmitter.php',
+            __DIR__ . '/src/php/Transpiler/Domain/Emitter/OutputEmitter/NodeEmitter/VectorEmitter.php',
+            __DIR__ . '/tests/php/Unit/Transpiler/Emitter/OutputEmitter/NodeEmitter/ApplyEmitterTest.php',
+            __DIR__ . '/tests/php/Unit/Transpiler/Emitter/OutputEmitter/NodeEmitter/FnAsClassEmitterTest.php',
         ],
 
         PrivatizeFinalClassPropertyRector::class => [

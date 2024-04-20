@@ -4,19 +4,19 @@ declare(strict_types=1);
 
 namespace PhelTest\Unit\Compiler\Analyzer\SpecialForm;
 
-use Phel\Compiler\Domain\Analyzer\Analyzer;
-use Phel\Compiler\Domain\Analyzer\AnalyzerInterface;
-use Phel\Compiler\Domain\Analyzer\Ast\BindingNode;
-use Phel\Compiler\Domain\Analyzer\Ast\DoNode;
-use Phel\Compiler\Domain\Analyzer\Ast\LetNode;
-use Phel\Compiler\Domain\Analyzer\Ast\LiteralNode;
-use Phel\Compiler\Domain\Analyzer\Environment\GlobalEnvironment;
-use Phel\Compiler\Domain\Analyzer\Environment\NodeEnvironment;
-use Phel\Compiler\Domain\Analyzer\Exceptions\AnalyzerException;
-use Phel\Compiler\Domain\Analyzer\TypeAnalyzer\SpecialForm\Binding\DeconstructorInterface;
-use Phel\Compiler\Domain\Analyzer\TypeAnalyzer\SpecialForm\LetSymbol;
 use Phel\Lang\Symbol;
 use Phel\Lang\TypeFactory;
+use Phel\Transpiler\Domain\Analyzer\Analyzer;
+use Phel\Transpiler\Domain\Analyzer\AnalyzerInterface;
+use Phel\Transpiler\Domain\Analyzer\Ast\BindingNode;
+use Phel\Transpiler\Domain\Analyzer\Ast\DoNode;
+use Phel\Transpiler\Domain\Analyzer\Ast\LetNode;
+use Phel\Transpiler\Domain\Analyzer\Ast\LiteralNode;
+use Phel\Transpiler\Domain\Analyzer\Environment\GlobalEnvironment;
+use Phel\Transpiler\Domain\Analyzer\Environment\NodeEnvironment;
+use Phel\Transpiler\Domain\Analyzer\Exceptions\AnalyzerException;
+use Phel\Transpiler\Domain\Analyzer\TypeAnalyzer\SpecialForm\Binding\DeconstructorInterface;
+use Phel\Transpiler\Domain\Analyzer\TypeAnalyzer\SpecialForm\LetSymbol;
 use PHPUnit\Framework\TestCase;
 
 final class LetSymbolTest extends TestCase

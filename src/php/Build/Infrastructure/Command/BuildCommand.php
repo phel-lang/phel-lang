@@ -8,7 +8,7 @@ use Gacela\Framework\DocBlockResolverAwareTrait;
 use Phel\Build\BuildFacade;
 use Phel\Build\Domain\Compile\BuildOptions;
 use Phel\Build\Domain\Compile\CompiledFile;
-use Phel\Compiler\Domain\Exceptions\CompilerException;
+use Phel\Transpiler\Domain\Exceptions\CompilerException;
 use SebastianBergmann\Timer\ResourceUsageFormatter;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;

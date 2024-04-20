@@ -4,11 +4,11 @@ declare(strict_types=1);
 
 namespace PhelTest\Unit\Compiler\Parser\ParserNode;
 
-use Phel\Compiler\Domain\Lexer\Token;
-use Phel\Compiler\Domain\Parser\ParserNode\QuoteNode;
-use Phel\Compiler\Domain\Parser\ParserNode\SymbolNode;
 use Phel\Lang\SourceLocation;
 use Phel\Lang\Symbol;
+use Phel\Transpiler\Domain\Lexer\Token;
+use Phel\Transpiler\Domain\Parser\ParserNode\QuoteNode;
+use Phel\Transpiler\Domain\Parser\ParserNode\SymbolNode;
 use PHPUnit\Framework\TestCase;
 use RuntimeException;
 

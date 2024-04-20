@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace Phel\Formatter\Domain\Rules\Indenter;
 
-use Phel\Compiler\Domain\Parser\ParserNode\SymbolNode;
 use Phel\Formatter\Domain\Rules\Zipper\ParseTreeZipper;
 use Phel\Lang\Symbol;
+use Phel\Transpiler\Domain\Parser\ParserNode\SymbolNode;
 
 final readonly class InnerIndenter implements IndenterInterface
 {

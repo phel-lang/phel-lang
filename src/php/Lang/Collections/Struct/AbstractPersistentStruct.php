@@ -5,14 +5,14 @@ declare(strict_types=1);
 namespace Phel\Lang\Collections\Struct;
 
 use InvalidArgumentException;
-use Phel\Compiler\Domain\Emitter\OutputEmitter\MungeInterface;
-use Phel\Compiler\Infrastructure\Munge;
 use Phel\Lang\Collections\Exceptions\MethodNotSupportedException;
 use Phel\Lang\Collections\Map\AbstractPersistentMap;
 use Phel\Lang\Collections\Map\PersistentMapInterface;
 use Phel\Lang\Keyword;
 use Phel\Lang\TypeFactory;
 use Phel\Printer\Printer;
+use Phel\Transpiler\Domain\Emitter\OutputEmitter\MungeInterface;
+use Phel\Transpiler\Infrastructure\Munge;
 use Traversable;
 
 use function count;

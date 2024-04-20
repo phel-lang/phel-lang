@@ -8,12 +8,12 @@ use Phel\Command\Domain\Shared\ErrorLog\ErrorLogInterface;
 use Phel\Command\Domain\Shared\Exceptions\ExceptionArgsPrinterInterface;
 use Phel\Command\Domain\Shared\Exceptions\Extractor\FilePositionExtractorInterface;
 use Phel\Command\Domain\Shared\Exceptions\TextExceptionPrinter;
-use Phel\Compiler\Domain\Analyzer\Exceptions\AnalyzerException;
-use Phel\Compiler\Domain\Emitter\OutputEmitter\MungeInterface;
-use Phel\Compiler\Domain\Parser\ReadModel\CodeSnippet;
 use Phel\Lang\AbstractType;
 use Phel\Lang\SourceLocation;
 use Phel\Run\Domain\Repl\ColorStyleInterface;
+use Phel\Transpiler\Domain\Analyzer\Exceptions\AnalyzerException;
+use Phel\Transpiler\Domain\Emitter\OutputEmitter\MungeInterface;
+use Phel\Transpiler\Domain\Parser\ReadModel\CodeSnippet;
 use PHPUnit\Framework\TestCase;
 
 final class TextExceptionPrinterTest extends TestCase

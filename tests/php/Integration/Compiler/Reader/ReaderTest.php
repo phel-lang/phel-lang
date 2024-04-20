@@ -5,11 +5,6 @@ declare(strict_types=1);
 namespace PhelTest\Integration\Compiler\Reader;
 
 use Gacela\Framework\Gacela;
-use Phel\Compiler\CompilerFacade;
-use Phel\Compiler\CompilerFacadeInterface;
-use Phel\Compiler\Domain\Lexer\Lexer;
-use Phel\Compiler\Domain\Reader\Exceptions\ReaderException;
-use Phel\Compiler\Infrastructure\GlobalEnvironmentSingleton;
 use Phel\Lang\Collections\Map\PersistentMapInterface;
 use Phel\Lang\Keyword;
 use Phel\Lang\Registry;
@@ -18,11 +13,16 @@ use Phel\Lang\Symbol;
 use Phel\Lang\TypeFactory;
 use Phel\Lang\TypeInterface;
 use Phel\Phel;
+use Phel\Transpiler\Domain\Lexer\Lexer;
+use Phel\Transpiler\Domain\Reader\Exceptions\ReaderException;
+use Phel\Transpiler\Infrastructure\GlobalEnvironmentSingleton;
+use Phel\Transpiler\TranspilerFacade;
+use Phel\Transpiler\TranspilerFacadeInterface;
 use PHPUnit\Framework\TestCase;
 
 final class ReaderTest extends TestCase
 {
-    private CompilerFacadeInterface $compilerFacade;
+    private TranspilerFacadeInterface $compilerFacade;
 
     public static function setUpBeforeClass(): void
     {
@@ -38,7 +38,7 @@ final class ReaderTest extends TestCase
     {
         Gacela::bootstrap(__DIR__, Phel::configFn());
         Symbol::resetGen();
-        $this->compilerFacade = new CompilerFacade();
+        $this->compilerFacade = new TranspilerFacade();
     }
 
     public function test_read_number(): void

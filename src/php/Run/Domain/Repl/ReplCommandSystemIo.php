@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace Phel\Run\Domain\Repl;
 
 use Phel\Command\CommandFacadeInterface;
-use Phel\Compiler\Domain\Exceptions\AbstractLocatedException;
-use Phel\Compiler\Domain\Parser\ReadModel\CodeSnippet;
+use Phel\Transpiler\Domain\Exceptions\AbstractLocatedException;
+use Phel\Transpiler\Domain\Parser\ReadModel\CodeSnippet;
 use Throwable;
 
 final readonly class ReplCommandSystemIo implements ReplCommandIoInterface

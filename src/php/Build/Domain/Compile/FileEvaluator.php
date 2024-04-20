@@ -5,13 +5,13 @@ declare(strict_types=1);
 namespace Phel\Build\Domain\Compile;
 
 use Phel\Build\Domain\Extractor\NamespaceExtractor;
-use Phel\Compiler\CompilerFacadeInterface;
-use Phel\Compiler\Infrastructure\CompileOptions;
+use Phel\Transpiler\Infrastructure\CompileOptions;
+use Phel\Transpiler\TranspilerFacadeInterface;
 
 final readonly class FileEvaluator
 {
     public function __construct(
-        private CompilerFacadeInterface $compilerFacade,
+        private TranspilerFacadeInterface $compilerFacade,
         private NamespaceExtractor $namespaceExtractor,
     ) {
     }

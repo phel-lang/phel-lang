@@ -80,7 +80,7 @@ jobs:
         run: ./vendor/bin/phpstan --memory-limit=516M --debug -vvv
 
   compiler-tests:
-    name: Compiler tests on PHP ${{ matrix.php }}
+    name: Transpiler tests on PHP ${{ matrix.php }}
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false

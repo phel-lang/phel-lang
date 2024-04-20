@@ -4,18 +4,18 @@ declare(strict_types=1);
 
 namespace PhelTest\Unit\Compiler\Parser\ExpressionParser;
 
-use Phel\Compiler\Domain\Analyzer\Environment\GlobalEnvironment;
-use Phel\Compiler\Domain\Lexer\Token;
-use Phel\Compiler\Domain\Parser\Exceptions\KeywordParserException;
-use Phel\Compiler\Domain\Parser\ExpressionParser\AtomParser;
-use Phel\Compiler\Domain\Parser\ParserNode\BooleanNode;
-use Phel\Compiler\Domain\Parser\ParserNode\KeywordNode;
-use Phel\Compiler\Domain\Parser\ParserNode\NilNode;
-use Phel\Compiler\Domain\Parser\ParserNode\NumberNode;
-use Phel\Compiler\Domain\Parser\ParserNode\SymbolNode;
 use Phel\Lang\Keyword;
 use Phel\Lang\SourceLocation;
 use Phel\Lang\Symbol;
+use Phel\Transpiler\Domain\Analyzer\Environment\GlobalEnvironment;
+use Phel\Transpiler\Domain\Lexer\Token;
+use Phel\Transpiler\Domain\Parser\Exceptions\KeywordParserException;
+use Phel\Transpiler\Domain\Parser\ExpressionParser\AtomParser;
+use Phel\Transpiler\Domain\Parser\ParserNode\BooleanNode;
+use Phel\Transpiler\Domain\Parser\ParserNode\KeywordNode;
+use Phel\Transpiler\Domain\Parser\ParserNode\NilNode;
+use Phel\Transpiler\Domain\Parser\ParserNode\NumberNode;
+use Phel\Transpiler\Domain\Parser\ParserNode\SymbolNode;
 use PHPUnit\Framework\TestCase;
 
 final class AtomParserTest extends TestCase

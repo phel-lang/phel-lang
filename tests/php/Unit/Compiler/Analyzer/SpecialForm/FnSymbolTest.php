@@ -5,18 +5,18 @@ declare(strict_types=1);
 namespace PhelTest\Unit\Compiler\Analyzer\SpecialForm;
 
 use Generator;
-use Phel\Compiler\Domain\Analyzer\Analyzer;
-use Phel\Compiler\Domain\Analyzer\AnalyzerInterface;
-use Phel\Compiler\Domain\Analyzer\Ast\DoNode;
-use Phel\Compiler\Domain\Analyzer\Ast\FnNode;
-use Phel\Compiler\Domain\Analyzer\Ast\LetNode;
-use Phel\Compiler\Domain\Analyzer\Environment\GlobalEnvironment;
-use Phel\Compiler\Domain\Analyzer\Environment\NodeEnvironment;
-use Phel\Compiler\Domain\Analyzer\TypeAnalyzer\SpecialForm\FnSymbol;
-use Phel\Compiler\Domain\Exceptions\AbstractLocatedException;
 use Phel\Lang\Collections\LinkedList\PersistentListInterface;
 use Phel\Lang\Symbol;
 use Phel\Lang\TypeFactory;
+use Phel\Transpiler\Domain\Analyzer\Analyzer;
+use Phel\Transpiler\Domain\Analyzer\AnalyzerInterface;
+use Phel\Transpiler\Domain\Analyzer\Ast\DoNode;
+use Phel\Transpiler\Domain\Analyzer\Ast\FnNode;
+use Phel\Transpiler\Domain\Analyzer\Ast\LetNode;
+use Phel\Transpiler\Domain\Analyzer\Environment\GlobalEnvironment;
+use Phel\Transpiler\Domain\Analyzer\Environment\NodeEnvironment;
+use Phel\Transpiler\Domain\Analyzer\TypeAnalyzer\SpecialForm\FnSymbol;
+use Phel\Transpiler\Domain\Exceptions\AbstractLocatedException;
 use PHPUnit\Framework\TestCase;
 
 final class FnSymbolTest extends TestCase

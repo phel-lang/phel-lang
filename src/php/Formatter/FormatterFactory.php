@@ -6,7 +6,6 @@ namespace Phel\Formatter;
 
 use Gacela\Framework\AbstractFactory;
 use Phel\Command\CommandFacadeInterface;
-use Phel\Compiler\CompilerFacade;
 use Phel\Formatter\Domain\Formatter;
 use Phel\Formatter\Domain\FormatterInterface;
 use Phel\Formatter\Domain\PathFilterInterface;
@@ -20,6 +19,7 @@ use Phel\Formatter\Domain\Rules\RemoveTrailingWhitespaceRule;
 use Phel\Formatter\Domain\Rules\UnindentRule;
 use Phel\Formatter\Infrastructure\IO\FileIoInterface;
 use Phel\Formatter\Infrastructure\IO\SystemFileIo;
+use Phel\Transpiler\TranspilerFacade;
 
 final class FormatterFactory extends AbstractFactory
 {
@@ -97,7 +97,7 @@ final class FormatterFactory extends AbstractFactory
         return new PhelPathFilter();
     }
 
-    private function getFacadeCompiler(): CompilerFacade
+    private function getFacadeCompiler(): TranspilerFacade
     {
         return $this->getProvidedDependency(FormatterDependencyProvider::FACADE_COMPILER);
     }

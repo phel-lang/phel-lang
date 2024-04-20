@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace Phel\Command;
 
-use Phel\Compiler\Domain\Exceptions\AbstractLocatedException;
-use Phel\Compiler\Domain\Parser\ReadModel\CodeSnippet;
+use Phel\Transpiler\Domain\Exceptions\AbstractLocatedException;
+use Phel\Transpiler\Domain\Parser\ReadModel\CodeSnippet;
 use Symfony\Component\Console\Output\OutputInterface;
 use Throwable;
 

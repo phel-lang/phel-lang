@@ -4,12 +4,12 @@ declare(strict_types=1);
 
 namespace Phel\Interop\Domain;
 
-use Phel\Compiler\Domain\Exceptions\CompilerException;
 use Phel\Interop\Domain\DirectoryRemover\DirectoryRemoverInterface;
 use Phel\Interop\Domain\ExportFinder\FunctionsToExportFinderInterface;
 use Phel\Interop\Domain\FileCreator\FileCreatorInterface;
 use Phel\Interop\Domain\Generator\WrapperGeneratorInterface;
 use Phel\Interop\Domain\ReadModel\Wrapper;
+use Phel\Transpiler\Domain\Exceptions\CompilerException;
 use RuntimeException;
 
 final readonly class ExportCodeGenerator

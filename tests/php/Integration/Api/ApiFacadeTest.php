@@ -7,9 +7,9 @@ namespace PhelTest\Integration\Api;
 use Gacela\Framework\Bootstrap\GacelaConfig;
 use Gacela\Framework\Gacela;
 use Phel\Api\ApiFacade;
-use Phel\Compiler\Infrastructure\GlobalEnvironmentSingleton;
 use Phel\Lang\Registry;
 use Phel\Lang\Symbol;
+use Phel\Transpiler\Infrastructure\GlobalEnvironmentSingleton;
 use PHPUnit\Framework\TestCase;
 
 final class ApiFacadeTest extends TestCase
