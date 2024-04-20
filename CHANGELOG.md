@@ -2,6 +2,32 @@
 
 All notable changes to this project will be documented in this file.
 
+## Unreleased
+
+* Add `phel/str` functions
+  * `split`: Splits string on a regular expression
+  * `join`: Returns a string of all elements in coll
+  * `reverse`: Returns s with its characters reversed
+  * `upper-case`: Converts string to all upper-case
+  * `replace`: Replaces all instance of match with replacement in string
+  * `replace-first`: Replaces the first instance of match with replacement in string
+  * `trim-newline`: Removes all trailing newline \n or return \r characters from string
+  * `capitalize`: Converts first character of the string to upper-case, all other characters to lower-case
+  * `lower-case`: Converts string to all lower-case
+  * `upper-case`: Converts string to all upper-case
+  * `trim`: Removes whitespace from both ends of string
+  * `triml`: Removes whitespace from the left side of string
+  * `trimr`: Removes whitespace from the right side of string
+  * `blank?`: True if s is nil, empty, or contains only whitespace
+  * `starts-with?`: True if string starts with substr
+  * `ends-with?`: True if string ends with substr
+  * `includes?`: True if string includes substr
+  * `re-quote-replacement`: Escaping of special characters
+  * `escape`: Return a new string, using cmap to escape each character from string
+  * `index-of`: Return index of value in string, optionally searching forward
+  * `last-index-of`: Return last index of value in string, optionally searching backward
+  * `split-lines`: Splits string with on \n or \r\n
+
 ## [0.13.0](https://github.com/phel-lang/phel-lang/compare/v0.12.0...v0.13.0) - 2024-04-17
 
 * Require PHP>=8.2

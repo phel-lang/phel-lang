@@ -1,0 +1,165 @@
+(ns phel-test\test\str
+  (:require phel\test :refer [deftest is])
+  (:require phel\str :as s))
+
+(deftest test-split
+  (is (= ["a" "b"] (s/split "a-b" "/-/")))
+  (is (= ["a" "b-c"] (s/split "a-b-c" "/-/" 2)))
+  (is (= ["ａ" "ｂ-ｃ"] (s/split "ａ-ｂ-ｃ" "/-/" 2)))
+  (is (vector? (s/split "abc" "/-/"))))
+
+(deftest test-reverse
+  (is (= "tab" (s/reverse "bat")))
+  (is (= "ｔａｂ" (s/reverse "ｂａｔ"))))
+
+(deftest test-replace
+  (is (= "barbarbar" (s/replace "foobarfoo" "foo" "bar")))
+  (is (= "foobarfoo" (s/replace "foobarfoo" "baz" "bar")))
+  (is (= "f$$d" (s/replace "food" "o" "$")))
+  (is (= "f\\\\d" (s/replace "food" "o" "\\")))
+  (is (= "barbarbar" (s/replace "foobarfoo" "/foo/" "bar")))
+  (is (= "foobarfoo" (s/replace "foobarfoo" "/baz/" "bar")))
+  (is (= "f$$d" (s/replace "food" "/o/" "$")))
+  (is (= "f\\\\d" (s/replace "food" "/o/" "\\")))
+  (is (= "FOObarFOO" (s/replace "foobarfoo" "/foo/" s/upper-case)))
+  (is (= "foobarfoo" (s/replace "foobarfoo" "/baz/" s/upper-case)))
+  (is (= "OObarOO" (s/replace "foobarfoo" "/f(o+)/" (fn [m g1] (s/upper-case g1)))))
+  (is (= "baz\\bang\\" (s/replace "bazslashbangslash" "/slash/" (fn [m] "\\")))))
+
+(deftest test-replace-first
+  (is (= "faobar" (s/replace-first "foobar" "o" "a")))
+  (is (= "foobar" (s/replace-first "foobar" "z" "a")))
+  (is (= "z.ology" (s/replace-first "zoology" "o" ".")))
+  (is (= "barbarfoo" (s/replace-first "foobarfoo" "foo" "bar")))
+  (is (= "foobarfoo" (s/replace-first "foobarfoo" "baz" "bar")))
+  (is (= "f$od" (s/replace-first "food" "o" "$")))
+  (is (= "f\\od" (s/replace-first "food" "o" "\\")))
+  (is (= "barbarfoo" (s/replace-first "foobarfoo" "/foo/" "bar")))
+  (is (= "foobarfoo" (s/replace-first "foobarfoo" "/baz/" "bar")))
+  (is (= "f$od" (s/replace-first "food" "/o/" (s/re-quote-replacement "$"))))
+  (is (= "f\\od" (s/replace-first "food" "/o/" (s/re-quote-replacement "\\"))))
+  (is (= "FOObarfoo" (s/replace-first "foobarfoo" "/foo/" s/upper-case)))
+  (is (= "foobarfoo" (s/replace-first "foobarfoo" "/baz/" s/upper-case)))
+  (is (= "OObarfoo" (s/replace-first "foobarfoo" "/f(o+)/" (fn [m g1] (s/upper-case g1)))))
+  (is (= "baz\\bangslash" (s/replace-first "bazslashbangslash" "/slash/" (fn [m] "\\")))))
+
+
+(deftest test-join
+  (is (= "" (s/join nil)))
+  (is (= "" (s/join [])))
+  (is (= "1" (s/join [1])))
+  (is (= "12" (s/join [1 2]))))
+
+(deftest test-trim-newline
+  (is (= "foo" (s/trim-newline "foo\n")))
+  (is (= "foo" (s/trim-newline "foo\r\n")))
+  (is (= "foo" (s/trim-newline "foo")))
+  (is (= "ｆｏｏ" (s/trim-newline "ｆｏｏ\r\n")))
+  (is (= "" (s/trim-newline ""))))
+
+(deftest test-capitalize
+  (is (= "Foobar" (s/capitalize "foobar")))
+  (is (= "Foobar" (s/capitalize "FOOBAR"))))
+
+(deftest test-triml
+  (is (= "foo " (s/triml " foo ")))
+  (is (= "" (s/triml "   ")))
+  (is (= "bar" (s/triml "\u{2002} \tbar"))))
+
+(deftest test-trimr
+  (is (= " foo" (s/trimr " foo ")))
+  (is (= "" (s/trimr "   ")))
+  (is (= "bar" (s/trimr "bar\t \u{2002}"))))
+
+(deftest test-trim
+  (is (= "foo" (s/trim "  foo  \r\n")))
+  (is (= "bar" (s/trim "\u{2000}bar\t \u{2002}"))))
+
+(deftest test-upper-case
+  (is (= "FOOBAR" (s/upper-case "Foobar"))))
+
+(deftest test-lower-case
+  (is (= "foobar" (s/lower-case "FooBar"))))
+
+(deftest test-escape
+  (is (= "&lt;foo&amp;bar&gt;"
+         (s/escape "<foo&bar>" {"&" "&amp;" "<" "&lt;" ">" "&gt;"})))
+  (is (= " \\\"foo\\\" "
+         (s/escape " \"foo\" " {"\"" "\\\""})))
+  (is (= "faabor"
+         (s/escape "foobar" {"a" "o" "o" "a"}))))
+
+(deftest test-blank
+  (is (s/blank? nil))
+  (is (s/blank? ""))
+  (is (s/blank? " "))
+  (is (s/blank? " \t \n  \r "))
+  (is (not (s/blank? "  foo  "))))
+
+(deftest test-split-lines
+  (let [result (s/split-lines "one\ntwo\r\nthree")]
+    (is (= ["one" "two" "three"] result))
+    (is (vector? result)))
+  (is (= ["foo"] (s/split-lines "foo"))))
+
+(deftest test-index-of
+  (let [sb "tacos"]
+    (is (= 2  (s/index-of sb "c")))
+    (is (= 1  (s/index-of sb "ac")))
+    (is (= 3  (s/index-of sb "o" 2)))
+    (is (= 3  (s/index-of sb "o" -100)))
+    (is (= nil (s/index-of sb "z")))
+    (is (= nil (s/index-of sb "z" 2)))
+    (is (= nil (s/index-of sb "z" 100))
+    (is (= nil (s/index-of sb "z" -10)))))
+  (let [sb "ｔａｃｏｓ"]
+    (is (= 2  (s/index-of sb "ｃ")))
+    (is (= 1  (s/index-of sb "ａｃ")))
+    (is (= 3  (s/index-of sb "ｏ" 2)))
+    (is (= 3  (s/index-of sb "ｏ" -100)))
+    (is (= nil (s/index-of sb "ｚ")))
+    (is (= nil (s/index-of sb "ｚ" 2)))
+    (is (= nil (s/index-of sb "ｚ" 100))
+    (is (= nil (s/index-of sb "ｚ" -10))))))
+
+(deftest test-last-index-of
+  (let [sb "banana"]
+    (is (= 4 (s/last-index-of sb "n")))
+    (is (= 3 (s/last-index-of sb "an")))
+    (is (= 4 (s/last-index-of sb "n" )))
+    (is (= 4 (s/last-index-of sb "n" 5)))
+    (is (= 4 (s/last-index-of sb "n" 500)))
+    (is (= nil (s/last-index-of sb "z")))
+    (is (= nil (s/last-index-of sb "z" 1)))
+    (is (= nil (s/last-index-of sb "z" 100))
+    (is (= nil (s/last-index-of sb "z" -10)))))
+  (let [sb "ｂａｎａｎａ"]
+    (is (= 4 (s/last-index-of sb "ｎ")))
+    (is (= 3 (s/last-index-of sb "ａｎ")))
+    (is (= 4 (s/last-index-of sb "ｎ" )))
+    (is (= 4 (s/last-index-of sb "ｎ" 5)))
+    (is (= 4 (s/last-index-of sb "ｎ" 500)))
+    (is (= nil (s/last-index-of sb "ｚ")))
+    (is (= nil (s/last-index-of sb "ｚ" 1)))
+    (is (= nil (s/last-index-of sb "ｚ" 100))
+    (is (= nil (s/last-index-of sb "ｚ" -10))))))
+
+(deftest test-starts-with?
+  (is (= true (s/starts-with? "clojure west" "clojure")))
+  (is (= false (s/starts-with? "conj" "clojure")))
+  (is (= true (s/starts-with? "ｃｌｏｊｕｒｅ　ｗｅｓｔ" "ｃｌｏｊｕｒｅ")))
+  (is (= false (s/starts-with? "ｃｏｎｊ" "ｃｌｏｊｕｒｅ"))))
+
+(deftest test-ends-with?
+  (is (= true (s/ends-with? "Clojure West" "West")))
+  (is (= false (s/ends-with? "Conj" "West")))
+  (is (= true (s/ends-with? "Ｃｌｏｊｕｒｅ　Ｗｅｓｔ" "Ｗｅｓｔ")))
+  (is (= false (s/ends-with? "Ｃｏｎｊ" "Ｗｅｓｔ"))))
+
+(deftest test-includes?
+  (let [sb "Clojure Applied Book"]
+    (is (= true (s/includes? sb "Applied")))
+    (is (= false (s/includes? sb "Living"))))
+  (let [sb "Ｃｌｏｊｕｒｅ　Ａｐｐｌｉｅｄ　Ｂｏｏｋ"]
+    (is (= true (s/includes? sb "Ａｐｐｌｉｅｄ")))
+    (is (= false (s/includes? sb "Ｌｉｖｉｎｇ")))))
