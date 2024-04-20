@@ -4,17 +4,17 @@ All notable changes to this project will be documented in this file.
 
 ## Unreleased
 
-* Add `phel/str` functions
+* Add `phel/str` functions (#688)
   * `split`: Splits string on a regular expression
   * `join`: Returns a string of all elements in coll
   * `reverse`: Returns s with its characters reversed
-  * `upper-case`: Converts string to all upper-case
-  * `replace`: Replaces all instance of match with replacement in string
+  * `upper-case`: Converts string to upper-case
+  * `replace`: Replaces all instances of match with replacement in string
   * `replace-first`: Replaces the first instance of match with replacement in string
   * `trim-newline`: Removes all trailing newline \n or return \r characters from string
   * `capitalize`: Converts first character of the string to upper-case, all other characters to lower-case
-  * `lower-case`: Converts string to all lower-case
-  * `upper-case`: Converts string to all upper-case
+  * `lower-case`: Converts string to lower-case
+  * `upper-case`: Converts string to upper-case
   * `trim`: Removes whitespace from both ends of string
   * `triml`: Removes whitespace from the left side of string
   * `trimr`: Removes whitespace from the right side of string
