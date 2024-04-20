@@ -40,6 +40,7 @@ return static function (RectorConfig $rectorConfig): void {
         ],
 
         PreferPHPUnitThisCallRector::class,
+        UseClassKeywordForClassNameResolutionRector::class,
     ]);
 
     $rectorConfig->sets([
