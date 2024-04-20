@@ -22,7 +22,7 @@ use PHPUnit\Framework\TestCase;
 
 final class ReaderTest extends TestCase
 {
-    private TranspilerFacadeInterface $compilerFacade;
+    private TranspilerFacadeInterface $transpilerFacade;
 
     public static function setUpBeforeClass(): void
     {
@@ -38,7 +38,7 @@ final class ReaderTest extends TestCase
     {
         Gacela::bootstrap(__DIR__, Phel::configFn());
         Symbol::resetGen();
-        $this->compilerFacade = new TranspilerFacade();
+        $this->transpilerFacade = new TranspilerFacade();
     }
 
     public function test_read_number(): void
@@ -707,10 +707,10 @@ final class ReaderTest extends TestCase
     private function read(string $string, bool $withLocation = true): float|bool|int|string|TypeInterface|null
     {
         Symbol::resetGen();
-        $tokenStream = $this->compilerFacade->lexString($string, Lexer::DEFAULT_SOURCE, $withLocation);
-        $parseTree = $this->compilerFacade->parseNext($tokenStream);
+        $tokenStream = $this->transpilerFacade->lexString($string, Lexer::DEFAULT_SOURCE, $withLocation);
+        $parseTree = $this->transpilerFacade->parseNext($tokenStream);
 
-        return $this->compilerFacade->read($parseTree)->getAst();
+        return $this->transpilerFacade->read($parseTree)->getAst();
     }
 
     private function withMeta(mixed $x, PersistentMapInterface $t): mixed

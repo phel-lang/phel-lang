@@ -11,7 +11,7 @@ use Phel\Transpiler\TranspilerFacadeInterface;
 final readonly class FileEvaluator
 {
     public function __construct(
-        private TranspilerFacadeInterface $compilerFacade,
+        private TranspilerFacadeInterface $transpilerFacade,
         private NamespaceExtractor $namespaceExtractor,
     ) {
     }
@@ -22,7 +22,7 @@ final readonly class FileEvaluator
             ->setSource($src)
             ->setIsEnabledSourceMaps(true);
 
-        $this->compilerFacade->eval(file_get_contents($src), $options);
+        $this->transpilerFacade->eval(file_get_contents($src), $options);
 
         $namespaceInfo = $this->namespaceExtractor->getNamespaceFromFile($src);
 

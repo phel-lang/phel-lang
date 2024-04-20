@@ -25,7 +25,7 @@ final class PhelBench
         Symbol::resetGen();
         GlobalEnvironmentSingleton::initializeNew();
 
-        (new BuildFacade())->buildFile(
+        (new BuildFacade())->transpileFile(
             __DIR__ . '/../../../../src/phel/core.phel',
             tempnam(sys_get_temp_dir(), 'phel-core'),
         );

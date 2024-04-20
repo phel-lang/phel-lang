@@ -48,7 +48,7 @@ interface BuildFacadeInterface
      * @param string $src The source file
      * @param string $dest The destination
      */
-    public function buildFile(string $src, string $dest): TraspiledFile;
+    public function transpileFile(string $src, string $dest): TraspiledFile;
 
     /**
      * Same as `buildFile`. However, the generated code is not written to a destination.

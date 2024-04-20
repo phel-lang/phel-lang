@@ -21,7 +21,7 @@ use RegexIterator;
 final readonly class NamespaceExtractor implements NamespaceExtractorInterface
 {
     public function __construct(
-        private TranspilerFacadeInterface $compilerFacade,
+        private TranspilerFacadeInterface $transpilerFacade,
         private NamespaceSorterInterface $namespaceSorter,
         private FileIoInterface $fileIo,
     ) {
@@ -36,18 +36,18 @@ final readonly class NamespaceExtractor implements NamespaceExtractorInterface
         $content = $this->fileIo->getContents($path);
 
         try {
-            $tokenStream = $this->compilerFacade->lexString($content);
+            $tokenStream = $this->transpilerFacade->lexString($content);
             do {
-                $parseTree = $this->compilerFacade->parseNext($tokenStream);
+                $parseTree = $this->transpilerFacade->parseNext($tokenStream);
             } while ($parseTree instanceof TriviaNodeInterface);
 
             if (!$parseTree instanceof NodeInterface) {
                 throw ExtractorException::cannotReadFile($path);
             }
 
-            $readerResult = $this->compilerFacade->read($parseTree);
+            $readerResult = $this->transpilerFacade->read($parseTree);
             $ast = $readerResult->getAst();
-            $node = $this->compilerFacade->analyze($ast, NodeEnvironment::empty());
+            $node = $this->transpilerFacade->analyze($ast, NodeEnvironment::empty());
 
             if ($node instanceof NsNode) {
                 return new NamespaceInformation(

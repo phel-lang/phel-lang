@@ -31,7 +31,7 @@ use PHPUnit\Framework\TestCase;
 
 final class ParserTest extends TestCase
 {
-    private TranspilerFacadeInterface $compilerFacade;
+    private TranspilerFacadeInterface $transpilerFacade;
 
     public static function setUpBeforeClass(): void
     {
@@ -42,7 +42,7 @@ final class ParserTest extends TestCase
     {
         Gacela::bootstrap(__DIR__, Phel::configFn());
         Symbol::resetGen();
-        $this->compilerFacade = new TranspilerFacade();
+        $this->transpilerFacade = new TranspilerFacade();
     }
 
     public function test_read_number(): void
@@ -459,17 +459,17 @@ final class ParserTest extends TestCase
 
     public function test_eof(): void
     {
-        $tokenStream = $this->compilerFacade->lexString('');
+        $tokenStream = $this->transpilerFacade->lexString('');
 
-        self::assertNull($this->compilerFacade->parseNext($tokenStream));
+        self::assertNull($this->transpilerFacade->parseNext($tokenStream));
     }
 
     public function test_invalid_generator(): void
     {
-        $tokenStream = $this->compilerFacade->lexString('');
+        $tokenStream = $this->transpilerFacade->lexString('');
 
         $tokenStream->next();
-        self::assertNull($this->compilerFacade->parseNext($tokenStream));
+        self::assertNull($this->transpilerFacade->parseNext($tokenStream));
     }
 
     public function test_read_comment(): void
@@ -498,9 +498,9 @@ final class ParserTest extends TestCase
 
     private function parse(string $string): NodeInterface
     {
-        $tokenStream = $this->compilerFacade->lexString($string);
+        $tokenStream = $this->transpilerFacade->lexString($string);
 
-        return $this->compilerFacade->parseNext($tokenStream);
+        return $this->transpilerFacade->parseNext($tokenStream);
     }
 
     private function loc(int $line, int $column): SourceLocation

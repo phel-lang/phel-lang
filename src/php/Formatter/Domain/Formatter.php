@@ -17,7 +17,7 @@ final readonly class Formatter implements FormatterInterface
      * @param list<RuleInterface> $rules
      */
     public function __construct(
-        private TranspilerFacadeInterface $compilerFacade,
+        private TranspilerFacadeInterface $transpilerFacade,
         private array $rules,
     ) {
     }
@@ -29,8 +29,8 @@ final readonly class Formatter implements FormatterInterface
      */
     public function format(string $string, string $source = self::DEFAULT_SOURCE): string
     {
-        $tokenStream = $this->compilerFacade->lexString($string, $source);
-        $fileNode = $this->compilerFacade->parseAll($tokenStream);
+        $tokenStream = $this->transpilerFacade->lexString($string, $source);
+        $fileNode = $this->transpilerFacade->parseAll($tokenStream);
 
         return $this->formatNode($fileNode)->getCode();
     }

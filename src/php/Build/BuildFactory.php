@@ -6,9 +6,9 @@ namespace Phel\Build;
 
 use Gacela\Framework\AbstractFactory;
 use Phel\Build\Domain\Builder\DependenciesForNamespace;
-use Phel\Build\Domain\Builder\FileBuilder;
-use Phel\Build\Domain\Builder\FileBuilderInterface;
 use Phel\Build\Domain\Builder\FileEvaluator;
+use Phel\Build\Domain\Builder\FileTranspiler;
+use Phel\Build\Domain\Builder\FileTranspilerInterface;
 use Phel\Build\Domain\Builder\Output\EntryPointPhpFile;
 use Phel\Build\Domain\Builder\Output\EntryPointPhpFileInterface;
 use Phel\Build\Domain\Builder\Output\NamespacePathTransformer;
@@ -45,9 +45,9 @@ final class BuildFactory extends AbstractFactory
         );
     }
 
-    public function createFileBuilder(): FileBuilderInterface
+    public function createFileBuilder(): FileTranspilerInterface
     {
-        return new FileBuilder(
+        return new FileTranspiler(
             $this->getTranspilerFacade(),
             $this->createNamespaceExtractor(),
             $this->createFileIo(),

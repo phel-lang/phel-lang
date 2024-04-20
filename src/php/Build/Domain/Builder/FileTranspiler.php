@@ -10,16 +10,16 @@ use Phel\Build\Domain\IO\FileIoInterface;
 use Phel\Transpiler\Infrastructure\TranspileOptions;
 use Phel\Transpiler\TranspilerFacadeInterface;
 
-final readonly class FileBuilder implements FileBuilderInterface
+final readonly class FileTranspiler implements FileTranspilerInterface
 {
     public function __construct(
-        private TranspilerFacadeInterface $compilerFacade,
+        private TranspilerFacadeInterface $transpilerFacade,
         private NamespaceExtractorInterface $namespaceExtractor,
         private FileIoInterface $fileIo,
     ) {
     }
 
-    public function compileFile(string $src, string $dest, bool $enableSourceMaps): TraspiledFile
+    public function transpileFile(string $src, string $dest, bool $enableSourceMaps): TraspiledFile
     {
         $phelCode = $this->fileIo->getContents($src);
 
@@ -28,7 +28,7 @@ final readonly class FileBuilder implements FileBuilderInterface
             ->setIsEnabledSourceMaps($enableSourceMaps);
 
         BuildFacade::enableBuildMode();
-        $result = $this->compilerFacade->transpile($phelCode, $options);
+        $result = $this->transpilerFacade->transpile($phelCode, $options);
         BuildFacade::disableBuildMode();
 
         $this->fileIo->putContents($dest, "<?php\n" . $result->getPhpCode());

@@ -21,8 +21,8 @@ final readonly class ProjectBuilder
 
     public function __construct(
         private NamespaceExtractorInterface $namespaceExtractor,
-        private FileBuilderInterface $fileCompiler,
-        private TranspilerFacadeInterface $compilerFacade,
+        private FileTranspilerInterface $fileTranspiler,
+        private TranspilerFacadeInterface $transpilerFacade,
         private CommandFacadeInterface $commandFacade,
         private EntryPointPhpFileInterface $entryPointPhpFile,
         private BuildConfigInterface $config,
@@ -34,7 +34,6 @@ final readonly class ProjectBuilder
      */
     public function buildProject(BuildOptions $buildOptions): array
     {
-
         $srcDirectories = [
             ...$this->commandFacade->getSourceDirectories(),
             ...$this->commandFacade->getVendorSourceDirectories(),
@@ -42,13 +41,13 @@ final readonly class ProjectBuilder
 
         $dest = $this->commandFacade->getOutputDirectory();
 
-        return $this->compileFromTo($srcDirectories, $dest, $buildOptions);
+        return $this->transpileFromTo($srcDirectories, $dest, $buildOptions);
     }
 
     /**
      * @return list<TraspiledFile>
      */
-    private function compileFromTo(array $srcDirectories, string $dest, BuildOptions $buildOptions): array
+    private function transpileFromTo(array $srcDirectories, string $dest, BuildOptions $buildOptions): array
     {
         $namespaceInformation = $this->namespaceExtractor->getNamespacesFromDirectories($srcDirectories);
         /** @var list<TraspiledFile> $result */
@@ -72,7 +71,7 @@ final readonly class ProjectBuilder
                 continue;
             }
 
-            $result[] = $this->fileCompiler->compileFile(
+            $result[] = $this->fileTranspiler->transpileFile(
                 $info->getFile(),
                 $targetFile,
                 $buildOptions->isSourceMapEnabled(),
@@ -101,7 +100,7 @@ final readonly class ProjectBuilder
 
     private function getTargetFileFromNamespace(string $namespace): string
     {
-        $mungedNamespace = $this->compilerFacade->encodeNs($namespace);
+        $mungedNamespace = $this->transpilerFacade->encodeNs($namespace);
 
         return implode(DIRECTORY_SEPARATOR, explode('\\', $mungedNamespace)) . self::TARGET_FILE_EXTENSION;
     }
