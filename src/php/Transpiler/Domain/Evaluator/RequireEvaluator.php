@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace Phel\Transpiler\Domain\Evaluator;
 
 use Phel\Filesystem\FilesystemFacadeInterface;
-use Phel\Transpiler\Domain\Evaluator\Exceptions\CompiledCodeIsMalformedException;
 use Phel\Transpiler\Domain\Evaluator\Exceptions\FileException;
+use Phel\Transpiler\Domain\Evaluator\Exceptions\TrarnspiledCodeIsMalformedException;
 use Throwable;
 
 final readonly class RequireEvaluator implements EvaluatorInterface
@@ -19,7 +19,7 @@ final readonly class RequireEvaluator implements EvaluatorInterface
     /**
      * Evaluates the code and returns the evaluated value.
      *
-     * @throws CompiledCodeIsMalformedException
+     * @throws TrarnspiledCodeIsMalformedException
      * @throws FileException
      */
     public function eval(string $code): mixed
@@ -39,7 +39,7 @@ final readonly class RequireEvaluator implements EvaluatorInterface
 
             throw FileException::canNotCreateFile($filename);
         } catch (Throwable $throwable) {
-            throw CompiledCodeIsMalformedException::fromThrowable($throwable);
+            throw TrarnspiledCodeIsMalformedException::fromThrowable($throwable);
         }
     }
 }

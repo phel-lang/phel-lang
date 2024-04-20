@@ -7,7 +7,7 @@ namespace Phel\Build\Domain\Compile;
 use Phel\Build\BuildFacade;
 use Phel\Build\Domain\Extractor\NamespaceExtractorInterface;
 use Phel\Build\Domain\IO\FileIoInterface;
-use Phel\Transpiler\Infrastructure\CompileOptions;
+use Phel\Transpiler\Infrastructure\TranspileOptions;
 use Phel\Transpiler\TranspilerFacadeInterface;
 
 final readonly class FileCompiler implements FileCompilerInterface
@@ -23,12 +23,12 @@ final readonly class FileCompiler implements FileCompilerInterface
     {
         $phelCode = $this->fileIo->getContents($src);
 
-        $options = (new CompileOptions())
+        $options = (new TranspileOptions())
             ->setSource($src)
             ->setIsEnabledSourceMaps($enableSourceMaps);
 
         BuildFacade::enableBuildMode();
-        $result = $this->compilerFacade->compile($phelCode, $options);
+        $result = $this->compilerFacade->transpile($phelCode, $options);
         BuildFacade::disableBuildMode();
 
         $this->fileIo->putContents($dest, "<?php\n" . $result->getPhpCode());

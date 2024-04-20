@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Phel\Command\Domain\Handler;
 
 use Phel\Command\Domain\Shared\Exceptions\ExceptionPrinterInterface;
-use Phel\Transpiler\Domain\Exceptions\CompilerException;
+use Phel\Transpiler\Domain\Exceptions\TranspilerException;
 use Throwable;
 
 final class ExceptionHandler
@@ -45,7 +45,7 @@ final class ExceptionHandler
     private function registerExceptionHandler(): void
     {
         set_exception_handler(function (Throwable $exception): void {
-            if ($exception instanceof CompilerException) {
+            if ($exception instanceof TranspilerException) {
                 $this->exceptionPrinter->printException($exception->getNestedException(), $exception->getCodeSnippet());
             } else {
                 $this->exceptionPrinter->printStackTrace($exception);

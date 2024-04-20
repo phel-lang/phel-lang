@@ -7,7 +7,7 @@ namespace Phel\Transpiler\Domain\Evaluator\Exceptions;
 use RuntimeException;
 use Throwable;
 
-final class CompiledCodeIsMalformedException extends RuntimeException
+final class TrarnspiledCodeIsMalformedException extends RuntimeException
 {
     public static function fromThrowable(Throwable $e): self
     {

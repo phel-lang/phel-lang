@@ -36,9 +36,9 @@ use Phel\Transpiler\Domain\Reader\ExpressionReaderFactory;
 use Phel\Transpiler\Domain\Reader\QuasiquoteTransformer;
 use Phel\Transpiler\Domain\Reader\Reader;
 use Phel\Transpiler\Domain\Reader\ReaderInterface;
-use Phel\Transpiler\Infrastructure\CompileOptions;
 use Phel\Transpiler\Infrastructure\GlobalEnvironmentSingleton;
 use Phel\Transpiler\Infrastructure\Munge;
+use Phel\Transpiler\Infrastructure\TranspileOptions;
 
 final class TranspilerFactory extends AbstractFactory
 {
@@ -54,7 +54,7 @@ final class TranspilerFactory extends AbstractFactory
         );
     }
 
-    public function createCodeCompiler(CompileOptions $compileOptions): CodeCompilerInterface
+    public function createCodeCompiler(TranspileOptions $compileOptions): CodeCompilerInterface
     {
         return new CodeCompiler(
             $this->createLexer(),

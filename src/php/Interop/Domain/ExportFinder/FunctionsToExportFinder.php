@@ -13,9 +13,9 @@ use Phel\Lang\Collections\Map\PersistentMapInterface;
 use Phel\Lang\Keyword;
 use Phel\Lang\Registry;
 use Phel\Lang\TypeFactory;
-use Phel\Transpiler\Domain\Evaluator\Exceptions\CompiledCodeIsMalformedException;
 use Phel\Transpiler\Domain\Evaluator\Exceptions\FileException;
-use Phel\Transpiler\Domain\Exceptions\CompilerException;
+use Phel\Transpiler\Domain\Evaluator\Exceptions\TrarnspiledCodeIsMalformedException;
+use Phel\Transpiler\Domain\Exceptions\TranspilerException;
 
 final readonly class FunctionsToExportFinder implements FunctionsToExportFinderInterface
 {
@@ -27,10 +27,10 @@ final readonly class FunctionsToExportFinder implements FunctionsToExportFinderI
     }
 
     /**
+     *@throws FileException
+     * @throws TranspilerException
+     * @throws TrarnspiledCodeIsMalformedException
      * @throws ExtractorException
-     * @throws FileException
-     * @throws CompilerException
-     * @throws CompiledCodeIsMalformedException
      *
      * @return array<string, list<FunctionToExport>>
      */
@@ -42,8 +42,8 @@ final readonly class FunctionsToExportFinder implements FunctionsToExportFinderI
     }
 
     /**
-     * @throws CompilerException
-     * @throws CompiledCodeIsMalformedException
+     * @throws TranspilerException
+     * @throws TrarnspiledCodeIsMalformedException
      * @throws ExtractorException
      * @throws FileException
      */

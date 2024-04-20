@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Phel\Build\Domain\Compile;
 
 use Phel\Build\Domain\Extractor\NamespaceExtractor;
-use Phel\Transpiler\Infrastructure\CompileOptions;
+use Phel\Transpiler\Infrastructure\TranspileOptions;
 use Phel\Transpiler\TranspilerFacadeInterface;
 
 final readonly class FileEvaluator
@@ -18,7 +18,7 @@ final readonly class FileEvaluator
 
     public function evalFile(string $src): CompiledFile
     {
-        $options = (new CompileOptions())
+        $options = (new TranspileOptions())
             ->setSource($src)
             ->setIsEnabledSourceMaps(true);
 

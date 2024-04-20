@@ -14,9 +14,9 @@ use Phel\Run\Domain\Repl\ReplCommandIoInterface;
 use Phel\Run\RunConfig;
 use Phel\Run\RunFacade;
 use Phel\Run\RunFactory;
-use Phel\Transpiler\Domain\Exceptions\CompilerException;
+use Phel\Transpiler\Domain\Exceptions\TranspilerException;
 use Phel\Transpiler\Domain\Parser\Exceptions\UnfinishedParserException;
-use Phel\Transpiler\Infrastructure\CompileOptions;
+use Phel\Transpiler\Infrastructure\TranspileOptions;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
@@ -201,7 +201,7 @@ final class ReplCommand extends Command
         $fullInput = $this->previousResult->readBuffer($this->inputBuffer);
 
         try {
-            $options = (new CompileOptions())
+            $options = (new TranspileOptions())
                 ->setStartingLine($this->lineNumber - count($this->inputBuffer));
 
             $result = $this->getFacade()->eval($fullInput, $options);
@@ -213,7 +213,7 @@ final class ReplCommand extends Command
             $this->inputBuffer = [];
         } catch (UnfinishedParserException) {
             // The input is valid but more input is missing to finish the parsing.
-        } catch (CompilerException $e) {
+        } catch (TranspilerException $e) {
             $this->io->writeLocatedException($e->getNestedException(), $e->getCodeSnippet());
             $this->addHistory($fullInput);
             $this->inputBuffer = [];

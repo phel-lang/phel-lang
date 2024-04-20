@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Phel\Transpiler\Infrastructure;
 
-final class CompileOptions
+final class TranspileOptions
 {
     public const DEFAULT_SOURCE = 'string';
 

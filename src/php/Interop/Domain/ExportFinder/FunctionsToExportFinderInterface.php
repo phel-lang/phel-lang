@@ -6,17 +6,17 @@ namespace Phel\Interop\Domain\ExportFinder;
 
 use Phel\Build\Domain\Extractor\ExtractorException;
 use Phel\Interop\Domain\ReadModel\FunctionToExport;
-use Phel\Transpiler\Domain\Evaluator\Exceptions\CompiledCodeIsMalformedException;
 use Phel\Transpiler\Domain\Evaluator\Exceptions\FileException;
-use Phel\Transpiler\Domain\Exceptions\CompilerException;
+use Phel\Transpiler\Domain\Evaluator\Exceptions\TrarnspiledCodeIsMalformedException;
+use Phel\Transpiler\Domain\Exceptions\TranspilerException;
 
 interface FunctionsToExportFinderInterface
 {
     /**
-     * @throws CompilerException
-     * @throws CompiledCodeIsMalformedException
+     *@throws TrarnspiledCodeIsMalformedException
      * @throws ExtractorException
      * @throws FileException
+     * @throws TranspilerException
      *
      * @return array<string, list<FunctionToExport>>
      */

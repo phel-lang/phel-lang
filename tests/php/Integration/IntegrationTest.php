@@ -9,8 +9,8 @@ use Generator;
 use Phel\Build\BuildFacade;
 use Phel\Lang\Symbol;
 use Phel\Transpiler\Domain\Analyzer\Environment\GlobalEnvironment;
-use Phel\Transpiler\Infrastructure\CompileOptions;
 use Phel\Transpiler\Infrastructure\GlobalEnvironmentSingleton;
+use Phel\Transpiler\Infrastructure\TranspileOptions;
 use Phel\Transpiler\TranspilerFacade;
 use PHPUnit\Framework\TestCase;
 use RecursiveDirectoryIterator;
@@ -52,10 +52,10 @@ final class IntegrationTest extends TestCase
         $globalEnv->setNs('user');
         Symbol::resetGen();
 
-        $options = (new CompileOptions())
+        $options = (new TranspileOptions())
             ->setSource($filename);
 
-        $compiledCode = $this->compilerFacade->compile($phelCode, $options)->getPhpCode();
+        $compiledCode = $this->compilerFacade->transpile($phelCode, $options)->getPhpCode();
 
         self::assertSame(
             trim($expectedGeneratedCode),

@@ -6,8 +6,8 @@ namespace Phel\Run;
 
 use Gacela\Framework\AbstractFacade;
 use Phel\Build\Domain\Extractor\NamespaceInformation;
-use Phel\Transpiler\Domain\Exceptions\CompilerException;
-use Phel\Transpiler\Infrastructure\CompileOptions;
+use Phel\Transpiler\Domain\Exceptions\TranspilerException;
+use Phel\Transpiler\Infrastructure\TranspileOptions;
 use Symfony\Component\Console\Output\OutputInterface;
 use Throwable;
 
@@ -72,14 +72,14 @@ final class RunFacade extends AbstractFacade implements RunFacadeInterface
     /**
      * @return mixed The result of the executed code
      */
-    public function eval(string $phelCode, CompileOptions $compileOptions): mixed
+    public function eval(string $phelCode, TranspileOptions $compileOptions): mixed
     {
         return $this->getFactory()
             ->getCompilerFacade()
             ->eval($phelCode, $compileOptions);
     }
 
-    public function writeLocatedException(OutputInterface $output, CompilerException $e): void
+    public function writeLocatedException(OutputInterface $output, TranspilerException $e): void
     {
         $this->getFactory()
             ->getCommandFacade()

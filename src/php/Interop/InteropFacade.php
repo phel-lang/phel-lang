@@ -6,7 +6,7 @@ namespace Phel\Interop;
 
 use Gacela\Framework\AbstractFacade;
 use Phel\Interop\Domain\ReadModel\Wrapper;
-use Phel\Transpiler\Domain\Exceptions\CompilerException;
+use Phel\Transpiler\Domain\Exceptions\TranspilerException;
 use Symfony\Component\Console\Output\OutputInterface;
 use Throwable;
 
@@ -25,7 +25,7 @@ final class InteropFacade extends AbstractFacade implements InteropFacadeInterfa
             ->generateExportCode();
     }
 
-    public function writeLocatedException(OutputInterface $output, CompilerException $e): void
+    public function writeLocatedException(OutputInterface $output, TranspilerException $e): void
     {
         $this->getFactory()
             ->getCommandFacade()

@@ -6,7 +6,7 @@ namespace Phel\Interop\Infrastructure\Command;
 
 use Gacela\Framework\DocBlockResolverAwareTrait;
 use Phel\Interop\InteropFacade;
-use Phel\Transpiler\Domain\Exceptions\CompilerException;
+use Phel\Transpiler\Domain\Exceptions\TranspilerException;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
@@ -31,7 +31,7 @@ final class ExportCommand extends Command
             $this->generateExportCode($output);
 
             return self::SUCCESS;
-        } catch (CompilerException $e) {
+        } catch (TranspilerException $e) {
             $this->getFacade()->writeLocatedException($output, $e);
         } catch (Throwable $e) {
             $this->getFacade()->writeStackTrace($output, $e);

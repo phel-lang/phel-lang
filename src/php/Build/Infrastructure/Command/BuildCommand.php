@@ -8,7 +8,7 @@ use Gacela\Framework\DocBlockResolverAwareTrait;
 use Phel\Build\BuildFacade;
 use Phel\Build\Domain\Compile\BuildOptions;
 use Phel\Build\Domain\Compile\CompiledFile;
-use Phel\Transpiler\Domain\Exceptions\CompilerException;
+use Phel\Transpiler\Domain\Exceptions\TranspilerException;
 use SebastianBergmann\Timer\ResourceUsageFormatter;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
@@ -44,7 +44,7 @@ final class BuildCommand extends Command
         try {
             $compiledProject = $this->getFacade()->compileProject($buildOptions);
             $this->printOutput($output, $compiledProject);
-        } catch (CompilerException $e) {
+        } catch (TranspilerException $e) {
             $this->getFacade()->writeLocatedException($output, $e);
         } catch (Throwable $e) {
             $this->getFacade()->writeStackTrace($output, $e);

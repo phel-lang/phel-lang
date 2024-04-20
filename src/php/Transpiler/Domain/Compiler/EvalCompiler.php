@@ -11,9 +11,9 @@ use Phel\Transpiler\Domain\Analyzer\Environment\NodeEnvironment;
 use Phel\Transpiler\Domain\Analyzer\Exceptions\AnalyzerException;
 use Phel\Transpiler\Domain\Emitter\StatementEmitterInterface;
 use Phel\Transpiler\Domain\Evaluator\EvaluatorInterface;
-use Phel\Transpiler\Domain\Evaluator\Exceptions\CompiledCodeIsMalformedException;
 use Phel\Transpiler\Domain\Evaluator\Exceptions\FileException;
-use Phel\Transpiler\Domain\Exceptions\CompilerException;
+use Phel\Transpiler\Domain\Evaluator\Exceptions\TrarnspiledCodeIsMalformedException;
+use Phel\Transpiler\Domain\Exceptions\TranspilerException;
 use Phel\Transpiler\Domain\Lexer\Exceptions\LexerValueException;
 use Phel\Transpiler\Domain\Lexer\LexerInterface;
 use Phel\Transpiler\Domain\Parser\Exceptions\AbstractParserException;
@@ -24,7 +24,7 @@ use Phel\Transpiler\Domain\Parser\ParserNode\TriviaNodeInterface;
 use Phel\Transpiler\Domain\Parser\ReadModel\ReaderResult;
 use Phel\Transpiler\Domain\Reader\Exceptions\ReaderException;
 use Phel\Transpiler\Domain\Reader\ReaderInterface;
-use Phel\Transpiler\Infrastructure\CompileOptions;
+use Phel\Transpiler\Infrastructure\TranspileOptions;
 
 final readonly class EvalCompiler implements EvalCompilerInterface
 {
@@ -41,15 +41,15 @@ final readonly class EvalCompiler implements EvalCompilerInterface
     /**
      * Evaluates a provided Phel code.
      *
-     * @throws CompiledCodeIsMalformedException
-     * @throws CompilerException
+     *@throws TranspilerException
      * @throws FileException
      * @throws LexerValueException
      * @throws UnfinishedParserException
+     * @throws TrarnspiledCodeIsMalformedException
      *
      * @return mixed The result of the executed code
      */
-    public function evalString(string $phelCode, CompileOptions $compileOptions): mixed
+    public function evalString(string $phelCode, TranspileOptions $compileOptions): mixed
     {
         $tokenStream = $this->lexer->lexString($phelCode, $compileOptions->getSource(), $compileOptions->getStartingLine());
 
@@ -71,19 +71,19 @@ final readonly class EvalCompiler implements EvalCompilerInterface
             } catch (UnfinishedParserException $e) {
                 throw $e;
             } catch (AbstractParserException|ReaderException $e) {
-                throw new CompilerException($e, $e->getCodeSnippet());
+                throw new TranspilerException($e, $e->getCodeSnippet());
             }
         }
     }
 
-    public function evalForm(float|bool|int|string|TypeInterface|null $form, CompileOptions $compileOptions): mixed
+    public function evalForm(float|bool|int|string|TypeInterface|null $form, TranspileOptions $compileOptions): mixed
     {
         $node = $this->analyzer->analyze($form, NodeEnvironment::empty()->withReturnContext());
         return $this->evalNode($node, $compileOptions);
     }
 
     /**
-     * @throws CompilerException
+     * @throws TranspilerException
      */
     private function analyze(ReaderResult $readerResult): AbstractNode
     {
@@ -93,17 +93,17 @@ final readonly class EvalCompiler implements EvalCompilerInterface
                 NodeEnvironment::empty()->withReturnContext(),
             );
         } catch (AnalyzerException $analyzerException) {
-            throw new CompilerException($analyzerException, $readerResult->getCodeSnippet());
+            throw new TranspilerException($analyzerException, $readerResult->getCodeSnippet());
         }
     }
 
     /**
-     * @throws CompiledCodeIsMalformedException
-     * @throws FileException
+     *@throws FileException
+     * @throws TrarnspiledCodeIsMalformedException
      *
      * @return mixed The result of the executed code
      */
-    private function evalNode(AbstractNode $node, CompileOptions $compileOptions): mixed
+    private function evalNode(AbstractNode $node, TranspileOptions $compileOptions): mixed
     {
         $code = $this->emitter->emitNode($node, $compileOptions->isSourceMapsEnabled())->getCodeWithSourceMap();
 

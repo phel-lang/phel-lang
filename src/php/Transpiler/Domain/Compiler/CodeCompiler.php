@@ -13,9 +13,9 @@ use Phel\Transpiler\Domain\Emitter\EmitterResult;
 use Phel\Transpiler\Domain\Emitter\FileEmitterInterface;
 use Phel\Transpiler\Domain\Emitter\StatementEmitterInterface;
 use Phel\Transpiler\Domain\Evaluator\EvaluatorInterface;
-use Phel\Transpiler\Domain\Evaluator\Exceptions\CompiledCodeIsMalformedException;
 use Phel\Transpiler\Domain\Evaluator\Exceptions\FileException;
-use Phel\Transpiler\Domain\Exceptions\CompilerException;
+use Phel\Transpiler\Domain\Evaluator\Exceptions\TrarnspiledCodeIsMalformedException;
+use Phel\Transpiler\Domain\Exceptions\TranspilerException;
 use Phel\Transpiler\Domain\Lexer\Exceptions\LexerValueException;
 use Phel\Transpiler\Domain\Lexer\LexerInterface;
 use Phel\Transpiler\Domain\Parser\Exceptions\AbstractParserException;
@@ -25,7 +25,7 @@ use Phel\Transpiler\Domain\Parser\ParserNode\TriviaNodeInterface;
 use Phel\Transpiler\Domain\Parser\ReadModel\ReaderResult;
 use Phel\Transpiler\Domain\Reader\Exceptions\ReaderException;
 use Phel\Transpiler\Domain\Reader\ReaderInterface;
-use Phel\Transpiler\Infrastructure\CompileOptions;
+use Phel\Transpiler\Infrastructure\TranspileOptions;
 
 final readonly class CodeCompiler implements CodeCompilerInterface
 {
@@ -41,12 +41,12 @@ final readonly class CodeCompiler implements CodeCompilerInterface
     }
 
     /**
-     * @throws CompilerException
-     * @throws CompiledCodeIsMalformedException
+     * @throws TranspilerException
+     * @throws TrarnspiledCodeIsMalformedException
      * @throws FileException
      * @throws LexerValueException
      */
-    public function compileString(string $phelCode, CompileOptions $compileOptions): EmitterResult
+    public function compileString(string $phelCode, TranspileOptions $compileOptions): EmitterResult
     {
         $tokenStream = $this->lexer->lexString($phelCode, $compileOptions->getSource(), $compileOptions->getStartingLine());
 
@@ -66,14 +66,14 @@ final readonly class CodeCompiler implements CodeCompilerInterface
                     $this->emitNode($node, $compileOptions);
                 }
             } catch (AbstractParserException|ReaderException $e) {
-                throw new CompilerException($e, $e->getCodeSnippet());
+                throw new TranspilerException($e, $e->getCodeSnippet());
             }
         }
 
         return $this->fileEmitter->endFile($compileOptions->isSourceMapsEnabled());
     }
 
-    public function compileForm(float|bool|int|string|TypeInterface|null $form, CompileOptions $compileOptions): EmitterResult
+    public function compileForm(float|bool|int|string|TypeInterface|null $form, TranspileOptions $compileOptions): EmitterResult
     {
         $this->fileEmitter->startFile($compileOptions->getSource());
         $node = $this->analyzer->analyze($form, NodeEnvironment::empty());
@@ -82,7 +82,7 @@ final readonly class CodeCompiler implements CodeCompilerInterface
     }
 
     /**
-     * @throws CompilerException
+     * @throws TranspilerException
      */
     private function analyze(ReaderResult $readerResult): AbstractNode
     {
@@ -92,15 +92,15 @@ final readonly class CodeCompiler implements CodeCompilerInterface
                 NodeEnvironment::empty(),
             );
         } catch (AnalyzerException $analyzerException) {
-            throw new CompilerException($analyzerException, $readerResult->getCodeSnippet());
+            throw new TranspilerException($analyzerException, $readerResult->getCodeSnippet());
         }
     }
 
     /**
-     * @throws CompiledCodeIsMalformedException
+     * @throws TrarnspiledCodeIsMalformedException
      * @throws FileException
      */
-    private function emitNode(AbstractNode $node, CompileOptions $compileOptions): void
+    private function emitNode(AbstractNode $node, TranspileOptions $compileOptions): void
     {
         $this->fileEmitter->emitNode($node);
 

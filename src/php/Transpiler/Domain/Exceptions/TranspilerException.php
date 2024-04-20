@@ -7,7 +7,7 @@ namespace Phel\Transpiler\Domain\Exceptions;
 use Phel\Transpiler\Domain\Parser\ReadModel\CodeSnippet;
 use RuntimeException;
 
-final class CompilerException extends RuntimeException
+final class TranspilerException extends RuntimeException
 {
     public function __construct(
         private readonly AbstractLocatedException $nestedException,

@@ -11,7 +11,7 @@ use Phel\Build\Domain\Extractor\NamespaceInformation;
 use Phel\Lang\Registry;
 use Phel\Shared\BuildConstants;
 use Phel\Shared\CompilerConstants;
-use Phel\Transpiler\Domain\Exceptions\CompilerException;
+use Phel\Transpiler\Domain\Exceptions\TranspilerException;
 use Symfony\Component\Console\Output\OutputInterface;
 use Throwable;
 
@@ -119,7 +119,7 @@ final class BuildFacade extends AbstractFacade implements BuildFacadeInterface
             ->registerExceptionHandler();
     }
 
-    public function writeLocatedException(OutputInterface $output, CompilerException $e): void
+    public function writeLocatedException(OutputInterface $output, TranspilerException $e): void
     {
         $this->getFactory()
             ->getCommandFacade()

@@ -9,7 +9,7 @@ use Phel\Interop\Domain\ExportFinder\FunctionsToExportFinderInterface;
 use Phel\Interop\Domain\FileCreator\FileCreatorInterface;
 use Phel\Interop\Domain\Generator\WrapperGeneratorInterface;
 use Phel\Interop\Domain\ReadModel\Wrapper;
-use Phel\Transpiler\Domain\Exceptions\CompilerException;
+use Phel\Transpiler\Domain\Exceptions\TranspilerException;
 use RuntimeException;
 
 final readonly class ExportCodeGenerator
@@ -23,8 +23,8 @@ final readonly class ExportCodeGenerator
     }
 
     /**
-     * @throws CompilerException
-     * @throws RuntimeException
+     *@throws RuntimeException
+     * @throws TranspilerException
      *
      * @return list<Wrapper>
      */

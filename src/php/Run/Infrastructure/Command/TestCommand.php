@@ -8,8 +8,8 @@ use Gacela\Framework\DocBlockResolverAwareTrait;
 use Phel\Build\Domain\Extractor\NamespaceInformation;
 use Phel\Run\Domain\Test\TestCommandOptions;
 use Phel\Run\RunFacade;
-use Phel\Transpiler\Domain\Exceptions\CompilerException;
-use Phel\Transpiler\Infrastructure\CompileOptions;
+use Phel\Transpiler\Domain\Exceptions\TranspilerException;
+use Phel\Transpiler\Infrastructure\TranspileOptions;
 use SebastianBergmann\Timer\ResourceUsageFormatter;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputArgument;
@@ -66,12 +66,12 @@ final class TestCommand extends Command
                 $this->getFacade()->evalFile($info);
             }
 
-            $result = $this->getFacade()->eval($phelCode, new CompileOptions());
+            $result = $this->getFacade()->eval($phelCode, new TranspileOptions());
 
             $output->writeln((new ResourceUsageFormatter())->resourceUsageSinceStartOfRequest());
 
             return ($result) ? self::SUCCESS : self::FAILURE;
-        } catch (CompilerException $e) {
+        } catch (TranspilerException $e) {
             $this->getFacade()->writeLocatedException($output, $e);
         } catch (Throwable $e) {
             $this->getFacade()->writeStackTrace($output, $e);
