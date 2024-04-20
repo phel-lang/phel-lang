@@ -12,11 +12,11 @@ use PHPUnit\Framework\TestCase;
 
 final class LexerTest extends TestCase
 {
-    private TranspilerFactory $compilerFactory;
+    private TranspilerFactory $transpilerFactory;
 
     protected function setUp(): void
     {
-        $this->compilerFactory = new TranspilerFactory();
+        $this->transpilerFactory = new TranspilerFactory();
     }
 
     public function test_whitespace_with_newline(): void
@@ -169,7 +169,7 @@ final class LexerTest extends TestCase
 
     private function lex(string $string): array
     {
-        $lexer = $this->compilerFactory->createLexer();
+        $lexer = $this->transpilerFactory->createLexer();
 
         return iterator_to_array($lexer->lexString($string, 'string'));
     }

@@ -11,11 +11,11 @@ use PHPUnit\Framework\TestCase;
 
 final class ParseAndPrintTest extends TestCase
 {
-    private TranspilerFactory $compilerFactory;
+    private TranspilerFactory $transpilerFactory;
 
     protected function setUp(): void
     {
-        $this->compilerFactory = new TranspilerFactory();
+        $this->transpilerFactory = new TranspilerFactory();
     }
 
     public function test_parse_and_print_core_library(): void
@@ -31,8 +31,8 @@ final class ParseAndPrintTest extends TestCase
     private function parse(string $phelCode): array
     {
         Symbol::resetGen();
-        $parser = $this->compilerFactory->createParser();
-        $tokenStream = $this->compilerFactory->createLexer()->lexString($phelCode);
+        $parser = $this->transpilerFactory->createParser();
+        $tokenStream = $this->transpilerFactory->createLexer()->lexString($phelCode);
 
         $parseTrees = [];
         while (true) {

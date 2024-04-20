@@ -21,7 +21,7 @@ final class IntegrationTest extends TestCase
 {
     private static GlobalEnvironment $globalEnv;
 
-    private TranspilerFacade $compilerFacade;
+    private TranspilerFacade $transpilerFacade;
 
     public static function setUpBeforeClass(): void
     {
@@ -37,7 +37,7 @@ final class IntegrationTest extends TestCase
 
     protected function setUp(): void
     {
-        $this->compilerFacade = new TranspilerFacade();
+        $this->transpilerFacade = new TranspilerFacade();
     }
 
     /**
@@ -55,7 +55,7 @@ final class IntegrationTest extends TestCase
         $options = (new TranspileOptions())
             ->setSource($filename);
 
-        $compiledCode = $this->compilerFacade->transpile($phelCode, $options)->getPhpCode();
+        $compiledCode = $this->transpilerFacade->transpile($phelCode, $options)->getPhpCode();
 
         self::assertSame(
             trim($expectedGeneratedCode),

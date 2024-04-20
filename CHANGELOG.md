@@ -27,6 +27,7 @@ All notable changes to this project will be documented in this file.
   * `index-of`: Return index of value in string, optionally searching forward
   * `last-index-of`: Return last index of value in string, optionally searching backward
   * `split-lines`: Splits string with on \n or \r\n
+* Rename Compiler namespace to Transpiler (#689)
 
 ## [0.13.0](https://github.com/phel-lang/phel-lang/compare/v0.12.0...v0.13.0) - 2024-04-17
 

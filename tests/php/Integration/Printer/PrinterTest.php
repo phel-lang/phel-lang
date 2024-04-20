@@ -13,7 +13,7 @@ use PHPUnit\Framework\TestCase;
 
 final class PrinterTest extends TestCase
 {
-    private TranspilerFacadeInterface $compilerFacade;
+    private TranspilerFacadeInterface $transpilerFacade;
 
     public static function setUpBeforeClass(): void
     {
@@ -23,7 +23,7 @@ final class PrinterTest extends TestCase
 
     protected function setUp(): void
     {
-        $this->compilerFacade = new TranspilerFacade();
+        $this->transpilerFacade = new TranspilerFacade();
     }
 
     public function test_print_string(): void
@@ -93,9 +93,9 @@ final class PrinterTest extends TestCase
 
     private function read(string $string): string
     {
-        $tokenStream = $this->compilerFacade->lexString($string);
-        $parseTree = $this->compilerFacade->parseNext($tokenStream);
+        $tokenStream = $this->transpilerFacade->lexString($string);
+        $parseTree = $this->transpilerFacade->parseNext($tokenStream);
 
-        return (string)$this->compilerFacade->read($parseTree)->getAst();
+        return (string)$this->transpilerFacade->read($parseTree)->getAst();
     }
 }

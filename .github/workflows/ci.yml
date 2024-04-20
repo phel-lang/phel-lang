@@ -79,7 +79,7 @@ jobs:
       - name: Run PHPStan on internal code
         run: ./vendor/bin/phpstan --memory-limit=516M --debug -vvv
 
-  compiler-tests:
+  transpiler-tests:
     name: Transpiler tests on PHP ${{ matrix.php }}
     runs-on: ubuntu-latest
     strategy:
@@ -109,10 +109,10 @@ jobs:
       - name: Install dependencies
         run: composer install --no-interaction --no-ansi --no-progress
 
-      - name: Run unit tests to the compiler itself
+      - name: Run unit tests to the transpiler itself
         run: vendor/bin/phpunit --testsuite unit
 
-      - name: Run integration tests to the compiler itself
+      - name: Run integration tests to the transpiler itself
         run: vendor/bin/phpunit --testsuite integration
 
   core-tests:

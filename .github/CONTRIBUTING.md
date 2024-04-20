@@ -85,11 +85,11 @@ Phel requires PHP 8.2 or higher and Composer.
 
 ### Running Phel's test suites
 
-Phel has two test suites. The first test suite runs PHPUnit to test the compiler itself. The second test suite runs tests against Phel's core library.
+Phel has two test suites. The first test suite runs PHPUnit to test the transpiler itself. The second test suite runs tests against Phel's core library.
 
-#### Testing the PHP compiler
+#### Testing the PHP transpiler
 
-Phel uses PHPUnit to test its compiler.
+Phel uses PHPUnit to test its transpiler.
 
 ```bash
 $ vendor/bin/phpunit --testsuite unit
@@ -115,20 +115,20 @@ composer psalm         # Run Psalm
 composer phpstan       # Run PhpStan
 > vendor/bin/phpstan
 
-composer test-compiler # test the compiler
+composer test-transpiler # test the transpiler
 > vendor/bin/phpunit --testsuite unit
 > vendor/bin/phpunit --testsuite integration
 
 composer test-core     # test core library
 > ./bin/phel test
 
-composer test-all      # clear cache, php-cs-fixer, psalm, phpstan, rector, compiler & core tests after each other
+composer test-all      # clear cache, php-cs-fixer, psalm, phpstan, rector, transpiler & core tests after each other
 > composer static-clear-cache
 > composer csrun
 > composer psalm
 > composer phpstan
 > composer rectorrun
-> composer test-compiler
+> composer test-transpiler
 > composer test-core
 ```
 

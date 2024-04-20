@@ -56,7 +56,7 @@
         "test-all": [
             "@static-clear-cache",
             "@test-quality",
-            "@test-compiler",
+            "@test-transpiler",
             "@test-core"
         ],
         "test-quality": [
@@ -69,8 +69,9 @@
             "vendor/bin/psalm --clear-cache",
             "vendor/bin/phpstan clear-result-cache"
         ],
-        "test-compiler": "./vendor/bin/phpunit --testsuite=unit,integration --log-junit=data/log-junit.xml",
-        "test-compiler:coverage": "XDEBUG_MODE=coverage ./vendor/bin/phpunit --testsuite=unit,integration --coverage-html=data/coverage-html --coverage-xml=data/coverage-xml --log-junit=data/coverage-xml/junit.xml",
+        "test-compiler": "test-transpiler",
+        "test-transpiler": "./vendor/bin/phpunit --testsuite=unit,integration --log-junit=data/log-junit.xml",
+        "test-transpiler:coverage": "XDEBUG_MODE=coverage ./vendor/bin/phpunit --testsuite=unit,integration --coverage-html=data/coverage-html --coverage-xml=data/coverage-xml --log-junit=data/coverage-xml/junit.xml",
         "test-core": "./bin/phel test",
         "psalm": "./vendor/bin/psalm --no-cache",
         "phpstan": "./vendor/bin/phpstan --memory-limit=516M",
@@ -83,7 +84,7 @@
         "phpbench-base": "./vendor/bin/phpbench run --tag=baseline --report=aggregate --progress=plain --ansi",
         "phpbench-ref": "./vendor/bin/phpbench run --ref=baseline --report=aggregate --progress=plain --ansi",
         "metrics-report": [
-            "@test-compiler",
+            "@test-transpiler",
             "./vendor/bin/phpmetrics --config=phpmetrics-config.json --junit=data/log-junit.xml"
         ]
     },
