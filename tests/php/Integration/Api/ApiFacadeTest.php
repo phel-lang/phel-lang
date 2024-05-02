@@ -34,8 +34,9 @@ final class ApiFacadeTest extends TestCase
             'phel\\html',
             'phel\\test',
             'phel\\json',
+            'phel\\str',
         ]);
 
-        self::assertCount(243, $groupedFns);
+        self::assertCount(264, $groupedFns);
     }
 }

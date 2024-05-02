@@ -12,6 +12,9 @@ use PHPUnit\Framework\TestCase;
 use Symfony\Component\Console\Input\ArrayInput;
 use Symfony\Component\Console\Output\OutputInterface;
 
+use function ob_get_clean;
+use function ob_start;
+
 final class BuildCommandTest extends TestCase
 {
     private BuildCommand $command;
@@ -34,9 +37,7 @@ final class BuildCommandTest extends TestCase
             $config->addAppConfig('config/phel-config.php');
         });
 
-        $this->expectOutputRegex('/This is printed from no-cache.phel/');
-        $this->expectOutputRegex('/This is printed from hello.phel/');
-
+        ob_start();
         $this->command->run(
             new ArrayInput([
                 '--no-source-map' => true,
@@ -44,6 +45,10 @@ final class BuildCommandTest extends TestCase
             ]),
             $this->createStub(OutputInterface::class),
         );
+        $string = ob_get_clean();
+
+        self::assertMatchesRegularExpression('/This is printed from no-cache.phel/', $string);
+        self::assertMatchesRegularExpression('/This is printed from hello.phel/', $string);
 
         self::assertFileExists(__DIR__ . '/out/phel/core.phel');
         self::assertFileExists(__DIR__ . '/out/phel/core.php');
@@ -67,15 +72,17 @@ final class BuildCommandTest extends TestCase
         // Mark file cache invalid by setting the modification time to 0
         touch(__DIR__ . '/out/test_ns/hello.php', 1);
 
-        $this->expectOutputRegex('/This is printed from no-cache.phel/');
-        $this->expectOutputRegex('/This is printed from hello.phel/');
-
+        ob_start();
         $this->command->run(
             new ArrayInput([
                 '--no-source-map' => true,
             ]),
             $this->createStub(OutputInterface::class),
         );
+        $string = ob_get_clean();
+
+        self::assertMatchesRegularExpression('/This is printed from no-cache.phel/', $string);
+        self::assertMatchesRegularExpression('/This is printed from hello.phel/', $string);
 
         self::assertFileExists(__DIR__ . '/out/phel/core.phel');
         self::assertFileExists(__DIR__ . '/out/phel/core.php');
@@ -94,6 +101,7 @@ final class BuildCommandTest extends TestCase
             $config->addAppConfig('config/phel-config.php');
         });
 
+        ob_start();
         $this->command->run(
             new ArrayInput([
                 '--no-source-map' => true,
@@ -101,6 +109,7 @@ final class BuildCommandTest extends TestCase
             ]),
             $this->createStub(OutputInterface::class),
         );
+        ob_end_clean();
 
         $actual = file_get_contents(__DIR__ . '/out/main.php');
         $expected = <<<'TXT'
@@ -130,6 +139,7 @@ TXT;
             unlink(__DIR__ . '/out/main.php');
         }
 
+        ob_start();
         $this->command->run(
             new ArrayInput([
                 '--no-source-map' => true,
@@ -137,6 +147,7 @@ TXT;
             ]),
             $this->createStub(OutputInterface::class),
         );
+        ob_end_clean();
 
         $this->assertFileDoesNotExist(__DIR__ . '/out/main.php');
     }
