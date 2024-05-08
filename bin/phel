@@ -7,34 +7,33 @@ use Gacela\Framework\Gacela;
 use Phel\Console\Infrastructure\ConsoleBootstrap;
 use Phel\Phel;
 
-(static function () {
+(static function (): void {
     $appRootDir = array_reduce(
         [
-            [getcwd(),  '/vendor/autoload.php'],
+            [getcwd(), '/vendor/autoload.php'],
             [__DIR__, '/../vendor/autoload.php'],
             [__DIR__, '/../../vendor/autoload.php'],
             [__DIR__, '/../../../autoload.php'],
         ],
         static function (?string $loaded, array $file): ?string {
-            $file = sprintf('%s%s', ...$file);
+            $filepath = sprintf('%s%s', ...$file);
 
-            if (($loaded !== null) || (is_file($file) === false)) {
+            if (($loaded !== null) || (is_file($filepath) === false)) {
                 return $loaded;
             }
 
-            require_once($file);
+            require_once $filepath;
 
             return $file[0];
         },
-        null
     );
 
     if ($appRootDir === null) {
         fwrite(
             STDERR,
-            'You must set up the project dependencies, run the following commands:'.PHP_EOL.
-            'curl -s http://getcomposer.org/installer | php'.PHP_EOL.
-            'php composer.phar install'.PHP_EOL
+            'You must set up the project dependencies, run the following commands:' . PHP_EOL .
+            'curl -s https://getcomposer.org/installer | php' . PHP_EOL .
+            'php composer.phar install' . PHP_EOL,
         );
 
         exit(1);
