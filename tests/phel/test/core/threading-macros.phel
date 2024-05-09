@@ -18,4 +18,5 @@
 
 (deftest test-as->$
   (let [animals [{:name "Rex" :type :dog} {:name "Kitty" :type :cat}]]
-    (is (= :cat (as-> animals o (o 1) (o :type))))))
+    (is (= :cat (as-> animals o (o 1) (o :type))))
+    (is (= :cat (as-> animals $ ($ 1) ($ :type))))))
