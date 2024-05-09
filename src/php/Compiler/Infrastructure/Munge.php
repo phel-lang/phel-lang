@@ -38,6 +38,7 @@ final readonly class Munge implements MungeInterface
         '/' => '_SLASH_',
         '\\' => '_BSLASH_',
         '?' => '_QMARK_',
+        '$' => '_DOLLAR_',
     ];
 
     public function __construct(
