@@ -14,4 +14,8 @@
 (deftest test-as->
   (is (= 1 (as-> 1 v)))
   (is (= -3 (as-> 5 v (+ 3 v) (/ v 2) (- 1 v))))
-  (is (= "oo" (as-> [:foo :bar] v (map |(php/-> $ (getName)) v) (first v) (php/substr v 1)))))
+  (is (= "oo" (as-> [:foo :bar] v (map |(php/-> $ (getName)) v) (first v) (php/substr v 1))))
+  (let [animals [{:name "Rex" :type :dog} {:name "Kitty" :type :cat}]]
+    (is (= :cat (as-> animals o (o 1) (o :type))))
+    (is (= :cat (as-> animals $ ($ 1) ($ :type))))))
+

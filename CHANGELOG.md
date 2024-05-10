@@ -4,6 +4,7 @@ All notable changes to this project will be documented in this file.
 
 ## Unreleased
 
+* Fix $ as named parameter in macros
 * Add `phel/str` functions (#688)
   * `split`: Splits string on a regular expression
   * `join`: Returns a string of all elements in coll
