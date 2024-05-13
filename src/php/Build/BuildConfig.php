@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Phel\Build;
 
 use Gacela\Framework\AbstractConfig;
-use Phel\Config\PhelOutConfig;
+use Phel\Config\PhelBuildConfig;
 
 /**
  * @method BuildConfig getConfig()
@@ -37,8 +37,8 @@ final class BuildConfig extends AbstractConfig implements BuildConfigInterface
         return $this->getPhelOutConfig()->shouldCreateEntryPointPhpFile();
     }
 
-    public function getPhelOutConfig(): PhelOutConfig
+    public function getPhelOutConfig(): PhelBuildConfig
     {
-        return PhelOutConfig::fromArray((array)$this->get('out', []));
+        return PhelBuildConfig::fromArray((array)$this->get('out', []));
     }
 }

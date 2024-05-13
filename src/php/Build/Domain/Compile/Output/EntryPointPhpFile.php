@@ -4,14 +4,14 @@ declare(strict_types=1);
 
 namespace Phel\Build\Domain\Compile\Output;
 
-use Phel\Config\PhelOutConfig;
+use Phel\Config\PhelBuildConfig;
 
 final readonly class EntryPointPhpFile implements EntryPointPhpFileInterface
 {
     public function __construct(
-        private PhelOutConfig $phelOutConfig,
+        private PhelBuildConfig          $phelOutConfig,
         private NamespacePathTransformer $namespacePathTransformer,
-        private string $appRootDir,
+        private string                   $appRootDir,
     ) {
     }
 

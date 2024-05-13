@@ -6,7 +6,7 @@ namespace PhelTest\Unit\Compiler\Config;
 
 use Phel\Config\PhelConfig;
 use Phel\Config\PhelExportConfig;
-use Phel\Config\PhelOutConfig;
+use Phel\Config\PhelBuildConfig;
 use PHPUnit\Framework\TestCase;
 
 final class PhelConfigTest extends TestCase
@@ -18,7 +18,7 @@ final class PhelConfigTest extends TestCase
             ->setTestDirs(['another/directory'])
             ->setVendorDir('vendor')
             ->setErrorLogFile('error-log.file')
-            ->setOut((new PhelOutConfig())
+            ->setBuildConfig((new PhelBuildConfig())
                 ->setMainPhpPath('out/custom-index.php')
                 ->setMainPhelNamespace('test-ns/boot'), )
             ->setExport((new PhelExportConfig())

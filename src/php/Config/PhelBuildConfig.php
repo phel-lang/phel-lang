@@ -9,7 +9,7 @@ use JsonSerializable;
 /**
  * @psalm-suppress DeprecatedProperty
  */
-final class PhelOutConfig implements JsonSerializable
+final class PhelBuildConfig implements JsonSerializable
 {
     public const DEST_DIR = 'dir';
 

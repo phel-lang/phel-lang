@@ -6,7 +6,7 @@ namespace Phel\Command;
 
 use Gacela\Framework\AbstractConfig;
 use Phel\Command\Domain\CodeDirectories;
-use Phel\Config\PhelOutConfig;
+use Phel\Config\PhelBuildConfig;
 
 final class CommandConfig extends AbstractConfig
 {
@@ -37,7 +37,7 @@ final class CommandConfig extends AbstractConfig
         return new CodeDirectories(
             [__DIR__ . '/../../', ...(array)$this->get(self::SRC_DIRS, self::DEFAULT_SRC_DIRS)],
             (array)$this->get(self::TEST_DIRS, self::DEFAULT_TEST_DIRS),
-            (string)($out[PhelOutConfig::DEST_DIR] ?? self::DEFAULT_OUTPUT_DIR),
+            (string)($out[PhelBuildConfig::DEST_DIR] ?? self::DEFAULT_OUTPUT_DIR),
         );
     }
 
