@@ -13,16 +13,12 @@ use Phel\Config\PhelConfig;
  */
 final class BuildConfig extends AbstractConfig implements BuildConfigInterface
 {
-    public const IGNORE_WHEN_BUILDING = PhelConfig::IGNORE_WHEN_BUILDING;
-
-    public const NO_CACHE_WHEN_BUILDING = PhelConfig::NO_CACHE_WHEN_BUILDING;
-
     /**
      * @return list<string>
      */
     public function getPathsToIgnore(): array
     {
-        return $this->get(self::IGNORE_WHEN_BUILDING, []);
+        return $this->get(PhelConfig::IGNORE_WHEN_BUILDING, []);
     }
 
     /**
@@ -30,7 +26,7 @@ final class BuildConfig extends AbstractConfig implements BuildConfigInterface
      */
     public function getPathsToAvoidCache(): array
     {
-        return $this->get(self::NO_CACHE_WHEN_BUILDING, []);
+        return $this->get(PhelConfig::NO_CACHE_WHEN_BUILDING, []);
     }
 
     public function shouldCreateEntryPointPhpFile(): bool

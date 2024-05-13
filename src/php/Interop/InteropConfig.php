@@ -9,8 +9,6 @@ use Phel\Config\PhelConfig;
 
 final class InteropConfig extends AbstractConfig
 {
-    public const EXPORT_CONFIG = PhelConfig::EXPORT_CONFIG;
-
     public const EXPORT_DIRECTORIES = 'directories';
 
     public const EXPORT_NAMESPACE_PREFIX = 'namespace-prefix';
@@ -52,6 +50,6 @@ final class InteropConfig extends AbstractConfig
 
     private function getExport(): array
     {
-        return $this->get(self::EXPORT_CONFIG, self::DEFAULT_EXPORT);
+        return $this->get(PhelConfig::EXPORT_CONFIG, self::DEFAULT_EXPORT);
     }
 }

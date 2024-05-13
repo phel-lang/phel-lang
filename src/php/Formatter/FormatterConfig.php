@@ -9,12 +9,10 @@ use Phel\Config\PhelConfig;
 
 final class FormatterConfig extends AbstractConfig
 {
-    public const FORMAT_DIRS = PhelConfig::FORMAT_DIRS;
-
     private const DEFAULT_FORMAT_DIRS = ['src', 'tests'];
 
     public function getFormatDirs(): array
     {
-        return $this->get(self::FORMAT_DIRS, self::DEFAULT_FORMAT_DIRS);
+        return $this->get(PhelConfig::FORMAT_DIRS, self::DEFAULT_FORMAT_DIRS);
     }
 }
