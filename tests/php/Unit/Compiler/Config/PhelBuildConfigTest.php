@@ -7,7 +7,7 @@ namespace PhelTest\Unit\Compiler\Config;
 use Phel\Config\PhelBuildConfig;
 use PHPUnit\Framework\TestCase;
 
-final class PhelOutConfigTest extends TestCase
+final class PhelBuildConfigTest extends TestCase
 {
     public function test_default(): void
     {
