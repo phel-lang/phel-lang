@@ -120,10 +120,10 @@ final class PhelConfig implements JsonSerializable
      */
     public function setOut(PhelBuildConfig $buildConfig): self
     {
-        return $this->setBuild($buildConfig);
+        return $this->setBuildConfig($buildConfig);
     }
 
-    public function setBuild(PhelBuildConfig $buildConfig): self
+    public function setBuildConfig(PhelBuildConfig $buildConfig): self
     {
         $this->buildConfig = $buildConfig;
 

@@ -2,8 +2,8 @@
 
 declare(strict_types=1);
 
-use Phel\Config\PhelConfig;
 use Phel\Config\PhelBuildConfig;
+use Phel\Config\PhelConfig;
 
 return (new PhelConfig())
     ->setSrcDirs([__DIR__ . '/../'])

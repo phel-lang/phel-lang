@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace PhelTest\Unit\Compiler\Config;
 
+use Phel\Config\PhelBuildConfig;
 use Phel\Config\PhelConfig;
 use Phel\Config\PhelExportConfig;
-use Phel\Config\PhelBuildConfig;
 use PHPUnit\Framework\TestCase;
 
 final class PhelConfigTest extends TestCase

@@ -9,9 +9,9 @@ use Phel\Config\PhelBuildConfig;
 final readonly class EntryPointPhpFile implements EntryPointPhpFileInterface
 {
     public function __construct(
-        private PhelBuildConfig          $phelOutConfig,
+        private PhelBuildConfig $phelOutConfig,
         private NamespacePathTransformer $namespacePathTransformer,
-        private string                   $appRootDir,
+        private string $appRootDir,
     ) {
     }
 
