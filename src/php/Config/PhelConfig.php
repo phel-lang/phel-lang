@@ -23,7 +23,7 @@ final class PhelConfig implements JsonSerializable
 
     private string $errorLogFile = 'data/error.log';
 
-    private PhelExportConfig $export;
+    private PhelExportConfig $exportConfig;
 
     private PhelBuildConfig $buildConfig;
 
@@ -40,7 +40,7 @@ final class PhelConfig implements JsonSerializable
 
     public function __construct()
     {
-        $this->export = new PhelExportConfig();
+        $this->exportConfig = new PhelExportConfig();
         $this->buildConfig = new PhelBuildConfig();
     }
 
@@ -86,14 +86,14 @@ final class PhelConfig implements JsonSerializable
         return $this;
     }
 
-    public function getExport(): PhelExportConfig
+    public function getExportConfig(): PhelExportConfig
     {
-        return $this->export;
+        return $this->exportConfig;
     }
 
-    public function setExport(PhelExportConfig $export): self
+    public function setExportConfig(PhelExportConfig $exportConfig): self
     {
-        $this->export = $export;
+        $this->exportConfig = $exportConfig;
 
         return $this;
     }
@@ -189,7 +189,7 @@ final class PhelConfig implements JsonSerializable
             CommandConfig::VENDOR_DIR => $this->vendorDir,
             CommandConfig::ERROR_LOG_FILE => $this->errorLogFile,
             CommandConfig::BUILD_CONFIG => $this->buildConfig->jsonSerialize(),
-            InteropConfig::EXPORT => $this->export->jsonSerialize(),
+            InteropConfig::EXPORT_CONFIG => $this->exportConfig->jsonSerialize(),
             BuildConfig::IGNORE_WHEN_BUILDING => $this->ignoreWhenBuilding,
             BuildConfig::NO_CACHE_WHEN_BUILDING => $this->noCacheWhenBuilding,
             FilesystemConfig::KEEP_GENERATED_TEMP_FILES => $this->keepGeneratedTempFiles,

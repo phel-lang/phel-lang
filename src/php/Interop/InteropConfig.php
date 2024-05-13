@@ -8,7 +8,7 @@ use Gacela\Framework\AbstractConfig;
 
 final class InteropConfig extends AbstractConfig
 {
-    public const EXPORT = 'export';
+    public const EXPORT_CONFIG = 'export';
 
     public const EXPORT_DIRECTORIES = 'directories';
 
@@ -51,6 +51,6 @@ final class InteropConfig extends AbstractConfig
 
     private function getExport(): array
     {
-        return $this->get(self::EXPORT, self::DEFAULT_EXPORT);
+        return $this->get(self::EXPORT_CONFIG, self::DEFAULT_EXPORT);
     }
 }

@@ -21,7 +21,7 @@ final class PhelConfigTest extends TestCase
             ->setBuildConfig((new PhelBuildConfig())
                 ->setMainPhpPath('out/custom-index.php')
                 ->setMainPhelNamespace('test-ns/boot'), )
-            ->setExport((new PhelExportConfig())
+            ->setExportConfig((new PhelExportConfig())
                 ->setDirectories(['some/other/dir'])
                 ->setNamespacePrefix('Generated')
                 ->setTargetDirectory('src/Generated'))
