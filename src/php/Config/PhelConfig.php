@@ -110,7 +110,7 @@ final class PhelConfig implements JsonSerializable
         return $this;
     }
 
-    public function getBuild(): PhelBuildConfig
+    public function getBuildConfig(): PhelBuildConfig
     {
         return $this->buildConfig;
     }
@@ -188,7 +188,7 @@ final class PhelConfig implements JsonSerializable
             CommandConfig::TEST_DIRS => $this->testDirs,
             CommandConfig::VENDOR_DIR => $this->vendorDir,
             CommandConfig::ERROR_LOG_FILE => $this->errorLogFile,
-            CommandConfig::OUTPUT => $this->buildConfig->jsonSerialize(),
+            CommandConfig::BUILD_CONFIG => $this->buildConfig->jsonSerialize(),
             InteropConfig::EXPORT => $this->export->jsonSerialize(),
             BuildConfig::IGNORE_WHEN_BUILDING => $this->ignoreWhenBuilding,
             BuildConfig::NO_CACHE_WHEN_BUILDING => $this->noCacheWhenBuilding,

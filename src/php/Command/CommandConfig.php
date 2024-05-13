@@ -10,15 +10,23 @@ use Phel\Config\PhelBuildConfig;
 
 final class CommandConfig extends AbstractConfig
 {
+    ////////////////
+    // KEY VALUES //
+    ////////////////
+
     public const SRC_DIRS = 'src-dirs';
 
     public const TEST_DIRS = 'test-dirs';
 
     public const VENDOR_DIR = 'vendor-dir';
 
-    public const OUTPUT = 'out';
+    public const BUILD_CONFIG = 'out';
 
     public const ERROR_LOG_FILE = 'error-log-file';
+
+    ////////////////////
+    // DEFAULT VALUES //
+    ////////////////////
 
     private const DEFAULT_VENDOR_DIR = 'vendor';
 
@@ -32,12 +40,12 @@ final class CommandConfig extends AbstractConfig
 
     public function getCodeDirs(): CodeDirectories
     {
-        $out = $this->get(self::OUTPUT, []);
+        $buildConfig = $this->get(self::BUILD_CONFIG, []);
 
         return new CodeDirectories(
             [__DIR__ . '/../../', ...(array)$this->get(self::SRC_DIRS, self::DEFAULT_SRC_DIRS)],
             (array)$this->get(self::TEST_DIRS, self::DEFAULT_TEST_DIRS),
-            (string)($out[PhelBuildConfig::DEST_DIR] ?? self::DEFAULT_OUTPUT_DIR),
+            (string)($buildConfig[PhelBuildConfig::DEST_DIR] ?? self::DEFAULT_OUTPUT_DIR),
         );
     }
 
