@@ -5,10 +5,11 @@ declare(strict_types=1);
 namespace Phel\Formatter;
 
 use Gacela\Framework\AbstractConfig;
+use Phel\Config\PhelConfig;
 
 final class FormatterConfig extends AbstractConfig
 {
-    public const FORMAT_DIRS = 'format-dirs';
+    public const FORMAT_DIRS = PhelConfig::FORMAT_DIRS;
 
     private const DEFAULT_FORMAT_DIRS = ['src', 'tests'];
 

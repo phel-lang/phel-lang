@@ -5,14 +5,29 @@ declare(strict_types=1);
 namespace Phel\Config;
 
 use JsonSerializable;
-use Phel\Build\BuildConfig;
-use Phel\Command\CommandConfig;
-use Phel\Filesystem\FilesystemConfig;
-use Phel\Formatter\FormatterConfig;
-use Phel\Interop\InteropConfig;
 
 final class PhelConfig implements JsonSerializable
 {
+    public const SRC_DIRS = 'src-dirs';
+
+    public const TEST_DIRS = 'test-dirs';
+
+    public const VENDOR_DIR = 'vendor-dir';
+
+    public const BUILD_CONFIG = 'out';
+
+    public const ERROR_LOG_FILE = 'error-log-file';
+
+    public const EXPORT_CONFIG = 'export';
+
+    public const IGNORE_WHEN_BUILDING = 'ignore-when-building';
+
+    public const NO_CACHE_WHEN_BUILDING = 'no-cache-when-building';
+
+    public const KEEP_GENERATED_TEMP_FILES = 'keep-generated-temp-files';
+
+    public const FORMAT_DIRS = 'format-dirs';
+
     /** @var list<string> */
     private array $srcDirs = ['src/phel'];
 
@@ -184,16 +199,16 @@ final class PhelConfig implements JsonSerializable
     public function jsonSerialize(): array
     {
         return [
-            CommandConfig::SRC_DIRS => $this->srcDirs,
-            CommandConfig::TEST_DIRS => $this->testDirs,
-            CommandConfig::VENDOR_DIR => $this->vendorDir,
-            CommandConfig::ERROR_LOG_FILE => $this->errorLogFile,
-            CommandConfig::BUILD_CONFIG => $this->buildConfig->jsonSerialize(),
-            InteropConfig::EXPORT_CONFIG => $this->exportConfig->jsonSerialize(),
-            BuildConfig::IGNORE_WHEN_BUILDING => $this->ignoreWhenBuilding,
-            BuildConfig::NO_CACHE_WHEN_BUILDING => $this->noCacheWhenBuilding,
-            FilesystemConfig::KEEP_GENERATED_TEMP_FILES => $this->keepGeneratedTempFiles,
-            FormatterConfig::FORMAT_DIRS => $this->formatDirs,
+            self::SRC_DIRS => $this->srcDirs,
+            self::TEST_DIRS => $this->testDirs,
+            self::VENDOR_DIR => $this->vendorDir,
+            self::ERROR_LOG_FILE => $this->errorLogFile,
+            self::BUILD_CONFIG => $this->buildConfig->jsonSerialize(),
+            self::EXPORT_CONFIG => $this->exportConfig->jsonSerialize(),
+            self::IGNORE_WHEN_BUILDING => $this->ignoreWhenBuilding,
+            self::NO_CACHE_WHEN_BUILDING => $this->noCacheWhenBuilding,
+            self::KEEP_GENERATED_TEMP_FILES => $this->keepGeneratedTempFiles,
+            self::FORMAT_DIRS => $this->formatDirs,
         ];
     }
 }

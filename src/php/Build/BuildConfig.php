@@ -6,15 +6,16 @@ namespace Phel\Build;
 
 use Gacela\Framework\AbstractConfig;
 use Phel\Config\PhelBuildConfig;
+use Phel\Config\PhelConfig;
 
 /**
  * @method BuildConfig getConfig()
  */
 final class BuildConfig extends AbstractConfig implements BuildConfigInterface
 {
-    public const IGNORE_WHEN_BUILDING = 'ignore-when-building';
+    public const IGNORE_WHEN_BUILDING = PhelConfig::IGNORE_WHEN_BUILDING;
 
-    public const NO_CACHE_WHEN_BUILDING = 'no-cache-when-building';
+    public const NO_CACHE_WHEN_BUILDING = PhelConfig::NO_CACHE_WHEN_BUILDING;
 
     /**
      * @return list<string>
@@ -34,10 +35,10 @@ final class BuildConfig extends AbstractConfig implements BuildConfigInterface
 
     public function shouldCreateEntryPointPhpFile(): bool
     {
-        return $this->getPhelOutConfig()->shouldCreateEntryPointPhpFile();
+        return $this->getPhelBuildConfig()->shouldCreateEntryPointPhpFile();
     }
 
-    public function getPhelOutConfig(): PhelBuildConfig
+    public function getPhelBuildConfig(): PhelBuildConfig
     {
         return PhelBuildConfig::fromArray((array)$this->get('out', []));
     }

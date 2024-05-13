@@ -84,7 +84,7 @@ final class BuildFactory extends AbstractFactory
     private function createMainPhpEntryPointFile(): EntryPointPhpFileInterface
     {
         return new EntryPointPhpFile(
-            $this->getConfig()->getPhelOutConfig(),
+            $this->getConfig()->getPhelBuildConfig(),
             $this->createNamespacePathTransformer(),
             $this->getConfig()->getAppRootDir(),
         );
