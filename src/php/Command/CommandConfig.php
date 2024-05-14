@@ -7,27 +7,10 @@ namespace Phel\Command;
 use Gacela\Framework\AbstractConfig;
 use Phel\Command\Domain\CodeDirectories;
 use Phel\Config\PhelBuildConfig;
+use Phel\Config\PhelConfig;
 
 final class CommandConfig extends AbstractConfig
 {
-    ////////////////
-    // KEY VALUES //
-    ////////////////
-
-    public const SRC_DIRS = 'src-dirs';
-
-    public const TEST_DIRS = 'test-dirs';
-
-    public const VENDOR_DIR = 'vendor-dir';
-
-    public const BUILD_CONFIG = 'out';
-
-    public const ERROR_LOG_FILE = 'error-log-file';
-
-    ////////////////////
-    // DEFAULT VALUES //
-    ////////////////////
-
     private const DEFAULT_VENDOR_DIR = 'vendor';
 
     private const DEFAULT_SRC_DIRS = ['src'];
@@ -40,22 +23,22 @@ final class CommandConfig extends AbstractConfig
 
     public function getCodeDirs(): CodeDirectories
     {
-        $buildConfig = $this->get(self::BUILD_CONFIG, []);
+        $buildConfig = $this->get(PhelConfig::BUILD_CONFIG, []);
 
         return new CodeDirectories(
-            [__DIR__ . '/../../', ...(array)$this->get(self::SRC_DIRS, self::DEFAULT_SRC_DIRS)],
-            (array)$this->get(self::TEST_DIRS, self::DEFAULT_TEST_DIRS),
+            [__DIR__ . '/../../', ...(array)$this->get(PhelConfig::SRC_DIRS, self::DEFAULT_SRC_DIRS)],
+            (array)$this->get(PhelConfig::TEST_DIRS, self::DEFAULT_TEST_DIRS),
             (string)($buildConfig[PhelBuildConfig::DEST_DIR] ?? self::DEFAULT_OUTPUT_DIR),
         );
     }
 
     public function getVendorDir(): string
     {
-        return (string)$this->get(self::VENDOR_DIR, self::DEFAULT_VENDOR_DIR);
+        return (string)$this->get(PhelConfig::VENDOR_DIR, self::DEFAULT_VENDOR_DIR);
     }
 
     public function getErrorLogFile(): string
     {
-        return (string)$this->get(self::ERROR_LOG_FILE, self::DEFAULT_ERROR_LOG_FILE);
+        return (string)$this->get(PhelConfig::ERROR_LOG_FILE, self::DEFAULT_ERROR_LOG_FILE);
     }
 }

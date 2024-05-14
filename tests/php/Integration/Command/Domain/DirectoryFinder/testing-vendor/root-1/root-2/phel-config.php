@@ -2,8 +2,8 @@
 
 declare(strict_types=1);
 
-use Phel\Command\CommandConfig;
+use Phel\Config\PhelConfig;
 
 return [
-    CommandConfig::SRC_DIRS => ['custom-src-2'],
+    PhelConfig::SRC_DIRS => ['custom-src-2'],
 ];
