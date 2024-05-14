@@ -22,7 +22,7 @@ final class PhelConfigTest extends TestCase
                 ->setMainPhpPath('out/custom-index.php')
                 ->setMainPhelNamespace('test-ns/boot'), )
             ->setExportConfig((new PhelExportConfig())
-                ->setDirectories(['some/other/dir'])
+                ->setFromDirectories(['some/other/dir'])
                 ->setNamespacePrefix('Generated')
                 ->setTargetDirectory('src/Generated'))
             ->setIgnoreWhenBuilding(['src/ignore.me'])
@@ -31,25 +31,25 @@ final class PhelConfigTest extends TestCase
             ->setFormatDirs(['src', 'tests', 'phel']);
 
         $expected = [
-            'src-dirs' => ['some/directory'],
-            'test-dirs' => ['another/directory'],
-            'vendor-dir' => 'vendor',
-            'error-log-file' => 'error-log.file',
-            'out' => [
-                'main-phel-namespace' => 'test-ns/boot',
-                'dir' => 'out',
-                'main-php-filename' => 'custom-index.php',
-                'main-php-path' => 'out/custom-index.php',
+            PhelConfig::SRC_DIRS => ['some/directory'],
+            PhelConfig::TEST_DIRS => ['another/directory'],
+            PhelConfig::VENDOR_DIR => 'vendor',
+            PhelConfig::ERROR_LOG_FILE => 'error-log.file',
+            PhelConfig::BUILD_CONFIG => [
+                PhelBuildConfig::MAIN_PHEL_NAMESPACE => 'test-ns/boot',
+                PhelBuildConfig::DEST_DIR => 'out',
+                PhelBuildConfig::MAIN_PHP_FILENAME => 'custom-index.php',
+                PhelBuildConfig::MAIN_PHP_PATH => 'out/custom-index.php',
             ],
-            'export' => [
-                'target-directory' => 'src/Generated',
-                'directories' => ['some/other/dir'],
-                'namespace-prefix' => 'Generated',
+            PhelConfig::EXPORT_CONFIG => [
+                PhelExportConfig::TARGET_DIRECTORY => 'src/Generated',
+                PhelExportConfig::FROM_DIRECTORIES => ['some/other/dir'],
+                PhelExportConfig::NAMESPACE_PREFIX => 'Generated',
             ],
-            'ignore-when-building' => ['src/ignore.me'],
-            'no-cache-when-building' => ['should-not-be-cached'],
-            'keep-generated-temp-files' => true,
-            'format-dirs' => ['src', 'tests', 'phel'],
+            PhelConfig::IGNORE_WHEN_BUILDING => ['src/ignore.me'],
+            PhelConfig::NO_CACHE_WHEN_BUILDING => ['should-not-be-cached'],
+            PhelConfig::KEEP_GENERATED_TEMP_FILES => true,
+            PhelConfig::FORMAT_DIRS => ['src', 'tests', 'phel'],
         ];
 
         self::assertSame($expected, $config->jsonSerialize());

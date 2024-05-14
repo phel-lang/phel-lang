@@ -6,14 +6,15 @@ namespace Phel\Interop;
 
 use Gacela\Framework\AbstractConfig;
 use Phel\Config\PhelConfig;
+use Phel\Config\PhelExportConfig;
 
 final class InteropConfig extends AbstractConfig
 {
-    public const EXPORT_DIRECTORIES = 'directories';
+    public const EXPORT_DIRECTORIES = PhelExportConfig::FROM_DIRECTORIES;
 
-    public const EXPORT_NAMESPACE_PREFIX = 'namespace-prefix';
+    public const EXPORT_NAMESPACE_PREFIX = PhelExportConfig::NAMESPACE_PREFIX;
 
-    public const EXPORT_TARGET_DIRECTORY = 'target-directory';
+    public const EXPORT_TARGET_DIRECTORY = PhelExportConfig::TARGET_DIRECTORY;
 
     private const DEFAULT_EXPORT_DIRECTORIES = ['src'];
 
