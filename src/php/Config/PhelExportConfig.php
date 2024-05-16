@@ -5,35 +5,30 @@ declare(strict_types=1);
 namespace Phel\Config;
 
 use JsonSerializable;
-use Phel\Interop\InteropConfig;
 
 final class PhelExportConfig implements JsonSerializable
 {
+    public const FROM_DIRECTORIES = 'from-directories';
+
+    public const NAMESPACE_PREFIX = 'namespace-prefix';
+
+    public const TARGET_DIRECTORY = 'target-directory';
+
     /** @var list<string> */
-    private array $directories = ['src/phel'];
+    private array $fromDirectories = ['src/phel'];
 
     private string $namespacePrefix = 'PhelGenerated';
 
     private string $targetDirectory = 'src/PhelGenerated';
 
-    public function getDirectories(): array
-    {
-        return $this->directories;
-    }
-
     /**
      * @param list<string> $list
      */
-    public function setDirectories(array $list): self
+    public function setFromDirectories(array $list): self
     {
-        $this->directories = $list;
+        $this->fromDirectories = $list;
 
         return $this;
-    }
-
-    public function getNamespacePrefix(): string
-    {
-        return $this->namespacePrefix;
     }
 
     public function setNamespacePrefix(string $prefix): self
@@ -41,11 +36,6 @@ final class PhelExportConfig implements JsonSerializable
         $this->namespacePrefix = $prefix;
 
         return $this;
-    }
-
-    public function getTargetDirectory(): string
-    {
-        return $this->targetDirectory;
     }
 
     public function setTargetDirectory(string $dir): self
@@ -58,9 +48,9 @@ final class PhelExportConfig implements JsonSerializable
     public function jsonSerialize(): array
     {
         return [
-            InteropConfig::EXPORT_TARGET_DIRECTORY => $this->targetDirectory,
-            InteropConfig::EXPORT_DIRECTORIES => $this->directories,
-            InteropConfig::EXPORT_NAMESPACE_PREFIX => $this->namespacePrefix,
+            self::TARGET_DIRECTORY => $this->targetDirectory,
+            self::FROM_DIRECTORIES => $this->fromDirectories,
+            self::NAMESPACE_PREFIX => $this->namespacePrefix,
         ];
     }
 }

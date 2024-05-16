@@ -4,12 +4,12 @@ declare(strict_types=1);
 
 namespace Phel\Build\Domain\Compile\Output;
 
-use Phel\Config\PhelOutConfig;
+use Phel\Config\PhelBuildConfig;
 
 final readonly class EntryPointPhpFile implements EntryPointPhpFileInterface
 {
     public function __construct(
-        private PhelOutConfig $phelOutConfig,
+        private PhelBuildConfig $phelBuildConfig,
         private NamespacePathTransformer $namespacePathTransformer,
         private string $appRootDir,
     ) {
@@ -18,21 +18,21 @@ final readonly class EntryPointPhpFile implements EntryPointPhpFileInterface
     public function createFile(): void
     {
         file_put_contents(
-            $this->outMainPhpPath(),
-            $this->outMainPhpContent(),
+            $this->buildMainPhpPath(),
+            $this->buildMainPhpContent(),
         );
     }
 
-    private function outMainPhpPath(): string
+    private function buildMainPhpPath(): string
     {
         return sprintf(
             '%s/%s',
             $this->appRootDir,
-            $this->phelOutConfig->getMainPhpPath(),
+            $this->phelBuildConfig->getMainPhpPath(),
         );
     }
 
-    private function outMainPhpContent(): string
+    private function buildMainPhpContent(): string
     {
         $template = <<<'TXT'
 <?php declare(strict_types=1);
@@ -53,7 +53,7 @@ TXT;
     private function outputMainPhelPath(): string
     {
         return $this->namespacePathTransformer->transform(
-            $this->phelOutConfig->getMainPhelNamespace(),
+            $this->phelBuildConfig->getMainPhelNamespace(),
         );
     }
 }

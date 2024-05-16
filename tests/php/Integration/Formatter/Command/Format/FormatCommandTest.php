@@ -6,7 +6,7 @@ namespace PhelTest\Integration\Formatter\Command\Format;
 
 use Gacela\Framework\Bootstrap\GacelaConfig;
 use Gacela\Framework\Gacela;
-use Phel\Formatter\FormatterConfig;
+use Phel\Config\PhelConfig;
 use Phel\Formatter\Infrastructure\Command\FormatCommand;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\Console\Tester\CommandTester;
@@ -38,7 +38,7 @@ final class FormatCommandTest extends TestCase
         $oldContent = file_get_contents($path);
 
         Gacela::bootstrap(__DIR__, static function (GacelaConfig $config) use ($path): void {
-            $config->addAppConfigKeyValue(FormatterConfig::FORMAT_DIRS, [$path]);
+            $config->addAppConfigKeyValue(PhelConfig::FORMAT_DIRS, [$path]);
         });
 
         $expectedOutput = <<<TXT

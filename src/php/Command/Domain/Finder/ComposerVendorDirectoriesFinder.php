@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace Phel\Command\Domain\Finder;
 
 use Gacela\Framework\DocBlockResolverAwareTrait;
-use Phel\Command\CommandConfig;
 use Phel\Command\CommandFacade;
+use Phel\Config\PhelConfig;
 use Phel\Phel;
 use RuntimeException;
 
@@ -19,8 +19,9 @@ final class ComposerVendorDirectoriesFinder implements VendorDirectoriesFinderIn
 {
     use DocBlockResolverAwareTrait;
 
-    public function __construct(private string $vendorDirectory)
-    {
+    public function __construct(
+        private readonly string $vendorDirectory,
+    ) {
     }
 
     /**
@@ -41,7 +42,7 @@ final class ComposerVendorDirectoriesFinder implements VendorDirectoriesFinderIn
                 continue;
             }
 
-            $sourceDirectories = $config[CommandConfig::SRC_DIRS] ?? [];
+            $sourceDirectories = $config[PhelConfig::SRC_DIRS] ?? [];
 
             foreach ($sourceDirectories as $sourceDirectory) {
                 $result[] = dirname($phelConfigPath) . '/' . $sourceDirectory;
