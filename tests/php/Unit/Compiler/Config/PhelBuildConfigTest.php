@@ -114,4 +114,19 @@ final class PhelBuildConfigTest extends TestCase
 
         self::assertSame($expected, $config->jsonSerialize());
     }
+    
+    public function test_main_php_path_bug_when_not_dir_defined(): void
+    {
+        $config = (new PhelBuildConfig())
+            ->setMainPhpPath('custom-index');
+
+        $expected = [
+            PhelBuildConfig::MAIN_PHEL_NAMESPACE => '',
+            PhelBuildConfig::DEST_DIR => 'out',
+            PhelBuildConfig::MAIN_PHP_FILENAME => 'custom-index.php',
+            PhelBuildConfig::MAIN_PHP_PATH => 'out/custom-index.php',
+        ];
+
+        self::assertSame($expected, $config->jsonSerialize());
+    }
 }
