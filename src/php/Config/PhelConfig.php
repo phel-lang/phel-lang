@@ -59,11 +59,6 @@ final class PhelConfig implements JsonSerializable
         $this->buildConfig = new PhelBuildConfig();
     }
 
-    public function getSrcDirs(): array
-    {
-        return $this->srcDirs;
-    }
-
     /**
      * @param list<string> $list
      */
@@ -72,11 +67,6 @@ final class PhelConfig implements JsonSerializable
         $this->srcDirs = $list;
 
         return $this;
-    }
-
-    public function getTestDirs(): array
-    {
-        return $this->testDirs;
     }
 
     /**
@@ -89,21 +79,11 @@ final class PhelConfig implements JsonSerializable
         return $this;
     }
 
-    public function getVendorDir(): string
-    {
-        return $this->vendorDir;
-    }
-
     public function setVendorDir(string $dir): self
     {
         $this->vendorDir = $dir;
 
         return $this;
-    }
-
-    public function getExportConfig(): PhelExportConfig
-    {
-        return $this->exportConfig;
     }
 
     public function setExportConfig(PhelExportConfig $exportConfig): self
@@ -113,21 +93,11 @@ final class PhelConfig implements JsonSerializable
         return $this;
     }
 
-    public function getErrorLogFile(): string
-    {
-        return $this->errorLogFile;
-    }
-
     public function setErrorLogFile(string $filepath): self
     {
         $this->errorLogFile = $filepath;
 
         return $this;
-    }
-
-    public function getBuildConfig(): PhelBuildConfig
-    {
-        return $this->buildConfig;
     }
 
     /**
@@ -145,11 +115,6 @@ final class PhelConfig implements JsonSerializable
         return $this;
     }
 
-    public function getIgnoreWhenBuilding(): array
-    {
-        return $this->ignoreWhenBuilding;
-    }
-
     /**
      * @param list<string> $list
      */
@@ -160,21 +125,11 @@ final class PhelConfig implements JsonSerializable
         return $this;
     }
 
-    public function isKeepGeneratedTempFiles(): bool
-    {
-        return $this->keepGeneratedTempFiles;
-    }
-
     public function setKeepGeneratedTempFiles(bool $flag): self
     {
         $this->keepGeneratedTempFiles = $flag;
 
         return $this;
-    }
-
-    public function getFormatDirs(): array
-    {
-        return $this->formatDirs;
     }
 
     /**

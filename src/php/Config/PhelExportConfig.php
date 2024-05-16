@@ -21,11 +21,6 @@ final class PhelExportConfig implements JsonSerializable
 
     private string $targetDirectory = 'src/PhelGenerated';
 
-    public function getFromDirectories(): array
-    {
-        return $this->fromDirectories;
-    }
-
     /**
      * @param list<string> $list
      */
@@ -36,21 +31,11 @@ final class PhelExportConfig implements JsonSerializable
         return $this;
     }
 
-    public function getNamespacePrefix(): string
-    {
-        return $this->namespacePrefix;
-    }
-
     public function setNamespacePrefix(string $prefix): self
     {
         $this->namespacePrefix = $prefix;
 
         return $this;
-    }
-
-    public function getTargetDirectory(): string
-    {
-        return $this->targetDirectory;
     }
 
     public function setTargetDirectory(string $dir): self
