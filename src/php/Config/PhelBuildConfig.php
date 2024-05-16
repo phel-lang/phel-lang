@@ -6,6 +6,8 @@ namespace Phel\Config;
 
 use JsonSerializable;
 
+use function count;
+
 /**
  * @psalm-suppress DeprecatedProperty
  */
@@ -84,7 +86,12 @@ final class PhelBuildConfig implements JsonSerializable
     public function getMainPhpPath(): string
     {
         if ($this->mainPhpPath !== '') {
-            return $this->mainPhpPath;
+            $explode = explode('/', $this->mainPhpPath);
+            if (count($explode) === 2) {
+                return $this->mainPhpPath;
+            }
+
+            return sprintf('out/%s', $this->getPhpFilename());
         }
 
         return sprintf(
@@ -121,7 +128,12 @@ final class PhelBuildConfig implements JsonSerializable
         }
 
         if ($this->mainPhpPath !== '') {
-            return explode('/', $this->mainPhpPath)[0];
+            $explode = explode('/', $this->mainPhpPath);
+            if (count($explode) === 1) {
+                return self::DEFAULT_DEST_DIR;
+            }
+
+            return $explode[0];
         }
 
         return self::DEFAULT_DEST_DIR;
@@ -130,7 +142,12 @@ final class PhelBuildConfig implements JsonSerializable
     private function getPhpFilename(): string
     {
         if ($this->mainPhpPath !== '') {
-            return explode('/', $this->mainPhpPath)[1];
+            $explode = explode('/', $this->mainPhpPath);
+            if (count($explode) === 1) {
+                return $explode[0];
+            }
+
+            return $explode[1];
         }
 
         if ($this->mainPhpFilename !== '') {

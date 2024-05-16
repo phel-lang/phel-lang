@@ -114,7 +114,7 @@ final class PhelBuildConfigTest extends TestCase
 
         self::assertSame($expected, $config->jsonSerialize());
     }
-    
+
     public function test_main_php_path_bug_when_not_dir_defined(): void
     {
         $config = (new PhelBuildConfig())
