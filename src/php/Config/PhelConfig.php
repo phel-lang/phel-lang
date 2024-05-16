@@ -131,7 +131,7 @@ final class PhelConfig implements JsonSerializable
     }
 
     /**
-     * @deprecated use `setBuild(PhelBuildConfig)`
+     * @deprecated use `setBuildConfig(PhelBuildConfig)`
      */
     public function setOut(PhelBuildConfig $buildConfig): self
     {
