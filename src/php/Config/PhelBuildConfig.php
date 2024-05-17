@@ -85,11 +85,8 @@ final class PhelBuildConfig implements JsonSerializable
 
     public function getMainPhpPath(): string
     {
-        if ($this->mainPhpPath !== '') {
-            $explode = explode('/', $this->mainPhpPath);
-            if (count($explode) === 2) {
-                return $this->mainPhpPath;
-            }
+        if (str_contains($this->mainPhpPath, '/')) {
+            return $this->mainPhpPath;
         }
 
         return sprintf(
