@@ -7,6 +7,7 @@ namespace Phel\Config;
 use JsonSerializable;
 
 use function count;
+use function strlen;
 
 /**
  * @psalm-suppress DeprecatedProperty
@@ -79,7 +80,7 @@ final class PhelBuildConfig implements JsonSerializable
 
     public function setMainPhpPath(string $path): self
     {
-        $this->mainPhpPath = rtrim($path, '.php') . '.php';
+        $this->mainPhpPath = $this->stripSuffix($path, '.php') . '.php';
         return $this;
     }
 
@@ -145,9 +146,18 @@ final class PhelBuildConfig implements JsonSerializable
         }
 
         if ($this->mainPhpFilename !== '') {
-            return rtrim($this->mainPhpFilename, '.php') . '.php';
+            return $this->stripSuffix($this->mainPhpFilename, '.php') . '.php';
         }
 
         return self::DEFAULT_PHP_FILENAME;
+    }
+
+    private function stripSuffix(string $string, string $suffix): string
+    {
+        if (!str_ends_with($string, $suffix)) {
+            return $string;
+        }
+
+        return substr($string, 0, -strlen($suffix));
     }
 }
