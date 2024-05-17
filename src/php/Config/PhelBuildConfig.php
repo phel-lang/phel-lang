@@ -90,8 +90,6 @@ final class PhelBuildConfig implements JsonSerializable
             if (count($explode) === 2) {
                 return $this->mainPhpPath;
             }
-
-            return sprintf('out/%s', $this->getPhpFilename());
         }
 
         return sprintf(
