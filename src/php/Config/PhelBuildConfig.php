@@ -79,7 +79,7 @@ final class PhelBuildConfig implements JsonSerializable
 
     public function setMainPhpPath(string $path): self
     {
-        $this->mainPhpPath = rtrim($path, '.php') . '.php';
+        $this->mainPhpPath = $this->normalizePhpExtension($path);
         return $this;
     }
 
@@ -145,9 +145,19 @@ final class PhelBuildConfig implements JsonSerializable
         }
 
         if ($this->mainPhpFilename !== '') {
-            return rtrim($this->mainPhpFilename, '.php') . '.php';
+            return $this->normalizePhpExtension($this->mainPhpFilename);
         }
 
         return self::DEFAULT_PHP_FILENAME;
+    }
+
+    private function normalizePhpExtension(string $string): string
+    {
+        $suffix = '.php';
+        if (str_ends_with($string, $suffix)) {
+            return $string;
+        }
+
+        return $string . $suffix;
     }
 }

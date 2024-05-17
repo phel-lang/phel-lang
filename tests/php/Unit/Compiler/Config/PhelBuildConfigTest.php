@@ -103,13 +103,13 @@ final class PhelBuildConfigTest extends TestCase
     public function test_main_php_path_without_ext(): void
     {
         $config = (new PhelBuildConfig())
-            ->setMainPhpPath('custom-out/custom-index');
+            ->setMainPhpPath('custom-flip');
 
         $expected = [
             PhelBuildConfig::MAIN_PHEL_NAMESPACE => '',
-            PhelBuildConfig::DEST_DIR => 'custom-out',
-            PhelBuildConfig::MAIN_PHP_FILENAME => 'custom-index.php',
-            PhelBuildConfig::MAIN_PHP_PATH => 'custom-out/custom-index.php',
+            PhelBuildConfig::DEST_DIR => 'out',
+            PhelBuildConfig::MAIN_PHP_FILENAME => 'custom-flip.php',
+            PhelBuildConfig::MAIN_PHP_PATH => 'out/custom-flip.php',
         ];
 
         self::assertSame($expected, $config->jsonSerialize());
