@@ -124,11 +124,10 @@ final class PhelBuildConfig implements JsonSerializable
 
         if ($this->mainPhpPath !== '') {
             $explode = explode('/', $this->mainPhpPath);
-            if (count($explode) === 1) {
-                return self::DEFAULT_DEST_DIR;
+            if (count($explode) !== 1) {
+                array_pop($explode);
+                return implode('/', $explode);
             }
-
-            return $explode[0];
         }
 
         return self::DEFAULT_DEST_DIR;
@@ -142,7 +141,7 @@ final class PhelBuildConfig implements JsonSerializable
                 return $explode[0];
             }
 
-            return $explode[1];
+            return array_pop($explode);
         }
 
         if ($this->mainPhpFilename !== '') {
