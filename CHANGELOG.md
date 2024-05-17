@@ -4,6 +4,7 @@ All notable changes to this project will be documented in this file.
 
 ## Unreleased
 
+* Fix `PhelBuildConfig` when using `trim` (#698)
 * Fix `setMainPhpPath()` without directory or more than one (#697)
 * Rename `PhelOutConfig` to `PhelBuildConfig` (#687)
 * Fix `$` as named parameter in macros (#695)
