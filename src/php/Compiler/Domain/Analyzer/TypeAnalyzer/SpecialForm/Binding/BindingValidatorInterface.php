@@ -14,8 +14,6 @@ interface BindingValidatorInterface
      *
      * @psalm-assert !null $form
      *
-     * @param mixed $form The form to check
-     *
      * @throws AnalyzerException
      */
     public function assertSupportedBinding(mixed $form): void;

@@ -122,9 +122,6 @@ final readonly class Printer implements PrinterInterface
         return new NonPrintableClassPrinter($this->withColor);
     }
 
-    /**
-     * @param mixed $form The form to print
-     */
     private function creatScalarTypePrinter(mixed $form): TypePrinterInterface
     {
         $printerName = gettype($form);

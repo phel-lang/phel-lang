@@ -39,8 +39,6 @@ final class BindingValidator implements BindingValidatorInterface
      * Checks if a binding form is valid.
      *
      * @psalm-assert !null $form
-     *
-     * @param mixed $form The form to check
      */
     private function isSupportedBinding(mixed $form): bool
     {

@@ -12,7 +12,6 @@ interface PushInterface
     /**
      * Pushes a new value of the data structure.
      *
-     * @param mixed $x The new value
      *
      * @return TSelf
      */
