@@ -29,16 +29,16 @@
     },
     "require-dev": {
         "ext-readline": "*",
-        "friendsofphp/php-cs-fixer": "^3.52",
+        "friendsofphp/php-cs-fixer": "^3.57",
         "infection/infection": "^0.27",
         "phpbench/phpbench": "^1.2",
         "phpmetrics/phpmetrics": "^2.8",
-        "phpstan/phpstan": "^1.10",
+        "phpstan/phpstan": "^1.11",
         "phpunit/phpunit": "^9.6",
         "psalm/plugin-phpunit": "^0.18 || ^0.19",
         "symfony/var-dumper": "^7.0",
-        "vimeo/psalm": "^5.23",
-        "rector/rector": "^1.0"
+        "vimeo/psalm": "^5.24",
+        "rector/rector": "^1.1"
     },
     "autoload": {
         "psr-4": {
