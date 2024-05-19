@@ -9,6 +9,8 @@ use Gacela\Framework\Gacela;
 use Phel\Run\Infrastructure\Command\RunCommand;
 use Phel\Run\Infrastructure\Command\TestCommand;
 use PhpBench\Benchmark\Metadata\Annotations\BeforeMethods;
+use PhpBench\Benchmark\Metadata\Annotations\Iterations;
+use PhpBench\Benchmark\Metadata\Annotations\Revs;
 use Symfony\Component\Console\Input\StringInput;
 use Symfony\Component\Console\Output\NullOutput;
 

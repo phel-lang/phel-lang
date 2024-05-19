@@ -11,7 +11,7 @@ final class PhelBuildConfigTest extends TestCase
 {
     public function test_default(): void
     {
-        $config = (new PhelBuildConfig());
+        $config = new PhelBuildConfig();
 
         $expected = [
             PhelBuildConfig::MAIN_PHEL_NAMESPACE => '',
