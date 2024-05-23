@@ -47,17 +47,13 @@ final class PhelConfigTest extends TestCase
             ->setTestDirs(['another/directory'])
             ->setVendorDir('vendor')
             ->setErrorLogFile('error-log.file')
-            ->setBuildConfig(
-                (new PhelBuildConfig())
-                    ->setMainPhpPath('out/custom-index.php')
-                    ->setMainPhelNamespace('test-ns/boot'),
-            )
-            ->setExportConfig(
-                (new PhelExportConfig())
-                    ->setFromDirectories(['some/other/dir'])
-                    ->setNamespacePrefix('Generated')
-                    ->setTargetDirectory('src/Generated'),
-            )
+            ->setBuildConfig((new PhelBuildConfig())
+                ->setMainPhpPath('out/custom-index.php')
+                ->setMainPhelNamespace('test-ns/boot'))
+            ->setExportConfig((new PhelExportConfig())
+                ->setFromDirectories(['some/other/dir'])
+                ->setNamespacePrefix('Generated')
+                ->setTargetDirectory('src/Generated'))
             ->setIgnoreWhenBuilding(['src/ignore.me'])
             ->setNoCacheWhenBuilding(['should-not-be-cached'])
             ->setKeepGeneratedTempFiles(true)
