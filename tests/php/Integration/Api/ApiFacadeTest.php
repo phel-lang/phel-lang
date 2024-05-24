@@ -6,6 +6,7 @@ namespace PhelTest\Integration\Api;
 
 use Gacela\Framework\Bootstrap\GacelaConfig;
 use Gacela\Framework\Gacela;
+use Phel\Api\ApiConfig;
 use Phel\Api\ApiFacade;
 use Phel\Compiler\Infrastructure\GlobalEnvironmentSingleton;
 use Phel\Lang\Registry;
@@ -28,14 +29,9 @@ final class ApiFacadeTest extends TestCase
         GlobalEnvironmentSingleton::initializeNew();
 
         $facade = new ApiFacade();
-        $groupedFns = $facade->getPhelFunctions([
-            'phel\\core',
-            'phel\\http',
-            'phel\\html',
-            'phel\\test',
-            'phel\\json',
-            'phel\\str',
-        ]);
+        $groupedFns = $facade->getPhelFunctions(
+            (new ApiConfig())->allNamespaces(),
+        );
 
         self::assertCount(264, $groupedFns);
     }
