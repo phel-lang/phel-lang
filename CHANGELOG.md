@@ -4,7 +4,7 @@ All notable changes to this project will be documented in this file.
 
 ## [0.14.0](https://github.com/phel-lang/phel-lang/compare/v0.13.0...v0.14.0) - 2024-05-24
 
-* Remove `str-contains?` in favor of `contains?` (#700)
+* Move `str-contains?` to `str/contains?` (#700)
 * Change `PhelConfig` default src and tests directories (#699)
 * Fix `PhelBuildConfig` when using `trim` (#698)
 * Fix `setMainPhpPath()` without directory or more than one (#697)
