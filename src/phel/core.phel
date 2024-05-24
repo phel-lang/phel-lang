@@ -532,11 +532,6 @@ Calling the `and` function without arguments returns true."
   [x]
   (id x nil))
 
-(defn str-contains?
-  "Returns true if str contains s. **Deprecated** in favor of `str/contains?`"
-  [str s]
-  (php/str_contains str s))
-
 (defn contains?
   "Returns true if key is present in the given collection, otherwise returns false."
   [coll key]

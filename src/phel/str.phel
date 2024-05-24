@@ -1,11 +1,6 @@
 (ns phel\str
   (:require phel\core))
 
-(defn contains?
-  "Returns true if str contains s."
-  [str s]
-  (php/str_contains str s))
-
 (defn split
   "Splits string on a regular expression.  Optional argument limit is
   the maximum number of parts. Not lazy. Returns vector of the parts.

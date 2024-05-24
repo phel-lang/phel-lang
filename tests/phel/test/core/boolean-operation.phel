@@ -156,10 +156,6 @@
   (is (false? (false? nil)) "(false? nil)")
   (is (false? (false? true)) "(false? true)"))
 
-(deftest test-str-contains?
-  (is (true? (str-contains? "abc" "a")))
-  (is (false? (str-contains? "abc" "d"))))
-
 (deftest test-contains?-str
   (is (true? (contains? "abc" "a")))
   (is (false? (contains? "abc" "d"))))
