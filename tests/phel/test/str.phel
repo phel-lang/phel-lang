@@ -2,6 +2,10 @@
   (:require phel\test :refer [deftest is])
   (:require phel\str :as s))
 
+(deftest test-contains?
+  (is (true? (s/contains? "abc" "a")))
+  (is (false? (s/contains? "abc" "d"))))
+
 (deftest test-split
   (is (= ["a" "b"] (s/split "a-b" "/-/")))
   (is (= ["a" "b-c"] (s/split "a-b-c" "/-/" 2)))

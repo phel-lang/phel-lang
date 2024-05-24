@@ -533,7 +533,7 @@ Calling the `and` function without arguments returns true."
   (id x nil))
 
 (defn str-contains?
-  "Returns true if str contains s."
+  "Returns true if str contains s. **Deprecated** in favor of `str/contains?`"
   [str s]
   (php/str_contains str s))
 
