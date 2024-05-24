@@ -543,6 +543,7 @@ Calling the `and` function without arguments returns true."
   (cond
     (php/instanceof coll ContainsInterface) (php/-> coll (contains key))
     (php/is_array coll) (php/array_key_exists key coll)
+    (php/is_string coll) (php/str_contains coll key)
     (throw (php/new InvalidArgumentException (php/. "cannot call 'contains?' on " (php/get_class coll))))))
 
 (defn compare
