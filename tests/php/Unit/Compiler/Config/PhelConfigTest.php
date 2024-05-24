@@ -31,7 +31,7 @@ final class PhelConfigTest extends TestCase
                 PhelExportConfig::FROM_DIRECTORIES => ['src'],
                 PhelExportConfig::NAMESPACE_PREFIX => 'PhelGenerated',
             ],
-            PhelConfig::IGNORE_WHEN_BUILDING => ['src/phel/local.phel'],
+            PhelConfig::IGNORE_WHEN_BUILDING => ['local.phel'],
             PhelConfig::NO_CACHE_WHEN_BUILDING => [],
             PhelConfig::KEEP_GENERATED_TEMP_FILES => false,
             PhelConfig::FORMAT_DIRS => ['src', 'tests'],

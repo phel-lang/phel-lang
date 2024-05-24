@@ -43,7 +43,7 @@ final class PhelConfig implements JsonSerializable
     private PhelBuildConfig $buildConfig;
 
     /** @var list<string> */
-    private array $ignoreWhenBuilding = ['src/phel/local.phel'];
+    private array $ignoreWhenBuilding = ['local.phel'];
 
     /** @var list<string> */
     private array $noCacheWhenBuilding = [];
