@@ -4,6 +4,7 @@ All notable changes to this project will be documented in this file.
 
 ## Unreleased
 
+* Change `PhelConfig` default src and tests directories (#699)
 * Fix `PhelBuildConfig` when using `trim` (#698)
 * Fix `setMainPhpPath()` without directory or more than one (#697)
 * Rename `PhelOutConfig` to `PhelBuildConfig` (#687)

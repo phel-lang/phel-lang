@@ -29,10 +29,10 @@ final class PhelConfig implements JsonSerializable
     public const FORMAT_DIRS = 'format-dirs';
 
     /** @var list<string> */
-    private array $srcDirs = ['src/phel'];
+    private array $srcDirs = ['src'];
 
     /** @var list<string> */
-    private array $testDirs = ['tests/phel'];
+    private array $testDirs = ['tests'];
 
     private string $vendorDir = 'vendor';
 
@@ -43,7 +43,7 @@ final class PhelConfig implements JsonSerializable
     private PhelBuildConfig $buildConfig;
 
     /** @var list<string> */
-    private array $ignoreWhenBuilding = ['src/phel/local.phel'];
+    private array $ignoreWhenBuilding = ['ignore-when-building.phel'];
 
     /** @var list<string> */
     private array $noCacheWhenBuilding = [];
