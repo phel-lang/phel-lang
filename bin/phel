@@ -16,13 +16,13 @@ use Phel\Phel;
             [__DIR__, '/../../../autoload.php'],
         ],
         static function (?string $loaded, array $file): ?string {
-            $filepath = sprintf('%s%s', ...$file);
+            $file = sprintf('%s%s', ...$file);
 
-            if (($loaded !== null) || (is_file($filepath) === false)) {
+            if (($loaded !== null) || (is_file($file) === false)) {
                 return $loaded;
             }
 
-            require_once $filepath;
+            require_once($file);
 
             return $file[0];
         },
@@ -41,6 +41,6 @@ use Phel\Phel;
 
     Gacela::bootstrap($appRootDir, Phel::configFn());
 
-    $bootstrap = new ConsoleBootstrap(name: 'Phel', version: 'v0.13.0');
+    $bootstrap = new ConsoleBootstrap(name: 'Phel', version: 'v0.14');
     $bootstrap->run();
 })();
