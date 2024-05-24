@@ -28,7 +28,7 @@ final class PhelConfigTest extends TestCase
             ],
             PhelConfig::EXPORT_CONFIG => [
                 PhelExportConfig::TARGET_DIRECTORY => 'src/PhelGenerated',
-                PhelExportConfig::FROM_DIRECTORIES => ['src/phel'],
+                PhelExportConfig::FROM_DIRECTORIES => ['src'],
                 PhelExportConfig::NAMESPACE_PREFIX => 'PhelGenerated',
             ],
             PhelConfig::IGNORE_WHEN_BUILDING => ['src/phel/local.phel'],
