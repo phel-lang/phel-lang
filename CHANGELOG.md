@@ -2,6 +2,10 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.14.1](https://github.com/phel-lang/phel-lang/compare/v0.14.0...v0.14.1) - 2024-05-24
+
+* Fix `bin/phel` after refactor
+
 ## [0.14.0](https://github.com/phel-lang/phel-lang/compare/v0.13.0...v0.14.0) - 2024-05-24
 
 * Change `PhelConfig` default src and tests directories (#699)
