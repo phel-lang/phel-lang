@@ -15,8 +15,8 @@ use Phel\Phel;
             [__DIR__, '/../../vendor/autoload.php'],
             [__DIR__, '/../../../autoload.php'],
         ],
-        static function (?string $loaded, array $file): ?string {
-            $file = sprintf('%s%s', ...$file);
+        static function (?string $loaded, array $files): ?string {
+            $file = sprintf('%s%s', ...$files);
 
             if (($loaded !== null) || (is_file($file) === false)) {
                 return $loaded;
@@ -24,7 +24,7 @@ use Phel\Phel;
 
             require_once($file);
 
-            return $file[0];
+            return $files[0];
         },
     );
 
