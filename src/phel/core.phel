@@ -533,7 +533,7 @@ Calling the `and` function without arguments returns true."
   (id x nil))
 
 (defn contains?
-  "Returns true if key is present in the given collection, otherwise returns false."
+  "Returns true if key is present in the given collection or string, otherwise returns false."
   [coll key]
   (cond
     (php/instanceof coll ContainsInterface) (php/-> coll (contains key))
