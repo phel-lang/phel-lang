@@ -2,7 +2,7 @@
 
 All notable changes to this project will be documented in this file.
 
-## Unreleased
+## [0.14.0](https://github.com/phel-lang/phel-lang/compare/v0.13.0...v0.14.0) - 2024-05-24
 
 * Change `PhelConfig` default src and tests directories (#699)
 * Fix `PhelBuildConfig` when using `trim` (#698)
