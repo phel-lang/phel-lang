@@ -11,7 +11,7 @@ final class ApiConfig extends AbstractConfig
     /**
      * @return list<string>
      */
-    public function allNamespaces(): array
+    public static function allNamespaces(): array
     {
         return [
             'phel\\core',

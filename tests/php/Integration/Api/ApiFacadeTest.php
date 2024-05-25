@@ -30,7 +30,7 @@ final class ApiFacadeTest extends TestCase
 
         $facade = new ApiFacade();
         $groupedFns = $facade->getPhelFunctions(
-            (new ApiConfig())->allNamespaces(),
+            ApiConfig::allNamespaces(),
         );
 
         self::assertCount(264, $groupedFns);
