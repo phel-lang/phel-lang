@@ -1,9 +1,13 @@
 .idea/
 .phpbench/
 .vscode/
+bin/
+phar/
 data/
 out/
 PhelGenerated/
+tools/
+!tools/git-hooks
 var/
 vendor/
 
