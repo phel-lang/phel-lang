@@ -19,8 +19,9 @@ final class CompiledCodeIsMalformedException extends RuntimeException
     {
         $pattern = '/Too few arguments to function [^,]+, (\d+) passed in [^,]+ and exactly (\d+) expected/';
         if (preg_match($pattern, $msg, $matches)) {
-            return "Too few arguments to function, {$matches[1]} passed in and exactly {$matches[2]} expected";
+            return sprintf('Too few arguments to function, %s passed in and exactly %s expected', $matches[1], $matches[2]);
         }
+
         return 'Error message not found';
     }
 }

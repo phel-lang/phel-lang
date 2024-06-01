@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace PhelTest\Unit\Compiler\Domain\Evaluator\Exceptions;
 
+use Exception;
 use Phel\Compiler\Domain\Evaluator\Exceptions\CompiledCodeIsMalformedException;
 use PHPUnit\Framework\TestCase;
 
@@ -11,7 +12,7 @@ class CompiledCodeIsMalformedExceptionTest extends TestCase
 {
     public function test_readable_error(): void
     {
-        $throwable = new class() extends \Exception {
+        $throwable = new class() extends Exception {
             public function __construct()
             {
                 $msg = <<<OUT
