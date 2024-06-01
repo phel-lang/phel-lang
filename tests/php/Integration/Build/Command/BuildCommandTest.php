@@ -32,10 +32,7 @@ final class BuildCommandTest extends TestCase
     public function test_build_project(): void
     {
         DirectoryUtil::removeDir(__DIR__ . '/out');
-
-        Gacela::bootstrap(__DIR__, static function (GacelaConfig $config): void {
-            $config->addAppConfig('config/phel-config.php');
-        });
+        $this->bootstrapGacela();
 
         ob_start();
         $this->command->run(
@@ -65,9 +62,7 @@ final class BuildCommandTest extends TestCase
      */
     public function test_build_project_cached(): void
     {
-        Gacela::bootstrap(__DIR__, static function (GacelaConfig $config): void {
-            $config->addAppConfig('config/phel-config.php');
-        });
+        $this->bootstrapGacela();
 
         // Mark file cache invalid by setting the modification time to 0
         touch(__DIR__ . '/out/test_ns/hello.php', 1);
@@ -97,9 +92,7 @@ final class BuildCommandTest extends TestCase
      */
     public function test_out_main_file(): void
     {
-        Gacela::bootstrap(__DIR__, static function (GacelaConfig $config): void {
-            $config->addAppConfig('config/phel-config.php');
-        });
+        $this->bootstrapGacela();
 
         ob_start();
         $this->command->run(
@@ -150,5 +143,12 @@ TXT;
         ob_end_clean();
 
         $this->assertFileDoesNotExist(__DIR__ . '/out/main.php');
+    }
+
+    private function bootstrapGacela(): void
+    {
+        Gacela::bootstrap(__DIR__, static function (GacelaConfig $config): void {
+            $config->addAppConfig('config/phel-config.php');
+        });
     }
 }

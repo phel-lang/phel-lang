@@ -29,7 +29,7 @@ final class ExceptionArgsPrinterTest extends TestCase
         self::assertSame($expected, $actual);
     }
 
-    public function providerBuildPhpArgsString(): Generator
+    public static function providerBuildPhpArgsString(): Generator
     {
         yield 'null' => [
             'args' => [null],

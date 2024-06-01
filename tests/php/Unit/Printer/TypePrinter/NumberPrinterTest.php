@@ -21,7 +21,7 @@ final class NumberPrinterTest extends TestCase
         );
     }
 
-    public function printerDataProvider(): Generator
+    public static function printerDataProvider(): Generator
     {
         yield 'integer' => [
             'expected' => '1',

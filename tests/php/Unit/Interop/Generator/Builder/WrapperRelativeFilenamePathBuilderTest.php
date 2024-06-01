@@ -20,7 +20,7 @@ final class WrapperRelativeFilenamePathBuilderTest extends TestCase
         self::assertSame($expected, $builder->build($phelNs));
     }
 
-    public function providerBuild(): Generator
+    public static function providerBuild(): Generator
     {
         yield 'simple name' => [
             'phelNs' => 'project\simple',

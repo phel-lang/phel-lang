@@ -29,7 +29,7 @@ final class IfSymbolTest extends TestCase
         $this->analyze($list);
     }
 
-    public function providerRequiresAtLeastTwoOrThreeArgs(): Generator
+    public static function providerRequiresAtLeastTwoOrThreeArgs(): Generator
     {
         yield 'No arguments provided: (if)' => [
             'list' => TypeFactory::getInstance()->persistentListFromArray([

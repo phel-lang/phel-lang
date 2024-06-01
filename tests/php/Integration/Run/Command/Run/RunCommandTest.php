@@ -20,11 +20,6 @@ final class RunCommandTest extends AbstractCommandTest
         });
     }
 
-    /**
-     * @runInSeparateProcess
-     *
-     * @preserveGlobalState disabled
-     */
     public function test_file_not_found(): void
     {
         $this->expectOutputRegex('~No rendered output after running namespace: "non-existing-file.phel"~');
@@ -35,11 +30,6 @@ final class RunCommandTest extends AbstractCommandTest
         );
     }
 
-    /**
-     * @runInSeparateProcess
-     *
-     * @preserveGlobalState disabled
-     */
     public function test_run_by_namespace(): void
     {
         $this->expectOutputRegex('~hello world~');
@@ -50,11 +40,6 @@ final class RunCommandTest extends AbstractCommandTest
         );
     }
 
-    /**
-     * @runInSeparateProcess
-     *
-     * @preserveGlobalState disabled
-     */
     public function test_run_by_filename(): void
     {
         $this->expectOutputRegex('~hello world~');

@@ -60,7 +60,7 @@ final class BindingValidatorTest extends TestCase
         self::assertTrue(true); // this assertion ensures that no exception was thrown
     }
 
-    public function providerValidTypes(): Generator
+    public static function providerValidTypes(): Generator
     {
         yield 'Symbol type' => [
             'type' => Symbol::create(''),

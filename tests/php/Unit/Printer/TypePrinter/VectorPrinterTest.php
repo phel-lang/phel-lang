@@ -24,7 +24,7 @@ final class VectorPrinterTest extends TestCase
         );
     }
 
-    public function printerDataProvider(): Generator
+    public static function printerDataProvider(): Generator
     {
         yield 'empty vector' => [
             'expected' => '[]',

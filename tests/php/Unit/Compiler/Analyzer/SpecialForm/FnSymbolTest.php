@@ -96,7 +96,7 @@ final class FnSymbolTest extends TestCase
         $this->analyze($list);
     }
 
-    public function providerVarNamesMustStartWithLetterOrUnderscore(): Generator
+    public static function providerVarNamesMustStartWithLetterOrUnderscore(): Generator
     {
         yield 'Start with a letter' => [
             'paramName' => 'param-1',
@@ -152,7 +152,7 @@ final class FnSymbolTest extends TestCase
         self::assertEquals($expectedParams, $node->getParams());
     }
 
-    public function providerGetParams(): Generator
+    public static function providerGetParams(): Generator
     {
         yield '(fn [& param-1])' => [
             'list' => TypeFactory::getInstance()->persistentListFromArray([
@@ -194,7 +194,7 @@ final class FnSymbolTest extends TestCase
         self::assertInstanceOf($expectedBodyInstanceOf, $node->getBody());
     }
 
-    public function providerGetBody(): Generator
+    public static function providerGetBody(): Generator
     {
         yield 'DoNode body => (fn [x] x)' => [
             'list' => TypeFactory::getInstance()->persistentListFromArray([

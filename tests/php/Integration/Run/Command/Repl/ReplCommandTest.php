@@ -81,17 +81,17 @@ final class ReplCommandTest extends AbstractCommandTest
         self::assertSame(trim($expectedOutput), trim($replOutput));
     }
 
-    public function providerIntegration(): Generator
+    public static function providerIntegration(): Generator
     {
-        return $this->buildDataProviderFromDirectory(realpath(__DIR__ . '/Fixtures'));
+        return self::buildDataProviderFromDirectory(realpath(__DIR__ . '/Fixtures'));
     }
 
-    public function providerIntegrationWithCoreLib(): Generator
+    public static function providerIntegrationWithCoreLib(): Generator
     {
-        return $this->buildDataProviderFromDirectory(realpath(__DIR__ . '/FixturesWithCoreLib'));
+        return self::buildDataProviderFromDirectory(realpath(__DIR__ . '/FixturesWithCoreLib'));
     }
 
-    private function buildDataProviderFromDirectory(string $fixturesDir): Generator
+    private static function buildDataProviderFromDirectory(string $fixturesDir): Generator
     {
         $iterator = new RecursiveIteratorIterator(
             new RecursiveDirectoryIterator($fixturesDir),
@@ -117,7 +117,7 @@ final class ReplCommandTest extends AbstractCommandTest
 
             yield $filename => [
                 $fileContent,
-                ...$this->getInputs($fileContent),
+                ...self::getInputs($fileContent),
             ];
         }
     }
@@ -137,7 +137,7 @@ final class ReplCommandTest extends AbstractCommandTest
     /**
      * @return InputLine[]
      */
-    private function getInputs(string $fileContent): array
+    private static function getInputs(string $fileContent): array
     {
         $inputs = [];
 

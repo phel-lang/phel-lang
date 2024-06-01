@@ -24,7 +24,7 @@ final class StructPrinterTest extends TestCase
         );
     }
 
-    public function printerDataProvider(): Generator
+    public static function printerDataProvider(): Generator
     {
         yield 'empty struct' => [
             'actual' => '(PhelTest\Unit\Printer\TypePrinter\StubStruct )',

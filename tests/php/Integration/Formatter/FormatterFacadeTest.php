@@ -35,7 +35,7 @@ final class FormatterFacadeTest extends TestCase
         self::assertEquals($expectedLines, explode("\n", $formatted));
     }
 
-    public function providerIndent(): Generator
+    public static function providerIndent(): Generator
     {
         yield 'Indent list with two variables' => [
             [
@@ -199,7 +199,7 @@ final class FormatterFacadeTest extends TestCase
         ];
     }
 
-    public function providerReformatted(): Generator
+    public static function providerReformatted(): Generator
     {
         yield 'One liner List' => [
             'actualLines' => ['( 1 2 3 )'],
@@ -251,7 +251,7 @@ final class FormatterFacadeTest extends TestCase
         ];
     }
 
-    public function providerRemoveTrailingWhitespaceRule(): Generator
+    public static function providerRemoveTrailingWhitespaceRule(): Generator
     {
         yield 'Remove basic trailing whitespace' => [
             ['  '],

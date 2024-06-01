@@ -17,14 +17,9 @@ final class TestCommandProjectFailureTest extends AbstractCommandTest
         Gacela::bootstrap(__DIR__, GacelaConfig::defaultPhpConfig());
     }
 
-    /**
-     * @runInSeparateProcess
-     *
-     * @preserveGlobalState disabled
-     */
     public function test_all_in_failed_project(): void
     {
-        $command = $this->getTestCommand();
+        $command = new TestCommand();
 
         $this->expectOutputRegex('/E.*/');
         $this->expectOutputRegex('/.*Passed: 0.*/');
@@ -41,10 +36,5 @@ final class TestCommandProjectFailureTest extends AbstractCommandTest
         $input->method('getArgument')->willReturn($paths);
 
         return $input;
-    }
-
-    private function getTestCommand(): TestCommand
-    {
-        return new TestCommand();
     }
 }

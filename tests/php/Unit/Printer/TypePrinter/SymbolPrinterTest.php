@@ -22,7 +22,7 @@ final class SymbolPrinterTest extends TestCase
         );
     }
 
-    public function printerDataProvider(): Generator
+    public static function printerDataProvider(): Generator
     {
         yield 'symbol with namespace' => [
             'expected' => 'name',

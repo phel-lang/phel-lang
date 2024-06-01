@@ -20,16 +20,16 @@ final class NonPrintableClassPrinterTest extends TestCase
         self::assertSame($expected, (new NonPrintableClassPrinter())->print($form));
     }
 
-    public function providerPrint(): Generator
+    public static function providerPrint(): Generator
     {
-        yield 'Empty array' => [
+        yield 'cannot print DateTime' => [
             'form' => new DateTime(),
-            'expected ' => 'Printer cannot print this type: DateTime',
+            'expected' => 'Printer cannot print this type: DateTime',
         ];
 
-        yield 'simple numeric list' => [
+        yield 'cannot print stdClass' => [
             'form' => new stdClass(),
-            'expected ' => 'Printer cannot print this type: stdClass',
+            'expected' => 'Printer cannot print this type: stdClass',
         ];
     }
 }

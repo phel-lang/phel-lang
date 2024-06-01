@@ -15,7 +15,7 @@ use PHPUnit\Framework\TestCase;
 
 final class ApiFacadeTest extends TestCase
 {
-    public function test_number_of_grouped_functions(): void
+    public function test_number_of_grouped_functions(): never
     {
         // This test in isolation works, but when running with all other integration tests fails,
         // because the IntegrationTest loads already the core and all internal code, which

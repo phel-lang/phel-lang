@@ -64,7 +64,7 @@ final class IntegrationTest extends TestCase
         );
     }
 
-    public function providerIntegration(): Generator
+    public static function providerIntegration(): Generator
     {
         $fixturesDir = realpath(__DIR__ . '/Fixtures');
 

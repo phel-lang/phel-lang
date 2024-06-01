@@ -22,7 +22,7 @@ final class ObjectPrinterTest extends TestCase
         );
     }
 
-    public function printerDataProvider(): Generator
+    public static function printerDataProvider(): Generator
     {
         yield 'stdClass' => [
             'expected' => '<PHP-Object(stdClass)>',

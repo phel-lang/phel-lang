@@ -19,11 +19,6 @@ final class ExportCommandTest extends TestCase
         Gacela::bootstrap(__DIR__, GacelaConfig::defaultPhpConfig());
     }
 
-    /**
-     * @runInSeparateProcess
-     *
-     * @preserveGlobalState disabled
-     */
     public function test_export_command_multiple(): void
     {
         $command = new ExportCommand();

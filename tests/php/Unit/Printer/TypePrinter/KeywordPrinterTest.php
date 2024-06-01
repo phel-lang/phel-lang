@@ -22,16 +22,16 @@ final class KeywordPrinterTest extends TestCase
         );
     }
 
-    public function printerDataProvider(): Generator
+    public static function printerDataProvider(): Generator
     {
         yield 'string name' => [
             'expected' => ':name',
-            'keyboard' => Keyword::create('name'),
+            'keyword' => Keyword::create('name'),
         ];
 
         yield 'special chars string' => [
             'expected' => ':\\?#__\|\/',
-            'keyboard' => Keyword::create('\\?#__\|\/'),
+            'keyword' => Keyword::create('\\?#__\|\/'),
         ];
     }
 }
