@@ -12,6 +12,7 @@ final class CompiledCodeIsMalformedException extends RuntimeException
     public static function fromThrowable(Throwable $e): self
     {
         $msg = self::normalize($e->getMessage());
+
         return new self($msg, 0, $e);
     }
 
@@ -27,6 +28,6 @@ final class CompiledCodeIsMalformedException extends RuntimeException
             );
         }
 
-        return 'Error message not found';
+        return $msg;
     }
 }
