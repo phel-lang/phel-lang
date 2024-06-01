@@ -2,14 +2,11 @@
 
 declare(strict_types=1);
 
-return [
-    'src-dirs' => ['../../../../../../../src/phel/'],
-    'test-dirs' => ['Fixtures'],
-    'vendor-dir' => '',
+use Phel\Config\PhelConfig;
 
-    'export' => [
-        'directories' => [],
-        'namespace-prefix' => '',
-        'target-directory' => '',
-    ],
-];
+return (new PhelConfig())
+    ->setSrcDirs(['../../../../../../../src/phel/'])
+    ->setTestDirs(['Fixtures'])
+    ->setVendorDir('')
+    ->setErrorLogFile('data/error.log')
+;

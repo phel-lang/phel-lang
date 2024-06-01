@@ -17,6 +17,11 @@ final class TestCommandProjectSuccessTest extends AbstractCommandTest
         Gacela::bootstrap(__DIR__, GacelaConfig::defaultPhpConfig());
     }
 
+    /**
+     * @runInSeparateProcess
+     *
+     * @preserveGlobalState disabled
+     */
     public function test_all_in_project(): void
     {
         $command = new TestCommand();
@@ -30,6 +35,11 @@ final class TestCommandProjectSuccessTest extends AbstractCommandTest
         $command->run($this->stubInput([]), $this->stubOutput());
     }
 
+    /**
+     * @runInSeparateProcess
+     *
+     * @preserveGlobalState disabled
+     */
     public function test_one_file_in_project(): void
     {
         $command = new TestCommand();
