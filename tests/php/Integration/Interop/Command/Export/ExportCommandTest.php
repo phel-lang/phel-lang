@@ -7,7 +7,6 @@ namespace PhelTest\Integration\Interop\Command\Export;
 use Gacela\Framework\Bootstrap\GacelaConfig;
 use Gacela\Framework\Gacela;
 use Phel\Interop\Infrastructure\Command\ExportCommand;
-use PhelTest\Integration\Util\DirectoryUtil;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
@@ -33,9 +32,10 @@ final class ExportCommandTest extends TestCase
         );
 
         self::assertFileExists(__DIR__ . '/PhelGenerated/TestCmdExportMultiple/Adder.php');
-        self::assertFileExists(__DIR__ . '/PhelGenerated/TestCmdExportMultiple/Multiplier.php');
+        unlink(__DIR__ . '/PhelGenerated/TestCmdExportMultiple/Adder.php');
 
-        DirectoryUtil::removeDir(__DIR__ . '/PhelGenerated/');
+        self::assertFileExists(__DIR__ . '/PhelGenerated/TestCmdExportMultiple/Multiplier.php');
+        unlink(__DIR__ . '/PhelGenerated/TestCmdExportMultiple/Multiplier.php');
     }
 
     private function stubOutput(): OutputInterface
