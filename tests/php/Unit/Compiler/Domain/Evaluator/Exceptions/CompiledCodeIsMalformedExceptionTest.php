@@ -31,7 +31,7 @@ OUT;
 
         $exception = CompiledCodeIsMalformedException::fromThrowable($throwable);
 
-        $expected = 'Too few arguments to function, 2 passed in and exactly 3 expected';
+        $expected = 'Too few arguments to function on line 4, 2 passed in and exactly 3 expected';
 
         self::assertSame($expected, $exception->getMessage());
     }

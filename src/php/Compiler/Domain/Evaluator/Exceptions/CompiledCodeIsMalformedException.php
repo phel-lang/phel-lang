@@ -17,9 +17,14 @@ final class CompiledCodeIsMalformedException extends RuntimeException
 
     private static function normalize(string $msg): string
     {
-        $pattern = '/Too few arguments to function [^,]+, (\d+) passed in [^,]+ and exactly (\d+) expected/';
+        $pattern = '/Too few arguments to function [^,]+, (\d+) passed in [^,]+ on line (\d+) and exactly (\d+) expected/';
         if (preg_match($pattern, $msg, $matches)) {
-            return sprintf('Too few arguments to function, %s passed in and exactly %s expected', $matches[1], $matches[2]);
+            return sprintf(
+                'Too few arguments to function on line %s, %s passed in and exactly %s expected',
+                $matches[2],
+                $matches[1],
+                $matches[3],
+            );
         }
 
         return 'Error message not found';
