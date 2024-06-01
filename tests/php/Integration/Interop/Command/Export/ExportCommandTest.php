@@ -31,11 +31,15 @@ final class ExportCommandTest extends TestCase
             $this->stubOutput(),
         );
 
-        self::assertFileExists(__DIR__ . '/PhelGenerated/TestCmdExportMultiple/Adder.php');
-        unlink(__DIR__ . '/PhelGenerated/TestCmdExportMultiple/Adder.php');
+        $expectedCreatedFiles = [
+            __DIR__ . '/PhelGenerated/TestCmdExportMultiple/Adder.php',
+            __DIR__ . '/PhelGenerated/TestCmdExportMultiple/Multiplier.php',
+        ];
 
-        self::assertFileExists(__DIR__ . '/PhelGenerated/TestCmdExportMultiple/Multiplier.php');
-        unlink(__DIR__ . '/PhelGenerated/TestCmdExportMultiple/Multiplier.php');
+        foreach ($expectedCreatedFiles as $file) {
+            self::assertFileExists($file);
+            unlink($file);
+        }
     }
 
     private function stubOutput(): OutputInterface
