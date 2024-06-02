@@ -13,12 +13,12 @@ use Phel\Lang\SourceLocation;
 final class CallNode extends AbstractNode implements Fnable
 {
     /**
-     * @param list<AbstractNode> $arguments
+     * @param list<AbstractNode> $args
      */
     public function __construct(
         NodeEnvironmentInterface $env,
         private readonly AbstractNode $fn,
-        private readonly array $arguments,
+        private readonly array $args,
         ?SourceLocation $sourceLocation = null,
     ) {
         parent::__construct($env, $sourceLocation);
@@ -32,8 +32,8 @@ final class CallNode extends AbstractNode implements Fnable
     /**
      * @return list<AbstractNode>
      */
-    public function getArguments(): array
+    public function getArgs(): array
     {
-        return $this->arguments;
+        return $this->args;
     }
 }

@@ -45,8 +45,8 @@ final class ApplyEmitter implements NodeEmitterInterface
 
     private function emitArguments(ApplyNode $node): void
     {
-        $argCount = count($node->getArguments());
-        foreach ($node->getArguments() as $i => $arg) {
+        $argCount = count($node->getArgs());
+        foreach ($node->getArgs() as $i => $arg) {
             if ($i < $argCount - 1) {
                 $this->outputEmitter->emitNode($arg);
                 $this->outputEmitter->emitStr(', ', $node->getStartSourceLocation());

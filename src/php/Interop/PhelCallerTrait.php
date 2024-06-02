@@ -9,15 +9,15 @@ use Phel\Lang\Registry;
 trait PhelCallerTrait
 {
     /**
-     * @param mixed[] $arguments
+     * @param mixed[] $args
      *
      * @return mixed
      */
-    private function callPhel(string $namespace, string $definitionName, ...$arguments)
+    private function callPhel(string $namespace, string $definitionName, ...$args)
     {
         $fn = $this->getPhelDefinition($namespace, $definitionName);
 
-        return $fn(...$arguments);
+        return $fn(...$args);
     }
 
     /**

@@ -33,7 +33,7 @@ final class MethodCallNode extends AbstractNode implements Fnable
     /**
      * @return list<AbstractNode>
      */
-    public function getArguments(): array
+    public function getArgs(): array
     {
         return $this->args;
     }

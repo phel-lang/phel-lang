@@ -61,7 +61,7 @@ final class PhpObjectCallEmitter implements NodeEmitterInterface
         if ($callExpr instanceof MethodCallNode) {
             $this->outputEmitter->emitStr($callExpr->getFn()->getName(), $callExpr->getFn()->getStartLocation());
             $this->outputEmitter->emitStr('(', $node->getStartSourceLocation());
-            $this->outputEmitter->emitArgList($callExpr->getArguments(), $node->getStartSourceLocation());
+            $this->outputEmitter->emitArgList($callExpr->getArgs(), $node->getStartSourceLocation());
             $this->outputEmitter->emitStr(')', $node->getStartSourceLocation());
         } elseif ($callExpr instanceof PropertyOrConstantAccessNode) {
             $this->outputEmitter->emitStr($callExpr->getName()->getName(), $callExpr->getName()->getStartLocation());

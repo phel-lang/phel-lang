@@ -4,11 +4,15 @@ declare(strict_types=1);
 
 namespace Phel\Compiler\Domain\Analyzer\Ast;
 
+use Phel\Lang\SourceLocation;
+
 /**
  * @template T
  */
 interface Fnable
 {
+    public function getStartSourceLocation(): ?SourceLocation;
+
     /**
      * @return T
      */
@@ -17,5 +21,5 @@ interface Fnable
     /**
      * @return list<AbstractNode>
      */
-    public function getArguments(): array;
+    public function getArgs(): array;
 }

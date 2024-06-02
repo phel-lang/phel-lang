@@ -6,6 +6,7 @@ namespace PhelTest\Unit\Compiler\Domain\Evaluator\Exceptions;
 
 use Exception;
 use Phel\Compiler\Domain\Analyzer\Ast\AbstractNode;
+use Phel\Compiler\Domain\Analyzer\Ast\Fnable;
 use Phel\Compiler\Domain\Analyzer\Ast\LocalVarNode;
 use Phel\Compiler\Domain\Analyzer\Environment\NodeEnvironmentInterface;
 use Phel\Compiler\Domain\Evaluator\Exceptions\CompiledCodeIsMalformedException;
@@ -55,7 +56,7 @@ class CompiledCodeIsMalformedExceptionTest extends TestCase
     {
         $env = $this->createStub(NodeEnvironmentInterface::class);
 
-        return new class($name, $env) extends AbstractNode {
+        return new class($name, $env) extends AbstractNode implements Fnable {
             public function __construct(
                 private readonly string $name,
                 NodeEnvironmentInterface $env,
@@ -64,17 +65,17 @@ class CompiledCodeIsMalformedExceptionTest extends TestCase
                 parent::__construct($env, $startSourceLocation);
             }
 
-            public function getStartSourceLocation(): ?SourceLocation
-            {
-                return parent::getStartSourceLocation();
-            }
-
             public function getFn(): LocalVarNode
             {
                 return new LocalVarNode(
                     $this->getEnv(),
                     new Symbol('', $this->name),
                 );
+            }
+
+            public function getArgs(): array
+            {
+                return [];
             }
         };
     }

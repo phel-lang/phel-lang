@@ -35,7 +35,7 @@ final class CallEmitter implements NodeEmitterInterface
     {
         $this->outputEmitter->emitStr('(', $node->getStartSourceLocation());
         $this->outputEmitter->emitArgList(
-            $node->getArguments(),
+            $node->getArgs(),
             $node->getStartSourceLocation(),
             ' ' . $fnNode->getName() . ' ',
         );
@@ -53,7 +53,7 @@ final class CallEmitter implements NodeEmitterInterface
         }
 
         $this->outputEmitter->emitStr('(', $node->getStartSourceLocation());
-        $this->outputEmitter->emitArgList($node->getArguments(), $node->getStartSourceLocation());
+        $this->outputEmitter->emitArgList($node->getArgs(), $node->getStartSourceLocation());
         $this->outputEmitter->emitStr(')', $node->getStartSourceLocation());
     }
 }
