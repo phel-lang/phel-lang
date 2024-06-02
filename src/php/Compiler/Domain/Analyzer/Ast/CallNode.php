@@ -7,7 +7,10 @@ namespace Phel\Compiler\Domain\Analyzer\Ast;
 use Phel\Compiler\Domain\Analyzer\Environment\NodeEnvironmentInterface;
 use Phel\Lang\SourceLocation;
 
-final class CallNode extends AbstractNode
+/**
+ * @implements Fnable<AbstractNode>
+ */
+final class CallNode extends AbstractNode implements Fnable
 {
     /**
      * @param list<AbstractNode> $arguments

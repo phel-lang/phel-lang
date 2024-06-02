@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Phel\Compiler\Domain\Evaluator;
 
+use Phel\Compiler\Domain\Analyzer\Ast\AbstractNode;
 use Phel\Compiler\Domain\Evaluator\Exceptions\CompiledCodeIsMalformedException;
 use Phel\Compiler\Domain\Evaluator\Exceptions\FileException;
 use Phel\Filesystem\FilesystemFacadeInterface;
@@ -22,7 +23,7 @@ final readonly class RequireEvaluator implements EvaluatorInterface
      * @throws CompiledCodeIsMalformedException
      * @throws FileException
      */
-    public function eval(string $code): mixed
+    public function eval(string $code, AbstractNode $node): mixed
     {
         $filename = tempnam(sys_get_temp_dir(), '__phel');
         if ($filename === '' || $filename === false) {
@@ -39,7 +40,7 @@ final readonly class RequireEvaluator implements EvaluatorInterface
 
             throw FileException::canNotCreateFile($filename);
         } catch (Throwable $throwable) {
-            throw CompiledCodeIsMalformedException::fromThrowable($throwable);
+            throw CompiledCodeIsMalformedException::fromThrowable($throwable, $node);
         }
     }
 }

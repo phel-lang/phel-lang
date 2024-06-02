@@ -105,6 +105,6 @@ final readonly class CodeCompiler implements CodeCompilerInterface
         $this->fileEmitter->emitNode($node);
 
         $code = $this->statementEmitter->emitNode($node, $compileOptions->isSourceMapsEnabled())->getCodeWithSourceMap();
-        $this->evaluator->eval($code);
+        $this->evaluator->eval($code, $node);
     }
 }

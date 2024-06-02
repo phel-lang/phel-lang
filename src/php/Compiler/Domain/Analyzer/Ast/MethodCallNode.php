@@ -8,7 +8,10 @@ use Phel\Compiler\Domain\Analyzer\Environment\NodeEnvironmentInterface;
 use Phel\Lang\SourceLocation;
 use Phel\Lang\Symbol;
 
-final class MethodCallNode extends AbstractNode
+/**
+ * @implements Fnable<Symbol>
+ */
+final class MethodCallNode extends AbstractNode implements Fnable
 {
     /**
      * @param list<AbstractNode> $args
@@ -30,7 +33,7 @@ final class MethodCallNode extends AbstractNode
     /**
      * @return list<AbstractNode>
      */
-    public function getArgs(): array
+    public function getArguments(): array
     {
         return $this->args;
     }

@@ -5,7 +5,12 @@ declare(strict_types=1);
 namespace PhelTest\Unit\Compiler\Domain\Evaluator\Exceptions;
 
 use Exception;
+use Phel\Compiler\Domain\Analyzer\Ast\AbstractNode;
+use Phel\Compiler\Domain\Analyzer\Ast\LocalVarNode;
+use Phel\Compiler\Domain\Analyzer\Environment\NodeEnvironmentInterface;
 use Phel\Compiler\Domain\Evaluator\Exceptions\CompiledCodeIsMalformedException;
+use Phel\Lang\SourceLocation;
+use Phel\Lang\Symbol;
 use PHPUnit\Framework\TestCase;
 
 class CompiledCodeIsMalformedExceptionTest extends TestCase
@@ -15,7 +20,10 @@ class CompiledCodeIsMalformedExceptionTest extends TestCase
         $originalErrorMsg = self::originalErrorTrace('Any CompiledCodeIsMalformedException default error');
         $throwable = new Exception($originalErrorMsg);
 
-        $exception = CompiledCodeIsMalformedException::fromThrowable($throwable);
+        $exception = CompiledCodeIsMalformedException::fromThrowable(
+            $throwable,
+            $this->stubAbstractNode('custom-fn'),
+        );
 
         self::assertSame($originalErrorMsg, $exception->getMessage());
     }
@@ -32,12 +40,43 @@ class CompiledCodeIsMalformedExceptionTest extends TestCase
             }
         };
 
-        $exception = CompiledCodeIsMalformedException::fromThrowable($throwable);
+        $exception = CompiledCodeIsMalformedException::fromThrowable(
+            $throwable,
+            $this->stubAbstractNode('custom-fn'),
+        );
 
         self::assertSame(
-            'Too few arguments to function on line 4, 2 passed in and exactly 3 expected',
+            'Too few arguments to function `custom-fn`, 2 passed in and exactly 3 expected',
             $exception->getMessage(),
         );
+    }
+
+    public function stubAbstractNode(string $name): AbstractNode
+    {
+        $env = $this->createStub(NodeEnvironmentInterface::class);
+
+        return new class($name, $env) extends AbstractNode {
+            public function __construct(
+                private readonly string $name,
+                NodeEnvironmentInterface $env,
+                ?SourceLocation $startSourceLocation = null,
+            ) {
+                parent::__construct($env, $startSourceLocation);
+            }
+
+            public function getStartSourceLocation(): ?SourceLocation
+            {
+                return parent::getStartSourceLocation();
+            }
+
+            public function getFn(): LocalVarNode
+            {
+                return new LocalVarNode(
+                    $this->getEnv(),
+                    new Symbol('', $this->name),
+                );
+            }
+        };
     }
 
     public static function originalErrorTrace(string $msg): string

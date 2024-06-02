@@ -74,6 +74,10 @@
         "test-core": "./bin/phel test",
         "psalm": "./vendor/bin/psalm --no-cache",
         "phpstan": "./vendor/bin/phpstan --memory-limit=516M",
+        "fix": [
+            "@rector",
+            "@csfix"
+        ],
         "csfix": "./vendor/bin/php-cs-fixer fix",
         "csrun": "./vendor/bin/php-cs-fixer fix --dry-run",
         "rector": "./vendor/bin/rector process",
