@@ -7,6 +7,7 @@ namespace Phel\Compiler\Domain\Evaluator\Exceptions;
 use Phel\Compiler\Domain\Analyzer\Ast\AbstractNode;
 use Phel\Compiler\Domain\Analyzer\Ast\Fnable;
 use Phel\Compiler\Domain\Analyzer\Ast\LocalVarNode;
+use Phel\Lang\SourceLocation;
 use RuntimeException;
 use Throwable;
 
@@ -38,7 +39,7 @@ final class CompiledCodeIsMalformedException extends RuntimeException
                 $matches['expected'],
             );
 
-            if ($srcLoc !== null) {
+            if ($srcLoc instanceof SourceLocation) {
                 $result .= sprintf("\nlocation: %s:%d", $srcLoc->getFile(), $srcLoc->getLine());
             }
 
