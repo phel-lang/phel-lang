@@ -52,17 +52,41 @@ class CompiledCodeIsMalformedExceptionTest extends TestCase
         );
     }
 
-    public function stubAbstractNode(string $name): AbstractNode
+    public function test_wrong_args_number_with_location(): void
+    {
+        $throwable = new class() extends Exception {
+            public function __construct()
+            {
+                $msg = CompiledCodeIsMalformedExceptionTest::originalErrorTrace(
+                    'Too few arguments to function Phel\Lang\AbstractFn@anonymous::__invoke(), 2 passed in /private/var/folders/qq/dvftwjp527lfdj3kq5nyzhy80000gq/T/__phelIWWVRP on line 4 and exactly 3 expected',
+                );
+                parent::__construct($msg);
+            }
+        };
+
+        $exception = CompiledCodeIsMalformedException::fromThrowable(
+            $throwable,
+            $this->stubAbstractNode('custom-fn', new SourceLocation('/file/path.phel', 20, 35)),
+        );
+
+        $expected = <<<EOF
+Too few arguments to function `custom-fn`, 2 passed in and exactly 3 expected
+location: /file/path.phel:20
+EOF;
+        self::assertSame($expected, $exception->getMessage());
+    }
+
+    public function stubAbstractNode(string $name, ?SourceLocation $location = null): AbstractNode
     {
         $env = $this->createStub(NodeEnvironmentInterface::class);
 
-        return new class($name, $env) extends AbstractNode implements Fnable {
+        return new class($name, $env, $location) extends AbstractNode implements Fnable {
             public function __construct(
                 private readonly string $name,
                 NodeEnvironmentInterface $env,
-                ?SourceLocation $startSourceLocation = null,
+                ?SourceLocation $location = null,
             ) {
-                parent::__construct($env, $startSourceLocation);
+                parent::__construct($env, $location);
             }
 
             public function getFn(): LocalVarNode
