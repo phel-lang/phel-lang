@@ -4,6 +4,11 @@
 (deftest test-cons
   (is (= (php/array 1 2) (cons 1 (php/array 2))) "cons php array")
   (is (= '(1 2) (cons 1 '(2))) "cons list")
+  (is (= '(1 2 3) (cons 1 '(2 3))) "cons list multiple elements")
+  (is (= [1 2] (cons 1 [2])) "cons vector")
+  (is (= [1 2 3] (cons 1 [2 3])) "cons vector multiple elements")
+  (is (= [1 2] (cons 1 (rest [1 2]))) "cons sub vector")
+  (is (= [1 2 3] (cons 1 (rest [1 2 3]))) "cons sub vector multiple elements")
   (is (= [1] (cons 1 nil)) "cons nil"))
 
 (deftest test-first
