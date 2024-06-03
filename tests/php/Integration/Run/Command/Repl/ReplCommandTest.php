@@ -104,10 +104,6 @@ final class ReplCommandTest extends AbstractCommandTest
                 continue;
             }
 
-            if (preg_match('/\.test$/', $file->getRealPath()) === 0) {
-                continue;
-            }
-
             if (preg_match('/\.test$/', $file->getRealPath()) === false) {
                 continue;
             }
