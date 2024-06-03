@@ -1,0 +1,37 @@
+<?php
+// /Users/jose.valera/Code/phel-lang/phel-lang/src/phel/local.phel
+// ;;;;;EAIA,UAAA;IAAA;;IAAA,yBAAA;MAAA,OAAA,0EAAA,CAAA,qEAAA,EAAA,uEAAA,CAAA,qEAAA,oFAAA,oFAAA,CAAA,CAAA;IAAA;EAAA
+\Phel\Lang\Registry::getInstance()->addDefinition(
+  "example\\local",
+  "test",
+  new class() extends \Phel\Lang\AbstractFn {
+    public const BOUND_TO = "example\\local\\test";
+
+    public function __invoke() {
+      return (\Phel\Lang\Registry::getInstance()->getDefinition("phel\\core", "reduce"))(\Phel\Lang\Registry::getInstance()->getDefinition("phel\\core", "+"), (\Phel\Lang\Registry::getInstance()->getDefinition("phel\\core", "map"))(\Phel\Lang\Registry::getInstance()->getDefinition("phel\\core", "*"), \Phel\Lang\Registry::getInstance()->getDefinition("example\\local", "array1"), \Phel\Lang\Registry::getInstance()->getDefinition("example\\local", "array2")));
+    }
+  },
+  \Phel\Lang\TypeFactory::getInstance()->persistentMapFromKVs(
+    \Phel\Lang\Keyword::create("doc"), "```phel\n(test )\n```\n",
+    \Phel\Lang\Keyword::create("start-location"), \Phel\Lang\TypeFactory::getInstance()->persistentMapFromKVs(
+      \Phel\Lang\Keyword::create("file"), "/Users/jose.valera/Code/phel-lang/phel-lang/src/phel/local.phel",
+      \Phel\Lang\Keyword::create("line"), 5,
+      \Phel\Lang\Keyword::create("column"), 0
+    ),
+    \Phel\Lang\Keyword::create("end-location"), \Phel\Lang\TypeFactory::getInstance()->persistentMapFromKVs(
+      \Phel\Lang\Keyword::create("file"), "/Users/jose.valera/Code/phel-lang/phel-lang/src/phel/local.phel",
+      \Phel\Lang\Keyword::create("line"), 5,
+      \Phel\Lang\Keyword::create("column"), 47
+    )
+  )
+);
+
+/** # THE CODE ABOVE WAS GENERATED FROM THE PHP CODE BELOW
+(ns example\local)
+
+(def array1 [1 2 3])
+(def array2 [4 5 6])
+(defn test [] (reduce + (map * array1 array2)))
+(test)
+
+*/

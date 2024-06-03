@@ -35,7 +35,10 @@ class CompiledCodeIsMalformedExceptionTest extends TestCase
             public function __construct()
             {
                 $msg = CompiledCodeIsMalformedExceptionTest::originalErrorTrace(
-                    'Too few arguments to function Phel\Lang\AbstractFn@anonymous::__invoke(), 2 passed in /private/var/folders/qq/dvftwjp527lfdj3kq5nyzhy80000gq/T/__phelIWWVRP on line 4 and exactly 3 expected',
+                    sprintf(
+                        'Too few arguments to function Phel\Lang\AbstractFn@anonymous::__invoke(), 2 passed in %s on line 4 and exactly 3 expected',
+                        __DIR__ . '/T/__phel-unique-id',
+                    ),
                 );
                 parent::__construct($msg);
             }
@@ -46,10 +49,13 @@ class CompiledCodeIsMalformedExceptionTest extends TestCase
             $this->stubAbstractNode('custom-fn'),
         );
 
-        self::assertSame(
-            'Too few arguments to function `custom-fn`, 2 passed in and exactly 3 expected',
-            $exception->getMessage(),
-        );
+        $expected = <<<'EOF'
+Too few arguments to function starting from `custom-fn`, 2 passed in and exactly 3 expected
+> php(location) : __phel-unique-id
+
+return (\Phel\Lang\Registry::getInstance()->getDefinition("phel\\core", "reduce"))(\Phel\Lang\Registry::getInstance()->getDefinition("phel\\core", "+"), (\Phel\Lang\Registry::getInstance()->getDefinition("phel\\core", "map"))(\Phel\Lang\Registry::getInstance()->getDefinition("phel\\core", "*"), \Phel\Lang\Registry::getInstance()->getDefinition("example\\local", "array1"), \Phel\Lang\Registry::getInstance()->getDefinition("example\\local", "array2")));
+EOF;
+        self::assertSame($expected, $exception->getMessage());
     }
 
     public function test_wrong_args_number_with_location(): void
@@ -58,7 +64,10 @@ class CompiledCodeIsMalformedExceptionTest extends TestCase
             public function __construct()
             {
                 $msg = CompiledCodeIsMalformedExceptionTest::originalErrorTrace(
-                    'Too few arguments to function Phel\Lang\AbstractFn@anonymous::__invoke(), 2 passed in /private/var/folders/qq/dvftwjp527lfdj3kq5nyzhy80000gq/T/__phelIWWVRP on line 4 and exactly 3 expected',
+                    sprintf(
+                        'Too few arguments to function Phel\Lang\AbstractFn@anonymous::__invoke(), 2 passed in %s on line 4 and exactly 3 expected',
+                        __DIR__ . '/T/__phel-unique-id',
+                    ),
                 );
                 parent::__construct($msg);
             }
@@ -69,9 +78,12 @@ class CompiledCodeIsMalformedExceptionTest extends TestCase
             $this->stubAbstractNode('custom-fn', new SourceLocation('/file/path.phel', 20, 35)),
         );
 
-        $expected = <<<EOF
-Too few arguments to function `custom-fn`, 2 passed in and exactly 3 expected
-location: /file/path.phel:20
+        $expected = <<<'EOF'
+Too few arguments to function starting from `custom-fn`, 2 passed in and exactly 3 expected
+> phel(location): /file/path.phel:20
+> php(location) : __phel-unique-id
+
+return (\Phel\Lang\Registry::getInstance()->getDefinition("phel\\core", "reduce"))(\Phel\Lang\Registry::getInstance()->getDefinition("phel\\core", "+"), (\Phel\Lang\Registry::getInstance()->getDefinition("phel\\core", "map"))(\Phel\Lang\Registry::getInstance()->getDefinition("phel\\core", "*"), \Phel\Lang\Registry::getInstance()->getDefinition("example\\local", "array1"), \Phel\Lang\Registry::getInstance()->getDefinition("example\\local", "array2")));
 EOF;
         self::assertSame($expected, $exception->getMessage());
     }
