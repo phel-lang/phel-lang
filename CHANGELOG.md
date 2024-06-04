@@ -2,6 +2,10 @@
 
 All notable changes to this project will be documented in this file.
 
+## Unreleased
+
+* Compatibility of lists and vectors in the cons function (#714)
+
 ## [0.14.1](https://github.com/phel-lang/phel-lang/compare/v0.14.0...v0.14.1) - 2024-05-24
 
 * Fix `bin/phel` after refactor
