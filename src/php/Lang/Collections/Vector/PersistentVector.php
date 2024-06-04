@@ -307,6 +307,11 @@ final class PersistentVector extends AbstractPersistentVector
         );
     }
 
+    public function cons(mixed $x): PersistentVectorInterface
+    {
+        return self::fromArray($this->hasher, $this->equalizer, [$x, ...$this->root, ...$this->tail]);
+    }
+
     protected function sliceNormalized(int $start, int $end): PersistentVectorInterface
     {
         return new SubVector($this->hasher, $this->equalizer, $this->meta, $this, $start, $end);

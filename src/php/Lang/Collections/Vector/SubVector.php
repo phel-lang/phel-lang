@@ -122,6 +122,11 @@ final class SubVector extends AbstractPersistentVector
         throw new MethodNotSupportedException('asTransient is not supported on SubVector');
     }
 
+    public function cons(mixed $x): PersistentVectorInterface
+    {
+        return PersistentVector::fromArray($this->hasher, $this->equalizer, [$x, ...$this->toArray()]);
+    }
+
     protected function sliceNormalized(int $start, int $end): PersistentVectorInterface
     {
         return new self($this->hasher, $this->equalizer, $this->meta, $this->vector, $this->start + $start, $this->start + $end);
