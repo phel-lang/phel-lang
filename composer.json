@@ -52,6 +52,7 @@
     },
     "scripts": {
         "post-install-cmd": "tools/git-hooks/init.sh",
+        "fix": ["@rector", "@csfix"],
         "test": "@test-all",
         "test-all": [
             "@static-clear-cache",
