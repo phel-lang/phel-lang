@@ -9,12 +9,17 @@ use Phel\Compiler\Domain\Exceptions\AbstractLocatedException;
 use Phel\Compiler\Domain\Parser\ReadModel\CodeSnippet;
 use Throwable;
 
+use function extension_loaded;
+
 final readonly class ReplCommandSystemIo implements ReplCommandIoInterface
 {
     public function __construct(
         private string $historyFile,
         private CommandFacadeInterface $commandFacade,
     ) {
+        if (!extension_loaded('readline')) {
+            throw MissingDependencyException::missingExtension('readline');
+        }
     }
 
     public function readHistory(): void
