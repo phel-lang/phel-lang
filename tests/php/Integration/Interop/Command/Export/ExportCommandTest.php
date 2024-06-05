@@ -12,6 +12,9 @@ use PHPUnit\Framework\TestCase;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 
+/**
+ * @runInSeparateProcess
+ */
 final class ExportCommandTest extends TestCase
 {
     public static function setUpBeforeClass(): void
