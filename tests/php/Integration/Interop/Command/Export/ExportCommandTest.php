@@ -24,7 +24,7 @@ final class ExportCommandTest extends TestCase
         Gacela::bootstrap(__DIR__, GacelaConfig::defaultPhpConfig());
     }
 
-    protected function tearDown(): void
+    protected function setUp(): void
     {
         DirectoryUtil::removeDir(__DIR__ . '/PhelGenerated/');
     }
