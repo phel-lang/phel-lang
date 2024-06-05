@@ -12,25 +12,22 @@ use PHPUnit\Framework\TestCase;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 
-/**
- * @runInSeparateProcess
- *
- * @preserveGlobalState disabled
- */
 final class ExportCommandTest extends TestCase
 {
-    public static function setUpBeforeClass(): void
-    {
-        Gacela::bootstrap(__DIR__, GacelaConfig::defaultPhpConfig());
-    }
-
     protected function setUp(): void
     {
         DirectoryUtil::removeDir(__DIR__ . '/PhelGenerated/');
     }
 
+    /**
+     * @runInSeparateProcess
+     *
+     * @preserveGlobalState disabled
+     */
     public function test_export_command_multiple(): void
     {
+        Gacela::bootstrap(__DIR__, GacelaConfig::defaultPhpConfig());
+
         $command = new ExportCommand();
 
         $this->expectOutputRegex('~Exported namespaces:~');
