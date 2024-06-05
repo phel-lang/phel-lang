@@ -14,12 +14,19 @@ use Symfony\Component\Console\Output\OutputInterface;
 
 /**
  * @runInSeparateProcess
+ *
+ * @preserveGlobalState disabled
  */
 final class ExportCommandTest extends TestCase
 {
     public static function setUpBeforeClass(): void
     {
         Gacela::bootstrap(__DIR__, GacelaConfig::defaultPhpConfig());
+    }
+
+    protected function tearDown(): void
+    {
+        DirectoryUtil::removeDir(__DIR__ . '/PhelGenerated/');
     }
 
     public function test_export_command_multiple(): void
@@ -37,8 +44,6 @@ final class ExportCommandTest extends TestCase
 
         self::assertFileExists(__DIR__ . '/PhelGenerated/TestCmdExportMultiple/Adder.php');
         self::assertFileExists(__DIR__ . '/PhelGenerated/TestCmdExportMultiple/Multiplier.php');
-
-        DirectoryUtil::removeDir(__DIR__ . '/PhelGenerated/');
     }
 
     private function stubOutput(): OutputInterface
