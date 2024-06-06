@@ -9,7 +9,7 @@ $finder = Finder::create()
     ->files()
     ->in(__DIR__ . '/src/php')
     ->in(__DIR__ . '/tests/php')
-    ->exclude('out');
+    ->exclude(['out', 'PhelGenerated']);
 
 return (new Config())
     ->setFinder($finder)
