@@ -180,6 +180,28 @@ final class AtomParserTest extends TestCase
                 new Token(Token::T_ATOM, '0b001', $start, $end),
             ),
         );
+        $this->assertEquals(
+            new NumberNode(
+                '+0b001',
+                $start,
+                $end,
+                1,
+            ),
+            $parser->parse(
+                new Token(Token::T_ATOM, '+0b001', $start, $end),
+            ),
+        );
+        $this->assertEquals(
+            new NumberNode(
+                '-0b001',
+                $start,
+                $end,
+                -1,
+            ),
+            $parser->parse(
+                new Token(Token::T_ATOM, '-0b001', $start, $end),
+            ),
+        );
     }
 
     public function test_parse_hexadecimal_number(): void

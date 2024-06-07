@@ -20,7 +20,7 @@ final readonly class AtomParser
 {
     private const REGEX_KEYWORD = '/:(?<second_colon>:?)((?<namespace>[^\/]+)\/)?(?<keyword>[^\/]+)/';
 
-    private const REGEX_BINARY_NUMBER = '/^([+-])?0[bB][01]+(_[01]+)*$/';
+    private const REGEX_BINARY_NUMBER = '/^([+-])?0[bB]([01]+(?:_[01]+)*)$/';
 
     private const REGEX_HEXADECIMAL_NUMBER = '/^([+-])?0[xX][0-9a-fA-F]+(_[0-9a-fA-F]+)*$/';
 
@@ -121,12 +121,13 @@ final readonly class AtomParser
     private function parseBinaryNumber(array $matches, string $word, Token $token): NumberNode
     {
         $sign = (isset($matches[1]) && $matches[1] === '-') ? -1 : 1;
+        $unsignedInteger = $matches[2] ?? $word;
 
         return new NumberNode(
             $word,
             $token->getStartLocation(),
             $token->getEndLocation(),
-            $sign * bindec(str_replace('_', '', $word)),
+            $sign * bindec(str_replace('_', '', $unsignedInteger)),
         );
     }
 
