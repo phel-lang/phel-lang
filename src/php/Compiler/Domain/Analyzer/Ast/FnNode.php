@@ -8,6 +8,8 @@ use Phel\Compiler\Domain\Analyzer\Environment\NodeEnvironmentInterface;
 use Phel\Lang\SourceLocation;
 use Phel\Lang\Symbol;
 
+use function count;
+
 final class FnNode extends AbstractNode
 {
     /**
@@ -50,6 +52,16 @@ final class FnNode extends AbstractNode
     public function isVariadic(): bool
     {
         return $this->isVariadic;
+    }
+
+    public function getMinArity(): int
+    {
+        $arity = count($this->params);
+        if ($this->isVariadic) {
+            --$arity;
+        }
+
+        return $arity;
     }
 
     public function getRecurs(): bool

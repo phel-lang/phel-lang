@@ -6,6 +6,7 @@ namespace Phel\Compiler\Domain\Analyzer\TypeAnalyzer\SpecialForm;
 
 use Phel\Compiler\Domain\Analyzer\Ast\AbstractNode;
 use Phel\Compiler\Domain\Analyzer\Ast\DefNode;
+use Phel\Compiler\Domain\Analyzer\Ast\FnNode;
 use Phel\Compiler\Domain\Analyzer\Ast\MapNode;
 use Phel\Compiler\Domain\Analyzer\Environment\NodeEnvironmentInterface;
 use Phel\Compiler\Domain\Analyzer\Exceptions\AnalyzerException;
@@ -49,6 +50,12 @@ final class DefSymbol implements SpecialFormAnalyzerInterface
         $this->analyzer->addDefinition($namespace, $nameSymbol);
 
         [$metaMap, $init] = $this->createMetaMapAndInit($list);
+
+        $initNode = $this->analyzeInit($init, $env, $namespace, $nameSymbol);
+        if ($initNode instanceof FnNode) {
+            $metaMap = $metaMap->put('min-arity', $initNode->getMinArity());
+        }
+
         $meta = $this->analyzer->analyze($metaMap, $env->withExpressionContext());
         assert($meta instanceof MapNode);
 
@@ -57,7 +64,7 @@ final class DefSymbol implements SpecialFormAnalyzerInterface
             $namespace,
             $nameSymbol,
             $meta,
-            $this->analyzeInit($init, $env, $namespace, $nameSymbol),
+            $initNode,
             $list->getStartLocation(),
         );
     }

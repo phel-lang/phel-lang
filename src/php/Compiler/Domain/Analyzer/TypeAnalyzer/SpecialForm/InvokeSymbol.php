@@ -12,6 +12,7 @@ use Phel\Compiler\Domain\Analyzer\Environment\NodeEnvironmentInterface;
 use Phel\Compiler\Domain\Analyzer\Exceptions\AnalyzerException;
 use Phel\Compiler\Domain\Analyzer\TypeAnalyzer\WithAnalyzerTrait;
 use Phel\Lang\Collections\LinkedList\PersistentListInterface;
+use Phel\Lang\Collections\Map\PersistentMapInterface;
 use Phel\Lang\Keyword;
 use Phel\Lang\Registry;
 use Phel\Lang\SourceLocation;
@@ -37,6 +38,20 @@ final class InvokeSymbol implements SpecialFormAnalyzerInterface
 
         if ($f instanceof GlobalVarNode && $f->isMacro()) {
             return $this->globalMacro($list, $f, $env);
+        }
+
+        if ($f instanceof GlobalVarNode) {
+            $nodeName = $f->getName()->getName();
+            $data = Registry::getInstance()->getDefinitionMetaData($f->getNamespace(), $nodeName);
+            if ($data instanceof PersistentMapInterface) {
+                $minArity = $data->find('min-arity');
+                if ($minArity && count($list->rest()) < $minArity) {
+                    throw AnalyzerException::withLocation(
+                        'Not enough arguments provided to function "' . $f->getNamespace() . '\\' . $f->getName()->getName() . '". Got: ' . count($list->rest()) . ' Expected: ' . $minArity,
+                        $list,
+                    );
+                }
+            }
         }
 
         return new CallNode(
