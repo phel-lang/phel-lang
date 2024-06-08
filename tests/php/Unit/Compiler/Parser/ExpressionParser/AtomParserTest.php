@@ -236,6 +236,42 @@ final class AtomParserTest extends TestCase
         );
     }
 
+    public function test_parse_positively_signed_octal_number(): void
+    {
+        $parser = new AtomParser(new GlobalEnvironment());
+        $start = new SourceLocation('string', 0, 0);
+        $end = new SourceLocation('string', 0, 5);
+        $this->assertEquals(
+            new NumberNode(
+                '+01',
+                $start,
+                $end,
+                1,
+            ),
+            $parser->parse(
+                new Token(Token::T_ATOM, '+01', $start, $end),
+            ),
+        );
+    }
+
+    public function test_parse_negative_octal_number(): void
+    {
+        $parser = new AtomParser(new GlobalEnvironment());
+        $start = new SourceLocation('string', 0, 0);
+        $end = new SourceLocation('string', 0, 5);
+        $this->assertEquals(
+            new NumberNode(
+                '-01',
+                $start,
+                $end,
+                -1,
+            ),
+            $parser->parse(
+                new Token(Token::T_ATOM, '-01', $start, $end),
+            ),
+        );
+    }
+
     public function test_parse_symbol(): void
     {
         $parser = new AtomParser(new GlobalEnvironment());
