@@ -24,7 +24,7 @@ final readonly class AtomParser
 
     private const REGEX_HEXADECIMAL_NUMBER = '/^([+-])?0[xX]([0-9a-fA-F]+(?:_[0-9a-fA-F]+)*)$/';
 
-    private const REGEX_OCTAL_NUMBER = '/^([+-])?0[0-7]+(_[0-7]+)*$/';
+    private const REGEX_OCTAL_NUMBER = '/^([+-])?0([0-7]+(?:_[0-7]+)*)$/';
 
     private const REGEX_DECIMAL_NUMBER = '/^(?:([+-])?\d+(_\d+)*[\.(_\d+]?|0)$/';
 
@@ -146,12 +146,13 @@ final readonly class AtomParser
     private function parseOctalNumber(array $matches, string $word, Token $token): NumberNode
     {
         $sign = (isset($matches[1]) && $matches[1] === '-') ? -1 : 1;
+        $unsignedInteger = $matches[2] ?? $word;
 
         return new NumberNode(
             $word,
             $token->getStartLocation(),
             $token->getEndLocation(),
-            $sign * octdec(str_replace('_', '', $word)),
+            $sign * octdec(str_replace('_', '', $unsignedInteger)),
         );
     }
 
