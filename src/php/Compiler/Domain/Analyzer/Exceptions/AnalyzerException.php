@@ -54,4 +54,21 @@ final class AnalyzerException extends AbstractLocatedException
             $exception,
         );
     }
+
+    public static function whenExpandingMacro(
+        PersistentListInterface $list,
+        GlobalVarNode $node,
+        Exception $exception,
+    ): self {
+        throw self::withLocation(
+            sprintf(
+                'Error in expanding macro "%s\\%s": %s',
+                $node->getNamespace(),
+                $node->getName()->getName(),
+                $exception->getMessage(),
+            ),
+            $list,
+            $exception,
+        );
+    }
 }
