@@ -200,6 +200,42 @@ final class AtomParserTest extends TestCase
         );
     }
 
+    public function test_parse_positive_signed_hexadecimal_number(): void
+    {
+        $parser = new AtomParser(new GlobalEnvironment());
+        $start = new SourceLocation('string', 0, 0);
+        $end = new SourceLocation('string', 0, 5);
+        $this->assertEquals(
+            new NumberNode(
+                '+0x001',
+                $start,
+                $end,
+                1,
+            ),
+            $parser->parse(
+                new Token(Token::T_ATOM, '+0x001', $start, $end),
+            ),
+        );
+    }
+
+    public function test_parse_negative_hexadecimal_number(): void
+    {
+        $parser = new AtomParser(new GlobalEnvironment());
+        $start = new SourceLocation('string', 0, 0);
+        $end = new SourceLocation('string', 0, 5);
+        $this->assertEquals(
+            new NumberNode(
+                '-0x001',
+                $start,
+                $end,
+                -1,
+            ),
+            $parser->parse(
+                new Token(Token::T_ATOM, '-0x001', $start, $end),
+            ),
+        );
+    }
+
     public function test_parse_numeric_number(): void
     {
         $parser = new AtomParser(new GlobalEnvironment());
