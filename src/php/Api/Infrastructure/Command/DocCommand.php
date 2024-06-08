@@ -97,11 +97,13 @@ final class DocCommand extends Command
      */
     private function printFunctionsAsTable(OutputInterface $output, array $phelFunctions, string $search): void
     {
+        [$width1, $width2, $width3] = $this->calculateWithProportionalToCurrentScreen();
+
         $table = (new Table($output))
             ->setHeaders(['function', 'signature', 'description'])
-            ->setColumnMaxWidth(0, 25)
-            ->setColumnMaxWidth(1, 40)
-            ->setColumnMaxWidth(2, 50);
+            ->setColumnMaxWidth(0, $width1)
+            ->setColumnMaxWidth(1, $width2)
+            ->setColumnMaxWidth(2, $width3);
 
         [$normalized] = $this->normalizeGroupedFunctions($phelFunctions, $search);
 
@@ -110,6 +112,24 @@ final class DocCommand extends Command
         }
 
         $table->render();
+    }
+
+    /**
+     * @return array{0:int, 1:int, 2:int}
+     */
+    private function calculateWithProportionalToCurrentScreen(): array
+    {
+        /** @psalm-suppress ForbiddenCode */
+        $colCount = (int)shell_exec('tput cols');
+        $proportion1 = 25;
+        $proportion2 = 40;
+        $proportion3 = 50;
+        $totalProportion = $proportion1 + $proportion2 + $proportion3;
+        $width1 = (int)(($proportion1 / $totalProportion) * $colCount) - 5;
+        $width2 = (int)(($proportion2 / $totalProportion) * $colCount) - 5;
+        $width3 = $colCount - ($width1 + $width2 + 10);
+
+        return [$width1, $width2, $width3];
     }
 
     /**
