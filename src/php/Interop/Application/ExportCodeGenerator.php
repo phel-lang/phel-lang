@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Phel\Interop\Domain;
+namespace Phel\Interop\Application;
 
 use Phel\Compiler\Domain\Exceptions\CompilerException;
 use Phel\Interop\Domain\DirectoryRemover\DirectoryRemoverInterface;

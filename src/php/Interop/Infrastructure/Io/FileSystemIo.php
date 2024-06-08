@@ -2,8 +2,9 @@
 
 declare(strict_types=1);
 
-namespace Phel\Interop\Domain\FileCreator;
+namespace Phel\Interop\Infrastructure\Io;
 
+use Phel\Interop\Domain\FileCreator\FileIoInterface;
 use RuntimeException;
 
 final class FileSystemIo implements FileIoInterface
