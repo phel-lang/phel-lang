@@ -96,8 +96,7 @@ final class InvokeSymbol implements SpecialFormAnalyzerInterface
             return $this->callMacroFn($fn, $list);
         } catch (Exception $exception) {
             throw AnalyzerException::withLocation(
-                'Error in expanding inline function of "' . $node->getNamespace() . '\\' . $node->getName()->getName(
-                ) . '": ' . $exception->getMessage(),
+                'Error in expanding inline function of "' . $node->getNamespace() . '\\' . $node->getName()->getName() . '": ' . $exception->getMessage(),
                 $list,
                 $exception,
             );
@@ -116,8 +115,7 @@ final class InvokeSymbol implements SpecialFormAnalyzerInterface
             return $this->callMacroFn($fn, $list);
         } catch (Exception $exception) {
             throw AnalyzerException::withLocation(
-                'Error in expanding macro "' . $macroNode->getNamespace(
-                ) . '\\' . $nodeName . '": ' . $exception->getMessage(),
+                'Error in expanding macro "' . $macroNode->getNamespace() . '\\' . $nodeName . '": ' . $exception->getMessage(),
                 $list,
                 $exception,
             );
