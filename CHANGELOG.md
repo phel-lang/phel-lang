@@ -5,6 +5,7 @@ All notable changes to this project will be documented in this file.
 ## Unreleased
 
 * Fix add check for readline extension in REPL to handle missing dependencies (#712)
+* Check mandatory function parameters during compile time (#717)
 
 ## [0.14.1](https://github.com/phel-lang/phel-lang/compare/v0.14.0...v0.14.1) - 2024-05-24
 
