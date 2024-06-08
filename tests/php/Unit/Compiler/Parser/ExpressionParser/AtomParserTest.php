@@ -200,7 +200,7 @@ final class AtomParserTest extends TestCase
         );
     }
 
-    public function test_parse_positively_signed_hexadecimal_number(): void
+    public function test_parse_positive_signed_hexadecimal_number(): void
     {
         $parser = new AtomParser(new GlobalEnvironment());
         $start = new SourceLocation('string', 0, 0);
