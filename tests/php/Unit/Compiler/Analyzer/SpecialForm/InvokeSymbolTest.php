@@ -30,6 +30,14 @@ final class InvokeSymbolTest extends TestCase
     {
         Registry::getInstance()->clear();
         $env = new GlobalEnvironment();
+        $env->addDefinition('user', Symbol::create('my-global-var'));
+        Registry::getInstance()->addDefinition(
+            'user',
+            'my-global-var',
+            static fn ($a, $b): int => $a + $b,
+            TypeFactory::getInstance()->persistentMapFromKVs('min-arity', 2),
+        );
+
         $env->addDefinition('user', Symbol::create('my-macro'));
         Registry::getInstance()->addDefinition(
             'user',
@@ -71,6 +79,26 @@ final class InvokeSymbolTest extends TestCase
         );
 
         $this->analyzer = new Analyzer($env);
+    }
+
+    public function test_validate_enough_args_provided(): void
+    {
+        $env = NodeEnvironment::empty();
+        $f = new GlobalVarNode(
+            $env->withExpressionContext()->withDisallowRecurFrame(),
+            'user',
+            Symbol::create('my-global-var'),
+            TypeFactory::getInstance()->emptyPersistentMap(),
+        );
+
+        $list = TypeFactory::getInstance()->persistentListFromArray([
+            Symbol::createForNamespace('user', 'my-global-var'),
+            '1arg',
+        ]);
+
+        $this->expectExceptionObject(AnalyzerException::notEnoughArgsProvided($f, $list, minArity: 2));
+
+        (new InvokeSymbol($this->analyzer))->analyze($list, $env);
     }
 
     public function test_invoke_without_arguments(): void
