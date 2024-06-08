@@ -37,4 +37,21 @@ final class AnalyzerException extends AbstractLocatedException
             $list,
         );
     }
+
+    public static function whenExpandingInlineFn(
+        PersistentListInterface $list,
+        GlobalVarNode $node,
+        Exception $exception,
+    ): self {
+        throw self::withLocation(
+            sprintf(
+                'Error in expanding inline function of "%s\\%s": %s',
+                $node->getNamespace(),
+                $node->getName()->getName(),
+                $exception->getMessage(),
+            ),
+            $list,
+            $exception,
+        );
+    }
 }

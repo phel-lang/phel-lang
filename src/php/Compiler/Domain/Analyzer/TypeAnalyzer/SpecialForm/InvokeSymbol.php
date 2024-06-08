@@ -95,11 +95,7 @@ final class InvokeSymbol implements SpecialFormAnalyzerInterface
         try {
             return $this->callMacroFn($fn, $list);
         } catch (Exception $exception) {
-            throw AnalyzerException::withLocation(
-                'Error in expanding inline function of "' . $node->getNamespace() . '\\' . $node->getName()->getName() . '": ' . $exception->getMessage(),
-                $list,
-                $exception,
-            );
+            throw AnalyzerException::whenExpandingInlineFn($list, $node, $exception);
         }
     }
 
