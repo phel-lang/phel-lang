@@ -12,6 +12,7 @@ use Phel\Compiler\Domain\Analyzer\Environment\NodeEnvironmentInterface;
 use Phel\Compiler\Domain\Analyzer\Exceptions\AnalyzerException;
 use Phel\Compiler\Domain\Analyzer\TypeAnalyzer\WithAnalyzerTrait;
 use Phel\Lang\Collections\LinkedList\PersistentListInterface;
+use Phel\Lang\Collections\Map\PersistentMapInterface;
 use Phel\Lang\Keyword;
 use Phel\Lang\Registry;
 use Phel\Lang\SourceLocation;
@@ -39,6 +40,10 @@ final class InvokeSymbol implements SpecialFormAnalyzerInterface
             return $this->globalMacro($list, $f, $env);
         }
 
+        if ($f instanceof GlobalVarNode) {
+            $this->validateEnoughArgsProvided($f, $list);
+        }
+
         return new CallNode(
             $env,
             $f,
@@ -47,8 +52,11 @@ final class InvokeSymbol implements SpecialFormAnalyzerInterface
         );
     }
 
-    private function inlineMacro(PersistentListInterface $list, GlobalVarNode $f, NodeEnvironmentInterface $env): AbstractNode
-    {
+    private function inlineMacro(
+        PersistentListInterface $list,
+        GlobalVarNode $f,
+        NodeEnvironmentInterface $env,
+    ): AbstractNode {
         return $this->analyzer->analyzeMacro($this->inlineExpand($list, $f), $env);
     }
 
@@ -69,29 +77,32 @@ final class InvokeSymbol implements SpecialFormAnalyzerInterface
         return $arityFn($arity);
     }
 
-    private function globalMacro(PersistentListInterface $list, GlobalVarNode $f, NodeEnvironmentInterface $env): AbstractNode
-    {
+    private function globalMacro(
+        PersistentListInterface $list,
+        GlobalVarNode $f,
+        NodeEnvironmentInterface $env,
+    ): AbstractNode {
         return $this->analyzer->analyzeMacro($this->macroExpand($list, $f), $env);
     }
 
-    private function inlineExpand(PersistentListInterface $list, GlobalVarNode $node): float|bool|int|string|TypeInterface|array|null
-    {
+    private function inlineExpand(
+        PersistentListInterface $list,
+        GlobalVarNode $node,
+    ): float|bool|int|string|TypeInterface|array|null {
         $meta = $node->getMeta();
         $fn = $meta[Keyword::create('inline')];
 
         try {
             return $this->callMacroFn($fn, $list);
         } catch (Exception $exception) {
-            throw AnalyzerException::withLocation(
-                'Error in expanding inline function of "' . $node->getNamespace() . '\\' . $node->getName()->getName() . '": ' . $exception->getMessage(),
-                $list,
-                $exception,
-            );
+            throw AnalyzerException::whenExpandingInlineFn($list, $node, $exception);
         }
     }
 
-    private function macroExpand(PersistentListInterface $list, GlobalVarNode $macroNode): float|bool|int|string|TypeInterface|array|null
-    {
+    private function macroExpand(
+        PersistentListInterface $list,
+        GlobalVarNode $macroNode,
+    ): float|bool|int|string|TypeInterface|array|null {
         /** @psalm-suppress PossiblyNullArgument */
         $nodeName = $macroNode->getName()->getName();
         $fn = Registry::getInstance()->getDefinition($macroNode->getNamespace(), $nodeName);
@@ -99,16 +110,14 @@ final class InvokeSymbol implements SpecialFormAnalyzerInterface
         try {
             return $this->callMacroFn($fn, $list);
         } catch (Exception $exception) {
-            throw AnalyzerException::withLocation(
-                'Error in expanding macro "' . $macroNode->getNamespace() . '\\' . $nodeName . '": ' . $exception->getMessage(),
-                $list,
-                $exception,
-            );
+            throw AnalyzerException::whenExpandingMacro($list, $macroNode, $exception);
         }
     }
 
-    private function callMacroFn(callable $fn, PersistentListInterface $list): float|bool|int|string|TypeInterface|array|null
-    {
+    private function callMacroFn(
+        callable $fn,
+        PersistentListInterface $list,
+    ): float|bool|int|string|TypeInterface|array|null {
         $arguments = $list->rest()->toArray();
 
         $result = $fn(...$arguments);
@@ -167,5 +176,17 @@ final class InvokeSymbol implements SpecialFormAnalyzerInterface
         }
 
         return $arguments;
+    }
+
+    private function validateEnoughArgsProvided(GlobalVarNode $f, PersistentListInterface $list): void
+    {
+        $nodeName = $f->getName()->getName();
+        $data = Registry::getInstance()->getDefinitionMetaData($f->getNamespace(), $nodeName);
+        if ($data instanceof PersistentMapInterface) {
+            $minArity = $data->find('min-arity');
+            if ($minArity && count($list->rest()) < $minArity) {
+                throw AnalyzerException::notEnoughArgsProvided($f, $list, $minArity);
+            }
+        }
     }
 }

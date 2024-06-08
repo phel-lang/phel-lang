@@ -23,7 +23,8 @@
       \Phel\Lang\Keyword::create("file"), "Call/php-fn-reference.test",
       \Phel\Lang\Keyword::create("line"), 1,
       \Phel\Lang\Keyword::create("column"), 37
-    )
+    ),
+    "min-arity", 2
   )
 );
 (\Phel\Lang\Registry::getInstance()->getDefinition("user", "reduce"))((function(...$args) { return array(...$args);}), \Phel\Lang\TypeFactory::getInstance()->persistentVectorFromArray([1, 2, 3]));

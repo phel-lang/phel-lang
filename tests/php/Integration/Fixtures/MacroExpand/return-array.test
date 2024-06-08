@@ -24,7 +24,8 @@
       \Phel\Lang\Keyword::create("file"), "MacroExpand/return-array.test",
       \Phel\Lang\Keyword::create("line"), 1,
       \Phel\Lang\Keyword::create("column"), 55
-    )
+    ),
+    "min-arity", 1
   )
 );
 \Phel\Lang\Registry::getInstance()->addDefinition(

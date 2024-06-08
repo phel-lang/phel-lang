@@ -28,6 +28,7 @@
       \Phel\Lang\Keyword::create("file"), "Foreach/foreach-expr.test",
       \Phel\Lang\Keyword::create("line"), 3,
       \Phel\Lang\Keyword::create("column"), 18
-    )
+    ),
+    "min-arity", 0
   )
 );
