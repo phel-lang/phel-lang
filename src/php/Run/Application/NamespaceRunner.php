@@ -2,10 +2,11 @@
 
 declare(strict_types=1);
 
-namespace Phel\Run\Domain\Runner;
+namespace Phel\Run\Application;
 
 use Phel\Build\BuildFacadeInterface;
 use Phel\Command\CommandFacadeInterface;
+use Phel\Run\Domain\Runner\NamespaceRunnerInterface;
 
 final readonly class NamespaceRunner implements NamespaceRunnerInterface
 {
