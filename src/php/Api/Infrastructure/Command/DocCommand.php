@@ -8,6 +8,7 @@ use Gacela\Framework\DocBlockResolverAwareTrait;
 use Phel\Api\ApiFacade;
 use Phel\Api\Transfer\PhelFunction;
 use Symfony\Component\Console\Command\Command;
+use Symfony\Component\Console\Helper\Table;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
@@ -30,6 +31,7 @@ final class DocCommand extends Command
         $this->setName('doc')
             ->setDescription('Display the docs for any/all phel functions')
             ->addArgument('search', InputArgument::OPTIONAL, 'Search input that look for a similar function name', '')
+            ->addOption('table', 't', InputOption::VALUE_NONE, 'Display a table')
             ->addOption(
                 self::OPTION_NAMESPACES,
                 null,
@@ -45,7 +47,11 @@ final class DocCommand extends Command
         $phelFunctions = $this->getFacade()->getPhelFunctions($namespaces);
 
         $search = $input->getArgument('search');
-        $this->printFunctions($output, $phelFunctions, $search);
+        if ($input->getOption('table')) {
+            $this->printFunctionsAsTable($output, $phelFunctions, $search);
+        } else {
+            $this->printFunctionsAsText($output, $phelFunctions, $search);
+        }
 
         return self::SUCCESS;
     }
@@ -70,7 +76,7 @@ final class DocCommand extends Command
     /**
      * @param list<PhelFunction> $phelFunctions
      */
-    private function printFunctions(OutputInterface $output, array $phelFunctions, string $search): void
+    private function printFunctionsAsText(OutputInterface $output, array $phelFunctions, string $search): void
     {
         [$normalized, $longestFuncNameLength] = $this->normalizeGroupedFunctions($phelFunctions, $search);
 
@@ -84,6 +90,26 @@ final class DocCommand extends Command
                 ),
             );
         }
+    }
+
+    /**
+     * @param list<PhelFunction> $phelFunctions
+     */
+    private function printFunctionsAsTable(OutputInterface $output, array $phelFunctions, string $search): void
+    {
+        $table = (new Table($output))
+            ->setHeaders(['function', 'signature', 'description'])
+            ->setColumnMaxWidth(0, 25)
+            ->setColumnMaxWidth(1, 40)
+            ->setColumnMaxWidth(2, 50);
+
+        [$normalized] = $this->normalizeGroupedFunctions($phelFunctions, $search);
+
+        foreach ($normalized as $func) {
+            $table->addRow([$func['name'], $func['signature'], $func['description']]);
+        }
+
+        $table->render();
     }
 
     /**
