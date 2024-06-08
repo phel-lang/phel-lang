@@ -2,10 +2,13 @@
 
 declare(strict_types=1);
 
-namespace Phel\Compiler\Domain\Lexer;
+namespace Phel\Compiler\Application;
 
 use Generator;
 use Phel\Compiler\Domain\Lexer\Exceptions\LexerValueException;
+use Phel\Compiler\Domain\Lexer\LexerInterface;
+use Phel\Compiler\Domain\Lexer\Token;
+use Phel\Compiler\Domain\Lexer\TokenStream;
 use Phel\Lang\SourceLocation;
 
 use function count;

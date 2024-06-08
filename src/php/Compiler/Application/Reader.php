@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Phel\Compiler\Domain\Reader;
+namespace Phel\Compiler\Application;
 
 use Phel\Compiler\Domain\Lexer\Token;
 use Phel\Compiler\Domain\Parser\ParserNode\AbstractAtomNode;
@@ -16,6 +16,9 @@ use Phel\Compiler\Domain\Parser\ReadModel\CodeSnippet;
 use Phel\Compiler\Domain\Parser\ReadModel\ReaderResult;
 use Phel\Compiler\Domain\Reader\Exceptions\NotValidQuoteNodeException;
 use Phel\Compiler\Domain\Reader\Exceptions\ReaderException;
+use Phel\Compiler\Domain\Reader\ExpressionReaderFactoryInterface;
+use Phel\Compiler\Domain\Reader\QuasiquoteTransformerInterface;
+use Phel\Compiler\Domain\Reader\ReaderInterface;
 use Phel\Lang\Symbol;
 use Phel\Lang\TypeInterface;
 use RuntimeException;

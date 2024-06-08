@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Phel\Compiler\Domain\Reader;
 
+use Phel\Compiler\Application\Reader;
 use Phel\Compiler\Domain\Reader\ExpressionReader\AtomReader;
 use Phel\Compiler\Domain\Reader\ExpressionReader\ListFnReader;
 use Phel\Compiler\Domain\Reader\ExpressionReader\ListReader;

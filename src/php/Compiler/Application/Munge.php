@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Phel\Compiler\Infrastructure;
+namespace Phel\Compiler\Application;
 
 use Phel\Compiler\Domain\Emitter\OutputEmitter\MungeInterface;
 

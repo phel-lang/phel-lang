@@ -13,7 +13,7 @@ use Phel\Command\Domain\Shared\Exceptions\ExceptionArgsPrinter;
 use Phel\Command\Domain\Shared\Exceptions\Extractor\FilePositionExtractor;
 use Phel\Command\Domain\Shared\Exceptions\Extractor\SourceMapExtractor;
 use Phel\Command\Domain\Shared\Exceptions\TextExceptionPrinter;
-use Phel\Compiler\Infrastructure\Munge;
+use Phel\Compiler\Application\Munge;
 use Phel\Printer\Printer;
 use Phel\Printer\PrinterInterface;
 use Phel\Run\Domain\Repl\ColorStyle;

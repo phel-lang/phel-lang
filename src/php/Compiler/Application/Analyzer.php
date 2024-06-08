@@ -2,8 +2,9 @@
 
 declare(strict_types=1);
 
-namespace Phel\Compiler\Domain\Analyzer;
+namespace Phel\Compiler\Application;
 
+use Phel\Compiler\Domain\Analyzer\AnalyzerInterface;
 use Phel\Compiler\Domain\Analyzer\Ast\AbstractNode;
 use Phel\Compiler\Domain\Analyzer\Environment\GlobalEnvironmentInterface;
 use Phel\Compiler\Domain\Analyzer\Environment\NodeEnvironmentInterface;
@@ -28,8 +29,9 @@ use function is_string;
 
 final readonly class Analyzer implements AnalyzerInterface
 {
-    public function __construct(private GlobalEnvironmentInterface $globalEnvironment)
-    {
+    public function __construct(
+        private GlobalEnvironmentInterface $globalEnvironment,
+    ) {
     }
 
     public function resolve(Symbol $name, NodeEnvironmentInterface $env): ?AbstractNode
@@ -80,8 +82,10 @@ final readonly class Analyzer implements AnalyzerInterface
     /**
      * @throws AnalyzerException
      */
-    public function analyzeMacro(TypeInterface|array|string|float|int|bool|null $x, NodeEnvironmentInterface $env): AbstractNode
-    {
+    public function analyzeMacro(
+        TypeInterface|array|string|float|int|bool|null $x,
+        NodeEnvironmentInterface $env,
+    ): AbstractNode {
         $this->globalEnvironment->setAllowPrivateAccess(true);
         $result = $this->analyze($x, $env);
         $this->globalEnvironment->setAllowPrivateAccess(false);
@@ -92,8 +96,10 @@ final readonly class Analyzer implements AnalyzerInterface
     /**
      * @throws AnalyzerException
      */
-    public function analyze(TypeInterface|array|string|float|int|bool|null $x, NodeEnvironmentInterface $env): AbstractNode
-    {
+    public function analyze(
+        TypeInterface|array|string|float|int|bool|null $x,
+        NodeEnvironmentInterface $env,
+    ): AbstractNode {
         if ($this->isLiteral($x)) {
             return (new AnalyzeLiteral())->analyze($x, $env);
         }

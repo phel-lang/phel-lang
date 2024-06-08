@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Phel\Compiler\Domain\Parser;
+namespace Phel\Compiler\Application;
 
 use Phel\Compiler\Domain\Analyzer\Environment\GlobalEnvironmentInterface;
 use Phel\Compiler\Domain\Lexer\Token;
@@ -11,6 +11,8 @@ use Phel\Compiler\Domain\Parser\Exceptions\KeywordParserException;
 use Phel\Compiler\Domain\Parser\Exceptions\StringParserException;
 use Phel\Compiler\Domain\Parser\Exceptions\UnexpectedParserException;
 use Phel\Compiler\Domain\Parser\Exceptions\UnfinishedParserException;
+use Phel\Compiler\Domain\Parser\ExpressionParserFactoryInterface;
+use Phel\Compiler\Domain\Parser\ParserInterface;
 use Phel\Compiler\Domain\Parser\ParserNode\AbstractAtomNode;
 use Phel\Compiler\Domain\Parser\ParserNode\CommentNode;
 use Phel\Compiler\Domain\Parser\ParserNode\FileNode;
