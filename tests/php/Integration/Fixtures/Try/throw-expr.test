@@ -24,6 +24,7 @@
       \Phel\Lang\Keyword::create("file"), "Try/throw-expr.test",
       \Phel\Lang\Keyword::create("line"), 1,
       \Phel\Lang\Keyword::create("column"), 56
-    )
+    ),
+    "min-arity", 0
   )
 );

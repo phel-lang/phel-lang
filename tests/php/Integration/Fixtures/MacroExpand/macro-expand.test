@@ -28,7 +28,8 @@
       \Phel\Lang\Keyword::create("file"), "MacroExpand/macro-expand.test",
       \Phel\Lang\Keyword::create("line"), 1,
       \Phel\Lang\Keyword::create("column"), 36
-    )
+    ),
+    "min-arity", 1
   )
 );
 (1 + 1);

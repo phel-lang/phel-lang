@@ -48,7 +48,8 @@ interface IPlayer {
       \Phel\Lang\Keyword::create("file"), "Def/definterface-instance-of.test",
       \Phel\Lang\Keyword::create("line"), 5,
       \Phel\Lang\Keyword::create("column"), 31
-    )
+    ),
+    "min-arity", 1
   )
 );
 
@@ -81,7 +82,8 @@ interface IPlayer {
       \Phel\Lang\Keyword::create("file"), "Def/definterface-instance-of.test",
       \Phel\Lang\Keyword::create("line"), 5,
       \Phel\Lang\Keyword::create("column"), 31
-    )
+    ),
+    "min-arity", 3
   )
 );
 ("foo" instanceof \interface_instance\IPlayer);

@@ -70,7 +70,8 @@ class abc extends \Phel\Lang\Collections\Struct\AbstractPersistentStruct {
       \Phel\Lang\Keyword::create("file"), "Ns/munge-ns.test",
       \Phel\Lang\Keyword::create("line"), 7,
       \Phel\Lang\Keyword::create("column"), 19
-    )
+    ),
+    "min-arity", 1
   )
 );
 
@@ -95,6 +96,7 @@ class abc extends \Phel\Lang\Collections\Struct\AbstractPersistentStruct {
       \Phel\Lang\Keyword::create("file"), "Ns/munge-ns.test",
       \Phel\Lang\Keyword::create("line"), 7,
       \Phel\Lang\Keyword::create("column"), 19
-    )
+    ),
+    "min-arity", 1
   )
 );
