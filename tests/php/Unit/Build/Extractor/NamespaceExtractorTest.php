@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace PhelTest\Unit\Build\Extractor;
 
 use Gacela\Framework\Gacela;
+use Phel\Build\Application\NamespaceExtractor;
 use Phel\Build\Domain\Extractor\ExtractorException;
-use Phel\Build\Domain\Extractor\NamespaceExtractor;
 use Phel\Build\Domain\Extractor\NamespaceInformation;
 use Phel\Build\Domain\Extractor\TopologicalNamespaceSorter;
 use Phel\Build\Infrastructure\IO\SystemFileIo;

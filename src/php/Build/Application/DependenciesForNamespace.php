@@ -2,9 +2,8 @@
 
 declare(strict_types=1);
 
-namespace Phel\Build\Domain\Compile;
+namespace Phel\Build\Application;
 
-use Phel\Build\Domain\Extractor\NamespaceExtractor;
 use Phel\Build\Domain\Extractor\NamespaceInformation;
 
 use function array_key_exists;
@@ -12,8 +11,9 @@ use function in_array;
 
 final readonly class DependenciesForNamespace
 {
-    public function __construct(private NamespaceExtractor $namespaceExtractor)
-    {
+    public function __construct(
+        private NamespaceExtractor $namespaceExtractor,
+    ) {
     }
 
     /**

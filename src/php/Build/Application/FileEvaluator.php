@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace Phel\Build\Domain\Compile;
+namespace Phel\Build\Application;
 
-use Phel\Build\Domain\Extractor\NamespaceExtractor;
+use Phel\Build\Domain\Compile\CompiledFile;
 use Phel\Compiler\CompilerFacadeInterface;
 use Phel\Compiler\Infrastructure\CompileOptions;
 

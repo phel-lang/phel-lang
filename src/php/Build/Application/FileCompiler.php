@@ -2,9 +2,11 @@
 
 declare(strict_types=1);
 
-namespace Phel\Build\Domain\Compile;
+namespace Phel\Build\Application;
 
 use Phel\Build\BuildFacade;
+use Phel\Build\Domain\Compile\CompiledFile;
+use Phel\Build\Domain\Compile\FileCompilerInterface;
 use Phel\Build\Domain\Extractor\NamespaceExtractorInterface;
 use Phel\Build\Domain\IO\FileIoInterface;
 use Phel\Compiler\CompilerFacadeInterface;

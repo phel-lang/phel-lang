@@ -2,8 +2,12 @@
 
 declare(strict_types=1);
 
-namespace Phel\Build\Domain\Extractor;
+namespace Phel\Build\Application;
 
+use Phel\Build\Domain\Extractor\ExtractorException;
+use Phel\Build\Domain\Extractor\NamespaceExtractorInterface;
+use Phel\Build\Domain\Extractor\NamespaceInformation;
+use Phel\Build\Domain\Extractor\NamespaceSorterInterface;
 use Phel\Build\Domain\IO\FileIoInterface;
 use Phel\Compiler\CompilerFacadeInterface;
 use Phel\Compiler\Domain\Analyzer\Ast\NsNode;
