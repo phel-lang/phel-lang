@@ -30,10 +30,10 @@ final class InvokeSymbolTest extends TestCase
     {
         Registry::getInstance()->clear();
         $env = new GlobalEnvironment();
-        $env->addDefinition('user', Symbol::create('my-global-var'));
+        $env->addDefinition('user', Symbol::create('my-global-fn'));
         Registry::getInstance()->addDefinition(
             'user',
-            'my-global-var',
+            'my-global-fn',
             static fn ($a, $b): int => $a + $b,
             TypeFactory::getInstance()->persistentMapFromKVs('min-arity', 2),
         );
@@ -87,12 +87,12 @@ final class InvokeSymbolTest extends TestCase
         $f = new GlobalVarNode(
             $env->withExpressionContext()->withDisallowRecurFrame(),
             'user',
-            Symbol::create('my-global-var'),
+            Symbol::create('my-global-fn'),
             TypeFactory::getInstance()->emptyPersistentMap(),
         );
 
         $list = TypeFactory::getInstance()->persistentListFromArray([
-            Symbol::createForNamespace('user', 'my-global-var'),
+            Symbol::createForNamespace('user', 'my-global-fn'),
             '1arg',
         ]);
 
