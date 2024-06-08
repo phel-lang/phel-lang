@@ -16,6 +16,7 @@ use Phel\Compiler\Domain\Analyzer\Environment\GlobalEnvironment;
 use Phel\Compiler\Domain\Analyzer\Environment\NodeEnvironment;
 use Phel\Compiler\Domain\Analyzer\Exceptions\AnalyzerException;
 use Phel\Compiler\Domain\Analyzer\TypeAnalyzer\SpecialForm\InvokeSymbol;
+use Phel\Lang\Collections\Map\PersistentMapInterface;
 use Phel\Lang\Keyword;
 use Phel\Lang\Registry;
 use Phel\Lang\Symbol;
@@ -81,24 +82,42 @@ final class InvokeSymbolTest extends TestCase
         $this->analyzer = new Analyzer($env);
     }
 
-    public function test_validate_enough_args_provided(): void
+    public function test_not_enough_args_provided_then_error(): void
     {
         $env = NodeEnvironment::empty();
-        $f = new GlobalVarNode(
-            $env->withExpressionContext()->withDisallowRecurFrame(),
-            'user',
-            Symbol::create('my-global-fn'),
-            TypeFactory::getInstance()->emptyPersistentMap(),
-        );
 
         $list = TypeFactory::getInstance()->persistentListFromArray([
             Symbol::createForNamespace('user', 'my-global-fn'),
             '1arg',
         ]);
 
-        $this->expectExceptionObject(AnalyzerException::notEnoughArgsProvided($f, $list, minArity: 2));
+        $this->expectExceptionObject(
+            AnalyzerException::notEnoughArgsProvided(
+                new GlobalVarNode(
+                    $env,
+                    'user',
+                    Symbol::create('my-global-fn'),
+                    $this->createStub(PersistentMapInterface::class),
+                ),
+                $list,
+                minArity: 2,
+            ),
+        );
 
         (new InvokeSymbol($this->analyzer))->analyze($list, $env);
+    }
+
+    public function test_valid_enough_args_provided(): void
+    {
+        $list = TypeFactory::getInstance()->persistentListFromArray([
+            Symbol::createForNamespace('user', 'my-global-fn'),
+            '1arg',
+            '2arg',
+        ]);
+
+        (new InvokeSymbol($this->analyzer))->analyze($list, NodeEnvironment::empty());
+
+        $this->expectNotToPerformAssertions();
     }
 
     public function test_invoke_without_arguments(): void
