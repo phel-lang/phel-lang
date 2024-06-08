@@ -4,8 +4,11 @@ All notable changes to this project will be documented in this file.
 
 ## Unreleased
 
-* Compatibility of lists and vectors in the cons function (#714)
 * Fix add check for readline extension in REPL to handle missing dependencies (#712)
+* Compatibility of lists and vectors in the cons function (#714)
+* Fix deprecation notice for signed binary (#716)
+* Fix deprecation notice for signed hexadecimals (#718)
+* Fix deprecation notice for signed octals (#719)
 
 ## [0.14.1](https://github.com/phel-lang/phel-lang/compare/v0.14.0...v0.14.1) - 2024-05-24
 
