@@ -46,10 +46,7 @@ final class InvokeSymbol implements SpecialFormAnalyzerInterface
             if ($data instanceof PersistentMapInterface) {
                 $minArity = $data->find('min-arity');
                 if ($minArity && count($list->rest()) < $minArity) {
-                    throw AnalyzerException::withLocation(
-                        'Not enough arguments provided to function "' . $f->getNamespace() . '\\' . $f->getName()->getName() . '". Got: ' . count($list->rest()) . ' Expected: ' . $minArity,
-                        $list,
-                    );
+                    throw AnalyzerException::notEnoughArgsProvided($f, $list, $minArity);
                 }
             }
         }
