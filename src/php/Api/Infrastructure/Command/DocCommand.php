@@ -13,6 +13,7 @@ use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
+use Symfony\Component\Console\Terminal;
 
 use function in_array;
 
@@ -94,8 +95,7 @@ final class DocCommand extends Command
      */
     private function calculateWithProportionalToCurrentScreen(): array
     {
-        /** @psalm-suppress ForbiddenCode */
-        $colCount = (int)shell_exec('tput cols');
+        $colCount = (new Terminal())->getWidth();
         $proportion1 = 25;
         $proportion2 = 40;
         $proportion3 = 50;
