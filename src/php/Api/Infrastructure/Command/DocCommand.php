@@ -15,7 +15,6 @@ use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 
 use function in_array;
-use function strlen;
 
 /**
  * @method ApiFacade getFacade()
@@ -31,7 +30,6 @@ final class DocCommand extends Command
         $this->setName('doc')
             ->setDescription('Display the docs for any/all phel functions')
             ->addArgument('search', InputArgument::OPTIONAL, 'Search input that look for a similar function name', '')
-            ->addOption('table', 't', InputOption::VALUE_NONE, 'Display a table')
             ->addOption(
                 self::OPTION_NAMESPACES,
                 null,
@@ -47,11 +45,7 @@ final class DocCommand extends Command
         $phelFunctions = $this->getFacade()->getPhelFunctions($namespaces);
 
         $search = $input->getArgument('search');
-        if ($input->getOption('table')) {
-            $this->printFunctionsAsTable($output, $phelFunctions, $search);
-        } else {
-            $this->printFunctionsAsText($output, $phelFunctions, $search);
-        }
+        $this->printFunctionsAsTable($output, $phelFunctions, $search);
 
         return self::SUCCESS;
     }
@@ -76,25 +70,6 @@ final class DocCommand extends Command
     /**
      * @param list<PhelFunction> $phelFunctions
      */
-    private function printFunctionsAsText(OutputInterface $output, array $phelFunctions, string $search): void
-    {
-        [$normalized, $longestFuncNameLength] = $this->normalizeGroupedFunctions($phelFunctions, $search);
-
-        foreach ($normalized as $func) {
-            $output->writeln(
-                sprintf(
-                    '  %s: %s - %s',
-                    str_pad($func['name'], $longestFuncNameLength),
-                    $func['signature'],
-                    $func['description'],
-                ),
-            );
-        }
-    }
-
-    /**
-     * @param list<PhelFunction> $phelFunctions
-     */
     private function printFunctionsAsTable(OutputInterface $output, array $phelFunctions, string $search): void
     {
         [$width1, $width2, $width3] = $this->calculateWithProportionalToCurrentScreen();
@@ -105,7 +80,7 @@ final class DocCommand extends Command
             ->setColumnMaxWidth(1, $width2)
             ->setColumnMaxWidth(2, $width3);
 
-        [$normalized] = $this->normalizeGroupedFunctions($phelFunctions, $search);
+        $normalized = $this->normalizeGroupedFunctions($phelFunctions, $search);
 
         foreach ($normalized as $func) {
             $table->addRow([$func['name'], $func['signature'], $func['description']]);
@@ -135,20 +110,16 @@ final class DocCommand extends Command
     /**
      * @param list<PhelFunction> $phelFunctions
      *
-     * @return array{
-     *   0: list<array{
-     *     percent: int,
-     *     name: string,
-     *     signature: string,
-     *     doc: string,
-     *     description: string,
-     *   }>,
-     *   1: int
-     * }
+     * @return list<array{
+     *   percent: int,
+     *   name: string,
+     *   signature: string,
+     *   doc: string,
+     *   description: string,
+     * }>
      */
     private function normalizeGroupedFunctions(array $phelFunctions, string $search): array
     {
-        $longestFuncNameLength = 5;
         $normalized = [];
 
         foreach ($phelFunctions as $phelFunction) {
@@ -156,10 +127,6 @@ final class DocCommand extends Command
             similar_text($fnName, $search, $percent);
             if ($search && $percent < 40) {
                 continue;
-            }
-
-            if (strlen($fnName) > $longestFuncNameLength) {
-                $longestFuncNameLength = strlen($fnName);
             }
 
             $normalized[] = [
@@ -173,6 +140,6 @@ final class DocCommand extends Command
 
         usort($normalized, static fn ($a, $b): int => $b['percent'] <=> $a['percent']);
 
-        return [$normalized, $longestFuncNameLength];
+        return $normalized;
     }
 }
