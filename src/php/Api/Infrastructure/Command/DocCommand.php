@@ -94,8 +94,7 @@ final class DocCommand extends Command
      */
     private function calculateWithProportionalToCurrentScreen(): array
     {
-        /** @psalm-suppress ForbiddenCode */
-        $colCount = (int)shell_exec('tput cols');
+        $colCount = (int)getenv('COLUMNS');
         $proportion1 = 25;
         $proportion2 = 40;
         $proportion3 = 50;
