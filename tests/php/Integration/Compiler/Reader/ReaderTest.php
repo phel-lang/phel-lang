@@ -5,9 +5,9 @@ declare(strict_types=1);
 namespace PhelTest\Integration\Compiler\Reader;
 
 use Gacela\Framework\Gacela;
+use Phel\Compiler\Application\Lexer;
 use Phel\Compiler\CompilerFacade;
 use Phel\Compiler\CompilerFacadeInterface;
-use Phel\Compiler\Domain\Lexer\Lexer;
 use Phel\Compiler\Domain\Reader\Exceptions\ReaderException;
 use Phel\Compiler\Infrastructure\GlobalEnvironmentSingleton;
 use Phel\Lang\Collections\Map\PersistentMapInterface;

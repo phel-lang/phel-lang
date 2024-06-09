@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace Phel\Lang\Collections\Struct;
 
 use InvalidArgumentException;
+use Phel\Compiler\Application\Munge;
 use Phel\Compiler\Domain\Emitter\OutputEmitter\MungeInterface;
-use Phel\Compiler\Infrastructure\Munge;
 use Phel\Lang\Collections\Exceptions\MethodNotSupportedException;
 use Phel\Lang\Collections\Map\AbstractPersistentMap;
 use Phel\Lang\Collections\Map\PersistentMapInterface;

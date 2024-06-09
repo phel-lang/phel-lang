@@ -7,19 +7,19 @@ namespace Phel\Interop;
 use Gacela\Framework\AbstractFactory;
 use Phel\Build\BuildFacadeInterface;
 use Phel\Command\CommandFacadeInterface;
+use Phel\Interop\Application\ExportCodeGenerator;
 use Phel\Interop\Domain\DirectoryRemover\DirectoryRemover;
 use Phel\Interop\Domain\DirectoryRemover\DirectoryRemoverInterface;
-use Phel\Interop\Domain\ExportCodeGenerator;
 use Phel\Interop\Domain\ExportFinder\FunctionsToExportFinder;
 use Phel\Interop\Domain\ExportFinder\FunctionsToExportFinderInterface;
 use Phel\Interop\Domain\FileCreator\FileCreator;
 use Phel\Interop\Domain\FileCreator\FileCreatorInterface;
 use Phel\Interop\Domain\FileCreator\FileIoInterface;
-use Phel\Interop\Domain\FileCreator\FileSystemIo;
 use Phel\Interop\Domain\Generator\Builder\CompiledPhpClassBuilder;
 use Phel\Interop\Domain\Generator\Builder\CompiledPhpMethodBuilder;
 use Phel\Interop\Domain\Generator\Builder\WrapperRelativeFilenamePathBuilder;
 use Phel\Interop\Domain\Generator\WrapperGenerator;
+use Phel\Interop\Infrastructure\Io\FileSystemIo;
 
 /**
  * @method InteropConfig getConfig()
