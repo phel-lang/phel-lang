@@ -125,7 +125,7 @@ final class DocCommand extends Command
         foreach ($phelFunctions as $phelFunction) {
             $fnName = $phelFunction->fnName();
             similar_text($fnName, $search, $percent);
-            if ($search && $percent < 40) {
+            if ($search && $percent < 45) {
                 continue;
             }
 
