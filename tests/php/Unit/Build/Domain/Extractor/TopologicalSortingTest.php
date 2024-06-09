@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace PhelTest\Unit\Build\Extractor;
+namespace PhelTest\Unit\Build\Domain\Extractor;
 
 use Phel\Build\Domain\Extractor\TopologicalNamespaceSorter;
 use PHPUnit\Framework\TestCase;

@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Phel\Command;
 
 use Gacela\Framework\AbstractFacade;
-use Phel\Command\Domain\Shared\Exceptions\ExceptionPrinterInterface;
+use Phel\Command\Domain\Exceptions\ExceptionPrinterInterface;
 use Phel\Compiler\Domain\Exceptions\AbstractLocatedException;
 use Phel\Compiler\Domain\Parser\ReadModel\CodeSnippet;
 use Symfony\Component\Console\Output\OutputInterface;

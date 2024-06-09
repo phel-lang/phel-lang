@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Phel\Command\Domain\Shared\Exceptions;
+namespace Phel\Command\Domain\Exceptions;
 
 use Phel\Compiler\Domain\Exceptions\AbstractLocatedException;
 use Phel\Compiler\Domain\Parser\ReadModel\CodeSnippet;

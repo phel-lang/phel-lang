@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace PhelTest\Unit\Build\Extractor;
+namespace PhelTest\Unit\Build\Domain\Extractor;
 
 use Gacela\Framework\Gacela;
 use Phel\Build\Application\NamespaceExtractor;
@@ -15,7 +15,7 @@ use PHPUnit\Framework\TestCase;
 
 final class NamespaceExtractorTest extends TestCase
 {
-    protected function setUp(): void
+    public static function setUpBeforeClass(): void
     {
         Gacela::bootstrap(__DIR__);
     }

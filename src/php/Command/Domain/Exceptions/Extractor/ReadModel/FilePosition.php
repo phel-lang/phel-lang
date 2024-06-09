@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Phel\Command\Domain\Shared\Exceptions\Extractor\ReadModel;
+namespace Phel\Command\Domain\Exceptions\Extractor\ReadModel;
 
 final readonly class FilePosition
 {

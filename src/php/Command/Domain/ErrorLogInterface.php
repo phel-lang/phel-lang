@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Phel\Command\Domain\Shared\ErrorLog;
+namespace Phel\Command\Domain;
 
 interface ErrorLogInterface
 {

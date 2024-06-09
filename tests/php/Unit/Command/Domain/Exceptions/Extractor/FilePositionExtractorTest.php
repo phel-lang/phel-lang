@@ -2,12 +2,12 @@
 
 declare(strict_types=1);
 
-namespace PhelTest\Unit\Command\Shared\Exceptions\Extractor;
+namespace PhelTest\Unit\Command\Domain\Exceptions\Extractor;
 
-use Phel\Command\Domain\Shared\Exceptions\Extractor\FilePositionExtractor;
-use Phel\Command\Domain\Shared\Exceptions\Extractor\ReadModel\FilePosition;
-use Phel\Command\Domain\Shared\Exceptions\Extractor\ReadModel\SourceMapInformation;
-use Phel\Command\Domain\Shared\Exceptions\Extractor\SourceMapExtractorInterface;
+use Phel\Command\Domain\Exceptions\Extractor\FilePositionExtractor;
+use Phel\Command\Domain\Exceptions\Extractor\ReadModel\FilePosition;
+use Phel\Command\Domain\Exceptions\Extractor\ReadModel\SourceMapInformation;
+use Phel\Command\Domain\Exceptions\Extractor\SourceMapExtractorInterface;
 use PHPUnit\Framework\TestCase;
 
 final class FilePositionExtractorTest extends TestCase

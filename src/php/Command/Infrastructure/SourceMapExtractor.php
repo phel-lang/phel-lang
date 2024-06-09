@@ -2,9 +2,10 @@
 
 declare(strict_types=1);
 
-namespace Phel\Command\Domain\Shared\Exceptions\Extractor;
+namespace Phel\Command\Infrastructure;
 
-use Phel\Command\Domain\Shared\Exceptions\Extractor\ReadModel\SourceMapInformation;
+use Phel\Command\Domain\Exceptions\Extractor\ReadModel\SourceMapInformation;
+use Phel\Command\Domain\Exceptions\Extractor\SourceMapExtractorInterface;
 
 final class SourceMapExtractor implements SourceMapExtractorInterface
 {

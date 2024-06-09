@@ -2,12 +2,12 @@
 
 declare(strict_types=1);
 
-namespace PhelTest\Unit\Command\Shared\Exceptions;
+namespace PhelTest\Unit\Command\Application;
 
-use Phel\Command\Domain\Shared\ErrorLog\ErrorLogInterface;
-use Phel\Command\Domain\Shared\Exceptions\ExceptionArgsPrinterInterface;
-use Phel\Command\Domain\Shared\Exceptions\Extractor\FilePositionExtractorInterface;
-use Phel\Command\Domain\Shared\Exceptions\TextExceptionPrinter;
+use Phel\Command\Application\TextExceptionPrinter;
+use Phel\Command\Domain\ErrorLogInterface;
+use Phel\Command\Domain\Exceptions\ExceptionArgsPrinterInterface;
+use Phel\Command\Domain\Exceptions\Extractor\FilePositionExtractorInterface;
 use Phel\Compiler\Domain\Analyzer\Exceptions\AnalyzerException;
 use Phel\Compiler\Domain\Emitter\OutputEmitter\MungeInterface;
 use Phel\Compiler\Domain\Parser\ReadModel\CodeSnippet;

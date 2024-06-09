@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace PhelTest\Integration\Command\Domain\DirectoryFinder;
 
 use Gacela\Framework\Gacela;
-use Phel\Command\Domain\Finder\ComposerVendorDirectoriesFinder;
+use Phel\Command\Infrastructure\ComposerVendorDirectoriesFinder;
 use Phel\Phel;
 use PHPUnit\Framework\TestCase;
 

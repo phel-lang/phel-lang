@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace PhelTest\Unit\Command\Shared\Exceptions\Printer;
+namespace PhelTest\Unit\Command\Domain\Exceptions;
 
 use Generator;
-use Phel\Command\Domain\Shared\Exceptions\ExceptionArgsPrinter;
+use Phel\Command\Domain\Exceptions\ExceptionArgsPrinter;
 use Phel\Printer\PrinterInterface;
 use PHPUnit\Framework\TestCase;
 use stdClass;

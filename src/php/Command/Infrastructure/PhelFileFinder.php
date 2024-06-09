@@ -2,10 +2,11 @@
 
 declare(strict_types=1);
 
-namespace Phel\Command\Domain\Finder;
+namespace Phel\Command\Infrastructure;
 
 use AppendIterator;
 use Iterator;
+use Phel\Command\Domain\Finder\PhelFileFinderInterface;
 use RecursiveDirectoryIterator;
 use RecursiveIteratorIterator;
 use RegexIterator;

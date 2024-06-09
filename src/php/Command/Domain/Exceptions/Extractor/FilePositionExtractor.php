@@ -2,16 +2,17 @@
 
 declare(strict_types=1);
 
-namespace Phel\Command\Domain\Shared\Exceptions\Extractor;
+namespace Phel\Command\Domain\Exceptions\Extractor;
 
-use Phel\Command\Domain\Shared\Exceptions\Extractor\ReadModel\FilePosition;
-use Phel\Command\Domain\Shared\Exceptions\Extractor\ReadModel\SourceMapInformation;
+use Phel\Command\Domain\Exceptions\Extractor\ReadModel\FilePosition;
+use Phel\Command\Domain\Exceptions\Extractor\ReadModel\SourceMapInformation;
 use Phel\Compiler\Domain\Emitter\OutputEmitter\SourceMap\SourceMapConsumer;
 
 final readonly class FilePositionExtractor implements FilePositionExtractorInterface
 {
-    public function __construct(private SourceMapExtractorInterface $sourceMapExtractor)
-    {
+    public function __construct(
+        private SourceMapExtractorInterface $sourceMapExtractor,
+    ) {
     }
 
     public function getOriginal(string $filename, int $line): FilePosition

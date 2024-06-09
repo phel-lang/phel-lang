@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Phel\Command\Infrastructure;
 
-use Phel\Command\Domain\Shared\Exceptions\ExceptionPrinterInterface;
+use Phel\Command\Domain\Exceptions\ExceptionPrinterInterface;
 use Phel\Compiler\Domain\Exceptions\CompilerException;
 use Throwable;
 

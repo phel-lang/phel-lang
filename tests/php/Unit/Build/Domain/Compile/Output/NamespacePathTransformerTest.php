@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace PhelTest\Unit\Build\Compile\Output;
+namespace PhelTest\Unit\Build\Domain\Compile\Output;
 
 use Phel\Build\Domain\Compile\Output\NamespacePathTransformer;
 use PHPUnit\Framework\TestCase;

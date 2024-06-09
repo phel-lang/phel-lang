@@ -2,7 +2,9 @@
 
 declare(strict_types=1);
 
-namespace Phel\Command\Domain\Shared\ErrorLog;
+namespace Phel\Command\Infrastructure;
+
+use Phel\Command\Domain\ErrorLogInterface;
 
 final readonly class ErrorLog implements ErrorLogInterface
 {
