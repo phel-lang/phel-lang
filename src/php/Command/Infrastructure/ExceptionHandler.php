@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Phel\Command\Domain\Handler;
+namespace Phel\Command\Infrastructure;
 
 use Phel\Command\Domain\Shared\Exceptions\ExceptionPrinterInterface;
 use Phel\Compiler\Domain\Exceptions\CompilerException;

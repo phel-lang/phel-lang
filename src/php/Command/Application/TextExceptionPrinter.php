@@ -2,9 +2,11 @@
 
 declare(strict_types=1);
 
-namespace Phel\Command\Domain\Shared\Exceptions;
+namespace Phel\Command\Application;
 
 use Phel\Command\Domain\Shared\ErrorLog\ErrorLogInterface;
+use Phel\Command\Domain\Shared\Exceptions\ExceptionArgsPrinterInterface;
+use Phel\Command\Domain\Shared\Exceptions\ExceptionPrinterInterface;
 use Phel\Command\Domain\Shared\Exceptions\Extractor\FilePositionExtractorInterface;
 use Phel\Compiler\Domain\Emitter\OutputEmitter\MungeInterface;
 use Phel\Compiler\Domain\Exceptions\AbstractLocatedException;

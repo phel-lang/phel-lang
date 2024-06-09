@@ -2,9 +2,11 @@
 
 declare(strict_types=1);
 
-namespace Phel\Command\Domain\Finder;
+namespace Phel\Command\Application;
 
 use Phel\Command\Domain\CodeDirectories;
+use Phel\Command\Domain\Finder\DirectoryFinderInterface;
+use Phel\Command\Domain\Finder\VendorDirectoriesFinderInterface;
 
 final readonly class DirectoryFinder implements DirectoryFinderInterface
 {
