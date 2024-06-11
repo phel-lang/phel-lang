@@ -258,7 +258,7 @@ This is PHP equivalent to `$args[0] . $args[1] . $args[2] ...`."
 # Basic sequence operation
 # ------------------------
 
-(defn- equals1 [a b]
+(defn equals1 [a b]
   (if (php/instanceof a AbstractType)
     (php/-> a (equals b))
     (php/=== a b)))
