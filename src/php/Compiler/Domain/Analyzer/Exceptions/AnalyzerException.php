@@ -8,6 +8,7 @@ use Exception;
 use Phel\Compiler\Domain\Analyzer\Ast\GlobalVarNode;
 use Phel\Compiler\Domain\Exceptions\AbstractLocatedException;
 use Phel\Lang\Collections\LinkedList\PersistentListInterface;
+use Phel\Lang\Symbol;
 use Phel\Lang\TypeInterface;
 
 use function count;
@@ -69,6 +70,21 @@ final class AnalyzerException extends AbstractLocatedException
             ),
             $list,
             $exception,
+        );
+    }
+
+    public static function definitionDuplication(
+        PersistentListInterface $list,
+        string $namespace,
+        Symbol $nameSymbol,
+    ): self {
+        return self::withLocation(
+            sprintf(
+                'Var "%s"\\"%s" is already defined.',
+                $namespace,
+                $nameSymbol->getName(),
+            ),
+            $list,
         );
     }
 }

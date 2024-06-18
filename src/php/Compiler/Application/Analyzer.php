@@ -69,6 +69,11 @@ final readonly class Analyzer implements AnalyzerInterface
         }
     }
 
+    public function hasDefinition(string $ns, Symbol $name): bool
+    {
+        return $this->globalEnvironment->hasDefinition($ns, $name);
+    }
+
     public function addDefinition(string $ns, Symbol $symbol): void
     {
         $this->globalEnvironment->addDefinition($ns, $symbol);
