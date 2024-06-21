@@ -25,4 +25,5 @@
   (is (nil? (case true false 2)) "case one test without default")
   (is (= 1 (case true false 2 1)) "case one failed test with default")
   (is (= 2 (case true true 2)) "case one successful test without default")
-  (is (= 2 (case true true 2 1)) "case one successful test with default"))
+  (is (= 2 (case true true 2 1)) "case one successful test with default")
+  (is (= :one (case (+ 1 0) 1 :one)) "case with expression"))
