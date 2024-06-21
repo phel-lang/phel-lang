@@ -86,9 +86,9 @@ final readonly class Analyzer implements AnalyzerInterface
         TypeInterface|array|string|float|int|bool|null $x,
         NodeEnvironmentInterface $env,
     ): AbstractNode {
-        $this->globalEnvironment->setAllowPrivateAccess(true);
+        $this->globalEnvironment->addLevelToAllowPrivateAccess();
         $result = $this->analyze($x, $env);
-        $this->globalEnvironment->setAllowPrivateAccess(false);
+        $this->globalEnvironment->removeLevelToAllowPrivateAccess();
 
         return $result;
     }

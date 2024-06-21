@@ -38,5 +38,7 @@ interface GlobalEnvironmentInterface
 
     public function addInterface(string $namespace, Symbol $name): void;
 
-    public function setAllowPrivateAccess(bool $allowPrivateAccess): void;
+    public function addLevelToAllowPrivateAccess(): void;
+
+    public function removeLevelToAllowPrivateAccess(): void;
 }

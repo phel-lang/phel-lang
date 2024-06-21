@@ -12,6 +12,7 @@ All notable changes to this project will be documented in this file.
 * Check mandatory function parameters during compile time (#717)
 * Improve output for doc command (#720)
 * Introduce application layer (#721)
+* Fix recursive private access (#727)
 
 ## [0.14.1](https://github.com/phel-lang/phel-lang/compare/v0.14.0...v0.14.1) - 2024-05-24
 
