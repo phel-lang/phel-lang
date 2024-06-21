@@ -69,6 +69,11 @@ final readonly class Analyzer implements AnalyzerInterface
         }
     }
 
+    public function hasDefinition(string $ns, Symbol $name): bool
+    {
+        return $this->globalEnvironment->hasDefinition($ns, $name);
+    }
+
     public function addDefinition(string $ns, Symbol $symbol): void
     {
         $this->globalEnvironment->addDefinition($ns, $symbol);
@@ -86,9 +91,9 @@ final readonly class Analyzer implements AnalyzerInterface
         TypeInterface|array|string|float|int|bool|null $x,
         NodeEnvironmentInterface $env,
     ): AbstractNode {
-        $this->globalEnvironment->setAllowPrivateAccess(true);
+        $this->globalEnvironment->addLevelToAllowPrivateAccess();
         $result = $this->analyze($x, $env);
-        $this->globalEnvironment->setAllowPrivateAccess(false);
+        $this->globalEnvironment->removeLevelToAllowPrivateAccess();
 
         return $result;
     }
