@@ -40,8 +40,6 @@ final class GlobalEnvironment implements GlobalEnvironmentInterface
     /** @var array<string, array<string, Symbol>> */
     private array $interfaces = [];
 
-    private bool $allowPrivateAccess = false;
-
     private int $allowPrivateAccessCounter = 0;
 
     public function __construct()
@@ -181,19 +179,14 @@ final class GlobalEnvironment implements GlobalEnvironmentInterface
         return null;
     }
 
-    public function setAllowPrivateAccess(bool $allowPrivateAccess): void
-    {
-        $this->allowPrivateAccess = $allowPrivateAccess;
-    }
-
     public function addLevelToAllowPrivateAccess(): void
     {
-        $this->allowPrivateAccessCounter++;
+        ++$this->allowPrivateAccessCounter;
     }
 
     public function removeLevelToAllowPrivateAccess(): void
     {
-        $this->allowPrivateAccessCounter--;
+        --$this->allowPrivateAccessCounter;
     }
 
     public function addInterface(string $namespace, Symbol $name): void
@@ -321,8 +314,7 @@ final class GlobalEnvironment implements GlobalEnvironmentInterface
 
     private function isPrivateDefinitionAllowed(PersistentMapInterface $meta): bool
     {
-        return $this->allowPrivateAccess
-            || $this->allowPrivateAccessCounter > 0
+        return $this->allowPrivateAccessCounter > 0
             || !$meta[Keyword::create('private')];
     }
 }
