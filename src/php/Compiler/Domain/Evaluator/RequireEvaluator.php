@@ -25,7 +25,7 @@ final readonly class RequireEvaluator implements EvaluatorInterface
     public function eval(string $code): mixed
     {
         $filename = tempnam(sys_get_temp_dir(), '__phel');
-        if ($filename === '' || $filename === false) {
+        if ($filename === false) {
             throw FileException::canNotCreateTempFile();
         }
 
