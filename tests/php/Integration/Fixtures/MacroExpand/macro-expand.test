@@ -1,15 +1,15 @@
 --PHEL--
-(def x :macro (fn [x] '(php/+ 1 1)))
+(def foo :macro (fn [n] '(php/+ 1 1)))
 
-(x 1)
+(foo 1)
 --PHP--
 \Phel\Lang\Registry::getInstance()->addDefinition(
   "user",
-  "x",
+  "foo",
   new class() extends \Phel\Lang\AbstractFn {
-    public const BOUND_TO = "user\\x";
+    public const BOUND_TO = "user\\foo";
 
-    public function __invoke($x) {
+    public function __invoke($n) {
       return \Phel\Lang\TypeFactory::getInstance()->persistentListFromArray([
         (\Phel\Lang\Symbol::create("php/+")),
         1,
@@ -27,7 +27,7 @@
     \Phel\Lang\Keyword::create("end-location"), \Phel\Lang\TypeFactory::getInstance()->persistentMapFromKVs(
       \Phel\Lang\Keyword::create("file"), "MacroExpand/macro-expand.test",
       \Phel\Lang\Keyword::create("line"), 1,
-      \Phel\Lang\Keyword::create("column"), 36
+      \Phel\Lang\Keyword::create("column"), 38
     ),
     "min-arity", 1
   )
