@@ -18,6 +18,7 @@ use Phel\Compiler\Domain\Analyzer\Ast\IfNode;
 use Phel\Compiler\Domain\Analyzer\Ast\LetNode;
 use Phel\Compiler\Domain\Analyzer\Ast\LiteralNode;
 use Phel\Compiler\Domain\Analyzer\Ast\LocalVarNode;
+use Phel\Compiler\Domain\Analyzer\Ast\MacroExpandNode;
 use Phel\Compiler\Domain\Analyzer\Ast\MapNode;
 use Phel\Compiler\Domain\Analyzer\Ast\NsNode;
 use Phel\Compiler\Domain\Analyzer\Ast\PhpArrayGetNode;
@@ -50,6 +51,7 @@ use Phel\Compiler\Domain\Emitter\OutputEmitter\NodeEmitter\IfEmitter;
 use Phel\Compiler\Domain\Emitter\OutputEmitter\NodeEmitter\LetEmitter;
 use Phel\Compiler\Domain\Emitter\OutputEmitter\NodeEmitter\LiteralEmitter;
 use Phel\Compiler\Domain\Emitter\OutputEmitter\NodeEmitter\LocalVarEmitter;
+use Phel\Compiler\Domain\Emitter\OutputEmitter\NodeEmitter\MacroExpandEmitter;
 use Phel\Compiler\Domain\Emitter\OutputEmitter\NodeEmitter\MapEmitter;
 use Phel\Compiler\Domain\Emitter\OutputEmitter\NodeEmitter\MethodEmitter;
 use Phel\Compiler\Domain\Emitter\OutputEmitter\NodeEmitter\NsEmitter;
@@ -108,6 +110,7 @@ final class NodeEmitterFactory
             MapNode::class => new MapEmitter($outputEmitter),
             SetVarNode::class => new SetVarEmitter($outputEmitter),
             DefInterfaceNode::class => new DefInterfaceEmitter($outputEmitter),
+            MacroExpandNode::class => new MacroExpandEmitter($outputEmitter),
             default => throw NotSupportedAstException::withClassName($astNodeClassName),
         };
     }

@@ -28,6 +28,8 @@ final class Symbol extends AbstractType implements IdenticalInterface, NamedInte
 
     public const NAME_LOOP = 'loop';
 
+    public const NAME_MACRO_EXPAND = 'macroexpand';
+    
     public const NAME_NS = 'ns';
 
     public const NAME_PHP_ARRAY_GET = 'php/aget';
