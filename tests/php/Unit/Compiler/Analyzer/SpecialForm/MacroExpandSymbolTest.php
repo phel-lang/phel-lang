@@ -6,7 +6,6 @@ namespace PhelTest\Unit\Compiler\Analyzer\SpecialForm;
 
 use Phel\Compiler\Application\Analyzer;
 use Phel\Compiler\Domain\Analyzer\AnalyzerInterface;
-use Phel\Compiler\Domain\Analyzer\Ast\LiteralNode;
 use Phel\Compiler\Domain\Analyzer\Ast\MacroExpandNode;
 use Phel\Compiler\Domain\Analyzer\Environment\GlobalEnvironment;
 use Phel\Compiler\Domain\Analyzer\Environment\NodeEnvironment;
@@ -24,7 +23,7 @@ final class MacroExpandSymbolTest extends TestCase
     protected function setUp(): void
     {
         $this->analyzer = new Analyzer(
-            new GlobalEnvironment()
+            new GlobalEnvironment(),
         );
     }
 
@@ -46,7 +45,7 @@ final class MacroExpandSymbolTest extends TestCase
 
         $list = TypeFactory::getInstance()
             ->persistentListFromArray([
-                Symbol::create(Symbol::NAME_MACRO_EXPAND)
+                Symbol::create(Symbol::NAME_MACRO_EXPAND),
             ]);
 
         $this->analyze($list);
@@ -57,7 +56,7 @@ final class MacroExpandSymbolTest extends TestCase
         $list = TypeFactory::getInstance()
             ->persistentListFromArray([
                 Symbol::create(Symbol::NAME_MACRO_EXPAND),
-                'any text'
+                'any text',
             ]);
 
         $symbol = $this->analyze($list);

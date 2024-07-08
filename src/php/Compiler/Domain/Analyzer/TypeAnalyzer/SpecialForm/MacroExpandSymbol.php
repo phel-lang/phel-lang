@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace Phel\Compiler\Domain\Analyzer\TypeAnalyzer\SpecialForm;
 
 use Phel\Compiler\Domain\Analyzer\Ast\MacroExpandNode;
-use Phel\Compiler\Domain\Analyzer\Ast\QuoteNode;
 use Phel\Compiler\Domain\Analyzer\Environment\NodeEnvironmentInterface;
 use Phel\Compiler\Domain\Analyzer\Exceptions\AnalyzerException;
 use Phel\Compiler\Domain\Analyzer\TypeAnalyzer\WithAnalyzerTrait;
@@ -20,7 +19,9 @@ final class MacroExpandSymbol implements SpecialFormAnalyzerInterface
 
     public function analyze(PersistentListInterface $list, NodeEnvironmentInterface $env): MacroExpandNode
     {
-        if (!($list->get(0) instanceof Symbol && $list->get(0)->getName() === Symbol::NAME_MACRO_EXPAND)) {
+        if (!($list->get(0) instanceof Symbol
+            && $list->get(0)->getName() === Symbol::NAME_MACRO_EXPAND)
+        ) {
             throw AnalyzerException::withLocation("This is not a 'macroexpand.", $list);
         }
 
@@ -29,12 +30,11 @@ final class MacroExpandSymbol implements SpecialFormAnalyzerInterface
         }
 
         $form = $list->get(1);
-        if ($form instanceof PersistentListInterface) {
-            if ($form->get(0) instanceof Symbol) {
-                if ($form->get(0)->getName() === Symbol::NAME_QUOTE) {
-                    $form = $form->rest()->first();
-                }
-            }
+        if ($form instanceof PersistentListInterface
+            && $form->get(0) instanceof Symbol
+            && $form->get(0)->getName() === Symbol::NAME_QUOTE
+        ) {
+            $form = $form->rest()->first();
         }
 
         return new MacroExpandNode(
