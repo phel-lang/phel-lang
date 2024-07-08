@@ -17,7 +17,7 @@ final class MacroExpandNode extends AbstractNode
         parent::__construct($env, $sourceLocation);
     }
 
-    public function getValue(): AbstractNode|LiteralNode
+    public function getValue(): AbstractNode
     {
         return $this->value;
     }

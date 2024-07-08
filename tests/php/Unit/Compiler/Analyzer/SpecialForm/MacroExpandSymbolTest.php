@@ -6,6 +6,7 @@ namespace PhelTest\Unit\Compiler\Analyzer\SpecialForm;
 
 use Phel\Compiler\Application\Analyzer;
 use Phel\Compiler\Domain\Analyzer\AnalyzerInterface;
+use Phel\Compiler\Domain\Analyzer\Ast\LiteralNode;
 use Phel\Compiler\Domain\Analyzer\Ast\MacroExpandNode;
 use Phel\Compiler\Domain\Analyzer\Environment\GlobalEnvironment;
 use Phel\Compiler\Domain\Analyzer\Environment\NodeEnvironment;
@@ -60,7 +61,9 @@ final class MacroExpandSymbolTest extends TestCase
             ]);
 
         $symbol = $this->analyze($list);
+        /** @var LiteralNode $value */
         $value = $symbol->getValue();
+
         self::assertSame('any text', $value->getValue());
     }
 
