@@ -18,9 +18,7 @@ final class MacroExpandEmitter implements NodeEmitterInterface
     {
         assert($node instanceof MacroExpandNode);
 
-        // $this->outputEmitter->emitContextPrefix($node->getEnv(), $node->getStartSourceLocation());
         $form = $node->getValue();
         $this->outputEmitter->emitNode($form);
-        // $this->outputEmitter->emitContextSuffix($node->getEnv(), $node->getStartSourceLocation());
     }
 }
