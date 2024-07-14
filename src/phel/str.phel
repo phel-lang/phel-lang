@@ -6,7 +6,7 @@
   the maximum number of parts. Not lazy. Returns vector of the parts.
   Trailing empty strings are not returned - pass limit of -1 to return all."
   [s re & [limit]]
-  (values (php-array-to-map (php/preg_split re s (or limit -1)))))
+  (values (php/preg_split re s (or limit -1))))
 
 (defn join
   "Returns a string of all elements in coll, as returned by (seq coll),
@@ -227,4 +227,4 @@
 (defn split-lines
   "Splits s on \\n or \\r\\n. Trailing empty lines are not returned."
   [s]
-  (split s "/\r?\n/"))
+  (split s "/\\r?\\n/"))
