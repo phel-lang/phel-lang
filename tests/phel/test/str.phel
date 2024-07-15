@@ -8,6 +8,11 @@
   (is (= ["ａ" "ｂ-ｃ"] (s/split "ａ-ｂ-ｃ" "/-/" 2)))
   (is (vector? (s/split "abc" "/-/"))))
 
+(deftest test-split-with-more-than-16-elements
+  (let [result (s/split "str-1\nstr-2\nstr-3\nstr-4\nstr-5\nstr-6\nstr-7\nstr-8\nstr-9\nstr-10\nstr-11\nstr-12\nstr-13\nstr-14\nstr-15\nstr-16\nstr-17" "/\\n/")]
+    (is (= ["str-1" "str-2" "str-3" "str-4" "str-5" "str-6" "str-7" "str-8" "str-9" "str-10" "str-11" "str-12" "str-13" "str-14" "str-15" "str-16" "str-17"] result))
+    (is (vector? result))))
+
 (deftest test-reverse
   (is (= "tab" (s/reverse "bat")))
   (is (= "ｔａｂ" (s/reverse "ｂａｔ"))))
@@ -101,6 +106,11 @@
     (is (= ["one" "two" "three"] result))
     (is (vector? result)))
   (is (= ["foo"] (s/split-lines "foo"))))
+
+(deftest test-split-lines-with-more-than-16-elements
+  (let [result (s/split-lines "str-1\nstr-2\nstr-3\nstr-4\nstr-5\nstr-6\nstr-7\nstr-8\nstr-9\nstr-10\nstr-11\nstr-12\nstr-13\nstr-14\nstr-15\nstr-16\nstr-17")]
+    (is (= ["str-1" "str-2" "str-3" "str-4" "str-5" "str-6" "str-7" "str-8" "str-9" "str-10" "str-11" "str-12" "str-13" "str-14" "str-15" "str-16" "str-17"] result))
+    (is (vector? result))))
 
 (deftest test-index-of
   (let [sb "tacos"]
