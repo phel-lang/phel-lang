@@ -1032,9 +1032,11 @@ arrays. Use (php/aunset ds key)"))
   "Drops all elements at the front `xs` where `(pred x)` is true."
   [pred xs]
   (loop [s xs]
-    (if (and s (pred (first s)))
-      (recur (next s))
-      (if s s []))))
+    (if (empty? s)
+      (or s [])
+      (if (pred (first s))
+        (recur (next s))
+        s))))
 
 (defn take
   "Takes the first `n` elements of `xs`."
@@ -1085,22 +1087,22 @@ arrays. Use (php/aunset ds key)"))
   "Returns the first item in `xs` where `(pred item)` evaluates to true."
   [pred xs]
   (loop [s xs]
-    (if s
+    (if (empty? s)
+      nil
       (if (pred (first s))
         (first s)
-        (recur (next s)))
-      nil)))
+        (recur (next s))))))
 
 (defn find-index
   "Returns the first item in `xs` where `(pred index item)` evaluates to true."
   [pred xs]
   (loop [s xs
          i 0]
-    (if s
+    (if (empty? s)
+      nil
       (if (pred (first s))
         i
-        (recur (next s) (php/+ i 1)))
-      nil)))
+        (recur (next s) (php/+ i 1))))))
 
 (defn distinct
   "Returns a vector with duplicated values removed in `xs`."
