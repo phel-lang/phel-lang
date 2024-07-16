@@ -58,6 +58,9 @@
   (is (= [1 2 3 4 -1 -2 -3] (drop-while neg? [-1 -2 -3 1 2 3 4 -1 -2 -3])) "drop-while: vector")
   (is (= (php/array 1 2 3 4 -1 -2 -3) (drop-while neg? (php/array -1 -2 -3 1 2 3 4 -1 -2 -3))) "drop-while: php array"))
 
+(deftest test-drop-while-empty-element
+  (is (= [] (drop-while |(throw (php/new \Exception)) [])) "`pred` is not executed when searching for empty vectors."))
+
 (deftest test-take
   (is (= ["a" "b"] (take 2 ["a" "b" "c"])) "take two elements")
   (is (= ["a" "b" "c"] (take 3 ["a" "b" "c"])) "take three elements")
@@ -108,10 +111,16 @@
   (is (nil? (find neg? [1 2 3 2 3])) "find: nothing to find")
   (is (nil? (find neg? [])) "find on empty array"))
 
+(deftest test-find-empty-element
+  (is (nil? (find |(throw (php/new \Exception)) [])) "`pred` is not executed when searching for empty vectors."))
+
 (deftest test-find-index?
   (is (= 3 (find-index neg? [1 2 3 -1 2 3])) "find-index first neg number")
   (is (nil? (find-index neg? [1 2 3 2 3])) "find-index: nothing to find")
   (is (nil? (find-index neg? [])) "find-index on empty array"))
+
+(deftest test-find-index-empty-element
+  (is (nil? (find-index |(throw (php/new \Exception)) [])) "`pred` is not executed when searching for empty vectors."))
 
 (deftest test-distinct
   (is (= [1 2 3] (distinct [1 1 2 3 2 2 3 1])) "distinct: array")
