@@ -3,3 +3,15 @@
 
 (deftest test-set-object-property
   (is (= "foo" (php/-> (php/oset (php/-> (php/new \stdClass) name) "foo") name)) "set value to stdClass"))
+
+(def duplicated "first-duplication")
+(def first? (= "first-duplication" duplicated))
+
+(deftest test-def-before-duplication
+  (is (= true first?)))
+
+(def duplicated "second-duplication")
+(def second? (= "second-duplication" duplicated))
+
+(deftest test-def-after-duplication
+  (is (= true second?)))
