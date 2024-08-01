@@ -9,6 +9,9 @@
 (deftest test-map-indexed
   (is (= [[0 "a"] [1 "b"] [2 "c"]] (map-indexed vector ["a" "b" "c"])) "map-indexed"))
 
+(deftest test-map-empty-element
+  (is (= [] (map |(throw (php/new \Exception)) [])) "`pred` is not executed when searching for empty vectors."))
+
 (deftest test-mapcat
   (is (= [1 2 3 4 5 6] (mapcat reverse [[3 2 1] [6 5 4]])) "mapcat")
   (is (= [] (mapcat identity [])) "mapcat on empty vector"))
@@ -98,6 +101,9 @@
   (is (= [-1 -2 -3] (filter neg? [-1 2 3 -2 -3 4 5])) "filter: neg?")
   (is (= [-1 -2 -3] (filter neg? [-1 2 3 -2 -3 4 5])) "filter on vector")
   (is (= [-1 -2 -3] (filter neg? (php/array -1 2 3 -2 -3 4 5))) "filter on php array"))
+
+(deftest test-filter-empty-element
+  (is (= [] (filter |(throw (php/new \Exception)) [])) "`pred` is not executed when searching for empty vectors."))
 
 (deftest test-keep
   (is (= [true false false true true false false] (keep neg? [-1 2 3 -2 -3 4 5])) "keep: neg?")
