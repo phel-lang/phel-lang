@@ -131,11 +131,17 @@
   (is (true? (all? pos? [])) "all pos? in empty list")
   (is (false? (all? pos? [1 -1 3])) "all pos? in list"))
 
+(deftest test-all?-empty-element
+  (is (true? (all? |(throw (php/new \Exception)) [])) "`pred` is not executed when searching for empty vectors."))
+
 (deftest test-some?
   (is (true? (some? pos? [1 2 3])) "some pos? in list")
   (is (false? (some? pos? [])) "some pos? in empty list")
   (is (true? (some? pos? [1 -1 3])) "some pos? in list")
   (is (false? (some? pos? [-1 -1 -3])) "some pos? in list"))
+
+(deftest test-some?-empty-element
+  (is (false? (some? |(throw (php/new \Exception)) [])) "`pred` is not executed when searching for empty vectors."))
 
 (deftest test-true?
   (is (true? (true? true)) "(true? true)")
