@@ -505,12 +505,17 @@ Calling the `and` function without arguments returns true."
     (pred (first xs))     (recur pred (next xs))
     false))
 
+(declare empty?)
+(declare truthy?)
+
 (defn some?
   "Returns true if `(pred x)` is logical true for at least one `x` in `xs`, else false."
   [pred xs]
-  (if xs
-    (or (pred (first xs)) (recur pred (next xs)))
-    false))
+  (if (empty? xs)
+    false
+    (if (truthy? (pred (first xs)))
+      true
+      (recur pred (next xs)))))
 
 (defn true?
   "Checks if `x` is true. Same as `x === true` in PHP."
