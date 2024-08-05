@@ -1802,7 +1802,7 @@ returns 1. If `xs` has one value, returns the reciprocal of x."
            ,@(interleave temp-val-syms vals)]
        ,@(map bind-value binds)
        (try
-         ,@body
+         (do ,@body)
          (finally
            ,@(map bind-value resets))))))
 
