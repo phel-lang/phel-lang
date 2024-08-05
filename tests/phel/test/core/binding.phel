@@ -6,3 +6,7 @@
 (deftest test-binding
   (is (= 3 (binding [*my-binding-var* 2] (inc *my-binding-var*))) "binding inc")
   (is (= 1 *my-binding-var*) "binding is not changing the value"))
+
+(deftest test-binding-atom-body
+  (let [form (read-string "(do (def *my-binding-var* 1) (binding [*my-binding-var* 2] *my-binding-var*))")]
+    (is (= 2 (eval form)) "binding atom")))
