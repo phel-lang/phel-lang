@@ -7,6 +7,7 @@ All notable changes to this project will be documented in this file.
 * Fix a result of str/split-lines is in the wrong order (#735)
 * Fix `find` function for an empty vector (#737)
 * Fix `some?` function for an empty vector (#741)
+* Fix `binding` function for atom body (#748)
 
 ## [0.15.0](https://github.com/phel-lang/phel-lang/compare/v0.14.1...v0.15.0) - 2024-06-22
 
