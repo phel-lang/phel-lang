@@ -3,3 +3,7 @@
 
 (deftest test-set-object-property
   (is (= "foo" (php/-> (php/oset (php/-> (php/new \stdClass) name) "foo") name)) "set value to stdClass"))
+
+(deftest test-def-duplication
+  (let [form (read-string "(do (def a \"first\") (def a \"second\") a)")]
+    (is (= "second" (eval form)))))
