@@ -6,6 +6,8 @@ namespace Phel\Printer\TypePrinter;
 
 use Phel\Lang\Keyword;
 
+use function sprintf;
+
 /**
  * @implements TypePrinterInterface<Keyword>
  */

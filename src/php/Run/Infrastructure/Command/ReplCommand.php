@@ -25,6 +25,7 @@ use Throwable;
 use function count;
 use function dirname;
 use function is_string;
+use function sprintf;
 
 /**
  * @method RunFacade getFacade()

@@ -7,6 +7,7 @@ namespace Phel\Config;
 use JsonSerializable;
 
 use function count;
+use function sprintf;
 
 /**
  * @psalm-suppress DeprecatedProperty

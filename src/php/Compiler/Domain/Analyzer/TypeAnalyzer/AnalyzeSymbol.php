@@ -11,6 +11,8 @@ use Phel\Compiler\Domain\Analyzer\Environment\NodeEnvironmentInterface;
 use Phel\Compiler\Domain\Analyzer\Exceptions\AnalyzerException;
 use Phel\Lang\Symbol;
 
+use function sprintf;
+
 final class AnalyzeSymbol
 {
     use WithAnalyzerTrait;

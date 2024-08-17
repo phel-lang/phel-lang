@@ -7,6 +7,8 @@ namespace Phel\Interop\Infrastructure\Io;
 use Phel\Interop\Domain\FileCreator\FileIoInterface;
 use RuntimeException;
 
+use function sprintf;
+
 final class FileSystemIo implements FileIoInterface
 {
     public function createDirectory(string $directory): void

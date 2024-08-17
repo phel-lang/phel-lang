@@ -14,6 +14,7 @@ use Phel\Lang\Collections\LinkedList\PersistentListInterface;
 use Phel\Lang\Symbol;
 
 use function count;
+use function sprintf;
 
 final readonly class PhpObjectCallSymbol implements SpecialFormAnalyzerInterface
 {

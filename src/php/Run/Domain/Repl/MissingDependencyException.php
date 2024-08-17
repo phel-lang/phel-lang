@@ -6,6 +6,8 @@ namespace Phel\Run\Domain\Repl;
 
 use RuntimeException;
 
+use function sprintf;
+
 final class MissingDependencyException extends RuntimeException
 {
     public static function missingExtension(string $extensionName): self

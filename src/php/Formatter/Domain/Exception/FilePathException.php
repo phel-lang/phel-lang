@@ -6,6 +6,8 @@ namespace Phel\Formatter\Domain\Exception;
 
 use RuntimeException;
 
+use function sprintf;
+
 final class FilePathException extends RuntimeException
 {
     public static function directoryFound(string $filename): self

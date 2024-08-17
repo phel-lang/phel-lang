@@ -12,6 +12,7 @@ use Phel\Lang\HasherInterface;
 use Traversable;
 
 use function array_slice;
+use function sprintf;
 
 /**
  * @template T

@@ -20,6 +20,8 @@ use Phel\Lang\TypeInterface;
 use Phel\Phel;
 use PHPUnit\Framework\TestCase;
 
+use function sprintf;
+
 final class ReaderTest extends TestCase
 {
     private CompilerFacadeInterface $compilerFacade;

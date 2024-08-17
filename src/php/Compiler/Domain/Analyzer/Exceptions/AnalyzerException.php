@@ -11,6 +11,7 @@ use Phel\Lang\Collections\LinkedList\PersistentListInterface;
 use Phel\Lang\TypeInterface;
 
 use function count;
+use function sprintf;
 
 final class AnalyzerException extends AbstractLocatedException
 {

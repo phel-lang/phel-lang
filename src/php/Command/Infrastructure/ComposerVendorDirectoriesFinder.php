@@ -12,6 +12,7 @@ use Phel\Phel;
 use RuntimeException;
 
 use function dirname;
+use function sprintf;
 
 /**
  * @method CommandFacade getFacade()

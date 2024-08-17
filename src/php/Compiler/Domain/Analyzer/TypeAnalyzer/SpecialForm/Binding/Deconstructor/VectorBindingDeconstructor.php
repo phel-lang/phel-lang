@@ -12,6 +12,8 @@ use Phel\Lang\Collections\Vector\PersistentVectorInterface;
 use Phel\Lang\Symbol;
 use Phel\Lang\TypeFactory;
 
+use function sprintf;
+
 /**
  * @implements BindingDeconstructorInterface<PersistentVectorInterface<mixed>>
  */

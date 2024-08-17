@@ -6,6 +6,8 @@ namespace Phel\Compiler\Domain\Emitter\Exceptions;
 
 use RuntimeException;
 
+use function sprintf;
+
 final class NotSupportedAstException extends RuntimeException
 {
     public static function withClassName(string $astNodeClassName): self

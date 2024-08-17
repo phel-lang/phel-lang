@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Phel\Printer\TypePrinter;
 
 use function ord;
+use function sprintf;
 use function strlen;
 
 /**

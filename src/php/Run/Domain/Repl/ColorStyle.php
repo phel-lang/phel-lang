@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Phel\Run\Domain\Repl;
 
+use function sprintf;
+
 /**
  * @psalm-immutable
  */
