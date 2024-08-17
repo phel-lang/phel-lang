@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "5988011510cfbe16a9cd6238e46035cf",
+    "content-hash": "a5b59c1ce3df1d01dd7d3588c0b537e4",
     "packages": [
         {
             "name": "gacela-project/container",
@@ -76,16 +76,16 @@
         },
         {
             "name": "gacela-project/gacela",
-            "version": "1.7.1",
+            "version": "1.8.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/gacela-project/gacela.git",
-                "reference": "b5b93f364c8fc4621b77eb0253f75a0d48fa2bd1"
+                "reference": "ae23f24517d4853a11968dce3c3a0851d60790de"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/gacela-project/gacela/zipball/b5b93f364c8fc4621b77eb0253f75a0d48fa2bd1",
-                "reference": "b5b93f364c8fc4621b77eb0253f75a0d48fa2bd1",
+                "url": "https://api.github.com/repos/gacela-project/gacela/zipball/ae23f24517d4853a11968dce3c3a0851d60790de",
+                "reference": "ae23f24517d4853a11968dce3c3a0851d60790de",
                 "shasum": ""
             },
             "require": {
@@ -93,18 +93,19 @@
                 "php": ">=8.1"
             },
             "require-dev": {
-                "ergebnis/composer-normalize": "^2.42",
-                "friendsofphp/php-cs-fixer": "^3.53",
+                "ergebnis/composer-normalize": "^2.43",
+                "friendsofphp/php-cs-fixer": "^3.56",
                 "infection/infection": "^0.26",
-                "phpbench/phpbench": "^1.2",
+                "phpbench/phpbench": "^1.3",
                 "phpmetrics/phpmetrics": "^2.8",
-                "phpstan/phpstan": "^1.10",
-                "phpunit/phpunit": "^9.6",
-                "psalm/plugin-phpunit": "^0.18",
-                "rector/rector": "^0.18",
-                "symfony/console": "^5.4",
-                "symfony/var-dumper": "^5.4",
-                "vimeo/psalm": "^5.22"
+                "phpstan/phpstan": "^1.11",
+                "phpstan/phpstan-strict-rules": "^1.6",
+                "phpunit/phpunit": "^10.5",
+                "psalm/plugin-phpunit": "^0.19",
+                "rector/rector": "^1.2",
+                "symfony/console": "^6.4",
+                "symfony/var-dumper": "^6.4",
+                "vimeo/psalm": "^5.25"
             },
             "suggest": {
                 "gacela-project/gacela-env-config-reader": "Allows to read .env config files",
@@ -113,7 +114,7 @@
                 "symfony/console": "Allows to use vendor/bin/gacela script"
             },
             "bin": [
-                "gacela"
+                "bin/gacela"
             ],
             "type": "library",
             "autoload": {
@@ -147,7 +148,7 @@
             ],
             "support": {
                 "issues": "https://github.com/gacela-project/gacela/issues",
-                "source": "https://github.com/gacela-project/gacela/tree/1.7.1"
+                "source": "https://github.com/gacela-project/gacela/tree/1.8.0"
             },
             "funding": [
                 {
@@ -155,7 +156,7 @@
                     "type": "custom"
                 }
             ],
-            "time": "2024-04-16T20:26:38+00:00"
+            "time": "2024-08-17T20:20:53+00:00"
         },
         {
             "name": "phpunit/php-timer",
