@@ -7,6 +7,8 @@ namespace PhelTest\Unit\Run\Domain\Repl;
 use Phel\Run\Domain\Repl\ColorStyle;
 use PHPUnit\Framework\TestCase;
 
+use function sprintf;
+
 final class ColorStyleTest extends TestCase
 {
     public function test_custom_color(): void

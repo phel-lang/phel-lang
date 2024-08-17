@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Phel\Printer\TypePrinter;
 
+use function sprintf;
+
 /**
  * @template-implements TypePrinterInterface<null>
  */

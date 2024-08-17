@@ -6,6 +6,8 @@ namespace Phel\Compiler\Domain\Lexer\Exceptions;
 
 use RuntimeException;
 
+use function sprintf;
+
 final class LexerValueException extends RuntimeException
 {
     public static function unexpectedLexerState(string $file, int $line, int $column): self

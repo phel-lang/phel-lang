@@ -13,6 +13,7 @@ use Traversable;
 
 use function array_slice;
 use function count;
+use function sprintf;
 
 /**
  * An implementation of a persistent vector inspiered

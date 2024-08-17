@@ -7,6 +7,7 @@ namespace Phel\Printer\TypePrinter;
 use Phel\Printer\PrinterInterface;
 
 use function count;
+use function sprintf;
 
 /**
  * @implements TypePrinterInterface<array>

@@ -7,6 +7,7 @@ namespace Phel\Run\Domain\Repl;
 use function is_bool;
 use function is_null;
 use function is_string;
+use function sprintf;
 
 final readonly class InputResult
 {

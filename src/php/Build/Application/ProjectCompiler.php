@@ -17,6 +17,7 @@ use Phel\Compiler\CompilerFacadeInterface;
 use RuntimeException;
 
 use function dirname;
+use function sprintf;
 
 final readonly class ProjectCompiler
 {

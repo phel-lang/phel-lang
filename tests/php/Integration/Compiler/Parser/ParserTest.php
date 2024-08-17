@@ -29,6 +29,8 @@ use Phel\Lang\Symbol;
 use Phel\Phel;
 use PHPUnit\Framework\TestCase;
 
+use function sprintf;
+
 final class ParserTest extends TestCase
 {
     private CompilerFacadeInterface $compilerFacade;

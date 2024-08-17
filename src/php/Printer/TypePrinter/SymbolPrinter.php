@@ -6,6 +6,8 @@ namespace Phel\Printer\TypePrinter;
 
 use Phel\Lang\Symbol;
 
+use function sprintf;
+
 /**
  * @implements TypePrinterInterface<Symbol>
  */

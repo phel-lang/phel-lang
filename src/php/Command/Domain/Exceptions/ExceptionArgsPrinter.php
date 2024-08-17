@@ -11,6 +11,7 @@ use function is_bool;
 use function is_object;
 use function is_resource;
 use function is_string;
+use function sprintf;
 use function strlen;
 
 final readonly class ExceptionArgsPrinter implements ExceptionArgsPrinterInterface

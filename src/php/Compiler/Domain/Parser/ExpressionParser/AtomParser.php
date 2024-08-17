@@ -16,6 +16,8 @@ use Phel\Compiler\Domain\Parser\ParserNode\SymbolNode;
 use Phel\Lang\Keyword;
 use Phel\Lang\Symbol;
 
+use function sprintf;
+
 final readonly class AtomParser
 {
     private const REGEX_KEYWORD = '/:(?<second_colon>:?)((?<namespace>[^\/]+)\/)?(?<keyword>[^\/]+)/';

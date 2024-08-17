@@ -13,6 +13,7 @@ use Phel\Run\RunFacadeInterface;
 
 use function dirname;
 use function in_array;
+use function sprintf;
 
 final readonly class PhelFnLoader implements PhelFnLoaderInterface
 {

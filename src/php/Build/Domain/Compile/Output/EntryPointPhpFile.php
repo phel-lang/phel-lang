@@ -6,6 +6,8 @@ namespace Phel\Build\Domain\Compile\Output;
 
 use Phel\Config\PhelBuildConfig;
 
+use function sprintf;
+
 final readonly class EntryPointPhpFile implements EntryPointPhpFileInterface
 {
     public function __construct(

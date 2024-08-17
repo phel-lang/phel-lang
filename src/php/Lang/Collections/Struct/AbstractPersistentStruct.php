@@ -17,6 +17,7 @@ use Traversable;
 
 use function count;
 use function in_array;
+use function sprintf;
 
 /**
  * @template V

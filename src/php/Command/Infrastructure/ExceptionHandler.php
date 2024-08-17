@@ -8,6 +8,8 @@ use Phel\Command\Domain\Exceptions\ExceptionPrinterInterface;
 use Phel\Compiler\Domain\Exceptions\CompilerException;
 use Throwable;
 
+use function sprintf;
+
 final class ExceptionHandler
 {
     private const ERROR_TYPES = [
