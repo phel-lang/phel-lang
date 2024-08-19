@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Phel\Run;
 
-use Gacela\Framework\AbstractDependencyProvider;
+use Gacela\Framework\AbstractProvider;
 use Gacela\Framework\Container\Container;
 use Phel\Build\BuildFacade;
 use Phel\Command\CommandFacade;
@@ -12,7 +12,7 @@ use Phel\Compiler\CompilerFacade;
 use Phel\Formatter\FormatterFacade;
 use Phel\Interop\InteropFacade;
 
-final class RunDependencyProvider extends AbstractDependencyProvider
+final class RunProvider extends AbstractProvider
 {
     public const FACADE_COMMAND = 'FACADE_COMMAND';
 

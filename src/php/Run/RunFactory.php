@@ -33,17 +33,17 @@ class RunFactory extends AbstractFactory
 
     public function getCommandFacade(): CommandFacadeInterface
     {
-        return $this->getProvidedDependency(RunDependencyProvider::FACADE_COMMAND);
+        return $this->getProvidedDependency(RunProvider::FACADE_COMMAND);
     }
 
     public function getBuildFacade(): BuildFacadeInterface
     {
-        return $this->getProvidedDependency(RunDependencyProvider::FACADE_BUILD);
+        return $this->getProvidedDependency(RunProvider::FACADE_BUILD);
     }
 
     public function getCompilerFacade(): CompilerFacadeInterface
     {
-        return $this->getProvidedDependency(RunDependencyProvider::FACADE_COMPILER);
+        return $this->getProvidedDependency(RunProvider::FACADE_COMPILER);
     }
 
     public function createNamespaceCollector(): NamespaceCollector

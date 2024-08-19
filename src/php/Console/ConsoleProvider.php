@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Phel\Console;
 
-use Gacela\Framework\AbstractDependencyProvider;
+use Gacela\Framework\AbstractProvider;
 use Gacela\Framework\Container\Container;
 use Phel\Api\Infrastructure\Command\DocCommand;
 use Phel\Build\Infrastructure\Command\BuildCommand;
@@ -15,7 +15,7 @@ use Phel\Run\Infrastructure\Command\ReplCommand;
 use Phel\Run\Infrastructure\Command\RunCommand;
 use Phel\Run\Infrastructure\Command\TestCommand;
 
-final class ConsoleDependencyProvider extends AbstractDependencyProvider
+final class ConsoleProvider extends AbstractProvider
 {
     public const COMMANDS = 'COMMANDS';
 

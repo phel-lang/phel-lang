@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace PhelTest\Integration\Run\Command\Repl;
 
 use Gacela\Framework\Bootstrap\GacelaConfig;
-use Gacela\Framework\ClassResolver\GlobalInstance\AnonymousGlobal;
 use Gacela\Framework\Gacela;
 use Generator;
 use Phel\Command\Application\TextExceptionPrinter;
@@ -45,7 +44,7 @@ final class ReplCommandTest extends AbstractCommandTest
     {
         $io = $this->createReplTestIo();
         $io->setInputs(...$inputs);
-        $this->prepareRunDependencyProvider($io);
+        $this->prepareRunFactory($io);
 
         $repl = $this->createReplCommand();
         $repl->run(
@@ -68,7 +67,7 @@ final class ReplCommandTest extends AbstractCommandTest
     {
         $io = $this->createReplTestIo();
         $io->setInputs(...$inputs);
-        $this->prepareRunDependencyProvider($io);
+        $this->prepareRunFactory($io);
 
         $repl = $this->createReplCommandWithCoreLib();
         $repl->run(
@@ -162,9 +161,9 @@ final class ReplCommandTest extends AbstractCommandTest
         return new ReplTestIo($exceptionPrinter);
     }
 
-    private function prepareRunDependencyProvider(ReplCommandIoInterface $io): void
+    private function prepareRunFactory(ReplCommandIoInterface $io): void
     {
-        AnonymousGlobal::overrideExistingResolvedClass(
+        Gacela::overrideExistingResolvedClass(
             RunFactory::class,
             new class($io) extends RunFactory {
                 public function __construct(private readonly ReplCommandIoInterface $io)

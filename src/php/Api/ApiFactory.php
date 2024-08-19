@@ -26,7 +26,7 @@ final class ApiFactory extends AbstractFactory
     private function createPhelFnLoader(): PhelFnLoaderInterface
     {
         return new PhelFnLoader(
-            $this->getProvidedDependency(ApiDependencyProvider::FACADE_RUN),
+            $this->getProvidedDependency(ApiProvider::FACADE_RUN),
         );
     }
 }

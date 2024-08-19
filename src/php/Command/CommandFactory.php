@@ -65,7 +65,7 @@ final class CommandFactory extends AbstractFactory
 
     public function getPhpConfigReader(): PhpConfigReader
     {
-        return $this->getProvidedDependency(CommandDependencyProvider::PHP_CONFIG_READER);
+        return $this->getProvidedDependency(CommandProvider::PHP_CONFIG_READER);
     }
 
     private function createComposerVendorDirectoriesFinder(): VendorDirectoriesFinderInterface

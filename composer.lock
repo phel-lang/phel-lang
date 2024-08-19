@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "a5b59c1ce3df1d01dd7d3588c0b537e4",
+    "content-hash": "10047e16d26f86cd16e81ce4f8dd5ad8",
     "packages": [
         {
             "name": "gacela-project/container",
@@ -80,12 +80,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/gacela-project/gacela.git",
-                "reference": "ae23f24517d4853a11968dce3c3a0851d60790de"
+                "reference": "1a17f86353d67e890de312aafbe0a1aa6c732db6"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/gacela-project/gacela/zipball/ae23f24517d4853a11968dce3c3a0851d60790de",
-                "reference": "ae23f24517d4853a11968dce3c3a0851d60790de",
+                "url": "https://api.github.com/repos/gacela-project/gacela/zipball/1a17f86353d67e890de312aafbe0a1aa6c732db6",
+                "reference": "1a17f86353d67e890de312aafbe0a1aa6c732db6",
                 "shasum": ""
             },
             "require": {
@@ -156,7 +156,7 @@
                     "type": "custom"
                 }
             ],
-            "time": "2024-08-17T20:20:53+00:00"
+            "time": "2024-08-17T20:50:15+00:00"
         },
         {
             "name": "phpunit/php-timer",

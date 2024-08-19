@@ -4,12 +4,12 @@ declare(strict_types=1);
 
 namespace Phel\Formatter;
 
-use Gacela\Framework\AbstractDependencyProvider;
+use Gacela\Framework\AbstractProvider;
 use Gacela\Framework\Container\Container;
 use Phel\Command\CommandFacade;
 use Phel\Compiler\CompilerFacade;
 
-final class FormatterDependencyProvider extends AbstractDependencyProvider
+final class FormatterProvider extends AbstractProvider
 {
     public const FACADE_COMPILER = 'FACADE_COMPILER';
 

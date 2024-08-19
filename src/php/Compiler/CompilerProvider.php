@@ -4,11 +4,11 @@ declare(strict_types=1);
 
 namespace Phel\Compiler;
 
-use Gacela\Framework\AbstractDependencyProvider;
+use Gacela\Framework\AbstractProvider;
 use Gacela\Framework\Container\Container;
 use Phel\Filesystem\FilesystemFacade;
 
-final class CompilerDependencyProvider extends AbstractDependencyProvider
+final class CompilerProvider extends AbstractProvider
 {
     public const FACADE_FILESYSTEM = 'FACADE_FILESYSTEM';
 

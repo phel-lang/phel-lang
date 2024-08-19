@@ -4,12 +4,12 @@ declare(strict_types=1);
 
 namespace Phel\Build;
 
-use Gacela\Framework\AbstractDependencyProvider;
+use Gacela\Framework\AbstractProvider;
 use Gacela\Framework\Container\Container;
 use Phel\Command\CommandFacade;
 use Phel\Compiler\CompilerFacade;
 
-final class BuildDependencyProvider extends AbstractDependencyProvider
+final class BuildProvider extends AbstractProvider
 {
     public const FACADE_COMPILER = 'FACADE_COMPILER';
 
