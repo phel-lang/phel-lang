@@ -4,11 +4,11 @@ declare(strict_types=1);
 
 namespace Phel\Api;
 
-use Gacela\Framework\AbstractDependencyProvider;
+use Gacela\Framework\AbstractProvider;
 use Gacela\Framework\Container\Container;
 use Phel\Run\RunFacade;
 
-final class ApiDependencyProvider extends AbstractDependencyProvider
+final class ApiProvider extends AbstractProvider
 {
     public const FACADE_RUN = 'FACADE_RUN';
 

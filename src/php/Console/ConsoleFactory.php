@@ -11,11 +11,11 @@ final class ConsoleFactory extends AbstractFactory
 {
     public function getConsoleCommands(): array
     {
-        return $this->getProvidedDependency(ConsoleDependencyProvider::COMMANDS);
+        return $this->getProvidedDependency(ConsoleProvider::COMMANDS);
     }
 
     public function getFilesystemFacade(): FilesystemFacadeInterface
     {
-        return $this->getProvidedDependency(ConsoleDependencyProvider::FACADE_FILESYSTEM);
+        return $this->getProvidedDependency(ConsoleProvider::FACADE_FILESYSTEM);
     }
 }

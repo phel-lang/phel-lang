@@ -73,12 +73,12 @@ final class BuildFactory extends AbstractFactory
 
     public function getCompilerFacade(): CompilerFacadeInterface
     {
-        return $this->getProvidedDependency(BuildDependencyProvider::FACADE_COMPILER);
+        return $this->getProvidedDependency(BuildProvider::FACADE_COMPILER);
     }
 
     public function getCommandFacade(): CommandFacadeInterface
     {
-        return $this->getProvidedDependency(BuildDependencyProvider::FACADE_COMMAND);
+        return $this->getProvidedDependency(BuildProvider::FACADE_COMMAND);
     }
 
     private function createMainPhpEntryPointFile(): EntryPointPhpFileInterface

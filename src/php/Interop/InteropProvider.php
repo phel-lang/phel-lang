@@ -4,12 +4,12 @@ declare(strict_types=1);
 
 namespace Phel\Interop;
 
-use Gacela\Framework\AbstractDependencyProvider;
+use Gacela\Framework\AbstractProvider;
 use Gacela\Framework\Container\Container;
 use Phel\Build\BuildFacade;
 use Phel\Command\CommandFacade;
 
-final class InteropDependencyProvider extends AbstractDependencyProvider
+final class InteropProvider extends AbstractProvider
 {
     public const FACADE_COMMAND = 'FACADE_COMMAND';
 
