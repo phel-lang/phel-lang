@@ -17,7 +17,7 @@ final class TransientArrayMapTest extends TestCase
     {
         $h = TransientArrayMap::empty(new ModuloHasher(), new SimpleEqualizer());
 
-        self::assertSame(0, $h->count());
+        self::assertCount(0, $h);
         self::assertArrayNotHasKey('test', $h);
         self::assertNull($h->find('test'));
     }
@@ -28,10 +28,10 @@ final class TransientArrayMapTest extends TestCase
         $h2 = $h->put(null, 'test');
 
         self::assertSame('test', $h[null]);
-        self::assertSame(1, $h->count());
+        self::assertCount(1, $h);
         self::assertTrue($h->contains(null));
         self::assertSame('test', $h2[null]);
-        self::assertSame(1, $h2->count());
+        self::assertCount(1, $h2);
         self::assertTrue($h2->contains(null));
     }
 
@@ -40,7 +40,7 @@ final class TransientArrayMapTest extends TestCase
         $h = TransientArrayMap::empty(new ModuloHasher(), new SimpleEqualizer())
             ->put(1, 'test');
 
-        self::assertSame(1, $h->count());
+        self::assertCount(1, $h);
         self::assertTrue($h->contains(1));
         self::assertSame('test', $h->find(1));
     }
@@ -51,7 +51,7 @@ final class TransientArrayMapTest extends TestCase
             ->put(1, 'test')
             ->put(1, 'test');
 
-        self::assertSame(1, $h->count());
+        self::assertCount(1, $h);
         self::assertTrue($h->contains(1));
         self::assertSame('test', $h->find(1));
     }
@@ -62,7 +62,7 @@ final class TransientArrayMapTest extends TestCase
             ->put(1, 'test')
             ->put(1, 'foo');
 
-        self::assertSame(1, $h->count());
+        self::assertCount(1, $h);
         self::assertTrue($h->contains(1));
         self::assertSame('foo', $h->find(1));
     }
@@ -73,7 +73,7 @@ final class TransientArrayMapTest extends TestCase
             ->put(null, 'test')
             ->put(null, 'test');
 
-        self::assertSame(1, $h->count());
+        self::assertCount(1, $h);
         self::assertTrue($h->contains(null));
         self::assertSame('test', $h->find(null));
     }
@@ -94,7 +94,7 @@ final class TransientArrayMapTest extends TestCase
             ->put(null, 'test')
             ->remove(null);
 
-        self::assertSame(0, $h->count());
+        self::assertCount(0, $h);
         self::assertFalse($h->contains(null));
         self::assertNull($h->find(null));
     }
@@ -104,7 +104,7 @@ final class TransientArrayMapTest extends TestCase
         $h = TransientArrayMap::empty(new ModuloHasher(), new SimpleEqualizer())
             ->remove(null);
 
-        self::assertSame(0, $h->count());
+        self::assertCount(0, $h);
         self::assertFalse($h->contains(null));
         self::assertNull($h->find(null));
     }
@@ -114,7 +114,7 @@ final class TransientArrayMapTest extends TestCase
         $h = TransientArrayMap::empty(new ModuloHasher(), new SimpleEqualizer())
             ->remove(1);
 
-        self::assertSame(0, $h->count());
+        self::assertCount(0, $h);
         self::assertFalse($h->contains(1));
         self::assertNull($h->find(1));
     }
@@ -125,7 +125,7 @@ final class TransientArrayMapTest extends TestCase
             ->put(2, 'test')
             ->remove(1);
 
-        self::assertSame(1, $h->count());
+        self::assertCount(1, $h);
         self::assertTrue($h->contains(2));
         self::assertSame('test', $h->find(2));
         self::assertFalse($h->contains(1));
@@ -138,7 +138,7 @@ final class TransientArrayMapTest extends TestCase
             ->put(1, 'test')
             ->remove(1);
 
-        self::assertSame(0, $h->count());
+        self::assertCount(0, $h);
         self::assertFalse($h->contains(1));
         self::assertNull($h->find(1));
     }

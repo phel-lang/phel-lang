@@ -20,7 +20,7 @@ final class EmptyListTest extends TestCase
         $list = (new EmptyList(new ModuloHasher(), new SimpleEqualizer(), null))->prepend('foo');
 
         $this->assertInstanceOf(PersistentList::class, $list);
-        $this->assertSame(1, $list->count());
+        $this->assertCount(1, $list);
         $this->assertSame('foo', $list->get(0));
     }
 
@@ -35,7 +35,7 @@ final class EmptyListTest extends TestCase
     public function test_count(): void
     {
         $list = new EmptyList(new ModuloHasher(), new SimpleEqualizer(), null);
-        $this->assertSame(0, $list->count());
+        $this->assertCount(0, $list);
     }
 
     public function test_can_get_on_empty_list(): never
@@ -117,7 +117,7 @@ final class EmptyListTest extends TestCase
         $list = (new EmptyList(new ModuloHasher(), new SimpleEqualizer(), null))->cons('foo');
 
         $this->assertInstanceOf(PersistentList::class, $list);
-        $this->assertSame(1, $list->count());
+        $this->assertCount(1, $list);
         $this->assertSame('foo', $list->get(0));
     }
 

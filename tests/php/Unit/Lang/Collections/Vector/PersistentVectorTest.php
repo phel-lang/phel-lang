@@ -22,8 +22,8 @@ final class PersistentVectorTest extends TestCase
         $vEmpty = PersistentVector::empty(new ModuloHasher(), new SimpleEqualizer());
         $v1 = $vEmpty->append('a');
 
-        $this->assertSame(0, $vEmpty->count());
-        $this->assertSame(1, $v1->count());
+        $this->assertCount(0, $vEmpty);
+        $this->assertCount(1, $v1);
         $this->assertSame('a', $v1->get(0));
     }
 
@@ -32,8 +32,8 @@ final class PersistentVectorTest extends TestCase
         $v1 = PersistentVector::fromArray(new ModuloHasher(), new SimpleEqualizer(), range(0, 31));
         $v2 = $v1->append(32);
 
-        $this->assertSame(32, $v1->count());
-        $this->assertSame(33, $v2->count());
+        $this->assertCount(32, $v1);
+        $this->assertCount(33, $v2);
         $this->assertSame(32, $v2->get(32));
     }
 
@@ -43,8 +43,8 @@ final class PersistentVectorTest extends TestCase
         $v1 = PersistentVector::fromArray(new ModuloHasher(), new SimpleEqualizer(), range(0, $initialLength));
         $v2 = $v1->append(1056);
 
-        $this->assertSame(1056, $v1->count());
-        $this->assertSame(1057, $v2->count());
+        $this->assertCount(1056, $v1);
+        $this->assertCount(1057, $v2);
         $this->assertSame(1056, $v2->get(1056));
     }
 
@@ -54,8 +54,8 @@ final class PersistentVectorTest extends TestCase
         $v1 = PersistentVector::fromArray(new ModuloHasher(), new SimpleEqualizer(), range(0, $initialLength));
         $v2 = $v1->append($initialLength + 1);
 
-        $this->assertSame($initialLength + 1, $v1->count());
-        $this->assertSame($initialLength + 2, $v2->count());
+        $this->assertCount($initialLength + 1, $v1);
+        $this->assertCount($initialLength + 2, $v2);
         $this->assertSame($initialLength + 1, $v2->get($initialLength + 1));
     }
 
@@ -65,8 +65,8 @@ final class PersistentVectorTest extends TestCase
         $v1 = PersistentVector::fromArray(new ModuloHasher(), new SimpleEqualizer(), range(0, $initialLength));
         $v2 = $v1->append($initialLength + 1);
 
-        $this->assertSame($initialLength + 1, $v1->count());
-        $this->assertSame($initialLength + 2, $v2->count());
+        $this->assertCount($initialLength + 1, $v1);
+        $this->assertCount($initialLength + 2, $v2);
         $this->assertSame($initialLength + 1, $v2->get($initialLength + 1));
     }
 
@@ -83,8 +83,8 @@ final class PersistentVectorTest extends TestCase
         $vEmpty = PersistentVector::empty(new ModuloHasher(), new SimpleEqualizer());
         $v1 = $vEmpty->update(0, 10);
 
-        $this->assertSame(0, $vEmpty->count());
-        $this->assertSame(1, $v1->count());
+        $this->assertCount(0, $vEmpty);
+        $this->assertCount(1, $v1);
         $this->assertSame(10, $v1->get(0));
     }
 
@@ -93,8 +93,8 @@ final class PersistentVectorTest extends TestCase
         $v1 = PersistentVector::fromArray(new ModuloHasher(), new SimpleEqualizer(), [10]);
         $v2 = $v1->update(0, 20);
 
-        $this->assertSame(1, $v1->count());
-        $this->assertSame(1, $v2->count());
+        $this->assertCount(1, $v1);
+        $this->assertCount(1, $v2);
         $this->assertSame(10, $v1->get(0));
         $this->assertSame(20, $v2->get(0));
     }
@@ -104,8 +104,8 @@ final class PersistentVectorTest extends TestCase
         $v1 = PersistentVector::fromArray(new ModuloHasher(), new SimpleEqualizer(), range(0, 32));
         $v2 = $v1->update(0, 20);
 
-        $this->assertSame(33, $v1->count());
-        $this->assertSame(33, $v2->count());
+        $this->assertCount(33, $v1);
+        $this->assertCount(33, $v2);
         $this->assertSame(0, $v1->get(0));
         $this->assertSame(20, $v2->get(0));
     }
@@ -131,8 +131,8 @@ final class PersistentVectorTest extends TestCase
         $v1 = PersistentVector::fromArray(new ModuloHasher(), new SimpleEqualizer(), [1]);
         $vEmpty = $v1->pop();
 
-        $this->assertSame(1, $v1->count());
-        $this->assertSame(0, $vEmpty->count());
+        $this->assertCount(1, $v1);
+        $this->assertCount(0, $vEmpty);
     }
 
     public function test_pop_from_tail(): void
@@ -140,8 +140,8 @@ final class PersistentVectorTest extends TestCase
         $v1 = PersistentVector::fromArray(new ModuloHasher(), new SimpleEqualizer(), [1, 2]);
         $v2 = $v1->pop();
 
-        $this->assertSame(2, $v1->count());
-        $this->assertSame(1, $v2->count());
+        $this->assertCount(2, $v1);
+        $this->assertCount(1, $v2);
         $this->assertSame(1, $v2->get(0));
     }
 
@@ -150,8 +150,8 @@ final class PersistentVectorTest extends TestCase
         $v1 = PersistentVector::fromArray(new ModuloHasher(), new SimpleEqualizer(), range(0, 32));
         $v2 = $v1->pop();
 
-        $this->assertSame(33, $v1->count());
-        $this->assertSame(32, $v2->count());
+        $this->assertCount(33, $v1);
+        $this->assertCount(32, $v2);
     }
 
     public function test_pop_from_tree_level_two(): void
@@ -160,8 +160,8 @@ final class PersistentVectorTest extends TestCase
         $v1 = PersistentVector::fromArray(new ModuloHasher(), new SimpleEqualizer(), range(0, $length));
         $v2 = $v1->pop();
 
-        $this->assertSame($length + 1, $v1->count());
-        $this->assertSame($length, $v2->count());
+        $this->assertCount($length + 1, $v1);
+        $this->assertCount($length, $v2);
     }
 
     public function test_pop_from_tree_level_two2(): void
@@ -170,8 +170,8 @@ final class PersistentVectorTest extends TestCase
         $v1 = PersistentVector::fromArray(new ModuloHasher(), new SimpleEqualizer(), range(0, $length));
         $v2 = $v1->pop();
 
-        $this->assertSame($length + 1, $v1->count());
-        $this->assertSame($length, $v2->count());
+        $this->assertCount($length + 1, $v1);
+        $this->assertCount($length, $v2);
     }
 
     public function test_pop_from_tree_level_three(): void
@@ -180,8 +180,8 @@ final class PersistentVectorTest extends TestCase
         $v1 = PersistentVector::fromArray(new ModuloHasher(), new SimpleEqualizer(), range(0, $length));
         $v2 = $v1->pop();
 
-        $this->assertSame($length + 1, $v1->count());
-        $this->assertSame($length, $v2->count());
+        $this->assertCount($length + 1, $v1);
+        $this->assertCount($length, $v2);
     }
 
     public function test_to_array_tail(): void
