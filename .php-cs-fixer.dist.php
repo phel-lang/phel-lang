@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 use PhpCsFixer\Config;
 use PhpCsFixer\Finder;
+use PhpCsFixer\Runner\Parallel\ParallelConfigFactory;
 
 $finder = Finder::create()
     ->files()
@@ -12,6 +13,7 @@ $finder = Finder::create()
     ->exclude(['out', 'PhelGenerated']);
 
 return (new Config())
+    ->setParallelConfig(ParallelConfigFactory::detect())
     ->setFinder($finder)
     ->setRiskyAllowed(true)
     ->setRules([
