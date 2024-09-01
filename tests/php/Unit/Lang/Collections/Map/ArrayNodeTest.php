@@ -17,7 +17,7 @@ final class ArrayNodeTest extends TestCase
     {
         $hasher = new ModuloHasher();
         $node = ArrayNode::empty($hasher, new SimpleEqualizer());
-        self::assertSame(0, $node->count());
+        self::assertCount(0, $node);
         self::assertNull($node->find(0, $hasher->hash(1), 1, null));
     }
 
