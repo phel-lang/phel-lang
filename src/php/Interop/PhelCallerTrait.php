@@ -20,10 +20,7 @@ trait PhelCallerTrait
         return $fn(...$arguments);
     }
 
-    /**
-     * @return mixed
-     */
-    private function getPhelDefinition(string $namespace, string $definitionName)
+    private function getPhelDefinition(string $namespace, string $definitionName): mixed
     {
         $phelNs = str_replace('-', '_', $namespace);
 

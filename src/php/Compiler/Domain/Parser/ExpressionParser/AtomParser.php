@@ -108,7 +108,7 @@ final readonly class AtomParser
             $namespace = $matches['namespace'];
         }
 
-        $keyword = $namespace
+        $keyword = ($namespace !== null && $namespace !== '')
             ? Keyword::createForNamespace($namespace, $matches['keyword'])
             : Keyword::create($matches['keyword']);
 

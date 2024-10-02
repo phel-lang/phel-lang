@@ -138,7 +138,7 @@ final class ReplCommandTest extends AbstractCommandTest
 
         foreach (explode(PHP_EOL, $fileContent) as $line) {
             preg_match('/(?<prompt>....:\d> ?)(?<phel_code>.+)?/', $line, $out);
-            if (!empty($out)) {
+            if ($out !== []) {
                 $prompt = $out['prompt'];
                 $code = $out['phel_code'] ?? '';
                 $inputs[] = new InputLine($prompt, $code);
