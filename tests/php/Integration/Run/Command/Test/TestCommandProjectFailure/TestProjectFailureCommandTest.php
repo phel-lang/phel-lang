@@ -12,13 +12,12 @@ use Symfony\Component\Console\Input\InputInterface;
 
 final class TestProjectFailureCommandTest extends AbstractTestCommand
 {
-    public static function setUpBeforeClass(): void
-    {
-        Gacela::bootstrap(__DIR__, GacelaConfig::defaultPhpConfig());
-    }
-
+    /**
+     * @group flaky
+     */
     public function test_all_in_failed_project(): void
     {
+        Gacela::bootstrap(__DIR__, GacelaConfig::defaultPhpConfig());
         $command = new TestCommand();
 
         $this->expectOutputRegex('/E.*/');

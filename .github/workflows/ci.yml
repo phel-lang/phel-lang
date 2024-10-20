@@ -109,11 +109,11 @@ jobs:
       - name: Install dependencies
         run: composer install --no-interaction --no-ansi --no-progress
 
-      - name: Run unit tests to the compiler itself
-        run: vendor/bin/phpunit --testsuite unit
+      - name: Run compiler tests
+        run: composer test-compiler
 
-      - name: Run integration tests to the compiler itself
-        run: vendor/bin/phpunit --testsuite integration
+      - name: Run compiler flaky tests
+        run: composer test-compiler:flaky
 
   core-tests:
     name: Core tests on PHP ${{ matrix.php }}
@@ -146,7 +146,7 @@ jobs:
         run: composer install --no-interaction --no-ansi --no-progress
 
       - name: Run tests to the core library
-        run: composer run-script test-core
+        run: composer test-core
 
   bench-tests:
     name: Bench tests on PHP ${{ matrix.php }}

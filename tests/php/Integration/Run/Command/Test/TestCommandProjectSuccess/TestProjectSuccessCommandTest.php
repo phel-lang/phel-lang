@@ -12,13 +12,13 @@ use Symfony\Component\Console\Input\InputInterface;
 
 final class TestProjectSuccessCommandTest extends AbstractTestCommand
 {
-    public static function setUpBeforeClass(): void
+    protected function setUp(): void
     {
         Gacela::bootstrap(__DIR__, GacelaConfig::defaultPhpConfig());
     }
 
     /**
-     * @preserveGlobalState disabled
+     * @group flaky
      */
     public function test_all_in_project(): void
     {
@@ -34,7 +34,7 @@ final class TestProjectSuccessCommandTest extends AbstractTestCommand
     }
 
     /**
-     * @preserveGlobalState disabled
+     * @group flaky
      */
     public function test_one_file_in_project(): void
     {
