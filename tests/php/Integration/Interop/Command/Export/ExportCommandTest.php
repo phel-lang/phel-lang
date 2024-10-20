@@ -19,11 +19,6 @@ final class ExportCommandTest extends TestCase
         DirectoryUtil::removeDir(__DIR__ . '/PhelGenerated/');
     }
 
-    /**
-     * @runInSeparateProcess
-     *
-     * @preserveGlobalState disabled
-     */
     public function test_export_command_multiple(): void
     {
         Gacela::bootstrap(__DIR__, GacelaConfig::defaultPhpConfig());

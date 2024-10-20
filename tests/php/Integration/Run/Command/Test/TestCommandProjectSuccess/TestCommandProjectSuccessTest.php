@@ -18,8 +18,6 @@ final class TestCommandProjectSuccessTest extends AbstractCommandTest
     }
 
     /**
-     * @runInSeparateProcess
-     *
      * @preserveGlobalState disabled
      */
     public function test_all_in_project(): void
@@ -36,8 +34,6 @@ final class TestCommandProjectSuccessTest extends AbstractCommandTest
     }
 
     /**
-     * @runInSeparateProcess
-     *
      * @preserveGlobalState disabled
      */
     public function test_one_file_in_project(): void

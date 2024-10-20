@@ -15,11 +15,6 @@ use PHPUnit\Framework\TestCase;
 
 final class ApiFacadeTest extends TestCase
 {
-    /**
-     * @runInSeparateProcess
-     *
-     * @preserveGlobalState disabled
-     */
     public function test_number_of_grouped_functions(): void
     {
         Gacela::bootstrap(__DIR__, GacelaConfig::defaultPhpConfig());

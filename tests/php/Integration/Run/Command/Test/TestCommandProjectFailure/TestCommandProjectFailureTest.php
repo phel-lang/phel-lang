@@ -18,8 +18,6 @@ final class TestCommandProjectFailureTest extends AbstractCommandTest
     }
 
     /**
-     * @runInSeparateProcess
-     *
      * @preserveGlobalState disabled
      */
     public function test_all_in_failed_project(): void
