@@ -27,7 +27,7 @@ use SplFileInfo;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 
-final class ReplTestCommand extends AbstractTestCommand
+final class ReplCommandTest extends AbstractTestCommand
 {
     protected function setUp(): void
     {

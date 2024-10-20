@@ -10,7 +10,7 @@ use Phel\Run\Infrastructure\Command\RunCommand;
 use PhelTest\Integration\Run\Command\AbstractTestCommand;
 use Symfony\Component\Console\Input\InputInterface;
 
-final class RunTestCommand extends AbstractTestCommand
+final class RunCommandTest extends AbstractTestCommand
 {
     public static function setUpBeforeClass(): void
     {

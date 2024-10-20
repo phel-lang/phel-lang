@@ -16,7 +16,8 @@ use PHPUnit\Framework\TestCase;
 final class ApiFacadeTest extends TestCase
 {
     public function test_number_of_grouped_functions(): never
-    {// This test in isolation works, but when running with all other integration tests fails,
+    {
+        // This test in isolation works, but when running with all other integration tests fails,
         // because the IntegrationTest loads already the core and all internal code, which
         // it crashes when it tries to load all phel funcs again. See: `PhelFnLoader::loadAllPhelFunctions()`
         $this->markTestSkipped('Useful to debug the facade, but useless to keep it in the CI');
