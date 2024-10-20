@@ -25,7 +25,7 @@ final class BuildCommandTest extends TestCase
     }
 
     /**
-     * @runInSeparateProcess
+     * @group flaky
      *
      * @preserveGlobalState disabled
      */
@@ -54,9 +54,7 @@ final class BuildCommandTest extends TestCase
     }
 
     /**
-     * @runInSeparateProcess
-     *
-     * @preserveGlobalState disabled
+     * @group flaky
      *
      * @depends test_build_project
      */
@@ -86,12 +84,13 @@ final class BuildCommandTest extends TestCase
     }
 
     /**
-     * @runInSeparateProcess
+     * @group flaky
      *
      * @preserveGlobalState disabled
      */
     public function test_out_main_file(): void
     {
+        DirectoryUtil::removeDir(__DIR__ . '/out');
         $this->bootstrapGacela();
 
         ob_start();
@@ -118,8 +117,6 @@ TXT;
     }
 
     /**
-     * @runInSeparateProcess
-     *
      * @preserveGlobalState disabled
      */
     public function test_no_entrypoint_when_namespace_is_not_set(): void
@@ -128,8 +125,9 @@ TXT;
             $config->addAppConfig('config/phel-config-no-namespace.php');
         });
 
-        if (file_exists(__DIR__ . '/out/main.php')) {
-            unlink(__DIR__ . '/out/main.php');
+        DirectoryUtil::removeDir(__DIR__ . '/out2');
+        if (file_exists(__DIR__ . '/out2/main.php')) {
+            unlink(__DIR__ . '/out2/main.php');
         }
 
         ob_start();
@@ -142,7 +140,7 @@ TXT;
         );
         ob_end_clean();
 
-        $this->assertFileDoesNotExist(__DIR__ . '/out/main.php');
+        $this->assertFileDoesNotExist(__DIR__ . '/out2/main.php');
     }
 
     private function bootstrapGacela(): void

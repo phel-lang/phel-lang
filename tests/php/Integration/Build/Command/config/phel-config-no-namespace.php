@@ -9,6 +9,6 @@ return (new PhelConfig())
     ->setSrcDirs([__DIR__ . '/../'])
     ->setVendorDir('')
     ->setBuildConfig((new PhelBuildConfig())
-        ->setDestDir('out'))
+        ->setDestDir('out2'))
     ->setIgnoreWhenBuilding(['local.phel', 'failing.phel'])
 ;

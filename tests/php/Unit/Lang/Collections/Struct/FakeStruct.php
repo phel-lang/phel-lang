@@ -13,13 +13,6 @@ final class FakeStruct extends AbstractPersistentStruct
 {
     protected const ALLOWED_KEYS = ['a', 'b'];
 
-    public function __construct(
-        protected $a,
-        protected $b,
-    ) {
-        parent::__construct();
-    }
-
     public static function fromKVs(mixed ...$kvs): PersistentMapInterface
     {
         $result = new self(null, null);

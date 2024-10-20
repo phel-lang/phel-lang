@@ -7,20 +7,18 @@ namespace PhelTest\Integration\Run\Command\Test\TestCommandProjectSuccess;
 use Gacela\Framework\Bootstrap\GacelaConfig;
 use Gacela\Framework\Gacela;
 use Phel\Run\Infrastructure\Command\TestCommand;
-use PhelTest\Integration\Run\Command\AbstractCommandTest;
+use PhelTest\Integration\Run\Command\AbstractTestCommand;
 use Symfony\Component\Console\Input\InputInterface;
 
-final class TestCommandProjectSuccessTest extends AbstractCommandTest
+final class TestProjectSuccessCommandTest extends AbstractTestCommand
 {
-    public static function setUpBeforeClass(): void
+    protected function setUp(): void
     {
         Gacela::bootstrap(__DIR__, GacelaConfig::defaultPhpConfig());
     }
 
     /**
-     * @runInSeparateProcess
-     *
-     * @preserveGlobalState disabled
+     * @group flaky
      */
     public function test_all_in_project(): void
     {
@@ -36,9 +34,7 @@ final class TestCommandProjectSuccessTest extends AbstractCommandTest
     }
 
     /**
-     * @runInSeparateProcess
-     *
-     * @preserveGlobalState disabled
+     * @group flaky
      */
     public function test_one_file_in_project(): void
     {

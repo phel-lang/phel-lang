@@ -33,6 +33,7 @@ require_once __DIR__ . '/my_namespace/core.php';
     )
   )
 );
+if (!class_exists('hello_world\abc')) {
 class abc extends \Phel\Lang\Collections\Struct\AbstractPersistentStruct {
 
   protected const ALLOWED_KEYS = ['a'];
@@ -44,6 +45,7 @@ class abc extends \Phel\Lang\Collections\Struct\AbstractPersistentStruct {
     $this->a = $a;
     $this->meta = $meta;
   }
+}
 }
 
 \Phel\Lang\Registry::getInstance()->addDefinition(

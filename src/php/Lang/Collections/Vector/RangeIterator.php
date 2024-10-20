@@ -19,7 +19,7 @@ final class RangeIterator implements Iterator
 
     public function __construct(
         private readonly PersistentVector $vector,
-        private int $start,
+        private readonly int $start,
         private readonly int $end,
     ) {
         $this->currentIndex = $start;

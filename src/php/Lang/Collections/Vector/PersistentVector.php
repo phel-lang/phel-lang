@@ -45,9 +45,9 @@ final class PersistentVector extends AbstractPersistentVector
         EqualizerInterface $equalizer,
         ?PersistentMapInterface $meta,
         private readonly int $count,
-        private int $shift,
-        private array $root,
-        private array $tail,
+        private readonly int $shift,
+        private readonly array $root,
+        private readonly array $tail,
     ) {
         parent::__construct($hasher, $equalizer, $meta);
     }

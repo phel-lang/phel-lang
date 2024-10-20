@@ -3,6 +3,7 @@
 .vscode/
 data/
 out/
+tests/**/out*
 PhelGenerated/
 var/
 vendor/

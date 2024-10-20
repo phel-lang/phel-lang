@@ -14,7 +14,7 @@ final class SimpleImmutableVectorBench
     public function setUp(): void
     {
         $this->vector = new class([]) {
-            public function __construct(private array $data)
+            public function __construct(private readonly array $data)
             {
             }
 
