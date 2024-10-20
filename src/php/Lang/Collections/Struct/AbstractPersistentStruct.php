@@ -30,6 +30,8 @@ abstract class AbstractPersistentStruct extends AbstractPersistentMap
 
     private MungeInterface $munge;
 
+    private array $data = [];
+
     public function __construct()
     {
         parent::__construct(
@@ -57,7 +59,8 @@ abstract class AbstractPersistentStruct extends AbstractPersistentMap
         $stringKey = $this->validateKey($key);
 
         $newInstance = clone $this;
-        $newInstance->{$stringKey} = $value;
+        $newInstance->data[$stringKey] = $value;
+
         return $newInstance;
     }
 
@@ -66,25 +69,27 @@ abstract class AbstractPersistentStruct extends AbstractPersistentMap
         $stringKey = $this->validateKey($key);
 
         $newInstance = clone $this;
-        $newInstance->{$stringKey} = null;
+        unset($newInstance->data[$stringKey]);
+
         return $newInstance;
     }
 
     public function count(): int
     {
-        return is_countable(static::ALLOWED_KEYS) ? count(static::ALLOWED_KEYS) : 0;
+        return count(static::ALLOWED_KEYS);
     }
 
     public function find($key)
     {
         $stringKey = $this->validateKey($key);
-        return $this->{$stringKey};
+        return $this->data[$stringKey] ?? null;
     }
 
     public function getIterator(): Traversable
     {
         foreach (static::ALLOWED_KEYS as $key) {
-            yield TypeFactory::getInstance()->keyword($key) => $this->{$this->munge->encode($key)};
+            $encodedKey = $this->munge->encode($key);
+            yield TypeFactory::getInstance()->keyword($key) => $this->data[$encodedKey] ?? null;
         }
     }
 
