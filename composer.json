@@ -24,18 +24,19 @@
     "require": {
         "php": ">=8.2",
         "gacela-project/gacela": "^1.8",
-        "phpunit/php-timer": "^5.0",
+        "phpunit/php-timer": "^6.0",
         "symfony/console": "^7.1"
     },
     "require-dev": {
         "ext-readline": "*",
+        "brianium/paratest": "^7.4",
         "ergebnis/composer-normalize": "^2.44",
         "friendsofphp/php-cs-fixer": "^3.64",
         "infection/infection": "^0.27",
         "phpbench/phpbench": "^1.3",
         "phpmetrics/phpmetrics": "^2.8",
         "phpstan/phpstan": "^1.12",
-        "phpunit/phpunit": "^9.6",
+        "phpunit/phpunit": "^10.5",
         "psalm/plugin-phpunit": "^0.19",
         "rector/rector": "^1.2",
         "symfony/var-dumper": "^7.1",
@@ -96,8 +97,8 @@
             "@test-compiler",
             "@test-core"
         ],
-        "test-compiler": "./vendor/bin/phpunit --testsuite=unit,integration --log-junit=data/log-junit.xml",
-        "test-compiler:coverage": "XDEBUG_MODE=coverage ./vendor/bin/phpunit --testsuite=unit,integration --coverage-html=data/coverage-html --coverage-xml=data/coverage-xml --log-junit=data/coverage-xml/junit.xml",
+        "test-compiler": "./vendor/bin/paratest --testsuite=unit,integration",
+        "test-compiler:coverage": "XDEBUG_MODE=coverage ./vendor/bin/paratest --testsuite=unit,integration --coverage-html=data/coverage-html --coverage-xml=data/coverage-xml --log-junit=data/coverage-xml/junit.xml",
         "test-core": "./bin/phel test",
         "test-quality": [
             "@csrun",
