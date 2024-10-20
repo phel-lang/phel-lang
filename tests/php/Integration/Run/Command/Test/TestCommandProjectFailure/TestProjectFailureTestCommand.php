@@ -7,10 +7,10 @@ namespace PhelTest\Integration\Run\Command\Test\TestCommandProjectFailure;
 use Gacela\Framework\Bootstrap\GacelaConfig;
 use Gacela\Framework\Gacela;
 use Phel\Run\Infrastructure\Command\TestCommand;
-use PhelTest\Integration\Run\Command\AbstractCommandTest;
+use PhelTest\Integration\Run\Command\AbstractTestCommand;
 use Symfony\Component\Console\Input\InputInterface;
 
-final class TestCommandProjectFailureTest extends AbstractCommandTest
+final class TestProjectFailureTestCommand extends AbstractTestCommand
 {
     public static function setUpBeforeClass(): void
     {

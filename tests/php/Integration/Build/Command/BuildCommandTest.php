@@ -25,6 +25,8 @@ final class BuildCommandTest extends TestCase
     }
 
     /**
+     * @group flaky
+     *
      * @preserveGlobalState disabled
      */
     public function test_build_project(): void
@@ -52,6 +54,8 @@ final class BuildCommandTest extends TestCase
     }
 
     /**
+     * @group flaky
+     *
      * @depends test_build_project
      */
     public function test_build_project_cached(): void
@@ -80,6 +84,8 @@ final class BuildCommandTest extends TestCase
     }
 
     /**
+     * @group flaky
+     *
      * @preserveGlobalState disabled
      */
     public function test_out_main_file(): void
@@ -119,8 +125,7 @@ TXT;
             $config->addAppConfig('config/phel-config-no-namespace.php');
         });
 
-        DirectoryUtil::removeDir(__DIR__ . '/out2')
-        ;
+        DirectoryUtil::removeDir(__DIR__ . '/out2');
         if (file_exists(__DIR__ . '/out2/main.php')) {
             unlink(__DIR__ . '/out2/main.php');
         }

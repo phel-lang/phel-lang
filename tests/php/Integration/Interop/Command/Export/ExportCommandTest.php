@@ -14,11 +14,16 @@ use Symfony\Component\Console\Output\OutputInterface;
 
 final class ExportCommandTest extends TestCase
 {
+    private const GENERATED_DIR = __DIR__ . '/PhelGenerated';
+
     protected function setUp(): void
     {
-        DirectoryUtil::removeDir(__DIR__ . '/PhelGenerated/');
+        DirectoryUtil::removeDir(self::GENERATED_DIR);
     }
 
+    /**
+     * @group flaky
+     */
     public function test_export_command_multiple(): void
     {
         Gacela::bootstrap(__DIR__, GacelaConfig::defaultPhpConfig());
@@ -29,21 +34,16 @@ final class ExportCommandTest extends TestCase
         $this->expectOutputRegex('~TestCmdExportMultiple/Adder~');
         $this->expectOutputRegex('~TestCmdExportMultiple/Multiplier~');
 
-        $command->run(
-            $this->createStub(InputInterface::class),
-            $this->stubOutput(),
-        );
-
-        self::assertFileExists(__DIR__ . '/PhelGenerated/TestCmdExportMultiple/Adder.php');
-        self::assertFileExists(__DIR__ . '/PhelGenerated/TestCmdExportMultiple/Multiplier.php');
-    }
-
-    private function stubOutput(): OutputInterface
-    {
         $output = $this->createStub(OutputInterface::class);
         $output->method('writeln')
             ->willReturnCallback(static fn (string $str) => print $str . PHP_EOL);
 
-        return $output;
+        $command->run(
+            $this->createStub(InputInterface::class),
+            $output,
+        );
+
+        self::assertFileExists(self::GENERATED_DIR . '/TestCmdExportMultiple/Adder.php');
+        self::assertFileExists(self::GENERATED_DIR . '/TestCmdExportMultiple/Multiplier.php');
     }
 }

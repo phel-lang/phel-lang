@@ -2,16 +2,15 @@
 
 declare(strict_types=1);
 
-return [
-    'src-dirs' => [
-        __DIR__ . '/../',
-    ],
-    'test-dirs' => [],
-    'vendor-dir' => '',
+use Phel\Config\PhelConfig;
+use Phel\Config\PhelExportConfig;
 
-    'export' => [
-        'directories' => ['src'],
-        'namespace-prefix' => 'PhelGenerated',
-        'target-directory' => __DIR__ . '/../PhelGenerated',
-    ],
-];
+return (new PhelConfig())
+    ->setSrcDirs([__DIR__ . '/../'])
+    ->setTestDirs([])
+    ->setVendorDir('')
+    ->setExportConfig((new PhelExportConfig())
+        ->setFromDirectories(['src'])
+        ->setNamespacePrefix('PhelGenerated')
+        ->setTargetDirectory(__DIR__ . '/../PhelGenerated'))
+;

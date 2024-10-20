@@ -13,10 +13,8 @@ final class FakeStruct extends AbstractPersistentStruct
 {
     protected const ALLOWED_KEYS = ['a', 'b'];
 
-    public function __construct(
-        protected $a,
-        protected $b,
-    ) {
+    public function __construct()
+    {
         parent::__construct();
     }
 

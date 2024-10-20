@@ -13,6 +13,7 @@ use Phel\Lang\Symbol;
 
 use function assert;
 use function count;
+use function sprintf;
 
 final readonly class DefStructEmitter implements NodeEmitterInterface
 {
@@ -44,7 +45,7 @@ final readonly class DefStructEmitter implements NodeEmitterInterface
         $className = $this->outputEmitter->mungeEncode($node->getName()->getName());
         $fqClassName = $namespace . '\\' . $className;
 
-        $this->outputEmitter->emitLine("if (!class_exists('{$fqClassName}')) {");
+        $this->outputEmitter->emitLine(sprintf("if (!class_exists('%s')) {", $fqClassName));
         $this->outputEmitter->emitStr(
             'class ' . $className . ' extends \Phel\Lang\Collections\Struct\AbstractPersistentStruct',
             $node->getStartSourceLocation(),

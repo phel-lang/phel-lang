@@ -83,7 +83,7 @@
         "phpbench-base": "./vendor/bin/phpbench run --tag=baseline --report=aggregate --progress=plain --ansi",
         "phpbench-ref": "./vendor/bin/phpbench run --ref=baseline --report=aggregate --progress=plain --ansi",
         "phpstan": "./vendor/bin/phpstan --memory-limit=516M",
-        "psalm": "./vendor/bin/psalm --no-cache",
+        "psalm": "./vendor/bin/psalm",
         "rector": "./vendor/bin/rector process",
         "rectorrun": "./vendor/bin/rector process --dry-run",
         "static-clear-cache": [
@@ -95,10 +95,12 @@
             "@static-clear-cache",
             "@test-quality",
             "@test-compiler",
+            "@test-compiler:flaky",
             "@test-core"
         ],
-        "test-compiler": "./vendor/bin/phpunit --testsuite=unit,integration",
-        "test-compiler:coverage": "XDEBUG_MODE=coverage ./vendor/bin/phpunit --testsuite=unit,integration --coverage-html=data/coverage-html --coverage-xml=data/coverage-xml --log-junit=data/coverage-xml/junit.xml",
+        "test-compiler": "./vendor/bin/phpunit --testsuite=unit,integration --exclude-group flaky",
+        "test-compiler:flaky": "./vendor/bin/phpunit --testsuite=unit,integration --group flaky",
+        "test-compiler:coverage": "XDEBUG_MODE=coverage ./vendor/bin/phpunit --testsuite=unit,integration --exclude-group flaky --coverage-html=data/coverage-html --coverage-xml=data/coverage-xml --log-junit=data/coverage-xml/junit.xml",
         "test-core": "./bin/phel test",
         "test-quality": [
             "@csrun",

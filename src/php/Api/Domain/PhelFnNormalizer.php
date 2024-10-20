@@ -8,10 +8,10 @@ use Phel\Api\Infrastructure\PhelFnLoaderInterface;
 use Phel\Api\Transfer\PhelFunction;
 use Phel\Lang\Keyword;
 
-final class PhelFnNormalizer implements PhelFnNormalizerInterface
+final readonly class PhelFnNormalizer implements PhelFnNormalizerInterface
 {
     public function __construct(
-        private readonly PhelFnLoaderInterface $phelFnLoader,
+        private PhelFnLoaderInterface $phelFnLoader,
         private array $allNamespaces = [],
     ) {
     }
