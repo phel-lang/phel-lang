@@ -17,9 +17,6 @@ final class TestCommandProjectFailureTest extends AbstractCommandTest
         Gacela::bootstrap(__DIR__, GacelaConfig::defaultPhpConfig());
     }
 
-    /**
-     * @preserveGlobalState disabled
-     */
     public function test_all_in_failed_project(): void
     {
         $command = new TestCommand();

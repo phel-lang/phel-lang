@@ -97,8 +97,8 @@
             "@test-compiler",
             "@test-core"
         ],
-        "test-compiler": "./vendor/bin/paratest --testsuite=unit,integration",
-        "test-compiler:coverage": "XDEBUG_MODE=coverage ./vendor/bin/paratest --testsuite=unit,integration --coverage-html=data/coverage-html --coverage-xml=data/coverage-xml --log-junit=data/coverage-xml/junit.xml",
+        "test-compiler": "./vendor/bin/phpunit --testsuite=unit,integration",
+        "test-compiler:coverage": "XDEBUG_MODE=coverage ./vendor/bin/phpunit --testsuite=unit,integration --coverage-html=data/coverage-html --coverage-xml=data/coverage-xml --log-junit=data/coverage-xml/junit.xml",
         "test-core": "./bin/phel test",
         "test-quality": [
             "@csrun",

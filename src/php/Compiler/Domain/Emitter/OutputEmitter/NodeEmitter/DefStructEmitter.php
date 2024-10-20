@@ -10,6 +10,7 @@ use Phel\Compiler\Domain\Emitter\OutputEmitter\NodeEmitterInterface;
 use Phel\Compiler\Domain\Emitter\OutputEmitterInterface;
 use Phel\Lang\Keyword;
 use Phel\Lang\Symbol;
+
 use function assert;
 use function count;
 
@@ -37,15 +38,15 @@ final readonly class DefStructEmitter implements NodeEmitterInterface
     {
         $namespace = $this->outputEmitter->mungeEncodeNs($node->getNamespace());
         if ($this->outputEmitter->getOptions()->isStatementEmitMode()) {
-            $this->outputEmitter->emitLine('namespace '.$namespace.';', $node->getStartSourceLocation());
+            $this->outputEmitter->emitLine('namespace ' . $namespace . ';', $node->getStartSourceLocation());
         }
 
         $className = $this->outputEmitter->mungeEncode($node->getName()->getName());
-        $fqClassName = $namespace.'\\'.$className;
+        $fqClassName = $namespace . '\\' . $className;
 
-        $this->outputEmitter->emitLine("if (!class_exists('$fqClassName')) {");
+        $this->outputEmitter->emitLine("if (!class_exists('{$fqClassName}')) {");
         $this->outputEmitter->emitStr(
-            'class '.$className.' extends \Phel\Lang\Collections\Struct\AbstractPersistentStruct',
+            'class ' . $className . ' extends \Phel\Lang\Collections\Struct\AbstractPersistentStruct',
             $node->getStartSourceLocation(),
         );
 
@@ -72,7 +73,7 @@ final readonly class DefStructEmitter implements NodeEmitterInterface
         $this->outputEmitter->emitStr('protected const ALLOWED_KEYS = [', $node->getStartSourceLocation());
 
         foreach ($node->getParams() as $i => $param) {
-            $this->outputEmitter->emitStr("'".$param->getName()."'");
+            $this->outputEmitter->emitStr("'" . $param->getName() . "'");
             if ($i < $paramCount - 1) {
                 $this->outputEmitter->emitStr(', ', $node->getStartSourceLocation());
             }
@@ -116,7 +117,7 @@ final readonly class DefStructEmitter implements NodeEmitterInterface
 
             $propertyName = $this->outputEmitter->mungeEncode($param->getName());
 
-            $this->outputEmitter->emitStr('$this->'.$propertyName.' = ', $node->getStartSourceLocation());
+            $this->outputEmitter->emitStr('$this->' . $propertyName . ' = ', $node->getStartSourceLocation());
             $this->outputEmitter->emitPhpVariable($param);
             $this->outputEmitter->emitLine(';', $node->getStartSourceLocation());
         }
@@ -142,7 +143,7 @@ final readonly class DefStructEmitter implements NodeEmitterInterface
     private function emitClassEnd(DefStructNode $node): void
     {
         $this->outputEmitter->decreaseIndentLevel();
-        $this->outputEmitter->emitLine("}");
+        $this->outputEmitter->emitLine('}');
         $this->outputEmitter->emitLine('}', $node->getStartSourceLocation());
     }
 }
