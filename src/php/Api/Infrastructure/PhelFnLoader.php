@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Phel\Api\Infrastructure;
 
+use Phel\Api\Domain\PhelFnLoaderInterface;
 use Phel\Compiler\Infrastructure\GlobalEnvironmentSingleton;
 use Phel\Lang\Collections\Map\PersistentMapInterface;
 use Phel\Lang\Registry;

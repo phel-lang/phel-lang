@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Phel\Api\Infrastructure;
+namespace Phel\Api\Domain;
 
 use Phel\Lang\Collections\Map\PersistentMapInterface;
 

@@ -6,9 +6,9 @@ namespace Phel\Api;
 
 use Gacela\Framework\AbstractFactory;
 use Phel\Api\Application\PhelFnNormalizer;
+use Phel\Api\Domain\PhelFnLoaderInterface;
 use Phel\Api\Domain\PhelFnNormalizerInterface;
 use Phel\Api\Infrastructure\PhelFnLoader;
-use Phel\Api\Infrastructure\PhelFnLoaderInterface;
 
 /**
  * @method ApiConfig getConfig()

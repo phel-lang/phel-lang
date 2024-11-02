@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace Phel\Api\Application;
 
+use Phel\Api\Domain\PhelFnLoaderInterface;
 use Phel\Api\Domain\PhelFnNormalizerInterface;
-use Phel\Api\Infrastructure\PhelFnLoaderInterface;
 use Phel\Api\Transfer\PhelFunction;
 use Phel\Lang\Keyword;
 
