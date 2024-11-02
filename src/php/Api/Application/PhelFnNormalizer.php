@@ -33,7 +33,7 @@ final readonly class PhelFnNormalizer implements PhelFnNormalizerInterface
 
         $normalizedData = $this->phelFnLoader->getNormalizedPhelFunctions($namespaces);
 
-        $result = [];
+        $normalizedFns = [];
         foreach ($normalizedData as $fnName => $meta) {
             $isPrivate = $meta[Keyword::create('private')] ?? false;
             if ($isPrivate) {
@@ -45,7 +45,7 @@ final readonly class PhelFnNormalizer implements PhelFnNormalizerInterface
             preg_match($pattern, (string) $doc, $matches);
             $groupKey = $this->groupKey($fnName);
 
-            $result[$groupKey][] = new PhelFunction(
+            $normalizedFns[$groupKey][] = new PhelFunction(
                 $fnName,
                 $doc,
                 $matches['fnSignature'] ?? '',
@@ -54,15 +54,18 @@ final readonly class PhelFnNormalizer implements PhelFnNormalizerInterface
             );
         }
 
-        foreach ($result as $values) {
+        foreach ($normalizedFns as $values) {
             usort($values, $this->sortingPhelFunctionsCallback());
         }
 
-        $finalValues = array_merge(...array_values($result));
-        $finalValues = $this->addNativeSymbols($finalValues);
-        usort($finalValues, $this->sortingPhelFunctionsCallback());
+        $result = array_merge(
+            $this->normalizeNativeSymbols(),
+            ...array_values($normalizedFns),
+        );
 
-        return $finalValues;
+        usort($result, $this->sortingPhelFunctionsCallback());
+        return $result; #todo for testing; do not forget to remove duplicates
+        //        return $this->removeDuplicates($result);
     }
 
     private function groupKey(string $fnName): string
@@ -82,23 +85,21 @@ final readonly class PhelFnNormalizer implements PhelFnNormalizerInterface
     }
 
     /**
-     * @param  list<PhelFunction>  $list
-     *
      * @return  list<PhelFunction>
      */
-    private function addNativeSymbols(array $list): array
+    private function normalizeNativeSymbols(): array
     {
-        foreach ($this->phelFnLoader->getNormalizedNativeSymbols() as $symbolName => $meta) {
-            $list[] = new PhelFunction(
-                $symbolName,
+        $result = [];
+        foreach ($this->phelFnLoader->getNormalizedNativeSymbols() as $name => $meta) {
+            $result[] = new PhelFunction(
+                $name,
                 $meta['doc'] ?? '',
                 $meta['fnSignature'] ?? '',
                 $meta['desc'] ?? '',
-                $this->groupKey($symbolName),
+                $this->groupKey($name),
             );
-
         }
 
-        return $list;
+        return $result;
     }
 }

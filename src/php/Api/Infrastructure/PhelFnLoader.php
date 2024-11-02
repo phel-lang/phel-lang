@@ -119,7 +119,7 @@ Defines the namespace for the current file and adds imports to the environment. 
 Equivalent to PHP\'s `arr[index] ?? null`.
 Examples [here](/documentation/php-interop/#get-php-array-value).',
             'fnSignature' => '(php/aget arr index)',
-            'desc' => 'Equivalent to PHP\'s `arr[index] ?? null`.',
+            'desc' => "Equivalent to PHP's `arr[index] ?? null`.",
         ],
         Symbol::NAME_PHP_ARRAY_SET => [
             'doc' => '```phel
@@ -128,7 +128,7 @@ Examples [here](/documentation/php-interop/#get-php-array-value).',
 Equivalent to PHP\'s `arr[index] = value`.
 Examples [here](/documentation/php-interop/#set-php-array-value).',
             'fnSignature' => '(php/aset arr index value)',
-            'desc' => 'Equivalent to PHP\'s `arr[index] = value`.',
+            'desc' => "Equivalent to PHP's `arr[index] = value`.",
         ],
         Symbol::NAME_PHP_ARRAY_PUSH => [
             'doc' => '```phel
@@ -137,7 +137,7 @@ Examples [here](/documentation/php-interop/#set-php-array-value).',
 Equivalent to PHP\'s `arr[] = value`.
 Examples [here](/documentation/php-interop/#append-php-array-value).',
             'fnSignature' => '(php/apush arr value)',
-            'desc' => 'Equivalent to PHP\'s arr[] = value.',
+            'desc' => "Equivalent to PHP's arr[] = value.",
         ],
         Symbol::NAME_PHP_ARRAY_UNSET => [
             'doc' => '```phel
@@ -146,7 +146,7 @@ Examples [here](/documentation/php-interop/#append-php-array-value).',
 Equivalent to PHP\'s `unset(arr[index])`.
 Examples [here](/documentation/php-interop/#unset-php-array-value).',
             'fnSignature' => '(php/aunset arr index)',
-            'desc' => 'Equivalent to PHP\'s `unset(arr[index])`.',
+            'desc' => "Equivalent to PHP's `unset(arr[index])`.",
         ],
         Symbol::NAME_PHP_NEW => [
             'doc' => '```phel
@@ -189,32 +189,39 @@ Examples [here](/documentation/php-interop/#php-static-method-and-property-call)
             'doc' => '```phel
 (recur expr*)
 Internally recur is implemented as a PHP while loop and therefore prevents the Maximum function nesting level errors.
-
-See also [loop](/documentation/global-and-local-bindings/#local-bindings-let).
+Examples [here](/documentation/global-and-local-bindings/#local-bindings-let).
 ```',
             'fnSignature' => '(recur expr*)',
             'desc' => 'Internally recur is implemented as a PHP while loop and therefore prevents the Maximum function nesting level errors.',
         ],
         Symbol::NAME_UNQUOTE => [
             'doc' => '```phel
-(NAME_UNQUOTE)
-```',
-            'fnSignature' => '(NAME_UNQUOTE)',
-            'desc' => 'NAME_UNQUOTE description',
+(unquote my-sym) # Evaluates to my-sym
+,my-sym          # Shorthand for (same as above)
+```
+Values that should be evaluated in a macro are marked with the unquote function (shorthand `,`).
+Examples [here](/documentation/macros/#quasiquote).',
+            'fnSignature' => '(unquote my-sym)',
+            'desc' => 'Values that should be evaluated in a macro are marked with the unquote function (shorthand ,).',
         ],
         Symbol::NAME_UNQUOTE_SPLICING => [
             'doc' => '```phel
-(NAME_UNQUOTE_SPLICING)
-```',
-            'fnSignature' => '(NAME_UNQUOTE_SPLICING)',
-            'desc' => 'NAME_UNQUOTE_SPLICING description',
+(unquote-splicing my-sym) # Evaluates to my-sym
+,@my-sym                  # Shorthand for (same as above)
+```
+Values that should be evaluated in a macro are marked with the unquote function (shorthand `,@`).
+See also [loop](/documentation/macros/#quasiquote).',
+            'fnSignature' => '(unquote-splicing my-sym)',
+            'desc' => 'Values that should be evaluated in a macro are marked with the unquote function (shorthand ,@).',
         ],
         Symbol::NAME_THROW => [
             'doc' => '```phel
-(NAME_THROW)
-```',
-            'fnSignature' => '(NAME_THROW)',
-            'desc' => 'NAME_THROW description',
+(throw exception)
+```
+Throw an exception.
+See [try-catch](/documentation/control-flow/#try-catch-and-finally).',
+            'fnSignature' => '(throw exception)',
+            'desc' => 'Throw an exception.',
         ],
         Symbol::NAME_TRY => [
             'doc' => '```phel
@@ -235,40 +242,53 @@ Examples [here](/documentation/php-interop/#php-set-object-properties).',
             'fnSignature' => '(php/oset (php/-> object prop) val)',
             'desc' => 'Use `php/oset` to set a value to a class/object property.',
         ],
-        Symbol::NAME_LIST => [
+        Symbol::NAME_LIST => [ # overriding already defined at core.phel:50
             'doc' => '```phel
-(NAME_LIST)
-```',
-            'fnSignature' => '(NAME_LIST)',
-            'desc' => 'NAME_LIST description',
+(list & xs) # \'(& xs)
+```
+Creates a new list. If no argument is provided, an empty list is created.
+Examples [here](/documentation/data-structures/#lists).
+',
+            'fnSignature' => "(list & xs) # '(& xs)",
+            'desc' => 'Creates a new list. If no argument is provided, an empty list is created.',
         ],
-        Symbol::NAME_VECTOR => [
+        Symbol::NAME_VECTOR => [ # overridden already defined at core.phel:54
             'doc' => '```phel
-(NAME_VECTOR)
-```',
-            'fnSignature' => '(NAME_VECTOR)',
-            'desc' => 'NAME_VECTOR description',
+(vector & xs) # [& xs]
+```
+Creates a new vector. If no argument is provided, an empty vector is created.
+Examples [here](/documentation/data-structures/#vectors).
+',
+            'fnSignature' => '(vector & xs) # [& xs]',
+            'desc' => 'Creates a new vector. If no argument is provided, an empty vector is created.',
         ],
-        Symbol::NAME_MAP => [
+        Symbol::NAME_MAP => [ # overridden already defined at core.phel:58
             'doc' => '```phel
-(NAME_MAP)
-```',
-            'fnSignature' => '(NAME_MAP)',
-            'desc' => 'NAME_MAP description',
+(hash-map & xs) # {& xs}
+```
+Creates a new hash map. If no argument is provided, an empty hash map is created. The number of parameters must be even.
+Examples [here](/documentation/data-structures/#maps).
+',
+            'fnSignature' => '(hash-map & xs) # {& xs}',
+            'desc' => 'Creates a new hash map. If no argument is provided, an empty hash map is created. The number of parameters must be even.',
         ],
         Symbol::NAME_SET_VAR => [
             'doc' => '```phel
-(NAME_SET_VAR)
-```',
-            'fnSignature' => '(NAME_SET_VAR)',
-            'desc' => 'NAME_SET_VAR description',
+(var value)
+```
+Variables provide a way to manage mutable state. Each variable contains a single value. To create a variable use the var function.
+Examples [here](/documentation/global-and-local-bindings/#variables).',
+            'fnSignature' => '(var value)',
+            'desc' => 'Variables provide a way to manage mutable state. Each variable contains a single value. To create a variable use the var function.',
         ],
-        Symbol::NAME_DEF_INTERFACE => [
+        Symbol::NAME_DEF_INTERFACE => [ # overridden
             'doc' => '```phel
-(NAME_DEF_INTERFACE)
-```',
-            'fnSignature' => '(NAME_DEF_INTERFACE)',
-            'desc' => 'NAME_DEF_INTERFACE description',
+(definterface name & fns)
+```
+An interface in Phel defines an abstract set of functions. It is directly mapped to a PHP interface. An interface can be defined by using the definterface macro.
+Examples [here](/documentation/interfaces/#defining-interfaces).',
+            'fnSignature' => '(definterface name & fns)',
+            'desc' => 'An interface in Phel defines an abstract set of functions. It is directly mapped to a PHP interface. An interface can be defined by using the definterface macro.',
         ],
     ];
 
@@ -300,10 +320,10 @@ Examples [here](/documentation/php-interop/#php-set-object-properties).',
             }
 
             $normalizedNs = str_replace('phel\\', '', $ns);
-            $moduleName = $normalizedNs === 'core' ? '' : $normalizedNs.'/';
+            $moduleName = $normalizedNs === 'core' ? '' : $normalizedNs . '/';
 
             foreach (array_keys($this->getDefinitionsInNamespace($ns)) as $fnName) {
-                $fullFnName = $moduleName.$fnName;
+                $fullFnName = $moduleName . $fnName;
 
                 $normalizedData[$fullFnName] = $this->getPhelMeta($ns, $fnName);
             }
@@ -332,7 +352,7 @@ EOF;
         }
 
         $docPhelContent = str_replace('%REQUIRES%', $requireNamespaces, $template);
-        $phelFile = __DIR__.'/phel/doc.phel';
+        $phelFile = __DIR__ . '/phel/doc.phel';
         file_put_contents($phelFile, $docPhelContent);
 
         $namespace = $this->runFacade
