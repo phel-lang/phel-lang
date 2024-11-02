@@ -20,39 +20,60 @@ final readonly class PhelFnLoader implements PhelFnLoaderInterface
 {
     private const PRIVATE_SYMBOLS = [
         Symbol::NAME_APPLY => [
-            'doc' => '',
-            'fnSignature' => '',
-            'desc' => '',
+            'doc' => '```phel
+(apply f expr*)
+```
+Calls the function with the given arguments. The last argument must be a list of values, which are passed as separate arguments, rather than a single list. Apply returns the result of the calling function.
+Examples [here](/documentation/functions-and-recursion/#apply-functions).',
+            'fnSignature' => '(apply f expr*)',
+            'desc' => 'Calls the function with the given arguments. The last argument must be a list of values, which are passed as separate arguments, rather than a single list. Apply returns the result of the calling function.',
         ],
-        Symbol::NAME_CONCAT => [
-            'doc' => '',
-            'fnSignature' => '',
-            'desc' => '',
-        ],
+//      Symbol::NAME_CONCAT => [ # this is already in core.phel:97
         Symbol::NAME_DEF => [
-            'doc' => '',
-            'fnSignature' => '',
-            'desc' => '',
+            'doc' => '```phel
+(def name meta? value)
+```
+This special form binds a value to a global symbol.
+Examples [here](/documentation/global-and-local-bindings/#definition-def).',
+            'fnSignature' => '(def name meta? value)',
+            'desc' => 'This special form binds a value to a global symbol.',
         ],
         Symbol::NAME_DEF_STRUCT => [
-            'doc' => '',
-            'fnSignature' => '',
-            'desc' => '',
+            'doc' => '```phel
+(defstruct my-struct [a b c])
+```
+A Struct is a special kind of Map. It only supports a predefined number of keys and is associated to a global name. The Struct not only defines itself but also a predicate function.
+Examples [here](/documentation/data-structures/#structs).',
+            'fnSignature' => '(defstruct my-struct [a b c])',
+            'desc' => 'A Struct is a special kind of Map. It only supports a predefined number of keys and is associated to a global name. The Struct not only defines itself but also a predicate function.',
         ],
         Symbol::NAME_DO => [
-            'doc' => '',
-            'fnSignature' => '',
-            'desc' => '',
+            'doc' => '```phel
+(do expr*)
+```
+Evaluates the expressions in order and returns the value of the last expression. If no expression is given, nil is returned.
+Examples [here](/documentation/control-flow/#statements-do).',
+            'fnSignature' => '(do expr*)',
+            'desc' => 'Evaluates the expressions in order and returns the value of the last expression. If no expression is given, nil is returned.',
         ],
         Symbol::NAME_FN => [
-            'doc' => '',
-            'fnSignature' => '',
-            'desc' => '',
+            'doc' => '```phel
+(fn [params*] expr*)
+```
+Defines a function. A function consists of a list of parameters and a list of expression. The value of the last expression is returned as the result of the function. All other expression are only evaluated for side effects. If no expression is given, the function returns nil.
+Examples [here](/documentation/functions-and-recursion/#anonymous-function-fn).',
+            'fnSignature' => '(fn [params*] expr*)',
+            'desc' => 'Defines a function. A function consists of a list of parameters and a list of expression. The value of the last expression is returned as the result of the function. All other expression are only evaluated for side effects. If no expression is given, the function returns nil.',
         ],
         Symbol::NAME_FOREACH => [
-            'doc' => '',
-            'fnSignature' => '',
-            'desc' => '',
+            'doc' => '```phel
+(foreach [value valueExpr] expr*)
+(foreach [key value valueExpr] expr*)
+```
+The foreach special form can be used to iterate over all kind of PHP datastructures. The return value of foreach is always nil. The loop special form should be preferred of the foreach special form whenever possible.
+Examples [here](/documentation/control-flow/#foreach).',
+            'fnSignature' => '(foreach [key value valueExpr] expr*)',
+            'desc' => 'The foreach special form can be used to iterate over all kind of PHP datastructures. The return value of foreach is always nil. The loop special form should be preferred of the foreach special form whenever possible.',
         ],
         Symbol::NAME_IF => [
             'doc' => '```phel
@@ -60,84 +81,140 @@ final readonly class PhelFnLoader implements PhelFnLoaderInterface
 ```
 A control flow structure. First evaluates test. If test evaluates to true, only the then form is evaluated and the result is returned. If test evaluates to false only the else form is evaluated and the result is returned. If no else form is given, nil will be returned.
 
-The test evaluates to false if its value is false or equal to nil. Every other value evaluates to true. In sense of PHP this means (test != null && test !== false).',
+The test evaluates to false if its value is false or equal to nil. Every other value evaluates to true. In sense of PHP this means (test != null && test !== false).
+Examples [here](/documentation/control-flow/#if).',
             'fnSignature' => '(if test then else?)',
             'desc' => 'A control flow structure. First evaluates test. If test evaluates to true, only the then form is evaluated and the result is returned. If test evaluates to false only the else form is evaluated and the result is returned. If no else form is given, nil will be returned.',
         ],
         Symbol::NAME_LET => [
-            'doc' => '',
-            'fnSignature' => '',
-            'desc' => '',
+            'doc' => '```phel
+(let [bindings*] expr*)
+```
+Creates a new lexical context with assignments defined in bindings. Afterwards the list of expressions is evaluated and the value of the last expression is returned. If no expression is given nil is returned.
+Examples [here](/documentation/global-and-local-bindings/#local-bindings-let).',
+            'fnSignature' => '(let [bindings*] expr*)',
+            'desc' => 'Creates a new lexical context with assignments defined in bindings. Afterwards the list of expressions is evaluated and the value of the last expression is returned. If no expression is given nil is returned.',
         ],
         Symbol::NAME_LOOP => [
-            'doc' => '',
-            'fnSignature' => '',
-            'desc' => '',
+            'doc' => '```phel
+(loop [bindings*] expr*)
+```
+Creates a new lexical context with variables defined in bindings and defines a recursion point at the top of the loop.
+',
+            'fnSignature' => '(loop [bindings*] expr*)',
+            'desc' => 'Creates a new lexical context with variables defined in bindings and defines a recursion point at the top of the loop.',
         ],
         Symbol::NAME_NS => [
-            'doc' => '',
-            'fnSignature' => '',
-            'desc' => '',
+            'doc' => '```phel
+(ns name imports*)
+```
+Defines the namespace for the current file and adds imports to the environment. Imports can either be uses or requires. The keyword `:use` is used to import PHP classes, the keyword `:require` is used to import Phel modules and the keyword `:require-file` is used to load php files. Examples [here](/documentation/namespaces/#namespace-ns).',
+            'fnSignature' => '(ns name imports*)',
+            'desc' => 'Defines the namespace for the current file and adds imports to the environment. Imports can either be uses or requires. The keyword :use is used to import PHP classes, the keyword :require is used to import Phel modules and the keyword :require-file is used to load php files.',
         ],
         Symbol::NAME_PHP_ARRAY_GET => [
-            'doc' => '',
-            'fnSignature' => '',
-            'desc' => '',
-        ],
-        Symbol::NAME_PHP_ARRAY_PUSH => [
-            'doc' => '',
-            'fnSignature' => '',
-            'desc' => '',
+            'doc' => '```phel
+(php/aget arr index)
+```
+Equivalent to PHP\'s `arr[index] ?? null`.
+Examples [here](/documentation/php-interop/#get-php-array-value).',
+            'fnSignature' => '(php/aget arr index)',
+            'desc' => 'Equivalent to PHP\'s `arr[index] ?? null`.',
         ],
         Symbol::NAME_PHP_ARRAY_SET => [
-            'doc' => '',
-            'fnSignature' => '',
-            'desc' => '',
+            'doc' => '```phel
+(php/aset arr index value)
+```
+Equivalent to PHP\'s `arr[index] = value`.
+Examples [here](/documentation/php-interop/#set-php-array-value).',
+            'fnSignature' => '(php/aset arr index value)',
+            'desc' => 'Equivalent to PHP\'s `arr[index] = value`.',
+        ],
+        Symbol::NAME_PHP_ARRAY_PUSH => [
+            'doc' => '```phel
+(php/apush arr value)
+```
+Equivalent to PHP\'s `arr[] = value`.
+Examples [here](/documentation/php-interop/#append-php-array-value).',
+            'fnSignature' => '(php/apush arr value)',
+            'desc' => 'Equivalent to PHP\'s arr[] = value.',
         ],
         Symbol::NAME_PHP_ARRAY_UNSET => [
-            'doc' => '',
-            'fnSignature' => '',
-            'desc' => '',
+            'doc' => '```phel
+(php/aunset arr index)
+```
+Equivalent to PHP\'s `unset(arr[index])`.
+Examples [here](/documentation/php-interop/#unset-php-array-value).',
+            'fnSignature' => '(php/aunset arr index)',
+            'desc' => 'Equivalent to PHP\'s `unset(arr[index])`.',
         ],
         Symbol::NAME_PHP_NEW => [
-            'doc' => '',
-            'fnSignature' => '',
-            'desc' => '',
+            'doc' => '```phel
+(php/new expr args*)
+```
+Evaluates expr and creates a new PHP class using the arguments. The instance of the class is returned. Examples [here](/documentation/php-interop/#php-class-instantiation).',
+            'fnSignature' => '(php/new expr args*)',
+            'desc' => 'Evaluates expr and creates a new PHP class using the arguments. The instance of the class is returned.',
         ],
         Symbol::NAME_PHP_OBJECT_CALL => [
-            'doc' => '',
-            'fnSignature' => '',
-            'desc' => '',
+            'doc' => '```phel
+(php/-> object property)
+(php/:: class property)
+```
+Access to an object property or static attribute.
+Examples [here](/documentation/php-interop/#php-set-object-properties).',
+            'fnSignature' => '(php/-> object property)',
+            'desc' => 'Access to an object property or static attribute.',
         ],
         Symbol::NAME_PHP_OBJECT_STATIC_CALL => [
-            'doc' => '',
-            'fnSignature' => '',
-            'desc' => '',
+            'doc' => '```phel
+(php/:: class (methodname expr*))
+(php/:: class property)
+```
+
+Calls a static method or property from a PHP class. Both methodname and property must be symbols and cannot be an evaluated value.
+Examples [here](/documentation/php-interop/#php-static-method-and-property-call).
+',
+            'fnSignature' => '(php/:: class (methodname expr*))',
+            'desc' => 'Calls a static method or property from a PHP class. Both methodname and property must be symbols and cannot be an evaluated value.',
         ],
         Symbol::NAME_QUOTE => [
-            'doc' => '',
-            'fnSignature' => '',
-            'desc' => '',
+            'doc' => '```phel
+(NAME_QUOTE)
+```',
+            'fnSignature' => '(NAME_QUOTE)',
+            'desc' => 'NAME_QUOTE description',
         ],
         Symbol::NAME_RECUR => [
-            'doc' => '',
-            'fnSignature' => '',
-            'desc' => '',
+            'doc' => '```phel
+(recur expr*)
+Internally recur is implemented as a PHP while loop and therefore prevents the Maximum function nesting level errors.
+
+See also [loop](/documentation/global-and-local-bindings/#local-bindings-let).
+```',
+            'fnSignature' => '(recur expr*)',
+            'desc' => 'Internally recur is implemented as a PHP while loop and therefore prevents the Maximum function nesting level errors.',
         ],
         Symbol::NAME_UNQUOTE => [
-            'doc' => '',
-            'fnSignature' => '',
-            'desc' => '',
+            'doc' => '```phel
+(NAME_UNQUOTE)
+```',
+            'fnSignature' => '(NAME_UNQUOTE)',
+            'desc' => 'NAME_UNQUOTE description',
         ],
         Symbol::NAME_UNQUOTE_SPLICING => [
-            'doc' => '',
-            'fnSignature' => '',
-            'desc' => '',
+            'doc' => '```phel
+(NAME_UNQUOTE_SPLICING)
+```',
+            'fnSignature' => '(NAME_UNQUOTE_SPLICING)',
+            'desc' => 'NAME_UNQUOTE_SPLICING description',
         ],
         Symbol::NAME_THROW => [
-            'doc' => '',
-            'fnSignature' => '',
-            'desc' => '',
+            'doc' => '```phel
+(NAME_THROW)
+```',
+            'fnSignature' => '(NAME_THROW)',
+            'desc' => 'NAME_THROW description',
         ],
         Symbol::NAME_TRY => [
             'doc' => '```phel
@@ -149,34 +226,49 @@ Examples [here](/documentation/control-flow/#try-catch-and-finally).',
             'desc' => 'All expressions are evaluated and if no exception is thrown the value of the last expression is returned. If an exception occurs and a matching catch-clause is provided, its expression is evaluated and the value is returned. If no matching catch-clause can be found the exception is propagated out of the function. Before returning normally or abnormally the optionally finally-clause is evaluated.',
         ],
         Symbol::NAME_PHP_OBJECT_SET => [
-            'doc' => '',
-            'fnSignature' => '',
-            'desc' => '',
+            'doc' => '```phel
+(php/oset (php/-> object property) value)
+(php/oset (php/:: class property) value)
+```
+Use `php/oset` to set a value to a class/object property.
+Examples [here](/documentation/php-interop/#php-set-object-properties).',
+            'fnSignature' => '(php/oset (php/-> object prop) val)',
+            'desc' => 'Use `php/oset` to set a value to a class/object property.',
         ],
         Symbol::NAME_LIST => [
-            'doc' => '',
-            'fnSignature' => '',
-            'desc' => '',
+            'doc' => '```phel
+(NAME_LIST)
+```',
+            'fnSignature' => '(NAME_LIST)',
+            'desc' => 'NAME_LIST description',
         ],
         Symbol::NAME_VECTOR => [
-            'doc' => '',
-            'fnSignature' => '',
-            'desc' => '',
+            'doc' => '```phel
+(NAME_VECTOR)
+```',
+            'fnSignature' => '(NAME_VECTOR)',
+            'desc' => 'NAME_VECTOR description',
         ],
         Symbol::NAME_MAP => [
-            'doc' => '',
-            'fnSignature' => '',
-            'desc' => '',
+            'doc' => '```phel
+(NAME_MAP)
+```',
+            'fnSignature' => '(NAME_MAP)',
+            'desc' => 'NAME_MAP description',
         ],
         Symbol::NAME_SET_VAR => [
-            'doc' => '',
-            'fnSignature' => '',
-            'desc' => '',
+            'doc' => '```phel
+(NAME_SET_VAR)
+```',
+            'fnSignature' => '(NAME_SET_VAR)',
+            'desc' => 'NAME_SET_VAR description',
         ],
         Symbol::NAME_DEF_INTERFACE => [
-            'doc' => '',
-            'fnSignature' => '',
-            'desc' => '',
+            'doc' => '```phel
+(NAME_DEF_INTERFACE)
+```',
+            'fnSignature' => '(NAME_DEF_INTERFACE)',
+            'desc' => 'NAME_DEF_INTERFACE description',
         ],
     ];
 
@@ -208,10 +300,10 @@ Examples [here](/documentation/control-flow/#try-catch-and-finally).',
             }
 
             $normalizedNs = str_replace('phel\\', '', $ns);
-            $moduleName = $normalizedNs === 'core' ? '' : $normalizedNs . '/';
+            $moduleName = $normalizedNs === 'core' ? '' : $normalizedNs.'/';
 
             foreach (array_keys($this->getDefinitionsInNamespace($ns)) as $fnName) {
-                $fullFnName = $moduleName . $fnName;
+                $fullFnName = $moduleName.$fnName;
 
                 $normalizedData[$fullFnName] = $this->getPhelMeta($ns, $fnName);
             }
@@ -240,7 +332,7 @@ EOF;
         }
 
         $docPhelContent = str_replace('%REQUIRES%', $requireNamespaces, $template);
-        $phelFile = __DIR__ . '/phel/doc.phel';
+        $phelFile = __DIR__.'/phel/doc.phel';
         file_put_contents($phelFile, $docPhelContent);
 
         $namespace = $this->runFacade
