@@ -9,6 +9,8 @@ use Phel\Api\Domain\PhelFnNormalizerInterface;
 use Phel\Api\Transfer\PhelFunction;
 use Phel\Lang\Keyword;
 
+use function in_array;
+
 final readonly class PhelFnNormalizer implements PhelFnNormalizerInterface
 {
     /**
@@ -64,8 +66,8 @@ final readonly class PhelFnNormalizer implements PhelFnNormalizerInterface
         );
 
         usort($result, $this->sortingPhelFunctionsCallback());
-        return $result; #todo for testing; do not forget to remove duplicates
-        //        return $this->removeDuplicates($result);
+
+        return $this->removeDuplicates($result);
     }
 
     private function groupKey(string $fnName): string
@@ -101,5 +103,25 @@ final readonly class PhelFnNormalizer implements PhelFnNormalizerInterface
         }
 
         return $result;
+    }
+
+    /**
+     * @param  list<PhelFunction>  $fns
+     *
+     * @return list<PhelFunction>
+     */
+    private function removeDuplicates(array $fns): array
+    {
+        $seenNames = [];
+
+        return array_filter($fns, static function (PhelFunction $fn) use (&$seenNames): bool {
+            $fnName = $fn->fnName();
+            if (in_array($fnName, $seenNames, true)) {
+                return false;
+            }
+
+            $seenNames[] = $fnName;
+            return true;
+        });
     }
 }
