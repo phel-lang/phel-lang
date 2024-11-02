@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace PhelTest\Unit\Internal\Domain;
 
-use Phel\Api\Domain\PhelFnNormalizer;
-use Phel\Api\Infrastructure\PhelFnLoaderInterface;
+use Phel\Api\Application\PhelFnNormalizer;
+use Phel\Api\Domain\PhelFnLoaderInterface;
 use Phel\Api\Transfer\PhelFunction;
 use Phel\Lang\Collections\Map\PersistentMapInterface;
 use PHPUnit\Framework\TestCase;
@@ -121,14 +121,14 @@ final class PhelFnNormalizerTest extends TestCase
 
         $expected = [
             PhelFunction::fromArray([
-                'fnName' => 'fn-name?',
+                'fnName' => 'fn-name-',
                 'doc' => '',
                 'fnSignature' => '',
                 'desc' => '',
                 'groupKey' => 'fn-name',
             ]),
             PhelFunction::fromArray([
-                'fnName' => 'fn-name-',
+                'fnName' => 'fn-name?',
                 'doc' => '',
                 'fnSignature' => '',
                 'desc' => '',
@@ -152,14 +152,14 @@ final class PhelFnNormalizerTest extends TestCase
 
         $expected = [
             PhelFunction::fromArray([
-                'fnName' => 'fn-name-',
+                'fnName' => 'FN-NAME',
                 'doc' => '',
                 'fnSignature' => '',
                 'desc' => '',
                 'groupKey' => 'fn-name',
             ]),
             PhelFunction::fromArray([
-                'fnName' => 'FN-NAME',
+                'fnName' => 'fn-name-',
                 'doc' => '',
                 'fnSignature' => '',
                 'desc' => '',
