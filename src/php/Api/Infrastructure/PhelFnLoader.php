@@ -140,9 +140,13 @@ The test evaluates to false if its value is false or equal to nil. Every other v
             'desc' => '',
         ],
         Symbol::NAME_TRY => [
-            'doc' => '',
-            'fnSignature' => '',
-            'desc' => '',
+            'doc' => '```phel
+(try expr* catch-clause* finally-clause?)
+```
+All expressions are evaluated and if no exception is thrown the value of the last expression is returned. If an exception occurs and a matching catch-clause is provided, its expression is evaluated and the value is returned. If no matching catch-clause can be found the exception is propagated out of the function. Before returning normally or abnormally the optionally finally-clause is evaluated.
+Examples [here](/documentation/control-flow/#try-catch-and-finally).',
+            'fnSignature' => '(try expr* catch-clause* finally-clause?)',
+            'desc' => 'All expressions are evaluated and if no exception is thrown the value of the last expression is returned. If an exception occurs and a matching catch-clause is provided, its expression is evaluated and the value is returned. If no matching catch-clause can be found the exception is propagated out of the function. Before returning normally or abnormally the optionally finally-clause is evaluated.',
         ],
         Symbol::NAME_PHP_OBJECT_SET => [
             'doc' => '',
