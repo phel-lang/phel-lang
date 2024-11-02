@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace PhelTest\Unit\Internal\Domain;
 
-use Phel\Api\Domain\PhelFnNormalizer;
+use Phel\Api\Application\PhelFnNormalizer;
 use Phel\Api\Infrastructure\PhelFnLoaderInterface;
 use Phel\Api\Transfer\PhelFunction;
 use Phel\Lang\Collections\Map\PersistentMapInterface;

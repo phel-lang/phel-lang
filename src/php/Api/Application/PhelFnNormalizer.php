@@ -2,22 +2,26 @@
 
 declare(strict_types=1);
 
-namespace Phel\Api\Domain;
+namespace Phel\Api\Application;
 
+use Phel\Api\Domain\PhelFnNormalizerInterface;
 use Phel\Api\Infrastructure\PhelFnLoaderInterface;
 use Phel\Api\Transfer\PhelFunction;
 use Phel\Lang\Keyword;
 
-final class PhelFnNormalizer implements PhelFnNormalizerInterface
+final readonly class PhelFnNormalizer implements PhelFnNormalizerInterface
 {
+    /**
+     * @param  list<string>  $allNamespaces
+     */
     public function __construct(
-        private readonly PhelFnLoaderInterface $phelFnLoader,
+        private PhelFnLoaderInterface $phelFnLoader,
         private array $allNamespaces = [],
     ) {
     }
 
     /**
-     * @param list<string> $namespaces
+     * @param  list<string>  $namespaces
      *
      * @return list<PhelFunction>
      */
