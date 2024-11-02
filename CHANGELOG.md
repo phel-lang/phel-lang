@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.15.3](https://github.com/phel-lang/phel-lang/compare/v0.15.2...v0.15.3) - 2024-11-02
+
+* Update dependencies & run rector (#758)
+* Run in separate process the ApiFacadeTest (#759) 
+* Install and run composer-normalize (#760)
+* Add native phel symbols to ApiFacade (#764)
+
 ## [0.15.2](https://github.com/phel-lang/phel-lang/compare/v0.15.1...v0.15.2) - 2024-08-19
 
 * Fix a result of `str/split-lines` is in the wrong order (#735)
