@@ -14,4 +14,13 @@ interface PhelFnLoaderInterface
      * @return array<string,PersistentMapInterface>
      */
     public function getNormalizedPhelFunctions(array $namespaces = []): array;
+
+    /**
+     * @return array<string,array{
+     *     doc:string,
+     *     fnSignature:string,
+     *     desc:string,
+     * }>
+     */
+    public function getNormalizedNativeSymbols(): array;
 }
