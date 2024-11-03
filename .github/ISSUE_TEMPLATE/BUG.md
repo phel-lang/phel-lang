@@ -13,8 +13,8 @@ labels: bug
 
 | Q                   | A               |
 |---------------------|-----------------|
-| Phel version        | x.y.z           |
 | PHP version         | x.y.z           |
+| Phel version        | x.y.z           |
 
 #### Summary
 
