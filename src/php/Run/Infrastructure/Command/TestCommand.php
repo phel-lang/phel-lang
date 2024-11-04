@@ -29,6 +29,12 @@ final class TestCommand extends Command
 
     public const COMMAND_NAME = 'test';
 
+    private const ARG_PATHS = 'paths';
+
+    private const OPT_FILTER = 'filter';
+
+    private const OPT_TESTDOX = 'testdox';
+
     protected function configure(): void
     {
         $this->setName(self::COMMAND_NAME)
@@ -36,17 +42,17 @@ final class TestCommand extends Command
                 'Tests the given files. If no filenames are provided all tests in the "tests" directory are executed',
             )
             ->addArgument(
-                'paths',
+                self::ARG_PATHS,
                 InputArgument::IS_ARRAY | InputArgument::OPTIONAL,
                 'The file paths that you want to test.',
                 [],
             )->addOption(
-                'filter',
+                self::OPT_FILTER,
                 'f',
                 InputOption::VALUE_OPTIONAL,
                 'Filter by test names.',
             )->addOption(
-                'testdox',
+                self::OPT_TESTDOX,
                 null,
                 InputOption::VALUE_NONE,
                 'Report test execution progress in TestDox format.',
@@ -59,7 +65,7 @@ final class TestCommand extends Command
             $this->getFacade()->registerExceptionHandler();
 
             /** @var list<string> $paths */
-            $paths = (array)$input->getArgument('paths');
+            $paths = (array) $input->getArgument(self::ARG_PATHS);
             $namespacesInformation = $this->getFacade()->getDependenciesFromPaths($paths);
 
             $phelCode = $this->generatePhelCode($input, $namespacesInformation);
@@ -87,15 +93,15 @@ final class TestCommand extends Command
         return sprintf(
             '(do (phel\test/run-tests %s %s) (phel\test/successful?))',
             TestCommandOptions::fromArray([
-                TestCommandOptions::FILTER => (string)$input->getOption('filter'),
-                TestCommandOptions::TESTDOX => (bool)$input->getOption('testdox'),
+                TestCommandOptions::FILTER => (string) $input->getOption(self::OPT_FILTER),
+                TestCommandOptions::TESTDOX => (bool) $input->getOption(self::OPT_TESTDOX),
             ])->asPhelHashMap(),
             $this->namespacesAsString($namespacesInformation),
         );
     }
 
     /**
-     * @param list<NamespaceInformation> $namespacesInfo
+     * @param  list<NamespaceInformation>  $namespacesInfo
      */
     private function namespacesAsString(array $namespacesInfo): string
     {
