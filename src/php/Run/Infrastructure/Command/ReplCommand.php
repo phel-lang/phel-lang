@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Phel\Run\Infrastructure\Command;
 
 use Gacela\Framework\DocBlockResolverAwareTrait;
+use Phel\Compiler\Domain\Evaluator\Exceptions\CompiledCodeIsMalformedException;
 use Phel\Compiler\Domain\Exceptions\CompilerException;
 use Phel\Compiler\Domain\Parser\Exceptions\UnfinishedParserException;
 use Phel\Compiler\Infrastructure\CompileOptions;
@@ -214,6 +215,19 @@ final class ReplCommand extends Command
             $this->inputBuffer = [];
         } catch (UnfinishedParserException) {
             // The input is valid but more input is missing to finish the parsing.
+        } catch (CompiledCodeIsMalformedException $e) {
+            if ($e->getPrevious() instanceof Throwable) {
+                $e = $e->getPrevious();
+            }
+
+            $exceptionClass = array_reverse(explode('\\', $e::class))[0];
+            $this->io->writeln(sprintf(
+                '%s: %s',
+                $this->style->red($exceptionClass),
+                $e->getMessage() !== '' ? $e->getMessage() : '*no message*',
+            ));
+            $this->addHistory($fullInput);
+            $this->inputBuffer = [];
         } catch (CompilerException $e) {
             $this->io->writeLocatedException($e->getNestedException(), $e->getCodeSnippet());
             $this->addHistory($fullInput);
