@@ -2,6 +2,10 @@
 
 All notable changes to this project will be documented in this file.
 
+## Unreleased
+
+* Improve exception messages on REPL
+
 ## [0.15.3](https://github.com/phel-lang/phel-lang/compare/v0.15.2...v0.15.3) - 2024-11-02
 
 * Update dependencies & run rector (#758)
