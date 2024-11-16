@@ -14,6 +14,9 @@ interface RunFacadeInterface
 {
     public function runNamespace(string $namespace): void;
 
+    /**
+     * @return mixed The result of the executed code
+     */
     public function eval(string $phelCode, CompileOptions $compileOptions): mixed;
 
     /**
@@ -22,8 +25,8 @@ interface RunFacadeInterface
     public function getAllPhelDirectories(): array;
 
     /**
-     * @param  list<string>  $directories
-     * @param  list<string>  $ns
+     * @param list<string> $directories
+     * @param list<string> $ns
      *
      * @return list<NamespaceInformation>
      */
@@ -33,6 +36,11 @@ interface RunFacadeInterface
 
     public function registerExceptionHandler(): void;
 
+    /**
+     * @param list<string> $paths
+     *
+     * @return list<NamespaceInformation>
+     */
     public function getDependenciesFromPaths(array $paths): array;
 
     public function getNamespaceFromFile(string $fileOrPath): NamespaceInformation;

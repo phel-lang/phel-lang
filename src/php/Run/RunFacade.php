@@ -37,11 +37,6 @@ final class RunFacade extends AbstractFacade implements RunFacadeInterface
             ->registerExceptionHandler();
     }
 
-    /**
-     * @param list<string> $paths
-     *
-     * @return list<NamespaceInformation>
-     */
     public function getDependenciesFromPaths(array $paths): array
     {
         return $this->getFactory()
@@ -49,12 +44,6 @@ final class RunFacade extends AbstractFacade implements RunFacadeInterface
             ->getDependenciesFromPaths($paths);
     }
 
-    /**
-     * @param list<string> $directories
-     * @param list<string> $ns
-     *
-     * @return list<NamespaceInformation>
-     */
     public function getDependenciesForNamespace(array $directories, array $ns): array
     {
         return $this->getFactory()
@@ -69,9 +58,6 @@ final class RunFacade extends AbstractFacade implements RunFacadeInterface
             ->evalFile($info->getFile());
     }
 
-    /**
-     * @return mixed The result of the executed code
-     */
     public function eval(string $phelCode, CompileOptions $compileOptions): mixed
     {
         return $this->getFactory()
@@ -97,9 +83,6 @@ final class RunFacade extends AbstractFacade implements RunFacadeInterface
             ->writeStackTrace($output, $e);
     }
 
-    /**
-     * @return list<string>
-     */
     public function getAllPhelDirectories(): array
     {
         return $this->getFactory()

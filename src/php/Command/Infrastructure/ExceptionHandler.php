@@ -10,6 +10,9 @@ use Throwable;
 
 use function sprintf;
 
+/**
+ * @deprecated in favor of using custom try-catch on commands
+ */
 final class ExceptionHandler
 {
     private const ERROR_TYPES = [
