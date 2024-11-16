@@ -30,13 +30,6 @@ final class RunFacade extends AbstractFacade implements RunFacadeInterface
             ->getNamespaceFromFile($fileOrPath);
     }
 
-    public function registerExceptionHandler(): void
-    {
-        $this->getFactory()
-            ->getCommandFacade()
-            ->registerExceptionHandler();
-    }
-
     public function getDependenciesFromPaths(array $paths): array
     {
         return $this->getFactory()

@@ -34,8 +34,6 @@ interface RunFacadeInterface
 
     public function evalFile(NamespaceInformation $info): void;
 
-    public function registerExceptionHandler(): void;
-
     /**
      * @param list<string> $paths
      *

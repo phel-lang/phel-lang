@@ -95,11 +95,16 @@ final class ReplCommand extends Command
         $this->io->writeln($this->style->yellow('Welcome to the Phel Repl'));
         $this->io->writeln('Type "exit" or press Ctrl-D to exit.');
 
-        $this->getFacade()->registerExceptionHandler();
-        $this->loadAllPhelNamespaces();
-        $this->loopReadLineAndAnalyze();
+        try {
+            $this->loadAllPhelNamespaces();
+            $this->loopReadLineAndAnalyze();
 
-        return self::SUCCESS;
+            return self::SUCCESS;
+        } catch (Throwable $throwable) {
+            $this->io->writeStackTrace($throwable);
+        }
+
+        return self::FAILURE;
     }
 
     private function getReplStartupFile(): string

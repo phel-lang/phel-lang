@@ -62,8 +62,6 @@ final class TestCommand extends Command
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
         try {
-            $this->getFacade()->registerExceptionHandler();
-
             /** @var list<string> $paths */
             $paths = (array) $input->getArgument(self::ARG_PATHS);
             $namespacesInformation = $this->getFacade()->getDependenciesFromPaths($paths);

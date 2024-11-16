@@ -49,8 +49,6 @@ final readonly class FunctionsToExportFinder implements FunctionsToExportFinderI
      */
     private function loadAllNsFromPaths(): void
     {
-        $this->commandFacade->registerExceptionHandler();
-
         $namespaceFromDirectories = $this->buildFacade
             ->getNamespaceFromDirectories($this->exportDirs);
 
