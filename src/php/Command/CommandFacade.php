@@ -47,13 +47,6 @@ final class CommandFacade extends AbstractFacade implements CommandFacadeInterfa
             ->getStackTraceString($e);
     }
 
-    public function registerExceptionHandler(): void
-    {
-        $this->getFactory()
-            ->createExceptionHandler()
-            ->register();
-    }
-
     /**
      * We want to expose the ExceptionPrinter to `src/phel/test.phel` to be able to print the stack trace.
      */
