@@ -12,6 +12,8 @@ use Phel\Compiler\Domain\Parser\ReadModel\CodeSnippet;
 use Symfony\Component\Console\Output\OutputInterface;
 use Throwable;
 
+use function sprintf;
+
 final readonly class CommandExceptionWriter implements CommandExceptionWriterInterface
 {
     public function __construct(
@@ -24,7 +26,12 @@ final readonly class CommandExceptionWriter implements CommandExceptionWriterInt
         OutputInterface $output,
         Throwable $e,
     ): void {
-        $output->writeln($e->getMessage());
+        $output->writeln(sprintf(
+            '%s // file: %s',
+            $e->getPrevious()?->getMessage() ?? $e->getMessage(),
+            $e->getPrevious()?->getFile() ?? $e->getFile(),
+        ));
+        $output->writeln('> Dont you see the file? Check your phel config got `KeepGeneratedTempFiles=true`');
 
         $this->errorLog->writeln($this->getStackTraceString($e));
     }
