@@ -93,9 +93,9 @@ final readonly class TextExceptionPrinter implements ExceptionPrinterInterface
     {
         $str = '';
         $type = $e::class;
-        $msg = $e->getMessage();
-        $errorFile = $e->getFile();
-        $errorLine = $e->getLine();
+        $msg = $e->getPrevious()?->getMessage() ?? $e->getMessage();
+        $errorFile = $e->getPrevious()?->getFile() ?? $e->getFile();
+        $errorLine = $e->getPrevious()?->getLine() ?? $e->getLine();
         $pos = $this->filePositionExtractor->getOriginal($errorFile, $errorLine);
 
         $str .= $this->style->blue(sprintf('%s: %s', $type, $msg) . PHP_EOL);
