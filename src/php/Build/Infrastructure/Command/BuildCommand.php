@@ -40,7 +40,6 @@ final class BuildCommand extends Command
 
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
-        $this->getFacade()->registerExceptionHandler();
         $buildOptions = $this->getBuildOptions($input);
 
         try {

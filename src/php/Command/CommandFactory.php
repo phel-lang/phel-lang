@@ -17,7 +17,6 @@ use Phel\Command\Domain\Finder\DirectoryFinderInterface;
 use Phel\Command\Domain\Finder\VendorDirectoriesFinderInterface;
 use Phel\Command\Infrastructure\ComposerVendorDirectoriesFinder;
 use Phel\Command\Infrastructure\ErrorLog;
-use Phel\Command\Infrastructure\ExceptionHandler;
 use Phel\Command\Infrastructure\SourceMapExtractor;
 use Phel\Compiler\Application\Munge;
 use Phel\Printer\Printer;
@@ -53,13 +52,6 @@ final class CommandFactory extends AbstractFactory
             $this->getConfig()->getAppRootDir(),
             $this->getConfig()->getCodeDirs(),
             $this->createComposerVendorDirectoriesFinder(),
-        );
-    }
-
-    public function createExceptionHandler(): ExceptionHandler
-    {
-        return new ExceptionHandler(
-            $this->createExceptionPrinter(),
         );
     }
 

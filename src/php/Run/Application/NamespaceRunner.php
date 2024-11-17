@@ -18,8 +18,6 @@ final readonly class NamespaceRunner implements NamespaceRunnerInterface
 
     public function run(string $namespace): void
     {
-        $this->commandFacade->registerExceptionHandler();
-
         $namespaceInformation = $this->buildFacade->getDependenciesForNamespace(
             [
                 ...$this->commandFacade->getSourceDirectories(),
