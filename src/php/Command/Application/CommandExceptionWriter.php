@@ -28,7 +28,7 @@ final readonly class CommandExceptionWriter implements CommandExceptionWriterInt
     ): void {
         $output->writeln(sprintf(
             '%s // file: %s',
-            $e->getMessage(),
+            $e->getPrevious()?->getMessage() ?? $e->getMessage(),
             $e->getPrevious()?->getFile() ?? $e->getFile(),
         ));
         $output->writeln('> Dont you see the file? Check your phel config got `KeepGeneratedTempFiles=true`');
