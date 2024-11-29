@@ -103,7 +103,7 @@ final readonly class PhelFnNormalizer implements PhelFnNormalizerInterface
                 $meta['fnSignature'] ?? $originalNormalizedFns[$name]->fnSignature(),
                 $meta['desc'] ?? $originalNormalizedFns[$name]->description(),
                 $this->groupKey($name),
-                $meta['moreInfoUrl'] ?? '',
+                $meta['url'] ?? '',
             );
         }
 
