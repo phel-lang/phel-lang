@@ -17,9 +17,10 @@ interface PhelFnLoaderInterface
 
     /**
      * @return array<string,array{
-     *     doc:string,
-     *     fnSignature:string,
-     *     desc:string,
+     *     doc?: string,
+     *     fnSignature?: string,
+     *     desc?: string,
+     *     moreInfoUrl?: string,
      * }>
      */
     public function getNormalizedNativeSymbols(): array;

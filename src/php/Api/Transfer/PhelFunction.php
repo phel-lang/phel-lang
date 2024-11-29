@@ -12,6 +12,7 @@ final readonly class PhelFunction
         private string $fnSignature,
         private string $description,
         private string $groupKey = '',
+        private string $moreInfoUrl = '',
     ) {
     }
 
@@ -22,6 +23,7 @@ final readonly class PhelFunction
      *     fnSignature?: string,
      *     desc?: string,
      *     groupKey?: string,
+     *     moreInfoUrl?: string,
      * } $array
      */
     public static function fromArray(array $array): self
@@ -32,6 +34,7 @@ final readonly class PhelFunction
             $array['fnSignature'] ?? '',
             $array['desc'] ?? '',
             $array['groupKey'] ?? '',
+            $array['moreInfoUrl'] ?? '',
         );
     }
 
@@ -58,5 +61,10 @@ final readonly class PhelFunction
     public function groupKey(): string
     {
         return $this->groupKey;
+    }
+
+    public function moreInfoUrl(): string
+    {
+        return $this->moreInfoUrl;
     }
 }

@@ -47,7 +47,7 @@ final readonly class PhelFnNormalizer implements PhelFnNormalizerInterface
             preg_match($pattern, (string) $doc, $matches);
             $groupKey = $this->groupKey($fnName);
 
-            $normalizedFns[$groupKey][] = new PhelFunction(
+            $normalizedFns[$groupKey][$fnName] = new PhelFunction(
                 $fnName,
                 $doc,
                 $matches['fnSignature'] ?? '',
@@ -60,9 +60,11 @@ final readonly class PhelFnNormalizer implements PhelFnNormalizerInterface
             usort($values, $this->sortingPhelFunctionsCallback());
         }
 
+        $originalValues = array_values($normalizedFns);
+
         $result = array_merge(
-            $this->normalizeNativeSymbols(),
-            ...array_values($normalizedFns),
+            $this->normalizeNativeSymbols(array_merge(...$originalValues)),
+            ...$originalValues,
         );
 
         usort($result, $this->sortingPhelFunctionsCallback());
@@ -87,18 +89,21 @@ final readonly class PhelFnNormalizer implements PhelFnNormalizerInterface
     }
 
     /**
+     * @param array<string, PhelFunction> $originalNormalizedFns
+     *
      * @return  list<PhelFunction>
      */
-    private function normalizeNativeSymbols(): array
+    private function normalizeNativeSymbols(array $originalNormalizedFns): array
     {
         $result = [];
         foreach ($this->phelFnLoader->getNormalizedNativeSymbols() as $name => $meta) {
             $result[] = new PhelFunction(
                 $name,
-                $meta['doc'] ?? '',
-                $meta['fnSignature'] ?? '',
-                $meta['desc'] ?? '',
+                $meta['doc'] ?? $originalNormalizedFns[$name]->doc(),
+                $meta['fnSignature'] ?? $originalNormalizedFns[$name]->fnSignature(),
+                $meta['desc'] ?? $originalNormalizedFns[$name]->description(),
                 $this->groupKey($name),
+                $meta['moreInfoUrl'] ?? '',
             );
         }
 

@@ -65,6 +65,9 @@ Examples [here](/documentation/functions-and-recursion/#anonymous-function-fn).'
             'fnSignature' => '(fn [params*] expr*)',
             'desc' => 'Defines a function. A function consists of a list of parameters and a list of expression. The value of the last expression is returned as the result of the function. All other expression are only evaluated for side effects. If no expression is given, the function returns nil.',
         ],
+        'for' => [
+            'moreInfoUrl' => '/documentation/control-flow/#for',
+        ],
         Symbol::NAME_FOREACH => [
             'doc' => '```phel
 (foreach [value valueExpr] expr*)

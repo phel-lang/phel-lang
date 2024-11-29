@@ -116,6 +116,7 @@ final class DocCommand extends Command
      *   signature: string,
      *   doc: string,
      *   description: string,
+     *   moreInfoUrl: string,
      * }>
      */
     private function normalizeGroupedFunctions(array $phelFunctions, string $search): array
@@ -135,6 +136,7 @@ final class DocCommand extends Command
                 'signature' => $phelFunction->fnSignature(),
                 'doc' => $phelFunction->doc(),
                 'description' => preg_replace('/\r?\n/', '', $phelFunction->description()),
+                'moreInfoUrl' => $phelFunction->moreInfoUrl(),
             ];
         }
 
