@@ -23,8 +23,8 @@ final readonly class PhelFnLoader implements PhelFnLoaderInterface
             'doc' => '```phel
 (apply f expr*)
 ```
-Calls the function with the given arguments. The last argument must be a list of values, which are passed as separate arguments, rather than a single list. Apply returns the result of the calling function.
-Examples [here](/documentation/functions-and-recursion/#apply-functions).',
+Calls the function with the given arguments. The last argument must be a list of values, which are passed as separate arguments, rather than a single list. Apply returns the result of the calling function.',
+            'moreInfoUrl' => '/documentation/functions-and-recursion/#apply-functions',
             'fnSignature' => '(apply f expr*)',
             'desc' => 'Calls the function with the given arguments. The last argument must be a list of values, which are passed as separate arguments, rather than a single list. Apply returns the result of the calling function.',
         ],
@@ -33,8 +33,8 @@ Examples [here](/documentation/functions-and-recursion/#apply-functions).',
             'doc' => '```phel
 (def name meta? value)
 ```
-This special form binds a value to a global symbol.
-Examples [here](/documentation/global-and-local-bindings/#definition-def).',
+This special form binds a value to a global symbol.',
+            'moreInfoUrl' => '/documentation/global-and-local-bindings/#definition-def',
             'fnSignature' => '(def name meta? value)',
             'desc' => 'This special form binds a value to a global symbol.',
         ],
@@ -42,8 +42,8 @@ Examples [here](/documentation/global-and-local-bindings/#definition-def).',
             'doc' => '```phel
 (defstruct my-struct [a b c])
 ```
-A Struct is a special kind of Map. It only supports a predefined number of keys and is associated to a global name. The Struct not only defines itself but also a predicate function.
-Examples [here](/documentation/data-structures/#structs).',
+A Struct is a special kind of Map. It only supports a predefined number of keys and is associated to a global name. The Struct not only defines itself but also a predicate function.',
+            'moreInfoUrl' => '/documentation/data-structures/#structs',
             'fnSignature' => '(defstruct my-struct [a b c])',
             'desc' => 'A Struct is a special kind of Map. It only supports a predefined number of keys and is associated to a global name. The Struct not only defines itself but also a predicate function.',
         ],
@@ -51,8 +51,8 @@ Examples [here](/documentation/data-structures/#structs).',
             'doc' => '```phel
 (do expr*)
 ```
-Evaluates the expressions in order and returns the value of the last expression. If no expression is given, nil is returned.
-Examples [here](/documentation/control-flow/#statements-do).',
+Evaluates the expressions in order and returns the value of the last expression. If no expression is given, nil is returned.',
+            'moreInfoUrl' => '/documentation/control-flow/#statements-do',
             'fnSignature' => '(do expr*)',
             'desc' => 'Evaluates the expressions in order and returns the value of the last expression. If no expression is given, nil is returned.',
         ],
@@ -60,8 +60,8 @@ Examples [here](/documentation/control-flow/#statements-do).',
             'doc' => '```phel
 (fn [params*] expr*)
 ```
-Defines a function. A function consists of a list of parameters and a list of expression. The value of the last expression is returned as the result of the function. All other expression are only evaluated for side effects. If no expression is given, the function returns nil.
-Examples [here](/documentation/functions-and-recursion/#anonymous-function-fn).',
+Defines a function. A function consists of a list of parameters and a list of expression. The value of the last expression is returned as the result of the function. All other expression are only evaluated for side effects. If no expression is given, the function returns nil.',
+            'moreInfoUrl' => '/documentation/functions-and-recursion/#anonymous-function-fn',
             'fnSignature' => '(fn [params*] expr*)',
             'desc' => 'Defines a function. A function consists of a list of parameters and a list of expression. The value of the last expression is returned as the result of the function. All other expression are only evaluated for side effects. If no expression is given, the function returns nil.',
         ],
@@ -73,10 +73,10 @@ Examples [here](/documentation/functions-and-recursion/#anonymous-function-fn).'
 (foreach [value valueExpr] expr*)
 (foreach [key value valueExpr] expr*)
 ```
-The foreach special form can be used to iterate over all kind of PHP datastructures. The return value of foreach is always nil. The loop special form should be preferred of the foreach special form whenever possible.
-Examples [here](/documentation/control-flow/#foreach).',
+The foreach special form can be used to iterate over all kind of PHP datastructures. The return value of foreach is always nil. The loop special form should be preferred of the foreach special form whenever possible.',
             'fnSignature' => '(foreach [key value valueExpr] expr*)',
             'desc' => 'The foreach special form can be used to iterate over all kind of PHP datastructures. The return value of foreach is always nil. The loop special form should be preferred of the foreach special form whenever possible.',
+            'moreInfoUrl' => '/documentation/control-flow/#foreach',
         ],
         Symbol::NAME_IF => [
             'doc' => '```phel
@@ -84,8 +84,8 @@ Examples [here](/documentation/control-flow/#foreach).',
 ```
 A control flow structure. First evaluates test. If test evaluates to true, only the then form is evaluated and the result is returned. If test evaluates to false only the else form is evaluated and the result is returned. If no else form is given, nil will be returned.
 
-The test evaluates to false if its value is false or equal to nil. Every other value evaluates to true. In sense of PHP this means (test != null && test !== false).
-Examples [here](/documentation/control-flow/#if).',
+The test evaluates to false if its value is false or equal to nil. Every other value evaluates to true. In sense of PHP this means (test != null && test !== false).',
+            'moreInfoUrl' => '/documentation/control-flow/#if',
             'fnSignature' => '(if test then else?)',
             'desc' => 'A control flow structure. First evaluates test. If test evaluates to true, only the then form is evaluated and the result is returned. If test evaluates to false only the else form is evaluated and the result is returned. If no else form is given, nil will be returned.',
         ],
@@ -93,8 +93,8 @@ Examples [here](/documentation/control-flow/#if).',
             'doc' => '```phel
 (let [bindings*] expr*)
 ```
-Creates a new lexical context with assignments defined in bindings. Afterwards the list of expressions is evaluated and the value of the last expression is returned. If no expression is given nil is returned.
-Examples [here](/documentation/global-and-local-bindings/#local-bindings-let).',
+Creates a new lexical context with assignments defined in bindings. Afterwards the list of expressions is evaluated and the value of the last expression is returned. If no expression is given nil is returned.',
+            'moreInfoUrl' => '/documentation/global-and-local-bindings/#local-bindings-let',
             'fnSignature' => '(let [bindings*] expr*)',
             'desc' => 'Creates a new lexical context with assignments defined in bindings. Afterwards the list of expressions is evaluated and the value of the last expression is returned. If no expression is given nil is returned.',
         ],
@@ -102,8 +102,7 @@ Examples [here](/documentation/global-and-local-bindings/#local-bindings-let).',
             'doc' => '```phel
 (loop [bindings*] expr*)
 ```
-Creates a new lexical context with variables defined in bindings and defines a recursion point at the top of the loop.
-',
+Creates a new lexical context with variables defined in bindings and defines a recursion point at the top of the loop.',
             'fnSignature' => '(loop [bindings*] expr*)',
             'desc' => 'Creates a new lexical context with variables defined in bindings and defines a recursion point at the top of the loop.',
         ],
@@ -111,7 +110,8 @@ Creates a new lexical context with variables defined in bindings and defines a r
             'doc' => '```phel
 (ns name imports*)
 ```
-Defines the namespace for the current file and adds imports to the environment. Imports can either be uses or requires. The keyword `:use` is used to import PHP classes, the keyword `:require` is used to import Phel modules and the keyword `:require-file` is used to load php files. Examples [here](/documentation/namespaces/#namespace-ns).',
+Defines the namespace for the current file and adds imports to the environment. Imports can either be uses or requires. The keyword `:use` is used to import PHP classes, the keyword `:require` is used to import Phel modules and the keyword `:require-file` is used to load php files.',
+            'moreInfoUrl' => '/documentation/namespaces/#namespace-ns',
             'fnSignature' => '(ns name imports*)',
             'desc' => 'Defines the namespace for the current file and adds imports to the environment. Imports can either be uses or requires. The keyword :use is used to import PHP classes, the keyword :require is used to import Phel modules and the keyword :require-file is used to load php files.',
         ],
@@ -119,8 +119,8 @@ Defines the namespace for the current file and adds imports to the environment. 
             'doc' => '```phel
 (php/aget arr index)
 ```
-Equivalent to PHP\'s `arr[index] ?? null`.
-Examples [here](/documentation/php-interop/#get-php-array-value).',
+Equivalent to PHP\'s `arr[index] ?? null`.',
+            'moreInfoUrl' => '/documentation/php-interop/#get-php-array-value',
             'fnSignature' => '(php/aget arr index)',
             'desc' => "Equivalent to PHP's `arr[index] ?? null`.",
         ],
@@ -128,8 +128,8 @@ Examples [here](/documentation/php-interop/#get-php-array-value).',
             'doc' => '```phel
 (php/aset arr index value)
 ```
-Equivalent to PHP\'s `arr[index] = value`.
-Examples [here](/documentation/php-interop/#set-php-array-value).',
+Equivalent to PHP\'s `arr[index] = value`.',
+            'moreInfoUrl' => '/documentation/php-interop/#set-php-array-value',
             'fnSignature' => '(php/aset arr index value)',
             'desc' => "Equivalent to PHP's `arr[index] = value`.",
         ],
@@ -137,8 +137,8 @@ Examples [here](/documentation/php-interop/#set-php-array-value).',
             'doc' => '```phel
 (php/apush arr value)
 ```
-Equivalent to PHP\'s `arr[] = value`.
-Examples [here](/documentation/php-interop/#append-php-array-value).',
+Equivalent to PHP\'s `arr[] = value`.',
+            'moreInfoUrl' => '/documentation/php-interop/#append-php-array-value',
             'fnSignature' => '(php/apush arr value)',
             'desc' => "Equivalent to PHP's arr[] = value.",
         ],
@@ -146,8 +146,8 @@ Examples [here](/documentation/php-interop/#append-php-array-value).',
             'doc' => '```phel
 (php/aunset arr index)
 ```
-Equivalent to PHP\'s `unset(arr[index])`.
-Examples [here](/documentation/php-interop/#unset-php-array-value).',
+Equivalent to PHP\'s `unset(arr[index])`.',
+            'moreInfoUrl' => '/documentation/php-interop/#unset-php-array-value',
             'fnSignature' => '(php/aunset arr index)',
             'desc' => "Equivalent to PHP's `unset(arr[index])`.",
         ],
@@ -155,7 +155,8 @@ Examples [here](/documentation/php-interop/#unset-php-array-value).',
             'doc' => '```phel
 (php/new expr args*)
 ```
-Evaluates expr and creates a new PHP class using the arguments. The instance of the class is returned. Examples [here](/documentation/php-interop/#php-class-instantiation).',
+Evaluates expr and creates a new PHP class using the arguments. The instance of the class is returned.',
+            'moreInfoUrl' => '/documentation/php-interop/#php-class-instantiation',
             'fnSignature' => '(php/new expr args*)',
             'desc' => 'Evaluates expr and creates a new PHP class using the arguments. The instance of the class is returned.',
         ],
@@ -164,8 +165,8 @@ Evaluates expr and creates a new PHP class using the arguments. The instance of 
 (php/-> object property)
 (php/:: class property)
 ```
-Access to an object property or static attribute.
-Examples [here](/documentation/php-interop/#php-set-object-properties).',
+Access to an object property or static attribute.',
+            'moreInfoUrl' => '/documentation/php-interop/#php-set-object-properties',
             'fnSignature' => '(php/-> object property)',
             'desc' => 'Access to an object property or static attribute.',
         ],
@@ -175,9 +176,8 @@ Examples [here](/documentation/php-interop/#php-set-object-properties).',
 (php/:: class property)
 ```
 
-Calls a static method or property from a PHP class. Both methodname and property must be symbols and cannot be an evaluated value.
-Examples [here](/documentation/php-interop/#php-static-method-and-property-call).
-',
+Calls a static method or property from a PHP class. Both methodname and property must be symbols and cannot be an evaluated value.',
+            'moreInfoUrl' => '/documentation/php-interop/#php-static-method-and-property-call',
             'fnSignature' => '(php/:: class (methodname expr*))',
             'desc' => 'Calls a static method or property from a PHP class. Both methodname and property must be symbols and cannot be an evaluated value.',
         ],
@@ -191,9 +191,9 @@ Examples [here](/documentation/php-interop/#php-static-method-and-property-call)
         Symbol::NAME_RECUR => [
             'doc' => '```phel
 (recur expr*)
-Internally recur is implemented as a PHP while loop and therefore prevents the Maximum function nesting level errors.
-Examples [here](/documentation/global-and-local-bindings/#local-bindings-let).
+Internally recur is implemented as a PHP while loop and therefore prevents the Maximum function nesting level errors..
 ```',
+            'moreInfoUrl' => '/documentation/global-and-local-bindings/#local-bindings-let',
             'fnSignature' => '(recur expr*)',
             'desc' => 'Internally recur is implemented as a PHP while loop and therefore prevents the Maximum function nesting level errors.',
         ],
@@ -202,8 +202,8 @@ Examples [here](/documentation/global-and-local-bindings/#local-bindings-let).
 (unquote my-sym) # Evaluates to my-sym
 ,my-sym          # Shorthand for (same as above)
 ```
-Values that should be evaluated in a macro are marked with the unquote function (shorthand `,`).
-Examples [here](/documentation/macros/#quasiquote).',
+Values that should be evaluated in a macro are marked with the unquote function (shorthand `,`).',
+            'moreInfoUrl' => '/documentation/macros/#quasiquote',
             'fnSignature' => '(unquote my-sym)',
             'desc' => 'Values that should be evaluated in a macro are marked with the unquote function (shorthand ,).',
         ],
@@ -212,8 +212,8 @@ Examples [here](/documentation/macros/#quasiquote).',
 (unquote-splicing my-sym) # Evaluates to my-sym
 ,@my-sym                  # Shorthand for (same as above)
 ```
-Values that should be evaluated in a macro are marked with the unquote function (shorthand `,@`).
-See also [loop](/documentation/macros/#quasiquote).',
+Values that should be evaluated in a macro are marked with the unquote function (shorthand `,@`).',
+            'moreInfoUrl' => '/documentation/macros/#quasiquote',
             'fnSignature' => '(unquote-splicing my-sym)',
             'desc' => 'Values that should be evaluated in a macro are marked with the unquote function (shorthand ,@).',
         ],
@@ -223,6 +223,7 @@ See also [loop](/documentation/macros/#quasiquote).',
 ```
 Throw an exception.
 See [try-catch](/documentation/control-flow/#try-catch-and-finally).',
+            'moreInfoUrl' => '',
             'fnSignature' => '(throw exception)',
             'desc' => 'Throw an exception.',
         ],
@@ -230,8 +231,8 @@ See [try-catch](/documentation/control-flow/#try-catch-and-finally).',
             'doc' => '```phel
 (try expr* catch-clause* finally-clause?)
 ```
-All expressions are evaluated and if no exception is thrown the value of the last expression is returned. If an exception occurs and a matching catch-clause is provided, its expression is evaluated and the value is returned. If no matching catch-clause can be found the exception is propagated out of the function. Before returning normally or abnormally the optionally finally-clause is evaluated.
-Examples [here](/documentation/control-flow/#try-catch-and-finally).',
+All expressions are evaluated and if no exception is thrown the value of the last expression is returned. If an exception occurs and a matching catch-clause is provided, its expression is evaluated and the value is returned. If no matching catch-clause can be found the exception is propagated out of the function. Before returning normally or abnormally the optionally finally-clause is evaluated.',
+            'moreInfoUrl' => '/documentation/control-flow/#try-catch-and-finally',
             'fnSignature' => '(try expr* catch-clause* finally-clause?)',
             'desc' => 'All expressions are evaluated and if no exception is thrown the value of the last expression is returned. If an exception occurs and a matching catch-clause is provided, its expression is evaluated and the value is returned. If no matching catch-clause can be found the exception is propagated out of the function. Before returning normally or abnormally the optionally finally-clause is evaluated.',
         ],
@@ -240,8 +241,8 @@ Examples [here](/documentation/control-flow/#try-catch-and-finally).',
 (php/oset (php/-> object property) value)
 (php/oset (php/:: class property) value)
 ```
-Use `php/oset` to set a value to a class/object property.
-Examples [here](/documentation/php-interop/#php-set-object-properties).',
+Use `php/oset` to set a value to a class/object property.',
+            'moreInfoUrl' => '/documentation/php-interop/#php-set-object-properties',
             'fnSignature' => '(php/oset (php/-> object prop) val)',
             'desc' => 'Use `php/oset` to set a value to a class/object property.',
         ],
@@ -249,9 +250,8 @@ Examples [here](/documentation/php-interop/#php-set-object-properties).',
             'doc' => '```phel
 (list & xs) # \'(& xs)
 ```
-Creates a new list. If no argument is provided, an empty list is created.
-Examples [here](/documentation/data-structures/#lists).
-',
+Creates a new list. If no argument is provided, an empty list is created.',
+            'moreInfoUrl' => '/documentation/data-structures/#lists',
             'fnSignature' => "(list & xs) # '(& xs)",
             'desc' => 'Creates a new list. If no argument is provided, an empty list is created.',
         ],
@@ -259,9 +259,8 @@ Examples [here](/documentation/data-structures/#lists).
             'doc' => '```phel
 (vector & xs) # [& xs]
 ```
-Creates a new vector. If no argument is provided, an empty vector is created.
-Examples [here](/documentation/data-structures/#vectors).
-',
+Creates a new vector. If no argument is provided, an empty vector is created.',
+            'moreInfoUrl' => '/documentation/data-structures/#vectors',
             'fnSignature' => '(vector & xs) # [& xs]',
             'desc' => 'Creates a new vector. If no argument is provided, an empty vector is created.',
         ],
@@ -269,9 +268,8 @@ Examples [here](/documentation/data-structures/#vectors).
             'doc' => '```phel
 (hash-map & xs) # {& xs}
 ```
-Creates a new hash map. If no argument is provided, an empty hash map is created. The number of parameters must be even.
-Examples [here](/documentation/data-structures/#maps).
-',
+Creates a new hash map. If no argument is provided, an empty hash map is created. The number of parameters must be even.',
+            'moreInfoUrl' => '/documentation/data-structures/#maps',
             'fnSignature' => '(hash-map & xs) # {& xs}',
             'desc' => 'Creates a new hash map. If no argument is provided, an empty hash map is created. The number of parameters must be even.',
         ],
@@ -279,8 +277,8 @@ Examples [here](/documentation/data-structures/#maps).
             'doc' => '```phel
 (var value)
 ```
-Variables provide a way to manage mutable state. Each variable contains a single value. To create a variable use the var function.
-Examples [here](/documentation/global-and-local-bindings/#variables).',
+Variables provide a way to manage mutable state. Each variable contains a single value. To create a variable use the var function.',
+            'moreInfoUrl' => '/documentation/global-and-local-bindings/#variables',
             'fnSignature' => '(var value)',
             'desc' => 'Variables provide a way to manage mutable state. Each variable contains a single value. To create a variable use the var function.',
         ],
@@ -288,8 +286,8 @@ Examples [here](/documentation/global-and-local-bindings/#variables).',
             'doc' => '```phel
 (definterface name & fns)
 ```
-An interface in Phel defines an abstract set of functions. It is directly mapped to a PHP interface. An interface can be defined by using the definterface macro.
-Examples [here](/documentation/interfaces/#defining-interfaces).',
+An interface in Phel defines an abstract set of functions. It is directly mapped to a PHP interface. An interface can be defined by using the definterface macro.',
+            'moreInfoUrl' => '/documentation/interfaces/#defining-interfaces',
             'fnSignature' => '(definterface name & fns)',
             'desc' => 'An interface in Phel defines an abstract set of functions. It is directly mapped to a PHP interface. An interface can be defined by using the definterface macro.',
         ],
