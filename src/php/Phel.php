@@ -38,8 +38,7 @@ final class Phel
         $runFacade = new RunFacade();
         $runFacade->runNamespace($namespace);
 
-        $filesystemFacade = new FilesystemFacade();
-        $filesystemFacade->clearAll();
+        Gacela::get(FilesystemFacade::class)?->clearAll();
     }
 
     /**
