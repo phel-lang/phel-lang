@@ -150,7 +150,7 @@ final class TransientHashMap implements TransientMapInterface
      *
      * @return V|null
      */
-    public function offsetGet($offset): mixed
+    public function offsetGet(mixed $offset): mixed
     {
         return $this->find($offset);
     }
@@ -158,7 +158,7 @@ final class TransientHashMap implements TransientMapInterface
     /**
      * @param K $offset
      */
-    public function offsetExists($offset): bool
+    public function offsetExists(mixed $offset): bool
     {
         return $this->contains($offset);
     }

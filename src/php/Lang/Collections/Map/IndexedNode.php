@@ -159,7 +159,7 @@ final class IndexedNode implements HashMapNodeInterface
      *
      * @return HashMapNodeInterface<K, V>
      */
-    private function createNode(int $shift, mixed $key1, $value1, int $key2Hash, $key2, $value2): HashMapNodeInterface
+    private function createNode(int $shift, mixed $key1, mixed $value1, int $key2Hash, mixed $key2, mixed $value2): HashMapNodeInterface
     {
         $key1Hash = $this->hasher->hash($key1);
         if ($key1Hash === $key2Hash) {
@@ -178,7 +178,7 @@ final class IndexedNode implements HashMapNodeInterface
      *
      * @return HashMapNodeInterface<K, V>
      */
-    private function updateKey(int $index, $currentValue, $newValue): HashMapNodeInterface
+    private function updateKey(int $index, mixed $currentValue, mixed $newValue): HashMapNodeInterface
     {
         if ($this->equalizer->equals($newValue, $currentValue)) {
             return $this;
@@ -195,7 +195,7 @@ final class IndexedNode implements HashMapNodeInterface
      *
      * @return HashMapNodeInterface<K, V>
      */
-    private function addToChild(int $idx, int $shift, int $hash, $key, $value, Box $addedLeaf): HashMapNodeInterface
+    private function addToChild(int $idx, int $shift, int $hash, mixed $key, mixed $value, Box $addedLeaf): HashMapNodeInterface
     {
         /** @var HashMapNodeInterface $childNode */
         $childNode = $this->objects[$idx][1];
@@ -216,7 +216,7 @@ final class IndexedNode implements HashMapNodeInterface
      *
      * @return HashMapNodeInterface<K, V>
      */
-    private function insertNewKey(int $idx, int $shift, int $hash, $key, $value, Box $addedLeaf): HashMapNodeInterface
+    private function insertNewKey(int $idx, int $shift, int $hash, mixed $key, mixed $value, Box $addedLeaf): HashMapNodeInterface
     {
         if (count($this->objects) >= 16) {
             return $this->splitNode($idx, $shift, $hash, $key, $value, $addedLeaf);
@@ -231,7 +231,7 @@ final class IndexedNode implements HashMapNodeInterface
      *
      * @return HashMapNodeInterface<K, V>
      */
-    private function splitNode(int $idx, int $shift, int $hash, $key, $value, Box $addedLeaf): HashMapNodeInterface
+    private function splitNode(int $idx, int $shift, int $hash, mixed $key, mixed $value, Box $addedLeaf): HashMapNodeInterface
     {
         $nodes = []; // array_fill(0, 32, null);
         $empty = self::empty($this->hasher, $this->equalizer);
@@ -253,7 +253,7 @@ final class IndexedNode implements HashMapNodeInterface
      *
      * @return IndexedNode<K, V>
      */
-    private function addNewKeyToNode(int $idx, $key, $value, Box $addedLeaf): self
+    private function addNewKeyToNode(int $idx, mixed $key, mixed $value, Box $addedLeaf): self
     {
         $newObjects = $this->objects;
         $newObjects[$idx] = [$key, $value];

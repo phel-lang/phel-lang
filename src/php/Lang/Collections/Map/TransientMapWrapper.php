@@ -58,7 +58,7 @@ final class TransientMapWrapper implements TransientMapInterface
      *
      * @return V|null
      */
-    public function offsetGet($offset): mixed
+    public function offsetGet(mixed $offset): mixed
     {
         return $this->internal->offsetGet($offset);
     }
@@ -66,7 +66,7 @@ final class TransientMapWrapper implements TransientMapInterface
     /**
      * @param K $offset
      */
-    public function offsetExists($offset): bool
+    public function offsetExists(mixed $offset): bool
     {
         return $this->internal->offsetExists($offset);
     }

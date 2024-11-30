@@ -18,5 +18,5 @@ interface BindingDeconstructorInterface
      * @param T $binding The binding form
      * @param TypeInterface|string|float|int|bool|null $value The value form
      */
-    public function deconstruct(array &$bindings, $binding, $value): void;
+    public function deconstruct(array &$bindings, mixed $binding, $value): void;
 }

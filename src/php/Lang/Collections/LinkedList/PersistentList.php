@@ -33,7 +33,7 @@ final class PersistentList extends AbstractType implements PersistentListInterfa
         private readonly HasherInterface $hasher,
         private readonly EqualizerInterface $equalizer,
         private readonly ?PersistentMapInterface $meta,
-        private $first,
+        private readonly mixed $first,
         private $rest,
         private readonly int $count,
     ) {

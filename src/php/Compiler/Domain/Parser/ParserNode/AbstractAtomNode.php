@@ -21,7 +21,7 @@ abstract class AbstractAtomNode implements NodeInterface
         private readonly string $code,
         private readonly SourceLocation $startLocation,
         private readonly SourceLocation $endLocation,
-        private $value,
+        private readonly mixed $value,
     ) {
     }
 

@@ -234,7 +234,7 @@ final class TransientVector implements TransientVectorInterface
     /**
      * @param T $value
      */
-    private function doUpdate(int $level, array $node, int $i, $value): array
+    private function doUpdate(int $level, array $node, int $i, mixed $value): array
     {
         $ret = $node;
         if ($level === 0) {

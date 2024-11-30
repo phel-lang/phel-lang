@@ -18,7 +18,7 @@ abstract class AbstractZipper
      * @param list<T> $rightSiblings
      */
     final public function __construct(
-        protected $node,
+        protected mixed $node,
         protected ?self $parent,
         protected array $leftSiblings = [],
         protected array $rightSiblings = [],
@@ -40,7 +40,7 @@ abstract class AbstractZipper
      *
      * @return T
      */
-    abstract public function makeNode($node, array $children);
+    abstract public function makeNode(mixed $node, array $children);
 
     /**
      * @throws ZipperException
@@ -268,7 +268,7 @@ abstract class AbstractZipper
     /**
      * @param T $node
      */
-    public function setNode($node): self
+    public function setNode(mixed $node): self
     {
         $this->node = $node;
 
@@ -287,7 +287,7 @@ abstract class AbstractZipper
      *
      * @throws ZipperException
      */
-    public function insertLeft($node): static
+    public function insertLeft(mixed $node): static
     {
         if ($this->isTop()) {
             throw ZipperException::cannotInsertLeftOnRootNode();
@@ -304,7 +304,7 @@ abstract class AbstractZipper
      *
      * @throws ZipperException
      */
-    public function insertRight($node): static
+    public function insertRight(mixed $node): static
     {
         if ($this->isTop()) {
             throw ZipperException::cannotInsertRightOnRootNode();
@@ -321,7 +321,7 @@ abstract class AbstractZipper
      *
      * @return static<T>
      */
-    public function replace($node): static
+    public function replace(mixed $node): static
     {
         $this->hasChanged = true;
         $this->node = $node;
@@ -334,7 +334,7 @@ abstract class AbstractZipper
      *
      * @return static<T>
      */
-    public function insertChild($node): static
+    public function insertChild(mixed $node): static
     {
         return $this->replace(
             $this->makeNode($this->node, [$node, ...$this->getChildren()]),
@@ -346,7 +346,7 @@ abstract class AbstractZipper
      *
      * @return static<T>
      */
-    public function appendChild($node): static
+    public function appendChild(mixed $node): static
     {
         return $this->replace(
             $this->makeNode($this->node, [...$this->getChildren(), $node]),
@@ -433,7 +433,7 @@ abstract class AbstractZipper
      * @return static
      */
     abstract protected function createNewInstance(
-        $node,
+        mixed $node,
         ?self $parent,
         array $leftSiblings,
         array $rightSiblings,

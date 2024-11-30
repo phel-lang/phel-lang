@@ -28,19 +28,19 @@ interface PersistentMapInterface extends TypeInterface, Countable, IteratorAggre
      * @param K $key
      * @param V $value
      */
-    public function put($key, $value): self;
+    public function put(mixed $key, mixed $value): self;
 
     /**
      * @param K $key
      */
-    public function remove($key): self;
+    public function remove(mixed $key): self;
 
     /**
      * @param K $key
      *
      * @return V
      */
-    public function find($key);
+    public function find(mixed $key);
 
     public function merge(self $other): self;
 }

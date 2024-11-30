@@ -21,12 +21,12 @@ interface PersistentHashSetInterface extends Countable, AsTransientInterface, Fn
     /**
      * @param V $value
      */
-    public function add($value): self;
+    public function add(mixed $value): self;
 
     /**
      * @param V $value
      */
-    public function remove($value): self;
+    public function remove(mixed $value): self;
 
     public function toPhpArray(): array;
 }
