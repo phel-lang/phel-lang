@@ -20,14 +20,14 @@ use Phel\Run\Domain\Repl\ColorStyleInterface;
 use Phel\Run\Domain\Repl\ReplCommandIoInterface;
 use Phel\Run\Infrastructure\Command\ReplCommand;
 use Phel\Run\RunFactory;
-use PhelTest\Integration\Run\Command\AbstractCommandTest;
+use PhelTest\Integration\Run\Command\AbstractTestCommand;
 use RecursiveDirectoryIterator;
 use RecursiveIteratorIterator;
 use SplFileInfo;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 
-final class ReplCommandTest extends AbstractCommandTest
+final class ReplTestCommand extends AbstractTestCommand
 {
     protected function setUp(): void
     {
