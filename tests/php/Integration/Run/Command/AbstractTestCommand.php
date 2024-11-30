@@ -8,7 +8,7 @@ use Phel\Compiler\Infrastructure\GlobalEnvironmentSingleton;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\Console\Output\OutputInterface;
 
-abstract class AbstractCommandTest extends TestCase
+abstract class AbstractTestCommand extends TestCase
 {
     protected function setUp(): void
     {

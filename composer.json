@@ -24,18 +24,16 @@
     "require": {
         "php": ">=8.2",
         "gacela-project/gacela": "^1.8",
-        "phpunit/php-timer": "^5.0",
-        "symfony/console": "^7.2"
+        "phpunit/php-timer": "^6.0",
+        "symfony/console": "^7.0"
     },
     "require-dev": {
         "ext-readline": "*",
         "ergebnis/composer-normalize": "^2.44",
         "friendsofphp/php-cs-fixer": "^3.65",
-        "infection/infection": "^0.27",
         "phpbench/phpbench": "^1.3",
-        "phpmetrics/phpmetrics": "^2.8",
         "phpstan/phpstan": "^2.0",
-        "phpunit/phpunit": "^9.6",
+        "phpunit/phpunit": "^10.5",
         "psalm/plugin-phpunit": "^0.19",
         "rector/rector": "^2.0.0-rc1",
         "symfony/var-dumper": "^7.2",
@@ -57,8 +55,7 @@
     "config": {
         "allow-plugins": {
             "composer/package-versions-deprecated": true,
-            "ergebnis/composer-normalize": true,
-            "infection/extension-installer": true
+            "ergebnis/composer-normalize": true
         },
         "platform": {
             "php": "8.2"
@@ -72,11 +69,6 @@
         "fix": [
             "@rector",
             "@csfix"
-        ],
-        "infection": "XDEBUG_MODE=coverage php -d memory_limit=-1 ./vendor/bin/infection --show-mutations --threads=max --min-msi=50 --min-covered-msi=40",
-        "metrics-report": [
-            "@test-compiler",
-            "./vendor/bin/phpmetrics --config=phpmetrics-config.json --junit=data/log-junit.xml"
         ],
         "phpbench": "./vendor/bin/phpbench run --report=aggregate --ansi",
         "phpbench-base": "./vendor/bin/phpbench run --tag=baseline --report=aggregate --progress=plain --ansi",
