@@ -34,10 +34,10 @@
         "infection/infection": "^0.27",
         "phpbench/phpbench": "^1.3",
         "phpmetrics/phpmetrics": "^2.8",
-        "phpstan/phpstan": "^1.12",
+        "phpstan/phpstan": "^2.0",
         "phpunit/phpunit": "^9.6",
         "psalm/plugin-phpunit": "^0.19",
-        "rector/rector": "^1.2",
+        "rector/rector": "^2.0.0-rc1",
         "symfony/var-dumper": "^7.2",
         "vimeo/psalm": "^5.26"
     },
