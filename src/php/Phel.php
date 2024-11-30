@@ -7,6 +7,7 @@ namespace Phel;
 use Closure;
 use Gacela\Framework\Bootstrap\GacelaConfig;
 use Gacela\Framework\Gacela;
+use Phel\Filesystem\FilesystemFacade;
 use Phel\Run\RunFacade;
 
 use function in_array;
@@ -36,6 +37,8 @@ final class Phel
 
         $runFacade = new RunFacade();
         $runFacade->runNamespace($namespace);
+
+        Gacela::get(FilesystemFacade::class)?->clearAll();
     }
 
     /**

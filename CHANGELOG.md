@@ -7,6 +7,7 @@ All notable changes to this project will be documented in this file.
 * Improve exception messages on REPL
 * Display the root source file on errors
 * Remove unused `ExceptionHandler`
+* Fix temporary files are not being removed on `Phel::run()`
 
 ## [0.15.3](https://github.com/phel-lang/phel-lang/compare/v0.15.2...v0.15.3) - 2024-11-02
 
