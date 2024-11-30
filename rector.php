@@ -37,6 +37,7 @@ return static function (RectorConfig $rectorConfig): void {
 
         PrivatizeFinalClassPropertyRector::class => [
             __DIR__ . '/tests/php/Unit/Printer/TypePrinter/StubStruct.php',
+            __DIR__ . '/tests/php/Unit/Lang/Collections/Struct/FakeStruct.php',
         ],
 
         PreferPHPUnitThisCallRector::class,
