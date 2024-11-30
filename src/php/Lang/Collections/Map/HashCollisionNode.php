@@ -89,7 +89,7 @@ final class HashCollisionNode implements HashMapNodeInterface
     /**
      * @param K $key
      */
-    private function findIndex($key): int
+    private function findIndex(mixed $key): int
     {
         for ($i = 0; $i < 2 * $this->count; $i += 2) {
             if ($this->equalizer->equals($key, $this->objects[$i])) {
@@ -103,7 +103,7 @@ final class HashCollisionNode implements HashMapNodeInterface
     /**
      * @param V $value
      */
-    private function cloneAndSet(int $index, $value): array
+    private function cloneAndSet(int $index, mixed $value): array
     {
         $newObjects = $this->objects;
         $newObjects[$index] = $value;
@@ -115,7 +115,7 @@ final class HashCollisionNode implements HashMapNodeInterface
      * @param K $key
      * @param V $value
      */
-    private function cloneAndAdd($key, $value): array
+    private function cloneAndAdd(mixed $key, mixed $value): array
     {
         $newObjects = $this->objects;
         $newObjects[] = $key;

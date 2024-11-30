@@ -36,7 +36,7 @@ final class PersistentHashSet extends AbstractType implements PersistentHashSetI
      *
      * @return ?V
      */
-    public function __invoke($key)
+    public function __invoke(mixed $key)
     {
         return $this->map->find($key);
     }

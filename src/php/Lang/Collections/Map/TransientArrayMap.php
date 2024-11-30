@@ -100,7 +100,7 @@ final class TransientArrayMap implements TransientMapInterface
      *
      * @return V|null
      */
-    public function offsetGet($offset): mixed
+    public function offsetGet(mixed $offset): mixed
     {
         return $this->find($offset);
     }
@@ -108,7 +108,7 @@ final class TransientArrayMap implements TransientMapInterface
     /**
      * @param K $offset
      */
-    public function offsetExists($offset): bool
+    public function offsetExists(mixed $offset): bool
     {
         return $this->contains($offset);
     }
@@ -131,7 +131,7 @@ final class TransientArrayMap implements TransientMapInterface
     /**
      * @param K $key
      */
-    private function findIndex($key): int|false
+    private function findIndex(mixed $key): int|false
     {
         for ($i = 0, $cnt = count($this->array); $i < $cnt; $i += 2) {
             $k = $this->array[$i];

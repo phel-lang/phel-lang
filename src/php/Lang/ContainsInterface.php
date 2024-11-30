@@ -12,5 +12,5 @@ interface ContainsInterface
     /**
      * @param K $key
      */
-    public function contains($key): bool;
+    public function contains(mixed $key): bool;
 }

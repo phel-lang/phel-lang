@@ -18,7 +18,7 @@ final class Variable extends AbstractType
      */
     public function __construct(
         ?PersistentMapInterface $meta,
-        private $value,
+        private mixed $value,
     ) {
         $this->meta = $meta;
     }
@@ -26,7 +26,7 @@ final class Variable extends AbstractType
     /**
      * @param T $value
      */
-    public function set($value): void
+    public function set(mixed $value): void
     {
         $this->value = $value;
     }

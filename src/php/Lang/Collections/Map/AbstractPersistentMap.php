@@ -33,7 +33,7 @@ abstract class AbstractPersistentMap extends AbstractType implements PersistentM
      *
      * @return ?V
      */
-    public function __invoke($key)
+    public function __invoke(mixed $key)
     {
         return $this->find($key);
     }
@@ -93,7 +93,7 @@ abstract class AbstractPersistentMap extends AbstractType implements PersistentM
      *
      * @return V|null
      */
-    public function offsetGet($offset): mixed
+    public function offsetGet(mixed $offset): mixed
     {
         return $this->find($offset);
     }
@@ -101,7 +101,7 @@ abstract class AbstractPersistentMap extends AbstractType implements PersistentM
     /**
      * @param K $offset
      */
-    public function offsetExists($offset): bool
+    public function offsetExists(mixed $offset): bool
     {
         return $this->contains($offset);
     }

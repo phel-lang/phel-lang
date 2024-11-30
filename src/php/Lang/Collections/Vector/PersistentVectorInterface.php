@@ -40,12 +40,12 @@ interface PersistentVectorInterface extends TypeInterface, SeqInterface, Iterato
     /**
      * @param T $value
      */
-    public function append($value): self;
+    public function append(mixed $value): self;
 
     /**
      * @param T $value
      */
-    public function update(int $i, $value): self;
+    public function update(int $i, mixed $value): self;
 
     /**
      * @return T
