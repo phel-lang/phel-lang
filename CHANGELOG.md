@@ -4,10 +4,11 @@ All notable changes to this project will be documented in this file.
 
 ## Unreleased
 
-* Improve exception messages on REPL
-* Display the root source file on errors
-* Remove unused `ExceptionHandler`
-* Fix temporary files are not being removed on `Phel::run()`
+- Improved exception messages in the REPL
+- Display the root source file in error messages to help debugging
+- Enabled overriding the cache directory via the `GACELA_CACHE_DIR` environment variable (Gacela 1.9)
+- Fixed issue where temporary files were not being removed in `Phel::run()`
+- Removed unused `ExceptionHandler`
 
 ## [0.15.3](https://github.com/phel-lang/phel-lang/compare/v0.15.2...v0.15.3) - 2024-11-02
 

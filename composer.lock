@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "d67039a1f6531d75ab397b6901b51135",
+    "content-hash": "955c77b72efcdfa56d8a7e5b24deedac",
     "packages": [
         {
             "name": "gacela-project/container",
@@ -76,16 +76,16 @@
         },
         {
             "name": "gacela-project/gacela",
-            "version": "1.8.1",
+            "version": "1.9.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/gacela-project/gacela.git",
-                "reference": "79cea9f933794c6e8fd9d54754789a46b2048f07"
+                "reference": "7210a8866d843c35ec17c7d9bdde7900d9ee4d48"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/gacela-project/gacela/zipball/79cea9f933794c6e8fd9d54754789a46b2048f07",
-                "reference": "79cea9f933794c6e8fd9d54754789a46b2048f07",
+                "url": "https://api.github.com/repos/gacela-project/gacela/zipball/7210a8866d843c35ec17c7d9bdde7900d9ee4d48",
+                "reference": "7210a8866d843c35ec17c7d9bdde7900d9ee4d48",
                 "shasum": ""
             },
             "require": {
@@ -98,7 +98,7 @@
                 "infection/infection": "^0.26",
                 "phpbench/phpbench": "^1.3",
                 "phpmetrics/phpmetrics": "^2.8",
-                "phpstan/phpstan": "^1.11",
+                "phpstan/phpstan": "^1.12",
                 "phpstan/phpstan-strict-rules": "^1.6",
                 "phpunit/phpunit": "^10.5",
                 "psalm/plugin-phpunit": "^0.19",
@@ -148,7 +148,7 @@
             ],
             "support": {
                 "issues": "https://github.com/gacela-project/gacela/issues",
-                "source": "https://github.com/gacela-project/gacela/tree/1.8.1"
+                "source": "https://github.com/gacela-project/gacela/tree/1.9.0"
             },
             "funding": [
                 {
@@ -156,7 +156,7 @@
                     "type": "custom"
                 }
             ],
-            "time": "2024-11-09T11:27:57+00:00"
+            "time": "2024-12-01T11:07:40+00:00"
         },
         {
             "name": "phpunit/php-timer",
