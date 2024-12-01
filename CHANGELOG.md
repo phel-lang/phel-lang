@@ -2,7 +2,7 @@
 
 All notable changes to this project will be documented in this file.
 
-## Unreleased
+## [0.16.0](https://github.com/phel-lang/phel-lang/compare/v0.15.3...v0.16.0) - 2024-12-01
 
 - Improved exception messages in the REPL
 - Display the root source file in error messages to help debugging
