@@ -20,7 +20,13 @@ final class Phel
 
     private const PHEL_CONFIG_LOCAL_FILE_NAME = 'phel-config-local.php';
 
-    private const FILE_CACHE_DIR = 'data/.cache';
+    /**
+     * Use sys_get_temp_dir() by default.
+     * This can be overridden with the env variable: GACELA_CACHE_DIR=/tmp...
+     *
+     * @see https://github.com/gacela-project/gacela/pull/322
+     */
+    private const FILE_CACHE_DIR = '';
 
     /**
      * This function helps to unify the running execution for a custom phel project.
