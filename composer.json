@@ -35,7 +35,7 @@
         "phpstan/phpstan": "^2.0",
         "phpunit/phpunit": "^10.5",
         "psalm/plugin-phpunit": "^0.19",
-        "rector/rector": "^2.0.0-rc1",
+        "rector/rector": "^2.0.0-rc2",
         "symfony/var-dumper": "^7.2",
         "vimeo/psalm": "^5.26"
     },
