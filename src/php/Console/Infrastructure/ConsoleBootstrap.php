@@ -18,7 +18,7 @@ final class ConsoleBootstrap extends Application
 {
     use DocBlockResolverAwareTrait;
 
-    public function run(InputInterface $input = null, OutputInterface $output = null): int
+    public function run(?InputInterface $input = null, ?OutputInterface $output = null): int
     {
         $this->setAutoExit(false);
         $exitCode = parent::run($input, $output);
