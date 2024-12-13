@@ -10,40 +10,35 @@ use Rector\Privatization\Rector\Property\PrivatizeFinalClassPropertyRector;
 use Rector\Set\ValueObject\LevelSetList;
 use Rector\Set\ValueObject\SetList;
 
-return static function (RectorConfig $rectorConfig): void {
-    $rectorConfig->paths([
-        __DIR__ . '/src/php',
-        __DIR__ . '/tests/php',
-    ]);
-
-    $rectorConfig->skip([
-        __DIR__ . '/tests/php/*/out/*',
-        __DIR__ . '/tests/php/*/gacela-class-names.php',
-        __DIR__ . '/tests/php/*/gacela-custom-services.php',
-
+return RectorConfig::configure()
+    ->withPaths([
+        __DIR__.'/src/php',
+        __DIR__.'/tests/php',
+    ])
+    ->withSkip([
+        __DIR__.'/tests/php/*/out/*',
+        __DIR__.'/tests/php/*/gacela-class-names.php',
+        __DIR__.'/tests/php/*/gacela-custom-services.php',
         UseClassKeywordForClassNameResolutionRector::class => [
-            __DIR__ . '/src/php/Compiler/Domain/Emitter/OutputEmitter/LiteralEmitter.php',
-            __DIR__ . '/src/php/Compiler/Domain/Emitter/OutputEmitter/NodeEmitter/DefEmitter',
-            __DIR__ . '/src/php/Compiler/Domain/Emitter/OutputEmitter/NodeEmitter/GlobalVarEmitter.php',
-            __DIR__ . '/src/php/Compiler/Domain/Emitter/OutputEmitter/NodeEmitter/IfEmitter.php',
-            __DIR__ . '/src/php/Compiler/Domain/Emitter/OutputEmitter/NodeEmitter/MapEmitter.php',
-            __DIR__ . '/src/php/Compiler/Domain/Emitter/OutputEmitter/NodeEmitter/MethodEmitter.php',
-            __DIR__ . '/src/php/Compiler/Domain/Emitter/OutputEmitter/NodeEmitter/NsEmitter.php',
-            __DIR__ . '/src/php/Compiler/Domain/Emitter/OutputEmitter/NodeEmitter/SetVarEmitter.php',
-            __DIR__ . '/src/php/Compiler/Domain/Emitter/OutputEmitter/NodeEmitter/VectorEmitter.php',
-            __DIR__ . '/tests/php/Unit/Compiler/Emitter/OutputEmitter/NodeEmitter/ApplyEmitterTest.php',
-            __DIR__ . '/tests/php/Unit/Compiler/Emitter/OutputEmitter/NodeEmitter/FnAsClassEmitterTest.php',
+            __DIR__.'/src/php/Compiler/Domain/Emitter/OutputEmitter/LiteralEmitter.php',
+            __DIR__.'/src/php/Compiler/Domain/Emitter/OutputEmitter/NodeEmitter/DefEmitter',
+            __DIR__.'/src/php/Compiler/Domain/Emitter/OutputEmitter/NodeEmitter/GlobalVarEmitter.php',
+            __DIR__.'/src/php/Compiler/Domain/Emitter/OutputEmitter/NodeEmitter/IfEmitter.php',
+            __DIR__.'/src/php/Compiler/Domain/Emitter/OutputEmitter/NodeEmitter/MapEmitter.php',
+            __DIR__.'/src/php/Compiler/Domain/Emitter/OutputEmitter/NodeEmitter/MethodEmitter.php',
+            __DIR__.'/src/php/Compiler/Domain/Emitter/OutputEmitter/NodeEmitter/NsEmitter.php',
+            __DIR__.'/src/php/Compiler/Domain/Emitter/OutputEmitter/NodeEmitter/SetVarEmitter.php',
+            __DIR__.'/src/php/Compiler/Domain/Emitter/OutputEmitter/NodeEmitter/VectorEmitter.php',
+            __DIR__.'/tests/php/Unit/Compiler/Emitter/OutputEmitter/NodeEmitter/ApplyEmitterTest.php',
+            __DIR__.'/tests/php/Unit/Compiler/Emitter/OutputEmitter/NodeEmitter/FnAsClassEmitterTest.php',
         ],
-
         PrivatizeFinalClassPropertyRector::class => [
-            __DIR__ . '/tests/php/Unit/Printer/TypePrinter/StubStruct.php',
-            __DIR__ . '/tests/php/Unit/Lang/Collections/Struct/FakeStruct.php',
+            __DIR__.'/tests/php/Unit/Printer/TypePrinter/StubStruct.php',
+            __DIR__.'/tests/php/Unit/Lang/Collections/Struct/FakeStruct.php',
         ],
-
         PreferPHPUnitThisCallRector::class,
-    ]);
-
-    $rectorConfig->sets([
+    ])
+    ->withSets([
         SetList::CODE_QUALITY,
         SetList::CODING_STYLE,
         SetList::DEAD_CODE,
@@ -55,8 +50,5 @@ return static function (RectorConfig $rectorConfig): void {
         LevelSetList::UP_TO_PHP_82,
         PHPUnitSetList::PHPUNIT_CODE_QUALITY,
         PHPUnitSetList::PHPUNIT_90,
-    ]);
-
-    $rectorConfig->importNames();
-    $rectorConfig->removeUnusedImports();
-};
+    ])
+    ->withImportNames(removeUnusedImports: true);
