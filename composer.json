@@ -29,13 +29,13 @@
     },
     "require-dev": {
         "ext-readline": "*",
-        "ergebnis/composer-normalize": "^2.44",
+        "ergebnis/composer-normalize": "^2.45",
         "friendsofphp/php-cs-fixer": "^3.65",
         "phpbench/phpbench": "^1.3",
         "phpstan/phpstan": "^2.0",
         "phpunit/phpunit": "^10.5",
         "psalm/plugin-phpunit": "^0.19",
-        "rector/rector": "^2.0.0-rc2",
+        "rector/rector": "^2.0",
         "symfony/var-dumper": "^7.2",
         "vimeo/psalm": "^5.26"
     },
