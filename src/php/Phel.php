@@ -33,7 +33,7 @@ final class Phel
      *
      * @param list<string>|string|null $argv
      */
-    public static function run(string $projectRootDir, string $namespace, array|string $argv = null): void
+    public static function run(string $projectRootDir, string $namespace, array|string|null $argv = null): void
     {
         if ($argv !== null) {
             self::updateGlobalArgv($argv);

@@ -76,16 +76,16 @@
         },
         {
             "name": "gacela-project/gacela",
-            "version": "1.9.0",
+            "version": "1.9.1",
             "source": {
                 "type": "git",
                 "url": "https://github.com/gacela-project/gacela.git",
-                "reference": "a042a1bdeb481511c924ad525a16a563e846e9bc"
+                "reference": "c2e757b73e476c5fc9a07e6b2e1f59abf1c9011f"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/gacela-project/gacela/zipball/a042a1bdeb481511c924ad525a16a563e846e9bc",
-                "reference": "a042a1bdeb481511c924ad525a16a563e846e9bc",
+                "url": "https://api.github.com/repos/gacela-project/gacela/zipball/c2e757b73e476c5fc9a07e6b2e1f59abf1c9011f",
+                "reference": "c2e757b73e476c5fc9a07e6b2e1f59abf1c9011f",
                 "shasum": ""
             },
             "require": {
@@ -93,7 +93,7 @@
                 "php": ">=8.1"
             },
             "require-dev": {
-                "ergebnis/composer-normalize": "^2.44",
+                "ergebnis/composer-normalize": "^2.45",
                 "friendsofphp/php-cs-fixer": "^3.56",
                 "infection/infection": "^0.26",
                 "phpbench/phpbench": "^1.3",
@@ -148,7 +148,7 @@
             ],
             "support": {
                 "issues": "https://github.com/gacela-project/gacela/issues",
-                "source": "https://github.com/gacela-project/gacela/tree/1.9.0"
+                "source": "https://github.com/gacela-project/gacela/tree/1.9.1"
             },
             "funding": [
                 {
@@ -156,7 +156,7 @@
                     "type": "custom"
                 }
             ],
-            "time": "2024-12-01T11:46:31+00:00"
+            "time": "2024-12-12T19:17:34+00:00"
         },
         {
             "name": "phpunit/php-timer",

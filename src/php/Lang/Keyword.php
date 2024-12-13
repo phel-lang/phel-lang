@@ -24,8 +24,10 @@ final class Keyword extends AbstractType implements IdenticalInterface, FnInterf
             : crc32(':' . $name);
     }
 
-    public function __invoke(PersistentMapInterface $obj, float|bool|int|string|TypeInterface $default = null)
-    {
+    public function __invoke(
+        PersistentMapInterface $obj,
+        float|bool|int|string|TypeInterface|null $default = null,
+    ) {
         return $obj[$this] ?? $default;
     }
 
