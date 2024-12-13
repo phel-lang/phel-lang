@@ -2,9 +2,9 @@
 
 All notable changes to this project will be documented in this file.
 
-## Unreleased
+## [0.16.1](https://github.com/phel-lang/phel-lang/compare/v0.16.0...v0.16.1) - 2024-12-13
 
-- Improved support PHP 8.4
+- Improved support for PHP 8.4
 
 ## [0.16.0](https://github.com/phel-lang/phel-lang/compare/v0.15.3...v0.16.0) - 2024-12-01
 
