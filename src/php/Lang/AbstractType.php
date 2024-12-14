@@ -8,9 +8,9 @@ use Phel\Printer\Printer;
 use Stringable;
 
 /**
- * @template T
+ * @template TValue
  *
- * @implements TypeInterface<T>
+ * @implements TypeInterface<TValue>
  */
 abstract class AbstractType implements TypeInterface, Stringable
 {

@@ -19,7 +19,7 @@ use Traversable;
  *
  * @implements PersistentListInterface<T>
  *
- * @extends AbstractType<PersistentList<T>>
+ * @extends AbstractType<PersistentListInterface<T>>
  */
 final class EmptyList extends AbstractType implements PersistentListInterface
 {

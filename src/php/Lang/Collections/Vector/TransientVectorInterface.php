@@ -11,7 +11,7 @@ use Phel\Lang\ContainsInterface;
 /**
  * @template T
  *
- * @extends ArrayAccess<T>
+ * @extends ArrayAccess<int, T>
  * @extends ContainsInterface<int>
  */
 interface TransientVectorInterface extends Countable, ArrayAccess, ContainsInterface

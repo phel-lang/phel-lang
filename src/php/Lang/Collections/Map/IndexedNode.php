@@ -12,20 +12,23 @@ use function array_key_exists;
 use function count;
 
 /**
- * @template K
- * @template V
+ * @template TKey of mixed
+ * @template TValue of mixed
  *
- * @implements HashMapNodeInterface<K, V>
+ * @implements HashMapNodeInterface<TKey, TValue>
  */
 final class IndexedNode implements HashMapNodeInterface
 {
     /**
-     * @param list<array{0: K|null, 1: V|HashMapNodeInterface<K, V>}> $objects
+     * @param list<array{
+     *     0: TKey|null,
+     *     1: TValue|HashMapNodeInterface<TKey, TValue>,
+     * }> $objects
      */
     public function __construct(
         private readonly HasherInterface $hasher,
         private readonly EqualizerInterface $equalizer,
-        private array $objects,
+        private readonly array $objects,
     ) {
     }
 
@@ -35,12 +38,12 @@ final class IndexedNode implements HashMapNodeInterface
     }
 
     /**
-     * @param K $key
-     * @param V $value
+     * @param TKey $key
+     * @param TValue $value
      *
-     * @return HashMapNodeInterface<K, V>
+     * @return HashMapNodeInterface<TKey, TValue>
      */
-    public function put(int $shift, int $hash, $key, $value, Box $addedLeaf): HashMapNodeInterface
+    public function put(int $shift, int $hash, mixed $key, mixed $value, Box $addedLeaf): HashMapNodeInterface
     {
         $index = $this->mask($hash, $shift);
         if (isset($this->objects[$index])) {
@@ -50,16 +53,16 @@ final class IndexedNode implements HashMapNodeInterface
                 return $this->addToChild($index, $shift, $hash, $key, $value, $addedLeaf);
             }
 
-            /** @var K $currentKey */
-            /** @var V $currentValue */
+            /** @var TKey $currentKey */
+            /** @var TValue $currentValue */
             if ($this->equalizer->equals($key, $currentKey)) {
                 return $this->updateKey($index, $currentValue, $value);
             }
 
             $addedLeaf->setValue(true);
             $newObjects = $this->objects;
-            /** @var K $currentKey */
-            /** @var V $currentValue */
+            /** @var TKey $currentKey */
+            /** @var TValue $currentValue */
             $newObjects[$index] = [null, $this->createNode($shift + 5, $currentKey, $currentValue, $hash, $key, $value)];
 
             return new self($this->hasher, $this->equalizer, $newObjects);
@@ -152,12 +155,12 @@ final class IndexedNode implements HashMapNodeInterface
     }
 
     /**
-     * @param K $key1
-     * @param V $value1
-     * @param K $key2
-     * @param V $value2
+     * @param TKey $key1
+     * @param TValue $value1
+     * @param TKey $key2
+     * @param TValue $value2
      *
-     * @return HashMapNodeInterface<K, V>
+     * @return HashMapNodeInterface<TKey, TValue>
      */
     private function createNode(int $shift, mixed $key1, mixed $value1, int $key2Hash, mixed $key2, mixed $value2): HashMapNodeInterface
     {
@@ -173,10 +176,10 @@ final class IndexedNode implements HashMapNodeInterface
     }
 
     /**
-     * @param V $currentValue
-     * @param V $newValue
+     * @param TValue $currentValue
+     * @param TValue $newValue
      *
-     * @return HashMapNodeInterface<K, V>
+     * @return HashMapNodeInterface<TKey, TValue>
      */
     private function updateKey(int $index, mixed $currentValue, mixed $newValue): HashMapNodeInterface
     {
@@ -190,10 +193,10 @@ final class IndexedNode implements HashMapNodeInterface
     }
 
     /**
-     * @param K $key
-     * @param V $value
+     * @param TKey $key
+     * @param TValue $value
      *
-     * @return HashMapNodeInterface<K, V>
+     * @return HashMapNodeInterface<TKey, TValue>
      */
     private function addToChild(int $idx, int $shift, int $hash, mixed $key, mixed $value, Box $addedLeaf): HashMapNodeInterface
     {
@@ -211,10 +214,10 @@ final class IndexedNode implements HashMapNodeInterface
     }
 
     /**
-     * @param K $key
-     * @param V $value
+     * @param TKey $key
+     * @param TValue $value
      *
-     * @return HashMapNodeInterface<K, V>
+     * @return HashMapNodeInterface<TKey, TValue>
      */
     private function insertNewKey(int $idx, int $shift, int $hash, mixed $key, mixed $value, Box $addedLeaf): HashMapNodeInterface
     {
@@ -226,10 +229,10 @@ final class IndexedNode implements HashMapNodeInterface
     }
 
     /**
-     * @param K $key
-     * @param V $value
+     * @param TKey $key
+     * @param TValue $value
      *
-     * @return HashMapNodeInterface<K, V>
+     * @return HashMapNodeInterface<TKey, TValue>
      */
     private function splitNode(int $idx, int $shift, int $hash, mixed $key, mixed $value, Box $addedLeaf): HashMapNodeInterface
     {
@@ -238,7 +241,7 @@ final class IndexedNode implements HashMapNodeInterface
         $nodes[$idx] = $empty->put($shift + 5, $hash, $key, $value, $addedLeaf);
         for ($i = 0; $i < 32; ++$i) {
             if (array_key_exists($i, $this->objects)) {
-                /** @var V $v */
+                /** @var TValue $v */
                 [$k, $v] = $this->objects[$i];
                 $nodes[$i] = ($k === null) ? $v : $empty->put($shift + 5, $this->hasher->hash($k), $k, $v, $addedLeaf);
             }
@@ -248,10 +251,10 @@ final class IndexedNode implements HashMapNodeInterface
     }
 
     /**
-     * @param K $key
-     * @param V $value
+     * @param TKey $key
+     * @param TValue $value
      *
-     * @return IndexedNode<K, V>
+     * @return IndexedNode<TKey, TValue>
      */
     private function addNewKeyToNode(int $idx, mixed $key, mixed $value, Box $addedLeaf): self
     {
