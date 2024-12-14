@@ -53,7 +53,6 @@ final class IndexedNode implements HashMapNodeInterface
                 return $this->addToChild($index, $shift, $hash, $key, $value, $addedLeaf);
             }
 
-            /** @var TKey $currentKey */
             /** @var TValue $currentValue */
             if ($this->equalizer->equals($key, $currentKey)) {
                 return $this->updateKey($index, $currentValue, $value);
@@ -63,7 +62,10 @@ final class IndexedNode implements HashMapNodeInterface
             $newObjects = $this->objects;
             /** @var TKey $currentKey */
             /** @var TValue $currentValue */
-            $newObjects[$index] = [null, $this->createNode($shift + 5, $currentKey, $currentValue, $hash, $key, $value)];
+            $newObjects[$index] = [
+                null,
+                $this->createNode($shift + 5, $currentKey, $currentValue, $hash, $key, $value),
+            ];
 
             return new self($this->hasher, $this->equalizer, $newObjects);
         }

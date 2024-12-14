@@ -73,10 +73,7 @@ abstract class AbstractZipper
         );
     }
 
-    /**
-     * @return static<T>
-     */
-    public function leftMost(): self
+    public function leftMost(): static
     {
         $loc = $this;
         while (!$loc->isFirst()) {
@@ -94,10 +91,7 @@ abstract class AbstractZipper
         return $this->leftSiblings;
     }
 
-    /**
-     * @return static<T>
-     */
-    public function right(): self
+    public function right(): static
     {
         if ($this->isTop()) {
             throw ZipperException::cannotGoRightOnRootNode();
@@ -213,10 +207,7 @@ abstract class AbstractZipper
         );
     }
 
-    /**
-     * @return static<T>
-     */
-    public function next(): self
+    public function next(): static
     {
         if ($this->isEnd) {
             return $this;
@@ -243,10 +234,7 @@ abstract class AbstractZipper
         return $up->right();
     }
 
-    /**
-     * @return static<T>
-     */
-    public function prev(): self
+    public function prev(): static
     {
         if (!$this->isFirst()) {
             $loc = $this->left();
