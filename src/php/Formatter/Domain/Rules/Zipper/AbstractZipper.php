@@ -42,6 +42,10 @@ abstract class AbstractZipper
      */
     abstract public function makeNode(mixed $node, array $children);
 
+    abstract public function skipWhitespaceRight(): self;
+
+    abstract public function skipWhitespaceLeft(): self;
+
     /**
      * @throws ZipperException
      *
@@ -318,8 +322,6 @@ abstract class AbstractZipper
 
     /**
      * @param T $node
-     *
-     * @return static<T>
      */
     public function replace(mixed $node): static
     {
@@ -331,8 +333,6 @@ abstract class AbstractZipper
 
     /**
      * @param T $node
-     *
-     * @return static<T>
      */
     public function insertChild(mixed $node): static
     {
@@ -343,8 +343,6 @@ abstract class AbstractZipper
 
     /**
      * @param T $node
-     *
-     * @return static<T>
      */
     public function appendChild(mixed $node): static
     {
