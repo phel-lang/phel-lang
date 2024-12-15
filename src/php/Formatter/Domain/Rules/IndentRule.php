@@ -24,7 +24,7 @@ final readonly class IndentRule implements RuleInterface
     private LineIndenter $lineIndenter;
 
     /**
-     * @param  list<IndenterInterface>  $indenters
+     * @param list<IndenterInterface> $indenters
      */
     public function __construct(
         private array $indenters,
@@ -66,9 +66,7 @@ final readonly class IndentRule implements RuleInterface
     {
         $node = $form;
         while ($node->isWhitespace()) {
-            $nextNode = $node->next();
-
-            $node = $nextNode;
+            $node = $node->next();
         }
 
         return $node;
@@ -79,7 +77,11 @@ final readonly class IndentRule implements RuleInterface
         $width = $this->indentAmount($form);
         if ($width && $width > 0) {
             return $form->insertRight(
-                new WhitespaceNode(str_repeat(' ', $width), new SourceLocation('', 0, 0), new SourceLocation('', 0, 0)),
+                new WhitespaceNode(
+                    str_repeat(' ', $width),
+                    new SourceLocation('', 0, 0),
+                    new SourceLocation('', 0, 0),
+                ),
             );
         }
 
@@ -95,7 +97,9 @@ final readonly class IndentRule implements RuleInterface
             return $this->indentAmount($form->up());
         }
 
-        if ($parentNode instanceof ListNode && $parentNode->getTokenType() === Token::T_OPEN_PARENTHESIS) {
+        if ($parentNode instanceof ListNode
+            && $parentNode->getTokenType() === Token::T_OPEN_PARENTHESIS
+        ) {
             return $this->customIndent($form);
         }
 
