@@ -77,7 +77,7 @@ final readonly class Printer implements PrinterInterface
         return $this->creatScalarTypePrinter($form);
     }
 
-    private function createObjectTypePrinter(mixed $form): TypePrinterInterface
+    private function createObjectTypePrinter(object $form): TypePrinterInterface
     {
         if ($form instanceof AbstractPersistentStruct) {
             return new StructPrinter($this);

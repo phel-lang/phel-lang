@@ -155,7 +155,7 @@ final class ParseTreeZipper extends AbstractZipper
         array $rightSiblings,
         bool $hasChanged,
         bool $isEnd,
-    ): self {
+    ): static {
         return new self($node, $parent, $leftSiblings, $rightSiblings, $hasChanged, $isEnd);
     }
 }

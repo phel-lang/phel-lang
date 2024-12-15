@@ -24,7 +24,7 @@ final readonly class IndentRule implements RuleInterface
     private LineIndenter $lineIndenter;
 
     /**
-     * @param list<IndenterInterface> $indenters
+     * @param  list<IndenterInterface>  $indenters
      */
     public function __construct(
         private array $indenters,
@@ -53,7 +53,8 @@ final readonly class IndentRule implements RuleInterface
 
     private function shouldIndent(ParseTreeZipper $form): bool
     {
-        return $form->isLineBreak() && !$this->isNextComment($form);
+        return $form->isLineBreak()
+            && !$this->isNextComment($form);
     }
 
     private function isNextComment(ParseTreeZipper $form): bool
@@ -66,9 +67,6 @@ final readonly class IndentRule implements RuleInterface
         $node = $form;
         while ($node->isWhitespace()) {
             $nextNode = $node->next();
-            if (!$nextNode instanceof ParseTreeZipper) {
-                break;
-            }
 
             $node = $nextNode;
         }

@@ -42,9 +42,15 @@ abstract class AbstractZipper
      */
     abstract public function makeNode(mixed $node, array $children);
 
-    abstract public function skipWhitespaceRight(): self;
+    public function skipWhitespaceRight(): self
+    {
+        return $this;
+    }
 
-    abstract public function skipWhitespaceLeft(): self;
+    public function skipWhitespaceLeft(): self
+    {
+        return $this;
+    }
 
     /**
      * @throws ZipperException
@@ -113,10 +119,7 @@ abstract class AbstractZipper
         );
     }
 
-    /**
-     * @return static<T>
-     */
-    public function rightMost(): self
+    public function rightMost(): static
     {
         $loc = $this;
         while (!$loc->isLast()) {
@@ -134,10 +137,7 @@ abstract class AbstractZipper
         return $this->rightSiblings;
     }
 
-    /**
-     * @return static<T>
-     */
-    public function up(): self
+    public function up(): static
     {
         if ($this->isTop()) {
             throw ZipperException::cannotGoUpOnRootNode();
@@ -181,10 +181,7 @@ abstract class AbstractZipper
         return $loc->getNode();
     }
 
-    /**
-     * @return static<T>
-     */
-    public function down(): self
+    public function down(): static
     {
         if (!$this->isBranch()) {
             throw ZipperException::cannotGoDownOnLeafNode();
@@ -341,8 +338,6 @@ abstract class AbstractZipper
 
     /**
      * @throws ZipperException
-     *
-     * @return static<T>
      */
     public function remove(): self
     {
@@ -361,11 +356,13 @@ abstract class AbstractZipper
                 true,
                 false,
             );
-            while ($loc->isBranch() && $loc->hasChildren() && (($child = $loc->down()) instanceof self)) {
+            while ($loc->isBranch()
+                && $loc->hasChildren()
+                && (($child = $loc->down()) instanceof self)
+            ) {
                 $loc = $child->rightMost();
             }
 
-            /** @var static<T> $loc */
             return $loc;
         }
 
@@ -394,7 +391,7 @@ abstract class AbstractZipper
      */
     public function isTop(): bool
     {
-        return !$this->parent instanceof self;
+        return !$this->parent instanceof static;
     }
 
     public function isFirst(): bool
@@ -402,9 +399,6 @@ abstract class AbstractZipper
         return $this->leftSiblings === [];
     }
 
-    /**
-     * @psalm-assert non-empty-list $this->rightSiblings
-     */
     public function isLast(): bool
     {
         return $this->rightSiblings === [];
@@ -415,8 +409,6 @@ abstract class AbstractZipper
      * @param ?AbstractZipper<T> $parent
      * @param list<T> $leftSiblings
      * @param list<T> $rightSiblings
-     *
-     * @return static
      */
     abstract protected function createNewInstance(
         mixed $node,
@@ -425,5 +417,5 @@ abstract class AbstractZipper
         array $rightSiblings,
         bool $hasChanged,
         bool $isEnd,
-    );
+    ): static;
 }
