@@ -17,7 +17,7 @@ use function count;
  *
  * @implements HashMapNodeInterface<TKey, TValue>
  */
-final class IndexedNode implements HashMapNodeInterface
+final readonly class IndexedNode implements HashMapNodeInterface
 {
     /**
      * @param list<array{
@@ -26,9 +26,9 @@ final class IndexedNode implements HashMapNodeInterface
      * }> $objects
      */
     public function __construct(
-        private readonly HasherInterface $hasher,
-        private readonly EqualizerInterface $equalizer,
-        private readonly array $objects,
+        private HasherInterface $hasher,
+        private EqualizerInterface $equalizer,
+        private array $objects,
     ) {
     }
 
@@ -62,7 +62,7 @@ final class IndexedNode implements HashMapNodeInterface
             $newObjects = $this->objects;
             /** @var TKey $currentKey */
             /** @var TValue $currentValue */
-            $newObjects[$index] = [
+            $newObjects[$index] = [ // @phpstan-ignore-line
                 null,
                 $this->createNode($shift + 5, $currentKey, $currentValue, $hash, $key, $value),
             ];
