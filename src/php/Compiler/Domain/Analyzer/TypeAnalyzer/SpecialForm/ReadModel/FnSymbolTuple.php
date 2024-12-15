@@ -135,7 +135,8 @@ final class FnSymbolTuple
 
     private function isSymWithName(mixed $x, string $name): bool
     {
-        return $x instanceof Symbol && $x->getName() === $name;
+        return $x instanceof Symbol
+            && $x->getName() === $name;
     }
 
     private function buildParamsRest(mixed $param): void

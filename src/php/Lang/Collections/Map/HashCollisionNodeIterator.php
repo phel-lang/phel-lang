@@ -19,10 +19,11 @@ final class HashCollisionNodeIterator implements Iterator
     private int $index = 0;
 
     /**
-     * @param array<K|V> $entries
+     * @param array{K,V,K,V} $entries
      */
-    public function __construct(private array $entries)
-    {
+    public function __construct(
+        private readonly array $entries,
+    ) {
     }
 
     /**

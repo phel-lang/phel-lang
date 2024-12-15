@@ -23,7 +23,7 @@ use Phel\Lang\TypeInterface;
  * @extends TypeInterface<PersistentVectorInterface<T>>
  * @extends SeqInterface<T, PersistentVectorInterface<T>>
  * @extends IteratorAggregate<T>
- * @extends ArrayAccess<T>
+ * @extends ArrayAccess<int, T>
  * @extends ConcatInterface<PersistentVectorInterface<T>>
  * @extends PushInterface<PersistentVectorInterface<T>>
  * @extends AsTransientInterface<TransientVectorInterface>

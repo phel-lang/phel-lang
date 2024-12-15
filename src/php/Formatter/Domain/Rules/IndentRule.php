@@ -53,7 +53,8 @@ final readonly class IndentRule implements RuleInterface
 
     private function shouldIndent(ParseTreeZipper $form): bool
     {
-        return $form->isLineBreak() && !$this->isNextComment($form);
+        return $form->isLineBreak()
+            && !$this->isNextComment($form);
     }
 
     private function isNextComment(ParseTreeZipper $form): bool
@@ -65,12 +66,7 @@ final readonly class IndentRule implements RuleInterface
     {
         $node = $form;
         while ($node->isWhitespace()) {
-            $nextNode = $node->next();
-            if (!$nextNode instanceof ParseTreeZipper) {
-                break;
-            }
-
-            $node = $nextNode;
+            $node = $node->next();
         }
 
         return $node;
@@ -81,7 +77,11 @@ final readonly class IndentRule implements RuleInterface
         $width = $this->indentAmount($form);
         if ($width && $width > 0) {
             return $form->insertRight(
-                new WhitespaceNode(str_repeat(' ', $width), new SourceLocation('', 0, 0), new SourceLocation('', 0, 0)),
+                new WhitespaceNode(
+                    str_repeat(' ', $width),
+                    new SourceLocation('', 0, 0),
+                    new SourceLocation('', 0, 0),
+                ),
             );
         }
 
@@ -97,7 +97,9 @@ final readonly class IndentRule implements RuleInterface
             return $this->indentAmount($form->up());
         }
 
-        if ($parentNode instanceof ListNode && $parentNode->getTokenType() === Token::T_OPEN_PARENTHESIS) {
+        if ($parentNode instanceof ListNode
+            && $parentNode->getTokenType() === Token::T_OPEN_PARENTHESIS
+        ) {
             return $this->customIndent($form);
         }
 

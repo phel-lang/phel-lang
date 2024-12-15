@@ -9,6 +9,8 @@ use IteratorAggregate;
 /**
  * @template TKey
  * @template TValue
+ *
+ * @extends IteratorAggregate<TKey, TValue>
  */
 interface HashMapNodeInterface extends IteratorAggregate
 {

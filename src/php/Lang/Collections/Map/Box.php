@@ -15,7 +15,7 @@ final class Box
         return $this->value;
     }
 
-    public function setValue(mixed $value): void
+    public function setValue(bool $value): void
     {
         $this->value = $value;
     }
