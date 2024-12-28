@@ -498,7 +498,8 @@ Calling the `and` function without arguments returns true."
   (php/<=> b a))
 
 (defn all?
-  "Returns true if `(pred x)` is logical true for every `x` in `xs`, else false."
+  "Returns true if `(pred x)` is logical true for every `x` in collection `xs` 
+   or if `xs` is empty. Otherwise returns false."
   [pred xs]
   (cond
     (php/=== (count xs) 0) true
