@@ -1,4 +1,5 @@
 (ns phel-test\test\core\threading-macros
+  (:use DateTime)
   (:require phel\test :refer [deftest is]))
 
 (deftest test->
@@ -19,3 +20,11 @@
     (is (= :cat (as-> animals o (o 1) (o :type))))
     (is (= :cat (as-> animals $ ($ 1) ($ :type))))))
 
+(deftest test-doto
+  (let [dt (doto (php/new DateTime "2025-02-02 12:00:00")
+             (php/-> (modify "+1 hour"))
+             (php/-> (modify "+1 week"))
+             (php/-> (modify "+1 year")))]
+    (is (= :php/object (type dt)))
+    (is (= "DateTime" (php/get_class dt)))
+    (is (= "2026-02-09 13:00:00" (php/-> dt (format "Y-m-d H:i:s"))))))

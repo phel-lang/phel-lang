@@ -1772,6 +1772,21 @@ returns 1. If `xs` has one value, returns the reciprocal of x."
            ,@(interleave (repeat (count forms) name) forms)]
        ,name)))
 
+(defmacro doto
+  "Evaluates x then calls all of the methods and functions with the
+  value of x supplied at the front of the given arguments. The forms
+  are evaluated in order. Returns x."
+  [x & forms]
+  (let [gx (gensym)]
+    `(let [,gx ,x]
+       ,@(map (fn [f]
+                (if (list? f)
+                  `(,(first f) ,gx ,@(next f))
+                  `(,f ,gx))
+                )
+              forms)
+          ,gx)))
+
 # ---------------
 # Regex functions
 # ---------------
