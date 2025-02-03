@@ -76,6 +76,12 @@
   (is (= 20 (let [x (var 10)] (set! x 20) (deref x))) "set new value to variable")
   (is (= 11 (let [x (var 10)] (swap! x + 1) (deref x))) "swap a value by incrementing the number"))
 
+(deftest test-time
+  (is (= 2 (+ 1 1)) "time returns expr value")
+  (let [output-print (with-output-buffer (time (+ 1 1)))]
+    (is (string? output-print) "time prints to output")
+    (is (str-contains? output-print "Elapsed time:"))
+    (is (str-contains? output-print "msecs"))))
 
 (deftest test-name
   (is (= "string" (name "string")) "name on string")

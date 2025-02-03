@@ -4,8 +4,9 @@ All notable changes to this project will be documented in this file.
 
 ## Unreleased
 
-- Use PHPStan level 2
+- Add `time` macro
 - Add `doto` macro (#791)
+- Use PHPStan level 2
 
 ## [0.16.1](https://github.com/phel-lang/phel-lang/compare/v0.16.0...v0.16.1) - 2024-12-13
 

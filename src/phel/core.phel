@@ -1844,6 +1844,15 @@ returns 1. If `xs` has one value, returns the reciprocal of x."
        (definterface* ,name ,@fns)
        ,@defs)))
 
+(defmacro time
+  "Evaluates expr and prints the time it took. Returns the value of expr."
+  [expr]
+  (let [start (gensym)
+        ret (gensym)]
+    `(let [,start (php/microtime true)
+           ,ret ,expr]
+       (println "Elapsed time:" (* 1000 (- (php/microtime true) ,start)) "msecs")
+       ,ret)))
 
 (defn name
   "Returns the name string of a string, keyword or symbol."
