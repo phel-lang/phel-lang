@@ -21,6 +21,7 @@ use Phel\Compiler\Domain\Analyzer\TypeAnalyzer\SpecialForm\IfSymbol;
 use Phel\Compiler\Domain\Analyzer\TypeAnalyzer\SpecialForm\InvokeSymbol;
 use Phel\Compiler\Domain\Analyzer\TypeAnalyzer\SpecialForm\LetSymbol;
 use Phel\Compiler\Domain\Analyzer\TypeAnalyzer\SpecialForm\LoopSymbol;
+use Phel\Compiler\Domain\Analyzer\TypeAnalyzer\SpecialForm\MacroExpandSymbol;
 use Phel\Compiler\Domain\Analyzer\TypeAnalyzer\SpecialForm\NsSymbol;
 use Phel\Compiler\Domain\Analyzer\TypeAnalyzer\SpecialForm\PhpAGetSymbol;
 use Phel\Compiler\Domain\Analyzer\TypeAnalyzer\SpecialForm\PhpAPushSymbol;
@@ -91,6 +92,7 @@ final class AnalyzePersistentList
             Symbol::NAME_PHP_OBJECT_SET => new PhpOSetSymbol($this->analyzer),
             Symbol::NAME_SET_VAR => new SetVarSymbol($this->analyzer),
             Symbol::NAME_DEF_INTERFACE => new DefInterfaceSymbol($this->analyzer),
+            Symbol::NAME_MACRO_EXPAND => new MacroExpandSymbol($this->analyzer),
             default => new InvokeSymbol($this->analyzer),
         };
     }
