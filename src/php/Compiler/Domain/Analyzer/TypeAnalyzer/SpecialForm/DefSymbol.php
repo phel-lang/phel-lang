@@ -47,7 +47,11 @@ final class DefSymbol implements SpecialFormAnalyzerInterface
 
         $namespace = $this->analyzer->getNamespace();
 
-        $this->analyzer->addDefinition($namespace, $nameSymbol);
+        if (!$this->analyzer->hasDefinition($namespace, $nameSymbol)) {
+            $this->analyzer->addDefinition($namespace, $nameSymbol);
+        } else {
+            throw AnalyzerException::definitionDuplication($list, $namespace, $nameSymbol);
+        }
 
         [$metaMap, $init] = $this->createMetaMapAndInit($list);
 
