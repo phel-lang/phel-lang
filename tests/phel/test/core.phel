@@ -76,6 +76,19 @@
   (is (= 20 (let [x (var 10)] (set! x 20) (deref x))) "set new value to variable")
   (is (= 11 (let [x (var 10)] (swap! x + 1) (deref x))) "swap a value by incrementing the number"))
 
+(deftest test-if-let
+  (is (= 1 (if-let [a 1] a)))
+  (is (= 2 (if-let [[a b] '(1 2)] b)))
+  (is (= nil (if-let [a false] (throw (php/new \Exception)))))
+  (is (= 1 (if-let [a false] a 1)))
+  (is (= 1 (if-let [[a b] nil] b 1)))
+  (is (= 1 (if-let [a false] (throw (php/new \Exception)) 1))))
+
+(deftest test-when-let
+  (is (= 1 (when-let [a 1] a)))
+  (is (= 2 (when-let [[a b] '(1 2)] b)))
+  (is (= nil (when-let [a false] (throw (php/new \Exception))))))
+
 (deftest test-time
   (is (= 2 (+ 1 1)) "time returns expr value")
   (let [output-print (with-output-buffer (time (+ 1 1)))]

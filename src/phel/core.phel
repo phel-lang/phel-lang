@@ -1844,6 +1844,46 @@ returns 1. If `xs` has one value, returns the reciprocal of x."
        (definterface* ,name ,@fns)
        ,@defs)))
 
+(defmacro if-let
+  "If test is true, evaluates then with binding-form bound to the value of test,
+  if not, yields else"
+  [bindings then & [else]]
+  (let [err |(throw (php/new \InvalidArgumentException $))]
+    (when-not
+        (vector? bindings)
+      (err (str "if-let requires a vector for it's bindings, "
+                (type bindings) " given")))
+    (when-not
+        (= 2 (count bindings))
+      (err (str "if-let requires bindings to have 2 elements, "
+                (count bindings) " given"))))
+
+  (let [form (bindings 0) tst (bindings 1) temp-sym (gensym)]
+    `(let [temp-sym ,tst]
+       (if temp-sym
+         (let [,form temp-sym]
+           ,then)
+         ,else))))
+
+(defmacro when-let
+  "When test is true, evaluates body with binding-form bound to the value of test"
+  [bindings & body]
+  (let [err |(throw (php/new \InvalidArgumentException $))]
+    (when-not
+        (vector? bindings)
+      (err (str "when-let requires a vector for it's bindings, "
+                (type bindings) " given")))
+    (when-not
+        (= 2 (count bindings))
+      (err (str "when-let requires bindings to have 2 elements, "
+                (count bindings) " given"))))
+
+  (let [form (bindings 0) tst (bindings 1) temp-sym (gensym)]
+    `(let [temp-sym ,tst]
+       (when temp-sym
+         (let [,form temp-sym]
+           ,@body)))))
+
 (defmacro time
   "Evaluates expr and prints the time it took. Returns the value of expr."
   [expr]
