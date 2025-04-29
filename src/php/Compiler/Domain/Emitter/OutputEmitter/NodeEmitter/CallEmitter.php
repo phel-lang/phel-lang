@@ -45,7 +45,15 @@ final class CallEmitter implements NodeEmitterInterface
     private function emitPhpVarNode(CallNode $node, AbstractNode $fnNode): void
     {
         if ($fnNode instanceof PhpVarNode) {
-            $this->outputEmitter->emitStr($fnNode->getName(), $fnNode->getStartSourceLocation());
+            $name = $fnNode->getName();
+            // The only language structure that can be called like a function
+            // and cannot be called using parentheses is `echo`.
+            // For this reason, only for `echo` use `print` instead. #729
+            if ($name === 'echo') {
+                $name = 'print';
+            }
+
+            $this->outputEmitter->emitStr($name, $fnNode->getStartSourceLocation());
         } else {
             $this->outputEmitter->emitStr('(', $node->getStartSourceLocation());
             $this->outputEmitter->emitNode($node->getFn());
