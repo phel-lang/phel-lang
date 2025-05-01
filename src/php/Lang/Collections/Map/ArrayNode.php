@@ -50,7 +50,7 @@ final class ArrayNode implements HashMapNodeInterface, Countable
             /** @var HashMapNodeInterface $node */
             $node = $this->childNodes[$index];
             $n = $node->put($shift + 5, $hash, $key, $value, $addedLeaf);
-            if ($n == $node) {
+            if ($n === $node) {
                 return $this;
             }
 

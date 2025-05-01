@@ -123,3 +123,25 @@
 
 (deftest test-compile-form
   (is (= "(1 + 1);" (compile '(+ 1 1))) "compile simple expression"))
+
+(deftest test-hash-map-put-17th-notice-issue-786
+  (let [m {""              1
+           "0Mlq3z"        1
+           "bTOQLr"        1
+           "P0dH3t"        1
+           "1238924228357" 1
+           "AB18924230123" 1
+           "BC1892423005"  1
+           "A7I8924230I8"  1
+           "987182423015"  1
+           "9871892423017" 1
+           "JF0010"        1
+           "JF1102"        1
+           "JF1017"        1
+           "JF1015"        1
+           "JF1260"        1
+           "JF1261"        1
+           "jiKUic"        1}
+        result (put m "PU4NVO" 1)]
+   (is (= 18 (count result)))
+   (is (= 1 (result "PU4NVO")))))
