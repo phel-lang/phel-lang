@@ -10,6 +10,7 @@ use Phel\Compiler\Domain\Analyzer\Ast\PhpVarNode;
 use Phel\Compiler\Domain\Emitter\OutputEmitter\NodeEmitterInterface;
 
 use function assert;
+use function count;
 
 final class CallEmitter implements NodeEmitterInterface
 {
@@ -51,6 +52,25 @@ final class CallEmitter implements NodeEmitterInterface
             // For this reason, only for `echo` use `print` instead. #729
             if ($name === 'echo') {
                 $name = 'print';
+            }
+
+            if ($name === 'yield') {
+                $this->outputEmitter->emitStr('yield', $fnNode->getStartSourceLocation());
+
+                $args = $node->getArguments();
+                $argsCount = count($args);
+                if ($argsCount > 0) {
+                    $this->outputEmitter->emitStr(' ', $fnNode->getStartSourceLocation());
+                    if ($argsCount === 1) {
+                        $this->outputEmitter->emitNode($args[0]);
+                    } else {
+                        $this->outputEmitter->emitNode($args[0]);
+                        $this->outputEmitter->emitStr(' => ', $fnNode->getStartSourceLocation());
+                        $this->outputEmitter->emitNode($args[1]);
+                    }
+                }
+
+                return;
             }
 
             $this->outputEmitter->emitStr($name, $fnNode->getStartSourceLocation());

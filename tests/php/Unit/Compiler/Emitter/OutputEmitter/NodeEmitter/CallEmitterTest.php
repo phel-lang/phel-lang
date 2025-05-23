@@ -64,4 +64,31 @@ final class CallEmitterTest extends TestCase
         $this->expectOutputString('print("abc");');
     }
 
+    public function test_php_var_node_yield_language_construct(): void
+    {
+        $node = new PhpVarNode(NodeEnvironment::empty(), 'yield');
+        $args = [
+            new LiteralNode(NodeEnvironment::empty()->withExpressionContext(), 'abc'),
+        ];
+
+        $applyNode = new CallNode(NodeEnvironment::empty(), $node, $args);
+        $this->callEmitter->emit($applyNode);
+
+        $this->expectOutputString('yield "abc";');
+    }
+
+    public function test_php_var_node_yield_key_value(): void
+    {
+        $node = new PhpVarNode(NodeEnvironment::empty(), 'yield');
+        $args = [
+            new LiteralNode(NodeEnvironment::empty()->withExpressionContext(), 1),
+            new LiteralNode(NodeEnvironment::empty()->withExpressionContext(), 2),
+        ];
+
+        $applyNode = new CallNode(NodeEnvironment::empty(), $node, $args);
+        $this->callEmitter->emit($applyNode);
+
+        $this->expectOutputString('yield 1 => 2;');
+    }
+
 }
