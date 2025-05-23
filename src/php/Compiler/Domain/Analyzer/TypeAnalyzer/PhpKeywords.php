@@ -75,5 +75,6 @@ final class PhpKeywords
         'var',
         'while',
         'xor',
+        'yield',
     ];
 }

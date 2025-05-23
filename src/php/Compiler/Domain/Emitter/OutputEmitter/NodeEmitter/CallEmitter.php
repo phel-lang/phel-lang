@@ -10,6 +10,7 @@ use Phel\Compiler\Domain\Analyzer\Ast\PhpVarNode;
 use Phel\Compiler\Domain\Emitter\OutputEmitter\NodeEmitterInterface;
 
 use function assert;
+use function count;
 
 final class CallEmitter implements NodeEmitterInterface
 {
@@ -19,7 +20,7 @@ final class CallEmitter implements NodeEmitterInterface
     {
         assert($node instanceof CallNode);
 
-        $this->outputEmitter->emitContextPrefix($node->getEnv(), $node->getStartSourceLocation());
+        $this->emitContextPrefix($node);
         $fnNode = $node->getFn();
 
         if ($fnNode instanceof PhpVarNode && $fnNode->isInfix()) {
@@ -28,7 +29,23 @@ final class CallEmitter implements NodeEmitterInterface
             $this->emitPhpVarNode($node, $fnNode);
         }
 
-        $this->outputEmitter->emitContextSuffix($node->getEnv(), $node->getStartSourceLocation());
+        $this->emitContextSuffix($node);
+    }
+
+    private function emitContextPrefix(CallNode $node): void
+    {
+        $this->outputEmitter->emitContextPrefix(
+            $node->getEnv(),
+            $node->getStartSourceLocation(),
+        );
+    }
+
+    private function emitContextSuffix(CallNode $node): void
+    {
+        $this->outputEmitter->emitContextSuffix(
+            $node->getEnv(),
+            $node->getStartSourceLocation(),
+        );
     }
 
     private function emitPhpVarNodeInfix(CallNode $node, PhpVarNode $fnNode): void
@@ -45,23 +62,61 @@ final class CallEmitter implements NodeEmitterInterface
     private function emitPhpVarNode(CallNode $node, AbstractNode $fnNode): void
     {
         if ($fnNode instanceof PhpVarNode) {
-            $name = $fnNode->getName();
-            // The only language structure that can be called like a function
-            // and cannot be called using parentheses is `echo`.
-            // For this reason, only for `echo` use `print` instead. #729
-            if ($name === 'echo') {
-                $name = 'print';
+            if ($fnNode->getName() === 'yield') {
+                $this->emitYieldArguments($node, $fnNode);
+                return;
             }
 
-            $this->outputEmitter->emitStr($name, $fnNode->getStartSourceLocation());
+            $this->emitPhpFunctionName($fnNode);
         } else {
-            $this->outputEmitter->emitStr('(', $node->getStartSourceLocation());
-            $this->outputEmitter->emitNode($node->getFn());
-            $this->outputEmitter->emitStr(')', $node->getStartSourceLocation());
+            $this->emitDynamicFunctionName($node);
         }
 
+        $this->emitFunctionArguments($node);
+    }
+
+    private function emitPhpFunctionName(PhpVarNode $fnNode): void
+    {
+        $name = $fnNode->getName();
+
+        if ($name === 'echo') {
+            $name = 'print';
+        }
+
+        $this->outputEmitter->emitStr($name, $fnNode->getStartSourceLocation());
+    }
+
+    private function emitYieldArguments(CallNode $node, PhpVarNode $fnNode): void
+    {
+        $this->outputEmitter->emitStr('yield', $fnNode->getStartSourceLocation());
+
+        $args = $node->getArguments();
+        $argsCount = count($args);
+        if ($argsCount > 0) {
+            $this->outputEmitter->emitStr(' ', $fnNode->getStartSourceLocation());
+            $this->outputEmitter->emitNode($args[0]);
+
+            if ($argsCount === 2) {
+                $this->outputEmitter->emitStr(' => ', $fnNode->getStartSourceLocation());
+                $this->outputEmitter->emitNode($args[1]);
+            }
+        }
+    }
+
+    private function emitDynamicFunctionName(CallNode $node): void
+    {
         $this->outputEmitter->emitStr('(', $node->getStartSourceLocation());
-        $this->outputEmitter->emitArgList($node->getArguments(), $node->getStartSourceLocation());
+        $this->outputEmitter->emitNode($node->getFn());
+        $this->outputEmitter->emitStr(')', $node->getStartSourceLocation());
+    }
+
+    private function emitFunctionArguments(CallNode $node): void
+    {
+        $this->outputEmitter->emitStr('(', $node->getStartSourceLocation());
+        $this->outputEmitter->emitArgList(
+            $node->getArguments(),
+            $node->getStartSourceLocation(),
+        );
         $this->outputEmitter->emitStr(')', $node->getStartSourceLocation());
     }
 }

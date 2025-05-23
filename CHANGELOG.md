@@ -10,6 +10,7 @@ All notable changes to this project will be documented in this file.
 - Add `if-let` and `when-let` macros (#795)
 - Fix `php/echo` does not work (#729)
 - Fix Hash-map malfunction notice (#786)
+- add native yield support (#802)
 
 ## [0.16.1](https://github.com/phel-lang/phel-lang/compare/v0.16.0...v0.16.1) - 2024-12-13
 

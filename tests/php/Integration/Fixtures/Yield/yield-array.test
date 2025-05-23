@@ -1,0 +1,35 @@
+--PHEL--
+(defn yield_generator_array []
+    (dofor [i :range [0 3]]
+        (php/yield i 21)))
+--PHP--
+\Phel\Lang\Registry::getInstance()->addDefinition(
+  "user",
+  "yield_generator_array",
+  new class() extends \Phel\Lang\AbstractFn {
+    public const BOUND_TO = "user\\yield_generator_array";
+
+    public function __invoke() {
+      return (function() {
+        foreach (((\Phel\Lang\Registry::getInstance()->getDefinition("phel\\core", "range"))(...((\Phel\Lang\TypeFactory::getInstance()->persistentVectorFromArray([0, 3])) ?? [])) ?? []) as $i) {
+          yield $i => 21;
+        }
+        return null;
+      })();
+    }
+  },
+  \Phel\Lang\TypeFactory::getInstance()->persistentMapFromKVs(
+    \Phel\Lang\Keyword::create("doc"), "```phel\n(yield_generator_array )\n```\n",
+    \Phel\Lang\Keyword::create("start-location"), \Phel\Lang\TypeFactory::getInstance()->persistentMapFromKVs(
+      \Phel\Lang\Keyword::create("file"), "Yield/yield-array.test",
+      \Phel\Lang\Keyword::create("line"), 1,
+      \Phel\Lang\Keyword::create("column"), 0
+    ),
+    \Phel\Lang\Keyword::create("end-location"), \Phel\Lang\TypeFactory::getInstance()->persistentMapFromKVs(
+      \Phel\Lang\Keyword::create("file"), "Yield/yield-array.test",
+      \Phel\Lang\Keyword::create("line"), 3,
+      \Phel\Lang\Keyword::create("column"), 26
+    ),
+    "min-arity", 0
+  )
+);
