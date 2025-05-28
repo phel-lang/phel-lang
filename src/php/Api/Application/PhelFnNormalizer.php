@@ -119,7 +119,7 @@ final readonly class PhelFnNormalizer implements PhelFnNormalizerInterface
     {
         $seenNames = [];
 
-        return array_filter($fns, static function (PhelFunction $fn) use (&$seenNames): bool {
+        $filtered = array_filter($fns, static function (PhelFunction $fn) use (&$seenNames): bool {
             $fnName = $fn->fnName();
             if (in_array($fnName, $seenNames, true)) {
                 return false;
@@ -128,5 +128,10 @@ final readonly class PhelFnNormalizer implements PhelFnNormalizerInterface
             $seenNames[] = $fnName;
             return true;
         });
+
+        /** @var list<PhelFunction> $result */
+        $result = array_values($filtered);
+
+        return $result;
     }
 }
