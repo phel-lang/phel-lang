@@ -64,7 +64,8 @@
 
 (deftest test-capitalize
   (is (= "Foobar" (s/capitalize "foobar")))
-  (is (= "Foobar" (s/capitalize "FOOBAR"))))
+  (is (= "Foobar" (s/capitalize "FOOBAR")))
+  (is (= "Öbar" (s/capitalize "öbar"))))
 
 (deftest test-triml
   (is (= "foo " (s/triml " foo ")))
@@ -81,10 +82,12 @@
   (is (= "bar" (s/trim "\u{2000}bar\t \u{2002}"))))
 
 (deftest test-upper-case
-  (is (= "FOOBAR" (s/upper-case "Foobar"))))
+  (is (= "FOOBAR" (s/upper-case "Foobar")))
+  (is (= "ÖBAR" (s/upper-case "Öbar"))))
 
 (deftest test-lower-case
-  (is (= "foobar" (s/lower-case "FooBar"))))
+  (is (= "foobar" (s/lower-case "FooBar")))
+  (is (= "öbar" (s/lower-case "ÖBAR"))))
 
 (deftest test-escape
   (is (= "&lt;foo&amp;bar&gt;"

@@ -110,19 +110,22 @@
 
 (defn capitalize
   "Converts first character of the string to upper-case, all other
-  characters to lower-case."
+  characters to lower-case. Handles multibyte characters."
   [s]
-  (php/ucfirst (php/strtolower s)))
+  (let [first-char (php/mb_substr s 0 1)
+        rest (php/mb_substr s 1)]
+    (str (php/mb_strtoupper first-char)
+         (php/mb_strtolower rest))))
 
 (defn lower-case
-  "Converts string to all lower-case."
+  "Converts string to all lower-case. Handles multibyte characters."
   [s]
-  (php/strtolower s))
+  (php/mb_strtolower s))
 
 (defn upper-case
-  "Converts string to all upper-case."
+  "Converts string to all upper-case. Handles multibyte characters."
   [s]
-  (php/strtoupper s))
+  (php/mb_strtoupper s))
 
 (defn trim
   "Removes whitespace from both ends of string."
