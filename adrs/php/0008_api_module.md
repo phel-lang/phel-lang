@@ -27,3 +27,7 @@ interface ApiFacadeInterface
     public function getPhelFunctions(array $namespaces = []): array;
 }
 ```
+
+## Consequences
+
+The API module exposes public Phel functions and documentation in a single place, making integration simpler for consumers.

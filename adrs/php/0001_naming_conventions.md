@@ -2,7 +2,7 @@
 
 ## Motivation
 
-The purpose of this ADR is to standardize the naming convention through the project to avoid inconsistencies.
+The purpose of this ADR is to standardize the naming convention throughout the project to avoid inconsistencies.
 
 ## Decision
 
@@ -12,3 +12,7 @@ The purpose of this ADR is to standardize the naming convention through the proj
 - Suffix exceptions with `Exception`
 - Use `PascalCase` for class names
 - Use `camelCase` for PHP variables, function and method names, arguments
+
+## Consequences
+
+Establishing a single naming scheme improves readability and maintainability across the code base.

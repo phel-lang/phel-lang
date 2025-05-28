@@ -4,35 +4,17 @@
 
 Describe the responsibilities of the Compiler module.
 
-## Compiler sub-modules
+## Decision
 
-- Lexer
-- Parser
-- Reader
-- Analyzer
-- Emitter
-- Evaluator
+The Compiler is split into several sub-modules:
 
-#### Lexer
+- **Lexer** – splits a string into tokens where each token has a type and position.
+- **Parser** – transforms the tokens from the Lexer into a parse tree that also contains whitespace tokens.
+- **Reader** – converts the parse tree into a Phel data structure, removing unnecessary whitespace.
+- **Analyzer** – validates the reader result, enriches it with environment information and returns an abstract syntax tree.
+- **Emitter** – turns the abstract syntax tree into PHP code.
+- **Evaluator** – executes the generated PHP code string.
 
-The Lexer splits a string into tokens. Each token has a type and a position.
+## Consequences
 
-#### Parser
-
-The Parser transform the tokens of the Lexer into a parse tree. The parse tree contains all tokens including all whitespace tokens.
-
-#### Reader
-
-The reader transforms the parse tree into a Phel data structure. All unnecessary white-space tokens are removed in this step.
-
-#### Analyzer
-
-The analyzer analyzes the result of the reader, validates the input, and adds information to an environment. If everything is ok an abstract syntax tree is returned.
-
-#### Emitter
-
-The emitter takes the abstract syntax tree from the Analyzer and transforms it into a PHP code string.
-
-#### Evaluator
-
-The evaluator takes the generated PHP string and evaluates it.
+Breaking the compiler into clearly defined parts makes it easier to reason about and test the compilation process.

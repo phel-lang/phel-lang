@@ -6,11 +6,11 @@ Describe the responsibilities of the Command module.
 
 ## Decision
 
-This module is the place for all shared logic between the commands among different modules.
+This module hosts the logic shared by commands across different modules.
 
 ## Consequences
 
-We have in a unified place the reading of the `phel-config.php` values: 
+We have a unified place for reading the `phel-config.php` values:
 - source directories
 - test directories
 - vendor directories
