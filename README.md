@@ -47,6 +47,8 @@ It is a dialect of [Lisp](https://en.wikipedia.org/wiki/Lisp_(programming_langua
 
 The documentation for Phel can be found on the Phel's website: [https://phel-lang.org](https://phel-lang.org).
 
+Additional documentation about the compiler internals is available in [docs/internals/compiler.md](docs/internals/compiler.md).
+
 ## Community
 
 Feel free to ask questions and join discussions on the [Phel Gitter channel](https://gitter.im/phel-lang/community).
