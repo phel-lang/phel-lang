@@ -4,13 +4,14 @@ All notable changes to this project will be documented in this file.
 
 ## Unreleased
 
-- Add `time` macro
-- Add `doto` macro (#791)
-- Use PHPStan level 2
-- Add `if-let` and `when-let` macros (#795)
 - Fix `php/echo` does not work (#729)
 - Fix Hash-map malfunction notice (#786)
-- add native yield support (#802)
+- Fix header injection vulnerability (#803)
+- Add `time` macro
+- Add `doto` macro (#791)
+- Add `if-let` and `when-let` macros (#795)
+- Add native yield support (#802)
+- Use PHPStan level 2
 
 ## [0.16.1](https://github.com/phel-lang/phel-lang/compare/v0.16.0...v0.16.1) - 2024-12-13
 
