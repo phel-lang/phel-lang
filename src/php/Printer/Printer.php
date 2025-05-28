@@ -74,7 +74,7 @@ final readonly class Printer implements PrinterInterface
             return $this->createObjectTypePrinter($form);
         }
 
-        return $this->creatScalarTypePrinter($form);
+        return $this->createScalarTypePrinter($form);
     }
 
     private function createObjectTypePrinter(object $form): TypePrinterInterface
@@ -122,38 +122,19 @@ final readonly class Printer implements PrinterInterface
         return new NonPrintableClassPrinter($this->withColor);
     }
 
-    private function creatScalarTypePrinter(mixed $form): TypePrinterInterface
+    private function createScalarTypePrinter(mixed $form): TypePrinterInterface
     {
         $printerName = gettype($form);
 
-        if ($printerName === 'string') {
-            return new StringPrinter($this->readable, $this->withColor);
-        }
-
-        if ($printerName === 'integer' || $printerName === 'double') {
-            return new NumberPrinter($this->withColor);
-        }
-
-        if ($printerName === 'boolean') {
-            return new BooleanPrinter($this->withColor);
-        }
-
-        if ($printerName === 'NULL') {
-            return new NullPrinter($this->withColor);
-        }
-
-        if ($printerName === 'array' && !$this->readable) {
-            return new ArrayPrinter($this, $this->withColor);
-        }
-
-        if ($printerName === 'resource' && !$this->readable) {
-            return new ResourcePrinter();
-        }
-
-        if (!$this->readable) {
-            return new ObjectPrinter();
-        }
-
-        throw new RuntimeException('Printer cannot print this type: ' . $printerName);
+        return match (true) {
+            $printerName === 'string' => new StringPrinter($this->readable, $this->withColor),
+            $printerName === 'integer' || $printerName === 'double' => new NumberPrinter($this->withColor),
+            $printerName === 'boolean' => new BooleanPrinter($this->withColor),
+            $printerName === 'NULL' => new NullPrinter($this->withColor),
+            $printerName === 'array' && !$this->readable => new ArrayPrinter($this, $this->withColor),
+            $printerName === 'resource' && !$this->readable => new ResourcePrinter(),
+            !$this->readable => new ObjectPrinter(),
+            default => throw new RuntimeException('Printer cannot print this type: ' . $printerName),
+        };
     }
 }
