@@ -86,6 +86,14 @@ final class PrinterTest extends TestCase
         self::assertSame('toString method', $this->print($class));
     }
 
+    public function test_print_string_with_color(): void
+    {
+        self::assertSame(
+            "\033[0;95m\"test\"\033[0m",
+            Printer::readableWithColor()->print('test'),
+        );
+    }
+
     private function print(mixed $x): string
     {
         return Printer::readable()->print($x);

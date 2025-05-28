@@ -50,6 +50,11 @@ final readonly class Printer implements PrinterInterface
         return new self(readable: true);
     }
 
+    public static function readableWithColor(): self
+    {
+        return new self(readable: true, withColor: true);
+    }
+
     public static function nonReadable(): self
     {
         return new self(readable: false);
