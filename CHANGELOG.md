@@ -11,6 +11,7 @@ All notable changes to this project will be documented in this file.
 - Add `doto` macro (#791)
 - Add `if-let` and `when-let` macros (#795)
 - Add native yield support (#802)
+- Add `phel/str/repeat`
 - Use PHPStan level 2
 
 ## [0.16.1](https://github.com/phel-lang/phel-lang/compare/v0.16.0...v0.16.1) - 2024-12-13

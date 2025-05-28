@@ -173,3 +173,7 @@
   (let [sb "Ｃｌｏｊｕｒｅ　Ａｐｐｌｉｅｄ　Ｂｏｏｋ"]
     (is (= true (s/includes? sb "Ａｐｐｌｉｅｄ")))
     (is (= false (s/includes? sb "Ｌｉｖｉｎｇ")))))
+
+(deftest test-repeat
+  (is (= "abcabcabc" (s/repeat "abc" 3)))
+  (is (= "" (s/repeat "abc" 0))))

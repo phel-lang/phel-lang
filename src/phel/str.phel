@@ -21,6 +21,11 @@
   (let [chars (php/mb_str_split s)]
     (join (core/reverse chars))))
 
+(defn repeat
+  "Returns a string containing n copies of s."
+  [s n]
+  (php/str_repeat s n))
+
 (defn upper-case
   "Converts string to all upper-case."
   [s]

@@ -16,7 +16,7 @@ use function count;
 use function sprintf;
 
 /**
- * An implementation of a persistent vector inspiered
+ * An implementation of a persistent vector inspired
  * by the Clojure implementation of Rich Hickey.
  *
  * The formal name of this vector is 'persistent
