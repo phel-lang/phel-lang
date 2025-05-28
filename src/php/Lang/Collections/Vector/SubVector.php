@@ -64,7 +64,7 @@ final class SubVector extends AbstractPersistentVector
      */
     public function getIterator(): Traversable
     {
-        for ($s = $this; $s != null; $s = $s->cdr()) {
+        for ($s = $this; $s !== null; $s = $s->cdr()) {
             /** @var \Phel\Lang\Collections\LinkedList\PersistentList<T> $s */
             /** @var T $first  */
             $first = $s->first();
