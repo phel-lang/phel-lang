@@ -299,7 +299,7 @@
            :query-params {:foobar "foobar"}
            :cookie-params {:session "xyz"}
            :server-params {:param "str"}
-           :uploded-files []
+           :uploaded-files []
            :version "1.0"
            :attributes {:route "my-route"}}))))
 

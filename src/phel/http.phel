@@ -235,7 +235,7 @@
     :query-params query-params
     :cookie-params cookie-params
     :server-params server-params
-    :uploded-files uploaded-files
+    :uploaded-files uploaded-files
     :version version
     :attributes attributes}]
   (request
