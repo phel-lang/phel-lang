@@ -53,6 +53,12 @@ final class RangeIterator implements Iterator
     public function rewind(): void
     {
         $this->currentIndex = $this->start;
+        $this->base = $this->currentIndex - ($this->currentIndex % 32);
+
+        $this->currentArray = null;
+        if ($this->start < count($this->vector)) {
+            $this->currentArray = $this->vector->getArrayForIndex($this->currentIndex);
+        }
     }
 
     public function key(): mixed
