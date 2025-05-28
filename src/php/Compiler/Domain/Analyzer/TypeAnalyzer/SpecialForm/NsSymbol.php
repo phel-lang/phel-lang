@@ -55,7 +55,7 @@ final class NsSymbol implements SpecialFormAnalyzerInterface
 
         $requireNs = [];
         $requireFiles = [];
-        for ($forms = $list->rest()->cdr(); $forms != null; $forms = $forms->cdr()) {
+        for ($forms = $list->rest()->cdr(); $forms !== null; $forms = $forms->cdr()) {
             $import = $forms->first();
 
             if (!($import instanceof PersistentListInterface)) {

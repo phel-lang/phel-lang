@@ -123,7 +123,7 @@ final class PersistentList extends AbstractType implements PersistentListInterfa
 
         $s = $this;
         $ms = $other;
-        for ($s = $this; $s != null; $s = $s->cdr(), $ms = $ms->cdr()) {
+        for ($s = $this; $s !== null; $s = $s->cdr(), $ms = $ms->cdr()) {
             /** @var PersistentList $s */
             /** @var ?PersistentList $ms */
             if (!$ms instanceof self || !$this->equalizer->equals($s->first(), $ms->first())) {
@@ -151,7 +151,7 @@ final class PersistentList extends AbstractType implements PersistentListInterfa
      */
     public function getIterator(): Traversable
     {
-        for ($s = $this; $s != null; $s = $s->cdr()) {
+        for ($s = $this; $s !== null; $s = $s->cdr()) {
             /** @var PersistentList<T> $s */
             /** @var T $first  */
             $first = $s->first();
