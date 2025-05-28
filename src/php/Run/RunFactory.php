@@ -61,7 +61,7 @@ class RunFactory extends AbstractFactory
 
     public function createPrinter(): PrinterInterface
     {
-        return Printer::nonReadableWithColor();
+        return Printer::readableWithColor();
     }
 
     public function createReplCommandIo(): ReplCommandIoInterface

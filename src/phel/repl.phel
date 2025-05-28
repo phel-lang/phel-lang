@@ -96,7 +96,7 @@
   "Same as print-str from core, but with color."
   [& xs]
   (let [len (count xs)
-        printer (php/:: Printer (nonReadableWithColor))
+        printer (php/:: Printer (readableWithColor))
         pp |(php/-> printer (print $))]
     (case (count xs)
       0 ""
