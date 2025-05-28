@@ -7,6 +7,7 @@ All notable changes to this project will be documented in this file.
 - Fix `php/echo` does not work (#729)
 - Fix Hash-map malfunction notice (#786)
 - Fix header injection vulnerability (#803)
+- Fix multibyte functions in capitalize, lower-case, and upper-case (#805)
 - Add `time` macro
 - Add `doto` macro (#791)
 - Add `if-let` and `when-let` macros (#795)
