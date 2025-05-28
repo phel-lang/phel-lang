@@ -26,11 +26,6 @@
   [s n]
   (php/str_repeat s n))
 
-(defn upper-case
-  "Converts string to all upper-case."
-  [s]
-  (php/strtoupper s))
-
 (defn replace
   "Replaces all instance of match with replacement in s.
 
