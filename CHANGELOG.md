@@ -8,6 +8,7 @@ All notable changes to this project will be documented in this file.
 - Fix Hash-map malfunction notice (#786)
 - Fix header injection vulnerability (#803)
 - Fix multibyte functions in capitalize, lower-case, and upper-case (#805)
+- Fix null checks on Analyzer forms (#807)
 - Add `time` macro
 - Add `doto` macro (#791)
 - Add `if-let` and `when-let` macros (#795)
