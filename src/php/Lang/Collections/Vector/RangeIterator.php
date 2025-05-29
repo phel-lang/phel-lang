@@ -7,13 +7,12 @@ namespace Phel\Lang\Collections\Vector;
 use Iterator;
 
 use function assert;
-use function count;
 
 final class RangeIterator implements Iterator
 {
     private int $currentIndex;
 
-    private int $base;
+    private readonly int $vectorCount;
 
     private ?array $currentArray = null;
 
@@ -23,9 +22,9 @@ final class RangeIterator implements Iterator
         private readonly int $end,
     ) {
         $this->currentIndex = $start;
-        $this->base = $this->currentIndex - ($this->currentIndex % 32);
+        $this->vectorCount = $this->vector->count();
 
-        if ($this->start < count($this->vector)) {
+        if ($this->start < $this->vectorCount) {
             $this->currentArray = $this->vector->getArrayForIndex($this->currentIndex);
         }
     }
@@ -39,9 +38,8 @@ final class RangeIterator implements Iterator
     public function next(): void
     {
         ++$this->currentIndex;
-        if ($this->currentIndex < $this->end && $this->currentIndex - $this->base === 32) {
+        if ($this->currentIndex < $this->end && ($this->currentIndex & 0x1f) === 0) {
             $this->currentArray = $this->vector->getArrayForIndex($this->currentIndex);
-            $this->base += 32;
         }
     }
 
@@ -53,10 +51,9 @@ final class RangeIterator implements Iterator
     public function rewind(): void
     {
         $this->currentIndex = $this->start;
-        $this->base = $this->currentIndex - ($this->currentIndex % 32);
 
         $this->currentArray = null;
-        if ($this->start < count($this->vector)) {
+        if ($this->start < $this->vectorCount) {
             $this->currentArray = $this->vector->getArrayForIndex($this->currentIndex);
         }
     }
