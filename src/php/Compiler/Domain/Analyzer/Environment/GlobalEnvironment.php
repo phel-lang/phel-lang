@@ -17,6 +17,7 @@ use Phel\Lang\Symbol;
 use Phel\Lang\TypeFactory;
 use Phel\Shared\BuildConstants;
 use Phel\Shared\CompilerConstants;
+use Phel\Shared\ReplConstants;
 use RuntimeException;
 
 use function array_key_exists;
@@ -214,6 +215,7 @@ final class GlobalEnvironment implements GlobalEnvironmentInterface
     private function shouldThrowOnDuplicateDefinition(string $namespace, Symbol $name): bool
     {
         if (Registry::getInstance()->getDefinition(CompilerConstants::PHEL_CORE_NAMESPACE, BuildConstants::BUILD_MODE)
+            || Registry::getInstance()->getDefinition(CompilerConstants::PHEL_CORE_NAMESPACE, ReplConstants::REPL_MODE)
             || $namespace === CompilerConstants::PHEL_CORE_NAMESPACE
         ) {
             return false;
