@@ -60,6 +60,34 @@ final class NsEmitter implements NodeEmitterInterface
                     $ns->getStartLocation(),
                 );
             }
+        } else {
+            $this->outputEmitter->emitLine('$__phelBuildFacade = new \\Phel\\Build\\BuildFacade();');
+            $this->outputEmitter->emitLine('$__phelSrcDirs = \\Phel\\Lang\\Registry::getInstance()->getDefinition(');
+            $this->outputEmitter->increaseIndentLevel();
+            $this->outputEmitter->emitStr('"');
+            $this->outputEmitter->emitStr(addslashes($this->outputEmitter->mungeEncodeNs('phel\\repl')));
+            $this->outputEmitter->emitLine('",');
+            $this->outputEmitter->emitStr('"src-dirs"');
+            $this->outputEmitter->emitLine(') ?? [];');
+            $this->outputEmitter->decreaseIndentLevel();
+
+            foreach ($node->getRequireNs() as $ns) {
+                $this->outputEmitter->emitLine(
+                    '$__phelNsInfos = $__phelBuildFacade->getDependenciesForNamespace($__phelSrcDirs, ['
+                    . "'" . addslashes($ns->getName()) . "'"
+                    . ']);',
+                );
+                $this->outputEmitter->emitLine('foreach ($__phelNsInfos as $__phelNsInfo) {');
+                $this->outputEmitter->increaseIndentLevel();
+                $this->outputEmitter->emitLine('if (!in_array($__phelNsInfo->getNamespace(), \\Phel\\Lang\\Registry::getInstance()->getNamespaces(), true)) {');
+                $this->outputEmitter->increaseIndentLevel();
+                $this->outputEmitter->emitLine('$__phelBuildFacade->evalFile($__phelNsInfo->getFile());');
+                $this->outputEmitter->emitLine('\\Phel\\Compiler\\Infrastructure\\GlobalEnvironmentSingleton::getInstance()->setNs("' . addslashes($node->getNamespace()) . '");');
+                $this->outputEmitter->decreaseIndentLevel();
+                $this->outputEmitter->emitLine('}');
+                $this->outputEmitter->decreaseIndentLevel();
+                $this->outputEmitter->emitLine('}');
+            }
         }
     }
 
