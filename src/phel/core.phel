@@ -1980,4 +1980,3 @@ returns 1. If `xs` has one value, returns the reciprocal of x."
       (if (= e f)
         e
         (recur e)))))
-
