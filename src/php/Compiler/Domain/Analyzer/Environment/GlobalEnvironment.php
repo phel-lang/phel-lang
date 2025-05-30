@@ -8,6 +8,7 @@ use Phel\Compiler\Domain\Analyzer\Ast\AbstractNode;
 use Phel\Compiler\Domain\Analyzer\Ast\GlobalVarNode;
 use Phel\Compiler\Domain\Analyzer\Ast\LiteralNode;
 use Phel\Compiler\Domain\Analyzer\Ast\PhpClassNameNode;
+use Phel\Compiler\Domain\Analyzer\Exceptions\DuplicateDefinitionException;
 use Phel\Lang\Collections\Map\PersistentMapInterface;
 use Phel\Lang\Keyword;
 use Phel\Lang\Registry;
@@ -60,8 +61,10 @@ final class GlobalEnvironment implements GlobalEnvironmentInterface
 
     public function addDefinition(string $namespace, Symbol $name): void
     {
-        if (!array_key_exists($namespace, $this->definitions)) {
-            $this->definitions[$namespace] = [];
+        $this->initializeNamespace($namespace);
+
+        if ($this->shouldThrowOnDuplicateDefinition($namespace, $name)) {
+            throw DuplicateDefinitionException::forSymbol($namespace, $name);
         }
 
         $this->definitions[$namespace][$name->getName()] = true;
@@ -78,16 +81,19 @@ final class GlobalEnvironment implements GlobalEnvironmentInterface
     public function getDefinition(string $namespace, Symbol $name): ?PersistentMapInterface
     {
         if ($this->hasDefinition($namespace, $name)) {
-            return Registry::getInstance()->getDefinitionMetaData($namespace, $name->getName()) ?? TypeFactory::getInstance()->emptyPersistentMap();
+            return Registry::getInstance()->getDefinitionMetaData(
+                $namespace,
+                $name->getName(),
+            ) ?? TypeFactory::getInstance()->emptyPersistentMap();
         }
 
         return null;
     }
 
     /**
-     * @param string $inNamespace The namespace in which the alias exist
-     * @param Symbol $name The alias name
-     * @param Symbol $fullName The namespace that will be resolved
+     * @param  string  $inNamespace  The namespace in which the alias exist
+     * @param  Symbol  $name  The alias name
+     * @param  Symbol  $fullName  The namespace that will be resolved
      */
     public function addRequireAlias(string $inNamespace, Symbol $name, Symbol $fullName): void
     {
@@ -95,8 +101,8 @@ final class GlobalEnvironment implements GlobalEnvironmentInterface
     }
 
     /**
-     * @param string $inNamespace The namespace in which the alias should exist
-     * @param Symbol $name The alias name
+     * @param  string  $inNamespace  The namespace in which the alias should exist
+     * @param  Symbol  $name  The alias name
      */
     public function hasRequireAlias(string $inNamespace, Symbol $name): bool
     {
@@ -104,9 +110,9 @@ final class GlobalEnvironment implements GlobalEnvironmentInterface
     }
 
     /**
-     * @param string $inNamespace The namespace in which the alias exist
-     * @param Symbol $alias The alias name
-     * @param Symbol $fullName The namespace that will be resolved
+     * @param  string  $inNamespace  The namespace in which the alias exist
+     * @param  Symbol  $alias  The alias name
+     * @param  Symbol  $fullName  The namespace that will be resolved
      */
     public function addUseAlias(string $inNamespace, Symbol $alias, Symbol $fullName): void
     {
@@ -114,8 +120,8 @@ final class GlobalEnvironment implements GlobalEnvironmentInterface
     }
 
     /**
-     * @param string $inNamespace The namespace in which the alias should exist
-     * @param Symbol $alias The alias name
+     * @param  string  $inNamespace  The namespace in which the alias should exist
+     * @param  Symbol  $alias  The alias name
      */
     public function hasUseAlias(string $inNamespace, Symbol $alias): bool
     {
@@ -198,6 +204,30 @@ final class GlobalEnvironment implements GlobalEnvironmentInterface
         $this->interfaces[$namespace][$name->getName()] = $name;
     }
 
+    private function initializeNamespace(string $namespace): void
+    {
+        if (!array_key_exists($namespace, $this->definitions)) {
+            $this->definitions[$namespace] = [];
+        }
+    }
+
+    private function shouldThrowOnDuplicateDefinition(string $namespace, Symbol $name): bool
+    {
+        if (Registry::getInstance()->getDefinition(CompilerConstants::PHEL_CORE_NAMESPACE, BuildConstants::BUILD_MODE)
+            || $namespace === CompilerConstants::PHEL_CORE_NAMESPACE
+        ) {
+            return false;
+        }
+
+        $symbolName = $name->getName();
+
+        if (!isset($this->definitions[$namespace][$symbolName])) {
+            return false;
+        }
+
+        return Registry::getInstance()->hasDefinition($namespace, $symbolName);
+    }
+
     /**
      * @deprecated remove when `BuildConstants::COMPILE_MODE` is also removed
      */
@@ -208,7 +238,12 @@ final class GlobalEnvironment implements GlobalEnvironmentInterface
             Keyword::create('doc'),
             'Deprecated! Use *build-mode* instead. Set to true when a file is compiled, false otherwise.',
         );
-        Registry::getInstance()->addDefinition(CompilerConstants::PHEL_CORE_NAMESPACE, $symbol->getName(), false, $meta);
+        Registry::getInstance()->addDefinition(
+            CompilerConstants::PHEL_CORE_NAMESPACE,
+            $symbol->getName(),
+            false,
+            $meta,
+        );
         $this->addDefinition(CompilerConstants::PHEL_CORE_NAMESPACE, $symbol);
     }
 
@@ -219,7 +254,12 @@ final class GlobalEnvironment implements GlobalEnvironmentInterface
             Keyword::create('doc'),
             'Set to true when a file is being built/transpiled, false otherwise.',
         );
-        Registry::getInstance()->addDefinition(CompilerConstants::PHEL_CORE_NAMESPACE, $symbol->getName(), false, $meta);
+        Registry::getInstance()->addDefinition(
+            CompilerConstants::PHEL_CORE_NAMESPACE,
+            $symbol->getName(),
+            false,
+            $meta,
+        );
         $this->addDefinition(CompilerConstants::PHEL_CORE_NAMESPACE, $symbol);
     }
 
@@ -277,10 +317,17 @@ final class GlobalEnvironment implements GlobalEnvironmentInterface
     /**
      * It also includes private definitions from the current namespace.
      */
-    private function resolveInterfaceOrDefinitionForCurrentNs(Symbol $name, NodeEnvironmentInterface $env, string $ns): ?AbstractNode
-    {
+    private function resolveInterfaceOrDefinitionForCurrentNs(
+        Symbol $name,
+        NodeEnvironmentInterface $env,
+        string $ns,
+    ): ?AbstractNode {
         if (isset($this->interfaces[$ns][$name->getName()])) {
-            return new PhpClassNameNode($env, Symbol::createForNamespace($ns, $name->getName()), $name->getStartLocation());
+            return new PhpClassNameNode(
+                $env,
+                Symbol::createForNamespace($ns, $name->getName()),
+                $name->getStartLocation(),
+            );
         }
 
         $def = $this->getDefinition($ns, $name);
@@ -294,10 +341,17 @@ final class GlobalEnvironment implements GlobalEnvironmentInterface
     /**
      * It ignores private definitions (if they're not allowed) from the namespace.
      */
-    private function resolveInterfaceOrDefinition(Symbol $name, NodeEnvironmentInterface $env, string $ns): ?AbstractNode
-    {
+    private function resolveInterfaceOrDefinition(
+        Symbol $name,
+        NodeEnvironmentInterface $env,
+        string $ns,
+    ): ?AbstractNode {
         if (isset($this->interfaces[$ns][$name->getName()])) {
-            return new PhpClassNameNode($env, Symbol::createForNamespace($ns, $name->getName()), $name->getStartLocation());
+            return new PhpClassNameNode(
+                $env,
+                Symbol::createForNamespace($ns, $name->getName()),
+                $name->getStartLocation(),
+            );
         }
 
         $def = $this->getDefinition($ns, $name);
