@@ -355,11 +355,13 @@ final class GlobalEnvironmentTest extends TestCase
     {
         $env = new GlobalEnvironment();
         $sym = Symbol::create('x');
+        $sym->setStartLocation(new SourceLocation(__FILE__, 1, 0));
+
         $env->addDefinition('foo', $sym);
         Registry::getInstance()->addDefinition('foo', 'x', 1);
 
         $this->expectException(RuntimeException::class);
-        $this->expectExceptionMessage('Symbol x is already bound in namespace foo');
+        $this->expectExceptionMessage('Symbol x is already bound in namespace foo in ' . __FILE__ . ':1');
 
         $env->addDefinition('foo', $sym);
     }
