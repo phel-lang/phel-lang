@@ -7,9 +7,13 @@ namespace Phel\Run\Domain\Repl;
 use Phel\Command\CommandFacadeInterface;
 use Phel\Compiler\Domain\Exceptions\AbstractLocatedException;
 use Phel\Compiler\Domain\Parser\ReadModel\CodeSnippet;
+use Phel\Lang\FnInterface;
+use Phel\Lang\Registry;
 use Throwable;
 
 use function extension_loaded;
+use function sprintf;
+use function str_starts_with;
 
 final readonly class ReplCommandSystemIo implements ReplCommandIoInterface
 {
@@ -20,6 +24,8 @@ final readonly class ReplCommandSystemIo implements ReplCommandIoInterface
         if (!extension_loaded('readline')) {
             throw MissingDependencyException::missingExtension('readline');
         }
+
+        readline_completion_function(fn (string $input, int $index): array => $this->completion($input));
     }
 
     public function readHistory(): void
@@ -71,5 +77,38 @@ final readonly class ReplCommandSystemIo implements ReplCommandIoInterface
         $haystack = readline_info('library_version') ?? '';
 
         return stripos($haystack, 'editline') === false;
+    }
+
+    /**
+     * Get a sorted list of function names that start with the given input.
+     *
+     * @return list<string>
+     */
+    private function completion(string $input): array
+    {
+        $registry = Registry::getInstance();
+        $namespaces = $registry->getNamespaces();
+
+        $functions = [];
+        foreach ($namespaces as $namespace) {
+            $definitions = $registry->getDefinitionInNamespace($namespace);
+
+            foreach ($definitions as $name => $fn) {
+                if ($fn instanceof FnInterface) {
+                    $functions[] = ($namespace === 'phel\\core')
+                        ? $name
+                        : sprintf('%s\%s', $namespace, $name);
+                }
+            }
+        }
+
+        $matches = array_filter(
+            $functions,
+            static fn (string $function): bool => str_starts_with($function, $input),
+        );
+
+        sort($matches);
+
+        return $matches;
     }
 }

@@ -15,6 +15,7 @@ All notable changes to this project will be documented in this file.
 - Fix private symbol refer resolution (#813)
 - Fix REPL ns evaluation (#820)
 - Fix HTML macro when using when forms (#817)
+- Enable REPL autocompletion using functions in the Registry (#821)
 - Add `time` macro
 - Add `doto` macro (#791)
 - Add `if-let` and `when-let` macros (#795)
@@ -24,6 +25,7 @@ All notable changes to this project will be documented in this file.
 - Add `macroexpand` function (#810)
 - Add source filename:line on repl exceptions (#812)
 - Add `defexception` special form (#819)
+- Add completion to REPL (#821)
 - Use PHPStan level 2
 
 ## [0.16.1](https://github.com/phel-lang/phel-lang/compare/v0.16.0...v0.16.1) - 2024-12-13
