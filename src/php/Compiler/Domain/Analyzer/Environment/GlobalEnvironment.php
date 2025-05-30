@@ -308,6 +308,9 @@ final class GlobalEnvironment implements GlobalEnvironmentInterface
         $currentNs = $this->ns;
         if (isset($this->refers[$this->ns][$name->getName()])) {
             $currentNs = $this->refers[$this->ns][$name->getName()]->getName();
+
+            return $this->resolveInterfaceOrDefinition($name, $env, $currentNs)
+                ?? $this->resolveInterfaceOrDefinition($name, $env, CompilerConstants::PHEL_CORE_NAMESPACE);
         }
 
         return $this->resolveInterfaceOrDefinitionForCurrentNs($name, $env, $currentNs)

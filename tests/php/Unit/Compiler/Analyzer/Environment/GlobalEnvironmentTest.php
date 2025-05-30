@@ -143,6 +143,26 @@ final class GlobalEnvironmentTest extends TestCase
         );
     }
 
+    public function test_resolve_private_definition_from_refer(): void
+    {
+        $env = new GlobalEnvironment();
+        $env->addDefinition('foo', Symbol::create('x'));
+        Registry::getInstance()->addDefinition(
+            'foo',
+            'x',
+            null,
+            TypeFactory::getInstance()->persistentMapFromKVs(Keyword::create('private'), true),
+        );
+        $env->setNs('bar');
+        $env->addRefer('bar', Symbol::create('x'), Symbol::create('foo'));
+
+        $nodeEnv = NodeEnvironment::empty();
+
+        $this->assertNull(
+            $env->resolve(Symbol::create('x'), $nodeEnv),
+        );
+    }
+
     public function test_resolve_definition_in_same_ns(): void
     {
         $env = new GlobalEnvironment();
