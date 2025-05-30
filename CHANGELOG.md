@@ -13,6 +13,7 @@ All notable changes to this project will be documented in this file.
 - Fix inmutable global binding (#811)
 - Fix private symbol refer resolution (#813)
 - Fix REPL ns evaluation (#820)
+- Fix HTML macro when using when forms (#817)
 - Add `time` macro
 - Add `doto` macro (#791)
 - Add `if-let` and `when-let` macros (#795)
@@ -21,6 +22,7 @@ All notable changes to this project will be documented in this file.
 - Add strings wrapped with quotes on REPL (#806)
 - Add `macroexpand` function (#810)
 - Add source filename:line on repl exceptions (#812)
+- Add `defexception` special form (#819)
 - Use PHPStan level 2
 
 ## [0.16.1](https://github.com/phel-lang/phel-lang/compare/v0.16.0...v0.16.1) - 2024-12-13

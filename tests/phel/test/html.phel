@@ -82,3 +82,9 @@
 
 (deftest doctypes
   (is (= "<!DOCTYPE html>\n<div></div>" (html (doctype :html5) [:div]))))
+
+(deftest when-forms
+  (is (= "<div>xxxxxx</div>"
+         (html (when true [:div (for [i :range [0 6]] "x")]))))
+  (is (= "<div>xxxxxx</div>"
+         (html (when-not false [:div (for [i :range [0 6]] "x")])))))

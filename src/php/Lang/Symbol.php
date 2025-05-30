@@ -68,6 +68,8 @@ final class Symbol extends AbstractType implements IdenticalInterface, NamedInte
 
     public const NAME_DEF_INTERFACE = 'definterface*';
 
+    public const NAME_DEF_EXCEPTION = 'defexception*';
+
     private static int $symGenCounter = 1;
 
     public function __construct(
