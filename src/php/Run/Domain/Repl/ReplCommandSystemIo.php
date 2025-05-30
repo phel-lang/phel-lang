@@ -20,6 +20,8 @@ final readonly class ReplCommandSystemIo implements ReplCommandIoInterface
         if (!extension_loaded('readline')) {
             throw MissingDependencyException::missingExtension('readline');
         }
+
+        readline_completion_function(static fn (string $input, int $index): array => []);
     }
 
     public function readHistory(): void
