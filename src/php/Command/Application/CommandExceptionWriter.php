@@ -26,12 +26,15 @@ final readonly class CommandExceptionWriter implements CommandExceptionWriterInt
         OutputInterface $output,
         Throwable $e,
     ): void {
-        $output->writeln(sprintf(
-            '%s // file: %s',
-            $e->getPrevious()?->getMessage() ?? $e->getMessage(),
-            $e->getPrevious()?->getFile() ?? $e->getFile(),
-        ));
-        $output->writeln('> Dont you see the file? Check your phel config got `KeepGeneratedTempFiles=true`');
+        $message = $e->getPrevious()?->getMessage() ?? $e->getMessage();
+        $file = $e->getPrevious()?->getFile() ?? $e->getFile();
+
+        if (!str_contains($file, 'phel-lang/src')) {
+            $output->writeln(sprintf('%s // file: %s', $message, $file));
+            $output->writeln('> Dont you see the file? Check your phel config got `KeepGeneratedTempFiles=true`');
+        } else {
+            $output->writeln($message);
+        }
 
         $this->errorLog->writeln($this->getStackTraceString($e));
     }

@@ -17,6 +17,7 @@ All notable changes to this project will be documented in this file.
 - Add `phel/str/repeat`
 - Add strings wrapped with quotes on REPL (#806)
 - Add `macroexpand` function (#810)
+- Add source filename:line on repl exceptions (#812)
 - Use PHPStan level 2
 
 ## [0.16.1](https://github.com/phel-lang/phel-lang/compare/v0.16.0...v0.16.1) - 2024-12-13
