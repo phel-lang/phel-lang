@@ -33,6 +33,6 @@ final class ApiFacadeTest extends TestCase
             ApiConfig::allNamespaces(),
         );
 
-        self::assertCount(305, $groupedFns);
+        self::assertCount(307, $groupedFns);
     }
 }

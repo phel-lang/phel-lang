@@ -47,6 +47,14 @@ A Struct is a special kind of Map. It only supports a predefined number of keys 
             'fnSignature' => '(defstruct my-struct [a b c])',
             'desc' => 'A Struct is a special kind of Map. It only supports a predefined number of keys and is associated to a global name. The Struct not only defines itself but also a predicate function.',
         ],
+        Symbol::NAME_DEF_EXCEPTION => [
+            'doc' => '```phel
+(defexception my-ex)
+```',
+            'url' => '/documentation/exceptions',
+            'fnSignature' => '(defexception name)',
+            'desc' => 'Defines a new exception.',
+        ],
         Symbol::NAME_DO => [
             'doc' => '```phel
 (do expr*)

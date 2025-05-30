@@ -6,6 +6,7 @@ namespace PhelTest\Unit\Compiler\Analyzer;
 
 use Phel\Compiler\Application\Analyzer;
 use Phel\Compiler\Domain\Analyzer\Ast\ApplyNode;
+use Phel\Compiler\Domain\Analyzer\Ast\DefExceptionNode;
 use Phel\Compiler\Domain\Analyzer\Ast\DefNode;
 use Phel\Compiler\Domain\Analyzer\Ast\DefStructNode;
 use Phel\Compiler\Domain\Analyzer\Ast\DoNode;
@@ -253,5 +254,14 @@ final class AnalyzePersistentListTest extends TestCase
             TypeFactory::getInstance()->persistentVectorFromArray([]),
         ]);
         self::assertInstanceOf(DefStructNode::class, $this->listAnalyzer->analyze($list, NodeEnvironment::empty()));
+    }
+
+    public function test_symbol_with_name_def_exception(): void
+    {
+        $list = TypeFactory::getInstance()->persistentListFromArray([
+            Symbol::create(Symbol::NAME_DEF_EXCEPTION),
+            Symbol::create('MyExc'),
+        ]);
+        self::assertInstanceOf(DefExceptionNode::class, $this->listAnalyzer->analyze($list, NodeEnvironment::empty()));
     }
 }
