@@ -1,0 +1,14 @@
+(ns phel-test\test\core\macroexpand
+  (:require phel\test :refer [deftest is]))
+
+(deftest test-macroexpand-1-when
+  (is (= '(if true (do 1 2))
+         (macroexpand-1 '(when true 1 2)))))
+
+(deftest test-macroexpand-threading
+  (is (= (print-str '(+ 1 2))
+         (print-str (macroexpand '(-> 1 (+ 2)))))))
+
+(deftest test-macroexpand-inline
+  (is (= '(php/+ 1 1)
+         (macroexpand-1 '(inc 1)))))

@@ -30,6 +30,10 @@
   (:use Phel\Compiler\CompilerFacade)
   (:use Phel\Compiler\Infrastructure\CompileOptions)
   (:use Phel\Compiler\Application\Munge)
+  (:use Phel\Compiler\Infrastructure\GlobalEnvironmentSingleton)
+  (:use Phel\Compiler\Domain\Analyzer\Environment\NodeEnvironment)
+  (:use Phel\Compiler\Domain\Analyzer\Ast\GlobalVarNode)
+  (:use Phel\Lang\Registry)
   (:use Phel\Printer\Printer)
   (:use Countable)
   (:use Exception)
@@ -1929,3 +1933,50 @@ returns 1. If `xs` has one value, returns the reciprocal of x."
   [form]
   (let [cf (php/new CompilerFacade)]
     (php/-> (php/-> cf (compileForm form)) (getPhpCode))))
+
+(defn- get-global-env []
+  (php/:: GlobalEnvironmentSingleton (getInstance)))
+
+(defn- get-global-var-node [sym]
+  (php/-> (get-global-env) (resolve sym (php/:: NodeEnvironment (empty)))))
+
+(defn- inline-call? [meta arity]
+  (and (:inline meta)
+       (let [af (:inline-arity meta)]
+         (if af
+           (af arity)
+           true))))
+
+(defn macroexpand-1
+  "Expands the given form once if it is a macro call."
+  [form]
+  (if (and (list? form) (not (empty? form)))
+    (let [op (first form)]
+      (if (symbol? op)
+        (let [node (get-global-var-node op)]
+          (if (php/instanceof node GlobalVarNode)
+            (let [meta (php/-> node (getMeta))
+                  ns (php/-> node (getNamespace))
+                  name (php/-> (php/-> node (getName)) (getName))
+                  registry (php/:: Registry (getInstance))
+                  args (rest form)]
+              (cond
+                (inline-call? meta (count args))
+                  (apply (:inline meta) args)
+                (:macro meta)
+                  (let [macro-fn (php/-> registry (getDefinition ns name))]
+                    (apply macro-fn args))
+                :else
+                  form))
+            form))
+        form))
+    form))
+
+(defn macroexpand
+  "Recursively expands the given form until it is no longer a macro call."
+  [form]
+  (loop [f form]
+    (let [e (macroexpand-1 f)]
+      (if (= e f)
+        e
+        (recur e)))))
