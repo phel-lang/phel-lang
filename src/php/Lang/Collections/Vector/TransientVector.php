@@ -19,6 +19,8 @@ use function count;
  */
 final class TransientVector implements TransientVectorInterface
 {
+    private int $tailSize;
+
     /**
      * @param int $count The number of elements inside this vector
      * @param int $shift The shift value
@@ -33,6 +35,7 @@ final class TransientVector implements TransientVectorInterface
         private array $root,
         private array $tail,
     ) {
+        $this->tailSize = count($tail);
     }
 
     public static function empty(HasherInterface $hasher, EqualizerInterface $equalizer): self
@@ -72,9 +75,10 @@ final class TransientVector implements TransientVectorInterface
      */
     public function append($value): TransientVectorInterface
     {
-        if (count($this->tail) < self::BRANCH_FACTOR) {
+        if ($this->tailSize < self::BRANCH_FACTOR) {
             // There is room for a new value in the tail.
             $this->tail[] = $value;
+            ++$this->tailSize;
             ++$this->count;
 
             return $this;
@@ -95,6 +99,7 @@ final class TransientVector implements TransientVectorInterface
         $this->shift = $newShift;
         $this->root = $newRoot;
         $this->tail = [$value];
+        $this->tailSize = 1;
 
         return $this;
     }
@@ -165,6 +170,7 @@ final class TransientVector implements TransientVectorInterface
         $this->shift = $newShift;
         --$this->count;
         $this->tail = $newTail;
+        $this->tailSize = count($newTail);
 
         return $this;
     }
@@ -302,6 +308,6 @@ final class TransientVector implements TransientVectorInterface
             return 0;
         }
 
-        return $this->count - count($this->tail);
+        return $this->count - $this->tailSize;
     }
 }

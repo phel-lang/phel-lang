@@ -35,6 +35,8 @@ use function sprintf;
  */
 final class PersistentVector extends AbstractPersistentVector
 {
+    private readonly int $tailSize;
+
     /**
      * @param int $count The number of elements stored in this vector
      * @param array<array> $root The root node of this vector
@@ -50,6 +52,7 @@ final class PersistentVector extends AbstractPersistentVector
         private readonly array $tail,
     ) {
         parent::__construct($hasher, $equalizer, $meta);
+        $this->tailSize = count($tail);
     }
 
     public static function empty(HasherInterface $hasher, EqualizerInterface $equalizer): self
@@ -95,7 +98,7 @@ final class PersistentVector extends AbstractPersistentVector
      */
     public function append($value): self
     {
-        if (count($this->tail) < self::BRANCH_FACTOR) {
+        if ($this->tailSize < self::BRANCH_FACTOR) {
             // There is room for a new value in the tail.
             return new self(
                 $this->hasher,
@@ -408,6 +411,6 @@ final class PersistentVector extends AbstractPersistentVector
             return 0;
         }
 
-        return $this->count - count($this->tail);
+        return $this->count - $this->tailSize;
     }
 }
