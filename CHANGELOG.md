@@ -11,6 +11,7 @@ All notable changes to this project will be documented in this file.
 - Fix null checks on Analyzer forms (#807)
 - Fix calling php/$_SERVER more than once errors on repl (#789)
 - Fix inmutable global binding (#811)
+- Fix private symbol refer resolution (#813)
 - Add `time` macro
 - Add `doto` macro (#791)
 - Add `if-let` and `when-let` macros (#795)
