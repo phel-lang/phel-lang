@@ -12,6 +12,7 @@ All notable changes to this project will be documented in this file.
 - Fix calling php/$_SERVER more than once errors on repl (#789)
 - Fix inmutable global binding (#811)
 - Fix private symbol refer resolution (#813)
+- Fix REPL ns evaluation (#820)
 - Add `time` macro
 - Add `doto` macro (#791)
 - Add `if-let` and `when-let` macros (#795)
