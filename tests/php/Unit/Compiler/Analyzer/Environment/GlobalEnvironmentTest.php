@@ -371,6 +371,17 @@ final class GlobalEnvironmentTest extends TestCase
         );
     }
 
+    public function test_has_definition_with_hyphenated_namespace(): void
+    {
+        $env = new GlobalEnvironment();
+        $sym = Symbol::create('m');
+        $env->addDefinition('foo-bar', $sym);
+        Registry::getInstance()->addDefinition('foo_bar', 'm', null);
+
+        self::assertTrue($env->hasDefinition('foo-bar', $sym));
+        self::assertNull($env->getDefinition('foo-bar', Symbol::create('other')));
+    }
+
     public function test_add_duplicate_definition_throws_exception(): void
     {
         $env = new GlobalEnvironment();
