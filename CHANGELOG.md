@@ -5,16 +5,17 @@ All notable changes to this project will be documented in this file.
 ## Unreleased
 
 - Fix `php/echo` does not work (#729)
-- Fix Hash-map malfunction notice (#786)
+- Fix `hash-map` malfunction notice (#786)
 - Fix header injection vulnerability (#803)
 - Fix multibyte functions in capitalize, lower-case, and upper-case (#805)
 - Fix null checks on Analyzer forms (#807)
-- Fix calling php/$_SERVER more than once errors on repl (#789)
-- Fix REPL problems with multi-line string literals containing brackets (#818)
+- Fix calling `php/$_SERVER` more than once errors on repl (#789)
 - Fix inmutable global binding (#811)
 - Fix private symbol refer resolution (#813)
-- Fix REPL ns evaluation (#820)
 - Fix HTML macro when using when forms (#817)
+- Fix REPL problems with multi-line string literals containing brackets (#818)
+- Fix REPL ns evaluation (#820)
+- Fix Tab characters trigger shell autocompletion on REPL
 - Enable REPL autocompletion using functions in the Registry (#821)
 - Add `time` macro
 - Add `doto` macro (#791)

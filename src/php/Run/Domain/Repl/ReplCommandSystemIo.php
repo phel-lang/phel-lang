@@ -102,6 +102,10 @@ final readonly class ReplCommandSystemIo implements ReplCommandIoInterface
             }
         }
 
+        if (trim($input) === '') {
+            return [];
+        }
+
         $matches = array_filter(
             $functions,
             static fn (string $function): bool => str_starts_with($function, $input),
