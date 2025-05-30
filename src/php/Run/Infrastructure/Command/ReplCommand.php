@@ -18,6 +18,8 @@ use Phel\Run\Domain\Repl\ReplCommandIoInterface;
 use Phel\Run\RunConfig;
 use Phel\Run\RunFacade;
 use Phel\Run\RunFactory;
+use Phel\Shared\CompilerConstants;
+use Phel\Shared\ReplConstants;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
@@ -97,14 +99,24 @@ final class ReplCommand extends Command
 
         try {
             $this->loadAllPhelNamespaces();
+            Registry::getInstance()->addDefinition(
+                CompilerConstants::PHEL_CORE_NAMESPACE,
+                ReplConstants::REPL_MODE,
+                true,
+            );
             $this->loopReadLineAndAnalyze();
 
             return self::SUCCESS;
         } catch (Throwable $throwable) {
             $this->io->writeStackTrace($throwable);
+            return self::FAILURE;
+        } finally {
+            Registry::getInstance()->addDefinition(
+                CompilerConstants::PHEL_CORE_NAMESPACE,
+                ReplConstants::REPL_MODE,
+                false,
+            );
         }
-
-        return self::FAILURE;
     }
 
     private function getReplStartupFile(): string
