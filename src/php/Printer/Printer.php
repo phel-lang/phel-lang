@@ -60,11 +60,6 @@ final readonly class Printer implements PrinterInterface
         return new self(readable: false);
     }
 
-    public static function nonReadableWithColor(): self
-    {
-        return new self(readable: false, withColor: true);
-    }
-
     /**
      * Converts a form to a printable string.
      */
@@ -136,7 +131,7 @@ final readonly class Printer implements PrinterInterface
             $printerName === 'integer' || $printerName === 'double' => new NumberPrinter($this->withColor),
             $printerName === 'boolean' => new BooleanPrinter($this->withColor),
             $printerName === 'NULL' => new NullPrinter($this->withColor),
-            $printerName === 'array' && !$this->readable => new ArrayPrinter($this, $this->withColor),
+            $printerName === 'array' => new ArrayPrinter($this, $this->withColor),
             $printerName === 'resource' && !$this->readable => new ResourcePrinter(),
             !$this->readable => new ObjectPrinter(),
             default => throw new RuntimeException('Printer cannot print this type: ' . $printerName),
