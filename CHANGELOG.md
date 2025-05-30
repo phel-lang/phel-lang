@@ -10,7 +10,7 @@ All notable changes to this project will be documented in this file.
 - Fix multibyte functions in capitalize, lower-case, and upper-case (#805)
 - Fix null checks on Analyzer forms (#807)
 - Fix calling php/$_SERVER more than once errors on repl (#789)
-- Fix REPL problems with multi-line string literals containing brackets (#790)
+- Fix REPL problems with multi-line string literals containing brackets (#818)
 - Fix inmutable global binding (#811)
 - Fix private symbol refer resolution (#813)
 - Add `time` macro
