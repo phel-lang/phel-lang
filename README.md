@@ -54,3 +54,17 @@ Feel free to ask questions and join discussions on the [Phel Gitter channel](htt
 ## Contribute
 
 Please refer to [CONTRIBUTING.md](https://github.com/phel-lang/phel-lang/blob/master/.github/CONTRIBUTING.md) for information on how to contribute to Phel.
+
+## Build the PHAR
+
+Create a single executable archive with:
+
+```bash
+php -dphar.readonly=0 tools/build-phar.php
+```
+
+This will generate `build/phel.phar`, which you can run directly:
+
+```bash
+./build/phel.phar
+```
