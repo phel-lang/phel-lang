@@ -15,6 +15,7 @@ All notable changes to this project will be documented in this file.
 - Fix private symbol refer resolution (#813)
 - Fix REPL ns evaluation (#820)
 - Fix HTML macro when using when forms (#817)
+- Enable REPL autocompletion using functions in the Registry (#821)
 - Add `time` macro
 - Add `doto` macro (#791)
 - Add `if-let` and `when-let` macros (#795)
