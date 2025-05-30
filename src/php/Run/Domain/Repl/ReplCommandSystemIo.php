@@ -95,7 +95,9 @@ final readonly class ReplCommandSystemIo implements ReplCommandIoInterface
 
             foreach ($definitions as $name => $fn) {
                 if ($fn instanceof FnInterface) {
-                    $functions[] = ($namespace === 'phel\\core') ? $name : sprintf('%s\%s', $namespace, $name);
+                    $functions[] = ($namespace === 'phel\\core')
+                        ? $name
+                        : sprintf('%s\%s', $namespace, $name);
                 }
             }
         }
