@@ -75,7 +75,10 @@ final class GlobalEnvironment implements GlobalEnvironmentInterface
     {
         return (
             isset($this->definitions[$namespace][$name->getName()])
-            || Registry::getInstance()->hasDefinition($namespace, $name->getName())
+            || Registry::getInstance()->hasDefinition(
+                $this->mungeEncodeNs($namespace),
+                $name->getName(),
+            )
         );
     }
 
@@ -83,7 +86,7 @@ final class GlobalEnvironment implements GlobalEnvironmentInterface
     {
         if ($this->hasDefinition($namespace, $name)) {
             return Registry::getInstance()->getDefinitionMetaData(
-                $namespace,
+                $this->mungeEncodeNs($namespace),
                 $name->getName(),
             ) ?? TypeFactory::getInstance()->emptyPersistentMap();
         }
@@ -375,5 +378,10 @@ final class GlobalEnvironment implements GlobalEnvironmentInterface
     {
         return $this->allowPrivateAccessCounter > 0
             || !$meta[Keyword::create('private')];
+    }
+
+    private function mungeEncodeNs(string $ns): string
+    {
+        return str_replace('-', '_', $ns);
     }
 }
