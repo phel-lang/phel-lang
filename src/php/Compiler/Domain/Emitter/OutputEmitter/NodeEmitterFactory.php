@@ -7,6 +7,7 @@ namespace Phel\Compiler\Domain\Emitter\OutputEmitter;
 use Phel\Compiler\Domain\Analyzer\Ast\ApplyNode;
 use Phel\Compiler\Domain\Analyzer\Ast\CallNode;
 use Phel\Compiler\Domain\Analyzer\Ast\CatchNode;
+use Phel\Compiler\Domain\Analyzer\Ast\DefExceptionNode;
 use Phel\Compiler\Domain\Analyzer\Ast\DefInterfaceNode;
 use Phel\Compiler\Domain\Analyzer\Ast\DefNode;
 use Phel\Compiler\Domain\Analyzer\Ast\DefStructNode;
@@ -40,6 +41,7 @@ use Phel\Compiler\Domain\Emitter\OutputEmitter\NodeEmitter\ApplyEmitter;
 use Phel\Compiler\Domain\Emitter\OutputEmitter\NodeEmitter\CallEmitter;
 use Phel\Compiler\Domain\Emitter\OutputEmitter\NodeEmitter\CatchEmitter;
 use Phel\Compiler\Domain\Emitter\OutputEmitter\NodeEmitter\DefEmitter;
+use Phel\Compiler\Domain\Emitter\OutputEmitter\NodeEmitter\DefExceptionEmitter;
 use Phel\Compiler\Domain\Emitter\OutputEmitter\NodeEmitter\DefInterfaceEmitter;
 use Phel\Compiler\Domain\Emitter\OutputEmitter\NodeEmitter\DefStructEmitter;
 use Phel\Compiler\Domain\Emitter\OutputEmitter\NodeEmitter\DoEmitter;
@@ -104,6 +106,7 @@ final class NodeEmitterFactory
             PhpArrayPushNode::class => new PhpArrayPushEmitter($outputEmitter),
             ForeachNode::class => new ForeachEmitter($outputEmitter),
             DefStructNode::class => new DefStructEmitter($outputEmitter, new MethodEmitter($outputEmitter)),
+            DefExceptionNode::class => new DefExceptionEmitter($outputEmitter),
             PhpObjectSetNode::class => new PhpObjectSetEmitter($outputEmitter),
             MapNode::class => new MapEmitter($outputEmitter),
             SetVarNode::class => new SetVarEmitter($outputEmitter),

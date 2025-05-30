@@ -194,6 +194,18 @@
        (defn ,name ,(php/. "Creates a new " name " struct.") ,keys (php/new ,class-name-str ,@keys))
        (defn ,is-name ,(php/. "Checks if `x` is an instance of the " name " struct.") [x] (php/is_a x ,class-name-str)))))
 
+(defmacro defexception
+  "Define a new exception."
+  [name]
+  (let [name-str (php/-> name (getName))
+        munge (php/new Munge)
+        class-name-str (php/. *ns* "\\" (php/-> munge (encode name-str)))
+        is-name (php/:: Symbol (create (php/. name-str "?")))]
+    `(do
+       (defexception* ,name)
+       (defn ,name ,(php/. "Creates a new " name " exception.") [& args] (apply php/new ,class-name-str args))
+       (defn ,is-name ,(php/. "Checks if `x` is an instance of the " name " exception.") [x] (php/is_a x ,class-name-str)))))
+
 (defmacro comment
   "Ignores the body of the comment."
   [&])
