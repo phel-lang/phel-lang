@@ -76,4 +76,12 @@ TXT;
 
         self::assertSame('"$_" 1', $actual);
     }
+
+    public function test_placeholder_not_replaced_in_global_variable(): void
+    {
+        $result = InputResult::fromAny(1);
+        $actual = $result->readBuffer(['php/$_SERVER']);
+
+        self::assertSame('php/$_SERVER', $actual);
+    }
 }

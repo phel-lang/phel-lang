@@ -40,7 +40,7 @@ final readonly class InputResult
         }
 
         return preg_replace(
-            '/"[^\\"]*(?:\\.|[^\\"]*)*"(*SKIP)(*F)|' . preg_quote(self::LAST_RESULT_PLACEHOLDER, '/') . '/',
+            '/"[^\\"]*(?:\\.|[^\\"]*)*"(*SKIP)(*F)|\$_(?![A-Z])/',
             $this->formattedLastResult(),
             $fullInput,
         );
