@@ -128,10 +128,14 @@
   (let [form-name (if (and (list? form) (symbol? (first form)))
                     (name (first form)))]
     (case form-name
-      "for" (let [[_ bindings body] form]
-              `(apply str (for ,bindings ,(compile-html body))))
-      "if"  (let [[_ condition & body] form]
-              `(if ,condition ,@(for [x :in body] (compile-html x))))
+      "for"       (let [[_ bindings body] form]
+                    `(apply str (for ,bindings ,(compile-html body))))
+      "if"        (let [[_ condition & body] form]
+                    `(if ,condition ,@(for [x :in body] (compile-html x))))
+      "when"      (let [[_ condition & body] form]
+                    `(if ,condition ,@(for [x :in body] (compile-html x))))
+      "when-not"  (let [[_ condition & body] form]
+                    `(if (not ,condition) ,@(for [x :in body] (compile-html x))))
       `(render-html ,form))))
 
 (defn- compile-seq [content]
