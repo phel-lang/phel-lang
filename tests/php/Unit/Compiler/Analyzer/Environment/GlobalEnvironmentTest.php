@@ -15,6 +15,7 @@ use Phel\Lang\SourceLocation;
 use Phel\Lang\Symbol;
 use Phel\Lang\TypeFactory;
 use PHPUnit\Framework\TestCase;
+use RuntimeException;
 
 final class GlobalEnvironmentTest extends TestCase
 {
@@ -348,5 +349,18 @@ final class GlobalEnvironmentTest extends TestCase
         $this->assertNull(
             $env->resolveAsSymbol(Symbol::create('x'), $nodeEnv),
         );
+    }
+
+    public function test_add_duplicate_definition_throws_exception(): void
+    {
+        $env = new GlobalEnvironment();
+        $sym = Symbol::create('x');
+        $env->addDefinition('foo', $sym);
+        Registry::getInstance()->addDefinition('foo', 'x', 1);
+
+        $this->expectException(RuntimeException::class);
+        $this->expectExceptionMessage('Symbol x is already bound in namespace foo');
+
+        $env->addDefinition('foo', $sym);
     }
 }

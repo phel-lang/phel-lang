@@ -55,7 +55,9 @@ final class IntegrationTest extends TestCase
         $options = (new CompileOptions())
             ->setSource($filename);
 
+        BuildFacade::enableBuildMode();
         $compiledCode = $this->compilerFacade->compile($phelCode, $options)->getPhpCode();
+        BuildFacade::disableBuildMode();
 
         self::assertSame(
             trim($expectedGeneratedCode),
