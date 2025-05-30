@@ -8,6 +8,7 @@ use Phel\Compiler\Domain\Analyzer\Ast\AbstractNode;
 use Phel\Compiler\Domain\Analyzer\Ast\GlobalVarNode;
 use Phel\Compiler\Domain\Analyzer\Ast\LiteralNode;
 use Phel\Compiler\Domain\Analyzer\Ast\PhpClassNameNode;
+use Phel\Compiler\Domain\Analyzer\Exceptions\DuplicateDefinitionException;
 use Phel\Lang\Collections\Map\PersistentMapInterface;
 use Phel\Lang\Keyword;
 use Phel\Lang\Registry;
@@ -20,7 +21,6 @@ use RuntimeException;
 
 use function array_key_exists;
 use function dirname;
-use function sprintf;
 
 final class GlobalEnvironment implements GlobalEnvironmentInterface
 {
@@ -64,11 +64,7 @@ final class GlobalEnvironment implements GlobalEnvironmentInterface
         $this->initializeNamespace($namespace);
 
         if ($this->shouldThrowOnDuplicateDefinition($namespace, $name)) {
-            throw new RuntimeException(sprintf(
-                'Symbol %s is already bound in namespace %s',
-                $name->getName(),
-                $namespace,
-            ));
+            throw DuplicateDefinitionException::forSymbol($namespace, $name);
         }
 
         $this->definitions[$namespace][$name->getName()] = true;
