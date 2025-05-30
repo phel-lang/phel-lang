@@ -20,6 +20,7 @@ use RuntimeException;
 
 use function array_key_exists;
 use function dirname;
+use function sprintf;
 
 final class GlobalEnvironment implements GlobalEnvironmentInterface
 {
@@ -62,6 +63,26 @@ final class GlobalEnvironment implements GlobalEnvironmentInterface
     {
         if (!array_key_exists($namespace, $this->definitions)) {
             $this->definitions[$namespace] = [];
+        }
+
+        $buildMode = Registry::getInstance()->getDefinition(
+            CompilerConstants::PHEL_CORE_NAMESPACE,
+            BuildConstants::BUILD_MODE,
+        );
+
+        if (
+            !$buildMode
+            && isset($this->definitions[$namespace][$name->getName()])
+            && $namespace !== CompilerConstants::PHEL_CORE_NAMESPACE
+            && Registry::getInstance()->hasDefinition($namespace, $name->getName())
+        ) {
+            throw new RuntimeException(
+                sprintf(
+                    'Symbol %s is already bound in namespace %s',
+                    $name->getName(),
+                    $namespace,
+                ),
+            );
         }
 
         $this->definitions[$namespace][$name->getName()] = true;
