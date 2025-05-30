@@ -13,8 +13,11 @@ use Phel\Lang\Collections\LinkedList\PersistentListInterface;
 use Phel\Lang\Collections\Map\PersistentMapInterface;
 use Phel\Lang\Collections\Vector\PersistentVectorInterface;
 use Phel\Lang\Keyword;
+use Phel\Lang\Registry;
 use Phel\Lang\Symbol;
 use Phel\Lang\TypeFactory;
+use Phel\Shared\CompilerConstants;
+use Phel\Shared\ReplConstants;
 
 use function count;
 use function in_array;
@@ -77,6 +80,22 @@ final class NsSymbol implements SpecialFormAnalyzerInterface
                     $value,
                 );
             }
+        }
+
+        if (Registry::getInstance()->getDefinition(CompilerConstants::PHEL_CORE_NAMESPACE, ReplConstants::REPL_MODE)) {
+            $replSymbol = Symbol::create('phel\\repl');
+            $this->analyzer->addRequireAlias($ns, Symbol::create('repl'), $replSymbol);
+            $this->analyzer->addRefers(
+                $ns,
+                [
+                    Symbol::create('doc'),
+                    Symbol::create('require'),
+                    Symbol::create('use'),
+                    Symbol::create('print-colorful'),
+                    Symbol::create('println-colorful'),
+                ],
+                $replSymbol,
+            );
         }
 
         return new NsNode($ns, $requireNs, $requireFiles, $list->getStartLocation());
