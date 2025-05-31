@@ -6,6 +6,7 @@ namespace PhelTest\Unit\Compiler\Analyzer\SpecialForm;
 
 use Exception;
 use Phel\Compiler\Application\Analyzer;
+use Phel\Compiler\Application\Munge;
 use Phel\Compiler\Domain\Analyzer\AnalyzerInterface;
 use Phel\Compiler\Domain\Analyzer\Ast\CallNode;
 use Phel\Compiler\Domain\Analyzer\Ast\GlobalVarNode;
@@ -270,6 +271,34 @@ final class InvokeSymbolTest extends TestCase
                     new LiteralNode($env->withExpressionContext()->withDisallowRecurFrame(), 'foo'),
                 ],
             ),
+            $node,
+        );
+    }
+
+    public function test_macro_expand_with_hyphenated_namespace(): void
+    {
+        $ns = 'cli-skeleton\\macro-demo';
+        $macroName = 'my-hyphen-macro';
+
+        $this->analyzer->addDefinition($ns, Symbol::create($macroName));
+
+        $mungedNs = (new Munge())->encodeNs($ns);
+        Registry::getInstance()->addDefinition(
+            $mungedNs,
+            $macroName,
+            static fn ($x) => $x,
+            TypeFactory::getInstance()->persistentMapFromKVs(Keyword::create('macro'), true),
+        );
+
+        $list = TypeFactory::getInstance()->persistentListFromArray([
+            Symbol::createForNamespace($ns, $macroName),
+            'foo',
+        ]);
+        $env = NodeEnvironment::empty();
+        $node = (new InvokeSymbol($this->analyzer))->analyze($list, $env);
+
+        $this->assertEquals(
+            new LiteralNode($env->withStatementContext(), 'foo'),
             $node,
         );
     }
