@@ -19,7 +19,10 @@ final class ApiFactory extends AbstractFactory
 {
     public function createReplCompleter(): ReplCompleterInterface
     {
-        return new ReplCompleter();
+        return new ReplCompleter(
+            $this->createPhelFnLoader(),
+            $this->getConfig()->allNamespaces(),
+        );
     }
 
     public function createPhelFnNormalizer(): PhelFnNormalizerInterface

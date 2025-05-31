@@ -28,18 +28,23 @@ final class Phel
      */
     private const FILE_CACHE_DIR = '';
 
-    /**
-     * This function helps to unify the running execution for a custom phel project.
-     *
-     * @param list<string>|string|null $argv
-     */
-    public static function run(string $projectRootDir, string $namespace, array|string|null $argv = null): void
+    public static function bootstrap(string $projectRootDir, array|string|null $argv = null): void
     {
         if ($argv !== null) {
             self::updateGlobalArgv($argv);
         }
 
         Gacela::bootstrap($projectRootDir, self::configFn());
+    }
+
+    /**
+     * This function helps to unify the running execution for a custom phel project.
+     *
+     * @param  list<string>|string|null  $argv
+     */
+    public static function run(string $projectRootDir, string $namespace, array|string|null $argv = null): void
+    {
+        self::bootstrap($projectRootDir, $argv);
 
         $runFacade = new RunFacade();
         $runFacade->runNamespace($namespace);
@@ -59,7 +64,7 @@ final class Phel
     }
 
     /**
-     * @param list<string>|string $argv
+     * @param  list<string>|string  $argv
      */
     private static function updateGlobalArgv(array|string $argv): void
     {

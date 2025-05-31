@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Phel\Api\Application;
 
+use Phel\Api\Domain\PhelFnLoaderInterface;
 use Phel\Api\Domain\ReplCompleterInterface;
 use Phel\Lang\FnInterface;
 use Phel\Lang\Registry;
@@ -17,18 +18,15 @@ use function trim;
 /**
  * Autocompleter for REPL suggestions in both PHP and Phel contexts.
  */
-final class ReplCompleter implements ReplCompleterInterface
+final readonly class ReplCompleter implements ReplCompleterInterface
 {
     /**
-     * Static syntax sugar to trigger completion.
-     *
-     * @param  string  $input  the input to autocomplete
-     *
-     * @return list<string> matching completion suggestions
+     * @param  list<string>  $allNamespaces
      */
-    public static function run(string $input): array
-    {
-        return (new self())->complete($input);
+    public function __construct(
+        private PhelFnLoaderInterface $phelFnLoader,
+        private array $allNamespaces = [],
+    ) {
     }
 
     /**
@@ -40,6 +38,8 @@ final class ReplCompleter implements ReplCompleterInterface
      */
     public function complete(string $input): array
     {
+        $this->phelFnLoader->loadAllPhelFunctions($this->allNamespaces);
+
         $input = trim($input);
         if ($input === '') {
             return [];
