@@ -27,6 +27,7 @@ All notable changes to this project will be documented in this file.
 - Add source filename:line on repl exceptions (#812)
 - Add `defexception` special form (#819)
 - Add completion to REPL (#821)
+- Add `phel->php` and `php->phel` functions (#829)
 - Improve vector performance (#823)
 - Use PHPStan level 2
 

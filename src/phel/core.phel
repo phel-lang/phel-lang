@@ -524,6 +524,7 @@ Calling the `and` function without arguments returns true."
 
 (declare empty?)
 (declare truthy?)
+(declare name)
 
 (defn some?
   "Returns true if `(pred x)` is logical true for at least one `x` in `xs`, else false."
@@ -1209,6 +1210,55 @@ arrays. Use (php/aunset ds key)"))
     (foreach [k v arr]
       (put res k v))
     (persistent res)))
+
+
+(defn phel->php
+  "Recursively converts a Phel data structure to a PHP array."
+  [x]
+  (cond
+    (php-array? x)
+    (let [arr (php/array)]
+      (foreach [k v x]
+        (php/aset arr k (phel->php v)))
+      arr)
+
+    (indexed? x)
+    (let [arr (php/array)]
+      (foreach [v x]
+        (php/apush arr (phel->php v)))
+      arr)
+
+    (associative? x)
+    (let [arr (php/array)]
+      (foreach [k v x]
+        (php/aset arr (name k) (phel->php v)))
+      arr)
+
+    (set? x)
+    (let [arr (php/array)]
+      (foreach [v x]
+        (php/apush arr (phel->php v)))
+      arr)
+
+    true x))
+
+(defn php->phel
+  "Recursively converts a PHP array to Phel data structures."
+  [x]
+  (cond
+    (indexed-php-array? x)
+    (let [res (transient [])]
+      (foreach [v x]
+        (push res (php->phel v)))
+      (persistent res))
+
+    (php-array? x)
+    (let [res (transient {})]
+      (foreach [k v x]
+        (put res k (php->phel v)))
+      (persistent res))
+
+    true x))
 
 (defn contains-value?
   "Returns true if the value is present in the given collection, otherwise returns false."
