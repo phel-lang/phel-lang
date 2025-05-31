@@ -22,6 +22,12 @@ final class ReplCompleter implements ReplCompleterInterface
 {
     private static bool $loaded = false;
 
+    /** @var list<string> */
+    private static array $phpFunctions = [];
+
+    /** @var list<string> */
+    private static array $phpClasses = [];
+
     /**
      * @param  list<string>  $allNamespaces
      */
@@ -64,13 +70,21 @@ final class ReplCompleter implements ReplCompleterInterface
      */
     private function completePhpSymbols(string $prefix): array
     {
+        if (self::$phpFunctions === []) {
+            self::$phpFunctions = get_defined_functions()['internal'] ?? [];
+        }
+
+        if (self::$phpClasses === []) {
+            self::$phpClasses = get_declared_classes();
+        }
+
         $functions = array_filter(
-            get_defined_functions()['internal'] ?? [],
+            self::$phpFunctions,
             static fn (string $fn): bool => str_starts_with($fn, $prefix),
         );
 
         $classes = array_filter(
-            get_declared_classes(),
+            self::$phpClasses,
             static fn (string $class): bool => str_starts_with($class, $prefix),
         );
 
