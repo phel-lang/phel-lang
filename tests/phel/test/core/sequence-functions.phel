@@ -242,3 +242,16 @@
   (is (= [[1 2] [3]] (partition 2 [1 2 3])) "partition-2 three elements")
   (is (= [[1 2] [3 4]] (partition 2 [1 2 3 4])) "partition-2 four elements")
   (is (= [[1 2] [3 4] [5]] (partition 2 [1 2 3 4 5])) "partition-2 five elements"))
+
+(deftest test-phel-php-roundtrip
+  (let [data {:a [1 {:b 2}]}]
+    (let [arr (phel->php data)]
+      (is (php-array? arr) "phel->php returns php array")
+      (is (= {"a" [1 {"b" 2}]} (php->phel arr)) "phel->php -> php->phel roundtrip"))))
+
+(deftest test-php-phel-roundtrip
+  (let [m (php/array)
+        inner (php/array)]
+    (php/aset inner "b" 2)
+    (php/aset m "a" (php/array 1 inner))
+    (is (= m (phel->php (php->phel m))) "php->phel -> phel->php roundtrip")))
