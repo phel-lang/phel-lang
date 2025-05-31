@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Phel\Compiler\Domain\Analyzer\TypeAnalyzer\SpecialForm;
 
 use Exception;
+use Phel\Compiler\Application\Munge;
 use Phel\Compiler\Domain\Analyzer\Ast\AbstractNode;
 use Phel\Compiler\Domain\Analyzer\Ast\CallNode;
 use Phel\Compiler\Domain\Analyzer\Ast\GlobalVarNode;
@@ -105,7 +106,9 @@ final class InvokeSymbol implements SpecialFormAnalyzerInterface
     ): float|bool|int|string|TypeInterface|array|null {
         /** @psalm-suppress PossiblyNullArgument */
         $nodeName = $macroNode->getName()->getName();
-        $fn = Registry::getInstance()->getDefinition($macroNode->getNamespace(), $nodeName);
+
+        $ns = (new Munge())->encodeNs($macroNode->getNamespace());
+        $fn = Registry::getInstance()->getDefinition($ns, $nodeName);
 
         try {
             return $this->callMacroFn($fn, $list);
