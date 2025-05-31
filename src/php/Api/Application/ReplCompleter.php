@@ -18,14 +18,16 @@ use function trim;
 /**
  * Autocompleter for REPL suggestions in both PHP and Phel contexts.
  */
-final readonly class ReplCompleter implements ReplCompleterInterface
+final class ReplCompleter implements ReplCompleterInterface
 {
+    private static bool $loaded = false;
+
     /**
      * @param  list<string>  $allNamespaces
      */
     public function __construct(
-        private PhelFnLoaderInterface $phelFnLoader,
-        private array $allNamespaces = [],
+        private readonly PhelFnLoaderInterface $phelFnLoader,
+        private readonly array $allNamespaces = [],
     ) {
     }
 
@@ -38,7 +40,10 @@ final readonly class ReplCompleter implements ReplCompleterInterface
      */
     public function complete(string $input): array
     {
-        $this->phelFnLoader->loadAllPhelFunctions($this->allNamespaces);
+        if (!self::$loaded) {
+            $this->phelFnLoader->loadAllPhelFunctions($this->allNamespaces);
+            self::$loaded = true;
+        }
 
         $input = trim($input);
         if ($input === '') {

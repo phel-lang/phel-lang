@@ -26,8 +26,7 @@ final class ReplCompleterTest extends TestCase
         $this->registry = Registry::getInstance();
         $this->registry->clear();
 
-        $phelFnLoader = self::createMock(PhelFnLoaderInterface::class);
-        $phelFnLoader->expects(self::once())->method('loadAllPhelFunctions');
+        $phelFnLoader = self::createStub(PhelFnLoaderInterface::class);
         $this->completer = new ReplCompleter($phelFnLoader);
     }
 
@@ -38,7 +37,7 @@ final class ReplCompleterTest extends TestCase
 
     public function test_phel_function_completion(): void
     {
-        $fn = $this->createStub(FnInterface::class);
+        $fn = self::createStub(FnInterface::class);
         $this->registry->addDefinition('phel\\core', 'myfn', $fn);
 
         self::assertSame(['myfn'], $this->completer->complete('my'));
