@@ -46,9 +46,4 @@ interface RunFacadeInterface
     public function writeLocatedException(OutputInterface $output, CompilerException $e): void;
 
     public function writeStackTrace(OutputInterface $output, Throwable $e): void;
-
-    /**
-     * @return list<string>
-     */
-    public function replComplete(string $input): array;
 }

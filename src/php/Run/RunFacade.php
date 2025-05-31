@@ -82,14 +82,4 @@ final class RunFacade extends AbstractFacade implements RunFacadeInterface
             ->getCommandFacade()
             ->getAllPhelDirectories();
     }
-
-    /**
-     * @return list<string>
-     */
-    public function replComplete(string $input): array
-    {
-        return $this->getFactory()
-            ->createReplCompleter()
-            ->complete($input);
-    }
 }

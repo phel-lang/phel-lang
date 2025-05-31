@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace PhelTest\Unit\Run\Domain\Repl;
 
+use Phel\Api\Application\ReplCompleter;
 use Phel\Lang\FnInterface;
 use Phel\Lang\Registry;
-use Phel\Run\Application\ReplCompleter;
 use PHPUnit\Framework\TestCase;
 
 final class ReplCompleterTest extends TestCase

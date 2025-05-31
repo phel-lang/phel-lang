@@ -2,11 +2,11 @@
 
 declare(strict_types=1);
 
-namespace Phel\Run\Application;
+namespace Phel\Api\Application;
 
+use Phel\Api\Domain\ReplCompleterInterface;
 use Phel\Lang\FnInterface;
 use Phel\Lang\Registry;
-use Phel\Run\Domain\Repl\ReplCompleterInterface;
 
 use function get_declared_classes;
 use function get_defined_functions;

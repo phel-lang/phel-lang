@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Phel\Run\Domain\Repl;
 
+use Phel\Api\ApiFacadeInterface;
 use Phel\Command\CommandFacadeInterface;
 use Phel\Compiler\Domain\Exceptions\AbstractLocatedException;
 use Phel\Compiler\Domain\Parser\ReadModel\CodeSnippet;
@@ -16,14 +17,14 @@ final readonly class ReplCommandSystemIo implements ReplCommandIoInterface
     public function __construct(
         private string $historyFile,
         private CommandFacadeInterface $commandFacade,
-        private ReplCompleterInterface $completer,
+        private ApiFacadeInterface $apiFacade,
     ) {
         if (!extension_loaded('readline')) {
             throw MissingDependencyException::missingExtension('readline');
         }
 
         readline_completion_function(
-            fn (string $input, int $index): array => $this->completer->complete($input),
+            fn (string $input, int $index): array => $this->apiFacade->replComplete($input),
         );
     }
 
