@@ -17,7 +17,9 @@ use function count;
 final class IndexedNodeIterator implements Iterator
 {
     /** @var array<int, array{0: K|null, 1: V|HashMapNodeInterface<K, V>}> */
-    private array $entries;
+    private readonly array $entries;
+
+    private readonly int $count;
 
     private int $index = 0;
 
@@ -26,6 +28,7 @@ final class IndexedNodeIterator implements Iterator
     public function __construct(array $entries)
     {
         $this->entries = array_values($entries);
+        $this->count = count($this->entries);
     }
 
     /**
@@ -61,7 +64,7 @@ final class IndexedNodeIterator implements Iterator
             return $this->nestedIterator->valid();
         }
 
-        return $this->index < count($this->entries);
+        return $this->index < $this->count;
     }
 
     public function rewind(): void
@@ -93,7 +96,7 @@ final class IndexedNodeIterator implements Iterator
     private function nextIndex(): void
     {
         ++$this->index;
-        if ($this->index < count($this->entries) && $this->entries[$this->index][0] === null) {
+        if ($this->index < $this->count && $this->entries[$this->index][0] === null) {
             $this->initializeNestedIterator($this->index);
         } else {
             $this->nestedIterator = null;

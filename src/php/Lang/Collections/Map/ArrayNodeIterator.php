@@ -18,7 +18,9 @@ use function count;
 final class ArrayNodeIterator implements Iterator
 {
     /** @var array<int, HashMapNodeInterface<K, V>> A fixed size array of nodes */
-    private array $childNodes;
+    private readonly array $childNodes;
+
+    private readonly int $count;
 
     private int $index = 0;
 
@@ -27,6 +29,7 @@ final class ArrayNodeIterator implements Iterator
     public function __construct(array $childNodes)
     {
         $this->childNodes = array_values($childNodes);
+        $this->count = count($this->childNodes);
     }
 
     /**
@@ -60,7 +63,7 @@ final class ArrayNodeIterator implements Iterator
             return $this->nestedIterator->valid();
         }
 
-        return $this->index < count($this->childNodes);
+        return $this->index < $this->count;
     }
 
     public function rewind(): void
@@ -87,7 +90,7 @@ final class ArrayNodeIterator implements Iterator
     {
         ++$this->index;
 
-        if ($this->index < count($this->childNodes)) {
+        if ($this->index < $this->count) {
             $this->initializeNestedIterator($this->index);
         } else {
             $this->nestedIterator = null;
