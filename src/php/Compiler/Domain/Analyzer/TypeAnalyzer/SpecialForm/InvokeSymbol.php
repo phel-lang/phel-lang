@@ -105,7 +105,9 @@ final class InvokeSymbol implements SpecialFormAnalyzerInterface
     ): float|bool|int|string|TypeInterface|array|null {
         /** @psalm-suppress PossiblyNullArgument */
         $nodeName = $macroNode->getName()->getName();
-        $fn = Registry::getInstance()->getDefinition($macroNode->getNamespace(), $nodeName);
+
+        $ns = str_replace('-', '_', $macroNode->getNamespace());
+        $fn = Registry::getInstance()->getDefinition($ns, $nodeName);
 
         try {
             return $this->callMacroFn($fn, $list);
