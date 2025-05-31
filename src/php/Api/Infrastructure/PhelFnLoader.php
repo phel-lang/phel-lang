@@ -343,7 +343,7 @@ An interface in Phel defines an abstract set of functions. It is directly mapped
         return $normalizedData;
     }
 
-    private function loadAllPhelFunctions(array $namespaces): void
+    public function loadAllPhelFunctions(array $namespaces): void
     {
         Registry::getInstance()->clear();
         Symbol::resetGen();

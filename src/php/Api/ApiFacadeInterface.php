@@ -16,4 +16,9 @@ interface ApiFacadeInterface
      * @return list<PhelFunction>
      */
     public function getPhelFunctions(array $namespaces = []): array;
+
+    /**
+     * @return list<string>
+     */
+    public function replComplete(string $input): array;
 }

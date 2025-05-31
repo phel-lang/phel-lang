@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Phel\Run;
 
 use Gacela\Framework\AbstractFactory;
+use Phel\Api\ApiFacadeInterface;
 use Phel\Build\BuildFacadeInterface;
 use Phel\Command\CommandFacadeInterface;
 use Phel\Compiler\CompilerFacadeInterface;
@@ -69,6 +70,12 @@ class RunFactory extends AbstractFactory
         return new ReplCommandSystemIo(
             $this->getConfig()->getPhelReplHistory(),
             $this->getCommandFacade(),
+            $this->getApiFacade(),
         );
+    }
+
+    public function getApiFacade(): ApiFacadeInterface
+    {
+        return $this->getProvidedDependency(RunProvider::FACADE_API);
     }
 }

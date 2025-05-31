@@ -24,4 +24,6 @@ interface PhelFnLoaderInterface
      * }>
      */
     public function getNormalizedNativeSymbols(): array;
+
+    public function loadAllPhelFunctions(array $namespaces): void;
 }
