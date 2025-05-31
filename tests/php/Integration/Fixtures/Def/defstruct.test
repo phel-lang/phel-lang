@@ -1,6 +1,7 @@
 --PHEL--
 (defstruct* my-type [a b c?])
 --PHP--
+if (!class_exists('user\my_type')) {
 class my_type extends \Phel\Lang\Collections\Struct\AbstractPersistentStruct {
 
   protected const ALLOWED_KEYS = ['a', 'b', 'c?'];
@@ -16,4 +17,5 @@ class my_type extends \Phel\Lang\Collections\Struct\AbstractPersistentStruct {
     $this->c_QMARK_ = $c_QMARK_;
     $this->meta = $meta;
   }
+}
 }

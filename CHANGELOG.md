@@ -16,6 +16,7 @@ All notable changes to this project will be documented in this file.
 - Fix REPL problems with multi-line string literals containing brackets (#818)
 - Fix REPL ns evaluation (#820)
 - Fix Tab characters trigger shell autocompletion on REPL
+- Fix cannot reload user namespace (#832)
 - Enable REPL autocompletion using functions in the Registry (#821)
 - Add `time` macro
 - Add `doto` macro (#791)

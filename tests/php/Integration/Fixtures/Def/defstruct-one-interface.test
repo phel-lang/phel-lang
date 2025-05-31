@@ -12,6 +12,7 @@ interface MyInterface {
   public function foo_bar();
   public function bar($a, $b);
 }
+if (!class_exists('user\my_type_with_one_interface')) {
 class my_type_with_one_interface extends \Phel\Lang\Collections\Struct\AbstractPersistentStruct implements \user\MyInterface {
 
   protected const ALLOWED_KEYS = ['v'];
@@ -35,4 +36,5 @@ class my_type_with_one_interface extends \Phel\Lang\Collections\Struct\AbstractP
     $this_2 = $this;
     return ($a + $b + $v);
   }
+}
 }

@@ -43,6 +43,10 @@ final readonly class DefStructEmitter implements NodeEmitterInterface
             );
         }
 
+        $fqcn = $this->outputEmitter->mungeEncodeNs($node->getNamespace())
+            . '\\' . $this->outputEmitter->mungeEncode($node->getName()->getName());
+        $this->outputEmitter->emitLine("if (!class_exists('" . $fqcn . "')) {", $node->getStartSourceLocation());
+
         $this->outputEmitter->emitStr(
             'class ' . $this->outputEmitter->mungeEncode($node->getName()->getName()) . ' extends \Phel\Lang\Collections\Struct\AbstractPersistentStruct',
             $node->getStartSourceLocation(),
@@ -141,6 +145,7 @@ final readonly class DefStructEmitter implements NodeEmitterInterface
     private function emitClassEnd(DefStructNode $node): void
     {
         $this->outputEmitter->decreaseIndentLevel();
+        $this->outputEmitter->emitLine('}', $node->getStartSourceLocation());
         $this->outputEmitter->emitLine('}', $node->getStartSourceLocation());
     }
 }
