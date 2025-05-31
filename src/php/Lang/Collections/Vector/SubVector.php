@@ -11,7 +11,6 @@ use Phel\Lang\EqualizerInterface;
 use Phel\Lang\HasherInterface;
 use Traversable;
 
-use function array_slice;
 use function sprintf;
 
 /**
@@ -51,7 +50,12 @@ final class SubVector extends AbstractPersistentVector
      */
     public function toArray(): array
     {
-        return array_slice($this->vector->toArray(), $this->start, $this->end - $this->start);
+        $result = [];
+        for ($i = $this->start; $i < $this->end; ++$i) {
+            $result[] = $this->vector->get($i);
+        }
+
+        return $result;
     }
 
     public function withMeta(?PersistentMapInterface $meta): self
