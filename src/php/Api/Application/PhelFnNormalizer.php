@@ -9,8 +9,6 @@ use Phel\Api\Domain\PhelFnNormalizerInterface;
 use Phel\Api\Transfer\PhelFunction;
 use Phel\Lang\Keyword;
 
-use function in_array;
-
 final readonly class PhelFnNormalizer implements PhelFnNormalizerInterface
 {
     /**
@@ -121,11 +119,11 @@ final readonly class PhelFnNormalizer implements PhelFnNormalizerInterface
 
         $filtered = array_filter($fns, static function (PhelFunction $fn) use (&$seenNames): bool {
             $fnName = $fn->fnName();
-            if (in_array($fnName, $seenNames, true)) {
+            if (isset($seenNames[$fnName])) {
                 return false;
             }
 
-            $seenNames[] = $fnName;
+            $seenNames[$fnName] = true;
             return true;
         });
 
