@@ -77,6 +77,19 @@ TXT;
         self::assertSame('"$_" 1', $actual);
     }
 
+    public function test_placeholder_not_replaced_in_multiline_string(): void
+    {
+        $result = InputResult::fromAny(1);
+        $actual = $result->readBuffer(['"[', '$_', ']" $_']);
+        $expected = <<<'TXT'
+"[
+$_
+]" 1
+TXT;
+
+        self::assertSame($expected, $actual);
+    }
+
     public function test_placeholder_not_replaced_in_global_variable(): void
     {
         $result = InputResult::fromAny(1);
