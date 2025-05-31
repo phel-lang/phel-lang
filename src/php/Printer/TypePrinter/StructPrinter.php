@@ -21,10 +21,10 @@ final readonly class StructPrinter implements TypePrinterInterface
      */
     public function print(mixed $form): string
     {
-        $values = array_map(
-            fn ($key): string => $this->printer->print($form[$key]),
-            $form->getAllowedKeys(),
-        );
+        $values = [];
+        foreach ($form->getAllowedKeys() as $key) {
+            $values[] = $this->printer->print($form[$key]);
+        }
 
         return '(' . $form::class . ' ' . implode(' ', $values) . ')';
     }

@@ -39,19 +39,22 @@ final readonly class ArrayPrinter implements TypePrinterInterface
 
     private function formatValuesFromList(array $form): array
     {
-        return array_map(
-            fn ($v): string => $this->printer->print($v),
-            $form,
-        );
+        $result = [];
+        foreach ($form as $v) {
+            $result[] = $this->printer->print($v);
+        }
+
+        return $result;
     }
 
     private function formatKeyValuesFromDict(array $form): array
     {
-        return array_map(
-            fn ($k, $v): string => sprintf('%s:%s', $this->printer->print($k), $this->printer->print($v)),
-            array_keys($form),
-            $form,
-        );
+        $result = [];
+        foreach ($form as $k => $v) {
+            $result[] = sprintf('%s:%s', $this->printer->print($k), $this->printer->print($v));
+        }
+
+        return $result;
     }
 
     private function color(string $str): string
