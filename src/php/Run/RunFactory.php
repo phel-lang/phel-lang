@@ -16,6 +16,7 @@ use Phel\Run\Domain\Repl\ColorStyle;
 use Phel\Run\Domain\Repl\ColorStyleInterface;
 use Phel\Run\Domain\Repl\ReplCommandIoInterface;
 use Phel\Run\Domain\Repl\ReplCommandSystemIo;
+use Phel\Run\Domain\Repl\ReplCompleterInterface;
 use Phel\Run\Domain\Runner\NamespaceCollector;
 use Phel\Run\Domain\Runner\NamespaceRunnerInterface;
 
@@ -70,7 +71,12 @@ class RunFactory extends AbstractFactory
         return new ReplCommandSystemIo(
             $this->getConfig()->getPhelReplHistory(),
             $this->getCommandFacade(),
-            new ReplCompleter(),
+            $this->createReplCompleter(),
         );
+    }
+
+    public function createReplCompleter(): ReplCompleterInterface
+    {
+        return new ReplCompleter();
     }
 }

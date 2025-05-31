@@ -25,8 +25,8 @@ interface RunFacadeInterface
     public function getAllPhelDirectories(): array;
 
     /**
-     * @param list<string> $directories
-     * @param list<string> $ns
+     * @param  list<string>  $directories
+     * @param  list<string>  $ns
      *
      * @return list<NamespaceInformation>
      */
@@ -35,7 +35,7 @@ interface RunFacadeInterface
     public function evalFile(NamespaceInformation $info): void;
 
     /**
-     * @param list<string> $paths
+     * @param  list<string>  $paths
      *
      * @return list<NamespaceInformation>
      */
@@ -46,4 +46,9 @@ interface RunFacadeInterface
     public function writeLocatedException(OutputInterface $output, CompilerException $e): void;
 
     public function writeStackTrace(OutputInterface $output, Throwable $e): void;
+
+    /**
+     * @return list<string>
+     */
+    public function replComplete(string $input): array;
 }
