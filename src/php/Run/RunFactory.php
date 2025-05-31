@@ -11,11 +11,11 @@ use Phel\Compiler\CompilerFacadeInterface;
 use Phel\Printer\Printer;
 use Phel\Printer\PrinterInterface;
 use Phel\Run\Application\NamespaceRunner;
+use Phel\Run\Application\ReplCompleter;
 use Phel\Run\Domain\Repl\ColorStyle;
 use Phel\Run\Domain\Repl\ColorStyleInterface;
 use Phel\Run\Domain\Repl\ReplCommandIoInterface;
 use Phel\Run\Domain\Repl\ReplCommandSystemIo;
-use Phel\Run\Domain\Repl\ReplCompleter;
 use Phel\Run\Domain\Runner\NamespaceCollector;
 use Phel\Run\Domain\Runner\NamespaceRunnerInterface;
 

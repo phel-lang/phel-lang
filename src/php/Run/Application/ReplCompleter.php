@@ -2,17 +2,19 @@
 
 declare(strict_types=1);
 
-namespace Phel\Run\Domain\Repl;
+namespace Phel\Run\Application;
 
 use Phel\Lang\FnInterface;
 use Phel\Lang\Registry;
+
+use Phel\Run\Domain\Repl\ReplCompleterInterface;
 
 use function get_declared_classes;
 use function get_defined_functions;
 use function sprintf;
 use function str_starts_with;
 
-final class ReplCompleter
+final class ReplCompleter implements ReplCompleterInterface
 {
     /**
      * @return list<string>

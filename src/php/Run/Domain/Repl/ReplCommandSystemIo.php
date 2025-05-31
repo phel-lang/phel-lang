@@ -16,13 +16,15 @@ final readonly class ReplCommandSystemIo implements ReplCommandIoInterface
     public function __construct(
         private string $historyFile,
         private CommandFacadeInterface $commandFacade,
-        private ReplCompleter $completer = new ReplCompleter(),
+        private ReplCompleterInterface $completer,
     ) {
         if (!extension_loaded('readline')) {
             throw MissingDependencyException::missingExtension('readline');
         }
 
-        readline_completion_function(fn (string $input, int $index): array => $this->completer->complete($input));
+        readline_completion_function(
+            fn (string $input, int $index): array => $this->completer->complete($input),
+        );
     }
 
     public function readHistory(): void
@@ -76,13 +78,4 @@ final readonly class ReplCommandSystemIo implements ReplCommandIoInterface
         return stripos($haystack, 'editline') === false;
     }
 
-    /**
-     * Provide completion suggestions for the given input.
-     *
-     * @return list<string>
-     */
-    public function completion(string $input): array
-    {
-        return $this->completer->complete($input);
-    }
 }

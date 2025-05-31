@@ -6,7 +6,7 @@ namespace PhelTest\Unit\Run\Domain\Repl;
 
 use Phel\Lang\FnInterface;
 use Phel\Lang\Registry;
-use Phel\Run\Domain\Repl\ReplCompleter;
+use Phel\Run\Application\ReplCompleter;
 use PHPUnit\Framework\TestCase;
 
 final class ReplCompleterTest extends TestCase
