@@ -135,9 +135,11 @@ final readonly class NamespaceExtractor implements NamespaceExtractorInterface
         $iterator = new RecursiveIteratorIterator(new RecursiveDirectoryIterator($realpath));
         $phelIterator = new RegexIterator($iterator, '/^.+\.phel$/i', RegexIterator::GET_MATCH);
 
-        return array_map(
-            fn (array $file): NamespaceInformation => $this->getNamespaceFromFile($file[0]),
-            iterator_to_array($phelIterator),
-        );
+        $result = [];
+        foreach ($phelIterator as $file) {
+            $result[] = $this->getNamespaceFromFile($file[0]);
+        }
+
+        return $result;
     }
 }

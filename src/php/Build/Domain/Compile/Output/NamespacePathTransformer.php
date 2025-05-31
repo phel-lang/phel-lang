@@ -8,10 +8,9 @@ final class NamespacePathTransformer
 {
     public function transform(string $namespace): string
     {
-        return str_replace(
-            ['\\', '-'],
-            ['/', '_'],
+        return strtr(
             $namespace,
+            ['\\' => '/', '-' => '_'],
         );
     }
 }

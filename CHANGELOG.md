@@ -31,6 +31,7 @@ All notable changes to this project will be documented in this file.
 - Add `phel->php` and `php->phel` functions (#829)
 - Add `ApiFacade::replComplete` service (#830)
 - Improve vector performance (#823)
+- Improve `DependenciesForNamespace` performance
 - Use PHPStan level 2
 
 ## [0.16.1](https://github.com/phel-lang/phel-lang/compare/v0.16.0...v0.16.1) - 2024-12-13
