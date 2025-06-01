@@ -236,3 +236,15 @@
   "Splits s on \\n or \\r\\n. Trailing empty lines are not returned."
   [s]
   (split s "/\\r?\\n/"))
+
+(defn pad-left
+  "Returns a string padded on the left side to length `len`.
+   If `pad-str` is omitted it defaults to a single space."
+  [s len & [pad-str]]
+  (php/str_pad s len (or pad-str " ") php/STR_PAD_LEFT))
+
+(defn pad-right
+  "Returns a string padded on the right side to length `len`.
+   If `pad-str` is omitted it defaults to a single space."
+  [s len & [pad-str]]
+  (php/str_pad s len (or pad-str " ") php/STR_PAD_RIGHT))
