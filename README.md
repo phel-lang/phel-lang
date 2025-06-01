@@ -16,15 +16,16 @@
     <img src="https://shepherd.dev/github/phel-lang/phel-lang/coverage.svg" alt="Psalm Type-coverage Status">
   </a>
   <a href="https://gitter.im/phel-lang/community?utm_source=badge&amp;utm_medium=badge&amp;utm_campaign=pr-badge">
-    <img src="https://badges.gitter.im/Join%20Chat.svg" alt="Gitter">
+    <img src="https://badges.gitter.im/Join%20Chat.svg" alt="Gitter Chat">
   </a>
 </p>
+
 
 ---
 
 [Phel](https://phel-lang.org/) is a functional programming language that transpiles to PHP.
 
-It is a dialect of [Lisp](https://en.wikipedia.org/wiki/Lisp_(programming_language)) inspired by [Clojure](https://clojure.org/) and [Janet](https://janet-lang.org/).
+It is a dialect of [Lisp](https://en.wikipedia.org/wiki/Lisp_(programming_language)) inspired by [Clojure](https://clojure.org/) and [Janet](https://janet-lang.org/), designed for building robust applications in the PHP ecosystem.
 
 #### Example
 <!-- using "clojure" here is just for the md coloring -->
@@ -45,9 +46,14 @@ It is a dialect of [Lisp](https://en.wikipedia.org/wiki/Lisp_(programming_langua
 
 ## Documentation
 
-The documentation for Phel can be found on the Phel's website: [https://phel-lang.org](https://phel-lang.org).
-
-Additional documentation about the compiler internals is available in [docs/internals/compiler.md](docs/internals/compiler.md).
+- [Website](https://phel-lang.org)
+  - Features, documentation, exercises and blog
+- [Installation](https://phel-lang.org/documentation/getting-started/)
+  - Quick start with scaffolding or manual installation
+- [Packagist](https://packagist.org/packages/phel-lang/phel-lang)
+  - The PHP Package Repository
+- [Internals](docs/internals/compiler.md)
+  - Additional documentation about the compiler internals
 
 ## Community
 
