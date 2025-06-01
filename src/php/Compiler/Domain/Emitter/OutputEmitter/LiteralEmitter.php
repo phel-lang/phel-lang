@@ -117,8 +117,9 @@ final readonly class LiteralEmitter
 
     private function emitMap(PersistentMapInterface $x): void
     {
+        $count = count($x);
         $this->outputEmitter->emitStr('\Phel\Lang\TypeFactory::getInstance()->persistentMapFromKVs(', $x->getStartLocation());
-        if (count($x) > 0) {
+        if ($count > 0) {
             $this->outputEmitter->increaseIndentLevel();
             $this->outputEmitter->emitLine();
         }
@@ -128,7 +129,7 @@ final readonly class LiteralEmitter
             $this->outputEmitter->emitLiteral($key);
             $this->outputEmitter->emitStr(', ', $x->getStartLocation());
             $this->outputEmitter->emitLiteral($value);
-            if ($i < count($x) - 1) {
+            if ($i < $count - 1) {
                 $this->outputEmitter->emitStr(',', $x->getStartLocation());
             }
 
@@ -136,7 +137,7 @@ final readonly class LiteralEmitter
             ++$i;
         }
 
-        if (count($x) > 0) {
+        if ($count > 0) {
             $this->outputEmitter->decreaseIndentLevel();
         }
 
@@ -145,23 +146,24 @@ final readonly class LiteralEmitter
 
     private function emitList(PersistentListInterface $x): void
     {
+        $count = count($x);
         $this->outputEmitter->emitStr('\Phel\Lang\TypeFactory::getInstance()->persistentListFromArray([', $x->getStartLocation());
 
-        if (count($x) > 0) {
+        if ($count > 0) {
             $this->outputEmitter->increaseIndentLevel();
             $this->outputEmitter->emitLine();
         }
 
         foreach ($x as $i => $value) {
             $this->outputEmitter->emitLiteral($value);
-            if ($i < count($x) - 1) {
+            if ($i < $count - 1) {
                 $this->outputEmitter->emitStr(',', $x->getStartLocation());
             }
 
             $this->outputEmitter->emitLine();
         }
 
-        if (count($x) > 0) {
+        if ($count > 0) {
             $this->outputEmitter->decreaseIndentLevel();
         }
 
@@ -170,23 +172,24 @@ final readonly class LiteralEmitter
 
     private function emitVector(PersistentVector $x): void
     {
+        $countVector = count($x);
         $this->outputEmitter->emitStr('\Phel\Lang\TypeFactory::getInstance()->persistentVectorFromArray([', $x->getStartLocation());
 
-        if (count($x) > 0) {
+        if ($countVector > 0) {
             $this->outputEmitter->increaseIndentLevel();
             $this->outputEmitter->emitLine();
         }
 
         foreach ($x as $i => $value) {
             $this->outputEmitter->emitLiteral($value);
-            if ($i < count($x) - 1) {
+            if ($i < $countVector - 1) {
                 $this->outputEmitter->emitStr(',', $x->getStartLocation());
             }
 
             $this->outputEmitter->emitLine();
         }
 
-        if (count($x) > 0) {
+        if ($countVector > 0) {
             $this->outputEmitter->decreaseIndentLevel();
         }
 

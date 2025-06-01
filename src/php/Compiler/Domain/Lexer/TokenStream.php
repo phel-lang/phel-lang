@@ -104,9 +104,11 @@ final class TokenStream implements Iterator
      */
     private function getCode(array $readTokens): string
     {
-        return implode('', array_map(
-            static fn (Token $t): string => $t->getCode(),
-            $readTokens,
-        ));
+        $code = '';
+        foreach ($readTokens as $token) {
+            $code .= $token->getCode();
+        }
+
+        return $code;
     }
 }

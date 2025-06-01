@@ -18,12 +18,15 @@ final class HashCollisionNodeIterator implements Iterator
 {
     private int $index = 0;
 
+    private readonly int $entriesCount;
+
     /**
      * @param array{K,V,K,V} $entries
      */
     public function __construct(
         private readonly array $entries,
     ) {
+        $this->entriesCount = count($this->entries);
     }
 
     /**
@@ -43,7 +46,7 @@ final class HashCollisionNodeIterator implements Iterator
 
     public function valid(): bool
     {
-        return $this->index < count($this->entries);
+        return $this->index < $this->entriesCount;
     }
 
     public function rewind(): void
