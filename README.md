@@ -53,6 +53,20 @@ Additional documentation about the compiler internals is available in [docs/inte
 
 Feel free to ask questions and join discussions on the [Phel Gitter channel](https://gitter.im/phel-lang/community).
 
+## Build PHAR
+
+Run the following command to create a standalone PHAR executable:
+
+```sh
+php -d phar.readonly=0 tools/build-phar.php
+```
+
+The generated `phel.phar` can then be executed directly:
+
+```sh
+./phel.phar
+```
+
 ## Contribute
 
 Please refer to [CONTRIBUTING.md](https://github.com/phel-lang/phel-lang/blob/main/.github/CONTRIBUTING.md) for information on how to contribute to Phel.
