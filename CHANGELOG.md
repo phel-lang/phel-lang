@@ -31,6 +31,7 @@ All notable changes to this project will be documented in this file.
 - Add `phel->php` and `php->phel` functions (#829)
 - Add `ApiFacade::replComplete` service (#830)
 - Add `str\contains?` function (#833)
+- Add display deprecated metadata on doc (#834)
 - Improve vector performance (#823)
 - Improve `DependenciesForNamespace` performance
 - Use PHPStan level 2
