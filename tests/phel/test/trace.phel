@@ -29,8 +29,7 @@
       (is (s/contains? first-out "TRACE t01") "initial id")
       (is (s/contains? second-out "TRACE t01") "id reset"))))
 
-#(deftest dbg-prints-and-returns
-#  (is (= 3 (dbg (+ 1 2))) "returns value")
-#  (let [out (with-output-buffer (dbg (+ 1 2)))]
-#    (is (s/contains? out "(+ 1 2)") "expression printed")
-#    (is (s/contains? out "=> 3") "result printed")))
+(deftest dbg-prints-and-returns
+  (let [out (with-output-buffer (dbg (+ 2 3)))]
+    (is (s/contains? out "(+ 2 3)") "expression printed")
+    (is (s/contains? out "=> 5") "result printed")))
