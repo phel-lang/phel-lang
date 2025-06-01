@@ -1,0 +1,40 @@
+--PHEL--
+(def fact (fn [x]
+  (if (php/== x 0)
+    x
+    (recur (php/- x 1)))))
+--PHP--
+\Phel\Lang\Registry::getInstance()->addDefinition(
+  "user",
+  "fact",
+  new class() extends \Phel\Lang\AbstractFn {
+    public const BOUND_TO = "user\\fact";
+
+    public function __invoke($x) {
+      while (true) {
+        if (\Phel\Lang\Truthy::isTruthy(($x == 0))) {
+          return $x;
+        } else {
+          $__phel_1 = ($x - 1);
+          $x = $__phel_1;
+          continue;
+
+        }
+        break;
+      }
+    }
+  },
+  \Phel\Lang\TypeFactory::getInstance()->persistentMapFromKVs(
+    \Phel\Lang\Keyword::create("start-location"), \Phel\Lang\TypeFactory::getInstance()->persistentMapFromKVs(
+      \Phel\Lang\Keyword::create("file"), "Recur/recur-def-fn-one-arg.test",
+      \Phel\Lang\Keyword::create("line"), 1,
+      \Phel\Lang\Keyword::create("column"), 0
+    ),
+    \Phel\Lang\Keyword::create("end-location"), \Phel\Lang\TypeFactory::getInstance()->persistentMapFromKVs(
+      \Phel\Lang\Keyword::create("file"), "Recur/recur-def-fn-one-arg.test",
+      \Phel\Lang\Keyword::create("line"), 4,
+      \Phel\Lang\Keyword::create("column"), 26
+    ),
+    "min-arity", 1
+  )
+);

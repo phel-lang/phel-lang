@@ -105,7 +105,6 @@ final class DefSymbolTest extends TestCase
                 new LiteralNode(
                     $env
                         ->withExpressionContext()
-                        ->withDisallowRecurFrame()
                         ->withBoundTo('user\name')
                         ->withDefAllowed(false),
                     'any value',
@@ -147,7 +146,6 @@ final class DefSymbolTest extends TestCase
                 new LiteralNode(
                     $env
                         ->withExpressionContext()
-                        ->withDisallowRecurFrame()
                         ->withBoundTo('user\name')
                         ->withDefAllowed(false),
                     'any value',
@@ -189,7 +187,6 @@ final class DefSymbolTest extends TestCase
                 new LiteralNode(
                     $env
                         ->withExpressionContext()
-                        ->withDisallowRecurFrame()
                         ->withBoundTo('user\name')
                         ->withDefAllowed(false),
                     'any value',
@@ -233,7 +230,6 @@ final class DefSymbolTest extends TestCase
                 new LiteralNode(
                     $env
                         ->withExpressionContext()
-                        ->withDisallowRecurFrame()
                         ->withBoundTo('user\name')
                         ->withDefAllowed(false),
                     'any value',

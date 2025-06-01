@@ -181,7 +181,6 @@ final class DefSymbol implements SpecialFormAnalyzerInterface
         $initEnv = $env
             ->withBoundTo($namespace . '\\' . $nameSymbol)
             ->withExpressionContext()
-            ->withDisallowRecurFrame()
             ->withDefAllowed(false);
 
         return $this->analyzer->analyze($init, $initEnv);
