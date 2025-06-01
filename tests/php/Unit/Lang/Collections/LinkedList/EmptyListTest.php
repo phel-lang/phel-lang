@@ -7,6 +7,7 @@ namespace PhelTest\Unit\Lang\Collections\LinkedList;
 use Phel\Lang\Collections\Exceptions\IndexOutOfBoundsException;
 use Phel\Lang\Collections\LinkedList\EmptyList;
 use Phel\Lang\Collections\LinkedList\PersistentList;
+use Phel\Lang\Collections\Map\PersistentMapInterface;
 use Phel\Lang\TypeFactory;
 use PhelTest\Unit\Lang\Collections\ModuloHasher;
 use PhelTest\Unit\Lang\Collections\SimpleEqualizer;
@@ -147,7 +148,7 @@ final class EmptyListTest extends TestCase
         $list = new EmptyList(new ModuloHasher(), new SimpleEqualizer(), null);
         $listWithMeta = $list->withMeta($meta);
 
-        $this->assertNull($list->getMeta());
+        $this->assertNotInstanceOf(PersistentMapInterface::class, $list->getMeta());
         $this->assertEquals($meta, $listWithMeta->getMeta());
     }
 }

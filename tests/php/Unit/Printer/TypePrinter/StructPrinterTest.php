@@ -27,13 +27,13 @@ final class StructPrinterTest extends TestCase
     public static function printerDataProvider(): Generator
     {
         yield 'empty struct' => [
-            'actual' => '(PhelTest\Unit\Printer\TypePrinter\StubStruct )',
-            'struct' => new StubStruct([]),
+            '(PhelTest\Unit\Printer\TypePrinter\StubStruct )',
+            new StubStruct([]),
         ];
 
         yield 'struct with multiple values' => [
-            'actual' => '(PhelTest\Unit\Printer\TypePrinter\StubStruct nil nil)',
-            'struct' => new StubStruct([Keyword::create('a'), Keyword::create('b')]),
+            '(PhelTest\Unit\Printer\TypePrinter\StubStruct nil nil)',
+            new StubStruct([Keyword::create('a'), Keyword::create('b')]),
         ];
     }
 }

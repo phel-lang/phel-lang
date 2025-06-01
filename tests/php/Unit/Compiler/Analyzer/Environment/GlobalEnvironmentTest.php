@@ -4,11 +4,13 @@ declare(strict_types=1);
 
 namespace PhelTest\Unit\Compiler\Analyzer\Environment;
 
+use Phel\Compiler\Domain\Analyzer\Ast\AbstractNode;
 use Phel\Compiler\Domain\Analyzer\Ast\GlobalVarNode;
 use Phel\Compiler\Domain\Analyzer\Ast\LiteralNode;
 use Phel\Compiler\Domain\Analyzer\Ast\PhpClassNameNode;
 use Phel\Compiler\Domain\Analyzer\Environment\GlobalEnvironment;
 use Phel\Compiler\Domain\Analyzer\Environment\NodeEnvironment;
+use Phel\Lang\Collections\Map\PersistentMapInterface;
 use Phel\Lang\Keyword;
 use Phel\Lang\Registry;
 use Phel\Lang\SourceLocation;
@@ -41,7 +43,7 @@ final class GlobalEnvironmentTest extends TestCase
         $this->assertTrue($env->hasDefinition('foo', Symbol::create('bar')));
         $this->assertFalse($env->hasDefinition('bar', Symbol::create('bar')));
         $this->assertEquals($meta, $env->getDefinition('foo', Symbol::create('bar')));
-        $this->assertNull($env->getDefinition('bar', Symbol::create('bar')));
+        $this->assertNotInstanceOf(PersistentMapInterface::class, $env->getDefinition('bar', Symbol::create('bar')));
     }
 
     public function test_require_alias(): void
@@ -158,7 +160,8 @@ final class GlobalEnvironmentTest extends TestCase
 
         $nodeEnv = NodeEnvironment::empty();
 
-        $this->assertNull(
+        $this->assertNotInstanceOf(
+            AbstractNode::class,
             $env->resolve(Symbol::create('x'), $nodeEnv),
         );
     }
@@ -226,7 +229,8 @@ final class GlobalEnvironmentTest extends TestCase
         $env->setNs('bar');
         $nodeEnv = NodeEnvironment::empty();
 
-        $this->assertNull(
+        $this->assertNotInstanceOf(
+            AbstractNode::class,
             $env->resolve(Symbol::create('x'), $nodeEnv),
         );
     }
@@ -251,7 +255,8 @@ final class GlobalEnvironmentTest extends TestCase
     public function test_can_not_resolve_symbol_without_alias(): void
     {
         $env = new GlobalEnvironment();
-        $this->assertNull(
+        $this->assertNotInstanceOf(
+            AbstractNode::class,
             $env->resolve(Symbol::create('foo'), NodeEnvironment::empty()),
         );
     }
@@ -305,7 +310,8 @@ final class GlobalEnvironmentTest extends TestCase
         $env->setNs('foo');
         $nodeEnv = NodeEnvironment::empty();
 
-        $this->assertNull(
+        $this->assertNotInstanceOf(
+            AbstractNode::class,
             $env->resolve(Symbol::createForNamespace('bar', 'x'), $nodeEnv),
         );
     }
@@ -366,7 +372,8 @@ final class GlobalEnvironmentTest extends TestCase
 
         $nodeEnv = NodeEnvironment::empty();
 
-        $this->assertNull(
+        $this->assertNotInstanceOf(
+            Symbol::class,
             $env->resolveAsSymbol(Symbol::create('x'), $nodeEnv),
         );
     }

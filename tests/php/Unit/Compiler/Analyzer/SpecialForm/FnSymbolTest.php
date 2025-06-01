@@ -99,28 +99,28 @@ final class FnSymbolTest extends TestCase
     public static function providerVarNamesMustStartWithLetterOrUnderscore(): Generator
     {
         yield 'Start with a letter' => [
-            'paramName' => 'param-1',
-            'error' => false,
+            'param-1',
+            false,
         ];
 
         yield 'Start with an underscore' => [
-            'paramName' => '_param-2',
-            'error' => false,
+            '_param-2',
+            false,
         ];
 
         yield 'Start with a number' => [
-            'paramName' => '1-param-3',
-            'error' => true,
+            '1-param-3',
+            true,
         ];
 
         yield 'Start with an ampersand' => [
-            'paramName' => '&-param-4',
-            'error' => true,
+            '&-param-4',
+            true,
         ];
 
         yield 'Start with a space' => [
-            'paramName' => ' param-5',
-            'error' => true,
+            ' param-5',
+            true,
         ];
     }
 
@@ -155,20 +155,20 @@ final class FnSymbolTest extends TestCase
     public static function providerGetParams(): Generator
     {
         yield '(fn [& param-1])' => [
-            'list' => TypeFactory::getInstance()->persistentListFromArray([
+            TypeFactory::getInstance()->persistentListFromArray([
                 Symbol::create(Symbol::NAME_FN),
                 TypeFactory::getInstance()->persistentVectorFromArray([
                     Symbol::create('&'),
                     Symbol::create('param-1'),
                 ]),
             ]),
-            'expectedParams' => [
+            [
                 Symbol::create('param-1'),
             ],
         ];
 
         yield '(fn [param-1 param-2 param-3])' => [
-            'list' => TypeFactory::getInstance()->persistentListFromArray([
+            TypeFactory::getInstance()->persistentListFromArray([
                 Symbol::create(Symbol::NAME_FN),
                 TypeFactory::getInstance()->persistentVectorFromArray([
                     Symbol::create('param-1'),
@@ -176,7 +176,7 @@ final class FnSymbolTest extends TestCase
                     Symbol::create('param-3'),
                 ]),
             ]),
-            'expectedParams' => [
+            [
                 Symbol::create('param-1'),
                 Symbol::create('param-2'),
                 Symbol::create('param-3'),
@@ -197,18 +197,18 @@ final class FnSymbolTest extends TestCase
     public static function providerGetBody(): Generator
     {
         yield 'DoNode body => (fn [x] x)' => [
-            'list' => TypeFactory::getInstance()->persistentListFromArray([
+            TypeFactory::getInstance()->persistentListFromArray([
                 Symbol::create(Symbol::NAME_FN),
                 TypeFactory::getInstance()->persistentVectorFromArray([
                     Symbol::create('x'),
                 ]),
                 Symbol::create('x'),
             ]),
-            'expectedBodyInstanceOf' => DoNode::class,
+            DoNode::class,
         ];
 
         yield 'LetNode body => (fn [[x y]] x)' => [
-            'list' => TypeFactory::getInstance()->persistentListFromArray([
+            TypeFactory::getInstance()->persistentListFromArray([
                 Symbol::create(Symbol::NAME_FN),
                 TypeFactory::getInstance()->persistentVectorFromArray([
                     TypeFactory::getInstance()->persistentVectorFromArray([
@@ -218,7 +218,7 @@ final class FnSymbolTest extends TestCase
                 ]),
                 Symbol::create('x'),
             ]),
-            'expectedBodyInstanceOf' => LetNode::class,
+            LetNode::class,
         ];
     }
 

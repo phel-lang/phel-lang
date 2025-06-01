@@ -47,7 +47,7 @@ final class ExportCommandTest extends TestCase
     {
         $output = $this->createStub(OutputInterface::class);
         $output->method('writeln')
-            ->willReturnCallback(static fn (string $str) => print $str . PHP_EOL);
+            ->willReturnCallback(static fn (string $str): int => print $str . PHP_EOL);
 
         return $output;
     }

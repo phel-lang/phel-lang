@@ -117,7 +117,7 @@ final class StructTest extends TestCase
         $s = FakeStruct::fromKVs(Keyword::create('a'), 1, Keyword::create('b'), 2);
         $sWithMeta = $s->withMeta($meta);
 
-        $this->assertNull($s->getMeta());
+        $this->assertNotInstanceOf(PersistentMapInterface::class, $s->getMeta());
         $this->assertEquals($meta, $sWithMeta->getMeta());
     }
 

@@ -62,7 +62,7 @@ final readonly class IndexedNode implements HashMapNodeInterface
             $newObjects = $this->objects;
             /** @var TKey $currentKey */
             /** @var TValue $currentValue */
-            $newObjects[$index] = [ // @phpstan-ignore-line
+            $newObjects[$index] = [
                 null,
                 $this->createNode($shift + 5, $currentKey, $currentValue, $hash, $key, $value),
             ];

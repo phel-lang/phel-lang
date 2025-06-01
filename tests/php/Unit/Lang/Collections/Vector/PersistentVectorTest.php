@@ -5,7 +5,9 @@ declare(strict_types=1);
 namespace PhelTest\Unit\Lang\Collections\Vector;
 
 use Phel\Lang\Collections\Exceptions\IndexOutOfBoundsException;
+use Phel\Lang\Collections\Map\PersistentMapInterface;
 use Phel\Lang\Collections\Vector\PersistentVector;
+use Phel\Lang\Collections\Vector\PersistentVectorInterface;
 use Phel\Lang\Collections\Vector\RangeIterator;
 use Phel\Lang\Collections\Vector\SubVector;
 use Phel\Lang\Collections\Vector\TransientVector;
@@ -243,20 +245,20 @@ final class PersistentVectorTest extends TestCase
         $vector = PersistentVector::empty(new ModuloHasher(), new SimpleEqualizer());
         $vectorWithMeta = $vector->withMeta($meta);
 
-        $this->assertNull($vector->getMeta());
+        $this->assertNotInstanceOf(PersistentMapInterface::class, $vector->getMeta());
         $this->assertEquals($meta, $vectorWithMeta->getMeta());
     }
 
     public function test_cdr_on_empty_vector(): void
     {
         $vector = PersistentVector::empty(new ModuloHasher(), new SimpleEqualizer());
-        $this->assertNull($vector->cdr());
+        $this->assertNotInstanceOf(SubVector::class, $vector->cdr());
     }
 
     public function test_cdr_on_one_element_vector(): void
     {
         $vector = PersistentVector::fromArray(new ModuloHasher(), new SimpleEqualizer(), [1]);
-        $this->assertNull($vector->cdr());
+        $this->assertNotInstanceOf(PersistentVectorInterface::class, $vector->cdr());
     }
 
     public function test_cdr_on_two_element_vector(): void

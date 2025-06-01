@@ -24,13 +24,13 @@ final class BooleanPrinterTest extends TestCase
     public static function printerDataProvider(): Generator
     {
         yield [
-            'expected' => 'true',
-            'boolean' => true,
+            'true',
+            true,
         ];
 
         yield [
-            'expected' => 'false',
-            'boolean' => false,
+            'false',
+            false,
         ];
     }
 }

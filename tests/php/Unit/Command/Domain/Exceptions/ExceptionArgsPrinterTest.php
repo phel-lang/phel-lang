@@ -32,39 +32,39 @@ final class ExceptionArgsPrinterTest extends TestCase
     public static function providerBuildPhpArgsString(): Generator
     {
         yield 'null' => [
-            'args' => [null],
-            'expected' => 'NULL',
+            [null],
+            'NULL',
         ];
 
         yield 'short string' => [
-            'args' => ['short string'],
-            'expected' => "'short string'",
+            ['short string'],
+            "'short string'",
         ];
 
         yield 'long string' => [
-            'args' => ['example long string'],
-            'expected' => "'example long st...'",
+            ['example long string'],
+            "'example long st...'",
         ];
 
         yield 'booleans' => [
-            'args' => [true, false],
-            'expected' => 'true, false',
+            [true, false],
+            'true, false',
         ];
 
         yield 'array' => [
-            'args' => [[1,2,3]],
-            'expected' => 'Array',
+            [[1,2,3]],
+            'Array',
         ];
 
         yield 'object' => [
-            'args' => [new stdClass()],
-            'expected' => 'Object(stdClass)',
+            [new stdClass()],
+            'Object(stdClass)',
         ];
 
         $resource = tmpfile();
         yield 'resource' => [
-            'args' => [$resource],
-            'expected' => (string)$resource,
+            [$resource],
+            (string)$resource,
         ];
     }
 
@@ -76,7 +76,7 @@ final class ExceptionArgsPrinterTest extends TestCase
     private function stubPrinter(): PrinterInterface
     {
         $printer = $this->createMock(PrinterInterface::class);
-        $printer->method('print')->willReturnCallback(static fn ($arg) => $arg);
+        $printer->method('print')->willReturnCallback(static fn ($arg): string => $arg);
 
         return $printer;
     }

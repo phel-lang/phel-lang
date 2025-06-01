@@ -202,52 +202,52 @@ final class FormatterFacadeTest extends TestCase
     public static function providerReformatted(): Generator
     {
         yield 'One liner List' => [
-            'actualLines' => ['( 1 2 3 )'],
-            'expectedLines' => ['(1 2 3)'],
+            ['( 1 2 3 )'],
+            ['(1 2 3)'],
         ];
 
         yield 'One liner Vector' => [
-            'actualLines' => ['[ 1 2 3 ]'],
-            'expectedLines' => ['[1 2 3]'],
+            ['[ 1 2 3 ]'],
+            ['[1 2 3]'],
         ];
 
         yield 'One liner Map' => [
-            'actualLines' => ['{ :a 1 :b 2 }'],
-            'expectedLines' => ['{:a 1 :b 2}'],
+            ['{ :a 1 :b 2 }'],
+            ['{:a 1 :b 2}'],
         ];
 
         yield 'Remove new lines without empty spaces' => [
-            'actualLines' => [
+            [
                 '(',
                 'foo',
                 ')',
             ],
-            'expectedLines' => ['(foo)'],
+            ['(foo)'],
         ];
 
         yield 'Remove new lines with empty space in the beginning at the middle string' => [
-            'actualLines' => [
+            [
                 '(',
                 '  foo',
                 ')',
             ],
-            'expectedLines' => ['(foo)'],
+            ['(foo)'],
         ];
 
         yield 'Remove new lines with empty space at the end of the first string' => [
-            'actualLines' => [
+            [
                 '(foo ',
                 ')',
             ],
-            'expectedLines' => ['(foo)'],
+            ['(foo)'],
         ];
 
         yield 'Remove new lines with empty space at the beginning of the second string' => [
-            'actualLines' => [
+            [
                 '(foo',
                 '  )',
             ],
-            'expectedLines' => ['(foo)'],
+            ['(foo)'],
         ];
     }
 

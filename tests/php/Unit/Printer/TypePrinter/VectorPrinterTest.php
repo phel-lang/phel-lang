@@ -27,13 +27,13 @@ final class VectorPrinterTest extends TestCase
     public static function printerDataProvider(): Generator
     {
         yield 'empty vector' => [
-            'expected' => '[]',
-            'vector' => TypeFactory::getInstance()->emptyPersistentVector(),
+            '[]',
+            TypeFactory::getInstance()->emptyPersistentVector(),
         ];
 
         yield 'vector with values' => [
-            'expected' => '["a" 1]',
-            'vector' => TypeFactory::getInstance()->persistentVectorFromArray(['a', 1]),
+            '["a" 1]',
+            TypeFactory::getInstance()->persistentVectorFromArray(['a', 1]),
         ];
     }
 }

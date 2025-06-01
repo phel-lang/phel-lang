@@ -23,13 +23,13 @@ final class NonPrintableClassPrinterTest extends TestCase
     public static function providerPrint(): Generator
     {
         yield 'cannot print DateTime' => [
-            'form' => new DateTime(),
-            'expected' => 'Printer cannot print this type: DateTime',
+            new DateTime(),
+            'Printer cannot print this type: DateTime',
         ];
 
         yield 'cannot print stdClass' => [
-            'form' => new stdClass(),
-            'expected' => 'Printer cannot print this type: stdClass',
+            new stdClass(),
+            'Printer cannot print this type: stdClass',
         ];
     }
 }
