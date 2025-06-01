@@ -1,5 +1,5 @@
 (ns phel\trace
-  (:require phel\core :refer [print-str str])
+  (:require phel\core :refer [print-str str gensym])
   (:require phel\str :as s))
 
 (def- *trace-level* (var 0))
@@ -32,3 +32,20 @@
         (swap! *trace-level* dec)
         (println (str "TRACE t" id-str ": " indent "=> " res))
         res))))
+
+(defn reset-trace-state!
+  "Resets the internal counters used for tracing."
+  []
+  (do
+    (set! *trace-level* 0)
+    (set! *trace-id* 0)
+    (set! *max-trace-digits* 2)))
+
+(defmacro dbg
+  "Evaluates `expr`, prints the expression and the resulting value.
+   Returns the value of `expr`."
+  [expr]
+  (let [res (gensym)]
+    `(let [,res ,expr]
+       (println (str (print-str (quote ,expr)) " => " (print-str ,res)))
+       ,res)))
