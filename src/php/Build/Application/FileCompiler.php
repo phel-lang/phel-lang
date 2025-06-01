@@ -33,7 +33,10 @@ final readonly class FileCompiler implements FileCompilerInterface
         $result = $this->compilerFacade->compile($phelCode, $options);
         BuildFacade::disableBuildMode();
 
-        $this->fileIo->putContents($dest, "<?php\n" . $result->getPhpCode());
+        $this->fileIo->putContents(
+            $dest,
+            "<?php declare(strict_types=1);\n" . $result->getPhpCode(),
+        );
         $this->fileIo->putContents(str_replace('.php', '.phel', $dest), $phelCode);
 
         if ($enableSourceMaps) {
