@@ -41,9 +41,6 @@ final readonly class TextExceptionPrinter implements ExceptionPrinterInterface
 
     public function printException(AbstractLocatedException $e, CodeSnippet $codeSnippet): void
     {
-        $msg = $e->getPrevious()?->getMessage() ?? $e->getMessage();
-        echo sprintf('%s: %s', $e::class, $msg) . PHP_EOL;
-
         $this->errorLog->writeln($this->getExceptionString($e, $codeSnippet));
     }
 
@@ -87,9 +84,6 @@ final readonly class TextExceptionPrinter implements ExceptionPrinterInterface
 
     public function printStackTrace(Throwable $e): void
     {
-        $msg = $e->getPrevious()?->getMessage() ?? $e->getMessage();
-        echo sprintf('%s: %s', $e::class, $msg) . PHP_EOL;
-
         $this->errorLog->writeln($this->getStackTraceString($e));
     }
 

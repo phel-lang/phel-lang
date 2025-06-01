@@ -55,6 +55,8 @@ MSG;
             $errorLog,
         );
 
+        $this->expectOutputString('');
+
         $exceptionPrinter->printException($exception, $codeSnippet);
     }
 
