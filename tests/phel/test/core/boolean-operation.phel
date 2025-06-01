@@ -1,5 +1,6 @@
 (ns phel-test\test\core\boolean-operation
-  (:require phel\test :refer [deftest is]))
+  (:require phel\test :refer [deftest is])
+  (:require phel\str :as s))
 
 (deftest test-or
   (is (nil? (or)) "or zero args")

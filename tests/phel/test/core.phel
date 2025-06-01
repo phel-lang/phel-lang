@@ -1,5 +1,6 @@
 (ns phel-test\test\core
   (:require phel\test :refer [deftest is])
+  (:require phel\str :as s)
   (:use Phel\Lang\Symbol))
 
 # -------------
@@ -93,8 +94,8 @@
   (is (= 2 (+ 1 1)) "time returns expr value")
   (let [output-print (with-output-buffer (time (+ 1 1)))]
     (is (string? output-print) "time prints to output")
-    (is (str-contains? output-print "Elapsed time:"))
-    (is (str-contains? output-print "msecs"))))
+    (is (s/contains? output-print "Elapsed time:"))
+    (is (s/contains? output-print "msecs"))))
 
 (deftest test-name
   (is (= "string" (name "string")) "name on string")

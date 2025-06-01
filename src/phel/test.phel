@@ -2,7 +2,8 @@
   (:use Phel\Lang\Symbol)
   (:use Phel\Lang\Registry)
   (:use Phel\Compiler\Application\Munge)
-  (:use Phel\Command\CommandFacade))
+  (:use Phel\Command\CommandFacade)
+  (:require phel\str :as s))
 
 # ------
 # Report
@@ -314,7 +315,7 @@
         registry (php/:: Registry (getInstance))]
     (for [fn-name :keys (php/-> registry (getDefinitionInNamespace munge-ns))
           :let [meta (php/-> registry (getDefinitionMetaData munge-ns fn-name))]
-          :when (and (:test meta) (or (nil? filter) (str-contains? (:test-name meta) filter)))]
+          :when (and (:test meta) (or (nil? filter) (s/contains? (:test-name meta) filter)))]
       (php/-> registry (getDefinition munge-ns fn-name)))))
 
 (defn- run-test [options ns]
