@@ -557,6 +557,7 @@ Calling the `and` function without arguments returns true."
 
 (defn str-contains?
   "Returns true if str contains s."
+  {:deprecated "Use phel\\str\\contains?"}
   [str s]
   (php/str_contains str s))
 

@@ -164,6 +164,11 @@
   [s substr]
   (php/str_ends_with s substr))
 
+(defn contains?
+  "True if s contains substr."
+  [s substr]
+  (php/str_contains s substr))
+
 (defn includes?
   "True if s includes substr."
   [s substr]
