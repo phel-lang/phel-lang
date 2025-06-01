@@ -7,6 +7,7 @@ All notable changes to this project will be documented in this file.
 - Add functions
   - `str/pad-left`
   - `str/pad-right`
+  - `trace/dotrace`
 
 ## [0.17.0](https://github.com/phel-lang/phel-lang/compare/v0.16.1...v0.17.0) - 2025-06-01
 
