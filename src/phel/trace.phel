@@ -1,0 +1,26 @@
+(ns phel\trace
+  (:require phel\core :refer [print-str])
+  (:require phel\str :as s))
+
+(def- *trace-level* (var 0))
+(def- *trace-id* (var 0))
+
+(defn- next-id []
+  (swap! *trace-id* inc))
+
+(defn dotrace
+  "Wrap `f` so each call and result are printed with indentation."
+  [name f]
+  (fn [& args]
+    (let [id (next-id)
+          indent (s/repeat "|    " (deref *trace-level*))
+          arg-str (if (empty? args)
+                    ""
+                    (str " " (s/join " " (map print-str args))))
+          call-str (str "(" name arg-str ")")]
+      (println (str "TRACE t" id ": " indent call-str))
+      (swap! *trace-level* inc)
+      (let [res (apply f args)]
+        (swap! *trace-level* dec)
+        (println (str "TRACE t" id ": " indent "=> " res))
+        res))))
