@@ -54,8 +54,10 @@ final readonly class NamespaceExtractor implements NamespaceExtractorInterface
             $node = $this->compilerFacade->analyze($ast, NodeEnvironment::empty());
 
             if ($node instanceof NsNode) {
+                $realFile = realpath($path);
+
                 return new NamespaceInformation(
-                    realpath($path),
+                    $realFile !== false ? $realFile : $path,
                     $node->getNamespace(),
                     array_unique(array_map(
                         static fn (Symbol $s): string => $s->getFullName(),

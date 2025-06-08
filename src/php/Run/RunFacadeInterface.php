@@ -14,6 +14,8 @@ interface RunFacadeInterface
 {
     public function runNamespace(string $namespace): void;
 
+    public function runFile(string $filename): void;
+
     /**
      * @return mixed The result of the executed code
      */

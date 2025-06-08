@@ -11,6 +11,8 @@ use Phel\Compiler\Infrastructure\CompileOptions;
 use Symfony\Component\Console\Output\OutputInterface;
 use Throwable;
 
+use function dirname;
+
 /**
  * @method RunFactory getFactory()
  */
@@ -21,6 +23,22 @@ final class RunFacade extends AbstractFacade implements RunFacadeInterface
         $this->getFactory()
             ->createNamespaceRunner()
             ->run($namespace);
+    }
+
+    public function runFile(string $filename): void
+    {
+        $namespace = $this->getNamespaceFromFile($filename)->getNamespace();
+
+        $directories = [
+            dirname($filename),
+            ...$this->getFactory()->getCommandFacade()->getSourceDirectories(),
+            ...$this->getFactory()->getCommandFacade()->getVendorSourceDirectories(),
+        ];
+
+        $infos = $this->getDependenciesForNamespace($directories, [$namespace, 'phel\\core']);
+        foreach ($infos as $info) {
+            $this->evalFile($info);
+        }
     }
 
     public function getNamespaceFromFile(string $fileOrPath): NamespaceInformation

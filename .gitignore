@@ -7,6 +7,10 @@ PhelGenerated/
 var/
 vendor/
 
+# Build artefacts
+build/out/
+build/workdir/
+
 !PhelGenerated/.gitkeep
 *.cache
 .php-cs-fixer.php

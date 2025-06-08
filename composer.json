@@ -63,7 +63,6 @@
         "sort-packages": true
     },
     "scripts": {
-        "post-install-cmd": "tools/git-hooks/init.sh",
         "csfix": "./vendor/bin/php-cs-fixer fix",
         "csrun": "./vendor/bin/php-cs-fixer fix --dry-run",
         "fix": [

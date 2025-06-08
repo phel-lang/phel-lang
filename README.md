@@ -59,6 +59,16 @@ It is a dialect of [Lisp](https://en.wikipedia.org/wiki/Lisp_(programming_langua
 
 Feel free to ask questions and join discussions on the [Phel Gitter channel](https://gitter.im/phel-lang/community).
 
+## Build PHAR
+
+Run the following command to create a standalone PHAR executable:
+
+```sh
+./build/phar.sh
+```
+
+The generated `build/out/phel.phar` can then be executed directly.
+
 ## Contribute
 
 Please refer to [CONTRIBUTING.md](https://github.com/phel-lang/phel-lang/blob/main/.github/CONTRIBUTING.md) for information on how to contribute to Phel.

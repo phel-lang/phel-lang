@@ -7,9 +7,11 @@ namespace Phel;
 use Closure;
 use Gacela\Framework\Bootstrap\GacelaConfig;
 use Gacela\Framework\Gacela;
+use Phar;
 use Phel\Filesystem\FilesystemFacade;
 use Phel\Run\RunFacade;
 
+use function dirname;
 use function in_array;
 use function is_array;
 use function is_string;
@@ -32,6 +34,15 @@ final class Phel
     {
         if ($argv !== null) {
             self::updateGlobalArgv($argv);
+        }
+
+        if (str_starts_with(__FILE__, 'phar://')) {
+            // Check for config in the current working directory first
+            $currentDirConfig = getcwd() . '/' . self::PHEL_CONFIG_FILE_NAME;
+            // If running from PHAR and local config exists, use the current directory
+            $projectRootDir = file_exists($currentDirConfig)
+                ? (string) getcwd()
+                : dirname(Phar::running(false));
         }
 
         Gacela::bootstrap($projectRootDir, self::configFn());
