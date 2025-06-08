@@ -46,11 +46,14 @@ final class RunCommand extends Command
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
         try {
-            $namespace = $this->getNamespace($input);
-            $result = $this->executeNamespace($namespace);
+            /** @var string $path */
+            $path = $input->getArgument('path');
+            $result = file_exists($path) ? $this->executeFile($path) : $this->executeNamespace($path);
+
+            $identifier = $path;
 
             if ($result === '') {
-                $this->renderNoResultOutput($output, $namespace);
+                $this->renderNoResultOutput($output, $identifier);
             } else {
                 $output->write($result);
             }
@@ -69,19 +72,6 @@ final class RunCommand extends Command
         return self::FAILURE;
     }
 
-    private function getNamespace(InputInterface $input): string
-    {
-        /** @var string $fileOrNamespace */
-        $fileOrNamespace = $input->getArgument('path');
-        if (file_exists($fileOrNamespace)) {
-            return $this->getFacade()
-                ->getNamespaceFromFile($fileOrNamespace)
-                ->getNamespace();
-        }
-
-        return $fileOrNamespace;
-    }
-
     private function executeNamespace(string $namespace): string
     {
         ob_start();
@@ -90,11 +80,19 @@ final class RunCommand extends Command
         return ob_get_clean();
     }
 
-    private function renderNoResultOutput(OutputInterface $output, string $namespace): void
+    private function executeFile(string $filename): string
+    {
+        ob_start();
+        $this->getFacade()->runFile($filename);
+
+        return ob_get_clean();
+    }
+
+    private function renderNoResultOutput(OutputInterface $output, string $identifier): void
     {
         $output->writeln(
             <<<EOF
-            <error>No rendered output after running namespace: "{$namespace}"</> 
+            <error>No rendered output after running namespace: "{$identifier}"</>
             
             <comment>Please verify that at least one of the following applies:
             - The file exists

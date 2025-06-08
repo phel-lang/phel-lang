@@ -50,6 +50,21 @@ final class RunTestCommand extends AbstractTestCommand
         );
     }
 
+    public function test_run_by_filename_outside_config(): void
+    {
+        $tmpFile = __DIR__ . '/outside-script.phel';
+        file_put_contents($tmpFile, "(ns outside\script)\n(php/print \"hello world\\n\")");
+
+        $this->expectOutputRegex('~hello world~');
+
+        $this->createRunCommand()->run(
+            $this->stubInput($tmpFile),
+            $this->stubOutput(),
+        );
+
+        unlink($tmpFile);
+    }
+
     private function createRunCommand(): RunCommand
     {
         return new RunCommand();

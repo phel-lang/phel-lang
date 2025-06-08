@@ -24,7 +24,8 @@ $iterator = new RecursiveIteratorIterator(
         new RecursiveDirectoryIterator($root, FilesystemIterator::FOLLOW_SYMLINKS),
         function ($current, $key, $iterator) {
             $basename = $current->getBasename();
-            $exclude = ['.', '..', '.git', 'docs', 'tests', 'docker', 'data'];
+            // Modify exclude list to ensure we keep necessary files
+            $exclude = ['.', '..', '.git', 'docs', 'tests', 'docker', 'data', 'tools'];
             if ($current->isDir() && in_array($basename, $exclude, true)) {
                 return false;
             }
@@ -40,7 +41,16 @@ foreach ($iterator as $file) {
     }
 }
 
-$phar->setStub("#!/usr/bin/env php\n" . $phar->createDefaultStub('bin/phel'));
+// Update the stub to ensure proper path resolution
+$stub = <<<'EOF'
+#!/usr/bin/env php
+<?php
+Phar::mapPhar('phel.phar');
+require 'phar://phel.phar/bin/phel';
+__HALT_COMPILER();
+EOF;
+
+$phar->setStub($stub);
 $phar->stopBuffering();
 chmod($pharFile, 0755);
 

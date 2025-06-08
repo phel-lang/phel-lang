@@ -8,25 +8,36 @@ use Phel\Console\Infrastructure\ConsoleBootstrap;
 use Phel\Phel;
 
 (static function (): void {
-    $appRootDir = array_reduce(
-        [
-            [getcwd(), '/vendor/autoload.php'],
+    $appRootDir = (static function (): ?string {
+        $dir = getcwd();
+        while (is_dir($dir)) {
+            $autoload = $dir . '/vendor/autoload.php';
+            if (is_file($autoload)) {
+                require_once $autoload;
+                return $dir;
+            }
+
+            $parent = dirname($dir);
+            if ($parent === $dir) {
+                break;
+            }
+            $dir = $parent;
+        }
+
+        foreach ([
             [__DIR__, '/../vendor/autoload.php'],
             [__DIR__, '/../../vendor/autoload.php'],
             [__DIR__, '/../../../autoload.php'],
-        ],
-        static function (?string $loaded, array $files): ?string {
+        ] as $files) {
             $file = sprintf('%s%s', ...$files);
-
-            if (($loaded !== null) || (is_file($file) === false)) {
-                return $loaded;
+            if (is_file($file)) {
+                require_once $file;
+                return $files[0];
             }
+        }
 
-            require_once($file);
-
-            return $files[0];
-        },
-    );
+        return null;
+    })();
 
     if ($appRootDir === null) {
         fwrite(

@@ -7,9 +7,11 @@ namespace Phel;
 use Closure;
 use Gacela\Framework\Bootstrap\GacelaConfig;
 use Gacela\Framework\Gacela;
+use Phar;
 use Phel\Filesystem\FilesystemFacade;
 use Phel\Run\RunFacade;
 
+use function dirname;
 use function in_array;
 use function is_array;
 use function is_string;
@@ -32,6 +34,10 @@ final class Phel
     {
         if ($argv !== null) {
             self::updateGlobalArgv($argv);
+        }
+
+        if (stripos(__FILE__, 'phar://') === 0) {
+            $projectRootDir = dirname(Phar::running(false));
         }
 
         Gacela::bootstrap($projectRootDir, self::configFn());
