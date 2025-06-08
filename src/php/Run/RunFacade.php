@@ -82,4 +82,14 @@ final class RunFacade extends AbstractFacade implements RunFacadeInterface
             ->getCommandFacade()
             ->getAllPhelDirectories();
     }
+
+    /**
+     * @return list<string>
+     */
+    public function getLoadedNamespaces(): array
+    {
+        return $this->getFactory()
+            ->createNamespacesLoader()
+            ->getLoadedNamespaces();
+    }
 }

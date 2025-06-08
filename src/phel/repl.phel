@@ -15,7 +15,9 @@
 (defn- get-global-env []
   (php/:: GlobalEnvironmentSingleton (getInstance)))
 
-(defn- loaded-namespaces []
+(defn loaded-namespaces
+  "Return all namespaces currently loaded in the REPL."
+  []
   (php/-> (php/:: Registry (getInstance)) (getNamespaces)))
 
 (defn- eval-file [file]
