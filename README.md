@@ -64,14 +64,10 @@ Feel free to ask questions and join discussions on the [Phel Gitter channel](htt
 Run the following command to create a standalone PHAR executable:
 
 ```sh
-php -d phar.readonly=0 tools/build-phar.php
+./build/build.sh
 ```
 
-The generated `phel.phar` can then be executed directly:
-
-```sh
-./phel.phar
-```
+The generated `build/out/phel.phar` can then be executed directly.
 
 ## Contribute
 
