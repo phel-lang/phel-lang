@@ -11,6 +11,7 @@ use Phel\Build\Infrastructure\Command\BuildCommand;
 use Phel\Filesystem\FilesystemFacade;
 use Phel\Formatter\Infrastructure\Command\FormatCommand;
 use Phel\Interop\Infrastructure\Command\ExportCommand;
+use Phel\Run\Infrastructure\Command\NsCommand;
 use Phel\Run\Infrastructure\Command\ReplCommand;
 use Phel\Run\Infrastructure\Command\RunCommand;
 use Phel\Run\Infrastructure\Command\TestCommand;
@@ -40,6 +41,7 @@ final class ConsoleProvider extends AbstractProvider
         $container->set(self::COMMANDS, static fn (): array => [
             new ExportCommand(),
             new FormatCommand(),
+            new NsCommand(),
             new ReplCommand(),
             new RunCommand(),
             new TestCommand(),

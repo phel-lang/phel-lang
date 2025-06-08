@@ -1,0 +1,12 @@
+phel:1> (defn str-contains?
+....:2>   "Returns true if str contains s."
+....:3>   {:deprecated "Use phel\\str\\contains?"}
+....:4>   [str s]
+....:5>   (php/str_contains str s))
+1
+phel:6> (doc str-contains?)
+(str-contains? str s)
+
+Returns true if str contains s.
+DEPRECATED: Use phel\str\contains?
+nil

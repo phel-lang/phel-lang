@@ -180,3 +180,11 @@
 (deftest test-repeat
   (is (= "abcabcabc" (s/repeat "abc" 3)))
   (is (= "" (s/repeat "abc" 0))))
+
+(deftest test-pad-left
+  (is (= "  foo" (s/pad-left "foo" 5)))
+  (is (= "00foo" (s/pad-left "foo" 5 "0"))))
+
+(deftest test-pad-right
+  (is (= "foo  " (s/pad-right "foo" 5)))
+  (is (= "foo00" (s/pad-right "foo" 5 "0"))))

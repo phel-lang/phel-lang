@@ -6,6 +6,7 @@ namespace PhelTest\Unit\Lang\Collections\Map;
 
 use Phel\Lang\Collections\Map\Box;
 use Phel\Lang\Collections\Map\HashCollisionNode;
+use Phel\Lang\Collections\Map\HashMapNodeInterface;
 use Phel\Lang\Collections\Map\IndexedNode;
 use PhelTest\Unit\Lang\Collections\ModuloHasher;
 use PhelTest\Unit\Lang\Collections\SimpleEqualizer;
@@ -95,7 +96,7 @@ final class HashCollisionNodeTest extends TestCase
         $node = (new HashCollisionNode($hasher, new SimpleEqualizer(), $hasher->hash(1), 1, [1, 'foo']))
             ->remove(0, $hasher->hash(1), 1);
 
-        $this->assertNull($node);
+        $this->assertNotInstanceOf(HashMapNodeInterface::class, $node);
     }
 
     public function test_remove_non_existing_key(): void
@@ -103,6 +104,7 @@ final class HashCollisionNodeTest extends TestCase
         $hasher = new ModuloHasher(2);
         $node = (new HashCollisionNode($hasher, new SimpleEqualizer(), $hasher->hash(1), 1, [1, 'foo']))
             ->remove(0, $hasher->hash(2), 2);
+        $this->assertInstanceOf(HashMapNodeInterface::class, $node);
 
         $this->assertSame('foo', $node->find(0, $hasher->hash(1), 1, null));
         $this->assertNull($node->find(0, $hasher->hash(2), 2, null));
@@ -118,6 +120,7 @@ final class HashCollisionNodeTest extends TestCase
             2,
             [1, 'foo', 3, 'bar'],
         ))->remove(0, $hasher->hash(3), 3);
+        $this->assertInstanceOf(HashMapNodeInterface::class, $node);
 
         $this->assertSame('foo', $node->find(0, $hasher->hash(1), 1, null));
         $this->assertNull($node->find(0, $hasher->hash(3), 3, null));

@@ -57,10 +57,10 @@ final readonly class NamespaceExtractor implements NamespaceExtractorInterface
                 return new NamespaceInformation(
                     realpath($path),
                     $node->getNamespace(),
-                    array_map(
+                    array_unique(array_map(
                         static fn (Symbol $s): string => $s->getFullName(),
                         $node->getRequireNs(),
-                    ),
+                    )),
                 );
             }
 

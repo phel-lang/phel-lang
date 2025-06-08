@@ -24,13 +24,13 @@ final class NumberPrinterTest extends TestCase
     public static function printerDataProvider(): Generator
     {
         yield 'integer' => [
-            'expected' => '1',
-            'number' => 1,
+            '1',
+            1,
         ];
 
         yield 'float' => [
-            'expected' => '1.02',
-            'number' => 1.02,
+            '1.02',
+            1.02,
         ];
     }
 }

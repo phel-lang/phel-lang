@@ -1,0 +1,35 @@
+(ns phel-test\test\trace
+  (:require phel\trace :refer [dotrace dbg reset-trace-state!])
+  (:require phel\str :as s)
+  (:require phel\test :refer [deftest is]))
+
+(def- inc1-trace (dotrace "inc1" |(+ $ 1)))
+
+(deftest trace-simple
+  (let [out (with-output-buffer (inc1-trace 1))]
+    (is (s/contains? out "(inc1 1)") "call traced")
+    (is (s/contains? out "=> 2") "result traced")))
+
+(defn- fact [n]
+  (if (= n 0)
+    1
+    (* n (fact (- n 1)))))
+(def- fact-trace (dotrace "fact" fact))
+
+(deftest trace-nested
+  (let [out (with-output-buffer (fact-trace 3))]
+    (is (s/contains? out "(fact 3)") "call traced")
+    (is (s/contains? out "=> 6") "final result")))
+
+(deftest trace-reset-state
+  (reset-trace-state!)
+  (let [first-out (with-output-buffer (inc1-trace 1))]
+    (reset-trace-state!)
+    (let [second-out (with-output-buffer (inc1-trace 1))]
+      (is (s/contains? first-out "TRACE t01") "initial id")
+      (is (s/contains? second-out "TRACE t01") "id reset"))))
+
+(deftest dbg-prints-and-returns
+  (let [out (with-output-buffer (dbg (+ 2 3)))]
+    (is (s/contains? out "(+ 2 3)") "expression printed")
+    (is (s/contains? out "=> 5") "result printed")))

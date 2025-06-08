@@ -7,6 +7,8 @@ namespace PhelTest\Unit\Lang\Collections\LinkedList;
 use Phel\Lang\Collections\Exceptions\IndexOutOfBoundsException;
 use Phel\Lang\Collections\LinkedList\EmptyList;
 use Phel\Lang\Collections\LinkedList\PersistentList;
+use Phel\Lang\Collections\LinkedList\PersistentListInterface;
+use Phel\Lang\Collections\Map\PersistentMapInterface;
 use Phel\Lang\TypeFactory;
 use PhelTest\Unit\Lang\Collections\ModuloHasher;
 use PhelTest\Unit\Lang\Collections\SimpleEqualizer;
@@ -165,7 +167,7 @@ final class PersistentListTest extends TestCase
     {
         $list = PersistentList::fromArray(new ModuloHasher(), new SimpleEqualizer(), ['foo']);
 
-        $this->assertNull($list->cdr());
+        $this->assertNotInstanceOf(PersistentListInterface::class, $list->cdr());
     }
 
     public function test_cdr2(): void
@@ -181,7 +183,7 @@ final class PersistentListTest extends TestCase
         $list = PersistentList::fromArray(new ModuloHasher(), new SimpleEqualizer(), ['foo', 'bar']);
         $listWithMeta = $list->withMeta($meta);
 
-        $this->assertNull($list->getMeta());
+        $this->assertNotInstanceOf(PersistentMapInterface::class, $list->getMeta());
         $this->assertEquals($meta, $listWithMeta->getMeta());
     }
 

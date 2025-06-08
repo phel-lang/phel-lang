@@ -6,6 +6,7 @@ namespace PhelTest\Unit\Lang\Collections\Map;
 
 use Phel\Lang\Collections\Map\ArrayNode;
 use Phel\Lang\Collections\Map\Box;
+use Phel\Lang\Collections\Map\HashMapNodeInterface;
 use Phel\Lang\Collections\Map\IndexedNode;
 use PhelTest\Unit\Lang\Collections\ModuloHasher;
 use PhelTest\Unit\Lang\Collections\SimpleEqualizer;
@@ -135,6 +136,7 @@ final class IndexedNodeTest extends TestCase
             ->put(0, $hasher->hash(1), 1, 'foo', new Box(null))
             ->put(0, $hasher->hash(2), 2, 'bar', new Box(null))
             ->remove(0, $hasher->hash(2), 2);
+        $this->assertInstanceOf(HashMapNodeInterface::class, $node);
 
         self::assertSame('foo', $node->find(0, $hasher->hash(1), 1, null));
         self::assertNull($node->find(0, $hasher->hash(2), 2, null));
@@ -146,6 +148,7 @@ final class IndexedNodeTest extends TestCase
         $node1 = IndexedNode::empty($hasher, new SimpleEqualizer())
             ->put(0, $hasher->hash(1), 1, 'foo', new Box(null));
         $node2 = $node1->remove(0, $hasher->hash(2), 2);
+        $this->assertInstanceOf(HashMapNodeInterface::class, $node2);
 
         self::assertSame('foo', $node2->find(0, $hasher->hash(1), 1, null));
         self::assertSame($node1, $node2);
@@ -157,6 +160,7 @@ final class IndexedNodeTest extends TestCase
         $node1 = IndexedNode::empty($hasher, new SimpleEqualizer())
             ->put(0, $hasher->hash(1), 1, 'foo', new Box(null));
         $node2 = $node1->remove(0, $hasher->hash(33), 33);
+        $this->assertInstanceOf(HashMapNodeInterface::class, $node2);
 
         self::assertSame('foo', $node2->find(0, $hasher->hash(1), 1, null));
         self::assertSame($node1, $node2);
@@ -169,6 +173,7 @@ final class IndexedNodeTest extends TestCase
             ->put(0, $hasher->hash(1), 1, 'foo', new Box(null))
             ->put(0, $hasher->hash(33), 33, 'bar', new Box(null))
             ->remove(0, $hasher->hash(33), 33);
+        $this->assertInstanceOf(HashMapNodeInterface::class, $node);
 
         self::assertSame('foo', $node->find(0, $hasher->hash(1), 1, null));
         self::assertNull($node->find(0, $hasher->hash(33), 33, null));
@@ -195,6 +200,7 @@ final class IndexedNodeTest extends TestCase
             ->put(0, $hasher->hash(33), 33, 'bar', new Box(null))
             ->remove(0, $hasher->hash(33), 33)
             ->remove(0, $hasher->hash(1), 1);
+        $this->assertInstanceOf(HashMapNodeInterface::class, $node);
 
         self::assertNull($node->find(0, $hasher->hash(1), 1, null));
         self::assertNull($node->find(0, $hasher->hash(33), 33, null));

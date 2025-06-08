@@ -23,18 +23,18 @@ final class WrapperRelativeFilenamePathBuilderTest extends TestCase
     public static function providerBuild(): Generator
     {
         yield 'simple name' => [
-            'phelNs' => 'project\simple',
-            'expected' => 'Project/Simple.php',
+            'project\simple',
+            'Project/Simple.php',
         ];
 
         yield 'filename with dash' => [
-            'phelNs' => 'project\\the_file',
-            'expected' => 'Project/TheFile.php',
+            'project\\the_file',
+            'Project/TheFile.php',
         ];
 
         yield 'filename and phel namespace with dash' => [
-            'phelNs' => 'the_project\\the_simple_file',
-            'expected' => 'TheProject/TheSimpleFile.php',
+            'the_project\\the_simple_file',
+            'TheProject/TheSimpleFile.php',
         ];
     }
 }

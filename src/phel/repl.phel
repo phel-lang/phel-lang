@@ -15,7 +15,9 @@
 (defn- get-global-env []
   (php/:: GlobalEnvironmentSingleton (getInstance)))
 
-(defn- loaded-namespaces []
+(defn loaded-namespaces
+  "Return all namespaces currently loaded in the REPL."
+  []
   (php/-> (php/:: Registry (getInstance)) (getNamespaces)))
 
 (defn- eval-file [file]
@@ -41,7 +43,12 @@
   (let [registry (php/:: Registry (getInstance))
         meta (php/-> registry (getDefinitionMetaData namespace name))]
     (when meta
-      (clean-doc (get meta :doc)))))
+      (let [doc (or (get meta :doc) "")
+            deprecated (get meta :deprecated)
+            message (if deprecated
+                      (str doc (if (= doc "") "" "\n") "DEPRECATED: " deprecated)
+                      doc)]
+        (clean-doc message)))))
 
 (defmacro doc
   "Prints the documentation for the given symbol."

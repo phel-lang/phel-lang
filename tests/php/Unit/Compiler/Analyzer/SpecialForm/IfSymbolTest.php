@@ -32,20 +32,20 @@ final class IfSymbolTest extends TestCase
     public static function providerRequiresAtLeastTwoOrThreeArgs(): Generator
     {
         yield 'No arguments provided: (if)' => [
-            'list' => TypeFactory::getInstance()->persistentListFromArray([
+            TypeFactory::getInstance()->persistentListFromArray([
                 Symbol::create(Symbol::NAME_IF),
             ]),
         ];
 
         yield 'Only one argument provided: (if "one")' => [
-            'list' => TypeFactory::getInstance()->persistentListFromArray([
+            TypeFactory::getInstance()->persistentListFromArray([
                 Symbol::create(Symbol::NAME_IF),
                 'one',
             ]),
         ];
 
         yield 'Only one argument provided: (if "one" "two" "three" "four")' => [
-            'list' => TypeFactory::getInstance()->persistentListFromArray([
+            TypeFactory::getInstance()->persistentListFromArray([
                 Symbol::create(Symbol::NAME_IF),
                 'one',
                 'two',

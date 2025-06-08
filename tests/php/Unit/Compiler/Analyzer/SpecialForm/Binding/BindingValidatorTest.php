@@ -63,15 +63,15 @@ final class BindingValidatorTest extends TestCase
     public static function providerValidTypes(): Generator
     {
         yield 'Symbol type' => [
-            'type' => Symbol::create(''),
+            Symbol::create(''),
         ];
 
         yield 'Vector type' => [
-            'type' => TypeFactory::getInstance()->persistentVectorFromArray([]),
+            TypeFactory::getInstance()->persistentVectorFromArray([]),
         ];
 
         yield 'Map type' => [
-            'type' => TypeFactory::getInstance()->emptyPersistentMap(),
+            TypeFactory::getInstance()->emptyPersistentMap(),
         ];
     }
 }

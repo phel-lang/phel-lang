@@ -1,0 +1,51 @@
+(ns phel\trace
+  (:require phel\core :refer [print-str str gensym])
+  (:require phel\str :as s))
+
+(def- *trace-level* (var 0))
+(def- *trace-id* (var 0))
+(def- *max-trace-digits* (var 2)) # default to 2 digits unless overridden
+
+(defn set-trace-id-padding!
+  "Sets the number of digits used to left-pad trace IDs.
+  Call this once before tracing begins to ensure aligned output."
+  [estimated-id-padding]
+  (swap! *max-trace-digits* (fn [_] estimated-id-padding)))
+
+(defn- next-id []
+  (swap! *trace-id* inc))
+
+(defn dotrace
+  "Wrap `f` so each call and result are printed with indentation."
+  [name f]
+  (fn [& args]
+    (let [id (next-id)
+          id-str (s/pad-left (str id) (deref *max-trace-digits*) "0")
+          indent (s/repeat "|    " (deref *trace-level*))
+          arg-str (if (empty? args)
+                    ""
+                    (str " " (s/join " " (map print-str args))))
+          call-str (str "(" name arg-str ")")]
+      (println (str "TRACE t" id-str ": " indent call-str))
+      (swap! *trace-level* inc)
+      (let [res (apply f args)]
+        (swap! *trace-level* dec)
+        (println (str "TRACE t" id-str ": " indent "=> " res))
+        res))))
+
+(defn reset-trace-state!
+  "Resets the internal counters used for tracing."
+  []
+  (do
+    (set! *trace-level* 0)
+    (set! *trace-id* 0)
+    (set! *max-trace-digits* 2)))
+
+(defmacro dbg
+  "Evaluates `expr`, prints the expression and the resulting value.
+   Returns the value of `expr`."
+  [expr]
+  (let [res (gensym)]
+    `(let [,res ,expr]
+       (println (str (print-str (quote ,expr)) " => " (print-str ,res)))
+       ,res)))
