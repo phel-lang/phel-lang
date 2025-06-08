@@ -61,13 +61,7 @@ class NsCommand extends Command
                 continue;
             }
 
-            $dependencies = $ns->getDependencies();
-            $depCount = count($dependencies);
-            $depsInline = $depCount === 0 ? '-' : implode(', ', $dependencies);
-
-            $output->writeln(sprintf('%d) Namespace: %s', $i + 1, $ns->getNamespace()));
-            $output->writeln(sprintf('   File: %s', $ns->getFile()));
-            $output->writeln(sprintf('   Dependencies (%d): %s', $depCount, $depsInline));
+            $this->renderNamespaceInfo($output, $i, $ns);
         }
 
         return self::SUCCESS;
@@ -104,18 +98,12 @@ class NsCommand extends Command
 
     private function renderNamespaceInfo(OutputInterface $output, int $index, NamespaceInformation $info): void
     {
-        $file = $info->getFile();
         $dependencies = $info->getDependencies();
         $depsCount = count($dependencies);
         $depsString = $depsCount === 0 ? '-' : implode(', ', $dependencies);
 
-        $lastModified = file_exists($file) ? date('Y-m-d H:i:s', filemtime($file)) : 'Unknown';
-        $linesOfCode = file_exists($file) ? count(file($file)) : 'Unknown';
-
         $output->writeln(sprintf('%d) Namespace: %s', $index + 1, $info->getNamespace()));
-        $output->writeln(sprintf('   File: %s', $file));
+        $output->writeln(sprintf('   File: %s', $info->getFile()));
         $output->writeln(sprintf('   Dependencies (%d): %s', $depsCount, $depsString));
-        $output->writeln(sprintf('   Last Modified: %s', $lastModified));
-        $output->writeln(sprintf('   Lines of Code: %s', $linesOfCode));
     }
 }
