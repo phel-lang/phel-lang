@@ -58,7 +58,10 @@ final readonly class NamespaceCollector
         }
 
         return array_map(
-            fn (string $filename): string => $this->buildFacade->getNamespaceFromFile($filename)->getNamespace(),
+            fn (string $filename): string => $this
+                ->buildFacade
+                ->getNamespaceFromFile($filename)
+                ->getNamespace(),
             $paths,
         );
     }
