@@ -27,13 +27,9 @@ final readonly class NamespacesLoader implements NamespacesLoaderInterface
             ...$this->commandFacade->getVendorSourceDirectories(),
         ]);
 
-        $namespaces = array_map(
+        return array_map(
             static fn (NamespaceInformation $info): string => $info->getNamespace(),
             $namespaceInfos,
         );
-
-        array_unshift($namespaces, 'phel\\core');
-
-        return $namespaces;
     }
 }
