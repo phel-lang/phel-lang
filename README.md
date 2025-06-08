@@ -64,7 +64,7 @@ Feel free to ask questions and join discussions on the [Phel Gitter channel](htt
 Run the following command to create a standalone PHAR executable:
 
 ```sh
-./build/build.sh
+./build/phar.sh
 ```
 
 The generated `build/out/phel.phar` can then be executed directly.

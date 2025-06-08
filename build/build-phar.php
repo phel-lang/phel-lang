@@ -4,13 +4,15 @@
 declare(strict_types=1);
 
 if (ini_get('phar.readonly') === '1') {
-    fwrite(STDERR, "phar.readonly is enabled. Run this script with 'php -d phar.readonly=0 build/build-phar.php [path]'\n");
+    fwrite(STDERR,
+        "phar.readonly is enabled. 
+        Run this script with 'php -d phar.readonly=0 build/build-phar.php [path]'\n");
     exit(1);
 }
 
 $root = $argv[1] ?? dirname(__DIR__);
 $root = realpath($root);
-$pharFile = $root . '/phel.phar';
+$pharFile = $root.'/phel.phar';
 
 if (file_exists($pharFile)) {
     unlink($pharFile);
@@ -24,7 +26,6 @@ $iterator = new RecursiveIteratorIterator(
         new RecursiveDirectoryIterator($root, FilesystemIterator::FOLLOW_SYMLINKS),
         function ($current, $key, $iterator) {
             $basename = $current->getBasename();
-            // Modify exclude list to ensure we keep necessary files
             $exclude = ['.', '..', '.git', 'docs', 'tests', 'docker', 'data', 'tools'];
             if ($current->isDir() && in_array($basename, $exclude, true)) {
                 return false;
@@ -41,7 +42,6 @@ foreach ($iterator as $file) {
     }
 }
 
-// Update the stub to ensure proper path resolution
 $stub = <<<'EOF'
 #!/usr/bin/env php
 <?php
