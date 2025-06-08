@@ -52,9 +52,13 @@ final readonly class DirectoryFinder implements DirectoryFinderInterface
     private function toAbsoluteDirectories(array $relativeDirectories): array
     {
         return array_map(
-            fn (string $dir): string => realpath($dir) !== false
-                ? $dir
-                : $this->applicationRootDir . '/' . $dir,
+            function (string $dir): string {
+                if (realpath($dir) !== false || str_starts_with($dir, 'phar://')) {
+                    return $dir;
+                }
+
+                return $this->applicationRootDir . '/' . $dir;
+            },
             $relativeDirectories,
         );
     }

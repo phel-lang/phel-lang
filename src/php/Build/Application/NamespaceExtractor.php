@@ -54,8 +54,10 @@ final readonly class NamespaceExtractor implements NamespaceExtractorInterface
             $node = $this->compilerFacade->analyze($ast, NodeEnvironment::empty());
 
             if ($node instanceof NsNode) {
+                $realPath = realpath($path);
+
                 return new NamespaceInformation(
-                    realpath($path),
+                    $realPath !== false ? $realPath : $path,
                     $node->getNamespace(),
                     array_map(
                         static fn (Symbol $s): string => $s->getFullName(),
@@ -129,7 +131,11 @@ final readonly class NamespaceExtractor implements NamespaceExtractorInterface
         $realpath = realpath($directory);
 
         if ($realpath === false) {
-            return [];
+            if (!is_dir($directory)) {
+                return [];
+            }
+
+            $realpath = $directory;
         }
 
         $iterator = new RecursiveIteratorIterator(new RecursiveDirectoryIterator($realpath));

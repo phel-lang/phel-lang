@@ -26,16 +26,48 @@ final class NamespaceExtractorTest extends TestCase
         $result = $this->extractNamespace($fileContent);
 
         $this->assertSame('get\\ns\\from\\file', $result->getNamespace());
-        $this->assertSame(['phel\core'], $result->getDependencies());
+        $this->assertSame(['phel\\core'], $result->getDependencies());
     }
 
     public function test_get_namespace_from_file_with_dependencies(): void
     {
-        $fileContent = '(ns get\\ns\\from\\file (:require phel\html))';
+        $fileContent = '(ns get\\ns\\from\\file (:require phel\\html))';
         $result = $this->extractNamespace($fileContent);
 
         $this->assertSame('get\\ns\\from\\file', $result->getNamespace());
-        $this->assertSame(['phel\core', 'phel\html'], $result->getDependencies());
+        $this->assertSame(['phel\\core', 'phel\\html'], $result->getDependencies());
+    }
+
+    public function test_get_namespace_from_file_inside_phar(): void
+    {
+        if (!\extension_loaded('phar')) {
+            self::markTestSkipped('phar extension not available');
+        }
+
+        $fileContent = '(ns phar\\ns)';
+        $pharPath = tempnam(sys_get_temp_dir(), 'phel') . '.phar';
+        @unlink($pharPath);
+
+        \ini_set('phar.readonly', '0');
+        $phar = new \Phar($pharPath);
+        $phar->startBuffering();
+        $phar->addFromString('test.phel', $fileContent);
+        $phar->setStub("<?php Phar::mapPhar(); __HALT_COMPILER();");
+        $phar->stopBuffering();
+
+        $nsExtractor = new NamespaceExtractor(
+            new CompilerFacade(),
+            new TopologicalNamespaceSorter(),
+            new SystemFileIo(),
+        );
+
+        $insidePath = 'phar://' . $pharPath . '/test.phel';
+        $result = $nsExtractor->getNamespaceFromFile($insidePath);
+
+        $this->assertSame('phar\\ns', $result->getNamespace());
+        $this->assertSame($insidePath, $result->getFile());
+
+        \unlink($pharPath);
     }
 
     public function test_get_namespace_from_file_not_parsable(): void
