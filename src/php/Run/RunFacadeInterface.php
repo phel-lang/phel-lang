@@ -48,7 +48,7 @@ interface RunFacadeInterface
     public function writeStackTrace(OutputInterface $output, Throwable $e): void;
 
     /**
-     * @return list<string>
+     * @return list<NamespaceInformation>
      */
     public function getLoadedNamespaces(): array;
 }
