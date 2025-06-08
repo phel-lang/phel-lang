@@ -9,7 +9,7 @@ All notable changes to this project will be documented in this file.
   - `str/pad-right`
   - `trace/dotrace`
   - `trace/dbg`
-- Add `phel ns` command
+- Add `phel ns [inspect]` command
 
 ## [0.17.0](https://github.com/phel-lang/phel-lang/compare/v0.16.1...v0.17.0) - 2025-06-01
 
