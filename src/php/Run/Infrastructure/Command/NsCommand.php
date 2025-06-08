@@ -13,13 +13,14 @@ use Symfony\Component\Console\Output\OutputInterface;
 /**
  * @method RunFacade getFacade()
  */
-final class LoadedNsCommand extends Command
+class NsCommand extends Command
 {
     use DocBlockResolverAwareTrait;
 
     protected function configure(): void
     {
-        $this->setName('loaded-ns')
+        $this->setName('ns')
+            ->setAliases(['loaded-ns'])
             ->setDescription('Display all loaded namespaces');
     }
 
