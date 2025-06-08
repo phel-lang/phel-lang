@@ -42,6 +42,29 @@ class NsCommand extends Command
         return $this->displayNamespaceDependencies($nsToInspect, $output);
     }
 
+    private function listLoadedNamespaces(OutputInterface $output): int
+    {
+        $loadedNamespaces = $this->getFacade()->getLoadedNamespaces();
+
+        if (empty($loadedNamespaces)) {
+            $output->writeln('<comment>No namespaces loaded.</comment>');
+            return self::SUCCESS;
+        }
+
+        foreach ($loadedNamespaces as $i => $ns) {
+            $dependencies = $ns->getDependencies();
+            $depCount = count($dependencies);
+            $depsInline = $depCount === 0 ? '-' : implode(', ', $dependencies);
+
+            $output->writeln(sprintf('  %d) Namespace: %s', $i + 1, $ns->getNamespace()));
+            $output->writeln(sprintf('     File: %s', $ns->getFile()));
+            $output->writeln(sprintf('     Dependencies (%d): %s', $depCount, $depsInline));
+            $output->writeln('');
+        }
+
+        return self::SUCCESS;
+    }
+
     private function displayNamespaceDependencies(string $ns, OutputInterface $output): int
     {
         $output->writeln(sprintf('Dependencies for namespace: %s', $ns));
@@ -79,14 +102,5 @@ class NsCommand extends Command
         $output->writeln(sprintf('     Dependencies (%d): %s', $depsCount, $depsString));
         $output->writeln(sprintf('     Last Modified: %s', $lastModified));
         $output->writeln(sprintf('     Lines of Code: %s', $linesOfCode));
-    }
-
-    private function listLoadedNamespaces(OutputInterface $output): int
-    {
-        foreach ($this->getFacade()->getLoadedNamespaces() as $ns) {
-            $output->writeln($ns);
-        }
-
-        return self::SUCCESS;
     }
 }

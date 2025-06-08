@@ -84,7 +84,7 @@ final class RunFacade extends AbstractFacade implements RunFacadeInterface
     }
 
     /**
-     * @return list<string>
+     * @return list<NamespaceInformation>
      */
     public function getLoadedNamespaces(): array
     {

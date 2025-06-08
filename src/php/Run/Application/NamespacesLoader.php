@@ -18,18 +18,13 @@ final readonly class NamespacesLoader implements NamespacesLoaderInterface
     }
 
     /**
-     * @return list<string>
+     * @return list<NamespaceInformation>
      */
     public function getLoadedNamespaces(): array
     {
-        $namespaceInfos = $this->buildFacade->getNamespaceFromDirectories([
+        return $this->buildFacade->getNamespaceFromDirectories([
             ...$this->commandFacade->getSourceDirectories(),
             ...$this->commandFacade->getVendorSourceDirectories(),
         ]);
-
-        return array_map(
-            static fn (NamespaceInformation $info): string => $info->getNamespace(),
-            $namespaceInfos,
-        );
     }
 }

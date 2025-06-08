@@ -22,7 +22,10 @@ final class NsCommandTest extends AbstractTestCommand
     {
         $facade = self::createStub(RunFacadeInterface::class);
         $facade->method('getLoadedNamespaces')
-            ->willReturn(['app\\foo', 'app\\bar']);
+            ->willReturn([
+                new NamespaceInformation(__FILE__, 'app\\foo', []),
+                new NamespaceInformation(__FILE__, 'app\\bar', []),
+            ]);
 
         $command = new class($facade) extends NsCommand {
             public function __construct(
