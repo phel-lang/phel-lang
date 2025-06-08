@@ -13,7 +13,6 @@ use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 
 use function count;
-use function is_string;
 use function sprintf;
 
 /**
@@ -36,9 +35,11 @@ class NsCommand extends Command
     {
         $nsToInspect = $input->getArgument('inspect');
 
-        return is_string($nsToInspect)
-            ? $this->displayNamespaceDependencies($nsToInspect, $output)
-            : $this->listLoadedNamespaces($output);
+        if ($nsToInspect === null) {
+            return $this->listLoadedNamespaces($output);
+        }
+
+        return $this->displayNamespaceDependencies($nsToInspect, $output);
     }
 
     private function displayNamespaceDependencies(string $ns, OutputInterface $output): int
