@@ -10,9 +10,11 @@ use Phel\Run\RunFacade;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
+use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 
 use function count;
+use function implode;
 use function sprintf;
 
 /**
@@ -28,21 +30,23 @@ class NsCommand extends Command
             ->setName('ns')
             ->setAliases(['loaded-ns'])
             ->setDescription('Display all loaded namespaces or inspect a namespace')
-            ->addArgument('inspect', InputArgument::OPTIONAL, 'Namespace to inspect');
+            ->addArgument('inspect', InputArgument::OPTIONAL, 'Namespace to inspect')
+            ->addOption('simple', 's', InputOption::VALUE_NONE, 'Display only namespace names');
     }
 
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
         $nsToInspect = $input->getArgument('inspect');
+        $isSimple = $input->getOption('simple') === true;
 
         if ($nsToInspect === null) {
-            return $this->listLoadedNamespaces($output);
+            return $this->listLoadedNamespaces($output, $isSimple);
         }
 
-        return $this->displayNamespaceDependencies($nsToInspect, $output);
+        return $this->displayNamespaceDependencies($nsToInspect, $output, $isSimple);
     }
 
-    private function listLoadedNamespaces(OutputInterface $output): int
+    private function listLoadedNamespaces(OutputInterface $output, bool $simple): int
     {
         $loadedNamespaces = $this->getFacade()->getLoadedNamespaces();
 
@@ -52,24 +56,36 @@ class NsCommand extends Command
         }
 
         foreach ($loadedNamespaces as $i => $ns) {
+            if ($simple) {
+                $output->writeln($ns->getNamespace());
+                continue;
+            }
+
             $dependencies = $ns->getDependencies();
             $depCount = count($dependencies);
             $depsInline = $depCount === 0 ? '-' : implode(', ', $dependencies);
 
-            $output->writeln(sprintf('  %d) Namespace: %s', $i + 1, $ns->getNamespace()));
-            $output->writeln(sprintf('     File: %s', $ns->getFile()));
-            $output->writeln(sprintf('     Dependencies (%d): %s', $depCount, $depsInline));
-            $output->writeln('');
+            $output->writeln(sprintf('%d) Namespace: %s', $i + 1, $ns->getNamespace()));
+            $output->writeln(sprintf('   File: %s', $ns->getFile()));
+            $output->writeln(sprintf('   Dependencies (%d): %s', $depCount, $depsInline));
         }
 
         return self::SUCCESS;
     }
 
-    private function displayNamespaceDependencies(string $ns, OutputInterface $output): int
+    private function displayNamespaceDependencies(string $ns, OutputInterface $output, bool $simple): int
     {
-        $output->writeln(sprintf('Dependencies for namespace: %s', $ns));
-
         $nsInfoList = $this->getNamespaceInfoList($ns);
+
+        if ($simple) {
+            foreach ($nsInfoList as $info) {
+                $output->writeln($info->getNamespace());
+            }
+
+            return self::SUCCESS;
+        }
+
+        $output->writeln(sprintf('Dependencies for namespace: %s', $ns));
 
         foreach ($nsInfoList as $index => $info) {
             $this->renderNamespaceInfo($output, $index, $info);
@@ -88,7 +104,6 @@ class NsCommand extends Command
 
     private function renderNamespaceInfo(OutputInterface $output, int $index, NamespaceInformation $info): void
     {
-        $ns = $info->getNamespace();
         $file = $info->getFile();
         $dependencies = $info->getDependencies();
         $depsCount = count($dependencies);
@@ -97,10 +112,10 @@ class NsCommand extends Command
         $lastModified = file_exists($file) ? date('Y-m-d H:i:s', filemtime($file)) : 'Unknown';
         $linesOfCode = file_exists($file) ? count(file($file)) : 'Unknown';
 
-        $output->writeln(sprintf('  %d) Namespace: %s', $index + 1, $ns));
-        $output->writeln(sprintf('     File: %s', $file));
-        $output->writeln(sprintf('     Dependencies (%d): %s', $depsCount, $depsString));
-        $output->writeln(sprintf('     Last Modified: %s', $lastModified));
-        $output->writeln(sprintf('     Lines of Code: %s', $linesOfCode));
+        $output->writeln(sprintf('%d) Namespace: %s', $index + 1, $info->getNamespace()));
+        $output->writeln(sprintf('   File: %s', $file));
+        $output->writeln(sprintf('   Dependencies (%d): %s', $depsCount, $depsString));
+        $output->writeln(sprintf('   Last Modified: %s', $lastModified));
+        $output->writeln(sprintf('   Lines of Code: %s', $linesOfCode));
     }
 }
