@@ -45,4 +45,6 @@ popd >/dev/null
 mv "$WORK_DIR/phel.phar" "$SCRIPT_DIR/out/phel.phar"
 rm -rf "$WORK_DIR"
 
+chmod +x "$SCRIPT_DIR/out/phel.phar"
+
 echo "PHAR created at $SCRIPT_DIR/out/phel.phar"

@@ -26,7 +26,7 @@ $iterator = new RecursiveIteratorIterator(
         new RecursiveDirectoryIterator($root, FilesystemIterator::FOLLOW_SYMLINKS),
         function ($current, $key, $iterator) {
             $basename = $current->getBasename();
-            $exclude = ['.', '..', '.git', 'docs', 'tests', 'docker'];
+            $exclude = ['.', '..', '.git', 'docs', 'tests', 'docker', 'local', 'build', 'tools'];
             if ($current->isDir() && in_array($basename, $exclude, true)) {
                 return false;
             }
