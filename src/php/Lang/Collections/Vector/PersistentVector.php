@@ -38,9 +38,9 @@ final class PersistentVector extends AbstractPersistentVector
     private readonly int $tailSize;
 
     /**
-     * @param int $count The number of elements stored in this vector
-     * @param array<array> $root The root node of this vector
-     * @param array<int, T> $tail The tail of the vector. This is an optimization
+     * @param  int  $count  The number of elements stored in this vector
+     * @param  array<array>  $root  The root node of this vector
+     * @param  array<int, T>  $tail  The tail of the vector. This is an optimization
      */
     public function __construct(
         HasherInterface $hasher,
@@ -60,8 +60,11 @@ final class PersistentVector extends AbstractPersistentVector
         return new self($hasher, $equalizer, null, 0, self::SHIFT, [], []);
     }
 
-    public static function fromArray(HasherInterface $hasher, EqualizerInterface $equalizer, array $values): PersistentVectorInterface
-    {
+    public static function fromArray(
+        HasherInterface $hasher,
+        EqualizerInterface $equalizer,
+        array $values,
+    ): PersistentVectorInterface {
         $tv = TransientVector::empty($hasher, $equalizer);
         foreach ($values as $value) {
             $tv->append($value);
@@ -94,7 +97,7 @@ final class PersistentVector extends AbstractPersistentVector
      * 3. There is not enough space in the current root.
      * (Source: https://hypirion.com/musings/understanding-persistent-vector-pt-1)
      *
-     * @param T $value
+     * @param  T  $value
      */
     public function append($value): self
     {
@@ -143,8 +146,8 @@ final class PersistentVector extends AbstractPersistentVector
      * replace with the new value. We then return the new vector with the modified path.
      * (Source: https://hypirion.com/musings/understanding-persistent-vector-pt-1)
      *
-     * @param int $i the index in the vector
-     * @param T $value The new value
+     * @param  int  $i  the index in the vector
+     * @param  T  $value  The new value
      */
     public function update(int $i, $value): self
     {
@@ -185,7 +188,7 @@ final class PersistentVector extends AbstractPersistentVector
     /**
      * Gets the value at index $i.
      *
-     * @param int $i The index
+     * @param  int  $i  The index
      *
      * @return T
      */
@@ -275,9 +278,10 @@ final class PersistentVector extends AbstractPersistentVector
     public function toArray(): array
     {
         $result = [];
-        $this->fillArray($this->root, $this->shift, $result);
-        $result[] = $this->tail;
-        return array_merge(...$result);
+        $this->flattenIntoArray($this->root, $this->shift, $result);
+        array_push($result, ...$this->tail);
+
+        return $result;
     }
 
     public function getIterator(): Traversable
@@ -351,7 +355,7 @@ final class PersistentVector extends AbstractPersistentVector
     }
 
     /**
-     * @param T $value
+     * @param  T  $value
      */
     private function doUpdate(int $level, array $node, int $i, mixed $value): array
     {
@@ -390,15 +394,17 @@ final class PersistentVector extends AbstractPersistentVector
         return $ret;
     }
 
-    private function fillArray(array $node, int $shift, array &$targetArr = []): void
+    private function flattenIntoArray(array $node, int $shift, array &$targetArr): void
     {
-        if ($shift !== 0) {
-            $shift -= self::SHIFT;
+        $shift -= self::SHIFT;
+        if ($shift >= 0) {
             foreach ($node as $x) {
-                $this->fillArray($x, $shift, $targetArr);
+                $this->flattenIntoArray($x, $shift, $targetArr);
             }
         } else {
-            $targetArr[] = $node;
+            foreach ($node as $item) {
+                $targetArr[] = $item;
+            }
         }
     }
 
