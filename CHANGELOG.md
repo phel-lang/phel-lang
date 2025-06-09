@@ -2,7 +2,7 @@
 
 All notable changes to this project will be documented in this file.
 
-## Unreleased
+## [0.18.0](https://github.com/phel-lang/phel-lang/compare/v0.17.0...v0.18.0) - 2025-06-09
 
 - Add functions
   - `str/pad-left`
