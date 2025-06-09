@@ -37,12 +37,14 @@ final class Phel
         }
 
         if (str_starts_with(__FILE__, 'phar://')) {
-            // Check for config in the current working directory first
             $currentDirConfig = getcwd() . '/' . self::PHEL_CONFIG_FILE_NAME;
-            // If running from PHAR and local config exists, use the current directory
-            $projectRootDir = file_exists($currentDirConfig)
-                ? (string) getcwd()
-                : dirname(Phar::running(false));
+            if (file_exists($currentDirConfig)) {
+                $projectRootDir = (string) getcwd();
+            } elseif (file_exists(dirname(Phar::running(false)) . '/' . self::PHEL_CONFIG_FILE_NAME)) {
+                $projectRootDir = dirname(Phar::running(false));
+            } else {
+                $projectRootDir = Phar::running(true);
+            }
         }
 
         Gacela::bootstrap($projectRootDir, self::configFn());
