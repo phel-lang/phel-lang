@@ -73,7 +73,7 @@ final readonly class NamespaceExtractor implements NamespaceExtractorInterface
     }
 
     /**
-     * @param list<string> $directories
+     * @param  list<string>  $directories
      *
      * @throws ExtractorException
      *
@@ -98,7 +98,7 @@ final readonly class NamespaceExtractor implements NamespaceExtractorInterface
     }
 
     /**
-     * @param list<NamespaceInformation> $namespaceInformationList
+     * @param  list<NamespaceInformation>  $namespaceInformationList
      *
      * @return list<NamespaceInformation>
      */
@@ -128,9 +128,8 @@ final readonly class NamespaceExtractor implements NamespaceExtractorInterface
      */
     private function findAllNs(string $directory): array
     {
-        $realpath = realpath($directory);
-
-        if ($realpath === false) {
+        $realpath = $this->resolvePath($directory);
+        if ($realpath === null) {
             return [];
         }
 
@@ -143,5 +142,17 @@ final readonly class NamespaceExtractor implements NamespaceExtractorInterface
         }
 
         return $result;
+    }
+
+    private function resolvePath(string $path): ?string
+    {
+        // Support PHAR paths
+        if (str_starts_with($path, 'phar://')) {
+            return $path;
+        }
+
+        // Normal file system
+        $real = realpath($path);
+        return $real !== false ? $real : null;
     }
 }
