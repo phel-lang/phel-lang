@@ -12,6 +12,7 @@ All notable changes to this project will be documented in this file.
 - Add `phel ns [inspect]` command
 - Create a script to build a single executable PHAR
 - Enable opcache on file compilation
+- Add `--clear-opcache` option to `phel run`
 
 ## [0.17.0](https://github.com/phel-lang/phel-lang/compare/v0.16.1...v0.17.0) - 2025-06-01
 
