@@ -11,6 +11,7 @@ use Phel\Build\Infrastructure\Command\BuildCommand;
 use Phel\Filesystem\FilesystemFacade;
 use Phel\Formatter\Infrastructure\Command\FormatCommand;
 use Phel\Interop\Infrastructure\Command\ExportCommand;
+use Phel\Run\Infrastructure\Command\DoctorCommand;
 use Phel\Run\Infrastructure\Command\NsCommand;
 use Phel\Run\Infrastructure\Command\ReplCommand;
 use Phel\Run\Infrastructure\Command\RunCommand;
@@ -47,6 +48,7 @@ final class ConsoleProvider extends AbstractProvider
             new TestCommand(),
             new DocCommand(),
             new BuildCommand(),
+            new DoctorCommand(),
         ]);
     }
 }
