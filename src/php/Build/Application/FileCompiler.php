@@ -12,6 +12,8 @@ use Phel\Build\Domain\IO\FileIoInterface;
 use Phel\Compiler\CompilerFacadeInterface;
 use Phel\Compiler\Infrastructure\CompileOptions;
 
+use function function_exists;
+
 final readonly class FileCompiler implements FileCompilerInterface
 {
     public function __construct(
@@ -43,6 +45,10 @@ final readonly class FileCompiler implements FileCompilerInterface
             $this->fileIo->putContents($dest . '.map', $result->getSourceMap());
         } else {
             $this->fileIo->removeFile($dest . '.map');
+        }
+
+        if (function_exists('opcache_compile_file')) {
+            @opcache_compile_file($dest);
         }
 
         $namespaceInfo = $this->namespaceExtractor->getNamespaceFromFile($src);
