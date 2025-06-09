@@ -9,6 +9,8 @@ use Phel\Compiler\Domain\Evaluator\Exceptions\FileException;
 use Phel\Filesystem\FilesystemFacadeInterface;
 use Throwable;
 
+use function function_exists;
+
 final readonly class RequireEvaluator implements EvaluatorInterface
 {
     public function __construct(
@@ -34,6 +36,10 @@ final readonly class RequireEvaluator implements EvaluatorInterface
         try {
             file_put_contents($filename, "<?php\n" . $code);
             if (file_exists($filename)) {
+                if (function_exists('opcache_compile_file')) {
+                    @opcache_compile_file($filename);
+                }
+
                 return require $filename;
             }
 

@@ -15,6 +15,8 @@ use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 use Throwable;
 
+use function function_exists;
+
 /**
  * @method RunFacade getFacade()
  */
@@ -40,11 +42,20 @@ final class RunCommand extends Command
                 't',
                 InputOption::VALUE_NONE,
                 'With time awareness',
+            )->addOption(
+                'clear-opcache',
+                null,
+                InputOption::VALUE_NONE,
+                'Clears OPCache before running',
             );
     }
 
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
+        if ($input->getOption('clear-opcache') && function_exists('opcache_reset')) {
+            @opcache_reset();
+        }
+
         try {
             /** @var string $path */
             $path = $input->getArgument('path');
