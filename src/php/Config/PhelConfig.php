@@ -36,7 +36,7 @@ final class PhelConfig implements JsonSerializable
 
     private string $vendorDir = 'vendor';
 
-    private string $errorLogFile = 'data/error.log';
+    private string $errorLogFile = '/tmp/phel-error.log';
 
     private PhelExportConfig $exportConfig;
 
