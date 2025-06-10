@@ -19,7 +19,7 @@ final class PhelConfigTest extends TestCase
             PhelConfig::SRC_DIRS => ['src'],
             PhelConfig::TEST_DIRS => ['tests'],
             PhelConfig::VENDOR_DIR => 'vendor',
-            PhelConfig::ERROR_LOG_FILE => 'data/error.log',
+            PhelConfig::ERROR_LOG_FILE => '/tmp/phel-error.log',
             PhelConfig::BUILD_CONFIG => [
                 PhelBuildConfig::MAIN_PHEL_NAMESPACE => '',
                 PhelBuildConfig::DEST_DIR => 'out',
