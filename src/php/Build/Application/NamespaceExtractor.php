@@ -133,6 +133,10 @@ final readonly class NamespaceExtractor implements NamespaceExtractorInterface
             return [];
         }
 
+        if (!is_dir($realpath)) {
+            return [];
+        }
+
         $iterator = new RecursiveIteratorIterator(new RecursiveDirectoryIterator($realpath));
         $phelIterator = new RegexIterator($iterator, '/^.+\.phel$/i', RegexIterator::GET_MATCH);
 
