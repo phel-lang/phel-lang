@@ -8,6 +8,7 @@ All notable changes to this project will be documented in this file.
 - Fix load core namespaces for PHAR
 - Fix repl on PHAR
 - Change the default error log file to `/tmp/phel-error.log`
+- Add new config parameter `tempDir`
 
 ## [0.18.0](https://github.com/phel-lang/phel-lang/compare/v0.17.0...v0.18.0) - 2025-06-09
 
