@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Phel\Filesystem;
 
 use Gacela\Framework\AbstractFactory;
+use Phel\Filesystem\Application\TempDirFinder;
 use Phel\Filesystem\Domain\FilesystemInterface;
 use Phel\Filesystem\Domain\NullFilesystem;
 use Phel\Filesystem\Infrastructure\RealFilesystem;
@@ -21,5 +22,12 @@ final class FilesystemFactory extends AbstractFactory
         }
 
         return new RealFilesystem();
+    }
+
+    public function createTempDirFinder(): TempDirFinder
+    {
+        return new TempDirFinder(
+            $this->getConfig()->getTempDir(),
+        );
     }
 }
