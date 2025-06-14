@@ -26,6 +26,8 @@ final class PhelConfig implements JsonSerializable
 
     public const KEEP_GENERATED_TEMP_FILES = 'keep-generated-temp-files';
 
+    public const TEMP_DIR = 'temp-dir';
+
     public const FORMAT_DIRS = 'format-dirs';
 
     /** @var list<string> */
@@ -50,6 +52,8 @@ final class PhelConfig implements JsonSerializable
 
     private bool $keepGeneratedTempFiles = false;
 
+    private string $tempDir;
+
     /** @var list<string> */
     private array $formatDirs = ['src', 'tests'];
 
@@ -57,10 +61,11 @@ final class PhelConfig implements JsonSerializable
     {
         $this->exportConfig = new PhelExportConfig();
         $this->buildConfig = new PhelBuildConfig();
+        $this->tempDir = sys_get_temp_dir() . '/phel';
     }
 
     /**
-     * @param list<string> $list
+     * @param  list<string>  $list
      */
     public function setSrcDirs(array $list): self
     {
@@ -70,7 +75,7 @@ final class PhelConfig implements JsonSerializable
     }
 
     /**
-     * @param list<string> $list
+     * @param  list<string>  $list
      */
     public function setTestDirs(array $list): self
     {
@@ -116,7 +121,7 @@ final class PhelConfig implements JsonSerializable
     }
 
     /**
-     * @param list<string> $list
+     * @param  list<string>  $list
      */
     public function setIgnoreWhenBuilding(array $list): self
     {
@@ -132,8 +137,15 @@ final class PhelConfig implements JsonSerializable
         return $this;
     }
 
+    public function setTempDir(string $dir): self
+    {
+        $this->tempDir = rtrim($dir, DIRECTORY_SEPARATOR);
+
+        return $this;
+    }
+
     /**
-     * @param list<string> $list
+     * @param  list<string>  $list
      */
     public function setFormatDirs(array $list): self
     {
@@ -143,7 +155,7 @@ final class PhelConfig implements JsonSerializable
     }
 
     /**
-     * @param list<string> $list
+     * @param  list<string>  $list
      */
     public function setNoCacheWhenBuilding(array $list): self
     {
@@ -163,6 +175,7 @@ final class PhelConfig implements JsonSerializable
             self::IGNORE_WHEN_BUILDING => $this->ignoreWhenBuilding,
             self::NO_CACHE_WHEN_BUILDING => $this->noCacheWhenBuilding,
             self::KEEP_GENERATED_TEMP_FILES => $this->keepGeneratedTempFiles,
+            self::TEMP_DIR => $this->tempDir,
             self::FORMAT_DIRS => $this->formatDirs,
         ];
     }

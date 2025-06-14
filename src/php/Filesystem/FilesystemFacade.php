@@ -24,4 +24,11 @@ final class FilesystemFacade extends AbstractFacade implements FilesystemFacadeI
             ->createFilesystem()
             ->clearAll();
     }
+
+    public function getTempDir(): string
+    {
+        return $this->getFactory()
+            ->createTempDirFinder()
+            ->getOrCreateTempDir();
+    }
 }
