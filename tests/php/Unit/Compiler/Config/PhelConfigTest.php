@@ -34,6 +34,7 @@ final class PhelConfigTest extends TestCase
             PhelConfig::IGNORE_WHEN_BUILDING => ['ignore-when-building.phel'],
             PhelConfig::NO_CACHE_WHEN_BUILDING => [],
             PhelConfig::KEEP_GENERATED_TEMP_FILES => false,
+            PhelConfig::TEMP_DIR => sys_get_temp_dir() . DIRECTORY_SEPARATOR . 'phel',
             PhelConfig::FORMAT_DIRS => ['src', 'tests'],
         ];
 
@@ -57,6 +58,7 @@ final class PhelConfigTest extends TestCase
             ->setIgnoreWhenBuilding(['src/ignore.me'])
             ->setNoCacheWhenBuilding(['should-not-be-cached'])
             ->setKeepGeneratedTempFiles(true)
+            ->setTempDir('/tmp/custom')
             ->setFormatDirs(['src', 'tests', 'phel']);
 
         $expected = [
@@ -78,6 +80,7 @@ final class PhelConfigTest extends TestCase
             PhelConfig::IGNORE_WHEN_BUILDING => ['src/ignore.me'],
             PhelConfig::NO_CACHE_WHEN_BUILDING => ['should-not-be-cached'],
             PhelConfig::KEEP_GENERATED_TEMP_FILES => true,
+            PhelConfig::TEMP_DIR => '/tmp/custom',
             PhelConfig::FORMAT_DIRS => ['src', 'tests', 'phel'],
         ];
 

@@ -13,4 +13,9 @@ final class FilesystemConfig extends AbstractConfig
     {
         return (bool)$this->get(PhelConfig::KEEP_GENERATED_TEMP_FILES, false);
     }
+
+    public function getTempDir(): string
+    {
+        return (string)$this->get(PhelConfig::TEMP_DIR, sys_get_temp_dir());
+    }
 }

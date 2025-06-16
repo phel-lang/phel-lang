@@ -13,6 +13,8 @@ use function function_exists;
 
 final readonly class RequireEvaluator implements EvaluatorInterface
 {
+    private const TEMP_PREFIX = '__phel';
+
     public function __construct(
         private FilesystemFacadeInterface $filesystemFacade,
     ) {
@@ -26,7 +28,7 @@ final readonly class RequireEvaluator implements EvaluatorInterface
      */
     public function eval(string $code): mixed
     {
-        $filename = tempnam(sys_get_temp_dir(), '__phel');
+        $filename = tempnam($this->filesystemFacade->getTempDir(), self::TEMP_PREFIX);
         if ($filename === false) {
             throw FileException::canNotCreateTempFile();
         }

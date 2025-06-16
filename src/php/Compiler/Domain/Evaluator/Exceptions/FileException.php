@@ -17,4 +17,9 @@ final class FileException extends RuntimeException
     {
         return new self('Cannot require file: ' . $filename);
     }
+
+    public static function canNotCreateDirectory(string $directory): self
+    {
+        return new self('Cannot create directory: ' . $directory);
+    }
 }
