@@ -7,11 +7,19 @@
 
 (deftest test-decode
   (is (= "hello" (b64/decode "aGVsbG8=")))
-  (is (= "hello" (b64/decode "aG VsbG8="))))
+  (is (= "hello" (b64/decode "aG VsbG8=")))
+  (is (= "hello" (b64/decode "aGVsbG8=" true)))
+  (is (false? (b64/decode "aGVsbG8*" true))))
 
 (deftest test-encode-url
-  (is (= "aGVsbG8" (b64/encode-url "hello"))))
+  (is (= "aGVsbG8" (b64/encode-url "hello")))
+  (let [bytes (str (php/chr 250) (php/chr 251) (php/chr 252) (php/chr 253))]
+    (is (= "-vv8_Q" (b64/encode-url bytes)))))
 
 (deftest test-decode-url
-  (is (= "hello" (b64/decode-url "aGVsbG8")))
-  (is (= "hello" (b64/decode-url "aGVsbG8="))))
+  (is (= "hello" (b64/decode-url "aGVsbG8=")))
+  (let [bytes (str (php/chr 250) (php/chr 251) (php/chr 252) (php/chr 253))]
+    (is (= bytes (b64/decode-url "-vv8_Q")))
+    (is (= bytes (b64/decode-url "-vv8_Q==")))
+    (is (= bytes (b64/decode-url "-vv8_Q" true)))
+    (is (false? (b64/decode-url "-vv8_Q*" true)))))
