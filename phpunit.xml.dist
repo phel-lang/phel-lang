@@ -4,16 +4,12 @@
          bootstrap="vendor/autoload.php"
          backupGlobals="false"
          colors="true"
-         convertErrorsToExceptions="true"
-         convertNoticesToExceptions="true"
-         convertWarningsToExceptions="true"
-         convertDeprecationsToExceptions="true"
          defaultTestSuite="unit"
          executionOrder="random"
          processIsolation="false"
          resolveDependencies="true"
          stopOnFailure="false"
-         verbose="true"
+         cacheDirectory=".phpunit.cache"
 >
     <php>
         <ini name="error_reporting" value="-1"/>
@@ -26,9 +22,9 @@
             <directory suffix="Test.php">tests/php/Unit</directory>
         </testsuite>
     </testsuites>
-    <coverage>
+    <source>
         <include>
             <directory suffix=".php">src</directory>
         </include>
-    </coverage>
+    </source>
 </phpunit>
