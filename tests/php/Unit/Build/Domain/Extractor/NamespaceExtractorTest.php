@@ -59,17 +59,58 @@ final class NamespaceExtractorTest extends TestCase
         $this->extractNamespace($fileContent);
     }
 
+    public function test_get_namespaces_from_directories_phar_path(): void
+    {
+        $extractor = $this->createExtractor();
+
+        $result = $extractor->getNamespacesFromDirectories(['phar://phel.phar/src']);
+
+        self::assertSame([], $result);
+    }
+
+    public function test_get_namespaces_from_directories_non_existing(): void
+    {
+        $extractor = $this->createExtractor();
+
+        $result = $extractor->getNamespacesFromDirectories(['/does/not/exist']);
+
+        self::assertSame([], $result);
+    }
+
+    public function test_get_namespaces_from_directories_collects_namespaces(): void
+    {
+        $dir = sys_get_temp_dir() . '/' . uniqid('phel', true);
+        mkdir($dir);
+        file_put_contents($dir . '/a.phel', '(ns my\\ns1 (:require my\\ns2))');
+        file_put_contents($dir . '/b.phel', '(ns my\\ns2)');
+
+        $extractor = $this->createExtractor();
+
+        $namespaces = $extractor->getNamespacesFromDirectories([$dir]);
+        $names = array_map(static fn (NamespaceInformation $n): string => $n->getNamespace(), $namespaces);
+
+        self::assertSame(['my\\ns2', 'my\\ns1'], $names);
+
+        unlink($dir . '/a.phel');
+        unlink($dir . '/b.phel');
+        rmdir($dir);
+    }
+
     private function extractNamespace(string $code): NamespaceInformation
     {
         $filePath = tempnam(sys_get_temp_dir(), self::class);
         file_put_contents($filePath, $code);
 
-        $nsExtractor = new NamespaceExtractor(
+        return $this->createExtractor()
+            ->getNamespaceFromFile($filePath);
+    }
+
+    private function createExtractor(): NamespaceExtractor
+    {
+        return new NamespaceExtractor(
             new CompilerFacade(),
             new TopologicalNamespaceSorter(),
             new SystemFileIo(),
         );
-
-        return $nsExtractor->getNamespaceFromFile($filePath);
     }
 }

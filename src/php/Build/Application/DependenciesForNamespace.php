@@ -6,8 +6,6 @@ namespace Phel\Build\Application;
 
 use Phel\Build\Domain\Extractor\NamespaceInformation;
 
-use SplQueue;
-
 use function array_key_exists;
 use function in_array;
 
@@ -26,23 +24,23 @@ final readonly class DependenciesForNamespace
         $namespaceInformation = $this->namespaceExtractor->getNamespacesFromDirectories($directories);
 
         $index = [];
-        $queue = new SplQueue();
+        $queue = [];
         foreach ($namespaceInformation as $info) {
             $index[$info->getNamespace()] = $info;
-            if (in_array($info->getNamespace(), $ns)) {
-                $queue->enqueue($info->getNamespace());
+            if (in_array($info->getNamespace(), $ns, true)) {
+                $queue[] = $info->getNamespace();
             }
         }
 
         $requiredNamespaces = [];
-        while (!$queue->isEmpty()) {
-            $currentNs = $queue->dequeue();
+        while ($queue !== []) {
+            $currentNs = array_shift($queue);
 
             if (!array_key_exists($currentNs, $requiredNamespaces)
                 && array_key_exists($currentNs, $index)
             ) {
                 foreach ($index[$currentNs]->getDependencies() as $depNs) {
-                    $queue->enqueue($depNs);
+                    $queue[] = $depNs;
                 }
             }
 
