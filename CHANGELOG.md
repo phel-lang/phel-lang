@@ -4,6 +4,7 @@ All notable changes to this project will be documented in this file.
 
 ## Unreleased
 
+- Add function `unset-in` 
 - Add base64 functions
   - `base64/encode`
   - `base64/decode`
