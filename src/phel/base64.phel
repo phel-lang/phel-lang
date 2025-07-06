@@ -1,0 +1,11 @@
+(ns phel\base64)
+
+(defn encode
+  "Returns the Base64 representation of `s`."
+  [s]
+  (php/base64_encode s))
+
+(defn decode
+  "Decodes the Base64 encoded string `s`. If `strict?` is true invalid characters trigger an error."
+  [s & [strict?]]
+  (php/base64_decode s (or strict? false)))

@@ -1,0 +1,10 @@
+(ns phel-test\test\base64
+  (:require phel\base64 :as b64)
+  (:require phel\test :refer [deftest is]))
+
+(deftest test-encode
+  (is (= "aGVsbG8=" (b64/encode "hello"))))
+
+(deftest test-decode
+  (is (= "hello" (b64/decode "aGVsbG8=")))
+  (is (= "hello" (b64/decode "aG VsbG8="))))
