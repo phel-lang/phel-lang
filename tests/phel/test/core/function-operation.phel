@@ -17,3 +17,11 @@
 
 (deftest test-partial
   (is (= 3 ((partial + 2) 1)) "partial of add"))
+
+(deftest test-memoize
+  (let [counter (var 0)
+        f (memoize (fn [x] (swap! counter inc) (+ x 1)))]
+    (is (= 2 (f 1)) "first call")
+    (is (= 2 (f 1)) "cached call")
+    (is (= 3 (f 2)) "different arg")
+    (is (= 2 (deref counter)) "function executed twice")))

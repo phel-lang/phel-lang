@@ -8,7 +8,9 @@ All notable changes to this project will be documented in this file.
   - `TopologicalNamespaceSorter`
   - `DependenciesForNamespace`
   - `NamespaceExtractor`
-- Add function `unset-in` 
+- Add core functions
+  - `unset-in`
+  - `memoize`
 - Add base64 functions
   - `base64/encode`
   - `base64/decode`
