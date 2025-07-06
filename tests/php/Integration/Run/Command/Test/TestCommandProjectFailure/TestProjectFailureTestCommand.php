@@ -8,20 +8,24 @@ use Gacela\Framework\Bootstrap\GacelaConfig;
 use Gacela\Framework\Gacela;
 use Phel\Run\Infrastructure\Command\TestCommand;
 use PhelTest\Integration\Run\Command\AbstractTestCommand;
+use PHPUnit\Framework\Attributes\PreserveGlobalState;
+use PHPUnit\Framework\Attributes\RunInSeparateProcess;
 use Symfony\Component\Console\Input\InputInterface;
 
 final class TestProjectFailureTestCommand extends AbstractTestCommand
 {
+    public function __construct()
+    {
+        parent::__construct(self::class);
+    }
+
     public static function setUpBeforeClass(): void
     {
         Gacela::bootstrap(__DIR__, GacelaConfig::defaultPhpConfig());
     }
 
-    /**
-     * @runInSeparateProcess
-     *
-     * @preserveGlobalState disabled
-     */
+    #[PreserveGlobalState(false)]
+    #[RunInSeparateProcess]
     public function test_all_in_failed_project(): void
     {
         $command = new TestCommand();

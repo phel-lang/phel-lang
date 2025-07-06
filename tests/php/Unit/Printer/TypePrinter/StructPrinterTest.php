@@ -9,13 +9,12 @@ use Phel\Lang\Collections\Struct\AbstractPersistentStruct;
 use Phel\Lang\Keyword;
 use Phel\Printer\Printer;
 use Phel\Printer\TypePrinter\StructPrinter;
+use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 
 final class StructPrinterTest extends TestCase
 {
-    /**
-     * @dataProvider printerDataProvider
-     */
+    #[DataProvider('printerDataProvider')]
     public function test_print(string $actual, AbstractPersistentStruct $struct): void
     {
         self::assertSame(

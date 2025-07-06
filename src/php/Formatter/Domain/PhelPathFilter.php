@@ -10,7 +10,7 @@ use RecursiveIteratorIterator;
 
 final class PhelPathFilter implements PathFilterInterface
 {
-    private const PHEL_EXTENSION = 'phel';
+    private const string PHEL_EXTENSION = 'phel';
 
     /**
      * @param list<string> $paths

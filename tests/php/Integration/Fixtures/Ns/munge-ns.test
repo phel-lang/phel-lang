@@ -36,7 +36,7 @@ require_once __DIR__ . '/my_namespace/core.php';
 if (!class_exists('hello_world\abc')) {
 class abc extends \Phel\Lang\Collections\Struct\AbstractPersistentStruct {
 
-  protected const ALLOWED_KEYS = ['a'];
+  protected const array ALLOWED_KEYS = ['a'];
 
   protected $a;
 

@@ -13,13 +13,13 @@ use function array_slice;
 
 final class FnSymbolTuple
 {
-    private const STATE_START = 'start';
+    private const string STATE_START = 'start';
 
-    private const STATE_REST = 'rest';
+    private const string STATE_REST = 'rest';
 
-    private const STATE_DONE = 'done';
+    private const string STATE_DONE = 'done';
 
-    private const PARENT_TUPLE_BODY_OFFSET = 2;
+    private const int PARENT_TUPLE_BODY_OFFSET = 2;
 
     private array $params = [];
 

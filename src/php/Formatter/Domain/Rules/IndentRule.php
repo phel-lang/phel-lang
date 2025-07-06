@@ -17,7 +17,7 @@ use Phel\Lang\SourceLocation;
 
 final readonly class IndentRule implements RuleInterface
 {
-    private const INDENT_WIDTH = 2;
+    private const int INDENT_WIDTH = 2;
 
     private ListIndenter $listIndenter;
 

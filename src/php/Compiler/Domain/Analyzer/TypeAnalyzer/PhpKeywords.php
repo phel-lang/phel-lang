@@ -9,7 +9,7 @@ namespace Phel\Compiler\Domain\Analyzer\TypeAnalyzer;
  */
 final class PhpKeywords
 {
-    public const KEYWORDS = [
+    public const array KEYWORDS = [
         '__halt_compiler',
         'abstract',
         'and',

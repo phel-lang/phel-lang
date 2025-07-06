@@ -11,9 +11,9 @@ use Phel\Compiler\CompilerFacade;
 
 final class BuildProvider extends AbstractProvider
 {
-    public const FACADE_COMPILER = 'FACADE_COMPILER';
+    public const string FACADE_COMPILER = 'FACADE_COMPILER';
 
-    public const FACADE_COMMAND = 'FACADE_COMMAND';
+    public const string FACADE_COMMAND = 'FACADE_COMMAND';
 
     public function provideModuleDependencies(Container $container): void
     {

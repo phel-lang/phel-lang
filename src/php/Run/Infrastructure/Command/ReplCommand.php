@@ -39,15 +39,15 @@ final class ReplCommand extends Command
 {
     use DocBlockResolverAwareTrait;
 
-    private const ENABLE_BRACKETED_PASTE = "\e[?2004h";
+    private const string ENABLE_BRACKETED_PASTE = "\e[?2004h";
 
-    private const DISABLE_BRACKETED_PASTE = "\e[?2004l";
+    private const string DISABLE_BRACKETED_PASTE = "\e[?2004l";
 
-    private const INITIAL_PROMPT = 'phel:%d> ';
+    private const string INITIAL_PROMPT = 'phel:%d> ';
 
-    private const OPEN_PROMPT = '....:%d> ';
+    private const string OPEN_PROMPT = '....:%d> ';
 
-    private const EXIT_REPL = 'exit';
+    private const string EXIT_REPL = 'exit';
 
     private InputResult $previousResult;
 

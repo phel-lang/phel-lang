@@ -10,13 +10,13 @@ use Phel\Config\PhelExportConfig;
 
 final class InteropConfig extends AbstractConfig
 {
-    private const DEFAULT_EXPORT_DIRECTORIES = ['src'];
+    private const array DEFAULT_EXPORT_DIRECTORIES = ['src'];
 
-    private const DEFAULT_EXPORT_NAMESPACE_PREFIX = 'PhelGenerated';
+    private const string DEFAULT_EXPORT_NAMESPACE_PREFIX = 'PhelGenerated';
 
-    private const DEFAULT_EXPORT_TARGET_DIRECTORY = 'src/PhelGenerated';
+    private const string DEFAULT_EXPORT_TARGET_DIRECTORY = 'src/PhelGenerated';
 
-    private const DEFAULT_EXPORT = [
+    private const array DEFAULT_EXPORT = [
         PhelExportConfig::FROM_DIRECTORIES => self::DEFAULT_EXPORT_DIRECTORIES,
         PhelExportConfig::NAMESPACE_PREFIX => self::DEFAULT_EXPORT_NAMESPACE_PREFIX,
         PhelExportConfig::TARGET_DIRECTORY => self::DEFAULT_EXPORT_TARGET_DIRECTORY,

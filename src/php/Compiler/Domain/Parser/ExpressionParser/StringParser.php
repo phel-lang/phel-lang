@@ -12,7 +12,7 @@ use function chr;
 
 final class StringParser
 {
-    private const STRING_REPLACEMENTS = [
+    private const array STRING_REPLACEMENTS = [
         '\\' => '\\',
         '$' => '$',
         'n' => "\n",

@@ -8,6 +8,8 @@ use Gacela\Framework\Bootstrap\GacelaConfig;
 use Gacela\Framework\Gacela;
 use Phel\Interop\Infrastructure\Command\ExportCommand;
 use PhelTest\Integration\Util\DirectoryUtil;
+use PHPUnit\Framework\Attributes\PreserveGlobalState;
+use PHPUnit\Framework\Attributes\RunInSeparateProcess;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
@@ -19,11 +21,8 @@ final class ExportCommandTest extends TestCase
         DirectoryUtil::removeDir(__DIR__ . '/PhelGenerated/');
     }
 
-    /**
-     * @runInSeparateProcess
-     *
-     * @preserveGlobalState disabled
-     */
+    #[PreserveGlobalState(false)]
+    #[RunInSeparateProcess]
     public function test_export_command_multiple(): void
     {
         Gacela::bootstrap(__DIR__, GacelaConfig::defaultPhpConfig());

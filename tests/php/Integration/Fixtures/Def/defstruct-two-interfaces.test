@@ -23,7 +23,7 @@ interface MySecondInterface {
 if (!class_exists('user\my_type_with_two_interfaces')) {
 class my_type_with_two_interfaces extends \Phel\Lang\Collections\Struct\AbstractPersistentStruct implements \user\MyFirstInterface, \user\MySecondInterface {
 
-  protected const ALLOWED_KEYS = ['v'];
+  protected const array ALLOWED_KEYS = ['v'];
 
   protected $v;
 

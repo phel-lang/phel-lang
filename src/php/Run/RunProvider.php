@@ -15,17 +15,17 @@ use Phel\Interop\InteropFacade;
 
 final class RunProvider extends AbstractProvider
 {
-    public const FACADE_COMMAND = 'FACADE_COMMAND';
+    public const string FACADE_COMMAND = 'FACADE_COMMAND';
 
-    public const FACADE_COMPILER = 'FACADE_COMPILER';
+    public const string FACADE_COMPILER = 'FACADE_COMPILER';
 
-    public const FACADE_FORMATTER = 'FACADE_FORMATTER';
+    public const string FACADE_FORMATTER = 'FACADE_FORMATTER';
 
-    public const FACADE_INTEROP = 'FACADE_INTEROP';
+    public const string FACADE_INTEROP = 'FACADE_INTEROP';
 
-    public const FACADE_BUILD = 'FACADE_BUILD';
+    public const string FACADE_BUILD = 'FACADE_BUILD';
 
-    public const FACADE_API = 'FACADE_API';
+    public const string FACADE_API = 'FACADE_API';
 
     public function provideModuleDependencies(Container $container): void
     {

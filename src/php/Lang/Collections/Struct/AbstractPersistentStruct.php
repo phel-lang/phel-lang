@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Phel\Lang\Collections\Struct;
 
 use InvalidArgumentException;
+use Override;
 use Phel\Compiler\Application\Munge;
 use Phel\Compiler\Domain\Emitter\OutputEmitter\MungeInterface;
 use Phel\Lang\Collections\Exceptions\MethodNotSupportedException;
@@ -26,7 +27,7 @@ use function sprintf;
  */
 abstract class AbstractPersistentStruct extends AbstractPersistentMap
 {
-    protected const ALLOWED_KEYS = [];
+    protected const array ALLOWED_KEYS = [];
 
     private MungeInterface $munge;
 
@@ -93,6 +94,7 @@ abstract class AbstractPersistentStruct extends AbstractPersistentMap
         throw new MethodNotSupportedException("Structs don't support transients");
     }
 
+    #[Override]
     public function equals(mixed $other): bool
     {
         if (!$other instanceof static) {

@@ -18,17 +18,17 @@ use function is_string;
  */
 final class Hasher implements HasherInterface
 {
-    private const NULL_HASH_VALUE = 0;
+    private const int NULL_HASH_VALUE = 0;
 
-    private const TRUE_HASH_VALUE = 1231;
+    private const int TRUE_HASH_VALUE = 1231;
 
-    private const FALSE_HASH_VALUE = 1237;
+    private const int FALSE_HASH_VALUE = 1237;
 
-    private const POSITIVE_INF_HASH_VALUE = 2_146_435_072;
+    private const int POSITIVE_INF_HASH_VALUE = 2_146_435_072;
 
-    private const NEGATIVE_INF_HASH_VALUE = -1_048_576;
+    private const int NEGATIVE_INF_HASH_VALUE = -1_048_576;
 
-    private const DEFAULT_FLOAT_HASH_VALUE = 2_146_959_360;
+    private const int DEFAULT_FLOAT_HASH_VALUE = 2_146_959_360;
 
     /**
      * @param mixed $value The value to hash

@@ -11,9 +11,9 @@ use function sprintf;
 
 final readonly class InputResult
 {
-    private const NO_VALUE = 'no_value';
+    private const string NO_VALUE = 'no_value';
 
-    private const LAST_RESULT_PLACEHOLDER = '$_';
+    private const string LAST_RESULT_PLACEHOLDER = '$_';
 
     private function __construct(private mixed $lastResult)
     {

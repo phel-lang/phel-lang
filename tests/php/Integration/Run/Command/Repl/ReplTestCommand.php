@@ -7,6 +7,7 @@ namespace PhelTest\Integration\Run\Command\Repl;
 use Gacela\Framework\Bootstrap\GacelaConfig;
 use Gacela\Framework\Gacela;
 use Generator;
+use Override;
 use Phel\Command\Application\TextExceptionPrinter;
 use Phel\Command\Domain\ErrorLogInterface;
 use Phel\Command\Domain\Exceptions\ExceptionArgsPrinter;
@@ -21,6 +22,7 @@ use Phel\Run\Domain\Repl\ReplCommandIoInterface;
 use Phel\Run\Infrastructure\Command\ReplCommand;
 use Phel\Run\RunFactory;
 use PhelTest\Integration\Run\Command\AbstractTestCommand;
+use PHPUnit\Framework\Attributes\DataProvider;
 use RecursiveDirectoryIterator;
 use RecursiveIteratorIterator;
 use SplFileInfo;
@@ -29,6 +31,12 @@ use Symfony\Component\Console\Output\OutputInterface;
 
 final class ReplTestCommand extends AbstractTestCommand
 {
+    public function __construct()
+    {
+        parent::__construct(self::class);
+    }
+
+    #[Override]
     protected function setUp(): void
     {
         Gacela::bootstrap(__DIR__, static function (GacelaConfig $config): void {
@@ -37,9 +45,7 @@ final class ReplTestCommand extends AbstractTestCommand
         });
     }
 
-    /**
-     * @dataProvider providerIntegration
-     */
+    #[DataProvider('providerIntegration')]
     public function test_integration(string $expectedOutput, InputLine ...$inputs): void
     {
         $io = $this->createReplTestIo();
@@ -60,9 +66,8 @@ final class ReplTestCommand extends AbstractTestCommand
     /**
      * This is doing the same as the test above except that it will load the core lib before.
      * We split it because it takes some time to load the core lib before every test.
-     *
-     * @dataProvider providerIntegrationWithCoreLib
      */
+    #[DataProvider('providerIntegrationWithCoreLib')]
     public function test_integration_with_core_lib(string $expectedOutput, InputLine ...$inputs): void
     {
         $io = $this->createReplTestIo();

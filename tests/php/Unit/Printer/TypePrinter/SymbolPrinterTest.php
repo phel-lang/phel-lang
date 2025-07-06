@@ -7,13 +7,12 @@ namespace PhelTest\Unit\Printer\TypePrinter;
 use Generator;
 use Phel\Lang\Symbol;
 use Phel\Printer\TypePrinter\SymbolPrinter;
+use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 
 final class SymbolPrinterTest extends TestCase
 {
-    /**
-     * @dataProvider printerDataProvider
-     */
+    #[DataProvider('printerDataProvider')]
     public function test_print(string $expected, Symbol $symbol): void
     {
         self::assertSame(

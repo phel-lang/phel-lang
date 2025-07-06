@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Phel\Console\Infrastructure;
 
 use Gacela\Framework\DocBlockResolverAwareTrait;
+use Override;
 use Phel\Console\ConsoleFactory;
 use Symfony\Component\Console\Application;
 use Symfony\Component\Console\Command\Command;
@@ -18,6 +19,7 @@ final class ConsoleBootstrap extends Application
 {
     use DocBlockResolverAwareTrait;
 
+    #[Override]
     public function run(?InputInterface $input = null, ?OutputInterface $output = null): int
     {
         $this->setAutoExit(false);
@@ -30,6 +32,7 @@ final class ConsoleBootstrap extends Application
     /**
      * @return array<string,Command>
      */
+    #[Override]
     protected function getDefaultCommands(): array
     {
         $commands = parent::getDefaultCommands();

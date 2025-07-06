@@ -8,11 +8,11 @@ use JsonSerializable;
 
 final class PhelExportConfig implements JsonSerializable
 {
-    public const FROM_DIRECTORIES = 'from-directories';
+    public const string FROM_DIRECTORIES = 'from-directories';
 
-    public const NAMESPACE_PREFIX = 'namespace-prefix';
+    public const string NAMESPACE_PREFIX = 'namespace-prefix';
 
-    public const TARGET_DIRECTORY = 'target-directory';
+    public const string TARGET_DIRECTORY = 'target-directory';
 
     /** @var list<string> */
     private array $fromDirectories = ['src'];

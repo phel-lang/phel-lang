@@ -8,27 +8,27 @@ use JsonSerializable;
 
 final class PhelConfig implements JsonSerializable
 {
-    public const SRC_DIRS = 'src-dirs';
+    public const string SRC_DIRS = 'src-dirs';
 
-    public const TEST_DIRS = 'test-dirs';
+    public const string TEST_DIRS = 'test-dirs';
 
-    public const VENDOR_DIR = 'vendor-dir';
+    public const string VENDOR_DIR = 'vendor-dir';
 
-    public const BUILD_CONFIG = 'out';
+    public const string BUILD_CONFIG = 'out';
 
-    public const ERROR_LOG_FILE = 'error-log-file';
+    public const string ERROR_LOG_FILE = 'error-log-file';
 
-    public const EXPORT_CONFIG = 'export';
+    public const string EXPORT_CONFIG = 'export';
 
-    public const IGNORE_WHEN_BUILDING = 'ignore-when-building';
+    public const string IGNORE_WHEN_BUILDING = 'ignore-when-building';
 
-    public const NO_CACHE_WHEN_BUILDING = 'no-cache-when-building';
+    public const string NO_CACHE_WHEN_BUILDING = 'no-cache-when-building';
 
-    public const KEEP_GENERATED_TEMP_FILES = 'keep-generated-temp-files';
+    public const string KEEP_GENERATED_TEMP_FILES = 'keep-generated-temp-files';
 
-    public const TEMP_DIR = 'temp-dir';
+    public const string TEMP_DIR = 'temp-dir';
 
-    public const FORMAT_DIRS = 'format-dirs';
+    public const string FORMAT_DIRS = 'format-dirs';
 
     /** @var list<string> */
     private array $srcDirs = ['src'];

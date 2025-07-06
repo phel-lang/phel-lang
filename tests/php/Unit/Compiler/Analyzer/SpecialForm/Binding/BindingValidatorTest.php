@@ -10,6 +10,7 @@ use Phel\Lang\AbstractType;
 use Phel\Lang\Keyword;
 use Phel\Lang\Symbol;
 use Phel\Lang\TypeFactory;
+use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 
 final class BindingValidatorTest extends TestCase
@@ -50,10 +51,9 @@ final class BindingValidatorTest extends TestCase
     }
 
     /**
-     * @dataProvider providerValidTypes
-     *
      * @param AbstractType $type
      */
+    #[DataProvider('providerValidTypes')]
     public function test_valid_types(mixed $type): void
     {
         $this->validator->assertSupportedBinding($type);

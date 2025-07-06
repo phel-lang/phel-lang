@@ -14,11 +14,11 @@ use PHPUnit\Framework\TestCase;
 
 final class VectorBindingDeconstructorTest extends TestCase
 {
-    private const REST_SYMBOL = VectorBindingDeconstructor::REST_SYMBOL_NAME;
+    private const string REST_SYMBOL = VectorBindingDeconstructor::REST_SYMBOL_NAME;
 
-    private const FIRST_SYMBOL = VectorBindingDeconstructor::FIRST_SYMBOL_NAME;
+    private const string FIRST_SYMBOL = VectorBindingDeconstructor::FIRST_SYMBOL_NAME;
 
-    private const NEXT_SYMBOL = VectorBindingDeconstructor::NEXT_SYMBOL_NAME;
+    private const string NEXT_SYMBOL = VectorBindingDeconstructor::NEXT_SYMBOL_NAME;
 
     private VectorBindingDeconstructor $deconstructor;
 

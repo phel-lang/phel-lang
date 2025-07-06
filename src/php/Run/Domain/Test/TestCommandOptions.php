@@ -9,9 +9,9 @@ use Phel\Printer\Printer;
 
 final readonly class TestCommandOptions
 {
-    public const FILTER = 'filter';
+    public const string FILTER = 'filter';
 
-    public const TESTDOX = 'testdox';
+    public const string TESTDOX = 'testdox';
 
     private function __construct(
         private ?string $filter,

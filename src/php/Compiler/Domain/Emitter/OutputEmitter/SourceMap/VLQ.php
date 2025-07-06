@@ -10,7 +10,7 @@ use function strlen;
 
 final class VLQ
 {
-    private const CHARS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/=';
+    private const string CHARS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/=';
 
     /** @var array<int, string> */
     private array $integerToChar = [];

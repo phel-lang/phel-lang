@@ -19,9 +19,9 @@ use Phel\Run\Infrastructure\Command\TestCommand;
 
 final class ConsoleProvider extends AbstractProvider
 {
-    public const COMMANDS = 'COMMANDS';
+    public const string COMMANDS = 'COMMANDS';
 
-    public const FACADE_FILESYSTEM = 'FACADE_FILESYSTEM';
+    public const string FACADE_FILESYSTEM = 'FACADE_FILESYSTEM';
 
     public function provideModuleDependencies(Container $container): void
     {

@@ -6,5 +6,5 @@ namespace Phel\Shared;
 
 interface ReplConstants
 {
-    public const REPL_MODE = '*repl-mode*';
+    public const string REPL_MODE = '*repl-mode*';
 }

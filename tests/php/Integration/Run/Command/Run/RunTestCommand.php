@@ -12,6 +12,11 @@ use Symfony\Component\Console\Input\InputInterface;
 
 final class RunTestCommand extends AbstractTestCommand
 {
+    public function __construct()
+    {
+        parent::__construct(self::class);
+    }
+
     public static function setUpBeforeClass(): void
     {
         Gacela::bootstrap(__DIR__, static function (GacelaConfig $config): void {

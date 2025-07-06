@@ -13,7 +13,7 @@ use RegexIterator;
 
 final class PhelFileFinder implements PhelFileFinderInterface
 {
-    private const PHEL_EXTENSION_REGEX = '/^.+\.phel$/i';
+    private const string PHEL_EXTENSION_REGEX = '/^.+\.phel$/i';
 
     /**
      * Finds a list of all phel files in the given directories.

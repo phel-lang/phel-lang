@@ -24,7 +24,7 @@ final class DocCommand extends Command
 {
     use DocBlockResolverAwareTrait;
 
-    private const OPTION_NAMESPACES = 'ns';
+    private const string OPTION_NAMESPACES = 'ns';
 
     protected function configure(): void
     {

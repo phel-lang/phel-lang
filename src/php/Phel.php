@@ -18,9 +18,9 @@ use function is_string;
 
 final class Phel
 {
-    public const PHEL_CONFIG_FILE_NAME = 'phel-config.php';
+    public const string PHEL_CONFIG_FILE_NAME = 'phel-config.php';
 
-    private const PHEL_CONFIG_LOCAL_FILE_NAME = 'phel-config-local.php';
+    private const string PHEL_CONFIG_LOCAL_FILE_NAME = 'phel-config-local.php';
 
     /**
      * Use sys_get_temp_dir() by default.
@@ -28,7 +28,7 @@ final class Phel
      *
      * @see https://github.com/gacela-project/gacela/pull/322
      */
-    private const FILE_CACHE_DIR = '';
+    private const string FILE_CACHE_DIR = '';
 
     public static function bootstrap(string $projectRootDir, array|string|null $argv = null): void
     {

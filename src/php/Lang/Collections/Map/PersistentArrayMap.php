@@ -24,7 +24,7 @@ use function count;
  */
 final class PersistentArrayMap extends AbstractPersistentMap
 {
-    public const MAX_SIZE = 16;
+    public const int MAX_SIZE = 16;
 
     public function __construct(
         HasherInterface $hasher,

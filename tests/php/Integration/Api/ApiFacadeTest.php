@@ -11,15 +11,14 @@ use Phel\Api\ApiFacade;
 use Phel\Compiler\Infrastructure\GlobalEnvironmentSingleton;
 use Phel\Lang\Registry;
 use Phel\Lang\Symbol;
+use PHPUnit\Framework\Attributes\PreserveGlobalState;
+use PHPUnit\Framework\Attributes\RunInSeparateProcess;
 use PHPUnit\Framework\TestCase;
 
 final class ApiFacadeTest extends TestCase
 {
-    /**
-     * @runInSeparateProcess
-     *
-     * @preserveGlobalState disabled
-     */
+    #[PreserveGlobalState(false)]
+    #[RunInSeparateProcess]
     public function test_number_of_grouped_functions(): void
     {
         Gacela::bootstrap(__DIR__, GacelaConfig::defaultPhpConfig());

@@ -10,7 +10,7 @@ use PHPUnit\Framework\TestCase;
 
 final class SymbolBindingDeconstructorTest extends TestCase
 {
-    private const EXAMPLE_VALUE = 'example value';
+    private const string EXAMPLE_VALUE = 'example value';
 
     private SymbolBindingDeconstructor $deconstructor;
 

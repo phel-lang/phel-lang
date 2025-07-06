@@ -28,7 +28,7 @@ use function in_array;
 
 final readonly class Parser implements ParserInterface
 {
-    private const TOKENS_THAT_SHOULD_STREAM_NEXT = [
+    private const array TOKENS_THAT_SHOULD_STREAM_NEXT = [
         Token::T_WHITESPACE,
         Token::T_NEWLINE,
         Token::T_COMMENT,

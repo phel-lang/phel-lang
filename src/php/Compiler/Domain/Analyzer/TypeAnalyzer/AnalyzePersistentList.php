@@ -44,7 +44,7 @@ final class AnalyzePersistentList
 {
     use WithAnalyzerTrait;
 
-    private const EMPTY_SYMBOL_NAME = '';
+    private const string EMPTY_SYMBOL_NAME = '';
 
     /**
      * @throws AnalyzerException|AbstractLocatedException

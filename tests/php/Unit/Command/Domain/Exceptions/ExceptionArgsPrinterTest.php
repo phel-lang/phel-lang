@@ -7,6 +7,7 @@ namespace PhelTest\Unit\Command\Domain\Exceptions;
 use Generator;
 use Phel\Command\Domain\Exceptions\ExceptionArgsPrinter;
 use Phel\Printer\PrinterInterface;
+use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 use stdClass;
 
@@ -19,9 +20,7 @@ final class ExceptionArgsPrinterTest extends TestCase
         self::assertSame(' 1 2', $actual);
     }
 
-    /**
-     * @dataProvider providerBuildPhpArgsString
-     */
+    #[DataProvider('providerBuildPhpArgsString')]
     public function test_build_php_args_string(array $args, string $expected): void
     {
         $argsPrinter = $this->createExceptionArgsPrinter();

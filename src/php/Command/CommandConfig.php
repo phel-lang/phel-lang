@@ -11,15 +11,15 @@ use Phel\Config\PhelConfig;
 
 final class CommandConfig extends AbstractConfig
 {
-    private const DEFAULT_VENDOR_DIR = 'vendor';
+    private const string DEFAULT_VENDOR_DIR = 'vendor';
 
-    private const DEFAULT_SRC_DIRS = ['src'];
+    private const array DEFAULT_SRC_DIRS = ['src'];
 
-    private const DEFAULT_TEST_DIRS = ['tests'];
+    private const array DEFAULT_TEST_DIRS = ['tests'];
 
-    private const DEFAULT_OUTPUT_DIR = 'out';
+    private const string DEFAULT_OUTPUT_DIR = 'out';
 
-    private const DEFAULT_ERROR_LOG_FILE = 'data/error.log';
+    private const string DEFAULT_ERROR_LOG_FILE = 'data/error.log';
 
     public function getCodeDirs(): CodeDirectories
     {

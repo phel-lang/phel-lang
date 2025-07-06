@@ -9,13 +9,12 @@ use Phel\Lang\Collections\LinkedList\PersistentListInterface;
 use Phel\Lang\TypeFactory;
 use Phel\Printer\Printer;
 use Phel\Printer\TypePrinter\PersistentListPrinter;
+use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 
 final class ListPrinterTest extends TestCase
 {
-    /**
-     * @dataProvider printerDataProvider
-     */
+    #[DataProvider('printerDataProvider')]
     public function test_print(string $expected, PersistentListInterface $list): void
     {
         self::assertSame(
