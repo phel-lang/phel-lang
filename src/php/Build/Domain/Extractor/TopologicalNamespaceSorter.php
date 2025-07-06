@@ -9,70 +9,52 @@ use RuntimeException;
 final class TopologicalNamespaceSorter implements NamespaceSorterInterface
 {
     /**
-     * @param list<string> $data the data array that should be sorted
-     * @param array<string, list<string>> $dependencies a map of dependencies for each data node
+     * @param list<string> $data
+     * @param array<string, list<string>> $dependencies
      *
-     * @return list<string> The sorted array
+     * @return list<string>
      */
     public function sort(array $data, array $dependencies): array
     {
-        /** @var list<string> $order */
         $order = [];
-        /** @var array<string, true> $orderSet */
-        $orderSet = [];
-        /** @var list<string> $seenStack */
-        $seenStack = [];
-        /** @var array<string, true> $seenSet */
-        $seenSet = [];
+        $visited = [];
+        $visiting = [];
 
         foreach ($data as $item) {
-            $this->process($item, $dependencies, $order, $orderSet, $seenStack, $seenSet);
+            $this->visit($item, $dependencies, $order, $visited, $visiting);
         }
 
-        return array_values($order);
+        return $order;
     }
 
     /**
      * @param array<string, list<string>> $dependencies
-     * @param string[] $order
-     * @param array<string, true> $orderSet
-     * @param list<string> $seenStack
-     * @param array<string, true> $seenSet
+     * @param array<string, bool> $visited
+     * @param array<string, bool> $visiting
      */
-    private function process(
+    private function visit(
         string $item,
         array &$dependencies,
         array &$order,
-        array &$orderSet,
-        array &$seenStack,
-        array &$seenSet,
+        array &$visited,
+        array &$visiting,
     ): void {
-        if (isset($seenSet[$item])) {
-            throw new RuntimeException('Circular dependency detected, ' . implode(' -> ', [...$seenStack, $item]));
+        if (isset($visited[$item])) {
+            return;
         }
 
-        $seenSet[$item] = true;
-        $seenStack[] = $item;
-
-        if (isset($dependencies[$item])) {
-            foreach ($dependencies[$item] as $master) {
-                if (isset($dependencies[$master])) {
-                    $this->process($master, $dependencies, $order, $orderSet, $seenStack, $seenSet);
-                }
-
-                if (!isset($orderSet[$master])) {
-                    $order[] = $master;
-                    $orderSet[$master] = true;
-                }
-            }
+        if (isset($visiting[$item])) {
+            throw new RuntimeException('Circular dependency detected: ' . $item);
         }
 
-        if (!isset($orderSet[$item])) {
-            $order[] = $item;
-            $orderSet[$item] = true;
+        $visiting[$item] = true;
+
+        foreach ($dependencies[$item] ?? [] as $dep) {
+            $this->visit($dep, $dependencies, $order, $visited, $visiting);
         }
 
-        array_pop($seenStack);
-        unset($seenSet[$item]);
+        unset($visiting[$item]);
+        $visited[$item] = true;
+        $order[] = $item;
     }
 }
