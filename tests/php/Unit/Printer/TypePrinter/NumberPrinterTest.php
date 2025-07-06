@@ -6,13 +6,12 @@ namespace PhelTest\Unit\Printer\TypePrinter;
 
 use Generator;
 use Phel\Printer\TypePrinter\NumberPrinter;
+use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 
 final class NumberPrinterTest extends TestCase
 {
-    /**
-     * @dataProvider printerDataProvider
-     */
+    #[DataProvider('printerDataProvider')]
     public function test_print(string $expected, float|int $number): void
     {
         self::assertSame(

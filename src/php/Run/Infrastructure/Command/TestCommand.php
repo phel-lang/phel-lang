@@ -27,13 +27,13 @@ final class TestCommand extends Command
 {
     use DocBlockResolverAwareTrait;
 
-    public const COMMAND_NAME = 'test';
+    public const string COMMAND_NAME = 'test';
 
-    private const ARG_PATHS = 'paths';
+    private const string ARG_PATHS = 'paths';
 
-    private const OPT_FILTER = 'filter';
+    private const string OPT_FILTER = 'filter';
 
-    private const OPT_TESTDOX = 'testdox';
+    private const string OPT_TESTDOX = 'testdox';
 
     protected function configure(): void
     {

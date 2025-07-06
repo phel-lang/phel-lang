@@ -30,7 +30,7 @@ final class DefSymbol implements SpecialFormAnalyzerInterface
 {
     use WithAnalyzerTrait;
 
-    private const POSSIBLE_TUPLE_SIZES = [3, 4];
+    private const array POSSIBLE_TUPLE_SIZES = [3, 4];
 
     /**
      * @throws AbstractLocatedException

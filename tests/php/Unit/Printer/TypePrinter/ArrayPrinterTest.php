@@ -7,13 +7,12 @@ namespace PhelTest\Unit\Printer\TypePrinter;
 use Generator;
 use Phel\Printer\PrinterInterface;
 use Phel\Printer\TypePrinter\ArrayPrinter;
+use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 
 final class ArrayPrinterTest extends TestCase
 {
-    /**
-     * @dataProvider providerPrint
-     */
+    #[DataProvider('providerPrint')]
     public function test_print(array $form, string $expected): void
     {
         $printer = new class() implements PrinterInterface {

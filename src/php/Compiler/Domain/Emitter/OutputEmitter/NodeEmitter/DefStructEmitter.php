@@ -75,7 +75,7 @@ final readonly class DefStructEmitter implements NodeEmitterInterface
     {
         $params = $node->getParams();
         $paramCount = count($params);
-        $this->outputEmitter->emitStr('protected const ALLOWED_KEYS = [', $node->getStartSourceLocation());
+        $this->outputEmitter->emitStr('protected const array ALLOWED_KEYS = [', $node->getStartSourceLocation());
 
         foreach ($params as $i => $param) {
             $this->outputEmitter->emitStr("'" . $param->getName() . "'");

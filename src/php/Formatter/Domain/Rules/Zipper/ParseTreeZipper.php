@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Phel\Formatter\Domain\Rules\Zipper;
 
+use Override;
 use Phel\Compiler\Domain\Parser\ParserNode\CommentNode;
 use Phel\Compiler\Domain\Parser\ParserNode\InnerNodeInterface;
 use Phel\Compiler\Domain\Parser\ParserNode\NewlineNode;
@@ -81,6 +82,7 @@ final class ParseTreeZipper extends AbstractZipper
         return $this->left()->skipWhitespaceLeft();
     }
 
+    #[Override]
     public function skipWhitespaceLeft(): self
     {
         $loc = $this;
@@ -96,6 +98,7 @@ final class ParseTreeZipper extends AbstractZipper
         return $this->right()->skipWhitespaceRight();
     }
 
+    #[Override]
     public function skipWhitespaceRight(): self
     {
         $loc = $this;

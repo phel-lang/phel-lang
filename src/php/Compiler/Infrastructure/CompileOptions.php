@@ -6,11 +6,11 @@ namespace Phel\Compiler\Infrastructure;
 
 final class CompileOptions
 {
-    public const DEFAULT_SOURCE = 'string';
+    public const string DEFAULT_SOURCE = 'string';
 
-    public const DEFAULT_STARTING_LINE = 1;
+    public const int DEFAULT_STARTING_LINE = 1;
 
-    public const DEFAULT_ENABLE_SOURCE_MAPS = true;
+    public const bool DEFAULT_ENABLE_SOURCE_MAPS = true;
 
     private string $source = self::DEFAULT_SOURCE;
 

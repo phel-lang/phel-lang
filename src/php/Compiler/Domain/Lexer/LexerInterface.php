@@ -8,7 +8,7 @@ use Phel\Compiler\Domain\Lexer\Exceptions\LexerValueException;
 
 interface LexerInterface
 {
-    public const DEFAULT_SOURCE = 'string';
+    public const string DEFAULT_SOURCE = 'string';
 
     /**
      * @throws LexerValueException

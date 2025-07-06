@@ -19,17 +19,17 @@ use function sprintf;
  */
 final class VectorBindingDeconstructor implements BindingDeconstructorInterface
 {
-    public const FIRST_SYMBOL_NAME = 'first';
+    public const string FIRST_SYMBOL_NAME = 'first';
 
-    public const NEXT_SYMBOL_NAME = 'next';
+    public const string NEXT_SYMBOL_NAME = 'next';
 
-    public const REST_SYMBOL_NAME = '&';
+    public const string REST_SYMBOL_NAME = '&';
 
-    private const STATE_START = 'start';
+    private const string STATE_START = 'start';
 
-    private const STATE_REST = 'rest';
+    private const string STATE_REST = 'rest';
 
-    private const STATE_DONE = 'done';
+    private const string STATE_DONE = 'done';
 
     private string $currentState = self::STATE_START;
 

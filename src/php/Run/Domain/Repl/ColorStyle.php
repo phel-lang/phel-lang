@@ -11,7 +11,7 @@ use function sprintf;
  */
 final class ColorStyle implements ColorStyleInterface
 {
-    private const DEFAULT_STYLES = [
+    private const array DEFAULT_STYLES = [
         'green' => "\033[0;32m%s\033[0m",
         'red' => "\033[31;31m%s\033[0m",
         'yellow' => "\033[33;33m%s\033[0m",

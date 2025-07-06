@@ -16,7 +16,7 @@ use function strlen;
 
 final class Lexer implements LexerInterface
 {
-    private const REGEXPS = [
+    private const array REGEXPS = [
         "([ \t]+)", // Whitespace (index: 2)
         "(\r?\n)", // Newline (index: 3)
         "(\#[^\n]*\n?)", // Comment (index: 4)

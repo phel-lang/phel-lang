@@ -13,7 +13,7 @@ use function is_callable;
 
 final class PhpVarNode extends AbstractNode
 {
-    public const INFIX_OPERATORS = [
+    public const array INFIX_OPERATORS = [
         '+',
         '-',
         '*',
@@ -40,7 +40,7 @@ final class PhpVarNode extends AbstractNode
         '>>',
     ];
 
-    public const CALLABLE_KEYWORDS = [
+    public const array CALLABLE_KEYWORDS = [
         'array',
         'die',
         'empty',

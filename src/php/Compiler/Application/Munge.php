@@ -8,11 +8,11 @@ use Phel\Compiler\Domain\Emitter\OutputEmitter\MungeInterface;
 
 final readonly class Munge implements MungeInterface
 {
-    private const DEFAULT_NS_MAPPING = [
+    private const array DEFAULT_NS_MAPPING = [
         '-' => '_',
     ];
 
-    private const DEFAULT_MAPPING = [
+    private const array DEFAULT_MAPPING = [
         '-' => '_',
         '.' => '_DOT_',
         ':' => '_COLON_',

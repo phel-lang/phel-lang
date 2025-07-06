@@ -8,6 +8,9 @@ use Gacela\Framework\Bootstrap\GacelaConfig;
 use Gacela\Framework\Gacela;
 use Phel\Build\Infrastructure\Command\BuildCommand;
 use PhelTest\Integration\Util\DirectoryUtil;
+use PHPUnit\Framework\Attributes\Depends;
+use PHPUnit\Framework\Attributes\PreserveGlobalState;
+use PHPUnit\Framework\Attributes\RunInSeparateProcess;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\Console\Input\ArrayInput;
 use Symfony\Component\Console\Output\OutputInterface;
@@ -24,11 +27,8 @@ final class BuildCommandTest extends TestCase
         $this->command = new BuildCommand();
     }
 
-    /**
-     * @runInSeparateProcess
-     *
-     * @preserveGlobalState disabled
-     */
+    #[PreserveGlobalState(false)]
+    #[RunInSeparateProcess]
     public function test_build_project(): void
     {
         DirectoryUtil::removeDir(__DIR__ . '/out');
@@ -53,13 +53,9 @@ final class BuildCommandTest extends TestCase
         self::assertFileExists(__DIR__ . '/out/test_ns/hello.php');
     }
 
-    /**
-     * @runInSeparateProcess
-     *
-     * @preserveGlobalState disabled
-     *
-     * @depends test_build_project
-     */
+    #[Depends('test_build_project')]
+    #[PreserveGlobalState(false)]
+    #[RunInSeparateProcess]
     public function test_build_project_cached(): void
     {
         $this->bootstrapGacela();
@@ -85,11 +81,8 @@ final class BuildCommandTest extends TestCase
         self::assertFileExists(__DIR__ . '/out/test_ns/hello.php');
     }
 
-    /**
-     * @runInSeparateProcess
-     *
-     * @preserveGlobalState disabled
-     */
+    #[PreserveGlobalState(false)]
+    #[RunInSeparateProcess]
     public function test_out_main_file(): void
     {
         $this->bootstrapGacela();
@@ -117,11 +110,8 @@ TXT;
         self::assertSame($expected, $actual);
     }
 
-    /**
-     * @runInSeparateProcess
-     *
-     * @preserveGlobalState disabled
-     */
+    #[PreserveGlobalState(false)]
+    #[RunInSeparateProcess]
     public function test_no_entrypoint_when_namespace_is_not_set(): void
     {
         Gacela::bootstrap(__DIR__, static function (GacelaConfig $config): void {

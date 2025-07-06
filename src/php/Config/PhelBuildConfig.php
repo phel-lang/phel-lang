@@ -14,17 +14,17 @@ use function sprintf;
  */
 final class PhelBuildConfig implements JsonSerializable
 {
-    public const DEST_DIR = 'dir';
+    public const string DEST_DIR = 'dir';
 
-    public const MAIN_PHEL_NAMESPACE = 'main-phel-namespace';
+    public const string MAIN_PHEL_NAMESPACE = 'main-phel-namespace';
 
-    public const MAIN_PHP_FILENAME = 'main-php-filename';
+    public const string MAIN_PHP_FILENAME = 'main-php-filename';
 
-    public const MAIN_PHP_PATH = 'main-php-path';
+    public const string MAIN_PHP_PATH = 'main-php-path';
 
-    private const DEFAULT_DEST_DIR = 'out';
+    private const string DEFAULT_DEST_DIR = 'out';
 
-    private const DEFAULT_PHP_FILENAME = 'index.php';
+    private const string DEFAULT_PHP_FILENAME = 'index.php';
 
     private string $mainPhelNamespace = '';
 

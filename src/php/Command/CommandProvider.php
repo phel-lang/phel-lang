@@ -10,7 +10,7 @@ use Gacela\Framework\Container\Container;
 
 final class CommandProvider extends AbstractProvider
 {
-    public const PHP_CONFIG_READER = 'PHP_CONFIG_READER';
+    public const string PHP_CONFIG_READER = 'PHP_CONFIG_READER';
 
     public function provideModuleDependencies(Container $container): void
     {

@@ -21,7 +21,7 @@ use function sprintf;
 
 final readonly class ProjectCompiler
 {
-    private const TARGET_FILE_EXTENSION = '.php';
+    private const string TARGET_FILE_EXTENSION = '.php';
 
     public function __construct(
         private NamespaceExtractorInterface $namespaceExtractor,

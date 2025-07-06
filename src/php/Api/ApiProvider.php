@@ -10,7 +10,7 @@ use Phel\Run\RunFacade;
 
 final class ApiProvider extends AbstractProvider
 {
-    public const FACADE_RUN = 'FACADE_RUN';
+    public const string FACADE_RUN = 'FACADE_RUN';
 
     public function provideModuleDependencies(Container $container): void
     {

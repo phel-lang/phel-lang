@@ -13,7 +13,7 @@ use function function_exists;
 
 final readonly class RequireEvaluator implements EvaluatorInterface
 {
-    private const TEMP_PREFIX = '__phel';
+    private const string TEMP_PREFIX = '__phel';
 
     public function __construct(
         private FilesystemFacadeInterface $filesystemFacade,

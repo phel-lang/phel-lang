@@ -13,7 +13,7 @@ use Symfony\Component\Console\Tester\CommandTester;
 
 final class FormatCommandTest extends TestCase
 {
-    private const FIXTURES_DIR = __DIR__ . '/Fixtures/';
+    private const string FIXTURES_DIR = __DIR__ . '/Fixtures/';
 
     public function test_good_format(): void
     {

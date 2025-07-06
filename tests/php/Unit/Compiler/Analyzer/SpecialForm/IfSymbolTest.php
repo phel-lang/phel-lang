@@ -14,13 +14,12 @@ use Phel\Compiler\Domain\Exceptions\AbstractLocatedException;
 use Phel\Lang\Collections\LinkedList\PersistentListInterface;
 use Phel\Lang\Symbol;
 use Phel\Lang\TypeFactory;
+use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 
 final class IfSymbolTest extends TestCase
 {
-    /**
-     * @dataProvider providerRequiresAtLeastTwoOrThreeArgs
-     */
+    #[DataProvider('providerRequiresAtLeastTwoOrThreeArgs')]
     public function test_requires_at_least_two_or_three_args(PersistentListInterface $list): void
     {
         $this->expectException(AbstractLocatedException::class);

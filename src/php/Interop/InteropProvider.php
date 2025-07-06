@@ -11,9 +11,9 @@ use Phel\Command\CommandFacade;
 
 final class InteropProvider extends AbstractProvider
 {
-    public const FACADE_COMMAND = 'FACADE_COMMAND';
+    public const string FACADE_COMMAND = 'FACADE_COMMAND';
 
-    public const FACADE_BUILD = 'FACADE_BUILD';
+    public const string FACADE_BUILD = 'FACADE_BUILD';
 
     public function provideModuleDependencies(Container $container): void
     {

@@ -10,7 +10,7 @@ use Phel\Formatter\Domain\Rules\Zipper\ZipperException;
 
 interface FormatterInterface
 {
-    public const DEFAULT_SOURCE = 'string';
+    public const string DEFAULT_SOURCE = 'string';
 
     /**
      * @throws AbstractParserException

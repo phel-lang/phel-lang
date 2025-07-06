@@ -9,7 +9,7 @@ interface MyInterfaceWithoutMethods {
 if (!class_exists('user\my_type_with_one_interface_without_methods')) {
 class my_type_with_one_interface_without_methods extends \Phel\Lang\Collections\Struct\AbstractPersistentStruct implements \user\MyInterfaceWithoutMethods {
 
-  protected const ALLOWED_KEYS = ['v'];
+  protected const array ALLOWED_KEYS = ['v'];
 
   protected $v;
 

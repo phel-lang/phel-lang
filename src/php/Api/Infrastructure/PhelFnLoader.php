@@ -18,7 +18,7 @@ use function sprintf;
 
 final readonly class PhelFnLoader implements PhelFnLoaderInterface
 {
-    private const PRIVATE_SYMBOLS = [
+    private const array PRIVATE_SYMBOLS = [
         Symbol::NAME_APPLY => [
             'doc' => '```phel
 (apply f expr*)

@@ -8,6 +8,7 @@ use Gacela\Framework\Gacela;
 use Generator;
 use Phel\Formatter\FormatterFactory;
 use Phel\Lang\Symbol;
+use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 
 final class FormatterFacadeTest extends TestCase
@@ -21,11 +22,9 @@ final class FormatterFacadeTest extends TestCase
         $this->formatterFactory = new FormatterFactory();
     }
 
-    /**
-     * @dataProvider providerIndent
-     * @dataProvider providerReformatted
-     * @dataProvider providerRemoveTrailingWhitespaceRule
-     */
+    #[DataProvider('providerIndent')]
+    #[DataProvider('providerReformatted')]
+    #[DataProvider('providerRemoveTrailingWhitespaceRule')]
     public function test_format(array $actualLines, array $expectedLines): void
     {
         $formatted = $this->formatterFactory

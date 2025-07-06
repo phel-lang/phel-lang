@@ -10,7 +10,7 @@ use Phel\Filesystem\FilesystemFacade;
 
 final class CompilerProvider extends AbstractProvider
 {
-    public const FACADE_FILESYSTEM = 'FACADE_FILESYSTEM';
+    public const string FACADE_FILESYSTEM = 'FACADE_FILESYSTEM';
 
     public function provideModuleDependencies(Container $container): void
     {

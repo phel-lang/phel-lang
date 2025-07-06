@@ -12,6 +12,7 @@ use Phel\Compiler\Domain\Analyzer\Environment\GlobalEnvironment;
 use Phel\Compiler\Infrastructure\CompileOptions;
 use Phel\Compiler\Infrastructure\GlobalEnvironmentSingleton;
 use Phel\Lang\Symbol;
+use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 use RecursiveDirectoryIterator;
 use RecursiveIteratorIterator;
@@ -40,9 +41,7 @@ final class IntegrationTest extends TestCase
         $this->compilerFacade = new CompilerFacade();
     }
 
-    /**
-     * @dataProvider providerIntegration
-     */
+    #[DataProvider('providerIntegration')]
     public function test_integration(
         string $filename,
         string $phelCode,

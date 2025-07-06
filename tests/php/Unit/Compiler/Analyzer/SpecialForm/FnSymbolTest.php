@@ -17,6 +17,7 @@ use Phel\Compiler\Domain\Exceptions\AbstractLocatedException;
 use Phel\Lang\Collections\LinkedList\PersistentListInterface;
 use Phel\Lang\Symbol;
 use Phel\Lang\TypeFactory;
+use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 
 final class FnSymbolTest extends TestCase
@@ -73,9 +74,7 @@ final class FnSymbolTest extends TestCase
         self::assertFalse($fnNode->isVariadic());
     }
 
-    /**
-     * @dataProvider providerVarNamesMustStartWithLetterOrUnderscore
-     */
+    #[DataProvider('providerVarNamesMustStartWithLetterOrUnderscore')]
     public function test_var_names_must_start_with_letter_or_underscore(string $paramName, bool $error): void
     {
         if ($error) {
@@ -142,9 +141,7 @@ final class FnSymbolTest extends TestCase
         $this->analyze($list);
     }
 
-    /**
-     * @dataProvider providerGetParams
-     */
+    #[DataProvider('providerGetParams')]
     public function test_get_params(PersistentListInterface $list, array $expectedParams): void
     {
         $node = $this->analyze($list);
@@ -184,9 +181,7 @@ final class FnSymbolTest extends TestCase
         ];
     }
 
-    /**
-     * @dataProvider providerGetBody
-     */
+    #[DataProvider('providerGetBody')]
     public function test_get_body(PersistentListInterface $list, string $expectedBodyInstanceOf): void
     {
         $node = $this->analyze($list);

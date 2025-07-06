@@ -13,7 +13,7 @@ use function strlen;
  */
 final readonly class StringPrinter implements TypePrinterInterface
 {
-    private const SPECIAL_CHARACTERS = [
+    private const array SPECIAL_CHARACTERS = [
         9 => '\t',
         10 => '\n',
         11 => '\v',

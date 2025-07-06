@@ -4,7 +4,7 @@
 if (!class_exists('user\my_type')) {
 class my_type extends \Phel\Lang\Collections\Struct\AbstractPersistentStruct {
 
-  protected const ALLOWED_KEYS = ['a', 'b', 'c?'];
+  protected const array ALLOWED_KEYS = ['a', 'b', 'c?'];
 
   protected $a;
   protected $b;

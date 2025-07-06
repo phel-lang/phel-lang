@@ -11,7 +11,7 @@ use function count;
 
 final class FakeStruct extends AbstractPersistentStruct
 {
-    protected const ALLOWED_KEYS = ['a', 'b'];
+    protected const array ALLOWED_KEYS = ['a', 'b'];
 
     public function __construct(
         protected $a,

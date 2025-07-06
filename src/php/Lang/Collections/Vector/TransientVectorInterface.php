@@ -16,11 +16,11 @@ use Phel\Lang\ContainsInterface;
  */
 interface TransientVectorInterface extends Countable, ArrayAccess, ContainsInterface
 {
-    public const BRANCH_FACTOR = 32;
+    public const int BRANCH_FACTOR = 32;
 
-    public const INDEX_MASK = self::BRANCH_FACTOR - 1;
+    public const int INDEX_MASK = self::BRANCH_FACTOR - 1;
 
-    public const SHIFT = 5;
+    public const int SHIFT = 5;
 
     /**
      * @param T $value

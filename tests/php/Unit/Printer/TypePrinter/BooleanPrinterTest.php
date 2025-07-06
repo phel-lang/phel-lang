@@ -6,13 +6,12 @@ namespace PhelTest\Unit\Printer\TypePrinter;
 
 use Generator;
 use Phel\Printer\TypePrinter\BooleanPrinter;
+use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 
 final class BooleanPrinterTest extends TestCase
 {
-    /**
-     * @dataProvider printerDataProvider
-     */
+    #[DataProvider('printerDataProvider')]
     public function test_print(string $expected, bool $boolean): void
     {
         self::assertSame(
