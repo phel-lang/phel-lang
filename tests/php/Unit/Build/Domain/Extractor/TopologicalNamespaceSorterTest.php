@@ -8,7 +8,7 @@ use Phel\Build\Domain\Extractor\TopologicalNamespaceSorter;
 use PHPUnit\Framework\TestCase;
 use RuntimeException;
 
-final class TopologicalSortingTest extends TestCase
+final class TopologicalNamespaceSorterTest extends TestCase
 {
     private TopologicalNamespaceSorter $sorter;
 
@@ -30,7 +30,7 @@ final class TopologicalSortingTest extends TestCase
         $this->sorter->sort($data, $dependencies);
     }
 
-    public function test_simplesort(): void
+    public function test_simple_sort(): void
     {
         $data = ['car', 'owner'];
         $dependencies = [
@@ -67,5 +67,27 @@ final class TopologicalSortingTest extends TestCase
         $sorted = $this->sorter->sort($data, $dependencies);
 
         self::assertSame(['brand', 'owner', 'car'], $sorted);
+    }
+
+    public function test_node_with_no_dependencies_entry(): void
+    {
+        $data = ['loner'];
+        $dependencies = [];
+
+        $sorted = $this->sorter->sort($data, $dependencies);
+
+        self::assertSame(['loner'], $sorted);
+    }
+
+    public function test_dependency_to_non_listed_node(): void
+    {
+        $data = ['car'];
+        $dependencies = [
+            'car' => ['owner'], // 'owner' is not in $data
+        ];
+
+        $sorted = $this->sorter->sort($data, $dependencies);
+
+        self::assertSame(['owner', 'car'], $sorted);
     }
 }

@@ -6,65 +6,55 @@ namespace Phel\Build\Domain\Extractor;
 
 use RuntimeException;
 
-use function in_array;
-
 final class TopologicalNamespaceSorter implements NamespaceSorterInterface
 {
     /**
-     * @param list<string> $data the data array that should be sorted
-     * @param array<string, list<string>> $dependencies a map of dependencies for each data node
+     * @param list<string> $data
+     * @param array<string, list<string>> $dependencies
      *
-     * @return list<string> The sorted array
+     * @return list<string>
      */
     public function sort(array $data, array $dependencies): array
     {
-        /** @var list<string> $order */
         $order = [];
-        /** @var list<string> $seen */
-        $seen = [];
+        $visited = [];
+        $visiting = [];
+
         foreach ($data as $item) {
-            $this->process($item, $dependencies, $order, $seen);
+            $this->visit($item, $dependencies, $order, $visited, $visiting);
         }
 
-        return array_values($order);
+        return $order;
     }
 
     /**
      * @param array<string, list<string>> $dependencies
-     * @param string[] $order
-     * @param array<int, string> $seen
+     * @param array<string, bool> $visited
+     * @param array<string, bool> $visiting
      */
-    private function process(string $item, array &$dependencies, array &$order, array &$seen): void
-    {
-        if (in_array($item, $seen)) {
-            throw new RuntimeException('Circular dependency detected, ' . implode(' -> ', [...$seen, $item]));
+    private function visit(
+        string $item,
+        array &$dependencies,
+        array &$order,
+        array &$visited,
+        array &$visiting,
+    ): void {
+        if (isset($visited[$item])) {
+            return;
         }
 
-        $seen[] = $item;
-        if (isset($dependencies[$item])) {
-            foreach ($dependencies[$item] as $master) {
-                if (isset($dependencies[$master])) {
-                    $this->process($master, $dependencies, $order, $seen);
-                }
-
-                if (!in_array($master, $order, true)) {
-                    $order[] = $master;
-                }
-
-                $index = array_search($master, $seen, true);
-                if ($index !== false) {
-                    unset($seen[$index]);
-                }
-            }
+        if (isset($visiting[$item])) {
+            throw new RuntimeException('Circular dependency detected: ' . $item);
         }
 
-        if (!in_array($item, $order, true)) {
-            $order[] = $item;
+        $visiting[$item] = true;
+
+        foreach ($dependencies[$item] ?? [] as $dep) {
+            $this->visit($dep, $dependencies, $order, $visited, $visiting);
         }
 
-        $index = array_search($item, $seen, true);
-        if ($index !== false) {
-            unset($seen[$index]);
-        }
+        unset($visiting[$item]);
+        $visited[$item] = true;
+        $order[] = $item;
     }
 }
