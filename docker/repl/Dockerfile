@@ -1,4 +1,4 @@
-FROM php:8.2-cli
+FROM php:8.3-cli
 
 # Install composer
 COPY --from=composer /usr/bin/composer /usr/bin/composer
