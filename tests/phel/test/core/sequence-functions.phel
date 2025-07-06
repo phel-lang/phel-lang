@@ -44,6 +44,10 @@
   (is (= {:a {:b {:c 1}}} (update-in {:a {}} [:a :b :c] inc)) "update-in: autocreate tables")
   (is (= {:a {:b [2]}} (update-in {:a {:b [1]}} [:a :b 0] inc)) "update-in: update value of array"))
 
+(deftest test-unset-in
+  (is (= {:a {:b {}}} (unset-in {:a {:b {:c 1}}} [:a :b :c])) "unset-in: nested map")
+  (is (= {:a {:b {:c 1}}} (unset-in {:a {:b {:c 1}}} [:a :x])) "unset-in: missing key"))
+
 (deftest test-drop
   (is (= ["a" "b" "c"] (drop 0 ["a" "b" "c"])) "drop zero elements")
   (is (= ["c"] (drop 2 ["a" "b" "c"])) "drop two elements")
