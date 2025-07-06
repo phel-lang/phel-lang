@@ -6,8 +6,6 @@ namespace Phel\Build\Domain\Extractor;
 
 use RuntimeException;
 
-use function in_array;
-
 final class TopologicalNamespaceSorter implements NamespaceSorterInterface
 {
     /**
@@ -20,10 +18,15 @@ final class TopologicalNamespaceSorter implements NamespaceSorterInterface
     {
         /** @var list<string> $order */
         $order = [];
-        /** @var list<string> $seen */
-        $seen = [];
+        /** @var array<string, true> $orderSet */
+        $orderSet = [];
+        /** @var list<string> $seenStack */
+        $seenStack = [];
+        /** @var array<string, true> $seenSet */
+        $seenSet = [];
+
         foreach ($data as $item) {
-            $this->process($item, $dependencies, $order, $seen);
+            $this->process($item, $dependencies, $order, $orderSet, $seenStack, $seenSet);
         }
 
         return array_values($order);
@@ -32,39 +35,44 @@ final class TopologicalNamespaceSorter implements NamespaceSorterInterface
     /**
      * @param array<string, list<string>> $dependencies
      * @param string[] $order
-     * @param array<int, string> $seen
+     * @param array<string, true> $orderSet
+     * @param list<string> $seenStack
+     * @param array<string, true> $seenSet
      */
-    private function process(string $item, array &$dependencies, array &$order, array &$seen): void
-    {
-        if (in_array($item, $seen)) {
-            throw new RuntimeException('Circular dependency detected, ' . implode(' -> ', [...$seen, $item]));
+    private function process(
+        string $item,
+        array &$dependencies,
+        array &$order,
+        array &$orderSet,
+        array &$seenStack,
+        array &$seenSet,
+    ): void {
+        if (isset($seenSet[$item])) {
+            throw new RuntimeException('Circular dependency detected, ' . implode(' -> ', [...$seenStack, $item]));
         }
 
-        $seen[] = $item;
+        $seenSet[$item] = true;
+        $seenStack[] = $item;
+
         if (isset($dependencies[$item])) {
             foreach ($dependencies[$item] as $master) {
                 if (isset($dependencies[$master])) {
-                    $this->process($master, $dependencies, $order, $seen);
+                    $this->process($master, $dependencies, $order, $orderSet, $seenStack, $seenSet);
                 }
 
-                if (!in_array($master, $order, true)) {
+                if (!isset($orderSet[$master])) {
                     $order[] = $master;
-                }
-
-                $index = array_search($master, $seen, true);
-                if ($index !== false) {
-                    unset($seen[$index]);
+                    $orderSet[$master] = true;
                 }
             }
         }
 
-        if (!in_array($item, $order, true)) {
+        if (!isset($orderSet[$item])) {
             $order[] = $item;
+            $orderSet[$item] = true;
         }
 
-        $index = array_search($item, $seen, true);
-        if ($index !== false) {
-            unset($seen[$index]);
-        }
+        array_pop($seenStack);
+        unset($seenSet[$item]);
     }
 }

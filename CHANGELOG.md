@@ -4,6 +4,7 @@ All notable changes to this project will be documented in this file.
 
 ## Unreleased
 
+- Improve `TopologicalNamespaceSorter` performance
 - Add function `unset-in` 
 
 ## [0.18.1](https://github.com/phel-lang/phel-lang/compare/v0.18.0...v0.18.1) - 2025-06-18
