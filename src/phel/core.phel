@@ -1459,6 +1459,19 @@ arrays. Use (php/aunset ds key)"))
   [f & args]
   |(apply f (concat [] args $&)))
 
+(defn memoize
+  "Returns a memoized version of the function `f`. The memoized function
+  caches the return value for each set of arguments."
+  [f]
+  (let [memoize-cache (var {})]
+    (fn [& args]
+      (let [c (deref memoize-cache)]
+        (if (contains? c args)
+          (get c args)
+          (let [res (apply f args)]
+            (set! memoize-cache (put c args res))
+            res))))) )
+
 # -----------------------
 # More sequence operation
 # -----------------------
