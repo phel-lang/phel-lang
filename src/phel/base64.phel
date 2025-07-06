@@ -9,3 +9,24 @@
   "Decodes the Base64 encoded string `s`. If `strict?` is true invalid characters trigger an error."
   [s & [strict?]]
   (php/base64_decode s (or strict? false)))
+
+(defn encode-url
+  "Returns the URL safe Base64 representation of `s`. Padding is removed."
+  [s]
+  (-> (encode s)
+      (phel\str/replace "+" "-")
+      (phel\str/replace "/" "_")
+      (phel\str/replace "=" "")))
+
+(defn decode-url
+  "Decodes a Base64 URL encoded string `s`. If `strict?` is true invalid characters trigger an error."
+  [s & [strict?]]
+  (let [s (phel\str/replace s "-" "+")
+        s (phel\str/replace s "_" "/")
+        len (php/strlen s)
+        rem (php/fmod len 4)
+        pad (php/fmod (- 4 rem) 4)
+        s (str s (phel\str/repeat "=" pad))]
+    (decode s (or strict? false)))
+
+)
