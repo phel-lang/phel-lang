@@ -4,7 +4,10 @@ All notable changes to this project will be documented in this file.
 
 ## Unreleased
 
-- Improve `TopologicalNamespaceSorter` performance
+- Improve performance
+  - `TopologicalNamespaceSorter`
+  - `DependenciesForNamespace`
+  - `NamespaceExtractor`
 - Add function `unset-in` 
 - Add base64 functions
   - `base64/encode`

@@ -82,17 +82,12 @@ final readonly class NamespaceExtractor implements NamespaceExtractorInterface
     public function getNamespacesFromDirectories(array $directories): array
     {
         /** @var array<string, NamespaceInformation> $namespaces */
-        $namespaces = array_reduce(
-            $directories,
-            function (array $namespaces, string $directory): array {
-                foreach ($this->findAllNs($directory) as $ns) {
-                    $namespaces += [$ns->getNamespace() => $ns];
-                }
-
-                return $namespaces;
-            },
-            [],
-        );
+        $namespaces = [];
+        foreach ($directories as $directory) {
+            foreach ($this->findAllNs($directory) as $ns) {
+                $namespaces[$ns->getNamespace()] = $ns;
+            }
+        }
 
         return $this->sortNamespaceInformationList($namespaces);
     }
