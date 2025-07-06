@@ -21,6 +21,7 @@ final class ApiConfig extends AbstractConfig
             'phel\\test',
             'phel\\json',
             'phel\\str',
+            'phel\\base64',
         ];
     }
 }

@@ -1,0 +1,31 @@
+(ns phel\base64
+  (:require phel\str :as s))
+
+(defn encode
+  "Returns the Base64 representation of `s`."
+  [s]
+  (php/base64_encode s))
+
+(defn decode
+  "Decodes the Base64 encoded string `s`. If `strict?` is true invalid characters trigger an error."
+  [s & [strict?]]
+  (php/base64_decode s (or strict? false)))
+
+(defn encode-url
+  "Returns the URL safe Base64 representation of `s`. Padding is removed."
+  [s]
+  (-> (encode s)
+      (s/replace "+" "-")
+      (s/replace "/" "_")
+      (s/replace "=" "")))
+
+(defn decode-url
+  "Decodes a Base64 URL encoded string `s`. If `strict?` is true invalid characters trigger an error."
+  [s & [strict?]]
+  (let [s (s/replace s "-" "+")
+        s (s/replace s "_" "/")
+        len (php/strlen s)
+        rem (php/fmod len 4)
+        pad (php/fmod (- 4 rem) 4)
+        s (str s (s/repeat "=" pad))]
+    (decode s (or strict? false))))
