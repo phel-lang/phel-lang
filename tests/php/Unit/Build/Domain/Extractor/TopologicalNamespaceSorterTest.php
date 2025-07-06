@@ -8,7 +8,7 @@ use Phel\Build\Domain\Extractor\TopologicalNamespaceSorter;
 use PHPUnit\Framework\TestCase;
 use RuntimeException;
 
-final class TopologicalSortingTest extends TestCase
+final class TopologicalNamespaceSorterTest extends TestCase
 {
     private TopologicalNamespaceSorter $sorter;
 
