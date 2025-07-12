@@ -13,6 +13,7 @@ $finder = Finder::create()
     ->exclude(['out', 'PhelGenerated']);
 
 return (new Config())
+    ->setUnsupportedPhpVersionAllowed(true)
     ->setParallelConfig(ParallelConfigFactory::detect())
     ->setFinder($finder)
     ->setRiskyAllowed(true)
