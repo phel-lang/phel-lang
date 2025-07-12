@@ -36,7 +36,7 @@ final readonly class DefExceptionEmitter implements NodeEmitterInterface
         $this->outputEmitter->emitLine(' {');
         $this->outputEmitter->increaseIndentLevel();
 
-        $this->outputEmitter->emitLine('public function __construct($message = "", $code = 0, \Throwable $previous = null) {');
+        $this->outputEmitter->emitLine('public function __construct($message = "", $code = 0, ?\Throwable $previous = null) {');
         $this->outputEmitter->increaseIndentLevel();
         $this->outputEmitter->emitLine('parent::__construct($message, $code, $previous);');
         $this->outputEmitter->decreaseIndentLevel();
