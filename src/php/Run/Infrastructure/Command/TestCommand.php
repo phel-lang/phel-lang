@@ -72,7 +72,10 @@ final class TestCommand extends Command
                 $this->getFacade()->evalFile($info);
             }
 
-            $result = $this->getFacade()->eval($phelCode, new CompileOptions());
+            $compileOptions = (new CompileOptions())
+                ->setIsEnabledSourceMaps(false);
+
+            $result = $this->getFacade()->eval($phelCode, $compileOptions);
 
             $output->writeln((new ResourceUsageFormatter())->resourceUsageSinceStartOfRequest());
 
