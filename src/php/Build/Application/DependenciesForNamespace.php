@@ -6,6 +6,7 @@ namespace Phel\Build\Application;
 
 use Phel\Build\Domain\Extractor\NamespaceExtractorInterface;
 use Phel\Build\Domain\Extractor\NamespaceInformation;
+use SplQueue;
 
 final readonly class DependenciesForNamespace
 {
@@ -31,11 +32,15 @@ final readonly class DependenciesForNamespace
         }
 
         // Traverse dependencies starting from the provided namespaces
-        $toVisit = $namespaces;
+        $toVisit = new SplQueue();
+        foreach ($namespaces as $ns) {
+            $toVisit->enqueue($ns);
+        }
+
         $visited = [];
 
-        while ($toVisit !== []) {
-            $current = array_shift($toVisit);
+        while (!$toVisit->isEmpty()) {
+            $current = $toVisit->dequeue();
             if (isset($visited[$current])) {
                 continue;
             }
@@ -45,7 +50,11 @@ final readonly class DependenciesForNamespace
             }
 
             $visited[$current] = true;
-            array_push($toVisit, ...$namespaceMap[$current]->getDependencies());
+            foreach ($namespaceMap[$current]->getDependencies() as $dep) {
+                if (!isset($visited[$dep])) {
+                    $toVisit->enqueue($dep);
+                }
+            }
         }
 
         // Return only the required NamespaceInformation objects
