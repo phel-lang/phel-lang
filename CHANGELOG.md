@@ -4,6 +4,9 @@ All notable changes to this project will be documented in this file.
 
 ## Unreleased
 
+- Fix `DefException` Emitter compatible with PHP 8.4
+- Fix repl prints unicode chars
+- Fix repl with multi-line string literals with brackets
 - Improve performance
   - `TopologicalNamespaceSorter`
   - `DependenciesForNamespace`
@@ -17,9 +20,7 @@ All notable changes to this project will be documented in this file.
   - `base64/encode-url`
   - `base64/decode-url`
 - Replaced array-based queue handling with a more efficient `SplQueue` in the dependency traversal logic
-- Fix DefException Emitter compatible with PHP 8.4
 - Optimize test command - disabling the sourcemap
-- Fix repl prints unicode chars
 
 ## [0.18.1](https://github.com/phel-lang/phel-lang/compare/v0.18.0...v0.18.1) - 2025-06-18
 
