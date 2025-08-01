@@ -19,6 +19,7 @@ All notable changes to this project will be documented in this file.
 - Replaced array-based queue handling with a more efficient `SplQueue` in the dependency traversal logic
 - Fix DefException Emitter compatible with PHP 8.4
 - Optimize test command - disabling the sourcemap
+- Fix repl prints unicode chars
 
 ## [0.18.1](https://github.com/phel-lang/phel-lang/compare/v0.18.0...v0.18.1) - 2025-06-18
 
