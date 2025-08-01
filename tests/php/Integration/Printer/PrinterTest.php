@@ -61,7 +61,7 @@ final class PrinterTest extends TestCase
     public function test_print_escaped_unicode_chars(): void
     {
         self::assertSame(
-            '"\u{1000}"',
+            '"က"',
             $this->print("\u{1000}"),
         );
     }

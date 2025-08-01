@@ -74,22 +74,19 @@ final readonly class StringPrinter implements TypePrinterInterface
             }
 
             if ($this->isMask110XXXXX($asciiChar)) {
-                $hex = $this->utf8ToUnicodePoint(substr($str, $index, 2));
-                $return .= sprintf('\u{%04s}', $hex);
+                $return .= substr($str, $index, 2);
                 ++$index;
                 continue;
             }
 
             if ($this->isMask1110XXXX($asciiChar)) {
-                $hex = $this->utf8ToUnicodePoint(substr($str, $index, 3));
-                $return .= sprintf('\u{%04s}', $hex);
+                $return .= substr($str, $index, 3);
                 $index += 2;
                 continue;
             }
 
             if ($this->isMask11110XXX($asciiChar)) {
-                $hex = $this->utf8ToUnicodePoint(substr($str, $index, 4));
-                $return .= sprintf('\u{%04s}', $hex);
+                $return .= substr($str, $index, 4);
                 $index += 3;
                 continue;
             }
@@ -135,24 +132,6 @@ final readonly class StringPrinter implements TypePrinterInterface
     private function isMask11110XXX(int $asciiChar): bool
     {
         return ($asciiChar & 0xF8) === 0xF0;
-    }
-
-    private function utf8ToUnicodePoint(string $str): string
-    {
-        $a = ($str = unpack('C*', $str)) ? ((int) $str[1]) : 0;
-        if (0xF0 <= $a) {
-            return dechex((($a - 0xF0) << 18) + ((((int) $str[2]) - 0x80) << 12) + ((((int) $str[3]) - 0x80) << 6) + ((int) $str[4]) - 0x80);
-        }
-
-        if (0xE0 <= $a) {
-            return dechex((($a - 0xE0) << 12) + ((((int) $str[2]) - 0x80) << 6) + ((int) $str[3]) - 0x80);
-        }
-
-        if (0xC0 <= $a) {
-            return dechex((($a - 0xC0) << 6) + ((int) $str[2]) - 0x80);
-        }
-
-        return (string) $a;
     }
 
     private function color(string $str): string
