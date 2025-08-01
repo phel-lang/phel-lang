@@ -5,8 +5,10 @@ declare(strict_types=1);
 namespace Phel\Run\Infrastructure\Command;
 
 use Gacela\Framework\DocBlockResolverAwareTrait;
+use Phel\Compiler\Application\Lexer;
 use Phel\Compiler\Domain\Evaluator\Exceptions\CompiledCodeIsMalformedException;
 use Phel\Compiler\Domain\Exceptions\CompilerException;
+use Phel\Compiler\Domain\Lexer\Token;
 use Phel\Compiler\Domain\Parser\Exceptions\UnfinishedParserException;
 use Phel\Compiler\Infrastructure\CompileOptions;
 use Phel\Lang\Registry;
@@ -217,6 +219,11 @@ final class ReplCommand extends Command
             return;
         }
 
+        $rawInput = implode(PHP_EOL, $this->inputBuffer);
+        if (!$this->hasBalancedParentheses($rawInput)) {
+            return;
+        }
+
         $fullInput = $this->previousResult->readBuffer($this->inputBuffer);
 
         try {
@@ -261,5 +268,24 @@ final class ReplCommand extends Command
         if ($input !== '') {
             $this->io->addHistory($input);
         }
+    }
+
+    private function hasBalancedParentheses(string $input): bool
+    {
+        $lexer = new Lexer();
+        $tokenStream = $lexer->lexString($input);
+
+        $open = 0;
+        $close = 0;
+
+        foreach ($tokenStream as $token) {
+            if ($token->getType() === Token::T_OPEN_PARENTHESIS) {
+                ++$open;
+            } elseif ($token->getType() === Token::T_CLOSE_PARENTHESIS) {
+                ++$close;
+            }
+        }
+
+        return $close >= $open;
     }
 }
