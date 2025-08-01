@@ -52,6 +52,6 @@ use Phel\Phel;
 
     Phel::bootstrap($appRootDir);
 
-    $bootstrap = new ConsoleBootstrap(name: 'Phel', version: 'v0.18.1');
+    $bootstrap = new ConsoleBootstrap(name: 'Phel', version: 'v0.19.0');
     $bootstrap->run();
 })();
