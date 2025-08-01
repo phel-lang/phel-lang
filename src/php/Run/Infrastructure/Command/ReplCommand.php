@@ -8,6 +8,7 @@ use Gacela\Framework\DocBlockResolverAwareTrait;
 use Phel\Compiler\Application\Lexer;
 use Phel\Compiler\Domain\Evaluator\Exceptions\CompiledCodeIsMalformedException;
 use Phel\Compiler\Domain\Exceptions\CompilerException;
+use Phel\Compiler\Domain\Lexer\LexerInterface;
 use Phel\Compiler\Domain\Lexer\Token;
 use Phel\Compiler\Domain\Parser\Exceptions\UnfinishedParserException;
 use Phel\Compiler\Infrastructure\CompileOptions;
@@ -59,6 +60,8 @@ final class ReplCommand extends Command
 
     private readonly PrinterInterface $printer;
 
+    private readonly LexerInterface $lexer;
+
     private ?string $replStartupFile = null;
 
     /** @var list<string> */
@@ -74,6 +77,7 @@ final class ReplCommand extends Command
         $this->io = $this->getFactory()->createReplCommandIo();
         $this->style = $this->getFactory()->createColorStyle();
         $this->printer = $this->getFactory()->createPrinter();
+        $this->lexer = $this->getFactory()->createLexer();
     }
 
     /**
@@ -272,8 +276,7 @@ final class ReplCommand extends Command
 
     private function hasBalancedParentheses(string $input): bool
     {
-        $lexer = new Lexer();
-        $tokenStream = $lexer->lexString($input);
+        $tokenStream = $this->lexer->lexString($input);
 
         $open = 0;
         $close = 0;
