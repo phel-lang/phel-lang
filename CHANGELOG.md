@@ -3,6 +3,9 @@
 All notable changes to this project will be documented in this file.
 
 ## Unreleased
+
+- Fix `require` broke in repl (#861)
+- Fix trigger warning in tests (#864)
 - Add `symbol` function
 
 ## [0.19.0](https://github.com/phel-lang/phel-lang/compare/v0.18.1...v0.19.0) - 2025-08-02
