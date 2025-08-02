@@ -85,7 +85,8 @@
             "@static-clear-cache",
             "@test-quality",
             "@test-compiler",
-            "@test-core"
+            "@test-core",
+            "@test-expect"
         ],
         "test-compiler": "./vendor/bin/phpunit --testsuite=unit,integration --log-junit=data/log-junit.xml",
         "test-compiler:coverage": "XDEBUG_MODE=coverage ./vendor/bin/phpunit --testsuite=unit,integration --coverage-html=data/coverage-html --coverage-xml=data/coverage-xml --log-junit=data/coverage-xml/junit.xml",
@@ -95,6 +96,7 @@
             "@psalm",
             "@phpstan",
             "@rectorrun"
-        ]
+        ],
+        "test-expect": "./vendor/bin/phpunit --testsuite=expect --log-junit=data/log-junit.xml"
     }
 }
