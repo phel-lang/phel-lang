@@ -4,63 +4,56 @@ declare(strict_types=1);
 
 namespace Phel\Build\Application;
 
-use Phel\Build\Domain\Extractor\NamespaceExtractorInterface;
 use Phel\Build\Domain\Extractor\NamespaceInformation;
-use SplQueue;
+
+use function array_key_exists;
+use function in_array;
 
 final readonly class DependenciesForNamespace
 {
     public function __construct(
-        private NamespaceExtractorInterface $namespaceExtractor,
+        private NamespaceExtractor $namespaceExtractor,
     ) {
     }
 
     /**
-     * @param  list<string>  $directories
-     * @param  list<string>  $namespaces
-     *
      * @return list<NamespaceInformation>
      */
-    public function getDependenciesForNamespace(array $directories, array $namespaces): array
+    public function getDependenciesForNamespace(array $directories, array $ns): array
     {
-        $allNamespaces = $this->namespaceExtractor->getNamespacesFromDirectories($directories);
+        $namespaceInformation = $this->namespaceExtractor->getNamespacesFromDirectories($directories);
 
-        // Build a map of namespace => NamespaceInformation
-        $namespaceMap = [];
-        foreach ($allNamespaces as $info) {
-            $namespaceMap[$info->getNamespace()] = $info;
+        $index = [];
+        $queue = [];
+        foreach ($namespaceInformation as $info) {
+            $index[$info->getNamespace()] = $info;
+            if (in_array($info->getNamespace(), $ns, true)) {
+                $queue[] = $info->getNamespace();
+            }
         }
 
-        // Traverse dependencies starting from the provided namespaces
-        $toVisit = new SplQueue();
-        foreach ($namespaces as $ns) {
-            $toVisit->enqueue($ns);
-        }
+        $requiredNamespaces = [];
+        while ($queue !== []) {
+            $currentNs = array_shift($queue);
 
-        $visited = [];
-
-        while (!$toVisit->isEmpty()) {
-            $current = $toVisit->dequeue();
-            if (isset($visited[$current])) {
-                continue;
-            }
-
-            if (!isset($namespaceMap[$current])) {
-                continue;
-            }
-
-            $visited[$current] = true;
-            foreach ($namespaceMap[$current]->getDependencies() as $dep) {
-                if (!isset($visited[$dep])) {
-                    $toVisit->enqueue($dep);
+            if (!array_key_exists($currentNs, $requiredNamespaces)
+                && array_key_exists($currentNs, $index)
+            ) {
+                foreach ($index[$currentNs]->getDependencies() as $depNs) {
+                    $queue[] = $depNs;
                 }
             }
+
+            $requiredNamespaces[$currentNs] = true;
         }
 
-        // Return only the required NamespaceInformation objects
-        return array_values(array_filter(
-            $allNamespaces,
-            static fn (NamespaceInformation $info): bool => isset($visited[$info->getNamespace()]),
-        ));
+        $result = [];
+        foreach ($namespaceInformation as $info) {
+            if (isset($requiredNamespaces[$info->getNamespace()])) {
+                $result[] = $info;
+            }
+        }
+
+        return $result;
     }
 }

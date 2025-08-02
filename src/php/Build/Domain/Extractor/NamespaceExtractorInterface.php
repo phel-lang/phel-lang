@@ -11,7 +11,7 @@ interface NamespaceExtractorInterface
     /**
      * @param list<string> $directories
      *
-     * @return list<NamespaceInformation>
+     * @return NamespaceInformation[]
      */
     public function getNamespacesFromDirectories(array $directories): array;
 }
