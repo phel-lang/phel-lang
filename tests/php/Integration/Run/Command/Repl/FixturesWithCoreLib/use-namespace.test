@@ -1,0 +1,4 @@
+phel:1> (use phel\string :as s)
+phel\string
+phel:2> (s/upper-case "foo")
+FOO
