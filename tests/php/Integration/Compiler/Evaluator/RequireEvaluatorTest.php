@@ -18,6 +18,8 @@ final class RequireEvaluatorTest extends TestCase
 
     private FilesystemFacade $filesystem;
 
+    private string $tempDir = '';
+
     protected function setUp(): void
     {
         RealFilesystem::reset();
@@ -28,24 +30,29 @@ final class RequireEvaluatorTest extends TestCase
     protected function tearDown(): void
     {
         $this->filesystem->clearAll();
+
+        if ($this->tempDir !== '' && is_dir($this->tempDir)) {
+            rmdir($this->tempDir);
+        }
     }
 
     public function test_it_creates_missing_temp_directory(): void
     {
-        $tempDir = sys_get_temp_dir() . '/phel-test-' . uniqid('', true);
-        if (is_dir($tempDir)) {
-            rmdir($tempDir);
+        $this->tempDir = sys_get_temp_dir() . '/phel-test-' . uniqid('', true);
+        if (is_dir($this->tempDir)) {
+            rmdir($this->tempDir);
         }
 
-        Gacela::bootstrap(__DIR__, static function (GacelaConfig $config) use ($tempDir): void {
-            $config->addAppConfigKeyValue(PhelConfig::TEMP_DIR, $tempDir);
-        });
+        Gacela::bootstrap(
+            __DIR__,
+            function (GacelaConfig $config): void {
+                $config->addAppConfigKeyValue(PhelConfig::TEMP_DIR, $this->tempDir);
+            },
+        );
 
         $result = $this->evaluator->eval('return 42;');
 
         self::assertSame(42, $result);
-        self::assertDirectoryExists($tempDir);
-
-        rmdir($tempDir);
+        self::assertDirectoryExists($this->tempDir);
     }
 }
