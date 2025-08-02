@@ -34,6 +34,10 @@ final class TempDirFinder
 
         }
 
+        if (!is_writable($tempDir)) {
+            throw FileException::directoryIsNotWritable($tempDir);
+        }
+
         return $this->finalTempDir = $tempDir;
     }
 }

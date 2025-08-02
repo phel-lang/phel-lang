@@ -22,4 +22,9 @@ final class FileException extends RuntimeException
     {
         return new self('Cannot create directory: ' . $directory);
     }
+
+    public static function directoryIsNotWritable(string $directory): self
+    {
+        return new self('Directory is not writable: ' . $directory);
+    }
 }
