@@ -1,12 +1,12 @@
 #!/usr/bin/expect -f
 
 # Set timeout and configure error handling
-set timeout 5
+set timeout 1
 
 # Start the REPL
 spawn ./bin/phel repl
 
-# Wait for the welcome message
+# Wait for the welcome message and initial prompt
 expect {
     "Welcome to the Phel Repl" { }
     timeout { 
@@ -15,16 +15,6 @@ expect {
     }
 }
 
-# Wait for the instruction line
-expect {
-    "Type \"exit\" or press Ctrl-D to exit." { }
-    timeout { 
-        puts "ERROR: Exit instruction not found"
-        exit 1 
-    }
-}
-
-# Wait for initial prompt
 expect {
     "phel:1> " { }
     timeout { 
@@ -34,32 +24,43 @@ expect {
 }
 
 # Send the command
-send "(require phel\\html :as html)\r"
+send "(require phel\\html :as html) html/html\r"
 
-# Expect the output with namespace identifier with single backslash
+# First, expect the echoed input (and ignore it)
 expect {
-    "phel\\\\html" { 
-        puts "SUCCESS: Found phel\html"
+    -re "\\(require.*html/html" { }
+    timeout { 
+        puts "ERROR: Command echo not found"
+        exit 1 
+    }
+}
+
+# Now expect the actual output
+expect {
+    "<function>" { 
+        puts "SUCCESS: Found expected <function> output"
     }
     timeout { 
-        puts "ERROR: Expected phel namespace output but timed out"
-        puts "Last buffer content: $expect_out(buffer)"
+        puts "ERROR: Expected <function> but got timeout"
         exit 1 
     }
     eof { 
         puts "ERROR: REPL exited unexpectedly"
         exit 1 
     }
+    -re "(\[^\r\n\]+)" {
+        puts "ERROR: Expected <function> but got: $expect_out(1,string)"
+        exit 1
+    }
 }
 
 # Check for next prompt
 expect {
     "phel:2> " { 
-        puts "SUCCESS: Found expected phel:2> prompt"
+        puts "SUCCESS: Found expected next prompt"
     }
     timeout { 
         puts "ERROR: Expected phel:2> prompt not found"
-        puts "Last buffer content: $expect_out(buffer)"
         exit 1 
     }
 }
