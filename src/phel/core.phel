@@ -210,6 +210,19 @@
   "Ignores the body of the comment."
   [&])
 
+(defn symbol
+  "Returns a new symbol for given string with optional namespace.
+   Arity-1 returns a symbol without namespace. Arity-2 returns a symbol in given namespace."
+  [name-or-ns & [name]]
+  (if name
+    (php/:: Symbol (createForNamespace name-or-ns name))
+    (php/:: Symbol (create name-or-ns))))
+
+(defn gensym
+  "Generates a new unique symbol."
+  []
+  (php/:: Symbol (gen)))
+
 (defn str
   "Creates a string by concatenating values together. If no arguments are
 provided an empty string is returned. Nil and false are represented as an empty
@@ -221,17 +234,6 @@ This is PHP equivalent to `$args[0] . $args[1] . $args[2] ...`."
   (if (php/== (php/count args) 0)
     ""
     (apply php/. "" args)))
-
-(defn symbol
-  "Creates a symbol by concatenating the elements of `xs` together.
-   Returns the new symbol."
-  [& xs]
-  (php/:: Symbol (create (apply str xs))))
-
-(defn gensym
-  "Generates a new unique symbol."
-  []
-  (php/:: Symbol (gen)))
 
 (defn transient
   "Converts a persistent collection to a transient collection."
