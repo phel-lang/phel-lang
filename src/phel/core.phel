@@ -210,6 +210,14 @@
   "Ignores the body of the comment."
   [&])
 
+(defn symbol
+  "Returns a new symbol for given string with optional namespace.
+   Arity-1 returns a symbol without namespace. Arity-2 returns a symbol in given namespace."
+  [name-or-ns & [name]]
+  (if name
+    (php/:: Symbol (createForNamespace name-or-ns name))
+    (php/:: Symbol (create name-or-ns))))
+
 (defn gensym
   "Generates a new unique symbol."
   []
