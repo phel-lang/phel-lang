@@ -5,12 +5,14 @@ declare(strict_types=1);
 namespace Phel\Filesystem\Application;
 
 use Phel\Compiler\Domain\Evaluator\Exceptions\FileException;
+use Phel\Filesystem\Domain\FileIoInterface;
 
 final class TempDirFinder
 {
     private string $finalTempDir = '';
 
     public function __construct(
+        private readonly FileIoInterface $fileIo,
         private readonly string $configTempDir,
     ) {
     }
@@ -34,7 +36,7 @@ final class TempDirFinder
 
         }
 
-        if (!is_writable($tempDir)) {
+        if (!$this->fileIo->isWritable($tempDir)) {
             throw FileException::directoryIsNotWritable($tempDir);
         }
 
