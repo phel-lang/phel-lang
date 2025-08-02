@@ -1,0 +1,72 @@
+#!/usr/bin/expect -f
+
+# Set timeout and configure error handling
+set timeout 5
+
+# Start the REPL
+spawn ./bin/phel repl
+
+# Wait for the welcome message
+expect {
+    "Welcome to the Phel Repl" { }
+    timeout { 
+        puts "ERROR: Welcome message not found"
+        exit 1 
+    }
+}
+
+# Wait for the instruction line
+expect {
+    "Type \"exit\" or press Ctrl-D to exit." { }
+    timeout { 
+        puts "ERROR: Exit instruction not found"
+        exit 1 
+    }
+}
+
+# Wait for initial prompt
+expect {
+    "phel:1> " { }
+    timeout { 
+        puts "ERROR: Initial prompt not found"
+        exit 1 
+    }
+}
+
+# Send the command
+send "(require phel\\html :as html)\r"
+
+# Expect the output with namespace identifier with single backslash
+expect {
+    "phel\\\\html" { 
+        puts "SUCCESS: Found phel\html"
+    }
+    timeout { 
+        puts "ERROR: Expected phel namespace output but timed out"
+        puts "Last buffer content: $expect_out(buffer)"
+        exit 1 
+    }
+    eof { 
+        puts "ERROR: REPL exited unexpectedly"
+        exit 1 
+    }
+}
+
+# Check for next prompt
+expect {
+    "phel:2> " { 
+        puts "SUCCESS: Found expected phel:2> prompt"
+    }
+    timeout { 
+        puts "ERROR: Expected phel:2> prompt not found"
+        puts "Last buffer content: $expect_out(buffer)"
+        exit 1 
+    }
+}
+
+# Exit cleanly
+send "exit\r"
+expect eof
+
+puts "All tests passed!"
+exit 0
