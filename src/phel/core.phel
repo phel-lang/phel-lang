@@ -210,11 +210,6 @@
   "Ignores the body of the comment."
   [&])
 
-(defn gensym
-  "Generates a new unique symbol."
-  []
-  (php/:: Symbol (gen)))
-
 (defn str
   "Creates a string by concatenating values together. If no arguments are
 provided an empty string is returned. Nil and false are represented as an empty
@@ -226,6 +221,17 @@ This is PHP equivalent to `$args[0] . $args[1] . $args[2] ...`."
   (if (php/== (php/count args) 0)
     ""
     (apply php/. "" args)))
+
+(defn symbol
+  "Creates a symbol by concatenating the elements of `xs` together.
+   Returns the new symbol."
+  [& xs]
+  (php/:: Symbol (create (apply str xs))))
+
+(defn gensym
+  "Generates a new unique symbol."
+  []
+  (php/:: Symbol (gen)))
 
 (defn transient
   "Converts a persistent collection to a transient collection."

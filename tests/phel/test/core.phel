@@ -102,6 +102,10 @@
   (is (= "symbol" (name 'symbol)) "name on symbol")
   (is (= "keyword" (name :keyword)) "name of keyword"))
 
+(deftest test-symbol
+  (is (= (symbol "abc") 'abc) "symbol on string")
+  (is (= (symbol "abc" 123) 'abc123) "symbol on string and integer"))
+
 (deftest test-namespace
   (is (= nil (namespace 'symbol)) "namespace on symbol without ns")
   (is (= nil (namespace :keyword)) "namespace of keyword without ns")
