@@ -28,7 +28,8 @@ final readonly class RequireEvaluator implements EvaluatorInterface
      */
     public function eval(string $code): mixed
     {
-        $filename = tempnam($this->filesystemFacade->getTempDir(), self::TEMP_PREFIX);
+        // Suppress possible notice when PHP falls back to the system temp directory
+        $filename = @tempnam($this->filesystemFacade->getTempDir(), self::TEMP_PREFIX);
         if ($filename === false) {
             throw FileException::canNotCreateTempFile();
         }
