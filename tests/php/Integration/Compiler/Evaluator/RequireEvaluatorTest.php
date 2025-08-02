@@ -32,7 +32,7 @@ final class RequireEvaluatorTest extends TestCase
         $this->filesystem->clearAll();
 
         if ($this->tempDir !== '' && is_dir($this->tempDir)) {
-            rmdir($this->tempDir);
+            $this->deleteDirRecursive($this->tempDir);
         }
     }
 
@@ -54,5 +54,32 @@ final class RequireEvaluatorTest extends TestCase
 
         self::assertSame(42, $result);
         self::assertDirectoryExists($this->tempDir);
+    }
+
+    private function deleteDirRecursive(string $dir): void
+    {
+        $items = scandir($dir);
+        if ($items === false) {
+            return;
+        }
+
+        foreach ($items as $item) {
+            if ($item === '.') {
+                continue;
+            }
+
+            if ($item === '..') {
+                continue;
+            }
+
+            $path = $dir . DIRECTORY_SEPARATOR . $item;
+            if (is_dir($path)) {
+                $this->deleteDirRecursive($path);
+            } else {
+                unlink($path);
+            }
+        }
+
+        rmdir($dir);
     }
 }
