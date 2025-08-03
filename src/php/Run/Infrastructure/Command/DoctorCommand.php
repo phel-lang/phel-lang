@@ -24,7 +24,7 @@ final class DoctorCommand extends Command
         $output->writeln('Checking requirements:');
 
         $requirements = [
-            ['label' => 'PHP >= 8.2', 'status' => PHP_VERSION_ID >= 80200],
+            ['label' => 'PHP >= 8.3', 'status' => PHP_VERSION_ID >= 80300],
             ['label' => 'json extension', 'status' => extension_loaded('json')],
             ['label' => 'mbstring extension', 'status' => extension_loaded('mbstring')],
             ['label' => 'readline extension', 'status' => extension_loaded('readline')],
