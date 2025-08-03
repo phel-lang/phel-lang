@@ -2,12 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
-## Unreleased
+## [0.19.1](https://github.com/phel-lang/phel-lang/compare/v0.19.0...v0.19.1) - 2025-08-03
 
-- Fix `require` broke in repl (#861)
-- Fix trigger warning in tests (#864)
+- Fix `require` broke in repl
+- Fix trigger warning in tests
 - Add `symbol` function
-- Suppress possible notice when PHP falls back to the system temp directory (#867)
+- Suppress possible notice when PHP falls back to the system temp directory
 
 ## [0.19.0](https://github.com/phel-lang/phel-lang/compare/v0.18.1...v0.19.0) - 2025-08-02
 
