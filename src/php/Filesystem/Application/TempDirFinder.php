@@ -31,13 +31,24 @@ final class TempDirFinder
 
         $tempDir = $this->configTempDir;
 
-        if (!is_dir($tempDir) && !@mkdir($tempDir, 0777, true) && !is_dir($tempDir)) {
-            throw FileException::canNotCreateDirectory($tempDir);
+        if (!is_dir($tempDir)) {
+            $oldUmask = umask(0);
+            if (!mkdir($tempDir, 0777, true) && !is_dir($tempDir)) {
+                throw FileException::canNotCreateDirectory($tempDir);
+            }
 
+            umask($oldUmask);
+            if (!is_dir($tempDir)) {
+                throw FileException::canNotCreateDirectory($tempDir);
+            }
         }
 
         if (!$this->fileIo->isWritable($tempDir)) {
-            throw FileException::directoryIsNotWritable($tempDir);
+            @chmod($tempDir, 0777);
+
+            if (!$this->fileIo->isWritable($tempDir)) {
+                throw FileException::directoryIsNotWritable($tempDir);
+            }
         }
 
         return $this->finalTempDir = $tempDir;
