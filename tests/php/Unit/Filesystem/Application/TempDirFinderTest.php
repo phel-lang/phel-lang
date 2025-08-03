@@ -32,4 +32,25 @@ final class TempDirFinderTest extends TestCase
             rmdir($dir);
         }
     }
+
+    #[RunInSeparateProcess]
+    public function test_makes_dir_writable_when_possible(): void
+    {
+        $dir = sys_get_temp_dir() . '/phel-unwritable-' . uniqid('', true);
+        mkdir($dir);
+        chmod($dir, 0555);
+
+        $fileIo = $this->createMock(FileIoInterface::class);
+        $fileIo->expects(self::exactly(2))
+            ->method('isWritable')
+            ->with($dir)
+            ->willReturnOnConsecutiveCalls(false, true);
+
+        $finder = new TempDirFinder($fileIo, $dir);
+
+        self::assertSame($dir, $finder->getOrCreateTempDir());
+
+        chmod($dir, 0755);
+        rmdir($dir);
+    }
 }
