@@ -2,9 +2,11 @@
   (:require phel\test :refer [deftest is]))
 
 (deftest test-map
+  (is (= [] (map str [])) "map1 with empty collection")
   (is (= ["1" "2"] (map str [1 2])) "map1")
   (is (= ["13" "24"] (map str [1 2] [3 4])) "map2")
   (is (= ["13" "24"] (map str [1 2 10] [3 4])) "map2 unequal size")
+  (is (= [] (map str [] [])) "map2 with empty collections")
   (is (= [] (map str [1 2 3] [])) "map2 with empty and non-empty collection"))
 
 (deftest test-map-indexed
