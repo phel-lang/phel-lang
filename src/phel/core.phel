@@ -1620,12 +1620,16 @@ arrays. Use (php/aunset ds key)"))
 (defn +
   "Returns the sum of all elements in `xs`. All elements `xs` must be numbers.
   If `xs` is empty, return 0."
-  {:inline (fn [& xs] `(php/+ ,@xs))
+  {:inline (fn [& xs]
+             `(do
+                ,@(map (fn [x] `(when (nil? ,x)
+                                  (throw (php/new \InvalidArgumentException "nil in math operation")))) xs)
+               (php/+ ,@xs)))
    :inline-arity (fn [n] (> n 0))}
   [& xs]
-  (if (empty? xs)
-    0
-    (apply php/+ xs)))
+  (cond (empty? xs) 0
+        (some? |(nil? $) xs) (throw (php/new \InvalidArgumentException "nil in math operation"))
+        (apply php/+ xs)))
 
 (defn -
   "Returns the difference of all elements in `xs`. If `xs` is empty, return 0. If `xs`
