@@ -4,7 +4,8 @@
 (deftest test-map
   (is (= ["1" "2"] (map str [1 2])) "map1")
   (is (= ["13" "24"] (map str [1 2] [3 4])) "map2")
-  (is (= ["13" "24"] (map str [1 2 10] [3 4])) "map2 unequal size"))
+  (is (= ["13" "24"] (map str [1 2 10] [3 4])) "map2 unequal size")
+  (is (= [] (map str [1 2 3] [])) "map2 with empty and non-empty collection"))
 
 (deftest test-map-indexed
   (is (= [[0 "a"] [1 "b"] [2 "c"]] (map-indexed vector ["a" "b" "c"])) "map-indexed"))
