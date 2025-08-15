@@ -2,6 +2,9 @@
 
 All notable changes to this project will be documented in this file.
 
+## Unreleased
+- Fix `map` function exhaustion with empty collections (#874)
+
 ## [0.19.1](https://github.com/phel-lang/phel-lang/compare/v0.19.0...v0.19.1) - 2025-08-03
 
 - Fix `require` broke in repl
