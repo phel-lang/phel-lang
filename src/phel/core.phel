@@ -1344,7 +1344,7 @@ arrays. Use (php/aunset ds key)"))
   "Returns a new map including key value pairs from `m` selected with of keys `ks`."
   [m ks]
   (for [[k v] :pairs m
-        :when (contains-value? ks k)
+        :when (some? |(= $ k) ks)
         :reduce [acc {}]]
     (put acc k v)))
 

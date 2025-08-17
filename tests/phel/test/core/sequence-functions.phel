@@ -210,9 +210,7 @@
   (is (= {} (select-keys {} [:a :b])) "select-keys for empty map")
   (is (= {1 10 2 20} (select-keys {1 10 2 20 3 30} [1 2])) "select-keys with numeric keys")
   (is (= {:a 1} (select-keys {:a 1 :b 2 :c 3} [:a nil])) "select-keys with nil key in ks")
-  ## TODO next fails because contains-value? does not support nil values
-  (is (= {:a 1 nil 4} (select-keys {:a 1 :b 2 :c 3 nil 4} [:a nil])) "select-keys with nil key in m")
-  )
+  (is (= {:a 1 nil 4} (select-keys {:a 1 :b 2 :c 3 nil 4} [:a nil])) "select-keys with nil key in m"))
 
 (deftest test-simple-deep-merge
   (is (= {:a 1 :b 3 :c 4} (deep-merge {:a 1 :b 2} {:b 3 :c 4}))))
