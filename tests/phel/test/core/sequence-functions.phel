@@ -201,6 +201,19 @@
 (deftest test-merge-with-mulitple-maps
   (is (= {:a 3 :b 2 :c 3} (merge-with + {:a 1} {:a 1 :b 2} {:a 1 :c 3}))))
 
+(deftest test-select-keys
+  (is (= {:a 1 :b 2} (select-keys {:a 1 :b 2 :c 3} [:a :b])) "select-keys for map with matching ks keys")
+  (is (= {} (select-keys {:a 1 :b 2 :c 3} [])) "select-keys for map without ks keys")
+  (is (= {:a 1} (select-keys {:a 1 :b 2 :c 3} [:a :d])) "select-keys for map with one ks key not found")
+  (is (= {} (select-keys {:a 1 :b 2 :c 3} [:d])) "select-keys for map with ks key not found")
+  (is (= {:a 1 :b 2 :c 3} (select-keys {:a 1 :b 2 :c 3} [:a :b :c])) "select-keys for map with all keys present")
+  (is (= {} (select-keys {} [:a :b])) "select-keys for empty map")
+  (is (= {1 10 2 20} (select-keys {1 10 2 20 3 30} [1 2])) "select-keys with numeric keys")
+  (is (= {:a 1} (select-keys {:a 1 :b 2 :c 3} [:a nil])) "select-keys with nil key in ks")
+  ## TODO next fails because contains-value? does not support nil values
+  (is (= {:a 1 nil 4} (select-keys {:a 1 :b 2 :c 3 nil 4} [:a nil])) "select-keys with nil key in m")
+  )
+
 (deftest test-simple-deep-merge
   (is (= {:a 1 :b 3 :c 4} (deep-merge {:a 1 :b 2} {:b 3 :c 4}))))
 
