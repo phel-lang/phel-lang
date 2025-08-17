@@ -10,4 +10,4 @@
 
 <!-- List individual changes in more detail as you might consider them important. -->
 
-<!-- Remember to also update the CHANGELOG.md for changes that are worthwhile to mention in release notes. -->
+<!-- Remember to add a mention about the fix/feature to the 'unreleased' section at the beginning of CHANGELOG.md for changes that are worth including in release notes. -->
