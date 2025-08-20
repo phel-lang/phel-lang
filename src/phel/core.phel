@@ -1338,6 +1338,14 @@ arrays. Use (php/aunset ds key)"))
         :reduce [res {}]]
     (put res k v)))
 
+(defn select-keys
+  "Returns a new map including key value pairs from `m` selected with of keys `ks`."
+  [m ks]
+  (for [[k v] :pairs m
+        :when (contains-value? ks k)
+        :reduce [acc {}]]
+    (put acc k v)))
+
 (defn invert
   "Returns a new map where the keys and values are swapped. If map has
   duplicated values, some keys will be ignored."
