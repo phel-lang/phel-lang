@@ -192,29 +192,42 @@
 (deftest test-contains-value?-php-indexed-array
   (is (false? (contains-value? (php-indexed-array) 1)))
   (is (false? (contains-value? (php-indexed-array 1) 2)))
-  (is (true? (contains-value? (php-indexed-array 1) 1))))
+  (is (true? (contains-value? (php-indexed-array 1) 1)))
+  (is (true? (contains-value? (php-indexed-array nil) nil))))
 
 (deftest test-contains-value?-list
   (is (false? (contains-value? '() 1)))
   (is (false? (contains-value? '(1) 0)))
-  (is (true? (contains-value? '(1) 1))))
+  (is (true? (contains-value? '(1) 1)))
+  (is (true? (contains-value? '(nil) nil))))
 
 (deftest test-contains-value?-vector
   (is (false? (contains-value? [] 1)))
   (is (false? (contains-value? [1] 0)))
-  (is (true? (contains-value? [1] 1))))
+  (is (true? (contains-value? [1] 1)))
+  (is (false? (contains-value? [] nil)))
+  (is (false? (contains-value? [nil] 0)))
+  (is (false? (contains-value? [""] nil)))
+  (is (true? (contains-value? [nil] nil)))
+  (let [f (fn [x] (+ x 1))
+        g (fn [x] (+ x 1))]
+    (is (true? (contains-value? [f] f)))
+    (is (false? (contains-value? [f] g)))))
 
 (deftest test-contains-value?-set
   (is (false? (contains-value? (set) 1)))
   (is (false? (contains-value? (set 1) 0)))
-  (is (true? (contains-value? (set 1) 1))))
+  (is (true? (contains-value? (set 1) 1)))
+  (is (true? (contains-value? (set nil) nil))))
 
 (deftest test-contains-value?-map
   (let [full-name {:first-name "Marco" :last-name "Polo" :street nil}]
     (is (true? (contains-value? full-name "Marco")))
     (is (true? (contains-value? full-name "Polo")))
-    (is (false? (contains-value? full-name nil)))
-    (is (false? (contains-value? full-name "unknown")))))
+    (is (true? (contains-value? full-name nil)))
+    (is (false? (contains-value? full-name "unknown"))))
+  (is (true? (contains-value? {:a [1 2] :b 3} [1 2])))
+  (is (true? (contains-value? {:a nil :b 2} nil))))
 
 (deftest test-compare
   (is (= -1 (compare 1 2)) "(compare 1 2)")

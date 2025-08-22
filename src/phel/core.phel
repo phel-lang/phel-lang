@@ -989,7 +989,7 @@ arrays. Use (php/aunset ds key)"))
     1 (for [x :in (first xs)] (f x))
     (loop [res (transient [])
            seq xs]
-      (if (some? nil? seq)
+      (if (some? empty? seq)
         (persistent res)
         (do
           (push res (apply f (map first seq)))
@@ -1282,9 +1282,7 @@ arrays. Use (php/aunset ds key)"))
 (defn contains-value?
   "Returns true if the value is present in the given collection, otherwise returns false."
   [coll val]
-  (if (empty? coll)
-    false
-    (not (nil? (find |(= $ val) (values coll))))))
+  (some? |(= $ val) (values coll)))
 
 (defn sort
   "Returns a sorted vector. If no comparator is supplied compare is used."
@@ -1339,6 +1337,14 @@ arrays. Use (php/aunset ds key)"))
         [k v] :pairs map
         :reduce [res {}]]
     (put res k v)))
+
+(defn select-keys
+  "Returns a new map including key value pairs from `m` selected with of keys `ks`."
+  [m ks]
+  (for [[k v] :pairs m
+        :when (contains-value? ks k)
+        :reduce [acc {}]]
+    (put acc k v)))
 
 (defn invert
   "Returns a new map where the keys and values are swapped. If map has
