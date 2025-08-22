@@ -1,0 +1,10 @@
+--PHEL--
+(php/-> (php/new \SimpleXMLElement "<root><user id='1'><name>John</name></user></root>") user name)
+--PHP--
+(function() {
+  $target_1 = (function() {
+    $target_2 = (new \SimpleXMLElement("<root><user id='1'><name>John</name></user></root>"));
+    return $target_2->user;
+  })();;
+  return $target_1->name;
+})();

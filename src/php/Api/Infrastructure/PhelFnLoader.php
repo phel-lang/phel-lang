@@ -170,23 +170,23 @@ Evaluates expr and creates a new PHP class using the arguments. The instance of 
         ],
         Symbol::NAME_PHP_OBJECT_CALL => [
             'doc' => '```phel
-(php/-> object property)
-(php/:: class property)
+(php/-> object call*)
+(php/:: class call*)
 ```
-Access to an object property or static attribute.',
+Access to an object property or result of chained calls.',
             'url' => '/documentation/php-interop/#php-set-object-properties',
-            'fnSignature' => '(php/-> object property)',
-            'desc' => 'Access to an object property or static attribute.',
+            'fnSignature' => '(php/-> object call*)',
+            'desc' => 'Access to an object property or result of chained calls.',
         ],
         Symbol::NAME_PHP_OBJECT_STATIC_CALL => [
             'doc' => '```phel
 (php/:: class (methodname expr*))
-(php/:: class property)
+(php/:: class call*)
 ```
 
 Calls a static method or property from a PHP class. Both methodname and property must be symbols and cannot be an evaluated value.',
             'url' => '/documentation/php-interop/#php-static-method-and-property-call',
-            'fnSignature' => '(php/:: class (methodname expr*))',
+            'fnSignature' => '(php/:: class call*)',
             'desc' => 'Calls a static method or property from a PHP class. Both methodname and property must be symbols and cannot be an evaluated value.',
         ],
         Symbol::NAME_QUOTE => [
