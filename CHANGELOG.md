@@ -9,6 +9,7 @@ All notable changes to this project will be documented in this file.
 - Fix set `difference` errors with certain input (#883)
 - Add `select-keys` (#878)
 - Enhance `php/->` for nested calls (#884)
+- Auto-assign-author GH workflow (#886)
 
 ## [0.19.1](https://github.com/phel-lang/phel-lang/compare/v0.19.0...v0.19.1) - 2025-08-03
 
