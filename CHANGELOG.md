@@ -7,6 +7,7 @@ All notable changes to this project will be documented in this file.
 - Fix `map` function exhaustion with empty collections
 - Fix `contains-value?` with `nil` value
 - Fix set `difference` errors with certain input
+- Add `slurp` and `spit` file reading and writing functions
 - Add `select-keys`
 - Enhance `php/->` for nested calls
 - Auto-assign-author GH workflow
