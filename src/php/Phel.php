@@ -9,6 +9,7 @@ use Gacela\Framework\Bootstrap\GacelaConfig;
 use Gacela\Framework\Gacela;
 use Phar;
 use Phel\Filesystem\FilesystemFacade;
+use Phel\Lang\Collections\Map\PersistentMapInterface;
 use Phel\Lang\Registry;
 use Phel\Run\RunFacade;
 
@@ -19,6 +20,15 @@ use function is_string;
 
 /**
  * @interal use \Phel instead
+ *
+ * @method static void clear()
+ * @method static void addDefinition(string $ns, string $name, mixed $value, ?PersistentMapInterface $metaData = null)
+ * @method static bool hasDefinition(string $ns, string $name)
+ * @method static mixed getDefinition(string $ns, string $name)
+ * @method static mixed getDefinitionReference(string $ns, string $name)
+ * @method static null|PersistentMapInterface getDefinitionMetaData(string $ns, string $name)
+ * @method static array<string, mixed> getDefinitionInNamespace(string $ns)
+ * @method static list<string> getNamespaces()
  */
 class Phel
 {
@@ -33,6 +43,16 @@ class Phel
      * @see https://github.com/gacela-project/gacela/pull/322
      */
     private const string FILE_CACHE_DIR = '';
+
+    /**
+     * Proxy undefined static method calls the registry instance.
+     *
+     * @param list<mixed> $arguments
+     */
+    public static function __callStatic(string $name, array $arguments): mixed
+    {
+        return Registry::getInstance()->$name(...$arguments);
+    }
 
     public static function bootstrap(string $projectRootDir, array|string|null $argv = null): void
     {
@@ -67,11 +87,6 @@ class Phel
         $runFacade->runNamespace($namespace);
 
         Gacela::get(FilesystemFacade::class)?->clearAll();
-    }
-
-    public static function getDefinition(string $ns, string $name): mixed
-    {
-        return Registry::getInstance()->getDefinition($ns, $name);
     }
 
     /**
