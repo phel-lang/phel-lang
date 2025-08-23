@@ -6,10 +6,10 @@ namespace PhelTest\Integration\Api;
 
 use Gacela\Framework\Bootstrap\GacelaConfig;
 use Gacela\Framework\Gacela;
+use Phel;
 use Phel\Api\ApiConfig;
 use Phel\Api\ApiFacade;
 use Phel\Compiler\Infrastructure\GlobalEnvironmentSingleton;
-use Phel\Lang\Registry;
 use Phel\Lang\Symbol;
 use PHPUnit\Framework\Attributes\PreserveGlobalState;
 use PHPUnit\Framework\Attributes\RunInSeparateProcess;
@@ -23,7 +23,7 @@ final class ApiFacadeTest extends TestCase
     {
         Gacela::bootstrap(__DIR__, GacelaConfig::defaultPhpConfig());
 
-        Registry::getInstance()->clear();
+        Phel::clear();
         Symbol::resetGen();
         GlobalEnvironmentSingleton::initializeNew();
 

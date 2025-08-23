@@ -4,7 +4,7 @@
     (catch \Exception e (throw e))
     (finally (php/+ 3 3))))
 --PHP--
-\Phel\Lang\Registry::getInstance()->addDefinition(
+\Phel::addDefinition(
   "user",
   "x",
   (function() {

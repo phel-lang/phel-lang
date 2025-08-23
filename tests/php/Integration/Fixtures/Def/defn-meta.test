@@ -1,7 +1,7 @@
 --PHEL--
 (defn identity {:export true} [x] x)
 --PHP--
-\Phel\Lang\Registry::getInstance()->addDefinition(
+\Phel::addDefinition(
   "user",
   "identity",
   new class() extends \Phel\Lang\AbstractFn {

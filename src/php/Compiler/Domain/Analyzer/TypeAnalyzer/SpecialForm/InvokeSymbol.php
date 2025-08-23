@@ -15,7 +15,6 @@ use Phel\Compiler\Domain\Analyzer\TypeAnalyzer\WithAnalyzerTrait;
 use Phel\Lang\Collections\LinkedList\PersistentListInterface;
 use Phel\Lang\Collections\Map\PersistentMapInterface;
 use Phel\Lang\Keyword;
-use Phel\Lang\Registry;
 use Phel\Lang\SourceLocation;
 use Phel\Lang\TypeFactory;
 
@@ -185,7 +184,7 @@ final class InvokeSymbol implements SpecialFormAnalyzerInterface
     private function validateEnoughArgsProvided(GlobalVarNode $f, PersistentListInterface $list): void
     {
         $nodeName = $f->getName()->getName();
-        $data = Registry::getInstance()->getDefinitionMetaData($f->getNamespace(), $nodeName);
+        $data = Phel::getDefinitionMetaData($f->getNamespace(), $nodeName);
         if ($data instanceof PersistentMapInterface) {
             $minArity = $data->find('min-arity');
             if ($minArity && count($list->rest()) < $minArity) {

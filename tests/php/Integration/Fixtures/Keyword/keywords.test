@@ -9,12 +9,12 @@
 namespace test;
 require_once __DIR__ . '/phel/core.php';
 require_once __DIR__ . '/xyz/foo.php';
-\Phel\Lang\Registry::getInstance()->addDefinition(
+\Phel::addDefinition(
   "phel\\core",
   "*ns*",
   "test"
 );
-\Phel\Lang\Registry::getInstance()->addDefinition(
+\Phel::addDefinition(
   "test",
   "a",
   \Phel\Lang\Keyword::create("bar"),
@@ -31,7 +31,7 @@ require_once __DIR__ . '/xyz/foo.php';
     )
   )
 );
-\Phel\Lang\Registry::getInstance()->addDefinition(
+\Phel::addDefinition(
   "test",
   "b",
   \Phel\Lang\Keyword::createForNamespace("test", "bar"),
@@ -48,7 +48,7 @@ require_once __DIR__ . '/xyz/foo.php';
     )
   )
 );
-\Phel\Lang\Registry::getInstance()->addDefinition(
+\Phel::addDefinition(
   "test",
   "c",
   \Phel\Lang\Keyword::createForNamespace("xyz\\foo", "bar"),
@@ -65,7 +65,7 @@ require_once __DIR__ . '/xyz/foo.php';
     )
   )
 );
-\Phel\Lang\Registry::getInstance()->addDefinition(
+\Phel::addDefinition(
   "test",
   "d",
   \Phel\Lang\Keyword::createForNamespace("xyz\\foo", "bar"),

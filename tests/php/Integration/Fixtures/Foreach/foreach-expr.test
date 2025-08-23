@@ -3,7 +3,7 @@
   (foreach [v [1 2 3]]
     (php/+ v v))))
 --PHP--
-\Phel\Lang\Registry::getInstance()->addDefinition(
+\Phel::addDefinition(
   "user",
   "x",
   new class() extends \Phel\Lang\AbstractFn {

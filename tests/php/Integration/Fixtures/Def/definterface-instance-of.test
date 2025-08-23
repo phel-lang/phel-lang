@@ -9,7 +9,7 @@
 --PHP--
 namespace interface_instance;
 require_once __DIR__ . '/phel/core.php';
-\Phel\Lang\Registry::getInstance()->addDefinition(
+\Phel::addDefinition(
   "phel\\core",
   "*ns*",
   "interface_instance"
@@ -19,7 +19,7 @@ interface IPlayer {
   public function update_strategy($me, $you);
 }
 
-\Phel\Lang\Registry::getInstance()->addDefinition(
+\Phel::addDefinition(
   "interface_instance",
   "choose",
   new class() extends \Phel\Lang\AbstractFn {
@@ -53,7 +53,7 @@ interface IPlayer {
   )
 );
 
-\Phel\Lang\Registry::getInstance()->addDefinition(
+\Phel::addDefinition(
   "interface_instance",
   "update-strategy",
   new class() extends \Phel\Lang\AbstractFn {

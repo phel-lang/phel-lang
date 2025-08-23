@@ -12,7 +12,6 @@ use Phel\Compiler\Domain\Analyzer\Ast\PhpClassNameNode;
 use Phel\Compiler\Domain\Analyzer\Exceptions\DuplicateDefinitionException;
 use Phel\Lang\Collections\Map\PersistentMapInterface;
 use Phel\Lang\Keyword;
-use Phel\Lang\Registry;
 use Phel\Lang\SourceLocation;
 use Phel\Lang\Symbol;
 use Phel\Lang\TypeFactory;
@@ -77,7 +76,7 @@ final class GlobalEnvironment implements GlobalEnvironmentInterface
     {
         return (
             isset($this->definitions[$namespace][$name->getName()])
-            || Registry::getInstance()->hasDefinition(
+            || Phel::hasDefinition(
                 $this->mungeEncodeNs($namespace),
                 $name->getName(),
             )
@@ -87,7 +86,7 @@ final class GlobalEnvironment implements GlobalEnvironmentInterface
     public function getDefinition(string $namespace, Symbol $name): ?PersistentMapInterface
     {
         if ($this->hasDefinition($namespace, $name)) {
-            return Registry::getInstance()->getDefinitionMetaData(
+            return Phel::getDefinitionMetaData(
                 $this->mungeEncodeNs($namespace),
                 $name->getName(),
             ) ?? TypeFactory::getInstance()->emptyPersistentMap();
@@ -232,7 +231,7 @@ final class GlobalEnvironment implements GlobalEnvironmentInterface
             return false;
         }
 
-        return Registry::getInstance()->hasDefinition($namespace, $symbolName);
+        return Phel::hasDefinition($namespace, $symbolName);
     }
 
     /**
@@ -245,7 +244,7 @@ final class GlobalEnvironment implements GlobalEnvironmentInterface
             Keyword::create('doc'),
             'Deprecated! Use *build-mode* instead. Set to true when a file is compiled, false otherwise.',
         );
-        Registry::getInstance()->addDefinition(
+        Phel::addDefinition(
             CompilerConstants::PHEL_CORE_NAMESPACE,
             $symbol->getName(),
             false,
@@ -261,7 +260,7 @@ final class GlobalEnvironment implements GlobalEnvironmentInterface
             Keyword::create('doc'),
             'Set to true when a file is being built/transpiled, false otherwise.',
         );
-        Registry::getInstance()->addDefinition(
+        Phel::addDefinition(
             CompilerConstants::PHEL_CORE_NAMESPACE,
             $symbol->getName(),
             false,

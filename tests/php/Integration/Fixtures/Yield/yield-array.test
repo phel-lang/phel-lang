@@ -3,7 +3,7 @@
     (dofor [i :range [0 3]]
         (php/yield i 21)))
 --PHP--
-\Phel\Lang\Registry::getInstance()->addDefinition(
+\Phel::addDefinition(
   "user",
   "yield_generator_array",
   new class() extends \Phel\Lang\AbstractFn {

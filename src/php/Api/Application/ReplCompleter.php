@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace Phel\Api\Application;
 
+use Phel;
 use Phel\Api\Domain\PhelFnLoaderInterface;
 use Phel\Api\Domain\ReplCompleterInterface;
 use Phel\Lang\FnInterface;
-use Phel\Lang\Registry;
 
 use function get_declared_classes;
 use function get_defined_functions;
@@ -106,11 +106,10 @@ final class ReplCompleter implements ReplCompleterInterface
      */
     private function completePhelFunctions(string $input): array
     {
-        $registry = Registry::getInstance();
         $matches = [];
 
-        foreach ($registry->getNamespaces() as $namespace) {
-            foreach ($registry->getDefinitionInNamespace($namespace) as $name => $definition) {
+        foreach (Phel::getNamespaces() as $namespace) {
+            foreach (Phel::getDefinitionInNamespace($namespace) as $name => $definition) {
                 if (!$definition instanceof FnInterface) {
                     continue;
                 }

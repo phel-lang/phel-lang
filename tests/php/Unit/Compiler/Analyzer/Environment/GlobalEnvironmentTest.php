@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace PhelTest\Unit\Compiler\Analyzer\Environment;
 
+use Phel;
 use Phel\Compiler\Domain\Analyzer\Ast\AbstractNode;
 use Phel\Compiler\Domain\Analyzer\Ast\GlobalVarNode;
 use Phel\Compiler\Domain\Analyzer\Ast\LiteralNode;
@@ -12,7 +13,6 @@ use Phel\Compiler\Domain\Analyzer\Environment\GlobalEnvironment;
 use Phel\Compiler\Domain\Analyzer\Environment\NodeEnvironment;
 use Phel\Lang\Collections\Map\PersistentMapInterface;
 use Phel\Lang\Keyword;
-use Phel\Lang\Registry;
 use Phel\Lang\SourceLocation;
 use Phel\Lang\Symbol;
 use Phel\Lang\TypeFactory;
@@ -23,7 +23,7 @@ final class GlobalEnvironmentTest extends TestCase
 {
     protected function setUp(): void
     {
-        Registry::getInstance()->clear();
+        Phel::clear();
     }
 
     public function test_set_ns(): void
@@ -149,7 +149,7 @@ final class GlobalEnvironmentTest extends TestCase
     {
         $env = new GlobalEnvironment();
         $env->addDefinition('foo', Symbol::create('x'));
-        Registry::getInstance()->addDefinition(
+        Phel::addDefinition(
             'foo',
             'x',
             null,
@@ -225,7 +225,7 @@ final class GlobalEnvironmentTest extends TestCase
     {
         $env = new GlobalEnvironment();
         $env->addDefinition('phel\\core', Symbol::create('x'));
-        Registry::getInstance()->addDefinition('phel\\core', 'x', null, TypeFactory::getInstance()->persistentMapFromKVs(Keyword::create('private'), true));
+        Phel::addDefinition('phel\\core', 'x', null, TypeFactory::getInstance()->persistentMapFromKVs(Keyword::create('private'), true));
         $env->setNs('bar');
         $nodeEnv = NodeEnvironment::empty();
 
@@ -306,7 +306,7 @@ final class GlobalEnvironmentTest extends TestCase
     {
         $env = new GlobalEnvironment();
         $env->addDefinition('bar', Symbol::create('x'));
-        Registry::getInstance()->addDefinition('bar', 'x', null, TypeFactory::getInstance()->persistentMapFromKVs(Keyword::create('private'), true));
+        Phel::addDefinition('bar', 'x', null, TypeFactory::getInstance()->persistentMapFromKVs(Keyword::create('private'), true));
         $env->setNs('foo');
         $nodeEnv = NodeEnvironment::empty();
 
@@ -383,7 +383,7 @@ final class GlobalEnvironmentTest extends TestCase
         $env = new GlobalEnvironment();
         $sym = Symbol::create('m');
         $env->addDefinition('foo-bar', $sym);
-        Registry::getInstance()->addDefinition('foo_bar', 'm', null);
+        Phel::addDefinition('foo_bar', 'm', null);
 
         self::assertTrue($env->hasDefinition('foo-bar', $sym));
         self::assertNull($env->getDefinition('foo-bar', Symbol::create('other')));
@@ -396,7 +396,7 @@ final class GlobalEnvironmentTest extends TestCase
         $sym->setStartLocation(new SourceLocation(__FILE__, 1, 0));
 
         $env->addDefinition('foo', $sym);
-        Registry::getInstance()->addDefinition('foo', 'x', 1);
+        Phel::addDefinition('foo', 'x', 1);
 
         $this->expectException(RuntimeException::class);
         $this->expectExceptionMessage('Symbol x is already bound in namespace foo in ' . __FILE__ . ':1');

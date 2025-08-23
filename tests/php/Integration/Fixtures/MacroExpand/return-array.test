@@ -3,7 +3,7 @@
 
 (def y (x 1))
 --PHP--
-\Phel\Lang\Registry::getInstance()->addDefinition(
+\Phel::addDefinition(
   "user",
   "x",
   new class() extends \Phel\Lang\AbstractFn {
@@ -28,7 +28,7 @@
     "min-arity", 1
   )
 );
-\Phel\Lang\Registry::getInstance()->addDefinition(
+\Phel::addDefinition(
   "user",
   "y",
   [0 => 1, 1 => 2, 2 => [0 => 3, 1 => 4]],

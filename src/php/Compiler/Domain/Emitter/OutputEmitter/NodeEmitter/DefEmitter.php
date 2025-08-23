@@ -18,7 +18,7 @@ final class DefEmitter implements NodeEmitterInterface
     {
         assert($node instanceof DefNode);
 
-        $this->outputEmitter->emitLine('\\Phel\\Lang\\Registry::getInstance()->addDefinition(');
+        $this->outputEmitter->emitLine('\\Phel::addDefinition(');
         $this->outputEmitter->increaseIndentLevel();
         $this->outputEmitter->emitStr('"');
         $this->outputEmitter->emitStr(addslashes($this->outputEmitter->mungeEncodeNs($node->getNamespace())));

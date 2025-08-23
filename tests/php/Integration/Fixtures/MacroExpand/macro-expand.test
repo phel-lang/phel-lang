@@ -3,7 +3,7 @@
 
 (foo 1)
 --PHP--
-\Phel\Lang\Registry::getInstance()->addDefinition(
+\Phel::addDefinition(
   "user",
   "foo",
   new class() extends \Phel\Lang\AbstractFn {

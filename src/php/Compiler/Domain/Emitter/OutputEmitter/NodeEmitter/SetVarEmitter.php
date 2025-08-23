@@ -21,7 +21,7 @@ final class SetVarEmitter implements NodeEmitterInterface
         $symbolNode = $node->getSymbol();
         assert($symbolNode instanceof GlobalVarNode);
 
-        $this->outputEmitter->emitLine('\\Phel\\Lang\\Registry::getInstance()->addDefinition(');
+        $this->outputEmitter->emitLine('\\Phel::addDefinition(');
         $this->outputEmitter->increaseIndentLevel();
         $this->outputEmitter->emitStr('"');
         $this->outputEmitter->emitStr(addslashes($this->outputEmitter->mungeEncodeNs($symbolNode->getNamespace())));

@@ -79,7 +79,7 @@ final class NsEmitter implements NodeEmitterInterface
                 );
                 $this->outputEmitter->emitLine('foreach ($__phelNsInfos as $__phelNsInfo) {');
                 $this->outputEmitter->increaseIndentLevel();
-                $this->outputEmitter->emitLine('if (!in_array($__phelNsInfo->getNamespace(), \\Phel\\Lang\\Registry::getInstance()->getNamespaces(), true)) {');
+                $this->outputEmitter->emitLine('if (!in_array($__phelNsInfo->getNamespace(), \\Phel::getNamespaces(), true)) {');
                 $this->outputEmitter->increaseIndentLevel();
                 $this->outputEmitter->emitLine('$__phelBuildFacade->evalFile($__phelNsInfo->getFile());');
                 $this->outputEmitter->emitLine('\\Phel\\Compiler\\Infrastructure\\GlobalEnvironmentSingleton::getInstance()->setNs("' . addslashes($node->getNamespace()) . '");');
@@ -100,7 +100,7 @@ final class NsEmitter implements NodeEmitterInterface
             );
         }
 
-        $this->outputEmitter->emitLine('\\Phel\\Lang\\Registry::getInstance()->addDefinition(');
+        $this->outputEmitter->emitLine('\\Phel::addDefinition(');
         $this->outputEmitter->increaseIndentLevel();
         $this->outputEmitter->emitStr('"');
         $this->outputEmitter->emitStr(addslashes($this->outputEmitter->mungeEncodeNs('phel\\core')));

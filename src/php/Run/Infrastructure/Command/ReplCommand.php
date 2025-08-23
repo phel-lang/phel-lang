@@ -5,13 +5,13 @@ declare(strict_types=1);
 namespace Phel\Run\Infrastructure\Command;
 
 use Gacela\Framework\DocBlockResolverAwareTrait;
+use Phel;
 use Phel\Compiler\CompilerFacadeInterface;
 use Phel\Compiler\Domain\Evaluator\Exceptions\CompiledCodeIsMalformedException;
 use Phel\Compiler\Domain\Exceptions\CompilerException;
 use Phel\Compiler\Domain\Lexer\Token;
 use Phel\Compiler\Domain\Parser\Exceptions\UnfinishedParserException;
 use Phel\Compiler\Infrastructure\CompileOptions;
-use Phel\Lang\Registry;
 use Phel\Printer\PrinterInterface;
 use Phel\Run\Domain\Repl\ColorStyleInterface;
 use Phel\Run\Domain\Repl\ExitException;
@@ -104,7 +104,7 @@ final class ReplCommand extends Command
 
         try {
             $this->loadAllPhelNamespaces();
-            Registry::getInstance()->addDefinition(
+            Phel::addDefinition(
                 CompilerConstants::PHEL_CORE_NAMESPACE,
                 ReplConstants::REPL_MODE,
                 true,
@@ -116,7 +116,7 @@ final class ReplCommand extends Command
             $this->io->writeStackTrace($throwable);
             return self::FAILURE;
         } finally {
-            Registry::getInstance()->addDefinition(
+            Phel::addDefinition(
                 CompilerConstants::PHEL_CORE_NAMESPACE,
                 ReplConstants::REPL_MODE,
                 false,
@@ -153,7 +153,7 @@ final class ReplCommand extends Command
         }
 
         // Ugly Hack: Set source directories for the repl
-        Registry::getInstance()->addDefinition('phel\\repl', 'src-dirs', $srcDirectories);
+        Phel::addDefinition('phel\\repl', 'src-dirs', $srcDirectories);
     }
 
     private function loopReadLineAndAnalyze(): void

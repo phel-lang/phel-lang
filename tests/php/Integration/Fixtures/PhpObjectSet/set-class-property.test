@@ -2,7 +2,7 @@
 (def a (php/new \stdClass))
 (php/oset (php/-> a name) "test")
 --PHP--
-\Phel\Lang\Registry::getInstance()->addDefinition(
+\Phel::addDefinition(
   "user",
   "a",
   (new \stdClass()),

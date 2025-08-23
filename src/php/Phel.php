@@ -25,7 +25,6 @@ use function is_string;
  * @method static void addDefinition(string $ns, string $name, mixed $value, ?PersistentMapInterface $metaData = null)
  * @method static bool hasDefinition(string $ns, string $name)
  * @method static mixed getDefinition(string $ns, string $name)
- * @method static mixed getDefinitionReference(string $ns, string $name)
  * @method static null|PersistentMapInterface getDefinitionMetaData(string $ns, string $name)
  * @method static array<string, mixed> getDefinitionInNamespace(string $ns)
  * @method static list<string> getNamespaces()
@@ -52,6 +51,11 @@ class Phel
     public static function __callStatic(string $name, array $arguments): mixed
     {
         return Registry::getInstance()->$name(...$arguments);
+    }
+
+    public static function &getDefinitionReference(string $ns, string $name): mixed
+    {
+        return Registry::getInstance()->getDefinitionReference($ns, $name);
     }
 
     public static function bootstrap(string $projectRootDir, array|string|null $argv = null): void

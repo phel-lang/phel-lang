@@ -1,7 +1,7 @@
 --PHEL--
 (def x (do (php/+ 1 2) (php/+ 3 4)))
 --PHP--
-\Phel\Lang\Registry::getInstance()->addDefinition(
+\Phel::addDefinition(
   "user",
   "x",
   (function() {

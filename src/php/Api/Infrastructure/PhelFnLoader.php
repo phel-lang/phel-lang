@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace Phel\Api\Infrastructure;
 
+use Phel;
 use Phel\Api\Domain\PhelFnLoaderInterface;
 use Phel\Compiler\Infrastructure\GlobalEnvironmentSingleton;
 use Phel\Lang\Collections\Map\PersistentMapInterface;
-use Phel\Lang\Registry;
 use Phel\Lang\Symbol;
 use Phel\Lang\TypeFactory;
 use Phel\Run\RunFacadeInterface;
@@ -345,7 +345,7 @@ An interface in Phel defines an abstract set of functions. It is directly mapped
 
     public function loadAllPhelFunctions(array $namespaces): void
     {
-        Registry::getInstance()->clear();
+        Phel::clear();
         Symbol::resetGen();
         GlobalEnvironmentSingleton::initializeNew();
 
@@ -390,7 +390,7 @@ EOF;
      */
     private function getNamespaces(): array
     {
-        return Registry::getInstance()->getNamespaces();
+        return Phel::getNamespaces();
     }
 
     /**
@@ -398,12 +398,12 @@ EOF;
      */
     private function getDefinitionsInNamespace(string $ns): array
     {
-        return Registry::getInstance()->getDefinitionInNamespace($ns);
+        return Phel::getDefinitionInNamespace($ns);
     }
 
     private function getPhelMeta(string $ns, string $fnName): PersistentMapInterface
     {
-        return Registry::getInstance()->getDefinitionMetaData($ns, $fnName)
+        return Phel::getDefinitionMetaData($ns, $fnName)
             ?? TypeFactory::getInstance()->emptyPersistentMap();
     }
 }
