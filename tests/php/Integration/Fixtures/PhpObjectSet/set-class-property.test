@@ -20,7 +20,7 @@
   )
 );
 (function() {
-  $target_1 = \Phel\Lang\Registry::getInstance()->getDefinition("user", "a");
+  $target_1 = \Phel::getDefinition("user", "a");
   $target_1->name = "test";
   return $target_1;
 })();

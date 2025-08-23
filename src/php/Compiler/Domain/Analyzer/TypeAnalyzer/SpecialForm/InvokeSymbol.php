@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Phel\Compiler\Domain\Analyzer\TypeAnalyzer\SpecialForm;
 
 use Exception;
+use Phel;
 use Phel\Compiler\Domain\Analyzer\Ast\AbstractNode;
 use Phel\Compiler\Domain\Analyzer\Ast\CallNode;
 use Phel\Compiler\Domain\Analyzer\Ast\GlobalVarNode;
@@ -17,6 +18,7 @@ use Phel\Lang\Keyword;
 use Phel\Lang\Registry;
 use Phel\Lang\SourceLocation;
 use Phel\Lang\TypeFactory;
+
 use Phel\Lang\TypeInterface;
 
 use function count;
@@ -107,7 +109,7 @@ final class InvokeSymbol implements SpecialFormAnalyzerInterface
         $nodeName = $macroNode->getName()->getName();
 
         $ns = str_replace('-', '_', $macroNode->getNamespace());
-        $fn = Registry::getInstance()->getDefinition($ns, $nodeName);
+        $fn = Phel::getDefinition($ns, $nodeName);
 
         try {
             return $this->callMacroFn($fn, $list);

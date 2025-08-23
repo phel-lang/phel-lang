@@ -5,11 +5,11 @@
 --PHP--
 $matches_6 = array();
 $__phel_1_7 = \Phel\Lang\TypeFactory::getInstance()->persistentVectorFromArray([1, 2]);
-$__phel_2_8 = (\Phel\Lang\Registry::getInstance()->getDefinition("phel\\core", "first"))($__phel_1_7);
-$__phel_3_9 = (\Phel\Lang\Registry::getInstance()->getDefinition("phel\\core", "next"))($__phel_1_7);
+$__phel_2_8 = (\Phel::getDefinition("phel\\core", "first"))($__phel_1_7);
+$__phel_3_9 = (\Phel::getDefinition("phel\\core", "next"))($__phel_1_7);
 $a_10 = $__phel_2_8;
-$__phel_4_11 = (\Phel\Lang\Registry::getInstance()->getDefinition("phel\\core", "first"))($__phel_3_9);
-$__phel_5_12 = (\Phel\Lang\Registry::getInstance()->getDefinition("phel\\core", "next"))($__phel_3_9);
+$__phel_4_11 = (\Phel::getDefinition("phel\\core", "first"))($__phel_3_9);
+$__phel_5_12 = (\Phel::getDefinition("phel\\core", "next"))($__phel_3_9);
 $b_13 = $__phel_4_11;
 $f_14 = new class($__phel_1_7, $__phel_2_8, $__phel_3_9, $a_10, $__phel_4_11, $__phel_5_12, $b_13) extends \Phel\Lang\AbstractFn {
   public const BOUND_TO = ".f";

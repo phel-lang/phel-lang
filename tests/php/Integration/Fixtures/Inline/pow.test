@@ -1,5 +1,5 @@
 --PHEL--
 (** 1 2)
 --PHP--
-(\Phel\Lang\Registry::getInstance()->getDefinition("phel\\core", "assert-non-nil"))(1, 2);
+(\Phel::getDefinition("phel\\core", "assert-non-nil"))(1, 2);
 (1 ** 2);

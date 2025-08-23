@@ -42,7 +42,8 @@
     "autoload": {
         "psr-4": {
             "Phel\\": "src/php/"
-        }
+        },
+        "classmap": ["src/Phel.php"]
     },
     "autoload-dev": {
         "psr-4": {
