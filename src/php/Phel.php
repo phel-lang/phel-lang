@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Phel;
 
+use BadMethodCallException;
 use Closure;
 use Gacela\Framework\Bootstrap\GacelaConfig;
 use Gacela\Framework\Gacela;
@@ -17,6 +18,8 @@ use function dirname;
 use function in_array;
 use function is_array;
 use function is_string;
+use function method_exists;
+use function sprintf;
 
 /**
  * @interal use \Phel instead
@@ -46,11 +49,16 @@ class Phel
     /**
      * Proxy undefined static method calls the registry instance.
      *
-     * @param list<mixed> $arguments
+     * @param  list<mixed>  $arguments
      */
     public static function __callStatic(string $name, array $arguments): mixed
     {
-        return Registry::getInstance()->$name(...$arguments);
+        $registry = Registry::getInstance();
+        if (method_exists($registry, $name)) {
+            return $registry->$name(...$arguments);
+        }
+
+        throw new BadMethodCallException(sprintf('Method "%s" does not exist', $name));
     }
 
     public static function &getDefinitionReference(string $ns, string $name): mixed
