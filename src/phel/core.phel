@@ -31,7 +31,7 @@
   (:use Phel\Lang\SliceInterface)
   (:use Phel\Lang\Symbol)
   (:use Phel\Lang\Truthy)
-  (:use Phel\Lang\TypeFactory)
+  (:use Phel\Lang\Type)
   (:use Phel\Lang\Variable)
   (:use Phel\Printer\Printer))
 
@@ -49,15 +49,15 @@
 
 (def list
   "```phel\n(list & xs)\n```\nCreates a new list. If no argument is provided, an empty list is created."
-  (fn [& xs] (php/-> (php/:: TypeFactory (getInstance)) (persistentListFromArray (apply php/array xs)))))
+  (fn [& xs] (php/:: Type (persistentListFromArray (apply php/array xs)))))
 
 (def vector
   "```phel\n(vector & xs)\n```\nCreates a new vector. If no argument is provided, an empty vector is created."
-  (fn [& xs] (php/-> (php/:: TypeFactory (getInstance)) (persistentVectorFromArray (apply php/array xs)))))
+  (fn [& xs] (php/:: Type (persistentVectorFromArray (apply php/array xs)))))
 
 (def hash-map
   "```phel\n(hash-map & xs)\n```\nCreates a new hash map. If no argument is provided, an empty hash map is created. The number of parameters must be even."
-  (fn [& xs] (php/-> (php/:: TypeFactory (getInstance)) (persistentMapFromArray (apply php/array xs)))))
+  (fn [& xs] (php/:: Type (persistentMapFromArray (apply php/array xs)))))
 
 (def next
   "```phel\n(next xs)\n```\nReturns the sequence of elements after the first element. If there are no elements, returns nil."
@@ -248,7 +248,7 @@ This is PHP equivalent to `$args[0] . $args[1] . $args[2] ...`."
 (defn set
   "Creates a new Set. If no argument is provided, an empty Set is created."
   [& xs]
-  (php/-> (php/:: TypeFactory (getInstance)) (persistentHashSetFromArray (apply php/array xs))))
+  (php/:: Type (persistentHashSetFromArray (apply php/array xs))))
 
 (defn keyword
   "Creates a new Keyword from a given string."
@@ -828,7 +828,7 @@ arrays. Use (php/aunset ds key)"))
 (defn var
   "Creates a new variable with the given value."
   [value]
-  (php/-> (php/:: TypeFactory (getInstance)) (variable value)))
+  (php/:: Type (variable value)))
 
 (defn var?
   "Checks if the given value is a variable."
