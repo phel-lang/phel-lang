@@ -10,6 +10,9 @@ use RuntimeException;
 
 use function array_key_exists;
 
+/**
+ * @interal
+ */
 final class Registry
 {
     /** @var array<string, array<string, mixed>> */
