@@ -9,6 +9,7 @@ use Closure;
 use Gacela\Framework\Bootstrap\GacelaConfig;
 use Gacela\Framework\Gacela;
 use Phar;
+use Phel\Compiler\Domain\Emitter\OutputEmitter\NodeEmitter\GlobalVarEmitter;
 use Phel\Filesystem\FilesystemFacade;
 use Phel\Lang\Collections\Map\PersistentMapInterface;
 use Phel\Lang\Registry;
@@ -17,8 +18,8 @@ use Phel\Run\RunFacade;
 use function dirname;
 use function in_array;
 use function is_array;
+use function is_callable;
 use function is_string;
-use function method_exists;
 use function sprintf;
 
 /**
@@ -54,13 +55,18 @@ class Phel
     public static function __callStatic(string $name, array $arguments): mixed
     {
         $registry = Registry::getInstance();
-        if (method_exists($registry, $name)) {
+        if (is_callable([$registry, $name])) {
             return $registry->$name(...$arguments);
         }
 
         throw new BadMethodCallException(sprintf('Method "%s" does not exist', $name));
     }
 
+    /**
+     * @see GlobalVarEmitter
+     *
+     * @noinspection PhpUnused
+     */
     public static function &getDefinitionReference(string $ns, string $name): mixed
     {
         return Registry::getInstance()->getDefinitionReference($ns, $name);

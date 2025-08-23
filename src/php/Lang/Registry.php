@@ -9,6 +9,7 @@ use Phel\Lang\Collections\Map\PersistentMapInterface;
 use RuntimeException;
 
 use function array_key_exists;
+use function sprintf;
 
 /**
  * @internal
@@ -67,16 +68,14 @@ final class Registry
             return $value;
         }
 
-        throw new RuntimeException('Only variables can be returned by reference');
+        throw new RuntimeException(sprintf('Definition "%s/%s" not found', $ns, $name));
     }
 
     public function getDefinitionMetaData(string $ns, string $name): ?PersistentMapInterface
     {
-        if (!array_key_exists($ns, $this->definitions)) {
-            return null;
-        }
-
-        if (!array_key_exists($name, $this->definitions[$ns])) {
+        if (!array_key_exists($ns, $this->definitions)
+            || !array_key_exists($name, $this->definitions[$ns])
+        ) {
             return null;
         }
 
