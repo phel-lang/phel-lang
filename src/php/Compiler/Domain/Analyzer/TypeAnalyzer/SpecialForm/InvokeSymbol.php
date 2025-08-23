@@ -16,8 +16,8 @@ use Phel\Lang\Collections\LinkedList\PersistentListInterface;
 use Phel\Lang\Collections\Map\PersistentMapInterface;
 use Phel\Lang\Keyword;
 use Phel\Lang\SourceLocation;
-use Phel\Lang\TypeFactory;
 
+use Phel\Lang\Type;
 use Phel\Lang\TypeInterface;
 
 use function count;
@@ -150,7 +150,7 @@ final class InvokeSymbol implements SpecialFormAnalyzerInterface
         }
 
         return $this->enrichLocationForAbstractType(
-            TypeFactory::getInstance()->persistentListFromArray($result)->withMeta($list->getMeta()),
+            Type::persistentListFromArray($result)->withMeta($list->getMeta()),
             $parent,
         );
     }

@@ -6,7 +6,7 @@ namespace PhelTest\Unit\Printer\TypePrinter;
 
 use Generator;
 use Phel\Lang\Collections\Vector\PersistentVectorInterface;
-use Phel\Lang\TypeFactory;
+use Phel\Lang\Type;
 use Phel\Printer\Printer;
 use Phel\Printer\TypePrinter\PersistentVectorPrinter;
 use PHPUnit\Framework\Attributes\DataProvider;
@@ -27,12 +27,12 @@ final class VectorPrinterTest extends TestCase
     {
         yield 'empty vector' => [
             '[]',
-            TypeFactory::getInstance()->emptyPersistentVector(),
+            Type::emptyPersistentVector(),
         ];
 
         yield 'vector with values' => [
             '["a" 1]',
-            TypeFactory::getInstance()->persistentVectorFromArray(['a', 1]),
+            Type::persistentVectorFromArray(['a', 1]),
         ];
     }
 }

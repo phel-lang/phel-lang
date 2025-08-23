@@ -76,7 +76,7 @@ final class MethodEmitter
             $varName = $this->munge($p);
 
             $this->outputEmitter->emitLine(
-                '$' . $varName . ' = \Phel\Lang\TypeFactory::getInstance()->persistentVectorFromArray($' . $varName . ');',
+                '$' . $varName . ' = \Phel\Lang\Type::persistentVectorFromArray($' . $varName . ');',
                 $node->getStartSourceLocation(),
             );
         }

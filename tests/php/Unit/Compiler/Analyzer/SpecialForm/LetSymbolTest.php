@@ -16,7 +16,7 @@ use Phel\Compiler\Domain\Analyzer\Exceptions\AnalyzerException;
 use Phel\Compiler\Domain\Analyzer\TypeAnalyzer\SpecialForm\Binding\DeconstructorInterface;
 use Phel\Compiler\Domain\Analyzer\TypeAnalyzer\SpecialForm\LetSymbol;
 use Phel\Lang\Symbol;
-use Phel\Lang\TypeFactory;
+use Phel\Lang\Type;
 use PHPUnit\Framework\TestCase;
 
 final class LetSymbolTest extends TestCase
@@ -33,7 +33,7 @@ final class LetSymbolTest extends TestCase
         $this->expectException(AnalyzerException::class);
         $this->expectExceptionMessage("This is not a 'let.");
 
-        $list = TypeFactory::getInstance()->persistentListFromArray([Symbol::create('unknown')]);
+        $list = Type::persistentListFromArray([Symbol::create('unknown')]);
         $env = NodeEnvironment::empty();
 
         $analyzer = new LetSymbol($this->analyzer, $this->createMock(DeconstructorInterface::class));
@@ -46,7 +46,7 @@ final class LetSymbolTest extends TestCase
         $this->expectException(AnalyzerException::class);
         $this->expectExceptionMessage("At least two arguments are required for 'let");
 
-        $list = TypeFactory::getInstance()->persistentListFromArray([Symbol::create('let')]);
+        $list = Type::persistentListFromArray([Symbol::create('let')]);
         $env = NodeEnvironment::empty();
 
         $this->analyzer->analyze($list, $env);
@@ -57,7 +57,7 @@ final class LetSymbolTest extends TestCase
         $this->expectException(AnalyzerException::class);
         $this->expectExceptionMessage('Binding parameter must be a vector');
 
-        $list = TypeFactory::getInstance()->persistentListFromArray([Symbol::create('let'), 12]);
+        $list = Type::persistentListFromArray([Symbol::create('let'), 12]);
         $env = NodeEnvironment::empty();
 
         $this->analyzer->analyze($list, $env);
@@ -68,9 +68,9 @@ final class LetSymbolTest extends TestCase
         $this->expectException(AnalyzerException::class);
         $this->expectExceptionMessage('Bindings must be a even number of parameters');
 
-        $list = TypeFactory::getInstance()->persistentListFromArray([
+        $list = Type::persistentListFromArray([
             Symbol::create('let'),
-            TypeFactory::getInstance()->persistentVectorFromArray([12]),
+            Type::persistentVectorFromArray([12]),
         ]);
         $env = NodeEnvironment::empty();
 
@@ -79,9 +79,9 @@ final class LetSymbolTest extends TestCase
 
     public function test_with_no_bindings(): void
     {
-        $list = TypeFactory::getInstance()->persistentListFromArray([
+        $list = Type::persistentListFromArray([
             Symbol::create('let'),
-            TypeFactory::getInstance()->persistentVectorFromArray([]),
+            Type::persistentVectorFromArray([]),
         ]);
         $env = NodeEnvironment::empty();
 
@@ -94,9 +94,9 @@ final class LetSymbolTest extends TestCase
     public function test_with_one_binding(): void
     {
         Symbol::resetGen();
-        $list = TypeFactory::getInstance()->persistentListFromArray([
+        $list = Type::persistentListFromArray([
             Symbol::create('let'),
-            TypeFactory::getInstance()->persistentVectorFromArray([
+            Type::persistentVectorFromArray([
                 Symbol::create('a'), 1,
             ]),
         ]);
@@ -132,9 +132,9 @@ final class LetSymbolTest extends TestCase
 
     public function test_with_one_body_expression(): void
     {
-        $list = TypeFactory::getInstance()->persistentListFromArray([
+        $list = Type::persistentListFromArray([
             Symbol::create('let'),
-            TypeFactory::getInstance()->persistentVectorFromArray([]),
+            Type::persistentVectorFromArray([]),
             1,
         ]);
         $env = NodeEnvironment::empty();
@@ -156,9 +156,9 @@ final class LetSymbolTest extends TestCase
 
     public function test_with_two_body_expression(): void
     {
-        $list = TypeFactory::getInstance()->persistentListFromArray([
+        $list = Type::persistentListFromArray([
             Symbol::create('let'),
-            TypeFactory::getInstance()->persistentVectorFromArray([]),
+            Type::persistentVectorFromArray([]),
             1,
             2,
         ]);

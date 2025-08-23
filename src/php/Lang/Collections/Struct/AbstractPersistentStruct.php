@@ -12,7 +12,7 @@ use Phel\Lang\Collections\Exceptions\MethodNotSupportedException;
 use Phel\Lang\Collections\Map\AbstractPersistentMap;
 use Phel\Lang\Collections\Map\PersistentMapInterface;
 use Phel\Lang\Keyword;
-use Phel\Lang\TypeFactory;
+use Phel\Lang\Type;
 use Phel\Printer\Printer;
 use Traversable;
 
@@ -34,8 +34,8 @@ abstract class AbstractPersistentStruct extends AbstractPersistentMap
     public function __construct()
     {
         parent::__construct(
-            TypeFactory::getInstance()->getHasher(),
-            TypeFactory::getInstance()->getEqualizer(),
+            Type::getHasher(),
+            Type::getEqualizer(),
             null,
         );
         $this->munge = new Munge();
@@ -85,7 +85,7 @@ abstract class AbstractPersistentStruct extends AbstractPersistentMap
     public function getIterator(): Traversable
     {
         foreach (static::ALLOWED_KEYS as $key) {
-            yield TypeFactory::getInstance()->keyword($key) => $this->{$this->munge->encode($key)};
+            yield Type::keyword($key) => $this->{$this->munge->encode($key)};
         }
     }
 
@@ -107,7 +107,7 @@ abstract class AbstractPersistentStruct extends AbstractPersistentMap
     public function getAllowedKeys(): array
     {
         return array_map(
-            static fn (string $k): Keyword => TypeFactory::getInstance()->keyword($k),
+            static fn (string $k): Keyword => Type::keyword($k),
             static::ALLOWED_KEYS,
         );
     }

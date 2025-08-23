@@ -21,7 +21,7 @@ use Phel\Compiler\Domain\Analyzer\TypeAnalyzer\SpecialForm\InvokeSymbol;
 use Phel\Lang\Collections\Map\PersistentMapInterface;
 use Phel\Lang\Keyword;
 use Phel\Lang\Symbol;
-use Phel\Lang\TypeFactory;
+use Phel\Lang\Type;
 use PHPUnit\Framework\TestCase;
 
 final class InvokeSymbolTest extends TestCase
@@ -37,7 +37,7 @@ final class InvokeSymbolTest extends TestCase
             'user',
             'my-global-fn',
             static fn ($a, $b): int => $a + $b,
-            TypeFactory::getInstance()->persistentMapFromKVs('min-arity', 2),
+            Type::persistentMapFromKVs('min-arity', 2),
         );
 
         $env->addDefinition('user', Symbol::create('my-macro'));
@@ -45,7 +45,7 @@ final class InvokeSymbolTest extends TestCase
             'user',
             'my-macro',
             static fn ($a) => $a,
-            TypeFactory::getInstance()->persistentMapFromKVs(Keyword::create('macro'), true),
+            Type::persistentMapFromKVs(Keyword::create('macro'), true),
         );
 
         $env->addDefinition('user', Symbol::create('my-failed-macro'));
@@ -53,7 +53,7 @@ final class InvokeSymbolTest extends TestCase
             'user',
             'my-failed-macro',
             static fn ($a) => throw new Exception('my-failed-macro message'),
-            TypeFactory::getInstance()->persistentMapFromKVs(Keyword::create('macro'), true),
+            Type::persistentMapFromKVs(Keyword::create('macro'), true),
         );
 
         $env->addDefinition('user', Symbol::create('my-inline-fn'));
@@ -61,7 +61,7 @@ final class InvokeSymbolTest extends TestCase
             'user',
             'my-inline-fn',
             static fn ($a): int => 1,
-            TypeFactory::getInstance()->persistentMapFromKVs(
+            Type::persistentMapFromKVs(
                 Keyword::create('inline'),
                 static fn ($a): int => 2,
             ),
@@ -72,7 +72,7 @@ final class InvokeSymbolTest extends TestCase
             'user',
             'my-inline-fn-with-arity',
             static fn ($a, $b): int => 1,
-            TypeFactory::getInstance()->persistentMapFromKVs(
+            Type::persistentMapFromKVs(
                 Keyword::create('inline'),
                 static fn ($a, $b): int => 2,
                 Keyword::create('inline-arity'),
@@ -87,7 +87,7 @@ final class InvokeSymbolTest extends TestCase
     {
         $env = NodeEnvironment::empty();
 
-        $list = TypeFactory::getInstance()->persistentListFromArray([
+        $list = Type::persistentListFromArray([
             Symbol::createForNamespace('user', 'my-global-fn'),
             '1arg',
         ]);
@@ -110,7 +110,7 @@ final class InvokeSymbolTest extends TestCase
 
     public function test_valid_enough_args_provided(): void
     {
-        $list = TypeFactory::getInstance()->persistentListFromArray([
+        $list = Type::persistentListFromArray([
             Symbol::createForNamespace('user', 'my-global-fn'),
             '1arg',
             '2arg',
@@ -123,7 +123,7 @@ final class InvokeSymbolTest extends TestCase
 
     public function test_invoke_without_arguments(): void
     {
-        $list = TypeFactory::getInstance()->persistentListFromArray([
+        $list = Type::persistentListFromArray([
             Symbol::createForNamespace('php', '+'),
         ]);
         $env = NodeEnvironment::empty();
@@ -141,7 +141,7 @@ final class InvokeSymbolTest extends TestCase
 
     public function test_invoke_with_one_arguments(): void
     {
-        $list = TypeFactory::getInstance()->persistentListFromArray([
+        $list = Type::persistentListFromArray([
             Symbol::createForNamespace('php', '+'),
             1,
         ]);
@@ -162,10 +162,10 @@ final class InvokeSymbolTest extends TestCase
 
     public function test_macro_expand(): void
     {
-        $list = TypeFactory::getInstance()->persistentListFromArray([
+        $list = Type::persistentListFromArray([
             Symbol::createForNamespace('user', 'my-macro'),
-            TypeFactory::getInstance()->persistentVectorFromArray([
-                TypeFactory::getInstance()->persistentVectorFromArray([1]),
+            Type::persistentVectorFromArray([
+                Type::persistentVectorFromArray([1]),
             ]),
         ]);
         $env = NodeEnvironment::empty();
@@ -193,9 +193,9 @@ final class InvokeSymbolTest extends TestCase
         $this->expectException(AnalyzerException::class);
         $this->expectExceptionMessage('Error in expanding macro "user\\my-failed-macro": my-failed-macro message');
 
-        $list = TypeFactory::getInstance()->persistentListFromArray([
+        $list = Type::persistentListFromArray([
             Symbol::createForNamespace('user', 'my-failed-macro'),
-            TypeFactory::getInstance()->persistentVectorFromArray([1]),
+            Type::persistentVectorFromArray([1]),
         ]);
         $env = NodeEnvironment::empty();
         (new InvokeSymbol($this->analyzer))->analyze($list, $env);
@@ -206,9 +206,9 @@ final class InvokeSymbolTest extends TestCase
         $this->expectException(AnalyzerException::class);
         $this->expectExceptionMessage("Cannot resolve symbol 'user/my-undefined-macro'");
 
-        $list = TypeFactory::getInstance()->persistentListFromArray([
+        $list = Type::persistentListFromArray([
             Symbol::createForNamespace('user', 'my-undefined-macro'),
-            TypeFactory::getInstance()->persistentVectorFromArray([1]),
+            Type::persistentVectorFromArray([1]),
         ]);
         $env = NodeEnvironment::empty();
         (new InvokeSymbol($this->analyzer))->analyze($list, $env);
@@ -216,7 +216,7 @@ final class InvokeSymbolTest extends TestCase
 
     public function test_inline_expand(): void
     {
-        $list = TypeFactory::getInstance()->persistentListFromArray([
+        $list = Type::persistentListFromArray([
             Symbol::createForNamespace('user', 'my-inline-fn'),
             'foo',
         ]);
@@ -231,7 +231,7 @@ final class InvokeSymbolTest extends TestCase
 
     public function test_inline_expand_with_arity_check(): void
     {
-        $list = TypeFactory::getInstance()->persistentListFromArray([
+        $list = Type::persistentListFromArray([
             Symbol::createForNamespace('user', 'my-inline-fn-with-arity'),
             'foo', 'bar',
         ]);
@@ -246,7 +246,7 @@ final class InvokeSymbolTest extends TestCase
 
     public function test_inline_expand_with_arity_check_failed(): void
     {
-        $list = TypeFactory::getInstance()->persistentListFromArray([
+        $list = Type::persistentListFromArray([
             Symbol::createForNamespace('user', 'my-inline-fn-with-arity'),
             'foo',
         ]);
@@ -260,7 +260,7 @@ final class InvokeSymbolTest extends TestCase
                     $env->withExpressionContext()->withDisallowRecurFrame(),
                     'user',
                     Symbol::create('my-inline-fn-with-arity'),
-                    TypeFactory::getInstance()->persistentMapFromKVs(
+                    Type::persistentMapFromKVs(
                         Keyword::create('inline'),
                         static fn ($a, $b): int => 2,
                         Keyword::create('inline-arity'),
@@ -287,10 +287,10 @@ final class InvokeSymbolTest extends TestCase
             $mungedNs,
             $macroName,
             static fn ($x) => $x,
-            TypeFactory::getInstance()->persistentMapFromKVs(Keyword::create('macro'), true),
+            Type::persistentMapFromKVs(Keyword::create('macro'), true),
         );
 
-        $list = TypeFactory::getInstance()->persistentListFromArray([
+        $list = Type::persistentListFromArray([
             Symbol::createForNamespace($ns, $macroName),
             'foo',
         ]);

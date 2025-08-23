@@ -8,7 +8,7 @@ use Phel\Compiler\Domain\Analyzer\TypeAnalyzer\SpecialForm\Binding\Deconstructor
 use Phel\Lang\Collections\LinkedList\PersistentListInterface;
 use Phel\Lang\Collections\Map\PersistentMapInterface;
 use Phel\Lang\Symbol;
-use Phel\Lang\TypeFactory;
+use Phel\Lang\Type;
 use Phel\Lang\TypeInterface;
 
 /**
@@ -55,7 +55,7 @@ final class MapBindingDeconstructor implements BindingDeconstructorInterface
         PersistentMapInterface $binding,
         float|bool|int|string|TypeInterface|null $key,
     ): PersistentListInterface {
-        return TypeFactory::getInstance()->persistentListFromArray([
+        return Type::persistentListFromArray([
             (Symbol::create(Symbol::NAME_PHP_ARRAY_GET))->copyLocationFrom($binding),
             $this->mapSymbol,
             $key,

@@ -12,7 +12,8 @@ use Phel\Compiler\Domain\Analyzer\TypeAnalyzer\WithAnalyzerTrait;
 use Phel\Lang\Collections\LinkedList\PersistentListInterface;
 use Phel\Lang\Collections\Vector\PersistentVectorInterface;
 use Phel\Lang\Symbol;
-use Phel\Lang\TypeFactory;
+
+use Phel\Lang\Type;
 
 use function count;
 
@@ -130,14 +131,14 @@ final class ForeachSymbol implements SpecialFormAnalyzerInterface
         $bodys = $list->rest()->rest()->toArray();
 
         if ($lets !== []) {
-            return TypeFactory::getInstance()->persistentListFromArray([
+            return Type::persistentListFromArray([
                 Symbol::create(Symbol::NAME_LET),
-                TypeFactory::getInstance()->persistentVectorFromArray($lets),
+                Type::persistentVectorFromArray($lets),
                 ...$bodys,
             ]);
         }
 
-        return TypeFactory::getInstance()->persistentListFromArray([
+        return Type::persistentListFromArray([
             Symbol::create(Symbol::NAME_DO),
             ...$bodys,
         ]);

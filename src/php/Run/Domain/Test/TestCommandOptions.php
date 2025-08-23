@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Phel\Run\Domain\Test;
 
-use Phel\Lang\TypeFactory;
+use Phel\Lang\Type;
 use Phel\Printer\Printer;
 
 final readonly class TestCommandOptions
@@ -34,12 +34,10 @@ final readonly class TestCommandOptions
 
     public function asPhelHashMap(): string
     {
-        $typeFactory = TypeFactory::getInstance();
-
-        $optionsMap = $typeFactory->persistentMapFromKVs(
-            $typeFactory->keyword(self::FILTER),
+        $optionsMap = Type::persistentMapFromKVs(
+            Type::keyword(self::FILTER),
             $this->filter,
-            $typeFactory->keyword(self::TESTDOX),
+            Type::keyword(self::TESTDOX),
             $this->testdox,
         );
 

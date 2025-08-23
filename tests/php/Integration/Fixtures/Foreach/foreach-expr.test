@@ -11,20 +11,20 @@
 
     public function __invoke() {
       return (function() {
-        foreach ((\Phel\Lang\TypeFactory::getInstance()->persistentVectorFromArray([1, 2, 3]) ?? []) as $v) {
+        foreach ((\Phel\Lang\Type::persistentVectorFromArray([1, 2, 3]) ?? []) as $v) {
           ($v + $v);
         }
         return null;
       })();
     }
   },
-  \Phel\Lang\TypeFactory::getInstance()->persistentMapFromKVs(
-    \Phel\Lang\Keyword::create("start-location"), \Phel\Lang\TypeFactory::getInstance()->persistentMapFromKVs(
+  \Phel\Lang\Type::persistentMapFromKVs(
+    \Phel\Lang\Keyword::create("start-location"), \Phel\Lang\Type::persistentMapFromKVs(
       \Phel\Lang\Keyword::create("file"), "Foreach/foreach-expr.test",
       \Phel\Lang\Keyword::create("line"), 1,
       \Phel\Lang\Keyword::create("column"), 0
     ),
-    \Phel\Lang\Keyword::create("end-location"), \Phel\Lang\TypeFactory::getInstance()->persistentMapFromKVs(
+    \Phel\Lang\Keyword::create("end-location"), \Phel\Lang\Type::persistentMapFromKVs(
       \Phel\Lang\Keyword::create("file"), "Foreach/foreach-expr.test",
       \Phel\Lang\Keyword::create("line"), 3,
       \Phel\Lang\Keyword::create("column"), 18

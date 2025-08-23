@@ -14,7 +14,7 @@ use Phel\Compiler\Domain\Analyzer\Environment\NodeEnvironment;
 use Phel\Compiler\Domain\Analyzer\Exceptions\AnalyzerException;
 use Phel\Compiler\Domain\Analyzer\TypeAnalyzer\AnalyzeSymbol;
 use Phel\Lang\Symbol;
-use Phel\Lang\TypeFactory;
+use Phel\Lang\Type;
 use PHPUnit\Framework\TestCase;
 
 final class AnalyzeSymbolTest extends TestCase
@@ -67,7 +67,7 @@ final class AnalyzeSymbolTest extends TestCase
 
         $env = NodeEnvironment::empty();
         self::assertEquals(
-            new GlobalVarNode($env, 'test', Symbol::create('a'), TypeFactory::getInstance()->emptyPersistentMap(), null),
+            new GlobalVarNode($env, 'test', Symbol::create('a'), Type::emptyPersistentMap(), null),
             $symbolAnalyzer->analyze(Symbol::create('a'), $env),
         );
     }

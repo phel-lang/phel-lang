@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace PhelTest\Unit\Lang;
 
 use Phel\Lang\Keyword;
-use Phel\Lang\TypeFactory;
+use Phel\Lang\Type;
 use PHPUnit\Framework\TestCase;
 
 final class KeywordTest extends TestCase
@@ -103,7 +103,7 @@ final class KeywordTest extends TestCase
     {
         $keyword1 = Keyword::create('test1');
         $keyword2 = Keyword::create('test2');
-        $table = TypeFactory::getInstance()->persistentMapFromKVs(Keyword::create('test1'), 'abc');
+        $table = Type::persistentMapFromKVs(Keyword::create('test1'), 'abc');
         $this->assertSame('abc', $keyword1($table));
         $this->assertNull($keyword2($table));
         $this->assertSame('xyz', $keyword2($table, 'xyz'));

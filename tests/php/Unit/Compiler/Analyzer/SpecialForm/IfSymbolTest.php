@@ -13,7 +13,7 @@ use Phel\Compiler\Domain\Analyzer\TypeAnalyzer\SpecialForm\IfSymbol;
 use Phel\Compiler\Domain\Exceptions\AbstractLocatedException;
 use Phel\Lang\Collections\LinkedList\PersistentListInterface;
 use Phel\Lang\Symbol;
-use Phel\Lang\TypeFactory;
+use Phel\Lang\Type;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 
@@ -31,20 +31,20 @@ final class IfSymbolTest extends TestCase
     public static function providerRequiresAtLeastTwoOrThreeArgs(): Generator
     {
         yield 'No arguments provided: (if)' => [
-            TypeFactory::getInstance()->persistentListFromArray([
+            Type::persistentListFromArray([
                 Symbol::create(Symbol::NAME_IF),
             ]),
         ];
 
         yield 'Only one argument provided: (if "one")' => [
-            TypeFactory::getInstance()->persistentListFromArray([
+            Type::persistentListFromArray([
                 Symbol::create(Symbol::NAME_IF),
                 'one',
             ]),
         ];
 
         yield 'Only one argument provided: (if "one" "two" "three" "four")' => [
-            TypeFactory::getInstance()->persistentListFromArray([
+            Type::persistentListFromArray([
                 Symbol::create(Symbol::NAME_IF),
                 'one',
                 'two',
@@ -56,7 +56,7 @@ final class IfSymbolTest extends TestCase
 
     public function test_analyze(): void
     {
-        $list = TypeFactory::getInstance()->persistentListFromArray([
+        $list = Type::persistentListFromArray([
             Symbol::create(Symbol::NAME_IF),
             true,
             'then-expression',

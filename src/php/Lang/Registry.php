@@ -79,7 +79,7 @@ final class Registry
             return null;
         }
 
-        return $this->definitionsMetaData[$ns][$name] ?? TypeFactory::getInstance()->emptyPersistentMap();
+        return $this->definitionsMetaData[$ns][$name] ?? Type::emptyPersistentMap();
     }
 
     /**

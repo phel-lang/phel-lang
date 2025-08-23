@@ -6,7 +6,7 @@ namespace PhelTest\Unit\Printer\TypePrinter;
 
 use Generator;
 use Phel\Lang\Collections\LinkedList\PersistentListInterface;
-use Phel\Lang\TypeFactory;
+use Phel\Lang\Type;
 use Phel\Printer\Printer;
 use Phel\Printer\TypePrinter\PersistentListPrinter;
 use PHPUnit\Framework\Attributes\DataProvider;
@@ -27,12 +27,12 @@ final class ListPrinterTest extends TestCase
     {
         yield 'empty vector' => [
             '()',
-            TypeFactory::getInstance()->emptyPersistentList(),
+            Type::emptyPersistentList(),
         ];
 
         yield 'vector with values' => [
             '("a" 1)',
-            TypeFactory::getInstance()->persistentListFromArray(['a', 1]),
+            Type::persistentListFromArray(['a', 1]),
         ];
     }
 }

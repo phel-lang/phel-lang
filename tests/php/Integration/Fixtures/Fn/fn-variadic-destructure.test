@@ -5,7 +5,7 @@ new class() extends \Phel\Lang\AbstractFn {
   public const BOUND_TO = "";
 
   public function __invoke(...$__phel_1) {
-    $__phel_1 = \Phel\Lang\TypeFactory::getInstance()->persistentVectorFromArray($__phel_1);
+    $__phel_1 = \Phel\Lang\Type::persistentVectorFromArray($__phel_1);
     $__phel_2_7 = $__phel_1;
     $__phel_3_8 = (\Phel::getDefinition("phel\\core", "first"))($__phel_2_7);
     $__phel_4_9 = (\Phel::getDefinition("phel\\core", "next"))($__phel_2_7);

@@ -11,15 +11,15 @@
       return $x;
     }
   },
-  \Phel\Lang\TypeFactory::getInstance()->persistentMapFromKVs(
+  \Phel\Lang\Type::persistentMapFromKVs(
     \Phel\Lang\Keyword::create("export"), true,
     \Phel\Lang\Keyword::create("doc"), "```phel\n(identity x)\n```\n",
-    \Phel\Lang\Keyword::create("start-location"), \Phel\Lang\TypeFactory::getInstance()->persistentMapFromKVs(
+    \Phel\Lang\Keyword::create("start-location"), \Phel\Lang\Type::persistentMapFromKVs(
       \Phel\Lang\Keyword::create("file"), "Def/defn-meta.test",
       \Phel\Lang\Keyword::create("line"), 1,
       \Phel\Lang\Keyword::create("column"), 0
     ),
-    \Phel\Lang\Keyword::create("end-location"), \Phel\Lang\TypeFactory::getInstance()->persistentMapFromKVs(
+    \Phel\Lang\Keyword::create("end-location"), \Phel\Lang\Type::persistentMapFromKVs(
       \Phel\Lang\Keyword::create("file"), "Def/defn-meta.test",
       \Phel\Lang\Keyword::create("line"), 1,
       \Phel\Lang\Keyword::create("column"), 36

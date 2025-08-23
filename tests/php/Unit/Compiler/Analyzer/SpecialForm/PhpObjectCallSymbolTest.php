@@ -15,7 +15,7 @@ use Phel\Compiler\Domain\Analyzer\Environment\NodeEnvironment;
 use Phel\Compiler\Domain\Analyzer\TypeAnalyzer\SpecialForm\PhpObjectCallSymbol;
 use Phel\Compiler\Domain\Exceptions\AbstractLocatedException;
 use Phel\Lang\Symbol;
-use Phel\Lang\TypeFactory;
+use Phel\Lang\Type;
 use PHPUnit\Framework\TestCase;
 
 final class PhpObjectCallSymbolTest extends TestCase
@@ -32,7 +32,7 @@ final class PhpObjectCallSymbolTest extends TestCase
         $this->expectException(AbstractLocatedException::class);
         $this->expectExceptionMessage("At least two arguments are expected for 'php/::");
 
-        $list = TypeFactory::getInstance()->persistentListFromArray([
+        $list = Type::persistentListFromArray([
             Symbol::create(Symbol::NAME_PHP_OBJECT_STATIC_CALL),
             Symbol::create('\\'),
         ]);
@@ -46,7 +46,7 @@ final class PhpObjectCallSymbolTest extends TestCase
         $this->expectException(AbstractLocatedException::class);
         $this->expectExceptionMessage("Argument 2 of 'php/->' must be a List or a Symbol");
 
-        $list = TypeFactory::getInstance()->persistentListFromArray([
+        $list = Type::persistentListFromArray([
             Symbol::create(Symbol::NAME_PHP_OBJECT_CALL),
             Symbol::create('\\'),
             '',
@@ -57,7 +57,7 @@ final class PhpObjectCallSymbolTest extends TestCase
 
     public function test_is_static(): void
     {
-        $list = TypeFactory::getInstance()->persistentListFromArray([
+        $list = Type::persistentListFromArray([
             Symbol::create(Symbol::NAME_PHP_OBJECT_CALL),
             Symbol::create('\\'),
             Symbol::create(''),
@@ -71,7 +71,7 @@ final class PhpObjectCallSymbolTest extends TestCase
 
     public function test_is_not_static(): void
     {
-        $list = TypeFactory::getInstance()->persistentListFromArray([
+        $list = Type::persistentListFromArray([
             Symbol::create(Symbol::NAME_PHP_OBJECT_CALL),
             Symbol::create('\\'),
             Symbol::create(''),
@@ -87,10 +87,10 @@ final class PhpObjectCallSymbolTest extends TestCase
 
     public function test_list2nd_elem_is_list(): void
     {
-        $list = TypeFactory::getInstance()->persistentListFromArray([
+        $list = Type::persistentListFromArray([
             Symbol::create(Symbol::NAME_PHP_OBJECT_STATIC_CALL),
             Symbol::create('\\'),
-            TypeFactory::getInstance()->persistentListFromArray([Symbol::create(''), '', '']),
+            Type::persistentListFromArray([Symbol::create(''), '', '']),
         ]);
 
         $objCallNode = (new PhpObjectCallSymbol($this->analyzer, isStatic: true))
@@ -103,7 +103,7 @@ final class PhpObjectCallSymbolTest extends TestCase
 
     public function test_list2nd_elem_is_symbol(): void
     {
-        $list = TypeFactory::getInstance()->persistentListFromArray([
+        $list = Type::persistentListFromArray([
             Symbol::create(Symbol::NAME_PHP_OBJECT_CALL),
             Symbol::create('\\'),
             Symbol::create(''),
@@ -119,7 +119,7 @@ final class PhpObjectCallSymbolTest extends TestCase
 
     public function test_nested_calls(): void
     {
-        $list = TypeFactory::getInstance()->persistentListFromArray([
+        $list = Type::persistentListFromArray([
             Symbol::create(Symbol::NAME_PHP_OBJECT_CALL),
             Symbol::create('\\'),
             Symbol::create('foo'),

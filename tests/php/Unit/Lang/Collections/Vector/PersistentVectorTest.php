@@ -11,7 +11,7 @@ use Phel\Lang\Collections\Vector\PersistentVectorInterface;
 use Phel\Lang\Collections\Vector\RangeIterator;
 use Phel\Lang\Collections\Vector\SubVector;
 use Phel\Lang\Collections\Vector\TransientVector;
-use Phel\Lang\TypeFactory;
+use Phel\Lang\Type;
 use PhelTest\Unit\Lang\Collections\ModuloHasher;
 use PhelTest\Unit\Lang\Collections\SimpleEqualizer;
 use PHPUnit\Framework\TestCase;
@@ -241,7 +241,7 @@ final class PersistentVectorTest extends TestCase
 
     public function test_add_meta_data(): void
     {
-        $meta = TypeFactory::getInstance()->emptyPersistentMap();
+        $meta = Type::emptyPersistentMap();
         $vector = PersistentVector::empty(new ModuloHasher(), new SimpleEqualizer());
         $vectorWithMeta = $vector->withMeta($meta);
 

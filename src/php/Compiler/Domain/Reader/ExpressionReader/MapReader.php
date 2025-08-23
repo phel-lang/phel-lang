@@ -9,7 +9,7 @@ use Phel\Compiler\Domain\Parser\ParserNode\ListNode;
 use Phel\Compiler\Domain\Parser\ParserNode\NodeInterface;
 use Phel\Compiler\Domain\Reader\Exceptions\ReaderException;
 use Phel\Lang\Collections\Map\PersistentMapInterface;
-use Phel\Lang\TypeFactory;
+use Phel\Lang\Type;
 
 final readonly class MapReader
 {
@@ -25,8 +25,7 @@ final readonly class MapReader
             throw ReaderException::forNode($node, $root, 'Maps must have an even number of parameters');
         }
 
-        return TypeFactory::getInstance()
-            ->persistentMapFromKVs(...$list->toArray())
+        return Type::persistentMapFromKVs(...$list->toArray())
             ->setStartLocation($node->getStartLocation())
             ->setEndLocation($node->getEndLocation());
     }

@@ -9,7 +9,7 @@ use Phel\Compiler\Domain\Parser\ParserNode\NodeInterface;
 use Phel\Compiler\Domain\Parser\ParserNode\QuoteNode;
 use Phel\Lang\Collections\LinkedList\PersistentListInterface;
 use Phel\Lang\Symbol;
-use Phel\Lang\TypeFactory;
+use Phel\Lang\Type;
 
 final readonly class WrapReader
 {
@@ -21,8 +21,7 @@ final readonly class WrapReader
     {
         $expression = $this->reader->readExpression($node->getExpression(), $root);
 
-        return TypeFactory::getInstance()
-            ->persistentListFromArray([Symbol::create($wrapFn), $expression])
+        return Type::persistentListFromArray([Symbol::create($wrapFn), $expression])
             ->setStartLocation($node->getStartLocation())
             ->setEndLocation($node->getEndLocation());
     }

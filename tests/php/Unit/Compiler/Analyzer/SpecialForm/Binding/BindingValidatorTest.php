@@ -9,7 +9,7 @@ use Phel\Compiler\Domain\Analyzer\TypeAnalyzer\SpecialForm\Binding\BindingValida
 use Phel\Lang\AbstractType;
 use Phel\Lang\Keyword;
 use Phel\Lang\Symbol;
-use Phel\Lang\TypeFactory;
+use Phel\Lang\Type;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 
@@ -67,11 +67,11 @@ final class BindingValidatorTest extends TestCase
         ];
 
         yield 'Vector type' => [
-            TypeFactory::getInstance()->persistentVectorFromArray([]),
+            Type::persistentVectorFromArray([]),
         ];
 
         yield 'Map type' => [
-            TypeFactory::getInstance()->emptyPersistentMap(),
+            Type::emptyPersistentMap(),
         ];
     }
 }

@@ -20,7 +20,7 @@ use Phel\Compiler\Domain\Analyzer\Environment\NodeEnvironment;
 use Phel\Compiler\Domain\Analyzer\Exceptions\AnalyzerException;
 use Phel\Compiler\Domain\Analyzer\TypeAnalyzer\SpecialForm\RecurSymbol;
 use Phel\Lang\Symbol;
-use Phel\Lang\TypeFactory;
+use Phel\Lang\Type;
 use PHPUnit\Framework\TestCase;
 
 final class RecurSymbolTest extends TestCase
@@ -37,7 +37,7 @@ final class RecurSymbolTest extends TestCase
         $this->expectException(AnalyzerException::class);
         $this->expectExceptionMessage("This is not a 'recur.");
 
-        $list = TypeFactory::getInstance()->persistentListFromArray([Symbol::create('unknown')]);
+        $list = Type::persistentListFromArray([Symbol::create('unknown')]);
         $env = NodeEnvironment::empty();
 
         (new RecurSymbol($this->analyzer))->analyze($list, $env);
@@ -48,7 +48,7 @@ final class RecurSymbolTest extends TestCase
         $this->expectException(AnalyzerException::class);
         $this->expectExceptionMessage("Can't call 'recur here");
 
-        $list = TypeFactory::getInstance()->persistentListFromArray([Symbol::create(Symbol::NAME_RECUR)]);
+        $list = Type::persistentListFromArray([Symbol::create(Symbol::NAME_RECUR)]);
         $env = NodeEnvironment::empty();
 
         $this->analyzer->analyze($list, $env);
@@ -59,10 +59,10 @@ final class RecurSymbolTest extends TestCase
         $this->expectException(AnalyzerException::class);
         $this->expectExceptionMessage("Wrong number of arguments for 'recur. Expected: 1 args, got: 0");
 
-        $list = TypeFactory::getInstance()->persistentListFromArray([
+        $list = Type::persistentListFromArray([
             Symbol::create(Symbol::NAME_FN),
-            TypeFactory::getInstance()->persistentVectorFromArray([Symbol::create('x')]),
-            TypeFactory::getInstance()->persistentListFromArray([
+            Type::persistentVectorFromArray([Symbol::create('x')]),
+            Type::persistentListFromArray([
                 Symbol::create(Symbol::NAME_RECUR),
             ]),
         ]);
@@ -76,12 +76,12 @@ final class RecurSymbolTest extends TestCase
         $this->expectException(AnalyzerException::class);
         $this->expectExceptionMessage("Wrong number of arguments for 'recur. Expected: 2 args, got: 1");
 
-        $list = TypeFactory::getInstance()->persistentListFromArray([
+        $list = Type::persistentListFromArray([
             Symbol::create(Symbol::NAME_FN),
-            TypeFactory::getInstance()->persistentVectorFromArray([Symbol::create('x'), Symbol::create('y')]),
-            TypeFactory::getInstance()->persistentListFromArray([
+            Type::persistentVectorFromArray([Symbol::create('x'), Symbol::create('y')]),
+            Type::persistentListFromArray([
                 Symbol::create(Symbol::NAME_RECUR),
-                TypeFactory::getInstance()->persistentVectorFromArray([Symbol::create('x')]),
+                Type::persistentVectorFromArray([Symbol::create('x')]),
             ]),
         ]);
         $env = NodeEnvironment::empty();
@@ -91,20 +91,20 @@ final class RecurSymbolTest extends TestCase
 
     public function test_fn_recursion_point(): void
     {
-        $list = TypeFactory::getInstance()->persistentListFromArray([
+        $list = Type::persistentListFromArray([
             Symbol::create(Symbol::NAME_FN),
-            TypeFactory::getInstance()->persistentVectorFromArray([Symbol::create('x')]),
-            TypeFactory::getInstance()->persistentListFromArray([
+            Type::persistentVectorFromArray([Symbol::create('x')]),
+            Type::persistentListFromArray([
                 Symbol::create(Symbol::NAME_IF),
-                TypeFactory::getInstance()->persistentListFromArray([
+                Type::persistentListFromArray([
                     Symbol::create('php/=='),
                     Symbol::create('x'),
                     0,
                 ]),
                 Symbol::create('x'),
-                TypeFactory::getInstance()->persistentListFromArray([
+                Type::persistentListFromArray([
                     Symbol::create(Symbol::NAME_RECUR),
-                    TypeFactory::getInstance()->persistentListFromArray([
+                    Type::persistentListFromArray([
                         Symbol::create('php/-'),
                         Symbol::create('x'),
                         1,

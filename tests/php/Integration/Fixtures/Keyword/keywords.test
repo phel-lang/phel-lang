@@ -18,13 +18,13 @@ require_once __DIR__ . '/xyz/foo.php';
   "test",
   "a",
   \Phel\Lang\Keyword::create("bar"),
-  \Phel\Lang\TypeFactory::getInstance()->persistentMapFromKVs(
-    \Phel\Lang\Keyword::create("start-location"), \Phel\Lang\TypeFactory::getInstance()->persistentMapFromKVs(
+  \Phel\Lang\Type::persistentMapFromKVs(
+    \Phel\Lang\Keyword::create("start-location"), \Phel\Lang\Type::persistentMapFromKVs(
       \Phel\Lang\Keyword::create("file"), "Keyword/keywords.test",
       \Phel\Lang\Keyword::create("line"), 3,
       \Phel\Lang\Keyword::create("column"), 0
     ),
-    \Phel\Lang\Keyword::create("end-location"), \Phel\Lang\TypeFactory::getInstance()->persistentMapFromKVs(
+    \Phel\Lang\Keyword::create("end-location"), \Phel\Lang\Type::persistentMapFromKVs(
       \Phel\Lang\Keyword::create("file"), "Keyword/keywords.test",
       \Phel\Lang\Keyword::create("line"), 3,
       \Phel\Lang\Keyword::create("column"), 12
@@ -35,13 +35,13 @@ require_once __DIR__ . '/xyz/foo.php';
   "test",
   "b",
   \Phel\Lang\Keyword::createForNamespace("test", "bar"),
-  \Phel\Lang\TypeFactory::getInstance()->persistentMapFromKVs(
-    \Phel\Lang\Keyword::create("start-location"), \Phel\Lang\TypeFactory::getInstance()->persistentMapFromKVs(
+  \Phel\Lang\Type::persistentMapFromKVs(
+    \Phel\Lang\Keyword::create("start-location"), \Phel\Lang\Type::persistentMapFromKVs(
       \Phel\Lang\Keyword::create("file"), "Keyword/keywords.test",
       \Phel\Lang\Keyword::create("line"), 4,
       \Phel\Lang\Keyword::create("column"), 0
     ),
-    \Phel\Lang\Keyword::create("end-location"), \Phel\Lang\TypeFactory::getInstance()->persistentMapFromKVs(
+    \Phel\Lang\Keyword::create("end-location"), \Phel\Lang\Type::persistentMapFromKVs(
       \Phel\Lang\Keyword::create("file"), "Keyword/keywords.test",
       \Phel\Lang\Keyword::create("line"), 4,
       \Phel\Lang\Keyword::create("column"), 13
@@ -52,13 +52,13 @@ require_once __DIR__ . '/xyz/foo.php';
   "test",
   "c",
   \Phel\Lang\Keyword::createForNamespace("xyz\\foo", "bar"),
-  \Phel\Lang\TypeFactory::getInstance()->persistentMapFromKVs(
-    \Phel\Lang\Keyword::create("start-location"), \Phel\Lang\TypeFactory::getInstance()->persistentMapFromKVs(
+  \Phel\Lang\Type::persistentMapFromKVs(
+    \Phel\Lang\Keyword::create("start-location"), \Phel\Lang\Type::persistentMapFromKVs(
       \Phel\Lang\Keyword::create("file"), "Keyword/keywords.test",
       \Phel\Lang\Keyword::create("line"), 5,
       \Phel\Lang\Keyword::create("column"), 0
     ),
-    \Phel\Lang\Keyword::create("end-location"), \Phel\Lang\TypeFactory::getInstance()->persistentMapFromKVs(
+    \Phel\Lang\Keyword::create("end-location"), \Phel\Lang\Type::persistentMapFromKVs(
       \Phel\Lang\Keyword::create("file"), "Keyword/keywords.test",
       \Phel\Lang\Keyword::create("line"), 5,
       \Phel\Lang\Keyword::create("column"), 17
@@ -69,13 +69,13 @@ require_once __DIR__ . '/xyz/foo.php';
   "test",
   "d",
   \Phel\Lang\Keyword::createForNamespace("xyz\\foo", "bar"),
-  \Phel\Lang\TypeFactory::getInstance()->persistentMapFromKVs(
-    \Phel\Lang\Keyword::create("start-location"), \Phel\Lang\TypeFactory::getInstance()->persistentMapFromKVs(
+  \Phel\Lang\Type::persistentMapFromKVs(
+    \Phel\Lang\Keyword::create("start-location"), \Phel\Lang\Type::persistentMapFromKVs(
       \Phel\Lang\Keyword::create("file"), "Keyword/keywords.test",
       \Phel\Lang\Keyword::create("line"), 6,
       \Phel\Lang\Keyword::create("column"), 0
     ),
-    \Phel\Lang\Keyword::create("end-location"), \Phel\Lang\TypeFactory::getInstance()->persistentMapFromKVs(
+    \Phel\Lang\Keyword::create("end-location"), \Phel\Lang\Type::persistentMapFromKVs(
       \Phel\Lang\Keyword::create("file"), "Keyword/keywords.test",
       \Phel\Lang\Keyword::create("line"), 6,
       \Phel\Lang\Keyword::create("column"), 20
