@@ -44,7 +44,9 @@
 
 (deftest test-update-in
   (is (= {:a 2} (update-in {:a 1} [:a] inc)) "update-in: update value of table")
-  (is (= {:a {:b {:c 1}}} (update-in {:a {}} [:a :b :c] inc)) "update-in: autocreate tables")
+  (is (= {:a {:b {:c 1}}}
+         (update-in {:a {}} [:a :b :c] (fn [x] (inc (or x 0)))))
+    "update-in: autocreate tables")
   (is (= {:a {:b [2]}} (update-in {:a {:b [1]}} [:a :b 0] inc)) "update-in: update value of array"))
 
 (deftest test-unset-in

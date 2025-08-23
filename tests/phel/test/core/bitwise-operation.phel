@@ -43,3 +43,15 @@
 (deftest test-bit-test
   (is (true? (bit-test 0b1011 0)) "bit-test")
   (is (false? (bit-test 0b1011 2)) "bit-test"))
+
+(deftest test-nil-arguments
+  (is (thrown? \InvalidArgumentException (bit-and nil 1)) "(bit-and nil 1)")
+  (is (thrown? \InvalidArgumentException (bit-or 1 nil)) "(bit-or 1 nil)")
+  (is (thrown? \InvalidArgumentException (bit-xor nil 1)) "(bit-xor nil 1)")
+  (is (thrown? \InvalidArgumentException (bit-not nil)) "(bit-not nil)")
+  (is (thrown? \InvalidArgumentException (bit-shift-left nil 1)) "(bit-shift-left nil 1)")
+  (is (thrown? \InvalidArgumentException (bit-shift-right nil 1)) "(bit-shift-right nil 1)")
+  (is (thrown? \InvalidArgumentException (bit-set nil 1)) "(bit-set nil 1)")
+  (is (thrown? \InvalidArgumentException (bit-clear nil 1)) "(bit-clear nil 1)")
+  (is (thrown? \InvalidArgumentException (bit-flip nil 1)) "(bit-flip nil 1)")
+  (is (thrown? \InvalidArgumentException (bit-test nil 1)) "(bit-test nil 1)"))

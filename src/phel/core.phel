@@ -1552,47 +1552,63 @@ arrays. Use (php/aunset ds key)"))
     2 (deep-merge-2 (first args) (second args))
     (reduce deep-merge (first args) (rest args))))
 
+# ---
+# Math helpers
+# ---
+
+(defn assert-non-nil
+  [& xs]
+  (foreach [x xs]
+    (when (php/=== nil x)
+      (throw (php/new \InvalidArgumentException "Arithmetic functions do not accept nil values")))))
+
 # -----------------
 # Bitwise operation
 # -----------------
 
 (defn bit-and
   "Bitwise and."
-  {:inline (fn [x y & args] `(php/& ,x ,y ,@args))}
+  {:inline (fn [x y & args] `(do (assert-non-nil ,x ,y ,@args) (php/& ,x ,y ,@args)))}
   [x y & args]
+  (apply assert-non-nil (concat [x y] args))
   (let [all (concat [x y] args)]
     (reduce2 |(php/& $1 $2) all)))
 
 (defn bit-or
   "Bitwise or."
-  {:inline (fn [x y & args] `(php/| ,x ,y ,@args))}
+  {:inline (fn [x y & args] `(do (assert-non-nil ,x ,y ,@args) (php/| ,x ,y ,@args)))}
   [x y & args]
+  (apply assert-non-nil (concat [x y] args))
   (let [all (concat [x y] args)]
     (reduce2 |(php/| $1 $2) all)))
 
 (defn bit-xor
   "Bitwise xor."
-  {:inline (fn [x y & args] `(php/^ ,x ,y ,@args))}
+  {:inline (fn [x y & args] `(do (assert-non-nil ,x ,y ,@args) (php/^ ,x ,y ,@args)))}
   [x y & args]
+  (apply assert-non-nil (concat [x y] args))
   (let [all (concat [x y] args)]
     (reduce2 |(php/^ $1 $2) all)))
 
 (defn bit-not
   "Bitwise complement."
-  {:inline (fn [x] `(php/~ ,x))}
+  {:inline (fn [x] `(do (assert-non-nil ,x) (php/~ ,x)))}
   [x]
+  (assert-non-nil x)
   (php/~ x))
 
 (defn bit-shift-left
   "Bitwise shift left."
-  {:inline (fn [x n] `(php/<< ,x ,n))}
+  {:inline (fn [x n] `(do (assert-non-nil ,x ,n) (php/<< ,x ,n)))}
   [x n]
+  (assert-non-nil x n)
   (php/<< x n))
 
 (defn bit-shift-right
   "Bitwise shift right."
-  {:inline (fn [x n] `(php/>> ,x ,n))}
+  {:inline (fn [x n] `(do (assert-non-nil ,x ,n) (php/>> ,x ,n)))}
   [x n]
+  (assert-non-nil x n)
   (php/>> x n))
 
 (defn bit-set
@@ -1626,9 +1642,10 @@ arrays. Use (php/aunset ds key)"))
 (defn +
   "Returns the sum of all elements in `xs`. All elements `xs` must be numbers.
   If `xs` is empty, return 0."
-  {:inline (fn [& xs] `(php/+ ,@xs))
+  {:inline (fn [& xs] `(do (assert-non-nil ,@xs) (php/+ ,@xs)))
    :inline-arity (fn [n] (> n 0))}
   [& xs]
+  (apply assert-non-nil xs)
   (if (empty? xs)
     0
     (apply php/+ xs)))
@@ -1636,9 +1653,10 @@ arrays. Use (php/aunset ds key)"))
 (defn -
   "Returns the difference of all elements in `xs`. If `xs` is empty, return 0. If `xs`
   has one element, return the negative value of that element."
-  {:inline (fn [& xs] `(php/- ,@xs))
+  {:inline (fn [& xs] `(do (assert-non-nil ,@xs) (php/- ,@xs)))
    :inline-arity (fn [n] (> n 1))}
   [& xs]
+  (apply assert-non-nil xs)
   (case (count xs)
     0 0
     1 (php/* -1 (first xs))
@@ -1648,9 +1666,10 @@ arrays. Use (php/aunset ds key)"))
 (defn *
   "Returns the product of all elements in `xs`. All elements in `xs` must be
 numbers. If `xs` is empty, return 1."
-  {:inline (fn [& xs] `(php/* ,@xs))
+  {:inline (fn [& xs] `(do (assert-non-nil ,@xs) (php/* ,@xs)))
    :inline-arity (fn [n] (> n 0))}
   [& xs]
+  (apply assert-non-nil xs)
   (case (count xs)
     0 1
     1 (first xs)
@@ -1660,9 +1679,10 @@ numbers. If `xs` is empty, return 1."
 (defn /
   "Returns the nominator divided by all the denominators. If `xs` is empty,
 returns 1. If `xs` has one value, returns the reciprocal of x."
-  {:inline (fn [& xs] `(php// ,@xs))
+  {:inline (fn [& xs] `(do (assert-non-nil ,@xs) (php// ,@xs)))
    :inline-arity (fn [n] (> n 1))}
   [& xs]
+  (apply assert-non-nil xs)
   (case (count xs)
     0 1
     1 (php// 1 (first xs))
@@ -1671,26 +1691,30 @@ returns 1. If `xs` has one value, returns the reciprocal of x."
 
 (defn %
   "Return the remainder of `dividend` / `divisor`."
-  {:inline (fn [dividend divisor] `(php/% ,dividend ,divisor))}
+  {:inline (fn [dividend divisor] `(do (assert-non-nil ,dividend ,divisor) (php/% ,dividend ,divisor)))}
   [dividend divisor]
+  (assert-non-nil dividend divisor)
   (php/% dividend divisor))
 
 (defn **
   "Return `a` to the power of `x`."
-  {:inline (fn [a x] `(php/** ,a ,x))}
+  {:inline (fn [a x] `(do (assert-non-nil ,a ,x) (php/** ,a ,x)))}
   [a x]
+  (assert-non-nil a x)
   (php/** a x))
 
 (defn inc
   "Increments `x` by one."
-  {:inline (fn [x] `(php/+ ,x 1))}
+  {:inline (fn [x] `(do (assert-non-nil ,x) (php/+ ,x 1)))}
   [x]
+  (assert-non-nil x)
   (+ x 1))
 
 (defn dec
   "Decrements `x` by one."
-  {:inline (fn [x] `(php/- ,x 1))}
+  {:inline (fn [x] `(do (assert-non-nil ,x) (php/- ,x 1)))}
   [x]
+  (assert-non-nil x)
   (- x 1))
 
 (defn even?
