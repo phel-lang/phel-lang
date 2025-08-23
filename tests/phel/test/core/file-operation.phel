@@ -9,7 +9,6 @@
 (deftest test-spit
   (let [target-directory (str (php/dirname php/__DIR__) php/DIRECTORY_SEPARATOR)
         target-file (str target-directory "test-spit.txt")]
-
     (is (= 6 (spit target-file "FOOBAR"))
         "successful writing returning number of bytes written")
     (is (= "FOOBAR" (slurp target-file)) "written file reads back correctly")
@@ -20,4 +19,5 @@
         "successful writing returning number of bytes written")
     (is (= "TEST" (slurp target-file)) "written file reads back correctly after over writing")
     (is (thrown? \InvalidArgumentException (spit target-directory "test"))
-      "writing to a directory path throws exception")))
+        "writing to a directory path throws exception")
+    (php/unlink target-file)))
