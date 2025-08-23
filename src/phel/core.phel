@@ -1835,8 +1835,9 @@ returns 1. If `xs` has one value, returns the reciprocal of x."
 # ---------------
 
 (defn slurp
-  "Reads entire file into a string.
-  Accepts `opts` map for overriding default PHP file_get_contents arguments."
+  "Reads entire file into a string. Accepts `opts` map for overriding default
+  PHP file_get_contents arguments.
+  See PHP's [file_get_contents](https://www.php.net/manual/en/function.file-get-contents.php) for more information."
   [filename & [opts]]
   (when-not (php/is_file filename)
     (throw (php/new \InvalidArgumentException
@@ -1852,7 +1853,8 @@ returns 1. If `xs` has one value, returns the reciprocal of x."
 (defn spit
   "Writes data to file, returning number of bytest that were written or `nil`
   on failure. Accepts `opts` map for overriding default PHP file_put_contents
-  arguments, as example to append to file use {:flags php/FILE_APPEND}."
+  arguments, as example to append to file use {:flags php/FILE_APPEND}.
+  See PHP's [file_put_contents](https://www.php.net/manual/en/function.file-put-contents.php) for more information."
   [filename data & [opts]]
   (when-not (php/is_file filename)
     (throw (php/new \InvalidArgumentException
