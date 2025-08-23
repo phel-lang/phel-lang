@@ -42,6 +42,7 @@ class my_type_with_two_interfaces extends \Phel\Lang\Collections\Struct\Abstract
   public function bar($a, $b) {
     $v = $this->v;
     $this_2 = $this;
+    (\Phel\Lang\Registry::getInstance()->getDefinition("phel\\core", "assert-non-nil"))($a, $b, $v);
     return ($a + $b + $v);
   }
 

@@ -2,4 +2,6 @@
 (bit-or 1 2)
 (bit-or 1 2 3)
 --PHP--
-(1 | 2);(1 | 2 | 3);
+(\Phel\Lang\Registry::getInstance()->getDefinition("phel\\core", "assert-non-nil"))(1, 2);
+(1 | 2);(\Phel\Lang\Registry::getInstance()->getDefinition("phel\\core", "assert-non-nil"))(1, 2, 3);
+(1 | 2 | 3);
