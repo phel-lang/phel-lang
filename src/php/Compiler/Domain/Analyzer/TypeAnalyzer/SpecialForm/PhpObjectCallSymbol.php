@@ -30,43 +30,52 @@ final readonly class PhpObjectCallSymbol implements SpecialFormAnalyzerInterface
             ? Symbol::NAME_PHP_OBJECT_STATIC_CALL
             : Symbol::NAME_PHP_OBJECT_CALL;
 
-        if (count($list) !== 3) {
-            throw AnalyzerException::withLocation("Exactly two arguments are expected for '" . $fnName, $list);
-        }
-
-        if (!$list->get(2) instanceof PersistentListInterface && !$list->get(2) instanceof Symbol) {
-            throw AnalyzerException::withLocation(sprintf("Second argument of '%s must be a List or a Symbol", $fnName), $list);
+        if (count($list) < 3) {
+            throw AnalyzerException::withLocation("At least two arguments are expected for '" . $fnName, $list);
         }
 
         $targetExpr = $this->analyzer->analyze(
             $list->get(1),
             $env->withExpressionContext()->withDisallowRecurFrame(),
         );
+        $counter = count($list);
 
-        if ($list->get(2) instanceof PersistentListInterface) {
-            $methodCall = true;
-            $callExpr = $this->callExprForMethodCall($env, $list);
-        } else {
-            $methodCall = false;
-            $callExpr = $this->callExprForPropertyCall($env, $list);
+        for ($i = 2; $i < $counter; ++$i) {
+            $current = $list->get($i);
+
+            if (!$current instanceof PersistentListInterface && !$current instanceof Symbol) {
+                throw AnalyzerException::withLocation(
+                    sprintf("Argument %d of '%s' must be a List or a Symbol", $i, $fnName),
+                    $list,
+                );
+            }
+
+            if ($current instanceof PersistentListInterface) {
+                $methodCall = true;
+                $callExpr = $this->callExprForMethodCall($env, $current);
+            } else {
+                $methodCall = false;
+                $callExpr = $this->callExprForPropertyCall($env, $current);
+            }
+
+            $targetExpr = new PhpObjectCallNode(
+                $env,
+                $targetExpr,
+                $callExpr,
+                $this->isStatic && $i === 2,
+                $methodCall,
+                $current->getStartLocation(),
+            );
         }
 
-        return new PhpObjectCallNode(
-            $env,
-            $targetExpr,
-            $callExpr,
-            $this->isStatic,
-            $methodCall,
-            $list->getStartLocation(),
-        );
+        /** @var PhpObjectCallNode $targetExpr */
+        return $targetExpr;
     }
 
-    private function callExprForMethodCall(NodeEnvironmentInterface $env, PersistentListInterface $list): MethodCallNode
+    private function callExprForMethodCall(NodeEnvironmentInterface $env, PersistentListInterface $segment): MethodCallNode
     {
-        /** @var PersistentListInterface $list2 */
-        $list2 = $list->get(2);
         $args = [];
-        for ($forms = $list2->cdr(); $forms !== null; $forms = $forms->cdr()) {
+        for ($forms = $segment->cdr(); $forms !== null; $forms = $forms->cdr()) {
             $args[] = $this->analyzer->analyze(
                 $forms->first(),
                 $env->withExpressionContext()->withDisallowRecurFrame(),
@@ -75,16 +84,13 @@ final readonly class PhpObjectCallSymbol implements SpecialFormAnalyzerInterface
 
         /** @psalm-suppress PossiblyNullArgument */
         /** @var Symbol $callSymbol */
-        $callSymbol = $list2->get(0);
-        return new MethodCallNode($env, $callSymbol, $args, $list2->getStartLocation());
+        $callSymbol = $segment->get(0);
+        return new MethodCallNode($env, $callSymbol, $args, $segment->getStartLocation());
     }
 
-    private function callExprForPropertyCall(NodeEnvironmentInterface $env, PersistentListInterface $list): PropertyOrConstantAccessNode
+    private function callExprForPropertyCall(NodeEnvironmentInterface $env, Symbol $segment): PropertyOrConstantAccessNode
     {
-        /** @var Symbol $list2 */
-        $list2 = $list->get(2);
-
         /** @psalm-suppress PossiblyNullArgument */
-        return new PropertyOrConstantAccessNode($env, $list2, $list2->getStartLocation());
+        return new PropertyOrConstantAccessNode($env, $segment, $segment->getStartLocation());
     }
 }

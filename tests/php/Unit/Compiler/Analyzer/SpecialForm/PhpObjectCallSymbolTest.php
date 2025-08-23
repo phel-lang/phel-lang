@@ -8,6 +8,7 @@ use Phel\Compiler\Application\Analyzer;
 use Phel\Compiler\Domain\Analyzer\AnalyzerInterface;
 use Phel\Compiler\Domain\Analyzer\Ast\MethodCallNode;
 use Phel\Compiler\Domain\Analyzer\Ast\PhpClassNameNode;
+use Phel\Compiler\Domain\Analyzer\Ast\PhpObjectCallNode;
 use Phel\Compiler\Domain\Analyzer\Ast\PropertyOrConstantAccessNode;
 use Phel\Compiler\Domain\Analyzer\Environment\GlobalEnvironment;
 use Phel\Compiler\Domain\Analyzer\Environment\NodeEnvironment;
@@ -29,7 +30,7 @@ final class PhpObjectCallSymbolTest extends TestCase
     public function test_list_without_argument(): void
     {
         $this->expectException(AbstractLocatedException::class);
-        $this->expectExceptionMessage("Exactly two arguments are expected for 'php/::");
+        $this->expectExceptionMessage("At least two arguments are expected for 'php/::");
 
         $list = TypeFactory::getInstance()->persistentListFromArray([
             Symbol::create(Symbol::NAME_PHP_OBJECT_STATIC_CALL),
@@ -43,7 +44,7 @@ final class PhpObjectCallSymbolTest extends TestCase
     public function test_list_with_wrong_symbol(): void
     {
         $this->expectException(AbstractLocatedException::class);
-        $this->expectExceptionMessage("Second argument of 'php/-> must be a List or a Symbol");
+        $this->expectExceptionMessage("Argument 2 of 'php/->' must be a List or a Symbol");
 
         $list = TypeFactory::getInstance()->persistentListFromArray([
             Symbol::create(Symbol::NAME_PHP_OBJECT_CALL),
@@ -114,5 +115,24 @@ final class PhpObjectCallSymbolTest extends TestCase
         self::assertFalse($objCallNode->isMethodCall());
         self::assertInstanceOf(PhpClassNameNode::class, $objCallNode->getTargetExpr());
         self::assertInstanceOf(PropertyOrConstantAccessNode::class, $objCallNode->getCallExpr());
+    }
+
+    public function test_nested_calls(): void
+    {
+        $list = TypeFactory::getInstance()->persistentListFromArray([
+            Symbol::create(Symbol::NAME_PHP_OBJECT_CALL),
+            Symbol::create('\\'),
+            Symbol::create('foo'),
+            Symbol::create('bar'),
+        ]);
+
+        $objCallNode = (new PhpObjectCallSymbol($this->analyzer, isStatic: false))
+            ->analyze($list, NodeEnvironment::empty());
+
+        self::assertInstanceOf(PropertyOrConstantAccessNode::class, $objCallNode->getCallExpr());
+
+        $inner = $objCallNode->getTargetExpr();
+        self::assertInstanceOf(PhpObjectCallNode::class, $inner);
+        self::assertInstanceOf(PropertyOrConstantAccessNode::class, $inner->getCallExpr());
     }
 }
