@@ -1,4 +1,5 @@
 (ns phel\core
+  (:use Phel)
   (:use Phel\Lang\AbstractType)
   (:use Phel\Lang\Collections\Struct\AbstractPersistentStruct)
   (:use Phel\Lang\Keyword)
@@ -33,7 +34,6 @@
   (:use Phel\Compiler\Infrastructure\GlobalEnvironmentSingleton)
   (:use Phel\Compiler\Domain\Analyzer\Environment\NodeEnvironment)
   (:use Phel\Compiler\Domain\Analyzer\Ast\GlobalVarNode)
-  (:use Phel\Lang\Registry)
   (:use Phel\Printer\Printer)
   (:use Countable)
   (:use Exception)
@@ -2117,13 +2117,12 @@ returns 1. If `xs` has one value, returns the reciprocal of x."
             (let [meta (php/-> node (getMeta))
                   ns (php/-> node (getNamespace))
                   name (php/-> (php/-> node (getName)) (getName))
-                  registry (php/:: Registry (getInstance))
                   args (rest form)]
               (cond
                 (inline-call? meta (count args))
                   (apply (:inline meta) args)
                 (:macro meta)
-                  (let [macro-fn (php/-> registry (getDefinition ns name))]
+                  (let [macro-fn (php/:: Phel (getDefinition ns name))]
                     (apply macro-fn args))
                 :else
                   form))

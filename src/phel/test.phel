@@ -1,6 +1,6 @@
 (ns phel\test
+  (:use Phel)
   (:use Phel\Lang\Symbol)
-  (:use Phel\Lang\Registry)
   (:use Phel\Compiler\Application\Munge)
   (:use Phel\Command\CommandFacade)
   (:require phel\str :as s))
@@ -311,12 +311,11 @@
 
 (defn- find-test-fns [ns {:filter filter}]
   (let [munge (php/new Munge)
-        munge-ns (php/-> munge (encodeNs ns))
-        registry (php/:: Registry (getInstance))]
-    (for [fn-name :keys (php/-> registry (getDefinitionInNamespace munge-ns))
-          :let [meta (php/-> registry (getDefinitionMetaData munge-ns fn-name))]
+        munge-ns (php/-> munge (encodeNs ns))]
+    (for [fn-name :keys (php/:: Phel (getDefinitionInNamespace munge-ns))
+          :let [meta (php/:: Phel (getDefinitionMetaData munge-ns fn-name))]
           :when (and (:test meta) (or (nil? filter) (s/contains? (:test-name meta) filter)))]
-      (php/-> registry (getDefinition munge-ns fn-name)))))
+      (php/:: Phel (getDefinition munge-ns fn-name)))))
 
 (defn- run-test [options ns]
   (let [tests (find-test-fns ns options)]

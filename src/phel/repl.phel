@@ -1,6 +1,6 @@
 (ns phel\repl
+  (:use Phel)
   (:use Phel\Lang\Symbol)
-  (:use Phel\Lang\Registry)
   (:use Phel\Build\BuildFacade)
   (:use Phel\Compiler\CompilerFacade)
   (:use Phel\Compiler\Infrastructure\CompileOptions)
@@ -18,7 +18,7 @@
 (defn loaded-namespaces
   "Return all namespaces currently loaded in the REPL."
   []
-  (php/-> (php/:: Registry (getInstance)) (getNamespaces)))
+  (php/:: Phel (getNamespaces)))
 
 (defn- eval-file [file]
   (php/-> build-facade (evalFile file)))
@@ -40,8 +40,7 @@
   (php/trim (php/str_replace (php/array "```phel\n" "```") "" str)))
 
 (defn- find-doc [namespace name]
-  (let [registry (php/:: Registry (getInstance))
-        meta (php/-> registry (getDefinitionMetaData namespace name))]
+  (let [meta (php/:: Phel (getDefinitionMetaData namespace name))]
     (when meta
       (let [doc (or (get meta :doc) "")
             deprecated (get meta :deprecated)
