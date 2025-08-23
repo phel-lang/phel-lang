@@ -10,12 +10,12 @@
 namespace hello_world;
 require_once __DIR__ . '/phel/core.php';
 require_once __DIR__ . '/my_namespace/core.php';
-\Phel\Lang\Registry::getInstance()->addDefinition(
+\Phel::addDefinition(
   "phel\\core",
   "*ns*",
   "hello_world"
 );
-\Phel\Lang\Registry::getInstance()->addDefinition(
+\Phel::addDefinition(
   "hello_world",
   "x",
   10,
@@ -48,7 +48,7 @@ class abc extends \Phel\Lang\Collections\Struct\AbstractPersistentStruct {
 }
 }
 
-\Phel\Lang\Registry::getInstance()->addDefinition(
+\Phel::addDefinition(
   "hello_world",
   "abc",
   new class() extends \Phel\Lang\AbstractFn {
@@ -77,7 +77,7 @@ class abc extends \Phel\Lang\Collections\Struct\AbstractPersistentStruct {
   )
 );
 
-\Phel\Lang\Registry::getInstance()->addDefinition(
+\Phel::addDefinition(
   "hello_world",
   "abc?",
   new class() extends \Phel\Lang\AbstractFn {

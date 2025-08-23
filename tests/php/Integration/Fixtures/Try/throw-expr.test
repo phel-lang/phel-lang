@@ -1,7 +1,7 @@
 --PHEL--
 (def x (fn [] (let [e (throw (php/new \Exception))] e)))
 --PHP--
-\Phel\Lang\Registry::getInstance()->addDefinition(
+\Phel::addDefinition(
   "user",
   "x",
   new class() extends \Phel\Lang\AbstractFn {

@@ -13,7 +13,6 @@ use Phel\Compiler\Domain\Reader\Exceptions\ReaderException;
 use Phel\Compiler\Infrastructure\GlobalEnvironmentSingleton;
 use Phel\Lang\Collections\Map\PersistentMapInterface;
 use Phel\Lang\Keyword;
-use Phel\Lang\Registry;
 use Phel\Lang\SourceLocation;
 use Phel\Lang\Symbol;
 use Phel\Lang\TypeFactory;
@@ -33,7 +32,7 @@ final class ReaderTest extends TestCase
         // others define the environment for us.
         GlobalEnvironmentSingleton::reset();
         GlobalEnvironmentSingleton::initialize();
-        Registry::getInstance()->clear();
+        Phel::clear();
     }
 
     protected function setUp(): void

@@ -22,7 +22,7 @@ final class NodeEnvironment implements NodeEnvironmentInterface
     /** Def inside of def should not work. This flag help us to keep track of this. */
     private bool $defAllowed = true;
 
-    /** Use Registery::getDefinitionReference() instead of Registry::getDefinition() */
+    /** Use Registry::getDefinitionReference() instead of Registry::getDefinition() */
     private bool $globalReference = false;
 
     /**

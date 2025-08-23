@@ -1,7 +1,7 @@
 --PHEL--
 (def x 1)
 --PHP--
-\Phel\Lang\Registry::getInstance()->addDefinition(
+\Phel::addDefinition(
   "user",
   "x",
   1,

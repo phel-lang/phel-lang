@@ -7,7 +7,7 @@ namespace test;
 require_once "vendor/autoload.php";
 require_once __DIR__ . '/phel/core.php';
 require_once __DIR__ . '/xzy/core.php';
-\Phel\Lang\Registry::getInstance()->addDefinition(
+\Phel::addDefinition(
   "phel\\core",
   "*ns*",
   "test"

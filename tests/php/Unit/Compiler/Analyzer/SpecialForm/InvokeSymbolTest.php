@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace PhelTest\Unit\Compiler\Analyzer\SpecialForm;
 
 use Exception;
+use Phel;
 use Phel\Compiler\Application\Analyzer;
 use Phel\Compiler\Application\Munge;
 use Phel\Compiler\Domain\Analyzer\AnalyzerInterface;
@@ -19,7 +20,6 @@ use Phel\Compiler\Domain\Analyzer\Exceptions\AnalyzerException;
 use Phel\Compiler\Domain\Analyzer\TypeAnalyzer\SpecialForm\InvokeSymbol;
 use Phel\Lang\Collections\Map\PersistentMapInterface;
 use Phel\Lang\Keyword;
-use Phel\Lang\Registry;
 use Phel\Lang\Symbol;
 use Phel\Lang\TypeFactory;
 use PHPUnit\Framework\TestCase;
@@ -30,10 +30,10 @@ final class InvokeSymbolTest extends TestCase
 
     protected function setUp(): void
     {
-        Registry::getInstance()->clear();
+        Phel::clear();
         $env = new GlobalEnvironment();
         $env->addDefinition('user', Symbol::create('my-global-fn'));
-        Registry::getInstance()->addDefinition(
+        Phel::addDefinition(
             'user',
             'my-global-fn',
             static fn ($a, $b): int => $a + $b,
@@ -41,7 +41,7 @@ final class InvokeSymbolTest extends TestCase
         );
 
         $env->addDefinition('user', Symbol::create('my-macro'));
-        Registry::getInstance()->addDefinition(
+        Phel::addDefinition(
             'user',
             'my-macro',
             static fn ($a) => $a,
@@ -49,7 +49,7 @@ final class InvokeSymbolTest extends TestCase
         );
 
         $env->addDefinition('user', Symbol::create('my-failed-macro'));
-        Registry::getInstance()->addDefinition(
+        Phel::addDefinition(
             'user',
             'my-failed-macro',
             static fn ($a) => throw new Exception('my-failed-macro message'),
@@ -57,7 +57,7 @@ final class InvokeSymbolTest extends TestCase
         );
 
         $env->addDefinition('user', Symbol::create('my-inline-fn'));
-        Registry::getInstance()->addDefinition(
+        Phel::addDefinition(
             'user',
             'my-inline-fn',
             static fn ($a): int => 1,
@@ -68,7 +68,7 @@ final class InvokeSymbolTest extends TestCase
         );
 
         $env->addDefinition('user', Symbol::create('my-inline-fn-with-arity'));
-        Registry::getInstance()->addDefinition(
+        Phel::addDefinition(
             'user',
             'my-inline-fn-with-arity',
             static fn ($a, $b): int => 1,
@@ -283,7 +283,7 @@ final class InvokeSymbolTest extends TestCase
         $this->analyzer->addDefinition($ns, Symbol::create($macroName));
 
         $mungedNs = (new Munge())->encodeNs($ns);
-        Registry::getInstance()->addDefinition(
+        Phel::addDefinition(
             $mungedNs,
             $macroName,
             static fn ($x) => $x,

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Phel\Interop\Domain\ExportFinder;
 
+use Phel;
 use Phel\Build\BuildFacadeInterface;
 use Phel\Build\Domain\Extractor\ExtractorException;
 use Phel\Build\Domain\Extractor\NamespaceInformation;
@@ -14,7 +15,6 @@ use Phel\Compiler\Domain\Exceptions\CompilerException;
 use Phel\Interop\Domain\ReadModel\FunctionToExport;
 use Phel\Lang\Collections\Map\PersistentMapInterface;
 use Phel\Lang\Keyword;
-use Phel\Lang\Registry;
 use Phel\Lang\TypeFactory;
 
 final readonly class FunctionsToExportFinder implements FunctionsToExportFinderInterface
@@ -77,8 +77,8 @@ final readonly class FunctionsToExportFinder implements FunctionsToExportFinderI
     {
         $functionsToExport = [];
 
-        foreach (Registry::getInstance()->getNamespaces() as $ns) {
-            foreach (Registry::getInstance()->getDefinitionInNamespace($ns) as $fnName => $fn) {
+        foreach (Phel::getNamespaces() as $ns) {
+            foreach (Phel::getDefinitionInNamespace($ns) as $fnName => $fn) {
                 if ($this->isExport($ns, $fnName)) {
                     $functionsToExport[$ns] ??= [];
                     $functionsToExport[$ns][] = new FunctionToExport($fn);
@@ -92,7 +92,7 @@ final readonly class FunctionsToExportFinder implements FunctionsToExportFinderI
     private function isExport(string $ns, string $fnName): bool
     {
         /** @var PersistentMapInterface $meta */
-        $meta = Registry::getInstance()->getDefinitionMetaData($ns, $fnName)
+        $meta = Phel::getDefinitionMetaData($ns, $fnName)
             ?? TypeFactory::getInstance()->emptyPersistentList();
 
         return (bool)($meta[Keyword::create('export')] ?? false);

@@ -2,7 +2,7 @@
 (def x 1)
 (set-var x 2)
 --PHP--
-\Phel\Lang\Registry::getInstance()->addDefinition(
+\Phel::addDefinition(
   "user",
   "x",
   1,
@@ -19,7 +19,7 @@
     )
   )
 );
-\Phel\Lang\Registry::getInstance()->addDefinition(
+\Phel::addDefinition(
   "user",
   "x",
   2

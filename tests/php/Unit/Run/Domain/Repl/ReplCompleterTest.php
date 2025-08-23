@@ -4,27 +4,24 @@ declare(strict_types=1);
 
 namespace PhelTest\Unit\Run\Domain\Repl;
 
+use Phel;
 use Phel\Api\Application\ReplCompleter;
 use Phel\Api\Domain\PhelFnLoaderInterface;
 use Phel\Lang\FnInterface;
-use Phel\Lang\Registry;
 use PHPUnit\Framework\TestCase;
 
 final class ReplCompleterTest extends TestCase
 {
     private ReplCompleter $completer;
 
-    private Registry $registry;
-
     public static function tearDownAfterClass(): void
     {
-        Registry::getInstance()->clear();
+        Phel::clear();
     }
 
     protected function setUp(): void
     {
-        $this->registry = Registry::getInstance();
-        $this->registry->clear();
+        Phel::clear();
 
         $phelFnLoader = self::createStub(PhelFnLoaderInterface::class);
         $this->completer = new ReplCompleter($phelFnLoader);
@@ -38,7 +35,7 @@ final class ReplCompleterTest extends TestCase
     public function test_phel_function_completion(): void
     {
         $fn = self::createStub(FnInterface::class);
-        $this->registry->addDefinition('phel\\core', 'myfn', $fn);
+        Phel::addDefinition('phel\\core', 'myfn', $fn);
 
         self::assertSame(['myfn'], $this->completer->complete('my'));
     }

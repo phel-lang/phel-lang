@@ -2,7 +2,7 @@
 (def arr (php/array 1 2 3))
 (php/apush arr 4)
 --PHP--
-\Phel\Lang\Registry::getInstance()->addDefinition(
+\Phel::addDefinition(
   "user",
   "arr",
   array(1, 2, 3),
@@ -19,4 +19,4 @@
     )
   )
 );
-(\Phel\Lang\Registry::getInstance()->getDefinitionReference("user", "arr"))[] = 4;
+(\Phel::getDefinitionReference("user", "arr"))[] = 4;
