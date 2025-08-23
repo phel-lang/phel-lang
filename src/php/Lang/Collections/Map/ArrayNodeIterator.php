@@ -7,6 +7,8 @@ namespace Phel\Lang\Collections\Map;
 use Iterator;
 use RuntimeException;
 
+use function array_filter;
+use function array_values;
 use function count;
 
 /**
@@ -17,7 +19,7 @@ use function count;
  */
 final class ArrayNodeIterator implements Iterator
 {
-    /** @var array<int, HashMapNodeInterface<K, V>> A fixed size array of nodes */
+    /** @var list<HashMapNodeInterface<K, V>> A list of nodes */
     private readonly array $childNodes;
 
     private readonly int $count;
@@ -28,7 +30,7 @@ final class ArrayNodeIterator implements Iterator
 
     public function __construct(array $childNodes)
     {
-        $this->childNodes = array_values($childNodes);
+        $this->childNodes = array_values(array_filter($childNodes));
         $this->count = count($this->childNodes);
     }
 

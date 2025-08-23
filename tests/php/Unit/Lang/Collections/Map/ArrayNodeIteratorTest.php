@@ -50,4 +50,30 @@ final class ArrayNodeIteratorTest extends TestCase
 
         $this->assertSame([1 => 'foo', 2 => 'bar'], $result);
     }
+
+    public function test_iterate_on_node_with_removed_entry(): void
+    {
+        $node = ArrayNode::empty(new ModuloHasher(), new SimpleEqualizer());
+        for ($i = 1; $i <= 9; ++$i) {
+            $node = $node->put(0, $i, $i, 'value' . $i, new Box(false));
+        }
+
+        $node = $node->remove(0, 5, 5);
+
+        $result = [];
+        foreach ($node as $k => $v) {
+            $result[$k] = $v;
+        }
+
+        $this->assertSame([
+            1 => 'value1',
+            2 => 'value2',
+            3 => 'value3',
+            4 => 'value4',
+            6 => 'value6',
+            7 => 'value7',
+            8 => 'value8',
+            9 => 'value9',
+        ], $result);
+    }
 }

@@ -6,6 +6,7 @@ All notable changes to this project will be documented in this file.
 
 - Fix `map` function exhaustion with empty collections (#874)
 - Fix `contains-value?` with `nil` value (#880)
+- Fix set `difference` errors with certain input (#883)
 - Add `select-keys` (#878)
 - Enhance `php/->` for nested calls (#884)
 
