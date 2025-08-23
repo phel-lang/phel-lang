@@ -1,0 +1,23 @@
+(ns phel-test\test\core\file-operation
+  (:require phel\test :refer [deftest is thrown?]))
+
+(deftest test-slurp
+  (is (string? (slurp php/__FILE__)) "reads current file successfully")
+  (is (thrown? \InvalidArgumentException
+               (slurp (php/dirname php/__DIR__))) "reading a directory throws exception"))
+
+(deftest test-spit
+  (let [target-directory (str (php/sys_get_temp_dir))
+        target-file (str target-directory php/DIRECTORY_SEPARATOR "test-spit.txt")]
+    (is (= 6 (spit target-file "FOOBAR"))
+        "successful writing returning number of bytes written")
+    (is (= "FOOBAR" (slurp target-file)) "written file reads back correctly")
+    (is (= 3 (spit target-file "BAZ" {:flags php/FILE_APPEND}))
+        "successful writing with append, returning number of bytes written")
+    (is (= "FOOBARBAZ" (slurp target-file)) "written file reads back correctly after appending")
+    (is (= 4 (spit target-file "TEST"))
+        "successful writing returning number of bytes written")
+    (is (= "TEST" (slurp target-file)) "written file reads back correctly after over writing")
+    (is (thrown? \InvalidArgumentException (spit target-directory "test"))
+        "writing to a directory path throws exception")
+    (php/unlink target-file)))
