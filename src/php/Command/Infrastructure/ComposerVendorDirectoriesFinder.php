@@ -5,10 +5,10 @@ declare(strict_types=1);
 namespace Phel\Command\Infrastructure;
 
 use Gacela\Framework\DocBlockResolverAwareTrait;
+use Phel;
 use Phel\Command\CommandFacade;
 use Phel\Command\Domain\Finder\VendorDirectoriesFinderInterface;
 use Phel\Config\PhelConfig;
-use Phel\Phel;
 use RuntimeException;
 
 use function dirname;

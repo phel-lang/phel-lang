@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace PhelTest\Integration\Phel;
 
-use Phel\Phel;
+use Phel;
 use PHPUnit\Framework\TestCase;
 
 final class PhelTest extends TestCase

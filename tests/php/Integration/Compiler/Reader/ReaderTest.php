@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace PhelTest\Integration\Compiler\Reader;
 
 use Gacela\Framework\Gacela;
+use Phel;
 use Phel\Compiler\Application\Lexer;
 use Phel\Compiler\CompilerFacade;
 use Phel\Compiler\CompilerFacadeInterface;
@@ -17,7 +18,6 @@ use Phel\Lang\SourceLocation;
 use Phel\Lang\Symbol;
 use Phel\Lang\TypeFactory;
 use Phel\Lang\TypeInterface;
-use Phel\Phel;
 use PHPUnit\Framework\TestCase;
 
 use function sprintf;

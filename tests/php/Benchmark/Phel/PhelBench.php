@@ -5,10 +5,10 @@ declare(strict_types=1);
 namespace PhelTest\Benchmark\Phel;
 
 use Gacela\Framework\Gacela;
+use Phel;
 use Phel\Build\BuildFacade;
 use Phel\Compiler\Infrastructure\GlobalEnvironmentSingleton;
 use Phel\Lang\Symbol;
-use Phel\Phel;
 use PhpBench\Benchmark\Metadata\Annotations\Iterations;
 use PhpBench\Benchmark\Metadata\Annotations\Revs;
 
