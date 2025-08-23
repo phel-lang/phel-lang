@@ -51,7 +51,7 @@ final class GlobalEnvironmentSingleton
     }
 
     /**
-     * @interal
+     * @internal
      */
     public static function initializeNew(): GlobalEnvironmentInterface
     {

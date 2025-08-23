@@ -11,7 +11,7 @@ use RuntimeException;
 use function array_key_exists;
 
 /**
- * @interal
+ * @internal
  */
 final class Registry
 {

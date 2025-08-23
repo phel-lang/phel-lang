@@ -22,7 +22,7 @@ use function method_exists;
 use function sprintf;
 
 /**
- * @interal use \Phel instead
+ * @internal use \Phel instead
  *
  * @method static void clear()
  * @method static void addDefinition(string $ns, string $name, mixed $value, ?PersistentMapInterface $metaData = null)

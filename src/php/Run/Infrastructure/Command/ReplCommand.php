@@ -80,7 +80,7 @@ final class ReplCommand extends Command
     }
 
     /**
-     * @interal for testing purposes
+     * @internal for testing purposes
      */
     public function setReplStartupFile(string $replStartupFile): self
     {
