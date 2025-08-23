@@ -6,9 +6,9 @@
          (macroexpand-1 '(when true 1 2)))))
 
 (deftest test-macroexpand-threading
-  (is (= (print-str '(+ 1 2))
+  (is (= (print-str '(do (assert-non-nil 1 2) (+ 1 2)))
          (print-str (macroexpand '(-> 1 (+ 2)))))))
 
 (deftest test-macroexpand-inline
-  (is (= '(php/+ 1 1)
-         (macroexpand-1 '(inc 1)))))
+  (is (= (print-str '(do (assert-non-nil 1) (+ 1 1)))
+         (print-str (macroexpand-1 '(inc 1))))))

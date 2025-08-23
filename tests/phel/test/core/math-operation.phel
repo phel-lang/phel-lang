@@ -40,6 +40,16 @@
   (is (= -2 (dec -1)) "(dec -1)")
   (is (= 0 (dec 1)) "(dec 1)"))
 
+(deftest test-nil-arguments
+  (is (thrown? \InvalidArgumentException (+ nil 1)) "(+ nil 1)")
+  (is (thrown? \InvalidArgumentException (- 1 nil)) "(- 1 nil)")
+  (is (thrown? \InvalidArgumentException (* nil 1)) "(* nil 1)")
+  (is (thrown? \InvalidArgumentException (/ nil 1)) "(/ nil 1)")
+  (is (thrown? \InvalidArgumentException (% nil 1)) "(% nil 1)")
+  (is (thrown? \InvalidArgumentException (** nil 1)) "(** nil 1)")
+  (is (thrown? \InvalidArgumentException (inc nil)) "(inc nil)")
+  (is (thrown? \InvalidArgumentException (dec nil)) "(dec nil)"))
+
 (deftest test-even?
   (is (true? (even? 0)) "(even? 0)")
   (is (false? (even? 1)) "(even? 1)")
