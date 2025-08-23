@@ -34,7 +34,7 @@ class my_type_with_one_interface extends \Phel\Lang\Collections\Struct\AbstractP
   public function bar($a, $b) {
     $v = $this->v;
     $this_2 = $this;
-    (\Phel\Lang\Registry::getInstance()->getDefinition("phel\\core", "assert-non-nil"))($a, $b, $v);
+    (\Phel::getDefinition("phel\\core", "assert-non-nil"))($a, $b, $v);
     return ($a + $b + $v);
   }
 }

@@ -27,4 +27,4 @@
     "min-arity", 2
   )
 );
-(\Phel\Lang\Registry::getInstance()->getDefinition("user", "reduce"))((function(...$args) { return array(...$args);}), \Phel\Lang\TypeFactory::getInstance()->persistentVectorFromArray([1, 2, 3]));
+(\Phel::getDefinition("user", "reduce"))((function(...$args) { return array(...$args);}), \Phel\Lang\TypeFactory::getInstance()->persistentVectorFromArray([1, 2, 3]));

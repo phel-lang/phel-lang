@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Phel\Compiler\Domain\Analyzer\TypeAnalyzer\SpecialForm;
 
+use Phel;
 use Phel\Compiler\Domain\Analyzer\Ast\NsNode;
 use Phel\Compiler\Domain\Analyzer\Environment\NodeEnvironmentInterface;
 use Phel\Compiler\Domain\Analyzer\Exceptions\AnalyzerException;
@@ -13,10 +14,10 @@ use Phel\Lang\Collections\LinkedList\PersistentListInterface;
 use Phel\Lang\Collections\Map\PersistentMapInterface;
 use Phel\Lang\Collections\Vector\PersistentVectorInterface;
 use Phel\Lang\Keyword;
-use Phel\Lang\Registry;
 use Phel\Lang\Symbol;
 use Phel\Lang\TypeFactory;
 use Phel\Shared\CompilerConstants;
+
 use Phel\Shared\ReplConstants;
 
 use function count;
@@ -82,7 +83,7 @@ final class NsSymbol implements SpecialFormAnalyzerInterface
             }
         }
 
-        if (Registry::getInstance()->getDefinition(CompilerConstants::PHEL_CORE_NAMESPACE, ReplConstants::REPL_MODE)) {
+        if (Phel::getDefinition(CompilerConstants::PHEL_CORE_NAMESPACE, ReplConstants::REPL_MODE)) {
             $replSymbol = Symbol::create('phel\\repl');
             $this->analyzer->addRequireAlias($ns, Symbol::create('repl'), $replSymbol);
             $this->analyzer->addRefers(

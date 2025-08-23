@@ -3,9 +3,7 @@
 
 declare(strict_types=1);
 
-use Gacela\Framework\Gacela;
 use Phel\Console\Infrastructure\ConsoleBootstrap;
-use Phel\Phel;
 
 (static function (): void {
     $appRootDir = (static function (): ?string {

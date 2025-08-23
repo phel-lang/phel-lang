@@ -11,7 +11,7 @@ new class() extends \Phel\Lang\AbstractFn {
     $b_1 = 10;
     return (function() use($b_1) {
       foreach ((\Phel\Lang\TypeFactory::getInstance()->persistentVectorFromArray([1, 2, 3]) ?? []) as $b) {
-        (\Phel\Lang\Registry::getInstance()->getDefinition("phel\\core", "println"))($b);
+        (\Phel::getDefinition("phel\\core", "println"))($b);
       }
       return null;
     })();

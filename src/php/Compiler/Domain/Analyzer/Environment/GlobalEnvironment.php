@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Phel\Compiler\Domain\Analyzer\Environment;
 
+use Phel;
 use Phel\Compiler\Domain\Analyzer\Ast\AbstractNode;
 use Phel\Compiler\Domain\Analyzer\Ast\GlobalVarNode;
 use Phel\Compiler\Domain\Analyzer\Ast\LiteralNode;
@@ -18,6 +19,7 @@ use Phel\Lang\TypeFactory;
 use Phel\Shared\BuildConstants;
 use Phel\Shared\CompilerConstants;
 use Phel\Shared\ReplConstants;
+
 use RuntimeException;
 
 use function array_key_exists;
@@ -217,8 +219,8 @@ final class GlobalEnvironment implements GlobalEnvironmentInterface
 
     private function shouldThrowOnDuplicateDefinition(string $namespace, Symbol $name): bool
     {
-        if (Registry::getInstance()->getDefinition(CompilerConstants::PHEL_CORE_NAMESPACE, BuildConstants::BUILD_MODE)
-            || Registry::getInstance()->getDefinition(CompilerConstants::PHEL_CORE_NAMESPACE, ReplConstants::REPL_MODE)
+        if (Phel::getDefinition(CompilerConstants::PHEL_CORE_NAMESPACE, BuildConstants::BUILD_MODE)
+            || Phel::getDefinition(CompilerConstants::PHEL_CORE_NAMESPACE, ReplConstants::REPL_MODE)
             || $namespace === CompilerConstants::PHEL_CORE_NAMESPACE
         ) {
             return false;

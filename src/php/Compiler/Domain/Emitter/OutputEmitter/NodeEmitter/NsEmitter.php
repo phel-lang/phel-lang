@@ -62,7 +62,7 @@ final class NsEmitter implements NodeEmitterInterface
             }
         } else {
             $this->outputEmitter->emitLine('$__phelBuildFacade = new \\Phel\\Build\\BuildFacade();');
-            $this->outputEmitter->emitLine('$__phelSrcDirs = \\Phel\\Lang\\Registry::getInstance()->getDefinition(');
+            $this->outputEmitter->emitLine('$__phelSrcDirs = \\Phel::getDefinition(');
             $this->outputEmitter->increaseIndentLevel();
             $this->outputEmitter->emitStr('"');
             $this->outputEmitter->emitStr(addslashes($this->outputEmitter->mungeEncodeNs('phel\\repl')));

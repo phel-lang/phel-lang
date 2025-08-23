@@ -4,7 +4,7 @@
 (* 1 2)
 (* 1 2 3)
 --PHP--
-(\Phel\Lang\Registry::getInstance()->getDefinition("phel\\core", "*"))();(\Phel\Lang\Registry::getInstance()->getDefinition("phel\\core", "assert-non-nil"))(1);
-(1);(\Phel\Lang\Registry::getInstance()->getDefinition("phel\\core", "assert-non-nil"))(1, 2);
-(1 * 2);(\Phel\Lang\Registry::getInstance()->getDefinition("phel\\core", "assert-non-nil"))(1, 2, 3);
+(\Phel::getDefinition("phel\\core", "*"))();(\Phel::getDefinition("phel\\core", "assert-non-nil"))(1);
+(1);(\Phel::getDefinition("phel\\core", "assert-non-nil"))(1, 2);
+(1 * 2);(\Phel::getDefinition("phel\\core", "assert-non-nil"))(1, 2, 3);
 (1 * 2 * 3);

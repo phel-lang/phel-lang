@@ -11,7 +11,7 @@
 
     public function __invoke() {
       return (function() {
-        foreach (((\Phel\Lang\Registry::getInstance()->getDefinition("phel\\core", "range"))(...((\Phel\Lang\TypeFactory::getInstance()->persistentVectorFromArray([0, 3])) ?? [])) ?? []) as $i) {
+        foreach (((\Phel::getDefinition("phel\\core", "range"))(...((\Phel\Lang\TypeFactory::getInstance()->persistentVectorFromArray([0, 3])) ?? [])) ?? []) as $i) {
           yield $i;
         }
         return null;

@@ -27,4 +27,4 @@
     "min-arity", 1
   )
 );
-(\Phel\Lang\Registry::getInstance()->getDefinition("user", "x"))(1);
+(\Phel::getDefinition("user", "x"))(1);

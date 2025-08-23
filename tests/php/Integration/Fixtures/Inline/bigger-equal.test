@@ -3,4 +3,4 @@
 (< 1 2)
 (< 1 2 3)
 --PHP--
-(\Phel\Lang\Registry::getInstance()->getDefinition("phel\\core", "<"))(1);(1 < 2);(\Phel\Lang\Registry::getInstance()->getDefinition("phel\\core", "<"))(1, 2, 3);
+(\Phel::getDefinition("phel\\core", "<"))(1);(1 < 2);(\Phel::getDefinition("phel\\core", "<"))(1, 2, 3);

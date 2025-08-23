@@ -12,6 +12,7 @@ All notable changes to this project will be documented in this file.
 - Enhance `php/->` for nested calls
 - Auto-assign-author GH workflow
 - Avoid coercing `nil` to 0 in math operations
+- Add `\Phel` as public entry class instead of `\Phel\Phel` 
 
 ## [0.19.1](https://github.com/phel-lang/phel-lang/compare/v0.19.0...v0.19.1) - 2025-08-03
 

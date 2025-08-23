@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace PhelTest\Integration\Run\Command\Ns;
 
+use Phel;
 use Phel\Build\Domain\Extractor\NamespaceInformation;
-use Phel\Phel;
 use Phel\Run\Infrastructure\Command\NsCommand;
 use Phel\Run\RunFacadeInterface;
 use PhelTest\Integration\Run\Command\AbstractTestCommand;
