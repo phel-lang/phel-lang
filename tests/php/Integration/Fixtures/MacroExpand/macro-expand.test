@@ -10,24 +10,24 @@
     public const BOUND_TO = "user\\foo";
 
     public function __invoke($n) {
-      return \Phel\Lang\Type::persistentListFromArray([
+      return \PhelType::persistentListFromArray([
         (\Phel\Lang\Symbol::create("php/+")),
         1,
         1
       ]);
     }
   },
-  \Phel\Lang\Type::persistentMapFromKVs(
-    \Phel\Lang\Keyword::create("macro"), true,
-    \Phel\Lang\Keyword::create("start-location"), \Phel\Lang\Type::persistentMapFromKVs(
-      \Phel\Lang\Keyword::create("file"), "MacroExpand/macro-expand.test",
-      \Phel\Lang\Keyword::create("line"), 1,
-      \Phel\Lang\Keyword::create("column"), 0
+  \PhelType::persistentMapFromKVs(
+    \PhelType::keyword("macro"), true,
+    \PhelType::keyword("start-location"), \PhelType::persistentMapFromKVs(
+      \PhelType::keyword("file"), "MacroExpand/macro-expand.test",
+      \PhelType::keyword("line"), 1,
+      \PhelType::keyword("column"), 0
     ),
-    \Phel\Lang\Keyword::create("end-location"), \Phel\Lang\Type::persistentMapFromKVs(
-      \Phel\Lang\Keyword::create("file"), "MacroExpand/macro-expand.test",
-      \Phel\Lang\Keyword::create("line"), 1,
-      \Phel\Lang\Keyword::create("column"), 38
+    \PhelType::keyword("end-location"), \PhelType::persistentMapFromKVs(
+      \PhelType::keyword("file"), "MacroExpand/macro-expand.test",
+      \PhelType::keyword("line"), 1,
+      \PhelType::keyword("column"), 38
     ),
     "min-arity", 1
   )

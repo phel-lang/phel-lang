@@ -17,7 +17,7 @@ use Phel\Compiler\Domain\Analyzer\Exceptions\AnalyzerException;
 use Phel\Compiler\Domain\Analyzer\TypeAnalyzer\SpecialForm\Binding\BindingValidator;
 use Phel\Compiler\Domain\Analyzer\TypeAnalyzer\SpecialForm\LoopSymbol;
 use Phel\Lang\Symbol;
-use Phel\Lang\Type;
+use PhelType;
 use PHPUnit\Framework\TestCase;
 
 final class LoopSymbolTest extends TestCase
@@ -38,7 +38,7 @@ final class LoopSymbolTest extends TestCase
         $this->expectException(AnalyzerException::class);
         $this->expectExceptionMessage("This is not a 'loop.");
 
-        $list = Type::persistentListFromArray([Symbol::create('unknown')]);
+        $list = PhelType::persistentListFromArray([Symbol::create('unknown')]);
         $env = NodeEnvironment::empty();
 
         (new LoopSymbol($this->analyzer, new BindingValidator()))->analyze($list, $env);
@@ -49,7 +49,7 @@ final class LoopSymbolTest extends TestCase
         $this->expectException(AnalyzerException::class);
         $this->expectExceptionMessage("At least two arguments are required for 'loop.");
 
-        $list = Type::persistentListFromArray([Symbol::create('loop')]);
+        $list = PhelType::persistentListFromArray([Symbol::create('loop')]);
         $env = NodeEnvironment::empty();
 
         $this->analyzer->analyze($list, $env);
@@ -60,7 +60,7 @@ final class LoopSymbolTest extends TestCase
         $this->expectException(AnalyzerException::class);
         $this->expectExceptionMessage('Binding parameter must be a vector');
 
-        $list = Type::persistentListFromArray([Symbol::create('loop'), 12]);
+        $list = PhelType::persistentListFromArray([Symbol::create('loop'), 12]);
         $env = NodeEnvironment::empty();
 
         $this->analyzer->analyze($list, $env);
@@ -71,9 +71,9 @@ final class LoopSymbolTest extends TestCase
         $this->expectException(AnalyzerException::class);
         $this->expectExceptionMessage('Bindings must be a even number of parameters');
 
-        $list = Type::persistentListFromArray([
+        $list = PhelType::persistentListFromArray([
             Symbol::create('loop'),
-            Type::persistentVectorFromArray([12]),
+            PhelType::persistentVectorFromArray([12]),
         ]);
         $env = NodeEnvironment::empty();
 
@@ -82,9 +82,9 @@ final class LoopSymbolTest extends TestCase
 
     public function test_basic_loop(): void
     {
-        $list = Type::persistentListFromArray([
+        $list = PhelType::persistentListFromArray([
             Symbol::create('loop'),
-            Type::persistentVectorFromArray([]),
+            PhelType::persistentVectorFromArray([]),
         ]);
         $env = NodeEnvironment::empty();
 
@@ -106,9 +106,9 @@ final class LoopSymbolTest extends TestCase
     public function test_loop_with_binding(): void
     {
         Symbol::resetGen();
-        $list = Type::persistentListFromArray([
+        $list = PhelType::persistentListFromArray([
             Symbol::create('loop'),
-            Type::persistentVectorFromArray([
+            PhelType::persistentVectorFromArray([
                 Symbol::create('a'),
                 1,
             ]),
@@ -150,10 +150,10 @@ final class LoopSymbolTest extends TestCase
     public function test_with_destruction(): void
     {
         Symbol::resetGen();
-        $list = Type::persistentListFromArray([
+        $list = PhelType::persistentListFromArray([
             Symbol::create('loop'),
-            Type::persistentVectorFromArray([
-                Type::persistentVectorFromArray([Symbol::create('a')]),
+            PhelType::persistentVectorFromArray([
+                PhelType::persistentVectorFromArray([Symbol::create('a')]),
                 1,
             ]),
             1,

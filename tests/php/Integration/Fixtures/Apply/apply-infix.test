@@ -1,4 +1,4 @@
 --PHEL--
 (apply php/+ 1 2 [3])
 --PHP--
-array_reduce([1, 2, ...((\Phel\Lang\Type::persistentVectorFromArray([3])) ?? [])], function($a, $b) { return ($a + $b); });
+array_reduce([1, 2, ...((\PhelType::persistentVectorFromArray([3])) ?? [])], function($a, $b) { return ($a + $b); });

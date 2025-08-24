@@ -2,22 +2,21 @@
 
 declare(strict_types=1);
 
-namespace Phel\Lang;
-
-use BadMethodCallException;
-
 use Phel\Lang\Collections\HashSet\PersistentHashSetInterface;
 use Phel\Lang\Collections\LinkedList\EmptyList;
 use Phel\Lang\Collections\LinkedList\PersistentListInterface;
 use Phel\Lang\Collections\Map\PersistentMapInterface;
 use Phel\Lang\Collections\Vector\PersistentVectorInterface;
-
-use function is_callable;
-use function sprintf;
+use Phel\Lang\EqualizerInterface;
+use Phel\Lang\HasherInterface;
+use Phel\Lang\Keyword;
+use Phel\Lang\Symbol;
+use Phel\Lang\TypeFactory;
+use Phel\Lang\Variable;
 
 /**
  * @method static PersistentMapInterface emptyPersistentMap()
- * @method static PersistentMapInterface persistentMapFromKVs(mixed ...$kvs)
+ * @method static PersistentMapInterface persistentMapFromKVs(...$kvs)
  * @method static PersistentMapInterface persistentMapFromArray(array $kvs)
  * @method static PersistentHashSetInterface persistentHashSetFromArray(array $values)
  * @method static EmptyList emptyPersistentList()
@@ -26,11 +25,11 @@ use function sprintf;
  * @method static PersistentVectorInterface persistentVectorFromArray(array $values)
  * @method static Variable variable(mixed $value)
  * @method static Symbol symbol(string $name)
- * @method static Keyword keyword(string $name)
+ * @method static Keyword keyword(string $name, string $namespace = null)
  * @method static EqualizerInterface getEqualizer()
  * @method static HasherInterface getHasher()
  */
-final class Type
+final class PhelType
 {
     /**
      * Proxy static method calls the TypeFactory instance.

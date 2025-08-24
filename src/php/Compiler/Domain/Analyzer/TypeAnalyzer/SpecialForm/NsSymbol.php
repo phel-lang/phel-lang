@@ -15,10 +15,9 @@ use Phel\Lang\Collections\Map\PersistentMapInterface;
 use Phel\Lang\Collections\Vector\PersistentVectorInterface;
 use Phel\Lang\Keyword;
 use Phel\Lang\Symbol;
-use Phel\Lang\Type;
 use Phel\Shared\CompilerConstants;
-
 use Phel\Shared\ReplConstants;
+use PhelType;
 
 use function count;
 use function in_array;
@@ -123,7 +122,7 @@ final class NsSymbol implements SpecialFormAnalyzerInterface
             $useSymbol = Symbol::createForNamespace($useSymbol->getNamespace(), '\\' . $useSymbol->getName());
         }
 
-        $useData = Type::persistentMapFromKVs(...$import->toArray());
+        $useData = PhelType::persistentMapFromKVs(...$import->toArray());
         $alias = $this->extractAlias($useData, $import, 'use');
         $this->analyzer->addUseAlias($ns, $alias, $useSymbol);
     }
@@ -189,7 +188,7 @@ final class NsSymbol implements SpecialFormAnalyzerInterface
             throw AnalyzerException::withLocation('First argument in :require must be a symbol.', $import);
         }
 
-        $requireData = Type::persistentMapFromKVs(...$import->toArray());
+        $requireData = PhelType::persistentMapFromKVs(...$import->toArray());
         $alias = $this->extractAlias($requireData, $import, 'require');
         $referSymbols = $this->extractRefer($requireData, $import);
 

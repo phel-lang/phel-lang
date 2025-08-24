@@ -42,7 +42,7 @@ final class ApplyEmitterTest extends TestCase
         $this->applyEmitter->emit($applyNode);
 
         $this->expectOutputString(
-            'array_reduce([...((\Phel\Lang\Type::persistentVectorFromArray([2, 3, 4])) ?? [])], function($a, $b) { return ($a + $b); });',
+            'array_reduce([...((\PhelType::persistentVectorFromArray([2, 3, 4])) ?? [])], function($a, $b) { return ($a + $b); });',
         );
     }
 
@@ -59,7 +59,7 @@ final class ApplyEmitterTest extends TestCase
         $applyNode = new ApplyNode(NodeEnvironment::empty(), $node, $args);
         $this->applyEmitter->emit($applyNode);
 
-        $this->expectOutputString('str("abc", ...((\Phel\Lang\Type::persistentVectorFromArray(["def"])) ?? []));');
+        $this->expectOutputString('str("abc", ...((\PhelType::persistentVectorFromArray(["def"])) ?? []));');
     }
 
     public function test_no_php_var_node(): void
@@ -86,9 +86,9 @@ final class ApplyEmitterTest extends TestCase
   public const BOUND_TO = "";
 
   public function __invoke(...$x) {
-    $x = \Phel\Lang\Type::persistentVectorFromArray($x);
+    $x = \PhelType::persistentVectorFromArray($x);
     return x;
   }
-};)(...((\Phel\Lang\Type::persistentVectorFromArray([1])) ?? []));');
+};)(...((\PhelType::persistentVectorFromArray([1])) ?? []));');
     }
 }

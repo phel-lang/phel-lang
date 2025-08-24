@@ -8,7 +8,7 @@ use Phel\Compiler\Domain\Analyzer\Environment\GlobalEnvironment;
 use Phel\Compiler\Domain\Reader\QuasiquoteTransformer;
 use Phel\Lang\Keyword;
 use Phel\Lang\Symbol;
-use Phel\Lang\Type;
+use PhelType;
 use PHPUnit\Framework\TestCase;
 use RuntimeException;
 
@@ -19,7 +19,7 @@ final class QuasiquoteTest extends TestCase
         $q = new QuasiquoteTransformer(new GlobalEnvironment());
         self::assertSame(
             1,
-            $q->transform(Type::persistentListFromArray([Symbol::create(Symbol::NAME_UNQUOTE), 1])),
+            $q->transform(PhelType::persistentListFromArray([Symbol::create(Symbol::NAME_UNQUOTE), 1])),
         );
     }
 
@@ -27,23 +27,23 @@ final class QuasiquoteTest extends TestCase
     {
         $this->expectException(RuntimeException::class);
         $q = new QuasiquoteTransformer(new GlobalEnvironment());
-        $q->transform(Type::persistentListFromArray([Symbol::create(Symbol::NAME_UNQUOTE_SPLICING), 1]));
+        $q->transform(PhelType::persistentListFromArray([Symbol::create(Symbol::NAME_UNQUOTE_SPLICING), 1]));
     }
 
     public function test_transform_create_list(): void
     {
         $q = new QuasiquoteTransformer(new GlobalEnvironment());
         self::assertEquals(
-            Type::persistentListFromArray([
+            PhelType::persistentListFromArray([
                 Symbol::create(Symbol::NAME_APPLY),
                 Symbol::create(Symbol::NAME_LIST),
-                Type::persistentListFromArray([
+                PhelType::persistentListFromArray([
                     Symbol::create(Symbol::NAME_CONCAT),
-                    Type::persistentListFromArray([Symbol::create(Symbol::NAME_LIST), 1]),
-                    Type::persistentListFromArray([Symbol::create(Symbol::NAME_LIST), 2]),
+                    PhelType::persistentListFromArray([Symbol::create(Symbol::NAME_LIST), 1]),
+                    PhelType::persistentListFromArray([Symbol::create(Symbol::NAME_LIST), 2]),
                 ]),
             ]),
-            $q->transform(Type::persistentListFromArray([1, 2])),
+            $q->transform(PhelType::persistentListFromArray([1, 2])),
         );
     }
 
@@ -51,18 +51,18 @@ final class QuasiquoteTest extends TestCase
     {
         $q = new QuasiquoteTransformer(new GlobalEnvironment());
         self::assertEquals(
-            Type::persistentListFromArray([
+            PhelType::persistentListFromArray([
                 Symbol::create(Symbol::NAME_APPLY),
                 Symbol::create(Symbol::NAME_LIST),
-                Type::persistentListFromArray([
+                PhelType::persistentListFromArray([
                     Symbol::create(Symbol::NAME_CONCAT),
-                    Type::persistentListFromArray([Symbol::create(Symbol::NAME_LIST), 1]),
+                    PhelType::persistentListFromArray([Symbol::create(Symbol::NAME_LIST), 1]),
                     2,
                 ]),
             ]),
-            $q->transform(Type::persistentListFromArray([
+            $q->transform(PhelType::persistentListFromArray([
                 1,
-                Type::persistentListFromArray([
+                PhelType::persistentListFromArray([
                     Symbol::create(Symbol::NAME_UNQUOTE_SPLICING),
                     2,
                 ]),
@@ -74,18 +74,18 @@ final class QuasiquoteTest extends TestCase
     {
         $q = new QuasiquoteTransformer(new GlobalEnvironment());
         self::assertEquals(
-            Type::persistentListFromArray([
+            PhelType::persistentListFromArray([
                 Symbol::create(Symbol::NAME_APPLY),
                 Symbol::create(Symbol::NAME_LIST),
-                Type::persistentListFromArray([
+                PhelType::persistentListFromArray([
                     Symbol::create(Symbol::NAME_CONCAT),
-                    Type::persistentListFromArray([Symbol::create(Symbol::NAME_LIST), 1]),
-                    Type::persistentListFromArray([Symbol::create(Symbol::NAME_LIST), 2]),
+                    PhelType::persistentListFromArray([Symbol::create(Symbol::NAME_LIST), 1]),
+                    PhelType::persistentListFromArray([Symbol::create(Symbol::NAME_LIST), 2]),
                 ]),
             ]),
-            $q->transform(Type::persistentListFromArray([
+            $q->transform(PhelType::persistentListFromArray([
                 1,
-                Type::persistentListFromArray([
+                PhelType::persistentListFromArray([
                     Symbol::create(Symbol::NAME_UNQUOTE),
                     2,
                 ]),
@@ -97,16 +97,16 @@ final class QuasiquoteTest extends TestCase
     {
         $q = new QuasiquoteTransformer(new GlobalEnvironment());
         self::assertEquals(
-            Type::persistentListFromArray([
+            PhelType::persistentListFromArray([
                 Symbol::create(Symbol::NAME_APPLY),
                 Symbol::create(Symbol::NAME_VECTOR),
-                Type::persistentListFromArray([
+                PhelType::persistentListFromArray([
                     Symbol::create(Symbol::NAME_CONCAT),
-                    Type::persistentListFromArray([Symbol::create(Symbol::NAME_LIST), 1]),
-                    Type::persistentListFromArray([Symbol::create(Symbol::NAME_LIST), 2]),
+                    PhelType::persistentListFromArray([Symbol::create(Symbol::NAME_LIST), 1]),
+                    PhelType::persistentListFromArray([Symbol::create(Symbol::NAME_LIST), 2]),
                 ]),
             ]),
-            $q->transform(Type::persistentVectorFromArray([1, 2])),
+            $q->transform(PhelType::persistentVectorFromArray([1, 2])),
         );
     }
 
@@ -114,18 +114,18 @@ final class QuasiquoteTest extends TestCase
     {
         $q = new QuasiquoteTransformer(new GlobalEnvironment());
         self::assertEquals(
-            Type::persistentListFromArray([
+            PhelType::persistentListFromArray([
                 Symbol::create(Symbol::NAME_APPLY),
                 Symbol::create(Symbol::NAME_MAP),
-                Type::persistentListFromArray([
+                PhelType::persistentListFromArray([
                     Symbol::create(Symbol::NAME_CONCAT),
-                    Type::persistentListFromArray([Symbol::create(Symbol::NAME_LIST), 'a']),
-                    Type::persistentListFromArray([Symbol::create(Symbol::NAME_LIST), 1]),
-                    Type::persistentListFromArray([Symbol::create(Symbol::NAME_LIST), 'b']),
-                    Type::persistentListFromArray([Symbol::create(Symbol::NAME_LIST), 2]),
+                    PhelType::persistentListFromArray([Symbol::create(Symbol::NAME_LIST), 'a']),
+                    PhelType::persistentListFromArray([Symbol::create(Symbol::NAME_LIST), 1]),
+                    PhelType::persistentListFromArray([Symbol::create(Symbol::NAME_LIST), 'b']),
+                    PhelType::persistentListFromArray([Symbol::create(Symbol::NAME_LIST), 2]),
                 ]),
             ]),
-            $q->transform(Type::persistentMapFromKVs('a', 1, 'b', 2)),
+            $q->transform(PhelType::persistentMapFromKVs('a', 1, 'b', 2)),
         );
     }
 
@@ -185,7 +185,7 @@ final class QuasiquoteTest extends TestCase
     {
         $q = new QuasiquoteTransformer(new GlobalEnvironment());
         self::assertEquals(
-            Type::persistentListFromArray([
+            PhelType::persistentListFromArray([
                 Symbol::create(Symbol::NAME_QUOTE),
                 Symbol::create('test'),
             ]),
@@ -200,7 +200,7 @@ final class QuasiquoteTest extends TestCase
 
         $q = new QuasiquoteTransformer($env);
         self::assertEquals(
-            Type::persistentListFromArray([
+            PhelType::persistentListFromArray([
                 Symbol::create(Symbol::NAME_QUOTE),
                 Symbol::createForNamespace('test', 'abc'),
             ]),

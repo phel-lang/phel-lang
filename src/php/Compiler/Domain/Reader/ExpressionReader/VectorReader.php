@@ -9,7 +9,7 @@ use Phel\Compiler\Domain\Parser\ParserNode\ListNode;
 use Phel\Compiler\Domain\Parser\ParserNode\NodeInterface;
 use Phel\Compiler\Domain\Parser\ParserNode\TriviaNodeInterface;
 use Phel\Lang\Collections\Vector\PersistentVectorInterface;
-use Phel\Lang\Type;
+use PhelType;
 
 final readonly class VectorReader
 {
@@ -28,7 +28,7 @@ final readonly class VectorReader
             $acc[] = $this->reader->readExpression($child, $root);
         }
 
-        return Type::persistentVectorFromArray($acc)
+        return PhelType::persistentVectorFromArray($acc)
             ->setStartLocation($node->getStartLocation())
             ->setEndLocation($node->getEndLocation());
     }

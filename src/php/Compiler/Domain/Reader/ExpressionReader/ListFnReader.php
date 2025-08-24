@@ -9,7 +9,7 @@ use Phel\Compiler\Domain\Parser\ParserNode\ListNode;
 use Phel\Compiler\Domain\Parser\ParserNode\NodeInterface;
 use Phel\Lang\Collections\LinkedList\PersistentListInterface;
 use Phel\Lang\Symbol;
-use Phel\Lang\Type;
+use PhelType;
 
 final readonly class ListFnReader
 {
@@ -23,9 +23,9 @@ final readonly class ListFnReader
         $params = $this->extractParams($fnArgs);
         $fnArgs = null;
 
-        return Type::persistentListFromArray([
+        return PhelType::persistentListFromArray([
             Symbol::create(Symbol::NAME_FN),
-            Type::persistentVectorFromArray($params),
+            PhelType::persistentVectorFromArray($params),
             $body,
         ])->setStartLocation($node->getStartLocation())->setEndLocation($node->getEndLocation());
     }

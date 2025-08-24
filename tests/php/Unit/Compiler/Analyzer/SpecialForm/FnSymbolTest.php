@@ -16,7 +16,7 @@ use Phel\Compiler\Domain\Analyzer\TypeAnalyzer\SpecialForm\FnSymbol;
 use Phel\Compiler\Domain\Exceptions\AbstractLocatedException;
 use Phel\Lang\Collections\LinkedList\PersistentListInterface;
 use Phel\Lang\Symbol;
-use Phel\Lang\Type;
+use PhelType;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 
@@ -38,7 +38,7 @@ final class FnSymbolTest extends TestCase
         $this->expectException(AbstractLocatedException::class);
         $this->expectExceptionMessage("'fn requires at least one argument");
 
-        $list = Type::persistentListFromArray([
+        $list = PhelType::persistentListFromArray([
             Symbol::create(Symbol::NAME_FN),
         ]);
 
@@ -51,7 +51,7 @@ final class FnSymbolTest extends TestCase
         $this->expectExceptionMessage("Second argument of 'fn must be a vector");
 
         // This is the same as: (fn anything)
-        $list = Type::persistentListFromArray([
+        $list = PhelType::persistentListFromArray([
             Symbol::create(Symbol::NAME_FN),
             Symbol::create('anything'),
         ]);
@@ -62,9 +62,9 @@ final class FnSymbolTest extends TestCase
     public function test_is_not_variadic(): void
     {
         // This is the same as: (fn [anything])
-        $list = Type::persistentListFromArray([
+        $list = PhelType::persistentListFromArray([
             Symbol::create(Symbol::NAME_FN),
-            Type::persistentVectorFromArray([
+            PhelType::persistentVectorFromArray([
                 Symbol::create('anything'),
             ]),
         ]);
@@ -85,9 +85,9 @@ final class FnSymbolTest extends TestCase
         }
 
         // This is the same as: (fn [paramName])
-        $list = Type::persistentListFromArray([
+        $list = PhelType::persistentListFromArray([
             Symbol::create(Symbol::NAME_FN),
-            Type::persistentVectorFromArray([
+            PhelType::persistentVectorFromArray([
                 Symbol::create($paramName),
             ]),
         ]);
@@ -129,9 +129,9 @@ final class FnSymbolTest extends TestCase
         $this->expectExceptionMessage('Unsupported parameter form, only one symbol can follow the & parameter');
 
         // This is the same as: (fn [& param-1 param-2])
-        $list = Type::persistentListFromArray([
+        $list = PhelType::persistentListFromArray([
             Symbol::create(Symbol::NAME_FN),
-            Type::persistentVectorFromArray([
+            PhelType::persistentVectorFromArray([
                 Symbol::create('&'),
                 Symbol::create('param-1'),
                 Symbol::create('param-2'),
@@ -152,9 +152,9 @@ final class FnSymbolTest extends TestCase
     public static function providerGetParams(): Generator
     {
         yield '(fn [& param-1])' => [
-            Type::persistentListFromArray([
+            PhelType::persistentListFromArray([
                 Symbol::create(Symbol::NAME_FN),
-                Type::persistentVectorFromArray([
+                PhelType::persistentVectorFromArray([
                     Symbol::create('&'),
                     Symbol::create('param-1'),
                 ]),
@@ -165,9 +165,9 @@ final class FnSymbolTest extends TestCase
         ];
 
         yield '(fn [param-1 param-2 param-3])' => [
-            Type::persistentListFromArray([
+            PhelType::persistentListFromArray([
                 Symbol::create(Symbol::NAME_FN),
-                Type::persistentVectorFromArray([
+                PhelType::persistentVectorFromArray([
                     Symbol::create('param-1'),
                     Symbol::create('param-2'),
                     Symbol::create('param-3'),
@@ -192,9 +192,9 @@ final class FnSymbolTest extends TestCase
     public static function providerGetBody(): Generator
     {
         yield 'DoNode body => (fn [x] x)' => [
-            Type::persistentListFromArray([
+            PhelType::persistentListFromArray([
                 Symbol::create(Symbol::NAME_FN),
-                Type::persistentVectorFromArray([
+                PhelType::persistentVectorFromArray([
                     Symbol::create('x'),
                 ]),
                 Symbol::create('x'),
@@ -203,10 +203,10 @@ final class FnSymbolTest extends TestCase
         ];
 
         yield 'LetNode body => (fn [[x y]] x)' => [
-            Type::persistentListFromArray([
+            PhelType::persistentListFromArray([
                 Symbol::create(Symbol::NAME_FN),
-                Type::persistentVectorFromArray([
-                    Type::persistentVectorFromArray([
+                PhelType::persistentVectorFromArray([
+                    PhelType::persistentVectorFromArray([
                         Symbol::create('x'),
                         Symbol::create('y'),
                     ]),

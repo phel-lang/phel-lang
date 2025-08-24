@@ -15,7 +15,7 @@ use Phel\Compiler\Domain\Analyzer\Exceptions\AnalyzerException;
 use Phel\Compiler\Domain\Analyzer\TypeAnalyzer\SpecialForm\DefSymbol;
 use Phel\Lang\Keyword;
 use Phel\Lang\Symbol;
-use Phel\Lang\Type;
+use PhelType;
 use PHPUnit\Framework\TestCase;
 use stdClass;
 
@@ -33,10 +33,10 @@ final class DefSymbolTest extends TestCase
         $this->expectException(AnalyzerException::class);
         $this->expectExceptionMessage("'def inside of a 'def is forbidden");
 
-        $list = Type::persistentListFromArray([
+        $list = PhelType::persistentListFromArray([
             Symbol::create(Symbol::NAME_DEF),
             Symbol::create('name'),
-            Type::persistentListFromArray([
+            PhelType::persistentListFromArray([
                 Symbol::create(Symbol::NAME_DEF),
                 Symbol::create('name2'),
                 1,
@@ -50,7 +50,7 @@ final class DefSymbolTest extends TestCase
         $this->expectException(AnalyzerException::class);
         $this->expectExceptionMessage("Two or three arguments are required for 'def. Got 2");
 
-        $list = Type::persistentListFromArray([
+        $list = PhelType::persistentListFromArray([
             Symbol::create(Symbol::NAME_DEF),
             Symbol::create('1'),
         ]);
@@ -62,7 +62,7 @@ final class DefSymbolTest extends TestCase
         $this->expectException(AnalyzerException::class);
         $this->expectExceptionMessage("First argument of 'def must be a Symbol.");
 
-        $list = Type::persistentListFromArray([
+        $list = PhelType::persistentListFromArray([
             Symbol::create(Symbol::NAME_DEF),
             'not a symbol',
             '2',
@@ -75,7 +75,7 @@ final class DefSymbolTest extends TestCase
         $this->expectException(AnalyzerException::class);
         $this->expectExceptionMessage('$init must be TypeInterface|string|float|int|bool|null');
 
-        $list = Type::persistentListFromArray([
+        $list = PhelType::persistentListFromArray([
             Symbol::create(Symbol::NAME_DEF),
             Symbol::create('name'),
             new stdClass(),
@@ -85,7 +85,7 @@ final class DefSymbolTest extends TestCase
 
     public function test_init_values(): void
     {
-        $list = Type::persistentListFromArray([
+        $list = PhelType::persistentListFromArray([
             Symbol::create(Symbol::NAME_DEF),
             Symbol::create('name'),
             'any value',
@@ -117,7 +117,7 @@ final class DefSymbolTest extends TestCase
 
     public function test_docstring(): void
     {
-        $list = Type::persistentListFromArray([
+        $list = PhelType::persistentListFromArray([
             Symbol::create(Symbol::NAME_DEF),
             Symbol::create('name'),
             'my docstring',
@@ -159,7 +159,7 @@ final class DefSymbolTest extends TestCase
 
     public function test_meta_keyword(): void
     {
-        $list = Type::persistentListFromArray([
+        $list = PhelType::persistentListFromArray([
             Symbol::create(Symbol::NAME_DEF),
             Symbol::create('name'),
             Keyword::create('private'),
@@ -201,10 +201,10 @@ final class DefSymbolTest extends TestCase
 
     public function test_meta_table_keyword(): void
     {
-        $list = Type::persistentListFromArray([
+        $list = PhelType::persistentListFromArray([
             Symbol::create(Symbol::NAME_DEF),
             Symbol::create('name'),
-            Type::persistentMapFromKVs(Keyword::create('private'), true),
+            PhelType::persistentMapFromKVs(Keyword::create('private'), true),
             'any value',
         ]);
         $env = NodeEnvironment::empty();
@@ -248,7 +248,7 @@ final class DefSymbolTest extends TestCase
         $this->expectException(AnalyzerException::class);
         $this->expectExceptionMessage('Metadata must be a String, Keyword or Map');
 
-        $list = Type::persistentListFromArray([
+        $list = PhelType::persistentListFromArray([
             Symbol::create(Symbol::NAME_DEF),
             Symbol::create('name'),
             1,

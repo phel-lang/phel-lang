@@ -11,18 +11,18 @@
       return $x;
     }
   },
-  \Phel\Lang\Type::persistentMapFromKVs(
-    \Phel\Lang\Keyword::create("export"), true,
-    \Phel\Lang\Keyword::create("doc"), "```phel\n(identity x)\n```\n",
-    \Phel\Lang\Keyword::create("start-location"), \Phel\Lang\Type::persistentMapFromKVs(
-      \Phel\Lang\Keyword::create("file"), "Def/defn-meta.test",
-      \Phel\Lang\Keyword::create("line"), 1,
-      \Phel\Lang\Keyword::create("column"), 0
+  \PhelType::persistentMapFromKVs(
+    \PhelType::keyword("export"), true,
+    \PhelType::keyword("doc"), "```phel\n(identity x)\n```\n",
+    \PhelType::keyword("start-location"), \PhelType::persistentMapFromKVs(
+      \PhelType::keyword("file"), "Def/defn-meta.test",
+      \PhelType::keyword("line"), 1,
+      \PhelType::keyword("column"), 0
     ),
-    \Phel\Lang\Keyword::create("end-location"), \Phel\Lang\Type::persistentMapFromKVs(
-      \Phel\Lang\Keyword::create("file"), "Def/defn-meta.test",
-      \Phel\Lang\Keyword::create("line"), 1,
-      \Phel\Lang\Keyword::create("column"), 36
+    \PhelType::keyword("end-location"), \PhelType::persistentMapFromKVs(
+      \PhelType::keyword("file"), "Def/defn-meta.test",
+      \PhelType::keyword("line"), 1,
+      \PhelType::keyword("column"), 36
     ),
     "min-arity", 1
   )

@@ -31,11 +31,14 @@ final class Keyword extends AbstractType implements IdenticalInterface, FnInterf
         return $obj[$this] ?? $default;
     }
 
-    public static function create(string $name): self
+    public static function create(string $name, ?string $namespace = null): self
     {
-        return new self(null, $name);
+        return new self($namespace, $name);
     }
 
+    /**
+     * @deprecated in favor of create()
+     */
     public static function createForNamespace(string $namespace, string $name): self
     {
         return new self($namespace, $name);

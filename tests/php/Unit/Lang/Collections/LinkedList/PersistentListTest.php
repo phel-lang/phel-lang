@@ -9,9 +9,9 @@ use Phel\Lang\Collections\LinkedList\EmptyList;
 use Phel\Lang\Collections\LinkedList\PersistentList;
 use Phel\Lang\Collections\LinkedList\PersistentListInterface;
 use Phel\Lang\Collections\Map\PersistentMapInterface;
-use Phel\Lang\Type;
 use PhelTest\Unit\Lang\Collections\ModuloHasher;
 use PhelTest\Unit\Lang\Collections\SimpleEqualizer;
+use PhelType;
 use PHPUnit\Framework\TestCase;
 
 final class PersistentListTest extends TestCase
@@ -179,7 +179,7 @@ final class PersistentListTest extends TestCase
 
     public function test_add_meta_data(): void
     {
-        $meta = Type::emptyPersistentMap();
+        $meta = PhelType::emptyPersistentMap();
         $list = PersistentList::fromArray(new ModuloHasher(), new SimpleEqualizer(), ['foo', 'bar']);
         $listWithMeta = $list->withMeta($meta);
 

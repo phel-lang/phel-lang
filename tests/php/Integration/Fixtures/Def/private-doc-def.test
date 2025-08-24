@@ -5,18 +5,18 @@
   "user",
   "x",
   1,
-  \Phel\Lang\Type::persistentMapFromKVs(
-    \Phel\Lang\Keyword::create("private"), true,
-    \Phel\Lang\Keyword::create("doc"), "my number",
-    \Phel\Lang\Keyword::create("start-location"), \Phel\Lang\Type::persistentMapFromKVs(
-      \Phel\Lang\Keyword::create("file"), "Def/private-doc-def.test",
-      \Phel\Lang\Keyword::create("line"), 1,
-      \Phel\Lang\Keyword::create("column"), 0
+  \PhelType::persistentMapFromKVs(
+    \PhelType::keyword("private"), true,
+    \PhelType::keyword("doc"), "my number",
+    \PhelType::keyword("start-location"), \PhelType::persistentMapFromKVs(
+      \PhelType::keyword("file"), "Def/private-doc-def.test",
+      \PhelType::keyword("line"), 1,
+      \PhelType::keyword("column"), 0
     ),
-    \Phel\Lang\Keyword::create("end-location"), \Phel\Lang\Type::persistentMapFromKVs(
-      \Phel\Lang\Keyword::create("file"), "Def/private-doc-def.test",
-      \Phel\Lang\Keyword::create("line"), 1,
-      \Phel\Lang\Keyword::create("column"), 42
+    \PhelType::keyword("end-location"), \PhelType::persistentMapFromKVs(
+      \PhelType::keyword("file"), "Def/private-doc-def.test",
+      \PhelType::keyword("line"), 1,
+      \PhelType::keyword("column"), 42
     )
   )
 );

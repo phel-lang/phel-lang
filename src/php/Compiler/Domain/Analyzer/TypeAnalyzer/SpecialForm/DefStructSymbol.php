@@ -16,7 +16,7 @@ use Phel\Compiler\Domain\Emitter\OutputEmitter\MungeInterface;
 use Phel\Lang\Collections\LinkedList\PersistentListInterface;
 use Phel\Lang\Collections\Vector\PersistentVectorInterface;
 use Phel\Lang\Symbol;
-use Phel\Lang\Type;
+use PhelType;
 use ReflectionMethod;
 
 use function count;
@@ -170,12 +170,12 @@ final readonly class DefStructSymbol implements SpecialFormAnalyzerInterface
 
         // Analyze arguments and body as (fn arguments (do body))
         $fnNode = $this->analyzer->analyze(
-            Type::persistentListFromArray([
+            PhelType::persistentListFromArray([
                 Symbol::create('fn'),
                 $arguments->rest(), // remove the first argument. The first argument is bound to $this
-                Type::persistentListFromArray([
+                PhelType::persistentListFromArray([
                     Symbol::create('let'),
-                    Type::persistentVectorFromArray([
+                    PhelType::persistentVectorFromArray([
                         $arguments->first(),
                         Symbol::createForNamespace('php', '$this'),
                     ]),

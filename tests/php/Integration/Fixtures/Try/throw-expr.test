@@ -14,16 +14,16 @@
       return $e_1;
     }
   },
-  \Phel\Lang\Type::persistentMapFromKVs(
-    \Phel\Lang\Keyword::create("start-location"), \Phel\Lang\Type::persistentMapFromKVs(
-      \Phel\Lang\Keyword::create("file"), "Try/throw-expr.test",
-      \Phel\Lang\Keyword::create("line"), 1,
-      \Phel\Lang\Keyword::create("column"), 0
+  \PhelType::persistentMapFromKVs(
+    \PhelType::keyword("start-location"), \PhelType::persistentMapFromKVs(
+      \PhelType::keyword("file"), "Try/throw-expr.test",
+      \PhelType::keyword("line"), 1,
+      \PhelType::keyword("column"), 0
     ),
-    \Phel\Lang\Keyword::create("end-location"), \Phel\Lang\Type::persistentMapFromKVs(
-      \Phel\Lang\Keyword::create("file"), "Try/throw-expr.test",
-      \Phel\Lang\Keyword::create("line"), 1,
-      \Phel\Lang\Keyword::create("column"), 56
+    \PhelType::keyword("end-location"), \PhelType::persistentMapFromKVs(
+      \PhelType::keyword("file"), "Try/throw-expr.test",
+      \PhelType::keyword("line"), 1,
+      \PhelType::keyword("column"), 56
     ),
     "min-arity", 0
   )

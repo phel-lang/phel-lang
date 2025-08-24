@@ -30,7 +30,7 @@ use Phel\Compiler\Domain\Analyzer\Environment\GlobalEnvironment;
 use Phel\Compiler\Domain\Analyzer\Environment\NodeEnvironment;
 use Phel\Compiler\Domain\Analyzer\TypeAnalyzer\AnalyzePersistentList;
 use Phel\Lang\Symbol;
-use Phel\Lang\Type;
+use PhelType;
 use PHPUnit\Framework\TestCase;
 
 final class AnalyzePersistentListTest extends TestCase
@@ -44,7 +44,7 @@ final class AnalyzePersistentListTest extends TestCase
 
     public function test_symbol_with_name_def(): void
     {
-        $list = Type::persistentListFromArray([
+        $list = PhelType::persistentListFromArray([
             Symbol::create(Symbol::NAME_DEF),
             Symbol::create('increment'),
             'inc',
@@ -54,7 +54,7 @@ final class AnalyzePersistentListTest extends TestCase
 
     public function test_symbol_with_name_ns(): void
     {
-        $list = Type::persistentListFromArray([
+        $list = PhelType::persistentListFromArray([
             Symbol::create(Symbol::NAME_NS),
             Symbol::create('def-ns'),
         ]);
@@ -63,16 +63,16 @@ final class AnalyzePersistentListTest extends TestCase
 
     public function test_symbol_with_name_fn(): void
     {
-        $list = Type::persistentListFromArray([
+        $list = PhelType::persistentListFromArray([
             Symbol::create(Symbol::NAME_FN),
-            Type::persistentVectorFromArray([]),
+            PhelType::persistentVectorFromArray([]),
         ]);
         self::assertInstanceOf(FnNode::class, $this->listAnalyzer->analyze($list, NodeEnvironment::empty()));
     }
 
     public function test_symbol_with_name_quote(): void
     {
-        $list = Type::persistentListFromArray([
+        $list = PhelType::persistentListFromArray([
             Symbol::create(Symbol::NAME_QUOTE),
              'any text',
         ]);
@@ -81,7 +81,7 @@ final class AnalyzePersistentListTest extends TestCase
 
     public function test_symbol_with_name_do(): void
     {
-        $list = Type::persistentListFromArray([
+        $list = PhelType::persistentListFromArray([
             Symbol::create(Symbol::NAME_DO), 1,
         ]);
         self::assertInstanceOf(DoNode::class, $this->listAnalyzer->analyze($list, NodeEnvironment::empty()));
@@ -89,7 +89,7 @@ final class AnalyzePersistentListTest extends TestCase
 
     public function test_symbol_with_name_if(): void
     {
-        $list = Type::persistentListFromArray([
+        $list = PhelType::persistentListFromArray([
             Symbol::create(Symbol::NAME_IF),
             true,
             true,
@@ -99,25 +99,25 @@ final class AnalyzePersistentListTest extends TestCase
 
     public function test_symbol_with_name_apply(): void
     {
-        $list = Type::persistentListFromArray([
-            Symbol::create(Symbol::NAME_APPLY), '+', Type::persistentVectorFromArray(['']),
+        $list = PhelType::persistentListFromArray([
+            Symbol::create(Symbol::NAME_APPLY), '+', PhelType::persistentVectorFromArray(['']),
         ]);
         self::assertInstanceOf(ApplyNode::class, $this->listAnalyzer->analyze($list, NodeEnvironment::empty()));
     }
 
     public function test_symbol_with_name_let(): void
     {
-        $list = Type::persistentListFromArray([
+        $list = PhelType::persistentListFromArray([
             Symbol::create(Symbol::NAME_LET),
-            Type::persistentVectorFromArray([]),
-            Type::persistentVectorFromArray([]),
+            PhelType::persistentVectorFromArray([]),
+            PhelType::persistentVectorFromArray([]),
         ]);
         self::assertInstanceOf(LetNode::class, $this->listAnalyzer->analyze($list, NodeEnvironment::empty()));
     }
 
     public function test_symbol_with_name_php_new(): void
     {
-        $list = Type::persistentListFromArray([
+        $list = PhelType::persistentListFromArray([
             Symbol::create(Symbol::NAME_PHP_NEW), '',
         ]);
         self::assertInstanceOf(PhpNewNode::class, $this->listAnalyzer->analyze($list, NodeEnvironment::empty()));
@@ -125,7 +125,7 @@ final class AnalyzePersistentListTest extends TestCase
 
     public function test_symbol_with_name_php_object_call(): void
     {
-        $list = Type::persistentListFromArray([
+        $list = PhelType::persistentListFromArray([
             Symbol::create(Symbol::NAME_PHP_OBJECT_CALL), '', Symbol::create(''),
         ]);
         self::assertInstanceOf(
@@ -136,7 +136,7 @@ final class AnalyzePersistentListTest extends TestCase
 
     public function test_symbol_with_name_php_object_static_call(): void
     {
-        $list = Type::persistentListFromArray([
+        $list = PhelType::persistentListFromArray([
             Symbol::create(Symbol::NAME_PHP_OBJECT_STATIC_CALL), '', Symbol::create(''),
         ]);
         self::assertInstanceOf(
@@ -147,9 +147,9 @@ final class AnalyzePersistentListTest extends TestCase
 
     public function test_symbol_with_name_php_array_get(): void
     {
-        $list = Type::persistentListFromArray([
+        $list = PhelType::persistentListFromArray([
             Symbol::create(Symbol::NAME_PHP_ARRAY_GET),
-            Type::persistentListFromArray([Symbol::create('php/array')]),
+            PhelType::persistentListFromArray([Symbol::create('php/array')]),
             0,
         ]);
         self::assertInstanceOf(
@@ -160,9 +160,9 @@ final class AnalyzePersistentListTest extends TestCase
 
     public function test_symbol_with_name_php_array_set(): void
     {
-        $list = Type::persistentListFromArray([
+        $list = PhelType::persistentListFromArray([
             Symbol::create(Symbol::NAME_PHP_ARRAY_SET),
-            Type::persistentListFromArray([Symbol::create('php/array')]),
+            PhelType::persistentListFromArray([Symbol::create('php/array')]),
             0,
             1,
         ]);
@@ -174,9 +174,9 @@ final class AnalyzePersistentListTest extends TestCase
 
     public function test_symbol_with_name_php_array_push(): void
     {
-        $list = Type::persistentListFromArray([
+        $list = PhelType::persistentListFromArray([
             Symbol::create(Symbol::NAME_PHP_ARRAY_PUSH),
-            Type::persistentListFromArray([Symbol::create('php/array')]),
+            PhelType::persistentListFromArray([Symbol::create('php/array')]),
             1,
         ]);
         self::assertInstanceOf(
@@ -187,9 +187,9 @@ final class AnalyzePersistentListTest extends TestCase
 
     public function test_symbol_with_name_php_array_unset(): void
     {
-        $list = Type::persistentListFromArray([
+        $list = PhelType::persistentListFromArray([
             Symbol::create(Symbol::NAME_PHP_ARRAY_UNSET),
-            Type::persistentListFromArray([Symbol::create('php/array')]),
+            PhelType::persistentListFromArray([Symbol::create('php/array')]),
             0,
         ]);
         self::assertInstanceOf(
@@ -200,7 +200,7 @@ final class AnalyzePersistentListTest extends TestCase
 
     public function test_symbol_with_name_recur(): void
     {
-        $list = Type::persistentListFromArray([
+        $list = PhelType::persistentListFromArray([
             Symbol::create(Symbol::NAME_RECUR), 1,
         ]);
         $recurFrames = [new RecurFrame([Symbol::create(Symbol::NAME_FOREACH)])];
@@ -210,7 +210,7 @@ final class AnalyzePersistentListTest extends TestCase
 
     public function test_symbol_with_name_try(): void
     {
-        $list = Type::persistentListFromArray([
+        $list = PhelType::persistentListFromArray([
             Symbol::create(Symbol::NAME_TRY),
         ]);
         self::assertInstanceOf(TryNode::class, $this->listAnalyzer->analyze($list, NodeEnvironment::empty()));
@@ -218,7 +218,7 @@ final class AnalyzePersistentListTest extends TestCase
 
     public function test_symbol_with_name_throw(): void
     {
-        $list = Type::persistentListFromArray([
+        $list = PhelType::persistentListFromArray([
             Symbol::create(Symbol::NAME_THROW), '',
         ]);
         self::assertInstanceOf(ThrowNode::class, $this->listAnalyzer->analyze($list, NodeEnvironment::empty()));
@@ -226,39 +226,39 @@ final class AnalyzePersistentListTest extends TestCase
 
     public function test_symbol_with_name_loop(): void
     {
-        $list = Type::persistentListFromArray([
+        $list = PhelType::persistentListFromArray([
             Symbol::create(Symbol::NAME_LOOP),
-            Type::persistentVectorFromArray([]),
-            Type::persistentVectorFromArray([]),
+            PhelType::persistentVectorFromArray([]),
+            PhelType::persistentVectorFromArray([]),
         ]);
         self::assertInstanceOf(LetNode::class, $this->listAnalyzer->analyze($list, NodeEnvironment::empty()));
     }
 
     public function test_symbol_with_name_foreach(): void
     {
-        $list = Type::persistentListFromArray([
+        $list = PhelType::persistentListFromArray([
             Symbol::create(Symbol::NAME_FOREACH),
-            Type::persistentVectorFromArray([
-                Symbol::create(''), Type::persistentVectorFromArray([]),
+            PhelType::persistentVectorFromArray([
+                Symbol::create(''), PhelType::persistentVectorFromArray([]),
             ]),
-            Type::persistentVectorFromArray([]),
+            PhelType::persistentVectorFromArray([]),
         ]);
         self::assertInstanceOf(ForeachNode::class, $this->listAnalyzer->analyze($list, NodeEnvironment::empty()));
     }
 
     public function test_symbol_with_name_def_struct(): void
     {
-        $list = Type::persistentListFromArray([
+        $list = PhelType::persistentListFromArray([
             Symbol::create(Symbol::NAME_DEF_STRUCT),
             Symbol::create(''),
-            Type::persistentVectorFromArray([]),
+            PhelType::persistentVectorFromArray([]),
         ]);
         self::assertInstanceOf(DefStructNode::class, $this->listAnalyzer->analyze($list, NodeEnvironment::empty()));
     }
 
     public function test_symbol_with_name_def_exception(): void
     {
-        $list = Type::persistentListFromArray([
+        $list = PhelType::persistentListFromArray([
             Symbol::create(Symbol::NAME_DEF_EXCEPTION),
             Symbol::create('MyExc'),
         ]);
