@@ -1,0 +1,10 @@
+--PHEL--
+(php/-> (php/new \SimpleXMLElement "<root><user id='1'/></root>") user (count))
+--PHP--
+(function() {
+  $target_1 = (function() {
+    $target_2 = (new \SimpleXMLElement("<root><user id='1'/></root>"));
+    return $target_2->user;
+  })();
+  return $target_1->count();
+})();

@@ -5,6 +5,6 @@
   $target_1 = (function() {
     $target_2 = (new \DateTimeImmutable());
     return $target_2->modify("+1 day");
-  })();;
+  })();
   return $target_1->format("Y-m-d");
 })();
