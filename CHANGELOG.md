@@ -7,12 +7,13 @@ All notable changes to this project will be documented in this file.
 - Fix `map` function exhaustion with empty collections
 - Fix `contains-value?` with `nil` value
 - Fix set `difference` errors with certain input
+- Fix `require` loading code without `*build-mode*`
 - Add `slurp` and `spit` file reading and writing functions
 - Add `select-keys`
 - Enhance `php/->` for nested calls
 - Auto-assign-author GH workflow
 - Avoid coercing `nil` to 0 in math operations
-- Add `\Phel` as public entry class instead of `\Phel\Phel` 
+- Add `Phel` as public entry class instead of `\Phel\Phel` 
 - Use `Phel` as proxy for singleton `Registry` and `TypeFactory` methods
 
 ## [0.19.1](https://github.com/phel-lang/phel-lang/compare/v0.19.0...v0.19.1) - 2025-08-03
