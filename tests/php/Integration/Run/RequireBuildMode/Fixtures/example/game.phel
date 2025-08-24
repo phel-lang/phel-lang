@@ -1,0 +1,6 @@
+(ns example\game)
+
+(def executed-file (str (php/constant "__DIR__") "/executed.txt"))
+
+(when-not *build-mode*
+  (php/file_put_contents executed-file "executed"))
