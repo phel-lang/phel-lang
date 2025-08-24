@@ -21,6 +21,12 @@ All notable changes to this project will be documented in this file.
     - `pad-both`
     - `zipmap`
     - `repeatedly`
+    - `every?` alias for `all?`
+    - `not-every?`
+    - `not-any?`
+    - `some`
+    - `not-empty`
+    - `constantly`
 - Add new macros:
     - `some->`
     - `some->>`

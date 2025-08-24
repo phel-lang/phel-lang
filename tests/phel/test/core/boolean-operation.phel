@@ -135,6 +135,16 @@
 (deftest test-all?-empty-element
   (is (true? (all? |(throw (php/new \Exception)) [])) "`pred` is not executed when searching for empty vectors."))
 
+(deftest test-every?
+  (is (true? (every? pos? [1 2 3])) "every? pos? in list")
+  (is (true? (every? pos? [])) "every? pos? in empty list")
+  (is (false? (every? pos? [1 -1 3])) "every? pos? in list"))
+
+(deftest test-not-every?
+  (is (false? (not-every? pos? [1 2 3])) "not-every? all pos")
+  (is (false? (not-every? pos? [])) "not-every? empty list")
+  (is (true? (not-every? pos? [1 -1 3])) "not-every?"))
+
 (deftest test-some?
   (is (true? (some? pos? [1 2 3])) "some pos? in list")
   (is (false? (some? pos? [])) "some pos? in empty list")
@@ -143,6 +153,16 @@
 
 (deftest test-some?-empty-element
   (is (false? (some? |(throw (php/new \Exception)) [])) "`pred` is not executed when searching for empty vectors."))
+
+(deftest test-not-any?
+  (is (false? (not-any? pos? [1 -1 3])) "not-any? one pos")
+  (is (true? (not-any? pos? [])) "not-any? empty list")
+  (is (true? (not-any? pos? [-1 -2 -3])) "not-any? only neg"))
+
+(deftest test-some
+  (is (= 3 (some |(if (> $ 2) $ nil) [1 2 3 4])) "some returns first truthy")
+  (is (nil? (some |(if (> $ 10) $ nil) [1 2 3])) "some returns nil when none matches")
+  (is (nil? (some |(if (> $ 1) $ nil) [])) "some on empty list"))
 
 (deftest test-true?
   (is (true? (true? true)) "(true? true)")

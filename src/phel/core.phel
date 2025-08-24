@@ -517,13 +517,24 @@ Calling the `and` function without arguments returns true."
   (php/<=> b a))
 
 (defn all?
-  "Returns true if `(pred x)` is logical true for every `x` in collection `xs` 
+  "Returns true if `(pred x)` is logical true for every `x` in collection `xs`
    or if `xs` is empty. Otherwise returns false."
   [pred xs]
   (cond
     (php/=== (count xs) 0) true
     (pred (first xs))     (recur pred (next xs))
     false))
+
+(defn every?
+  "Alias for `all?`."
+  [pred xs]
+  (all? pred xs))
+
+(defn not-every?
+  "Returns false if `(pred x)` is logical true for every `x` in collection `xs`
+   or if `xs` is empty. Otherwise returns true."
+  [pred xs]
+  (not (every? pred xs)))
 
 (declare empty?)
 (declare truthy?)
@@ -537,6 +548,22 @@ Calling the `and` function without arguments returns true."
     (if (truthy? (pred (first xs)))
       true
       (recur pred (next xs)))))
+
+(defn not-any?
+  "Returns true if `(pred x)` is logical false for every `x` in `xs`
+   or if `xs` is empty. Otherwise returns false."
+  [pred xs]
+  (not (some? pred xs)))
+
+(defn some
+  "Returns the first logical true value of `(pred x)` for any `x` in `xs`, else nil."
+  [pred xs]
+  (if (empty? xs)
+    nil
+    (let [res (pred (first xs))]
+      (if (truthy? res)
+        res
+        (recur pred (next xs))))))
 
 (defn true?
   "Checks if `x` is true. Same as `x === true` in PHP."
@@ -707,6 +734,13 @@ Calling the `and` function without arguments returns true."
     (if (php/is_string x)
       (true? (php/empty x))
       (= 0 (count x)))))
+
+(defn not-empty
+  "Returns `coll` if it contains elements, otherwise nil."
+  [coll]
+  (if (empty? coll)
+    nil
+    coll))
 
 (defn- indexed-php-array?
   [x]
@@ -1478,6 +1512,11 @@ arrays. Use (php/aunset ds key)"))
   "Returns its argument."
   [x]
   x)
+
+(defn constantly
+  "Returns a function that always returns `x` and ignores any passed arguments."
+  [x]
+  (fn [& _] x))
 
 (defn comp
   "Takes a list of functions and returns a function that is the composition of those functions."

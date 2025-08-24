@@ -186,6 +186,10 @@
   (is (= [1 2 3] (values {:a 1 :b 2 :c 3})) "values of map")
   (is (= [3 2 1] (values [3 2 1])) "values of vector"))
 
+(deftest test-not-empty
+  (is (= [1] (not-empty [1])) "not-empty returns coll")
+  (is (nil? (not-empty [])) "not-empty empty"))
+
 (deftest test-pairs
   (is (= [[:a 1] [:b 2] [:c 3]] (pairs {:a 1 :b 2 :c 3})) "pairs of maps")
   (is (= [[0 3] [1 2] [2 1]] (pairs [3 2 1])) "pairs of vector"))

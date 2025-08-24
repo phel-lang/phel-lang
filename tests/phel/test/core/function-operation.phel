@@ -18,6 +18,11 @@
 (deftest test-partial
   (is (= 3 ((partial + 2) 1)) "partial of add"))
 
+(deftest test-constantly
+  (let [f (constantly 42)]
+    (is (= 42 (f)) "constantly without args")
+    (is (= 42 (f 1 2)) "constantly ignores args")))
+
 (deftest test-memoize
   (let [counter (var 0)
         f (memoize (fn [x] (swap! counter inc) (+ x 1)))]
