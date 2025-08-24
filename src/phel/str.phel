@@ -1,5 +1,6 @@
 (ns phel\str
-  (:require phel\core))
+  (:require phel\core)
+  (:use InvalidArgumentException))
 
 (defn split
   "Splits string on a regular expression.  Optional argument limit is
@@ -14,6 +15,16 @@
   [separator & [coll]]
   (let [[coll separator] (if (nil? coll) [separator ""] [coll separator])]
     (php/implode separator (to-php-array coll))))
+
+(defn subs
+  "Returns the substring of `s` from `start` (inclusive) to `end` (exclusive).
+   If `end` is omitted, the substring extends to the end of `s`."
+  [s start & [end]]
+  (let [len (php/mb_strlen s)
+        end (or end len)]
+    (when (or (php/< start 0) (php/< end start) (php/> end len))
+      (throw (php/new InvalidArgumentException "Invalid start or end index for subs")))
+    (php/mb_substr s start (- end start))))
 
 (defn reverse
   "Returns s with its characters reversed."

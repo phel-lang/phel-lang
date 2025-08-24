@@ -1,5 +1,5 @@
 (ns phel-test\test\str
-  (:require phel\test :refer [deftest is])
+  (:require phel\test :refer [deftest is thrown?])
   (:require phel\str :as s))
 
 (deftest test-split
@@ -54,6 +54,12 @@
   (is (= "" (s/join [])))
   (is (= "1" (s/join [1])))
   (is (= "12" (s/join [1 2]))))
+
+(deftest test-subs
+  (is (= "lo" (s/subs "hello" 3)))
+  (is (= "el" (s/subs "hello" 1 3)))
+  (is (= "ｌｏ" (s/subs "ｈｅｌｌｏ" 3)))
+  (is (thrown? \InvalidArgumentException (s/subs "hello" 3 2))))
 
 (deftest test-trim-newline
   (is (= "foo" (s/trim-newline "foo\n")))
