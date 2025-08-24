@@ -81,7 +81,9 @@ final class NsEmitter implements NodeEmitterInterface
                 $this->outputEmitter->increaseIndentLevel();
                 $this->outputEmitter->emitLine('if (!in_array($__phelNsInfo->getNamespace(), \\Phel::getNamespaces(), true)) {');
                 $this->outputEmitter->increaseIndentLevel();
+                $this->outputEmitter->emitLine('\\Phel\\Build\\BuildFacade::enableBuildMode();');
                 $this->outputEmitter->emitLine('$__phelBuildFacade->evalFile($__phelNsInfo->getFile());');
+                $this->outputEmitter->emitLine('\\Phel\\Build\\BuildFacade::disableBuildMode();');
                 $this->outputEmitter->emitLine('\\Phel\\Compiler\\Infrastructure\\GlobalEnvironmentSingleton::getInstance()->setNs("' . addslashes($node->getNamespace()) . '");');
                 $this->outputEmitter->decreaseIndentLevel();
                 $this->outputEmitter->emitLine('}');
