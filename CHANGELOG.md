@@ -19,6 +19,8 @@ All notable changes to this project will be documented in this file.
     - `dissoc-in` alias for `unset-in`
     - `drop-last`
     - `pad-both`
+    - `zipmap`
+    - `repeatedly`
 - Add new macros:
     - `some->`
     - `some->>`

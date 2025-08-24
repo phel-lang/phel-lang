@@ -11,6 +11,10 @@
   (is (= [:a :a :a] (repeat 3 :a)) "(repeat 3 :a)")
   (is (= [] (repeat 0 :a)) "(repeat 0 :a)"))
 
+(deftest test-repeatedly
+  (is (= [:x :x :x] (repeatedly 3 (fn [] :x))) "(repeatedly 3 (fn [] :x))")
+  (is (= [] (repeatedly 0 (fn [] :x))) "(repeatedly 0 (fn [] :x))"))
+
 (deftest test-for-loop
   (is (= [0 1 2] (for [x :range [0 3]] x)) "for loop (:range)")
   (is (= [3 2 1] (for [x :range [3 0 -1]] x)) "for loop dec (:range)")

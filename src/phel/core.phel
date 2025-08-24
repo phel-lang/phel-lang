@@ -1334,6 +1334,11 @@ arrays. Use (php/aunset ds key)"))
   [n x]
   (for [i :range [n]] x))
 
+(defn repeatedly
+  "Returns a vector of length n with values produced by repeatedly calling f."
+  [n f]
+  (for [i :range [n]] (f)))
+
 (defn group-by
   "Returns a map of the elements of xs keyed by the result of
   f on each element."
@@ -1350,6 +1355,16 @@ arrays. Use (php/aunset ds key)"))
   "Creates a map from two sequential data structures. Return a new map."
   [a b]
   (apply hash-map (interleave a b)))
+
+(defn zipmap
+  "Returns a new map with the keys mapped to the corresponding values. Stops when the shorter of `keys` or `vals` is exhausted."
+  [keys vals]
+  (loop [ks keys
+         vs vals
+         res {}]
+    (if (or (empty? ks) (empty? vs))
+      res
+      (recur (next ks) (next vs) (put res (first ks) (first vs))))))
 
 (defn merge
   "Merges multiple maps into one new map. If a key appears in more than one

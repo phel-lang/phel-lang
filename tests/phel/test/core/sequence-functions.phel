@@ -211,6 +211,11 @@
 (deftest test-zipcoll
   (is (= {:a 1 :b 2 :c 3} (zipcoll [:a :b :c] [1 2 3])) "zipcoll"))
 
+(deftest test-zipmap
+  (is (= {:a 1 :b 2} (zipmap [:a :b :c] [1 2])) "zipmap drops extra keys")
+  (is (= {:a 1 :b 2} (zipmap [:a :b] [1 2 3])) "zipmap drops extra values")
+  (is (= {:a 1 :b 2} (zipmap [:a :b] [1 2])) "zipmap equal length"))
+
 (deftest test-merge
   (is (= {:a -1 :b 2 :c 3 :d 4} (merge {:a 1 :b 2} {:a -1 :c 3} {:d 4})) "merge"))
 
