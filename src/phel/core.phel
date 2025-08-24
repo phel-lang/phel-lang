@@ -802,6 +802,11 @@ arrays. Use (php/aset ds key value)"))
       (php/aset ds key value)
       ds)))
 
+(defn assoc
+  "Alias for `put`."
+  [ds key value]
+  (put ds key value))
+
 (defn unset
   "Returns `ds` without `key`."
   [ds key]
@@ -819,6 +824,11 @@ arrays. Use (php/aunset ds key)"))
     (let [x ds]
       (php/aunset x key)
       x)))
+
+(defn dissoc
+  "Alias for `unset`."
+  [ds key]
+  (unset ds key))
 
 # --------
 # Variable
@@ -1037,6 +1047,11 @@ arrays. Use (php/aunset ds key)"))
     (put ds k (put-in (get ds k {}) ks v))
     (put ds k v)))
 
+(defn assoc-in
+  "Alias for `put-in`."
+  [ds ks v]
+  (put-in ds ks v))
+
 (defn update
   "Updates a value in a datastructure by applying `f` to the current element and replacing it with the result of `f`."
   [ds k f & args]
@@ -1059,6 +1074,11 @@ arrays. Use (php/aunset ds key)"))
         ds
         (put ds k (unset-in sub ks))))
     (unset ds k)))
+
+(defn dissoc-in
+  "Alias for `unset-in`."
+  [ds ks]
+  (unset-in ds ks))
 
 (defn drop
   "Drops the first `n` elements of `xs`."
