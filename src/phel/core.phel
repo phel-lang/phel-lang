@@ -1814,6 +1814,19 @@ returns 1. If `xs` has one value, returns the reciprocal of x."
   [xs]
   (/ (sum xs) (count xs)))
 
+(defn median
+  "Returns the median of `xs`."
+  [xs]
+  (let [arr (to-php-array xs)
+        cnt (count arr)]
+    (when (zero? cnt)
+      (throw (php/new \InvalidArgumentException "Cannot compute median of empty sequence")))
+    (php/sort arr)
+    (let [mid (php/intdiv cnt 2)]
+      (if (odd? cnt)
+        (php/aget arr mid)
+        (/ (+ (php/aget arr (dec mid)) (php/aget arr mid)) 2)))))
+
 # ---------------
 # Print operation
 # ---------------

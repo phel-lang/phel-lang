@@ -112,6 +112,11 @@
 (deftest test-mean
   (is (= 2 (mean [1 2 3])) "(mean [1 2 3])"))
 
+(deftest test-median
+  (is (= 3 (median [3 1 5])) "(median [3 1 5])")
+  (is (= 2.5 (median [4 1 3 2])) "(median [4 1 3 2])")
+  (is (thrown? \InvalidArgumentException (median [])) "(median [])"))
+
 (deftest test-numbers-with-underscore
   (is (= 1337 0b10100111001) "binary number")
   (is (= 1337 0b101_0011_1001) "binary number with underscores")
