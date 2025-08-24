@@ -102,7 +102,7 @@ final class TestCommand extends Command
     }
 
     /**
-     * @param  list<NamespaceInformation>  $namespacesInfo
+     * @param list<NamespaceInformation> $namespacesInfo
      */
     private function namespacesAsString(array $namespacesInfo): string
     {

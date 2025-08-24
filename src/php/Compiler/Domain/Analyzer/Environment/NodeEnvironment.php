@@ -26,11 +26,11 @@ final class NodeEnvironment implements NodeEnvironmentInterface
     private bool $globalReference = false;
 
     /**
-     * @param array<int, Symbol> $locals A list of local symbols
-     * @param string $context The current context (Expression, Statement or Return)
-     * @param array<string, Symbol> $shadowed A mapping list of local variables to shadowed names
+     * @param array<int, Symbol>     $locals      A list of local symbols
+     * @param string                 $context     The current context (Expression, Statement or Return)
+     * @param array<string, Symbol>  $shadowed    A mapping list of local variables to shadowed names
      * @param array<RecurFrame|null> $recurFrames A list of RecurFrame
-     * @param string $boundTo A variable this is bound to
+     * @param string                 $boundTo     A variable this is bound to
      */
     public function __construct(
         private array $locals,

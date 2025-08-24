@@ -12,7 +12,6 @@ interface PushInterface
     /**
      * Pushes a new value of the data structure.
      *
-     *
      * @return TSelf
      */
     public function push(mixed $x);

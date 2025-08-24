@@ -56,7 +56,7 @@ class Phel
     /**
      * This function helps to unify the running execution for a custom phel project.
      *
-     * @param  list<string>|string|null  $argv
+     * @param list<string>|string|null $argv
      */
     public static function run(string $projectRootDir, string $namespace, array|string|null $argv = null): void
     {
@@ -80,7 +80,7 @@ class Phel
     }
 
     /**
-     * @param  list<string>|string  $argv
+     * @param list<string>|string $argv
      */
     private static function updateGlobalArgv(array|string $argv): void
     {

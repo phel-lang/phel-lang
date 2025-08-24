@@ -31,11 +31,11 @@ final readonly class QuasiquoteTransformer implements QuasiquoteTransformerInter
     }
 
     /**
-     * @param TypeInterface|string|float|int|bool|null $form The form to quasiqoute
+     * @param bool|float|int|string|TypeInterface|null $form The form to quasiqoute
      *
      * @throws SpliceNotInListException
      *
-     * @return TypeInterface|string|float|int|bool|null
+     * @return bool|float|int|string|TypeInterface|null
      */
     public function transform($form)
     {
@@ -68,7 +68,7 @@ final readonly class QuasiquoteTransformer implements QuasiquoteTransformerInter
     }
 
     /**
-     * @param TypeInterface|string|float|int|bool|null $form
+     * @param bool|float|int|string|TypeInterface|null $form
      */
     private function isUnquote($form): bool
     {
@@ -76,7 +76,7 @@ final readonly class QuasiquoteTransformer implements QuasiquoteTransformerInter
     }
 
     /**
-     * @param TypeInterface|string|float|int|bool|null $form
+     * @param bool|float|int|string|TypeInterface|null $form
      */
     private function isUnquoteSplicing($form): bool
     {
@@ -151,7 +151,7 @@ final readonly class QuasiquoteTransformer implements QuasiquoteTransformerInter
     }
 
     /**
-     * @param TypeInterface|string|float|int|bool|null $x The form to check
+     * @param bool|float|int|string|TypeInterface|null $x The form to check
      */
     private function isLiteral($x): bool
     {
@@ -164,7 +164,7 @@ final readonly class QuasiquoteTransformer implements QuasiquoteTransformerInter
     }
 
     /**
-     * @param TypeInterface|string|float|int|bool|null $form
+     * @param bool|float|int|string|TypeInterface|null $form
      */
     private function createOtherwise($form): PersistentListInterface
     {

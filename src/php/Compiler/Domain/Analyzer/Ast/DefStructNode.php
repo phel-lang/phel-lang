@@ -11,7 +11,7 @@ use Phel\Lang\Symbol;
 final class DefStructNode extends AbstractNode
 {
     /**
-     * @param list<Symbol> $params
+     * @param list<Symbol>             $params
      * @param list<DefStructInterface> $interfaces
      */
     public function __construct(

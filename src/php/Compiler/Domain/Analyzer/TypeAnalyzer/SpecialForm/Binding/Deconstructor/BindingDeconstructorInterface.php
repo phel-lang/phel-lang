@@ -14,9 +14,9 @@ interface BindingDeconstructorInterface
     /**
      * Destructure a symbol $binding and add the result to $bindings.
      *
-     * @param array $bindings A reference to already defined bindings
-     * @param T $binding The binding form
-     * @param TypeInterface|string|float|int|bool|null $value The value form
+     * @param array                                    $bindings A reference to already defined bindings
+     * @param T                                        $binding  The binding form
+     * @param bool|float|int|string|TypeInterface|null $value    The value form
      */
     public function deconstruct(array &$bindings, mixed $binding, $value): void;
 }

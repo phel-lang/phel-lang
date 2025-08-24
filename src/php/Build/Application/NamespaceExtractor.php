@@ -73,7 +73,7 @@ final readonly class NamespaceExtractor implements NamespaceExtractorInterface
     }
 
     /**
-     * @param  list<string>  $directories
+     * @param list<string> $directories
      *
      * @throws ExtractorException
      *
@@ -98,7 +98,7 @@ final readonly class NamespaceExtractor implements NamespaceExtractorInterface
     }
 
     /**
-     * @param  list<NamespaceInformation>  $namespaceInformationList
+     * @param list<NamespaceInformation> $namespaceInformationList
      *
      * @return list<NamespaceInformation>
      */

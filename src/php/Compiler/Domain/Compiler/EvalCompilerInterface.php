@@ -23,7 +23,7 @@ interface EvalCompilerInterface
     /**
      * Evaluates a provided Phel form.
      *
-     * @param TypeInterface|string|float|int|bool|null $form The phel form to evaluate
+     * @param bool|float|int|string|TypeInterface|null $form The phel form to evaluate
      *
      * @throws CompilerException|UnfinishedParserException
      *

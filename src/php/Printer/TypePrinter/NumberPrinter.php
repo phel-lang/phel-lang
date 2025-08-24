@@ -7,14 +7,14 @@ namespace Phel\Printer\TypePrinter;
 use function sprintf;
 
 /**
- * @implements TypePrinterInterface<int|float>
+ * @implements TypePrinterInterface<float|int>
  */
 final class NumberPrinter implements TypePrinterInterface
 {
     use WithColorTrait;
 
     /**
-     * @param int|float $form
+     * @param float|int $form
      */
     public function print(mixed $form): string
     {

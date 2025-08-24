@@ -9,9 +9,9 @@ use Phel\Lang\TypeInterface;
 interface QuasiquoteTransformerInterface
 {
     /**
-     * @param TypeInterface|string|float|int|bool|null $form The form to quasiqoute
+     * @param bool|float|int|string|TypeInterface|null $form The form to quasiqoute
      *
-     * @return TypeInterface|string|float|int|bool|null
+     * @return bool|float|int|string|TypeInterface|null
      */
     public function transform($form);
 }

@@ -22,10 +22,10 @@ final class TransientVector implements TransientVectorInterface
     private int $tailSize;
 
     /**
-     * @param int $count The number of elements inside this vector
-     * @param int $shift The shift value
-     * @param array<array> $root The root node of this vector
-     * @param T[] $tail The tail of the vector. This is an optimization
+     * @param int          $count The number of elements inside this vector
+     * @param int          $shift The shift value
+     * @param array<array> $root  The root node of this vector
+     * @param T[]          $tail  The tail of the vector. This is an optimization
      */
     public function __construct(
         private readonly HasherInterface $hasher,

@@ -47,7 +47,7 @@ final class AnalyzePersistentList
     private const string EMPTY_SYMBOL_NAME = '';
 
     /**
-     * @throws AnalyzerException|AbstractLocatedException
+     * @throws AbstractLocatedException|AnalyzerException
      */
     public function analyze(PersistentListInterface $list, NodeEnvironmentInterface $env): AbstractNode
     {

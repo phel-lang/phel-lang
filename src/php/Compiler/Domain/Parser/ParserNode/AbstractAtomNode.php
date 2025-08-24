@@ -12,10 +12,10 @@ use Phel\Lang\SourceLocation;
 abstract class AbstractAtomNode implements NodeInterface
 {
     /**
-     * @param string $code The code of the node
+     * @param string         $code          The code of the node
      * @param SourceLocation $startLocation The start location of the atom
-     * @param SourceLocation $endLocation The end location of the atom
-     * @param T $value The value of the atom
+     * @param SourceLocation $endLocation   The end location of the atom
+     * @param T              $value         The value of the atom
      */
     public function __construct(
         private readonly string $code,

@@ -16,7 +16,7 @@ use function count;
  */
 final class IndexedNodeIterator implements Iterator
 {
-    /** @var array<int, array{0: K|null, 1: V|HashMapNodeInterface<K, V>}> */
+    /** @var array<int, array{0: K|null, 1: HashMapNodeInterface<K, V>|V}> */
     private readonly array $entries;
 
     private readonly int $count;

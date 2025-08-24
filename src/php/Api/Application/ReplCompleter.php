@@ -29,7 +29,7 @@ final class ReplCompleter implements ReplCompleterInterface
     private static array $phpClasses = [];
 
     /**
-     * @param  list<string>  $allNamespaces
+     * @param list<string> $allNamespaces
      */
     public function __construct(
         private readonly PhelFnLoaderInterface $phelFnLoader,
@@ -40,7 +40,7 @@ final class ReplCompleter implements ReplCompleterInterface
     /**
      * Complete input from either PHP or Phel context.
      *
-     * @param  string  $input  the input string for which to find completions
+     * @param string $input the input string for which to find completions
      *
      * @return list<string> a list of autocompletion suggestions
      */
@@ -64,7 +64,7 @@ final class ReplCompleter implements ReplCompleterInterface
     /**
      * Complete native PHP functions and classes.
      *
-     * @param  string  $prefix  the input string without the `php/` prefix
+     * @param string $prefix the input string without the `php/` prefix
      *
      * @return list<string>
      */
@@ -100,7 +100,7 @@ final class ReplCompleter implements ReplCompleterInterface
     /**
      * Complete available Phel functions.
      *
-     * @param  string  $input  the input string to match
+     * @param string $input the input string to match
      *
      * @return list<string>
      */

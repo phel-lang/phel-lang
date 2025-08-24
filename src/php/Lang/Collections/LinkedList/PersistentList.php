@@ -26,7 +26,7 @@ final class PersistentList extends AbstractType implements PersistentListInterfa
     private int $hashCache = 0;
 
     /**
-     * @param T $first
+     * @param T                          $first
      * @param PersistentListInterface<T> $rest
      */
     public function __construct(

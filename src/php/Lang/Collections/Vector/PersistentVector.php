@@ -38,9 +38,9 @@ final class PersistentVector extends AbstractPersistentVector
     private readonly int $tailSize;
 
     /**
-     * @param  int  $count  The number of elements stored in this vector
-     * @param  array<array>  $root  The root node of this vector
-     * @param  array<int, T>  $tail  The tail of the vector. This is an optimization
+     * @param int           $count The number of elements stored in this vector
+     * @param array<array>  $root  The root node of this vector
+     * @param array<int, T> $tail  The tail of the vector. This is an optimization
      */
     public function __construct(
         HasherInterface $hasher,
@@ -97,7 +97,7 @@ final class PersistentVector extends AbstractPersistentVector
      * 3. There is not enough space in the current root.
      * (Source: https://hypirion.com/musings/understanding-persistent-vector-pt-1)
      *
-     * @param  T  $value
+     * @param T $value
      */
     public function append($value): self
     {
@@ -146,8 +146,8 @@ final class PersistentVector extends AbstractPersistentVector
      * replace with the new value. We then return the new vector with the modified path.
      * (Source: https://hypirion.com/musings/understanding-persistent-vector-pt-1)
      *
-     * @param  int  $i  the index in the vector
-     * @param  T  $value  The new value
+     * @param int $i     the index in the vector
+     * @param T   $value The new value
      */
     public function update(int $i, $value): self
     {
@@ -188,7 +188,7 @@ final class PersistentVector extends AbstractPersistentVector
     /**
      * Gets the value at index $i.
      *
-     * @param  int  $i  The index
+     * @param int $i The index
      *
      * @return T
      */
@@ -355,7 +355,7 @@ final class PersistentVector extends AbstractPersistentVector
     }
 
     /**
-     * @param  T  $value
+     * @param T $value
      */
     private function doUpdate(int $level, array $node, int $i, mixed $value): array
     {
