@@ -46,7 +46,6 @@
 # Basic methods for quasiquote and destructure
 # --------------------------------------------
 
-
 (def list
   "```phel\n(list & xs)\n```\nCreates a new list. If no argument is provided, an empty list is created."
   (fn [& xs] (php/:: Phel (list (apply php/array xs)))))
