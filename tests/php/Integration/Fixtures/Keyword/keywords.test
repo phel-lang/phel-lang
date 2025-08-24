@@ -18,13 +18,13 @@ require_once __DIR__ . '/xyz/foo.php';
   "test",
   "a",
   \Phel::keyword("bar"),
-  \Phel::persistentMapFromKVs(
-    \Phel::keyword("start-location"), \Phel::persistentMapFromKVs(
+  \Phel::map(
+    \Phel::keyword("start-location"), \Phel::map(
       \Phel::keyword("file"), "Keyword/keywords.test",
       \Phel::keyword("line"), 3,
       \Phel::keyword("column"), 0
     ),
-    \Phel::keyword("end-location"), \Phel::persistentMapFromKVs(
+    \Phel::keyword("end-location"), \Phel::map(
       \Phel::keyword("file"), "Keyword/keywords.test",
       \Phel::keyword("line"), 3,
       \Phel::keyword("column"), 12
@@ -35,13 +35,13 @@ require_once __DIR__ . '/xyz/foo.php';
   "test",
   "b",
   \Phel::keyword("bar", "test"),
-  \Phel::persistentMapFromKVs(
-    \Phel::keyword("start-location"), \Phel::persistentMapFromKVs(
+  \Phel::map(
+    \Phel::keyword("start-location"), \Phel::map(
       \Phel::keyword("file"), "Keyword/keywords.test",
       \Phel::keyword("line"), 4,
       \Phel::keyword("column"), 0
     ),
-    \Phel::keyword("end-location"), \Phel::persistentMapFromKVs(
+    \Phel::keyword("end-location"), \Phel::map(
       \Phel::keyword("file"), "Keyword/keywords.test",
       \Phel::keyword("line"), 4,
       \Phel::keyword("column"), 13
@@ -52,13 +52,13 @@ require_once __DIR__ . '/xyz/foo.php';
   "test",
   "c",
   \Phel::keyword("bar", "xyz\\foo"),
-  \Phel::persistentMapFromKVs(
-    \Phel::keyword("start-location"), \Phel::persistentMapFromKVs(
+  \Phel::map(
+    \Phel::keyword("start-location"), \Phel::map(
       \Phel::keyword("file"), "Keyword/keywords.test",
       \Phel::keyword("line"), 5,
       \Phel::keyword("column"), 0
     ),
-    \Phel::keyword("end-location"), \Phel::persistentMapFromKVs(
+    \Phel::keyword("end-location"), \Phel::map(
       \Phel::keyword("file"), "Keyword/keywords.test",
       \Phel::keyword("line"), 5,
       \Phel::keyword("column"), 17
@@ -69,13 +69,13 @@ require_once __DIR__ . '/xyz/foo.php';
   "test",
   "d",
   \Phel::keyword("bar", "xyz\\foo"),
-  \Phel::persistentMapFromKVs(
-    \Phel::keyword("start-location"), \Phel::persistentMapFromKVs(
+  \Phel::map(
+    \Phel::keyword("start-location"), \Phel::map(
       \Phel::keyword("file"), "Keyword/keywords.test",
       \Phel::keyword("line"), 6,
       \Phel::keyword("column"), 0
     ),
-    \Phel::keyword("end-location"), \Phel::persistentMapFromKVs(
+    \Phel::keyword("end-location"), \Phel::map(
       \Phel::keyword("file"), "Keyword/keywords.test",
       \Phel::keyword("line"), 6,
       \Phel::keyword("column"), 20

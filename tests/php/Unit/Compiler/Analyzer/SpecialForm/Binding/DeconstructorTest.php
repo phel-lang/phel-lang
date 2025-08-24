@@ -112,7 +112,7 @@ final class DeconstructorTest extends TestCase
         //       a __phel_2])
         $bindings = $this->deconstructor->deconstruct(
             Phel::persistentVectorFromArray([
-                Phel::persistentMapFromKVs(Keyword::create('key'), Symbol::create('a')),
+                Phel::map(Keyword::create('key'), Symbol::create('a')),
                 Symbol::create('x'),
             ]),
         );

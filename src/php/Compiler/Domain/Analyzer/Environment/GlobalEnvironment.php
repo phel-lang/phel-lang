@@ -238,7 +238,7 @@ final class GlobalEnvironment implements GlobalEnvironmentInterface
     private function addInternalCompileModeDefinition(): void
     {
         $symbol = Symbol::create(BuildConstants::COMPILE_MODE);
-        $meta = Phel::persistentMapFromKVs(
+        $meta = Phel::map(
             Keyword::create('doc'),
             'Deprecated! Use *build-mode* instead. Set to true when a file is compiled, false otherwise.',
         );
@@ -254,7 +254,7 @@ final class GlobalEnvironment implements GlobalEnvironmentInterface
     private function addInternalBuildModeDefinition(): void
     {
         $symbol = Symbol::create(BuildConstants::BUILD_MODE);
-        $meta = Phel::persistentMapFromKVs(
+        $meta = Phel::map(
             Keyword::create('doc'),
             'Set to true when a file is being built/transpiled, false otherwise.',
         );

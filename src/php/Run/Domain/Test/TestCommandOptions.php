@@ -34,7 +34,7 @@ final readonly class TestCommandOptions
 
     public function asPhelHashMap(): string
     {
-        $optionsMap = Phel::persistentMapFromKVs(
+        $optionsMap = Phel::map(
             Phel::keyword(self::FILTER),
             $this->filter,
             Phel::keyword(self::TESTDOX),

@@ -36,7 +36,7 @@ final class InvokeSymbolTest extends TestCase
             'user',
             'my-global-fn',
             static fn ($a, $b): int => $a + $b,
-            Phel::persistentMapFromKVs('min-arity', 2),
+            Phel::map('min-arity', 2),
         );
 
         $env->addDefinition('user', Symbol::create('my-macro'));
@@ -44,7 +44,7 @@ final class InvokeSymbolTest extends TestCase
             'user',
             'my-macro',
             static fn ($a) => $a,
-            Phel::persistentMapFromKVs(Keyword::create('macro'), true),
+            Phel::map(Keyword::create('macro'), true),
         );
 
         $env->addDefinition('user', Symbol::create('my-failed-macro'));
@@ -52,7 +52,7 @@ final class InvokeSymbolTest extends TestCase
             'user',
             'my-failed-macro',
             static fn ($a) => throw new Exception('my-failed-macro message'),
-            Phel::persistentMapFromKVs(Keyword::create('macro'), true),
+            Phel::map(Keyword::create('macro'), true),
         );
 
         $env->addDefinition('user', Symbol::create('my-inline-fn'));
@@ -60,7 +60,7 @@ final class InvokeSymbolTest extends TestCase
             'user',
             'my-inline-fn',
             static fn ($a): int => 1,
-            Phel::persistentMapFromKVs(
+            Phel::map(
                 Keyword::create('inline'),
                 static fn ($a): int => 2,
             ),
@@ -71,7 +71,7 @@ final class InvokeSymbolTest extends TestCase
             'user',
             'my-inline-fn-with-arity',
             static fn ($a, $b): int => 1,
-            Phel::persistentMapFromKVs(
+            Phel::map(
                 Keyword::create('inline'),
                 static fn ($a, $b): int => 2,
                 Keyword::create('inline-arity'),
@@ -259,7 +259,7 @@ final class InvokeSymbolTest extends TestCase
                     $env->withExpressionContext()->withDisallowRecurFrame(),
                     'user',
                     Symbol::create('my-inline-fn-with-arity'),
-                    Phel::persistentMapFromKVs(
+                    Phel::map(
                         Keyword::create('inline'),
                         static fn ($a, $b): int => 2,
                         Keyword::create('inline-arity'),
@@ -286,7 +286,7 @@ final class InvokeSymbolTest extends TestCase
             $mungedNs,
             $macroName,
             static fn ($x) => $x,
-            Phel::persistentMapFromKVs(Keyword::create('macro'), true),
+            Phel::map(Keyword::create('macro'), true),
         );
 
         $list = Phel::persistentListFromArray([

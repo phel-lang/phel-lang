@@ -18,14 +18,14 @@
       })();
     }
   },
-  \Phel::persistentMapFromKVs(
+  \Phel::map(
     \Phel::keyword("doc"), "```phel\n(yield_generator_array )\n```\n",
-    \Phel::keyword("start-location"), \Phel::persistentMapFromKVs(
+    \Phel::keyword("start-location"), \Phel::map(
       \Phel::keyword("file"), "Yield/yield-array.test",
       \Phel::keyword("line"), 1,
       \Phel::keyword("column"), 0
     ),
-    \Phel::keyword("end-location"), \Phel::persistentMapFromKVs(
+    \Phel::keyword("end-location"), \Phel::map(
       \Phel::keyword("file"), "Yield/yield-array.test",
       \Phel::keyword("line"), 3,
       \Phel::keyword("column"), 26

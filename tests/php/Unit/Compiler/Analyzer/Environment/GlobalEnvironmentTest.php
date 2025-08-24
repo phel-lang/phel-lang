@@ -152,7 +152,7 @@ final class GlobalEnvironmentTest extends TestCase
             'foo',
             'x',
             null,
-            Phel::persistentMapFromKVs(Keyword::create('private'), true),
+            Phel::map(Keyword::create('private'), true),
         );
         $env->setNs('bar');
         $env->addRefer('bar', Symbol::create('x'), Symbol::create('foo'));
@@ -224,7 +224,7 @@ final class GlobalEnvironmentTest extends TestCase
     {
         $env = new GlobalEnvironment();
         $env->addDefinition('phel\\core', Symbol::create('x'));
-        Phel::addDefinition('phel\\core', 'x', null, Phel::persistentMapFromKVs(Keyword::create('private'), true));
+        Phel::addDefinition('phel\\core', 'x', null, Phel::map(Keyword::create('private'), true));
         $env->setNs('bar');
         $nodeEnv = NodeEnvironment::empty();
 
@@ -305,7 +305,7 @@ final class GlobalEnvironmentTest extends TestCase
     {
         $env = new GlobalEnvironment();
         $env->addDefinition('bar', Symbol::create('x'));
-        Phel::addDefinition('bar', 'x', null, Phel::persistentMapFromKVs(Keyword::create('private'), true));
+        Phel::addDefinition('bar', 'x', null, Phel::map(Keyword::create('private'), true));
         $env->setNs('foo');
         $nodeEnv = NodeEnvironment::empty();
 

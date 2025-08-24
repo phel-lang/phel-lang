@@ -23,7 +23,7 @@ final class MapEmitter implements NodeEmitterInterface
         $countKeyValues = count($keyValues);
 
         $this->outputEmitter->emitContextPrefix($node->getEnv(), $node->getStartSourceLocation());
-        $this->outputEmitter->emitStr('\Phel::persistentMapFromKVs(', $node->getStartSourceLocation());
+        $this->outputEmitter->emitStr('\Phel::map(', $node->getStartSourceLocation());
         if ($countKeyValues > 0) {
             $this->outputEmitter->increaseIndentLevel();
             $this->outputEmitter->emitLine();

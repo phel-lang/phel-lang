@@ -38,7 +38,7 @@ final class MapBindingDeconstructorTest extends TestCase
         $key = Keyword::create('key');
         $bindTo = Symbol::create('a');
         $value = Symbol::create('x');
-        $binding = Phel::persistentMapFromKVs($key, $bindTo);
+        $binding = Phel::map($key, $bindTo);
 
         $bindings = [];
         $this->deconstructor->deconstruct($bindings, $binding, $value);
@@ -81,7 +81,7 @@ final class MapBindingDeconstructorTest extends TestCase
         $key = Keyword::create('key');
         $bindTo = Symbol::create('a');
         $value = Symbol::create('x');
-        $binding = Phel::persistentMapFromKVs($key, Phel::persistentVectorFromArray([$bindTo]));
+        $binding = Phel::map($key, Phel::persistentVectorFromArray([$bindTo]));
 
         $bindings = [];
         $this->deconstructor->deconstruct($bindings, $binding, $value);

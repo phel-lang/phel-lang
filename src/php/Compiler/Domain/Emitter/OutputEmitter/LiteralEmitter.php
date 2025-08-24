@@ -118,7 +118,7 @@ final readonly class LiteralEmitter
     private function emitMap(PersistentMapInterface $x): void
     {
         $count = count($x);
-        $this->outputEmitter->emitStr('\Phel::persistentMapFromKVs(', $x->getStartLocation());
+        $this->outputEmitter->emitStr('\Phel::map(', $x->getStartLocation());
         if ($count > 0) {
             $this->outputEmitter->increaseIndentLevel();
             $this->outputEmitter->emitLine();

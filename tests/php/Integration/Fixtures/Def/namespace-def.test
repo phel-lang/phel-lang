@@ -14,13 +14,13 @@ require_once __DIR__ . '/../phel/core.php';
   "my\\ns",
   "x",
   1,
-  \Phel::persistentMapFromKVs(
-    \Phel::keyword("start-location"), \Phel::persistentMapFromKVs(
+  \Phel::map(
+    \Phel::keyword("start-location"), \Phel::map(
       \Phel::keyword("file"), "Def/namespace-def.test",
       \Phel::keyword("line"), 3,
       \Phel::keyword("column"), 0
     ),
-    \Phel::keyword("end-location"), \Phel::persistentMapFromKVs(
+    \Phel::keyword("end-location"), \Phel::map(
       \Phel::keyword("file"), "Def/namespace-def.test",
       \Phel::keyword("line"), 3,
       \Phel::keyword("column"), 9

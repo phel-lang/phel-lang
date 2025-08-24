@@ -125,7 +125,7 @@ final class QuasiquoteTest extends TestCase
                     Phel::persistentListFromArray([Symbol::create(Symbol::NAME_LIST), 2]),
                 ]),
             ]),
-            $q->transform(Phel::persistentMapFromKVs('a', 1, 'b', 2)),
+            $q->transform(Phel::map('a', 1, 'b', 2)),
         );
     }
 

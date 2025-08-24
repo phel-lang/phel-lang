@@ -121,7 +121,7 @@ final class NsSymbol implements SpecialFormAnalyzerInterface
             $useSymbol = Symbol::createForNamespace($useSymbol->getNamespace(), '\\' . $useSymbol->getName());
         }
 
-        $useData = Phel::persistentMapFromKVs(...$import->toArray());
+        $useData = Phel::map(...$import->toArray());
         $alias = $this->extractAlias($useData, $import, 'use');
         $this->analyzer->addUseAlias($ns, $alias, $useSymbol);
     }
@@ -187,7 +187,7 @@ final class NsSymbol implements SpecialFormAnalyzerInterface
             throw AnalyzerException::withLocation('First argument in :require must be a symbol.', $import);
         }
 
-        $requireData = Phel::persistentMapFromKVs(...$import->toArray());
+        $requireData = Phel::map(...$import->toArray());
         $alias = $this->extractAlias($requireData, $import, 'require');
         $referSymbols = $this->extractRefer($requireData, $import);
 

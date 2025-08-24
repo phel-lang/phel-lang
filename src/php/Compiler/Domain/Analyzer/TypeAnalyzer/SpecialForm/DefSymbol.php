@@ -115,7 +115,7 @@ final class DefSymbol implements SpecialFormAnalyzerInterface
 
         $startLocation = $list->getStartLocation();
         if ($startLocation instanceof SourceLocation) {
-            $meta = $meta->put(Keyword::create('start-location'), Phel::persistentMapFromKVs(
+            $meta = $meta->put(Keyword::create('start-location'), Phel::map(
                 Keyword::create('file'),
                 $startLocation->getFile(),
                 Keyword::create('line'),
@@ -127,7 +127,7 @@ final class DefSymbol implements SpecialFormAnalyzerInterface
 
         $endLocation = $list->getEndLocation();
         if ($endLocation instanceof SourceLocation) {
-            $meta = $meta->put(Keyword::create('end-location'), Phel::persistentMapFromKVs(
+            $meta = $meta->put(Keyword::create('end-location'), Phel::map(
                 Keyword::create('file'),
                 $endLocation->getFile(),
                 Keyword::create('line'),
@@ -145,12 +145,12 @@ final class DefSymbol implements SpecialFormAnalyzerInterface
         if (is_string($meta)) {
             $key = (Keyword::create('doc'))->copyLocationFrom($list);
 
-            return Phel::persistentMapFromKVs($key, $meta)
+            return Phel::map($key, $meta)
                 ->copyLocationFrom($list);
         }
 
         if ($meta instanceof Keyword) {
-            return Phel::persistentMapFromKVs($meta, true)
+            return Phel::map($meta, true)
                 ->copyLocationFrom($meta);
         }
 

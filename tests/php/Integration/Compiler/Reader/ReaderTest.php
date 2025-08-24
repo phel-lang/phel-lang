@@ -313,7 +313,7 @@ final class ReaderTest extends TestCase
     {
         self::assertEquals(
             $this->loc(
-                Phel::persistentMapFromKVs(
+                Phel::map(
                     $this->loc(Keyword::create('a'), 1, 1, 1, 3),
                     1,
                 ),
@@ -329,7 +329,7 @@ final class ReaderTest extends TestCase
     public function test_map_table2(): void
     {
         self::assertEquals(
-            $this->loc(Phel::persistentMapFromKVs(
+            $this->loc(Phel::map(
                 $this->loc(Keyword::create('a'), 1, 1, 1, 3),
                 1,
                 $this->loc(Keyword::create('b'), 1, 6, 1, 8),
@@ -351,7 +351,7 @@ final class ReaderTest extends TestCase
             $this->loc(
                 $this->withMeta(
                     Symbol::create('test'),
-                    Phel::persistentMapFromKVs(
+                    Phel::map(
                         $this->loc(Keyword::create('test'), 1, 1, 1, 6),
                         true,
                     ),
@@ -371,7 +371,7 @@ final class ReaderTest extends TestCase
             $this->loc(
                 $this->withMeta(
                     Symbol::create('test'),
-                    Phel::persistentMapFromKVs(
+                    Phel::map(
                         Keyword::create('tag'),
                         'test',
                     ),
@@ -391,7 +391,7 @@ final class ReaderTest extends TestCase
             $this->loc(
                 $this->withMeta(
                     Symbol::create('test'),
-                    Phel::persistentMapFromKVs(
+                    Phel::map(
                         Keyword::create('tag'),
                         $this->loc(Symbol::create('String'), 1, 1, 1, 7),
                     ),
@@ -411,7 +411,7 @@ final class ReaderTest extends TestCase
             $this->loc(
                 $this->withMeta(
                     Symbol::create('test'),
-                    Phel::persistentMapFromKVs(
+                    Phel::map(
                         $this->loc(Keyword::create('a'), 1, 2, 1, 4),
                         1,
                         $this->loc(Keyword::create('b'), 1, 7, 1, 9),
@@ -433,7 +433,7 @@ final class ReaderTest extends TestCase
             $this->loc(
                 $this->withMeta(
                     Symbol::create('test'),
-                    Phel::persistentMapFromKVs(
+                    Phel::map(
                         $this->loc(Keyword::create('b'), 1, 5, 1, 7),
                         true,
                         $this->loc(Keyword::create('a'), 1, 1, 1, 3),

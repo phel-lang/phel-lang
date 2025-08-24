@@ -204,7 +204,7 @@ final class DefSymbolTest extends TestCase
         $list = Phel::persistentListFromArray([
             Symbol::create(Symbol::NAME_DEF),
             Symbol::create('name'),
-            Phel::persistentMapFromKVs(Keyword::create('private'), true),
+            Phel::map(Keyword::create('private'), true),
             'any value',
         ]);
         $env = NodeEnvironment::empty();

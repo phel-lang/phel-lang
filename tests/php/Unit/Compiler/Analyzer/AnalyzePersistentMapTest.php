@@ -39,7 +39,7 @@ final class AnalyzePersistentMapTest extends TestCase
                 new LiteralNode($env->withExpressionContext(), 'a', null),
                 new LiteralNode($env->withExpressionContext(), 1, null),
             ], null),
-            $this->mapAnalyzer->analyze(Phel::persistentMapFromKVs('a', 1), $env),
+            $this->mapAnalyzer->analyze(Phel::map('a', 1), $env),
         );
     }
 }
