@@ -42,6 +42,11 @@
   (is (= {:a {:b {:c 2}}} (put-in {:a {:b {:c 1}}} [:a :b :c] 2)) "put-in (map): update value of table")
   (is (= {:a {:b [2]}} (put-in {:a {:b [1]}} [:a :b 0] 2)) "put-in (map): update value of array"))
 
+(deftest test-assoc-in
+  (is (= {:a {:b {:c 1}}} (assoc-in {:a {}} [:a :b :c] 1)) "assoc-in: autocreate tables")
+  (is (= {:a {:b {:c 2}}} (assoc-in {:a {:b {:c 1}}} [:a :b :c] 2)) "assoc-in: update value of table")
+  (is (= {:a {:b [2]}} (assoc-in {:a {:b [1]}} [:a :b 0] 2)) "assoc-in: update value of array"))
+
 (deftest test-update-in
   (is (= {:a 2} (update-in {:a 1} [:a] inc)) "update-in: update value of table")
   (is (= {:a {:b {:c 1}}}
@@ -52,6 +57,10 @@
 (deftest test-unset-in
   (is (= {:a {:b {}}} (unset-in {:a {:b {:c 1}}} [:a :b :c])) "unset-in: nested map")
   (is (= {:a {:b {:c 1}}} (unset-in {:a {:b {:c 1}}} [:a :x])) "unset-in: missing key"))
+
+(deftest test-dissoc-in
+  (is (= {:a {:b {}}} (dissoc-in {:a {:b {:c 1}}} [:a :b :c])) "dissoc-in: nested map")
+  (is (= {:a {:b {:c 1}}} (dissoc-in {:a {:b {:c 1}}} [:a :x])) "dissoc-in: missing key"))
 
 (deftest test-drop
   (is (= ["a" "b" "c"] (drop 0 ["a" "b" "c"])) "drop zero elements")

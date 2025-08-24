@@ -96,5 +96,12 @@
   (is (= {:a 3 :b 2} (put {:a 1 :b 2} :a 3)) "put: replace entry on map")
   (is (= {:a 1 :b 2 :c 3} (put {:a 1 :b 2} :c 3)) "put: append entry on map"))
 
+(deftest test-assoc
+  (is (= {:a 3 :b 2} (assoc {:a 1 :b 2} :a 3)) "assoc: replace entry on map")
+  (is (= {:a 1 :b 2 :c 3} (assoc {:a 1 :b 2} :c 3)) "assoc: append entry on map"))
+
 (deftest test-unset
   (is (= {:b 2} (unset {:a 1 :b 2} :a)) "unset: remove key from map"))
+
+(deftest test-dissoc
+  (is (= {:b 2} (dissoc {:a 1 :b 2} :a)) "dissoc: remove key from map"))

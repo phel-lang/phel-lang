@@ -10,6 +10,7 @@ All notable changes to this project will be documented in this file.
 - Fix `require` loading code without `*build-mode*`
 - Add `slurp` and `spit` file reading and writing functions
 - Add `select-keys`
+- Add aliases `assoc`, `assoc-in`, `dissoc`, and `dissoc-in`
 - Enhance `php/->` for nested calls
 - Auto-assign-author GH workflow
 - Avoid coercing `nil` to 0 in math operations
