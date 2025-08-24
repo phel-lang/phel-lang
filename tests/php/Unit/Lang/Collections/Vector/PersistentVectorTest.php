@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace PhelTest\Unit\Lang\Collections\Vector;
 
+use Phel;
 use Phel\Lang\Collections\Exceptions\IndexOutOfBoundsException;
 use Phel\Lang\Collections\Map\PersistentMapInterface;
 use Phel\Lang\Collections\Vector\PersistentVector;
@@ -13,7 +14,6 @@ use Phel\Lang\Collections\Vector\SubVector;
 use Phel\Lang\Collections\Vector\TransientVector;
 use PhelTest\Unit\Lang\Collections\ModuloHasher;
 use PhelTest\Unit\Lang\Collections\SimpleEqualizer;
-use PhelType;
 use PHPUnit\Framework\TestCase;
 use RuntimeException;
 
@@ -241,7 +241,7 @@ final class PersistentVectorTest extends TestCase
 
     public function test_add_meta_data(): void
     {
-        $meta = PhelType::emptyPersistentMap();
+        $meta = Phel::emptyPersistentMap();
         $vector = PersistentVector::empty(new ModuloHasher(), new SimpleEqualizer());
         $vectorWithMeta = $vector->withMeta($meta);
 

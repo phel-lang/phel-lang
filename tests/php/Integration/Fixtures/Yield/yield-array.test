@@ -11,24 +11,24 @@
 
     public function __invoke() {
       return (function() {
-        foreach (((\Phel::getDefinition("phel\\core", "range"))(...((\PhelType::persistentVectorFromArray([0, 3])) ?? [])) ?? []) as $i) {
+        foreach (((\Phel::getDefinition("phel\\core", "range"))(...((\Phel::persistentVectorFromArray([0, 3])) ?? [])) ?? []) as $i) {
           yield $i => 21;
         }
         return null;
       })();
     }
   },
-  \PhelType::persistentMapFromKVs(
-    \PhelType::keyword("doc"), "```phel\n(yield_generator_array )\n```\n",
-    \PhelType::keyword("start-location"), \PhelType::persistentMapFromKVs(
-      \PhelType::keyword("file"), "Yield/yield-array.test",
-      \PhelType::keyword("line"), 1,
-      \PhelType::keyword("column"), 0
+  \Phel::persistentMapFromKVs(
+    \Phel::keyword("doc"), "```phel\n(yield_generator_array )\n```\n",
+    \Phel::keyword("start-location"), \Phel::persistentMapFromKVs(
+      \Phel::keyword("file"), "Yield/yield-array.test",
+      \Phel::keyword("line"), 1,
+      \Phel::keyword("column"), 0
     ),
-    \PhelType::keyword("end-location"), \PhelType::persistentMapFromKVs(
-      \PhelType::keyword("file"), "Yield/yield-array.test",
-      \PhelType::keyword("line"), 3,
-      \PhelType::keyword("column"), 26
+    \Phel::keyword("end-location"), \Phel::persistentMapFromKVs(
+      \Phel::keyword("file"), "Yield/yield-array.test",
+      \Phel::keyword("line"), 3,
+      \Phel::keyword("column"), 26
     ),
     "min-arity", 0
   )

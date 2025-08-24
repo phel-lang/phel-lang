@@ -5,11 +5,11 @@ declare(strict_types=1);
 namespace PhelTest\Unit\Compiler\Analyzer\SpecialForm\Binding;
 
 use Generator;
+use Phel;
 use Phel\Compiler\Domain\Analyzer\TypeAnalyzer\SpecialForm\Binding\BindingValidator;
 use Phel\Lang\AbstractType;
 use Phel\Lang\Keyword;
 use Phel\Lang\Symbol;
-use PhelType;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 
@@ -67,11 +67,11 @@ final class BindingValidatorTest extends TestCase
         ];
 
         yield 'Vector type' => [
-            PhelType::persistentVectorFromArray([]),
+            Phel::persistentVectorFromArray([]),
         ];
 
         yield 'Map type' => [
-            PhelType::emptyPersistentMap(),
+            Phel::emptyPersistentMap(),
         ];
     }
 }

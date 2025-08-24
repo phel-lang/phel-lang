@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace PhelTest\Unit\Compiler\Analyzer\SpecialForm;
 
+use Phel;
 use Phel\Compiler\Application\Analyzer;
 use Phel\Compiler\Domain\Analyzer\AnalyzerInterface;
 use Phel\Compiler\Domain\Analyzer\Ast\SetVarNode;
@@ -12,7 +13,6 @@ use Phel\Compiler\Domain\Analyzer\Environment\NodeEnvironment;
 use Phel\Compiler\Domain\Analyzer\Exceptions\AnalyzerException;
 use Phel\Compiler\Domain\Analyzer\TypeAnalyzer\SpecialForm\SetVarSymbol;
 use Phel\Lang\Symbol;
-use PhelType;
 use PHPUnit\Framework\TestCase;
 
 final class SetVarSymbolTest extends TestCase
@@ -29,7 +29,7 @@ final class SetVarSymbolTest extends TestCase
         $this->expectException(AnalyzerException::class);
         $this->expectExceptionMessage("First argument of 'def must be a Symbol.");
 
-        $list = PhelType::persistentListFromArray([
+        $list = Phel::persistentListFromArray([
             Symbol::create(Symbol::NAME_SET_VAR),
             'not-a-symbol',
             1,
@@ -45,7 +45,7 @@ final class SetVarSymbolTest extends TestCase
 
         $analyzer = new Analyzer($globalEnv);
 
-        $list = PhelType::persistentListFromArray([
+        $list = Phel::persistentListFromArray([
             Symbol::create(Symbol::NAME_SET_VAR),
             Symbol::create('x'),
             2,

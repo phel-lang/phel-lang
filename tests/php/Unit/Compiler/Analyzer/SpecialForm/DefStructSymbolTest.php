@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace PhelTest\Unit\Compiler\Analyzer\SpecialForm;
 
+use Phel;
 use Phel\Compiler\Application\Analyzer;
 use Phel\Compiler\Application\Munge;
 use Phel\Compiler\Domain\Analyzer\AnalyzerInterface;
@@ -13,7 +14,6 @@ use Phel\Compiler\Domain\Analyzer\Environment\NodeEnvironment;
 use Phel\Compiler\Domain\Analyzer\TypeAnalyzer\SpecialForm\DefStructSymbol;
 use Phel\Compiler\Domain\Exceptions\AbstractLocatedException;
 use Phel\Lang\Symbol;
-use PhelType;
 use PHPUnit\Framework\TestCase;
 
 final class DefStructSymbolTest extends TestCase
@@ -30,7 +30,7 @@ final class DefStructSymbolTest extends TestCase
         $this->expectException(AbstractLocatedException::class);
         $this->expectExceptionMessage("At least two arguments are required for 'defstruct. Got 1");
 
-        $list = PhelType::persistentListFromArray([
+        $list = Phel::persistentListFromArray([
             Symbol::create(Symbol::NAME_DEF_STRUCT),
         ]);
 
@@ -43,10 +43,10 @@ final class DefStructSymbolTest extends TestCase
         $this->expectException(AbstractLocatedException::class);
         $this->expectExceptionMessage("First argument of 'defstruct must be a Symbol.");
 
-        $list = PhelType::persistentListFromArray([
+        $list = Phel::persistentListFromArray([
             Symbol::create(Symbol::NAME_DEF_STRUCT),
             '',
-            PhelType::persistentVectorFromArray([]),
+            Phel::persistentVectorFromArray([]),
         ]);
 
         (new DefStructSymbol($this->analyzer, new Munge()))
@@ -58,7 +58,7 @@ final class DefStructSymbolTest extends TestCase
         $this->expectException(AbstractLocatedException::class);
         $this->expectExceptionMessage("Second argument of 'defstruct must be a vector.");
 
-        $list = PhelType::persistentListFromArray([
+        $list = Phel::persistentListFromArray([
             Symbol::create(Symbol::NAME_DEF_STRUCT),
             Symbol::create('request'),
             '',
@@ -73,10 +73,10 @@ final class DefStructSymbolTest extends TestCase
         $this->expectException(AbstractLocatedException::class);
         $this->expectExceptionMessage('Defstruct field elements must be Symbols.');
 
-        $list = PhelType::persistentListFromArray([
+        $list = Phel::persistentListFromArray([
             Symbol::create(Symbol::NAME_DEF_STRUCT),
             Symbol::create('request'),
-            PhelType::persistentVectorFromArray(['method']),
+            Phel::persistentVectorFromArray(['method']),
         ]);
 
         (new DefStructSymbol($this->analyzer, new Munge()))
@@ -85,10 +85,10 @@ final class DefStructSymbolTest extends TestCase
 
     public function test_def_struct_symbol(): void
     {
-        $list = PhelType::persistentListFromArray([
+        $list = Phel::persistentListFromArray([
             Symbol::create(Symbol::NAME_DEF_STRUCT),
             Symbol::create('request'),
-            PhelType::persistentVectorFromArray([Symbol::create('method'), Symbol::create('uri')]),
+            Phel::persistentVectorFromArray([Symbol::create('method'), Symbol::create('uri')]),
         ]);
 
         $defStructNode = (new DefStructSymbol($this->analyzer, new Munge()))

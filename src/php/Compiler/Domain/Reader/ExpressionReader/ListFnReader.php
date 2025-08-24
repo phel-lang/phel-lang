@@ -4,12 +4,12 @@ declare(strict_types=1);
 
 namespace Phel\Compiler\Domain\Reader\ExpressionReader;
 
+use Phel;
 use Phel\Compiler\Application\Reader;
 use Phel\Compiler\Domain\Parser\ParserNode\ListNode;
 use Phel\Compiler\Domain\Parser\ParserNode\NodeInterface;
 use Phel\Lang\Collections\LinkedList\PersistentListInterface;
 use Phel\Lang\Symbol;
-use PhelType;
 
 final readonly class ListFnReader
 {
@@ -23,9 +23,9 @@ final readonly class ListFnReader
         $params = $this->extractParams($fnArgs);
         $fnArgs = null;
 
-        return PhelType::persistentListFromArray([
+        return Phel::persistentListFromArray([
             Symbol::create(Symbol::NAME_FN),
-            PhelType::persistentVectorFromArray($params),
+            Phel::persistentVectorFromArray($params),
             $body,
         ])->setStartLocation($node->getStartLocation())->setEndLocation($node->getEndLocation());
     }

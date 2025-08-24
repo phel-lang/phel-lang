@@ -44,8 +44,7 @@
             "Phel\\": "src/php/"
         },
         "classmap": [
-            "src/Phel.php",
-            "src/PhelType.php"
+            "src/Phel.php"
         ]
     },
     "autoload-dev": {

@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace Phel\Lang;
 
+use Phel;
 use Phel\Lang\Collections\Map\PersistentMapInterface;
-use PhelType;
 use RuntimeException;
 
 use function array_key_exists;
@@ -76,7 +76,7 @@ final class Registry
             return null;
         }
 
-        return $this->definitionsMetaData[$ns][$name] ?? PhelType::emptyPersistentMap();
+        return $this->definitionsMetaData[$ns][$name] ?? Phel::emptyPersistentMap();
     }
 
     /**

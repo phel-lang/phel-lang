@@ -2,7 +2,6 @@
   (:use Countable)
   (:use InvalidArgumentException)
   (:use Phel)
-  (:use PhelType)
   (:use Phel\Compiler\Application\Munge)
   (:use Phel\Compiler\CompilerFacade)
   (:use Phel\Compiler\Domain\Analyzer\Ast\GlobalVarNode)
@@ -49,15 +48,15 @@
 
 (def list
   "```phel\n(list & xs)\n```\nCreates a new list. If no argument is provided, an empty list is created."
-  (fn [& xs] (php/:: PhelType (persistentListFromArray (apply php/array xs)))))
+  (fn [& xs] (php/:: Phel (persistentListFromArray (apply php/array xs)))))
 
 (def vector
   "```phel\n(vector & xs)\n```\nCreates a new vector. If no argument is provided, an empty vector is created."
-  (fn [& xs] (php/:: PhelType (persistentVectorFromArray (apply php/array xs)))))
+  (fn [& xs] (php/:: Phel (persistentVectorFromArray (apply php/array xs)))))
 
 (def hash-map
   "```phel\n(hash-map & xs)\n```\nCreates a new hash map. If no argument is provided, an empty hash map is created. The number of parameters must be even."
-  (fn [& xs] (php/:: PhelType (persistentMapFromArray (apply php/array xs)))))
+  (fn [& xs] (php/:: Phel (persistentMapFromArray (apply php/array xs)))))
 
 (def next
   "```phel\n(next xs)\n```\nReturns the sequence of elements after the first element. If there are no elements, returns nil."
@@ -248,7 +247,7 @@ This is PHP equivalent to `$args[0] . $args[1] . $args[2] ...`."
 (defn set
   "Creates a new Set. If no argument is provided, an empty Set is created."
   [& xs]
-  (php/:: PhelType (persistentHashSetFromArray (apply php/array xs))))
+  (php/:: Phel (persistentHashSetFromArray (apply php/array xs))))
 
 (defn keyword
   "Creates a new Keyword from a given string."
@@ -828,7 +827,7 @@ arrays. Use (php/aunset ds key)"))
 (defn var
   "Creates a new variable with the given value."
   [value]
-  (php/:: PhelType (variable value)))
+  (php/:: Phel (variable value)))
 
 (defn var?
   "Checks if the given value is a variable."

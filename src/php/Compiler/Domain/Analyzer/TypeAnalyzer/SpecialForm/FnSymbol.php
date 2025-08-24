@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Phel\Compiler\Domain\Analyzer\TypeAnalyzer\SpecialForm;
 
+use Phel;
 use Phel\Compiler\Domain\Analyzer\Ast\AbstractNode;
 use Phel\Compiler\Domain\Analyzer\Ast\FnNode;
 use Phel\Compiler\Domain\Analyzer\Ast\RecurFrame;
@@ -14,7 +15,6 @@ use Phel\Compiler\Domain\Analyzer\TypeAnalyzer\WithAnalyzerTrait;
 use Phel\Lang\Collections\LinkedList\PersistentListInterface;
 use Phel\Lang\Collections\Vector\PersistentVectorInterface;
 use Phel\Lang\Symbol;
-use PhelType;
 
 use function count;
 
@@ -72,7 +72,7 @@ final class FnSymbol implements SpecialFormAnalyzerInterface
      */
     private function createDoTupleWithBody(array $body): PersistentListInterface
     {
-        return PhelType::persistentListFromArray([
+        return Phel::persistentListFromArray([
             (Symbol::create(Symbol::NAME_DO))->copyLocationFrom($body),
             ...$body,
         ])->copyLocationFrom($body);
@@ -83,9 +83,9 @@ final class FnSymbol implements SpecialFormAnalyzerInterface
      */
     private function createLetTupleWithBody(FnSymbolTuple $fnSymbolTuple, array $listBody): PersistentListInterface
     {
-        return PhelType::persistentListFromArray([
+        return Phel::persistentListFromArray([
             (Symbol::create(Symbol::NAME_LET))->copyLocationFrom($listBody),
-            PhelType::persistentVectorFromArray($fnSymbolTuple->lets())->copyLocationFrom($listBody),
+            Phel::persistentVectorFromArray($fnSymbolTuple->lets())->copyLocationFrom($listBody),
             ...$listBody,
         ])->copyLocationFrom($listBody);
     }

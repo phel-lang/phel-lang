@@ -2,6 +2,6 @@
 (foreach [k v [1 2 3]]
   (php/+ k v))
 --PHP--
-foreach ((\PhelType::persistentVectorFromArray([1, 2, 3]) ?? []) as $k => $v) {
+foreach ((\Phel::persistentVectorFromArray([1, 2, 3]) ?? []) as $k => $v) {
   ($k + $v);
 }

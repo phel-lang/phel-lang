@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace PhelTest\Unit\Lang\Collections\Vector;
 
+use Phel;
 use Phel\Lang\Collections\Vector\RangeIterator;
-use PhelType;
 use PHPUnit\Framework\TestCase;
 
 final class RangeIteratorTest extends TestCase
@@ -13,7 +13,7 @@ final class RangeIteratorTest extends TestCase
     public function test_range_iterator_with32_elements(): void
     {
         $it = new RangeIterator(
-            PhelType::persistentVectorFromArray(range(0, 31)),
+            Phel::persistentVectorFromArray(range(0, 31)),
             0,
             32,
         );
@@ -27,7 +27,7 @@ final class RangeIteratorTest extends TestCase
         $end = 90;
 
         $it = new RangeIterator(
-            PhelType::persistentVectorFromArray(range(0, 100)),
+            Phel::persistentVectorFromArray(range(0, 100)),
             $start,
             $end,
         );

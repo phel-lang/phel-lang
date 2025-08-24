@@ -19,17 +19,17 @@ require_once __DIR__ . '/my_namespace/core.php';
   "hello_world",
   "x",
   10,
-  \PhelType::persistentMapFromKVs(
-    \PhelType::keyword("private"), true,
-    \PhelType::keyword("start-location"), \PhelType::persistentMapFromKVs(
-      \PhelType::keyword("file"), "Ns/munge-ns.test",
-      \PhelType::keyword("line"), 5,
-      \PhelType::keyword("column"), 0
+  \Phel::persistentMapFromKVs(
+    \Phel::keyword("private"), true,
+    \Phel::keyword("start-location"), \Phel::persistentMapFromKVs(
+      \Phel::keyword("file"), "Ns/munge-ns.test",
+      \Phel::keyword("line"), 5,
+      \Phel::keyword("column"), 0
     ),
-    \PhelType::keyword("end-location"), \PhelType::persistentMapFromKVs(
-      \PhelType::keyword("file"), "Ns/munge-ns.test",
-      \PhelType::keyword("line"), 5,
-      \PhelType::keyword("column"), 19
+    \Phel::keyword("end-location"), \Phel::persistentMapFromKVs(
+      \Phel::keyword("file"), "Ns/munge-ns.test",
+      \Phel::keyword("line"), 5,
+      \Phel::keyword("column"), 19
     )
   )
 );
@@ -61,17 +61,17 @@ class abc extends \Phel\Lang\Collections\Struct\AbstractPersistentStruct {
       })();
     }
   },
-  \PhelType::persistentMapFromKVs(
-    \PhelType::keyword("doc"), "```phel\n(abc a)\n```\nCreates a new abc struct.",
-    \PhelType::keyword("start-location"), \PhelType::persistentMapFromKVs(
-      \PhelType::keyword("file"), "Ns/munge-ns.test",
-      \PhelType::keyword("line"), 7,
-      \PhelType::keyword("column"), 0
+  \Phel::persistentMapFromKVs(
+    \Phel::keyword("doc"), "```phel\n(abc a)\n```\nCreates a new abc struct.",
+    \Phel::keyword("start-location"), \Phel::persistentMapFromKVs(
+      \Phel::keyword("file"), "Ns/munge-ns.test",
+      \Phel::keyword("line"), 7,
+      \Phel::keyword("column"), 0
     ),
-    \PhelType::keyword("end-location"), \PhelType::persistentMapFromKVs(
-      \PhelType::keyword("file"), "Ns/munge-ns.test",
-      \PhelType::keyword("line"), 7,
-      \PhelType::keyword("column"), 19
+    \Phel::keyword("end-location"), \Phel::persistentMapFromKVs(
+      \Phel::keyword("file"), "Ns/munge-ns.test",
+      \Phel::keyword("line"), 7,
+      \Phel::keyword("column"), 19
     ),
     "min-arity", 1
   )
@@ -87,17 +87,17 @@ class abc extends \Phel\Lang\Collections\Struct\AbstractPersistentStruct {
       return is_a($x, "hello_world\\abc");
     }
   },
-  \PhelType::persistentMapFromKVs(
-    \PhelType::keyword("doc"), "```phel\n(abc? x)\n```\nChecks if `x` is an instance of the abc struct.",
-    \PhelType::keyword("start-location"), \PhelType::persistentMapFromKVs(
-      \PhelType::keyword("file"), "Ns/munge-ns.test",
-      \PhelType::keyword("line"), 7,
-      \PhelType::keyword("column"), 0
+  \Phel::persistentMapFromKVs(
+    \Phel::keyword("doc"), "```phel\n(abc? x)\n```\nChecks if `x` is an instance of the abc struct.",
+    \Phel::keyword("start-location"), \Phel::persistentMapFromKVs(
+      \Phel::keyword("file"), "Ns/munge-ns.test",
+      \Phel::keyword("line"), 7,
+      \Phel::keyword("column"), 0
     ),
-    \PhelType::keyword("end-location"), \PhelType::persistentMapFromKVs(
-      \PhelType::keyword("file"), "Ns/munge-ns.test",
-      \PhelType::keyword("line"), 7,
-      \PhelType::keyword("column"), 19
+    \Phel::keyword("end-location"), \Phel::persistentMapFromKVs(
+      \Phel::keyword("file"), "Ns/munge-ns.test",
+      \Phel::keyword("line"), 7,
+      \Phel::keyword("column"), 19
     ),
     "min-arity", 1
   )

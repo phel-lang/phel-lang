@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Phel\Compiler\Domain\Reader\ExpressionReader;
 
+use Phel;
 use Phel\Compiler\Application\Reader;
 use Phel\Compiler\Domain\Parser\ParserNode\MetaNode;
 use Phel\Compiler\Domain\Parser\ParserNode\NodeInterface;
@@ -13,7 +14,6 @@ use Phel\Lang\Keyword;
 use Phel\Lang\MetaInterface;
 use Phel\Lang\Symbol;
 use Phel\Lang\TypeInterface;
-use PhelType;
 
 use function count;
 use function is_string;
@@ -34,9 +34,9 @@ final readonly class MetaReader
 
         $meta = $this->reader->readExpression($metaExpression, $root);
         if (is_string($meta) || $meta instanceof Symbol) {
-            $meta = PhelType::persistentMapFromKVs(Keyword::create('tag'), $meta);
+            $meta = Phel::persistentMapFromKVs(Keyword::create('tag'), $meta);
         } elseif ($meta instanceof Keyword) {
-            $meta = PhelType::persistentMapFromKVs($meta, true);
+            $meta = Phel::persistentMapFromKVs($meta, true);
         } elseif (!$meta instanceof PersistentMapInterface) {
             throw ReaderException::forNode($node, $root, 'Metadata must be a Symbol, String, Keyword or Map');
         }
@@ -47,7 +47,7 @@ final readonly class MetaReader
             throw ReaderException::forNode($node, $root, 'Metadata can only applied to classes that implement MetaInterface');
         }
 
-        $objMeta = $object->getMeta() ?? PhelType::emptyPersistentMap();
+        $objMeta = $object->getMeta() ?? Phel::emptyPersistentMap();
         foreach ($meta as $k => $v) {
             if ($k) {
                 $objMeta = $objMeta->put($k, $v);

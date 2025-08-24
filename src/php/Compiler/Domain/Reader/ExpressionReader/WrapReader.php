@@ -4,12 +4,12 @@ declare(strict_types=1);
 
 namespace Phel\Compiler\Domain\Reader\ExpressionReader;
 
+use Phel;
 use Phel\Compiler\Application\Reader;
 use Phel\Compiler\Domain\Parser\ParserNode\NodeInterface;
 use Phel\Compiler\Domain\Parser\ParserNode\QuoteNode;
 use Phel\Lang\Collections\LinkedList\PersistentListInterface;
 use Phel\Lang\Symbol;
-use PhelType;
 
 final readonly class WrapReader
 {
@@ -21,7 +21,7 @@ final readonly class WrapReader
     {
         $expression = $this->reader->readExpression($node->getExpression(), $root);
 
-        return PhelType::persistentListFromArray([Symbol::create($wrapFn), $expression])
+        return Phel::persistentListFromArray([Symbol::create($wrapFn), $expression])
             ->setStartLocation($node->getStartLocation())
             ->setEndLocation($node->getEndLocation());
     }

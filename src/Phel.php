@@ -3,17 +3,21 @@
 declare(strict_types=1);
 
 use Phel\Lang\Registry;
+use Phel\Lang\TypeFactory;
 use Phel\Phel as InternalPhel;
 
 /**
  * Public API for Phel.
  *
  * @mixin Registry
+ * @mixin TypeFactory
  */
 final class Phel extends InternalPhel
 {
     /**
-     * Proxy undefined static method calls to the {@see Registry} singleton.
+     * Proxy undefined static method calls to
+     * - {@see Registry} singleton.
+     * - {@see TypeFactory} singleton.
      *
      * @param  string  $name
      * @param  list<mixed>  $arguments
@@ -25,6 +29,11 @@ final class Phel extends InternalPhel
         $registry = Registry::getInstance();
         if (is_callable([$registry, $name])) {
             return $registry->$name(...$arguments);
+        }
+
+        $typeFactory = TypeFactory::getInstance();
+        if (is_callable([$typeFactory, $name])) {
+            return $typeFactory->$name(...$arguments);
         }
 
         throw new BadMethodCallException(sprintf('Method "%s" does not exist', $name));

@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace Phel\Run\Domain\Test;
 
+use Phel;
 use Phel\Printer\Printer;
-use PhelType;
 
 final readonly class TestCommandOptions
 {
@@ -34,10 +34,10 @@ final readonly class TestCommandOptions
 
     public function asPhelHashMap(): string
     {
-        $optionsMap = PhelType::persistentMapFromKVs(
-            PhelType::keyword(self::FILTER),
+        $optionsMap = Phel::persistentMapFromKVs(
+            Phel::keyword(self::FILTER),
             $this->filter,
-            PhelType::keyword(self::TESTDOX),
+            Phel::keyword(self::TESTDOX),
             $this->testdox,
         );
 

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Phel\Compiler\Domain\Analyzer\TypeAnalyzer\SpecialForm;
 
+use Phel;
 use Phel\Compiler\Domain\Analyzer\AnalyzerInterface;
 use Phel\Compiler\Domain\Analyzer\Ast\BindingNode;
 use Phel\Compiler\Domain\Analyzer\Ast\LetNode;
@@ -14,7 +15,6 @@ use Phel\Compiler\Domain\Analyzer\TypeAnalyzer\SpecialForm\Binding\Deconstructor
 use Phel\Lang\Collections\LinkedList\PersistentListInterface;
 use Phel\Lang\Collections\Vector\PersistentVectorInterface;
 use Phel\Lang\Symbol;
-use PhelType;
 
 use function count;
 use function gettype;
@@ -53,8 +53,8 @@ final readonly class LetSymbol implements SpecialFormAnalyzerInterface
         }
 
         $newListData = $list->toArray();
-        $newListData[1] = PhelType::persistentVectorFromArray($bindingData);
-        $newList = PhelType::persistentListFromArray($newListData)
+        $newListData[1] = Phel::persistentVectorFromArray($bindingData);
+        $newList = Phel::persistentListFromArray($newListData)
             ->copyLocationFrom($list)
             ->withMeta($list->getMeta());
 
@@ -84,7 +84,7 @@ final readonly class LetSymbol implements SpecialFormAnalyzerInterface
 
         $exprs = $list->rest()->rest()->toArray();
         $bodyExpr = $this->analyzer->analyze(
-            PhelType::persistentListFromArray([
+            Phel::persistentListFromArray([
                 Symbol::create(Symbol::NAME_DO),
                 ...$exprs,
             ]),

@@ -17,7 +17,6 @@ use Phel\Lang\Symbol;
 use Phel\Shared\BuildConstants;
 use Phel\Shared\CompilerConstants;
 use Phel\Shared\ReplConstants;
-use PhelType;
 use RuntimeException;
 
 use function array_key_exists;
@@ -88,7 +87,7 @@ final class GlobalEnvironment implements GlobalEnvironmentInterface
             return Phel::getDefinitionMetaData(
                 $this->mungeEncodeNs($namespace),
                 $name->getName(),
-            ) ?? PhelType::emptyPersistentMap();
+            ) ?? Phel::emptyPersistentMap();
         }
 
         return null;
@@ -239,7 +238,7 @@ final class GlobalEnvironment implements GlobalEnvironmentInterface
     private function addInternalCompileModeDefinition(): void
     {
         $symbol = Symbol::create(BuildConstants::COMPILE_MODE);
-        $meta = PhelType::persistentMapFromKVs(
+        $meta = Phel::persistentMapFromKVs(
             Keyword::create('doc'),
             'Deprecated! Use *build-mode* instead. Set to true when a file is compiled, false otherwise.',
         );
@@ -255,7 +254,7 @@ final class GlobalEnvironment implements GlobalEnvironmentInterface
     private function addInternalBuildModeDefinition(): void
     {
         $symbol = Symbol::create(BuildConstants::BUILD_MODE);
-        $meta = PhelType::persistentMapFromKVs(
+        $meta = Phel::persistentMapFromKVs(
             Keyword::create('doc'),
             'Set to true when a file is being built/transpiled, false otherwise.',
         );

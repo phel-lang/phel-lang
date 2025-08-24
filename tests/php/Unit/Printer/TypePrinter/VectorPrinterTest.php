@@ -5,10 +5,10 @@ declare(strict_types=1);
 namespace PhelTest\Unit\Printer\TypePrinter;
 
 use Generator;
+use Phel;
 use Phel\Lang\Collections\Vector\PersistentVectorInterface;
 use Phel\Printer\Printer;
 use Phel\Printer\TypePrinter\PersistentVectorPrinter;
-use PhelType;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 
@@ -27,12 +27,12 @@ final class VectorPrinterTest extends TestCase
     {
         yield 'empty vector' => [
             '[]',
-            PhelType::emptyPersistentVector(),
+            Phel::emptyPersistentVector(),
         ];
 
         yield 'vector with values' => [
             '["a" 1]',
-            PhelType::persistentVectorFromArray(['a', 1]),
+            Phel::persistentVectorFromArray(['a', 1]),
         ];
     }
 }

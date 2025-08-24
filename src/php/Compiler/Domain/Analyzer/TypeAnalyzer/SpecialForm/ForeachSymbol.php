@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Phel\Compiler\Domain\Analyzer\TypeAnalyzer\SpecialForm;
 
+use Phel;
 use Phel\Compiler\Domain\Analyzer\Ast\ForeachNode;
 use Phel\Compiler\Domain\Analyzer\Environment\NodeEnvironmentInterface;
 use Phel\Compiler\Domain\Analyzer\Exceptions\AnalyzerException;
@@ -12,7 +13,6 @@ use Phel\Compiler\Domain\Analyzer\TypeAnalyzer\WithAnalyzerTrait;
 use Phel\Lang\Collections\LinkedList\PersistentListInterface;
 use Phel\Lang\Collections\Vector\PersistentVectorInterface;
 use Phel\Lang\Symbol;
-use PhelType;
 
 use function count;
 
@@ -130,14 +130,14 @@ final class ForeachSymbol implements SpecialFormAnalyzerInterface
         $bodys = $list->rest()->rest()->toArray();
 
         if ($lets !== []) {
-            return PhelType::persistentListFromArray([
+            return Phel::persistentListFromArray([
                 Symbol::create(Symbol::NAME_LET),
-                PhelType::persistentVectorFromArray($lets),
+                Phel::persistentVectorFromArray($lets),
                 ...$bodys,
             ]);
         }
 
-        return PhelType::persistentListFromArray([
+        return Phel::persistentListFromArray([
             Symbol::create(Symbol::NAME_DO),
             ...$bodys,
         ]);
