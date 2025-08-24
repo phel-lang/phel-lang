@@ -49,7 +49,6 @@ return (new Config())
         'ternary_operator_spaces' => true,
         'ternary_to_elvis_operator' => true,
         'ternary_to_null_coalescing' => true,
-        'braces_position' => true,
 
         // ------------------------------------------------------------------
         // Classes, methods & visibility
@@ -103,7 +102,6 @@ return (new Config())
         'no_mixed_echo_print' => ['use' => 'echo'],
         'short_scalar_cast' => true,
         'single_quote' => true,
-        'standardize_increment' => true,
 
         // ------------------------------------------------------------------
         // Whitespace, spacing & formatting
@@ -132,7 +130,7 @@ return (new Config())
         ],
         // Canonical tag order and casing
         'phpdoc_order' => true,
-        'phpdoc_tag_casing' => ['tags' => ['inheritDoc' => 'inheritDoc']],
+        'phpdoc_tag_casing' => true,
         // Normalize type lists and always put null last (e.g., int|string|null)
         'phpdoc_types_order' => [
             'null_adjustment' => 'always_last',
@@ -159,15 +157,12 @@ return (new Config())
         'phpdoc_var_without_name' => true,
         'no_empty_phpdoc' => true,
         'no_empty_comment' => true,
-        // Prefer comments (/** → /*) when it’s not real PHPDoc
-        'phpdoc_to_comment' => false,
 
         // ------------------------------------------------------------------
         // PHPUnit rules
         // ------------------------------------------------------------------
         'php_unit_construct' => true,
         'php_unit_dedicate_assert' => true,
-        'php_unit_dedicate_assert_internal_type' => true,
         'php_unit_method_casing' => ['case' => 'snake_case'],
 
         // ------------------------------------------------------------------
