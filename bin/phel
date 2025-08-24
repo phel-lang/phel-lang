@@ -50,6 +50,6 @@ use Phel\Console\Infrastructure\ConsoleBootstrap;
 
     Phel::bootstrap($appRootDir);
 
-    $bootstrap = new ConsoleBootstrap(name: 'Phel', version: 'v0.19.1');
+    $bootstrap = new ConsoleBootstrap(name: 'Phel', version: 'v0.20.0');
     $bootstrap->run();
 })();

@@ -1,6 +1,6 @@
 # Release
 
-Guide to creating a new release.
+Guide to create a new release.
 
 1. Update the version in [ConsoleBootstrap](../bin/phel)
 2. Update the version in [CHANGELOG.md](../CHANGELOG.md)
