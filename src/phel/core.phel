@@ -33,6 +33,7 @@
   (:use Phel\Lang\Symbol)
   (:use Phel\Lang\Truthy)
   (:use Phel\Lang\Variable)
+  (:use Phel\Lang\Generators)
   (:use Phel\Printer\Printer))
 
 (def *ns*
@@ -1389,21 +1390,29 @@ arrays. Use (php/aunset ds key)"))
     (apply vector php-array)))
 
 (defn repeat
-  "Returns a vector of length n where every element is x."
-  [n x]
-  (for [i :range [n]] x))
+  "Returns a vector of length n where every element is x.
+  With one argument returns an infinite sequence of x."
+  [a & rest]
+  (case (count rest)
+    0 (php/:: Generators (repeat a))
+    1 (for [i :range [a]] (get rest 0))
+    (throw (php/new InvalidArgumentException "repeat expects one or two arguments"))))
 
 (defn repeatedly
-  "Returns a vector of length n with values produced by repeatedly calling f."
-  [n f]
-  (for [i :range [n]] (f)))
+  "Returns a vector of length n with values produced by repeatedly calling f.
+  With one argument returns an infinite sequence of calls to f."
+  [a & rest]
+  (case (count rest)
+    0 (php/:: Generators (repeatedly a))
+    1 (let [n a
+            f (get rest 0)]
+        (for [i :range [n]] (f)))
+    (throw (php/new InvalidArgumentException "repeatedly expects one or two arguments"))))
 
 (defn iterate
-  "Returns an infinite sequence of `x`, `(f x)`, `(f (f x))`, ..."
+  "Returns an infinite sequence of x, (f x), (f (f x)), and so on."
   [f x]
-  (loop [v x]
-    (php/yield v)
-    (recur (f v))))
+  (php/:: Generators (iterate f x)))
 
 (defn group-by
   "Returns a map of the elements of xs keyed by the result of

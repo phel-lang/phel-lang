@@ -1,0 +1,14 @@
+(ns phel-test\test\core\infinite-seqs
+  (:require phel\test :refer [deftest is]))
+
+(deftest test-repeat-infinite
+  (is (= [:a :a :a] (take 3 (repeat :a)))
+      "(take 3 (repeat :a))"))
+
+(deftest test-repeatedly-infinite
+  (is (= [:x :x :x] (take 3 (repeatedly (fn [] :x))))
+      "(take 3 (repeatedly (fn [] :x)))"))
+
+(deftest test-iterate
+  (is (= [1 2 4 8] (take 4 (iterate (fn [x] (* 2 x)) 1)))
+      "(take 4 (iterate (fn [x] (* 2 x)) 1))"))

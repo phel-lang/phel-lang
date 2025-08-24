@@ -20,7 +20,9 @@ All notable changes to this project will be documented in this file.
     - `drop-last`
     - `pad-both`
     - `zipmap`
+    - `repeat`
     - `repeatedly`
+    - `iterate`
     - `every?` alias for `all?`
     - `not-every?`
     - `not-any?`
@@ -31,7 +33,6 @@ All notable changes to this project will be documented in this file.
     - `butlast`
     - `partition-by`
     - `dedupe`
-    - `iterate`
 - Add new macros:
     - `some->`
     - `some->>`
