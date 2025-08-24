@@ -92,7 +92,7 @@ final readonly class FunctionsToExportFinder implements FunctionsToExportFinderI
     {
         /** @var PersistentMapInterface $meta */
         $meta = Phel::getDefinitionMetaData($ns, $fnName)
-            ?? Phel::emptyPersistentList();
+            ?? Phel::list();
 
         return (bool)($meta[Keyword::create('export')] ?? false);
     }

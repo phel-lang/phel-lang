@@ -74,14 +74,14 @@ final readonly class LoopSymbol implements SpecialFormAnalyzerInterface
         if ($lets !== []) {
             $bodyExpr = $list->rest()->rest()->toArray();
             $letSym = Symbol::create(Symbol::NAME_LET)->copyLocationFrom($list->get(0));
-            $letExpr = Phel::persistentListFromArray([
+            $letExpr = Phel::list([
                 $letSym,
-                Phel::persistentVectorFromArray($lets),
+                Phel::vector($lets),
                 ...$bodyExpr,
             ])->copyLocationFrom($list);
-            $newExpr = Phel::persistentListFromArray([
+            $newExpr = Phel::list([
                 $list->get(0),
-                Phel::persistentVectorFromArray($preInits),
+                Phel::vector($preInits),
                 $letExpr,
             ])->copyLocationFrom($list);
 
@@ -119,7 +119,7 @@ final readonly class LoopSymbol implements SpecialFormAnalyzerInterface
         }
 
         $bodyExpr = $this->analyzer->analyze(
-            Phel::persistentListFromArray([
+            Phel::list([
                 Symbol::create(Symbol::NAME_DO),
                 ...$exprs,
             ]),

@@ -144,7 +144,7 @@ final class EmptyListTest extends TestCase
 
     public function test_add_meta_data(): void
     {
-        $meta = Phel::emptyPersistentMap();
+        $meta = Phel::map();
         $list = new EmptyList(new ModuloHasher(), new SimpleEqualizer(), null);
         $listWithMeta = $list->withMeta($meta);
 

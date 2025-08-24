@@ -44,7 +44,7 @@ final class AnalyzePersistentListTest extends TestCase
 
     public function test_symbol_with_name_def(): void
     {
-        $list = Phel::persistentListFromArray([
+        $list = Phel::list([
             Symbol::create(Symbol::NAME_DEF),
             Symbol::create('increment'),
             'inc',
@@ -54,7 +54,7 @@ final class AnalyzePersistentListTest extends TestCase
 
     public function test_symbol_with_name_ns(): void
     {
-        $list = Phel::persistentListFromArray([
+        $list = Phel::list([
             Symbol::create(Symbol::NAME_NS),
             Symbol::create('def-ns'),
         ]);
@@ -63,16 +63,16 @@ final class AnalyzePersistentListTest extends TestCase
 
     public function test_symbol_with_name_fn(): void
     {
-        $list = Phel::persistentListFromArray([
+        $list = Phel::list([
             Symbol::create(Symbol::NAME_FN),
-            Phel::persistentVectorFromArray([]),
+            Phel::vector([]),
         ]);
         self::assertInstanceOf(FnNode::class, $this->listAnalyzer->analyze($list, NodeEnvironment::empty()));
     }
 
     public function test_symbol_with_name_quote(): void
     {
-        $list = Phel::persistentListFromArray([
+        $list = Phel::list([
             Symbol::create(Symbol::NAME_QUOTE),
              'any text',
         ]);
@@ -81,7 +81,7 @@ final class AnalyzePersistentListTest extends TestCase
 
     public function test_symbol_with_name_do(): void
     {
-        $list = Phel::persistentListFromArray([
+        $list = Phel::list([
             Symbol::create(Symbol::NAME_DO), 1,
         ]);
         self::assertInstanceOf(DoNode::class, $this->listAnalyzer->analyze($list, NodeEnvironment::empty()));
@@ -89,7 +89,7 @@ final class AnalyzePersistentListTest extends TestCase
 
     public function test_symbol_with_name_if(): void
     {
-        $list = Phel::persistentListFromArray([
+        $list = Phel::list([
             Symbol::create(Symbol::NAME_IF),
             true,
             true,
@@ -99,25 +99,25 @@ final class AnalyzePersistentListTest extends TestCase
 
     public function test_symbol_with_name_apply(): void
     {
-        $list = Phel::persistentListFromArray([
-            Symbol::create(Symbol::NAME_APPLY), '+', Phel::persistentVectorFromArray(['']),
+        $list = Phel::list([
+            Symbol::create(Symbol::NAME_APPLY), '+', Phel::vector(['']),
         ]);
         self::assertInstanceOf(ApplyNode::class, $this->listAnalyzer->analyze($list, NodeEnvironment::empty()));
     }
 
     public function test_symbol_with_name_let(): void
     {
-        $list = Phel::persistentListFromArray([
+        $list = Phel::list([
             Symbol::create(Symbol::NAME_LET),
-            Phel::persistentVectorFromArray([]),
-            Phel::persistentVectorFromArray([]),
+            Phel::vector([]),
+            Phel::vector([]),
         ]);
         self::assertInstanceOf(LetNode::class, $this->listAnalyzer->analyze($list, NodeEnvironment::empty()));
     }
 
     public function test_symbol_with_name_php_new(): void
     {
-        $list = Phel::persistentListFromArray([
+        $list = Phel::list([
             Symbol::create(Symbol::NAME_PHP_NEW), '',
         ]);
         self::assertInstanceOf(PhpNewNode::class, $this->listAnalyzer->analyze($list, NodeEnvironment::empty()));
@@ -125,7 +125,7 @@ final class AnalyzePersistentListTest extends TestCase
 
     public function test_symbol_with_name_php_object_call(): void
     {
-        $list = Phel::persistentListFromArray([
+        $list = Phel::list([
             Symbol::create(Symbol::NAME_PHP_OBJECT_CALL), '', Symbol::create(''),
         ]);
         self::assertInstanceOf(
@@ -136,7 +136,7 @@ final class AnalyzePersistentListTest extends TestCase
 
     public function test_symbol_with_name_php_object_static_call(): void
     {
-        $list = Phel::persistentListFromArray([
+        $list = Phel::list([
             Symbol::create(Symbol::NAME_PHP_OBJECT_STATIC_CALL), '', Symbol::create(''),
         ]);
         self::assertInstanceOf(
@@ -147,9 +147,9 @@ final class AnalyzePersistentListTest extends TestCase
 
     public function test_symbol_with_name_php_array_get(): void
     {
-        $list = Phel::persistentListFromArray([
+        $list = Phel::list([
             Symbol::create(Symbol::NAME_PHP_ARRAY_GET),
-            Phel::persistentListFromArray([Symbol::create('php/array')]),
+            Phel::list([Symbol::create('php/array')]),
             0,
         ]);
         self::assertInstanceOf(
@@ -160,9 +160,9 @@ final class AnalyzePersistentListTest extends TestCase
 
     public function test_symbol_with_name_php_array_set(): void
     {
-        $list = Phel::persistentListFromArray([
+        $list = Phel::list([
             Symbol::create(Symbol::NAME_PHP_ARRAY_SET),
-            Phel::persistentListFromArray([Symbol::create('php/array')]),
+            Phel::list([Symbol::create('php/array')]),
             0,
             1,
         ]);
@@ -174,9 +174,9 @@ final class AnalyzePersistentListTest extends TestCase
 
     public function test_symbol_with_name_php_array_push(): void
     {
-        $list = Phel::persistentListFromArray([
+        $list = Phel::list([
             Symbol::create(Symbol::NAME_PHP_ARRAY_PUSH),
-            Phel::persistentListFromArray([Symbol::create('php/array')]),
+            Phel::list([Symbol::create('php/array')]),
             1,
         ]);
         self::assertInstanceOf(
@@ -187,9 +187,9 @@ final class AnalyzePersistentListTest extends TestCase
 
     public function test_symbol_with_name_php_array_unset(): void
     {
-        $list = Phel::persistentListFromArray([
+        $list = Phel::list([
             Symbol::create(Symbol::NAME_PHP_ARRAY_UNSET),
-            Phel::persistentListFromArray([Symbol::create('php/array')]),
+            Phel::list([Symbol::create('php/array')]),
             0,
         ]);
         self::assertInstanceOf(
@@ -200,7 +200,7 @@ final class AnalyzePersistentListTest extends TestCase
 
     public function test_symbol_with_name_recur(): void
     {
-        $list = Phel::persistentListFromArray([
+        $list = Phel::list([
             Symbol::create(Symbol::NAME_RECUR), 1,
         ]);
         $recurFrames = [new RecurFrame([Symbol::create(Symbol::NAME_FOREACH)])];
@@ -210,7 +210,7 @@ final class AnalyzePersistentListTest extends TestCase
 
     public function test_symbol_with_name_try(): void
     {
-        $list = Phel::persistentListFromArray([
+        $list = Phel::list([
             Symbol::create(Symbol::NAME_TRY),
         ]);
         self::assertInstanceOf(TryNode::class, $this->listAnalyzer->analyze($list, NodeEnvironment::empty()));
@@ -218,7 +218,7 @@ final class AnalyzePersistentListTest extends TestCase
 
     public function test_symbol_with_name_throw(): void
     {
-        $list = Phel::persistentListFromArray([
+        $list = Phel::list([
             Symbol::create(Symbol::NAME_THROW), '',
         ]);
         self::assertInstanceOf(ThrowNode::class, $this->listAnalyzer->analyze($list, NodeEnvironment::empty()));
@@ -226,39 +226,39 @@ final class AnalyzePersistentListTest extends TestCase
 
     public function test_symbol_with_name_loop(): void
     {
-        $list = Phel::persistentListFromArray([
+        $list = Phel::list([
             Symbol::create(Symbol::NAME_LOOP),
-            Phel::persistentVectorFromArray([]),
-            Phel::persistentVectorFromArray([]),
+            Phel::vector([]),
+            Phel::vector([]),
         ]);
         self::assertInstanceOf(LetNode::class, $this->listAnalyzer->analyze($list, NodeEnvironment::empty()));
     }
 
     public function test_symbol_with_name_foreach(): void
     {
-        $list = Phel::persistentListFromArray([
+        $list = Phel::list([
             Symbol::create(Symbol::NAME_FOREACH),
-            Phel::persistentVectorFromArray([
-                Symbol::create(''), Phel::persistentVectorFromArray([]),
+            Phel::vector([
+                Symbol::create(''), Phel::vector([]),
             ]),
-            Phel::persistentVectorFromArray([]),
+            Phel::vector([]),
         ]);
         self::assertInstanceOf(ForeachNode::class, $this->listAnalyzer->analyze($list, NodeEnvironment::empty()));
     }
 
     public function test_symbol_with_name_def_struct(): void
     {
-        $list = Phel::persistentListFromArray([
+        $list = Phel::list([
             Symbol::create(Symbol::NAME_DEF_STRUCT),
             Symbol::create(''),
-            Phel::persistentVectorFromArray([]),
+            Phel::vector([]),
         ]);
         self::assertInstanceOf(DefStructNode::class, $this->listAnalyzer->analyze($list, NodeEnvironment::empty()));
     }
 
     public function test_symbol_with_name_def_exception(): void
     {
-        $list = Phel::persistentListFromArray([
+        $list = Phel::list([
             Symbol::create(Symbol::NAME_DEF_EXCEPTION),
             Symbol::create('MyExc'),
         ]);

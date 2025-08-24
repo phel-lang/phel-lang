@@ -103,7 +103,7 @@ final class VectorBindingDeconstructor implements BindingDeconstructorInterface
 
     private function createBindingValue(string $symbolName, mixed $current): PersistentListInterface
     {
-        return Phel::persistentListFromArray([
+        return Phel::list([
             (Symbol::create($symbolName))->copyLocationFrom($current),
             $this->currentListSymbol,
         ])->copyLocationFrom($current);

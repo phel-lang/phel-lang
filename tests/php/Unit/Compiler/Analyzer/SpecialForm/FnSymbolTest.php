@@ -38,7 +38,7 @@ final class FnSymbolTest extends TestCase
         $this->expectException(AbstractLocatedException::class);
         $this->expectExceptionMessage("'fn requires at least one argument");
 
-        $list = Phel::persistentListFromArray([
+        $list = Phel::list([
             Symbol::create(Symbol::NAME_FN),
         ]);
 
@@ -51,7 +51,7 @@ final class FnSymbolTest extends TestCase
         $this->expectExceptionMessage("Second argument of 'fn must be a vector");
 
         // This is the same as: (fn anything)
-        $list = Phel::persistentListFromArray([
+        $list = Phel::list([
             Symbol::create(Symbol::NAME_FN),
             Symbol::create('anything'),
         ]);
@@ -62,9 +62,9 @@ final class FnSymbolTest extends TestCase
     public function test_is_not_variadic(): void
     {
         // This is the same as: (fn [anything])
-        $list = Phel::persistentListFromArray([
+        $list = Phel::list([
             Symbol::create(Symbol::NAME_FN),
-            Phel::persistentVectorFromArray([
+            Phel::vector([
                 Symbol::create('anything'),
             ]),
         ]);
@@ -85,9 +85,9 @@ final class FnSymbolTest extends TestCase
         }
 
         // This is the same as: (fn [paramName])
-        $list = Phel::persistentListFromArray([
+        $list = Phel::list([
             Symbol::create(Symbol::NAME_FN),
-            Phel::persistentVectorFromArray([
+            Phel::vector([
                 Symbol::create($paramName),
             ]),
         ]);
@@ -129,9 +129,9 @@ final class FnSymbolTest extends TestCase
         $this->expectExceptionMessage('Unsupported parameter form, only one symbol can follow the & parameter');
 
         // This is the same as: (fn [& param-1 param-2])
-        $list = Phel::persistentListFromArray([
+        $list = Phel::list([
             Symbol::create(Symbol::NAME_FN),
-            Phel::persistentVectorFromArray([
+            Phel::vector([
                 Symbol::create('&'),
                 Symbol::create('param-1'),
                 Symbol::create('param-2'),
@@ -152,9 +152,9 @@ final class FnSymbolTest extends TestCase
     public static function providerGetParams(): Generator
     {
         yield '(fn [& param-1])' => [
-            Phel::persistentListFromArray([
+            Phel::list([
                 Symbol::create(Symbol::NAME_FN),
-                Phel::persistentVectorFromArray([
+                Phel::vector([
                     Symbol::create('&'),
                     Symbol::create('param-1'),
                 ]),
@@ -165,9 +165,9 @@ final class FnSymbolTest extends TestCase
         ];
 
         yield '(fn [param-1 param-2 param-3])' => [
-            Phel::persistentListFromArray([
+            Phel::list([
                 Symbol::create(Symbol::NAME_FN),
-                Phel::persistentVectorFromArray([
+                Phel::vector([
                     Symbol::create('param-1'),
                     Symbol::create('param-2'),
                     Symbol::create('param-3'),
@@ -192,9 +192,9 @@ final class FnSymbolTest extends TestCase
     public static function providerGetBody(): Generator
     {
         yield 'DoNode body => (fn [x] x)' => [
-            Phel::persistentListFromArray([
+            Phel::list([
                 Symbol::create(Symbol::NAME_FN),
-                Phel::persistentVectorFromArray([
+                Phel::vector([
                     Symbol::create('x'),
                 ]),
                 Symbol::create('x'),
@@ -203,10 +203,10 @@ final class FnSymbolTest extends TestCase
         ];
 
         yield 'LetNode body => (fn [[x y]] x)' => [
-            Phel::persistentListFromArray([
+            Phel::list([
                 Symbol::create(Symbol::NAME_FN),
-                Phel::persistentVectorFromArray([
-                    Phel::persistentVectorFromArray([
+                Phel::vector([
+                    Phel::vector([
                         Symbol::create('x'),
                         Symbol::create('y'),
                     ]),

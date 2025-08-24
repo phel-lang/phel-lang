@@ -148,7 +148,7 @@ final class InvokeSymbol implements SpecialFormAnalyzerInterface
         }
 
         return $this->enrichLocationForAbstractType(
-            Phel::persistentListFromArray($result)->withMeta($list->getMeta()),
+            Phel::list($result)->withMeta($list->getMeta()),
             $parent,
         );
     }

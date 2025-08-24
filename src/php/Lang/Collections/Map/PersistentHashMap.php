@@ -46,6 +46,10 @@ final class PersistentHashMap extends AbstractPersistentMap
 
     public static function fromArray(HasherInterface $hasher, EqualizerInterface $equalizer, array $kvs): PersistentMapInterface
     {
+        if ($kvs === []) {
+            return self::empty($hasher, $equalizer);
+        }
+
         if (count($kvs) % 2 !== 0) {
             throw new RuntimeException('A even number of elements must be provided');
         }

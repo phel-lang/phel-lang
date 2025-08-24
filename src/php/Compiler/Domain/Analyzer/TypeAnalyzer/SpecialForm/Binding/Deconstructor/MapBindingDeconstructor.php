@@ -55,7 +55,7 @@ final class MapBindingDeconstructor implements BindingDeconstructorInterface
         PersistentMapInterface $binding,
         float|bool|int|string|TypeInterface|null $key,
     ): PersistentListInterface {
-        return Phel::persistentListFromArray([
+        return Phel::list([
             (Symbol::create(Symbol::NAME_PHP_ARRAY_GET))->copyLocationFrom($binding),
             $this->mapSymbol,
             $key,

@@ -27,12 +27,12 @@ final class VectorPrinterTest extends TestCase
     {
         yield 'empty vector' => [
             '[]',
-            Phel::emptyPersistentVector(),
+            Phel::vector(),
         ];
 
         yield 'vector with values' => [
             '["a" 1]',
-            Phel::persistentVectorFromArray(['a', 1]),
+            Phel::vector(['a', 1]),
         ];
     }
 }

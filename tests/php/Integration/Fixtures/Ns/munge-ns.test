@@ -19,14 +19,14 @@ require_once __DIR__ . '/my_namespace/core.php';
   "hello_world",
   "x",
   10,
-  \Phel::persistentMapFromKVs(
+  \Phel::map(
     \Phel::keyword("private"), true,
-    \Phel::keyword("start-location"), \Phel::persistentMapFromKVs(
+    \Phel::keyword("start-location"), \Phel::map(
       \Phel::keyword("file"), "Ns/munge-ns.test",
       \Phel::keyword("line"), 5,
       \Phel::keyword("column"), 0
     ),
-    \Phel::keyword("end-location"), \Phel::persistentMapFromKVs(
+    \Phel::keyword("end-location"), \Phel::map(
       \Phel::keyword("file"), "Ns/munge-ns.test",
       \Phel::keyword("line"), 5,
       \Phel::keyword("column"), 19
@@ -61,14 +61,14 @@ class abc extends \Phel\Lang\Collections\Struct\AbstractPersistentStruct {
       })();
     }
   },
-  \Phel::persistentMapFromKVs(
+  \Phel::map(
     \Phel::keyword("doc"), "```phel\n(abc a)\n```\nCreates a new abc struct.",
-    \Phel::keyword("start-location"), \Phel::persistentMapFromKVs(
+    \Phel::keyword("start-location"), \Phel::map(
       \Phel::keyword("file"), "Ns/munge-ns.test",
       \Phel::keyword("line"), 7,
       \Phel::keyword("column"), 0
     ),
-    \Phel::keyword("end-location"), \Phel::persistentMapFromKVs(
+    \Phel::keyword("end-location"), \Phel::map(
       \Phel::keyword("file"), "Ns/munge-ns.test",
       \Phel::keyword("line"), 7,
       \Phel::keyword("column"), 19
@@ -87,14 +87,14 @@ class abc extends \Phel\Lang\Collections\Struct\AbstractPersistentStruct {
       return is_a($x, "hello_world\\abc");
     }
   },
-  \Phel::persistentMapFromKVs(
+  \Phel::map(
     \Phel::keyword("doc"), "```phel\n(abc? x)\n```\nChecks if `x` is an instance of the abc struct.",
-    \Phel::keyword("start-location"), \Phel::persistentMapFromKVs(
+    \Phel::keyword("start-location"), \Phel::map(
       \Phel::keyword("file"), "Ns/munge-ns.test",
       \Phel::keyword("line"), 7,
       \Phel::keyword("column"), 0
     ),
-    \Phel::keyword("end-location"), \Phel::persistentMapFromKVs(
+    \Phel::keyword("end-location"), \Phel::map(
       \Phel::keyword("file"), "Ns/munge-ns.test",
       \Phel::keyword("line"), 7,
       \Phel::keyword("column"), 19

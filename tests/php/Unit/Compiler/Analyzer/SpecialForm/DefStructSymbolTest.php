@@ -30,7 +30,7 @@ final class DefStructSymbolTest extends TestCase
         $this->expectException(AbstractLocatedException::class);
         $this->expectExceptionMessage("At least two arguments are required for 'defstruct. Got 1");
 
-        $list = Phel::persistentListFromArray([
+        $list = Phel::list([
             Symbol::create(Symbol::NAME_DEF_STRUCT),
         ]);
 
@@ -43,10 +43,10 @@ final class DefStructSymbolTest extends TestCase
         $this->expectException(AbstractLocatedException::class);
         $this->expectExceptionMessage("First argument of 'defstruct must be a Symbol.");
 
-        $list = Phel::persistentListFromArray([
+        $list = Phel::list([
             Symbol::create(Symbol::NAME_DEF_STRUCT),
             '',
-            Phel::persistentVectorFromArray([]),
+            Phel::vector([]),
         ]);
 
         (new DefStructSymbol($this->analyzer, new Munge()))
@@ -58,7 +58,7 @@ final class DefStructSymbolTest extends TestCase
         $this->expectException(AbstractLocatedException::class);
         $this->expectExceptionMessage("Second argument of 'defstruct must be a vector.");
 
-        $list = Phel::persistentListFromArray([
+        $list = Phel::list([
             Symbol::create(Symbol::NAME_DEF_STRUCT),
             Symbol::create('request'),
             '',
@@ -73,10 +73,10 @@ final class DefStructSymbolTest extends TestCase
         $this->expectException(AbstractLocatedException::class);
         $this->expectExceptionMessage('Defstruct field elements must be Symbols.');
 
-        $list = Phel::persistentListFromArray([
+        $list = Phel::list([
             Symbol::create(Symbol::NAME_DEF_STRUCT),
             Symbol::create('request'),
-            Phel::persistentVectorFromArray(['method']),
+            Phel::vector(['method']),
         ]);
 
         (new DefStructSymbol($this->analyzer, new Munge()))
@@ -85,10 +85,10 @@ final class DefStructSymbolTest extends TestCase
 
     public function test_def_struct_symbol(): void
     {
-        $list = Phel::persistentListFromArray([
+        $list = Phel::list([
             Symbol::create(Symbol::NAME_DEF_STRUCT),
             Symbol::create('request'),
-            Phel::persistentVectorFromArray([Symbol::create('method'), Symbol::create('uri')]),
+            Phel::vector([Symbol::create('method'), Symbol::create('uri')]),
         ]);
 
         $defStructNode = (new DefStructSymbol($this->analyzer, new Munge()))

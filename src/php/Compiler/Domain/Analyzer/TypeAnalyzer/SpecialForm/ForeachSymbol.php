@@ -130,14 +130,14 @@ final class ForeachSymbol implements SpecialFormAnalyzerInterface
         $bodys = $list->rest()->rest()->toArray();
 
         if ($lets !== []) {
-            return Phel::persistentListFromArray([
+            return Phel::list([
                 Symbol::create(Symbol::NAME_LET),
-                Phel::persistentVectorFromArray($lets),
+                Phel::vector($lets),
                 ...$bodys,
             ]);
         }
 
-        return Phel::persistentListFromArray([
+        return Phel::list([
             Symbol::create(Symbol::NAME_DO),
             ...$bodys,
         ]);

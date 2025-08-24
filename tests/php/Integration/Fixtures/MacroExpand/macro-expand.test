@@ -10,21 +10,21 @@
     public const BOUND_TO = "user\\foo";
 
     public function __invoke($n) {
-      return \Phel::persistentListFromArray([
+      return \Phel::list([
         (\Phel\Lang\Symbol::create("php/+")),
         1,
         1
       ]);
     }
   },
-  \Phel::persistentMapFromKVs(
+  \Phel::map(
     \Phel::keyword("macro"), true,
-    \Phel::keyword("start-location"), \Phel::persistentMapFromKVs(
+    \Phel::keyword("start-location"), \Phel::map(
       \Phel::keyword("file"), "MacroExpand/macro-expand.test",
       \Phel::keyword("line"), 1,
       \Phel::keyword("column"), 0
     ),
-    \Phel::keyword("end-location"), \Phel::persistentMapFromKVs(
+    \Phel::keyword("end-location"), \Phel::map(
       \Phel::keyword("file"), "MacroExpand/macro-expand.test",
       \Phel::keyword("line"), 1,
       \Phel::keyword("column"), 38

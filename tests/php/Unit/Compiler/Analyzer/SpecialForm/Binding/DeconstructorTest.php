@@ -27,7 +27,7 @@ final class DeconstructorTest extends TestCase
     public function test_empty_vector(): void
     {
         $bindings = $this->deconstructor->deconstruct(
-            Phel::persistentVectorFromArray([]),
+            Phel::vector([]),
         );
 
         self::assertSame([], $bindings);
@@ -46,11 +46,11 @@ final class DeconstructorTest extends TestCase
         //       __phel_5 (first __phel_4)
         //       __phel_6 (next __phel_4)
         //       b __phel_5])
-        $list = Phel::persistentVectorFromArray([
-            Phel::persistentVectorFromArray([Symbol::create('a')]),
-            Phel::persistentVectorFromArray([10]),
-            Phel::persistentVectorFromArray([Symbol::create('b')]),
-            Phel::persistentVectorFromArray([20]),
+        $list = Phel::vector([
+            Phel::vector([Symbol::create('a')]),
+            Phel::vector([10]),
+            Phel::vector([Symbol::create('b')]),
+            Phel::vector([20]),
         ]);
 
         $bindings = $this->deconstructor->deconstruct($list);
@@ -58,18 +58,18 @@ final class DeconstructorTest extends TestCase
         self::assertEquals([
             [
                 Symbol::create('__phel_1'),
-                Phel::persistentVectorFromArray([10]),
+                Phel::vector([10]),
             ],
             [
                 Symbol::create('__phel_2'),
-                Phel::persistentListFromArray([
+                Phel::list([
                     Symbol::create('first'),
                     Symbol::create('__phel_1'),
                 ]),
             ],
             [
                 Symbol::create('__phel_3'),
-                Phel::persistentListFromArray([
+                Phel::list([
                     Symbol::create('next'),
                     Symbol::create('__phel_1'),
                 ]),
@@ -80,18 +80,18 @@ final class DeconstructorTest extends TestCase
             ],
             [
                 Symbol::create('__phel_4'),
-                Phel::persistentVectorFromArray([20]),
+                Phel::vector([20]),
             ],
             [
                 Symbol::create('__phel_5'),
-                Phel::persistentListFromArray([
+                Phel::list([
                     Symbol::create('first'),
                     Symbol::create('__phel_4'),
                 ]),
             ],
             [
                 Symbol::create('__phel_6'),
-                Phel::persistentListFromArray([
+                Phel::list([
                     Symbol::create('next'),
                     Symbol::create('__phel_4'),
                 ]),
@@ -111,8 +111,8 @@ final class DeconstructorTest extends TestCase
         //       __phel 2 (get __phel_1 :key)
         //       a __phel_2])
         $bindings = $this->deconstructor->deconstruct(
-            Phel::persistentVectorFromArray([
-                Phel::persistentMapFromKVs(Keyword::create('key'), Symbol::create('a')),
+            Phel::vector([
+                Phel::map(Keyword::create('key'), Symbol::create('a')),
                 Symbol::create('x'),
             ]),
         );
@@ -124,7 +124,7 @@ final class DeconstructorTest extends TestCase
             ],
             [
                 Symbol::create('__phel_2'),
-                Phel::persistentListFromArray([
+                Phel::list([
                     Symbol::create(Symbol::NAME_PHP_ARRAY_GET),
                     Symbol::create('__phel_1'),
                     Keyword::create('key'),
@@ -142,7 +142,7 @@ final class DeconstructorTest extends TestCase
         // Test for binding like this (let [nil x])
         // This will be destructured to this:
         // (let [])
-        $bindings = $this->deconstructor->deconstruct(Phel::persistentVectorFromArray([null, Symbol::create('x')]));
+        $bindings = $this->deconstructor->deconstruct(Phel::vector([null, Symbol::create('x')]));
 
         self::assertSame([], $bindings);
     }

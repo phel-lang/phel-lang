@@ -113,7 +113,7 @@ final class StructTest extends TestCase
 
     public function test_with_meta(): void
     {
-        $meta = Phel::emptyPersistentMap();
+        $meta = Phel::map();
         $s = FakeStruct::fromKVs(Keyword::create('a'), 1, Keyword::create('b'), 2);
         $sWithMeta = $s->withMeta($meta);
 

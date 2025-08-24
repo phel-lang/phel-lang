@@ -38,7 +38,7 @@ final class MapBindingDeconstructorTest extends TestCase
         $key = Keyword::create('key');
         $bindTo = Symbol::create('a');
         $value = Symbol::create('x');
-        $binding = Phel::persistentMapFromKVs($key, $bindTo);
+        $binding = Phel::map($key, $bindTo);
 
         $bindings = [];
         $this->deconstructor->deconstruct($bindings, $binding, $value);
@@ -52,7 +52,7 @@ final class MapBindingDeconstructorTest extends TestCase
             // __phel 2 (get __phel_1 :key)
             [
                 Symbol::create('__phel_2'),
-                Phel::persistentListFromArray([
+                Phel::list([
                     Symbol::create(Symbol::NAME_PHP_ARRAY_GET),
                     Symbol::create('__phel_1'),
                     $key,
@@ -81,7 +81,7 @@ final class MapBindingDeconstructorTest extends TestCase
         $key = Keyword::create('key');
         $bindTo = Symbol::create('a');
         $value = Symbol::create('x');
-        $binding = Phel::persistentMapFromKVs($key, Phel::persistentVectorFromArray([$bindTo]));
+        $binding = Phel::map($key, Phel::vector([$bindTo]));
 
         $bindings = [];
         $this->deconstructor->deconstruct($bindings, $binding, $value);
@@ -95,7 +95,7 @@ final class MapBindingDeconstructorTest extends TestCase
             // __phel 2 (get __phel_1 :key)
             [
                 Symbol::create('__phel_2'),
-                Phel::persistentListFromArray([
+                Phel::list([
                     Symbol::create(Symbol::NAME_PHP_ARRAY_GET),
                     Symbol::create('__phel_1'),
                     $key,
@@ -109,7 +109,7 @@ final class MapBindingDeconstructorTest extends TestCase
             // __phel_4 (first __phel_3)
             [
                 Symbol::create('__phel_4'),
-                Phel::persistentListFromArray([
+                Phel::list([
                     Symbol::create('first'),
                     Symbol::create('__phel_3'),
                 ]),
@@ -117,7 +117,7 @@ final class MapBindingDeconstructorTest extends TestCase
             // __phel_5 (next __phel_3)
             [
                 Symbol::create('__phel_5'),
-                Phel::persistentListFromArray([
+                Phel::list([
                     Symbol::create('next'),
                     Symbol::create('__phel_3'),
                 ]),

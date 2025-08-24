@@ -103,7 +103,7 @@ final class KeywordTest extends TestCase
     {
         $keyword1 = Keyword::create('test1');
         $keyword2 = Keyword::create('test2');
-        $table = Phel::persistentMapFromKVs(Keyword::create('test1'), 'abc');
+        $table = Phel::map(Keyword::create('test1'), 'abc');
         $this->assertSame('abc', $keyword1($table));
         $this->assertNull($keyword2($table));
         $this->assertSame('xyz', $keyword2($table, 'xyz'));

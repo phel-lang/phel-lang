@@ -29,7 +29,7 @@ final class SetVarSymbolTest extends TestCase
         $this->expectException(AnalyzerException::class);
         $this->expectExceptionMessage("First argument of 'def must be a Symbol.");
 
-        $list = Phel::persistentListFromArray([
+        $list = Phel::list([
             Symbol::create(Symbol::NAME_SET_VAR),
             'not-a-symbol',
             1,
@@ -45,7 +45,7 @@ final class SetVarSymbolTest extends TestCase
 
         $analyzer = new Analyzer($globalEnv);
 
-        $list = Phel::persistentListFromArray([
+        $list = Phel::list([
             Symbol::create(Symbol::NAME_SET_VAR),
             Symbol::create('x'),
             2,

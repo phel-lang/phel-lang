@@ -118,7 +118,7 @@ final readonly class LiteralEmitter
     private function emitMap(PersistentMapInterface $x): void
     {
         $count = count($x);
-        $this->outputEmitter->emitStr('\Phel::persistentMapFromKVs(', $x->getStartLocation());
+        $this->outputEmitter->emitStr('\Phel::map(', $x->getStartLocation());
         if ($count > 0) {
             $this->outputEmitter->increaseIndentLevel();
             $this->outputEmitter->emitLine();
@@ -147,7 +147,7 @@ final readonly class LiteralEmitter
     private function emitList(PersistentListInterface $x): void
     {
         $count = count($x);
-        $this->outputEmitter->emitStr('\Phel::persistentListFromArray([', $x->getStartLocation());
+        $this->outputEmitter->emitStr('\Phel::list([', $x->getStartLocation());
 
         if ($count > 0) {
             $this->outputEmitter->increaseIndentLevel();
@@ -173,7 +173,7 @@ final readonly class LiteralEmitter
     private function emitVector(PersistentVector $x): void
     {
         $countVector = count($x);
-        $this->outputEmitter->emitStr('\Phel::persistentVectorFromArray([', $x->getStartLocation());
+        $this->outputEmitter->emitStr('\Phel::vector([', $x->getStartLocation());
 
         if ($countVector > 0) {
             $this->outputEmitter->increaseIndentLevel();

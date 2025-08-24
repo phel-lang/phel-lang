@@ -76,7 +76,7 @@ final class Registry
             return null;
         }
 
-        return $this->definitionsMetaData[$ns][$name] ?? Phel::emptyPersistentMap();
+        return $this->definitionsMetaData[$ns][$name] ?? Phel::map();
     }
 
     /**

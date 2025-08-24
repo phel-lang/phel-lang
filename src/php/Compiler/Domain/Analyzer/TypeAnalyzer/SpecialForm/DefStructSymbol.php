@@ -170,12 +170,12 @@ final readonly class DefStructSymbol implements SpecialFormAnalyzerInterface
 
         // Analyze arguments and body as (fn arguments (do body))
         $fnNode = $this->analyzer->analyze(
-            Phel::persistentListFromArray([
+            Phel::list([
                 Symbol::create('fn'),
                 $arguments->rest(), // remove the first argument. The first argument is bound to $this
-                Phel::persistentListFromArray([
+                Phel::list([
                     Symbol::create('let'),
-                    Phel::persistentVectorFromArray([
+                    Phel::vector([
                         $arguments->first(),
                         Symbol::createForNamespace('php', '$this'),
                     ]),

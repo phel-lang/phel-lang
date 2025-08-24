@@ -9,13 +9,13 @@
     $y_2 = 2;
     return ($x_1 + $y_2);
   })(),
-  \Phel::persistentMapFromKVs(
-    \Phel::keyword("start-location"), \Phel::persistentMapFromKVs(
+  \Phel::map(
+    \Phel::keyword("start-location"), \Phel::map(
       \Phel::keyword("file"), "Let/let-expr.test",
       \Phel::keyword("line"), 1,
       \Phel::keyword("column"), 0
     ),
-    \Phel::keyword("end-location"), \Phel::persistentMapFromKVs(
+    \Phel::keyword("end-location"), \Phel::map(
       \Phel::keyword("file"), "Let/let-expr.test",
       \Phel::keyword("line"), 1,
       \Phel::keyword("column"), 35

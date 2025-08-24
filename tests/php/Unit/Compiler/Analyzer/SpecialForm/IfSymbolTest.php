@@ -31,20 +31,20 @@ final class IfSymbolTest extends TestCase
     public static function providerRequiresAtLeastTwoOrThreeArgs(): Generator
     {
         yield 'No arguments provided: (if)' => [
-            Phel::persistentListFromArray([
+            Phel::list([
                 Symbol::create(Symbol::NAME_IF),
             ]),
         ];
 
         yield 'Only one argument provided: (if "one")' => [
-            Phel::persistentListFromArray([
+            Phel::list([
                 Symbol::create(Symbol::NAME_IF),
                 'one',
             ]),
         ];
 
         yield 'Only one argument provided: (if "one" "two" "three" "four")' => [
-            Phel::persistentListFromArray([
+            Phel::list([
                 Symbol::create(Symbol::NAME_IF),
                 'one',
                 'two',
@@ -56,7 +56,7 @@ final class IfSymbolTest extends TestCase
 
     public function test_analyze(): void
     {
-        $list = Phel::persistentListFromArray([
+        $list = Phel::list([
             Symbol::create(Symbol::NAME_IF),
             true,
             'then-expression',

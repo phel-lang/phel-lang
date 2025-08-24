@@ -403,6 +403,6 @@ EOF;
     private function getPhelMeta(string $ns, string $fnName): PersistentMapInterface
     {
         return Phel::getDefinitionMetaData($ns, $fnName)
-            ?? Phel::emptyPersistentMap();
+            ?? Phel::map();
     }
 }

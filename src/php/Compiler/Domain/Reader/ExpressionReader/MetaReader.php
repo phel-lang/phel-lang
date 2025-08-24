@@ -34,9 +34,9 @@ final readonly class MetaReader
 
         $meta = $this->reader->readExpression($metaExpression, $root);
         if (is_string($meta) || $meta instanceof Symbol) {
-            $meta = Phel::persistentMapFromKVs(Keyword::create('tag'), $meta);
+            $meta = Phel::map(Keyword::create('tag'), $meta);
         } elseif ($meta instanceof Keyword) {
-            $meta = Phel::persistentMapFromKVs($meta, true);
+            $meta = Phel::map($meta, true);
         } elseif (!$meta instanceof PersistentMapInterface) {
             throw ReaderException::forNode($node, $root, 'Metadata must be a Symbol, String, Keyword or Map');
         }
@@ -47,7 +47,7 @@ final readonly class MetaReader
             throw ReaderException::forNode($node, $root, 'Metadata can only applied to classes that implement MetaInterface');
         }
 
-        $objMeta = $object->getMeta() ?? Phel::emptyPersistentMap();
+        $objMeta = $object->getMeta() ?? Phel::map();
         foreach ($meta as $k => $v) {
             if ($k) {
                 $objMeta = $objMeta->put($k, $v);

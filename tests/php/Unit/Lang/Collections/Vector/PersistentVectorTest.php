@@ -241,7 +241,7 @@ final class PersistentVectorTest extends TestCase
 
     public function test_add_meta_data(): void
     {
-        $meta = Phel::emptyPersistentMap();
+        $meta = Phel::map();
         $vector = PersistentVector::empty(new ModuloHasher(), new SimpleEqualizer());
         $vectorWithMeta = $vector->withMeta($meta);
 

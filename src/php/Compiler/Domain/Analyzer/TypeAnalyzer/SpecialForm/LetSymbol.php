@@ -53,8 +53,8 @@ final readonly class LetSymbol implements SpecialFormAnalyzerInterface
         }
 
         $newListData = $list->toArray();
-        $newListData[1] = Phel::persistentVectorFromArray($bindingData);
-        $newList = Phel::persistentListFromArray($newListData)
+        $newListData[1] = Phel::vector($bindingData);
+        $newList = Phel::list($newListData)
             ->copyLocationFrom($list)
             ->withMeta($list->getMeta());
 
@@ -84,7 +84,7 @@ final readonly class LetSymbol implements SpecialFormAnalyzerInterface
 
         $exprs = $list->rest()->rest()->toArray();
         $bodyExpr = $this->analyzer->analyze(
-            Phel::persistentListFromArray([
+            Phel::list([
                 Symbol::create(Symbol::NAME_DO),
                 ...$exprs,
             ]),

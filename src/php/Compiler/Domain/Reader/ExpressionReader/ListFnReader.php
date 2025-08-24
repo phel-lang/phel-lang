@@ -23,9 +23,9 @@ final readonly class ListFnReader
         $params = $this->extractParams($fnArgs);
         $fnArgs = null;
 
-        return Phel::persistentListFromArray([
+        return Phel::list([
             Symbol::create(Symbol::NAME_FN),
-            Phel::persistentVectorFromArray($params),
+            Phel::vector($params),
             $body,
         ])->setStartLocation($node->getStartLocation())->setEndLocation($node->getEndLocation());
     }

@@ -25,7 +25,7 @@ final readonly class MapReader
             throw ReaderException::forNode($node, $root, 'Maps must have an even number of parameters');
         }
 
-        return Phel::persistentMapFromKVs(...$list->toArray())
+        return Phel::map(...$list->toArray())
             ->setStartLocation($node->getStartLocation())
             ->setEndLocation($node->getEndLocation());
     }

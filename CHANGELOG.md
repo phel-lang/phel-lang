@@ -15,6 +15,7 @@ All notable changes to this project will be documented in this file.
 - Avoid coercing `nil` to 0 in math operations
 - Add `Phel` as public entry class instead of `\Phel\Phel` 
 - Use `Phel` as proxy for singleton `Registry` and `TypeFactory` methods
+- Use new `list`, `vector`, `set` and `map` constructors from `Phel`
 
 ## [0.19.1](https://github.com/phel-lang/phel-lang/compare/v0.19.0...v0.19.1) - 2025-08-03
 

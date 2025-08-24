@@ -37,7 +37,7 @@ final class RecurSymbolTest extends TestCase
         $this->expectException(AnalyzerException::class);
         $this->expectExceptionMessage("This is not a 'recur.");
 
-        $list = Phel::persistentListFromArray([Symbol::create('unknown')]);
+        $list = Phel::list([Symbol::create('unknown')]);
         $env = NodeEnvironment::empty();
 
         (new RecurSymbol($this->analyzer))->analyze($list, $env);
@@ -48,7 +48,7 @@ final class RecurSymbolTest extends TestCase
         $this->expectException(AnalyzerException::class);
         $this->expectExceptionMessage("Can't call 'recur here");
 
-        $list = Phel::persistentListFromArray([Symbol::create(Symbol::NAME_RECUR)]);
+        $list = Phel::list([Symbol::create(Symbol::NAME_RECUR)]);
         $env = NodeEnvironment::empty();
 
         $this->analyzer->analyze($list, $env);
@@ -59,10 +59,10 @@ final class RecurSymbolTest extends TestCase
         $this->expectException(AnalyzerException::class);
         $this->expectExceptionMessage("Wrong number of arguments for 'recur. Expected: 1 args, got: 0");
 
-        $list = Phel::persistentListFromArray([
+        $list = Phel::list([
             Symbol::create(Symbol::NAME_FN),
-            Phel::persistentVectorFromArray([Symbol::create('x')]),
-            Phel::persistentListFromArray([
+            Phel::vector([Symbol::create('x')]),
+            Phel::list([
                 Symbol::create(Symbol::NAME_RECUR),
             ]),
         ]);
@@ -76,12 +76,12 @@ final class RecurSymbolTest extends TestCase
         $this->expectException(AnalyzerException::class);
         $this->expectExceptionMessage("Wrong number of arguments for 'recur. Expected: 2 args, got: 1");
 
-        $list = Phel::persistentListFromArray([
+        $list = Phel::list([
             Symbol::create(Symbol::NAME_FN),
-            Phel::persistentVectorFromArray([Symbol::create('x'), Symbol::create('y')]),
-            Phel::persistentListFromArray([
+            Phel::vector([Symbol::create('x'), Symbol::create('y')]),
+            Phel::list([
                 Symbol::create(Symbol::NAME_RECUR),
-                Phel::persistentVectorFromArray([Symbol::create('x')]),
+                Phel::vector([Symbol::create('x')]),
             ]),
         ]);
         $env = NodeEnvironment::empty();
@@ -91,20 +91,20 @@ final class RecurSymbolTest extends TestCase
 
     public function test_fn_recursion_point(): void
     {
-        $list = Phel::persistentListFromArray([
+        $list = Phel::list([
             Symbol::create(Symbol::NAME_FN),
-            Phel::persistentVectorFromArray([Symbol::create('x')]),
-            Phel::persistentListFromArray([
+            Phel::vector([Symbol::create('x')]),
+            Phel::list([
                 Symbol::create(Symbol::NAME_IF),
-                Phel::persistentListFromArray([
+                Phel::list([
                     Symbol::create('php/=='),
                     Symbol::create('x'),
                     0,
                 ]),
                 Symbol::create('x'),
-                Phel::persistentListFromArray([
+                Phel::list([
                     Symbol::create(Symbol::NAME_RECUR),
-                    Phel::persistentListFromArray([
+                    Phel::list([
                         Symbol::create('php/-'),
                         Symbol::create('x'),
                         1,

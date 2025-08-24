@@ -32,7 +32,7 @@ final class ApplySymbolTest extends TestCase
         $this->expectException(AbstractLocatedException::class);
         $this->expectExceptionMessage("At least three arguments are required for 'apply");
 
-        $list = Phel::persistentListFromArray([
+        $list = Phel::list([
             Symbol::create(Symbol::NAME_APPLY),
             Symbol::create('\\'),
         ]);
@@ -41,10 +41,10 @@ final class ApplySymbolTest extends TestCase
 
     public function test_apply_node(): void
     {
-        $list = Phel::persistentListFromArray([
+        $list = Phel::list([
             Symbol::create(Symbol::NAME_APPLY),
             Symbol::createForNamespace('php', '+'),
-            Phel::persistentVectorFromArray([1, 2, 3]),
+            Phel::vector([1, 2, 3]),
         ]);
         $applyNode = (new ApplySymbol($this->analyzer))->analyze($list, NodeEnvironment::empty());
 

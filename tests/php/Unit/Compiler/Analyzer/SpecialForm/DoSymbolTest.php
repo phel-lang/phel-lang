@@ -29,7 +29,7 @@ final class DoSymbolTest extends TestCase
         $this->expectException(AbstractLocatedException::class);
         $this->expectExceptionMessage("This is not a 'do.");
 
-        $list = Phel::persistentListFromArray([Symbol::create('unknown')]);
+        $list = Phel::list([Symbol::create('unknown')]);
         $env = NodeEnvironment::empty();
         (new DoSymbol($this->analyzer))->analyze($list, $env);
     }
@@ -37,7 +37,7 @@ final class DoSymbolTest extends TestCase
     public function test_empty_list(): void
     {
         $env = NodeEnvironment::empty();
-        $list = Phel::persistentListFromArray([
+        $list = Phel::list([
             Symbol::create(Symbol::NAME_DO),
         ]);
 
@@ -56,7 +56,7 @@ final class DoSymbolTest extends TestCase
     {
         $env = NodeEnvironment::empty();
 
-        $list = Phel::persistentListFromArray([
+        $list = Phel::list([
             Symbol::create(Symbol::NAME_DO),
             1,
         ]);
@@ -76,7 +76,7 @@ final class DoSymbolTest extends TestCase
     {
         $env = NodeEnvironment::empty();
 
-        $list = Phel::persistentListFromArray([
+        $list = Phel::list([
             Symbol::create(Symbol::NAME_DO),
             1,
             2,

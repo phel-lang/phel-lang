@@ -39,7 +39,7 @@ final class VectorBindingDeconstructorTest extends TestCase
         // This will be destructured to this:
         // (let [__phel_1 x])
         $value = Symbol::create('x');
-        $binding = Phel::persistentListFromArray([]);
+        $binding = Phel::list([]);
 
         $bindings = [];
         $this->deconstructor->deconstruct($bindings, $binding, $value);
@@ -63,7 +63,7 @@ final class VectorBindingDeconstructorTest extends TestCase
 
         $bindTo = Symbol::create('a');
         $value = Symbol::create('x');
-        $binding = Phel::persistentListFromArray([$bindTo]);
+        $binding = Phel::list([$bindTo]);
 
         $bindings = [];
         $this->deconstructor->deconstruct($bindings, $binding, $value);
@@ -75,14 +75,14 @@ final class VectorBindingDeconstructorTest extends TestCase
             ],
             [
                 Symbol::create('__phel_2'),
-                Phel::persistentListFromArray([
+                Phel::list([
                     Symbol::create(self::FIRST_SYMBOL),
                     Symbol::create('__phel_1'),
                 ]),
             ],
             [
                 Symbol::create('__phel_3'),
-                Phel::persistentListFromArray([
+                Phel::list([
                     Symbol::create(self::NEXT_SYMBOL),
                     Symbol::create('__phel_1'),
                 ]),
@@ -110,7 +110,7 @@ final class VectorBindingDeconstructorTest extends TestCase
         $bindToA = Symbol::create('a');
         $bindToB = Symbol::create('b');
         $value = Symbol::create('x');
-        $binding = Phel::persistentVectorFromArray([$bindToA, $bindToB]);
+        $binding = Phel::vector([$bindToA, $bindToB]);
 
         $this->deconstructor->deconstruct($bindings, $binding, $value);
 
@@ -121,14 +121,14 @@ final class VectorBindingDeconstructorTest extends TestCase
             ],
             [
                 Symbol::create('__phel_2'),
-                Phel::persistentListFromArray([
+                Phel::list([
                     Symbol::create(self::FIRST_SYMBOL),
                     Symbol::create('__phel_1'),
                 ]),
             ],
             [
                 Symbol::create('__phel_3'),
-                Phel::persistentListFromArray([
+                Phel::list([
                     Symbol::create(self::NEXT_SYMBOL),
                     Symbol::create('__phel_1'),
                 ]),
@@ -139,14 +139,14 @@ final class VectorBindingDeconstructorTest extends TestCase
             ],
             [
                 Symbol::create('__phel_4'),
-                Phel::persistentListFromArray([
+                Phel::list([
                     Symbol::create(self::FIRST_SYMBOL),
                     Symbol::create('__phel_3'),
                 ]),
             ],
             [
                 Symbol::create('__phel_5'),
-                Phel::persistentListFromArray([
+                Phel::list([
                     Symbol::create(self::NEXT_SYMBOL),
                     Symbol::create('__phel_3'),
                 ]),
@@ -172,7 +172,7 @@ final class VectorBindingDeconstructorTest extends TestCase
         $bindToA = Symbol::create('a');
         $bindToB = Symbol::create('b');
         $value = Symbol::create('x');
-        $binding = Phel::persistentVectorFromArray([
+        $binding = Phel::vector([
             $bindToA,
             Symbol::create(self::REST_SYMBOL),
             $bindToB,
@@ -188,14 +188,14 @@ final class VectorBindingDeconstructorTest extends TestCase
             ],
             [
                 Symbol::create('__phel_2'),
-                Phel::persistentListFromArray([
+                Phel::list([
                     Symbol::create(self::FIRST_SYMBOL),
                     Symbol::create('__phel_1'),
                 ]),
             ],
             [
                 Symbol::create('__phel_3'),
-                Phel::persistentListFromArray([
+                Phel::list([
                     Symbol::create(self::NEXT_SYMBOL),
                     Symbol::create('__phel_1'),
                 ]),
@@ -220,7 +220,7 @@ final class VectorBindingDeconstructorTest extends TestCase
         $bindToA = Symbol::create('a');
         $bindToB = Symbol::create('b');
         $value = Symbol::create('x');
-        $binding = Phel::persistentVectorFromArray([
+        $binding = Phel::vector([
             $bindToA,
             Symbol::create(self::REST_SYMBOL),
             Symbol::create(self::REST_SYMBOL),

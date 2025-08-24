@@ -65,6 +65,10 @@ final class PersistentVector extends AbstractPersistentVector
         EqualizerInterface $equalizer,
         array $values,
     ): PersistentVectorInterface {
+        if ($values === []) {
+            return self::empty($hasher, $equalizer);
+        }
+
         $tv = TransientVector::empty($hasher, $equalizer);
         foreach ($values as $value) {
             $tv->append($value);
