@@ -1049,19 +1049,21 @@ arrays. Use (php/aunset ds key)"))
   (apply concat [] (apply map f xs)))
 
 (defn reduce
-  "Transforms a collection `xs` with a function `f` to produce a value by applying `f` to each element in order.
-  `f` is a function with two arguments. The first argument is the initial value and the second argument is
-  the element of `xs`. `f` returns a value that will be used as the initial value of the next call to `f`. The final
-  value of `f` is returned."
-  [f init xs]
-  (for [x :in xs :reduce [acc init]]
-    (f acc x)))
-
-(defn reduce2
-  "The 2-argument version of reduce that does not take an initialization value.
-  Instead, the first argument of the list is used as initialization value."
-  [f [x & xs]]
-  (reduce f x xs))
+   "(reduce f coll) (reduce f val coll)
+    f should be a function of 2 arguments. If val is not supplied, returns the result of applying f to the first 2 items in coll, then applying f to that result and the 3rd item, etc.
+    If coll contains no items, f must accept no arguments as well, and reduce returns the result of calling f with no arguments. If coll has only 1 item, it is returned and f is not called.
+    If val is supplied, returns the result of applying f to val and the first item in coll, then applying f to that result and the 2nd item, etc. If coll contains no items, returns val and f is not called."
+  [f & xs]
+  (case (count xs)
+    1 (let [coll (first xs)]
+        (if (empty? coll)
+          (f)
+          (reduce f (first coll) (next coll))))
+    2 (let [val (first xs)
+            coll (second xs)]
+        (for [x :in coll :reduce [acc val]]
+          (f acc x)))
+    (throw (php/new InvalidArgumentException "expected 2 or 3 arguments in reduce"))))
 
 (defn slice
   "Extract a slice of `xs`."
@@ -1583,7 +1585,7 @@ arrays. Use (php/aunset ds key)"))
     0 identity
     1 (first fs)
     2 |((first fs) (apply (second fs) $&))
-    (reduce2 comp fs)))
+    (reduce comp fs)))
 
 (defn complement
   "Returns a function that takes the same arguments as `f` and returns the opposite truth value."
@@ -1706,7 +1708,7 @@ arrays. Use (php/aunset ds key)"))
   [x y & args]
   (apply assert-non-nil (concat [x y] args))
   (let [all (concat [x y] args)]
-    (reduce2 |(php/& $1 $2) all)))
+    (reduce |(php/& $1 $2) all)))
 
 (defn bit-or
   "Bitwise or."
@@ -1714,7 +1716,7 @@ arrays. Use (php/aunset ds key)"))
   [x y & args]
   (apply assert-non-nil (concat [x y] args))
   (let [all (concat [x y] args)]
-    (reduce2 |(php/| $1 $2) all)))
+    (reduce |(php/| $1 $2) all)))
 
 (defn bit-xor
   "Bitwise xor."
@@ -1722,7 +1724,7 @@ arrays. Use (php/aunset ds key)"))
   [x y & args]
   (apply assert-non-nil (concat [x y] args))
   (let [all (concat [x y] args)]
-    (reduce2 |(php/^ $1 $2) all)))
+    (reduce |(php/^ $1 $2) all)))
 
 (defn bit-not
   "Bitwise complement."
@@ -1795,7 +1797,7 @@ arrays. Use (php/aunset ds key)"))
     0 0
     1 (php/* -1 (first xs))
     2 (php/- (first xs) (second xs))
-    (reduce2 |(php/- $1 $2) xs)))
+    (reduce |(php/- $1 $2) xs)))
 
 (defn *
   "Returns the product of all elements in `xs`. All elements in `xs` must be
@@ -1808,7 +1810,7 @@ numbers. If `xs` is empty, return 1."
     0 1
     1 (first xs)
     2 (php/* (first xs) (second xs))
-    (reduce2 |(php/* $1 $2) xs)))
+    (reduce |(php/* $1 $2) xs)))
 
 (defn /
   "Returns the nominator divided by all the denominators. If `xs` is empty,
@@ -1821,7 +1823,7 @@ returns 1. If `xs` has one value, returns the reciprocal of x."
     0 1
     1 (php// 1 (first xs))
     2 (php// (first xs) (second xs))
-    (reduce2 |(php// $1 $2) xs)))
+    (reduce |(php// $1 $2) xs)))
 
 (defn %
   "Return the remainder of `dividend` / `divisor`."
@@ -1904,7 +1906,7 @@ returns 1. If `xs` has one value, returns the reciprocal of x."
 (defn extreme
   "Returns the most extreme value in `args` based on the binary `order` function."
   [order args]
-  (reduce2 |(if (order $1 $2) $1 $2) args))
+  (reduce |(if (order $1 $2) $1 $2) args))
 
 (defn min
   "Returns the numeric minimum of all numbers."

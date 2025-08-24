@@ -8,6 +8,7 @@ All notable changes to this project will be documented in this file.
 - Fix `contains-value?` with `nil` value
 - Fix set `difference` errors with certain input
 - Fix `require` loading code without `*build-mode*`
+- Allow `reduce` without an initial value and remove `reduce2`
 - Add new functions:
     - `select-keys`
     - `median`
