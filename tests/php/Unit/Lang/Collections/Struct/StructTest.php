@@ -9,6 +9,7 @@ use Phel;
 use Phel\Lang\Collections\Map\PersistentHashMap;
 use Phel\Lang\Collections\Map\PersistentMapInterface;
 use Phel\Lang\Keyword;
+use Phel\Lang\TypeFactory;
 use PHPUnit\Framework\TestCase;
 
 final class StructTest extends TestCase
@@ -78,8 +79,8 @@ final class StructTest extends TestCase
     {
         $s = FakeStruct::fromKVs(Keyword::create('a'), 1, Keyword::create('b'), 2);
         $map = PersistentHashMap::fromArray(
-            Phel::getHasher(),
-            Phel::getEqualizer(),
+            TypeFactory::getInstance()->getHasher(),
+            TypeFactory::getInstance()->getEqualizer(),
             [Keyword::create('a'), 1, Keyword::create('b'), 2],
         );
 
