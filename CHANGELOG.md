@@ -31,9 +31,12 @@ All notable changes to this project will be documented in this file.
     - `butlast`
     - `partition-by`
     - `dedupe`
+    - `iterate`
 - Add new macros:
     - `some->`
     - `some->>`
+- Extend `take` to handle PHP Traversable inputs
+    - enabling safe slicing of generators and other iterables for infinite list scenarios
 - Enhance `php/->` for nested calls
 - Auto-assign-author GH workflow
 - Avoid coercing `nil` to 0 in math operations
