@@ -17,6 +17,7 @@ All notable changes to this project will be documented in this file.
     - `assoc-in` alias for `put-in`
     - `dissoc` alias for `unset`
     - `dissoc-in` alias for `unset-in`
+    - `drop-last`
 - Enhance `php/->` for nested calls
 - Auto-assign-author GH workflow
 - Avoid coercing `nil` to 0 in math operations

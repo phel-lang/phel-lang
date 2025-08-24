@@ -71,6 +71,17 @@
   (is (= ["c"] (drop 2 ["a" "b" "c"])) "drop on vector")
   (is (= (php/array "c") (drop 2 (php/array "a" "b" "c"))) "drop on php array"))
 
+(deftest test-drop-last
+  (is (= ["a" "b"] (drop-last 1 ["a" "b" "c"])) "drop-last element")
+  (is (= ["a"] (drop-last 2 ["a" "b" "c"])) "drop-last two elements")
+  (is (= [] (drop-last 3 ["a" "b" "c"])) "drop-last three elements")
+  (is (= [] (drop-last 4 ["a" "b" "c"])) "drop-last four elements")
+  (is (= ["a" "b" "c"] (drop-last 0 ["a" "b" "c"])) "drop-last zero elements")
+  (is (= ["a" "b" "c"] (drop-last -1 ["a" "b" "c"])) "drop-last with negative number")
+  (is (= [] (drop-last 1 [])) "drop-last on empty vector")
+  (is (= (php/array "a" "b") (drop-last 1 (php/array "a" "b" "c"))) "drop-last on php array")
+  (is (= (php/array) (drop-last 1 (php/array))) "drop-last on empty php array"))
+
 (deftest test-drop-while
   (is (= [1 2 3 4 -1 -2 -3] (drop-while neg? [-1 -2 -3 1 2 3 4 -1 -2 -3])) "drop-while: first three element")
   (is (= [] (drop-while neg? [-1 -2 -3])) "drop-while: everything")

@@ -1085,6 +1085,13 @@ arrays. Use (php/aunset ds key)"))
   [n xs]
   (slice xs (if (php/< n 0) 0 n)))
 
+(defn drop-last
+  "Drops the last `n` elements of `xs`."
+  [n xs]
+  (let [n (if (php/< n 0) 0 n)
+        end (php/- (count xs) n)]
+    (slice xs 0 (php/max 0 end))))
+
 (defn drop-while
   "Drops all elements at the front `xs` where `(pred x)` is true."
   [pred xs]
