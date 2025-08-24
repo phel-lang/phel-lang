@@ -11,9 +11,6 @@ use RuntimeException;
 use function array_key_exists;
 use function sprintf;
 
-/**
- * @internal
- */
 final class Registry
 {
     /** @var array<string, array<string, mixed>> */
