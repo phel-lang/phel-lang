@@ -4,12 +4,12 @@ declare(strict_types=1);
 
 namespace Phel\Compiler\Domain\Reader\ExpressionReader;
 
+use Phel;
 use Phel\Compiler\Application\Reader;
 use Phel\Compiler\Domain\Parser\ParserNode\ListNode;
 use Phel\Compiler\Domain\Parser\ParserNode\NodeInterface;
 use Phel\Compiler\Domain\Parser\ParserNode\TriviaNodeInterface;
 use Phel\Lang\Collections\LinkedList\PersistentListInterface;
-use PhelType;
 
 final readonly class ListReader
 {
@@ -28,7 +28,7 @@ final readonly class ListReader
             $acc[] = $this->reader->readExpression($child, $root);
         }
 
-        return PhelType::persistentListFromArray($acc)
+        return Phel::persistentListFromArray($acc)
             ->setStartLocation($node->getStartLocation())
             ->setEndLocation($node->getEndLocation());
     }

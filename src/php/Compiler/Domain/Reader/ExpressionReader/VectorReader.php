@@ -4,12 +4,12 @@ declare(strict_types=1);
 
 namespace Phel\Compiler\Domain\Reader\ExpressionReader;
 
+use Phel;
 use Phel\Compiler\Application\Reader;
 use Phel\Compiler\Domain\Parser\ParserNode\ListNode;
 use Phel\Compiler\Domain\Parser\ParserNode\NodeInterface;
 use Phel\Compiler\Domain\Parser\ParserNode\TriviaNodeInterface;
 use Phel\Lang\Collections\Vector\PersistentVectorInterface;
-use PhelType;
 
 final readonly class VectorReader
 {
@@ -28,7 +28,7 @@ final readonly class VectorReader
             $acc[] = $this->reader->readExpression($child, $root);
         }
 
-        return PhelType::persistentVectorFromArray($acc)
+        return Phel::persistentVectorFromArray($acc)
             ->setStartLocation($node->getStartLocation())
             ->setEndLocation($node->getEndLocation());
     }

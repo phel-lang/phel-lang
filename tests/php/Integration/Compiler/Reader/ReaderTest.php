@@ -16,7 +16,6 @@ use Phel\Lang\Keyword;
 use Phel\Lang\SourceLocation;
 use Phel\Lang\Symbol;
 use Phel\Lang\TypeInterface;
-use PhelType;
 use PHPUnit\Framework\TestCase;
 
 use function sprintf;
@@ -97,25 +96,25 @@ final class ReaderTest extends TestCase
     public function test_read_list(): void
     {
         self::assertEquals(
-            $this->loc(PhelType::emptyPersistentList(), 1, 0, 1, 2),
+            $this->loc(Phel::emptyPersistentList(), 1, 0, 1, 2),
             $this->read('()'),
         );
         self::assertEquals(
-            $this->loc(PhelType::persistentListFromArray([
-                $this->loc(PhelType::emptyPersistentList(), 1, 1, 1, 3),
+            $this->loc(Phel::persistentListFromArray([
+                $this->loc(Phel::emptyPersistentList(), 1, 1, 1, 3),
             ]), 1, 0, 1, 4),
             $this->read('(())'),
         );
 
         self::assertEquals(
-            $this->loc(PhelType::persistentListFromArray([
+            $this->loc(Phel::persistentListFromArray([
                 $this->loc(Symbol::create('a'), 1, 1, 1, 2),
             ]), 1, 0, 1, 3),
             $this->read('(a)'),
         );
 
         self::assertEquals(
-            $this->loc(PhelType::persistentListFromArray([
+            $this->loc(Phel::persistentListFromArray([
                 $this->loc(Symbol::create('a'), 1, 1, 1, 2),
                 $this->loc(Symbol::create('b'), 1, 3, 1, 4),
             ]), 1, 0, 1, 5),
@@ -126,25 +125,25 @@ final class ReaderTest extends TestCase
     public function test_read_vector(): void
     {
         self::assertEquals(
-            $this->loc(PhelType::emptyPersistentVector(), 1, 0, 1, 2),
+            $this->loc(Phel::emptyPersistentVector(), 1, 0, 1, 2),
             $this->read('[]'),
         );
         self::assertEquals(
-            $this->loc(PhelType::persistentVectorFromArray([
-                $this->loc(PhelType::emptyPersistentVector(), 1, 1, 1, 3),
+            $this->loc(Phel::persistentVectorFromArray([
+                $this->loc(Phel::emptyPersistentVector(), 1, 1, 1, 3),
             ]), 1, 0, 1, 4),
             $this->read('[[]]'),
         );
 
         self::assertEquals(
-            $this->loc(PhelType::persistentVectorFromArray([
+            $this->loc(Phel::persistentVectorFromArray([
                 $this->loc(Symbol::create('a'), 1, 1, 1, 2),
             ]), 1, 0, 1, 3),
             $this->read('[a]'),
         );
 
         self::assertEquals(
-            $this->loc(PhelType::persistentVectorFromArray([
+            $this->loc(Phel::persistentVectorFromArray([
                 $this->loc(Symbol::create('a'), 1, 1, 1, 2),
                 $this->loc(Symbol::create('b'), 1, 3, 1, 4),
             ]), 1, 0, 1, 5),
@@ -155,7 +154,7 @@ final class ReaderTest extends TestCase
     public function test_quote(): void
     {
         self::assertEquals(
-            $this->loc(PhelType::persistentListFromArray([
+            $this->loc(Phel::persistentListFromArray([
                 Symbol::create(Symbol::NAME_QUOTE),
                 $this->loc(Symbol::create('a'), 1, 1, 1, 2),
             ]), 1, 0, 1, 2),
@@ -166,7 +165,7 @@ final class ReaderTest extends TestCase
     public function test_unquote(): void
     {
         self::assertEquals(
-            $this->loc(PhelType::persistentListFromArray([
+            $this->loc(Phel::persistentListFromArray([
                 Symbol::create(Symbol::NAME_UNQUOTE),
                 $this->loc(Symbol::create('a'), 1, 1, 1, 2),
             ]), 1, 0, 1, 2),
@@ -177,7 +176,7 @@ final class ReaderTest extends TestCase
     public function test_unquote_splice(): void
     {
         self::assertEquals(
-            $this->loc(PhelType::persistentListFromArray([
+            $this->loc(Phel::persistentListFromArray([
                 Symbol::create(Symbol::NAME_UNQUOTE_SPLICING),
                 $this->loc(Symbol::create('a'), 1, 2, 1, 3),
             ]), 1, 0, 1, 3),
@@ -188,7 +187,7 @@ final class ReaderTest extends TestCase
     public function test_quasiquote1(): void
     {
         self::assertEquals(
-            $this->loc(PhelType::persistentListFromArray([
+            $this->loc(Phel::persistentListFromArray([
                 $this->loc(Symbol::create(Symbol::NAME_QUOTE), 1, 1, 1, 8),
                 $this->loc(Symbol::create(Symbol::NAME_UNQUOTE), 1, 1, 1, 8),
             ]), 1, 0, 1, 8),
@@ -199,7 +198,7 @@ final class ReaderTest extends TestCase
     public function test_quasiquote2(): void
     {
         self::assertEquals(
-            $this->loc(PhelType::persistentListFromArray([
+            $this->loc(Phel::persistentListFromArray([
                 $this->loc(Symbol::create(Symbol::NAME_QUOTE), 1, 1, 1, 2),
                 $this->loc(Symbol::create('a'), 1, 1, 1, 2),
             ]), 1, 0, 1, 2),
@@ -305,7 +304,7 @@ final class ReaderTest extends TestCase
     public function test_read_empty_map(): void
     {
         self::assertEquals(
-            $this->loc(PhelType::emptyPersistentMap(), 1, 0, 1, 2),
+            $this->loc(Phel::emptyPersistentMap(), 1, 0, 1, 2),
             $this->read('{}'),
         );
     }
@@ -314,7 +313,7 @@ final class ReaderTest extends TestCase
     {
         self::assertEquals(
             $this->loc(
-                PhelType::persistentMapFromKVs(
+                Phel::persistentMapFromKVs(
                     $this->loc(Keyword::create('a'), 1, 1, 1, 3),
                     1,
                 ),
@@ -330,7 +329,7 @@ final class ReaderTest extends TestCase
     public function test_map_table2(): void
     {
         self::assertEquals(
-            $this->loc(PhelType::persistentMapFromKVs(
+            $this->loc(Phel::persistentMapFromKVs(
                 $this->loc(Keyword::create('a'), 1, 1, 1, 3),
                 1,
                 $this->loc(Keyword::create('b'), 1, 6, 1, 8),
@@ -352,7 +351,7 @@ final class ReaderTest extends TestCase
             $this->loc(
                 $this->withMeta(
                     Symbol::create('test'),
-                    PhelType::persistentMapFromKVs(
+                    Phel::persistentMapFromKVs(
                         $this->loc(Keyword::create('test'), 1, 1, 1, 6),
                         true,
                     ),
@@ -372,7 +371,7 @@ final class ReaderTest extends TestCase
             $this->loc(
                 $this->withMeta(
                     Symbol::create('test'),
-                    PhelType::persistentMapFromKVs(
+                    Phel::persistentMapFromKVs(
                         Keyword::create('tag'),
                         'test',
                     ),
@@ -392,7 +391,7 @@ final class ReaderTest extends TestCase
             $this->loc(
                 $this->withMeta(
                     Symbol::create('test'),
-                    PhelType::persistentMapFromKVs(
+                    Phel::persistentMapFromKVs(
                         Keyword::create('tag'),
                         $this->loc(Symbol::create('String'), 1, 1, 1, 7),
                     ),
@@ -412,7 +411,7 @@ final class ReaderTest extends TestCase
             $this->loc(
                 $this->withMeta(
                     Symbol::create('test'),
-                    PhelType::persistentMapFromKVs(
+                    Phel::persistentMapFromKVs(
                         $this->loc(Keyword::create('a'), 1, 2, 1, 4),
                         1,
                         $this->loc(Keyword::create('b'), 1, 7, 1, 9),
@@ -434,7 +433,7 @@ final class ReaderTest extends TestCase
             $this->loc(
                 $this->withMeta(
                     Symbol::create('test'),
-                    PhelType::persistentMapFromKVs(
+                    Phel::persistentMapFromKVs(
                         $this->loc(Keyword::create('b'), 1, 5, 1, 7),
                         true,
                         $this->loc(Keyword::create('a'), 1, 1, 1, 3),
@@ -468,11 +467,11 @@ final class ReaderTest extends TestCase
     {
         self::assertEquals(
             $this->loc(
-                PhelType::persistentListFromArray([
+                Phel::persistentListFromArray([
                     Symbol::create(Symbol::NAME_FN),
-                    PhelType::emptyPersistentVector(),
+                    Phel::emptyPersistentVector(),
                     $this->loc(
-                        PhelType::persistentListFromArray([
+                        Phel::persistentListFromArray([
                             $this->loc(Symbol::create('add'), 1, 2, 1, 5),
                         ]),
                         1,
@@ -494,13 +493,13 @@ final class ReaderTest extends TestCase
     {
         self::assertEquals(
             $this->loc(
-                PhelType::persistentListFromArray([
+                Phel::persistentListFromArray([
                     Symbol::create(Symbol::NAME_FN),
-                    PhelType::persistentVectorFromArray([
+                    Phel::persistentVectorFromArray([
                         Symbol::create('__short_fn_1_1'),
                     ]),
                     $this->loc(
-                        PhelType::persistentListFromArray([
+                        Phel::persistentListFromArray([
                             $this->loc(Symbol::create('add'), 1, 2, 1, 5),
                             $this->loc(Symbol::create('__short_fn_1_1'), 1, 6, 1, 7),
                         ]),
@@ -523,13 +522,13 @@ final class ReaderTest extends TestCase
     {
         self::assertEquals(
             $this->loc(
-                PhelType::persistentListFromArray([
+                Phel::persistentListFromArray([
                     Symbol::create(Symbol::NAME_FN),
-                    PhelType::persistentVectorFromArray([
+                    Phel::persistentVectorFromArray([
                         Symbol::create('__short_fn_1_1'),
                     ]),
                     $this->loc(
-                        PhelType::persistentListFromArray([
+                        Phel::persistentListFromArray([
                             $this->loc(Symbol::create('add'), 1, 2, 1, 5),
                             $this->loc(Symbol::create('__short_fn_1_1'), 1, 6, 1, 7),
                             $this->loc(Symbol::create('__short_fn_1_1'), 1, 8, 1, 9),
@@ -553,14 +552,14 @@ final class ReaderTest extends TestCase
     {
         self::assertEquals(
             $this->loc(
-                PhelType::persistentListFromArray([
+                Phel::persistentListFromArray([
                     Symbol::create(Symbol::NAME_FN),
-                    PhelType::persistentVectorFromArray([
+                    Phel::persistentVectorFromArray([
                         Symbol::create('__short_fn_1_1'),
                         Symbol::create('__short_fn_2_2'),
                     ]),
                     $this->loc(
-                        PhelType::persistentListFromArray([
+                        Phel::persistentListFromArray([
                             $this->loc(Symbol::create('add'), 1, 2, 1, 5),
                             $this->loc(Symbol::create('__short_fn_1_1'), 1, 6, 1, 8),
                             $this->loc(Symbol::create('__short_fn_2_2'), 1, 9, 1, 11),
@@ -584,13 +583,13 @@ final class ReaderTest extends TestCase
     {
         self::assertEquals(
             $this->loc(
-                PhelType::persistentListFromArray([
+                Phel::persistentListFromArray([
                     Symbol::create(Symbol::NAME_FN),
-                    PhelType::persistentVectorFromArray([
+                    Phel::persistentVectorFromArray([
                         Symbol::create('__short_fn_1_1'),
                     ]),
                     $this->loc(
-                        PhelType::persistentListFromArray([
+                        Phel::persistentListFromArray([
                             $this->loc(Symbol::create('add'), 1, 2, 1, 5),
                             $this->loc(Symbol::create('__short_fn_1_1'), 1, 6, 1, 8),
                             $this->loc(Symbol::create('__short_fn_1_1'), 1, 9, 1, 11),
@@ -614,15 +613,15 @@ final class ReaderTest extends TestCase
     {
         self::assertEquals(
             $this->loc(
-                PhelType::persistentListFromArray([
+                Phel::persistentListFromArray([
                     Symbol::create(Symbol::NAME_FN),
-                    PhelType::persistentVectorFromArray([
+                    Phel::persistentVectorFromArray([
                         Symbol::create('__short_fn_1_1'),
                         Symbol::create('__short_fn_undefined_3'),
                         Symbol::create('__short_fn_3_2'),
                     ]),
                     $this->loc(
-                        PhelType::persistentListFromArray([
+                        Phel::persistentListFromArray([
                             $this->loc(Symbol::create('add'), 1, 2, 1, 5),
                             $this->loc(Symbol::create('__short_fn_1_1'), 1, 6, 1, 8),
                             $this->loc(Symbol::create('__short_fn_3_2'), 1, 9, 1, 11),
@@ -646,15 +645,15 @@ final class ReaderTest extends TestCase
     {
         self::assertEquals(
             $this->loc(
-                PhelType::persistentListFromArray([
+                Phel::persistentListFromArray([
                     Symbol::create(Symbol::NAME_FN),
-                    PhelType::persistentVectorFromArray([
+                    Phel::persistentVectorFromArray([
                         Symbol::create('__short_fn_1_1'),
                         Symbol::create('&'),
                         Symbol::create('__short_fn_rest_2'),
                     ]),
                     $this->loc(
-                        PhelType::persistentListFromArray([
+                        Phel::persistentListFromArray([
                             $this->loc(Symbol::create('add'), 1, 2, 1, 5),
                             $this->loc(Symbol::create('__short_fn_1_1'), 1, 6, 1, 8),
                             $this->loc(Symbol::create('__short_fn_rest_2'), 1, 9, 1, 11),
@@ -678,14 +677,14 @@ final class ReaderTest extends TestCase
     {
         $this->assertEquals(
             $this->loc(
-                PhelType::persistentListFromArray([
+                Phel::persistentListFromArray([
                     Symbol::create(Symbol::NAME_FN),
-                    PhelType::persistentVectorFromArray([
+                    Phel::persistentVectorFromArray([
                         Symbol::create('&'),
                         Symbol::create('__short_fn_rest_1'),
                     ]),
                     $this->loc(
-                        PhelType::persistentListFromArray([
+                        Phel::persistentListFromArray([
                             $this->loc(Symbol::create('concat'), 1, 2, 1, 8),
                             $this->loc(Symbol::create('__short_fn_rest_1'), 1, 9, 1, 11),
                             $this->loc(Symbol::create('__short_fn_rest_1'), 1, 12, 1, 14),

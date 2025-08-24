@@ -6,16 +6,16 @@
   "user",
   "x",
   1,
-  \PhelType::persistentMapFromKVs(
-    \PhelType::keyword("start-location"), \PhelType::persistentMapFromKVs(
-      \PhelType::keyword("file"), "SetVar/set-var.test",
-      \PhelType::keyword("line"), 1,
-      \PhelType::keyword("column"), 0
+  \Phel::persistentMapFromKVs(
+    \Phel::keyword("start-location"), \Phel::persistentMapFromKVs(
+      \Phel::keyword("file"), "SetVar/set-var.test",
+      \Phel::keyword("line"), 1,
+      \Phel::keyword("column"), 0
     ),
-    \PhelType::keyword("end-location"), \PhelType::persistentMapFromKVs(
-      \PhelType::keyword("file"), "SetVar/set-var.test",
-      \PhelType::keyword("line"), 1,
-      \PhelType::keyword("column"), 9
+    \Phel::keyword("end-location"), \Phel::persistentMapFromKVs(
+      \Phel::keyword("file"), "SetVar/set-var.test",
+      \Phel::keyword("line"), 1,
+      \Phel::keyword("column"), 9
     )
   )
 );

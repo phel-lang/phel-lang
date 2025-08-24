@@ -13,18 +13,18 @@
       return ($f)(...(($xs) ?? []));
     }
   },
-  \PhelType::persistentMapFromKVs(
-    \PhelType::keyword("start-location"), \PhelType::persistentMapFromKVs(
-      \PhelType::keyword("file"), "Call/php-fn-reference.test",
-      \PhelType::keyword("line"), 1,
-      \PhelType::keyword("column"), 0
+  \Phel::persistentMapFromKVs(
+    \Phel::keyword("start-location"), \Phel::persistentMapFromKVs(
+      \Phel::keyword("file"), "Call/php-fn-reference.test",
+      \Phel::keyword("line"), 1,
+      \Phel::keyword("column"), 0
     ),
-    \PhelType::keyword("end-location"), \PhelType::persistentMapFromKVs(
-      \PhelType::keyword("file"), "Call/php-fn-reference.test",
-      \PhelType::keyword("line"), 1,
-      \PhelType::keyword("column"), 37
+    \Phel::keyword("end-location"), \Phel::persistentMapFromKVs(
+      \Phel::keyword("file"), "Call/php-fn-reference.test",
+      \Phel::keyword("line"), 1,
+      \Phel::keyword("column"), 37
     ),
     "min-arity", 2
   )
 );
-(\Phel::getDefinition("user", "reduce"))((function(...$args) { return array(...$args);}), \PhelType::persistentVectorFromArray([1, 2, 3]));
+(\Phel::getDefinition("user", "reduce"))((function(...$args) { return array(...$args);}), \Phel::persistentVectorFromArray([1, 2, 3]));

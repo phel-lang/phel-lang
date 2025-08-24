@@ -13,16 +13,16 @@
       return 1;
     }
   },
-  \PhelType::persistentMapFromKVs(
-    \PhelType::keyword("start-location"), \PhelType::persistentMapFromKVs(
-      \PhelType::keyword("file"), "Call/global-call.test",
-      \PhelType::keyword("line"), 1,
-      \PhelType::keyword("column"), 0
+  \Phel::persistentMapFromKVs(
+    \Phel::keyword("start-location"), \Phel::persistentMapFromKVs(
+      \Phel::keyword("file"), "Call/global-call.test",
+      \Phel::keyword("line"), 1,
+      \Phel::keyword("column"), 0
     ),
-    \PhelType::keyword("end-location"), \PhelType::persistentMapFromKVs(
-      \PhelType::keyword("file"), "Call/global-call.test",
-      \PhelType::keyword("line"), 1,
-      \PhelType::keyword("column"), 18
+    \Phel::keyword("end-location"), \Phel::persistentMapFromKVs(
+      \Phel::keyword("file"), "Call/global-call.test",
+      \Phel::keyword("line"), 1,
+      \Phel::keyword("column"), 18
     ),
     "min-arity", 1
   )

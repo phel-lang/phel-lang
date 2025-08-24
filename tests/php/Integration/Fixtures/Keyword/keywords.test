@@ -17,68 +17,68 @@ require_once __DIR__ . '/xyz/foo.php';
 \Phel::addDefinition(
   "test",
   "a",
-  \PhelType::keyword("bar"),
-  \PhelType::persistentMapFromKVs(
-    \PhelType::keyword("start-location"), \PhelType::persistentMapFromKVs(
-      \PhelType::keyword("file"), "Keyword/keywords.test",
-      \PhelType::keyword("line"), 3,
-      \PhelType::keyword("column"), 0
+  \Phel::keyword("bar"),
+  \Phel::persistentMapFromKVs(
+    \Phel::keyword("start-location"), \Phel::persistentMapFromKVs(
+      \Phel::keyword("file"), "Keyword/keywords.test",
+      \Phel::keyword("line"), 3,
+      \Phel::keyword("column"), 0
     ),
-    \PhelType::keyword("end-location"), \PhelType::persistentMapFromKVs(
-      \PhelType::keyword("file"), "Keyword/keywords.test",
-      \PhelType::keyword("line"), 3,
-      \PhelType::keyword("column"), 12
+    \Phel::keyword("end-location"), \Phel::persistentMapFromKVs(
+      \Phel::keyword("file"), "Keyword/keywords.test",
+      \Phel::keyword("line"), 3,
+      \Phel::keyword("column"), 12
     )
   )
 );
 \Phel::addDefinition(
   "test",
   "b",
-  \PhelType::keyword("bar", "test"),
-  \PhelType::persistentMapFromKVs(
-    \PhelType::keyword("start-location"), \PhelType::persistentMapFromKVs(
-      \PhelType::keyword("file"), "Keyword/keywords.test",
-      \PhelType::keyword("line"), 4,
-      \PhelType::keyword("column"), 0
+  \Phel::keyword("bar", "test"),
+  \Phel::persistentMapFromKVs(
+    \Phel::keyword("start-location"), \Phel::persistentMapFromKVs(
+      \Phel::keyword("file"), "Keyword/keywords.test",
+      \Phel::keyword("line"), 4,
+      \Phel::keyword("column"), 0
     ),
-    \PhelType::keyword("end-location"), \PhelType::persistentMapFromKVs(
-      \PhelType::keyword("file"), "Keyword/keywords.test",
-      \PhelType::keyword("line"), 4,
-      \PhelType::keyword("column"), 13
+    \Phel::keyword("end-location"), \Phel::persistentMapFromKVs(
+      \Phel::keyword("file"), "Keyword/keywords.test",
+      \Phel::keyword("line"), 4,
+      \Phel::keyword("column"), 13
     )
   )
 );
 \Phel::addDefinition(
   "test",
   "c",
-  \PhelType::keyword("bar", "xyz\\foo"),
-  \PhelType::persistentMapFromKVs(
-    \PhelType::keyword("start-location"), \PhelType::persistentMapFromKVs(
-      \PhelType::keyword("file"), "Keyword/keywords.test",
-      \PhelType::keyword("line"), 5,
-      \PhelType::keyword("column"), 0
+  \Phel::keyword("bar", "xyz\\foo"),
+  \Phel::persistentMapFromKVs(
+    \Phel::keyword("start-location"), \Phel::persistentMapFromKVs(
+      \Phel::keyword("file"), "Keyword/keywords.test",
+      \Phel::keyword("line"), 5,
+      \Phel::keyword("column"), 0
     ),
-    \PhelType::keyword("end-location"), \PhelType::persistentMapFromKVs(
-      \PhelType::keyword("file"), "Keyword/keywords.test",
-      \PhelType::keyword("line"), 5,
-      \PhelType::keyword("column"), 17
+    \Phel::keyword("end-location"), \Phel::persistentMapFromKVs(
+      \Phel::keyword("file"), "Keyword/keywords.test",
+      \Phel::keyword("line"), 5,
+      \Phel::keyword("column"), 17
     )
   )
 );
 \Phel::addDefinition(
   "test",
   "d",
-  \PhelType::keyword("bar", "xyz\\foo"),
-  \PhelType::persistentMapFromKVs(
-    \PhelType::keyword("start-location"), \PhelType::persistentMapFromKVs(
-      \PhelType::keyword("file"), "Keyword/keywords.test",
-      \PhelType::keyword("line"), 6,
-      \PhelType::keyword("column"), 0
+  \Phel::keyword("bar", "xyz\\foo"),
+  \Phel::persistentMapFromKVs(
+    \Phel::keyword("start-location"), \Phel::persistentMapFromKVs(
+      \Phel::keyword("file"), "Keyword/keywords.test",
+      \Phel::keyword("line"), 6,
+      \Phel::keyword("column"), 0
     ),
-    \PhelType::keyword("end-location"), \PhelType::persistentMapFromKVs(
-      \PhelType::keyword("file"), "Keyword/keywords.test",
-      \PhelType::keyword("line"), 6,
-      \PhelType::keyword("column"), 20
+    \Phel::keyword("end-location"), \Phel::persistentMapFromKVs(
+      \Phel::keyword("file"), "Keyword/keywords.test",
+      \Phel::keyword("line"), 6,
+      \Phel::keyword("column"), 20
     )
   )
 );

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace PhelTest\Unit\Compiler\Analyzer\SpecialForm;
 
+use Phel;
 use Phel\Compiler\Application\Analyzer;
 use Phel\Compiler\Domain\Analyzer\AnalyzerInterface;
 use Phel\Compiler\Domain\Analyzer\Ast\DefExceptionNode;
@@ -13,7 +14,6 @@ use Phel\Compiler\Domain\Analyzer\Environment\NodeEnvironment;
 use Phel\Compiler\Domain\Analyzer\TypeAnalyzer\SpecialForm\DefExceptionSymbol;
 use Phel\Compiler\Domain\Exceptions\AbstractLocatedException;
 use Phel\Lang\Symbol;
-use PhelType;
 use PHPUnit\Framework\TestCase;
 
 final class DefExceptionSymbolTest extends TestCase
@@ -30,7 +30,7 @@ final class DefExceptionSymbolTest extends TestCase
         $this->expectException(AbstractLocatedException::class);
         $this->expectExceptionMessage("Exact one argument is required for 'defexception");
 
-        $list = PhelType::persistentListFromArray([
+        $list = Phel::persistentListFromArray([
             Symbol::create(Symbol::NAME_DEF_EXCEPTION),
             Symbol::create('A'),
             Symbol::create('B'),
@@ -45,7 +45,7 @@ final class DefExceptionSymbolTest extends TestCase
         $this->expectException(AbstractLocatedException::class);
         $this->expectExceptionMessage("First argument of 'defexception must be a Symbol.");
 
-        $list = PhelType::persistentListFromArray([
+        $list = Phel::persistentListFromArray([
             Symbol::create(Symbol::NAME_DEF_EXCEPTION),
             'no-symbol',
         ]);
@@ -56,7 +56,7 @@ final class DefExceptionSymbolTest extends TestCase
 
     public function test_def_exception_symbol(): void
     {
-        $list = PhelType::persistentListFromArray([
+        $list = Phel::persistentListFromArray([
             Symbol::create(Symbol::NAME_DEF_EXCEPTION),
             Symbol::create('MyExc'),
         ]);

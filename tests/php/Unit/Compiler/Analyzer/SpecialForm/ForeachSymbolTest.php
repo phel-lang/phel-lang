@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace PhelTest\Unit\Compiler\Analyzer\SpecialForm;
 
+use Phel;
 use Phel\Compiler\Application\Analyzer;
 use Phel\Compiler\Domain\Analyzer\Ast\DoNode;
 use Phel\Compiler\Domain\Analyzer\Ast\ForeachNode;
@@ -17,7 +18,6 @@ use Phel\Compiler\Domain\Analyzer\TypeAnalyzer\SpecialForm\ForeachSymbol;
 use Phel\Compiler\Domain\Exceptions\AbstractLocatedException;
 use Phel\Lang\Collections\LinkedList\PersistentListInterface;
 use Phel\Lang\Symbol;
-use PhelType;
 use PHPUnit\Framework\TestCase;
 
 final class ForeachSymbolTest extends TestCase
@@ -28,7 +28,7 @@ final class ForeachSymbolTest extends TestCase
         $this->expectExceptionMessage("At least two arguments are required for 'foreach");
 
         // (foreach)
-        $list = PhelType::persistentListFromArray([
+        $list = Phel::persistentListFromArray([
             Symbol::create(Symbol::NAME_FOREACH),
         ]);
 
@@ -41,7 +41,7 @@ final class ForeachSymbolTest extends TestCase
         $this->expectExceptionMessage("First argument of 'foreach must be a vector.");
 
         // (foreach x)
-        $list = PhelType::persistentListFromArray([
+        $list = Phel::persistentListFromArray([
             Symbol::create(Symbol::NAME_FOREACH),
             Symbol::create('x'),
         ]);
@@ -55,9 +55,9 @@ final class ForeachSymbolTest extends TestCase
         $this->expectExceptionMessage("Vector of 'foreach must have exactly two or three elements.");
 
         // (foreach [x])
-        $list = PhelType::persistentListFromArray([
+        $list = Phel::persistentListFromArray([
             Symbol::create(Symbol::NAME_FOREACH),
-            PhelType::persistentVectorFromArray([
+            Phel::persistentVectorFromArray([
                 Symbol::create('x'),
             ]),
         ]);
@@ -68,11 +68,11 @@ final class ForeachSymbolTest extends TestCase
     public function test_value_symbol_from_vector_with2_args(): void
     {
         // (foreach [x []])
-        $list = PhelType::persistentListFromArray([
+        $list = Phel::persistentListFromArray([
             Symbol::create(Symbol::NAME_FOREACH),
-            PhelType::persistentVectorFromArray([
+            Phel::persistentVectorFromArray([
                 Symbol::create('x'),
-                PhelType::persistentVectorFromArray([]),
+                Phel::persistentVectorFromArray([]),
             ]),
             Symbol::create('x'),
         ]);
@@ -97,11 +97,11 @@ final class ForeachSymbolTest extends TestCase
     public function test_deconstrution_with_two_args(): void
     {
         // (foreach [[x] []])
-        $list = PhelType::persistentListFromArray([
+        $list = Phel::persistentListFromArray([
             Symbol::create(Symbol::NAME_FOREACH),
-            PhelType::persistentVectorFromArray([
-                PhelType::persistentVectorFromArray([Symbol::create('x')]),
-                PhelType::persistentVectorFromArray([]),
+            Phel::persistentVectorFromArray([
+                Phel::persistentVectorFromArray([Symbol::create('x')]),
+                Phel::persistentVectorFromArray([]),
             ]),
             Symbol::create('x'),
         ]);
@@ -113,12 +113,12 @@ final class ForeachSymbolTest extends TestCase
     public function test_value_symbol_vector_with3_args(): void
     {
         // (foreach [key value {}])
-        $list = PhelType::persistentListFromArray([
+        $list = Phel::persistentListFromArray([
             Symbol::create(Symbol::NAME_FOREACH),
-            PhelType::persistentVectorFromArray([
+            Phel::persistentVectorFromArray([
                 Symbol::create('key'),
                 Symbol::create('value'),
-                PhelType::emptyPersistentMap(),
+                Phel::emptyPersistentMap(),
             ]),
             Symbol::create('key'),
         ]);
@@ -144,12 +144,12 @@ final class ForeachSymbolTest extends TestCase
     public function test_deconstrution_with_three_args(): void
     {
         // (foreach [[key] [value] []])
-        $list = PhelType::persistentListFromArray([
+        $list = Phel::persistentListFromArray([
             Symbol::create(Symbol::NAME_FOREACH),
-            PhelType::persistentVectorFromArray([
-                PhelType::persistentVectorFromArray([Symbol::create('key')]),
-                PhelType::persistentVectorFromArray([Symbol::create('value')]),
-                PhelType::persistentVectorFromArray([]),
+            Phel::persistentVectorFromArray([
+                Phel::persistentVectorFromArray([Symbol::create('key')]),
+                Phel::persistentVectorFromArray([Symbol::create('value')]),
+                Phel::persistentVectorFromArray([]),
             ]),
             Symbol::create('key'),
         ]);
@@ -164,13 +164,13 @@ final class ForeachSymbolTest extends TestCase
         $this->expectExceptionMessage("Vector of 'foreach must have exactly two or three elements.");
 
         // (foreach [x y z {}])
-        $list = PhelType::persistentListFromArray([
+        $list = Phel::persistentListFromArray([
             Symbol::create(Symbol::NAME_FOREACH),
-            PhelType::persistentVectorFromArray([
+            Phel::persistentVectorFromArray([
                 Symbol::create('x'),
                 Symbol::create('y'),
                 Symbol::create('z'),
-                PhelType::emptyPersistentMap(),
+                Phel::emptyPersistentMap(),
             ]),
         ]);
 

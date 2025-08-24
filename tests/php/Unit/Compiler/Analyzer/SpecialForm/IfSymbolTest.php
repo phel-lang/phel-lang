@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace PhelTest\Unit\Compiler\Analyzer\SpecialForm;
 
 use Generator;
+use Phel;
 use Phel\Compiler\Application\Analyzer;
 use Phel\Compiler\Domain\Analyzer\Ast\IfNode;
 use Phel\Compiler\Domain\Analyzer\Environment\GlobalEnvironment;
@@ -13,7 +14,6 @@ use Phel\Compiler\Domain\Analyzer\TypeAnalyzer\SpecialForm\IfSymbol;
 use Phel\Compiler\Domain\Exceptions\AbstractLocatedException;
 use Phel\Lang\Collections\LinkedList\PersistentListInterface;
 use Phel\Lang\Symbol;
-use PhelType;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 
@@ -31,20 +31,20 @@ final class IfSymbolTest extends TestCase
     public static function providerRequiresAtLeastTwoOrThreeArgs(): Generator
     {
         yield 'No arguments provided: (if)' => [
-            PhelType::persistentListFromArray([
+            Phel::persistentListFromArray([
                 Symbol::create(Symbol::NAME_IF),
             ]),
         ];
 
         yield 'Only one argument provided: (if "one")' => [
-            PhelType::persistentListFromArray([
+            Phel::persistentListFromArray([
                 Symbol::create(Symbol::NAME_IF),
                 'one',
             ]),
         ];
 
         yield 'Only one argument provided: (if "one" "two" "three" "four")' => [
-            PhelType::persistentListFromArray([
+            Phel::persistentListFromArray([
                 Symbol::create(Symbol::NAME_IF),
                 'one',
                 'two',
@@ -56,7 +56,7 @@ final class IfSymbolTest extends TestCase
 
     public function test_analyze(): void
     {
-        $list = PhelType::persistentListFromArray([
+        $list = Phel::persistentListFromArray([
             Symbol::create(Symbol::NAME_IF),
             true,
             'then-expression',

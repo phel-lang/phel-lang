@@ -10,24 +10,24 @@
     public const BOUND_TO = "user\\foo";
 
     public function __invoke($n) {
-      return \PhelType::persistentListFromArray([
+      return \Phel::persistentListFromArray([
         (\Phel\Lang\Symbol::create("php/+")),
         1,
         1
       ]);
     }
   },
-  \PhelType::persistentMapFromKVs(
-    \PhelType::keyword("macro"), true,
-    \PhelType::keyword("start-location"), \PhelType::persistentMapFromKVs(
-      \PhelType::keyword("file"), "MacroExpand/macro-expand.test",
-      \PhelType::keyword("line"), 1,
-      \PhelType::keyword("column"), 0
+  \Phel::persistentMapFromKVs(
+    \Phel::keyword("macro"), true,
+    \Phel::keyword("start-location"), \Phel::persistentMapFromKVs(
+      \Phel::keyword("file"), "MacroExpand/macro-expand.test",
+      \Phel::keyword("line"), 1,
+      \Phel::keyword("column"), 0
     ),
-    \PhelType::keyword("end-location"), \PhelType::persistentMapFromKVs(
-      \PhelType::keyword("file"), "MacroExpand/macro-expand.test",
-      \PhelType::keyword("line"), 1,
-      \PhelType::keyword("column"), 38
+    \Phel::keyword("end-location"), \Phel::persistentMapFromKVs(
+      \Phel::keyword("file"), "MacroExpand/macro-expand.test",
+      \Phel::keyword("line"), 1,
+      \Phel::keyword("column"), 38
     ),
     "min-arity", 1
   )

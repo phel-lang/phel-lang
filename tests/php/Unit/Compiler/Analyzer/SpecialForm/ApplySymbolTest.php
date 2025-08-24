@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace PhelTest\Unit\Compiler\Analyzer\SpecialForm;
 
+use Phel;
 use Phel\Compiler\Application\Analyzer;
 use Phel\Compiler\Domain\Analyzer\AnalyzerInterface;
 use Phel\Compiler\Domain\Analyzer\Ast\ApplyNode;
@@ -15,7 +16,6 @@ use Phel\Compiler\Domain\Analyzer\Environment\NodeEnvironment;
 use Phel\Compiler\Domain\Analyzer\TypeAnalyzer\SpecialForm\ApplySymbol;
 use Phel\Compiler\Domain\Exceptions\AbstractLocatedException;
 use Phel\Lang\Symbol;
-use PhelType;
 use PHPUnit\Framework\TestCase;
 
 final class ApplySymbolTest extends TestCase
@@ -32,7 +32,7 @@ final class ApplySymbolTest extends TestCase
         $this->expectException(AbstractLocatedException::class);
         $this->expectExceptionMessage("At least three arguments are required for 'apply");
 
-        $list = PhelType::persistentListFromArray([
+        $list = Phel::persistentListFromArray([
             Symbol::create(Symbol::NAME_APPLY),
             Symbol::create('\\'),
         ]);
@@ -41,10 +41,10 @@ final class ApplySymbolTest extends TestCase
 
     public function test_apply_node(): void
     {
-        $list = PhelType::persistentListFromArray([
+        $list = Phel::persistentListFromArray([
             Symbol::create(Symbol::NAME_APPLY),
             Symbol::createForNamespace('php', '+'),
-            PhelType::persistentVectorFromArray([1, 2, 3]),
+            Phel::persistentVectorFromArray([1, 2, 3]),
         ]);
         $applyNode = (new ApplySymbol($this->analyzer))->analyze($list, NodeEnvironment::empty());
 

@@ -11,18 +11,18 @@
       return $x;
     }
   },
-  \PhelType::persistentMapFromKVs(
-    \PhelType::keyword("export"), true,
-    \PhelType::keyword("doc"), "```phel\n(identity x)\n```\n",
-    \PhelType::keyword("start-location"), \PhelType::persistentMapFromKVs(
-      \PhelType::keyword("file"), "Def/defn-meta.test",
-      \PhelType::keyword("line"), 1,
-      \PhelType::keyword("column"), 0
+  \Phel::persistentMapFromKVs(
+    \Phel::keyword("export"), true,
+    \Phel::keyword("doc"), "```phel\n(identity x)\n```\n",
+    \Phel::keyword("start-location"), \Phel::persistentMapFromKVs(
+      \Phel::keyword("file"), "Def/defn-meta.test",
+      \Phel::keyword("line"), 1,
+      \Phel::keyword("column"), 0
     ),
-    \PhelType::keyword("end-location"), \PhelType::persistentMapFromKVs(
-      \PhelType::keyword("file"), "Def/defn-meta.test",
-      \PhelType::keyword("line"), 1,
-      \PhelType::keyword("column"), 36
+    \Phel::keyword("end-location"), \Phel::persistentMapFromKVs(
+      \Phel::keyword("file"), "Def/defn-meta.test",
+      \Phel::keyword("line"), 1,
+      \Phel::keyword("column"), 36
     ),
     "min-arity", 1
   )

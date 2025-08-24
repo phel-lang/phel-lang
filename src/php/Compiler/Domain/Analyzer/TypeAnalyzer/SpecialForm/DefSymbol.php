@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Phel\Compiler\Domain\Analyzer\TypeAnalyzer\SpecialForm;
 
+use Phel;
 use Phel\Compiler\Domain\Analyzer\Ast\AbstractNode;
 use Phel\Compiler\Domain\Analyzer\Ast\DefNode;
 use Phel\Compiler\Domain\Analyzer\Ast\FnNode;
@@ -18,7 +19,6 @@ use Phel\Lang\Keyword;
 use Phel\Lang\SourceLocation;
 use Phel\Lang\Symbol;
 use Phel\Lang\TypeInterface;
-use PhelType;
 
 use function assert;
 use function count;
@@ -115,7 +115,7 @@ final class DefSymbol implements SpecialFormAnalyzerInterface
 
         $startLocation = $list->getStartLocation();
         if ($startLocation instanceof SourceLocation) {
-            $meta = $meta->put(Keyword::create('start-location'), PhelType::persistentMapFromKVs(
+            $meta = $meta->put(Keyword::create('start-location'), Phel::persistentMapFromKVs(
                 Keyword::create('file'),
                 $startLocation->getFile(),
                 Keyword::create('line'),
@@ -127,7 +127,7 @@ final class DefSymbol implements SpecialFormAnalyzerInterface
 
         $endLocation = $list->getEndLocation();
         if ($endLocation instanceof SourceLocation) {
-            $meta = $meta->put(Keyword::create('end-location'), PhelType::persistentMapFromKVs(
+            $meta = $meta->put(Keyword::create('end-location'), Phel::persistentMapFromKVs(
                 Keyword::create('file'),
                 $endLocation->getFile(),
                 Keyword::create('line'),
@@ -145,12 +145,12 @@ final class DefSymbol implements SpecialFormAnalyzerInterface
         if (is_string($meta)) {
             $key = (Keyword::create('doc'))->copyLocationFrom($list);
 
-            return PhelType::persistentMapFromKVs($key, $meta)
+            return Phel::persistentMapFromKVs($key, $meta)
                 ->copyLocationFrom($list);
         }
 
         if ($meta instanceof Keyword) {
-            return PhelType::persistentMapFromKVs($meta, true)
+            return Phel::persistentMapFromKVs($meta, true)
                 ->copyLocationFrom($meta);
         }
 
@@ -164,7 +164,7 @@ final class DefSymbol implements SpecialFormAnalyzerInterface
     private function getInitialMetaAndInit(PersistentListInterface $list): array
     {
         if (count($list) === 3) {
-            return [PhelType::emptyPersistentMap(), $list->get(2)];
+            return [Phel::emptyPersistentMap(), $list->get(2)];
         }
 
         return [$list->get(2), $list->get(3)];

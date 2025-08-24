@@ -15,7 +15,6 @@ use Phel\Compiler\Domain\Exceptions\CompilerException;
 use Phel\Interop\Domain\ReadModel\FunctionToExport;
 use Phel\Lang\Collections\Map\PersistentMapInterface;
 use Phel\Lang\Keyword;
-use PhelType;
 
 final readonly class FunctionsToExportFinder implements FunctionsToExportFinderInterface
 {
@@ -93,7 +92,7 @@ final readonly class FunctionsToExportFinder implements FunctionsToExportFinderI
     {
         /** @var PersistentMapInterface $meta */
         $meta = Phel::getDefinitionMetaData($ns, $fnName)
-            ?? PhelType::emptyPersistentList();
+            ?? Phel::emptyPersistentList();
 
         return (bool)($meta[Keyword::create('export')] ?? false);
     }

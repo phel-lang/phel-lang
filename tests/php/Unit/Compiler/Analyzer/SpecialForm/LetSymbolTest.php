@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace PhelTest\Unit\Compiler\Analyzer\SpecialForm;
 
+use Phel;
 use Phel\Compiler\Application\Analyzer;
 use Phel\Compiler\Domain\Analyzer\AnalyzerInterface;
 use Phel\Compiler\Domain\Analyzer\Ast\BindingNode;
@@ -16,7 +17,6 @@ use Phel\Compiler\Domain\Analyzer\Exceptions\AnalyzerException;
 use Phel\Compiler\Domain\Analyzer\TypeAnalyzer\SpecialForm\Binding\DeconstructorInterface;
 use Phel\Compiler\Domain\Analyzer\TypeAnalyzer\SpecialForm\LetSymbol;
 use Phel\Lang\Symbol;
-use PhelType;
 use PHPUnit\Framework\TestCase;
 
 final class LetSymbolTest extends TestCase
@@ -33,7 +33,7 @@ final class LetSymbolTest extends TestCase
         $this->expectException(AnalyzerException::class);
         $this->expectExceptionMessage("This is not a 'let.");
 
-        $list = PhelType::persistentListFromArray([Symbol::create('unknown')]);
+        $list = Phel::persistentListFromArray([Symbol::create('unknown')]);
         $env = NodeEnvironment::empty();
 
         $analyzer = new LetSymbol($this->analyzer, $this->createMock(DeconstructorInterface::class));
@@ -46,7 +46,7 @@ final class LetSymbolTest extends TestCase
         $this->expectException(AnalyzerException::class);
         $this->expectExceptionMessage("At least two arguments are required for 'let");
 
-        $list = PhelType::persistentListFromArray([Symbol::create('let')]);
+        $list = Phel::persistentListFromArray([Symbol::create('let')]);
         $env = NodeEnvironment::empty();
 
         $this->analyzer->analyze($list, $env);
@@ -57,7 +57,7 @@ final class LetSymbolTest extends TestCase
         $this->expectException(AnalyzerException::class);
         $this->expectExceptionMessage('Binding parameter must be a vector');
 
-        $list = PhelType::persistentListFromArray([Symbol::create('let'), 12]);
+        $list = Phel::persistentListFromArray([Symbol::create('let'), 12]);
         $env = NodeEnvironment::empty();
 
         $this->analyzer->analyze($list, $env);
@@ -68,9 +68,9 @@ final class LetSymbolTest extends TestCase
         $this->expectException(AnalyzerException::class);
         $this->expectExceptionMessage('Bindings must be a even number of parameters');
 
-        $list = PhelType::persistentListFromArray([
+        $list = Phel::persistentListFromArray([
             Symbol::create('let'),
-            PhelType::persistentVectorFromArray([12]),
+            Phel::persistentVectorFromArray([12]),
         ]);
         $env = NodeEnvironment::empty();
 
@@ -79,9 +79,9 @@ final class LetSymbolTest extends TestCase
 
     public function test_with_no_bindings(): void
     {
-        $list = PhelType::persistentListFromArray([
+        $list = Phel::persistentListFromArray([
             Symbol::create('let'),
-            PhelType::persistentVectorFromArray([]),
+            Phel::persistentVectorFromArray([]),
         ]);
         $env = NodeEnvironment::empty();
 
@@ -94,9 +94,9 @@ final class LetSymbolTest extends TestCase
     public function test_with_one_binding(): void
     {
         Symbol::resetGen();
-        $list = PhelType::persistentListFromArray([
+        $list = Phel::persistentListFromArray([
             Symbol::create('let'),
-            PhelType::persistentVectorFromArray([
+            Phel::persistentVectorFromArray([
                 Symbol::create('a'), 1,
             ]),
         ]);
@@ -132,9 +132,9 @@ final class LetSymbolTest extends TestCase
 
     public function test_with_one_body_expression(): void
     {
-        $list = PhelType::persistentListFromArray([
+        $list = Phel::persistentListFromArray([
             Symbol::create('let'),
-            PhelType::persistentVectorFromArray([]),
+            Phel::persistentVectorFromArray([]),
             1,
         ]);
         $env = NodeEnvironment::empty();
@@ -156,9 +156,9 @@ final class LetSymbolTest extends TestCase
 
     public function test_with_two_body_expression(): void
     {
-        $list = PhelType::persistentListFromArray([
+        $list = Phel::persistentListFromArray([
             Symbol::create('let'),
-            PhelType::persistentVectorFromArray([]),
+            Phel::persistentVectorFromArray([]),
             1,
             2,
         ]);

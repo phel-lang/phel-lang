@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Phel\Compiler\Domain\Analyzer\TypeAnalyzer\SpecialForm;
 
+use Phel;
 use Phel\Compiler\Domain\Analyzer\AnalyzerInterface;
 use Phel\Compiler\Domain\Analyzer\Ast\BindingNode;
 use Phel\Compiler\Domain\Analyzer\Ast\LetNode;
@@ -15,7 +16,6 @@ use Phel\Compiler\Domain\Analyzer\TypeAnalyzer\SpecialForm\Binding\BindingValida
 use Phel\Lang\Collections\LinkedList\PersistentListInterface;
 use Phel\Lang\Collections\Vector\PersistentVectorInterface;
 use Phel\Lang\Symbol;
-use PhelType;
 
 use function count;
 use function gettype;
@@ -74,14 +74,14 @@ final readonly class LoopSymbol implements SpecialFormAnalyzerInterface
         if ($lets !== []) {
             $bodyExpr = $list->rest()->rest()->toArray();
             $letSym = Symbol::create(Symbol::NAME_LET)->copyLocationFrom($list->get(0));
-            $letExpr = PhelType::persistentListFromArray([
+            $letExpr = Phel::persistentListFromArray([
                 $letSym,
-                PhelType::persistentVectorFromArray($lets),
+                Phel::persistentVectorFromArray($lets),
                 ...$bodyExpr,
             ])->copyLocationFrom($list);
-            $newExpr = PhelType::persistentListFromArray([
+            $newExpr = Phel::persistentListFromArray([
                 $list->get(0),
-                PhelType::persistentVectorFromArray($preInits),
+                Phel::persistentVectorFromArray($preInits),
                 $letExpr,
             ])->copyLocationFrom($list);
 
@@ -119,7 +119,7 @@ final readonly class LoopSymbol implements SpecialFormAnalyzerInterface
         }
 
         $bodyExpr = $this->analyzer->analyze(
-            PhelType::persistentListFromArray([
+            Phel::persistentListFromArray([
                 Symbol::create(Symbol::NAME_DO),
                 ...$exprs,
             ]),

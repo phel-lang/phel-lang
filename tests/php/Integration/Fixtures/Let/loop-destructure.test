@@ -14,7 +14,7 @@ require_once __DIR__ . '/phel/core.php';
   "*ns*",
   "test"
 );
-$__phel_1_2 = \PhelType::persistentVectorFromArray([1, 2, 3, 4]);
+$__phel_1_2 = \Phel::persistentVectorFromArray([1, 2, 3, 4]);
 $sum_3 = 0;
 while (true) {
   $__phel_4_8 = $__phel_1_2;

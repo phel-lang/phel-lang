@@ -5,17 +5,17 @@
   "user",
   "x",
   1,
-  \PhelType::persistentMapFromKVs(
-    \PhelType::keyword("private"), true,
-    \PhelType::keyword("start-location"), \PhelType::persistentMapFromKVs(
-      \PhelType::keyword("file"), "Def/private-def.test",
-      \PhelType::keyword("line"), 1,
-      \PhelType::keyword("column"), 0
+  \Phel::persistentMapFromKVs(
+    \Phel::keyword("private"), true,
+    \Phel::keyword("start-location"), \Phel::persistentMapFromKVs(
+      \Phel::keyword("file"), "Def/private-def.test",
+      \Phel::keyword("line"), 1,
+      \Phel::keyword("column"), 0
     ),
-    \PhelType::keyword("end-location"), \PhelType::persistentMapFromKVs(
-      \PhelType::keyword("file"), "Def/private-def.test",
-      \PhelType::keyword("line"), 1,
-      \PhelType::keyword("column"), 18
+    \Phel::keyword("end-location"), \Phel::persistentMapFromKVs(
+      \Phel::keyword("file"), "Def/private-def.test",
+      \Phel::keyword("line"), 1,
+      \Phel::keyword("column"), 18
     )
   )
 );

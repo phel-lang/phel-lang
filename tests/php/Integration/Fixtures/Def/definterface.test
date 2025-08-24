@@ -35,17 +35,17 @@ interface IPlayer {
 
     }
   },
-  \PhelType::persistentMapFromKVs(
-    \PhelType::keyword("doc"), "```phel\n(choose p)\n```\nChoose docs",
-    \PhelType::keyword("start-location"), \PhelType::persistentMapFromKVs(
-      \PhelType::keyword("file"), "Def/definterface.test",
-      \PhelType::keyword("line"), 3,
-      \PhelType::keyword("column"), 0
+  \Phel::persistentMapFromKVs(
+    \Phel::keyword("doc"), "```phel\n(choose p)\n```\nChoose docs",
+    \Phel::keyword("start-location"), \Phel::persistentMapFromKVs(
+      \Phel::keyword("file"), "Def/definterface.test",
+      \Phel::keyword("line"), 3,
+      \Phel::keyword("column"), 0
     ),
-    \PhelType::keyword("end-location"), \PhelType::persistentMapFromKVs(
-      \PhelType::keyword("file"), "Def/definterface.test",
-      \PhelType::keyword("line"), 5,
-      \PhelType::keyword("column"), 31
+    \Phel::keyword("end-location"), \Phel::persistentMapFromKVs(
+      \Phel::keyword("file"), "Def/definterface.test",
+      \Phel::keyword("line"), 5,
+      \Phel::keyword("column"), 31
     ),
     "min-arity", 1
   )
@@ -69,17 +69,17 @@ interface IPlayer {
 
     }
   },
-  \PhelType::persistentMapFromKVs(
-    \PhelType::keyword("doc"), "```phel\n(update-strategy p me you)\n```\n",
-    \PhelType::keyword("start-location"), \PhelType::persistentMapFromKVs(
-      \PhelType::keyword("file"), "Def/definterface.test",
-      \PhelType::keyword("line"), 3,
-      \PhelType::keyword("column"), 0
+  \Phel::persistentMapFromKVs(
+    \Phel::keyword("doc"), "```phel\n(update-strategy p me you)\n```\n",
+    \Phel::keyword("start-location"), \Phel::persistentMapFromKVs(
+      \Phel::keyword("file"), "Def/definterface.test",
+      \Phel::keyword("line"), 3,
+      \Phel::keyword("column"), 0
     ),
-    \PhelType::keyword("end-location"), \PhelType::persistentMapFromKVs(
-      \PhelType::keyword("file"), "Def/definterface.test",
-      \PhelType::keyword("line"), 5,
-      \PhelType::keyword("column"), 31
+    \Phel::keyword("end-location"), \Phel::persistentMapFromKVs(
+      \Phel::keyword("file"), "Def/definterface.test",
+      \Phel::keyword("line"), 5,
+      \Phel::keyword("column"), 31
     ),
     "min-arity", 3
   )

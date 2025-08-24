@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace PhelTest\Unit\Compiler\Analyzer\SpecialForm;
 
+use Phel;
 use Phel\Compiler\Application\Analyzer;
 use Phel\Compiler\Domain\Analyzer\AnalyzerInterface;
 use Phel\Compiler\Domain\Analyzer\Ast\DoNode;
@@ -12,7 +13,6 @@ use Phel\Compiler\Domain\Analyzer\Environment\NodeEnvironment;
 use Phel\Compiler\Domain\Analyzer\TypeAnalyzer\SpecialForm\DoSymbol;
 use Phel\Compiler\Domain\Exceptions\AbstractLocatedException;
 use Phel\Lang\Symbol;
-use PhelType;
 use PHPUnit\Framework\TestCase;
 
 final class DoSymbolTest extends TestCase
@@ -29,7 +29,7 @@ final class DoSymbolTest extends TestCase
         $this->expectException(AbstractLocatedException::class);
         $this->expectExceptionMessage("This is not a 'do.");
 
-        $list = PhelType::persistentListFromArray([Symbol::create('unknown')]);
+        $list = Phel::persistentListFromArray([Symbol::create('unknown')]);
         $env = NodeEnvironment::empty();
         (new DoSymbol($this->analyzer))->analyze($list, $env);
     }
@@ -37,7 +37,7 @@ final class DoSymbolTest extends TestCase
     public function test_empty_list(): void
     {
         $env = NodeEnvironment::empty();
-        $list = PhelType::persistentListFromArray([
+        $list = Phel::persistentListFromArray([
             Symbol::create(Symbol::NAME_DO),
         ]);
 
@@ -56,7 +56,7 @@ final class DoSymbolTest extends TestCase
     {
         $env = NodeEnvironment::empty();
 
-        $list = PhelType::persistentListFromArray([
+        $list = Phel::persistentListFromArray([
             Symbol::create(Symbol::NAME_DO),
             1,
         ]);
@@ -76,7 +76,7 @@ final class DoSymbolTest extends TestCase
     {
         $env = NodeEnvironment::empty();
 
-        $list = PhelType::persistentListFromArray([
+        $list = Phel::persistentListFromArray([
             Symbol::create(Symbol::NAME_DO),
             1,
             2,

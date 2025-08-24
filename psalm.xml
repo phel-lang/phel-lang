@@ -44,5 +44,6 @@
         <MoreSpecificReturnType errorLevel="suppress" />
         <InvalidArrayOffset errorLevel="suppress" />
         <RiskyTruthyFalsyComparison errorLevel="suppress" />
+        <PossiblyUndefinedMethod errorLevel="suppress" />
     </issueHandlers>
 </psalm>

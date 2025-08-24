@@ -21,7 +21,6 @@ use Phel\Compiler\Domain\Analyzer\TypeAnalyzer\SpecialForm\InvokeSymbol;
 use Phel\Lang\Collections\Map\PersistentMapInterface;
 use Phel\Lang\Keyword;
 use Phel\Lang\Symbol;
-use PhelType;
 use PHPUnit\Framework\TestCase;
 
 final class InvokeSymbolTest extends TestCase
@@ -37,7 +36,7 @@ final class InvokeSymbolTest extends TestCase
             'user',
             'my-global-fn',
             static fn ($a, $b): int => $a + $b,
-            PhelType::persistentMapFromKVs('min-arity', 2),
+            Phel::persistentMapFromKVs('min-arity', 2),
         );
 
         $env->addDefinition('user', Symbol::create('my-macro'));
@@ -45,7 +44,7 @@ final class InvokeSymbolTest extends TestCase
             'user',
             'my-macro',
             static fn ($a) => $a,
-            PhelType::persistentMapFromKVs(Keyword::create('macro'), true),
+            Phel::persistentMapFromKVs(Keyword::create('macro'), true),
         );
 
         $env->addDefinition('user', Symbol::create('my-failed-macro'));
@@ -53,7 +52,7 @@ final class InvokeSymbolTest extends TestCase
             'user',
             'my-failed-macro',
             static fn ($a) => throw new Exception('my-failed-macro message'),
-            PhelType::persistentMapFromKVs(Keyword::create('macro'), true),
+            Phel::persistentMapFromKVs(Keyword::create('macro'), true),
         );
 
         $env->addDefinition('user', Symbol::create('my-inline-fn'));
@@ -61,7 +60,7 @@ final class InvokeSymbolTest extends TestCase
             'user',
             'my-inline-fn',
             static fn ($a): int => 1,
-            PhelType::persistentMapFromKVs(
+            Phel::persistentMapFromKVs(
                 Keyword::create('inline'),
                 static fn ($a): int => 2,
             ),
@@ -72,7 +71,7 @@ final class InvokeSymbolTest extends TestCase
             'user',
             'my-inline-fn-with-arity',
             static fn ($a, $b): int => 1,
-            PhelType::persistentMapFromKVs(
+            Phel::persistentMapFromKVs(
                 Keyword::create('inline'),
                 static fn ($a, $b): int => 2,
                 Keyword::create('inline-arity'),
@@ -87,7 +86,7 @@ final class InvokeSymbolTest extends TestCase
     {
         $env = NodeEnvironment::empty();
 
-        $list = PhelType::persistentListFromArray([
+        $list = Phel::persistentListFromArray([
             Symbol::createForNamespace('user', 'my-global-fn'),
             '1arg',
         ]);
@@ -110,7 +109,7 @@ final class InvokeSymbolTest extends TestCase
 
     public function test_valid_enough_args_provided(): void
     {
-        $list = PhelType::persistentListFromArray([
+        $list = Phel::persistentListFromArray([
             Symbol::createForNamespace('user', 'my-global-fn'),
             '1arg',
             '2arg',
@@ -123,7 +122,7 @@ final class InvokeSymbolTest extends TestCase
 
     public function test_invoke_without_arguments(): void
     {
-        $list = PhelType::persistentListFromArray([
+        $list = Phel::persistentListFromArray([
             Symbol::createForNamespace('php', '+'),
         ]);
         $env = NodeEnvironment::empty();
@@ -141,7 +140,7 @@ final class InvokeSymbolTest extends TestCase
 
     public function test_invoke_with_one_arguments(): void
     {
-        $list = PhelType::persistentListFromArray([
+        $list = Phel::persistentListFromArray([
             Symbol::createForNamespace('php', '+'),
             1,
         ]);
@@ -162,10 +161,10 @@ final class InvokeSymbolTest extends TestCase
 
     public function test_macro_expand(): void
     {
-        $list = PhelType::persistentListFromArray([
+        $list = Phel::persistentListFromArray([
             Symbol::createForNamespace('user', 'my-macro'),
-            PhelType::persistentVectorFromArray([
-                PhelType::persistentVectorFromArray([1]),
+            Phel::persistentVectorFromArray([
+                Phel::persistentVectorFromArray([1]),
             ]),
         ]);
         $env = NodeEnvironment::empty();
@@ -193,9 +192,9 @@ final class InvokeSymbolTest extends TestCase
         $this->expectException(AnalyzerException::class);
         $this->expectExceptionMessage('Error in expanding macro "user\\my-failed-macro": my-failed-macro message');
 
-        $list = PhelType::persistentListFromArray([
+        $list = Phel::persistentListFromArray([
             Symbol::createForNamespace('user', 'my-failed-macro'),
-            PhelType::persistentVectorFromArray([1]),
+            Phel::persistentVectorFromArray([1]),
         ]);
         $env = NodeEnvironment::empty();
         (new InvokeSymbol($this->analyzer))->analyze($list, $env);
@@ -206,9 +205,9 @@ final class InvokeSymbolTest extends TestCase
         $this->expectException(AnalyzerException::class);
         $this->expectExceptionMessage("Cannot resolve symbol 'user/my-undefined-macro'");
 
-        $list = PhelType::persistentListFromArray([
+        $list = Phel::persistentListFromArray([
             Symbol::createForNamespace('user', 'my-undefined-macro'),
-            PhelType::persistentVectorFromArray([1]),
+            Phel::persistentVectorFromArray([1]),
         ]);
         $env = NodeEnvironment::empty();
         (new InvokeSymbol($this->analyzer))->analyze($list, $env);
@@ -216,7 +215,7 @@ final class InvokeSymbolTest extends TestCase
 
     public function test_inline_expand(): void
     {
-        $list = PhelType::persistentListFromArray([
+        $list = Phel::persistentListFromArray([
             Symbol::createForNamespace('user', 'my-inline-fn'),
             'foo',
         ]);
@@ -231,7 +230,7 @@ final class InvokeSymbolTest extends TestCase
 
     public function test_inline_expand_with_arity_check(): void
     {
-        $list = PhelType::persistentListFromArray([
+        $list = Phel::persistentListFromArray([
             Symbol::createForNamespace('user', 'my-inline-fn-with-arity'),
             'foo', 'bar',
         ]);
@@ -246,7 +245,7 @@ final class InvokeSymbolTest extends TestCase
 
     public function test_inline_expand_with_arity_check_failed(): void
     {
-        $list = PhelType::persistentListFromArray([
+        $list = Phel::persistentListFromArray([
             Symbol::createForNamespace('user', 'my-inline-fn-with-arity'),
             'foo',
         ]);
@@ -260,7 +259,7 @@ final class InvokeSymbolTest extends TestCase
                     $env->withExpressionContext()->withDisallowRecurFrame(),
                     'user',
                     Symbol::create('my-inline-fn-with-arity'),
-                    PhelType::persistentMapFromKVs(
+                    Phel::persistentMapFromKVs(
                         Keyword::create('inline'),
                         static fn ($a, $b): int => 2,
                         Keyword::create('inline-arity'),
@@ -287,10 +286,10 @@ final class InvokeSymbolTest extends TestCase
             $mungedNs,
             $macroName,
             static fn ($x) => $x,
-            PhelType::persistentMapFromKVs(Keyword::create('macro'), true),
+            Phel::persistentMapFromKVs(Keyword::create('macro'), true),
         );
 
-        $list = PhelType::persistentListFromArray([
+        $list = Phel::persistentListFromArray([
             Symbol::createForNamespace($ns, $macroName),
             'foo',
         ]);

@@ -19,7 +19,7 @@ final class VectorEmitter implements NodeEmitterInterface
         assert($node instanceof VectorNode);
 
         $this->outputEmitter->emitContextPrefix($node->getEnv(), $node->getStartSourceLocation());
-        $this->outputEmitter->emitStr('\PhelType::persistentVectorFromArray([', $node->getStartSourceLocation());
+        $this->outputEmitter->emitStr('\Phel::persistentVectorFromArray([', $node->getStartSourceLocation());
         $this->outputEmitter->emitArgList($node->getArgs(), $node->getStartSourceLocation());
         $this->outputEmitter->emitStr('])', $node->getStartSourceLocation());
         $this->outputEmitter->emitContextSuffix($node->getEnv(), $node->getStartSourceLocation());

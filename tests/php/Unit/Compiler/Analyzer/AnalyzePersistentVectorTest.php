@@ -4,13 +4,13 @@ declare(strict_types=1);
 
 namespace PhelTest\Unit\Compiler\Analyzer;
 
+use Phel;
 use Phel\Compiler\Application\Analyzer;
 use Phel\Compiler\Domain\Analyzer\Ast\LiteralNode;
 use Phel\Compiler\Domain\Analyzer\Ast\VectorNode;
 use Phel\Compiler\Domain\Analyzer\Environment\GlobalEnvironment;
 use Phel\Compiler\Domain\Analyzer\Environment\NodeEnvironment;
 use Phel\Compiler\Domain\Analyzer\TypeAnalyzer\AnalyzePersistentVector;
-use PhelType;
 use PHPUnit\Framework\TestCase;
 
 final class AnalyzePersistentVectorTest extends TestCase
@@ -27,7 +27,7 @@ final class AnalyzePersistentVectorTest extends TestCase
         $env = NodeEnvironment::empty();
         self::assertEquals(
             new VectorNode($env, [], null),
-            $this->vectorAnalzyer->analyze(PhelType::emptyPersistentVector(), $env),
+            $this->vectorAnalzyer->analyze(Phel::emptyPersistentVector(), $env),
         );
     }
 
@@ -38,7 +38,7 @@ final class AnalyzePersistentVectorTest extends TestCase
             new VectorNode($env, [
                 new LiteralNode($env->withDisallowRecurFrame()->withExpressionContext(), 1, null),
             ], null),
-            $this->vectorAnalzyer->analyze(PhelType::persistentVectorFromArray([1]), $env),
+            $this->vectorAnalzyer->analyze(Phel::persistentVectorFromArray([1]), $env),
         );
     }
 }

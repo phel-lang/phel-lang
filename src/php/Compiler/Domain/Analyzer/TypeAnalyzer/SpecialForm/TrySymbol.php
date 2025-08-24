@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Phel\Compiler\Domain\Analyzer\TypeAnalyzer\SpecialForm;
 
+use Phel;
 use Phel\Compiler\Domain\Analyzer\Ast\AbstractNode;
 use Phel\Compiler\Domain\Analyzer\Ast\CatchNode;
 use Phel\Compiler\Domain\Analyzer\Ast\TryNode;
@@ -13,7 +14,6 @@ use Phel\Compiler\Domain\Analyzer\Exceptions\AnalyzerException;
 use Phel\Compiler\Domain\Analyzer\TypeAnalyzer\WithAnalyzerTrait;
 use Phel\Lang\Collections\LinkedList\PersistentListInterface;
 use Phel\Lang\Symbol;
-use PhelType;
 
 final class TrySymbol implements SpecialFormAnalyzerInterface
 {
@@ -66,7 +66,7 @@ final class TrySymbol implements SpecialFormAnalyzerInterface
 
         if ($finally instanceof PersistentListInterface) {
             /** @psalm-suppress InvalidOperand */
-            $finally = PhelType::persistentListFromArray([
+            $finally = Phel::persistentListFromArray([
                 Symbol::create(Symbol::NAME_DO),
                 ...$finally->rest(),
             ])->copyLocationFrom($finally);
@@ -104,7 +104,7 @@ final class TrySymbol implements SpecialFormAnalyzerInterface
             $exprs = [Symbol::create(Symbol::NAME_DO), ...$catch->rest()->rest()->rest()->toArray()];
 
             $catchBody = $this->analyzer->analyze(
-                PhelType::persistentListFromArray($exprs),
+                Phel::persistentListFromArray($exprs),
                 $env->withContext($catchCtx)
                     ->withMergedLocals([$name])
                     ->withDisallowRecurFrame(),
@@ -120,7 +120,7 @@ final class TrySymbol implements SpecialFormAnalyzerInterface
         }
 
         $body = $this->analyzer->analyze(
-            PhelType::persistentListFromArray([Symbol::create(Symbol::NAME_DO), ...$body]),
+            Phel::persistentListFromArray([Symbol::create(Symbol::NAME_DO), ...$body]),
             $env->withContext($catchNodes !== [] || $finally ? $catchCtx : $env->getContext())
                 ->withDisallowRecurFrame(),
         );
