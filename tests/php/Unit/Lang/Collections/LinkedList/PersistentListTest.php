@@ -179,7 +179,7 @@ final class PersistentListTest extends TestCase
 
     public function test_add_meta_data(): void
     {
-        $meta = Phel::emptyPersistentMap();
+        $meta = Phel::map();
         $list = PersistentList::fromArray(new ModuloHasher(), new SimpleEqualizer(), ['foo', 'bar']);
         $listWithMeta = $list->withMeta($meta);
 

@@ -164,7 +164,7 @@ final class DefSymbol implements SpecialFormAnalyzerInterface
     private function getInitialMetaAndInit(PersistentListInterface $list): array
     {
         if (count($list) === 3) {
-            return [Phel::emptyPersistentMap(), $list->get(2)];
+            return [Phel::map(), $list->get(2)];
         }
 
         return [$list->get(2), $list->get(3)];

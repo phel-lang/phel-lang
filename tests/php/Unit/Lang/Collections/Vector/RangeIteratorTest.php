@@ -13,7 +13,7 @@ final class RangeIteratorTest extends TestCase
     public function test_range_iterator_with32_elements(): void
     {
         $it = new RangeIterator(
-            Phel::persistentVectorFromArray(range(0, 31)),
+            Phel::vector(range(0, 31)),
             0,
             32,
         );
@@ -27,7 +27,7 @@ final class RangeIteratorTest extends TestCase
         $end = 90;
 
         $it = new RangeIterator(
-            Phel::persistentVectorFromArray(range(0, 100)),
+            Phel::vector(range(0, 100)),
             $start,
             $end,
         );

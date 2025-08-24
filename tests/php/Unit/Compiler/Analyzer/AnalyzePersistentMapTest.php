@@ -27,7 +27,7 @@ final class AnalyzePersistentMapTest extends TestCase
         $env = NodeEnvironment::empty();
         self::assertEquals(
             new MapNode($env, [], null),
-            $this->mapAnalyzer->analyze(Phel::emptyPersistentMap(), $env),
+            $this->mapAnalyzer->analyze(Phel::map(), $env),
         );
     }
 

@@ -47,7 +47,7 @@ final readonly class MetaReader
             throw ReaderException::forNode($node, $root, 'Metadata can only applied to classes that implement MetaInterface');
         }
 
-        $objMeta = $object->getMeta() ?? Phel::emptyPersistentMap();
+        $objMeta = $object->getMeta() ?? Phel::map();
         foreach ($meta as $k => $v) {
             if ($k) {
                 $objMeta = $objMeta->put($k, $v);

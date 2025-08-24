@@ -87,7 +87,7 @@ final class GlobalEnvironment implements GlobalEnvironmentInterface
             return Phel::getDefinitionMetaData(
                 $this->mungeEncodeNs($namespace),
                 $name->getName(),
-            ) ?? Phel::emptyPersistentMap();
+            ) ?? Phel::map();
         }
 
         return null;

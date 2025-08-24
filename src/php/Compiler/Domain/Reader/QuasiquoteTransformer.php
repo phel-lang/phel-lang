@@ -85,10 +85,10 @@ final readonly class QuasiquoteTransformer implements QuasiquoteTransformerInter
 
     private function createFromPersistentList(PersistentList $form): PersistentListInterface
     {
-        return Phel::persistentListFromArray([
+        return Phel::list([
             (Symbol::create(Symbol::NAME_APPLY))->copyLocationFrom($form),
             (Symbol::create(Symbol::NAME_LIST))->copyLocationFrom($form),
-            Phel::persistentListFromArray([
+            Phel::list([
                 (Symbol::create(Symbol::NAME_CONCAT))->copyLocationFrom($form),
                 ...$this->expandList($form),
             ])->copyLocationFrom($form),
@@ -97,10 +97,10 @@ final readonly class QuasiquoteTransformer implements QuasiquoteTransformerInter
 
     private function createFromPersistentVector(PersistentVector $form): PersistentListInterface
     {
-        return Phel::persistentListFromArray([
+        return Phel::list([
             (Symbol::create(Symbol::NAME_APPLY))->copyLocationFrom($form),
             (Symbol::create(Symbol::NAME_VECTOR))->copyLocationFrom($form),
-            Phel::persistentListFromArray([
+            Phel::list([
                 (Symbol::create(Symbol::NAME_CONCAT))->copyLocationFrom($form),
                 ...$this->expandList($form),
             ])->copyLocationFrom($form),
@@ -115,10 +115,10 @@ final readonly class QuasiquoteTransformer implements QuasiquoteTransformerInter
             $kvs[] = $v;
         }
 
-        return Phel::persistentListFromArray([
+        return Phel::list([
             (Symbol::create(Symbol::NAME_APPLY))->copyLocationFrom($form),
             (Symbol::create(Symbol::NAME_MAP))->copyLocationFrom($form),
-            Phel::persistentListFromArray([
+            Phel::list([
                 (Symbol::create(Symbol::NAME_CONCAT))->copyLocationFrom($form),
                 ...$this->expandList($kvs),
             ])->copyLocationFrom($form),
@@ -133,14 +133,14 @@ final readonly class QuasiquoteTransformer implements QuasiquoteTransformerInter
         $xs = [];
         foreach ($seq as $item) {
             if ($this->isUnquote($item)) {
-                $xs[] = Phel::persistentListFromArray([
+                $xs[] = Phel::list([
                     (Symbol::create(Symbol::NAME_LIST))->copyLocationFrom($item),
                     $item->get(1),
                 ])->copyLocationFrom($item);
             } elseif ($this->isUnquoteSplicing($item)) {
                 $xs[] = $item->get(1);
             } else {
-                $xs[] = Phel::persistentListFromArray([
+                $xs[] = Phel::list([
                     (Symbol::create(Symbol::NAME_LIST))->copyLocationFrom($item),
                     $this->transform($item),
                 ])->copyLocationFrom($item);
@@ -177,7 +177,7 @@ final readonly class QuasiquoteTransformer implements QuasiquoteTransformerInter
             }
         }
 
-        return Phel::persistentListFromArray([
+        return Phel::list([
             (Symbol::create(Symbol::NAME_QUOTE))->copyLocationFrom($form),
             $form,
         ])->copyLocationFrom($form);

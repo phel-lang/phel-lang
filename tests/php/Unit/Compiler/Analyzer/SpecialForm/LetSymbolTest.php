@@ -33,7 +33,7 @@ final class LetSymbolTest extends TestCase
         $this->expectException(AnalyzerException::class);
         $this->expectExceptionMessage("This is not a 'let.");
 
-        $list = Phel::persistentListFromArray([Symbol::create('unknown')]);
+        $list = Phel::list([Symbol::create('unknown')]);
         $env = NodeEnvironment::empty();
 
         $analyzer = new LetSymbol($this->analyzer, $this->createMock(DeconstructorInterface::class));
@@ -46,7 +46,7 @@ final class LetSymbolTest extends TestCase
         $this->expectException(AnalyzerException::class);
         $this->expectExceptionMessage("At least two arguments are required for 'let");
 
-        $list = Phel::persistentListFromArray([Symbol::create('let')]);
+        $list = Phel::list([Symbol::create('let')]);
         $env = NodeEnvironment::empty();
 
         $this->analyzer->analyze($list, $env);
@@ -57,7 +57,7 @@ final class LetSymbolTest extends TestCase
         $this->expectException(AnalyzerException::class);
         $this->expectExceptionMessage('Binding parameter must be a vector');
 
-        $list = Phel::persistentListFromArray([Symbol::create('let'), 12]);
+        $list = Phel::list([Symbol::create('let'), 12]);
         $env = NodeEnvironment::empty();
 
         $this->analyzer->analyze($list, $env);
@@ -68,9 +68,9 @@ final class LetSymbolTest extends TestCase
         $this->expectException(AnalyzerException::class);
         $this->expectExceptionMessage('Bindings must be a even number of parameters');
 
-        $list = Phel::persistentListFromArray([
+        $list = Phel::list([
             Symbol::create('let'),
-            Phel::persistentVectorFromArray([12]),
+            Phel::vector([12]),
         ]);
         $env = NodeEnvironment::empty();
 
@@ -79,9 +79,9 @@ final class LetSymbolTest extends TestCase
 
     public function test_with_no_bindings(): void
     {
-        $list = Phel::persistentListFromArray([
+        $list = Phel::list([
             Symbol::create('let'),
-            Phel::persistentVectorFromArray([]),
+            Phel::vector([]),
         ]);
         $env = NodeEnvironment::empty();
 
@@ -94,9 +94,9 @@ final class LetSymbolTest extends TestCase
     public function test_with_one_binding(): void
     {
         Symbol::resetGen();
-        $list = Phel::persistentListFromArray([
+        $list = Phel::list([
             Symbol::create('let'),
-            Phel::persistentVectorFromArray([
+            Phel::vector([
                 Symbol::create('a'), 1,
             ]),
         ]);
@@ -132,9 +132,9 @@ final class LetSymbolTest extends TestCase
 
     public function test_with_one_body_expression(): void
     {
-        $list = Phel::persistentListFromArray([
+        $list = Phel::list([
             Symbol::create('let'),
-            Phel::persistentVectorFromArray([]),
+            Phel::vector([]),
             1,
         ]);
         $env = NodeEnvironment::empty();
@@ -156,9 +156,9 @@ final class LetSymbolTest extends TestCase
 
     public function test_with_two_body_expression(): void
     {
-        $list = Phel::persistentListFromArray([
+        $list = Phel::list([
             Symbol::create('let'),
-            Phel::persistentVectorFromArray([]),
+            Phel::vector([]),
             1,
             2,
         ]);

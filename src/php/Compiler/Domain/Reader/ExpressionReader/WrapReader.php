@@ -21,7 +21,7 @@ final readonly class WrapReader
     {
         $expression = $this->reader->readExpression($node->getExpression(), $root);
 
-        return Phel::persistentListFromArray([Symbol::create($wrapFn), $expression])
+        return Phel::list([Symbol::create($wrapFn), $expression])
             ->setStartLocation($node->getStartLocation())
             ->setEndLocation($node->getEndLocation());
     }

@@ -36,7 +36,7 @@ final class GlobalEnvironmentTest extends TestCase
     public function test_add_definition(): void
     {
         $env = new GlobalEnvironment();
-        $meta = Phel::emptyPersistentMap();
+        $meta = Phel::map();
         $env->addDefinition('foo', Symbol::create('bar'));
 
         $this->assertTrue($env->hasDefinition('foo', Symbol::create('bar')));
@@ -138,7 +138,7 @@ final class GlobalEnvironmentTest extends TestCase
                 $nodeEnv,
                 'foo',
                 Symbol::create('x'),
-                Phel::emptyPersistentMap(),
+                Phel::map(),
             ),
             $env->resolve(Symbol::create('x'), $nodeEnv),
         );
@@ -178,7 +178,7 @@ final class GlobalEnvironmentTest extends TestCase
                 $nodeEnv,
                 'bar',
                 Symbol::create('x'),
-                Phel::emptyPersistentMap(),
+                Phel::map(),
             ),
             $env->resolve(Symbol::create('x'), $nodeEnv),
         );
@@ -214,7 +214,7 @@ final class GlobalEnvironmentTest extends TestCase
                 $nodeEnv,
                 'phel\\core',
                 Symbol::create('x'),
-                Phel::emptyPersistentMap(),
+                Phel::map(),
             ),
             $env->resolve(Symbol::create('x'), $nodeEnv),
         );
@@ -275,7 +275,7 @@ final class GlobalEnvironmentTest extends TestCase
                 $nodeEnv,
                 'bar',
                 Symbol::create('x'),
-                Phel::emptyPersistentMap(),
+                Phel::map(),
             ),
             $env->resolve(Symbol::createForNamespace('bar', 'x'), $nodeEnv),
         );
@@ -295,7 +295,7 @@ final class GlobalEnvironmentTest extends TestCase
                 $nodeEnv,
                 'bar',
                 Symbol::create('x'),
-                Phel::emptyPersistentMap(),
+                Phel::map(),
             ),
             $env->resolve(Symbol::createForNamespace('b', 'x'), $nodeEnv),
         );

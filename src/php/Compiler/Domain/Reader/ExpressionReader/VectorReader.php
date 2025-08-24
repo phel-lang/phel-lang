@@ -28,7 +28,7 @@ final readonly class VectorReader
             $acc[] = $this->reader->readExpression($child, $root);
         }
 
-        return Phel::persistentVectorFromArray($acc)
+        return Phel::vector($acc)
             ->setStartLocation($node->getStartLocation())
             ->setEndLocation($node->getEndLocation());
     }

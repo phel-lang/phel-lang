@@ -86,7 +86,7 @@ final class InvokeSymbolTest extends TestCase
     {
         $env = NodeEnvironment::empty();
 
-        $list = Phel::persistentListFromArray([
+        $list = Phel::list([
             Symbol::createForNamespace('user', 'my-global-fn'),
             '1arg',
         ]);
@@ -109,7 +109,7 @@ final class InvokeSymbolTest extends TestCase
 
     public function test_valid_enough_args_provided(): void
     {
-        $list = Phel::persistentListFromArray([
+        $list = Phel::list([
             Symbol::createForNamespace('user', 'my-global-fn'),
             '1arg',
             '2arg',
@@ -122,7 +122,7 @@ final class InvokeSymbolTest extends TestCase
 
     public function test_invoke_without_arguments(): void
     {
-        $list = Phel::persistentListFromArray([
+        $list = Phel::list([
             Symbol::createForNamespace('php', '+'),
         ]);
         $env = NodeEnvironment::empty();
@@ -140,7 +140,7 @@ final class InvokeSymbolTest extends TestCase
 
     public function test_invoke_with_one_arguments(): void
     {
-        $list = Phel::persistentListFromArray([
+        $list = Phel::list([
             Symbol::createForNamespace('php', '+'),
             1,
         ]);
@@ -161,10 +161,10 @@ final class InvokeSymbolTest extends TestCase
 
     public function test_macro_expand(): void
     {
-        $list = Phel::persistentListFromArray([
+        $list = Phel::list([
             Symbol::createForNamespace('user', 'my-macro'),
-            Phel::persistentVectorFromArray([
-                Phel::persistentVectorFromArray([1]),
+            Phel::vector([
+                Phel::vector([1]),
             ]),
         ]);
         $env = NodeEnvironment::empty();
@@ -192,9 +192,9 @@ final class InvokeSymbolTest extends TestCase
         $this->expectException(AnalyzerException::class);
         $this->expectExceptionMessage('Error in expanding macro "user\\my-failed-macro": my-failed-macro message');
 
-        $list = Phel::persistentListFromArray([
+        $list = Phel::list([
             Symbol::createForNamespace('user', 'my-failed-macro'),
-            Phel::persistentVectorFromArray([1]),
+            Phel::vector([1]),
         ]);
         $env = NodeEnvironment::empty();
         (new InvokeSymbol($this->analyzer))->analyze($list, $env);
@@ -205,9 +205,9 @@ final class InvokeSymbolTest extends TestCase
         $this->expectException(AnalyzerException::class);
         $this->expectExceptionMessage("Cannot resolve symbol 'user/my-undefined-macro'");
 
-        $list = Phel::persistentListFromArray([
+        $list = Phel::list([
             Symbol::createForNamespace('user', 'my-undefined-macro'),
-            Phel::persistentVectorFromArray([1]),
+            Phel::vector([1]),
         ]);
         $env = NodeEnvironment::empty();
         (new InvokeSymbol($this->analyzer))->analyze($list, $env);
@@ -215,7 +215,7 @@ final class InvokeSymbolTest extends TestCase
 
     public function test_inline_expand(): void
     {
-        $list = Phel::persistentListFromArray([
+        $list = Phel::list([
             Symbol::createForNamespace('user', 'my-inline-fn'),
             'foo',
         ]);
@@ -230,7 +230,7 @@ final class InvokeSymbolTest extends TestCase
 
     public function test_inline_expand_with_arity_check(): void
     {
-        $list = Phel::persistentListFromArray([
+        $list = Phel::list([
             Symbol::createForNamespace('user', 'my-inline-fn-with-arity'),
             'foo', 'bar',
         ]);
@@ -245,7 +245,7 @@ final class InvokeSymbolTest extends TestCase
 
     public function test_inline_expand_with_arity_check_failed(): void
     {
-        $list = Phel::persistentListFromArray([
+        $list = Phel::list([
             Symbol::createForNamespace('user', 'my-inline-fn-with-arity'),
             'foo',
         ]);
@@ -289,7 +289,7 @@ final class InvokeSymbolTest extends TestCase
             Phel::map(Keyword::create('macro'), true),
         );
 
-        $list = Phel::persistentListFromArray([
+        $list = Phel::list([
             Symbol::createForNamespace($ns, $macroName),
             'foo',
         ]);

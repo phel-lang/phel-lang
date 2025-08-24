@@ -117,7 +117,7 @@ final class FnAsClassEmitterTest extends TestCase
   public const BOUND_TO = "";
 
   public function __invoke(...$x) {
-    $x = \Phel::persistentVectorFromArray($x);
+    $x = \Phel::vector($x);
     return $x;
   }
 };');
@@ -164,7 +164,7 @@ final class FnAsClassEmitterTest extends TestCase
   public const BOUND_TO = "";
 
   public function __invoke(...$x) {
-    $x = \Phel::persistentVectorFromArray($x);
+    $x = \Phel::vector($x);
     while (true) {
       return $x;break;
     }

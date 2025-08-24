@@ -67,11 +67,11 @@ final class BindingValidatorTest extends TestCase
         ];
 
         yield 'Vector type' => [
-            Phel::persistentVectorFromArray([]),
+            Phel::vector([]),
         ];
 
         yield 'Map type' => [
-            Phel::emptyPersistentMap(),
+            Phel::map(),
         ];
     }
 }

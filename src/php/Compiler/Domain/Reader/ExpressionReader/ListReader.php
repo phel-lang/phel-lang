@@ -28,7 +28,7 @@ final readonly class ListReader
             $acc[] = $this->reader->readExpression($child, $root);
         }
 
-        return Phel::persistentListFromArray($acc)
+        return Phel::list($acc)
             ->setStartLocation($node->getStartLocation())
             ->setEndLocation($node->getEndLocation());
     }

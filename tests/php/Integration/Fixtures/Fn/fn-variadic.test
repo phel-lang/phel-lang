@@ -5,7 +5,7 @@ new class() extends \Phel\Lang\AbstractFn {
   public const BOUND_TO = "";
 
   public function __invoke(...$xs) {
-    $xs = \Phel::persistentVectorFromArray($xs);
+    $xs = \Phel::vector($xs);
     return 1;
   }
 };

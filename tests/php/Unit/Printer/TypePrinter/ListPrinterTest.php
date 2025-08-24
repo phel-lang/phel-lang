@@ -27,12 +27,12 @@ final class ListPrinterTest extends TestCase
     {
         yield 'empty vector' => [
             '()',
-            Phel::emptyPersistentList(),
+            Phel::list(),
         ];
 
         yield 'vector with values' => [
             '("a" 1)',
-            Phel::persistentListFromArray(['a', 1]),
+            Phel::list(['a', 1]),
         ];
     }
 }

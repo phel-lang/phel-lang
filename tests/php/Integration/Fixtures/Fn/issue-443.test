@@ -4,7 +4,7 @@
       f (fn [matches] matches)])
 --PHP--
 $matches_6 = array();
-$__phel_1_7 = \Phel::persistentVectorFromArray([1, 2]);
+$__phel_1_7 = \Phel::vector([1, 2]);
 $__phel_2_8 = (\Phel::getDefinition("phel\\core", "first"))($__phel_1_7);
 $__phel_3_9 = (\Phel::getDefinition("phel\\core", "next"))($__phel_1_7);
 $a_10 = $__phel_2_8;

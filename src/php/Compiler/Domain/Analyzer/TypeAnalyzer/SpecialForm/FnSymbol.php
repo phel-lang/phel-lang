@@ -72,7 +72,7 @@ final class FnSymbol implements SpecialFormAnalyzerInterface
      */
     private function createDoTupleWithBody(array $body): PersistentListInterface
     {
-        return Phel::persistentListFromArray([
+        return Phel::list([
             (Symbol::create(Symbol::NAME_DO))->copyLocationFrom($body),
             ...$body,
         ])->copyLocationFrom($body);
@@ -83,9 +83,9 @@ final class FnSymbol implements SpecialFormAnalyzerInterface
      */
     private function createLetTupleWithBody(FnSymbolTuple $fnSymbolTuple, array $listBody): PersistentListInterface
     {
-        return Phel::persistentListFromArray([
+        return Phel::list([
             (Symbol::create(Symbol::NAME_LET))->copyLocationFrom($listBody),
-            Phel::persistentVectorFromArray($fnSymbolTuple->lets())->copyLocationFrom($listBody),
+            Phel::vector($fnSymbolTuple->lets())->copyLocationFrom($listBody),
             ...$listBody,
         ])->copyLocationFrom($listBody);
     }

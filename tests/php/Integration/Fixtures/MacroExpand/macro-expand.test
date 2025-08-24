@@ -10,7 +10,7 @@
     public const BOUND_TO = "user\\foo";
 
     public function __invoke($n) {
-      return \Phel::persistentListFromArray([
+      return \Phel::list([
         (\Phel\Lang\Symbol::create("php/+")),
         1,
         1

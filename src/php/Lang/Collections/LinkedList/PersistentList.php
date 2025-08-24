@@ -49,6 +49,10 @@ final class PersistentList extends AbstractType implements PersistentListInterfa
 
     public static function fromArray(HasherInterface $hasher, EqualizerInterface $equalizer, array $values): PersistentListInterface
     {
+        if ($values === []) {
+            return self::empty($hasher, $equalizer);
+        }
+
         $result = self::empty($hasher, $equalizer);
         for ($i = count($values) - 1; $i >= 0; --$i) {
             $result = $result->prepend($values[$i]);

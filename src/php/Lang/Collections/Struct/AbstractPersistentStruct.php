@@ -13,6 +13,7 @@ use Phel\Lang\Collections\Exceptions\MethodNotSupportedException;
 use Phel\Lang\Collections\Map\AbstractPersistentMap;
 use Phel\Lang\Collections\Map\PersistentMapInterface;
 use Phel\Lang\Keyword;
+use Phel\Lang\TypeFactory;
 use Phel\Printer\Printer;
 use Traversable;
 
@@ -34,8 +35,8 @@ abstract class AbstractPersistentStruct extends AbstractPersistentMap
     public function __construct()
     {
         parent::__construct(
-            Phel::getHasher(),
-            Phel::getEqualizer(),
+            TypeFactory::getInstance()->getHasher(),
+            TypeFactory::getInstance()->getEqualizer(),
             null,
         );
         $this->munge = new Munge();

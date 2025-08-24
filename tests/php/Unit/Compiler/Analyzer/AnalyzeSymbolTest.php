@@ -66,7 +66,7 @@ final class AnalyzeSymbolTest extends TestCase
 
         $env = NodeEnvironment::empty();
         self::assertEquals(
-            new GlobalVarNode($env, 'test', Symbol::create('a'), Phel::emptyPersistentMap(), null),
+            new GlobalVarNode($env, 'test', Symbol::create('a'), Phel::map(), null),
             $symbolAnalyzer->analyze(Symbol::create('a'), $env),
         );
     }

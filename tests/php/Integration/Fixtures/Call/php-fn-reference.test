@@ -27,4 +27,4 @@
     "min-arity", 2
   )
 );
-(\Phel::getDefinition("user", "reduce"))((function(...$args) { return array(...$args);}), \Phel::persistentVectorFromArray([1, 2, 3]));
+(\Phel::getDefinition("user", "reduce"))((function(...$args) { return array(...$args);}), \Phel::vector([1, 2, 3]));
