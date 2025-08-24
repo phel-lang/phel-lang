@@ -12,8 +12,8 @@ use Phel\Lang\Collections\Map\PersistentMapInterface;
 use Phel\Lang\Keyword;
 use Phel\Lang\MetaInterface;
 use Phel\Lang\Symbol;
-use Phel\Lang\TypeFactory;
 use Phel\Lang\TypeInterface;
+use PhelType;
 
 use function count;
 use function is_string;
@@ -34,9 +34,9 @@ final readonly class MetaReader
 
         $meta = $this->reader->readExpression($metaExpression, $root);
         if (is_string($meta) || $meta instanceof Symbol) {
-            $meta = TypeFactory::getInstance()->persistentMapFromKVs(Keyword::create('tag'), $meta);
+            $meta = PhelType::persistentMapFromKVs(Keyword::create('tag'), $meta);
         } elseif ($meta instanceof Keyword) {
-            $meta = TypeFactory::getInstance()->persistentMapFromKVs($meta, true);
+            $meta = PhelType::persistentMapFromKVs($meta, true);
         } elseif (!$meta instanceof PersistentMapInterface) {
             throw ReaderException::forNode($node, $root, 'Metadata must be a Symbol, String, Keyword or Map');
         }
@@ -47,7 +47,7 @@ final readonly class MetaReader
             throw ReaderException::forNode($node, $root, 'Metadata can only applied to classes that implement MetaInterface');
         }
 
-        $objMeta = $object->getMeta() ?? TypeFactory::getInstance()->emptyPersistentMap();
+        $objMeta = $object->getMeta() ?? PhelType::emptyPersistentMap();
         foreach ($meta as $k => $v) {
             if ($k) {
                 $objMeta = $objMeta->put($k, $v);

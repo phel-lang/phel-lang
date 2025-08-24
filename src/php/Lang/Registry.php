@@ -5,15 +5,12 @@ declare(strict_types=1);
 namespace Phel\Lang;
 
 use Phel\Lang\Collections\Map\PersistentMapInterface;
-
+use PhelType;
 use RuntimeException;
 
 use function array_key_exists;
 use function sprintf;
 
-/**
- * @internal
- */
 final class Registry
 {
     /** @var array<string, array<string, mixed>> */
@@ -79,7 +76,7 @@ final class Registry
             return null;
         }
 
-        return $this->definitionsMetaData[$ns][$name] ?? TypeFactory::getInstance()->emptyPersistentMap();
+        return $this->definitionsMetaData[$ns][$name] ?? PhelType::emptyPersistentMap();
     }
 
     /**

@@ -8,7 +8,7 @@ use Phel\Compiler\Domain\Analyzer\Environment\GlobalEnvironment;
 use Phel\Compiler\Domain\Reader\QuasiquoteTransformer;
 use Phel\Lang\Keyword;
 use Phel\Lang\Symbol;
-use Phel\Lang\TypeFactory;
+use PhelType;
 use PHPUnit\Framework\TestCase;
 use RuntimeException;
 
@@ -19,7 +19,7 @@ final class QuasiquoteTest extends TestCase
         $q = new QuasiquoteTransformer(new GlobalEnvironment());
         self::assertSame(
             1,
-            $q->transform(TypeFactory::getInstance()->persistentListFromArray([Symbol::create(Symbol::NAME_UNQUOTE), 1])),
+            $q->transform(PhelType::persistentListFromArray([Symbol::create(Symbol::NAME_UNQUOTE), 1])),
         );
     }
 
@@ -27,23 +27,23 @@ final class QuasiquoteTest extends TestCase
     {
         $this->expectException(RuntimeException::class);
         $q = new QuasiquoteTransformer(new GlobalEnvironment());
-        $q->transform(TypeFactory::getInstance()->persistentListFromArray([Symbol::create(Symbol::NAME_UNQUOTE_SPLICING), 1]));
+        $q->transform(PhelType::persistentListFromArray([Symbol::create(Symbol::NAME_UNQUOTE_SPLICING), 1]));
     }
 
     public function test_transform_create_list(): void
     {
         $q = new QuasiquoteTransformer(new GlobalEnvironment());
         self::assertEquals(
-            TypeFactory::getInstance()->persistentListFromArray([
+            PhelType::persistentListFromArray([
                 Symbol::create(Symbol::NAME_APPLY),
                 Symbol::create(Symbol::NAME_LIST),
-                TypeFactory::getInstance()->persistentListFromArray([
+                PhelType::persistentListFromArray([
                     Symbol::create(Symbol::NAME_CONCAT),
-                    TypeFactory::getInstance()->persistentListFromArray([Symbol::create(Symbol::NAME_LIST), 1]),
-                    TypeFactory::getInstance()->persistentListFromArray([Symbol::create(Symbol::NAME_LIST), 2]),
+                    PhelType::persistentListFromArray([Symbol::create(Symbol::NAME_LIST), 1]),
+                    PhelType::persistentListFromArray([Symbol::create(Symbol::NAME_LIST), 2]),
                 ]),
             ]),
-            $q->transform(TypeFactory::getInstance()->persistentListFromArray([1, 2])),
+            $q->transform(PhelType::persistentListFromArray([1, 2])),
         );
     }
 
@@ -51,18 +51,18 @@ final class QuasiquoteTest extends TestCase
     {
         $q = new QuasiquoteTransformer(new GlobalEnvironment());
         self::assertEquals(
-            TypeFactory::getInstance()->persistentListFromArray([
+            PhelType::persistentListFromArray([
                 Symbol::create(Symbol::NAME_APPLY),
                 Symbol::create(Symbol::NAME_LIST),
-                TypeFactory::getInstance()->persistentListFromArray([
+                PhelType::persistentListFromArray([
                     Symbol::create(Symbol::NAME_CONCAT),
-                    TypeFactory::getInstance()->persistentListFromArray([Symbol::create(Symbol::NAME_LIST), 1]),
+                    PhelType::persistentListFromArray([Symbol::create(Symbol::NAME_LIST), 1]),
                     2,
                 ]),
             ]),
-            $q->transform(TypeFactory::getInstance()->persistentListFromArray([
+            $q->transform(PhelType::persistentListFromArray([
                 1,
-                TypeFactory::getInstance()->persistentListFromArray([
+                PhelType::persistentListFromArray([
                     Symbol::create(Symbol::NAME_UNQUOTE_SPLICING),
                     2,
                 ]),
@@ -74,18 +74,18 @@ final class QuasiquoteTest extends TestCase
     {
         $q = new QuasiquoteTransformer(new GlobalEnvironment());
         self::assertEquals(
-            TypeFactory::getInstance()->persistentListFromArray([
+            PhelType::persistentListFromArray([
                 Symbol::create(Symbol::NAME_APPLY),
                 Symbol::create(Symbol::NAME_LIST),
-                TypeFactory::getInstance()->persistentListFromArray([
+                PhelType::persistentListFromArray([
                     Symbol::create(Symbol::NAME_CONCAT),
-                    TypeFactory::getInstance()->persistentListFromArray([Symbol::create(Symbol::NAME_LIST), 1]),
-                    TypeFactory::getInstance()->persistentListFromArray([Symbol::create(Symbol::NAME_LIST), 2]),
+                    PhelType::persistentListFromArray([Symbol::create(Symbol::NAME_LIST), 1]),
+                    PhelType::persistentListFromArray([Symbol::create(Symbol::NAME_LIST), 2]),
                 ]),
             ]),
-            $q->transform(TypeFactory::getInstance()->persistentListFromArray([
+            $q->transform(PhelType::persistentListFromArray([
                 1,
-                TypeFactory::getInstance()->persistentListFromArray([
+                PhelType::persistentListFromArray([
                     Symbol::create(Symbol::NAME_UNQUOTE),
                     2,
                 ]),
@@ -97,16 +97,16 @@ final class QuasiquoteTest extends TestCase
     {
         $q = new QuasiquoteTransformer(new GlobalEnvironment());
         self::assertEquals(
-            TypeFactory::getInstance()->persistentListFromArray([
+            PhelType::persistentListFromArray([
                 Symbol::create(Symbol::NAME_APPLY),
                 Symbol::create(Symbol::NAME_VECTOR),
-                TypeFactory::getInstance()->persistentListFromArray([
+                PhelType::persistentListFromArray([
                     Symbol::create(Symbol::NAME_CONCAT),
-                    TypeFactory::getInstance()->persistentListFromArray([Symbol::create(Symbol::NAME_LIST), 1]),
-                    TypeFactory::getInstance()->persistentListFromArray([Symbol::create(Symbol::NAME_LIST), 2]),
+                    PhelType::persistentListFromArray([Symbol::create(Symbol::NAME_LIST), 1]),
+                    PhelType::persistentListFromArray([Symbol::create(Symbol::NAME_LIST), 2]),
                 ]),
             ]),
-            $q->transform(TypeFactory::getInstance()->persistentVectorFromArray([1, 2])),
+            $q->transform(PhelType::persistentVectorFromArray([1, 2])),
         );
     }
 
@@ -114,18 +114,18 @@ final class QuasiquoteTest extends TestCase
     {
         $q = new QuasiquoteTransformer(new GlobalEnvironment());
         self::assertEquals(
-            TypeFactory::getInstance()->persistentListFromArray([
+            PhelType::persistentListFromArray([
                 Symbol::create(Symbol::NAME_APPLY),
                 Symbol::create(Symbol::NAME_MAP),
-                TypeFactory::getInstance()->persistentListFromArray([
+                PhelType::persistentListFromArray([
                     Symbol::create(Symbol::NAME_CONCAT),
-                    TypeFactory::getInstance()->persistentListFromArray([Symbol::create(Symbol::NAME_LIST), 'a']),
-                    TypeFactory::getInstance()->persistentListFromArray([Symbol::create(Symbol::NAME_LIST), 1]),
-                    TypeFactory::getInstance()->persistentListFromArray([Symbol::create(Symbol::NAME_LIST), 'b']),
-                    TypeFactory::getInstance()->persistentListFromArray([Symbol::create(Symbol::NAME_LIST), 2]),
+                    PhelType::persistentListFromArray([Symbol::create(Symbol::NAME_LIST), 'a']),
+                    PhelType::persistentListFromArray([Symbol::create(Symbol::NAME_LIST), 1]),
+                    PhelType::persistentListFromArray([Symbol::create(Symbol::NAME_LIST), 'b']),
+                    PhelType::persistentListFromArray([Symbol::create(Symbol::NAME_LIST), 2]),
                 ]),
             ]),
-            $q->transform(TypeFactory::getInstance()->persistentMapFromKVs('a', 1, 'b', 2)),
+            $q->transform(PhelType::persistentMapFromKVs('a', 1, 'b', 2)),
         );
     }
 
@@ -185,7 +185,7 @@ final class QuasiquoteTest extends TestCase
     {
         $q = new QuasiquoteTransformer(new GlobalEnvironment());
         self::assertEquals(
-            TypeFactory::getInstance()->persistentListFromArray([
+            PhelType::persistentListFromArray([
                 Symbol::create(Symbol::NAME_QUOTE),
                 Symbol::create('test'),
             ]),
@@ -200,7 +200,7 @@ final class QuasiquoteTest extends TestCase
 
         $q = new QuasiquoteTransformer($env);
         self::assertEquals(
-            TypeFactory::getInstance()->persistentListFromArray([
+            PhelType::persistentListFromArray([
                 Symbol::create(Symbol::NAME_QUOTE),
                 Symbol::createForNamespace('test', 'abc'),
             ]),

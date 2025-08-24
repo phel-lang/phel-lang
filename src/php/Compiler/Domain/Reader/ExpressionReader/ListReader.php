@@ -9,7 +9,7 @@ use Phel\Compiler\Domain\Parser\ParserNode\ListNode;
 use Phel\Compiler\Domain\Parser\ParserNode\NodeInterface;
 use Phel\Compiler\Domain\Parser\ParserNode\TriviaNodeInterface;
 use Phel\Lang\Collections\LinkedList\PersistentListInterface;
-use Phel\Lang\TypeFactory;
+use PhelType;
 
 final readonly class ListReader
 {
@@ -28,8 +28,7 @@ final readonly class ListReader
             $acc[] = $this->reader->readExpression($child, $root);
         }
 
-        return TypeFactory::getInstance()
-            ->persistentListFromArray($acc)
+        return PhelType::persistentListFromArray($acc)
             ->setStartLocation($node->getStartLocation())
             ->setEndLocation($node->getEndLocation());
     }

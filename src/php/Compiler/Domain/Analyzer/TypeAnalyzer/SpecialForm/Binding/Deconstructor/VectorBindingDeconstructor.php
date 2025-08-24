@@ -10,7 +10,7 @@ use Phel\Compiler\Domain\Exceptions\AbstractLocatedException;
 use Phel\Lang\Collections\LinkedList\PersistentListInterface;
 use Phel\Lang\Collections\Vector\PersistentVectorInterface;
 use Phel\Lang\Symbol;
-use Phel\Lang\TypeFactory;
+use PhelType;
 
 use function sprintf;
 
@@ -103,7 +103,7 @@ final class VectorBindingDeconstructor implements BindingDeconstructorInterface
 
     private function createBindingValue(string $symbolName, mixed $current): PersistentListInterface
     {
-        return TypeFactory::getInstance()->persistentListFromArray([
+        return PhelType::persistentListFromArray([
             (Symbol::create($symbolName))->copyLocationFrom($current),
             $this->currentListSymbol,
         ])->copyLocationFrom($current);

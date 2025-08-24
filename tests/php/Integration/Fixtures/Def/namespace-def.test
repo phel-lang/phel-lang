@@ -14,16 +14,16 @@ require_once __DIR__ . '/../phel/core.php';
   "my\\ns",
   "x",
   1,
-  \Phel\Lang\TypeFactory::getInstance()->persistentMapFromKVs(
-    \Phel\Lang\Keyword::create("start-location"), \Phel\Lang\TypeFactory::getInstance()->persistentMapFromKVs(
-      \Phel\Lang\Keyword::create("file"), "Def/namespace-def.test",
-      \Phel\Lang\Keyword::create("line"), 3,
-      \Phel\Lang\Keyword::create("column"), 0
+  \PhelType::persistentMapFromKVs(
+    \PhelType::keyword("start-location"), \PhelType::persistentMapFromKVs(
+      \PhelType::keyword("file"), "Def/namespace-def.test",
+      \PhelType::keyword("line"), 3,
+      \PhelType::keyword("column"), 0
     ),
-    \Phel\Lang\Keyword::create("end-location"), \Phel\Lang\TypeFactory::getInstance()->persistentMapFromKVs(
-      \Phel\Lang\Keyword::create("file"), "Def/namespace-def.test",
-      \Phel\Lang\Keyword::create("line"), 3,
-      \Phel\Lang\Keyword::create("column"), 9
+    \PhelType::keyword("end-location"), \PhelType::persistentMapFromKVs(
+      \PhelType::keyword("file"), "Def/namespace-def.test",
+      \PhelType::keyword("line"), 3,
+      \PhelType::keyword("column"), 9
     )
   )
 );

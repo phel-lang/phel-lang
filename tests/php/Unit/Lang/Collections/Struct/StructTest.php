@@ -8,7 +8,7 @@ use InvalidArgumentException;
 use Phel\Lang\Collections\Map\PersistentHashMap;
 use Phel\Lang\Collections\Map\PersistentMapInterface;
 use Phel\Lang\Keyword;
-use Phel\Lang\TypeFactory;
+use PhelType;
 use PHPUnit\Framework\TestCase;
 
 final class StructTest extends TestCase
@@ -78,8 +78,8 @@ final class StructTest extends TestCase
     {
         $s = FakeStruct::fromKVs(Keyword::create('a'), 1, Keyword::create('b'), 2);
         $map = PersistentHashMap::fromArray(
-            TypeFactory::getInstance()->getHasher(),
-            TypeFactory::getInstance()->getEqualizer(),
+            PhelType::getHasher(),
+            PhelType::getEqualizer(),
             [Keyword::create('a'), 1, Keyword::create('b'), 2],
         );
 
@@ -113,7 +113,7 @@ final class StructTest extends TestCase
 
     public function test_with_meta(): void
     {
-        $meta = TypeFactory::getInstance()->emptyPersistentMap();
+        $meta = PhelType::emptyPersistentMap();
         $s = FakeStruct::fromKVs(Keyword::create('a'), 1, Keyword::create('b'), 2);
         $sWithMeta = $s->withMeta($meta);
 

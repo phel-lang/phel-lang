@@ -8,9 +8,9 @@ use Phel\Lang\Collections\Exceptions\IndexOutOfBoundsException;
 use Phel\Lang\Collections\LinkedList\EmptyList;
 use Phel\Lang\Collections\LinkedList\PersistentList;
 use Phel\Lang\Collections\Map\PersistentMapInterface;
-use Phel\Lang\TypeFactory;
 use PhelTest\Unit\Lang\Collections\ModuloHasher;
 use PhelTest\Unit\Lang\Collections\SimpleEqualizer;
+use PhelType;
 use PHPUnit\Framework\TestCase;
 use RuntimeException;
 
@@ -144,7 +144,7 @@ final class EmptyListTest extends TestCase
 
     public function test_add_meta_data(): void
     {
-        $meta = TypeFactory::getInstance()->emptyPersistentMap();
+        $meta = PhelType::emptyPersistentMap();
         $list = new EmptyList(new ModuloHasher(), new SimpleEqualizer(), null);
         $listWithMeta = $list->withMeta($meta);
 

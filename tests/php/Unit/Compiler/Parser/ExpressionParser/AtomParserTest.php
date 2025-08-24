@@ -105,7 +105,7 @@ final class AtomParserTest extends TestCase
                 '::bar/foo',
                 $start,
                 $end,
-                Keyword::createForNamespace('foobar', 'foo'),
+                Keyword::create('foo', 'foobar'),
             ),
             $parser->parse(
                 new Token(Token::T_ATOM, '::bar/foo', $start, $end),
@@ -126,7 +126,7 @@ final class AtomParserTest extends TestCase
                 '::foo',
                 $start,
                 $end,
-                Keyword::createForNamespace('user', 'foo'),
+                Keyword::create('foo', 'user'),
             ),
             $parser->parse(
                 new Token(Token::T_ATOM, '::foo', $start, $end),
@@ -144,7 +144,7 @@ final class AtomParserTest extends TestCase
                 ':xyz\bar/foo',
                 $start,
                 $end,
-                Keyword::createForNamespace('xyz\bar', 'foo'),
+                Keyword::create('foo', 'xyz\bar'),
             ),
             $parser->parse(
                 new Token(Token::T_ATOM, ':xyz\bar/foo', $start, $end),

@@ -109,9 +109,9 @@ final class TypeFactory
         return Symbol::create($name);
     }
 
-    public function keyword(string $name): Keyword
+    public function keyword(string $name, ?string $namespace = null): Keyword
     {
-        return Keyword::create($name);
+        return Keyword::create($name, $namespace);
     }
 
     public function getEqualizer(): EqualizerInterface

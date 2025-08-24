@@ -9,8 +9,8 @@ use Phel\Api\Domain\PhelFnLoaderInterface;
 use Phel\Compiler\Infrastructure\GlobalEnvironmentSingleton;
 use Phel\Lang\Collections\Map\PersistentMapInterface;
 use Phel\Lang\Symbol;
-use Phel\Lang\TypeFactory;
 use Phel\Run\RunFacadeInterface;
+use PhelType;
 
 use function dirname;
 use function in_array;
@@ -404,6 +404,6 @@ EOF;
     private function getPhelMeta(string $ns, string $fnName): PersistentMapInterface
     {
         return Phel::getDefinitionMetaData($ns, $fnName)
-            ?? TypeFactory::getInstance()->emptyPersistentMap();
+            ?? PhelType::emptyPersistentMap();
     }
 }

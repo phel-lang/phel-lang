@@ -17,8 +17,8 @@ use Phel\Lang\Collections\Map\PersistentMapInterface;
 use Phel\Lang\Keyword;
 use Phel\Lang\SourceLocation;
 use Phel\Lang\Symbol;
-use Phel\Lang\TypeFactory;
 use Phel\Lang\TypeInterface;
+use PhelType;
 
 use function assert;
 use function count;
@@ -115,7 +115,7 @@ final class DefSymbol implements SpecialFormAnalyzerInterface
 
         $startLocation = $list->getStartLocation();
         if ($startLocation instanceof SourceLocation) {
-            $meta = $meta->put(Keyword::create('start-location'), TypeFactory::getInstance()->persistentMapFromKVs(
+            $meta = $meta->put(Keyword::create('start-location'), PhelType::persistentMapFromKVs(
                 Keyword::create('file'),
                 $startLocation->getFile(),
                 Keyword::create('line'),
@@ -127,7 +127,7 @@ final class DefSymbol implements SpecialFormAnalyzerInterface
 
         $endLocation = $list->getEndLocation();
         if ($endLocation instanceof SourceLocation) {
-            $meta = $meta->put(Keyword::create('end-location'), TypeFactory::getInstance()->persistentMapFromKVs(
+            $meta = $meta->put(Keyword::create('end-location'), PhelType::persistentMapFromKVs(
                 Keyword::create('file'),
                 $endLocation->getFile(),
                 Keyword::create('line'),
@@ -145,14 +145,12 @@ final class DefSymbol implements SpecialFormAnalyzerInterface
         if (is_string($meta)) {
             $key = (Keyword::create('doc'))->copyLocationFrom($list);
 
-            return TypeFactory::getInstance()
-                ->persistentMapFromKVs($key, $meta)
+            return PhelType::persistentMapFromKVs($key, $meta)
                 ->copyLocationFrom($list);
         }
 
         if ($meta instanceof Keyword) {
-            return TypeFactory::getInstance()
-                ->persistentMapFromKVs($meta, true)
+            return PhelType::persistentMapFromKVs($meta, true)
                 ->copyLocationFrom($meta);
         }
 
@@ -166,7 +164,7 @@ final class DefSymbol implements SpecialFormAnalyzerInterface
     private function getInitialMetaAndInit(PersistentListInterface $list): array
     {
         if (count($list) === 3) {
-            return [TypeFactory::getInstance()->emptyPersistentMap(), $list->get(2)];
+            return [PhelType::emptyPersistentMap(), $list->get(2)];
         }
 
         return [$list->get(2), $list->get(3)];

@@ -4,34 +4,20 @@ declare(strict_types=1);
 
 namespace Phel;
 
-use BadMethodCallException;
 use Closure;
 use Gacela\Framework\Bootstrap\GacelaConfig;
 use Gacela\Framework\Gacela;
 use Phar;
-use Phel\Compiler\Domain\Emitter\OutputEmitter\NodeEmitter\GlobalVarEmitter;
 use Phel\Filesystem\FilesystemFacade;
-use Phel\Lang\Collections\Map\PersistentMapInterface;
-use Phel\Lang\Registry;
 use Phel\Run\RunFacade;
 
 use function dirname;
 use function in_array;
 use function is_array;
-use function is_callable;
 use function is_string;
-use function sprintf;
 
 /**
  * @internal use \Phel instead
- *
- * @method static void clear()
- * @method static void addDefinition(string $ns, string $name, mixed $value, ?PersistentMapInterface $metaData = null)
- * @method static bool hasDefinition(string $ns, string $name)
- * @method static mixed getDefinition(string $ns, string $name)
- * @method static null|PersistentMapInterface getDefinitionMetaData(string $ns, string $name)
- * @method static array<string, mixed> getDefinitionInNamespace(string $ns)
- * @method static list<string> getNamespaces()
  */
 class Phel
 {
@@ -46,31 +32,6 @@ class Phel
      * @see https://github.com/gacela-project/gacela/pull/322
      */
     private const string FILE_CACHE_DIR = '';
-
-    /**
-     * Proxy undefined static method calls the registry instance.
-     *
-     * @param  list<mixed>  $arguments
-     */
-    public static function __callStatic(string $name, array $arguments): mixed
-    {
-        $registry = Registry::getInstance();
-        if (is_callable([$registry, $name])) {
-            return $registry->$name(...$arguments);
-        }
-
-        throw new BadMethodCallException(sprintf('Method "%s" does not exist', $name));
-    }
-
-    /**
-     * @see GlobalVarEmitter
-     *
-     * @noinspection PhpUnused
-     */
-    public static function &getDefinitionReference(string $ns, string $name): mixed
-    {
-        return Registry::getInstance()->getDefinitionReference($ns, $name);
-    }
 
     public static function bootstrap(string $projectRootDir, array|string|null $argv = null): void
     {

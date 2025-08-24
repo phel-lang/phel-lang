@@ -13,7 +13,7 @@ use Phel\Compiler\Domain\Analyzer\Exceptions\AnalyzerException;
 use Phel\Compiler\Domain\Analyzer\TypeAnalyzer\WithAnalyzerTrait;
 use Phel\Lang\Collections\LinkedList\PersistentListInterface;
 use Phel\Lang\Symbol;
-use Phel\Lang\TypeFactory;
+use PhelType;
 
 final class TrySymbol implements SpecialFormAnalyzerInterface
 {
@@ -66,7 +66,7 @@ final class TrySymbol implements SpecialFormAnalyzerInterface
 
         if ($finally instanceof PersistentListInterface) {
             /** @psalm-suppress InvalidOperand */
-            $finally = TypeFactory::getInstance()->persistentListFromArray([
+            $finally = PhelType::persistentListFromArray([
                 Symbol::create(Symbol::NAME_DO),
                 ...$finally->rest(),
             ])->copyLocationFrom($finally);
@@ -104,7 +104,7 @@ final class TrySymbol implements SpecialFormAnalyzerInterface
             $exprs = [Symbol::create(Symbol::NAME_DO), ...$catch->rest()->rest()->rest()->toArray()];
 
             $catchBody = $this->analyzer->analyze(
-                TypeFactory::getInstance()->persistentListFromArray($exprs),
+                PhelType::persistentListFromArray($exprs),
                 $env->withContext($catchCtx)
                     ->withMergedLocals([$name])
                     ->withDisallowRecurFrame(),
@@ -120,7 +120,7 @@ final class TrySymbol implements SpecialFormAnalyzerInterface
         }
 
         $body = $this->analyzer->analyze(
-            TypeFactory::getInstance()->persistentListFromArray([Symbol::create(Symbol::NAME_DO), ...$body]),
+            PhelType::persistentListFromArray([Symbol::create(Symbol::NAME_DO), ...$body]),
             $env->withContext($catchNodes !== [] || $finally ? $catchCtx : $env->getContext())
                 ->withDisallowRecurFrame(),
         );

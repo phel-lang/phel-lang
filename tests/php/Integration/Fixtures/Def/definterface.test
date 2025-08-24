@@ -35,17 +35,17 @@ interface IPlayer {
 
     }
   },
-  \Phel\Lang\TypeFactory::getInstance()->persistentMapFromKVs(
-    \Phel\Lang\Keyword::create("doc"), "```phel\n(choose p)\n```\nChoose docs",
-    \Phel\Lang\Keyword::create("start-location"), \Phel\Lang\TypeFactory::getInstance()->persistentMapFromKVs(
-      \Phel\Lang\Keyword::create("file"), "Def/definterface.test",
-      \Phel\Lang\Keyword::create("line"), 3,
-      \Phel\Lang\Keyword::create("column"), 0
+  \PhelType::persistentMapFromKVs(
+    \PhelType::keyword("doc"), "```phel\n(choose p)\n```\nChoose docs",
+    \PhelType::keyword("start-location"), \PhelType::persistentMapFromKVs(
+      \PhelType::keyword("file"), "Def/definterface.test",
+      \PhelType::keyword("line"), 3,
+      \PhelType::keyword("column"), 0
     ),
-    \Phel\Lang\Keyword::create("end-location"), \Phel\Lang\TypeFactory::getInstance()->persistentMapFromKVs(
-      \Phel\Lang\Keyword::create("file"), "Def/definterface.test",
-      \Phel\Lang\Keyword::create("line"), 5,
-      \Phel\Lang\Keyword::create("column"), 31
+    \PhelType::keyword("end-location"), \PhelType::persistentMapFromKVs(
+      \PhelType::keyword("file"), "Def/definterface.test",
+      \PhelType::keyword("line"), 5,
+      \PhelType::keyword("column"), 31
     ),
     "min-arity", 1
   )
@@ -69,17 +69,17 @@ interface IPlayer {
 
     }
   },
-  \Phel\Lang\TypeFactory::getInstance()->persistentMapFromKVs(
-    \Phel\Lang\Keyword::create("doc"), "```phel\n(update-strategy p me you)\n```\n",
-    \Phel\Lang\Keyword::create("start-location"), \Phel\Lang\TypeFactory::getInstance()->persistentMapFromKVs(
-      \Phel\Lang\Keyword::create("file"), "Def/definterface.test",
-      \Phel\Lang\Keyword::create("line"), 3,
-      \Phel\Lang\Keyword::create("column"), 0
+  \PhelType::persistentMapFromKVs(
+    \PhelType::keyword("doc"), "```phel\n(update-strategy p me you)\n```\n",
+    \PhelType::keyword("start-location"), \PhelType::persistentMapFromKVs(
+      \PhelType::keyword("file"), "Def/definterface.test",
+      \PhelType::keyword("line"), 3,
+      \PhelType::keyword("column"), 0
     ),
-    \Phel\Lang\Keyword::create("end-location"), \Phel\Lang\TypeFactory::getInstance()->persistentMapFromKVs(
-      \Phel\Lang\Keyword::create("file"), "Def/definterface.test",
-      \Phel\Lang\Keyword::create("line"), 5,
-      \Phel\Lang\Keyword::create("column"), 31
+    \PhelType::keyword("end-location"), \PhelType::persistentMapFromKVs(
+      \PhelType::keyword("file"), "Def/definterface.test",
+      \PhelType::keyword("line"), 5,
+      \PhelType::keyword("column"), 31
     ),
     "min-arity", 3
   )

@@ -8,7 +8,7 @@ use Phel\Compiler\Domain\Analyzer\TypeAnalyzer\SpecialForm\Binding\BindingValida
 use Phel\Compiler\Domain\Analyzer\TypeAnalyzer\SpecialForm\Binding\Deconstructor;
 use Phel\Lang\Keyword;
 use Phel\Lang\Symbol;
-use Phel\Lang\TypeFactory;
+use PhelType;
 use PHPUnit\Framework\TestCase;
 
 final class DeconstructorTest extends TestCase
@@ -27,7 +27,7 @@ final class DeconstructorTest extends TestCase
     public function test_empty_vector(): void
     {
         $bindings = $this->deconstructor->deconstruct(
-            TypeFactory::getInstance()->persistentVectorFromArray([]),
+            PhelType::persistentVectorFromArray([]),
         );
 
         self::assertSame([], $bindings);
@@ -46,11 +46,11 @@ final class DeconstructorTest extends TestCase
         //       __phel_5 (first __phel_4)
         //       __phel_6 (next __phel_4)
         //       b __phel_5])
-        $list = TypeFactory::getInstance()->persistentVectorFromArray([
-            TypeFactory::getInstance()->persistentVectorFromArray([Symbol::create('a')]),
-            TypeFactory::getInstance()->persistentVectorFromArray([10]),
-            TypeFactory::getInstance()->persistentVectorFromArray([Symbol::create('b')]),
-            TypeFactory::getInstance()->persistentVectorFromArray([20]),
+        $list = PhelType::persistentVectorFromArray([
+            PhelType::persistentVectorFromArray([Symbol::create('a')]),
+            PhelType::persistentVectorFromArray([10]),
+            PhelType::persistentVectorFromArray([Symbol::create('b')]),
+            PhelType::persistentVectorFromArray([20]),
         ]);
 
         $bindings = $this->deconstructor->deconstruct($list);
@@ -58,18 +58,18 @@ final class DeconstructorTest extends TestCase
         self::assertEquals([
             [
                 Symbol::create('__phel_1'),
-                TypeFactory::getInstance()->persistentVectorFromArray([10]),
+                PhelType::persistentVectorFromArray([10]),
             ],
             [
                 Symbol::create('__phel_2'),
-                TypeFactory::getInstance()->persistentListFromArray([
+                PhelType::persistentListFromArray([
                     Symbol::create('first'),
                     Symbol::create('__phel_1'),
                 ]),
             ],
             [
                 Symbol::create('__phel_3'),
-                TypeFactory::getInstance()->persistentListFromArray([
+                PhelType::persistentListFromArray([
                     Symbol::create('next'),
                     Symbol::create('__phel_1'),
                 ]),
@@ -80,18 +80,18 @@ final class DeconstructorTest extends TestCase
             ],
             [
                 Symbol::create('__phel_4'),
-                TypeFactory::getInstance()->persistentVectorFromArray([20]),
+                PhelType::persistentVectorFromArray([20]),
             ],
             [
                 Symbol::create('__phel_5'),
-                TypeFactory::getInstance()->persistentListFromArray([
+                PhelType::persistentListFromArray([
                     Symbol::create('first'),
                     Symbol::create('__phel_4'),
                 ]),
             ],
             [
                 Symbol::create('__phel_6'),
-                TypeFactory::getInstance()->persistentListFromArray([
+                PhelType::persistentListFromArray([
                     Symbol::create('next'),
                     Symbol::create('__phel_4'),
                 ]),
@@ -111,8 +111,8 @@ final class DeconstructorTest extends TestCase
         //       __phel 2 (get __phel_1 :key)
         //       a __phel_2])
         $bindings = $this->deconstructor->deconstruct(
-            TypeFactory::getInstance()->persistentVectorFromArray([
-                TypeFactory::getInstance()->persistentMapFromKVs(Keyword::create('key'), Symbol::create('a')),
+            PhelType::persistentVectorFromArray([
+                PhelType::persistentMapFromKVs(Keyword::create('key'), Symbol::create('a')),
                 Symbol::create('x'),
             ]),
         );
@@ -124,7 +124,7 @@ final class DeconstructorTest extends TestCase
             ],
             [
                 Symbol::create('__phel_2'),
-                TypeFactory::getInstance()->persistentListFromArray([
+                PhelType::persistentListFromArray([
                     Symbol::create(Symbol::NAME_PHP_ARRAY_GET),
                     Symbol::create('__phel_1'),
                     Keyword::create('key'),
@@ -142,7 +142,7 @@ final class DeconstructorTest extends TestCase
         // Test for binding like this (let [nil x])
         // This will be destructured to this:
         // (let [])
-        $bindings = $this->deconstructor->deconstruct(TypeFactory::getInstance()->persistentVectorFromArray([null, Symbol::create('x')]));
+        $bindings = $this->deconstructor->deconstruct(PhelType::persistentVectorFromArray([null, Symbol::create('x')]));
 
         self::assertSame([], $bindings);
     }

@@ -108,15 +108,11 @@ final readonly class AtomParser
             $namespace = $matches['namespace'];
         }
 
-        $keyword = ($namespace !== null && $namespace !== '')
-            ? Keyword::createForNamespace($namespace, $matches['keyword'])
-            : Keyword::create($matches['keyword']);
-
         return new KeywordNode(
             $word,
             $token->getStartLocation(),
             $token->getEndLocation(),
-            $keyword,
+            Keyword::create($matches['keyword'], $namespace),
         );
     }
 
