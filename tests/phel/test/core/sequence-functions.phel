@@ -1,6 +1,11 @@
 (ns phel-test\test\core\sequence-functions
   (:require phel\test :refer [deftest is]))
 
+(defn naturals []
+  (loop [i 0]
+    (php/yield i)
+    (recur (inc i))))
+
 (deftest test-map
   (is (= [] (map str [])) "map1 with empty collection")
   (is (= ["1" "2"] (map str [1 2])) "map1")
@@ -115,6 +120,12 @@
   (is (= [] (take -1 ["a" "b" "c"])) "take on vector")
   (is (= (php/array "a" "b") (take 2 (php/array "a" "b" "c"))) "take on php array")
   (is (= (php/array) (take -1 (php/array "a" "b" "c"))) "take on php array"))
+
+(deftest test-take-generator
+  (is (= [0 1 2] (take 3 (naturals))) "take on generator"))
+
+(deftest test-iterate
+  (is (= [0 1 2] (take 3 (iterate inc 0))) "iterate infinite sequence"))
 
 (deftest test-take-last
   (is (= ["c"] (take-last 1 ["a" "b" "c"])) "take-last element")

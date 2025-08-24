@@ -1,5 +1,6 @@
 (ns phel\core
   (:use Countable)
+  (:use Traversable)
   (:use InvalidArgumentException)
   (:use Phel)
   (:use Phel\Compiler\Application\Munge)
@@ -1152,7 +1153,17 @@ arrays. Use (php/aunset ds key)"))
 (defn take
   "Takes the first `n` elements of `xs`."
   [n xs]
-  (slice xs 0 (if (php/< n 0) 0 n)))
+  (let [n (if (php/< n 0) 0 n)]
+    (cond
+      (php-array? xs) (php/array_slice xs 0 n)
+      (php/instanceof xs SliceInterface) (php/-> xs (slice 0 n))
+      (php/instanceof xs Traversable)
+        (let [i (var 0)]
+          (for [x :in xs
+                :while (php/< (deref i) n)
+                :let [_ (swap! i |(php/+ $ 1))]]
+            x))
+      (throw (php/new InvalidArgumentException "Cannot take")))))
 
 (defn take-last
   "Takes the last `n` elements of `xs`."
@@ -1386,6 +1397,13 @@ arrays. Use (php/aunset ds key)"))
   "Returns a vector of length n with values produced by repeatedly calling f."
   [n f]
   (for [i :range [n]] (f)))
+
+(defn iterate
+  "Returns an infinite sequence of `x`, `(f x)`, `(f (f x))`, ..."
+  [f x]
+  (loop [v x]
+    (php/yield v)
+    (recur (f v))))
 
 (defn group-by
   "Returns a map of the elements of xs keyed by the result of
