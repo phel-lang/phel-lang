@@ -12,7 +12,7 @@ use Phel\Lang\Keyword;
 final readonly class PhelFnNormalizer implements PhelFnNormalizerInterface
 {
     /**
-     * @param  list<string>  $allNamespaces
+     * @param list<string> $allNamespaces
      */
     public function __construct(
         private PhelFnLoaderInterface $phelFnLoader,
@@ -21,7 +21,7 @@ final readonly class PhelFnNormalizer implements PhelFnNormalizerInterface
     }
 
     /**
-     * @param  list<string>  $namespaces
+     * @param list<string> $namespaces
      *
      * @return list<PhelFunction>
      */
@@ -89,7 +89,7 @@ final readonly class PhelFnNormalizer implements PhelFnNormalizerInterface
     /**
      * @param array<string, PhelFunction> $originalNormalizedFns
      *
-     * @return  list<PhelFunction>
+     * @return list<PhelFunction>
      */
     private function normalizeNativeSymbols(array $originalNormalizedFns): array
     {
@@ -109,7 +109,7 @@ final readonly class PhelFnNormalizer implements PhelFnNormalizerInterface
     }
 
     /**
-     * @param  list<PhelFunction>  $fns
+     * @param list<PhelFunction> $fns
      *
      * @return list<PhelFunction>
      */

@@ -12,7 +12,6 @@ interface ConsInterface
     /**
      * Appends a value to the front of a data structure.
      *
-     *
      * @return T
      */
     public function cons(mixed $x);

@@ -21,7 +21,7 @@ interface CodeCompilerInterface
     public function compileString(string $phelCode, CompileOptions $compileOptions): EmitterResult;
 
     /**
-     * @param TypeInterface|string|float|int|bool|null $form The phel form to evaluate
+     * @param bool|float|int|string|TypeInterface|null $form The phel form to evaluate
      *
      * @throws CompilerException
      * @throws CompiledCodeIsMalformedException

@@ -38,9 +38,9 @@ final readonly class Deconstructor implements DeconstructorInterface
     /**
      * Destructure a $binding $value pair and add the result to $bindings.
      *
-     * @param array $bindings A reference to already defined bindings
-     * @param float|bool|int|string|TypeInterface|null $binding The binding form
-     * @param float|bool|int|string|TypeInterface|null $value The value form
+     * @param array                                    $bindings A reference to already defined bindings
+     * @param bool|float|int|string|TypeInterface|null $binding  The binding form
+     * @param bool|float|int|string|TypeInterface|null $value    The value form
      *
      * @throws AnalyzerException
      */
@@ -56,7 +56,7 @@ final readonly class Deconstructor implements DeconstructorInterface
     }
 
     /**
-     * @param float|bool|int|string|TypeInterface|null $binding The binding form
+     * @param bool|float|int|string|TypeInterface|null $binding The binding form
      */
     private function createDeconstructorForBinding(float|bool|int|string|TypeInterface|null $binding): BindingDeconstructorInterface
     {

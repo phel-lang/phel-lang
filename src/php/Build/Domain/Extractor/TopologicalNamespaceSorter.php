@@ -9,7 +9,7 @@ use RuntimeException;
 final class TopologicalNamespaceSorter implements NamespaceSorterInterface
 {
     /**
-     * @param list<string> $data
+     * @param list<string>                $data
      * @param array<string, list<string>> $dependencies
      *
      * @return list<string>
@@ -29,8 +29,8 @@ final class TopologicalNamespaceSorter implements NamespaceSorterInterface
 
     /**
      * @param array<string, list<string>> $dependencies
-     * @param array<string, bool> $visited
-     * @param array<string, bool> $visiting
+     * @param array<string, bool>         $visited
+     * @param array<string, bool>         $visiting
      */
     private function visit(
         string $item,

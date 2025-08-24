@@ -21,7 +21,7 @@ final class TransientHashMap implements TransientMapInterface
 
     /**
      * @param ?HashMapNodeInterface<K, V> $root
-     * @param ?V $nullValue
+     * @param ?V                          $nullValue
      */
     public function __construct(
         private readonly HasherInterface $hasher,

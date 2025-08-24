@@ -65,7 +65,7 @@ final class PhelConfig implements JsonSerializable
     }
 
     /**
-     * @param  list<string>  $list
+     * @param list<string> $list
      */
     public function setSrcDirs(array $list): self
     {
@@ -75,7 +75,7 @@ final class PhelConfig implements JsonSerializable
     }
 
     /**
-     * @param  list<string>  $list
+     * @param list<string> $list
      */
     public function setTestDirs(array $list): self
     {
@@ -121,7 +121,7 @@ final class PhelConfig implements JsonSerializable
     }
 
     /**
-     * @param  list<string>  $list
+     * @param list<string> $list
      */
     public function setIgnoreWhenBuilding(array $list): self
     {
@@ -145,7 +145,7 @@ final class PhelConfig implements JsonSerializable
     }
 
     /**
-     * @param  list<string>  $list
+     * @param list<string> $list
      */
     public function setFormatDirs(array $list): self
     {
@@ -155,7 +155,7 @@ final class PhelConfig implements JsonSerializable
     }
 
     /**
-     * @param  list<string>  $list
+     * @param list<string> $list
      */
     public function setNoCacheWhenBuilding(array $list): self
     {

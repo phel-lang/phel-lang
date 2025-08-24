@@ -15,7 +15,7 @@ use IteratorAggregate;
 interface HashMapNodeInterface extends IteratorAggregate
 {
     /**
-     * @param TKey $key
+     * @param TKey   $key
      * @param TValue $value
      */
     public function put(int $shift, int $hash, mixed $key, mixed $value, Box $addedLeaf): self;
@@ -28,10 +28,10 @@ interface HashMapNodeInterface extends IteratorAggregate
     /**
      * @template TDefault
      *
-     * @param TKey $key
+     * @param TKey      $key
      * @param ?TDefault $notFound
      *
-     * @return TValue|TDefault
+     * @return TDefault|TValue
      */
     public function find(int $shift, int $hash, mixed $key, $notFound);
 }

@@ -36,7 +36,7 @@ interface BuildFacadeInterface
      * topological sorted subset of these namespaces' information.
      *
      * @param string[] $directories The list of the directories
-     * @param string[] $ns A list of namespace for which we should find the subset
+     * @param string[] $ns          A list of namespace for which we should find the subset
      *
      * @return list<NamespaceInformation>
      */
@@ -45,7 +45,7 @@ interface BuildFacadeInterface
     /**
      * Compiles a phel file and saves it to the give destination.
      *
-     * @param string $src The source file
+     * @param string $src  The source file
      * @param string $dest The destination
      */
     public function compileFile(string $src, string $dest): CompiledFile;

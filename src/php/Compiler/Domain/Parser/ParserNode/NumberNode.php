@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Phel\Compiler\Domain\Parser\ParserNode;
 
 /**
- * @extends AbstractAtomNode<int|float>
+ * @extends AbstractAtomNode<float|int>
  */
 final class NumberNode extends AbstractAtomNode
 {

@@ -18,9 +18,9 @@ final class AnalyzePersistentMap
         $keyValues = [];
         $kvEnv = $env->withExpressionContext();
 
-        /** @var TypeInterface|string|float|int|bool|null $value */
+        /** @var bool|float|int|string|TypeInterface|null $value */
         foreach ($map as $key => $value) {
-            /** @var TypeInterface|string|float|int|bool|null $key */
+            /** @var bool|float|int|string|TypeInterface|null $key */
             $keyValues[] = $this->analyzer->analyze($key, $kvEnv);
             $keyValues[] = $this->analyzer->analyze($value, $kvEnv);
         }

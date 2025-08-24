@@ -66,7 +66,7 @@ final class BuildFacade extends AbstractFacade implements BuildFacadeInterface
      * topological sorted subset of this namespace information.
      *
      * @param string[] $directories The list of the directories
-     * @param string[] $ns A list of namespace for which we should find the subset
+     * @param string[] $ns          A list of namespace for which we should find the subset
      *
      * @return list<NamespaceInformation>
      */
@@ -80,7 +80,7 @@ final class BuildFacade extends AbstractFacade implements BuildFacadeInterface
     /**
      * Compiles a phel file and saves it to the give destination.
      *
-     * @param string $src The source file
+     * @param string $src  The source file
      * @param string $dest The destination
      */
     public function compileFile(string $src, string $dest): CompiledFile

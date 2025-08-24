@@ -25,8 +25,8 @@ final class MapBindingDeconstructor implements BindingDeconstructorInterface
     }
 
     /**
-     * @param PersistentMapInterface $binding The binding form
-     * @param TypeInterface|string|float|int|bool|null $value The value form
+     * @param PersistentMapInterface                   $binding The binding form
+     * @param bool|float|int|string|TypeInterface|null $value   The value form
      */
     public function deconstruct(array &$bindings, $binding, $value): void
     {

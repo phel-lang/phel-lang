@@ -25,7 +25,7 @@ final class PersistentHashMap extends AbstractPersistentMap
 
     /**
      * @param ?HashMapNodeInterface<K, V> $root
-     * @param V $nullValue
+     * @param V                           $nullValue
      */
     public function __construct(
         HasherInterface $hasher,

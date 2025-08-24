@@ -12,10 +12,10 @@ namespace Phel\Formatter\Domain\Rules\Zipper;
 abstract class AbstractZipper
 {
     /**
-     * @param T $node
+     * @param T                  $node
      * @param ?AbstractZipper<T> $parent
-     * @param list<T> $leftSiblings
-     * @param list<T> $rightSiblings
+     * @param list<T>            $leftSiblings
+     * @param list<T>            $rightSiblings
      */
     final public function __construct(
         protected mixed $node,
@@ -35,7 +35,7 @@ abstract class AbstractZipper
     abstract public function isBranch(): bool;
 
     /**
-     * @param T $node
+     * @param T       $node
      * @param list<T> $children
      *
      * @return T
@@ -405,10 +405,10 @@ abstract class AbstractZipper
     }
 
     /**
-     * @param T $node
+     * @param T                  $node
      * @param ?AbstractZipper<T> $parent
-     * @param list<T> $leftSiblings
-     * @param list<T> $rightSiblings
+     * @param list<T>            $leftSiblings
+     * @param list<T>            $rightSiblings
      */
     abstract protected function createNewInstance(
         mixed $node,

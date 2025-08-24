@@ -312,7 +312,7 @@ An interface in Phel defines an abstract set of functions. It is directly mapped
     }
 
     /**
-     * @param  list<string>  $namespaces
+     * @param list<string> $namespaces
      *
      * @return array<string,PersistentMapInterface>
      */

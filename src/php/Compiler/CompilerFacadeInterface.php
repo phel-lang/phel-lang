@@ -34,7 +34,7 @@ interface CompilerFacadeInterface
      * Evaluates all expression in the given phel code. Returns the result
      * of the last expression.
      *
-     * @param string $phelCode The phel code that should be evaluated
+     * @param string         $phelCode       The phel code that should be evaluated
      * @param CompileOptions $compileOptions The compile options
      *
      * @throws CompilerException|UnfinishedParserException
@@ -44,8 +44,8 @@ interface CompilerFacadeInterface
     public function eval(string $phelCode, CompileOptions $compileOptions): mixed;
 
     /**
-     * @param TypeInterface|string|float|int|bool|null $form The phel form to evaluate
-     * @param CompileOptions $compileOptions The compile options
+     * @param bool|float|int|string|TypeInterface|null $form           The phel form to evaluate
+     * @param CompileOptions                           $compileOptions The compile options
      *
      * @throws CompilerException
      *
@@ -56,7 +56,7 @@ interface CompilerFacadeInterface
     /**
      * Compiles the given phel code to PHP code.
      *
-     * @param string $phelCode The phel code that should be compiled
+     * @param string         $phelCode       The phel code that should be compiled
      * @param CompileOptions $compileOptions The compilation options
      *
      * @throws CompilerException

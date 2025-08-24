@@ -17,7 +17,7 @@ final class AnalyzePersistentVector
     {
         $args = [];
 
-        /** @var TypeInterface|string|float|int|bool|null $arg */
+        /** @var bool|float|int|string|TypeInterface|null $arg */
         foreach ($vector->getIterator() as $arg) {
             $envDisallowRecur = $env->withExpressionContext()->withDisallowRecurFrame();
             $args[] = $this->analyzer->analyze($arg, $envDisallowRecur);

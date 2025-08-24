@@ -13,8 +13,8 @@ use Phel\Lang\TypeInterface;
 final class SymbolBindingDeconstructor implements BindingDeconstructorInterface
 {
     /**
-     * @param Symbol $binding The binding form
-     * @param TypeInterface|string|float|int|bool|null $value The value form
+     * @param Symbol                                   $binding The binding form
+     * @param bool|float|int|string|TypeInterface|null $value   The value form
      */
     public function deconstruct(array &$bindings, $binding, $value): void
     {

@@ -42,7 +42,7 @@ final class ArrayZipper extends AbstractZipper
     }
 
     /**
-     * @param list<int> $node
+     * @param list<int>       $node
      * @param list<list<int>> $children
      *
      * @return list<int>
@@ -53,10 +53,10 @@ final class ArrayZipper extends AbstractZipper
     }
 
     /**
-     * @param list<int|list<int>> $node
+     * @param list<int|list<int>>        $node
      * @param ?AbstractZipper<list<int>> $parent
-     * @param list<int|list<int>> $leftSiblings
-     * @param list<int|list<int>> $rightSiblings
+     * @param list<int|list<int>>        $leftSiblings
+     * @param list<int|list<int>>        $rightSiblings
      */
     protected function createNewInstance(
         $node,

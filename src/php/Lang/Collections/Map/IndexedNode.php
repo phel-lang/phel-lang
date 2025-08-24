@@ -22,7 +22,7 @@ final readonly class IndexedNode implements HashMapNodeInterface
     /**
      * @param list<array{
      *     0: TKey|null,
-     *     1: TValue|HashMapNodeInterface<TKey, TValue>,
+     *     1: HashMapNodeInterface<TKey, TValue>|TValue,
      * }> $objects
      */
     public function __construct(
@@ -38,7 +38,7 @@ final readonly class IndexedNode implements HashMapNodeInterface
     }
 
     /**
-     * @param TKey $key
+     * @param TKey   $key
      * @param TValue $value
      *
      * @return HashMapNodeInterface<TKey, TValue>
@@ -157,9 +157,9 @@ final readonly class IndexedNode implements HashMapNodeInterface
     }
 
     /**
-     * @param TKey $key1
+     * @param TKey   $key1
      * @param TValue $value1
-     * @param TKey $key2
+     * @param TKey   $key2
      * @param TValue $value2
      *
      * @return HashMapNodeInterface<TKey, TValue>
@@ -195,7 +195,7 @@ final readonly class IndexedNode implements HashMapNodeInterface
     }
 
     /**
-     * @param TKey $key
+     * @param TKey   $key
      * @param TValue $value
      *
      * @return HashMapNodeInterface<TKey, TValue>
@@ -216,7 +216,7 @@ final readonly class IndexedNode implements HashMapNodeInterface
     }
 
     /**
-     * @param TKey $key
+     * @param TKey   $key
      * @param TValue $value
      *
      * @return HashMapNodeInterface<TKey, TValue>
@@ -231,7 +231,7 @@ final readonly class IndexedNode implements HashMapNodeInterface
     }
 
     /**
-     * @param TKey $key
+     * @param TKey   $key
      * @param TValue $value
      *
      * @return HashMapNodeInterface<TKey, TValue>
@@ -253,7 +253,7 @@ final readonly class IndexedNode implements HashMapNodeInterface
     }
 
     /**
-     * @param TKey $key
+     * @param TKey   $key
      * @param TValue $value
      *
      * @return IndexedNode<TKey, TValue>

@@ -146,10 +146,10 @@ final class ParseTreeZipper extends AbstractZipper
     }
 
     /**
-     * @param NodeInterface $node
+     * @param NodeInterface                  $node
      * @param ?AbstractZipper<NodeInterface> $parent
-     * @param list<NodeInterface> $leftSiblings
-     * @param list<NodeInterface> $rightSiblings
+     * @param list<NodeInterface>            $leftSiblings
+     * @param list<NodeInterface>            $rightSiblings
      */
     protected function createNewInstance(
         $node,
