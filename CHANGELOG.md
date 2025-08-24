@@ -8,9 +8,15 @@ All notable changes to this project will be documented in this file.
 - Fix `contains-value?` with `nil` value
 - Fix set `difference` errors with certain input
 - Fix `require` loading code without `*build-mode*`
-- Add `slurp` and `spit` file reading and writing functions
-- Add `select-keys`
-- Add aliases `assoc`, `assoc-in`, `dissoc`, and `dissoc-in`
+- Add new functions:
+    - `select-keys`
+    - `median`
+    - `slurp`
+    - `spit`
+    - `assoc` alias for `put`
+    - `assoc-in` alias for `put-in`
+    - `dissoc` alias for `unset`
+    - `dissoc-in` alias for `unset-in`
 - Enhance `php/->` for nested calls
 - Auto-assign-author GH workflow
 - Avoid coercing `nil` to 0 in math operations
