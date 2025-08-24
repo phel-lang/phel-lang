@@ -6,7 +6,6 @@ namespace Phel\Lang;
 
 use Phel\Lang\Collections\HashSet\PersistentHashSetInterface;
 use Phel\Lang\Collections\HashSet\TransientHashSet;
-use Phel\Lang\Collections\LinkedList\EmptyList;
 use Phel\Lang\Collections\LinkedList\PersistentList;
 use Phel\Lang\Collections\LinkedList\PersistentListInterface;
 use Phel\Lang\Collections\Map\PersistentArrayMap;
@@ -40,11 +39,6 @@ final class TypeFactory
         return self::$instance;
     }
 
-    public function emptyPersistentMap(): PersistentMapInterface
-    {
-        return PersistentArrayMap::empty($this->hasher, $this->equalizer);
-    }
-
     /**
      * @param list<mixed> $kvs
      */
@@ -53,7 +47,7 @@ final class TypeFactory
         return $this->persistentMapFromArray($kvs);
     }
 
-    public function persistentMapFromArray(array $kvs): PersistentMapInterface
+    public function persistentMapFromArray(array $kvs = []): PersistentMapInterface
     {
         if (count($kvs) <= PersistentArrayMap::MAX_SIZE) {
             return PersistentArrayMap::fromArray($this->hasher, $this->equalizer, $kvs);
@@ -64,7 +58,7 @@ final class TypeFactory
 
     public function persistentHashSetFromArray(array $values): PersistentHashSetInterface
     {
-        $set = new TransientHashSet($this->hasher, $this->emptyPersistentMap()->asTransient());
+        $set = new TransientHashSet($this->hasher, $this->persistentMapFromArray()->asTransient());
         foreach ($values as $value) {
             $set->add($value);
         }
@@ -72,19 +66,9 @@ final class TypeFactory
         return $set->persistent();
     }
 
-    public function emptyPersistentList(): EmptyList
-    {
-        return PersistentList::empty($this->hasher, $this->equalizer);
-    }
-
     public function persistentListFromArray(array $values): PersistentListInterface
     {
         return PersistentList::fromArray($this->hasher, $this->equalizer, $values);
-    }
-
-    public function emptyPersistentVector(): PersistentVectorInterface
-    {
-        return PersistentVector::empty($this->hasher, $this->equalizer);
     }
 
     public function persistentVectorFromArray(array $values): PersistentVectorInterface
