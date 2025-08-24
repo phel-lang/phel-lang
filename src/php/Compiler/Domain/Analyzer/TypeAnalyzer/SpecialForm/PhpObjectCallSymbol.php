@@ -58,8 +58,11 @@ final readonly class PhpObjectCallSymbol implements SpecialFormAnalyzerInterface
                 $callExpr = $this->callExprForPropertyCall($env, $current);
             }
 
+            $isLast = $i === $counter - 1;
+            $nodeEnv = $isLast ? $env : $env->withExpressionContext();
+
             $targetExpr = new PhpObjectCallNode(
-                $env,
+                $nodeEnv,
                 $targetExpr,
                 $callExpr,
                 $this->isStatic && $i === 2,
