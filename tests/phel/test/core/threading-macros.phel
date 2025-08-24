@@ -12,6 +12,20 @@
   (is (= 0.75 (->> 5 (+ 3) (/ 2) (- 1))))
   (is (= [2 3 4 5 6] (->> [1 2 [3 4] 5] flatten (map inc)))))
 
+(deftest test-some->
+  (is (= 1 (some-> 1)))
+  (is (= 3 (some-> 5 (+ 3) (/ 2) (- 1))))
+  (is (= 2 (some-> {:a 1} :a inc)))
+  (is (nil? (some-> {:a 1} :b inc)))
+  (is (nil? (some-> nil (+ 3)))))
+
+(deftest test-some->>
+  (is (= 1 (some->> 1)))
+  (is (= 0.75 (some->> 5 (+ 3) (/ 2) (- 1))))
+  (is (= 3 (some->> [1 2 3] (map inc) (filter |(> $ 1)) first inc)))
+  (is (nil? (some->> [1 2 3] (filter |(> $ 5)) first inc)))
+  (is (nil? (some->> nil (+ 3)))))
+
 (deftest test-as->
   (is (= 1 (as-> 1 v)))
   (is (= -3 (as-> 5 v (+ 3 v) (/ v 2) (- 1 v))))

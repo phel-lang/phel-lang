@@ -19,6 +19,9 @@ All notable changes to this project will be documented in this file.
     - `dissoc-in` alias for `unset-in`
     - `drop-last`
     - `pad-both`
+- Add new macros:
+    - `some->`
+    - `some->>`
 - Enhance `php/->` for nested calls
 - Auto-assign-author GH workflow
 - Avoid coercing `nil` to 0 in math operations

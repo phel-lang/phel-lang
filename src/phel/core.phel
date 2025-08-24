@@ -1960,6 +1960,40 @@ returns 1. If `xs` has one value, returns the reciprocal of x."
         (recur threaded (next forms)))
       x)))
 
+(defmacro some->
+  "Threads `x` through the forms like `->` but stops when a form returns `nil`."
+  [x & forms]
+  (loop [x x
+         forms (if (empty? forms) nil forms)]
+    (if forms
+      (let [form (first forms)
+            g (gensym)
+            threaded `(let [,g ,x]
+                        (if (php/=== nil ,g)
+                          nil
+                          ,(if (list? form)
+                             `(,(first form) ,g ,@(next form))
+                             `(,form ,g))))]
+        (recur threaded (next forms)))
+      x)))
+
+(defmacro some->>
+  "Threads `x` through the forms like `->>` but stops when a form returns `nil`."
+  [x & forms]
+  (loop [x x
+         forms (if (empty? forms) nil forms)]
+    (if forms
+      (let [form (first forms)
+            g (gensym)
+            threaded `(let [,g ,x]
+                        (if (php/=== nil ,g)
+                          nil
+                          ,(if (list? form)
+                             `(,(first form) ,@(next form) ,g)
+                             `(,form ,g))))]
+        (recur threaded (next forms)))
+      x)))
+
 (defmacro as->
   "Binds `name` to `expr`, evaluates the first form in the lexical context
   of that binding, then binds name to that result, repeating for each
