@@ -259,3 +259,9 @@
    If `pad-str` is omitted it defaults to a single space."
   [s len & [pad-str]]
   (php/str_pad s len (or pad-str " ") php/STR_PAD_RIGHT))
+
+(defn pad-both
+  "Returns a string padded on both sides to length `len`.
+   If `pad-str` is omitted it defaults to a single space."
+  [s len & [pad-str]]
+  (php/str_pad s len (or pad-str " ") php/STR_PAD_BOTH))

@@ -194,3 +194,7 @@
 (deftest test-pad-right
   (is (= "foo  " (s/pad-right "foo" 5)))
   (is (= "foo00" (s/pad-right "foo" 5 "0"))))
+
+(deftest test-pad-both
+  (is (= " foo " (s/pad-both "foo" 5)))
+  (is (= "0foo0" (s/pad-both "foo" 5 "0"))))
