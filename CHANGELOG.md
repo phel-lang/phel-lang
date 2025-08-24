@@ -27,6 +27,10 @@ All notable changes to this project will be documented in this file.
     - `some`
     - `not-empty`
     - `constantly`
+    - `last`
+    - `butlast`
+    - `partition-by`
+    - `dedupe`
 - Add new macros:
     - `some->`
     - `some->>`

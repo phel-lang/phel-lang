@@ -782,6 +782,7 @@ Calling the `and` function without arguments returns true."
   [xs]
   (php/aget xs (php/- (count xs) 1)))
 
+
 (defn push
   "Inserts `x` at the end of the sequence `xs`."
   [xs x]
@@ -1126,6 +1127,18 @@ arrays. Use (php/aunset ds key)"))
         end (php/- (count xs) n)]
     (slice xs 0 (php/max 0 end))))
 
+(defn last
+  "Returns the last element of `xs` or nil if `xs` is empty or nil."
+  [xs]
+  (if (or (php/=== xs nil) (empty? xs))
+    nil
+    (peek xs)))
+
+(defn butlast
+  "Returns all but the last item in `xs`."
+  [xs]
+  (drop-last 1 xs))
+
 (defn drop-while
   "Drops all elements at the front `xs` where `(pred x)` is true."
   [pred xs]
@@ -1212,6 +1225,7 @@ arrays. Use (php/aunset ds key)"))
         (put seen x true)
         (push ret x)))
     (persistent ret)))
+
 
 (defn reverse
   "Reverses the order of the elements in the given sequence."
@@ -1434,6 +1448,23 @@ arrays. Use (php/aunset ds key)"))
   "Returns a vector of `[(take-while pred coll) (drop-while pred coll)]`."
   [f xs]
   [(take-while f xs) (drop-while f xs)])
+
+(defn partition-by
+  "Applies `f` to each value in `xs`, splitting them each time the return value changes."
+  [f xs]
+  (loop [xs xs
+         res []]
+    (if (empty? xs)
+      res
+      (let [k (f (first xs))
+            pred (fn [x] (= k (f x)))
+            [part rest] (split-with pred xs)]
+        (recur rest (push res part))))))
+
+(defn dedupe
+  "Returns a vector with consecutive duplicate values removed in `xs`."
+  [xs]
+  (map first (partition-by (fn [x] x) xs)))
 
 (defn partition
   "Partition an indexed data structure into vectors of maximum size n. Returns a new vector."

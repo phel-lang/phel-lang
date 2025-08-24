@@ -82,6 +82,18 @@
   (is (= (php/array "a" "b") (drop-last 1 (php/array "a" "b" "c"))) "drop-last on php array")
   (is (= (php/array) (drop-last 1 (php/array))) "drop-last on empty php array"))
 
+(deftest test-last
+  (is (= "c" (last ["a" "b" "c"])) "last element")
+  (is (nil? (last [])) "last on empty vector")
+  (is (= "c" (last (php/array "a" "b" "c"))) "last on php array")
+  (is (nil? (last (php/array))) "last on empty php array"))
+
+(deftest test-butlast
+  (is (= ["a" "b"] (butlast ["a" "b" "c"])) "butlast element")
+  (is (= [] (butlast ["a"])) "butlast single element")
+  (is (= [] (butlast [])) "butlast empty vector")
+  (is (= (php/array "a" "b") (butlast (php/array "a" "b" "c"))) "butlast on php array"))
+
 (deftest test-drop-while
   (is (= [1 2 3 4 -1 -2 -3] (drop-while neg? [-1 -2 -3 1 2 3 4 -1 -2 -3])) "drop-while: first three element")
   (is (= [] (drop-while neg? [-1 -2 -3])) "drop-while: everything")
@@ -160,6 +172,10 @@
 (deftest test-distinct
   (is (= [1 2 3] (distinct [1 1 2 3 2 2 3 1])) "distinct: array")
   (is (= [1 2 3] (distinct (php/array 1 1 2 3 2 2 3 1))) "distinct: php array"))
+
+(deftest test-dedupe
+  (is (= [1 2 3 2 1] (dedupe [1 1 2 3 3 2 1 1])) "dedupe removes consecutive duplicates")
+  (is (= [] (dedupe [])) "dedupe empty"))
 
 (deftest test-reverse
   (is (= [3 2 1] (reverse [1 2 3])) "reverse: vector")
@@ -283,6 +299,10 @@
 
 (deftest test-split-with
   (is (= [[1 2 3] [4 5]] (split-with (partial >= 3) [1 2 3 4 5])) "split-with"))
+
+(deftest test-partition-by
+  (is (= [[1 1] [2] [3 3]] (partition-by identity [1 1 2 3 3])) "partition-by identity")
+  (is (= [] (partition-by identity [])) "partition-by empty"))
 
 (deftest test-partition
   (is (= [] (partition 2 [])) "partition-2 empty")
