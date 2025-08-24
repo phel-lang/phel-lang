@@ -4,25 +4,28 @@ declare(strict_types=1);
 
 use Phel\Lang\Collections\Map\PersistentMapInterface;
 use Phel\Lang\Registry;
-use Phel\Phel as OriginalPhel;
+use Phel\Phel as InternalPhel;
 
 /**
  * Public API for Phel.
  *
- * @method static void clear()
  * @method static void addDefinition(string $ns, string $name, mixed $value, ?PersistentMapInterface $metaData = null)
+ * @method static void clear()
  * @method static bool hasDefinition(string $ns, string $name)
  * @method static mixed getDefinition(string $ns, string $name)
- * @method static null|PersistentMapInterface getDefinitionMetaData(string $ns, string $name)
- * @method static array<string, mixed> getDefinitionInNamespace(string $ns)
+ * @method static PersistentMapInterface|null getDefinitionMetaData(string $ns, string $name)
+ * @method static array<string,mixed> getDefinitionInNamespace(string $ns)
  * @method static list<string> getNamespaces()
  */
-final class Phel extends OriginalPhel
+final class Phel extends InternalPhel
 {
     /**
-     * Proxy undefined static method calls the registry instance.
+     * Proxy undefined static method calls to the {@see Registry} singleton.
      *
-     * @param  list<mixed>  $arguments
+     * @param string      $name
+     * @param list<mixed> $arguments
+     *
+     * @return mixed
      */
     public static function __callStatic(string $name, array $arguments): mixed
     {
@@ -35,9 +38,12 @@ final class Phel extends OriginalPhel
     }
 
     /**
-     * @see          GlobalVarEmitter
+     * Get a reference to a stored definition.
      *
+     * @see GlobalVarEmitter
      * @noinspection PhpUnused
+     *
+     * @return mixed Reference to the stored definition.
      */
     public static function &getDefinitionReference(string $ns, string $name): mixed
     {

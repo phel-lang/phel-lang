@@ -15,26 +15,36 @@ use Phel\Lang\TypeFactory;
 use Phel\Lang\Variable;
 
 /**
- * @method static PersistentMapInterface emptyPersistentMap()
- * @method static PersistentMapInterface persistentMapFromKVs(...$kvs)
- * @method static PersistentMapInterface persistentMapFromArray(array $kvs)
- * @method static PersistentHashSetInterface persistentHashSetFromArray(array $values)
- * @method static EmptyList emptyPersistentList()
- * @method static PersistentListInterface persistentListFromArray(array $values)
- * @method static PersistentVectorInterface emptyPersistentVector()
- * @method static PersistentVectorInterface persistentVectorFromArray(array $values)
- * @method static Variable variable(mixed $value)
- * @method static Symbol symbol(string $name)
- * @method static Keyword keyword(string $name, string $namespace = null)
- * @method static EqualizerInterface getEqualizer()
- * @method static HasherInterface getHasher()
+ * Static proxy to TypeFactory.
+ *
+ * @mixin TypeFactory
+ *
+ * Factory helpers:
+ * @method static PersistentMapInterface     emptyPersistentMap()
+ * @method static PersistentMapInterface     persistentMapFromKVs(mixed ...$kvs)
+ * @method static PersistentMapInterface     persistentMapFromArray(array<string|int, mixed> $kvs)
+ * @method static PersistentHashSetInterface persistentHashSetFromArray(list<mixed> $values)
+ * @method static EmptyList                  emptyPersistentList()
+ * @method static PersistentListInterface    persistentListFromArray(list<mixed> $values)
+ * @method static PersistentVectorInterface  emptyPersistentVector()
+ * @method static PersistentVectorInterface  persistentVectorFromArray(list<mixed> $values)
+ *
+ * Language values:
+ * @method static Variable                   variable(mixed $value)
+ * @method static Symbol                     symbol(string $name)
+ * @method static Keyword                    keyword(string $name, ?string $namespace = null)
+ *
+ * Utilities:
+ * @method static EqualizerInterface         getEqualizer()
+ * @method static HasherInterface            getHasher()
  */
 final class PhelType
 {
     /**
-     * Proxy static method calls the TypeFactory instance.
+     * Proxy undefined static method calls to the {@see TypeFactory} singleton.
      *
-     * @param list<mixed> $arguments
+     * @param  list<mixed>  $arguments
+     * @return mixed
      */
     public static function __callStatic(string $name, array $arguments): mixed
     {
