@@ -8,8 +8,8 @@ use PhpCsFixer\Runner\Parallel\ParallelConfigFactory;
 
 $finder = Finder::create()
     ->files()
-    ->in(__DIR__ . '/src/php')
-    ->in(__DIR__ . '/tests/php')
+    ->in(__DIR__.'/src/php')
+    ->in(__DIR__.'/tests/php')
     ->exclude(['out', 'PhelGenerated']);
 
 return (new Config())
