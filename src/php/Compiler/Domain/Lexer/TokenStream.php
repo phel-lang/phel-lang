@@ -87,7 +87,7 @@ final class TokenStream implements Iterator
         $leadingWhitespace = true;
         foreach ($readTokens as $token) {
             if (!($leadingWhitespace
-                && in_array($token->getType(), [Token::T_WHITESPACE, Token::T_COMMENT], true))
+                && in_array($token->getType(), [Token::T_WHITESPACE, Token::T_COMMENT, Token::T_COMMENT_MACRO], true))
             ) {
                 $leadingWhitespace = false;
                 $result[] = $token;

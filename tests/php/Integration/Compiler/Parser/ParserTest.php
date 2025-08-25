@@ -11,6 +11,7 @@ use Phel\Compiler\CompilerFacadeInterface;
 use Phel\Compiler\Domain\Lexer\Token;
 use Phel\Compiler\Domain\Parser\Exceptions\AbstractParserException;
 use Phel\Compiler\Domain\Parser\ParserNode\BooleanNode;
+use Phel\Compiler\Domain\Parser\ParserNode\CommentMacroNode;
 use Phel\Compiler\Domain\Parser\ParserNode\CommentNode;
 use Phel\Compiler\Domain\Parser\ParserNode\KeywordNode;
 use Phel\Compiler\Domain\Parser\ParserNode\ListNode;
@@ -479,6 +480,17 @@ final class ParserTest extends TestCase
         self::assertEquals(
             new CommentNode('# Test', $this->loc(1, 0), $this->loc(1, 6)),
             $this->parse('# Test'),
+        );
+    }
+
+    public function test_read_comment_macro(): void
+    {
+        self::assertEquals(
+            new CommentMacroNode(
+                new SymbolNode('a', $this->loc(1, 2), $this->loc(1, 3), Symbol::create('a')),
+                $this->loc(1, 0),
+            ),
+            $this->parse('#_a'),
         );
     }
 
