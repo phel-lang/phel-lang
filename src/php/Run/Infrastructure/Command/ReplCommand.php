@@ -29,7 +29,6 @@ use Throwable;
 
 use function count;
 use function dirname;
-use function getcwd;
 use function is_string;
 use function sprintf;
 
@@ -140,9 +139,7 @@ final class ReplCommand extends Command
             ->getNamespaceFromFile($this->replStartupFile)
             ->getNamespace();
 
-        $cwd = getcwd();
         $srcDirectories = [
-            ...($cwd !== false ? [$cwd] : []),
             dirname($this->replStartupFile),
             ...$this->getFacade()->getAllPhelDirectories(),
         ];
