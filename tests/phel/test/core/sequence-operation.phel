@@ -7,6 +7,12 @@
   (is (= 3 (peek (php/array 1 2 3))) "peek on php array")
   (is (nil? (peek (php/array))) "peek on empty php array"))
 
+(deftest test-last
+  (is (= 3 (last [1 2 3])) "last on vector")
+  (is (nil? (last [])) "last on empty vector")
+  (is (= 3 (last (php/array 1 2 3))) "last on php array")
+  (is (nil? (last (php/array))) "last on empty php array"))
+
 (def- testing-set-global-array (php/array 1 2 3))
 
 (deftest test-native-global-array-set

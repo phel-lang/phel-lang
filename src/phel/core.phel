@@ -784,6 +784,10 @@ Calling the `and` function without arguments returns true."
   [xs]
   (php/aget xs (php/- (count xs) 1)))
 
+(defn last
+  "Alias for `peek`."
+  [xs]
+  (peek xs))
 
 (defn push
   "Inserts `x` at the end of the sequence `xs`."
