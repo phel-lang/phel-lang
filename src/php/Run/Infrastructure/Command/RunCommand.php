@@ -6,6 +6,7 @@ namespace Phel\Run\Infrastructure\Command;
 
 use Gacela\Framework\DocBlockResolverAwareTrait;
 use Phel\Compiler\Domain\Exceptions\CompilerException;
+use Phel\Run\RunConfig;
 use Phel\Run\RunFacade;
 use SebastianBergmann\Timer\ResourceUsageFormatter;
 use Symfony\Component\Console\Command\Command;
@@ -19,6 +20,7 @@ use function function_exists;
 
 /**
  * @method RunFacade getFacade()
+ * @method RunConfig getConfig()
  */
 final class RunCommand extends Command
 {
@@ -114,10 +116,9 @@ final class RunCommand extends Command
     {
         /** @var list<string> $cliPaths */
         $cliPaths = $input->getOption('import-path') ?? [];
-        $env = getenv('PHEL_IMPORT_PATHS');
-        $envPaths = $env === false || $env === '' ? [] : array_map('trim', explode(',', $env));
+        $configPaths = $this->getConfig()->getImportPaths();
 
-        $paths = array_merge($cliPaths, $envPaths);
+        $paths = array_merge($cliPaths, $configPaths);
 
         return array_values(array_filter($paths, static fn (string $p): bool => $p !== ''));
     }

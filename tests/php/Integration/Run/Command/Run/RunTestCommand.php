@@ -6,6 +6,7 @@ namespace PhelTest\Integration\Run\Command\Run;
 
 use Gacela\Framework\Bootstrap\GacelaConfig;
 use Gacela\Framework\Gacela;
+use Phel\Config\PhelConfig;
 use Phel\Run\Infrastructure\Command\RunCommand;
 use PhelTest\Integration\Run\Command\AbstractTestCommand;
 use Symfony\Component\Console\Input\InputInterface;
@@ -95,10 +96,15 @@ final class RunTestCommand extends AbstractTestCommand
         );
     }
 
-    public function test_run_with_import_path_env_var(): void
+    public function test_run_with_import_path_from_config(): void
     {
         $base = __DIR__ . '/Fixtures/import-path';
-        putenv('PHEL_IMPORT_PATHS=' . $base . '/third_party');
+
+        Gacela::bootstrap(__DIR__, static function (GacelaConfig $config) use ($base): void {
+            $config->resetInMemoryCache();
+            $config->addAppConfig('config/*.php');
+            $config->addAppConfigKeyValue(PhelConfig::IMPORT_PATHS, [$base . '/third_party']);
+        });
 
         $this->expectOutputRegex('~hi third party~');
 
@@ -106,8 +112,6 @@ final class RunTestCommand extends AbstractTestCommand
             $this->stubInput($base . '/scripts/run.phel'),
             $this->stubOutput(),
         );
-
-        putenv('PHEL_IMPORT_PATHS');
     }
 
     private function createRunCommand(): RunCommand
