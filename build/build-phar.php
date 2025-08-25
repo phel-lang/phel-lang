@@ -46,6 +46,7 @@ $stub = <<<'EOF'
 #!/usr/bin/env php
 <?php
 Phar::mapPhar('phel.phar');
+require_once 'phar://phel.phar/vendor/autoload.php';
 require 'phar://phel.phar/bin/phel';
 __HALT_COMPILER();
 EOF;
