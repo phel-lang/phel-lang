@@ -151,6 +151,17 @@ final class ReaderTest extends TestCase
         );
     }
 
+    public function test_read_inline_comment(): void
+    {
+        self::assertEquals(
+            $this->loc(Phel::list([
+                $this->loc(Symbol::create('a'), 1, 1, 1, 2),
+                $this->loc(Symbol::create('c'), 1, 7, 1, 8),
+            ]), 1, 0, 1, 9),
+            $this->read('(a #_b c)'),
+        );
+    }
+
     public function test_quote(): void
     {
         self::assertEquals(

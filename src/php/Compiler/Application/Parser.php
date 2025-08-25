@@ -14,6 +14,7 @@ use Phel\Compiler\Domain\Parser\Exceptions\UnfinishedParserException;
 use Phel\Compiler\Domain\Parser\ExpressionParserFactoryInterface;
 use Phel\Compiler\Domain\Parser\ParserInterface;
 use Phel\Compiler\Domain\Parser\ParserNode\AbstractAtomNode;
+use Phel\Compiler\Domain\Parser\ParserNode\CommentMacroNode;
 use Phel\Compiler\Domain\Parser\ParserNode\CommentNode;
 use Phel\Compiler\Domain\Parser\ParserNode\FileNode;
 use Phel\Compiler\Domain\Parser\ParserNode\ListNode;
@@ -22,6 +23,7 @@ use Phel\Compiler\Domain\Parser\ParserNode\NewlineNode;
 use Phel\Compiler\Domain\Parser\ParserNode\NodeInterface;
 use Phel\Compiler\Domain\Parser\ParserNode\QuoteNode;
 use Phel\Compiler\Domain\Parser\ParserNode\StringNode;
+use Phel\Compiler\Domain\Parser\ParserNode\TriviaNodeInterface;
 use Phel\Compiler\Domain\Parser\ParserNode\WhitespaceNode;
 
 use function in_array;
@@ -31,6 +33,7 @@ final readonly class Parser implements ParserInterface
     private const array TOKENS_THAT_SHOULD_STREAM_NEXT = [
         Token::T_WHITESPACE,
         Token::T_NEWLINE,
+        Token::T_COMMENT_MACRO,
         Token::T_COMMENT,
         Token::T_ATOM,
         Token::T_STRING,
@@ -94,6 +97,7 @@ final readonly class Parser implements ParserInterface
             return match ($tokenType) {
                 Token::T_WHITESPACE => WhitespaceNode::createWithToken($token),
                 Token::T_NEWLINE => NewlineNode::createWithToken($token),
+                Token::T_COMMENT_MACRO => $this->parseCommentMacroNode($tokenStream, $token),
                 Token::T_COMMENT => CommentNode::createWithToken($token),
                 Token::T_ATOM => $this->parseAtomNode($token, $tokenStream),
                 Token::T_STRING => $this->parseStringNode($token, $tokenStream),
@@ -144,6 +148,15 @@ final readonly class Parser implements ParserInterface
         } catch (KeywordParserException $keywordParserException) {
             throw $this->createUnexceptedParserException($tokenStream, $token, $keywordParserException->getMessage());
         }
+    }
+
+    private function parseCommentMacroNode(TokenStream $tokenStream, Token $token): CommentMacroNode
+    {
+        do {
+            $ignored = $this->readExpression($tokenStream);
+        } while ($ignored instanceof TriviaNodeInterface);
+
+        return new CommentMacroNode($ignored, $token->getStartLocation());
     }
 
     /**

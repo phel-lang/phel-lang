@@ -67,6 +67,18 @@ final class LexerTest extends TestCase
         );
     }
 
+    public function test_read_comment_macro(): void
+    {
+        self::assertEquals(
+            [
+                new Token(Token::T_COMMENT_MACRO, '#_', new SourceLocation('string', 1, 0), new SourceLocation('string', 1, 2)),
+                new Token(Token::T_ATOM, 'a', new SourceLocation('string', 1, 2), new SourceLocation('string', 1, 3)),
+                new Token(Token::T_EOF, '', new SourceLocation('string', 1, 3), new SourceLocation('string', 1, 3)),
+            ],
+            $this->lex('#_a'),
+        );
+    }
+
     public function test_read_single_syntax_char(): void
     {
         self::assertEquals(
