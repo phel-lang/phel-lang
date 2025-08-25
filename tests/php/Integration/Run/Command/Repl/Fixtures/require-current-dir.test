@@ -1,0 +1,5 @@
+phel:1> (ns main (:require util :refer [greeter]))
+1
+phel:2> (println (greeter "Johny"))
+hi, Johny
+nil

@@ -1,0 +1,4 @@
+(ns util)
+
+(defn greeter [x]
+  (str "hi, " x))
