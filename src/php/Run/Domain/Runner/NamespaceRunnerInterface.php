@@ -6,5 +6,8 @@ namespace Phel\Run\Domain\Runner;
 
 interface NamespaceRunnerInterface
 {
-    public function run(string $namespace): void;
+    /**
+     * @param list<string> $importPaths
+     */
+    public function run(string $namespace, array $importPaths = []): void;
 }

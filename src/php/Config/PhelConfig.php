@@ -30,6 +30,8 @@ final class PhelConfig implements JsonSerializable
 
     public const string FORMAT_DIRS = 'format-dirs';
 
+    public const string IMPORT_PATHS = 'import-paths';
+
     /** @var list<string> */
     private array $srcDirs = ['src'];
 
@@ -56,6 +58,9 @@ final class PhelConfig implements JsonSerializable
 
     /** @var list<string> */
     private array $formatDirs = ['src', 'tests'];
+
+    /** @var list<string> */
+    private array $importPaths = [];
 
     public function __construct()
     {
@@ -157,6 +162,16 @@ final class PhelConfig implements JsonSerializable
     /**
      * @param list<string> $list
      */
+    public function setImportPaths(array $list): self
+    {
+        $this->importPaths = $list;
+
+        return $this;
+    }
+
+    /**
+     * @param list<string> $list
+     */
     public function setNoCacheWhenBuilding(array $list): self
     {
         $this->noCacheWhenBuilding = $list;
@@ -177,6 +192,7 @@ final class PhelConfig implements JsonSerializable
             self::KEEP_GENERATED_TEMP_FILES => $this->keepGeneratedTempFiles,
             self::TEMP_DIR => $this->tempDir,
             self::FORMAT_DIRS => $this->formatDirs,
+            self::IMPORT_PATHS => $this->importPaths,
         ];
     }
 }

@@ -36,6 +36,7 @@ final class PhelConfigTest extends TestCase
             PhelConfig::KEEP_GENERATED_TEMP_FILES => false,
             PhelConfig::TEMP_DIR => sys_get_temp_dir() . DIRECTORY_SEPARATOR . 'phel',
             PhelConfig::FORMAT_DIRS => ['src', 'tests'],
+            PhelConfig::IMPORT_PATHS => [],
         ];
 
         self::assertSame($expected, $config->jsonSerialize());
@@ -59,7 +60,8 @@ final class PhelConfigTest extends TestCase
             ->setNoCacheWhenBuilding(['should-not-be-cached'])
             ->setKeepGeneratedTempFiles(true)
             ->setTempDir('/tmp/custom')
-            ->setFormatDirs(['src', 'tests', 'phel']);
+            ->setFormatDirs(['src', 'tests', 'phel'])
+            ->setImportPaths(['imports']);
 
         $expected = [
             PhelConfig::SRC_DIRS => ['some/directory'],
@@ -82,6 +84,7 @@ final class PhelConfigTest extends TestCase
             PhelConfig::KEEP_GENERATED_TEMP_FILES => true,
             PhelConfig::TEMP_DIR => '/tmp/custom',
             PhelConfig::FORMAT_DIRS => ['src', 'tests', 'phel'],
+            PhelConfig::IMPORT_PATHS => ['imports'],
         ];
 
         self::assertSame($expected, $config->jsonSerialize());
