@@ -2,6 +2,10 @@
 
 All notable changes to this project will be documented in this file.
 
+## Unreleased
+
+- Enable relative imports paths in phel.phar
+
 ## [0.20.0](https://github.com/phel-lang/phel-lang/compare/v0.19.1...v0.20.0) - 2025-08-25
 
 - Fix `map` function exhaustion with empty collections
