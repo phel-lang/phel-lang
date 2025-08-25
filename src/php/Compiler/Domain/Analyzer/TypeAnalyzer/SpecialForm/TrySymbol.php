@@ -32,10 +32,10 @@ final class TrySymbol implements SpecialFormAnalyzerInterface
 
             switch ($state) {
                 case 'start':
-                    if ($this->isSymWithName($form->get(0), 'catch')) {
+                    if ($form instanceof PersistentListInterface && $this->isSymWithName($form->get(0), 'catch')) {
                         $state = 'catches';
                         $catches[] = $form;
-                    } elseif ($this->isSymWithName($form->get(0), 'finally')) {
+                    } elseif ($form instanceof PersistentListInterface && $this->isSymWithName($form->get(0), 'finally')) {
                         $state = 'done';
                         $finally = $form;
                     } else {
@@ -45,9 +45,9 @@ final class TrySymbol implements SpecialFormAnalyzerInterface
                     break;
 
                 case 'catches':
-                    if ($this->isSymWithName($form->get(0), 'catch')) {
+                    if ($form instanceof PersistentListInterface && $this->isSymWithName($form->get(0), 'catch')) {
                         $catches[] = $form;
-                    } elseif ($this->isSymWithName($form->get(0), 'finally')) {
+                    } elseif ($form instanceof PersistentListInterface && $this->isSymWithName($form->get(0), 'finally')) {
                         $state = 'done';
                         $finally = $form;
                     } else {

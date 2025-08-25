@@ -129,6 +129,30 @@ final class TrySymbolTest extends TestCase
         self::assertEquals(NodeEnvironment::empty(), $actual->getEnv());
     }
 
+    public function test_analyze_try_with_map_literal_body(): void
+    {
+        $list = Phel::list([
+            Symbol::create(Symbol::NAME_TRY),
+            Phel::map('a', 1, 'b', 2),
+        ]);
+
+        $actual = $this->analyze($list);
+
+        self::assertInstanceOf(TryNode::class, $actual);
+    }
+
+    public function test_analyze_try_with_empty_vector_literal_body(): void
+    {
+        $list = Phel::list([
+            Symbol::create(Symbol::NAME_TRY),
+            Phel::vector(),
+        ]);
+
+        $actual = $this->analyze($list);
+
+        self::assertInstanceOf(TryNode::class, $actual);
+    }
+
     private function analyze(PersistentListInterface $list): TryNode
     {
         $analyzer = new Analyzer(new GlobalEnvironment());
