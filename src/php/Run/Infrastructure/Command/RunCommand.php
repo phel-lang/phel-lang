@@ -47,6 +47,11 @@ final class RunCommand extends Command
                 null,
                 InputOption::VALUE_NONE,
                 'Clears OPCache before running',
+            )->addOption(
+                'import-path',
+                null,
+                InputOption::VALUE_REQUIRED | InputOption::VALUE_IS_ARRAY,
+                'Additional import root paths',
             );
     }
 
@@ -59,7 +64,10 @@ final class RunCommand extends Command
         try {
             /** @var string $path */
             $path = $input->getArgument('path');
-            $result = file_exists($path) ? $this->executeFile($path) : $this->executeNamespace($path);
+            $importPaths = $this->getImportPaths($input);
+            $result = file_exists($path)
+                ? $this->executeFile($path, $importPaths)
+                : $this->executeNamespace($path, $importPaths);
 
             $identifier = $path;
 
@@ -83,20 +91,35 @@ final class RunCommand extends Command
         return self::FAILURE;
     }
 
-    private function executeNamespace(string $namespace): string
+    private function executeNamespace(string $namespace, array $importPaths): string
     {
         ob_start();
-        $this->getFacade()->runNamespace($namespace);
+        $this->getFacade()->runNamespace($namespace, $importPaths);
 
         return ob_get_clean();
     }
 
-    private function executeFile(string $filename): string
+    private function executeFile(string $filename, array $importPaths): string
     {
         ob_start();
-        $this->getFacade()->runFile($filename);
+        $this->getFacade()->runFile($filename, $importPaths);
 
         return ob_get_clean();
+    }
+
+    /**
+     * @return list<string>
+     */
+    private function getImportPaths(InputInterface $input): array
+    {
+        /** @var list<string> $cliPaths */
+        $cliPaths = $input->getOption('import-path') ?? [];
+        $env = getenv('PHEL_IMPORT_PATHS');
+        $envPaths = $env === false || $env === '' ? [] : array_map('trim', explode(',', $env));
+
+        $paths = array_merge($cliPaths, $envPaths);
+
+        return array_values(array_filter($paths, static fn (string $p): bool => $p !== ''));
     }
 
     private function renderNoResultOutput(OutputInterface $output, string $identifier): void

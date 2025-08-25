@@ -70,15 +70,63 @@ final class RunTestCommand extends AbstractTestCommand
         unlink($tmpFile);
     }
 
+    public function test_require_from_same_directory(): void
+    {
+        $this->expectOutputRegex('~hi util~');
+
+        $this->createRunCommand()->run(
+            $this->stubInput(__DIR__ . '/Fixtures/local-import/main.phel'),
+            $this->stubOutput(),
+        );
+    }
+
+    public function test_run_with_import_path_option(): void
+    {
+        $base = __DIR__ . '/Fixtures/import-path';
+
+        $this->expectOutputRegex('~hi third party~');
+
+        $this->createRunCommand()->run(
+            $this->stubInput(
+                $base . '/scripts/run.phel',
+                ['import-path' => [$base . '/third_party']],
+            ),
+            $this->stubOutput(),
+        );
+    }
+
+    public function test_run_with_import_path_env_var(): void
+    {
+        $base = __DIR__ . '/Fixtures/import-path';
+        putenv('PHEL_IMPORT_PATHS=' . $base . '/third_party');
+
+        $this->expectOutputRegex('~hi third party~');
+
+        $this->createRunCommand()->run(
+            $this->stubInput($base . '/scripts/run.phel'),
+            $this->stubOutput(),
+        );
+
+        putenv('PHEL_IMPORT_PATHS');
+    }
+
     private function createRunCommand(): RunCommand
     {
         return new RunCommand();
     }
 
-    private function stubInput(string $path): InputInterface
+    /**
+     * @param array{import-path?:list<string>} $options
+     */
+    private function stubInput(string $path, array $options = []): InputInterface
     {
         $input = $this->createStub(InputInterface::class);
         $input->method('getArgument')->willReturn($path);
+        $input->method('getOption')->willReturnMap([
+            ['import-path', $options['import-path'] ?? []],
+            ['with-time', false],
+            ['clear-opcache', false],
+        ]);
 
         return $input;
     }

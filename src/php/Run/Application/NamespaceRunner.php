@@ -16,13 +16,19 @@ final readonly class NamespaceRunner implements NamespaceRunnerInterface
     ) {
     }
 
-    public function run(string $namespace): void
+    /**
+     * @param list<string> $importPaths
+     */
+    public function run(string $namespace, array $importPaths = []): void
     {
+        $directories = [
+            ...$importPaths,
+            ...$this->commandFacade->getSourceDirectories(),
+            ...$this->commandFacade->getVendorSourceDirectories(),
+        ];
+
         $namespaceInformation = $this->buildFacade->getDependenciesForNamespace(
-            [
-                ...$this->commandFacade->getSourceDirectories(),
-                ...$this->commandFacade->getVendorSourceDirectories(),
-            ],
+            $directories,
             [$namespace, 'phel\\core'],
         );
 

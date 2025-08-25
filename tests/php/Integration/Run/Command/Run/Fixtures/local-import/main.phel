@@ -1,0 +1,4 @@
+(ns main
+  (:require util))
+
+(util/greet)

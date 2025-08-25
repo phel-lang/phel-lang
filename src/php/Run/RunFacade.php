@@ -18,19 +18,26 @@ use function dirname;
  */
 final class RunFacade extends AbstractFacade implements RunFacadeInterface
 {
-    public function runNamespace(string $namespace): void
+    /**
+     * @param list<string> $importPaths
+     */
+    public function runNamespace(string $namespace, array $importPaths = []): void
     {
         $this->getFactory()
             ->createNamespaceRunner()
-            ->run($namespace);
+            ->run($namespace, $this->resolveImportPaths($importPaths));
     }
 
-    public function runFile(string $filename): void
+    /**
+     * @param list<string> $importPaths
+     */
+    public function runFile(string $filename, array $importPaths = []): void
     {
         $namespace = $this->getNamespaceFromFile($filename)->getNamespace();
 
         $directories = [
             dirname($filename),
+            ...$this->resolveImportPaths($importPaths, dirname($filename)),
             ...$this->getFactory()->getCommandFacade()->getSourceDirectories(),
             ...$this->getFactory()->getCommandFacade()->getVendorSourceDirectories(),
         ];
@@ -109,5 +116,34 @@ final class RunFacade extends AbstractFacade implements RunFacadeInterface
         return $this->getFactory()
             ->createNamespacesLoader()
             ->getLoadedNamespaces();
+    }
+
+    /**
+     * @param list<string> $paths
+     *
+     * @return list<string>
+     */
+    private function resolveImportPaths(array $paths, ?string $base = null): array
+    {
+        $result = [];
+        foreach ($paths as $path) {
+            if (str_starts_with($path, 'phar://')) {
+                $result[] = $path;
+                continue;
+            }
+
+            $real = realpath($path);
+            if ($real !== false) {
+                $result[] = $real;
+                continue;
+            }
+
+            $prefix = $base ?? getcwd() ?: '.';
+            $joined = $prefix . '/' . $path;
+            $resolved = realpath($joined);
+            $result[] = $resolved !== false ? $resolved : $joined;
+        }
+
+        return array_values(array_unique($result));
     }
 }

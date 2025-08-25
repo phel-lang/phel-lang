@@ -12,9 +12,15 @@ use Throwable;
 
 interface RunFacadeInterface
 {
-    public function runNamespace(string $namespace): void;
+    /**
+     * @param list<string> $importPaths
+     */
+    public function runNamespace(string $namespace, array $importPaths = []): void;
 
-    public function runFile(string $filename): void;
+    /**
+     * @param list<string> $importPaths
+     */
+    public function runFile(string $filename, array $importPaths = []): void;
 
     /**
      * @return mixed The result of the executed code

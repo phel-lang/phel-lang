@@ -1,0 +1,4 @@
+(ns util)
+
+(defn greet []
+  (php/print "hi util\n"))

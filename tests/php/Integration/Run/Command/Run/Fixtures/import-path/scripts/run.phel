@@ -1,0 +1,4 @@
+(ns scripts\run
+  (:require tp\util))
+
+(tp/util/greet)
