@@ -14,6 +14,7 @@ use Phel\Command\Domain\Exceptions\ExceptionArgsPrinter;
 use Phel\Command\Domain\Exceptions\Extractor\FilePositionExtractor;
 use Phel\Command\Infrastructure\SourceMapExtractor;
 use Phel\Compiler\Application\Munge;
+use Phel\Compiler\Infrastructure\GlobalEnvironmentSingleton;
 use Phel\Printer\Printer;
 use Phel\Printer\PrinterInterface;
 use Phel\Run\Domain\Repl\ColorStyle;
@@ -31,6 +32,8 @@ use Symfony\Component\Console\Output\OutputInterface;
 
 final class ReplTestCommand extends AbstractTestCommand
 {
+    private string $previousCwd = '';
+
     public function __construct()
     {
         parent::__construct(self::class);
@@ -39,10 +42,21 @@ final class ReplTestCommand extends AbstractTestCommand
     #[Override]
     protected function setUp(): void
     {
+        $this->previousCwd = getcwd() ?: '';
+        chdir(__DIR__);
+
+        GlobalEnvironmentSingleton::reset();
+
         Gacela::bootstrap(__DIR__, static function (GacelaConfig $config): void {
             $config->resetInMemoryCache();
             $config->addAppConfig('config/*.php', 'config/local.php');
         });
+    }
+
+    #[Override]
+    protected function tearDown(): void
+    {
+        chdir($this->previousCwd);
     }
 
     #[DataProvider('providerIntegration')]
