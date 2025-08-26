@@ -24,17 +24,17 @@
         "pre condition failure: y is zero")))
 
 (deftest test-post-condition
-  (let [get-username (fn [user] {:post [(not (nil? %))]} (get user :name))]
+  (let [get-username (fn [user] {:post [(not (nil? $))]} (get user :name))]
     (is (= "test" (get-username {:id 1 :name "test"})) "post condition success")
     (is (thrown-with-msg?
-         \AssertionError "Assert failed: (not (nil? %))"
+         \AssertionError "Assert failed: (not (nil? $))"
          (get-username {:id 4 :joined 2000}))
         "post condition failure")))
 
 (deftest test-pre-and-post
   (let [divide (fn [x y]
                  {:pre [(not= y 0)]
-                  :post [(pos? %)]}
+                  :post [(pos? $)]}
                  (/ x y))]
     (is (= 3 (divide 6 2)) "pre and post success")
     (is (thrown-with-msg?
@@ -42,6 +42,6 @@
          (divide 6 0))
         "pre failure in pre and post")
     (is (thrown-with-msg?
-         \AssertionError "Assert failed: (pos? %)"
+         \AssertionError "Assert failed: (pos? $)"
          (divide 6 -2))
         "post failure in pre and post")))
