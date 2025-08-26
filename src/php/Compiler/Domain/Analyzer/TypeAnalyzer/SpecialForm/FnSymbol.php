@@ -208,7 +208,7 @@ final class FnSymbol implements SpecialFormAnalyzerInterface
     private function replacePercent(mixed $form, Symbol $sym): mixed
     {
         if ($form instanceof Symbol) {
-            if ($form->getName() === '$') {
+            if ($form->getName() === Symbol::NAME_DOLLAR) {
                 return $sym;
             }
 
