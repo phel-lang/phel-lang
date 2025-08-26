@@ -53,4 +53,6 @@ interface RunFacadeInterface
      * @return list<NamespaceInformation>
      */
     public function getLoadedNamespaces(): array;
+
+    public function getVersion(): string;
 }

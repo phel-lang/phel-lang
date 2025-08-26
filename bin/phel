@@ -3,6 +3,8 @@
 
 declare(strict_types=1);
 
+use Phel\Api\ApiFacade;
+use Phel\Console\ConsoleFacade;
 use Phel\Console\Infrastructure\ConsoleBootstrap;
 
 // NOTE: When packaged as a PHAR, the stub requires the PHAR's vendor/autoload.php.
@@ -63,6 +65,6 @@ use Phel\Console\Infrastructure\ConsoleBootstrap;
     // or the host Composer autoloader (source mode).
     Phel::bootstrap($appRootDir);
 
-    $bootstrap = new ConsoleBootstrap(name: 'Phel', version: 'v0.20.0');
-    $bootstrap->run();
+    $facade = new ConsoleFacade();
+    $facade->runConsole();
 })();
