@@ -1,0 +1,47 @@
+(ns phel-test\test\core\pre-post-conditions
+  (:require phel\test :refer [deftest is thrown? thrown-with-msg?]))
+
+(deftest test-pre-condition
+  (let [divide (fn [x y] {:pre [(not= y 0)]} (/ x y))]
+    (is (= 3 (divide 6 2)) "pre condition success")
+    (is (thrown-with-msg?
+         \AssertionError "Assert failed: (not= y 0)"
+         (divide 6 0))
+        "pre condition failure")))
+
+(deftest test-pre-condition-multiple
+  (let [divide (fn [x y]
+                 {:pre [(number? x) (number? y) (not= y 0)]}
+                 (/ x y))]
+    (is (= 3 (divide 6 2)) "multiple pre conditions success")
+    (is (thrown-with-msg?
+         \AssertionError "Assert failed: (number? x)"
+         (divide "foo" 2))
+        "pre condition failure: x not number")
+    (is (thrown-with-msg?
+         \AssertionError "Assert failed: (not= y 0)"
+         (divide 6 0))
+        "pre condition failure: y is zero")))
+
+(deftest test-post-condition
+  (let [get-username (fn [user] {:post [(not (nil? $))]} (get user :name))]
+    (is (= "test" (get-username {:id 1 :name "test"})) "post condition success")
+    (is (thrown-with-msg?
+         \AssertionError "Assert failed: (not (nil? $))"
+         (get-username {:id 4 :joined 2000}))
+        "post condition failure")))
+
+(deftest test-pre-and-post
+  (let [divide (fn [x y]
+                 {:pre [(not= y 0)]
+                  :post [(pos? $)]}
+                 (/ x y))]
+    (is (= 3 (divide 6 2)) "pre and post success")
+    (is (thrown-with-msg?
+         \AssertionError "Assert failed: (not= y 0)"
+         (divide 6 0))
+        "pre failure in pre and post")
+    (is (thrown-with-msg?
+         \AssertionError "Assert failed: (pos? $)"
+         (divide 6 -2))
+        "post failure in pre and post")))

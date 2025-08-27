@@ -129,4 +129,107 @@ final class MapBindingDeconstructorTest extends TestCase
             ],
         ], $bindings);
     }
+
+    public function test_deconstruct_keys(): void
+    {
+        // Test for binding like this (let [{:keys [a b]} x])
+        // This will be destructured to this:
+        // (let [__phel_1 x
+        //       __phel_2 (get __phel_1 :a)
+        //       a __phel_2
+        //       __phel_3 (get __phel_1 :b)
+        //       b __phel_3])
+
+        $binding = Phel::map(
+            Keyword::create('keys'),
+            Phel::vector([
+                Symbol::create('a'),
+                Symbol::create('b'),
+            ]),
+        );
+        $value = Symbol::create('x');
+
+        $bindings = [];
+        $this->deconstructor->deconstruct($bindings, $binding, $value);
+
+        self::assertEquals([
+            // __phel_1 x
+            [
+                Symbol::create('__phel_1'),
+                $value,
+            ],
+            // __phel_2 (get __phel_1 :a)
+            [
+                Symbol::create('__phel_2'),
+                Phel::list([
+                    Symbol::create(Symbol::NAME_PHP_ARRAY_GET),
+                    Symbol::create('__phel_1'),
+                    Keyword::create('a'),
+                ]),
+            ],
+            // a __phel_2
+            [
+                Symbol::create('a'),
+                Symbol::create('__phel_2'),
+            ],
+            // __phel_3 (get __phel_1 :b)
+            [
+                Symbol::create('__phel_3'),
+                Phel::list([
+                    Symbol::create(Symbol::NAME_PHP_ARRAY_GET),
+                    Symbol::create('__phel_1'),
+                    Keyword::create('b'),
+                ]),
+            ],
+            // b __phel_3
+            [
+                Symbol::create('b'),
+                Symbol::create('__phel_3'),
+            ],
+        ], $bindings);
+    }
+
+    public function test_deconstruct_keys_with_as(): void
+    {
+        // Test for binding like this (let [{:keys [a] :as m} x])
+        // This will be destructured to this:
+        // (let [m x
+        //       __phel_1 (get m :a)
+        //       a __phel_1])
+
+        $binding = Phel::map(
+            Keyword::create('keys'),
+            Phel::vector([
+                Symbol::create('a'),
+            ]),
+            Keyword::create('as'),
+            Symbol::create('m'),
+        );
+        $value = Symbol::create('x');
+
+        $bindings = [];
+        $this->deconstructor->deconstruct($bindings, $binding, $value);
+
+        self::assertEquals([
+            // m x
+            [
+                Symbol::create('m'),
+                $value,
+            ],
+            // __phel_1 (get m :a)
+            [
+                Symbol::create('__phel_1'),
+                Phel::list([
+                    Symbol::create(Symbol::NAME_PHP_ARRAY_GET),
+                    Symbol::create('m'),
+                    Keyword::create('a'),
+                ]),
+            ],
+            // a __phel_1
+            [
+                Symbol::create('a'),
+                Symbol::create('__phel_1'),
+            ],
+        ], $bindings);
+    }
 }

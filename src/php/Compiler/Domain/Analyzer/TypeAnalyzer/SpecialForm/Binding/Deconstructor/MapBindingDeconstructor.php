@@ -8,6 +8,8 @@ use Phel;
 use Phel\Compiler\Domain\Analyzer\TypeAnalyzer\SpecialForm\Binding\Deconstructor;
 use Phel\Lang\Collections\LinkedList\PersistentListInterface;
 use Phel\Lang\Collections\Map\PersistentMapInterface;
+use Phel\Lang\Collections\Vector\PersistentVectorInterface;
+use Phel\Lang\Keyword;
 use Phel\Lang\Symbol;
 use Phel\Lang\TypeInterface;
 
@@ -30,10 +32,40 @@ final class MapBindingDeconstructor implements BindingDeconstructorInterface
      */
     public function deconstruct(array &$bindings, $binding, $value): void
     {
-        $this->mapSymbol = Symbol::gen()->copyLocationFrom($binding);
-        $bindings[] = [$this->mapSymbol, $value];
+        $keys = null;
+        $asSymbol = null;
+        $normalBindings = [];
 
         foreach ($binding as $key => $bindTo) {
+            if ($key instanceof Keyword && $key->getName() === 'keys') {
+                $keys = $bindTo;
+                continue;
+            }
+
+            if ($key instanceof Keyword && $key->getName() === 'as') {
+                $asSymbol = $bindTo;
+                continue;
+            }
+
+            $normalBindings[] = [$key, $bindTo];
+        }
+
+        $this->mapSymbol = $asSymbol instanceof Symbol
+            ? $asSymbol
+            : Symbol::gen()->copyLocationFrom($binding);
+
+        $bindings[] = [$this->mapSymbol, $value];
+
+        if ($keys instanceof PersistentVectorInterface) {
+            foreach ($keys as $sym) {
+                if ($sym instanceof Symbol) {
+                    $keyword = Keyword::create($sym->getName());
+                    $this->bindingIteration($bindings, $binding, $keyword, $sym);
+                }
+            }
+        }
+
+        foreach ($normalBindings as [$key, $bindTo]) {
             $this->bindingIteration($bindings, $binding, $key, $bindTo);
         }
     }

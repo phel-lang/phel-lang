@@ -70,6 +70,8 @@ final class Symbol extends AbstractType implements IdenticalInterface, NamedInte
 
     public const string NAME_DEF_EXCEPTION = 'defexception*';
 
+    public const string NAME_DOLLAR = '$';
+
     private static int $symGenCounter = 1;
 
     public function __construct(
