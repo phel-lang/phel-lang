@@ -34,7 +34,8 @@ final class ConsoleFactory extends AbstractFactory
     public function createVersionFinder(): VersionFinder
     {
         return new VersionFinder(
-            $this->getProvidedDependency(ConsoleProvider::ROOT_PACKAGE),
+            $this->getProvidedDependency(ConsoleProvider::TAG_COMMIT_HASH),
+            $this->getProvidedDependency(ConsoleProvider::CURRENT_COMMIT),
         );
     }
 }

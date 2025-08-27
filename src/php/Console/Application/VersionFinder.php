@@ -13,11 +13,9 @@ final class VersionFinder
     /** Cache computed version */
     private ?string $cachedVersion = null;
 
-    /**
-     * @param array{pretty_version?:string, reference?:string} $rootPackage
-     */
     public function __construct(
-        private readonly array $rootPackage,
+        private readonly string $tagCommitHash,
+        private readonly string $currentCommit,
     ) {
     }
 
@@ -27,16 +25,20 @@ final class VersionFinder
             return $this->cachedVersion;
         }
 
-        $version = self::LATEST_VERSION;
-
-        $tag  = $this->rootPackage['pretty_version'] ?? '';
-        $hash = $this->shortCommitHash($this->rootPackage['reference'] ?? '');
-
-        if ($tag !== self::LATEST_VERSION && $hash !== null) {
-            $version .= '-beta#' . $hash;
+        if ($this->currentCommit === '' || $this->tagCommitHash === '') {
+            return $this->cachedVersion = self::LATEST_VERSION;
         }
 
-        return $this->cachedVersion = $version;
+        if ($this->currentCommit === $this->tagCommitHash) {
+            return $this->cachedVersion = self::LATEST_VERSION;
+        }
+
+        $hash = $this->shortCommitHash($this->currentCommit);
+        if ($hash === null) {
+            return $this->cachedVersion = self::LATEST_VERSION;
+        }
+
+        return $this->cachedVersion = self::LATEST_VERSION . '-beta#' . $hash;
     }
 
     /**

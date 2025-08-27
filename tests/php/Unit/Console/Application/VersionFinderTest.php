@@ -9,21 +9,23 @@ use PHPUnit\Framework\TestCase;
 
 final class VersionFinderTest extends TestCase
 {
-    public function test_returns_latest_version_when_tag_matches(): void
+    public function test_returns_latest_version_when_commits_match(): void
     {
-        $finder = new VersionFinder([
-            'pretty_version' => VersionFinder::LATEST_VERSION,
-        ]);
+        $commit = '123456abcdef';
+        $finder = new VersionFinder(
+            $commit,
+            $commit,
+        );
 
         self::assertSame(VersionFinder::LATEST_VERSION, $finder->getVersion());
     }
 
-    public function test_returns_beta_version_when_not_latest_and_reference_provided(): void
+    public function test_returns_beta_version_when_commits_differ(): void
     {
-        $finder = new VersionFinder([
-            'pretty_version' => 'v0.19.0',
-            'reference' => '1234567890abcdef',
-        ]);
+        $finder = new VersionFinder(
+            'abcdef123456',
+            '1234567890abcdef',
+        );
 
         self::assertSame(
             VersionFinder::LATEST_VERSION . '-beta#1234567',
@@ -31,41 +33,42 @@ final class VersionFinderTest extends TestCase
         );
     }
 
-    public function test_returns_latest_version_when_no_reference_provided(): void
+    public function test_returns_latest_version_when_current_commit_empty(): void
     {
-        $finder = new VersionFinder([
-            'pretty_version' => 'v0.19.0',
-        ]);
+        $finder = new VersionFinder(
+            'abcdef123456',
+            '',
+        );
 
         self::assertSame(VersionFinder::LATEST_VERSION, $finder->getVersion());
     }
 
-    public function test_returns_latest_version_when_reference_is_empty(): void
+    public function test_returns_latest_version_when_tag_commit_empty(): void
     {
-        $finder = new VersionFinder([
-            'pretty_version' => 'v0.18.0',
-            'reference' => '',
-        ]);
+        $finder = new VersionFinder(
+            '',
+            '1234567890abcdef',
+        );
 
         self::assertSame(VersionFinder::LATEST_VERSION, $finder->getVersion());
     }
 
-    public function test_returns_latest_version_when_reference_is_invalid(): void
+    public function test_returns_latest_version_when_current_commit_invalid(): void
     {
-        $finder = new VersionFinder([
-            'pretty_version' => 'v0.18.0',
-            'reference' => 'not-a-sha',
-        ]);
+        $finder = new VersionFinder(
+            'abcdef123456',
+            'not-a-sha',
+        );
 
         self::assertSame(VersionFinder::LATEST_VERSION, $finder->getVersion());
     }
 
     public function test_caches_computed_version(): void
     {
-        $finder = new VersionFinder([
-            'pretty_version' => 'v0.18.0',
-            'reference' => 'abcdef123456',
-        ]);
+        $finder = new VersionFinder(
+            'abcdef123456',
+            '1234567890abcdef',
+        );
 
         $first = $finder->getVersion();
         $second = $finder->getVersion();
@@ -76,28 +79,14 @@ final class VersionFinderTest extends TestCase
     public function test_accepts_full_40_char_git_hash(): void
     {
         $hash = str_repeat('a', 40);
-        $finder = new VersionFinder([
-            'pretty_version' => 'v0.10.0',
-            'reference' => $hash,
-        ]);
+        $finder = new VersionFinder(
+            'bbbbbb',
+            $hash,
+        );
 
         self::assertSame(
             VersionFinder::LATEST_VERSION . '-beta#aaaaaaa',
             $finder->getVersion(),
-        );
-    }
-
-    public function test_does_not_append_beta_when_tag_is_latest_even_if_reference_provided(): void
-    {
-        $finder = new VersionFinder([
-            'pretty_version' => VersionFinder::LATEST_VERSION,
-            'reference' => '1234567890abcdef',
-        ]);
-
-        self::assertSame(
-            VersionFinder::LATEST_VERSION,
-            $finder->getVersion(),
-            'Beta suffix must not be appended when tag equals LATEST_VERSION',
         );
     }
 }
