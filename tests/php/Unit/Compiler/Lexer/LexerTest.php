@@ -67,6 +67,40 @@ final class LexerTest extends TestCase
         );
     }
 
+    public function test_read_semicolon_comment_without_text(): void
+    {
+        self::assertEquals(
+            [
+                new Token(Token::T_COMMENT, ';', new SourceLocation('string', 1, 0), new SourceLocation('string', 1, 1)),
+                new Token(Token::T_EOF, '', new SourceLocation('string', 1, 1), new SourceLocation('string', 1, 1)),
+            ],
+            $this->lex(';'),
+        );
+    }
+
+    public function test_read_semicolon_comment_without_new_line(): void
+    {
+        self::assertEquals(
+            [
+                new Token(Token::T_COMMENT, '; Mein Kommentar', new SourceLocation('string', 1, 0), new SourceLocation('string', 1, 16)),
+                new Token(Token::T_EOF, '', new SourceLocation('string', 1, 16), new SourceLocation('string', 1, 16)),
+            ],
+            $this->lex('; Mein Kommentar'),
+        );
+    }
+
+    public function test_read_semicolon_comment_with_new_line(): void
+    {
+        self::assertEquals(
+            [
+                new Token(Token::T_COMMENT, "; Mein Kommentar\n", new SourceLocation('string', 1, 0), new SourceLocation('string', 2, 0)),
+                new Token(Token::T_COMMENT, '; Mein andere Kommentar', new SourceLocation('string', 2, 0), new SourceLocation('string', 2, 23)),
+                new Token(Token::T_EOF, '', new SourceLocation('string', 2, 23), new SourceLocation('string', 2, 23)),
+            ],
+            $this->lex("; Mein Kommentar\n; Mein andere Kommentar"),
+        );
+    }
+
     public function test_read_comment_macro(): void
     {
         self::assertEquals(

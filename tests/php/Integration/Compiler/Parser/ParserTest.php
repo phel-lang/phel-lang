@@ -483,6 +483,14 @@ final class ParserTest extends TestCase
         );
     }
 
+    public function test_read_semicolon_comment(): void
+    {
+        self::assertEquals(
+            new CommentNode('; Test', $this->loc(1, 0), $this->loc(1, 6)),
+            $this->parse('; Test'),
+        );
+    }
+
     public function test_read_comment_macro(): void
     {
         self::assertEquals(
