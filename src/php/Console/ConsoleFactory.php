@@ -10,6 +10,15 @@ use Phel\Filesystem\FilesystemFacadeInterface;
 
 final class ConsoleFactory extends AbstractFactory
 {
+    public const string CONSOLE_NAME = 'Phel';
+
+    public const string LATEST_VERSION = 'v0.20.0';
+
+    public function createConsoleBootstrap(): ConsoleBootstrap
+    {
+        return new ConsoleBootstrap(self::CONSOLE_NAME, self::LATEST_VERSION);
+    }
+
     public function getConsoleCommands(): array
     {
         return $this->getProvidedDependency(ConsoleProvider::COMMANDS);
@@ -18,10 +27,5 @@ final class ConsoleFactory extends AbstractFactory
     public function getFilesystemFacade(): FilesystemFacadeInterface
     {
         return $this->getProvidedDependency(ConsoleProvider::FACADE_FILESYSTEM);
-    }
-
-    public function createConsoleBootstrap(): ConsoleBootstrap
-    {
-        return new ConsoleBootstrap(name: 'Phel', version: 'v0.20.0');
     }
 }
