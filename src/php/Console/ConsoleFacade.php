@@ -14,7 +14,7 @@ final class ConsoleFacade extends AbstractFacade implements ConsoleFacadeInterfa
     public function getVersion(): string
     {
         return $this->getFactory()
-            ->createConsoleBootstrap()
+            ->createVersionFinder()
             ->getVersion();
     }
 

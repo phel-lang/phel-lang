@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Phel\Console;
 
+use Composer\InstalledVersions;
 use Gacela\Framework\AbstractProvider;
 use Gacela\Framework\Container\Container;
 use Phel\Api\Infrastructure\Command\DocCommand;
@@ -23,10 +24,13 @@ final class ConsoleProvider extends AbstractProvider
 
     public const string FACADE_FILESYSTEM = 'FACADE_FILESYSTEM';
 
+    public const string ROOT_PACKAGE = 'ROOT_PACKAGE';
+
     public function provideModuleDependencies(Container $container): void
     {
         $this->addFilesystemFacade($container);
         $this->addCommands($container);
+        $this->addRootPackage($container);
     }
 
     private function addFilesystemFacade(Container $container): void
@@ -50,5 +54,15 @@ final class ConsoleProvider extends AbstractProvider
             new BuildCommand(),
             new DoctorCommand(),
         ]);
+    }
+
+    private function addRootPackage(Container $container): void
+    {
+        $container->set(
+            self::ROOT_PACKAGE,
+            static fn (): array => class_exists(InstalledVersions::class)
+                ? InstalledVersions::getRootPackage()
+                : [],
+        );
     }
 }
