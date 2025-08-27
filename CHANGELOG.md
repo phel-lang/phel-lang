@@ -8,7 +8,9 @@ All notable changes to this project will be documented in this file.
 - Fix vector and hash map literals in try
 - Fix REPL symbol resolution issue loading current dir
 - Add `#_` macro for inline comments
+- Allow `;` as alternative comment character
 - Add `:pre/:post` function metadata conditions
+- Add map destructuring with `:keys` and `:as`
 - Show the current Phel version in the REPL welcome message
 
 ## [0.20.0](https://github.com/phel-lang/phel-lang/compare/v0.19.1...v0.20.0) - 2025-08-25
