@@ -3,14 +3,12 @@
 
 declare(strict_types=1);
 
-use Phel\Console\Infrastructure\ConsoleBootstrap;
+use Phel\Console\ConsoleFacade;
 
 // NOTE: When packaged as a PHAR, the stub requires the PHAR's vendor/autoload.php.
 // Avoid loading any *host* Composer autoloader to prevent conflicts.
 (static function (): void {
     $runningInPhar = \Phar::running() !== '';
-
-    $appRootDir = null;
 
     if ($runningInPhar) {
         // We're inside phel.phar. Autoload is already in place (from the stub).
@@ -21,7 +19,7 @@ use Phel\Console\Infrastructure\ConsoleBootstrap;
         $appRootDir = (static function (): ?string {
             $dir = getcwd();
             while (is_dir($dir)) {
-                $autoload = $dir . '/vendor/autoload.php';
+                $autoload = $dir.'/vendor/autoload.php';
                 if (is_file($autoload)) {
                     require_once $autoload;
                     return $dir;
@@ -52,9 +50,9 @@ use Phel\Console\Infrastructure\ConsoleBootstrap;
     if ($appRootDir === null) {
         fwrite(
             STDERR,
-            'You must set up the project dependencies, run the following commands:' . PHP_EOL .
-            'curl -s https://getcomposer.org/installer | php' . PHP_EOL .
-            'php composer.phar install' . PHP_EOL,
+            'You must set up the project dependencies, run the following commands:'.PHP_EOL.
+            'curl -s https://getcomposer.org/installer | php'.PHP_EOL.
+            'php composer.phar install'.PHP_EOL,
         );
         exit(1);
     }
@@ -63,6 +61,6 @@ use Phel\Console\Infrastructure\ConsoleBootstrap;
     // or the host Composer autoloader (source mode).
     Phel::bootstrap($appRootDir);
 
-    $bootstrap = new ConsoleBootstrap(name: 'Phel', version: 'v0.20.0');
-    $bootstrap->run();
+    $facade = new ConsoleFacade();
+    $facade->runConsole();
 })();

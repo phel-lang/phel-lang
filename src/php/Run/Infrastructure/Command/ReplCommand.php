@@ -99,7 +99,11 @@ final class ReplCommand extends Command
         $this->replStartupFile = $this->getReplStartupFile();
 
         $this->io->readHistory();
-        $this->io->writeln($this->style->yellow('Welcome to the Phel Repl'));
+
+        $this->io->writeln($this->style->yellow(
+            sprintf('Welcome to the Phel Repl (%s)', $this->getFacade()->getVersion()),
+        ));
+
         $this->io->writeln('Type "exit" or press Ctrl-D to exit.');
 
         try {

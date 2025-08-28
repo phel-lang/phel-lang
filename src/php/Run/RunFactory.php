@@ -9,6 +9,7 @@ use Phel\Api\ApiFacadeInterface;
 use Phel\Build\BuildFacadeInterface;
 use Phel\Command\CommandFacadeInterface;
 use Phel\Compiler\CompilerFacadeInterface;
+use Phel\Console\ConsoleFacadeInterface;
 use Phel\Printer\Printer;
 use Phel\Printer\PrinterInterface;
 use Phel\Run\Application\NamespaceRunner;
@@ -86,5 +87,10 @@ class RunFactory extends AbstractFactory
     public function getApiFacade(): ApiFacadeInterface
     {
         return $this->getProvidedDependency(RunProvider::FACADE_API);
+    }
+
+    public function getConsoleFacade(): ConsoleFacadeInterface
+    {
+        return $this->getProvidedDependency(RunProvider::FACADE_CONSOLE);
     }
 }

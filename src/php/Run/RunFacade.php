@@ -110,4 +110,11 @@ final class RunFacade extends AbstractFacade implements RunFacadeInterface
             ->createNamespacesLoader()
             ->getLoadedNamespaces();
     }
+
+    public function getVersion(): string
+    {
+        return $this->getFactory()
+            ->getConsoleFacade()
+            ->getVersion();
+    }
 }
