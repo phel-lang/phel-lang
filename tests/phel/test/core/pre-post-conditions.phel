@@ -45,3 +45,13 @@
          \AssertionError "Assert failed: (pos? $)"
          (divide 6 -2))
         "post failure in pre and post")))
+
+(deftest test-pre-condition-with-destructuring
+  (let [request (fn [{:keys [method]}]
+                  {:pre [(= method "GET")]}
+                  method)]
+    (is (= "GET" (request {:method "GET"})) "pre condition with destructuring success")
+    (is (thrown-with-msg?
+         \AssertionError "Assert failed: (= method GET)"
+         (request {:method "POST"}))
+        "pre condition with destructuring failure")))
