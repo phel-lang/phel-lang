@@ -147,6 +147,26 @@ final class FnSymbol implements SpecialFormAnalyzerInterface
             return $body;
         }
 
+        // When the body starts with a `let` form (e.g. due to parameter
+        // destructuring) the pre/post conditions must be evaluated inside the
+        // `let` body so that destructured names are available in the
+        // conditions. Therefore, unwrap the `let`, apply the conditions to the
+        // inner body and wrap it again.
+        $first = $body->get(0);
+        if ($first instanceof Symbol && $first->getName() === Symbol::NAME_LET) {
+            /** @var PersistentVectorInterface $bindings */
+            $bindings = $body->get(1);
+            $innerBodyExpressions = array_slice($body->toArray(), 2);
+            $innerBody = $this->createDoTupleWithBody($innerBodyExpressions);
+            $wrappedInnerBody = $this->wrapWithPreAndPostConditions($innerBody, $pre, $post);
+
+            return Phel::list([
+                Symbol::create(Symbol::NAME_LET)->copyLocationFrom($body),
+                $bindings,
+                $wrappedInnerBody,
+            ])->copyLocationFrom($body);
+        }
+
         $preForms = [];
         foreach ($pre as $p) {
             $preForms[] = $this->createAssertForm($p, $p);
