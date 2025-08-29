@@ -156,7 +156,12 @@ final class ReplCommand extends Command
             $this->getFacade()->evalFile($info);
         }
 
-        // Ugly Hack: Set source directories for the repl
+        $cwd = getcwd();
+        if ($cwd !== false) {
+            $srcDirectories[] = $cwd;
+        }
+
+        // Hack: Set source directories for the repl
         Phel::addDefinition('phel\\repl', 'src-dirs', $srcDirectories);
     }
 

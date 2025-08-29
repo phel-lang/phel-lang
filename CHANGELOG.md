@@ -9,6 +9,7 @@ All notable changes to this project will be documented in this file.
 - Fix REPL symbol resolution issue loading current dir
 - Fix destructured names not available in :pre assert
 - Fix func metadata parsing conflict with literal hashmap
+- Fix `phar repl` not resolving ns from the working dir
 - Add `#_` macro for inline comments
 - Allow `;` as alternative comment character
 - Add `:pre/:post` function metadata conditions
