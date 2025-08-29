@@ -1,0 +1,6 @@
+(ns phel-test\test\core\fn-map-body
+  (:require phel\test :refer [deftest is]))
+
+(deftest test-fn-map-body
+  (let [xfun (fn [x] {:value x})]
+    (is (= {:value 1} (xfun 1)) "map literal as fn body")))

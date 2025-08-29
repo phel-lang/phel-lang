@@ -111,7 +111,14 @@ final class FnSymbol implements SpecialFormAnalyzerInterface
         $pre = [];
         $post = [];
 
-        if ($listBody !== [] && $listBody[0] instanceof PersistentMapInterface) {
+        if (
+            $listBody !== []
+            && $listBody[0] instanceof PersistentMapInterface
+            && (
+                $listBody[0]->find(Phel::keyword('pre')) instanceof PersistentVectorInterface
+                || $listBody[0]->find(Phel::keyword('post')) instanceof PersistentVectorInterface
+            )
+        ) {
             $map = $listBody[0];
 
             $preVec = $map->find(Phel::keyword('pre'));
