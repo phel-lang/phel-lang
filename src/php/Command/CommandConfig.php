@@ -19,7 +19,7 @@ final class CommandConfig extends AbstractConfig
 
     private const string DEFAULT_OUTPUT_DIR = 'out';
 
-    private const string DEFAULT_ERROR_LOG_FILE = 'data/error.log';
+    private const string DEFAULT_ERROR_LOG_FILE = 'phel-error.log';
 
     public function getCodeDirs(): CodeDirectories
     {
