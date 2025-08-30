@@ -86,17 +86,29 @@ final class RunCommand extends Command
     private function executeNamespace(string $namespace): string
     {
         ob_start();
-        $this->getFacade()->runNamespace($namespace);
 
-        return ob_get_clean();
+        try {
+            $this->getFacade()->runNamespace($namespace);
+
+            return ob_get_clean();
+        } catch (Throwable $throwable) {
+            ob_end_clean();
+            throw $throwable;
+        }
     }
 
     private function executeFile(string $filename): string
     {
         ob_start();
-        $this->getFacade()->runFile($filename);
 
-        return ob_get_clean();
+        try {
+            $this->getFacade()->runFile($filename);
+
+            return ob_get_clean();
+        } catch (Throwable $throwable) {
+            ob_end_clean();
+            throw $throwable;
+        }
     }
 
     private function renderNoResultOutput(OutputInterface $output, string $identifier): void

@@ -70,6 +70,16 @@ final class RunTestCommand extends AbstractTestCommand
         unlink($tmpFile);
     }
 
+    public function test_run_file_with_runtime_error(): void
+    {
+        $this->expectOutputRegex('~Cannot use object of type Phel\\\Lang\\\Keyword as array~');
+
+        $this->createRunCommand()->run(
+            $this->stubInput(__DIR__ . '/Fixtures/runtime-error.phel'),
+            $this->stubOutput(),
+        );
+    }
+
     private function createRunCommand(): RunCommand
     {
         return new RunCommand();

@@ -1,0 +1,12 @@
+(ns test\runtime-error)
+
+(declare get)
+
+(defn request [url opts]
+  (get opts :method))
+
+(defn get [url & [opts]]
+  (let [opts (or opts {})]
+    (request url (put opts :method "GET"))))
+
+(request "/a" {})
