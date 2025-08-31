@@ -80,6 +80,16 @@ final class RunTestCommand extends AbstractTestCommand
         );
     }
 
+    public function test_run_file_with_runtime_error_in_nested_require(): void
+    {
+        $this->expectOutputRegex('~Cannot use object of type Phel\\\Lang\\\Keyword as array~');
+
+        $this->createRunCommand()->run(
+            $this->stubInput(__DIR__ . '/Fixtures/nested/main-requiring-one.phel'),
+            $this->stubOutput(),
+        );
+    }
+
     private function createRunCommand(): RunCommand
     {
         return new RunCommand();

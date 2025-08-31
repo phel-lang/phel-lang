@@ -1,0 +1,5 @@
+(ns module-one
+  (:require module-two))
+
+(defn get-body [url]
+  (:body (module-two/get url {})))

@@ -1,0 +1,4 @@
+(ns main-requiring-one
+  (:require module-one))
+
+(module-one/get-body "https://www.example.com/")

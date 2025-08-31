@@ -1,0 +1,14 @@
+(ns module-two)
+
+(declare get)
+
+(defn request
+  [url opts]
+  (when-not (contains-value? ["POST" "GET"] (get opts :method))
+    (throw (php/new \InvalidArgumentException "Unsupported method")))
+  {:body "" :status 200 :headers {}})
+
+(defn get
+  [url & [opts]]
+  (let [opts (or opts {})]
+    (request url (put opts :method "GET"))))

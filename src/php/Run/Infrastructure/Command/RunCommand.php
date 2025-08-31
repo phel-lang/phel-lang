@@ -90,9 +90,9 @@ final class RunCommand extends Command
         try {
             $this->getFacade()->runNamespace($namespace);
 
-            return ob_get_clean();
+            return (string) ob_get_clean();
         } catch (Throwable $throwable) {
-            ob_end_clean();
+            $this->clearOutputBuffers();
             throw $throwable;
         }
     }
@@ -104,10 +104,17 @@ final class RunCommand extends Command
         try {
             $this->getFacade()->runFile($filename);
 
-            return ob_get_clean();
+            return (string) ob_get_clean();
         } catch (Throwable $throwable) {
-            ob_end_clean();
+            $this->clearOutputBuffers();
             throw $throwable;
+        }
+    }
+
+    private function clearOutputBuffers(): void
+    {
+        while (ob_get_level() > 0) {
+            ob_end_clean();
         }
     }
 
