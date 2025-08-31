@@ -502,6 +502,22 @@ final class ParserTest extends TestCase
         );
     }
 
+    public function test_read_multiline_comment(): void
+    {
+        self::assertEquals(
+            new CommentNode('#| Test |#', $this->loc(1, 0), $this->loc(1, 10)),
+            $this->parse('#| Test |#'),
+        );
+    }
+
+    public function test_read_nested_multiline_comment(): void
+    {
+        self::assertEquals(
+            new CommentNode('#|a #|b|# c|#', $this->loc(1, 0), $this->loc(1, 13)),
+            $this->parse('#|a #|b|# c|#'),
+        );
+    }
+
     public function test_read_whitespace_only(): void
     {
         self::assertEquals(

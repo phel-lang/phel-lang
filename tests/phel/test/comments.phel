@@ -1,0 +1,15 @@
+(ns phel-test\test\comments
+  (:require phel\test :refer [deftest is]))
+
+(deftest test-multiline-comment
+  (is (= 3 (+ 1 #|
+                 multiline
+                 comment
+               |# 2)) "multiline comment"))
+
+(deftest test-nested-multiline-comment
+  (is (= 6 (+ 1 #|
+                 2
+                 #| nested |#
+                 4
+               |# 5)) "nested multiline comment"))

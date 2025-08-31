@@ -37,6 +37,10 @@ final class Lexer implements LexerInterface
         "([^\(\)\[\]\{\}',`@ \n\r\t\#]+)", // Atom (index: 19)
     ];
 
+    private const string MULTILINE_COMMENT_BEGIN = '#|';
+
+    private const string MULTILINE_COMMENT_END = '|#';
+
     private int $cursor = 0;
 
     private int $line = 1;
@@ -78,6 +82,21 @@ final class Lexer implements LexerInterface
         }
 
         while ($this->cursor < $end) {
+            if (substr($code, $this->cursor, 2) === self::MULTILINE_COMMENT_BEGIN) {
+                $comment = $this->readMultilineComment($code, $source);
+                $this->moveCursor($comment);
+                if ($this->withLocation) {
+                    $endLocation = new SourceLocation($source, $this->line, $this->column);
+                } else {
+                    $endLocation = new SourceLocation('string', 0, 0);
+                }
+
+                yield new Token(Token::T_COMMENT, $comment, $startLocation, $endLocation);
+
+                $startLocation = $endLocation;
+                continue;
+            }
+
             if (preg_match($this->combinedRegex, $code, $matches, 0, $this->cursor)) {
                 $this->moveCursor($matches[0]);
                 if ($this->withLocation) {
@@ -109,5 +128,39 @@ final class Lexer implements LexerInterface
         } else {
             $this->column += $len;
         }
+    }
+
+    /**
+     * @throws LexerValueException
+     */
+    private function readMultilineComment(string $code, string $source): string
+    {
+        $pos = $this->cursor;
+        $depth = 0;
+        $end = strlen($code);
+
+        while ($pos < $end) {
+            if (substr($code, $pos, 2) === self::MULTILINE_COMMENT_BEGIN) {
+                ++$depth;
+                $pos += 2;
+
+                continue;
+            }
+
+            if (substr($code, $pos, 2) === self::MULTILINE_COMMENT_END) {
+                --$depth;
+                $pos += 2;
+
+                if ($depth === 0) {
+                    return substr($code, $this->cursor, $pos - $this->cursor);
+                }
+
+                continue;
+            }
+
+            ++$pos;
+        }
+
+        throw LexerValueException::unexpectedLexerState($source, $this->line, $this->column);
     }
 }
