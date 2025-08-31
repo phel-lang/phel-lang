@@ -135,6 +135,17 @@ final class LexerTest extends TestCase
         );
     }
 
+    public function test_read_multiline_comment_with_newlines(): void
+    {
+        self::assertEquals(
+            [
+                new Token(Token::T_COMMENT, "#|a\nb|#", new SourceLocation('string', 1, 0), new SourceLocation('string', 2, 3)),
+                new Token(Token::T_EOF, '', new SourceLocation('string', 2, 3), new SourceLocation('string', 2, 3)),
+            ],
+            $this->lex("#|a\nb|#"),
+        );
+    }
+
     public function test_read_single_syntax_char(): void
     {
         self::assertEquals(

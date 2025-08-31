@@ -173,6 +173,17 @@ final class ReaderTest extends TestCase
         );
     }
 
+    public function test_read_nested_multiline_comment(): void
+    {
+        self::assertEquals(
+            $this->loc(Phel::list([
+                $this->loc(Symbol::create('a'), 1, 1, 1, 2),
+                $this->loc(Symbol::create('e'), 1, 17, 1, 18),
+            ]), 1, 0, 1, 19),
+            $this->read('(a #|b #|c|# d|# e)'),
+        );
+    }
+
     public function test_quote(): void
     {
         self::assertEquals(
