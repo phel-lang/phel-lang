@@ -74,19 +74,16 @@ final class RunTestCommand extends AbstractTestCommand
 
     public function test_pass_flag_arguments_to_script(): void
     {
-        $tmpFile = __DIR__ . '/Fixtures/argv-script.phel';
-        file_put_contents($tmpFile, '(ns test\\argv-script)\\n(php/print (last (php->phel argv)))');
-
         $this->expectOutputRegex('~--myarg~');
 
-        $sanitized = (new ArgvInputSanitizer())->sanitize(['bin/phel', 'run', $tmpFile, '--myarg']);
+        $sanitized = (new ArgvInputSanitizer())->sanitize([
+            'bin/phel', 'run', __DIR__ . '/Fixtures/argv-script.phel', '--myarg',
+        ]);
 
         (new RunCommand())->run(
             new ArgvInput($sanitized),
             $this->stubOutput(),
         );
-
-        unlink($tmpFile);
     }
 
     private function createRunCommand(): RunCommand
