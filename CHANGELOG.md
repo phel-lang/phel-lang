@@ -11,7 +11,8 @@ All notable changes to this project will be documented in this file.
 - Fix func metadata parsing conflict with literal hashmap
 - Fix `phar repl` not resolving ns from the working dir
 - Add `#_` macro for inline comments
-- Allow `;` as alternative comment character
+- Add `;` as alternative comment character
+- Add multiline comments using `#|` and `|#`
 - Add `:pre/:post` function metadata conditions
 - Add map destructuring with `:keys` and `:as`
 - Add macro auto-gensym syntax

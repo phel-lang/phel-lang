@@ -162,6 +162,17 @@ final class ReaderTest extends TestCase
         );
     }
 
+    public function test_read_multiline_comment(): void
+    {
+        self::assertEquals(
+            $this->loc(Phel::list([
+                $this->loc(Symbol::create('a'), 1, 1, 1, 2),
+                $this->loc(Symbol::create('c'), 1, 9, 1, 10),
+            ]), 1, 0, 1, 11),
+            $this->read('(a #|b|# c)'),
+        );
+    }
+
     public function test_quote(): void
     {
         self::assertEquals(
