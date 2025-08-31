@@ -22,6 +22,8 @@ use function is_bool;
 use function is_float;
 use function is_int;
 use function is_string;
+use function str_ends_with;
+use function substr;
 
 final readonly class QuasiquoteTransformer implements QuasiquoteTransformerInterface
 {
@@ -39,6 +41,20 @@ final readonly class QuasiquoteTransformer implements QuasiquoteTransformerInter
      */
     public function transform($form)
     {
+        $context = new GensymContext();
+
+        return $this->doTransform($form, $context);
+    }
+
+    /**
+     * @param bool|float|int|string|TypeInterface|null $form
+     *
+     * @throws SpliceNotInListException
+     *
+     * @return bool|float|int|string|TypeInterface|null
+     */
+    private function doTransform($form, GensymContext $context)
+    {
         if ($this->isUnquote($form)) {
             /** @var PersistentList $form */
             return $form->get(1);
@@ -49,22 +65,22 @@ final readonly class QuasiquoteTransformer implements QuasiquoteTransformerInter
         }
 
         if ($form instanceof PersistentList && count($form) > 0) {
-            return $this->createFromPersistentList($form);
+            return $this->createFromPersistentList($form, $context);
         }
 
         if ($form instanceof PersistentVector && count($form) > 0) {
-            return $this->createFromPersistentVector($form);
+            return $this->createFromPersistentVector($form, $context);
         }
 
         if ($form instanceof PersistentMapInterface && count($form) > 0) {
-            return $this->createFromMap($form);
+            return $this->createFromMap($form, $context);
         }
 
         if ($this->isLiteral($form)) {
             return $form;
         }
 
-        return $this->createOtherwise($form);
+        return $this->createOtherwise($form, $context);
     }
 
     /**
@@ -83,31 +99,31 @@ final readonly class QuasiquoteTransformer implements QuasiquoteTransformerInter
         return $form instanceof PersistentListInterface && $form->get(0) == Symbol::NAME_UNQUOTE_SPLICING;
     }
 
-    private function createFromPersistentList(PersistentList $form): PersistentListInterface
+    private function createFromPersistentList(PersistentList $form, GensymContext $context): PersistentListInterface
     {
         return Phel::list([
             (Symbol::create(Symbol::NAME_APPLY))->copyLocationFrom($form),
             (Symbol::create(Symbol::NAME_LIST))->copyLocationFrom($form),
             Phel::list([
                 (Symbol::create(Symbol::NAME_CONCAT))->copyLocationFrom($form),
-                ...$this->expandList($form),
+                ...$this->expandList($form, $context),
             ])->copyLocationFrom($form),
         ])->copyLocationFrom($form);
     }
 
-    private function createFromPersistentVector(PersistentVector $form): PersistentListInterface
+    private function createFromPersistentVector(PersistentVector $form, GensymContext $context): PersistentListInterface
     {
         return Phel::list([
             (Symbol::create(Symbol::NAME_APPLY))->copyLocationFrom($form),
             (Symbol::create(Symbol::NAME_VECTOR))->copyLocationFrom($form),
             Phel::list([
                 (Symbol::create(Symbol::NAME_CONCAT))->copyLocationFrom($form),
-                ...$this->expandList($form),
+                ...$this->expandList($form, $context),
             ])->copyLocationFrom($form),
         ])->copyLocationFrom($form);
     }
 
-    private function createFromMap(PersistentMapInterface $form): PersistentListInterface
+    private function createFromMap(PersistentMapInterface $form, GensymContext $context): PersistentListInterface
     {
         $kvs = [];
         foreach ($form as $k => $v) {
@@ -120,7 +136,7 @@ final readonly class QuasiquoteTransformer implements QuasiquoteTransformerInter
             (Symbol::create(Symbol::NAME_MAP))->copyLocationFrom($form),
             Phel::list([
                 (Symbol::create(Symbol::NAME_CONCAT))->copyLocationFrom($form),
-                ...$this->expandList($kvs),
+                ...$this->expandList($kvs, $context),
             ])->copyLocationFrom($form),
         ])->copyLocationFrom($form);
     }
@@ -128,7 +144,7 @@ final readonly class QuasiquoteTransformer implements QuasiquoteTransformerInter
     /**
      * @return array<int, mixed>
      */
-    private function expandList(iterable $seq): array
+    private function expandList(iterable $seq, GensymContext $context): array
     {
         $xs = [];
         foreach ($seq as $item) {
@@ -142,7 +158,7 @@ final readonly class QuasiquoteTransformer implements QuasiquoteTransformerInter
             } else {
                 $xs[] = Phel::list([
                     (Symbol::create(Symbol::NAME_LIST))->copyLocationFrom($item),
-                    $this->transform($item),
+                    $this->doTransform($item, $context),
                 ])->copyLocationFrom($item);
             }
         }
@@ -166,9 +182,20 @@ final readonly class QuasiquoteTransformer implements QuasiquoteTransformerInter
     /**
      * @param bool|float|int|string|TypeInterface|null $form
      */
-    private function createOtherwise($form): PersistentListInterface
+    private function createOtherwise($form, GensymContext $context): PersistentListInterface|TypeInterface
     {
         if ($form instanceof Symbol) {
+            $name = $form->getFullName();
+            if (str_ends_with($name, Symbol::NAME_DOLLAR)) {
+                $base = substr($name, 0, -1) . '__';
+                $sym = $context->symbols[$base] ??= Symbol::gen($base);
+
+                return Phel::list([
+                    (Symbol::create(Symbol::NAME_QUOTE))->copyLocationFrom($form),
+                    $sym->copyLocationFrom($form),
+                ])->copyLocationFrom($form);
+            }
+
             $node = $this->env->resolve($form, NodeEnvironment::empty());
 
             if ($node instanceof GlobalVarNode) {
