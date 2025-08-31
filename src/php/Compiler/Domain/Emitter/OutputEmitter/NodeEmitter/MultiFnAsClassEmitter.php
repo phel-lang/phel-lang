@@ -11,7 +11,6 @@ use Phel\Compiler\Domain\Emitter\OutputEmitter\NodeEmitterInterface;
 use Phel\Compiler\Domain\Emitter\OutputEmitterInterface;
 use Phel\Lang\Symbol;
 
-use function array_merge;
 use function assert;
 use function count;
 
@@ -43,22 +42,18 @@ final readonly class MultiFnAsClassEmitter implements NodeEmitterInterface
      */
     private function collectUses(array $fnNodes): array
     {
-        $allUses = [];
-        foreach ($fnNodes as $fnNode) {
-            $allUses = array_merge($allUses, $fnNode->getUses());
-        }
+        $byName = [];   // name => first Use instance seen
 
-        $result = [];
-        $names = [];
-        foreach ($allUses as $use) {
-            $name = $use->getName();
-            if (!isset($names[$name])) {
-                $names[$name] = true;
-                $result[] = $use;
+        foreach ($fnNodes as $fnNode) {
+            foreach ($fnNode->getUses() as $use) {
+                $name = $use->getName();
+                if (!isset($byName[$name])) {
+                    $byName[$name] = $use;
+                }
             }
         }
 
-        return $result;
+        return array_values($byName);
     }
 
     /**

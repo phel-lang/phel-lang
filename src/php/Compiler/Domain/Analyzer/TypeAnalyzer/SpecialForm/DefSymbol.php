@@ -53,9 +53,7 @@ final class DefSymbol implements SpecialFormAnalyzerInterface
         [$metaMap, $init] = $this->createMetaMapAndInit($list);
 
         $initNode = $this->analyzeInit($init, $env, $namespace, $nameSymbol);
-        if ($initNode instanceof FnNode) {
-            $metaMap = $metaMap->put('min-arity', $initNode->getMinArity());
-        } elseif ($initNode instanceof MultiFnNode) {
+        if ($initNode instanceof FnNode || $initNode instanceof MultiFnNode) {
             $metaMap = $metaMap->put('min-arity', $initNode->getMinArity());
         }
 
