@@ -188,7 +188,7 @@ final readonly class QuasiquoteTransformer implements QuasiquoteTransformerInter
             $name = $form->getFullName();
             if (str_ends_with($name, Symbol::NAME_DOLLAR)) {
                 $base = substr($name, 0, -1) . '__';
-                $sym = $context->symbols[$base] ??= Symbol::gen($base);
+                $sym = $context->getSymbolOrCreate($base);
 
                 return Phel::list([
                     (Symbol::create(Symbol::NAME_QUOTE))->copyLocationFrom($form),

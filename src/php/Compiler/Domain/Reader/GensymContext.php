@@ -9,5 +9,10 @@ use Phel\Lang\Symbol;
 final class GensymContext
 {
     /** @var array<string, Symbol> */
-    public array $symbols = [];
+    private array $symbols = [];
+
+    public function getSymbolOrCreate(string $base): Symbol
+    {
+        return $this->symbols[$base] ??= Symbol::gen($base);
+    }
 }
