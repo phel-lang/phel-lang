@@ -140,7 +140,7 @@ final class DocCommand extends Command
             ];
         }
 
-        usort($normalized, static fn ($a, $b): int => $b['percent'] <=> $a['percent']);
+        usort($normalized, static fn (array $a, array $b): int => $b['percent'] <=> $a['percent']);
 
         return $normalized;
     }
