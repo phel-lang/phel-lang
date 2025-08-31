@@ -9,6 +9,7 @@ use Phel\Compiler\Domain\Analyzer\Ast\AbstractNode;
 use Phel\Compiler\Domain\Analyzer\Ast\DefNode;
 use Phel\Compiler\Domain\Analyzer\Ast\FnNode;
 use Phel\Compiler\Domain\Analyzer\Ast\MapNode;
+use Phel\Compiler\Domain\Analyzer\Ast\MultiFnNode;
 use Phel\Compiler\Domain\Analyzer\Environment\NodeEnvironmentInterface;
 use Phel\Compiler\Domain\Analyzer\Exceptions\AnalyzerException;
 use Phel\Compiler\Domain\Analyzer\TypeAnalyzer\WithAnalyzerTrait;
@@ -53,6 +54,8 @@ final class DefSymbol implements SpecialFormAnalyzerInterface
 
         $initNode = $this->analyzeInit($init, $env, $namespace, $nameSymbol);
         if ($initNode instanceof FnNode) {
+            $metaMap = $metaMap->put('min-arity', $initNode->getMinArity());
+        } elseif ($initNode instanceof MultiFnNode) {
             $metaMap = $metaMap->put('min-arity', $initNode->getMinArity());
         }
 

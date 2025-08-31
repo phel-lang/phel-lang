@@ -16,6 +16,7 @@ All notable changes to this project will be documented in this file.
 - Add `:pre/:post` function metadata conditions
 - Add map destructuring with `:keys` and `:as`
 - Add macro auto-gensym syntax
+- Add multi-arity function support
 - Show the current Phel version in the REPL welcome message
 - Append commit hash to the version string when not on a tagged release
 - Update default error log file

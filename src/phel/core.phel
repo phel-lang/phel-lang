@@ -143,7 +143,9 @@
           fdecl (if (php/instanceof (php/aget fdecl 0) PersistentMapInterface)
                   (next fdecl)
                   fdecl)
-          args (php/aget fdecl 0)
+          args (if (php/instanceof (php/aget fdecl 0) PersistentVectorInterface)
+                   (php/aget fdecl 0)
+                   (php/aget (php/aget fdecl 0) 0))
           docstring (php/aget meta :doc)
           docstring (php/. "```phel\n(" name " " (php/implode " " (apply php/array args)) ")\n```\n" docstring)
           meta (php/-> meta (put :doc docstring))]

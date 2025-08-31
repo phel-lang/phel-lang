@@ -19,6 +19,8 @@ use Phel\Lang\Symbol;
 use PHPUnit\Framework\TestCase;
 use stdClass;
 
+use function count;
+
 final class DefSymbolTest extends TestCase
 {
     private AnalyzerInterface $analyzer;
@@ -197,6 +199,45 @@ final class DefSymbolTest extends TestCase
             ),
             $defNode,
         );
+    }
+
+    public function test_min_arity_from_multi_fn(): void
+    {
+        $list = Phel::list([
+            Symbol::create(Symbol::NAME_DEF),
+            Symbol::create('f'),
+            Phel::list([
+                Symbol::create(Symbol::NAME_FN),
+                Phel::list([
+                    Phel::vector([]),
+                    1,
+                ]),
+                Phel::list([
+                    Phel::vector([
+                        Symbol::create('x'),
+                    ]),
+                    Symbol::create('x'),
+                ]),
+            ]),
+        ]);
+
+        $env = NodeEnvironment::empty();
+        $defNode = (new DefSymbol($this->analyzer))->analyze($list, $env);
+
+        $meta = $defNode->getMeta()->getKeyValues();
+        $found = false;
+        $counter = count($meta);
+        for ($i = 0; $i < $counter; $i += 2) {
+            $key = $meta[$i];
+            $value = $meta[$i + 1];
+            if ($key instanceof LiteralNode && $key->getValue() === 'min-arity') {
+                self::assertInstanceOf(LiteralNode::class, $value);
+                self::assertSame(0, $value->getValue());
+                $found = true;
+            }
+        }
+
+        self::assertTrue($found, 'min-arity not found');
     }
 
     public function test_meta_table_keyword(): void

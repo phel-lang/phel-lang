@@ -1,0 +1,23 @@
+(ns phel-test\test\multi-arity-fn
+  (:require phel\test :refer [deftest is thrown?]))
+
+(defn- greet
+  ([] "hi")
+  ([name] (str "hi " name))
+  ([greeting name] (str greeting " " name)))
+
+(deftest greet-dispatch
+  (is (= "hi" (greet)) "zero arity")
+  (is (= "hi Ada" (greet "Ada")) "one arity")
+  (is (= "hello Ada" (greet "hello" "Ada")) "two arity")
+  (is (thrown? \InvalidArgumentException (greet "hey" "Ada" "extra")) "invalid arity"))
+
+(defn- f-var-dis
+  ([x] x)
+  ([x y & rest] [x y rest]))
+
+(deftest variadic-dispatch
+  (is (= 1 (f-var-dis 1)) "single arity")
+  (is (= [1 2 []] (f-var-dis 1 2)) "two args no rest")
+  (is (= [1 2 [3 4]] (f-var-dis 1 2 3 4)) "variadic with rest")
+  (is (thrown? \InvalidArgumentException (f-var-dis)) "no matching arity"))
