@@ -37,6 +37,10 @@ final class Lexer implements LexerInterface
         "([^\(\)\[\]\{\}',`@ \n\r\t\#]+)", // Atom (index: 19)
     ];
 
+    private const string MULTILINE_COMMENT_BEGIN = '#|';
+
+    private const string MULTILINE_COMMENT_END = '|#';
+
     private int $cursor = 0;
 
     private int $line = 1;
@@ -78,7 +82,7 @@ final class Lexer implements LexerInterface
         }
 
         while ($this->cursor < $end) {
-            if (substr($code, $this->cursor, 2) === '#|') {
+            if (substr($code, $this->cursor, 2) === self::MULTILINE_COMMENT_BEGIN) {
                 $comment = $this->readMultilineComment($code, $source);
                 $this->moveCursor($comment);
                 if ($this->withLocation) {
@@ -136,14 +140,14 @@ final class Lexer implements LexerInterface
         $end = strlen($code);
 
         while ($pos < $end) {
-            if (substr($code, $pos, 2) === '#|') {
+            if (substr($code, $pos, 2) === self::MULTILINE_COMMENT_BEGIN) {
                 ++$depth;
                 $pos += 2;
 
                 continue;
             }
 
-            if (substr($code, $pos, 2) === '|#') {
+            if (substr($code, $pos, 2) === self::MULTILINE_COMMENT_END) {
                 --$depth;
                 $pos += 2;
 
