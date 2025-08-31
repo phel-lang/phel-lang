@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Phel\Console;
 
 use Gacela\Framework\AbstractFactory;
+use Phel\Console\Application\ArgvInputSanitizer;
 use Phel\Console\Application\VersionFinder;
 use Phel\Console\Infrastructure\ConsoleBootstrap;
 use Phel\Filesystem\FilesystemFacadeInterface;
@@ -37,5 +38,10 @@ final class ConsoleFactory extends AbstractFactory
             $this->getProvidedDependency(ConsoleProvider::TAG_COMMIT_HASH),
             $this->getProvidedDependency(ConsoleProvider::CURRENT_COMMIT),
         );
+    }
+
+    public function createArgvInputSanitizer(): ArgvInputSanitizer
+    {
+        return new ArgvInputSanitizer();
     }
 }
