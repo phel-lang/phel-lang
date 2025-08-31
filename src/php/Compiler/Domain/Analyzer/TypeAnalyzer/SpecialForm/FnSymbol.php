@@ -7,6 +7,7 @@ namespace Phel\Compiler\Domain\Analyzer\TypeAnalyzer\SpecialForm;
 use Phel;
 use Phel\Compiler\Domain\Analyzer\Ast\AbstractNode;
 use Phel\Compiler\Domain\Analyzer\Ast\FnNode;
+use Phel\Compiler\Domain\Analyzer\Ast\MultiFnNode;
 use Phel\Compiler\Domain\Analyzer\Ast\RecurFrame;
 use Phel\Compiler\Domain\Analyzer\Environment\NodeEnvironmentInterface;
 use Phel\Compiler\Domain\Analyzer\Exceptions\AnalyzerException;
@@ -24,7 +25,57 @@ final class FnSymbol implements SpecialFormAnalyzerInterface
 {
     use WithAnalyzerTrait;
 
-    public function analyze(PersistentListInterface $list, NodeEnvironmentInterface $env): FnNode
+    public function analyze(PersistentListInterface $list, NodeEnvironmentInterface $env): AbstractNode
+    {
+        if (count($list) < 2) {
+            throw AnalyzerException::withLocation("'fn requires at least one argument", $list);
+        }
+
+        $second = $list->get(1);
+        if ($second instanceof PersistentVectorInterface) {
+            return $this->analyzeSingle($list, $env);
+        }
+
+        if (!($second instanceof PersistentListInterface)) {
+            throw AnalyzerException::withLocation("Second argument of 'fn must be a vector", $list);
+        }
+
+        $fnNodes = [];
+        $hasVariadic = false;
+        $count = count($list);
+        for ($i = 1; $i < $count; ++$i) {
+            $clause = $list->get($i);
+            if (!($clause instanceof PersistentListInterface)) {
+                throw AnalyzerException::withLocation('Invalid fn clause', $list);
+            }
+
+            $fnNode = $this->analyzeSingle(
+                Phel::list([
+                    Symbol::create(Symbol::NAME_FN)->copyLocationFrom($clause),
+                    ...$clause->toArray(),
+                ])->copyLocationFrom($clause),
+                $env,
+            );
+
+            if ($fnNode->isVariadic()) {
+                if ($hasVariadic) {
+                    throw AnalyzerException::withLocation('Only one variadic overload allowed', $clause);
+                }
+
+                if ($i !== $count - 1) {
+                    throw AnalyzerException::withLocation('Variadic overload must be the last one', $clause);
+                }
+
+                $hasVariadic = true;
+            }
+
+            $fnNodes[] = $fnNode;
+        }
+
+        return new MultiFnNode($env, $fnNodes, $list->getStartLocation());
+    }
+
+    private function analyzeSingle(PersistentListInterface $list, NodeEnvironmentInterface $env): FnNode
     {
         $this->verifyArguments($list);
 

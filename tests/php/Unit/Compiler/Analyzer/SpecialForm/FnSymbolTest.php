@@ -11,6 +11,7 @@ use Phel\Compiler\Domain\Analyzer\AnalyzerInterface;
 use Phel\Compiler\Domain\Analyzer\Ast\DoNode;
 use Phel\Compiler\Domain\Analyzer\Ast\FnNode;
 use Phel\Compiler\Domain\Analyzer\Ast\LetNode;
+use Phel\Compiler\Domain\Analyzer\Ast\MultiFnNode;
 use Phel\Compiler\Domain\Analyzer\Environment\GlobalEnvironment;
 use Phel\Compiler\Domain\Analyzer\Environment\NodeEnvironment;
 use Phel\Compiler\Domain\Analyzer\TypeAnalyzer\SpecialForm\FnSymbol;
@@ -215,6 +216,55 @@ final class FnSymbolTest extends TestCase
             ]),
             LetNode::class,
         ];
+    }
+
+    public function test_multi_arity_returns_multi_fn_node(): void
+    {
+        $list = Phel::list([
+            Symbol::create(Symbol::NAME_FN),
+            Phel::list([
+                Phel::vector([]),
+                1,
+            ]),
+            Phel::list([
+                Phel::vector([
+                    Symbol::create('x'),
+                ]),
+                Symbol::create('x'),
+            ]),
+        ]);
+
+        $node = (new FnSymbol($this->analyzer))->analyze($list, NodeEnvironment::empty());
+
+        self::assertInstanceOf(MultiFnNode::class, $node);
+        self::assertCount(2, $node->getFnNodes());
+        self::assertSame(0, $node->getMinArity());
+    }
+
+    public function test_variadic_overload_must_be_last(): void
+    {
+        $this->expectException(AbstractLocatedException::class);
+        $this->expectExceptionMessage('Variadic overload must be the last one');
+
+        $list = Phel::list([
+            Symbol::create(Symbol::NAME_FN),
+            Phel::list([
+                Phel::vector([
+                    Symbol::create('x'),
+                    Symbol::create('&'),
+                    Symbol::create('rest'),
+                ]),
+                Symbol::create('x'),
+            ]),
+            Phel::list([
+                Phel::vector([
+                    Symbol::create('y'),
+                ]),
+                Symbol::create('y'),
+            ]),
+        ]);
+
+        (new FnSymbol($this->analyzer))->analyze($list, NodeEnvironment::empty());
     }
 
     private function analyze(PersistentListInterface $list): FnNode
