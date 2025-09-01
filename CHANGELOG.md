@@ -17,6 +17,7 @@ All notable changes to this project will be documented in this file.
 - Add map destructuring with `:keys` and `:as`
 - Add macro auto-gensym syntax
 - Add multi-arity function support
+- Allow passing CLI flag arguments to `phel run` scripts
 - Show the current Phel version in the REPL welcome message
 - Append commit hash to the version string when not on a tagged release
 - Update default error log file

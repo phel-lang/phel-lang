@@ -1,0 +1,3 @@
+(ns test\argv-script)
+
+(php/print (last (php->phel argv)))

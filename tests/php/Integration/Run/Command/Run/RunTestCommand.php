@@ -6,8 +6,10 @@ namespace PhelTest\Integration\Run\Command\Run;
 
 use Gacela\Framework\Bootstrap\GacelaConfig;
 use Gacela\Framework\Gacela;
+use Phel\Console\Application\ArgvInputSanitizer;
 use Phel\Run\Infrastructure\Command\RunCommand;
 use PhelTest\Integration\Run\Command\AbstractTestCommand;
+use Symfony\Component\Console\Input\ArgvInput;
 use Symfony\Component\Console\Input\InputInterface;
 
 final class RunTestCommand extends AbstractTestCommand
@@ -68,6 +70,20 @@ final class RunTestCommand extends AbstractTestCommand
         );
 
         unlink($tmpFile);
+    }
+
+    public function test_pass_flag_arguments_to_script(): void
+    {
+        $this->expectOutputRegex('~--myarg~');
+
+        $sanitized = (new ArgvInputSanitizer())->sanitize([
+            'bin/phel', 'run', __DIR__ . '/Fixtures/argv-script.phel', '--myarg',
+        ]);
+
+        (new RunCommand())->run(
+            new ArgvInput($sanitized),
+            $this->stubOutput(),
+        );
     }
 
     private function createRunCommand(): RunCommand
