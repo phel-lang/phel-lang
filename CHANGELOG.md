@@ -2,7 +2,7 @@
 
 All notable changes to this project will be documented in this file.
 
-## Unreleased
+## [0.21.0](https://github.com/phel-lang/phel-lang/compare/v0.20.0...v0.21.0) - 2025-09-01
 
 - Fix autoload phel classes from phar
 - Fix vector and hash map literals in try
