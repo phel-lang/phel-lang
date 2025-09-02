@@ -7,6 +7,7 @@ namespace Phel\Api\Application;
 use Phel\Api\Domain\PhelFnLoaderInterface;
 use Phel\Api\Domain\PhelFnNormalizerInterface;
 use Phel\Api\Transfer\PhelFunction;
+use Phel\Lang\Collections\Map\PersistentMapInterface;
 use Phel\Lang\Keyword;
 
 final readonly class PhelFnNormalizer implements PhelFnNormalizerInterface
@@ -44,6 +45,13 @@ final readonly class PhelFnNormalizer implements PhelFnNormalizerInterface
             $pattern = '#(```phel\n(?<fnSignature>.*)\n```\n)?(?<desc>.*)#s';
             preg_match($pattern, (string) $doc, $matches);
             $groupKey = $this->groupKey($fnName);
+            $file = '';
+            $line = 0;
+            $location = $meta[Keyword::create('start-location')] ?? null;
+            if ($location instanceof PersistentMapInterface) {
+                $file = (string) ($location[Keyword::create('file')] ?? '');
+                $line = (int) ($location[Keyword::create('line')] ?? 0);
+            }
 
             $normalizedFns[$groupKey][$fnName] = new PhelFunction(
                 $fnName,
@@ -51,6 +59,9 @@ final readonly class PhelFnNormalizer implements PhelFnNormalizerInterface
                 $matches['fnSignature'] ?? '',
                 $matches['desc'] ?? '',
                 $groupKey,
+                '',
+                $file,
+                $line,
             );
         }
 
@@ -102,6 +113,8 @@ final readonly class PhelFnNormalizer implements PhelFnNormalizerInterface
                 $meta['desc'] ?? $originalNormalizedFns[$name]->description(),
                 $this->groupKey($name),
                 $meta['url'] ?? '',
+                $meta['file'] ?? '',
+                $meta['line'] ?? 0,
             );
         }
 
