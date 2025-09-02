@@ -319,7 +319,7 @@ final class PhelFnNormalizerTest extends TestCase
             Keyword::create('start-location'),
             Phel::map(
                 Keyword::create('file'),
-                'my-file.phel',
+                '/var/www/project/src/phel/my-file.phel',
                 Keyword::create('line'),
                 5,
             ),
@@ -340,7 +340,8 @@ final class PhelFnNormalizerTest extends TestCase
                 'fnSignature' => '',
                 'desc' => '',
                 'groupKey' => 'fn-name',
-                'file' => 'my-file.phel',
+                'url' => 'https://github.com/phel-lang/phel-lang/blob/main/src/phel/my-file.phel#L5',
+                'file' => 'src/phel/my-file.phel',
                 'line' => 5,
             ]),
         ];
