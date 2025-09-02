@@ -1221,7 +1221,7 @@ arrays. Use (php/aunset ds key)"))
         (recur (next s))))))
 
 (defn find-index
-  "Returns the first item in `xs` where `(pred index item)` evaluates to true."
+  "Returns the index of the first item in `xs` where `(pred index item)` evaluates to true."
   [pred xs]
   (loop [s xs
          i 0]
