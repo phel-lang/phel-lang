@@ -7,10 +7,13 @@ namespace Phel\Api\Application;
 use Phel\Api\Domain\PhelFnLoaderInterface;
 use Phel\Api\Domain\PhelFnNormalizerInterface;
 use Phel\Api\Transfer\PhelFunction;
+use Phel\Lang\Collections\Map\PersistentMapInterface;
 use Phel\Lang\Keyword;
 
 final readonly class PhelFnNormalizer implements PhelFnNormalizerInterface
 {
+    private const string GITHUB_BASE_URL = 'https://github.com/phel-lang/phel-lang/blob/main/';
+
     /**
      * @param list<string> $allNamespaces
      */
@@ -44,6 +47,16 @@ final readonly class PhelFnNormalizer implements PhelFnNormalizerInterface
             $pattern = '#(```phel\n(?<fnSignature>.*)\n```\n)?(?<desc>.*)#s';
             preg_match($pattern, (string) $doc, $matches);
             $groupKey = $this->groupKey($fnName);
+            $file = '';
+            $line = 0;
+            $location = $meta[Keyword::create('start-location')] ?? null;
+            if ($location instanceof PersistentMapInterface) {
+                $file = (string) ($location[Keyword::create('file')] ?? '');
+                $line = (int) ($location[Keyword::create('line')] ?? 0);
+            }
+
+            $file = $this->toRelativeFile($file);
+            $url = $this->toGithubUrl($file, $line);
 
             $normalizedFns[$groupKey][$fnName] = new PhelFunction(
                 $fnName,
@@ -51,6 +64,9 @@ final readonly class PhelFnNormalizer implements PhelFnNormalizerInterface
                 $matches['fnSignature'] ?? '',
                 $matches['desc'] ?? '',
                 $groupKey,
+                $url,
+                $file,
+                $line,
             );
         }
 
@@ -95,13 +111,19 @@ final readonly class PhelFnNormalizer implements PhelFnNormalizerInterface
     {
         $result = [];
         foreach ($this->phelFnLoader->getNormalizedNativeSymbols() as $name => $meta) {
+            $file = $this->toRelativeFile($meta['file'] ?? '');
+            $line = $meta['line'] ?? 0;
+            $url = $meta['url'] ?? $this->toGithubUrl($file, $line);
+
             $result[] = new PhelFunction(
                 $name,
                 $meta['doc'] ?? $originalNormalizedFns[$name]->doc(),
                 $meta['fnSignature'] ?? $originalNormalizedFns[$name]->fnSignature(),
                 $meta['desc'] ?? $originalNormalizedFns[$name]->description(),
                 $this->groupKey($name),
-                $meta['url'] ?? '',
+                $url,
+                $file,
+                $line,
             );
         }
 
@@ -131,5 +153,30 @@ final readonly class PhelFnNormalizer implements PhelFnNormalizerInterface
         $result = array_values($filtered);
 
         return $result;
+    }
+
+    private function toRelativeFile(string $file): string
+    {
+        $normalized = str_replace('\\', '/', $file);
+        $pos = strpos($normalized, '/src/');
+        if ($pos !== false) {
+            return substr($normalized, $pos + 1);
+        }
+
+        return ltrim($normalized, '/');
+    }
+
+    private function toGithubUrl(string $file, int $line): string
+    {
+        if ($file === '') {
+            return '';
+        }
+
+        $url = self::GITHUB_BASE_URL . $file;
+        if ($line > 0) {
+            $url .= '#L' . $line;
+        }
+
+        return $url;
     }
 }

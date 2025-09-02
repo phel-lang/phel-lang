@@ -4,10 +4,12 @@ declare(strict_types=1);
 
 namespace PhelTest\Unit\Internal\Domain;
 
+use Phel;
 use Phel\Api\Application\PhelFnNormalizer;
 use Phel\Api\Domain\PhelFnLoaderInterface;
 use Phel\Api\Transfer\PhelFunction;
 use Phel\Lang\Collections\Map\PersistentMapInterface;
+use Phel\Lang\Keyword;
 use PHPUnit\Framework\TestCase;
 
 final class PhelFnNormalizerTest extends TestCase
@@ -194,6 +196,7 @@ final class PhelFnNormalizerTest extends TestCase
         $symbol->method('offsetGet')->willReturnOnConsecutiveCalls(
             false, // relates to 'isPrivate'
             null, // relates to 'doc'
+            null, // relates to 'start-location'
         );
 
         $phelFnLoader = $this->createMock(PhelFnLoaderInterface::class);
@@ -224,6 +227,7 @@ final class PhelFnNormalizerTest extends TestCase
         $symbol->method('offsetGet')->willReturnOnConsecutiveCalls(
             false, // relates to 'isPrivate'
             'Constant for Not a Number (NAN) values.', // relates to 'doc'
+            null, // relates to 'start-location'
         );
 
         $phelFnLoader = $this->createMock(PhelFnLoaderInterface::class);
@@ -254,6 +258,7 @@ final class PhelFnNormalizerTest extends TestCase
         $symbol->method('offsetGet')->willReturnOnConsecutiveCalls(
             false, // relates to 'isPrivate'
             "```phel\n(array & xs)\n```\nCreates a new Array.", // relates to 'doc'
+            null, // relates to 'start-location'
         );
 
         $phelFnLoader = $this->createMock(PhelFnLoaderInterface::class);
@@ -284,6 +289,7 @@ final class PhelFnNormalizerTest extends TestCase
         $symbol->method('offsetGet')->willReturnOnConsecutiveCalls(
             false, // relates to 'isPrivate'
             "```phel\n(array & xs)\n```\nReturns a formatted string. See PHP's [sprintf](https://example.com) for more information.", // relates to 'doc'
+            null, // relates to 'start-location'
         );
 
         $phelFnLoader = $this->createMock(PhelFnLoaderInterface::class);
@@ -301,6 +307,42 @@ final class PhelFnNormalizerTest extends TestCase
                 'fnSignature' => '(array & xs)',
                 'desc' => "Returns a formatted string. See PHP's [sprintf](https://example.com) for more information.",
                 'groupKey' => 'format',
+            ]),
+        ];
+
+        self::assertEquals($expected, $actual);
+    }
+
+    public function test_returns_source_location(): void
+    {
+        $meta = Phel::map(
+            Keyword::create('start-location'),
+            Phel::map(
+                Keyword::create('file'),
+                '/var/www/project/src/phel/my-file.phel',
+                Keyword::create('line'),
+                5,
+            ),
+        );
+
+        $phelFnLoader = $this->createMock(PhelFnLoaderInterface::class);
+        $phelFnLoader->method('getNormalizedPhelFunctions')->willReturn([
+            'fn-name' => $meta,
+        ]);
+
+        $normalizer = new PhelFnNormalizer($phelFnLoader);
+        $actual = $normalizer->getPhelFunctions();
+
+        $expected = [
+            PhelFunction::fromArray([
+                'fnName' => 'fn-name',
+                'doc' => '',
+                'fnSignature' => '',
+                'desc' => '',
+                'groupKey' => 'fn-name',
+                'url' => 'https://github.com/phel-lang/phel-lang/blob/main/src/phel/my-file.phel#L5',
+                'file' => 'src/phel/my-file.phel',
+                'line' => 5,
             ]),
         ];
 

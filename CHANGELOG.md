@@ -2,6 +2,10 @@
 
 All notable changes to this project will be documented in this file.
 
+## Unreleased
+
+- Generate relative file paths and GitHub URLs for Phel functions
+
 ## [0.21.0](https://github.com/phel-lang/phel-lang/compare/v0.20.0...v0.21.0) - 2025-09-01
 
 - Fix autoload phel classes from phar
