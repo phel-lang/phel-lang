@@ -13,8 +13,10 @@ final readonly class PhelFunction
         private string $description,
         private string $groupKey = '',
         private string $url = '',
+        private string $docUrl = '',
         private string $file = '',
         private int $line = 0,
+        private string $fnNs = '',
     ) {
     }
 
@@ -26,8 +28,10 @@ final readonly class PhelFunction
      *     desc?: string,
      *     groupKey?: string,
      *     url?: string,
+     *     docUrl?: string,
      *     file?: string,
      *     line?: int,
+     *     fnNs?: string,
      * } $array
      */
     public static function fromArray(array $array): self
@@ -39,8 +43,10 @@ final readonly class PhelFunction
             $array['desc'] ?? '',
             $array['groupKey'] ?? '',
             $array['url'] ?? '',
+            $array['docUrl'] ?? '',
             $array['file'] ?? '',
             $array['line'] ?? 0,
+            $array['fnNs'] ?? '',
         );
     }
 
@@ -74,6 +80,11 @@ final readonly class PhelFunction
         return $this->url;
     }
 
+    public function docUrl(): string
+    {
+        return $this->docUrl;
+    }
+
     public function file(): string
     {
         return $this->file;
@@ -82,5 +93,10 @@ final readonly class PhelFunction
     public function line(): int
     {
         return $this->line;
+    }
+
+    public function fnNs(): string
+    {
+        return $this->fnNs;
     }
 }

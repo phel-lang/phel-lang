@@ -44,9 +44,11 @@ final readonly class PhelFnNormalizer implements PhelFnNormalizerInterface
             }
 
             $doc = $meta[Keyword::create('doc')] ?? '';
+            $docUrl = (string) ($meta[Keyword::create('docUrl')] ?? '');
             $pattern = '#(```phel\n(?<fnSignature>.*)\n```\n)?(?<desc>.*)#s';
             preg_match($pattern, (string) $doc, $matches);
             $groupKey = $this->groupKey($fnName);
+            $fnNs = $this->fnNamespace($fnName);
             $file = '';
             $line = 0;
             $location = $meta[Keyword::create('start-location')] ?? null;
@@ -65,8 +67,10 @@ final readonly class PhelFnNormalizer implements PhelFnNormalizerInterface
                 $matches['desc'] ?? '',
                 $groupKey,
                 $url,
+                $docUrl,
                 $file,
                 $line,
+                $fnNs,
             );
         }
 
@@ -97,6 +101,13 @@ final readonly class PhelFnNormalizer implements PhelFnNormalizerInterface
         return strtolower(rtrim((string) $key, '-'));
     }
 
+    private function fnNamespace(string $fnName): string
+    {
+        $pos = strrpos($fnName, '/');
+
+        return $pos === false ? '' : substr($fnName, 0, $pos);
+    }
+
     private function sortingPhelFunctionsCallback(): callable
     {
         return static fn (PhelFunction $a, PhelFunction $b): int => $a->fnName() <=> $b->fnName();
@@ -113,7 +124,9 @@ final readonly class PhelFnNormalizer implements PhelFnNormalizerInterface
         foreach ($this->phelFnLoader->getNormalizedNativeSymbols() as $name => $meta) {
             $file = $this->toRelativeFile($meta['file'] ?? '');
             $line = $meta['line'] ?? 0;
-            $url = $meta['url'] ?? $this->toGithubUrl($file, $line);
+            $docUrl = $meta['docUrl'] ?? '';
+            $url = $this->toGithubUrl($file, $line);
+            $fnNs = $this->fnNamespace($name);
 
             $result[] = new PhelFunction(
                 $name,
@@ -122,8 +135,10 @@ final readonly class PhelFnNormalizer implements PhelFnNormalizerInterface
                 $meta['desc'] ?? $originalNormalizedFns[$name]->description(),
                 $this->groupKey($name),
                 $url,
+                $docUrl,
                 $file,
                 $line,
+                $fnNs,
             );
         }
 

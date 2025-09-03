@@ -197,6 +197,7 @@ final class PhelFnNormalizerTest extends TestCase
             false, // relates to 'isPrivate'
             null, // relates to 'doc'
             null, // relates to 'start-location'
+            null, // relates to 'docUrl'
         );
 
         $phelFnLoader = $this->createMock(PhelFnLoaderInterface::class);
@@ -228,6 +229,7 @@ final class PhelFnNormalizerTest extends TestCase
             false, // relates to 'isPrivate'
             'Constant for Not a Number (NAN) values.', // relates to 'doc'
             null, // relates to 'start-location'
+            null, // relates to 'docUrl'
         );
 
         $phelFnLoader = $this->createMock(PhelFnLoaderInterface::class);
@@ -259,6 +261,7 @@ final class PhelFnNormalizerTest extends TestCase
             false, // relates to 'isPrivate'
             "```phel\n(array & xs)\n```\nCreates a new Array.", // relates to 'doc'
             null, // relates to 'start-location'
+            null, // relates to 'docUrl'
         );
 
         $phelFnLoader = $this->createMock(PhelFnLoaderInterface::class);
@@ -290,6 +293,7 @@ final class PhelFnNormalizerTest extends TestCase
             false, // relates to 'isPrivate'
             "```phel\n(array & xs)\n```\nReturns a formatted string. See PHP's [sprintf](https://example.com) for more information.", // relates to 'doc'
             null, // relates to 'start-location'
+            null, // relates to 'docUrl'
         );
 
         $phelFnLoader = $this->createMock(PhelFnLoaderInterface::class);
@@ -343,6 +347,34 @@ final class PhelFnNormalizerTest extends TestCase
                 'url' => 'https://github.com/phel-lang/phel-lang/blob/main/src/phel/my-file.phel#L5',
                 'file' => 'src/phel/my-file.phel',
                 'line' => 5,
+            ]),
+        ];
+
+        self::assertEquals($expected, $actual);
+    }
+
+    public function test_normalize_native_symbol_doc_url(): void
+    {
+        $phelFnLoader = $this->createMock(PhelFnLoaderInterface::class);
+        $phelFnLoader->method('getNormalizedPhelFunctions')->willReturn([
+            'apply' => $this->createMock(PersistentMapInterface::class),
+        ]);
+        $phelFnLoader->method('getNormalizedNativeSymbols')->willReturn([
+            'apply' => ['docUrl' => 'https://docs'],
+        ]);
+
+        $normalizer = new PhelFnNormalizer($phelFnLoader);
+        $actual = $normalizer->getPhelFunctions();
+
+        $expected = [
+            PhelFunction::fromArray([
+                'fnName' => 'apply',
+                'doc' => '',
+                'fnSignature' => '',
+                'desc' => '',
+                'groupKey' => 'apply',
+                'url' => '',
+                'docUrl' => 'https://docs',
             ]),
         ];
 
