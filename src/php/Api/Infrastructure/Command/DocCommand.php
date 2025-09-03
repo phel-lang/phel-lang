@@ -116,7 +116,8 @@ final class DocCommand extends Command
      *   signature: string,
      *   doc: string,
      *   description: string,
-     *   url: string,
+     *   githubUrl: string,
+     *   docUrl: string,
      * }>
      */
     private function normalizeGroupedFunctions(array $phelFunctions, string $search): array
@@ -124,7 +125,7 @@ final class DocCommand extends Command
         $normalized = [];
 
         foreach ($phelFunctions as $phelFunction) {
-            $fnName = $phelFunction->fnName();
+            $fnName = $phelFunction->namespace() . '/' . $phelFunction->name();
             similar_text($fnName, $search, $percent);
             if ($search && $percent < 45) {
                 continue;
@@ -136,7 +137,8 @@ final class DocCommand extends Command
                 'signature' => $phelFunction->fnSignature(),
                 'doc' => $phelFunction->doc(),
                 'description' => preg_replace('/\r?\n/', '', $phelFunction->description()),
-                'url' => $phelFunction->url(),
+                'githubUrl' => $phelFunction->githubUrl(),
+                'docUrl' => $phelFunction->docUrl(),
             ];
         }
 

@@ -14,6 +14,8 @@ final readonly class PhelFnNormalizer implements PhelFnNormalizerInterface
 {
     private const string GITHUB_BASE_URL = 'https://github.com/phel-lang/phel-lang/blob/main/';
 
+    private const string DEFAULT_NAMESPACE = 'core';
+
     /**
      * @param list<string> $allNamespaces
      */
@@ -44,27 +46,29 @@ final readonly class PhelFnNormalizer implements PhelFnNormalizerInterface
             }
 
             $doc = $meta[Keyword::create('doc')] ?? '';
-            $pattern = '#(```phel\n(?<fnSignature>.*)\n```\n)?(?<desc>.*)#s';
-            preg_match($pattern, (string) $doc, $matches);
+            preg_match('#(```phel\n(?<fnSignature>.*)\n```\n)?(?<desc>.*)#s', (string) $doc, $matches);
             $groupKey = $this->groupKey($fnName);
+
             $file = '';
             $line = 0;
             $location = $meta[Keyword::create('start-location')] ?? null;
             if ($location instanceof PersistentMapInterface) {
                 $file = (string) ($location[Keyword::create('file')] ?? '');
+                $file = $this->toRelativeFile($file);
                 $line = (int) ($location[Keyword::create('line')] ?? 0);
             }
 
-            $file = $this->toRelativeFile($file);
-            $url = $this->toGithubUrl($file, $line);
+            $githubUrl = $this->toGithubUrl($file, $line);
 
             $normalizedFns[$groupKey][$fnName] = new PhelFunction(
-                $fnName,
+                $this->extractNamespace($fnName),
+                $this->extractNameWithoutNamespace($fnName),
                 $doc,
                 $matches['fnSignature'] ?? '',
                 $matches['desc'] ?? '',
                 $groupKey,
-                $url,
+                $githubUrl,
+                (string) ($meta[Keyword::create('docUrl')] ?? ''),
                 $file,
                 $line,
             );
@@ -97,9 +101,33 @@ final readonly class PhelFnNormalizer implements PhelFnNormalizerInterface
         return strtolower(rtrim((string) $key, '-'));
     }
 
+    private function extractNamespace(string $fnName): string
+    {
+        if ($fnName === '/') {
+            return self::DEFAULT_NAMESPACE;
+        }
+
+        $pos = strrpos($fnName, '/');
+
+        return $pos === false ? self::DEFAULT_NAMESPACE : substr($fnName, 0, $pos);
+    }
+
+    private function extractNameWithoutNamespace(string $fnName): string
+    {
+        if ($fnName === '/' || str_starts_with($fnName, 'php/')) {
+            return $fnName;
+        }
+
+        $pos = strrpos($fnName, '/');
+
+        return $pos === false ? $fnName : substr($fnName, $pos + 1);
+    }
+
     private function sortingPhelFunctionsCallback(): callable
     {
-        return static fn (PhelFunction $a, PhelFunction $b): int => $a->fnName() <=> $b->fnName();
+        return static fn (PhelFunction $a, PhelFunction $b): int => (($a->namespace() <=> $b->namespace()) !== 0)
+            ? $a->namespace() <=> $b->namespace()
+            : ($a->name() <=> $b->name());
     }
 
     /**
@@ -113,15 +141,20 @@ final readonly class PhelFnNormalizer implements PhelFnNormalizerInterface
         foreach ($this->phelFnLoader->getNormalizedNativeSymbols() as $name => $meta) {
             $file = $this->toRelativeFile($meta['file'] ?? '');
             $line = $meta['line'] ?? 0;
-            $url = $meta['url'] ?? $this->toGithubUrl($file, $line);
+            $docUrl = $meta['docUrl'] ?? '';
+            $githubUrl = $this->toGithubUrl($file, $line);
+            $namespace = $this->extractNamespace($name);
+            $shortName = $this->extractNameWithoutNamespace($name);
 
             $result[] = new PhelFunction(
-                $name,
+                $namespace,
+                $shortName,
                 $meta['doc'] ?? $originalNormalizedFns[$name]->doc(),
                 $meta['fnSignature'] ?? $originalNormalizedFns[$name]->fnSignature(),
                 $meta['desc'] ?? $originalNormalizedFns[$name]->description(),
                 $this->groupKey($name),
-                $url,
+                $githubUrl,
+                $docUrl,
                 $file,
                 $line,
             );
@@ -140,7 +173,7 @@ final readonly class PhelFnNormalizer implements PhelFnNormalizerInterface
         $seenNames = [];
 
         $filtered = array_filter($fns, static function (PhelFunction $fn) use (&$seenNames): bool {
-            $fnName = $fn->fnName();
+            $fnName = $fn->namespace() . '/' . $fn->name();
             if (isset($seenNames[$fnName])) {
                 return false;
             }
