@@ -18,6 +18,14 @@ use function sprintf;
 final readonly class PhelFnLoader implements PhelFnLoaderInterface
 {
     private const array PRIVATE_SYMBOLS = [
+     '*ns*' => [
+            'doc' => '```phel
+*ns*
+```
+Returns the namespace in the current scope.',
+            'fnSignature' => '*ns*',
+            'desc' => 'Returns the namespace in the current scope.',
+        ],
         Symbol::NAME_APPLY => [
             'doc' => '```phel
 (apply f expr*)

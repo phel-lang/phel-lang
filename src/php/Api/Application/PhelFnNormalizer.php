@@ -114,8 +114,8 @@ final readonly class PhelFnNormalizer implements PhelFnNormalizerInterface
 
     private function extractNameWithoutNamespace(string $fnName): string
     {
-        if ($fnName === '/') {
-            return '/';
+        if ($fnName === '/' || str_starts_with($fnName, 'php/')) {
+            return $fnName;
         }
 
         $pos = strrpos($fnName, '/');
