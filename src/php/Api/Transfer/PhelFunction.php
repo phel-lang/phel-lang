@@ -12,7 +12,7 @@ final readonly class PhelFunction
         private string $fnSignature,
         private string $description,
         private string $groupKey = '',
-        private string $url = '',
+        private string $githubUrl = '',
         private string $docUrl = '',
         private string $file = '',
         private int $line = 0,
@@ -27,7 +27,8 @@ final readonly class PhelFunction
      *     fnSignature?: string,
      *     desc?: string,
      *     groupKey?: string,
-     *     url?: string,
+     *     githubUrl?: string,
+     *     url?: string, // @deprecated Use githubUrl instead
      *     docUrl?: string,
      *     file?: string,
      *     line?: int,
@@ -42,7 +43,7 @@ final readonly class PhelFunction
             $array['fnSignature'] ?? '',
             $array['desc'] ?? '',
             $array['groupKey'] ?? '',
-            $array['url'] ?? '',
+            $array['githubUrl'] ?? $array['url'] ?? '',
             $array['docUrl'] ?? '',
             $array['file'] ?? '',
             $array['line'] ?? 0,
@@ -75,9 +76,17 @@ final readonly class PhelFunction
         return $this->groupKey;
     }
 
+    public function githubUrl(): string
+    {
+        return $this->githubUrl;
+    }
+
+    /**
+     * @deprecated Use githubUrl() instead
+     */
     public function url(): string
     {
-        return $this->url;
+        return $this->githubUrl;
     }
 
     public function docUrl(): string

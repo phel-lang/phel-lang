@@ -116,7 +116,7 @@ final class DocCommand extends Command
      *   signature: string,
      *   doc: string,
      *   description: string,
-     *   url: string,
+     *   githubUrl: string,
      *   docUrl: string,
      * }>
      */
@@ -137,7 +137,7 @@ final class DocCommand extends Command
                 'signature' => $phelFunction->fnSignature(),
                 'doc' => $phelFunction->doc(),
                 'description' => preg_replace('/\r?\n/', '', $phelFunction->description()),
-                'url' => $phelFunction->url(),
+                'githubUrl' => $phelFunction->githubUrl(),
                 'docUrl' => $phelFunction->docUrl(),
             ];
         }

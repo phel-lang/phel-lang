@@ -58,7 +58,7 @@ final readonly class PhelFnNormalizer implements PhelFnNormalizerInterface
             }
 
             $file = $this->toRelativeFile($file);
-            $url = $this->toGithubUrl($file, $line);
+            $githubUrl = $this->toGithubUrl($file, $line);
 
             $normalizedFns[$groupKey][$fnName] = new PhelFunction(
                 $fnName,
@@ -66,7 +66,7 @@ final readonly class PhelFnNormalizer implements PhelFnNormalizerInterface
                 $matches['fnSignature'] ?? '',
                 $matches['desc'] ?? '',
                 $groupKey,
-                $url,
+                $githubUrl,
                 $docUrl,
                 $file,
                 $line,
@@ -125,7 +125,7 @@ final readonly class PhelFnNormalizer implements PhelFnNormalizerInterface
             $file = $this->toRelativeFile($meta['file'] ?? '');
             $line = $meta['line'] ?? 0;
             $docUrl = $meta['docUrl'] ?? '';
-            $url = $this->toGithubUrl($file, $line);
+            $githubUrl = $this->toGithubUrl($file, $line);
             $fnNs = $this->fnNamespace($name);
 
             $result[] = new PhelFunction(
@@ -134,7 +134,7 @@ final readonly class PhelFnNormalizer implements PhelFnNormalizerInterface
                 $meta['fnSignature'] ?? $originalNormalizedFns[$name]->fnSignature(),
                 $meta['desc'] ?? $originalNormalizedFns[$name]->description(),
                 $this->groupKey($name),
-                $url,
+                $githubUrl,
                 $docUrl,
                 $file,
                 $line,
