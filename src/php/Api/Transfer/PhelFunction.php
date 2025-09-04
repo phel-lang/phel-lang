@@ -17,6 +17,7 @@ final readonly class PhelFunction
         private string $docUrl = '',
         private string $file = '',
         private int $line = 0,
+        private string $docString = '',
     ) {
     }
 
@@ -36,6 +37,7 @@ final readonly class PhelFunction
      *     url?: string, // @deprecated Use githubUrl or docUrl instead
      *     file?: string,
      *     line?: int,
+     *     docString?: string,
      * } $array
      */
     public static function fromArray(array $array): self
@@ -51,6 +53,7 @@ final readonly class PhelFunction
             $array['docUrl'] ?? '',
             $array['file'] ?? '',
             $array['line'] ?? 0,
+            $array['docString'] ?? ''
         );
     }
 
@@ -131,5 +134,10 @@ final readonly class PhelFunction
     public function namespace(): string
     {
         return $this->namespace;
+    }
+    
+    public function docString(): string
+    {
+        return $this->docString;
     }
 }
