@@ -10,6 +10,7 @@ final readonly class PhelFunction
         private string $namespace,
         private string $name,
         private string $doc,
+        private string $rawDoc,
         private string $signature,
         private string $description,
         private string $groupKey = '',
@@ -27,6 +28,7 @@ final readonly class PhelFunction
      *     name?: string,
      *     fnName?: string, // @deprecated Use name instead
      *     doc?: string,
+     *     rawDoc?: string,
      *     signature?: string,
      *     fnSignature?: string, // @deprecated Use signature instead
      *     desc?: string,
@@ -44,6 +46,7 @@ final readonly class PhelFunction
             $array['namespace'] ?? $array['fnNs'] ?? '',
             $array['name'] ?? $array['fnName'] ?? '',
             $array['doc'] ?? '',
+            $array['rawDoc'] ?? '',
             $array['signature'] ?? $array['fnSignature'] ?? '',
             $array['desc'] ?? '',
             $array['groupKey'] ?? '',
@@ -70,6 +73,11 @@ final readonly class PhelFunction
     public function doc(): string
     {
         return $this->doc;
+    }
+
+    public function rawDoc(): string
+    {
+        return $this->rawDoc;
     }
 
     public function fnSignature(): string

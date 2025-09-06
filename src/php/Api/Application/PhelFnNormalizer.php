@@ -46,7 +46,7 @@ final readonly class PhelFnNormalizer implements PhelFnNormalizerInterface
             }
 
             $doc = $meta[Keyword::create('doc')] ?? '';
-            preg_match('#(```phel\n(?<fnSignature>.*)\n```\n)?(?<desc>.*)#s', (string) $doc, $matches);
+            preg_match('#(```phel\n(?<signature>.*)\n```\n)?(?<desc>.*)#s', $doc, $matches);
             $groupKey = $this->groupKey($fnName);
 
             $file = '';
@@ -58,32 +58,33 @@ final readonly class PhelFnNormalizer implements PhelFnNormalizerInterface
                 $line = (int) ($location[Keyword::create('line')] ?? 0);
             }
 
-            $githubUrl = $this->toGithubUrl($file, $line);
-
             $normalizedFns[$groupKey][$fnName] = new PhelFunction(
                 $this->extractNamespace($fnName),
                 $this->extractNameWithoutNamespace($fnName),
                 $doc,
-                $matches['fnSignature'] ?? '',
+                $this->prepareRawDoc($doc),
+                $matches['signature'] ?? '',
                 $matches['desc'] ?? '',
                 $groupKey,
-                $githubUrl,
+                $this->toGithubUrl($file, $line),
                 (string) ($meta[Keyword::create('docUrl')] ?? ''),
                 $file,
                 $line,
             );
         }
 
-        foreach ($normalizedFns as $values) {
+        foreach ($normalizedFns as &$values) {
             usort($values, $this->sortingPhelFunctionsCallback());
         }
 
-        $originalValues = array_values($normalizedFns);
+        unset($values);
 
-        $result = array_merge(
-            $this->normalizeNativeSymbols(array_merge(...$originalValues)),
-            ...$originalValues,
-        );
+        $flattenedFns = array_merge(...array_values($normalizedFns));
+
+        $result = [
+            ...$this->normalizeNativeSymbols($flattenedFns),
+            ...$flattenedFns,
+        ];
 
         usort($result, $this->sortingPhelFunctionsCallback());
 
@@ -138,26 +139,29 @@ final readonly class PhelFnNormalizer implements PhelFnNormalizerInterface
     private function normalizeNativeSymbols(array $originalNormalizedFns): array
     {
         $result = [];
-        foreach ($this->phelFnLoader->getNormalizedNativeSymbols() as $name => $meta) {
-            $file = $this->toRelativeFile($meta['file'] ?? '');
-            $line = $meta['line'] ?? 0;
-            $docUrl = $meta['docUrl'] ?? '';
-            $githubUrl = $this->toGithubUrl($file, $line);
-            $namespace = $this->extractNamespace($name);
-            $shortName = $this->extractNameWithoutNamespace($name);
+        foreach ($this->phelFnLoader->getNormalizedNativeSymbols() as $name => $custom) {
+            // todo: custom file and line not implemented yet
+            $file = $this->toRelativeFile($custom['file'] ?? '');
+            $line = $custom['line'] ?? 0;
 
-            $result[] = new PhelFunction(
-                $namespace,
-                $shortName,
-                $meta['doc'] ?? $originalNormalizedFns[$name]->doc(),
-                $meta['fnSignature'] ?? $originalNormalizedFns[$name]->fnSignature(),
-                $meta['desc'] ?? $originalNormalizedFns[$name]->description(),
+            $original = $originalNormalizedFns[$name] ?? null;
+            $doc = $custom['doc'] ?? $original?->doc() ?? '';
+
+            $phelFunction = new PhelFunction(
+                $this->extractNamespace($name),
+                $this->extractNameWithoutNamespace($name),
+                $doc,
+                $this->prepareRawDoc($doc),
+                $custom['signature'] ?? $original?->signature() ?? '',
+                $custom['desc'] ?? $original?->description() ?? '',
                 $this->groupKey($name),
-                $githubUrl,
-                $docUrl,
+                $this->toGithubUrl($file, $line),
+                $custom['docUrl'] ?? '',
                 $file,
                 $line,
             );
+
+            $result[] = $phelFunction;
         }
 
         return $result;
@@ -186,6 +190,14 @@ final readonly class PhelFnNormalizer implements PhelFnNormalizerInterface
         $result = array_values($filtered);
 
         return $result;
+    }
+
+    private function prepareRawDoc(string $doc): string
+    {
+        $doc = (string) preg_replace('#^```[a-zA-Z]*\r?\n#', '', $doc);
+        $doc = (string) preg_replace('#\r?\n```#', '', $doc);
+
+        return trim($doc);
     }
 
     private function toRelativeFile(string $file): string

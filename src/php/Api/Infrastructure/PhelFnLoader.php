@@ -23,7 +23,7 @@ final readonly class PhelFnLoader implements PhelFnLoaderInterface
 *ns*
 ```
 Returns the namespace in the current scope.',
-            'fnSignature' => '*ns*',
+            'signature' => '*ns*',
             'desc' => 'Returns the namespace in the current scope.',
         ],
         Symbol::NAME_APPLY => [
@@ -32,7 +32,7 @@ Returns the namespace in the current scope.',
 ```
 Calls the function with the given arguments. The last argument must be a list of values, which are passed as separate arguments, rather than a single list. Apply returns the result of the calling function.',
             'docUrl' => '/documentation/functions-and-recursion/#apply-functions',
-            'fnSignature' => '(apply f expr*)',
+            'signature' => '(apply f expr*)',
             'desc' => 'Calls the function with the given arguments. The last argument must be a list of values, which are passed as separate arguments, rather than a single list. Apply returns the result of the calling function.',
         ],
 //      Symbol::NAME_CONCAT => [ # this is already in core.phel:97
@@ -42,7 +42,7 @@ Calls the function with the given arguments. The last argument must be a list of
 ```
 This special form binds a value to a global symbol.',
             'docUrl' => '/documentation/global-and-local-bindings/#definition-def',
-            'fnSignature' => '(def name meta? value)',
+            'signature' => '(def name meta? value)',
             'desc' => 'This special form binds a value to a global symbol.',
         ],
         Symbol::NAME_DEF_STRUCT => [
@@ -51,7 +51,7 @@ This special form binds a value to a global symbol.',
 ```
 A Struct is a special kind of Map. It only supports a predefined number of keys and is associated to a global name. The Struct not only defines itself but also a predicate function.',
             'docUrl' => '/documentation/data-structures/#structs',
-            'fnSignature' => '(defstruct my-struct [a b c])',
+            'signature' => '(defstruct my-struct [a b c])',
             'desc' => 'A Struct is a special kind of Map. It only supports a predefined number of keys and is associated to a global name. The Struct not only defines itself but also a predicate function.',
         ],
         Symbol::NAME_DEF_EXCEPTION => [
@@ -59,7 +59,7 @@ A Struct is a special kind of Map. It only supports a predefined number of keys 
 (defexception my-ex)
 ```',
             'docUrl' => '/documentation/exceptions',
-            'fnSignature' => '(defexception name)',
+            'signature' => '(defexception name)',
             'desc' => 'Defines a new exception.',
         ],
         Symbol::NAME_DO => [
@@ -68,7 +68,7 @@ A Struct is a special kind of Map. It only supports a predefined number of keys 
 ```
 Evaluates the expressions in order and returns the value of the last expression. If no expression is given, nil is returned.',
             'docUrl' => '/documentation/control-flow/#statements-do',
-            'fnSignature' => '(do expr*)',
+            'signature' => '(do expr*)',
             'desc' => 'Evaluates the expressions in order and returns the value of the last expression. If no expression is given, nil is returned.',
         ],
         Symbol::NAME_FN => [
@@ -77,7 +77,7 @@ Evaluates the expressions in order and returns the value of the last expression.
 ```
 Defines a function. A function consists of a list of parameters and a list of expression. The value of the last expression is returned as the result of the function. All other expression are only evaluated for side effects. If no expression is given, the function returns nil.',
             'docUrl' => '/documentation/functions-and-recursion/#anonymous-function-fn',
-            'fnSignature' => '(fn [params*] expr*)',
+            'signature' => '(fn [params*] expr*)',
             'desc' => 'Defines a function. A function consists of a list of parameters and a list of expression. The value of the last expression is returned as the result of the function. All other expression are only evaluated for side effects. If no expression is given, the function returns nil.',
         ],
         'for' => [
@@ -89,7 +89,7 @@ Defines a function. A function consists of a list of parameters and a list of ex
 (foreach [key value valueExpr] expr*)
 ```
 The foreach special form can be used to iterate over all kind of PHP datastructures. The return value of foreach is always nil. The loop special form should be preferred of the foreach special form whenever possible.',
-            'fnSignature' => '(foreach [key value valueExpr] expr*)',
+            'signature' => '(foreach [key value valueExpr] expr*)',
             'desc' => 'The foreach special form can be used to iterate over all kind of PHP datastructures. The return value of foreach is always nil. The loop special form should be preferred of the foreach special form whenever possible.',
             'docUrl' => '/documentation/control-flow/#foreach',
         ],
@@ -101,7 +101,7 @@ A control flow structure. First evaluates test. If test evaluates to true, only 
 
 The test evaluates to false if its value is false or equal to nil. Every other value evaluates to true. In sense of PHP this means (test != null && test !== false).',
             'docUrl' => '/documentation/control-flow/#if',
-            'fnSignature' => '(if test then else?)',
+            'signature' => '(if test then else?)',
             'desc' => 'A control flow structure. First evaluates test. If test evaluates to true, only the then form is evaluated and the result is returned. If test evaluates to false only the else form is evaluated and the result is returned. If no else form is given, nil will be returned.',
         ],
         Symbol::NAME_LET => [
@@ -110,7 +110,7 @@ The test evaluates to false if its value is false or equal to nil. Every other v
 ```
 Creates a new lexical context with assignments defined in bindings. Afterwards the list of expressions is evaluated and the value of the last expression is returned. If no expression is given nil is returned.',
             'docUrl' => '/documentation/global-and-local-bindings/#local-bindings-let',
-            'fnSignature' => '(let [bindings*] expr*)',
+            'signature' => '(let [bindings*] expr*)',
             'desc' => 'Creates a new lexical context with assignments defined in bindings. Afterwards the list of expressions is evaluated and the value of the last expression is returned. If no expression is given nil is returned.',
         ],
         Symbol::NAME_LOOP => [
@@ -118,7 +118,7 @@ Creates a new lexical context with assignments defined in bindings. Afterwards t
 (loop [bindings*] expr*)
 ```
 Creates a new lexical context with variables defined in bindings and defines a recursion point at the top of the loop.',
-            'fnSignature' => '(loop [bindings*] expr*)',
+            'signature' => '(loop [bindings*] expr*)',
             'desc' => 'Creates a new lexical context with variables defined in bindings and defines a recursion point at the top of the loop.',
         ],
         Symbol::NAME_NS => [
@@ -127,7 +127,7 @@ Creates a new lexical context with variables defined in bindings and defines a r
 ```
 Defines the namespace for the current file and adds imports to the environment. Imports can either be uses or requires. The keyword `:use` is used to import PHP classes, the keyword `:require` is used to import Phel modules and the keyword `:require-file` is used to load php files.',
             'docUrl' => '/documentation/namespaces/#namespace-ns',
-            'fnSignature' => '(ns name imports*)',
+            'signature' => '(ns name imports*)',
             'desc' => 'Defines the namespace for the current file and adds imports to the environment. Imports can either be uses or requires. The keyword :use is used to import PHP classes, the keyword :require is used to import Phel modules and the keyword :require-file is used to load php files.',
         ],
         Symbol::NAME_PHP_ARRAY_GET => [
@@ -136,7 +136,7 @@ Defines the namespace for the current file and adds imports to the environment. 
 ```
 Equivalent to PHP\'s `arr[index] ?? null`.',
             'docUrl' => '/documentation/php-interop/#get-php-array-value',
-            'fnSignature' => '(php/aget arr index)',
+            'signature' => '(php/aget arr index)',
             'desc' => "Equivalent to PHP's `arr[index] ?? null`.",
         ],
         Symbol::NAME_PHP_ARRAY_SET => [
@@ -145,7 +145,7 @@ Equivalent to PHP\'s `arr[index] ?? null`.',
 ```
 Equivalent to PHP\'s `arr[index] = value`.',
             'docUrl' => '/documentation/php-interop/#set-php-array-value',
-            'fnSignature' => '(php/aset arr index value)',
+            'signature' => '(php/aset arr index value)',
             'desc' => "Equivalent to PHP's `arr[index] = value`.",
         ],
         Symbol::NAME_PHP_ARRAY_PUSH => [
@@ -154,7 +154,7 @@ Equivalent to PHP\'s `arr[index] = value`.',
 ```
 Equivalent to PHP\'s `arr[] = value`.',
             'docUrl' => '/documentation/php-interop/#append-php-array-value',
-            'fnSignature' => '(php/apush arr value)',
+            'signature' => '(php/apush arr value)',
             'desc' => "Equivalent to PHP's arr[] = value.",
         ],
         Symbol::NAME_PHP_ARRAY_UNSET => [
@@ -163,7 +163,7 @@ Equivalent to PHP\'s `arr[] = value`.',
 ```
 Equivalent to PHP\'s `unset(arr[index])`.',
             'docUrl' => '/documentation/php-interop/#unset-php-array-value',
-            'fnSignature' => '(php/aunset arr index)',
+            'signature' => '(php/aunset arr index)',
             'desc' => "Equivalent to PHP's `unset(arr[index])`.",
         ],
         Symbol::NAME_PHP_NEW => [
@@ -172,7 +172,7 @@ Equivalent to PHP\'s `unset(arr[index])`.',
 ```
 Evaluates expr and creates a new PHP class using the arguments. The instance of the class is returned.',
             'docUrl' => '/documentation/php-interop/#php-class-instantiation',
-            'fnSignature' => '(php/new expr args*)',
+            'signature' => '(php/new expr args*)',
             'desc' => 'Evaluates expr and creates a new PHP class using the arguments. The instance of the class is returned.',
         ],
         Symbol::NAME_PHP_OBJECT_CALL => [
@@ -182,7 +182,7 @@ Evaluates expr and creates a new PHP class using the arguments. The instance of 
 ```
 Access to an object property or result of chained calls.',
             'docUrl' => '/documentation/php-interop/#php-set-object-properties',
-            'fnSignature' => '(php/-> object call*)',
+            'signature' => '(php/-> object call*)',
             'desc' => 'Access to an object property or result of chained calls.',
         ],
         Symbol::NAME_PHP_OBJECT_STATIC_CALL => [
@@ -193,14 +193,14 @@ Access to an object property or result of chained calls.',
 
 Calls a static method or property from a PHP class. Both methodname and property must be symbols and cannot be an evaluated value.',
             'docUrl' => '/documentation/php-interop/#php-static-method-and-property-call',
-            'fnSignature' => '(php/:: class call*)',
+            'signature' => '(php/:: class call*)',
             'desc' => 'Calls a static method or property from a PHP class. Both methodname and property must be symbols and cannot be an evaluated value.',
         ],
         Symbol::NAME_QUOTE => [
             'doc' => '```phel
 (NAME_QUOTE)
 ```',
-            'fnSignature' => '(NAME_QUOTE)',
+            'signature' => '(NAME_QUOTE)',
             'desc' => 'NAME_QUOTE description',
         ],
         Symbol::NAME_RECUR => [
@@ -209,7 +209,7 @@ Calls a static method or property from a PHP class. Both methodname and property
 Internally recur is implemented as a PHP while loop and therefore prevents the Maximum function nesting level errors..
 ```',
             'docUrl' => '/documentation/global-and-local-bindings/#local-bindings-let',
-            'fnSignature' => '(recur expr*)',
+            'signature' => '(recur expr*)',
             'desc' => 'Internally recur is implemented as a PHP while loop and therefore prevents the Maximum function nesting level errors.',
         ],
         Symbol::NAME_UNQUOTE => [
@@ -219,7 +219,7 @@ Internally recur is implemented as a PHP while loop and therefore prevents the M
 ```
 Values that should be evaluated in a macro are marked with the unquote function (shorthand `,`).',
             'docUrl' => '/documentation/macros/#quasiquote',
-            'fnSignature' => '(unquote my-sym)',
+            'signature' => '(unquote my-sym)',
             'desc' => 'Values that should be evaluated in a macro are marked with the unquote function (shorthand ,).',
         ],
         Symbol::NAME_UNQUOTE_SPLICING => [
@@ -229,7 +229,7 @@ Values that should be evaluated in a macro are marked with the unquote function 
 ```
 Values that should be evaluated in a macro are marked with the unquote function (shorthand `,@`).',
             'docUrl' => '/documentation/macros/#quasiquote',
-            'fnSignature' => '(unquote-splicing my-sym)',
+            'signature' => '(unquote-splicing my-sym)',
             'desc' => 'Values that should be evaluated in a macro are marked with the unquote function (shorthand ,@).',
         ],
         Symbol::NAME_THROW => [
@@ -239,7 +239,7 @@ Values that should be evaluated in a macro are marked with the unquote function 
 Throw an exception.
 See [try-catch](/documentation/control-flow/#try-catch-and-finally).',
             'docUrl' => '',
-            'fnSignature' => '(throw exception)',
+            'signature' => '(throw exception)',
             'desc' => 'Throw an exception.',
         ],
         Symbol::NAME_TRY => [
@@ -248,7 +248,7 @@ See [try-catch](/documentation/control-flow/#try-catch-and-finally).',
 ```
 All expressions are evaluated and if no exception is thrown the value of the last expression is returned. If an exception occurs and a matching catch-clause is provided, its expression is evaluated and the value is returned. If no matching catch-clause can be found the exception is propagated out of the function. Before returning normally or abnormally the optionally finally-clause is evaluated.',
             'docUrl' => '/documentation/control-flow/#try-catch-and-finally',
-            'fnSignature' => '(try expr* catch-clause* finally-clause?)',
+            'signature' => '(try expr* catch-clause* finally-clause?)',
             'desc' => 'All expressions are evaluated and if no exception is thrown the value of the last expression is returned. If an exception occurs and a matching catch-clause is provided, its expression is evaluated and the value is returned. If no matching catch-clause can be found the exception is propagated out of the function. Before returning normally or abnormally the optionally finally-clause is evaluated.',
         ],
         Symbol::NAME_PHP_OBJECT_SET => [
@@ -258,7 +258,7 @@ All expressions are evaluated and if no exception is thrown the value of the las
 ```
 Use `php/oset` to set a value to a class/object property.',
             'docUrl' => '/documentation/php-interop/#php-set-object-properties',
-            'fnSignature' => '(php/oset (php/-> object prop) val)',
+            'signature' => '(php/oset (php/-> object prop) val)',
             'desc' => 'Use `php/oset` to set a value to a class/object property.',
         ],
         Symbol::NAME_LIST => [ # overriding already defined at core.phel:50
@@ -267,7 +267,7 @@ Use `php/oset` to set a value to a class/object property.',
 ```
 Creates a new list. If no argument is provided, an empty list is created.',
             'docUrl' => '/documentation/data-structures/#lists',
-            'fnSignature' => "(list & xs) # '(& xs)",
+            'signature' => "(list & xs) # '(& xs)",
             'desc' => 'Creates a new list. If no argument is provided, an empty list is created.',
         ],
         Symbol::NAME_VECTOR => [ # overridden already defined at core.phel:54
@@ -276,7 +276,7 @@ Creates a new list. If no argument is provided, an empty list is created.',
 ```
 Creates a new vector. If no argument is provided, an empty vector is created.',
             'docUrl' => '/documentation/data-structures/#vectors',
-            'fnSignature' => '(vector & xs) # [& xs]',
+            'signature' => '(vector & xs) # [& xs]',
             'desc' => 'Creates a new vector. If no argument is provided, an empty vector is created.',
         ],
         Symbol::NAME_MAP => [ # overridden already defined at core.phel:58
@@ -285,7 +285,7 @@ Creates a new vector. If no argument is provided, an empty vector is created.',
 ```
 Creates a new hash map. If no argument is provided, an empty hash map is created. The number of parameters must be even.',
             'docUrl' => '/documentation/data-structures/#maps',
-            'fnSignature' => '(hash-map & xs) # {& xs}',
+            'signature' => '(hash-map & xs) # {& xs}',
             'desc' => 'Creates a new hash map. If no argument is provided, an empty hash map is created. The number of parameters must be even.',
         ],
         Symbol::NAME_SET_VAR => [
@@ -294,7 +294,7 @@ Creates a new hash map. If no argument is provided, an empty hash map is created
 ```
 Variables provide a way to manage mutable state. Each variable contains a single value. To create a variable use the var function.',
             'docUrl' => '/documentation/global-and-local-bindings/#variables',
-            'fnSignature' => '(var value)',
+            'signature' => '(var value)',
             'desc' => 'Variables provide a way to manage mutable state. Each variable contains a single value. To create a variable use the var function.',
         ],
         Symbol::NAME_DEF_INTERFACE => [ # overridden
@@ -303,7 +303,7 @@ Variables provide a way to manage mutable state. Each variable contains a single
 ```
 An interface in Phel defines an abstract set of functions. It is directly mapped to a PHP interface. An interface can be defined by using the definterface macro.',
             'docUrl' => '/documentation/interfaces/#defining-interfaces',
-            'fnSignature' => '(definterface name & fns)',
+            'signature' => '(definterface name & fns)',
             'desc' => 'An interface in Phel defines an abstract set of functions. It is directly mapped to a PHP interface. An interface can be defined by using the definterface macro.',
         ],
     ];

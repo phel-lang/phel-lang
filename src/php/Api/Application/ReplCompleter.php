@@ -11,7 +11,6 @@ use Phel\Lang\FnInterface;
 
 use function get_declared_classes;
 use function get_defined_functions;
-use function sprintf;
 use function str_starts_with;
 use function trim;
 
@@ -114,7 +113,9 @@ final class ReplCompleter implements ReplCompleterInterface
                     continue;
                 }
 
-                $qualifiedName = ($namespace === 'phel\\core') ? $name : sprintf('%s\\%s', $namespace, $name);
+                $qualifiedName = $namespace === 'phel\\core'
+                    ? $name
+                    : $namespace . '\\' . $name;
                 if (str_starts_with($qualifiedName, $input)) {
                     $matches[] = $qualifiedName;
                 }
