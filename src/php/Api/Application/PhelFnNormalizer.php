@@ -46,7 +46,7 @@ final readonly class PhelFnNormalizer implements PhelFnNormalizerInterface
             }
 
             $doc = $meta[Keyword::create('doc')] ?? '';
-            preg_match('#(```phel\n(?<fnSignature>.*)\n```\n)?(?<desc>.*)#s', (string) $doc, $matches);
+            preg_match('#(```phel\n(?<signature>.*)\n```\n)?(?<desc>.*)#s', $doc, $matches);
             $groupKey = $this->groupKey($fnName);
 
             $file = '';
@@ -64,7 +64,7 @@ final readonly class PhelFnNormalizer implements PhelFnNormalizerInterface
                 $this->extractNamespace($fnName),
                 $this->extractNameWithoutNamespace($fnName),
                 $doc,
-                $matches['fnSignature'] ?? '',
+                $matches['signature'] ?? '',
                 $matches['desc'] ?? '',
                 $groupKey,
                 $githubUrl,
@@ -141,23 +141,21 @@ final readonly class PhelFnNormalizer implements PhelFnNormalizerInterface
         foreach ($this->phelFnLoader->getNormalizedNativeSymbols() as $name => $meta) {
             $file = $this->toRelativeFile($meta['file'] ?? '');
             $line = $meta['line'] ?? 0;
-            $docUrl = $meta['docUrl'] ?? '';
-            $githubUrl = $this->toGithubUrl($file, $line);
-            $namespace = $this->extractNamespace($name);
-            $shortName = $this->extractNameWithoutNamespace($name);
 
-            $result[] = new PhelFunction(
-                $namespace,
-                $shortName,
+            $phelFunction = new PhelFunction(
+                $this->extractNamespace($name),
+                $this->extractNameWithoutNamespace($name),
                 $meta['doc'] ?? $originalNormalizedFns[$name]->doc(),
-                $meta['fnSignature'] ?? $originalNormalizedFns[$name]->fnSignature(),
+                $meta['signature'] ?? $originalNormalizedFns[$name]->signature(),
                 $meta['desc'] ?? $originalNormalizedFns[$name]->description(),
                 $this->groupKey($name),
-                $githubUrl,
-                $docUrl,
+                $this->toGithubUrl($file, $line),
+                $meta['docUrl'] ?? '',
                 $file,
                 $line,
             );
+
+            $result[] = $phelFunction;
         }
 
         return $result;

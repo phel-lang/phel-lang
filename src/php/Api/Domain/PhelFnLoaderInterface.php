@@ -18,7 +18,7 @@ interface PhelFnLoaderInterface
     /**
      * @return array<string,array{
      *     doc?: string,
-     *     fnSignature?: string,
+     *     signature?: string,
      *     desc?: string,
      *     docUrl?: string,
      * }>
