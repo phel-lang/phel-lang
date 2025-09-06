@@ -73,16 +73,18 @@ final readonly class PhelFnNormalizer implements PhelFnNormalizerInterface
             );
         }
 
-        foreach ($normalizedFns as $values) {
+        foreach ($normalizedFns as &$values) {
             usort($values, $this->sortingPhelFunctionsCallback());
         }
 
-        $originalValues = array_values($normalizedFns);
+        unset($values);
 
-        $result = array_merge(
-            $this->normalizeNativeSymbols(array_merge(...$originalValues)),
-            ...$originalValues,
-        );
+        $flattenedFns = array_merge(...array_values($normalizedFns));
+
+        $result = [
+            ...$this->normalizeNativeSymbols($flattenedFns),
+            ...$flattenedFns,
+        ];
 
         usort($result, $this->sortingPhelFunctionsCallback());
 
@@ -137,22 +139,24 @@ final readonly class PhelFnNormalizer implements PhelFnNormalizerInterface
     private function normalizeNativeSymbols(array $originalNormalizedFns): array
     {
         $result = [];
-        foreach ($this->phelFnLoader->getNormalizedNativeSymbols() as $name => $meta) {
-            $file = $this->toRelativeFile($meta['file'] ?? '');
-            $line = $meta['line'] ?? 0;
+        foreach ($this->phelFnLoader->getNormalizedNativeSymbols() as $name => $custom) {
+            // todo: custom file and line not implemented yet
+            $file = $this->toRelativeFile($custom['file'] ?? '');
+            $line = $custom['line'] ?? 0;
 
-            $doc = $meta['doc'] ?? $originalNormalizedFns[$name]->doc();
+            $original = $originalNormalizedFns[$name] ?? null;
+            $doc = $custom['doc'] ?? $original?->doc() ?? '';
 
             $phelFunction = new PhelFunction(
                 $this->extractNamespace($name),
                 $this->extractNameWithoutNamespace($name),
                 $doc,
                 $this->prepareRawDoc($doc),
-                $meta['signature'] ?? $originalNormalizedFns[$name]->signature(),
-                $meta['desc'] ?? $originalNormalizedFns[$name]->description(),
+                $custom['signature'] ?? $original?->signature() ?? '',
+                $custom['desc'] ?? $original?->description() ?? '',
                 $this->groupKey($name),
                 $this->toGithubUrl($file, $line),
-                $meta['docUrl'] ?? '',
+                $custom['docUrl'] ?? '',
                 $file,
                 $line,
             );
