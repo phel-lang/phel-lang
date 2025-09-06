@@ -58,16 +58,15 @@ final readonly class PhelFnNormalizer implements PhelFnNormalizerInterface
                 $line = (int) ($location[Keyword::create('line')] ?? 0);
             }
 
-            $githubUrl = $this->toGithubUrl($file, $line);
-
             $normalizedFns[$groupKey][$fnName] = new PhelFunction(
                 $this->extractNamespace($fnName),
                 $this->extractNameWithoutNamespace($fnName),
                 $doc,
+                $this->prepareRawDoc($doc),
                 $matches['signature'] ?? '',
                 $matches['desc'] ?? '',
                 $groupKey,
-                $githubUrl,
+                $this->toGithubUrl($file, $line),
                 (string) ($meta[Keyword::create('docUrl')] ?? ''),
                 $file,
                 $line,
@@ -142,10 +141,13 @@ final readonly class PhelFnNormalizer implements PhelFnNormalizerInterface
             $file = $this->toRelativeFile($meta['file'] ?? '');
             $line = $meta['line'] ?? 0;
 
+            $doc = $meta['doc'] ?? $originalNormalizedFns[$name]->doc();
+
             $phelFunction = new PhelFunction(
                 $this->extractNamespace($name),
                 $this->extractNameWithoutNamespace($name),
-                $meta['doc'] ?? $originalNormalizedFns[$name]->doc(),
+                $doc,
+                $this->prepareRawDoc($doc),
                 $meta['signature'] ?? $originalNormalizedFns[$name]->signature(),
                 $meta['desc'] ?? $originalNormalizedFns[$name]->description(),
                 $this->groupKey($name),
@@ -184,6 +186,14 @@ final readonly class PhelFnNormalizer implements PhelFnNormalizerInterface
         $result = array_values($filtered);
 
         return $result;
+    }
+
+    private function prepareRawDoc(string $doc): string
+    {
+        $doc = (string) preg_replace('#^```[a-zA-Z]*\r?\n#', '', $doc);
+        $doc = (string) preg_replace('#\r?\n```#', '', $doc);
+
+        return trim($doc);
     }
 
     private function toRelativeFile(string $file): string
