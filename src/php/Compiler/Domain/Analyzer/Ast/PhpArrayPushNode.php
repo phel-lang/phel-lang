@@ -12,6 +12,8 @@ final class PhpArrayPushNode extends AbstractNode
     public function __construct(
         NodeEnvironmentInterface $env,
         private readonly AbstractNode $arrayExpr,
+        /** @var list<AbstractNode> */
+        private readonly array $accessExprs,
         private readonly AbstractNode $valueExpr,
         ?SourceLocation $sourceLocation = null,
     ) {
@@ -21,6 +23,14 @@ final class PhpArrayPushNode extends AbstractNode
     public function getArrayExpr(): AbstractNode
     {
         return $this->arrayExpr;
+    }
+
+    /**
+     * @return list<AbstractNode>
+     */
+    public function getAccessExprs(): array
+    {
+        return $this->accessExprs;
     }
 
     public function getValueExpr(): AbstractNode

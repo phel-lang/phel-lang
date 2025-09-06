@@ -9,6 +9,7 @@ use Phel\Compiler\Domain\Analyzer\Ast\PhpArrayUnsetNode;
 use Phel\Compiler\Domain\Emitter\OutputEmitter\NodeEmitterInterface;
 
 use function assert;
+use function count;
 
 final class PhpArrayUnsetEmitter implements NodeEmitterInterface
 {
@@ -21,9 +22,15 @@ final class PhpArrayUnsetEmitter implements NodeEmitterInterface
         $this->outputEmitter->emitContextPrefix($node->getEnv(), $node->getStartSourceLocation());
         $this->outputEmitter->emitStr('unset((', $node->getStartSourceLocation());
         $this->outputEmitter->emitNode($node->getArrayExpr());
-        $this->outputEmitter->emitStr(')[(', $node->getStartSourceLocation());
-        $this->outputEmitter->emitNode($node->getAccessExpr());
-        $this->outputEmitter->emitStr(')])', $node->getStartSourceLocation());
+
+        $accessExprs = $node->getAccessExprs();
+        foreach ($accessExprs as $i => $accessExpr) {
+            $isLast = $i === count($accessExprs) - 1;
+            $this->outputEmitter->emitStr($i === 0 ? ')[(' : '[(', $node->getStartSourceLocation());
+            $this->outputEmitter->emitNode($accessExpr);
+            $this->outputEmitter->emitStr($isLast ? ')])' : ')]', $node->getStartSourceLocation());
+        }
+
         $this->outputEmitter->emitContextSuffix($node->getEnv(), $node->getStartSourceLocation());
     }
 }

@@ -12,7 +12,8 @@ final class PhpArraySetNode extends AbstractNode
     public function __construct(
         NodeEnvironmentInterface $env,
         private readonly AbstractNode $arrayExpr,
-        private readonly AbstractNode $accessExpr,
+        /** @var list<AbstractNode> */
+        private readonly array $accessExprs,
         private readonly AbstractNode $valueExpr,
         ?SourceLocation $sourceLocation = null,
     ) {
@@ -24,9 +25,12 @@ final class PhpArraySetNode extends AbstractNode
         return $this->arrayExpr;
     }
 
-    public function getAccessExpr(): AbstractNode
+    /**
+     * @return list<AbstractNode>
+     */
+    public function getAccessExprs(): array
     {
-        return $this->accessExpr;
+        return $this->accessExprs;
     }
 
     public function getValueExpr(): AbstractNode

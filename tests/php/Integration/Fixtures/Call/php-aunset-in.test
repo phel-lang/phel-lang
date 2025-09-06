@@ -1,0 +1,6 @@
+--PHEL--
+(let [arr (php/array (php/array 1 2))]
+  (php/aunset-in arr [0 1]))
+--PHP--
+$arr_1 = array(array(1, 2));
+unset(($arr_1)[(0)][(1)]);

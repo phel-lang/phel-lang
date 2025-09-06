@@ -1,0 +1,4 @@
+--PHEL--
+(php/aget-in (php/array (php/array 1)) [0 0])
+--PHP--
+((array(array(1)))[(0)][(0)] ?? null);

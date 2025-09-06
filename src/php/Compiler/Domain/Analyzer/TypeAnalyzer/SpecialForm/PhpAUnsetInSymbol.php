@@ -10,8 +10,11 @@ use Phel\Compiler\Domain\Analyzer\Environment\NodeEnvironmentInterface;
 use Phel\Compiler\Domain\Analyzer\Exceptions\AnalyzerException;
 use Phel\Compiler\Domain\Analyzer\TypeAnalyzer\WithAnalyzerTrait;
 use Phel\Lang\Collections\LinkedList\PersistentListInterface;
+use Traversable;
 
-final class PhpAUnsetSymbol implements SpecialFormAnalyzerInterface
+use function assert;
+
+final class PhpAUnsetInSymbol implements SpecialFormAnalyzerInterface
 {
     use WithAnalyzerTrait;
 
@@ -21,12 +24,18 @@ final class PhpAUnsetSymbol implements SpecialFormAnalyzerInterface
             throw AnalyzerException::withLocation("'php/unset can only be called as Statement and not as Expression", $list);
         }
 
+        $keys = $list->get(2);
+        assert($keys instanceof Traversable);
+
+        $accessExprs = [];
+        foreach ($keys as $k) {
+            $accessExprs[] = $this->analyzer->analyze($k, $env->withExpressionContext());
+        }
+
         return new PhpArrayUnsetNode(
             $env,
             $this->analyzer->analyze($list->get(1), $env->withExpressionContext()->withUseGlobalReference(true)),
-            [
-                $this->analyzer->analyze($list->get(2), $env->withExpressionContext()),
-            ],
+            $accessExprs,
             $list->getStartLocation(),
         );
     }

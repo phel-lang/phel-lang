@@ -21,7 +21,20 @@ final class PhpArrayPushEmitter implements NodeEmitterInterface
         $this->outputEmitter->emitContextPrefix($node->getEnv(), $node->getStartSourceLocation());
         $this->outputEmitter->emitStr('(', $node->getStartSourceLocation());
         $this->outputEmitter->emitNode($node->getArrayExpr());
-        $this->outputEmitter->emitStr(')[] = ', $node->getStartSourceLocation());
+
+        $accessExprs = $node->getAccessExprs();
+        if ($accessExprs === []) {
+            $this->outputEmitter->emitStr(')[] = ', $node->getStartSourceLocation());
+        } else {
+            foreach ($accessExprs as $i => $accessExpr) {
+                $this->outputEmitter->emitStr($i === 0 ? ')[(' : '[(', $node->getStartSourceLocation());
+                $this->outputEmitter->emitNode($accessExpr);
+                $this->outputEmitter->emitStr(')]', $node->getStartSourceLocation());
+            }
+
+            $this->outputEmitter->emitStr('[] = ', $node->getStartSourceLocation());
+        }
+
         $this->outputEmitter->emitNode($node->getValueExpr());
         $this->outputEmitter->emitContextSuffix($node->getEnv(), $node->getStartSourceLocation());
     }

@@ -1,0 +1,6 @@
+--PHEL--
+(let [arr (php/array (php/array))]
+  (php/aset-in arr [0 0] 1))
+--PHP--
+$arr_1 = array(array());
+($arr_1)[(0)][(0)] = 1;
