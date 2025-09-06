@@ -4,6 +4,11 @@ All notable changes to this project will be documented in this file.
 
 ## Unreleased
 
+- Add new array functions with nested lookup
+    - php/aget-in
+    - php/aset-in
+    - php/aunset-in
+    - php/apush-in
 - Generate relative file paths and GitHub URLs for Phel functions
 - Improve public Api module
     - Add new methods and remove deprecated ones from PhelFunction

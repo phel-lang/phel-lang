@@ -25,6 +25,25 @@
   (php/apush testing-push-global-array 4)
   (is (= (php/array 1 2 3 4) testing-push-global-array) "native global push on PHP array"))
 
+(deftest test-native-array-aget-in
+  (let [arr (php/array (php/array 1 2 3))]
+    (is (= 2 (php/aget-in arr [0 1])) "nested php array get")))
+
+(deftest test-native-array-aset-in
+  (let [arr (php/array (php/array 1 2 3))]
+    (php/aset-in arr [0 1] 4)
+    (is (= (php/array (php/array 1 4 3)) arr) "nested php array set")))
+
+(deftest test-native-array-aunset-in
+  (let [arr (php/array (php/array 1 2 3))]
+    (php/aunset-in arr [0 2])
+    (is (= (php/array (php/array 1 2)) arr) "nested php array unset")))
+
+(deftest test-native-array-apush-in
+  (let [arr (php/array (php/array 1 2))]
+    (php/apush-in arr [0] 3)
+    (is (= (php/array (php/array 1 2 3)) arr) "nested php array push")))
+
 (deftest test-push
   (let [x (php/array)]
     (php/apush x 1)

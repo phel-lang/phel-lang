@@ -139,6 +139,15 @@ Equivalent to PHP\'s `arr[index] ?? null`.',
             'signature' => '(php/aget arr index)',
             'desc' => "Equivalent to PHP's `arr[index] ?? null`.",
         ],
+        Symbol::NAME_PHP_ARRAY_GET_IN => [
+            'doc' => '```phel
+(php/aget-in arr ks)
+```
+Equivalent to PHP\'s `arr[k1][k2][k...] ?? null`.',
+            'docUrl' => '/documentation/php-interop/#get-php-array-value',
+            'signature' => '(php/aget-in arr ks)',
+            'desc' => "Equivalent to PHP's `arr[k1][k2][k...] ?? null`.",
+        ],
         Symbol::NAME_PHP_ARRAY_SET => [
             'doc' => '```phel
 (php/aset arr index value)
@@ -147,6 +156,15 @@ Equivalent to PHP\'s `arr[index] = value`.',
             'docUrl' => '/documentation/php-interop/#set-php-array-value',
             'signature' => '(php/aset arr index value)',
             'desc' => "Equivalent to PHP's `arr[index] = value`.",
+        ],
+        Symbol::NAME_PHP_ARRAY_SET_IN => [
+            'doc' => '```phel
+(php/aset-in arr ks value)
+```
+Equivalent to PHP\'s `arr[k1][k2][k...] = value`.',
+            'docUrl' => '/documentation/php-interop/#set-php-array-value',
+            'signature' => '(php/aset-in arr ks value)',
+            'desc' => "Equivalent to PHP's `arr[k1][k2][k...] = value`.",
         ],
         Symbol::NAME_PHP_ARRAY_PUSH => [
             'doc' => '```phel
@@ -157,6 +175,15 @@ Equivalent to PHP\'s `arr[] = value`.',
             'signature' => '(php/apush arr value)',
             'desc' => "Equivalent to PHP's arr[] = value.",
         ],
+        Symbol::NAME_PHP_ARRAY_PUSH_IN => [
+            'doc' => '```phel
+(php/apush-in arr ks value)
+```
+Equivalent to PHP\'s `arr[k1][k2][k...][] = value`.',
+            'docUrl' => '/documentation/php-interop/#append-php-array-value',
+            'signature' => '(php/apush-in arr ks value)',
+            'desc' => "Equivalent to PHP's `arr[k1][k2][k...][] = value`.",
+        ],
         Symbol::NAME_PHP_ARRAY_UNSET => [
             'doc' => '```phel
 (php/aunset arr index)
@@ -165,6 +192,15 @@ Equivalent to PHP\'s `unset(arr[index])`.',
             'docUrl' => '/documentation/php-interop/#unset-php-array-value',
             'signature' => '(php/aunset arr index)',
             'desc' => "Equivalent to PHP's `unset(arr[index])`.",
+        ],
+        Symbol::NAME_PHP_ARRAY_UNSET_IN => [
+            'doc' => '```phel
+(php/aunset-in arr ks)
+```
+Equivalent to PHP\'s `unset(arr[k1][k2][k...])`.',
+            'docUrl' => '/documentation/php-interop/#unset-php-array-value',
+            'signature' => '(php/aunset-in arr ks)',
+            'desc' => "Equivalent to PHP's `unset(arr[k1][k2][k...])`.",
         ],
         Symbol::NAME_PHP_NEW => [
             'doc' => '```phel

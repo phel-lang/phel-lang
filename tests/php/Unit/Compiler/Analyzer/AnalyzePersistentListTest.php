@@ -158,12 +158,39 @@ final class AnalyzePersistentListTest extends TestCase
         );
     }
 
+    public function test_symbol_with_name_php_array_get_in(): void
+    {
+        $list = Phel::list([
+            Symbol::create(Symbol::NAME_PHP_ARRAY_GET_IN),
+            Phel::list([Symbol::create('php/array')]),
+            Phel::vector([0, 1]),
+        ]);
+        self::assertInstanceOf(
+            PhpArrayGetNode::class,
+            $this->listAnalyzer->analyze($list, NodeEnvironment::empty()),
+        );
+    }
+
     public function test_symbol_with_name_php_array_set(): void
     {
         $list = Phel::list([
             Symbol::create(Symbol::NAME_PHP_ARRAY_SET),
             Phel::list([Symbol::create('php/array')]),
             0,
+            1,
+        ]);
+        self::assertInstanceOf(
+            PhpArraySetNode::class,
+            $this->listAnalyzer->analyze($list, NodeEnvironment::empty()),
+        );
+    }
+
+    public function test_symbol_with_name_php_array_set_in(): void
+    {
+        $list = Phel::list([
+            Symbol::create(Symbol::NAME_PHP_ARRAY_SET_IN),
+            Phel::list([Symbol::create('php/array')]),
+            Phel::vector([0, 1]),
             1,
         ]);
         self::assertInstanceOf(
@@ -185,12 +212,39 @@ final class AnalyzePersistentListTest extends TestCase
         );
     }
 
+    public function test_symbol_with_name_php_array_push_in(): void
+    {
+        $list = Phel::list([
+            Symbol::create(Symbol::NAME_PHP_ARRAY_PUSH_IN),
+            Phel::list([Symbol::create('php/array')]),
+            Phel::vector([0]),
+            1,
+        ]);
+        self::assertInstanceOf(
+            PhpArrayPushNode::class,
+            $this->listAnalyzer->analyze($list, NodeEnvironment::empty()),
+        );
+    }
+
     public function test_symbol_with_name_php_array_unset(): void
     {
         $list = Phel::list([
             Symbol::create(Symbol::NAME_PHP_ARRAY_UNSET),
             Phel::list([Symbol::create('php/array')]),
             0,
+        ]);
+        self::assertInstanceOf(
+            PhpArrayUnsetNode::class,
+            $this->listAnalyzer->analyze($list, NodeEnvironment::empty()),
+        );
+    }
+
+    public function test_symbol_with_name_php_array_unset_in(): void
+    {
+        $list = Phel::list([
+            Symbol::create(Symbol::NAME_PHP_ARRAY_UNSET_IN),
+            Phel::list([Symbol::create('php/array')]),
+            Phel::vector([0, 1]),
         ]);
         self::assertInstanceOf(
             PhpArrayUnsetNode::class,

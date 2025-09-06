@@ -38,6 +38,14 @@ final class Symbol extends AbstractType implements IdenticalInterface, NamedInte
 
     public const string NAME_PHP_ARRAY_UNSET = 'php/aunset';
 
+    public const string NAME_PHP_ARRAY_GET_IN = 'php/aget-in';
+
+    public const string NAME_PHP_ARRAY_PUSH_IN = 'php/apush-in';
+
+    public const string NAME_PHP_ARRAY_SET_IN = 'php/aset-in';
+
+    public const string NAME_PHP_ARRAY_UNSET_IN = 'php/aunset-in';
+
     public const string NAME_PHP_NEW = 'php/new';
 
     public const string NAME_PHP_OBJECT_CALL = 'php/->';

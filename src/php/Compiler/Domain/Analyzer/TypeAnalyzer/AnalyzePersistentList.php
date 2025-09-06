@@ -23,9 +23,13 @@ use Phel\Compiler\Domain\Analyzer\TypeAnalyzer\SpecialForm\InvokeSymbol;
 use Phel\Compiler\Domain\Analyzer\TypeAnalyzer\SpecialForm\LetSymbol;
 use Phel\Compiler\Domain\Analyzer\TypeAnalyzer\SpecialForm\LoopSymbol;
 use Phel\Compiler\Domain\Analyzer\TypeAnalyzer\SpecialForm\NsSymbol;
+use Phel\Compiler\Domain\Analyzer\TypeAnalyzer\SpecialForm\PhpAGetInSymbol;
 use Phel\Compiler\Domain\Analyzer\TypeAnalyzer\SpecialForm\PhpAGetSymbol;
+use Phel\Compiler\Domain\Analyzer\TypeAnalyzer\SpecialForm\PhpAPushInSymbol;
 use Phel\Compiler\Domain\Analyzer\TypeAnalyzer\SpecialForm\PhpAPushSymbol;
+use Phel\Compiler\Domain\Analyzer\TypeAnalyzer\SpecialForm\PhpASetInSymbol;
 use Phel\Compiler\Domain\Analyzer\TypeAnalyzer\SpecialForm\PhpASetSymbol;
+use Phel\Compiler\Domain\Analyzer\TypeAnalyzer\SpecialForm\PhpAUnsetInSymbol;
 use Phel\Compiler\Domain\Analyzer\TypeAnalyzer\SpecialForm\PhpAUnsetSymbol;
 use Phel\Compiler\Domain\Analyzer\TypeAnalyzer\SpecialForm\PhpNewSymbol;
 use Phel\Compiler\Domain\Analyzer\TypeAnalyzer\SpecialForm\PhpObjectCallSymbol;
@@ -80,9 +84,13 @@ final class AnalyzePersistentList
             Symbol::NAME_PHP_OBJECT_CALL => new PhpObjectCallSymbol($this->analyzer, isStatic: false),
             Symbol::NAME_PHP_OBJECT_STATIC_CALL => new PhpObjectCallSymbol($this->analyzer, isStatic: true),
             Symbol::NAME_PHP_ARRAY_GET => new PhpAGetSymbol($this->analyzer),
+            Symbol::NAME_PHP_ARRAY_GET_IN => new PhpAGetInSymbol($this->analyzer),
             Symbol::NAME_PHP_ARRAY_SET => new PhpASetSymbol($this->analyzer),
+            Symbol::NAME_PHP_ARRAY_SET_IN => new PhpASetInSymbol($this->analyzer),
             Symbol::NAME_PHP_ARRAY_PUSH => new PhpAPushSymbol($this->analyzer),
+            Symbol::NAME_PHP_ARRAY_PUSH_IN => new PhpAPushInSymbol($this->analyzer),
             Symbol::NAME_PHP_ARRAY_UNSET => new PhpAUnsetSymbol($this->analyzer),
+            Symbol::NAME_PHP_ARRAY_UNSET_IN => new PhpAUnsetInSymbol($this->analyzer),
             Symbol::NAME_RECUR => new RecurSymbol($this->analyzer),
             Symbol::NAME_TRY => new TrySymbol($this->analyzer),
             Symbol::NAME_THROW => new ThrowSymbol($this->analyzer),
