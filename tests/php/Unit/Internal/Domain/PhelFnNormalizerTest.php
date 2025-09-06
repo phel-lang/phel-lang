@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace PhelTest\Unit\Internal\Domain;
 
 use Phel;
+use Phel\Api\Application\PhelFnGroupKeyGenerator;
 use Phel\Api\Application\PhelFnNormalizer;
 use Phel\Api\Domain\PhelFnLoaderInterface;
 use Phel\Api\Transfer\PhelFunction;
@@ -19,7 +20,7 @@ final class PhelFnNormalizerTest extends TestCase
         $phelFnLoader = $this->createMock(PhelFnLoaderInterface::class);
         $phelFnLoader->method('getNormalizedPhelFunctions')->willReturn([]);
 
-        $normalizer = new PhelFnNormalizer($phelFnLoader);
+        $normalizer = new PhelFnNormalizer($phelFnLoader, new PhelFnGroupKeyGenerator());
         $actual = $normalizer->getPhelFunctions();
 
         self::assertSame([], $actual);
@@ -32,7 +33,7 @@ final class PhelFnNormalizerTest extends TestCase
             'fn-name' => $this->createMock(PersistentMapInterface::class),
         ]);
 
-        $normalizer = new PhelFnNormalizer($phelFnLoader);
+        $normalizer = new PhelFnNormalizer($phelFnLoader, new PhelFnGroupKeyGenerator());
         $actual = $normalizer->getPhelFunctions();
 
         $expected = [
@@ -57,7 +58,7 @@ final class PhelFnNormalizerTest extends TestCase
             'fn-name-2' => $this->createMock(PersistentMapInterface::class),
         ]);
 
-        $normalizer = new PhelFnNormalizer($phelFnLoader);
+        $normalizer = new PhelFnNormalizer($phelFnLoader, new PhelFnGroupKeyGenerator());
         $actual = $normalizer->getPhelFunctions();
 
         $expected = [
@@ -90,7 +91,7 @@ final class PhelFnNormalizerTest extends TestCase
             'fn-name?' => $this->createMock(PersistentMapInterface::class),
         ]);
 
-        $normalizer = new PhelFnNormalizer($phelFnLoader);
+        $normalizer = new PhelFnNormalizer($phelFnLoader, new PhelFnGroupKeyGenerator());
         $actual = $normalizer->getPhelFunctions();
 
         $expected = [
@@ -123,7 +124,7 @@ final class PhelFnNormalizerTest extends TestCase
             'fn-name-' => $this->createMock(PersistentMapInterface::class),
         ]);
 
-        $normalizer = new PhelFnNormalizer($phelFnLoader);
+        $normalizer = new PhelFnNormalizer($phelFnLoader, new PhelFnGroupKeyGenerator());
         $actual = $normalizer->getPhelFunctions();
 
         $expected = [
@@ -156,7 +157,7 @@ final class PhelFnNormalizerTest extends TestCase
             'FN-NAME' => $this->createMock(PersistentMapInterface::class),
         ]);
 
-        $normalizer = new PhelFnNormalizer($phelFnLoader);
+        $normalizer = new PhelFnNormalizer($phelFnLoader, new PhelFnGroupKeyGenerator());
         $actual = $normalizer->getPhelFunctions();
 
         $expected = [
@@ -193,7 +194,7 @@ final class PhelFnNormalizerTest extends TestCase
             'privateSymbol' => $privateSymbol,
         ]);
 
-        $normalizer = new PhelFnNormalizer($phelFnLoader);
+        $normalizer = new PhelFnNormalizer($phelFnLoader, new PhelFnGroupKeyGenerator());
 
         self::assertEmpty($normalizer->getPhelFunctions());
     }
@@ -214,7 +215,7 @@ final class PhelFnNormalizerTest extends TestCase
             '*build-mode*' => $symbol,
         ]);
 
-        $normalizer = new PhelFnNormalizer($phelFnLoader);
+        $normalizer = new PhelFnNormalizer($phelFnLoader, new PhelFnGroupKeyGenerator());
         $actual = $normalizer->getPhelFunctions();
 
         $expected = [
@@ -247,7 +248,7 @@ final class PhelFnNormalizerTest extends TestCase
             'NAN' => $symbol,
         ]);
 
-        $normalizer = new PhelFnNormalizer($phelFnLoader);
+        $normalizer = new PhelFnNormalizer($phelFnLoader, new PhelFnGroupKeyGenerator());
         $actual = $normalizer->getPhelFunctions();
 
         $expected = [
@@ -281,7 +282,7 @@ final class PhelFnNormalizerTest extends TestCase
             'array' => $symbol,
         ]);
 
-        $normalizer = new PhelFnNormalizer($phelFnLoader);
+        $normalizer = new PhelFnNormalizer($phelFnLoader, new PhelFnGroupKeyGenerator());
         $actual = $normalizer->getPhelFunctions();
 
         $expected = [
@@ -316,7 +317,7 @@ final class PhelFnNormalizerTest extends TestCase
             'format' => $symbol,
         ]);
 
-        $normalizer = new PhelFnNormalizer($phelFnLoader);
+        $normalizer = new PhelFnNormalizer($phelFnLoader, new PhelFnGroupKeyGenerator());
         $actual = $normalizer->getPhelFunctions();
 
         $expected = [
@@ -351,7 +352,7 @@ final class PhelFnNormalizerTest extends TestCase
             'fn-name' => $meta,
         ]);
 
-        $normalizer = new PhelFnNormalizer($phelFnLoader);
+        $normalizer = new PhelFnNormalizer($phelFnLoader, new PhelFnGroupKeyGenerator());
         $actual = $normalizer->getPhelFunctions();
 
         $expected = [
@@ -381,7 +382,7 @@ final class PhelFnNormalizerTest extends TestCase
             'apply' => ['docUrl' => 'https://docs'],
         ]);
 
-        $normalizer = new PhelFnNormalizer($phelFnLoader);
+        $normalizer = new PhelFnNormalizer($phelFnLoader, new PhelFnGroupKeyGenerator());
         $actual = $normalizer->getPhelFunctions();
 
         $expected = [

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Phel\Api\Application;
 
+use Phel\Api\Domain\PhelFnGroupKeyGeneratorInterface;
 use Phel\Api\Domain\PhelFnLoaderInterface;
 use Phel\Api\Domain\PhelFnNormalizerInterface;
 use Phel\Api\Transfer\PhelFunction;
@@ -21,6 +22,7 @@ final readonly class PhelFnNormalizer implements PhelFnNormalizerInterface
      */
     public function __construct(
         private PhelFnLoaderInterface $phelFnLoader,
+        private PhelFnGroupKeyGeneratorInterface $phelFnGroupKeyGenerator,
         private array $allNamespaces = [],
     ) {
     }
@@ -47,7 +49,9 @@ final readonly class PhelFnNormalizer implements PhelFnNormalizerInterface
 
             $doc = $meta[Keyword::create('doc')] ?? '';
             preg_match('#(```phel\n(?<signature>.*)\n```\n)?(?<desc>.*)#s', $doc, $matches);
-            $groupKey = $this->groupKey($fnName);
+
+            $namespace = $this->extractNamespace($fnName);
+            $groupKey = $this->phelFnGroupKeyGenerator->generateGroupKey($namespace, $fnName);
 
             $file = '';
             $line = 0;
@@ -58,8 +62,8 @@ final readonly class PhelFnNormalizer implements PhelFnNormalizerInterface
                 $line = (int) ($location[Keyword::create('line')] ?? 0);
             }
 
-            $normalizedFns[$groupKey][$fnName] = new PhelFunction(
-                $this->extractNamespace($fnName),
+            $phelFunction = new PhelFunction(
+                $namespace,
                 $this->extractNameWithoutNamespace($fnName),
                 $doc,
                 $this->prepareRawDoc($doc),
@@ -71,6 +75,8 @@ final readonly class PhelFnNormalizer implements PhelFnNormalizerInterface
                 $file,
                 $line,
             );
+
+            $normalizedFns[$groupKey][$fnName] = $phelFunction;
         }
 
         foreach ($normalizedFns as &$values) {
@@ -91,17 +97,6 @@ final readonly class PhelFnNormalizer implements PhelFnNormalizerInterface
         return $this->removeDuplicates($result);
     }
 
-    private function groupKey(string $fnName): string
-    {
-        $key = preg_replace(
-            '/[^a-zA-Z0-9\-]+/',
-            '',
-            str_replace('/', '-', $fnName),
-        );
-
-        return strtolower(rtrim((string) $key, '-'));
-    }
-
     private function extractNamespace(string $fnName): string
     {
         if ($fnName === '/') {
@@ -115,7 +110,7 @@ final readonly class PhelFnNormalizer implements PhelFnNormalizerInterface
 
     private function extractNameWithoutNamespace(string $fnName): string
     {
-        if ($fnName === '/' || str_starts_with($fnName, 'php/')) {
+        if ($fnName === '/') {
             return $fnName;
         }
 
@@ -146,15 +141,16 @@ final readonly class PhelFnNormalizer implements PhelFnNormalizerInterface
 
             $original = $originalNormalizedFns[$name] ?? null;
             $doc = $custom['doc'] ?? $original?->doc() ?? '';
+            $namespace = $this->extractNamespace($name);
 
             $phelFunction = new PhelFunction(
-                $this->extractNamespace($name),
+                $namespace,
                 $this->extractNameWithoutNamespace($name),
                 $doc,
                 $this->prepareRawDoc($doc),
                 $custom['signature'] ?? $original?->signature() ?? '',
                 $custom['desc'] ?? $original?->description() ?? '',
-                $this->groupKey($name),
+                $this->phelFnGroupKeyGenerator->generateGroupKey($namespace, $name),
                 $this->toGithubUrl($file, $line),
                 $custom['docUrl'] ?? '',
                 $file,

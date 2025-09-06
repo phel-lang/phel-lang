@@ -5,8 +5,10 @@ declare(strict_types=1);
 namespace Phel\Api;
 
 use Gacela\Framework\AbstractFactory;
+use Phel\Api\Application\PhelFnGroupKeyGenerator;
 use Phel\Api\Application\PhelFnNormalizer;
 use Phel\Api\Application\ReplCompleter;
+use Phel\Api\Domain\PhelFnGroupKeyGeneratorInterface;
 use Phel\Api\Domain\PhelFnLoaderInterface;
 use Phel\Api\Domain\PhelFnNormalizerInterface;
 use Phel\Api\Domain\ReplCompleterInterface;
@@ -29,6 +31,7 @@ final class ApiFactory extends AbstractFactory
     {
         return new PhelFnNormalizer(
             $this->createPhelFnLoader(),
+            $this->createPhelFnGroupKeyGenerator(),
             $this->getConfig()->allNamespaces(),
         );
     }
@@ -38,5 +41,10 @@ final class ApiFactory extends AbstractFactory
         return new PhelFnLoader(
             $this->getProvidedDependency(ApiProvider::FACADE_RUN),
         );
+    }
+
+    private function createPhelFnGroupKeyGenerator(): PhelFnGroupKeyGeneratorInterface
+    {
+        return new PhelFnGroupKeyGenerator();
     }
 }

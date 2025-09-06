@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Phel\Api\Transfer;
 
+use function sprintf;
+
 final readonly class PhelFunction
 {
     public function __construct(
@@ -22,7 +24,7 @@ final readonly class PhelFunction
     }
 
     /**
-     * @param array{
+     * @param  array{
      *     namespace?: string,
      *     fnNs?: string, // @deprecated Use namespace instead
      *     name?: string,
@@ -38,7 +40,7 @@ final readonly class PhelFunction
      *     url?: string, // @deprecated Use githubUrl or docUrl instead
      *     file?: string,
      *     line?: int,
-     * } $array
+     * }  $array
      */
     public static function fromArray(array $array): self
     {
@@ -68,6 +70,15 @@ final readonly class PhelFunction
     public function name(): string
     {
         return $this->name;
+    }
+
+    public function nameWithNamespace(): string
+    {
+        if ($this->namespace === 'core') {
+            return $this->name;
+        }
+
+        return sprintf('%s/%s', $this->namespace, $this->name);
     }
 
     public function doc(): string
