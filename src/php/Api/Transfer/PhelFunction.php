@@ -26,18 +26,14 @@ final readonly class PhelFunction
     /**
      * @param  array{
      *     namespace?: string,
-     *     fnNs?: string, // @deprecated Use namespace instead
      *     name?: string,
-     *     fnName?: string, // @deprecated Use name instead
      *     doc?: string,
      *     rawDoc?: string,
      *     signature?: string,
-     *     fnSignature?: string, // @deprecated Use signature instead
      *     desc?: string,
      *     groupKey?: string,
      *     githubUrl?: string,
      *     docUrl?: string,
-     *     url?: string, // @deprecated Use githubUrl or docUrl instead
      *     file?: string,
      *     line?: int,
      * }  $array
@@ -45,26 +41,18 @@ final readonly class PhelFunction
     public static function fromArray(array $array): self
     {
         return new self(
-            $array['namespace'] ?? $array['fnNs'] ?? '',
-            $array['name'] ?? $array['fnName'] ?? '',
+            $array['namespace'] ?? '',
+            $array['name'] ?? '',
             $array['doc'] ?? '',
             $array['rawDoc'] ?? '',
-            $array['signature'] ?? $array['fnSignature'] ?? '',
+            $array['signature'] ?? '',
             $array['desc'] ?? '',
             $array['groupKey'] ?? '',
-            $array['githubUrl'] ?? $array['url'] ?? '',
+            $array['githubUrl'] ?? '',
             $array['docUrl'] ?? '',
             $array['file'] ?? '',
             $array['line'] ?? 0,
         );
-    }
-
-    /**
-     * @deprecated Use name() instead
-     */
-    public function fnName(): string
-    {
-        return $this->name;
     }
 
     public function name(): string
@@ -74,7 +62,7 @@ final readonly class PhelFunction
 
     public function nameWithNamespace(): string
     {
-        if ($this->namespace === 'core') {
+        if ($this->namespace === '' || $this->namespace === 'core') {
             return $this->name;
         }
 
@@ -116,14 +104,6 @@ final readonly class PhelFunction
         return $this->githubUrl;
     }
 
-    /**
-     * @deprecated Use githubUrl() instead
-     */
-    public function url(): string
-    {
-        return $this->githubUrl;
-    }
-
     public function docUrl(): string
     {
         return $this->docUrl;
@@ -137,14 +117,6 @@ final readonly class PhelFunction
     public function line(): int
     {
         return $this->line;
-    }
-
-    /**
-     * @deprecated Use namespace() instead
-     */
-    public function fnNs(): string
-    {
-        return $this->namespace;
     }
 
     public function namespace(): string
