@@ -10,6 +10,11 @@ namespace test;
 require_once __DIR__ . '/phel/core.php';
 \Phel::addDefinition(
   "phel\\core",
+  "*file*",
+  "Ns/use.test"
+);
+\Phel::addDefinition(
+  "phel\\core",
   "*ns*",
   "test"
 );

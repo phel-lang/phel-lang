@@ -9,6 +9,11 @@ namespace user;
 require_once __DIR__ . '/phel/core.php';
 \Phel::addDefinition(
   "phel\\core",
+  "*file*",
+  "Def/definterface.test"
+);
+\Phel::addDefinition(
+  "phel\\core",
   "*ns*",
   "user"
 );

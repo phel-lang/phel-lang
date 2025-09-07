@@ -11,6 +11,11 @@ namespace test;
 require_once __DIR__ . '/phel/core.php';
 \Phel::addDefinition(
   "phel\\core",
+  "*file*",
+  "Let/loop-destructure.test"
+);
+\Phel::addDefinition(
+  "phel\\core",
   "*ns*",
   "test"
 );

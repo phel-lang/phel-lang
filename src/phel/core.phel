@@ -40,6 +40,10 @@
   "Returns the namespace in the current scope."
   "\\phel\\core")
 
+(def *file*
+  "Returns the path to the current source file."
+  "")
+
 (def argv
   "Array of arguments passed to script."
   (php/aget php/$GLOBALS "argv"))

@@ -18,7 +18,15 @@ use function sprintf;
 final readonly class PhelFnLoader implements PhelFnLoaderInterface
 {
     private const array PRIVATE_SYMBOLS = [
-     '*ns*' => [
+        '*file*' => [
+            'doc' => '```phel
+*file*
+```
+Returns the path of the current source file.',
+            'signature' => '*file*',
+            'desc' => 'Returns the path of the current source file.',
+        ],
+        '*ns*' => [
             'doc' => '```phel
 *ns*
 ```
