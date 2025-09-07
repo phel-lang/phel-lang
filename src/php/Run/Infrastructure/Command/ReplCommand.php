@@ -156,6 +156,8 @@ final class ReplCommand extends Command
             $this->getFacade()->evalFile($info);
         }
 
+        Phel::addDefinition(CompilerConstants::PHEL_CORE_NAMESPACE, '*file*', '');
+
         $cwd = getcwd();
         if ($cwd !== false) {
             $srcDirectories[] = $cwd;
