@@ -9,6 +9,11 @@ require_once __DIR__ . '/xzy/core.php';
 require_once __DIR__ . '/xyz/foo.php';
 \Phel::addDefinition(
   "phel\\core",
+  "*file*",
+  "Ns/require.test"
+);
+\Phel::addDefinition(
+  "phel\\core",
   "*ns*",
   "test"
 );

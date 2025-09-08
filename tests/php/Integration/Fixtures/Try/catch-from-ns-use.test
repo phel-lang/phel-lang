@@ -7,6 +7,11 @@ namespace catch_from_ns_use;
 require_once __DIR__ . '/phel/core.php';
 \Phel::addDefinition(
   "phel\\core",
+  "*file*",
+  "Try/catch-from-ns-use.test"
+);
+\Phel::addDefinition(
+  "phel\\core",
   "*ns*",
   "catch_from_ns_use"
 );
