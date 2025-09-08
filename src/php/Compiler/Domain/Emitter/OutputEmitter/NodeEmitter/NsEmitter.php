@@ -110,6 +110,7 @@ final class NsEmitter implements NodeEmitterInterface
         $this->outputEmitter->emitStr('"');
         $this->outputEmitter->emitStr(addslashes('*file*'));
         $this->outputEmitter->emitLine('",');
+
         $file = $node->getStartSourceLocation()?->getFile() ?? '';
         $this->outputEmitter->emitLiteral($file);
         $this->outputEmitter->emitLine();
