@@ -123,21 +123,6 @@ final class NsEmitter implements NodeEmitterInterface
         $this->outputEmitter->emitStr(addslashes($this->outputEmitter->mungeEncodeNs('phel\\core')));
         $this->outputEmitter->emitLine('",');
         $this->outputEmitter->emitStr('"');
-        $this->outputEmitter->emitStr(addslashes('*file*'));
-        $this->outputEmitter->emitLine('",');
-
-        $file = $node->getStartSourceLocation()?->getFile() ?? '';
-        $this->outputEmitter->emitLiteral($file);
-        $this->outputEmitter->emitLine();
-        $this->outputEmitter->decreaseIndentLevel();
-        $this->outputEmitter->emitLine(');');
-
-        $this->outputEmitter->emitLine('\\Phel::addDefinition(');
-        $this->outputEmitter->increaseIndentLevel();
-        $this->outputEmitter->emitStr('"');
-        $this->outputEmitter->emitStr(addslashes($this->outputEmitter->mungeEncodeNs('phel\\core')));
-        $this->outputEmitter->emitLine('",');
-        $this->outputEmitter->emitStr('"');
         $this->outputEmitter->emitStr(addslashes('*ns*'));
         $this->outputEmitter->emitLine('",');
         $this->outputEmitter->emitLiteral($this->outputEmitter->mungeEncodeNs($node->getNamespace()));
