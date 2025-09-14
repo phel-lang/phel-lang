@@ -1,0 +1,20 @@
+(ns phel-test\test\core\meta
+  (:require phel\test :refer [deftest is]))
+
+(def secret {:private true} 1)
+
+(deftest meta-on-definition
+  (is (not (nil? (meta secret))) "meta on definition not nil")
+  (is (= (meta secret) (meta 'secret)) "meta on quoted definition"))
+
+(deftest meta-on-value
+  (is (= nil (meta 1)) "meta on plain value returns nil"))
+
+(deftest meta-on-undefined-symbol
+  (is (= nil (meta 'unknown)) "meta on undefined symbol returns nil"))
+
+(deftest meta-on-object-with-meta
+  (is (= {:a 1} (meta (set-meta! [] {:a 1}))) "meta on object implementing MetaInterface"))
+
+(deftest meta-on-object-no-meta
+  (is (= nil (meta [])) "meta on object without metadata returns nil"))

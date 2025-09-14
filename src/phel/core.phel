@@ -104,7 +104,7 @@
   (fn [arr & others]
     (if (php/=== nil arr)
       '()
-      (loop [res arr
+  (loop [res arr
              other others]
         (if (php/=== nil other)
           res
@@ -113,14 +113,43 @@
 
 # quasiquote can be used down here
 
+(def declare
+  {:macro true
+   :doc "Declare a global symbol before it is defined."}
+  (fn [name]
+    `(def ,name nil)))
+
 # ------------
 # Meta helpers
 # ------------
 
+(declare =)
+(declare symbol?)
+(declare list?)
+(declare second)
+
 (def meta
-  "```phel\n(meta obj)\n```\nGets the metadata of the given object."
+  {:macro true
+   :doc "```phel\n(meta obj)\n```\nGets the metadata of the given object or definition."}
   (fn [obj]
-    (php/-> obj (getMeta))))
+    (let [sym (if (symbol? obj)
+                obj
+                (if (list? obj)
+                  (if (= (first obj) 'quote)
+                    (if (symbol? (second obj))
+                      (second obj)
+                      nil)
+                    nil)
+                  nil))]
+      (if sym
+        (let [ns (php/-> sym (getNamespace))]
+          (if ns
+            `(php/:: \Phel (getDefinitionMetaData ,ns ,(php/-> sym (getName))))
+            `(php/:: \Phel (getDefinitionMetaData *ns* ,(php/-> sym (getName))))))
+        `(let [obj-meta ,obj]
+           (if (php/instanceof obj-meta \Phel\Lang\MetaInterface)
+               (php/-> obj-meta (getMeta))
+               nil))))))
 
 (def set-meta!
   "```phel\n(set-meta! obj)\n```\nSets the metadata to a given object."
@@ -179,11 +208,6 @@
   "Define a private macro that will not be exported."
   [name & fdecl]
   (apply defn-builder name {:macro true :private true} fdecl))
-
-(defmacro declare
-  "Declare a global symbol before it is defined."
-  [name]
-  `(def ,name nil))
 
 (defmacro defstruct
   "Define a new struct."
