@@ -9,17 +9,16 @@ use function sprintf;
 final readonly class PhelFunction
 {
     public function __construct(
-        private string $namespace,
-        private string $name,
-        private string $doc,
-        private string $rawDoc,
-        private string $signature,
-        private string $description,
-        private string $groupKey = '',
-        private string $githubUrl = '',
-        private string $docUrl = '',
-        private string $file = '',
-        private int $line = 0,
+        public string $namespace,
+        public string $name,
+        public string $doc,
+        public string $signature,
+        public string $description,
+        public string $groupKey = '',
+        public string $githubUrl = '',
+        public string $docUrl = '',
+        public string $file = '',
+        public int $line = 0,
     ) {
     }
 
@@ -28,7 +27,6 @@ final readonly class PhelFunction
      *     namespace?: string,
      *     name?: string,
      *     doc?: string,
-     *     rawDoc?: string,
      *     signature?: string,
      *     desc?: string,
      *     groupKey?: string,
@@ -44,7 +42,6 @@ final readonly class PhelFunction
             $array['namespace'] ?? '',
             $array['name'] ?? '',
             $array['doc'] ?? '',
-            $array['rawDoc'] ?? '',
             $array['signature'] ?? '',
             $array['desc'] ?? '',
             $array['groupKey'] ?? '',
@@ -53,11 +50,6 @@ final readonly class PhelFunction
             $array['file'] ?? '',
             $array['line'] ?? 0,
         );
-    }
-
-    public function name(): string
-    {
-        return $this->name;
     }
 
     public function nameWithNamespace(): string
@@ -69,56 +61,89 @@ final readonly class PhelFunction
         return sprintf('%s/%s', $this->namespace, $this->name);
     }
 
+    /**
+     * @deprecated in favor of the name attribute
+     */
+    public function name(): string
+    {
+        return $this->name;
+    }
+
+    /**
+     * @deprecated in favor of the doc attribute
+     */
     public function doc(): string
     {
         return $this->doc;
     }
 
-    public function rawDoc(): string
-    {
-        return $this->rawDoc;
-    }
-
+    /**
+     * @deprecated in favor of the signature attribute
+     */
     public function fnSignature(): string
     {
         return $this->signature;
     }
 
+    /**
+     * @deprecated in favor of the signature attribute
+     */
     public function signature(): string
     {
         return $this->signature;
     }
 
+    /**
+     * @deprecated in favor of the description attribute
+     */
     public function description(): string
     {
         return $this->description;
     }
 
+    /**
+     * @deprecated in favor of the groupKey attribute
+     */
     public function groupKey(): string
     {
         return $this->groupKey;
     }
 
+    /**
+     * @deprecated in favor of the githubUrl attribute
+     */
     public function githubUrl(): string
     {
         return $this->githubUrl;
     }
 
+    /**
+     * @deprecated in favor of the docUrl attribute
+     */
     public function docUrl(): string
     {
         return $this->docUrl;
     }
 
+    /**
+     * @deprecated in favor of the file attribute
+     */
     public function file(): string
     {
         return $this->file;
     }
 
+    /**
+     * @deprecated in favor of the line attribute
+     */
     public function line(): int
     {
         return $this->line;
     }
 
+    /**
+     * @deprecated in favor of the namespace attribute
+     */
     public function namespace(): string
     {
         return $this->namespace;

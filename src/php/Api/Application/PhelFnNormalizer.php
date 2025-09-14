@@ -62,11 +62,10 @@ final readonly class PhelFnNormalizer implements PhelFnNormalizerInterface
                 $line = (int) ($location[Keyword::create('line')] ?? 0);
             }
 
-            $phelFunction = new PhelFunction(
+            $normalizedFns[$groupKey][$fnName] = new PhelFunction(
                 $namespace,
                 $this->extractNameWithoutNamespace($fnName),
                 $doc,
-                $this->prepareRawDoc($doc),
                 $matches['signature'] ?? '',
                 $matches['desc'] ?? '',
                 $groupKey,
@@ -75,8 +74,6 @@ final readonly class PhelFnNormalizer implements PhelFnNormalizerInterface
                 $file,
                 $line,
             );
-
-            $normalizedFns[$groupKey][$fnName] = $phelFunction;
         }
 
         foreach ($normalizedFns as &$values) {
@@ -121,9 +118,9 @@ final readonly class PhelFnNormalizer implements PhelFnNormalizerInterface
 
     private function sortingPhelFunctionsCallback(): callable
     {
-        return static fn (PhelFunction $a, PhelFunction $b): int => (($a->namespace() <=> $b->namespace()) !== 0)
-            ? $a->namespace() <=> $b->namespace()
-            : ($a->name() <=> $b->name());
+        return static fn (PhelFunction $a, PhelFunction $b): int => (($a->namespace <=> $b->namespace) !== 0)
+            ? $a->namespace <=> $b->namespace
+            : ($a->name <=> $b->name);
     }
 
     /**
@@ -140,16 +137,15 @@ final readonly class PhelFnNormalizer implements PhelFnNormalizerInterface
             $line = $custom['line'] ?? 0;
 
             $original = $originalNormalizedFns[$name] ?? null;
-            $doc = $custom['doc'] ?? $original?->doc() ?? '';
+            $doc = $custom['doc'] ?? $original?->doc ?? '';
             $namespace = $this->extractNamespace($name);
 
             $phelFunction = new PhelFunction(
                 $namespace,
                 $this->extractNameWithoutNamespace($name),
                 $doc,
-                $this->prepareRawDoc($doc),
-                $custom['signature'] ?? $original?->signature() ?? '',
-                $custom['desc'] ?? $original?->description() ?? '',
+                $custom['signature'] ?? $original?->signature ?? '',
+                $custom['desc'] ?? $original?->description ?? '',
                 $this->phelFnGroupKeyGenerator->generateGroupKey($namespace, $name),
                 $this->toGithubUrl($file, $line),
                 $custom['docUrl'] ?? '',
@@ -173,7 +169,7 @@ final readonly class PhelFnNormalizer implements PhelFnNormalizerInterface
         $seenNames = [];
 
         $filtered = array_filter($fns, static function (PhelFunction $fn) use (&$seenNames): bool {
-            $fnName = $fn->namespace() . '/' . $fn->name();
+            $fnName = $fn->namespace . '/' . $fn->name;
             if (isset($seenNames[$fnName])) {
                 return false;
             }
@@ -186,14 +182,6 @@ final readonly class PhelFnNormalizer implements PhelFnNormalizerInterface
         $result = array_values($filtered);
 
         return $result;
-    }
-
-    private function prepareRawDoc(string $doc): string
-    {
-        $doc = (string) preg_replace('#^```[a-zA-Z]*\r?\n#', '', $doc);
-        $doc = (string) preg_replace('#\r?\n```#', '', $doc);
-
-        return trim($doc);
     }
 
     private function toRelativeFile(string $file): string

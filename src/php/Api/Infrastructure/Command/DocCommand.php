@@ -125,7 +125,7 @@ final class DocCommand extends Command
         $normalized = [];
 
         foreach ($phelFunctions as $phelFunction) {
-            $fnName = $phelFunction->namespace() . '/' . $phelFunction->name();
+            $fnName = $phelFunction->namespace . '/' . $phelFunction->name;
             similar_text($fnName, $search, $percent);
             if ($search && $percent < 45) {
                 continue;
@@ -134,11 +134,11 @@ final class DocCommand extends Command
             $normalized[] = [
                 'percent' => round($percent),
                 'name' => $fnName,
-                'signature' => $phelFunction->fnSignature(),
-                'doc' => $phelFunction->doc(),
-                'description' => preg_replace('/\r?\n/', '', $phelFunction->description()),
-                'githubUrl' => $phelFunction->githubUrl(),
-                'docUrl' => $phelFunction->docUrl(),
+                'signature' => $phelFunction->signature,
+                'doc' => $phelFunction->doc,
+                'description' => preg_replace('/\r?\n/', '', $phelFunction->description),
+                'githubUrl' => $phelFunction->githubUrl,
+                'docUrl' => $phelFunction->docUrl,
             ];
         }
 
