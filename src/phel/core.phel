@@ -113,14 +113,43 @@
 
 # quasiquote can be used down here
 
+(def declare
+  {:macro true
+   :doc "Declare a global symbol before it is defined."}
+  (fn [name]
+    `(def ,name nil)))
+
 # ------------
 # Meta helpers
 # ------------
 
+(declare =)
+(declare symbol?)
+(declare list?)
+(declare second)
+
 (def meta
-  "```phel\n(meta obj)\n```\nGets the metadata of the given object."
+  {:macro true
+   :doc "```phel\n(meta obj)\n```\nGets the metadata of the given object or definition."}
   (fn [obj]
-    (php/-> obj (getMeta))))
+    (let [sym (if (symbol? obj)
+                obj
+                (if (list? obj)
+                  (if (= (first obj) 'quote)
+                    (if (symbol? (second obj))
+                      (second obj)
+                      nil)
+                    nil)
+                  nil))]
+      (if sym
+        (let [ns (php/-> sym (getNamespace))]
+          (if ns
+            `(php/:: \Phel (getDefinitionMetaData ,ns ,(php/-> sym (getName))))
+            `(php/:: \Phel (getDefinitionMetaData *ns* ,(php/-> sym (getName))))))
+        `(let [obj-meta ,obj]
+           (if (php/instanceof obj-meta \Phel\Lang\MetaInterface)
+             (php/-> obj-meta (getMeta))
+             nil))))))
 
 (def set-meta!
   "```phel\n(set-meta! obj)\n```\nSets the metadata to a given object."
@@ -148,8 +177,8 @@
                   (next fdecl)
                   fdecl)
           args (if (php/instanceof (php/aget fdecl 0) PersistentVectorInterface)
-                   (php/aget fdecl 0)
-                   (php/aget (php/aget fdecl 0) 0))
+                 (php/aget fdecl 0)
+                 (php/aget (php/aget fdecl 0) 0))
           docstring (php/aget meta :doc)
           docstring (php/. "```phel\n(" name " " (php/implode " " (apply php/array args)) ")\n```\n" docstring)
           meta (php/-> meta (put :doc docstring))]
@@ -179,11 +208,6 @@
   "Define a private macro that will not be exported."
   [name & fdecl]
   (apply defn-builder name {:macro true :private true} fdecl))
-
-(defmacro declare
-  "Declare a global symbol before it is defined."
-  [name]
-  `(def ,name nil))
 
 (defmacro defstruct
   "Define a new struct."
@@ -1055,7 +1079,7 @@ arrays. Use (php/aunset ds key)"))
   (apply concat [] (apply map f xs)))
 
 (defn reduce
-   "(reduce f coll) (reduce f val coll)
+  "(reduce f coll) (reduce f val coll)
     f should be a function of 2 arguments. If val is not supplied, returns the result of applying f to the first 2 items in coll, then applying f to that result and the 3rd item, etc.
     If coll contains no items, f must accept no arguments as well, and reduce returns the result of calling f with no arguments. If coll has only 1 item, it is returned and f is not called.
     If val is supplied, returns the result of applying f to val and the first item in coll, then applying f to that result and the 2nd item, etc. If coll contains no items, returns val and f is not called."
@@ -1167,11 +1191,11 @@ arrays. Use (php/aunset ds key)"))
       (php-array? xs) (php/array_slice xs 0 n)
       (php/instanceof xs SliceInterface) (php/-> xs (slice 0 n))
       (php/instanceof xs Traversable)
-        (let [i (var 0)]
-          (for [x :in xs
-                :while (php/< (deref i) n)
-                :let [_ (swap! i |(php/+ $ 1))]]
-            x))
+      (let [i (var 0)]
+        (for [x :in xs
+              :while (php/< (deref i) n)
+              :let [_ (swap! i |(php/+ $ 1))]]
+          x))
       (throw (php/new InvalidArgumentException "Cannot take")))))
 
 (defn take-last
@@ -1626,7 +1650,7 @@ arrays. Use (php/aunset ds key)"))
           (get c args)
           (let [res (apply f args)]
             (set! memoize-cache (put c args res))
-            res))))) )
+            res))))))
 
 # -----------------------
 # More sequence operation
@@ -2134,10 +2158,9 @@ returns 1. If `xs` has one value, returns the reciprocal of x."
        ,@(map (fn [f]
                 (if (list? f)
                   `(,(first f) ,gx ,@(next f))
-                  `(,f ,gx))
-                )
+                  `(,f ,gx)))
               forms)
-          ,gx)))
+       ,gx)))
 
 # ---------------
 # Regex functions
@@ -2202,11 +2225,11 @@ returns 1. If `xs` has one value, returns the reciprocal of x."
   [bindings then & [else]]
   (let [err |(throw (php/new \InvalidArgumentException $))]
     (when-not
-        (vector? bindings)
+      (vector? bindings)
       (err (str "if-let requires a vector for it's bindings, "
                 (type bindings) " given")))
     (when-not
-        (= 2 (count bindings))
+      (= 2 (count bindings))
       (err (str "if-let requires bindings to have 2 elements, "
                 (count bindings) " given"))))
 
@@ -2222,11 +2245,11 @@ returns 1. If `xs` has one value, returns the reciprocal of x."
   [bindings & body]
   (let [err |(throw (php/new \InvalidArgumentException $))]
     (when-not
-        (vector? bindings)
+      (vector? bindings)
       (err (str "when-let requires a vector for it's bindings, "
                 (type bindings) " given")))
     (when-not
-        (= 2 (count bindings))
+      (= 2 (count bindings))
       (err (str "when-let requires bindings to have 2 elements, "
                 (count bindings) " given"))))
 
@@ -2307,12 +2330,12 @@ returns 1. If `xs` has one value, returns the reciprocal of x."
                   args (rest form)]
               (cond
                 (inline-call? meta (count args))
-                  (apply (:inline meta) args)
+                (apply (:inline meta) args)
                 (:macro meta)
-                  (let [macro-fn (php/:: Phel (getDefinition ns name))]
-                    (apply macro-fn args))
+                (let [macro-fn (php/:: Phel (getDefinition ns name))]
+                  (apply macro-fn args))
                 :else
-                  form))
+                form))
             form))
         form))
     form))
