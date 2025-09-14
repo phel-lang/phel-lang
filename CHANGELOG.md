@@ -16,7 +16,10 @@ All notable changes to this project will be documented in this file.
     - Add new methods and remove deprecated ones from PhelFunction
 - Add `*file*` to return the current source file's path
 - Return empty string for `__FILE__` and `__DIR__` in the REPL
-- Deprecate `PhelFunction` methods in favor of its public properties and remove `rawDoc`
+- Improve PhelFunction 
+    - Deprecate methods in favor of its public properties
+    - Remove `rawDoc`
+    - Add `meta` with all possible metadata
 
 ## [0.21.0](https://github.com/phel-lang/phel-lang/compare/v0.20.0...v0.21.0) - 2025-09-01
 

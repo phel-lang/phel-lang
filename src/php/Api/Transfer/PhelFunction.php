@@ -8,6 +8,9 @@ use function sprintf;
 
 final readonly class PhelFunction
 {
+    /**
+     * @param array<string, mixed> $meta
+     */
     public function __construct(
         public string $namespace,
         public string $name,
@@ -19,6 +22,7 @@ final readonly class PhelFunction
         public string $docUrl = '',
         public string $file = '',
         public int $line = 0,
+        public array $meta = [],
     ) {
     }
 
@@ -34,6 +38,7 @@ final readonly class PhelFunction
      *     docUrl?: string,
      *     file?: string,
      *     line?: int,
+     *     meta?: array<string, mixed>,
      * }  $array
      */
     public static function fromArray(array $array): self
@@ -49,6 +54,7 @@ final readonly class PhelFunction
             $array['docUrl'] ?? '',
             $array['file'] ?? '',
             $array['line'] ?? 0,
+            $array['meta'] ?? [],
         );
     }
 
