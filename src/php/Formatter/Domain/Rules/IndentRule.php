@@ -106,7 +106,7 @@ final readonly class IndentRule implements RuleInterface
         return $this->lineIndenter->getMargin($form->leftMost(), self::INDENT_WIDTH);
     }
 
-    private function customIndent(ParseTreeZipper $form): ?int
+    private function customIndent(ParseTreeZipper $form): int
     {
         foreach ($this->indenters as $indenter) {
             $margin = $indenter->getMargin($form, self::INDENT_WIDTH);

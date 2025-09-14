@@ -16,7 +16,7 @@ final readonly class ListIndenter implements IndenterInterface
         $this->lineIndenter = new LineIndenter();
     }
 
-    public function getMargin(ParseTreeZipper $loc, int $indentWidth): ?int
+    public function getMargin(ParseTreeZipper $loc, int $indentWidth): int
     {
         $l = $loc->leftMost();
         if ($this->indexOf($loc) > 1) {
