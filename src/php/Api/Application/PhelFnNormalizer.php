@@ -73,6 +73,7 @@ final readonly class PhelFnNormalizer implements PhelFnNormalizerInterface
                 (string) ($meta[Keyword::create('docUrl')] ?? ''),
                 $file,
                 $line,
+                $this->metaToArray($meta),
             );
         }
 
@@ -92,6 +93,20 @@ final readonly class PhelFnNormalizer implements PhelFnNormalizerInterface
         usort($result, $this->sortingPhelFunctionsCallback());
 
         return $this->removeDuplicates($result);
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    private function metaToArray(PersistentMapInterface $meta): array
+    {
+        $result = [];
+        foreach ($meta as $key => $value) {
+            $name = $key instanceof Keyword ? $key->getName() : (string) $key;
+            $result[$name] = $value;
+        }
+
+        return $result;
     }
 
     private function extractNamespace(string $fnName): string
