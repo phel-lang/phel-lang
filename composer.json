@@ -16,7 +16,7 @@
         },
         {
             "name": "Jose M. Valera Reales",
-            "email": "chemaclass@outlook.es",
+            "email": "phel@chemaclass.es",
             "homepage": "https://chemaclass.com"
         }
     ],
@@ -30,7 +30,7 @@
     "require-dev": {
         "ext-readline": "*",
         "ergebnis/composer-normalize": "^2.48",
-        "friendsofphp/php-cs-fixer": "^3.86",
+        "friendsofphp/php-cs-fixer": "^3.87",
         "phpbench/phpbench": "^1.4",
         "phpstan/phpstan": "^2.1",
         "phpunit/phpunit": "^10.5",
