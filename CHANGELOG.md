@@ -4,6 +4,7 @@ All notable changes to this project will be documented in this file.
 
 ## Unreleased
 
+- Fix REPL require from `repl.phel` fails
 - Add new array functions with nested lookup
     - php/aget-in
     - php/aset-in

@@ -60,7 +60,7 @@
   (if (:as options)
     (:as options)
     (let [parts (php/explode "\\" (name sym))
-          last (pop parts)]
+          last (php/array_pop parts)]
       (php/:: Symbol (create last)))))
 
 (defn- set-ns [namespace]
