@@ -11,7 +11,7 @@ use function strlen;
 
 final class LineIndenter implements IndenterInterface
 {
-    public function getMargin(ParseTreeZipper $loc, int $indentWidth): ?int
+    public function getMargin(ParseTreeZipper $loc, int $indentWidth): int
     {
         return strlen($this->lastLineInString($this->priorLineString($loc)));
     }

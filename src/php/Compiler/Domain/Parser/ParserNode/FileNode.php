@@ -69,7 +69,7 @@ final class FileNode implements InnerNodeInterface
         return '';
     }
 
-    public function getCodePostfix(): ?string
+    public function getCodePostfix(): string
     {
         return '';
     }

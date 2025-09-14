@@ -46,7 +46,7 @@ final class ListNode implements InnerNodeInterface
             $code .= $child->getCode();
         }
 
-        return $this->getCodePrefix() . $code . ($this->getCodePostfix() ?? '');
+        return $this->getCodePrefix() . $code . $this->getCodePostfix();
     }
 
     public function getCodePrefix(): string
@@ -60,13 +60,13 @@ final class ListNode implements InnerNodeInterface
         };
     }
 
-    public function getCodePostfix(): ?string
+    public function getCodePostfix(): string
     {
         return match ($this->tokenType) {
             Token::T_OPEN_PARENTHESIS, Token::T_FN => ')',
             Token::T_OPEN_BRACKET => ']',
             Token::T_OPEN_BRACE => '}',
-            default => throw new RuntimeException('Cannot find code prefix for token type: ' . $this->tokenType),
+            default => throw new RuntimeException('Cannot find code postfix for token type: ' . $this->tokenType),
         };
     }
 

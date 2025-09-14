@@ -30,7 +30,7 @@ final readonly class InnerIndenter implements IndenterInterface
             || $this->indentMatches($this->symbol, $this->formSymbol($top))) {
             $up = $loc->upSkipWhitespace();
 
-            return (int) $this->lineIndenter->getMargin($up, $indentWidth) + $indentWidth;
+            return $this->lineIndenter->getMargin($up, $indentWidth) + $indentWidth;
         }
 
         return null;

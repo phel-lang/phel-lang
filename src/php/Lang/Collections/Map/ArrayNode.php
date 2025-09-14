@@ -70,7 +70,7 @@ final class ArrayNode implements HashMapNodeInterface, Countable
         );
     }
 
-    public function remove(int $shift, int $hash, $key): ?HashMapNodeInterface
+    public function remove(int $shift, int $hash, $key): HashMapNodeInterface
     {
         $index = $this->mask($hash, $shift);
         $node = $this->childNodes[$index] ?? null;
@@ -81,7 +81,7 @@ final class ArrayNode implements HashMapNodeInterface, Countable
 
         $n = $node->remove($shift + 5, $hash, $key);
 
-        if ($n == $node) {
+        if ($n === $node) {
             return $this;
         }
 
