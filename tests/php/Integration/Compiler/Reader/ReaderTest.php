@@ -151,6 +151,25 @@ final class ReaderTest extends TestCase
         );
     }
 
+    public function test_read_empty_set(): void
+    {
+        self::assertEquals(
+            $this->loc(Phel::set(), 1, 0, 1, 3),
+            $this->read('#{}'),
+        );
+    }
+
+    public function test_read_set(): void
+    {
+        self::assertEquals(
+            $this->loc(Phel::set([
+                $this->loc(Symbol::create('a'), 1, 2, 1, 3),
+                $this->loc(Symbol::create('b'), 1, 4, 1, 5),
+            ]), 1, 0, 1, 6),
+            $this->read('#{a b}'),
+        );
+    }
+
     public function test_read_inline_comment(): void
     {
         self::assertEquals(

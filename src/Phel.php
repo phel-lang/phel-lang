@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use Phel\Lang\Collections\HashSet\PersistentHashSet;
 use Phel\Lang\Collections\HashSet\PersistentHashSetInterface;
 use Phel\Lang\Collections\LinkedList\PersistentListInterface;
 use Phel\Lang\Collections\Map\PersistentMapInterface;

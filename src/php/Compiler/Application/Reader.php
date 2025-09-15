@@ -117,6 +117,12 @@ final class Reader implements ReaderInterface
                 ->read($node, $root);
         }
 
+        if ($node->getTokenType() === Token::T_HASH_OPEN_BRACE) {
+            return $this->readerFactory
+                ->createSetReader($this)
+                ->read($node, $root);
+        }
+
         if ($node->getTokenType() === Token::T_FN) {
             $this->fnArgs = [];
 

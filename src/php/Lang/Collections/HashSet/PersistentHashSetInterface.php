@@ -9,6 +9,7 @@ use Phel\Lang\Collections\AsTransientInterface;
 use Phel\Lang\ConcatInterface;
 use Phel\Lang\ContainsInterface;
 use Phel\Lang\FnInterface;
+use Phel\Lang\TypeInterface;
 
 /**
  * @template V
@@ -16,7 +17,7 @@ use Phel\Lang\FnInterface;
  * @extends AsTransientInterface<TransientHashSetInterface>
  * @extends ContainsInterface<V>
  */
-interface PersistentHashSetInterface extends Countable, AsTransientInterface, FnInterface, ConcatInterface, ContainsInterface
+interface PersistentHashSetInterface extends TypeInterface, Countable, AsTransientInterface, FnInterface, ConcatInterface, ContainsInterface
 {
     /**
      * @param V $value

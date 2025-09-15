@@ -169,6 +169,19 @@ final class LexerTest extends TestCase
         );
     }
 
+    public function test_read_set_literal(): void
+    {
+        self::assertEquals(
+            [
+                new Token(Token::T_HASH_OPEN_BRACE, '#{', new SourceLocation('string', 1, 0), new SourceLocation('string', 1, 2)),
+                new Token(Token::T_ATOM, '1', new SourceLocation('string', 1, 2), new SourceLocation('string', 1, 3)),
+                new Token(Token::T_CLOSE_BRACE, '}', new SourceLocation('string', 1, 3), new SourceLocation('string', 1, 4)),
+                new Token(Token::T_EOF, '', new SourceLocation('string', 1, 4), new SourceLocation('string', 1, 4)),
+            ],
+            $this->lex('#{1}'),
+        );
+    }
+
     public function test_read_word(): void
     {
         self::assertEquals(

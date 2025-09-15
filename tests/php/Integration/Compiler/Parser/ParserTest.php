@@ -321,6 +321,26 @@ final class ParserTest extends TestCase
         );
     }
 
+    public function test_read_empty_set(): void
+    {
+        self::assertEquals(
+            new ListNode(Token::T_HASH_OPEN_BRACE, $this->loc(1, 0), $this->loc(1, 3), []),
+            $this->parse('#{}'),
+        );
+    }
+
+    public function test_read_set(): void
+    {
+        self::assertEquals(
+            new ListNode(Token::T_HASH_OPEN_BRACE, $this->loc(1, 0), $this->loc(1, 6), [
+                new NumberNode('1', $this->loc(1, 2), $this->loc(1, 3), 1),
+                new WhitespaceNode(' ', $this->loc(1, 3), $this->loc(1, 4)),
+                new NumberNode('2', $this->loc(1, 4), $this->loc(1, 5), 2),
+            ]),
+            $this->parse('#{1 2}'),
+        );
+    }
+
     public function test_meta_keyword(): void
     {
         self::assertEquals(
