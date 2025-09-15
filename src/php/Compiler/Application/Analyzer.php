@@ -12,8 +12,10 @@ use Phel\Compiler\Domain\Analyzer\Exceptions\AnalyzerException;
 use Phel\Compiler\Domain\Analyzer\TypeAnalyzer\AnalyzeLiteral;
 use Phel\Compiler\Domain\Analyzer\TypeAnalyzer\AnalyzePersistentList;
 use Phel\Compiler\Domain\Analyzer\TypeAnalyzer\AnalyzePersistentMap;
+use Phel\Compiler\Domain\Analyzer\TypeAnalyzer\AnalyzePersistentSet;
 use Phel\Compiler\Domain\Analyzer\TypeAnalyzer\AnalyzePersistentVector;
 use Phel\Compiler\Domain\Analyzer\TypeAnalyzer\AnalyzeSymbol;
+use Phel\Lang\Collections\HashSet\PersistentHashSetInterface;
 use Phel\Lang\Collections\LinkedList\PersistentListInterface;
 use Phel\Lang\Collections\Map\PersistentMapInterface;
 use Phel\Lang\Collections\Vector\PersistentVectorInterface;
@@ -114,6 +116,10 @@ final readonly class Analyzer implements AnalyzerInterface
 
         if ($x instanceof PersistentVectorInterface) {
             return (new AnalyzePersistentVector($this))->analyze($x, $env);
+        }
+
+        if ($x instanceof PersistentHashSetInterface) {
+            return (new AnalyzePersistentSet($this))->analyze($x, $env);
         }
 
         if ($x instanceof PersistentMapInterface) {
