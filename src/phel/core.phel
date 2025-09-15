@@ -1095,6 +1095,66 @@ arrays. Use (php/aunset ds key)"))
           (f acc x)))
     (throw (php/new InvalidArgumentException "expected 2 or 3 arguments in reduce"))))
 
+(defn into
+  "Returns `to` with all elements of `from` added.
+
+   When `from` is associative, it is treated as a sequence of key-value pairs.
+   Supports persistent and transient collections."
+  [to & rest]
+  (case (count rest)
+    0 to
+    1 (let [from (first rest)]
+        (if (php/=== nil from)
+          to
+          (let [entries (if (associative? from)
+                          (for [entry :pairs from] entry)
+                          from)
+                assoc-entry (fn [acc entry]
+                              (if (indexed? entry)
+                                (if (php/!= (count entry) 2)
+                                  (throw (php/new InvalidArgumentException
+                                                  "into expects a collection of [key value] pairs"))
+                                  (let [k (first entry)
+                                        v (second entry)]
+                                    (if (php-array? acc)
+                                      (do
+                                        (php/aset acc k v)
+                                        acc)
+                                      (put acc k v))))
+                                (throw (php/new InvalidArgumentException
+                                                "into expects a collection of [key value] pairs"))))
+                map-target? (or (associative? to) (php/instanceof to TransientMapInterface))]
+            (cond
+              map-target?
+              (for [entry :in entries
+                    :reduce [acc to]]
+                (assoc-entry acc entry))
+
+              (php/instanceof to TransientVectorInterface)
+              (for [value :in entries
+                    :reduce [acc to]]
+                (push acc value))
+
+              (php/instanceof to TransientHashSetInterface)
+              (for [value :in entries
+                    :reduce [acc to]]
+                (push acc value))
+
+              (php/instanceof to PushInterface)
+              (for [value :in entries
+                    :reduce [acc to]]
+                (push acc value))
+
+              (php/instanceof to ConcatInterface)
+              (concat to entries)
+
+              (php/is_array to)
+              (concat to entries)
+
+              (throw (php/new InvalidArgumentException
+                              (php/. "Cannot convert into type " (type to))))))))
+    (throw (php/new InvalidArgumentException "into expects one or two arguments"))))
+
 (defn slice
   "Extract a slice of `xs`."
   [xs & [offset & [length]]]
