@@ -16,33 +16,35 @@ final readonly class Token
 
     public const int T_COMMENT = 5;
 
-    public const int T_UNQUOTE_SPLICING = 6;
+    public const int T_HASH_OPEN_BRACE = 6;
 
-    public const int T_OPEN_PARENTHESIS = 7;
+    public const int T_UNQUOTE_SPLICING = 7;
 
-    public const int T_CLOSE_PARENTHESIS = 8;
+    public const int T_OPEN_PARENTHESIS = 8;
 
-    public const int T_OPEN_BRACKET = 9;
+    public const int T_CLOSE_PARENTHESIS = 9;
 
-    public const int T_CLOSE_BRACKET = 10;
+    public const int T_OPEN_BRACKET = 10;
 
-    public const int T_OPEN_BRACE = 11;
+    public const int T_CLOSE_BRACKET = 11;
 
-    public const int T_CLOSE_BRACE = 12;
+    public const int T_OPEN_BRACE = 12;
 
-    public const int T_QUOTE = 13;
+    public const int T_CLOSE_BRACE = 13;
 
-    public const int T_UNQUOTE = 14;
+    public const int T_QUOTE = 14;
 
-    public const int T_QUASIQUOTE = 15;
+    public const int T_UNQUOTE = 15;
 
-    public const int T_CARET = 16;
+    public const int T_QUASIQUOTE = 16;
 
-    public const int T_FN = 17;
+    public const int T_CARET = 17;
 
-    public const int T_STRING = 18;
+    public const int T_FN = 18;
 
-    public const int T_ATOM = 19;
+    public const int T_STRING = 19;
+
+    public const int T_ATOM = 20;
 
     public const int T_EOF = 100;
 

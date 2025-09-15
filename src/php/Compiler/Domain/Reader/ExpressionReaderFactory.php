@@ -11,6 +11,7 @@ use Phel\Compiler\Domain\Reader\ExpressionReader\ListReader;
 use Phel\Compiler\Domain\Reader\ExpressionReader\MapReader;
 use Phel\Compiler\Domain\Reader\ExpressionReader\MetaReader;
 use Phel\Compiler\Domain\Reader\ExpressionReader\QuoasiquoteReader;
+use Phel\Compiler\Domain\Reader\ExpressionReader\SetReader;
 use Phel\Compiler\Domain\Reader\ExpressionReader\SymbolReader;
 use Phel\Compiler\Domain\Reader\ExpressionReader\VectorReader;
 use Phel\Compiler\Domain\Reader\ExpressionReader\WrapReader;
@@ -35,6 +36,11 @@ final class ExpressionReaderFactory implements ExpressionReaderFactoryInterface
     public function createVectorReader(Reader $reader): VectorReader
     {
         return new VectorReader($reader);
+    }
+
+    public function createSetReader(Reader $reader): SetReader
+    {
+        return new SetReader($reader);
     }
 
     public function createListFnReader(Reader $reader): ListFnReader

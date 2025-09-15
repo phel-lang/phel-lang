@@ -105,6 +105,7 @@ final readonly class Parser implements ParserInterface
                 Token::T_OPEN_PARENTHESIS => $this->parseFnListNode($token, $tokenStream),
                 Token::T_OPEN_BRACKET => $this->parseArrayListNode($token, $tokenStream),
                 Token::T_OPEN_BRACE => $this->parseMapListNode($token, $tokenStream),
+                Token::T_HASH_OPEN_BRACE => $this->parseSetListNode($token, $tokenStream),
                 Token::T_CLOSE_PARENTHESIS,
                 Token::T_CLOSE_BRACKET,
                 Token::T_CLOSE_BRACE => throw $this->createUnexceptedParserException($tokenStream, $token, 'Unterminated list (BRACKETS)'),
@@ -204,6 +205,13 @@ final readonly class Parser implements ParserInterface
     }
 
     private function parseMapListNode(Token $token, TokenStream $tokenStream): ListNode
+    {
+        return $this->parserFactory
+            ->createListParser($this)
+            ->parse($tokenStream, Token::T_CLOSE_BRACE, $token->getType());
+    }
+
+    private function parseSetListNode(Token $token, TokenStream $tokenStream): ListNode
     {
         return $this->parserFactory
             ->createListParser($this)

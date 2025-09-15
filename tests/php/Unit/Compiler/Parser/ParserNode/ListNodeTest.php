@@ -43,6 +43,16 @@ final class ListNodeTest extends TestCase
         );
     }
 
+    public function test_get_code_hash_brace(): void
+    {
+        self::assertSame(
+            '#{1}',
+            (new ListNode(Token::T_HASH_OPEN_BRACE, $this->loc(1, 0), $this->loc(1, 4), [
+                new NumberNode('1', $this->loc(1, 2), $this->loc(1, 3), 1),
+            ]))->getCode(),
+        );
+    }
+
     public function test_get_code_fn(): void
     {
         self::assertSame(
