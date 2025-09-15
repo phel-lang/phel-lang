@@ -15,6 +15,7 @@ All notable changes to this project will be documented in this file.
 - Improve public Api module
     - Add new methods and remove deprecated ones from PhelFunction
 - Add `*file*` to return the current source file's path
+- Add comma separator between key value pairs in the hash-map printer
 - Return empty string for `__FILE__` and `__DIR__` in the REPL
 - Improve PhelFunction 
     - Deprecate methods in favor of its public properties

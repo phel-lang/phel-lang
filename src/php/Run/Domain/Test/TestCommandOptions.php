@@ -4,8 +4,9 @@ declare(strict_types=1);
 
 namespace Phel\Run\Domain\Test;
 
-use Phel;
 use Phel\Printer\Printer;
+
+use function sprintf;
 
 final readonly class TestCommandOptions
 {
@@ -34,13 +35,16 @@ final readonly class TestCommandOptions
 
     public function asPhelHashMap(): string
     {
-        $optionsMap = Phel::map(
-            Phel::keyword(self::FILTER),
-            $this->filter,
-            Phel::keyword(self::TESTDOX),
-            $this->testdox,
-        );
+        $printer = Printer::readable();
 
-        return Printer::readable()->print($optionsMap);
+        $filter = $this->filter === null
+            ? 'nil'
+            : $printer->print($this->filter);
+
+        return sprintf(
+            '{:filter %s :testdox %s}',
+            $filter,
+            $printer->print($this->testdox),
+        );
     }
 }
