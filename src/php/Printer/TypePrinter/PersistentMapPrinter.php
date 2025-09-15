@@ -7,6 +7,8 @@ namespace Phel\Printer\TypePrinter;
 use Phel\Lang\Collections\Map\PersistentMapInterface;
 use Phel\Printer\PrinterInterface;
 
+use function sprintf;
+
 /**
  * @implements TypePrinterInterface<PersistentMapInterface>
  */
@@ -24,12 +26,15 @@ final readonly class PersistentMapPrinter implements TypePrinterInterface
         $prefix = '{';
         $suffix = '}';
 
-        $values = [];
+        $pairs = [];
         foreach ($form as $key => $value) {
-            $values[] = $this->printer->print($key);
-            $values[] = $this->printer->print($value);
+            $pairs[] = sprintf(
+                '%s %s',
+                $this->printer->print($key),
+                $this->printer->print($value),
+            );
         }
 
-        return $prefix . implode(' ', $values) . $suffix;
+        return $prefix . implode(', ', $pairs) . $suffix;
     }
 }
