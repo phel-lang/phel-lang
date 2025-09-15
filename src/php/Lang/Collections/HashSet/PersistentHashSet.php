@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace Phel\Lang\Collections\HashSet;
 
-use IteratorAggregate;
 use Phel\Lang\AbstractType;
 use Phel\Lang\Collections\Map\PersistentMapInterface;
 use Phel\Lang\HasherInterface;
@@ -17,7 +16,7 @@ use Traversable;
  *
  * @extends AbstractType<PersistentHashSet<V>>
  */
-final class PersistentHashSet extends AbstractType implements PersistentHashSetInterface, IteratorAggregate
+final class PersistentHashSet extends AbstractType implements PersistentHashSetInterface
 {
     private int $hashCache = 0;
 

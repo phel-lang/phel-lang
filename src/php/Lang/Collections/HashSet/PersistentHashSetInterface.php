@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Phel\Lang\Collections\HashSet;
 
 use Countable;
+use IteratorAggregate;
 use Phel\Lang\Collections\AsTransientInterface;
 use Phel\Lang\ConcatInterface;
 use Phel\Lang\ContainsInterface;
@@ -17,7 +18,7 @@ use Phel\Lang\TypeInterface;
  * @extends AsTransientInterface<TransientHashSetInterface>
  * @extends ContainsInterface<V>
  */
-interface PersistentHashSetInterface extends TypeInterface, Countable, AsTransientInterface, FnInterface, ConcatInterface, ContainsInterface
+interface PersistentHashSetInterface extends TypeInterface, Countable, IteratorAggregate, AsTransientInterface, FnInterface, ConcatInterface, ContainsInterface
 {
     /**
      * @param V $value
