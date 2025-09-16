@@ -24,6 +24,14 @@
   (is (= [1 2 3 4 5 6] (mapcat reverse [[3 2 1] [6 5 4]])) "mapcat")
   (is (= [] (mapcat identity [])) "mapcat on empty vector"))
 
+(deftest test-into
+  (is (= [1 2 3 4] (into [] '(1 2 3 4))) "into vector from list")
+  (is (= [1 2 3 4 5] (into [1 2] [3 4 5])) "into vector from vector")
+  (is (= (set 1 2 3) (into (set) [1 2 3 2 1])) "into set removes duplicates")
+  (is (= {:a 1 :b 2} (into {} [[:a 1] [:b 2]])) "into map from pairs")
+  (is (= [[:a 1] [:b 2]] (into [] {:a 1 :b 2})) "into vector from map")
+  (is (= {:a 1 :b 2 :c 3} (into {:a 1} {:b 2 :c 3})) "into map from map"))
+
 (deftest test-reduce
   (is (= "abc" (reduce str "" ["a" "b" "c"])) "reduce three elements vector")
   (is (= "abc" (reduce str "" [nil "a" "b" "c"])) "reduce vector containing a nil value")
