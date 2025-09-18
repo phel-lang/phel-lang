@@ -9,6 +9,8 @@ use Phel;
 use Phel\Compiler\Application\Lexer;
 use Phel\Compiler\CompilerFacade;
 use Phel\Compiler\CompilerFacadeInterface;
+use Phel\Compiler\Domain\Parser\ParserNode\NodeInterface;
+use Phel\Compiler\Domain\Parser\ParserNode\TriviaNodeInterface;
 use Phel\Compiler\Domain\Reader\Exceptions\ReaderException;
 use Phel\Compiler\Infrastructure\GlobalEnvironmentSingleton;
 use Phel\Lang\Collections\Map\PersistentMapInterface;
@@ -214,24 +216,18 @@ final class ReaderTest extends TestCase
         );
     }
 
-    public function test_unquote(): void
+    public function test_comma_outside_quasiquote_is_ignored(): void
     {
         self::assertEquals(
-            $this->loc(Phel::list([
-                Symbol::create(Symbol::NAME_UNQUOTE),
-                $this->loc(Symbol::create('a'), 1, 1, 1, 2),
-            ]), 1, 0, 1, 2),
+            $this->loc(Symbol::create('a'), 1, 1, 1, 2),
             $this->read(',a'),
         );
     }
 
-    public function test_unquote_splice(): void
+    public function test_comma_splice_outside_quasiquote_is_ignored(): void
     {
         self::assertEquals(
-            $this->loc(Phel::list([
-                Symbol::create(Symbol::NAME_UNQUOTE_SPLICING),
-                $this->loc(Symbol::create('a'), 1, 2, 1, 3),
-            ]), 1, 0, 1, 3),
+            $this->loc(Symbol::create('a'), 1, 2, 1, 3),
             $this->read(',@a'),
         );
     }
@@ -409,6 +405,19 @@ final class ReaderTest extends TestCase
                 2,
             ), 1, 0, 1, 11),
             $this->read('{:a 1 :b 2}'),
+        );
+    }
+
+    public function test_map_with_commas(): void
+    {
+        self::assertEquals(
+            $this->loc(Phel::map(
+                $this->loc(Keyword::create('a'), 1, 1, 1, 3),
+                1,
+                $this->loc(Keyword::create('b'), 1, 7, 1, 9),
+                2,
+            ), 1, 0, 1, 12),
+            $this->read('{:a 1, :b 2}'),
         );
     }
 
@@ -781,7 +790,13 @@ final class ReaderTest extends TestCase
     {
         Symbol::resetGen();
         $tokenStream = $this->compilerFacade->lexString($string, Lexer::DEFAULT_SOURCE, $withLocation);
-        $parseTree = $this->compilerFacade->parseNext($tokenStream);
+
+        do {
+            $parseTree = $this->compilerFacade->parseNext($tokenStream);
+            if (!$parseTree instanceof NodeInterface) {
+                return null;
+            }
+        } while ($parseTree instanceof TriviaNodeInterface);
 
         return $this->compilerFacade->read($parseTree)->getAst();
     }

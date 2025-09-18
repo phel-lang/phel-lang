@@ -11,6 +11,7 @@ use Phel\Compiler\CompilerFacadeInterface;
 use Phel\Compiler\Domain\Lexer\Token;
 use Phel\Compiler\Domain\Parser\Exceptions\AbstractParserException;
 use Phel\Compiler\Domain\Parser\ParserNode\BooleanNode;
+use Phel\Compiler\Domain\Parser\ParserNode\CommaNode;
 use Phel\Compiler\Domain\Parser\ParserNode\CommentMacroNode;
 use Phel\Compiler\Domain\Parser\ParserNode\CommentNode;
 use Phel\Compiler\Domain\Parser\ParserNode\KeywordNode;
@@ -183,12 +184,7 @@ final class ParserTest extends TestCase
     public function test_unquote(): void
     {
         self::assertEquals(
-            new QuoteNode(
-                Token::T_UNQUOTE,
-                $this->loc(1, 0),
-                $this->loc(1, 2),
-                new SymbolNode('a', $this->loc(1, 1), $this->loc(1, 2), Symbol::create('a')),
-            ),
+            new CommaNode(',', $this->loc(1, 0), $this->loc(1, 1)),
             $this->parse(',a'),
         );
     }
@@ -196,12 +192,7 @@ final class ParserTest extends TestCase
     public function test_unquote_splice(): void
     {
         self::assertEquals(
-            new QuoteNode(
-                Token::T_UNQUOTE_SPLICING,
-                $this->loc(1, 0),
-                $this->loc(1, 3),
-                new SymbolNode('a', $this->loc(1, 2), $this->loc(1, 3), Symbol::create('a')),
-            ),
+            new CommaNode(',@', $this->loc(1, 0), $this->loc(1, 2)),
             $this->parse(',@a'),
         );
     }
