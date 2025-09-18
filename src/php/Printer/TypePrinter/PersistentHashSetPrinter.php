@@ -21,11 +21,14 @@ final readonly class PersistentHashSetPrinter implements TypePrinterInterface
      */
     public function print(mixed $form): string
     {
+        $prefix = '#{';
+        $suffix = '}';
+
         $values = [];
-        foreach ($form->toPhpArray() as $elem) {
-            $values[] = $this->printer->print($elem);
+        foreach ($form as $element) {
+            $values[] = $this->printer->print($element);
         }
 
-        return '(set' . ($values !== [] ? ' ' : '') . implode(' ', $values) . ')';
+        return $prefix . implode(' ', $values) . $suffix;
     }
 }
