@@ -38,10 +38,6 @@ final class VersionFinder
             return $this->cachedVersion = self::LATEST_VERSION;
         }
 
-        if ($this->tagCommitHash === '') {
-            return $this->cachedVersion = self::LATEST_VERSION;
-        }
-
         return $this->cachedVersion = self::LATEST_VERSION . '-beta#' . $hash;
     }
 

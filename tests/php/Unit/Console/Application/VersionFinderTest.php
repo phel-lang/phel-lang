@@ -43,14 +43,17 @@ final class VersionFinderTest extends TestCase
         self::assertSame(VersionFinder::LATEST_VERSION, $finder->getVersion());
     }
 
-    public function test_returns_latest_version_when_tag_commit_empty(): void
+    public function test_returns_beta_version_when_tag_commit_empty(): void
     {
         $finder = new VersionFinder(
             '',
             '1234567890abcdef',
         );
 
-        self::assertSame(VersionFinder::LATEST_VERSION, $finder->getVersion());
+        self::assertSame(
+            VersionFinder::LATEST_VERSION . '-beta#1234567',
+            $finder->getVersion(),
+        );
     }
 
     public function test_returns_latest_version_when_current_commit_invalid(): void
