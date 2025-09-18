@@ -14,6 +14,7 @@ use Phel\Compiler\Domain\Parser\Exceptions\UnfinishedParserException;
 use Phel\Compiler\Domain\Parser\ExpressionParserFactoryInterface;
 use Phel\Compiler\Domain\Parser\ParserInterface;
 use Phel\Compiler\Domain\Parser\ParserNode\AbstractAtomNode;
+use Phel\Compiler\Domain\Parser\ParserNode\CommaNode;
 use Phel\Compiler\Domain\Parser\ParserNode\CommentMacroNode;
 use Phel\Compiler\Domain\Parser\ParserNode\CommentNode;
 use Phel\Compiler\Domain\Parser\ParserNode\FileNode;
@@ -25,6 +26,8 @@ use Phel\Compiler\Domain\Parser\ParserNode\QuoteNode;
 use Phel\Compiler\Domain\Parser\ParserNode\StringNode;
 use Phel\Compiler\Domain\Parser\ParserNode\TriviaNodeInterface;
 use Phel\Compiler\Domain\Parser\ParserNode\WhitespaceNode;
+
+use SplStack;
 
 use function in_array;
 
@@ -39,10 +42,13 @@ final readonly class Parser implements ParserInterface
         Token::T_STRING,
     ];
 
+    private SplStack $quasiquoteStack;
+
     public function __construct(
         private ExpressionParserFactoryInterface $parserFactory,
         private GlobalEnvironmentInterface $globalEnvironment,
     ) {
+        $this->quasiquoteStack = new SplStack();
     }
 
     /**
@@ -90,6 +96,26 @@ final readonly class Parser implements ParserInterface
 
             $tokenType = $token->getType();
 
+            if ($tokenType === Token::T_QUASIQUOTE) {
+                $this->enterQuasiquote();
+                $node = $this->parseQuoteNode($token, $tokenStream);
+                $this->leaveQuasiquote();
+
+                return $node;
+            }
+
+            if ($tokenType === Token::T_UNQUOTE || $tokenType === Token::T_UNQUOTE_SPLICING) {
+                if (!$this->isInsideQuasiquote()) {
+                    return $this->parseCommaNode($tokenStream);
+                }
+
+                $this->leaveQuasiquote();
+                $node = $this->parseQuoteNode($token, $tokenStream);
+                $this->enterQuasiquote();
+
+                return $node;
+            }
+
             if ($this->shouldTokenStreamGoNext($tokenType)) {
                 $tokenStream->next();
             }
@@ -109,9 +135,6 @@ final readonly class Parser implements ParserInterface
                 Token::T_CLOSE_PARENTHESIS,
                 Token::T_CLOSE_BRACKET,
                 Token::T_CLOSE_BRACE => throw $this->createUnexceptedParserException($tokenStream, $token, 'Unterminated list (BRACKETS)'),
-                Token::T_UNQUOTE_SPLICING,
-                Token::T_UNQUOTE,
-                Token::T_QUASIQUOTE,
                 Token::T_QUOTE => $this->parseQuoteNode($token, $tokenStream),
                 Token::T_CARET => $this->parseMetaNode($tokenStream),
                 Token::T_EOF => throw $this->createUnfinishedParserException($tokenStream, $token, 'Unterminated list (EOF)'),
@@ -225,10 +248,35 @@ final readonly class Parser implements ParserInterface
             ->parse($tokenStream, $token->getType());
     }
 
+    private function parseCommaNode(TokenStream $tokenStream): CommaNode
+    {
+        $token = $tokenStream->current();
+        $tokenStream->next();
+
+        return CommaNode::createWithToken($token);
+    }
+
     private function parseMetaNode(TokenStream $tokenStream): MetaNode
     {
         return $this->parserFactory
             ->createMetaParser($this)
             ->parse($tokenStream);
+    }
+
+    private function isInsideQuasiquote(): bool
+    {
+        return !$this->quasiquoteStack->isEmpty();
+    }
+
+    private function enterQuasiquote(): void
+    {
+        $this->quasiquoteStack->push(true);
+    }
+
+    private function leaveQuasiquote(): void
+    {
+        if (!$this->quasiquoteStack->isEmpty()) {
+            $this->quasiquoteStack->pop();
+        }
     }
 }
