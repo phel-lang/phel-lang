@@ -25,16 +25,20 @@ final class VersionFinder
             return $this->cachedVersion;
         }
 
-        if ($this->currentCommit === '' || $this->tagCommitHash === '') {
+        if ($this->currentCommit === '') {
             return $this->cachedVersion = self::LATEST_VERSION;
         }
 
-        if ($this->currentCommit === $this->tagCommitHash) {
+        if ($this->tagCommitHash !== '' && $this->currentCommit === $this->tagCommitHash) {
             return $this->cachedVersion = self::LATEST_VERSION;
         }
 
         $hash = $this->shortCommitHash($this->currentCommit);
         if ($hash === null) {
+            return $this->cachedVersion = self::LATEST_VERSION;
+        }
+
+        if ($this->tagCommitHash === '') {
             return $this->cachedVersion = self::LATEST_VERSION;
         }
 
@@ -51,7 +55,7 @@ final class VersionFinder
             return null;
         }
 
-        if (in_array(preg_match('/^[0-9a-f]{7,40}$/i', $reference), [0, false], true)) {
+        if (in_array(preg_match('/^[0-9a-f]{8,40}$/i', $reference), [0, false], true)) {
             return null;
         }
 

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Phel\Console;
 
+use Composer\InstalledVersions;
 use Gacela\Framework\AbstractProvider;
 use Gacela\Framework\Container\Container;
 use Phel\Api\Infrastructure\Command\DocCommand;
@@ -27,6 +28,8 @@ final class ConsoleProvider extends AbstractProvider
     public const string TAG_COMMIT_HASH = 'TAG_COMMIT_HASH';
 
     public const string CURRENT_COMMIT = 'CURRENT_COMMIT';
+
+    private const string PACKAGE_NAME = 'phel-lang/phel-lang';
 
     public function provideModuleDependencies(Container $container): void
     {
@@ -60,16 +63,48 @@ final class ConsoleProvider extends AbstractProvider
 
     private function addVersionInfo(Container $container): void
     {
-        $container->set(self::TAG_COMMIT_HASH, static function (): string {
-            $output = [];
-            @exec('git rev-list -n 1 ' . VersionFinder::LATEST_VERSION . ' 2>/dev/null', $output);
-            return $output[0] ?? '';
-        });
+        $container->set(self::TAG_COMMIT_HASH, static fn (): string => self::resolveTagCommitHash());
 
-        $container->set(self::CURRENT_COMMIT, static function (): string {
-            $output = [];
-            @exec('git rev-parse --verify HEAD 2>/dev/null', $output);
-            return $output[0] ?? '';
-        });
+        $container->set(self::CURRENT_COMMIT, static fn (): string => self::resolveCurrentCommit());
+    }
+
+    private static function resolveTagCommitHash(): string
+    {
+        $hash = self::execGitCommand('git rev-list -n 1 ' . VersionFinder::LATEST_VERSION);
+        if ($hash !== '') {
+            return $hash;
+        }
+
+        if (!class_exists(InstalledVersions::class) || !InstalledVersions::isInstalled(self::PACKAGE_NAME)) {
+            return '';
+        }
+
+        if (InstalledVersions::getPrettyVersion(self::PACKAGE_NAME) !== VersionFinder::LATEST_VERSION) {
+            return '';
+        }
+
+        return InstalledVersions::getReference(self::PACKAGE_NAME) ?? '';
+    }
+
+    private static function resolveCurrentCommit(): string
+    {
+        $hash = self::execGitCommand('git rev-parse --verify HEAD');
+        if ($hash !== '') {
+            return $hash;
+        }
+
+        if (!class_exists(InstalledVersions::class) || !InstalledVersions::isInstalled(self::PACKAGE_NAME)) {
+            return '';
+        }
+
+        return InstalledVersions::getReference(self::PACKAGE_NAME) ?? '';
+    }
+
+    private static function execGitCommand(string $command): string
+    {
+        $output = [];
+        @exec($command . ' 2>/dev/null', $output);
+
+        return trim($output[0] ?? '');
     }
 }
