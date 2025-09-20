@@ -1,11 +1,12 @@
 (ns phel-test\test\core\pre-post-conditions
-  (:require phel\test :refer [deftest is thrown? thrown-with-msg?]))
+  (:require phel\test :refer [deftest is thrown? thrown-with-msg?])
+  (:use RuntimeException))
 
 (deftest test-pre-condition
   (let [divide (fn [x y] {:pre [(not= y 0)]} (/ x y))]
     (is (= 3 (divide 6 2)) "pre condition success")
     (is (thrown-with-msg?
-         \RuntimeException "Assert failed: (not= y 0)"
+         RuntimeException "Assert failed: (not= y 0)"
          (divide 6 0))
         "pre condition failure")))
 
@@ -15,11 +16,11 @@
                  (/ x y))]
     (is (= 3 (divide 6 2)) "multiple pre conditions success")
     (is (thrown-with-msg?
-         \RuntimeException "Assert failed: (number? x)"
+         RuntimeException "Assert failed: (number? x)"
          (divide "foo" 2))
         "pre condition failure: x not number")
     (is (thrown-with-msg?
-         \RuntimeException "Assert failed: (not= y 0)"
+         RuntimeException "Assert failed: (not= y 0)"
          (divide 6 0))
         "pre condition failure: y is zero")))
 
@@ -27,7 +28,7 @@
   (let [get-username (fn [user] {:post [(not (nil? $))]} (get user :name))]
     (is (= "test" (get-username {:id 1 :name "test"})) "post condition success")
     (is (thrown-with-msg?
-         \RuntimeException "Assert failed: (not (nil? $))"
+         RuntimeException "Assert failed: (not (nil? $))"
          (get-username {:id 4 :joined 2000}))
         "post condition failure")))
 
@@ -38,11 +39,11 @@
                  (/ x y))]
     (is (= 3 (divide 6 2)) "pre and post success")
     (is (thrown-with-msg?
-         \RuntimeException "Assert failed: (not= y 0)"
+         RuntimeException "Assert failed: (not= y 0)"
          (divide 6 0))
         "pre failure in pre and post")
     (is (thrown-with-msg?
-         \RuntimeException "Assert failed: (pos? $)"
+         RuntimeException "Assert failed: (pos? $)"
          (divide 6 -2))
         "post failure in pre and post")))
 
@@ -52,6 +53,6 @@
                   method)]
     (is (= "GET" (request {:method "GET"})) "pre condition with destructuring success")
     (is (thrown-with-msg?
-         \RuntimeException "Assert failed: (= method GET)"
+         RuntimeException "Assert failed: (= method GET)"
          (request {:method "POST"}))
         "pre condition with destructuring failure")))
