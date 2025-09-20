@@ -21,6 +21,7 @@ All notable changes to this project will be documented in this file.
     - Use new set shortcut syntax for printer
 - Add `into` function
 - Discarding commas in printer output with new `CommaNode`
+- Use custom if-throw for `:pre/:post` metadata conditions
 - Return empty string for `__FILE__` and `__DIR__` in the REPL
 - Improve PhelFunction 
     - Deprecate methods in favor of its public properties

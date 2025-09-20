@@ -20,7 +20,6 @@ jobs:
       - uses: shivammathur/setup-php@v2
         with:
           php-version: ${{ matrix.php }}
-          ini-values: zend.assertions=1, assert.exception=1
           coverage: none
           tools: composer
 
@@ -57,7 +56,6 @@ jobs:
       - uses: shivammathur/setup-php@v2
         with:
           php-version: ${{ matrix.php }}
-          ini-values: zend.assertions=1, assert.exception=1
           coverage: none
           tools: composer
 
@@ -94,7 +92,6 @@ jobs:
       - uses: shivammathur/setup-php@v2
         with:
           php-version: ${{ matrix.php }}
-          ini-values: zend.assertions=1, assert.exception=1
           coverage: none
           tools: composer
 
@@ -131,7 +128,6 @@ jobs:
       - uses: shivammathur/setup-php@v2
         with:
           php-version: ${{ matrix.php }}
-          ini-values: zend.assertions=1, assert.exception=1
           coverage: none
           tools: composer
 
@@ -165,7 +161,6 @@ jobs:
       - uses: shivammathur/setup-php@v2
         with:
           php-version: ${{ matrix.php }}
-          ini-values: zend.assertions=1, assert.exception=1
           coverage: none
           tools: composer
 

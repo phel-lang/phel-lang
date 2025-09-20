@@ -17,6 +17,7 @@ use Phel\Lang\Collections\LinkedList\PersistentListInterface;
 use Phel\Lang\Collections\Map\PersistentMapInterface;
 use Phel\Lang\Collections\Vector\PersistentVectorInterface;
 use Phel\Lang\Symbol;
+use RuntimeException;
 
 use function array_slice;
 use function count;
@@ -276,10 +277,20 @@ final class FnSymbol implements SpecialFormAnalyzerInterface
             ])->copyLocationFrom($formForMessage),
         ])->copyLocationFrom($formForMessage);
 
-        return Phel::list([
-            Symbol::create('php/assert')->copyLocationFrom($form),
-            $form,
+        $exception = Phel::list([
+            Symbol::create('php/new')->copyLocationFrom($formForMessage),
+            RuntimeException::class,
             $message,
+        ])->copyLocationFrom($formForMessage);
+
+        return Phel::list([
+            Symbol::create(Symbol::NAME_IF)->copyLocationFrom($form),
+            $form,
+            null,
+            Phel::list([
+                Symbol::create(Symbol::NAME_THROW)->copyLocationFrom($form),
+                $exception,
+            ])->copyLocationFrom($form),
         ])->copyLocationFrom($form);
     }
 
