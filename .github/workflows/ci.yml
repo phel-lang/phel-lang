@@ -10,16 +10,12 @@ jobs:
   coding-guidelines:
     name: Coding Guidelines
     runs-on: ubuntu-latest
-    strategy:
-      fail-fast: false
-      matrix:
-        php: [ '8.3' ]
     steps:
       - uses: actions/checkout@v4
 
       - uses: shivammathur/setup-php@v2
         with:
-          php-version: ${{ matrix.php }}
+          php-version: 8.3
           coverage: none
           tools: composer
 
@@ -46,16 +42,12 @@ jobs:
   type-checker:
     name: Type Checker
     runs-on: ubuntu-latest
-    strategy:
-      fail-fast: false
-      matrix:
-        php: [ '8.3' ]
     steps:
       - uses: actions/checkout@v4
 
       - uses: shivammathur/setup-php@v2
         with:
-          php-version: ${{ matrix.php }}
+          php-version: 8.3
           coverage: none
           tools: composer
 
@@ -149,18 +141,14 @@ jobs:
         run: composer run-script test-core
 
   bench-tests:
-    name: Bench tests on PHP ${{ matrix.php }}
+    name: Bench tests
     runs-on: ubuntu-latest
-    strategy:
-      fail-fast: false
-      matrix:
-        php: [ '8.3' ]
     steps:
       - uses: actions/checkout@v4
 
       - uses: shivammathur/setup-php@v2
         with:
-          php-version: ${{ matrix.php }}
+          php-version: 8.3
           coverage: none
           tools: composer
 
