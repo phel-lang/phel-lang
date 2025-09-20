@@ -156,6 +156,16 @@
   (fn [obj meta]
     (php/-> obj (withMeta meta))))
 
+(def with-meta
+  {:private true
+   :doc "Returns `target` with the metadata from `source` when both implement `MetaInterface`."}
+  (fn [source target]
+    (if (php/instanceof source MetaInterface)
+      (if (php/instanceof target MetaInterface)
+        (php/-> target (withMeta (php/-> source (getMeta))))
+        target)
+      target)))
+
 # ------------
 # Basic macros
 # ------------
@@ -1058,25 +1068,32 @@ arrays. Use (php/aunset ds key)"))
   [f & xs]
   (case (count xs)
     0 (throw (php/new InvalidArgumentException "expected at least one indexed collection in map"))
-    1 (for [x :in (first xs)] (f x))
-    (loop [res (transient [])
-           seq xs]
-      (if (some? empty? seq)
-        (persistent res)
-        (do
-          (push res (apply f (map first seq)))
-          (recur res (map next seq)))))))
+    1 (let [coll (first xs)
+            result (for [x :in coll] (f x))]
+        (with-meta coll result))
+    (let [colls xs]
+      (loop [res (transient [])
+             seq colls]
+        (if (some? empty? seq)
+          (with-meta (first colls) (persistent res))
+          (do
+            (push res (apply f (map first seq)))
+            (recur res (map next seq))))))))
 
 (defn map-indexed
   "Applies `f` to each element in `xs`. `f` is a two-argument function. The first argument
   is an index of the element in the sequence and the second element is the element itself."
   [f xs]
-  (for [[k v] :pairs xs] (f k v)))
+  (let [result (for [[k v] :pairs xs] (f k v))]
+    (with-meta xs result)))
 
 (defn mapcat
   "Applies `f` on all `xs` and concatenate the result."
   [f & xs]
-  (apply concat [] (apply map f xs)))
+  (let [result (apply concat [] (apply map f xs))]
+    (if (empty? xs)
+      result
+      (with-meta (first xs) result))))
 
 (defn reduce
   "(reduce f coll) (reduce f val coll)
@@ -1252,10 +1269,11 @@ arrays. Use (php/aunset ds key)"))
       (php/instanceof xs SliceInterface) (php/-> xs (slice 0 n))
       (php/instanceof xs Traversable)
       (let [i (var 0)]
-        (for [x :in xs
-              :while (php/< (deref i) n)
-              :let [_ (swap! i |(php/+ $ 1))]]
-          x))
+        (let [result (for [x :in xs
+                            :while (php/< (deref i) n)
+                            :let [_ (swap! i |(php/+ $ 1))]]
+                        x)]
+          (with-meta xs result)))
       (throw (php/new InvalidArgumentException "Cannot take")))))
 
 (defn take-last
@@ -1266,37 +1284,42 @@ arrays. Use (php/aunset ds key)"))
 (defn take-while
   "Takes all elements at the front of `xs` where `(pred x)` is true."
   [pred xs]
-  (for [x :in xs :while (pred x)] x))
+  (let [result (for [x :in xs :while (pred x)] x)]
+    (with-meta xs result)))
 
 (defn take-nth
   "Returns every nth item in `xs`."
   [n xs]
   (when (< n 1)
     (throw (php/new InvalidArgumentException "First argument of 'take-nth must be greater than 0")))
-  (for [[i x] :pairs xs
-        :when (= (php/% i n) 0)]
-    x))
+  (let [result (for [[i x] :pairs xs
+                     :when (= (php/% i n) 0)]
+                 x)]
+    (with-meta xs result)))
 
 (defn filter
   "Returns all elements of `xs` where `(pred x)` is true."
   [pred xs]
-  (for [x :in xs :when (pred x)] x))
+  (let [result (for [x :in xs :when (pred x)] x)]
+    (with-meta xs result)))
 
 (defn keep
   "Returns a list of non-nil results of `(pred x)`."
   [pred xs]
-  (for [x :in xs
-        :let [res (pred x)]
-        :when (not (nil? res))]
-    res))
+  (let [result (for [x :in xs
+                     :let [res (pred x)]
+                     :when (not (nil? res))]
+                 res)]
+    (with-meta xs result)))
 
 (defn keep-indexed
   "Returns a list of non-nil results of `(pred i x)`."
   [pred xs]
-  (for [[k v] :pairs xs
-        :let [res (pred k v)]
-        :when (not (nil? res))]
-    res))
+  (let [result (for [[k v] :pairs xs
+                     :let [res (pred k v)]
+                     :when (not (nil? res))]
+                 res)]
+    (with-meta xs result)))
 
 (defn find
   "Returns the first item in `xs` where `(pred item)` evaluates to true."
@@ -1328,68 +1351,82 @@ arrays. Use (php/aunset ds key)"))
       (when-not (get seen x)
         (put seen x true)
         (push ret x)))
-    (persistent ret)))
+    (with-meta xs (persistent ret))))
 
 
 (defn reverse
   "Reverses the order of the elements in the given sequence."
   [xs]
-  (for [i :range [(php/- (count xs) 1) -1 -1]
-        :reduce [ret []]]
-    (push ret (get xs i))))
+  (let [result
+        (for [i :range [(php/- (count xs) 1) -1 -1]
+              :reduce [ret []]]
+          (push ret (get xs i)))]
+    (with-meta xs result)))
 
 (defn interleave
   "Returns a vector with the first items of each col, then the second items, etc."
   [& xs]
-  (let [size (count (first xs))]
-    (loop [i 0
-           res []]
-      (let [nths (map |(get $ i) xs)]
-        (if (<= size i)
-          res
-          (recur (php/+ i 1) (concat res nths)))))))
+  (if (empty? xs)
+    []
+    (let [first-coll (first xs)
+          size (count first-coll)
+          result (loop [i 0
+                        res []]
+                   (let [nths (map |(get $ i) xs)]
+                     (if (<= size i)
+                       res
+                       (recur (php/+ i 1) (concat res nths)))))]
+      (with-meta first-coll result))))
 
 (defn interpose
   "Returns a vector of elements separated by `sep`."
   [sep xs]
-  (persistent
-   (for [[k v] :pairs xs
-         :reduce [res (transient [])]]
-     (when (> k 0)
-       (push res sep v))
-     (push res v))))
+  (let [result
+        (persistent
+         (for [[k v] :pairs xs
+               :reduce [res (transient [])]]
+           (when (> k 0)
+             (push res sep v))
+           (push res v)))]
+    (with-meta xs result)))
 
 (defn frequencies
   "Returns a map from distinct items in `xs` to the number of times they appear."
   [xs]
-  (for [x :in xs
-        :reduce [res {}]]
-    (let [n (get res x 0)]
-      (put res x (php/+ 1 n)))))
+  (let [result (for [x :in xs
+                     :reduce [res {}]]
+                 (let [n (get res x 0)]
+                   (put res x (php/+ 1 n))))]
+    (with-meta xs result)))
 
 (defn keys
   "Gets the keys of an associative data structure."
   [xs]
-  (for [k :keys xs] k))
+  (let [result (for [k :keys xs] k)]
+    (with-meta xs result)))
 
 (defn values
   "Gets the values of an associative data structure."
   [xs]
-  (for [x :in xs] x))
+  (let [result (for [x :in xs] x)]
+    (with-meta xs result)))
 
 (defn pairs
   "Gets the pairs of an associative data structure."
   [xs]
-  (for [p :pairs xs] p))
+  (let [result (for [p :pairs xs] p)]
+    (with-meta xs result)))
 
 (defn kvs
   "Returns a vector of key-value pairs like `[k1 v1 k2 v2 k3 v3 ...]`."
   [xs]
-  (persistent
-   (for [[k v] :pairs xs
-         :reduce [res (transient [])]]
-     (push res k)
-     (push res v))))
+  (let [result
+        (persistent
+         (for [[k v] :pairs xs
+               :reduce [res (transient [])]]
+           (push res k)
+           (push res v)))]
+    (with-meta xs result)))
 
 (defn to-php-array
   "Create a PHP Array from a sequential data structure."
@@ -1463,7 +1500,7 @@ arrays. Use (php/aunset ds key)"))
   [xs & [comp]]
   (let [php-array (to-php-array xs)]
     (php/usort php-array (or comp compare))
-    (apply vector php-array)))
+    (with-meta xs (apply vector php-array))))
 
 (defn sort-by
   "Returns a sorted vector where the sort order is determined by comparing
@@ -1472,14 +1509,14 @@ arrays. Use (php/aunset ds key)"))
   (let [php-array (to-php-array xs)
         cmp (or comp compare)]
     (php/usort php-array |(cmp (keyfn $1) (keyfn $2)))
-    (apply vector php-array)))
+    (with-meta xs (apply vector php-array))))
 
 (defn shuffle
   "Returns a random permutation of xs."
   [xs]
   (let [php-array (to-php-array xs)]
     (php/shuffle php-array)
-    (apply vector php-array)))
+    (with-meta xs (apply vector php-array))))
 
 (defn repeat
   "Returns a vector of length n where every element is x.
@@ -1731,7 +1768,7 @@ arrays. Use (php/aunset ds key)"))
           (if (branch? node)
             (recur (concat stack (reverse (children node))))
             (recur stack)))
-        (persistent ret)))))
+        (with-meta root (persistent ret))))))
 
 (defn flatten
   "Takes a nested sequential data structure `(tree)`, and returns their contents

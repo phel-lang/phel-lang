@@ -18,3 +18,34 @@
 
 (deftest meta-on-object-no-meta
   (is (= nil (meta [])) "meta on object without metadata returns nil"))
+
+(deftest sequence-functions-preserve-meta
+  (let [m {:foo "bar"}
+        data (set-meta! [3 1 2] m)
+        nested (set-meta! [[1] [2]] m)]
+    (is (= m (meta (map identity data))) "map preserves metadata")
+    (is (= m (meta (map + data data))) "map with multiple sequences preserves metadata")
+    (is (= m (meta (map-indexed (fn [_ x] x) data))) "map-indexed preserves metadata")
+    (is (= m (meta (mapcat identity nested))) "mapcat preserves metadata")
+    (is (= m (meta (filter identity data))) "filter preserves metadata")
+    (is (= m (meta (keep identity data))) "keep preserves metadata")
+    (is (= m (meta (keep-indexed (fn [_ x] x) data))) "keep-indexed preserves metadata")
+    (is (= m (meta (take 2 data))) "take preserves metadata")
+    (is (= m (meta (take-while |(< $ 3) data))) "take-while preserves metadata")
+    (is (= m (meta (take-nth 2 data))) "take-nth preserves metadata")
+    (is (= m (meta (distinct data))) "distinct preserves metadata")
+    (is (= m (meta (reverse data))) "reverse preserves metadata")
+    (is (= m (meta (sort data))) "sort preserves metadata")
+    (is (= m (meta (sort-by identity data))) "sort-by preserves metadata")
+    (is (= m (meta (shuffle data))) "shuffle preserves metadata")
+    (is (= m (meta (interpose :x data))) "interpose preserves metadata")
+    (is (= m (meta (interleave data [4 5 6]))) "interleave preserves metadata")
+    (is (= m (meta (frequencies data))) "frequencies preserves metadata")))
+
+(deftest associative-functions-preserve-meta
+  (let [m {:foo "bar"}
+        data (set-meta! {:a 1 :b 2} m)]
+    (is (= m (meta (keys data))) "keys preserves metadata")
+    (is (= m (meta (values data))) "values preserves metadata")
+    (is (= m (meta (pairs data))) "pairs preserves metadata")
+    (is (= m (meta (kvs data))) "kvs preserves metadata")))
