@@ -7,6 +7,7 @@ All notable changes to this project will be documented in this file.
 - Fix REPL require from `repl.phel` fails
 - Fix `meta` on definitions
 - Fix `argv` to return a vector instead of a native PHP array
+- Fix core functions/macros should persist metadata
 - Add new array functions with nested lookup
     - php/aget-in
     - php/aset-in
