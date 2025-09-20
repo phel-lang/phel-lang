@@ -17,6 +17,7 @@ use Phel\Lang\Collections\LinkedList\PersistentListInterface;
 use Phel\Lang\Collections\Map\PersistentMapInterface;
 use Phel\Lang\Collections\Vector\PersistentVectorInterface;
 use Phel\Lang\Symbol;
+use RuntimeException;
 
 use function array_slice;
 use function count;
@@ -278,7 +279,7 @@ final class FnSymbol implements SpecialFormAnalyzerInterface
 
         $exception = Phel::list([
             Symbol::create('php/new')->copyLocationFrom($formForMessage),
-            \RuntimeException::class,
+            RuntimeException::class,
             $message,
         ])->copyLocationFrom($formForMessage);
 
