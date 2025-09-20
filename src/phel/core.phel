@@ -1582,10 +1582,11 @@ arrays. Use (php/aunset ds key)"))
 (defn select-keys
   "Returns a new map including key value pairs from `m` selected with of keys `ks`."
   [m ks]
-  (for [[k v] :pairs m
-        :when (contains-value? ks k)
-        :reduce [acc {}]]
-    (put acc k v)))
+  (let [result (for [[k v] :pairs m
+                     :when (contains-value? ks k)
+                     :reduce [acc {}]]
+                 (put acc k v))]
+    (with-meta m result)))
 
 (defn invert
   "Returns a new map where the keys and values are swapped. If map has
@@ -2180,8 +2181,8 @@ returns 1. If `xs` has one value, returns the reciprocal of x."
     (if forms
       (let [form (first forms)
             threaded (if (list? form)
-                       `(,(first form) ,x ,@(next form))
-                       (list form x))]
+                       (with-meta form `(,(first form) ,x ,@(next form)))
+                       (with-meta form (list form x)))]
         (recur threaded (next forms)))
       x)))
 
@@ -2196,8 +2197,8 @@ returns 1. If `xs` has one value, returns the reciprocal of x."
     (if forms
       (let [form (first forms)
             threaded (if (list? form)
-                       `(,(first form) ,@(next form) ,x)
-                       (list form x))]
+                       (with-meta form `(,(first form) ,@(next form) ,x))
+                       (with-meta form (list form x)))]
         (recur threaded (next forms)))
       x)))
 
@@ -2209,12 +2210,19 @@ returns 1. If `xs` has one value, returns the reciprocal of x."
     (if forms
       (let [form (first forms)
             g (gensym)
-            threaded `(let [,g ,x]
-                        (if (php/=== nil ,g)
-                          nil
-                          ,(if (list? form)
-                             `(,(first form) ,g ,@(next form))
-                             `(,form ,g))))]
+            call (if (list? form)
+                   (let [rest (next form)
+                         args (if rest
+                                (cons g rest)
+                                [g])]
+                     (with-meta form (apply list (cons (first form) args))))
+                   (with-meta form (list form g)))
+            threaded (list 'let
+                           [g x]
+                           (list 'if
+                                 (list 'php/=== nil g)
+                                 nil
+                                 call))]
         (recur threaded (next forms)))
       x)))
 
@@ -2226,12 +2234,19 @@ returns 1. If `xs` has one value, returns the reciprocal of x."
     (if forms
       (let [form (first forms)
             g (gensym)
-            threaded `(let [,g ,x]
-                        (if (php/=== nil ,g)
-                          nil
-                          ,(if (list? form)
-                             `(,(first form) ,@(next form) ,g)
-                             `(,form ,g))))]
+            call (if (list? form)
+                   (let [rest (next form)
+                         args (if rest
+                                (concat rest [g])
+                                [g])]
+                     (with-meta form (apply list (cons (first form) args))))
+                   (with-meta form (list form g)))
+            threaded (list 'let
+                           [g x]
+                           (list 'if
+                                 (list 'php/=== nil g)
+                                 nil
+                                 call))]
         (recur threaded (next forms)))
       x)))
 
@@ -2254,8 +2269,8 @@ returns 1. If `xs` has one value, returns the reciprocal of x."
     `(let [,gx ,x]
        ,@(map (fn [f]
                 (if (list? f)
-                  `(,(first f) ,gx ,@(next f))
-                  `(,f ,gx)))
+                  (with-meta f `(,(first f) ,gx ,@(next f)))
+                  (with-meta f `(,f ,gx))))
               forms)
        ,gx)))
 

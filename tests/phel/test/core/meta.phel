@@ -48,4 +48,5 @@
     (is (= m (meta (keys data))) "keys preserves metadata")
     (is (= m (meta (values data))) "values preserves metadata")
     (is (= m (meta (pairs data))) "pairs preserves metadata")
-    (is (= m (meta (kvs data))) "kvs preserves metadata")))
+    (is (= m (meta (kvs data))) "kvs preserves metadata")
+    (is (= m (meta (select-keys data [:a]))) "select-keys preserves metadata")))

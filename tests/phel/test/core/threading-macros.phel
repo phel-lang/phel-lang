@@ -42,3 +42,30 @@
     (is (= :php/object (type dt)))
     (is (= "DateTime" (php/get_class dt)))
     (is (= "2026-02-09 13:00:00" (php/-> dt (format "Y-m-d H:i:s"))))))
+
+(deftest threading-macros-preserve-form-metadata
+  (let [m {:line 1}]
+    (let [form (set-meta! '(+ 2) m)
+          expanded (macroexpand-1 (list '-> 1 form))]
+      (is (= m (meta (identity expanded))) "-> preserves metadata"))
+
+    (let [form (set-meta! '(+ 2) m)
+          expanded (macroexpand-1 (list '->> 1 form))]
+      (is (= m (meta (identity expanded))) "->> preserves metadata"))
+
+    (let [form (set-meta! '(+ 2) m)
+          expanded (macroexpand-1 (list 'some-> 'x form))
+          if-expr (second (rest expanded))
+          call (first (rest (rest (rest if-expr))))]
+      (is (= m (meta (identity call))) "some-> preserves metadata"))
+
+    (let [form (set-meta! '(+ 2) m)
+          expanded (macroexpand-1 (list 'some->> 'xs form))
+          if-expr (second (rest expanded))
+          call (first (rest (rest (rest if-expr))))]
+      (is (= m (meta (identity call))) "some->> preserves metadata"))
+
+    (let [form (set-meta! '(foo 42) m)
+          expanded (macroexpand-1 (list 'doto 'obj form))
+          call (second (rest expanded))]
+      (is (= m (meta (identity call))) "doto preserves metadata"))))
