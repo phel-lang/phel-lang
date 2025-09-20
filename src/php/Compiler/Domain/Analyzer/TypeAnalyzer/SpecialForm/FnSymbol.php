@@ -276,10 +276,20 @@ final class FnSymbol implements SpecialFormAnalyzerInterface
             ])->copyLocationFrom($formForMessage),
         ])->copyLocationFrom($formForMessage);
 
-        return Phel::list([
-            Symbol::create('php/assert')->copyLocationFrom($form),
-            $form,
+        $exception = Phel::list([
+            Symbol::create('php/new')->copyLocationFrom($formForMessage),
+            \RuntimeException::class,
             $message,
+        ])->copyLocationFrom($formForMessage);
+
+        return Phel::list([
+            Symbol::create(Symbol::NAME_IF)->copyLocationFrom($form),
+            $form,
+            null,
+            Phel::list([
+                Symbol::create(Symbol::NAME_THROW)->copyLocationFrom($form),
+                $exception,
+            ])->copyLocationFrom($form),
         ])->copyLocationFrom($form);
     }
 
