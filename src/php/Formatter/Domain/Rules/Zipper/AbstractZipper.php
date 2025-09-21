@@ -57,7 +57,7 @@ abstract class AbstractZipper
      *
      * @return static<T>
      */
-    public function left(): self
+    public function left(): static
     {
         if ($this->isTop()) {
             throw ZipperException::cannotGoLeftOnRootNode();
@@ -68,8 +68,18 @@ abstract class AbstractZipper
         }
 
         $leftSiblings = $this->leftSiblings;
-        $left = array_pop($leftSiblings);
-        return $this->createNewInstance(
+        $lastIndex = array_key_last($leftSiblings);
+        if ($lastIndex === null) {
+            throw ZipperException::cannotGoLeftOnTheLeftmostNode();
+        }
+
+        /** @var T $left */
+        $left = $leftSiblings[$lastIndex];
+        unset($leftSiblings[$lastIndex]);
+        $leftSiblings = array_values($leftSiblings);
+
+        /** @var static<T> $newInstance */
+        $newInstance = $this->createNewInstance(
             $left,
             $this->parent,
             $leftSiblings,
@@ -77,6 +87,8 @@ abstract class AbstractZipper
             $this->hasChanged,
             false,
         );
+
+        return $newInstance;
     }
 
     public function leftMost(): static

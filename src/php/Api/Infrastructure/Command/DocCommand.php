@@ -126,17 +126,20 @@ final class DocCommand extends Command
 
         foreach ($phelFunctions as $phelFunction) {
             $fnName = $phelFunction->namespace . '/' . $phelFunction->name;
+            $percent = 0.0;
             similar_text($fnName, $search, $percent);
             if ($search && $percent < 45) {
                 continue;
             }
 
+            $description = preg_replace('/\r?\n/', '', $phelFunction->description) ?? '';
+
             $normalized[] = [
-                'percent' => round($percent),
+                'percent' => (int) round($percent),
                 'name' => $fnName,
                 'signature' => $phelFunction->signature,
                 'doc' => $phelFunction->doc,
-                'description' => preg_replace('/\r?\n/', '', $phelFunction->description),
+                'description' => $description,
                 'githubUrl' => $phelFunction->githubUrl,
                 'docUrl' => $phelFunction->docUrl,
             ];
