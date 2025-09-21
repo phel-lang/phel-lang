@@ -33,6 +33,7 @@ final readonly class Analyzer implements AnalyzerInterface
 {
     public function __construct(
         private GlobalEnvironmentInterface $globalEnvironment,
+        private bool $areAssertsEnabled = true,
     ) {
     }
 
@@ -111,7 +112,7 @@ final readonly class Analyzer implements AnalyzerInterface
         }
 
         if ($x instanceof PersistentListInterface) {
-            return (new AnalyzePersistentList($this))->analyze($x, $env);
+            return (new AnalyzePersistentList($this, $this->areAssertsEnabled))->analyze($x, $env);
         }
 
         if ($x instanceof PersistentVectorInterface) {

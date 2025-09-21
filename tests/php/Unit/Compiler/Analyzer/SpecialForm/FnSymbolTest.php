@@ -267,6 +267,29 @@ final class FnSymbolTest extends TestCase
         (new FnSymbol($this->analyzer))->analyze($list, NodeEnvironment::empty());
     }
 
+    public function test_pre_post_conditions_can_be_disabled(): void
+    {
+        $list = Phel::list([
+            Symbol::create(Symbol::NAME_FN),
+            Phel::vector([
+                Symbol::create('x'),
+            ]),
+            Phel::map(
+                Phel::keyword('pre'),
+                Phel::vector([
+                    true,
+                ]),
+            ),
+            Symbol::create('x'),
+        ]);
+
+        $analyzer = new Analyzer(new GlobalEnvironment(), false);
+        $node = (new FnSymbol($analyzer, false))->analyze($list, NodeEnvironment::empty());
+
+        self::assertInstanceOf(DoNode::class, $node->getBody());
+        self::assertSame([], $node->getBody()->getStmts());
+    }
+
     private function analyze(PersistentListInterface $list): FnNode
     {
         return (new FnSymbol($this->analyzer))->analyze($list, NodeEnvironment::empty());

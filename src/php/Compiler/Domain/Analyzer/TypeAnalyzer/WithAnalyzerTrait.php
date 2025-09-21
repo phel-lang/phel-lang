@@ -8,7 +8,8 @@ use Phel\Compiler\Domain\Analyzer\AnalyzerInterface;
 
 trait WithAnalyzerTrait
 {
-    public function __construct(private AnalyzerInterface $analyzer)
-    {
+    public function __construct(
+        private readonly AnalyzerInterface $analyzer,
+    ) {
     }
 }

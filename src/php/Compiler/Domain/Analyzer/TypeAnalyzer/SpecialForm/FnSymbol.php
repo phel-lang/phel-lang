@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Phel\Compiler\Domain\Analyzer\TypeAnalyzer\SpecialForm;
 
 use Phel;
+use Phel\Compiler\Domain\Analyzer\AnalyzerInterface;
 use Phel\Compiler\Domain\Analyzer\Ast\AbstractNode;
 use Phel\Compiler\Domain\Analyzer\Ast\FnNode;
 use Phel\Compiler\Domain\Analyzer\Ast\MultiFnNode;
@@ -12,7 +13,6 @@ use Phel\Compiler\Domain\Analyzer\Ast\RecurFrame;
 use Phel\Compiler\Domain\Analyzer\Environment\NodeEnvironmentInterface;
 use Phel\Compiler\Domain\Analyzer\Exceptions\AnalyzerException;
 use Phel\Compiler\Domain\Analyzer\TypeAnalyzer\SpecialForm\ReadModel\FnSymbolTuple;
-use Phel\Compiler\Domain\Analyzer\TypeAnalyzer\WithAnalyzerTrait;
 use Phel\Lang\Collections\LinkedList\PersistentListInterface;
 use Phel\Lang\Collections\Map\PersistentMapInterface;
 use Phel\Lang\Collections\Vector\PersistentVectorInterface;
@@ -22,9 +22,13 @@ use RuntimeException;
 use function array_slice;
 use function count;
 
-final class FnSymbol implements SpecialFormAnalyzerInterface
+final readonly class FnSymbol implements SpecialFormAnalyzerInterface
 {
-    use WithAnalyzerTrait;
+    public function __construct(
+        private AnalyzerInterface $analyzer,
+        private bool $enableAsserts = true,
+    ) {
+    }
 
     public function analyze(PersistentListInterface $list, NodeEnvironmentInterface $env): AbstractNode
     {
@@ -105,8 +109,11 @@ final class FnSymbol implements SpecialFormAnalyzerInterface
         }
     }
 
-    private function analyzeBody(FnSymbolTuple $fnSymbolTuple, RecurFrame $recurFrame, NodeEnvironmentInterface $env): AbstractNode
-    {
+    private function analyzeBody(
+        FnSymbolTuple $fnSymbolTuple,
+        RecurFrame $recurFrame,
+        NodeEnvironmentInterface $env,
+    ): AbstractNode {
         $listBody = $fnSymbolTuple->parentListBody();
 
         [$preConditions, $postConditions, $listBody] = $this->extractPrePostConditions($listBody);
@@ -202,7 +209,7 @@ final class FnSymbol implements SpecialFormAnalyzerInterface
         array $pre,
         array $post,
     ): PersistentListInterface {
-        if ($pre === [] && $post === []) {
+        if (!$this->enableAsserts || ($pre === [] && $post === [])) {
             return $body;
         }
 
