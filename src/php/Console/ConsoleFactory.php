@@ -14,6 +14,8 @@ final class ConsoleFactory extends AbstractFactory
 {
     public const string CONSOLE_NAME = 'Phel';
 
+    public const bool IS_RELEASED = true;
+
     public function createConsoleBootstrap(): ConsoleBootstrap
     {
         return new ConsoleBootstrap(
@@ -37,6 +39,7 @@ final class ConsoleFactory extends AbstractFactory
         return new VersionFinder(
             $this->getProvidedDependency(ConsoleProvider::TAG_COMMIT_HASH),
             $this->getProvidedDependency(ConsoleProvider::CURRENT_COMMIT),
+            isReleased: self::IS_RELEASED,
         );
     }
 

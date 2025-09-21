@@ -10,13 +10,12 @@ final class VersionFinder
 {
     public const string LATEST_VERSION = 'v0.22.0';
 
-    public const bool IS_RELEASE = false;
-
     private ?string $cachedVersion = null;
 
     public function __construct(
         private readonly string $tagCommitHash,
         private readonly string $currentCommit,
+        private readonly bool $isReleased = false,
     ) {
     }
 
@@ -26,8 +25,7 @@ final class VersionFinder
             return $this->cachedVersion;
         }
 
-        /** @psalm-suppress TypeDoesNotContainType */
-        if (self::IS_RELEASE) { // @phpstan-ignore-line
+        if ($this->isReleased) {
             return $this->cachedVersion = self::LATEST_VERSION;
         }
 
