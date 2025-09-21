@@ -10,7 +10,8 @@ final class VersionFinder
 {
     public const string LATEST_VERSION = 'v0.22.0';
 
-    /** Cache computed version */
+    public const bool IS_RELEASE = false;
+
     private ?string $cachedVersion = null;
 
     public function __construct(
@@ -23,6 +24,11 @@ final class VersionFinder
     {
         if ($this->cachedVersion !== null) {
             return $this->cachedVersion;
+        }
+
+        /** @psalm-suppress TypeDoesNotContainType */
+        if (self::IS_RELEASE) { // @phpstan-ignore-line
+            return $this->cachedVersion = self::LATEST_VERSION;
         }
 
         if ($this->currentCommit === '') {
