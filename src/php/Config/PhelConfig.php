@@ -30,6 +30,8 @@ final class PhelConfig implements JsonSerializable
 
     public const string FORMAT_DIRS = 'format-dirs';
 
+    public const string ASSERTS_ENABLED = 'asserts-enabled';
+
     /** @var list<string> */
     private array $srcDirs = ['src'];
 
@@ -56,6 +58,8 @@ final class PhelConfig implements JsonSerializable
 
     /** @var list<string> */
     private array $formatDirs = ['src', 'tests'];
+
+    private bool $enableAsserts = true;
 
     public function __construct()
     {
@@ -163,6 +167,13 @@ final class PhelConfig implements JsonSerializable
         return $this;
     }
 
+    public function setEnableAsserts(bool $flag): self
+    {
+        $this->enableAsserts = $flag;
+
+        return $this;
+    }
+
     public function jsonSerialize(): array
     {
         return [
@@ -177,6 +188,7 @@ final class PhelConfig implements JsonSerializable
             self::KEEP_GENERATED_TEMP_FILES => $this->keepGeneratedTempFiles,
             self::TEMP_DIR => $this->tempDir,
             self::FORMAT_DIRS => $this->formatDirs,
+            self::ASSERTS_ENABLED => $this->enableAsserts,
         ];
     }
 }

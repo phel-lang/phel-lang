@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Phel\Compiler\Domain\Analyzer\TypeAnalyzer;
 
 use Phel\Compiler\Application\Munge;
+use Phel\Compiler\Domain\Analyzer\AnalyzerInterface;
 use Phel\Compiler\Domain\Analyzer\Ast\AbstractNode;
 use Phel\Compiler\Domain\Analyzer\Environment\NodeEnvironmentInterface;
 use Phel\Compiler\Domain\Analyzer\Exceptions\AnalyzerException;
@@ -44,11 +45,15 @@ use Phel\Compiler\Domain\Exceptions\AbstractLocatedException;
 use Phel\Lang\Collections\LinkedList\PersistentListInterface;
 use Phel\Lang\Symbol;
 
-final class AnalyzePersistentList
+final readonly class AnalyzePersistentList
 {
-    use WithAnalyzerTrait;
-
     private const string EMPTY_SYMBOL_NAME = '';
+
+    public function __construct(
+        private AnalyzerInterface $analyzer,
+        private bool $assertsEnabled,
+    ) {
+    }
 
     /**
      * @throws AbstractLocatedException|AnalyzerException
@@ -56,9 +61,10 @@ final class AnalyzePersistentList
     public function analyze(PersistentListInterface $list, NodeEnvironmentInterface $env): AbstractNode
     {
         $symbolName = $this->getSymbolName($list);
-        $symbol = $this->createSymbolAnalyzerByName($symbolName);
 
-        return $symbol->analyze($list, $env);
+        return $this
+            ->createSymbolAnalyzerByName($symbolName)
+            ->analyze($list, $env);
     }
 
     private function getSymbolName(PersistentListInterface $list): string
@@ -74,7 +80,7 @@ final class AnalyzePersistentList
         return match ($symbolName) {
             Symbol::NAME_DEF => new DefSymbol($this->analyzer),
             Symbol::NAME_NS => new NsSymbol($this->analyzer),
-            Symbol::NAME_FN => new FnSymbol($this->analyzer),
+            Symbol::NAME_FN => new FnSymbol($this->analyzer, $this->assertsEnabled),
             Symbol::NAME_QUOTE => new QuoteSymbol(),
             Symbol::NAME_DO => new DoSymbol($this->analyzer),
             Symbol::NAME_IF => new IfSymbol($this->analyzer),

@@ -39,7 +39,10 @@ final class AnalyzePersistentListTest extends TestCase
 
     protected function setUp(): void
     {
-        $this->listAnalyzer = new AnalyzePersistentList(new Analyzer(new GlobalEnvironment()));
+        $this->listAnalyzer = new AnalyzePersistentList(
+            new Analyzer(new GlobalEnvironment()),
+            assertsEnabled: true,
+        );
     }
 
     public function test_symbol_with_name_def(): void

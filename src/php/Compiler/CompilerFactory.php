@@ -40,6 +40,9 @@ use Phel\Compiler\Infrastructure\GlobalEnvironmentSingleton;
 use Phel\Filesystem\FilesystemFacadeInterface;
 use Phel\Printer\Printer;
 
+/**
+ * @method CompilerConfig getConfig()
+ */
 final class CompilerFactory extends AbstractFactory
 {
     public function createEvalCompiler(): EvalCompilerInterface
@@ -90,7 +93,10 @@ final class CompilerFactory extends AbstractFactory
 
     public function createAnalyzer(): AnalyzerInterface
     {
-        return new Analyzer($this->getGlobalEnvironment());
+        return new Analyzer(
+            $this->getGlobalEnvironment(),
+            $this->getConfig()->assertsEnabled(),
+        );
     }
 
     public function createStatementEmitter(bool $enableSourceMaps = true): StatementEmitterInterface

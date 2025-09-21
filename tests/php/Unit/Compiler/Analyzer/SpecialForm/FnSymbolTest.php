@@ -8,9 +8,10 @@ use Generator;
 use Phel;
 use Phel\Compiler\Application\Analyzer;
 use Phel\Compiler\Domain\Analyzer\AnalyzerInterface;
+use Phel\Compiler\Domain\Analyzer\Ast\AbstractNode;
 use Phel\Compiler\Domain\Analyzer\Ast\DoNode;
-use Phel\Compiler\Domain\Analyzer\Ast\FnNode;
 use Phel\Compiler\Domain\Analyzer\Ast\LetNode;
+use Phel\Compiler\Domain\Analyzer\Ast\LocalVarNode;
 use Phel\Compiler\Domain\Analyzer\Ast\MultiFnNode;
 use Phel\Compiler\Domain\Analyzer\Environment\GlobalEnvironment;
 use Phel\Compiler\Domain\Analyzer\Environment\NodeEnvironment;
@@ -267,8 +268,32 @@ final class FnSymbolTest extends TestCase
         (new FnSymbol($this->analyzer))->analyze($list, NodeEnvironment::empty());
     }
 
-    private function analyze(PersistentListInterface $list): FnNode
+    public function test_pre_condition_returning_falsy_is_ignored_when_disabled(): void
     {
-        return (new FnSymbol($this->analyzer))->analyze($list, NodeEnvironment::empty());
+        $list = Phel::list([
+            Symbol::create(Symbol::NAME_FN),
+            Phel::vector([
+                Symbol::create('x'),
+            ]),
+            Phel::map(
+                Phel::keyword('pre'),
+                Phel::vector([false]),
+            ),
+            Symbol::create('x'),
+        ]);
+
+        $analyzer = new Analyzer(new GlobalEnvironment(), false);
+        $node = (new FnSymbol($analyzer, false))->analyze($list, NodeEnvironment::empty());
+
+        self::assertInstanceOf(DoNode::class, $node->getBody());
+        self::assertSame([], $node->getBody()->getStmts());
+        self::assertInstanceOf(LocalVarNode::class, $node->getBody()->getRet());
+        self::assertSame('x', $node->getBody()->getRet()->getName()->getName());
+    }
+
+    private function analyze(PersistentListInterface $list): AbstractNode
+    {
+        return (new FnSymbol($this->analyzer))
+            ->analyze($list, NodeEnvironment::empty());
     }
 }
