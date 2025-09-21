@@ -28,19 +28,22 @@
 It is a dialect of [Lisp](https://en.wikipedia.org/wiki/Lisp_(programming_language)) inspired by [Clojure](https://clojure.org/) and [Janet](https://janet-lang.org/), designed for building robust applications in the PHP ecosystem.
 
 #### Example
-<!-- using "clojure" here is just for the md coloring -->
+<!--
+using "clojure" here is just for the md coloring
+we should use "phel" once GitHub accept phel coloring too
+-->
 ```clojure
-# Define a namespace
+; Define a namespace
 (ns my\example)
 
-# Define a variable with name "my-name" and value "world"
+; Define a variable with name "my-name" and value "world"
 (def my-name "world")
 
-# Define a function with name "print-name" and one argument "your-name"
+; Define a function with name "print-name" and one argument "your-name"
 (defn print-name [your-name]
   (print "hello" your-name))
 
-# Call the function
+; Call the function
 (print-name my-name)
 ```
 
@@ -54,7 +57,6 @@ It is a dialect of [Lisp](https://en.wikipedia.org/wiki/Lisp_(programming_langua
   - The PHP Package Repository
 - [Internals](docs/internals/compiler.md)
   - Additional documentation about the compiler internals
-  - [Benchmark suite](docs/internals/benchmarks.md)
 
 ## Community
 
