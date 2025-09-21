@@ -15,6 +15,7 @@ final class ApiConfig extends AbstractConfig
     {
         return [
             'phel\\core',
+            'phel\\debug',
             'phel\\repl',
             'phel\\http',
             'phel\\html',
