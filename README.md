@@ -54,6 +54,7 @@ It is a dialect of [Lisp](https://en.wikipedia.org/wiki/Lisp_(programming_langua
   - The PHP Package Repository
 - [Internals](docs/internals/compiler.md)
   - Additional documentation about the compiler internals
+  - [Benchmark suite](docs/internals/benchmarks.md)
 
 ## Community
 
