@@ -8,9 +8,10 @@ use Generator;
 use Phel;
 use Phel\Compiler\Application\Analyzer;
 use Phel\Compiler\Domain\Analyzer\AnalyzerInterface;
+use Phel\Compiler\Domain\Analyzer\Ast\AbstractNode;
 use Phel\Compiler\Domain\Analyzer\Ast\DoNode;
-use Phel\Compiler\Domain\Analyzer\Ast\FnNode;
 use Phel\Compiler\Domain\Analyzer\Ast\LetNode;
+use Phel\Compiler\Domain\Analyzer\Ast\LocalVarNode;
 use Phel\Compiler\Domain\Analyzer\Ast\MultiFnNode;
 use Phel\Compiler\Domain\Analyzer\Environment\GlobalEnvironment;
 use Phel\Compiler\Domain\Analyzer\Environment\NodeEnvironment;
@@ -267,7 +268,7 @@ final class FnSymbolTest extends TestCase
         (new FnSymbol($this->analyzer))->analyze($list, NodeEnvironment::empty());
     }
 
-    public function test_pre_post_conditions_can_be_disabled(): void
+    public function test_pre_condition_returning_falsy_is_ignored_when_disabled(): void
     {
         $list = Phel::list([
             Symbol::create(Symbol::NAME_FN),
@@ -276,9 +277,7 @@ final class FnSymbolTest extends TestCase
             ]),
             Phel::map(
                 Phel::keyword('pre'),
-                Phel::vector([
-                    true,
-                ]),
+                Phel::vector([false]),
             ),
             Symbol::create('x'),
         ]);
@@ -288,10 +287,13 @@ final class FnSymbolTest extends TestCase
 
         self::assertInstanceOf(DoNode::class, $node->getBody());
         self::assertSame([], $node->getBody()->getStmts());
+        self::assertInstanceOf(LocalVarNode::class, $node->getBody()->getRet());
+        self::assertSame('x', $node->getBody()->getRet()->getName()->getName());
     }
 
-    private function analyze(PersistentListInterface $list): FnNode
+    private function analyze(PersistentListInterface $list): AbstractNode
     {
-        return (new FnSymbol($this->analyzer))->analyze($list, NodeEnvironment::empty());
+        return (new FnSymbol($this->analyzer))
+            ->analyze($list, NodeEnvironment::empty());
     }
 }
