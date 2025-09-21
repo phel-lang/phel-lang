@@ -19,13 +19,23 @@ use Phel\Shared\CompilerConstants;
 use Phel\Shared\ReplConstants;
 
 use function count;
+use function explode;
 use function in_array;
 use function is_string;
+use function preg_match;
 use function sprintf;
 
 final class NsSymbol implements SpecialFormAnalyzerInterface
 {
     use WithAnalyzerTrait;
+
+    private const string INVALID_NAMESPACE_MESSAGE = <<<'TXT'
+Invalid namespace. A valid namespace name starts with a letter or underscore,
+followed by any number of letters, numbers, underscores, or dashes.
+Elements are split by a backslash.
+TXT;
+
+    private const string NAMESPACE_PART_PATTERN = '/^[a-zA-Z_\x7f-\xff][a-zA-Z0-9_\-\x7f-\xff]*$/';
 
     public function analyze(PersistentListInterface $list, NodeEnvironmentInterface $env): NsNode
     {
@@ -35,15 +45,10 @@ final class NsSymbol implements SpecialFormAnalyzerInterface
         }
 
         $ns = $nsSymbol->getName();
-        if (preg_match("/^[a-zA-Z\x7f-\xff][a-zA-Z0-9\-\x7f-\xff\\\\]*[a-zA-Z0-9\-\x7f-\xff]*$/", $ns) === 0 || preg_match("/^[a-zA-Z\x7f-\xff][a-zA-Z0-9\-\x7f-\xff\\\\]*[a-zA-Z0-9\-\x7f-\xff]*$/", $ns) === 0 || preg_match("/^[a-zA-Z\x7f-\xff][a-zA-Z0-9\-\x7f-\xff\\\\]*[a-zA-Z0-9\-\x7f-\xff]*$/", $ns) === false) {
-            throw AnalyzerException::withLocation(
-                'The namespace is not valid. A valid namespace name starts with a letter,
-                followed by any number of letters, numbers, or dashes. Elements are splitted by a backslash.',
-                $nsSymbol,
-            );
-        }
-
         $parts = explode('\\', $ns);
+
+        $this->assertValidNamespace($parts, $nsSymbol);
+
         foreach ($parts as $part) {
             if ($this->isPHPKeyword($part)) {
                 throw AnalyzerException::withLocation(
@@ -126,8 +131,11 @@ final class NsSymbol implements SpecialFormAnalyzerInterface
         $this->analyzer->addUseAlias($ns, $alias, $useSymbol);
     }
 
-    private function extractAlias(PersistentMapInterface $requireData, PersistentListInterface $import, string $type): Symbol
-    {
+    private function extractAlias(
+        PersistentMapInterface $requireData,
+        PersistentListInterface $import,
+        string $type,
+    ): Symbol {
         $alias = $requireData[Keyword::create('as')];
 
         if ($alias) {
@@ -142,7 +150,10 @@ final class NsSymbol implements SpecialFormAnalyzerInterface
 
         if ($alias2) {
             if (!($alias2 instanceof Symbol)) {
-                throw AnalyzerException::withLocation(sprintf('First argument in :%s must be a symbol.', $type), $import);
+                throw AnalyzerException::withLocation(
+                    sprintf('First argument in :%s must be a symbol.', $type),
+                    $import,
+                );
             }
 
             $parts = explode('\\', $alias2->getName());
@@ -205,5 +216,22 @@ final class NsSymbol implements SpecialFormAnalyzerInterface
         }
 
         return $file;
+    }
+
+    /**
+     * @param list<string> $parts
+     */
+    private function assertValidNamespace(array $parts, Symbol $nsSymbol): void
+    {
+        foreach ($parts as $part) {
+            if ($part === '' || !$this->isValidNamespacePart($part)) {
+                throw AnalyzerException::withLocation(self::INVALID_NAMESPACE_MESSAGE, $nsSymbol);
+            }
+        }
+    }
+
+    private function isValidNamespacePart(string $part): bool
+    {
+        return preg_match(self::NAMESPACE_PART_PATTERN, $part) === 1;
     }
 }

@@ -13,11 +13,15 @@ use Phel\Compiler\Domain\Analyzer\Ast\PhpClassNameNode;
 use Phel\Compiler\Domain\Analyzer\Environment\GlobalEnvironment;
 use Phel\Compiler\Domain\Analyzer\Environment\NodeEnvironment;
 use Phel\Compiler\Domain\Analyzer\Exceptions\AnalyzerException;
+use Phel\Compiler\Domain\Analyzer\TypeAnalyzer\PhpKeywords;
 use Phel\Compiler\Domain\Analyzer\TypeAnalyzer\SpecialForm\NsSymbol;
 use Phel\Lang\Keyword;
 use Phel\Lang\Registry;
 use Phel\Lang\Symbol;
+use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
+
+use function sprintf;
 
 final class NsSymbolTest extends TestCase
 {
@@ -48,7 +52,7 @@ final class NsSymbolTest extends TestCase
     public function test_invalid_namespace(): void
     {
         $this->expectException(AnalyzerException::class);
-        $this->expectExceptionMessage('The namespace is not valid.');
+        $this->expectExceptionMessage('Invalid namespace.');
 
         $list = Phel::list([
             Symbol::create(Symbol::NAME_NS),
@@ -58,17 +62,51 @@ final class NsSymbolTest extends TestCase
         (new NsSymbol($this->analyzer))->analyze($list, NodeEnvironment::empty());
     }
 
-    public function test_namespace_part_cannot_be_php_keyword(): void
+    #[DataProvider('phpKeywordNamespacePartProvider')]
+    public function test_namespace_part_cannot_be_php_keyword(string $keyword): void
     {
         $this->expectException(AnalyzerException::class);
-        $this->expectExceptionMessage("The namespace is not valid. The part 'class' cannot be used because it is a reserved keyword.");
+        $this->expectExceptionMessage(sprintf(
+            "The namespace is not valid. The part '%s' cannot be used because it is a reserved keyword.",
+            $keyword,
+        ));
 
         $list = Phel::list([
             Symbol::create(Symbol::NAME_NS),
-            Symbol::create('foo\\class'),
+            Symbol::create('foo\\' . $keyword),
         ]);
 
         (new NsSymbol($this->analyzer))->analyze($list, NodeEnvironment::empty());
+    }
+
+    public static function phpKeywordNamespacePartProvider(): iterable
+    {
+        foreach (PhpKeywords::KEYWORDS as $keyword) {
+            yield $keyword => [$keyword];
+        }
+    }
+
+    #[DataProvider('invalidNamespacePartProvider')]
+    public function test_namespace_part_with_invalid_characters_is_rejected(string $keyword): void
+    {
+        $this->expectException(AnalyzerException::class);
+        $this->expectExceptionMessageMatches('/^Invalid namespace\./');
+
+        $list = Phel::list([
+            Symbol::create(Symbol::NAME_NS),
+            Symbol::create('foo\\' . $keyword),
+        ]);
+
+        (new NsSymbol($this->analyzer))->analyze($list, NodeEnvironment::empty());
+    }
+
+    public static function invalidNamespacePartProvider(): iterable
+    {
+        yield 'leading digit' => ['1invalid'];
+        yield 'contains space' => ['foo bar'];
+        yield 'contains at sign' => ['foo@bar'];
+        yield 'trailing backslash' => ['bar\\'];
+        yield 'empty part' => [''];
     }
 
     public function test_import_must_be_list(): void

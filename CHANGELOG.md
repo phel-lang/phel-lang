@@ -8,6 +8,7 @@ All notable changes to this project will be documented in this file.
 - Fix `meta` on definitions
 - Fix `argv` to return a vector instead of a native PHP array
 - Fix core functions/macros should persist metadata
+- Fix `NsSymbol` namespace validation
 - Add new array functions with nested lookup
     - php/aget-in
     - php/aset-in
