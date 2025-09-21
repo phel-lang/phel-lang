@@ -49,6 +49,11 @@
   (is (= (set 0 1 2 3) (concat (set 1 2) [0 1 2 3])) "set concat vector with common values")
   (is (= (set 0 1 2) (concat (set 1 2) (set 0 1))) "set concat"))
 
+(deftest list-as-function
+  (let [xs (list 1 2 3)]
+    (is (= 1 (xs 0)) "list can be invoked to access elements")
+    (is (= 3 (xs 2)) "list invocation supports other indices")))
+
 (defstruct my-struct [a b c])
 
 (deftest test-struct

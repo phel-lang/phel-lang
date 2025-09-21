@@ -11,6 +11,7 @@ use Phel\Lang\Collections\Exceptions\IndexOutOfBoundsException;
 use Phel\Lang\ConcatInterface;
 use Phel\Lang\ConsInterface;
 use Phel\Lang\ContainsInterface;
+use Phel\Lang\FnInterface;
 use Phel\Lang\SeqInterface;
 use Phel\Lang\TypeInterface;
 
@@ -24,7 +25,7 @@ use Phel\Lang\TypeInterface;
  * @extends ConcatInterface<PersistentListInterface<TValue>>
  * @extends ContainsInterface<int>
  */
-interface PersistentListInterface extends TypeInterface, SeqInterface, IteratorAggregate, Countable, ConsInterface, ArrayAccess, ConcatInterface, ContainsInterface
+interface PersistentListInterface extends TypeInterface, SeqInterface, IteratorAggregate, Countable, ConsInterface, ArrayAccess, ConcatInterface, FnInterface, ContainsInterface
 {
     /**
      * @param TValue $value
