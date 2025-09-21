@@ -61,9 +61,10 @@ final readonly class AnalyzePersistentList
     public function analyze(PersistentListInterface $list, NodeEnvironmentInterface $env): AbstractNode
     {
         $symbolName = $this->getSymbolName($list);
-        $symbol = $this->createSymbolAnalyzerByName($symbolName);
 
-        return $symbol->analyze($list, $env);
+        return $this
+            ->createSymbolAnalyzerByName($symbolName)
+            ->analyze($list, $env);
     }
 
     private function getSymbolName(PersistentListInterface $list): string
