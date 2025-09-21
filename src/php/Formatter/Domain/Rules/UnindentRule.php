@@ -25,8 +25,10 @@ final class UnindentRule implements RuleInterface
     {
         $node = $form;
         while (!$node->isEnd()) {
+            /** @var ParseTreeZipper $node */
             $node = $node->next();
             if ($this->shouldUnindent($node)) {
+                /** @var ParseTreeZipper $node */
                 $node = $node->remove();
             }
         }
@@ -43,6 +45,7 @@ final class UnindentRule implements RuleInterface
     {
         $node = $form;
         while ($node->isWhitespace()) {
+            /** @var ParseTreeZipper $node */
             $node = $node->next();
         }
 

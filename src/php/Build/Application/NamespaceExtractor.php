@@ -94,7 +94,7 @@ final readonly class NamespaceExtractor implements NamespaceExtractorInterface
             [],
         );
 
-        return $this->sortNamespaceInformationList($namespaces);
+        return $this->sortNamespaceInformationList(array_values($namespaces));
     }
 
     /**
