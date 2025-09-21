@@ -1,10 +1,10 @@
-(ns phel\trace
+(ns phel\debug
   (:require phel\core :refer [print-str str gensym])
   (:require phel\str :as s))
 
 (def- *trace-level* (var 0))
 (def- *trace-id* (var 0))
-(def- *max-trace-digits* (var 2)) # default to 2 digits unless overridden
+(def- *max-trace-digits* (var 2)) ; default to 2 digits unless overridden
 
 (defn set-trace-id-padding!
   "Sets the number of digits used to left-pad trace IDs.
@@ -49,3 +49,28 @@
     `(let [,res ,expr]
        (println (str (print-str (quote ,expr)) " => " (print-str ,res)))
        ,res)))
+
+(defmacro spy
+  "Evaluates `expr`, prints the resulting value with an optional label, and returns it."
+  ([expr]
+   (let [res (gensym)]
+     `(let [,res ,expr]
+        (println (str "SPY " (print-str (quote ,expr)) " => " (print-str ,res)))
+        ,res)))
+  ([label expr]
+   (let [res (gensym)
+         label-val (gensym)]
+     `(let [,label-val ,label
+            ,res ,expr]
+        (println (str "SPY " (print-str ,label-val) " => " (print-str ,res)))
+        ,res))))
+
+(defn tap
+  "Executes optional side-effects on `value` and returns it unchanged.
+  Without a handler function the value is printed using `print-str`."
+  ([value]
+   (println (str "TAP => " (print-str value)))
+   value)
+  ([value handler]
+   (handler value)
+   value))
