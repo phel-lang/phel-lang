@@ -21,6 +21,8 @@ interface PhelFnLoaderInterface
      *     signature?: string,
      *     desc?: string,
      *     docUrl?: string,
+     *     file?: string,
+     *     line?: int,
      * }>
      */
     public function getNormalizedNativeSymbols(): array;

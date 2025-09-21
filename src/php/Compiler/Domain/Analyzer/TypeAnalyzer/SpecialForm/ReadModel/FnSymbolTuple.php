@@ -10,6 +10,7 @@ use Phel\Lang\Collections\Vector\PersistentVectorInterface;
 use Phel\Lang\Symbol;
 
 use function array_slice;
+use function preg_match;
 
 final class FnSymbolTuple
 {
@@ -91,7 +92,9 @@ final class FnSymbolTuple
     private function checkAllVariablesStartWithALetterOrUnderscore(): void
     {
         foreach ($this->params as $param) {
-            if (preg_match("/^[a-zA-Z_\x80-\xff].*$/", (string) $param->getName()) === 0 || preg_match("/^[a-zA-Z_\x80-\xff].*$/", (string) $param->getName()) === 0 || preg_match("/^[a-zA-Z_\x80-\xff].*$/", (string) $param->getName()) === false) {
+            $matchesPattern = preg_match("/^[a-zA-Z_\x80-\xff].*$/", (string) $param->getName());
+
+            if ($matchesPattern === 0 || $matchesPattern === false) {
                 throw AnalyzerException::withLocation(
                     'Variable names must start with a letter or underscore: ' . $param->getName(),
                     $this->parentList,

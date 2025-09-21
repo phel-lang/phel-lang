@@ -368,11 +368,8 @@ abstract class AbstractZipper
                 true,
                 false,
             );
-            while ($loc->isBranch()
-                && $loc->hasChildren()
-                && (($child = $loc->down()) instanceof self)
-            ) {
-                $loc = $child->rightMost();
+            while ($loc->isBranch() && $loc->hasChildren()) {
+                $loc = $loc->down()->rightMost();
             }
 
             return $loc;

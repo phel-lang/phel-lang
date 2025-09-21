@@ -70,7 +70,7 @@ final class ReplCompleter implements ReplCompleterInterface
     private function completePhpSymbols(string $prefix): array
     {
         if (self::$phpFunctions === []) {
-            self::$phpFunctions = get_defined_functions()['internal'] ?? [];
+            self::$phpFunctions = get_defined_functions()['internal'];
         }
 
         if (self::$phpClasses === []) {

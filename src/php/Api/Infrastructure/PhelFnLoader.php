@@ -357,6 +357,16 @@ An interface in Phel defines an abstract set of functions. It is directly mapped
     ) {
     }
 
+    /**
+     * @return array<string,array{
+     *     doc?: string,
+     *     signature?: string,
+     *     desc?: string,
+     *     docUrl?: string,
+     *     file?: string,
+     *     line?: int,
+     * }>
+     */
     public function getNormalizedNativeSymbols(): array
     {
         return self::PRIVATE_SYMBOLS;

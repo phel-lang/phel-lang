@@ -63,17 +63,17 @@ final readonly class PhelFnNormalizer implements PhelFnNormalizerInterface
             }
 
             $normalizedFns[$groupKey][$fnName] = new PhelFunction(
-                $namespace,
-                $this->extractNameWithoutNamespace($fnName),
-                $doc,
-                $matches['signature'] ?? '',
-                $matches['desc'] ?? '',
-                $groupKey,
-                $this->toGithubUrl($file, $line),
-                (string) ($meta[Keyword::create('docUrl')] ?? ''),
-                $file,
-                $line,
-                $this->metaToArray($meta),
+                namespace: $namespace,
+                name: $this->extractNameWithoutNamespace($fnName),
+                doc: $doc,
+                signature: $matches['signature'] ?? '',
+                description: $matches['desc'] ?? '',
+                groupKey: $groupKey,
+                githubUrl: $this->toGithubUrl($file, $line),
+                docUrl: (string) ($meta[Keyword::create('docUrl')] ?? ''),
+                file: $file,
+                line: $line,
+                meta: $this->metaToArray($meta),
             );
         }
 
@@ -152,23 +152,20 @@ final readonly class PhelFnNormalizer implements PhelFnNormalizerInterface
             $line = $custom['line'] ?? 0;
 
             $original = $originalNormalizedFns[$name] ?? null;
-            $doc = $custom['doc'] ?? $original?->doc ?? '';
             $namespace = $this->extractNamespace($name);
 
-            $phelFunction = new PhelFunction(
-                $namespace,
-                $this->extractNameWithoutNamespace($name),
-                $doc,
-                $custom['signature'] ?? $original?->signature ?? '',
-                $custom['desc'] ?? $original?->description ?? '',
-                $this->phelFnGroupKeyGenerator->generateGroupKey($namespace, $name),
-                $this->toGithubUrl($file, $line),
-                $custom['docUrl'] ?? '',
-                $file,
-                $line,
+            $result[] = new PhelFunction(
+                namespace: $namespace,
+                name: $this->extractNameWithoutNamespace($name),
+                doc: $custom['doc'] ?? $original->doc ?? '',
+                signature: $custom['signature'] ?? $original->signature ?? '',
+                description: $custom['desc'] ?? $original->description ?? '',
+                groupKey: $this->phelFnGroupKeyGenerator->generateGroupKey($namespace, $name),
+                githubUrl: $this->toGithubUrl($file, $line),
+                docUrl: $custom['docUrl'] ?? '',
+                file: $file,
+                line: $line,
             );
-
-            $result[] = $phelFunction;
         }
 
         return $result;

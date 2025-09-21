@@ -82,8 +82,12 @@ final class Phel extends InternalPhel
     public static function map(...$kvs): PersistentMapInterface
     {
         $typeFactory = TypeFactory::getInstance();
-        if (count($kvs) === 1 && is_array($kvs[0])) {
-            return $typeFactory->persistentMapFromArray($kvs[0]);
+        if (count($kvs) === 1) {
+            $firstArgument = $kvs[0] ?? null;
+
+            if (is_array($firstArgument)) {
+                return $typeFactory->persistentMapFromArray($firstArgument);
+            }
         }
 
         return $typeFactory->persistentMapFromKVs(...$kvs);

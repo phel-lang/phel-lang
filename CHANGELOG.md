@@ -30,6 +30,7 @@ All notable changes to this project will be documented in this file.
     - Deprecate methods in favor of its public properties
     - Remove `rawDoc`
     - Add `meta` with all possible metadata
+- Increase PHPStan level to 4
 
 ## [0.21.0](https://github.com/phel-lang/phel-lang/compare/v0.20.0...v0.21.0) - 2025-09-01
 
