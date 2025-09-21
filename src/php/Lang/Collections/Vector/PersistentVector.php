@@ -77,7 +77,7 @@ final class PersistentVector extends AbstractPersistentVector
         return $tv->persistent();
     }
 
-    public function withMeta(?PersistentMapInterface $meta): self
+    public function withMeta(?PersistentMapInterface $meta): static
     {
         return new self($this->hasher, $this->equalizer, $meta, $this->count, $this->shift, $this->root, $this->tail);
     }

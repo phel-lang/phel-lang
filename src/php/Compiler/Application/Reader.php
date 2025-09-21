@@ -19,6 +19,7 @@ use Phel\Compiler\Domain\Reader\Exceptions\ReaderException;
 use Phel\Compiler\Domain\Reader\ExpressionReaderFactoryInterface;
 use Phel\Compiler\Domain\Reader\QuasiquoteTransformerInterface;
 use Phel\Compiler\Domain\Reader\ReaderInterface;
+use Phel\Lang\MetaInterface;
 use Phel\Lang\Symbol;
 use Phel\Lang\TypeInterface;
 use RuntimeException;
@@ -58,8 +59,10 @@ final class Reader implements ReaderInterface
     /**
      * @throws ReaderException
      */
-    public function readExpression(NodeInterface $node, NodeInterface $root): Symbol|float|bool|int|string|TypeInterface|null
-    {
+    public function readExpression(
+        NodeInterface $node,
+        NodeInterface $root,
+    ): Symbol|float|bool|int|string|TypeInterface|MetaInterface|null {
         if ($node instanceof SymbolNode) {
             return $this->readSymbolNode($node);
         }
@@ -169,7 +172,7 @@ final class Reader implements ReaderInterface
     /**
      * @throws ReaderException
      */
-    private function readMetaNode(MetaNode $node, NodeInterface $root): float|bool|int|string|TypeInterface
+    private function readMetaNode(MetaNode $node, NodeInterface $root): MetaInterface
     {
         return $this->readerFactory
             ->createMetaReader($this)

@@ -18,7 +18,6 @@ use Phel\Lang\TypeInterface;
  * @template TValue
  *
  * @extends SeqInterface<TValue, PersistentListInterface<TValue>>
- * @extends TypeInterface<PersistentListInterface<TValue>>
  * @extends IteratorAggregate<TValue>
  * @extends ConsInterface<PersistentListInterface<TValue>>
  * @extends ArrayAccess<int, TValue>

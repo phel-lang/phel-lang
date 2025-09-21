@@ -13,7 +13,6 @@ use Phel\Lang\Collections\Map\PersistentMapInterface;
 use Phel\Lang\Keyword;
 use Phel\Lang\MetaInterface;
 use Phel\Lang\Symbol;
-use Phel\Lang\TypeInterface;
 
 use function count;
 use function is_string;
@@ -27,7 +26,7 @@ final readonly class MetaReader
     /**
      * @throws ReaderException
      */
-    public function read(MetaNode $node, NodeInterface $root): float|bool|int|string|TypeInterface
+    public function read(MetaNode $node, NodeInterface $root): MetaInterface
     {
         $metaExpression = $node->getMetaNode();
         $objectExpression = $node->getObjectNode();

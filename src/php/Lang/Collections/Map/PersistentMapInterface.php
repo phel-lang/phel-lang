@@ -18,7 +18,6 @@ use Phel\Lang\TypeInterface;
  *
  * @extends IteratorAggregate<K, V>
  * @extends ArrayAccess<K,V>
- * @extends TypeInterface<PersistentMapInterface<K, V>>
  * @extends AsTransientInterface<TransientMapInterface>
  * @extends ContainsInterface<K>
  */

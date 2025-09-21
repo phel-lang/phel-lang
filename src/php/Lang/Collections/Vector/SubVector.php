@@ -58,7 +58,7 @@ final class SubVector extends AbstractPersistentVector
         return $result;
     }
 
-    public function withMeta(?PersistentMapInterface $meta): self
+    public function withMeta(?PersistentMapInterface $meta): static
     {
         return new self($this->hasher, $this->equalizer, $meta, $this->vector, $this->start, $this->end);
     }
@@ -68,10 +68,10 @@ final class SubVector extends AbstractPersistentVector
      */
     public function getIterator(): Traversable
     {
-        for ($s = $this; $s instanceof self; $s = $s->cdr()) {
-            /** @var \Phel\Lang\Collections\LinkedList\PersistentList<T> $s */
-            /** @var T $first  */
-            $first = $s->first();
+        for ($current = $this; $current instanceof self; $current = $current->cdr()) {
+            /** @var self<T> $current */
+            /** @var T $first */
+            $first = $current->first();
             yield $first;
         }
     }

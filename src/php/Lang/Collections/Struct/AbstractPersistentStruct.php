@@ -74,7 +74,7 @@ abstract class AbstractPersistentStruct extends AbstractPersistentMap
 
     public function count(): int
     {
-        return is_countable(static::ALLOWED_KEYS) ? count(static::ALLOWED_KEYS) : 0;
+        return count(static::ALLOWED_KEYS);
     }
 
     public function find($key)

@@ -15,7 +15,7 @@ trait MetaTrait
         return $this->meta;
     }
 
-    public function withMeta(?PersistentMapInterface $meta)
+    public function withMeta(?PersistentMapInterface $meta): static
     {
         $this->meta = $meta;
         return $this;

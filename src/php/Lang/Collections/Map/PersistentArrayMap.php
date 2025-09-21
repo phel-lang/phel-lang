@@ -54,7 +54,7 @@ final class PersistentArrayMap extends AbstractPersistentMap
         return $result->persistent();
     }
 
-    public function withMeta(?PersistentMapInterface $meta): self
+    public function withMeta(?PersistentMapInterface $meta): static
     {
         return new self($this->hasher, $this->equalizer, $meta, $this->array);
     }

@@ -66,7 +66,7 @@ final class PersistentList extends AbstractType implements PersistentListInterfa
         return $this->meta;
     }
 
-    public function withMeta(?PersistentMapInterface $meta): self
+    public function withMeta(?PersistentMapInterface $meta): static
     {
         return new self($this->hasher, $this->equalizer, $meta, $this->first, $this->rest, $this->count);
     }

@@ -9,8 +9,6 @@ use Stringable;
 
 /**
  * @template TValue
- *
- * @implements TypeInterface<TValue>
  */
 abstract class AbstractType implements TypeInterface, Stringable
 {

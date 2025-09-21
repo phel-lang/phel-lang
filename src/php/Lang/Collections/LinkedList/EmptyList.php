@@ -35,7 +35,7 @@ final class EmptyList extends AbstractType implements PersistentListInterface
         return $this->meta;
     }
 
-    public function withMeta(?PersistentMapInterface $meta): self
+    public function withMeta(?PersistentMapInterface $meta): static
     {
         return new self($this->hasher, $this->equalizer, $meta);
     }

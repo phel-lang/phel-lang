@@ -24,8 +24,7 @@ final class PersistentHashMap extends AbstractPersistentMap
     private static ?stdClass $NOT_FOUND = null;
 
     /**
-     * @param ?HashMapNodeInterface<K, V> $root
-     * @param V                           $nullValue
+     * @param V|null $nullValue
      */
     public function __construct(
         HasherInterface $hasher,
@@ -71,7 +70,7 @@ final class PersistentHashMap extends AbstractPersistentMap
         return self::$NOT_FOUND;
     }
 
-    public function withMeta(?PersistentMapInterface $meta): self
+    public function withMeta(?PersistentMapInterface $meta): static
     {
         return new self($this->hasher, $this->equalizer, $meta, $this->count, $this->root, $this->hasNull, $this->nullValue);
     }

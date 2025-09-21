@@ -20,7 +20,6 @@ use Phel\Lang\TypeInterface;
 /**
  * @template T
  *
- * @extends TypeInterface<PersistentVectorInterface<T>>
  * @extends SeqInterface<T, PersistentVectorInterface<T>>
  * @extends IteratorAggregate<T>
  * @extends ArrayAccess<int, T>

@@ -5,23 +5,3 @@ parameters:
         processTimeout: 3000.0
     paths:
         - %currentWorkingDirectory%/src/
-    excludePaths:
-        - '%currentWorkingDirectory%/src/php/Printer/Printer.php'
-        - '%currentWorkingDirectory%/src/php/Printer/TypePrinter/StructPrinter.php'
-        - '%currentWorkingDirectory%/src/php/Lang/TypeFactory.php'
-        - '%currentWorkingDirectory%/src/php/Lang/Collections/HashSet/PersistentHashSet.php'
-        - '%currentWorkingDirectory%/src/php/Lang/Collections/HashSet/TransientHashSet.php'
-        - '%currentWorkingDirectory%/src/php/Lang/Collections/Struct/AbstractPersistentStruct.php'
-        - '%currentWorkingDirectory%/src/php/Lang/Collections/Map/AbstractPersistentMap.php'
-        - '%currentWorkingDirectory%/src/php/Lang/Collections/Map/TransientHashMap.php'
-        - '%currentWorkingDirectory%/src/php/Lang/Collections/Map/TransientArrayMap.php'
-        - '%currentWorkingDirectory%/src/php/Lang/Collections/Map/PersistentHashMap.php'
-        - '%currentWorkingDirectory%/src/php/Lang/Collections/Map/PersistentArrayMap.php'
-        - '%currentWorkingDirectory%/src/php/Lang/Collections/Vector/TransientVector.php'
-        - '%currentWorkingDirectory%/src/php/Lang/Collections/Vector/RangeIterator.php'
-        - '%currentWorkingDirectory%/src/php/Lang/Collections/Vector/PersistentVector.php'
-        - '%currentWorkingDirectory%/src/php/Lang/Collections/Vector/AbstractPersistentVector.php'
-        - '%currentWorkingDirectory%/src/php/Lang/Collections/Vector/SubVector.php'
-        - '%currentWorkingDirectory%/src/php/Compiler/Domain/Reader/QuasiquoteTransformer.php'
-        - '%currentWorkingDirectory%/src/php/Compiler/Domain/Emitter/OutputEmitter/LiteralEmitter.php'
-

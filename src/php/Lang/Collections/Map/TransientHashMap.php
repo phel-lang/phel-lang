@@ -20,8 +20,7 @@ final class TransientHashMap implements TransientMapInterface
     private static ?stdClass $NOT_FOUND = null;
 
     /**
-     * @param ?HashMapNodeInterface<K, V> $root
-     * @param ?V                          $nullValue
+     * @param V|null $nullValue
      */
     public function __construct(
         private readonly HasherInterface $hasher,
