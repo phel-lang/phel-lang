@@ -10,9 +10,13 @@ use Phel\Compiler\Application\Analyzer;
 use Phel\Compiler\Domain\Analyzer\AnalyzerInterface;
 use Phel\Compiler\Domain\Analyzer\Ast\AbstractNode;
 use Phel\Compiler\Domain\Analyzer\Ast\DoNode;
+use Phel\Compiler\Domain\Analyzer\Ast\IfNode;
 use Phel\Compiler\Domain\Analyzer\Ast\LetNode;
+use Phel\Compiler\Domain\Analyzer\Ast\LiteralNode;
 use Phel\Compiler\Domain\Analyzer\Ast\LocalVarNode;
 use Phel\Compiler\Domain\Analyzer\Ast\MultiFnNode;
+use Phel\Compiler\Domain\Analyzer\Ast\PhpNewNode;
+use Phel\Compiler\Domain\Analyzer\Ast\ThrowNode;
 use Phel\Compiler\Domain\Analyzer\Environment\GlobalEnvironment;
 use Phel\Compiler\Domain\Analyzer\Environment\NodeEnvironment;
 use Phel\Compiler\Domain\Analyzer\TypeAnalyzer\SpecialForm\FnSymbol;
@@ -21,6 +25,7 @@ use Phel\Lang\Collections\LinkedList\PersistentListInterface;
 use Phel\Lang\Symbol;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
+use RuntimeException;
 
 final class FnSymbolTest extends TestCase
 {
@@ -31,6 +36,7 @@ final class FnSymbolTest extends TestCase
         $env = new GlobalEnvironment();
         $env->addDefinition('phel\\core', Symbol::create('first'));
         $env->addDefinition('phel\\core', Symbol::create('next'));
+        $env->addDefinition('phel\\core', Symbol::create('print-str'));
 
         $this->analyzer = new Analyzer($env);
     }
@@ -282,13 +288,45 @@ final class FnSymbolTest extends TestCase
             Symbol::create('x'),
         ]);
 
-        $analyzer = new Analyzer(new GlobalEnvironment(), false);
-        $node = (new FnSymbol($analyzer, false))->analyze($list, NodeEnvironment::empty());
+        $node = (new FnSymbol($this->analyzer, assertsEnabled: false))->analyze($list, NodeEnvironment::empty());
 
         self::assertInstanceOf(DoNode::class, $node->getBody());
         self::assertSame([], $node->getBody()->getStmts());
         self::assertInstanceOf(LocalVarNode::class, $node->getBody()->getRet());
         self::assertSame('x', $node->getBody()->getRet()->getName()->getName());
+    }
+
+    public function test_pre_condition_returning_falsy_throws_exception_when_enabled(): void
+    {
+        $list = Phel::list([
+            Symbol::create(Symbol::NAME_FN),
+            Phel::vector([
+                Symbol::create('x'),
+            ]),
+            Phel::map(
+                Phel::keyword('pre'),
+                Phel::vector([false]),
+            ),
+            Symbol::create('x'),
+        ]);
+
+        $node = (new FnSymbol($this->analyzer, assertsEnabled: true))->analyze($list, NodeEnvironment::empty());
+
+        $body = $node->getBody();
+        self::assertInstanceOf(DoNode::class, $body);
+
+        $stmts = $body->getStmts();
+        self::assertCount(1, $stmts);
+        $ifNode = $stmts[0];
+        self::assertInstanceOf(IfNode::class, $ifNode);
+
+        $elseExpr = $ifNode->getElseExpr();
+        self::assertInstanceOf(ThrowNode::class, $elseExpr);
+
+        $exceptionExpr = $elseExpr->getExceptionExpr();
+        self::assertInstanceOf(PhpNewNode::class, $exceptionExpr);
+        self::assertInstanceOf(LiteralNode::class, $exceptionExpr->getClassExpr());
+        self::assertSame(RuntimeException::class, $exceptionExpr->getClassExpr()->getValue());
     }
 
     private function analyze(PersistentListInterface $list): AbstractNode
