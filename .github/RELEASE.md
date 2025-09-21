@@ -1,6 +1,6 @@
 # Release
 
-Guide to create a new release.
+Guide to creating a new release.
 
 1. Update the version in [VersionFinder](../src/php/Console/Application/VersionFinder.php)
 2. Update the version in [CHANGELOG.md](../CHANGELOG.md)
