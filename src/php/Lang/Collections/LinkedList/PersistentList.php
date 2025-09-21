@@ -40,6 +40,14 @@ final class PersistentList extends AbstractType implements PersistentListInterfa
     }
 
     /**
+     * @return T
+     */
+    public function __invoke(int $index)
+    {
+        return $this->get($index);
+    }
+
+    /**
      * @return EmptyList<T>
      */
     public static function empty(HasherInterface $hasher, EqualizerInterface $equalizer): PersistentListInterface
