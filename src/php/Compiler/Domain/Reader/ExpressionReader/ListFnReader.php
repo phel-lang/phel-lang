@@ -17,6 +17,11 @@ final readonly class ListFnReader
     {
     }
 
+    /**
+     * @param array<int, Symbol>|null $fnArgs
+     *
+     * @param-out null $fnArgs
+     */
     public function read(ListNode $node, ?array &$fnArgs, NodeInterface $root): PersistentListInterface
     {
         $body = (new ListReader($this->reader))->read($node, $root);
@@ -27,7 +32,8 @@ final readonly class ListFnReader
             Symbol::create(Symbol::NAME_FN),
             Phel::vector($params),
             $body,
-        ])->setStartLocation($node->getStartLocation())->setEndLocation($node->getEndLocation());
+        ])->setStartLocation($node->getStartLocation())
+            ->setEndLocation($node->getEndLocation());
     }
 
     private function extractParams(?array $fnArgs): array

@@ -119,7 +119,7 @@ final readonly class TextExceptionPrinter implements ExceptionPrinterInterface
 
             $class ??= '';
             $type = $frame['type'] ?? '';
-            $fn = $frame['function'] ?? '';
+            $fn = $frame['function'] ?? ''; // @phpstan-ignore-line
             $argString = $this->exceptionArgsPrinter->buildPhpArgsString($frame['args'] ?? []);
             $str .= sprintf('#%d %s(%d): %s%s%s(%s)', $i, $file, $line, $class, $type, $fn, $argString) . PHP_EOL;
         }

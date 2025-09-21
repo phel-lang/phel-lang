@@ -17,6 +17,7 @@ final class Generators
      */
     public static function repeat(mixed $value): Generator
     {
+        // @phpstan-ignore-next-line while.alwaysTrue
         while (true) {
             yield $value;
         }
@@ -31,6 +32,7 @@ final class Generators
      */
     public static function repeatedly(callable $f): Generator
     {
+        // @phpstan-ignore-next-line while.alwaysTrue
         while (true) {
             yield $f();
         }
@@ -46,6 +48,7 @@ final class Generators
      */
     public static function iterate(callable $f, mixed $x): Generator
     {
+        // @phpstan-ignore-next-line while.alwaysTrue
         while (true) {
             yield $x;
             $x = $f($x);

@@ -12,9 +12,6 @@ final class Keyword extends AbstractType implements IdenticalInterface, FnInterf
 
     private readonly int $hash;
 
-    /** @var array<string, Keyword> */
-    private static array $refStore = [];
-
     private function __construct(
         private readonly ?string $namespace,
         private readonly string $name,
