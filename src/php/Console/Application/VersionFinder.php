@@ -15,7 +15,7 @@ final class VersionFinder
     public function __construct(
         private readonly string $tagCommitHash,
         private readonly string $currentCommit,
-        private readonly bool $isReleased = false,
+        private readonly bool $isOfficialRelease = false,
     ) {
     }
 
@@ -25,7 +25,7 @@ final class VersionFinder
             return $this->cachedVersion;
         }
 
-        if ($this->isReleased) {
+        if ($this->isOfficialRelease) {
             return $this->cachedVersion = self::LATEST_VERSION;
         }
 

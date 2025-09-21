@@ -39,7 +39,7 @@ final class ConsoleFactory extends AbstractFactory
         return new VersionFinder(
             $this->getProvidedDependency(ConsoleProvider::TAG_COMMIT_HASH),
             $this->getProvidedDependency(ConsoleProvider::CURRENT_COMMIT),
-            isReleased: self::IS_OFFICIAL_RELEASE,
+            isOfficialRelease: self::IS_OFFICIAL_RELEASE,
         );
     }
 
