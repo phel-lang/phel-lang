@@ -77,7 +77,7 @@ final class Phel extends InternalPhel
     /**
      * Create a persistent map from key-value pairs.
      *
-     * @param list<mixed> $kvs
+     * @param mixed ...$kvs
      */
     public static function map(...$kvs): PersistentMapInterface
     {

@@ -23,10 +23,13 @@ final class RemoveSurroundingWhitespaceRule implements RuleInterface
      */
     private function removeSurroundingWhitespace(ParseTreeZipper $loc): NodeInterface
     {
+        /** @var ParseTreeZipper $node */
         $node = $loc;
         while (!$node->isEnd()) {
+            /** @var ParseTreeZipper $node */
             $node = $node->next();
             if ($this->isSurroundingWhitespace($node)) {
+                /** @var ParseTreeZipper $node */
                 $node = $node->remove();
             }
         }

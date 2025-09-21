@@ -1,5 +1,5 @@
 parameters:
-    level: 4
+    level: 5
     parallel:
         maximumNumberOfProcesses: 4
         processTimeout: 3000.0

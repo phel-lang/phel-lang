@@ -20,10 +20,13 @@ final class RemoveTrailingWhitespaceRule implements RuleInterface
      */
     private function removeTrailingWhitespace(ParseTreeZipper $loc): NodeInterface
     {
+        /** @var ParseTreeZipper $node */
         $node = $loc;
         while (!$node->isEnd()) {
+            /** @var ParseTreeZipper $node */
             $node = $node->next();
             if ($this->isTrailingWhitespace($node)) {
+                /** @var ParseTreeZipper $node */
                 $node = $node->remove();
             }
         }
