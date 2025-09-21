@@ -51,7 +51,7 @@ final readonly class AnalyzePersistentList
 
     public function __construct(
         private AnalyzerInterface $analyzer,
-        private bool $enableAsserts,
+        private bool $assertsEnabled,
     ) {
     }
 
@@ -79,7 +79,7 @@ final readonly class AnalyzePersistentList
         return match ($symbolName) {
             Symbol::NAME_DEF => new DefSymbol($this->analyzer),
             Symbol::NAME_NS => new NsSymbol($this->analyzer),
-            Symbol::NAME_FN => new FnSymbol($this->analyzer, $this->enableAsserts),
+            Symbol::NAME_FN => new FnSymbol($this->analyzer, $this->assertsEnabled),
             Symbol::NAME_QUOTE => new QuoteSymbol(),
             Symbol::NAME_DO => new DoSymbol($this->analyzer),
             Symbol::NAME_IF => new IfSymbol($this->analyzer),

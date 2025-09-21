@@ -9,8 +9,8 @@ use Phel\Config\PhelConfig;
 
 final class CompilerConfig extends AbstractConfig
 {
-    public function areAssertsEnabled(): bool
+    public function assertsEnabled(): bool
     {
-        return (bool)$this->get(PhelConfig::ENABLE_ASSERTS, true);
+        return (bool)$this->get(PhelConfig::ASSERTS_ENABLED, true);
     }
 }

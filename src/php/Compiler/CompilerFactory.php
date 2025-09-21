@@ -95,7 +95,7 @@ final class CompilerFactory extends AbstractFactory
     {
         return new Analyzer(
             $this->getGlobalEnvironment(),
-            $this->getConfig()->areAssertsEnabled(),
+            $this->getConfig()->assertsEnabled(),
         );
     }
 

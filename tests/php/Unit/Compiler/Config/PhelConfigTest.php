@@ -36,7 +36,7 @@ final class PhelConfigTest extends TestCase
             PhelConfig::KEEP_GENERATED_TEMP_FILES => false,
             PhelConfig::TEMP_DIR => sys_get_temp_dir() . DIRECTORY_SEPARATOR . 'phel',
             PhelConfig::FORMAT_DIRS => ['src', 'tests'],
-            PhelConfig::ENABLE_ASSERTS => true,
+            PhelConfig::ASSERTS_ENABLED => true,
         ];
 
         self::assertSame($expected, $config->jsonSerialize());
@@ -84,7 +84,7 @@ final class PhelConfigTest extends TestCase
             PhelConfig::KEEP_GENERATED_TEMP_FILES => true,
             PhelConfig::TEMP_DIR => '/tmp/custom',
             PhelConfig::FORMAT_DIRS => ['src', 'tests', 'phel'],
-            PhelConfig::ENABLE_ASSERTS => false,
+            PhelConfig::ASSERTS_ENABLED => false,
         ];
 
         self::assertSame($expected, $config->jsonSerialize());

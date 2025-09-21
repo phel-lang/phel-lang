@@ -41,7 +41,7 @@ final class AnalyzePersistentListTest extends TestCase
     {
         $this->listAnalyzer = new AnalyzePersistentList(
             new Analyzer(new GlobalEnvironment()),
-            true,
+            assertsEnabled: true,
         );
     }
 

@@ -26,7 +26,7 @@ final readonly class FnSymbol implements SpecialFormAnalyzerInterface
 {
     public function __construct(
         private AnalyzerInterface $analyzer,
-        private bool $enableAsserts = true,
+        private bool $assertsEnabled = true,
     ) {
     }
 
@@ -209,7 +209,7 @@ final readonly class FnSymbol implements SpecialFormAnalyzerInterface
         array $pre,
         array $post,
     ): PersistentListInterface {
-        if (!$this->enableAsserts || ($pre === [] && $post === [])) {
+        if (!$this->assertsEnabled || ($pre === [] && $post === [])) {
             return $body;
         }
 
