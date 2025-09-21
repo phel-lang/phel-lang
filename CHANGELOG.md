@@ -2,7 +2,7 @@
 
 All notable changes to this project will be documented in this file.
 
-## [0.22.0](https://github.com/phel-lang/phel-lang/compare/v0.21.0...v0.22.0) - 2025-09-21
+## [0.22.0](https://github.com/phel-lang/phel-lang/compare/v0.21.0...v0.22.0) - 2025-09-22
 
 - Fix REPL require from `repl.phel` fails
 - Fix `meta` on definitions
