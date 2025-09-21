@@ -1,0 +1,63 @@
+(ns phel-test\test\debug
+  (:require phel\debug :refer [dotrace dbg reset-trace-state! spy tap])
+  (:require phel\str :as s)
+  (:require phel\test :refer [deftest is]))
+
+(def- inc1-trace (dotrace "inc1" |(+ $ 1)))
+
+(deftest trace-simple
+  (let [out (with-output-buffer (inc1-trace 1))]
+    (is (s/contains? out "(inc1 1)") "call traced")
+    (is (s/contains? out "=> 2") "result traced")))
+
+(defn- fact [n]
+  (if (= n 0)
+    1
+    (* n (fact (- n 1)))))
+(def- fact-trace (dotrace "fact" fact))
+
+(deftest trace-nested
+  (let [out (with-output-buffer (fact-trace 3))]
+    (is (s/contains? out "(fact 3)") "call traced")
+    (is (s/contains? out "=> 6") "final result")))
+
+(deftest trace-reset-state
+  (reset-trace-state!)
+  (let [first-out (with-output-buffer (inc1-trace 1))]
+    (reset-trace-state!)
+    (let [second-out (with-output-buffer (inc1-trace 1))]
+      (is (s/contains? first-out "TRACE t01") "initial id")
+      (is (s/contains? second-out "TRACE t01") "id reset"))))
+
+(deftest dbg-prints-and-returns
+  (let [captured (var nil)
+        out (with-output-buffer (set! captured (dbg (+ 2 3))))]
+    (is (= 5 (deref captured)) "dbg returns value")
+    (is (s/contains? out "(+ 2 3)") "expression printed")
+    (is (s/contains? out "=> 5") "result printed")))
+
+(deftest spy-prints-expression
+  (let [captured (var nil)
+        out (with-output-buffer (set! captured (spy (+ 4 5))))]
+    (is (= 9 (deref captured)) "spy returns value")
+    (is (s/contains? out "SPY (+ 4 5) => 9") "spy output includes expression")))
+
+(deftest spy-with-label
+  (let [captured (var nil)
+        out (with-output-buffer (set! captured (spy "sum" (+ 1 2))))]
+    (is (= 3 (deref captured)) "spy returns value when labelled")
+    (is (s/contains? out "SPY sum => 3") "spy output includes label")))
+
+(deftest tap-prints-and-returns
+  (let [value {:value 5}
+        captured (var nil)
+        out (with-output-buffer (set! captured (tap value)))]
+    (is (= value (deref captured)) "tap returns value")
+    (is (s/contains? out "TAP => {:value 5}") "tap prints value")))
+
+(deftest tap-with-handler
+  (let [value 10
+        captured (var nil)
+        out (with-output-buffer (set! captured (tap value |(println (str "handler=>" $)))))]
+    (is (= value (deref captured)) "tap returns value when handler provided")
+    (is (= "handler=>10\n" out) "handler can observe value")))

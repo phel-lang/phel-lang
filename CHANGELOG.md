@@ -26,11 +26,13 @@ All notable changes to this project will be documented in this file.
 - Use custom if-throw for `:pre/:post` metadata conditions
     - Allow disabling via config to improve performance
 - Return empty string for `__FILE__` and `__DIR__` in the REPL
-- Improve PhelFunction 
+- Improve PhelFunction
     - Deprecate methods in favor of its public properties
     - Remove `rawDoc`
     - Add `meta` with all possible metadata
 - Increase PHPStan level to 5
+- Add `phel\debug` namespace with additional debugging helpers such as `spy`, `tap`, and enhanced tracing utilities
+- Remove the legacy `phel\trace` namespace in favor of `phel\debug`
 
 ## [0.21.0](https://github.com/phel-lang/phel-lang/compare/v0.20.0...v0.21.0) - 2025-09-01
 
