@@ -856,7 +856,9 @@ Calling the `and` function without arguments returns true."
   "Get the value mapped to `key` from the datastructure `ds`.
   Returns `opt` or nil if the value cannot be found."
   [ds k & [opt]]
-  (let [res (php/aget ds k)]
+  (let [res (cond
+              (php/is_callable ds) (ds k)
+              :else (php/aget ds k))]
     (if (nil? res)
       opt
       res)))
