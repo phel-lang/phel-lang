@@ -7,6 +7,21 @@ on:
 name: CI
 
 jobs:
+  composer-validate:
+    name: Validate composer configuration
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: 8.3
+          coverage: none
+          tools: composer
+
+      - name: Validate composer configuration
+        run: composer validate --strict --quiet --no-interaction --no-check-all --no-check-lock
+
   coding-guidelines:
     name: Coding Guidelines
     runs-on: ubuntu-latest
