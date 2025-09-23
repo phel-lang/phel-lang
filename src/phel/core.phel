@@ -856,10 +856,19 @@ Calling the `and` function without arguments returns true."
   "Get the value mapped to `key` from the datastructure `ds`.
   Returns `opt` or nil if the value cannot be found."
   [ds k & [opt]]
-  (let [res (php/aget ds k)]
-    (if (nil? res)
-      opt
-      res)))
+  (cond
+    (or (set? ds)
+        (php/instanceof ds PersistentHashSetInterface)
+        (php/instanceof ds TransientHashSetInterface))
+    (if (php/-> ds (contains k))
+      k
+      opt)
+
+    :else
+    (let [res (php/aget ds k)]
+      (if (nil? res)
+        opt
+        res))))
 
 (defn put
   "Puts `value` mapped to `key` on the datastructure `ds`. Returns `ds`."
