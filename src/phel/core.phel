@@ -857,8 +857,10 @@ Calling the `and` function without arguments returns true."
   Returns `opt` or nil if the value cannot be found."
   [ds k & [opt]]
   (cond
-    (or (set? ds) (php/instanceof ds TransientHashSetInterface))
-    (if (contains? ds k)
+    (or (set? ds)
+        (php/instanceof ds PersistentHashSetInterface)
+        (php/instanceof ds TransientHashSetInterface))
+    (if (php/-> ds (contains k))
       k
       opt)
 
@@ -1379,9 +1381,9 @@ arrays. Use (php/aunset ds key)"))
           size (count first-coll)
           result (loop [i 0
                         res []]
-                   (if (>= i size)
-                     res
-                     (let [nths (map |(get $ i nil) xs)]
+                   (let [nths (map |(get $ i) xs)]
+                     (if (<= size i)
+                       res
                        (recur (php/+ i 1) (concat res nths)))))]
       (with-meta first-coll result))))
 

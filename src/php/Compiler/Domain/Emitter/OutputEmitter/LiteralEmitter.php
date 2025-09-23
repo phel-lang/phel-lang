@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Phel\Compiler\Domain\Emitter\OutputEmitter;
 
 use Phel\Compiler\Domain\Emitter\OutputEmitterInterface;
+use Phel\Lang\Collections\HashSet\PersistentHashSetInterface;
 use Phel\Lang\Collections\LinkedList\PersistentListInterface;
 use Phel\Lang\Collections\Map\PersistentMapInterface;
 use Phel\Lang\Collections\Vector\PersistentVector;
@@ -47,6 +48,8 @@ final readonly class LiteralEmitter
             $this->emitSymbol($x);
         } elseif ($x instanceof PersistentMapInterface) {
             $this->emitMap($x);
+        } elseif ($x instanceof PersistentHashSetInterface) {
+            $this->emitSet($x);
         } elseif ($x instanceof PersistentVector) {
             $this->emitVector($x);
         } elseif ($x instanceof PersistentListInterface) {
@@ -161,6 +164,34 @@ final readonly class LiteralEmitter
             }
 
             $this->outputEmitter->emitLine();
+        }
+
+        if ($count > 0) {
+            $this->outputEmitter->decreaseIndentLevel();
+        }
+
+        $this->outputEmitter->emitStr('])', $x->getStartLocation());
+    }
+
+    private function emitSet(PersistentHashSetInterface $x): void
+    {
+        $count = count($x);
+        $this->outputEmitter->emitStr('\\Phel::set([', $x->getStartLocation());
+
+        if ($count > 0) {
+            $this->outputEmitter->increaseIndentLevel();
+            $this->outputEmitter->emitLine();
+        }
+
+        $i = 0;
+        foreach ($x as $value) {
+            $this->outputEmitter->emitLiteral($value);
+            if ($i < $count - 1) {
+                $this->outputEmitter->emitStr(',', $x->getStartLocation());
+            }
+
+            $this->outputEmitter->emitLine();
+            ++$i;
         }
 
         if ($count > 0) {
