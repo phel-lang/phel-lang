@@ -2,6 +2,10 @@
 
 All notable changes to this project will be documented in this file.
 
+## Unreleased
+
+- Fix `recur` function docs on API
+
 ## [0.22.1](https://github.com/phel-lang/phel-lang/compare/v0.22.0...v0.22.1) - 2025-09-23
 
 - Fix `get` on php callable
