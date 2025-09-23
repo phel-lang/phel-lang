@@ -286,6 +286,15 @@ See [try-catch](/documentation/control-flow/#try-catch-and-finally).',
             'signature' => '(throw exception)',
             'desc' => 'Throw an exception.',
         ],
+        'catch' => [
+            'doc' => '```phel
+(catch exception-type exception-name expr*)
+```
+Handle exceptions thrown in a `try` block by matching on the provided exception type. The caught exception is bound to `exception-name` while evaluating the expressions.',
+            'docUrl' => '/documentation/control-flow/#try-catch-and-finally',
+            'signature' => '(catch exception-type exception-name expr*)',
+            'desc' => 'Handle exceptions thrown in a `try` block by matching on the provided exception type. The caught exception is bound to exception-name while evaluating the expressions.',
+        ],
         Symbol::NAME_TRY => [
             'doc' => '```phel
 (try expr* catch-clause* finally-clause?)
@@ -294,6 +303,15 @@ All expressions are evaluated and if no exception is thrown the value of the las
             'docUrl' => '/documentation/control-flow/#try-catch-and-finally',
             'signature' => '(try expr* catch-clause* finally-clause?)',
             'desc' => 'All expressions are evaluated and if no exception is thrown the value of the last expression is returned. If an exception occurs and a matching catch-clause is provided, its expression is evaluated and the value is returned. If no matching catch-clause can be found the exception is propagated out of the function. Before returning normally or abnormally the optionally finally-clause is evaluated.',
+        ],
+        'finally' => [
+            'doc' => '```phel
+(finally expr*)
+```
+Evaluate expressions after the try body and all matching catches have completed. The finally block runs regardless of whether an exception was thrown.',
+            'docUrl' => '/documentation/control-flow/#try-catch-and-finally',
+            'signature' => '(finally expr*)',
+            'desc' => 'Evaluate expressions after the try body and all matching catches have completed. The finally block runs regardless of whether an exception was thrown.',
         ],
         Symbol::NAME_PHP_OBJECT_SET => [
             'doc' => '```phel
