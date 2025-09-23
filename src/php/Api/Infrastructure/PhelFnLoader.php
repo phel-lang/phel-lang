@@ -250,8 +250,8 @@ Calls a static method or property from a PHP class. Both methodname and property
         Symbol::NAME_RECUR => [
             'doc' => '```phel
 (recur expr*)
-Internally recur is implemented as a PHP while loop and therefore prevents the Maximum function nesting level errors..
-```',
+```
+Internally recur is implemented as a PHP while loop and therefore prevents the Maximum function nesting level errors.',
             'docUrl' => '/documentation/global-and-local-bindings/#local-bindings-let',
             'signature' => '(recur expr*)',
             'desc' => 'Internally recur is implemented as a PHP while loop and therefore prevents the Maximum function nesting level errors.',
