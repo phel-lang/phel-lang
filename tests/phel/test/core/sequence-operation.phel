@@ -93,10 +93,13 @@
   (is (= "b" (get (php/array "a" "b" "c") 1)) "get on php array")
   (is (= "b" (get ["a" "b" "c"] 1)) "get on vector")
   (is (= "a" (get {:a "a" :b "b"} :a)) "get on map")
+  (is (= 1 (get (set 1 2 3) 1)) "get on set")
   (is (nil? (get nil 1)) "get on nil")
   (is (nil? (get {:a "a" :b "b"} :c)) "get undefined key on map")
+  (is (nil? (get (set 1 2 3) 4)) "get undefined key on set")
   (is (= "x" (get nil 1 "x")) "get on nil with optional value")
   (is (= "x" (get {:a "a" :b "b"} :c "x")) "get on undefined key with optional value on map")
+  (is (= "x" (get (set) 4 "x")) "get on undefined key with optional value on set")
   (is (id 0 (get {:a 0} :a)) "gets zero from a map"))
 
 (deftest test-get-keyword

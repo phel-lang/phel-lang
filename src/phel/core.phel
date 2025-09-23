@@ -856,12 +856,17 @@ Calling the `and` function without arguments returns true."
   "Get the value mapped to `key` from the datastructure `ds`.
   Returns `opt` or nil if the value cannot be found."
   [ds k & [opt]]
-  (let [res (cond
-              (php/is_callable ds) (ds k)
-              :else (php/aget ds k))]
-    (if (nil? res)
-      opt
-      res)))
+  (cond
+    (or (set? ds) (php/instanceof ds TransientHashSetInterface))
+    (if (contains? ds k)
+      k
+      opt)
+
+    :else
+    (let [res (php/aget ds k)]
+      (if (nil? res)
+        opt
+        res))))
 
 (defn put
   "Puts `value` mapped to `key` on the datastructure `ds`. Returns `ds`."
@@ -1374,9 +1379,9 @@ arrays. Use (php/aunset ds key)"))
           size (count first-coll)
           result (loop [i 0
                         res []]
-                   (let [nths (map |(get $ i) xs)]
-                     (if (<= size i)
-                       res
+                   (if (>= i size)
+                     res
+                     (let [nths (map |(get $ i nil) xs)]
                        (recur (php/+ i 1) (concat res nths)))))]
       (with-meta first-coll result))))
 

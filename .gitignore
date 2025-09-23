@@ -1,4 +1,5 @@
 .idea/
+.claude/
 .phpbench/
 .vscode/
 data/
