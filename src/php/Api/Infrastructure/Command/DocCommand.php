@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Phel\Api\Infrastructure\Command;
 
 use Gacela\Framework\DocBlockResolverAwareTrait;
+use InvalidArgumentException;
 use Phel\Api\ApiFacade;
 use Phel\Api\Transfer\PhelFunction;
 use Symfony\Component\Console\Command\Command;
@@ -13,9 +14,11 @@ use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
+
 use Symfony\Component\Console\Terminal;
 
 use function in_array;
+use function sprintf;
 
 /**
  * @method ApiFacade getFacade()
@@ -25,6 +28,10 @@ final class DocCommand extends Command
     use DocBlockResolverAwareTrait;
 
     private const string OPTION_NAMESPACES = 'ns';
+
+    private const string OPTION_FORMAT = 'format';
+
+    private const array AVAILABLE_FORMATS = ['table', 'json'];
 
     protected function configure(): void
     {
@@ -37,6 +44,13 @@ final class DocCommand extends Command
                 InputOption::VALUE_OPTIONAL | InputOption::VALUE_IS_ARRAY,
                 'Specify which namespaces to load.',
                 [],
+            )
+            ->addOption(
+                self::OPTION_FORMAT,
+                null,
+                InputOption::VALUE_REQUIRED,
+                'Specify the output format.',
+                'table',
             );
     }
 
@@ -46,7 +60,25 @@ final class DocCommand extends Command
         $phelFunctions = $this->getFacade()->getPhelFunctions($namespaces);
 
         $search = $input->getArgument('search');
-        $this->printFunctionsAsTable($output, $phelFunctions, $search);
+        $normalized = $this->normalizeGroupedFunctions($phelFunctions, $search);
+
+        $format = strtolower((string)$input->getOption(self::OPTION_FORMAT));
+        if (!in_array($format, self::AVAILABLE_FORMATS, true)) {
+            $message = sprintf(
+                'Invalid format "%s". Allowed values: %s',
+                $format,
+                implode(', ', self::AVAILABLE_FORMATS),
+            );
+
+            throw new InvalidArgumentException($message);
+        }
+
+        if ($format === 'json') {
+            $this->printFunctionsAsJson($output, $normalized);
+            return self::SUCCESS;
+        }
+
+        $this->printFunctionsAsTable($output, $normalized);
 
         return self::SUCCESS;
     }
@@ -69,9 +101,17 @@ final class DocCommand extends Command
     }
 
     /**
-     * @param list<PhelFunction> $phelFunctions
+     * @param list<array{
+     *     percent:int,
+     *     name:string,
+     *     signature:string,
+     *     doc:string,
+     *     description:string,
+     *     githubUrl:string,
+     *     docUrl:string
+     * }> $phelFunctions
      */
-    private function printFunctionsAsTable(OutputInterface $output, array $phelFunctions, string $search): void
+    private function printFunctionsAsTable(OutputInterface $output, array $phelFunctions): void
     {
         [$width1, $width2, $width3] = $this->calculateWithProportionalToCurrentScreen();
 
@@ -81,13 +121,27 @@ final class DocCommand extends Command
             ->setColumnMaxWidth(1, $width2)
             ->setColumnMaxWidth(2, $width3);
 
-        $normalized = $this->normalizeGroupedFunctions($phelFunctions, $search);
-
-        foreach ($normalized as $func) {
+        foreach ($phelFunctions as $func) {
             $table->addRow([$func['name'], $func['signature'], $func['description']]);
         }
 
         $table->render();
+    }
+
+    /**
+     * @param list<array{
+     *     percent:int,
+     *     name:string,
+     *     signature:string,
+     *     doc:string,
+     *     description:string,
+     *     githubUrl:string,
+     *     docUrl:string
+     * }> $phelFunctions
+     */
+    private function printFunctionsAsJson(OutputInterface $output, array $phelFunctions): void
+    {
+        $output->writeln((string) json_encode($phelFunctions, JSON_PRETTY_PRINT));
     }
 
     /**
