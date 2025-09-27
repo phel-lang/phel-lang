@@ -141,7 +141,12 @@ final class DocCommand extends Command
      */
     private function printFunctionsAsJson(OutputInterface $output, array $phelFunctions): void
     {
-        $output->writeln((string) json_encode($phelFunctions, JSON_PRETTY_PRINT));
+        $jsonData = array_map(static function (array $func): array {
+            unset($func['percent']);
+            return $func;
+        }, $phelFunctions);
+
+        $output->writeln(json_encode($jsonData, JSON_THROW_ON_ERROR | JSON_PRETTY_PRINT));
     }
 
     /**
