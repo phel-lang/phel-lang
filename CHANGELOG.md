@@ -4,6 +4,7 @@ All notable changes to this project will be documented in this file.
 
 ## Unreleased
 
+- Fix `doc` command on phar command
 - Add `catch` and `finally` functions to the API docs
 - Add `--format` json option to `phel doc` command
 

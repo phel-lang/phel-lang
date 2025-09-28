@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Phel\Api\Infrastructure;
 
+use Phar;
 use Phel;
 use Phel\Api\Domain\PhelFnLoaderInterface;
 use Phel\Compiler\Infrastructure\GlobalEnvironmentSingleton;
@@ -440,7 +441,22 @@ EOF;
         }
 
         $docPhelContent = str_replace('%REQUIRES%', $requireNamespaces, $template);
-        $phelFile = __DIR__ . '/phel/doc.phel';
+
+        // When running in a phar, we can't write to __DIR__ due to phar.readonly
+        // Use a temporary directory in the current working directory instead
+        if (Phar::running() !== '') {
+            $tempDir = getcwd() . '/.phel_temp_' . uniqid();
+            mkdir($tempDir, 0755, true);
+            $phelFile = $tempDir . '/doc.phel';
+        } else {
+            $phelDir = __DIR__ . '/phel';
+            if (!is_dir($phelDir)) {
+                mkdir($phelDir, 0755, true);
+            }
+
+            $phelFile = $phelDir . '/doc.phel';
+        }
+
         file_put_contents($phelFile, $docPhelContent);
 
         $namespace = $this->runFacade
@@ -462,6 +478,11 @@ EOF;
         }
 
         unlink($phelFile);
+
+        // Clean up temporary directory if running in phar
+        if (Phar::running() !== '' && dirname($phelFile) !== __DIR__) {
+            rmdir(dirname($phelFile));
+        }
     }
 
     /**
