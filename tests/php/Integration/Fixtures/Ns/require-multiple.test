@@ -1,0 +1,58 @@
+--PHEL--
+(ns test
+  (:require xyz\core :as c
+            xyz\foo
+            xyz\core2 :as c2))
+
+(def kw ::c/f1)
+(def kw2 ::c2/f3)
+--PHP--
+namespace test;
+require_once __DIR__ . '/phel/core.php';
+require_once __DIR__ . '/xyz/core.php';
+require_once __DIR__ . '/xyz/foo.php';
+require_once __DIR__ . '/xyz/core2.php';
+\Phel::addDefinition(
+  "phel\\core",
+  "*file*",
+  "Ns/require-multiple.test"
+);
+\Phel::addDefinition(
+  "phel\\core",
+  "*ns*",
+  "test"
+);
+\Phel::addDefinition(
+  "test",
+  "kw",
+  \Phel::keyword("f1", "xyz\\core"),
+  \Phel::map(
+    \Phel::keyword("start-location"), \Phel::map(
+      \Phel::keyword("file"), "Ns/require-multiple.test",
+      \Phel::keyword("line"), 6,
+      \Phel::keyword("column"), 0
+    ),
+    \Phel::keyword("end-location"), \Phel::map(
+      \Phel::keyword("file"), "Ns/require-multiple.test",
+      \Phel::keyword("line"), 6,
+      \Phel::keyword("column"), 15
+    )
+  )
+);
+\Phel::addDefinition(
+  "test",
+  "kw2",
+  \Phel::keyword("f3", "xyz\\core2"),
+  \Phel::map(
+    \Phel::keyword("start-location"), \Phel::map(
+      \Phel::keyword("file"), "Ns/require-multiple.test",
+      \Phel::keyword("line"), 7,
+      \Phel::keyword("column"), 0
+    ),
+    \Phel::keyword("end-location"), \Phel::map(
+      \Phel::keyword("file"), "Ns/require-multiple.test",
+      \Phel::keyword("line"), 7,
+      \Phel::keyword("column"), 17
+    )
+  )
+);

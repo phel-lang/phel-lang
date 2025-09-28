@@ -7,6 +7,7 @@ All notable changes to this project will be documented in this file.
 - Fix `doc` command on phar command
 - Add `catch` and `finally` functions to the API docs
 - Add `--format` json option to `phel doc` command
+- Allow `ns` form with multiple modules within a single `:require` form
 
 ## [0.22.2](https://github.com/phel-lang/phel-lang/compare/v0.22.1...v0.22.2) - 2025-09-23
 
