@@ -68,6 +68,23 @@
 
   (is (= #{1} (push #{} 1)) "push on set"))
 
+(deftest test-conj
+  (is (= [] (conj)) "conj without arguments returns an empty vector")
+  (is (= [1 2] (conj [1 2])) "conj without new elements returns the original collection")
+  (is (nil? (conj nil)) "conj on nil without new elements returns nil")
+  (is (= [1 2 3 4] (conj [1 2 3] 4)) "conj on a vector adds elements at the end")
+  (is (= (list 4 1 2 3) (conj '(1 2 3) 4)) "conj on a list adds elements at the beginning")
+  (is (= ["a" "b" "c" "d"] (conj ["a" "b" "c"] "d")) "conj handles vectors of strings")
+  (is (= [1 2 3 4] (conj [1 2] 3 4)) "conj with multiple values on a vector preserves order")
+  (is (= (list 4 3 1 2) (conj '(1 2) 3 4)) "conj with multiple values on a list adds from left to right")
+  (is (= [[1 2] [3 4] [5 6]] (conj [[1 2] [3 4]] [5 6])) "conj appends nested vectors")
+  (is (= {1 2, 3 4, 5 6} (conj {1 2, 3 4} [5 6])) "conj on a map accepts [key value] vectors")
+  (is (= {:firstname "John" :lastname "Doe" :age 25 :nationality "Chinese"}
+         (conj {:firstname "John" :lastname "Doe"} {:age 25 :nationality "Chinese"}))
+      "conj on a map merges associative collections")
+  (is (= #{1 2 3 4} (conj #{1 3 4} 2)) "conj on a set adds elements")
+  (is (= (list 1) (conj nil 1)) "conj on nil with a value returns a single-item list"))
+
 (deftest test-pop
   (let [x (php/array 1 2)
         y (pop x)]

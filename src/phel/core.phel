@@ -1181,6 +1181,64 @@ arrays. Use (php/aunset ds key)"))
                               (php/. "Cannot convert into type " (type to))))))))
     (throw (php/new InvalidArgumentException "into expects one or two arguments"))))
 
+(defn- conj-map-entry
+  [coll entry]
+  (let [assign (fn [acc key value]
+                 (if (php-array? acc)
+                   (do
+                     (php/aset acc key value)
+                     acc)
+                   (php/-> acc (put key value))))]
+    (cond
+      (indexed? entry)
+      (if (php/!= (count entry) 2)
+        (throw (php/new InvalidArgumentException
+                        "conj on a map expects entries of length 2"))
+        (assign coll (first entry) (second entry)))
+
+      (associative? entry)
+      (for [[key value] :pairs entry
+            :reduce [acc coll]]
+        (assign acc key value))
+
+      :else
+      (throw (php/new InvalidArgumentException
+                      "conj on a map expects a [key value] pair or an associative collection")))))
+
+(defn- conj-single
+  [coll value]
+  (cond
+    (php/=== coll nil) (list value)
+    (list? coll) (cons value coll)
+    (or (vector? coll)
+        (php-array? coll)
+        (php/instanceof coll TransientVectorInterface)) (push coll value)
+    (or (set? coll)
+        (php/instanceof coll TransientHashSetInterface)) (push coll value)
+    (or (hash-map? coll)
+        (struct? coll)
+        (php/instanceof coll TransientMapInterface)) (conj-map-entry coll value)
+    (php/instanceof coll PushInterface) (php/-> coll (push value))
+    :else
+    (throw (php/new InvalidArgumentException
+                    (str "Cannot conj on type " (type coll))))))
+
+(defn conj
+  "(conj) (conj coll) (conj coll x) (conj coll x & xs)
+
+  conj[oin]. Returns a new collection with the xs 'added'. (conj nil item) returns (item).
+  (conj coll) returns coll. (conj) returns []. The 'addition' may happen at different 'places'
+  depending on the concrete type."
+  [& xs]
+  (case (count xs)
+    0 []
+    1 (first xs)
+    (let [coll (first xs)
+          values (rest xs)]
+      (for [value :in values
+            :reduce [acc coll]]
+        (conj-single acc value)))))
+
 (defn slice
   "Extract a slice of `xs`."
   [xs & [offset & [length]]]
