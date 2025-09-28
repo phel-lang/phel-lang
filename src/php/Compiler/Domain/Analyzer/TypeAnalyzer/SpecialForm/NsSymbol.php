@@ -75,7 +75,7 @@ TXT;
             if ($this->isKeywordWithName($value, 'use')) {
                 $this->analyzeUse($ns, $import);
             } elseif ($this->isKeywordWithName($value, 'require')) {
-                $requireNs[] = $this->analyzeRequire($ns, $import);
+                $requireNs = [...$requireNs, ...$this->analyzeRequire($ns, $import)];
             } elseif ($this->isKeywordWithName($value, 'require-file')) {
                 $requireFiles[] = $this->analyzeRequireFile($import);
             } elseif ($value instanceof Keyword) {
@@ -166,16 +166,10 @@ TXT;
     /**
      * @return list<Symbol>
      */
-    private function extractRefer(PersistentMapInterface $requireData, PersistentListInterface $import): array
+    private function extractRefer(?PersistentVectorInterface $refer, PersistentListInterface $import): array
     {
-        $refer = $requireData[Keyword::create('refer')];
-
-        if ($refer === null) {
-            return [];
-        }
-
         if (!$refer instanceof PersistentVectorInterface) {
-            throw AnalyzerException::withLocation('Refer must be a vector', $import);
+            return [];
         }
 
         $result = [];
@@ -191,21 +185,99 @@ TXT;
         return $result;
     }
 
-    private function analyzeRequire(string $ns, PersistentListInterface $import): Symbol
+    private function createRequireAlias(?Symbol $alias, Symbol $requireSymbol): Symbol
     {
-        $requireSymbol = $import->get(1);
-        if (!($requireSymbol instanceof Symbol)) {
-            throw AnalyzerException::withLocation('First argument in :require must be a symbol.', $import);
+        if ($alias instanceof Symbol) {
+            return $alias;
         }
 
-        $requireData = Phel::map(...$import->toArray());
-        $alias = $this->extractAlias($requireData, $import, 'require');
-        $referSymbols = $this->extractRefer($requireData, $import);
+        $parts = explode('\\', $requireSymbol->getName());
 
-        $this->analyzer->addRequireAlias($ns, $alias, $requireSymbol);
-        $this->analyzer->addRefers($ns, $referSymbols, $requireSymbol);
+        return Symbol::create($parts[count($parts) - 1]);
+    }
 
-        return $requireSymbol;
+    /**
+     * @return list<Symbol>
+     */
+    private function analyzeRequire(string $ns, PersistentListInterface $import): array
+    {
+        $elements = $import->toArray();
+        $count = count($elements);
+        $result = [];
+
+        for ($i = 1; $i < $count; ++$i) {
+            $requireSymbol = $elements[$i];
+            if (!($requireSymbol instanceof Symbol)) {
+                throw AnalyzerException::withLocation('First argument in :require must be a symbol.', $import);
+            }
+
+            ++$i;
+            $aliasValue = null;
+            $referValue = null;
+
+            while ($i < $count) {
+                $option = $elements[$i];
+
+                if ($option instanceof Symbol) {
+                    break;
+                }
+
+                if (!($option instanceof Keyword)) {
+                    throw AnalyzerException::withLocation('Unexpected argument in :require. Expected a keyword.', $import);
+                }
+
+                ++$i;
+
+                if ($option->getName() === 'as') {
+                    if ($i >= $count) {
+                        throw AnalyzerException::withLocation('Alias must be a Symbol', $import);
+                    }
+
+                    $aliasCandidate = $elements[$i];
+                    if (!($aliasCandidate instanceof Symbol)) {
+                        throw AnalyzerException::withLocation('Alias must be a Symbol', $import);
+                    }
+
+                    $aliasValue = $aliasCandidate;
+                    ++$i;
+
+                    continue;
+                }
+
+                if ($option->getName() === 'refer') {
+                    if ($i >= $count) {
+                        throw AnalyzerException::withLocation('Refer must be a vector', $import);
+                    }
+
+                    $referCandidate = $elements[$i];
+                    if (!$referCandidate instanceof PersistentVectorInterface) {
+                        throw AnalyzerException::withLocation('Refer must be a vector', $import);
+                    }
+
+                    $referValue = $referCandidate;
+                    ++$i;
+
+                    continue;
+                }
+
+                throw AnalyzerException::withLocation(
+                    sprintf('Unexpected keyword %s encountered in :require. Expected :as or :refer.', $option->getName()),
+                    $option,
+                );
+            }
+
+            $alias = $this->createRequireAlias($aliasValue, $requireSymbol);
+            $referSymbols = $this->extractRefer($referValue, $import);
+
+            $this->analyzer->addRequireAlias($ns, $alias, $requireSymbol);
+            $this->analyzer->addRefers($ns, $referSymbols, $requireSymbol);
+
+            $result[] = $requireSymbol;
+
+            --$i;
+        }
+
+        return $result;
     }
 
     private function analyzeRequireFile(PersistentListInterface $import): string
