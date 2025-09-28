@@ -1229,15 +1229,12 @@ arrays. Use (php/aunset ds key)"))
   conj[oin]. Returns a new collection with the xs 'added'. (conj nil item) returns (item).
   (conj coll) returns coll. (conj) returns []. The 'addition' may happen at different 'places'
   depending on the concrete type."
-  [& xs]
-  (case (count xs)
-    0 []
-    1 (first xs)
-    (let [coll (first xs)
-          values (rest xs)]
-      (for [value :in values
-            :reduce [acc coll]]
-        (conj-single acc value)))))
+  ([] [])
+  ([coll] coll)
+  ([coll value]
+   (conj-single coll value))
+  ([coll value & more]
+   (reduce conj-single (conj-single coll value) more)))
 
 (defn slice
   "Extract a slice of `xs`."
@@ -1337,9 +1334,9 @@ arrays. Use (php/aunset ds key)"))
       (php/instanceof xs Traversable)
       (let [i (var 0)]
         (let [result (for [x :in xs
-                            :while (php/< (deref i) n)
-                            :let [_ (swap! i |(php/+ $ 1))]]
-                        x)]
+                           :while (php/< (deref i) n)
+                           :let [_ (swap! i |(php/+ $ 1))]]
+                       x)]
           (with-meta xs result)))
       (throw (php/new InvalidArgumentException "Cannot take")))))
 
