@@ -21,6 +21,7 @@ use Phel\Lang\Symbol;
 use RecursiveDirectoryIterator;
 use RecursiveIteratorIterator;
 use RegexIterator;
+use UnexpectedValueException;
 
 final readonly class NamespaceExtractor implements NamespaceExtractorInterface
 {
@@ -137,12 +138,19 @@ final readonly class NamespaceExtractor implements NamespaceExtractorInterface
             return [];
         }
 
-        $iterator = new RecursiveIteratorIterator(new RecursiveDirectoryIterator($realpath));
-        $phelIterator = new RegexIterator($iterator, '/^.+\.phel$/i', RegexIterator::GET_MATCH);
+        try {
+            $directoryIterator = new RecursiveDirectoryIterator($realpath);
+            $iterator = new RecursiveIteratorIterator($directoryIterator);
+            $phelIterator = new RegexIterator($iterator, '/^.+\.phel$/i', RegexIterator::GET_MATCH);
 
-        $result = [];
-        foreach ($phelIterator as $file) {
-            $result[] = $this->getNamespaceFromFile($file[0]);
+            $result = [];
+            foreach ($phelIterator as $file) {
+                $result[] = $this->getNamespaceFromFile($file[0]);
+            }
+        } catch (UnexpectedValueException) {
+            // Skip directories that cannot be read (e.g., permission denied)
+            // This can happen with system-protected directories in temp paths
+            return [];
         }
 
         return $result;
