@@ -7,6 +7,7 @@ namespace Phel\Debug;
 use SplFileObject;
 use Throwable;
 
+use function count;
 use function is_string;
 use function sprintf;
 
@@ -19,6 +20,8 @@ final class DebugLineTap
     private const int MAX_BUFFER_SIZE = 50;
 
     private const int FLUSH_INTERVAL_MS = 250;
+
+    private const int MAX_FILE_CACHE = 20;
 
     private static ?self $instance = null;
 
@@ -37,6 +40,8 @@ final class DebugLineTap
     private function __construct(private readonly string $logPath)
     {
         $this->lastFlushTime = microtime(true);
+
+        file_put_contents($this->logPath, '');
         register_tick_function($this->onTick(...));
         register_shutdown_function([$this, 'flush']);
     }
@@ -133,6 +138,11 @@ final class DebugLineTap
             if (!isset($this->fileCache[$file])) {
                 if (!file_exists($file)) {
                     return '<file not found>';
+                }
+
+                // Limit cache size to prevent "too many open files" error
+                if (count($this->fileCache) >= self::MAX_FILE_CACHE) {
+                    array_shift($this->fileCache);
                 }
 
                 $this->fileCache[$file] = new SplFileObject($file);
