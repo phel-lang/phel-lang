@@ -93,7 +93,7 @@ final class DebugLineTap
         }
 
         self::$instance->flush();
-        unregister_tick_function([self::$instance, 'onTick']);
+        unregister_tick_function(self::$instance->onTick(...));
         self::$instance = null;
     }
 
@@ -110,7 +110,7 @@ final class DebugLineTap
      *
      * Called automatically by PHP's tick mechanism when enabled.
      */
-    public function onTick(): void
+    private function onTick(): void
     {
         $trace = debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS, 1);
         if ($trace === []) {
@@ -170,7 +170,7 @@ final class DebugLineTap
     /**
      * Flush buffered entries to the log file.
      */
-    public function flush(): void
+    private function flush(): void
     {
         if ($this->bufferSize === 0) {
             return;
@@ -185,7 +185,29 @@ final class DebugLineTap
     }
 
     /**
-     * Get the source line from a file with caching.
+     * Write the debug log header.
+     */
+    private function writeHeader(): void
+    {
+        $header = sprintf(
+            "=== Phel Debug Trace - Started at %s (PID: %d) ===\n",
+            date('Y-m-d H:i:s'),
+            $this->processId,
+        );
+
+        if ($this->phelFileFilter !== null) {
+            $header .= sprintf("Phel file filter: %s\n", $this->phelFileFilter);
+        }
+
+        $header .= "=======================================================\n\n";
+
+        file_put_contents($this->logPath, $header);
+    }
+
+    /**
+     * Get the source line(s) from a file with caching.
+     *
+     * Captures complete PHP forms when they span multiple lines.
      */
     private function getSourceLine(string $file, int $line): string
     {
@@ -204,13 +226,103 @@ final class DebugLineTap
             }
 
             $fileObj = $this->fileCache[$file];
+
+            // Get the current line
             $fileObj->seek($line - 1);
             $content = $fileObj->current();
 
-            return is_string($content) ? trim($content) : '<invalid line>';
+            if (!is_string($content)) {
+                return '<invalid line>';
+            }
+
+            $trimmedLine = trim($content);
+
+            // Check if this looks like a complete statement (ends with ;, }, or {)
+            if ($this->isCompleteStatement($trimmedLine)) {
+                return $trimmedLine;
+            }
+
+            // If not complete, try to capture the full form
+            return $this->captureCompleteForm($fileObj, $line);
         } catch (Throwable) {
             return '<read error>';
         }
+    }
+
+    /**
+     * Check if a line represents a complete PHP statement.
+     */
+    private function isCompleteStatement(string $line): bool
+    {
+        if ($line === '') {
+            return false;
+        }
+
+        $lastChar = $line[-1];
+
+        // Complete if ends with semicolon, closing brace, or opening brace
+        return $lastChar === ';' || $lastChar === '}' || $lastChar === '{';
+    }
+
+    /**
+     * Capture a complete PHP form that spans multiple lines.
+     */
+    private function captureCompleteForm(SplFileObject $fileObj, int $startLine): string
+    {
+        $lines = [];
+        $currentLine = $startLine - 1;
+        $maxLines = 20; // Limit to prevent reading entire file
+
+        // Try to find the start of the statement by going backwards
+        $searchLine = $currentLine;
+        $linesScanned = 0;
+        while ($searchLine > 0 && $linesScanned < $maxLines) {
+            $fileObj->seek($searchLine - 1);
+            $prevContent = $fileObj->current();
+
+            if (!is_string($prevContent)) {
+                break;
+            }
+
+            $trimmedPrev = trim($prevContent);
+
+            // Stop if we find a line ending with ; } or {
+            if ($trimmedPrev !== '' && $this->isCompleteStatement($trimmedPrev)) {
+                break;
+            }
+
+            --$searchLine;
+            ++$linesScanned;
+        }
+
+        // Now read forward from the start to capture the complete form
+        $formStart = $searchLine;
+        for ($i = 0; $i < $maxLines; ++$i) {
+            $fileObj->seek($formStart + $i);
+            $content = $fileObj->current();
+
+            if (!is_string($content)) {
+                break;
+            }
+
+            $trimmed = trim($content);
+            if ($trimmed === '') {
+                continue;
+            }
+
+            $lines[] = $content;
+
+            // Stop if we found a complete statement
+            if ($this->isCompleteStatement($trimmed)) {
+                break;
+            }
+        }
+
+        if ($lines === []) {
+            return '<unable to capture form>';
+        }
+
+        return implode(' ', $lines);
     }
 
     /**
@@ -282,25 +394,5 @@ final class DebugLineTap
 
         $this->phelSourceCache[$file] = $phelSourcePath;
         return $phelSourcePath;
-    }
-
-    /**
-     * Write the debug log header.
-     */
-    private function writeHeader(): void
-    {
-        $header = sprintf(
-            "=== Phel Debug Trace - Started at %s (PID: %d) ===\n",
-            date('Y-m-d H:i:s'),
-            $this->processId,
-        );
-
-        if ($this->phelFileFilter !== null) {
-            $header .= sprintf("Phel file filter: %s\n", $this->phelFileFilter);
-        }
-
-        $header .= "=======================================================\n\n";
-
-        file_put_contents($this->logPath, $header);
     }
 }
