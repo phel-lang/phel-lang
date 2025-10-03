@@ -8,7 +8,7 @@ use Gacela\Framework\Gacela;
 use Generator;
 use Phel\Build\BuildFacade;
 use Phel\Compiler\CompilerFacade;
-use Phel\Compiler\Domain\Analyzer\Environment\GlobalEnvironment;
+use Phel\Compiler\Domain\Analyzer\Environment\GlobalEnvironmentInterface;
 use Phel\Compiler\Infrastructure\CompileOptions;
 use Phel\Compiler\Infrastructure\GlobalEnvironmentSingleton;
 use Phel\Lang\Symbol;
@@ -20,7 +20,7 @@ use SplFileInfo;
 
 final class IntegrationTest extends TestCase
 {
-    private static GlobalEnvironment $globalEnv;
+    private static GlobalEnvironmentInterface $globalEnv;
 
     private CompilerFacade $compilerFacade;
 

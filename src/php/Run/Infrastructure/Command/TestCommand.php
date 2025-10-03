@@ -66,15 +66,33 @@ final class TestCommand extends Command
             $paths = (array) $input->getArgument(self::ARG_PATHS);
             $namespacesInformation = $this->getFacade()->getDependenciesFromPaths($paths);
 
-            $phelCode = $this->generatePhelCode($input, $namespacesInformation);
-
+            // Suppress output during file loading phase and filter out integration test fixtures
+            ob_start();
+            $filteredNamespaces = [];
             foreach ($namespacesInformation as $info) {
-                $this->getFacade()->evalFile($info);
+                // Skip integration test fixture files - they are for PHPUnit tests only
+                if (str_contains($info->getFile(), 'tests/php/Integration/')) {
+                    continue;
+                }
+
+                if (str_contains($info->getFile(), 'tests/php/Benchmark/')) {
+                    continue;
+                }
+
+                $filteredNamespaces[] = $info;
+
+                try {
+                    $this->getFacade()->evalFile($info);
+                } catch (Throwable $e) {
+                    ob_end_clean();
+                    throw $e;
+                }
             }
 
-            $compileOptions = (new CompileOptions())
-                ->setIsEnabledSourceMaps(false);
+            ob_end_clean();
 
+            $phelCode = $this->generatePhelCode($input, $filteredNamespaces);
+            $compileOptions = (new CompileOptions())->setIsEnabledSourceMaps(false);
             $result = $this->getFacade()->eval($phelCode, $compileOptions);
 
             $output->writeln((new ResourceUsageFormatter())->resourceUsageSinceStartOfRequest());

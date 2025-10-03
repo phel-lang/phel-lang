@@ -6,6 +6,7 @@ namespace Phel\Compiler\Domain\Evaluator;
 
 use Phel\Compiler\Domain\Evaluator\Exceptions\CompiledCodeIsMalformedException;
 use Phel\Compiler\Domain\Evaluator\Exceptions\FileException;
+use Phel\Debug\DebugLineTap;
 use Phel\Filesystem\FilesystemFacadeInterface;
 use Throwable;
 
@@ -37,7 +38,12 @@ final readonly class RequireEvaluator implements EvaluatorInterface
         $this->filesystemFacade->addFile($filename);
 
         try {
-            file_put_contents($filename, "<?php\n" . $code);
+            // Inject declare(ticks=1) if debug is enabled
+            $phpCode = DebugLineTap::isEnabled()
+                ? "<?php\ndeclare(ticks=1);\n" . $code
+                : "<?php\n" . $code;
+
+            file_put_contents($filename, $phpCode);
             if (file_exists($filename)) {
                 if (function_exists('opcache_compile_file')) {
                     @opcache_compile_file($filename);

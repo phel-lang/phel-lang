@@ -17,6 +17,7 @@ build/workdir/
 *.cache
 .php-cs-fixer.php
 .phel-repl-history
+phel-debug.log
 local.phel
 phel-config-local.php
 gacela*.php
