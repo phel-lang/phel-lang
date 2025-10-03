@@ -8,7 +8,8 @@ All notable changes to this project will be documented in this file.
 - Add `catch` and `finally` functions to the API docs
 - Add `--format` json option to `phel doc` command
 - Allow `ns` form with multiple modules within a single `:require` form
-- Add `--debug` flag to suppress test output and write debug info to log file
+- Add `--debug` flag to suppress test output and write debug info to ./phel-debug.log
+  - Optional Phel file filter using equals syntax: `--debug="core"` or `--debug="boot"`
 
 ## [0.22.2](https://github.com/phel-lang/phel-lang/compare/v0.22.1...v0.22.2) - 2025-09-23
 

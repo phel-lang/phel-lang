@@ -52,9 +52,9 @@ final class RunCommand extends Command
                 'Clears OPCache before running',
             )->addOption(
                 'debug',
-                'd',
+                null,
                 InputOption::VALUE_OPTIONAL,
-                'Enable line-by-line debug tracing (optional: log file path, default: ./phel-debug.log)',
+                'Enable line-by-line debug tracing to ./phel-debug.log (optional: Phel file filter using --debug="core")',
                 false,
             );
     }
@@ -63,10 +63,14 @@ final class RunCommand extends Command
     {
         $debugOption = $input->getOption('debug');
         if ($debugOption !== false) {
-            $logPath = is_string($debugOption) && $debugOption !== '' ? $debugOption : './phel-debug.log';
-            DebugLineTap::enable($logPath);
+            $phelFileFilter = is_string($debugOption) && $debugOption !== '' ? $debugOption : null;
+            DebugLineTap::enable($phelFileFilter);
+
             if ($output->isVerbose()) {
-                $output->writeln(sprintf('<info>Debug tracing enabled. Logging to: %s</info>', $logPath));
+                $output->writeln('<info>Debug tracing enabled. Logging to: ./phel-debug.log</info>');
+                if ($phelFileFilter !== null) {
+                    $output->writeln(sprintf('<info>  Filtering Phel file: %s</info>', $phelFileFilter));
+                }
             }
         }
 
