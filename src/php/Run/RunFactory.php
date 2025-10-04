@@ -15,12 +15,14 @@ use Phel\Printer\PrinterInterface;
 use Phel\Run\Application\EvalExecutor;
 use Phel\Run\Application\NamespaceRunner;
 use Phel\Run\Application\NamespacesLoader;
+use Phel\Run\Domain\ParenthesesCheckerInterface;
 use Phel\Run\Domain\Repl\ColorStyle;
 use Phel\Run\Domain\Repl\ColorStyleInterface;
 use Phel\Run\Domain\Repl\ReplCommandIoInterface;
 use Phel\Run\Domain\Repl\ReplCommandSystemIo;
 use Phel\Run\Domain\Runner\NamespaceCollector;
 use Phel\Run\Domain\Runner\NamespaceRunnerInterface;
+use Phel\Run\Domain\Service\ParenthesesChecker;
 
 /**
  * @method RunConfig getConfig()
@@ -95,12 +97,20 @@ class RunFactory extends AbstractFactory
         return $this->getProvidedDependency(RunProvider::FACADE_CONSOLE);
     }
 
-    public function createEvalModeExecutor(): EvalExecutor
+    public function createEvalExecutor(): EvalExecutor
     {
         return new EvalExecutor(
             $this->createReplCommandIo(),
             $this->createColorStyle(),
             $this->createPrinter(),
+            $this->getCompilerFacade(),
+            $this->createParenthesesChecker(),
+        );
+    }
+
+    public function createParenthesesChecker(): ParenthesesCheckerInterface
+    {
+        return new ParenthesesChecker(
             $this->getCompilerFacade(),
         );
     }

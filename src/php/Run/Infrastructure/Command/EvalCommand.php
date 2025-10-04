@@ -31,11 +31,12 @@ final class EvalCommand extends Command
 
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
-        /** @var string $expression */
         $expression = $input->getArgument('expression');
 
-        return $this->getFactory()->createEvalModeExecutor()->execute($expression)
-            ? self::SUCCESS
-            : self::FAILURE;
+        $result = $this->getFactory()
+            ->createEvalExecutor()
+            ->execute((string)$expression);
+
+        return $result ? self::SUCCESS : self::FAILURE;
     }
 }

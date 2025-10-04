@@ -6,13 +6,12 @@ namespace Phel\Run\Infrastructure\Command;
 
 use Gacela\Framework\DocBlockResolverAwareTrait;
 use Phel;
-use Phel\Compiler\CompilerFacadeInterface;
 use Phel\Compiler\Domain\Evaluator\Exceptions\CompiledCodeIsMalformedException;
 use Phel\Compiler\Domain\Exceptions\CompilerException;
-use Phel\Compiler\Domain\Lexer\Token;
 use Phel\Compiler\Domain\Parser\Exceptions\UnfinishedParserException;
 use Phel\Compiler\Infrastructure\CompileOptions;
 use Phel\Printer\PrinterInterface;
+use Phel\Run\Domain\ParenthesesCheckerInterface;
 use Phel\Run\Domain\Repl\ColorStyleInterface;
 use Phel\Run\Domain\Repl\ExitException;
 use Phel\Run\Domain\Repl\InputResult;
@@ -61,7 +60,7 @@ final class ReplCommand extends Command
 
     private readonly PrinterInterface $printer;
 
-    private readonly CompilerFacadeInterface $compilerFacade;
+    private readonly ParenthesesCheckerInterface $parenthesesChecker;
 
     private ?string $replStartupFile = null;
 
@@ -78,7 +77,7 @@ final class ReplCommand extends Command
         $this->io = $this->getFactory()->createReplCommandIo();
         $this->style = $this->getFactory()->createColorStyle();
         $this->printer = $this->getFactory()->createPrinter();
-        $this->compilerFacade = $this->getFactory()->getCompilerFacade();
+        $this->parenthesesChecker = $this->getFactory()->createParenthesesChecker();
     }
 
     /**
@@ -229,7 +228,7 @@ final class ReplCommand extends Command
         }
 
         $rawInput = implode(PHP_EOL, $this->inputBuffer);
-        if (!$this->hasBalancedParentheses($rawInput)) {
+        if (!$this->parenthesesChecker->hasBalancedParentheses($rawInput)) {
             return;
         }
 
@@ -279,23 +278,5 @@ final class ReplCommand extends Command
         if ($input !== '') {
             $this->io->addHistory($input);
         }
-    }
-
-    private function hasBalancedParentheses(string $input): bool
-    {
-        $tokenStream = $this->compilerFacade->lexString($input);
-
-        $open = 0;
-        $close = 0;
-
-        foreach ($tokenStream as $token) {
-            if ($token->getType() === Token::T_OPEN_PARENTHESIS) {
-                ++$open;
-            } elseif ($token->getType() === Token::T_CLOSE_PARENTHESIS) {
-                ++$close;
-            }
-        }
-
-        return $close >= $open;
     }
 }

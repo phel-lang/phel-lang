@@ -7,10 +7,10 @@ namespace Phel\Run\Application;
 use Phel\Compiler\CompilerFacadeInterface;
 use Phel\Compiler\Domain\Evaluator\Exceptions\CompiledCodeIsMalformedException;
 use Phel\Compiler\Domain\Exceptions\CompilerException;
-use Phel\Compiler\Domain\Lexer\Token;
 use Phel\Compiler\Domain\Parser\Exceptions\UnfinishedParserException;
 use Phel\Compiler\Infrastructure\CompileOptions;
 use Phel\Printer\PrinterInterface;
+use Phel\Run\Domain\ParenthesesCheckerInterface;
 use Phel\Run\Domain\Repl\ColorStyleInterface;
 use Phel\Run\Domain\Repl\ReplCommandIoInterface;
 use Throwable;
@@ -26,6 +26,7 @@ final readonly class EvalExecutor
         private ColorStyleInterface $style,
         private PrinterInterface $printer,
         private CompilerFacadeInterface $compilerFacade,
+        private ParenthesesCheckerInterface $parenthesesChecker,
     ) {
     }
 
@@ -35,7 +36,7 @@ final readonly class EvalExecutor
             return true;
         }
 
-        if (!$this->hasBalancedParentheses($input)) {
+        if (!$this->parenthesesChecker->hasBalancedParentheses($input)) {
             $this->io->writeln($this->style->red('Unbalanced parentheses.'));
 
             return false;
@@ -74,23 +75,5 @@ final readonly class EvalExecutor
 
             return false;
         }
-    }
-
-    private function hasBalancedParentheses(string $input): bool
-    {
-        $tokenStream = $this->compilerFacade->lexString($input);
-
-        $open = 0;
-        $close = 0;
-
-        foreach ($tokenStream as $token) {
-            if ($token->getType() === Token::T_OPEN_PARENTHESIS) {
-                ++$open;
-            } elseif ($token->getType() === Token::T_CLOSE_PARENTHESIS) {
-                ++$close;
-            }
-        }
-
-        return $close >= $open;
     }
 }
