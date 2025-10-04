@@ -6,19 +6,13 @@ namespace PhelTest\Integration\Run\Command\Run;
 
 use Gacela\Framework\Bootstrap\GacelaConfig;
 use Gacela\Framework\Gacela;
-use Phel\Console\Application\ArgvInputSanitizer;
 use Phel\Run\Infrastructure\Command\RunCommand;
 use PhelTest\Integration\Run\Command\AbstractTestCommand;
 use Symfony\Component\Console\Input\ArgvInput;
 use Symfony\Component\Console\Input\InputInterface;
 
-final class RunTestCommand extends AbstractTestCommand
+final class RunCommandTest extends AbstractTestCommand
 {
-    public function __construct()
-    {
-        parent::__construct(self::class);
-    }
-
     public static function setUpBeforeClass(): void
     {
         Gacela::bootstrap(__DIR__, static function (GacelaConfig $config): void {
@@ -76,12 +70,8 @@ final class RunTestCommand extends AbstractTestCommand
     {
         $this->expectOutputRegex('~--myarg~');
 
-        $sanitized = (new ArgvInputSanitizer())->sanitize([
-            'bin/phel', 'run', __DIR__ . '/Fixtures/argv-script.phel', '--myarg',
-        ]);
-
-        (new RunCommand())->run(
-            new ArgvInput($sanitized),
+        $this->createRunCommand()->run(
+            new ArgvInput([__DIR__ . '/Fixtures/argv-script.phel', '--', '--myarg']),
             $this->stubOutput(),
         );
     }

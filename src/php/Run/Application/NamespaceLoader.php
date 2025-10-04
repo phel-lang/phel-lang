@@ -24,6 +24,11 @@ final class NamespaceLoader
     ) {
     }
 
+    public static function reset(): void
+    {
+        self::$loadedFiles = [];
+    }
+
     public function loadPhelNamespaces(?string $replStartupFile = null): void
     {
         if ($replStartupFile === null) {
