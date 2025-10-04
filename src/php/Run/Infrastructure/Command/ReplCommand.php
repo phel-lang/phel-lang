@@ -13,6 +13,7 @@ use Phel\Compiler\Domain\Lexer\Token;
 use Phel\Compiler\Domain\Parser\Exceptions\UnfinishedParserException;
 use Phel\Compiler\Infrastructure\CompileOptions;
 use Phel\Printer\PrinterInterface;
+use Phel\Run\Application\EvalModeExecutor;
 use Phel\Run\Domain\Repl\ColorStyleInterface;
 use Phel\Run\Domain\Repl\ExitException;
 use Phel\Run\Domain\Repl\InputResult;
@@ -64,6 +65,8 @@ final class ReplCommand extends Command
 
     private readonly CompilerFacadeInterface $compilerFacade;
 
+    private readonly EvalModeExecutor $evalModeExecutor;
+
     private ?string $replStartupFile = null;
 
     /** @var list<string> */
@@ -80,6 +83,7 @@ final class ReplCommand extends Command
         $this->style = $this->getFactory()->createColorStyle();
         $this->printer = $this->getFactory()->createPrinter();
         $this->compilerFacade = $this->getFactory()->getCompilerFacade();
+        $this->evalModeExecutor = $this->getFactory()->createEvalModeExecutor();
     }
 
     /**
@@ -126,7 +130,7 @@ final class ReplCommand extends Command
             Phel::addDefinition(CompilerConstants::PHEL_CORE_NAMESPACE, ReplConstants::REPL_MODE, true);
 
             if ($isEvalMode) {
-                return $this->executeEvalMode((string)$evalInput);
+                return $this->evalModeExecutor->execute((string)$evalInput);
             }
 
             $this->loopReadLineAndAnalyze();
@@ -137,53 +141,6 @@ final class ReplCommand extends Command
             return self::FAILURE;
         } finally {
             Phel::addDefinition(CompilerConstants::PHEL_CORE_NAMESPACE, ReplConstants::REPL_MODE, false);
-        }
-    }
-
-    private function executeEvalMode(string $input): int
-    {
-        if ($input === '') {
-            return self::SUCCESS;
-        }
-
-        if (!$this->hasBalancedParentheses($input)) {
-            $this->io->writeln($this->style->red('Unbalanced parentheses.'));
-
-            return self::FAILURE;
-        }
-
-        $options = (new CompileOptions())->setStartingLine(1);
-
-        try {
-            $result = $this->getFacade()->eval($input, $options);
-            $this->io->writeln($this->printer->print($result));
-
-            return self::SUCCESS;
-        } catch (UnfinishedParserException $e) {
-            $this->io->writeLocatedException($e, $e->getCodeSnippet());
-
-            return self::FAILURE;
-        } catch (CompiledCodeIsMalformedException $e) {
-            if ($e->getPrevious() instanceof Throwable) {
-                $e = $e->getPrevious();
-            }
-
-            $exceptionClass = array_reverse(explode('\\', $e::class))[0];
-            $this->io->writeln(sprintf(
-                '%s: %s',
-                $this->style->red($exceptionClass),
-                $e->getMessage() !== '' ? $e->getMessage() : '*no message*',
-            ));
-
-            return self::FAILURE;
-        } catch (CompilerException $e) {
-            $this->io->writeLocatedException($e->getNestedException(), $e->getCodeSnippet());
-
-            return self::FAILURE;
-        } catch (Throwable $e) {
-            $this->io->writeStackTrace($e);
-
-            return self::FAILURE;
         }
     }
 
