@@ -5,11 +5,6 @@ declare(strict_types=1);
 namespace Phel\Run;
 
 use Gacela\Framework\AbstractFactory;
-use Phel\Api\ApiFacadeInterface;
-use Phel\Build\BuildFacadeInterface;
-use Phel\Command\CommandFacadeInterface;
-use Phel\Compiler\CompilerFacadeInterface;
-use Phel\Console\ConsoleFacadeInterface;
 use Phel\Printer\Printer;
 use Phel\Printer\PrinterInterface;
 use Phel\Run\Application\EvalExecutor;
@@ -22,6 +17,11 @@ use Phel\Run\Domain\Repl\ReplCommandIoInterface;
 use Phel\Run\Domain\Repl\ReplCommandSystemIo;
 use Phel\Run\Domain\Runner\NamespaceCollector;
 use Phel\Run\Domain\Runner\NamespaceRunnerInterface;
+use Phel\Shared\Facade\ApiFacadeInterface;
+use Phel\Shared\Facade\BuildFacadeInterface;
+use Phel\Shared\Facade\CommandFacadeInterface;
+use Phel\Shared\Facade\CompilerFacadeInterface;
+use Phel\Shared\Facade\ConsoleFacadeInterface;
 
 /**
  * @method RunConfig getConfig()

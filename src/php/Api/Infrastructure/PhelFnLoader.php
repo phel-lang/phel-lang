@@ -10,7 +10,7 @@ use Phel\Api\Domain\PhelFnLoaderInterface;
 use Phel\Compiler\Infrastructure\GlobalEnvironmentSingleton;
 use Phel\Lang\Collections\Map\PersistentMapInterface;
 use Phel\Lang\Symbol;
-use Phel\Run\RunFacadeInterface;
+use Phel\Shared\Facade\RunFacadeInterface;
 
 use function dirname;
 use function in_array;

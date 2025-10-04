@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Phel\Formatter;
+namespace Phel\Shared\Facade;
 
 use Symfony\Component\Console\Output\OutputInterface;
 

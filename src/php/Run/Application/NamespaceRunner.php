@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace Phel\Run\Application;
 
-use Phel\Build\BuildFacadeInterface;
-use Phel\Command\CommandFacadeInterface;
 use Phel\Run\Domain\Runner\NamespaceRunnerInterface;
+use Phel\Shared\Facade\BuildFacadeInterface;
+use Phel\Shared\Facade\CommandFacadeInterface;
 
 final readonly class NamespaceRunner implements NamespaceRunnerInterface
 {

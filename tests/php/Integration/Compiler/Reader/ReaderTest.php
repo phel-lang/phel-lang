@@ -8,7 +8,6 @@ use Gacela\Framework\Gacela;
 use Phel;
 use Phel\Compiler\Application\Lexer;
 use Phel\Compiler\CompilerFacade;
-use Phel\Compiler\CompilerFacadeInterface;
 use Phel\Compiler\Domain\Parser\ParserNode\NodeInterface;
 use Phel\Compiler\Domain\Parser\ParserNode\TriviaNodeInterface;
 use Phel\Compiler\Domain\Reader\Exceptions\ReaderException;
@@ -18,6 +17,7 @@ use Phel\Lang\Keyword;
 use Phel\Lang\SourceLocation;
 use Phel\Lang\Symbol;
 use Phel\Lang\TypeInterface;
+use Phel\Shared\Facade\CompilerFacadeInterface;
 use PHPUnit\Framework\TestCase;
 
 use function sprintf;

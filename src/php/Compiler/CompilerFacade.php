@@ -23,6 +23,7 @@ use Phel\Compiler\Domain\Parser\ReadModel\ReaderResult;
 use Phel\Compiler\Domain\Reader\Exceptions\ReaderException;
 use Phel\Compiler\Infrastructure\CompileOptions;
 use Phel\Lang\TypeInterface;
+use Phel\Shared\Facade\CompilerFacadeInterface;
 
 /**
  * @method CompilerFactory getFactory()

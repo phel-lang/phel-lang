@@ -5,8 +5,6 @@ declare(strict_types=1);
 namespace Phel\Interop;
 
 use Gacela\Framework\AbstractFactory;
-use Phel\Build\BuildFacadeInterface;
-use Phel\Command\CommandFacadeInterface;
 use Phel\Interop\Application\ExportCodeGenerator;
 use Phel\Interop\Domain\DirectoryRemover\DirectoryRemover;
 use Phel\Interop\Domain\DirectoryRemover\DirectoryRemoverInterface;
@@ -20,6 +18,8 @@ use Phel\Interop\Domain\Generator\Builder\CompiledPhpMethodBuilder;
 use Phel\Interop\Domain\Generator\Builder\WrapperRelativeFilenamePathBuilder;
 use Phel\Interop\Domain\Generator\WrapperGenerator;
 use Phel\Interop\Infrastructure\Io\FileSystemIo;
+use Phel\Shared\Facade\BuildFacadeInterface;
+use Phel\Shared\Facade\CommandFacadeInterface;
 
 /**
  * @method InteropConfig getConfig()

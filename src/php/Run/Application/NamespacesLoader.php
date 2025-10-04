@@ -5,10 +5,10 @@ declare(strict_types=1);
 namespace Phel\Run\Application;
 
 use Phar;
-use Phel\Build\BuildFacadeInterface;
 use Phel\Build\Domain\Extractor\NamespaceInformation;
-use Phel\Command\CommandFacadeInterface;
 use Phel\Run\Domain\NamespacesLoaderInterface;
+use Phel\Shared\Facade\BuildFacadeInterface;
+use Phel\Shared\Facade\CommandFacadeInterface;
 
 final readonly class NamespacesLoader implements NamespacesLoaderInterface
 {

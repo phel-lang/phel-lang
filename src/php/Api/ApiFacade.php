@@ -6,6 +6,7 @@ namespace Phel\Api;
 
 use Gacela\Framework\AbstractFacade;
 use Phel\Api\Transfer\PhelFunction;
+use Phel\Shared\Facade\ApiFacadeInterface;
 
 /**
  * @method ApiFactory getFactory()

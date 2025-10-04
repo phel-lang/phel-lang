@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Phel\Run;
+namespace Phel\Shared\Facade;
 
 use Phel\Build\Domain\Extractor\NamespaceInformation;
 use Phel\Compiler\Domain\Exceptions\CompilerException;

@@ -8,6 +8,7 @@ use Gacela\Framework\AbstractFacade;
 use Phel\Command\Domain\Exceptions\ExceptionPrinterInterface;
 use Phel\Compiler\Domain\Exceptions\AbstractLocatedException;
 use Phel\Compiler\Domain\Parser\ReadModel\CodeSnippet;
+use Phel\Shared\Facade\CommandFacadeInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 use Throwable;
 

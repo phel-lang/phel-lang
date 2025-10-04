@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Phel\Api;
+namespace Phel\Shared\Facade;
 
 use Phel\Api\Transfer\PhelFunction;
 

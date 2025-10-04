@@ -7,7 +7,6 @@ namespace PhelTest\Integration\Compiler\Parser;
 use Gacela\Framework\Gacela;
 use Phel;
 use Phel\Compiler\CompilerFacade;
-use Phel\Compiler\CompilerFacadeInterface;
 use Phel\Compiler\Domain\Lexer\Token;
 use Phel\Compiler\Domain\Parser\Exceptions\AbstractParserException;
 use Phel\Compiler\Domain\Parser\ParserNode\BooleanNode;
@@ -29,6 +28,7 @@ use Phel\Compiler\Infrastructure\GlobalEnvironmentSingleton;
 use Phel\Lang\Keyword;
 use Phel\Lang\SourceLocation;
 use Phel\Lang\Symbol;
+use Phel\Shared\Facade\CompilerFacadeInterface;
 use PHPUnit\Framework\TestCase;
 
 use function sprintf;

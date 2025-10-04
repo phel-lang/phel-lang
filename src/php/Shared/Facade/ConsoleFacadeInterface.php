@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Phel\Console;
+namespace Phel\Shared\Facade;
 
 interface ConsoleFacadeInterface
 {

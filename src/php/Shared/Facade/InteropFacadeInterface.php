@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Phel\Interop;
+namespace Phel\Shared\Facade;
 
 use Phel\Interop\Domain\ReadModel\Wrapper;
 

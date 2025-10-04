@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace Phel\Build\Application;
 
 use Phel\Build\Domain\Compile\CompiledFile;
-use Phel\Compiler\CompilerFacadeInterface;
 use Phel\Compiler\Infrastructure\CompileOptions;
+use Phel\Shared\Facade\CompilerFacadeInterface;
 
 final readonly class FileEvaluator
 {

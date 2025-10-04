@@ -5,9 +5,9 @@ declare(strict_types=1);
 namespace Phel\Run\Application;
 
 use Phel;
-use Phel\Build\BuildFacadeInterface;
-use Phel\Command\CommandFacadeInterface;
 use Phel\Shared\CompilerConstants;
+use Phel\Shared\Facade\BuildFacadeInterface;
+use Phel\Shared\Facade\CommandFacadeInterface;
 
 use function dirname;
 use function file_exists;

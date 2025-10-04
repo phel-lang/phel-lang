@@ -6,9 +6,9 @@ namespace PhelTest\Integration\Printer;
 
 use Gacela\Framework\Gacela;
 use Phel\Compiler\CompilerFacade;
-use Phel\Compiler\CompilerFacadeInterface;
 use Phel\Compiler\Infrastructure\GlobalEnvironmentSingleton;
 use Phel\Printer\Printer;
+use Phel\Shared\Facade\CompilerFacadeInterface;
 use PHPUnit\Framework\TestCase;
 
 final class PrinterTest extends TestCase

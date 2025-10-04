@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Phel\Compiler;
+namespace Phel\Shared\Facade;
 
 use Phel\Compiler\Application\Lexer;
 use Phel\Compiler\Domain\Analyzer\Ast\AbstractNode;
