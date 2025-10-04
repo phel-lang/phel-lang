@@ -24,6 +24,7 @@ final class ConsoleBootstrap extends Application
     public function run(?InputInterface $input = null, ?OutputInterface $output = null): int
     {
         $this->setAutoExit(false);
+        $this->setDefaultCommand('repl');
 
         if (!$input instanceof InputInterface) {
             $input = new ArgvInput($this->getFactory()
