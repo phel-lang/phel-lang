@@ -11,6 +11,7 @@ All notable changes to this project will be documented in this file.
 - Add `--debug` flag to suppress test output and write debug info to ./phel-debug.log
   - Optional Phel file filter using equals syntax: `--debug="core"` or `--debug="boot"`
 - Add `--eval` option to `phel repl` command
+- Make `repl` the default command when no args are provided to the executable
 
 ## [0.22.2](https://github.com/phel-lang/phel-lang/compare/v0.22.1...v0.22.2) - 2025-09-23
 
