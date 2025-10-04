@@ -24,11 +24,14 @@ use Phel\Shared\CompilerConstants;
 use Phel\Shared\ReplConstants;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
+use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 use Throwable;
 
+use function array_reverse;
 use function count;
 use function dirname;
+use function explode;
 use function is_string;
 use function sprintf;
 
@@ -91,28 +94,41 @@ final class ReplCommand extends Command
 
     protected function configure(): void
     {
-        $this->setDescription('Start a Repl');
+        $this
+            ->setDescription('Start a Repl')
+            ->addOption(
+                'eval',
+                null,
+                InputOption::VALUE_REQUIRED,
+                'Evaluate a Phel expression and print the result.',
+            );
     }
 
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
         $this->replStartupFile = $this->getReplStartupFile();
 
-        $this->io->readHistory();
+        $evalInput = $input->getOption('eval');
+        $isEvalMode = is_string($evalInput);
 
-        $this->io->writeln($this->style->yellow(
-            sprintf('Welcome to the Phel Repl (%s)', $this->getFacade()->getVersion()),
-        ));
+        if (!$isEvalMode) {
+            $this->io->readHistory();
 
-        $this->io->writeln('Type "exit" or press Ctrl-D to exit.');
+            $this->io->writeln($this->style->yellow(
+                sprintf('Welcome to the Phel Repl (%s)', $this->getFacade()->getVersion()),
+            ));
+
+            $this->io->writeln('Type "exit" or press Ctrl-D to exit.');
+        }
 
         try {
             $this->loadAllPhelNamespaces();
-            Phel::addDefinition(
-                CompilerConstants::PHEL_CORE_NAMESPACE,
-                ReplConstants::REPL_MODE,
-                true,
-            );
+            Phel::addDefinition(CompilerConstants::PHEL_CORE_NAMESPACE, ReplConstants::REPL_MODE, true);
+
+            if ($isEvalMode) {
+                return $this->executeEvalMode((string)$evalInput);
+            }
+
             $this->loopReadLineAndAnalyze();
 
             return self::SUCCESS;
@@ -120,11 +136,54 @@ final class ReplCommand extends Command
             $this->io->writeStackTrace($throwable);
             return self::FAILURE;
         } finally {
-            Phel::addDefinition(
-                CompilerConstants::PHEL_CORE_NAMESPACE,
-                ReplConstants::REPL_MODE,
-                false,
-            );
+            Phel::addDefinition(CompilerConstants::PHEL_CORE_NAMESPACE, ReplConstants::REPL_MODE, false);
+        }
+    }
+
+    private function executeEvalMode(string $input): int
+    {
+        if ($input === '') {
+            return self::SUCCESS;
+        }
+
+        if (!$this->hasBalancedParentheses($input)) {
+            $this->io->writeln($this->style->red('Unbalanced parentheses.'));
+
+            return self::FAILURE;
+        }
+
+        $options = (new CompileOptions())->setStartingLine(1);
+
+        try {
+            $result = $this->getFacade()->eval($input, $options);
+            $this->io->writeln($this->printer->print($result));
+
+            return self::SUCCESS;
+        } catch (UnfinishedParserException $e) {
+            $this->io->writeLocatedException($e, $e->getCodeSnippet());
+
+            return self::FAILURE;
+        } catch (CompiledCodeIsMalformedException $e) {
+            if ($e->getPrevious() instanceof Throwable) {
+                $e = $e->getPrevious();
+            }
+
+            $exceptionClass = array_reverse(explode('\\', $e::class))[0];
+            $this->io->writeln(sprintf(
+                '%s: %s',
+                $this->style->red($exceptionClass),
+                $e->getMessage() !== '' ? $e->getMessage() : '*no message*',
+            ));
+
+            return self::FAILURE;
+        } catch (CompilerException $e) {
+            $this->io->writeLocatedException($e->getNestedException(), $e->getCodeSnippet());
+
+            return self::FAILURE;
+        } catch (Throwable $e) {
+            $this->io->writeStackTrace($e);
+
+            return self::FAILURE;
         }
     }
 
@@ -259,11 +318,13 @@ final class ReplCommand extends Command
             }
 
             $exceptionClass = array_reverse(explode('\\', $e::class))[0];
-            $this->io->writeln(sprintf(
-                '%s: %s',
-                $this->style->red($exceptionClass),
-                $e->getMessage() !== '' ? $e->getMessage() : '*no message*',
-            ));
+            $this->io->writeln(
+                sprintf(
+                    '%s: %s',
+                    $this->style->red($exceptionClass),
+                    $e->getMessage() !== '' ? $e->getMessage() : '*no message*',
+                ),
+            );
             $this->addHistory($fullInput);
             $this->inputBuffer = [];
         } catch (CompilerException $e) {

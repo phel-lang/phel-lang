@@ -27,6 +27,8 @@ use PHPUnit\Framework\Attributes\DataProvider;
 use RecursiveDirectoryIterator;
 use RecursiveIteratorIterator;
 use SplFileInfo;
+use Symfony\Component\Console\Command\Command;
+use Symfony\Component\Console\Input\ArrayInput;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 
@@ -97,6 +99,22 @@ final class ReplTestCommand extends AbstractTestCommand
         $replOutput = $io->getOutputString();
 
         self::assertSame(trim($expectedOutput), trim($replOutput));
+    }
+
+    public function test_eval_option(): void
+    {
+        $io = $this->createReplTestIo();
+        $this->prepareRunFactory($io);
+
+        $repl = $this->createReplCommand();
+        $input = new ArrayInput(['--eval' => '(php/abs -1)']);
+        $result = $repl->run(
+            $input,
+            $this->createStub(OutputInterface::class),
+        );
+
+        self::assertSame(Command::SUCCESS, $result);
+        self::assertSame(['1'], $io->getRawOutputs());
     }
 
     public static function providerIntegration(): Generator
