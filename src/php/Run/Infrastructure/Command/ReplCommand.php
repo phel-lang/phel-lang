@@ -28,9 +28,7 @@ use Throwable;
 
 use function array_reverse;
 use function count;
-use function dirname;
 use function explode;
-use function is_string;
 use function sprintf;
 
 /**
@@ -108,7 +106,7 @@ final class ReplCommand extends Command
         $this->io->writeln('Type "exit" or press Ctrl-D to exit.');
 
         try {
-            $this->loadAllPhelNamespaces();
+            $this->getFacade()->loadPhelNamespaces($this->replStartupFile);
             Phel::addDefinition(CompilerConstants::PHEL_CORE_NAMESPACE, ReplConstants::REPL_MODE, true);
 
             $this->loopReadLineAndAnalyze();
@@ -125,40 +123,6 @@ final class ReplCommand extends Command
     private function getReplStartupFile(): string
     {
         return $this->replStartupFile ?? $this->getConfig()->getReplStartupFile();
-    }
-
-    private function loadAllPhelNamespaces(): void
-    {
-        if (!is_string($this->replStartupFile) || !file_exists($this->replStartupFile)) {
-            return;
-        }
-
-        $namespace = $this->getFacade()
-            ->getNamespaceFromFile($this->replStartupFile)
-            ->getNamespace();
-
-        $srcDirectories = [
-            dirname($this->replStartupFile),
-            ...$this->getFacade()->getAllPhelDirectories(),
-        ];
-        $namespaceInformation = $this->getFacade()->getDependenciesForNamespace(
-            $srcDirectories,
-            [$namespace, 'phel\\core'],
-        );
-
-        foreach ($namespaceInformation as $info) {
-            $this->getFacade()->evalFile($info);
-        }
-
-        Phel::addDefinition(CompilerConstants::PHEL_CORE_NAMESPACE, '*file*', '');
-
-        $cwd = getcwd();
-        if ($cwd !== false) {
-            $srcDirectories[] = $cwd;
-        }
-
-        // Hack: Set source directories for the repl
-        Phel::addDefinition('phel\\repl', 'src-dirs', $srcDirectories);
     }
 
     private function loopReadLineAndAnalyze(): void

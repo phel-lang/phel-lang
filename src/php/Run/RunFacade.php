@@ -117,4 +117,11 @@ final class RunFacade extends AbstractFacade implements RunFacadeInterface
             ->getConsoleFacade()
             ->getVersion();
     }
+
+    public function loadPhelNamespaces(?string $replStartupFile = null): void
+    {
+        $this->getFactory()
+            ->createNamespaceLoader()
+            ->loadPhelNamespaces($replStartupFile);
+    }
 }

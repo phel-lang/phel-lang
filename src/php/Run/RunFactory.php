@@ -13,6 +13,7 @@ use Phel\Console\ConsoleFacadeInterface;
 use Phel\Printer\Printer;
 use Phel\Printer\PrinterInterface;
 use Phel\Run\Application\EvalExecutor;
+use Phel\Run\Application\NamespaceLoader;
 use Phel\Run\Application\NamespaceRunner;
 use Phel\Run\Application\NamespacesLoader;
 use Phel\Run\Domain\Repl\ColorStyle;
@@ -102,6 +103,15 @@ class RunFactory extends AbstractFactory
             $this->createColorStyle(),
             $this->createPrinter(),
             $this->getCompilerFacade(),
+        );
+    }
+
+    public function createNamespaceLoader(): NamespaceLoader
+    {
+        return new NamespaceLoader(
+            $this->getBuildFacade(),
+            $this->getCommandFacade(),
+            $this->getConfig(),
         );
     }
 }
