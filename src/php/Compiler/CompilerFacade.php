@@ -163,4 +163,11 @@ final class CompilerFacade extends AbstractFacade implements CompilerFacadeInter
             ->createMunge()
             ->encodeNs($namespace);
     }
+
+    public function hasBalancedParentheses(string $code): bool
+    {
+        return $this->getFactory()
+            ->createParenthesesChecker()
+            ->hasBalancedParentheses($this->lexString($code));
+    }
 }

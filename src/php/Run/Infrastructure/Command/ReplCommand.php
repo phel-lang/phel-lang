@@ -6,12 +6,12 @@ namespace Phel\Run\Infrastructure\Command;
 
 use Gacela\Framework\DocBlockResolverAwareTrait;
 use Phel;
+use Phel\Compiler\CompilerFacadeInterface;
 use Phel\Compiler\Domain\Evaluator\Exceptions\CompiledCodeIsMalformedException;
 use Phel\Compiler\Domain\Exceptions\CompilerException;
 use Phel\Compiler\Domain\Parser\Exceptions\UnfinishedParserException;
 use Phel\Compiler\Infrastructure\CompileOptions;
 use Phel\Printer\PrinterInterface;
-use Phel\Run\Domain\ParenthesesCheckerInterface;
 use Phel\Run\Domain\Repl\ColorStyleInterface;
 use Phel\Run\Domain\Repl\ExitException;
 use Phel\Run\Domain\Repl\InputResult;
@@ -60,7 +60,7 @@ final class ReplCommand extends Command
 
     private readonly PrinterInterface $printer;
 
-    private readonly ParenthesesCheckerInterface $parenthesesChecker;
+    private readonly CompilerFacadeInterface $compilerFacade;
 
     private ?string $replStartupFile = null;
 
@@ -77,7 +77,7 @@ final class ReplCommand extends Command
         $this->io = $this->getFactory()->createReplCommandIo();
         $this->style = $this->getFactory()->createColorStyle();
         $this->printer = $this->getFactory()->createPrinter();
-        $this->parenthesesChecker = $this->getFactory()->createParenthesesChecker();
+        $this->compilerFacade = $this->getFactory()->getCompilerFacade();
     }
 
     /**
@@ -228,7 +228,7 @@ final class ReplCommand extends Command
         }
 
         $rawInput = implode(PHP_EOL, $this->inputBuffer);
-        if (!$this->parenthesesChecker->hasBalancedParentheses($rawInput)) {
+        if (!$this->compilerFacade->hasBalancedParentheses($rawInput)) {
             return;
         }
 

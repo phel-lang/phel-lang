@@ -88,4 +88,6 @@ interface CompilerFacadeInterface
     public function parseAll(TokenStream $tokenStream): FileNode;
 
     public function encodeNs(string $namespace): string;
+
+    public function hasBalancedParentheses(string $code): bool;
 }
