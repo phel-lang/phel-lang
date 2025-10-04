@@ -1,6 +1,6 @@
 {
     "name": "phel-lang/phel-lang",
-    "description": "Phel is a functional programming language that transpiles to PHP",
+    "description": "Phel is a functional programming language that compiles to PHP",
     "license": "MIT",
     "type": "library",
     "keywords": [

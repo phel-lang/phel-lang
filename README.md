@@ -23,7 +23,7 @@
 
 ---
 
-[Phel](https://phel-lang.org/) is a functional programming language that transpiles to PHP.
+[Phel](https://phel-lang.org/) is a functional programming language that compiles to PHP.
 
 It is a dialect of [Lisp](https://en.wikipedia.org/wiki/Lisp_(programming_language)) inspired by [Clojure](https://clojure.org/) and [Janet](https://janet-lang.org/), designed for building robust applications in the PHP ecosystem.
 

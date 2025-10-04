@@ -256,7 +256,7 @@ final class GlobalEnvironment implements GlobalEnvironmentInterface
         $symbol = Symbol::create(BuildConstants::BUILD_MODE);
         $meta = Phel::map(
             Keyword::create('doc'),
-            'Set to true when a file is being built/transpiled, false otherwise.',
+            'Set to true when a file is being built/compiled, false otherwise.',
         );
         Phel::addDefinition(
             CompilerConstants::PHEL_CORE_NAMESPACE,
