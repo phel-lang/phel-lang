@@ -12,7 +12,7 @@ use Phel\Compiler\CompilerFacadeInterface;
 use Phel\Console\ConsoleFacadeInterface;
 use Phel\Printer\Printer;
 use Phel\Printer\PrinterInterface;
-use Phel\Run\Application\EvalModeExecutor;
+use Phel\Run\Application\EvalExecutor;
 use Phel\Run\Application\NamespaceRunner;
 use Phel\Run\Application\NamespacesLoader;
 use Phel\Run\Domain\Repl\ColorStyle;
@@ -95,9 +95,9 @@ class RunFactory extends AbstractFactory
         return $this->getProvidedDependency(RunProvider::FACADE_CONSOLE);
     }
 
-    public function createEvalModeExecutor(): EvalModeExecutor
+    public function createEvalModeExecutor(): EvalExecutor
     {
-        return new EvalModeExecutor(
+        return new EvalExecutor(
             $this->createReplCommandIo(),
             $this->createColorStyle(),
             $this->createPrinter(),

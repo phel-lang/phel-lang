@@ -13,7 +13,6 @@ use Phel\Compiler\Domain\Lexer\Token;
 use Phel\Compiler\Domain\Parser\Exceptions\UnfinishedParserException;
 use Phel\Compiler\Infrastructure\CompileOptions;
 use Phel\Printer\PrinterInterface;
-use Phel\Run\Application\EvalModeExecutor;
 use Phel\Run\Domain\Repl\ColorStyleInterface;
 use Phel\Run\Domain\Repl\ExitException;
 use Phel\Run\Domain\Repl\InputResult;
@@ -25,7 +24,6 @@ use Phel\Shared\CompilerConstants;
 use Phel\Shared\ReplConstants;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
-use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 use Throwable;
 
@@ -65,8 +63,6 @@ final class ReplCommand extends Command
 
     private readonly CompilerFacadeInterface $compilerFacade;
 
-    private readonly EvalModeExecutor $evalModeExecutor;
-
     private ?string $replStartupFile = null;
 
     /** @var list<string> */
@@ -83,7 +79,6 @@ final class ReplCommand extends Command
         $this->style = $this->getFactory()->createColorStyle();
         $this->printer = $this->getFactory()->createPrinter();
         $this->compilerFacade = $this->getFactory()->getCompilerFacade();
-        $this->evalModeExecutor = $this->getFactory()->createEvalModeExecutor();
     }
 
     /**
@@ -98,40 +93,24 @@ final class ReplCommand extends Command
 
     protected function configure(): void
     {
-        $this
-            ->setDescription('Start a Repl')
-            ->addOption(
-                'eval',
-                null,
-                InputOption::VALUE_REQUIRED,
-                'Evaluate a Phel expression and print the result.',
-            );
+        $this->setDescription('Start a Repl');
     }
 
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
         $this->replStartupFile = $this->getReplStartupFile();
 
-        $evalInput = $input->getOption('eval');
-        $isEvalMode = is_string($evalInput);
+        $this->io->readHistory();
 
-        if (!$isEvalMode) {
-            $this->io->readHistory();
+        $this->io->writeln($this->style->yellow(
+            sprintf('Welcome to the Phel Repl (%s)', $this->getFacade()->getVersion()),
+        ));
 
-            $this->io->writeln($this->style->yellow(
-                sprintf('Welcome to the Phel Repl (%s)', $this->getFacade()->getVersion()),
-            ));
-
-            $this->io->writeln('Type "exit" or press Ctrl-D to exit.');
-        }
+        $this->io->writeln('Type "exit" or press Ctrl-D to exit.');
 
         try {
             $this->loadAllPhelNamespaces();
             Phel::addDefinition(CompilerConstants::PHEL_CORE_NAMESPACE, ReplConstants::REPL_MODE, true);
-
-            if ($isEvalMode) {
-                return $this->evalModeExecutor->execute((string)$evalInput) ? self::SUCCESS : self::FAILURE;
-            }
 
             $this->loopReadLineAndAnalyze();
 

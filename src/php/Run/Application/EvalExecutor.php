@@ -19,7 +19,7 @@ use function array_reverse;
 use function explode;
 use function sprintf;
 
-final readonly class EvalModeExecutor
+final readonly class EvalExecutor
 {
     public function __construct(
         private ReplCommandIoInterface $io,
