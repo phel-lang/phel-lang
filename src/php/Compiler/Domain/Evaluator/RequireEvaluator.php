@@ -6,8 +6,8 @@ namespace Phel\Compiler\Domain\Evaluator;
 
 use Phel\Compiler\Domain\Evaluator\Exceptions\CompiledCodeIsMalformedException;
 use Phel\Compiler\Domain\Evaluator\Exceptions\FileException;
-use Phel\Debug\DebugLineTap;
 use Phel\Filesystem\FilesystemFacadeInterface;
+use Phel\Run\Infrastructure\Service\DebugLineTap;
 use Throwable;
 
 use function function_exists;

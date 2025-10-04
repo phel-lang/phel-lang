@@ -6,7 +6,7 @@ namespace Phel\Run\Infrastructure\Command;
 
 use Gacela\Framework\DocBlockResolverAwareTrait;
 use Phel\Compiler\Domain\Exceptions\CompilerException;
-use Phel\Debug\DebugLineTap;
+use Phel\Run\Infrastructure\Service\DebugLineTap;
 use Phel\Run\RunFacade;
 use SebastianBergmann\Timer\ResourceUsageFormatter;
 use Symfony\Component\Console\Command\Command;
