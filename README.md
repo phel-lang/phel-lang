@@ -15,9 +15,6 @@
   <a href="https://shepherd.dev/github/phel-lang/phel-lang">
     <img src="https://shepherd.dev/github/phel-lang/phel-lang/coverage.svg" alt="Psalm Type-coverage Status">
   </a>
-  <a href="https://gitter.im/phel-lang/community?utm_source=badge&amp;utm_medium=badge&amp;utm_campaign=pr-badge">
-    <img src="https://badges.gitter.im/Join%20Chat.svg" alt="Gitter Chat">
-  </a>
 </p>
 
 
@@ -57,10 +54,6 @@ we should use "phel" once GitHub accept phel coloring too
   - The PHP Package Repository
 - [Internals](docs/internals/compiler.md)
   - Additional documentation about the compiler internals
-
-## Community
-
-Feel free to ask questions and join discussions on the [Phel Gitter channel](https://gitter.im/phel-lang/community).
 
 ## Build PHAR
 
