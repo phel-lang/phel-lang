@@ -14,12 +14,14 @@ use function dirname;
 use function file_exists;
 use function getcwd;
 
-final readonly class NamespaceLoader
+final class NamespaceLoader
 {
+    private static array $loadedFiles = [];
+
     public function __construct(
-        private BuildFacadeInterface $buildFacade,
-        private CommandFacadeInterface $commandFacade,
-        private RunConfig $config,
+        private readonly BuildFacadeInterface $buildFacade,
+        private readonly CommandFacadeInterface $commandFacade,
+        private readonly RunConfig $config,
     ) {
     }
 
@@ -48,7 +50,11 @@ final readonly class NamespaceLoader
         );
 
         foreach ($namespaceInformation as $info) {
-            $this->buildFacade->evalFile($info->getFile());
+            $file = $info->getFile();
+            if (!isset(self::$loadedFiles[$file])) {
+                $this->buildFacade->evalFile($file);
+                self::$loadedFiles[$file] = true;
+            }
         }
 
         Phel::addDefinition(CompilerConstants::PHEL_CORE_NAMESPACE, '*file*', '');
