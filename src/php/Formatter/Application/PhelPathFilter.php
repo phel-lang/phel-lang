@@ -2,9 +2,10 @@
 
 declare(strict_types=1);
 
-namespace Phel\Formatter\Domain;
+namespace Phel\Formatter\Application;
 
 use FilesystemIterator;
+use Phel\Formatter\Domain\PathFilterInterface;
 use RecursiveDirectoryIterator;
 use RecursiveIteratorIterator;
 
