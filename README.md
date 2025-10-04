@@ -15,6 +15,9 @@
   <a href="https://shepherd.dev/github/phel-lang/phel-lang">
     <img src="https://shepherd.dev/github/phel-lang/phel-lang/coverage.svg" alt="Psalm Type-coverage Status">
   </a>
+  <a href="https://deepwiki.com/phel-lang/phel-lang">
+    <img src="https://deepwiki.com/badge.svg" alt="Ask DeepWiki">
+  </a>
 </p>
 
 
