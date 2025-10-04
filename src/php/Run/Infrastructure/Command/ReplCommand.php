@@ -130,7 +130,7 @@ final class ReplCommand extends Command
             Phel::addDefinition(CompilerConstants::PHEL_CORE_NAMESPACE, ReplConstants::REPL_MODE, true);
 
             if ($isEvalMode) {
-                return $this->evalModeExecutor->execute((string)$evalInput);
+                return $this->evalModeExecutor->execute((string)$evalInput) ? self::SUCCESS : self::FAILURE;
             }
 
             $this->loopReadLineAndAnalyze();

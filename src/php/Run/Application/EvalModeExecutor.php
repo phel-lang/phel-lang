@@ -13,7 +13,6 @@ use Phel\Compiler\Infrastructure\CompileOptions;
 use Phel\Printer\PrinterInterface;
 use Phel\Run\Domain\Repl\ColorStyleInterface;
 use Phel\Run\Domain\Repl\ReplCommandIoInterface;
-use Symfony\Component\Console\Command\Command;
 use Throwable;
 
 use function array_reverse;
@@ -30,16 +29,16 @@ final readonly class EvalModeExecutor
     ) {
     }
 
-    public function execute(string $input): int
+    public function execute(string $input): bool
     {
         if ($input === '') {
-            return Command::SUCCESS;
+            return true;
         }
 
         if (!$this->hasBalancedParentheses($input)) {
             $this->io->writeln($this->style->red('Unbalanced parentheses.'));
 
-            return Command::FAILURE;
+            return false;
         }
 
         $options = (new CompileOptions())->setStartingLine(1);
@@ -48,11 +47,11 @@ final readonly class EvalModeExecutor
             $result = $this->compilerFacade->eval($input, $options);
             $this->io->writeln($this->printer->print($result));
 
-            return Command::SUCCESS;
+            return true;
         } catch (UnfinishedParserException $e) {
             $this->io->writeLocatedException($e, $e->getCodeSnippet());
 
-            return Command::FAILURE;
+            return false;
         } catch (CompiledCodeIsMalformedException $e) {
             if ($e->getPrevious() instanceof Throwable) {
                 $e = $e->getPrevious();
@@ -65,15 +64,15 @@ final readonly class EvalModeExecutor
                 $e->getMessage() !== '' ? $e->getMessage() : '*no message*',
             ));
 
-            return Command::FAILURE;
+            return false;
         } catch (CompilerException $e) {
             $this->io->writeLocatedException($e->getNestedException(), $e->getCodeSnippet());
 
-            return Command::FAILURE;
+            return false;
         } catch (Throwable $e) {
             $this->io->writeStackTrace($e);
 
-            return Command::FAILURE;
+            return false;
         }
     }
 
