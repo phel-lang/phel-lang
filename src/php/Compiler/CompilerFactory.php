@@ -10,6 +10,7 @@ use Phel\Compiler\Application\CodeCompiler;
 use Phel\Compiler\Application\EvalCompiler;
 use Phel\Compiler\Application\Lexer;
 use Phel\Compiler\Application\Munge;
+use Phel\Compiler\Application\ParenthesesChecker;
 use Phel\Compiler\Application\Parser;
 use Phel\Compiler\Application\Reader;
 use Phel\Compiler\Domain\Analyzer\AnalyzerInterface;
@@ -144,6 +145,11 @@ final class CompilerFactory extends AbstractFactory
     public function createMunge(): MungeInterface
     {
         return new Munge();
+    }
+
+    public function createParenthesesChecker(): ParenthesesChecker
+    {
+        return new ParenthesesChecker();
     }
 
     private function getFilesystemFacade(): FilesystemFacadeInterface

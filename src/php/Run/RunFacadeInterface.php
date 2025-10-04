@@ -55,4 +55,11 @@ interface RunFacadeInterface
     public function getLoadedNamespaces(): array;
 
     public function getVersion(): string;
+
+    /**
+     * Loads all Phel namespaces including phel\core.
+     *
+     * @param string|null $replStartupFile Optional startup file path, defaults to config value if null
+     */
+    public function loadPhelNamespaces(?string $replStartupFile = null): void;
 }
