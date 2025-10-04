@@ -23,13 +23,11 @@ final class BuildFacade extends AbstractFacade implements BuildFacadeInterface
 {
     public static function enableBuildMode(): void
     {
-        Phel::addDefinition(CompilerConstants::PHEL_CORE_NAMESPACE, BuildConstants::COMPILE_MODE, true);
         Phel::addDefinition(CompilerConstants::PHEL_CORE_NAMESPACE, BuildConstants::BUILD_MODE, true);
     }
 
     public static function disableBuildMode(): void
     {
-        Phel::addDefinition(CompilerConstants::PHEL_CORE_NAMESPACE, BuildConstants::COMPILE_MODE, false);
         Phel::addDefinition(CompilerConstants::PHEL_CORE_NAMESPACE, BuildConstants::BUILD_MODE, false);
     }
 
