@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Phel\Console;
 
 use Gacela\Framework\AbstractFacade;
+use Phel\Shared\Facade\ConsoleFacadeInterface;
 
 /**
  * @method ConsoleFactory getFactory()

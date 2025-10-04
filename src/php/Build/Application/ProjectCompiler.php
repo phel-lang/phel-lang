@@ -12,8 +12,8 @@ use Phel\Build\Domain\Compile\FileCompilerInterface;
 use Phel\Build\Domain\Compile\Output\EntryPointPhpFileInterface;
 use Phel\Build\Domain\Extractor\NamespaceExtractorInterface;
 use Phel\Build\Domain\Extractor\NamespaceInformation;
-use Phel\Command\CommandFacadeInterface;
-use Phel\Compiler\CompilerFacadeInterface;
+use Phel\Shared\Facade\CommandFacadeInterface;
+use Phel\Shared\Facade\CompilerFacadeInterface;
 use RuntimeException;
 
 use function dirname;

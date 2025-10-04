@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace Phel\Run\Domain\Runner;
 
-use Phel\Build\BuildFacadeInterface;
 use Phel\Build\Domain\Extractor\NamespaceInformation;
-use Phel\Command\CommandFacadeInterface;
 use Phel\Run\Domain\Test\CannotFindAnyTestsException;
+use Phel\Shared\Facade\BuildFacadeInterface;
+use Phel\Shared\Facade\CommandFacadeInterface;
 
 final readonly class NamespaceCollector
 {

@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace Phel\Run\Domain\Repl;
 
-use Phel\Api\ApiFacadeInterface;
-use Phel\Command\CommandFacadeInterface;
 use Phel\Compiler\Domain\Exceptions\AbstractLocatedException;
 use Phel\Compiler\Domain\Parser\ReadModel\CodeSnippet;
+use Phel\Shared\Facade\ApiFacadeInterface;
+use Phel\Shared\Facade\CommandFacadeInterface;
 use Throwable;
 
 use function extension_loaded;

@@ -9,8 +9,8 @@ use Phel\Build\Domain\Compile\CompiledFile;
 use Phel\Build\Domain\Compile\FileCompilerInterface;
 use Phel\Build\Domain\Extractor\NamespaceExtractorInterface;
 use Phel\Build\Domain\IO\FileIoInterface;
-use Phel\Compiler\CompilerFacadeInterface;
 use Phel\Compiler\Infrastructure\CompileOptions;
+use Phel\Shared\Facade\CompilerFacadeInterface;
 
 use function function_exists;
 

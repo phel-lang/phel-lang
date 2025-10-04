@@ -7,6 +7,7 @@ namespace Phel\Interop;
 use Gacela\Framework\AbstractFacade;
 use Phel\Compiler\Domain\Exceptions\CompilerException;
 use Phel\Interop\Domain\ReadModel\Wrapper;
+use Phel\Shared\Facade\InteropFacadeInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 use Throwable;
 

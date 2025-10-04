@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Phel\Formatter;
 
 use Gacela\Framework\AbstractFacade;
+use Phel\Shared\Facade\FormatterFacadeInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 
 /**

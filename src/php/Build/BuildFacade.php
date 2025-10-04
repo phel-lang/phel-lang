@@ -12,6 +12,7 @@ use Phel\Build\Domain\Extractor\NamespaceInformation;
 use Phel\Compiler\Domain\Exceptions\CompilerException;
 use Phel\Shared\BuildConstants;
 use Phel\Shared\CompilerConstants;
+use Phel\Shared\Facade\BuildFacadeInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 use Throwable;
 

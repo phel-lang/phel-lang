@@ -4,13 +4,13 @@ declare(strict_types=1);
 
 namespace Phel\Formatter\Application;
 
-use Phel\Compiler\CompilerFacadeInterface;
 use Phel\Compiler\Domain\Lexer\Exceptions\LexerValueException;
 use Phel\Compiler\Domain\Parser\Exceptions\AbstractParserException;
 use Phel\Compiler\Domain\Parser\ParserNode\NodeInterface;
 use Phel\Formatter\Domain\FormatterInterface;
 use Phel\Formatter\Domain\Rules\RuleInterface;
 use Phel\Formatter\Domain\Rules\Zipper\ZipperException;
+use Phel\Shared\Facade\CompilerFacadeInterface;
 
 final readonly class Formatter implements FormatterInterface
 {

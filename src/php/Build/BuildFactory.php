@@ -18,8 +18,8 @@ use Phel\Build\Domain\Extractor\NamespaceSorterInterface;
 use Phel\Build\Domain\Extractor\TopologicalNamespaceSorter;
 use Phel\Build\Domain\IO\FileIoInterface;
 use Phel\Build\Infrastructure\IO\SystemFileIo;
-use Phel\Command\CommandFacadeInterface;
-use Phel\Compiler\CompilerFacadeInterface;
+use Phel\Shared\Facade\CommandFacadeInterface;
+use Phel\Shared\Facade\CompilerFacadeInterface;
 
 /**
  * @method BuildConfig getConfig()

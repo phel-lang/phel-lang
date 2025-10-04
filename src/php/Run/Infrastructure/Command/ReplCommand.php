@@ -6,7 +6,6 @@ namespace Phel\Run\Infrastructure\Command;
 
 use Gacela\Framework\DocBlockResolverAwareTrait;
 use Phel;
-use Phel\Compiler\CompilerFacadeInterface;
 use Phel\Compiler\Domain\Evaluator\Exceptions\CompiledCodeIsMalformedException;
 use Phel\Compiler\Domain\Exceptions\CompilerException;
 use Phel\Compiler\Domain\Parser\Exceptions\UnfinishedParserException;
@@ -20,6 +19,7 @@ use Phel\Run\RunConfig;
 use Phel\Run\RunFacade;
 use Phel\Run\RunFactory;
 use Phel\Shared\CompilerConstants;
+use Phel\Shared\Facade\CompilerFacadeInterface;
 use Phel\Shared\ReplConstants;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;

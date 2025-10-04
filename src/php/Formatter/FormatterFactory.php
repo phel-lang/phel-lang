@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace Phel\Formatter;
 
 use Gacela\Framework\AbstractFactory;
-use Phel\Command\CommandFacadeInterface;
 use Phel\Compiler\CompilerFacade;
 use Phel\Formatter\Application\Formatter;
 use Phel\Formatter\Application\PathsFormatter;
@@ -20,6 +19,7 @@ use Phel\Formatter\Domain\Rules\RemoveTrailingWhitespaceRule;
 use Phel\Formatter\Domain\Rules\UnindentRule;
 use Phel\Formatter\Infrastructure\IO\FileIoInterface;
 use Phel\Formatter\Infrastructure\IO\SystemFileIo;
+use Phel\Shared\Facade\CommandFacadeInterface;
 
 final class FormatterFactory extends AbstractFactory
 {

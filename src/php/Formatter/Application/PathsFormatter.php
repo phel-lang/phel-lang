@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace Phel\Formatter\Application;
 
-use Phel\Command\CommandFacadeInterface;
 use Phel\Compiler\Domain\Lexer\Exceptions\LexerValueException;
 use Phel\Compiler\Domain\Parser\Exceptions\AbstractParserException;
 use Phel\Formatter\Domain\Exception\FilePathException;
@@ -12,6 +11,7 @@ use Phel\Formatter\Domain\FormatterInterface;
 use Phel\Formatter\Domain\PathFilterInterface;
 use Phel\Formatter\Domain\Rules\Zipper\ZipperException;
 use Phel\Formatter\Infrastructure\IO\FileIoInterface;
+use Phel\Shared\Facade\CommandFacadeInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 use Throwable;
 

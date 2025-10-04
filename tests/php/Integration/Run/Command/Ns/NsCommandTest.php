@@ -7,7 +7,7 @@ namespace PhelTest\Integration\Run\Command\Ns;
 use Phel;
 use Phel\Build\Domain\Extractor\NamespaceInformation;
 use Phel\Run\Infrastructure\Command\NsCommand;
-use Phel\Run\RunFacadeInterface;
+use Phel\Shared\Facade\RunFacadeInterface;
 use PhelTest\Integration\Run\Command\AbstractTestCommand;
 use Symfony\Component\Console\Input\InputInterface;
 
