@@ -92,6 +92,14 @@ final class ReplTestIo implements ReplCommandIoInterface
         return implode('', $this->getOutputs()) . PHP_EOL;
     }
 
+    /**
+     * @return list<string>
+     */
+    public function getRawOutputs(): array
+    {
+        return $this->outputs;
+    }
+
     public function isBracketedPasteSupported(): bool
     {
         return false;
