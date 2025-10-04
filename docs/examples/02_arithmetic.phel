@@ -1,0 +1,19 @@
+(ns examples\arithmetic)
+
+;; Play with numeric operations and helper functions.
+(defn summarize [a b]
+  {:add (+ a b)
+   :subtract (- a b)
+   :multiply (* a b)
+   :divide (/ a b)
+   :average (/ (+ a b) 2)})
+
+(defn main []
+  (let [x 9
+        y 4
+        results (summarize x y)]
+    (println "Working with numbers:")
+    (for [[op value] :pairs results]
+      (println (str (name op) ": " value)))))
+
+(main)

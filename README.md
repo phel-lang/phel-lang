@@ -57,6 +57,8 @@ we should use "phel" once GitHub accept phel coloring too
   - The PHP Package Repository
 - [Internals](docs/internals/compiler.md)
   - Additional documentation about the compiler internals
+- [Examples](docs/examples/README.md)
+  - Ten progressively complex scripts that you can run with the Phel CLI
 
 ## Build PHAR
 

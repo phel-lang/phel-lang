@@ -1,0 +1,23 @@
+(ns examples\data-structures)
+
+;; Explore vectors, maps, and destructuring bindings.
+(def inventory
+  [{:id 1 :name "Keyboard" :price 79.99}
+   {:id 2 :name "Mouse" :price 39.5}
+   {:id 3 :name "Monitor" :price 189.0}])
+
+(defn format-item [{:keys [id name price]}]
+  (str "#" id " " name " => $" price))
+
+(defn summarize [[first-item & others]]
+  {:count (count others)
+   :first (:name first-item)
+   :rest (map :name others)})
+
+(defn main []
+  (println "Inventory list with destructuring:")
+  (foreach [item inventory]
+    (println (format-item item)))
+  (println "\nSummary:" (summarize inventory)))
+
+(main)
