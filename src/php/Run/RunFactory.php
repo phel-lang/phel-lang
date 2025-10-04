@@ -111,7 +111,7 @@ class RunFactory extends AbstractFactory
         return new NamespaceLoader(
             $this->getBuildFacade(),
             $this->getCommandFacade(),
-            $this->getConfig(),
+            $this->getConfig()->getReplStartupFile(),
         );
     }
 }

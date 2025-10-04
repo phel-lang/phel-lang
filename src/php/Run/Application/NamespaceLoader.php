@@ -7,7 +7,6 @@ namespace Phel\Run\Application;
 use Phel;
 use Phel\Build\BuildFacadeInterface;
 use Phel\Command\CommandFacadeInterface;
-use Phel\Run\RunConfig;
 use Phel\Shared\CompilerConstants;
 
 use function dirname;
@@ -21,14 +20,14 @@ final class NamespaceLoader
     public function __construct(
         private readonly BuildFacadeInterface $buildFacade,
         private readonly CommandFacadeInterface $commandFacade,
-        private readonly RunConfig $config,
+        private readonly string $defaultReplStartupFile,
     ) {
     }
 
     public function loadPhelNamespaces(?string $replStartupFile = null): void
     {
         if ($replStartupFile === null) {
-            $replStartupFile = $this->config->getReplStartupFile();
+            $replStartupFile = $this->defaultReplStartupFile;
         }
 
         if (!file_exists($replStartupFile)) {
