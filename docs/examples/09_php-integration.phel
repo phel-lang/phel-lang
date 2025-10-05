@@ -1,7 +1,5 @@
 (ns examples\php-integration
-  (:use DateInterval)
-  (:use DateTimeImmutable)
-  (:use DateTimeZone)
+  (:use DateInterval DateTimeImmutable DateTimeZone)
   (:require phel\json :as json))
 
 (def workshop-blocks
@@ -38,9 +36,9 @@
     (println "Workshop agenda (" (get payload :timezone) "):")
     (for [session :in plan]
       (println (php/sprintf "%s-%s %s"
-                             (get session :start)
-                             (get session :end)
-                             (get session :title))))
+                            (get session :start)
+                            (get session :end)
+                            (get session :title))))
     (println)
     (println "JSON hand-off for PHP:")
     (println (json/encode payload {:flags php/JSON_PRETTY_PRINT :depth 256}))))

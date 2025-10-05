@@ -10,9 +10,9 @@
 
 (def launch-plan
   (timeline
-    {:title "Explore idea" :owner "Product" :duration-weeks 1}
-    {:title "Build slice" :owner "Engineering" :duration-weeks 3}
-    {:title "Invite beta" :owner "Growth" :duration-weeks 2}))
+   {:title "Explore idea" :owner "Product" :duration-weeks 1}
+   {:title "Build slice" :owner "Engineering" :duration-weeks 3}
+   {:title "Invite beta" :owner "Growth" :duration-weeks 2}))
 
 (defn describe-stage [stage]
   (let [duration (get stage :duration-weeks)]

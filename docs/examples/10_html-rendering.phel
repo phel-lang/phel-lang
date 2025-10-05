@@ -12,27 +12,27 @@
 
 (defn render-page [sessions attendees]
   (html/html
-    (html/doctype :html5)
-    [:html {:lang "en"}
-     [:head
-      [:meta {:charset "utf-8"}]
-      [:title "Phel Workshop"]
-      [:style "body{font-family:Inter,Arial;} .sessions{list-style:none;padding:0;} .attendees li{display:inline;margin-right:0.5rem;}"]]
-     [:body
-      [:h1 "Phel Workshop"]
-      [:section
-       [:h2 "Schedule"]
-       [:ul {:class "sessions"}
-        (for [session :in sessions]
-          [:li
-           [:time {:datetime (get session :time)} (get session :time)]
-           " — "
-           [:strong (get session :title)]])]]
-      [:section
-       [:h2 "Attendees"]
-       [:ul {:class "attendees"}
-        (for [person :in attendees]
-          [:li person])]]]]))
+   (html/doctype :html5)
+   [:html {:lang "en"}
+    [:head
+     [:meta {:charset "utf-8"}]
+     [:title "Phel Workshop"]
+     [:style "body{font-family:Inter,Arial;} .sessions{list-style:none;padding:0;} .attendees li{display:inline;margin-right:0.5rem;}"]]
+    [:body
+     [:h1 "Phel Workshop"]
+     [:section
+      [:h2 "Schedule"]
+      [:ul {:class "sessions"}
+       (for [session :in sessions]
+         [:li
+          [:time {:datetime (get session :time)} (get session :time)]
+          " — "
+          [:strong (get session :title)]])]]
+     [:section
+      [:h2 "Attendees"]
+      [:ul {:class "attendees"}
+       (for [person :in attendees]
+         [:li person])]]]]))
 
 (defn main []
   (let [page (render-page sessions attendees)]
