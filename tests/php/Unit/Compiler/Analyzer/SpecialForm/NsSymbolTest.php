@@ -258,6 +258,9 @@ final class NsSymbolTest extends TestCase
             Phel::list([
                 Keyword::create('use'),
                 Symbol::create('Vendor\\Library'),
+                Symbol::create('Vendor\\Toolkit'),
+                Keyword::create('as'),
+                Symbol::create('Kit'),
             ]),
             Phel::list([
                 Keyword::create('require'),
@@ -284,12 +287,17 @@ final class NsSymbolTest extends TestCase
         self::assertSame(['src/config.phel'], $nsNode->getRequireFiles());
         self::assertSame('my\\project', $this->analyzer->getNamespace());
         self::assertTrue($this->globalEnv->hasUseAlias('my\\project', Symbol::create('Library')));
+        self::assertTrue($this->globalEnv->hasUseAlias('my\\project', Symbol::create('Kit')));
         self::assertTrue($this->globalEnv->hasRequireAlias('my\\project', Symbol::create('package')));
         self::assertSame('vendor\\package', $this->globalEnv->resolveAlias('package'));
 
         $phpClassNode = $this->globalEnv->resolve(Symbol::create('Library'), NodeEnvironment::empty());
         self::assertInstanceOf(PhpClassNameNode::class, $phpClassNode);
         self::assertSame('\\Vendor\\Library', $phpClassNode->getName()->getName());
+
+        $phpClassNodeAlias = $this->globalEnv->resolve(Symbol::create('Kit'), NodeEnvironment::empty());
+        self::assertInstanceOf(PhpClassNameNode::class, $phpClassNodeAlias);
+        self::assertSame('\\Vendor\\Toolkit', $phpClassNodeAlias->getName()->getName());
 
         Phel::addDefinition('vendor\\package', 'foo', 'value', Phel::map());
         $globalVarNode = $this->globalEnv->resolve(Symbol::create('foo'), NodeEnvironment::empty());

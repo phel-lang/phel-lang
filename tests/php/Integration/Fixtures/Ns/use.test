@@ -1,7 +1,6 @@
 --PHEL--
 (ns test
-  (:use DateTimeImmutable)
-  (:use DateTime :as D))
+  (:use DateTimeImmutable DateTime :as D))
 
 (php/new DateTimeImmutable)
 (php/new D)

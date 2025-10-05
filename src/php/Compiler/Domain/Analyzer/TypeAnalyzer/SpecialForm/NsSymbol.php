@@ -11,7 +11,6 @@ use Phel\Compiler\Domain\Analyzer\Exceptions\AnalyzerException;
 use Phel\Compiler\Domain\Analyzer\TypeAnalyzer\PhpKeywords;
 use Phel\Compiler\Domain\Analyzer\TypeAnalyzer\WithAnalyzerTrait;
 use Phel\Lang\Collections\LinkedList\PersistentListInterface;
-use Phel\Lang\Collections\Map\PersistentMapInterface;
 use Phel\Lang\Collections\Vector\PersistentVectorInterface;
 use Phel\Lang\Keyword;
 use Phel\Lang\Symbol;
@@ -117,50 +116,62 @@ TXT;
 
     private function analyzeUse(string $ns, PersistentListInterface $import): void
     {
-        $useSymbol = $import->get(1);
-        if (!($useSymbol instanceof Symbol)) {
-            throw AnalyzerException::withLocation('First argument in :use must be a symbol.', $import);
-        }
+        $elements = $import->toArray();
+        $count = count($elements);
+        $i = 1;
 
-        if ($useSymbol->getName()[0] !== '\\') {
-            $useSymbol = Symbol::createForNamespace($useSymbol->getNamespace(), '\\' . $useSymbol->getName());
-        }
+        while ($i < $count) {
+            $useSymbol = $elements[$i];
 
-        $useData = Phel::map(...$import->toArray());
-        $alias = $this->extractAlias($useData, $import, 'use');
-        $this->analyzer->addUseAlias($ns, $alias, $useSymbol);
-    }
-
-    private function extractAlias(
-        PersistentMapInterface $requireData,
-        PersistentListInterface $import,
-        string $type,
-    ): Symbol {
-        $alias = $requireData[Keyword::create('as')];
-
-        if ($alias) {
-            if (!($alias instanceof Symbol)) {
-                throw AnalyzerException::withLocation('Alias must be a Symbol', $import);
+            if (!($useSymbol instanceof Symbol)) {
+                throw AnalyzerException::withLocation('First argument in :use must be a symbol.', $import);
             }
 
-            return $alias;
-        }
+            if ($useSymbol->getName()[0] !== '\\') {
+                $useSymbol = Symbol::createForNamespace($useSymbol->getNamespace(), '\\' . $useSymbol->getName());
+            }
 
-        $alias2 = $requireData[Keyword::create($type)];
+            ++$i;
+            $aliasValue = null;
 
-        if ($alias2) {
-            if (!($alias2 instanceof Symbol)) {
+            while ($i < $count) {
+                $option = $elements[$i];
+
+                if ($option instanceof Symbol) {
+                    break;
+                }
+
+                if (!($option instanceof Keyword)) {
+                    throw AnalyzerException::withLocation('Unexpected argument in :use. Expected a keyword.', $import);
+                }
+
+                ++$i;
+
+                if ($option->getName() === 'as') {
+                    if ($i >= $count) {
+                        throw AnalyzerException::withLocation('Alias must be a Symbol', $import);
+                    }
+
+                    $aliasCandidate = $elements[$i];
+                    if (!($aliasCandidate instanceof Symbol)) {
+                        throw AnalyzerException::withLocation('Alias must be a Symbol', $import);
+                    }
+
+                    $aliasValue = $aliasCandidate;
+                    ++$i;
+
+                    continue;
+                }
+
                 throw AnalyzerException::withLocation(
-                    sprintf('First argument in :%s must be a symbol.', $type),
-                    $import,
+                    sprintf('Unexpected keyword %s encountered in :use. Expected :as.', $option->getName()),
+                    $option,
                 );
             }
 
-            $parts = explode('\\', $alias2->getName());
-            return Symbol::create($parts[count($parts) - 1]);
+            $alias = $this->createAliasFromSymbol($aliasValue, $useSymbol);
+            $this->analyzer->addUseAlias($ns, $alias, $useSymbol);
         }
-
-        throw AnalyzerException::withLocation('Cannot extract alias', $import);
     }
 
     /**
@@ -185,13 +196,13 @@ TXT;
         return $result;
     }
 
-    private function createRequireAlias(?Symbol $alias, Symbol $requireSymbol): Symbol
+    private function createAliasFromSymbol(?Symbol $alias, Symbol $symbol): Symbol
     {
         if ($alias instanceof Symbol) {
             return $alias;
         }
 
-        $parts = explode('\\', $requireSymbol->getName());
+        $parts = explode('\\', $symbol->getName());
 
         return Symbol::create($parts[count($parts) - 1]);
     }
@@ -266,7 +277,7 @@ TXT;
                 );
             }
 
-            $alias = $this->createRequireAlias($aliasValue, $requireSymbol);
+            $alias = $this->createAliasFromSymbol($aliasValue, $requireSymbol);
             $referSymbols = $this->extractRefer($referValue, $import);
 
             $this->analyzer->addRequireAlias($ns, $alias, $requireSymbol);
