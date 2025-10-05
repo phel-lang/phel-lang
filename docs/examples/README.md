@@ -22,3 +22,16 @@ bin/phel run docs/examples/<file>.phel
 10. **html-rendering.phel** – Render dynamic HTML with Phel's templating macros.
 
 Feel free to copy these files into your own project and experiment.
+
+## Test all examples
+
+```bash
+find docs/examples -name "*.phel" -type f | \
+    sort | \
+    xargs -I {} bash -c '
+      echo "=== Running: {} ===" && \
+      ./bin/phel run {} && \
+      echo "" || \
+      (echo "❌ ERROR in {}" && exit 1)
+    '
+```
