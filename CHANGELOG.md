@@ -15,6 +15,7 @@ All notable changes to this project will be documented in this file.
 - Move Facade Interfaces to Shared Module
 - Remove deprecated `*compile-mode*` in favor of `*build-mode*`
 - Allow multiple entries in `:use` form
+- Add `doseq` macro for side-effectful comprehensions
 
 ## [0.22.2](https://github.com/phel-lang/phel-lang/compare/v0.22.1...v0.22.2) - 2025-09-23
 
