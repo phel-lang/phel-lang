@@ -642,7 +642,9 @@ Calling the `and` function without arguments returns true."
     (throw (php/new InvalidArgumentException (php/. "cannot call 'contains?' on " (php/get_class coll))))))
 
 (defn compare
-  "An integer less than, equal to, or greater than zero when `x` is less than, equal to, or greater than `y`, respectively."
+  "Wrapper for PHP's spaceship operator (`php/<=>`).
+  Returns an integer less than, equal to, or greater than zero
+  when `x` is less than, equal to, or greater than `y`, respectively."
   {:inline (fn [x y] `(php/<=> ,x ,y))}
   [x y]
   (php/<=> x y))
@@ -1068,9 +1070,7 @@ arrays. Use (php/aunset ds key)"))
   (for-builder `(do ,@body) head 0))
 
 (defmacro doseq
-  "Repeatedly executes `body` (presumably for side effects) with bindings and
-  filtering as provided by `for`. Does not retain the head of the sequence and
-  always returns nil."
+  "Alias for `dofor`."
   [seq-exprs & body]
   `(dofor ,seq-exprs ,@body))
 
