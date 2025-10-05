@@ -1067,6 +1067,13 @@ arrays. Use (php/aunset ds key)"))
   [head & body]
   (for-builder `(do ,@body) head 0))
 
+(defmacro doseq
+  "Repeatedly executes `body` (presumably for side effects) with bindings and
+  filtering as provided by `for`. Does not retain the head of the sequence and
+  always returns nil."
+  [seq-exprs & body]
+  `(dofor ,seq-exprs ,@body))
+
 # ------------------
 # Sequence functions
 # ------------------
