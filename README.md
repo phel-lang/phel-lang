@@ -49,16 +49,16 @@ we should use "phel" once GitHub accept phel coloring too
 
 ## Documentation
 
-- [Website](https://phel-lang.org)
-  - Features, documentation, exercises and blog
-- [Installation](https://phel-lang.org/documentation/getting-started/)
-  - Quick start with scaffolding or manual installation
-- [Packagist](https://packagist.org/packages/phel-lang/phel-lang)
-  - The PHP Package Repository
-- [Internals](docs/internals/compiler.md)
-  - Additional documentation about the compiler internals
-- [Examples](docs/examples/README.md)
-  - Ten progressively complex scripts that you can run with the Phel CLI
+- [Website](https://phel-lang.org)  
+  Discover features, tutorials, exercises, and the latest blog posts.
+- [Installation](https://phel-lang.org/documentation/getting-started/)  
+  Get started quickly with scaffolding or manual installation.
+- [Packagist](https://packagist.org/packages/phel-lang/phel-lang)  
+  Find Phel on the official PHP package repository.
+- [Internals](docs/internals/compiler.md)  
+  Learn more about the compiler’s inner workings.
+- [Examples](docs/examples/README.md)  
+  Explore practical scripts you can run directly with the Phel CLI.
 
 ## Build PHAR
 
