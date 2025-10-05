@@ -1,0 +1,23 @@
+(ns examples\functions-recursion)
+
+;; Define reusable functions and a classic recursive implementation.
+(defn shout [message]
+  (str message "!!!"))
+
+(defn factorial [n]
+  (if (<= n 1)
+    1
+    (* n (factorial (- n 1)))))
+
+(defn fib [n]
+  (loop [a 0 b 1 count n]
+    (if (zero? count)
+      a
+      (recur b (+ a b) (- count 1)))))
+
+(defn main []
+  (println (shout "Functions compose wonderfully"))
+  (println "factorial(5)=" (factorial 5))
+  (println "fibonacci(8)=" (fib 8)))
+
+(main)
