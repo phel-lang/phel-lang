@@ -44,10 +44,6 @@
   "Returns the path to the current source file."
   "")
 
-(def argv
-  "Vector of arguments passed to the script."
-  (php/:: Phel (vector (php/aget php/$GLOBALS "argv"))))
-
 # --------------------------------------------
 # Basic methods for quasiquote and destructure
 # --------------------------------------------
@@ -118,6 +114,14 @@
    :doc "Declare a global symbol before it is defined."}
   (fn [name]
     `(def ,name nil)))
+
+(declare nil?)
+(def argv
+  "Vector of arguments passed to the script."
+  (let [argv-raw (php/aget php/$GLOBALS "argv")]
+    (if (php/=== argv-raw nil)
+      []
+      (php/:: Phel (vector argv-raw)))))
 
 # ------------
 # Meta helpers
