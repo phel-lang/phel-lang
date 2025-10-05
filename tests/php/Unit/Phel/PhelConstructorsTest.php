@@ -38,4 +38,28 @@ final class PhelConstructorsTest extends TestCase
         $set = Phel::set([1, 2]);
         self::assertSame([1, 2], $set->toPhpArray());
     }
+
+    public function test_vector_with_null(): void
+    {
+        $vector = Phel::vector(null);
+        self::assertSame([], $vector->toArray());
+    }
+
+    public function test_list_with_null(): void
+    {
+        $list = Phel::list(null);
+        self::assertSame([], $list->toArray());
+    }
+
+    public function test_map_with_null(): void
+    {
+        $map = Phel::map(null);
+        self::assertSame([], iterator_to_array($map));
+    }
+
+    public function test_set_with_null(): void
+    {
+        $set = Phel::set(null);
+        self::assertSame([], $set->toPhpArray());
+    }
 }

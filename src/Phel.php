@@ -2,7 +2,6 @@
 
 declare(strict_types=1);
 
-use Phel\Lang\Collections\HashSet\PersistentHashSet;
 use Phel\Lang\Collections\HashSet\PersistentHashSetInterface;
 use Phel\Lang\Collections\LinkedList\PersistentListInterface;
 use Phel\Lang\Collections\Map\PersistentMapInterface;
@@ -57,21 +56,21 @@ final class Phel extends InternalPhel
     /**
      * Create a persistent vector from an array of values.
      *
-     * @param list<mixed> $values
+     * @param list<mixed>|null $values
      */
-    public static function vector(array $values = []): PersistentVectorInterface
+    public static function vector(?array $values = []): PersistentVectorInterface
     {
-        return TypeFactory::getInstance()->persistentVectorFromArray($values);
+        return TypeFactory::getInstance()->persistentVectorFromArray($values ?? []);
     }
 
     /**
      * Create a persistent list from an array of values.
      *
-     * @param list<mixed> $values
+     * @param list<mixed>|null $values
      */
-    public static function list(array $values = []): PersistentListInterface
+    public static function list(?array $values = []): PersistentListInterface
     {
-        return TypeFactory::getInstance()->persistentListFromArray($values);
+        return TypeFactory::getInstance()->persistentListFromArray($values ?? []);
     }
 
     /**
@@ -88,6 +87,10 @@ final class Phel extends InternalPhel
             if (is_array($firstArgument)) {
                 return $typeFactory->persistentMapFromArray($firstArgument);
             }
+
+            if ($firstArgument === null) {
+                return $typeFactory->persistentMapFromArray([]);
+            }
         }
 
         return $typeFactory->persistentMapFromKVs(...$kvs);
@@ -96,11 +99,11 @@ final class Phel extends InternalPhel
     /**
      * Create a persistent hash set from an array of values.
      *
-     * @param list<mixed> $values
+     * @param list<mixed>|null $values
      */
-    public static function set(array $values = []): PersistentHashSetInterface
+    public static function set(?array $values = []): PersistentHashSetInterface
     {
-        return TypeFactory::getInstance()->persistentHashSetFromArray($values);
+        return TypeFactory::getInstance()->persistentHashSetFromArray($values ?? []);
     }
 
     /**
