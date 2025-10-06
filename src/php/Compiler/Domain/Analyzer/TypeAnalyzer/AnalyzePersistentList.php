@@ -20,8 +20,10 @@ use Phel\Compiler\Domain\Analyzer\TypeAnalyzer\SpecialForm\DoSymbol;
 use Phel\Compiler\Domain\Analyzer\TypeAnalyzer\SpecialForm\FnSymbol;
 use Phel\Compiler\Domain\Analyzer\TypeAnalyzer\SpecialForm\ForeachSymbol;
 use Phel\Compiler\Domain\Analyzer\TypeAnalyzer\SpecialForm\IfSymbol;
+use Phel\Compiler\Domain\Analyzer\TypeAnalyzer\SpecialForm\InNsSymbol;
 use Phel\Compiler\Domain\Analyzer\TypeAnalyzer\SpecialForm\InvokeSymbol;
 use Phel\Compiler\Domain\Analyzer\TypeAnalyzer\SpecialForm\LetSymbol;
+use Phel\Compiler\Domain\Analyzer\TypeAnalyzer\SpecialForm\LoadSymbol;
 use Phel\Compiler\Domain\Analyzer\TypeAnalyzer\SpecialForm\LoopSymbol;
 use Phel\Compiler\Domain\Analyzer\TypeAnalyzer\SpecialForm\NsSymbol;
 use Phel\Compiler\Domain\Analyzer\TypeAnalyzer\SpecialForm\PhpAGetInSymbol;
@@ -80,6 +82,8 @@ final readonly class AnalyzePersistentList
         return match ($symbolName) {
             Symbol::NAME_DEF => new DefSymbol($this->analyzer),
             Symbol::NAME_NS => new NsSymbol($this->analyzer),
+            Symbol::NAME_IN_NS => new InNsSymbol($this->analyzer),
+            Symbol::NAME_LOAD => new LoadSymbol($this->analyzer),
             Symbol::NAME_FN => new FnSymbol($this->analyzer, $this->assertsEnabled),
             Symbol::NAME_QUOTE => new QuoteSymbol(),
             Symbol::NAME_DO => new DoSymbol($this->analyzer),

@@ -16,8 +16,10 @@ use Phel\Compiler\Domain\Analyzer\Ast\FnNode;
 use Phel\Compiler\Domain\Analyzer\Ast\ForeachNode;
 use Phel\Compiler\Domain\Analyzer\Ast\GlobalVarNode;
 use Phel\Compiler\Domain\Analyzer\Ast\IfNode;
+use Phel\Compiler\Domain\Analyzer\Ast\InNsNode;
 use Phel\Compiler\Domain\Analyzer\Ast\LetNode;
 use Phel\Compiler\Domain\Analyzer\Ast\LiteralNode;
+use Phel\Compiler\Domain\Analyzer\Ast\LoadNode;
 use Phel\Compiler\Domain\Analyzer\Ast\LocalVarNode;
 use Phel\Compiler\Domain\Analyzer\Ast\MapNode;
 use Phel\Compiler\Domain\Analyzer\Ast\MultiFnNode;
@@ -51,8 +53,10 @@ use Phel\Compiler\Domain\Emitter\OutputEmitter\NodeEmitter\FnAsClassEmitter;
 use Phel\Compiler\Domain\Emitter\OutputEmitter\NodeEmitter\ForeachEmitter;
 use Phel\Compiler\Domain\Emitter\OutputEmitter\NodeEmitter\GlobalVarEmitter;
 use Phel\Compiler\Domain\Emitter\OutputEmitter\NodeEmitter\IfEmitter;
+use Phel\Compiler\Domain\Emitter\OutputEmitter\NodeEmitter\InNsEmitter;
 use Phel\Compiler\Domain\Emitter\OutputEmitter\NodeEmitter\LetEmitter;
 use Phel\Compiler\Domain\Emitter\OutputEmitter\NodeEmitter\LiteralEmitter;
+use Phel\Compiler\Domain\Emitter\OutputEmitter\NodeEmitter\LoadEmitter;
 use Phel\Compiler\Domain\Emitter\OutputEmitter\NodeEmitter\LocalVarEmitter;
 use Phel\Compiler\Domain\Emitter\OutputEmitter\NodeEmitter\MapEmitter;
 use Phel\Compiler\Domain\Emitter\OutputEmitter\NodeEmitter\MethodEmitter;
@@ -84,6 +88,8 @@ final class NodeEmitterFactory
     ): NodeEmitterInterface {
         return match ($astNodeClassName) {
             NsNode::class => new NsEmitter($outputEmitter),
+            InNsNode::class => new InNsEmitter($outputEmitter),
+            LoadNode::class => new LoadEmitter($outputEmitter),
             DefNode::class => new DefEmitter($outputEmitter),
             LiteralNode::class => new LiteralEmitter($outputEmitter),
             QuoteNode::class => new QuoteEmitter($outputEmitter),
