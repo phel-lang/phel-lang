@@ -29,14 +29,67 @@ final class InNsSymbolTest extends TestCase
         $this->analyzer = new Analyzer($globalEnv);
     }
 
+    public function test_requires_at_least_one_argument(): void
+    {
+        $this->expectException(AnalyzerException::class);
+        $this->expectExceptionMessage("'in-ns requires exactly 1 argument (the namespace)");
+
+        $list = Phel::list([
+            Symbol::create(Symbol::NAME_IN_NS),
+            // No argument provided
+        ]);
+
+        $this->analyze($list);
+    }
+
+    public function test_requires_at_most_one_argument(): void
+    {
+        $this->expectException(AnalyzerException::class);
+        $this->expectExceptionMessage("'in-ns requires exactly 1 argument, got 2");
+
+        $list = Phel::list([
+            Symbol::create(Symbol::NAME_IN_NS),
+            Symbol::create('ns1'),
+            Symbol::create('ns2'), // Too many arguments
+        ]);
+
+        $this->analyze($list);
+    }
+
     public function test_first_argument_must_be_symbol_or_string(): void
     {
         $this->expectException(AnalyzerException::class);
-        $this->expectExceptionMessage("First argument of 'in-ns must be a Symbol or String");
+        $this->expectExceptionMessage("First argument of 'in-ns must be a Symbol or String, got: int");
 
         $list = Phel::list([
             Symbol::create(Symbol::NAME_IN_NS),
             123, // Invalid - not a symbol or string
+        ]);
+
+        $this->analyze($list);
+    }
+
+    public function test_rejects_empty_namespace(): void
+    {
+        $this->expectException(AnalyzerException::class);
+        $this->expectExceptionMessage('Namespace cannot be empty');
+
+        $list = Phel::list([
+            Symbol::create(Symbol::NAME_IN_NS),
+            '', // Empty string
+        ]);
+
+        $this->analyze($list);
+    }
+
+    public function test_rejects_whitespace_only_namespace(): void
+    {
+        $this->expectException(AnalyzerException::class);
+        $this->expectExceptionMessage('Namespace cannot be empty');
+
+        $list = Phel::list([
+            Symbol::create(Symbol::NAME_IN_NS),
+            '   ', // Whitespace only
         ]);
 
         $this->analyze($list);

@@ -29,10 +29,37 @@ final class LoadSymbolTest extends TestCase
         $this->analyzer = new Analyzer($globalEnv);
     }
 
+    public function test_requires_at_least_one_argument(): void
+    {
+        $this->expectException(AnalyzerException::class);
+        $this->expectExceptionMessage("'load requires exactly 1 argument (the file path)");
+
+        $list = Phel::list([
+            Symbol::create(Symbol::NAME_LOAD),
+            // No argument provided
+        ]);
+
+        $this->analyze($list);
+    }
+
+    public function test_requires_at_most_one_argument(): void
+    {
+        $this->expectException(AnalyzerException::class);
+        $this->expectExceptionMessage("'load requires exactly 1 argument, got 2");
+
+        $list = Phel::list([
+            Symbol::create(Symbol::NAME_LOAD),
+            './file1.phel',
+            './file2.phel', // Too many arguments
+        ]);
+
+        $this->analyze($list);
+    }
+
     public function test_first_argument_must_be_string(): void
     {
         $this->expectException(AnalyzerException::class);
-        $this->expectExceptionMessage("First argument of 'load must be a string");
+        $this->expectExceptionMessage("First argument of 'load must be a string, got: int");
 
         $list = Phel::list([
             Symbol::create(Symbol::NAME_LOAD),
@@ -43,10 +70,10 @@ final class LoadSymbolTest extends TestCase
     }
 
     #[DataProvider('providerFirstArgumentMustBeString')]
-    public function test_rejects_non_string_arguments(mixed $invalidArg): void
+    public function test_rejects_non_string_arguments(mixed $invalidArg, string $expectedType): void
     {
         $this->expectException(AnalyzerException::class);
-        $this->expectExceptionMessage("First argument of 'load must be a string");
+        $this->expectExceptionMessage("First argument of 'load must be a string, got: " . $expectedType);
 
         $list = Phel::list([
             Symbol::create(Symbol::NAME_LOAD),
@@ -58,12 +85,12 @@ final class LoadSymbolTest extends TestCase
 
     public static function providerFirstArgumentMustBeString(): Generator
     {
-        yield 'Integer' => [123];
-        yield 'Float' => [3.14];
-        yield 'Boolean' => [true];
-        yield 'Null' => [null];
-        yield 'Symbol' => [Symbol::create('path')];
-        yield 'Array' => [[]];
+        yield 'Integer' => [123, 'int'];
+        yield 'Float' => [3.14, 'float'];
+        yield 'Boolean' => [true, 'bool'];
+        yield 'Null' => [null, 'null'];
+        yield 'Symbol' => [Symbol::create('path'), Symbol::class];
+        yield 'Array' => [[], 'array'];
     }
 
     #[DataProvider('providerValidFilePaths')]
