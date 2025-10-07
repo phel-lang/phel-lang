@@ -1,0 +1,7 @@
+(in-ns example\main)
+
+# This file uses in-ns to join the main namespace
+# It then tries to load another file with a relative path
+(load "./helper")
+
+(def util-loaded true)

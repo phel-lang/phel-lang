@@ -16,3 +16,13 @@ require_once __DIR__ . '/../phel/core.php';
   "app\\main"
 );
 Phel\Compiler\Infrastructure\GlobalEnvironmentSingleton::getInstance()->setNs("app\\util");
+Phel::addDefinition(
+  "phel\\core",
+  "*file*",
+  "Ns/in-ns-string.test"
+);
+Phel::addDefinition(
+  "phel\\core",
+  "*ns*",
+  "app\\util"
+);

@@ -1,0 +1,5 @@
+(ns example\main)
+
+(load "./util")
+
+(def main-loaded true)
