@@ -9,6 +9,7 @@ use Phel\Build\Domain\Extractor\NamespaceExtractorInterface;
 use Phel\Build\Domain\Extractor\NamespaceInformation;
 use Phel\Build\Domain\Extractor\NamespaceSorterInterface;
 use Phel\Build\Domain\IO\FileIoInterface;
+use Phel\Compiler\Domain\Analyzer\Ast\InNsNode;
 use Phel\Compiler\Domain\Analyzer\Ast\NsNode;
 use Phel\Compiler\Domain\Analyzer\Environment\NodeEnvironment;
 use Phel\Compiler\Domain\Lexer\Exceptions\LexerValueException;
@@ -64,6 +65,17 @@ final readonly class NamespaceExtractor implements NamespaceExtractorInterface
                         static fn (Symbol $s): string => $s->getFullName(),
                         $node->getRequireNs(),
                     )),
+                );
+            }
+
+            if ($node instanceof InNsNode) {
+                $realFile = realpath($path);
+                $namespace = $node->getNamespace();
+
+                return new NamespaceInformation(
+                    $realFile !== false ? $realFile : $path,
+                    $namespace,
+                    ($namespace === 'phel\\core') ? [] : ['phel\\core'],
                 );
             }
 

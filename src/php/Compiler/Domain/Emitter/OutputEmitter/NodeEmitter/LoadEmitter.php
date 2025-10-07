@@ -59,6 +59,7 @@ final class LoadEmitter implements NodeEmitterInterface
 
         // Store the current namespace
         $this->outputEmitter->emitLine('$__phelPrevNs = ' . GlobalEnvironmentSingleton::class . '::getInstance()->getNs();');
+        $this->outputEmitter->emitLine('$__phelLoadedNs = $__phelPrevNs;');
 
         // Evaluate the file
         $this->outputEmitter->emitLine('$__phelBuildFacade = new \\Phel\\Build\\BuildFacade();');
@@ -66,14 +67,6 @@ final class LoadEmitter implements NodeEmitterInterface
         $this->outputEmitter->emitLine('try {');
         $this->outputEmitter->increaseIndentLevel();
         $this->outputEmitter->emitLine('$__phelBuildFacade->evalFile($__phelLoadPath);');
-        $this->outputEmitter->decreaseIndentLevel();
-        $this->outputEmitter->emitLine('} finally {');
-        $this->outputEmitter->increaseIndentLevel();
-        $this->outputEmitter->emitLine(BuildFacade::class . '::disableBuildMode();');
-        $this->outputEmitter->decreaseIndentLevel();
-        $this->outputEmitter->emitLine('}');
-
-        // Validate that the loaded file switched to the correct namespace
         $this->outputEmitter->emitLine('$__phelLoadedNs = ' . GlobalEnvironmentSingleton::class . '::getInstance()->getNs();');
         $this->outputEmitter->emitStr('if ($__phelLoadedNs !== ');
         $this->outputEmitter->emitLiteral($node->getCallerNamespace());
@@ -88,6 +81,13 @@ final class LoadEmitter implements NodeEmitterInterface
         $this->outputEmitter->emitLine('$__phelLoadedNs');
         $this->outputEmitter->decreaseIndentLevel();
         $this->outputEmitter->emitLine('));');
+        $this->outputEmitter->decreaseIndentLevel();
+        $this->outputEmitter->emitLine('}');
+        $this->outputEmitter->decreaseIndentLevel();
+        $this->outputEmitter->emitLine('} finally {');
+        $this->outputEmitter->increaseIndentLevel();
+        $this->outputEmitter->emitLine(BuildFacade::class . '::disableBuildMode();');
+        $this->outputEmitter->emitLine(GlobalEnvironmentSingleton::class . '::getInstance()->setNs($__phelPrevNs);');
         $this->outputEmitter->decreaseIndentLevel();
         $this->outputEmitter->emitLine('}');
     }

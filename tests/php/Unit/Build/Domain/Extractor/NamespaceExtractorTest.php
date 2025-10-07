@@ -38,6 +38,15 @@ final class NamespaceExtractorTest extends TestCase
         $this->assertSame(['phel\core', 'phel\html'], $result->getDependencies());
     }
 
+    public function test_get_namespace_from_file_with_in_ns(): void
+    {
+        $fileContent = '(in-ns get\\ns\\from\\file)';
+        $result = $this->extractNamespace($fileContent);
+
+        $this->assertSame('get\\ns\\from\\file', $result->getNamespace());
+        $this->assertSame(['phel\core'], $result->getDependencies());
+    }
+
     public function test_get_namespace_from_file_not_parsable(): void
     {
         $this->expectException(ExtractorException::class);
