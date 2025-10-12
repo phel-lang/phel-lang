@@ -47,8 +47,11 @@ final readonly class PhelFnNormalizer implements PhelFnNormalizerInterface
                 continue;
             }
 
-            $doc = $meta[Keyword::create('doc')] ?? '';
+            $doc = (string)($meta[Keyword::create('doc')] ?? '');
             preg_match('#(```phel\n(?<signature>.*)\n```\n)?(?<desc>.*)#s', $doc, $matches);
+
+            $signature = $matches['signature'] ?? '';
+            $description = $matches['desc'] ?? '';
 
             $namespace = $this->extractNamespace($fnName);
             $groupKey = $this->phelFnGroupKeyGenerator->generateGroupKey($namespace, $fnName);
@@ -66,11 +69,11 @@ final readonly class PhelFnNormalizer implements PhelFnNormalizerInterface
                 namespace: $namespace,
                 name: $this->extractNameWithoutNamespace($fnName),
                 doc: $doc,
-                signature: $matches['signature'] ?? '',
-                description: $matches['desc'] ?? '',
+                signature: $signature,
+                description: $description,
                 groupKey: $groupKey,
                 githubUrl: $this->toGithubUrl($file, $line),
-                docUrl: (string) ($meta[Keyword::create('docUrl')] ?? ''),
+                docUrl: (string)($meta[Keyword::create('docUrl')] ?? ''),
                 file: $file,
                 line: $line,
                 meta: $this->metaToArray($meta),

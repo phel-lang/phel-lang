@@ -7,6 +7,7 @@ namespace Phel\Run\Infrastructure\Service;
 use Throwable;
 
 use function count;
+use function in_array;
 use function sprintf;
 
 /**
@@ -122,17 +123,26 @@ final class DebugLineTap
 
     private function shouldFlush(): bool
     {
-        return (microtime(true) - $this->lastFlushTime) * 1000 >= self::FLUSH_INTERVAL_MS;
+        $elapsedMs = (microtime(true) - $this->lastFlushTime) * 1000.0;
+
+        return $elapsedMs >= self::FLUSH_INTERVAL_MS;
     }
 
     private function formatTimestamp(): string
     {
-        return date('H:i:s.') . sprintf('%03d', (int)(microtime(true) * 1000) % 1000);
+        $milliseconds = ((int)(microtime(true) * 1000.0)) % 1000;
+
+        return date('H:i:s.') . sprintf('%03d', $milliseconds);
     }
 
     private function writeHeader(): void
     {
-        $header = sprintf("=== Phel Debug Trace - Started at %s (PID: %d) ===\n", date('Y-m-d H:i:s'), getmypid());
+        $pid = getmypid();
+        $header = sprintf(
+            "=== Phel Debug Trace - Started at %s (PID: %s) ===\n",
+            date('Y-m-d H:i:s'),
+            $pid === false ? 'unknown' : (string)$pid,
+        );
 
         if ($this->phelFileFilter !== null) {
             $header .= sprintf("Phel file filter: %s\n", $this->phelFileFilter);
@@ -206,7 +216,7 @@ final class DebugLineTap
         }
 
         $lastChar = $line[-1];
-        return $lastChar === ';' || $lastChar === '}' || $lastChar === '{';
+        return in_array($lastChar, [';', '}', '{'], true);
     }
 
     private function matchesFilter(string $file): bool

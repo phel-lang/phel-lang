@@ -8,6 +8,7 @@ use Gacela\Framework\DocBlockResolverAwareTrait;
 use Phel\Compiler\Domain\Exceptions\CompilerException;
 use Phel\Run\Infrastructure\Service\DebugLineTap;
 use Phel\Run\RunFacade;
+use RuntimeException;
 use SebastianBergmann\Timer\ResourceUsageFormatter;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputArgument;
@@ -114,7 +115,13 @@ final class RunCommand extends Command
         ob_start();
         $this->getFacade()->runNamespace($namespace);
 
-        return ob_get_clean();
+        $buffer = ob_get_clean();
+
+        if ($buffer === false) {
+            throw new RuntimeException('Unable to capture namespace execution output.');
+        }
+
+        return $buffer;
     }
 
     private function executeFile(string $filename): string
@@ -122,7 +129,13 @@ final class RunCommand extends Command
         ob_start();
         $this->getFacade()->runFile($filename);
 
-        return ob_get_clean();
+        $buffer = ob_get_clean();
+
+        if ($buffer === false) {
+            throw new RuntimeException('Unable to capture file execution output.');
+        }
+
+        return $buffer;
     }
 
     private function renderNoResultOutput(OutputInterface $output, string $identifier): void

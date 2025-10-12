@@ -35,7 +35,6 @@
         <MixedArrayOffset errorLevel="suppress" />
         <MixedAssignment errorLevel="suppress" />
         <MixedFunctionCall errorLevel="suppress" />
-        <MixedInferredReturnType errorLevel="suppress" />
         <MixedMethodCall errorLevel="suppress" />
         <MixedOperand errorLevel="suppress" />
         <MixedPropertyTypeCoercion errorLevel="suppress" />
@@ -45,5 +44,9 @@
         <InvalidArrayOffset errorLevel="suppress" />
         <RiskyTruthyFalsyComparison errorLevel="suppress" />
         <PossiblyUndefinedMethod errorLevel="suppress" />
+        <MissingOverrideAttribute errorLevel="suppress" />
+        <ClassMustBeFinal errorLevel="suppress" />
+        <TaintedHtml errorLevel="suppress" />
+        <TaintedTextWithQuotes errorLevel="suppress" />
     </issueHandlers>
 </psalm>

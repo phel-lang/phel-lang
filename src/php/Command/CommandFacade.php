@@ -13,7 +13,7 @@ use Symfony\Component\Console\Output\OutputInterface;
 use Throwable;
 
 /**
- * @method CommandFactory getFactory()
+ * @extends AbstractFacade<CommandFactory>
  */
 final class CommandFacade extends AbstractFacade implements CommandFacadeInterface
 {

@@ -17,7 +17,7 @@ use Symfony\Component\Console\Output\OutputInterface;
 use Throwable;
 
 /**
- * @method BuildFactory getFactory()
+ * @extends AbstractFacade<BuildFactory>
  */
 final class BuildFacade extends AbstractFacade implements BuildFacadeInterface
 {

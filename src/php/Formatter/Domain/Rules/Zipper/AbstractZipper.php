@@ -4,8 +4,13 @@ declare(strict_types=1);
 
 namespace Phel\Formatter\Domain\Rules\Zipper;
 
+use Phel\Compiler\Domain\Parser\ParserNode\NodeInterface;
+use RuntimeException;
+
+use function assert;
+
 /**
- * @template T
+ * @template T of NodeInterface
  *
  * @psalm-consistent-constructor
  */
@@ -42,12 +47,27 @@ abstract class AbstractZipper
      */
     abstract public function makeNode(mixed $node, array $children);
 
-    public function skipWhitespaceRight(): self
+    public function skipWhitespaceRight(): static
     {
         return $this;
     }
 
-    public function skipWhitespaceLeft(): self
+    public function rightSkipWhitespace(): static
+    {
+        return $this->right()->skipWhitespaceRight();
+    }
+
+    public function isLineBreak(): bool
+    {
+        return false;
+    }
+
+    public function isNewline(): bool
+    {
+        return false;
+    }
+
+    public function skipWhitespaceLeft(): static
     {
         return $this;
     }
@@ -121,6 +141,11 @@ abstract class AbstractZipper
 
         $rightSiblings = $this->rightSiblings;
         $right = array_shift($rightSiblings);
+
+        if ($right === null) {
+            throw new RuntimeException('Unable to move right: missing sibling.');
+        }
+
         return $this->createNewInstance(
             $right,
             $this->parent,
@@ -155,6 +180,8 @@ abstract class AbstractZipper
             throw ZipperException::cannotGoUpOnRootNode();
         }
 
+        assert($this->parent instanceof self);
+
         if ($this->hasChanged) {
             $newParent = $this->makeNode(
                 $this->parent->getNode(),
@@ -177,15 +204,17 @@ abstract class AbstractZipper
     }
 
     /**
-     * @return T
+     * @return mixed
+     *
+     * @psalm-return T
+     *
+     * @psalm-suppress InvalidReturnType
+     * @psalm-suppress InvalidReturnStatement
      */
     public function root()
     {
-        if ($this->isEnd) {
-            return $this->node;
-        }
-
         $loc = $this;
+
         while (!$loc->isTop()) {
             $loc = $loc->up();
         }
@@ -357,9 +386,15 @@ abstract class AbstractZipper
             throw ZipperException::cannotRemoveOnRootNode();
         }
 
+        assert($this->parent instanceof self);
+
         if (!$this->isFirst()) {
             $leftSiblings = $this->leftSiblings;
             $left = array_pop($leftSiblings);
+            if ($left === null) {
+                throw new RuntimeException('Unable to remove node: missing left sibling.');
+            }
+
             $loc = $this->createNewInstance(
                 $left,
                 $this->parent,
@@ -395,9 +430,6 @@ abstract class AbstractZipper
         return $this->isBranch() && $this->getChildren() !== [];
     }
 
-    /**
-     * @psalm-assert-if-false AbstractZipper<T> $this->parent
-     */
     public function isTop(): bool
     {
         return !$this->parent instanceof static;

@@ -17,8 +17,11 @@ use Phel\Lang\Collections\Map\PersistentMapInterface;
 use Phel\Lang\Keyword;
 use Phel\Lang\SourceLocation;
 use Phel\Lang\TypeInterface;
+use RuntimeException;
 
 use function count;
+use function is_callable;
+use function sprintf;
 
 final class InvokeSymbol implements SpecialFormAnalyzerInterface
 {
@@ -91,6 +94,10 @@ final class InvokeSymbol implements SpecialFormAnalyzerInterface
         $meta = $node->getMeta();
         $fn = $meta[Keyword::create('inline')];
 
+        if (!is_callable($fn)) {
+            throw AnalyzerException::whenExpandingInlineFn($list, $node, new RuntimeException('Inline metadata is not callable.'));
+        }
+
         try {
             return $this->callMacroFn($fn, $list);
         } catch (Exception $exception) {
@@ -107,6 +114,10 @@ final class InvokeSymbol implements SpecialFormAnalyzerInterface
 
         $ns = str_replace('-', '_', $macroNode->getNamespace());
         $fn = Phel::getDefinition($ns, $nodeName);
+
+        if (!is_callable($fn)) {
+            throw AnalyzerException::whenExpandingMacro($list, $macroNode, new RuntimeException(sprintf('Macro "%s::%s" is not callable.', $ns, $nodeName)));
+        }
 
         try {
             return $this->callMacroFn($fn, $list);

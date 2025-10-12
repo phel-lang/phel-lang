@@ -155,12 +155,13 @@ final class DocCommand extends Command
     private function calculateWithProportionalToCurrentScreen(): array
     {
         $colCount = (new Terminal())->getWidth();
+        $colCountFloat = (float)$colCount;
         $proportion1 = 25;
         $proportion2 = 40;
         $proportion3 = 50;
-        $totalProportion = $proportion1 + $proportion2 + $proportion3;
-        $width1 = (int)(($proportion1 / $totalProportion) * $colCount) - 5;
-        $width2 = (int)(($proportion2 / $totalProportion) * $colCount) - 5;
+        $totalProportion = (float)($proportion1 + $proportion2 + $proportion3);
+        $width1 = (int)(((float)$proportion1 / $totalProportion) * $colCountFloat) - 5;
+        $width2 = (int)(((float)$proportion2 / $totalProportion) * $colCountFloat) - 5;
         $width3 = $colCount - ($width1 + $width2 + 10);
 
         return [$width1, $width2, $width3];

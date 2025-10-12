@@ -9,7 +9,6 @@ use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 
 use function extension_loaded;
-use function phpversion;
 use function sprintf;
 use function version_compare;
 
@@ -25,8 +24,10 @@ final class DoctorCommand extends Command
     {
         $output->writeln('Checking requirements:');
 
+        $normalizedVersion = PHP_VERSION;
+
         $requirements = [
-            ['label' => 'PHP >= 8.3', 'status' => version_compare(phpversion(), '8.3.0', '>=')],
+            ['label' => 'PHP >= 8.3', 'status' => version_compare($normalizedVersion, '8.3.0', '>=')],
             ['label' => 'json extension', 'status' => extension_loaded('json')],
             ['label' => 'mbstring extension', 'status' => extension_loaded('mbstring')],
             ['label' => 'readline extension', 'status' => extension_loaded('readline')],

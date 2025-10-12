@@ -9,7 +9,7 @@ use Phel\Shared\Facade\FormatterFacadeInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 
 /**
- * @method FormatterFactory getFactory()
+ * @extends AbstractFacade<FormatterFactory>
  */
 final class FormatterFacade extends AbstractFacade implements FormatterFacadeInterface
 {

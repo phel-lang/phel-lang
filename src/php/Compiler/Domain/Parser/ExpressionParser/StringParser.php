@@ -56,11 +56,17 @@ final class StringParser
             return chr((int)octdec((string) $str));
         };
 
-        return preg_replace_callback(
+        $result = preg_replace_callback(
             '~\\\\([\\\\$nrtfve]|[xX][0-9a-fA-F]{1,2}|[0-7]{1,3}|u\{([0-9a-fA-F]+)\})~',
             $callback,
             str_replace('\\"', '"', $str),
         );
+
+        if ($result === null) {
+            throw new StringParserException('Invalid escape sequence.');
+        }
+
+        return $result;
     }
 
     /**

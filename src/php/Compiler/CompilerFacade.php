@@ -26,7 +26,7 @@ use Phel\Lang\TypeInterface;
 use Phel\Shared\Facade\CompilerFacadeInterface;
 
 /**
- * @method CompilerFactory getFactory()
+ * @extends AbstractFacade<CompilerFactory>
  */
 final class CompilerFacade extends AbstractFacade implements CompilerFacadeInterface
 {

@@ -6,6 +6,7 @@ namespace Phel\Compiler\Domain\Emitter;
 
 use Phel\Compiler\Domain\Analyzer\Ast\AbstractNode;
 use Phel\Compiler\Domain\Emitter\OutputEmitter\SourceMap\SourceMapGenerator;
+use RuntimeException;
 
 final class FileEmitter implements FileEmitterInterface
 {
@@ -32,7 +33,13 @@ final class FileEmitter implements FileEmitterInterface
     {
         ob_start();
         $this->outputEmitter->emitNode($node);
-        $this->phpCode .= ob_get_clean();
+        $buffer = ob_get_clean();
+
+        if ($buffer === false) {
+            throw new RuntimeException('Unable to capture emitted PHP code.');
+        }
+
+        $this->phpCode .= $buffer;
     }
 
     public function endFile(bool $enableSourceMaps): EmitterResult

@@ -178,7 +178,7 @@ final class DefSymbol implements SpecialFormAnalyzerInterface
         Symbol $nameSymbol,
     ): AbstractNode {
         $initEnv = $env
-            ->withBoundTo($namespace . '\\' . $nameSymbol)
+            ->withBoundTo($namespace . '\\' . $nameSymbol->__toString())
             ->withExpressionContext()
             ->withDisallowRecurFrame()
             ->withDefAllowed(false);

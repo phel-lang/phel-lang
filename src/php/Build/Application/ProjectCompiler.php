@@ -17,6 +17,7 @@ use Phel\Shared\Facade\CompilerFacadeInterface;
 use RuntimeException;
 
 use function dirname;
+use function filemtime;
 use function sprintf;
 
 final readonly class ProjectCompiler
@@ -82,7 +83,7 @@ final readonly class ProjectCompiler
                 $buildOptions->isSourceMapEnabled(),
             );
 
-            touch($targetFile, filemtime($info->getFile()));
+            touch($targetFile, $this->getFileMtime($info->getFile()));
         }
 
         if ($this->config->shouldCreateEntryPointPhpFile()) {
@@ -117,7 +118,7 @@ final readonly class ProjectCompiler
     ): bool {
         if (!$buildOptions->isCacheEnabled()
             || !file_exists($targetFile)
-            || filemtime($targetFile) !== filemtime($info->getFile())
+            || $this->getFileMtime($targetFile) !== $this->getFileMtime($info->getFile())
         ) {
             return false;
         }
@@ -129,5 +130,16 @@ final readonly class ProjectCompiler
         }
 
         return true;
+    }
+
+    private function getFileMtime(string $file): int
+    {
+        $mtime = filemtime($file);
+
+        if ($mtime === false) {
+            throw new RuntimeException(sprintf('Unable to read file modification time for "%s".', $file));
+        }
+
+        return $mtime;
     }
 }

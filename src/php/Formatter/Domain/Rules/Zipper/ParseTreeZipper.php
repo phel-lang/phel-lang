@@ -48,11 +48,13 @@ final class ParseTreeZipper extends AbstractZipper
         return $node->replaceChildren($children);
     }
 
+    #[Override]
     public function isLineBreak(): bool
     {
         return $this->getNode() instanceof NewlineNode || $this->isComment();
     }
 
+    #[Override]
     public function isNewline(): bool
     {
         return $this->getNode() instanceof NewlineNode;
@@ -77,13 +79,13 @@ final class ParseTreeZipper extends AbstractZipper
         return $this->getNode() instanceof CommentNode;
     }
 
-    public function leftSkipWhitespace(): self
+    public function leftSkipWhitespace(): static
     {
         return $this->left()->skipWhitespaceLeft();
     }
 
     #[Override]
-    public function skipWhitespaceLeft(): self
+    public function skipWhitespaceLeft(): static
     {
         $loc = $this;
         while ($loc->getNode() instanceof TriviaNodeInterface) {
@@ -93,13 +95,14 @@ final class ParseTreeZipper extends AbstractZipper
         return $loc;
     }
 
-    public function rightSkipWhitespace(): self
+    #[Override]
+    public function rightSkipWhitespace(): static
     {
         return $this->right()->skipWhitespaceRight();
     }
 
     #[Override]
-    public function skipWhitespaceRight(): self
+    public function skipWhitespaceRight(): static
     {
         $loc = $this;
         while ($loc->getNode() instanceof TriviaNodeInterface) {
@@ -109,27 +112,27 @@ final class ParseTreeZipper extends AbstractZipper
         return $loc;
     }
 
-    public function upSkipWhitespace(): self
+    public function upSkipWhitespace(): static
     {
         return $this->up()->skipWhitespaceLeft();
     }
 
-    public function downSkipWhitespace(): self
+    public function downSkipWhitespace(): static
     {
         return $this->down()->skipWhitespaceRight();
     }
 
-    public function leftMostSkipWhitespace(): self
+    public function leftMostSkipWhitespace(): static
     {
         return $this->leftMost()->skipWhitespaceRight();
     }
 
-    public function rightMostSkipWhitespace(): self
+    public function rightMostSkipWhitespace(): static
     {
         return $this->rightMost()->skipWhitespaceLeft();
     }
 
-    public function nextSkipWhitespace(): self
+    public function nextSkipWhitespace(): static
     {
         $loc = $this->next();
         while (!$loc->isEnd() && $loc->getNode() instanceof TriviaNodeInterface) {

@@ -9,7 +9,7 @@ use Phel\Api\Transfer\PhelFunction;
 use Phel\Shared\Facade\ApiFacadeInterface;
 
 /**
- * @method ApiFactory getFactory()
+ * @extends AbstractFacade<ApiFactory>
  */
 final class ApiFacade extends AbstractFacade implements ApiFacadeInterface
 {

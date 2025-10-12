@@ -266,12 +266,24 @@ final class GlobalEnvironment implements GlobalEnvironmentInterface
 
     private function resolveRealpath(?SourceLocation $sl): ?string
     {
-        return ($sl instanceof SourceLocation) ? realpath($sl->getFile()) : null;
+        if (!$sl instanceof SourceLocation) {
+            return null;
+        }
+
+        $realpath = realpath($sl->getFile());
+
+        return $realpath === false ? null : $realpath;
     }
 
     private function resolveRealpathDirname(?SourceLocation $sl): ?string
     {
-        return ($sl instanceof SourceLocation) ? realpath(dirname($sl->getFile())) : null;
+        if (!$sl instanceof SourceLocation) {
+            return null;
+        }
+
+        $realpath = realpath(dirname($sl->getFile()));
+
+        return $realpath === false ? null : $realpath;
     }
 
     private function resolveWithAlias(Symbol $name, NodeEnvironmentInterface $env): ?AbstractNode

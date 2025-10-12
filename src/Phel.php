@@ -48,9 +48,12 @@ final class Phel extends InternalPhel
      *
      * @return mixed Reference to the stored definition.
      */
+    /** @psalm-suppress UnsupportedReferenceUsage */
     public static function &getDefinitionReference(string $ns, string $name): mixed
     {
-        return Registry::getInstance()->getDefinitionReference($ns, $name);
+        $definition = &Registry::getInstance()->getDefinitionReference($ns, $name);
+
+        return $definition;
     }
 
     /**

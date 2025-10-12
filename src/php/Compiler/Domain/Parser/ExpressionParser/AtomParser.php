@@ -67,7 +67,9 @@ final readonly class AtomParser
         }
 
         if (is_numeric($word)) {
-            return new NumberNode($word, $token->getStartLocation(), $token->getEndLocation(), $word + 0);
+            $value = strpbrk($word, '.eE') !== false ? (float)$word : (int)$word;
+
+            return new NumberNode($word, $token->getStartLocation(), $token->getEndLocation(), $value);
         }
 
         if (preg_match(self::REGEX_DECIMAL_NUMBER, $word, $matches)) {
@@ -119,51 +121,51 @@ final readonly class AtomParser
     private function parseBinaryNumber(array $matches, string $word, Token $token): NumberNode
     {
         $sign = (isset($matches[1]) && $matches[1] === '-') ? -1 : 1;
-        $unsignedInteger = $matches[2] ?? $word;
+        $unsignedInteger = (string)($matches[2] ?? $word);
+        $value = bindec(str_replace('_', '', $unsignedInteger));
 
-        return new NumberNode(
-            $word,
-            $token->getStartLocation(),
-            $token->getEndLocation(),
-            $sign * bindec(str_replace('_', '', $unsignedInteger)),
-        );
+        if ($sign === -1) {
+            $value = -$value;
+        }
+
+        return new NumberNode($word, $token->getStartLocation(), $token->getEndLocation(), $value);
     }
 
     private function parseHexadecimalNumber(array $matches, string $word, Token $token): NumberNode
     {
         $sign = (isset($matches[1]) && $matches[1] === '-') ? -1 : 1;
-        $unsignedInteger = $matches[2] ?? $word;
+        $unsignedInteger = (string)($matches[2] ?? $word);
+        $value = hexdec(str_replace('_', '', $unsignedInteger));
 
-        return new NumberNode(
-            $word,
-            $token->getStartLocation(),
-            $token->getEndLocation(),
-            $sign * hexdec(str_replace('_', '', $unsignedInteger)),
-        );
+        if ($sign === -1) {
+            $value = -$value;
+        }
+
+        return new NumberNode($word, $token->getStartLocation(), $token->getEndLocation(), $value);
     }
 
     private function parseOctalNumber(array $matches, string $word, Token $token): NumberNode
     {
         $sign = (isset($matches[1]) && $matches[1] === '-') ? -1 : 1;
-        $unsignedInteger = $matches[2] ?? $word;
+        $unsignedInteger = (string)($matches[2] ?? $word);
+        $value = octdec(str_replace('_', '', $unsignedInteger));
 
-        return new NumberNode(
-            $word,
-            $token->getStartLocation(),
-            $token->getEndLocation(),
-            $sign * octdec(str_replace('_', '', $unsignedInteger)),
-        );
+        if ($sign === -1) {
+            $value = -$value;
+        }
+
+        return new NumberNode($word, $token->getStartLocation(), $token->getEndLocation(), $value);
     }
 
     private function parseDecimalNumber(array $matches, string $word, Token $token): NumberNode
     {
         $sign = (isset($matches[1]) && $matches[1] === '-') ? -1 : 1;
+        $value = (int)str_replace('_', '', $word);
 
-        return new NumberNode(
-            $word,
-            $token->getStartLocation(),
-            $token->getEndLocation(),
-            $sign * (int)str_replace('_', '', $word),
-        );
+        if ($sign === -1) {
+            $value = -$value;
+        }
+
+        return new NumberNode($word, $token->getStartLocation(), $token->getEndLocation(), $value);
     }
 }

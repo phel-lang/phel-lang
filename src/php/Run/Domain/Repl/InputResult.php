@@ -39,11 +39,13 @@ final readonly class InputResult
             return $fullInput;
         }
 
-        return preg_replace(
+        $replaced = preg_replace(
             '~"[^\\"]*(?:\\.|[^\\"]*)*"(*SKIP)(*F)|\$_(?![A-Z])~s',
             $this->formattedLastResult(),
             $fullInput,
         );
+
+        return $replaced ?? $fullInput;
     }
 
     private function formattedLastResult(): string

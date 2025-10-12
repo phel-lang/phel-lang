@@ -23,7 +23,7 @@
     "homepage": "https://phel-lang.org/",
     "require": {
         "php": ">=8.3",
-        "gacela-project/gacela": "^1.10",
+        "gacela-project/gacela": "^1.11",
         "phpunit/php-timer": "^6.0",
         "symfony/console": "^7.3"
     },
@@ -37,7 +37,7 @@
         "psalm/plugin-phpunit": "^0.19",
         "rector/rector": "^2.1",
         "symfony/var-dumper": "^7.3",
-        "vimeo/psalm": "^5.26"
+        "vimeo/psalm": "^7.0.0-beta11"
     },
     "autoload": {
         "psr-4": {
@@ -61,7 +61,7 @@
             "ergebnis/composer-normalize": true
         },
         "platform": {
-            "php": "8.3"
+            "php": "8.3.16"
         },
         "sort-packages": true
     },
@@ -75,7 +75,7 @@
         "phpbench": "./vendor/bin/phpbench run --report=aggregate --ansi",
         "phpbench-base": "./vendor/bin/phpbench run --tag=baseline --report=aggregate --progress=plain --ansi",
         "phpbench-ref": "./vendor/bin/phpbench run --ref=baseline --report=aggregate --progress=plain --ansi",
-        "phpstan": "./vendor/bin/phpstan --memory-limit=516M",
+        "phpstan": "./vendor/bin/phpstan --memory-limit=1G",
         "psalm": "./vendor/bin/psalm --no-cache",
         "rector": "./vendor/bin/rector process",
         "rectorrun": "./vendor/bin/rector process --dry-run",
