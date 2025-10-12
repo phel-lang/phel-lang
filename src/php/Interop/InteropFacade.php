@@ -12,7 +12,7 @@ use Symfony\Component\Console\Output\OutputInterface;
 use Throwable;
 
 /**
- * @method InteropFactory getFactory()
+ * @extends AbstractFacade<InteropFactory>
  */
 final class InteropFacade extends AbstractFacade implements InteropFacadeInterface
 {

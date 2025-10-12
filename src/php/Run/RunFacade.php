@@ -15,7 +15,7 @@ use Throwable;
 use function dirname;
 
 /**
- * @method RunFactory getFactory()
+ * @extends AbstractFacade<RunFactory>
  */
 final class RunFacade extends AbstractFacade implements RunFacadeInterface
 {

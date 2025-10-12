@@ -24,19 +24,16 @@ final class Phel extends InternalPhel
      * Proxy undefined static method calls to
      * - {@see Registry} singleton.
      *
-     * @param  string  $name
-     * @param  list<mixed>  $arguments
-     *
-     * @return mixed
+     * @param list<mixed> $arguments
      */
     public static function __callStatic(string $name, array $arguments): mixed
     {
         $registry = Registry::getInstance();
-        if (is_callable([$registry, $name])) {
+        if (\is_callable([$registry, $name])) {
             return $registry->$name(...$arguments);
         }
 
-        throw new BadMethodCallException(sprintf('Method "%s" does not exist', $name));
+        throw new BadMethodCallException(\sprintf('Method "%s" does not exist', $name));
     }
 
     /**
@@ -44,13 +41,18 @@ final class Phel extends InternalPhel
      * because it is returning the reference to the definition.
      *
      * @noinspection PhpUnused
+     *
      * @see GlobalVarEmitter
      *
-     * @return mixed Reference to the stored definition.
+     * @psalm-suppress UnsupportedReferenceUsage
+     *
+     * @return mixed reference to the stored definition
      */
     public static function &getDefinitionReference(string $ns, string $name): mixed
     {
-        return Registry::getInstance()->getDefinitionReference($ns, $name);
+        $definition = &Registry::getInstance()->getDefinitionReference($ns, $name);
+
+        return $definition;
     }
 
     /**
@@ -81,10 +83,10 @@ final class Phel extends InternalPhel
     public static function map(...$kvs): PersistentMapInterface
     {
         $typeFactory = TypeFactory::getInstance();
-        if (count($kvs) === 1) {
+        if (\count($kvs) === 1) {
             $firstArgument = $kvs[0] ?? null;
 
-            if (is_array($firstArgument)) {
+            if (\is_array($firstArgument)) {
                 return $typeFactory->persistentMapFromArray($firstArgument);
             }
 
@@ -108,7 +110,9 @@ final class Phel extends InternalPhel
 
     /**
      * @template T
+     *
      * @param T $value The initial value of the variable
+     *
      * @return Variable<T>
      */
     public static function variable($value, ?PersistentMapInterface $meta = null): Variable

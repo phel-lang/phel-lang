@@ -61,7 +61,11 @@ final class CompiledPhpMethodBuilder
 
     private function buildPhelFunctionName(string $boundTo): string
     {
-        return str_replace('_', '-', substr(strrchr($boundTo, '\\'), 1));
+        $suffix = strrchr($boundTo, '\\');
+
+        $functionName = $suffix === false ? $boundTo : substr($suffix, 1);
+
+        return str_replace('_', '-', $functionName);
     }
 
     private function methodTemplate(): string

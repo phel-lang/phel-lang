@@ -7,6 +7,7 @@ namespace Phel\Compiler\Domain\Lexer;
 use Generator;
 use Iterator;
 use Phel\Compiler\Domain\Parser\ReadModel\CodeSnippet;
+use RuntimeException;
 
 use function count;
 use function in_array;
@@ -17,23 +18,28 @@ use function in_array;
 final class TokenStream implements Iterator
 {
     /** @var list<Token> */
-    private array $readTokens;
+    private array $readTokens = [];
 
     /**
-     * @param Generator<Token> $tokenGenerator
+     * @param Generator<?Token> $tokenGenerator
      */
     public function __construct(
         private readonly Generator $tokenGenerator,
     ) {
-        $this->readTokens = [$tokenGenerator->current()];
+        $current = $this->tokenGenerator->current();
+        if ($current instanceof Token) {
+            $this->readTokens[] = $current;
+        }
     }
 
     public function next(): void
     {
         $this->tokenGenerator->next();
-        /** @var Token $currentToken */
         $currentToken = $this->tokenGenerator->current();
-        $this->readTokens[] = $currentToken;
+
+        if ($currentToken instanceof Token) {
+            $this->readTokens[] = $currentToken;
+        }
     }
 
     public function key(): mixed
@@ -48,7 +54,13 @@ final class TokenStream implements Iterator
 
     public function current(): Token
     {
-        return $this->tokenGenerator->current();
+        $current = $this->tokenGenerator->current();
+
+        if (!$current instanceof Token) {
+            throw new RuntimeException('Token generator exhausted unexpectedly.');
+        }
+
+        return $current;
     }
 
     public function valid(): bool
@@ -58,7 +70,12 @@ final class TokenStream implements Iterator
 
     public function clearReadTokens(): void
     {
-        $this->readTokens = [$this->tokenGenerator->current()];
+        $this->readTokens = [];
+        $current = $this->tokenGenerator->current();
+
+        if ($current instanceof Token) {
+            $this->readTokens[] = $current;
+        }
     }
 
     public function getReadTokens(): array

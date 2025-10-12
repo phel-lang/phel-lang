@@ -7,7 +7,7 @@ namespace Phel\Filesystem;
 use Gacela\Framework\AbstractFacade;
 
 /**
- * @method FilesystemFactory getFactory()
+ * @extends AbstractFacade<FilesystemFactory>
  */
 final class FilesystemFacade extends AbstractFacade implements FilesystemFacadeInterface
 {

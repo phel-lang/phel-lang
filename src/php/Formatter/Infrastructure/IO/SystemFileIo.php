@@ -5,6 +5,9 @@ declare(strict_types=1);
 namespace Phel\Formatter\Infrastructure\IO;
 
 use Phel\Formatter\Domain\Exception\FilePathException;
+use RuntimeException;
+
+use function sprintf;
 
 final class SystemFileIo implements FileIoInterface
 {
@@ -24,7 +27,13 @@ final class SystemFileIo implements FileIoInterface
 
     public function getContents(string $filename): string
     {
-        return file_get_contents($filename);
+        $contents = file_get_contents($filename);
+
+        if ($contents === false) {
+            throw new RuntimeException(sprintf('Unable to read file "%s".', $filename));
+        }
+
+        return $contents;
     }
 
     public function putContents(string $filename, string $data): void

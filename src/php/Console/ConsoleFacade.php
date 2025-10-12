@@ -8,7 +8,7 @@ use Gacela\Framework\AbstractFacade;
 use Phel\Shared\Facade\ConsoleFacadeInterface;
 
 /**
- * @method ConsoleFactory getFactory()
+ * @extends AbstractFacade<ConsoleFactory>
  */
 final class ConsoleFacade extends AbstractFacade implements ConsoleFacadeInterface
 {

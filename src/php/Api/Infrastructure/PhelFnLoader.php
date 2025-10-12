@@ -11,10 +11,17 @@ use Phel\Compiler\Infrastructure\GlobalEnvironmentSingleton;
 use Phel\Lang\Collections\Map\PersistentMapInterface;
 use Phel\Lang\Symbol;
 use Phel\Shared\Facade\RunFacadeInterface;
+use RuntimeException;
 
 use function dirname;
+use function getcwd;
 use function in_array;
+use function is_dir;
+use function mkdir;
+use function rmdir;
 use function sprintf;
+use function uniqid;
+use function unlink;
 
 final readonly class PhelFnLoader implements PhelFnLoaderInterface
 {
@@ -445,13 +452,21 @@ EOF;
         // When running in a phar, we can't write to __DIR__ due to phar.readonly
         // Use a temporary directory in the current working directory instead
         if (Phar::running() !== '') {
-            $tempDir = getcwd() . '/.phel_temp_' . uniqid();
-            mkdir($tempDir, 0755, true);
+            $cwd = getcwd();
+            if ($cwd === false) {
+                throw new RuntimeException('Unable to determine current working directory.');
+            }
+
+            $tempDir = $cwd . '/.phel_temp_' . uniqid('', true);
+            if (!mkdir($tempDir, 0755, true) && !is_dir($tempDir)) {
+                throw new RuntimeException(sprintf('Unable to create temporary directory at "%s".', $tempDir));
+            }
+
             $phelFile = $tempDir . '/doc.phel';
         } else {
             $phelDir = __DIR__ . '/phel';
-            if (!is_dir($phelDir)) {
-                mkdir($phelDir, 0755, true);
+            if (!is_dir($phelDir) && !mkdir($phelDir, 0755, true) && !is_dir($phelDir)) {
+                throw new RuntimeException(sprintf('Unable to create directory at "%s".', $phelDir));
             }
 
             $phelFile = $phelDir . '/doc.phel';
@@ -478,6 +493,10 @@ EOF;
         }
 
         unlink($phelFile);
+
+        if (isset($tempDir)) {
+            @rmdir($tempDir);
+        }
 
         // Clean up temporary directory if running in phar
         if (Phar::running() !== '' && dirname($phelFile) !== __DIR__) {

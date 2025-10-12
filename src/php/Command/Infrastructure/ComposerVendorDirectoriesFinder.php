@@ -12,6 +12,7 @@ use Phel\Config\PhelConfig;
 use RuntimeException;
 
 use function dirname;
+use function glob;
 use function sprintf;
 
 /**
@@ -36,7 +37,9 @@ final class ComposerVendorDirectoriesFinder implements VendorDirectoriesFinderIn
 
         $result = [];
 
-        foreach (glob($pattern) as $phelConfigPath) {
+        $configPaths = glob($pattern) ?: [];
+
+        foreach ($configPaths as $phelConfigPath) {
             try {
                 $config = $this->getFacade()->readPhelConfig($phelConfigPath);
             } catch (RuntimeException) {

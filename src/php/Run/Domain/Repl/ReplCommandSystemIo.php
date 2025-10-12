@@ -24,7 +24,7 @@ final readonly class ReplCommandSystemIo implements ReplCommandIoInterface
         }
 
         readline_completion_function(
-            fn (string $input, int $index): array => $this->apiFacade->replComplete($input),
+            fn (string $input): array => $this->apiFacade->replComplete($input),
         );
     }
 
@@ -62,14 +62,32 @@ final readonly class ReplCommandSystemIo implements ReplCommandIoInterface
         $this->writeln($this->commandFacade->getExceptionString($e, $codeSnippet));
     }
 
+    /**
+     * @psalm-taint-escape html
+     * @psalm-taint-escape has_quotes
+     *
+     * @psalm-suppress TaintedHtml
+     * @psalm-suppress TaintedTextWithQuotes
+     */
     public function write(string $string = ''): void
     {
-        echo $string;
+        /** @psalm-suppress TaintedHtml */
+        /** @psalm-suppress TaintedTextWithQuotes */
+        echo $string; // phpcs:ignore
     }
 
+    /**
+     * @psalm-taint-escape html
+     * @psalm-taint-escape has_quotes
+     *
+     * @psalm-suppress TaintedHtml
+     * @psalm-suppress TaintedTextWithQuotes
+     */
     public function writeln(string $string = ''): void
     {
-        echo $string . PHP_EOL;
+        /** @psalm-suppress TaintedHtml */
+        /** @psalm-suppress TaintedTextWithQuotes */
+        echo $string . PHP_EOL; // phpcs:ignore
     }
 
     public function isBracketedPasteSupported(): bool

@@ -7,6 +7,9 @@ namespace Phel\Build\Application;
 use Phel\Build\Domain\Compile\CompiledFile;
 use Phel\Compiler\Infrastructure\CompileOptions;
 use Phel\Shared\Facade\CompilerFacadeInterface;
+use RuntimeException;
+
+use function sprintf;
 
 final readonly class FileEvaluator
 {
@@ -22,7 +25,12 @@ final readonly class FileEvaluator
             ->setSource($src)
             ->setIsEnabledSourceMaps(true);
 
-        $this->compilerFacade->eval(file_get_contents($src), $options);
+        $code = file_get_contents($src);
+        if ($code === false) {
+            throw new RuntimeException(sprintf('Unable to read file "%s".', $src));
+        }
+
+        $this->compilerFacade->eval($code, $options);
 
         $namespaceInfo = $this->namespaceExtractor->getNamespaceFromFile($src);
 

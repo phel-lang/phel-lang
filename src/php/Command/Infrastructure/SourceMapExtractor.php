@@ -6,15 +6,31 @@ namespace Phel\Command\Infrastructure;
 
 use Phel\Command\Domain\Exceptions\Extractor\ReadModel\SourceMapInformation;
 use Phel\Command\Domain\Exceptions\Extractor\SourceMapExtractorInterface;
+use RuntimeException;
+
+use function fclose;
+use function fgets;
+use function fopen;
+use function sprintf;
 
 final class SourceMapExtractor implements SourceMapExtractorInterface
 {
     public function extractFromFile(string $filename): SourceMapInformation
     {
-        $f = fopen($filename, 'rb');
-        $filenameComment = fgets($f);
-        $sourceMapComment = fgets($f) ?: '';
+        $handle = fopen($filename, 'rb');
 
-        return new SourceMapInformation($filenameComment, $sourceMapComment);
+        if ($handle === false) {
+            throw new RuntimeException(sprintf('Unable to open file "%s".', $filename));
+        }
+
+        $filenameComment = fgets($handle);
+        $sourceMapComment = fgets($handle);
+
+        fclose($handle);
+
+        return new SourceMapInformation(
+            $filenameComment === false ? '' : $filenameComment,
+            $sourceMapComment === false ? '' : $sourceMapComment,
+        );
     }
 }

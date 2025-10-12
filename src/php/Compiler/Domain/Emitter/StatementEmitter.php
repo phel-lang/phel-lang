@@ -7,6 +7,7 @@ namespace Phel\Compiler\Domain\Emitter;
 use Phel\Compiler\Domain\Analyzer\Ast\AbstractNode;
 use Phel\Compiler\Domain\Emitter\OutputEmitter\SourceMap\SourceMapGenerator;
 use Phel\Lang\SourceLocation;
+use RuntimeException;
 
 final readonly class StatementEmitter implements StatementEmitterInterface
 {
@@ -34,7 +35,13 @@ final readonly class StatementEmitter implements StatementEmitterInterface
         ob_start();
         $this->outputEmitter->emitNode($node);
 
-        return ob_get_clean();
+        $code = ob_get_clean();
+
+        if ($code === false) {
+            throw new RuntimeException('Unable to capture emitted PHP code.');
+        }
+
+        return $code;
     }
 
     private function sourceMap(bool $enableSourceMaps): string

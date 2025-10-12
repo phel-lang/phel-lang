@@ -10,8 +10,10 @@ use Gacela\Framework\Gacela;
 use Phar;
 use Phel\Filesystem\FilesystemFacade;
 use Phel\Run\RunFacade;
+use RuntimeException;
 
 use function dirname;
+use function getcwd;
 use function in_array;
 use function is_array;
 use function is_string;
@@ -40,9 +42,14 @@ class Phel
         }
 
         if (str_starts_with(__FILE__, 'phar://')) {
-            $currentDirConfig = getcwd() . '/' . self::PHEL_CONFIG_FILE_NAME;
+            $cwd = getcwd();
+            if ($cwd === false) {
+                throw new RuntimeException('Unable to determine current working directory.');
+            }
+
+            $currentDirConfig = $cwd . '/' . self::PHEL_CONFIG_FILE_NAME;
             if (file_exists($currentDirConfig)) {
-                $projectRootDir = (string) getcwd();
+                $projectRootDir = $cwd;
             } elseif (file_exists(dirname(Phar::running(false)) . '/' . self::PHEL_CONFIG_FILE_NAME)) {
                 $projectRootDir = dirname(Phar::running(false));
             } else {
