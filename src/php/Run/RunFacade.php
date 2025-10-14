@@ -70,7 +70,7 @@ final class RunFacade extends AbstractFacade implements RunFacadeInterface
             ->evalFile($info->getFile());
     }
 
-    public function eval(string $phelCode, CompileOptions $compileOptions): mixed
+    public function eval(string $phelCode, CompileOptions $compileOptions = new CompileOptions()): mixed
     {
         return $this->getFactory()
             ->getCompilerFacade()

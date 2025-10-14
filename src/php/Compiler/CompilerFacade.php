@@ -49,7 +49,7 @@ final class CompilerFacade extends AbstractFacade implements CompilerFacadeInter
      */
     public function eval(
         string $phelCode,
-        CompileOptions $compileOptions = new CompileOptions()
+        CompileOptions $compileOptions = new CompileOptions(),
     ): mixed {
         return $this->getFactory()
             ->createEvalCompiler()

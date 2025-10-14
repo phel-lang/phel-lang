@@ -76,21 +76,13 @@ final class Lexer implements LexerInterface
         $this->column = 0;
         $end = strlen($code);
 
-        if ($this->withLocation) {
-            $startLocation = new SourceLocation($source, $this->line, $this->column);
-        } else {
-            $startLocation = new SourceLocation('string', 0, 0);
-        }
+        $startLocation = $this->createSourceLocation($source);
 
         while ($this->cursor < $end) {
             if (substr($code, $this->cursor, 2) === self::MULTILINE_COMMENT_BEGIN) {
                 $comment = $this->readMultilineComment($code, $source);
                 $this->moveCursor($comment);
-                if ($this->withLocation) {
-                    $endLocation = new SourceLocation($source, $this->line, $this->column);
-                } else {
-                    $endLocation = new SourceLocation('string', 0, 0);
-                }
+                $endLocation = $this->createSourceLocation($source);
 
                 yield new Token(Token::T_COMMENT, $comment, $startLocation, $endLocation);
 
@@ -100,11 +92,7 @@ final class Lexer implements LexerInterface
 
             if (preg_match($this->combinedRegex, $code, $matches, 0, $this->cursor)) {
                 $this->moveCursor($matches[0]);
-                if ($this->withLocation) {
-                    $endLocation = new SourceLocation($source, $this->line, $this->column);
-                } else {
-                    $endLocation = new SourceLocation('string', 0, 0);
-                }
+                $endLocation = $this->createSourceLocation($source);
 
                 yield new Token(count($matches), $matches[0], $startLocation, $endLocation);
 
@@ -129,6 +117,15 @@ final class Lexer implements LexerInterface
         } else {
             $this->column += $len;
         }
+    }
+
+    private function createSourceLocation(string $source): SourceLocation
+    {
+        if ($this->withLocation) {
+            return new SourceLocation($source, $this->line, $this->column);
+        }
+
+        return new SourceLocation('string', 0, 0);
     }
 
     /**

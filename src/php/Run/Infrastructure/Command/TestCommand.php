@@ -91,7 +91,7 @@ final class TestCommand extends Command
 
             ob_end_clean();
 
-            $phelCode = $this->generatePhelCode($input, $filteredNamespaces);
+            $phelCode = $this->generatePhelTestCode($input, $filteredNamespaces);
             $compileOptions = (new CompileOptions())->setIsEnabledSourceMaps(false);
             $result = $this->getFacade()->eval($phelCode, $compileOptions);
 
@@ -107,7 +107,7 @@ final class TestCommand extends Command
         return self::FAILURE;
     }
 
-    private function generatePhelCode(InputInterface $input, array $namespacesInformation): string
+    private function generatePhelTestCode(InputInterface $input, array $namespacesInformation): string
     {
         return sprintf(
             '(do (phel\test/run-tests %s %s) (phel\test/successful?))',
