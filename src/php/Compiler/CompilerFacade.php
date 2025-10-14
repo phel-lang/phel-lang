@@ -33,8 +33,10 @@ final class CompilerFacade extends AbstractFacade implements CompilerFacadeInter
     /**
      * @throws AnalyzerException
      */
-    public function analyze(TypeInterface|string|float|int|bool|null $x, NodeEnvironmentInterface $env): AbstractNode
-    {
+    public function analyze(
+        TypeInterface|string|float|int|bool|null $x,
+        NodeEnvironmentInterface $env,
+    ): AbstractNode {
         return $this->getFactory()
             ->createAnalyzer()
             ->analyze($x, $env);
@@ -47,12 +49,8 @@ final class CompilerFacade extends AbstractFacade implements CompilerFacadeInter
      */
     public function eval(
         string $phelCode,
-        ?CompileOptions $compileOptions = null,
+        CompileOptions $compileOptions = new CompileOptions()
     ): mixed {
-        if (!$compileOptions instanceof CompileOptions) {
-            $compileOptions = new CompileOptions();
-        }
-
         return $this->getFactory()
             ->createEvalCompiler()
             ->evalString($phelCode, $compileOptions);
@@ -60,12 +58,8 @@ final class CompilerFacade extends AbstractFacade implements CompilerFacadeInter
 
     public function evalForm(
         TypeInterface|string|float|int|bool|null $form,
-        ?CompileOptions $compileOptions = null,
+        CompileOptions $compileOptions = new CompileOptions(),
     ): mixed {
-        if (!$compileOptions instanceof CompileOptions) {
-            $compileOptions = new CompileOptions();
-        }
-
         return $this->getFactory()
             ->createEvalCompiler()
             ->evalForm($form, $compileOptions);
@@ -78,12 +72,8 @@ final class CompilerFacade extends AbstractFacade implements CompilerFacadeInter
      */
     public function compile(
         string $phelCode,
-        ?CompileOptions $compileOptions = null,
+        CompileOptions $compileOptions = new CompileOptions(),
     ): EmitterResult {
-        if (!$compileOptions instanceof CompileOptions) {
-            $compileOptions = new CompileOptions();
-        }
-
         return $this->getFactory()
             ->createCodeCompiler($compileOptions)
             ->compileString($phelCode, $compileOptions);
@@ -96,12 +86,8 @@ final class CompilerFacade extends AbstractFacade implements CompilerFacadeInter
      */
     public function compileForm(
         float|bool|int|string|TypeInterface|null $form,
-        ?CompileOptions $compileOptions = null,
+        CompileOptions $compileOptions = new CompileOptions(),
     ): EmitterResult {
-        if (!$compileOptions instanceof CompileOptions) {
-            $compileOptions = new CompileOptions();
-        }
-
         return $this->getFactory()
             ->createCodeCompiler($compileOptions)
             ->compileForm($form, $compileOptions);
