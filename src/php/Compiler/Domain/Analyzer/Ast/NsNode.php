@@ -23,7 +23,10 @@ final class NsNode extends AbstractNode
         parent::__construct(NodeEnvironment::empty(), $sourceLocation);
         if ($namespace !== 'phel\\core') {
             // All other files implicitly depend on phel\core
-            $this->requireNs = [Symbol::create('phel\\core'), ...$requireNs];
+            $this->requireNs = [
+                Symbol::create('phel\\core'),
+                ...$requireNs,
+            ];
         }
     }
 

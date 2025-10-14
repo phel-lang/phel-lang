@@ -81,19 +81,17 @@ final class OutputEmitter implements OutputEmitterInterface
         }
 
         if ($this->enableSourceMaps && $sl instanceof SourceLocation) {
-            $this->sourceMapState->addMapping(
-                [
-                    'source' => $sl->getFile(),
-                    'original' => [
-                        'line' => $sl->getLine() - 1,
-                        'column' => $sl->getColumn(),
-                    ],
-                    'generated' => [
-                        'line' => $this->sourceMapState->getGeneratedLines(),
-                        'column' => $this->sourceMapState->getGeneratedColumns(),
-                    ],
+            $this->sourceMapState->addMapping([
+                'source' => $sl->getFile(),
+                'original' => [
+                    'line' => $sl->getLine() - 1,
+                    'column' => $sl->getColumn(),
                 ],
-            );
+                'generated' => [
+                    'line' => $this->sourceMapState->getGeneratedLines(),
+                    'column' => $this->sourceMapState->getGeneratedColumns(),
+                ],
+            ]);
         }
 
         $this->sourceMapState->incGeneratedColumns(strlen($str));
