@@ -12,7 +12,7 @@ final class FileEmitter implements FileEmitterInterface
 {
     private string $phpCode = '';
 
-    private string $source = '';
+    private string $sourceFilePath = '';
 
     public function __construct(
         private readonly SourceMapGenerator $sourceMapGenerator,
@@ -25,7 +25,7 @@ final class FileEmitter implements FileEmitterInterface
         $this->outputEmitter->resetIndentLevel();
         $this->outputEmitter->resetSourceMapState();
 
-        $this->source = $source;
+        $this->sourceFilePath = $source;
         $this->phpCode = '';
     }
 
@@ -52,7 +52,7 @@ final class FileEmitter implements FileEmitterInterface
             $enableSourceMaps,
             $this->phpCode,
             $sourceMap,
-            $this->source,
+            $this->sourceFilePath,
         );
     }
 }

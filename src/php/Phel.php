@@ -5,18 +5,30 @@ declare(strict_types=1);
 namespace Phel;
 
 use Closure;
+use FilesystemIterator;
 use Gacela\Framework\Bootstrap\GacelaConfig;
 use Gacela\Framework\Gacela;
 use Phar;
 use Phel\Filesystem\FilesystemFacade;
 use Phel\Run\RunFacade;
+use RecursiveDirectoryIterator;
+use RecursiveIteratorIterator;
 use RuntimeException;
+use SplFileInfo;
 
+use function array_filter;
 use function dirname;
+use function explode;
+use function file_exists;
 use function getcwd;
 use function in_array;
 use function is_array;
+use function is_dir;
 use function is_string;
+use function rmdir;
+use function rtrim;
+use function str_starts_with;
+use function unlink;
 
 /**
  * @internal use \Phel instead
@@ -33,7 +45,9 @@ class Phel
      *
      * @see https://github.com/gacela-project/gacela/pull/322
      */
-    private const string FILE_CACHE_DIR = '';
+    private const string INTERNAL_FILE_CACHE_DIR = '';
+
+    private const string COMPILED_PHEL_CACHE_DIR = '.phel-cache';
 
     public static function bootstrap(string $projectRootDir, array|string|null $argv = null): void
     {
@@ -81,9 +95,35 @@ class Phel
     public static function configFn(): callable
     {
         return static function (GacelaConfig $config): void {
-            $config->enableFileCache(self::FILE_CACHE_DIR);
+            $config->enableFileCache(self::INTERNAL_FILE_CACHE_DIR);
             $config->addAppConfig(self::PHEL_CONFIG_FILE_NAME, self::PHEL_CONFIG_LOCAL_FILE_NAME);
         };
+    }
+
+    public static function cacheClear(string $projectRootDir): void
+    {
+        $cacheDir = rtrim($projectRootDir, DIRECTORY_SEPARATOR) . DIRECTORY_SEPARATOR . self::COMPILED_PHEL_CACHE_DIR;
+
+        if (!is_dir($cacheDir)) {
+            return;
+        }
+
+        $files = new RecursiveIteratorIterator(
+            new RecursiveDirectoryIterator($cacheDir, FilesystemIterator::SKIP_DOTS),
+            RecursiveIteratorIterator::CHILD_FIRST,
+        );
+
+        /** @var SplFileInfo $file */
+        foreach ($files as $file) {
+            if ($file->isDir()) {
+                rmdir($file->getPathname());
+                continue;
+            }
+
+            unlink($file->getPathname());
+        }
+
+        rmdir($cacheDir);
     }
 
     /**

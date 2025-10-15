@@ -6,6 +6,7 @@ namespace Phel\Compiler\Domain\Evaluator;
 
 use Phel\Compiler\Domain\Evaluator\Exceptions\CompiledCodeIsMalformedException;
 use Phel\Compiler\Domain\Evaluator\Exceptions\FileException;
+use Phel\Compiler\Infrastructure\CompileOptions;
 
 interface EvaluatorInterface
 {
@@ -15,5 +16,5 @@ interface EvaluatorInterface
      * @throws CompiledCodeIsMalformedException
      * @throws FileException
      */
-    public function eval(string $code): mixed;
+    public function eval(string $code, CompileOptions $compileOptions): mixed;
 }

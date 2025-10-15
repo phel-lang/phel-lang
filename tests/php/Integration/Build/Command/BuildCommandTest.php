@@ -7,6 +7,7 @@ namespace PhelTest\Integration\Build\Command;
 use Gacela\Framework\Bootstrap\GacelaConfig;
 use Gacela\Framework\Gacela;
 use Phel\Build\Infrastructure\Command\BuildCommand;
+use Phel\Phel;
 use PhelTest\Integration\Util\DirectoryUtil;
 use PHPUnit\Framework\Attributes\Depends;
 use PHPUnit\Framework\Attributes\PreserveGlobalState;
@@ -24,6 +25,7 @@ final class BuildCommandTest extends TestCase
 
     protected function setUp(): void
     {
+        Phel::cacheClear(__DIR__);
         $this->command = new BuildCommand();
     }
 

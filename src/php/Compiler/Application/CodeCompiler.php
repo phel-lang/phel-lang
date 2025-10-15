@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Phel\Compiler\Application;
 
+use Phel;
 use Phel\Compiler\Domain\Analyzer\AnalyzerInterface;
 use Phel\Compiler\Domain\Analyzer\Ast\AbstractNode;
 use Phel\Compiler\Domain\Analyzer\Environment\NodeEnvironment;
@@ -25,8 +26,12 @@ use Phel\Compiler\Domain\Parser\ParserNode\TriviaNodeInterface;
 use Phel\Compiler\Domain\Parser\ReadModel\ReaderResult;
 use Phel\Compiler\Domain\Reader\Exceptions\ReaderException;
 use Phel\Compiler\Domain\Reader\ReaderInterface;
+use Phel\Compiler\Infrastructure\CompilationCacheManager;
 use Phel\Compiler\Infrastructure\CompileOptions;
 use Phel\Lang\TypeInterface;
+use Phel\Shared\BuildConstants;
+use Phel\Shared\CompilerConstants;
+use Throwable;
 
 final readonly class CodeCompiler implements CodeCompilerInterface
 {
@@ -38,6 +43,7 @@ final readonly class CodeCompiler implements CodeCompilerInterface
         private StatementEmitterInterface $statementEmitter,
         private FileEmitterInterface $fileEmitter,
         private EvaluatorInterface $evaluator,
+        private CompilationCacheManager $cacheManager,
     ) {
     }
 
@@ -49,13 +55,24 @@ final readonly class CodeCompiler implements CodeCompilerInterface
      */
     public function compileString(string $phelCode, CompileOptions $compileOptions): EmitterResult
     {
+        $sourceFile = $compileOptions->getSource();
+
+        // Check if we have a valid cached version
+        if ($this->shouldUseCachedVersion($sourceFile)) {
+            $cachedPhpPath = $this->cacheManager->getCachedPhpPath($sourceFile);
+            if ($cachedPhpPath !== null) {
+                return $this->loadFromCache($cachedPhpPath, $sourceFile, $compileOptions);
+            }
+        }
+
+        // No cache or cache invalid - proceed with compilation
         $tokenStream = $this->lexer->lexString(
             $phelCode,
-            $compileOptions->getSource(),
+            $sourceFile,
             $compileOptions->getStartingLine(),
         );
 
-        $this->fileEmitter->startFile($compileOptions->getSource());
+        $this->fileEmitter->startFile($sourceFile);
         while (true) {
             try {
                 $parseTree = $this->parser->parseNext($tokenStream);
@@ -67,7 +84,7 @@ final readonly class CodeCompiler implements CodeCompilerInterface
                 if (!$parseTree instanceof TriviaNodeInterface) {
                     $readerResult = $this->reader->read($parseTree);
                     $node = $this->analyze($readerResult);
-                    // We need to evaluate every statement because we may need it for macros.
+                    // Still evaluate per-form for macro support, but accumulate for caching
                     $this->emitNode($node, $compileOptions);
                 }
             } catch (AbstractParserException|ReaderException $e) {
@@ -75,7 +92,12 @@ final readonly class CodeCompiler implements CodeCompilerInterface
             }
         }
 
-        return $this->fileEmitter->endFile($compileOptions->isSourceMapsEnabled());
+        $result = $this->fileEmitter->endFile($compileOptions->isSourceMapsEnabled());
+
+        // Cache the result (forms were already evaluated per-form for macro support)
+        $this->cacheResult($result, $compileOptions);
+
+        return $result;
     }
 
     public function compileForm(
@@ -115,6 +137,68 @@ final readonly class CodeCompiler implements CodeCompilerInterface
             ->emitNode($node, $compileOptions->isSourceMapsEnabled())
             ->getCodeWithSourceMap();
 
-        $this->evaluator->eval($phpCode);
+        $this->evaluator->eval($phpCode, $compileOptions);
+    }
+
+    /**
+     * Checks if we should use cached version (only for actual files in build mode).
+     */
+    private function shouldUseCachedVersion(string $sourceFile): bool
+    {
+        // Only cache in build mode to avoid path issues with requires
+        $isBuildMode = Phel::hasDefinition(CompilerConstants::PHEL_CORE_NAMESPACE, BuildConstants::BUILD_MODE)
+            && Phel::getDefinition(CompilerConstants::PHEL_CORE_NAMESPACE, BuildConstants::BUILD_MODE) === true;
+
+        return $isBuildMode
+            && $sourceFile !== CompileOptions::DEFAULT_SOURCE
+            && file_exists($sourceFile);
+    }
+
+    /**
+     * Loads compiled PHP from cache.
+     *
+     * @throws CompiledCodeIsMalformedException
+     */
+    private function loadFromCache(
+        string $cachedPhpPath,
+        string $sourceFile,
+        CompileOptions $compileOptions,
+    ): EmitterResult {
+        if (!file_exists($cachedPhpPath)) {
+            throw new CompiledCodeIsMalformedException('Cached PHP file does not exist: ' . $cachedPhpPath);
+        }
+
+        try {
+            // Directly require the cached file (already has <?php header)
+            require $cachedPhpPath;
+
+            // Read the cached PHP code for the result
+            $cachedPhpCode = file_get_contents($cachedPhpPath) ?: '';
+            // Remove the <?php header from the code
+            $phpCode = preg_replace('/^<\?php\s*\n/', '', $cachedPhpCode);
+
+            return new EmitterResult(
+                $compileOptions->isSourceMapsEnabled(),
+                $phpCode !== null && $phpCode !== '' ? $phpCode : '',
+                '',
+                $sourceFile,
+            );
+        } catch (Throwable $throwable) {
+            throw CompiledCodeIsMalformedException::fromThrowable($throwable);
+        }
+    }
+
+    /**
+     * Caches the compiled file result.
+     */
+    private function cacheResult(EmitterResult $result, CompileOptions $compileOptions): void
+    {
+        $phpCode = $result->getPhpCode();
+        $sourceFile = $compileOptions->getSource();
+
+        // Cache only if this is a real file (not inline code)
+        if ($this->shouldUseCachedVersion($sourceFile)) {
+            $this->cacheManager->storeCachedPhp($sourceFile, $phpCode);
+        }
     }
 }

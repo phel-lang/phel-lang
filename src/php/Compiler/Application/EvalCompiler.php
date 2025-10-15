@@ -108,6 +108,6 @@ final readonly class EvalCompiler implements EvalCompilerInterface
     {
         $code = $this->emitter->emitNode($node, $compileOptions->isSourceMapsEnabled())->getCodeWithSourceMap();
 
-        return $this->evaluator->eval($code);
+        return $this->evaluator->eval($code, $compileOptions);
     }
 }

@@ -2,6 +2,8 @@
 .claude/
 .phpbench/
 .vscode/
+.phel-cache/
+
 data/
 out/
 PhelGenerated/

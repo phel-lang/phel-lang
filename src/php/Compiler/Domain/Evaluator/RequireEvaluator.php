@@ -6,15 +6,17 @@ namespace Phel\Compiler\Domain\Evaluator;
 
 use Phel\Compiler\Domain\Evaluator\Exceptions\CompiledCodeIsMalformedException;
 use Phel\Compiler\Domain\Evaluator\Exceptions\FileException;
+use Phel\Compiler\Infrastructure\CompileOptions;
 use Phel\Filesystem\FilesystemFacadeInterface;
 use Phel\Run\Infrastructure\Service\DebugLineTap;
 use Throwable;
 
 use function function_exists;
+use function sprintf;
 
 final readonly class RequireEvaluator implements EvaluatorInterface
 {
-    private const string TEMP_PREFIX = '__phel';
+    public const string CACHE_PREFIX = '__phel';
 
     public function __construct(
         private FilesystemFacadeInterface $filesystemFacade,
@@ -27,14 +29,9 @@ final readonly class RequireEvaluator implements EvaluatorInterface
      * @throws CompiledCodeIsMalformedException
      * @throws FileException
      */
-    public function eval(string $code): mixed
+    public function eval(string $code, CompileOptions $compileOptions = new CompileOptions()): mixed
     {
-        // Suppress possible notice when PHP falls back to the system temp directory
-        $filename = @tempnam($this->filesystemFacade->getTempDir(), self::TEMP_PREFIX);
-        if ($filename === false) {
-            throw FileException::canNotCreateTempFile();
-        }
-
+        $filename = $this->generateTempFileName($compileOptions);
         $this->filesystemFacade->addFile($filename);
 
         try {
@@ -56,5 +53,19 @@ final readonly class RequireEvaluator implements EvaluatorInterface
         } catch (Throwable $throwable) {
             throw CompiledCodeIsMalformedException::fromThrowable($throwable);
         }
+    }
+
+    private function generateTempFileName(CompileOptions $compileOptions): string
+    {
+        // Suppress possible notice when PHP falls back to the system temp directory
+        $filename = @tempnam(
+            $this->filesystemFacade->getTempDir(),
+            sprintf(self::CACHE_PREFIX . '-%s-', $compileOptions->getSource()),
+        );
+        if ($filename === false) {
+            throw FileException::canNotCreateTempFile();
+        }
+
+        return $filename;
     }
 }

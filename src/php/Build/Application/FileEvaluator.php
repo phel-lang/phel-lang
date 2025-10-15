@@ -30,6 +30,7 @@ final readonly class FileEvaluator
             throw new RuntimeException(sprintf('Unable to read file "%s".', $src));
         }
 
+        // Use eval() for runtime - compile() with caching is for build mode only
         $this->compilerFacade->eval($code, $options);
 
         $namespaceInfo = $this->namespaceExtractor->getNamespaceFromFile($src);

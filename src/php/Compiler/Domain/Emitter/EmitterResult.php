@@ -10,7 +10,7 @@ final readonly class EmitterResult
         private bool $enableSourceMaps,
         private string $phpCode,
         private string $sourceMap,
-        private string $source,
+        private string $sourceFilePath,
     ) {
     }
 
@@ -24,16 +24,16 @@ final readonly class EmitterResult
         return $this->sourceMap;
     }
 
-    public function getSource(): string
+    public function getSourceFilePath(): string
     {
-        return $this->source;
+        return $this->sourceFilePath;
     }
 
     public function getCodeWithSourceMap(): string
     {
         if ($this->enableSourceMaps) {
             return (
-                '// ' . $this->source . "\n"
+                '// ' . $this->sourceFilePath . "\n"
                 . '// ;;' . $this->sourceMap . "\n"
                 . $this->phpCode
             );

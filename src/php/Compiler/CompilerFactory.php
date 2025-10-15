@@ -36,6 +36,7 @@ use Phel\Compiler\Domain\Parser\ParserInterface;
 use Phel\Compiler\Domain\Reader\ExpressionReaderFactory;
 use Phel\Compiler\Domain\Reader\QuasiquoteTransformer;
 use Phel\Compiler\Domain\Reader\ReaderInterface;
+use Phel\Compiler\Infrastructure\CompilationCacheManager;
 use Phel\Compiler\Infrastructure\CompileOptions;
 use Phel\Compiler\Infrastructure\GlobalEnvironmentSingleton;
 use Phel\Filesystem\FilesystemFacadeInterface;
@@ -68,6 +69,7 @@ final class CompilerFactory extends AbstractFactory
             $this->createStatementEmitter($compileOptions->isSourceMapsEnabled()),
             $this->createFileEmitter($compileOptions->isSourceMapsEnabled()),
             $this->createEvaluator(),
+            $this->createCompilationCacheManager(),
         );
     }
 
@@ -139,6 +141,14 @@ final class CompilerFactory extends AbstractFactory
     {
         return new RequireEvaluator(
             $this->getFilesystemFacade(),
+        );
+    }
+
+    public function createCompilationCacheManager(): CompilationCacheManager
+    {
+        return new CompilationCacheManager(
+            $this->getFilesystemFacade(),
+            $this->getConfig()->getAppRootDir(),
         );
     }
 
