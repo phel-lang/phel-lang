@@ -14,7 +14,7 @@ final class ConsoleFactory extends AbstractFactory
 {
     public const string CONSOLE_NAME = 'Phel';
 
-    public const bool IS_OFFICIAL_RELEASE = false;
+    public const bool IS_OFFICIAL_RELEASE = true;
 
     public function createConsoleBootstrap(): ConsoleBootstrap
     {
