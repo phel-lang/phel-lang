@@ -26,7 +26,7 @@ $iterator = new RecursiveIteratorIterator(
         new RecursiveDirectoryIterator($root, FilesystemIterator::FOLLOW_SYMLINKS),
         function ($current, $key, $iterator) {
             $basename = $current->getBasename();
-            $exclude = ['.', '..', '.git', 'docs', 'tests', 'docker', 'local', 'build', 'tools'];
+            $exclude = ['.', '..', '.git', 'docs', 'tests', 'docker', 'local', 'build', 'tools', 'examples', 'fixtures'];
             if ($current->isDir() && in_array($basename, $exclude, true)) {
                 return false;
             }
@@ -37,6 +37,16 @@ $iterator = new RecursiveIteratorIterator(
 
 foreach ($iterator as $file) {
     if ($file->isFile()) {
+        $basename = $file->getBasename();
+        // Exclude unnecessary files
+        $excludeFiles = ['composer.lock', 'composer.json', 'phpstan.neon', '.env', 'phel-debug.log', 'phpbench.json'];
+        if (in_array($basename, $excludeFiles, true)) {
+            continue;
+        }
+        // Exclude log files
+        if (str_ends_with($basename, '.log')) {
+            continue;
+        }
         $local = substr($file->getPathname(), strlen($root) + 1);
         $phar->addFile($file->getPathname(), $local);
     }

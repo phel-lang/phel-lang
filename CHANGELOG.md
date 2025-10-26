@@ -2,7 +2,11 @@
 
 All notable changes to this project will be documented in this file.
 
-## [0.24.0](https://github.com/phel-lang/phel-lang/compare/v0.22.2...v0.23.0) - 2025-10-16
+## Unreleased
+
+- Fix `build-phar.php` exclude unnecessary examples and fixtures
+
+## [0.24.0](https://github.com/phel-lang/phel-lang/compare/v0.23.1...v0.24.0) - 2025-10-26
 
 - Allow null on Phel static collections (vector, list, map, set) arguments
 - Fix `argv` from GLOBALS when does not exist
