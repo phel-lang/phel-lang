@@ -7,7 +7,7 @@ All notable changes to this project will be documented in this file.
 - Allow null on Phel static collections (vector, list, map, set) arguments
 - Fix `argv` from GLOBALS when does not exist
 - Add `load` and `in-ns` special forms
-- Upgrade gacela:1.11 and psalm:7.0-beta and improve type safety
+- Upgrade `gacela:1.11` and `psalm:7.0-beta` and improve type safety
 
 ## [0.23.0](https://github.com/phel-lang/phel-lang/compare/v0.22.2...v0.23.0) - 2025-10-05
 

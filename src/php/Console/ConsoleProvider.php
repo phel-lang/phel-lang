@@ -65,14 +65,14 @@ final class ConsoleProvider extends AbstractProvider
 
     private function addVersionInfo(Container $container): void
     {
-        $container->set(self::TAG_COMMIT_HASH, static fn (): string => self::resolveTagCommitHash());
+        $container->set(self::TAG_COMMIT_HASH, $this->resolveTagCommitHash(...));
 
-        $container->set(self::CURRENT_COMMIT, static fn (): string => self::resolveCurrentCommit());
+        $container->set(self::CURRENT_COMMIT, $this->resolveCurrentCommit(...));
     }
 
-    private static function resolveTagCommitHash(): string
+    private function resolveTagCommitHash(): string
     {
-        $hash = self::execGitCommand('git rev-list -n 1 ' . VersionFinder::LATEST_VERSION);
+        $hash = $this->execGitCommand('git rev-list -n 1 ' . VersionFinder::LATEST_VERSION);
         if ($hash !== '') {
             return $hash;
         }
@@ -88,9 +88,9 @@ final class ConsoleProvider extends AbstractProvider
         return InstalledVersions::getReference(self::PACKAGE_NAME) ?? '';
     }
 
-    private static function resolveCurrentCommit(): string
+    private function resolveCurrentCommit(): string
     {
-        $hash = self::execGitCommand('git rev-parse --verify HEAD');
+        $hash = $this->execGitCommand('git rev-parse --verify HEAD');
         if ($hash !== '') {
             return $hash;
         }
@@ -102,7 +102,7 @@ final class ConsoleProvider extends AbstractProvider
         return InstalledVersions::getReference(self::PACKAGE_NAME) ?? '';
     }
 
-    private static function execGitCommand(string $command): string
+    private function execGitCommand(string $command): string
     {
         $output = [];
         @exec($command . ' 2>/dev/null', $output);

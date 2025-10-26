@@ -34,7 +34,7 @@ final readonly class CompiledPhpClassBuilder
     {
         $phelNsWords = explode('\\', $phelNs);
         array_pop($phelNsWords);
-        $pascalWords = array_map(fn (string $w): string => $this->underscoreToPascalCase($w), $phelNsWords);
+        $pascalWords = array_map($this->underscoreToPascalCase(...), $phelNsWords);
         $normalizedNamespace = implode('\\', $pascalWords);
 
         if ($this->prefixNamespace === '' || $this->prefixNamespace === '0') {

@@ -24,7 +24,7 @@ final readonly class ExceptionArgsPrinter implements ExceptionArgsPrinterInterfa
     public function parseArgsAsString(array $frameArgs): string
     {
         $argParts = array_map(
-            fn (mixed $arg): string => $this->printer->print($arg),
+            $this->printer->print(...),
             $frameArgs,
         );
 
@@ -39,7 +39,7 @@ final readonly class ExceptionArgsPrinter implements ExceptionArgsPrinterInterfa
     public function buildPhpArgsString(array $args): string
     {
         $result = array_map(
-            fn ($arg): string => $this->buildPhpArg($arg),
+            $this->buildPhpArg(...),
             $args,
         );
 

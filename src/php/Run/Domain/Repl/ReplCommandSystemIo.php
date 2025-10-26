@@ -24,7 +24,7 @@ final readonly class ReplCommandSystemIo implements ReplCommandIoInterface
         }
 
         readline_completion_function(
-            fn (string $input): array => $this->apiFacade->replComplete($input),
+            $this->apiFacade->replComplete(...),
         );
     }
 
