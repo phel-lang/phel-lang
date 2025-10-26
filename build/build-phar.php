@@ -39,7 +39,15 @@ foreach ($iterator as $file) {
     if ($file->isFile()) {
         $basename = $file->getBasename();
         // Exclude unnecessary files
-        $excludeFiles = ['composer.lock', 'composer.json', 'phpstan.neon', '.env', 'phel-debug.log', 'phpbench.json'];
+        $excludeFiles = [
+            'composer.lock',
+            'composer.json',
+            'phpstan.neon',
+            '.env',
+            'phel-debug.log',
+            'phpbench.json',
+            'phel-config-local.php',
+        ];
         if (in_array($basename, $excludeFiles, true)) {
             continue;
         }
