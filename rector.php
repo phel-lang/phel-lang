@@ -10,6 +10,8 @@ use Rector\PHPUnit\Set\PHPUnitSetList;
 use Rector\Privatization\Rector\Property\PrivatizeFinalClassPropertyRector;
 use Rector\Set\ValueObject\LevelSetList;
 use Rector\Set\ValueObject\SetList;
+use Rector\TypeDeclaration\Rector\ClassMethod\ReturnTypeFromReturnNewRector;
+use Rector\TypeDeclaration\Rector\ClassMethod\ReturnTypeFromStrictConstantReturnRector;
 
 return RectorConfig::configure()
     ->withPaths([
@@ -22,6 +24,12 @@ return RectorConfig::configure()
         __DIR__ . '/tests/php/*/gacela-class-names.php',
         __DIR__ . '/tests/php/*/gacela-custom-services.php',
         SetUpBeforeClassToSetUpRector::class,
+        ReturnTypeFromReturnNewRector::class => [
+            __DIR__ . '/tests/php/Unit/Interop/Generator/CompiledPhpMethodBuilderTest.php',
+        ],
+        ReturnTypeFromStrictConstantReturnRector::class => [
+            __DIR__ . '/tests/php/Unit/Interop/Generator/CompiledPhpMethodBuilderTest.php',
+        ],
         UseClassKeywordForClassNameResolutionRector::class => [
             __DIR__ . '/src/php/Compiler/Domain/Emitter/OutputEmitter/LiteralEmitter.php',
             __DIR__ . '/src/php/Compiler/Domain/Emitter/OutputEmitter/NodeEmitter/DefEmitter',

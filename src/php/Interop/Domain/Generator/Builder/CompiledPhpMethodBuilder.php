@@ -36,8 +36,9 @@ final class CompiledPhpMethodBuilder
     {
         $words = explode('\\', $boundTo);
         $className = array_pop($words);
+        $camelCase = $this->underscoreToCamelCase($className);
 
-        return $this->underscoreToCamelCase($className);
+        return $this->sanitizePhpIdentifier($camelCase);
     }
 
     private function underscoreToCamelCase(string $string): string
@@ -69,6 +70,18 @@ final class CompiledPhpMethodBuilder
         $functionName = $suffix === false ? $boundTo : substr($suffix, 1);
 
         return str_replace('_', '-', $functionName);
+    }
+
+    private function sanitizePhpIdentifier(string $identifier): string
+    {
+        // Remove any characters that are not alphanumeric or underscore
+        $sanitized = preg_replace('/\W/', '', $identifier) ?? '';
+
+        if ($sanitized !== '' && is_numeric($sanitized[0])) {
+            return '_' . $sanitized;
+        }
+
+        return $sanitized;
     }
 
     private function buildReturnType(ReflectionMethod $refInvoke): string
