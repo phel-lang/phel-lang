@@ -9,6 +9,7 @@ All notable changes to this project will be documented in this file.
   - Exclude `phel-config-local.php`
 - Optimize `PhelCallerTrait`
 - Fix supports php-timer >=6.0 and console >=7.3
+- Fix export function name to php
 
 ## [0.24.0](https://github.com/phel-lang/phel-lang/compare/v0.23.1...v0.24.0) - 2025-10-26
 
