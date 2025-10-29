@@ -74,10 +74,15 @@ final class CompiledPhpMethodBuilder
 
     private function sanitizePhpIdentifier(string $identifier): string
     {
-        // Remove any characters that are not alphanumeric or underscore
-        $sanitized = preg_replace('/\W/', '', $identifier) ?? '';
+        $sanitized = (string) preg_replace('/\W/', '_', $identifier);
+        $sanitized = (string) preg_replace('/_+/', '_', $sanitized);
+        $sanitized = trim($sanitized, '_');
 
-        if ($sanitized !== '' && is_numeric($sanitized[0])) {
+        if ($sanitized === '') {
+            $sanitized = 'operator';
+        }
+
+        if (is_numeric($sanitized[0])) {
             return '_' . $sanitized;
         }
 

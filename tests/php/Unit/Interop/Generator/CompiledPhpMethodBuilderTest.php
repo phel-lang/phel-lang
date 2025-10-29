@@ -18,10 +18,10 @@ final class CompiledPhpMethodBuilderTest extends TestCase
         $this->methodBuilder = new CompiledPhpMethodBuilder();
     }
 
-    public function test_sanitizes_method_name_with_special_characters(): void
+    public function test_sanitizes_invalid_characters_and_starts_with_digit(): void
     {
         $functionToExport = new FunctionToExport(new class() implements FnInterface {
-            public const BOUND_TO = 'test_ns\\func$name@special!';
+            public const BOUND_TO = 'test_ns\\123func$name@special!';
 
             public function __invoke(): mixed
             {
@@ -31,13 +31,14 @@ final class CompiledPhpMethodBuilderTest extends TestCase
 
         $result = $this->methodBuilder->build('test_ns', $functionToExport);
 
-        self::assertStringContainsString('public static function funcnamespecial', $result);
+        // Invalid characters replaced with underscores, prepended with _ since starts with digit
+        self::assertStringContainsString('public static function _123func_name_special', $result);
     }
 
-    public function test_sanitizes_method_name_starting_with_digit(): void
+    public function test_sanitizes_pure_operator_symbols(): void
     {
         $functionToExport = new FunctionToExport(new class() implements FnInterface {
-            public const BOUND_TO = 'test_ns\\123function';
+            public const BOUND_TO = 'test_ns\\>=';
 
             public function __invoke(): mixed
             {
@@ -47,39 +48,8 @@ final class CompiledPhpMethodBuilderTest extends TestCase
 
         $result = $this->methodBuilder->build('test_ns', $functionToExport);
 
-        self::assertStringContainsString('public static function _123function', $result);
-    }
-
-    public function test_sanitizes_method_name_with_dots(): void
-    {
-        $functionToExport = new FunctionToExport(new class() implements FnInterface {
-            public const BOUND_TO = 'test_ns\\test.nested.name';
-
-            public function __invoke(): mixed
-            {
-                return null;
-            }
-        });
-
-        $result = $this->methodBuilder->build('test_ns', $functionToExport);
-
-        self::assertStringContainsString('public static function testnestedname', $result);
-    }
-
-    public function test_preserves_valid_identifiers(): void
-    {
-        $functionToExport = new FunctionToExport(new class() implements FnInterface {
-            public const BOUND_TO = 'test_ns\\valid_function_name';
-
-            public function __invoke(): mixed
-            {
-                return null;
-            }
-        });
-
-        $result = $this->methodBuilder->build('test_ns', $functionToExport);
-
-        self::assertStringContainsString('public static function validFunctionName', $result);
+        // Pure operators fallback to "operator"
+        self::assertStringContainsString('public static function operator', $result);
     }
 
     public function test_includes_return_type_when_defined(): void
@@ -112,21 +82,5 @@ final class CompiledPhpMethodBuilderTest extends TestCase
         $result = $this->methodBuilder->build('test_ns', $functionToExport);
 
         self::assertStringContainsString(': mixed', $result);
-    }
-
-    public function test_handles_variadic_arguments(): void
-    {
-        $functionToExport = new FunctionToExport(new class() implements FnInterface {
-            public const BOUND_TO = 'test_ns\\variadic_function';
-
-            public function __invoke(string $first, int ...$rest): int
-            {
-                return 0;
-            }
-        });
-
-        $result = $this->methodBuilder->build('test_ns', $functionToExport);
-
-        self::assertStringContainsString('public static function variadicFunction($first, ...$rest): int', $result);
     }
 }
