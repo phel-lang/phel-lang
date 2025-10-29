@@ -8,14 +8,21 @@ use Phel;
 
 trait PhelCallerTrait
 {
+    /** @var array<string, mixed> Cache of resolved Phel definitions */
+    private static array $definitionCache = [];
+
     /**
      * @param mixed[] $arguments
-     *
-     * @return mixed
      */
-    private function callPhel(string $namespace, string $definitionName, ...$arguments)
+    private function callPhel(string $namespace, string $definitionName, ...$arguments): mixed
     {
-        $fn = $this->getPhelDefinition($namespace, $definitionName);
+        $cacheKey = $namespace . '::' . $definitionName;
+
+        if (!isset(self::$definitionCache[$cacheKey])) {
+            self::$definitionCache[$cacheKey] = $this->getPhelDefinition($namespace, $definitionName);
+        }
+
+        $fn = self::$definitionCache[$cacheKey];
 
         return $fn(...$arguments);
     }
