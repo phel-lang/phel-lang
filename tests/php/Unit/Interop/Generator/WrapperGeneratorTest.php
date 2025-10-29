@@ -50,9 +50,9 @@ final class FileNameExample
     /**
      * @return mixed
      */
-    public function phelFunctionExample($a, ...$b)
+    public static function phelFunctionExample($a, ...$b)
     {
-        return $this->callPhel('custom-namespace\\file-name-example', 'phel-function-example', $a, ...$b);
+        return self::callPhel('custom-namespace\\file-name-example', 'phel-function-example', $a, ...$b);
     }
 
 }

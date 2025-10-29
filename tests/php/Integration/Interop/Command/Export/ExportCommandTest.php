@@ -41,8 +41,8 @@ final class ExportCommandTest extends TestCase
         self::assertFileExists(__DIR__ . '/PhelGenerated/TestCmdExportMultiple/Adder.php');
         self::assertFileExists(__DIR__ . '/PhelGenerated/TestCmdExportMultiple/Multiplier.php');
 
-        self::assertSame(3, (new Adder())->adder1(1, 2));
-        self::assertSame(9, (new Multiplier())->multiplier2(3, 3));
+        self::assertSame(3, Adder::adder1(1, 2));
+        self::assertSame(9, Multiplier::multiplier2(3, 3));
     }
 
     private function stubOutput(): OutputInterface

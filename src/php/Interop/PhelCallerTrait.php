@@ -14,23 +14,17 @@ trait PhelCallerTrait
     /**
      * @param mixed[] $arguments
      */
-    private function callPhel(string $namespace, string $definitionName, ...$arguments): mixed
+    private static function callPhel(string $namespace, string $definitionName, ...$arguments): mixed
     {
         $cacheKey = $namespace . '::' . $definitionName;
 
         if (!isset(self::$definitionCache[$cacheKey])) {
-            self::$definitionCache[$cacheKey] = $this->getPhelDefinition($namespace, $definitionName);
+            $phelNs = str_replace('-', '_', $namespace);
+            self::$definitionCache[$cacheKey] = Phel::getDefinition($phelNs, $definitionName);
         }
 
         $fn = self::$definitionCache[$cacheKey];
 
         return $fn(...$arguments);
-    }
-
-    private function getPhelDefinition(string $namespace, string $definitionName): mixed
-    {
-        $phelNs = str_replace('-', '_', $namespace);
-
-        return Phel::getDefinition($phelNs, $definitionName);
     }
 }

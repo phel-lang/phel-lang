@@ -7,5 +7,5 @@
 
 (defn multiplier-2
   {:export true}
-  [a b]
-  (php/* a b))
+  [c d]
+  (php/* c d))

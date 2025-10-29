@@ -17,6 +17,7 @@ return RectorConfig::configure()
     ])
     ->withSkip([
         __DIR__ . '/tests/php/*/out/*',
+        __DIR__ . '/tests/php/*/PhelGenerated/*',
         __DIR__ . '/tests/php/*/gacela-class-names.php',
         __DIR__ . '/tests/php/*/gacela-custom-services.php',
         UseClassKeywordForClassNameResolutionRector::class => [
