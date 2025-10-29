@@ -4,9 +4,10 @@ declare(strict_types=1);
 
 namespace PhelTest\Integration\Interop\Command\Export;
 
-use Gacela\Framework\Bootstrap\GacelaConfig;
-use Gacela\Framework\Gacela;
 use Phel\Interop\Infrastructure\Command\ExportCommand;
+use Phel\Phel;
+use PhelTest\Integration\Interop\Command\Export\PhelGenerated\TestCmdExportMultiple\Adder;
+use PhelTest\Integration\Interop\Command\Export\PhelGenerated\TestCmdExportMultiple\Multiplier;
 use PhelTest\Integration\Util\DirectoryUtil;
 use PHPUnit\Framework\Attributes\PreserveGlobalState;
 use PHPUnit\Framework\Attributes\RunInSeparateProcess;
@@ -25,8 +26,7 @@ final class ExportCommandTest extends TestCase
     #[RunInSeparateProcess]
     public function test_export_command_multiple(): void
     {
-        Gacela::bootstrap(__DIR__, GacelaConfig::defaultPhpConfig());
-
+        Phel::bootstrap(__DIR__);
         $command = new ExportCommand();
 
         $this->expectOutputRegex('~Exported namespaces:~');
@@ -40,6 +40,9 @@ final class ExportCommandTest extends TestCase
 
         self::assertFileExists(__DIR__ . '/PhelGenerated/TestCmdExportMultiple/Adder.php');
         self::assertFileExists(__DIR__ . '/PhelGenerated/TestCmdExportMultiple/Multiplier.php');
+
+        self::assertSame(3, (new Adder())->adder1(1, 2));
+        self::assertSame(9, (new Multiplier())->multiplier2(3, 3));
     }
 
     private function stubOutput(): OutputInterface
