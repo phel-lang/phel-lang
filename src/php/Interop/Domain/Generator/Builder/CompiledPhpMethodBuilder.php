@@ -15,15 +15,18 @@ final class CompiledPhpMethodBuilder
     {
         $ref = new ReflectionClass($functionToExport->fn());
         $boundTo = (string)$ref->getConstant('BOUND_TO');
+        $refInvoke = $ref->getMethod('__invoke');
 
         return str_replace([
             '$METHOD_NAME$',
             '$ARGS$',
+            '$RETURN_TYPE$',
             '$PHEL_NAMESPACE$',
             '$PHEL_FUNCTION_NAME$',
         ], [
             $this->buildMethodName($boundTo),
-            $this->buildArgs($ref->getMethod('__invoke')),
+            $this->buildArgs($refInvoke),
+            $this->buildReturnType($refInvoke),
             str_replace(['_', '\\'], ['-', '\\\\'], $phelNs),
             $this->buildPhelFunctionName($boundTo),
         ], $this->methodTemplate());
@@ -68,14 +71,22 @@ final class CompiledPhpMethodBuilder
         return str_replace('_', '-', $functionName);
     }
 
+    private function buildReturnType(ReflectionMethod $refInvoke): string
+    {
+        $returnType = $refInvoke->getReturnType();
+
+        if ($returnType === null) {
+            return ': mixed';
+        }
+
+        return ': ' . $returnType->__toString();
+    }
+
     private function methodTemplate(): string
     {
         return <<<'TXT'
 
-    /**
-     * @return mixed
-     */
-    public static function $METHOD_NAME$($ARGS$)
+    public static function $METHOD_NAME$($ARGS$)$RETURN_TYPE$
     {
         return self::callPhel('$PHEL_NAMESPACE$', '$PHEL_FUNCTION_NAME$', $ARGS$);
     }

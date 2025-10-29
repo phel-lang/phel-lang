@@ -14,7 +14,7 @@ trait PhelCallerTrait
     /**
      * @param mixed[] $arguments
      */
-    private static function callPhel(string $namespace, string $definitionName, ...$arguments): mixed
+    private static function callPhel(string $namespace, string $definitionName, ...$arguments)
     {
         $cacheKey = $namespace . '::' . $definitionName;
 

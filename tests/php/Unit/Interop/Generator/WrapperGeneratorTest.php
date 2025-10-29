@@ -47,10 +47,7 @@ final class FileNameExample
 {
     use PhelCallerTrait;
 
-    /**
-     * @return mixed
-     */
-    public static function phelFunctionExample($a, ...$b)
+    public static function phelFunctionExample($a, ...$b): int|float
     {
         return self::callPhel('custom-namespace\\file-name-example', 'phel-function-example', $a, ...$b);
     }
