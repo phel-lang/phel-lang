@@ -5,3 +5,5 @@ parameters:
         processTimeout: 3000.0
     paths:
         - %currentWorkingDirectory%/src/
+    ignoreErrors:
+        - identifier: trait.unused
