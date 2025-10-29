@@ -9,6 +9,7 @@ use Gacela\Framework\Gacela;
 use Phel\Config\PhelConfig;
 use Phel\Filesystem\FilesystemFacade;
 use Phel\Filesystem\Infrastructure\RealFilesystem;
+use Phel\Phel;
 use PHPUnit\Framework\TestCase;
 
 final class FilesystemFacadeTest extends TestCase
@@ -23,7 +24,7 @@ final class FilesystemFacadeTest extends TestCase
 
     public function test_remove_generated_files_after_clear_all_by_default(): void
     {
-        Gacela::bootstrap(__DIR__);
+        Phel::bootstrap(__DIR__);
 
         $filename = tempnam(sys_get_temp_dir(), '__test');
         $this->filesystem->addFile($filename);

@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace PhelTest\Integration\Run\RequireBuildMode;
 
-use Gacela\Framework\Gacela;
 use Phel;
 use Phel\Build\BuildFacade;
 use PHPUnit\Framework\Attributes\PreserveGlobalState;
@@ -18,7 +17,7 @@ final class RequireBuildModeTest extends TestCase
     public function test_require_loads_in_build_mode(): void
     {
         $fixtures = __DIR__ . '/Fixtures';
-        Gacela::bootstrap(__DIR__);
+        Phel::bootstrap(__DIR__);
 
         Phel::addDefinition('phel\\repl', 'src-dirs', [$fixtures]);
 

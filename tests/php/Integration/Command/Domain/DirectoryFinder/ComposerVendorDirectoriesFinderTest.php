@@ -4,16 +4,15 @@ declare(strict_types=1);
 
 namespace PhelTest\Integration\Command\Domain\DirectoryFinder;
 
-use Gacela\Framework\Gacela;
-use Phel;
 use Phel\Command\Infrastructure\ComposerVendorDirectoriesFinder;
+use Phel\Phel;
 use PHPUnit\Framework\TestCase;
 
 final class ComposerVendorDirectoriesFinderTest extends TestCase
 {
     protected function setUp(): void
     {
-        Gacela::bootstrap(__DIR__, Phel::configFn());
+        Phel::bootstrap(__DIR__);
     }
 
     public function test_trigger_notice_when_wrong_type(): void

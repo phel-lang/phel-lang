@@ -43,12 +43,9 @@ final class RequireEvaluatorTest extends TestCase
             rmdir($this->tempDir);
         }
 
-        Gacela::bootstrap(
-            __DIR__,
-            function (GacelaConfig $config): void {
-                $config->addAppConfigKeyValue(PhelConfig::TEMP_DIR, $this->tempDir);
-            },
-        );
+        Gacela::bootstrap(__DIR__, function (GacelaConfig $config): void {
+            $config->addAppConfigKeyValue(PhelConfig::TEMP_DIR, $this->tempDir);
+        });
 
         $result = $this->evaluator->eval('return 42;');
 

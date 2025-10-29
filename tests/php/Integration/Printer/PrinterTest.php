@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace PhelTest\Integration\Printer;
 
-use Gacela\Framework\Gacela;
 use Phel\Compiler\CompilerFacade;
 use Phel\Compiler\Infrastructure\GlobalEnvironmentSingleton;
+use Phel\Phel;
 use Phel\Printer\Printer;
 use Phel\Shared\Facade\CompilerFacadeInterface;
 use PHPUnit\Framework\TestCase;
@@ -17,7 +17,7 @@ final class PrinterTest extends TestCase
 
     public static function setUpBeforeClass(): void
     {
-        Gacela::bootstrap(__DIR__);
+        Phel::bootstrap(__DIR__);
         GlobalEnvironmentSingleton::reset();
     }
 

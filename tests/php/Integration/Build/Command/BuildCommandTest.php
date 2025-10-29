@@ -7,6 +7,7 @@ namespace PhelTest\Integration\Build\Command;
 use Gacela\Framework\Bootstrap\GacelaConfig;
 use Gacela\Framework\Gacela;
 use Phel\Build\Infrastructure\Command\BuildCommand;
+use Phel\Phel;
 use PhelTest\Integration\Util\DirectoryUtil;
 use PHPUnit\Framework\Attributes\Depends;
 use PHPUnit\Framework\Attributes\PreserveGlobalState;
@@ -137,8 +138,6 @@ TXT;
 
     private function bootstrapGacela(): void
     {
-        Gacela::bootstrap(__DIR__, static function (GacelaConfig $config): void {
-            $config->addAppConfig('config/phel-config.php');
-        });
+        Phel::bootstrap(__DIR__);
     }
 }

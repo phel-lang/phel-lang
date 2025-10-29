@@ -4,8 +4,6 @@ declare(strict_types=1);
 
 namespace PhelTest\Integration\Api;
 
-use Gacela\Framework\Bootstrap\GacelaConfig;
-use Gacela\Framework\Gacela;
 use Phel;
 use Phel\Api\ApiConfig;
 use Phel\Api\ApiFacade;
@@ -21,7 +19,7 @@ final class ApiFacadeTest extends TestCase
     #[RunInSeparateProcess]
     public function test_number_of_grouped_functions(): void
     {
-        Gacela::bootstrap(__DIR__, GacelaConfig::defaultPhpConfig());
+        Phel::bootstrap(__DIR__);
 
         Phel::clear();
         Symbol::resetGen();

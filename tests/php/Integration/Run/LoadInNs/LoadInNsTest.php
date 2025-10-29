@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace PhelTest\Integration\Run\LoadInNs;
 
-use Gacela\Framework\Gacela;
 use Phel;
 use Phel\Build\BuildFacade;
 use PHPUnit\Framework\Attributes\PreserveGlobalState;
@@ -18,7 +17,7 @@ final class LoadInNsTest extends TestCase
     public function test_nested_load_with_in_ns_resolves_relative_paths_correctly(): void
     {
         $fixtures = __DIR__ . '/Fixtures';
-        Gacela::bootstrap(__DIR__);
+        Phel::bootstrap(__DIR__);
 
         Phel::addDefinition('phel\\repl', 'src-dirs', [$fixtures]);
 

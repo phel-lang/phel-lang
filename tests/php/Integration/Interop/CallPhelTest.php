@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace PhelTest\Integration\Interop;
 
-use Gacela\Framework\Gacela;
 use Phel\Build\BuildFacade;
 use Phel\Compiler\Infrastructure\GlobalEnvironmentSingleton;
+use Phel\Phel;
 use PHPUnit\Framework\TestCase;
 
 final class CallPhelTest extends TestCase
@@ -15,7 +15,7 @@ final class CallPhelTest extends TestCase
 
     protected function setUp(): void
     {
-        Gacela::bootstrap(__DIR__);
+        Phel::bootstrap(__DIR__);
 
         GlobalEnvironmentSingleton::initializeNew();
 

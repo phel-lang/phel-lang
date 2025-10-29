@@ -8,6 +8,7 @@ use Gacela\Framework\Bootstrap\GacelaConfig;
 use Gacela\Framework\Gacela;
 use Phel\Config\PhelConfig;
 use Phel\Formatter\Infrastructure\Command\FormatCommand;
+use Phel\Phel;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\Console\Tester\CommandTester;
 
@@ -17,7 +18,7 @@ final class FormatCommandTest extends TestCase
 
     public function test_good_format(): void
     {
-        Gacela::bootstrap(__DIR__);
+        Phel::bootstrap(__DIR__);
 
         $path = self::FIXTURES_DIR . 'good-format.phel';
         $oldContent = file_get_contents($path);
@@ -58,7 +59,7 @@ TXT;
 
     public function test_command_uses_default_paths(): void
     {
-        Gacela::bootstrap(__DIR__);
+        Phel::bootstrap(__DIR__);
 
         $path = self::FIXTURES_DIR . 'bad-format.phel';
         $oldContent = file_get_contents($path);

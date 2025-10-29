@@ -4,8 +4,7 @@ declare(strict_types=1);
 
 namespace PhelTest\Benchmark\Command;
 
-use Gacela\Framework\Bootstrap\GacelaConfig;
-use Gacela\Framework\Gacela;
+use Phel\Phel;
 use Phel\Run\Infrastructure\Command\RunCommand;
 use Phel\Run\Infrastructure\Command\TestCommand;
 use PhpBench\Benchmark\Metadata\Annotations\BeforeMethods;
@@ -25,7 +24,7 @@ final class CommandBench
 {
     public function setUp(): void
     {
-        Gacela::bootstrap(__DIR__, GacelaConfig::defaultPhpConfig());
+        Phel::bootstrap(__DIR__);
     }
 
     public function bench_run_command(): void

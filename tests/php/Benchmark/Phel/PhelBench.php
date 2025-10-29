@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace PhelTest\Benchmark\Phel;
 
-use Gacela\Framework\Gacela;
 use Phel;
 use Phel\Build\BuildFacade;
 use Phel\Compiler\Infrastructure\GlobalEnvironmentSingleton;
@@ -23,7 +22,7 @@ final class PhelBench
 {
     public function setUp(): void
     {
-        Gacela::bootstrap(__DIR__);
+        Phel::bootstrap(__DIR__);
         Symbol::resetGen();
         GlobalEnvironmentSingleton::initializeNew();
 

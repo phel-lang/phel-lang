@@ -4,8 +4,7 @@ declare(strict_types=1);
 
 namespace PhelTest\Integration\Run\Command\Run;
 
-use Gacela\Framework\Bootstrap\GacelaConfig;
-use Gacela\Framework\Gacela;
+use Phel\Phel;
 use Phel\Run\Infrastructure\Command\RunCommand;
 use PhelTest\Integration\Run\Command\AbstractTestCommand;
 use Symfony\Component\Console\Input\ArgvInput;
@@ -15,10 +14,7 @@ final class RunCommandTest extends AbstractTestCommand
 {
     public static function setUpBeforeClass(): void
     {
-        Gacela::bootstrap(__DIR__, static function (GacelaConfig $config): void {
-            $config->resetInMemoryCache();
-            $config->addAppConfig('config/*.php');
-        });
+        Phel::bootstrap(__DIR__);
     }
 
     public function test_file_not_found(): void

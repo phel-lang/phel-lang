@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace PhelTest\Integration\Repl;
 
-use Gacela\Framework\Gacela;
 use Phel;
 use Phel\Build\BuildFacade;
 use Phel\Compiler\CompilerFacade;
@@ -16,7 +15,7 @@ final class RequireNamespaceTest extends TestCase
 {
     public function test_require_loads_namespace(): void
     {
-        Gacela::bootstrap(__DIR__);
+        Phel::bootstrap(__DIR__);
         Phel::addDefinition('phel\\repl', 'src-dirs', [__DIR__ . '/../../../../src']);
 
         $build = new BuildFacade();

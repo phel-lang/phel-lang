@@ -4,8 +4,6 @@ declare(strict_types=1);
 
 namespace PhelTest\Integration\Run\Command\Repl;
 
-use Gacela\Framework\Bootstrap\GacelaConfig;
-use Gacela\Framework\Gacela;
 use Generator;
 use Override;
 use Phel\Command\Application\TextExceptionPrinter;
@@ -14,6 +12,7 @@ use Phel\Command\Domain\Exceptions\ExceptionArgsPrinter;
 use Phel\Command\Domain\Exceptions\Extractor\FilePositionExtractor;
 use Phel\Command\Infrastructure\SourceMapExtractor;
 use Phel\Compiler\Application\Munge;
+use Phel\Phel;
 use Phel\Printer\Printer;
 use Phel\Printer\PrinterInterface;
 use Phel\Run\Domain\Repl\ColorStyle;
@@ -46,10 +45,7 @@ final class ReplTestCommand extends AbstractTestCommand
         $this->previousCwd = getcwd() ?: '';
         chdir(__DIR__);
 
-        Gacela::bootstrap(__DIR__, static function (GacelaConfig $config): void {
-            $config->resetInMemoryCache();
-            $config->addAppConfig('config/*.php', 'config/local.php');
-        });
+        Phel::bootstrap(__DIR__);
     }
 
     #[Override]

@@ -4,20 +4,20 @@ declare(strict_types=1);
 
 namespace PhelTest\Unit\Build\Domain\Extractor;
 
-use Gacela\Framework\Gacela;
 use Phel\Build\Application\NamespaceExtractor;
 use Phel\Build\Domain\Extractor\ExtractorException;
 use Phel\Build\Domain\Extractor\NamespaceInformation;
 use Phel\Build\Domain\Extractor\TopologicalNamespaceSorter;
 use Phel\Build\Infrastructure\IO\SystemFileIo;
 use Phel\Compiler\CompilerFacade;
+use Phel\Phel;
 use PHPUnit\Framework\TestCase;
 
 final class NamespaceExtractorTest extends TestCase
 {
     public static function setUpBeforeClass(): void
     {
-        Gacela::bootstrap(__DIR__);
+        Phel::bootstrap(__DIR__);
     }
 
     public function test_get_namespace_from_file(): void

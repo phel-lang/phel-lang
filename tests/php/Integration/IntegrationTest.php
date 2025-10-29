@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace PhelTest\Integration;
 
-use Gacela\Framework\Gacela;
 use Generator;
+use Phel;
 use Phel\Build\BuildFacade;
 use Phel\Compiler\CompilerFacade;
 use Phel\Compiler\Domain\Analyzer\Environment\GlobalEnvironmentInterface;
@@ -26,7 +26,7 @@ final class IntegrationTest extends TestCase
 
     public static function setUpBeforeClass(): void
     {
-        Gacela::bootstrap(__DIR__);
+        Phel::bootstrap(__DIR__);
         Symbol::resetGen();
         $globalEnv = GlobalEnvironmentSingleton::initializeNew();
         (new BuildFacade())->compileFile(

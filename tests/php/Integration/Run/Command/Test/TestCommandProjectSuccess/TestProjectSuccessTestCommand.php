@@ -4,8 +4,7 @@ declare(strict_types=1);
 
 namespace PhelTest\Integration\Run\Command\Test\TestCommandProjectSuccess;
 
-use Gacela\Framework\Bootstrap\GacelaConfig;
-use Gacela\Framework\Gacela;
+use Phel\Phel;
 use Phel\Run\Infrastructure\Command\TestCommand;
 use PhelTest\Integration\Run\Command\AbstractTestCommand;
 use PHPUnit\Framework\Attributes\PreserveGlobalState;
@@ -21,7 +20,7 @@ final class TestProjectSuccessTestCommand extends AbstractTestCommand
 
     public static function setUpBeforeClass(): void
     {
-        Gacela::bootstrap(__DIR__, GacelaConfig::defaultPhpConfig());
+        Phel::bootstrap(__DIR__);
     }
 
     #[PreserveGlobalState(false)]
