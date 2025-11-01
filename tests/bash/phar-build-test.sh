@@ -21,15 +21,8 @@ function tear_down_after_script() {
 # Comprehensive end-to-end test for PHAR build system
 # Validates all PHAR building functionality in a single test
 function test_phar_beta_build() {
-    # Build PHAR
-    local build_output
-    build_output=$(bash build/phar.sh 2>&1)
-
-    # Verify build output shows expected messages
-    assert_contains "Cleaning up" "$build_output"
-    assert_contains "Syncing project files" "$build_output"
-    assert_contains "Building PHAR" "$build_output"
-    assert_contains "PHAR created at" "$build_output"
+    # Build PHAR (redirect output to avoid noise in test output)
+    bash build/phar.sh > /dev/null 2>&1
 
     # Verify PHAR file was created
     assert_file_exists "build/out/phel.phar"

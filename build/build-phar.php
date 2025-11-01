@@ -250,7 +250,7 @@ EOF;
     /**
      * Generate a summary report
      */
-    public function report(): void
+    public function report(): string
     {
         $duration = microtime(true) - $this->stats['start_time'];
         $sizeKb = round($this->stats['total_size'] / 1024, 2);
@@ -262,26 +262,25 @@ EOF;
         $typeEmoji = $this->isOfficialRelease ? '🚀' : '🧪';
         $typeLabel = $this->isOfficialRelease ? 'Official Release' : 'Beta';
 
-        echo "{$typeEmoji}  PHAR Build Complete\n\n";
-        echo "📦  Release Type:    {$typeLabel}\n";
-        echo "📍  Location:        {$this->pharFile}\n";
-        echo "\n";
-        echo "📊  Build Metrics:\n";
-        echo "   • Files Added:      {$this->stats['files_added']}\n";
-        echo "   • Source Size:      {$sizeMb} MB ({$sizeKb} KB)\n";
-        echo "   • PHAR Size:        {$pharSizeMb} MB\n";
-        echo "   • Compression:      {$compressionRatio}%\n";
-        echo "\n";
-        echo "⏱️  Build Duration:     {$durationStr}\n";
+        $report = "{$typeEmoji}  PHAR Build Complete\n\n";
+        $report .= "📦  Release Type:    {$typeLabel}\n";
+        $report .= "📍  Location:        {$this->pharFile}\n";
+        $report .= "\n";
+        $report .= "📊  Build Metrics:\n";
+        $report .= "   • Files Added:      {$this->stats['files_added']}\n";
+        $report .= "   • Source Size:      {$sizeMb} MB ({$sizeKb} KB)\n";
+        $report .= "   • PHAR Size:        {$pharSizeMb} MB\n";
+        $report .= "   • Compression:      {$compressionRatio}%\n";
+        $report .= "\n";
+        $report .= "⏱️  Build Duration:     {$durationStr}\n";
 
         if (!empty($this->stats['errors'])) {
-            echo "⚠️  Warnings:           ".count($this->stats['errors'])."\n";
+            $report .= "⚠️  Warnings:           ".count($this->stats['errors'])."\n";
         }
+
+        return $report;
     }
 
-    /**
-     * Format duration into human-readable format
-     */
     private function formatDuration(float $seconds): string
     {
         if ($seconds < 60) {
@@ -294,17 +293,6 @@ EOF;
         return $minutes.'m '.round($secs, 1).'s';
     }
 
-    /**
-     * Get the PHAR file path
-     */
-    public function getPharFile(): string
-    {
-        return $this->pharFile;
-    }
-
-    /**
-     * Check if build was successful
-     */
     public function isSuccessful(): bool
     {
         return file_exists($this->pharFile) && is_executable($this->pharFile);
@@ -327,7 +315,7 @@ try {
         throw new RuntimeException("PHAR build completed but file is not executable");
     }
 
-    $builder->report();
+    echo $builder->report();
 } catch (Exception $e) {
     throw new RuntimeException($e->getMessage());
 }

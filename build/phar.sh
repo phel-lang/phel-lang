@@ -3,9 +3,8 @@ set -euo pipefail
 
 # Build Phel PHAR archive
 # Optional environment variables:
-#   OFFICIAL_RELEASE=true|1|yes  - Build an official release (no beta flag)
-#   DEBUG=1                       - Enable debug output
-#   SKIP_CACHE=1                  - Skip vendor cache and rebuild fresh
+#   OFFICIAL_RELEASE=1  - Build an official release (no beta flag)
+#   SKIP_CACHE=1        - Skip vendor cache and rebuild dependencies fresh
 # Usage: OFFICIAL_RELEASE=true build/phar.sh
 
 # ============================================================================
