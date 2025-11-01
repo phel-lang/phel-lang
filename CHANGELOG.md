@@ -4,9 +4,12 @@ All notable changes to this project will be documented in this file.
 
 ## Unreleased
 
-- Fix `build-phar.php`
-  - Exclude unnecessary examples and fixtures
-  - Exclude `phel-config-local.php`
+- Optimize PHAR build with caching and compression
+  - Add smart vendor caching based on `composer.lock`
+  - Apply GZ compression to reduce PHAR size
+  - Use hash maps for faster file filtering
+  - Exclude development directories and config files
+  - Add progress indicators for better visibility
 - Optimize `PhelCallerTrait`
 - Fix supports php-timer and console `^6.0|^7.0|^8.0`
 - Fix export function name to php
