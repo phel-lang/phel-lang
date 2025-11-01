@@ -1,6 +1,9 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+# Optional: Pass OFFICIAL_RELEASE=true to build an official release PHAR
+# Usage: OFFICIAL_RELEASE=true build/phar.sh
+
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(dirname "$SCRIPT_DIR")"
 WORK_DIR="$SCRIPT_DIR/workdir"
@@ -56,7 +59,7 @@ fi
 
 # Build the PHAR
 echo "🔨 Building PHAR..."
-php -d phar.readonly=0 "$SCRIPT_DIR/build-phar.php" "$WORK_DIR"
+OFFICIAL_RELEASE="${OFFICIAL_RELEASE:-}" php -d phar.readonly=0 "$SCRIPT_DIR/build-phar.php" "$WORK_DIR"
 popd >/dev/null
 
 mv "$WORK_DIR/phel.phar" "$SCRIPT_DIR/out/phel.phar"

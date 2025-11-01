@@ -23,3 +23,4 @@ local.phel
 phel-config-local.php
 gacela*.php
 src/php/Api/Infrastructure/phel/doc.phel
+.phel-release.php

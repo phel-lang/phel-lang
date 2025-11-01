@@ -14,6 +14,20 @@ $root = $argv[1] ?? dirname(__DIR__);
 $root = realpath($root);
 $pharFile = $root.'/phel.phar';
 
+// Create release config if OFFICIAL_RELEASE is set
+$releaseConfigFile = $root . '/.phel-release.php';
+$isOfficialRelease = (bool) (getenv('OFFICIAL_RELEASE') ?: false);
+
+if ($isOfficialRelease) {
+    file_put_contents($releaseConfigFile, "<?php\nreturn true;\n");
+    fwrite(STDERR, "Building official release PHAR\n");
+} else {
+    // Ensure config file doesn't exist for non-official builds
+    if (file_exists($releaseConfigFile)) {
+        unlink($releaseConfigFile);
+    }
+}
+
 if (file_exists($pharFile)) {
     unlink($pharFile);
 }
@@ -85,8 +99,8 @@ foreach ($iterator as $file) {
         continue;
     }
 
-    // Skip hidden files
-    if ($basename[0] === '.') {
+    // Skip hidden files (but include .phel-release.php if it exists)
+    if ($basename[0] === '.' && $basename !== '.phel-release.php') {
         continue;
     }
 

@@ -14,8 +14,6 @@ final class ConsoleFactory extends AbstractFactory
 {
     public const string CONSOLE_NAME = 'Phel';
 
-    public const bool IS_OFFICIAL_RELEASE = false;
-
     public function createConsoleBootstrap(): ConsoleBootstrap
     {
         return new ConsoleBootstrap(
@@ -39,12 +37,23 @@ final class ConsoleFactory extends AbstractFactory
         return new VersionFinder(
             $this->getProvidedDependency(ConsoleProvider::TAG_COMMIT_HASH),
             $this->getProvidedDependency(ConsoleProvider::CURRENT_COMMIT),
-            isOfficialRelease: self::IS_OFFICIAL_RELEASE,
+            isOfficialRelease: $this->getIsOfficialRelease(),
         );
     }
 
     public function createArgvInputSanitizer(): ArgvInputSanitizer
     {
         return new ArgvInputSanitizer();
+    }
+
+    private function getIsOfficialRelease(): bool
+    {
+        // Check for a build-time config file (used when building PHAR)
+        $configFile = __DIR__ . '/../../../.phel-release.php';
+        if (file_exists($configFile)) {
+            return (bool) require $configFile;
+        }
+
+        return (bool) (getenv('OFFICIAL_RELEASE') ?: false);
     }
 }
