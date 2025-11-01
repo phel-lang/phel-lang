@@ -7,12 +7,7 @@ namespace PhelTest\Benchmark\Lang\Collections\Map;
 use Phel\Lang\Collections\Map\PersistentHashMap;
 use PhelTest\Benchmark\Lang\Collections\SimpleEqualizer;
 use PhelTest\Benchmark\Lang\Collections\SimpleHasher;
-use PhpBench\Benchmark\Metadata\Annotations\BeforeMethods;
-use PhpBench\Benchmark\Metadata\Annotations\ParamProviders;
 
-/**
- * @BeforeMethods("setUp")
- */
 final class PersistentHashMapBench
 {
     private PersistentHashMap $map;
@@ -20,30 +15,6 @@ final class PersistentHashMapBench
     private int $nextKey = 0;
 
     private int $queryKey = 0;
-
-    /**
-     * @return array<string, array<string, int>>
-     */
-    public function provideSizes(): array
-    {
-        return [
-            'small' => ['size' => 16],
-            'medium' => ['size' => 128],
-            'large' => ['size' => 256],
-        ];
-    }
-
-    public function setUpMap(int $size): void
-    {
-        $this->map = PersistentHashMap::empty(new SimpleHasher(), new SimpleEqualizer());
-
-        for ($i = 0; $i < $size; ++$i) {
-            $this->map = $this->map->put($i, $i);
-        }
-
-        $this->nextKey = $size;
-        $this->queryKey = intdiv($size, 2);
-    }
 
     /**
      * @ParamProviders("provideSizes")
@@ -88,5 +59,27 @@ final class PersistentHashMapBench
     {
         $this->setUpMap($params['size']);
         $this->map->count();
+    }
+
+    /**
+     * @return iterable<string, array<string, int>>
+     */
+    public function provideSizes(): iterable
+    {
+        yield 'small' => ['size' => 16];
+        yield 'medium' => ['size' => 128];
+        yield 'large' => ['size' => 256];
+    }
+
+    public function setUpMap(int $size): void
+    {
+        $this->map = PersistentHashMap::empty(new SimpleHasher(), new SimpleEqualizer());
+
+        for ($i = 0; $i < $size; ++$i) {
+            $this->map = $this->map->put($i, $i);
+        }
+
+        $this->nextKey = $size;
+        $this->queryKey = intdiv($size, 2);
     }
 }
