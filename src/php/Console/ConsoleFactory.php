@@ -10,6 +10,8 @@ use Phel\Console\Application\VersionFinder;
 use Phel\Console\Infrastructure\ConsoleBootstrap;
 use Phel\Filesystem\FilesystemFacadeInterface;
 
+use function in_array;
+
 final class ConsoleFactory extends AbstractFactory
 {
     public const string CONSOLE_NAME = 'Phel';
@@ -54,6 +56,13 @@ final class ConsoleFactory extends AbstractFactory
             return (bool) require $configFile;
         }
 
-        return (bool) (getenv('OFFICIAL_RELEASE') ?: false);
+        // Check environment variable (for local development)
+        // Only treat explicit values as true: '1', 'true', 'yes' (case-insensitive)
+        $officialRelease = getenv('OFFICIAL_RELEASE');
+        if ($officialRelease === false) {
+            return false;
+        }
+
+        return in_array(strtolower($officialRelease), ['1', 'true', 'yes'], true);
     }
 }

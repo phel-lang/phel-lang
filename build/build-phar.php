@@ -16,7 +16,14 @@ $pharFile = $root.'/phel.phar';
 
 // Create release config if OFFICIAL_RELEASE is set
 $releaseConfigFile = $root . '/.phel-release.php';
-$isOfficialRelease = (bool) (getenv('OFFICIAL_RELEASE') ?: false);
+
+// Only treat explicit values as true: '1', 'true', 'yes' (case-insensitive)
+$officialRelease = getenv('OFFICIAL_RELEASE');
+$isOfficialRelease = $officialRelease !== false && (
+    strtolower($officialRelease) === '1'
+    || strtolower($officialRelease) === 'true'
+    || strtolower($officialRelease) === 'yes'
+);
 
 if ($isOfficialRelease) {
     file_put_contents($releaseConfigFile, "<?php\nreturn true;\n");
