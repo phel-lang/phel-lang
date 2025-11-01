@@ -5,7 +5,6 @@ declare(strict_types=1);
 use Rector\CodingStyle\Rector\String_\UseClassKeywordForClassNameResolutionRector;
 use Rector\Config\RectorConfig;
 use Rector\PHPUnit\CodeQuality\Rector\Class_\PreferPHPUnitThisCallRector;
-use Rector\PHPUnit\CodeQuality\Rector\Class_\SetUpBeforeClassToSetUpRector;
 use Rector\PHPUnit\Set\PHPUnitSetList;
 use Rector\Privatization\Rector\Property\PrivatizeFinalClassPropertyRector;
 use Rector\Set\ValueObject\LevelSetList;
@@ -23,7 +22,6 @@ return RectorConfig::configure()
         __DIR__ . '/tests/php/*/PhelGenerated/*',
         __DIR__ . '/tests/php/*/gacela-class-names.php',
         __DIR__ . '/tests/php/*/gacela-custom-services.php',
-        SetUpBeforeClassToSetUpRector::class,
         ReturnTypeFromReturnNewRector::class => [
             __DIR__ . '/tests/php/Unit/Interop/Generator/CompiledPhpMethodBuilderTest.php',
         ],
