@@ -100,7 +100,6 @@ final class GlobalEnvironmentTest extends TestCase
             new PhpClassNameNode(
                 $nodeEnv,
                 Symbol::create('\\Exception'),
-                null,
             ),
             $env->resolve(Symbol::create('\\Exception'), $nodeEnv),
         );
@@ -118,7 +117,6 @@ final class GlobalEnvironmentTest extends TestCase
             new PhpClassNameNode(
                 $nodeEnv,
                 Symbol::create('bar'),
-                null,
             ),
             $env->resolve(Symbol::create('b'), $nodeEnv),
         );

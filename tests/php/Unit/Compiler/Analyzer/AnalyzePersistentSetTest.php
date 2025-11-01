@@ -26,7 +26,7 @@ final class AnalyzePersistentSetTest extends TestCase
     {
         $env = NodeEnvironment::empty();
         self::assertEquals(
-            new SetNode($env, [], null),
+            new SetNode($env, []),
             $this->setAnalyzer->analyze(Phel::set(), $env),
         );
     }
@@ -36,8 +36,8 @@ final class AnalyzePersistentSetTest extends TestCase
         $env = NodeEnvironment::empty();
         self::assertEquals(
             new SetNode($env, [
-                new LiteralNode($env->withDisallowRecurFrame()->withExpressionContext(), 1, null),
-            ], null),
+                new LiteralNode($env->withDisallowRecurFrame()->withExpressionContext(), 1),
+            ]),
             $this->setAnalyzer->analyze(Phel::set([1]), $env),
         );
     }

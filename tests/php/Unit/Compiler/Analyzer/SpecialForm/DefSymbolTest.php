@@ -262,12 +262,10 @@ final class DefSymbolTest extends TestCase
                         new LiteralNode(
                             $env->withExpressionContext(),
                             Keyword::create('private'),
-                            null,
                         ),
                         new LiteralNode(
                             $env->withExpressionContext(),
                             true,
-                            null,
                         ),
                     ],
                 ),

@@ -26,7 +26,7 @@ final class AnalyzePersistentVectorTest extends TestCase
     {
         $env = NodeEnvironment::empty();
         self::assertEquals(
-            new VectorNode($env, [], null),
+            new VectorNode($env, []),
             $this->vectorAnalzyer->analyze(Phel::vector(), $env),
         );
     }
@@ -36,8 +36,8 @@ final class AnalyzePersistentVectorTest extends TestCase
         $env = NodeEnvironment::empty();
         self::assertEquals(
             new VectorNode($env, [
-                new LiteralNode($env->withDisallowRecurFrame()->withExpressionContext(), 1, null),
-            ], null),
+                new LiteralNode($env->withDisallowRecurFrame()->withExpressionContext(), 1),
+            ]),
             $this->vectorAnalzyer->analyze(Phel::vector([1]), $env),
         );
     }

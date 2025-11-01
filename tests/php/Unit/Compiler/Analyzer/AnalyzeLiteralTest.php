@@ -23,7 +23,7 @@ final class AnalyzeLiteralTest extends TestCase
     {
         $env = NodeEnvironment::empty();
         self::assertEquals(
-            new LiteralNode($env, Symbol::create('test'), null),
+            new LiteralNode($env, Symbol::create('test')),
             $this->literalAnalyzer->analyze(Symbol::create('test'), $env),
         );
     }
@@ -32,7 +32,7 @@ final class AnalyzeLiteralTest extends TestCase
     {
         $env = NodeEnvironment::empty();
         self::assertEquals(
-            new LiteralNode($env, 2, null),
+            new LiteralNode($env, 2),
             $this->literalAnalyzer->analyze(2, $env),
         );
     }
@@ -41,7 +41,7 @@ final class AnalyzeLiteralTest extends TestCase
     {
         $env = NodeEnvironment::empty();
         self::assertEquals(
-            new LiteralNode($env, [1, 2], null),
+            new LiteralNode($env, [1, 2]),
             $this->literalAnalyzer->analyze([1, 2], $env),
         );
     }
