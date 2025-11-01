@@ -10,11 +10,11 @@ use Phel\Console\Application\VersionFinder;
 use Phel\Console\Infrastructure\ConsoleBootstrap;
 use Phel\Filesystem\FilesystemFacadeInterface;
 
+use function in_array;
+
 final class ConsoleFactory extends AbstractFactory
 {
     public const string CONSOLE_NAME = 'Phel';
-
-    public const bool IS_OFFICIAL_RELEASE = false;
 
     public function createConsoleBootstrap(): ConsoleBootstrap
     {
@@ -39,12 +39,30 @@ final class ConsoleFactory extends AbstractFactory
         return new VersionFinder(
             $this->getProvidedDependency(ConsoleProvider::TAG_COMMIT_HASH),
             $this->getProvidedDependency(ConsoleProvider::CURRENT_COMMIT),
-            isOfficialRelease: self::IS_OFFICIAL_RELEASE,
+            isOfficialRelease: $this->getIsOfficialRelease(),
         );
     }
 
     public function createArgvInputSanitizer(): ArgvInputSanitizer
     {
         return new ArgvInputSanitizer();
+    }
+
+    private function getIsOfficialRelease(): bool
+    {
+        // Check for a build-time config file (used when building PHAR)
+        $configFile = __DIR__ . '/../../../.phel-release.php';
+        if (file_exists($configFile)) {
+            return (bool) require $configFile;
+        }
+
+        // Check environment variable (for local development)
+        // Only treat explicit values as true: '1', 'true', 'yes' (case-insensitive)
+        $officialRelease = getenv('OFFICIAL_RELEASE');
+        if ($officialRelease === false) {
+            return false;
+        }
+
+        return in_array(strtolower($officialRelease), ['1', 'true', 'yes'], true);
     }
 }

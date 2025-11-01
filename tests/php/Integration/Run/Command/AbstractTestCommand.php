@@ -14,7 +14,7 @@ abstract class AbstractTestCommand extends TestCase
 {
     protected function setUp(): void
     {
-        GlobalEnvironmentSingleton::reset();
+        GlobalEnvironmentSingleton::initializeNew();
     }
 
     protected function stubOutput(): OutputInterface

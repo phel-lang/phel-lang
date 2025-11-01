@@ -4,6 +4,11 @@ All notable changes to this project will be documented in this file.
 
 ## Unreleased
 
+- Simplify release process with `OFFICIAL_RELEASE` environment variable
+  - Build official release PHAR with: `OFFICIAL_RELEASE=true build/phar.sh`
+  - Automatically embed release flag in PHAR via `.phel-release.php` config file
+  - Remove manual edits to `IS_OFFICIAL_RELEASE` constant
+  - Works seamlessly with both PHAR and Composer dependencies
 - Optimize PHAR build with caching and compression
   - Add smart vendor caching based on `composer.lock`
   - Apply GZ compression to reduce PHAR size
