@@ -7,41 +7,70 @@ namespace PhelTest\Benchmark\Lang\Collections\Vector;
 use Phel\Lang\Collections\Vector\TransientVector;
 use PhelTest\Benchmark\Lang\Collections\SimpleEqualizer;
 use PhelTest\Benchmark\Lang\Collections\SimpleHasher;
-use PhpBench\Benchmark\Metadata\Annotations\BeforeMethods;
 
-/**
- * @BeforeMethods("setUp")
- */
 final class TransientVectorBench
 {
-    private const int SEED_SIZE = 128;
-
     private TransientVector $vector;
 
     private int $nextValue = 0;
 
     private int $updateIndex = 0;
 
-    public function setUp(): void
+    /**
+     * @ParamProviders("provideSizes")
+     */
+    public function bench_append(array $params): void
+    {
+        $this->setUpVector($params['size']);
+        $this->vector->append($this->nextValue);
+    }
+
+    /**
+     * @ParamProviders("provideSizes")
+     */
+    public function bench_update(array $params): void
+    {
+        $this->setUpVector($params['size']);
+        $this->vector->update($this->updateIndex, 'new-value');
+    }
+
+    /**
+     * @ParamProviders("provideSizes")
+     */
+    public function bench_get(array $params): void
+    {
+        $this->setUpVector($params['size']);
+        $this->vector->get($this->updateIndex);
+    }
+
+    /**
+     * @ParamProviders("provideSizes")
+     */
+    public function bench_count(array $params): void
+    {
+        $this->setUpVector($params['size']);
+        $this->vector->count();
+    }
+
+    /**
+     * @return iterable<string, array<string, int>>
+     */
+    public function provideSizes(): iterable
+    {
+        yield 'small' => ['size' => 16];
+        yield 'medium' => ['size' => 128];
+        yield 'large' => ['size' => 256];
+    }
+
+    public function setUpVector(int $size): void
     {
         $this->vector = TransientVector::empty(new SimpleHasher(), new SimpleEqualizer());
 
-        for ($i = 0; $i < self::SEED_SIZE; ++$i) {
+        for ($i = 0; $i < $size; ++$i) {
             $this->vector->append($i);
         }
 
-        $this->nextValue = self::SEED_SIZE;
-        $this->updateIndex = intdiv(self::SEED_SIZE, 2);
-    }
-
-    public function bench_append(): void
-    {
-        $this->vector->append($this->nextValue);
-        ++$this->nextValue;
-    }
-
-    public function bench_update(): void
-    {
-        $this->vector->update($this->updateIndex, 'new-value');
+        $this->nextValue = $size;
+        $this->updateIndex = intdiv($size, 2);
     }
 }
