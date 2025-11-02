@@ -9,6 +9,7 @@ use Phel\Compiler\Infrastructure\CompileOptions;
 use Phel\Shared\Facade\CompilerFacadeInterface;
 use RuntimeException;
 
+use function file_get_contents;
 use function sprintf;
 
 final readonly class FileEvaluator
@@ -25,14 +26,14 @@ final readonly class FileEvaluator
             ->setSource($src)
             ->setIsEnabledSourceMaps(true);
 
-        $code = file_get_contents($src);
-        if ($code === false) {
+        $sourceCode = file_get_contents($src);
+        if ($sourceCode === false) {
             throw new RuntimeException(sprintf('Unable to read file "%s".', $src));
         }
 
-        // Evaluate the source code (triggers full compilation pipeline)
-        // Note: CompiledCodeCache in RequireEvaluator will cache compiled PHP snippets
-        $this->compilerFacade->eval($code, $options);
+        // Evaluate the source code (full compilation + evaluation pipeline)
+        // Note: RequireEvaluator will cache compiled PHP snippets via CompiledCodeCache
+        $this->compilerFacade->eval($sourceCode, $options);
 
         $namespaceInfo = $this->namespaceExtractor->getNamespaceFromFile($src);
 
