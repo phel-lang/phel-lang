@@ -1,0 +1,7 @@
+.idea/
+.git/
+.venv/
+.vscode/
+
+vendor/
+phel-compiled-cache/

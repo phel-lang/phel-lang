@@ -30,6 +30,8 @@ final readonly class FileEvaluator
             throw new RuntimeException(sprintf('Unable to read file "%s".', $src));
         }
 
+        // Evaluate the source code (triggers full compilation pipeline)
+        // Note: CompiledCodeCache in RequireEvaluator will cache compiled PHP snippets
         $this->compilerFacade->eval($code, $options);
 
         $namespaceInfo = $this->namespaceExtractor->getNamespaceFromFile($src);
