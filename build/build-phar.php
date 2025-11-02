@@ -23,7 +23,7 @@ final class PharBuilder
         '', '.', '..',
         '.git', '.github', '.idea', '.claude', '.vscode',
         'docs', 'tests', 'docker', 'local', 'build', 'tools', 'examples', 'fixtures',
-        '.phel-cache', '.phpunit.cache',
+        '.phpunit.cache',
     ];
 
     private array $excludeFiles = [

@@ -4,12 +4,11 @@ declare(strict_types=1);
 
 namespace PhelTest\Integration\Compiler\Evaluator;
 
-use Gacela\Framework\Bootstrap\GacelaConfig;
-use Gacela\Framework\Gacela;
 use Phel\Compiler\Domain\Evaluator\RequireEvaluator;
-use Phel\Config\PhelConfig;
+use Phel\Compiler\Infrastructure\CompiledCodeCache;
 use Phel\Filesystem\FilesystemFacade;
 use Phel\Filesystem\Infrastructure\RealFilesystem;
+use Phel\Phel;
 use PHPUnit\Framework\TestCase;
 
 final class RequireEvaluatorTest extends TestCase
@@ -18,39 +17,43 @@ final class RequireEvaluatorTest extends TestCase
 
     private FilesystemFacade $filesystem;
 
+    private CompiledCodeCache $compiledCodeCache;
+
     private string $tempDir = '';
 
     protected function setUp(): void
     {
         RealFilesystem::reset();
         $this->filesystem = new FilesystemFacade();
-        $this->evaluator = new RequireEvaluator($this->filesystem);
+        $this->compiledCodeCache = new CompiledCodeCache($this->filesystem);
+        $this->evaluator = new RequireEvaluator($this->compiledCodeCache);
     }
 
     protected function tearDown(): void
     {
         $this->filesystem->clearAll();
+        $this->compiledCodeCache->clear();
 
         if ($this->tempDir !== '' && is_dir($this->tempDir)) {
             $this->deleteDirRecursive($this->tempDir);
         }
     }
 
-    public function test_it_creates_missing_temp_directory(): void
+    public function test_it_evaluates_code_with_caching(): void
     {
-        $this->tempDir = sys_get_temp_dir() . '/phel-test-' . uniqid('', true);
-        if (is_dir($this->tempDir)) {
-            rmdir($this->tempDir);
-        }
+        Phel::bootstrap(__DIR__);
+        // Clean up any existing cache
+        $tempDir = $this->filesystem->getTempDir();
+        $cacheDir = $tempDir . '/' . CompiledCodeCache::CACHE_SUBDIR;
 
-        Gacela::bootstrap(__DIR__, function (GacelaConfig $config): void {
-            $config->addAppConfigKeyValue(PhelConfig::TEMP_DIR, $this->tempDir);
-        });
+        if (is_dir($cacheDir)) {
+            $this->compiledCodeCache->clear();
+        }
 
         $result = $this->evaluator->eval('return 42;');
 
         self::assertSame(42, $result);
-        self::assertDirectoryExists($this->tempDir);
+        self::assertDirectoryExists($cacheDir);
     }
 
     private function deleteDirRecursive(string $dir): void
