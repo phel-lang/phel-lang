@@ -18,6 +18,7 @@ use Phel\Build\Domain\Extractor\NamespaceSorterInterface;
 use Phel\Build\Domain\Extractor\TopologicalNamespaceSorter;
 use Phel\Build\Domain\IO\FileIoInterface;
 use Phel\Build\Infrastructure\IO\SystemFileIo;
+use Phel\Filesystem\FilesystemFacade;
 use Phel\Shared\Facade\CommandFacadeInterface;
 use Phel\Shared\Facade\CompilerFacadeInterface;
 
@@ -79,6 +80,11 @@ final class BuildFactory extends AbstractFactory
     public function getCommandFacade(): CommandFacadeInterface
     {
         return $this->getProvidedDependency(BuildProvider::FACADE_COMMAND);
+    }
+
+    public function getFilesystemFacade(): FilesystemFacade
+    {
+        return $this->getProvidedDependency(BuildProvider::FACADE_FILESYSTEM);
     }
 
     private function createMainPhpEntryPointFile(): EntryPointPhpFileInterface

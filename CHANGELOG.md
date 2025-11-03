@@ -16,6 +16,7 @@ All notable changes to this project will be documented in this file.
   - Exclude development directories and config files
   - Add progress indicators for better visibility
 - Optimize `PhelCallerTrait`
+- Persistent compilation cache and optimize FileEvaluator
 - Fix supports php-timer and console `^6.0|^7.0|^8.0`
 - Fix export function name to php
 

@@ -6,7 +6,7 @@ namespace Phel\Compiler\Domain\Evaluator;
 
 use Phel\Compiler\Domain\Evaluator\Exceptions\CompiledCodeIsMalformedException;
 use Phel\Compiler\Domain\Evaluator\Exceptions\FileException;
-use Phel\Filesystem\FilesystemFacadeInterface;
+use Phel\Compiler\Infrastructure\CompiledCodeCache;
 use Phel\Run\Infrastructure\Service\DebugLineTap;
 use Throwable;
 
@@ -14,10 +14,8 @@ use function function_exists;
 
 final readonly class RequireEvaluator implements EvaluatorInterface
 {
-    private const string TEMP_PREFIX = '__phel';
-
     public function __construct(
-        private FilesystemFacadeInterface $filesystemFacade,
+        private CompiledCodeCache $compiledCodeCache,
     ) {
     }
 
@@ -29,30 +27,32 @@ final readonly class RequireEvaluator implements EvaluatorInterface
      */
     public function eval(string $code): mixed
     {
-        // Suppress possible notice when PHP falls back to the system temp directory
-        $filename = @tempnam($this->filesystemFacade->getTempDir(), self::TEMP_PREFIX);
-        if ($filename === false) {
-            throw FileException::canNotCreateTempFile();
-        }
-
-        $this->filesystemFacade->addFile($filename);
+        // Inject declare(ticks=1) if debug is enabled
+        $phpCode = DebugLineTap::isEnabled()
+            ? "<?php\ndeclare(ticks=1);\n" . $code
+            : "<?php\n" . $code;
 
         try {
-            // Inject declare(ticks=1) if debug is enabled
-            $phpCode = DebugLineTap::isEnabled()
-                ? "<?php\ndeclare(ticks=1);\n" . $code
-                : "<?php\n" . $code;
-
-            file_put_contents($filename, $phpCode);
-            if (file_exists($filename)) {
+            // Try to get from cache first
+            $cachedFile = $this->compiledCodeCache->get($phpCode);
+            if ($cachedFile !== null && file_exists($cachedFile)) {
                 if (function_exists('opcache_compile_file')) {
-                    @opcache_compile_file($filename);
+                    @opcache_compile_file($cachedFile);
                 }
 
-                return require $filename;
+                /** @psalm-suppress UnresolvableInclude */
+                return require $cachedFile;
             }
 
-            throw FileException::canNotCreateFile($filename);
+            // Cache miss: store in cache and evaluate
+            $filename = $this->compiledCodeCache->store($phpCode);
+
+            if (function_exists('opcache_compile_file')) {
+                @opcache_compile_file($filename);
+            }
+
+            /** @psalm-suppress UnresolvableInclude */
+            return require $filename;
         } catch (Throwable $throwable) {
             throw CompiledCodeIsMalformedException::fromThrowable($throwable);
         }

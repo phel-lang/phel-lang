@@ -36,9 +36,9 @@ use Phel\Compiler\Domain\Parser\ParserInterface;
 use Phel\Compiler\Domain\Reader\ExpressionReaderFactory;
 use Phel\Compiler\Domain\Reader\QuasiquoteTransformer;
 use Phel\Compiler\Domain\Reader\ReaderInterface;
+use Phel\Compiler\Infrastructure\CompiledCodeCache;
 use Phel\Compiler\Infrastructure\CompileOptions;
 use Phel\Compiler\Infrastructure\GlobalEnvironmentSingleton;
-use Phel\Filesystem\FilesystemFacadeInterface;
 use Phel\Printer\Printer;
 
 /**
@@ -138,7 +138,7 @@ final class CompilerFactory extends AbstractFactory
     public function createEvaluator(): EvaluatorInterface
     {
         return new RequireEvaluator(
-            $this->getFilesystemFacade(),
+            $this->getCompiledCodeCache(),
         );
     }
 
@@ -152,9 +152,9 @@ final class CompilerFactory extends AbstractFactory
         return new ParenthesesChecker();
     }
 
-    private function getFilesystemFacade(): FilesystemFacadeInterface
+    private function getCompiledCodeCache(): CompiledCodeCache
     {
-        return $this->getProvidedDependency(CompilerProvider::FACADE_FILESYSTEM);
+        return $this->getProvidedDependency(CompilerProvider::COMPILED_CODE_CACHE);
     }
 
     private function getGlobalEnvironment(): GlobalEnvironmentInterface
