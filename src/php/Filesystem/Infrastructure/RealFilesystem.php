@@ -24,7 +24,7 @@ final class RealFilesystem implements FilesystemInterface
     public function clearAll(): void
     {
         foreach (self::$files as $file) {
-            unlink($file);
+            @unlink($file);
         }
 
         self::reset();

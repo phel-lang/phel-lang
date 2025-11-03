@@ -60,9 +60,6 @@ final readonly class CompiledCodeCache
             throw new RuntimeException(sprintf('Unable to write cache file: %s', $cacheFile));
         }
 
-        // Register the cache file for cleanup
-        $this->filesystemFacade->addFile($cacheFile);
-
         return $cacheFile;
     }
 
