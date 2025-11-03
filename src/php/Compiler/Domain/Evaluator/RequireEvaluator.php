@@ -29,30 +29,29 @@ final readonly class RequireEvaluator implements EvaluatorInterface
      */
     public function eval(string $code): mixed
     {
-        // Suppress possible notice when PHP falls back to the system temp directory
-        $filename = @tempnam($this->filesystemFacade->getTempDir(), self::TEMP_PREFIX);
-        if ($filename === false) {
-            throw FileException::canNotCreateTempFile();
-        }
+        // Inject declare(ticks=1) if debug is enabled
+        $phpCode = DebugLineTap::isEnabled()
+            ? "<?php\ndeclare(ticks=1);\n" . $code
+            : "<?php\n" . $code;
+
+        $filename = $this->filesystemFacade->getTempDir() . '/' . self::TEMP_PREFIX . '_' . md5($phpCode) . '.php';
 
         $this->filesystemFacade->addFile($filename);
 
         try {
-            // Inject declare(ticks=1) if debug is enabled
-            $phpCode = DebugLineTap::isEnabled()
-                ? "<?php\ndeclare(ticks=1);\n" . $code
-                : "<?php\n" . $code;
-
-            file_put_contents($filename, $phpCode);
-            if (file_exists($filename)) {
-                if (function_exists('opcache_compile_file')) {
-                    @opcache_compile_file($filename);
-                }
-
-                return require $filename;
+            if (!file_exists($filename)) {
+                file_put_contents($filename, $phpCode);
             }
 
-            throw FileException::canNotCreateFile($filename);
+            if (!file_exists($filename)) {
+                throw FileException::canNotCreateFile($filename);
+            }
+
+            if (function_exists('opcache_compile_file')) {
+                @opcache_compile_file($filename);
+            }
+
+            return require $filename;
         } catch (Throwable $throwable) {
             throw CompiledCodeIsMalformedException::fromThrowable($throwable);
         }
