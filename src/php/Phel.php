@@ -14,6 +14,7 @@ use RuntimeException;
 
 use function dirname;
 use function file_exists;
+use function get_included_files;
 use function getcwd;
 use function in_array;
 use function is_array;
@@ -58,8 +59,10 @@ class Phel
             }
         }
 
+        // Load project's composer autoloader if it exists and hasn't been loaded yet
         $projectAutoloader = $projectRootDir . '/vendor/autoload.php';
-        if (file_exists($projectAutoloader)) {
+        if (file_exists($projectAutoloader) && !in_array($projectAutoloader, get_included_files(), true)) {
+            /** @psalm-suppress UnresolvableInclude */
             require_once $projectAutoloader;
         }
 
