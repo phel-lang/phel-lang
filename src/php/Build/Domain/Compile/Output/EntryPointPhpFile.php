@@ -5,12 +5,8 @@ declare(strict_types=1);
 namespace Phel\Build\Domain\Compile\Output;
 
 use Phel\Config\PhelBuildConfig;
-use Throwable;
 
-use function file_exists;
-use function file_get_contents;
 use function file_put_contents;
-use function md5;
 use function sprintf;
 
 final readonly class EntryPointPhpFile implements EntryPointPhpFileInterface
@@ -27,26 +23,7 @@ final readonly class EntryPointPhpFile implements EntryPointPhpFileInterface
         $filepath = $this->buildMainPhpPath();
         $content = $this->buildMainPhpContent();
 
-        if ($this->contentHasChanged($filepath, $content)) {
-            file_put_contents($filepath, $content);
-        }
-    }
-
-    /**
-     * Checks if file content differs from the new content using MD5 hashing.
-     */
-    private function contentHasChanged(string $filepath, string $newContent): bool
-    {
-        if (!file_exists($filepath)) {
-            return true;
-        }
-
-        try {
-            $existingContent = file_get_contents($filepath);
-            return $existingContent === false || md5($existingContent) !== md5($newContent);
-        } catch (Throwable) {
-            return true;
-        }
+        file_put_contents($filepath, $content);
     }
 
     private function buildMainPhpPath(): string
