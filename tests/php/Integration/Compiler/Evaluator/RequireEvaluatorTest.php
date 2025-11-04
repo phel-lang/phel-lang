@@ -25,6 +25,7 @@ final class RequireEvaluatorTest extends TestCase
         RealFilesystem::reset();
         $this->filesystem = new FilesystemFacade();
         $this->evaluator = new RequireEvaluator($this->filesystem);
+        RequireEvaluator::clearCache();
     }
 
     protected function tearDown(): void

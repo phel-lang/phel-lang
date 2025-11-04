@@ -11,21 +11,44 @@ use Phel\Run\Infrastructure\Service\DebugLineTap;
 use Throwable;
 
 use function function_exists;
+use function md5;
+use function md5_file;
 use function sprintf;
 
-final readonly class RequireEvaluator implements EvaluatorInterface
+final class RequireEvaluator implements EvaluatorInterface
 {
     private const string TEMP_PREFIX = '__phel';
 
     private const string FILE_EXTENSION = '.php';
 
+    /**
+     * Process-local cache for compiled code.
+     * Maps MD5 hash of PHP code to the evaluated result.
+     *
+     * @var array<string, mixed>
+     */
+    private static array $processCache = [];
+
     public function __construct(
-        private FilesystemFacadeInterface $filesystemFacade,
+        private readonly FilesystemFacadeInterface $filesystemFacade,
     ) {
     }
 
     /**
+     * Clears the process-local memory cache.
+     * Useful for testing or resetting state between evaluations.
+     */
+    public static function clearCache(): void
+    {
+        self::$processCache = [];
+    }
+
+    /**
      * Evaluates the code and returns the evaluated value.
+     *
+     * Uses a two-layer caching strategy:
+     * 1. Process-local memory cache (fastest, no file I/O)
+     * 2. File cache with content verification (protects against TOCTTOU attacks)
      *
      * @throws CompiledCodeIsMalformedException
      * @throws FileException
@@ -33,14 +56,28 @@ final readonly class RequireEvaluator implements EvaluatorInterface
     public function eval(string $code): mixed
     {
         $phpCode = $this->buildPhpCode($code);
+        $hash = md5($phpCode);
+
+        // Layer 1: Check process-local memory cache
+        if (isset(self::$processCache[$hash])) {
+            return self::$processCache[$hash];
+        }
+
+        // Layer 2: File cache with content verification (TOCTTOU protection)
         $filename = $this->buildFilename($phpCode);
 
         try {
-            if (!file_exists($filename)) {
+            // Verify file exists and content matches before requiring
+            if (!file_exists($filename) || md5_file($filename) !== $hash) {
                 $this->writeFile($filename, $phpCode);
             }
 
-            return require $filename;
+            $result = require $filename;
+
+            // Cache result in process-local memory for subsequent calls
+            self::$processCache[$hash] = $result;
+
+            return $result;
         } catch (Throwable $throwable) {
             throw CompiledCodeIsMalformedException::fromThrowable($throwable);
         }
