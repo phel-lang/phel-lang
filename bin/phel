@@ -4,16 +4,17 @@
 declare(strict_types=1);
 
 use Phel\Console\ConsoleFacade;
+use Phel\Phel as PhelKernel;
 
 // NOTE: When packaged as a PHAR, the stub requires the PHAR's vendor/autoload.php.
 // Avoid loading any *host* Composer autoloader to prevent conflicts.
 (static function (): void {
-    $runningInPhar = \Phar::running() !== '';
+    $pharPath = \Phar::running(false);
 
-    if ($runningInPhar) {
+    if ($pharPath !== '') {
         // We're inside phel.phar. Autoload is already in place (from the stub).
         // For app root, prefer the current working directory (the user's project).
-        $appRootDir = getcwd() ?: __DIR__;
+        $appRootDir = getcwd() ?: $pharPath;
     } else {
         // Source checkout: find and load the host Composer autoloader.
         $appRootDir = (static function (): ?string {
@@ -59,7 +60,7 @@ use Phel\Console\ConsoleFacade;
 
     // Phel classes are available either via the PHAR autoloader (in PHAR mode)
     // or the host Composer autoloader (source mode).
-    Phel::bootstrap($appRootDir);
+    PhelKernel::bootstrap($appRootDir);
 
     $facade = new ConsoleFacade();
     $facade->runConsole();

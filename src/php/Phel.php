@@ -60,11 +60,20 @@ class Phel
             }
         }
 
-        // Load project's composer autoloader if it exists and hasn't been loaded yet.
-        // Skip if the projectRootDir is the PHAR file itself (no actual project directory).
+        // Load the host project's Composer autoloader when running the PHAR inside another project.
+        // Skip when the resolved project root is actually the PHAR's own directory (would duplicate autoloader).
+        $runningInPhar = str_starts_with(__FILE__, 'phar://');
+        $pharDir = $runningInPhar ? dirname(Phar::running(false)) : null;
+
         if (!is_file($projectRootDir)) {
             $projectAutoloader = $projectRootDir . '/vendor/autoload.php';
-            if (file_exists($projectAutoloader) && !in_array($projectAutoloader, get_included_files(), true)
+            $isSameRootAsPhar = $runningInPhar
+                && $pharDir !== null
+                && realpath($projectRootDir) === realpath($pharDir);
+
+            if (!$isSameRootAsPhar
+                && file_exists($projectAutoloader)
+                && !in_array($projectAutoloader, get_included_files(), true)
                 && !str_starts_with($projectAutoloader, 'phar://')
             ) {
                 /** @psalm-suppress UnresolvableInclude */
