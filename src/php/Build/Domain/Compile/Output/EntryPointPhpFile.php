@@ -6,6 +6,7 @@ namespace Phel\Build\Domain\Compile\Output;
 
 use Phel\Config\PhelBuildConfig;
 
+use function file_put_contents;
 use function sprintf;
 
 final readonly class EntryPointPhpFile implements EntryPointPhpFileInterface
@@ -19,10 +20,10 @@ final readonly class EntryPointPhpFile implements EntryPointPhpFileInterface
 
     public function createFile(): void
     {
-        file_put_contents(
-            $this->buildMainPhpPath(),
-            $this->buildMainPhpContent(),
-        );
+        $filepath = $this->buildMainPhpPath();
+        $content = $this->buildMainPhpContent();
+
+        file_put_contents($filepath, $content);
     }
 
     private function buildMainPhpPath(): string

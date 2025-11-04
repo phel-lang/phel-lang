@@ -9,6 +9,7 @@ use Phel\Compiler\Domain\Analyzer\Environment\GlobalEnvironment;
 use Phel\Compiler\Domain\Analyzer\Environment\GlobalEnvironmentInterface;
 use Phel\Compiler\Domain\Analyzer\Exceptions\GlobalEnvironmentAlreadyInitializedException;
 use Phel\Compiler\Domain\Analyzer\Exceptions\GlobalEnvironmentNotInitializedException;
+use Phel\Compiler\Domain\Evaluator\RequireEvaluator;
 
 final class GlobalEnvironmentSingleton
 {
@@ -56,6 +57,7 @@ final class GlobalEnvironmentSingleton
     public static function initializeNew(): GlobalEnvironmentInterface
     {
         Phel::clear();
+        RequireEvaluator::clearCache();
         self::$instance = new GlobalEnvironment();
 
         return self::$instance;

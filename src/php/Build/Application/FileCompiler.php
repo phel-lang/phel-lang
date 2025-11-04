@@ -35,21 +35,12 @@ final readonly class FileCompiler implements FileCompilerInterface
         $result = $this->compilerFacade->compile($phelCode, $options);
         BuildFacade::disableBuildMode();
 
-        $this->fileIo->putContents(
-            $dest,
-            "<?php declare(strict_types=1);\n" . $result->getPhpCode(),
-        );
-        $this->fileIo->putContents(str_replace('.php', '.phel', $dest), $phelCode);
+        $phpCode = "<?php declare(strict_types=1);\n" . $result->getPhpCode();
 
-        if ($enableSourceMaps) {
-            $this->fileIo->putContents($dest . '.map', $result->getSourceMap());
-        } else {
-            $this->fileIo->removeFile($dest . '.map');
-        }
-
-        if (function_exists('opcache_compile_file')) {
-            @opcache_compile_file($dest);
-        }
+        $this->fileIo->putContents($dest, $phpCode);
+        $this->writeSourceReference($dest, $phelCode);
+        $this->writeSourceMap($dest, $result->getSourceMap(), $enableSourceMaps);
+        $this->compileWithOpcache($dest);
 
         $namespaceInfo = $this->namespaceExtractor->getNamespaceFromFile($src);
 
@@ -58,5 +49,29 @@ final readonly class FileCompiler implements FileCompilerInterface
             $dest,
             $namespaceInfo->getNamespace(),
         );
+    }
+
+    private function writeSourceReference(string $dest, string $phelCode): void
+    {
+        $sourceFile = str_replace('.php', '.phel', $dest);
+        $this->fileIo->putContents($sourceFile, $phelCode);
+    }
+
+    private function writeSourceMap(string $dest, string $sourceMap, bool $enableSourceMaps): void
+    {
+        $mapFile = $dest . '.map';
+
+        if ($enableSourceMaps) {
+            $this->fileIo->putContents($mapFile, $sourceMap);
+        } else {
+            $this->fileIo->removeFile($mapFile);
+        }
+    }
+
+    private function compileWithOpcache(string $filename): void
+    {
+        if (function_exists('opcache_compile_file')) {
+            @opcache_compile_file($filename);
+        }
     }
 }
