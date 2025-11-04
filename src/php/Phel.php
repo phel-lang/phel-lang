@@ -13,6 +13,7 @@ use Phel\Run\RunFacade;
 use RuntimeException;
 
 use function dirname;
+use function file_exists;
 use function getcwd;
 use function in_array;
 use function is_array;
@@ -55,6 +56,11 @@ class Phel
             } else {
                 $projectRootDir = Phar::running(true);
             }
+        }
+
+        $projectAutoloader = $projectRootDir . '/vendor/autoload.php';
+        if (file_exists($projectAutoloader)) {
+            require_once $projectAutoloader;
         }
 
         Gacela::bootstrap($projectRootDir, self::configFn());
