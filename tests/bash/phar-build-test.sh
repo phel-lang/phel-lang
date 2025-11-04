@@ -22,7 +22,7 @@ function tear_down_after_script() {
 # Validates all PHAR building functionality in a single test
 function test_phar_beta_build() {
     # Build PHAR (redirect output to avoid noise in test output)
-    bash build/phar.sh > /dev/null 2>&1
+    bash build/create-phar.sh > /dev/null 2>&1
 
     # Verify PHAR file was created
     assert_file_exists "build/out/phel.phar"
@@ -42,7 +42,7 @@ function test_phar_beta_build() {
 
 function test_phar_official_release_build() {
     # Build official release PHAR
-    OFFICIAL_RELEASE=true bash build/phar.sh > /dev/null 2>&1
+    OFFICIAL_RELEASE=true bash build/create-phar.sh > /dev/null 2>&1
 
     # Verify PHAR file was created
     assert_file_exists "build/out/phel.phar"
@@ -59,7 +59,7 @@ function test_phar_official_release_build() {
 }
 
 function test_phar_official_false_creates_beta_build() {
-    OFFICIAL_RELEASE=false bash build/phar.sh > /dev/null 2>&1
+    OFFICIAL_RELEASE=false bash build/create-phar.sh > /dev/null 2>&1
     assert_file_exists "build/out/phel.phar"
 
     # Verify beta flag is present

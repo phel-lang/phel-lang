@@ -9,7 +9,7 @@ Guide to creating a new release.
    1. Create the tag from the main branch (the commits from step 3)
    2. Build the PHAR with official release flag and attach it to the release:
       ```bash
-      OFFICIAL_RELEASE=true build/phar.sh
+      OFFICIAL_RELEASE=true build/create-phar.sh
       ```
       Then upload `build/out/phel.phar` to the GitHub release as an attachment
    3. Publish the release (this creates the tag on GitHub)

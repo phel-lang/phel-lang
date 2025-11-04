@@ -63,7 +63,7 @@ we should use "phel" once GitHub accept phel coloring too
 Run the following command to create a standalone PHAR executable:
 
 ```sh
-./build/phar.sh
+./build/create-phar.sh
 ```
 
 The generated `build/out/phel.phar` can then be executed directly.

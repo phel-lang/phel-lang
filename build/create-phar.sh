@@ -5,7 +5,7 @@ set -euo pipefail
 # Optional environment variables:
 #   OFFICIAL_RELEASE=1  - Build an official release (no beta flag)
 #   SKIP_CACHE=1        - Skip vendor cache and rebuild dependencies fresh
-# Usage: OFFICIAL_RELEASE=true build/phar.sh
+# Usage: OFFICIAL_RELEASE=true build/create-phar.sh
 
 # ============================================================================
 # Configuration
