@@ -2,10 +2,15 @@
 set -euo pipefail
 
 # Build Phel PHAR archive
+# Optional positional arguments:
+#   OUTPUT_DIR          - Directory to save the resulting phel.phar (default: build/out)
 # Optional environment variables:
 #   OFFICIAL_RELEASE=1  - Build an official release (no beta flag)
 #   SKIP_CACHE=1        - Skip vendor cache and rebuild dependencies fresh
+# Usage: build/create-phar.sh
+# Usage: build/create-phar.sh /custom/output/dir
 # Usage: OFFICIAL_RELEASE=true build/create-phar.sh
+# Usage: OFFICIAL_RELEASE=true build/create-phar.sh /custom/output/dir
 
 # ============================================================================
 # Configuration
@@ -16,7 +21,7 @@ WORK_DIR="$SCRIPT_DIR/workdir"
 CACHE_DIR="$SCRIPT_DIR/.phar-cache"
 VENDOR_CACHE_DIR="$CACHE_DIR/vendor"
 LOCK_FILE_CACHE="$CACHE_DIR/composer.lock"
-OUTPUT_DIR="$SCRIPT_DIR/out"
+OUTPUT_DIR="${1:-$SCRIPT_DIR/out}"
 PHAR_FILE="$OUTPUT_DIR/phel.phar"
 BUILD_SCRIPT="$SCRIPT_DIR/build-phar.php"
 

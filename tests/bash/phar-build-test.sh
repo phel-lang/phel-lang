@@ -1,8 +1,5 @@
 #!/usr/bin/env bash
 
-# Bashunit end-to-end integration tests for PHAR build script
-# Run with: tools/bashunit tests/bash/phar-build.sh
-
 set -euo pipefail
 
 function cleanup_phar() {
@@ -17,6 +14,7 @@ function set_up() {
 function tear_down_after_script() {
     cleanup_phar
 }
+
 
 # Comprehensive end-to-end test for PHAR build system
 # Validates all PHAR building functionality in a single test
