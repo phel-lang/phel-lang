@@ -59,13 +59,14 @@ class Phel
             }
         }
 
-        // Load project's composer autoloader if it exists and hasn't been loaded yet
-        if (str_starts_with(__FILE__, 'phar://')) {
-            $projectAutoloader = $projectRootDir . '/vendor/autoload.php';
-            if (file_exists($projectAutoloader) && !in_array($projectAutoloader, get_included_files(), true)) {
-                /** @psalm-suppress UnresolvableInclude */
-                require_once $projectAutoloader;
-            }
+        // Load project's composer autoloader if it exists and hasn't been loaded yet.
+        // Skip if this would load the PHAR's own vendor (already loaded by stub).
+        $projectAutoloader = $projectRootDir . '/vendor/autoload.php';
+        if (file_exists($projectAutoloader) && !in_array($projectAutoloader, get_included_files(), true)
+            && !str_starts_with($projectAutoloader, 'phar://')
+        ) {
+            /** @psalm-suppress UnresolvableInclude */
+            require_once $projectAutoloader;
         }
 
         Gacela::bootstrap($projectRootDir, self::configFn());
