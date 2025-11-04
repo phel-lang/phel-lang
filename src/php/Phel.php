@@ -18,6 +18,7 @@ use function get_included_files;
 use function getcwd;
 use function in_array;
 use function is_array;
+use function is_file;
 use function is_string;
 
 /**
@@ -60,13 +61,15 @@ class Phel
         }
 
         // Load project's composer autoloader if it exists and hasn't been loaded yet.
-        // Skip if this would load the PHAR's own vendor (already loaded by stub).
-        $projectAutoloader = $projectRootDir . '/vendor/autoload.php';
-        if (file_exists($projectAutoloader) && !in_array($projectAutoloader, get_included_files(), true)
-            && !str_starts_with($projectAutoloader, 'phar://')
-        ) {
-            /** @psalm-suppress UnresolvableInclude */
-            require_once $projectAutoloader;
+        // Skip if the projectRootDir is the PHAR file itself (no actual project directory).
+        if (!is_file($projectRootDir)) {
+            $projectAutoloader = $projectRootDir . '/vendor/autoload.php';
+            if (file_exists($projectAutoloader) && !in_array($projectAutoloader, get_included_files(), true)
+                && !str_starts_with($projectAutoloader, 'phar://')
+            ) {
+                /** @psalm-suppress UnresolvableInclude */
+                require_once $projectAutoloader;
+            }
         }
 
         Gacela::bootstrap($projectRootDir, self::configFn());

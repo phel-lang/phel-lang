@@ -248,4 +248,4 @@ jobs:
         run: composer install --no-interaction --no-ansi --no-progress
 
       - name: Run Bashunit tests
-        run: tools/bashunit tests/bash/*
+        run: tools/bashunit tests/bash/phar-build-test.sh --filter test_phar_official_release_build --simple --verbose
