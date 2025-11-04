@@ -60,10 +60,12 @@ class Phel
         }
 
         // Load project's composer autoloader if it exists and hasn't been loaded yet
-        $projectAutoloader = $projectRootDir . '/vendor/autoload.php';
-        if (file_exists($projectAutoloader) && !in_array($projectAutoloader, get_included_files(), true)) {
-            /** @psalm-suppress UnresolvableInclude */
-            require_once $projectAutoloader;
+        if (str_starts_with(__FILE__, 'phar://')) {
+            $projectAutoloader = $projectRootDir . '/vendor/autoload.php';
+            if (file_exists($projectAutoloader) && !in_array($projectAutoloader, get_included_files(), true)) {
+                /** @psalm-suppress UnresolvableInclude */
+                require_once $projectAutoloader;
+            }
         }
 
         Gacela::bootstrap($projectRootDir, self::configFn());
