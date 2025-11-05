@@ -15,7 +15,7 @@ Core functionality sits in `src/php`, where each module has its own README: `Lan
 - `composer phpstan` / `composer psalm`: static analysis tuned for PHP 8.3.
 - `composer csrun` (dry lint) and `composer csfix`: enforce formatting; `composer fix` chains Rector and CS Fixer when
   code motion is expected.
-- `./build/phar.sh`: creates `build/out/phel.phar` for distribution testing.
+- `./build/create-phar.sh`: creates `build/out/phel.phar` for distribution testing.
 
 ## Coding Style & Naming Conventions
 

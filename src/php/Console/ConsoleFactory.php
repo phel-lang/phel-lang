@@ -10,6 +10,7 @@ use Phel\Console\Application\VersionFinder;
 use Phel\Console\Infrastructure\ConsoleBootstrap;
 use Phel\Filesystem\FilesystemFacadeInterface;
 
+use function defined;
 use function in_array;
 
 final class ConsoleFactory extends AbstractFactory
@@ -50,8 +51,14 @@ final class ConsoleFactory extends AbstractFactory
 
     private function getIsOfficialRelease(): bool
     {
-        // Check for a build-time config file (used when building PHAR)
+        // First, try to find .phel-release.php at the project root
         $configFile = __DIR__ . '/../../../.phel-release.php';
+
+        if (!file_exists($configFile) && defined('__PHAR_ARCHIVE__')) {
+            // If we're running from a PHAR, check the PHAR root
+            $configFile = __PHAR_ARCHIVE__ . '/.phel-release.php';
+        }
+
         if (file_exists($configFile)) {
             return (bool) require $configFile;
         }

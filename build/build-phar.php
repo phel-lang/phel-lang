@@ -169,6 +169,9 @@ final class PharBuilder
             )
         );
 
+        // Add root-level files (.phel-release.php, etc.)
+        $this->addRootFiles($phar);
+
         $totalSize = 0;
         foreach ($iterator as $file) {
             if (!$file->isFile()) {
@@ -192,6 +195,24 @@ final class PharBuilder
         }
 
         $this->stats['total_size'] = $totalSize;
+    }
+
+    /**
+     * Add files at the root level of the project
+     */
+    private function addRootFiles(Phar $phar): void
+    {
+        // Add .phel-release.php if it exists
+        $releaseFile = $this->root . '/.phel-release.php';
+        if (file_exists($releaseFile) && is_file($releaseFile)) {
+            try {
+                $phar->addFile($releaseFile, '.phel-release.php');
+                $this->stats['total_size'] += filesize($releaseFile);
+                $this->stats['files_added']++;
+            } catch (Exception $e) {
+                $this->stats['errors'][] = "Failed to add .phel-release.php: {$e->getMessage()}";
+            }
+        }
     }
 
     /**
@@ -227,6 +248,7 @@ final class PharBuilder
 #!/usr/bin/env php
 <?php
 Phar::mapPhar('phel.phar');
+define('__PHAR_ARCHIVE__', 'phar://phel.phar');
 require_once 'phar://phel.phar/vendor/autoload.php';
 require 'phar://phel.phar/bin/phel';
 __HALT_COMPILER();

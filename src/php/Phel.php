@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Phel;
 
 use Closure;
+use Exception;
 use Gacela\Framework\Bootstrap\GacelaConfig;
 use Gacela\Framework\Gacela;
 use Phar;
@@ -13,9 +14,12 @@ use Phel\Run\RunFacade;
 use RuntimeException;
 
 use function dirname;
+use function file_exists;
+use function get_included_files;
 use function getcwd;
 use function in_array;
 use function is_array;
+use function is_file;
 use function is_string;
 
 /**
@@ -56,6 +60,8 @@ class Phel
                 $projectRootDir = Phar::running(true);
             }
         }
+
+        self::loadHostProjectAutoloader($projectRootDir);
 
         Gacela::bootstrap($projectRootDir, self::configFn());
     }
@@ -104,5 +110,82 @@ class Phel
         } elseif (is_array($argv) && $argv !== []) {
             $updateGlobals($argv);
         }
+    }
+
+    /**
+     * Load the host project's Composer autoloader when running the PHAR inside another project.
+     * This allows the PHAR to resolve dependencies from the host project's vendor directory.
+     * Different vendor directories have different ComposerAutoloaderInit[hash] classes, so they're safe to load together.
+     */
+    private static function loadHostProjectAutoloader(string $projectRootDir): void
+    {
+        // Skip if project root is a file (not a directory)
+        if (is_file($projectRootDir)) {
+            return;
+        }
+
+        $projectAutoloader = $projectRootDir . '/vendor/autoload.php';
+
+        // Skip if running from PHAR and project root is the PHAR's own directory
+        if (self::isProjectRootSameasPharDirectory($projectRootDir)) {
+            return;
+        }
+
+        // Skip if autoloader doesn't exist or is inside PHAR
+        if (!file_exists($projectAutoloader) || str_starts_with($projectAutoloader, 'phar://')) {
+            return;
+        }
+
+        // Skip if this specific autoloader is already loaded
+        if (self::isAutoloaderAlreadyLoaded($projectAutoloader)) {
+            return;
+        }
+
+        /** @psalm-suppress UnresolvableInclude */
+        require_once $projectAutoloader;
+    }
+
+    /**
+     * Check if the project root directory is the same as the PHAR's own directory.
+     */
+    private static function isProjectRootSameasPharDirectory(string $projectRootDir): bool
+    {
+        $runningInPhar = str_starts_with(__FILE__, 'phar://');
+        if (!$runningInPhar) {
+            return false;
+        }
+
+        $pharDir = dirname(Phar::running(false));
+
+        try {
+            $projectRootReal = realpath($projectRootDir);
+            $pharDirReal = realpath($pharDir);
+
+            return $projectRootReal !== false
+                && $pharDirReal !== false
+                && $projectRootReal === $pharDirReal;
+        } catch (Exception) {
+            return false;
+        }
+    }
+
+    /**
+     * Check if the project's vendor/autoload.php is already loaded.
+     */
+    private static function isAutoloaderAlreadyLoaded(string $projectAutoloader): bool
+    {
+        $projectAutoloaderReal = realpath($projectAutoloader);
+        if ($projectAutoloaderReal === false) {
+            return false;
+        }
+
+        foreach (get_included_files() as $includedFile) {
+            $includedFileReal = realpath($includedFile);
+            if ($includedFileReal !== false && $includedFileReal === $projectAutoloaderReal) {
+                return true;
+            }
+        }
+
+        return false;
     }
 }
