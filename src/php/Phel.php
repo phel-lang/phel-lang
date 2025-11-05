@@ -88,16 +88,18 @@ class Phel
                 && file_exists($projectAutoloader)
                 && !str_starts_with($projectAutoloader, 'phar://')
             ) {
-                // Check if the autoloader is already loaded by comparing against what's in memory
+                // Check if this specific project's autoloader is already loaded
+                // by comparing real paths to avoid false positives from other projects' autoloaders
+                $projectAutoloaderReal = realpath($projectAutoloader);
                 $autoloaderAlreadyLoaded = false;
-                foreach (get_included_files() as $includedFile) {
-                    // Match by filename to handle both real and phar paths
-                    if (basename($includedFile) === 'autoload.php'
-                        && (realpath($includedFile) === realpath($projectAutoloader)
-                            || str_contains($includedFile, '/vendor/autoload.php'))
-                    ) {
-                        $autoloaderAlreadyLoaded = true;
-                        break;
+
+                if ($projectAutoloaderReal !== false) {
+                    foreach (get_included_files() as $includedFile) {
+                        $includedFileReal = realpath($includedFile);
+                        if ($includedFileReal !== false && $includedFileReal === $projectAutoloaderReal) {
+                            $autoloaderAlreadyLoaded = true;
+                            break;
+                        }
                     }
                 }
 
