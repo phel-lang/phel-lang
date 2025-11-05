@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Phel;
 
 use Closure;
+use Composer\Autoload\ClassLoader;
 use Exception;
 use Gacela\Framework\Bootstrap\GacelaConfig;
 use Gacela\Framework\Gacela;
@@ -61,58 +62,7 @@ class Phel
             }
         }
 
-        // Load the host project's Composer autoloader when running the PHAR inside another project.
-        // Skip when the resolved project root is actually the PHAR's own directory (would duplicate autoloader).
-        $runningInPhar = str_starts_with(__FILE__, 'phar://');
-        $pharDir = $runningInPhar ? dirname(Phar::running(false)) : null;
-
-        if (!is_file($projectRootDir)) {
-            $projectAutoloader = $projectRootDir . '/vendor/autoload.php';
-
-            // Determine if the project root is the same as the PHAR directory
-            $isSameRootAsPhar = false;
-            if ($runningInPhar && $pharDir !== null) {
-                try {
-                    $projectRootReal = realpath($projectRootDir);
-                    $pharDirReal = realpath($pharDir);
-                    $isSameRootAsPhar = $projectRootReal !== false
-                        && $pharDirReal !== false
-                        && $projectRootReal === $pharDirReal;
-                } catch (Exception) {
-                    // If realpath fails, assume they're different
-                    $isSameRootAsPhar = false;
-                }
-            }
-
-            // When running the PHAR, skip loading the host's autoloader if a Composer autoloader
-            // is already active (the PHAR's internal one). Attempting to load both causes
-            // duplicate class declaration errors since Composer defines a unique autoloader
-            // class per vendor directory (e.g., ComposerAutoloaderInit[hash]).
-            // TODO: In the future, consider a safer way to merge or register multiple autoloaders.
-            if (!$isSameRootAsPhar
-                && file_exists($projectAutoloader)
-                && !str_starts_with($projectAutoloader, 'phar://')
-                && !class_exists(ClassLoader::class, false)
-            ) {
-                $projectAutoloaderReal = realpath($projectAutoloader);
-                $autoloaderAlreadyLoaded = false;
-
-                if ($projectAutoloaderReal !== false) {
-                    foreach (get_included_files() as $includedFile) {
-                        $includedFileReal = realpath($includedFile);
-                        if ($includedFileReal !== false && $includedFileReal === $projectAutoloaderReal) {
-                            $autoloaderAlreadyLoaded = true;
-                            break;
-                        }
-                    }
-                }
-
-                if (!$autoloaderAlreadyLoaded) {
-                    /** @psalm-suppress UnresolvableInclude */
-                    require_once $projectAutoloader;
-                }
-            }
-        }
+        self::loadHostProjectAutoloader($projectRootDir);
 
         Gacela::bootstrap($projectRootDir, self::configFn());
     }
@@ -161,5 +111,86 @@ class Phel
         } elseif (is_array($argv) && $argv !== []) {
             $updateGlobals($argv);
         }
+    }
+
+    /**
+     * Load the host project's Composer autoloader when running the PHAR inside another project.
+     * Skip when the resolved project root is the PHAR's own directory (would cause duplicate class errors).
+     */
+    private static function loadHostProjectAutoloader(string $projectRootDir): void
+    {
+        // Skip if project root is a file (not a directory)
+        if (is_file($projectRootDir)) {
+            return;
+        }
+
+        $projectAutoloader = $projectRootDir . '/vendor/autoload.php';
+
+        // Check if running from PHAR and if project root is the PHAR's own directory
+        if (self::isProjectRootSameasPharDirectory($projectRootDir)) {
+            return;
+        }
+
+        // Skip if autoloader doesn't exist or is inside PHAR
+        if (!file_exists($projectAutoloader) || str_starts_with($projectAutoloader, 'phar://')) {
+            return;
+        }
+
+        // Skip if Composer autoloader already active (prevents duplicate class declarations)
+        if (class_exists(ClassLoader::class, false)) {
+            return;
+        }
+
+        // Check if this specific autoloader is already loaded
+        if (self::isAutoloaderAlreadyLoaded($projectAutoloader)) {
+            return;
+        }
+
+        /** @psalm-suppress UnresolvableInclude */
+        require_once $projectAutoloader;
+    }
+
+    /**
+     * Check if the project root directory is the same as the PHAR's own directory.
+     */
+    private static function isProjectRootSameasPharDirectory(string $projectRootDir): bool
+    {
+        $runningInPhar = str_starts_with(__FILE__, 'phar://');
+        if (!$runningInPhar) {
+            return false;
+        }
+
+        $pharDir = dirname(Phar::running(false));
+
+        try {
+            $projectRootReal = realpath($projectRootDir);
+            $pharDirReal = realpath($pharDir);
+
+            return $projectRootReal !== false
+                && $pharDirReal !== false
+                && $projectRootReal === $pharDirReal;
+        } catch (Exception) {
+            return false;
+        }
+    }
+
+    /**
+     * Check if the project's vendor/autoload.php is already loaded.
+     */
+    private static function isAutoloaderAlreadyLoaded(string $projectAutoloader): bool
+    {
+        $projectAutoloaderReal = realpath($projectAutoloader);
+        if ($projectAutoloaderReal === false) {
+            return false;
+        }
+
+        foreach (get_included_files() as $includedFile) {
+            $includedFileReal = realpath($includedFile);
+            if ($includedFileReal !== false && $includedFileReal === $projectAutoloaderReal) {
+                return true;
+            }
+        }
+
+        return false;
     }
 }
