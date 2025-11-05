@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Phel;
 
 use Closure;
+use Exception;
 use Gacela\Framework\Bootstrap\GacelaConfig;
 use Gacela\Framework\Gacela;
 use Phar;
@@ -67,17 +68,43 @@ class Phel
 
         if (!is_file($projectRootDir)) {
             $projectAutoloader = $projectRootDir . '/vendor/autoload.php';
-            $isSameRootAsPhar = $runningInPhar
-                && $pharDir !== null
-                && realpath($projectRootDir) === realpath($pharDir);
+
+            // Determine if the project root is the same as the PHAR directory
+            $isSameRootAsPhar = false;
+            if ($runningInPhar && $pharDir !== null) {
+                try {
+                    $projectRootReal = realpath($projectRootDir);
+                    $pharDirReal = realpath($pharDir);
+                    $isSameRootAsPhar = $projectRootReal !== false
+                        && $pharDirReal !== false
+                        && $projectRootReal === $pharDirReal;
+                } catch (Exception) {
+                    // If realpath fails, assume they're different
+                    $isSameRootAsPhar = false;
+                }
+            }
 
             if (!$isSameRootAsPhar
                 && file_exists($projectAutoloader)
-                && !in_array($projectAutoloader, get_included_files(), true)
                 && !str_starts_with($projectAutoloader, 'phar://')
             ) {
-                /** @psalm-suppress UnresolvableInclude */
-                require_once $projectAutoloader;
+                // Check if the autoloader is already loaded by comparing against what's in memory
+                $autoloaderAlreadyLoaded = false;
+                foreach (get_included_files() as $includedFile) {
+                    // Match by filename to handle both real and phar paths
+                    if (basename($includedFile) === 'autoload.php'
+                        && (realpath($includedFile) === realpath($projectAutoloader)
+                            || str_contains($includedFile, '/vendor/autoload.php'))
+                    ) {
+                        $autoloaderAlreadyLoaded = true;
+                        break;
+                    }
+                }
+
+                if (!$autoloaderAlreadyLoaded) {
+                    /** @psalm-suppress UnresolvableInclude */
+                    require_once $projectAutoloader;
+                }
             }
         }
 
