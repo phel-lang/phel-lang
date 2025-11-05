@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Phel;
 
 use Closure;
+use Composer\Autoload\ClassLoader;
 use Exception;
 use Gacela\Framework\Bootstrap\GacelaConfig;
 use Gacela\Framework\Gacela;
@@ -84,15 +85,14 @@ class Phel
                 }
             }
 
-            if (!$isSameRootAsPhar
-                && file_exists($projectAutoloader)
-                && !str_starts_with($projectAutoloader, 'phar://')
-            ) {
-                // Check if this specific project's autoloader is already loaded
-                // by comparing real paths to avoid false positives from other projects' autoloaders
+            // Skip loading if Composer autoloader is already initialized
+            // This prevents duplicate class declaration errors when the PHAR's
+            // autoloader is already loaded (e.g., when running PHAR from the build directory)
+            if (!$isSameRootAsPhar && file_exists($projectAutoloader) && !str_starts_with($projectAutoloader, 'phar://') && !class_exists(ClassLoader::class, false)) {
+                // Also check if this specific project's autoloader is already loaded
+                // to handle cases where a different autoloader with the same classes might be included
                 $projectAutoloaderReal = realpath($projectAutoloader);
                 $autoloaderAlreadyLoaded = false;
-
                 if ($projectAutoloaderReal !== false) {
                     foreach (get_included_files() as $includedFile) {
                         $includedFileReal = realpath($includedFile);
