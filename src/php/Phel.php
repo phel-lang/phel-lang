@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace Phel;
 
 use Closure;
-use Composer\Autoload\ClassLoader;
 use Exception;
 use Gacela\Framework\Bootstrap\GacelaConfig;
 use Gacela\Framework\Gacela;
@@ -116,7 +115,7 @@ class Phel
     /**
      * Load the host project's Composer autoloader when running the PHAR inside another project.
      * This allows the PHAR to resolve dependencies from the host project's vendor directory.
-     * Skip when vendor directories are the same (would cause duplicate ComposerAutoloaderInit classes).
+     * Different vendor directories have different ComposerAutoloaderInit[hash] classes, so they're safe to load together.
      */
     private static function loadHostProjectAutoloader(string $projectRootDir): void
     {
@@ -127,7 +126,7 @@ class Phel
 
         $projectAutoloader = $projectRootDir . '/vendor/autoload.php';
 
-        // Check if running from PHAR and if project root is the PHAR's own directory
+        // Skip if running from PHAR and project root is the PHAR's own directory
         if (self::isProjectRootSameasPharDirectory($projectRootDir)) {
             return;
         }
@@ -137,42 +136,13 @@ class Phel
             return;
         }
 
-        // If a Composer autoloader is already active, only load if vendor dirs are different
-        // (different vendor dirs have different ComposerAutoloaderInit[hash] classes, so no conflict)
-        if (class_exists(ClassLoader::class, false) && self::isSameVendorDirectory($projectRootDir)) {
-            return;
-        }
-
-        // Check if this specific autoloader is already loaded
+        // Skip if this specific autoloader is already loaded
         if (self::isAutoloaderAlreadyLoaded($projectAutoloader)) {
             return;
         }
 
         /** @psalm-suppress UnresolvableInclude */
         require_once $projectAutoloader;
-    }
-
-    /**
-     * Check if the project's vendor directory is the same as an already-loaded vendor directory.
-     */
-    private static function isSameVendorDirectory(string $projectRootDir): bool
-    {
-        $projectVendor = realpath($projectRootDir . '/vendor');
-        if ($projectVendor === false) {
-            return false;
-        }
-
-        foreach (get_included_files() as $includedFile) {
-            // Look for vendor/autoload.php files in included files
-            if (str_contains($includedFile, '/vendor/autoload.php')) {
-                $loadedVendor = realpath(dirname($includedFile));
-                if ($loadedVendor !== false && $loadedVendor === $projectVendor) {
-                    return true;
-                }
-            }
-        }
-
-        return false;
     }
 
     /**
