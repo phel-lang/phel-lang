@@ -84,10 +84,16 @@ class Phel
                 }
             }
 
-            // Load the project's vendor autoloader so dependencies can be resolved.
-            // Skip if this specific project's autoloader is already loaded (by path comparison)
-            // to prevent duplicate class declaration errors.
-            if (!$isSameRootAsPhar && file_exists($projectAutoloader) && !str_starts_with($projectAutoloader, 'phar://')) {
+            // When running the PHAR, skip loading the host's autoloader if a Composer autoloader
+            // is already active (the PHAR's internal one). Attempting to load both causes
+            // duplicate class declaration errors since Composer defines a unique autoloader
+            // class per vendor directory (e.g., ComposerAutoloaderInit[hash]).
+            // TODO: In the future, consider a safer way to merge or register multiple autoloaders.
+            if (!$isSameRootAsPhar
+                && file_exists($projectAutoloader)
+                && !str_starts_with($projectAutoloader, 'phar://')
+                && !class_exists(ClassLoader::class, false)
+            ) {
                 $projectAutoloaderReal = realpath($projectAutoloader);
                 $autoloaderAlreadyLoaded = false;
 
