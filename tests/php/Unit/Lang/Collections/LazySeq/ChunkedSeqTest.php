@@ -12,6 +12,8 @@ use PhelTest\Unit\Lang\Collections\ModuloHasher;
 use PhelTest\Unit\Lang\Collections\SimpleEqualizer;
 use PHPUnit\Framework\TestCase;
 
+use function array_slice;
+
 final class ChunkedSeqTest extends TestCase
 {
     private ModuloHasher $hasher;
@@ -207,5 +209,80 @@ final class ChunkedSeqTest extends TestCase
 
         $this->assertGreaterThanOrEqual($chunkSize * 2, $realizationCount, 'Second chunk should be realized');
         $this->assertLessThanOrEqual($chunkSize * 2 + 2, $realizationCount, 'Should not realize much more than two chunks');
+    }
+
+    public function test_cdr_memoization_prevents_generator_advancement(): void
+    {
+        // This test verifies the bug fix where calling cdr() multiple times
+        // on the same ChunkedSeq instance (when chunk is exhausted) would
+        // advance the generator each time, causing chunks to be skipped.
+
+        $generator = (static function (): Generator {
+            for ($i = 1; $i <= 100; ++$i) {
+                yield $i;
+            }
+        })();
+
+        // Create a ChunkedSeq with chunk size 1 to force immediate exhaustion
+        $chunkedSeq = ChunkedSeq::fromGenerator($this->hasher, $this->equalizer, $generator, 1);
+
+        $this->assertSame(1, $chunkedSeq->first());
+
+        // Call cdr() multiple times on the same instance
+        // Without memoization, each call would advance the generator
+        $cdr1 = $chunkedSeq->cdr();
+        $cdr2 = $chunkedSeq->cdr();
+        $cdr3 = $chunkedSeq->cdr();
+
+        // All calls should return equivalent results
+        $this->assertSame(2, $cdr1?->first(), 'First cdr() should return 2');
+        $this->assertSame(2, $cdr2?->first(), 'Second cdr() should return 2 (not 3!)');
+        $this->assertSame(2, $cdr3?->first(), 'Third cdr() should return 2 (not 4!)');
+
+        // Verify the rest of the sequence is consistent
+        $this->assertSame([2, 3, 4, 5], array_slice($cdr1?->toArray() ?? [], 0, 4));
+        $this->assertSame([2, 3, 4, 5], array_slice($cdr2?->toArray() ?? [], 0, 4));
+        $this->assertSame([2, 3, 4, 5], array_slice($cdr3?->toArray() ?? [], 0, 4));
+    }
+
+    public function test_iterator_memoization_prevents_duplicate_realization(): void
+    {
+        // This test verifies that creating multiple iterators on the same
+        // ChunkedSeq instance doesn't cause the generator to be invoked
+        // multiple times (which would skip chunks).
+
+        $realizationCount = 0;
+        $generator = (static function () use (&$realizationCount): Generator {
+            for ($i = 1; $i <= 10; ++$i) {
+                ++$realizationCount;
+                yield $i;
+            }
+        })();
+
+        $chunkedSeq = ChunkedSeq::fromGenerator($this->hasher, $this->equalizer, $generator, 3);
+
+        // First iteration
+        $result1 = [];
+        foreach ($chunkedSeq as $value) {
+            $result1[] = $value;
+        }
+
+        $countAfterFirst = $realizationCount;
+
+        // Second iteration on the SAME instance
+        $result2 = [];
+        foreach ($chunkedSeq as $value) {
+            $result2[] = $value;
+        }
+
+        $countAfterSecond = $realizationCount;
+
+        // Both iterations should produce the same results
+        $this->assertSame([1, 2, 3, 4, 5, 6, 7, 8, 9, 10], $result1);
+        $this->assertSame([1, 2, 3, 4, 5, 6, 7, 8, 9, 10], $result2);
+
+        // The generator should not be advanced again on the second iteration
+        // (memoization should prevent re-invocation)
+        $this->assertSame($countAfterFirst, $countAfterSecond, 'Generator should not be invoked again');
     }
 }

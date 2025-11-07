@@ -34,14 +34,14 @@ final class ChunkedSeq extends AbstractType implements LazySeqInterface, Countab
 {
     /**
      * @param Chunk<T>                    $chunk The current chunk of realized values
-     * @param callable|null               $fn    A thunk that produces the rest of the sequence
+     * @param MemoizedThunk|null          $thunk A memoized thunk that produces the rest of the sequence
      * @param PersistentMapInterface|null $meta  Metadata for this sequence
      */
     public function __construct(
         private readonly HasherInterface $hasher,
         private readonly EqualizerInterface $equalizer,
         private readonly Chunk $chunk,
-        private $fn,
+        private readonly ?MemoizedThunk $thunk,
         private readonly ?PersistentMapInterface $meta = null,
     ) {
     }
@@ -76,10 +76,12 @@ final class ChunkedSeq extends AbstractType implements LazySeqInterface, Countab
 
         $chunk = new Chunk($values);
 
-        // Create thunk for the rest
-        $fn = static fn (): ?ChunkedSeq => self::fromGenerator($hasher, $equalizer, $generator, $chunkSize);
+        // Create memoized thunk for the rest
+        $thunk = new MemoizedThunk(
+            static fn (): ?ChunkedSeq => self::fromGenerator($hasher, $equalizer, $generator, $chunkSize),
+        );
 
-        return new self($hasher, $equalizer, $chunk, $fn, $meta);
+        return new self($hasher, $equalizer, $chunk, $thunk, $meta);
     }
 
     /**
@@ -109,11 +111,13 @@ final class ChunkedSeq extends AbstractType implements LazySeqInterface, Countab
         // Remaining elements
         $remaining = array_slice($array, $chunkSize);
 
-        $fn = $remaining === []
+        $thunk = $remaining === []
             ? null
-            : static fn (): ?ChunkedSeq => self::fromArray($hasher, $equalizer, $remaining, $chunkSize);
+            : new MemoizedThunk(
+                static fn (): ?ChunkedSeq => self::fromArray($hasher, $equalizer, $remaining, $chunkSize),
+            );
 
-        return new self($hasher, $equalizer, $chunk, $fn, $meta);
+        return new self($hasher, $equalizer, $chunk, $thunk, $meta);
     }
 
     public function isRealized(): bool
@@ -141,18 +145,18 @@ final class ChunkedSeq extends AbstractType implements LazySeqInterface, Countab
                 $this->hasher,
                 $this->equalizer,
                 $this->chunk->drop(1),
-                $this->fn,
+                $this->thunk,
                 $this->meta,
             );
         }
 
         // Need to realize the next chunk
-        if ($this->fn === null) {
+        if (!$this->thunk instanceof MemoizedThunk) {
             return null;
         }
 
-        $fn = $this->fn;
-        $result = $fn();
+        // Invoke the memoized thunk (safe to call multiple times)
+        $result = $this->thunk->invoke();
 
         // If result is a LazySeq, return it; otherwise wrap it
         if ($result instanceof LazySeqInterface) {
@@ -196,7 +200,7 @@ final class ChunkedSeq extends AbstractType implements LazySeqInterface, Countab
         $newValues = array_merge([$x], $this->chunk->toArray());
         $newChunk = new Chunk($newValues);
 
-        return new self($this->hasher, $this->equalizer, $newChunk, $this->fn, $this->meta);
+        return new self($this->hasher, $this->equalizer, $newChunk, $this->thunk, $this->meta);
     }
 
     public function count(): int
@@ -234,12 +238,12 @@ final class ChunkedSeq extends AbstractType implements LazySeqInterface, Countab
             }
 
             // Move to next chunk
-            if ($current->fn === null) {
+            if (!$current->thunk instanceof MemoizedThunk) {
                 break;
             }
 
-            $fn = $current->fn;
-            $rest = $fn();
+            // Invoke the memoized thunk (safe to call multiple times)
+            $rest = $current->thunk->invoke();
 
             // Continue if rest is a ChunkedSeq
             if ($rest instanceof self) {
@@ -264,7 +268,7 @@ final class ChunkedSeq extends AbstractType implements LazySeqInterface, Countab
 
     public function withMeta(?PersistentMapInterface $meta): static
     {
-        return new self($this->hasher, $this->equalizer, $this->chunk, $this->fn, $meta);
+        return new self($this->hasher, $this->equalizer, $this->chunk, $this->thunk, $meta);
     }
 
     public function hash(): int
