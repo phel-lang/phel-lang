@@ -373,22 +373,32 @@ final class LazySeq extends AbstractType implements LazySeqInterface, Countable,
 
     public function equals(mixed $other): bool
     {
+        $thisArray = $this->toArray();
+
         // Check if other is a sequence or indexable collection
         if ($other instanceof SeqInterface) {
-            return $this->toArray() === $other->toArray();
+            $otherArray = $other->toArray();
+        } elseif (is_object($other) && method_exists($other, 'toArray')) {
+            // Check if it has toArray method (like vectors)
+            $otherArray = $other->toArray();
+        } elseif (is_array($other)) {
+            // Direct array comparison
+            $otherArray = $other;
+        } else {
+            return false;
         }
 
-        // Check if it has toArray method (like vectors)
-        if (is_object($other) && method_exists($other, 'toArray')) {
-            return $this->toArray() === $other->toArray();
+        if (count($thisArray) !== count($otherArray)) {
+            return false;
         }
 
-        // Direct array comparison
-        if (is_array($other)) {
-            return $this->toArray() === $other;
+        foreach ($thisArray as $i => $value) {
+            if (!$this->equalizer->equals($value, $otherArray[$i])) {
+                return false;
+            }
         }
 
-        return false;
+        return true;
     }
 
     /**
