@@ -963,25 +963,24 @@ arrays. Use (php/aunset ds key)"))
 # For loop
 # --------
 
+(defn- lazy-seq-from-generator
+  "Wraps a PHP Generator in a ChunkedSeq for efficient lazy evaluation.
+  ChunkedSeq realizes elements in batches for better performance."
+  [generator]
+  (php/:: ChunkedSeq (fromGenerator
+    (php/new Hasher)
+    (php/new Equalizer)
+    generator)))
+
 (defn range
-  "Create an array of values `[start, end)`. If the function has one argument then
+  "Create a lazy sequence of values `[start, end)`. If the function has one argument then
   the range `[0, end)` is returned. With two arguments, returns `[start, end)`.
   The third argument is an optional step width (default 1)."
   [a & rest]
   (case (count rest)
-    0 (range 0 a 1)
-    1 (range a (get rest 0) 1)
-    2 (let [res (transient [])
-            begin a
-            end (get rest 0)
-            step (get rest 1)
-            cmp (if (< step 0) > <)]
-        (loop [i begin]
-          (if (cmp i end)
-            (do
-              (push res i)
-              (recur (php/+ i step)))
-            (persistent res))))
+    0 (lazy-seq-from-generator (php/:: Generators (range 0 a 1)))
+    1 (lazy-seq-from-generator (php/:: Generators (range a (get rest 0) 1)))
+    2 (lazy-seq-from-generator (php/:: Generators (range a (get rest 0) (get rest 1))))
     (throw (php/new InvalidArgumentException "Range function expects one, two or three arguments"))))
 
 (def- for-options (set :reduce))
@@ -1088,14 +1087,16 @@ arrays. Use (php/aunset ds key)"))
 # ------------------
 
 (defn map
-  "Returns an array consisting of the result of applying `f` to all of the first items in each `xs`,
+  "Returns a lazy sequence of the result of applying `f` to all of the first items in each `xs`,
    followed by applying `f` to all the second items in each `xs` until anyone of the `xs` is exhausted."
   [f & xs]
   (case (count xs)
     0 (throw (php/new InvalidArgumentException "expected at least one indexed collection in map"))
-    1 (let [coll (first xs)
-            result (for [x :in coll] (f x))]
-        (with-meta coll result))
+    1 (let [coll (first xs)]
+        (if (php/instanceof coll LazySeqInterface)
+          (lazy-seq-from-generator (php/:: Generators (map f coll)))
+          (let [result (for [x :in coll] (f x))]
+            (with-meta coll result))))
     (let [colls xs]
       (loop [res (transient [])
              seq colls]
@@ -1292,6 +1293,7 @@ arrays. Use (php/aunset ds key)"))
     (cond
       (php-array? xs) (php/array_slice xs 0 n)
       (php/instanceof xs SliceInterface) (php/-> xs (slice 0 n))
+      (php/instanceof xs LazySeqInterface) (lazy-seq-from-generator (php/:: Generators (take n xs)))
       (php/instanceof xs Traversable)
       (let [i (var 0)]
         (let [result (for [x :in xs
@@ -1323,10 +1325,12 @@ arrays. Use (php/aunset ds key)"))
     (with-meta xs result)))
 
 (defn filter
-  "Returns all elements of `xs` where `(pred x)` is true."
+  "Returns a lazy sequence of elements of `xs` where `(pred x)` is true."
   [pred xs]
-  (let [result (for [x :in xs :when (pred x)] x)]
-    (with-meta xs result)))
+  (if (php/instanceof xs LazySeqInterface)
+    (lazy-seq-from-generator (php/:: Generators (filter pred xs)))
+    (let [result (for [x :in xs :when (pred x)] x)]
+      (with-meta xs result))))
 
 (defn keep
   "Returns a list of non-nil results of `(pred x)`."
@@ -1542,15 +1546,6 @@ arrays. Use (php/aunset ds key)"))
   (let [php-array (to-php-array xs)]
     (php/shuffle php-array)
     (with-meta xs (apply vector php-array))))
-
-(defn- lazy-seq-from-generator
-  "Wraps a PHP Generator in a ChunkedSeq for efficient lazy evaluation.
-  ChunkedSeq realizes elements in batches for better performance."
-  [generator]
-  (php/:: ChunkedSeq (fromGenerator
-    (php/new Hasher)
-    (php/new Equalizer)
-    generator)))
 
 (defn repeat
   "Returns a vector of length n where every element is x.

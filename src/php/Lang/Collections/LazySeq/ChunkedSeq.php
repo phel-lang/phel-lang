@@ -16,6 +16,8 @@ use Traversable;
 
 use function array_slice;
 use function count;
+use function is_array;
+use function is_object;
 
 /**
  * A chunked lazy sequence that realizes elements in batches for better performance.
@@ -278,11 +280,21 @@ final class ChunkedSeq extends AbstractType implements LazySeqInterface, Countab
 
     public function equals(mixed $other): bool
     {
-        if (!($other instanceof SeqInterface)) {
-            return false;
+        // Check if other is a sequence or indexable collection
+        if ($other instanceof SeqInterface) {
+            return $this->toArray() === $other->toArray();
         }
 
-        // Convert to arrays and compare
-        return $this->toArray() === $other->toArray();
+        // Check if it has toArray method (like vectors)
+        if (is_object($other) && method_exists($other, 'toArray')) {
+            return $this->toArray() === $other->toArray();
+        }
+
+        // Direct array comparison
+        if (is_array($other)) {
+            return $this->toArray() === $other;
+        }
+
+        return false;
     }
 }

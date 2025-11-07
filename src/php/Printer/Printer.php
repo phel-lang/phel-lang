@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Phel\Printer;
 
 use Phel\Lang\Collections\HashSet\PersistentHashSetInterface;
+use Phel\Lang\Collections\LazySeq\LazySeqInterface;
 use Phel\Lang\Collections\LinkedList\PersistentListInterface;
 use Phel\Lang\Collections\Map\PersistentMapInterface;
 use Phel\Lang\Collections\Struct\AbstractPersistentStruct;
@@ -17,6 +18,7 @@ use Phel\Printer\TypePrinter\ArrayPrinter;
 use Phel\Printer\TypePrinter\BooleanPrinter;
 use Phel\Printer\TypePrinter\FnPrinter;
 use Phel\Printer\TypePrinter\KeywordPrinter;
+use Phel\Printer\TypePrinter\LazySeqPrinter;
 use Phel\Printer\TypePrinter\NonPrintableClassPrinter;
 use Phel\Printer\TypePrinter\NullPrinter;
 use Phel\Printer\TypePrinter\NumberPrinter;
@@ -97,6 +99,10 @@ final readonly class Printer implements PrinterInterface
 
         if ($form instanceof PersistentHashSetInterface) {
             return new PersistentHashSetPrinter($this);
+        }
+
+        if ($form instanceof LazySeqInterface) {
+            return new LazySeqPrinter($this);
         }
 
         if ($form instanceof Keyword) {

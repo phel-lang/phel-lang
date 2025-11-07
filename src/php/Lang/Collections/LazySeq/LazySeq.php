@@ -16,6 +16,7 @@ use Traversable;
 
 use function count;
 use function is_array;
+use function is_object;
 
 /**
  * A lazy sequence that defers computation until values are actually needed.
@@ -372,12 +373,22 @@ final class LazySeq extends AbstractType implements LazySeqInterface, Countable,
 
     public function equals(mixed $other): bool
     {
-        if (!($other instanceof SeqInterface)) {
-            return false;
+        // Check if other is a sequence or indexable collection
+        if ($other instanceof SeqInterface) {
+            return $this->toArray() === $other->toArray();
         }
 
-        // Convert to arrays and compare
-        return $this->toArray() === $other->toArray();
+        // Check if it has toArray method (like vectors)
+        if (is_object($other) && method_exists($other, 'toArray')) {
+            return $this->toArray() === $other->toArray();
+        }
+
+        // Direct array comparison
+        if (is_array($other)) {
+            return $this->toArray() === $other;
+        }
+
+        return false;
     }
 
     /**
