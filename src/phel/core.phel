@@ -38,6 +38,7 @@
   (:use Phel\Lang\Equalizer)
   (:use Phel\Lang\Collections\LazySeq\LazySeq)
   (:use Phel\Lang\Collections\LazySeq\LazySeqInterface)
+  (:use Phel\Lang\Collections\LazySeq\ChunkedSeq)
   (:use Phel\Printer\Printer))
 
 (def *ns*
@@ -1543,9 +1544,10 @@ arrays. Use (php/aunset ds key)"))
     (with-meta xs (apply vector php-array))))
 
 (defn- lazy-seq-from-generator
-  "Wraps a PHP Generator in a LazySeq for lazy evaluation."
+  "Wraps a PHP Generator in a ChunkedSeq for efficient lazy evaluation.
+  ChunkedSeq realizes elements in batches for better performance."
   [generator]
-  (php/:: LazySeq (fromGenerator
+  (php/:: ChunkedSeq (fromGenerator
     (php/new Hasher)
     (php/new Equalizer)
     generator)))

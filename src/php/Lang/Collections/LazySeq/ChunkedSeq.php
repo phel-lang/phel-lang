@@ -220,21 +220,37 @@ final class ChunkedSeq extends AbstractType implements LazySeqInterface, Countab
 
     public function getIterator(): Traversable
     {
-        // Yield elements from current chunk
-        foreach ($this->chunk->toArray() as $value) {
-            yield $value;
-        }
+        $current = $this;
 
-        // Yield elements from remaining sequence
-        if ($this->fn !== null) {
-            $fn = $this->fn;
+        // Iteratively process chunks to avoid deep recursion
+        /** @psalm-suppress RedundantCondition */
+        /** @phpstan-ignore instanceof.alwaysTrue */
+        while ($current instanceof self) {
+            // Yield elements from current chunk
+            foreach ($current->chunk->toArray() as $value) {
+                yield $value;
+            }
+
+            // Move to next chunk
+            if ($current->fn === null) {
+                break;
+            }
+
+            $fn = $current->fn;
             $rest = $fn();
 
-            // If rest is iterable, yield from it
-            if ($rest !== null && is_iterable($rest)) {
+            // Continue if rest is a ChunkedSeq
+            if ($rest instanceof self) {
+                $current = $rest;
+            } elseif ($rest !== null && is_iterable($rest)) {
+                // Handle other iterables
                 foreach ($rest as $value) {
                     yield $value;
                 }
+
+                break;
+            } else {
+                break;
             }
         }
     }

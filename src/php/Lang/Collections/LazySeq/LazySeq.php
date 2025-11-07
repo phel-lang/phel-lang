@@ -382,6 +382,7 @@ final class LazySeq extends AbstractType implements LazySeqInterface, Countable,
 
     /**
      * Realizes this lazy sequence if not already realized.
+     * Uses iterative approach to avoid stack overflow.
      */
     private function realize(): ?SeqInterface
     {
@@ -394,9 +395,17 @@ final class LazySeq extends AbstractType implements LazySeqInterface, Countable,
 
         $result = $fn();
 
-        // If the result is a LazySeq, realize it recursively
+        // Iteratively realize nested LazySeqs to avoid recursion
+        // This handles cases where a LazySeq's thunk returns another unrealized LazySeq
         while ($result instanceof self && !$result->isRealized()) {
-            $result = $result->realize();
+            // Get the nested LazySeq's function and call it directly
+            if ($result->fn !== null) {
+                $nestedFn = $result->fn;
+                $result->fn = null;
+                $result = $nestedFn();
+            } else {
+                break;
+            }
         }
 
         $this->realized = $result;
