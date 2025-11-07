@@ -57,7 +57,7 @@ return (new Config())
         'no_blank_lines_after_class_opening' => true,
         'ordered_class_elements' => true,
         'self_accessor' => true,
-        'visibility_required' => true,
+        'modifier_keywords' => true,
 
         // ------------------------------------------------------------------
         // Functions & invocations

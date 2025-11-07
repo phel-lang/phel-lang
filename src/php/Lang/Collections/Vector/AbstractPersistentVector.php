@@ -10,6 +10,9 @@ use Phel\Lang\Collections\Map\PersistentMapInterface;
 use Phel\Lang\EqualizerInterface;
 use Phel\Lang\HasherInterface;
 
+use function count;
+use function is_object;
+
 /**
  * @template T
  *
@@ -74,24 +77,42 @@ abstract class AbstractPersistentVector extends AbstractType implements Persiste
 
     public function equals(mixed $other): bool
     {
-        if (!$other instanceof PersistentVectorInterface) {
-            return false;
-        }
-
-        if ($this->count() !== $other->count()) {
-            return false;
-        }
-
-        $ms = $other;
-        for ($s = $this; $s !== null; $s = $s->cdr(), $ms = $ms->cdr()) {
-            /** @var PersistentVectorInterface $s */
-            /** @var ?PersistentVectorInterface $ms */
-            if (!$ms instanceof PersistentVectorInterface || !$this->equalizer->equals($s->first(), $ms->first())) {
+        if ($other instanceof PersistentVectorInterface) {
+            if ($this->count() !== $other->count()) {
                 return false;
             }
+
+            $ms = $other;
+            for ($s = $this; $s !== null; $s = $s->cdr(), $ms = $ms->cdr()) {
+                /** @var PersistentVectorInterface $s */
+                /** @var ?PersistentVectorInterface $ms */
+                if (!$ms instanceof PersistentVectorInterface || !$this->equalizer->equals($s->first(), $ms->first())) {
+                    return false;
+                }
+            }
+
+            return true;
         }
 
-        return true;
+        // Also accept objects with toArray() method (like lazy sequences)
+        if (is_object($other) && method_exists($other, 'toArray')) {
+            $thisArray = $this->toArray();
+            $otherArray = $other->toArray();
+
+            if (count($thisArray) !== count($otherArray)) {
+                return false;
+            }
+
+            foreach ($thisArray as $i => $value) {
+                if (!$this->equalizer->equals($value, $otherArray[$i])) {
+                    return false;
+                }
+            }
+
+            return true;
+        }
+
+        return false;
     }
 
     /**
