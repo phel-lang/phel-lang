@@ -229,57 +229,56 @@ final class LazySeq extends AbstractType implements LazySeqInterface, Countable,
             $this->hasher,
             $this->equalizer,
             /** @psalm-suppress InvalidReturnType, InvalidReturnStatement */
-            static fn (): SeqInterface =>
-                // Create a simple cons cell
-                new readonly class($x, $self) implements SeqInterface {
-                    public function __construct(
-                        private mixed $first,
-                        private LazySeqInterface $rest,
-                    ) {
-                    }
+            static fn (): SeqInterface => // Create a simple cons cell
+            new readonly class($x, $self) implements SeqInterface {
+                public function __construct(
+                    private mixed $first,
+                    private LazySeqInterface $rest,
+                ) {
+                }
 
-                    public function first()
-                    {
-                        return $this->first;
-                    }
+                public function first()
+                {
+                    return $this->first;
+                }
 
-                    public function cdr(): LazySeqInterface
-                    {
-                        return $this->rest;
-                    }
+                public function cdr(): LazySeqInterface
+                {
+                    return $this->rest;
+                }
 
-                    public function rest(): LazySeqInterface
-                    {
-                        return $this->rest;
-                    }
+                public function rest(): LazySeqInterface
+                {
+                    return $this->rest;
+                }
 
-                    public function toArray(): array
-                    {
-                        // Iterative implementation to avoid stack overflow
-                        $result = [$this->first];
-                        $current = $this->rest;
+                public function toArray(): array
+                {
+                    // Iterative implementation to avoid stack overflow
+                    $result = [$this->first];
+                    $current = $this->rest;
 
-                        // Walk through the sequence iteratively
-                        /** @phpstan-ignore instanceof.alwaysTrue */
-                        while ($current instanceof LazySeqInterface) {
-                            $realized = $current->first();
-                            if ($realized === null) {
-                                break;
-                            }
-
-                            $result[] = $realized;
-
-                            $next = $current->cdr();
-                            if ($next === null) {
-                                break;
-                            }
-
-                            $current = $next;
+                    // Walk through the sequence iteratively
+                    /** @phpstan-ignore instanceof.alwaysTrue */
+                    while ($current instanceof LazySeqInterface) {
+                        $realized = $current->first();
+                        if ($realized === null) {
+                            break;
                         }
 
-                        return $result;
+                        $result[] = $realized;
+
+                        $next = $current->cdr();
+                        if ($next === null) {
+                            break;
+                        }
+
+                        $current = $next;
                     }
-                },
+
+                    return $result;
+                }
+            },
             $this->meta,
         );
     }
