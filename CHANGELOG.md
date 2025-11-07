@@ -4,9 +4,9 @@ All notable changes to this project will be documented in this file.
 
 ## Unreleased
 
-- Simplify release process with `OFFICIAL_RELEASE` environment variable
+- Simplify the release process with `OFFICIAL_RELEASE` environment variable
   - Build official release PHAR with: `OFFICIAL_RELEASE=true build/phar.sh`
-  - Automatically embed release flag in PHAR via `.phel-release.php` config file
+  - Automatically embed a release flag in PHAR via `.phel-release.php` config file
   - Remove manual edits to `IS_OFFICIAL_RELEASE` constant
   - Works seamlessly with both PHAR and Composer dependencies
 - Optimize PHAR build with caching and compression
@@ -19,6 +19,7 @@ All notable changes to this project will be documented in this file.
 - Fix supports php-timer and console `^6.0|^7.0|^8.0`
 - Fix export function name to php
 - Optimize RequireEvaluator
+- Add memory-efficient lazy sequences with chunked evaluation
 
 ## [0.24.0](https://github.com/phel-lang/phel-lang/compare/v0.23.1...v0.24.0) - 2025-10-26
 
