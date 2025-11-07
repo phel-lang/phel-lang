@@ -12,3 +12,48 @@
 (deftest test-iterate
   (is (= [1 2 4 8] (take 4 (iterate (fn [x] (* 2 x)) 1)))
       "(take 4 (iterate (fn [x] (* 2 x)) 1))"))
+
+(deftest test-doall-with-lazy-sequence-from-iterate
+  (is (= [1 2 3 4 5] (doall (take 5 (iterate inc 1))))
+      "doall should realize lazy sequence and return vector"))
+
+(deftest test-doall-with-lazy-sequence-from-repeat
+  (is (= [:a :a :a] (doall (take 3 (repeat :a))))
+      "doall should work with repeat"))
+
+(deftest test-doall-with-lazy-sequence-from-repeatedly
+  (is (= [:x :x :x] (doall (take 3 (repeatedly (fn [] :x)))))
+      "doall should return realized values from repeatedly"))
+
+(deftest test-doall-with-vector
+  (is (= [1 2 3] (doall [1 2 3]))
+      "doall should return vectors unchanged"))
+
+(deftest test-doall-with-list
+  (is (= '(1 2 3) (doall '(1 2 3)))
+      "doall should return lists unchanged"))
+
+(deftest test-dorun-with-lazy-sequence-returns-nil
+  (is (= nil (dorun (take 5 (iterate inc 1))))
+      "dorun should return nil"))
+
+(deftest test-dorun-executes-lazy-sequence
+  (is (= nil (dorun (take 5 (repeatedly (fn [] :x)))))
+      "dorun should execute lazy sequence and return nil"))
+
+(deftest test-dorun-with-vector-returns-nil
+  (is (= nil (dorun [1 2 3]))
+      "dorun should return nil for vectors"))
+
+(deftest test-dorun-with-list-returns-nil
+  (is (= nil (dorun '(1 2 3)))
+      "dorun should return nil for lists"))
+
+(deftest test-doall-with-empty-lazy-sequence
+  (is (= nil (doall (take 0 (iterate inc 1))))
+      "doall should return nil for empty sequences"))
+
+(deftest test-chained-lazy-operations-with-doall
+  (is (= [2 4 6 8 10]
+         (doall (take 5 (iterate (fn [x] (+ x 2)) 2))))
+      "doall should work with chained lazy operations"))
