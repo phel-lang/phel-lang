@@ -1579,7 +1579,10 @@ arrays. Use (php/aunset ds key)"))
   Example: (doall (map println [1 2 3])) ; ensures println executes"
   [coll]
   (if (php/instanceof coll LazySeqInterface)
-    (apply vector (php/-> coll (toArray)))
+    (let [arr (php/-> coll (toArray))]
+      (if (php/empty arr)
+        nil
+        (apply vector arr)))
     coll))
 
 (defn dorun
