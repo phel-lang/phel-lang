@@ -254,7 +254,29 @@ final class LazySeq extends AbstractType implements LazySeqInterface, Countable,
 
                     public function toArray(): array
                     {
-                        return array_merge([$this->first], $this->rest->toArray());
+                        // Iterative implementation to avoid stack overflow
+                        $result = [$this->first];
+                        $current = $this->rest;
+
+                        // Walk through the sequence iteratively
+                        /** @phpstan-ignore instanceof.alwaysTrue */
+                        while ($current instanceof LazySeqInterface) {
+                            $realized = $current->first();
+                            if ($realized === null) {
+                                break;
+                            }
+
+                            $result[] = $realized;
+
+                            $next = $current->cdr();
+                            if ($next === null) {
+                                break;
+                            }
+
+                            $current = $next;
+                        }
+
+                        return $result;
                     }
                 },
             $this->meta,
