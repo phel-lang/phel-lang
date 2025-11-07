@@ -34,6 +34,10 @@
   (:use Phel\Lang\Truthy)
   (:use Phel\Lang\Variable)
   (:use Phel\Lang\Generators)
+  (:use Phel\Lang\Hasher)
+  (:use Phel\Lang\Equalizer)
+  (:use Phel\Lang\Collections\LazySeq\LazySeq)
+  (:use Phel\Lang\Collections\LazySeq\LazySeqInterface)
   (:use Phel\Printer\Printer))
 
 (def *ns*
@@ -1538,30 +1542,38 @@ arrays. Use (php/aunset ds key)"))
     (php/shuffle php-array)
     (with-meta xs (apply vector php-array))))
 
+(defn- lazy-seq-from-generator
+  "Wraps a PHP Generator in a LazySeq for lazy evaluation."
+  [generator]
+  (php/:: LazySeq (fromGenerator
+    (php/new Hasher)
+    (php/new Equalizer)
+    generator)))
+
 (defn repeat
   "Returns a vector of length n where every element is x.
-  With one argument returns an infinite sequence of x."
+  With one argument returns an infinite lazy sequence of x."
   [a & rest]
   (case (count rest)
-    0 (php/:: Generators (repeat a))
+    0 (lazy-seq-from-generator (php/:: Generators (repeat a)))
     1 (for [i :range [a]] (get rest 0))
     (throw (php/new InvalidArgumentException "repeat expects one or two arguments"))))
 
 (defn repeatedly
   "Returns a vector of length n with values produced by repeatedly calling f.
-  With one argument returns an infinite sequence of calls to f."
+  With one argument returns an infinite lazy sequence of calls to f."
   [a & rest]
   (case (count rest)
-    0 (php/:: Generators (repeatedly a))
+    0 (lazy-seq-from-generator (php/:: Generators (repeatedly a)))
     1 (let [n a
             f (get rest 0)]
         (for [i :range [n]] (f)))
     (throw (php/new InvalidArgumentException "repeatedly expects one or two arguments"))))
 
 (defn iterate
-  "Returns an infinite sequence of x, (f x), (f (f x)), and so on."
+  "Returns an infinite lazy sequence of x, (f x), (f (f x)), and so on."
   [f x]
-  (php/:: Generators (iterate f x)))
+  (lazy-seq-from-generator (php/:: Generators (iterate f x))))
 
 (defn group-by
   "Returns a map of the elements of xs keyed by the result of
