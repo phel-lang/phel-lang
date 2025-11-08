@@ -271,4 +271,82 @@ final class Generators
             yield $value;
         }
     }
+
+    /**
+     * @template T
+     *
+     * @param iterable<T> $iterable
+     *
+     * @return Generator<int, T>
+     */
+    public static function distinct(iterable $iterable): Generator
+    {
+        $seen = [];
+        foreach ($iterable as $value) {
+            // Use spl_object_hash for objects, regular value for primitives
+            if (is_object($value)) {
+                $key = spl_object_hash($value);
+            } else {
+                $key = serialize($value);
+            }
+
+            if (!isset($seen[$key])) {
+                $seen[$key] = true;
+                yield $value;
+            }
+        }
+    }
+
+    /**
+     * @template T
+     *
+     * @param iterable<T> $iterable
+     *
+     * @return Generator<int, T>
+     */
+    public static function dedupe(iterable $iterable): Generator
+    {
+        $first = true;
+        $prev = null;
+        foreach ($iterable as $value) {
+            if ($first || $value !== $prev) {
+                yield $value;
+                $prev = $value;
+                $first = false;
+            }
+        }
+    }
+
+    /**
+     * @template T
+     *
+     * @param callable(T):mixed $f
+     * @param iterable<T>       $iterable
+     *
+     * @return Generator<int, list<T>>
+     */
+    public static function partitionBy(callable $f, iterable $iterable): Generator
+    {
+        $partition = [];
+        $prevKey = null;
+        $first = true;
+
+        foreach ($iterable as $value) {
+            $key = $f($value);
+
+            if ($first || $key === $prevKey) {
+                $partition[] = $value;
+                $prevKey = $key;
+                $first = false;
+            } else {
+                yield \Phel::vector($partition);
+                $partition = [$value];
+                $prevKey = $key;
+            }
+        }
+
+        if ($partition !== []) {
+            yield \Phel::vector($partition);
+        }
+    }
 }

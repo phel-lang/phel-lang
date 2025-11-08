@@ -1389,15 +1389,12 @@ arrays. Use (php/aunset ds key)"))
         (recur (next s) (php/+ i 1))))))
 
 (defn distinct
-  "Returns a vector with duplicated values removed in `xs`."
+  "Returns a lazy sequence with duplicated values removed in `xs`."
   [xs]
-  (let [seen (transient {})
-        ret (transient [])]
-    (dofor [x :in xs]
-      (when-not (get seen x)
-        (put seen x true)
-        (push ret x)))
-    (with-meta xs (persistent ret))))
+  (if (nil? xs)
+    []
+    (let [result (lazy-seq-from-generator (php/:: Generators (distinct xs)))]
+      (with-meta xs (or result [])))))
 
 
 (defn reverse
@@ -1695,21 +1692,18 @@ arrays. Use (php/aunset ds key)"))
   [(take-while f xs) (drop-while f xs)])
 
 (defn partition-by
-  "Applies `f` to each value in `xs`, splitting them each time the return value changes."
+  "Returns a lazy sequence of partitions. Applies `f` to each value in `xs`, splitting them each time the return value changes."
   [f xs]
-  (loop [xs xs
-         res []]
-    (if (empty? xs)
-      res
-      (let [k (f (first xs))
-            pred (fn [x] (= k (f x)))
-            [part rest] (split-with pred xs)]
-        (recur rest (push res part))))))
+  (if (empty? xs)
+    []
+    (lazy-seq-from-generator (php/:: Generators (partitionBy f xs)))))
 
 (defn dedupe
-  "Returns a vector with consecutive duplicate values removed in `xs`."
+  "Returns a lazy sequence with consecutive duplicate values removed in `xs`."
   [xs]
-  (map first (partition-by (fn [x] x) xs)))
+  (if (or (nil? xs) (empty? xs))
+    []
+    (lazy-seq-from-generator (php/:: Generators (dedupe xs)))))
 
 (defn partition
   "Partition an indexed data structure into vectors of maximum size n. Returns a new vector."

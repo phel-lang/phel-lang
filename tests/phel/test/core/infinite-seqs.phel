@@ -356,3 +356,61 @@
 (deftest test-keep-indexed-with-nil
   (is (= [] (keep-indexed |(when (even? $1) $2) nil))
       "keep-indexed with nil should return empty vector"))
+
+(deftest test-distinct-on-vector-returns-lazy
+  (is (= [1 2 3 4] (doall (distinct [1 2 3 2 1 4 3])))
+      "distinct on vector should return lazy sequence"))
+
+(deftest test-distinct-on-infinite-seq
+  (is (= [0 1 2 3 4] (take 5 (distinct (iterate inc 0))))
+      "distinct on infinite sequence should work without hanging"))
+
+(deftest test-distinct-empty-collection
+  (is (= [] (distinct []))
+      "distinct on empty collection should return empty vector"))
+
+(deftest test-distinct-with-doall
+  (is (= [1 2 3] (doall (distinct [1 1 2 2 3 3])))
+      "distinct should work with doall"))
+
+(deftest test-distinct-with-nil
+  (is (= [] (distinct nil))
+      "distinct with nil should return empty vector"))
+
+# Tests for lazy dedupe
+(deftest test-dedupe-on-vector-returns-lazy
+  (is (= [1 2 3 2 1] (doall (dedupe [1 1 2 2 3 3 2 2 1])))
+      "dedupe on vector should return lazy sequence"))
+
+(deftest test-dedupe-on-infinite-seq
+  (is (= [0 1 2 3 4] (take 5 (dedupe (iterate inc 0))))
+      "dedupe on infinite sequence should work"))
+
+(deftest test-dedupe-empty-collection
+  (is (= [] (dedupe []))
+      "dedupe on empty collection should return empty vector"))
+
+(deftest test-dedupe-all-same
+  (is (= [1] (doall (dedupe [1 1 1 1 1])))
+      "dedupe should return single element when all are same"))
+
+(deftest test-dedupe-with-nil
+  (is (= [] (dedupe nil))
+      "dedupe with nil should return empty vector"))
+
+# Tests for lazy partition-by
+(deftest test-partition-by-on-vector-returns-lazy
+  (is (= [[1 2] [3 4] [5]] (doall (partition-by |(< $ 3) [1 2 3 4 5])))
+      "partition-by on vector should return lazy sequence"))
+
+(deftest test-partition-by-on-infinite-seq
+  (is (= [[0] [1] [2] [3] [4]] (take 5 (partition-by |(fn [x] x) (iterate inc 0))))
+      "partition-by on infinite sequence should work"))
+
+(deftest test-partition-by-empty-collection
+  (is (= [] (partition-by |(< $ 3) []))
+      "partition-by on empty collection should return empty vector"))
+
+(deftest test-partition-by-all-same-group
+  (is (= [[1 1 1 1]] (doall (partition-by |(< $ 10) [1 1 1 1])))
+      "partition-by should return single partition when all elements have same key"))
