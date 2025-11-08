@@ -20,7 +20,8 @@ All notable changes to this project will be documented in this file.
 - Fix export function name to php
 - Optimize RequireEvaluator
 - Add memory-efficient lazy sequences with chunked evaluation
-- Add `doall` and `dorun` for controlling lazy sequence realization
+  - Add `doall` and `dorun` for controlling lazy sequence realization
+  - Make `map` fully lazy by fixing get function to support lazy sequences
 
 ## [0.24.0](https://github.com/phel-lang/phel-lang/compare/v0.23.1...v0.24.0) - 2025-10-26
 

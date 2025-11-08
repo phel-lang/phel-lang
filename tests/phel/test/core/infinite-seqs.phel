@@ -57,3 +57,27 @@
   (is (= [2 4 6 8 10]
          (doall (take 5 (iterate (fn [x] (+ x 2)) 2))))
       "doall should work with chained lazy operations"))
+
+(deftest test-realized-with-vector
+  (is (= true (realized? [1 2 3]))
+      "realized? should return true for vectors"))
+
+(deftest test-realized-with-list
+  (is (= true (realized? '(1 2 3)))
+      "realized? should return true for lists"))
+
+(deftest test-realized-with-lazy-sequence-from-iterate
+  (is (= true (realized? (take 5 (iterate inc 1))))
+      "realized? returns true for ChunkedSeq (first chunk is always realized)"))
+
+(deftest test-realized-with-lazy-sequence-from-repeat
+  (is (= true (realized? (take 3 (repeat :a))))
+      "realized? returns true for ChunkedSeq from repeat"))
+
+(deftest test-realized-with-nil
+  (is (= true (realized? nil))
+      "realized? should return true for nil"))
+
+(deftest test-realized-with-empty-vector
+  (is (= true (realized? []))
+      "realized? should return true for empty vectors"))
