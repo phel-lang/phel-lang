@@ -98,7 +98,6 @@
   (is (= :default (get (map inc [1 2 3]) 10 :default))
       "get should return default value for out of bounds index"))
 
-# Tests for filter always lazy
 (deftest test-filter-on-vector-returns-lazy
   (is (= [2 4] (doall (filter even? [1 2 3 4])))
       "filter on vector should return lazy sequence"))

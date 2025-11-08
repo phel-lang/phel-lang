@@ -1298,7 +1298,11 @@ arrays. Use (php/aunset ds key)"))
         s))))
 
 (defn take
-  "Takes the first `n` elements of `xs`."
+  "Takes the first `n` elements of `xs`.
+
+  Note: Metadata preservation works with inline calls but may be lost when binding
+  to variables. Use inline calls or force realization with doall if metadata needed.
+  See local/investigate-metadata-binding-issue.md for details."
   [n xs]
   (let [n (if (php/< n 0) 0 n)]
     (if (php/=== n 0)
@@ -1330,7 +1334,11 @@ arrays. Use (php/aunset ds key)"))
     (with-meta xs result)))
 
 (defn filter
-  "Returns a lazy sequence of elements of `xs` where `(pred x)` is true."
+  "Returns a lazy sequence of elements of `xs` where `(pred x)` is true.
+
+  Note: Metadata preservation works with inline calls but may be lost when binding
+  to variables. Use inline calls or force realization with doall if metadata needed.
+  See local/investigate-metadata-binding-issue.md for details."
   [pred xs]
   (let [result (lazy-seq-from-generator (php/:: Generators (filter pred xs)))]
     (if (nil? result)
