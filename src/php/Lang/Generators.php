@@ -5,6 +5,10 @@ declare(strict_types=1);
 namespace Phel\Lang;
 
 use Generator;
+use Phel;
+use Phel\Lang\Collections\Vector\PersistentVectorInterface;
+
+use function is_object;
 
 final class Generators
 {
@@ -284,11 +288,7 @@ final class Generators
         $seen = [];
         foreach ($iterable as $value) {
             // Use spl_object_hash for objects, regular value for primitives
-            if (is_object($value)) {
-                $key = spl_object_hash($value);
-            } else {
-                $key = serialize($value);
-            }
+            $key = is_object($value) ? spl_object_hash($value) : serialize($value);
 
             if (!isset($seen[$key])) {
                 $seen[$key] = true;
@@ -323,7 +323,7 @@ final class Generators
      * @param callable(T):mixed $f
      * @param iterable<T>       $iterable
      *
-     * @return Generator<int, list<T>>
+     * @return Generator<int, PersistentVectorInterface>
      */
     public static function partitionBy(callable $f, iterable $iterable): Generator
     {
@@ -339,14 +339,14 @@ final class Generators
                 $prevKey = $key;
                 $first = false;
             } else {
-                yield \Phel::vector($partition);
+                yield Phel::vector($partition);
                 $partition = [$value];
                 $prevKey = $key;
             }
         }
 
         if ($partition !== []) {
-            yield \Phel::vector($partition);
+            yield Phel::vector($partition);
         }
     }
 }

@@ -142,7 +142,6 @@
     (is (= m (meta (take 3 data)))
         "take should preserve metadata")))
 
-# Tests for drop always lazy
 (deftest test-drop-on-vector-returns-lazy
   (is (= [3 4 5] (doall (drop 2 [1 2 3 4 5])))
       "drop on vector should return lazy sequence"))
@@ -169,7 +168,6 @@
     (is (= m (meta (drop 2 data)))
         "drop should preserve metadata")))
 
-# Tests for drop-while always lazy
 (deftest test-drop-while-on-vector-returns-lazy
   (is (= [3 4 5] (doall (drop-while |(< $ 3) [1 2 3 4 5])))
       "drop-while on vector should return lazy sequence"))
@@ -196,7 +194,6 @@
     (is (= m (meta (drop-while |(< $ 3) data)))
         "drop-while should preserve metadata")))
 
-# Tests for take-while always lazy
 (deftest test-take-while-on-vector-returns-lazy
   (is (= [1 2] (doall (take-while |(< $ 3) [1 2 3 4 5])))
       "take-while on vector should return lazy sequence"))
@@ -223,7 +220,6 @@
     (is (= m (meta (take-while |(< $ 3) data)))
         "take-while should preserve metadata")))
 
-# Tests for take-nth always lazy
 (deftest test-take-nth-on-vector-returns-lazy
   (is (= [1 3 5] (doall (take-nth 2 [1 2 3 4 5 6])))
       "take-nth on vector should return lazy sequence"))
@@ -250,7 +246,6 @@
     (is (= m (meta (take-nth 2 data)))
         "take-nth should preserve metadata")))
 
-# Tests for chaining lazy operations
 (deftest test-chained-drop-take-on-infinite-seq
   (is (= [10 11 12 13 14] (take 5 (drop 10 (iterate inc 0))))
       "chaining drop and take on infinite sequence should work"))
@@ -279,7 +274,6 @@
   (is (= [] (take-nth 2 nil))
       "take-nth with nil should return empty vector"))
 
-# Tests for cycle
 (deftest test-cycle-basic
   (is (= [1 2 3 1 2 3 1 2] (take 8 (cycle [1 2 3])))
       "cycle should repeat elements indefinitely"))
@@ -332,7 +326,6 @@
   (is (= [] (keep |(when (even? $) $) nil))
       "keep with nil should return empty vector"))
 
-# Tests for lazy keep-indexed
 (deftest test-keep-indexed-on-vector-returns-lazy
   (is (= [20 40] (doall (keep-indexed |(when (odd? $1) $2) [10 20 30 40])))
       "keep-indexed on vector should return lazy sequence"))
@@ -377,7 +370,6 @@
   (is (= [] (distinct nil))
       "distinct with nil should return empty vector"))
 
-# Tests for lazy dedupe
 (deftest test-dedupe-on-vector-returns-lazy
   (is (= [1 2 3 2 1] (doall (dedupe [1 1 2 2 3 3 2 2 1])))
       "dedupe on vector should return lazy sequence"))
@@ -398,13 +390,12 @@
   (is (= [] (dedupe nil))
       "dedupe with nil should return empty vector"))
 
-# Tests for lazy partition-by
 (deftest test-partition-by-on-vector-returns-lazy
-  (is (= [[1 2] [3 4] [5]] (doall (partition-by |(< $ 3) [1 2 3 4 5])))
+  (is (= [[1 2] [3 4 5]] (doall (partition-by |(< $ 3) [1 2 3 4 5])))
       "partition-by on vector should return lazy sequence"))
 
 (deftest test-partition-by-on-infinite-seq
-  (is (= [[0] [1] [2] [3] [4]] (take 5 (partition-by |(fn [x] x) (iterate inc 0))))
+  (is (= [[0] [1] [2] [3] [4]] (take 5 (partition-by identity (iterate inc 0))))
       "partition-by on infinite sequence should work"))
 
 (deftest test-partition-by-empty-collection

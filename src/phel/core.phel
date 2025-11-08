@@ -1694,16 +1694,18 @@ arrays. Use (php/aunset ds key)"))
 (defn partition-by
   "Returns a lazy sequence of partitions. Applies `f` to each value in `xs`, splitting them each time the return value changes."
   [f xs]
-  (if (empty? xs)
-    []
-    (lazy-seq-from-generator (php/:: Generators (partitionBy f xs)))))
+  (cond
+    (nil? xs) []
+    (and (indexed? xs) (= 0 (count xs))) []
+    true (lazy-seq-from-generator (php/:: Generators (partitionBy f xs)))))
 
 (defn dedupe
   "Returns a lazy sequence with consecutive duplicate values removed in `xs`."
   [xs]
-  (if (or (nil? xs) (empty? xs))
-    []
-    (lazy-seq-from-generator (php/:: Generators (dedupe xs)))))
+  (cond
+    (nil? xs) []
+    (and (indexed? xs) (= 0 (count xs))) []
+    true (lazy-seq-from-generator (php/:: Generators (dedupe xs)))))
 
 (defn partition
   "Partition an indexed data structure into vectors of maximum size n. Returns a new vector."
