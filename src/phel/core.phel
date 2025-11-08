@@ -1298,21 +1298,19 @@ arrays. Use (php/aunset ds key)"))
         s))))
 
 (defn take
-  "Takes the first `n` elements of `xs`."
+  "Takes the first `n` elements of `xs`.
+
+  Note: Metadata preservation works with inline calls but may be lost when binding
+  to variables. Use inline calls or force realization with doall if metadata needed.
+  See local/investigate-metadata-binding-issue.md for details."
   [n xs]
   (let [n (if (php/< n 0) 0 n)]
-    (cond
-      (php-array? xs) (php/array_slice xs 0 n)
-      (php/instanceof xs SliceInterface) (php/-> xs (slice 0 n))
-      (php/instanceof xs LazySeqInterface) (lazy-seq-from-generator (php/:: Generators (take n xs)))
-      (php/instanceof xs Traversable)
-      (let [i (var 0)]
-        (let [result (for [x :in xs
-                            :while (php/< (deref i) n)
-                            :let [_ (swap! i |(php/+ $ 1))]]
-                        x)]
-          (with-meta xs result)))
-      (throw (php/new InvalidArgumentException "Cannot take")))))
+    (if (php/=== n 0)
+      []
+      (let [result (lazy-seq-from-generator (php/:: Generators (take n xs)))]
+        (if (nil? result)
+          []
+          (with-meta xs result))))))
 
 (defn take-last
   "Takes the last `n` elements of `xs`."
@@ -1336,11 +1334,15 @@ arrays. Use (php/aunset ds key)"))
     (with-meta xs result)))
 
 (defn filter
-  "Returns a lazy sequence of elements of `xs` where `(pred x)` is true."
+  "Returns a lazy sequence of elements of `xs` where `(pred x)` is true.
+
+  Note: Metadata preservation works with inline calls but may be lost when binding
+  to variables. Use inline calls or force realization with doall if metadata needed.
+  See local/investigate-metadata-binding-issue.md for details."
   [pred xs]
-  (if (php/instanceof xs LazySeqInterface)
-    (lazy-seq-from-generator (php/:: Generators (filter pred xs)))
-    (let [result (for [x :in xs :when (pred x)] x)]
+  (let [result (lazy-seq-from-generator (php/:: Generators (filter pred xs)))]
+    (if (nil? result)
+      []
       (with-meta xs result))))
 
 (defn keep

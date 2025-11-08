@@ -50,8 +50,8 @@
       "dorun should return nil for lists"))
 
 (deftest test-doall-with-empty-lazy-sequence
-  (is (= nil (doall (take 0 (iterate inc 1))))
-      "doall should return nil for empty sequences"))
+  (is (= [] (doall (take 0 (iterate inc 1))))
+      "doall should return empty vector for empty sequences"))
 
 (deftest test-chained-lazy-operations-with-doall
   (is (= [2 4 6 8 10]
@@ -97,3 +97,48 @@
 (deftest test-get-on-lazy-seq-with-default
   (is (= :default (get (map inc [1 2 3]) 10 :default))
       "get should return default value for out of bounds index"))
+
+(deftest test-filter-on-vector-returns-lazy
+  (is (= [2 4] (doall (filter even? [1 2 3 4])))
+      "filter on vector should return lazy sequence"))
+
+(deftest test-filter-on-infinite-seq
+  (is (= [0 2 4 6 8] (take 5 (filter even? (iterate inc 0))))
+      "filter on infinite sequence should work without hanging"))
+
+(deftest test-filter-empty-collection
+  (is (= [] (filter even? []))
+      "filter on empty collection should return empty vector"))
+
+(deftest test-filter-preserves-metadata
+  (let [m {:foo "bar"}
+        data (set-meta! [1 2 3 4] m)]
+    (is (= m (meta (filter even? data)))
+        "filter should preserve metadata")))
+
+# Tests for take always lazy
+(deftest test-take-on-vector-returns-lazy
+  (is (= [1 2 3] (doall (take 3 [1 2 3 4 5])))
+      "take on vector should return lazy sequence"))
+
+(deftest test-take-on-infinite-seq
+  (is (= [0 1 2 3 4] (doall (take 5 (iterate inc 0))))
+      "take on infinite sequence should work"))
+
+(deftest test-take-zero
+  (is (= [] (take 0 [1 2 3]))
+      "take 0 should return empty vector"))
+
+(deftest test-take-negative
+  (is (= [] (take -5 [1 2 3]))
+      "take negative should return empty vector"))
+
+(deftest test-take-empty-collection
+  (is (= [] (take 5 []))
+      "take on empty collection should return empty vector"))
+
+(deftest test-take-preserves-metadata
+  (let [m {:foo "bar"}
+        data (set-meta! [1 2 3 4 5] m)]
+    (is (= m (meta (take 3 data)))
+        "take should preserve metadata")))
