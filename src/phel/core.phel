@@ -1264,9 +1264,15 @@ arrays. Use (php/aunset ds key)"))
   (unset-in ds ks))
 
 (defn drop
-  "Drops the first `n` elements of `xs`."
+  "Drops the first `n` elements of `xs`. Returns a lazy sequence."
   [n xs]
-  (slice xs (if (php/< n 0) 0 n)))
+  (if (nil? xs)
+    []
+    (let [n (if (php/< n 0) 0 n)]
+      (if (php/=== n 0)
+        xs
+        (let [result (lazy-seq-from-generator (php/:: Generators (drop n xs)))]
+          (with-meta xs (or result [])))))))
 
 (defn drop-last
   "Drops the last `n` elements of `xs`."
@@ -1288,14 +1294,12 @@ arrays. Use (php/aunset ds key)"))
   (drop-last 1 xs))
 
 (defn drop-while
-  "Drops all elements at the front `xs` where `(pred x)` is true."
+  "Drops all elements at the front of `xs` where `(pred x)` is true. Returns a lazy sequence."
   [pred xs]
-  (loop [s xs]
-    (if (empty? s)
-      (or s [])
-      (if (pred (first s))
-        (recur (next s))
-        s))))
+  (if (nil? xs)
+    []
+    (let [result (lazy-seq-from-generator (php/:: Generators (dropWhile pred xs)))]
+      (with-meta xs (or result [])))))
 
 (defn take
   "Takes the first `n` elements of `xs`.
@@ -1318,20 +1322,22 @@ arrays. Use (php/aunset ds key)"))
   (if (php/<= n 0) [] (slice xs (php/* -1 n))))
 
 (defn take-while
-  "Takes all elements at the front of `xs` where `(pred x)` is true."
+  "Takes all elements at the front of `xs` where `(pred x)` is true. Returns a lazy sequence."
   [pred xs]
-  (let [result (for [x :in xs :while (pred x)] x)]
-    (with-meta xs result)))
+  (if (nil? xs)
+    []
+    (let [result (lazy-seq-from-generator (php/:: Generators (takeWhile pred xs)))]
+      (with-meta xs (or result [])))))
 
 (defn take-nth
-  "Returns every nth item in `xs`."
+  "Returns every nth item in `xs`. Returns a lazy sequence."
   [n xs]
   (when (< n 1)
     (throw (php/new InvalidArgumentException "First argument of 'take-nth must be greater than 0")))
-  (let [result (for [[i x] :pairs xs
-                     :when (= (php/% i n) 0)]
-                 x)]
-    (with-meta xs result)))
+  (if (nil? xs)
+    []
+    (let [result (lazy-seq-from-generator (php/:: Generators (takeNth n xs)))]
+      (with-meta xs (or result [])))))
 
 (defn filter
   "Returns a lazy sequence of elements of `xs` where `(pred x)` is true.
