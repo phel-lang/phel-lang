@@ -1572,6 +1572,31 @@ arrays. Use (php/aunset ds key)"))
   [f x]
   (lazy-seq-from-generator (php/:: Generators (iterate f x))))
 
+(defn doall
+  "Forces realization of a lazy sequence and returns it as a vector.
+  Useful when you need to force side effects or ensure computation happens immediately.
+
+  Example: (doall (map println [1 2 3])) ; ensures println executes"
+  [coll]
+  (if (php/instanceof coll LazySeqInterface)
+    (let [arr (php/-> coll (toArray))]
+      (if (php/empty arr)
+        nil
+        (apply vector arr)))
+    coll))
+
+(defn dorun
+  "Forces realization of a lazy sequence for side effects only, returns nil.
+  More efficient than doall when you don't need the results.
+
+  Example: (dorun (map println [1 2 3])) ; ensures println executes, returns nil"
+  [coll]
+  (if (php/instanceof coll LazySeqInterface)
+    (do
+      (doseq [x :in coll] x)
+      nil)
+    nil))
+
 (defn group-by
   "Returns a map of the elements of xs keyed by the result of
   f on each element."
