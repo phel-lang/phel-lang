@@ -278,3 +278,28 @@
 (deftest test-take-nth-with-nil
   (is (= [] (take-nth 2 nil))
       "take-nth with nil should return empty vector"))
+
+# Tests for cycle
+(deftest test-cycle-basic
+  (is (= [1 2 3 1 2 3 1 2] (take 8 (cycle [1 2 3])))
+      "cycle should repeat elements indefinitely"))
+
+(deftest test-cycle-single-element
+  (is (= [:a :a :a :a :a] (take 5 (cycle [:a])))
+      "cycle with single element should work"))
+
+(deftest test-cycle-empty-collection
+  (is (= [] (take 5 (cycle [])))
+      "cycle with empty collection should return empty"))
+
+(deftest test-cycle-with-doall
+  (is (= [1 2 1 2 1] (doall (take 5 (cycle [1 2]))))
+      "cycle should work with doall"))
+
+(deftest test-cycle-with-drop
+  (is (= [3 1 2 3 1] (take 5 (drop 2 (cycle [1 2 3]))))
+      "cycle should work with drop"))
+
+(deftest test-cycle-with-filter
+  (is (= [2 4 2 4 2] (take 5 (filter even? (cycle [1 2 3 4]))))
+      "cycle should work with filter"))

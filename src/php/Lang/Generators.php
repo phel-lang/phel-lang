@@ -56,6 +56,33 @@ final class Generators
     }
 
     /**
+     * @template T
+     *
+     * @param iterable<T> $iterable
+     *
+     * @return Generator<int, T>
+     */
+    public static function cycle(iterable $iterable): Generator
+    {
+        $values = [];
+        foreach ($iterable as $value) {
+            $values[] = $value;
+            yield $value;
+        }
+
+        if ($values === []) {
+            return;
+        }
+
+        // @phpstan-ignore-next-line while.alwaysTrue
+        while (true) {
+            foreach ($values as $value) {
+                yield $value;
+            }
+        }
+    }
+
+    /**
      * Generates a range of numbers [start, end) with given step.
      *
      * @return Generator<int, float|int>
