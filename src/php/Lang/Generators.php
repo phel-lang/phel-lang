@@ -8,8 +8,6 @@ use Generator;
 use Phel;
 use Phel\Lang\Collections\Vector\PersistentVectorInterface;
 
-use function is_object;
-
 final class Generators
 {
     /**
@@ -285,13 +283,26 @@ final class Generators
      */
     public static function distinct(iterable $iterable): Generator
     {
+        $hasher = new Hasher();
+        $equalizer = new Equalizer();
         $seen = [];
-        foreach ($iterable as $value) {
-            // Use spl_object_hash for objects, regular value for primitives
-            $key = is_object($value) ? spl_object_hash($value) : serialize($value);
 
-            if (!isset($seen[$key])) {
-                $seen[$key] = true;
+        foreach ($iterable as $value) {
+            $hash = $hasher->hash($value);
+
+            // Check if we've seen an equal value with this hash
+            $found = false;
+            if (isset($seen[$hash])) {
+                foreach ($seen[$hash] as $seenValue) {
+                    if ($equalizer->equals($value, $seenValue)) {
+                        $found = true;
+                        break;
+                    }
+                }
+            }
+
+            if (!$found) {
+                $seen[$hash][] = $value;
                 yield $value;
             }
         }
@@ -306,10 +317,12 @@ final class Generators
      */
     public static function dedupe(iterable $iterable): Generator
     {
+        $equalizer = new Equalizer();
         $first = true;
         $prev = null;
+
         foreach ($iterable as $value) {
-            if ($first || $value !== $prev) {
+            if ($first || !$equalizer->equals($value, $prev)) {
                 yield $value;
                 $prev = $value;
                 $first = false;
@@ -327,6 +340,7 @@ final class Generators
      */
     public static function partitionBy(callable $f, iterable $iterable): Generator
     {
+        $equalizer = new Equalizer();
         $partition = [];
         $prevKey = null;
         $first = true;
@@ -334,7 +348,7 @@ final class Generators
         foreach ($iterable as $value) {
             $key = $f($value);
 
-            if ($first || $key === $prevKey) {
+            if ($first || $equalizer->equals($key, $prevKey)) {
                 $partition[] = $value;
                 $prevKey = $key;
                 $first = false;
