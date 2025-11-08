@@ -278,3 +278,81 @@
 (deftest test-take-nth-with-nil
   (is (= [] (take-nth 2 nil))
       "take-nth with nil should return empty vector"))
+
+# Tests for cycle
+(deftest test-cycle-basic
+  (is (= [1 2 3 1 2 3 1 2] (take 8 (cycle [1 2 3])))
+      "cycle should repeat elements indefinitely"))
+
+(deftest test-cycle-single-element
+  (is (= [:a :a :a :a :a] (take 5 (cycle [:a])))
+      "cycle with single element should work"))
+
+(deftest test-cycle-empty-collection
+  (is (= [] (take 5 (cycle [])))
+      "cycle with empty collection should return empty"))
+
+(deftest test-cycle-with-doall
+  (is (= [1 2 1 2 1] (doall (take 5 (cycle [1 2]))))
+      "cycle should work with doall"))
+
+(deftest test-cycle-with-drop
+  (is (= [3 1 2 3 1] (take 5 (drop 2 (cycle [1 2 3]))))
+      "cycle should work with drop"))
+
+(deftest test-cycle-with-filter
+  (is (= [2 4 2 4 2] (take 5 (filter even? (cycle [1 2 3 4]))))
+      "cycle should work with filter"))
+
+(deftest test-keep-on-vector-returns-lazy
+  (is (= [2 4] (doall (keep |(when (even? $) $) [1 2 3 4])))
+      "keep on vector should return lazy sequence"))
+
+(deftest test-keep-on-infinite-seq
+  (is (= [0 2 4 6 8] (take 5 (keep |(when (even? $) $) (iterate inc 0))))
+      "keep on infinite sequence should work without hanging"))
+
+(deftest test-keep-with-nil-results
+  (is (= [4] (doall (keep |(when (even? $) (* 2 $)) [1 2 3])))
+      "keep should filter out nil results"))
+
+(deftest test-keep-empty-collection
+  (is (= [] (keep |(when (even? $) $) []))
+      "keep on empty collection should return empty vector"))
+
+(deftest test-keep-all-filtered
+  (is (= [] (doall (keep |(when (> $ 10) $) [1 2 3])))
+      "keep should return empty when all results are nil"))
+
+(deftest test-keep-with-doall
+  (is (= [0 2 4] (doall (take 3 (keep |(when (even? $) $) (iterate inc 0)))))
+      "keep should work with doall on infinite sequences"))
+
+(deftest test-keep-with-nil
+  (is (= [] (keep |(when (even? $) $) nil))
+      "keep with nil should return empty vector"))
+
+# Tests for lazy keep-indexed
+(deftest test-keep-indexed-on-vector-returns-lazy
+  (is (= [20 40] (doall (keep-indexed |(when (odd? $1) $2) [10 20 30 40])))
+      "keep-indexed on vector should return lazy sequence"))
+
+(deftest test-keep-indexed-on-infinite-seq
+  (is (= [0 2 4 6 8] (take 5 (keep-indexed |(when (even? $1) $1) (iterate inc 0))))
+      "keep-indexed on infinite sequence should work without hanging"))
+
+(deftest test-keep-indexed-with-index
+  (is (= [0 2 4] (doall (keep-indexed |(when (even? $1) $1) [:a :b :c :d :e])))
+      "keep-indexed should pass correct index"))
+
+(deftest test-keep-indexed-empty-collection
+  (is (= [] (keep-indexed |(when (even? $1) $2) []))
+      "keep-indexed on empty collection should return empty vector"))
+
+(deftest test-keep-indexed-all-filtered
+  (is (= [] (doall (keep-indexed |(when (> $1 10) $2) [1 2 3])))
+      "keep-indexed should return empty when all results are nil"))
+
+(deftest test-keep-indexed-with-nil
+  (is (= [] (keep-indexed |(when (even? $1) $2) nil))
+      "keep-indexed with nil should return empty vector"))

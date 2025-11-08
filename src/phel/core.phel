@@ -1352,22 +1352,20 @@ arrays. Use (php/aunset ds key)"))
       (with-meta xs result))))
 
 (defn keep
-  "Returns a list of non-nil results of `(pred x)`."
+  "Returns a lazy sequence of non-nil results of `(pred x)`."
   [pred xs]
-  (let [result (for [x :in xs
-                     :let [res (pred x)]
-                     :when (not (nil? res))]
-                 res)]
-    (with-meta xs result)))
+  (if (nil? xs)
+    []
+    (let [result (lazy-seq-from-generator (php/:: Generators (keep pred xs)))]
+      (with-meta xs (or result [])))))
 
 (defn keep-indexed
-  "Returns a list of non-nil results of `(pred i x)`."
+  "Returns a lazy sequence of non-nil results of `(pred i x)`."
   [pred xs]
-  (let [result (for [[k v] :pairs xs
-                     :let [res (pred k v)]
-                     :when (not (nil? res))]
-                 res)]
-    (with-meta xs result)))
+  (if (nil? xs)
+    []
+    (let [result (lazy-seq-from-generator (php/:: Generators (keepIndexed pred xs)))]
+      (with-meta xs (or result [])))))
 
 (defn find
   "Returns the first item in `xs` where `(pred item)` evaluates to true."
@@ -1590,6 +1588,13 @@ arrays. Use (php/aunset ds key)"))
   "Returns an infinite lazy sequence of x, (f x), (f (f x)), and so on."
   [f x]
   (lazy-seq-from-generator (php/:: Generators (iterate f x))))
+
+(defn cycle
+  "Returns an infinite lazy sequence that cycles through the elements of collection."
+  [xs]
+  (if (empty? xs)
+    []
+    (lazy-seq-from-generator (php/:: Generators (cycle xs)))))
 
 (defn doall
   "Forces realization of a lazy sequence and returns it as a vector.
