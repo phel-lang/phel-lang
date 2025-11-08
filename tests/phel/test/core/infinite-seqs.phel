@@ -262,3 +262,19 @@
 (deftest test-chained-drop-while-take-nth-on-infinite-seq
   (is (= [0 2 4 6 8] (take 5 (take-nth 2 (drop-while neg? (iterate inc -10)))))
       "chaining drop-while, take-nth, and take on infinite sequence should work"))
+
+(deftest test-drop-with-nil
+  (is (= [] (drop 5 nil))
+      "drop with nil should return empty vector"))
+
+(deftest test-drop-while-with-nil
+  (is (= [] (drop-while pos? nil))
+      "drop-while with nil should return empty vector"))
+
+(deftest test-take-while-with-nil
+  (is (= [] (take-while pos? nil))
+      "take-while with nil should return empty vector"))
+
+(deftest test-take-nth-with-nil
+  (is (= [] (take-nth 2 nil))
+      "take-nth with nil should return empty vector"))

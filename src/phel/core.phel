@@ -1266,11 +1266,13 @@ arrays. Use (php/aunset ds key)"))
 (defn drop
   "Drops the first `n` elements of `xs`. Returns a lazy sequence."
   [n xs]
-  (let [n (if (php/< n 0) 0 n)]
-    (if (php/=== n 0)
-      xs
-      (let [result (lazy-seq-from-generator (php/:: Generators (drop n xs)))]
-        (with-meta xs (or result []))))))
+  (if (nil? xs)
+    []
+    (let [n (if (php/< n 0) 0 n)]
+      (if (php/=== n 0)
+        xs
+        (let [result (lazy-seq-from-generator (php/:: Generators (drop n xs)))]
+          (with-meta xs (or result [])))))))
 
 (defn drop-last
   "Drops the last `n` elements of `xs`."
@@ -1294,8 +1296,10 @@ arrays. Use (php/aunset ds key)"))
 (defn drop-while
   "Drops all elements at the front of `xs` where `(pred x)` is true. Returns a lazy sequence."
   [pred xs]
-  (let [result (lazy-seq-from-generator (php/:: Generators (dropWhile pred xs)))]
-    (with-meta xs (or result []))))
+  (if (nil? xs)
+    []
+    (let [result (lazy-seq-from-generator (php/:: Generators (dropWhile pred xs)))]
+      (with-meta xs (or result [])))))
 
 (defn take
   "Takes the first `n` elements of `xs`.
@@ -1320,16 +1324,20 @@ arrays. Use (php/aunset ds key)"))
 (defn take-while
   "Takes all elements at the front of `xs` where `(pred x)` is true. Returns a lazy sequence."
   [pred xs]
-  (let [result (lazy-seq-from-generator (php/:: Generators (takeWhile pred xs)))]
-    (with-meta xs (or result []))))
+  (if (nil? xs)
+    []
+    (let [result (lazy-seq-from-generator (php/:: Generators (takeWhile pred xs)))]
+      (with-meta xs (or result [])))))
 
 (defn take-nth
   "Returns every nth item in `xs`. Returns a lazy sequence."
   [n xs]
   (when (< n 1)
     (throw (php/new InvalidArgumentException "First argument of 'take-nth must be greater than 0")))
-  (let [result (lazy-seq-from-generator (php/:: Generators (takeNth n xs)))]
-    (with-meta xs (or result []))))
+  (if (nil? xs)
+    []
+    (let [result (lazy-seq-from-generator (php/:: Generators (takeNth n xs)))]
+      (with-meta xs (or result [])))))
 
 (defn filter
   "Returns a lazy sequence of elements of `xs` where `(pred x)` is true.
