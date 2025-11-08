@@ -125,10 +125,10 @@
   (is (= ["a" "b" "c"] (take 4 ["a" "b" "c"])) "take four elements")
   (is (= [] (take 0 ["a" "b" "c"])) "take zero elements")
   (is (= [] (take -1 ["a" "b" "c"])) "take with negative number")
-  (is (= ["a" "b"] (take 2 ["a" "b" "c"])) "take on vector")
+  (is (= ["a" "b"] (doall (take 2 ["a" "b" "c"]))) "take on vector")
   (is (= [] (take -1 ["a" "b" "c"])) "take on vector")
-  (is (= (php/array "a" "b") (take 2 (php/array "a" "b" "c"))) "take on php array")
-  (is (= (php/array) (take -1 (php/array "a" "b" "c"))) "take on php array"))
+  (is (= ["a" "b"] (doall (take 2 (php/array "a" "b" "c")))) "take on php array returns lazy seq")
+  (is (= [] (take -1 (php/array "a" "b" "c"))) "take on php array with negative"))
 
 (deftest test-take-generator
   (is (= [0 1 2] (take 3 (naturals))) "take on generator"))
