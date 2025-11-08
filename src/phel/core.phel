@@ -1352,21 +1352,15 @@ arrays. Use (php/aunset ds key)"))
       (with-meta xs result))))
 
 (defn keep
-  "Returns a list of non-nil results of `(pred x)`."
+  "Returns a lazy sequence of non-nil results of `(pred x)`."
   [pred xs]
-  (let [result (for [x :in xs
-                     :let [res (pred x)]
-                     :when (not (nil? res))]
-                 res)]
+  (let [result (lazy-seq-from-generator (php/:: Generators (keep pred xs)))]
     (with-meta xs result)))
 
 (defn keep-indexed
-  "Returns a list of non-nil results of `(pred i x)`."
+  "Returns a lazy sequence of non-nil results of `(pred i x)`."
   [pred xs]
-  (let [result (for [[k v] :pairs xs
-                     :let [res (pred k v)]
-                     :when (not (nil? res))]
-                 res)]
+  (let [result (lazy-seq-from-generator (php/:: Generators (keepIndexed pred xs)))]
     (with-meta xs result)))
 
 (defn find
