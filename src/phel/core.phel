@@ -1354,14 +1354,18 @@ arrays. Use (php/aunset ds key)"))
 (defn keep
   "Returns a lazy sequence of non-nil results of `(pred x)`."
   [pred xs]
-  (let [result (lazy-seq-from-generator (php/:: Generators (keep pred xs)))]
-    (with-meta xs result)))
+  (if (nil? xs)
+    []
+    (let [result (lazy-seq-from-generator (php/:: Generators (keep pred xs)))]
+      (with-meta xs (or result [])))))
 
 (defn keep-indexed
   "Returns a lazy sequence of non-nil results of `(pred i x)`."
   [pred xs]
-  (let [result (lazy-seq-from-generator (php/:: Generators (keepIndexed pred xs)))]
-    (with-meta xs result)))
+  (if (nil? xs)
+    []
+    (let [result (lazy-seq-from-generator (php/:: Generators (keepIndexed pred xs)))]
+      (with-meta xs (or result [])))))
 
 (defn find
   "Returns the first item in `xs` where `(pred item)` evaluates to true."
