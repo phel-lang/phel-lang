@@ -876,11 +876,16 @@ Calling the `and` function without arguments returns true."
       opt)
 
     (php/instanceof ds LazySeqInterface)
-    (let [arr (php/-> ds (toArray))]
-      (let [res (php/aget arr k)]
-        (if (nil? res)
-          opt
-          res)))
+    (loop [i k
+           s ds]
+      (if (or (nil? s) (php/< i 0))
+        opt
+        (if (php/=== i 0)
+          (let [res (first s)]
+            (if (nil? res)
+              opt
+              res))
+          (recur (php/- i 1) (next s)))))
 
     :else
     (let [res (php/aget ds k)]

@@ -81,3 +81,19 @@
 (deftest test-realized-with-empty-vector
   (is (= true (realized? []))
       "realized? should return true for empty vectors"))
+
+(deftest test-get-on-infinite-lazy-seq
+  (is (= 5 (get (iterate inc 0) 5))
+      "get should work on infinite lazy sequences without hanging"))
+
+(deftest test-get-on-finite-lazy-seq
+  (is (= 2 (get (map inc [1 2 3]) 0))
+      "get should work on finite lazy sequences"))
+
+(deftest test-get-on-lazy-seq-out-of-bounds
+  (is (= nil (get (map inc [1 2 3]) 10))
+      "get should return nil for out of bounds index"))
+
+(deftest test-get-on-lazy-seq-with-default
+  (is (= :default (get (map inc [1 2 3]) 10 :default))
+      "get should return default value for out of bounds index"))
