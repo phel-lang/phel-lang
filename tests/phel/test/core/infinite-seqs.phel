@@ -116,7 +116,6 @@
     (is (= m (meta (filter even? data)))
         "filter should preserve metadata")))
 
-# Tests for take always lazy
 (deftest test-take-on-vector-returns-lazy
   (is (= [1 2 3] (doall (take 3 [1 2 3 4 5])))
       "take on vector should return lazy sequence"))
@@ -142,3 +141,124 @@
         data (set-meta! [1 2 3 4 5] m)]
     (is (= m (meta (take 3 data)))
         "take should preserve metadata")))
+
+# Tests for drop always lazy
+(deftest test-drop-on-vector-returns-lazy
+  (is (= [3 4 5] (doall (drop 2 [1 2 3 4 5])))
+      "drop on vector should return lazy sequence"))
+
+(deftest test-drop-on-infinite-seq
+  (is (= [5 6 7 8 9] (take 5 (drop 5 (iterate inc 0))))
+      "drop on infinite sequence should work"))
+
+(deftest test-drop-zero
+  (is (= [1 2 3] (drop 0 [1 2 3]))
+      "drop 0 should return original sequence"))
+
+(deftest test-drop-negative
+  (is (= [1 2 3] (doall (drop -5 [1 2 3])))
+      "drop negative should return full sequence"))
+
+(deftest test-drop-empty-collection
+  (is (= [] (drop 5 []))
+      "drop on empty collection should return empty vector"))
+
+(deftest test-drop-preserves-metadata
+  (let [m {:foo "bar"}
+        data (set-meta! [1 2 3 4 5] m)]
+    (is (= m (meta (drop 2 data)))
+        "drop should preserve metadata")))
+
+# Tests for drop-while always lazy
+(deftest test-drop-while-on-vector-returns-lazy
+  (is (= [3 4 5] (doall (drop-while |(< $ 3) [1 2 3 4 5])))
+      "drop-while on vector should return lazy sequence"))
+
+(deftest test-drop-while-on-infinite-seq
+  (is (= [0 1 2 3 4] (take 5 (drop-while neg? (iterate inc -10))))
+      "drop-while on infinite sequence should work"))
+
+(deftest test-drop-while-empty-collection
+  (is (= [] (drop-while |(< $ 10) []))
+      "drop-while on empty collection should return empty vector"))
+
+(deftest test-drop-while-all-dropped
+  (is (= [] (drop-while |(< $ 10) [1 2 3]))
+      "drop-while should return empty when all elements match"))
+
+(deftest test-drop-while-none-dropped
+  (is (= [1 2 3] (doall (drop-while |(> $ 10) [1 2 3])))
+      "drop-while should return full sequence when no elements match"))
+
+(deftest test-drop-while-preserves-metadata
+  (let [m {:foo "bar"}
+        data (set-meta! [1 2 3 4 5] m)]
+    (is (= m (meta (drop-while |(< $ 3) data)))
+        "drop-while should preserve metadata")))
+
+# Tests for take-while always lazy
+(deftest test-take-while-on-vector-returns-lazy
+  (is (= [1 2] (doall (take-while |(< $ 3) [1 2 3 4 5])))
+      "take-while on vector should return lazy sequence"))
+
+(deftest test-take-while-on-infinite-seq
+  (is (= [-5 -4 -3 -2 -1] (doall (take-while neg? (iterate inc -5))))
+      "take-while on infinite sequence should work"))
+
+(deftest test-take-while-empty-collection
+  (is (= [] (take-while |(< $ 10) []))
+      "take-while on empty collection should return empty vector"))
+
+(deftest test-take-while-nothing-taken
+  (is (= [] (doall (take-while |(> $ 10) [1 2 3])))
+      "take-while should return empty when first element doesn't match"))
+
+(deftest test-take-while-all-taken
+  (is (= [1 2 3] (doall (take-while |(< $ 10) [1 2 3])))
+      "take-while should return full sequence when all elements match"))
+
+(deftest test-take-while-preserves-metadata
+  (let [m {:foo "bar"}
+        data (set-meta! [1 2 3 4 5] m)]
+    (is (= m (meta (take-while |(< $ 3) data)))
+        "take-while should preserve metadata")))
+
+# Tests for take-nth always lazy
+(deftest test-take-nth-on-vector-returns-lazy
+  (is (= [1 3 5] (doall (take-nth 2 [1 2 3 4 5 6])))
+      "take-nth on vector should return lazy sequence"))
+
+(deftest test-take-nth-on-infinite-seq
+  (is (= [0 2 4 6 8] (take 5 (take-nth 2 (iterate inc 0))))
+      "take-nth on infinite sequence should work"))
+
+(deftest test-take-nth-empty-collection
+  (is (= [] (take-nth 2 []))
+      "take-nth on empty collection should return empty vector"))
+
+(deftest test-take-nth-every-element
+  (is (= [1 2 3 4 5] (doall (take-nth 1 [1 2 3 4 5])))
+      "take-nth 1 should return all elements"))
+
+(deftest test-take-nth-larger-than-collection
+  (is (= [1] (doall (take-nth 10 [1 2 3])))
+      "take-nth larger than collection should return first element"))
+
+(deftest test-take-nth-preserves-metadata
+  (let [m {:foo "bar"}
+        data (set-meta! [1 2 3 4 5 6] m)]
+    (is (= m (meta (take-nth 2 data)))
+        "take-nth should preserve metadata")))
+
+# Tests for chaining lazy operations
+(deftest test-chained-drop-take-on-infinite-seq
+  (is (= [10 11 12 13 14] (take 5 (drop 10 (iterate inc 0))))
+      "chaining drop and take on infinite sequence should work"))
+
+(deftest test-chained-take-while-filter-on-infinite-seq
+  (is (= [0 2 4] (doall (take-while |(< $ 5) (filter even? (iterate inc 0)))))
+      "chaining take-while and filter on infinite sequence should work"))
+
+(deftest test-chained-drop-while-take-nth-on-infinite-seq
+  (is (= [0 2 4 6 8] (take 5 (take-nth 2 (drop-while neg? (iterate inc -10)))))
+      "chaining drop-while, take-nth, and take on infinite sequence should work"))

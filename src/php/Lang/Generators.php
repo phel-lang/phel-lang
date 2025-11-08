@@ -125,4 +125,82 @@ final class Generators
             ++$count;
         }
     }
+
+    /**
+     * @template T
+     *
+     * @param callable(T):bool $predicate
+     * @param iterable<T>      $iterable
+     *
+     * @return Generator<int, T>
+     */
+    public static function takeWhile(callable $predicate, iterable $iterable): Generator
+    {
+        foreach ($iterable as $value) {
+            if (!$predicate($value)) {
+                break;
+            }
+
+            yield $value;
+        }
+    }
+
+    /**
+     * @template T
+     *
+     * @param iterable<T> $iterable
+     *
+     * @return Generator<int, T>
+     */
+    public static function takeNth(int $n, iterable $iterable): Generator
+    {
+        $index = 0;
+        foreach ($iterable as $value) {
+            if ($index % $n === 0) {
+                yield $value;
+            }
+
+            ++$index;
+        }
+    }
+
+    /**
+     * @template T
+     *
+     * @param iterable<T> $iterable
+     *
+     * @return Generator<int, T>
+     */
+    public static function drop(int $n, iterable $iterable): Generator
+    {
+        $count = 0;
+        foreach ($iterable as $value) {
+            if ($count >= $n) {
+                yield $value;
+            }
+
+            ++$count;
+        }
+    }
+
+    /**
+     * @template T
+     *
+     * @param callable(T):bool $predicate
+     * @param iterable<T>      $iterable
+     *
+     * @return Generator<int, T>
+     */
+    public static function dropWhile(callable $predicate, iterable $iterable): Generator
+    {
+        $dropping = true;
+        foreach ($iterable as $value) {
+            if ($dropping && $predicate($value)) {
+                continue;
+            }
+
+            $dropping = false;
+            yield $value;
+        }
+    }
 }

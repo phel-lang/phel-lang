@@ -77,13 +77,13 @@
   (is (= {:a {:b {:c 1}}} (dissoc-in {:a {:b {:c 1}}} [:a :x])) "dissoc-in: missing key"))
 
 (deftest test-drop
-  (is (= ["a" "b" "c"] (drop 0 ["a" "b" "c"])) "drop zero elements")
-  (is (= ["c"] (drop 2 ["a" "b" "c"])) "drop two elements")
+  (is (= ["a" "b" "c"] (doall (drop 0 ["a" "b" "c"]))) "drop zero elements")
+  (is (= ["c"] (doall (drop 2 ["a" "b" "c"]))) "drop two elements")
   (is (= [] (drop 3 ["a" "b" "c"])) "drop three elements")
   (is (= [] (drop 4 ["a" "b" "c"])) "drop four elements")
-  (is (= ["a" "b" "c"] (drop -1 ["a" "b" "c"])) "drop with negative number")
-  (is (= ["c"] (drop 2 ["a" "b" "c"])) "drop on vector")
-  (is (= (php/array "c") (drop 2 (php/array "a" "b" "c"))) "drop on php array"))
+  (is (= ["a" "b" "c"] (doall (drop -1 ["a" "b" "c"]))) "drop with negative number")
+  (is (= ["c"] (doall (drop 2 ["a" "b" "c"]))) "drop on vector")
+  (is (= ["c"] (doall (drop 2 (php/array "a" "b" "c")))) "drop on php array (returns lazy seq)"))
 
 (deftest test-drop-last
   (is (= ["a" "b"] (drop-last 1 ["a" "b" "c"])) "drop-last element")
@@ -109,12 +109,12 @@
   (is (= (php/array "a" "b") (butlast (php/array "a" "b" "c"))) "butlast on php array"))
 
 (deftest test-drop-while
-  (is (= [1 2 3 4 -1 -2 -3] (drop-while neg? [-1 -2 -3 1 2 3 4 -1 -2 -3])) "drop-while: first three element")
+  (is (= [1 2 3 4 -1 -2 -3] (doall (drop-while neg? [-1 -2 -3 1 2 3 4 -1 -2 -3]))) "drop-while: first three element")
   (is (= [] (drop-while neg? [-1 -2 -3])) "drop-while: everything")
   (is (= [] (drop-while neg? [])) "drop-while: empty array")
-  (is (= [1 2 3 4] (drop-while neg? [1 2 3 4])) "drop-while: nothing")
-  (is (= [1 2 3 4 -1 -2 -3] (drop-while neg? [-1 -2 -3 1 2 3 4 -1 -2 -3])) "drop-while: vector")
-  (is (= (php/array 1 2 3 4 -1 -2 -3) (drop-while neg? (php/array -1 -2 -3 1 2 3 4 -1 -2 -3))) "drop-while: php array"))
+  (is (= [1 2 3 4] (doall (drop-while neg? [1 2 3 4]))) "drop-while: nothing")
+  (is (= [1 2 3 4 -1 -2 -3] (doall (drop-while neg? [-1 -2 -3 1 2 3 4 -1 -2 -3]))) "drop-while: vector")
+  (is (= [1 2 3 4 -1 -2 -3] (doall (drop-while neg? (php/array -1 -2 -3 1 2 3 4 -1 -2 -3)))) "drop-while: php array (returns lazy seq)"))
 
 (deftest test-drop-while-empty-element
   (is (= [] (drop-while |(throw (php/new \Exception)) [])) "`pred` is not executed when searching for empty vectors."))
