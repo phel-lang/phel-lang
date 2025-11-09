@@ -4,6 +4,7 @@
     findUnusedBaselineEntry="true"
     findUnusedCode="false"
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns:xi="http://www.w3.org/2001/XInclude"
     xmlns="https://getpsalm.org/schema/config"
     xsi:schemaLocation="https://getpsalm.org/schema/config vendor/vimeo/psalm/config.xsd"
 >
@@ -18,15 +19,22 @@
         <pluginClass class="Psalm\PhpUnitPlugin\Plugin"/>
     </plugins>
 
+    <xi:include href="vendor/gacela-project/gacela/psalm-gacela.xml"/>
+
     <issueHandlers>
-        <DeprecatedConstant errorLevel="suppress" />
-        <DeprecatedClass errorLevel="suppress" />
-        <DeprecatedInterface errorLevel="suppress" />
-        <DeprecatedMethod errorLevel="suppress" />
+        <!-- Suppress overly strict checks -->
+        <MissingOverrideAttribute errorLevel="suppress" />
+        <ClassMustBeFinal errorLevel="suppress" />
         <MissingTemplateParam errorLevel="suppress" />
         <ArgumentTypeCoercion errorLevel="suppress" />
         <LessSpecificReturnStatement errorLevel="suppress" />
+        <MoreSpecificReturnType errorLevel="suppress" />
+        <RiskyTruthyFalsyComparison errorLevel="suppress" />
+        <PossiblyUndefinedMethod errorLevel="suppress" />
+        <InvalidArrayOffset errorLevel="suppress" />
         <NamedArgumentNotAllowed errorLevel="suppress" />
+
+        <!-- Type safety suppressions for dynamic code -->
         <MixedArgument errorLevel="suppress" />
         <MixedArgumentTypeCoercion errorLevel="suppress" />
         <MixedArrayAccess errorLevel="suppress" />
@@ -39,13 +47,5 @@
         <MixedPropertyTypeCoercion errorLevel="suppress" />
         <MixedReturnStatement errorLevel="suppress" />
         <MixedReturnTypeCoercion errorLevel="suppress" />
-        <MoreSpecificReturnType errorLevel="suppress" />
-        <InvalidArrayOffset errorLevel="suppress" />
-        <RiskyTruthyFalsyComparison errorLevel="suppress" />
-        <PossiblyUndefinedMethod errorLevel="suppress" />
-        <MissingOverrideAttribute errorLevel="suppress" />
-        <ClassMustBeFinal errorLevel="suppress" />
-        <TaintedHtml errorLevel="suppress" />
-        <TaintedTextWithQuotes errorLevel="suppress" />
     </issueHandlers>
 </psalm>

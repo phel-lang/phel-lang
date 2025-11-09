@@ -4,6 +4,9 @@ declare(strict_types=1);
 
 namespace Phel\Lang;
 
+use Gacela\Container\Attribute\Singleton;
+
+#[Singleton]
 final class Equalizer implements EqualizerInterface
 {
     /**

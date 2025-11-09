@@ -22,7 +22,7 @@ use Phel\Shared\Facade\CommandFacadeInterface;
 use Phel\Shared\Facade\CompilerFacadeInterface;
 
 /**
- * @method BuildConfig getConfig()
+ * @extends AbstractFactory<BuildConfig>
  */
 final class BuildFactory extends AbstractFactory
 {

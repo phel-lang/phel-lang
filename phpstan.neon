@@ -1,3 +1,6 @@
+includes:
+    - vendor/gacela-project/gacela/phpstan-gacela.neon
+
 parameters:
     level: 5
     parallel:

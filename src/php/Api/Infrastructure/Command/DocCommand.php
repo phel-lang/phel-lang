@@ -4,7 +4,8 @@ declare(strict_types=1);
 
 namespace Phel\Api\Infrastructure\Command;
 
-use Gacela\Framework\DocBlockResolverAwareTrait;
+use Gacela\Framework\ServiceResolver\ServiceMap;
+use Gacela\Framework\ServiceResolverAwareTrait;
 use InvalidArgumentException;
 use Phel\Api\ApiFacade;
 use Phel\Api\Transfer\PhelFunction;
@@ -14,18 +15,15 @@ use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
-
 use Symfony\Component\Console\Terminal;
 
 use function in_array;
 use function sprintf;
 
-/**
- * @method ApiFacade getFacade()
- */
+#[ServiceMap(method: 'getFacade', className: ApiFacade::class)]
 final class DocCommand extends Command
 {
-    use DocBlockResolverAwareTrait;
+    use ServiceResolverAwareTrait;
 
     private const string OPTION_NAMESPACES = 'ns';
 

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Phel\Lang;
 
+use Gacela\Container\Attribute\Singleton;
 use RuntimeException;
 
 use function gettype;
@@ -16,6 +17,7 @@ use function is_string;
  * This Hasher is inspired by the Clojurescript implementation.
  * These constants are the same hash value as in clojure.
  */
+#[Singleton]
 final class Hasher implements HasherInterface
 {
     private const int NULL_HASH_VALUE = 0;

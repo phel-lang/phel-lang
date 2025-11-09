@@ -4,7 +4,8 @@ declare(strict_types=1);
 
 namespace Phel\Run\Infrastructure\Command;
 
-use Gacela\Framework\DocBlockResolverAwareTrait;
+use Gacela\Framework\ServiceResolver\ServiceMap;
+use Gacela\Framework\ServiceResolverAwareTrait;
 use Phel\Compiler\Domain\Exceptions\CompilerException;
 use Phel\Run\Infrastructure\Service\DebugLineTap;
 use Phel\Run\RunFacade;
@@ -24,9 +25,10 @@ use function sprintf;
 /**
  * @method RunFacade getFacade()
  */
+#[ServiceMap(method: 'getFacade', className: RunFacade::class)]
 final class RunCommand extends Command
 {
-    use DocBlockResolverAwareTrait;
+    use ServiceResolverAwareTrait;
 
     protected function configure(): void
     {

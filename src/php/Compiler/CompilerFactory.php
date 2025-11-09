@@ -42,7 +42,7 @@ use Phel\Filesystem\FilesystemFacadeInterface;
 use Phel\Printer\Printer;
 
 /**
- * @method CompilerConfig getConfig()
+ * @extends AbstractFactory<CompilerConfig>
  */
 final class CompilerFactory extends AbstractFactory
 {

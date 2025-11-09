@@ -4,7 +4,8 @@ declare(strict_types=1);
 
 namespace Phel\Interop\Infrastructure\Command;
 
-use Gacela\Framework\DocBlockResolverAwareTrait;
+use Gacela\Framework\ServiceResolver\ServiceMap;
+use Gacela\Framework\ServiceResolverAwareTrait;
 use Phel\Compiler\Domain\Exceptions\CompilerException;
 use Phel\Interop\InteropFacade;
 use Symfony\Component\Console\Command\Command;
@@ -17,9 +18,10 @@ use function sprintf;
 /**
  * @method InteropFacade getFacade()
  */
+#[ServiceMap(method: 'getFacade', className: InteropFacade::class)]
 final class ExportCommand extends Command
 {
-    use DocBlockResolverAwareTrait;
+    use ServiceResolverAwareTrait;
 
     protected function configure(): void
     {

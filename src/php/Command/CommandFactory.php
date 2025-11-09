@@ -23,7 +23,7 @@ use Phel\Printer\Printer;
 use Phel\Run\Domain\Repl\ColorStyle;
 
 /**
- * @method CommandConfig getConfig()
+ * @extends AbstractFactory<CommandConfig>
  */
 final class CommandFactory extends AbstractFactory
 {

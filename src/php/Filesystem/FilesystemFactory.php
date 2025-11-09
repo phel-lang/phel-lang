@@ -12,7 +12,7 @@ use Phel\Filesystem\Domain\NullFilesystem;
 use Phel\Filesystem\Infrastructure\RealFilesystem;
 
 /**
- * @method FilesystemConfig getConfig()
+ * @extends AbstractFactory<FilesystemConfig>
  */
 final class FilesystemFactory extends AbstractFactory
 {

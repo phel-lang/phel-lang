@@ -8,9 +8,6 @@ use Gacela\Framework\AbstractConfig;
 use Phel\Config\PhelBuildConfig;
 use Phel\Config\PhelConfig;
 
-/**
- * @method BuildConfig getConfig()
- */
 final class BuildConfig extends AbstractConfig implements BuildConfigInterface
 {
     /**

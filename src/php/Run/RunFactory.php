@@ -24,7 +24,7 @@ use Phel\Shared\Facade\CompilerFacadeInterface;
 use Phel\Shared\Facade\ConsoleFacadeInterface;
 
 /**
- * @method RunConfig getConfig()
+ * @extends AbstractFactory<RunConfig>
  */
 class RunFactory extends AbstractFactory
 {

@@ -4,7 +4,8 @@ declare(strict_types=1);
 
 namespace Phel\Formatter\Infrastructure\Command;
 
-use Gacela\Framework\DocBlockResolverAwareTrait;
+use Gacela\Framework\ServiceResolver\ServiceMap;
+use Gacela\Framework\ServiceResolverAwareTrait;
 use Phel\Formatter\FormatterConfig;
 use Phel\Formatter\FormatterFacade;
 use Symfony\Component\Console\Command\Command;
@@ -14,13 +15,11 @@ use Symfony\Component\Console\Output\OutputInterface;
 
 use function sprintf;
 
-/**
- * @method FormatterFacade getFacade()
- * @method FormatterConfig getConfig()
- */
+#[ServiceMap(method: 'getFacade', className: FormatterFacade::class)]
+#[ServiceMap(method: 'getConfig', className: FormatterConfig::class)]
 final class FormatCommand extends Command
 {
-    use DocBlockResolverAwareTrait;
+    use ServiceResolverAwareTrait;
 
     protected function configure(): void
     {

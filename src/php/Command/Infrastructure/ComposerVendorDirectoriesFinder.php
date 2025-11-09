@@ -4,7 +4,8 @@ declare(strict_types=1);
 
 namespace Phel\Command\Infrastructure;
 
-use Gacela\Framework\DocBlockResolverAwareTrait;
+use Gacela\Framework\ServiceResolver\ServiceMap;
+use Gacela\Framework\ServiceResolverAwareTrait;
 use Phel;
 use Phel\Command\CommandFacade;
 use Phel\Command\Domain\Finder\VendorDirectoriesFinderInterface;
@@ -15,12 +16,10 @@ use function dirname;
 use function glob;
 use function sprintf;
 
-/**
- * @method CommandFacade getFacade()
- */
+#[ServiceMap(method: 'getFacade', className: CommandFacade::class)]
 final class ComposerVendorDirectoriesFinder implements VendorDirectoriesFinderInterface
 {
-    use DocBlockResolverAwareTrait;
+    use ServiceResolverAwareTrait;
 
     public function __construct(
         private readonly string $vendorDirectory,
