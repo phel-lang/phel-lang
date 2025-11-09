@@ -4,7 +4,8 @@ declare(strict_types=1);
 
 namespace Phel\Run\Infrastructure\Command;
 
-use Gacela\Framework\DocBlockResolverAwareTrait;
+use Gacela\Framework\ServiceResolver\ServiceMap;
+use Gacela\Framework\ServiceResolverAwareTrait;
 use Phel\Build\Domain\Extractor\NamespaceInformation;
 use Phel\Compiler\Domain\Exceptions\CompilerException;
 use Phel\Compiler\Infrastructure\CompileOptions;
@@ -23,9 +24,10 @@ use function sprintf;
 /**
  * @method RunFacade getFacade()
  */
+#[ServiceMap(method: 'getFacade', className: RunFacade::class)]
 final class TestCommand extends Command
 {
-    use DocBlockResolverAwareTrait;
+    use ServiceResolverAwareTrait;
 
     public const string COMMAND_NAME = 'test';
 

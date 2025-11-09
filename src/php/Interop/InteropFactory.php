@@ -22,7 +22,7 @@ use Phel\Shared\Facade\BuildFacadeInterface;
 use Phel\Shared\Facade\CommandFacadeInterface;
 
 /**
- * @method InteropConfig getConfig()
+ * @extends AbstractFactory<InteropConfig>
  */
 final class InteropFactory extends AbstractFactory
 {

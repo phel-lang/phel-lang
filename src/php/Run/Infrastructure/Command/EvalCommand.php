@@ -4,7 +4,8 @@ declare(strict_types=1);
 
 namespace Phel\Run\Infrastructure\Command;
 
-use Gacela\Framework\DocBlockResolverAwareTrait;
+use Gacela\Framework\ServiceResolver\ServiceMap;
+use Gacela\Framework\ServiceResolverAwareTrait;
 use Phel\Run\RunFacade;
 use Phel\Run\RunFactory;
 use Symfony\Component\Console\Command\Command;
@@ -16,9 +17,11 @@ use Symfony\Component\Console\Output\OutputInterface;
  * @method RunFacade getFacade()
  * @method RunFactory getFactory()
  */
+#[ServiceMap(method: 'getFacade', className: RunFacade::class)]
+#[ServiceMap(method: 'getFactory', className: RunFactory::class)]
 final class EvalCommand extends Command
 {
-    use DocBlockResolverAwareTrait;
+    use ServiceResolverAwareTrait;
 
     protected function configure(): void
     {

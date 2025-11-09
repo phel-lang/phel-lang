@@ -4,7 +4,8 @@ declare(strict_types=1);
 
 namespace Phel\Console\Infrastructure;
 
-use Gacela\Framework\DocBlockResolverAwareTrait;
+use Gacela\Framework\ServiceResolver\ServiceMap;
+use Gacela\Framework\ServiceResolverAwareTrait;
 use Override;
 use Phel\Console\ConsoleFactory;
 use Symfony\Component\Console\Application;
@@ -13,12 +14,10 @@ use Symfony\Component\Console\Input\ArgvInput;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 
-/**
- * @method ConsoleFactory getFactory()
- */
+#[ServiceMap(method: 'getFactory', className: ConsoleFactory::class)]
 final class ConsoleBootstrap extends Application
 {
-    use DocBlockResolverAwareTrait;
+    use ServiceResolverAwareTrait;
 
     #[Override]
     public function run(?InputInterface $input = null, ?OutputInterface $output = null): int

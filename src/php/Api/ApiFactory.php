@@ -15,7 +15,7 @@ use Phel\Api\Domain\ReplCompleterInterface;
 use Phel\Api\Infrastructure\PhelFnLoader;
 
 /**
- * @method ApiConfig getConfig()
+ * @extends AbstractFactory<ApiConfig>
  */
 final class ApiFactory extends AbstractFactory
 {

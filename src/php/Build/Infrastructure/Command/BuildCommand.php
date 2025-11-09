@@ -4,7 +4,8 @@ declare(strict_types=1);
 
 namespace Phel\Build\Infrastructure\Command;
 
-use Gacela\Framework\DocBlockResolverAwareTrait;
+use Gacela\Framework\ServiceResolver\ServiceMap;
+use Gacela\Framework\ServiceResolverAwareTrait;
 use Phel\Build\BuildFacade;
 use Phel\Build\Domain\Compile\BuildOptions;
 use Phel\Build\Domain\Compile\CompiledFile;
@@ -18,12 +19,10 @@ use Throwable;
 
 use function sprintf;
 
-/**
- * @method BuildFacade getFacade()
- */
+#[ServiceMap(method: 'getFacade', className: BuildFacade::class)]
 final class BuildCommand extends Command
 {
-    use DocBlockResolverAwareTrait;
+    use ServiceResolverAwareTrait;
 
     private const string OPTION_CACHE = 'cache';
 

@@ -4,7 +4,8 @@ declare(strict_types=1);
 
 namespace Phel\Run\Infrastructure\Command;
 
-use Gacela\Framework\DocBlockResolverAwareTrait;
+use Gacela\Framework\ServiceResolver\ServiceMap;
+use Gacela\Framework\ServiceResolverAwareTrait;
 use Phel\Build\Domain\Extractor\NamespaceInformation;
 use Phel\Run\RunFacade;
 use Symfony\Component\Console\Command\Command;
@@ -17,12 +18,10 @@ use function count;
 use function implode;
 use function sprintf;
 
-/**
- * @method RunFacade getFacade()
- */
+#[ServiceMap(method: 'getFacade', className: RunFacade::class)]
 class NsCommand extends Command
 {
-    use DocBlockResolverAwareTrait;
+    use ServiceResolverAwareTrait;
 
     protected function configure(): void
     {
