@@ -4,25 +4,27 @@ All notable changes to this project will be documented in this file.
 
 ## Unreleased
 
-- Simplify the release process with `OFFICIAL_RELEASE` environment variable
-  - Build official release PHAR with: `OFFICIAL_RELEASE=true build/phar.sh`
-  - Automatically embed a release flag in PHAR via `.phel-release.php` config file
-  - Remove manual edits to `IS_OFFICIAL_RELEASE` constant
-  - Works seamlessly with both PHAR and Composer dependencies
-- Optimize PHAR build with caching and compression
-  - Add smart vendor caching based on `composer.lock`
-  - Apply GZ compression to reduce PHAR size
-  - Use hash maps for faster file filtering
-  - Exclude development directories and config files
-  - Add progress indicators for better visibility
-- Optimize `PhelCallerTrait`
-- Fix supports php-timer and console `^6.0|^7.0|^8.0`
-- Fix export function name to php
-- Optimize RequireEvaluator
-- Add memory-efficient lazy sequences with chunked evaluation
+### Added
+- Memory-efficient lazy sequences with chunked evaluation
   - Add `doall` and `dorun` for controlling lazy sequence realization
-  - Make fully lazy `map`, `filter`, `take`, `drop`, `drop-while`, `take-while`, and `take-nth`
+  - Make `map`, `filter`, `take`, `drop`, `drop-while`, `take-while`, `take-nth`, `keep`, `keep-indexed`, `distinct`, `dedupe`, and `partition-by` fully lazy
   - All lazy functions support infinite sequences and preserve metadata
+- Simplified release process with `OFFICIAL_RELEASE` environment variable
+  - Build official release PHAR: `OFFICIAL_RELEASE=true build/phar.sh`
+  - Automatically embed release flag via `.phel-release.php` config
+  - Works seamlessly with both PHAR and Composer dependencies
+- Optimized PHAR build with smart caching and compression
+  - Vendor caching based on `composer.lock` hash
+  - GZ compression to reduce file size
+  - Progress indicators for build visibility
+
+### Fixed
+- Memory exhaustion in `partition-by` and `dedupe` with infinite sequences
+- Export function name to PHP
+- Support for php-timer and console `^6.0|^7.0|^8.0`
+
+### Changed
+- Optimize `PhelCallerTrait` and `RequireEvaluator` performance
 
 ## [0.24.0](https://github.com/phel-lang/phel-lang/compare/v0.23.1...v0.24.0) - 2025-10-26
 

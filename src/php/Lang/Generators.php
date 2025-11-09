@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace Phel\Lang;
 
 use Generator;
+use Phel;
+use Phel\Lang\Collections\Vector\PersistentVectorInterface;
 
 final class Generators
 {
@@ -269,6 +271,96 @@ final class Generators
 
             $dropping = false;
             yield $value;
+        }
+    }
+
+    /**
+     * @template T
+     *
+     * @param iterable<T> $iterable
+     *
+     * @return Generator<int, T>
+     */
+    public static function distinct(iterable $iterable): Generator
+    {
+        $hasher = new Hasher();
+        $equalizer = new Equalizer();
+        $seen = [];
+
+        foreach ($iterable as $value) {
+            $hash = $hasher->hash($value);
+
+            // Check if we've seen an equal value with this hash
+            $found = false;
+            if (isset($seen[$hash])) {
+                foreach ($seen[$hash] as $seenValue) {
+                    if ($equalizer->equals($value, $seenValue)) {
+                        $found = true;
+                        break;
+                    }
+                }
+            }
+
+            if (!$found) {
+                $seen[$hash][] = $value;
+                yield $value;
+            }
+        }
+    }
+
+    /**
+     * @template T
+     *
+     * @param iterable<T> $iterable
+     *
+     * @return Generator<int, T>
+     */
+    public static function dedupe(iterable $iterable): Generator
+    {
+        $equalizer = new Equalizer();
+        $first = true;
+        $prev = null;
+
+        foreach ($iterable as $value) {
+            if ($first || !$equalizer->equals($value, $prev)) {
+                yield $value;
+                $prev = $value;
+                $first = false;
+            }
+        }
+    }
+
+    /**
+     * @template T
+     *
+     * @param callable(T):mixed $f
+     * @param iterable<T>       $iterable
+     *
+     * @return Generator<int, PersistentVectorInterface>
+     */
+    public static function partitionBy(callable $f, iterable $iterable): Generator
+    {
+        $equalizer = new Equalizer();
+        $partition = [];
+        $prevKey = null;
+        $first = true;
+
+        foreach ($iterable as $value) {
+            $key = $f($value);
+
+            if ($first || $equalizer->equals($key, $prevKey)) {
+                $partition[] = $value;
+                $prevKey = $key;
+                $first = false;
+            } else {
+                yield Phel::vector($partition);
+                $partition = [$value];
+                $prevKey = $key;
+            }
+        }
+
+        if ($partition !== []) {
+            yield Phel::vector($partition);
         }
     }
 }
