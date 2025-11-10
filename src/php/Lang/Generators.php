@@ -136,6 +136,31 @@ final class Generators
     }
 
     /**
+     * Returns elements from an iterable with a separator between them.
+     * The separator is not added before the first element or after the last element.
+     *
+     * @template T
+     * @template S
+     *
+     * @param S           $separator The separator to insert between elements
+     * @param iterable<T> $iterable  The input sequence
+     *
+     * @return Generator<int, S|T>
+     */
+    public static function interpose(mixed $separator, iterable $iterable): Generator
+    {
+        $first = true;
+        foreach ($iterable as $value) {
+            if (!$first) {
+                yield $separator;
+            }
+
+            yield $value;
+            $first = false;
+        }
+    }
+
+    /**
      * Generates a range of numbers [start, end) with given step.
      *
      * @return Generator<int, float|int>
