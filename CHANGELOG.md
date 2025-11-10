@@ -7,6 +7,7 @@ All notable changes to this project will be documented in this file.
 ### Added
 - Make `concat` fully lazy with support for infinite sequences
 - Make `mapcat` fully lazy with support for infinite sequences
+- Make `interpose` fully lazy with support for infinite sequences
 
 ### Fixed
 - Fix `into` to work correctly with `PersistentList` and other `ConcatInterface` types that don't implement `PushInterface`
