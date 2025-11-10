@@ -109,6 +109,33 @@ final class Generators
     }
 
     /**
+     * Maps a function over an iterable and concatenates the results.
+     * The function should return an iterable for each input element.
+     * Yields all elements from each resulting iterable in sequence.
+     *
+     * @template T
+     * @template U
+     *
+     * @param callable(T): (iterable<U>|null) $f        The mapping function
+     * @param iterable<T>                     $iterable The input sequence
+     *
+     * @return Generator<int, U>
+     */
+    public static function mapcat(callable $f, iterable $iterable): Generator
+    {
+        foreach ($iterable as $value) {
+            $result = $f($value);
+            if ($result === null) {
+                continue;
+            }
+
+            foreach ($result as $item) {
+                yield $item;
+            }
+        }
+    }
+
+    /**
      * Generates a range of numbers [start, end) with given step.
      *
      * @return Generator<int, float|int>

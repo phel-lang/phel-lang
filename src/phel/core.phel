@@ -1200,9 +1200,7 @@ arrays. Use (php/aunset ds key)"))
                 (push acc value))
 
               (php/instanceof to ConcatInterface)
-              (for [value :in entries
-                    :reduce [acc to]]
-                (push acc value))
+              (php/-> to (concat (apply php/array entries)))
 
               (php/is_array to)
               (concat to entries)
@@ -1611,6 +1609,24 @@ arrays. Use (php/aunset ds key)"))
         (if (php/=== nil result)
           '()
           result)))))
+
+# Redefine mapcat as lazy
+(def mapcat
+  "Maps a function over a collection and concatenates the results. Returns a lazy sequence.
+
+  Applies `f` to each element of the collection, where `f` should return a collection.
+  All resulting collections are concatenated into a single lazy sequence.
+  Works with infinite sequences.
+
+  Example: (mapcat reverse [[1 2] [3 4]]) ; => (2 1 4 3)"
+  (fn [f coll]
+    (if (php/=== nil coll)
+      '()
+      (let [result (lazy-seq-from-generator
+                     (php/:: \Phel\Lang\Generators (mapcat f coll)))]
+        (if (php/=== nil result)
+          '()
+          (with-meta coll result))))))
 
 (defn doall
   "Forces realization of a lazy sequence and returns it as a vector.
