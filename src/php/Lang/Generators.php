@@ -85,6 +85,30 @@ final class Generators
     }
 
     /**
+     * Concatenates multiple iterables into a single lazy sequence.
+     * Yields all elements from the first iterable, then all from the second, etc.
+     * Handles null values by skipping them.
+     *
+     * @template T
+     *
+     * @param iterable<T>|null ...$iterables
+     *
+     * @return Generator<int, T>
+     */
+    public static function concat(iterable|null ...$iterables): Generator
+    {
+        foreach ($iterables as $iterable) {
+            if ($iterable === null) {
+                continue;
+            }
+
+            foreach ($iterable as $value) {
+                yield $value;
+            }
+        }
+    }
+
+    /**
      * Generates a range of numbers [start, end) with given step.
      *
      * @return Generator<int, float|int>

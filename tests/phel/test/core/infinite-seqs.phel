@@ -405,3 +405,79 @@
 (deftest test-partition-by-all-same-group
   (is (= [[1 1 1 1]] (doall (partition-by |(< $ 10) [1 1 1 1])))
       "partition-by should return single partition when all elements have same key"))
+
+(deftest test-concat-basic
+  (is (= [1 2 3 4 5 6] (doall (concat [1 2 3] [4 5 6])))
+      "concat should concatenate two vectors"))
+
+(deftest test-concat-multiple-collections
+  (is (= [1 2 3 4 5 6 7 8 9] (doall (concat [1 2 3] [4 5 6] [7 8 9])))
+      "concat should concatenate multiple collections"))
+
+(deftest test-concat-single-collection
+  (is (= [1 2 3] (doall (concat [1 2 3])))
+      "concat with single collection should return it lazily"))
+
+(deftest test-concat-no-args
+  (is (= [] (concat))
+      "concat with no args should return empty vector"))
+
+(deftest test-concat-empty-collections
+  (is (= [] (doall (concat [] [] [])))
+      "concat with empty collections should return empty vector"))
+
+(deftest test-concat-with-nil
+  (is (= [] (concat nil))
+      "concat with nil should return empty vector"))
+
+(deftest test-concat-mixed-empty-and-filled
+  (is (= [1 2 3 4] (doall (concat [] [1 2] [] [3 4] [])))
+      "concat should handle mix of empty and filled collections"))
+
+(deftest test-concat-with-infinite-seq
+  (is (= [0 1 2 3 4 5 6 7] (take 8 (concat (iterate inc 0) [100 101])))
+      "concat should work with infinite sequences"))
+
+(deftest test-concat-infinite-then-finite
+  (is (= [1 1 1 1 1] (take 5 (concat (repeat 1) [2 3 4])))
+      "concat with infinite sequence first should only realize what's needed"))
+
+(deftest test-concat-finite-then-infinite
+  (is (= [1 2 3 0 1 2 3 4] (take 8 (concat [1 2 3] (iterate inc 0))))
+      "concat with finite then infinite should work"))
+
+(deftest test-concat-multiple-infinite
+  (is (= [1 1 1 1 1] (take 5 (concat (repeat 1) (repeat 2) (repeat 3))))
+      "concat with multiple infinite sequences should work (first one dominates)"))
+
+(deftest test-concat-returns-lazy
+  (is (= [1 2 3 4] (doall (concat [1 2] [3 4])))
+      "concat should return lazy sequence"))
+
+(deftest test-concat-with-doall
+  (is (= [1 2 3 4 5 6] (doall (concat [1 2 3] [4 5 6])))
+      "concat should work with doall"))
+
+(deftest test-concat-chained-with-map
+  (is (= [2 3 4 5 6 7] (doall (map inc (concat [1 2 3] [4 5 6]))))
+      "concat should work chained with map"))
+
+(deftest test-concat-chained-with-filter
+  (is (= [2 4 6] (doall (filter even? (concat [1 2 3] [4 5 6]))))
+      "concat should work chained with filter"))
+
+(deftest test-concat-chained-with-take
+  (is (= [1 2 3 4] (take 4 (concat [1 2 3] [4 5 6] [7 8 9])))
+      "concat should work chained with take"))
+
+(deftest test-concat-complex-chain
+  (is (= [2 4 6 8 10] (take 5 (filter even? (map inc (concat [1 3 5] (iterate inc 7))))))
+      "concat should work in complex lazy chains"))
+
+(deftest test-concat-with-lists
+  (is (= [1 2 3 4] (doall (concat '(1 2) '(3 4))))
+      "concat should work with lists"))
+
+(deftest test-concat-mixed-types
+  (is (= [1 2 3 4] (doall (concat [1 2] '(3 4))))
+      "concat should work with mixed collection types"))
