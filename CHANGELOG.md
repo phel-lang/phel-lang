@@ -2,6 +2,15 @@
 
 All notable changes to this project will be documented in this file.
 
+## [Unreleased]
+
+### Added
+- Make `concat` fully lazy with support for infinite sequences
+- Make `mapcat` fully lazy with support for infinite sequences
+
+### Fixed
+- Fix `into` to work correctly with `PersistentList` and other `ConcatInterface` types that don't implement `PushInterface`
+
 ## [0.25.0](https://github.com/phel-lang/phel-lang/compare/v0.24.0...v0.25.0) - 2025-11-09
 
 ### Added

@@ -1200,7 +1200,7 @@ arrays. Use (php/aunset ds key)"))
                 (push acc value))
 
               (php/instanceof to ConcatInterface)
-              (concat to entries)
+              (php/-> to (concat (apply php/array entries)))
 
               (php/is_array to)
               (concat to entries)
@@ -1415,7 +1415,7 @@ arrays. Use (php/aunset ds key)"))
           size (count first-coll)
           result (loop [i 0
                         res []]
-                   (let [nths (map |(get $ i) xs)]
+                   (let [nths (apply vector (map |(get $ i) xs))]
                      (if (<= size i)
                        res
                        (recur (php/+ i 1) (concat res nths)))))]
@@ -1592,6 +1592,41 @@ arrays. Use (php/aunset ds key)"))
   (if (empty? xs)
     []
     (lazy-seq-from-generator (php/:: Generators (cycle xs)))))
+
+(def concat
+  "Concatenates multiple sequential data structures. Returns a lazy sequence.
+
+  When given no arguments, returns an empty list.
+  When given one or more collections, lazily yields all elements from each in order.
+  Works with infinite sequences."
+  (fn [& colls]
+    (if (php/=== nil colls)
+      '()
+      (let [result (lazy-seq-from-generator
+                     (php/call_user_func_array
+                       (php/array "\\Phel\\Lang\\Generators" "concat")
+                       (apply php/array colls)))]
+        (if (php/=== nil result)
+          '()
+          result)))))
+
+# Redefine mapcat as lazy
+(def mapcat
+  "Maps a function over a collection and concatenates the results. Returns a lazy sequence.
+
+  Applies `f` to each element of the collection, where `f` should return a collection.
+  All resulting collections are concatenated into a single lazy sequence.
+  Works with infinite sequences.
+
+  Example: (mapcat reverse [[1 2] [3 4]]) ; => (2 1 4 3)"
+  (fn [f coll]
+    (if (php/=== nil coll)
+      '()
+      (let [result (lazy-seq-from-generator
+                     (php/:: \Phel\Lang\Generators (mapcat f coll)))]
+        (if (php/=== nil result)
+          '()
+          (with-meta coll result))))))
 
 (defn doall
   "Forces realization of a lazy sequence and returns it as a vector.
@@ -1851,7 +1886,10 @@ arrays. Use (php/aunset ds key)"))
         (let [node (pop stack)]
           (push ret node)
           (if (branch? node)
-            (recur (concat stack (reverse (children node))))
+            (let [reversed-children (reverse (children node))]
+              (foreach [child reversed-children]
+                (php/apush stack child))
+              (recur stack))
             (recur stack)))
         (with-meta root (persistent ret))))))
 
@@ -1888,7 +1926,7 @@ arrays. Use (php/aunset ds key)"))
     (nil? right) left
     (and (hash-map? left) (hash-map? right)) (merge-with deep-merge left right)
     (and (set? left) (set? right)) (union left right)
-    (and (vector? left) (vector? right)) (concat left right)
+    (and (vector? left) (vector? right)) (apply vector (concat left right))
     right))
 
 (defn deep-merge

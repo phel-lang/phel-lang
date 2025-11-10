@@ -405,3 +405,33 @@
 (deftest test-partition-by-all-same-group
   (is (= [[1 1 1 1]] (doall (partition-by |(< $ 10) [1 1 1 1])))
       "partition-by should return single partition when all elements have same key"))
+
+# Lazy mapcat tests
+(deftest test-mapcat-is-lazy
+  (is (= [1 1 1 2 2 2] (take 6 (mapcat |(list $ $ $) [1 2 3 4 5])))
+      "mapcat should be lazy and work with take"))
+
+(deftest test-mapcat-identity-flattens-one-level
+  (is (= [1 2 3 4 5 6] (doall (mapcat identity [[1 2] [3 4] [5 6]])))
+      "mapcat identity should flatten one level"))
+
+(deftest test-mapcat-with-infinite-sequence
+  (is (= [0 0 1 1 2 2 3 3 4 4] (take 10 (mapcat |(list $ $) (iterate inc 0))))
+      "mapcat should work with infinite sequences"))
+
+(deftest test-mapcat-empty-collection
+  (is (= '() (mapcat reverse []))
+      "mapcat on empty collection should return empty list"))
+
+(deftest test-mapcat-with-empty-results
+  (is (= [2 2 4 4 6 6] (doall (mapcat |(if (even? $) [$ $] []) [1 2 3 4 5 6])))
+      "mapcat should handle functions that return empty collections"))
+
+(deftest test-mapcat-preserves-laziness
+  (is (= [1 2 2 3 3 3] (take 6 (mapcat |(repeat $ $) (iterate inc 1))))
+      "mapcat should preserve laziness with nested lazy sequences"))
+
+(deftest test-mapcat-returns-lazy-seq
+  (let [result (mapcat identity [[1 2] [3 4]])]
+    (is (true? (php/instanceof result \Phel\Lang\Collections\LazySeq\LazySeqInterface))
+        "mapcat should return a lazy sequence")))

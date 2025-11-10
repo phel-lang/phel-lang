@@ -85,6 +85,57 @@ final class Generators
     }
 
     /**
+     * Concatenates multiple iterables into a single lazy sequence.
+     * Yields all elements from the first iterable, then all from the second, etc.
+     * Handles null values by skipping them.
+     *
+     * @template T
+     *
+     * @param iterable<T>|null ...$iterables
+     *
+     * @return Generator<int, T>
+     */
+    public static function concat(iterable|null ...$iterables): Generator
+    {
+        foreach ($iterables as $iterable) {
+            if ($iterable === null) {
+                continue;
+            }
+
+            foreach ($iterable as $value) {
+                yield $value;
+            }
+        }
+    }
+
+    /**
+     * Maps a function over an iterable and concatenates the results.
+     * The function should return an iterable for each input element.
+     * Yields all elements from each resulting iterable in sequence.
+     *
+     * @template T
+     * @template U
+     *
+     * @param callable(T): (iterable<U>|null) $f        The mapping function
+     * @param iterable<T>                     $iterable The input sequence
+     *
+     * @return Generator<int, U>
+     */
+    public static function mapcat(callable $f, iterable $iterable): Generator
+    {
+        foreach ($iterable as $value) {
+            $result = $f($value);
+            if ($result === null) {
+                continue;
+            }
+
+            foreach ($result as $item) {
+                yield $item;
+            }
+        }
+    }
+
+    /**
      * Generates a range of numbers [start, end) with given step.
      *
      * @return Generator<int, float|int>
