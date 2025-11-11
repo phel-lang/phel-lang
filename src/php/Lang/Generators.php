@@ -5,12 +5,16 @@ declare(strict_types=1);
 namespace Phel\Lang;
 
 use ArrayIterator;
+use FilesystemIterator;
 use Generator;
 use InvalidArgumentException;
 use Iterator;
 use Phel;
 use Phel\Lang\Collections\Vector\PersistentVectorInterface;
+use RecursiveDirectoryIterator;
+use RecursiveIteratorIterator;
 use RuntimeException;
+use UnexpectedValueException;
 
 use function count;
 use function is_array;
@@ -641,6 +645,52 @@ final class Generators
             }
         } finally {
             fclose($handle);
+        }
+    }
+
+    /**
+     * Lazily walks a directory tree, yielding file paths.
+     * Returns all files and directories recursively.
+     *
+     * @return Generator<int, string>
+     */
+    public static function fileSeq(string $path): Generator
+    {
+        if (!file_exists($path)) {
+            throw new InvalidArgumentException(
+                'Path does not exist: ' . $path,
+            );
+        }
+
+        if (!is_readable($path)) {
+            throw new InvalidArgumentException(
+                'Path is not readable: ' . $path,
+            );
+        }
+
+        // If it's a file, just yield it
+        if (is_file($path)) {
+            yield $path;
+            return;
+        }
+
+        // If it's a directory, walk it recursively
+        if (is_dir($path)) {
+            try {
+                $iterator = new RecursiveIteratorIterator(
+                    new RecursiveDirectoryIterator(
+                        $path,
+                        FilesystemIterator::SKIP_DOTS | FilesystemIterator::FOLLOW_SYMLINKS,
+                    ),
+                    RecursiveIteratorIterator::SELF_FIRST,
+                );
+
+                foreach ($iterator as $fileInfo) {
+                    yield $fileInfo->getPathname();
+                }
+            } catch (UnexpectedValueException $e) {
+                throw new RuntimeException('Error reading directory: ' . $path . ' - ' . $e->getMessage(), $e->getCode(), $e);
+            }
         }
     }
 
