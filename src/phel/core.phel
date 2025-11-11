@@ -1610,7 +1610,6 @@ arrays. Use (php/aunset ds key)"))
           '()
           result)))))
 
-# Redefine mapcat as lazy
 (def mapcat
   "Maps a function over a collection and concatenates the results. Returns a lazy sequence.
 
@@ -1640,6 +1639,23 @@ arrays. Use (php/aunset ds key)"))
       '()
       (let [result (lazy-seq-from-generator
                      (php/:: \Phel\Lang\Generators (interpose sep coll)))]
+        (if (php/=== nil result)
+          '()
+          (with-meta coll result))))))
+
+(def map-indexed
+  "Maps a function over a collection with index. Returns a lazy sequence.
+
+  Applies `f` to each element in `xs`. `f` is a two-argument function where
+  the first argument is the index (0-based) and the second is the element itself.
+  Works with infinite sequences.
+
+  Example: (map-indexed vector [:a :b :c]) ; => ([0 :a] [1 :b] [2 :c])"
+  (fn [f coll]
+    (if (php/=== nil coll)
+      '()
+      (let [result (lazy-seq-from-generator
+                     (php/:: \Phel\Lang\Generators (mapIndexed f coll)))]
         (if (php/=== nil result)
           '()
           (with-meta coll result))))))

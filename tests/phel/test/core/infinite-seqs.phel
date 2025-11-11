@@ -469,3 +469,37 @@
   (let [result (interpose 0 [1 2 3])]
     (is (true? (php/instanceof result \Phel\Lang\Collections\LazySeq\LazySeqInterface))
         "interpose should return a lazy sequence")))
+
+# Lazy map-indexed tests
+(deftest test-map-indexed-basic
+  (is (= [[0 "a"] [1 "b"] [2 "c"]] (doall (map-indexed vector ["a" "b" "c"])))
+      "map-indexed should apply function with index and value"))
+
+(deftest test-map-indexed-is-lazy
+  (is (= [[0 1] [1 2] [2 3]] (take 3 (map-indexed vector [1 2 3 4 5])))
+      "map-indexed should be lazy and work with take"))
+
+(deftest test-map-indexed-with-infinite-sequence
+  (is (= [[0 0] [1 1] [2 2] [3 3] [4 4]] (take 5 (map-indexed vector (iterate inc 0))))
+      "map-indexed should work with infinite sequences"))
+
+(deftest test-map-indexed-empty-collection
+  (is (= '() (map-indexed vector []))
+      "map-indexed on empty collection should return empty list"))
+
+(deftest test-map-indexed-single-element
+  (is (= [[0 :x]] (doall (map-indexed vector [:x])))
+      "map-indexed on single element should work correctly"))
+
+(deftest test-map-indexed-custom-function
+  (is (= [0 11 22] (doall (map-indexed (fn [i v] (+ (* i 10) v)) [0 1 2])))
+      "map-indexed should work with custom functions"))
+
+(deftest test-map-indexed-returns-index-first
+  (is (= [0 1 2] (doall (map-indexed (fn [i v] i) ["a" "b" "c"])))
+      "map-indexed should pass index as first argument"))
+
+(deftest test-map-indexed-returns-lazy-seq
+  (let [result (map-indexed vector [1 2 3])]
+    (is (true? (php/instanceof result \Phel\Lang\Collections\LazySeq\LazySeqInterface))
+        "map-indexed should return a lazy sequence")))

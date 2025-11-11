@@ -70,7 +70,7 @@
       (str " " (escape-html name) "=\""  (render-attribute-value name value) "\""))))
 
 (defn- render-attrs [attrs]
-  (apply str (map-indexed render-attribute attrs)))
+  (apply str (for [[name value] :pairs attrs] (render-attribute name value))))
 
 (defn- render-element
   "Renders an Element."
