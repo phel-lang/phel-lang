@@ -1660,6 +1660,26 @@ arrays. Use (php/aunset ds key)"))
           '()
           (with-meta coll result))))))
 
+# Redefine interleave as lazy
+(def interleave
+  "Interleaves multiple collections. Returns a lazy sequence.
+
+  Returns elements by taking one from each collection in turn.
+  Pads with nil when collections have different lengths.
+  Works with infinite sequences.
+
+  Example: (interleave [1 2 3] [:a :b :c]) ; => (1 :a 2 :b 3 :c)"
+  (fn [& colls]
+    (if (php/=== nil colls)
+      '()
+      (let [result (lazy-seq-from-generator
+                     (php/call_user_func_array
+                       (php/array "\\Phel\\Lang\\Generators" "interleave")
+                       (apply php/array colls)))]
+        (if (php/=== nil result)
+          '()
+          (with-meta (first colls) result))))))
+
 (defn doall
   "Forces realization of a lazy sequence and returns it as a vector.
   Useful when you need to force side effects or ensure computation happens immediately.

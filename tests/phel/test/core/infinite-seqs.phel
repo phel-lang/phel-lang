@@ -503,3 +503,41 @@
   (let [result (map-indexed vector [1 2 3])]
     (is (true? (php/instanceof result \Phel\Lang\Collections\LazySeq\LazySeqInterface))
         "map-indexed should return a lazy sequence")))
+
+# Lazy interleave tests
+(deftest test-interleave-two-vectors
+  (is (= [1 :a 2 :b 3 :c] (doall (interleave [1 2 3] [:a :b :c])))
+      "interleave should alternate elements from two vectors"))
+
+(deftest test-interleave-is-lazy
+  (is (= [1 :a 2 :b 3] (take 5 (interleave [1 2 3 4 5] [:a :b :c :d :e])))
+      "interleave should be lazy and work with take"))
+
+(deftest test-interleave-with-infinite-sequence
+  (is (= [0 :x 1 :x 2 :x 3 :x 4 :x] (take 10 (interleave (iterate inc 0) (repeat :x))))
+      "interleave should work with infinite sequences"))
+
+(deftest test-interleave-stops-at-first
+  (is (= [1 :a 2 :b] (doall (interleave [1 2] [:a :b :c :d])))
+      "interleave should stop when first collection is exhausted"))
+
+(deftest test-interleave-three-collections
+  (is (= [1 :a "x" 2 :b "y" 3 :c "z"] (doall (interleave [1 2 3] [:a :b :c] ["x" "y" "z"])))
+      "interleave should work with three collections"))
+
+(deftest test-interleave-empty-collection
+  (is (= '() (interleave))
+      "interleave with no arguments should return empty list"))
+
+(deftest test-interleave-first-empty
+  (is (= [] (doall (interleave [] [1 2 3])))
+      "interleave should return empty when first collection is empty"))
+
+(deftest test-interleave-single-collection
+  (is (= [1 2 3] (doall (interleave [1 2 3])))
+      "interleave with single collection should return that collection"))
+
+(deftest test-interleave-returns-lazy-seq
+  (let [result (interleave [1 2 3] [:a :b :c])]
+    (is (true? (php/instanceof result \Phel\Lang\Collections\LazySeq\LazySeqInterface))
+        "interleave should return a lazy sequence")))

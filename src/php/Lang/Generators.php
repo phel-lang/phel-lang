@@ -4,9 +4,13 @@ declare(strict_types=1);
 
 namespace Phel\Lang;
 
+use ArrayIterator;
 use Generator;
+use Iterator;
 use Phel;
 use Phel\Lang\Collections\Vector\PersistentVectorInterface;
+
+use function is_array;
 
 final class Generators
 {
@@ -178,6 +182,42 @@ final class Generators
         foreach ($iterable as $value) {
             yield $f($index, $value);
             ++$index;
+        }
+    }
+
+    /**
+     * Interleaves multiple iterables.
+     * Returns elements by taking one from each iterable in turn.
+     * Continues until the first iterable is exhausted, padding others with null.
+     *
+     * @template T
+     *
+     * @param iterable<T> ...$iterables The sequences to interleave
+     *
+     * @return Generator<int, T|null>
+     */
+    public static function interleave(iterable ...$iterables): Generator
+    {
+        if ($iterables === []) {
+            return;
+        }
+
+        $iterators = array_map(self::toIterator(...), $iterables);
+        $first = $iterators[0] ?? null;
+
+        if ($first === null) {
+            return;
+        }
+
+        while ($first->valid()) {
+            foreach ($iterators as $iterator) {
+                if ($iterator->valid()) {
+                    yield $iterator->current();
+                    $iterator->next();
+                } else {
+                    yield null;
+                }
+            }
         }
     }
 
@@ -459,5 +499,27 @@ final class Generators
         if ($partition !== []) {
             yield Phel::vector($partition);
         }
+    }
+
+    /**
+     * Converts an iterable to an Iterator.
+     *
+     * @template T
+     *
+     * @param iterable<T> $iterable
+     *
+     * @return Iterator<int|string, T>
+     */
+    private static function toIterator(iterable $iterable): Iterator
+    {
+        if ($iterable instanceof Iterator) {
+            return $iterable;
+        }
+
+        if (is_array($iterable)) {
+            return new ArrayIterator($iterable);
+        }
+
+        return (static fn () => yield from $iterable)();
     }
 }
