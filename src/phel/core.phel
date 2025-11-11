@@ -2394,6 +2394,30 @@ returns 1. If `xs` has one value, returns the reciprocal of x."
       '()
       result)))
 
+(defn read-file-lazy
+  "Returns a lazy sequence of byte string chunks from a file. The file is read
+  in chunks of the specified size (default 8192 bytes). The file handle is
+  automatically closed when the sequence is fully consumed or if an error occurs.
+
+  Useful for processing large binary files, streaming file content, or reading
+  files where line-based processing doesn't make sense.
+
+  The optional chunk-size parameter controls how many bytes to read at a time.
+  Smaller chunks use less memory but make more system calls; larger chunks are
+  more efficient but use more memory.
+
+  Example: (take 5 (read-file-lazy \"large-file.bin\" 1024))"
+  ([filename]
+   (read-file-lazy filename 8192))
+  ([filename chunk-size]
+   (let [result (lazy-seq-from-generator
+                  (php/call_user_func_array
+                    (php/array "\\Phel\\Lang\\Generators" "readFileChunks")
+                    (php/array filename chunk-size)))]
+     (if (php/=== nil result)
+       '()
+       result))))
+
 # ----------------
 # Threading macros
 # ----------------
