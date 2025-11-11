@@ -1628,6 +1628,22 @@ arrays. Use (php/aunset ds key)"))
           '()
           (with-meta coll result))))))
 
+(def interpose
+  "Returns elements separated by a separator. Returns a lazy sequence.
+
+  Inserts `sep` between each element of the collection.
+  Works with infinite sequences.
+
+  Example: (interpose 0 [1 2 3]) ; => (1 0 2 0 3)"
+  (fn [sep coll]
+    (if (php/=== nil coll)
+      '()
+      (let [result (lazy-seq-from-generator
+                     (php/:: \Phel\Lang\Generators (interpose sep coll)))]
+        (if (php/=== nil result)
+          '()
+          (with-meta coll result))))))
+
 (defn doall
   "Forces realization of a lazy sequence and returns it as a vector.
   Useful when you need to force side effects or ensure computation happens immediately.

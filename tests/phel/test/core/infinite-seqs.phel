@@ -435,3 +435,37 @@
   (let [result (mapcat identity [[1 2] [3 4]])]
     (is (true? (php/instanceof result \Phel\Lang\Collections\LazySeq\LazySeqInterface))
         "mapcat should return a lazy sequence")))
+
+# Lazy interpose tests
+(deftest test-interpose-basic
+  (is (= [1 0 2 0 3] (doall (interpose 0 [1 2 3])))
+      "interpose should insert separator between elements"))
+
+(deftest test-interpose-is-lazy
+  (is (= [1 0 2 0 3] (take 5 (interpose 0 [1 2 3 4 5])))
+      "interpose should be lazy and work with take"))
+
+(deftest test-interpose-with-infinite-sequence
+  (is (= [0 :sep 1 :sep 2 :sep 3 :sep 4] (take 9 (interpose :sep (iterate inc 0))))
+      "interpose should work with infinite sequences"))
+
+(deftest test-interpose-empty-collection
+  (is (= '() (interpose 0 []))
+      "interpose on empty collection should return empty list"))
+
+(deftest test-interpose-single-element
+  (is (= [1] (doall (interpose 0 [1])))
+      "interpose on single element should return just that element"))
+
+(deftest test-interpose-two-elements
+  (is (= [1 0 2] (doall (interpose 0 [1 2])))
+      "interpose on two elements should have one separator"))
+
+(deftest test-interpose-with-strings
+  (is (= ["a" "," "b" "," "c"] (doall (interpose "," ["a" "b" "c"])))
+      "interpose should work with strings"))
+
+(deftest test-interpose-returns-lazy-seq
+  (let [result (interpose 0 [1 2 3])]
+    (is (true? (php/instanceof result \Phel\Lang\Collections\LazySeq\LazySeqInterface))
+        "interpose should return a lazy sequence")))
