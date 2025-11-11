@@ -1946,8 +1946,12 @@ arrays. Use (php/aunset ds key)"))
         (with-meta root (persistent ret))))))
 
 (defn flatten
-  "Takes a nested sequential data structure `(tree)`, and returns their contents
-  as a single, flat vector."
+  "Takes a nested sequential data structure (tree) and returns a lazy sequence of all leaf values.
+
+  Walks the tree structure and yields all non-indexed (scalar) values.
+  Returns a lazy sequence that works with infinite nested structures.
+
+  Example: (flatten [[1 2] [3 [4 5]] 6]) ; => (1 2 3 4 5 6)"
   [xs]
   (filter
    (complement indexed?)

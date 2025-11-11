@@ -10,6 +10,7 @@ All notable changes to this project will be documented in this file.
 - Make `interpose` fully lazy with support for infinite sequences
 - Make `map-indexed` fully lazy with support for infinite sequences
 - Make `interleave` fully lazy with support for infinite sequences
+- Document `flatten` as lazy (already was lazy via `filter` and `tree-seq`)
 
 ### Fixed
 - Fix `into` to work correctly with `PersistentList` and other `ConcatInterface` types that don't implement `PushInterface`

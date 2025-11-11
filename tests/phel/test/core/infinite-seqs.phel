@@ -541,3 +541,37 @@
   (let [result (interleave [1 2 3] [:a :b :c])]
     (is (true? (php/instanceof result \Phel\Lang\Collections\LazySeq\LazySeqInterface))
         "interleave should return a lazy sequence")))
+
+# Lazy flatten tests
+(deftest test-flatten-basic
+  (is (= [1 2 3 4 5 6] (doall (flatten [[1 2] [3 [4 5]] 6])))
+      "flatten should flatten nested vectors"))
+
+(deftest test-flatten-is-lazy
+  (is (= [1 2 3 4 5] (take 5 (flatten [[1 2] [3 4 5 6 7 8]])))
+      "flatten should be lazy and work with take"))
+
+(deftest test-flatten-deeply-nested
+  (is (= [1 2 3 4 5] (doall (flatten [1 [2 [3 [4 [5]]]]])))
+      "flatten should handle deeply nested structures"))
+
+(deftest test-flatten-empty-collection
+  (is (= [] (doall (flatten [])))
+      "flatten on empty collection should return empty vector"))
+
+(deftest test-flatten-already-flat
+  (is (= [1 2 3 4] (doall (flatten [1 2 3 4])))
+      "flatten on already flat collection should return same elements"))
+
+(deftest test-flatten-mixed-types
+  (is (= [1 :a "x" 2 :b "y"] (doall (flatten [[1 :a] ["x" [2]] [:b "y"]])))
+      "flatten should work with mixed types"))
+
+(deftest test-flatten-with-nil
+  (is (= [1 nil 2 3] (doall (flatten [[1 nil] [2 3]])))
+      "flatten should preserve nil values"))
+
+(deftest test-flatten-returns-lazy-seq
+  (let [result (flatten [[1 2] [3 4]])]
+    (is (true? (php/instanceof result \Phel\Lang\Collections\LazySeq\LazySeqInterface))
+        "flatten should return a lazy sequence")))
