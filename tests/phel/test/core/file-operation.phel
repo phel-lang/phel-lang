@@ -200,3 +200,98 @@
     (php/unlink cycle-link)
     (php/rmdir subdir)
     (php/rmdir target-directory)))
+
+(deftest test-read-file-lazy-basic
+  (let [target-directory (str (php/sys_get_temp_dir))
+        target-file (str target-directory php/DIRECTORY_SEPARATOR "test-read-file-lazy.txt")
+        content "ABCDEFGHIJKLMNOPQRSTUVWXYZ"]
+    (spit target-file content)
+    (let [chunks (doall (read-file-lazy target-file 5))]
+      (is (= 6 (count chunks)) "should read file in 6 chunks of 5 bytes")
+      (is (= content (apply str chunks)) "concatenated chunks should equal original content"))
+    (php/unlink target-file)))
+
+(deftest test-read-file-lazy-default-chunk-size
+  (let [target-directory (str (php/sys_get_temp_dir))
+        target-file (str target-directory php/DIRECTORY_SEPARATOR "test-read-file-lazy-default.txt")
+        content (apply str (repeat 10000 "x"))]
+    (spit target-file content)
+    (let [chunks (doall (read-file-lazy target-file))]
+      (is (= 2 (count chunks)) "should read 10000 bytes in 2 chunks with default 8192 chunk size")
+      (is (= content (apply str chunks)) "concatenated chunks should equal original content"))
+    (php/unlink target-file)))
+
+(deftest test-read-file-lazy-empty-file
+  (let [target-directory (str (php/sys_get_temp_dir))
+        target-file (str target-directory php/DIRECTORY_SEPARATOR "test-read-file-lazy-empty.txt")]
+    (spit target-file "")
+    (is (= [] (doall (read-file-lazy target-file)))
+        "read-file-lazy returns empty sequence for empty file")
+    (php/unlink target-file)))
+
+(deftest test-read-file-lazy-single-byte
+  (let [target-directory (str (php/sys_get_temp_dir))
+        target-file (str target-directory php/DIRECTORY_SEPARATOR "test-read-file-lazy-single.txt")]
+    (spit target-file "X")
+    (let [chunks (doall (read-file-lazy target-file 1))]
+      (is (= 1 (count chunks)) "single byte should be one chunk")
+      (is (= "X" (first chunks)) "chunk should contain the single byte"))
+    (php/unlink target-file)))
+
+(deftest test-read-file-lazy-exact-chunk-size
+  (let [target-directory (str (php/sys_get_temp_dir))
+        target-file (str target-directory php/DIRECTORY_SEPARATOR "test-read-file-lazy-exact.txt")
+        content "12345678901234567890"]
+    (spit target-file content)
+    (let [chunks (doall (read-file-lazy target-file 10))]
+      (is (= 2 (count chunks)) "20 bytes with chunk size 10 should produce 2 chunks")
+      (is (= "1234567890" (first chunks)) "first chunk should be exactly 10 bytes")
+      (is (= "1234567890" (second chunks)) "second chunk should be exactly 10 bytes"))
+    (php/unlink target-file)))
+
+(deftest test-read-file-lazy-is-lazy
+  (let [target-directory (str (php/sys_get_temp_dir))
+        target-file (str target-directory php/DIRECTORY_SEPARATOR "test-read-file-lazy-lazy.txt")
+        content (apply str (repeat 1000 "ABCDEFGHIJ"))]
+    (spit target-file content)
+    (let [first-three (take 3 (read-file-lazy target-file 100))]
+      (is (= 3 (count first-three)) "read-file-lazy should be lazy and work with take")
+      (is (= 300 (php/strlen (apply str first-three))) "first 3 chunks should total 300 bytes"))
+    (php/unlink target-file)))
+
+(deftest test-read-file-lazy-non-existent-file
+  (is (thrown? \InvalidArgumentException (doall (read-file-lazy "/non/existent/file.bin")))
+      "read-file-lazy throws exception for non-existent file"))
+
+(deftest test-read-file-lazy-directory
+  (is (thrown? \InvalidArgumentException (doall (read-file-lazy (php/sys_get_temp_dir))))
+      "read-file-lazy throws exception for directory"))
+
+(deftest test-read-file-lazy-invalid-chunk-size
+  (let [target-directory (str (php/sys_get_temp_dir))
+        target-file (str target-directory php/DIRECTORY_SEPARATOR "test-read-file-lazy-invalid-chunk.txt")]
+    (spit target-file "content")
+    (is (thrown? \InvalidArgumentException (doall (read-file-lazy target-file 0)))
+        "read-file-lazy throws exception for zero chunk size")
+    (is (thrown? \InvalidArgumentException (doall (read-file-lazy target-file -1)))
+        "read-file-lazy throws exception for negative chunk size")
+    (php/unlink target-file)))
+
+(deftest test-read-file-lazy-returns-lazy-seq
+  (let [target-directory (str (php/sys_get_temp_dir))
+        target-file (str target-directory php/DIRECTORY_SEPARATOR "test-read-file-lazy-type.txt")]
+    (spit target-file "some content")
+    (let [result (read-file-lazy target-file)]
+      (is (true? (php/instanceof result \Phel\Lang\Collections\LazySeq\LazySeqInterface))
+          "read-file-lazy should return a lazy sequence"))
+    (php/unlink target-file)))
+
+(deftest test-read-file-lazy-binary-content
+  (let [target-directory (str (php/sys_get_temp_dir))
+        target-file (str target-directory php/DIRECTORY_SEPARATOR "test-read-file-lazy-binary.bin")
+        binary-content (php/pack "C*" 0 1 2 3 4 255 254 253)]
+    (php/file_put_contents target-file binary-content)
+    (let [chunks (doall (read-file-lazy target-file 4))]
+      (is (= 2 (count chunks)) "8 bytes with chunk size 4 should produce 2 chunks")
+      (is (= binary-content (apply str chunks)) "binary content should be preserved"))
+    (php/unlink target-file)))

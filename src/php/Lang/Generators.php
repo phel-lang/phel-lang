@@ -717,6 +717,64 @@ final class Generators
     }
 
     /**
+     * Lazily reads a file in chunks of a specified size.
+     * Yields byte strings of the specified chunk size (or smaller for the last chunk).
+     * The file handle is automatically closed when the generator finishes or an error occurs.
+     *
+     * @param string $filename  The path to the file to read
+     * @param int    $chunkSize The size of each chunk in bytes (default: 8192)
+     *
+     * @throws InvalidArgumentException if the file doesn't exist, is not readable, or chunk size is invalid
+     * @throws RuntimeException         if the file cannot be opened
+     *
+     * @return Generator<int, string>
+     */
+    public static function readFileChunks(string $filename, int $chunkSize = 8192): Generator
+    {
+        if ($chunkSize <= 0) {
+            throw new InvalidArgumentException(
+                'Chunk size must be positive, got: ' . $chunkSize,
+            );
+        }
+
+        if (!is_file($filename)) {
+            throw new InvalidArgumentException(
+                'Argument filename should be a valid path to a file: ' . $filename,
+            );
+        }
+
+        if (!is_readable($filename)) {
+            throw new InvalidArgumentException(
+                'File is not readable: ' . $filename,
+            );
+        }
+
+        $handle = fopen($filename, 'rb');
+        if ($handle === false) {
+            throw new RuntimeException(
+                'Failed to open file: ' . $filename,
+            );
+        }
+
+        try {
+            while (!feof($handle)) {
+                $chunk = fread($handle, $chunkSize);
+                if ($chunk === false) {
+                    throw new RuntimeException(
+                        'Failed to read from file: ' . $filename,
+                    );
+                }
+
+                if ($chunk !== '') {
+                    yield $chunk;
+                }
+            }
+        } finally {
+            fclose($handle);
+        }
+    }
+
+    /**
      * Converts an iterable to an Iterator.
      *
      * @template T
