@@ -21,3 +21,68 @@
     (is (thrown? \InvalidArgumentException (spit target-directory "test"))
         "writing to a directory path throws exception")
     (php/unlink target-file)))
+
+(deftest test-line-seq-basic
+  (let [target-directory (str (php/sys_get_temp_dir))
+        target-file (str target-directory php/DIRECTORY_SEPARATOR "test-line-seq.txt")]
+    (spit target-file "line1\nline2\nline3")
+    (is (= ["line1" "line2" "line3"] (doall (line-seq target-file)))
+        "line-seq reads all lines correctly")
+    (php/unlink target-file)))
+
+(deftest test-line-seq-empty-file
+  (let [target-directory (str (php/sys_get_temp_dir))
+        target-file (str target-directory php/DIRECTORY_SEPARATOR "test-line-seq-empty.txt")]
+    (spit target-file "")
+    (is (= [] (doall (line-seq target-file)))
+        "line-seq returns empty sequence for empty file")
+    (php/unlink target-file)))
+
+(deftest test-line-seq-single-line
+  (let [target-directory (str (php/sys_get_temp_dir))
+        target-file (str target-directory php/DIRECTORY_SEPARATOR "test-line-seq-single.txt")]
+    (spit target-file "single line")
+    (is (= ["single line"] (doall (line-seq target-file)))
+        "line-seq reads single line correctly")
+    (php/unlink target-file)))
+
+(deftest test-line-seq-with-crlf
+  (let [target-directory (str (php/sys_get_temp_dir))
+        target-file (str target-directory php/DIRECTORY_SEPARATOR "test-line-seq-crlf.txt")]
+    (spit target-file "line1\r\nline2\r\nline3")
+    (is (= ["line1" "line2" "line3"] (doall (line-seq target-file)))
+        "line-seq handles CRLF line endings correctly")
+    (php/unlink target-file)))
+
+(deftest test-line-seq-is-lazy
+  (let [target-directory (str (php/sys_get_temp_dir))
+        target-file (str target-directory php/DIRECTORY_SEPARATOR "test-line-seq-lazy.txt")]
+    (spit target-file "line1\nline2\nline3\nline4\nline5\nline6\nline7\nline8\nline9\nline10")
+    (is (= ["line1" "line2" "line3"] (take 3 (line-seq target-file)))
+        "line-seq is lazy and works with take")
+    (php/unlink target-file)))
+
+(deftest test-line-seq-trailing-newline
+  (let [target-directory (str (php/sys_get_temp_dir))
+        target-file (str target-directory php/DIRECTORY_SEPARATOR "test-line-seq-trailing.txt")]
+    (spit target-file "line1\nline2\n")
+    (is (= ["line1" "line2"] (doall (line-seq target-file)))
+        "line-seq handles trailing newline correctly")
+    (php/unlink target-file)))
+
+(deftest test-line-seq-non-existent-file
+  (is (thrown? \InvalidArgumentException (doall (line-seq "/non/existent/file.txt")))
+      "line-seq throws exception for non-existent file"))
+
+(deftest test-line-seq-directory
+  (is (thrown? \InvalidArgumentException (doall (line-seq (php/sys_get_temp_dir))))
+      "line-seq throws exception for directory"))
+
+(deftest test-line-seq-returns-lazy-seq
+  (let [target-directory (str (php/sys_get_temp_dir))
+        target-file (str target-directory php/DIRECTORY_SEPARATOR "test-line-seq-type.txt")]
+    (spit target-file "line1\nline2")
+    (let [result (line-seq target-file)]
+      (is (true? (php/instanceof result \Phel\Lang\Collections\LazySeq\LazySeqInterface))
+          "line-seq should return a lazy sequence"))
+    (php/unlink target-file)))
