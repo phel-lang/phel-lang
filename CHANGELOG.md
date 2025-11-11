@@ -19,6 +19,11 @@ All notable changes to this project will be documented in this file.
 - Add `csv-seq` function for lazy CSV file parsing with RFC 4180 support and custom separators
 - Document `flatten` as lazy (already was lazy via `filter` and `tree-seq`)
 
+### Changed
+- Rename collection parameters from `xs` to `coll` throughout core functions for Clojure compatibility
+  - Affects ~50+ functions: map, filter, reduce, take, drop, concat, flatten, sort, partition, and more
+  - Improves Clojure developer onboarding by aligning parameter naming conventions
+
 ### Fixed
 - Fix `into` to work correctly with `PersistentList` and other `ConcatInterface` types that don't implement `PushInterface`
 
