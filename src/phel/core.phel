@@ -2376,6 +2376,24 @@ returns 1. If `xs` has one value, returns the reciprocal of x."
       '()
       result)))
 
+(defn file-seq
+  "Returns a lazy sequence of all files and directories in a directory tree.
+  Walks the directory recursively, yielding paths as strings. If given a file
+  path, returns a sequence containing just that file.
+
+  The sequence includes both files and directories. Follows symbolic links but
+  tracks visited inodes to prevent infinite cycles.
+
+  Example: (filter |(php/str_ends_with $ \".phel\") (file-seq \"src/\"))"
+  [path]
+  (let [result (lazy-seq-from-generator
+                 (php/call_user_func_array
+                   (php/array "\\Phel\\Lang\\Generators" "fileSeq")
+                   (php/array path)))]
+    (if (php/=== nil result)
+      '()
+      result)))
+
 # ----------------
 # Threading macros
 # ----------------

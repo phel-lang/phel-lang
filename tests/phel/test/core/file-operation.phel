@@ -86,3 +86,117 @@
       (is (true? (php/instanceof result \Phel\Lang\Collections\LazySeq\LazySeqInterface))
           "line-seq should return a lazy sequence"))
     (php/unlink target-file)))
+
+(deftest test-file-seq-with-directory
+  (let [target-directory (str (php/sys_get_temp_dir) php/DIRECTORY_SEPARATOR "test-file-seq")
+        sub-dir (str target-directory php/DIRECTORY_SEPARATOR "subdir")
+        file1 (str target-directory php/DIRECTORY_SEPARATOR "file1.txt")
+        file2 (str sub-dir php/DIRECTORY_SEPARATOR "file2.txt")]
+    (php/mkdir target-directory)
+    (php/mkdir sub-dir)
+    (spit file1 "content1")
+    (spit file2 "content2")
+    (let [result (doall (file-seq target-directory))
+          result-count (count result)]
+      (is (>= result-count 3) "file-seq should return at least the directory and subdirectory and files")
+      (is (true? (some |(php/str_ends_with $ "file1.txt") result))
+          "file-seq should include file1.txt")
+      (is (true? (some |(php/str_ends_with $ "file2.txt") result))
+          "file-seq should include file2.txt"))
+    (php/unlink file2)
+    (php/unlink file1)
+    (php/rmdir sub-dir)
+    (php/rmdir target-directory)))
+
+(deftest test-file-seq-with-file
+  (let [target-directory (str (php/sys_get_temp_dir))
+        target-file (str target-directory php/DIRECTORY_SEPARATOR "test-file-seq-single.txt")]
+    (spit target-file "content")
+    (let [result (doall (file-seq target-file))]
+      (is (= 1 (count result)) "file-seq with file should return single item")
+      (is (= target-file (first result)) "file-seq with file should return the file path"))
+    (php/unlink target-file)))
+
+(deftest test-file-seq-is-lazy
+  (let [target-directory (str (php/sys_get_temp_dir) php/DIRECTORY_SEPARATOR "test-file-seq-lazy")
+        file1 (str target-directory php/DIRECTORY_SEPARATOR "file1.txt")
+        file2 (str target-directory php/DIRECTORY_SEPARATOR "file2.txt")
+        file3 (str target-directory php/DIRECTORY_SEPARATOR "file3.txt")]
+    (php/mkdir target-directory)
+    (spit file1 "content1")
+    (spit file2 "content2")
+    (spit file3 "content3")
+    (let [result (take 2 (file-seq target-directory))]
+      (is (= 2 (count result)) "file-seq should be lazy and work with take"))
+    (php/unlink file3)
+    (php/unlink file2)
+    (php/unlink file1)
+    (php/rmdir target-directory)))
+
+(deftest test-file-seq-non-existent-path
+  (is (thrown? \InvalidArgumentException (doall (file-seq "/non/existent/path")))
+      "file-seq throws exception for non-existent path"))
+
+(deftest test-file-seq-returns-lazy-seq
+  (let [target-directory (str (php/sys_get_temp_dir) php/DIRECTORY_SEPARATOR "test-file-seq-type")
+        target-file (str target-directory php/DIRECTORY_SEPARATOR "test.txt")]
+    (php/mkdir target-directory)
+    (spit target-file "content")
+    (let [result (file-seq target-directory)]
+      (is (true? (php/instanceof result \Phel\Lang\Collections\LazySeq\LazySeqInterface))
+          "file-seq should return a lazy sequence"))
+    (php/unlink target-file)
+    (php/rmdir target-directory)))
+
+(deftest test-file-seq-filter-by-extension
+  (let [target-directory (str (php/sys_get_temp_dir) php/DIRECTORY_SEPARATOR "test-file-seq-filter")
+        file1 (str target-directory php/DIRECTORY_SEPARATOR "test.phel")
+        file2 (str target-directory php/DIRECTORY_SEPARATOR "test.txt")
+        file3 (str target-directory php/DIRECTORY_SEPARATOR "test.md")]
+    (php/mkdir target-directory)
+    (spit file1 "phel content")
+    (spit file2 "txt content")
+    (spit file3 "md content")
+    (let [phel-files (filter |(php/str_ends_with $ ".phel") (file-seq target-directory))]
+      (is (= 1 (count (doall phel-files))) "should filter to only .phel files"))
+    (php/unlink file3)
+    (php/unlink file2)
+    (php/unlink file1)
+    (php/rmdir target-directory)))
+
+(deftest test-file-seq-with-symlink
+  (let [target-directory (str (php/sys_get_temp_dir) php/DIRECTORY_SEPARATOR "test-file-seq-symlink")
+        real-dir (str target-directory php/DIRECTORY_SEPARATOR "real")
+        symlink-dir (str target-directory php/DIRECTORY_SEPARATOR "link")
+        file1 (str real-dir php/DIRECTORY_SEPARATOR "test.txt")]
+    (php/mkdir target-directory)
+    (php/mkdir real-dir)
+    (spit file1 "content")
+    (php/symlink real-dir symlink-dir)
+    (let [result (doall (file-seq target-directory))
+          file-count (count (filter php/is_file result))]
+      (is (>= file-count 1) "file-seq should traverse symlinked directories")
+      (is (true? (some |(php/str_ends_with $ "test.txt") result))
+          "file-seq should include files from symlinked directories"))
+    (php/unlink file1)
+    (php/unlink symlink-dir)
+    (php/rmdir real-dir)
+    (php/rmdir target-directory)))
+
+(deftest test-file-seq-with-symlink-cycle
+  (let [target-directory (str (php/sys_get_temp_dir) php/DIRECTORY_SEPARATOR "test-file-seq-cycle")
+        subdir (str target-directory php/DIRECTORY_SEPARATOR "subdir")
+        cycle-link (str subdir php/DIRECTORY_SEPARATOR "cycle")
+        file1 (str target-directory php/DIRECTORY_SEPARATOR "test.txt")]
+    (php/mkdir target-directory)
+    (php/mkdir subdir)
+    (spit file1 "content")
+    (php/symlink target-directory cycle-link)
+    (let [result (doall (file-seq target-directory))]
+      (is (true? (> (count result) 0)) "file-seq should not hang on symlink cycles")
+      (is (true? (some |(php/str_ends_with $ "test.txt") result))
+          "file-seq should still traverse non-cycle paths"))
+    (php/unlink file1)
+    (php/unlink cycle-link)
+    (php/rmdir subdir)
+    (php/rmdir target-directory)))

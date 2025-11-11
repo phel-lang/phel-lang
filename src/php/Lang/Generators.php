@@ -5,12 +5,16 @@ declare(strict_types=1);
 namespace Phel\Lang;
 
 use ArrayIterator;
+use FilesystemIterator;
 use Generator;
 use InvalidArgumentException;
 use Iterator;
 use Phel;
 use Phel\Lang\Collections\Vector\PersistentVectorInterface;
+use RecursiveDirectoryIterator;
+use RecursiveIteratorIterator;
 use RuntimeException;
+use UnexpectedValueException;
 
 use function count;
 use function is_array;
@@ -641,6 +645,74 @@ final class Generators
             }
         } finally {
             fclose($handle);
+        }
+    }
+
+    /**
+     * Lazily walks a directory tree, yielding file paths.
+     * Returns all files and directories recursively.
+     * Follows symbolic links but tracks visited inodes to prevent infinite cycles.
+     *
+     * @return Generator<int, string>
+     */
+    public static function fileSeq(string $path): Generator
+    {
+        if (!file_exists($path)) {
+            throw new InvalidArgumentException(
+                'Path does not exist: ' . $path,
+            );
+        }
+
+        if (!is_readable($path)) {
+            throw new InvalidArgumentException(
+                'Path is not readable: ' . $path,
+            );
+        }
+
+        // If it's a file, just yield it
+        if (is_file($path)) {
+            yield $path;
+            return;
+        }
+
+        // If it's a directory, walk it recursively with cycle detection
+        if (is_dir($path)) {
+            $visited = [];
+
+            try {
+                $iterator = new RecursiveIteratorIterator(
+                    new RecursiveDirectoryIterator(
+                        $path,
+                        FilesystemIterator::SKIP_DOTS | FilesystemIterator::FOLLOW_SYMLINKS,
+                    ),
+                    RecursiveIteratorIterator::SELF_FIRST,
+                );
+
+                foreach ($iterator as $fileInfo) {
+                    $pathname = $fileInfo->getPathname();
+
+                    // Get real path to detect cycles via inode tracking
+                    $realPath = $fileInfo->getRealPath();
+
+                    // Skip if we've already visited this inode (cycle detection)
+                    if ($realPath !== false) {
+                        $stat = @stat($realPath);
+                        if ($stat !== false) {
+                            $inode = $stat['dev'] . ':' . $stat['ino'];
+
+                            if (isset($visited[$inode])) {
+                                continue;
+                            }
+
+                            $visited[$inode] = true;
+                        }
+                    }
+
+                    yield $pathname;
+                }
+            } catch (UnexpectedValueException $e) {
+                throw new RuntimeException('Error reading directory: ' . $path . ' - ' . $e->getMessage(), $e->getCode(), $e);
+            }
         }
     }
 
