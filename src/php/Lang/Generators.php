@@ -222,6 +222,49 @@ final class Generators
     }
 
     /**
+     * Maps a function over multiple iterables.
+     * Applies the function to corresponding elements from each iterable.
+     * Stops when the shortest iterable is exhausted.
+     *
+     * @template T
+     *
+     * @param callable    $f            The mapping function
+     * @param iterable<T> ...$iterables The sequences to map over
+     *
+     * @return Generator<int, mixed>
+     */
+    public static function mapMulti(callable $f, iterable ...$iterables): Generator
+    {
+        if ($iterables === []) {
+            return;
+        }
+
+        $iterators = array_map(self::toIterator(...), $iterables);
+
+        while (true) {
+            $allValid = true;
+            foreach ($iterators as $iterator) {
+                if (!$iterator->valid()) {
+                    $allValid = false;
+                    break;
+                }
+            }
+
+            if (!$allValid) {
+                break;
+            }
+
+            $values = [];
+            foreach ($iterators as $iterator) {
+                $values[] = $iterator->current();
+                $iterator->next();
+            }
+
+            yield $f(...$values);
+        }
+    }
+
+    /**
      * Generates a range of numbers [start, end) with given step.
      *
      * @return Generator<int, float|int>

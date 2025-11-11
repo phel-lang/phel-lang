@@ -1108,14 +1108,14 @@ arrays. Use (php/aunset ds key)"))
         (if (empty? coll)
           []
           (with-meta coll (lazy-seq-from-generator (php/:: Generators (map f coll))))))
-    (let [colls xs]
-      (loop [res (transient [])
-             seq colls]
-        (if (some? empty? seq)
-          (with-meta (first colls) (persistent res))
-          (do
-            (push res (apply f (map first seq)))
-            (recur res (map next seq))))))))
+    (let [colls xs
+          result (lazy-seq-from-generator
+                   (php/call_user_func_array
+                     (php/array "\\Phel\\Lang\\Generators" "mapMulti")
+                     (php/array_merge (php/array f) (apply php/array colls))))]
+      (if (php/=== nil result)
+        []
+        (with-meta (first colls) result)))))
 
 (defn map-indexed
   "Applies `f` to each element in `xs`. `f` is a two-argument function. The first argument

@@ -575,3 +575,37 @@
   (let [result (flatten [[1 2] [3 4]])]
     (is (true? (php/instanceof result \Phel\Lang\Collections\LazySeq\LazySeqInterface))
         "flatten should return a lazy sequence")))
+
+# Lazy variadic map tests
+(deftest test-map-two-collections
+  (is (= [[1 :a] [2 :b] [3 :c]] (doall (map vector [1 2 3] [:a :b :c])))
+      "map should work with two collections"))
+
+(deftest test-map-variadic-is-lazy
+  (is (= [[1 :a] [2 :b] [3 :c]] (take 3 (map vector [1 2 3 4 5] [:a :b :c :d :e])))
+      "variadic map should be lazy and work with take"))
+
+(deftest test-map-with-infinite-sequences
+  (is (= [[0 10] [1 11] [2 12] [3 13] [4 14]] (take 5 (map vector (iterate inc 0) (iterate inc 10))))
+      "variadic map should work with infinite sequences"))
+
+(deftest test-map-stops-at-shortest
+  (is (= [[1 :a] [2 :b]] (doall (map vector [1 2] [:a :b :c :d])))
+      "variadic map should stop at shortest collection"))
+
+(deftest test-map-three-collections
+  (is (= [[1 :a "x"] [2 :b "y"] [3 :c "z"]] (doall (map vector [1 2 3] [:a :b :c] ["x" "y" "z"])))
+      "variadic map should work with three collections"))
+
+(deftest test-map-with-function
+  (is (= [11 22 33] (doall (map + [1 2 3] [10 20 30])))
+      "variadic map should apply function to corresponding elements"))
+
+(deftest test-map-empty-collection
+  (is (= [] (doall (map vector [] [1 2 3])))
+      "variadic map with empty first collection should return empty"))
+
+(deftest test-map-variadic-returns-lazy-seq
+  (let [result (map vector [1 2 3] [:a :b :c])]
+    (is (true? (php/instanceof result \Phel\Lang\Collections\LazySeq\LazySeqInterface))
+        "variadic map should return a lazy sequence")))
