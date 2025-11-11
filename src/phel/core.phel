@@ -334,60 +334,60 @@ This is PHP equivalent to `$args[0] . $args[1] . $args[2] ...`."
     (php/=== a b)))
 
 (defn cons
-  "Prepends `x` to the beginning of `xs`."
-  [x xs]
-  (if (php/is_array xs)
+  "Prepends `x` to the beginning of `coll`."
+  [x coll]
+  (if (php/is_array coll)
     (do
-      (php/array_unshift xs x)
-      xs)
-    (if (php/instanceof xs ConsInterface)
-      (php/-> xs (cons x))
-      (if (php/=== xs nil)
+      (php/array_unshift coll x)
+      coll)
+    (if (php/instanceof coll ConsInterface)
+      (php/-> coll (cons x))
+      (if (php/=== coll nil)
         [x]
         (throw (php/new InvalidArgumentException
                         (php/. "cannot do cons " (php/print_r x true))))))))
 
 (defn ffirst
-  "Same as `(first (first xs))`."
-  [xs]
-  (first (first xs)))
+  "Same as `(first (first coll))`."
+  [coll]
+  (first (first coll)))
 
 (defn second
   "Returns the second element of an indexed sequence or nil."
-  [xs]
-  (first (next xs)))
+  [coll]
+  (first (next coll)))
 
 (defn rest
   "Returns the sequence of elements after the first element. If there are no elements, returns an empty sequence."
-  [xs]
-  (if (php/instanceof xs RestInterface)
-    (php/-> xs (rest))
-    (if (php/is_array xs)
-      (php/array_slice xs 1)
+  [coll]
+  (if (php/instanceof coll RestInterface)
+    (php/-> coll (rest))
+    (if (php/is_array coll)
+      (php/array_slice coll 1)
       (throw (php/new InvalidArgumentException "cannot do rest")))))
 
 (defn nfirst
-  "Same as `(next (first xs))`."
-  [xs]
-  (next (first xs)))
+  "Same as `(next (first coll))`."
+  [coll]
+  (next (first coll)))
 
 (defn nnext
-  "Same as `(next (next xs))`."
-  [xs]
-  (next (next xs)))
+  "Same as `(next (next coll))`."
+  [coll]
+  (next (next coll)))
 
 (defn count
   "Counts the number of elements in a sequence. Can be used on everything that implements the PHP Countable interface."
-  [xs]
-  (if (php/instanceof xs Countable)
-    (php/-> xs (count))
-    (if (php/is_array xs)
-      (php/count xs)
-      (if (php/is_string xs)
+  [coll]
+  (if (php/instanceof coll Countable)
+    (php/-> coll (count))
+    (if (php/is_array coll)
+      (php/count coll)
+      (if (php/is_string coll)
         (throw (php/new InvalidArgumentException "strings are not supported. Consider using native PHP functions like `php/strlen` or `php/mb_strlen`."))
-        (if (php/=== xs nil)
+        (if (php/=== coll nil)
           0
-          (throw (php/new InvalidArgumentException (str "object is not countable: " xs))))))))
+          (throw (php/new InvalidArgumentException (str "object is not countable: " coll))))))))
 
 # ------------------
 # Control structures
@@ -568,53 +568,53 @@ Calling the `and` function without arguments returns true."
   (php/<=> b a))
 
 (defn all?
-  "Returns true if `(pred x)` is logical true for every `x` in collection `xs`
-   or if `xs` is empty. Otherwise returns false."
-  [pred xs]
+  "Returns true if `(pred x)` is logical true for every `x` in collection `coll`
+   or if `coll` is empty. Otherwise returns false."
+  [pred coll]
   (cond
-    (php/=== (count xs) 0) true
-    (pred (first xs))     (recur pred (next xs))
+    (php/=== (count coll) 0) true
+    (pred (first coll))     (recur pred (next coll))
     false))
 
 (defn every?
   "Alias for `all?`."
-  [pred xs]
-  (all? pred xs))
+  [pred coll]
+  (all? pred coll))
 
 (defn not-every?
-  "Returns false if `(pred x)` is logical true for every `x` in collection `xs`
-   or if `xs` is empty. Otherwise returns true."
-  [pred xs]
-  (not (every? pred xs)))
+  "Returns false if `(pred x)` is logical true for every `x` in collection `coll`
+   or if `coll` is empty. Otherwise returns true."
+  [pred coll]
+  (not (every? pred coll)))
 
 (declare empty?)
 (declare truthy?)
 (declare name)
 
 (defn some?
-  "Returns true if `(pred x)` is logical true for at least one `x` in `xs`, else false."
-  [pred xs]
-  (if (empty? xs)
+  "Returns true if `(pred x)` is logical true for at least one `x` in `coll`, else false."
+  [pred coll]
+  (if (empty? coll)
     false
-    (if (truthy? (pred (first xs)))
+    (if (truthy? (pred (first coll)))
       true
-      (recur pred (next xs)))))
+      (recur pred (next coll)))))
 
 (defn not-any?
-  "Returns true if `(pred x)` is logical false for every `x` in `xs`
-   or if `xs` is empty. Otherwise returns false."
-  [pred xs]
-  (not (some? pred xs)))
+  "Returns true if `(pred x)` is logical false for every `x` in `coll`
+   or if `coll` is empty. Otherwise returns false."
+  [pred coll]
+  (not (some? pred coll)))
 
 (defn some
-  "Returns the first logical true value of `(pred x)` for any `x` in `xs`, else nil."
-  [pred xs]
-  (if (empty? xs)
+  "Returns the first logical true value of `(pred x)` for any `x` in `coll`, else nil."
+  [pred coll]
+  (if (empty? coll)
     nil
-    (let [res (pred (first xs))]
+    (let [res (pred (first coll))]
       (if (truthy? res)
         res
-        (recur pred (next xs))))))
+        (recur pred (next coll))))))
 
 (defn true?
   "Checks if `x` is true. Same as `x === true` in PHP."
@@ -832,35 +832,35 @@ Calling the `and` function without arguments returns true."
 
 (defn peek
   "Returns the last element of a sequence."
-  [xs]
-  (php/aget xs (php/- (count xs) 1)))
+  [coll]
+  (php/aget coll (php/- (count coll) 1)))
 
 
 (defn push
-  "Inserts `x` at the end of the sequence `xs`."
-  [xs x]
+  "Inserts `x` at the end of the sequence `coll`."
+  [coll x]
   (cond
-    (php-array? xs) (do (php/apush xs x) xs)
-    (or (vector? xs) (php/instanceof xs TransientVectorInterface)) (php/-> xs (append x))
-    (or (set? xs) (php/instanceof xs TransientHashSetInterface)) (php/-> xs (add x))
-    (php/instanceof xs PushInterface) (php/-> xs (push x))
+    (php-array? coll) (do (php/apush coll x) coll)
+    (or (vector? coll) (php/instanceof coll TransientVectorInterface)) (php/-> coll (append x))
+    (or (set? coll) (php/instanceof coll TransientHashSetInterface)) (php/-> coll (add x))
+    (php/instanceof coll PushInterface) (php/-> coll (push x))
     (throw (php/new InvalidArgumentException
-                    (str "Cannot push on type " (type xs))))))
+                    (str "Cannot push on type " (type coll))))))
 
 (defn pop
-  "Removes the last element of the array `xs`. If the array is empty returns nil."
-  [^:reference xs]
+  "Removes the last element of the array `coll`. If the array is empty returns nil."
+  [^:reference coll]
   (cond
-    (php-array? xs) (php/array_pop xs)
-    (php/instanceof xs PopInterface) (php/-> xs (pop))
+    (php-array? coll) (php/array_pop coll)
+    (php/instanceof coll PopInterface) (php/-> coll (pop))
     (throw (php/new InvalidArgumentException "Cannot pop"))))
 
 (defn remove
-  "Removes up to `n` element from array `xs` starting at index `offset`."
-  [^:reference xs offset & [n]]
+  "Removes up to `n` element from array `coll` starting at index `offset`."
+  [^:reference coll offset & [n]]
   (cond
-    (php-array? xs) (if n (php/array_splice xs offset n) (php/array_splice xs offset))
-    (php/instanceof xs RemoveInterface) (php/-> xs (remove offset n))
+    (php-array? coll) (if n (php/array_splice coll offset n) (php/array_splice coll offset))
+    (php/instanceof coll RemoveInterface) (php/-> coll (remove offset n))
     (throw (php/new InvalidArgumentException "Cannot remove"))))
 
 (defn get
@@ -1099,17 +1099,16 @@ arrays. Use (php/aunset ds key)"))
 # ------------------
 
 (defn map
-  "Returns a lazy sequence of the result of applying `f` to all of the first items in each `xs`,
-   followed by applying `f` to all the second items in each `xs` until anyone of the `xs` is exhausted."
-  [f & xs]
-  (case (count xs)
+  "Returns a lazy sequence of the result of applying `f` to all of the first items in each coll,
+   followed by applying `f` to all the second items in each coll until anyone of the colls is exhausted."
+  [f & colls]
+  (case (count colls)
     0 (throw (php/new InvalidArgumentException "expected at least one indexed collection in map"))
-    1 (let [coll (first xs)]
+    1 (let [coll (first colls)]
         (if (empty? coll)
           []
           (with-meta coll (lazy-seq-from-generator (php/:: Generators (map f coll))))))
-    (let [colls xs
-          result (lazy-seq-from-generator
+    (let [result (lazy-seq-from-generator
                   (php/call_user_func_array
                    (php/array "\\Phel\\Lang\\Generators" "mapMulti")
                    (php/array_merge (php/array f) (apply php/array colls))))]
@@ -1118,33 +1117,33 @@ arrays. Use (php/aunset ds key)"))
         (with-meta (first colls) result)))))
 
 (defn map-indexed
-  "Applies `f` to each element in `xs`. `f` is a two-argument function. The first argument
+  "Applies `f` to each element in `coll`. `f` is a two-argument function. The first argument
   is an index of the element in the sequence and the second element is the element itself."
-  [f xs]
-  (let [result (for [[k v] :pairs xs] (f k v))]
-    (with-meta xs result)))
+  [f coll]
+  (let [result (for [[k v] :pairs coll] (f k v))]
+    (with-meta coll result)))
 
 (defn mapcat
-  "Applies `f` on all `xs` and concatenate the result."
-  [f & xs]
-  (let [result (apply concat [] (apply map f xs))]
-    (if (empty? xs)
+  "Applies `f` on all colls and concatenate the result."
+  [f & colls]
+  (let [result (apply concat [] (apply map f colls))]
+    (if (empty? colls)
       result
-      (with-meta (first xs) result))))
+      (with-meta (first colls) result))))
 
 (defn reduce
   "(reduce f coll) (reduce f val coll)
     f should be a function of 2 arguments. If val is not supplied, returns the result of applying f to the first 2 items in coll, then applying f to that result and the 3rd item, etc.
     If coll contains no items, f must accept no arguments as well, and reduce returns the result of calling f with no arguments. If coll has only 1 item, it is returned and f is not called.
     If val is supplied, returns the result of applying f to val and the first item in coll, then applying f to that result and the 2nd item, etc. If coll contains no items, returns val and f is not called."
-  [f & xs]
-  (case (count xs)
-    1 (let [coll (first xs)]
+  [f & args]
+  (case (count args)
+    1 (let [coll (first args)]
         (if (empty? coll)
           (f)
           (reduce f (first coll) (next coll))))
-    2 (let [val (first xs)
-            coll (second xs)]
+    2 (let [val (first args)
+            coll (second args)]
         (for [x :in coll :reduce [acc val]]
           (f acc x)))
     (throw (php/new InvalidArgumentException "expected 2 or 3 arguments in reduce"))))
@@ -1210,11 +1209,11 @@ arrays. Use (php/aunset ds key)"))
     (throw (php/new InvalidArgumentException "into expects one or two arguments"))))
 
 (defn slice
-  "Extract a slice of `xs`."
-  [xs & [offset & [length]]]
+  "Extract a slice of `coll`."
+  [coll & [offset & [length]]]
   (cond
-    (php-array? xs) (php/array_slice xs offset length)
-    (php/instanceof xs SliceInterface) (php/-> xs (slice offset length))
+    (php-array? coll) (php/array_slice coll offset length)
+    (php/instanceof coll SliceInterface) (php/-> coll (slice offset length))
     (throw (php/new InvalidArgumentException "Cannot slice"))))
 
 (defn get-in
@@ -1264,113 +1263,113 @@ arrays. Use (php/aunset ds key)"))
   (unset-in ds ks))
 
 (defn drop
-  "Drops the first `n` elements of `xs`. Returns a lazy sequence."
-  [n xs]
-  (if (nil? xs)
+  "Drops the first `n` elements of `coll`. Returns a lazy sequence."
+  [n coll]
+  (if (nil? coll)
     []
     (let [n (if (php/< n 0) 0 n)]
       (if (php/=== n 0)
-        xs
-        (let [result (lazy-seq-from-generator (php/:: Generators (drop n xs)))]
-          (with-meta xs (or result [])))))))
+        coll
+        (let [result (lazy-seq-from-generator (php/:: Generators (drop n coll)))]
+          (with-meta coll (or result [])))))))
 
 (defn drop-last
-  "Drops the last `n` elements of `xs`."
-  [n xs]
+  "Drops the last `n` elements of `coll`."
+  [n coll]
   (let [n (if (php/< n 0) 0 n)
-        end (php/- (count xs) n)]
-    (slice xs 0 (php/max 0 end))))
+        end (php/- (count coll) n)]
+    (slice coll 0 (php/max 0 end))))
 
 (defn last
-  "Returns the last element of `xs` or nil if `xs` is empty or nil."
-  [xs]
-  (if (or (php/=== xs nil) (empty? xs))
+  "Returns the last element of `coll` or nil if `coll` is empty or nil."
+  [coll]
+  (if (or (php/=== coll nil) (empty? coll))
     nil
-    (peek xs)))
+    (peek coll)))
 
 (defn butlast
-  "Returns all but the last item in `xs`."
-  [xs]
-  (drop-last 1 xs))
+  "Returns all but the last item in `coll`."
+  [coll]
+  (drop-last 1 coll))
 
 (defn drop-while
-  "Drops all elements at the front of `xs` where `(pred x)` is true. Returns a lazy sequence."
-  [pred xs]
-  (if (nil? xs)
+  "Drops all elements at the front of `coll` where `(pred x)` is true. Returns a lazy sequence."
+  [pred coll]
+  (if (nil? coll)
     []
-    (let [result (lazy-seq-from-generator (php/:: Generators (dropWhile pred xs)))]
-      (with-meta xs (or result [])))))
+    (let [result (lazy-seq-from-generator (php/:: Generators (dropWhile pred coll)))]
+      (with-meta coll (or result [])))))
 
 (defn take
-  "Takes the first `n` elements of `xs`.
+  "Takes the first `n` elements of `coll`.
 
   Note: Metadata preservation works with inline calls but may be lost when binding
   to variables. Use inline calls or force realization with doall if metadata needed.
   See local/investigate-metadata-binding-issue.md for details."
-  [n xs]
+  [n coll]
   (let [n (if (php/< n 0) 0 n)]
     (if (php/=== n 0)
       []
-      (let [result (lazy-seq-from-generator (php/:: Generators (take n xs)))]
+      (let [result (lazy-seq-from-generator (php/:: Generators (take n coll)))]
         (if (nil? result)
           []
-          (with-meta xs result))))))
+          (with-meta coll result))))))
 
 (defn take-last
-  "Takes the last `n` elements of `xs`."
-  [n xs]
-  (if (php/<= n 0) [] (slice xs (php/* -1 n))))
+  "Takes the last `n` elements of `coll`."
+  [n coll]
+  (if (php/<= n 0) [] (slice coll (php/* -1 n))))
 
 (defn take-while
-  "Takes all elements at the front of `xs` where `(pred x)` is true. Returns a lazy sequence."
-  [pred xs]
-  (if (nil? xs)
+  "Takes all elements at the front of `coll` where `(pred x)` is true. Returns a lazy sequence."
+  [pred coll]
+  (if (nil? coll)
     []
-    (let [result (lazy-seq-from-generator (php/:: Generators (takeWhile pred xs)))]
-      (with-meta xs (or result [])))))
+    (let [result (lazy-seq-from-generator (php/:: Generators (takeWhile pred coll)))]
+      (with-meta coll (or result [])))))
 
 (defn take-nth
-  "Returns every nth item in `xs`. Returns a lazy sequence."
-  [n xs]
+  "Returns every nth item in `coll`. Returns a lazy sequence."
+  [n coll]
   (when (< n 1)
     (throw (php/new InvalidArgumentException "First argument of 'take-nth must be greater than 0")))
-  (if (nil? xs)
+  (if (nil? coll)
     []
-    (let [result (lazy-seq-from-generator (php/:: Generators (takeNth n xs)))]
-      (with-meta xs (or result [])))))
+    (let [result (lazy-seq-from-generator (php/:: Generators (takeNth n coll)))]
+      (with-meta coll (or result [])))))
 
 (defn filter
-  "Returns a lazy sequence of elements of `xs` where `(pred x)` is true.
+  "Returns a lazy sequence of elements of `coll` where `(pred x)` is true.
 
   Note: Metadata preservation works with inline calls but may be lost when binding
   to variables. Use inline calls or force realization with doall if metadata needed.
   See local/investigate-metadata-binding-issue.md for details."
-  [pred xs]
-  (let [result (lazy-seq-from-generator (php/:: Generators (filter pred xs)))]
+  [pred coll]
+  (let [result (lazy-seq-from-generator (php/:: Generators (filter pred coll)))]
     (if (nil? result)
       []
-      (with-meta xs result))))
+      (with-meta coll result))))
 
 (defn keep
   "Returns a lazy sequence of non-nil results of `(pred x)`."
-  [pred xs]
-  (if (nil? xs)
+  [pred coll]
+  (if (nil? coll)
     []
-    (let [result (lazy-seq-from-generator (php/:: Generators (keep pred xs)))]
-      (with-meta xs (or result [])))))
+    (let [result (lazy-seq-from-generator (php/:: Generators (keep pred coll)))]
+      (with-meta coll (or result [])))))
 
 (defn keep-indexed
   "Returns a lazy sequence of non-nil results of `(pred i x)`."
-  [pred xs]
-  (if (nil? xs)
+  [pred coll]
+  (if (nil? coll)
     []
-    (let [result (lazy-seq-from-generator (php/:: Generators (keepIndexed pred xs)))]
-      (with-meta xs (or result [])))))
+    (let [result (lazy-seq-from-generator (php/:: Generators (keepIndexed pred coll)))]
+      (with-meta coll (or result [])))))
 
 (defn find
-  "Returns the first item in `xs` where `(pred item)` evaluates to true."
-  [pred xs]
-  (loop [s xs]
+  "Returns the first item in `coll` where `(pred item)` evaluates to true."
+  [pred coll]
+  (loop [s coll]
     (if (empty? s)
       nil
       (if (pred (first s))
@@ -1378,9 +1377,9 @@ arrays. Use (php/aunset ds key)"))
         (recur (next s))))))
 
 (defn find-index
-  "Returns the index of the first item in `xs` where `(pred index item)` evaluates to true."
-  [pred xs]
-  (loop [s xs
+  "Returns the index of the first item in `coll` where `(pred index item)` evaluates to true."
+  [pred coll]
+  (loop [s coll
          i 0]
     (if (empty? s)
       nil
@@ -1389,33 +1388,33 @@ arrays. Use (php/aunset ds key)"))
         (recur (next s) (php/+ i 1))))))
 
 (defn distinct
-  "Returns a lazy sequence with duplicated values removed in `xs`."
-  [xs]
-  (if (nil? xs)
+  "Returns a lazy sequence with duplicated values removed in `coll`."
+  [coll]
+  (if (nil? coll)
     []
-    (let [result (lazy-seq-from-generator (php/:: Generators (distinct xs)))]
-      (with-meta xs (or result [])))))
+    (let [result (lazy-seq-from-generator (php/:: Generators (distinct coll)))]
+      (with-meta coll (or result [])))))
 
 
 (defn reverse
   "Reverses the order of the elements in the given sequence."
-  [xs]
+  [coll]
   (let [result
-        (for [i :range [(php/- (count xs) 1) -1 -1]
+        (for [i :range [(php/- (count coll) 1) -1 -1]
               :reduce [ret []]]
-          (push ret (get xs i)))]
-    (with-meta xs result)))
+          (push ret (get coll i)))]
+    (with-meta coll result)))
 
 (defn interleave
   "Returns a vector with the first items of each col, then the second items, etc."
-  [& xs]
-  (if (empty? xs)
+  [& colls]
+  (if (empty? colls)
     []
-    (let [first-coll (first xs)
+    (let [first-coll (first colls)
           size (count first-coll)
           result (loop [i 0
                         res []]
-                   (let [nths (apply vector (map |(get $ i) xs))]
+                   (let [nths (apply vector (map |(get $ i) colls))]
                      (if (<= size i)
                        res
                        (recur (php/+ i 1) (concat res nths)))))]
@@ -1423,58 +1422,58 @@ arrays. Use (php/aunset ds key)"))
 
 (defn interpose
   "Returns a vector of elements separated by `sep`."
-  [sep xs]
+  [sep coll]
   (let [result
         (persistent
-         (for [[k v] :pairs xs
+         (for [[k v] :pairs coll
                :reduce [res (transient [])]]
            (when (> k 0)
              (push res sep v))
            (push res v)))]
-    (with-meta xs result)))
+    (with-meta coll result)))
 
 (defn frequencies
-  "Returns a map from distinct items in `xs` to the number of times they appear."
-  [xs]
-  (let [result (for [x :in xs
+  "Returns a map from distinct items in `coll` to the number of times they appear."
+  [coll]
+  (let [result (for [x :in coll
                      :reduce [res {}]]
                  (let [n (get res x 0)]
                    (put res x (php/+ 1 n))))]
-    (with-meta xs result)))
+    (with-meta coll result)))
 
 (defn keys
   "Gets the keys of an associative data structure."
-  [xs]
-  (let [result (for [k :keys xs] k)]
-    (with-meta xs result)))
+  [coll]
+  (let [result (for [k :keys coll] k)]
+    (with-meta coll result)))
 
 (defn values
   "Gets the values of an associative data structure."
-  [xs]
-  (let [result (for [x :in xs] x)]
-    (with-meta xs result)))
+  [coll]
+  (let [result (for [x :in coll] x)]
+    (with-meta coll result)))
 
 (defn pairs
   "Gets the pairs of an associative data structure."
-  [xs]
-  (let [result (for [p :pairs xs] p)]
-    (with-meta xs result)))
+  [coll]
+  (let [result (for [p :pairs coll] p)]
+    (with-meta coll result)))
 
 (defn kvs
   "Returns a vector of key-value pairs like `[k1 v1 k2 v2 k3 v3 ...]`."
-  [xs]
+  [coll]
   (let [result
         (persistent
-         (for [[k v] :pairs xs
+         (for [[k v] :pairs coll
                :reduce [res (transient [])]]
            (push res k)
            (push res v)))]
-    (with-meta xs result)))
+    (with-meta coll result)))
 
 (defn to-php-array
   "Create a PHP Array from a sequential data structure."
-  [xs]
-  (apply php/array xs))
+  [coll]
+  (apply php/array coll))
 
 (defn php-array-to-map
   "Converts a PHP Array to a map."
@@ -1540,26 +1539,26 @@ arrays. Use (php/aunset ds key)"))
 
 (defn sort
   "Returns a sorted vector. If no comparator is supplied compare is used."
-  [xs & [comp]]
-  (let [php-array (to-php-array xs)]
+  [coll & [comp]]
+  (let [php-array (to-php-array coll)]
     (php/usort php-array (or comp compare))
-    (with-meta xs (apply vector php-array))))
+    (with-meta coll (apply vector php-array))))
 
 (defn sort-by
   "Returns a sorted vector where the sort order is determined by comparing
   `(keyfn item)`. If no comparator is supplied compare is used."
-  [keyfn xs & [comp]]
-  (let [php-array (to-php-array xs)
+  [keyfn coll & [comp]]
+  (let [php-array (to-php-array coll)
         cmp (or comp compare)]
     (php/usort php-array |(cmp (keyfn $1) (keyfn $2)))
-    (with-meta xs (apply vector php-array))))
+    (with-meta coll (apply vector php-array))))
 
 (defn shuffle
-  "Returns a random permutation of xs."
-  [xs]
-  (let [php-array (to-php-array xs)]
+  "Returns a random permutation of coll."
+  [coll]
+  (let [php-array (to-php-array coll)]
     (php/shuffle php-array)
-    (with-meta xs (apply vector php-array))))
+    (with-meta coll (apply vector php-array))))
 
 (defn repeat
   "Returns a vector of length n where every element is x.
@@ -1588,10 +1587,10 @@ arrays. Use (php/aunset ds key)"))
 
 (defn cycle
   "Returns an infinite lazy sequence that cycles through the elements of collection."
-  [xs]
-  (if (empty? xs)
+  [coll]
+  (if (empty? coll)
     []
-    (lazy-seq-from-generator (php/:: Generators (cycle xs)))))
+    (lazy-seq-from-generator (php/:: Generators (cycle coll)))))
 
 (def concat
   "Concatenates multiple sequential data structures. Returns a lazy sequence.
@@ -1716,11 +1715,11 @@ arrays. Use (php/aunset ds key)"))
     true))
 
 (defn group-by
-  "Returns a map of the elements of xs keyed by the result of
+  "Returns a map of the elements of coll keyed by the result of
   f on each element."
-  [f xs]
+  [f coll]
   (persistent
-   (for [x :in xs
+   (for [x :in coll
          :let [k (f x)]
          :reduce [res (transient {})]]
      (when-not (get res k)
@@ -1770,29 +1769,29 @@ arrays. Use (php/aunset ds key)"))
 
 (defn split-at
   "Returns a vector of `[(take n coll) (drop n coll)]`."
-  [n xs]
-  [(take n xs) (drop n xs)])
+  [n coll]
+  [(take n coll) (drop n coll)])
 
 (defn split-with
   "Returns a vector of `[(take-while pred coll) (drop-while pred coll)]`."
-  [f xs]
-  [(take-while f xs) (drop-while f xs)])
+  [f coll]
+  [(take-while f coll) (drop-while f coll)])
 
 (defn partition-by
-  "Returns a lazy sequence of partitions. Applies `f` to each value in `xs`, splitting them each time the return value changes."
-  [f xs]
+  "Returns a lazy sequence of partitions. Applies `f` to each value in `coll`, splitting them each time the return value changes."
+  [f coll]
   (cond
-    (nil? xs) []
-    (and (indexed? xs) (= 0 (count xs))) []
-    true (lazy-seq-from-generator (php/:: Generators (partitionBy f xs)))))
+    (nil? coll) []
+    (and (indexed? coll) (= 0 (count coll))) []
+    true (lazy-seq-from-generator (php/:: Generators (partitionBy f coll)))))
 
 (defn dedupe
-  "Returns a lazy sequence with consecutive duplicate values removed in `xs`."
-  [xs]
+  "Returns a lazy sequence with consecutive duplicate values removed in `coll`."
+  [coll]
   (cond
-    (nil? xs) []
-    (and (indexed? xs) (= 0 (count xs))) []
-    true (lazy-seq-from-generator (php/:: Generators (dedupe xs)))))
+    (nil? coll) []
+    (and (indexed? coll) (= 0 (count coll))) []
+    true (lazy-seq-from-generator (php/:: Generators (dedupe coll)))))
 
 (defn partition
   "Partitions a collection into chunks of size n. Returns a lazy sequence.
@@ -1801,14 +1800,14 @@ arrays. Use (php/aunset ds key)"))
   it is dropped. Works with infinite sequences.
 
   Example: (partition 3 [1 2 3 4 5 6 7]) ; => ([1 2 3] [4 5 6])"
-  [n xs]
+  [n coll]
   (let [result (lazy-seq-from-generator
                 (php/call_user_func_array
                  (php/array "\\Phel\\Lang\\Generators" "partition")
-                 (php/array n xs)))]
+                 (php/array n coll)))]
     (if (php/=== nil result)
       '()
-      (with-meta xs result))))
+      (with-meta coll result))))
 
 (defn partition-all
   "Partitions a collection into chunks of size n. Returns a lazy sequence.
@@ -1817,14 +1816,14 @@ arrays. Use (php/aunset ds key)"))
   Works with infinite sequences.
 
   Example: (partition-all 3 [1 2 3 4 5 6 7]) ; => ([1 2 3] [4 5 6] [7])"
-  [n xs]
+  [n coll]
   (let [result (lazy-seq-from-generator
                 (php/call_user_func_array
                  (php/array "\\Phel\\Lang\\Generators" "partitionAll")
-                 (php/array n xs)))]
+                 (php/array n coll)))]
     (if (php/=== nil result)
       '()
-      (with-meta xs result))))
+      (with-meta coll result))))
 
 # -------------
 # Set operation
@@ -1967,10 +1966,10 @@ arrays. Use (php/aunset ds key)"))
   Returns a lazy sequence that works with infinite nested structures.
 
   Example: (flatten [[1 2] [3 [4 5]] 6]) ; => (1 2 3 4 5 6)"
-  [xs]
+  [coll]
   (filter
    (complement indexed?)
-   (rest (tree-seq indexed? identity xs))))
+   (rest (tree-seq indexed? identity coll))))
 
 (defn- merge-with-2 [f left right]
   (for [[k v] :pairs right
