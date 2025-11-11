@@ -2359,6 +2359,23 @@ returns 1. If `xs` has one value, returns the reciprocal of x."
         result (php/file_put_contents filename data flags context)]
     (when (int? result) result)))
 
+(defn line-seq
+  "Returns a lazy sequence of lines from a file. Each line is a string with
+  line endings removed. The file is read lazily and the file handle is
+  automatically closed when the sequence is fully consumed or if an error occurs.
+
+  Works with infinite sequences like tailable log files or named pipes.
+
+  Example: (take 10 (line-seq \"large-file.txt\"))"
+  [filename]
+  (let [result (lazy-seq-from-generator
+                 (php/call_user_func_array
+                   (php/array "\\Phel\\Lang\\Generators" "fileLines")
+                   (php/array filename)))]
+    (if (php/=== nil result)
+      '()
+      result)))
+
 # ----------------
 # Threading macros
 # ----------------

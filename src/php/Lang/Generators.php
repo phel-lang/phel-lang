@@ -6,9 +6,11 @@ namespace Phel\Lang;
 
 use ArrayIterator;
 use Generator;
+use InvalidArgumentException;
 use Iterator;
 use Phel;
 use Phel\Lang\Collections\Vector\PersistentVectorInterface;
+use RuntimeException;
 
 use function count;
 use function is_array;
@@ -602,6 +604,43 @@ final class Generators
 
         if ($partition !== []) {
             yield Phel::vector($partition);
+        }
+    }
+
+    /**
+     * Lazily reads a file line by line.
+     * Yields each line as a string with line endings removed.
+     * Automatically closes the file handle when done or on error.
+     *
+     * @return Generator<int, string>
+     */
+    public static function fileLines(string $filename): Generator
+    {
+        if (!is_file($filename)) {
+            throw new InvalidArgumentException(
+                'Argument filename should be a valid path to a file: ' . $filename,
+            );
+        }
+
+        if (!is_readable($filename)) {
+            throw new InvalidArgumentException(
+                'File is not readable: ' . $filename,
+            );
+        }
+
+        $handle = fopen($filename, 'r');
+        if ($handle === false) {
+            throw new RuntimeException(
+                'Failed to open file: ' . $filename,
+            );
+        }
+
+        try {
+            while (($line = fgets($handle)) !== false) {
+                yield rtrim($line, "\r\n");
+            }
+        } finally {
+            fclose($handle);
         }
     }
 
