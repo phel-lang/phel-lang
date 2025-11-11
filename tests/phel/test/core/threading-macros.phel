@@ -36,9 +36,9 @@
 
 (deftest test-doto
   (let [dt (doto (php/new DateTime "2025-02-02 12:00:00")
-             (php/-> (modify "+1 hour"))
-             (php/-> (modify "+1 week"))
-             (php/-> (modify "+1 year")))]
+                 (php/-> (modify "+1 hour"))
+                 (php/-> (modify "+1 week"))
+                 (php/-> (modify "+1 year")))]
     (is (= :php/object (type dt)))
     (is (= "DateTime" (php/get_class dt)))
     (is (= "2026-02-09 13:00:00" (php/-> dt (format "Y-m-d H:i:s"))))))
