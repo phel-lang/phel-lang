@@ -2381,7 +2381,8 @@ returns 1. If `xs` has one value, returns the reciprocal of x."
   Walks the directory recursively, yielding paths as strings. If given a file
   path, returns a sequence containing just that file.
 
-  The sequence includes both files and directories.
+  The sequence includes both files and directories. Follows symbolic links but
+  tracks visited inodes to prevent infinite cycles.
 
   Example: (filter |(php/str_ends_with $ \".phel\") (file-seq \"src/\"))"
   [path]

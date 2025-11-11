@@ -163,3 +163,40 @@
     (php/unlink file2)
     (php/unlink file1)
     (php/rmdir target-directory)))
+
+(deftest test-file-seq-with-symlink
+  (let [target-directory (str (php/sys_get_temp_dir) php/DIRECTORY_SEPARATOR "test-file-seq-symlink")
+        real-dir (str target-directory php/DIRECTORY_SEPARATOR "real")
+        symlink-dir (str target-directory php/DIRECTORY_SEPARATOR "link")
+        file1 (str real-dir php/DIRECTORY_SEPARATOR "test.txt")]
+    (php/mkdir target-directory)
+    (php/mkdir real-dir)
+    (spit file1 "content")
+    (php/symlink real-dir symlink-dir)
+    (let [result (doall (file-seq target-directory))
+          file-count (count (filter php/is_file result))]
+      (is (>= file-count 1) "file-seq should traverse symlinked directories")
+      (is (true? (some |(php/str_ends_with $ "test.txt") result))
+          "file-seq should include files from symlinked directories"))
+    (php/unlink file1)
+    (php/unlink symlink-dir)
+    (php/rmdir real-dir)
+    (php/rmdir target-directory)))
+
+(deftest test-file-seq-with-symlink-cycle
+  (let [target-directory (str (php/sys_get_temp_dir) php/DIRECTORY_SEPARATOR "test-file-seq-cycle")
+        subdir (str target-directory php/DIRECTORY_SEPARATOR "subdir")
+        cycle-link (str subdir php/DIRECTORY_SEPARATOR "cycle")
+        file1 (str target-directory php/DIRECTORY_SEPARATOR "test.txt")]
+    (php/mkdir target-directory)
+    (php/mkdir subdir)
+    (spit file1 "content")
+    (php/symlink target-directory cycle-link)
+    (let [result (doall (file-seq target-directory))]
+      (is (true? (> (count result) 0)) "file-seq should not hang on symlink cycles")
+      (is (true? (some |(php/str_ends_with $ "test.txt") result))
+          "file-seq should still traverse non-cycle paths"))
+    (php/unlink file1)
+    (php/unlink cycle-link)
+    (php/rmdir subdir)
+    (php/rmdir target-directory)))

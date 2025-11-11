@@ -651,6 +651,7 @@ final class Generators
     /**
      * Lazily walks a directory tree, yielding file paths.
      * Returns all files and directories recursively.
+     * Follows symbolic links but tracks visited inodes to prevent infinite cycles.
      *
      * @return Generator<int, string>
      */
@@ -674,8 +675,10 @@ final class Generators
             return;
         }
 
-        // If it's a directory, walk it recursively
+        // If it's a directory, walk it recursively with cycle detection
         if (is_dir($path)) {
+            $visited = [];
+
             try {
                 $iterator = new RecursiveIteratorIterator(
                     new RecursiveDirectoryIterator(
@@ -686,7 +689,26 @@ final class Generators
                 );
 
                 foreach ($iterator as $fileInfo) {
-                    yield $fileInfo->getPathname();
+                    $pathname = $fileInfo->getPathname();
+
+                    // Get real path to detect cycles via inode tracking
+                    $realPath = $fileInfo->getRealPath();
+
+                    // Skip if we've already visited this inode (cycle detection)
+                    if ($realPath !== false) {
+                        $stat = @stat($realPath);
+                        if ($stat !== false) {
+                            $inode = $stat['dev'] . ':' . $stat['ino'];
+
+                            if (isset($visited[$inode])) {
+                                continue;
+                            }
+
+                            $visited[$inode] = true;
+                        }
+                    }
+
+                    yield $pathname;
                 }
             } catch (UnexpectedValueException $e) {
                 throw new RuntimeException('Error reading directory: ' . $path . ' - ' . $e->getMessage(), $e->getCode(), $e);
