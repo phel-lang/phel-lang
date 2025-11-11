@@ -161,6 +161,27 @@ final class Generators
     }
 
     /**
+     * Maps a function over an iterable with index.
+     * Applies the function to each element along with its index (0-based).
+     *
+     * @template T
+     * @template U
+     *
+     * @param callable(int, T): U $f        The mapping function that takes index and value
+     * @param iterable<T>         $iterable The input sequence
+     *
+     * @return Generator<int, U>
+     */
+    public static function mapIndexed(callable $f, iterable $iterable): Generator
+    {
+        $index = 0;
+        foreach ($iterable as $value) {
+            yield $f($index, $value);
+            ++$index;
+        }
+    }
+
+    /**
      * Generates a range of numbers [start, end) with given step.
      *
      * @return Generator<int, float|int>
