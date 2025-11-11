@@ -775,6 +775,60 @@ final class Generators
     }
 
     /**
+     * Lazily reads a CSV file line by line.
+     * Yields each row as a PersistentVector of string values.
+     * The file handle is automatically closed when the generator finishes or an error occurs.
+     *
+     * @param string $filename  The path to the CSV file to read
+     * @param string $separator The field separator (default: ',')
+     * @param string $enclosure The field enclosure character (default: '"')
+     * @param string $escape    The escape character (default: '\\')
+     *
+     * @throws InvalidArgumentException if the file doesn't exist or is not readable
+     * @throws RuntimeException         if the file cannot be opened
+     *
+     * @return Generator<int, PersistentVectorInterface>
+     */
+    public static function csvLines(
+        string $filename,
+        string $separator = ',',
+        string $enclosure = '"',
+        string $escape = '\\',
+    ): Generator {
+        if (!is_file($filename)) {
+            throw new InvalidArgumentException(
+                'Argument filename should be a valid path to a file: ' . $filename,
+            );
+        }
+
+        if (!is_readable($filename)) {
+            throw new InvalidArgumentException(
+                'File is not readable: ' . $filename,
+            );
+        }
+
+        $handle = fopen($filename, 'r');
+        if ($handle === false) {
+            throw new RuntimeException(
+                'Failed to open file: ' . $filename,
+            );
+        }
+
+        try {
+            $typeFactory = TypeFactory::getInstance();
+            while (($row = fgetcsv($handle, 0, $separator, $enclosure, $escape)) !== false) {
+                // fgetcsv returns list<string|null>|false
+                // Convert null values to empty strings for consistency
+                /** @psalm-var list<string|null> $row */
+                $cleanRow = array_map(static fn (?string $val): string => $val ?? '', $row);
+                yield $typeFactory->persistentVectorFromArray($cleanRow);
+            }
+        } finally {
+            fclose($handle);
+        }
+    }
+
+    /**
      * Converts an iterable to an Iterator.
      *
      * @template T

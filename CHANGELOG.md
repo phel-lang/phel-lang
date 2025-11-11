@@ -16,6 +16,7 @@ All notable changes to this project will be documented in this file.
 - Add `line-seq` function for lazy line-by-line file reading with automatic resource cleanup
 - Add `file-seq` function for lazy recursive directory traversal
 - Add `read-file-lazy` function for lazy chunked file reading with configurable chunk size
+- Add `csv-seq` function for lazy CSV file parsing with RFC 4180 support and custom separators
 - Document `flatten` as lazy (already was lazy via `filter` and `tree-seq`)
 
 ### Fixed

@@ -2418,6 +2418,35 @@ returns 1. If `xs` has one value, returns the reciprocal of x."
        '()
        result))))
 
+(defn csv-seq
+  "Returns a lazy sequence of rows from a CSV file. Each row is a tuple (vector)
+  of string values. The file is read lazily and the file handle is automatically
+  closed when the sequence is fully consumed or if an error occurs.
+
+  Supports optional parameters for custom CSV formats:
+  - separator: field delimiter (default: ',')
+  - enclosure: quote character (default: '\"')
+  - escape: escape character (default: '\\\\')
+
+  Works with RFC 4180 compliant CSV files and handles quoted fields, embedded
+  commas, and newlines within quoted fields.
+
+  Example: (take 10 (csv-seq \"data.csv\"))
+  Example: (csv-seq \"data.tsv\" {:separator \"\\t\"})"
+  ([filename]
+   (csv-seq filename {}))
+  ([filename options]
+   (let [separator (get options :separator ",")
+         enclosure (get options :enclosure "\"")
+         escape (get options :escape "\\")
+         result (lazy-seq-from-generator
+                  (php/call_user_func_array
+                    (php/array "\\Phel\\Lang\\Generators" "csvLines")
+                    (php/array filename separator enclosure escape)))]
+     (if (php/=== nil result)
+       '()
+       result))))
+
 # ----------------
 # Threading macros
 # ----------------
