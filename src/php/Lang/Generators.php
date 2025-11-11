@@ -10,6 +10,7 @@ use Iterator;
 use Phel;
 use Phel\Lang\Collections\Vector\PersistentVectorInterface;
 
+use function count;
 use function is_array;
 
 final class Generators
@@ -507,6 +508,66 @@ final class Generators
                 $prev = $value;
                 $first = false;
             }
+        }
+    }
+
+    /**
+     * Partitions an iterable into chunks of size n.
+     * Only yields complete partitions (drops incomplete final partition).
+     *
+     * @template T
+     *
+     * @param int         $n        The partition size
+     * @param iterable<T> $iterable The input sequence
+     *
+     * @return Generator<int, PersistentVectorInterface>
+     */
+    public static function partition(int $n, iterable $iterable): Generator
+    {
+        if ($n <= 0) {
+            return;
+        }
+
+        $partition = [];
+        foreach ($iterable as $value) {
+            $partition[] = $value;
+
+            if (count($partition) === $n) {
+                yield Phel::vector($partition);
+                $partition = [];
+            }
+        }
+    }
+
+    /**
+     * Partitions an iterable into chunks of size n.
+     * Yields all partitions including incomplete final partition.
+     *
+     * @template T
+     *
+     * @param int         $n        The partition size
+     * @param iterable<T> $iterable The input sequence
+     *
+     * @return Generator<int, PersistentVectorInterface>
+     */
+    public static function partitionAll(int $n, iterable $iterable): Generator
+    {
+        if ($n <= 0) {
+            return;
+        }
+
+        $partition = [];
+        foreach ($iterable as $value) {
+            $partition[] = $value;
+
+            if (count($partition) === $n) {
+                yield Phel::vector($partition);
+                $partition = [];
+            }
+        }
+
+        if ($partition !== []) {
+            yield Phel::vector($partition);
         }
     }
 

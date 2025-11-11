@@ -609,3 +609,71 @@
   (let [result (map vector [1 2 3] [:a :b :c])]
     (is (true? (php/instanceof result \Phel\Lang\Collections\LazySeq\LazySeqInterface))
         "variadic map should return a lazy sequence")))
+
+# Tests for partition
+(deftest test-partition-basic
+  (is (= [[1 2 3] [4 5 6]] (doall (partition 3 [1 2 3 4 5 6])))
+      "partition should divide collection into chunks of size n"))
+
+(deftest test-partition-is-lazy
+  (is (= [[1 2] [3 4] [5 6]] (take 3 (partition 2 [1 2 3 4 5 6 7 8 9 10])))
+      "partition should be lazy and work with take"))
+
+(deftest test-partition-with-infinite-sequence
+  (is (= [[0 1] [2 3] [4 5]] (doall (take 3 (partition 2 (iterate inc 0)))))
+      "partition should work with infinite sequences"))
+
+(deftest test-partition-drops-incomplete
+  (is (= [[1 2 3] [4 5 6]] (doall (partition 3 [1 2 3 4 5 6 7])))
+      "partition should drop incomplete final partition"))
+
+(deftest test-partition-empty-collection
+  (is (= [] (doall (partition 3 [])))
+      "partition of empty collection should return empty"))
+
+(deftest test-partition-single-chunk
+  (is (= [[1 2 3]] (doall (partition 3 [1 2 3])))
+      "partition with exact chunk size should return single chunk"))
+
+(deftest test-partition-size-one
+  (is (= [[1] [2] [3]] (doall (partition 1 [1 2 3])))
+      "partition with size 1 should return individual elements"))
+
+(deftest test-partition-returns-lazy-seq
+  (let [result (partition 2 [1 2 3 4])]
+    (is (true? (php/instanceof result \Phel\Lang\Collections\LazySeq\LazySeqInterface))
+        "partition should return a lazy sequence")))
+
+# Tests for partition-all
+(deftest test-partition-all-basic
+  (is (= [[1 2 3] [4 5 6]] (doall (partition-all 3 [1 2 3 4 5 6])))
+      "partition-all should divide collection into chunks of size n"))
+
+(deftest test-partition-all-is-lazy
+  (is (= [[1 2] [3 4] [5 6]] (take 3 (partition-all 2 [1 2 3 4 5 6 7 8 9 10])))
+      "partition-all should be lazy and work with take"))
+
+(deftest test-partition-all-with-infinite-sequence
+  (is (= [[0 1 2] [3 4 5] [6 7 8]] (doall (take 3 (partition-all 3 (iterate inc 0)))))
+      "partition-all should work with infinite sequences"))
+
+(deftest test-partition-all-keeps-incomplete
+  (is (= [[1 2 3] [4 5 6] [7]] (doall (partition-all 3 [1 2 3 4 5 6 7])))
+      "partition-all should keep incomplete final partition"))
+
+(deftest test-partition-all-empty-collection
+  (is (= [] (doall (partition-all 3 [])))
+      "partition-all of empty collection should return empty"))
+
+(deftest test-partition-all-single-chunk
+  (is (= [[1 2 3]] (doall (partition-all 3 [1 2 3])))
+      "partition-all with exact chunk size should return single chunk"))
+
+(deftest test-partition-all-size-one
+  (is (= [[1] [2] [3]] (doall (partition-all 1 [1 2 3])))
+      "partition-all with size 1 should return individual elements"))
+
+(deftest test-partition-all-returns-lazy-seq
+  (let [result (partition-all 2 [1 2 3 4 5])]
+    (is (true? (php/instanceof result \Phel\Lang\Collections\LazySeq\LazySeqInterface))
+        "partition-all should return a lazy sequence")))

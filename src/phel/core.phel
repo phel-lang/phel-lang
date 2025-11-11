@@ -1795,21 +1795,36 @@ arrays. Use (php/aunset ds key)"))
     true (lazy-seq-from-generator (php/:: Generators (dedupe xs)))))
 
 (defn partition
-  "Partition an indexed data structure into vectors of maximum size n. Returns a new vector."
+  "Partitions a collection into chunks of size n. Returns a lazy sequence.
+
+  Only yields complete partitions. If the final partition has fewer than n elements,
+  it is dropped. Works with infinite sequences.
+
+  Example: (partition 3 [1 2 3 4 5 6 7]) ; => ([1 2 3] [4 5 6])"
   [n xs]
-  (if (<= (count xs) n)
-    (if (= (count xs) 0) [] [xs])
-    (let [res (transient [])]
-      (loop [xs xs]
-        (let [[a b] (split-at n xs)]
-          (push res a)
-          (if (>= (count b) n)
-            (recur b)
-            (if (= (count b) 0)
-              (persistent res)
-              (do
-                (push res b)
-                (persistent res)))))))))
+  (let [result (lazy-seq-from-generator
+                 (php/call_user_func_array
+                   (php/array "\\Phel\\Lang\\Generators" "partition")
+                   (php/array n xs)))]
+    (if (php/=== nil result)
+      '()
+      (with-meta xs result))))
+
+(defn partition-all
+  "Partitions a collection into chunks of size n. Returns a lazy sequence.
+
+  Yields all partitions including the final incomplete partition if present.
+  Works with infinite sequences.
+
+  Example: (partition-all 3 [1 2 3 4 5 6 7]) ; => ([1 2 3] [4 5 6] [7])"
+  [n xs]
+  (let [result (lazy-seq-from-generator
+                 (php/call_user_func_array
+                   (php/array "\\Phel\\Lang\\Generators" "partitionAll")
+                   (php/array n xs)))]
+    (if (php/=== nil result)
+      '()
+      (with-meta xs result))))
 
 # -------------
 # Set operation
