@@ -11,6 +11,8 @@ All notable changes to this project will be documented in this file.
 - Make `map-indexed` fully lazy with support for infinite sequences
 - Make `interleave` fully lazy with support for infinite sequences
 - Make variadic `map` (multi-collection) fully lazy with support for infinite sequences
+- Make `partition` fully lazy with support for infinite sequences
+- Add `partition-all` function with lazy support for infinite sequences
 - Document `flatten` as lazy (already was lazy via `filter` and `tree-seq`)
 
 ### Fixed

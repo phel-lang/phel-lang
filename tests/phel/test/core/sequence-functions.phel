@@ -326,11 +326,19 @@
 
 (deftest test-partition
   (is (= [] (partition 2 [])) "partition-2 empty")
-  (is (= [[1]] (partition 2 [1])) "partition-2 one element")
+  (is (= [] (partition 2 [1])) "partition-2 one element drops incomplete")
   (is (= [[1 2]] (partition 2 [1 2])) "partition-2 two elements")
-  (is (= [[1 2] [3]] (partition 2 [1 2 3])) "partition-2 three elements")
+  (is (= [[1 2]] (partition 2 [1 2 3])) "partition-2 three elements drops incomplete")
   (is (= [[1 2] [3 4]] (partition 2 [1 2 3 4])) "partition-2 four elements")
-  (is (= [[1 2] [3 4] [5]] (partition 2 [1 2 3 4 5])) "partition-2 five elements"))
+  (is (= [[1 2] [3 4]] (partition 2 [1 2 3 4 5])) "partition-2 five elements drops incomplete"))
+
+(deftest test-partition-all
+  (is (= [] (partition-all 2 [])) "partition-all-2 empty")
+  (is (= [[1]] (partition-all 2 [1])) "partition-all-2 one element keeps incomplete")
+  (is (= [[1 2]] (partition-all 2 [1 2])) "partition-all-2 two elements")
+  (is (= [[1 2] [3]] (partition-all 2 [1 2 3])) "partition-all-2 three elements keeps incomplete")
+  (is (= [[1 2] [3 4]] (partition-all 2 [1 2 3 4])) "partition-all-2 four elements")
+  (is (= [[1 2] [3 4] [5]] (partition-all 2 [1 2 3 4 5])) "partition-all-2 five elements keeps incomplete"))
 
 (deftest test-phel-php-roundtrip
   (let [data {:a [1 {:b 2}]}]
