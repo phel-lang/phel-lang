@@ -141,7 +141,7 @@
 (deftest test-compile-form
   (is (= "(\\Phel::getDefinition(\"phel\\\\core\", \"assert-non-nil\"))(1, 1);\n(1 + 1);"
          (compile '(+ 1 1)))
-    "compile simple expression"))
+      "compile simple expression"))
 
 (deftest test-hash-map-put-17th-notice-issue-786
   (let [m {""              1
@@ -162,5 +162,5 @@
            "JF1261"        1
            "jiKUic"        1}
         result (put m "PU4NVO" 1)]
-   (is (= 18 (count result)))
-   (is (= 1 (result "PU4NVO")))))
+    (is (= 18 (count result)))
+    (is (= 1 (result "PU4NVO")))))

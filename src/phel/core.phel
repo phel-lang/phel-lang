@@ -980,9 +980,9 @@ arrays. Use (php/aunset ds key)"))
   ChunkedSeq realizes elements in batches for better performance."
   [generator]
   (php/:: ChunkedSeq (fromGenerator
-    (php/new Hasher)
-    (php/new Equalizer)
-    generator)))
+                      (php/new Hasher)
+                      (php/new Equalizer)
+                      generator)))
 
 (defn range
   "Create a lazy sequence of values `[start, end)`. If the function has one argument then
@@ -1110,9 +1110,9 @@ arrays. Use (php/aunset ds key)"))
           (with-meta coll (lazy-seq-from-generator (php/:: Generators (map f coll))))))
     (let [colls xs
           result (lazy-seq-from-generator
-                   (php/call_user_func_array
-                     (php/array "\\Phel\\Lang\\Generators" "mapMulti")
-                     (php/array_merge (php/array f) (apply php/array colls))))]
+                  (php/call_user_func_array
+                   (php/array "\\Phel\\Lang\\Generators" "mapMulti")
+                   (php/array_merge (php/array f) (apply php/array colls))))]
       (if (php/=== nil result)
         []
         (with-meta (first colls) result)))))
@@ -1603,9 +1603,9 @@ arrays. Use (php/aunset ds key)"))
     (if (php/=== nil colls)
       '()
       (let [result (lazy-seq-from-generator
-                     (php/call_user_func_array
-                       (php/array "\\Phel\\Lang\\Generators" "concat")
-                       (apply php/array colls)))]
+                    (php/call_user_func_array
+                     (php/array "\\Phel\\Lang\\Generators" "concat")
+                     (apply php/array colls)))]
         (if (php/=== nil result)
           '()
           result)))))
@@ -1622,7 +1622,7 @@ arrays. Use (php/aunset ds key)"))
     (if (php/=== nil coll)
       '()
       (let [result (lazy-seq-from-generator
-                     (php/:: \Phel\Lang\Generators (mapcat f coll)))]
+                    (php/:: \Phel\Lang\Generators (mapcat f coll)))]
         (if (php/=== nil result)
           '()
           (with-meta coll result))))))
@@ -1638,7 +1638,7 @@ arrays. Use (php/aunset ds key)"))
     (if (php/=== nil coll)
       '()
       (let [result (lazy-seq-from-generator
-                     (php/:: \Phel\Lang\Generators (interpose sep coll)))]
+                    (php/:: \Phel\Lang\Generators (interpose sep coll)))]
         (if (php/=== nil result)
           '()
           (with-meta coll result))))))
@@ -1655,7 +1655,7 @@ arrays. Use (php/aunset ds key)"))
     (if (php/=== nil coll)
       '()
       (let [result (lazy-seq-from-generator
-                     (php/:: \Phel\Lang\Generators (mapIndexed f coll)))]
+                    (php/:: \Phel\Lang\Generators (mapIndexed f coll)))]
         (if (php/=== nil result)
           '()
           (with-meta coll result))))))
@@ -1673,9 +1673,9 @@ arrays. Use (php/aunset ds key)"))
     (if (php/=== nil colls)
       '()
       (let [result (lazy-seq-from-generator
-                     (php/call_user_func_array
-                       (php/array "\\Phel\\Lang\\Generators" "interleave")
-                       (apply php/array colls)))]
+                    (php/call_user_func_array
+                     (php/array "\\Phel\\Lang\\Generators" "interleave")
+                     (apply php/array colls)))]
         (if (php/=== nil result)
           '()
           (with-meta (first colls) result))))))
@@ -1803,9 +1803,9 @@ arrays. Use (php/aunset ds key)"))
   Example: (partition 3 [1 2 3 4 5 6 7]) ; => ([1 2 3] [4 5 6])"
   [n xs]
   (let [result (lazy-seq-from-generator
-                 (php/call_user_func_array
-                   (php/array "\\Phel\\Lang\\Generators" "partition")
-                   (php/array n xs)))]
+                (php/call_user_func_array
+                 (php/array "\\Phel\\Lang\\Generators" "partition")
+                 (php/array n xs)))]
     (if (php/=== nil result)
       '()
       (with-meta xs result))))
@@ -1819,9 +1819,9 @@ arrays. Use (php/aunset ds key)"))
   Example: (partition-all 3 [1 2 3 4 5 6 7]) ; => ([1 2 3] [4 5 6] [7])"
   [n xs]
   (let [result (lazy-seq-from-generator
-                 (php/call_user_func_array
-                   (php/array "\\Phel\\Lang\\Generators" "partitionAll")
-                   (php/array n xs)))]
+                (php/call_user_func_array
+                 (php/array "\\Phel\\Lang\\Generators" "partitionAll")
+                 (php/array n xs)))]
     (if (php/=== nil result)
       '()
       (with-meta xs result))))
@@ -2369,9 +2369,9 @@ returns 1. If `xs` has one value, returns the reciprocal of x."
   Example: (take 10 (line-seq \"large-file.txt\"))"
   [filename]
   (let [result (lazy-seq-from-generator
-                 (php/call_user_func_array
-                   (php/array "\\Phel\\Lang\\Generators" "fileLines")
-                   (php/array filename)))]
+                (php/call_user_func_array
+                 (php/array "\\Phel\\Lang\\Generators" "fileLines")
+                 (php/array filename)))]
     (if (php/=== nil result)
       '()
       result)))
@@ -2387,9 +2387,9 @@ returns 1. If `xs` has one value, returns the reciprocal of x."
   Example: (filter |(php/str_ends_with $ \".phel\") (file-seq \"src/\"))"
   [path]
   (let [result (lazy-seq-from-generator
-                 (php/call_user_func_array
-                   (php/array "\\Phel\\Lang\\Generators" "fileSeq")
-                   (php/array path)))]
+                (php/call_user_func_array
+                 (php/array "\\Phel\\Lang\\Generators" "fileSeq")
+                 (php/array path)))]
     (if (php/=== nil result)
       '()
       result)))
@@ -2411,9 +2411,38 @@ returns 1. If `xs` has one value, returns the reciprocal of x."
    (read-file-lazy filename 8192))
   ([filename chunk-size]
    (let [result (lazy-seq-from-generator
-                  (php/call_user_func_array
-                    (php/array "\\Phel\\Lang\\Generators" "readFileChunks")
-                    (php/array filename chunk-size)))]
+                 (php/call_user_func_array
+                  (php/array "\\Phel\\Lang\\Generators" "readFileChunks")
+                  (php/array filename chunk-size)))]
+     (if (php/=== nil result)
+       '()
+       result))))
+
+(defn csv-seq
+  "Returns a lazy sequence of rows from a CSV file. Each row is a tuple (vector)
+  of string values. The file is read lazily and the file handle is automatically
+  closed when the sequence is fully consumed or if an error occurs.
+
+  Supports optional parameters for custom CSV formats:
+  - separator: field delimiter (default: ',')
+  - enclosure: quote character (default: '\"')
+  - escape: escape character (default: '\\\\')
+
+  Works with RFC 4180 compliant CSV files and handles quoted fields, embedded
+  commas, and newlines within quoted fields.
+
+  Example: (take 10 (csv-seq \"data.csv\"))
+  Example: (csv-seq \"data.tsv\" {:separator \"\\t\"})"
+  ([filename]
+   (csv-seq filename {}))
+  ([filename options]
+   (let [separator (get options :separator ",")
+         enclosure (get options :enclosure "\"")
+         escape (get options :escape "\\")
+         result (lazy-seq-from-generator
+                 (php/call_user_func_array
+                  (php/array "\\Phel\\Lang\\Generators" "csvLines")
+                  (php/array filename separator enclosure escape)))]
      (if (php/=== nil result)
        '()
        result))))

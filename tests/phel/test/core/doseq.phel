@@ -4,7 +4,7 @@
 (deftest test-doseq-range-side-effects
   (let [sum (var 0)
         result (doseq [x :range [0 3]]
-                  (swap! sum + x))]
+                      (swap! sum + x))]
     (is (nil? result) "doseq returns nil")
     (is (= 3 (deref sum)) "doseq executes body for side effects")))
 
@@ -13,5 +13,5 @@
     (doseq [x :in [1 2 3 4]
             :when (even? x)
             :let [y (* x 2)]]
-      (swap! captured (fn [xs] (push xs y))))
+           (swap! captured (fn [xs] (push xs y))))
     (is (= [4 8] (deref captured)) "doseq honors modifiers from for")))

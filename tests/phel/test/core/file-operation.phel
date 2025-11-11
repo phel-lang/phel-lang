@@ -295,3 +295,123 @@
       (is (= 2 (count chunks)) "8 bytes with chunk size 4 should produce 2 chunks")
       (is (= binary-content (apply str chunks)) "binary content should be preserved"))
     (php/unlink target-file)))
+
+(deftest test-csv-seq-basic
+  (let [target-directory (str (php/sys_get_temp_dir))
+        target-file (str target-directory php/DIRECTORY_SEPARATOR "test-csv-seq.csv")
+        csv-content "name,age,city\nAlice,30,NYC\nBob,25,LA\nCharlie,35,SF"]
+    (spit target-file csv-content)
+    (let [rows (doall (csv-seq target-file))]
+      (is (= 4 (count rows)) "should read 4 rows including header")
+      (is (= ["name" "age" "city"] (first rows)) "first row should be header")
+      (is (= ["Alice" "30" "NYC"] (second rows)) "second row should be Alice")
+      (is (= ["Bob" "25" "LA"] (get rows 2)) "third row should be Bob"))
+    (php/unlink target-file)))
+
+(deftest test-csv-seq-with-quotes
+  (let [target-directory (str (php/sys_get_temp_dir))
+        target-file (str target-directory php/DIRECTORY_SEPARATOR "test-csv-seq-quotes.csv")
+        csv-content "name,description\n\"Smith, John\",\"A person named \"\"John\"\" Smith\""]
+    (spit target-file csv-content)
+    (let [rows (doall (csv-seq target-file))]
+      (is (= 2 (count rows)) "should read 2 rows")
+      (is (= ["name" "description"] (first rows)) "first row should be header")
+      (is (= ["Smith, John" "A person named \"John\" Smith"] (second rows))
+          "should handle quoted commas and escaped quotes"))
+    (php/unlink target-file)))
+
+(deftest test-csv-seq-with-newlines-in-quotes
+  (let [target-directory (str (php/sys_get_temp_dir))
+        target-file (str target-directory php/DIRECTORY_SEPARATOR "test-csv-seq-newlines.csv")
+        csv-content "name,address\nAlice,\"123 Main St\nApt 4\nNYC\""]
+    (spit target-file csv-content)
+    (let [rows (doall (csv-seq target-file))]
+      (is (= 2 (count rows)) "should read 2 rows")
+      (is (= ["Alice" "123 Main St\nApt 4\nNYC"] (second rows))
+          "should handle newlines within quoted fields"))
+    (php/unlink target-file)))
+
+(deftest test-csv-seq-with-custom-separator
+  (let [target-directory (str (php/sys_get_temp_dir))
+        target-file (str target-directory php/DIRECTORY_SEPARATOR "test-csv-seq-tsv.tsv")
+        tsv-content "name\tage\tcity\nAlice\t30\tNYC\nBob\t25\tLA"]
+    (spit target-file tsv-content)
+    (let [rows (doall (csv-seq target-file {:separator "\t"}))]
+      (is (= 3 (count rows)) "should read 3 rows")
+      (is (= ["name" "age" "city"] (first rows)) "should parse tab-separated values"))
+    (php/unlink target-file)))
+
+(deftest test-csv-seq-with-pipe-separator
+  (let [target-directory (str (php/sys_get_temp_dir))
+        target-file (str target-directory php/DIRECTORY_SEPARATOR "test-csv-seq-pipe.csv")
+        pipe-content "name|age|city\nAlice|30|NYC"]
+    (spit target-file pipe-content)
+    (let [rows (doall (csv-seq target-file {:separator "|"}))]
+      (is (= 2 (count rows)) "should read 2 rows")
+      (is (= ["Alice" "30" "NYC"] (second rows)) "should parse pipe-separated values"))
+    (php/unlink target-file)))
+
+(deftest test-csv-seq-empty-file
+  (let [target-directory (str (php/sys_get_temp_dir))
+        target-file (str target-directory php/DIRECTORY_SEPARATOR "test-csv-seq-empty.csv")]
+    (spit target-file "")
+    (is (= [] (doall (csv-seq target-file)))
+        "csv-seq returns empty sequence for empty file")
+    (php/unlink target-file)))
+
+(deftest test-csv-seq-single-row
+  (let [target-directory (str (php/sys_get_temp_dir))
+        target-file (str target-directory php/DIRECTORY_SEPARATOR "test-csv-seq-single.csv")]
+    (spit target-file "name,age,city")
+    (let [rows (doall (csv-seq target-file))]
+      (is (= 1 (count rows)) "should read single row")
+      (is (= ["name" "age" "city"] (first rows)) "should parse single row"))
+    (php/unlink target-file)))
+
+(deftest test-csv-seq-empty-fields
+  (let [target-directory (str (php/sys_get_temp_dir))
+        target-file (str target-directory php/DIRECTORY_SEPARATOR "test-csv-seq-empty-fields.csv")
+        csv-content "name,age,city\nAlice,,NYC\n,25,"]
+    (spit target-file csv-content)
+    (let [rows (doall (csv-seq target-file))]
+      (is (= 3 (count rows)) "should read 3 rows")
+      (is (= ["Alice" "" "NYC"] (second rows)) "should handle empty fields in middle")
+      (is (= ["" "25" ""] (get rows 2)) "should handle empty fields at start and end"))
+    (php/unlink target-file)))
+
+(deftest test-csv-seq-is-lazy
+  (let [target-directory (str (php/sys_get_temp_dir))
+        target-file (str target-directory php/DIRECTORY_SEPARATOR "test-csv-seq-lazy.csv")
+        rows (map |(str $ ",value" $) (range 1000))]
+    (spit target-file (apply str (interpose "\n" rows)))
+    (let [first-five (take 5 (csv-seq target-file))]
+      (is (= 5 (count first-five)) "csv-seq should be lazy and work with take")
+      (is (= ["0" "value0"] (first first-five)) "first row should be correct"))
+    (php/unlink target-file)))
+
+(deftest test-csv-seq-non-existent-file
+  (is (thrown? \InvalidArgumentException (doall (csv-seq "/non/existent/file.csv")))
+      "csv-seq throws exception for non-existent file"))
+
+(deftest test-csv-seq-directory
+  (is (thrown? \InvalidArgumentException (doall (csv-seq (php/sys_get_temp_dir))))
+      "csv-seq throws exception for directory"))
+
+(deftest test-csv-seq-returns-lazy-seq
+  (let [target-directory (str (php/sys_get_temp_dir))
+        target-file (str target-directory php/DIRECTORY_SEPARATOR "test-csv-seq-type.csv")]
+    (spit target-file "a,b,c\n1,2,3")
+    (let [result (csv-seq target-file)]
+      (is (true? (php/instanceof result \Phel\Lang\Collections\LazySeq\LazySeqInterface))
+          "csv-seq should return a lazy sequence"))
+    (php/unlink target-file)))
+
+(deftest test-csv-seq-with-trailing-newline
+  (let [target-directory (str (php/sys_get_temp_dir))
+        target-file (str target-directory php/DIRECTORY_SEPARATOR "test-csv-seq-trailing.csv")
+        csv-content "name,age\nAlice,30\n"]
+    (spit target-file csv-content)
+    (let [rows (doall (csv-seq target-file))]
+      (is (= 2 (count rows)) "should read 2 rows, ignoring trailing newline")
+      (is (= ["Alice" "30"] (second rows)) "last row should be parsed correctly"))
+    (php/unlink target-file)))

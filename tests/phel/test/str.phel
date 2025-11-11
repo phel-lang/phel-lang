@@ -129,8 +129,9 @@
     (is (= 3  (s/index-of sb "o" -100)))
     (is (= nil (s/index-of sb "z")))
     (is (= nil (s/index-of sb "z" 2)))
-    (is (= nil (s/index-of sb "z" 100))
-    (is (= nil (s/index-of sb "z" -10)))))
+    (is (= nil (s/index-of sb "z" 100)))
+    (is (= nil (s/index-of sb "z" -10))))
+
   (let [sb "ｔａｃｏｓ"]
     (is (= 2  (s/index-of sb "ｃ")))
     (is (= 1  (s/index-of sb "ａｃ")))
@@ -138,30 +139,31 @@
     (is (= 3  (s/index-of sb "ｏ" -100)))
     (is (= nil (s/index-of sb "ｚ")))
     (is (= nil (s/index-of sb "ｚ" 2)))
-    (is (= nil (s/index-of sb "ｚ" 100))
-    (is (= nil (s/index-of sb "ｚ" -10))))))
+    (is (= nil (s/index-of sb "ｚ" 100)))
+    (is (= nil (s/index-of sb "ｚ" -10)))))
 
 (deftest test-last-index-of
   (let [sb "banana"]
     (is (= 4 (s/last-index-of sb "n")))
     (is (= 3 (s/last-index-of sb "an")))
-    (is (= 4 (s/last-index-of sb "n" )))
+    (is (= 4 (s/last-index-of sb "n")))
     (is (= 4 (s/last-index-of sb "n" 5)))
     (is (= 4 (s/last-index-of sb "n" 500)))
     (is (= nil (s/last-index-of sb "z")))
     (is (= nil (s/last-index-of sb "z" 1)))
-    (is (= nil (s/last-index-of sb "z" 100))
-    (is (= nil (s/last-index-of sb "z" -10)))))
+    (is (= nil (s/last-index-of sb "z" 100)))
+    (is (= nil (s/last-index-of sb "z" -10))))
+
   (let [sb "ｂａｎａｎａ"]
     (is (= 4 (s/last-index-of sb "ｎ")))
     (is (= 3 (s/last-index-of sb "ａｎ")))
-    (is (= 4 (s/last-index-of sb "ｎ" )))
+    (is (= 4 (s/last-index-of sb "ｎ")))
     (is (= 4 (s/last-index-of sb "ｎ" 5)))
     (is (= 4 (s/last-index-of sb "ｎ" 500)))
     (is (= nil (s/last-index-of sb "ｚ")))
     (is (= nil (s/last-index-of sb "ｚ" 1)))
-    (is (= nil (s/last-index-of sb "ｚ" 100))
-    (is (= nil (s/last-index-of sb "ｚ" -10))))))
+    (is (= nil (s/last-index-of sb "ｚ" 100)))
+    (is (= nil (s/last-index-of sb "ｚ" -10)))))
 
 (deftest test-starts-with?
   (is (= true (s/starts-with? "clojure west" "clojure")))

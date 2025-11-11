@@ -57,10 +57,10 @@
    replacement argument."
   [s match replacement]
   (let [match (if (and
-                    (> (php/mb_strlen match) 1)
-                    (=
-                      (php/substr match 0 1)
-                      (php/substr match -1 1)))
+                   (> (php/mb_strlen match) 1)
+                   (=
+                    (php/substr match 0 1)
+                    (php/substr match -1 1)))
                 match
                 (format "/%s/" (php/preg_quote match "/")))]
     (if (function? replacement)
@@ -95,10 +95,10 @@
    -> \"first swap two words\""
   [s match replacement]
   (let [match (if (and
-                    (> (php/mb_strlen match) 1)
-                    (=
-                      (php/substr match 0 1)
-                      (php/substr match -1 1)))
+                   (> (php/mb_strlen match) 1)
+                   (=
+                    (php/substr match 0 1)
+                    (php/substr match -1 1)))
                 match
                 (format "/%s/" (php/preg_quote match "/")))]
     (if (function? replacement)
