@@ -5,6 +5,7 @@ All notable changes to this project will be documented in this file.
 ## [Unreleased]
 
 ### Added
+- Add URL support to `slurp` function for unified file and URL reading API (http://, https://, ftp://)
 - Make `concat` fully lazy with support for infinite sequences
 - Make `mapcat` fully lazy with support for infinite sequences
 - Make `interpose` fully lazy with support for infinite sequences
