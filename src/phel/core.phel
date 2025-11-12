@@ -2327,6 +2327,15 @@ returns 1. If `xs` has one value, returns the reciprocal of x."
 # File operations
 # ---------------
 
+(defn- file-get-contents-silenced
+  "Wrapper around file_get_contents that suppresses PHP warnings.
+  We handle errors by checking the return value."
+  [path use-include-path context offset length]
+  (let [old-error-level (php/error_reporting 0)
+        content (php/file_get_contents path use-include-path context offset length)]
+    (php/error_reporting old-error-level)
+    content))
+
 (defn slurp
   "Reads entire file or URL into a string. Accepts both file paths and URLs
   (http://, https://, ftp://). Accepts `opts` map for overriding default
@@ -2356,7 +2365,7 @@ returns 1. If `xs` has one value, returns the reciprocal of x."
           context          (or (:context opts) nil)
           offset           (or (:offset opts) 0)
           length           (or (:length opts) nil)
-          content (php/file_get_contents path use-include-path context offset length)]
+          content (file-get-contents-silenced path use-include-path context offset length)]
       # Check if file_get_contents failed
       (when (= content false)
         (throw (php/new \InvalidArgumentException
