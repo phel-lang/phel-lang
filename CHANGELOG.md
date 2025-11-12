@@ -21,15 +21,8 @@ All notable changes to this project will be documented in this file.
 - Document `flatten` as lazy (already was lazy via `filter` and `tree-seq`)
 
 ### Changed
-- Rename collection parameters from `xs` to `coll` throughout core functions for Clojure compatibility
-  - Affects ~50+ functions: map, filter, reduce, take, drop, concat, flatten, sort, partition, and more
-  - Improves Clojure developer onboarding by aligning parameter naming conventions
+- Rename collection parameters from `xs` to `coll` throughout core functions
 - Make `assoc`/`dissoc` primary functions with `put`/`unset` as deprecated aliases
-  - `assoc` and `dissoc` are now the preferred functions (matching Clojure naming)
-  - `put`, `unset`, `put-in`, and `unset-in` are deprecated (marked with `{:deprecated "0.15.0"}`)
-  - Use `assoc`, `dissoc`, `assoc-in`, and `dissoc-in` for new code
-  - All internal usages updated to use the new preferred functions
-  - Backward compatibility maintained for existing code
 
 ### Fixed
 - Fix `into` to work correctly with `PersistentList` and other `ConcatInterface` types that don't implement `PushInterface`
