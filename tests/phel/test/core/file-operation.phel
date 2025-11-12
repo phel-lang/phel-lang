@@ -6,14 +6,6 @@
   (is (thrown? \InvalidArgumentException
                (slurp "/non/existent/file.txt")) "reading non-existent file throws exception"))
 
-# TODO: Directory test needs investigation - directory check exists in code but test fails
-# (deftest test-slurp-directory-error
-#   (let [test-dir (str (php/sys_get_temp_dir) php/DIRECTORY_SEPARATOR "test-slurp-dir")]
-#     (php/mkdir test-dir)
-#     (is (thrown? \InvalidArgumentException (slurp test-dir))
-#         "slurp should throw exception for directory")
-#     (php/rmdir test-dir)))
-
 (deftest test-slurp-backwards-compatibility
   # Ensure slurp still works with regular files (backwards compatibility)
   (let [target-directory (str (php/sys_get_temp_dir))
