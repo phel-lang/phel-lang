@@ -2327,21 +2327,50 @@ returns 1. If `xs` has one value, returns the reciprocal of x."
 # File operations
 # ---------------
 
+(defn- file-get-contents-silenced
+  "Wrapper around file_get_contents that suppresses PHP warnings.
+  We handle errors by checking the return value."
+  [path use-include-path context offset length]
+  (let [old-error-level (php/error_reporting 0)
+        content (php/file_get_contents path use-include-path context offset length)]
+    (php/error_reporting old-error-level)
+    content))
+
 (defn slurp
-  "Reads entire file into a string. Accepts `opts` map for overriding default
+  "Reads entire file or URL into a string. Accepts both file paths and URLs
+  (http://, https://, ftp://). Accepts `opts` map for overriding default
   PHP file_get_contents arguments.
+
+  Examples:
+    (slurp \"file.txt\")
+    (slurp \"https://example.com/data.txt\")
+    (slurp \"file.txt\" {:encoding \"UTF-8\"})
+
   See PHP's [file_get_contents](https://www.php.net/manual/en/function.file-get-contents.php) for more information."
-  [filename & [opts]]
-  (when-not (php/is_file filename)
-    (throw (php/new \InvalidArgumentException
-                    "Argument filename should be a valid path to a file")))
-  (let [opts             (or opts {})
-        use-include-path (or (:use-include-path opts) false)
-        context          (or (:context opts) nil)
-        offset           (or (:offset opts) 0)
-        length           (or (:length opts) nil)
-        content (php/file_get_contents filename use-include-path context offset length)]
-    (when content content)))
+  [path & [opts]]
+  (let [is-url? (php/preg_match "/^(https?|ftp):\/\//i" path)]
+    # Validate for non-URLs
+    (when-not is-url?
+      # Check if path is a directory
+      (when (php/is_dir path)
+        (throw (php/new \InvalidArgumentException
+                        (str "Cannot read directory: " path))))
+      # Check if file exists
+      (when-not (php/is_file path)
+        (throw (php/new \InvalidArgumentException
+                        (str "File not found: " path)))))
+    # Read content
+    (let [opts             (or opts {})
+          use-include-path (or (:use-include-path opts) false)
+          context          (or (:context opts) nil)
+          offset           (or (:offset opts) 0)
+          length           (or (:length opts) nil)
+          content (file-get-contents-silenced path use-include-path context offset length)]
+      # Check if file_get_contents failed
+      (when (= content false)
+        (throw (php/new \InvalidArgumentException
+                        (str "Failed to read from: " path))))
+      content)))
 
 (defn spit
   "Writes data to file, returning number of bytest that were written or `nil`

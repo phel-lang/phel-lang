@@ -4,7 +4,37 @@
 (deftest test-slurp
   (is (string? (slurp php/__FILE__)) "reads current file successfully")
   (is (thrown? \InvalidArgumentException
-               (slurp (php/dirname php/__DIR__))) "reading a directory throws exception"))
+               (slurp "/non/existent/file.txt")) "reading non-existent file throws exception"))
+
+(deftest test-slurp-backwards-compatibility
+  # Ensure slurp still works with regular files (backwards compatibility)
+  (let [target-directory (str (php/sys_get_temp_dir))
+        target-file (str target-directory php/DIRECTORY_SEPARATOR "test-slurp-compat.txt")
+        test-content "Backwards compatibility test"]
+    (spit target-file test-content)
+    (is (= test-content (slurp target-file)) "slurp should still work with regular files")
+    (php/unlink target-file)))
+
+(deftest test-slurp-relative-path
+  # Test that relative file paths still work
+  (let [target-directory (str (php/sys_get_temp_dir))
+        target-file (str target-directory php/DIRECTORY_SEPARATOR "test-slurp-relative.txt")
+        test-content "Relative path test"]
+    (spit target-file test-content)
+    (let [old-cwd (php/getcwd)]
+      (php/chdir target-directory)
+      (is (= test-content (slurp "test-slurp-relative.txt"))
+          "slurp should work with relative file paths")
+      (php/chdir old-cwd))
+    (php/unlink target-file)))
+
+# Note: URL tests are commented out to avoid network dependencies in CI
+# These can be tested manually or in integration test suites
+#
+# (deftest test-slurp-with-url
+#   (let [result (slurp "https://httpbin.org/robots.txt")]
+#     (is (string? result) "slurp should successfully read from URL")
+#     (is (> (php/strlen result) 0) "slurp should return non-empty content from URL")))
 
 (deftest test-spit
   (let [target-directory (str (php/sys_get_temp_dir))
