@@ -893,13 +893,12 @@ Calling the `and` function without arguments returns true."
         opt
         res))))
 
-(defn put
-  "Puts `value` mapped to `key` on the datastructure `ds`. Returns `ds`."
+(defn assoc
+  "Associates `value` with `key` in the datastructure `ds`. Returns `ds`."
   [ds key value]
   (cond
     (php-array? ds)
-    (throw (php/new InvalidArgumentException "Cannot call put on pure PHP
-arrays. Use (php/aset ds key value)"))
+    (throw (php/new InvalidArgumentException "Cannot call assoc on pure PHP arrays. Use (php/aset ds key value)"))
 
     (or (struct? ds) (hash-map? ds) (php/instanceof ds TransientMapInterface))
     (php/-> ds (put key value))
@@ -911,18 +910,21 @@ arrays. Use (php/aset ds key value)"))
       (php/aset ds key value)
       ds)))
 
-(defn assoc
-  "Alias for `put`."
-  [ds key value]
-  (put ds key value))
+(defn put
+  "Puts `value` mapped to `key` on the datastructure `ds`. Returns `ds`.
 
-(defn unset
-  "Returns `ds` without `key`."
+  Deprecated: Use `assoc` instead."
+  {:deprecated "0.25.0"
+   :superseded-by "assoc"}
+  [ds key value]
+  (assoc ds key value))
+
+(defn dissoc
+  "Dissociates `key` from the datastructure `ds`. Returns `ds` without `key`."
   [ds key]
   (cond
     (php-array? ds)
-    (throw (php/new InvalidArgumentException "Cannot call unset on pure PHP
-arrays. Use (php/aunset ds key)"))
+    (throw (php/new InvalidArgumentException "Cannot call dissoc on pure PHP arrays. Use (php/aunset ds key)"))
 
     (or (hash-map? ds) (php/instanceof ds TransientMapInterface))
     (php/-> ds (remove key))
@@ -934,10 +936,14 @@ arrays. Use (php/aunset ds key)"))
       (php/aunset x key)
       x)))
 
-(defn dissoc
-  "Alias for `unset`."
+(defn unset
+  "Returns `ds` without `key`.
+
+  Deprecated: Use `dissoc` instead."
+  {:deprecated "0.25.0"
+   :superseded-by "dissoc"}
   [ds key]
-  (unset ds key))
+  (dissoc ds key))
 
 # --------
 # Variable
@@ -1004,7 +1010,7 @@ arrays. Use (php/aunset ds key)"))
           verb (php/aget head (php/+ i 1))]
       (if (keyword? binding)
         (case binding
-          :reduce (for-builder-options head (php/+ i 2) (put initial-options :reduce verb))
+          :reduce (for-builder-options head (php/+ i 2) (assoc initial-options :reduce verb))
           (for-builder-options head (php/+ i 2) initial-options))
         (for-builder-options head (php/+ i 3) initial-options)))))
 
@@ -1173,7 +1179,7 @@ arrays. Use (php/aunset ds key)"))
                                       (do
                                         (php/aset acc k v)
                                         acc)
-                                      (put acc k v))))
+                                      (assoc acc k v))))
                                 (throw (php/new InvalidArgumentException
                                                 "into expects a collection of [key value] pairs"))))
                 map-target? (or (associative? to) (php/instanceof to TransientMapInterface))]
@@ -1222,45 +1228,53 @@ arrays. Use (php/aunset ds key)"))
   (let [res (reduce get ds ks)]
     (if (nil? res) opt res)))
 
-(defn put-in
-  "Puts a value into a nested data structure."
+(defn assoc-in
+  "Associates a value in a nested data structure."
   [ds [k & ks] v]
   (if-not (nil? ks)
-    (put ds k (put-in (get ds k {}) ks v))
-    (put ds k v)))
+    (assoc ds k (assoc-in (get ds k {}) ks v))
+    (assoc ds k v)))
 
-(defn assoc-in
-  "Alias for `put-in`."
+(defn put-in
+  "Puts a value into a nested data structure.
+
+  Deprecated: Use `assoc-in` instead."
+  {:deprecated "0.25.0"
+   :superseded-by "assoc-in"}
   [ds ks v]
-  (put-in ds ks v))
+  (assoc-in ds ks v))
 
 (defn update
   "Updates a value in a datastructure by applying `f` to the current element and replacing it with the result of `f`."
   [ds k f & args]
-  (put ds k (apply f (get ds k) args)))
+  (assoc ds k (apply f (get ds k) args)))
 
 (defn update-in
   "Updates a value into a nested data structure."
   [ds [k & ks] f & args]
   (if ks
-    (put ds k (apply update-in (get ds k {}) ks f args))
+    (assoc ds k (apply update-in (get ds k {}) ks f args))
     (let [current (get ds k)] # Extract value first for possible call-by-reference
-      (put ds k (apply f current args)))))
+      (assoc ds k (apply f current args)))))
 
-(defn unset-in
-  "Removes a value from a nested data structure."
+(defn dissoc-in
+  "Dissociates a value from a nested data structure."
   [ds [k & ks]]
   (if ks
     (let [sub (get ds k)]
       (if (nil? sub)
         ds
-        (put ds k (unset-in sub ks))))
-    (unset ds k)))
+        (assoc ds k (dissoc-in sub ks))))
+    (dissoc ds k)))
 
-(defn dissoc-in
-  "Alias for `unset-in`."
+(defn unset-in
+  "Removes a value from a nested data structure.
+
+  Deprecated: Use `dissoc-in` instead."
+  {:deprecated "0.25.0"
+   :superseded-by "dissoc-in"}
   [ds ks]
-  (unset-in ds ks))
+  (dissoc-in ds ks))
 
 (defn drop
   "Drops the first `n` elements of `coll`. Returns a lazy sequence."
@@ -1438,7 +1452,7 @@ arrays. Use (php/aunset ds key)"))
   (let [result (for [x :in coll
                      :reduce [res {}]]
                  (let [n (get res x 0)]
-                   (put res x (php/+ 1 n))))]
+                   (assoc res x (php/+ 1 n))))]
     (with-meta coll result)))
 
 (defn keys
@@ -1480,7 +1494,7 @@ arrays. Use (php/aunset ds key)"))
   [arr]
   (let [res (transient {})]
     (foreach [k v arr]
-      (put res k v))
+      (assoc res k v))
     (persistent res)))
 
 
@@ -1527,7 +1541,7 @@ arrays. Use (php/aunset ds key)"))
     (php-array? x)
     (let [res (transient {})]
       (foreach [k v x]
-        (put res k (php->phel v)))
+        (assoc res k (php->phel v)))
       (persistent res))
 
     true x))
@@ -1723,7 +1737,7 @@ arrays. Use (php/aunset ds key)"))
          :let [k (f x)]
          :reduce [res (transient {})]]
      (when-not (get res k)
-       (put res k []))
+       (assoc res k []))
      (update-in res [k] push x))))
 
 (defn zipcoll
@@ -1739,7 +1753,7 @@ arrays. Use (php/aunset ds key)"))
          res {}]
     (if (or (empty? ks) (empty? vs))
       res
-      (recur (next ks) (next vs) (put res (first ks) (first vs))))))
+      (recur (next ks) (next vs) (assoc res (first ks) (first vs))))))
 
 (defn merge
   "Merges multiple maps into one new map. If a key appears in more than one
@@ -1748,7 +1762,7 @@ arrays. Use (php/aunset ds key)"))
   (for [map :in maps
         [k v] :pairs map
         :reduce [res {}]]
-    (put res k v)))
+    (assoc res k v)))
 
 (defn select-keys
   "Returns a new map including key value pairs from `m` selected with of keys `ks`."
@@ -1756,7 +1770,7 @@ arrays. Use (php/aunset ds key)"))
   (let [result (for [[k v] :pairs m
                      :when (contains-value? ks k)
                      :reduce [acc {}]]
-                 (put acc k v))]
+                 (assoc acc k v))]
     (with-meta m result)))
 
 (defn invert
@@ -1765,7 +1779,7 @@ arrays. Use (php/aunset ds key)"))
   [map]
   (for [[k v] :pairs map
         :reduce [res {}]]
-    (put res v k)))
+    (assoc res v k)))
 
 (defn split-at
   "Returns a vector of `[(take n coll) (drop n coll)]`."
@@ -1932,7 +1946,7 @@ arrays. Use (php/aunset ds key)"))
         (if (contains? c args)
           (get c args)
           (let [res (apply f args)]
-            (set! memoize-cache (put c args res))
+            (set! memoize-cache (assoc c args res))
             res))))))
 
 # -----------------------
@@ -1975,8 +1989,8 @@ arrays. Use (php/aunset ds key)"))
   (for [[k v] :pairs right
         :reduce [acc left]]
     (if (contains? acc k)
-      (put acc k (f (get acc k) v))
-      (put acc k v))))
+      (assoc acc k (f (get acc k) v))
+      (assoc acc k v))))
 
 (defn merge-with
   "Merges multiple maps into one new map. If a key appears in more than one

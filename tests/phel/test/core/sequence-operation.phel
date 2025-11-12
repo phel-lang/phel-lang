@@ -119,6 +119,7 @@
   (is (= {:a 1 :b 2 :c 3} (put {:a 1 :b 2} :c 3)) "put: append entry on map"))
 
 (deftest test-assoc
+  (is (= {:a nil :b 2} (assoc {:a 1 :b 2} :a nil)) "assoc: nil on map")
   (is (= {:a 3 :b 2} (assoc {:a 1 :b 2} :a 3)) "assoc: replace entry on map")
   (is (= {:a 1 :b 2 :c 3} (assoc {:a 1 :b 2} :c 3)) "assoc: append entry on map"))
 
