@@ -129,72 +129,70 @@
   "Simulates saving a user to database"
   (db user))
 
-# Temporarily disabled - debugging
-# (deftest test-mocking-with-binding
-#   (let [mock-http (mock {:id 1 :name "Alice"})]
-#     (binding [fetch-user (fn [_ id] (mock-http id))]
-#       (let [result (fetch-user nil 123)]
-#         (is (= {:id 1 :name "Alice"} result) "uses mocked response")
-#         (is (called-with? mock-http 123) "verifies call arguments")))))
+(deftest test-mocking-with-binding
+  (let [mock-http (mock {:id 1 :name "Alice"})]
+    (binding [fetch-user (fn [_ id] (mock-http id))]
+      (let [result (fetch-user nil 123)]
+        (is (= {:id 1 :name "Alice"} result) "uses mocked response")
+        (is (called-with? mock-http 123) "verifies call arguments")))))
 
-# (deftest test-with-mocks-macro
-#   (let [mock-http (mock {:status 200})
-#         mock-db (mock :ok)]
-#     (with-mocks [fetch-user (fn [_ _] (mock-http))
-#                  save-user  (fn [_] (mock-db))]
-#       (is (= {:status 200} (fetch-user nil 1)) "uses first mock")
-#       (is (= :ok (save-user {})) "uses second mock")
-#       (is (called? mock-http) "first mock was called")
-#       (is (called? mock-db) "second mock was called"))))
+(deftest test-with-mocks-macro
+  (let [mock-http (mock {:status 200})
+        mock-db (mock :ok)]
+    (with-mocks [fetch-user (fn [_ _] (mock-http))
+                 save-user  (fn [_] (mock-db))]
+      (is (= {:status 200} (fetch-user nil 1)) "uses first mock")
+      (is (= :ok (save-user {})) "uses second mock")
+      (is (called? mock-http) "first mock was called")
+      (is (called? mock-db) "second mock was called"))))
 
 # -----------
 # Real-world Example Tests
 # -----------
-# Temporarily disabled - debugging
 
-# (defn send-email [email-service to subject body]
-#   "Simulates sending an email"
-#   (email-service to subject body))
+(defn send-email [email-service to subject body]
+  "Simulates sending an email"
+  (email-service to subject body))
 
-# (defn register-user [email-service user]
-#   "Simulates user registration with email notification"
-#   (send-email email-service (:email user) "Welcome!" "Thanks for signing up"))
+(defn register-user [email-service user]
+  "Simulates user registration with email notification"
+  (send-email email-service (:email user) "Welcome!" "Thanks for signing up"))
 
-# (deftest test-email-sending-mock
-#   (let [mock-email (mock :sent)]
-#     (binding [send-email (fn [_ to subject body] (mock-email to subject body))]
-#       (register-user nil {:email "user@example.com"})
-#       (is (called-once? mock-email) "sends exactly one email")
-#       (is (called-with? mock-email "user@example.com" "Welcome!" "Thanks for signing up")
-#           "sends correct email"))))
+(deftest test-email-sending-mock
+  (let [mock-email (mock :sent)]
+    (binding [send-email (fn [_ to subject body] (mock-email to subject body))]
+      (register-user nil {:email "user@example.com"})
+      (is (called-once? mock-email) "sends exactly one email")
+      (is (called-with? mock-email "user@example.com" "Welcome!" "Thanks for signing up")
+          "sends correct email"))))
 
-# (defn fetch-from-api [url]
-#   "Simulates API call"
-#   {:url url :status 200})
+(defn fetch-from-api [url]
+  "Simulates API call"
+  {:url url :status 200})
 
-# (deftest test-api-failure-with-mock-throwing
-#   (let [mock-api (mock-throwing (php/new \RuntimeException "API unavailable"))]
-#     (binding [fetch-from-api (fn [url] (mock-api url))]
-#       (is (thrown? \RuntimeException (fetch-from-api "http://api.example.com"))
-#           "throws when API fails")
-#       (is (called-with? mock-api "http://api.example.com") "attempted call with URL"))))
+(deftest test-api-failure-with-mock-throwing
+  (let [mock-api (mock-throwing (php/new \RuntimeException "API unavailable"))]
+    (binding [fetch-from-api (fn [url] (mock-api url))]
+      (is (thrown? \RuntimeException (fetch-from-api "http://api.example.com"))
+          "throws when API fails")
+      (is (called-with? mock-api "http://api.example.com") "attempted call with URL"))))
 
-# (defn retry-fetch [fetch-fn url max-retries]
-#   "Simulates retry logic"
-#   (try
-#     (fetch-fn url)
-#     (catch \Exception e
-#       (if (> max-retries 0)
-#         (retry-fetch fetch-fn url (dec max-retries))
-#         (throw e)))))
+(defn retry-fetch [fetch-fn url max-retries]
+  "Simulates retry logic"
+  (try
+    (fetch-fn url)
+    (catch \Exception e
+      (if (> max-retries 0)
+        (retry-fetch fetch-fn url (dec max-retries))
+        (throw e)))))
 
-# (deftest test-retry-logic-with-mock-returning
-#   (let [mock-api (mock-returning [nil nil {:status 200}])]
-#     (binding [fetch-from-api (fn [url]
-#                                (let [result (mock-api url)]
-#                                  (when (nil? result)
-#                                    (throw (php/new \Exception "Failed")))
-#                                  result))]
-#       (is (= {:status 200} (retry-fetch fetch-from-api "http://api.example.com" 3))
-#           "succeeds after retries")
-#       (is (= 3 (call-count mock-api)) "retries correct number of times"))))
+(deftest test-retry-logic-with-mock-returning
+  (let [mock-api (mock-returning [nil nil {:status 200}])]
+    (binding [fetch-from-api (fn [url]
+                               (let [result (mock-api url)]
+                                 (when (nil? result)
+                                   (throw (php/new \Exception "Failed")))
+                                 result))]
+      (is (= {:status 200} (retry-fetch fetch-from-api "http://api.example.com" 3))
+          "succeeds after retries")
+      (is (= 3 (call-count mock-api)) "retries correct number of times"))))
