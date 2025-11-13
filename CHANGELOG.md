@@ -5,20 +5,14 @@ All notable changes to this project will be documented in this file.
 ## [Unreleased]
 
 ### Added
-- Add URL support to `slurp` function for unified file and URL reading API (http://, https://, ftp://)
-- Make `concat` fully lazy with support for infinite sequences
-- Make `mapcat` fully lazy with support for infinite sequences
-- Make `interpose` fully lazy with support for infinite sequences
-- Make `map-indexed` fully lazy with support for infinite sequences
-- Make `interleave` fully lazy with support for infinite sequences
-- Make variadic `map` (multi-collection) fully lazy with support for infinite sequences
-- Make `partition` fully lazy with support for infinite sequences
-- Add `partition-all` function with lazy support for infinite sequences
-- Add `line-seq` function for lazy line-by-line file reading with automatic resource cleanup
-- Add `file-seq` function for lazy recursive directory traversal
-- Add `read-file-lazy` function for lazy chunked file reading with configurable chunk size
-- Add `csv-seq` function for lazy CSV file parsing with RFC 4180 support and custom separators
-- Document `flatten` as lazy (already was lazy via `filter` and `tree-seq`)
+- Add mocking framework in `phel\mock` namespace for test doubles
+- Add URL support to `slurp` function (http://, https://, ftp://)
+- Add `partition-all` for lazy partitioning with support for infinite sequences
+- Add `line-seq` for lazy line-by-line file reading with automatic resource cleanup
+- Add `file-seq` for lazy recursive directory traversal
+- Add `read-file-lazy` for lazy chunked file reading
+- Add `csv-seq` for lazy CSV parsing
+- Make `concat`, `mapcat`, `interpose`, `map-indexed`, `interleave`, variadic `map`, and `partition` fully lazy with infinite sequence support
 
 ### Changed
 - Rename collection parameters from `xs` to `coll` throughout core functions
