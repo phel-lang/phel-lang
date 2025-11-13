@@ -271,3 +271,37 @@
            (do ,@body)
            (finally
              ,@(map (fn [m] `(reset-mock! ,m)) mock-syms)))))))
+
+(defmacro with-mock-wrapper
+  "Like with-mocks but for wrapped mocks (interop scenarios).
+  Automatically resets the underlying mock even when wrapped in an adapter function.
+
+  Usage:
+    (with-mock-wrapper [fn-symbol underlying-mock wrapper-fn]
+      body...)
+
+  Example:
+    (let [mock-http (mock {:status 200})]
+      (with-mock-wrapper [symfony-service mock-http
+                          (fn [args] (mock-http (adapt-args args)))]
+        (symfony-service {:key \"value\"})
+        (is (called-once? mock-http))))
+      # mock-http is automatically reset here
+
+  Multiple wrappers:
+    (with-mock-wrapper [service-a mock-a (fn [x] (mock-a (inc x)))
+                        service-b mock-b (fn [y] (mock-b (dec y)))]
+      ...)"
+  [bindings & body]
+  (let [grouped (partition 3 bindings)
+        symbols (map first grouped)
+        mocks (map second grouped)
+        wrappers (map (fn [g] (get g 2)) grouped)
+        wrapper-syms (map (fn [_] (gensym "wrapper")) wrappers)
+        reset-forms (map (fn [m] (list 'reset-mock! m)) mocks)]
+    `(let [,@(interleave wrapper-syms wrappers)]
+       (binding [,@(interleave symbols wrapper-syms)]
+         (try
+           (do ,@body)
+           (finally
+             ,@reset-forms))))))

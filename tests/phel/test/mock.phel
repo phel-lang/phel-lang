@@ -3,7 +3,8 @@
   (:require phel\mock :refer [mock mock-fn spy mock-returning mock-throwing
                               calls call-count called? called-with? called-once?
                               called-times? never-called? last-call first-call
-                              reset-mock! clear-all-mocks! mock? with-mocks]))
+                              reset-mock! clear-all-mocks! mock? with-mocks
+                              with-mock-wrapper]))
 
 # -----------
 # Mock Creation Tests
@@ -209,6 +210,33 @@
   (with-mocks [fetch-user (mock {:id 2 :name "Test2"})]
     (fetch-user nil 2)
     (is (= 1 (call-count fetch-user)) "new inline mock starts at 1, not 2")))
+
+(deftest test-with-mock-wrapper-single
+  # Test wrapper with auto-reset for interop scenarios
+  (let [mock-http (mock {:status 200})]
+    (with-mock-wrapper [fetch-user mock-http
+                        (fn [_ id] (mock-http (str "/users/" id)))]
+      (fetch-user nil 123)
+      (is (called-once? mock-http) "mock called inside wrapper")
+      (is (called-with? mock-http "/users/123") "wrapper adapted arguments"))
+
+    # After with-mock-wrapper, mock should be reset
+    (is (= 0 (call-count mock-http)) "mock reset after wrapper block")))
+
+(deftest test-with-mock-wrapper-multiple
+  # Test multiple wrappers with auto-reset
+  (let [mock-http (mock {:status 200})
+        mock-db (mock :ok)]
+    (with-mock-wrapper [fetch-user mock-http (fn [_ id] (mock-http id))
+                        save-user mock-db (fn [user] (mock-db user))]
+      (fetch-user nil 123)
+      (save-user {:name "Test"})
+      (is (called-once? mock-http) "http mock called")
+      (is (called-once? mock-db) "db mock called"))
+
+    # Both mocks should be reset
+    (is (= 0 (call-count mock-http)) "http mock reset")
+    (is (= 0 (call-count mock-db)) "db mock reset")))
 
 # -----------
 # Real-world Example Tests
