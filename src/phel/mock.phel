@@ -7,14 +7,20 @@
 # Global registry to store mock metadata since with-meta doesn't work on functions
 (def- mock-registry (var {}))
 
-(defn- register-mock! [mock-fn call-history]
-  "Registers a mock function with its call history"
-  (swap! mock-registry assoc mock-fn call-history)
-  mock-fn)
+(defn- register-mock!
+  "Registers a mock function with its call history and optional reset function"
+  ([mock-fn call-history]
+   (register-mock! mock-fn call-history nil))
+  ([mock-fn call-history reset-fn]
+   (swap! mock-registry assoc mock-fn {:call-history call-history
+                                        :reset-fn reset-fn})
+   mock-fn))
 
 (defn- get-mock-calls [mock-fn]
   "Gets the call history for a mock function"
-  (get (deref mock-registry) mock-fn))
+  (let [mock-data (get (deref mock-registry) mock-fn)]
+    (when mock-data
+      (get mock-data :call-history))))
 
 # -----------
 # Mock Creation
@@ -74,7 +80,8 @@
   [values]
   (let [call-history (var [])
         index (var 0)
-        max-index (dec (count values))]
+        max-index (dec (count values))
+        reset-fn (fn [] (set! index 0))]
     (register-mock!
       (fn [& args]
         (swap! call-history push args)
@@ -83,7 +90,8 @@
           (when (< current-index max-index)
             (swap! index inc))
           result))
-      call-history)))
+      call-history
+      reset-fn)))
 
 (defn mock-throwing
   "Creates a mock that throws an exception when called.
@@ -225,9 +233,13 @@
     (my-mock 2)
     (call-count my-mock)   # => 1"
   [mock-fn]
-  (let [call-history (get-mock-calls mock-fn)]
-    (when call-history
-      (set! call-history []))))
+  (let [mock-data (get (deref mock-registry) mock-fn)]
+    (when mock-data
+      (let [call-history (get mock-data :call-history)
+            reset-fn (get mock-data :reset-fn)]
+        (set! call-history [])
+        (when reset-fn
+          (reset-fn))))))
 
 (defn clear-all-mocks!
   "Clears the entire mock registry.

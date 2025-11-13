@@ -40,6 +40,20 @@
     (is (= 3 (my-mock)) "returns last value when exhausted")
     (is (= 4 (call-count my-mock)) "tracks all calls")))
 
+(deftest test-mock-returning-resets-index
+  # Regression test for bug where mock-returning index wasn't reset
+  (let [my-mock (mock-returning [1 2])]
+    # First use - consume both values
+    (is (= 1 (my-mock)) "first call returns 1")
+    (is (= 2 (my-mock)) "second call returns 2")
+
+    # Reset the mock
+    (reset-mock! my-mock)
+
+    # After reset, should restart from first value
+    (is (= 1 (my-mock)) "first call after reset returns 1, not 2")
+    (is (= 2 (my-mock)) "second call after reset returns 2")))
+
 (deftest test-mock-throwing
   (let [my-mock (mock-throwing (php/new \Exception "API error"))]
     (is (thrown? \Exception (my-mock)) "throws exception when called")
