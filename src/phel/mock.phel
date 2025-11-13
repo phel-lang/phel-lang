@@ -213,18 +213,30 @@
   (first (calls mock-fn)))
 
 (defn reset-mock!
-  "Resets the call history of a mock.
+  "Resets the call history of a mock without removing it from the registry.
+  The mock can continue to be used and track new calls.
 
   Examples:
     (def my-mock (mock :result))
     (my-mock 1)
     (call-count my-mock)   # => 1
     (reset-mock! my-mock)
-    (call-count my-mock)   # => 0"
+    (call-count my-mock)   # => 0
+    (my-mock 2)
+    (call-count my-mock)   # => 1"
   [mock-fn]
   (let [call-history (get-mock-calls mock-fn)]
     (when call-history
       (set! call-history []))))
+
+(defn clear-all-mocks!
+  "Clears the entire mock registry.
+  Useful for cleanup between test suites in long-running processes.
+
+  Examples:
+    (clear-all-mocks!)  # All mocks removed from registry"
+  []
+  (set! mock-registry {}))
 
 # -----------
 # Convenience Macro

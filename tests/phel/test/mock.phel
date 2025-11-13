@@ -3,7 +3,7 @@
   (:require phel\mock :refer [mock mock-fn spy mock-returning mock-throwing
                               calls call-count called? called-with? called-once?
                               called-times? never-called? last-call first-call
-                              reset-mock! mock? with-mocks]))
+                              reset-mock! clear-all-mocks! mock? with-mocks]))
 
 # -----------
 # Mock Creation Tests
@@ -113,9 +113,31 @@
     (my-mock 1)
     (my-mock 2)
     (is (= 2 (call-count my-mock)) "has calls")
+    (is (= true (mock? my-mock)) "is registered as mock")
     (reset-mock! my-mock)
     (is (= 0 (call-count my-mock)) "resets to zero")
-    (is (= [] (calls my-mock)) "clears call history")))
+    (is (= [] (calls my-mock)) "clears call history")
+    (is (= true (mock? my-mock)) "still registered (not removed)")
+    # Mock can be used again after reset
+    (my-mock 3)
+    (is (= 1 (call-count my-mock)) "tracks new calls after reset")))
+
+(deftest test-clear-all-mocks
+  (let [mock-a (mock :a)
+        mock-b (mock :b)
+        mock-c (mock :c)]
+    # All mocks are registered
+    (is (= true (mock? mock-a)) "mock-a is registered")
+    (is (= true (mock? mock-b)) "mock-b is registered")
+    (is (= true (mock? mock-c)) "mock-c is registered")
+
+    # Clear the entire registry
+    (clear-all-mocks!)
+
+    # All mocks are removed
+    (is (= false (mock? mock-a)) "mock-a removed from registry")
+    (is (= false (mock? mock-b)) "mock-b removed from registry")
+    (is (= false (mock? mock-c)) "mock-c removed from registry")))
 
 # -----------
 # Integration Tests

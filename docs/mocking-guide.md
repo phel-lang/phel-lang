@@ -194,7 +194,8 @@ Need to test error handling? Make your mock throw an exception:
 - `(called-with? mock & args)` - True if called with exactly these arguments
 - `(first-call mock)` - Returns arguments from first call
 - `(last-call mock)` - Returns arguments from last call
-- `(reset-mock! mock)` - Clears call history
+- `(reset-mock! mock)` - Clears call history but keeps mock registered
+- `(clear-all-mocks!)` - Removes all mocks from registry (for long-running processes)
 
 ### Utilities
 
@@ -413,6 +414,28 @@ Remember that `[& args]` captures all arguments as a list:
 
 (my-fn)  # => original behavior (binding is gone)
 ```
+
+## Memory Management for Long-Running Processes
+
+If you're running Phel in a long-running PHP process (Laravel Octane, Symfony workers, etc.), you should clean up the mock registry between test runs to prevent memory leaks:
+
+```phel
+(ns my-app\test\suite
+  (:require phel\mock :refer [clear-all-mocks!]))
+
+# After each test suite
+(defn teardown []
+  (clear-all-mocks!))
+```
+
+**What gets cleaned:**
+- `clear-all-mocks!` - Removes all mocks from the registry
+- `reset-mock!` - Clears call history but keeps mock registered for reuse
+
+**When to use:**
+- Short-lived test runs (phpunit): Not needed, process exits anyway
+- Long-running workers: Call `clear-all-mocks!` between test suites
+- Interactive REPL: Call `clear-all-mocks!` when switching contexts
 
 ## Wrap Up
 
