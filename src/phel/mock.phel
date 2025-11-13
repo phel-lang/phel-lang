@@ -244,15 +244,17 @@
 
 (defmacro with-mocks
   "Temporarily replaces functions with mocks using binding.
-  Automatically resets mocks after the body executes when mocks are passed directly.
+  Automatically resets mocks after the body executes.
 
-  For auto-reset to work, pass mock values directly in bindings:
+  Works with inline mock creation:
+    (with-mocks [http-get (mock {:status 200})]
+      (http-get)
+      # Mock is automatically reset after this block)
+
+  Also works with pre-defined mocks:
     (let [my-mock (mock :result)]
       (with-mocks [some-fn my-mock]
-        (some-fn)  # mock is used
-        (is (called-once? my-mock)))
-      # my-mock call history is automatically reset here
-      (is (never-called? my-mock)))
+        (some-fn)))
 
   If you need to wrap the mock in a function (e.g., to adapt arguments),
   you'll need to manually reset:
@@ -260,9 +262,12 @@
       (some-fn)
       (reset-mock! my-mock))"
   [bindings & body]
-  (let [mock-values (take-nth 2 (drop 1 bindings))]
-    `(binding ,bindings
-       (try
-         (do ,@body)
-         (finally
-           ,@(map (fn [m] `(reset-mock! ,m)) mock-values))))))
+  (let [symbols (take-nth 2 bindings)
+        values (take-nth 2 (drop 1 bindings))
+        mock-syms (map (fn [_] (gensym "mock")) values)]
+    `(let [,@(interleave mock-syms values)]
+       (binding [,@(interleave symbols mock-syms)]
+         (try
+           (do ,@body)
+           (finally
+             ,@(map (fn [m] `(reset-mock! ,m)) mock-syms)))))))

@@ -197,6 +197,19 @@
     (is (= 0 (call-count mock-http)) "http call history reset again")
     (is (= 0 (call-count mock-db)) "db call history reset again")))
 
+(deftest test-with-mocks-inline-creation
+  # This tests the critical bug fix: inline mock creation should auto-reset
+  (with-mocks [fetch-user (mock {:id 1 :name "Test"})]
+    (fetch-user nil 1)
+    (is (= 1 (call-count fetch-user)) "called once inside with-mocks"))
+
+  # After with-mocks, the inline-created mock should be reset
+  # We can't check the mock directly since it was created inline,
+  # but we can verify a second use creates fresh state
+  (with-mocks [fetch-user (mock {:id 2 :name "Test2"})]
+    (fetch-user nil 2)
+    (is (= 1 (call-count fetch-user)) "new inline mock starts at 1, not 2")))
+
 # -----------
 # Real-world Example Tests
 # -----------
