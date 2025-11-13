@@ -199,7 +199,7 @@ Need to test error handling? Make your mock throw an exception:
 ### Utilities
 
 - `(mock? f)` - True if f is a mock
-- `(with-mocks [bindings] & body)` - Alias for `binding` for clarity
+- `(with-mocks [bindings] & body)` - Like `binding` but automatically resets mocks passed directly in bindings
 
 ## Comparing Approaches
 
@@ -241,6 +241,40 @@ $mock->expects($this->once())
 ```
 
 Phel is more concise and doesn't require configuring expectations upfront - just check after the fact.
+
+## Automatic Mock Reset with `with-mocks`
+
+The `with-mocks` macro automatically resets mock call history when you pass mocks directly in the bindings. This prevents call counts from leaking between tests:
+
+```phel
+(deftest test-user-service
+  (let [mock-http (mock {:status 200})]
+    # First test - mock gets called
+    (with-mocks [http-get mock-http]
+      (fetch-user 123)
+      (is (called-once? mock-http)))
+
+    # After with-mocks, call history is automatically reset!
+    (is (never-called? mock-http))
+
+    # Second test - starts with clean slate
+    (with-mocks [http-get mock-http]
+      (fetch-user 456)
+      (is (called-once? mock-http)))))
+```
+
+**Important:** Auto-reset only works when you pass mocks **directly** in the bindings. If you wrap the mock in a function, you need to manually reset:
+
+```phel
+# This won't auto-reset (mock is wrapped)
+(with-mocks [my-fn (fn [& args] (my-mock (transform args)))]
+  ...
+  (reset-mock! my-mock))  # Manual reset needed
+
+# This will auto-reset (mock passed directly)
+(with-mocks [my-fn my-mock]
+  ...)  # Automatically reset after this block
+```
 
 ## Best Practices
 

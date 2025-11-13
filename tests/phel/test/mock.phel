@@ -146,6 +146,35 @@
       (is (called? mock-http) "first mock was called")
       (is (called? mock-db) "second mock was called"))))
 
+(deftest test-with-mocks-auto-reset
+  # Create mocks outside and use them inside with-mocks bindings directly
+  (let [mock-http (mock {:id 1})
+        mock-db (mock :ok)]
+    # First call - mocks get used
+    (with-mocks [fetch-user mock-http
+                 save-user mock-db]
+      (fetch-user nil 123)
+      (save-user {})
+      (is (= 1 (call-count mock-http)) "http called once inside with-mocks")
+      (is (= 1 (call-count mock-db)) "db called once inside with-mocks"))
+
+    # After with-mocks, call history should be reset
+    (is (= 0 (call-count mock-http)) "http call history reset after with-mocks")
+    (is (= 0 (call-count mock-db)) "db call history reset after with-mocks")
+
+    # Second call - starts fresh
+    (with-mocks [fetch-user mock-http
+                 save-user mock-db]
+      (fetch-user nil 123)
+      (fetch-user nil 456)
+      (save-user {})
+      (is (= 2 (call-count mock-http)) "http called twice in second with-mocks")
+      (is (= 1 (call-count mock-db)) "db called once in second with-mocks"))
+
+    # Should be reset again
+    (is (= 0 (call-count mock-http)) "http call history reset again")
+    (is (= 0 (call-count mock-db)) "db call history reset again")))
+
 # -----------
 # Real-world Example Tests
 # -----------
