@@ -297,9 +297,11 @@
         symbols (map first grouped)
         mocks (map second grouped)
         wrappers (map (fn [g] (get g 2)) grouped)
+        mock-syms (map (fn [_] (gensym "mock")) mocks)
         wrapper-syms (map (fn [_] (gensym "wrapper")) wrappers)
-        reset-forms (map (fn [m] (list 'reset-mock! m)) mocks)]
-    `(let [,@(interleave wrapper-syms wrappers)]
+        reset-forms (map (fn [m] `(reset-mock! ,m)) mock-syms)]
+    `(let [,@(interleave mock-syms mocks)
+           ,@(interleave wrapper-syms wrappers)]
        (binding [,@(interleave symbols wrapper-syms)]
          (try
            (do ,@body)

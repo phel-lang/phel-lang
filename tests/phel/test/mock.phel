@@ -238,6 +238,25 @@
     (is (= 0 (call-count mock-http)) "http mock reset")
     (is (= 0 (call-count mock-db)) "db mock reset")))
 
+(deftest test-with-mock-wrapper-inline-creation
+  # Test that inline mock expressions are evaluated once, not re-evaluated in finally
+  # This verifies the fix for the bug where reset-forms would create a new mock
+  (let [call-count-atom (var 0)
+        # Create a mock factory that tracks how many times it's called
+        counted-mock (fn []
+                       (swap! call-count-atom inc)
+                       (mock {:id (deref call-count-atom)}))]
+
+    # Use inline mock creation - should only call counted-mock once
+    (with-mock-wrapper [fetch-user (counted-mock)
+                        (fn [id] {:id (deref call-count-atom)})]
+      (is (= 1 (deref call-count-atom)) "mock factory called once during setup")
+      (fetch-user 123))
+
+    # After with-mock-wrapper, verify the factory was still only called once
+    # (not twice - once for setup and once for reset)
+    (is (= 1 (deref call-count-atom)) "mock factory not re-evaluated during reset")))
+
 # -----------
 # Real-world Example Tests
 # -----------
