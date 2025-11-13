@@ -50,10 +50,11 @@ Test code that calls external services (APIs, databases, etc.) without actually 
 ```phel
 (deftest test-retry-logic
   (let [mock-api (mock-returning [nil nil {:status 200}])]
-    (binding [fetch-api mock-api]
-      # First two calls return nil, third returns success
-      (is (= {:status 200} (retry-fetch 3)))
-      (is (= 3 (call-count mock-api))))))
+    # First call returns nil, second nil, third succeeds
+    (is (nil? (mock-api)))
+    (is (nil? (mock-api)))
+    (is (= {:status 200} (mock-api)))
+    (is (= 3 (call-count mock-api)))))
 ```
 
 ### `mock-throwing` - Test Error Handling
@@ -171,74 +172,6 @@ For long-running processes (Laravel Octane, Symfony workers):
   (test-integration))
 ```
 
-## Janet Interop
-
-Phel can mock Janet functions exposed through Interop. Since Janet functions aren't Phel vars, you need to wrap them.
-
-### Mocking Janet Functions
-
-```phel
-# Janet code exposes a function
-# (defn janet-fetch-user [id] ...)
-
-(ns my-app\test\janet-service-test
-  (:require phel\test :refer [deftest is])
-  (:require phel\mock :refer [mock called-with? never-called? with-mock-wrapper]))
-
-(deftest test-janet-service
-  (let [mock-janet (mock {:id 1 :name "Alice"})]
-    # Wrap Janet function call with mock
-    (with-mock-wrapper [janet-fetch-user mock-janet
-                        (fn [id] (mock-janet id))]
-      (janet-fetch-user 123)
-      (is (called-with? mock-janet 123)))
-    # Mock automatically reset here
-    (is (never-called? mock-janet))))
-```
-
-### Resetting Between spork/test Fixtures
-
-```phel
-# In your Janet test setup
-(import spork/test :as t)
-
-# Phel mock for Janet function
-(def mock-logger (mock nil))
-
-(t/deftest "test with cleanup"
-  (with-mock-wrapper [janet-log mock-logger
-                      (fn [msg] (mock-logger msg))]
-    (janet-log "test message")
-    (is (called-once? mock-logger)))
-  # Automatically reset after with-mock-wrapper
-  )
-```
-
-### Adapting Janet Function Signatures
-
-Janet functions may have different arity or argument patterns:
-
-```phel
-# Janet function expects (fetch url opts)
-# Phel code calls (fetch-data endpoint)
-
-(deftest test-janet-arity-adapter
-  (let [mock-janet-fetch (mock {:status 200})]
-    (with-mock-wrapper [janet-fetch mock-janet-fetch
-                        (fn [url]
-                          # Adapt from Phel (1 arg) to Janet (2 args)
-                          (mock-janet-fetch url {:method "GET"}))]
-      (let [result (janet-fetch "http://api.example.com")]
-        (is (= {:status 200} result))
-        (is (called-with? mock-janet-fetch "http://api.example.com" {:method "GET"}))))))
-```
-
-### Dynamic Scope Notes
-
-- `with-mocks` uses Phel's `binding`, which affects Phel's dynamic scope
-- Janet's `with` is separate - doesn't interact with Phel bindings
-- Use `with-mock-wrapper` for Janet interop to ensure proper reset
-
 ## Troubleshooting
 
 **Mock not being called?** Use `binding` to replace the function.
@@ -249,12 +182,12 @@ Janet functions may have different arity or argument patterns:
 
 ## Quick Comparison
 
-| Feature | Phel | Clojure | PHPUnit | Janet |
-|---------|------|---------|---------|-------|
-| Basic mock | `(mock val)` | `(constantly val)` | `createMock()` | manual |
-| Call tracking | Built-in | Manual (atom) | Built-in | Manual |
-| Rebinding | `binding` | `with-redefs` | N/A | `with` |
-| Auto-reset | `with-mocks` | Manual | `tearDown` | fixtures |
+| Feature       | Phel         | Clojure            | PHPUnit        |
+|---------------|--------------|--------------------|----------------|
+| Basic mock    | `(mock val)` | `(constantly val)` | `createMock()` |
+| Call tracking | Built-in     | Manual (atom)      | Built-in       |
+| Rebinding     | `binding`    | `with-redefs`      | N/A            |
+| Auto-reset    | `with-mocks` | Manual             | `tearDown`     |
 
 ---
 
