@@ -247,3 +247,19 @@
       (is (= {:status 200} (retry-fetch fetch-from-api "http://api.example.com" 3))
           "succeeds after retries")
       (is (= 3 (call-count mock-api)) "retries correct number of times"))))
+
+# -----------
+# Interop/External Function Mocking Tests
+# -----------
+
+(defn call-external-service [http-fn endpoint]
+  "Simulates calling an external service (could be PHP, Janet, or any foreign function)"
+  (http-fn endpoint))
+
+(deftest test-mock-external-interop-function
+  (let [mock-external (mock {:success true :data "mocked response"})]
+    # Mock an external/foreign function by wrapping it
+    (binding [call-external-service (fn [_ endpoint] (mock-external endpoint))]
+      (let [result (call-external-service nil "/api/data")]
+        (is (= {:success true :data "mocked response"} result) "returns mocked response")
+        (is (called-with? mock-external "/api/data") "verifies external call was made")))))

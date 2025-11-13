@@ -243,6 +243,49 @@ $mock->expects($this->once())
 
 Phel is more concise and doesn't require configuring expectations upfront - just check after the fact.
 
+### Phel vs Janet
+
+**Janet (using spork/test):**
+```janet
+# Janet uses with for temporary rebinding
+(with [http-get mock-fn]
+  (test-something))
+
+# Janet test fixtures for cleanup
+(defn setup [] ...)
+(defn teardown [] ...)
+```
+
+**Phel:**
+```phel
+# Similar to Janet's with, but with call tracking
+(let [mock-http (mock {:status 200})]
+  (binding [http-get mock-http]
+    (test-something)
+    (is (called? mock-http))))
+
+# Cleanup for long-running processes
+(defn teardown []
+  (clear-all-mocks!))
+```
+
+**Key Differences:**
+
+1. **Dynamic Bindings**: Phel's `binding` is conceptually similar to Janet's `with`, both provide temporary rebinding in a dynamic scope.
+
+2. **Mock Tracking**: Phel mocks track calls automatically, while Janet typically requires manual tracking with atoms or tables.
+
+3. **Interop**: When testing Phel code that calls Janet functions (if using Janet interop), wrap Janet functions in Phel mocks:
+   ```phel
+   # Assuming Janet interop exists
+   (let [mock-janet-fn (mock :result)]
+     (binding [my-janet-wrapper mock-janet-fn]
+       (test-code-using-janet)
+       (is (called-with? mock-janet-fn expected-args))))
+   ```
+
+4. **Cleanup**: Janet's test fixtures with `setup`/`teardown` map to Phel's `clear-all-mocks!` for registry cleanup between test suites.
+
 ## Automatic Mock Reset with `with-mocks`
 
 The `with-mocks` macro automatically resets mock call history when you pass mocks directly in the bindings. This prevents call counts from leaking between tests:
