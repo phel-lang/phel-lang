@@ -16,7 +16,11 @@
   (php/:: GlobalEnvironmentSingleton (getInstance)))
 
 (defn loaded-namespaces
-  "Return all namespaces currently loaded in the REPL."
+  "Returns all namespaces currently loaded in the REPL.
+
+  Example:
+    (loaded-namespaces)
+    # => [\"phel\\core\" \"phel\\repl\"]"
   []
   (php/:: Phel (getNamespaces)))
 
@@ -30,8 +34,11 @@
         (eval-file (php/-> dep (getFile)))))))
 
 (defn resolve
-  "Resolves the given symbol in the current environment and returns a
-   resolved Symbol with the absolute namespace or nil if it cannot be resolved."
+  "Resolves the given symbol in the current environment and returns a resolved Symbol with the absolute namespace or nil if it cannot be resolved.
+
+  Example:
+    (resolve 'map)
+    # => phel\\core/map"
   [sym]
   (-> (get-global-env)
       (php/-> (resolveAsSymbol sym (php/:: NodeEnvironment (empty))))))
@@ -50,7 +57,11 @@
         (clean-doc message)))))
 
 (defmacro doc
-  "Prints the documentation for the given symbol."
+  "Prints the documentation for the given symbol.
+
+  Example:
+    (doc map)
+    # Prints: \"Applies function f to each element...\""
   [sym]
   (let [resolved-sym (resolve sym)]
     (when resolved-sym
@@ -79,7 +90,11 @@
     namespace))
 
 (defmacro require
-  "Requires a Phel module into the environment."
+  "Requires a Phel module into the environment.
+
+  Example:
+    (require phel\http :as http :refer [request])
+    # => phel\\http"
   [sym & args]
   (let [options (apply hash-map args)
         alias (extract-alias sym options)
@@ -92,7 +107,11 @@
   namespace)
 
 (defmacro use
-  "Adds a use statement to the environment."
+  "Adds a use statement to the environment.
+
+  Example:
+    (use DateTime :as DT)
+    # => DateTime"
   [sym & args]
   (let [options (apply hash-map args)
         alias (extract-alias sym options)]
@@ -114,19 +133,33 @@
           res)))))
 
 (defn print-colorful
-  "Colored print."
+  "Prints arguments with colored output.
+
+  Example:
+    (print-colorful [1 2 3])
+    # Prints: [1 2 3] (with color)"
   [& xs]
   (php/print (apply print-colorful-str xs))
   nil)
 
 (defn println-colorful
-  "Colored println."
+  "Prints arguments with colored output followed by a newline.
+
+  Example:
+    (println-colorful [1 2 3])
+    # Prints: [1 2 3]\n (with color)"
   [& xs]
   (apply print-colorful xs)
   (php/print "\n")
   nil)
 
-(defn compile-str [s]
+(defn compile-str
+  "Compiles a Phel expression string to PHP code.
+
+  Example:
+    (compile-str \"(+ 1 2)\")
+    # => \"(1 + 2)\""
+  [s]
   (let [cf (php/new CompilerFacade)
         opts (php/new CompileOptions)
         res (php/-> cf (compile s opts))]
